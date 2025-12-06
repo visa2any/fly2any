@@ -526,7 +526,7 @@ function FlightResultsContent() {
   const [multiCityLegMetadata, setMultiCityLegMetadata] = useState<Array<{from: string, to: string, date: string, nonstop: boolean}>>([]);
 
   // Search bar collapse state - auto-collapse when results load
-  const [searchBarCollapsed, setSearchBarCollapsed] = useState(false);
+  const [searchBarCollapsed, setSearchBarCollapsed] = useState(true); // Mobile: Start collapsed to show results immediately
 
   // Mobile filter sheet state
   const [mobileFilterSheetOpen, setMobileFilterSheetOpen] = useState(false);

@@ -136,7 +136,7 @@ export function CollapsibleSearchBar({
           >
             <button
               onClick={handleToggle}
-              className="w-full min-h-[50px] bg-white/95 backdrop-blur-lg rounded-2xl shadow-lg p-3 hover:shadow-xl transition-shadow border border-gray-200"
+              className="w-full min-h-[56px] bg-gradient-to-br from-white via-white to-primary-50/30 backdrop-blur-lg rounded-2xl shadow-lg p-3.5 hover:shadow-xl active:scale-[0.98] transition-all border border-primary-200/50"
               aria-label="Expand search form"
               aria-expanded="false"
             >
