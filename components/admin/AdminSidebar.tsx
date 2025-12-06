@@ -29,6 +29,7 @@ import {
   GitBranch,
   Ticket,
   Star,
+  Bell,
 } from 'lucide-react'
 
 interface AdminSidebarProps {
@@ -143,6 +144,12 @@ export default function AdminSidebar({ role }: AdminSidebarProps) {
       label: 'Monitoring',
       href: '/admin/monitoring',
       icon: Activity
+    },
+    {
+      label: 'Notifications',
+      href: '/admin/notifications',
+      icon: Bell,
+      roles: ['super_admin', 'admin']
     },
     {
       label: 'Cost Savings',
