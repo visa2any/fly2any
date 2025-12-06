@@ -42,6 +42,9 @@ interface EnhancedSearchBarProps {
   // Common props
   lang?: 'en' | 'pt' | 'es';
   defaultService?: ServiceType;  // Default tab to show (flights, hotels, cars, tours)
+  
+  // Callbacks
+  onSearchSubmit?: () => void;  // Called when search is submitted (for mobile auto-collapse)
 }
 
 interface Airport {
@@ -172,6 +175,7 @@ export default function EnhancedSearchBar({
   // Common props
   lang = 'en',
   defaultService = 'flights',
+  onSearchSubmit,
 }: EnhancedSearchBarProps) {
   const t = useTranslations('FlightSearch');
   const router = useRouter();
@@ -778,6 +782,8 @@ export default function EnhancedSearchBar({
   };
 
   const handleSearch = () => {
+    // Trigger mobile auto-collapse
+    onSearchSubmit?.();
     // Hotels search
     if (serviceType === 'hotels') {
       if (!hotelDestination || !checkInDate || !checkOutDate) {

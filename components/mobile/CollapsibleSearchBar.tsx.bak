@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, cloneElement, isValidElement } from 'react';
+import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ChevronDown, ChevronUp, Calendar, Users, MapPin } from 'lucide-react';
 import { format } from 'date-fns';
@@ -30,8 +30,6 @@ export interface CollapsibleSearchBarProps {
   onCollapseChange?: (collapsed: boolean) => void;
   /** Show on mobile only (default: true) */
   mobileOnly?: boolean;
-  /** Callback when search is submitted (triggers auto-collapse on mobile) */
-  onSearch?: () => void;
 }
 
 /**
@@ -64,7 +62,6 @@ export function CollapsibleSearchBar({
   defaultCollapsed = false,
   onCollapseChange,
   mobileOnly = true,
-  onSearch,
 }: CollapsibleSearchBarProps) {
   const [isCollapsed, setIsCollapsed] = useState(defaultCollapsed);
   const [manualOverride, setManualOverride] = useState(false);
@@ -104,22 +101,6 @@ export function CollapsibleSearchBar({
     }, 3000);
   };
 
-  // Auto-collapse when search is submitted (mobile UX optimization)
-  const handleSearchSubmit = () => {
-    // Immediately collapse to show loading state and results
-    setIsCollapsed(true);
-    onCollapseChange?.(true);
-    setManualOverride(true); // Prevent auto-expand during loading
-
-    // Call parent's onSearch callback if provided
-    onSearch?.();
-
-    // Re-enable auto behavior after 5 seconds
-    setTimeout(() => {
-      setManualOverride(false);
-    }, 5000);
-  };
-
   // Calculate total passengers
   const totalPassengers =
     searchSummary.passengers.adults +
@@ -155,7 +136,7 @@ export function CollapsibleSearchBar({
           >
             <button
               onClick={handleToggle}
-              className="w-full min-h-[56px] bg-gradient-to-br from-white via-white to-primary-50/30 backdrop-blur-lg rounded-2xl shadow-lg p-3.5 hover:shadow-xl active:scale-[0.98] transition-all border border-primary-200/50"
+              className="w-full min-h-[50px] bg-white/95 backdrop-blur-lg rounded-2xl shadow-lg p-3 hover:shadow-xl transition-shadow border border-gray-200"
               aria-label="Expand search form"
               aria-expanded="false"
             >
@@ -214,10 +195,8 @@ export function CollapsibleSearchBar({
                 <ChevronUp className="w-5 h-5 text-primary-600" />
               </button>
 
-              {/* Full Search Form - Clone and inject onSearchSubmit handler */}
-              {isValidElement(children)
-                ? cloneElement(children, { onSearchSubmit: handleSearchSubmit } as any)
-                : children}
+              {/* Full Search Form */}
+              {children}
             </div>
           </motion.div>
         )}

@@ -1634,6 +1634,7 @@ function FlightResultsContent() {
         defaultCollapsed={searchBarCollapsed}
         onCollapseChange={setSearchBarCollapsed}
         mobileOnly={true}
+        onSearch={() => {}}
       >
         <EnhancedSearchBar
           origin={searchData.from}
