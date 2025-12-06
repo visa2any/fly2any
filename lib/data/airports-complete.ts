@@ -2,7 +2,7 @@
  * COMPREHENSIVE GLOBAL AIRPORT DATABASE
  *
  * Complete worldwide airport coverage for Fly2Any platform
- * Total: 850+ airports across all continents
+ * Total: 900+ airports across all continents
  *
  * Features:
  * - IATA & ICAO codes
@@ -19,7 +19,7 @@
  * - OpenFlights Database
  * - Manual curation for accuracy
  *
- * Last Updated: 2025-01-19
+ * Last Updated: 2025-12-05
  */
 
 export type Continent = 'NA' | 'SA' | 'EU' | 'AF' | 'AS' | 'OC' | 'ME';
@@ -592,7 +592,7 @@ const AIRPORTS_MIDDLE_EAST: Airport[] = [
 ];
 
 // ============================================================================
-// AFRICA (AF) - 60 airports
+// AFRICA (AF) - 82 airports (Comprehensive continental coverage)
 // ============================================================================
 
 const AIRPORTS_AFRICA: Airport[] = [
@@ -684,6 +684,109 @@ const AIRPORTS_AFRICA: Airport[] = [
 
   // ===== REUNION (France) =====
   { code: 'RUN', icao: 'FMEE', name: 'Roland Garros Airport', city: 'Saint-Denis', country: 'Réunion', countryCode: 'RE', continent: 'AF', timezone: 'Indian/Reunion', coordinates: { lat: -20.8871, lon: 55.5103 }, flag: '🇷🇪', emoji: '🌋', popular: true },
+
+  // ===== SÃO TOMÉ AND PRÍNCIPE =====
+  { code: 'TMS', icao: 'FPST', name: 'São Tomé International', city: 'São Tomé', country: 'São Tomé and Príncipe', countryCode: 'ST', continent: 'AF', timezone: 'Africa/Sao_Tome', coordinates: { lat: 0.3782, lon: 6.7125 }, flag: '🇸🇹', emoji: '🏝️', popular: false },
+  { code: 'PCP', icao: 'FPPR', name: 'Príncipe Airport', city: 'Príncipe Island', country: 'São Tomé and Príncipe', countryCode: 'ST', continent: 'AF', timezone: 'Africa/Sao_Tome', coordinates: { lat: 1.6629, lon: 7.4114 }, flag: '🇸🇹', emoji: '🏝️', popular: false },
+
+  // ===== CAPE VERDE =====
+  { code: 'SID', icao: 'GVAC', name: 'Amílcar Cabral International', city: 'Sal Island', country: 'Cape Verde', countryCode: 'CV', continent: 'AF', timezone: 'Atlantic/Cape_Verde', coordinates: { lat: 16.7414, lon: -22.9494 }, flag: '🇨🇻', emoji: '🏖️', popular: true },
+  { code: 'RAI', icao: 'GVNP', name: 'Nelson Mandela International', city: 'Praia', country: 'Cape Verde', countryCode: 'CV', continent: 'AF', timezone: 'Atlantic/Cape_Verde', coordinates: { lat: 14.9245, lon: -23.4935 }, flag: '🇨🇻', emoji: '🏛️', popular: false },
+  { code: 'BVC', icao: 'GVBA', name: 'Aristides Pereira International', city: 'Boa Vista', country: 'Cape Verde', countryCode: 'CV', continent: 'AF', timezone: 'Atlantic/Cape_Verde', coordinates: { lat: 16.1365, lon: -22.8889 }, flag: '🇨🇻', emoji: '🏖️', popular: true },
+
+  // ===== GAMBIA =====
+  { code: 'BJL', icao: 'GBYD', name: 'Banjul International', city: 'Banjul', country: 'Gambia', countryCode: 'GM', continent: 'AF', timezone: 'Africa/Banjul', coordinates: { lat: 13.3381, lon: -16.6522 }, flag: '🇬🇲', emoji: '🏖️', popular: false },
+
+  // ===== GUINEA =====
+  { code: 'CKY', icao: 'GUCY', name: 'Conakry International', city: 'Conakry', country: 'Guinea', countryCode: 'GN', continent: 'AF', timezone: 'Africa/Conakry', coordinates: { lat: 9.5769, lon: -13.6120 }, flag: '🇬🇳', emoji: '🌴', popular: false },
+
+  // ===== GUINEA-BISSAU =====
+  { code: 'OXB', icao: 'GGOV', name: 'Osvaldo Vieira International', city: 'Bissau', country: 'Guinea-Bissau', countryCode: 'GW', continent: 'AF', timezone: 'Africa/Bissau', coordinates: { lat: 11.8948, lon: -15.6537 }, flag: '🇬🇼', emoji: '🌴', popular: false },
+
+  // ===== SIERRA LEONE =====
+  { code: 'FNA', icao: 'GFLL', name: 'Lungi International', city: 'Freetown', country: 'Sierra Leone', countryCode: 'SL', continent: 'AF', timezone: 'Africa/Freetown', coordinates: { lat: 8.6164, lon: -13.1955 }, flag: '🇸🇱', emoji: '🌴', popular: false },
+
+  // ===== LIBERIA =====
+  { code: 'ROB', icao: 'GLRB', name: 'Roberts International', city: 'Monrovia', country: 'Liberia', countryCode: 'LR', continent: 'AF', timezone: 'Africa/Monrovia', coordinates: { lat: 6.2338, lon: -10.3623 }, flag: '🇱🇷', emoji: '🌴', popular: false },
+
+  // ===== MALI =====
+  { code: 'BKO', icao: 'GABS', name: 'Modibo Keita International', city: 'Bamako', country: 'Mali', countryCode: 'ML', continent: 'AF', timezone: 'Africa/Bamako', coordinates: { lat: 12.5335, lon: -7.9499 }, flag: '🇲🇱', emoji: '🏜️', popular: false },
+
+  // ===== BURKINA FASO =====
+  { code: 'OUA', icao: 'DFFD', name: 'Ouagadougou International', city: 'Ouagadougou', country: 'Burkina Faso', countryCode: 'BF', continent: 'AF', timezone: 'Africa/Ouagadougou', coordinates: { lat: 12.3532, lon: -1.5124 }, flag: '🇧🇫', emoji: '🏛️', popular: false },
+
+  // ===== NIGER =====
+  { code: 'NIM', icao: 'DRRN', name: 'Diori Hamani International', city: 'Niamey', country: 'Niger', countryCode: 'NE', continent: 'AF', timezone: 'Africa/Niamey', coordinates: { lat: 13.4815, lon: 2.1836 }, flag: '🇳🇪', emoji: '🏜️', popular: false },
+
+  // ===== BENIN =====
+  { code: 'COO', icao: 'DBBB', name: 'Cadjehoun Airport', city: 'Cotonou', country: 'Benin', countryCode: 'BJ', continent: 'AF', timezone: 'Africa/Porto-Novo', coordinates: { lat: 6.3573, lon: 2.3843 }, flag: '🇧🇯', emoji: '🌴', popular: false },
+
+  // ===== TOGO =====
+  { code: 'LFW', icao: 'DXXX', name: 'Gnassingbé Eyadéma International', city: 'Lomé', country: 'Togo', countryCode: 'TG', continent: 'AF', timezone: 'Africa/Lome', coordinates: { lat: 6.1656, lon: 1.2545 }, flag: '🇹🇬', emoji: '🌴', popular: false },
+
+  // ===== CAMEROON =====
+  { code: 'DLA', icao: 'FKKD', name: 'Douala International', city: 'Douala', country: 'Cameroon', countryCode: 'CM', continent: 'AF', timezone: 'Africa/Douala', coordinates: { lat: 4.0061, lon: 9.7194 }, flag: '🇨🇲', emoji: '🌴', popular: true },
+  { code: 'NSI', icao: 'FKYS', name: 'Yaoundé Nsimalen International', city: 'Yaoundé', country: 'Cameroon', countryCode: 'CM', continent: 'AF', timezone: 'Africa/Douala', coordinates: { lat: 3.7226, lon: 11.5533 }, flag: '🇨🇲', emoji: '🏛️', popular: false },
+
+  // ===== GABON =====
+  { code: 'LBV', icao: 'FOOL', name: "Léon M'ba International", city: 'Libreville', country: 'Gabon', countryCode: 'GA', continent: 'AF', timezone: 'Africa/Libreville', coordinates: { lat: 0.4586, lon: 9.4123 }, flag: '🇬🇦', emoji: '🌴', popular: false },
+
+  // ===== EQUATORIAL GUINEA =====
+  { code: 'SSG', icao: 'FGSL', name: 'Malabo International', city: 'Malabo', country: 'Equatorial Guinea', countryCode: 'GQ', continent: 'AF', timezone: 'Africa/Malabo', coordinates: { lat: 3.7552, lon: 8.7087 }, flag: '🇬🇶', emoji: '🏝️', popular: false },
+
+  // ===== CONGO (REPUBLIC) =====
+  { code: 'BZV', icao: 'FCBB', name: 'Maya-Maya Airport', city: 'Brazzaville', country: 'Republic of the Congo', countryCode: 'CG', continent: 'AF', timezone: 'Africa/Brazzaville', coordinates: { lat: -4.2517, lon: 15.2530 }, flag: '🇨🇬', emoji: '🌴', popular: false },
+  { code: 'PNR', icao: 'FCPP', name: 'Pointe Noire Airport', city: 'Pointe-Noire', country: 'Republic of the Congo', countryCode: 'CG', continent: 'AF', timezone: 'Africa/Brazzaville', coordinates: { lat: -4.8160, lon: 11.8866 }, flag: '🇨🇬', emoji: '🛢️', popular: false },
+
+  // ===== DEMOCRATIC REPUBLIC OF CONGO =====
+  { code: 'FIH', icao: 'FZAA', name: "N'djili International", city: 'Kinshasa', country: 'Democratic Republic of the Congo', countryCode: 'CD', continent: 'AF', timezone: 'Africa/Kinshasa', coordinates: { lat: -4.3858, lon: 15.4446 }, flag: '🇨🇩', emoji: '🏙️', popular: true },
+  { code: 'FBM', icao: 'FZQA', name: 'Lubumbashi International', city: 'Lubumbashi', country: 'Democratic Republic of the Congo', countryCode: 'CD', continent: 'AF', timezone: 'Africa/Lubumbashi', coordinates: { lat: -11.5913, lon: 27.5309 }, flag: '🇨🇩', emoji: '💎', popular: false },
+
+  // ===== CENTRAL AFRICAN REPUBLIC =====
+  { code: 'BGF', icao: 'FEFF', name: "Bangui M'Poko International", city: 'Bangui', country: 'Central African Republic', countryCode: 'CF', continent: 'AF', timezone: 'Africa/Bangui', coordinates: { lat: 4.3985, lon: 18.5188 }, flag: '🇨🇫', emoji: '🌴', popular: false },
+
+  // ===== CHAD =====
+  { code: 'NDJ', icao: 'FTTJ', name: 'Hassan Djamous International', city: "N'Djamena", country: 'Chad', countryCode: 'TD', continent: 'AF', timezone: 'Africa/Ndjamena', coordinates: { lat: 12.1337, lon: 15.0340 }, flag: '🇹🇩', emoji: '🏜️', popular: false },
+
+  // ===== SUDAN =====
+  { code: 'KRT', icao: 'HSSS', name: 'Khartoum International', city: 'Khartoum', country: 'Sudan', countryCode: 'SD', continent: 'AF', timezone: 'Africa/Khartoum', coordinates: { lat: 15.5895, lon: 32.5532 }, flag: '🇸🇩', emoji: '🏛️', popular: false },
+
+  // ===== SOUTH SUDAN =====
+  { code: 'JUB', icao: 'HSSJ', name: 'Juba International', city: 'Juba', country: 'South Sudan', countryCode: 'SS', continent: 'AF', timezone: 'Africa/Juba', coordinates: { lat: 4.8720, lon: 31.6011 }, flag: '🇸🇸', emoji: '🏛️', popular: false },
+
+  // ===== ERITREA =====
+  { code: 'ASM', icao: 'HHAS', name: 'Asmara International', city: 'Asmara', country: 'Eritrea', countryCode: 'ER', continent: 'AF', timezone: 'Africa/Asmara', coordinates: { lat: 15.2919, lon: 38.9107 }, flag: '🇪🇷', emoji: '🏛️', popular: false },
+
+  // ===== DJIBOUTI =====
+  { code: 'JIB', icao: 'HDAM', name: 'Djibouti-Ambouli International', city: 'Djibouti City', country: 'Djibouti', countryCode: 'DJ', continent: 'AF', timezone: 'Africa/Djibouti', coordinates: { lat: 11.5473, lon: 43.1595 }, flag: '🇩🇯', emoji: '🏜️', popular: false },
+
+  // ===== SOMALIA =====
+  { code: 'MGQ', icao: 'HCMM', name: 'Aden Adde International', city: 'Mogadishu', country: 'Somalia', countryCode: 'SO', continent: 'AF', timezone: 'Africa/Mogadishu', coordinates: { lat: 2.0144, lon: 45.3047 }, flag: '🇸🇴', emoji: '🏙️', popular: false },
+
+  // ===== ANGOLA =====
+  { code: 'LAD', icao: 'FNLU', name: 'Quatro de Fevereiro International', city: 'Luanda', country: 'Angola', countryCode: 'AO', continent: 'AF', timezone: 'Africa/Luanda', coordinates: { lat: -8.8584, lon: 13.2312 }, flag: '🇦🇴', emoji: '🏙️', popular: true },
+
+  // ===== MALAWI =====
+  { code: 'LLW', icao: 'FWKI', name: 'Lilongwe International', city: 'Lilongwe', country: 'Malawi', countryCode: 'MW', continent: 'AF', timezone: 'Africa/Blantyre', coordinates: { lat: -13.7894, lon: 33.7810 }, flag: '🇲🇼', emoji: '🏛️', popular: false },
+  { code: 'BLZ', icao: 'FWCL', name: 'Chileka International', city: 'Blantyre', country: 'Malawi', countryCode: 'MW', continent: 'AF', timezone: 'Africa/Blantyre', coordinates: { lat: -15.6791, lon: 34.9740 }, flag: '🇲🇼', emoji: '🏔️', popular: false },
+
+  // ===== COMOROS =====
+  { code: 'HAH', icao: 'FMCH', name: 'Prince Said Ibrahim International', city: 'Moroni', country: 'Comoros', countryCode: 'KM', continent: 'AF', timezone: 'Indian/Comoro', coordinates: { lat: -11.5337, lon: 43.2719 }, flag: '🇰🇲', emoji: '🏝️', popular: false },
+
+  // ===== MAYOTTE (France) =====
+  { code: 'DZA', icao: 'FMCZ', name: 'Dzaoudzi-Pamandzi International', city: 'Dzaoudzi', country: 'Mayotte', countryCode: 'YT', continent: 'AF', timezone: 'Indian/Mayotte', coordinates: { lat: -12.8047, lon: 45.2811 }, flag: '🇾🇹', emoji: '🏝️', popular: false },
+
+  // ===== MAURITANIA =====
+  { code: 'NKC', icao: 'GQNN', name: 'Nouakchott-Oumtounsy International', city: 'Nouakchott', country: 'Mauritania', countryCode: 'MR', continent: 'AF', timezone: 'Africa/Nouakchott', coordinates: { lat: 18.0988, lon: -15.9485 }, flag: '🇲🇷', emoji: '🏜️', popular: false },
+
+  // ===== BURUNDI =====
+  { code: 'BJM', icao: 'HBBA', name: 'Melchior Ndadaye International', city: 'Bujumbura', country: 'Burundi', countryCode: 'BI', continent: 'AF', timezone: 'Africa/Bujumbura', coordinates: { lat: -3.3240, lon: 29.3185 }, flag: '🇧🇮', emoji: '🏔️', popular: false },
+
+  // ===== ESWATINI (SWAZILAND) =====
+  { code: 'SHO', icao: 'FDSK', name: 'King Mswati III International', city: 'Manzini', country: 'Eswatini', countryCode: 'SZ', continent: 'AF', timezone: 'Africa/Mbabane', coordinates: { lat: -26.3586, lon: 31.7169 }, flag: '🇸🇿', emoji: '🏔️', popular: false },
+
+  // ===== LESOTHO =====
+  { code: 'MSU', icao: 'FXMM', name: 'Moshoeshoe I International', city: 'Maseru', country: 'Lesotho', countryCode: 'LS', continent: 'AF', timezone: 'Africa/Maseru', coordinates: { lat: -29.4623, lon: 27.5525 }, flag: '🇱🇸', emoji: '🏔️', popular: false },
 ];
 
 // ============================================================================
