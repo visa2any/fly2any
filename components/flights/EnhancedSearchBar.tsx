@@ -661,6 +661,21 @@ export default function EnhancedSearchBar({
     }
   };
 
+  // Multi-date selection handler for flexible dates mode
+  const handleMultiDateChange = (dates: Date[]) => {
+    if (datePickerType === 'departure') {
+      setDepartureDates(dates);
+      // Clear date errors when user makes changes
+      if (errors.departureDate) {
+        const newErrors = { ...errors };
+        delete newErrors.departureDate;
+        setErrors(newErrors);
+      }
+    } else {
+      setReturnDates(dates);
+    }
+  };
+
   // Multi-city flight handlers
   const handleAddFlight = () => {
     if (additionalFlights.length >= 4) return; // Max 5 flights total (1 main + 4 additional)
@@ -1320,12 +1335,25 @@ export default function EnhancedSearchBar({
                 ref={departureDateRef}
                 type="button"
                 onClick={() => handleOpenDatePicker('departure')}
-                className="w-full relative px-4 py-4 bg-white border border-gray-300 rounded-lg hover:border-[#0087FF] transition-all cursor-pointer"
+                className={`w-full relative px-4 py-3 bg-white border rounded-lg hover:border-[#0087FF] transition-all cursor-pointer min-h-[56px] ${
+                  errors.departureDate ? 'border-red-500' : 'border-gray-300'
+                }`}
               >
                 <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={20} />
-                <span className="block pl-8 text-base font-medium text-gray-900">
-                  {departureDate ? formatDateForDisplay(departureDate) : 'Select date'}
-                </span>
+                <div className="pl-8 flex flex-wrap gap-1.5 items-center">
+                  {departureDates.length > 0 ? (
+                    departureDates.map((date, idx) => (
+                      <span
+                        key={idx}
+                        className="inline-flex items-center px-2 py-1 rounded-md bg-[#E6F3FF] text-[#0087FF] text-sm font-medium"
+                      >
+                        {format(date, 'MMM d')}
+                      </span>
+                    ))
+                  ) : (
+                    <span className="text-base font-medium text-gray-500">Select dates (up to 3)</span>
+                  )}
+                </div>
               </button>
             )}
 
@@ -1381,12 +1409,23 @@ export default function EnhancedSearchBar({
                   ref={returnDateRef}
                   type="button"
                   onClick={() => handleOpenDatePicker('return')}
-                  className="w-full relative px-4 py-4 bg-white border border-gray-300 rounded-lg hover:border-[#0087FF] transition-all cursor-pointer"
+                  className="w-full relative px-4 py-3 bg-white border border-gray-300 rounded-lg hover:border-[#0087FF] transition-all cursor-pointer min-h-[56px]"
                 >
                   <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={20} />
-                  <span className="block pl-8 text-base font-medium text-gray-900">
-                    {returnDate ? formatDateForDisplay(returnDate) : 'Select date'}
-                  </span>
+                  <div className="pl-8 flex flex-wrap gap-1.5 items-center">
+                    {returnDates.length > 0 ? (
+                      returnDates.map((date, idx) => (
+                        <span
+                          key={idx}
+                          className="inline-flex items-center px-2 py-1 rounded-md bg-[#E6F3FF] text-[#0087FF] text-sm font-medium"
+                        >
+                          {format(date, 'MMM d')}
+                        </span>
+                      ))
+                    ) : (
+                      <span className="text-base font-medium text-gray-500">Select dates (up to 3)</span>
+                    )}
+                  </div>
                 </button>
               )
             ) : (
@@ -2908,7 +2947,10 @@ export default function EnhancedSearchBar({
           value={departureDate}
           returnValue={returnDate}
           onChange={handleDatePickerChange}
-          type="range"
+          type={useFlexibleDates ? 'multi' : 'range'}
+          selectedDates={useFlexibleDates ? (datePickerType === 'departure' ? departureDates : returnDates) : undefined}
+          onMultiChange={useFlexibleDates ? handleMultiDateChange : undefined}
+          maxDates={3}
           anchorEl={datePickerType === 'departure' ? departureDateRef.current : returnDateRef.current}
           prices={calendarPrices}
           loadingPrices={loadingCalendarPrices}

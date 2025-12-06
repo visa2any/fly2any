@@ -42,8 +42,9 @@ export interface MailgunSendResult {
 
 const CONFIG = {
   apiKey: process.env.MAILGUN_API_KEY,
-  domain: process.env.MAILGUN_DOMAIN || 'mg.fly2any.com',
-  fromEmail: process.env.EMAIL_FROM || 'Fly2Any <support@fly2any.com>',
+  domain: process.env.MAILGUN_DOMAIN || 'mail.fly2any.com',
+  fromEmail: process.env.EMAIL_FROM || 'Fly2Any <noreply@mail.fly2any.com>',
+  replyToEmail: process.env.EMAIL_REPLY_TO || 'support@fly2any.com',
   isProduction: process.env.NODE_ENV === 'production',
   // Mailgun API endpoint (US region - use api.eu.mailgun.net for EU)
   get apiUrl() {
@@ -104,38 +105,47 @@ class MailgunClient {
 
   /**
    * Internal: Send via Mailgun API
+   * Uses application/x-www-form-urlencoded for better HTML content handling
    */
   private async sendViaApi(options: MailgunEmailOptions): Promise<MailgunSendResult> {
-    const formData = new FormData();
-    formData.append('from', options.from || CONFIG.fromEmail);
-    formData.append('to', Array.isArray(options.to) ? options.to.join(',') : options.to);
-    formData.append('subject', options.subject);
-    formData.append('html', options.html);
+    // Build form data as URLSearchParams for proper encoding
+    const params = new URLSearchParams();
+    params.append('from', options.from || CONFIG.fromEmail);
+    params.append('to', Array.isArray(options.to) ? options.to.join(',') : options.to);
+    params.append('subject', options.subject);
+    params.append('html', options.html);
 
     if (options.text) {
-      formData.append('text', options.text);
+      params.append('text', options.text);
     }
 
-    if (options.replyTo) {
-      formData.append('h:Reply-To', options.replyTo);
-    }
+    // Always add Reply-To header (defaults to support email)
+    params.append('h:Reply-To', options.replyTo || CONFIG.replyToEmail);
 
     // Add tags for Mailgun analytics
     if (options.tags) {
-      options.tags.forEach(tag => formData.append('o:tag', tag));
+      options.tags.forEach(tag => params.append('o:tag', tag));
     }
 
     // Enable tracking
-    formData.append('o:tracking', 'yes');
-    formData.append('o:tracking-clicks', 'yes');
-    formData.append('o:tracking-opens', 'yes');
+    params.append('o:tracking', 'yes');
+    params.append('o:tracking-clicks', 'yes');
+    params.append('o:tracking-opens', 'yes');
+
+    // Anti-spam best practices headers
+    params.append('h:List-Unsubscribe', '<https://www.fly2any.com/unsubscribe>');
+    params.append('h:List-Unsubscribe-Post', 'List-Unsubscribe=One-Click');
+    params.append('h:X-Priority', '3'); // Normal priority (1=high, 3=normal, 5=low)
+    params.append('h:X-Mailer', 'Fly2Any Mailer v3.0');
+    params.append('h:Precedence', 'bulk'); // Indicates marketing/transactional email
 
     const response = await fetch(CONFIG.apiUrl, {
       method: 'POST',
       headers: {
         'Authorization': `Basic ${Buffer.from(`api:${CONFIG.apiKey}`).toString('base64')}`,
+        'Content-Type': 'application/x-www-form-urlencoded',
       },
-      body: formData,
+      body: params.toString(),
     });
 
     if (!response.ok) {
@@ -186,6 +196,7 @@ export const mailgunClient = new MailgunClient();
 // Export config for use by other services
 export const MAILGUN_CONFIG = {
   fromEmail: CONFIG.fromEmail,
+  replyToEmail: CONFIG.replyToEmail,
   domain: CONFIG.domain,
   isProduction: CONFIG.isProduction,
 };

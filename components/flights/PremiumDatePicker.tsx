@@ -9,12 +9,16 @@ interface PremiumDatePickerProps {
   returnValue?: string | null;
   onChange: (departure: string, returnDate?: string) => void;
   minDate?: Date;
-  type?: 'single' | 'range';
+  type?: 'single' | 'range' | 'multi';
   isOpen: boolean;
   onClose: () => void;
   anchorEl?: HTMLElement | null;
   prices?: { [date: string]: number };
   loadingPrices?: boolean;
+  // Multi-date selection props
+  selectedDates?: Date[];
+  onMultiChange?: (dates: Date[]) => void;
+  maxDates?: number;
 }
 
 interface CalendarDay {
@@ -47,7 +51,11 @@ export default function PremiumDatePicker({
   onClose,
   anchorEl,
   prices,
-  loadingPrices = false
+  loadingPrices = false,
+  // Multi-date props
+  selectedDates: initialSelectedDates = [],
+  onMultiChange,
+  maxDates = 3
 }: PremiumDatePickerProps) {
   // Helper to parse date string without timezone conversion
   // "2024-12-03" should create Dec 3 in LOCAL timezone, not UTC
@@ -71,6 +79,9 @@ export default function PremiumDatePicker({
   const containerRef = useRef<HTMLDivElement>(null);
   const [position, setPosition] = useState({ top: 0, left: 0 });
 
+  // Multi-date selection state
+  const [multiDates, setMultiDates] = useState<Date[]>(initialSelectedDates);
+
   // Initialize currentMonth on client-side only to prevent hydration mismatch
   useEffect(() => {
     if (!currentMonth) {
@@ -86,6 +97,22 @@ export default function PremiumDatePicker({
   useEffect(() => {
     setSelectedReturn(parseDateString(returnValue));
   }, [returnValue]);
+
+  // Sync multi-dates with prop
+  useEffect(() => {
+    if (type === 'multi') {
+      setMultiDates(initialSelectedDates);
+    }
+  }, [initialSelectedDates, type]);
+
+  // Helper to check if a date is in multi-selection
+  const isDateInMulti = (date: Date): boolean => {
+    return multiDates.some(d =>
+      d.getFullYear() === date.getFullYear() &&
+      d.getMonth() === date.getMonth() &&
+      d.getDate() === date.getDate()
+    );
+  };
 
   // Calculate position relative to anchor element - ALWAYS BELOW
   useEffect(() => {
@@ -274,7 +301,10 @@ export default function PremiumDatePicker({
     let isRangeStart = false;
     let isRangeEnd = false;
 
-    if (selectedDeparture) {
+    if (type === 'multi') {
+      // Multi-date mode: check if date is in selection
+      isSelected = isDateInMulti(date);
+    } else if (selectedDeparture) {
       const departureTime = selectedDeparture.getTime();
       const dateTime = date.getTime();
 
@@ -317,7 +347,26 @@ export default function PremiumDatePicker({
   const handleDateClick = (day: CalendarDay) => {
     if (day.isDisabled) return;
 
-    if (type === 'single') {
+    if (type === 'multi') {
+      // Multi-date mode: Toggle date selection
+      const dateExists = isDateInMulti(day.date);
+
+      if (dateExists) {
+        // Remove date from selection
+        const newDates = multiDates.filter(d =>
+          !(d.getFullYear() === day.date.getFullYear() &&
+            d.getMonth() === day.date.getMonth() &&
+            d.getDate() === day.date.getDate())
+        );
+        setMultiDates(newDates);
+      } else {
+        // Add date if under max limit
+        if (multiDates.length < maxDates) {
+          const newDates = [...multiDates, day.date].sort((a, b) => a.getTime() - b.getTime());
+          setMultiDates(newDates);
+        }
+      }
+    } else if (type === 'single') {
       // One-way mode: Select date and auto-close
       setSelectedDeparture(day.date);
 
@@ -382,10 +431,19 @@ export default function PremiumDatePicker({
   const handleClear = () => {
     setSelectedDeparture(null);
     setSelectedReturn(null);
+    if (type === 'multi') {
+      setMultiDates([]);
+    }
   };
 
   const handleApply = () => {
-    if (selectedDeparture) {
+    if (type === 'multi') {
+      // Multi-date mode: call onMultiChange
+      if (onMultiChange && multiDates.length > 0) {
+        onMultiChange(multiDates);
+        onClose();
+      }
+    } else if (selectedDeparture) {
       const departureStr = formatDateString(selectedDeparture);
       const returnStr = selectedReturn ? formatDateString(selectedReturn) : undefined;
       onChange(departureStr, returnStr);
@@ -649,10 +707,27 @@ export default function PremiumDatePicker({
           </div>
 
           {/* Selection summary */}
-          {(selectedDeparture || selectedReturn) && (
+          {(selectedDeparture || selectedReturn || (type === 'multi' && multiDates.length > 0)) && (
             <div className="mt-2 pt-2 border-t border-gray-200">
               <div className="text-xs text-gray-600 mb-2">
-                {type === 'single' ? (
+                {type === 'multi' ? (
+                  <div>
+                    <span className="font-medium text-gray-900">Selected ({multiDates.length}/{maxDates}):</span>{' '}
+                    <div className="flex flex-wrap gap-1 mt-1">
+                      {multiDates.map((date, idx) => (
+                        <span
+                          key={idx}
+                          className="inline-flex items-center px-2 py-0.5 rounded bg-[#E6F3FF] text-[#0087FF] font-medium"
+                        >
+                          {date.toLocaleDateString('en-US', {
+                            month: 'short',
+                            day: 'numeric'
+                          })}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                ) : type === 'single' ? (
                   <div>
                     <span className="font-medium text-gray-900">Selected:</span>{' '}
                     {selectedDeparture?.toLocaleDateString('en-US', {
@@ -700,7 +775,11 @@ export default function PremiumDatePicker({
           </button>
           <button
             onClick={handleApply}
-            disabled={!selectedDeparture || (type === 'range' && !selectedReturn)}
+            disabled={
+              type === 'multi'
+                ? multiDates.length === 0
+                : (!selectedDeparture || (type === 'range' && !selectedReturn))
+            }
             className="px-5 py-1.5 text-xs font-medium text-white bg-[#0087FF] hover:bg-[#0077E6] disabled:bg-gray-300 disabled:cursor-not-allowed rounded-lg transition-colors shadow-sm hover:shadow-md"
           >
             Apply

@@ -1,20 +1,23 @@
 /**
  * Save Search Button & Modal
  *
- * Allows users to:
- * - Save current search + filters
- * - Set price drop alerts
- * - Name their saved search
- * - View saved searches
+ * State-of-the-art saved search functionality with:
+ * - Authentication-gated saving
+ * - Server-side persistence (database)
+ * - Price drop alerts integration
+ * - Seamless auth modal flow
  */
 
 'use client';
 
-import { useState } from 'react';
-import { Bell, Star, Check, TrendingDown, X } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { useSession } from 'next-auth/react';
+import { Bell, Star, Check, TrendingDown, X, Loader2, Bookmark } from 'lucide-react';
+import { toast } from 'react-hot-toast';
+import { FeatureAuthModal } from '@/components/auth/FeatureAuthModal';
 import { FlightFilters } from '@/components/flights/FlightFilters';
 import {
-  saveSearch,
+  saveSearch as saveToLocalStorage,
   generateSearchName,
   type SavedSearch
 } from '@/lib/filters/savedSearches';
@@ -39,6 +42,7 @@ const content = {
   en: {
     save: 'Save Search',
     saved: 'Saved!',
+    saving: 'Saving...',
     modalTitle: 'Save this search',
     searchName: 'Search name',
     searchNamePlaceholder: 'e.g., NYC to Paris - Summer trip',
@@ -50,10 +54,13 @@ const content = {
     saveButton: 'Save search',
     cancel: 'Cancel',
     savings: 'Save ${amount}',
+    successMessage: 'Search saved! You can access it from your account.',
+    errorMessage: 'Failed to save search. Please try again.',
   },
   pt: {
     save: 'Salvar Busca',
     saved: 'Salvo!',
+    saving: 'Salvando...',
     modalTitle: 'Salvar esta busca',
     searchName: 'Nome da busca',
     searchNamePlaceholder: 'ex: NYC para Paris - Viagem de verão',
@@ -65,10 +72,13 @@ const content = {
     saveButton: 'Salvar busca',
     cancel: 'Cancelar',
     savings: 'Economize ${amount}',
+    successMessage: 'Busca salva! Você pode acessá-la na sua conta.',
+    errorMessage: 'Falha ao salvar busca. Tente novamente.',
   },
   es: {
     save: 'Guardar Búsqueda',
     saved: '¡Guardado!',
+    saving: 'Guardando...',
     modalTitle: 'Guardar esta búsqueda',
     searchName: 'Nombre de búsqueda',
     searchNamePlaceholder: 'ej: NYC a París - Viaje de verano',
@@ -80,6 +90,8 @@ const content = {
     saveButton: 'Guardar búsqueda',
     cancel: 'Cancelar',
     savings: 'Ahorra ${amount}',
+    successMessage: '¡Búsqueda guardada! Puedes accederla desde tu cuenta.',
+    errorMessage: 'Error al guardar búsqueda. Intenta de nuevo.',
   }
 };
 
@@ -89,37 +101,124 @@ export default function SaveSearchButton({
   currentPrice,
   lang = 'en'
 }: SaveSearchButtonProps) {
+  const { data: session, status } = useSession();
   const t = content[lang];
+
   const [showModal, setShowModal] = useState(false);
+  const [showAuthModal, setShowAuthModal] = useState(false);
   const [saved, setSaved] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
   const [searchName, setSearchName] = useState('');
   const [enableAlert, setEnableAlert] = useState(true);
-  const [targetPrice, setTargetPrice] = useState(Math.floor(currentPrice * 0.9)); // 10% off by default
+  const [targetPrice, setTargetPrice] = useState(Math.floor(currentPrice * 0.9));
+  const [pendingAction, setPendingAction] = useState(false);
 
   // Generate default search name
   const defaultName = generateSearchName(route, filters);
 
-  const handleSave = () => {
-    const savedSearch: Omit<SavedSearch, 'id' | 'createdAt'> = {
-      name: searchName || defaultName,
-      route,
-      filters,
-      priceAlert: enableAlert ? {
-        enabled: true,
-        targetPrice,
-        currentPrice
-      } : undefined
-    };
+  // Handle pending action after successful auth
+  useEffect(() => {
+    if (pendingAction && session?.user) {
+      setPendingAction(false);
+      setShowModal(true);
+    }
+  }, [session, pendingAction]);
+
+  const handleOpenModal = () => {
+    // If not authenticated, show auth modal first
+    if (!session?.user) {
+      setShowAuthModal(true);
+      return;
+    }
+    setShowModal(true);
+  };
+
+  const handleAuthSuccess = () => {
+    setShowAuthModal(false);
+    setPendingAction(true); // Will open save modal after session updates
+  };
+
+  const handleAuthClose = () => {
+    setShowAuthModal(false);
+  };
+
+  const handleSave = async () => {
+    if (!session?.user) {
+      toast.error('Please sign in to save searches');
+      return;
+    }
+
+    setIsLoading(true);
 
     try {
-      saveSearch(savedSearch);
+      // Save to server (database)
+      const response = await fetch('/api/saved-searches', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          name: searchName || defaultName,
+          origin: route.from,
+          destination: route.to,
+          departDate: route.departure,
+          returnDate: route.return || null,
+          adults: route.adults,
+          children: route.children,
+          infants: route.infants,
+          cabinClass: route.class,
+          filters: filters,
+        }),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to save search');
+      }
+
+      // Also create price alert if enabled
+      if (enableAlert && targetPrice < currentPrice) {
+        try {
+          await fetch('/api/price-alerts', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              origin: route.from,
+              destination: route.to,
+              departDate: route.departure,
+              returnDate: route.return || null,
+              currentPrice: currentPrice,
+              targetPrice: targetPrice,
+              currency: 'USD',
+            }),
+          });
+        } catch (alertError) {
+          console.error('Failed to create price alert:', alertError);
+          // Don't fail the whole operation if alert creation fails
+        }
+      }
+
+      // Also save to localStorage for offline access
+      const savedSearch: Omit<SavedSearch, 'id' | 'createdAt'> = {
+        name: searchName || defaultName,
+        route,
+        filters,
+        priceAlert: enableAlert ? {
+          enabled: true,
+          targetPrice,
+          currentPrice
+        } : undefined
+      };
+      saveToLocalStorage(savedSearch);
 
       // Show success state
       setSaved(true);
       setShowModal(false);
+      toast.success(t.successMessage, {
+        icon: '🔔',
+        duration: 3000,
+      });
 
       // Reset after animation
-      setTimeout(() => setSaved(false), 2000);
+      setTimeout(() => setSaved(false), 3000);
 
       // Haptic feedback
       if ('vibrate' in navigator) {
@@ -127,7 +226,9 @@ export default function SaveSearchButton({
       }
     } catch (error) {
       console.error('Error saving search:', error);
-      alert('Failed to save search. Please try again.');
+      toast.error(t.errorMessage);
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -137,8 +238,8 @@ export default function SaveSearchButton({
     <>
       {/* Save Button */}
       <button
-        onClick={() => setShowModal(true)}
-        disabled={saved}
+        onClick={handleOpenModal}
+        disabled={saved || status === 'loading'}
         className={`
           flex items-center gap-2 px-4 py-2.5 rounded-lg font-medium text-sm
           transition-all duration-200 min-w-[44px] min-h-[44px] touch-manipulation
@@ -156,11 +257,24 @@ export default function SaveSearchButton({
           </>
         ) : (
           <>
-            <Bell className="w-4 h-4" strokeWidth={2} />
+            <Bookmark className="w-4 h-4" strokeWidth={2} />
             <span>{t.save}</span>
           </>
         )}
       </button>
+
+      {/* Auth Modal */}
+      <FeatureAuthModal
+        isOpen={showAuthModal}
+        onClose={handleAuthClose}
+        onSuccess={handleAuthSuccess}
+        feature="savedSearch"
+        productContext={{
+          name: `${route.from} → ${route.to}`,
+          price: currentPrice,
+          currency: '$',
+        }}
+      />
 
       {/* Save Modal */}
       {showModal && (
@@ -175,8 +289,16 @@ export default function SaveSearchButton({
           <div className="fixed inset-x-0 bottom-0 md:inset-0 md:flex md:items-center md:justify-center z-[111] animate-slideUp">
             <div className="bg-white rounded-t-3xl md:rounded-2xl shadow-2xl max-w-lg w-full mx-auto md:m-4 overflow-hidden">
               {/* Header */}
-              <div className="flex items-center justify-between px-6 py-4 border-b border-gray-200">
-                <h3 className="text-xl font-bold text-gray-900">{t.modalTitle}</h3>
+              <div className="flex items-center justify-between px-6 py-4 border-b border-gray-200 bg-gradient-to-r from-primary-50 to-blue-50">
+                <div className="flex items-center gap-3">
+                  <div className="p-2 bg-primary-100 rounded-lg">
+                    <Bookmark className="w-5 h-5 text-primary-600" />
+                  </div>
+                  <div>
+                    <h3 className="text-lg font-bold text-gray-900">{t.modalTitle}</h3>
+                    <p className="text-sm text-gray-600">{route.from} → {route.to}</p>
+                  </div>
+                </div>
                 <button
                   onClick={() => setShowModal(false)}
                   className="p-2 rounded-full hover:bg-gray-100 transition-colors min-w-[40px] min-h-[40px] flex items-center justify-center"
@@ -302,24 +424,37 @@ export default function SaveSearchButton({
               <div className="px-6 py-4 bg-gray-50 border-t border-gray-200 flex gap-3">
                 <button
                   onClick={() => setShowModal(false)}
+                  disabled={isLoading}
                   className="
                     flex-1 px-6 py-3 border border-gray-300 rounded-lg
                     text-gray-700 font-semibold hover:bg-gray-100
-                    transition-colors min-h-[48px]
+                    transition-colors min-h-[48px] disabled:opacity-50
                   "
                 >
                   {t.cancel}
                 </button>
                 <button
                   onClick={handleSave}
+                  disabled={isLoading}
                   className="
                     flex-1 px-6 py-3 bg-gradient-to-r from-primary-600 to-blue-600
                     hover:from-primary-700 hover:to-blue-700 rounded-lg
                     text-white font-semibold shadow-lg hover:shadow-xl
-                    transition-all min-h-[48px]
+                    transition-all min-h-[48px] flex items-center justify-center gap-2
+                    disabled:opacity-50 disabled:cursor-not-allowed
                   "
                 >
-                  {t.saveButton}
+                  {isLoading ? (
+                    <>
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                      {t.saving}
+                    </>
+                  ) : (
+                    <>
+                      <Bookmark className="w-4 h-4" />
+                      {t.saveButton}
+                    </>
+                  )}
                 </button>
               </div>
             </div>

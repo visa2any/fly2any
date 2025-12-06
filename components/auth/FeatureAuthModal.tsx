@@ -86,6 +86,19 @@ const FEATURE_CONFIG = {
     iconBg: 'bg-emerald-100',
     iconColor: 'text-emerald-500',
   },
+  savedSearch: {
+    icon: Bell,
+    title: 'Save Your Search',
+    subtitle: 'Track flights and get price alerts',
+    benefits: [
+      'Save unlimited searches',
+      'Get instant price drop alerts',
+      'Sync across all devices',
+    ],
+    gradient: 'from-indigo-500 to-purple-500',
+    iconBg: 'bg-indigo-100',
+    iconColor: 'text-indigo-500',
+  },
 };
 
 export type FeatureType = keyof typeof FEATURE_CONFIG;
