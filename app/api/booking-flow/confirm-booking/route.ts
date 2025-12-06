@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { paymentService } from '@/lib/payments/payment-service';
 import { createBooking } from '@/lib/services/booking-flow-service';
-import { processBookingForReferralPoints } from '@/lib/services/referralNetworkService';
+import { processBookingForReferralPoints, calculateDefaultCommission } from '@/lib/services/referralNetworkService';
 import { auth } from '@/lib/auth';
 import { getPrismaClient } from '@/lib/prisma';
 import { bookingStorage } from '@/lib/bookings/storage';
@@ -189,12 +189,23 @@ export async function POST(request: NextRequest) {
             const departureDate = new Date(flightData.segments[0].departure.at);
             const arrivalDate = new Date(flightData.segments[flightData.segments.length - 1].arrival.at);
 
+            // Determine product type based on price threshold
+            const bookingTotal = bookingState.pricing?.total || 0;
+            const productType = bookingTotal > 1000 ? 'flight_international' : 'flight';
+
+            // Calculate commission from booking (rewards are based on commission, not booking amount!)
+            // This ensures we never pay more in rewards than we earn
+            const commissionAmount = calculateDefaultCommission(bookingTotal, productType);
+
+            console.log(`💰 Referral rewards: Booking $${bookingTotal}, Commission $${commissionAmount} (${((commissionAmount/bookingTotal)*100).toFixed(1)}%)`);
+
             processBookingForReferralPoints({
               bookingId: booking.bookingReference,
               userId: user.id,
-              amount: bookingState.pricing?.total || 0,
+              bookingAmount: bookingTotal,
+              commissionAmount: commissionAmount, // REWARDS CALCULATED FROM THIS
               currency: bookingState.pricing?.currency || 'USD',
-              productType: bookingState.pricing?.total > 1000 ? 'flight_international' : 'flight',
+              productType: productType,
               tripStartDate: departureDate,
               tripEndDate: arrivalDate,
               productData: {

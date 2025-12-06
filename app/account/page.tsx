@@ -1,6 +1,7 @@
 import { auth } from '@/lib/auth';
 import { redirect } from 'next/navigation';
 import { prisma } from '@/lib/prisma';
+import { bookingStorage } from '@/lib/bookings/storage';
 import {
   BookmarkIcon,
   Bell,
@@ -33,6 +34,8 @@ export default async function AccountPage() {
   let priceAlerts: any[] = [];
   let preferences = null;
   let aiConversationsCount = 0;
+  let wishlistCount = 0;
+  let bookingsCount = 0;
 
   try {
     if (isDatabaseConfigured && prisma) {
@@ -48,8 +51,15 @@ export default async function AccountPage() {
         redirect('/auth/signin');
       }
 
-      // Fetch user data
-      [savedSearches, priceAlerts, preferences, aiConversationsCount] = await Promise.all([
+      // Fetch user data - all at once for performance
+      const [
+        savedSearchesResult,
+        priceAlertsResult,
+        preferencesResult,
+        aiConversationsResult,
+        wishlistResult,
+        bookingsResult
+      ] = await Promise.all([
         prisma.savedSearch.findMany({
           where: { userId: session.user.id },
           orderBy: { lastSearched: 'desc' },
@@ -65,8 +75,21 @@ export default async function AccountPage() {
         }),
         (prisma as any).aIConversation?.count({
           where: { userId: session.user.id },
-        }) ?? Promise.resolve(0)
+        }).catch(() => 0) ?? Promise.resolve(0),
+        // Fetch wishlist count from Prisma
+        prisma.wishlistItem.count({
+          where: { userId: session.user.id },
+        }).catch(() => 0),
+        // Fetch bookings count from SQL storage (not Prisma)
+        bookingStorage.count({ userId: session.user.id }).catch(() => 0),
       ]);
+
+      savedSearches = savedSearchesResult;
+      priceAlerts = priceAlertsResult;
+      preferences = preferencesResult;
+      aiConversationsCount = aiConversationsResult || 0;
+      wishlistCount = wishlistResult || 0;
+      bookingsCount = bookingsResult || 0;
     }
   } catch (error) {
     console.error('Account page error:', error);
@@ -78,6 +101,8 @@ export default async function AccountPage() {
     activeAlerts: priceAlerts.filter((a: any) => a.active).length,
     triggeredAlerts: priceAlerts.filter((a: any) => a.triggered).length,
     aiConversations: aiConversationsCount,
+    wishlist: wishlistCount,
+    bookings: bookingsCount,
   };
 
   return (
@@ -159,7 +184,7 @@ export default async function AccountPage() {
             <div className="p-3 bg-pink-50 rounded-lg">
               <Heart className="w-6 h-6 text-pink-600" />
             </div>
-            <span className="text-3xl font-bold text-gray-900">0</span>
+            <span className="text-3xl font-bold text-gray-900">{stats.wishlist}</span>
           </div>
           <h3 className="text-lg font-semibold text-gray-900 mb-1">Wishlist</h3>
           <p className="text-sm text-gray-600">Saved flights & hotels</p>
@@ -206,7 +231,7 @@ export default async function AccountPage() {
             <div className="p-3 bg-purple-50 rounded-lg">
               <History className="w-6 h-6 text-purple-600" />
             </div>
-            <span className="text-3xl font-bold text-gray-900">0</span>
+            <span className="text-3xl font-bold text-gray-900">{stats.bookings}</span>
           </div>
           <h3 className="text-lg font-semibold text-gray-900 mb-1">Bookings</h3>
           <p className="text-sm text-gray-600">View your travel history</p>

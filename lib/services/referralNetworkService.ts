@@ -6,17 +6,26 @@
  * BUSINESS RULES:
  * - 3-Tier Rewards: Users earn from their direct referrals (Tier 1),
  *   their referrals' referrals (Tier 2), and Tier 3
- * - Points Structure:
- *   - Level 1: 50 points per $100 booking
- *   - Level 2: 20 points per $100 booking
- *   - Level 3: 10 points per $100 booking
- * - Product Multipliers:
+ *
+ * COMMISSION-BASED REWARDS (Sustainable Model):
+ * - Points are calculated from COMMISSION earned, NOT gross booking value
+ * - This ensures profitability on every booking
+ *
+ * - Points Structure (per $100 of COMMISSION):
+ *   - Level 1: 50 points per $100 commission = $5 reward (5% of commission)
+ *   - Level 2: 20 points per $100 commission = $2 reward (2% of commission)
+ *   - Level 3: 10 points per $100 commission = $1 reward (1% of commission)
+ *   - Total: 8% of commission goes to rewards (always profitable)
+ *
+ * - Product Multipliers (applied to encourage higher-margin products):
  *   - Flights: 1.0x
  *   - International Flights: 1.2x
  *   - Hotels: 1.5x
  *   - Packages: 2.0x
+ *
  * - Points Locking: All points are LOCKED until trip completes successfully
  * - Anti-Fraud: Cancelled/refunded trips forfeit points
+ * - Redemption: 10 points = $1 USD
  */
 
 import { getPrismaClient } from '@/lib/prisma';
@@ -24,14 +33,16 @@ import { generateReferralCode } from '@/lib/utils';
 
 const prisma = getPrismaClient();
 
-// Points rate per $100 booking by level
+// Points rate per $100 COMMISSION by level (NOT booking amount!)
+// This ensures we never pay more in rewards than we earn
 const POINTS_RATES = {
-  1: 50, // Level 1: 50 points per $100 (50%)
-  2: 20, // Level 2: 20 points per $100 (20%)
-  3: 10, // Level 3: 10 points per $100 (10%)
+  1: 50, // Level 1: 50 points per $100 commission = $5 (5% of commission)
+  2: 20, // Level 2: 20 points per $100 commission = $2 (2% of commission)
+  3: 10, // Level 3: 10 points per $100 commission = $1 (1% of commission)
 };
+// Total: 8% of commission goes to rewards (sustainable model)
 
-// Product multipliers
+// Product multipliers (encourage higher-margin products)
 const PRODUCT_MULTIPLIERS = {
   flight: 1.0,
   flight_international: 1.2,
@@ -41,6 +52,29 @@ const PRODUCT_MULTIPLIERS = {
   activity: 1.0,
 };
 
+// Default commission rates by product type (used when actual commission not provided)
+// These are conservative estimates - actual commission should be passed when available
+const DEFAULT_COMMISSION_RATES = {
+  flight: 0.03,              // 3% for domestic flights
+  flight_international: 0.05, // 5% for international flights
+  hotel: 0.10,               // 10% for hotels
+  package: 0.12,             // 12% for packages
+  car: 0.08,                 // 8% for car rentals
+  activity: 0.15,            // 15% for activities
+};
+
+/**
+ * Calculate commission from booking amount based on product type
+ * Use this when actual commission is not known
+ */
+export function calculateDefaultCommission(
+  bookingAmount: number,
+  productType: string
+): number {
+  const rate = DEFAULT_COMMISSION_RATES[productType as keyof typeof DEFAULT_COMMISSION_RATES] || 0.05;
+  return Math.round(bookingAmount * rate * 100) / 100; // Round to 2 decimal places
+}
+
 interface CreateReferralParams {
   refereeEmail: string;
   referralCode: string;
@@ -49,7 +83,8 @@ interface CreateReferralParams {
 interface ProcessBookingParams {
   bookingId: string;
   userId: string;
-  amount: number;
+  bookingAmount: number;      // Total booking value (for display/records)
+  commissionAmount: number;   // Fly2Any's commission - REWARDS ARE CALCULATED FROM THIS
   currency: string;
   productType: string;
   tripStartDate: Date;
@@ -224,11 +259,21 @@ async function buildUpstreamNetwork(
 /**
  * STEP 2: Process booking and create locked points transactions
  * Called when a user completes a booking
+ *
+ * IMPORTANT: Points are calculated from COMMISSION, not booking amount!
+ * This ensures profitability on every booking.
+ *
+ * Example: $500 flight, 5% commission = $25 commission
+ * - Level 1: ($25/100) * 50 * 1.0 = 12.5 → 12 points = $1.20 reward
+ * - Level 2: ($25/100) * 20 * 1.0 = 5 points = $0.50 reward
+ * - Level 3: ($25/100) * 10 * 1.0 = 2.5 → 2 points = $0.20 reward
+ * - Total: 19 points = $1.90 (7.6% of $25 commission = profitable!)
  */
 export async function processBookingForReferralPoints({
   bookingId,
   userId,
-  amount,
+  bookingAmount,
+  commissionAmount,
   currency,
   productType,
   tripStartDate,
@@ -237,9 +282,17 @@ export async function processBookingForReferralPoints({
 }: ProcessBookingParams) {
   try {
     console.log(`🎯 Processing booking ${bookingId} for referral points...`);
+    console.log(`📊 Booking: $${bookingAmount} | Commission: $${commissionAmount} (${((commissionAmount/bookingAmount)*100).toFixed(1)}%)`);
 
-    // Convert amount to USD if needed (simplified - you may want currency conversion API)
-    const amountUSD = currency === 'USD' ? amount : amount; // TODO: Add currency conversion
+    // Convert commission to USD if needed (simplified - you may want currency conversion API)
+    const commissionUSD = currency === 'USD' ? commissionAmount : commissionAmount; // TODO: Add currency conversion
+    const bookingUSD = currency === 'USD' ? bookingAmount : bookingAmount;
+
+    // Safety check: Don't process if no commission
+    if (commissionUSD <= 0) {
+      console.log(`⚠️ No commission on booking ${bookingId}, skipping rewards`);
+      return { success: true, transactions: [], totalPointsAwarded: 0 };
+    }
 
     // Get product multiplier
     const multiplier = PRODUCT_MULTIPLIERS[productType as keyof typeof PRODUCT_MULTIPLIERS] || 1.0;
@@ -265,17 +318,25 @@ export async function processBookingForReferralPoints({
       const pointsRate = POINTS_RATES[level as keyof typeof POINTS_RATES];
       if (!pointsRate) continue;
 
-      // Calculate points: (amount / 100) * pointsRate * multiplier
-      const basePoints = Math.floor((amountUSD / 100) * pointsRate);
+      // CRITICAL: Calculate points from COMMISSION, not booking amount!
+      // Formula: (commission / 100) * pointsRate * multiplier
+      const basePoints = Math.floor((commissionUSD / 100) * pointsRate);
       const pointsAwarded = Math.floor(basePoints * multiplier);
+
+      // Skip if no points to award (very small commissions)
+      if (pointsAwarded <= 0) continue;
 
       // Create LOCKED points transaction
       const transaction = await prisma!.referralPointsTransaction.create({
         data: {
           bookingId,
-          bookingAmount: amountUSD,
+          bookingAmount: bookingUSD, // Store booking amount for display
           productType,
-          productData,
+          productData: {
+            ...productData,
+            commissionAmount: commissionUSD, // Store commission for audit
+            commissionPercent: ((commissionUSD / bookingUSD) * 100).toFixed(2),
+          },
           earnerId: relationship.referrerId,
           customerId: userId,
           level,
@@ -301,12 +362,12 @@ export async function processBookingForReferralPoints({
         },
       });
 
-      // Update relationship stats
+      // Update relationship stats (still track booking revenue for display)
       await prisma!.referralNetworkRelationship.update({
         where: { id: relationship.id },
         data: {
           totalBookings: { increment: 1 },
-          totalRevenue: { increment: amountUSD },
+          totalRevenue: { increment: bookingUSD },
           totalPointsEarned: { increment: pointsAwarded },
           lastActivityAt: new Date(),
           status: relationship.status === 'signed_up' ? 'first_booking' : 'active',
@@ -314,15 +375,22 @@ export async function processBookingForReferralPoints({
         },
       });
 
+      const rewardValue = (pointsAwarded / 10).toFixed(2);
       console.log(
-        `💰 Level ${level}: ${relationship.referrerId} earns ${pointsAwarded} LOCKED points (Rate: ${pointsRate}%, Multiplier: ${multiplier}x)`
+        `💰 Level ${level}: ${relationship.referrerId} earns ${pointsAwarded} LOCKED points ($${rewardValue} value) from $${commissionUSD} commission`
       );
     }
+
+    const totalPoints = transactions.reduce((sum, t) => sum + t.pointsAwarded, 0);
+    const totalRewardValue = (totalPoints / 10).toFixed(2);
+    console.log(`✅ Total rewards: ${totalPoints} points ($${totalRewardValue}) from $${commissionUSD} commission (${((totalPoints/10/commissionUSD)*100).toFixed(1)}% of commission)`);
 
     return {
       success: true,
       transactions,
-      totalPointsAwarded: transactions.reduce((sum, t) => sum + t.pointsAwarded, 0),
+      totalPointsAwarded: totalPoints,
+      rewardValue: totalRewardValue,
+      commissionUsed: commissionUSD,
     };
   } catch (error) {
     console.error('Error processing booking for referral points:', error);

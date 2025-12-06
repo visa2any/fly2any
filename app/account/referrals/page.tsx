@@ -321,8 +321,8 @@ export default function ReferralsPage() {
                         <div className="bg-primary-600 text-white rounded-full w-8 h-8 flex items-center justify-center font-bold">1</div>
                         <h3 className="font-bold text-gray-900">Level 1</h3>
                       </div>
-                      <p className="text-2xl font-bold text-primary-600 mb-1">50 pts</p>
-                      <p className="text-sm text-gray-600">per $100 booking</p>
+                      <p className="text-2xl font-bold text-primary-600 mb-1">5%</p>
+                      <p className="text-sm text-gray-600">of Fly2Any earnings</p>
                       <p className="text-xs text-gray-500 mt-2">Your direct referrals</p>
                     </div>
                     <div className="bg-white rounded-lg p-4 border-2 border-primary-200">
@@ -330,8 +330,8 @@ export default function ReferralsPage() {
                         <div className="bg-primary-500 text-white rounded-full w-8 h-8 flex items-center justify-center font-bold">2</div>
                         <h3 className="font-bold text-gray-900">Level 2</h3>
                       </div>
-                      <p className="text-2xl font-bold text-primary-500 mb-1">20 pts</p>
-                      <p className="text-sm text-gray-600">per $100 booking</p>
+                      <p className="text-2xl font-bold text-primary-500 mb-1">2%</p>
+                      <p className="text-sm text-gray-600">of Fly2Any earnings</p>
                       <p className="text-xs text-gray-500 mt-2">Your referrals' referrals</p>
                     </div>
                     <div className="bg-white rounded-lg p-4 border-2 border-primary-100">
@@ -339,11 +339,14 @@ export default function ReferralsPage() {
                         <div className="bg-primary-400 text-white rounded-full w-8 h-8 flex items-center justify-center font-bold">3</div>
                         <h3 className="font-bold text-gray-900">Level 3</h3>
                       </div>
-                      <p className="text-2xl font-bold text-primary-400 mb-1">10 pts</p>
-                      <p className="text-sm text-gray-600">per $100 booking</p>
+                      <p className="text-2xl font-bold text-primary-400 mb-1">1%</p>
+                      <p className="text-sm text-gray-600">of Fly2Any earnings</p>
                       <p className="text-xs text-gray-500 mt-2">Third level down</p>
                     </div>
                   </div>
+                  <p className="text-xs text-gray-500 mt-4 text-center">
+                    10 points = $1 USD • Rewards are calculated based on Fly2Any's commission per booking
+                  </p>
                 </div>
 
                 {/* Product Multipliers */}
@@ -440,7 +443,7 @@ export default function ReferralsPage() {
                     <p className="font-semibold text-gray-900">Level 1</p>
                   </div>
                   <p className="text-3xl font-bold text-primary-600">{networkTree.byLevel.level1.length}</p>
-                  <p className="text-sm text-gray-600">Direct referrals (50 pts per $100)</p>
+                  <p className="text-sm text-gray-600">Direct referrals (5% of earnings)</p>
                 </div>
                 <div className="bg-blue-50 rounded-lg p-4 border border-blue-200">
                   <div className="flex items-center gap-2 mb-2">
@@ -448,7 +451,7 @@ export default function ReferralsPage() {
                     <p className="font-semibold text-gray-900">Level 2</p>
                   </div>
                   <p className="text-3xl font-bold text-blue-600">{networkTree.byLevel.level2.length}</p>
-                  <p className="text-sm text-gray-600">Second level (20 pts per $100)</p>
+                  <p className="text-sm text-gray-600">Second level (2% of earnings)</p>
                 </div>
                 <div className="bg-purple-50 rounded-lg p-4 border border-purple-200">
                   <div className="flex items-center gap-2 mb-2">
@@ -456,7 +459,7 @@ export default function ReferralsPage() {
                     <p className="font-semibold text-gray-900">Level 3</p>
                   </div>
                   <p className="text-3xl font-bold text-purple-600">{networkTree.byLevel.level3.length}</p>
-                  <p className="text-sm text-gray-600">Third level (10 pts per $100)</p>
+                  <p className="text-sm text-gray-600">Third level (1% of earnings)</p>
                 </div>
               </div>
 
