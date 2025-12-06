@@ -51,10 +51,13 @@ export function FlightCardMobile(props: EnhancedFlightCardProps) {
   const [touchEnd, setTouchEnd] = useState<number | null>(null);
 
   // Parse flight data
-  const primaryItinerary = itineraries[0];
-  const firstSegment = primaryItinerary.segments[0];
-  const lastSegment = primaryItinerary.segments[primaryItinerary.segments.length - 1];
-  const primaryAirline = validatingAirlineCodes?.[0] || firstSegment.carrierCode;
+  const outboundItinerary = itineraries[0];
+  const returnItinerary = itineraries[1]; // null for one-way flights
+  const isRoundTrip = itineraries.length > 1;
+
+  const outboundFirstSegment = outboundItinerary.segments[0];
+  const outboundLastSegment = outboundItinerary.segments[outboundItinerary.segments.length - 1];
+  const primaryAirline = validatingAirlineCodes?.[0] || outboundFirstSegment.carrierCode;
   const airlineData = getAirlineData(primaryAirline);
 
   // Format time (HH:MM)
@@ -78,9 +81,9 @@ export function FlightCardMobile(props: EnhancedFlightCardProps) {
     return `${hours}h ${minutes}m`;
   };
 
-  // Calculate stops
-  const stops = primaryItinerary.segments.length - 1;
-  const stopsText = stops === 0 ? 'Direct' : stops === 1 ? '1 stop' : `${stops} stops`;
+  // Calculate stops for outbound
+  const outboundStops = outboundItinerary.segments.length - 1;
+  const outboundStopsText = outboundStops === 0 ? 'Direct' : outboundStops === 1 ? '1 stop' : `${outboundStops} stops`;
 
   // Format price
   const formatPrice = () => {
@@ -199,7 +202,7 @@ export function FlightCardMobile(props: EnhancedFlightCardProps) {
     }
 
     // Priority 3: Direct flight
-    if (stops === 0) {
+    if (outboundStops === 0) {
       return (
         <span className="text-[10px] font-semibold px-2 py-0.5 bg-green-50 text-green-700 rounded-full whitespace-nowrap">
           ✈️ Direct
@@ -212,15 +215,14 @@ export function FlightCardMobile(props: EnhancedFlightCardProps) {
 
   return (
     <>
-      {/* ULTRA-COMPACT CARD - 110px height */}
+      {/* ULTRA-COMPACT CARD - Dynamic height for round-trip support */}
       <div
         onTouchStart={onTouchStart}
         onTouchMove={onTouchMove}
         onTouchEnd={onTouchEnd}
-        className={`relative bg-white rounded-xl border-2 transition-all duration-200 overflow-hidden active:scale-[0.98] ${
+        className={`relative bg-white rounded-xl border-2 transition-all duration-200 active:scale-[0.98] mb-3 ${
           isComparing ? 'border-primary-500 shadow-lg shadow-primary-100' : 'border-gray-200'
         }`}
-        style={{ height: '110px' }}
       >
         {/* HEADER - Airline + Badge (28px) */}
         <div className="flex items-center justify-between px-3 py-1.5 border-b border-gray-100">
@@ -248,44 +250,104 @@ export function FlightCardMobile(props: EnhancedFlightCardProps) {
           </div>
         </div>
 
-        {/* ROUTE - Time, Cities, Flight Path (50px) */}
-        <div className="flex items-center px-3 py-2">
-          {/* Departure */}
-          <div className="flex-shrink-0">
-            <div className="text-lg font-bold text-gray-900 leading-none">
-              {formatTime(firstSegment.departure.at)}
-            </div>
-            <div className="text-[11px] font-semibold text-gray-600 mt-0.5">
-              {formatCityCode(firstSegment.departure.iataCode)}
-            </div>
+        {/* OUTBOUND ROUTE */}
+        <div className="px-3 py-2 border-b border-gray-100">
+          <div className="flex items-center justify-between mb-1">
+            <span className="text-[10px] font-semibold text-gray-500 uppercase">Outbound</span>
+            <span className="text-[10px] text-gray-500">{formatDate(outboundFirstSegment.departure.at)}</span>
           </div>
+          <div className="flex items-center">
+            {/* Departure */}
+            <div className="flex-shrink-0">
+              <div className="text-base font-bold text-gray-900 leading-none">
+                {formatTime(outboundFirstSegment.departure.at)}
+              </div>
+              <div className="text-[10px] font-semibold text-gray-600 mt-0.5">
+                {formatCityCode(outboundFirstSegment.departure.iataCode)}
+              </div>
+            </div>
 
-          {/* Flight Path */}
-          <div className="flex-1 mx-3">
-            <div className="relative h-px bg-gradient-to-r from-gray-300 via-primary-400 to-gray-300">
-              <Plane className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-3.5 h-3.5 text-primary-600 bg-white" />
+            {/* Flight Path */}
+            <div className="flex-1 mx-2">
+              <div className="relative h-px bg-gradient-to-r from-gray-300 via-primary-400 to-gray-300">
+                <Plane className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-3 h-3 text-primary-600 bg-white" />
+              </div>
+              <div className="flex items-center justify-center gap-1 mt-0.5">
+                <span className="text-[9px] font-medium text-gray-600">
+                  {parseDuration(outboundItinerary.duration)}
+                </span>
+                <span className="text-[9px] text-gray-400">•</span>
+                <span className={`text-[9px] font-semibold ${outboundStops === 0 ? 'text-green-600' : 'text-gray-600'}`}>
+                  {outboundStopsText}
+                </span>
+              </div>
             </div>
-            <div className="flex items-center justify-center gap-1.5 mt-1">
-              <span className="text-[10px] font-medium text-gray-600">
-                {parseDuration(primaryItinerary.duration)}
-              </span>
-              <span className="text-[10px] text-gray-400">•</span>
-              <span className={`text-[10px] font-semibold ${stops === 0 ? 'text-green-600' : 'text-gray-600'}`}>
-                {stopsText}
-              </span>
-            </div>
-          </div>
 
-          {/* Arrival */}
-          <div className="flex-shrink-0 text-right">
-            <div className="text-lg font-bold text-gray-900 leading-none">
-              {formatTime(lastSegment.arrival.at)}
-            </div>
-            <div className="text-[11px] font-semibold text-gray-600 mt-0.5">
-              {formatCityCode(lastSegment.arrival.iataCode)}
+            {/* Arrival */}
+            <div className="flex-shrink-0 text-right">
+              <div className="text-base font-bold text-gray-900 leading-none">
+                {formatTime(outboundLastSegment.arrival.at)}
+              </div>
+              <div className="text-[10px] font-semibold text-gray-600 mt-0.5">
+                {formatCityCode(outboundLastSegment.arrival.iataCode)}
+              </div>
             </div>
           </div>
         </div>
+
+        {/* RETURN ROUTE (only for round-trip) */}
+        {isRoundTrip && returnItinerary && (() => {
+          const returnFirstSegment = returnItinerary.segments[0];
+          const returnLastSegment = returnItinerary.segments[returnItinerary.segments.length - 1];
+          const returnStops = returnItinerary.segments.length - 1;
+          const returnStopsText = returnStops === 0 ? 'Direct' : returnStops === 1 ? '1 stop' : `${returnStops} stops`;
+
+          return (
+            <div className="px-3 py-2 border-b border-gray-100">
+              <div className="flex items-center justify-between mb-1">
+                <span className="text-[10px] font-semibold text-gray-500 uppercase">Return</span>
+                <span className="text-[10px] text-gray-500">{formatDate(returnFirstSegment.departure.at)}</span>
+              </div>
+              <div className="flex items-center">
+                {/* Departure */}
+                <div className="flex-shrink-0">
+                  <div className="text-base font-bold text-gray-900 leading-none">
+                    {formatTime(returnFirstSegment.departure.at)}
+                  </div>
+                  <div className="text-[10px] font-semibold text-gray-600 mt-0.5">
+                    {formatCityCode(returnFirstSegment.departure.iataCode)}
+                  </div>
+                </div>
+
+                {/* Flight Path */}
+                <div className="flex-1 mx-2">
+                  <div className="relative h-px bg-gradient-to-r from-gray-300 via-primary-400 to-gray-300">
+                    <Plane className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-3 h-3 text-primary-600 bg-white rotate-180" />
+                  </div>
+                  <div className="flex items-center justify-center gap-1 mt-0.5">
+                    <span className="text-[9px] font-medium text-gray-600">
+                      {parseDuration(returnItinerary.duration)}
+                    </span>
+                    <span className="text-[9px] text-gray-400">•</span>
+                    <span className={`text-[9px] font-semibold ${returnStops === 0 ? 'text-green-600' : 'text-gray-600'}`}>
+                      {returnStopsText}
+                    </span>
+                  </div>
+                </div>
+
+                {/* Arrival */}
+                <div className="flex-shrink-0 text-right">
+                  <div className="text-base font-bold text-gray-900 leading-none">
+                    {formatTime(returnLastSegment.arrival.at)}
+                  </div>
+                  <div className="text-[10px] font-semibold text-gray-600 mt-0.5">
+                    {formatCityCode(returnLastSegment.arrival.iataCode)}
+                  </div>
+                </div>
+              </div>
+            </div>
+          );
+        })()}
 
         {/* PRICE + CTA (32px) */}
         <div className="flex items-center justify-between px-3 py-1.5 bg-gray-50 border-t border-gray-100">
