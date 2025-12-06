@@ -25,8 +25,8 @@ export const runtime = 'nodejs';
 // Mobile apps will handle auth client-side
 
 export default async function AccountPage() {
-  // Check if database is configured
-  const isDatabaseConfigured = !!process.env.DATABASE_URL;
+  // Check if database is configured (Vercel uses POSTGRES_URL, local uses DATABASE_URL)
+  const isDatabaseConfigured = !!(process.env.POSTGRES_URL || process.env.DATABASE_URL);
 
   let session = null;
   let savedSearches: any[] = [];
