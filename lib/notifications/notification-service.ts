@@ -996,6 +996,144 @@ ${COMPANY_NAME} Admin System
   }
 }
 
+// ==========================================
+// User Preference Checking
+// ==========================================
+
+interface UserNotificationPreferences {
+  emailEnabled?: boolean;
+  emailBookingConfirmed?: boolean;
+  emailBookingCancelled?: boolean;
+  emailPriceAlerts?: boolean;
+  emailPaymentUpdates?: boolean;
+  emailPromotions?: boolean;
+  emailTripReminders?: boolean;
+  emailSecurityAlerts?: boolean;
+  quietHoursEnabled?: boolean;
+  quietHoursStart?: string;
+  quietHoursEnd?: string;
+  quietHoursTimezone?: string;
+}
+
+/**
+ * Check if user has enabled a specific notification type
+ */
+export async function shouldSendNotification(
+  userId: string,
+  notificationType: 'booking' | 'price_alert' | 'payment' | 'promotion' | 'trip_reminder' | 'security',
+  channel: 'email' | 'push' | 'in_app' = 'email'
+): Promise<boolean> {
+  try {
+    const prisma = getPrismaClient();
+
+    const userPrefs = await prisma.userPreferences.findUnique({
+      where: { userId },
+      select: {
+        emailNotifications: true,
+        priceAlertEmails: true,
+        dealAlerts: true,
+        notifications: true,
+      },
+    });
+
+    if (!userPrefs) {
+      return true; // Default to sending if no preferences set
+    }
+
+    const advancedPrefs = (userPrefs.notifications as UserNotificationPreferences) || {};
+
+    // Check if we're in quiet hours
+    if (advancedPrefs.quietHoursEnabled) {
+      const isQuietHours = checkQuietHours(
+        advancedPrefs.quietHoursStart || '22:00',
+        advancedPrefs.quietHoursEnd || '08:00',
+        advancedPrefs.quietHoursTimezone || 'UTC'
+      );
+
+      // Only block non-urgent notifications during quiet hours
+      if (isQuietHours && notificationType !== 'security') {
+        console.log(`⏰ Quiet hours active for user ${userId} - deferring ${notificationType} notification`);
+        return false;
+      }
+    }
+
+    // Check channel-specific preferences
+    if (channel === 'email') {
+      // First check master email toggle
+      if (advancedPrefs.emailEnabled === false || userPrefs.emailNotifications === false) {
+        return false;
+      }
+
+      // Check type-specific preferences
+      switch (notificationType) {
+        case 'booking':
+          return advancedPrefs.emailBookingConfirmed !== false;
+        case 'price_alert':
+          return userPrefs.priceAlertEmails !== false && advancedPrefs.emailPriceAlerts !== false;
+        case 'payment':
+          return advancedPrefs.emailPaymentUpdates !== false;
+        case 'promotion':
+          return userPrefs.dealAlerts === true || advancedPrefs.emailPromotions === true;
+        case 'trip_reminder':
+          return advancedPrefs.emailTripReminders !== false;
+        case 'security':
+          return true; // Always send security alerts
+        default:
+          return true;
+      }
+    }
+
+    return true;
+  } catch (error) {
+    console.error('Error checking notification preferences:', error);
+    return true; // Default to sending on error
+  }
+}
+
+/**
+ * Check if current time is within quiet hours
+ */
+function checkQuietHours(start: string, end: string, timezone: string): boolean {
+  try {
+    const now = new Date();
+    const formatter = new Intl.DateTimeFormat('en-US', {
+      hour: '2-digit',
+      minute: '2-digit',
+      hour12: false,
+      timeZone: timezone,
+    });
+
+    const currentTime = formatter.format(now);
+    const [currentHour, currentMinute] = currentTime.split(':').map(Number);
+    const currentMinutes = currentHour * 60 + currentMinute;
+
+    const [startHour, startMinute] = start.split(':').map(Number);
+    const startMinutes = startHour * 60 + startMinute;
+
+    const [endHour, endMinute] = end.split(':').map(Number);
+    const endMinutes = endHour * 60 + endMinute;
+
+    // Handle overnight quiet hours (e.g., 22:00 to 08:00)
+    if (startMinutes > endMinutes) {
+      return currentMinutes >= startMinutes || currentMinutes < endMinutes;
+    }
+
+    return currentMinutes >= startMinutes && currentMinutes < endMinutes;
+  } catch (error) {
+    console.error('Error checking quiet hours:', error);
+    return false;
+  }
+}
+
+/**
+ * Get deferred notifications that should be sent after quiet hours
+ * (For future implementation of notification queue)
+ */
+export async function getDeferredNotifications(userId: string): Promise<any[]> {
+  // TODO: Implement notification queue for deferred notifications
+  return [];
+}
+
 export const notificationService = {
   // Email notifications
   sendOrderCreatedEmail,
@@ -1014,4 +1152,8 @@ export const notificationService = {
   unregisterSSEClient,
   broadcastSSE,
   getSSEStats,
+  // Preference checking
+  shouldSendNotification,
+  checkQuietHours,
+  getDeferredNotifications,
 };
