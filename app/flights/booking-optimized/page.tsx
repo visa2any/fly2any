@@ -500,9 +500,9 @@ function BookingPageContent() {
   const arePassengersComplete = () => {
     return passengers.every((passenger, index) => {
       const required = ['title', 'firstName', 'lastName', 'dateOfBirth', 'nationality'];
-      if (isInternationalRoute(flightData?.search?.from || '', flightData?.search?.to || '')) {
-        required.push('passportNumber', 'passportExpiry');
-      }
+      // PASSPORT IS OPTIONAL - Passengers can add it later even for international flights
+      // This allows booking to proceed without blocking on passport details
+
       // First passenger must have email and phone
       if (index === 0) {
         required.push('email', 'phone');

@@ -3,7 +3,8 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useSession } from 'next-auth/react';
-import { ChevronDown, ChevronUp, Star, Clock, Users, Plane, Wifi, Coffee, Zap, Heart, Share2, Info, Check, X, Shield, AlertTriangle, Award, Sparkles, Image as ImageIcon, Bell } from 'lucide-react';
+import { ChevronDown, ChevronUp, Star, Clock, Users, Plane, Wifi, Coffee, Zap, Heart, Share2, Info, Check, X, Shield, AlertTriangle, Award, Sparkles, Image as ImageIcon, Bell, Loader2 } from 'lucide-react';
+import { toast } from 'react-hot-toast';
 import ShareFlightModal from './ShareFlightModal';
 import { FlightRichContent } from './FlightRichContent';
 import { NDCBenefitsModal } from './NDCBenefitsModal';
@@ -187,6 +188,7 @@ export function FlightCardEnhanced({
   const { data: session, status: sessionStatus } = useSession();
   const [isExpanded, setIsExpanded] = useState(false);
   const [isFavorited, setIsFavorited] = useState(false);
+  const [isFavoriteLoading, setIsFavoriteLoading] = useState(false);
   const [showSuccessToast, setShowSuccessToast] = useState(false);
   const [showFareModal, setShowFareModal] = useState(false);
   const [showFareRules, setShowFareRules] = useState(false);
@@ -591,8 +593,30 @@ export function FlightCardEnhanced({
     }
   };
 
+  // Check if flight is already in wishlist on mount
+  useEffect(() => {
+    if (sessionStatus === 'authenticated' && session?.user) {
+      checkWishlistStatus();
+    }
+  }, [sessionStatus, session, id]);
+
+  const checkWishlistStatus = async () => {
+    try {
+      const response = await fetch('/api/wishlist');
+      if (response.ok) {
+        const data = await response.json();
+        const inWishlist = data.items?.some(
+          (item: any) => item.flightData?.id === id
+        ) || false;
+        setIsFavorited(inWishlist);
+      }
+    } catch (error) {
+      console.error('Error checking wishlist:', error);
+    }
+  };
+
   // Handle favorite click - Authentication required
-  const handleFavoriteClick = () => {
+  const handleFavoriteClick = async () => {
     // Check if user is authenticated
     if (sessionStatus === 'unauthenticated' || !session) {
       // Redirect to sign-in with callback
@@ -600,9 +624,64 @@ export function FlightCardEnhanced({
       return;
     }
 
-    // Toggle favorite state (actual API call would happen here)
-    setIsFavorited(!isFavorited);
-    // TODO: Call API to save/remove favorite
+    if (isFavoriteLoading) return;
+
+    setIsFavoriteLoading(true);
+
+    try {
+      if (isFavorited) {
+        // Remove from wishlist
+        const response = await fetch(`/api/wishlist?flightId=${id}`, {
+          method: 'DELETE',
+        });
+
+        if (response.ok) {
+          setIsFavorited(false);
+          toast.success('Removed from wishlist', { icon: '💔', duration: 2000 });
+        } else {
+          throw new Error('Failed to remove from wishlist');
+        }
+      } else {
+        // Add to wishlist
+        const firstSegment = itineraries[0]?.segments[0];
+        const lastSegment = itineraries[0]?.segments[itineraries[0]?.segments.length - 1];
+        const returnItinerary = itineraries.length > 1 ? itineraries[1] : null;
+
+        const flightData = {
+          id,
+          origin: firstSegment?.departure?.iataCode || '',
+          destination: lastSegment?.arrival?.iataCode || '',
+          departureDate: firstSegment?.departure?.at || '',
+          returnDate: returnItinerary?.segments[0]?.departure?.at,
+          price: typeof price.total === 'string' ? parseFloat(price.total) : price.total,
+          currency: price.currency,
+          airline: validatingAirlineCodes?.[0] || firstSegment?.carrierCode || '',
+          duration: itineraries[0]?.duration || '',
+          stops: (itineraries[0]?.segments?.length || 1) - 1,
+        };
+
+        const response = await fetch('/api/wishlist', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            flightData,
+            notifyOnDrop: true,
+          }),
+        });
+
+        if (response.ok) {
+          setIsFavorited(true);
+          toast.success('Added to wishlist!', { icon: '❤️', duration: 2000 });
+        } else {
+          throw new Error('Failed to add to wishlist');
+        }
+      }
+    } catch (error) {
+      console.error('Wishlist error:', error);
+      toast.error('Something went wrong. Please try again.');
+    } finally {
+      setIsFavoriteLoading(false);
+    }
   };
 
   // Handle share click - Authentication required
@@ -853,14 +932,20 @@ export function FlightCardEnhanced({
           {/* Quick Actions - Smaller - Authentication required */}
           <button
             onClick={handleFavoriteClick}
+            disabled={isFavoriteLoading}
             className={`p-1 rounded transition-all ${
               isFavorited
                 ? 'bg-red-500 text-white'
                 : 'bg-gray-100 text-gray-600 hover:bg-red-50 hover:text-red-500'
-            }`}
-            title="Save to favorites"
+            } ${isFavoriteLoading ? 'opacity-50 cursor-not-allowed' : ''}`}
+            title={isFavorited ? 'Remove from wishlist' : 'Save to wishlist'}
+            aria-label={isFavorited ? 'Remove from wishlist' : 'Save to wishlist'}
           >
-            <Heart className={`w-3.5 h-3.5 ${isFavorited ? 'fill-current' : ''}`} />
+            {isFavoriteLoading ? (
+              <Loader2 className="w-3.5 h-3.5 animate-spin" />
+            ) : (
+              <Heart className={`w-3.5 h-3.5 ${isFavorited ? 'fill-current' : ''}`} />
+            )}
           </button>
 
           <button

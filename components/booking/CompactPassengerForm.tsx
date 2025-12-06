@@ -114,9 +114,9 @@ export function CompactPassengerForm({
 
   const isPassengerComplete = (passenger: PassengerData, passengerIndex: number): boolean => {
     const required = ['title', 'firstName', 'lastName', 'dateOfBirth', 'nationality'];
-    if (isInternational) {
-      required.push('passportNumber', 'passportExpiry');
-    }
+    // PASSPORT IS OPTIONAL - Passengers can add it later
+    // International flights don't require passport at booking time
+
     // First passenger must have email and phone for contact
     if (passengerIndex === 0) {
       required.push('email', 'phone');
@@ -264,27 +264,29 @@ export function CompactPassengerForm({
                   </div>
                 </div>
 
-                {/* Passport Details (International only) */}
+                {/* Passport Details (International only) - OPTIONAL */}
                 {isInternational && (
-                  <div className="p-2.5 bg-primary-50 border border-primary-200 rounded-lg">
-                    <h5 className="text-xs font-bold text-primary-900 mb-2 flex items-center gap-1">
+                  <div className="p-2.5 bg-blue-50 border border-blue-200 rounded-lg">
+                    <h5 className="text-xs font-bold text-blue-900 mb-1 flex items-center gap-1">
                       <Globe className="w-4 h-4" />
-                      Passport Details (Required for International Flights)
+                      Passport Details (Optional)
                     </h5>
+                    <p className="text-xs text-blue-700 mb-2">
+                      ℹ️ You can add passport details now or update them later before your flight
+                    </p>
 
                     <div className="grid grid-cols-2 gap-2">
                       <div>
                         <label className="block text-xs font-semibold text-gray-700 mb-1 flex items-center gap-1">
-                          <CreditCard className="w-3.5 h-3.5 text-primary-500" />
-                          Passport Number *
+                          <CreditCard className="w-3.5 h-3.5 text-blue-500" />
+                          Passport Number
                         </label>
                         <input
                           type="text"
                           value={passenger.passportNumber || ''}
                           onChange={(e) => updatePassenger(passenger.id, 'passportNumber', e.target.value)}
-                          placeholder="AB123456"
-                          className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg bg-white focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
-                          required
+                          placeholder="AB123456 (optional)"
+                          className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg bg-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                         />
                       </div>
 
@@ -293,7 +295,7 @@ export function CompactPassengerForm({
                           value={passenger.passportExpiry || ''}
                           onChange={(value) => updatePassenger(passenger.id, 'passportExpiry', value)}
                           label="Passport Expiry"
-                          required
+                          required={false}
                           error={passengerErrors.passportExpiry}
                           usFormat={true}
                           useDropdowns={true}
