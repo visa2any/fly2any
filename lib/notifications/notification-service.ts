@@ -2,23 +2,23 @@
  * Notification Service
  * Handles all customer and admin notifications for booking events
  *
- * Enhanced with:
+ * UNIFIED EMAIL ARCHITECTURE:
+ * - Uses Mailgun via unified mailgunClient (single provider)
  * - Telegram Bot notifications (FREE) for admin alerts
  * - SSE (Server-Sent Events) for real-time updates (FREE)
  * - In-app notifications stored in database
+ *
+ * @version 2.0.0 - Migrated from Resend to Mailgun
  */
 
-import { Resend } from 'resend';
+import { mailgunClient, MAILGUN_CONFIG } from '@/lib/email/mailgun-client';
 import type { Booking } from '@/lib/bookings/types';
 import type { DuffelOrder } from '@/lib/webhooks/event-handlers';
 import { getPrismaClient } from '@/lib/prisma';
 import type { BookingNotificationPayload } from './types';
 
-// Initialize Resend with API key from environment variables
-const resend = process.env.RESEND_API_KEY ? new Resend(process.env.RESEND_API_KEY) : null;
-
 // Configuration
-const FROM_EMAIL = process.env.FROM_EMAIL || 'Fly2Any <support@fly2any.com>';
+const FROM_EMAIL = MAILGUN_CONFIG.fromEmail;
 const ADMIN_EMAIL = process.env.ADMIN_EMAIL || 'admin@fly2any.com';
 const COMPANY_NAME = 'Fly2Any';
 const SUPPORT_EMAIL = 'support@fly2any.com';
@@ -465,21 +465,18 @@ Best regards,
 ${COMPANY_NAME} Team
     `;
 
-    if (!resend || !process.env.RESEND_API_KEY) {
-      console.log('📧 [Notification] Order created email (console only):', booking.bookingReference);
-      return true;
-    }
-
-    await resend.emails.send({
-      from: FROM_EMAIL,
+    const result = await mailgunClient.send({
       to: booking.contactInfo.email,
       subject,
       html,
       text,
+      tags: ['booking', 'order-created'],
     });
 
-    console.log('✅ [Notification] Order created email sent:', booking.bookingReference);
-    return true;
+    if (result.success) {
+      console.log('✅ [Notification] Order created email sent:', booking.bookingReference);
+    }
+    return result.success;
   } catch (error) {
     console.error('❌ [Notification] Error sending order created email:', error);
     return false;
@@ -542,21 +539,18 @@ Best regards,
 ${COMPANY_NAME} Team
     `;
 
-    if (!resend || !process.env.RESEND_API_KEY) {
-      console.log('📧 [Notification] Order failed email (console only):', booking.bookingReference);
-      return true;
-    }
-
-    await resend.emails.send({
-      from: FROM_EMAIL,
+    const result = await mailgunClient.send({
       to: booking.contactInfo.email,
       subject,
       html,
       text,
+      tags: ['booking', 'order-failed'],
     });
 
-    console.log('✅ [Notification] Order failed email sent:', booking.bookingReference);
-    return true;
+    if (result.success) {
+      console.log('✅ [Notification] Order failed email sent:', booking.bookingReference);
+    }
+    return result.success;
   } catch (error) {
     console.error('❌ [Notification] Error sending order failed email:', error);
     return false;
@@ -650,21 +644,18 @@ Have a great flight!
 ${COMPANY_NAME} Team
     `;
 
-    if (!resend || !process.env.RESEND_API_KEY) {
-      console.log('📧 [Notification] Payment success email (console only):', booking.bookingReference);
-      return true;
-    }
-
-    await resend.emails.send({
-      from: FROM_EMAIL,
+    const result = await mailgunClient.send({
       to: booking.contactInfo.email,
       subject,
       html,
       text,
+      tags: ['booking', 'payment-success'],
     });
 
-    console.log('✅ [Notification] Payment success email sent:', booking.bookingReference);
-    return true;
+    if (result.success) {
+      console.log('✅ [Notification] Payment success email sent:', booking.bookingReference);
+    }
+    return result.success;
   } catch (error) {
     console.error('❌ [Notification] Error sending payment success email:', error);
     return false;
@@ -721,21 +712,18 @@ Best regards,
 ${COMPANY_NAME} Team
     `;
 
-    if (!resend || !process.env.RESEND_API_KEY) {
-      console.log('📧 [Notification] Payment failed email (console only):', booking.bookingReference);
-      return true;
-    }
-
-    await resend.emails.send({
-      from: FROM_EMAIL,
+    const result = await mailgunClient.send({
       to: booking.contactInfo.email,
       subject,
       html,
       text,
+      tags: ['booking', 'payment-failed'],
     });
 
-    console.log('✅ [Notification] Payment failed email sent:', booking.bookingReference);
-    return true;
+    if (result.success) {
+      console.log('✅ [Notification] Payment failed email sent:', booking.bookingReference);
+    }
+    return result.success;
   } catch (error) {
     console.error('❌ [Notification] Error sending payment failed email:', error);
     return false;
@@ -815,21 +803,18 @@ Best regards,
 ${COMPANY_NAME} Team
     `;
 
-    if (!resend || !process.env.RESEND_API_KEY) {
-      console.log('📧 [Notification] Schedule change email (console only):', booking.bookingReference);
-      return true;
-    }
-
-    await resend.emails.send({
-      from: FROM_EMAIL,
+    const result = await mailgunClient.send({
       to: booking.contactInfo.email,
       subject,
       html,
       text,
+      tags: ['booking', 'schedule-change'],
     });
 
-    console.log('✅ [Notification] Schedule change email sent:', booking.bookingReference);
-    return true;
+    if (result.success) {
+      console.log('✅ [Notification] Schedule change email sent:', booking.bookingReference);
+    }
+    return result.success;
   } catch (error) {
     console.error('❌ [Notification] Error sending schedule change email:', error);
     return false;
@@ -920,21 +905,18 @@ Best regards,
 ${COMPANY_NAME} Team
     `;
 
-    if (!resend || !process.env.RESEND_API_KEY) {
-      console.log('📧 [Notification] Cancellation confirmed email (console only):', booking.bookingReference);
-      return true;
-    }
-
-    await resend.emails.send({
-      from: FROM_EMAIL,
+    const result = await mailgunClient.send({
       to: booking.contactInfo.email,
       subject,
       html,
       text,
+      tags: ['booking', 'cancellation'],
     });
 
-    console.log('✅ [Notification] Cancellation confirmed email sent:', booking.bookingReference);
-    return true;
+    if (result.success) {
+      console.log('✅ [Notification] Cancellation confirmed email sent:', booking.bookingReference);
+    }
+    return result.success;
   } catch (error) {
     console.error('❌ [Notification] Error sending cancellation email:', error);
     return false;
@@ -996,21 +978,18 @@ This alert requires immediate attention.
 ${COMPANY_NAME} Admin System
     `;
 
-    if (!resend || !process.env.RESEND_API_KEY) {
-      console.log('📧 [Notification] Admin alert (console only):', alert.type, alert.bookingReference);
-      return true;
-    }
-
-    await resend.emails.send({
-      from: FROM_EMAIL,
+    const result = await mailgunClient.send({
       to: ADMIN_EMAIL,
       subject,
       html,
       text,
+      tags: ['admin', 'alert', alert.priority || 'normal'],
     });
 
-    console.log('✅ [Notification] Admin alert sent:', alert.type);
-    return true;
+    if (result.success) {
+      console.log('✅ [Notification] Admin alert sent:', alert.type);
+    }
+    return result.success;
   } catch (error) {
     console.error('❌ [Notification] Error sending admin alert:', error);
     return false;
