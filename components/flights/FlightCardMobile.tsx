@@ -1,0 +1,338 @@
+'use client';
+
+import { useState } from 'react';
+import { useRouter } from 'next/navigation';
+import { Plane, Star, ChevronDown, Heart, Share2, Check } from 'lucide-react';
+import { toast } from 'react-hot-toast';
+import AirlineLogo from './AirlineLogo';
+import { DealScoreBadgeCompact } from './DealScoreBadge';
+import { getAirlineData } from '@/lib/flights/airline-data';
+import { formatCityCode } from '@/lib/data/airports';
+import type { EnhancedFlightCardProps } from './FlightCardEnhanced';
+import { FlightDetailsSheet } from './FlightDetailsSheet';
+
+/**
+ * ULTRA-COMPACT MOBILE FLIGHT CARD
+ *
+ * Design Goals:
+ * - Height: 110-120px (vs 180px+ desktop)
+ * - Show critical info only (airline, route, price, deal score)
+ * - Touch-optimized interactions (swipe, tap)
+ * - Progressive disclosure via bottom sheet
+ * - Premium animations and haptic feedback
+ *
+ * Space Efficiency:
+ * - 3x more flights visible without scrolling
+ * - Zero information loss (details in bottom sheet)
+ * - Swipe gestures for quick actions
+ */
+
+export function FlightCardMobile(props: EnhancedFlightCardProps) {
+  const {
+    id,
+    itineraries,
+    price,
+    numberOfBookableSeats = 9,
+    validatingAirlineCodes = [],
+    badges = [],
+    dealScore,
+    dealScoreBreakdown,
+    dealTier,
+    dealLabel,
+    onSelect,
+    onCompare,
+    isComparing = false,
+    isNavigating = false,
+  } = props;
+
+  const router = useRouter();
+  const [showDetailsSheet, setShowDetailsSheet] = useState(false);
+  const [touchStart, setTouchStart] = useState<number | null>(null);
+  const [touchEnd, setTouchEnd] = useState<number | null>(null);
+
+  // Parse flight data
+  const primaryItinerary = itineraries[0];
+  const firstSegment = primaryItinerary.segments[0];
+  const lastSegment = primaryItinerary.segments[primaryItinerary.segments.length - 1];
+  const primaryAirline = validatingAirlineCodes?.[0] || firstSegment.carrierCode;
+  const airlineData = getAirlineData(primaryAirline);
+
+  // Format time (HH:MM)
+  const formatTime = (dateString: string) => {
+    const date = new Date(dateString);
+    return date.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: false });
+  };
+
+  // Format date (MMM DD)
+  const formatDate = (dateString: string) => {
+    const date = new Date(dateString);
+    return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+  };
+
+  // Parse duration
+  const parseDuration = (duration: string): string => {
+    const match = duration.match(/PT(\d+H)?(\d+M)?/);
+    if (!match) return duration;
+    const hours = match[1] ? parseInt(match[1].replace('H', '')) : 0;
+    const minutes = match[2] ? parseInt(match[2].replace('M', '')) : 0;
+    return `${hours}h ${minutes}m`;
+  };
+
+  // Calculate stops
+  const stops = primaryItinerary.segments.length - 1;
+  const stopsText = stops === 0 ? 'Direct' : stops === 1 ? '1 stop' : `${stops} stops`;
+
+  // Format price
+  const formatPrice = () => {
+    const total = typeof price.total === 'string' ? parseFloat(price.total) : price.total;
+    return `$${Math.round(total)}`;
+  };
+
+  // Handle card selection
+  const handleSelect = () => {
+    if (isNavigating) return;
+
+    // Save flight data for booking page
+    sessionStorage.setItem(`flight_${id}`, JSON.stringify(props));
+
+    // Haptic feedback (if supported)
+    if ('vibrate' in navigator) {
+      navigator.vibrate(10);
+    }
+
+    // Navigate to booking
+    setTimeout(() => {
+      router.push(`/flights/booking?flightId=${id}&step=summary`);
+    }, 300);
+
+    if (onSelect) {
+      onSelect(id);
+    }
+  };
+
+  // Handle swipe gestures
+  const minSwipeDistance = 50;
+
+  const onTouchStart = (e: React.TouchEvent) => {
+    setTouchEnd(null);
+    setTouchStart(e.targetTouches[0].clientX);
+  };
+
+  const onTouchMove = (e: React.TouchEvent) => {
+    setTouchEnd(e.targetTouches[0].clientX);
+  };
+
+  const onTouchEnd = () => {
+    if (!touchStart || !touchEnd) return;
+
+    const distance = touchStart - touchEnd;
+    const isLeftSwipe = distance > minSwipeDistance;
+    const isRightSwipe = distance < -minSwipeDistance;
+
+    if (isRightSwipe) {
+      // Swipe right: Add to wishlist
+      if ('vibrate' in navigator) navigator.vibrate(15);
+      toast.success('Added to wishlist!', { icon: '❤️', duration: 2000 });
+    }
+
+    if (isLeftSwipe) {
+      // Swipe left: Add to comparison
+      if (onCompare) {
+        if ('vibrate' in navigator) navigator.vibrate(15);
+        onCompare(id);
+        toast.success(isComparing ? 'Removed from comparison' : 'Added to comparison', {
+          icon: '✓',
+          duration: 2000
+        });
+      }
+    }
+  };
+
+  // Determine which badge to show (max 1 on mobile)
+  const priorityBadge = () => {
+    // Priority 1: Deal score (if excellent or great)
+    if (dealScoreBreakdown) {
+      return (
+        <DealScoreBadgeCompact
+          score={dealScoreBreakdown}
+        />
+      );
+    } else if (dealScore && dealScore >= 70 && dealTier && dealLabel) {
+      // Construct minimal breakdown from individual fields
+      const breakdown = {
+        total: dealScore,
+        components: {
+          price: 0,
+          duration: 0,
+          stops: 0,
+          timeOfDay: 0,
+          reliability: 0,
+          comfort: 0,
+          availability: 0,
+        },
+        tier: dealTier,
+        label: dealLabel,
+        explanations: {
+          price: '',
+          duration: '',
+          stops: '',
+          timeOfDay: '',
+          reliability: '',
+          comfort: '',
+          availability: '',
+        },
+      };
+      return (
+        <DealScoreBadgeCompact
+          score={breakdown}
+        />
+      );
+    }
+
+    // Priority 2: Low seats
+    if (numberOfBookableSeats <= 3) {
+      return (
+        <span className="text-[10px] font-bold text-orange-600 px-2 py-0.5 bg-orange-50 rounded-full whitespace-nowrap">
+          ⚠️ {numberOfBookableSeats} left
+        </span>
+      );
+    }
+
+    // Priority 3: Direct flight
+    if (stops === 0) {
+      return (
+        <span className="text-[10px] font-semibold px-2 py-0.5 bg-green-50 text-green-700 rounded-full whitespace-nowrap">
+          ✈️ Direct
+        </span>
+      );
+    }
+
+    return null;
+  };
+
+  return (
+    <>
+      {/* ULTRA-COMPACT CARD - 110px height */}
+      <div
+        onTouchStart={onTouchStart}
+        onTouchMove={onTouchMove}
+        onTouchEnd={onTouchEnd}
+        className={`relative bg-white rounded-xl border-2 transition-all duration-200 overflow-hidden active:scale-[0.98] ${
+          isComparing ? 'border-primary-500 shadow-lg shadow-primary-100' : 'border-gray-200'
+        }`}
+        style={{ height: '110px' }}
+      >
+        {/* HEADER - Airline + Badge (28px) */}
+        <div className="flex items-center justify-between px-3 py-1.5 border-b border-gray-100">
+          {/* Left: Airline info */}
+          <div className="flex items-center gap-2 flex-1 min-w-0">
+            <AirlineLogo
+              code={primaryAirline}
+              size="sm"
+              className="flex-shrink-0"
+            />
+            <span className="text-sm font-semibold text-gray-900 truncate">
+              {airlineData.name}
+            </span>
+            <div className="flex items-center gap-0.5 flex-shrink-0">
+              <Star className="w-3 h-3 fill-yellow-500 text-yellow-500" />
+              <span className="text-[11px] font-semibold text-gray-700">
+                {airlineData.rating.toFixed(1)}
+              </span>
+            </div>
+          </div>
+
+          {/* Right: Priority badge */}
+          <div className="flex-shrink-0">
+            {priorityBadge()}
+          </div>
+        </div>
+
+        {/* ROUTE - Time, Cities, Flight Path (50px) */}
+        <div className="flex items-center px-3 py-2">
+          {/* Departure */}
+          <div className="flex-shrink-0">
+            <div className="text-lg font-bold text-gray-900 leading-none">
+              {formatTime(firstSegment.departure.at)}
+            </div>
+            <div className="text-[11px] font-semibold text-gray-600 mt-0.5">
+              {formatCityCode(firstSegment.departure.iataCode)}
+            </div>
+          </div>
+
+          {/* Flight Path */}
+          <div className="flex-1 mx-3">
+            <div className="relative h-px bg-gradient-to-r from-gray-300 via-primary-400 to-gray-300">
+              <Plane className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-3.5 h-3.5 text-primary-600 bg-white" />
+            </div>
+            <div className="flex items-center justify-center gap-1.5 mt-1">
+              <span className="text-[10px] font-medium text-gray-600">
+                {parseDuration(primaryItinerary.duration)}
+              </span>
+              <span className="text-[10px] text-gray-400">•</span>
+              <span className={`text-[10px] font-semibold ${stops === 0 ? 'text-green-600' : 'text-gray-600'}`}>
+                {stopsText}
+              </span>
+            </div>
+          </div>
+
+          {/* Arrival */}
+          <div className="flex-shrink-0 text-right">
+            <div className="text-lg font-bold text-gray-900 leading-none">
+              {formatTime(lastSegment.arrival.at)}
+            </div>
+            <div className="text-[11px] font-semibold text-gray-600 mt-0.5">
+              {formatCityCode(lastSegment.arrival.iataCode)}
+            </div>
+          </div>
+        </div>
+
+        {/* PRICE + CTA (32px) */}
+        <div className="flex items-center justify-between px-3 py-1.5 bg-gray-50 border-t border-gray-100">
+          {/* Price */}
+          <div className="flex items-baseline gap-1">
+            <span className="text-2xl font-bold text-primary-600">
+              {formatPrice()}
+            </span>
+            <span className="text-[10px] text-gray-500">
+              per person
+            </span>
+          </div>
+
+          {/* Actions */}
+          <div className="flex items-center gap-2">
+            {/* More Details button */}
+            <button
+              onClick={() => setShowDetailsSheet(true)}
+              className="text-xs font-medium text-primary-600 px-2 py-1 hover:bg-primary-50 rounded transition-colors active:scale-95"
+            >
+              Details
+            </button>
+
+            {/* Select button */}
+            <button
+              onClick={handleSelect}
+              disabled={isNavigating}
+              className="px-4 py-1.5 bg-primary-600 text-white text-sm font-semibold rounded-lg active:scale-95 transition-transform disabled:opacity-50"
+            >
+              Select →
+            </button>
+          </div>
+        </div>
+
+        {/* Swipe indicator overlay (subtle hint) */}
+        <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-gradient-to-r from-transparent via-gray-200 to-transparent opacity-50 pointer-events-none" />
+      </div>
+
+      {/* BOTTOM SHEET - Flight Details */}
+      {showDetailsSheet && (
+        <FlightDetailsSheet
+          {...props}
+          isOpen={showDetailsSheet}
+          onClose={() => setShowDetailsSheet(false)}
+          onSelect={handleSelect}
+        />
+      )}
+    </>
+  );
+}

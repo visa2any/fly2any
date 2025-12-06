@@ -4,7 +4,7 @@ import { useState, useEffect, Suspense } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { useSession } from 'next-auth/react';
 import { toast } from 'react-hot-toast';
-import { FlightCardEnhanced } from '@/components/flights/FlightCardEnhanced';
+import { FlightCardResponsive as FlightCardEnhanced } from '@/components/flights/FlightCardResponsive';
 import { FlexibleDates, type DatePrice } from '@/components/flights/FlexibleDates';
 import { SmartWait } from '@/components/flights/SmartWait';
 import { FlightComparison } from '@/components/flights/FlightComparison';

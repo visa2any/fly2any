@@ -10,3 +10,6 @@ export { BottomTabBar } from './BottomTabBar';
 // Search components
 export { CollapsibleSearchBar } from './CollapsibleSearchBar';
 export type { SearchSummary, CollapsibleSearchBarProps } from './CollapsibleSearchBar';
+
+// Price and sort components
+export { StickyPriceBar, SortSheet } from './StickyPriceBar';
