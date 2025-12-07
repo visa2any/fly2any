@@ -13,7 +13,7 @@ import CreatePriceAlert from '@/components/search/CreatePriceAlert';
 import AuthModal from '@/components/auth/AuthModal';
 import FlightFilters, { type FlightFilters as FlightFiltersType, type FlightOffer } from '@/components/flights/FlightFilters';
 import SortBar, { type SortOption } from '@/components/flights/SortBar';
-import EnhancedSearchBar from '@/components/flights/EnhancedSearchBar';
+import { MobileHomeSearchWrapper } from '@/components/home/MobileHomeSearchWrapper';
 import CompactSearchSummary from '@/components/flights/CompactSearchSummary';
 import { PriceInsights, type PriceStatistics, type FlightRoute } from '@/components/flights/PriceInsights';
 import { MLInsights, type MLMetadata } from '@/components/flights/MLInsights';
@@ -1432,7 +1432,7 @@ function FlightResultsContent() {
     return (
       <div className="min-h-screen bg-gradient-to-br from-gray-50 via-blue-50/30 to-gray-50">
         {/* Search Bar - VISIBLE during loading */}
-        <EnhancedSearchBar
+        <MobileHomeSearchWrapper
           origin={searchData.from}
           destination={searchData.to}
           departureDate={searchData.departure}
@@ -1548,7 +1548,7 @@ function FlightResultsContent() {
   if (hasNoResults) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-gray-50 via-blue-50/30 to-gray-50">
-        <EnhancedSearchBar
+        <MobileHomeSearchWrapper
           origin={searchData.from}
           destination={searchData.to}
           departureDate={searchData.departure}
@@ -1594,56 +1594,20 @@ function FlightResultsContent() {
       {/* Test Mode Banner - Removed for production */}
       {/* <TestModeBanner /> */}
 
-      {/* Search Bar - Collapsible with 270px vertical space savings */}
-      <CollapsibleSearchBar
-        searchSummary={{
-          origin: searchData.from,
-          destination: searchData.to,
-          departDate: searchData.departure ? new Date(searchData.departure.split(',')[0]) : null,
-          returnDate: searchData.return ? new Date(searchData.return) : null,
-          passengers: {
-            adults: searchData.adults,
-            children: searchData.children,
-            infants: searchData.infants,
-          },
-          tripType: searchData.return ? 'roundtrip' : 'oneway',
+      {/* Search Bar - Collapsed-by-default with scroll-hide functionality */}
+      <MobileHomeSearchWrapper
+        origin={searchData.from}
+        destination={searchData.to}
+        departureDate={searchData.departure}
+        returnDate={searchData.return}
+        passengers={{
+          adults: searchData.adults,
+          children: searchData.children,
+          infants: searchData.infants,
         }}
-        defaultCollapsed={searchBarCollapsed}
-        onCollapseChange={setSearchBarCollapsed}
-        mobileOnly={true}
-        onSearch={() => {}}
-      >
-        <EnhancedSearchBar
-          origin={searchData.from}
-          destination={searchData.to}
-          departureDate={searchData.departure}
-          returnDate={searchData.return}
-          passengers={{
-            adults: searchData.adults,
-            children: searchData.children,
-            infants: searchData.infants,
-          }}
-          cabinClass={searchData.class}
-          lang={lang}
-        />
-      </CollapsibleSearchBar>
-
-      {/* Desktop: Show full search bar (CollapsibleSearchBar is mobile-only) */}
-      <div className="hidden md:block">
-        <EnhancedSearchBar
-          origin={searchData.from}
-          destination={searchData.to}
-          departureDate={searchData.departure}
-          returnDate={searchData.return}
-          passengers={{
-            adults: searchData.adults,
-            children: searchData.children,
-            infants: searchData.infants,
-          }}
-          cabinClass={searchData.class}
-          lang={lang}
-        />
-      </div>
+        cabinClass={searchData.class}
+        lang={lang}
+      />
 
       {/* World Cup 2026 Cross-Promotion Banner - Only shows for destination cities hosting matches */}
       {(() => {
@@ -1693,16 +1657,14 @@ function FlightResultsContent() {
               {sortedFlights.length} flights found for {searchData.from} to {searchData.to}
             </div>
 
-            {/* Mobile: Filters + Save Button Row */}
-            <div className="lg:hidden flex gap-2 mb-2">
-              <button onClick={() => setMobileFilterSheetOpen(true)} className="flex-1 h-10 flex items-center justify-center gap-2 bg-white border-2 border-gray-300 rounded-lg text-sm font-medium">
+            {/* Mobile: Filters Button */}
+            <div className="lg:hidden mb-2">
+              <button onClick={() => setMobileFilterSheetOpen(true)} className="w-full h-10 flex items-center justify-center gap-2 bg-white border-2 border-gray-300 rounded-lg text-sm font-medium">
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 4h18M3 12h12M3 20h6" /></svg>
                 Filters {(filters.stops.length + filters.airlines.length > 0) && <span className="px-1.5 py-0.5 bg-primary-600 text-white text-xs rounded-full">{filters.stops.length + filters.airlines.length}</span>}
               </button>
-              <SaveSearchButton searchParams={{origin: searchData.from, destination: searchData.to, departDate: searchData.departure, returnDate: searchData.return, adults: searchData.adults, children: searchData.children, infants: searchData.infants, cabinClass: searchData.class}} variant="compact" />
             </div>
-            <div className="hidden lg:flex justify-end mb-2"><SaveSearchButton searchParams={{origin: searchData.from, destination: searchData.to, departDate: searchData.departure, returnDate: searchData.return, adults: searchData.adults, children: searchData.children, infants: searchData.infants, cabinClass: searchData.class}} variant="compact" /></div>
-            <div className="mb-2"><SortBar currentSort={sortBy} onChange={setSortBy} resultCount={sortedFlights.length} lang={lang} /></div>
+            <div className="mb-2"><SortBar currentSort={sortBy} onChange={setSortBy} resultCount={sortedFlights.length} lang={lang} searchParams={{origin: searchData.from, destination: searchData.to, departDate: searchData.departure, returnDate: searchData.return, adults: searchData.adults, children: searchData.children, infants: searchData.infants, cabinClass: searchData.class}} /></div>
 
             {/* Limited Nonstop Flights Notice - Shows when nonstop filter returns ZERO results */}
             {(fromNonstopFilter || toNonstopFilter) && sortedFlights.length === 0 && flights.length > 0 && (() => {

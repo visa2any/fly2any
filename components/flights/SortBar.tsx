@@ -2,6 +2,7 @@
 
 import { Sparkles, DollarSign, Zap, Clock } from 'lucide-react';
 import { spacing, typography, colors } from '@/lib/design-system';
+import SaveSearchButton from '@/components/search/SaveSearchButton';
 
 export type SortOption = 'best' | 'cheapest' | 'fastest' | 'earliest';
 
@@ -10,6 +11,16 @@ interface SortBarProps {
   onChange: (sort: SortOption) => void;
   resultCount?: number;
   lang?: 'en' | 'pt' | 'es';
+  searchParams?: {
+    origin: string;
+    destination: string;
+    departDate: string;
+    returnDate?: string;
+    adults: number;
+    children: number;
+    infants: number;
+    cabinClass: string;
+  };
 }
 
 const content = {
@@ -91,7 +102,8 @@ export default function SortBar({
   currentSort,
   onChange,
   resultCount = 0,
-  lang = 'en'
+  lang = 'en',
+  searchParams
 }: SortBarProps) {
   const t = content[lang];
 
@@ -143,6 +155,14 @@ export default function SortBar({
               </button>
             );
           })}
+
+          {/* Save Search Button */}
+          {searchParams && (
+            <SaveSearchButton
+              searchParams={searchParams}
+              variant="icon"
+            />
+          )}
         </div>
       </div>
     </div>
