@@ -30,6 +30,8 @@ interface MobileHomeSearchWrapperProps {
   lang?: 'en' | 'pt' | 'es';
   /** Default service tab (flights, hotels, cars, tours, activities, packages, insurance) */
   defaultService?: 'flights' | 'hotels' | 'cars' | 'tours' | 'activities' | 'packages' | 'insurance';
+  /** Callback when search is submitted (triggers auto-collapse on mobile) */
+  onSearch?: () => void;
 }
 
 type ViewState = 'collapsed' | 'expanded' | 'hidden';
@@ -50,6 +52,7 @@ type ViewState = 'collapsed' | 'expanded' | 'hidden';
  * - Zero feature loss - all EnhancedSearchBar functionality preserved
  * - Smooth spring physics animations via Framer Motion
  * - Auto-hide on scroll down, auto-show on scroll up
+ * - Auto-collapse on search submission (mobile UX optimization)
  * - 100% width on mobile, no side padding waste
  * - ARIA labels for accessibility
  * - Haptic feedback on touch devices (when available)
@@ -63,6 +66,7 @@ export function MobileHomeSearchWrapper({
   cabinClass,
   lang = 'en',
   defaultService = 'flights',
+  onSearch,
 }: MobileHomeSearchWrapperProps) {
   // CRITICAL: Only render mobile UI after hydration to prevent SSR/CSR mismatch
   const hasMounted = useHasMounted();
@@ -186,6 +190,16 @@ export function MobileHomeSearchWrapper({
     setViewState('collapsed');
   }, [triggerHaptic]);
 
+  // Auto-collapse when search is submitted (mobile UX optimization)
+  const handleSearchSubmit = useCallback(() => {
+    // Immediately collapse to show loading state and results
+    triggerHaptic();
+    setViewState('collapsed');
+
+    // Call parent's onSearch callback if provided
+    onSearch?.();
+  }, [triggerHaptic, onSearch]);
+
   // Spring animation configuration
   const springConfig = {
     type: 'spring' as const,
@@ -297,7 +311,7 @@ export function MobileHomeSearchWrapper({
               <X className="w-5 h-5 text-gray-700 stroke-[2.5]" aria-hidden="true" />
             </button>
 
-            {/* Full EnhancedSearchBar - All features preserved */}
+            {/* Full EnhancedSearchBar - All features preserved with auto-collapse on search */}
             <div ref={searchBarRef}>
               <EnhancedSearchBar
                 origin={origin}
@@ -308,6 +322,7 @@ export function MobileHomeSearchWrapper({
                 cabinClass={cabinClass}
                 lang={lang}
                 defaultService={defaultService}
+                onSearchSubmit={handleSearchSubmit}
               />
             </div>
           </motion.div>
