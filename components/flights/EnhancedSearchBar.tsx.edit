@@ -1081,7 +1081,7 @@ export default function EnhancedSearchBar({
             SERVICE TYPE TABS - Option A: Minimal Icon Tabs
             Fixed ordering for hydration compatibility
             ============================================ */}
-        <div className="flex items-center gap-6 mb-2 border-b border-gray-200">
+        <div className="flex items-center gap-6 mb-4 border-b border-gray-200">
           {/* Flights Tab - FIRST */}
           <button
             type="button"
@@ -1332,7 +1332,7 @@ export default function EnhancedSearchBar({
                 }`}
               >
                 <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={20} />
-                <span className="block pl-8 text-sm font-medium text-gray-900">
+                <span className="block pl-8 text-base font-medium text-gray-900">
                   {departureDate ? formatDateForDisplay(departureDate) : 'Select date'}
                 </span>
               </button>
@@ -1357,7 +1357,7 @@ export default function EnhancedSearchBar({
                       </span>
                     ))
                   ) : (
-                    <span className="text-sm font-medium text-gray-500">Select dates (up to 3)</span>
+                    <span className="text-base font-medium text-gray-500">Select dates (up to 3)</span>
                   )}
                 </div>
               </button>
@@ -1406,7 +1406,7 @@ export default function EnhancedSearchBar({
                   className="w-full relative px-4 py-4 bg-white border border-gray-300 rounded-lg hover:border-[#0087FF] transition-all cursor-pointer"
                 >
                   <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={20} />
-                  <span className="block pl-8 text-sm font-medium text-gray-900">
+                  <span className="block pl-8 text-base font-medium text-gray-900">
                     {returnDate ? formatDateForDisplay(returnDate) : 'Select date'}
                   </span>
                 </button>
@@ -1429,7 +1429,7 @@ export default function EnhancedSearchBar({
                         </span>
                       ))
                     ) : (
-                      <span className="text-sm font-medium text-gray-500">Select dates (up to 3)</span>
+                      <span className="text-base font-medium text-gray-500">Select dates (up to 3)</span>
                     )}
                   </div>
                 </button>
@@ -1437,7 +1437,7 @@ export default function EnhancedSearchBar({
             ) : (
               <div className="relative w-full px-4 py-4 bg-gray-50 border border-gray-200 rounded-lg cursor-not-allowed">
                 <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-300" size={20} />
-                <span className="block pl-8 text-sm text-gray-400 italic">
+                <span className="block pl-8 text-base text-gray-400 italic">
                   One-way trip
                 </span>
               </div>
@@ -1633,7 +1633,7 @@ export default function EnhancedSearchBar({
               type="button"
               onClick={handleSearch}
               disabled={isLoading}
-              className="py-4 px-10 bg-[#0087FF] hover:bg-[#0077E6] text-white font-semibold rounded-lg shadow-md hover:shadow-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 whitespace-nowrap text-sm"
+              className="py-4 px-10 bg-[#0087FF] hover:bg-[#0077E6] text-white font-semibold rounded-lg shadow-md hover:shadow-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 whitespace-nowrap text-base"
             >
               {isLoading ? (
                 <>
@@ -1753,7 +1753,7 @@ export default function EnhancedSearchBar({
                       className="w-full relative px-4 py-4 bg-white border border-gray-300 rounded-lg hover:border-[#0087FF] transition-all cursor-pointer"
                     >
                       <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={20} />
-                      <span className="block pl-8 text-sm font-medium text-gray-900">
+                      <span className="block pl-8 text-base font-medium text-gray-900">
                         {flight.departureDate ? formatDateForDisplay(flight.departureDate) : 'Select date'}
                       </span>
                     </button>
@@ -1799,7 +1799,7 @@ export default function EnhancedSearchBar({
           {serviceType === 'hotels' && (
           <>
           {/* Search Fields Row */}
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-4">
             {/* Hotel Destination - Enhanced Display */}
             <div ref={hotelDestinationRef} className="flex-1 relative">
               <label className="flex items-center gap-1.5 text-xs font-medium text-gray-700 mb-2">
@@ -1826,7 +1826,7 @@ export default function EnhancedSearchBar({
                         )}
                       </div>
                       <div>
-                        <div className="font-bold text-gray-900 text-sm leading-tight flex items-center gap-2">
+                        <div className="font-bold text-gray-900 text-base leading-tight flex items-center gap-2">
                           {selectedDestinationDetails.name}
                           <Check className="w-4 h-4 text-emerald-600" />
                         </div>
@@ -1875,7 +1875,7 @@ export default function EnhancedSearchBar({
                     }
                   }}
                   placeholder="City, hotel, or landmark"
-                  className={`w-full px-4 py-4 bg-white border rounded-lg hover:border-[#0087FF] transition-all text-sm font-medium ${
+                  className={`w-full px-4 py-4 bg-white border rounded-lg hover:border-[#0087FF] transition-all text-base font-medium ${
                     errors.hotel ? 'border-red-500' : 'border-gray-300'
                   }`}
                 />
@@ -1894,7 +1894,7 @@ export default function EnhancedSearchBar({
                      }}>
                   {isLoadingHotelSuggestions ? (
                     <div className="p-6 flex flex-col items-center justify-center gap-3">
-                      <div className="relative w-12 h-10">
+                      <div className="relative w-12 h-12">
                         <div className="absolute inset-0 rounded-full border-4 border-blue-100"></div>
                         <div className="absolute inset-0 rounded-full border-4 border-t-blue-500 border-r-transparent border-b-transparent border-l-transparent animate-spin"></div>
                       </div>
@@ -1940,7 +1940,7 @@ export default function EnhancedSearchBar({
                             key={index}
                             type="button"
                             onClick={() => handleHotelSuggestionSelect(suggestion)}
-                            className="group w-full px-4 py-4 text-left hover:bg-gradient-to-r hover:from-blue-50 hover:to-cyan-50 transition-all duration-300 flex items-center gap-2 border-b border-gray-100 last:border-b-0 hover:scale-[1.01] active:scale-[0.99]"
+                            className="group w-full px-4 py-4 text-left hover:bg-gradient-to-r hover:from-blue-50 hover:to-cyan-50 transition-all duration-300 flex items-center gap-4 border-b border-gray-100 last:border-b-0 hover:scale-[1.01] active:scale-[0.99]"
                             style={{
                               transformOrigin: 'center'
                             }}
@@ -1959,7 +1959,7 @@ export default function EnhancedSearchBar({
                             <div className="flex-1 min-w-0">
                               {/* City Name & Flag */}
                               <div className="flex items-center gap-2 mb-1">
-                                <h3 className="font-bold text-gray-900 text-sm group-hover:text-blue-600 transition-colors truncate">
+                                <h3 className="font-bold text-gray-900 text-base group-hover:text-blue-600 transition-colors truncate">
                                   {suggestion.name}
                                 </h3>
                                 {suggestion.flag && (
@@ -2257,7 +2257,7 @@ export default function EnhancedSearchBar({
                 type="button"
                 onClick={handleSearch}
                 disabled={isLoading}
-                className="py-4 px-10 bg-[#0087FF] hover:bg-[#0077E6] text-white font-semibold rounded-lg shadow-md hover:shadow-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 whitespace-nowrap text-sm"
+                className="py-4 px-10 bg-[#0087FF] hover:bg-[#0077E6] text-white font-semibold rounded-lg shadow-md hover:shadow-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 whitespace-nowrap text-base"
               >
                 {isLoading ? (
                   <>
@@ -2402,7 +2402,7 @@ export default function EnhancedSearchBar({
                 ) : (
                   <div className="relative w-full px-4 py-4 bg-gray-50 border border-gray-200 rounded-lg cursor-not-allowed h-full flex items-center">
                     <Car className="absolute left-3 text-gray-300" size={20} />
-                    <span className="block pl-8 text-sm text-gray-400 italic">
+                    <span className="block pl-8 text-base text-gray-400 italic">
                       Same as pickup
                     </span>
                   </div>
@@ -2436,7 +2436,7 @@ export default function EnhancedSearchBar({
                 className="w-full relative px-4 py-4 bg-white border rounded-lg hover:border-[#0087FF] transition-all cursor-pointer border-gray-300"
               >
                 <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={20} />
-                <span className="block pl-8 text-sm font-medium text-gray-900">
+                <span className="block pl-8 text-base font-medium text-gray-900">
                   {carPickupDate ? formatDateForDisplay(carPickupDate) : 'Select date'}
                 </span>
               </button>
@@ -2468,7 +2468,7 @@ export default function EnhancedSearchBar({
                 className="w-full relative px-4 py-4 bg-white border border-gray-300 rounded-lg hover:border-[#0087FF] transition-all cursor-pointer"
               >
                 <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={20} />
-                <span className="block pl-8 text-sm font-medium text-gray-900">
+                <span className="block pl-8 text-base font-medium text-gray-900">
                   {carDropoffDate ? formatDateForDisplay(carDropoffDate) : 'Select date'}
                 </span>
               </button>
@@ -2481,7 +2481,7 @@ export default function EnhancedSearchBar({
                 type="button"
                 onClick={handleSearch}
                 disabled={isLoading}
-                className="py-4 px-10 bg-[#0087FF] hover:bg-[#0077E6] text-white font-semibold rounded-lg shadow-md hover:shadow-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 whitespace-nowrap text-sm h-[56px]"
+                className="py-4 px-10 bg-[#0087FF] hover:bg-[#0077E6] text-white font-semibold rounded-lg shadow-md hover:shadow-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 whitespace-nowrap text-base h-[56px]"
               >
                 {isLoading ? (
                   <>
@@ -2516,7 +2516,7 @@ export default function EnhancedSearchBar({
                 value={hotelDestination}
                 onChange={(e) => setHotelDestination(e.target.value)}
                 placeholder="City or attraction"
-                className="w-full px-4 py-4 bg-white border border-gray-300 rounded-lg hover:border-[#0087FF] transition-all text-sm font-medium"
+                className="w-full px-4 py-4 bg-white border border-gray-300 rounded-lg hover:border-[#0087FF] transition-all text-base font-medium"
               />
             </div>
 
@@ -2532,7 +2532,7 @@ export default function EnhancedSearchBar({
                 className="w-full relative px-4 py-4 bg-white border border-gray-300 rounded-lg hover:border-[#0087FF] transition-all cursor-pointer"
               >
                 <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={20} />
-                <span className="block pl-8 text-sm font-medium text-gray-900">
+                <span className="block pl-8 text-base font-medium text-gray-900">
                   {checkInDate ? formatDateForDisplay(checkInDate) : 'Select date'}
                 </span>
               </button>
@@ -2550,7 +2550,7 @@ export default function EnhancedSearchBar({
                 className="w-full relative px-4 py-4 bg-white border border-gray-300 rounded-lg hover:border-[#0087FF] transition-all cursor-pointer"
               >
                 <Users className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={20} />
-                <span className="block pl-8 text-sm font-medium text-gray-900">
+                <span className="block pl-8 text-base font-medium text-gray-900">
                   {hotelAdults + hotelChildren} {hotelAdults + hotelChildren === 1 ? 'Traveler' : 'Travelers'}
                 </span>
               </button>
@@ -2620,7 +2620,7 @@ export default function EnhancedSearchBar({
                 type="button"
                 onClick={handleSearch}
                 disabled={isLoading}
-                className="py-4 px-10 bg-[#0087FF] hover:bg-[#0077E6] text-white font-semibold rounded-lg shadow-md hover:shadow-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 whitespace-nowrap text-sm"
+                className="py-4 px-10 bg-[#0087FF] hover:bg-[#0077E6] text-white font-semibold rounded-lg shadow-md hover:shadow-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 whitespace-nowrap text-base"
               >
                 {isLoading ? (
                   <>
@@ -2642,7 +2642,7 @@ export default function EnhancedSearchBar({
           {/* ACTIVITIES FIELDS */}
           {serviceType === 'activities' && (
           <>
-          <div className="flex flex-col lg:flex-row items-stretch lg:items-end gap-2">
+          <div className="flex flex-col lg:flex-row items-stretch lg:items-end gap-4">
             {/* Activity or Destination */}
             <div className="flex-1">
               <label className="flex items-center gap-1.5 text-xs font-medium text-gray-700 mb-2">
@@ -2654,7 +2654,7 @@ export default function EnhancedSearchBar({
                 value={hotelDestination}
                 onChange={(e) => setHotelDestination(e.target.value)}
                 placeholder={lang === 'en' ? 'e.g., Scuba Diving, Paris, Bungee Jump' : lang === 'pt' ? 'ex: Mergulho, Paris, Bungee Jump' : 'ej: Buceo, París, Bungee Jump'}
-                className="w-full px-4 py-4 bg-white border border-gray-300 rounded-lg hover:border-[#0087FF] focus:outline-none focus:ring-2 focus:ring-[#0087FF] transition-all text-sm font-medium"
+                className="w-full px-4 py-4 bg-white border border-gray-300 rounded-lg hover:border-[#0087FF] focus:outline-none focus:ring-2 focus:ring-[#0087FF] transition-all text-base font-medium"
               />
             </div>
 
@@ -2672,7 +2672,7 @@ export default function EnhancedSearchBar({
               >
                 <div className="flex items-center gap-2.5">
                   <CalendarDays size={18} className="text-gray-600 group-hover:text-[#0087FF] transition-colors" />
-                  <span className="font-medium text-sm text-gray-800">
+                  <span className="font-medium text-base text-gray-800">
                     {checkInDate ? formatDateForDisplay(checkInDate) : lang === 'en' ? 'Select date' : lang === 'pt' ? 'Selecionar data' : 'Seleccionar fecha'}
                   </span>
                 </div>
@@ -2693,7 +2693,7 @@ export default function EnhancedSearchBar({
               >
                 <div className="flex items-center gap-2.5">
                   <Users size={18} className="text-gray-600 group-hover:text-[#0087FF] transition-colors" />
-                  <span className="font-medium text-sm text-gray-800">
+                  <span className="font-medium text-base text-gray-800">
                     {hotelAdults + hotelChildren} {lang === 'en' ? (hotelAdults + hotelChildren === 1 ? 'participant' : 'participants') : lang === 'pt' ? (hotelAdults + hotelChildren === 1 ? 'participante' : 'participantes') : (hotelAdults + hotelChildren === 1 ? 'participante' : 'participantes')}
                   </span>
                 </div>
@@ -2765,7 +2765,7 @@ export default function EnhancedSearchBar({
                 type="button"
                 onClick={handleSearch}
                 disabled={isLoading}
-                className="py-4 px-10 bg-[#0087FF] hover:bg-[#0077E6] text-white font-semibold rounded-lg shadow-md hover:shadow-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 whitespace-nowrap text-sm"
+                className="py-4 px-10 bg-[#0087FF] hover:bg-[#0077E6] text-white font-semibold rounded-lg shadow-md hover:shadow-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 whitespace-nowrap text-base"
               >
                 {isLoading ? (
                   <>
@@ -2787,7 +2787,7 @@ export default function EnhancedSearchBar({
           {/* PACKAGES FIELDS */}
           {serviceType === 'packages' && (
           <>
-          <div className="flex flex-col lg:flex-row items-stretch lg:items-end gap-2">
+          <div className="flex flex-col lg:flex-row items-stretch lg:items-end gap-4">
             {/* Destination */}
             <div className="flex-1">
               <label className="flex items-center gap-1.5 text-xs font-medium text-gray-700 mb-2">
@@ -2799,7 +2799,7 @@ export default function EnhancedSearchBar({
                 value={hotelDestination}
                 onChange={(e) => setHotelDestination(e.target.value)}
                 placeholder={lang === 'en' ? 'e.g., Cancun, Maldives, Dubai' : lang === 'pt' ? 'ex: Cancun, Maldivas, Dubai' : 'ej: Cancún, Maldivas, Dubái'}
-                className="w-full px-4 py-4 bg-white border border-gray-300 rounded-lg hover:border-[#0087FF] focus:outline-none focus:ring-2 focus:ring-[#0087FF] transition-all text-sm font-medium"
+                className="w-full px-4 py-4 bg-white border border-gray-300 rounded-lg hover:border-[#0087FF] focus:outline-none focus:ring-2 focus:ring-[#0087FF] transition-all text-base font-medium"
               />
             </div>
 
@@ -2817,7 +2817,7 @@ export default function EnhancedSearchBar({
               >
                 <div className="flex items-center gap-2.5">
                   <CalendarDays size={18} className="text-gray-600 group-hover:text-[#0087FF] transition-colors" />
-                  <span className="font-medium text-sm text-gray-800">
+                  <span className="font-medium text-base text-gray-800">
                     {checkInDate ? formatDateForDisplay(checkInDate) : lang === 'en' ? 'Select date' : lang === 'pt' ? 'Selecionar data' : 'Seleccionar fecha'}
                   </span>
                 </div>
@@ -2838,7 +2838,7 @@ export default function EnhancedSearchBar({
               >
                 <div className="flex items-center gap-2.5">
                   <Users size={18} className="text-gray-600 group-hover:text-[#0087FF] transition-colors" />
-                  <span className="font-medium text-sm text-gray-800">
+                  <span className="font-medium text-base text-gray-800">
                     {hotelAdults + hotelChildren} {lang === 'en' ? (hotelAdults + hotelChildren === 1 ? 'traveler' : 'travelers') : lang === 'pt' ? (hotelAdults + hotelChildren === 1 ? 'viajante' : 'viajantes') : (hotelAdults + hotelChildren === 1 ? 'viajero' : 'viajeros')}
                   </span>
                 </div>
@@ -2872,7 +2872,7 @@ export default function EnhancedSearchBar({
             {/* Search Button */}
             <div className="flex-shrink-0">
               <label className="block text-xs font-medium text-gray-700 mb-2 opacity-0">Search</label>
-              <button type="button" onClick={handleSearch} disabled={isLoading} className="py-4 px-10 bg-[#0087FF] hover:bg-[#0077E6] text-white font-semibold rounded-lg shadow-md hover:shadow-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 whitespace-nowrap text-sm">
+              <button type="button" onClick={handleSearch} disabled={isLoading} className="py-4 px-10 bg-[#0087FF] hover:bg-[#0077E6] text-white font-semibold rounded-lg shadow-md hover:shadow-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 whitespace-nowrap text-base">
                 {isLoading ? (<><svg className="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg><span>Searching...</span></>) : (<span>{t('searchPackages')}</span>)}
               </button>
             </div>
@@ -2883,7 +2883,7 @@ export default function EnhancedSearchBar({
           {/* INSURANCE FIELDS */}
           {serviceType === 'insurance' && (
           <>
-          <div className="flex flex-col lg:flex-row items-stretch lg:items-end gap-2">
+          <div className="flex flex-col lg:flex-row items-stretch lg:items-end gap-4">
             {/* Trip Destination */}
             <div className="flex-1">
               <label className="flex items-center gap-1.5 text-xs font-medium text-gray-700 mb-2">
@@ -2895,7 +2895,7 @@ export default function EnhancedSearchBar({
                 value={hotelDestination}
                 onChange={(e) => setHotelDestination(e.target.value)}
                 placeholder={lang === 'en' ? 'Where are you traveling?' : lang === 'pt' ? 'Para onde você está viajando?' : '¿A dónde viajas?'}
-                className="w-full px-4 py-4 bg-white border border-gray-300 rounded-lg hover:border-[#0087FF] focus:outline-none focus:ring-2 focus:ring-[#0087FF] transition-all text-sm font-medium"
+                className="w-full px-4 py-4 bg-white border border-gray-300 rounded-lg hover:border-[#0087FF] focus:outline-none focus:ring-2 focus:ring-[#0087FF] transition-all text-base font-medium"
               />
             </div>
 
@@ -2913,7 +2913,7 @@ export default function EnhancedSearchBar({
               >
                 <div className="flex items-center gap-2.5">
                   <CalendarDays size={18} className="text-gray-600 group-hover:text-[#0087FF] transition-colors" />
-                  <span className="font-medium text-sm text-gray-800">
+                  <span className="font-medium text-base text-gray-800">
                     {checkInDate ? formatDateForDisplay(checkInDate) : lang === 'en' ? 'Select date' : lang === 'pt' ? 'Selecionar data' : 'Seleccionar fecha'}
                   </span>
                 </div>
@@ -2930,14 +2930,14 @@ export default function EnhancedSearchBar({
               <input
                 type="text"
                 placeholder={lang === 'en' ? '$2,000' : lang === 'pt' ? 'R$ 10.000' : '$2,000'}
-                className="w-full px-4 py-4 bg-white border border-gray-300 rounded-lg hover:border-[#0087FF] focus:outline-none focus:ring-2 focus:ring-[#0087FF] transition-all text-sm font-medium"
+                className="w-full px-4 py-4 bg-white border border-gray-300 rounded-lg hover:border-[#0087FF] focus:outline-none focus:ring-2 focus:ring-[#0087FF] transition-all text-base font-medium"
               />
             </div>
 
             {/* Get Quote Button */}
             <div className="flex-shrink-0">
               <label className="block text-xs font-medium text-gray-700 mb-2 opacity-0">Quote</label>
-              <button type="button" onClick={handleSearch} disabled={isLoading} className="py-4 px-10 bg-[#0087FF] hover:bg-[#0077E6] text-white font-semibold rounded-lg shadow-md hover:shadow-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 whitespace-nowrap text-sm">
+              <button type="button" onClick={handleSearch} disabled={isLoading} className="py-4 px-10 bg-[#0087FF] hover:bg-[#0077E6] text-white font-semibold rounded-lg shadow-md hover:shadow-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 whitespace-nowrap text-base">
                 {isLoading ? (<><svg className="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg><span>Loading...</span></>) : (<span>{t('searchInsurance')}</span>)}
               </button>
             </div>
@@ -3036,7 +3036,7 @@ export default function EnhancedSearchBar({
         ))}
 
         {/* Mobile/Tablet: Stacked layout */}
-        <div className="lg:hidden space-y-2">
+        <div className="lg:hidden space-y-3">
           {/* FLIGHTS MOBILE FIELDS */}
           {serviceType === 'flights' && (
           <>
@@ -3149,13 +3149,13 @@ export default function EnhancedSearchBar({
             </button>
           </div>
 
-          {/* Flight Options - Combined row for space efficiency */}          <div className="flex flex-wrap items-center gap-3">            {/* Direct Flights Checkbox */}            <label className="flex items-center gap-2 cursor-pointer group">              <input                type="checkbox"                checked={directFlights}                onChange={(e) => setDirectFlights(e.target.checked)}                className="w-4 h-4 rounded border-gray-300 text-[#0087FF] focus:ring-[#0087FF] cursor-pointer"              />              <span className="text-xs font-medium text-gray-700 group-hover:text-gray-900 transition-colors">                {t('directOnly')}              </span>            </label>            {/* Separate Tickets / Hacker Fares Checkbox - Only for round trips */}            {tripType === 'roundtrip' && (              <label className="flex items-center gap-2 cursor-pointer group" title="Find cheaper fares by combining different airlines">                <input                  type="checkbox"                  checked={includeSeparateTickets}                  onChange={(e) => setIncludeSeparateTickets(e.target.checked)}                  className="w-4 h-4 rounded border-orange-300 text-orange-500 focus:ring-orange-500 cursor-pointer"                />                <span className="text-xs font-medium text-gray-700 group-hover:text-gray-900 transition-colors flex items-center gap-1">                  <span className="hidden sm:inline">Include</span> Separate Tickets                  <span className="px-1 py-0.5 bg-green-100 text-green-700 text-[9px] font-bold rounded">SAVE</span>                </span>              </label>            )}          </div>
+{/* Flight Options - Combined row for space efficiency */}          <div className="flex flex-wrap items-center gap-3">            {/* Direct Flights Checkbox */}            <label className="flex items-center gap-2 cursor-pointer group">              <input                type="checkbox"                checked={directFlights}                onChange={(e) => setDirectFlights(e.target.checked)}                className="w-4 h-4 rounded border-gray-300 text-[#0087FF] focus:ring-[#0087FF] cursor-pointer"              />              <span className="text-xs font-medium text-gray-700 group-hover:text-gray-900 transition-colors">                {t('directOnly')}              </span>            </label>            {/* Separate Tickets / Hacker Fares Checkbox - Only for round trips */}            {tripType === 'roundtrip' && (              <label className="flex items-center gap-2 cursor-pointer group" title="Find cheaper fares by combining different airlines">                <input                  type="checkbox"                  checked={includeSeparateTickets}                  onChange={(e) => setIncludeSeparateTickets(e.target.checked)}                  className="w-4 h-4 rounded border-orange-300 text-orange-500 focus:ring-orange-500 cursor-pointer"                />                <span className="text-xs font-medium text-gray-700 group-hover:text-gray-900 transition-colors flex items-center gap-1">                  <span className="hidden sm:inline">Include</span> Separate Tickets                  <span className="px-1 py-0.5 bg-green-100 text-green-700 text-[9px] font-bold rounded">SAVE</span>                </span>              </label>            )}          </div>
 
           {/* Search Button */}
           <button
             onClick={handleSearch}
             disabled={isLoading}
-            className="w-full h-10 bg-[#0087FF] hover:bg-[#0077E6] text-white font-bold rounded-lg shadow-lg hover:shadow-xl transition-all duration-200 ease-in-out text-sm disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+            className="w-full py-3 bg-[#0087FF] hover:bg-[#0077E6] text-white font-bold rounded-lg shadow-lg hover:shadow-xl transition-all duration-200 ease-in-out text-sm disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
           >
             {isLoading ? (
               <>
@@ -3400,7 +3400,7 @@ export default function EnhancedSearchBar({
           <button
             onClick={handleSearch}
             disabled={isLoading}
-            className="w-full h-10 bg-[#0087FF] hover:bg-[#0077E6] text-white font-bold rounded-lg shadow-lg hover:shadow-xl transition-all duration-200 ease-in-out text-sm disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+            className="w-full py-3 bg-[#0087FF] hover:bg-[#0077E6] text-white font-bold rounded-lg shadow-lg hover:shadow-xl transition-all duration-200 ease-in-out text-sm disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
           >
             {isLoading ? (
               <>
