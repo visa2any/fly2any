@@ -1448,7 +1448,7 @@ function FlightResultsContent() {
 
         {/* Main Content Area - 3 COLUMN LAYOUT */}
         <div
-          className="mx-auto p-3 md:p-6"
+          className="mx-auto md:p-6"
           style={{
             maxWidth: layout.container.maxWidth,
           }}
@@ -1654,7 +1654,7 @@ function FlightResultsContent() {
         if (!isWorldCupDestination) return null;
 
         return (
-          <div className="mx-auto px-3 md:px-6 mb-3" style={{ maxWidth: layout.container.maxWidth }}>
+          <div className="mx-auto md:px-6 mb-3" style={{ maxWidth: layout.container.maxWidth }}>
             <WorldCupCrossSell
               lang={lang}
               location="flight_results"
@@ -1667,7 +1667,7 @@ function FlightResultsContent() {
 
       {/* Main Content Area - 3 COLUMN LAYOUT (Priceline-style) with max-width container */}
       <div
-        className="mx-auto p-3 md:p-6"
+        className="mx-auto md:p-6"
         style={{
           maxWidth: layout.container.maxWidth,
         }}
@@ -1693,52 +1693,7 @@ function FlightResultsContent() {
               {sortedFlights.length} flights found for {searchData.from} to {searchData.to}
             </div>
 
-            {/* Sort Bar - IMMEDIATELY before results */}
-            <div className="flex items-center justify-between gap-4 mb-4">
-              <div className="flex-1">
-                <SortBar
-                  currentSort={sortBy}
-                  onChange={setSortBy}
-                  resultCount={sortedFlights.length}
-                  lang={lang}
-                />
-              </div>
-
-              {/* Save Search Button */}
-              <div className="hidden md:block">
-                <SaveSearchButton
-                  searchParams={{
-                    origin: searchData.from,
-                    destination: searchData.to,
-                    departDate: searchData.departure,
-                    returnDate: searchData.return,
-                    adults: searchData.adults,
-                    children: searchData.children,
-                    infants: searchData.infants,
-                    cabinClass: searchData.class,
-                  }}
-                  variant="compact"
-                />
-              </div>
-            </div>
-
-            {/* Mobile: Save Search Button below sort bar */}
-            <div className="md:hidden mb-4">
-              <SaveSearchButton
-                searchParams={{
-                  origin: searchData.from,
-                  destination: searchData.to,
-                  departDate: searchData.departure,
-                  returnDate: searchData.return,
-                  adults: searchData.adults,
-                  children: searchData.children,
-                  infants: searchData.infants,
-                  cabinClass: searchData.class,
-                }}
-                variant="compact"
-                className="w-full"
-              />
-            </div>
+            {/* Sort Bar + Save Button - Single row for space efficiency */}            <div className="flex items-center justify-between gap-2 mb-3">              <div className="flex-1 min-w-0">                <SortBar                  currentSort={sortBy}                  onChange={setSortBy}                  resultCount={sortedFlights.length}                  lang={lang}                />              </div>              {/* Save Search Button - Compact on all screens */}              <div className="flex-shrink-0">                <SaveSearchButton                  searchParams={{                    origin: searchData.from,                    destination: searchData.to,                    departDate: searchData.departure,                    returnDate: searchData.return,                    adults: searchData.adults,                    children: searchData.children,                    infants: searchData.infants,                    cabinClass: searchData.class,                  }}                  variant="compact"                />              </div>            </div>
 
             {/* Limited Nonstop Flights Notice - Shows when nonstop filter returns few results */}
             {(fromNonstopFilter || toNonstopFilter) && sortedFlights.length < 5 && sortedFlights.length > 0 && (() => {

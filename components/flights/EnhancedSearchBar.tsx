@@ -3077,7 +3077,7 @@ export default function EnhancedSearchBar({
           </div>
 
           {/* Airports */}
-          <div className="space-y-3">
+          <div className="grid grid-cols-2 gap-2">
             <MultiAirportSelector
               label={t('from')}
               placeholder="Select airports"
@@ -3135,7 +3135,7 @@ export default function EnhancedSearchBar({
 
 
           {/* Combined Travelers & Class */}
-          <div ref={passengerRef} className="relative">
+          <div ref={passengerRef} className="relative z-30">
             <label className="block text-xs font-semibold text-gray-600 mb-1.5">
               Travelers & Class
             </label>
@@ -3149,34 +3149,7 @@ export default function EnhancedSearchBar({
             </button>
           </div>
 
-          {/* Direct Flights Checkbox */}
-          <label className="flex items-center gap-2 cursor-pointer group">
-            <input
-              type="checkbox"
-              checked={directFlights}
-              onChange={(e) => setDirectFlights(e.target.checked)}
-              className="w-4 h-4 rounded border-gray-300 text-[#0087FF] focus:ring-[#0087FF] cursor-pointer"
-            />
-            <span className="text-xs font-medium text-gray-700 group-hover:text-gray-900 transition-colors">
-              {t('directOnly')}
-            </span>
-          </label>
-
-          {/* Separate Tickets / Hacker Fares Checkbox - Only for round trips */}
-          {tripType === 'roundtrip' && (
-            <label className="flex items-center gap-2 cursor-pointer group" title="Find cheaper fares by combining different airlines">
-              <input
-                type="checkbox"
-                checked={includeSeparateTickets}
-                onChange={(e) => setIncludeSeparateTickets(e.target.checked)}
-                className="w-4 h-4 rounded border-orange-300 text-orange-500 focus:ring-orange-500 cursor-pointer"
-              />
-              <span className="text-xs font-medium text-gray-700 group-hover:text-gray-900 transition-colors flex items-center gap-1">
-                <span className="hidden sm:inline">Include</span> Separate Tickets
-                <span className="px-1 py-0.5 bg-green-100 text-green-700 text-[9px] font-bold rounded">SAVE</span>
-              </span>
-            </label>
-          )}
+          {/* Flight Options - Combined row for space efficiency */}          <div className="flex flex-wrap items-center gap-3">            {/* Direct Flights Checkbox */}            <label className="flex items-center gap-2 cursor-pointer group">              <input                type="checkbox"                checked={directFlights}                onChange={(e) => setDirectFlights(e.target.checked)}                className="w-4 h-4 rounded border-gray-300 text-[#0087FF] focus:ring-[#0087FF] cursor-pointer"              />              <span className="text-xs font-medium text-gray-700 group-hover:text-gray-900 transition-colors">                {t('directOnly')}              </span>            </label>            {/* Separate Tickets / Hacker Fares Checkbox - Only for round trips */}            {tripType === 'roundtrip' && (              <label className="flex items-center gap-2 cursor-pointer group" title="Find cheaper fares by combining different airlines">                <input                  type="checkbox"                  checked={includeSeparateTickets}                  onChange={(e) => setIncludeSeparateTickets(e.target.checked)}                  className="w-4 h-4 rounded border-orange-300 text-orange-500 focus:ring-orange-500 cursor-pointer"                />                <span className="text-xs font-medium text-gray-700 group-hover:text-gray-900 transition-colors flex items-center gap-1">                  <span className="hidden sm:inline">Include</span> Separate Tickets                  <span className="px-1 py-0.5 bg-green-100 text-green-700 text-[9px] font-bold rounded">SAVE</span>                </span>              </label>            )}          </div>
 
           {/* Search Button */}
           <button
