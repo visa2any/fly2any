@@ -751,12 +751,8 @@ function FlightResultsContent() {
     return combinedFlight;
   };
 
-  // Pull-to-refresh functionality for mobile users
-      theme: 'blue',
-    }
-  );
 
-  // Fetch flights function (extracted for reuse with pull-to-refresh)
+  // Fetch flights function
   const fetchFlights = async () => {
     if (!searchData.from || !searchData.to || !searchData.departure) {
       setError('Missing required search parameters');
