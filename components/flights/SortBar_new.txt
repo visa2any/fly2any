@@ -1,0 +1,24 @@
+'use client';
+
+import { Sparkles, DollarSign, Zap, Clock } from 'lucide-react';
+import { spacing, typography, colors } from '@/lib/design-system';
+import SaveSearchButton from '@/components/search/SaveSearchButton';
+
+export type SortOption = 'best' | 'cheapest' | 'fastest' | 'earliest';
+
+interface SortBarProps {
+  currentSort: SortOption;
+  onChange: (sort: SortOption) => void;
+  resultCount?: number;
+  lang?: 'en' | 'pt' | 'es';
+  searchParams?: {
+    origin: string;
+    destination: string;
+    departDate: string;
+    returnDate?: string;
+    adults: number;
+    children: number;
+    infants: number;
+    cabinClass: string;
+  };
+}

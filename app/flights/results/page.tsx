@@ -12,7 +12,6 @@ import { PriceAlerts } from '@/components/flights/PriceAlerts';
 import CreatePriceAlert from '@/components/search/CreatePriceAlert';
 import AuthModal from '@/components/auth/AuthModal';
 import FlightFilters, { type FlightFilters as FlightFiltersType, type FlightOffer } from '@/components/flights/FlightFilters';
-import SortBar, { type SortOption } from '@/components/flights/SortBar';
 import { MobileHomeSearchWrapper } from '@/components/home/MobileHomeSearchWrapper';
 import CompactSearchSummary from '@/components/flights/CompactSearchSummary';
 import { PriceInsights, type PriceStatistics, type FlightRoute } from '@/components/flights/PriceInsights';
@@ -56,6 +55,9 @@ import { useLanguage } from '@/lib/i18n/client';
 // ===========================
 // TYPE DEFINITIONS
 // ===========================
+
+// Sort option type (previously from SortBar)
+type SortOption = 'best' | 'cheapest' | 'fastest' | 'earliest';
 
 interface SearchParams {
   from: string;
@@ -1657,14 +1659,7 @@ function FlightResultsContent() {
               {sortedFlights.length} flights found for {searchData.from} to {searchData.to}
             </div>
 
-            {/* Mobile: Filters Button */}
-            <div className="lg:hidden mb-2">
-              <button onClick={() => setMobileFilterSheetOpen(true)} className="w-full h-10 flex items-center justify-center gap-2 bg-white border-2 border-gray-300 rounded-lg text-sm font-medium">
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 4h18M3 12h12M3 20h6" /></svg>
-                Filters {(filters.stops.length + filters.airlines.length > 0) && <span className="px-1.5 py-0.5 bg-primary-600 text-white text-xs rounded-full">{filters.stops.length + filters.airlines.length}</span>}
-              </button>
-            </div>
-            <div className="mb-2"><SortBar currentSort={sortBy} onChange={setSortBy} resultCount={sortedFlights.length} lang={lang} searchParams={{origin: searchData.from, destination: searchData.to, departDate: searchData.departure, returnDate: searchData.return, adults: searchData.adults, children: searchData.children, infants: searchData.infants, cabinClass: searchData.class}} /></div>
+            {/* Mobile filter button and SortBar removed - cleaner results display */}
 
             {/* Limited Nonstop Flights Notice - Shows when nonstop filter returns ZERO results */}
             {(fromNonstopFilter || toNonstopFilter) && sortedFlights.length === 0 && flights.length > 0 && (() => {
