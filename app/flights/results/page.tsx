@@ -1703,28 +1703,6 @@ function FlightResultsContent() {
             </div>
             <div className="hidden lg:flex justify-end mb-2"><SaveSearchButton searchParams={{origin: searchData.from, destination: searchData.to, departDate: searchData.departure, returnDate: searchData.return, adults: searchData.adults, children: searchData.children, infants: searchData.infants, cabinClass: searchData.class}} variant="compact" /></div>
             <div className="mb-2"><SortBar currentSort={sortBy} onChange={setSortBy} resultCount={sortedFlights.length} lang={lang} /></div>
-                        <button
-                          onClick={() => {
-                            // Remove nonstop filters from URL and refresh
-                            const params = new URLSearchParams(window.location.search);
-                            params.delete('fromNonstop');
-                            params.delete('toNonstop');
-                            window.location.href = `/flights/results?${params.toString()}`;
-                          }}
-                          className="inline-flex items-center gap-2 px-4 py-2 bg-amber-600 hover:bg-amber-700 text-white text-sm font-medium rounded-lg transition-colors"
-                        >
-                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-                          </svg>
-                          Show all {connectingFlightsCount + sortedFlights.length} flights
-                        </button>
-                      </div>
-                    </div>
-                  </div>
-                );
-              }
-              return null;
-            })()}
 
             {/* Limited Nonstop Flights Notice - Shows when nonstop filter returns ZERO results */}
             {(fromNonstopFilter || toNonstopFilter) && sortedFlights.length === 0 && flights.length > 0 && (() => {
