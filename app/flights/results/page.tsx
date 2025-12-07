@@ -25,7 +25,7 @@ import { CollapsibleSearchBar, type SearchSummary } from '@/components/mobile/Co
 // import { VirtualFlightListOptimized as VirtualFlightList } from '@/components/flights/VirtualFlightListOptimized';
 import ScrollToTop from '@/components/flights/ScrollToTop';
 import { ScrollProgress } from '@/components/flights/ScrollProgress';
-import { MobileFilterSheet, FilterButton } from '@/components/mobile';
+import { MobileFilterSheet } from '@/components/mobile';
 import SaveSearchButton from '@/components/search/SaveSearchButton';
 // import { TestModeBanner } from '@/components/TestModeBanner'; // Removed for production
 import ProgressiveFlightLoading from '@/components/flights/ProgressiveFlightLoading';
@@ -752,14 +752,6 @@ function FlightResultsContent() {
   };
 
   // Pull-to-refresh functionality for mobile users
-  const { isRefreshing: isPullRefreshing, pullIndicator } = usePullToRefresh(
-    async () => {
-      // Refetch search results on pull-to-refresh
-      await fetchFlights();
-    },
-    {
-      threshold: 80,
-      mobileOnly: true,
       theme: 'blue',
     }
   );
@@ -1602,17 +1594,6 @@ function FlightResultsContent() {
   // Main results view
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 via-blue-50/30 to-gray-50">
-      {/* Pull-to-refresh indicator (mobile only) */}
-      {pullIndicator}
-
-      {/* Keyboard-accessible refresh button (mobile only, hidden during pull) */}
-      <div className="md:hidden">
-        <RefreshButton
-          onRefresh={fetchFlights}
-          isRefreshing={loading || isPullRefreshing}
-          theme="blue"
-        />
-      </div>
 
       {/* Test Mode Banner - Removed for production */}
       {/* <TestModeBanner /> */}
@@ -2086,26 +2067,6 @@ function FlightResultsContent() {
         />
       )}
 
-      {/* Mobile Filter Button - Shows on <lg screens */}
-      <div className="lg:hidden">
-        <FilterButton
-          onClick={() => setMobileFilterSheetOpen(true)}
-          activeFilterCount={
-            (filters.stops.length > 0 ? 1 : 0) +
-            (filters.airlines.length > 0 ? 1 : 0) +
-            (filters.departureTime.length > 0 ? 1 : 0) +
-            (filters.excludeBasicEconomy ? 1 : 0) +
-            (filters.cabinClass.length > 0 ? 1 : 0) +
-            (filters.baggageIncluded ? 1 : 0) +
-            (filters.refundableOnly ? 1 : 0) +
-            (filters.alliances.length > 0 ? 1 : 0) +
-            (filters.connectionQuality.length > 0 ? 1 : 0) +
-            (filters.maxDuration < 24 ? 1 : 0) +
-            (filters.maxLayoverDuration < 360 ? 1 : 0) +
-            (filters.maxCO2Emissions < 500 ? 1 : 0)
-          }
-        />
-      </div>
 
       {/* Mobile Filter Sheet - Bottom sheet on mobile */}
       <MobileFilterSheet
