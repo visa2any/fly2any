@@ -85,8 +85,9 @@ export function CollapsibleSearchBar({
       setIsCollapsed(true);
       onCollapseChange?.(true);
     }
-    // Auto-expand when scrolling up or at top
-    else if ((scrollDirection === 'up' || isAtTop) && isCollapsed) {
+    // Auto-expand ONLY when scrolling up (not just being at top)
+    // This prevents auto-expansion on page load and keeps form collapsed during initial loading
+    else if (scrollDirection === 'up' && isCollapsed) {
       setIsCollapsed(false);
       onCollapseChange?.(false);
     }
