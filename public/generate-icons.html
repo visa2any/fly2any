@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Generate Fly2Any Icons</title>
+  <style>
+    body {
+      font-family: system-ui, -apple-system, sans-serif;
+      padding: 2rem;
+      background: #f5f5f5;
+    }
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      background: white;
+      padding: 2rem;
+      border-radius: 12px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+    h1 { color: #006FDB; margin-bottom: 1rem; }
+    .instructions {
+      background: #e3f2fd;
+      padding: 1rem;
+      border-radius: 8px;
+      margin-bottom: 2rem;
+      border-left: 4px solid #006FDB;
+    }
+    .icon-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 1.5rem;
+      margin-top: 2rem;
+    }
+    .icon-item {
+      text-align: center;
+      padding: 1rem;
+      border: 2px solid #e0e0e0;
+      border-radius: 8px;
+    }
+    .icon-item canvas {
+      width: 100%;
+      max-width: 180px;
+      height: auto;
+      margin: 0.5rem auto;
+      display: block;
+    }
+    .size-label {
+      font-weight: 600;
+      color: #333;
+      margin-bottom: 0.5rem;
+    }
+    .download-btn {
+      background: #006FDB;
+      color: white;
+      border: none;
+      padding: 0.5rem 1rem;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 14px;
+      margin-top: 0.5rem;
+    }
+    .download-btn:hover {
+      background: #0051A8;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>✈️ Fly2Any Icon Generator</h1>
+
+    <div class="instructions">
+      <h3>📝 Instructions:</h3>
+      <ol>
+        <li>Click "Download" on each icon size below</li>
+        <li>Replace the existing icon files in <code>/public/</code></li>
+        <li>Use these sizes: 72, 96, 128, 144, 152, 180, 192, 384, 512</li>
+        <li>Generate maskable versions (192, 512) with extra padding</li>
+      </ol>
+    </div>
+
+    <div id="iconGrid" class="icon-grid"></div>
+  </div>
+
+  <script>
+    const sizes = [72, 96, 128, 144, 152, 180, 192, 384, 512];
+    const iconGrid = document.getElementById('iconGrid');
+
+    function drawIcon(canvas, size) {
+      const ctx = canvas.getContext('2d');
+      canvas.width = size;
+      canvas.height = size;
+
+      // Background gradient
+      const gradient = ctx.createLinearGradient(0, 0, size, size);
+      gradient.addColorStop(0, '#006FDB');
+      gradient.addColorStop(1, '#0051A8');
+
+      // Rounded rectangle background
+      const radius = size * 0.225; // 22.5% radius for rounded corners
+      ctx.beginPath();
+      ctx.moveTo(radius, 0);
+      ctx.lineTo(size - radius, 0);
+      ctx.quadraticCurveTo(size, 0, size, radius);
+      ctx.lineTo(size, size - radius);
+      ctx.quadraticCurveTo(size, size, size - radius, size);
+      ctx.lineTo(radius, size);
+      ctx.quadraticCurveTo(0, size, 0, size - radius);
+      ctx.lineTo(0, radius);
+      ctx.quadraticCurveTo(0, 0, radius, 0);
+      ctx.closePath();
+      ctx.fillStyle = gradient;
+      ctx.fill();
+
+      // Scale factor for airplane
+      const scale = size / 512;
+      const centerX = size / 2;
+      const centerY = size / 2;
+
+      ctx.save();
+      ctx.translate(centerX, centerY);
+      ctx.scale(scale, scale);
+
+      // White airplane
+      ctx.fillStyle = 'white';
+
+      // Fuselage
+      ctx.beginPath();
+      ctx.moveTo(-40, -10);
+      ctx.lineTo(80, -10);
+      ctx.lineTo(90, 0);
+      ctx.lineTo(80, 10);
+      ctx.lineTo(-40, 10);
+      ctx.closePath();
+      ctx.fill();
+
+      // Top wing
+      ctx.beginPath();
+      ctx.moveTo(-20, -10);
+      ctx.lineTo(-20, -80);
+      ctx.lineTo(20, -30);
+      ctx.lineTo(20, -10);
+      ctx.closePath();
+      ctx.fill();
+
+      // Bottom wing
+      ctx.beginPath();
+      ctx.moveTo(-20, 10);
+      ctx.lineTo(-20, 80);
+      ctx.lineTo(20, 30);
+      ctx.lineTo(20, 10);
+      ctx.closePath();
+      ctx.fill();
+
+      // Top tail
+      ctx.beginPath();
+      ctx.moveTo(-60, -10);
+      ctx.lineTo(-80, -40);
+      ctx.lineTo(-50, -10);
+      ctx.closePath();
+      ctx.fill();
+
+      // Bottom tail
+      ctx.beginPath();
+      ctx.moveTo(-60, 10);
+      ctx.lineTo(-80, 40);
+      ctx.lineTo(-50, 10);
+      ctx.closePath();
+      ctx.fill();
+
+      // Back tail
+      ctx.beginPath();
+      ctx.moveTo(-70, -5);
+      ctx.lineTo(-90, 0);
+      ctx.lineTo(-70, 5);
+      ctx.closePath();
+      ctx.fill();
+
+      // Nose
+      ctx.beginPath();
+      ctx.arc(90, 0, 8, 0, Math.PI * 2);
+      ctx.fill();
+
+      // Windows (blue)
+      ctx.fillStyle = '#006FDB';
+      ctx.beginPath();
+      ctx.arc(30, 0, 6, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.beginPath();
+      ctx.arc(10, 0, 6, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.beginPath();
+      ctx.arc(-10, 0, 6, 0, Math.PI * 2);
+      ctx.fill();
+
+      ctx.restore();
+    }
+
+    function downloadIcon(canvas, size) {
+      const link = document.createElement('a');
+      link.download = `icon-${size}.png`;
+      link.href = canvas.toDataURL('image/png');
+      link.click();
+    }
+
+    sizes.forEach(size => {
+      const div = document.createElement('div');
+      div.className = 'icon-item';
+
+      const label = document.createElement('div');
+      label.className = 'size-label';
+      label.textContent = `${size}x${size}`;
+
+      const canvas = document.createElement('canvas');
+      drawIcon(canvas, size);
+
+      const btn = document.createElement('button');
+      btn.className = 'download-btn';
+      btn.textContent = '⬇️ Download';
+      btn.onclick = () => downloadIcon(canvas, size);
+
+      div.appendChild(label);
+      div.appendChild(canvas);
+      div.appendChild(btn);
+      iconGrid.appendChild(div);
+    });
+  </script>
+</body>
+</html>
