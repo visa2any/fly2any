@@ -1682,14 +1682,14 @@ function FlightResultsContent() {
         );
       })()}
 
-      {/* Main Content Area - 3 COLUMN LAYOUT (Priceline-style) with max-width container */}
+      {/* Main Content Area - Full-width mobile, 3-column desktop */}
       <div
-        className="mx-auto md:p-6"
+        className="mx-auto px-0 md:px-6"
         style={{
           maxWidth: layout.container.maxWidth,
         }}
       >
-        <div className="flex flex-col lg:flex-row gap-3 md:gap-6 pt-3 pb-3 md:pt-6 md:pb-6">
+        <div className="flex flex-col lg:flex-row gap-0 md:gap-6 pt-0 pb-0 md:pt-6 md:pb-6">
 
           {/* Left Sidebar - Filters (Fixed 250px) */}
           <aside className="hidden lg:block" style={{ width: '250px', flexShrink: 0 }}>
@@ -1753,16 +1753,16 @@ function FlightResultsContent() {
               return null;
             })()}
 
-            {/* Flight Cards List - ALL RESULTS CONTINUOUSLY (No widgets interruption) */}
-            <div className="space-y-2 md:space-y-4">
+            {/* Flight Cards List - Edge-to-edge on mobile, spaced on desktop */}
+            <div className="space-y-0 md:space-y-3">
               {displayedFlights.map((flight, index) => {
                 const flightId = flight.id || `flight-${index}`;
                 return (
                   <div
                     key={flightId}
-                    className="transform transition-all duration-200 hover:scale-[1.005]"
+                    className="transform transition-all duration-200 md:hover:scale-[1.005]"
                     style={{
-                      animationDelay: `${Math.min(index * 20, 200)}ms`,
+                      animationDelay: `${Math.min(index * 15, 150)}ms`,
                     }}
                   >
                     <FlightCardEnhanced

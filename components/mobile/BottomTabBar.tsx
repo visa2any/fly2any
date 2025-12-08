@@ -110,7 +110,7 @@ export function BottomTabBar({ translations, onMoreClick }: BottomTabBarProps) {
       role="navigation"
       aria-label="Mobile bottom navigation"
     >
-      <div className="flex items-center justify-around h-14">
+      <div className="flex items-center justify-around h-[56px]">
         {tabs.map((tab) => {
           const isActive = isTabActive(tab);
 
@@ -118,29 +118,29 @@ export function BottomTabBar({ translations, onMoreClick }: BottomTabBarProps) {
             <button
               key={tab.id}
               onClick={() => handleTabClick(tab)}
-              className={`flex-1 flex flex-col items-center justify-center h-full py-1 px-1 transition-colors duration-150 relative ${
+              className={`flex-1 flex flex-col items-center justify-center h-full min-w-[64px] transition-all duration-200 relative ${
                 isActive
-                  ? 'text-primary-600'
-                  : 'text-gray-600 active:bg-gray-100'
+                  ? 'text-primary-500'
+                  : 'text-neutral-500 active:bg-neutral-100'
               }`}
               aria-label={tab.label}
               aria-current={isActive ? 'page' : undefined}
             >
-              {/* Active indicator */}
+              {/* Active indicator - brand red pill */}
               {isActive && (
                 <span
-                  className="absolute top-0 left-1/2 -translate-x-1/2 w-10 h-0.5 bg-primary-600 rounded-full"
+                  className="absolute top-0 left-1/2 -translate-x-1/2 w-8 h-[3px] bg-primary-500 rounded-full"
                   aria-hidden="true"
                 />
               )}
 
-              {/* Icon */}
-              <span className={`text-xl mb-0.5 ${isActive ? 'scale-105' : ''}`}>
+              {/* Icon - 24px grid */}
+              <span className={`text-[22px] leading-none mb-1 transition-transform duration-200 ${isActive ? 'scale-110' : ''}`}>
                 {tab.icon}
               </span>
 
-              {/* Label */}
-              <span className={`text-[10px] font-medium ${isActive ? 'font-semibold' : ''}`}>
+              {/* Label - 11px for readability */}
+              <span className={`text-[11px] leading-tight ${isActive ? 'font-semibold' : 'font-medium'}`}>
                 {tab.label}
               </span>
             </button>

@@ -31,7 +31,7 @@ export function MaxWidthContainer({
         container
         max-w-container
         mx-auto
-        ${noPadding ? '' : 'px-6'}
+        ${noPadding ? '' : 'px-0 md:px-6'}
         ${className}
       `.trim()}
       style={{

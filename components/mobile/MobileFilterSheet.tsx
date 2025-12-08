@@ -107,7 +107,7 @@ export function MobileFilterSheet({
                   {title}
                 </h2>
                 {activeFilterCount > 0 && (
-                  <span className="inline-flex items-center justify-center min-w-[24px] h-6 px-2 bg-primary-600 text-white text-xs font-bold rounded-full">
+                  <span className="inline-flex items-center justify-center min-w-[24px] h-6 px-2 bg-primary-500 text-white text-xs font-bold rounded-full shadow-sm">
                     {activeFilterCount}
                   </span>
                 )}
@@ -143,7 +143,8 @@ export function MobileFilterSheet({
               </button>
               <button
                 onClick={handleApply}
-                className="flex-1 min-h-[44px] px-4 py-3 bg-gradient-to-r from-primary-600 to-primary-500 text-white font-semibold rounded-xl hover:from-primary-700 hover:to-primary-600 active:from-primary-800 active:to-primary-700 transition-all shadow-lg"
+                className="flex-1 min-h-[48px] px-4 py-3 bg-gradient-to-r from-primary-500 to-primary-600 text-white font-bold rounded-xl hover:from-primary-600 hover:to-primary-700 active:scale-[0.98] transition-all shadow-lg"
+                style={{ boxShadow: '0 4px 14px rgba(229, 57, 53, 0.3)' }}
                 aria-label={`Apply filters and show ${resultCount} results`}
               >
                 Show {resultCount} Results

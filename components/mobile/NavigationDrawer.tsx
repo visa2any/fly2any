@@ -134,7 +134,7 @@ export function NavigationDrawer({
             <div className="sticky top-0 bg-white border-b border-gray-200 px-6 py-4 flex items-center justify-between">
               <a href="/" onClick={onClose} className="flex items-center gap-2.5">
                 {/* Airplane Icon */}
-                <div className="p-1.5 rounded-lg bg-gradient-to-br from-blue-50 to-cyan-50">
+                <div className="p-1.5 rounded-xl bg-gradient-to-br from-primary-50 to-secondary-50">
                   <Image
                     src="/icon-192.png"
                     alt="Fly2Any"
@@ -145,7 +145,7 @@ export function NavigationDrawer({
                   />
                 </div>
                 {/* Fly2Any Text */}
-                <span className="font-bold text-xl bg-gradient-to-r from-blue-600 to-cyan-600 bg-clip-text text-transparent">
+                <span className="font-bold text-xl bg-gradient-to-r from-primary-500 to-primary-400 bg-clip-text text-transparent">
                   Fly2Any
                 </span>
               </a>
@@ -408,9 +408,9 @@ export function NavigationDrawer({
                 </button>
                 <button
                   onClick={handleSignUp}
-                  className="w-full px-6 py-3.5 bg-gradient-to-r from-primary-600 to-primary-500 text-white hover:from-primary-700 hover:to-primary-600 font-bold text-base rounded-xl transition-all duration-300 hover:scale-[1.02] hover:shadow-lg"
+                  className="w-full px-6 py-3.5 bg-gradient-to-r from-primary-500 to-primary-600 text-white hover:from-primary-600 hover:to-primary-700 font-bold text-base rounded-xl transition-all duration-300 hover:scale-[1.02] hover:shadow-lg"
                   style={{
-                    boxShadow: '0 2px 8px rgba(30, 64, 175, 0.2)',
+                    boxShadow: '0 4px 14px rgba(229, 57, 53, 0.25)',
                   }}
                 >
                   {translations.signup}

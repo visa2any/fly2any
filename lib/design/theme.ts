@@ -11,40 +11,40 @@
 export const theme = {
   // Brand Colors - Modern, trustworthy, energetic
   colors: {
-    // Primary Brand - Trust & Sky (inspired by travel)
+    // Primary Brand - Fly2Any Red (warm, energetic, travel excitement)
     primary: {
-      50: '#E6F3FF',
-      100: '#CCE7FF',
-      200: '#99CFFF',
-      300: '#66B7FF',
-      400: '#339FFF',
-      500: '#0087FF', // Main brand color - vibrant blue
-      600: '#006FDB',
-      700: '#0057B7',
-      800: '#003F93',
-      900: '#00276F',
+      50: '#FFEBEE',
+      100: '#FFCDD2',
+      200: '#EF9A9A',
+      300: '#E57373',
+      400: '#EF5350',
+      500: '#E53935', // Main Fly2Any Red
+      600: '#EF4136', // Lighter red variant
+      700: '#D32F2F',
+      800: '#C62828',
+      900: '#B71C1C',
     },
 
-    // Secondary Brand - Energy & Action (Kayak-inspired orange)
+    // Secondary Brand - Fly2Any Yellow (optimism, visibility, highlights)
     secondary: {
-      50: '#FFF4E6',
-      100: '#FFE9CC',
-      200: '#FFD399',
-      300: '#FFBD66',
-      400: '#FFA733',
-      500: '#FF9100', // Energetic orange
-      600: '#DB7A00',
-      700: '#B76300',
-      800: '#934C00',
-      900: '#6F3500',
+      50: '#FFFDE7',
+      100: '#FFF9C4',
+      200: '#FFF59D',
+      300: '#FFF176',
+      400: '#FFEE58',
+      500: '#F7D033', // Main Fly2Any Yellow
+      600: '#F9C900', // Brighter variant
+      700: '#E0B10C',
+      800: '#C9A00B',
+      900: '#A68800',
     },
 
-    // Accent - Conversion & Deals (Booking.com green for good prices)
+    // Accent - Semantic colors for states
     accent: {
-      success: '#00A699', // Good deal green
-      warning: '#FFAD1F', // Average price yellow
-      error: '#E63946',   // Expensive/error red
-      info: '#4CC3D9',    // Information blue
+      success: '#10B981', // Good deal green
+      warning: '#F7D033', // Fly2Any Yellow
+      error: '#E53935',   // Fly2Any Red
+      info: '#3B82F6',    // Information blue
     },
 
     // Neutrals - Clean, modern
@@ -168,8 +168,8 @@ export const theme = {
     none: 'none',
 
     // Colored shadows for brand elements
-    primary: '0 10px 25px -5px rgba(0, 135, 255, 0.3)',
-    secondary: '0 10px 25px -5px rgba(255, 145, 0, 0.3)',
+    primary: '0 10px 25px -5px rgba(229, 57, 53, 0.3)',    // Fly2Any Red shadow
+    secondary: '0 10px 25px -5px rgba(247, 208, 51, 0.3)', // Fly2Any Yellow shadow
   },
 
   // Breakpoints
@@ -271,25 +271,25 @@ export const theme = {
       // Button variants
       variants: {
         primary: {
-          bg: 'linear-gradient(135deg, #0087FF 0%, #006FDB 100%)',
+          bg: 'linear-gradient(135deg, #E53935 0%, #D32F2F 100%)',
           color: '#FFFFFF',
-          hover: 'linear-gradient(135deg, #006FDB 0%, #0057B7 100%)',
+          hover: 'linear-gradient(135deg, #D32F2F 0%, #C62828 100%)',
         },
         secondary: {
-          bg: 'linear-gradient(135deg, #FF9100 0%, #DB7A00 100%)',
-          color: '#FFFFFF',
-          hover: 'linear-gradient(135deg, #DB7A00 0%, #B76300 100%)',
+          bg: 'linear-gradient(135deg, #F7D033 0%, #F9C900 100%)',
+          color: '#1A1A1A',
+          hover: 'linear-gradient(135deg, #F9C900 0%, #E0B10C 100%)',
         },
         outline: {
           bg: 'transparent',
-          border: '2px solid #0087FF',
-          color: '#0087FF',
-          hover: '#E6F3FF',
+          border: '2px solid #E53935',
+          color: '#E53935',
+          hover: '#FFEBEE',
         },
         ghost: {
           bg: 'transparent',
-          color: '#0087FF',
-          hover: '#F3F4F6',
+          color: '#E53935',
+          hover: '#FFEBEE',
         },
       },
     },
@@ -339,15 +339,15 @@ export const theme = {
       states: {
         default: {
           border: '2px solid #E5E7EB',
-          focus: '2px solid #0087FF',
+          focus: '2px solid #E53935',
         },
         error: {
-          border: '2px solid #E63946',
-          focus: '2px solid #E63946',
+          border: '2px solid #E53935',
+          focus: '2px solid #E53935',
         },
         success: {
-          border: '2px solid #00A699',
-          focus: '2px solid #00A699',
+          border: '2px solid #10B981',
+          focus: '2px solid #10B981',
         },
       },
     },

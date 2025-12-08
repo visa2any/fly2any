@@ -154,14 +154,15 @@ export function FlightCardCompact({
 
   return (
     <div
-      className={`group relative bg-white rounded-lg border transition-all duration-200 overflow-hidden ${
+      className={`group relative bg-white md:rounded-lg border-y md:border transition-all duration-200 overflow-hidden ${
         isComparing
-          ? 'border-primary-500 ring-2 ring-primary-100 shadow-md'
-          : 'border-gray-200 hover:border-primary-300 hover:shadow-md'
+          ? 'border-primary-500 ring-2 ring-primary-100 shadow-lg'
+          : 'border-gray-200 hover:border-primary-300 md:hover:shadow-lg'
       }`}
+      style={{ boxShadow: '0 2px 8px rgba(0,0,0,0.06)' }}
     >
-      {/* ULTRA-COMPACT MAIN ROW - Everything in one line on desktop */}
-      <div className="flex flex-wrap items-center gap-2 px-3 py-2.5 bg-gradient-to-r from-gray-50/50 to-white">
+      {/* ULTRA-COMPACT MAIN ROW - Full-width mobile, flex desktop */}
+      <div className="flex flex-wrap items-center gap-1.5 md:gap-2 px-2 md:px-3 py-2 md:py-2.5 bg-gradient-to-r from-gray-50/30 to-white">
         {/* 1. AIRLINE LOGO + NAME - Compact */}
         <div className="flex items-center gap-1.5 min-w-[140px]">
           <AirlineLogo
@@ -191,99 +192,88 @@ export function FlightCardCompact({
           </div>
         </div>
 
-        {/* 2. OUTBOUND FLIGHT - Ultra compact horizontal with inline label */}
-        <div className="flex items-center gap-2 flex-1 min-w-[280px]">
+        {/* 2. OUTBOUND FLIGHT - Ultra compact, mobile-optimized */}
+        <div className="flex items-center gap-1 md:gap-2 flex-1 min-w-0 md:min-w-[280px]">
           {/* OUTBOUND Label - Inline */}
-          <span className="text-[8px] font-bold text-blue-600 uppercase tracking-wide whitespace-nowrap w-[72px] flex-shrink-0">
-            → OUTBOUND
+          <span className="hidden md:block text-[8px] font-bold text-primary-600 uppercase tracking-wide whitespace-nowrap w-[60px] flex-shrink-0">
+            → OUT
           </span>
 
           {/* Departure */}
-          <div className="text-left">
-            <div className="flex items-baseline gap-1 leading-none">
-              <span className="text-base font-bold text-gray-900">{formatDate(outbound.segments[0].departure.at)}</span>
-              <span className="text-sm font-semibold text-gray-600">{formatTime(outbound.segments[0].departure.at)}</span>
+          <div className="text-left min-w-0">
+            <div className="flex items-baseline gap-0.5 leading-none">
+              <span className="text-sm md:text-base font-bold text-gray-900">{formatTime(outbound.segments[0].departure.at)}</span>
             </div>
-            <div className="text-[10px] font-semibold text-gray-600 leading-tight mt-0.5">
-              {formatCityCode(outbound.segments[0].departure.iataCode)}
+            <div className="text-[9px] md:text-[10px] font-bold text-gray-700 leading-tight">
+              {outbound.segments[0].departure.iataCode}
             </div>
           </div>
 
-          {/* Flight path - super compact */}
-          <div className="flex-1 px-2">
+          {/* Flight path - compact with duration */}
+          <div className="flex-1 px-1 md:px-2 min-w-[60px]">
             <div className="relative h-px bg-gradient-to-r from-gray-300 via-primary-400 to-gray-300">
-              <Plane className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-3 h-3 text-primary-600 bg-white rounded-full p-0.5" />
+              <Plane className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-3 h-3 text-primary-500 bg-white rounded-full p-0.5" />
             </div>
-            <div className="text-center mt-0.5 flex items-center justify-center gap-1 flex-wrap">
-              <span className="text-[10px] font-medium text-gray-600">
+            <div className="text-center mt-0.5 flex items-center justify-center gap-0.5 flex-nowrap">
+              <span className="text-[9px] md:text-[10px] font-semibold text-gray-600">
                 {parseDuration(outbound.duration)}
               </span>
-              <span className={`text-[9px] font-bold px-1 py-0.5 rounded ${getStopsColor(outbound.segments)}`}>
+              <span className={`text-[8px] md:text-[9px] font-bold px-1 py-0.5 rounded ${getStopsColor(outbound.segments)}`}>
                 {getStopsText(outbound.segments)}
               </span>
             </div>
           </div>
 
           {/* Arrival */}
-          <div className="text-right">
-            <div className="flex items-baseline gap-1 justify-end leading-none">
-              <span className="text-base font-bold text-gray-900">{formatDate(outbound.segments[outbound.segments.length - 1].arrival.at)}</span>
-              <span className="text-sm font-semibold text-gray-600">{formatTime(outbound.segments[outbound.segments.length - 1].arrival.at)}</span>
+          <div className="text-right min-w-0">
+            <div className="flex items-baseline gap-0.5 justify-end leading-none">
+              <span className="text-sm md:text-base font-bold text-gray-900">{formatTime(outbound.segments[outbound.segments.length - 1].arrival.at)}</span>
             </div>
-            <div className="text-[10px] font-semibold text-gray-600 leading-tight mt-0.5">
-              {formatCityCode(outbound.segments[outbound.segments.length - 1].arrival.iataCode)}
+            <div className="text-[9px] md:text-[10px] font-bold text-gray-700 leading-tight">
+              {outbound.segments[outbound.segments.length - 1].arrival.iataCode}
             </div>
           </div>
         </div>
 
-        {/* 3. URGENCY + SOCIAL PROOF - Micro badges */}
-        <div className="flex items-center gap-1 flex-wrap">
+        {/* 3. URGENCY + SOCIAL PROOF - Hidden on small mobile */}
+        <div className="hidden sm:flex items-center gap-1 flex-wrap">
           {numberOfBookableSeats <= 7 && (
-            <span className="text-[9px] font-bold text-orange-600 px-1.5 py-0.5 bg-orange-50 rounded whitespace-nowrap">
-              ⚠️ {numberOfBookableSeats} left
-            </span>
-          )}
-          {viewingCount > 30 && (
-            <span className="text-[9px] font-semibold text-blue-600 px-1.5 py-0.5 bg-blue-50 rounded whitespace-nowrap">
-              🔥 {viewingCount} viewing
+            <span className="text-[8px] font-bold text-orange-600 px-1 py-0.5 bg-orange-50 rounded whitespace-nowrap">
+              {numberOfBookableSeats} left
             </span>
           )}
           {savings > 0 && savingsPercentage >= 10 && (
-            <span className="text-[9px] font-bold text-green-600 px-1.5 py-0.5 bg-green-50 rounded whitespace-nowrap">
-              💰 {savingsPercentage}% OFF
-            </span>
-          )}
-          {score && score >= 85 && (
-            <span className="text-[9px] font-bold text-blue-600 px-1.5 py-0.5 bg-blue-50 rounded whitespace-nowrap">
-              ⭐ {score} IQ
+            <span className="text-[8px] font-bold text-green-600 px-1 py-0.5 bg-green-50 rounded whitespace-nowrap">
+              {savingsPercentage}% OFF
             </span>
           )}
         </div>
 
-        {/* 4. PRICE - Bold and clear */}
-        <div className="text-right min-w-[80px]">
-          <div className="flex items-baseline justify-end gap-1">
+        {/* 4. PRICE - Bold with yellow highlight, right-aligned */}
+        <div className="text-right ml-auto">
+          <div className="flex items-baseline justify-end gap-0.5">
             {savings > 10 && (
-              <span className="text-[9px] text-gray-400 line-through leading-tight">
+              <span className="text-[8px] text-gray-400 line-through leading-tight">
                 ${Math.round(averagePrice)}
               </span>
             )}
-            <span className="text-lg font-bold text-gray-900 leading-tight">
+            <span className="text-base md:text-lg font-black text-gray-900 leading-tight px-1.5 py-0.5 bg-secondary-100 rounded">
               ${Math.round(totalPrice)}
             </span>
           </div>
-          <div className="text-[9px] text-gray-500 leading-tight">per person</div>
+          <div className="text-[8px] text-gray-500 leading-tight">per person</div>
         </div>
 
-        {/* 5. SELECT BUTTON - Compact */}
+        {/* 5. SELECT BUTTON - Full-width on mobile, compact on desktop */}
         <button
           onClick={handleSelect}
           disabled={isNavigating}
-          className={`px-4 py-1.5 font-bold rounded-md transition-all text-xs whitespace-nowrap ${
+          className={`px-3 md:px-4 py-2 font-bold rounded-lg transition-all text-xs whitespace-nowrap min-h-[44px] md:min-h-[36px] ${
             isNavigating
-              ? 'bg-gradient-to-r from-success to-success/90 text-white cursor-wait'
-              : 'bg-gradient-to-r from-primary-600 to-secondary-600 text-white hover:from-primary-700 hover:to-secondary-700 hover:shadow-md active:scale-95'
+              ? 'bg-gradient-to-r from-success-500 to-success-600 text-white cursor-wait'
+              : 'bg-gradient-to-r from-primary-500 to-primary-600 text-white hover:from-primary-600 hover:to-primary-700 hover:shadow-md active:scale-95'
           }`}
+          style={{ boxShadow: '0 2px 8px rgba(229, 57, 53, 0.25)' }}
         >
           {isNavigating ? (
             <span className="flex items-center gap-1">
@@ -308,49 +298,47 @@ export function FlightCardCompact({
         </button>
       </div>
 
-      {/* RETURN FLIGHT - If roundtrip, show in second compact row */}
+      {/* RETURN FLIGHT - If roundtrip, compact row */}
       {isRoundtrip && (
-        <div className="flex items-center gap-2 px-3 py-1.5 bg-gray-50/30 border-t border-gray-100">
-          {/* Spacer to align with airline logo width */}
-          <div className="min-w-[140px]"></div>
+        <div className="flex items-center gap-1 md:gap-2 px-2 md:px-3 py-1.5 bg-gray-50/50 border-t border-gray-100">
+          {/* Spacer for desktop alignment */}
+          <div className="hidden md:block min-w-[140px]"></div>
 
-          <div className="flex items-center gap-2 flex-1 min-w-[280px]">
-            {/* RETURN Label - Inline */}
-            <span className="text-[8px] font-bold text-gray-600 uppercase tracking-wide whitespace-nowrap w-[72px] flex-shrink-0">
-              ← RETURN
+          <div className="flex items-center gap-1 md:gap-2 flex-1 min-w-0">
+            {/* RETURN Label */}
+            <span className="text-[8px] font-bold text-secondary-600 uppercase tracking-wide whitespace-nowrap w-auto md:w-[60px] flex-shrink-0">
+              ← RET
             </span>
 
-            <div className="text-left">
-              <div className="flex items-baseline gap-1 leading-none">
-                <span className="text-base font-bold text-gray-900">{formatDate(inbound.segments[0].departure.at)}</span>
-                <span className="text-sm font-semibold text-gray-600">{formatTime(inbound.segments[0].departure.at)}</span>
+            <div className="text-left min-w-0">
+              <div className="flex items-baseline gap-0.5 leading-none">
+                <span className="text-sm md:text-base font-bold text-gray-900">{formatTime(inbound.segments[0].departure.at)}</span>
               </div>
-              <div className="text-[10px] font-semibold text-gray-600 leading-tight mt-0.5">
-                {formatCityCode(inbound.segments[0].departure.iataCode)}
+              <div className="text-[9px] md:text-[10px] font-bold text-gray-700 leading-tight">
+                {inbound.segments[0].departure.iataCode}
               </div>
             </div>
 
-            <div className="flex-1 px-2">
-              <div className="relative h-px bg-gradient-to-r from-gray-300 via-secondary-400 to-gray-300">
-                <Plane className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-3 h-3 text-secondary-600 bg-white rounded-full p-0.5 rotate-180" />
+            <div className="flex-1 px-1 md:px-2 min-w-[60px]">
+              <div className="relative h-px bg-gradient-to-r from-gray-300 via-secondary-500 to-gray-300">
+                <Plane className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-3 h-3 text-secondary-500 bg-white rounded-full p-0.5 rotate-180" />
               </div>
-              <div className="text-center mt-0.5 flex items-center justify-center gap-1">
-                <span className="text-[10px] font-medium text-gray-600">
+              <div className="text-center mt-0.5 flex items-center justify-center gap-0.5">
+                <span className="text-[9px] md:text-[10px] font-semibold text-gray-600">
                   {parseDuration(inbound.duration)}
                 </span>
-                <span className={`text-[9px] font-bold px-1 py-0.5 rounded ${getStopsColor(inbound.segments)}`}>
+                <span className={`text-[8px] md:text-[9px] font-bold px-1 py-0.5 rounded ${getStopsColor(inbound.segments)}`}>
                   {getStopsText(inbound.segments)}
                 </span>
               </div>
             </div>
 
-            <div className="text-right">
-              <div className="flex items-baseline gap-1 justify-end leading-none">
-                <span className="text-base font-bold text-gray-900">{formatDate(inbound.segments[inbound.segments.length - 1].arrival.at)}</span>
-                <span className="text-sm font-semibold text-gray-600">{formatTime(inbound.segments[inbound.segments.length - 1].arrival.at)}</span>
+            <div className="text-right min-w-0">
+              <div className="flex items-baseline gap-0.5 justify-end leading-none">
+                <span className="text-sm md:text-base font-bold text-gray-900">{formatTime(inbound.segments[inbound.segments.length - 1].arrival.at)}</span>
               </div>
-              <div className="text-[10px] font-semibold text-gray-600 leading-tight mt-0.5">
-                {formatCityCode(inbound.segments[inbound.segments.length - 1].arrival.iataCode)}
+              <div className="text-[9px] md:text-[10px] font-bold text-gray-700 leading-tight">
+                {inbound.segments[inbound.segments.length - 1].arrival.iataCode}
               </div>
             </div>
           </div>

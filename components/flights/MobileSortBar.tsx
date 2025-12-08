@@ -54,8 +54,8 @@ export default function MobileSortBar({ selectedOptions, onToggle, onFilterClick
   }, [selectedOptions.size]);
 
   return (
-    <nav className="md:hidden sticky top-0 z-40 bg-white/95 backdrop-blur-lg border-b border-gray-200 shadow-sm" role="navigation" aria-label="Flight filters">
-      <div className="flex items-center gap-1.5 px-2 py-1">
+    <nav className="md:hidden sticky top-0 z-40 bg-white/98 backdrop-blur-xl border-b border-gray-100" role="navigation" aria-label="Flight filters" style={{ boxShadow: '0 1px 3px rgba(0,0,0,0.08)' }}>
+      <div className="flex items-center gap-1 px-1.5 py-1.5">
         {/* Filter Button */}
         {onFilterClick && (
           <>

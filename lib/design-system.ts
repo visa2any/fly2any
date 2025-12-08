@@ -34,18 +34,18 @@ export const spacingClasses = {
 // COLOR SYSTEM - Limited to 6 core colors + grayscale
 // ============================================================================
 export const colors = {
-  // Primary actions (buttons, links, highlights)
+  // Primary - Fly2Any Red (warm, energetic, travel excitement)
   primary: {
-    50: '#EFF6FF',
-    100: '#DBEAFE',
-    200: '#BFDBFE',
-    300: '#93C5FD',
-    400: '#60A5FA',
-    500: '#0087FF',   // Main primary
-    600: '#006FDB',
-    700: '#0055B8',
-    800: '#003D8F',
-    900: '#002B66',
+    50: '#FFEBEE',
+    100: '#FFCDD2',
+    200: '#EF9A9A',
+    300: '#E57373',
+    400: '#EF5350',
+    500: '#E53935',   // Main Fly2Any Red
+    600: '#EF4136',   // Lighter variant
+    700: '#D32F2F',
+    800: '#C62828',
+    900: '#B71C1C',
   },
 
   // Success states (direct flights, confirmations)
@@ -57,13 +57,13 @@ export const colors = {
     700: '#047857',
   },
 
-  // Warning/Urgency (low seats, price alerts)
+  // Accent - Fly2Any Yellow (optimism, visibility, price highlights)
   warning: {
-    50: '#FFFBEB',
-    100: '#FEF3C7',
-    500: '#F59E0B',   // Main warning
-    600: '#D97706',
-    700: '#B45309',
+    50: '#FFFDE7',
+    100: '#FFF9C4',
+    500: '#F7D033',   // Main Fly2Any Yellow
+    600: '#F9C900',   // Brighter variant
+    700: '#E0B10C',
   },
 
   // Error/Critical (errors, cancellations)
@@ -89,11 +89,11 @@ export const colors = {
     900: '#111827',
   },
 
-  // Secondary accent (return flights, highlights)
+  // Secondary - Fly2Any Yellow for highlights & deals
   secondary: {
-    500: '#8B5CF6',
-    600: '#7C3AED',
-    700: '#6D28D9',
+    500: '#F7D033',   // Fly2Any Yellow
+    600: '#F9C900',
+    700: '#E0B10C',
   },
 } as const;
 

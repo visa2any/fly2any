@@ -408,6 +408,52 @@
     @apply flex overflow-x-auto gap-1.5 pb-1 scrollbar-hide;
   }
 
+  /* ==========================================
+     EDGE-TO-EDGE MOBILE DESIGN SYSTEM
+     Full-width components on mobile
+     ========================================== */
+
+  /* Full-width cards on mobile */
+  .mobile-edge-card {
+    @apply rounded-none md:rounded-xl border-x-0 md:border-x;
+  }
+
+  /* Zero horizontal padding mobile */
+  .mobile-no-padding {
+    @apply px-0 md:px-6;
+  }
+
+  /* Full-width container mobile */
+  .mobile-full-width {
+    @apply w-full mx-0 md:mx-auto;
+  }
+
+  /* Stacked cards with no gap on mobile */
+  .mobile-stacked {
+    @apply space-y-0 md:space-y-3;
+  }
+
+  /* Dense information layout */
+  .mobile-dense {
+    @apply gap-0.5 md:gap-2 text-[10px] md:text-xs;
+  }
+
+  /* Touch-optimized tap targets */
+  .tap-target {
+    @apply min-h-[44px] min-w-[44px];
+  }
+
+  /* Depth shadow for edge-to-edge cards */
+  .mobile-card-shadow {
+    box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+  }
+
+  @media (min-width: 768px) {
+    .mobile-card-shadow {
+      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    }
+  }
+
   /* Toast slide-in animation */
   @keyframes slideIn {
     from {

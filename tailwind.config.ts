@@ -36,28 +36,28 @@ const config: Config = {
       },
       colors: {
         primary: {
-          50: '#E6F3FF',
-          100: '#CCE7FF',
-          200: '#99CFFF',
-          300: '#66B7FF',
-          400: '#339FFF',
-          500: '#0077E6', // Reduced saturation from #0087FF for less eye strain
-          600: '#006FDB',
-          700: '#0057B7',
-          800: '#003F93',
-          900: '#00276F',
+          50: '#FFEBEE',
+          100: '#FFCDD2',
+          200: '#EF9A9A',
+          300: '#E57373',
+          400: '#EF5350',
+          500: '#E53935', // Fly2Any Red - main brand color
+          600: '#EF4136', // Lighter red variant
+          700: '#D32F2F',
+          800: '#C62828',
+          900: '#B71C1C',
         },
         secondary: {
-          50: '#FFF4E6',
-          100: '#FFE9CC',
-          200: '#FFD399',
-          300: '#FFBD66',
-          400: '#FFA733',
-          500: '#FF9100',
-          600: '#DB7A00',
-          700: '#B76300',
-          800: '#934C00',
-          900: '#6F3500',
+          50: '#FFFDE7',
+          100: '#FFF9C4',
+          200: '#FFF59D',
+          300: '#FFF176',
+          400: '#FFEE58',
+          500: '#F7D033', // Fly2Any Yellow - accent/highlight
+          600: '#F9C900', // Brighter yellow
+          700: '#E0B10C',
+          800: '#C9A00B',
+          900: '#A68800',
         },
         neutral: {
           50: '#F9FAFB',
@@ -125,8 +125,8 @@ const config: Config = {
         display: ['"Poppins"', '"Inter"', 'sans-serif'],
       },
       boxShadow: {
-        'primary': '0 10px 25px -5px rgba(0, 119, 230, 0.3)', // Updated to match new primary-500 color
-        'secondary': '0 10px 25px -5px rgba(255, 145, 0, 0.3)',
+        'primary': '0 10px 25px -5px rgba(229, 57, 53, 0.3)', // Fly2Any Red shadow
+        'secondary': '0 10px 25px -5px rgba(247, 208, 51, 0.3)', // Fly2Any Yellow shadow
       },
       animation: {
         'fadeIn': 'fadeIn 0.3s ease-in-out',
