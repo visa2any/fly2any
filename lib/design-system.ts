@@ -31,69 +31,69 @@ export const spacingClasses = {
 } as const;
 
 // ============================================================================
-// COLOR SYSTEM - Limited to 6 core colors + grayscale
+// COLOR SYSTEM - Anti-Eye-Strain Palette
 // ============================================================================
 export const colors = {
-  // Primary - Fly2Any Red (warm, energetic, travel excitement)
+  // UI-Safe Fly2Any Red (anti-eye-strain adjusted)
   primary: {
-    50: '#FFEBEE',
-    100: '#FFCDD2',
-    200: '#EF9A9A',
-    300: '#E57373',
-    400: '#EF5350',
-    500: '#E53935',   // Main Fly2Any Red
-    600: '#EF4136',   // Lighter variant
-    700: '#D32F2F',
-    800: '#C62828',
-    900: '#B71C1C',
+    50: '#FEF2F2',
+    100: '#FDE8E8',
+    200: '#FACACA',
+    300: '#F5A3A3',
+    400: '#E85D5D',
+    500: '#D63A35',   // UI Primary Red
+    600: '#C7342F',   // Hover
+    700: '#B12F2B',   // Pressed
+    800: '#8E2622',
+    900: '#6B1D1A',
   },
 
   // Success states (direct flights, confirmations)
   success: {
-    50: '#F0FDF4',
-    100: '#DCFCE7',
+    50: '#ECFDF5',
+    100: '#D1FAE5',
     500: '#10B981',   // Main success
     600: '#059669',
     700: '#047857',
   },
 
-  // Accent - Fly2Any Yellow (optimism, visibility, price highlights)
+  // UI-Safe Fly2Any Yellow (anti-eye-strain adjusted)
   warning: {
-    50: '#FFFDE7',
-    100: '#FFF9C4',
-    500: '#F7D033',   // Main Fly2Any Yellow
-    600: '#F9C900',   // Brighter variant
-    700: '#E0B10C',
+    50: '#FEFCE8',
+    100: '#FEF9C3',
+    500: '#E8C52A',   // UI Accent Yellow
+    600: '#D7B622',   // Hover
+    700: '#C9A91E',   // Pressed
   },
 
-  // Error/Critical (errors, cancellations)
+  // Error/Critical
   error: {
     50: '#FEF2F2',
     100: '#FEE2E2',
-    500: '#EF4444',   // Main error
+    500: '#EF4444',
     600: '#DC2626',
     700: '#B91C1C',
   },
 
-  // Grayscale (text, borders, backgrounds)
+  // Anti-Fatigue Neutral Palette
   gray: {
-    50: '#F9FAFB',
-    100: '#F3F4F6',
-    200: '#E5E7EB',
-    300: '#D1D5DB',
-    400: '#9CA3AF',
-    500: '#6B7280',
-    600: '#4B5563',
-    700: '#374151',
-    800: '#1F2937',
-    900: '#111827',
+    50: '#F6F7F9',    // Background
+    100: '#F0F2F5',   // Surface alt
+    200: '#E3E5E8',   // Dividers
+    300: '#D1D4D9',
+    400: '#9CA0A7',
+    500: '#5F6368',   // Text secondary
+    600: '#4A4D52',
+    700: '#35373B',
+    800: '#1B1C20',   // Text primary
+    900: '#0E1012',   // Dark bg
   },
 
-  // Secondary - Fly2Any Yellow for highlights & deals
+  // Secondary - UI-Safe Yellow for highlights
   secondary: {
-    500: '#F7D033',   // Fly2Any Yellow
-    600: '#F9C900',
-    700: '#E0B10C',
+    500: '#E8C52A',   // UI Accent Yellow
+    600: '#D7B622',   // Hover
+    700: '#C9A91E',   // Pressed
   },
 } as const;
 

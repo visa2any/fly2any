@@ -273,7 +273,7 @@ export function FlightCardCompact({
               ? 'bg-gradient-to-r from-success-500 to-success-600 text-white cursor-wait'
               : 'bg-gradient-to-r from-primary-500 to-primary-600 text-white hover:from-primary-600 hover:to-primary-700 hover:shadow-md active:scale-95'
           }`}
-          style={{ boxShadow: '0 2px 8px rgba(229, 57, 53, 0.25)' }}
+          style={{ boxShadow: '0 2px 8px rgba(214, 58, 53, 0.25)' }}
         >
           {isNavigating ? (
             <span className="flex items-center gap-1">

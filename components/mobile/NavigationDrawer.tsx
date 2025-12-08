@@ -410,7 +410,7 @@ export function NavigationDrawer({
                   onClick={handleSignUp}
                   className="w-full px-6 py-3.5 bg-gradient-to-r from-primary-500 to-primary-600 text-white hover:from-primary-600 hover:to-primary-700 font-bold text-base rounded-xl transition-all duration-300 hover:scale-[1.02] hover:shadow-lg"
                   style={{
-                    boxShadow: '0 4px 14px rgba(229, 57, 53, 0.25)',
+                    boxShadow: '0 4px 14px rgba(214, 58, 53, 0.25)',
                   }}
                 >
                   {translations.signup}

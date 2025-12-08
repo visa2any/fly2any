@@ -1115,14 +1115,14 @@ export default function EnhancedSearchBar({
             onClick={() => setServiceType('flights')}
             className={`flex items-center gap-2 pb-3 text-sm font-medium transition-all duration-200 relative ${
               serviceType === 'flights'
-                ? 'text-[#E53935]'
-                : 'text-gray-600 hover:text-[#E53935]'
+                ? 'text-[#D63A35]'
+                : 'text-gray-600 hover:text-[#D63A35]'
             }`}
           >
-            <Plane size={18} className={serviceType === 'flights' ? 'text-[#E53935]' : 'text-gray-500'} />
+            <Plane size={18} className={serviceType === 'flights' ? 'text-[#D63A35]' : 'text-gray-500'} />
             <span className="text-xs sm:text-sm">{t('flights')}</span>
             {serviceType === 'flights' && (
-              <div className="absolute bottom-0 left-0 right-0 h-[3px] bg-[#E53935] rounded-t-sm" />
+              <div className="absolute bottom-0 left-0 right-0 h-[3px] bg-[#D63A35] rounded-t-sm" />
             )}
           </button>
 
@@ -1132,14 +1132,14 @@ export default function EnhancedSearchBar({
             onClick={() => setServiceType('hotels')}
             className={`flex items-center gap-2 pb-3 text-sm font-medium transition-all duration-200 relative ${
               serviceType === 'hotels'
-                ? 'text-[#E53935]'
-                : 'text-gray-600 hover:text-[#E53935]'
+                ? 'text-[#D63A35]'
+                : 'text-gray-600 hover:text-[#D63A35]'
             }`}
           >
-            <Hotel size={18} className={serviceType === 'hotels' ? 'text-[#E53935]' : 'text-gray-500'} />
+            <Hotel size={18} className={serviceType === 'hotels' ? 'text-[#D63A35]' : 'text-gray-500'} />
             <span className="text-xs sm:text-sm">{t('hotels')}</span>
             {serviceType === 'hotels' && (
-              <div className="absolute bottom-0 left-0 right-0 h-[3px] bg-[#E53935] rounded-t-sm" />
+              <div className="absolute bottom-0 left-0 right-0 h-[3px] bg-[#D63A35] rounded-t-sm" />
             )}
           </button>
 
@@ -1248,7 +1248,7 @@ export default function EnhancedSearchBar({
                   type="checkbox"
                   checked={fromNonstop}
                   onChange={(e) => setFromNonstop(e.target.checked)}
-                  className="w-3.5 h-3.5 rounded border-gray-300 text-[#E53935] focus:ring-[#E53935] cursor-pointer"
+                  className="w-3.5 h-3.5 rounded border-gray-300 text-[#D63A35] focus:ring-[#D63A35] cursor-pointer"
                 />
                 <span className="text-xs font-normal text-gray-600 group-hover:text-gray-900">Nonstop</span>
               </label>
@@ -1275,7 +1275,7 @@ export default function EnhancedSearchBar({
                 setOrigin(destination);
                 setDestination(temp);
               }}
-              className="absolute right-[-16px] top-[42px] z-10 p-1 bg-white border border-gray-300 text-gray-400 hover:text-[#E53935] hover:border-[#E53935] hover:bg-primary-50 rounded-full transition-all shadow-sm hover:shadow-md"
+              className="absolute right-[-16px] top-[42px] z-10 p-1 bg-white border border-gray-300 text-gray-400 hover:text-[#D63A35] hover:border-[#D63A35] hover:bg-primary-50 rounded-full transition-all shadow-sm hover:shadow-md"
               aria-label="Swap airports"
               title="Swap airports"
             >
@@ -1299,7 +1299,7 @@ export default function EnhancedSearchBar({
                   checked={toNonstop}
                   onChange={(e) => setToNonstop(e.target.checked)}
                   disabled={tripType === 'oneway'}
-                  className="w-3.5 h-3.5 rounded border-gray-300 text-[#E53935] focus:ring-[#E53935] cursor-pointer disabled:cursor-not-allowed disabled:opacity-50"
+                  className="w-3.5 h-3.5 rounded border-gray-300 text-[#D63A35] focus:ring-[#D63A35] cursor-pointer disabled:cursor-not-allowed disabled:opacity-50"
                 />
                 <span className="text-xs font-normal text-gray-600 group-hover:text-gray-900">Nonstop</span>
               </label>
@@ -1343,7 +1343,7 @@ export default function EnhancedSearchBar({
                       setReturnDates([]);
                     }
                   }}
-                  className="w-3.5 h-3.5 rounded border-gray-300 text-[#E53935] focus:ring-[#E53935] cursor-pointer disabled:cursor-not-allowed disabled:opacity-50"
+                  className="w-3.5 h-3.5 rounded border-gray-300 text-[#D63A35] focus:ring-[#D63A35] cursor-pointer disabled:cursor-not-allowed disabled:opacity-50"
                 />
                 <span className="text-xs font-normal text-gray-600 group-hover:text-gray-900">Multi-Dates</span>
               </label>
@@ -1354,7 +1354,7 @@ export default function EnhancedSearchBar({
                 ref={departureDateRef}
                 type="button"
                 onClick={() => handleOpenDatePicker('departure')}
-                className={`w-full relative px-4 py-4 bg-white border rounded-lg hover:border-[#E53935] transition-all cursor-pointer ${
+                className={`w-full relative px-4 py-4 bg-white border rounded-lg hover:border-[#D63A35] transition-all cursor-pointer ${
                   errors.departureDate ? 'border-red-500' : 'border-gray-300'
                 }`}
               >
@@ -1368,7 +1368,7 @@ export default function EnhancedSearchBar({
                 ref={departureDateRef}
                 type="button"
                 onClick={() => handleOpenDatePicker('departure')}
-                className={`w-full relative px-4 py-3 bg-white border rounded-lg hover:border-[#E53935] transition-all cursor-pointer min-h-[56px] ${
+                className={`w-full relative px-4 py-3 bg-white border rounded-lg hover:border-[#D63A35] transition-all cursor-pointer min-h-[56px] ${
                   errors.departureDate ? 'border-red-500' : 'border-gray-300'
                 }`}
               >
@@ -1378,7 +1378,7 @@ export default function EnhancedSearchBar({
                     departureDates.map((date, idx) => (
                       <span
                         key={idx}
-                        className="inline-flex items-center px-2 py-1 rounded-md bg-[#FFEBEE] text-[#E53935] text-sm font-medium"
+                        className="inline-flex items-center px-2 py-1 rounded-md bg-[#FEF2F2] text-[#D63A35] text-sm font-medium"
                       >
                         {format(date, 'MMM d')}
                       </span>
@@ -1417,7 +1417,7 @@ export default function EnhancedSearchBar({
                       setReturnDates([]);
                     }
                   }}
-                  className="w-3.5 h-3.5 rounded border-gray-300 text-[#E53935] focus:ring-[#E53935] cursor-pointer"
+                  className="w-3.5 h-3.5 rounded border-gray-300 text-[#D63A35] focus:ring-[#D63A35] cursor-pointer"
                 />
                 <ArrowRight size={12} className="text-gray-500" />
                 <span className="text-xs font-normal text-gray-600 group-hover:text-gray-900">One-way</span>
@@ -1430,7 +1430,7 @@ export default function EnhancedSearchBar({
                   ref={returnDateRef}
                   type="button"
                   onClick={() => handleOpenDatePicker('return')}
-                  className="w-full relative px-4 py-4 bg-white border border-gray-300 rounded-lg hover:border-[#E53935] transition-all cursor-pointer"
+                  className="w-full relative px-4 py-4 bg-white border border-gray-300 rounded-lg hover:border-[#D63A35] transition-all cursor-pointer"
                 >
                   <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={20} />
                   <span className="block pl-8 text-sm font-medium text-gray-900">
@@ -1442,7 +1442,7 @@ export default function EnhancedSearchBar({
                   ref={returnDateRef}
                   type="button"
                   onClick={() => handleOpenDatePicker('return')}
-                  className="w-full relative px-4 py-3 bg-white border border-gray-300 rounded-lg hover:border-[#E53935] transition-all cursor-pointer min-h-[56px]"
+                  className="w-full relative px-4 py-3 bg-white border border-gray-300 rounded-lg hover:border-[#D63A35] transition-all cursor-pointer min-h-[56px]"
                 >
                   <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={20} />
                   <div className="pl-8 flex flex-wrap gap-1.5 items-center">
@@ -1450,7 +1450,7 @@ export default function EnhancedSearchBar({
                       returnDates.map((date, idx) => (
                         <span
                           key={idx}
-                          className="inline-flex items-center px-2 py-1 rounded-md bg-[#FFEBEE] text-[#E53935] text-sm font-medium"
+                          className="inline-flex items-center px-2 py-1 rounded-md bg-[#FEF2F2] text-[#D63A35] text-sm font-medium"
                         >
                           {format(date, 'MMM d')}
                         </span>
@@ -1487,7 +1487,7 @@ export default function EnhancedSearchBar({
                 closeAllDropdowns();
                 setShowPassengerDropdown(!showPassengerDropdown);
               }}
-              className="w-full relative px-4 py-4 bg-white border border-gray-300 rounded-lg hover:border-[#E53935] transition-all text-left"
+              className="w-full relative px-4 py-4 bg-white border border-gray-300 rounded-lg hover:border-[#D63A35] transition-all text-left"
             >
               <Users className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
               <span className="block pl-7 text-sm font-medium text-gray-900 pr-7">
@@ -1516,7 +1516,7 @@ export default function EnhancedSearchBar({
                         handlePassengerChange('adults', -1);
                       }}
                       disabled={passengers.adults <= 1}
-                      className="w-7 h-7 rounded-full border-2 border-gray-300 hover:border-[#E53935] disabled:opacity-30 disabled:cursor-not-allowed flex items-center justify-center text-gray-700 hover:text-[#E53935] font-bold transition-all duration-200 ease-in-out text-sm hover:scale-105"
+                      className="w-7 h-7 rounded-full border-2 border-gray-300 hover:border-[#D63A35] disabled:opacity-30 disabled:cursor-not-allowed flex items-center justify-center text-gray-700 hover:text-[#D63A35] font-bold transition-all duration-200 ease-in-out text-sm hover:scale-105"
                     >
                       −
                     </button>
@@ -1530,7 +1530,7 @@ export default function EnhancedSearchBar({
                         e.stopPropagation();
                         handlePassengerChange('adults', 1);
                       }}
-                      className="w-7 h-7 rounded-full border-2 border-gray-300 hover:border-[#E53935] flex items-center justify-center text-gray-700 hover:text-[#E53935] font-bold transition-all duration-200 ease-in-out text-sm hover:scale-105"
+                      className="w-7 h-7 rounded-full border-2 border-gray-300 hover:border-[#D63A35] flex items-center justify-center text-gray-700 hover:text-[#D63A35] font-bold transition-all duration-200 ease-in-out text-sm hover:scale-105"
                     >
                       +
                     </button>
@@ -1552,7 +1552,7 @@ export default function EnhancedSearchBar({
                         handlePassengerChange('children', -1);
                       }}
                       disabled={passengers.children <= 0}
-                      className="w-7 h-7 rounded-full border-2 border-gray-300 hover:border-[#E53935] disabled:opacity-30 disabled:cursor-not-allowed flex items-center justify-center text-gray-700 hover:text-[#E53935] font-bold transition-all duration-200 ease-in-out text-sm hover:scale-105"
+                      className="w-7 h-7 rounded-full border-2 border-gray-300 hover:border-[#D63A35] disabled:opacity-30 disabled:cursor-not-allowed flex items-center justify-center text-gray-700 hover:text-[#D63A35] font-bold transition-all duration-200 ease-in-out text-sm hover:scale-105"
                     >
                       −
                     </button>
@@ -1566,7 +1566,7 @@ export default function EnhancedSearchBar({
                         e.stopPropagation();
                         handlePassengerChange('children', 1);
                       }}
-                      className="w-7 h-7 rounded-full border-2 border-gray-300 hover:border-[#E53935] flex items-center justify-center text-gray-700 hover:text-[#E53935] font-bold transition-all duration-200 ease-in-out text-sm hover:scale-105"
+                      className="w-7 h-7 rounded-full border-2 border-gray-300 hover:border-[#D63A35] flex items-center justify-center text-gray-700 hover:text-[#D63A35] font-bold transition-all duration-200 ease-in-out text-sm hover:scale-105"
                     >
                       +
                     </button>
@@ -1588,7 +1588,7 @@ export default function EnhancedSearchBar({
                         handlePassengerChange('infants', -1);
                       }}
                       disabled={passengers.infants <= 0}
-                      className="w-7 h-7 rounded-full border-2 border-gray-300 hover:border-[#E53935] disabled:opacity-30 disabled:cursor-not-allowed flex items-center justify-center text-gray-700 hover:text-[#E53935] font-bold transition-all duration-200 ease-in-out text-sm hover:scale-105"
+                      className="w-7 h-7 rounded-full border-2 border-gray-300 hover:border-[#D63A35] disabled:opacity-30 disabled:cursor-not-allowed flex items-center justify-center text-gray-700 hover:text-[#D63A35] font-bold transition-all duration-200 ease-in-out text-sm hover:scale-105"
                     >
                       −
                     </button>
@@ -1602,7 +1602,7 @@ export default function EnhancedSearchBar({
                         e.stopPropagation();
                         handlePassengerChange('infants', 1);
                       }}
-                      className="w-7 h-7 rounded-full border-2 border-gray-300 hover:border-[#E53935] flex items-center justify-center text-gray-700 hover:text-[#E53935] font-bold transition-all duration-200 ease-in-out text-sm hover:scale-105"
+                      className="w-7 h-7 rounded-full border-2 border-gray-300 hover:border-[#D63A35] flex items-center justify-center text-gray-700 hover:text-[#D63A35] font-bold transition-all duration-200 ease-in-out text-sm hover:scale-105"
                     >
                       +
                     </button>
@@ -1627,7 +1627,7 @@ export default function EnhancedSearchBar({
                         }}
                         className={`px-2.5 py-2 rounded-lg border transition-all text-[10px] font-medium ${
                           cabinClass === cls
-                            ? 'border-[#E53935] bg-[#FFEBEE] text-[#E53935]'
+                            ? 'border-[#D63A35] bg-[#FEF2F2] text-[#D63A35]'
                             : 'border-gray-200 text-gray-700 hover:border-gray-300 hover:bg-gray-50'
                         }`}
                       >
@@ -1645,7 +1645,7 @@ export default function EnhancedSearchBar({
                 {/* Done Button */}
                 <button
                   onClick={() => setShowPassengerDropdown(false)}
-                  className="w-full py-2 bg-[#E53935] hover:bg-[#0077E6] text-white font-semibold rounded-lg transition-all duration-200 ease-in-out text-xs shadow-sm hover:shadow-md"
+                  className="w-full py-2 bg-[#D63A35] hover:bg-[#0077E6] text-white font-semibold rounded-lg transition-all duration-200 ease-in-out text-xs shadow-sm hover:shadow-md"
                 >
                   {t('done')}
                 </button>
@@ -1660,7 +1660,7 @@ export default function EnhancedSearchBar({
               type="button"
               onClick={handleSearch}
               disabled={isLoading}
-              className="py-4 px-10 bg-[#E53935] hover:bg-[#0077E6] text-white font-semibold rounded-lg shadow-md hover:shadow-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 whitespace-nowrap text-sm"
+              className="py-4 px-10 bg-[#D63A35] hover:bg-[#0077E6] text-white font-semibold rounded-lg shadow-md hover:shadow-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 whitespace-nowrap text-sm"
             >
               {isLoading ? (
                 <>
@@ -1685,7 +1685,7 @@ export default function EnhancedSearchBar({
                 <button
                   type="button"
                   onClick={handleAddFlight}
-                  className="w-full py-2.5 border-2 border-dashed border-gray-300 hover:border-[#E53935] text-gray-600 hover:text-[#E53935] rounded-lg font-medium text-sm transition-all flex items-center justify-center gap-2 hover:bg-primary-50"
+                  className="w-full py-2.5 border-2 border-dashed border-gray-300 hover:border-[#D63A35] text-gray-600 hover:text-[#D63A35] rounded-lg font-medium text-sm transition-all flex items-center justify-center gap-2 hover:bg-primary-50"
                 >
                   <Plane size={16} />
                   <span>+ Add Another Flight</span>
@@ -1710,7 +1710,7 @@ export default function EnhancedSearchBar({
                           type="checkbox"
                           checked={flight.nonstop}
                           onChange={(e) => handleUpdateAdditionalFlight(flight.id, { nonstop: e.target.checked })}
-                          className="w-3.5 h-3.5 rounded border-gray-300 text-[#E53935] focus:ring-[#E53935] cursor-pointer"
+                          className="w-3.5 h-3.5 rounded border-gray-300 text-[#D63A35] focus:ring-[#D63A35] cursor-pointer"
                         />
                         <span className="text-xs font-normal text-gray-600 group-hover:text-gray-900">Nonstop</span>
                       </label>
@@ -1734,7 +1734,7 @@ export default function EnhancedSearchBar({
                           destination: temp
                         });
                       }}
-                      className="absolute right-[-16px] top-[42px] z-10 p-1 bg-white border border-gray-300 text-gray-400 hover:text-[#E53935] hover:border-[#E53935] hover:bg-primary-50 rounded-full transition-all shadow-sm hover:shadow-md"
+                      className="absolute right-[-16px] top-[42px] z-10 p-1 bg-white border border-gray-300 text-gray-400 hover:text-[#D63A35] hover:border-[#D63A35] hover:bg-primary-50 rounded-full transition-all shadow-sm hover:shadow-md"
                       aria-label="Swap airports"
                       title="Swap airports"
                     >
@@ -1777,7 +1777,7 @@ export default function EnhancedSearchBar({
                         setShowDatePicker(false); // Close main date picker
                         setAdditionalFlightDatePickerOpen(flight.id);
                       }}
-                      className="w-full relative px-4 py-4 bg-white border border-gray-300 rounded-lg hover:border-[#E53935] transition-all cursor-pointer"
+                      className="w-full relative px-4 py-4 bg-white border border-gray-300 rounded-lg hover:border-[#D63A35] transition-all cursor-pointer"
                     >
                       <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={20} />
                       <span className="block pl-8 text-sm font-medium text-gray-900">
@@ -1797,7 +1797,7 @@ export default function EnhancedSearchBar({
                         <button
                           type="button"
                           onClick={handleAddFlight}
-                          className="flex-1 px-4 py-3 border-2 border-dashed border-gray-300 hover:border-[#E53935] text-gray-600 hover:text-[#E53935] rounded-lg text-sm font-medium transition-all flex items-center justify-center gap-2 hover:bg-primary-50 whitespace-nowrap"
+                          className="flex-1 px-4 py-3 border-2 border-dashed border-gray-300 hover:border-[#D63A35] text-gray-600 hover:text-[#D63A35] rounded-lg text-sm font-medium transition-all flex items-center justify-center gap-2 hover:bg-primary-50 whitespace-nowrap"
                         >
                           <Plane size={14} />
                           <span>Add Another Flight</span>
@@ -1840,12 +1840,12 @@ export default function EnhancedSearchBar({
                   onClick={() => {
                     setShowHotelSuggestions(true);
                   }}
-                  className="w-full px-4 py-3 bg-gradient-to-r from-blue-50 to-cyan-50 border-2 border-[#E53935] rounded-lg cursor-pointer transition-all hover:border-[#0077E6] hover:shadow-md"
+                  className="w-full px-4 py-3 bg-gradient-to-r from-blue-50 to-cyan-50 border-2 border-[#D63A35] rounded-lg cursor-pointer transition-all hover:border-[#0077E6] hover:shadow-md"
                 >
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-3">
                       {/* Destination Emoji or Globe Icon */}
-                      <div className="w-10 h-10 rounded-full bg-gradient-to-br from-[#E53935] to-cyan-500 flex items-center justify-center shadow-md">
+                      <div className="w-10 h-10 rounded-full bg-gradient-to-br from-[#D63A35] to-cyan-500 flex items-center justify-center shadow-md">
                         {selectedDestinationDetails.emoji ? (
                           <span className="text-xl">{selectedDestinationDetails.emoji}</span>
                         ) : (
@@ -1902,7 +1902,7 @@ export default function EnhancedSearchBar({
                     }
                   }}
                   placeholder="City, hotel, or landmark"
-                  className={`w-full px-4 py-4 bg-white border rounded-lg hover:border-[#E53935] transition-all text-sm font-medium ${
+                  className={`w-full px-4 py-4 bg-white border rounded-lg hover:border-[#D63A35] transition-all text-sm font-medium ${
                     errors.hotel ? 'border-red-500' : 'border-gray-300'
                   }`}
                 />
@@ -2063,7 +2063,7 @@ export default function EnhancedSearchBar({
                 className={`w-full px-3 py-3 rounded-lg cursor-pointer transition-all ${
                   checkInDate
                     ? 'bg-gradient-to-r from-emerald-50 to-teal-50 border-2 border-emerald-500 hover:border-emerald-600 hover:shadow-md'
-                    : 'bg-white border border-gray-300 hover:border-[#E53935]'
+                    : 'bg-white border border-gray-300 hover:border-[#D63A35]'
                 }`}
               >
                 <div className="flex items-center gap-3">
@@ -2107,7 +2107,7 @@ export default function EnhancedSearchBar({
                 className={`w-full px-3 py-3 rounded-lg cursor-pointer transition-all ${
                   checkOutDate
                     ? 'bg-gradient-to-r from-orange-50 to-amber-50 border-2 border-orange-500 hover:border-orange-600 hover:shadow-md'
-                    : 'bg-white border border-gray-300 hover:border-[#E53935]'
+                    : 'bg-white border border-gray-300 hover:border-[#D63A35]'
                 }`}
               >
                 <div className="flex items-center gap-3">
@@ -2269,7 +2269,7 @@ export default function EnhancedSearchBar({
                     </div>
                   )}
                   {/* Done Button */}
-                  <button onClick={() => setShowPassengerDropdown(false)} className="w-full py-2 bg-[#E53935] hover:bg-[#0077E6] text-white font-medium rounded-lg transition-colors text-sm">
+                  <button onClick={() => setShowPassengerDropdown(false)} className="w-full py-2 bg-[#D63A35] hover:bg-[#0077E6] text-white font-medium rounded-lg transition-colors text-sm">
                     Done
                   </button>
                 </div>
@@ -2284,7 +2284,7 @@ export default function EnhancedSearchBar({
                 type="button"
                 onClick={handleSearch}
                 disabled={isLoading}
-                className="py-4 px-10 bg-[#E53935] hover:bg-[#0077E6] text-white font-semibold rounded-lg shadow-md hover:shadow-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 whitespace-nowrap text-sm"
+                className="py-4 px-10 bg-[#D63A35] hover:bg-[#0077E6] text-white font-semibold rounded-lg shadow-md hover:shadow-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 whitespace-nowrap text-sm"
               >
                 {isLoading ? (
                   <>
@@ -2307,7 +2307,7 @@ export default function EnhancedSearchBar({
             <div className="mt-3 px-3 py-2 bg-gradient-to-r from-slate-50/80 via-blue-50/20 to-cyan-50/20 rounded-lg border border-blue-100/50 flex items-center gap-3">
               {/* Left: Title Section */}
               <div className="flex-shrink-0 flex items-center gap-2">
-                <div className="w-5 h-5 rounded-full bg-gradient-to-br from-[#E53935] to-cyan-500 flex items-center justify-center">
+                <div className="w-5 h-5 rounded-full bg-gradient-to-br from-[#D63A35] to-cyan-500 flex items-center justify-center">
                   <MapPin className="w-3 h-3 text-white" />
                 </div>
                 <span className="text-xs font-semibold text-gray-700 whitespace-nowrap">Popular Areas</span>
@@ -2332,7 +2332,7 @@ export default function EnhancedSearchBar({
                         onClick={() => toggleDistrictSelection(district)}
                         className={`flex-shrink-0 flex items-center gap-1 px-2.5 py-1 rounded-md text-xs font-medium transition-all duration-150 ${
                           isSelected
-                            ? 'bg-gradient-to-r from-[#E53935] to-cyan-500 text-white shadow-sm'
+                            ? 'bg-gradient-to-r from-[#D63A35] to-cyan-500 text-white shadow-sm'
                             : 'bg-white text-gray-600 hover:bg-primary-50 hover:text-primary-700 border border-gray-200/80 hover:border-primary-300'
                         }`}
                       >
@@ -2348,7 +2348,7 @@ export default function EnhancedSearchBar({
                       key={district.id}
                       type="button"
                       onClick={() => setSelectedDistricts(selectedDistricts.filter(d => d.id !== district.id))}
-                      className="flex-shrink-0 flex items-center gap-1 px-2.5 py-1 rounded-md text-xs font-medium transition-all duration-150 bg-gradient-to-r from-[#E53935] to-cyan-500 text-white shadow-sm"
+                      className="flex-shrink-0 flex items-center gap-1 px-2.5 py-1 rounded-md text-xs font-medium transition-all duration-150 bg-gradient-to-r from-[#D63A35] to-cyan-500 text-white shadow-sm"
                     >
                       <Check className="w-3 h-3" />
                       {district.name}
@@ -2414,7 +2414,7 @@ export default function EnhancedSearchBar({
                         setCarDropoffLocation('');
                       }
                     }}
-                    className="w-3.5 h-3.5 rounded border-gray-300 text-[#E53935] focus:ring-[#E53935] cursor-pointer"
+                    className="w-3.5 h-3.5 rounded border-gray-300 text-[#D63A35] focus:ring-[#D63A35] cursor-pointer"
                   />
                   <span className="text-xs font-normal text-gray-600 group-hover:text-gray-900">Same location</span>
                 </label>
@@ -2449,7 +2449,7 @@ export default function EnhancedSearchBar({
                 <select
                   value={carPickupTime}
                   onChange={(e) => setCarPickupTime(e.target.value)}
-                  className="px-2 py-0.5 bg-white border border-gray-300 rounded-md hover:border-[#E53935] transition-all text-xs font-medium text-gray-900 focus:outline-none focus:ring-1 focus:ring-[#E53935]"
+                  className="px-2 py-0.5 bg-white border border-gray-300 rounded-md hover:border-[#D63A35] transition-all text-xs font-medium text-gray-900 focus:outline-none focus:ring-1 focus:ring-[#D63A35]"
                 >
                   {['00:00', '01:00', '02:00', '03:00', '04:00', '05:00', '06:00', '07:00', '08:00', '09:00', '10:00', '11:00', '12:00', '13:00', '14:00', '15:00', '16:00', '17:00', '18:00', '19:00', '20:00', '21:00', '22:00', '23:00'].map(time => (
                     <option key={`pickup-${time}`} value={time}>{time}</option>
@@ -2460,7 +2460,7 @@ export default function EnhancedSearchBar({
                 ref={carPickupDateRef}
                 type="button"
                 onClick={() => setShowCarPickupDatePicker(true)}
-                className="w-full relative px-4 py-4 bg-white border rounded-lg hover:border-[#E53935] transition-all cursor-pointer border-gray-300"
+                className="w-full relative px-4 py-4 bg-white border rounded-lg hover:border-[#D63A35] transition-all cursor-pointer border-gray-300"
               >
                 <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={20} />
                 <span className="block pl-8 text-sm font-medium text-gray-900">
@@ -2481,7 +2481,7 @@ export default function EnhancedSearchBar({
                 <select
                   value={carDropoffTime}
                   onChange={(e) => setCarDropoffTime(e.target.value)}
-                  className="px-2 py-0.5 bg-white border border-gray-300 rounded-md hover:border-[#E53935] transition-all text-xs font-medium text-gray-900 focus:outline-none focus:ring-1 focus:ring-[#E53935]"
+                  className="px-2 py-0.5 bg-white border border-gray-300 rounded-md hover:border-[#D63A35] transition-all text-xs font-medium text-gray-900 focus:outline-none focus:ring-1 focus:ring-[#D63A35]"
                 >
                   {['00:00', '01:00', '02:00', '03:00', '04:00', '05:00', '06:00', '07:00', '08:00', '09:00', '10:00', '11:00', '12:00', '13:00', '14:00', '15:00', '16:00', '17:00', '18:00', '19:00', '20:00', '21:00', '22:00', '23:00'].map(time => (
                     <option key={`dropoff-${time}`} value={time}>{time}</option>
@@ -2492,7 +2492,7 @@ export default function EnhancedSearchBar({
                 ref={carDropoffDateRef}
                 type="button"
                 onClick={() => setShowCarDropoffDatePicker(true)}
-                className="w-full relative px-4 py-4 bg-white border border-gray-300 rounded-lg hover:border-[#E53935] transition-all cursor-pointer"
+                className="w-full relative px-4 py-4 bg-white border border-gray-300 rounded-lg hover:border-[#D63A35] transition-all cursor-pointer"
               >
                 <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={20} />
                 <span className="block pl-8 text-sm font-medium text-gray-900">
@@ -2508,7 +2508,7 @@ export default function EnhancedSearchBar({
                 type="button"
                 onClick={handleSearch}
                 disabled={isLoading}
-                className="py-4 px-10 bg-[#E53935] hover:bg-[#0077E6] text-white font-semibold rounded-lg shadow-md hover:shadow-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 whitespace-nowrap text-sm h-[56px]"
+                className="py-4 px-10 bg-[#D63A35] hover:bg-[#0077E6] text-white font-semibold rounded-lg shadow-md hover:shadow-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 whitespace-nowrap text-sm h-[56px]"
               >
                 {isLoading ? (
                   <>
@@ -2543,7 +2543,7 @@ export default function EnhancedSearchBar({
                 value={hotelDestination}
                 onChange={(e) => setHotelDestination(e.target.value)}
                 placeholder="City or attraction"
-                className="w-full px-4 py-4 bg-white border border-gray-300 rounded-lg hover:border-[#E53935] transition-all text-sm font-medium"
+                className="w-full px-4 py-4 bg-white border border-gray-300 rounded-lg hover:border-[#D63A35] transition-all text-sm font-medium"
               />
             </div>
 
@@ -2556,7 +2556,7 @@ export default function EnhancedSearchBar({
               <button
                 type="button"
                 onClick={() => setShowHotelCheckInPicker(true)}
-                className="w-full relative px-4 py-4 bg-white border border-gray-300 rounded-lg hover:border-[#E53935] transition-all cursor-pointer"
+                className="w-full relative px-4 py-4 bg-white border border-gray-300 rounded-lg hover:border-[#D63A35] transition-all cursor-pointer"
               >
                 <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={20} />
                 <span className="block pl-8 text-sm font-medium text-gray-900">
@@ -2574,7 +2574,7 @@ export default function EnhancedSearchBar({
               <button
                 type="button"
                 onClick={() => setShowHotelGuestPicker(!showHotelGuestPicker)}
-                className="w-full relative px-4 py-4 bg-white border border-gray-300 rounded-lg hover:border-[#E53935] transition-all cursor-pointer"
+                className="w-full relative px-4 py-4 bg-white border border-gray-300 rounded-lg hover:border-[#D63A35] transition-all cursor-pointer"
               >
                 <Users className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={20} />
                 <span className="block pl-8 text-sm font-medium text-gray-900">
@@ -2592,7 +2592,7 @@ export default function EnhancedSearchBar({
                       <button
                         type="button"
                         onClick={() => setHotelAdults(Math.max(1, hotelAdults - 1))}
-                        className="w-8 h-8 rounded-full border border-gray-300 hover:border-[#E53935] hover:bg-primary-50 flex items-center justify-center transition-all"
+                        className="w-8 h-8 rounded-full border border-gray-300 hover:border-[#D63A35] hover:bg-primary-50 flex items-center justify-center transition-all"
                       >
                         <Minus size={16} />
                       </button>
@@ -2600,7 +2600,7 @@ export default function EnhancedSearchBar({
                       <button
                         type="button"
                         onClick={() => setHotelAdults(hotelAdults + 1)}
-                        className="w-8 h-8 rounded-full border border-gray-300 hover:border-[#E53935] hover:bg-primary-50 flex items-center justify-center transition-all"
+                        className="w-8 h-8 rounded-full border border-gray-300 hover:border-[#D63A35] hover:bg-primary-50 flex items-center justify-center transition-all"
                       >
                         <Plus size={16} />
                       </button>
@@ -2614,7 +2614,7 @@ export default function EnhancedSearchBar({
                       <button
                         type="button"
                         onClick={() => setHotelChildren(Math.max(0, hotelChildren - 1))}
-                        className="w-8 h-8 rounded-full border border-gray-300 hover:border-[#E53935] hover:bg-primary-50 flex items-center justify-center transition-all"
+                        className="w-8 h-8 rounded-full border border-gray-300 hover:border-[#D63A35] hover:bg-primary-50 flex items-center justify-center transition-all"
                       >
                         <Minus size={16} />
                       </button>
@@ -2622,7 +2622,7 @@ export default function EnhancedSearchBar({
                       <button
                         type="button"
                         onClick={() => setHotelChildren(hotelChildren + 1)}
-                        className="w-8 h-8 rounded-full border border-gray-300 hover:border-[#E53935] hover:bg-primary-50 flex items-center justify-center transition-all"
+                        className="w-8 h-8 rounded-full border border-gray-300 hover:border-[#D63A35] hover:bg-primary-50 flex items-center justify-center transition-all"
                       >
                         <Plus size={16} />
                       </button>
@@ -2632,7 +2632,7 @@ export default function EnhancedSearchBar({
                   {/* Done Button */}
                   <button
                     onClick={() => setShowHotelGuestPicker(false)}
-                    className="w-full py-2 bg-[#E53935] hover:bg-[#0077E6] text-white font-semibold rounded-lg transition-all"
+                    className="w-full py-2 bg-[#D63A35] hover:bg-[#0077E6] text-white font-semibold rounded-lg transition-all"
                   >
                     Done
                   </button>
@@ -2647,7 +2647,7 @@ export default function EnhancedSearchBar({
                 type="button"
                 onClick={handleSearch}
                 disabled={isLoading}
-                className="py-4 px-10 bg-[#E53935] hover:bg-[#0077E6] text-white font-semibold rounded-lg shadow-md hover:shadow-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 whitespace-nowrap text-sm"
+                className="py-4 px-10 bg-[#D63A35] hover:bg-[#0077E6] text-white font-semibold rounded-lg shadow-md hover:shadow-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 whitespace-nowrap text-sm"
               >
                 {isLoading ? (
                   <>
@@ -2681,7 +2681,7 @@ export default function EnhancedSearchBar({
                 value={hotelDestination}
                 onChange={(e) => setHotelDestination(e.target.value)}
                 placeholder={lang === 'en' ? 'e.g., Scuba Diving, Paris, Bungee Jump' : lang === 'pt' ? 'ex: Mergulho, Paris, Bungee Jump' : 'ej: Buceo, París, Bungee Jump'}
-                className="w-full px-4 py-4 bg-white border border-gray-300 rounded-lg hover:border-[#E53935] focus:outline-none focus:ring-2 focus:ring-[#E53935] transition-all text-sm font-medium"
+                className="w-full px-4 py-4 bg-white border border-gray-300 rounded-lg hover:border-[#D63A35] focus:outline-none focus:ring-2 focus:ring-[#D63A35] transition-all text-sm font-medium"
               />
             </div>
 
@@ -2695,10 +2695,10 @@ export default function EnhancedSearchBar({
                 type="button"
                 ref={hotelCheckInRef}
                 onClick={() => setShowHotelCheckInPicker(true)}
-                className="w-full px-4 py-4 bg-white border border-gray-300 rounded-lg hover:border-[#E53935] transition-all text-left flex items-center justify-between group"
+                className="w-full px-4 py-4 bg-white border border-gray-300 rounded-lg hover:border-[#D63A35] transition-all text-left flex items-center justify-between group"
               >
                 <div className="flex items-center gap-2.5">
-                  <CalendarDays size={18} className="text-gray-600 group-hover:text-[#E53935] transition-colors" />
+                  <CalendarDays size={18} className="text-gray-600 group-hover:text-[#D63A35] transition-colors" />
                   <span className="font-medium text-sm text-gray-800">
                     {checkInDate ? formatDateForDisplay(checkInDate) : lang === 'en' ? 'Select date' : lang === 'pt' ? 'Selecionar data' : 'Seleccionar fecha'}
                   </span>
@@ -2716,10 +2716,10 @@ export default function EnhancedSearchBar({
               <button
                 type="button"
                 onClick={() => setShowHotelGuestPicker(!showHotelGuestPicker)}
-                className="w-full px-4 py-4 bg-white border border-gray-300 rounded-lg hover:border-[#E53935] transition-all text-left flex items-center justify-between group"
+                className="w-full px-4 py-4 bg-white border border-gray-300 rounded-lg hover:border-[#D63A35] transition-all text-left flex items-center justify-between group"
               >
                 <div className="flex items-center gap-2.5">
-                  <Users size={18} className="text-gray-600 group-hover:text-[#E53935] transition-colors" />
+                  <Users size={18} className="text-gray-600 group-hover:text-[#D63A35] transition-colors" />
                   <span className="font-medium text-sm text-gray-800">
                     {hotelAdults + hotelChildren} {lang === 'en' ? (hotelAdults + hotelChildren === 1 ? 'participant' : 'participants') : lang === 'pt' ? (hotelAdults + hotelChildren === 1 ? 'participante' : 'participantes') : (hotelAdults + hotelChildren === 1 ? 'participante' : 'participantes')}
                   </span>
@@ -2737,7 +2737,7 @@ export default function EnhancedSearchBar({
                       <button
                         type="button"
                         onClick={() => setHotelAdults(Math.max(1, hotelAdults - 1))}
-                        className="w-8 h-8 rounded-full border border-gray-300 hover:border-[#E53935] hover:bg-primary-50 flex items-center justify-center transition-all"
+                        className="w-8 h-8 rounded-full border border-gray-300 hover:border-[#D63A35] hover:bg-primary-50 flex items-center justify-center transition-all"
                       >
                         <Minus size={16} />
                       </button>
@@ -2745,7 +2745,7 @@ export default function EnhancedSearchBar({
                       <button
                         type="button"
                         onClick={() => setHotelAdults(hotelAdults + 1)}
-                        className="w-8 h-8 rounded-full border border-gray-300 hover:border-[#E53935] hover:bg-primary-50 flex items-center justify-center transition-all"
+                        className="w-8 h-8 rounded-full border border-gray-300 hover:border-[#D63A35] hover:bg-primary-50 flex items-center justify-center transition-all"
                       >
                         <Plus size={16} />
                       </button>
@@ -2759,7 +2759,7 @@ export default function EnhancedSearchBar({
                       <button
                         type="button"
                         onClick={() => setHotelChildren(Math.max(0, hotelChildren - 1))}
-                        className="w-8 h-8 rounded-full border border-gray-300 hover:border-[#E53935] hover:bg-primary-50 flex items-center justify-center transition-all"
+                        className="w-8 h-8 rounded-full border border-gray-300 hover:border-[#D63A35] hover:bg-primary-50 flex items-center justify-center transition-all"
                       >
                         <Minus size={16} />
                       </button>
@@ -2767,7 +2767,7 @@ export default function EnhancedSearchBar({
                       <button
                         type="button"
                         onClick={() => setHotelChildren(hotelChildren + 1)}
-                        className="w-8 h-8 rounded-full border border-gray-300 hover:border-[#E53935] hover:bg-primary-50 flex items-center justify-center transition-all"
+                        className="w-8 h-8 rounded-full border border-gray-300 hover:border-[#D63A35] hover:bg-primary-50 flex items-center justify-center transition-all"
                       >
                         <Plus size={16} />
                       </button>
@@ -2777,7 +2777,7 @@ export default function EnhancedSearchBar({
                   {/* Done Button */}
                   <button
                     onClick={() => setShowHotelGuestPicker(false)}
-                    className="w-full py-2 bg-[#E53935] hover:bg-[#0077E6] text-white font-semibold rounded-lg transition-all"
+                    className="w-full py-2 bg-[#D63A35] hover:bg-[#0077E6] text-white font-semibold rounded-lg transition-all"
                   >
                     {lang === 'en' ? 'Done' : lang === 'pt' ? 'Concluído' : 'Listo'}
                   </button>
@@ -2792,7 +2792,7 @@ export default function EnhancedSearchBar({
                 type="button"
                 onClick={handleSearch}
                 disabled={isLoading}
-                className="py-4 px-10 bg-[#E53935] hover:bg-[#0077E6] text-white font-semibold rounded-lg shadow-md hover:shadow-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 whitespace-nowrap text-sm"
+                className="py-4 px-10 bg-[#D63A35] hover:bg-[#0077E6] text-white font-semibold rounded-lg shadow-md hover:shadow-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 whitespace-nowrap text-sm"
               >
                 {isLoading ? (
                   <>
@@ -2826,7 +2826,7 @@ export default function EnhancedSearchBar({
                 value={hotelDestination}
                 onChange={(e) => setHotelDestination(e.target.value)}
                 placeholder={lang === 'en' ? 'e.g., Cancun, Maldives, Dubai' : lang === 'pt' ? 'ex: Cancun, Maldivas, Dubai' : 'ej: Cancún, Maldivas, Dubái'}
-                className="w-full px-4 py-4 bg-white border border-gray-300 rounded-lg hover:border-[#E53935] focus:outline-none focus:ring-2 focus:ring-[#E53935] transition-all text-sm font-medium"
+                className="w-full px-4 py-4 bg-white border border-gray-300 rounded-lg hover:border-[#D63A35] focus:outline-none focus:ring-2 focus:ring-[#D63A35] transition-all text-sm font-medium"
               />
             </div>
 
@@ -2840,10 +2840,10 @@ export default function EnhancedSearchBar({
                 type="button"
                 ref={hotelCheckInRef}
                 onClick={() => setShowHotelCheckInPicker(true)}
-                className="w-full px-4 py-4 bg-white border border-gray-300 rounded-lg hover:border-[#E53935] transition-all text-left flex items-center justify-between group"
+                className="w-full px-4 py-4 bg-white border border-gray-300 rounded-lg hover:border-[#D63A35] transition-all text-left flex items-center justify-between group"
               >
                 <div className="flex items-center gap-2.5">
-                  <CalendarDays size={18} className="text-gray-600 group-hover:text-[#E53935] transition-colors" />
+                  <CalendarDays size={18} className="text-gray-600 group-hover:text-[#D63A35] transition-colors" />
                   <span className="font-medium text-sm text-gray-800">
                     {checkInDate ? formatDateForDisplay(checkInDate) : lang === 'en' ? 'Select date' : lang === 'pt' ? 'Selecionar data' : 'Seleccionar fecha'}
                   </span>
@@ -2861,10 +2861,10 @@ export default function EnhancedSearchBar({
               <button
                 type="button"
                 onClick={() => setShowHotelGuestPicker(!showHotelGuestPicker)}
-                className="w-full px-4 py-4 bg-white border border-gray-300 rounded-lg hover:border-[#E53935] transition-all text-left flex items-center justify-between group"
+                className="w-full px-4 py-4 bg-white border border-gray-300 rounded-lg hover:border-[#D63A35] transition-all text-left flex items-center justify-between group"
               >
                 <div className="flex items-center gap-2.5">
-                  <Users size={18} className="text-gray-600 group-hover:text-[#E53935] transition-colors" />
+                  <Users size={18} className="text-gray-600 group-hover:text-[#D63A35] transition-colors" />
                   <span className="font-medium text-sm text-gray-800">
                     {hotelAdults + hotelChildren} {lang === 'en' ? (hotelAdults + hotelChildren === 1 ? 'traveler' : 'travelers') : lang === 'pt' ? (hotelAdults + hotelChildren === 1 ? 'viajante' : 'viajantes') : (hotelAdults + hotelChildren === 1 ? 'viajero' : 'viajeros')}
                   </span>
@@ -2878,20 +2878,20 @@ export default function EnhancedSearchBar({
                   <div className="flex items-center justify-between">
                     <span className="text-sm font-medium text-gray-700">{lang === 'en' ? 'Adults' : lang === 'pt' ? 'Adultos' : 'Adultos'}</span>
                     <div className="flex items-center gap-3">
-                      <button type="button" onClick={() => setHotelAdults(Math.max(1, hotelAdults - 1))} className="w-8 h-8 rounded-full border border-gray-300 hover:border-[#E53935] hover:bg-primary-50 flex items-center justify-center transition-all"><Minus size={16} /></button>
+                      <button type="button" onClick={() => setHotelAdults(Math.max(1, hotelAdults - 1))} className="w-8 h-8 rounded-full border border-gray-300 hover:border-[#D63A35] hover:bg-primary-50 flex items-center justify-center transition-all"><Minus size={16} /></button>
                       <span className="w-8 text-center font-semibold">{hotelAdults}</span>
-                      <button type="button" onClick={() => setHotelAdults(hotelAdults + 1)} className="w-8 h-8 rounded-full border border-gray-300 hover:border-[#E53935] hover:bg-primary-50 flex items-center justify-center transition-all"><Plus size={16} /></button>
+                      <button type="button" onClick={() => setHotelAdults(hotelAdults + 1)} className="w-8 h-8 rounded-full border border-gray-300 hover:border-[#D63A35] hover:bg-primary-50 flex items-center justify-center transition-all"><Plus size={16} /></button>
                     </div>
                   </div>
                   <div className="flex items-center justify-between">
                     <span className="text-sm font-medium text-gray-700">{lang === 'en' ? 'Children' : lang === 'pt' ? 'Crianças' : 'Niños'}</span>
                     <div className="flex items-center gap-3">
-                      <button type="button" onClick={() => setHotelChildren(Math.max(0, hotelChildren - 1))} className="w-8 h-8 rounded-full border border-gray-300 hover:border-[#E53935] hover:bg-primary-50 flex items-center justify-center transition-all"><Minus size={16} /></button>
+                      <button type="button" onClick={() => setHotelChildren(Math.max(0, hotelChildren - 1))} className="w-8 h-8 rounded-full border border-gray-300 hover:border-[#D63A35] hover:bg-primary-50 flex items-center justify-center transition-all"><Minus size={16} /></button>
                       <span className="w-8 text-center font-semibold">{hotelChildren}</span>
-                      <button type="button" onClick={() => setHotelChildren(hotelChildren + 1)} className="w-8 h-8 rounded-full border border-gray-300 hover:border-[#E53935] hover:bg-primary-50 flex items-center justify-center transition-all"><Plus size={16} /></button>
+                      <button type="button" onClick={() => setHotelChildren(hotelChildren + 1)} className="w-8 h-8 rounded-full border border-gray-300 hover:border-[#D63A35] hover:bg-primary-50 flex items-center justify-center transition-all"><Plus size={16} /></button>
                     </div>
                   </div>
-                  <button onClick={() => setShowHotelGuestPicker(false)} className="w-full py-2 bg-[#E53935] hover:bg-[#0077E6] text-white font-semibold rounded-lg transition-all">{lang === 'en' ? 'Done' : lang === 'pt' ? 'Concluído' : 'Listo'}</button>
+                  <button onClick={() => setShowHotelGuestPicker(false)} className="w-full py-2 bg-[#D63A35] hover:bg-[#0077E6] text-white font-semibold rounded-lg transition-all">{lang === 'en' ? 'Done' : lang === 'pt' ? 'Concluído' : 'Listo'}</button>
                 </div>
               )}
             </div>
@@ -2899,7 +2899,7 @@ export default function EnhancedSearchBar({
             {/* Search Button */}
             <div className="flex-shrink-0">
               <label className="block text-xs font-medium text-gray-700 mb-2 opacity-0">Search</label>
-              <button type="button" onClick={handleSearch} disabled={isLoading} className="py-4 px-10 bg-[#E53935] hover:bg-[#0077E6] text-white font-semibold rounded-lg shadow-md hover:shadow-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 whitespace-nowrap text-sm">
+              <button type="button" onClick={handleSearch} disabled={isLoading} className="py-4 px-10 bg-[#D63A35] hover:bg-[#0077E6] text-white font-semibold rounded-lg shadow-md hover:shadow-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 whitespace-nowrap text-sm">
                 {isLoading ? (<><svg className="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg><span>Searching...</span></>) : (<span>{t('searchPackages')}</span>)}
               </button>
             </div>
@@ -2922,7 +2922,7 @@ export default function EnhancedSearchBar({
                 value={hotelDestination}
                 onChange={(e) => setHotelDestination(e.target.value)}
                 placeholder={lang === 'en' ? 'Where are you traveling?' : lang === 'pt' ? 'Para onde você está viajando?' : '¿A dónde viajas?'}
-                className="w-full px-4 py-4 bg-white border border-gray-300 rounded-lg hover:border-[#E53935] focus:outline-none focus:ring-2 focus:ring-[#E53935] transition-all text-sm font-medium"
+                className="w-full px-4 py-4 bg-white border border-gray-300 rounded-lg hover:border-[#D63A35] focus:outline-none focus:ring-2 focus:ring-[#D63A35] transition-all text-sm font-medium"
               />
             </div>
 
@@ -2936,10 +2936,10 @@ export default function EnhancedSearchBar({
                 type="button"
                 ref={hotelCheckInRef}
                 onClick={() => setShowHotelCheckInPicker(true)}
-                className="w-full px-4 py-4 bg-white border border-gray-300 rounded-lg hover:border-[#E53935] transition-all text-left flex items-center justify-between group"
+                className="w-full px-4 py-4 bg-white border border-gray-300 rounded-lg hover:border-[#D63A35] transition-all text-left flex items-center justify-between group"
               >
                 <div className="flex items-center gap-2.5">
-                  <CalendarDays size={18} className="text-gray-600 group-hover:text-[#E53935] transition-colors" />
+                  <CalendarDays size={18} className="text-gray-600 group-hover:text-[#D63A35] transition-colors" />
                   <span className="font-medium text-sm text-gray-800">
                     {checkInDate ? formatDateForDisplay(checkInDate) : lang === 'en' ? 'Select date' : lang === 'pt' ? 'Selecionar data' : 'Seleccionar fecha'}
                   </span>
@@ -2957,14 +2957,14 @@ export default function EnhancedSearchBar({
               <input
                 type="text"
                 placeholder={lang === 'en' ? '$2,000' : lang === 'pt' ? 'R$ 10.000' : '$2,000'}
-                className="w-full px-4 py-4 bg-white border border-gray-300 rounded-lg hover:border-[#E53935] focus:outline-none focus:ring-2 focus:ring-[#E53935] transition-all text-sm font-medium"
+                className="w-full px-4 py-4 bg-white border border-gray-300 rounded-lg hover:border-[#D63A35] focus:outline-none focus:ring-2 focus:ring-[#D63A35] transition-all text-sm font-medium"
               />
             </div>
 
             {/* Get Quote Button */}
             <div className="flex-shrink-0">
               <label className="block text-xs font-medium text-gray-700 mb-2 opacity-0">Quote</label>
-              <button type="button" onClick={handleSearch} disabled={isLoading} className="py-4 px-10 bg-[#E53935] hover:bg-[#0077E6] text-white font-semibold rounded-lg shadow-md hover:shadow-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 whitespace-nowrap text-sm">
+              <button type="button" onClick={handleSearch} disabled={isLoading} className="py-4 px-10 bg-[#D63A35] hover:bg-[#0077E6] text-white font-semibold rounded-lg shadow-md hover:shadow-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 whitespace-nowrap text-sm">
                 {isLoading ? (<><svg className="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg><span>Loading...</span></>) : (<span>{t('searchInsurance')}</span>)}
               </button>
             </div>
@@ -3081,7 +3081,7 @@ export default function EnhancedSearchBar({
               }}
               className={`flex-1 px-4 py-2 rounded-md text-xs font-semibold transition-all duration-200 ${
                 tripType === 'roundtrip'
-                  ? 'bg-white text-[#E53935] shadow-sm'
+                  ? 'bg-white text-[#D63A35] shadow-sm'
                   : 'text-gray-600 hover:text-gray-900'
               }`}
             >
@@ -3095,7 +3095,7 @@ export default function EnhancedSearchBar({
               }}
               className={`flex-1 px-4 py-2 rounded-md text-xs font-semibold transition-all duration-200 ${
                 tripType === 'oneway'
-                  ? 'bg-white text-[#E53935] shadow-sm'
+                  ? 'bg-white text-[#D63A35] shadow-sm'
                   : 'text-gray-600 hover:text-gray-900'
               }`}
             >
@@ -3189,7 +3189,7 @@ export default function EnhancedSearchBar({
                       type="button"
                       onClick={() => handlePassengerChange('adults', -1)}
                       disabled={passengers.adults <= 1}
-                      className="w-8 h-8 rounded-full border border-gray-300 hover:border-[#E53935] hover:bg-primary-50 disabled:opacity-30 flex items-center justify-center transition-all"
+                      className="w-8 h-8 rounded-full border border-gray-300 hover:border-[#D63A35] hover:bg-primary-50 disabled:opacity-30 flex items-center justify-center transition-all"
                     >
                       <Minus size={16} />
                     </button>
@@ -3197,7 +3197,7 @@ export default function EnhancedSearchBar({
                     <button
                       type="button"
                       onClick={() => handlePassengerChange('adults', 1)}
-                      className="w-8 h-8 rounded-full border border-gray-300 hover:border-[#E53935] hover:bg-primary-50 flex items-center justify-center transition-all"
+                      className="w-8 h-8 rounded-full border border-gray-300 hover:border-[#D63A35] hover:bg-primary-50 flex items-center justify-center transition-all"
                     >
                       <Plus size={16} />
                     </button>
@@ -3215,7 +3215,7 @@ export default function EnhancedSearchBar({
                       type="button"
                       onClick={() => handlePassengerChange('children', -1)}
                       disabled={passengers.children <= 0}
-                      className="w-8 h-8 rounded-full border border-gray-300 hover:border-[#E53935] hover:bg-primary-50 disabled:opacity-30 flex items-center justify-center transition-all"
+                      className="w-8 h-8 rounded-full border border-gray-300 hover:border-[#D63A35] hover:bg-primary-50 disabled:opacity-30 flex items-center justify-center transition-all"
                     >
                       <Minus size={16} />
                     </button>
@@ -3223,7 +3223,7 @@ export default function EnhancedSearchBar({
                     <button
                       type="button"
                       onClick={() => handlePassengerChange('children', 1)}
-                      className="w-8 h-8 rounded-full border border-gray-300 hover:border-[#E53935] hover:bg-primary-50 flex items-center justify-center transition-all"
+                      className="w-8 h-8 rounded-full border border-gray-300 hover:border-[#D63A35] hover:bg-primary-50 flex items-center justify-center transition-all"
                     >
                       <Plus size={16} />
                     </button>
@@ -3241,7 +3241,7 @@ export default function EnhancedSearchBar({
                       type="button"
                       onClick={() => handlePassengerChange('infants', -1)}
                       disabled={passengers.infants <= 0}
-                      className="w-8 h-8 rounded-full border border-gray-300 hover:border-[#E53935] hover:bg-primary-50 disabled:opacity-30 flex items-center justify-center transition-all"
+                      className="w-8 h-8 rounded-full border border-gray-300 hover:border-[#D63A35] hover:bg-primary-50 disabled:opacity-30 flex items-center justify-center transition-all"
                     >
                       <Minus size={16} />
                     </button>
@@ -3249,7 +3249,7 @@ export default function EnhancedSearchBar({
                     <button
                       type="button"
                       onClick={() => handlePassengerChange('infants', 1)}
-                      className="w-8 h-8 rounded-full border border-gray-300 hover:border-[#E53935] hover:bg-primary-50 flex items-center justify-center transition-all"
+                      className="w-8 h-8 rounded-full border border-gray-300 hover:border-[#D63A35] hover:bg-primary-50 flex items-center justify-center transition-all"
                     >
                       <Plus size={16} />
                     </button>
@@ -3267,7 +3267,7 @@ export default function EnhancedSearchBar({
                         onClick={() => setCabinClass(cls)}
                         className={`px-3 py-2 rounded-lg text-xs font-medium transition-all ${
                           cabinClass === cls
-                            ? 'bg-[#E53935] text-white'
+                            ? 'bg-[#D63A35] text-white'
                             : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                         }`}
                       >
@@ -3290,13 +3290,13 @@ export default function EnhancedSearchBar({
           </div>
 
           {/* Flight Options - Combined row for space efficiency */}
-          <div className="flex flex-wrap items-center gap-3">            {/* Direct Flights Checkbox */}            <label className="flex items-center gap-2 cursor-pointer group">              <input                type="checkbox"                checked={directFlights}                onChange={(e) => setDirectFlights(e.target.checked)}                className="w-4 h-4 rounded border-gray-300 text-[#E53935] focus:ring-[#E53935] cursor-pointer"              />              <span className="text-xs font-medium text-gray-700 group-hover:text-gray-900 transition-colors">                {t('directOnly')}              </span>            </label>            {/* Separate Tickets / Hacker Fares Checkbox - Only for round trips */}            {tripType === 'roundtrip' && (              <label className="flex items-center gap-2 cursor-pointer group" title="Find cheaper fares by combining different airlines">                <input                  type="checkbox"                  checked={includeSeparateTickets}                  onChange={(e) => setIncludeSeparateTickets(e.target.checked)}                  className="w-4 h-4 rounded border-orange-300 text-orange-500 focus:ring-orange-500 cursor-pointer"                />                <span className="text-xs font-medium text-gray-700 group-hover:text-gray-900 transition-colors flex items-center gap-1">                  <span className="hidden sm:inline">Include</span> Separate Tickets                  <span className="px-1 py-0.5 bg-green-100 text-green-700 text-[9px] font-bold rounded">SAVE</span>                </span>              </label>            )}          </div>
+          <div className="flex flex-wrap items-center gap-3">            {/* Direct Flights Checkbox */}            <label className="flex items-center gap-2 cursor-pointer group">              <input                type="checkbox"                checked={directFlights}                onChange={(e) => setDirectFlights(e.target.checked)}                className="w-4 h-4 rounded border-gray-300 text-[#D63A35] focus:ring-[#D63A35] cursor-pointer"              />              <span className="text-xs font-medium text-gray-700 group-hover:text-gray-900 transition-colors">                {t('directOnly')}              </span>            </label>            {/* Separate Tickets / Hacker Fares Checkbox - Only for round trips */}            {tripType === 'roundtrip' && (              <label className="flex items-center gap-2 cursor-pointer group" title="Find cheaper fares by combining different airlines">                <input                  type="checkbox"                  checked={includeSeparateTickets}                  onChange={(e) => setIncludeSeparateTickets(e.target.checked)}                  className="w-4 h-4 rounded border-orange-300 text-orange-500 focus:ring-orange-500 cursor-pointer"                />                <span className="text-xs font-medium text-gray-700 group-hover:text-gray-900 transition-colors flex items-center gap-1">                  <span className="hidden sm:inline">Include</span> Separate Tickets                  <span className="px-1 py-0.5 bg-green-100 text-green-700 text-[9px] font-bold rounded">SAVE</span>                </span>              </label>            )}          </div>
 
           {/* Search Button */}
           <button
             onClick={handleSearch}
             disabled={isLoading}
-            className="w-full h-10 bg-[#E53935] hover:bg-[#0077E6] text-white font-bold rounded-lg shadow-lg hover:shadow-xl transition-all duration-200 ease-in-out text-sm disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+            className="w-full h-10 bg-[#D63A35] hover:bg-[#0077E6] text-white font-bold rounded-lg shadow-lg hover:shadow-xl transition-all duration-200 ease-in-out text-sm disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
           >
             {isLoading ? (
               <>
@@ -3467,7 +3467,7 @@ export default function EnhancedSearchBar({
                     <button
                       type="button"
                       onClick={() => setHotelAdults(Math.max(1, hotelAdults - 1))}
-                      className="w-8 h-8 rounded-full border border-gray-300 hover:border-[#E53935] hover:bg-primary-50 flex items-center justify-center transition-all"
+                      className="w-8 h-8 rounded-full border border-gray-300 hover:border-[#D63A35] hover:bg-primary-50 flex items-center justify-center transition-all"
                     >
                       <Minus size={16} />
                     </button>
@@ -3475,7 +3475,7 @@ export default function EnhancedSearchBar({
                     <button
                       type="button"
                       onClick={() => setHotelAdults(hotelAdults + 1)}
-                      className="w-8 h-8 rounded-full border border-gray-300 hover:border-[#E53935] hover:bg-primary-50 flex items-center justify-center transition-all"
+                      className="w-8 h-8 rounded-full border border-gray-300 hover:border-[#D63A35] hover:bg-primary-50 flex items-center justify-center transition-all"
                     >
                       <Plus size={16} />
                     </button>
@@ -3489,7 +3489,7 @@ export default function EnhancedSearchBar({
                     <button
                       type="button"
                       onClick={() => setHotelChildren(Math.max(0, hotelChildren - 1))}
-                      className="w-8 h-8 rounded-full border border-gray-300 hover:border-[#E53935] hover:bg-primary-50 flex items-center justify-center transition-all"
+                      className="w-8 h-8 rounded-full border border-gray-300 hover:border-[#D63A35] hover:bg-primary-50 flex items-center justify-center transition-all"
                     >
                       <Minus size={16} />
                     </button>
@@ -3497,7 +3497,7 @@ export default function EnhancedSearchBar({
                     <button
                       type="button"
                       onClick={() => setHotelChildren(hotelChildren + 1)}
-                      className="w-8 h-8 rounded-full border border-gray-300 hover:border-[#E53935] hover:bg-primary-50 flex items-center justify-center transition-all"
+                      className="w-8 h-8 rounded-full border border-gray-300 hover:border-[#D63A35] hover:bg-primary-50 flex items-center justify-center transition-all"
                     >
                       <Plus size={16} />
                     </button>
@@ -3511,7 +3511,7 @@ export default function EnhancedSearchBar({
                     <button
                       type="button"
                       onClick={() => setHotelRooms(Math.max(1, hotelRooms - 1))}
-                      className="w-8 h-8 rounded-full border border-gray-300 hover:border-[#E53935] hover:bg-primary-50 flex items-center justify-center transition-all"
+                      className="w-8 h-8 rounded-full border border-gray-300 hover:border-[#D63A35] hover:bg-primary-50 flex items-center justify-center transition-all"
                     >
                       <Minus size={16} />
                     </button>
@@ -3519,7 +3519,7 @@ export default function EnhancedSearchBar({
                     <button
                       type="button"
                       onClick={() => setHotelRooms(hotelRooms + 1)}
-                      className="w-8 h-8 rounded-full border border-gray-300 hover:border-[#E53935] hover:bg-primary-50 flex items-center justify-center transition-all"
+                      className="w-8 h-8 rounded-full border border-gray-300 hover:border-[#D63A35] hover:bg-primary-50 flex items-center justify-center transition-all"
                     >
                       <Plus size={16} />
                     </button>
@@ -3529,7 +3529,7 @@ export default function EnhancedSearchBar({
                 {/* Done Button */}
                 <button
                   onClick={() => setShowPassengerDropdown(false)}
-                  className="w-full py-2 bg-[#E53935] hover:bg-[#0077E6] text-white font-semibold rounded-lg transition-all duration-200 ease-in-out text-xs shadow-sm hover:shadow-md"
+                  className="w-full py-2 bg-[#D63A35] hover:bg-[#0077E6] text-white font-semibold rounded-lg transition-all duration-200 ease-in-out text-xs shadow-sm hover:shadow-md"
                 >
                   Done
                 </button>
@@ -3541,7 +3541,7 @@ export default function EnhancedSearchBar({
           <button
             onClick={handleSearch}
             disabled={isLoading}
-            className="w-full h-10 bg-[#E53935] hover:bg-[#0077E6] text-white font-bold rounded-lg shadow-lg hover:shadow-xl transition-all duration-200 ease-in-out text-sm disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+            className="w-full h-10 bg-[#D63A35] hover:bg-[#0077E6] text-white font-bold rounded-lg shadow-lg hover:shadow-xl transition-all duration-200 ease-in-out text-sm disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
           >
             {isLoading ? (
               <>

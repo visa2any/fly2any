@@ -9,78 +9,79 @@
  */
 
 export const theme = {
-  // Brand Colors - Modern, trustworthy, energetic
+  // Anti-Eye-Strain Color System
   colors: {
-    // Primary Brand - Fly2Any Red (warm, energetic, travel excitement)
+    // UI-Safe Fly2Any Red (anti-eye-strain)
     primary: {
-      50: '#FFEBEE',
-      100: '#FFCDD2',
-      200: '#EF9A9A',
-      300: '#E57373',
-      400: '#EF5350',
-      500: '#E53935', // Main Fly2Any Red
-      600: '#EF4136', // Lighter red variant
-      700: '#D32F2F',
-      800: '#C62828',
-      900: '#B71C1C',
+      50: '#FEF2F2',
+      100: '#FDE8E8',
+      200: '#FACACA',
+      300: '#F5A3A3',
+      400: '#E85D5D',
+      500: '#D63A35', // UI Primary Red
+      600: '#C7342F', // Hover
+      700: '#B12F2B', // Pressed
+      800: '#8E2622',
+      900: '#6B1D1A',
     },
 
-    // Secondary Brand - Fly2Any Yellow (optimism, visibility, highlights)
+    // UI-Safe Fly2Any Yellow (anti-eye-strain)
     secondary: {
-      50: '#FFFDE7',
-      100: '#FFF9C4',
-      200: '#FFF59D',
-      300: '#FFF176',
-      400: '#FFEE58',
-      500: '#F7D033', // Main Fly2Any Yellow
-      600: '#F9C900', // Brighter variant
-      700: '#E0B10C',
-      800: '#C9A00B',
-      900: '#A68800',
+      50: '#FEFCE8',
+      100: '#FEF9C3',
+      200: '#FEF08A',
+      300: '#FDE047',
+      400: '#F5D63D',
+      500: '#E8C52A', // UI Accent Yellow
+      600: '#D7B622', // Hover
+      700: '#C9A91E', // Pressed
+      800: '#A38A18',
+      900: '#7D6A12',
     },
 
-    // Accent - Semantic colors for states
+    // Accent - Semantic colors
     accent: {
-      success: '#10B981', // Good deal green
-      warning: '#F7D033', // Fly2Any Yellow
-      error: '#E53935',   // Fly2Any Red
-      info: '#3B82F6',    // Information blue
+      success: '#10B981',
+      warning: '#E8C52A', // UI-Safe Yellow
+      error: '#D63A35',   // UI-Safe Red
+      info: '#3B82F6',
     },
 
-    // Neutrals - Clean, modern
+    // Anti-Fatigue Neutral Palette
     gray: {
-      50: '#F9FAFB',
-      100: '#F3F4F6',
-      200: '#E5E7EB',
-      300: '#D1D5DB',
-      400: '#9CA3AF',
-      500: '#6B7280',
-      600: '#4B5563',
-      700: '#374151',
-      800: '#1F2937',
-      900: '#111827',
+      50: '#F6F7F9',  // Background
+      100: '#F0F2F5', // Surface alt
+      200: '#E3E5E8', // Dividers
+      300: '#D1D4D9',
+      400: '#9CA0A7',
+      500: '#5F6368', // Text secondary
+      600: '#4A4D52',
+      700: '#35373B',
+      800: '#1B1C20', // Text primary
+      900: '#0E1012', // Dark bg
     },
 
-    // Semantic Colors
+    // Semantic Backgrounds
     background: {
       primary: '#FFFFFF',
-      secondary: '#F9FAFB',
-      tertiary: '#F3F4F6',
-      dark: '#0F172A',
+      secondary: '#F6F7F9', // Anti-fatigue bg
+      tertiary: '#F0F2F5',  // Surface
+      dark: '#0E1012',
     },
 
+    // Anti-Strain Text (no pure black/white)
     text: {
-      primary: '#111827',
-      secondary: '#4B5563',
-      tertiary: '#9CA3AF',
-      inverse: '#FFFFFF',
+      primary: '#1B1C20',   // Soft dark
+      secondary: '#5F6368', // Muted
+      tertiary: '#9CA0A7',
+      inverse: '#F4F5F6',   // Soft white
     },
 
     // Overlay & Effects
     overlay: {
-      light: 'rgba(255, 255, 255, 0.95)',
-      dark: 'rgba(0, 0, 0, 0.6)',
-      gradient: 'linear-gradient(135deg, rgba(0, 135, 255, 0.9) 0%, rgba(255, 145, 0, 0.9) 100%)',
+      light: 'rgba(246, 247, 249, 0.95)',
+      dark: 'rgba(14, 16, 18, 0.6)',
+      gradient: 'linear-gradient(135deg, rgba(214, 58, 53, 0.9) 0%, rgba(232, 197, 42, 0.9) 100%)',
     },
   },
 
@@ -155,21 +156,21 @@ export const theme = {
     full: '9999px',
   },
 
-  // Shadows
+  // Anti-Eye-Strain Soft Shadows (10-14% opacity, 20-28px blur)
   boxShadow: {
-    xs: '0 1px 2px 0 rgba(0, 0, 0, 0.05)',
-    sm: '0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06)',
-    base: '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)',
-    md: '0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05)',
-    lg: '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)',
-    xl: '0 25px 50px -12px rgba(0, 0, 0, 0.25)',
-    '2xl': '0 25px 50px -12px rgba(0, 0, 0, 0.25)',
-    inner: 'inset 0 2px 4px 0 rgba(0, 0, 0, 0.06)',
+    xs: '0 1px 4px rgba(27, 28, 32, 0.04)',
+    sm: '0 2px 8px rgba(27, 28, 32, 0.06)',
+    base: '0 4px 16px rgba(27, 28, 32, 0.08)',
+    md: '0 6px 20px rgba(27, 28, 32, 0.10)',
+    lg: '0 8px 24px rgba(27, 28, 32, 0.12)',
+    xl: '0 12px 28px rgba(27, 28, 32, 0.14)',
+    '2xl': '0 16px 32px rgba(27, 28, 32, 0.14)',
+    inner: 'inset 0 2px 4px rgba(27, 28, 32, 0.06)',
     none: 'none',
 
-    // Colored shadows for brand elements
-    primary: '0 10px 25px -5px rgba(229, 57, 53, 0.3)',    // Fly2Any Red shadow
-    secondary: '0 10px 25px -5px rgba(247, 208, 51, 0.3)', // Fly2Any Yellow shadow
+    // Brand shadows (reduced intensity)
+    primary: '0 8px 24px rgba(214, 58, 53, 0.18)',
+    secondary: '0 8px 24px rgba(232, 197, 42, 0.18)',
   },
 
   // Breakpoints
@@ -268,28 +269,28 @@ export const theme = {
         },
       },
 
-      // Button variants
+      // Button variants (UI-Safe anti-strain colors)
       variants: {
         primary: {
-          bg: 'linear-gradient(135deg, #E53935 0%, #D32F2F 100%)',
-          color: '#FFFFFF',
-          hover: 'linear-gradient(135deg, #D32F2F 0%, #C62828 100%)',
+          bg: 'linear-gradient(135deg, #D63A35 0%, #C7342F 100%)',
+          color: '#F4F5F6',
+          hover: 'linear-gradient(135deg, #C7342F 0%, #B12F2B 100%)',
         },
         secondary: {
-          bg: 'linear-gradient(135deg, #F7D033 0%, #F9C900 100%)',
-          color: '#1A1A1A',
-          hover: 'linear-gradient(135deg, #F9C900 0%, #E0B10C 100%)',
+          bg: 'linear-gradient(135deg, #E8C52A 0%, #D7B622 100%)',
+          color: '#1B1C20',
+          hover: 'linear-gradient(135deg, #D7B622 0%, #C9A91E 100%)',
         },
         outline: {
           bg: 'transparent',
-          border: '2px solid #E53935',
-          color: '#E53935',
-          hover: '#FFEBEE',
+          border: '2px solid #D63A35',
+          color: '#D63A35',
+          hover: '#FEF2F2',
         },
         ghost: {
           bg: 'transparent',
-          color: '#E53935',
-          hover: '#FFEBEE',
+          color: '#D63A35',
+          hover: '#FEF2F2',
         },
       },
     },

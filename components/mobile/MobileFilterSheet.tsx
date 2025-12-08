@@ -144,7 +144,7 @@ export function MobileFilterSheet({
               <button
                 onClick={handleApply}
                 className="flex-1 min-h-[48px] px-4 py-3 bg-gradient-to-r from-primary-500 to-primary-600 text-white font-bold rounded-xl hover:from-primary-600 hover:to-primary-700 active:scale-[0.98] transition-all shadow-lg"
-                style={{ boxShadow: '0 4px 14px rgba(229, 57, 53, 0.3)' }}
+                style={{ boxShadow: '0 4px 14px rgba(214, 58, 53, 0.3)' }}
                 aria-label={`Apply filters and show ${resultCount} results`}
               >
                 Show {resultCount} Results

@@ -211,8 +211,8 @@ export function Header({
                 className="relative transition-all duration-300 group-hover:scale-105 p-1.5 sm:p-2 rounded-lg sm:rounded-xl flex-shrink-0"
                 style={{
                   background: scrolled
-                    ? 'linear-gradient(135deg, rgba(229, 57, 53, 0.06), rgba(247, 208, 51, 0.06))'
-                    : 'linear-gradient(135deg, rgba(229, 57, 53, 0.08), rgba(247, 208, 51, 0.08))',
+                    ? 'linear-gradient(135deg, rgba(214, 58, 53, 0.06), rgba(232, 197, 42, 0.06))'
+                    : 'linear-gradient(135deg, rgba(214, 58, 53, 0.08), rgba(232, 197, 42, 0.08))',
                   boxShadow: '0 2px 8px rgba(0, 0, 0, 0.04)',
                   transition: 'all 0.3s ease',
                 }}
@@ -238,8 +238,8 @@ export function Header({
                 className="font-bold text-lg sm:text-xl md:text-2xl bg-gradient-to-r from-primary-500 to-primary-400 bg-clip-text text-transparent hidden xs:block"
                 style={{
                   textShadow: scrolled
-                    ? '0 2px 8px rgba(229, 57, 53, 0.2)'
-                    : '0 2px 6px rgba(229, 57, 53, 0.15)',
+                    ? '0 2px 8px rgba(214, 58, 53, 0.2)'
+                    : '0 2px 6px rgba(214, 58, 53, 0.15)',
                   transition: 'text-shadow 0.3s ease',
                 }}
               >
@@ -679,7 +679,7 @@ export function Header({
                 onClick={handleSignIn}
                 className="hidden sm:flex items-center gap-1.5 xl:gap-2 px-3 xl:px-5 py-2 xl:py-2.5 bg-gradient-to-r from-primary-600 to-primary-500 text-white hover:from-primary-700 hover:to-primary-600 font-bold text-xs xl:text-sm rounded-xl transition-all duration-300 hover:scale-105 hover:shadow-lg whitespace-nowrap"
                 style={{
-                  boxShadow: '0 2px 8px rgba(229, 57, 53, 0.25)',
+                  boxShadow: '0 2px 8px rgba(214, 58, 53, 0.25)',
                 }}
               >
                 <svg className="w-3.5 xl:w-4 h-3.5 xl:h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">

@@ -68,9 +68,9 @@
   }
 
   *:focus-visible {
-    outline: 3px solid #0070DB;
+    outline: 3px solid #D63A35;
     outline-offset: 3px;
-    box-shadow: 0 0 0 3px rgba(0, 112, 219, 0.2);
+    box-shadow: 0 0 0 3px rgba(214, 58, 53, 0.2);
   }
 
   /* Accessibility: Skip to main content link */
@@ -78,8 +78,8 @@
     position: absolute;
     top: -40px;
     left: 0;
-    background: #0070DB;
-    color: white;
+    background: #D63A35;
+    color: #F4F5F6;
     padding: 8px 16px;
     text-decoration: none;
     z-index: 100;
@@ -443,14 +443,14 @@
     @apply min-h-[44px] min-w-[44px];
   }
 
-  /* Depth shadow for edge-to-edge cards */
+  /* Anti-eye-strain soft shadows for cards */
   .mobile-card-shadow {
-    box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+    box-shadow: 0 2px 8px rgba(27, 28, 32, 0.06);
   }
 
   @media (min-width: 768px) {
     .mobile-card-shadow {
-      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+      box-shadow: 0 6px 20px rgba(27, 28, 32, 0.10);
     }
   }
 
