@@ -181,6 +181,8 @@ export function Header({
         className={`sticky top-0 z-fixed ${className}`}
         suppressHydrationWarning
         style={{
+          // Hide header in PWA standalone mode for clean fullscreen
+          display: 'var(--header-display, block)',
           background: scrolled
             ? 'rgba(255, 255, 255, 0.95)'
             : 'rgba(255, 255, 255, 0.85)',

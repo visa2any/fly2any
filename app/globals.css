@@ -3,6 +3,13 @@
 @tailwind utilities;
 
 @layer base {
+  /* PWA Standalone Mode: Hide header for clean fullscreen */
+  @media (display-mode: standalone) {
+    :root {
+      --header-display: none;
+    }
+  }
+
   /* Accessibility: Screen reader only content */
   .sr-only {
     position: absolute;
