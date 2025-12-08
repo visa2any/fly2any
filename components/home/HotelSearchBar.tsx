@@ -327,8 +327,13 @@ export function HotelSearchBar({ lang = 'en' }: HotelSearchBarProps) {
   }, []);
 
   const handleSelectLocation = useCallback((suggestion: LocationSuggestion) => {
-    setDestination(suggestion.name);
-    setDestinationQuery(suggestion.name);
+    // Use city name for destination (better UX - shows full city name in input)
+    const fullDestinationName = suggestion.type === 'city'
+      ? suggestion.name
+      : `${suggestion.name}, ${suggestion.city}`;
+
+    setDestination(fullDestinationName);
+    setDestinationQuery(fullDestinationName);
     setSelectedLocation({ lat: suggestion.location.lat, lng: suggestion.location.lng });
     setShowDestinationDropdown(false);
     setSelectedIndex(-1);
@@ -336,7 +341,7 @@ export function HotelSearchBar({ lang = 'en' }: HotelSearchBarProps) {
     setSelectedDistricts([]);
     // Store destination details for enhanced display
     setSelectedDestinationDetails({
-      name: suggestion.name,
+      name: fullDestinationName,
       country: suggestion.country,
       emoji: suggestion.emoji,
       type: suggestion.type,
