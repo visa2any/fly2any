@@ -1070,7 +1070,7 @@ export default function EnhancedSearchBar({
   }, []);
 
   return (
-    <div className="sticky top-0 bg-white shadow-md" style={{ zIndex: zIndex.STICKY }}>
+    <div className="bg-white shadow-md">
       {/* Container with max-width matching results page (Priceline-style) */}
       <MaxWidthContainer
         style={{
