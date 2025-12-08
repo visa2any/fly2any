@@ -34,6 +34,11 @@ const icons = [
   { name: 'icon-152.png', size: 152 },
   { name: 'icon-180.png', size: 180 },
   { name: 'icon-384.png', size: 384 },
+
+  // Browser favicon sizes
+  { name: 'favicon-16x16.png', size: 16 },
+  { name: 'favicon-32x32.png', size: 32 },
+  { name: 'apple-touch-icon.png', size: 180 },
 ];
 
 async function generateIcons() {
@@ -89,6 +94,21 @@ async function generateIcons() {
     } catch (error) {
       console.error(`❌ Failed to create ${icon.name}:`, error.message);
     }
+  }
+
+  // Generate favicon.ico (32x32 standard size)
+  console.log('\n📦 Generating favicon.ico...');
+  try {
+    await sharp(SOURCE_LOGO)
+      .resize(32, 32, { fit: 'contain', background: { r: 255, g: 255, b: 255, alpha: 0 } })
+      .toFormat('png')
+      .toFile(path.join(PUBLIC_DIR, 'favicon-temp.png'));
+
+    console.log('✅ Generated favicon-temp.png');
+    console.log('⚠️  Convert to .ico: https://favicon.io/favicon-converter/');
+    console.log('   Or use: npx sharp-cli -i public/favicon-temp.png -o public/favicon.ico');
+  } catch (error) {
+    console.error('❌ Failed to create favicon:', error.message);
   }
 
   console.log('\n🎉 PWA icon generation complete!');
