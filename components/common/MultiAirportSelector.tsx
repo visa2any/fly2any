@@ -187,9 +187,9 @@ export default function MultiAirportSelector({
 
       {/* Dropdown */}
       {isOpen && (
-        <div className="absolute z-dropdown mt-2 w-full bg-white rounded-xl shadow-2xl border border-gray-200 overflow-hidden animate-in fade-in slide-in-from-top-2 duration-200">
+        <div className="absolute z-dropdown mt-2 w-full bg-white rounded-xl md:rounded-xl shadow-2xl border border-gray-200 overflow-hidden animate-in fade-in slide-in-from-top-2 duration-200 left-0 right-0 md:left-auto md:right-auto">
           {/* Search Input */}
-          <div className="p-2 border-b border-gray-200">
+          <div className="p-2 md:p-2 px-1 md:px-2 border-b border-gray-200">
             <input
               type="text"
               value={searchQuery}
@@ -238,7 +238,7 @@ export default function MultiAirportSelector({
 
           {/* Metro Area Quick Select */}
           {searchQuery === '' && (
-            <div className="p-2 bg-gray-50 border-b border-gray-200">
+            <div className="p-2 md:p-2 px-1 md:px-2 bg-gray-50 border-b border-gray-200">
               <div className="text-[10px] font-semibold text-gray-700 mb-1.5">Quick Select</div>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-1.5">
                 {Object.entries(METRO_AREAS).map(([key, metro]) => (
@@ -256,7 +256,7 @@ export default function MultiAirportSelector({
           )}
 
           {/* Airport List - Mobile Single Column */}
-          <div className="max-h-[60vh] overflow-y-auto p-1.5">
+          <div className="max-h-[60vh] overflow-y-auto p-1 md:p-1.5">
             {filteredAirports.length === 0 ? (
               <div className="px-2 py-3 text-center text-xs text-gray-500">
                 No airports found

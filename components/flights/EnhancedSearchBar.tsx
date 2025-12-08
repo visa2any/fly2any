@@ -1073,8 +1073,10 @@ export default function EnhancedSearchBar({
     <div className="bg-white shadow-md">
       {/* Container with max-width matching results page (Priceline-style) */}
       <MaxWidthContainer
+        className="px-0 lg:px-8"
         style={{
-          padding: `${spacing.lg} ${spacing.xl}`,
+          paddingTop: spacing.lg,
+          paddingBottom: spacing.lg,
         }}
       >
         {/* ============================================
@@ -3036,7 +3038,7 @@ export default function EnhancedSearchBar({
         ))}
 
         {/* Mobile/Tablet: Stacked layout */}
-        <div className="lg:hidden space-y-2">
+        <div className="lg:hidden space-y-2 px-0">
           {/* FLIGHTS MOBILE FIELDS */}
           {serviceType === 'flights' && (
           <>
