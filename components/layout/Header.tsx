@@ -608,8 +608,9 @@ export function Header({
               </div>
             )}
 
-            {/* Language Selector - Enhanced Compact Design, hidden on mobile */}
-            <div className="relative language-dropdown hidden sm:block">
+            {/* Language Selector - DISABLED (English Only) */}
+            {/* Kept infrastructure intact but hidden from UI */}
+            <div className="relative language-dropdown hidden">
               <button
                 onClick={() => setLangDropdownOpen(!langDropdownOpen)}
                 className="group flex items-center gap-1 xl:gap-1.5 px-2 xl:px-3 py-1.5 xl:py-2 text-gray-700 transition-all duration-300 rounded-lg border border-gray-200 hover:border-primary-300 hover:bg-primary-50/30"

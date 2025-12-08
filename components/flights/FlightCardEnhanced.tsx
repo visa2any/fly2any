@@ -813,7 +813,7 @@ export function FlightCardEnhanced({
     <div
       data-flight-card
       data-flight-id={id}
-      className={`group relative bg-white rounded-xl border-2 transition-all duration-300 overflow-visible ${
+      className={`group relative bg-white rounded-xl border-2 transition-all duration-300 overflow-hidden ${
       isComparing ? 'border-primary-500 ring-2 ring-primary-100' : 'border-gray-200 hover:border-primary-300'
     } hover:shadow-lg ${isExpanded ? 'flight-card-expanded' : ''}`}>
 
