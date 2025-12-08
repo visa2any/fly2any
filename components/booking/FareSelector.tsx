@@ -220,7 +220,7 @@ export function FareSelector({
 
       {/* Fare Cards Grid - sorted by cabin hierarchy */}
       <div
-        className={`grid gap-2 sm:gap-2.5 ${
+        className={`grid gap-1.5 sm:gap-2.5 ${
           isSingleFare
             ? 'grid-cols-1 max-w-sm'
             : 'grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5'
@@ -240,7 +240,7 @@ export function FareSelector({
               aria-checked={isSelected}
               aria-label={`${fare.name} fare, ${fare.currency} ${typeof fare.price === 'number' ? fare.price.toFixed(2) : fare.price}`}
               className={`
-                relative p-2 sm:p-2.5 rounded-lg border-2 text-left transition-all duration-200 hover:shadow-sm active:scale-[0.98]
+                relative p-1.5 sm:p-2.5 rounded-lg border-2 text-left transition-all duration-200 hover:shadow-sm active:scale-[0.98]
                 ${isSelected
                   ? 'border-primary-500 bg-primary-50 shadow-md'
                   : 'border-gray-200 bg-white hover:border-primary-300'
@@ -263,10 +263,10 @@ export function FareSelector({
               )}
 
               {/* Fare Name & Price */}
-              <div className="mb-1.5 sm:mb-2 mt-0.5 sm:mt-1">
+              <div className="mb-1 sm:mb-2 mt-0.5 sm:mt-1">
                 <h3 className="text-xs sm:text-sm font-bold text-gray-900 mb-0.5 truncate">{fare.name}</h3>
                 <div className="flex items-baseline gap-0.5">
-                  <span className="text-base sm:text-lg font-bold text-gray-900">
+                  <span className="text-sm sm:text-lg font-bold text-gray-900">
                     {fare.currency} {typeof fare.price === 'number' ? fare.price.toFixed(0) : fare.price}
                   </span>
                   {fare.popularityPercent && fare.popularityPercent > 50 && (
@@ -276,7 +276,7 @@ export function FareSelector({
               </div>
 
               {/* Features List - show ALL features with dynamic icons */}
-              <ul className="space-y-0.5 sm:space-y-1 mb-1 sm:mb-1.5">
+              <ul className="space-y-0.5 sm:space-y-1 mb-0.5 sm:mb-1.5">
                 {fare.features.map((feature, idx) => (
                   <li key={idx} className="flex items-start gap-1 sm:gap-1.5 text-[10px] sm:text-xs text-gray-700">
                     <span className="flex-shrink-0 mt-0.5">{getFeatureIcon(feature)}</span>
@@ -286,7 +286,7 @@ export function FareSelector({
               </ul>
 
               {/* Policies Section - show both positives (green) and restrictions (red) */}
-              <div className="pt-1 sm:pt-1.5 mt-1 sm:mt-1.5 border-t border-gray-100 space-y-0.5">
+              <div className="pt-0.5 sm:pt-1.5 mt-0.5 sm:mt-1.5 border-t border-gray-100 space-y-0.5">
                 {/* Positive policies (green) */}
                 {fare.positives && fare.positives.map((positive, idx) => (
                   <div key={`pos-${idx}`} className="flex items-center gap-0.5 sm:gap-1 text-[9px] sm:text-[10px]">
