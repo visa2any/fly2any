@@ -418,9 +418,9 @@
     @apply rounded-none md:rounded-xl border-x-0 md:border-x;
   }
 
-  /* Zero horizontal padding mobile */
+  /* Minimal horizontal padding mobile (4px) */
   .mobile-no-padding {
-    @apply px-0 md:px-6;
+    @apply px-1 md:px-6;
   }
 
   /* Full-width container mobile */
