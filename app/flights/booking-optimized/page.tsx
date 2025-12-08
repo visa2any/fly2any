@@ -900,7 +900,7 @@ function BookingPageContent() {
                       </div>
 
                       {/* Flight Details - Compact on mobile */}
-                      <div className="p-2 sm:p-4 space-y-2 sm:space-y-4">
+                      <div className="p-3 sm:p-4 space-y-2 sm:space-y-4">
                         {/* Outbound Flight */}
                         <div className="relative">
                           <div className="absolute left-0 top-0 bottom-0 w-0.5 sm:w-1 bg-gradient-to-b from-primary-500 to-primary-300 rounded-full" />
@@ -1018,7 +1018,7 @@ function BookingPageContent() {
                       ✈️ Choose Your Fare
                     </h2>
                   </div>
-                  <div className="p-2 sm:p-4">
+                  <div className="p-3 sm:p-4">
                     <FareSelector
                       fares={fareOptions}
                       selectedFareId={selectedFareId}
@@ -1035,7 +1035,7 @@ function BookingPageContent() {
                       🎯 Add-Ons
                     </h3>
                   </div>
-                  <div className="p-2 sm:p-4">
+                  <div className="p-3 sm:p-4">
                     <AddOnsTabs
                       categories={addOnCategories}
                       onAddOnToggle={handleAddOnToggle}
