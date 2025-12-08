@@ -125,15 +125,15 @@ export function MobileFilterSheet({
             <div
               className="overflow-y-auto px-6 py-4"
               style={{
-                maxHeight: 'calc(85vh - 180px)',
+                maxHeight: 'calc(85vh - 240px)',
                 WebkitOverflowScrolling: 'touch',
               }}
             >
               {children}
             </div>
 
-            {/* Footer Actions */}
-            <div className="sticky bottom-0 bg-white border-t border-gray-200 px-6 py-4 flex gap-3">
+            {/* Footer Actions - with bottom nav padding */}
+            <div className="sticky bottom-0 bg-white border-t border-gray-200 px-6 py-4 flex gap-3" style={{ paddingBottom: 'calc(16px + 56px + env(safe-area-inset-bottom, 0px))' }}>
               <button
                 onClick={onClear}
                 className="flex-1 min-h-[44px] px-4 py-3 border-2 border-gray-300 text-gray-700 font-semibold rounded-xl hover:bg-gray-50 active:bg-gray-100 transition-colors"
