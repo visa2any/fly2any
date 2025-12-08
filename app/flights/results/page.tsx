@@ -496,7 +496,7 @@ function FlightResultsContent() {
   const [showAuthModal, setShowAuthModal] = useState(false);
   const [pendingFlightForAlert, setPendingFlightForAlert] = useState<ScoredFlight | null>(null);
   const [sortBy, setSortBy] = useState<SortOption>('cheapest'); // Default to lowest price first
-  const [mobileSortOption, setMobileSortOption] = useState<MobileSortOption>('cheapest'); // Mobile sort bar state
+  const [mobileFilters, setMobileFilters] = useState<Set<MobileSortOption>>(new Set()); // Multi-select mobile filters
   const [showPriceInsights, setShowPriceInsights] = useState(true);
   const [displayCount, setDisplayCount] = useState(20); // Increased from 10 to show more results (Design Rule #7)
   const [marketAverage, setMarketAverage] = useState<number | null>(null);
@@ -1194,38 +1194,35 @@ function FlightResultsContent() {
     setDisplayCount(prev => Math.min(prev + 10, sortedFlights.length));
   };
 
-  // Handle mobile sort bar selection - maps to sorting and/or filtering
-  const handleMobileSortChange = (option: MobileSortOption) => {
-    setMobileSortOption(option);
+  // Handle mobile filter toggle - supports multi-select
+  const handleMobileFilterToggle = (option: MobileSortOption) => {
+    setMobileFilters(prev => {
+      const next = new Set(prev);
+      if (next.has(option)) {
+        next.delete(option);
+      } else {
+        next.add(option);
+      }
 
-    // Map mobile options to actual sort/filter behavior
-    switch (option) {
-      case 'cheapest':
-        setSortBy('cheapest');
-        setFilters(prev => ({ ...prev, baggageIncluded: false, refundableOnly: false }));
-        break;
-      case 'best':
-        setSortBy('best');
-        setFilters(prev => ({ ...prev, baggageIncluded: false, refundableOnly: false }));
-        break;
-      case 'fastest':
-        setSortBy('fastest');
-        setFilters(prev => ({ ...prev, baggageIncluded: false, refundableOnly: false }));
-        break;
-      case 'baggage':
-        setSortBy('cheapest');
-        setFilters(prev => ({ ...prev, baggageIncluded: true, refundableOnly: false }));
-        break;
-      case 'refundable':
-        setSortBy('cheapest');
-        setFilters(prev => ({ ...prev, refundableOnly: true, baggageIncluded: false }));
-        break;
-      case 'rebooking':
-        // Rebooking = flexible fares (not basic economy)
-        setSortBy('cheapest');
-        setFilters(prev => ({ ...prev, excludeBasicEconomy: true, baggageIncluded: false, refundableOnly: false }));
-        break;
-    }
+      // Apply combined filters based on all selected options
+      const hasBaggage = next.has('baggage');
+      const hasRefundable = next.has('refundable');
+      const hasRebooking = next.has('rebooking');
+
+      setFilters(f => ({
+        ...f,
+        baggageIncluded: hasBaggage,
+        refundableOnly: hasRefundable,
+        excludeBasicEconomy: hasRebooking,
+      }));
+
+      // Set sort based on priority: best > fastest > cheapest
+      if (next.has('best')) setSortBy('best');
+      else if (next.has('fastest')) setSortBy('fastest');
+      else setSortBy('cheapest');
+
+      return next;
+    });
   };
 
   const handleRetry = () => {
@@ -1647,19 +1644,16 @@ function FlightResultsContent() {
         lang={lang}
       />
 
-      {/* Mobile Sort Bar - Sticky horizontal scroll between search and results */}
+      {/* Mobile Sort Bar - Sticky horizontal multi-select filter bar */}
       <MobileSortBar
-        currentSort={mobileSortOption}
-        onChange={handleMobileSortChange}
+        selectedOptions={mobileFilters}
+        onToggle={handleMobileFilterToggle}
         onFilterClick={() => setMobileFilterSheetOpen(true)}
         activeFilterCount={
           (filters.stops.length > 0 ? 1 : 0) +
           (filters.airlines.length > 0 ? 1 : 0) +
           (filters.departureTime.length > 0 ? 1 : 0) +
-          (filters.excludeBasicEconomy ? 1 : 0) +
           (filters.cabinClass.length > 0 ? 1 : 0) +
-          (filters.baggageIncluded ? 1 : 0) +
-          (filters.refundableOnly ? 1 : 0) +
           (filters.alliances.length > 0 ? 1 : 0) +
           (filters.connectionQuality.length > 0 ? 1 : 0) +
           (filters.maxDuration < 24 ? 1 : 0) +
