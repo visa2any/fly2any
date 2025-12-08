@@ -152,8 +152,8 @@ export function AddOnsTabs({ categories, onAddOnToggle, onViewSeatMap }: AddOnsT
           {/* Subtitle */}
           <p className="text-xs text-gray-600 mb-3">{activeCategory.subtitle}</p>
 
-          {/* Add-On Items (Grid for compactness) */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-2 max-h-[300px] overflow-y-auto">
+          {/* Add-On Items (Grid for compactness) - 2 per row on mobile */}
+          <div className="grid grid-cols-2 gap-1 sm:gap-2 max-h-[300px] overflow-y-auto">
             {/* Special message for seats category when using seat map */}
             {activeCategory.id === 'seats' && activeCategory.items.length === 0 && onViewSeatMap && (
               <div className="col-span-full text-center py-4">
@@ -171,7 +171,7 @@ export function AddOnsTabs({ categories, onAddOnToggle, onViewSeatMap }: AddOnsT
                 <div
                   key={item.id}
                   className={`
-                    flex items-start gap-2 p-2.5 rounded-lg transition-all
+                    flex items-start gap-1 sm:gap-2 p-1.5 sm:p-2.5 rounded-lg transition-all
                     ${item.selected
                       ? 'bg-primary-50 border-2 border-primary-300'
                       : 'bg-gray-50 border-2 border-gray-200 hover:border-primary-200'
@@ -199,56 +199,53 @@ export function AddOnsTabs({ categories, onAddOnToggle, onViewSeatMap }: AddOnsT
                       </div>
                     </>
                   ) : (
-                    // Quantity selector for baggage items
+                    // Quantity selector for baggage items - compact mobile
                     <div className="flex-1 min-w-0">
-                      <div className="flex items-start justify-between gap-2 mb-2">
-                        <div className="flex-1">
-                          <div className="flex items-center gap-2">
-                            <span className="text-xs font-semibold text-gray-900 leading-tight">{item.name}</span>
+                      <div className="flex items-start justify-between gap-1 mb-1 sm:mb-2">
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center gap-1 flex-wrap">
+                            <span className="text-[10px] sm:text-xs font-semibold text-gray-900 leading-tight truncate">{item.name}</span>
                             {hasRealData && (
-                              <span className="px-1.5 py-0.5 bg-green-100 text-green-700 text-[9px] font-bold rounded uppercase">
+                              <span className="px-1 py-0.5 bg-green-100 text-green-700 text-[8px] sm:text-[9px] font-bold rounded uppercase flex-shrink-0">
                                 Live Price
                               </span>
                             )}
                           </div>
-                          <p className="text-xs text-gray-600 mt-0.5 leading-tight">
+                          <p className="text-[9px] sm:text-xs text-gray-600 mt-0.5 leading-tight truncate">
                             {item.description}
                             {item.weight && ` - ${item.weight.value}${item.weight.unit}`}
                           </p>
                           {item.metadata?.perPassenger && (
-                            <p className="text-[10px] text-gray-500 mt-0.5">Per passenger</p>
-                          )}
-                          {item.metadata?.perSegment && (
-                            <p className="text-[10px] text-gray-500 mt-0.5">Per segment</p>
+                            <p className="text-[9px] sm:text-[10px] text-gray-500 mt-0.5">Per passenger</p>
                           )}
                         </div>
-                        <span className="text-xs font-bold text-gray-900 whitespace-nowrap">
+                        <span className="text-[10px] sm:text-xs font-bold text-gray-900 whitespace-nowrap flex-shrink-0">
                           {item.currency} {item.price}
                         </span>
                       </div>
 
-                      {/* Quantity Selector */}
-                      <div className="flex items-center gap-2">
+                      {/* Quantity Selector - compact */}
+                      <div className="flex items-center gap-1 sm:gap-2">
                         <button
                           type="button"
                           onClick={() => handleQuantityChange(activeCategory.id, item.id, currentQuantity - 1, item)}
                           disabled={currentQuantity <= (item.quantity?.min || 0)}
-                          className="w-6 h-6 flex items-center justify-center rounded border border-gray-300 hover:bg-gray-100 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+                          className="w-5 h-5 sm:w-6 sm:h-6 flex items-center justify-center rounded border border-gray-300 hover:bg-gray-100 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
                         >
-                          <Minus className="w-3 h-3" />
+                          <Minus className="w-2.5 h-2.5 sm:w-3 sm:h-3" />
                         </button>
-                        <span className="text-sm font-semibold text-gray-900 min-w-[2rem] text-center">
+                        <span className="text-xs sm:text-sm font-semibold text-gray-900 min-w-[1.5rem] sm:min-w-[2rem] text-center">
                           {currentQuantity}
                         </span>
                         <button
                           type="button"
                           onClick={() => handleQuantityChange(activeCategory.id, item.id, currentQuantity + 1, item)}
                           disabled={currentQuantity >= (item.quantity?.max || 5)}
-                          className="w-6 h-6 flex items-center justify-center rounded border border-gray-300 hover:bg-gray-100 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+                          className="w-5 h-5 sm:w-6 sm:h-6 flex items-center justify-center rounded border border-gray-300 hover:bg-gray-100 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
                         >
-                          <Plus className="w-3 h-3" />
+                          <Plus className="w-2.5 h-2.5 sm:w-3 sm:h-3" />
                         </button>
-                        <span className="text-xs text-gray-500 ml-2">
+                        <span className="text-[9px] sm:text-xs text-gray-500 ml-1 sm:ml-2">
                           Max: {item.quantity?.max || 5}
                         </span>
                       </div>
