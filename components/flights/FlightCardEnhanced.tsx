@@ -1030,6 +1030,32 @@ export function FlightCardEnhanced({
                 </div>
               </div>
 
+              {/* BAGGAGE INFO - Always visible on mobile, inside expansion on desktop */}
+              <div className="md:hidden mt-1.5 py-1 px-2 bg-gray-50/50 rounded-sm border-t border-gray-100">
+                <div className="flex items-center flex-wrap gap-x-2 gap-y-1 text-[10px] font-medium">
+                  {/* Carry-on */}
+                  <span className="inline-flex items-center gap-0.5">
+                    <span>🎒</span>
+                    <span className={legBaggage.carryOn ? 'font-semibold text-green-700' : 'font-medium text-gray-700'}>
+                      {legBaggage.carryOn
+                        ? legBaggage.carryOnQuantity === 2 ? 'Bag+personal' : 'Personal'
+                        : 'Personal'
+                      }
+                    </span>
+                  </span>
+
+                  <span className="text-gray-400">•</span>
+
+                  {/* Checked */}
+                  <span className="inline-flex items-center gap-0.5">
+                    <span>💼</span>
+                    <span className={legBaggage.checked > 0 ? 'font-semibold text-green-700' : 'font-medium text-gray-700'}>
+                      {legBaggage.checked > 0 ? `${legBaggage.checked} bag${legBaggage.checked > 1 ? 's' : ''}` : 'Not incl.'}
+                    </span>
+                  </span>
+                </div>
+              </div>
+
           {/* EXPANDED: Segment Details */}
           {isExpanded && (
             <div className={`mt-2 pl-3 space-y-1.5 border-l-2 ${legColor.border}`}>
