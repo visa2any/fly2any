@@ -1,9 +1,9 @@
 'use client';
 
 import { useEffect, useRef } from 'react';
-import { DollarSign, Sparkles, Zap, Luggage, RefreshCw, Ticket, SlidersHorizontal } from 'lucide-react';
+import { DollarSign, Sparkles, Zap, Luggage, RefreshCw, Ticket, SlidersHorizontal, Plane, Sunrise, Moon } from 'lucide-react';
 
-export type MobileSortOption = 'cheapest' | 'best' | 'fastest' | 'baggage' | 'refundable' | 'rebooking';
+export type MobileSortOption = 'cheapest' | 'best' | 'fastest' | 'nonstop' | 'morning' | 'evening' | 'baggage' | 'refundable' | 'rebooking';
 
 interface MobileSortBarProps {
   selectedOptions: Set<MobileSortOption>;
@@ -14,15 +14,18 @@ interface MobileSortBarProps {
 }
 
 const content = {
-  en: { cheapest: 'Cheapest', best: 'Best', fastest: 'Shortest', baggage: 'Baggage', refundable: 'Refundable', rebooking: 'Rebooking', filter: 'Filter' },
-  pt: { cheapest: 'Mais Barato', best: 'Melhor', fastest: 'Mais Curto', baggage: 'Bagagem', refundable: 'Reembolsável', rebooking: 'Remarcação', filter: 'Filtro' },
-  es: { cheapest: 'Más Barato', best: 'Mejor', fastest: 'Más Corto', baggage: 'Equipaje', refundable: 'Reembolsable', rebooking: 'Cambios', filter: 'Filtrar' },
+  en: { cheapest: 'Cheapest', best: 'Best', fastest: 'Shortest', nonstop: 'Nonstop', morning: 'Morning', evening: 'Evening', baggage: 'Baggage', refundable: 'Refundable', rebooking: 'Flexible', filter: 'Filter' },
+  pt: { cheapest: 'Mais Barato', best: 'Melhor', fastest: 'Mais Curto', nonstop: 'Direto', morning: 'Manhã', evening: 'Noite', baggage: 'Bagagem', refundable: 'Reembolsável', rebooking: 'Flexível', filter: 'Filtro' },
+  es: { cheapest: 'Más Barato', best: 'Mejor', fastest: 'Más Corto', nonstop: 'Directo', morning: 'Mañana', evening: 'Noche', baggage: 'Equipaje', refundable: 'Reembolsable', rebooking: 'Flexible', filter: 'Filtrar' },
 };
 
 const sortOptions: { id: MobileSortOption; icon: typeof DollarSign; labelKey: string; activeBg: string }[] = [
   { id: 'cheapest', icon: DollarSign, labelKey: 'cheapest', activeBg: 'bg-green-600' },
   { id: 'best', icon: Sparkles, labelKey: 'best', activeBg: 'bg-purple-600' },
   { id: 'fastest', icon: Zap, labelKey: 'fastest', activeBg: 'bg-orange-600' },
+  { id: 'nonstop', icon: Plane, labelKey: 'nonstop', activeBg: 'bg-sky-600' },
+  { id: 'morning', icon: Sunrise, labelKey: 'morning', activeBg: 'bg-amber-500' },
+  { id: 'evening', icon: Moon, labelKey: 'evening', activeBg: 'bg-slate-600' },
   { id: 'baggage', icon: Luggage, labelKey: 'baggage', activeBg: 'bg-blue-600' },
   { id: 'refundable', icon: RefreshCw, labelKey: 'refundable', activeBg: 'bg-teal-600' },
   { id: 'rebooking', icon: Ticket, labelKey: 'rebooking', activeBg: 'bg-indigo-600' },

@@ -1198,25 +1198,24 @@ function FlightResultsContent() {
   const handleMobileFilterToggle = (option: MobileSortOption) => {
     setMobileFilters(prev => {
       const next = new Set(prev);
-      if (next.has(option)) {
-        next.delete(option);
-      } else {
-        next.add(option);
-      }
+      next.has(option) ? next.delete(option) : next.add(option);
 
-      // Apply combined filters based on all selected options
-      const hasBaggage = next.has('baggage');
-      const hasRefundable = next.has('refundable');
-      const hasRebooking = next.has('rebooking');
+      // Build departure time filter
+      const timeFilters: ('morning' | 'afternoon' | 'evening' | 'night')[] = [];
+      if (next.has('morning')) timeFilters.push('morning');
+      if (next.has('evening')) timeFilters.push('evening', 'night');
 
+      // Apply combined filters
       setFilters(f => ({
         ...f,
-        baggageIncluded: hasBaggage,
-        refundableOnly: hasRefundable,
-        excludeBasicEconomy: hasRebooking,
+        stops: next.has('nonstop') ? ['direct'] : [],
+        departureTime: timeFilters,
+        baggageIncluded: next.has('baggage'),
+        refundableOnly: next.has('refundable'),
+        excludeBasicEconomy: next.has('rebooking'),
       }));
 
-      // Set sort based on priority: best > fastest > cheapest
+      // Sort priority: best > fastest > cheapest
       if (next.has('best')) setSortBy('best');
       else if (next.has('fastest')) setSortBy('fastest');
       else setSortBy('cheapest');
