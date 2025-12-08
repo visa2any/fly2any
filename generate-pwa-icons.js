@@ -9,22 +9,22 @@ const outputDir = path.join(__dirname, 'public');
 async function generateIcons() {
   const input = sharp(inputPath);
 
-  // Standard icons
+  // Standard icons (transparent background)
   for (const size of sizes) {
     await input
       .clone()
-      .resize(size, size, { fit: 'contain', background: { r: 0, g: 111, b: 219, alpha: 1 } })
+      .resize(size, size, { fit: 'contain', background: { r: 0, g: 0, b: 0, alpha: 0 } })
       .png()
       .toFile(path.join(outputDir, `icon-${size}.png`));
     console.log(`✓ icon-${size}.png`);
   }
 
-  // Maskable icons (with padding for safe zone)
+  // Maskable icons (40% safe zone with blue background)
   for (const size of [192, 512]) {
-    const padding = Math.floor(size * 0.1);
+    const padding = Math.floor(size * 0.2); // 40% safe zone (20% on each side)
     await input
       .clone()
-      .resize(size - padding * 2, size - padding * 2, { fit: 'contain', background: { r: 0, g: 111, b: 219, alpha: 0 } })
+      .resize(size - padding * 2, size - padding * 2, { fit: 'contain', background: { r: 0, g: 0, b: 0, alpha: 0 } })
       .extend({
         top: padding,
         bottom: padding,
