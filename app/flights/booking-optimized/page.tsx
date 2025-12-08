@@ -796,11 +796,11 @@ function BookingPageContent() {
       >
         <div className="max-w-7xl mx-auto px-0 sm:px-4 py-2 sm:py-3">
           <div className="flex items-center justify-between">
-            <div className="flex items-center gap-1.5 sm:gap-3">
+            <div className="flex items-center gap-1 sm:gap-1.5 md:gap-3 px-2 sm:px-0">
               {/* Back to Search Results Button */}
               <button
                 onClick={() => router.back()}
-                className="flex items-center gap-1 sm:gap-1.5 px-2 sm:px-3 py-1.5 text-sm font-medium text-gray-600 hover:text-primary-600 hover:bg-primary-50 rounded-lg transition-all"
+                className="flex items-center gap-1 sm:gap-1.5 px-1.5 sm:px-3 py-1.5 text-sm font-medium text-gray-600 hover:text-primary-600 hover:bg-primary-50 rounded-lg transition-all"
                 aria-label="Go back to search results"
               >
                 <ArrowLeft className="w-4 h-4" />
