@@ -1190,23 +1190,6 @@ function BookingPageContent() {
         />
       )}
 
-      {/* Mobile Bottom Navigation Bar - Fixed at bottom */}
-      <div className="block sm:hidden fixed bottom-0 left-0 right-0 bg-white border-t-2 border-gray-300 shadow-2xl z-[9999]">
-        <div className="flex items-center justify-around px-6 py-2.5 safe-area-inset-bottom">
-          <button
-            onClick={() => router.push('/')}
-            className="flex flex-col items-center gap-0.5 text-gray-700 hover:text-primary-600 active:scale-95 transition-all touch-manipulation min-w-[60px]"
-            aria-label="Go to home"
-          >
-            <Home className="w-6 h-6 stroke-[2.5]" />
-            <span className="text-[10px] font-semibold">Home</span>
-          </button>
-          <div className="flex flex-col items-center gap-0.5 text-primary-600 min-w-[60px]">
-            <Plane className="w-6 h-6 stroke-[2.5]" />
-            <span className="text-[10px] font-bold">Booking</span>
-          </div>
-        </div>
-      </div>
     </div>
   );
 }
