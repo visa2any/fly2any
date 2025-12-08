@@ -794,30 +794,30 @@ function BookingPageContent() {
           willChange: 'transform',
         }}
       >
-        <div className="max-w-7xl mx-auto px-4 py-3">
+        <div className="max-w-7xl mx-auto px-2 sm:px-4 py-2 sm:py-3">
           <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
+            <div className="flex items-center gap-1.5 sm:gap-3">
               {/* Back to Search Results Button */}
               <button
                 onClick={() => router.back()}
-                className="flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium text-gray-600 hover:text-primary-600 hover:bg-primary-50 rounded-lg transition-all"
+                className="flex items-center gap-1 sm:gap-1.5 px-2 sm:px-3 py-1.5 text-sm font-medium text-gray-600 hover:text-primary-600 hover:bg-primary-50 rounded-lg transition-all"
                 aria-label="Go back to search results"
               >
                 <ArrowLeft className="w-4 h-4" />
                 <span className="hidden sm:inline">Back to Results</span>
               </button>
               <div className="h-6 w-px bg-gray-200 hidden sm:block" />
-              <Plane className="w-6 h-6 text-primary-500" />
-              <h1 className="text-xl font-bold text-gray-900">Complete Your Booking</h1>
+              <Plane className="w-5 h-5 sm:w-6 sm:h-6 text-primary-500" />
+              <h1 className="text-sm sm:text-xl font-bold text-gray-900">Complete Booking</h1>
             </div>
 
-            {/* Progress Steps */}
-            <div className="flex items-center gap-2">
+            {/* Progress Steps - Compact on mobile */}
+            <div className="flex items-center gap-1 sm:gap-2">
               {[1, 2, 3].map((step) => (
-                <div key={step} className="flex items-center gap-2">
+                <div key={step} className="flex items-center gap-1 sm:gap-2">
                   <div
                     className={`
-                      w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold transition-all
+                      w-6 h-6 sm:w-8 sm:h-8 rounded-full flex items-center justify-center text-xs sm:text-sm font-bold transition-all
                       ${currentStep >= step
                         ? 'bg-primary-500 text-white'
                         : 'bg-gray-200 text-gray-500'
@@ -826,14 +826,14 @@ function BookingPageContent() {
                   >
                     {step}
                   </div>
-                  {step < 3 && <div className={`w-12 h-1 ${currentStep > step ? 'bg-primary-500' : 'bg-gray-200'}`} />}
+                  {step < 3 && <div className={`w-4 sm:w-12 h-1 ${currentStep > step ? 'bg-primary-500' : 'bg-gray-200'}`} />}
                 </div>
               ))}
             </div>
           </div>
 
-          {/* Step Labels */}
-          <div className="flex justify-between mt-2 text-xs font-medium">
+          {/* Step Labels - Hidden on mobile */}
+          <div className="hidden sm:flex justify-between mt-2 text-xs font-medium">
             <span className={currentStep === 1 ? 'text-primary-600' : 'text-gray-500'}>Customize Flight</span>
             <span className={currentStep === 2 ? 'text-primary-600' : 'text-gray-500'}>Traveler Details</span>
             <span className={currentStep === 3 ? 'text-primary-600' : 'text-gray-500'}>Review & Pay</span>
@@ -842,13 +842,13 @@ function BookingPageContent() {
       </div>
 
       {/* Main Content */}
-      <div className="max-w-7xl mx-auto px-4 py-4">
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+      <div className="max-w-7xl mx-auto px-2 sm:px-4 py-2 sm:py-4">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-2 sm:gap-4">
           {/* Left Column: Steps */}
-          <div className="lg:col-span-2 space-y-4">
+          <div className="lg:col-span-2 space-y-2 sm:space-y-4">
             {/* STEP 1: Customize Flight */}
             {currentStep === 1 && (
-              <div className="space-y-4 animate-fadeIn">
+              <div className="space-y-2 sm:space-y-4 animate-fadeIn">
                 {/* Premium Flight Confirmation Card */}
                 {flightData && (() => {
                   const airline = flightData.validatingAirlineCodes?.[0] || flightData.itineraries?.[0]?.segments?.[0]?.carrierCode || 'XX';
@@ -872,67 +872,68 @@ function BookingPageContent() {
                   };
 
                   return (
-                    <div className="bg-white rounded-xl border border-gray-200 shadow-lg overflow-hidden">
-                      {/* Premium Header with Gradient */}
-                      <div className="bg-gradient-to-r from-primary-600 via-primary-500 to-secondary-500 px-4 py-3">
+                    <div className="bg-white rounded-lg sm:rounded-xl border border-gray-200 shadow-lg overflow-hidden">
+                      {/* Premium Header with Gradient - Compact on mobile */}
+                      <div className="bg-gradient-to-r from-primary-600 via-primary-500 to-secondary-500 px-2 sm:px-4 py-2 sm:py-3">
                         <div className="flex items-center justify-between">
-                          <div className="flex items-center gap-3">
-                            <div className="bg-white/20 backdrop-blur-sm rounded-lg p-1.5">
-                              <AirlineLogo code={airline} size="md" className="shadow-md" />
+                          <div className="flex items-center gap-2 sm:gap-3">
+                            <div className="bg-white/20 backdrop-blur-sm rounded p-1 sm:rounded-lg sm:p-1.5">
+                              <AirlineLogo code={airline} size="sm" className="sm:w-8 sm:h-8 shadow-md" />
                             </div>
                             <div className="text-white">
-                              <div className="font-bold text-lg">{airlineData.name}</div>
-                              <div className="text-white/80 text-xs flex items-center gap-2">
-                                <span>Flight {airline} {flightNum}</span>
-                                <span className="flex items-center gap-0.5">
+                              <div className="font-bold text-sm sm:text-lg truncate max-w-[120px] sm:max-w-none">{airlineData.name}</div>
+                              <div className="text-white/80 text-[10px] sm:text-xs flex items-center gap-1 sm:gap-2">
+                                <span className="truncate">{airline} {flightNum}</span>
+                                <span className="hidden sm:flex items-center gap-0.5">
                                   <Star className="w-3 h-3 fill-yellow-300 text-yellow-300" />
                                   <span>{airlineData.rating}</span>
                                 </span>
                               </div>
                             </div>
                           </div>
-                          <div className="flex items-center gap-1.5 bg-green-500 text-white px-3 py-1.5 rounded-full text-xs font-bold shadow-md">
-                            <CheckCircle2 className="w-4 h-4" />
-                            <span>Selected</span>
+                          <div className="flex items-center gap-1 sm:gap-1.5 bg-green-500 text-white px-2 sm:px-3 py-1 sm:py-1.5 rounded-full text-[10px] sm:text-xs font-bold shadow-md">
+                            <CheckCircle2 className="w-3 h-3 sm:w-4 sm:h-4" />
+                            <span className="hidden sm:inline">Selected</span>
+                            <span className="sm:hidden">✓</span>
                           </div>
                         </div>
                       </div>
 
-                      {/* Flight Details */}
-                      <div className="p-4 space-y-4">
+                      {/* Flight Details - Compact on mobile */}
+                      <div className="p-2 sm:p-4 space-y-2 sm:space-y-4">
                         {/* Outbound Flight */}
                         <div className="relative">
-                          <div className="absolute left-0 top-0 bottom-0 w-1 bg-gradient-to-b from-primary-500 to-primary-300 rounded-full" />
-                          <div className="pl-4">
-                            <div className="flex items-center gap-2 mb-2">
-                              <span className="text-[10px] font-bold text-primary-600 uppercase tracking-wider bg-primary-50 px-2 py-0.5 rounded">
+                          <div className="absolute left-0 top-0 bottom-0 w-0.5 sm:w-1 bg-gradient-to-b from-primary-500 to-primary-300 rounded-full" />
+                          <div className="pl-2 sm:pl-4">
+                            <div className="flex items-center gap-1 sm:gap-2 mb-1 sm:mb-2">
+                              <span className="text-[8px] sm:text-[10px] font-bold text-primary-600 uppercase tracking-wider bg-primary-50 px-1.5 sm:px-2 py-0.5 rounded">
                                 Outbound
                               </span>
-                              <span className="text-xs text-gray-500">{formatDate(outbound?.segments?.[0]?.departure?.at)}</span>
+                              <span className="text-[10px] sm:text-xs text-gray-500">{formatDate(outbound?.segments?.[0]?.departure?.at)}</span>
                             </div>
 
-                            <div className="flex items-center gap-3">
+                            <div className="flex items-center gap-2 sm:gap-3">
                               {/* Departure */}
-                              <div className="text-center min-w-[70px]">
-                                <div className="text-xl font-bold text-gray-900">{formatTime(outbound?.segments?.[0]?.departure?.at)}</div>
-                                <div className="text-xs font-semibold text-gray-600">{outbound?.segments?.[0]?.departure?.iataCode}</div>
-                                <div className="text-[10px] text-gray-400 truncate max-w-[80px]">{formatCityCode(outbound?.segments?.[0]?.departure?.iataCode)}</div>
+                              <div className="text-center min-w-[50px] sm:min-w-[70px]">
+                                <div className="text-base sm:text-xl font-bold text-gray-900">{formatTime(outbound?.segments?.[0]?.departure?.at)}</div>
+                                <div className="text-[10px] sm:text-xs font-semibold text-gray-600">{outbound?.segments?.[0]?.departure?.iataCode}</div>
+                                <div className="hidden sm:block text-[10px] text-gray-400 truncate max-w-[80px]">{formatCityCode(outbound?.segments?.[0]?.departure?.iataCode)}</div>
                               </div>
 
                               {/* Flight Path Visualization */}
-                              <div className="flex-1 px-2">
+                              <div className="flex-1 px-1 sm:px-2">
                                 <div className="relative">
                                   <div className="h-[2px] bg-gradient-to-r from-primary-400 via-primary-500 to-primary-400 rounded-full" />
                                   <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2">
-                                    <div className="bg-white border-2 border-primary-500 rounded-full p-1 shadow-md">
-                                      <Plane className="w-3 h-3 text-primary-600 rotate-90" />
+                                    <div className="bg-white border-2 border-primary-500 rounded-full p-0.5 sm:p-1 shadow-md">
+                                      <Plane className="w-2.5 h-2.5 sm:w-3 sm:h-3 text-primary-600 rotate-90" />
                                     </div>
                                   </div>
                                 </div>
-                                <div className="flex items-center justify-center gap-2 mt-1.5">
-                                  <Clock className="w-3 h-3 text-gray-400" />
-                                  <span className="text-xs text-gray-500">{parseDuration(outbound?.duration)}</span>
-                                  <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded-full ${
+                                <div className="flex items-center justify-center gap-1 sm:gap-2 mt-1 sm:mt-1.5">
+                                  <Clock className="w-2.5 h-2.5 sm:w-3 sm:h-3 text-gray-400" />
+                                  <span className="text-[10px] sm:text-xs text-gray-500">{parseDuration(outbound?.duration)}</span>
+                                  <span className={`text-[8px] sm:text-[10px] font-bold px-1 sm:px-1.5 py-0.5 rounded-full ${
                                     getStopsInfo(outbound?.segments).count === 0
                                       ? 'bg-green-100 text-green-700'
                                       : 'bg-orange-100 text-orange-700'
@@ -943,10 +944,10 @@ function BookingPageContent() {
                               </div>
 
                               {/* Arrival */}
-                              <div className="text-center min-w-[70px]">
-                                <div className="text-xl font-bold text-gray-900">{formatTime(outbound?.segments?.[outbound?.segments?.length - 1]?.arrival?.at)}</div>
-                                <div className="text-xs font-semibold text-gray-600">{outbound?.segments?.[outbound?.segments?.length - 1]?.arrival?.iataCode}</div>
-                                <div className="text-[10px] text-gray-400 truncate max-w-[80px]">{formatCityCode(outbound?.segments?.[outbound?.segments?.length - 1]?.arrival?.iataCode)}</div>
+                              <div className="text-center min-w-[50px] sm:min-w-[70px]">
+                                <div className="text-base sm:text-xl font-bold text-gray-900">{formatTime(outbound?.segments?.[outbound?.segments?.length - 1]?.arrival?.at)}</div>
+                                <div className="text-[10px] sm:text-xs font-semibold text-gray-600">{outbound?.segments?.[outbound?.segments?.length - 1]?.arrival?.iataCode}</div>
+                                <div className="hidden sm:block text-[10px] text-gray-400 truncate max-w-[80px]">{formatCityCode(outbound?.segments?.[outbound?.segments?.length - 1]?.arrival?.iataCode)}</div>
                               </div>
                             </div>
                           </div>
@@ -955,37 +956,37 @@ function BookingPageContent() {
                         {/* Return Flight (if round trip) */}
                         {inbound && (
                           <div className="relative">
-                            <div className="absolute left-0 top-0 bottom-0 w-1 bg-gradient-to-b from-secondary-500 to-secondary-300 rounded-full" />
-                            <div className="pl-4">
-                              <div className="flex items-center gap-2 mb-2">
-                                <span className="text-[10px] font-bold text-secondary-600 uppercase tracking-wider bg-secondary-50 px-2 py-0.5 rounded">
+                            <div className="absolute left-0 top-0 bottom-0 w-0.5 sm:w-1 bg-gradient-to-b from-secondary-500 to-secondary-300 rounded-full" />
+                            <div className="pl-2 sm:pl-4">
+                              <div className="flex items-center gap-1 sm:gap-2 mb-1 sm:mb-2">
+                                <span className="text-[8px] sm:text-[10px] font-bold text-secondary-600 uppercase tracking-wider bg-secondary-50 px-1.5 sm:px-2 py-0.5 rounded">
                                   Return
                                 </span>
-                                <span className="text-xs text-gray-500">{formatDate(inbound?.segments?.[0]?.departure?.at)}</span>
+                                <span className="text-[10px] sm:text-xs text-gray-500">{formatDate(inbound?.segments?.[0]?.departure?.at)}</span>
                               </div>
 
-                              <div className="flex items-center gap-3">
+                              <div className="flex items-center gap-2 sm:gap-3">
                                 {/* Departure */}
-                                <div className="text-center min-w-[70px]">
-                                  <div className="text-xl font-bold text-gray-900">{formatTime(inbound?.segments?.[0]?.departure?.at)}</div>
-                                  <div className="text-xs font-semibold text-gray-600">{inbound?.segments?.[0]?.departure?.iataCode}</div>
-                                  <div className="text-[10px] text-gray-400 truncate max-w-[80px]">{formatCityCode(inbound?.segments?.[0]?.departure?.iataCode)}</div>
+                                <div className="text-center min-w-[50px] sm:min-w-[70px]">
+                                  <div className="text-base sm:text-xl font-bold text-gray-900">{formatTime(inbound?.segments?.[0]?.departure?.at)}</div>
+                                  <div className="text-[10px] sm:text-xs font-semibold text-gray-600">{inbound?.segments?.[0]?.departure?.iataCode}</div>
+                                  <div className="hidden sm:block text-[10px] text-gray-400 truncate max-w-[80px]">{formatCityCode(inbound?.segments?.[0]?.departure?.iataCode)}</div>
                                 </div>
 
                                 {/* Flight Path Visualization */}
-                                <div className="flex-1 px-2">
+                                <div className="flex-1 px-1 sm:px-2">
                                   <div className="relative">
                                     <div className="h-[2px] bg-gradient-to-r from-secondary-400 via-secondary-500 to-secondary-400 rounded-full" />
                                     <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2">
-                                      <div className="bg-white border-2 border-secondary-500 rounded-full p-1 shadow-md">
-                                        <Plane className="w-3 h-3 text-secondary-600 -rotate-90" />
+                                      <div className="bg-white border-2 border-secondary-500 rounded-full p-0.5 sm:p-1 shadow-md">
+                                        <Plane className="w-2.5 h-2.5 sm:w-3 sm:h-3 text-secondary-600 -rotate-90" />
                                       </div>
                                     </div>
                                   </div>
-                                  <div className="flex items-center justify-center gap-2 mt-1.5">
-                                    <Clock className="w-3 h-3 text-gray-400" />
-                                    <span className="text-xs text-gray-500">{parseDuration(inbound?.duration)}</span>
-                                    <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded-full ${
+                                  <div className="flex items-center justify-center gap-1 sm:gap-2 mt-1 sm:mt-1.5">
+                                    <Clock className="w-2.5 h-2.5 sm:w-3 sm:h-3 text-gray-400" />
+                                    <span className="text-[10px] sm:text-xs text-gray-500">{parseDuration(inbound?.duration)}</span>
+                                    <span className={`text-[8px] sm:text-[10px] font-bold px-1 sm:px-1.5 py-0.5 rounded-full ${
                                       getStopsInfo(inbound?.segments).count === 0
                                         ? 'bg-green-100 text-green-700'
                                         : 'bg-orange-100 text-orange-700'
@@ -996,10 +997,10 @@ function BookingPageContent() {
                                 </div>
 
                                 {/* Arrival */}
-                                <div className="text-center min-w-[70px]">
-                                  <div className="text-xl font-bold text-gray-900">{formatTime(inbound?.segments?.[inbound?.segments?.length - 1]?.arrival?.at)}</div>
-                                  <div className="text-xs font-semibold text-gray-600">{inbound?.segments?.[inbound?.segments?.length - 1]?.arrival?.iataCode}</div>
-                                  <div className="text-[10px] text-gray-400 truncate max-w-[80px]">{formatCityCode(inbound?.segments?.[inbound?.segments?.length - 1]?.arrival?.iataCode)}</div>
+                                <div className="text-center min-w-[50px] sm:min-w-[70px]">
+                                  <div className="text-base sm:text-xl font-bold text-gray-900">{formatTime(inbound?.segments?.[inbound?.segments?.length - 1]?.arrival?.at)}</div>
+                                  <div className="text-[10px] sm:text-xs font-semibold text-gray-600">{inbound?.segments?.[inbound?.segments?.length - 1]?.arrival?.iataCode}</div>
+                                  <div className="hidden sm:block text-[10px] text-gray-400 truncate max-w-[80px]">{formatCityCode(inbound?.segments?.[inbound?.segments?.length - 1]?.arrival?.iataCode)}</div>
                                 </div>
                               </div>
                             </div>
@@ -1012,12 +1013,12 @@ function BookingPageContent() {
 
                 {/* Fare Selection */}
                 <div className="bg-white rounded-lg border border-gray-200 overflow-hidden">
-                  <div className="bg-gradient-to-r from-primary-500 to-primary-600 p-3 text-white">
-                    <h2 className="text-base font-bold flex items-center gap-2">
+                  <div className="bg-gradient-to-r from-primary-500 to-primary-600 px-2 sm:px-3 py-2 sm:py-3 text-white">
+                    <h2 className="text-sm sm:text-base font-bold flex items-center gap-1.5 sm:gap-2">
                       ✈️ Choose Your Fare
                     </h2>
                   </div>
-                  <div className="p-4">
+                  <div className="p-2 sm:p-4">
                     <FareSelector
                       fares={fareOptions}
                       selectedFareId={selectedFareId}
@@ -1029,12 +1030,12 @@ function BookingPageContent() {
 
                 {/* Individual Add-Ons - Real airline services only */}
                 <div className="bg-white rounded-lg border border-gray-200 overflow-hidden shadow-sm">
-                  <div className="bg-gradient-to-r from-primary-500 to-primary-600 p-3 text-white">
-                    <h3 className="text-base font-bold flex items-center gap-2">
-                      🎯 Individual Add-Ons
+                  <div className="bg-gradient-to-r from-primary-500 to-primary-600 px-2 sm:px-3 py-2 sm:py-3 text-white">
+                    <h3 className="text-sm sm:text-base font-bold flex items-center gap-1.5 sm:gap-2">
+                      🎯 Add-Ons
                     </h3>
                   </div>
-                  <div className="p-4">
+                  <div className="p-2 sm:p-4">
                     <AddOnsTabs
                       categories={addOnCategories}
                       onAddOnToggle={handleAddOnToggle}
@@ -1047,15 +1048,15 @@ function BookingPageContent() {
 
             {/* STEP 2: Passenger Details */}
             {currentStep === 2 && (
-              <div className="space-y-4 animate-fadeIn">
+              <div className="space-y-2 sm:space-y-4 animate-fadeIn">
                 <div className="bg-white rounded-lg border border-gray-200 overflow-hidden shadow-sm">
-                  <div className="bg-gradient-to-r from-primary-500 to-primary-600 p-3 text-white">
-                    <h2 className="text-base font-bold flex items-center gap-2">
-                      <User className="w-5 h-5" />
+                  <div className="bg-gradient-to-r from-primary-500 to-primary-600 px-2 sm:px-3 py-2 sm:py-3 text-white">
+                    <h2 className="text-sm sm:text-base font-bold flex items-center gap-1.5 sm:gap-2">
+                      <User className="w-4 h-4 sm:w-5 sm:h-5" />
                       Traveler Information
                     </h2>
                   </div>
-                  <div className="p-4">
+                  <div className="p-2 sm:p-4">
                     <CompactPassengerForm
                       passengers={passengers}
                       isInternational={isInternationalRoute(flightData.search.from, flightData.search.to)}
@@ -1066,14 +1067,14 @@ function BookingPageContent() {
 
                 {/* Validation Helper Message */}
                 {!arePassengersComplete() && (
-                  <div className="bg-warning-50 border border-warning-300 rounded-lg p-3">
-                    <div className="flex items-start gap-2">
-                      <span className="text-warning-600 text-lg">⚠️</span>
+                  <div className="bg-warning-50 border border-warning-300 rounded-lg p-2 sm:p-3">
+                    <div className="flex items-start gap-1.5 sm:gap-2">
+                      <span className="text-warning-600 text-base sm:text-lg">⚠️</span>
                       <div className="flex-1">
-                        <h4 className="text-sm font-bold text-warning-900 mb-1">
+                        <h4 className="text-xs sm:text-sm font-bold text-warning-900 mb-0.5 sm:mb-1">
                           Complete Required Information
                         </h4>
-                        <p className="text-xs text-warning-800">
+                        <p className="text-[10px] sm:text-xs text-warning-800">
                           Please fill in all required fields (marked with *) for each passenger before continuing to payment.
                           The first passenger must include contact email and phone number.
                         </p>
@@ -1105,21 +1106,21 @@ function BookingPageContent() {
               </div>
             )}
 
-            {/* Navigation Buttons */}
-            <div className="flex items-center justify-between">
+            {/* Navigation Buttons - Compact on mobile */}
+            <div className="flex items-center justify-between gap-2">
               <button
                 onClick={handleBack}
                 disabled={currentStep === 1}
                 className={`
-                  flex items-center gap-2 px-5 py-2.5 rounded-lg font-semibold transition-all text-sm
+                  flex items-center gap-1 sm:gap-2 px-3 sm:px-5 py-2 sm:py-2.5 rounded-lg font-semibold transition-all text-xs sm:text-sm
                   ${currentStep === 1
                     ? 'bg-gray-200 text-gray-400 cursor-not-allowed'
-                    : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                    : 'bg-gray-200 text-gray-700 hover:bg-gray-300 active:scale-95'
                   }
                 `}
               >
-                <ChevronLeft className="w-4 h-4" />
-                Back
+                <ChevronLeft className="w-3 h-3 sm:w-4 sm:h-4" />
+                <span className="hidden sm:inline">Back</span>
               </button>
 
               {currentStep < 3 && (
@@ -1127,15 +1128,15 @@ function BookingPageContent() {
                   onClick={handleContinue}
                   disabled={currentStep === 2 && !arePassengersComplete()}
                   className={`
-                    flex items-center gap-2 px-5 py-2.5 rounded-lg font-semibold text-sm shadow-md transition-all
+                    flex items-center gap-1 sm:gap-2 px-4 sm:px-5 py-2 sm:py-2.5 rounded-lg font-semibold text-xs sm:text-sm shadow-md transition-all
                     ${currentStep === 2 && !arePassengersComplete()
                       ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
-                      : 'bg-gradient-to-r from-primary-500 to-primary-600 text-white hover:from-primary-600 hover:to-primary-700 hover:shadow-lg'
+                      : 'bg-gradient-to-r from-primary-500 to-primary-600 text-white hover:from-primary-600 hover:to-primary-700 hover:shadow-lg active:scale-95'
                     }
                   `}
                 >
                   Continue
-                  <ChevronRight className="w-4 h-4" />
+                  <ChevronRight className="w-3 h-3 sm:w-4 sm:h-4" />
                 </button>
               )}
             </div>

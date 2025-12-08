@@ -78,25 +78,25 @@ export function StickySummary({
   return (
     <div className="sticky top-4 bg-white border border-gray-200 rounded-lg shadow-lg overflow-hidden">
       {/* Header */}
-      <div className="bg-gradient-to-r from-primary-500 to-primary-600 p-3 text-white">
-        <h3 className="text-base font-bold flex items-center gap-2">
-          <Plane className="w-5 h-5" />
+      <div className="bg-gradient-to-r from-primary-500 to-primary-600 px-2 sm:px-3 py-2 sm:py-3 text-white">
+        <h3 className="text-sm sm:text-base font-bold flex items-center gap-1.5 sm:gap-2">
+          <Plane className="w-4 h-4 sm:w-5 sm:h-5" />
           Your Booking
         </h3>
       </div>
 
       {/* Flight Summary */}
-      <div className="p-3 border-b border-gray-200">
-        <div className="flex items-center justify-between mb-1.5">
-          <span className="text-xl font-bold text-gray-900">
+      <div className="p-2 sm:p-3 border-b border-gray-200">
+        <div className="flex items-center justify-between mb-1 sm:mb-1.5">
+          <span className="text-base sm:text-xl font-bold text-gray-900 truncate">
             {getAirportDisplay(flight.from)} → {getAirportDisplay(flight.to)}
           </span>
         </div>
 
-        <div className="space-y-1 text-xs text-gray-600">
-          <div className="flex items-center gap-2">
-            <Calendar className="w-4 h-4 text-gray-400" />
-            <span>{new Date(flight.date).toLocaleDateString('en-US', {
+        <div className="space-y-0.5 sm:space-y-1 text-[10px] sm:text-xs text-gray-600">
+          <div className="flex items-center gap-1.5 sm:gap-2">
+            <Calendar className="w-3 h-3 sm:w-4 sm:h-4 text-gray-400 flex-shrink-0" />
+            <span className="truncate">{new Date(flight.date).toLocaleDateString('en-US', {
               weekday: 'short',
               month: 'short',
               day: 'numeric',
@@ -104,9 +104,9 @@ export function StickySummary({
             })}</span>
           </div>
 
-          <div className="flex items-center gap-2">
-            <Users className="w-4 h-4 text-gray-400" />
-            <span>
+          <div className="flex items-center gap-1.5 sm:gap-2">
+            <Users className="w-3 h-3 sm:w-4 sm:h-4 text-gray-400 flex-shrink-0" />
+            <span className="truncate">
               {passengerCount} {passengerCount === 1 ? 'Passenger' : 'Passengers'}
               {' • '}
               {flight.class.charAt(0).toUpperCase() + flight.class.slice(1)}
@@ -116,14 +116,14 @@ export function StickySummary({
       </div>
 
       {/* Price Breakdown */}
-      <div className="p-3 border-b border-gray-200">
+      <div className="p-2 sm:p-3 border-b border-gray-200">
         {/* Base Fare */}
-        <div className="flex justify-between items-center mb-1.5">
-          <div className="flex items-center gap-2">
-            <Plane className="w-3.5 h-3.5 text-primary-500 flex-shrink-0" />
-            <span className="text-xs text-gray-700">Flight Fare</span>
+        <div className="flex justify-between items-center mb-1 sm:mb-1.5">
+          <div className="flex items-center gap-1.5 sm:gap-2">
+            <Plane className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-primary-500 flex-shrink-0" />
+            <span className="text-[10px] sm:text-xs text-gray-700">Flight Fare</span>
           </div>
-          <span className="text-xs font-semibold text-gray-900">
+          <span className="text-[10px] sm:text-xs font-semibold text-gray-900">
             {currency} {farePrice.toFixed(2)}
           </span>
         </div>
@@ -132,17 +132,17 @@ export function StickySummary({
         {addOns.map((addOn, idx) => {
           const IconComponent = getAddOnIcon(addOn.label);
           return (
-            <div key={idx} className="flex justify-between items-start mb-1.5">
-              <div className="flex items-start gap-2 flex-1">
-                <IconComponent className="w-3.5 h-3.5 text-primary-500 flex-shrink-0 mt-0.5" />
-                <div className="flex-1">
-                  <span className="text-xs text-gray-700">{addOn.label}</span>
+            <div key={idx} className="flex justify-between items-start mb-1 sm:mb-1.5">
+              <div className="flex items-start gap-1.5 sm:gap-2 flex-1 min-w-0">
+                <IconComponent className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-primary-500 flex-shrink-0 mt-0.5" />
+                <div className="flex-1 min-w-0">
+                  <span className="text-[10px] sm:text-xs text-gray-700 truncate block">{addOn.label}</span>
                   {addOn.subtext && (
-                    <p className="text-xs text-gray-500">{addOn.subtext}</p>
+                    <p className="text-[9px] sm:text-xs text-gray-500 truncate">{addOn.subtext}</p>
                   )}
                 </div>
               </div>
-              <span className="text-xs font-semibold text-gray-900">
+              <span className="text-[10px] sm:text-xs font-semibold text-gray-900 ml-2">
                 {currency} {addOn.amount.toFixed(2)}
               </span>
             </div>
@@ -150,40 +150,40 @@ export function StickySummary({
         })}
 
         {/* Subtotal */}
-        <div className="flex justify-between items-center pt-1.5 border-t border-gray-200 mb-1.5">
-          <div className="flex items-center gap-2">
-            <Calculator className="w-3.5 h-3.5 text-gray-500 flex-shrink-0" />
-            <span className="text-xs font-semibold text-gray-700">Subtotal</span>
+        <div className="flex justify-between items-center pt-1 sm:pt-1.5 border-t border-gray-200 mb-1 sm:mb-1.5">
+          <div className="flex items-center gap-1.5 sm:gap-2">
+            <Calculator className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-gray-500 flex-shrink-0" />
+            <span className="text-[10px] sm:text-xs font-semibold text-gray-700">Subtotal</span>
           </div>
-          <span className="text-xs font-semibold text-gray-900">
+          <span className="text-[10px] sm:text-xs font-semibold text-gray-900">
             {currency} {subtotal.toFixed(2)}
           </span>
         </div>
 
         {/* Taxes & Fees - Show "Included" if 0 (DOT-compliant all-in pricing) */}
-        <div className="flex justify-between items-center mb-1.5">
-          <div className="flex items-center gap-2">
-            <Receipt className="w-3.5 h-3.5 text-gray-500 flex-shrink-0" />
-            <span className="text-xs text-gray-700">Taxes & Fees</span>
+        <div className="flex justify-between items-center mb-1 sm:mb-1.5">
+          <div className="flex items-center gap-1.5 sm:gap-2">
+            <Receipt className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-gray-500 flex-shrink-0" />
+            <span className="text-[10px] sm:text-xs text-gray-700">Taxes & Fees</span>
           </div>
           {taxesAndFees > 0 ? (
-            <span className="text-xs font-semibold text-gray-900">
+            <span className="text-[10px] sm:text-xs font-semibold text-gray-900">
               {currency} {taxesAndFees.toFixed(2)}
             </span>
           ) : (
-            <span className="text-xs font-semibold text-green-600">
-              ✓ Included in fare
+            <span className="text-[10px] sm:text-xs font-semibold text-green-600">
+              ✓ Included
             </span>
           )}
         </div>
 
         {/* Total */}
-        <div className="flex justify-between items-center pt-2 border-t-2 border-gray-300">
-          <div className="flex items-center gap-2">
-            <DollarSign className="w-4 h-4 text-primary-600 flex-shrink-0" />
-            <span className="text-sm font-bold text-gray-900">TOTAL</span>
+        <div className="flex justify-between items-center pt-1.5 sm:pt-2 border-t-2 border-gray-300">
+          <div className="flex items-center gap-1.5 sm:gap-2">
+            <DollarSign className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-primary-600 flex-shrink-0" />
+            <span className="text-xs sm:text-sm font-bold text-gray-900">TOTAL</span>
           </div>
-          <span className="text-xl font-bold text-primary-600">
+          <span className="text-lg sm:text-xl font-bold text-primary-600">
             {currency} {total.toFixed(2)}
           </span>
         </div>
