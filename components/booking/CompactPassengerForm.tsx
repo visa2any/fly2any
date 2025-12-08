@@ -128,7 +128,7 @@ export function CompactPassengerForm({
   };
 
   return (
-    <div className="space-y-3 px-1 sm:px-0">
+    <div className="space-y-2 sm:space-y-3">
       {/* Passengers */}
       {formData.map((passenger, index) => {
         const isExpanded = expandedPassenger === passenger.id;
@@ -175,7 +175,7 @@ export function CompactPassengerForm({
 
             {/* Passenger Form */}
             {isExpanded && (
-              <div className="px-3 pb-3 pt-2 border-t border-gray-100 bg-gray-50 space-y-2.5">
+              <div className="px-2 sm:px-3 pb-2 sm:pb-3 pt-1.5 sm:pt-2 border-t border-gray-100 bg-gray-50 space-y-2">
                 {/* Row 1: Title, First Name, Last Name - Mobile-first stacked */}
                 <div className="grid grid-cols-4 sm:grid-cols-12 gap-2">
                   <div className="col-span-4 sm:col-span-2">

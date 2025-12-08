@@ -1056,7 +1056,7 @@ function BookingPageContent() {
                       Traveler Information
                     </h2>
                   </div>
-                  <div className="p-1 sm:p-4">
+                  <div className="p-0 sm:p-4">
                     <CompactPassengerForm
                       passengers={passengers}
                       isInternational={isInternationalRoute(flightData.search.from, flightData.search.to)}
