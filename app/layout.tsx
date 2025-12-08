@@ -83,6 +83,8 @@ export const viewport = {
   initialScale: 1,
   maximumScale: 5,
   viewportFit: "cover",
+  minimumScale: 1,
+  userScalable: true,
 };
 
 export default async function RootLayout({
@@ -130,6 +132,7 @@ export default async function RootLayout({
         <meta name="apple-mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
         <meta name="apple-mobile-web-app-title" content="Fly2Any" />
+        <meta name="apple-touch-fullscreen" content="yes" />
         <meta name="theme-color" content="#006FDB" media="(prefers-color-scheme: light)" />
         <meta name="theme-color" content="#003F93" media="(prefers-color-scheme: dark)" />
         {/* Global Structured Data for SEO */}

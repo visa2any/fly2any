@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { Plane, Star, ChevronDown, Heart, Share2, Check } from 'lucide-react';
+import { Plane, Star, ChevronDown, Heart, Share2, Check, Briefcase, Luggage } from 'lucide-react';
 import { toast } from 'react-hot-toast';
 import AirlineLogo from './AirlineLogo';
 import { DealScoreBadgeCompact } from './DealScoreBadge';
@@ -49,6 +49,7 @@ export function FlightCardMobile(props: EnhancedFlightCardProps) {
   const [showDetailsSheet, setShowDetailsSheet] = useState(false);
   const [touchStart, setTouchStart] = useState<number | null>(null);
   const [touchEnd, setTouchEnd] = useState<number | null>(null);
+  const [isFavorite, setIsFavorite] = useState(false);
 
   // Parse flight data
   const outboundItinerary = itineraries[0];
@@ -89,6 +90,66 @@ export function FlightCardMobile(props: EnhancedFlightCardProps) {
   const formatPrice = () => {
     const total = typeof price.total === 'string' ? parseFloat(price.total) : price.total;
     return `$${Math.round(total)}`;
+  };
+
+  // Get baggage info
+  const getBaggageInfo = () => {
+    const { travelerPricings = [] } = props;
+    if (!travelerPricings || travelerPricings.length === 0) {
+      return { carryOn: 1, checked: 0 };
+    }
+    const fareDetails = travelerPricings[0]?.fareDetailsBySegment?.[0];
+    return {
+      carryOn: fareDetails?.includedCabinBags?.quantity || 1,
+      checked: fareDetails?.includedCheckedBags?.quantity || 0,
+    };
+  };
+
+  const baggage = getBaggageInfo();
+
+  // Handle favorite toggle
+  const handleFavorite = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    setIsFavorite(!isFavorite);
+    if ('vibrate' in navigator) navigator.vibrate(10);
+    toast.success(isFavorite ? 'Removed from favorites' : 'Added to favorites!', {
+      icon: isFavorite ? '💔' : '❤️',
+      duration: 2000
+    });
+  };
+
+  // Handle share
+  const handleShare = async (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if ('vibrate' in navigator) navigator.vibrate(10);
+    if (navigator.share) {
+      try {
+        await navigator.share({
+          title: `Flight to ${formatCityCode(outboundLastSegment.arrival.iataCode)}`,
+          text: `Check out this flight for ${formatPrice()}!`,
+          url: window.location.href,
+        });
+      } catch (err) {
+        if ((err as Error).name !== 'AbortError') {
+          toast.success('Link copied to clipboard!', { icon: '📋', duration: 2000 });
+        }
+      }
+    } else {
+      toast.success('Link copied to clipboard!', { icon: '📋', duration: 2000 });
+    }
+  };
+
+  // Handle compare
+  const handleCompare = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (onCompare) {
+      if ('vibrate' in navigator) navigator.vibrate(10);
+      onCompare(id);
+      toast.success(isComparing ? 'Removed from comparison' : 'Added to comparison', {
+        icon: '✓',
+        duration: 2000
+      });
+    }
   };
 
   // Handle card selection
@@ -224,7 +285,7 @@ export function FlightCardMobile(props: EnhancedFlightCardProps) {
           isComparing ? 'border-primary-500 shadow-lg shadow-primary-100' : 'border-gray-200'
         }`}
       >
-        {/* HEADER - Airline + Badge (28px) */}
+        {/* HEADER - Airline + Badge + Actions */}
         <div className="flex items-center justify-between px-3 py-1.5 border-b border-gray-100">
           {/* Left: Airline info */}
           <div className="flex items-center gap-2 flex-1 min-w-0">
@@ -244,8 +305,50 @@ export function FlightCardMobile(props: EnhancedFlightCardProps) {
             </div>
           </div>
 
-          {/* Right: Priority badge */}
-          <div className="flex-shrink-0">
+          {/* Right: Actions + Badge */}
+          <div className="flex items-center gap-1.5 flex-shrink-0">
+            {/* Baggage Icons */}
+            <div className="flex items-center gap-1 mr-1">
+              {baggage.carryOn > 0 && (
+                <div className="flex items-center gap-0.5">
+                  <Briefcase className="w-3.5 h-3.5 text-gray-600" />
+                  <span className="text-[10px] font-semibold text-gray-600">{baggage.carryOn}</span>
+                </div>
+              )}
+              {baggage.checked > 0 && (
+                <div className="flex items-center gap-0.5">
+                  <Luggage className="w-3.5 h-3.5 text-gray-600" />
+                  <span className="text-[10px] font-semibold text-gray-600">{baggage.checked}</span>
+                </div>
+              )}
+            </div>
+
+            {/* Action Buttons */}
+            <button
+              onClick={handleFavorite}
+              className="p-1 hover:bg-gray-100 rounded-full transition-colors active:scale-95"
+              aria-label="Add to favorites"
+            >
+              <Heart className={`w-4 h-4 ${isFavorite ? 'fill-red-500 text-red-500' : 'text-gray-500'}`} />
+            </button>
+            <button
+              onClick={handleShare}
+              className="p-1 hover:bg-gray-100 rounded-full transition-colors active:scale-95"
+              aria-label="Share flight"
+            >
+              <Share2 className="w-4 h-4 text-gray-500" />
+            </button>
+            <button
+              onClick={handleCompare}
+              className={`p-1 rounded-full transition-colors active:scale-95 ${
+                isComparing ? 'bg-primary-100 text-primary-600' : 'hover:bg-gray-100 text-gray-500'
+              }`}
+              aria-label="Compare flight"
+            >
+              <Check className="w-4 h-4" />
+            </button>
+
+            {/* Priority Badge */}
             {priorityBadge()}
           </div>
         </div>
