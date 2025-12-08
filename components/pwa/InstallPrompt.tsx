@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Download, X, Smartphone } from 'lucide-react';
+import { Download, X, Smartphone, Plane } from 'lucide-react';
 
 interface BeforeInstallPromptEvent extends Event {
   prompt: () => Promise<void>;
@@ -55,12 +55,12 @@ export default function InstallPrompt() {
       e.preventDefault();
       setDeferredPrompt(e as BeforeInstallPromptEvent);
 
-      // Show prompt after 30 seconds on site
+      // Show prompt after 3 seconds on site
       setTimeout(() => {
         if (!checkIfInstalled()) {
           setShowPrompt(true);
         }
-      }, 30000); // 30 seconds
+      }, 3000); // 3 seconds
     };
 
     window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
@@ -148,7 +148,7 @@ export default function InstallPrompt() {
         <div className="bg-gradient-to-r from-blue-600 to-blue-700 text-white shadow-2xl">
           <div className="p-4 flex items-center gap-3">
             <div className="flex-shrink-0 w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center">
-              <Smartphone className="w-6 h-6" />
+              <Plane className="w-6 h-6" />
             </div>
 
             <div className="flex-1 min-w-0">
@@ -184,7 +184,7 @@ export default function InstallPrompt() {
           <div className="p-6">
             <div className="flex items-start gap-4 mb-4">
               <div className="flex-shrink-0 w-14 h-14 bg-gradient-to-br from-blue-600 to-blue-700 rounded-xl flex items-center justify-center">
-                <Download className="w-7 h-7 text-white" />
+                <Plane className="w-7 h-7 text-white" />
               </div>
 
               <div className="flex-1 min-w-0">
