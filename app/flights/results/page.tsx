@@ -13,6 +13,7 @@ import CreatePriceAlert from '@/components/search/CreatePriceAlert';
 import AuthModal from '@/components/auth/AuthModal';
 import FlightFilters, { type FlightFilters as FlightFiltersType, type FlightOffer } from '@/components/flights/FlightFilters';
 import { MobileHomeSearchWrapper } from '@/components/home/MobileHomeSearchWrapper';
+import MobileSortBar, { type MobileSortOption } from '@/components/flights/MobileSortBar';
 import CompactSearchSummary from '@/components/flights/CompactSearchSummary';
 import { PriceInsights, type PriceStatistics, type FlightRoute } from '@/components/flights/PriceInsights';
 import { MLInsights, type MLMetadata } from '@/components/flights/MLInsights';
@@ -495,6 +496,7 @@ function FlightResultsContent() {
   const [showAuthModal, setShowAuthModal] = useState(false);
   const [pendingFlightForAlert, setPendingFlightForAlert] = useState<ScoredFlight | null>(null);
   const [sortBy, setSortBy] = useState<SortOption>('cheapest'); // Default to lowest price first
+  const [mobileSortOption, setMobileSortOption] = useState<MobileSortOption>('cheapest'); // Mobile sort bar state
   const [showPriceInsights, setShowPriceInsights] = useState(true);
   const [displayCount, setDisplayCount] = useState(20); // Increased from 10 to show more results (Design Rule #7)
   const [marketAverage, setMarketAverage] = useState<number | null>(null);
@@ -1192,6 +1194,40 @@ function FlightResultsContent() {
     setDisplayCount(prev => Math.min(prev + 10, sortedFlights.length));
   };
 
+  // Handle mobile sort bar selection - maps to sorting and/or filtering
+  const handleMobileSortChange = (option: MobileSortOption) => {
+    setMobileSortOption(option);
+
+    // Map mobile options to actual sort/filter behavior
+    switch (option) {
+      case 'cheapest':
+        setSortBy('cheapest');
+        setFilters(prev => ({ ...prev, baggageIncluded: false, refundableOnly: false }));
+        break;
+      case 'best':
+        setSortBy('best');
+        setFilters(prev => ({ ...prev, baggageIncluded: false, refundableOnly: false }));
+        break;
+      case 'fastest':
+        setSortBy('fastest');
+        setFilters(prev => ({ ...prev, baggageIncluded: false, refundableOnly: false }));
+        break;
+      case 'baggage':
+        setSortBy('cheapest');
+        setFilters(prev => ({ ...prev, baggageIncluded: true, refundableOnly: false }));
+        break;
+      case 'refundable':
+        setSortBy('cheapest');
+        setFilters(prev => ({ ...prev, refundableOnly: true, baggageIncluded: false }));
+        break;
+      case 'rebooking':
+        // Rebooking = flexible fares (not basic economy)
+        setSortBy('cheapest');
+        setFilters(prev => ({ ...prev, excludeBasicEconomy: true, baggageIncluded: false, refundableOnly: false }));
+        break;
+    }
+  };
+
   const handleRetry = () => {
     window.location.reload();
   };
@@ -1608,6 +1644,28 @@ function FlightResultsContent() {
           infants: searchData.infants,
         }}
         cabinClass={searchData.class}
+        lang={lang}
+      />
+
+      {/* Mobile Sort Bar - Sticky horizontal scroll between search and results */}
+      <MobileSortBar
+        currentSort={mobileSortOption}
+        onChange={handleMobileSortChange}
+        onFilterClick={() => setMobileFilterSheetOpen(true)}
+        activeFilterCount={
+          (filters.stops.length > 0 ? 1 : 0) +
+          (filters.airlines.length > 0 ? 1 : 0) +
+          (filters.departureTime.length > 0 ? 1 : 0) +
+          (filters.excludeBasicEconomy ? 1 : 0) +
+          (filters.cabinClass.length > 0 ? 1 : 0) +
+          (filters.baggageIncluded ? 1 : 0) +
+          (filters.refundableOnly ? 1 : 0) +
+          (filters.alliances.length > 0 ? 1 : 0) +
+          (filters.connectionQuality.length > 0 ? 1 : 0) +
+          (filters.maxDuration < 24 ? 1 : 0) +
+          (filters.maxLayoverDuration < 360 ? 1 : 0) +
+          (filters.maxCO2Emissions < 500 ? 1 : 0)
+        }
         lang={lang}
       />
 
