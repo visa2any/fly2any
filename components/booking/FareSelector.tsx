@@ -220,7 +220,7 @@ export function FareSelector({
 
       {/* Fare Cards Grid - sorted by cabin hierarchy */}
       <div
-        className={`grid gap-1.5 sm:gap-2.5 ${
+        className={`grid gap-1 sm:gap-2.5 ${
           isSingleFare
             ? 'grid-cols-1 max-w-sm'
             : 'grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5'
@@ -240,12 +240,12 @@ export function FareSelector({
               aria-checked={isSelected}
               aria-label={`${fare.name} fare, ${fare.currency} ${typeof fare.price === 'number' ? fare.price.toFixed(2) : fare.price}`}
               className={`
-                relative p-1.5 sm:p-2.5 rounded-lg border-2 text-left transition-all duration-200 hover:shadow-sm active:scale-[0.98]
+                relative p-1.5 sm:p-2.5 rounded-md border-2 text-left transition-all duration-200 hover:shadow-sm active:scale-[0.98]
                 ${isSelected
                   ? 'border-primary-500 bg-primary-50 shadow-md'
                   : 'border-gray-200 bg-white hover:border-primary-300'
                 }
-                ${isRecommended ? 'ring-2 ring-primary-200 ring-offset-1' : ''}
+                ${isRecommended ? 'ring-1 ring-primary-200' : ''}
               `}
             >
               {/* Recommended Badge */}
@@ -276,9 +276,9 @@ export function FareSelector({
               </div>
 
               {/* Features List - show ALL features with dynamic icons */}
-              <ul className="space-y-0.5 sm:space-y-1 mb-0.5 sm:mb-1.5">
+              <ul className="space-y-0 sm:space-y-1 mb-0.5 sm:mb-1.5">
                 {fare.features.map((feature, idx) => (
-                  <li key={idx} className="flex items-start gap-1 sm:gap-1.5 text-[10px] sm:text-xs text-gray-700">
+                  <li key={idx} className="flex items-start gap-1 sm:gap-1.5 text-[9px] sm:text-xs text-gray-700 leading-tight">
                     <span className="flex-shrink-0 mt-0.5">{getFeatureIcon(feature)}</span>
                     <span className="leading-tight">{feature}</span>
                   </li>
