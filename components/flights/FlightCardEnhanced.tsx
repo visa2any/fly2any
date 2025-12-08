@@ -915,61 +915,44 @@ export function FlightCardEnhanced({
         </div>
 
         {/* Right: Quick Actions - ALWAYS VISIBLE */}
-        <div className="flex items-center gap-1 sm:gap-1.5 flex-shrink-0">
-          {/* ML Score - Removed */}
-          {/* {(mlScore !== undefined || score !== undefined) && (
-            <div className="text-center px-1.5">
-              <div className={`font-bold leading-none ${
-                (mlScore !== undefined ? mlScore * 100 : score || 0) >= 90 ? 'text-green-600' :
-                (mlScore !== undefined ? mlScore * 100 : score || 0) >= 80 ? 'text-blue-600' :
-                (mlScore !== undefined ? mlScore * 100 : score || 0) >= 70 ? 'text-yellow-600' :
-                'text-gray-600'
-              }`} style={{ fontSize: '16px' }}>
-                {mlScore !== undefined ? Math.round(mlScore * 100) : score}
-              </div>
-              <div className="text-gray-500 font-medium" style={{ fontSize: '8px' }}>
-                {mlScore !== undefined ? 'ML' : 'IQ'}
-              </div>
-            </div>
-          )} */}
-
-          {/* Quick Actions - Smaller - Authentication required */}
+        <div className="flex items-center gap-1 sm:gap-1.5 flex-shrink-0 relative z-10">
+          {/* Quick Actions - Visible on mobile */}
           <button
             onClick={handleFavoriteClick}
             disabled={isFavoriteLoading}
-            className={`p-1 rounded transition-all ${
+            className={`p-1.5 md:p-1 rounded transition-all relative z-10 ${
               isFavorited
-                ? 'bg-red-500 text-white'
-                : 'bg-gray-100 text-gray-600 hover:bg-red-50 hover:text-red-500'
+                ? 'bg-red-500 text-white shadow-sm'
+                : 'bg-white border border-gray-300 text-gray-700 hover:bg-red-50 hover:text-red-500 hover:border-red-300'
             } ${isFavoriteLoading ? 'opacity-50 cursor-not-allowed' : ''}`}
             title={isFavorited ? 'Remove from wishlist' : 'Save to wishlist'}
             aria-label={isFavorited ? 'Remove from wishlist' : 'Save to wishlist'}
           >
             {isFavoriteLoading ? (
-              <Loader2 className="w-3.5 h-3.5 animate-spin" />
+              <Loader2 className="w-4 h-4 md:w-3.5 md:h-3.5 animate-spin" />
             ) : (
-              <Heart className={`w-3.5 h-3.5 ${isFavorited ? 'fill-current' : ''}`} />
+              <Heart className={`w-4 h-4 md:w-3.5 md:h-3.5 ${isFavorited ? 'fill-current' : ''}`} />
             )}
           </button>
 
           <button
             onClick={handleShareClick}
-            className="p-1 rounded transition-all bg-gray-100 text-gray-600 hover:bg-blue-50 hover:text-blue-600"
+            className="p-1.5 md:p-1 rounded transition-all bg-white border border-gray-300 text-gray-700 hover:bg-blue-50 hover:text-blue-600 hover:border-blue-300 relative z-10 shadow-sm"
             title="Share this flight"
             aria-label="Share flight deal"
             data-testid="share-button"
           >
-            <Share2 className="w-3.5 h-3.5" />
+            <Share2 className="w-4 h-4 md:w-3.5 md:h-3.5" />
           </button>
 
           {/* Compare button */}
           {onCompare && (
             <button
               onClick={() => onCompare(id)}
-              className={`p-1 rounded transition-all ${
+              className={`p-1.5 md:p-1 rounded transition-all relative z-10 shadow-sm ${
                 isComparing
-                  ? 'bg-primary-500 text-white'
-                  : 'bg-gray-100 text-gray-600 hover:bg-primary-50 hover:text-primary-500'
+                  ? 'bg-primary-500 text-white border border-primary-600'
+                  : 'bg-white border border-gray-300 text-gray-700 hover:bg-primary-50 hover:text-primary-500 hover:border-primary-300'
               }`}
               title={isComparing ? 'Remove from comparison' : 'Compare flights'}
               aria-label={isComparing ? 'Remove from comparison' : 'Add to comparison'}
