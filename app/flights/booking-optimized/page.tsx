@@ -2,7 +2,7 @@
 
 import { useState, useEffect, Suspense } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
-import { Plane, ChevronLeft, ChevronRight, ArrowLeft, Loader2, User, Clock, CheckCircle2, Star } from 'lucide-react';
+import { Plane, ChevronLeft, ChevronRight, ArrowLeft, Loader2, User, Clock, CheckCircle2, Star, Home } from 'lucide-react';
 import { formatCityCode } from '@/lib/data/airports';
 import { FareSelector } from '@/components/booking/FareSelector';
 import { AddOnsTabs } from '@/components/booking/AddOnsTabs';
@@ -784,7 +784,7 @@ function BookingPageContent() {
   const totalPrice = farePrice + addOns.reduce((sum, item) => sum + item.amount, 0) + taxesAndFees;
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gray-50 pb-16 sm:pb-0">
       {/* Header - Auto-hides on scroll down (Phase 8 Track 2B.1) */}
       <div
         className="bg-white border-b border-gray-200 sticky top-0 z-40 shadow-sm"
@@ -1189,6 +1189,23 @@ function BookingPageContent() {
           onSelectSeat={handleSelectSeat}
         />
       )}
+
+      {/* Mobile Bottom Navigation Bar */}
+      <div className="sm:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 shadow-lg z-50">
+        <div className="flex items-center justify-around px-4 py-3">
+          <button
+            onClick={() => router.push('/')}
+            className="flex flex-col items-center gap-1 text-gray-600 hover:text-primary-600 active:scale-95 transition-all"
+          >
+            <Home className="w-5 h-5" />
+            <span className="text-[10px] font-medium">Home</span>
+          </button>
+          <div className="flex flex-col items-center gap-1 text-primary-600">
+            <Plane className="w-5 h-5" />
+            <span className="text-[10px] font-semibold">Booking</span>
+          </div>
+        </div>
+      </div>
     </div>
   );
 }
