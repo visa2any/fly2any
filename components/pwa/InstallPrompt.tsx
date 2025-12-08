@@ -136,15 +136,32 @@ export default function InstallPrompt() {
     setShowPrompt(false);
   };
 
-  // Don't show if installed or dismissed
-  if (isInstalled || dismissed || !showPrompt || !deferredPrompt) {
+  // Always show persistent button in header, but hide banner if dismissed
+  const showBanner = !isInstalled && !dismissed && showPrompt && deferredPrompt;
+
+  // Show persistent install button if not installed and prompt is available
+  if (isInstalled) {
     return null;
   }
 
   return (
     <>
-      {/* Mobile Bottom Banner */}
-      <div className="fixed bottom-0 left-0 right-0 z-50 md:hidden">
+      {/* Persistent Install Button - Always visible if not installed */}
+      {deferredPrompt && (
+        <button
+          onClick={handleInstallClick}
+          className="fixed bottom-20 right-4 z-40 md:bottom-6 md:right-6 w-14 h-14 bg-blue-600 hover:bg-blue-700 text-white rounded-full shadow-2xl flex items-center justify-center transition-all hover:scale-110 group"
+          aria-label="Install Fly2Any App"
+          title="Install Fly2Any App"
+        >
+          <Download className="w-6 h-6 group-hover:animate-bounce" />
+          <span className="absolute -top-1 -right-1 w-4 h-4 bg-red-500 rounded-full animate-pulse"></span>
+        </button>
+      )}
+
+      {/* Mobile Bottom Banner - Only show if not dismissed */}
+      {showBanner && (
+        <div className="fixed bottom-0 left-0 right-0 z-50 md:hidden">
         <div className="bg-gradient-to-r from-blue-600 to-blue-700 text-white shadow-2xl">
           <div className="p-4 flex items-center gap-3">
             <div className="flex-shrink-0 w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center">
@@ -177,9 +194,11 @@ export default function InstallPrompt() {
           </div>
         </div>
       </div>
+      )}
 
-      {/* Desktop Popup */}
-      <div className="hidden md:block fixed bottom-6 right-6 z-50 max-w-sm">
+      {/* Desktop Popup - Only show if not dismissed */}
+      {showBanner && (
+        <div className="hidden md:block fixed bottom-6 right-6 z-50 max-w-sm">
         <div className="bg-white rounded-2xl shadow-2xl border border-gray-200 overflow-hidden">
           <div className="p-6">
             <div className="flex items-start gap-4 mb-4">
@@ -240,6 +259,7 @@ export default function InstallPrompt() {
           </div>
         </div>
       </div>
+      )}
     </>
   );
 }
