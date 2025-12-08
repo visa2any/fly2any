@@ -132,20 +132,22 @@ export function NavigationDrawer({
           >
             {/* Header with Logo, Notifications, and Close Button */}
             <div className="sticky top-0 bg-white border-b border-gray-200 px-6 py-4 flex items-center justify-between">
-              <a href="/" onClick={onClose} className="flex items-center">
-                <Image
-                  src={logoUrl}
-                  alt="Fly2Any Travel"
-                  width={120}
-                  height={36}
-                  priority
-                  className="h-8 w-auto"
-                  style={{
-                    width: 'auto',
-                    height: 'auto',
-                    maxHeight: '32px',
-                  }}
-                />
+              <a href="/" onClick={onClose} className="flex items-center gap-2.5">
+                {/* Airplane Icon */}
+                <div className="p-1.5 rounded-lg bg-gradient-to-br from-blue-50 to-cyan-50">
+                  <Image
+                    src="/icon-192.png"
+                    alt="Fly2Any"
+                    width={28}
+                    height={28}
+                    priority
+                    className="w-7 h-7"
+                  />
+                </div>
+                {/* Fly2Any Text */}
+                <span className="font-bold text-xl bg-gradient-to-r from-blue-600 to-cyan-600 bg-clip-text text-transparent">
+                  Fly2Any
+                </span>
               </a>
               <div className="flex items-center gap-2">
                 {/* Notification Bell for Mobile */}
