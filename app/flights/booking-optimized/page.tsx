@@ -794,7 +794,7 @@ function BookingPageContent() {
           willChange: 'transform',
         }}
       >
-        <div className="max-w-7xl mx-auto px-2 sm:px-4 py-2 sm:py-3">
+        <div className="max-w-7xl mx-auto px-0 sm:px-4 py-2 sm:py-3">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-1.5 sm:gap-3">
               {/* Back to Search Results Button */}
@@ -842,13 +842,13 @@ function BookingPageContent() {
       </div>
 
       {/* Main Content */}
-      <div className="max-w-7xl mx-auto px-2 sm:px-4 py-2 sm:py-4">
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-2 sm:gap-4">
+      <div className="max-w-7xl mx-auto px-0 sm:px-4 py-2 sm:py-4">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-0 sm:gap-4">
           {/* Left Column: Steps */}
-          <div className="lg:col-span-2 space-y-2 sm:space-y-4">
+          <div className="lg:col-span-2 space-y-0 sm:space-y-4">
             {/* STEP 1: Customize Flight */}
             {currentStep === 1 && (
-              <div className="space-y-2 sm:space-y-4 animate-fadeIn">
+              <div className="space-y-0 sm:space-y-4 animate-fadeIn">
                 {/* Premium Flight Confirmation Card */}
                 {flightData && (() => {
                   const airline = flightData.validatingAirlineCodes?.[0] || flightData.itineraries?.[0]?.segments?.[0]?.carrierCode || 'XX';
@@ -872,9 +872,9 @@ function BookingPageContent() {
                   };
 
                   return (
-                    <div className="bg-white rounded-lg sm:rounded-xl border border-gray-200 shadow-lg overflow-hidden">
+                    <div className="bg-white rounded-none sm:rounded-xl border-0 sm:border border-gray-200 shadow-none sm:shadow-lg overflow-hidden">
                       {/* Premium Header with Gradient - Compact on mobile */}
-                      <div className="bg-gradient-to-r from-primary-600 via-primary-500 to-secondary-500 px-2 sm:px-4 py-2 sm:py-3">
+                      <div className="bg-gradient-to-r from-primary-600 via-primary-500 to-secondary-500 px-3 sm:px-4 py-2 sm:py-3">
                         <div className="flex items-center justify-between">
                           <div className="flex items-center gap-2 sm:gap-3">
                             <div className="bg-white/20 backdrop-blur-sm rounded p-1 sm:rounded-lg sm:p-1.5">
@@ -1012,8 +1012,8 @@ function BookingPageContent() {
                 })()}
 
                 {/* Fare Selection */}
-                <div className="bg-white rounded-lg border border-gray-200 overflow-hidden">
-                  <div className="bg-gradient-to-r from-primary-500 to-primary-600 px-2 sm:px-3 py-2 sm:py-3 text-white">
+                <div className="bg-white rounded-none sm:rounded-lg border-0 sm:border border-gray-200 overflow-hidden">
+                  <div className="bg-gradient-to-r from-primary-500 to-primary-600 px-3 sm:px-3 py-2 sm:py-3 text-white">
                     <h2 className="text-sm sm:text-base font-bold flex items-center gap-1.5 sm:gap-2">
                       ✈️ Choose Your Fare
                     </h2>
@@ -1029,8 +1029,8 @@ function BookingPageContent() {
                 </div>
 
                 {/* Individual Add-Ons - Real airline services only */}
-                <div className="bg-white rounded-lg border border-gray-200 overflow-hidden shadow-sm">
-                  <div className="bg-gradient-to-r from-primary-500 to-primary-600 px-2 sm:px-3 py-2 sm:py-3 text-white">
+                <div className="bg-white rounded-none sm:rounded-lg border-0 sm:border border-gray-200 overflow-hidden shadow-none sm:shadow-sm">
+                  <div className="bg-gradient-to-r from-primary-500 to-primary-600 px-3 sm:px-3 py-2 sm:py-3 text-white">
                     <h3 className="text-sm sm:text-base font-bold flex items-center gap-1.5 sm:gap-2">
                       🎯 Add-Ons
                     </h3>
@@ -1048,15 +1048,15 @@ function BookingPageContent() {
 
             {/* STEP 2: Passenger Details */}
             {currentStep === 2 && (
-              <div className="space-y-2 sm:space-y-4 animate-fadeIn">
-                <div className="bg-white rounded-lg border border-gray-200 overflow-hidden shadow-sm">
-                  <div className="bg-gradient-to-r from-primary-500 to-primary-600 px-2 sm:px-3 py-2 sm:py-3 text-white">
+              <div className="space-y-0 sm:space-y-4 animate-fadeIn">
+                <div className="bg-white rounded-none sm:rounded-lg border-0 sm:border border-gray-200 overflow-hidden shadow-none sm:shadow-sm">
+                  <div className="bg-gradient-to-r from-primary-500 to-primary-600 px-3 sm:px-3 py-2 sm:py-3 text-white">
                     <h2 className="text-sm sm:text-base font-bold flex items-center gap-1.5 sm:gap-2">
                       <User className="w-4 h-4 sm:w-5 sm:h-5" />
                       Traveler Information
                     </h2>
                   </div>
-                  <div className="p-2 sm:p-4">
+                  <div className="p-3 sm:p-4">
                     <CompactPassengerForm
                       passengers={passengers}
                       isInternational={isInternationalRoute(flightData.search.from, flightData.search.to)}
@@ -1067,7 +1067,7 @@ function BookingPageContent() {
 
                 {/* Validation Helper Message */}
                 {!arePassengersComplete() && (
-                  <div className="bg-warning-50 border border-warning-300 rounded-lg p-2 sm:p-3">
+                  <div className="bg-warning-50 border-0 sm:border border-warning-300 rounded-none sm:rounded-lg p-3 sm:p-3 mx-3 sm:mx-0">
                     <div className="flex items-start gap-1.5 sm:gap-2">
                       <span className="text-warning-600 text-base sm:text-lg">⚠️</span>
                       <div className="flex-1">
@@ -1107,7 +1107,7 @@ function BookingPageContent() {
             )}
 
             {/* Navigation Buttons - Compact on mobile */}
-            <div className="flex items-center justify-between gap-2">
+            <div className="flex items-center justify-between gap-2 px-3 sm:px-0 py-3 sm:py-0">
               <button
                 onClick={handleBack}
                 disabled={currentStep === 1}
