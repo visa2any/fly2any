@@ -3135,7 +3135,7 @@ export default function EnhancedSearchBar({
 
 
           {/* Combined Travelers & Class */}
-          <div ref={passengerRef} className="relative z-30">
+          <div ref={passengerRef} className="relative z-50">
             <label className="block text-xs font-semibold text-gray-600 mb-1.5">
               Travelers & Class
             </label>
