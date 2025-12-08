@@ -1958,12 +1958,18 @@ export function AITravelAssistant({ language = 'en' }: Props) {
       )}
 
       <div
-        className={`fixed bottom-6 right-6 z-[1500] w-[400px] max-w-[calc(100vw-3rem)] transition-all duration-300 ${
-          isMinimized ? 'h-16' : 'h-[600px] max-h-[calc(100vh-3rem)]'
-        }`}
+        className={`
+          fixed z-[1500] transition-all duration-300
+          md:bottom-6 md:right-6 md:w-[400px] md:max-w-[calc(100vw-3rem)]
+          max-md:top-0 max-md:left-0 max-md:right-0 max-md:bottom-14 max-md:w-full
+          ${isMinimized
+            ? 'h-16 md:h-16'
+            : 'h-[600px] max-h-[calc(100vh-3rem)] md:h-[600px] md:max-h-[calc(100vh-3rem)] max-md:h-full'
+          }
+        `}
       >
         {/* Chat Window */}
-        <div className="bg-white rounded-2xl shadow-2xl border border-gray-200 flex flex-col h-full overflow-hidden">
+        <div className="bg-white md:rounded-2xl max-md:rounded-none md:shadow-2xl max-md:shadow-none md:border md:border-gray-200 max-md:border-0 flex flex-col h-full overflow-hidden">
           {/* Header */}
           <div className="bg-gradient-to-r from-primary-600 to-primary-700 px-5 py-4 flex items-center justify-between">
             <div className="flex items-center gap-3">
@@ -1981,7 +1987,7 @@ export function AITravelAssistant({ language = 'en' }: Props) {
             <div className="flex items-center gap-2">
               <button
                 onClick={() => setIsMinimized(!isMinimized)}
-                className="w-8 h-8 flex items-center justify-center hover:bg-white/10 rounded-lg transition-colors"
+                className="hidden md:flex w-8 h-8 items-center justify-center hover:bg-white/10 rounded-lg transition-colors"
                 aria-label={t.minimize}
               >
                 <Minimize2 className="w-4 h-4 text-white" />
