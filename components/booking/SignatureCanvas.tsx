@@ -38,7 +38,7 @@ export function SignatureCanvas({
     ctx.scale(dpr, dpr);
 
     // Set drawing style
-    ctx.strokeStyle = '#1e3a5f';
+    ctx.strokeStyle = '#1B1C20';
     ctx.lineWidth = 2;
     ctx.lineCap = 'round';
     ctx.lineJoin = 'round';
@@ -52,7 +52,7 @@ export function SignatureCanvas({
     ctx.stroke();
 
     // Reset style for drawing
-    ctx.strokeStyle = '#1e3a5f';
+    ctx.strokeStyle = '#1B1C20';
     ctx.lineWidth = 2;
   }, [width, height]);
 
@@ -144,7 +144,7 @@ export function SignatureCanvas({
     ctx.stroke();
 
     // Reset style
-    ctx.strokeStyle = '#1e3a5f';
+    ctx.strokeStyle = '#1B1C20';
     ctx.lineWidth = 2;
 
     setHasSignature(false);

@@ -288,7 +288,7 @@ export default function ModifyOrderDialog({
                     value={newDepartureDate}
                     onChange={(e) => setNewDepartureDate(e.target.value)}
                     min={new Date().toISOString().split('T')[0]}
-                    className="w-full border rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="w-full border rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-primary-500"
                     disabled={!isDuffelBooking}
                   />
                 </div>
@@ -303,7 +303,7 @@ export default function ModifyOrderDialog({
                       value={newReturnDate}
                       onChange={(e) => setNewReturnDate(e.target.value)}
                       min={newDepartureDate || new Date().toISOString().split('T')[0]}
-                      className="w-full border rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      className="w-full border rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-primary-500"
                       disabled={!isDuffelBooking}
                     />
                   </div>
@@ -311,9 +311,9 @@ export default function ModifyOrderDialog({
               </div>
 
               {/* Important Info */}
-              <div className="bg-blue-50 border border-blue-200 rounded-xl p-4 mb-6">
-                <h4 className="font-semibold text-blue-900 mb-2">Important Information</h4>
-                <ul className="text-sm text-blue-700 space-y-1 list-disc list-inside">
+              <div className="bg-info-50 border border-info-200 rounded-xl p-4 mb-6">
+                <h4 className="font-semibold text-neutral-800 mb-2">Important Information</h4>
+                <ul className="text-sm text-neutral-600 space-y-1 list-disc list-inside">
                   <li>Change fees may apply depending on your fare type</li>
                   <li>Price differences will be calculated for the new dates</li>
                   <li>Your original booking will be replaced with the new booking</li>
@@ -332,7 +332,7 @@ export default function ModifyOrderDialog({
                 </button>
                 <button
                   onClick={handleRequestModification}
-                  className="flex-1 px-6 py-3 bg-blue-600 text-white font-semibold rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="flex-1 px-6 py-3 bg-primary-500 text-white font-semibold rounded-lg hover:bg-primary-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                   disabled={loading || !isDuffelBooking || !newDepartureDate || (!!currentReturnDate && !newReturnDate)}
                 >
                   {loading ? 'Searching...' : 'Search New Flights'}
@@ -346,7 +346,7 @@ export default function ModifyOrderDialog({
             <div>
               {loading ? (
                 <div className="flex flex-col items-center justify-center py-12">
-                  <div className="w-16 h-16 border-4 border-blue-200 border-t-blue-600 rounded-full animate-spin mb-4" />
+                  <div className="w-16 h-16 border-4 border-primary-200 border-t-primary-500 rounded-full animate-spin mb-4" />
                   <p className="text-gray-600">Finding available flights...</p>
                 </div>
               ) : (
@@ -363,8 +363,8 @@ export default function ModifyOrderDialog({
                           setSelectedOffer(offer);
                           setStep('confirm');
                         }}
-                        className={`w-full border-2 rounded-xl p-4 text-left transition-all hover:border-blue-500 ${
-                          selectedOffer?.offerId === offer.offerId ? 'border-blue-500 bg-blue-50' : 'border-gray-200'
+                        className={`w-full border-2 rounded-xl p-4 text-left transition-all hover:border-primary-500 ${
+                          selectedOffer?.offerId === offer.offerId ? 'border-primary-500 bg-primary-50' : 'border-gray-200'
                         }`}
                       >
                         <div className="flex justify-between items-start mb-3">
@@ -422,26 +422,26 @@ export default function ModifyOrderDialog({
           {/* Step 3: Confirm */}
           {step === 'confirm' && selectedOffer && (
             <div>
-              <div className="bg-blue-50 border border-blue-200 rounded-xl p-6 mb-6">
-                <h3 className="text-lg font-bold text-blue-900 mb-4">Confirm Booking Change</h3>
+              <div className="bg-primary-50 border border-primary-200 rounded-xl p-6 mb-6">
+                <h3 className="text-lg font-bold text-neutral-800 mb-4">Confirm Booking Change</h3>
 
                 <div className="space-y-3">
                   <div className="flex justify-between">
-                    <span className="text-blue-700">Change Fee:</span>
-                    <span className="font-semibold text-blue-900">
+                    <span className="text-neutral-600">Change Fee:</span>
+                    <span className="font-semibold text-neutral-800">
                       {formatCurrency(selectedOffer.changeFee, selectedOffer.currency)}
                     </span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-blue-700">Price Difference:</span>
-                    <span className={`font-semibold ${selectedOffer.priceDifference >= 0 ? 'text-red-600' : 'text-green-600'}`}>
+                    <span className="text-neutral-600">Price Difference:</span>
+                    <span className={`font-semibold ${selectedOffer.priceDifference >= 0 ? 'text-error-500' : 'text-success-500'}`}>
                       {selectedOffer.priceDifference >= 0 ? '+' : ''}
                       {formatCurrency(selectedOffer.priceDifference, selectedOffer.currency)}
                     </span>
                   </div>
-                  <div className="flex justify-between pt-3 border-t border-blue-200">
-                    <span className="font-bold text-blue-900">Total to Pay:</span>
-                    <span className="text-2xl font-bold text-blue-900">
+                  <div className="flex justify-between pt-3 border-t border-primary-200">
+                    <span className="font-bold text-neutral-800">Total to Pay:</span>
+                    <span className="text-2xl font-bold text-primary-600">
                       {formatCurrency(selectedOffer.totalCost, selectedOffer.currency)}
                     </span>
                   </div>
@@ -458,7 +458,7 @@ export default function ModifyOrderDialog({
                 </button>
                 <button
                   onClick={handleConfirmModification}
-                  className="flex-1 px-6 py-3 bg-blue-600 text-white font-semibold rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="flex-1 px-6 py-3 bg-primary-500 text-white font-semibold rounded-lg hover:bg-primary-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                   disabled={loading}
                 >
                   {loading ? (
@@ -517,7 +517,7 @@ export default function ModifyOrderDialog({
 
               <button
                 onClick={onClose}
-                className="w-full px-6 py-3 bg-blue-600 text-white font-semibold rounded-lg hover:bg-blue-700 transition-colors"
+                className="w-full px-6 py-3 bg-primary-500 text-white font-semibold rounded-lg hover:bg-primary-600 transition-colors"
               >
                 Close
               </button>

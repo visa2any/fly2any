@@ -582,7 +582,7 @@ export default function PremiumDatePicker({
                   relative aspect-square w-full rounded-md transition-all duration-200
                   ${!day.isCurrentMonth ? 'text-gray-300' : 'text-gray-700'}
                   ${day.isDisabled ? 'cursor-not-allowed opacity-40' : 'cursor-pointer'}
-                  ${day.isWeekend && day.isCurrentMonth && !day.isDisabled && !day.isSelected ? 'bg-gradient-to-br from-blue-50 to-indigo-50' : ''}
+                  ${day.isWeekend && day.isCurrentMonth && !day.isDisabled && !day.isSelected ? 'bg-gradient-to-br from-info-50 to-primary-50' : ''}
                   ${
                     day.isSelected
                       ? 'bg-[#0087FF] text-white font-semibold shadow-md scale-105 z-10'
@@ -667,25 +667,25 @@ export default function PremiumDatePicker({
             <div className="flex flex-wrap gap-2">
               <button
                 onClick={() => handleQuickDate('weekend')}
-                className="px-2.5 py-1 text-xs font-medium text-gray-700 bg-gradient-to-r from-blue-50 to-indigo-50 hover:from-blue-100 hover:to-indigo-100 rounded-lg transition-all duration-200 border border-blue-200 hover:border-blue-300 hover:shadow-sm"
+                className="px-2.5 py-1 text-xs font-medium text-gray-700 bg-gradient-to-r from-info-50 to-primary-50 hover:from-blue-100 hover:to-primary-100 rounded-lg transition-all duration-200 border border-info-200 hover:border-info-300 hover:shadow-sm"
               >
                 This Weekend
               </button>
               <button
                 onClick={() => handleQuickDate('nextWeek')}
-                className="px-2.5 py-1 text-xs font-medium text-gray-700 bg-gradient-to-r from-blue-50 to-indigo-50 hover:from-blue-100 hover:to-indigo-100 rounded-lg transition-all duration-200 border border-blue-200 hover:border-blue-300 hover:shadow-sm"
+                className="px-2.5 py-1 text-xs font-medium text-gray-700 bg-gradient-to-r from-info-50 to-primary-50 hover:from-blue-100 hover:to-primary-100 rounded-lg transition-all duration-200 border border-info-200 hover:border-info-300 hover:shadow-sm"
               >
                 Next Week
               </button>
               <button
                 onClick={() => handleQuickDate('nextMonth')}
-                className="px-2.5 py-1 text-xs font-medium text-gray-700 bg-gradient-to-r from-blue-50 to-indigo-50 hover:from-blue-100 hover:to-indigo-100 rounded-lg transition-all duration-200 border border-blue-200 hover:border-blue-300 hover:shadow-sm"
+                className="px-2.5 py-1 text-xs font-medium text-gray-700 bg-gradient-to-r from-info-50 to-primary-50 hover:from-blue-100 hover:to-primary-100 rounded-lg transition-all duration-200 border border-info-200 hover:border-info-300 hover:shadow-sm"
               >
                 Next Month
               </button>
               <button
                 onClick={() => handleQuickDate('flexible')}
-                className="px-2.5 py-1 text-xs font-medium text-gray-700 bg-gradient-to-r from-blue-50 to-indigo-50 hover:from-blue-100 hover:to-indigo-100 rounded-lg transition-all duration-200 border border-blue-200 hover:border-blue-300 hover:shadow-sm"
+                className="px-2.5 py-1 text-xs font-medium text-gray-700 bg-gradient-to-r from-info-50 to-primary-50 hover:from-blue-100 hover:to-primary-100 rounded-lg transition-all duration-200 border border-info-200 hover:border-info-300 hover:shadow-sm"
               >
                 Flexible (±3)
               </button>

@@ -164,7 +164,7 @@ export default function MultiAirportSelector({
               {selectedAirports.slice(0, maxDisplay).map((airport) => (
                 <span
                   key={airport.code}
-                  className="inline-flex items-center gap-1 px-2 py-0.5 bg-blue-50 text-blue-700 rounded-md text-sm font-semibold flex-shrink-0 max-w-[200px]"
+                  className="inline-flex items-center gap-1 px-2 py-0.5 bg-info-50 text-primary-600 rounded-md text-sm font-semibold flex-shrink-0 max-w-[200px]"
                 >
                   <span className="text-xs">{airport.emoji}</span>
                   <span className="truncate">{airport.code}</span>
@@ -202,7 +202,7 @@ export default function MultiAirportSelector({
 
           {/* Selected Airports (Chips) */}
           {selectedAirports.length > 0 && (
-            <div className="p-2 bg-blue-50 border-b border-blue-100">
+            <div className="p-2 bg-info-50 border-b border-blue-100">
               <div className="flex items-center justify-between mb-1.5">
                 <span className="text-[10px] font-semibold text-gray-700">
                   Selected ({selectedAirports.length})
@@ -218,7 +218,7 @@ export default function MultiAirportSelector({
                 {selectedAirports.map((airport) => (
                   <span
                     key={airport.code}
-                    className="inline-flex items-center gap-1 px-2 py-0.5 bg-white border border-blue-200 rounded text-[10px] font-medium text-gray-900 group hover:border-blue-400 transition-colors"
+                    className="inline-flex items-center gap-1 px-2 py-0.5 bg-white border border-info-200 rounded text-[10px] font-medium text-gray-900 group hover:border-blue-400 transition-colors"
                   >
                     <span>{airport.emoji} {airport.code}</span>
                     <button
@@ -245,7 +245,7 @@ export default function MultiAirportSelector({
                   <button
                     key={key}
                     onClick={() => handleSelectMetroArea(key)}
-                    className="flex items-center gap-1.5 px-2 py-1.5 bg-white border border-gray-200 rounded-lg text-[10px] font-medium text-gray-700 hover:border-[#0087FF] hover:bg-blue-50 hover:text-[#0087FF] transition-all"
+                    className="flex items-center gap-1.5 px-2 py-1.5 bg-white border border-gray-200 rounded-lg text-[10px] font-medium text-gray-700 hover:border-[#0087FF] hover:bg-info-50 hover:text-[#0087FF] transition-all"
                   >
                     <span className="text-sm">{metro.icon}</span>
                     <span className="truncate">{metro.name}</span>
@@ -270,7 +270,7 @@ export default function MultiAirportSelector({
                     onClick={() => handleToggleAirport(airport)}
                     className={`w-full flex items-center gap-2 px-2 py-1.5 rounded-lg transition-all text-left mb-1 ${
                       isSelected
-                        ? 'bg-blue-50 border border-blue-200'
+                        ? 'bg-info-50 border border-info-200'
                         : 'hover:bg-gray-50 border border-transparent'
                     }`}
                   >

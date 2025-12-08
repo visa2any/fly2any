@@ -256,7 +256,7 @@ const SeatSelection: React.FC<SeatSelectionProps> = ({
     if (seat.status === 'occupied') return 'bg-gray-300 cursor-not-allowed';
     if (seat.status === 'selected') {
       const passengerIndex = passengers.findIndex(p => p.id === seat.assignedTo);
-      const colors = ['bg-blue-500', 'bg-purple-500', 'bg-pink-500', 'bg-green-500', 'bg-orange-500'];
+      const colors = ['bg-primary-500', 'bg-purple-500', 'bg-pink-500', 'bg-green-500', 'bg-orange-500'];
       return colors[passengerIndex % colors.length];
     }
     if (seat.status === 'premium') return 'bg-gradient-to-br from-amber-400 to-orange-500 hover:from-amber-500 hover:to-orange-600';
@@ -299,11 +299,11 @@ const SeatSelection: React.FC<SeatSelectionProps> = ({
 
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center min-h-[600px] bg-gradient-to-br from-blue-50 to-indigo-100 rounded-2xl">
+      <div className="flex items-center justify-center min-h-[600px] bg-gradient-to-br from-primary-50 to-primary-100 rounded-2xl">
         <div className="text-center">
           <div className="relative w-20 h-20 mx-auto mb-4">
             <motion.div
-              className="absolute inset-0 border-4 border-blue-500 border-t-transparent rounded-full"
+              className="absolute inset-0 border-4 border-primary-500 border-t-transparent rounded-full"
               animate={{ rotate: 360 }}
               transition={{ duration: 1, repeat: Infinity, ease: 'linear' }}
             />
@@ -316,7 +316,7 @@ const SeatSelection: React.FC<SeatSelectionProps> = ({
   }
 
   return (
-    <div className="bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 rounded-2xl p-4 md:p-6 lg:p-8">
+    <div className="bg-gradient-to-br from-primary-50 via-indigo-50 to-purple-50 rounded-2xl p-4 md:p-6 lg:p-8">
       {/* Header */}
       <div className="mb-6">
         <div className="flex items-center justify-between mb-4">
@@ -352,7 +352,7 @@ const SeatSelection: React.FC<SeatSelectionProps> = ({
                 onClick={() => setCurrentPassengerIndex(index)}
                 className={`p-4 rounded-xl transition-all ${
                   isActive
-                    ? 'bg-gradient-to-r from-blue-500 to-indigo-600 text-white shadow-lg scale-105'
+                    ? 'bg-gradient-to-r from-primary-500 to-indigo-600 text-white shadow-lg scale-105'
                     : 'bg-white text-gray-700 hover:shadow-md'
                 }`}
                 whileHover={{ scale: 1.02 }}
@@ -360,10 +360,10 @@ const SeatSelection: React.FC<SeatSelectionProps> = ({
               >
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-3">
-                    <Users className={`w-5 h-5 ${isActive ? 'text-white' : 'text-blue-600'}`} />
+                    <Users className={`w-5 h-5 ${isActive ? 'text-white' : 'text-primary-500'}`} />
                     <div className="text-left">
                       <p className="font-semibold">{passenger.name}</p>
-                      <p className={`text-sm ${isActive ? 'text-blue-100' : 'text-gray-500'}`}>
+                      <p className={`text-sm ${isActive ? 'text-info-100' : 'text-gray-500'}`}>
                         {assignedSeat ? `Seat ${assignedSeat.id}` : 'No seat selected'}
                       </p>
                     </div>
@@ -393,7 +393,7 @@ const SeatSelection: React.FC<SeatSelectionProps> = ({
           <h3 className="font-semibold text-gray-900">Seat Legend</h3>
           <button
             onClick={() => setShowInfo(!showInfo)}
-            className="text-blue-600 hover:text-blue-700 flex items-center gap-1"
+            className="text-primary-500 hover:text-primary-600 flex items-center gap-1"
           >
             <Info className="w-4 h-4" />
             {showInfo ? 'Hide' : 'Show'} Details
@@ -415,7 +415,7 @@ const SeatSelection: React.FC<SeatSelectionProps> = ({
             <span className="text-sm text-gray-700">Occupied</span>
           </div>
           <div className="flex items-center gap-2">
-            <div className="w-6 h-6 bg-blue-500 rounded"></div>
+            <div className="w-6 h-6 bg-primary-500 rounded"></div>
             <span className="text-sm text-gray-700">Selected</span>
           </div>
         </div>
@@ -429,7 +429,7 @@ const SeatSelection: React.FC<SeatSelectionProps> = ({
               className="mt-4 pt-4 border-t border-gray-200 grid grid-cols-2 md:grid-cols-4 gap-3"
             >
               <div className="flex items-center gap-2">
-                <Wifi className="w-4 h-4 text-blue-600" />
+                <Wifi className="w-4 h-4 text-primary-500" />
                 <span className="text-xs text-gray-600">WiFi</span>
               </div>
               <div className="flex items-center gap-2">
@@ -457,7 +457,7 @@ const SeatSelection: React.FC<SeatSelectionProps> = ({
             onClick={() => setFilter(f as typeof filter)}
             className={`px-4 py-2 rounded-lg font-medium transition-all whitespace-nowrap ${
               filter === f
-                ? 'bg-blue-600 text-white shadow-lg'
+                ? 'bg-primary-500 text-white shadow-lg'
                 : 'bg-white text-gray-700 hover:bg-gray-100'
             }`}
           >
@@ -584,7 +584,7 @@ const SeatSelection: React.FC<SeatSelectionProps> = ({
 
                   {isBathroomRow && row === layout.bathroomRows[layout.bathroomRows.length - 1] && (
                     <div className="flex justify-center mt-3 mb-2">
-                      <div className="bg-blue-100 text-blue-700 px-6 py-2 rounded-lg text-sm font-medium">
+                      <div className="bg-info-100 text-primary-600 px-6 py-2 rounded-lg text-sm font-medium">
                         Lavatories
                       </div>
                     </div>

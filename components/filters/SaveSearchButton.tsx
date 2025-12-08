@@ -355,7 +355,7 @@ export default function SaveSearchButton({
                   </div>
 
                   {enableAlert && (
-                    <div className="space-y-4 p-4 bg-blue-50 rounded-lg border border-blue-200">
+                    <div className="space-y-4 p-4 bg-info-50 rounded-lg border border-info-200">
                       <p className="text-sm text-gray-600">{t.priceAlertDesc}</p>
 
                       {/* Current Price Display */}

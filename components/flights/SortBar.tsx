@@ -92,8 +92,8 @@ const sortOptions = [
     icon: Clock,
     labelKey: 'earliest',
     descriptionKey: 'earliestDeparture',
-    gradient: 'from-blue-500 to-cyan-500',
-    hoverGradient: 'hover:from-blue-600 hover:to-cyan-600',
+    gradient: 'from-info-500 to-cyan-500',
+    hoverGradient: 'hover:from-primary-500 hover:to-cyan-600',
     activeGlow: 'shadow-blue-500/50',
   },
 ];

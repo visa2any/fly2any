@@ -366,26 +366,26 @@ export function HotelsSectionEnhanced({ lang = 'en' }: HotelsSectionEnhancedProp
   }, []);
 
   return (
-    <section className="py-4" style={{ maxWidth: '1600px', margin: '0 auto', padding: '16px 24px' }}>
-      {/* Section Header */}
-      <div className="flex items-center justify-between mb-4">
+    <section className="py-2 md:py-4" style={{ maxWidth: '1600px', margin: '0 auto', padding: '8px 4px' }}>
+      {/* Section Header - Mobile optimized, minimal padding */}
+      <div className="flex items-center justify-between mb-2 md:mb-4 px-1">
         <div>
-          <h2 className="text-2xl font-bold text-gray-900 mb-1">{t.title}</h2>
-          <p className="text-sm text-gray-600">{t.subtitle}</p>
+          <h2 className="text-base md:text-2xl font-bold text-neutral-800 mb-0.5">{t.title}</h2>
+          <p className="text-xs md:text-sm text-neutral-500">{t.subtitle}</p>
         </div>
         <button
           onClick={() => window.open('/hotels', '_blank')}
-          className="text-sm font-semibold text-primary-600 hover:text-primary-700 transition-colors"
+          className="text-xs md:text-sm font-semibold text-primary-600 hover:text-primary-700 transition-colors whitespace-nowrap"
         >
           {t.viewAll} →
         </button>
       </div>
 
       {/* Divider */}
-      <div className="h-0.5 bg-gray-200 mb-4"></div>
+      <div className="h-px bg-neutral-200 mb-2 md:mb-4 mx-1"></div>
 
-      {/* Filter Buttons - Continental Selection */}
-      <div className="flex flex-wrap gap-2 mb-6">
+      {/* Filter Buttons - Edge-to-edge scroll on mobile */}
+      <div className="flex gap-1 md:gap-2 mb-3 md:mb-6 overflow-x-auto scrollbar-hide pb-1 px-1">
         {[
           { key: 'all' as FilterType, label: t.all },
           { key: 'americas' as FilterType, label: t.americas },
@@ -397,7 +397,7 @@ export function HotelsSectionEnhanced({ lang = 'en' }: HotelsSectionEnhancedProp
           <button
             key={filter.key}
             onClick={() => setActiveFilter(filter.key)}
-            className={`px-4 py-2 rounded-lg font-semibold text-sm transition-all border ${
+            className={`px-2.5 md:px-4 py-1 md:py-2 rounded-full font-bold text-[10px] md:text-sm transition-all border-2 flex-shrink-0 whitespace-nowrap ${
               activeFilter === filter.key
                 ? 'bg-primary-600 text-white border-primary-600'
                 : 'bg-white text-gray-700 border-gray-200 hover:border-primary-400 hover:bg-primary-50'

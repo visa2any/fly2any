@@ -241,14 +241,14 @@ export function FlightDetailsSheet(props: FlightDetailsSheetProps) {
           </div>
 
           {/* Baggage Allowance */}
-          <div className="bg-blue-50 rounded-lg p-4">
+          <div className="bg-info-50 rounded-lg p-4">
             <h3 className="text-sm font-bold text-gray-900 mb-3 flex items-center gap-2">
-              <Luggage className="w-4 h-4 text-blue-600" />
+              <Luggage className="w-4 h-4 text-primary-500" />
               Baggage Allowance
             </h3>
             <div className="space-y-2">
               <div className="flex items-start gap-2">
-                <Briefcase className="w-4 h-4 text-blue-600 mt-0.5 flex-shrink-0" />
+                <Briefcase className="w-4 h-4 text-primary-500 mt-0.5 flex-shrink-0" />
                 <div className="flex-1 text-sm">
                   <span className="font-semibold text-gray-900">Carry-on:</span>{' '}
                   <span className="text-gray-700">
@@ -257,7 +257,7 @@ export function FlightDetailsSheet(props: FlightDetailsSheetProps) {
                 </div>
               </div>
               <div className="flex items-start gap-2">
-                <Luggage className="w-4 h-4 text-blue-600 mt-0.5 flex-shrink-0" />
+                <Luggage className="w-4 h-4 text-primary-500 mt-0.5 flex-shrink-0" />
                 <div className="flex-1 text-sm">
                   <span className="font-semibold text-gray-900">Checked:</span>{' '}
                   <span className="text-gray-700">

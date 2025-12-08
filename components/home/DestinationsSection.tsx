@@ -355,7 +355,7 @@ export function DestinationsSection({ lang = 'en' }: DestinationsSectionProps) {
                 </div>
               )}
               {destination.viewing && (
-                <div className="flex items-center gap-1 text-xs text-blue-600 font-semibold">
+                <div className="flex items-center gap-1 text-xs text-primary-500 font-semibold">
                   <Users className="w-3 h-3" />
                   <span>👥 {destination.viewing} {t.viewing}</span>
                 </div>

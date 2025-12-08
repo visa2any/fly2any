@@ -26,7 +26,7 @@ const sortOptions: { id: MobileSortOption; icon: typeof DollarSign; labelKey: st
   { id: 'nonstop', icon: Plane, labelKey: 'nonstop', activeBg: 'bg-sky-600' },
   { id: 'morning', icon: Sunrise, labelKey: 'morning', activeBg: 'bg-amber-500' },
   { id: 'evening', icon: Moon, labelKey: 'evening', activeBg: 'bg-slate-600' },
-  { id: 'baggage', icon: Luggage, labelKey: 'baggage', activeBg: 'bg-blue-600' },
+  { id: 'baggage', icon: Luggage, labelKey: 'baggage', activeBg: 'bg-primary-500' },
   { id: 'refundable', icon: RefreshCw, labelKey: 'refundable', activeBg: 'bg-teal-600' },
   { id: 'rebooking', icon: Ticket, labelKey: 'rebooking', activeBg: 'bg-indigo-600' },
 ];

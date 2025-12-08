@@ -213,7 +213,7 @@ const DestinationCard = memo(({
         {(() => {
           const airline = getAirlineInfo(destination.carrier);
           return (
-            <div className="bg-blue-500/90 backdrop-blur-sm px-2 py-1 rounded-lg flex items-center gap-1 text-white text-xs font-bold">
+            <div className="bg-info-500/90 backdrop-blur-sm px-2 py-1 rounded-lg flex items-center gap-1 text-white text-xs font-bold">
               <span>{airline.logo}</span>
               <span>{airline.name}</span>
             </div>
@@ -470,11 +470,11 @@ export function DestinationsSectionEnhanced({ lang = 'en' }: DestinationsSection
   }, [getDestinationImage]);
 
   return (
-    <section className="py-4" style={{ maxWidth: '1600px', margin: '0 auto', padding: '16px 24px' }}>
-      {/* Section Header */}
-      <div className="flex items-center justify-between mb-3 sm:mb-4 gap-2">
-        <div className="flex items-center gap-2 sm:gap-3 md:gap-4 flex-1 min-w-0">
-          <h2 className="text-base sm:text-lg md:text-2xl font-extrabold text-gray-900 whitespace-nowrap overflow-hidden text-ellipsis">{t.title}</h2>
+    <section className="py-2 md:py-4" style={{ maxWidth: '1600px', margin: '0 auto', padding: '8px 4px' }}>
+      {/* Section Header - Mobile optimized, minimal padding */}
+      <div className="flex items-center justify-between mb-2 md:mb-4 gap-2 px-1">
+        <div className="flex items-center gap-2 md:gap-4 flex-1 min-w-0">
+          <h2 className="text-base md:text-2xl font-extrabold text-neutral-800 whitespace-nowrap overflow-hidden text-ellipsis">{t.title}</h2>
           {/* ✅ Cache Indicator - Shows instant load status */}
           {fromCache && cacheAgeFormatted && (
             <CacheIndicator
@@ -496,11 +496,11 @@ export function DestinationsSectionEnhanced({ lang = 'en' }: DestinationsSection
       </div>
 
       {/* Divider */}
-      <div className="h-0.5 bg-gray-200 mb-3 sm:mb-4"></div>
+      <div className="h-px bg-neutral-200 mb-2 md:mb-4 mx-1"></div>
 
-      {/* Pill-based Filter Buttons - Horizontal scroll on mobile */}
+      {/* Pill-based Filter Buttons - Horizontal scroll on mobile, edge-to-edge */}
       <div
-        className="flex gap-1.5 sm:gap-2 mb-4 sm:mb-5 overflow-x-auto scrollbar-hide pb-1"
+        className="flex gap-1 md:gap-2 mb-3 md:mb-5 overflow-x-auto scrollbar-hide pb-1 px-1"
         style={{
           WebkitOverflowScrolling: 'touch',
           scrollbarWidth: 'none',
@@ -520,7 +520,7 @@ export function DestinationsSectionEnhanced({ lang = 'en' }: DestinationsSection
             key={filter.key}
             onClick={() => setActiveFilter(filter.key)}
             disabled={loading}
-            className={`px-3 sm:px-4 py-1.5 sm:py-2 rounded-full font-bold text-[11px] sm:text-xs md:text-sm transition-all duration-200 border-2 flex-shrink-0 whitespace-nowrap ${
+            className={`px-2.5 md:px-4 py-1 md:py-2 rounded-full font-bold text-[10px] md:text-sm transition-all duration-200 border-2 flex-shrink-0 whitespace-nowrap ${
               activeFilter === filter.key
                 ? 'bg-primary-600 text-white border-primary-600 shadow-md scale-105'
                 : 'bg-white text-gray-700 border-gray-300 hover:border-primary-500 hover:bg-primary-50 hover:scale-102 active:scale-100'
@@ -561,7 +561,7 @@ export function DestinationsSectionEnhanced({ lang = 'en' }: DestinationsSection
       {/* Destinations Grid - Using Memoized Components for Performance */}
       {!loading && !error && destinations.length > 0 && (
         <>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-2 md:gap-4 mb-2 md:mb-4 px-1">
             {destinations.map((destination) => (
               <DestinationCard
                 key={destination.id}

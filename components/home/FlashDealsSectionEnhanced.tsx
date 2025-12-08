@@ -197,11 +197,11 @@ export function FlashDealsSectionEnhanced({ lang = 'en' }: FlashDealsSectionEnha
   };
 
   return (
-    <section className="py-4" style={{ maxWidth: '1600px', margin: '0 auto', padding: '16px 24px' }}>
-      {/* Section Header */}
-      <div className="flex items-center justify-between mb-4">
-        <div className="flex items-center gap-4">
-          <h2 className="text-2xl font-bold text-gray-900">{t.title}</h2>
+    <section className="py-2 md:py-4" style={{ maxWidth: '1600px', margin: '0 auto', padding: '8px 4px' }}>
+      {/* Section Header - Mobile optimized typography */}
+      <div className="flex items-center justify-between mb-2 md:mb-4 px-1">
+        <div className="flex items-center gap-2 md:gap-4">
+          <h2 className="text-lg md:text-2xl font-bold text-neutral-800 whitespace-nowrap">{t.title}</h2>
           {/* ✅ Cache Indicator */}
           {fromCache && cacheAgeFormatted && (
             <CacheIndicator
@@ -222,7 +222,7 @@ export function FlashDealsSectionEnhanced({ lang = 'en' }: FlashDealsSectionEnha
       </div>
 
       {/* Divider */}
-      <div className="h-0.5 bg-gray-200 mb-4"></div>
+      <div className="h-px bg-neutral-200 mb-2 md:mb-4 mx-1"></div>
 
       {/* Loading State */}
       {loading && (
@@ -256,9 +256,9 @@ export function FlashDealsSectionEnhanced({ lang = 'en' }: FlashDealsSectionEnha
             {t.scrollHint}
           </div>
 
-          {/* Horizontal Scroll Container */}
-          <div className="overflow-x-auto pb-4 -mx-2 px-2">
-            <div className="flex gap-4 min-w-max">
+          {/* Horizontal Scroll Container - Edge-to-edge mobile */}
+          <div className="overflow-x-auto pb-2 md:pb-4 -mx-1 px-1">
+            <div className="flex gap-2 md:gap-4 min-w-max">
               {deals.map((deal) => {
                 // Get city names and airline data
                 const fromCity = getAirportCity(deal.from);
@@ -340,7 +340,7 @@ export function FlashDealsSectionEnhanced({ lang = 'en' }: FlashDealsSectionEnha
                           </div>
                         )}
                         {deal.urgency === 'high-demand' && (
-                          <div className="flex items-center gap-1 text-xs font-bold text-blue-600 bg-blue-50 px-2 py-1 rounded border border-blue-200">
+                          <div className="flex items-center gap-1 text-xs font-bold text-primary-500 bg-info-50 px-2 py-1 rounded border border-info-200">
                             <Users className="w-3 h-3" />
                             <span>{t.highDemand}</span>
                           </div>

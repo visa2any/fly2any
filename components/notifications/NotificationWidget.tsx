@@ -45,14 +45,14 @@ interface NotificationWidgetProps {
 const NOTIFICATION_ICONS: Record<NotificationType, React.ReactNode> = {
   booking_confirmed: <CheckCircle className="h-4 w-4 text-green-600" />,
   booking_cancelled: <XCircle className="h-4 w-4 text-red-600" />,
-  booking_modified: <Edit className="h-4 w-4 text-blue-600" />,
+  booking_modified: <Edit className="h-4 w-4 text-primary-500" />,
   price_alert_triggered: <TrendingDown className="h-4 w-4 text-orange-600" />,
   payment_successful: <CreditCard className="h-4 w-4 text-green-600" />,
   payment_failed: <AlertTriangle className="h-4 w-4 text-red-600" />,
   system_update: <Settings className="h-4 w-4 text-gray-600" />,
   promotion: <Tag className="h-4 w-4 text-purple-600" />,
-  account_security: <Shield className="h-4 w-4 text-blue-600" />,
-  trip_reminder: <Bell className="h-4 w-4 text-blue-600" />,
+  account_security: <Shield className="h-4 w-4 text-primary-500" />,
+  trip_reminder: <Bell className="h-4 w-4 text-primary-500" />,
 };
 
 export function NotificationWidget({
@@ -208,7 +208,7 @@ export function NotificationWidget({
                 onClick={() => handleNotificationClick(notification)}
                 className={cn(
                   'p-4 hover:bg-gray-50 transition-colors cursor-pointer group',
-                  !notification.read && 'bg-blue-50/50'
+                  !notification.read && 'bg-info-50/50'
                 )}
               >
                 <div className="flex gap-3">

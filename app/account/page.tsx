@@ -144,7 +144,7 @@ export default async function AccountPage() {
 
       {/* Welcome Section */}
       {session && session.user && (
-        <div className="bg-gradient-to-r from-blue-600 to-indigo-600 rounded-2xl p-8 text-white mb-8 shadow-xl">
+        <div className="bg-gradient-to-r from-primary-500 to-indigo-600 rounded-2xl p-8 text-white mb-8 shadow-xl">
           <div className="flex items-center gap-6">
             {session.user.image ? (
               <img
@@ -161,7 +161,7 @@ export default async function AccountPage() {
               <h1 className="text-3xl font-bold mb-2">
                 Welcome back, {session.user.name?.split(' ')[0] || 'Traveler'}!
               </h1>
-              <p className="text-blue-100 text-lg">
+              <p className="text-info-100 text-lg">
                 Manage your searches, track prices, and plan your next adventure
               </p>
             </div>
@@ -195,8 +195,8 @@ export default async function AccountPage() {
           className="bg-white rounded-xl p-6 shadow-md hover:shadow-xl transition-all hover:scale-105 border-2 border-transparent hover:border-blue-400"
         >
           <div className="flex items-center justify-between mb-4">
-            <div className="p-3 bg-blue-50 rounded-lg">
-              <BookmarkIcon className="w-6 h-6 text-blue-600" />
+            <div className="p-3 bg-info-50 rounded-lg">
+              <BookmarkIcon className="w-6 h-6 text-primary-500" />
             </div>
             <span className="text-3xl font-bold text-gray-900">{stats.savedSearches}</span>
           </div>
@@ -260,12 +260,12 @@ export default async function AccountPage() {
         <div className="bg-white rounded-xl shadow-md p-6">
           <div className="flex items-center justify-between mb-6">
             <h2 className="text-xl font-bold text-gray-900 flex items-center gap-2">
-              <Sparkles className="w-5 h-5 text-blue-600" />
+              <Sparkles className="w-5 h-5 text-primary-500" />
               Recent Saved Searches
             </h2>
             <Link
               href="/account/searches"
-              className="text-sm text-blue-600 hover:text-blue-700 font-semibold"
+              className="text-sm text-primary-500 hover:text-primary-600 font-semibold"
             >
               View All →
             </Link>
@@ -277,7 +277,7 @@ export default async function AccountPage() {
               <p className="text-gray-600 mb-4">No saved searches yet</p>
               <Link
                 href="/"
-                className="inline-block px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                className="inline-block px-4 py-2 bg-primary-500 text-white rounded-lg hover:bg-primary-600 transition-colors"
               >
                 Start Searching
               </Link>
@@ -288,11 +288,11 @@ export default async function AccountPage() {
                 <Link
                   key={search.id}
                   href={`/flights/results?from=${search.origin}&to=${search.destination}&departure=${search.departDate}&return=${search.returnDate || ''}&adults=${search.adults}&children=${search.children}&infants=${search.infants}&class=${search.cabinClass}`}
-                  className="block p-4 bg-gray-50 rounded-lg hover:bg-blue-50 transition-colors border border-gray-200 hover:border-blue-300"
+                  className="block p-4 bg-gray-50 rounded-lg hover:bg-info-50 transition-colors border border-gray-200 hover:border-info-300"
                 >
                   <div className="flex items-center justify-between mb-2">
                     <div className="flex items-center gap-2 text-sm font-semibold text-gray-900">
-                      <MapPin className="w-4 h-4 text-blue-600" />
+                      <MapPin className="w-4 h-4 text-primary-500" />
                       {search.origin} → {search.destination}
                     </div>
                     <span className="text-xs text-gray-500">
@@ -323,7 +323,7 @@ export default async function AccountPage() {
             </h2>
             <Link
               href="/account/alerts"
-              className="text-sm text-blue-600 hover:text-blue-700 font-semibold"
+              className="text-sm text-primary-500 hover:text-primary-600 font-semibold"
             >
               View All →
             </Link>
@@ -383,10 +383,10 @@ export default async function AccountPage() {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <Link
             href="/account/preferences"
-            className="flex items-center gap-4 p-4 bg-gray-50 rounded-lg hover:bg-blue-50 transition-colors border border-gray-200 hover:border-blue-300"
+            className="flex items-center gap-4 p-4 bg-gray-50 rounded-lg hover:bg-info-50 transition-colors border border-gray-200 hover:border-info-300"
           >
-            <div className="p-3 bg-blue-50 rounded-lg">
-              <Settings className="w-5 h-5 text-blue-600" />
+            <div className="p-3 bg-info-50 rounded-lg">
+              <Settings className="w-5 h-5 text-primary-500" />
             </div>
             <div>
               <h3 className="font-semibold text-gray-900">Preferences</h3>
@@ -396,7 +396,7 @@ export default async function AccountPage() {
 
           <Link
             href="/"
-            className="flex items-center gap-4 p-4 bg-gray-50 rounded-lg hover:bg-blue-50 transition-colors border border-gray-200 hover:border-blue-300"
+            className="flex items-center gap-4 p-4 bg-gray-50 rounded-lg hover:bg-info-50 transition-colors border border-gray-200 hover:border-info-300"
           >
             <div className="p-3 bg-green-50 rounded-lg">
               <Sparkles className="w-5 h-5 text-green-600" />

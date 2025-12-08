@@ -30,7 +30,7 @@ interface SelectedDistrict {
 // Get icon for location type
 const getTypeIcon = (type: string) => {
   switch (type) {
-    case 'airport': return <Plane className="w-5 h-5 text-blue-600" />;
+    case 'airport': return <Plane className="w-5 h-5 text-primary-500" />;
     case 'landmark': return <Landmark className="w-5 h-5 text-amber-600" />;
     case 'poi': return <Star className="w-5 h-5 text-purple-600" />;
     case 'neighborhood': return <Building2 className="w-5 h-5 text-green-600" />;
@@ -851,7 +851,7 @@ export function HotelSearchBar({ lang = 'en' }: HotelSearchBarProps) {
                               {(childAges[idx] ?? 8) <= 2 ? (
                                 <Baby className="w-4 h-4 text-pink-500" />
                               ) : (
-                                <Users className="w-4 h-4 text-blue-500" />
+                                <Users className="w-4 h-4 text-info-500" />
                               )}
                               <span className="text-sm font-medium text-gray-700">
                                 {t.child} {idx + 1}

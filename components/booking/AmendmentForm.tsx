@@ -90,7 +90,7 @@ export default function AmendmentForm({ bookingId, currentGuest, onSuccess, onCa
               required
               value={formData.guestFirstName}
               onChange={(e) => setFormData({ ...formData, guestFirstName: e.target.value })}
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-info-500 focus:border-transparent"
               disabled={loading || success}
             />
           </div>
@@ -104,7 +104,7 @@ export default function AmendmentForm({ bookingId, currentGuest, onSuccess, onCa
               required
               value={formData.guestLastName}
               onChange={(e) => setFormData({ ...formData, guestLastName: e.target.value })}
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-info-500 focus:border-transparent"
               disabled={loading || success}
             />
           </div>
@@ -119,17 +119,17 @@ export default function AmendmentForm({ bookingId, currentGuest, onSuccess, onCa
             required
             value={formData.guestEmail}
             onChange={(e) => setFormData({ ...formData, guestEmail: e.target.value })}
-            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-info-500 focus:border-transparent"
             disabled={loading || success}
           />
         </div>
 
         {hasChanges && !success && (
-          <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
-            <p className="text-sm text-blue-800">
+          <div className="bg-info-50 border border-info-200 rounded-lg p-3">
+            <p className="text-sm text-neutral-700">
               <strong>Changes detected:</strong> The following fields will be updated:
             </p>
-            <ul className="text-sm text-blue-700 mt-2 space-y-1">
+            <ul className="text-sm text-primary-600 mt-2 space-y-1">
               {formData.guestFirstName !== currentGuest.firstName && (
                 <li>• First Name: {currentGuest.firstName} → {formData.guestFirstName}</li>
               )}
@@ -157,7 +157,7 @@ export default function AmendmentForm({ bookingId, currentGuest, onSuccess, onCa
           <button
             type="submit"
             disabled={loading || success || !hasChanges}
-            className="flex-1 px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors font-medium"
+            className="flex-1 px-6 py-2 bg-primary-500 text-white rounded-lg hover:bg-primary-600 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors font-medium"
           >
             {loading ? 'Updating...' : success ? 'Updated!' : 'Confirm Amendment'}
           </button>

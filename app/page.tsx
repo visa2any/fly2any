@@ -294,20 +294,19 @@ export default function Home() {
     <div className="min-h-screen bg-white">
       {/* ============================================
           PAGE TITLE - Between Header and Search Bar
-          ENHANCED: Premium Typography & Advanced Animations
-          MOBILE OPTIMIZED: Fixed overflow issues on mobile devices
+          ENHANCED: Anti-eye-strain palette, edge-to-edge mobile
           ============================================ */}
-      <div className="relative bg-gradient-to-br from-gray-50 via-blue-50/30 to-gray-50 border-b border-gray-200/60 overflow-hidden md:overflow-visible max-h-[100vh] md:max-h-none">
-        {/* Animated floating orbs in background */}
+      <div className="relative bg-gradient-to-br from-neutral-50 via-primary-50/20 to-neutral-50 border-b border-neutral-200 overflow-hidden md:overflow-visible max-h-[100vh] md:max-h-none">
+        {/* Animated floating orbs in background - using theme colors */}
         <div className="absolute inset-0 overflow-hidden pointer-events-none">
           <div className="floating-orb floating-orb-1"></div>
           <div className="floating-orb floating-orb-2"></div>
           <div className="floating-orb floating-orb-3"></div>
         </div>
 
-        {/* Subtle background pattern */}
-        <div className="absolute inset-0 opacity-[0.03]" style={{
-          backgroundImage: 'radial-gradient(circle at 1px 1px, rgb(59, 130, 246) 1px, transparent 0)',
+        {/* Subtle background pattern - theme primary */}
+        <div className="absolute inset-0 opacity-[0.02]" style={{
+          backgroundImage: 'radial-gradient(circle at 1px 1px, rgb(214, 58, 53) 1px, transparent 0)',
           backgroundSize: '40px 40px'
         }}></div>
 
@@ -316,7 +315,7 @@ export default function Home() {
           noPadding={true}
           style={{ padding: '6px 0 4px' }}
         >
-          <div className="px-4 md:px-6">
+          <div className="px-1 md:px-6">
           {/* REMOVED: Airplane animation (user request) */}
 
           {/* Title Container - Single line, no wrapping */}
@@ -342,7 +341,7 @@ export default function Home() {
             </h1>
 
             {/* Separator */}
-            <span className="hidden md:inline-block text-blue-400 text-2xl font-bold mx-1">•</span>
+            <span className="hidden md:inline-block text-primary-400 text-2xl font-bold mx-1">•</span>
 
             {/* Subtitle - Letter-by-Letter Elastic Animation (unified with title) */}
             <p
@@ -389,7 +388,7 @@ export default function Home() {
         .floating-orb-1 {
           width: 200px;
           height: 200px;
-          background: linear-gradient(135deg, #3b82f6, #06b6d4);
+          background: linear-gradient(135deg, #D63A35, #E8C52A);
           top: -80px;
           left: 5%;
           animation-delay: 0s;
@@ -399,7 +398,7 @@ export default function Home() {
         .floating-orb-2 {
           width: 180px;
           height: 180px;
-          background: linear-gradient(135deg, #0891b2, #1e40af);
+          background: linear-gradient(135deg, #C7342F, #D7B622);
           top: -60px;
           right: 10%;
           animation-delay: 5s;
@@ -409,7 +408,7 @@ export default function Home() {
         .floating-orb-3 {
           width: 150px;
           height: 150px;
-          background: linear-gradient(135deg, #06b6d4, #3b82f6);
+          background: linear-gradient(135deg, #E8C52A, #D63A35);
           bottom: -50px;
           left: 50%;
           animation-delay: 10s;
@@ -475,13 +474,13 @@ export default function Home() {
 
         /* ===== SOLID COLOR TITLE (100% Cross-Browser Compatible) ===== */
         .hero-title {
-          /* Solid, highly visible blue color - NO gradient issues */
-          color: #1e40af;
+          /* Anti-eye-strain: Using neutral-800 instead of pure black/harsh blue */
+          color: #1B1C20;
 
-          /* Strong text shadow for depth and visibility */
+          /* Soft text shadow for depth - low opacity per anti-fatigue spec */
           text-shadow:
-            0 1px 2px rgba(0, 0, 0, 0.1),
-            0 2px 8px rgba(30, 64, 175, 0.15);
+            0 1px 2px rgba(27, 28, 32, 0.08),
+            0 2px 8px rgba(214, 58, 53, 0.10);
 
           position: relative;
           z-index: 10; /* Keep text ABOVE background orbs */
@@ -568,8 +567,8 @@ export default function Home() {
           transform: translateZ(0);
           backface-visibility: hidden;
           isolation: isolate;
-          /* Ensure visibility */
-          color: #374151;
+          /* Anti-eye-strain: neutral-500 for secondary text */
+          color: #5F6368;
           font-weight: 500;
         }
 
@@ -638,7 +637,7 @@ export default function Home() {
           Trust badges integrated into Trust Indicators section below
           ============================================ */}
       <main>
-        <MaxWidthContainer className="px-0 md:px-6" noPadding={true}>
+        <MaxWidthContainer className="px-1 md:px-6" noPadding={true}>
           {/* ============================================
               RECENTLY VIEWED - Personalized Recommendations
               ============================================ */}

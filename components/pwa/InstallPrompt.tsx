@@ -150,7 +150,7 @@ export default function InstallPrompt() {
       {deferredPrompt && (
         <button
           onClick={handleInstallClick}
-          className="fixed bottom-20 right-4 z-40 md:bottom-6 md:right-6 w-14 h-14 bg-blue-600 hover:bg-blue-700 text-white rounded-full shadow-2xl flex items-center justify-center transition-all hover:scale-110 group"
+          className="fixed bottom-20 right-4 z-40 md:bottom-6 md:right-6 w-14 h-14 bg-primary-500 hover:bg-primary-600 text-white rounded-full shadow-2xl flex items-center justify-center transition-all hover:scale-110 group"
           aria-label="Install Fly2Any App"
           title="Install Fly2Any App"
         >
@@ -162,7 +162,7 @@ export default function InstallPrompt() {
       {/* Mobile Bottom Banner - Only show if not dismissed */}
       {showBanner && (
         <div className="fixed bottom-0 left-0 right-0 z-50 md:hidden">
-        <div className="bg-gradient-to-r from-blue-600 to-blue-700 text-white shadow-2xl">
+        <div className="bg-gradient-to-r from-primary-500 to-blue-700 text-white shadow-2xl">
           <div className="p-4 flex items-center gap-3">
             <div className="flex-shrink-0 w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center">
               <Plane className="w-6 h-6" />
@@ -176,7 +176,7 @@ export default function InstallPrompt() {
 
             <button
               onClick={handleInstallClick}
-              className="flex-shrink-0 px-4 py-2 bg-white text-blue-600 font-semibold rounded-lg text-sm hover:bg-blue-50 transition-colors"
+              className="flex-shrink-0 px-4 py-2 bg-white text-primary-500 font-semibold rounded-lg text-sm hover:bg-info-50 transition-colors"
             >
               Install
             </button>
@@ -199,7 +199,7 @@ export default function InstallPrompt() {
         <div className="bg-white rounded-2xl shadow-2xl border border-gray-200 overflow-hidden">
           <div className="p-6">
             <div className="flex items-start gap-4 mb-4">
-              <div className="flex-shrink-0 w-14 h-14 bg-gradient-to-br from-blue-600 to-blue-700 rounded-xl flex items-center justify-center">
+              <div className="flex-shrink-0 w-14 h-14 bg-gradient-to-br from-primary-500 to-blue-700 rounded-xl flex items-center justify-center">
                 <Plane className="w-7 h-7 text-white" />
               </div>
 
@@ -224,7 +224,7 @@ export default function InstallPrompt() {
             <div className="flex items-center gap-3">
               <button
                 onClick={handleInstallClick}
-                className="flex-1 px-4 py-3 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-xl transition-colors"
+                className="flex-1 px-4 py-3 bg-primary-500 hover:bg-primary-600 text-white font-semibold rounded-xl transition-colors"
               >
                 Install App
               </button>

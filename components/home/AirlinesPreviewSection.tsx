@@ -87,7 +87,7 @@ const featuredAirlines: Airline[] = [
 export function AirlinesPreviewSection() {
   return (
     <section className="py-16 bg-white">
-      <div className="mx-auto px-4 sm:px-6 lg:px-8" style={{ maxWidth: '1600px' }}>
+      <div className="mx-auto px-1 md:px-6" style={{ maxWidth: '1600px' }}>
         {/* Section Header */}
         <div className="text-center mb-12">
           <div className="flex items-center justify-center gap-3 mb-4">

@@ -24,7 +24,7 @@ const trustItems: TrustItem[] = [
   {
     icon: Headphones,
     text: '24/7 Support',
-    color: 'text-blue-600'
+    color: 'text-primary-500'
   },
   {
     icon: Lock,

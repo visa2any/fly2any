@@ -56,8 +56,8 @@ const featuredPosts: BlogPost[] = [
 
 export function BlogPreviewSection() {
   return (
-    <section className="py-16 bg-gradient-to-br from-gray-50 to-blue-50">
-      <div className="mx-auto px-4 sm:px-6 lg:px-8" style={{ maxWidth: '1600px' }}>
+    <section className="py-16 bg-gradient-to-br from-neutral-50 to-primary-50/30">
+      <div className="mx-auto px-1 md:px-6" style={{ maxWidth: '1600px' }}>
         {/* Section Header */}
         <div className="text-center mb-12">
           <div className="flex items-center justify-center gap-3 mb-4">

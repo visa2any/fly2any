@@ -152,32 +152,32 @@ export function WorldCupHeroSectionEnhanced({ lang = 'en', compact = false }: Wo
   }
 
   return (
-    <section className="py-4" style={{ maxWidth: '1600px', margin: '0 auto', padding: '16px 24px' }}>
-      {/* Section Header - Consistent with other sections */}
-      <div className="flex items-center justify-between mb-4">
-        <div className="flex items-center gap-3">
+    <section className="py-2 md:py-4" style={{ maxWidth: '1600px', margin: '0 auto', padding: '8px 4px' }}>
+      {/* Section Header - Mobile optimized, minimal padding */}
+      <div className="flex items-center justify-between mb-2 md:mb-4 px-1">
+        <div className="flex items-center gap-2 md:gap-3">
           {/* Trophy Icon on the left */}
-          <div className="flex-shrink-0 w-10 h-10 sm:w-12 sm:h-12 bg-gradient-to-br from-yellow-400 via-yellow-500 to-orange-500 rounded-xl flex items-center justify-center shadow-lg">
-            <TrophyIcon className="w-6 h-6 sm:w-7 sm:h-7 text-white" />
+          <div className="flex-shrink-0 w-8 h-8 md:w-12 md:h-12 bg-gradient-to-br from-secondary-400 via-secondary-500 to-orange-500 rounded-xl flex items-center justify-center shadow-lg">
+            <TrophyIcon className="w-5 h-5 md:w-7 md:h-7 text-white" />
           </div>
           <div>
-            <h2 className="text-lg sm:text-xl md:text-2xl font-bold text-gray-900">{t.sectionTitle}</h2>
-            <p className="text-xs sm:text-sm text-gray-600 mt-0.5">{t.sectionSubtitle}</p>
+            <h2 className="text-base md:text-2xl font-bold text-neutral-800">{t.sectionTitle}</h2>
+            <p className="text-[10px] md:text-sm text-neutral-500 mt-0.5">{t.sectionSubtitle}</p>
           </div>
         </div>
         <Link
           href="/world-cup-2026"
-          className="text-xs sm:text-sm font-semibold text-primary-600 hover:text-primary-700 transition-colors whitespace-nowrap"
+          className="text-[10px] md:text-sm font-semibold text-primary-600 hover:text-primary-700 transition-colors whitespace-nowrap"
         >
           {t.viewAll} →
         </Link>
       </div>
 
       {/* Divider */}
-      <div className="h-0.5 bg-gray-200 mb-4"></div>
+      <div className="h-px bg-neutral-200 mb-2 md:mb-4 mx-1"></div>
 
-      {/* Main World Cup Hero */}
-      <div className="relative overflow-hidden bg-gradient-to-br from-green-900 via-blue-900 to-red-900 rounded-xl">
+      {/* Main World Cup Hero - Edge-to-edge on mobile */}
+      <div className="relative overflow-hidden bg-gradient-to-br from-green-900 via-blue-900 to-red-900 rounded-lg md:rounded-xl mx-1">
       {/* Stadium Background Image */}
       <div className="absolute inset-0">
         <div className="absolute inset-0 bg-gradient-to-r from-green-900/90 via-blue-900/85 to-red-900/90 z-10" />
@@ -202,7 +202,7 @@ export function WorldCupHeroSectionEnhanced({ lang = 'en', compact = false }: Wo
       </div>
 
       {/* Flag Colors Accent */}
-      <div className="absolute top-0 left-0 right-0 h-1.5 sm:h-2 bg-gradient-to-r from-blue-500 via-white to-red-500 opacity-60" />
+      <div className="absolute top-0 left-0 right-0 h-1.5 sm:h-2 bg-gradient-to-r from-info-500 via-white to-red-500 opacity-60" />
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 py-6 sm:py-8 md:py-10 relative z-30">
         <div className="grid lg:grid-cols-2 gap-4 lg:gap-8 items-center">
@@ -292,7 +292,7 @@ export function WorldCupHeroSectionEnhanced({ lang = 'en', compact = false }: Wo
 
               {/* Hours - COMPACT */}
               <div className="text-center">
-                <div className="bg-gradient-to-br from-blue-500 to-blue-700 text-white rounded-lg sm:rounded-xl p-2 sm:p-3 shadow-xl transform hover:scale-105 transition-transform">
+                <div className="bg-gradient-to-br from-info-500 to-blue-700 text-white rounded-lg sm:rounded-xl p-2 sm:p-3 shadow-xl transform hover:scale-105 transition-transform">
                   <div className="text-2xl sm:text-3xl md:text-4xl font-black tabular-nums" suppressHydrationWarning>
                     {hasMounted ? String(timeLeft.hours).padStart(2, '0') : '--'}
                   </div>

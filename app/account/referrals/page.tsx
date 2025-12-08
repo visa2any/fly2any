@@ -357,8 +357,8 @@ export default function ReferralsPage() {
                       <p className="text-lg font-bold text-gray-900">1.0x</p>
                       <p className="text-xs text-gray-600">Flights</p>
                     </div>
-                    <div className="text-center p-3 bg-blue-50 rounded-lg">
-                      <p className="text-lg font-bold text-blue-600">1.2x</p>
+                    <div className="text-center p-3 bg-info-50 rounded-lg">
+                      <p className="text-lg font-bold text-primary-500">1.2x</p>
                       <p className="text-xs text-gray-600">International</p>
                     </div>
                     <div className="text-center p-3 bg-purple-50 rounded-lg">
@@ -445,12 +445,12 @@ export default function ReferralsPage() {
                   <p className="text-3xl font-bold text-primary-600">{networkTree.byLevel.level1.length}</p>
                   <p className="text-sm text-gray-600">Direct referrals (5% of earnings)</p>
                 </div>
-                <div className="bg-blue-50 rounded-lg p-4 border border-blue-200">
+                <div className="bg-info-50 rounded-lg p-4 border border-info-200">
                   <div className="flex items-center gap-2 mb-2">
-                    <Users className="w-5 h-5 text-blue-600" />
+                    <Users className="w-5 h-5 text-primary-500" />
                     <p className="font-semibold text-gray-900">Level 2</p>
                   </div>
-                  <p className="text-3xl font-bold text-blue-600">{networkTree.byLevel.level2.length}</p>
+                  <p className="text-3xl font-bold text-primary-500">{networkTree.byLevel.level2.length}</p>
                   <p className="text-sm text-gray-600">Second level (2% of earnings)</p>
                 </div>
                 <div className="bg-purple-50 rounded-lg p-4 border border-purple-200">
@@ -479,10 +479,10 @@ export default function ReferralsPage() {
                         >
                           <div className="flex items-center gap-4">
                             <div className={`w-10 h-10 rounded-full flex items-center justify-center ${
-                              level === 1 ? 'bg-primary-100' : level === 2 ? 'bg-blue-100' : 'bg-purple-100'
+                              level === 1 ? 'bg-primary-100' : level === 2 ? 'bg-info-100' : 'bg-purple-100'
                             }`}>
                               <User className={`w-5 h-5 ${
-                                level === 1 ? 'text-primary-600' : level === 2 ? 'text-blue-600' : 'text-purple-600'
+                                level === 1 ? 'text-primary-600' : level === 2 ? 'text-primary-500' : 'text-purple-600'
                               }`} />
                             </div>
                             <div>

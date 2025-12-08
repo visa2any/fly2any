@@ -43,9 +43,9 @@ const FEATURE_CONFIG = {
       'Save comparisons for later',
       'Share with travel companions',
     ],
-    gradient: 'from-blue-500 to-indigo-500',
-    iconBg: 'bg-blue-100',
-    iconColor: 'text-blue-500',
+    gradient: 'from-info-500 to-primary-500',
+    iconBg: 'bg-info-100',
+    iconColor: 'text-info-500',
   },
   priceAlert: {
     icon: Bell,
@@ -95,8 +95,8 @@ const FEATURE_CONFIG = {
       'Get instant price drop alerts',
       'Sync across all devices',
     ],
-    gradient: 'from-indigo-500 to-purple-500',
-    iconBg: 'bg-indigo-100',
+    gradient: 'from-primary-500 to-purple-500',
+    iconBg: 'bg-primary-100',
     iconColor: 'text-indigo-500',
   },
 };

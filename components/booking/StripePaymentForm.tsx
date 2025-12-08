@@ -179,7 +179,7 @@ export function StripePaymentForm(props: StripePaymentFormProps) {
         appearance: {
           theme: 'stripe',
           variables: {
-            colorPrimary: '#2563eb',
+            colorPrimary: '#D63A35',
             colorBackground: '#ffffff',
             colorText: '#1f2937',
             colorDanger: '#ef4444',

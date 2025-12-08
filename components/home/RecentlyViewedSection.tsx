@@ -414,37 +414,37 @@ export function RecentlyViewedSection({ lang = 'en' }: RecentlyViewedSectionProp
   }
 
   return (
-    <section className="py-2.5 sm:py-3 md:py-4 animate-fadeIn" style={{ maxWidth: '1600px', margin: '0 auto', padding: '12px 12px sm:16px 16px' }}>
-      {/* Section Header - COMPACT */}
-      <div className="flex items-center justify-between mb-2.5 sm:mb-3 md:mb-4">
-        <div className="flex items-center gap-1.5 sm:gap-2">
-          <div className="p-1 sm:p-1.5 bg-gradient-to-br from-blue-50 to-indigo-50 rounded-md sm:rounded-lg">
-            <Sparkles className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-indigo-600" />
+    <section className="py-2 md:py-4 animate-fadeIn" style={{ maxWidth: '1600px', margin: '0 auto', padding: '8px 4px' }}>
+      {/* Section Header - Mobile optimized, minimal padding */}
+      <div className="flex items-center justify-between mb-2 md:mb-4 px-1">
+        <div className="flex items-center gap-1.5 md:gap-2">
+          <div className="p-1 md:p-1.5 bg-gradient-to-br from-info-50 to-primary-50 rounded-md">
+            <Sparkles className="w-3.5 h-3.5 md:w-4 md:h-4 text-primary-600" />
           </div>
           <div>
-            <h2 className="text-lg sm:text-xl font-bold text-gray-900 flex items-center gap-1.5 sm:gap-2 leading-tight">
+            <h2 className="text-base md:text-xl font-bold text-neutral-800 flex items-center gap-1.5 md:gap-2 leading-tight">
               {t.title}
               {recentlyViewed.length > maxItems && (
-                <span className="text-[10px] sm:text-xs font-normal text-gray-500 bg-gray-100 px-1.5 sm:px-2 py-0.5 rounded-full">
+                <span className="text-[9px] md:text-xs font-normal text-neutral-500 bg-neutral-100 px-1.5 md:px-2 py-0.5 rounded-full">
                   {t.showing} {filteredItems.length} {t.of} {recentlyViewed.length}
                 </span>
               )}
             </h2>
-            <p className="text-[11px] sm:text-xs text-gray-600 mt-0.5 leading-tight">{t.subtitle}</p>
+            <p className="text-[10px] md:text-xs text-neutral-500 mt-0.5 leading-tight">{t.subtitle}</p>
           </div>
         </div>
         <button
           onClick={clearAll}
-          className="text-[11px] sm:text-xs font-semibold text-gray-500 hover:text-red-600 transition-colors flex items-center gap-1 sm:gap-1.5 px-2 sm:px-3 py-1 sm:py-1.5 hover:bg-red-50 rounded-md sm:rounded-lg"
+          className="text-[10px] md:text-xs font-semibold text-neutral-500 hover:text-error-500 transition-colors flex items-center gap-1 px-2 py-1 hover:bg-error-50 rounded-md"
         >
-          <X className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
-          <span className="hidden sm:inline">{t.clearAll}</span>
-          <span className="sm:hidden">Clear</span>
+          <X className="w-3 h-3" />
+          <span className="hidden md:inline">{t.clearAll}</span>
+          <span className="md:hidden">Clear</span>
         </button>
       </div>
 
-      {/* Responsive Grid Layout - ULTRA COMPACT with gap-2 on mobile */}
-      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 2xl:grid-cols-6 gap-2 sm:gap-2.5 md:gap-3">
+      {/* Responsive Grid Layout - Edge-to-edge, minimal gap on mobile */}
+      <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-1.5 md:gap-3 px-1">
         {filteredItems.map((item, index) => {
           const hasPriceDrop = isPriceDrop(item);
           const priceDropPercent = getPriceDropPercentage(item);
@@ -589,7 +589,7 @@ export function RecentlyViewedSection({ lang = 'en' }: RecentlyViewedSectionProp
                       e.stopPropagation();
                       handleDestinationClick(item);
                     }}
-                    className="bg-gradient-to-r from-blue-600 to-indigo-600 text-white text-[10px] sm:text-[11px] font-bold px-2 sm:px-2.5 py-0.5 sm:py-1 rounded-sm sm:rounded-md shadow-md hover:shadow-lg transform hover:scale-105 transition-all flex items-center gap-0.5 sm:gap-1"
+                    className="bg-gradient-to-r from-primary-500 to-indigo-600 text-white text-[10px] sm:text-[11px] font-bold px-2 sm:px-2.5 py-0.5 sm:py-1 rounded-sm sm:rounded-md shadow-md hover:shadow-lg transform hover:scale-105 transition-all flex items-center gap-0.5 sm:gap-1"
                   >
                     {t.bookNow}
                     <ArrowRight className="w-2.5 h-2.5 sm:w-3 sm:h-3" />
@@ -605,7 +605,7 @@ export function RecentlyViewedSection({ lang = 'en' }: RecentlyViewedSectionProp
       </div>
 
       {/* COMPACT SEARCH INFO BAR - Sticky, Single Line */}
-      <div className="sticky bottom-0 left-0 right-0 mt-2 sm:mt-2.5 md:mt-3 bg-gradient-to-r from-blue-50/95 via-indigo-50/95 to-purple-50/95 backdrop-blur-sm border border-gray-200 rounded-md sm:rounded-lg shadow-md overflow-hidden">
+      <div className="sticky bottom-0 left-0 right-0 mt-2 sm:mt-2.5 md:mt-3 bg-gradient-to-r from-info-50/95 via-indigo-50/95 to-purple-50/95 backdrop-blur-sm border border-gray-200 rounded-md sm:rounded-lg shadow-md overflow-hidden">
         <div className="flex items-center justify-between px-2.5 sm:px-4 py-1.5 sm:py-2 gap-2 sm:gap-4 overflow-x-auto scrollbar-hide">
           {/* Left: Stats */}
           <div className="flex items-center gap-2 sm:gap-4 text-[11px] sm:text-xs font-medium text-gray-700 whitespace-nowrap">
@@ -684,7 +684,7 @@ export function RecentlyViewedSection({ lang = 'en' }: RecentlyViewedSectionProp
               onClick={() => setActiveFilter('under400')}
               className={`px-2 sm:px-2.5 py-0.5 sm:py-1 rounded-sm sm:rounded-md text-[10px] sm:text-xs font-semibold transition-all flex items-center gap-0.5 sm:gap-1 ${
                 activeFilter === 'under400'
-                  ? 'bg-blue-600 text-white shadow-sm'
+                  ? 'bg-primary-500 text-white shadow-sm'
                   : 'bg-white/50 text-gray-700 hover:bg-white hover:shadow-sm'
               }`}
             >

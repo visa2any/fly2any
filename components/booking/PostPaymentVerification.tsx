@@ -94,7 +94,7 @@ export function PostPaymentVerification({
       QRCode.toDataURL(mobileUrl, {
         width: 200,
         margin: 2,
-        color: { dark: '#1e40af', light: '#ffffff' },
+        color: { dark: '#D63A35', light: '#ffffff' },
       }).then(setQrCodeUrl);
     }
   }, [showQRCode, uploadToken]);
@@ -252,12 +252,12 @@ export function PostPaymentVerification({
           {step === 'intro' && (
             <div className="space-y-5">
               {/* Why we need this */}
-              <div className="bg-blue-50 border border-blue-200 rounded-xl p-4">
-                <h3 className="font-semibold text-blue-900 mb-2 flex items-center gap-2">
+              <div className="bg-info-50 border border-info-200 rounded-xl p-4">
+                <h3 className="font-semibold text-neutral-800 mb-2 flex items-center gap-2">
                   <Shield className="w-4 h-4" />
                   For Your Protection
                 </h3>
-                <p className="text-sm text-blue-800">
+                <p className="text-sm text-neutral-700">
                   A quick verification protects your purchase from unauthorized use.
                   This is required for first-time bookings only.
                 </p>

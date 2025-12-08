@@ -361,7 +361,7 @@ export function FlightCardCompact({
             </BaggageTooltip>
             <div className="bg-white rounded p-2 border border-gray-200">
               <div className="flex items-center gap-1 text-[10px] text-gray-500 mb-0.5">
-                <Users className="w-3 h-3 text-blue-600" />
+                <Users className="w-3 h-3 text-primary-500" />
                 <span>Cabin</span>
               </div>
               <div className="text-xs font-bold text-gray-900">{cabin}</div>
@@ -438,7 +438,7 @@ export function FlightCardCompact({
 
               {/* Amenities - Compact */}
               <div className="mt-1.5 flex flex-wrap gap-1">
-                <span className="px-1.5 py-0.5 bg-blue-50 text-blue-700 text-[9px] font-semibold rounded flex items-center gap-0.5">
+                <span className="px-1.5 py-0.5 bg-info-50 text-primary-600 text-[9px] font-semibold rounded flex items-center gap-0.5">
                   <Wifi className="w-2.5 h-2.5" /> WiFi
                 </span>
                 <span className="px-1.5 py-0.5 bg-green-50 text-green-700 text-[9px] font-semibold rounded flex items-center gap-0.5">
@@ -462,8 +462,8 @@ export function FlightCardCompact({
           ))}
 
           {/* Price Breakdown - Compact */}
-          <div className="bg-blue-50 border border-blue-200 rounded-lg p-2.5">
-            <div className="text-xs font-bold text-blue-900 mb-1.5">TruePrice™ Breakdown</div>
+          <div className="bg-info-50 border border-info-200 rounded-lg p-2.5">
+            <div className="text-xs font-bold text-neutral-800 mb-1.5">TruePrice™ Breakdown</div>
             <div className="space-y-1 text-[10px]">
               <div className="flex justify-between">
                 <span className="text-gray-700">Base fare</span>
@@ -473,9 +473,9 @@ export function FlightCardCompact({
                 <span className="text-gray-700">Taxes & fees</span>
                 <span className="font-semibold">${Math.round(totalPrice - basePrice)}</span>
               </div>
-              <div className="pt-1 border-t border-blue-300 flex justify-between">
-                <span className="font-bold text-blue-900">Total per person</span>
-                <span className="font-bold text-blue-900">${Math.round(totalPrice)}</span>
+              <div className="pt-1 border-t border-info-300 flex justify-between">
+                <span className="font-bold text-neutral-800">Total per person</span>
+                <span className="font-bold text-neutral-800">${Math.round(totalPrice)}</span>
               </div>
             </div>
           </div>

@@ -225,7 +225,7 @@ export default function AlertsPage() {
                 </p>
               </div>
               <div className="bg-orange-50 rounded-lg p-4">
-                <CheckCircle className="w-8 h-8 text-blue-600 mb-2" />
+                <CheckCircle className="w-8 h-8 text-primary-500 mb-2" />
                 <h3 className="font-semibold text-gray-900 mb-1">Get Notified</h3>
                 <p className="text-sm text-gray-600">
                   Receive email when price hits your target
@@ -435,7 +435,7 @@ function AlertCard({
           {/* Search Button */}
           <Link
             href={`/flights/results?from=${alert.origin}&to=${alert.destination}&departure=${alert.departDate}${alert.returnDate ? `&return=${alert.returnDate}` : ''}&adults=1`}
-            className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+            className="p-2 text-primary-500 hover:bg-info-50 rounded-lg transition-colors"
             title="Search this route"
           >
             <ExternalLink className="w-5 h-5" />

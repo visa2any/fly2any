@@ -210,15 +210,15 @@ export function BookingConfirmationWidget({
         </div>
 
         {/* Next Steps */}
-        <div className="bg-blue-50 rounded-lg p-5 border border-blue-200">
+        <div className="bg-info-50 rounded-lg p-5 border border-info-200">
           <div className="flex items-center gap-2 mb-3">
-            <Mail className="w-5 h-5 text-blue-700" />
-            <h3 className="font-bold text-blue-900">What's Next?</h3>
+            <Mail className="w-5 h-5 text-info-600" />
+            <h3 className="font-bold text-neutral-800">What's Next?</h3>
           </div>
 
-          <ol className="space-y-2 text-sm text-blue-900">
+          <ol className="space-y-2 text-sm text-neutral-700">
             <li className="flex items-start gap-2">
-              <span className="flex-shrink-0 w-5 h-5 bg-blue-600 text-white rounded-full flex items-center justify-center text-xs font-bold">
+              <span className="flex-shrink-0 w-5 h-5 bg-primary-500 text-white rounded-full flex items-center justify-center text-xs font-bold">
                 1
               </span>
               <span>
@@ -227,7 +227,7 @@ export function BookingConfirmationWidget({
               </span>
             </li>
             <li className="flex items-start gap-2">
-              <span className="flex-shrink-0 w-5 h-5 bg-blue-600 text-white rounded-full flex items-center justify-center text-xs font-bold">
+              <span className="flex-shrink-0 w-5 h-5 bg-primary-500 text-white rounded-full flex items-center justify-center text-xs font-bold">
                 2
               </span>
               <span>
@@ -236,7 +236,7 @@ export function BookingConfirmationWidget({
               </span>
             </li>
             <li className="flex items-start gap-2">
-              <span className="flex-shrink-0 w-5 h-5 bg-blue-600 text-white rounded-full flex items-center justify-center text-xs font-bold">
+              <span className="flex-shrink-0 w-5 h-5 bg-primary-500 text-white rounded-full flex items-center justify-center text-xs font-bold">
                 3
               </span>
               <span>
@@ -245,7 +245,7 @@ export function BookingConfirmationWidget({
               </span>
             </li>
             <li className="flex items-start gap-2">
-              <span className="flex-shrink-0 w-5 h-5 bg-blue-600 text-white rounded-full flex items-center justify-center text-xs font-bold">
+              <span className="flex-shrink-0 w-5 h-5 bg-primary-500 text-white rounded-full flex items-center justify-center text-xs font-bold">
                 4
               </span>
               <span>Don't forget to bring valid ID and passport (for international travel)</span>

@@ -1840,7 +1840,7 @@ export default function EnhancedSearchBar({
                   onClick={() => {
                     setShowHotelSuggestions(true);
                   }}
-                  className="w-full px-4 py-3 bg-gradient-to-r from-blue-50 to-cyan-50 border-2 border-[#D63A35] rounded-lg cursor-pointer transition-all hover:border-[#0077E6] hover:shadow-md"
+                  className="w-full px-4 py-3 bg-gradient-to-r from-info-50 to-cyan-50 border-2 border-[#D63A35] rounded-lg cursor-pointer transition-all hover:border-[#0077E6] hover:shadow-md"
                 >
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-3">
@@ -1861,7 +1861,7 @@ export default function EnhancedSearchBar({
                           <Navigation className="w-3 h-3" />
                           {selectedDestinationDetails.country || 'Destination selected'}
                           {selectedDestinationDetails.type && (
-                            <span className="ml-1 px-1.5 py-0.5 bg-blue-100 text-blue-700 text-[10px] rounded-full capitalize font-medium">
+                            <span className="ml-1 px-1.5 py-0.5 bg-info-100 text-primary-600 text-[10px] rounded-full capitalize font-medium">
                               {selectedDestinationDetails.type}
                             </span>
                           )}
@@ -1874,7 +1874,7 @@ export default function EnhancedSearchBar({
                         e.stopPropagation();
                         clearHotelDestination();
                       }}
-                      className="p-2 hover:bg-blue-100 rounded-full transition-colors"
+                      className="p-2 hover:bg-info-100 rounded-full transition-colors"
                     >
                       <X className="w-5 h-5 text-gray-400 hover:text-gray-600" />
                     </button>
@@ -1923,7 +1923,7 @@ export default function EnhancedSearchBar({
                     <div className="p-6 flex flex-col items-center justify-center gap-3">
                       <div className="relative w-12 h-10">
                         <div className="absolute inset-0 rounded-full border-4 border-blue-100"></div>
-                        <div className="absolute inset-0 rounded-full border-4 border-t-blue-500 border-r-transparent border-b-transparent border-l-transparent animate-spin"></div>
+                        <div className="absolute inset-0 rounded-full border-4 border-t-primary-500 border-r-transparent border-b-transparent border-l-transparent animate-spin"></div>
                       </div>
                       <p className="text-sm font-medium text-gray-600">Finding destinations...</p>
                     </div>
@@ -1934,7 +1934,7 @@ export default function EnhancedSearchBar({
                         const getCategoryColor = (category: string) => {
                           const colors: Record<string, string> = {
                             'Beach': 'bg-cyan-100 text-cyan-700 border-cyan-200',
-                            'City': 'bg-indigo-100 text-indigo-700 border-indigo-200',
+                            'City': 'bg-primary-100 text-indigo-700 border-indigo-200',
                             'Mountain': 'bg-emerald-100 text-emerald-700 border-emerald-200',
                             'Historic': 'bg-amber-100 text-amber-700 border-amber-200',
                             'Luxury': 'bg-purple-100 text-purple-700 border-purple-200',
@@ -1967,13 +1967,13 @@ export default function EnhancedSearchBar({
                             key={index}
                             type="button"
                             onClick={() => handleHotelSuggestionSelect(suggestion)}
-                            className="group w-full px-4 py-4 text-left hover:bg-gradient-to-r hover:from-blue-50 hover:to-cyan-50 transition-all duration-300 flex items-center gap-2 border-b border-gray-100 last:border-b-0 hover:scale-[1.01] active:scale-[0.99]"
+                            className="group w-full px-4 py-4 text-left hover:bg-gradient-to-r hover:from-info-50 hover:to-cyan-50 transition-all duration-300 flex items-center gap-2 border-b border-gray-100 last:border-b-0 hover:scale-[1.01] active:scale-[0.99]"
                             style={{
                               transformOrigin: 'center'
                             }}
                           >
                             {/* Emoji/Flag - Large & Prominent */}
-                            <div className="flex-shrink-0 w-16 h-16 flex items-center justify-center rounded-xl bg-gradient-to-br from-blue-50 to-cyan-50 group-hover:from-blue-100 group-hover:to-cyan-100 transition-all duration-300 group-hover:scale-110"
+                            <div className="flex-shrink-0 w-16 h-16 flex items-center justify-center rounded-xl bg-gradient-to-br from-info-50 to-cyan-50 group-hover:from-blue-100 group-hover:to-cyan-100 transition-all duration-300 group-hover:scale-110"
                                  style={{
                                    boxShadow: '0 4px 12px rgba(0, 135, 255, 0.1)'
                                  }}>
@@ -2030,7 +2030,7 @@ export default function EnhancedSearchBar({
 
                             {/* Hover Arrow Indicator */}
                             <div className="flex-shrink-0 opacity-0 group-hover:opacity-100 transition-all duration-300 transform group-hover:translate-x-1">
-                              <svg className="w-5 h-5 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <svg className="w-5 h-5 text-info-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
                               </svg>
                             </div>
@@ -2227,16 +2227,16 @@ export default function EnhancedSearchBar({
                     {/* Rooms */}
                     <div className="text-center">
                       <div className="flex items-center justify-center gap-1 mb-1.5">
-                        <BedDouble size={14} className="text-blue-500" />
+                        <BedDouble size={14} className="text-info-500" />
                         <span className="text-xs font-semibold text-gray-700">Rooms</span>
                       </div>
                       <div className="flex items-center justify-center gap-2">
-                        <button type="button" onClick={() => setHotelRooms(Math.max(1, hotelRooms - 1))} className="w-7 h-7 rounded-full bg-blue-50 hover:bg-blue-100 flex items-center justify-center transition-colors">
-                          <Minus size={14} className="text-blue-600" />
+                        <button type="button" onClick={() => setHotelRooms(Math.max(1, hotelRooms - 1))} className="w-7 h-7 rounded-full bg-info-50 hover:bg-info-100 flex items-center justify-center transition-colors">
+                          <Minus size={14} className="text-primary-500" />
                         </button>
                         <span className="w-6 text-center text-sm font-bold text-gray-800">{hotelRooms}</span>
-                        <button type="button" onClick={() => setHotelRooms(hotelRooms + 1)} className="w-7 h-7 rounded-full bg-blue-50 hover:bg-blue-100 flex items-center justify-center transition-colors">
-                          <Plus size={14} className="text-blue-600" />
+                        <button type="button" onClick={() => setHotelRooms(hotelRooms + 1)} className="w-7 h-7 rounded-full bg-info-50 hover:bg-info-100 flex items-center justify-center transition-colors">
+                          <Plus size={14} className="text-primary-500" />
                         </button>
                       </div>
                     </div>
@@ -3398,7 +3398,7 @@ export default function EnhancedSearchBar({
                         setHotelDestination(district.name);
                         setHotelLocation(district.location);
                       }}
-                      className="px-1.5 py-0.5 text-[10px] font-medium bg-blue-50 text-blue-700 hover:bg-blue-100 rounded-full border border-blue-200 transition-colors"
+                      className="px-1.5 py-0.5 text-[10px] font-medium bg-info-50 text-primary-600 hover:bg-info-100 rounded-full border border-info-200 transition-colors"
                     >
                       {district.name}
                     </button>

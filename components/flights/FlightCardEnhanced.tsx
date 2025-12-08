@@ -878,7 +878,7 @@ export function FlightCardEnhanced({
 
           {/* NDC Exclusive Badge - Hidden on mobile */}
           {isNDC && (
-            <span className="hidden md:inline-flex font-bold px-2 py-0.5 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-full flex-shrink-0 items-center gap-1 shadow-md" style={{ fontSize: typography.card.meta.size }}>
+            <span className="hidden md:inline-flex font-bold px-2 py-0.5 bg-gradient-to-r from-primary-500 to-indigo-600 text-white rounded-full flex-shrink-0 items-center gap-1 shadow-md" style={{ fontSize: typography.card.meta.size }}>
               <Sparkles className="w-3 h-3" />
               NDC Exclusive
             </span>
@@ -937,7 +937,7 @@ export function FlightCardEnhanced({
 
           <button
             onClick={handleShareClick}
-            className="p-1.5 md:p-1 rounded transition-all bg-white border border-gray-300 text-gray-700 hover:bg-blue-50 hover:text-blue-600 hover:border-blue-300 relative z-10 shadow-sm"
+            className="p-1.5 md:p-1 rounded transition-all bg-white border border-gray-300 text-gray-700 hover:bg-info-50 hover:text-primary-500 hover:border-info-300 relative z-10 shadow-sm"
             title="Share this flight"
             aria-label="Share flight deal"
             data-testid="share-button"
@@ -1095,8 +1095,8 @@ export function FlightCardEnhanced({
                           <span className="text-gray-400">•</span>
                           <span className={`px-1.5 py-0.5 font-bold text-[10px] rounded ${
                             legBaggage.cabin === 'FIRST' ? 'bg-amber-100 text-amber-900' :
-                            legBaggage.cabin === 'BUSINESS' ? 'bg-blue-100 text-blue-900' :
-                            legBaggage.cabin === 'PREMIUM_ECONOMY' ? 'bg-indigo-100 text-indigo-900' :
+                            legBaggage.cabin === 'BUSINESS' ? 'bg-info-100 text-neutral-800' :
+                            legBaggage.cabin === 'PREMIUM_ECONOMY' ? 'bg-primary-100 text-indigo-900' :
                             'bg-gray-100 text-gray-900'
                           }`}>
                             {formatFareType(legBaggage.fareType)} {legBaggage.cabin === 'PREMIUM_ECONOMY' ? 'Premium Economy' :
@@ -1123,7 +1123,7 @@ export function FlightCardEnhanced({
                       <div className="flex flex-col items-center px-2">
                         <div className="text-[10px] text-gray-500 mb-0.5">{parseDuration(segment.duration || itinerary.duration)}</div>
                         <div className="w-12 h-px bg-gray-300 relative">
-                          <Plane className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-3 h-3 text-blue-600 bg-white" />
+                          <Plane className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-3 h-3 text-primary-500 bg-white" />
                         </div>
                       </div>
 
@@ -1253,7 +1253,7 @@ export function FlightCardEnhanced({
                         </span>
                       )}
 
-                      <span className="inline-flex items-center gap-0.5 px-1.5 py-0.5 bg-blue-50 text-blue-800 rounded text-[10px] font-medium h-5 leading-none">
+                      <span className="inline-flex items-center gap-0.5 px-1.5 py-0.5 bg-info-50 text-neutral-700 rounded text-[10px] font-medium h-5 leading-none">
                         <Shield className="w-2.5 h-2.5" />24hr
                       </span>
 
@@ -1280,7 +1280,7 @@ export function FlightCardEnhanced({
             <div className="mt-1.5 grid grid-cols-1 md:grid-cols-2 gap-2 text-[11px]">
               {legsBaggage.map((baggage, index) => (
                 <div key={`baggage-compare-${index}`} className="flex items-start gap-1">
-                  <span className="font-semibold text-blue-700">Leg {index + 1}:</span>
+                  <span className="font-semibold text-primary-600">Leg {index + 1}:</span>
                   <span className="text-gray-700">
                     {formatFareType(baggage.fareType)}, {baggage.checked} bag(s)
                     {baggage.amenities.wifi && ', WiFi'}
@@ -1307,7 +1307,7 @@ export function FlightCardEnhanced({
             <div className={`hidden md:inline-flex items-center gap-1 px-2.5 py-0.5 rounded-md text-xs shadow-sm border-2 transition-all hover:shadow-md flex-shrink-0 ${
               dealTier === 'excellent' ? 'bg-gradient-to-r from-amber-500 to-yellow-500 border-amber-600 text-white' :
               dealTier === 'great' ? 'bg-gradient-to-r from-green-500 to-emerald-500 border-green-600 text-white' :
-              dealTier === 'good' ? 'bg-gradient-to-r from-blue-500 to-cyan-500 border-blue-600 text-white' :
+              dealTier === 'good' ? 'bg-gradient-to-r from-info-500 to-cyan-500 border-primary-500 text-white' :
               'bg-gradient-to-r from-gray-400 to-slate-400 border-gray-500 text-white'
             }`}>
               <span className="font-bold leading-none">{dealScore}</span>
@@ -1324,7 +1324,7 @@ export function FlightCardEnhanced({
           )}
 
           {/* Center Group: CO2 Badge (INFORMATIONAL) */}
-          <div className={`flex-shrink-0 ${isDebugMode ? 'ring-2 ring-blue-500' : ''}`}>
+          <div className={`flex-shrink-0 ${isDebugMode ? 'ring-2 ring-primary-500' : ''}`}>
             <CO2Badge
               emissions={co2Emissions ?? Math.round(durationToMinutes(itineraries[0].duration) * 0.15)}
               averageEmissions={averageCO2 ?? Math.round(durationToMinutes(itineraries[0].duration) * 0.18)}
@@ -1374,7 +1374,7 @@ export function FlightCardEnhanced({
           </div>
           {/* NDC Savings Badge */}
           {isNDC && ndcSavings && ndcSavings > 0 && (
-            <span className="px-2 py-0.5 bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-bold rounded-full flex items-center gap-1" style={{ fontSize: typography.card.meta.size }}>
+            <span className="px-2 py-0.5 bg-gradient-to-r from-primary-500 to-indigo-600 text-white font-bold rounded-full flex items-center gap-1" style={{ fontSize: typography.card.meta.size }}>
               <Sparkles className="w-3 h-3" />
               Save ${Math.round(ndcSavings)}
             </span>
@@ -1382,7 +1382,7 @@ export function FlightCardEnhanced({
           {priceVsMarket !== undefined && priceVsMarket !== null && (
             <span className={`px-1.5 py-0.5 font-bold rounded ${
               priceVsMarket <= -10 ? 'bg-green-100 text-green-700' :
-              priceVsMarket <= 0 ? 'bg-blue-100 text-blue-700' :
+              priceVsMarket <= 0 ? 'bg-info-100 text-primary-600' :
               priceVsMarket <= 10 ? 'bg-yellow-100 text-yellow-700' :
               'bg-red-100 text-red-700'
             }`} style={{ fontSize: typography.card.meta.size }}>
@@ -1483,8 +1483,8 @@ export function FlightCardEnhanced({
           {/* PRICE BREAKDOWN - Clearer Separation of Required vs Optional */}
           <div className="grid grid-cols-1 gap-2">
             {/* TruePrice Breakdown - Full Width - DOT Consumer Protection Compliant */}
-            <div className="p-2 bg-blue-50 rounded-lg border border-blue-200">
-              <h4 className="font-semibold text-xs text-blue-900 mb-1.5">Complete Price Breakdown (All-In Pricing)</h4>
+            <div className="p-2 bg-info-50 rounded-lg border border-info-200">
+              <h4 className="font-semibold text-xs text-neutral-800 mb-1.5">Complete Price Breakdown (All-In Pricing)</h4>
               <div className="space-y-0.5 text-xs">
                 {/* REQUIRED FEES */}
                 <div className="flex justify-between">
@@ -1497,17 +1497,17 @@ export function FlightCardEnhanced({
                 </div>
 
                 {/* TOTAL - All mandatory charges (DOT Compliant All-In Price) */}
-                <div className="pt-1.5 mt-1 border-t-2 border-blue-300 flex justify-between font-bold text-sm">
-                  <span className="text-blue-900 flex items-center gap-1">
+                <div className="pt-1.5 mt-1 border-t-2 border-info-300 flex justify-between font-bold text-sm">
+                  <span className="text-neutral-800 flex items-center gap-1">
                     TOTAL PRICE
-                    <span className="text-[9px] font-normal text-blue-700">(incl. all taxes & fees)</span>
+                    <span className="text-[9px] font-normal text-primary-600">(incl. all taxes & fees)</span>
                   </span>
-                  <span className="text-blue-900">{price.currency} {Math.round(totalPrice)}</span>
+                  <span className="text-neutral-800">{price.currency} {Math.round(totalPrice)}</span>
                 </div>
 
                 {/* OPTIONAL ADD-ONS - Clearly separated */}
                 {(estimatedBaggage > 0 || estimatedSeat > 0) && (
-                  <div className="pt-2 mt-2 border-t border-blue-200">
+                  <div className="pt-2 mt-2 border-t border-info-200">
                     <div className="text-[10px] font-semibold text-gray-600 mb-1">Optional Add-ons (not included):</div>
                     {estimatedBaggage > 0 && (
                       <div className="flex justify-between items-center text-[10px]">
@@ -1556,7 +1556,7 @@ export function FlightCardEnhanced({
                       ✅ Seat selection
                     </span>
                   )}
-                  <span className="px-2 py-0.5 bg-blue-50 text-blue-700 rounded-full text-xs font-medium border border-blue-200">
+                  <span className="px-2 py-0.5 bg-info-50 text-primary-600 rounded-full text-xs font-medium border border-info-200">
                     ✅ 24hr protection
                   </span>
                   <button
@@ -1649,17 +1649,17 @@ export function FlightCardEnhanced({
 
           {/* NDC EXCLUSIVE CONTENT - Rich media and benefits */}
           {isNDC && (
-            <div className="p-3 bg-gradient-to-br from-blue-50 to-indigo-50 border-2 border-blue-200 rounded-lg">
+            <div className="p-3 bg-gradient-to-br from-info-50 to-primary-50 border-2 border-info-200 rounded-lg">
               <div className="flex items-start justify-between gap-3">
                 <div className="flex-1">
-                  <h4 className="font-bold text-blue-900 mb-1 text-sm flex items-center gap-2">
-                    <Sparkles className="w-5 h-5 text-blue-600" />
+                  <h4 className="font-bold text-neutral-800 mb-1 text-sm flex items-center gap-2">
+                    <Sparkles className="w-5 h-5 text-primary-500" />
                     NDC Exclusive Benefits
                   </h4>
-                  <p className="text-xs text-blue-800 mb-2">
+                  <p className="text-xs text-neutral-700 mb-2">
                     This flight includes exclusive benefits only available through direct airline connections.
                   </p>
-                  <ul className="text-xs text-blue-700 space-y-1 mb-3">
+                  <ul className="text-xs text-primary-600 space-y-1 mb-3">
                     <li className="flex items-center gap-1">✓ Better pricing directly from the airline</li>
                     <li className="flex items-center gap-1">✓ Access to exclusive fare types</li>
                     <li className="flex items-center gap-1">✓ More flexibility with changes</li>
@@ -1671,7 +1671,7 @@ export function FlightCardEnhanced({
                     {richContent && (richContent.cabinPhotos?.length || richContent.seatPhotos?.length || richContent.videos?.length) && (
                       <button
                         onClick={() => setShowRichContent(true)}
-                        className="px-3 py-1.5 bg-white border border-blue-300 text-blue-700 rounded-lg text-xs font-semibold hover:bg-blue-50 transition-colors flex items-center gap-1"
+                        className="px-3 py-1.5 bg-white border border-info-300 text-primary-600 rounded-lg text-xs font-semibold hover:bg-info-50 transition-colors flex items-center gap-1"
                       >
                         <ImageIcon className="w-4 h-4" />
                         View Photos & Details
@@ -1679,7 +1679,7 @@ export function FlightCardEnhanced({
                     )}
                     <button
                       onClick={() => setShowNDCBenefits(true)}
-                      className="px-3 py-1.5 bg-blue-600 text-white rounded-lg text-xs font-semibold hover:bg-blue-700 transition-colors flex items-center gap-1"
+                      className="px-3 py-1.5 bg-primary-500 text-white rounded-lg text-xs font-semibold hover:bg-primary-600 transition-colors flex items-center gap-1"
                     >
                       <Info className="w-4 h-4" />
                       Learn More About NDC

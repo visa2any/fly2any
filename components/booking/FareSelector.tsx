@@ -34,7 +34,7 @@ function getFeatureIcon(feature: string): ReactNode {
 
   // Baggage related
   if (featureLower.includes('carry-on') || featureLower.includes('cabin')) {
-    return <Briefcase className="w-3.5 h-3.5 text-blue-500 flex-shrink-0" />;
+    return <Briefcase className="w-3.5 h-3.5 text-info-500 flex-shrink-0" />;
   }
   if (featureLower.includes('checked') || featureLower.includes('bag')) {
     return <Luggage className="w-3.5 h-3.5 text-indigo-500 flex-shrink-0" />;
@@ -59,7 +59,7 @@ function getFeatureIcon(feature: string): ReactNode {
     return <BadgeDollarSign className="w-3.5 h-3.5 text-green-500 flex-shrink-0" />;
   }
   if (featureLower.includes('change') || featureLower.includes('flexible')) {
-    return <RefreshCw className="w-3.5 h-3.5 text-blue-500 flex-shrink-0" />;
+    return <RefreshCw className="w-3.5 h-3.5 text-info-500 flex-shrink-0" />;
   }
 
   // Priority/Premium benefits
@@ -183,8 +183,8 @@ export function FareSelector({
     <div className="space-y-2">
       {/* Single Fare Info Banner */}
       {isSingleFare && (
-        <div className="bg-blue-50 border border-blue-200 rounded-lg p-2 sm:p-2.5 flex items-center gap-2">
-          <div className="flex-shrink-0 w-6 h-6 sm:w-8 sm:h-8 bg-blue-500 rounded-full flex items-center justify-center">
+        <div className="bg-info-50 border border-info-200 rounded-lg p-2 sm:p-2.5 flex items-center gap-2">
+          <div className="flex-shrink-0 w-6 h-6 sm:w-8 sm:h-8 bg-info-500 rounded-full flex items-center justify-center">
             <Check className="w-3 h-3 sm:w-4 sm:h-4 text-white" />
           </div>
           <div>

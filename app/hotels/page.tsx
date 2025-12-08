@@ -37,7 +37,7 @@ const baseStarCategories = [
     description: 'High-quality service, excellent facilities, great restaurants',
     priceRange: '$100-$300/night',
     icon: Star,
-    color: 'from-blue-500 to-indigo-600',
+    color: 'from-info-500 to-indigo-600',
     features: ['Room Service', 'Gym', 'Restaurant', 'Business Center'],
     image: 'https://images.unsplash.com/photo-1582719478250-c89cae4dc85b?w=800&q=80' // Modern premium hotel
   },
@@ -86,7 +86,7 @@ const basePropertyTypes = [
     description: 'Modern amenities, meeting rooms, city center',
     avgPrice: '$100-$250',
     bestFor: 'Business Travelers',
-    color: 'from-blue-500 to-cyan-600'
+    color: 'from-info-500 to-cyan-600'
   },
   {
     type: 'Bed & Breakfast',
@@ -136,7 +136,7 @@ const baseDealCategories = [
     discount: '40% OFF',
     description: 'Ski resorts, mountain views, cozy fireplaces',
     icon: Mountain,
-    color: 'from-indigo-500 to-purple-600',
+    color: 'from-primary-500 to-purple-600',
     savings: 'Save up to $350'
   },
   {
@@ -467,7 +467,7 @@ export default function HotelsPage() {
       </div>
 
       {/* 6. Booking Tips */}
-      <div className="bg-gradient-to-br from-blue-50 to-indigo-50 py-6 sm:py-8 md:py-12">
+      <div className="bg-gradient-to-br from-info-50 to-primary-50 py-6 sm:py-8 md:py-12">
         <MaxWidthContainer className="px-0 md:px-6" noPadding={true}>
           <div className="mb-6 sm:mb-8 px-4 md:px-0">
             <h2 className="text-lg sm:text-xl md:text-3xl font-bold text-gray-900 mb-2">{t('tipsTitle')}</h2>
@@ -477,10 +477,10 @@ export default function HotelsPage() {
             {baseTips.map((tip, idx) => {
               const IconComponent = tip.icon;
               return (
-                <div key={idx} className="bg-white rounded-xl p-5 shadow-md hover:shadow-xl transition-all border border-blue-200">
+                <div key={idx} className="bg-white rounded-xl p-5 shadow-md hover:shadow-xl transition-all border border-info-200">
                   <div className="flex items-start gap-3">
-                    <div className="w-10 h-10 rounded-lg bg-blue-100 flex items-center justify-center flex-shrink-0">
-                      <IconComponent className="w-5 h-5 text-blue-600" />
+                    <div className="w-10 h-10 rounded-lg bg-info-100 flex items-center justify-center flex-shrink-0">
+                      <IconComponent className="w-5 h-5 text-primary-500" />
                     </div>
                     <div>
                       <h4 className="text-base font-bold text-gray-900 mb-1">{tip.tip}</h4>
@@ -500,7 +500,7 @@ export default function HotelsPage() {
       </div>
 
       {/* 7. REDESIGNED FAQ - Smart 2-Column Layout on Desktop, Single Column on Mobile */}
-      <div className="bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 py-6 sm:py-8 md:py-12">
+      <div className="bg-gradient-to-br from-info-50 via-indigo-50 to-purple-50 py-6 sm:py-8 md:py-12">
         <MaxWidthContainer className="px-0 md:px-6" noPadding={true}>
           <div className="mb-6 sm:mb-8 px-4 md:px-0">
             <h2 className="text-lg sm:text-xl md:text-3xl font-bold text-gray-900 mb-2 sm:mb-3">{t('faqTitle')}</h2>
@@ -512,11 +512,11 @@ export default function HotelsPage() {
             {baseFaqs.map((faq, idx) => (
               <details
                 key={idx}
-                className="bg-white rounded-xl p-5 md:p-6 hover:shadow-lg transition-all border border-gray-200 hover:border-blue-300 group"
+                className="bg-white rounded-xl p-5 md:p-6 hover:shadow-lg transition-all border border-gray-200 hover:border-info-300 group"
               >
                 <summary className="font-bold text-gray-900 cursor-pointer list-none flex justify-between items-center gap-3">
                   <span className="flex-1 text-base md:text-lg">{faq.q}</span>
-                  <ChevronRight className="w-5 h-5 text-blue-600 group-open:rotate-90 transition-transform flex-shrink-0" />
+                  <ChevronRight className="w-5 h-5 text-primary-500 group-open:rotate-90 transition-transform flex-shrink-0" />
                 </summary>
                 <p className="mt-4 text-gray-600 text-sm md:text-base leading-relaxed">{faq.a}</p>
               </details>
@@ -528,7 +528,7 @@ export default function HotelsPage() {
             <p className="text-gray-600 mb-4">{t('stillHaveQuestions')}</p>
             <a
               href="mailto:support@fly2any.com"
-              className="inline-flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-xl font-semibold transition-colors shadow-md hover:shadow-lg"
+              className="inline-flex items-center gap-2 bg-primary-500 hover:bg-primary-600 text-white px-6 py-3 rounded-xl font-semibold transition-colors shadow-md hover:shadow-lg"
             >
               <Shield className="w-5 h-5" />
               {t('contactSupport')}

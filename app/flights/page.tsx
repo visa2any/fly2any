@@ -27,7 +27,7 @@ const baseCabinClasses = [
     description: 'Affordable comfort for budget-conscious travelers',
     priceRange: '$200-$800',
     icon: Plane,
-    color: 'from-blue-500 to-cyan-600',
+    color: 'from-info-500 to-cyan-600',
     features: ['Standard Seat', 'Carry-on Bag', 'Meal Service', 'Entertainment'],
     image: 'https://images.unsplash.com/photo-1436491865332-7a61a109cc05?w=800&q=80' // Economy cabin
   },
@@ -36,7 +36,7 @@ const baseCabinClasses = [
     description: 'Extra legroom and enhanced amenities',
     priceRange: '$500-$1,500',
     icon: Armchair,
-    color: 'from-indigo-500 to-purple-600',
+    color: 'from-primary-500 to-purple-600',
     features: ['Extra Legroom', '2 Checked Bags', 'Priority Boarding', 'Premium Meals'],
     image: 'https://images.unsplash.com/photo-1542296332-2e4473faf563?w=800&q=80' // Premium cabin
   },
@@ -82,7 +82,7 @@ const baseAlliances = [
     airlines: '19 airlines',
     network: '1,000+ destinations',
     logo: '✈️',
-    color: 'from-blue-500 to-indigo-600',
+    color: 'from-info-500 to-indigo-600',
     benefits: ['Elite status', 'Upgrades', 'Global lounges']
   },
   {
@@ -308,15 +308,15 @@ export default function FlightsPage() {
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-3 md:gap-6 px-2 md:px-0">
             {baseAlliances.map((alliance, idx) => (
-              <div key={idx} className="bg-white rounded-xl p-6 shadow-md hover:shadow-xl transition-all border border-gray-200 hover:border-blue-300 group cursor-pointer">
+              <div key={idx} className="bg-white rounded-xl p-6 shadow-md hover:shadow-xl transition-all border border-gray-200 hover:border-info-300 group cursor-pointer">
                 <div className="text-5xl mb-3 text-center">{alliance.logo}</div>
                 <h3 className="text-xl font-bold text-gray-900 mb-2 text-center">{alliance.name}</h3>
                 <p className="text-sm text-gray-600 mb-1 text-center">{alliance.airlines}</p>
-                <p className="text-sm font-semibold text-blue-600 mb-4 text-center">{alliance.network}</p>
+                <p className="text-sm font-semibold text-primary-500 mb-4 text-center">{alliance.network}</p>
                 <div className="space-y-1">
                   {alliance.benefits.map((benefit, i) => (
                     <div key={i} className="flex items-center gap-2">
-                      <ChevronRight className="w-4 h-4 text-blue-600 flex-shrink-0" />
+                      <ChevronRight className="w-4 h-4 text-primary-500 flex-shrink-0" />
                       <span className="text-xs text-gray-700">{benefit}</span>
                     </div>
                   ))}
@@ -328,7 +328,7 @@ export default function FlightsPage() {
       </div>
 
       {/* 3. Flight Features & Services */}
-      <div className="bg-gradient-to-br from-blue-50 to-indigo-50 py-6 sm:py-8 md:py-12">
+      <div className="bg-gradient-to-br from-info-50 to-primary-50 py-6 sm:py-8 md:py-12">
         <MaxWidthContainer className="px-0 md:px-6" noPadding={true}>
           <div className="mb-6 sm:mb-8 px-4 md:px-0">
             <h2 className="text-lg sm:text-xl md:text-3xl font-bold text-gray-900 mb-2">{t('featuresTitle')}</h2>
@@ -338,9 +338,9 @@ export default function FlightsPage() {
             {baseFlightFeatures.map((feature, idx) => {
               const IconComponent = feature.icon;
               return (
-                <div key={idx} className="bg-white rounded-xl p-4 shadow-sm hover:shadow-md transition-all border border-gray-200 hover:border-blue-300 group cursor-pointer text-center">
-                  <div className="w-12 h-12 rounded-lg bg-blue-100 flex items-center justify-center mx-auto mb-3 group-hover:bg-blue-200 transition-colors">
-                    <IconComponent className="w-6 h-6 text-blue-600" />
+                <div key={idx} className="bg-white rounded-xl p-4 shadow-sm hover:shadow-md transition-all border border-gray-200 hover:border-info-300 group cursor-pointer text-center">
+                  <div className="w-12 h-12 rounded-lg bg-info-100 flex items-center justify-center mx-auto mb-3 group-hover:bg-blue-200 transition-colors">
+                    <IconComponent className="w-6 h-6 text-primary-500" />
                   </div>
                   <h4 className="text-sm font-semibold text-gray-900 mb-1">{feature.name}</h4>
                   <p className="text-xs text-gray-500">{feature.availability}</p>
@@ -362,10 +362,10 @@ export default function FlightsPage() {
             {baseBookingTips.map((tip, idx) => {
               const IconComponent = tip.icon;
               return (
-                <div key={idx} className="bg-white rounded-xl p-5 shadow-md hover:shadow-xl transition-all border border-blue-200">
+                <div key={idx} className="bg-white rounded-xl p-5 shadow-md hover:shadow-xl transition-all border border-info-200">
                   <div className="flex items-start gap-3">
-                    <div className="w-10 h-10 rounded-lg bg-blue-100 flex items-center justify-center flex-shrink-0">
-                      <IconComponent className="w-5 h-5 text-blue-600" />
+                    <div className="w-10 h-10 rounded-lg bg-info-100 flex items-center justify-center flex-shrink-0">
+                      <IconComponent className="w-5 h-5 text-primary-500" />
                     </div>
                     <div>
                       <h4 className="text-base font-bold text-gray-900 mb-1">{tip.tip}</h4>
@@ -385,7 +385,7 @@ export default function FlightsPage() {
       </div>
 
       {/* 5. Flight Booking FAQ */}
-      <div className="bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 py-6 sm:py-8 md:py-12">
+      <div className="bg-gradient-to-br from-info-50 via-indigo-50 to-purple-50 py-6 sm:py-8 md:py-12">
         <MaxWidthContainer className="px-0 md:px-6" noPadding={true}>
           <div className="mb-6 sm:mb-8 px-4 md:px-0">
             <h2 className="text-lg sm:text-xl md:text-3xl font-bold text-gray-900 mb-2 sm:mb-3">{t('faqTitle')}</h2>
@@ -393,10 +393,10 @@ export default function FlightsPage() {
           </div>
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-2 sm:gap-3 md:gap-6 px-2 md:px-0">
             {baseFaqs.map((faq, idx) => (
-              <details key={idx} className="bg-white rounded-xl p-5 md:p-6 hover:shadow-lg transition-all border border-gray-200 hover:border-blue-300 group">
+              <details key={idx} className="bg-white rounded-xl p-5 md:p-6 hover:shadow-lg transition-all border border-gray-200 hover:border-info-300 group">
                 <summary className="font-bold text-gray-900 cursor-pointer list-none flex justify-between items-center gap-3">
                   <span className="flex-1 text-base md:text-lg">{faq.q}</span>
-                  <ChevronRight className="w-5 h-5 text-blue-600 group-open:rotate-90 transition-transform flex-shrink-0" />
+                  <ChevronRight className="w-5 h-5 text-primary-500 group-open:rotate-90 transition-transform flex-shrink-0" />
                 </summary>
                 <p className="mt-4 text-gray-600 text-sm md:text-base leading-relaxed">{faq.a}</p>
               </details>
@@ -404,7 +404,7 @@ export default function FlightsPage() {
           </div>
           <div className="mt-8 text-center">
             <p className="text-gray-600 mb-4">{t('stillHaveQuestions')}</p>
-            <a href="mailto:support@fly2any.com" className="inline-flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-xl font-semibold transition-colors shadow-md hover:shadow-lg">
+            <a href="mailto:support@fly2any.com" className="inline-flex items-center gap-2 bg-primary-500 hover:bg-primary-600 text-white px-6 py-3 rounded-xl font-semibold transition-colors shadow-md hover:shadow-lg">
               <Shield className="w-5 h-5" />
               {t('contactSupport')}
             </a>

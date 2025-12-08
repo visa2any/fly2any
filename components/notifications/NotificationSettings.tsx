@@ -287,8 +287,8 @@ export function NotificationSettings({
       {/* Email Notifications */}
       <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
         <div className="flex items-center gap-3 mb-6">
-          <div className="p-2 bg-blue-50 rounded-lg">
-            <Mail className="h-5 w-5 text-blue-600" />
+          <div className="p-2 bg-info-50 rounded-lg">
+            <Mail className="h-5 w-5 text-primary-500" />
           </div>
           <div>
             <h3 className="text-lg font-semibold text-gray-900">Email Notifications</h3>
@@ -350,7 +350,7 @@ export function NotificationSettings({
               </div>
 
               <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg">
-                <CreditCard className="h-5 w-5 text-blue-600 flex-shrink-0" />
+                <CreditCard className="h-5 w-5 text-primary-500 flex-shrink-0" />
                 <div className="flex-1 min-w-0">
                   <Switch
                     checked={preferences.emailPaymentUpdates}
@@ -430,8 +430,8 @@ export function NotificationSettings({
             </p>
           </div>
         ) : pushPermission === 'default' ? (
-          <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 flex items-center justify-between">
-            <p className="text-sm text-blue-800">
+          <div className="bg-info-50 border border-info-200 rounded-lg p-4 flex items-center justify-between">
+            <p className="text-sm text-neutral-700">
               Enable push notifications to receive instant updates.
             </p>
             <Button

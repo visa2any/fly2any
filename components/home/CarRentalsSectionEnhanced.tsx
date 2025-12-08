@@ -187,8 +187,8 @@ export function CarRentalsSectionEnhanced({ lang = 'en' }: CarRentalsSectionEnha
       {/* Section Header */}
       <div className="mb-6">
         <h2 className="text-2xl font-bold text-gray-900 mb-2 flex items-center gap-2">
-          <div className="p-2 bg-gradient-to-br from-blue-50 to-indigo-50 rounded-lg">
-            <Car className="w-6 h-6 text-blue-600" />
+          <div className="p-2 bg-gradient-to-br from-info-50 to-primary-50 rounded-lg">
+            <Car className="w-6 h-6 text-primary-500" />
           </div>
           {t.title}
         </h2>
