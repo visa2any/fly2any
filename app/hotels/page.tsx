@@ -234,7 +234,7 @@ export default function HotelsPage() {
   return (
     <div className="min-h-screen bg-white" suppressHydrationWarning>
       {/* Hero Section - Orange Theme */}
-      <div className="relative bg-gradient-to-br from-amber-50 via-orange-50/30 to-amber-50 border-b border-orange-200/60 overflow-hidden md:overflow-visible max-h-[100vh] md:max-h-none">
+      <div className="relative bg-gradient-to-br from-amber-50 via-orange-50/30 to-amber-50 border-b border-orange-200/60 overflow-hidden">
         <div className="absolute inset-0 overflow-hidden pointer-events-none">
           <div className="floating-orb floating-orb-1"></div>
           <div className="floating-orb floating-orb-2"></div>
@@ -246,10 +246,10 @@ export default function HotelsPage() {
           backgroundSize: '40px 40px'
         }}></div>
 
-        <MaxWidthContainer className="relative overflow-hidden md:overflow-visible" noPadding={true} style={{ padding: '12px 0 8px' }}>
-          <div className="px-4 md:px-6">
-            <div className="flex flex-col md:flex-row md:items-center gap-1 md:gap-3 animate-fadeIn" suppressHydrationWarning>
-              <h1 className="hero-title text-lg sm:text-xl md:text-3xl font-extrabold tracking-tight sm:tracking-wide whitespace-nowrap overflow-x-auto scrollbar-hide" suppressHydrationWarning>
+        <MaxWidthContainer className="relative" noPadding={true}>
+          <div className="px-3 sm:px-4 md:px-6 py-3 sm:py-4 md:py-5">
+            <div className="flex flex-col md:flex-row md:items-center gap-0.5 sm:gap-1 md:gap-3 animate-fadeIn" suppressHydrationWarning>
+              <h1 className="hero-title text-base sm:text-lg md:text-3xl font-extrabold tracking-tight leading-tight" suppressHydrationWarning>
                 <AnimatedTitle
                   text={t('sectionTitle')}
                   animationDelay={0}
@@ -257,7 +257,7 @@ export default function HotelsPage() {
                 />
               </h1>
               <span className="hidden md:inline-block text-orange-400 text-2xl font-bold mx-1">•</span>
-              <p className="hero-subtitle text-gray-700/90 mb-0 font-medium text-xs sm:text-sm md:text-lg leading-tight sm:leading-normal whitespace-nowrap overflow-x-auto scrollbar-hide" style={{ letterSpacing: '-0.01em' }} suppressHydrationWarning>
+              <p className="hero-subtitle text-gray-700/90 mb-0 font-medium text-xs sm:text-sm md:text-lg leading-tight" style={{ letterSpacing: '-0.01em' }} suppressHydrationWarning>
                 <AnimatedTitle
                   text={t('subtitle')}
                   animationDelay={2.0}

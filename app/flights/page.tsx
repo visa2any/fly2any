@@ -166,7 +166,7 @@ export default function FlightsPage() {
   return (
     <div className="min-h-screen bg-white">
       {/* Hero Section - Blue Theme */}
-      <div className="relative bg-gradient-to-br from-gray-50 via-blue-50/30 to-gray-50 border-b border-gray-200/60 overflow-hidden md:overflow-visible max-h-[100vh] md:max-h-none">
+      <div className="relative bg-gradient-to-br from-gray-50 via-blue-50/30 to-gray-50 border-b border-gray-200/60 overflow-hidden">
         <div className="absolute inset-0 overflow-hidden pointer-events-none">
           <div className="floating-orb floating-orb-1"></div>
           <div className="floating-orb floating-orb-2"></div>
@@ -178,28 +178,24 @@ export default function FlightsPage() {
           backgroundSize: '40px 40px'
         }}></div>
 
-        <MaxWidthContainer className="relative overflow-hidden md:overflow-visible" noPadding={true} style={{ padding: '12px 0 8px' }}>
-          <div className="px-4 md:px-6">
-            <div className="flex flex-col md:flex-row md:items-center gap-1 md:gap-3 animate-fadeIn">
-              <div className="overflow-x-auto md:overflow-visible scrollbar-hide" style={{ width: '100%' }}>
-                <h1 key={`title-${animationKey}`} className="hero-title text-lg sm:text-xl md:text-3xl font-extrabold tracking-tight sm:tracking-wide" style={{ display: 'inline-block', whiteSpace: 'nowrap' }}>
-                  {mounted ? t('sectionTitle').split('').map((char, index) => (
-                    <span key={index} className="letter-elastic" style={{ animationDelay: `${index * 0.038}s`, display: 'inline-block', minWidth: char === ' ' ? '0.3em' : 'auto' }}>
-                      {char === ' ' ? '\u00A0' : char}
-                    </span>
-                  )) : <span style={{ opacity: 0 }}>{t('sectionTitle')}</span>}
-                </h1>
-              </div>
+        <MaxWidthContainer className="relative" noPadding={true}>
+          <div className="px-3 sm:px-4 md:px-6 py-3 sm:py-4 md:py-5">
+            <div className="flex flex-col md:flex-row md:items-center gap-0.5 sm:gap-1 md:gap-3 animate-fadeIn">
+              <h1 key={`title-${animationKey}`} className="hero-title text-base sm:text-lg md:text-3xl font-extrabold tracking-tight leading-tight">
+                {mounted ? t('sectionTitle').split('').map((char, index) => (
+                  <span key={index} className="letter-elastic" style={{ animationDelay: `${index * 0.038}s`, display: 'inline-block', minWidth: char === ' ' ? '0.3em' : 'auto' }}>
+                    {char === ' ' ? '\u00A0' : char}
+                  </span>
+                )) : <span style={{ opacity: 0 }}>{t('sectionTitle')}</span>}
+              </h1>
               <span className="hidden md:inline-block text-blue-400 text-2xl font-bold mx-1">•</span>
-              <div className="overflow-x-auto md:overflow-visible scrollbar-hide" style={{ width: '100%' }}>
-                <p key={`subtitle-${animationKey}`} className="hero-subtitle text-gray-700/90 mb-0 font-medium text-xs sm:text-sm md:text-lg leading-tight sm:leading-normal" style={{ display: 'inline-block', whiteSpace: 'nowrap', letterSpacing: '-0.01em' }}>
-                  {mounted ? t('subtitle').split('').map((char, index) => (
-                    <span key={index} className="letter-elastic" style={{ animationDelay: `${2.0 + (index * 0.028)}s`, display: 'inline-block', minWidth: char === ' ' ? '0.3em' : 'auto' }}>
-                      {char === ' ' ? '\u00A0' : char}
-                    </span>
-                  )) : <span style={{ opacity: 0 }}>{t('subtitle')}</span>}
-                </p>
-              </div>
+              <p key={`subtitle-${animationKey}`} className="hero-subtitle text-gray-700/90 mb-0 font-medium text-xs sm:text-sm md:text-lg leading-tight" style={{ letterSpacing: '-0.01em' }}>
+                {mounted ? t('subtitle').split('').map((char, index) => (
+                  <span key={index} className="letter-elastic" style={{ animationDelay: `${2.0 + (index * 0.028)}s`, display: 'inline-block', minWidth: char === ' ' ? '0.3em' : 'auto' }}>
+                    {char === ' ' ? '\u00A0' : char}
+                  </span>
+                )) : <span style={{ opacity: 0 }}>{t('subtitle')}</span>}
+              </p>
             </div>
           </div>
         </MaxWidthContainer>
