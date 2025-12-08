@@ -169,11 +169,8 @@ export default function InstallPrompt() {
             </div>
 
             <div className="flex-1 min-w-0">
-              <h3 className="font-bold text-sm mb-0.5">
-                Install Fly2Any
-              </h3>
-              <p className="text-xs text-blue-100 truncate">
-                Get faster access and offline features
+              <p className="text-xs font-semibold text-white truncate">
+                Install & get 5% off Hotels + Exclusive Deals 🎁
               </p>
             </div>
 
