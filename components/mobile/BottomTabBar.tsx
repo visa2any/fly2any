@@ -57,10 +57,13 @@ export function BottomTabBar({ translations, onMoreClick }: BottomTabBarProps) {
       href: '/hotels',
     },
     {
-      id: 'cars',
-      icon: '🚗',
-      label: translations.cars,
-      href: '/cars',
+      id: 'chat',
+      icon: '💬',
+      label: 'Chat',
+      onClick: () => {
+        const e = new CustomEvent('openChatAssistant');
+        window.dispatchEvent(e);
+      },
     },
     {
       id: 'more',

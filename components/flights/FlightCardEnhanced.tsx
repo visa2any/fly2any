@@ -827,7 +827,7 @@ export function FlightCardEnhanced({
       {/* ULTRA-COMPACT HEADER - 24px height */}
       <div className="flex items-center justify-between gap-2 px-3 py-1 bg-gradient-to-r from-gray-50 to-white border-b border-gray-100" style={{ height: dimensions.card.header }}>
         {/* Left: Airline Info (compact) */}
-        <div className="flex items-center gap-2 flex-1 min-w-0">
+        <div className="flex items-center gap-1 md:gap-2 flex-1 min-w-0 overflow-hidden">
           {/* Airline Logo - Real Logo with Fallback */}
           <AirlineLogo
             code={primaryAirline}
@@ -836,82 +836,86 @@ export function FlightCardEnhanced({
           />
 
           {/* Airline Name + Flight Number (or "Multi-City" for multiple airlines) */}
-          <div className="flex items-baseline gap-1.5 truncate">
+          <div className="flex items-baseline gap-1 md:gap-1.5 truncate min-w-0">
             <span className="font-semibold text-gray-900 truncate" style={{ fontSize: typography.card.title.size }}>
               {hasMultipleAirlines ? 'Multi-City Journey' : airlineData.name}
             </span>
             {!hasMultipleAirlines && primaryFlightNumber && (
-              <span className="font-medium text-gray-500 truncate flex items-baseline gap-1" style={{ fontSize: '11px' }}>
+              <span className="hidden sm:flex font-medium text-gray-500 truncate items-baseline gap-1" style={{ fontSize: '11px' }}>
                 <span className="text-gray-400">Flight</span>
                 <span className="text-gray-600 font-semibold">{primaryFlightNumber}</span>
               </span>
             )}
             {hasMultipleAirlines && (
-              <span className="font-medium text-gray-500 truncate" style={{ fontSize: '11px' }}>
+              <span className="hidden sm:flex font-medium text-gray-500 truncate" style={{ fontSize: '11px' }}>
                 {allAirlines.length} Airlines • {itineraries.length} Legs
               </span>
             )}
           </div>
 
-          {/* Rating - Compact */}
-          <div className="flex items-center gap-0.5 flex-shrink-0">
+          {/* Rating - Compact - Hidden on small mobile */}
+          <div className="hidden sm:flex items-center gap-0.5 flex-shrink-0">
             <Star className={`w-3 h-3 fill-current ${getRatingColor(airlineData.rating)}`} />
             <span className="font-semibold text-gray-700" style={{ fontSize: typography.card.meta.size }}>
               {airlineData.rating.toFixed(1)}
             </span>
           </div>
 
-          {/* ONLY 2 BADGES MAX (Design Rule #3) */}
-          {/* Badge 1: Seats left - URGENCY (only if critical) */}
+          {/* ONLY 2 BADGES MAX (Design Rule #3) - Most hidden on mobile */}
+          {/* Badge 1: Seats left - URGENCY (only if critical) - ALWAYS SHOW */}
           {numberOfBookableSeats <= 3 && (
             <span className="font-bold text-orange-600 px-1.5 py-0.5 bg-orange-50 rounded flex-shrink-0" style={{ fontSize: typography.card.meta.size }}>
               ⚠️ {numberOfBookableSeats} left
             </span>
           )}
 
-          {/* Badge 2: Direct flight badge (only if ALL legs are direct for multi-city) */}
+          {/* Badge 2: Direct flight badge (only if ALL legs are direct for multi-city) - Hidden on mobile */}
           {legsStopsInfo.every(stops => stops.text === 'Direct') && (
-            <span className="font-semibold px-1.5 py-0.5 bg-green-50 text-green-700 rounded flex-shrink-0" style={{ fontSize: typography.card.meta.size }}>
+            <span className="hidden md:inline-flex font-semibold px-1.5 py-0.5 bg-green-50 text-green-700 rounded flex-shrink-0" style={{ fontSize: typography.card.meta.size }}>
               ✈️ All Direct
             </span>
           )}
 
-          {/* NDC Exclusive Badge */}
+          {/* NDC Exclusive Badge - Hidden on mobile */}
           {isNDC && (
-            <span className="font-bold px-2 py-0.5 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-full flex-shrink-0 flex items-center gap-1 shadow-md" style={{ fontSize: typography.card.meta.size }}>
+            <span className="hidden md:inline-flex font-bold px-2 py-0.5 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-full flex-shrink-0 items-center gap-1 shadow-md" style={{ fontSize: typography.card.meta.size }}>
               <Sparkles className="w-3 h-3" />
               NDC Exclusive
             </span>
           )}
 
-          {/* Separate Tickets (Hacker Fare) Badge */}
+          {/* Separate Tickets (Hacker Fare) Badge - Hidden on mobile */}
           {isSeparateTickets && (
-            <SeparateTicketsBadge
-              mixedFare={separateTicketDetails}
-              compact={true}
-              lang={lang}
-            />
+            <div className="hidden md:block">
+              <SeparateTicketsBadge
+                mixedFare={separateTicketDetails}
+                compact={true}
+                lang={lang}
+              />
+            </div>
           )}
 
-          {/* Fare Type + Cabin Class Badge - Combined */}
-          <span className="font-semibold px-1.5 py-0.5 bg-purple-50 text-purple-700 rounded flex-shrink-0" style={{ fontSize: typography.card.meta.size }}>
+          {/* Fare Type + Cabin Class Badge - Combined - Hidden on mobile */}
+          <span className="hidden lg:inline-flex font-semibold px-1.5 py-0.5 bg-purple-50 text-purple-700 rounded flex-shrink-0" style={{ fontSize: typography.card.meta.size }}>
             {formatFareType(baggageInfo.fareType)} {baggageInfo.cabin === 'PREMIUM_ECONOMY' ? 'Premium' :
              baggageInfo.cabin === 'BUSINESS' ? 'Business' :
              baggageInfo.cabin === 'FIRST' ? 'First' : 'Economy'}
           </span>
 
-          {/* Loyalty Miles Badge - Moved to header (after fare class) */}
+          {/* Loyalty Miles Badge - Moved to header (after fare class) - Hidden on mobile */}
           {loyaltyProgram && loyaltyMilesEarned > 0 && (
-            <LoyaltyBadge
-              program={loyaltyProgram}
-              estimatedMiles={loyaltyMilesEarned}
-              airline={airlineData.name}
-            />
+            <div className="hidden lg:block">
+              <LoyaltyBadge
+                program={loyaltyProgram}
+                estimatedMiles={loyaltyMilesEarned}
+                airline={airlineData.name}
+              />
+            </div>
           )}
         </div>
 
-        {/* Right: Quick Actions */}
-        <div className="flex items-center gap-1.5 flex-shrink-0">
+        {/* Right: Quick Actions - ALWAYS VISIBLE */}
+        <div className="flex items-center gap-1 sm:gap-1.5 flex-shrink-0">
           {/* ML Score - Removed */}
           {/* {(mlScore !== undefined || score !== undefined) && (
             <div className="text-center px-1.5">

@@ -345,6 +345,13 @@ export function AITravelAssistant({ language = 'en' }: Props) {
     };
   }, []);
 
+  // Listen for mobile bottom bar chat button clicks
+  useEffect(() => {
+    const handleOpen = () => setIsOpen(true);
+    window.addEventListener('openChatAssistant', handleOpen);
+    return () => window.removeEventListener('openChatAssistant', handleOpen);
+  }, []);
+
   // CONVERSATION PERSISTENCE: Load or start conversation on mount
   useEffect(() => {
     const existingConversation = loadConversation();
@@ -1928,7 +1935,7 @@ export function AITravelAssistant({ language = 'en' }: Props) {
     return (
       <button
         onClick={() => setIsOpen(true)}
-        className="fixed bottom-6 right-6 z-[1500] w-16 h-16 bg-gradient-to-br from-primary-500 to-primary-700 hover:from-primary-600 hover:to-primary-800 text-white rounded-full shadow-2xl flex items-center justify-center transition-all duration-300 hover:scale-110 group"
+        className="hidden md:flex fixed bottom-6 right-6 z-[1500] w-16 h-16 bg-gradient-to-br from-primary-500 to-primary-700 hover:from-primary-600 hover:to-primary-800 text-white rounded-full shadow-2xl items-center justify-center transition-all duration-300 hover:scale-110 group"
         aria-label="Open AI Travel Assistant"
       >
         <Bot className="w-7 h-7 group-hover:rotate-12 transition-transform" />

@@ -69,7 +69,7 @@ export const metadata: Metadata = {
   manifest: "/manifest.json",
   appleWebApp: {
     capable: true,
-    statusBarStyle: "default",
+    statusBarStyle: "black-translucent",
     title: "Fly2Any",
   },
   verification: {
@@ -78,7 +78,10 @@ export const metadata: Metadata = {
 };
 
 export const viewport = {
-  themeColor: "#2563eb",
+  themeColor: "#006FDB", // Match primary-600 for rich mobile browser chrome
+  width: "device-width",
+  initialScale: 1,
+  maximumScale: 5,
 };
 
 export default async function RootLayout({
@@ -121,11 +124,13 @@ export default async function RootLayout({
           type="font/woff2"
           crossOrigin="anonymous"
         />
-        {/* PWA Meta Tags */}
+        {/* PWA Meta Tags - Enhanced mobile browser chrome integration */}
         <meta name="mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-capable" content="yes" />
-        <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+        <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
         <meta name="apple-mobile-web-app-title" content="Fly2Any" />
+        <meta name="theme-color" content="#006FDB" media="(prefers-color-scheme: light)" />
+        <meta name="theme-color" content="#003F93" media="(prefers-color-scheme: dark)" />
         {/* Global Structured Data for SEO */}
         <StructuredData schema={globalSchemas} />
       </head>
