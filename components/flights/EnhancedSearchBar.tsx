@@ -996,8 +996,14 @@ export default function EnhancedSearchBar({
 
   const handleHotelSuggestionSelect = (suggestion: any) => {
     console.log('✅ Suggestion selected:', suggestion);
-    // Use the correct data structure from /api/hotels/suggestions
-    setHotelDestination(suggestion.name || suggestion.city);
+
+    // Use full city name format (same logic as HotelSearchBar)
+    const fullDestinationName = suggestion.type === 'city'
+      ? (suggestion.name || suggestion.city)
+      : `${suggestion.name || suggestion.city}, ${suggestion.city || ''}`.trim();
+
+    console.log('📝 Setting destination to:', fullDestinationName);
+    setHotelDestination(fullDestinationName);
     setHotelLocation({
       lat: suggestion.location?.lat || suggestion.latitude,
       lng: suggestion.location?.lng || suggestion.longitude
@@ -1008,7 +1014,7 @@ export default function EnhancedSearchBar({
     });
     // Store destination details for enhanced display
     setSelectedDestinationDetails({
-      name: suggestion.name || suggestion.city,
+      name: fullDestinationName,
       country: suggestion.country || '',
       emoji: suggestion.emoji,
       type: suggestion.type || 'city',
