@@ -995,23 +995,34 @@ export default function EnhancedSearchBar({
   };
 
   const handleHotelSuggestionSelect = (suggestion: any) => {
-    console.log('✅ Suggestion selected:', suggestion);
+    console.log('✅ Suggestion selected - RAW DATA:', JSON.stringify(suggestion));
 
-    // Use full city name format (same logic as HotelSearchBar)
-    const fullDestinationName = suggestion.type === 'city'
-      ? (suggestion.name || suggestion.city)
-      : `${suggestion.name || suggestion.city}, ${suggestion.city || ''}`.trim();
+    // Extract the full destination name properly
+    let fullDestinationName = '';
 
-    console.log('📝 Setting destination to:', fullDestinationName);
+    if (suggestion.type === 'city') {
+      // For cities, just use the name
+      fullDestinationName = suggestion.name || suggestion.city || '';
+    } else {
+      // For landmarks/POIs, use "Name, City" format only if city is different
+      const name = suggestion.name || '';
+      const city = suggestion.city || '';
+      if (city && city !== name) {
+        fullDestinationName = `${name}, ${city}`;
+      } else {
+        fullDestinationName = name;
+      }
+    }
+
+    console.log('📝 Full destination name extracted:', fullDestinationName);
+    console.log('📝 Length:', fullDestinationName.length, 'chars');
+
     setHotelDestination(fullDestinationName);
     setHotelLocation({
       lat: suggestion.location?.lat || suggestion.latitude,
       lng: suggestion.location?.lng || suggestion.longitude
     });
-    console.log('📍 Hotel location set to:', {
-      lat: suggestion.location?.lat || suggestion.latitude,
-      lng: suggestion.location?.lng || suggestion.longitude
-    });
+
     // Store destination details for enhanced display
     setSelectedDestinationDetails({
       name: fullDestinationName,
@@ -1020,7 +1031,7 @@ export default function EnhancedSearchBar({
       type: suggestion.type || 'city',
       categories: suggestion.categories,
     });
-    // Clear selected districts when changing destination
+
     setSelectedDistricts([]);
     setShowHotelSuggestions(false);
   };
@@ -1967,7 +1978,7 @@ export default function EnhancedSearchBar({
                             <div className="flex-1 min-w-0">
                               {/* City Name & Flag */}
                               <div className="flex items-center gap-2 mb-1">
-                                <h3 className="font-bold text-gray-900 text-sm group-hover:text-blue-600 transition-colors truncate">
+                                <h3 className="font-bold text-gray-900 text-sm group-hover:text-blue-600 transition-colors break-words">
                                   {suggestion.name}
                                 </h3>
                                 {suggestion.flag && (
