@@ -812,7 +812,7 @@ function BookingPageContent() {
             </div>
 
             {/* Progress Steps - Compact on mobile */}
-            <div className="flex items-center gap-1 sm:gap-2">
+            <div className="flex items-center gap-1 sm:gap-2 px-2 sm:px-0">
               {[1, 2, 3].map((step) => (
                 <div key={step} className="flex items-center gap-1 sm:gap-2">
                   <div
