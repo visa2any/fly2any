@@ -21,12 +21,12 @@ interface Tab {
 /**
  * Bottom Tab Bar for Mobile Navigation
  *
- * Fixed bottom navigation bar with 4 primary tabs.
+ * Fixed bottom navigation bar with 5 primary tabs.
  * Only visible on mobile devices (<md breakpoint).
  *
  * Features:
  * - Fixed positioning at bottom of screen
- * - 4 tabs: Flights, Hotels, Cars, More
+ * - 5 tabs: Home, Flights, Hotels, Chat, More
  * - Active state indication
  * - Safe area padding for notched devices
  * - Backdrop blur for glass effect
@@ -37,6 +37,12 @@ export function BottomTabBar({ translations, onMoreClick }: BottomTabBarProps) {
 
   // Define tabs with translations
   const tabs: Tab[] = [
+    {
+      id: 'home',
+      icon: '🏠',
+      label: 'Home',
+      href: '/',
+    },
     {
       id: 'flights',
       icon: '✈️',
