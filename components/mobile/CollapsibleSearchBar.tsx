@@ -205,16 +205,6 @@ export function CollapsibleSearchBar({
             }}
           >
             <div className="relative">
-              {/* Collapse Button */}
-              <button
-                onClick={handleToggle}
-                className="absolute top-3 right-3 z-10 min-w-[44px] min-h-[44px] flex items-center justify-center bg-white/90 backdrop-blur-sm rounded-full shadow-md hover:bg-white transition-colors border border-gray-200"
-                aria-label="Collapse search form"
-                aria-expanded="true"
-              >
-                <ChevronUp className="w-5 h-5 text-primary-600" />
-              </button>
-
               {/* Full Search Form - Clone and inject onSearchSubmit handler */}
               {isValidElement(children)
                 ? cloneElement(children, { onSearchSubmit: handleSearchSubmit } as any)

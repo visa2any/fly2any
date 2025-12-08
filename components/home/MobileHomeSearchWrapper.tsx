@@ -290,7 +290,7 @@ export function MobileHomeSearchWrapper({
           </motion.div>
         )}
 
-        {/* EXPANDED STATE - Full EnhancedSearchBar with close button */}
+        {/* EXPANDED STATE - Full EnhancedSearchBar */}
         {viewState === 'expanded' && (
           <motion.div
             key="expanded"
@@ -300,17 +300,6 @@ export function MobileHomeSearchWrapper({
             transition={springConfig}
             className="w-full relative"
           >
-            {/* Close Button - Positioned absolutely over the search bar with improved touch target */}
-            <button
-              onClick={handleCollapse}
-              className="absolute top-4 right-4 sm:top-6 sm:right-6 z-50 min-w-[48px] min-h-[48px] flex items-center justify-center bg-white/95 backdrop-blur-sm rounded-full shadow-md hover:shadow-lg hover:bg-white transition-all duration-200 border border-gray-200/80 active:scale-90"
-              aria-label="Collapse search form"
-              aria-expanded="true"
-              type="button"
-            >
-              <X className="w-5 h-5 text-gray-700 stroke-[2.5]" aria-hidden="true" />
-            </button>
-
             {/* Full EnhancedSearchBar - All features preserved with auto-collapse on search */}
             <div ref={searchBarRef}>
               <EnhancedSearchBar
