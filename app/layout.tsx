@@ -78,10 +78,11 @@ export const metadata: Metadata = {
 };
 
 export const viewport = {
-  themeColor: "#006FDB", // Match primary-600 for rich mobile browser chrome
+  themeColor: "#006FDB",
   width: "device-width",
   initialScale: 1,
   maximumScale: 5,
+  viewportFit: "cover",
 };
 
 export default async function RootLayout({

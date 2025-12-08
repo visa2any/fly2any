@@ -35,13 +35,6 @@ interface Tab {
 export function BottomTabBar({ translations, onMoreClick }: BottomTabBarProps) {
   const pathname = usePathname();
 
-  // Scroll direction detection for auto-hide behavior (Phase 8 Track 2A.2)
-  const { scrollDirection, isAtTop } = useScrollDirection({
-    threshold: 50,
-    debounceDelay: 100,
-    mobileOnly: true, // Only auto-hide on mobile
-  });
-
   // Define tabs with translations
   const tabs: Tab[] = [
     {
@@ -99,26 +92,19 @@ export function BottomTabBar({ translations, onMoreClick }: BottomTabBarProps) {
 
   return (
     <nav
-      className="md:hidden fixed bottom-0 left-0 right-0 border-t border-gray-200"
+      className="md:hidden fixed bottom-0 left-0 right-0 border-t border-gray-200/80"
       style={{
         zIndex: zIndex.FIXED,
-        background: 'rgba(255, 255, 255, 0.95)',
-        backdropFilter: 'blur(12px) saturate(180%)',
-        WebkitBackdropFilter: 'blur(12px) saturate(180%)',
-        boxShadow: '0 -2px 12px rgba(0, 0, 0, 0.08)',
-        // Safe area padding for devices with notches/home indicators
+        background: 'rgba(255, 255, 255, 0.98)',
+        backdropFilter: 'blur(16px) saturate(180%)',
+        WebkitBackdropFilter: 'blur(16px) saturate(180%)',
+        boxShadow: '0 -1px 8px rgba(0, 0, 0, 0.06)',
         paddingBottom: 'env(safe-area-inset-bottom, 0px)',
-        // Phase 8 Track 2A.2: Auto-hide on scroll down (mobile only, 56px savings)
-        transform: scrollDirection === 'down' && !isAtTop
-          ? 'translateY(100%)' // Hide by moving down
-          : 'translateY(0)',    // Show at normal position
-        transition: 'transform 300ms cubic-bezier(0.4, 0.0, 0.2, 1)',
-        willChange: 'transform',
       }}
       role="navigation"
       aria-label="Mobile bottom navigation"
     >
-      <div className="flex items-center justify-around">
+      <div className="flex items-center justify-around h-14">
         {tabs.map((tab) => {
           const isActive = isTabActive(tab);
 
@@ -126,33 +112,29 @@ export function BottomTabBar({ translations, onMoreClick }: BottomTabBarProps) {
             <button
               key={tab.id}
               onClick={() => handleTabClick(tab)}
-              className={`flex-1 flex flex-col items-center justify-center min-h-[56px] py-2 px-2 transition-all duration-200 relative ${
+              className={`flex-1 flex flex-col items-center justify-center h-full py-1 px-1 transition-colors duration-150 relative ${
                 isActive
                   ? 'text-primary-600'
-                  : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
+                  : 'text-gray-600 active:bg-gray-100'
               }`}
               aria-label={tab.label}
               aria-current={isActive ? 'page' : undefined}
             >
-              {/* Active indicator - top border */}
+              {/* Active indicator */}
               {isActive && (
                 <span
-                  className="absolute top-0 left-1/2 transform -translate-x-1/2 w-12 h-0.5 bg-primary-600 rounded-full"
+                  className="absolute top-0 left-1/2 -translate-x-1/2 w-10 h-0.5 bg-primary-600 rounded-full"
                   aria-hidden="true"
                 />
               )}
 
               {/* Icon */}
-              <span className={`text-2xl mb-1 transition-transform duration-200 ${isActive ? 'scale-110' : ''}`}>
+              <span className={`text-xl mb-0.5 ${isActive ? 'scale-105' : ''}`}>
                 {tab.icon}
               </span>
 
               {/* Label */}
-              <span
-                className={`text-xs font-semibold transition-all duration-200 ${
-                  isActive ? 'font-bold' : ''
-                }`}
-              >
+              <span className={`text-[10px] font-medium ${isActive ? 'font-semibold' : ''}`}>
                 {tab.label}
               </span>
             </button>
