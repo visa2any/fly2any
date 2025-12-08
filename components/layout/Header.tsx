@@ -202,49 +202,48 @@ export function Header({
       >
         <MaxWidthContainer noPadding className="px-3 md:px-6">
           <div className="flex items-center justify-between h-14 sm:h-16 md:h-18 lg:h-20">
-            {/* Logo with Enhanced Visibility - Left aligned, smaller on mobile */}
-            <a href="/" className="flex items-center group flex-shrink-0">
-            <div
-              className="relative transition-all duration-300 group-hover:scale-105 px-2 sm:px-2.5 md:px-3 py-1.5 sm:py-2 rounded-lg sm:rounded-xl"
-              style={{
-                background: scrolled
-                  ? 'linear-gradient(135deg, rgba(59, 130, 246, 0.06), rgba(6, 182, 212, 0.06))'
-                  : 'linear-gradient(135deg, rgba(59, 130, 246, 0.08), rgba(6, 182, 212, 0.08))',
-                boxShadow: '0 2px 8px rgba(0, 0, 0, 0.04)',
-                transition: 'all 0.3s ease',
-              }}
-            >
-              <Image
-                src={logoUrl}
-                alt="Fly2Any Travel"
-                width={144}
-                height={43}
-                priority
-                className="w-auto h-6 sm:h-7 md:h-9"
+            {/* Logo with Icon + Text - Left aligned */}
+            <a href="/" className="flex items-center gap-2 group flex-shrink-0">
+              {/* Airplane Icon */}
+              <div
+                className="relative transition-all duration-300 group-hover:scale-105 p-1.5 sm:p-2 rounded-lg sm:rounded-xl flex-shrink-0"
                 style={{
-                  width: 'auto',
-                  height: 'auto',
-                  maxHeight: '24px',
-                  filter: scrolled
-                    ? 'drop-shadow(0 2px 4px rgba(0, 0, 0, 0.15)) drop-shadow(0 4px 8px rgba(30, 64, 175, 0.12)) drop-shadow(0 1px 2px rgba(0, 0, 0, 0.1))'
-                    : 'drop-shadow(0 2px 4px rgba(0, 0, 0, 0.12)) drop-shadow(0 3px 6px rgba(30, 64, 175, 0.10)) drop-shadow(0 1px 2px rgba(0, 0, 0, 0.08))',
-                  transition: 'filter 0.3s ease',
+                  background: scrolled
+                    ? 'linear-gradient(135deg, rgba(59, 130, 246, 0.06), rgba(6, 182, 212, 0.06))'
+                    : 'linear-gradient(135deg, rgba(59, 130, 246, 0.08), rgba(6, 182, 212, 0.08))',
+                  boxShadow: '0 2px 8px rgba(0, 0, 0, 0.04)',
+                  transition: 'all 0.3s ease',
                 }}
-              />
-              <style jsx>{`
-                @media (min-width: 640px) {
-                  img {
-                    max-height: 28px !important;
-                  }
-                }
-                @media (min-width: 768px) {
-                  img {
-                    max-height: 36px !important;
-                  }
-                }
-              `}</style>
-            </div>
-          </a>
+              >
+                <Image
+                  src="/icon-192.png"
+                  alt="Fly2Any"
+                  width={32}
+                  height={32}
+                  priority
+                  className="w-6 h-6 sm:w-7 sm:h-7 md:w-8 md:h-8"
+                  style={{
+                    filter: scrolled
+                      ? 'drop-shadow(0 2px 4px rgba(0, 0, 0, 0.15))'
+                      : 'drop-shadow(0 2px 4px rgba(0, 0, 0, 0.12))',
+                    transition: 'filter 0.3s ease',
+                  }}
+                />
+              </div>
+
+              {/* Fly2Any Text Logo */}
+              <span
+                className="font-bold text-lg sm:text-xl md:text-2xl bg-gradient-to-r from-blue-600 to-cyan-600 bg-clip-text text-transparent hidden xs:block"
+                style={{
+                  textShadow: scrolled
+                    ? '0 2px 8px rgba(59, 130, 246, 0.2)'
+                    : '0 2px 6px rgba(59, 130, 246, 0.15)',
+                  transition: 'text-shadow 0.3s ease',
+                }}
+              >
+                Fly2Any
+              </span>
+            </a>
 
           {/* Main Navigation - Premium Glassmorphism Style */}
           <nav className="hidden lg:flex items-center space-x-0.5 xl:space-x-1 ml-auto mr-3 xl:mr-6" suppressHydrationWarning>
