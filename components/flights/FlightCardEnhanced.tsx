@@ -1302,9 +1302,9 @@ export function FlightCardEnhanced({
         )}
         {/* Full width distribution with balanced spacing */}
         <div className="flex items-center gap-4">
-          {/* Left Group: Deal Score (PRIMARY) */}
+          {/* Left Group: Deal Score (PRIMARY) - Hidden on mobile for clean layout */}
           {dealScore !== undefined && dealTier && dealLabel && (
-            <div className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-md text-xs shadow-sm border-2 transition-all hover:shadow-md flex-shrink-0 ${
+            <div className={`hidden md:inline-flex items-center gap-1 px-2.5 py-0.5 rounded-md text-xs shadow-sm border-2 transition-all hover:shadow-md flex-shrink-0 ${
               dealTier === 'excellent' ? 'bg-gradient-to-r from-amber-500 to-yellow-500 border-amber-600 text-white' :
               dealTier === 'great' ? 'bg-gradient-to-r from-green-500 to-emerald-500 border-green-600 text-white' :
               dealTier === 'good' ? 'bg-gradient-to-r from-blue-500 to-cyan-500 border-blue-600 text-white' :
