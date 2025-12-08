@@ -151,14 +151,14 @@ export function DateInput({
       )}
 
       {useDropdowns ? (
-        /* Dropdown Selectors */
-        <div className="grid grid-cols-3 gap-2">
+        /* Dropdown Selectors - Mobile optimized */
+        <div className="grid grid-cols-3 gap-1 sm:gap-2">
           {/* Month */}
           <select
             value={month}
             onChange={(e) => setMonth(e.target.value)}
             required={required}
-            className={`px-3 py-2 text-sm border rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500 ${
+            className={`px-1 sm:px-3 py-2.5 text-xs sm:text-sm text-neutral-800 border rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500 ${
               error ? 'border-error-500' : 'border-gray-300'
             }`}
           >
@@ -173,7 +173,7 @@ export function DateInput({
             value={day}
             onChange={(e) => setDay(e.target.value)}
             required={required}
-            className={`px-3 py-2 text-sm border rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500 ${
+            className={`px-1 sm:px-3 py-2.5 text-xs sm:text-sm text-neutral-800 border rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500 ${
               error ? 'border-error-500' : 'border-gray-300'
             }`}
           >
@@ -188,7 +188,7 @@ export function DateInput({
             value={year}
             onChange={(e) => setYear(e.target.value)}
             required={required}
-            className={`px-3 py-2 text-sm border rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500 ${
+            className={`px-1 sm:px-3 py-2.5 text-xs sm:text-sm text-neutral-800 border rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500 ${
               error ? 'border-error-500' : 'border-gray-300'
             }`}
           >

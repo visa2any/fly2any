@@ -381,7 +381,7 @@ export default function FlightSearchForm({
   };
 
   return (
-    <div className={`bg-white/95 backdrop-blur-lg rounded-3xl shadow-2xl p-4 md:p-8 ${className}`}>
+    <div className={`bg-white/95 backdrop-blur-lg rounded-2xl sm:rounded-3xl shadow-2xl p-2 sm:p-4 md:p-8 mx-1 sm:mx-0 ${className}`}>
       <form onSubmit={handleSubmit} className="space-y-3 md:space-y-6" aria-label="Flight search form">
         {/* Trip Type Toggle */}
         <fieldset className="flex gap-3 p-1 bg-gray-100 rounded-2xl">

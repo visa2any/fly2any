@@ -128,7 +128,7 @@ export function CompactPassengerForm({
   };
 
   return (
-    <div className="space-y-3">
+    <div className="space-y-3 px-1 sm:px-0">
       {/* Passengers */}
       {formData.map((passenger, index) => {
         const isExpanded = expandedPassenger === passenger.id;
@@ -136,7 +136,7 @@ export function CompactPassengerForm({
         const passengerErrors = errors[passenger.id] || {};
 
         return (
-          <div key={passenger.id} className="border border-gray-200 rounded-lg bg-white">
+          <div key={passenger.id} className="border border-gray-200 rounded-lg bg-white mx-0">
             {/* Passenger Header */}
             <button
               onClick={() => setExpandedPassenger(isExpanded ? '' : passenger.id)}
@@ -176,9 +176,9 @@ export function CompactPassengerForm({
             {/* Passenger Form */}
             {isExpanded && (
               <div className="px-3 pb-3 pt-2 border-t border-gray-100 bg-gray-50 space-y-2.5">
-                {/* Row 1: Title, First Name, Last Name */}
-                <div className="grid grid-cols-12 gap-2">
-                  <div className="col-span-2">
+                {/* Row 1: Title, First Name, Last Name - Mobile-first stacked */}
+                <div className="grid grid-cols-4 sm:grid-cols-12 gap-2">
+                  <div className="col-span-4 sm:col-span-2">
                     <label className="block text-xs font-semibold text-gray-700 mb-1 flex items-center gap-1">
                       <User className="w-3.5 h-3.5 text-primary-500" />
                       Title *
@@ -186,10 +186,10 @@ export function CompactPassengerForm({
                     <select
                       value={passenger.title}
                       onChange={(e) => updatePassenger(passenger.id, 'title', e.target.value)}
-                      className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg bg-white focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+                      className="w-full px-2 sm:px-3 py-2.5 text-sm text-neutral-800 border border-gray-300 rounded-lg bg-white focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
                       required
                     >
-                      <option value="">-</option>
+                      <option value="">Select</option>
                       <option value="Mr">Mr</option>
                       <option value="Mrs">Mrs</option>
                       <option value="Ms">Ms</option>
@@ -198,7 +198,7 @@ export function CompactPassengerForm({
                     </select>
                   </div>
 
-                  <div className="col-span-5">
+                  <div className="col-span-4 sm:col-span-5">
                     <label className="block text-xs font-semibold text-gray-700 mb-1 flex items-center gap-1">
                       <UserCircle className="w-3.5 h-3.5 text-primary-500" />
                       First Name *
@@ -208,12 +208,12 @@ export function CompactPassengerForm({
                       value={passenger.firstName}
                       onChange={(e) => updatePassenger(passenger.id, 'firstName', e.target.value)}
                       placeholder="As on passport"
-                      className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg bg-white focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+                      className="w-full px-2 sm:px-3 py-2.5 text-sm text-neutral-800 placeholder:text-gray-400 border border-gray-300 rounded-lg bg-white focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
                       required
                     />
                   </div>
 
-                  <div className="col-span-5">
+                  <div className="col-span-4 sm:col-span-5">
                     <label className="block text-xs font-semibold text-gray-700 mb-1 flex items-center gap-1">
                       <UserCircle className="w-3.5 h-3.5 text-primary-500" />
                       Last Name *
@@ -223,7 +223,7 @@ export function CompactPassengerForm({
                       value={passenger.lastName}
                       onChange={(e) => updatePassenger(passenger.id, 'lastName', e.target.value)}
                       placeholder="As on passport"
-                      className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg bg-white focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+                      className="w-full px-2 sm:px-3 py-2.5 text-sm text-neutral-800 placeholder:text-gray-400 border border-gray-300 rounded-lg bg-white focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
                       required
                     />
                   </div>
@@ -251,7 +251,7 @@ export function CompactPassengerForm({
                     <select
                       value={passenger.nationality}
                       onChange={(e) => updatePassenger(passenger.id, 'nationality', e.target.value)}
-                      className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg bg-white focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+                      className="w-full px-2 sm:px-3 py-2.5 text-sm text-neutral-800 border border-gray-300 rounded-lg bg-white focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
                       required
                     >
                       <option value="">Select country</option>
@@ -286,7 +286,7 @@ export function CompactPassengerForm({
                           value={passenger.passportNumber || ''}
                           onChange={(e) => updatePassenger(passenger.id, 'passportNumber', e.target.value)}
                           placeholder="AB123456 (optional)"
-                          className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg bg-white focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+                          className="w-full px-2 sm:px-3 py-2.5 text-sm text-neutral-800 placeholder:text-gray-400 border border-gray-300 rounded-lg bg-white focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
                         />
                       </div>
 
@@ -326,7 +326,7 @@ export function CompactPassengerForm({
                           value={passenger.email || ''}
                           onChange={(e) => updatePassenger(passenger.id, 'email', e.target.value)}
                           placeholder="your@email.com"
-                          className={`w-full px-3 py-2 text-sm border rounded-lg bg-white focus:ring-2 focus:ring-primary-500 ${
+                          className={`w-full px-2 sm:px-3 py-2.5 text-sm text-neutral-800 placeholder:text-gray-400 border rounded-lg bg-white focus:ring-2 focus:ring-primary-500 ${
                             passengerErrors.email ? 'border-error-500' : 'border-gray-300'
                           }`}
                           required

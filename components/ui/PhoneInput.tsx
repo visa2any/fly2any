@@ -88,14 +88,14 @@ export function PhoneInput({
 
           {/* Phone Number Input */}
           <div className="flex-1 relative">
-            <Phone className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+            <Phone className="absolute left-2 sm:left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
             <input
               type="tel"
               value={value}
               onChange={handlePhoneChange}
               placeholder={placeholder}
               required={required}
-              className="w-full pl-10 pr-3 py-2 text-sm focus:outline-none"
+              className="w-full pl-8 sm:pl-10 pr-2 sm:pr-3 py-2.5 text-sm text-neutral-800 placeholder:text-gray-400 focus:outline-none bg-white"
             />
           </div>
         </div>

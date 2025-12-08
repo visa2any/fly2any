@@ -842,10 +842,10 @@ function BookingPageContent() {
       </div>
 
       {/* Main Content */}
-      <div className="max-w-7xl mx-auto px-0 sm:px-4 py-2 sm:py-4">
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-0 sm:gap-4">
+      <div className="max-w-7xl mx-auto px-1 sm:px-4 py-2 sm:py-4">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-1 sm:gap-4">
           {/* Left Column: Steps */}
-          <div className="lg:col-span-2 space-y-0 sm:space-y-4">
+          <div className="lg:col-span-2 space-y-1 sm:space-y-4">
             {/* STEP 1: Customize Flight */}
             {currentStep === 1 && (
               <div className="space-y-0 sm:space-y-4 animate-fadeIn">
@@ -1048,15 +1048,15 @@ function BookingPageContent() {
 
             {/* STEP 2: Passenger Details */}
             {currentStep === 2 && (
-              <div className="space-y-0 sm:space-y-4 animate-fadeIn">
-                <div className="bg-white rounded-none sm:rounded-lg border-0 sm:border border-gray-200 overflow-hidden shadow-none sm:shadow-sm">
+              <div className="space-y-1 sm:space-y-4 animate-fadeIn">
+                <div className="bg-white rounded-lg sm:rounded-lg border border-gray-200 overflow-hidden shadow-sm">
                   <div className="bg-gradient-to-r from-primary-500 to-primary-600 px-3 sm:px-3 py-2 sm:py-3 text-white">
                     <h2 className="text-sm sm:text-base font-bold flex items-center gap-1.5 sm:gap-2">
                       <User className="w-4 h-4 sm:w-5 sm:h-5" />
                       Traveler Information
                     </h2>
                   </div>
-                  <div className="p-3 sm:p-4">
+                  <div className="p-1 sm:p-4">
                     <CompactPassengerForm
                       passengers={passengers}
                       isInternational={isInternationalRoute(flightData.search.from, flightData.search.to)}
