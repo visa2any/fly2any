@@ -9,6 +9,7 @@ import { Footer } from './Footer';
 import { BottomTabBar } from '@/components/mobile/BottomTabBar';
 import { NavigationDrawer } from '@/components/mobile/NavigationDrawer';
 import { AITravelAssistant } from '@/components/ai/AITravelAssistant';
+import { MobileFullscreen } from '@/components/layout/MobileFullscreen';
 import { useLanguage } from '@/lib/i18n/client';
 import { useTranslations } from 'next-intl';
 
@@ -138,6 +139,9 @@ function GlobalLayoutInner({ children }: GlobalLayoutProps) {
   // Standard platform layout for all other pages
   return (
     <>
+      {/* Mobile Fullscreen Handler */}
+      <MobileFullscreen />
+
       {/* Global Header - now manages language internally */}
       <Header showAuth={true} />
 
