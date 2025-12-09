@@ -1,316 +1,284 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
-import { Download, X, Plane, Zap, Bell, Wifi } from 'lucide-react';
+import { Download, X, Plane, Share, Plus, ArrowUp } from 'lucide-react';
 
 interface BeforeInstallPromptEvent extends Event {
   prompt: () => Promise<void>;
   userChoice: Promise<{ outcome: 'accepted' | 'dismissed' }>;
 }
 
-// Engagement tracking for smart timing
-const ENGAGEMENT_KEY = 'fly2any-engagement';
-const INSTALL_DISMISSED_KEY = 'fly2any-install-prompt-dismissed';
+const INSTALL_DISMISSED_KEY = 'fly2any-install-dismissed';
 
-interface Engagement {
-  searches: number;
-  pageViews: number;
-  timeOnSite: number;
-  hasViewedResults: boolean;
+// Detect iOS (any browser) - PWA only installs from Safari
+function isIOS(): boolean {
+  if (typeof window === 'undefined') return false;
+  const ua = navigator.userAgent;
+  return /iPad|iPhone|iPod/.test(ua) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+}
+
+// Detect if on Safari (needed for install)
+function isIOSSafari(): boolean {
+  if (!isIOS()) return false;
+  const ua = navigator.userAgent;
+  return /Safari/.test(ua) && !/Chrome|CriOS|FxiOS|EdgiOS/.test(ua);
+}
+
+// Detect if already installed as PWA
+function isStandalone(): boolean {
+  if (typeof window === 'undefined') return false;
+  return window.matchMedia('(display-mode: standalone)').matches || (navigator as any).standalone === true;
 }
 
 export default function InstallPrompt() {
   const [deferredPrompt, setDeferredPrompt] = useState<BeforeInstallPromptEvent | null>(null);
   const [showPrompt, setShowPrompt] = useState(false);
+  const [showIOSGuide, setShowIOSGuide] = useState(false);
   const [isInstalled, setIsInstalled] = useState(false);
-  const [dismissed, setDismissed] = useState(false);
+  const [isIOSDevice, setIsIOSDevice] = useState(false);
+  const [isOnSafari, setIsOnSafari] = useState(false);
   const [mounted, setMounted] = useState(false);
-  const [engagement, setEngagement] = useState<Engagement>({ searches: 0, pageViews: 0, timeOnSite: 0, hasViewedResults: false });
-
-  // Smart timing: show prompt when user shows high intent
-  const shouldShowSmartPrompt = useCallback((eng: Engagement): boolean => {
-    // High intent: completed a search and viewed results
-    if (eng.hasViewedResults) return true;
-    // Medium intent: multiple searches or significant time on site
-    if (eng.searches >= 1) return true;
-    if (eng.pageViews >= 3 && eng.timeOnSite >= 30000) return true;
-    return false;
-  }, []);
 
   useEffect(() => {
     setMounted(true);
+    setIsInstalled(isStandalone());
+    setIsIOSDevice(isIOS());
+    setIsOnSafari(isIOSSafari());
   }, []);
 
   useEffect(() => {
-    if (!mounted) return;
+    if (!mounted || isInstalled) return;
 
-    // Check if already installed
-    const checkIfInstalled = () => {
-      if (window.matchMedia('(display-mode: standalone)').matches) {
-        setIsInstalled(true);
-        return true;
-      }
-      if ((navigator as any).standalone === true) {
-        setIsInstalled(true);
-        return true;
-      }
-      return false;
-    };
-
-    if (checkIfInstalled()) return;
-
-    // Check if previously dismissed
+    // Check dismissal
     const dismissedUntil = localStorage.getItem(INSTALL_DISMISSED_KEY);
-    if (dismissedUntil && new Date(dismissedUntil) > new Date()) {
-      setDismissed(true);
-      return;
+    if (dismissedUntil && new Date(dismissedUntil) > new Date()) return;
+
+    // For iOS: Show prompt after 3 seconds
+    if (isIOSSafari()) {
+      const timer = setTimeout(() => setShowPrompt(true), 3000);
+      return () => clearTimeout(timer);
     }
 
-    // Load engagement data
-    const stored = sessionStorage.getItem(ENGAGEMENT_KEY);
-    const storedEngagement: Engagement = stored
-      ? JSON.parse(stored)
-      : { searches: 0, pageViews: 0, timeOnSite: 0, hasViewedResults: false };
-
-    storedEngagement.pageViews++;
-    setEngagement(storedEngagement);
-    sessionStorage.setItem(ENGAGEMENT_KEY, JSON.stringify(storedEngagement));
-
-    // Track time on site
-    const startTime = Date.now();
-    const timeInterval = setInterval(() => {
-      const newEngagement = { ...storedEngagement, timeOnSite: storedEngagement.timeOnSite + (Date.now() - startTime) };
-      setEngagement(newEngagement);
-      sessionStorage.setItem(ENGAGEMENT_KEY, JSON.stringify(newEngagement));
-    }, 10000);
-
-    // Listen for beforeinstallprompt event
-    const handleBeforeInstallPrompt = (e: Event) => {
+    // For Android/Desktop: Listen for beforeinstallprompt
+    const handler = (e: Event) => {
       e.preventDefault();
       setDeferredPrompt(e as BeforeInstallPromptEvent);
+      setTimeout(() => setShowPrompt(true), 3000);
     };
 
-    // Listen for custom high-intent events
-    const handleHighIntent = (e: CustomEvent) => {
-      const type = e.detail?.type;
-      setEngagement(prev => {
-        const updated = { ...prev };
-        if (type === 'search') updated.searches++;
-        if (type === 'results') updated.hasViewedResults = true;
-        sessionStorage.setItem(ENGAGEMENT_KEY, JSON.stringify(updated));
-
-        // Check if we should show prompt now
-        if (deferredPrompt && shouldShowSmartPrompt(updated) && !checkIfInstalled()) {
-          setShowPrompt(true);
-        }
-        return updated;
-      });
-    };
-
-    window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
-    window.addEventListener('fly2any:engagement' as any, handleHighIntent);
+    window.addEventListener('beforeinstallprompt', handler);
     window.addEventListener('appinstalled', () => {
       setIsInstalled(true);
       setShowPrompt(false);
-      // Clear badge on install
-      if ('clearAppBadge' in navigator) (navigator as any).clearAppBadge();
-      // Track
-      if ((window as any).gtag) {
-        (window as any).gtag('event', 'pwa_install', { event_category: 'PWA', event_label: 'App Installed' });
-      }
     });
 
-    return () => {
-      clearInterval(timeInterval);
-      window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
-      window.removeEventListener('fly2any:engagement' as any, handleHighIntent);
-    };
-  }, [mounted, deferredPrompt, shouldShowSmartPrompt]);
-
-  // Auto-show after delay if engagement is high enough
-  useEffect(() => {
-    if (!deferredPrompt || showPrompt || dismissed || isInstalled) return;
-
-    const timer = setTimeout(() => {
-      if (shouldShowSmartPrompt(engagement)) {
-        setShowPrompt(true);
-      }
-    }, 5000);
-
-    return () => clearTimeout(timer);
-  }, [deferredPrompt, engagement, showPrompt, dismissed, isInstalled, shouldShowSmartPrompt]);
+    return () => window.removeEventListener('beforeinstallprompt', handler);
+  }, [mounted, isInstalled]);
 
   const handleInstallClick = async () => {
-    if (!deferredPrompt) {
+    if (isIOSDevice) {
+      setShowIOSGuide(true);
       return;
     }
-
-    // Show the install prompt
+    if (!deferredPrompt) return;
     deferredPrompt.prompt();
-
-    // Wait for the user's response
     const { outcome } = await deferredPrompt.userChoice;
-
-    console.log(`User response to install prompt: ${outcome}`);
-
-    // Track user choice
-    if (typeof window !== 'undefined' && (window as any).gtag) {
-      (window as any).gtag('event', 'pwa_install_prompt', {
-        event_category: 'PWA',
-        event_label: outcome === 'accepted' ? 'Accepted' : 'Dismissed'
-      });
-    }
-
-    if (outcome === 'accepted') {
-      setShowPrompt(false);
-    }
-
-    // Clear the deferred prompt
+    if (outcome === 'accepted') setShowPrompt(false);
     setDeferredPrompt(null);
   };
 
   const handleDismiss = () => {
     setShowPrompt(false);
-    setDismissed(true);
-
-    // Don't show again for 7 days
+    setShowIOSGuide(false);
     const dismissedUntil = new Date();
     dismissedUntil.setDate(dismissedUntil.getDate() + 7);
-    localStorage.setItem('fly2any-install-prompt-dismissed', dismissedUntil.toISOString());
-
-    // Track dismissal
-    if (typeof window !== 'undefined' && (window as any).gtag) {
-      (window as any).gtag('event', 'pwa_install_dismiss', {
-        event_category: 'PWA',
-        event_label: 'Dismissed'
-      });
-    }
+    localStorage.setItem(INSTALL_DISMISSED_KEY, dismissedUntil.toISOString());
   };
 
-  const handleDismissTemporary = () => {
-    setShowPrompt(false);
-  };
+  if (!mounted || isInstalled) return null;
+  if (!showPrompt && !isIOSDevice && !deferredPrompt) return null;
 
-  // Always show persistent button in header, but hide banner if dismissed
-  const showBanner = !isInstalled && !dismissed && showPrompt && deferredPrompt;
+  // iOS Installation Guide Modal
+  if (showIOSGuide) {
+    // Show "Open in Safari" message if on iOS but not Safari
+    const needsSafari = isIOSDevice && !isOnSafari;
 
-  // Show persistent install button if not installed and prompt is available
-  if (isInstalled) {
-    return null;
-  }
-
-  return (
-    <>
-      {/* Persistent Install Button - Always visible if not installed */}
-      {deferredPrompt && (
-        <button
-          onClick={handleInstallClick}
-          className="fixed bottom-20 right-4 z-40 md:bottom-6 md:right-6 w-14 h-14 bg-primary-500 hover:bg-primary-600 text-white rounded-full shadow-2xl flex items-center justify-center transition-all hover:scale-110 group"
-          aria-label="Install Fly2Any App"
-          title="Install Fly2Any App"
-        >
-          <Download className="w-6 h-6 group-hover:animate-bounce" />
-          <span className="absolute -top-1 -right-1 w-4 h-4 bg-red-500 rounded-full animate-pulse"></span>
-        </button>
-      )}
-
-      {/* Mobile Bottom Banner - Only show if not dismissed */}
-      {showBanner && (
-        <div className="fixed bottom-16 left-0 right-0 z-50 md:hidden">
-        <div className="bg-gradient-to-r from-primary-500 to-blue-700 text-white shadow-2xl rounded-t-xl">
-          <div className="p-4 flex items-center gap-3">
-            <div className="flex-shrink-0 w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center">
-              <Plane className="w-6 h-6" />
-            </div>
-
-            <div className="flex-1 min-w-0">
-              <p className="text-xs font-semibold text-white truncate">
-                Install & get 5% off Hotels + Exclusive Deals 🎁
-              </p>
-            </div>
-
-            <button
-              onClick={handleInstallClick}
-              className="flex-shrink-0 px-4 py-2 bg-white text-primary-500 font-semibold rounded-lg text-sm hover:bg-info-50 transition-colors"
-            >
-              Install
-            </button>
-
-            <button
-              onClick={handleDismiss}
-              className="flex-shrink-0 p-2 hover:bg-white/10 rounded-lg transition-colors"
-              aria-label="Dismiss"
-            >
-              <X className="w-5 h-5" />
-            </button>
-          </div>
-        </div>
-      </div>
-      )}
-
-      {/* Desktop Popup - Only show if not dismissed */}
-      {showBanner && (
-        <div className="hidden md:block fixed bottom-6 right-6 z-50 max-w-sm">
-        <div className="bg-white rounded-2xl shadow-2xl border border-gray-200 overflow-hidden">
+    return (
+      <div className="fixed inset-0 z-[100] flex items-end sm:items-center justify-center bg-black/60 backdrop-blur-sm">
+        <div className="w-full max-w-md bg-white rounded-t-3xl sm:rounded-3xl shadow-2xl animate-slideUp safe-area-bottom">
           <div className="p-6">
-            <div className="flex items-start gap-4 mb-4">
-              <div className="flex-shrink-0 w-14 h-14 bg-gradient-to-br from-primary-500 to-blue-700 rounded-xl flex items-center justify-center">
-                <Plane className="w-7 h-7 text-white" />
+            {/* Header */}
+            <div className="flex items-center justify-between mb-6">
+              <div className="flex items-center gap-3">
+                <div className="w-12 h-12 bg-gradient-to-br from-primary-500 to-primary-600 rounded-2xl flex items-center justify-center">
+                  <Plane className="w-6 h-6 text-white" />
+                </div>
+                <div>
+                  <h3 className="font-bold text-gray-900 text-lg">Install Fly2Any</h3>
+                  <p className="text-sm text-gray-500">Add to Home Screen</p>
+                </div>
               </div>
-
-              <div className="flex-1 min-w-0">
-                <h3 className="font-bold text-gray-900 text-lg mb-1">
-                  Install Fly2Any
-                </h3>
-                <p className="text-sm text-gray-600">
-                  Add to your home screen for quick access, offline support, and a better experience.
-                </p>
-              </div>
-
-              <button
-                onClick={handleDismissTemporary}
-                className="flex-shrink-0 p-1 hover:bg-gray-100 rounded-lg transition-colors"
-                aria-label="Close"
-              >
+              <button onClick={handleDismiss} className="p-2 hover:bg-gray-100 rounded-full">
                 <X className="w-5 h-5 text-gray-400" />
               </button>
             </div>
 
-            <div className="flex items-center gap-3">
+            {needsSafari ? (
+              <>
+                {/* Open in Safari Message */}
+                <div className="text-center py-6">
+                  <div className="w-20 h-20 bg-blue-50 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <svg className="w-12 h-12" viewBox="0 0 24 24" fill="none">
+                      <circle cx="12" cy="12" r="10" stroke="#3B82F6" strokeWidth="2"/>
+                      <path d="M12 2C12 2 15 6 15 12C15 18 12 22 12 22" stroke="#3B82F6" strokeWidth="1.5"/>
+                      <path d="M12 2C12 2 9 6 9 12C9 18 12 22 12 22" stroke="#3B82F6" strokeWidth="1.5"/>
+                      <path d="M2 12H22" stroke="#3B82F6" strokeWidth="1.5"/>
+                      <path d="M4 7H20" stroke="#3B82F6" strokeWidth="1"/>
+                      <path d="M4 17H20" stroke="#3B82F6" strokeWidth="1"/>
+                    </svg>
+                  </div>
+                  <h4 className="font-bold text-gray-900 text-lg mb-2">Open in Safari</h4>
+                  <p className="text-gray-600 text-sm mb-4">
+                    On iOS, apps can only be installed from Safari browser.
+                  </p>
+                  <div className="bg-gray-50 rounded-2xl p-4 text-left">
+                    <p className="text-sm text-gray-700">
+                      <span className="font-semibold">1.</span> Copy this URL or tap the share button
+                    </p>
+                    <p className="text-sm text-gray-700 mt-2">
+                      <span className="font-semibold">2.</span> Open Safari and paste the URL
+                    </p>
+                    <p className="text-sm text-gray-700 mt-2">
+                      <span className="font-semibold">3.</span> Follow the install instructions
+                    </p>
+                  </div>
+                  <button
+                    onClick={() => {
+                      navigator.clipboard?.writeText(window.location.href);
+                    }}
+                    className="mt-4 w-full py-3 bg-primary-500 text-white font-semibold rounded-xl hover:bg-primary-600 transition-colors"
+                  >
+                    Copy URL
+                  </button>
+                </div>
+              </>
+            ) : (
+              <>
+                {/* Safari Install Steps */}
+                <div className="space-y-4 mb-6">
+                  <div className="flex items-start gap-4 p-4 bg-gray-50 rounded-2xl">
+                    <div className="w-10 h-10 bg-primary-100 rounded-xl flex items-center justify-center flex-shrink-0">
+                      <Share className="w-5 h-5 text-primary-600" />
+                    </div>
+                    <div>
+                      <p className="font-semibold text-gray-900">Step 1</p>
+                      <p className="text-sm text-gray-600">Tap the <span className="font-semibold">Share</span> button at the bottom of Safari</p>
+                    </div>
+                  </div>
+
+                  <div className="flex items-start gap-4 p-4 bg-gray-50 rounded-2xl">
+                    <div className="w-10 h-10 bg-primary-100 rounded-xl flex items-center justify-center flex-shrink-0">
+                      <Plus className="w-5 h-5 text-primary-600" />
+                    </div>
+                    <div>
+                      <p className="font-semibold text-gray-900">Step 2</p>
+                      <p className="text-sm text-gray-600">Scroll and tap <span className="font-semibold">"Add to Home Screen"</span></p>
+                    </div>
+                  </div>
+
+                  <div className="flex items-start gap-4 p-4 bg-gray-50 rounded-2xl">
+                    <div className="w-10 h-10 bg-green-100 rounded-xl flex items-center justify-center flex-shrink-0">
+                      <span className="text-lg">✓</span>
+                    </div>
+                    <div>
+                      <p className="font-semibold text-gray-900">Step 3</p>
+                      <p className="text-sm text-gray-600">Tap <span className="font-semibold">"Add"</span> to install Fly2Any</p>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Arrow pointing to share button */}
+                <div className="flex justify-center mb-4">
+                  <ArrowUp className="w-8 h-8 text-primary-500 animate-bounce rotate-180" />
+                </div>
+              </>
+            )}
+
+            {/* Benefits */}
+            <div className="grid grid-cols-3 gap-2 p-4 bg-gradient-to-r from-primary-50 to-blue-50 rounded-2xl">
+              <div className="text-center">
+                <div className="text-xl mb-1">⚡</div>
+                <div className="text-[10px] text-gray-600 font-medium">Faster</div>
+              </div>
+              <div className="text-center">
+                <div className="text-xl mb-1">🔔</div>
+                <div className="text-[10px] text-gray-600 font-medium">Alerts</div>
+              </div>
+              <div className="text-center">
+                <div className="text-xl mb-1">✈️</div>
+                <div className="text-[10px] text-gray-600 font-medium">Offline</div>
+              </div>
+            </div>
+
+            <button onClick={handleDismiss} className="w-full mt-4 py-3 text-gray-500 text-sm font-medium">
+              Maybe Later
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Floating Install Button (always visible when available)
+  const showButton = (isIOSDevice || deferredPrompt) && !showPrompt;
+
+  return (
+    <>
+      {/* Floating Install Button */}
+      {showButton && (
+        <button
+          onClick={handleInstallClick}
+          className="fixed bottom-20 right-4 z-40 w-14 h-14 bg-primary-500 hover:bg-primary-600 text-white rounded-full shadow-2xl flex items-center justify-center transition-all hover:scale-110 active:scale-95 group safe-area-bottom"
+          aria-label="Install Fly2Any App"
+        >
+          <Download className="w-6 h-6 group-hover:animate-bounce" />
+          <span className="absolute -top-1 -right-1 w-4 h-4 bg-secondary-500 rounded-full animate-pulse" />
+        </button>
+      )}
+
+      {/* Mobile Bottom Banner */}
+      {showPrompt && (
+        <div className="fixed bottom-0 left-0 right-0 z-50 safe-area-bottom">
+          <div className="bg-gradient-to-r from-primary-500 via-primary-600 to-primary-700 text-white shadow-2xl rounded-t-3xl">
+            <div className="p-4 flex items-center gap-3">
+              <div className="flex-shrink-0 w-12 h-12 bg-white/20 rounded-2xl flex items-center justify-center backdrop-blur-sm">
+                <Plane className="w-6 h-6" />
+              </div>
+
+              <div className="flex-1 min-w-0">
+                <p className="font-bold text-white text-sm">Install Fly2Any</p>
+                <p className="text-[11px] text-white/80 truncate">
+                  {isIOSDevice ? 'Tap to see how' : 'Get 5% off Hotels + Deals'}
+                </p>
+              </div>
+
               <button
                 onClick={handleInstallClick}
-                className="flex-1 px-4 py-3 bg-primary-500 hover:bg-primary-600 text-white font-semibold rounded-xl transition-colors"
+                className="flex-shrink-0 px-5 py-2.5 bg-white text-primary-600 font-bold rounded-xl text-sm hover:bg-gray-50 transition-all active:scale-95 shadow-lg"
               >
-                Install App
+                {isIOSDevice ? 'Install' : 'Add'}
               </button>
 
               <button
                 onClick={handleDismiss}
-                className="px-4 py-3 text-gray-600 hover:text-gray-800 font-medium transition-colors"
+                className="flex-shrink-0 p-2 hover:bg-white/10 rounded-xl transition-colors"
+                aria-label="Dismiss"
               >
-                Not Now
+                <X className="w-5 h-5" />
               </button>
-            </div>
-
-            <div className="mt-4 pt-4 border-t border-gray-100">
-              <div className="grid grid-cols-3 gap-3 text-center">
-                <div>
-                  <div className="text-2xl mb-1">⚡</div>
-                  <div className="text-xs text-gray-600">Faster</div>
-                </div>
-                <div>
-                  <div className="text-2xl mb-1">📱</div>
-                  <div className="text-xs text-gray-600">Home Screen</div>
-                </div>
-                <div>
-                  <div className="text-2xl mb-1">✈️</div>
-                  <div className="text-xs text-gray-600">Offline Mode</div>
-                </div>
-              </div>
             </div>
           </div>
         </div>
-      </div>
       )}
     </>
   );
