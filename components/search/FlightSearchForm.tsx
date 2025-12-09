@@ -734,33 +734,41 @@ export default function FlightSearchForm({
 
         {/* MOBILE: Travelers & Class + Direct Flights - ALL IN ONE ROW */}
         <div className="flex md:hidden items-center gap-2 flex-nowrap">
-          {/* Travelers & Class - Compact button */}
+          {/* Travelers & Class - Compact button with proper touch target */}
           <div className="relative flex-shrink-0">
             <button
               type="button"
-              onClick={() => {
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
                 setIsPassengerDropdownOpen(!isPassengerDropdownOpen);
                 if (!isPassengerDropdownOpen) {
                   setTempPassengers(formData.passengers);
                   setTempClass(formData.travelClass);
                 }
               }}
-              className="flex items-center gap-1.5 px-2.5 py-1.5 bg-gray-50 border border-gray-200 rounded-lg text-[11px] font-semibold text-gray-700 whitespace-nowrap"
+              className="flex items-center gap-1.5 px-3 py-2.5 min-h-[44px] bg-gray-50 border border-gray-200 rounded-lg text-[11px] font-semibold text-gray-700 whitespace-nowrap active:bg-gray-100 touch-manipulation"
               aria-label={t.passengers}
               aria-expanded={isPassengerDropdownOpen}
             >
-              <Users className="w-3 h-3 text-gray-400" />
+              <Users className="w-3.5 h-3.5 text-gray-500" />
               <span>{formData.passengers.adults + formData.passengers.children + formData.passengers.infants}</span>
-              <span className="text-gray-400">|</span>
+              <span className="text-gray-300">|</span>
               <span>{t.classes[formData.travelClass]}</span>
-              <svg className={`w-2.5 h-2.5 text-gray-400 transition-transform ${isPassengerDropdownOpen ? 'rotate-180' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <svg className={`w-3 h-3 text-gray-400 transition-transform duration-200 ${isPassengerDropdownOpen ? 'rotate-180' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
               </svg>
             </button>
 
-            {/* Passenger Dropdown - Mobile */}
+            {/* Passenger Dropdown - Mobile with click-outside */}
             {isPassengerDropdownOpen && (
-              <div className="absolute z-50 mt-2 bg-white border-2 border-gray-200 rounded-2xl shadow-2xl p-4 w-[280px] left-0">
+              <>
+                {/* Backdrop to close */}
+                <div
+                  className="fixed inset-0 z-40 bg-black/20"
+                  onClick={() => setIsPassengerDropdownOpen(false)}
+                />
+                <div className="absolute z-50 mt-2 bg-white border-2 border-gray-200 rounded-2xl shadow-2xl p-4 w-[280px] left-0 animate-in fade-in slide-in-from-top-2 duration-200">
                 {/* Passenger Counts */}
                 <div className="space-y-3 mb-4">
                   {/* Adults */}
@@ -810,24 +818,25 @@ export default function FlightSearchForm({
                     ))}
                   </div>
                 </div>
-                <button type="button" onClick={applyPassengerChanges} className="w-full bg-blue-600 text-white py-2 rounded-lg font-semibold text-sm">{t.done}</button>
-              </div>
+                <button type="button" onClick={applyPassengerChanges} className="w-full bg-blue-600 text-white py-2.5 rounded-lg font-semibold text-sm active:bg-blue-700 touch-manipulation">{t.done}</button>
+                </div>
+              </>
             )}
           </div>
 
           {/* Vertical divider */}
-          <div className="h-4 w-px bg-gray-200 flex-shrink-0" />
+          <div className="h-5 w-px bg-gray-200 flex-shrink-0" />
 
-          {/* Direct Flights - Compact chip style */}
-          <label className="flex items-center gap-1 cursor-pointer flex-shrink-0">
+          {/* Direct Flights - Full text with proper touch target */}
+          <label className="flex items-center gap-1.5 cursor-pointer flex-shrink-0 px-2 py-2 min-h-[44px] active:bg-gray-50 rounded-lg touch-manipulation">
             <input
               type="checkbox"
               checked={formData.directFlights}
               onChange={(e) => setFormData({ ...formData, directFlights: e.target.checked })}
-              className="w-3 h-3 rounded border-gray-300 text-blue-600 focus:ring-blue-500 cursor-pointer"
+              className="w-4 h-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500 cursor-pointer"
               aria-label={t.directFlights}
             />
-            <span className="text-[11px] font-medium text-gray-600 whitespace-nowrap">Direct</span>
+            <span className="text-xs font-medium text-gray-700 whitespace-nowrap">{t.directFlights}</span>
           </label>
         </div>
 

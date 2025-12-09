@@ -114,6 +114,56 @@
       outline-width: 4px !important;
     }
   }
+
+  /* iOS Safari: Touch optimization for all interactive elements */
+  button,
+  a,
+  input,
+  select,
+  textarea,
+  [role="button"],
+  [tabindex]:not([tabindex="-1"]) {
+    -webkit-tap-highlight-color: transparent;
+    -webkit-touch-callout: none;
+    touch-action: manipulation;
+  }
+
+  /* iOS: Minimum touch target size (44x44px Apple Human Interface Guidelines) */
+  @media (pointer: coarse) {
+    button,
+    a,
+    [role="button"] {
+      min-height: 44px;
+      min-width: 44px;
+    }
+
+    /* Allow smaller targets when explicitly marked */
+    .touch-sm {
+      min-height: 32px;
+      min-width: 32px;
+    }
+  }
+
+  /* iOS: Prevent text size adjustment on orientation change */
+  html {
+    -webkit-text-size-adjust: 100%;
+    text-size-adjust: 100%;
+  }
+
+  /* iOS: Smooth momentum scrolling for dropdowns */
+  .overflow-y-auto,
+  .overflow-x-auto,
+  .overflow-auto {
+    -webkit-overflow-scrolling: touch;
+  }
+
+  /* iOS: Fix for sticky position in Safari */
+  @supports (-webkit-touch-callout: none) {
+    .sticky {
+      position: -webkit-sticky;
+      position: sticky;
+    }
+  }
 }
 
 @layer utilities {

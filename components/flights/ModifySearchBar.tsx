@@ -1,8 +1,8 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
-import { Plane, Calendar, Users, Armchair, Edit3, Check, X, ChevronDown, Search } from 'lucide-react';
+import { Plane, Calendar, Users, Armchair, Edit3, Check, X, ChevronDown, ChevronUp, Search } from 'lucide-react';
 import { AirportAutocomplete } from '@/components/search/AirportAutocomplete';
 
 interface PassengerCounts {
@@ -286,9 +286,22 @@ export default function ModifySearchBar({
           </div>
         )}
 
-        {/* EDIT VIEW - Expanded Inline Form */}
+        {/* EDIT VIEW - Expanded Inline Form with Manual Collapse */}
         {isEditing && (
           <div className="py-2 md:py-3 animate-slideDown">
+            {/* Collapse Button - Top Center */}
+            <div className="flex justify-center mb-2">
+              <button
+                type="button"
+                onClick={handleCancel}
+                className="flex items-center gap-1 px-3 py-1.5 bg-gray-100 hover:bg-gray-200 text-gray-600 hover:text-gray-800 rounded-full text-[10px] font-medium transition-all duration-200 active:scale-95 touch-manipulation"
+                aria-label="Collapse form"
+              >
+                <ChevronUp className="w-3.5 h-3.5" />
+                <span>Collapse</span>
+              </button>
+            </div>
+
             {/* MOBILE: Compact stacked layout */}
             <div className="md:hidden space-y-2">
               {/* Row 1: From → To with swap */}

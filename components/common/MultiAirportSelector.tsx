@@ -236,12 +236,20 @@ export default function MultiAirportSelector({
             </div>
           )}
 
-          {/* Metro Area Quick Select */}
-          {searchQuery === '' && (
+          {/* Metro Area Quick Select - Only show when 2+ chars match metro area names */}
+          {searchQuery.length >= 2 && Object.entries(METRO_AREAS).some(([_, metro]) =>
+            metro.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+            metro.codes.some(code => code.toLowerCase().includes(searchQuery.toLowerCase()))
+          ) && (
             <div className="p-2 md:p-2 px-1 md:px-2 bg-gray-50 border-b border-gray-200">
               <div className="text-[10px] font-semibold text-gray-700 mb-1.5">Quick Select</div>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-1.5">
-                {Object.entries(METRO_AREAS).map(([key, metro]) => (
+                {Object.entries(METRO_AREAS)
+                  .filter(([_, metro]) =>
+                    metro.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                    metro.codes.some(code => code.toLowerCase().includes(searchQuery.toLowerCase()))
+                  )
+                  .map(([key, metro]) => (
                   <button
                     key={key}
                     onClick={() => handleSelectMetroArea(key)}
@@ -255,9 +263,14 @@ export default function MultiAirportSelector({
             </div>
           )}
 
-          {/* Airport List - Mobile Single Column */}
+          {/* Airport List - Mobile Single Column - Only show after 2+ chars typed */}
           <div className="max-h-[60vh] overflow-y-auto p-1 md:p-1.5">
-            {filteredAirports.length === 0 ? (
+            {searchQuery.length < 2 ? (
+              <div className="px-2 py-6 text-center">
+                <div className="text-xs text-gray-500 mb-1">Type at least 2 characters</div>
+                <div className="text-[10px] text-gray-400">Search by city, airport name or code</div>
+              </div>
+            ) : filteredAirports.length === 0 ? (
               <div className="px-2 py-3 text-center text-xs text-gray-500">
                 No airports found
               </div>
