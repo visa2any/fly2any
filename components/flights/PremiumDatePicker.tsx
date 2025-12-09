@@ -293,7 +293,10 @@ export default function PremiumDatePicker({
   ): CalendarDay => {
     const dateStr = formatDateString(date);
     const isToday = date.getTime() === today.getTime();
-    const isDisabled = minDate ? date < minDate : false;
+    // Always disable past dates, and respect minDate if provided (e.g., departure date for return picker)
+    const isPastDate = date < today;
+    const isBelowMinDate = minDate ? date < minDate : false;
+    const isDisabled = isPastDate || isBelowMinDate;
     const isWeekend = date.getDay() === 0 || date.getDay() === 6; // Sunday or Saturday
 
     let isSelected = false;
@@ -635,7 +638,7 @@ export default function PremiumDatePicker({
     <>
       {/* Backdrop - darker on mobile for bottom sheet effect */}
       <div
-        className="fixed inset-0 z-40 bg-black/30 md:bg-transparent"
+        className="fixed inset-0 z-modal-backdrop bg-black/30 md:bg-transparent"
         onClick={onClose}
       />
 
@@ -646,13 +649,13 @@ export default function PremiumDatePicker({
           position: 'fixed',
           top: `${position.top}px`,
           left: `${position.left}px`,
-          zIndex: 100
+          zIndex: 1400
         }}
         className={`
           bg-white shadow-[0_8px_30px_rgb(0,0,0,0.12)] border border-gray-100
           animate-in duration-300 ease-out
           ${isMobile
-            ? 'fixed bottom-0 left-0 right-0 z-50 rounded-t-2xl max-h-[85vh] overflow-y-auto slide-in-from-bottom-5'
+            ? 'fixed bottom-0 left-0 right-0 z-modal rounded-t-2xl max-h-[85vh] overflow-y-auto slide-in-from-bottom-5'
             : 'rounded-lg fade-in slide-in-from-top-1'
           }
         `}
@@ -664,9 +667,14 @@ export default function PremiumDatePicker({
         <div className="flex items-center justify-between p-2.5 border-b border-gray-200 sticky top-0 md:static bg-white z-10">
           <div className="flex items-center gap-2">
             <Calendar className="w-4 h-4 text-[#0087FF]" />
-            <span className="font-semibold text-gray-900 text-sm">
-              {label || (type === 'single' ? 'Select Date' : 'Select Dates')}
-            </span>
+            <div>
+              <span className="font-semibold text-gray-900 text-sm">
+                {label || (type === 'single' ? 'Select Date' : 'Select Dates')}
+              </span>
+              {type === 'multi' && (
+                <span className="block text-[10px] text-primary-600 font-medium">Tip: Select up to 3 dates for flexible search</span>
+              )}
+            </div>
           </div>
           <button
             onClick={onClose}
