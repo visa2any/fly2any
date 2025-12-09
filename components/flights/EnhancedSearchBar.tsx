@@ -1107,19 +1107,20 @@ export default function EnhancedSearchBar({
         {/* ============================================
             SERVICE TYPE TABS - Option A: Minimal Icon Tabs
             Fixed ordering for hydration compatibility
+            Mobile: Horizontally scrollable with touch support
             ============================================ */}
-        <div className="flex items-center gap-6 mb-2 border-b border-gray-200">
+        <div className="flex items-center gap-4 md:gap-6 mb-2 border-b border-gray-200 overflow-x-auto scrollbar-hide pb-px -mb-px touch-pan-x" style={{ WebkitOverflowScrolling: 'touch' }}>
           {/* Flights Tab - FIRST */}
           <button
             type="button"
             onClick={() => setServiceType('flights')}
-            className={`flex items-center gap-2 pb-3 text-sm font-medium transition-all duration-200 relative ${
+            className={`flex items-center gap-1.5 pb-3 text-sm font-medium transition-all duration-200 relative flex-shrink-0 whitespace-nowrap ${
               serviceType === 'flights'
                 ? 'text-[#D63A35]'
                 : 'text-gray-600 hover:text-[#D63A35]'
             }`}
           >
-            <Plane size={18} className={serviceType === 'flights' ? 'text-[#D63A35]' : 'text-gray-500'} />
+            <Plane size={16} className={serviceType === 'flights' ? 'text-[#D63A35]' : 'text-gray-500'} />
             <span className="text-xs sm:text-sm">{t('flights')}</span>
             {serviceType === 'flights' && (
               <div className="absolute bottom-0 left-0 right-0 h-[3px] bg-[#D63A35] rounded-t-sm" />
@@ -1130,13 +1131,13 @@ export default function EnhancedSearchBar({
           <button
             type="button"
             onClick={() => setServiceType('hotels')}
-            className={`flex items-center gap-2 pb-3 text-sm font-medium transition-all duration-200 relative ${
+            className={`flex items-center gap-1.5 pb-3 text-sm font-medium transition-all duration-200 relative flex-shrink-0 whitespace-nowrap ${
               serviceType === 'hotels'
                 ? 'text-[#D63A35]'
                 : 'text-gray-600 hover:text-[#D63A35]'
             }`}
           >
-            <Hotel size={18} className={serviceType === 'hotels' ? 'text-[#D63A35]' : 'text-gray-500'} />
+            <Hotel size={16} className={serviceType === 'hotels' ? 'text-[#D63A35]' : 'text-gray-500'} />
             <span className="text-xs sm:text-sm">{t('hotels')}</span>
             {serviceType === 'hotels' && (
               <div className="absolute bottom-0 left-0 right-0 h-[3px] bg-[#D63A35] rounded-t-sm" />
@@ -1161,11 +1162,11 @@ export default function EnhancedSearchBar({
                 setTimeout(() => toast.remove(), 2500);
               }
             }}
-            className="flex items-center gap-1.5 pb-3 text-sm font-medium transition-all duration-200 relative text-gray-400 hover:text-gray-500 cursor-pointer"
+            className="flex items-center gap-1 pb-3 text-sm font-medium transition-all duration-200 relative text-gray-400 hover:text-gray-500 cursor-pointer flex-shrink-0 whitespace-nowrap"
           >
-            <Car size={16} className="text-gray-400" />
-            <span className="text-xs sm:text-sm">{t('cars')}</span>
-            <span className="text-[8px] bg-orange-400 text-white px-1 py-px rounded font-medium ml-0.5 leading-tight">Soon</span>
+            <Car size={14} className="text-gray-400" />
+            <span className="text-xs">{t('cars')}</span>
+            <span className="text-[7px] bg-orange-400 text-white px-1 py-0.5 rounded font-semibold leading-none align-top -mt-0.5">Soon</span>
           </button>
 
           {/* Tours Tab - COMING SOON */}
@@ -1180,11 +1181,11 @@ export default function EnhancedSearchBar({
                 setTimeout(() => toast.remove(), 2500);
               }
             }}
-            className="flex items-center gap-1.5 pb-3 text-sm font-medium transition-all duration-200 relative text-gray-400 hover:text-gray-500 cursor-pointer"
+            className="flex items-center gap-1 pb-3 text-sm font-medium transition-all duration-200 relative text-gray-400 hover:text-gray-500 cursor-pointer flex-shrink-0 whitespace-nowrap"
           >
-            <Map size={16} className="text-gray-400" />
-            <span className="text-xs sm:text-sm">{t('tours')}</span>
-            <span className="text-[8px] bg-orange-400 text-white px-1 py-px rounded font-medium ml-0.5 leading-tight">Soon</span>
+            <Map size={14} className="text-gray-400" />
+            <span className="text-xs">{t('tours')}</span>
+            <span className="text-[7px] bg-orange-400 text-white px-1 py-0.5 rounded font-semibold leading-none align-top -mt-0.5">Soon</span>
           </button>
 
           {/* Packages Tab - COMING SOON */}
@@ -1199,11 +1200,11 @@ export default function EnhancedSearchBar({
                 setTimeout(() => toast.remove(), 2500);
               }
             }}
-            className="flex items-center gap-1.5 pb-3 text-sm font-medium transition-all duration-200 relative text-gray-400 hover:text-gray-500 cursor-pointer"
+            className="flex items-center gap-1 pb-3 text-sm font-medium transition-all duration-200 relative text-gray-400 hover:text-gray-500 cursor-pointer flex-shrink-0 whitespace-nowrap"
           >
-            <Package size={16} className="text-gray-400" />
-            <span className="text-xs sm:text-sm">{t('packages')}</span>
-            <span className="text-[8px] bg-orange-400 text-white px-1 py-px rounded font-medium ml-0.5 leading-tight">Soon</span>
+            <Package size={14} className="text-gray-400" />
+            <span className="text-xs">{t('packages')}</span>
+            <span className="text-[7px] bg-orange-400 text-white px-1 py-0.5 rounded font-semibold leading-none align-top -mt-0.5">Soon</span>
           </button>
 
           {/* Insurance Tab - COMING SOON */}
@@ -1218,11 +1219,11 @@ export default function EnhancedSearchBar({
                 setTimeout(() => toast.remove(), 2500);
               }
             }}
-            className="flex items-center gap-1.5 pb-3 text-sm font-medium transition-all duration-200 relative text-gray-400 hover:text-gray-500 cursor-pointer"
+            className="flex items-center gap-1 pb-3 text-sm font-medium transition-all duration-200 relative text-gray-400 hover:text-gray-500 cursor-pointer flex-shrink-0 whitespace-nowrap pr-4"
           >
-            <Shield size={16} className="text-gray-400" />
-            <span className="text-xs sm:text-sm">{t('insurance')}</span>
-            <span className="text-[8px] bg-orange-400 text-white px-1 py-px rounded font-medium ml-0.5 leading-tight">Soon</span>
+            <Shield size={14} className="text-gray-400" />
+            <span className="text-xs">{t('insurance')}</span>
+            <span className="text-[7px] bg-orange-400 text-white px-1 py-0.5 rounded font-semibold leading-none align-top -mt-0.5">Soon</span>
           </button>
         </div>
 
@@ -3162,23 +3163,33 @@ export default function EnhancedSearchBar({
 
 
           {/* MOBILE: Travelers & Class + Flight Options - ALL IN ONE ROW */}
-          <div className="flex items-center gap-2 flex-nowrap overflow-x-auto">
+          <div className="flex items-center gap-2 flex-nowrap overflow-x-auto touch-pan-x pb-1">
             {/* Travelers & Class - Compact button */}
             <div ref={passengerRef} className="relative flex-shrink-0">
               <button
-                onClick={() => setShowPassengerDropdown(!showPassengerDropdown)}
-                className="flex items-center gap-1.5 px-2.5 py-1.5 bg-gray-50 border border-gray-200 rounded-lg text-[11px] font-semibold text-gray-700 whitespace-nowrap"
+                type="button"
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  setShowPassengerDropdown(!showPassengerDropdown);
+                }}
+                className="flex items-center gap-1.5 px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg text-xs font-semibold text-gray-700 whitespace-nowrap active:bg-gray-100 active:scale-95 transition-all touch-manipulation min-h-[40px]"
               >
-                <Users size={12} className="text-gray-400" />
-                <span>{totalPassengers}</span>
-                <span className="text-gray-400">|</span>
+                <Users size={14} className="text-primary-500" />
+                <span className="font-bold">{totalPassengers}</span>
+                <span className="text-gray-300">|</span>
                 <span>{t(cabinClass as any)}</span>
-                <ChevronDown size={10} className="text-gray-400" />
+                <ChevronDown size={12} className={`text-gray-400 transition-transform ${showPassengerDropdown ? 'rotate-180' : ''}`} />
               </button>
 
               {/* Passenger & Class Dropdown */}
               {showPassengerDropdown && serviceType === 'flights' && (
-                <div className="absolute left-0 right-auto mt-2 p-4 bg-white border border-gray-200 rounded-xl shadow-xl z-[100] space-y-4 min-w-[280px]">
+                <div className="absolute left-0 right-auto mt-2 bg-white border border-gray-200 rounded-xl shadow-xl z-[100] min-w-[280px]">
+                  {/* Drag Handle for mobile */}
+                  <div className="flex justify-center pt-2 pb-1 md:hidden">
+                    <div className="w-10 h-1 bg-gray-300 rounded-full" />
+                  </div>
+                  <div className="p-4 space-y-4">
                   {/* Adults */}
                   <div className="flex items-center justify-between">
                     <div>
@@ -3282,10 +3293,11 @@ export default function EnhancedSearchBar({
                   <button
                     type="button"
                     onClick={() => setShowPassengerDropdown(false)}
-                    className="w-full py-2 bg-gray-100 hover:bg-gray-200 rounded-lg font-semibold text-gray-900 transition-colors text-sm"
+                    className="w-full py-2.5 bg-primary-600 hover:bg-primary-700 text-white rounded-lg font-semibold transition-colors text-sm active:scale-95 touch-manipulation"
                   >
                     Done
                   </button>
+                  </div>
                 </div>
               )}
             </div>

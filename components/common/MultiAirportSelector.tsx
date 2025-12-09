@@ -213,6 +213,11 @@ export default function MultiAirportSelector({
       {/* Dropdown */}
       {isOpen && (
         <div className="absolute z-dropdown mt-2 w-full bg-white rounded-xl md:rounded-xl shadow-2xl border border-gray-200 overflow-hidden animate-in fade-in slide-in-from-top-2 duration-200 left-0 right-0 md:left-auto md:right-auto">
+          {/* Drag Handle for mobile - Visual indicator */}
+          <div className="flex justify-center pt-2 pb-1 md:hidden">
+            <div className="w-10 h-1 bg-gray-300 rounded-full" />
+          </div>
+
           {/* Search Input - Compact mobile */}
           <div className="p-1.5 md:p-2 border-b border-gray-200">
             <input

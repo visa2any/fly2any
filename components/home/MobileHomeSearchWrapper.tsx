@@ -290,7 +290,7 @@ export function MobileHomeSearchWrapper({
           </motion.div>
         )}
 
-        {/* EXPANDED STATE - Full EnhancedSearchBar */}
+        {/* EXPANDED STATE - Full EnhancedSearchBar with Drag-to-Collapse */}
         {viewState === 'expanded' && (
           <motion.div
             key="expanded"
@@ -299,7 +299,34 @@ export function MobileHomeSearchWrapper({
             exit={{ opacity: 0, height: 0 }}
             transition={springConfig}
             className="w-full relative"
+            drag="y"
+            dragConstraints={{ top: 0, bottom: 0 }}
+            dragElastic={{ top: 0, bottom: 0.3 }}
+            onDragEnd={(_, info) => {
+              // Collapse when dragged down more than 80px
+              if (info.offset.y > 80) {
+                handleCollapse();
+              }
+            }}
           >
+            {/* Drag Handle - Visual indicator for drag-to-collapse */}
+            <div
+              className="flex justify-center py-2 cursor-grab active:cursor-grabbing touch-none"
+              aria-label="Drag down to collapse"
+            >
+              <div className="w-10 h-1 bg-gray-300 rounded-full" />
+            </div>
+
+            {/* Close Button - Alternative to drag */}
+            <button
+              type="button"
+              onClick={handleCollapse}
+              className="absolute top-2 right-3 z-10 p-1.5 bg-gray-100 hover:bg-gray-200 rounded-full transition-colors"
+              aria-label="Collapse search form"
+            >
+              <X className="w-4 h-4 text-gray-600" />
+            </button>
+
             {/* Full EnhancedSearchBar - All features preserved with auto-collapse on search */}
             <div ref={searchBarRef}>
               <EnhancedSearchBar
