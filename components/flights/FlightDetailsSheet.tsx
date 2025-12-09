@@ -145,9 +145,9 @@ export function FlightDetailsSheet(props: FlightDetailsSheetProps) {
           <h2 className="text-lg font-bold text-gray-900">Flight Details</h2>
           <button
             onClick={onClose}
-            className="p-2 hover:bg-gray-100 rounded-full transition-colors"
+            className="p-1.5 hover:bg-gray-100 rounded-full transition-colors active:scale-95" aria-label="Close"
           >
-            <X className="w-5 h-5 text-gray-600" />
+            <X className="w-4 h-4 text-gray-500" />
           </button>
         </div>
 
@@ -334,3 +334,5 @@ export function FlightDetailsSheet(props: FlightDetailsSheetProps) {
     </>
   );
 }
+
+

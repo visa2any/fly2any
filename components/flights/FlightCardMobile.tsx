@@ -534,7 +534,7 @@ export function FlightCardMobile(props: EnhancedFlightCardProps) {
             <button
               onClick={handleSelect}
               disabled={isNavigating}
-              className="px-4 py-1.5 bg-primary-600 text-white text-sm font-semibold rounded-lg active:scale-95 transition-transform disabled:opacity-50"
+              className="px-3 py-1 bg-primary-600 text-white text-xs font-semibold rounded-lg active:scale-95 transition-transform disabled:opacity-50"
             >
               Select →
             </button>
@@ -557,4 +557,5 @@ export function FlightCardMobile(props: EnhancedFlightCardProps) {
     </>
   );
 }
+
 
