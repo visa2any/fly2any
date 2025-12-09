@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { Plane, Search, CheckCircle2, TrendingDown, Sparkles, Clock, Shield } from 'lucide-react';
+import { MultipleFlightCardMobileSkeletons } from '@/components/skeletons/FlightCardMobileSkeleton';
 
 interface InlineFlightLoadingProps {
   origin: string;
@@ -283,43 +284,8 @@ export default function InlineFlightLoading({
         </div>
       </div>
 
-      {/* Skeleton Flight Cards - For Familiarity */}
-      {[1, 2, 3].map((i) => (
-        <div key={i} className="bg-white rounded-xl shadow-lg border border-gray-200 p-5 animate-pulse">
-          <div className="flex items-center justify-between mb-4">
-            <div className="flex items-center gap-3">
-              <div className="w-8 h-8 bg-gray-200 rounded"></div>
-              <div className="space-y-2">
-                <div className="h-4 w-32 bg-gray-200 rounded"></div>
-                <div className="h-3 w-24 bg-gray-200 rounded"></div>
-              </div>
-            </div>
-            <div className="h-6 w-16 bg-gray-200 rounded"></div>
-          </div>
-
-          <div className="flex items-center justify-between mb-4">
-            <div className="space-y-2">
-              <div className="h-5 w-20 bg-gray-200 rounded"></div>
-              <div className="h-3 w-16 bg-gray-200 rounded"></div>
-            </div>
-            <div className="flex-1 mx-4">
-              <div className="h-1 bg-gray-200 rounded"></div>
-            </div>
-            <div className="space-y-2">
-              <div className="h-5 w-20 bg-gray-200 rounded"></div>
-              <div className="h-3 w-16 bg-gray-200 rounded"></div>
-            </div>
-          </div>
-
-          <div className="flex items-center justify-between">
-            <div className="flex gap-2">
-              <div className="h-6 w-20 bg-gray-200 rounded-full"></div>
-              <div className="h-6 w-16 bg-gray-200 rounded-full"></div>
-            </div>
-            <div className="h-10 w-32 bg-gray-200 rounded-lg"></div>
-          </div>
-        </div>
-      ))}
+      {/* Skeleton Flight Cards - Using FlightCardMobileSkeleton for consistency */}
+      <MultipleFlightCardMobileSkeletons count={3} />
     </div>
   );
 }

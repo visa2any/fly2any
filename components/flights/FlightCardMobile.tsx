@@ -386,7 +386,6 @@ export function FlightCardMobile(props: EnhancedFlightCardProps) {
                 </>
               )}
             </div>
-            </div>
           </div>
         </div>
 
