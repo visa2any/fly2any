@@ -234,11 +234,11 @@ export default function InstallPrompt() {
 
   return (
     <>
-      {/* Floating Install Button */}
+      {/* Floating Install Button - Above bottom menu */}
       {showButton && (
         <button
           onClick={handleInstallClick}
-          className="fixed bottom-20 right-4 z-40 w-14 h-14 bg-primary-500 hover:bg-primary-600 text-white rounded-full shadow-2xl flex items-center justify-center transition-all hover:scale-110 active:scale-95 group safe-area-bottom"
+          className="fixed bottom-24 right-4 z-40 w-14 h-14 bg-primary-500 hover:bg-primary-600 text-white rounded-full shadow-2xl flex items-center justify-center transition-all hover:scale-110 active:scale-95 group"
           aria-label="Install Fly2Any App"
         >
           <Download className="w-6 h-6 group-hover:animate-bounce" />
@@ -246,9 +246,9 @@ export default function InstallPrompt() {
         </button>
       )}
 
-      {/* Mobile Bottom Banner */}
+      {/* Mobile Bottom Banner - Above bottom menu */}
       {showPrompt && (
-        <div className="fixed bottom-0 left-0 right-0 z-50 safe-area-bottom">
+        <div className="fixed bottom-16 left-0 right-0 z-50 px-2 md:px-0 md:bottom-0">
           <div className="bg-gradient-to-r from-primary-500 via-primary-600 to-primary-700 text-white shadow-2xl rounded-t-3xl">
             <div className="p-4 flex items-center gap-3">
               <div className="flex-shrink-0 w-12 h-12 bg-white/20 rounded-2xl flex items-center justify-center backdrop-blur-sm">
