@@ -3068,43 +3068,7 @@ export default function EnhancedSearchBar({
           {/* FLIGHTS MOBILE FIELDS */}
           {serviceType === 'flights' && (
           <>
-          {/* Trip Type Toggle - Mobile-First Tabs */}
-          <div className="flex gap-1 p-1 bg-gray-100 rounded-xl">
-            <button
-              type="button"
-              onClick={() => {
-                setTripType('roundtrip');
-                if (errors.returnDate) {
-                  const newErrors = { ...errors };
-                  delete newErrors.returnDate;
-                  setErrors(newErrors);
-                }
-              }}
-              className={`flex-1 min-h-[40px] px-4 py-2 rounded-lg text-xs md:text-sm font-semibold transition-all duration-200 touch-manipulation active:scale-95 ${
-                tripType === 'roundtrip'
-                  ? 'bg-white text-primary-600 shadow-sm'
-                  : 'text-gray-600 hover:text-gray-900'
-              }`}
-            >
-              {t('roundTrip')}
-            </button>
-            <button
-              type="button"
-              onClick={() => {
-                setTripType('oneway');
-                setReturnDate('');
-              }}
-              className={`flex-1 min-h-[40px] px-4 py-2 rounded-lg text-xs md:text-sm font-semibold transition-all duration-200 touch-manipulation active:scale-95 ${
-                tripType === 'oneway'
-                  ? 'bg-white text-primary-600 shadow-sm'
-                  : 'text-gray-600 hover:text-gray-900'
-              }`}
-            >
-              {t('oneWay')}
-            </button>
-          </div>
-
-          {/* Airports */}
+          {/* Airports - Mobile Grid with One Way toggle in To label */}
           <div className="grid grid-cols-2 gap-2">
             <MultiAirportSelector
               label={t('from')}
@@ -3114,14 +3078,46 @@ export default function EnhancedSearchBar({
               maxDisplay={2}
               lang={lang}
             />
-            <MultiAirportSelector
-              label={t('to')}
-              placeholder="Select airports"
-              value={destination}
-              onChange={handleDestinationChange}
-              maxDisplay={2}
-              lang={lang}
-            />
+            {/* To field with custom label containing One Way checkbox */}
+            <div>
+              {/* Custom label row with One Way toggle */}
+              <div className="flex items-center justify-between mb-2">
+                <label className="flex items-center gap-1.5 text-sm font-medium text-gray-700">
+                  <PlaneLanding size={14} className="text-gray-600" />
+                  <span>{t('to')}</span>
+                </label>
+                <label className="flex items-center gap-1.5 cursor-pointer group">
+                  <input
+                    type="checkbox"
+                    checked={tripType === 'oneway'}
+                    onChange={(e) => {
+                      if (e.target.checked) {
+                        setTripType('oneway');
+                        setReturnDate('');
+                      } else {
+                        setTripType('roundtrip');
+                        if (errors.returnDate) {
+                          const newErrors = { ...errors };
+                          delete newErrors.returnDate;
+                          setErrors(newErrors);
+                        }
+                      }
+                    }}
+                    className="w-3.5 h-3.5 rounded border-gray-300 text-primary-600 focus:ring-primary-500 cursor-pointer"
+                  />
+                  <span className="text-xs font-medium text-gray-600 group-hover:text-primary-600 transition-colors">
+                    {t('oneWay')}
+                  </span>
+                </label>
+              </div>
+              <MultiAirportSelector
+                placeholder="Select airports"
+                value={destination}
+                onChange={handleDestinationChange}
+                maxDisplay={2}
+                lang={lang}
+              />
+            </div>
           </div>
 
           {/* Dates - Mobile-First Inputs */}
@@ -3163,6 +3159,106 @@ export default function EnhancedSearchBar({
             )}
           </div>
 
+          {/* Mobile: Add Another Flight - Only shown when One Way is selected */}
+          {tripType === 'oneway' && (
+            <div className="space-y-2">
+              {/* Initial "Add Another Flight" button - ONLY shown when no additional flights */}
+              {additionalFlights.length === 0 && (
+                <button
+                  type="button"
+                  onClick={handleAddFlight}
+                  className="w-full px-4 py-3 border-2 border-dashed border-gray-300 hover:border-primary-400 hover:text-primary-600 hover:bg-primary-50 text-gray-600 rounded-xl text-sm font-medium transition-all flex items-center justify-center gap-2 min-h-[48px] touch-manipulation active:scale-[0.98]"
+                >
+                  <Plane size={16} />
+                  <span>+ Add Another Flight</span>
+                </button>
+              )}
+
+              {/* Render additional flights - Mobile optimized */}
+              {additionalFlights.map((flight, index) => (
+                <div key={flight.id} className="bg-gray-50 rounded-xl p-3 space-y-2">
+                  {/* Flight header with remove button */}
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <Plane size={14} className="text-primary-600" />
+                      <span className="text-sm font-semibold text-gray-700">Flight {index + 2}</span>
+                    </div>
+                    <div className="flex items-center gap-3">
+                      {/* Nonstop checkbox */}
+                      <label className="flex items-center gap-1 cursor-pointer">
+                        <input
+                          type="checkbox"
+                          checked={flight.nonstop}
+                          onChange={(e) => handleUpdateAdditionalFlight(flight.id, { nonstop: e.target.checked })}
+                          className="w-3.5 h-3.5 rounded border-gray-300 text-primary-600 focus:ring-primary-500 cursor-pointer"
+                        />
+                        <span className="text-xs text-gray-600">Nonstop</span>
+                      </label>
+                      {/* Remove button */}
+                      <button
+                        type="button"
+                        onClick={() => handleRemoveFlight(flight.id)}
+                        className="p-1 text-gray-400 hover:text-red-500 transition-colors"
+                        aria-label="Remove flight"
+                      >
+                        <X size={16} />
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* From/To airports grid */}
+                  <div className="grid grid-cols-2 gap-2">
+                    <MultiAirportSelector
+                      label={t('from')}
+                      placeholder="Select"
+                      value={flight.origin}
+                      onChange={(codes) => handleUpdateAdditionalFlight(flight.id, { origin: codes })}
+                      maxDisplay={1}
+                      lang={lang}
+                    />
+                    <MultiAirportSelector
+                      label={t('to')}
+                      placeholder="Select"
+                      value={flight.destination}
+                      onChange={(codes) => handleUpdateAdditionalFlight(flight.id, { destination: codes })}
+                      maxDisplay={1}
+                      lang={lang}
+                    />
+                  </div>
+
+                  {/* Date picker */}
+                  <div>
+                    <label className="mobile-label">
+                      <Calendar size={14} className="text-gray-500" />
+                      {t('depart')}
+                    </label>
+                    <div className="relative">
+                      <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" size={16} />
+                      <input
+                        type="date"
+                        value={formatDateForInput(flight.departureDate)}
+                        onChange={(e) => handleUpdateAdditionalFlight(flight.id, { departureDate: e.target.value })}
+                        min={minDate}
+                        className="mobile-input-icon-left cursor-pointer"
+                      />
+                    </div>
+                  </div>
+
+                  {/* Add another flight button (only on last flight and if less than 4 additional) */}
+                  {index === additionalFlights.length - 1 && additionalFlights.length < 4 && (
+                    <button
+                      type="button"
+                      onClick={handleAddFlight}
+                      className="w-full px-3 py-2 border-2 border-dashed border-gray-300 hover:border-primary-400 hover:text-primary-600 hover:bg-white text-gray-500 rounded-lg text-xs font-medium transition-all flex items-center justify-center gap-1.5 min-h-[40px] touch-manipulation"
+                    >
+                      <Plus size={14} />
+                      <span>Add Flight</span>
+                    </button>
+                  )}
+                </div>
+              ))}
+            </div>
+          )}
 
           {/* MOBILE: Travelers & Class + Flight Options - ALL IN ONE ROW */}
           <div className="mobile-scroll-x pb-1">
