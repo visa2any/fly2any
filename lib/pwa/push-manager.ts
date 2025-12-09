@@ -172,10 +172,10 @@ export async function showNotification(payload: PushNotificationPayload): Promis
       silent: payload.silent || false,
       data: {
         url: payload.url || '/',
-        image: payload.image, // Store in data for service worker to use
+        image: payload.image,
+        actions: payload.actions, // Store in data for service worker
         ...payload.data,
       },
-      actions: payload.actions,
     });
   } catch (error) {
     console.error('Failed to show notification:', error);
