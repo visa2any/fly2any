@@ -35,31 +35,31 @@ const config: Config = {
         'maximum': '9999',
       },
       colors: {
-        // UI-Safe Fly2Any Red (anti-eye-strain)
+        // Fly2Any Brand Red (#EF4136 base - softened for UI)
         primary: {
           50: '#FEF2F2',
-          100: '#FDE8E8',
-          200: '#FACACA',
-          300: '#F5A3A3',
-          400: '#E85D5D',
-          500: '#D63A35', // UI Primary Red
-          600: '#C7342F', // Hover
-          700: '#B12F2B', // Pressed
-          800: '#8E2622',
-          900: '#6B1D1A',
+          100: '#FDE8E7',
+          200: '#FACCCA',
+          300: '#F5A5A2',
+          400: '#EF6B65',
+          500: '#EF4136', // Brand Primary Red
+          600: '#DC3A30', // Hover
+          700: '#C4332A', // Pressed
+          800: '#9C2921',
+          900: '#74201A',
         },
-        // UI-Safe Fly2Any Yellow (anti-eye-strain)
+        // Fly2Any Brand Yellow (#F9C900 base - softened for UI)
         secondary: {
-          50: '#FEFCE8',
-          100: '#FEF9C3',
-          200: '#FEF08A',
+          50: '#FFFBEB',
+          100: '#FEF5C7',
+          200: '#FEEC8A',
           300: '#FDE047',
-          400: '#F5D63D',
-          500: '#E8C52A', // UI Accent Yellow
-          600: '#D7B622', // Hover
-          700: '#C9A91E', // Pressed
-          800: '#A38A18',
-          900: '#7D6A12',
+          400: '#FBD62D',
+          500: '#F9C900', // Brand Accent Yellow
+          600: '#E0B500', // Hover
+          700: '#C9A200', // Pressed
+          800: '#A38500',
+          900: '#7D6600',
         },
         // Anti-Fatigue Neutral Palette
         neutral: {

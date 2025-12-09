@@ -150,6 +150,34 @@ export default function sitemap(): MetadataRoute.Sitemap {
   allEntries.push(...usCityPages);
 
   // ===================================
+  // USA SEO LANDING PAGES (New 2025)
+  // /usa/flights-from-{city}
+  // ===================================
+  const usaCitySlugs = [
+    'new-york', 'los-angeles', 'chicago', 'miami', 'san-francisco',
+    'dallas', 'atlanta', 'denver', 'seattle', 'boston',
+    'las-vegas', 'orlando', 'phoenix', 'washington-dc', 'houston',
+    'philadelphia', 'san-diego', 'austin', 'nashville', 'detroit',
+  ];
+
+  // USA hub page
+  allEntries.push({
+    url: `${SITE_URL}/usa`,
+    lastModified: currentDate,
+    changeFrequency: 'weekly' as const,
+    priority: 0.9,
+  });
+
+  // Individual city pages
+  const usaFlightPages = usaCitySlugs.map((city) => ({
+    url: `${SITE_URL}/usa/flights-from-${city}`,
+    lastModified: currentDate,
+    changeFrequency: 'daily' as const,
+    priority: 0.88,
+  }));
+  allEntries.push(...usaFlightPages);
+
+  // ===================================
   // DESTINATION PAGES (International)
   // ===================================
   const internationalCityPages = TOP_INTERNATIONAL_CITIES.map((city) => ({
