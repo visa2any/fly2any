@@ -488,7 +488,7 @@ export function FlightCardMobile(props: EnhancedFlightCardProps) {
               {formatPrice()}
             </span>
             <div className="flex items-center flex-wrap gap-x-1 gap-y-0.5 text-[9px] text-neutral-600">
-              {isMultipleTravelers ? (
+              {true ? (
                 <>
                   {travelerCounts.adults > 0 && (
                     <span className="flex items-center gap-0.5">
@@ -557,3 +557,4 @@ export function FlightCardMobile(props: EnhancedFlightCardProps) {
     </>
   );
 }
+

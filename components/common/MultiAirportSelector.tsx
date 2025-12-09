@@ -79,18 +79,17 @@ export default function MultiAirportSelector({
     .map(code => AIRPORTS.find(a => a.code === code))
     .filter((a): a is Airport => a !== undefined);
 
-  // Close dropdown when clicking outside
+  // Lock body scroll when dropdown is open on mobile
   useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
-        setIsOpen(false);
-        setSearchQuery('');
-      }
+    if (isOpen) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = '';
+    }
+    return () => {
+      document.body.style.overflow = '';
     };
-
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, []);
+  }, [isOpen]);
 
   // Memoized normalized search with Unicode support
   const filteredAirports = useMemo(() => {
