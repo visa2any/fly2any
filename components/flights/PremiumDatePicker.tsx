@@ -628,24 +628,42 @@ export default function PremiumDatePicker({
   if (!isOpen) return null;
   if (!currentMonth) return null; // Wait for client-side initialization
 
+  // Check if mobile
+  const isMobile = typeof window !== 'undefined' && window.innerWidth < 768;
+
   return (
     <>
-      {/* Backdrop */}
-      <div className="fixed inset-0 z-40" />
+      {/* Backdrop - darker on mobile for bottom sheet effect */}
+      <div
+        className="fixed inset-0 z-40 bg-black/30 md:bg-transparent"
+        onClick={onClose}
+      />
 
-      {/* Calendar container - positioned fixed relative to viewport */}
+      {/* Calendar container - Bottom sheet on mobile, positioned dropdown on desktop */}
       <div
         ref={containerRef}
-        style={{
+        style={isMobile ? {} : {
           position: 'fixed',
           top: `${position.top}px`,
           left: `${position.left}px`,
           zIndex: 100
         }}
-        className="bg-white rounded-lg shadow-[0_8px_30px_rgb(0,0,0,0.12)] border border-gray-100 animate-in fade-in slide-in-from-top-1 duration-300 ease-out"
+        className={`
+          bg-white shadow-[0_8px_30px_rgb(0,0,0,0.12)] border border-gray-100
+          animate-in duration-300 ease-out
+          ${isMobile
+            ? 'fixed bottom-0 left-0 right-0 z-50 rounded-t-2xl max-h-[85vh] overflow-y-auto slide-in-from-bottom-5'
+            : 'rounded-lg fade-in slide-in-from-top-1'
+          }
+        `}
       >
+        {/* Mobile Drag Handle */}
+        <div className="flex justify-center pt-2 pb-1 md:hidden sticky top-0 bg-white z-10">
+          <div className="w-10 h-1 bg-gray-300 rounded-full" />
+        </div>
+
         {/* Header */}
-        <div className="flex items-center justify-between p-2.5 border-b border-gray-200">
+        <div className="flex items-center justify-between p-2.5 border-b border-gray-200 sticky top-0 md:static bg-white z-10">
           <div className="flex items-center gap-2">
             <Calendar className="w-4 h-4 text-[#0087FF]" />
             <span className="font-semibold text-gray-900 text-sm">
@@ -654,38 +672,38 @@ export default function PremiumDatePicker({
           </div>
           <button
             onClick={onClose}
-            className="p-1 hover:bg-gray-100 rounded-lg transition-colors"
+            className="p-1.5 hover:bg-gray-100 rounded-full transition-colors active:scale-95"
             aria-label="Close calendar"
           >
             <X className="w-4 h-4 text-gray-500" />
           </button>
         </div>
 
-        {/* Quick date shortcuts */}
+        {/* Quick date shortcuts - horizontally scrollable on mobile */}
         {type === 'range' && (
           <div className="px-3 pt-2.5 pb-1.5 border-b border-gray-100">
-            <div className="flex flex-wrap gap-2">
+            <div className="flex gap-2 overflow-x-auto scrollbar-hide pb-1 touch-pan-x">
               <button
                 onClick={() => handleQuickDate('weekend')}
-                className="px-2.5 py-1 text-xs font-medium text-gray-700 bg-gradient-to-r from-info-50 to-primary-50 hover:from-blue-100 hover:to-primary-100 rounded-lg transition-all duration-200 border border-info-200 hover:border-info-300 hover:shadow-sm"
+                className="px-3 py-1.5 text-xs font-medium text-gray-700 bg-gradient-to-r from-info-50 to-primary-50 hover:from-blue-100 hover:to-primary-100 rounded-lg transition-all duration-200 border border-info-200 hover:border-info-300 hover:shadow-sm flex-shrink-0 whitespace-nowrap active:scale-95 touch-manipulation"
               >
                 This Weekend
               </button>
               <button
                 onClick={() => handleQuickDate('nextWeek')}
-                className="px-2.5 py-1 text-xs font-medium text-gray-700 bg-gradient-to-r from-info-50 to-primary-50 hover:from-blue-100 hover:to-primary-100 rounded-lg transition-all duration-200 border border-info-200 hover:border-info-300 hover:shadow-sm"
+                className="px-3 py-1.5 text-xs font-medium text-gray-700 bg-gradient-to-r from-info-50 to-primary-50 hover:from-blue-100 hover:to-primary-100 rounded-lg transition-all duration-200 border border-info-200 hover:border-info-300 hover:shadow-sm flex-shrink-0 whitespace-nowrap active:scale-95 touch-manipulation"
               >
                 Next Week
               </button>
               <button
                 onClick={() => handleQuickDate('nextMonth')}
-                className="px-2.5 py-1 text-xs font-medium text-gray-700 bg-gradient-to-r from-info-50 to-primary-50 hover:from-blue-100 hover:to-primary-100 rounded-lg transition-all duration-200 border border-info-200 hover:border-info-300 hover:shadow-sm"
+                className="px-3 py-1.5 text-xs font-medium text-gray-700 bg-gradient-to-r from-info-50 to-primary-50 hover:from-blue-100 hover:to-primary-100 rounded-lg transition-all duration-200 border border-info-200 hover:border-info-300 hover:shadow-sm flex-shrink-0 whitespace-nowrap active:scale-95 touch-manipulation"
               >
                 Next Month
               </button>
               <button
                 onClick={() => handleQuickDate('flexible')}
-                className="px-2.5 py-1 text-xs font-medium text-gray-700 bg-gradient-to-r from-info-50 to-primary-50 hover:from-blue-100 hover:to-primary-100 rounded-lg transition-all duration-200 border border-info-200 hover:border-info-300 hover:shadow-sm"
+                className="px-3 py-1.5 text-xs font-medium text-gray-700 bg-gradient-to-r from-info-50 to-primary-50 hover:from-blue-100 hover:to-primary-100 rounded-lg transition-all duration-200 border border-info-200 hover:border-info-300 hover:shadow-sm flex-shrink-0 whitespace-nowrap active:scale-95 touch-manipulation mr-2"
               >
                 Flexible (±3)
               </button>
@@ -701,9 +719,91 @@ export default function PremiumDatePicker({
             {renderMonth(getNextMonth(currentMonth), 1)}
           </div>
 
-          {/* Mobile: single month */}
+          {/* Mobile: single month with navigation */}
           <div className="md:hidden">
-            {renderMonth(currentMonth, 0)}
+            {/* Mobile Month Navigation */}
+            <div className="flex items-center justify-between mb-3 px-2">
+              <button
+                onClick={handlePreviousMonth}
+                className="flex items-center gap-1 px-3 py-2 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors active:scale-95 touch-manipulation"
+                aria-label="Previous month"
+              >
+                <ChevronLeft className="w-4 h-4 text-gray-600" />
+                <span className="text-xs font-medium text-gray-700">Prev</span>
+              </button>
+              <div className="text-center">
+                <div className="font-bold text-gray-900 text-base">
+                  {MONTHS[currentMonth.getMonth()]}
+                </div>
+                <div className="text-xs text-gray-500">{currentMonth.getFullYear()}</div>
+              </div>
+              <button
+                onClick={handleNextMonth}
+                className="flex items-center gap-1 px-3 py-2 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors active:scale-95 touch-manipulation"
+                aria-label="Next month"
+              >
+                <span className="text-xs font-medium text-gray-700">Next</span>
+                <ChevronRight className="w-4 h-4 text-gray-600" />
+              </button>
+            </div>
+            {/* Day headers for mobile */}
+            <div className="grid grid-cols-7 gap-0.5 mb-2">
+              {DAYS_OF_WEEK.map((day) => (
+                <div
+                  key={`mobile-${day}`}
+                  className="text-center text-xs font-semibold text-gray-600 py-1"
+                >
+                  {day}
+                </div>
+              ))}
+            </div>
+            {/* Calendar days for mobile - larger touch targets */}
+            <div className="grid grid-cols-7 gap-1">
+              {getDaysInMonth(currentMonth).map((day, dayIndex) => {
+                const isHovered = hoverDate?.getTime() === day.date.getTime();
+                return (
+                  <button
+                    key={`mobile-day-${dayIndex}`}
+                    onClick={() => handleDateClick(day)}
+                    disabled={day.isDisabled}
+                    className={`
+                      relative aspect-square w-full rounded-lg transition-all duration-200 min-h-[44px]
+                      ${!day.isCurrentMonth ? 'text-gray-300' : 'text-gray-700'}
+                      ${day.isDisabled ? 'cursor-not-allowed opacity-40' : 'cursor-pointer active:scale-95'}
+                      ${day.isWeekend && day.isCurrentMonth && !day.isDisabled && !day.isSelected ? 'bg-gradient-to-br from-info-50 to-primary-50' : ''}
+                      ${
+                        day.isSelected
+                          ? 'bg-[#0087FF] text-white font-bold shadow-md'
+                          : day.isInRange
+                          ? 'bg-gradient-to-r from-[#E6F3FF] to-[#CCE7FF]'
+                          : 'hover:bg-[#F0F9FF]'
+                      }
+                      ${day.isRangeStart ? 'rounded-r-none' : ''}
+                      ${day.isRangeEnd ? 'rounded-l-none' : ''}
+                      ${day.isToday && !day.isSelected ? 'ring-2 ring-[#0087FF] ring-inset' : ''}
+                      touch-manipulation
+                    `}
+                  >
+                    <div className="flex flex-col items-center justify-center h-full gap-0.5">
+                      <span className="text-sm font-medium">
+                        {day.date.getDate()}
+                      </span>
+                      {day.price && day.isCurrentMonth && !day.isDisabled && (
+                        <span
+                          className={`text-[9px] px-1 rounded font-medium ${
+                            day.isSelected
+                              ? 'bg-white/90 text-[#0087FF]'
+                              : 'text-slate-500'
+                          }`}
+                        >
+                          ${Math.round(day.price)}
+                        </span>
+                      )}
+                    </div>
+                  </button>
+                );
+              })}
+            </div>
           </div>
 
           {/* Selection summary */}
@@ -765,11 +865,11 @@ export default function PremiumDatePicker({
           )}
         </div>
 
-        {/* Footer actions */}
-        <div className="flex items-center justify-between gap-2 p-2.5 border-t border-gray-200 bg-gray-50 rounded-b-xl">
+        {/* Footer actions - sticky on mobile */}
+        <div className="flex items-center justify-between gap-3 p-3 border-t border-gray-200 bg-white md:bg-gray-50 rounded-b-xl md:rounded-b-lg sticky bottom-0">
           <button
             onClick={handleClear}
-            className="px-3 py-1.5 text-xs font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-200 rounded-lg transition-colors"
+            className="px-4 py-2.5 md:py-1.5 text-sm md:text-xs font-medium text-gray-700 hover:text-gray-900 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors active:scale-95 touch-manipulation"
           >
             Clear
           </button>
@@ -780,9 +880,12 @@ export default function PremiumDatePicker({
                 ? multiDates.length === 0
                 : (!selectedDeparture || (type === 'range' && !selectedReturn))
             }
-            className="px-5 py-1.5 text-xs font-medium text-white bg-[#0087FF] hover:bg-[#0077E6] disabled:bg-gray-300 disabled:cursor-not-allowed rounded-lg transition-colors shadow-sm hover:shadow-md"
+            className="flex-1 md:flex-none px-6 py-2.5 md:py-1.5 text-sm md:text-xs font-semibold text-white bg-primary-600 hover:bg-primary-700 disabled:bg-gray-300 disabled:cursor-not-allowed rounded-lg transition-colors shadow-sm hover:shadow-md active:scale-95 touch-manipulation"
           >
-            Apply
+            {type === 'range' && !selectedReturn && selectedDeparture
+              ? 'Select Return Date'
+              : 'Apply'
+            }
           </button>
         </div>
       </div>
