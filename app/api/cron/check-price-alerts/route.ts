@@ -4,6 +4,7 @@ import { getCached, setCache, generateFlightCacheKey } from '@/lib/cache';
 import { amadeusAPI } from '@/lib/api/amadeus';
 import { duffelAPI } from '@/lib/api/duffel';
 import { sendPriceAlertEmail } from '@/lib/email/price-alert';
+import { notifyTelegramAdmins } from '@/lib/notifications/notification-service';
 
 /**
  * CRON JOB: Check Price Alerts
@@ -25,6 +26,79 @@ import { sendPriceAlertEmail } from '@/lib/email/price-alert';
 
 const BATCH_SIZE = 50; // Process 50 alerts at a time
 const CACHE_TTL = 21600; // 6 hours cache for price data
+
+/**
+ * Send Web Push notification to a specific user
+ */
+async function sendPushToUser(
+  prisma: any,
+  userId: string,
+  payload: { title: string; body: string; url: string }
+): Promise<boolean> {
+  try {
+    // Dynamically load web-push
+    let webpush;
+    try {
+      webpush = require('web-push');
+      if (process.env.VAPID_PUBLIC_KEY && process.env.VAPID_PRIVATE_KEY) {
+        webpush.setVapidDetails(
+          'mailto:support@fly2any.com',
+          process.env.VAPID_PUBLIC_KEY,
+          process.env.VAPID_PRIVATE_KEY
+        );
+      } else {
+        return false; // VAPID not configured
+      }
+    } catch {
+      return false; // web-push not installed
+    }
+
+    // Get user's push subscriptions
+    const subscriptions = await prisma.pushSubscription.findMany({
+      where: { userId },
+    });
+
+    if (!subscriptions || subscriptions.length === 0) {
+      return false; // No subscriptions
+    }
+
+    const pushPayload = JSON.stringify({
+      ...payload,
+      icon: '/fly2any-logo.png',
+      tag: `price-alert-${Date.now()}`,
+      requireInteraction: true,
+    });
+
+    // Send to all user's devices
+    const results = await Promise.allSettled(
+      subscriptions.map(async (sub: any) => {
+        try {
+          await webpush.sendNotification(
+            {
+              endpoint: sub.endpoint,
+              keys: { p256dh: sub.p256dh, auth: sub.auth },
+            },
+            pushPayload
+          );
+          return true;
+        } catch (error: any) {
+          // Remove expired subscriptions
+          if (error.statusCode === 410 || error.statusCode === 404) {
+            await prisma.pushSubscription.delete({
+              where: { endpoint: sub.endpoint },
+            }).catch(() => null);
+          }
+          throw error;
+        }
+      })
+    );
+
+    return results.some(r => r.status === 'fulfilled');
+  } catch (error) {
+    console.error('Push notification error:', error);
+    return false;
+  }
+}
 
 interface FlightPrice {
   price: number;
@@ -219,9 +293,12 @@ async function processBatch(alerts: any[], prisma: any): Promise<{
         });
 
         if (user?.email) {
-          // Send email notification
-          try {
-            await sendPriceAlertEmail({
+          const savings = (alert.currentPrice || alert.targetPrice) - currentPrice;
+
+          // MULTI-CHANNEL NOTIFICATIONS
+          const notifications = await Promise.allSettled([
+            // 1. Email notification
+            sendPriceAlertEmail({
               to: user.email,
               userName: user.name || 'Traveler',
               alert: {
@@ -232,16 +309,47 @@ async function processBatch(alerts: any[], prisma: any): Promise<{
                 targetPrice: alert.targetPrice,
                 currentPrice,
                 currency: currentPriceData.currency,
-                savings: alert.currentPrice - currentPrice,
+                savings,
               },
-            });
+            }),
 
-            console.log(`✅ Email sent to ${user.email} for alert ${alert.id}`);
-            triggered++;
-          } catch (emailError) {
-            console.error(`❌ Failed to send email for alert ${alert.id}:`, emailError);
-            errors++;
+            // 2. Telegram notification to admins
+            notifyTelegramAdmins(`
+💰 <b>PRICE DROP ALERT!</b>
+
+✈️ <b>Route:</b> ${alert.origin} → ${alert.destination}
+📅 <b>Date:</b> ${alert.departDate}${alert.returnDate ? ` - ${alert.returnDate}` : ''}
+
+💵 <b>Current:</b> $${currentPrice.toFixed(2)}
+🎯 <b>Target:</b> $${alert.targetPrice.toFixed(2)}
+📉 <b>Savings:</b> $${savings.toFixed(2)}
+
+👤 <b>User:</b> ${user.name || 'Anonymous'} (${user.email})
+            `.trim()),
+
+            // 3. Web Push notification (if user has subscription)
+            sendPushToUser(prisma, alert.userId, {
+              title: `💰 Price Drop: ${alert.origin} → ${alert.destination}`,
+              body: `Now $${currentPrice.toFixed(2)} (was $${alert.targetPrice.toFixed(2)}) - Save $${savings.toFixed(2)}!`,
+              url: `/flights/search?origin=${alert.origin}&destination=${alert.destination}&departDate=${alert.departDate}`,
+            }),
+          ]);
+
+          const emailResult = notifications[0];
+          const telegramResult = notifications[1];
+          const pushResult = notifications[2];
+
+          if (emailResult.status === 'fulfilled') {
+            console.log(`✅ Email sent to ${user.email}`);
           }
+          if (telegramResult.status === 'fulfilled') {
+            console.log(`✅ Telegram notification sent`);
+          }
+          if (pushResult.status === 'fulfilled') {
+            console.log(`✅ Push notification sent`);
+          }
+
+          triggered++;
         }
       } else {
         console.log(

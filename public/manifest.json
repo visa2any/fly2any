@@ -65,39 +65,31 @@
   "shortcuts": [
     {
       "name": "Search Flights",
-      "short_name": "Search",
-      "description": "Search for flights",
+      "short_name": "Flights",
+      "description": "Search for the best flight deals",
       "url": "/?action=search",
-      "icons": [
-        {
-          "src": "/fly2any-logo.png?v=2",
-          "sizes": "192x192"
-        }
-      ]
+      "icons": [{ "src": "/icons/shortcut-search.png", "sizes": "192x192" }]
     },
     {
       "name": "My Bookings",
       "short_name": "Bookings",
-      "description": "View your bookings",
+      "description": "View and manage your bookings",
       "url": "/account/bookings",
-      "icons": [
-        {
-          "src": "/fly2any-logo.png?v=2",
-          "sizes": "192x192"
-        }
-      ]
+      "icons": [{ "src": "/icons/shortcut-bookings.png", "sizes": "192x192" }]
     },
     {
       "name": "Price Alerts",
       "short_name": "Alerts",
-      "description": "Manage price alerts",
+      "description": "Track price drops on your flights",
       "url": "/account/alerts",
-      "icons": [
-        {
-          "src": "/fly2any-logo.png?v=2",
-          "sizes": "192x192"
-        }
-      ]
+      "icons": [{ "src": "/icons/shortcut-alerts.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "Hotels",
+      "short_name": "Hotels",
+      "description": "Find and book hotels worldwide",
+      "url": "/hotels",
+      "icons": [{ "src": "/icons/shortcut-hotels.png", "sizes": "192x192" }]
     }
   ],
   "prefer_related_applications": false,
