@@ -96,10 +96,15 @@ export function AirportAutocomplete({
     setInputValue(value);
   }, [value]);
 
+  // Detect mobile viewport
+  const isMobile = typeof window !== 'undefined' && window.innerWidth < 640;
+  const maxResults = isMobile ? 4 : 6;
+
   // API search function
   const searchAirportsAPI = useCallback(async (keyword: string) => {
+    // Mobile-first: NO suggestions until user types 2+ chars
     if (keyword.length < 2) {
-      setSuggestions(popularAirports.slice(0, 6));
+      setSuggestions([]);
       return;
     }
 
@@ -131,7 +136,7 @@ export function AirportAutocomplete({
       const result = await response.json();
 
       if (result.data && Array.isArray(result.data)) {
-        const airports: Airport[] = result.data.map((location: any) => ({
+        const airports: Airport[] = result.data.slice(0, maxResults).map((location: any) => ({
           code: location.iataCode,
           name: location.name,
           city: location.address?.cityName || location.name,
@@ -148,7 +153,7 @@ export function AirportAutocomplete({
           airport.code.toLowerCase().includes(keyword.toLowerCase()) ||
           airport.city.toLowerCase().includes(keyword.toLowerCase()) ||
           airport.name.toLowerCase().includes(keyword.toLowerCase())
-        ).slice(0, 6);
+        ).slice(0, maxResults);
         setSuggestions(filtered);
       }
     } catch (error: any) {
@@ -164,7 +169,7 @@ export function AirportAutocomplete({
         airport.code.toLowerCase().includes(keyword.toLowerCase()) ||
         airport.city.toLowerCase().includes(keyword.toLowerCase()) ||
         airport.name.toLowerCase().includes(keyword.toLowerCase())
-      ).slice(0, 6);
+      ).slice(0, maxResults);
       setSuggestions(filtered);
     } finally {
       setIsLoading(false);
@@ -173,18 +178,19 @@ export function AirportAutocomplete({
 
   // Static search function (fallback)
   const searchAirportsStatic = useCallback((keyword: string) => {
-    if (keyword.length >= 1) {
+    // Mobile-first: NO suggestions until user types 2+ chars
+    if (keyword.length >= 2) {
       const filtered = popularAirports.filter(airport =>
         airport.code.toLowerCase().includes(keyword.toLowerCase()) ||
         airport.city.toLowerCase().includes(keyword.toLowerCase()) ||
         airport.name.toLowerCase().includes(keyword.toLowerCase()) ||
         airport.country.toLowerCase().includes(keyword.toLowerCase())
-      ).slice(0, 6);
+      ).slice(0, maxResults);
       setSuggestions(filtered);
     } else {
-      setSuggestions(popularAirports.slice(0, 6));
+      setSuggestions([]);
     }
-  }, []);
+  }, [maxResults]);
 
   // Debounced search effect
   useEffect(() => {
@@ -277,31 +283,31 @@ export function AirportAutocomplete({
     }
   };
 
-  // Size-based styles
+  // Size-based styles - Mobile-first with responsive scaling
   const sizeStyles = {
     small: {
-      input: 'min-h-[36px] max-h-[36px] h-[36px] text-sm',
-      padding: icon ? 'pl-9 pr-3 py-1.5' : 'pl-3 pr-3 py-1.5',
-      iconSize: 'w-3.5 h-3.5',
-      iconLeft: 'left-2.5',
-      emojiBox: 'w-7 h-7 text-base',
-      textSize: 'text-xs',
+      input: 'min-h-[32px] sm:min-h-[36px] h-[32px] sm:h-[36px] text-xs sm:text-sm',
+      padding: icon ? 'pl-7 sm:pl-9 pr-2 sm:pr-3 py-1' : 'pl-2 sm:pl-3 pr-2 sm:pr-3 py-1',
+      iconSize: 'w-3 h-3 sm:w-3.5 sm:h-3.5',
+      iconLeft: 'left-2 sm:left-2.5',
+      emojiBox: 'w-6 h-6 sm:w-7 sm:h-7 text-sm sm:text-base',
+      textSize: 'text-[11px] sm:text-xs',
     },
     medium: {
-      input: 'min-h-[42px] max-h-[42px] h-[42px] text-sm',
-      padding: icon ? 'pl-10 pr-3 py-2' : 'pl-3 pr-3 py-2',
-      iconSize: 'w-4 h-4',
-      iconLeft: 'left-3',
-      emojiBox: 'w-8 h-8 text-lg',
-      textSize: 'text-sm',
+      input: 'min-h-[38px] sm:min-h-[42px] h-[38px] sm:h-[42px] text-xs sm:text-sm',
+      padding: icon ? 'pl-8 sm:pl-10 pr-2 sm:pr-3 py-1.5' : 'pl-2 sm:pl-3 pr-2 sm:pr-3 py-1.5',
+      iconSize: 'w-3.5 h-3.5 sm:w-4 sm:h-4',
+      iconLeft: 'left-2 sm:left-3',
+      emojiBox: 'w-6 h-6 sm:w-8 sm:h-8 text-sm sm:text-lg',
+      textSize: 'text-xs sm:text-sm',
     },
     large: {
-      input: 'min-h-[56px] max-h-[56px] h-[56px] text-base',
-      padding: icon ? 'pl-12 pr-4 py-3' : 'pl-4 pr-4 py-3',
-      iconSize: 'w-5 h-5',
-      iconLeft: 'left-4',
-      emojiBox: 'w-10 h-10 text-2xl',
-      textSize: 'text-base',
+      input: 'min-h-[44px] sm:min-h-[56px] h-[44px] sm:h-[56px] text-sm sm:text-base',
+      padding: icon ? 'pl-9 sm:pl-12 pr-3 sm:pr-4 py-2 sm:py-3' : 'pl-3 sm:pl-4 pr-3 sm:pr-4 py-2 sm:py-3',
+      iconSize: 'w-4 h-4 sm:w-5 sm:h-5',
+      iconLeft: 'left-2.5 sm:left-4',
+      emojiBox: 'w-7 h-7 sm:w-10 sm:h-10 text-base sm:text-2xl',
+      textSize: 'text-xs sm:text-base',
     },
   };
 
@@ -360,17 +366,17 @@ export function AirportAutocomplete({
         />
       </div>
 
-      {/* Dropdown */}
+      {/* Dropdown - Mobile-optimized height */}
       {isOpen && (
         <div
           ref={dropdownRef}
-          className={`absolute z-dropdown w-full mt-${variant === 'default' ? '2' : '1'} bg-white ${styles.variant.dropdown} max-h-${variant === 'compact' ? '80' : '96'} overflow-y-auto ${variant === 'compact' ? 'animate-in fade-in slide-in-from-top-2 duration-200' : ''}`}
+          className={`absolute z-dropdown w-full mt-1 sm:mt-${variant === 'default' ? '2' : '1'} bg-white ${styles.variant.dropdown} max-h-[200px] sm:max-h-[320px] overflow-y-auto ${variant === 'compact' ? 'animate-in fade-in slide-in-from-top-2 duration-200' : ''}`}
         >
-          {/* Loading state */}
+          {/* Loading state - Mobile-optimized */}
           {isLoading && (
-            <div className="px-4 py-8 text-center">
-              <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-primary-600"></div>
-              <div className="mt-2 text-sm text-gray-500">Searching airports...</div>
+            <div className="px-3 sm:px-4 py-4 sm:py-8 text-center">
+              <div className="inline-block animate-spin rounded-full h-5 w-5 sm:h-8 sm:w-8 border-b-2 border-primary-600"></div>
+              <div className="mt-1.5 sm:mt-2 text-xs sm:text-sm text-gray-500">Searching...</div>
             </div>
           )}
 
@@ -394,12 +400,12 @@ export function AirportAutocomplete({
                 </button>
               )}
 
-              {/* Airport suggestions */}
+              {/* Airport suggestions - Mobile-optimized */}
               {suggestions.map((airport, index) => (
                 <button
                   key={airport.code}
                   onClick={() => handleSelectAirport(airport)}
-                  className={`w-full px-${variant === 'compact' ? '3' : '4'} py-${variant === 'compact' ? '2.5' : '3'} flex items-center gap-3 transition-colors ${
+                  className={`w-full px-2.5 sm:px-4 py-2 sm:py-3 flex items-center gap-2 sm:gap-3 transition-colors ${
                     variant === 'compact' ? 'first:rounded-t-xl last:rounded-b-xl' : ''
                   } ${
                     index === highlightedIndex
@@ -407,23 +413,23 @@ export function AirportAutocomplete({
                       : 'hover:bg-gray-50 text-gray-900'
                   }`}
                 >
-                  <div className={`${styles.size.emojiBox} bg-gradient-to-br from-gray-100 to-gray-200 rounded-${variant === 'compact' ? 'lg' : 'xl'} flex items-center justify-center flex-shrink-0`}>
+                  <div className={`${styles.size.emojiBox} bg-gradient-to-br from-gray-100 to-gray-200 ${variant === 'compact' ? 'rounded-lg' : 'rounded-xl'} flex items-center justify-center flex-shrink-0`}>
                     {airport.emoji}
                   </div>
                   <div className="flex-1 text-left min-w-0">
                     <div className={`${styles.size.textSize} font-semibold flex items-center gap-1 overflow-hidden`}>
-                      <span className={`flex-shrink-0 ${index === highlightedIndex ? 'text-primary-600' : 'text-primary-600'}`}>
+                      <span className="flex-shrink-0 text-primary-600">
                         {airport.code}
                       </span>
                       <span className="flex-shrink-0 text-gray-400">-</span>
                       <span className="truncate text-gray-700">{airport.city}</span>
                     </div>
-                    <div className="text-xs text-gray-500 truncate">
+                    <div className="text-[10px] sm:text-xs text-gray-500 truncate">
                       {airport.name}, {airport.country}
                     </div>
                   </div>
                   {variant === 'compact' && (
-                    <MapPin className="w-3.5 h-3.5 text-gray-400 flex-shrink-0" />
+                    <MapPin className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-gray-400 flex-shrink-0" />
                   )}
                 </button>
               ))}
@@ -441,40 +447,28 @@ export function AirportAutocomplete({
                       emoji: '✈️',
                     });
                   }}
-                  className={`w-full px-${variant === 'compact' ? '3' : '4'} py-${variant === 'compact' ? '3' : '4'} flex items-center gap-3 hover:bg-blue-50 transition-colors border-2 border-dashed border-blue-300 ${
-                    variant === 'compact' ? 'rounded-xl' : 'rounded-xl'
-                  } m-2`}
+                  className="w-full px-2.5 sm:px-4 py-2.5 sm:py-4 flex items-center gap-2 sm:gap-3 hover:bg-blue-50 transition-colors border-2 border-dashed border-blue-300 rounded-xl m-1.5 sm:m-2"
                 >
-                  <div className={`${sizeStyles[size].emojiBox} bg-gradient-to-br from-blue-100 to-blue-200 rounded-${variant === 'compact' ? 'lg' : 'xl'} flex items-center justify-center flex-shrink-0`}>
+                  <div className={`${sizeStyles[size].emojiBox} bg-gradient-to-br from-blue-100 to-blue-200 ${variant === 'compact' ? 'rounded-lg' : 'rounded-xl'} flex items-center justify-center flex-shrink-0`}>
                     ✈️
                   </div>
                   <div className="flex-1 text-left">
                     <div className={`${sizeStyles[size].textSize} font-bold text-blue-600`}>
                       Use "{inputValue.toUpperCase()}"
                     </div>
-                    <div className="text-xs text-gray-500">
-                      Use this airport code directly
+                    <div className="text-[10px] sm:text-xs text-gray-500">
+                      Use this code directly
                     </div>
                   </div>
-                  <div className="text-blue-600 font-semibold">→</div>
+                  <div className="text-blue-600 font-semibold text-sm">→</div>
                 </button>
               )}
 
-              {suggestions.length === 0 && (inputValue.length === 0 || inputValue.length > 4) && (
-                <div className={`px-4 py-${variant === 'compact' ? '6' : '8'} text-center text-gray-400`}>
-                  {variant === 'compact' ? (
-                    <>
-                      <Plane className="w-8 h-8 mx-auto mb-2 opacity-30" />
-                      <div className="text-sm">Type an airport code</div>
-                      <div className="text-xs mt-1">Example: GRU, JFK, LAX</div>
-                    </>
-                  ) : (
-                    <>
-                      <div className="text-4xl mb-2">✈️</div>
-                      <div>Type an airport code</div>
-                      <div className="text-xs mt-2">Example: GRU, JFK, LAX, CGH</div>
-                    </>
-                  )}
+              {suggestions.length === 0 && inputValue.length < 2 && (
+                <div className="px-3 sm:px-4 py-4 sm:py-6 text-center text-gray-400">
+                  <Plane className="w-5 h-5 sm:w-8 sm:h-8 mx-auto mb-1.5 sm:mb-2 opacity-30" />
+                  <div className="text-xs sm:text-sm">Type city or airport code</div>
+                  <div className="text-[10px] sm:text-xs mt-0.5 sm:mt-1 text-gray-300">e.g. JFK, London, Dubai</div>
                 </div>
               )}
             </>

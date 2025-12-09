@@ -732,8 +732,107 @@ export default function FlightSearchForm({
           </div>
         )}
 
-        {/* Passengers and Class */}
-        <div className="relative">
+        {/* MOBILE: Travelers & Class + Direct Flights - ALL IN ONE ROW */}
+        <div className="flex md:hidden items-center gap-2 flex-nowrap">
+          {/* Travelers & Class - Compact button */}
+          <div className="relative flex-shrink-0">
+            <button
+              type="button"
+              onClick={() => {
+                setIsPassengerDropdownOpen(!isPassengerDropdownOpen);
+                if (!isPassengerDropdownOpen) {
+                  setTempPassengers(formData.passengers);
+                  setTempClass(formData.travelClass);
+                }
+              }}
+              className="flex items-center gap-1.5 px-2.5 py-1.5 bg-gray-50 border border-gray-200 rounded-lg text-[11px] font-semibold text-gray-700 whitespace-nowrap"
+              aria-label={t.passengers}
+              aria-expanded={isPassengerDropdownOpen}
+            >
+              <Users className="w-3 h-3 text-gray-400" />
+              <span>{formData.passengers.adults + formData.passengers.children + formData.passengers.infants}</span>
+              <span className="text-gray-400">|</span>
+              <span>{t.classes[formData.travelClass]}</span>
+              <svg className={`w-2.5 h-2.5 text-gray-400 transition-transform ${isPassengerDropdownOpen ? 'rotate-180' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+              </svg>
+            </button>
+
+            {/* Passenger Dropdown - Mobile */}
+            {isPassengerDropdownOpen && (
+              <div className="absolute z-50 mt-2 bg-white border-2 border-gray-200 rounded-2xl shadow-2xl p-4 w-[280px] left-0">
+                {/* Passenger Counts */}
+                <div className="space-y-3 mb-4">
+                  {/* Adults */}
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <div className="font-semibold text-gray-900 text-sm">{t.passengerTypes.adults}</div>
+                      <div className="text-xs text-gray-500">{t.passengerTypes.adultsDesc}</div>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <button type="button" onClick={() => updatePassengerCount('adults', -1)} disabled={tempPassengers.adults <= 1} className="w-8 h-8 rounded-full border border-gray-300 flex items-center justify-center hover:border-blue-500 disabled:opacity-30 text-sm font-bold">−</button>
+                      <span className="w-6 text-center font-bold text-gray-900">{tempPassengers.adults}</span>
+                      <button type="button" onClick={() => updatePassengerCount('adults', 1)} disabled={tempPassengers.adults >= 9} className="w-8 h-8 rounded-full border border-gray-300 flex items-center justify-center hover:border-blue-500 disabled:opacity-30 text-sm font-bold">+</button>
+                    </div>
+                  </div>
+                  {/* Children */}
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <div className="font-semibold text-gray-900 text-sm">{t.passengerTypes.children}</div>
+                      <div className="text-xs text-gray-500">{t.passengerTypes.childrenDesc}</div>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <button type="button" onClick={() => updatePassengerCount('children', -1)} disabled={tempPassengers.children <= 0} className="w-8 h-8 rounded-full border border-gray-300 flex items-center justify-center hover:border-blue-500 disabled:opacity-30 text-sm font-bold">−</button>
+                      <span className="w-6 text-center font-bold text-gray-900">{tempPassengers.children}</span>
+                      <button type="button" onClick={() => updatePassengerCount('children', 1)} disabled={tempPassengers.children >= 9} className="w-8 h-8 rounded-full border border-gray-300 flex items-center justify-center hover:border-blue-500 disabled:opacity-30 text-sm font-bold">+</button>
+                    </div>
+                  </div>
+                  {/* Infants */}
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <div className="font-semibold text-gray-900 text-sm">{t.passengerTypes.infants}</div>
+                      <div className="text-xs text-gray-500">{t.passengerTypes.infantsDesc}</div>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <button type="button" onClick={() => updatePassengerCount('infants', -1)} disabled={tempPassengers.infants <= 0} className="w-8 h-8 rounded-full border border-gray-300 flex items-center justify-center hover:border-blue-500 disabled:opacity-30 text-sm font-bold">−</button>
+                      <span className="w-6 text-center font-bold text-gray-900">{tempPassengers.infants}</span>
+                      <button type="button" onClick={() => updatePassengerCount('infants', 1)} disabled={tempPassengers.infants >= tempPassengers.adults || tempPassengers.infants >= 9} className="w-8 h-8 rounded-full border border-gray-300 flex items-center justify-center hover:border-blue-500 disabled:opacity-30 text-sm font-bold">+</button>
+                    </div>
+                  </div>
+                </div>
+                {/* Travel Class */}
+                <div className="border-t border-gray-200 pt-3 mb-3">
+                  <div className="grid grid-cols-2 gap-2">
+                    {(['economy', 'premium', 'business', 'first'] as TravelClass[]).map((classType) => (
+                      <button key={classType} type="button" onClick={() => setTempClass(classType)} className={`px-2 py-1.5 rounded-lg text-xs font-medium transition-all ${tempClass === classType ? 'bg-blue-600 text-white' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'}`}>
+                        {t.classes[classType]}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+                <button type="button" onClick={applyPassengerChanges} className="w-full bg-blue-600 text-white py-2 rounded-lg font-semibold text-sm">{t.done}</button>
+              </div>
+            )}
+          </div>
+
+          {/* Vertical divider */}
+          <div className="h-4 w-px bg-gray-200 flex-shrink-0" />
+
+          {/* Direct Flights - Compact chip style */}
+          <label className="flex items-center gap-1 cursor-pointer flex-shrink-0">
+            <input
+              type="checkbox"
+              checked={formData.directFlights}
+              onChange={(e) => setFormData({ ...formData, directFlights: e.target.checked })}
+              className="w-3 h-3 rounded border-gray-300 text-blue-600 focus:ring-blue-500 cursor-pointer"
+              aria-label={t.directFlights}
+            />
+            <span className="text-[11px] font-medium text-gray-600 whitespace-nowrap">Direct</span>
+          </label>
+        </div>
+
+        {/* DESKTOP: Passengers and Class - Full Width */}
+        <div className="hidden md:block relative">
           <label className="block text-sm font-semibold text-gray-700 mb-2">
             {t.passengers}
           </label>
@@ -746,7 +845,7 @@ export default function FlightSearchForm({
                 setTempClass(formData.travelClass);
               }
             }}
-            className="w-full pl-12 pr-4 py-3 md:py-4 border-2 border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all text-left flex items-center justify-between bg-white hover:border-gray-400"
+            className="w-full pl-12 pr-4 py-4 border-2 border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all text-left flex items-center justify-between bg-white hover:border-gray-400"
             aria-label={t.passengers}
             aria-expanded={isPassengerDropdownOpen}
           >
@@ -764,11 +863,11 @@ export default function FlightSearchForm({
             </svg>
           </button>
 
-          {/* Passenger Dropdown */}
+          {/* Passenger Dropdown - Desktop */}
           {isPassengerDropdownOpen && (
-            <div className="absolute z-50 mt-2 bg-white border-2 border-gray-200 rounded-2xl shadow-2xl p-4 md:p-6 w-full md:w-96">
+            <div className="absolute z-50 mt-2 bg-white border-2 border-gray-200 rounded-2xl shadow-2xl p-6 w-96">
               {/* Passenger Counts */}
-              <div className="space-y-3 md:space-y-4 mb-4 md:mb-6">
+              <div className="space-y-4 mb-6">
                 {/* Adults */}
                 <div className="flex items-center justify-between">
                   <div>
@@ -776,30 +875,11 @@ export default function FlightSearchForm({
                     <div className="text-xs text-gray-500">{t.passengerTypes.adultsDesc}</div>
                   </div>
                   <div className="flex items-center gap-3">
-                    <button
-                      type="button"
-                      onClick={() => updatePassengerCount('adults', -1)}
-                      disabled={tempPassengers.adults <= 1}
-                      className="w-11 h-11 min-w-[44px] min-h-[44px] rounded-full border-2 border-gray-300 flex items-center justify-center hover:border-blue-500 hover:text-blue-500 disabled:opacity-30 disabled:cursor-not-allowed transition-colors text-lg font-bold"
-                      aria-label={`Decrease ${t.passengerTypes.adults}`}
-                    >
-                      −
-                    </button>
-                    <span className="w-8 text-center font-bold text-gray-900 text-lg">
-                      {tempPassengers.adults}
-                    </span>
-                    <button
-                      type="button"
-                      onClick={() => updatePassengerCount('adults', 1)}
-                      disabled={tempPassengers.adults >= 9}
-                      className="w-11 h-11 min-w-[44px] min-h-[44px] rounded-full border-2 border-gray-300 flex items-center justify-center hover:border-blue-500 hover:text-blue-500 disabled:opacity-30 disabled:cursor-not-allowed transition-colors text-lg font-bold"
-                      aria-label={`Increase ${t.passengerTypes.adults}`}
-                    >
-                      +
-                    </button>
+                    <button type="button" onClick={() => updatePassengerCount('adults', -1)} disabled={tempPassengers.adults <= 1} className="w-11 h-11 min-w-[44px] min-h-[44px] rounded-full border-2 border-gray-300 flex items-center justify-center hover:border-blue-500 hover:text-blue-500 disabled:opacity-30 disabled:cursor-not-allowed transition-colors text-lg font-bold" aria-label={`Decrease ${t.passengerTypes.adults}`}>−</button>
+                    <span className="w-8 text-center font-bold text-gray-900 text-lg">{tempPassengers.adults}</span>
+                    <button type="button" onClick={() => updatePassengerCount('adults', 1)} disabled={tempPassengers.adults >= 9} className="w-11 h-11 min-w-[44px] min-h-[44px] rounded-full border-2 border-gray-300 flex items-center justify-center hover:border-blue-500 hover:text-blue-500 disabled:opacity-30 disabled:cursor-not-allowed transition-colors text-lg font-bold" aria-label={`Increase ${t.passengerTypes.adults}`}>+</button>
                   </div>
                 </div>
-
                 {/* Children */}
                 <div className="flex items-center justify-between">
                   <div>
@@ -807,30 +887,11 @@ export default function FlightSearchForm({
                     <div className="text-xs text-gray-500">{t.passengerTypes.childrenDesc}</div>
                   </div>
                   <div className="flex items-center gap-3">
-                    <button
-                      type="button"
-                      onClick={() => updatePassengerCount('children', -1)}
-                      disabled={tempPassengers.children <= 0}
-                      className="w-11 h-11 min-w-[44px] min-h-[44px] rounded-full border-2 border-gray-300 flex items-center justify-center hover:border-blue-500 hover:text-blue-500 disabled:opacity-30 disabled:cursor-not-allowed transition-colors text-lg font-bold"
-                      aria-label={`Decrease ${t.passengerTypes.children}`}
-                    >
-                      −
-                    </button>
-                    <span className="w-8 text-center font-bold text-gray-900 text-lg">
-                      {tempPassengers.children}
-                    </span>
-                    <button
-                      type="button"
-                      onClick={() => updatePassengerCount('children', 1)}
-                      disabled={tempPassengers.children >= 9}
-                      className="w-11 h-11 min-w-[44px] min-h-[44px] rounded-full border-2 border-gray-300 flex items-center justify-center hover:border-blue-500 hover:text-blue-500 disabled:opacity-30 disabled:cursor-not-allowed transition-colors text-lg font-bold"
-                      aria-label={`Increase ${t.passengerTypes.children}`}
-                    >
-                      +
-                    </button>
+                    <button type="button" onClick={() => updatePassengerCount('children', -1)} disabled={tempPassengers.children <= 0} className="w-11 h-11 min-w-[44px] min-h-[44px] rounded-full border-2 border-gray-300 flex items-center justify-center hover:border-blue-500 hover:text-blue-500 disabled:opacity-30 disabled:cursor-not-allowed transition-colors text-lg font-bold" aria-label={`Decrease ${t.passengerTypes.children}`}>−</button>
+                    <span className="w-8 text-center font-bold text-gray-900 text-lg">{tempPassengers.children}</span>
+                    <button type="button" onClick={() => updatePassengerCount('children', 1)} disabled={tempPassengers.children >= 9} className="w-11 h-11 min-w-[44px] min-h-[44px] rounded-full border-2 border-gray-300 flex items-center justify-center hover:border-blue-500 hover:text-blue-500 disabled:opacity-30 disabled:cursor-not-allowed transition-colors text-lg font-bold" aria-label={`Increase ${t.passengerTypes.children}`}>+</button>
                   </div>
                 </div>
-
                 {/* Infants */}
                 <div className="flex items-center justify-between">
                   <div>
@@ -838,33 +899,15 @@ export default function FlightSearchForm({
                     <div className="text-xs text-gray-500">{t.passengerTypes.infantsDesc}</div>
                   </div>
                   <div className="flex items-center gap-3">
-                    <button
-                      type="button"
-                      onClick={() => updatePassengerCount('infants', -1)}
-                      disabled={tempPassengers.infants <= 0}
-                      className="w-11 h-11 min-w-[44px] min-h-[44px] rounded-full border-2 border-gray-300 flex items-center justify-center hover:border-blue-500 hover:text-blue-500 disabled:opacity-30 disabled:cursor-not-allowed transition-colors text-lg font-bold"
-                      aria-label={`Decrease ${t.passengerTypes.infants}`}
-                    >
-                      −
-                    </button>
-                    <span className="w-8 text-center font-bold text-gray-900 text-lg">
-                      {tempPassengers.infants}
-                    </span>
-                    <button
-                      type="button"
-                      onClick={() => updatePassengerCount('infants', 1)}
-                      disabled={tempPassengers.infants >= tempPassengers.adults || tempPassengers.infants >= 9}
-                      className="w-11 h-11 min-w-[44px] min-h-[44px] rounded-full border-2 border-gray-300 flex items-center justify-center hover:border-blue-500 hover:text-blue-500 disabled:opacity-30 disabled:cursor-not-allowed transition-colors text-lg font-bold"
-                      aria-label={`Increase ${t.passengerTypes.infants}`}
-                    >
-                      +
-                    </button>
+                    <button type="button" onClick={() => updatePassengerCount('infants', -1)} disabled={tempPassengers.infants <= 0} className="w-11 h-11 min-w-[44px] min-h-[44px] rounded-full border-2 border-gray-300 flex items-center justify-center hover:border-blue-500 hover:text-blue-500 disabled:opacity-30 disabled:cursor-not-allowed transition-colors text-lg font-bold" aria-label={`Decrease ${t.passengerTypes.infants}`}>−</button>
+                    <span className="w-8 text-center font-bold text-gray-900 text-lg">{tempPassengers.infants}</span>
+                    <button type="button" onClick={() => updatePassengerCount('infants', 1)} disabled={tempPassengers.infants >= tempPassengers.adults || tempPassengers.infants >= 9} className="w-11 h-11 min-w-[44px] min-h-[44px] rounded-full border-2 border-gray-300 flex items-center justify-center hover:border-blue-500 hover:text-blue-500 disabled:opacity-30 disabled:cursor-not-allowed transition-colors text-lg font-bold" aria-label={`Increase ${t.passengerTypes.infants}`}>+</button>
                   </div>
                 </div>
               </div>
 
               {/* Travel Class */}
-              <div className="border-t border-gray-200 pt-4 md:pt-6 mb-4 md:mb-6">
+              <div className="border-t border-gray-200 pt-6 mb-6">
                 <div className="font-semibold text-gray-900 mb-3">Travel Class</div>
                 <div className="space-y-2">
                   {(['economy', 'premium', 'business', 'first'] as TravelClass[]).map((classType) => (
@@ -883,11 +926,7 @@ export default function FlightSearchForm({
                         <span className="font-semibold text-gray-900">{t.classes[classType]}</span>
                         {tempClass === classType && (
                           <svg className="w-5 h-5 text-blue-600" fill="currentColor" viewBox="0 0 20 20">
-                            <path
-                              fillRule="evenodd"
-                              d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
-                              clipRule="evenodd"
-                            />
+                            <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
                           </svg>
                         )}
                       </div>
@@ -897,19 +936,13 @@ export default function FlightSearchForm({
               </div>
 
               {/* Done Button */}
-              <button
-                type="button"
-                onClick={applyPassengerChanges}
-                className="w-full bg-blue-600 text-white py-3 rounded-xl font-semibold hover:bg-blue-700 transition-colors"
-              >
-                {t.done}
-              </button>
+              <button type="button" onClick={applyPassengerChanges} className="w-full bg-blue-600 text-white py-3 rounded-xl font-semibold hover:bg-blue-700 transition-colors">{t.done}</button>
             </div>
           )}
         </div>
 
-        {/* Direct Flights Checkbox */}
-        <div>
+        {/* DESKTOP: Direct Flights Checkbox */}
+        <div className="hidden md:block">
           <label className="flex items-center gap-3 cursor-pointer group">
             <input
               type="checkbox"

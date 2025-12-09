@@ -3161,136 +3161,166 @@ export default function EnhancedSearchBar({
           </div>
 
 
-          {/* Combined Travelers & Class */}
-          <div ref={passengerRef} className="relative z-50">
-            <label className="block text-xs font-semibold text-gray-600 mb-1.5">
-              Travelers & Class
-            </label>
-            <button
-              onClick={() => setShowPassengerDropdown(!showPassengerDropdown)}
-              className="w-full flex items-center gap-2 pl-8 pr-3 py-2 bg-gray-50 border-2 border-gray-200 rounded-lg focus:border-primary-500 focus:ring-2 focus:ring-primary-100 outline-none transition-all text-xs font-semibold text-gray-900"
-            >
-              <Users className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={14} />
-              <span className="flex-1 text-left">{totalPassengers}, {t(cabinClass as any)}</span>
-              <ChevronDown className="text-gray-400" size={12} />
-            </button>
+          {/* MOBILE: Travelers & Class + Flight Options - ALL IN ONE ROW */}
+          <div className="flex items-center gap-2 flex-nowrap overflow-x-auto">
+            {/* Travelers & Class - Compact button */}
+            <div ref={passengerRef} className="relative flex-shrink-0">
+              <button
+                onClick={() => setShowPassengerDropdown(!showPassengerDropdown)}
+                className="flex items-center gap-1.5 px-2.5 py-1.5 bg-gray-50 border border-gray-200 rounded-lg text-[11px] font-semibold text-gray-700 whitespace-nowrap"
+              >
+                <Users size={12} className="text-gray-400" />
+                <span>{totalPassengers}</span>
+                <span className="text-gray-400">|</span>
+                <span>{t(cabinClass as any)}</span>
+                <ChevronDown size={10} className="text-gray-400" />
+              </button>
 
-            {/* Passenger & Class Dropdown */}
-            {showPassengerDropdown && serviceType === 'flights' && (
-              <div className="absolute left-0 right-0 mt-2 p-4 bg-white border border-gray-200 rounded-xl shadow-xl z-[100] space-y-4">
-                {/* Adults */}
-                <div className="flex items-center justify-between">
-                  <div>
-                    <span className="text-sm font-medium text-gray-700">Adults</span>
-                    <p className="text-xs text-gray-500">18+</p>
-                  </div>
-                  <div className="flex items-center gap-3">
-                    <button
-                      type="button"
-                      onClick={() => handlePassengerChange('adults', -1)}
-                      disabled={passengers.adults <= 1}
-                      className="w-8 h-8 rounded-full border border-gray-300 hover:border-[#D63A35] hover:bg-primary-50 disabled:opacity-30 flex items-center justify-center transition-all"
-                    >
-                      <Minus size={16} />
-                    </button>
-                    <span className="w-8 text-center font-semibold">{passengers.adults}</span>
-                    <button
-                      type="button"
-                      onClick={() => handlePassengerChange('adults', 1)}
-                      className="w-8 h-8 rounded-full border border-gray-300 hover:border-[#D63A35] hover:bg-primary-50 flex items-center justify-center transition-all"
-                    >
-                      <Plus size={16} />
-                    </button>
-                  </div>
-                </div>
-
-                {/* Children */}
-                <div className="flex items-center justify-between">
-                  <div>
-                    <span className="text-sm font-medium text-gray-700">Children</span>
-                    <p className="text-xs text-gray-500">2-17</p>
-                  </div>
-                  <div className="flex items-center gap-3">
-                    <button
-                      type="button"
-                      onClick={() => handlePassengerChange('children', -1)}
-                      disabled={passengers.children <= 0}
-                      className="w-8 h-8 rounded-full border border-gray-300 hover:border-[#D63A35] hover:bg-primary-50 disabled:opacity-30 flex items-center justify-center transition-all"
-                    >
-                      <Minus size={16} />
-                    </button>
-                    <span className="w-8 text-center font-semibold">{passengers.children}</span>
-                    <button
-                      type="button"
-                      onClick={() => handlePassengerChange('children', 1)}
-                      className="w-8 h-8 rounded-full border border-gray-300 hover:border-[#D63A35] hover:bg-primary-50 flex items-center justify-center transition-all"
-                    >
-                      <Plus size={16} />
-                    </button>
-                  </div>
-                </div>
-
-                {/* Infants */}
-                <div className="flex items-center justify-between">
-                  <div>
-                    <span className="text-sm font-medium text-gray-700">Infants</span>
-                    <p className="text-xs text-gray-500">Under 2</p>
-                  </div>
-                  <div className="flex items-center gap-3">
-                    <button
-                      type="button"
-                      onClick={() => handlePassengerChange('infants', -1)}
-                      disabled={passengers.infants <= 0}
-                      className="w-8 h-8 rounded-full border border-gray-300 hover:border-[#D63A35] hover:bg-primary-50 disabled:opacity-30 flex items-center justify-center transition-all"
-                    >
-                      <Minus size={16} />
-                    </button>
-                    <span className="w-8 text-center font-semibold">{passengers.infants}</span>
-                    <button
-                      type="button"
-                      onClick={() => handlePassengerChange('infants', 1)}
-                      className="w-8 h-8 rounded-full border border-gray-300 hover:border-[#D63A35] hover:bg-primary-50 flex items-center justify-center transition-all"
-                    >
-                      <Plus size={16} />
-                    </button>
-                  </div>
-                </div>
-
-                {/* Cabin Class */}
-                <div className="pt-4 border-t border-gray-200">
-                  <span className="text-sm font-medium text-gray-700 block mb-3">Cabin Class</span>
-                  <div className="grid grid-cols-2 gap-2">
-                    {(['economy', 'premium', 'business', 'first'] as const).map((cls) => (
+              {/* Passenger & Class Dropdown */}
+              {showPassengerDropdown && serviceType === 'flights' && (
+                <div className="absolute left-0 right-auto mt-2 p-4 bg-white border border-gray-200 rounded-xl shadow-xl z-[100] space-y-4 min-w-[280px]">
+                  {/* Adults */}
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <span className="text-sm font-medium text-gray-700">Adults</span>
+                      <p className="text-xs text-gray-500">18+</p>
+                    </div>
+                    <div className="flex items-center gap-3">
                       <button
-                        key={cls}
                         type="button"
-                        onClick={() => setCabinClass(cls)}
-                        className={`px-3 py-2 rounded-lg text-xs font-medium transition-all ${
-                          cabinClass === cls
-                            ? 'bg-[#D63A35] text-white'
-                            : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                        }`}
+                        onClick={() => handlePassengerChange('adults', -1)}
+                        disabled={passengers.adults <= 1}
+                        className="w-8 h-8 rounded-full border border-gray-300 hover:border-[#D63A35] hover:bg-primary-50 disabled:opacity-30 flex items-center justify-center transition-all"
                       >
-                        {t(cls)}
+                        <Minus size={16} />
                       </button>
-                    ))}
+                      <span className="w-8 text-center font-semibold">{passengers.adults}</span>
+                      <button
+                        type="button"
+                        onClick={() => handlePassengerChange('adults', 1)}
+                        className="w-8 h-8 rounded-full border border-gray-300 hover:border-[#D63A35] hover:bg-primary-50 flex items-center justify-center transition-all"
+                      >
+                        <Plus size={16} />
+                      </button>
+                    </div>
                   </div>
-                </div>
 
-                {/* Done Button */}
-                <button
-                  type="button"
-                  onClick={() => setShowPassengerDropdown(false)}
-                  className="w-full py-2 bg-gray-100 hover:bg-gray-200 rounded-lg font-semibold text-gray-900 transition-colors text-sm"
-                >
-                  Done
-                </button>
-              </div>
+                  {/* Children */}
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <span className="text-sm font-medium text-gray-700">Children</span>
+                      <p className="text-xs text-gray-500">2-17</p>
+                    </div>
+                    <div className="flex items-center gap-3">
+                      <button
+                        type="button"
+                        onClick={() => handlePassengerChange('children', -1)}
+                        disabled={passengers.children <= 0}
+                        className="w-8 h-8 rounded-full border border-gray-300 hover:border-[#D63A35] hover:bg-primary-50 disabled:opacity-30 flex items-center justify-center transition-all"
+                      >
+                        <Minus size={16} />
+                      </button>
+                      <span className="w-8 text-center font-semibold">{passengers.children}</span>
+                      <button
+                        type="button"
+                        onClick={() => handlePassengerChange('children', 1)}
+                        className="w-8 h-8 rounded-full border border-gray-300 hover:border-[#D63A35] hover:bg-primary-50 flex items-center justify-center transition-all"
+                      >
+                        <Plus size={16} />
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Infants */}
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <span className="text-sm font-medium text-gray-700">Infants</span>
+                      <p className="text-xs text-gray-500">Under 2</p>
+                    </div>
+                    <div className="flex items-center gap-3">
+                      <button
+                        type="button"
+                        onClick={() => handlePassengerChange('infants', -1)}
+                        disabled={passengers.infants <= 0}
+                        className="w-8 h-8 rounded-full border border-gray-300 hover:border-[#D63A35] hover:bg-primary-50 disabled:opacity-30 flex items-center justify-center transition-all"
+                      >
+                        <Minus size={16} />
+                      </button>
+                      <span className="w-8 text-center font-semibold">{passengers.infants}</span>
+                      <button
+                        type="button"
+                        onClick={() => handlePassengerChange('infants', 1)}
+                        className="w-8 h-8 rounded-full border border-gray-300 hover:border-[#D63A35] hover:bg-primary-50 flex items-center justify-center transition-all"
+                      >
+                        <Plus size={16} />
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Cabin Class */}
+                  <div className="pt-4 border-t border-gray-200">
+                    <span className="text-sm font-medium text-gray-700 block mb-3">Cabin Class</span>
+                    <div className="grid grid-cols-2 gap-2">
+                      {(['economy', 'premium', 'business', 'first'] as const).map((cls) => (
+                        <button
+                          key={cls}
+                          type="button"
+                          onClick={() => setCabinClass(cls)}
+                          className={`px-3 py-2 rounded-lg text-xs font-medium transition-all ${
+                            cabinClass === cls
+                              ? 'bg-[#D63A35] text-white'
+                              : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                          }`}
+                        >
+                          {t(cls)}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Done Button */}
+                  <button
+                    type="button"
+                    onClick={() => setShowPassengerDropdown(false)}
+                    className="w-full py-2 bg-gray-100 hover:bg-gray-200 rounded-lg font-semibold text-gray-900 transition-colors text-sm"
+                  >
+                    Done
+                  </button>
+                </div>
+              )}
+            </div>
+
+            {/* Vertical divider */}
+            <div className="h-4 w-px bg-gray-200 flex-shrink-0" />
+
+            {/* Direct Flights - Compact chip style */}
+            <label className="flex items-center gap-1 cursor-pointer flex-shrink-0">
+              <input
+                type="checkbox"
+                checked={directFlights}
+                onChange={(e) => setDirectFlights(e.target.checked)}
+                className="w-3 h-3 rounded border-gray-300 text-[#D63A35] focus:ring-[#D63A35] cursor-pointer"
+              />
+              <span className="text-[11px] font-medium text-gray-600 whitespace-nowrap">Direct</span>
+            </label>
+
+            {/* Separate Tickets - Compact chip style (round trips only) */}
+            {tripType === 'roundtrip' && (
+              <>
+                <div className="h-4 w-px bg-gray-200 flex-shrink-0" />
+                <label className="flex items-center gap-1 cursor-pointer flex-shrink-0" title="Find cheaper fares by combining different airlines">
+                  <input
+                    type="checkbox"
+                    checked={includeSeparateTickets}
+                    onChange={(e) => setIncludeSeparateTickets(e.target.checked)}
+                    className="w-3 h-3 rounded border-orange-300 text-orange-500 focus:ring-orange-500 cursor-pointer"
+                  />
+                  <span className="text-[11px] font-medium text-gray-600 whitespace-nowrap">Split</span>
+                  <span className="px-1 py-px bg-green-100 text-green-700 text-[8px] font-bold rounded">$</span>
+                </label>
+              </>
             )}
           </div>
-
-          {/* Flight Options - Combined row for space efficiency */}
-          <div className="flex flex-wrap items-center gap-3">            {/* Direct Flights Checkbox */}            <label className="flex items-center gap-2 cursor-pointer group">              <input                type="checkbox"                checked={directFlights}                onChange={(e) => setDirectFlights(e.target.checked)}                className="w-4 h-4 rounded border-gray-300 text-[#D63A35] focus:ring-[#D63A35] cursor-pointer"              />              <span className="text-xs font-medium text-gray-700 group-hover:text-gray-900 transition-colors">                {t('directOnly')}              </span>            </label>            {/* Separate Tickets / Hacker Fares Checkbox - Only for round trips */}            {tripType === 'roundtrip' && (              <label className="flex items-center gap-2 cursor-pointer group" title="Find cheaper fares by combining different airlines">                <input                  type="checkbox"                  checked={includeSeparateTickets}                  onChange={(e) => setIncludeSeparateTickets(e.target.checked)}                  className="w-4 h-4 rounded border-orange-300 text-orange-500 focus:ring-orange-500 cursor-pointer"                />                <span className="text-xs font-medium text-gray-700 group-hover:text-gray-900 transition-colors flex items-center gap-1">                  <span className="hidden sm:inline">Include</span> Separate Tickets                  <span className="px-1 py-0.5 bg-green-100 text-green-700 text-[9px] font-bold rounded">SAVE</span>                </span>              </label>            )}          </div>
 
           {/* Search Button */}
           <button
