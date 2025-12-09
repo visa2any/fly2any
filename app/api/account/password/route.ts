@@ -3,6 +3,7 @@ import { auth } from '@/lib/auth';
 import { getPrismaClient } from '@/lib/prisma';
 import bcrypt from 'bcryptjs';
 import { z } from 'zod';
+import { EmailService } from '@/lib/services/email-service';
 
 // Force Node.js runtime (required for Prisma and bcryptjs)
 export const runtime = 'nodejs';
@@ -103,7 +104,10 @@ export async function PUT(req: NextRequest) {
       });
     }
 
-    // TODO: Send email notification about password change
+    // Send password change confirmation email
+    await EmailService.sendPasswordChangeConfirmation(user.email, {
+      userName: session.user.name || user.email,
+    });
 
     return NextResponse.json({
       success: true,

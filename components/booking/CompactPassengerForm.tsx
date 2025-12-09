@@ -186,7 +186,7 @@ export function CompactPassengerForm({
                     <select
                       value={passenger.title}
                       onChange={(e) => updatePassenger(passenger.id, 'title', e.target.value)}
-                      className="w-full px-2 sm:px-3 py-2.5 text-sm text-neutral-800 border border-gray-300 rounded-lg bg-white focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+                      className="w-full px-2 sm:px-3 py-3 text-sm text-neutral-800 border border-gray-300 rounded-lg bg-white focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
                       required
                     >
                       <option value="">Select</option>
@@ -208,7 +208,7 @@ export function CompactPassengerForm({
                       value={passenger.firstName}
                       onChange={(e) => updatePassenger(passenger.id, 'firstName', e.target.value)}
                       placeholder="As on passport"
-                      className="w-full px-2 sm:px-3 py-2.5 text-sm text-neutral-800 placeholder:text-gray-400 border border-gray-300 rounded-lg bg-white focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+                      className="w-full px-2 sm:px-3 py-3 text-sm text-neutral-800 placeholder:text-gray-400 border border-gray-300 rounded-lg bg-white focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
                       required
                     />
                   </div>
@@ -223,7 +223,7 @@ export function CompactPassengerForm({
                       value={passenger.lastName}
                       onChange={(e) => updatePassenger(passenger.id, 'lastName', e.target.value)}
                       placeholder="As on passport"
-                      className="w-full px-2 sm:px-3 py-2.5 text-sm text-neutral-800 placeholder:text-gray-400 border border-gray-300 rounded-lg bg-white focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+                      className="w-full px-2 sm:px-3 py-3 text-sm text-neutral-800 placeholder:text-gray-400 border border-gray-300 rounded-lg bg-white focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
                       required
                     />
                   </div>
@@ -251,7 +251,7 @@ export function CompactPassengerForm({
                     <select
                       value={passenger.nationality}
                       onChange={(e) => updatePassenger(passenger.id, 'nationality', e.target.value)}
-                      className="w-full px-2 sm:px-3 py-2.5 text-sm text-neutral-800 border border-gray-300 rounded-lg bg-white focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+                      className="w-full px-2 sm:px-3 py-3 text-sm text-neutral-800 border border-gray-300 rounded-lg bg-white focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
                       required
                     >
                       <option value="">Select country</option>
@@ -286,7 +286,7 @@ export function CompactPassengerForm({
                           value={passenger.passportNumber || ''}
                           onChange={(e) => updatePassenger(passenger.id, 'passportNumber', e.target.value)}
                           placeholder="AB123456 (optional)"
-                          className="w-full px-2 sm:px-3 py-2.5 text-sm text-neutral-800 placeholder:text-gray-400 border border-gray-300 rounded-lg bg-white focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+                          className="w-full px-2 sm:px-3 py-3 text-sm text-neutral-800 placeholder:text-gray-400 border border-gray-300 rounded-lg bg-white focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
                         />
                       </div>
 
@@ -326,7 +326,7 @@ export function CompactPassengerForm({
                           value={passenger.email || ''}
                           onChange={(e) => updatePassenger(passenger.id, 'email', e.target.value)}
                           placeholder="your@email.com"
-                          className={`w-full px-2 sm:px-3 py-2.5 text-sm text-neutral-800 placeholder:text-gray-400 border rounded-lg bg-white focus:ring-2 focus:ring-primary-500 ${
+                          className={`w-full px-2 sm:px-3 py-3 text-sm text-neutral-800 placeholder:text-gray-400 border rounded-lg bg-white focus:ring-2 focus:ring-primary-500 ${
                             passengerErrors.email ? 'border-error-500' : 'border-gray-300'
                           }`}
                           required

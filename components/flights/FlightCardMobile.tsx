@@ -303,29 +303,33 @@ export function FlightCardMobile(props: EnhancedFlightCardProps) {
           {/* Right: Favorite + Badge + Overflow */}
           <div className="flex items-center gap-1 flex-shrink-0">
             {/* Favorite - Always visible */}
-            <button
-              onClick={handleFavorite}
-              className="p-1.5 hover:bg-gray-100 rounded-full transition-colors active:scale-95"
-              aria-label="Add to favorites"
-            >
-              <Heart className={`w-4 h-4 ${isFavorite ? 'fill-red-500 text-red-500' : 'text-gray-400'}`} />
-            </button>
+            <div className="min-h-[44px] min-w-[44px] flex items-center justify-center">
+              <button
+                onClick={handleFavorite}
+                className="p-1.5 hover:bg-gray-100 rounded-full transition-colors active:scale-95"
+                aria-label="Add to favorites"
+              >
+                <Heart className={`w-4 h-4 ${isFavorite ? 'fill-red-500 text-red-500' : 'text-gray-400'}`} />
+              </button>
+            </div>
 
             {/* Priority Badge - Always visible */}
             {priorityBadge()}
 
             {/* Overflow Menu Button */}
             <div className="relative">
-              <button
-                onClick={(e) => {
-                  e.stopPropagation();
-                  setShowOverflowMenu(!showOverflowMenu);
-                }}
-                className="p-1.5 hover:bg-gray-100 rounded-full transition-colors active:scale-95"
-                aria-label="More options"
-              >
-                <MoreVertical className="w-4 h-4 text-gray-500" />
-              </button>
+              <div className="min-h-[44px] min-w-[44px] flex items-center justify-center">
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setShowOverflowMenu(!showOverflowMenu);
+                  }}
+                  className="p-1.5 hover:bg-gray-100 rounded-full transition-colors active:scale-95"
+                  aria-label="More options"
+                >
+                  <MoreVertical className="w-4 h-4 text-gray-500" />
+                </button>
+              </div>
 
               {/* Overflow Dropdown Menu */}
               {showOverflowMenu && (
@@ -381,6 +385,7 @@ export function FlightCardMobile(props: EnhancedFlightCardProps) {
                   </div>
                 </>
               )}
+            </div>
             </div>
           </div>
         </div>

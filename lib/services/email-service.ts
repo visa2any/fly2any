@@ -137,6 +137,10 @@ interface PasswordResetEmailData {
   expiresIn: string;
 }
 
+interface PasswordChangeConfirmationData {
+  userName: string;
+}
+
 // ===================================
 // EMAIL SERVICE CLASS
 // ===================================
@@ -931,6 +935,56 @@ export class EmailService {
       subject: `Reset your Fly2Any password`,
       html,
       tags: ['security', 'password-reset'],
+    });
+  }
+
+  /**
+   * Send password change confirmation
+   */
+  static async sendPasswordChangeConfirmation(
+    email: string,
+    data: PasswordChangeConfirmationData
+  ): Promise<boolean> {
+    const content = `
+    ${this.getHeader('Password Changed ✅', 'Your account is secure', undefined, '#059669')}
+
+    <tr>
+      <td style="padding:32px 24px;">
+        <p style="margin:0 0 8px 0;font-size:18px;color:#374151;font-family:Arial,Helvetica,sans-serif;">Hi ${data.userName},</p>
+        <p style="margin:0 0 24px 0;font-size:16px;color:#6b7280;line-height:1.7;font-family:Arial,Helvetica,sans-serif;">
+          Your password has been successfully changed. Your account is now secured with your new password.
+        </p>
+
+        <table role="presentation" style="width:100%;border:none;border-spacing:0;margin-bottom:24px;">
+          <tr>
+            <td style="background:#ecfdf5;border:1px solid #a7f3d0;padding:16px;border-radius:10px;">
+              <p style="margin:0 0 4px 0;font-weight:700;color:#065f46;font-family:Arial,Helvetica,sans-serif;">✅ Change Confirmed</p>
+              <p style="margin:0;font-size:14px;color:#065f46;line-height:1.5;font-family:Arial,Helvetica,sans-serif;">You can now log in with your new password.</p>
+            </td>
+          </tr>
+        </table>
+
+        <table role="presentation" style="width:100%;border:none;border-spacing:0;margin-bottom:24px;">
+          <tr>
+            <td style="background:#f0fdf4;padding:16px;border-radius:8px;">
+              <p style="margin:0;font-size:14px;color:#15803d;font-family:Arial,Helvetica,sans-serif;">
+                <strong>Didn't make this change?</strong> If you didn't request this password change, please <a href="${this.baseUrl}/account/password" style="color:#15803d;text-decoration:underline;font-weight:600;">reset your password immediately</a> or contact our support team.
+              </p>
+            </td>
+          </tr>
+        </table>
+      </td>
+    </tr>
+
+    ${this.getFooter()}`;
+
+    const html = this.getEmailWrapper(content, '#059669');
+
+    return this.sendEmail({
+      to: email,
+      subject: `Your Fly2Any password has been changed`,
+      html,
+      tags: ['security', 'password-change', 'confirmation'],
     });
   }
 
