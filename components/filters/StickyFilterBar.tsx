@@ -157,10 +157,10 @@ function FilterPill({ filter, onRemove }: FilterPillProps) {
   return (
     <div
       className="
-        flex-shrink-0 flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg
+        flex-shrink-0 flex items-center gap-1.5 px-2.5 py-1 rounded-lg
         bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200
         text-sm font-medium transition-all duration-200 hover:shadow-sm
-        group min-h-[36px] touch-manipulation
+        group min-h-[32px] touch-manipulation
       "
       role="status"
       aria-label={`${filter.label}: ${filter.value}`}

@@ -1,8 +1,8 @@
 'use client';
 
-import { useState, useEffect, cloneElement, isValidElement } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
-import { ChevronDown, ChevronUp, Calendar, Users, MapPin } from 'lucide-react';
+import { useState, useEffect, cloneElement, isValidElement, useRef } from 'react';
+import { motion, AnimatePresence, useDragControls, PanInfo } from 'framer-motion';
+import { ChevronDown, ChevronUp, Calendar, Users, MapPin, GripHorizontal } from 'lucide-react';
 import { format } from 'date-fns';
 import { useScrollDirection } from '@/lib/hooks/useScrollDirection';
 
@@ -105,6 +105,21 @@ export function CollapsibleSearchBar({
     }, 3000);
   };
 
+  // Handle drag gesture on the expanded form - drag down to collapse
+  const handleDragEnd = (event: MouseEvent | TouchEvent | PointerEvent, info: PanInfo) => {
+    // If user drags down more than 50px, collapse the form
+    if (info.offset.y > 50 && info.velocity.y > 0) {
+      setIsCollapsed(true);
+      setManualOverride(true);
+      onCollapseChange?.(true);
+
+      // Re-enable auto behavior after 3 seconds
+      setTimeout(() => {
+        setManualOverride(false);
+      }, 3000);
+    }
+  };
+
   // Auto-collapse when search is submitted (mobile UX optimization)
   const handleSearchSubmit = () => {
     // Immediately collapse to show loading state and results
@@ -192,7 +207,7 @@ export function CollapsibleSearchBar({
             </button>
           </motion.div>
         ) : (
-          /* Expanded State - Full Search Form (~320px) */
+          /* Expanded State - Full Search Form (~320px) with Drag Handle */
           <motion.div
             key="expanded"
             initial={{ height: 0, opacity: 0 }}
@@ -205,6 +220,23 @@ export function CollapsibleSearchBar({
             }}
           >
             <div className="relative">
+              {/* Drag Handle - Visible indicator that form can be dragged down to collapse */}
+              <motion.div
+                drag="y"
+                dragConstraints={{ top: 0, bottom: 100 }}
+                dragElastic={0.2}
+                onDragEnd={handleDragEnd}
+                className="flex flex-col items-center py-2 cursor-grab active:cursor-grabbing touch-manipulation"
+                whileTap={{ scale: 0.98 }}
+              >
+                {/* Visual handle bar */}
+                <div className="w-10 h-1 bg-gray-300 rounded-full mb-1" />
+                <div className="flex items-center gap-1 text-[10px] text-gray-400 font-medium">
+                  <GripHorizontal size={12} />
+                  <span>Drag down to collapse</span>
+                </div>
+              </motion.div>
+
               {/* Full Search Form - Clone and inject onSearchSubmit handler */}
               {isValidElement(children)
                 ? cloneElement(children, { onSearchSubmit: handleSearchSubmit } as any)

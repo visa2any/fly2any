@@ -681,7 +681,7 @@ export default function FlightFilters({
     localFilters.connectionQuality.length > 0;
 
   const FilterContent = () => (
-    <div className="animate-fadeIn" style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+    <div className="animate-fadeIn" style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
       {/* Header - COMPACT */}
       <div className="flex items-center justify-between pb-1 border-b border-gray-200">
         <h3 className="font-bold text-gray-900" style={{ fontSize: '14px' }}>{t.filters}</h3>

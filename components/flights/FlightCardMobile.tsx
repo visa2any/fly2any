@@ -49,8 +49,6 @@ export function FlightCardMobile(props: EnhancedFlightCardProps) {
   const router = useRouter();
   const [showDetailsSheet, setShowDetailsSheet] = useState(false);
   const [showOverflowMenu, setShowOverflowMenu] = useState(false);
-  const [touchStart, setTouchStart] = useState<number | null>(null);
-  const [touchEnd, setTouchEnd] = useState<number | null>(null);
   const [isFavorite, setIsFavorite] = useState(false);
 
   // Parse flight data
@@ -203,43 +201,8 @@ export function FlightCardMobile(props: EnhancedFlightCardProps) {
     }
   };
 
-  // Handle swipe gestures
-  const minSwipeDistance = 50;
-
-  const onTouchStart = (e: React.TouchEvent) => {
-    setTouchEnd(null);
-    setTouchStart(e.targetTouches[0].clientX);
-  };
-
-  const onTouchMove = (e: React.TouchEvent) => {
-    setTouchEnd(e.targetTouches[0].clientX);
-  };
-
-  const onTouchEnd = () => {
-    if (!touchStart || !touchEnd) return;
-
-    const distance = touchStart - touchEnd;
-    const isLeftSwipe = distance > minSwipeDistance;
-    const isRightSwipe = distance < -minSwipeDistance;
-
-    if (isRightSwipe) {
-      // Swipe right: Add to wishlist
-      if ('vibrate' in navigator) navigator.vibrate(15);
-      toast.success('Added to wishlist!', { icon: '❤️', duration: 2000 });
-    }
-
-    if (isLeftSwipe) {
-      // Swipe left: Add to comparison
-      if (onCompare) {
-        if ('vibrate' in navigator) navigator.vibrate(15);
-        onCompare(id);
-        toast.success(isComparing ? 'Removed from comparison' : 'Added to comparison', {
-          icon: '✓',
-          duration: 2000
-        });
-      }
-    }
-  };
+  // DISABLED: Swipe gestures removed to prevent accidental triggers while scrolling
+  // Users can use the favorite button and overflow menu instead
 
   // Determine which badge to show (max 1 on mobile)
   const priorityBadge = () => {
@@ -307,9 +270,6 @@ export function FlightCardMobile(props: EnhancedFlightCardProps) {
     <>
       {/* ULTRA-COMPACT CARD - Dynamic height for round-trip support */}
       <div
-        onTouchStart={onTouchStart}
-        onTouchMove={onTouchMove}
-        onTouchEnd={onTouchEnd}
         className={`relative bg-white rounded-xl border-2 transition-all duration-200 active:scale-[0.98] mb-3 ${
           isComparing ? 'border-primary-500 shadow-lg shadow-primary-100' : 'border-gray-200'
         }`}

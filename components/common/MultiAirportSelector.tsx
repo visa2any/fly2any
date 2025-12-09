@@ -214,22 +214,22 @@ export default function MultiAirportSelector({
       {/* Dropdown */}
       {isOpen && (
         <div className="absolute z-dropdown mt-2 w-full bg-white rounded-xl md:rounded-xl shadow-2xl border border-gray-200 overflow-hidden animate-in fade-in slide-in-from-top-2 duration-200 left-0 right-0 md:left-auto md:right-auto">
-          {/* Search Input */}
-          <div className="p-2 md:p-2 px-1 md:px-2 border-b border-gray-200">
+          {/* Search Input - Compact mobile */}
+          <div className="p-1.5 md:p-2 border-b border-gray-200">
             <input
               type="text"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder="Search airports..."
-              className="w-full px-2.5 py-1.5 border border-gray-300 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-[#0087FF] focus:border-transparent"
+              className="w-full px-2 py-1.5 border border-gray-300 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-[#0087FF] focus:border-transparent"
               autoFocus
             />
           </div>
 
           {/* Selected Airports (Chips) */}
           {selectedAirports.length > 0 && (
-            <div className="p-2 bg-info-50 border-b border-blue-100">
-              <div className="flex items-center justify-between mb-1.5">
+            <div className="p-1.5 md:p-2 bg-info-50 border-b border-blue-100">
+              <div className="flex items-center justify-between mb-1">
                 <span className="text-[10px] font-semibold text-gray-700">
                   Selected ({selectedAirports.length})
                 </span>
@@ -268,8 +268,8 @@ export default function MultiAirportSelector({
             return normalizeText(metro.name).includes(normalizedQuery) ||
               metro.codes.some(code => normalizeText(code).includes(normalizedQuery));
           }) && (
-            <div className="p-2 md:p-2 px-1 md:px-2 bg-gray-50 border-b border-gray-200">
-              <div className="text-[10px] font-semibold text-gray-700 mb-1.5">Quick Select</div>
+            <div className="p-1.5 md:p-2 bg-gray-50 border-b border-gray-200">
+              <div className="text-[10px] font-semibold text-gray-700 mb-1">Quick Select</div>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-1.5">
                 {Object.entries(METRO_AREAS)
                   .filter(([_, metro]) => {
@@ -292,7 +292,7 @@ export default function MultiAirportSelector({
           )}
 
           {/* Airport List - Mobile Single Column - Only show after 2+ chars typed */}
-          <div className="max-h-[50vh] overflow-y-auto p-1 md:p-1.5">
+          <div className="max-h-[45vh] overflow-y-auto p-1">
             {searchQuery.length < 2 ? (
               <div className="px-2 py-6 text-center">
                 <div className="text-xs text-gray-500 mb-1">Type at least 2 characters</div>
@@ -309,7 +309,7 @@ export default function MultiAirportSelector({
                   <button
                     key={airport.code}
                     onClick={() => handleToggleAirport(airport)}
-                    className={`w-full flex items-center gap-2 px-2 py-1.5 rounded-lg transition-all text-left mb-1 touch-manipulation ${
+                    className={`w-full flex items-center gap-1.5 px-1.5 py-1 rounded-lg transition-all text-left mb-0.5 touch-manipulation ${
                       isSelected
                         ? 'bg-info-50 border border-info-200'
                         : 'hover:bg-gray-50 border border-transparent'

@@ -383,13 +383,13 @@ export default function FlightSearchForm({
   return (
     <div className={`bg-white/95 backdrop-blur-lg rounded-2xl sm:rounded-3xl shadow-2xl p-2 sm:p-4 md:p-8 mx-1 sm:mx-0 ${className}`}>
       <form onSubmit={handleSubmit} className="space-y-3 md:space-y-6" aria-label="Flight search form">
-        {/* Trip Type Toggle */}
-        <fieldset className="flex gap-3 p-1 bg-gray-100 rounded-2xl">
+        {/* Trip Type Toggle - Horizontally scrollable on mobile */}
+        <fieldset className="flex gap-2 md:gap-3 p-1 bg-gray-100 rounded-2xl overflow-x-auto scrollbar-hide scroll-smooth">
           <legend className="sr-only">Trip Type</legend>
           <button
             type="button"
             onClick={() => handleTripTypeChange('roundtrip')}
-            className={`flex-1 py-3 px-4 rounded-xl font-semibold transition-all duration-300 ${
+            className={`flex-1 min-w-[100px] py-2.5 md:py-3 px-3 md:px-4 rounded-xl font-semibold text-sm md:text-base transition-all duration-300 whitespace-nowrap ${
               formData.tripType === 'roundtrip'
                 ? 'bg-white text-blue-600 shadow-md'
                 : 'text-gray-600 hover:text-gray-900'
@@ -404,7 +404,7 @@ export default function FlightSearchForm({
           <button
             type="button"
             onClick={() => handleTripTypeChange('oneway')}
-            className={`flex-1 py-3 px-4 rounded-xl font-semibold transition-all duration-300 ${
+            className={`flex-1 min-w-[100px] py-2.5 md:py-3 px-3 md:px-4 rounded-xl font-semibold text-sm md:text-base transition-all duration-300 whitespace-nowrap ${
               formData.tripType === 'oneway'
                 ? 'bg-white text-blue-600 shadow-md'
                 : 'text-gray-600 hover:text-gray-900'
@@ -479,29 +479,29 @@ export default function FlightSearchForm({
                 {t.departure}
               </label>
 
-              {/* Toggle between Single Date and Multi-Date */}
-              <div className="flex items-center gap-2 bg-gray-100 rounded-lg p-1">
+              {/* Toggle between Single Date and Multi-Date - Compact on mobile */}
+              <div className="flex items-center gap-1 bg-gray-100 rounded-lg p-0.5 overflow-x-auto scrollbar-hide">
                 <button
                   type="button"
                   onClick={() => setFormData({ ...formData, useMultiDate: false, departureDates: [] })}
-                  className={`px-3 py-1 rounded text-xs font-semibold transition-all ${
+                  className={`px-2 md:px-3 py-1 rounded text-[10px] md:text-xs font-semibold transition-all whitespace-nowrap ${
                     !formData.useMultiDate
                       ? 'bg-white text-blue-600 shadow-sm'
                       : 'text-gray-600 hover:text-gray-900'
                   }`}
                 >
-                  Single Date
+                  Single
                 </button>
                 <button
                   type="button"
                   onClick={() => setFormData({ ...formData, useMultiDate: true, departureDate: '' })}
-                  className={`px-3 py-1 rounded text-xs font-semibold transition-all ${
+                  className={`px-2 md:px-3 py-1 rounded text-[10px] md:text-xs font-semibold transition-all whitespace-nowrap ${
                     formData.useMultiDate
                       ? 'bg-white text-blue-600 shadow-sm'
                       : 'text-gray-600 hover:text-gray-900'
                   }`}
                 >
-                  Multiple Dates
+                  Multi
                 </button>
               </div>
             </div>
@@ -733,7 +733,7 @@ export default function FlightSearchForm({
         )}
 
         {/* MOBILE: Travelers & Class + Direct Flights - ALL IN ONE ROW */}
-        <div className="flex md:hidden items-center gap-2 flex-nowrap">
+        <div className={`flex md:hidden items-center gap-2 flex-nowrap ${isPassengerDropdownOpen ? 'relative z-[100]' : ''}`}>
           {/* Travelers & Class - Compact button with proper touch target */}
           <div className="relative flex-shrink-0">
             <button
@@ -765,10 +765,10 @@ export default function FlightSearchForm({
               <>
                 {/* Backdrop to close */}
                 <div
-                  className="fixed inset-0 z-40 bg-black/20"
+                  className="fixed inset-0 z-[90] bg-black/20"
                   onClick={() => setIsPassengerDropdownOpen(false)}
                 />
-                <div className="absolute z-50 mt-2 bg-white border-2 border-gray-200 rounded-2xl shadow-2xl p-4 w-[280px] left-0 animate-in fade-in slide-in-from-top-2 duration-200">
+                <div className="absolute z-[100] mt-2 bg-white border-2 border-gray-200 rounded-2xl shadow-2xl p-4 w-[280px] left-0 animate-in fade-in slide-in-from-top-2 duration-200">
                 {/* Passenger Counts */}
                 <div className="space-y-3 mb-4">
                   {/* Adults */}
