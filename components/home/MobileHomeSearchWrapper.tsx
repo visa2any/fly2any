@@ -247,13 +247,10 @@ export function MobileHomeSearchWrapper({
           >
             <button
               onClick={handleExpand}
-              className="w-full min-h-[48px] sm:min-h-[52px] bg-gradient-to-br from-white/98 to-white/95 backdrop-blur-xl rounded-xl sm:rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 border border-gray-300/50 hover:border-primary-400/60 active:scale-[0.99] p-2.5 sm:p-3 group"
+              className="mobile-card-interactive min-h-[48px] mobile-shadow-lg"
               aria-label="Expand flight search form"
               aria-expanded="false"
               type="button"
-              style={{
-                boxShadow: '0 2px 12px rgba(0, 0, 0, 0.08), 0 1px 4px rgba(0, 0, 0, 0.04)',
-              }}
             >
               <div className="flex items-center justify-between gap-2 w-full">
                 {/* From Location */}
@@ -315,7 +312,7 @@ export function MobileHomeSearchWrapper({
               />
             </div>
 
-            {/* Elegant Collapse Button - Below search form */}
+            {/* Elegant Collapse Button - Mobile-First Ghost Button */}
             <motion.div
               initial={{ opacity: 0, y: -10 }}
               animate={{ opacity: 1, y: 0 }}
@@ -325,7 +322,7 @@ export function MobileHomeSearchWrapper({
               <button
                 type="button"
                 onClick={handleCollapse}
-                className="group flex items-center gap-2 px-4 py-2 text-sm text-gray-500 hover:text-gray-700 transition-all duration-300"
+                className="mobile-btn-ghost"
                 aria-label="Minimize search form"
               >
                 <span className="font-medium">Minimize</span>

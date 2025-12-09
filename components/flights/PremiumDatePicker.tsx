@@ -658,9 +658,7 @@ export default function PremiumDatePicker({
         `}
       >
         {/* Mobile Drag Handle */}
-        <div className="flex justify-center pt-2 pb-1 md:hidden sticky top-0 bg-white z-10">
-          <div className="w-10 h-1 bg-gray-300 rounded-full" />
-        </div>
+        <div className="mobile-drag-handle md:hidden sticky top-0 bg-white z-10" />
 
         {/* Header */}
         <div className="flex items-center justify-between p-2.5 border-b border-gray-200 sticky top-0 md:static bg-white z-10">
@@ -679,31 +677,31 @@ export default function PremiumDatePicker({
           </button>
         </div>
 
-        {/* Quick date shortcuts - horizontally scrollable on mobile */}
+        {/* Quick date shortcuts - Mobile-First Horizontally Scrollable */}
         {type === 'range' && (
-          <div className="px-3 pt-2.5 pb-1.5 border-b border-gray-100">
-            <div className="flex gap-2 overflow-x-auto scrollbar-hide pb-1 touch-pan-x">
+          <div className="mobile-px pt-2.5 pb-1.5 border-b border-gray-100">
+            <div className="mobile-scroll-x">
               <button
                 onClick={() => handleQuickDate('weekend')}
-                className="px-3 py-1.5 text-xs font-medium text-gray-700 bg-gradient-to-r from-info-50 to-primary-50 hover:from-blue-100 hover:to-primary-100 rounded-lg transition-all duration-200 border border-info-200 hover:border-info-300 hover:shadow-sm flex-shrink-0 whitespace-nowrap active:scale-95 touch-manipulation"
+                className="mobile-chip"
               >
                 This Weekend
               </button>
               <button
                 onClick={() => handleQuickDate('nextWeek')}
-                className="px-3 py-1.5 text-xs font-medium text-gray-700 bg-gradient-to-r from-info-50 to-primary-50 hover:from-blue-100 hover:to-primary-100 rounded-lg transition-all duration-200 border border-info-200 hover:border-info-300 hover:shadow-sm flex-shrink-0 whitespace-nowrap active:scale-95 touch-manipulation"
+                className="mobile-chip"
               >
                 Next Week
               </button>
               <button
                 onClick={() => handleQuickDate('nextMonth')}
-                className="px-3 py-1.5 text-xs font-medium text-gray-700 bg-gradient-to-r from-info-50 to-primary-50 hover:from-blue-100 hover:to-primary-100 rounded-lg transition-all duration-200 border border-info-200 hover:border-info-300 hover:shadow-sm flex-shrink-0 whitespace-nowrap active:scale-95 touch-manipulation"
+                className="mobile-chip"
               >
                 Next Month
               </button>
               <button
                 onClick={() => handleQuickDate('flexible')}
-                className="px-3 py-1.5 text-xs font-medium text-gray-700 bg-gradient-to-r from-info-50 to-primary-50 hover:from-blue-100 hover:to-primary-100 rounded-lg transition-all duration-200 border border-info-200 hover:border-info-300 hover:shadow-sm flex-shrink-0 whitespace-nowrap active:scale-95 touch-manipulation mr-2"
+                className="mobile-chip"
               >
                 Flexible (±3)
               </button>
@@ -721,26 +719,26 @@ export default function PremiumDatePicker({
 
           {/* Mobile: Premium single month calendar */}
           <div className="md:hidden px-1">
-            {/* Month Navigation - Clean & Modern */}
+            {/* Month Navigation - Mobile-First */}
             <div className="flex items-center justify-between mb-4">
               <button
                 onClick={handlePreviousMonth}
-                className="w-10 h-10 flex items-center justify-center bg-gray-50 hover:bg-gray-100 rounded-full transition-all active:scale-90 touch-manipulation"
+                className="mobile-btn-icon"
                 aria-label="Previous month"
               >
-                <ChevronLeft className="w-5 h-5 text-gray-700" />
+                <ChevronLeft className="w-5 h-5" />
               </button>
               <div className="text-center">
-                <div className="text-lg font-bold text-gray-900">
+                <div className="mobile-text-heading">
                   {MONTHS[currentMonth.getMonth()]} {currentMonth.getFullYear()}
                 </div>
               </div>
               <button
                 onClick={handleNextMonth}
-                className="w-10 h-10 flex items-center justify-center bg-gray-50 hover:bg-gray-100 rounded-full transition-all active:scale-90 touch-manipulation"
+                className="mobile-btn-icon"
                 aria-label="Next month"
               >
-                <ChevronRight className="w-5 h-5 text-gray-700" />
+                <ChevronRight className="w-5 h-5" />
               </button>
             </div>
 

@@ -173,11 +173,11 @@ export default function MultiAirportSelector({
         </label>
       )}
 
-      {/* Main Input Button */}
+      {/* Main Input Button - Mobile-First */}
       <button
         type="button"
         onClick={() => setIsOpen(!isOpen)}
-        className="w-full relative px-4 bg-white border border-gray-300 rounded-lg hover:border-[#0087FF] transition-all text-left group min-h-[56px] flex items-center"
+        className="mobile-select"
       >
         <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 group-hover:text-[#0087FF] transition-colors flex-shrink-0" size={20} />
 
@@ -210,22 +210,20 @@ export default function MultiAirportSelector({
         />
       </button>
 
-      {/* Dropdown */}
+      {/* Dropdown - Mobile-First Bottom Sheet */}
       {isOpen && (
-        <div className="absolute z-dropdown mt-2 w-full bg-white rounded-xl md:rounded-xl shadow-2xl border border-gray-200 overflow-hidden animate-in fade-in slide-in-from-top-2 duration-200 left-0 right-0 md:left-auto md:right-auto">
-          {/* Drag Handle for mobile - Visual indicator */}
-          <div className="flex justify-center pt-2 pb-1 md:hidden">
-            <div className="w-10 h-1 bg-gray-300 rounded-full" />
-          </div>
+        <div className="fixed md:absolute inset-x-0 bottom-0 md:bottom-auto md:top-full z-dropdown md:mt-2 w-full bg-white rounded-t-2xl md:rounded-xl shadow-2xl border-t md:border border-gray-200 overflow-hidden animate-in fade-in slide-in-from-bottom-4 md:slide-in-from-top-2 duration-200 max-h-[85vh] md:max-h-none">
+          {/* Drag Handle for mobile */}
+          <div className="mobile-drag-handle md:hidden" />
 
-          {/* Search Input - Compact mobile */}
-          <div className="p-1.5 md:p-2 border-b border-gray-200">
+          {/* Search Input - Mobile-First */}
+          <div className="mobile-px py-2 md:p-2 border-b border-gray-200">
             <input
               type="text"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder="Search airports..."
-              className="w-full px-2 py-1.5 border border-gray-300 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-[#0087FF] focus:border-transparent"
+              className="mobile-input text-sm"
               autoFocus
             />
           </div>
@@ -337,12 +335,12 @@ export default function MultiAirportSelector({
             )}
           </div>
 
-          {/* Done Button - Sticky Bottom */}
-          <div className="sticky bottom-0 p-2 bg-white border-t border-gray-200 shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.05)]">
+          {/* Done Button - Mobile-First Sticky Bottom */}
+          <div className="sticky bottom-0 mobile-px py-3 bg-white border-t border-gray-200 mobile-shadow-lg">
             <button
               type="button"
               onClick={handleDone}
-              className="w-full flex items-center justify-center gap-2 py-2.5 bg-primary-600 hover:bg-primary-700 text-white font-semibold text-sm rounded-lg transition-all active:scale-[0.98] touch-manipulation min-h-[44px]"
+              className="mobile-btn-primary"
             >
               <Check size={18} strokeWidth={2.5} />
               <span>Done{selectedAirports.length > 0 ? ` (${selectedAirports.length})` : ''}</span>

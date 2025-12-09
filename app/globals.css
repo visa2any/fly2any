@@ -392,108 +392,463 @@
   }
 
   /* ==========================================
-     MOBILE-FIRST SPACING SYSTEM (TikTok Shop Pattern)
-     Mobile: Compact (6-10px)
-     Desktop: Comfortable (16-24px)
+     🎯 MOBILE-FIRST DESIGN SYSTEM v2.0
+     ==========================================
+
+     This is the DEFINITIVE mobile-first system.
+     ALL components MUST follow these patterns.
+
+     Core Principles:
+     1. Mobile-first: Base styles are mobile, enhance with md:
+     2. Touch-optimized: 44px minimum tap targets
+     3. Compact mobile: Less padding, tighter spacing
+     4. Premium feel: Smooth interactions, visual feedback
      ========================================== */
 
-  /* Card spacing - Mobile-first */
-  .card-padding-mobile {
-    @apply p-2 md:p-6; /* 8px mobile, 24px desktop */
+  /* ==========================================
+     🔘 MOBILE-FIRST BUTTONS
+     Use these for ALL buttons
+     ========================================== */
+
+  /* Primary action button - CTA, Submit, Search */
+  .mobile-btn-primary {
+    @apply w-full flex items-center justify-center gap-2
+           min-h-[44px] md:min-h-[48px]
+           py-2.5 px-4 md:py-3 md:px-6
+           bg-primary-600 hover:bg-primary-700
+           text-white font-semibold
+           text-sm md:text-base
+           rounded-xl md:rounded-xl
+           transition-all duration-200
+           active:scale-[0.98] touch-manipulation
+           shadow-md hover:shadow-lg;
   }
 
-  .card-gap-mobile {
-    @apply gap-1.5 md:gap-4; /* 6px mobile, 16px desktop */
+  /* Secondary button - Cancel, Back, Alternative actions */
+  .mobile-btn-secondary {
+    @apply w-full flex items-center justify-center gap-2
+           min-h-[44px] md:min-h-[48px]
+           py-2.5 px-4 md:py-3 md:px-6
+           bg-gray-100 hover:bg-gray-200
+           text-gray-700 font-medium
+           text-sm md:text-base
+           rounded-xl md:rounded-xl
+           border border-gray-200 hover:border-gray-300
+           transition-all duration-200
+           active:scale-[0.98] touch-manipulation;
   }
 
-  /* Section spacing - Mobile-first */
-  .spacing-section {
-    @apply py-4 md:py-12; /* Reduced from py-8 */
+  /* Ghost/Outline button */
+  .mobile-btn-ghost {
+    @apply flex items-center justify-center gap-2
+           min-h-[44px] md:min-h-[48px]
+           py-2 px-3 md:py-2.5 md:px-4
+           bg-transparent hover:bg-gray-50
+           text-gray-600 hover:text-gray-900
+           font-medium text-sm
+           rounded-lg
+           transition-all duration-200
+           active:scale-[0.98] touch-manipulation;
   }
 
-  .spacing-component {
-    @apply mb-3 md:mb-8; /* Reduced from mb-6 */
+  /* Icon-only button */
+  .mobile-btn-icon {
+    @apply flex items-center justify-center
+           w-10 h-10 md:w-11 md:h-11
+           bg-gray-50 hover:bg-gray-100
+           text-gray-600 hover:text-gray-900
+           rounded-full
+           transition-all duration-200
+           active:scale-90 touch-manipulation;
   }
 
-  .spacing-element {
-    @apply mb-2 md:mb-6; /* Reduced from mb-4 */
+  /* Tab/Chip button */
+  .mobile-btn-tab {
+    @apply flex-shrink-0 flex items-center gap-1.5
+           min-h-[36px] md:min-h-[40px]
+           py-1.5 px-3 md:py-2 md:px-4
+           bg-white hover:bg-gray-50
+           text-gray-600
+           font-medium text-xs md:text-sm
+           rounded-full
+           border border-gray-200 hover:border-gray-300
+           whitespace-nowrap
+           transition-all duration-200
+           active:scale-95 touch-manipulation;
   }
 
-  /* Typography hierarchy - Mobile optimized */
-  .text-mobile-hero {
-    @apply text-2xl md:text-4xl; /* 24px mobile, 36px desktop */
-  }
-
-  .text-mobile-title {
-    @apply text-xl md:text-3xl; /* 20px mobile, 30px desktop */
-  }
-
-  .text-mobile-price {
-    @apply text-3xl md:text-5xl; /* 30px mobile, 48px desktop */
-  }
-
-  .text-mobile-body {
-    @apply text-sm md:text-base; /* 14px mobile, 16px desktop */
-  }
-
-  .text-mobile-caption {
-    @apply text-[10px] md:text-xs; /* 10px mobile, 12px desktop */
-  }
-
-  /* Button sizing - Mobile compact */
-  .btn-mobile-primary {
-    @apply py-2.5 px-4 md:py-4 md:px-6 text-sm md:text-base;
-  }
-
-  .btn-mobile-secondary {
-    @apply py-2 px-3 md:py-3 md:px-5 text-xs md:text-sm;
-  }
-
-  /* Information density - Show more on small screens */
-  .mobile-compact {
-    @apply space-y-1 md:space-y-3;
-  }
-
-  .mobile-horizontal-scroll {
-    @apply flex overflow-x-auto gap-1.5 pb-1 scrollbar-hide;
+  .mobile-btn-tab-active {
+    @apply bg-primary-50 border-primary-300 text-primary-700;
   }
 
   /* ==========================================
-     EDGE-TO-EDGE MOBILE DESIGN SYSTEM
-     Full-width components on mobile
+     📝 MOBILE-FIRST FORM INPUTS
+     Use these for ALL form elements
      ========================================== */
 
-  /* Full-width cards on mobile */
-  .mobile-edge-card {
-    @apply rounded-none md:rounded-xl border-x-0 md:border-x;
+  /* Standard input field */
+  .mobile-input {
+    @apply w-full
+           min-h-[48px] md:min-h-[52px]
+           py-2.5 px-3 md:py-3 md:px-4
+           bg-white
+           border border-gray-300 hover:border-primary-400
+           focus:border-primary-500 focus:ring-2 focus:ring-primary-100
+           text-gray-900 placeholder:text-gray-400
+           text-sm md:text-base
+           rounded-lg md:rounded-xl
+           transition-all duration-200
+           touch-manipulation;
   }
 
-  /* Minimal horizontal padding mobile (4px) */
-  .mobile-no-padding {
-    @apply px-1 md:px-6;
+  /* Input with icon (left) */
+  .mobile-input-icon-left {
+    @apply mobile-input pl-10 md:pl-11;
   }
 
-  /* Full-width container mobile */
-  .mobile-full-width {
-    @apply w-full mx-0 md:mx-auto;
+  /* Input with icon (right) */
+  .mobile-input-icon-right {
+    @apply mobile-input pr-10 md:pr-11;
   }
 
-  /* Stacked cards with no gap on mobile */
-  .mobile-stacked {
-    @apply space-y-0 md:space-y-3;
+  /* Select dropdown button */
+  .mobile-select {
+    @apply w-full relative
+           min-h-[48px] md:min-h-[52px]
+           py-2.5 px-3 md:py-3 md:px-4
+           bg-white
+           border border-gray-300 hover:border-primary-400
+           text-gray-900 text-left
+           text-sm md:text-base
+           rounded-lg md:rounded-xl
+           transition-all duration-200
+           active:scale-[0.99] touch-manipulation
+           cursor-pointer;
   }
 
-  /* Dense information layout */
-  .mobile-dense {
-    @apply gap-0.5 md:gap-2 text-[10px] md:text-xs;
+  /* Label for inputs */
+  .mobile-label {
+    @apply flex items-center gap-1.5
+           text-xs md:text-sm
+           font-medium text-gray-700
+           mb-1.5 md:mb-2;
   }
 
-  /* Touch-optimized tap targets */
+  /* ==========================================
+     📦 MOBILE-FIRST CARDS & CONTAINERS
+     ========================================== */
+
+  /* Standard card */
+  .mobile-card {
+    @apply w-full
+           bg-white
+           border border-gray-200
+           rounded-xl md:rounded-2xl
+           p-3 md:p-5
+           shadow-sm hover:shadow-md
+           transition-shadow duration-200;
+  }
+
+  /* Card with no border/shadow (flat) */
+  .mobile-card-flat {
+    @apply w-full
+           bg-gray-50
+           rounded-xl md:rounded-2xl
+           p-3 md:p-5;
+  }
+
+  /* Interactive card (clickable) */
+  .mobile-card-interactive {
+    @apply mobile-card
+           cursor-pointer
+           active:scale-[0.99]
+           touch-manipulation;
+  }
+
+  /* Bottom sheet container */
+  .mobile-bottom-sheet {
+    @apply fixed inset-x-0 bottom-0
+           bg-white
+           rounded-t-3xl
+           shadow-2xl
+           border-t border-gray-200
+           z-50
+           max-h-[90vh]
+           overflow-hidden;
+  }
+
+  /* Bottom sheet drag handle */
+  .mobile-drag-handle {
+    @apply flex justify-center py-3;
+  }
+
+  .mobile-drag-handle::before {
+    content: '';
+    @apply w-10 h-1 bg-gray-300 rounded-full;
+  }
+
+  /* Dropdown container */
+  .mobile-dropdown {
+    @apply absolute z-50
+           w-full md:w-auto min-w-[280px]
+           mt-2
+           bg-white
+           rounded-xl md:rounded-2xl
+           shadow-2xl
+           border border-gray-200
+           overflow-hidden
+           animate-scaleIn;
+  }
+
+  /* ==========================================
+     📏 MOBILE-FIRST SPACING
+     ========================================== */
+
+  /* Section spacing */
+  .mobile-section {
+    @apply py-4 md:py-8 lg:py-12;
+  }
+
+  /* Component margin bottom */
+  .mobile-mb {
+    @apply mb-3 md:mb-6;
+  }
+
+  /* Inner padding - compact mobile */
+  .mobile-p {
+    @apply p-3 md:p-5 lg:p-6;
+  }
+
+  /* Horizontal padding */
+  .mobile-px {
+    @apply px-3 md:px-5 lg:px-6;
+  }
+
+  /* Gap for flex/grid */
+  .mobile-gap {
+    @apply gap-2 md:gap-4;
+  }
+
+  /* Stack spacing */
+  .mobile-stack {
+    @apply space-y-2 md:space-y-4;
+  }
+
+  /* ==========================================
+     📝 MOBILE-FIRST TYPOGRAPHY
+     ========================================== */
+
+  /* Hero text */
+  .mobile-text-hero {
+    @apply text-2xl md:text-4xl lg:text-5xl
+           font-bold text-gray-900
+           leading-tight;
+  }
+
+  /* Section title */
+  .mobile-text-title {
+    @apply text-xl md:text-2xl lg:text-3xl
+           font-bold text-gray-900
+           leading-tight;
+  }
+
+  /* Card title */
+  .mobile-text-heading {
+    @apply text-base md:text-lg
+           font-semibold text-gray-900;
+  }
+
+  /* Body text */
+  .mobile-text-body {
+    @apply text-sm md:text-base
+           text-gray-700
+           leading-relaxed;
+  }
+
+  /* Caption/Small text */
+  .mobile-text-caption {
+    @apply text-xs md:text-sm
+           text-gray-500;
+  }
+
+  /* Tiny text (badges, labels) */
+  .mobile-text-tiny {
+    @apply text-[10px] md:text-xs
+           font-medium text-gray-500;
+  }
+
+  /* Price display */
+  .mobile-text-price {
+    @apply text-2xl md:text-3xl lg:text-4xl
+           font-bold text-gray-900;
+  }
+
+  /* ==========================================
+     🔄 MOBILE-FIRST HORIZONTAL SCROLL
+     For tabs, chips, quick actions
+     ========================================== */
+
+  .mobile-scroll-x {
+    @apply flex overflow-x-auto
+           gap-2 md:gap-3
+           pb-2
+           -mx-3 px-3 md:mx-0 md:px-0
+           scrollbar-hide
+           scroll-smooth snap-x snap-mandatory;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .mobile-scroll-x > * {
+    @apply snap-start flex-shrink-0;
+  }
+
+  /* ==========================================
+     🎨 MOBILE-FIRST VISUAL ELEMENTS
+     ========================================== */
+
+  /* Badge */
+  .mobile-badge {
+    @apply inline-flex items-center gap-1
+           px-2 py-0.5 md:px-2.5 md:py-1
+           bg-gray-100 text-gray-700
+           text-[10px] md:text-xs
+           font-medium
+           rounded-full;
+  }
+
+  .mobile-badge-primary {
+    @apply bg-primary-50 text-primary-700;
+  }
+
+  .mobile-badge-success {
+    @apply bg-green-50 text-green-700;
+  }
+
+  .mobile-badge-warning {
+    @apply bg-amber-50 text-amber-700;
+  }
+
+  /* Chip (selectable) */
+  .mobile-chip {
+    @apply inline-flex items-center gap-1.5
+           px-3 py-1.5 md:px-4 md:py-2
+           bg-white border border-gray-200
+           text-gray-700 text-xs md:text-sm font-medium
+           rounded-full
+           transition-all duration-200
+           active:scale-95 touch-manipulation
+           cursor-pointer;
+  }
+
+  .mobile-chip-selected {
+    @apply bg-primary-50 border-primary-300 text-primary-700;
+  }
+
+  /* Divider */
+  .mobile-divider {
+    @apply h-px w-full bg-gray-200 my-3 md:my-4;
+  }
+
+  /* ==========================================
+     🖐️ MOBILE TOUCH INTERACTIONS
+     Always use these on interactive elements
+     ========================================== */
+
+  /* Base touch optimization */
+  .mobile-touch {
+    @apply touch-manipulation
+           select-none
+           active:scale-[0.98]
+           transition-transform duration-100;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  /* Enhanced touch feedback */
+  .mobile-touch-bounce {
+    @apply touch-manipulation
+           active:scale-95
+           transition-transform duration-150;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  /* Touch with opacity feedback */
+  .mobile-touch-opacity {
+    @apply touch-manipulation
+           active:opacity-70
+           transition-opacity duration-100;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  /* ==========================================
+     📱 MOBILE-ONLY / DESKTOP-ONLY UTILITIES
+     ========================================== */
+
+  .mobile-only {
+    @apply block md:hidden;
+  }
+
+  .desktop-only {
+    @apply hidden md:block;
+  }
+
+  .mobile-only-flex {
+    @apply flex md:hidden;
+  }
+
+  .desktop-only-flex {
+    @apply hidden md:flex;
+  }
+
+  /* ==========================================
+     🎯 MOBILE-FIRST TAP TARGETS
+     CRITICAL: All interactive elements must be 44px+
+     ========================================== */
+
+  .tap-target-44 {
+    @apply min-h-[44px] min-w-[44px];
+  }
+
+  .tap-target-48 {
+    @apply min-h-[48px] min-w-[48px];
+  }
+
+  /* Legacy alias - use tap-target-44 instead */
   .tap-target {
     @apply min-h-[44px] min-w-[44px];
   }
 
-  /* Anti-eye-strain soft shadows for cards */
+  /* ==========================================
+     🌈 MOBILE-FIRST SHADOWS
+     Subtle on mobile, enhanced on desktop
+     ========================================== */
+
+  .mobile-shadow-sm {
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
+  }
+
+  .mobile-shadow {
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  }
+
+  .mobile-shadow-lg {
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.10);
+  }
+
+  @media (min-width: 768px) {
+    .mobile-shadow-sm {
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
+    }
+
+    .mobile-shadow {
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.10);
+    }
+
+    .mobile-shadow-lg {
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+    }
+  }
+
+  /* Legacy alias */
   .mobile-card-shadow {
     box-shadow: 0 2px 8px rgba(27, 28, 32, 0.06);
   }

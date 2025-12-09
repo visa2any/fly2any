@@ -1109,21 +1109,21 @@ export default function EnhancedSearchBar({
             Fixed ordering for hydration compatibility
             Mobile: Horizontally scrollable with touch support
             ============================================ */}
-        <div className="flex items-center gap-4 md:gap-6 mb-2 border-b border-gray-200 overflow-x-auto scrollbar-hide pb-px -mb-px touch-pan-x" style={{ WebkitOverflowScrolling: 'touch' }}>
+        <div className="mobile-scroll-x mb-2 border-b border-gray-200 pb-px -mb-px gap-3 md:gap-6"  style={{ WebkitOverflowScrolling: 'touch' }}>
           {/* Flights Tab - FIRST */}
           <button
             type="button"
             onClick={() => setServiceType('flights')}
-            className={`flex items-center gap-1.5 pb-3 text-sm font-medium transition-all duration-200 relative flex-shrink-0 whitespace-nowrap ${
+            className={`flex items-center gap-1.5 pb-3 min-h-[44px] text-sm font-medium transition-all duration-200 relative flex-shrink-0 whitespace-nowrap touch-manipulation active:scale-95 ${
               serviceType === 'flights'
-                ? 'text-[#D63A35]'
-                : 'text-gray-600 hover:text-[#D63A35]'
+                ? 'text-primary-600'
+                : 'text-gray-600 hover:text-primary-600'
             }`}
           >
-            <Plane size={16} className={serviceType === 'flights' ? 'text-[#D63A35]' : 'text-gray-500'} />
+            <Plane size={16} className={serviceType === 'flights' ? 'text-primary-600' : 'text-gray-500'} />
             <span className="text-xs sm:text-sm">{t('flights')}</span>
             {serviceType === 'flights' && (
-              <div className="absolute bottom-0 left-0 right-0 h-[3px] bg-[#D63A35] rounded-t-sm" />
+              <div className="absolute bottom-0 left-0 right-0 h-[3px] bg-primary-600 rounded-t-sm" />
             )}
           </button>
 
@@ -1131,16 +1131,16 @@ export default function EnhancedSearchBar({
           <button
             type="button"
             onClick={() => setServiceType('hotels')}
-            className={`flex items-center gap-1.5 pb-3 text-sm font-medium transition-all duration-200 relative flex-shrink-0 whitespace-nowrap ${
+            className={`flex items-center gap-1.5 pb-3 min-h-[44px] text-sm font-medium transition-all duration-200 relative flex-shrink-0 whitespace-nowrap touch-manipulation active:scale-95 ${
               serviceType === 'hotels'
-                ? 'text-[#D63A35]'
-                : 'text-gray-600 hover:text-[#D63A35]'
+                ? 'text-primary-600'
+                : 'text-gray-600 hover:text-primary-600'
             }`}
           >
-            <Hotel size={16} className={serviceType === 'hotels' ? 'text-[#D63A35]' : 'text-gray-500'} />
+            <Hotel size={16} className={serviceType === 'hotels' ? 'text-primary-600' : 'text-gray-500'} />
             <span className="text-xs sm:text-sm">{t('hotels')}</span>
             {serviceType === 'hotels' && (
-              <div className="absolute bottom-0 left-0 right-0 h-[3px] bg-[#D63A35] rounded-t-sm" />
+              <div className="absolute bottom-0 left-0 right-0 h-[3px] bg-primary-600 rounded-t-sm" />
             )}
           </button>
 
@@ -1643,10 +1643,10 @@ export default function EnhancedSearchBar({
                   </div>
                 </div>
 
-                {/* Done Button */}
+                {/* Done Button - Mobile-First Primary */}
                 <button
                   onClick={() => setShowPassengerDropdown(false)}
-                  className="w-full py-2 bg-[#D63A35] hover:bg-[#0077E6] text-white font-semibold rounded-lg transition-all duration-200 ease-in-out text-xs shadow-sm hover:shadow-md"
+                  className="mobile-btn-primary text-sm"
                 >
                   {t('done')}
                 </button>
@@ -1654,14 +1654,14 @@ export default function EnhancedSearchBar({
             )}
           </div>
 
-          {/* Search Button */}
+          {/* Search Button - Desktop Primary CTA */}
           <div className="flex-shrink-0">
-            <label className="block text-xs font-medium text-gray-700 mb-2 opacity-0">Search</label>
+            <label className="mobile-label opacity-0">Search</label>
             <button
               type="button"
               onClick={handleSearch}
               disabled={isLoading}
-              className="py-4 px-10 bg-[#D63A35] hover:bg-[#0077E6] text-white font-semibold rounded-lg shadow-md hover:shadow-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 whitespace-nowrap text-sm"
+              className="min-h-[52px] py-4 px-10 bg-primary-600 hover:bg-primary-700 text-white font-semibold rounded-xl shadow-md hover:shadow-lg transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 whitespace-nowrap text-sm active:scale-[0.98]"
             >
               {isLoading ? (
                 <>
@@ -1686,7 +1686,7 @@ export default function EnhancedSearchBar({
                 <button
                   type="button"
                   onClick={handleAddFlight}
-                  className="w-full py-2.5 border-2 border-dashed border-gray-300 hover:border-[#D63A35] text-gray-600 hover:text-[#D63A35] rounded-lg font-medium text-sm transition-all flex items-center justify-center gap-2 hover:bg-primary-50"
+                  className="mobile-btn-secondary border-2 border-dashed border-gray-300 hover:border-primary-400 hover:text-primary-600 hover:bg-primary-50"
                 >
                   <Plane size={16} />
                   <span>+ Add Another Flight</span>
@@ -3068,8 +3068,8 @@ export default function EnhancedSearchBar({
           {/* FLIGHTS MOBILE FIELDS */}
           {serviceType === 'flights' && (
           <>
-          {/* Trip Type Toggle */}
-          <div className="flex gap-2 p-1 bg-gray-100 rounded-lg">
+          {/* Trip Type Toggle - Mobile-First Tabs */}
+          <div className="flex gap-1 p-1 bg-gray-100 rounded-xl">
             <button
               type="button"
               onClick={() => {
@@ -3080,9 +3080,9 @@ export default function EnhancedSearchBar({
                   setErrors(newErrors);
                 }
               }}
-              className={`flex-1 px-4 py-2 rounded-md text-xs font-semibold transition-all duration-200 ${
+              className={`flex-1 min-h-[40px] px-4 py-2 rounded-lg text-xs md:text-sm font-semibold transition-all duration-200 touch-manipulation active:scale-95 ${
                 tripType === 'roundtrip'
-                  ? 'bg-white text-[#D63A35] shadow-sm'
+                  ? 'bg-white text-primary-600 shadow-sm'
                   : 'text-gray-600 hover:text-gray-900'
               }`}
             >
@@ -3094,9 +3094,9 @@ export default function EnhancedSearchBar({
                 setTripType('oneway');
                 setReturnDate('');
               }}
-              className={`flex-1 px-4 py-2 rounded-md text-xs font-semibold transition-all duration-200 ${
+              className={`flex-1 min-h-[40px] px-4 py-2 rounded-lg text-xs md:text-sm font-semibold transition-all duration-200 touch-manipulation active:scale-95 ${
                 tripType === 'oneway'
-                  ? 'bg-white text-[#D63A35] shadow-sm'
+                  ? 'bg-white text-primary-600 shadow-sm'
                   : 'text-gray-600 hover:text-gray-900'
               }`}
             >
@@ -3124,37 +3124,39 @@ export default function EnhancedSearchBar({
             />
           </div>
 
-          {/* Dates */}
-          <div className={`grid gap-3 ${tripType === 'roundtrip' ? 'grid-cols-2' : 'grid-cols-1'}`}>
-            {/* Depart Date with Inline Flex */}
+          {/* Dates - Mobile-First Inputs */}
+          <div className={`grid gap-2 ${tripType === 'roundtrip' ? 'grid-cols-2' : 'grid-cols-1'}`}>
+            {/* Depart Date */}
             <div>
-              <label className="block text-xs font-semibold text-gray-600 mb-1.5">
+              <label className="mobile-label">
+                <Calendar size={14} className="text-gray-500" />
                 {t('depart')}
               </label>
               <div className="relative">
-                  <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={16} />
-                  <input
-                    type="date"
-                    value={formatDateForInput(departureDate)}
-                    onChange={(e) => setDepartureDate(e.target.value)}
-                    min={minDate}
-                    className="w-full pl-9 pr-3 py-2 bg-gray-50 border-2 border-gray-200 rounded-lg focus:border-primary-500 focus:ring-2 focus:ring-primary-100 outline-none transition-all text-sm font-semibold text-gray-900"
-                  />
-                </div>
+                <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" size={16} />
+                <input
+                  type="date"
+                  value={formatDateForInput(departureDate)}
+                  onChange={(e) => setDepartureDate(e.target.value)}
+                  min={minDate}
+                  className="mobile-input-icon-left cursor-pointer"
+                />
+              </div>
             </div>
             {tripType === 'roundtrip' && (
               <div>
-                <label className="block text-xs font-semibold text-gray-600 mb-1.5">
+                <label className="mobile-label">
+                  <Calendar size={14} className="text-gray-500" />
                   {t('return')}
                 </label>
                 <div className="relative">
-                  <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={16} />
+                  <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" size={16} />
                   <input
                     type="date"
                     value={formatDateForInput(returnDate)}
                     onChange={(e) => setReturnDate(e.target.value)}
                     min={formatDateForInput(departureDate)}
-                    className="w-full pl-9 pr-3 py-2 bg-gray-50 border-2 border-gray-200 rounded-lg focus:border-primary-500 focus:ring-2 focus:ring-primary-100 outline-none transition-all text-sm font-semibold text-gray-900 cursor-pointer"
+                    className="mobile-input-icon-left cursor-pointer"
                   />
                 </div>
               </div>
@@ -3163,8 +3165,8 @@ export default function EnhancedSearchBar({
 
 
           {/* MOBILE: Travelers & Class + Flight Options - ALL IN ONE ROW */}
-          <div className="flex items-center gap-2 flex-nowrap overflow-x-auto touch-pan-x pb-1">
-            {/* Travelers & Class - Compact button */}
+          <div className="mobile-scroll-x pb-1">
+            {/* Travelers & Class - Mobile-First Button */}
             <div ref={passengerRef} className="relative flex-shrink-0">
               <button
                 type="button"
@@ -3173,7 +3175,7 @@ export default function EnhancedSearchBar({
                   e.stopPropagation();
                   setShowPassengerDropdown(!showPassengerDropdown);
                 }}
-                className="flex items-center gap-1.5 px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg text-xs font-semibold text-gray-700 whitespace-nowrap active:bg-gray-100 active:scale-95 transition-all touch-manipulation min-h-[40px]"
+                className="mobile-btn-tab min-h-[44px]"
               >
                 <Users size={14} className="text-primary-500" />
                 <span className="font-bold">{totalPassengers}</span>
@@ -3182,14 +3184,12 @@ export default function EnhancedSearchBar({
                 <ChevronDown size={12} className={`text-gray-400 transition-transform ${showPassengerDropdown ? 'rotate-180' : ''}`} />
               </button>
 
-              {/* Passenger & Class Dropdown */}
+              {/* Passenger & Class Dropdown - Mobile-First Bottom Sheet Style */}
               {showPassengerDropdown && serviceType === 'flights' && (
-                <div className="absolute left-0 right-auto mt-2 bg-white border border-gray-200 rounded-xl shadow-xl z-[100] min-w-[280px]">
+                <div className="fixed md:absolute inset-x-0 bottom-0 md:bottom-auto md:left-0 md:right-auto md:top-full md:mt-2 bg-white border-t md:border border-gray-200 rounded-t-2xl md:rounded-xl shadow-2xl z-modal md:min-w-[280px] max-h-[85vh] md:max-h-none overflow-y-auto">
                   {/* Drag Handle for mobile */}
-                  <div className="flex justify-center pt-2 pb-1 md:hidden">
-                    <div className="w-10 h-1 bg-gray-300 rounded-full" />
-                  </div>
-                  <div className="p-4 space-y-4">
+                  <div className="mobile-drag-handle md:hidden" />
+                  <div className="mobile-p space-y-4">
                   {/* Adults */}
                   <div className="flex items-center justify-between">
                     <div>
@@ -3277,9 +3277,9 @@ export default function EnhancedSearchBar({
                           key={cls}
                           type="button"
                           onClick={() => setCabinClass(cls)}
-                          className={`px-3 py-2 rounded-lg text-xs font-medium transition-all ${
+                          className={`px-3 py-2 rounded-lg text-xs font-medium transition-all touch-manipulation active:scale-95 min-h-[40px] ${
                             cabinClass === cls
-                              ? 'bg-[#D63A35] text-white'
+                              ? 'bg-primary-600 text-white'
                               : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                           }`}
                         >
@@ -3289,11 +3289,11 @@ export default function EnhancedSearchBar({
                     </div>
                   </div>
 
-                  {/* Done Button */}
+                  {/* Done Button - Mobile-First Primary */}
                   <button
                     type="button"
                     onClick={() => setShowPassengerDropdown(false)}
-                    className="w-full py-2.5 bg-primary-600 hover:bg-primary-700 text-white rounded-lg font-semibold transition-colors text-sm active:scale-95 touch-manipulation"
+                    className="mobile-btn-primary"
                   >
                     Done
                   </button>
@@ -3305,27 +3305,27 @@ export default function EnhancedSearchBar({
             {/* Vertical divider */}
             <div className="h-4 w-px bg-gray-200 flex-shrink-0" />
 
-            {/* Direct Flights - Compact chip style */}
-            <label className="flex items-center gap-1 cursor-pointer flex-shrink-0">
+            {/* Direct Flights - Mobile-First Chip Style */}
+            <label className="flex items-center gap-1.5 cursor-pointer flex-shrink-0 min-h-[36px] px-2 py-1 bg-gray-50 rounded-lg touch-manipulation active:scale-95 hover:bg-gray-100">
               <input
                 type="checkbox"
                 checked={directFlights}
                 onChange={(e) => setDirectFlights(e.target.checked)}
-                className="w-3 h-3 rounded border-gray-300 text-[#D63A35] focus:ring-[#D63A35] cursor-pointer"
+                className="w-4 h-4 rounded border-gray-300 text-primary-600 focus:ring-primary-500 cursor-pointer"
               />
-              <span className="text-[11px] font-medium text-gray-600 whitespace-nowrap">Direct</span>
+              <span className="text-xs font-medium text-gray-700 whitespace-nowrap">Direct</span>
             </label>
 
-            {/* Separate Tickets - Compact chip style (round trips only) */}
+            {/* Separate Tickets - Mobile-First Chip Style (round trips only) */}
             {tripType === 'roundtrip' && (
               <>
                 <div className="h-4 w-px bg-gray-200 flex-shrink-0" />
-                <label className="flex items-center gap-1 cursor-pointer flex-shrink-0" title="Find cheaper fares by combining different airlines">
+                <label className="flex items-center gap-1.5 cursor-pointer flex-shrink-0 min-h-[36px] px-2 py-1 bg-amber-50 rounded-lg touch-manipulation active:scale-95 hover:bg-amber-100" title="Find cheaper fares by combining different airlines">
                   <input
                     type="checkbox"
                     checked={includeSeparateTickets}
                     onChange={(e) => setIncludeSeparateTickets(e.target.checked)}
-                    className="w-3 h-3 rounded border-orange-300 text-orange-500 focus:ring-orange-500 cursor-pointer"
+                    className="w-4 h-4 rounded border-amber-300 text-amber-500 focus:ring-amber-500 cursor-pointer"
                   />
                   <span className="text-[11px] font-medium text-gray-600 whitespace-nowrap">Split</span>
                   <span className="px-1 py-px bg-green-100 text-green-700 text-[8px] font-bold rounded">$</span>
@@ -3334,15 +3334,16 @@ export default function EnhancedSearchBar({
             )}
           </div>
 
-          {/* Search Button */}
+          {/* Search Button - Mobile-First Primary Button */}
           <button
+            type="button"
             onClick={handleSearch}
             disabled={isLoading}
-            className="w-full h-10 bg-[#D63A35] hover:bg-[#0077E6] text-white font-bold rounded-lg shadow-lg hover:shadow-xl transition-all duration-200 ease-in-out text-sm disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+            className="mobile-btn-primary disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {isLoading ? (
               <>
-                <svg className="animate-spin h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                <svg className="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                   <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
                   <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                 </svg>
@@ -3359,7 +3360,7 @@ export default function EnhancedSearchBar({
           {serviceType === 'hotels' && (
           <>
           {/* Hotel Destination */}
-          <div className="relative">
+          <div ref={hotelDestinationRef} className="relative">
             <label className="block text-xs font-semibold text-gray-600 mb-1.5">
               Destination
             </label>
@@ -3395,7 +3396,7 @@ export default function EnhancedSearchBar({
 
             {/* Mobile Suggestions Dropdown */}
             {showHotelSuggestions && (
-              <div className="absolute top-full left-0 right-0 mt-1 bg-white border border-gray-200 rounded-lg shadow-xl z-50 max-h-64 overflow-y-auto">
+              <div className="absolute top-full left-0 right-0 mt-1 bg-white border border-gray-200 rounded-xl shadow-2xl z-dropdown max-h-64 overflow-y-auto">
                 {isLoadingHotelSuggestions ? (
                   <div className="p-4 text-center text-gray-500 text-sm">Loading...</div>
                 ) : hotelSuggestions.length > 0 ? (
@@ -3404,16 +3405,24 @@ export default function EnhancedSearchBar({
                       <button
                         key={index}
                         type="button"
-                        onClick={() => handleHotelSuggestionSelect(suggestion)}
-                        className="w-full px-4 py-3 text-left hover:bg-primary-50 transition-colors flex items-start gap-3"
+                        onClick={(e) => {
+                          e.preventDefault();
+                          e.stopPropagation();
+                          handleHotelSuggestionSelect(suggestion);
+                        }}
+                        onTouchEnd={(e) => {
+                          e.preventDefault();
+                          handleHotelSuggestionSelect(suggestion);
+                        }}
+                        className="w-full px-4 py-3 text-left hover:bg-primary-50 active:bg-primary-100 transition-colors flex items-start gap-3 touch-manipulation min-h-[48px]"
                       >
                         <Building2 size={14} className="text-gray-400 mt-0.5 flex-shrink-0" />
                         <div className="flex-1 min-w-0">
-                          <div className="font-medium text-gray-900 text-xs truncate">
+                          <div className="font-medium text-gray-900 text-sm">
                             {suggestion.name}
                           </div>
                           {(suggestion.city || suggestion.country) && (
-                            <div className="text-[10px] text-gray-500 truncate">
+                            <div className="text-xs text-gray-500 truncate">
                               {[suggestion.city, suggestion.country].filter(Boolean).join(', ')}
                             </div>
                           )}
