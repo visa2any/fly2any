@@ -79,18 +79,7 @@ export default function MultiAirportSelector({
     .map(code => AIRPORTS.find(a => a.code === code))
     .filter((a): a is Airport => a !== undefined);
 
-  // Lock body scroll when dropdown is open on mobile
-  useEffect(() => {
-    if (isOpen) {
-      document.body.style.overflow = 'hidden';
-    } else {
-      document.body.style.overflow = '';
-    }
-    return () => {
-      document.body.style.overflow = '';
-    };
-  }, [isOpen]);
-
+  
   // Memoized normalized search with Unicode support
   const filteredAirports = useMemo(() => {
     if (searchQuery.length < 2) return [];
@@ -212,10 +201,8 @@ export default function MultiAirportSelector({
 
       {/* Dropdown - Mobile-First Bottom Sheet */}
       {isOpen && (
-        <div className="fixed md:absolute inset-x-0 bottom-0 md:bottom-auto md:top-full z-dropdown md:mt-2 w-full bg-white rounded-t-2xl md:rounded-xl shadow-2xl border-t md:border border-gray-200 overflow-hidden animate-in fade-in slide-in-from-bottom-4 md:slide-in-from-top-2 duration-200 max-h-[85vh] md:max-h-none">
-          {/* Drag Handle for mobile */}
-          <div className="mobile-drag-handle md:hidden" />
-
+        <div className="absolute left-0 right-0 top-full mt-2 z-dropdown w-full bg-white rounded-xl shadow-2xl border border-gray-200 overflow-hidden animate-in fade-in slide-in-from-top-2 duration-200 max-h-[60vh]">
+          
           {/* Search Input - Mobile-First */}
           <div className="mobile-px py-2 md:p-2 border-b border-gray-200">
             <input
