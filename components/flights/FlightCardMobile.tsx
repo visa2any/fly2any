@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { Plane, Star, ChevronDown, Heart, Share2, Check, Briefcase, Luggage, MoreVertical } from 'lucide-react';
+import { Plane, Star, ChevronDown, Heart, Share2, Check, Briefcase, Luggage, MoreVertical, User, Baby } from 'lucide-react';
 import { toast } from 'react-hot-toast';
 import AirlineLogo from './AirlineLogo';
 import { DealScoreBadgeCompact } from './DealScoreBadge';
@@ -116,18 +116,6 @@ export function FlightCardMobile(props: EnhancedFlightCardProps) {
     if (counts.total === 1) return total;
     // For multiple travelers, calculate average (simplified)
     return Math.round(total / counts.total);
-  };
-
-  // Format traveler summary text
-  const getTravelerSummary = () => {
-    const counts = getTravelerCounts();
-    if (counts.total === 1) return 'per person';
-
-    const parts: string[] = [];
-    if (counts.adults > 0) parts.push(`${counts.adults} adult${counts.adults > 1 ? 's' : ''}`);
-    if (counts.children > 0) parts.push(`${counts.children} child${counts.children > 1 ? 'ren' : ''}`);
-    if (counts.infants > 0) parts.push(`${counts.infants} infant${counts.infants > 1 ? 's' : ''}`);
-    return `total • ${parts.join(', ')}`;
   };
 
   const travelerCounts = getTravelerCounts();
@@ -534,17 +522,34 @@ export function FlightCardMobile(props: EnhancedFlightCardProps) {
 
         {/* PRICE + CTA */}
         <div className="flex items-center justify-between px-3 py-1.5 bg-gray-50 border-t border-gray-100">
-          {/* Price with traveler info */}
+          {/* Price with traveler icons */}
           <div className="flex flex-col">
-            <div className="flex items-baseline gap-1">
-              <span className="text-2xl font-bold text-primary-600">
-                {formatPrice()}
-              </span>
-              <span className="text-[9px] text-gray-500">
-                {getTravelerSummary()}
-              </span>
+            <span className="text-2xl font-bold text-primary-600 leading-tight">
+              {formatPrice()}
+            </span>
+            <div className="flex items-center gap-1 text-[8px] text-gray-500">
+              {isMultipleTravelers ? (
+                <>
+                  {travelerCounts.adults > 0 && (
+                    <span className="flex items-center gap-0.5">
+                      <User className="w-2.5 h-2.5" />{travelerCounts.adults}
+                    </span>
+                  )}
+                  {travelerCounts.children > 0 && (
+                    <span className="flex items-center gap-0.5">
+                      <User className="w-2 h-2" />{travelerCounts.children}
+                    </span>
+                  )}
+                  {travelerCounts.infants > 0 && (
+                    <span className="flex items-center gap-0.5">
+                      <Baby className="w-2.5 h-2.5" />{travelerCounts.infants}
+                    </span>
+                  )}
+                  <span className="text-gray-400">•</span>
+                </>
+              ) : null}
+              <span>incl. taxes</span>
             </div>
-            <span className="text-[8px] text-gray-400">incl. taxes & fees</span>
           </div>
 
           {/* Actions */}
