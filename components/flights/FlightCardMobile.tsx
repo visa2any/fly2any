@@ -34,6 +34,7 @@ export function FlightCardMobile(props: EnhancedFlightCardProps) {
     price,
     numberOfBookableSeats = 9,
     validatingAirlineCodes = [],
+    travelerPricings = [],
     badges = [],
     dealScore,
     dealScoreBreakdown,
@@ -92,6 +93,45 @@ export function FlightCardMobile(props: EnhancedFlightCardProps) {
     const total = typeof price.total === 'string' ? parseFloat(price.total) : price.total;
     return `$${Math.round(total)}`;
   };
+
+  // Get traveler counts by type
+  const getTravelerCounts = () => {
+    if (!travelerPricings || travelerPricings.length === 0) {
+      return { adults: 1, children: 0, infants: 0, total: 1 };
+    }
+    const counts = { adults: 0, children: 0, infants: 0, total: travelerPricings.length };
+    travelerPricings.forEach((tp: any) => {
+      const type = tp.travelerType?.toUpperCase();
+      if (type === 'ADULT') counts.adults++;
+      else if (type === 'CHILD') counts.children++;
+      else if (type === 'HELD_INFANT' || type === 'SEATED_INFANT' || type === 'INFANT') counts.infants++;
+    });
+    return counts;
+  };
+
+  // Get price per person (for single adult only)
+  const getPricePerPerson = () => {
+    const total = typeof price.total === 'string' ? parseFloat(price.total) : price.total;
+    const counts = getTravelerCounts();
+    if (counts.total === 1) return total;
+    // For multiple travelers, calculate average (simplified)
+    return Math.round(total / counts.total);
+  };
+
+  // Format traveler summary text
+  const getTravelerSummary = () => {
+    const counts = getTravelerCounts();
+    if (counts.total === 1) return 'per person';
+
+    const parts: string[] = [];
+    if (counts.adults > 0) parts.push(`${counts.adults} adult${counts.adults > 1 ? 's' : ''}`);
+    if (counts.children > 0) parts.push(`${counts.children} child${counts.children > 1 ? 'ren' : ''}`);
+    if (counts.infants > 0) parts.push(`${counts.infants} infant${counts.infants > 1 ? 's' : ''}`);
+    return `total • ${parts.join(', ')}`;
+  };
+
+  const travelerCounts = getTravelerCounts();
+  const isMultipleTravelers = travelerCounts.total > 1;
 
   // Get baggage info
   const getBaggageInfo = () => {
@@ -395,22 +435,26 @@ export function FlightCardMobile(props: EnhancedFlightCardProps) {
           </div>
         </div>
 
-        {/* OUTBOUND ROUTE - Compact */}
+        {/* OUTBOUND ROUTE - Compact with dates + aircraft */}
         <div className="px-3 py-1.5 border-b border-gray-100">
           <div className="flex items-center justify-between mb-0.5">
             <div className="flex items-center gap-1">
               <span className="text-[9px] font-bold text-primary-600 uppercase tracking-wide">Outbound</span>
               <span className="text-[9px] text-gray-500">{outboundFirstSegment.carrierCode}{outboundFirstSegment.number}</span>
+              {outboundFirstSegment.aircraft?.code && (
+                <span className="text-[8px] text-gray-400 bg-gray-100 px-1 rounded">✈ {outboundFirstSegment.aircraft.code}</span>
+              )}
             </div>
-            <span className="text-[10px] font-semibold text-gray-700">{formatDate(outboundFirstSegment.departure.at)}</span>
+            <span className="text-[9px] text-gray-500">{parseDuration(outboundItinerary.duration)} • {outboundStopsText}</span>
           </div>
           <div className="flex items-center">
-            {/* Departure */}
+            {/* Departure with date */}
             <div className="flex-shrink-0">
+              <div className="text-[9px] text-gray-500">{formatDate(outboundFirstSegment.departure.at)}</div>
               <div className="text-base font-bold text-gray-900 leading-none">
                 {formatTime(outboundFirstSegment.departure.at)}
               </div>
-              <div className="text-[10px] font-semibold text-gray-600 mt-0.5">
+              <div className="text-[10px] font-semibold text-gray-600">
                 {formatCityCode(outboundFirstSegment.departure.iataCode)}
               </div>
             </div>
@@ -420,30 +464,22 @@ export function FlightCardMobile(props: EnhancedFlightCardProps) {
               <div className="relative h-px bg-gradient-to-r from-gray-300 via-primary-400 to-gray-300">
                 <Plane className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-3 h-3 text-primary-600 bg-white" />
               </div>
-              <div className="flex items-center justify-center gap-1 mt-0.5">
-                <span className="text-[9px] font-medium text-gray-600">
-                  {parseDuration(outboundItinerary.duration)}
-                </span>
-                <span className="text-[9px] text-gray-400">•</span>
-                <span className={`text-[9px] font-semibold ${outboundStops === 0 ? 'text-green-600' : 'text-gray-600'}`}>
-                  {outboundStopsText}
-                </span>
-              </div>
             </div>
 
-            {/* Arrival */}
+            {/* Arrival with date */}
             <div className="flex-shrink-0 text-right">
+              <div className="text-[9px] text-gray-500">{formatDate(outboundLastSegment.arrival.at)}</div>
               <div className="text-base font-bold text-gray-900 leading-none">
                 {formatTime(outboundLastSegment.arrival.at)}
               </div>
-              <div className="text-[10px] font-semibold text-gray-600 mt-0.5">
+              <div className="text-[10px] font-semibold text-gray-600">
                 {formatCityCode(outboundLastSegment.arrival.iataCode)}
               </div>
             </div>
           </div>
         </div>
 
-        {/* RETURN ROUTE (only for round-trip) - Compact */}
+        {/* RETURN ROUTE (only for round-trip) - Compact with dates + aircraft */}
         {isRoundTrip && returnItinerary && (() => {
           const returnFirstSegment = returnItinerary.segments[0];
           const returnLastSegment = returnItinerary.segments[returnItinerary.segments.length - 1];
@@ -456,16 +492,20 @@ export function FlightCardMobile(props: EnhancedFlightCardProps) {
                 <div className="flex items-center gap-1">
                   <span className="text-[9px] font-bold text-secondary-600 uppercase tracking-wide">Return</span>
                   <span className="text-[9px] text-gray-500">{returnFirstSegment.carrierCode}{returnFirstSegment.number}</span>
+                  {returnFirstSegment.aircraft?.code && (
+                    <span className="text-[8px] text-gray-400 bg-gray-100 px-1 rounded">{returnFirstSegment.aircraft.code}</span>
+                  )}
                 </div>
-                <span className="text-[10px] font-semibold text-gray-700">{formatDate(returnFirstSegment.departure.at)}</span>
+                <span className="text-[9px] text-gray-500">{parseDuration(returnItinerary.duration)} • {returnStopsText}</span>
               </div>
               <div className="flex items-center">
-                {/* Departure */}
+                {/* Departure with date */}
                 <div className="flex-shrink-0">
+                  <div className="text-[9px] text-gray-500">{formatDate(returnFirstSegment.departure.at)}</div>
                   <div className="text-base font-bold text-gray-900 leading-none">
                     {formatTime(returnFirstSegment.departure.at)}
                   </div>
-                  <div className="text-[10px] font-semibold text-gray-600 mt-0.5">
+                  <div className="text-[10px] font-semibold text-gray-600">
                     {formatCityCode(returnFirstSegment.departure.iataCode)}
                   </div>
                 </div>
@@ -475,23 +515,15 @@ export function FlightCardMobile(props: EnhancedFlightCardProps) {
                   <div className="relative h-px bg-gradient-to-r from-gray-300 via-primary-400 to-gray-300">
                     <Plane className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-3 h-3 text-primary-600 bg-white rotate-180" />
                   </div>
-                  <div className="flex items-center justify-center gap-1 mt-0.5">
-                    <span className="text-[9px] font-medium text-gray-600">
-                      {parseDuration(returnItinerary.duration)}
-                    </span>
-                    <span className="text-[9px] text-gray-400">•</span>
-                    <span className={`text-[9px] font-semibold ${returnStops === 0 ? 'text-green-600' : 'text-gray-600'}`}>
-                      {returnStopsText}
-                    </span>
-                  </div>
                 </div>
 
-                {/* Arrival */}
+                {/* Arrival with date */}
                 <div className="flex-shrink-0 text-right">
+                  <div className="text-[9px] text-gray-500">{formatDate(returnLastSegment.arrival.at)}</div>
                   <div className="text-base font-bold text-gray-900 leading-none">
                     {formatTime(returnLastSegment.arrival.at)}
                   </div>
-                  <div className="text-[10px] font-semibold text-gray-600 mt-0.5">
+                  <div className="text-[10px] font-semibold text-gray-600">
                     {formatCityCode(returnLastSegment.arrival.iataCode)}
                   </div>
                 </div>
@@ -500,16 +532,19 @@ export function FlightCardMobile(props: EnhancedFlightCardProps) {
           );
         })()}
 
-        {/* PRICE + CTA (32px) */}
+        {/* PRICE + CTA */}
         <div className="flex items-center justify-between px-3 py-1.5 bg-gray-50 border-t border-gray-100">
-          {/* Price */}
-          <div className="flex items-baseline gap-1">
-            <span className="text-2xl font-bold text-primary-600">
-              {formatPrice()}
-            </span>
-            <span className="text-[10px] text-gray-500">
-              per person
-            </span>
+          {/* Price with traveler info */}
+          <div className="flex flex-col">
+            <div className="flex items-baseline gap-1">
+              <span className="text-2xl font-bold text-primary-600">
+                {formatPrice()}
+              </span>
+              <span className="text-[9px] text-gray-500">
+                {getTravelerSummary()}
+              </span>
+            </div>
+            <span className="text-[8px] text-gray-400">incl. taxes & fees</span>
           </div>
 
           {/* Actions */}
