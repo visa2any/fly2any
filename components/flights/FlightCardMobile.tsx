@@ -134,6 +134,21 @@ export function FlightCardMobile(props: EnhancedFlightCardProps) {
 
   const baggage = getBaggageInfo();
 
+  // Get cabin class
+  const getCabinClass = () => {
+    const fareDetails = travelerPricings?.[0]?.fareDetailsBySegment?.[0];
+    const cabin = fareDetails?.cabin || 'ECONOMY';
+    const cabinMap: Record<string, string> = {
+      'ECONOMY': 'Economy',
+      'PREMIUM_ECONOMY': 'Premium',
+      'BUSINESS': 'Business',
+      'FIRST': 'First',
+    };
+    return cabinMap[cabin] || cabin;
+  };
+
+  const cabinClass = getCabinClass();
+
   // Handle favorite toggle
   const handleFavorite = (e: React.MouseEvent) => {
     e.stopPropagation();
@@ -287,10 +302,15 @@ export function FlightCardMobile(props: EnhancedFlightCardProps) {
               <span className="text-sm font-semibold text-gray-900 truncate leading-tight">
                 {airlineData.name}
               </span>
-              <span className="text-[10px] text-gray-500 leading-tight">
-                {outboundFirstSegment.carrierCode}{outboundFirstSegment.number}
-                {isRoundTrip && returnItinerary && ` • ${returnItinerary.segments[0].carrierCode}${returnItinerary.segments[0].number}`}
-              </span>
+              <div className="flex items-center gap-1.5">
+                <span className="text-[10px] text-gray-500 leading-tight">
+                  {outboundFirstSegment.carrierCode}{outboundFirstSegment.number}
+                  {isRoundTrip && returnItinerary && ` • ${returnItinerary.segments[0].carrierCode}${returnItinerary.segments[0].number}`}
+                </span>
+                <span className="text-[8px] font-bold px-1.5 py-0.5 bg-primary-50 text-primary-700 rounded">
+                  {cabinClass}
+                </span>
+              </div>
             </div>
           </div>
 
@@ -393,7 +413,12 @@ export function FlightCardMobile(props: EnhancedFlightCardProps) {
                 <span className="text-[8px] text-gray-400 bg-gray-100 px-1 rounded">✈ {outboundFirstSegment.aircraft.code}</span>
               )}
             </div>
-            <span className="text-[9px] text-gray-500">{parseDuration(outboundItinerary.duration)} • {outboundStopsText}</span>
+            <span className="flex items-center gap-1">
+              <span className="text-[10px] font-semibold text-gray-600">{parseDuration(outboundItinerary.duration)}</span>
+              <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded ${outboundStops === 0 ? 'text-green-700 bg-green-50' : outboundStops === 1 ? 'text-orange-600 bg-orange-50' : 'text-red-600 bg-red-50'}`}>
+                {outboundStopsText}
+              </span>
+            </span>
           </div>
           <div className="flex items-center">
             {/* Departure with date */}
@@ -444,7 +469,12 @@ export function FlightCardMobile(props: EnhancedFlightCardProps) {
                     <span className="text-[8px] text-gray-400 bg-gray-100 px-1 rounded">{returnFirstSegment.aircraft.code}</span>
                   )}
                 </div>
-                <span className="text-[9px] text-gray-500">{parseDuration(returnItinerary.duration)} • {returnStopsText}</span>
+                <span className="flex items-center gap-1">
+                  <span className="text-[10px] font-semibold text-gray-600">{parseDuration(returnItinerary.duration)}</span>
+                  <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded ${returnStops === 0 ? 'text-green-700 bg-green-50' : returnStops === 1 ? 'text-orange-600 bg-orange-50' : 'text-red-600 bg-red-50'}`}>
+                    {returnStopsText}
+                  </span>
+                </span>
               </div>
               <div className="flex items-center">
                 {/* Departure with date */}
@@ -513,9 +543,11 @@ export function FlightCardMobile(props: EnhancedFlightCardProps) {
                   )}
                   <span className="text-neutral-400 mx-0.5">—</span>
                   <span className="font-medium">Total</span>
+                  <span className="text-neutral-400 mx-0.5">·</span>
+                  <span className="text-green-600 font-medium">incl. taxes</span>
                 </>
               ) : (
-                <span>incl. taxes</span>
+                <span className="text-green-600 font-medium">incl. taxes</span>
               )}
             </div>
           </div>
