@@ -642,7 +642,7 @@ export default function PremiumDatePicker({
         onClick={onClose}
       />
 
-      {/* Calendar container - Bottom sheet on mobile, positioned dropdown on desktop */}
+      {/* Calendar container - Centered modal on mobile, positioned dropdown on desktop */}
       <div
         ref={containerRef}
         style={isMobile ? {} : {
@@ -655,7 +655,7 @@ export default function PremiumDatePicker({
           bg-white shadow-[0_8px_30px_rgb(0,0,0,0.12)] border border-gray-100
           animate-in duration-300 ease-out
           ${isMobile
-            ? 'fixed bottom-0 left-0 right-0 z-modal rounded-t-2xl max-h-[85vh] overflow-y-auto slide-in-from-bottom-5'
+            ? 'fixed inset-x-2 top-1/2 -translate-y-1/2 z-modal rounded-2xl max-h-[80vh] overflow-y-auto slide-in-from-bottom-2'
             : 'rounded-lg fade-in slide-in-from-top-1'
           }
         `}
@@ -869,8 +869,8 @@ export default function PremiumDatePicker({
           )}
         </div>
 
-        {/* Footer actions - Compact sticky bottom */}
-        <div className="flex items-center gap-2 px-3 py-2 md:p-3 border-t border-gray-200 bg-white md:bg-gray-50 rounded-b-2xl md:rounded-b-lg sticky bottom-0">
+        {/* Footer actions - Compact fixed bottom within modal */}
+        <div className="flex items-center gap-2 px-3 py-2 md:p-3 border-t border-gray-200 bg-white md:bg-gray-50 rounded-b-2xl md:rounded-b-lg">
           <button
             onClick={handleClear}
             className="px-4 py-2.5 md:py-1.5 text-xs md:text-xs font-semibold text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-lg transition-all active:scale-95 touch-manipulation"
