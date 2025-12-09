@@ -370,15 +370,9 @@ export default function PremiumDatePicker({
         }
       }
     } else if (type === 'single') {
-      // One-way mode: Select date and auto-close
+      // One-way mode: Select date and wait for Apply button
       setSelectedDeparture(day.date);
-
-      // Auto-apply and close after state updates
-      setTimeout(() => {
-        const departureStr = formatDateString(day.date);
-        onChange(departureStr);
-        onClose();
-      }, 100);
+      // User must click Apply - consistent with other modes
     } else {
       // Range selection logic
       if (!selectedDeparture || (selectedDeparture && selectedReturn)) {

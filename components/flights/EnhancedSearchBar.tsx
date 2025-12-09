@@ -2981,7 +2981,7 @@ export default function EnhancedSearchBar({
           value={departureDate}
           returnValue={returnDate}
           onChange={handleDatePickerChange}
-          type={useFlexibleDates ? 'multi' : 'range'}
+          type={useFlexibleDates ? 'multi' : (tripType === 'oneway' ? 'single' : 'range')}
           selectedDates={useFlexibleDates ? (datePickerType === 'departure' ? departureDates : returnDates) : undefined}
           onMultiChange={useFlexibleDates ? handleMultiDateChange : undefined}
           maxDates={3}
@@ -3127,13 +3127,38 @@ export default function EnhancedSearchBar({
 
           {/* Dates - Mobile-First with Multi-Dates Toggle */}
           <div className="space-y-1">
-            {/* Labels row: Depart, Return, Multi-Dates aligned */}
-            <div className={`grid gap-2 ${tripType === 'roundtrip' ? 'grid-cols-2' : 'grid-cols-1'}`}>
-              <label className="flex items-center gap-1.5 text-sm font-medium text-gray-700">
-                <CalendarDays size={14} className="text-gray-600" />
-                <span>{t('depart')}</span>
-              </label>
-              {tripType === 'roundtrip' && (
+            {/* Labels row: Depart, Return/Add Flight, Multi-Dates aligned */}
+            <div className="grid grid-cols-2 gap-2">
+              {/* Depart label - with Multi-Dates toggle for one-way */}
+              <div className="flex items-center justify-between">
+                <label className="flex items-center gap-1.5 text-sm font-medium text-gray-700">
+                  <CalendarDays size={14} className="text-gray-600" />
+                  <span>{t('depart')}</span>
+                </label>
+                {/* Multi-Dates toggle for one-way */}
+                {tripType === 'oneway' && (
+                  <label className={`flex items-center gap-1.5 ${additionalFlights.length > 0 ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'} group`}>
+                    <input
+                      type="checkbox"
+                      checked={useFlexibleDates}
+                      disabled={additionalFlights.length > 0}
+                      onChange={(e) => {
+                        setUseFlexibleDates(e.target.checked);
+                        if (e.target.checked) {
+                          setDepartureDate('');
+                        } else {
+                          setDepartureDates([]);
+                        }
+                      }}
+                      className="w-3.5 h-3.5 rounded border-gray-300 text-primary-600 focus:ring-primary-500 cursor-pointer disabled:cursor-not-allowed disabled:opacity-50"
+                    />
+                    <span className="text-xs font-medium text-gray-600 group-hover:text-primary-600 transition-colors">
+                      Multi-Dates
+                    </span>
+                  </label>
+                )}
+              </div>
+              {tripType === 'roundtrip' ? (
                 <div className="flex items-center justify-between">
                   <label className="flex items-center gap-1.5 text-sm font-medium text-gray-700">
                     <CalendarCheck size={14} className="text-gray-600" />
@@ -3162,10 +3187,18 @@ export default function EnhancedSearchBar({
                     </span>
                   </label>
                 </div>
+              ) : (
+                /* One-way: Show "+ Add Flight" label */
+                additionalFlights.length === 0 && (
+                  <label className="flex items-center gap-1.5 text-sm font-medium text-gray-500">
+                    <Plane size={14} className="text-gray-400" />
+                    <span>Add Flight</span>
+                  </label>
+                )
               )}
             </div>
             {/* Inputs row - Button-based date pickers */}
-            <div className={`grid gap-2 ${tripType === 'roundtrip' ? 'grid-cols-2' : 'grid-cols-1'}`}>
+            <div className="grid grid-cols-2 gap-2">
               {/* Departure Date Button */}
               {!useFlexibleDates ? (
                 <button
@@ -3198,8 +3231,8 @@ export default function EnhancedSearchBar({
                   </div>
                 </button>
               )}
-              {/* Return Date Button */}
-              {tripType === 'roundtrip' && (
+              {/* Return Date Button OR Add Another Flight button (one-way) */}
+              {tripType === 'roundtrip' ? (
                 !useFlexibleDates ? (
                   <button
                     type="button"
@@ -3231,24 +3264,25 @@ export default function EnhancedSearchBar({
                     </div>
                   </button>
                 )
+              ) : (
+                /* One-way: Add Another Flight button in same row as date */
+                additionalFlights.length === 0 && (
+                  <button
+                    type="button"
+                    onClick={handleAddFlight}
+                    className="mobile-select border-dashed border-gray-300 hover:border-primary-400 hover:text-primary-600 hover:bg-primary-50 text-gray-500 flex items-center justify-center gap-1.5 touch-manipulation active:scale-[0.98]"
+                  >
+                    <Plus size={16} />
+                    <span className="text-sm font-medium">Add Flight</span>
+                  </button>
+                )
               )}
             </div>
           </div>
 
-          {/* Mobile: Add Another Flight - Only shown when One Way is selected */}
-          {tripType === 'oneway' && (
+          {/* Mobile: Additional Flights - Only shown when flights added */}
+          {tripType === 'oneway' && additionalFlights.length > 0 && (
             <div className="space-y-2">
-              {/* Initial "Add Another Flight" button - ONLY shown when no additional flights */}
-              {additionalFlights.length === 0 && (
-                <button
-                  type="button"
-                  onClick={handleAddFlight}
-                  className="w-full px-4 py-3 border-2 border-dashed border-gray-300 hover:border-primary-400 hover:text-primary-600 hover:bg-primary-50 text-gray-600 rounded-xl text-sm font-medium transition-all flex items-center justify-center gap-2 min-h-[48px] touch-manipulation active:scale-[0.98]"
-                >
-                  <Plane size={16} />
-                  <span>+ Add Another Flight</span>
-                </button>
-              )}
 
               {/* Render additional flights - Mobile optimized */}
               {additionalFlights.map((flight, index) => (

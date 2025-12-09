@@ -223,7 +223,19 @@ export function MobileHomeSearchWrapper({
 
   // After hydration, render appropriate version
   if (!isMobile) {
-    return <EnhancedSearchBar lang={lang} defaultService={defaultService} />;
+    // Desktop: Pass all search data props to preserve form state
+    return (
+      <EnhancedSearchBar
+        origin={origin}
+        destination={destination}
+        departureDate={departureDate}
+        returnDate={returnDate}
+        passengers={passengers}
+        cabinClass={cabinClass}
+        lang={lang}
+        defaultService={defaultService}
+      />
+    );
   }
 
   // Mobile rendering with three states (only after hydration on mobile devices)
