@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { motion, AnimatePresence, useSpring, useTransform } from 'framer-motion';
-import { X, MapPin, Calendar, Users, Search, ChevronDown } from 'lucide-react';
+import { MapPin, Search, ChevronDown } from 'lucide-react';
 import { format } from 'date-fns';
 import EnhancedSearchBar from '@/components/flights/EnhancedSearchBar';
 import { useHasMounted } from '@/lib/hooks/useHasMounted';
@@ -290,44 +290,17 @@ export function MobileHomeSearchWrapper({
           </motion.div>
         )}
 
-        {/* EXPANDED STATE - Full EnhancedSearchBar with Drag-to-Collapse */}
+        {/* EXPANDED STATE - Full EnhancedSearchBar with elegant collapse */}
         {viewState === 'expanded' && (
           <motion.div
             key="expanded"
-            initial={{ opacity: 0, height: 0 }}
-            animate={{ opacity: 1, height: 'auto' }}
-            exit={{ opacity: 0, height: 0 }}
+            initial={{ opacity: 0, y: -20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -20 }}
             transition={springConfig}
-            className="w-full relative"
-            drag="y"
-            dragConstraints={{ top: 0, bottom: 0 }}
-            dragElastic={{ top: 0, bottom: 0.3 }}
-            onDragEnd={(_, info) => {
-              // Collapse when dragged down more than 80px
-              if (info.offset.y > 80) {
-                handleCollapse();
-              }
-            }}
+            className="w-full"
           >
-            {/* Drag Handle - Visual indicator for drag-to-collapse */}
-            <div
-              className="flex justify-center py-2 cursor-grab active:cursor-grabbing touch-none"
-              aria-label="Drag down to collapse"
-            >
-              <div className="w-10 h-1 bg-gray-300 rounded-full" />
-            </div>
-
-            {/* Close Button - Alternative to drag */}
-            <button
-              type="button"
-              onClick={handleCollapse}
-              className="absolute top-2 right-3 z-10 p-1.5 bg-gray-100 hover:bg-gray-200 rounded-full transition-colors"
-              aria-label="Collapse search form"
-            >
-              <X className="w-4 h-4 text-gray-600" />
-            </button>
-
-            {/* Full EnhancedSearchBar - All features preserved with auto-collapse on search */}
+            {/* Full EnhancedSearchBar */}
             <div ref={searchBarRef}>
               <EnhancedSearchBar
                 origin={origin}
@@ -341,6 +314,24 @@ export function MobileHomeSearchWrapper({
                 onSearchSubmit={handleSearchSubmit}
               />
             </div>
+
+            {/* Elegant Collapse Button - Below search form */}
+            <motion.div
+              initial={{ opacity: 0, y: -10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.2, duration: 0.3 }}
+              className="flex justify-center mt-3 mb-2"
+            >
+              <button
+                type="button"
+                onClick={handleCollapse}
+                className="group flex items-center gap-2 px-4 py-2 text-sm text-gray-500 hover:text-gray-700 transition-all duration-300"
+                aria-label="Minimize search form"
+              >
+                <span className="font-medium">Minimize</span>
+                <ChevronDown className="w-4 h-4 transition-transform group-hover:translate-y-0.5" />
+              </button>
+            </motion.div>
           </motion.div>
         )}
 
