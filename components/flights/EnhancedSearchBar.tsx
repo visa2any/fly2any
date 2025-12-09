@@ -3068,20 +3068,15 @@ export default function EnhancedSearchBar({
           {/* FLIGHTS MOBILE FIELDS */}
           {serviceType === 'flights' && (
           <>
-          {/* Airports - Mobile Grid with One Way toggle in To label */}
-          <div className="grid grid-cols-2 gap-2">
-            <MultiAirportSelector
-              label={t('from')}
-              placeholder="Select airports"
-              value={origin}
-              onChange={handleOriginChange}
-              maxDisplay={2}
-              lang={lang}
-            />
-            {/* To field with custom label containing One Way checkbox */}
-            <div>
-              {/* Custom label row with One Way toggle */}
-              <div className="flex items-center justify-between mb-2">
+          {/* Airports - Mobile Grid with aligned labels */}
+          <div className="space-y-1">
+            {/* Labels row: From, To, One-way aligned */}
+            <div className="grid grid-cols-2 gap-2">
+              <label className="flex items-center gap-1.5 text-sm font-medium text-gray-700">
+                <PlaneTakeoff size={14} className="text-gray-600" />
+                <span>{t('from')}</span>
+              </label>
+              <div className="flex items-center justify-between">
                 <label className="flex items-center gap-1.5 text-sm font-medium text-gray-700">
                   <PlaneLanding size={14} className="text-gray-600" />
                   <span>{t('to')}</span>
@@ -3110,6 +3105,16 @@ export default function EnhancedSearchBar({
                   </span>
                 </label>
               </div>
+            </div>
+            {/* Inputs row */}
+            <div className="grid grid-cols-2 gap-2">
+              <MultiAirportSelector
+                placeholder="Select airports"
+                value={origin}
+                onChange={handleOriginChange}
+                maxDisplay={2}
+                lang={lang}
+              />
               <MultiAirportSelector
                 placeholder="Select airports"
                 value={destination}
