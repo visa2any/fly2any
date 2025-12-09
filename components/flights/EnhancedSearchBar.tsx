@@ -3125,43 +3125,114 @@ export default function EnhancedSearchBar({
             </div>
           </div>
 
-          {/* Dates - Mobile-First Inputs */}
-          <div className={`grid gap-2 ${tripType === 'roundtrip' ? 'grid-cols-2' : 'grid-cols-1'}`}>
-            {/* Depart Date */}
-            <div>
-              <label className="mobile-label">
-                <Calendar size={14} className="text-gray-500" />
-                {t('depart')}
+          {/* Dates - Mobile-First with Multi-Dates Toggle */}
+          <div className="space-y-1">
+            {/* Labels row: Depart, Return, Multi-Dates aligned */}
+            <div className={`grid gap-2 ${tripType === 'roundtrip' ? 'grid-cols-2' : 'grid-cols-1'}`}>
+              <label className="flex items-center gap-1.5 text-sm font-medium text-gray-700">
+                <CalendarDays size={14} className="text-gray-600" />
+                <span>{t('depart')}</span>
               </label>
-              <div className="relative">
-                <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" size={16} />
-                <input
-                  type="date"
-                  value={formatDateForInput(departureDate)}
-                  onChange={(e) => setDepartureDate(e.target.value)}
-                  min={minDate}
-                  className="mobile-input-icon-left cursor-pointer"
-                />
-              </div>
-            </div>
-            {tripType === 'roundtrip' && (
-              <div>
-                <label className="mobile-label">
-                  <Calendar size={14} className="text-gray-500" />
-                  {t('return')}
-                </label>
-                <div className="relative">
-                  <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" size={16} />
-                  <input
-                    type="date"
-                    value={formatDateForInput(returnDate)}
-                    onChange={(e) => setReturnDate(e.target.value)}
-                    min={formatDateForInput(departureDate)}
-                    className="mobile-input-icon-left cursor-pointer"
-                  />
+              {tripType === 'roundtrip' && (
+                <div className="flex items-center justify-between">
+                  <label className="flex items-center gap-1.5 text-sm font-medium text-gray-700">
+                    <CalendarCheck size={14} className="text-gray-600" />
+                    <span>{t('return')}</span>
+                  </label>
+                  {/* Multi-Dates Toggle - Disabled when multi-city flights added */}
+                  <label className={`flex items-center gap-1.5 ${additionalFlights.length > 0 ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'} group`}>
+                    <input
+                      type="checkbox"
+                      checked={useFlexibleDates}
+                      disabled={additionalFlights.length > 0}
+                      onChange={(e) => {
+                        setUseFlexibleDates(e.target.checked);
+                        if (e.target.checked) {
+                          setDepartureDate('');
+                          setReturnDate('');
+                        } else {
+                          setDepartureDates([]);
+                          setReturnDates([]);
+                        }
+                      }}
+                      className="w-3.5 h-3.5 rounded border-gray-300 text-primary-600 focus:ring-primary-500 cursor-pointer disabled:cursor-not-allowed disabled:opacity-50"
+                    />
+                    <span className="text-xs font-medium text-gray-600 group-hover:text-primary-600 transition-colors">
+                      Multi-Dates
+                    </span>
+                  </label>
                 </div>
-              </div>
-            )}
+              )}
+            </div>
+            {/* Inputs row - Button-based date pickers */}
+            <div className={`grid gap-2 ${tripType === 'roundtrip' ? 'grid-cols-2' : 'grid-cols-1'}`}>
+              {/* Departure Date Button */}
+              {!useFlexibleDates ? (
+                <button
+                  type="button"
+                  onClick={() => handleOpenDatePicker('departure')}
+                  className={`mobile-select text-left ${errors.departureDate ? 'border-red-500' : ''}`}
+                >
+                  <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
+                  <span className="pl-7 text-sm font-medium text-gray-900 truncate">
+                    {departureDate ? formatDateForDisplay(departureDate) : 'Select date'}
+                  </span>
+                </button>
+              ) : (
+                <button
+                  type="button"
+                  onClick={() => handleOpenDatePicker('departure')}
+                  className={`mobile-select text-left min-h-[48px] ${errors.departureDate ? 'border-red-500' : ''}`}
+                >
+                  <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
+                  <div className="pl-7 flex flex-wrap gap-1 items-center">
+                    {departureDates.length > 0 ? (
+                      departureDates.map((date, idx) => (
+                        <span key={idx} className="inline-flex items-center px-1.5 py-0.5 rounded bg-primary-50 text-primary-700 text-xs font-semibold">
+                          {format(date, 'MMM d')}
+                        </span>
+                      ))
+                    ) : (
+                      <span className="text-sm text-gray-400">Select dates</span>
+                    )}
+                  </div>
+                </button>
+              )}
+              {/* Return Date Button */}
+              {tripType === 'roundtrip' && (
+                !useFlexibleDates ? (
+                  <button
+                    type="button"
+                    onClick={() => handleOpenDatePicker('return')}
+                    className={`mobile-select text-left ${errors.returnDate ? 'border-red-500' : ''}`}
+                  >
+                    <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
+                    <span className="pl-7 text-sm font-medium text-gray-900 truncate">
+                      {returnDate ? formatDateForDisplay(returnDate) : 'Select date'}
+                    </span>
+                  </button>
+                ) : (
+                  <button
+                    type="button"
+                    onClick={() => handleOpenDatePicker('return')}
+                    className={`mobile-select text-left min-h-[48px] ${errors.returnDate ? 'border-red-500' : ''}`}
+                  >
+                    <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
+                    <div className="pl-7 flex flex-wrap gap-1 items-center">
+                      {returnDates.length > 0 ? (
+                        returnDates.map((date, idx) => (
+                          <span key={idx} className="inline-flex items-center px-1.5 py-0.5 rounded bg-primary-50 text-primary-700 text-xs font-semibold">
+                            {format(date, 'MMM d')}
+                          </span>
+                        ))
+                      ) : (
+                        <span className="text-sm text-gray-400">Select dates</span>
+                      )}
+                    </div>
+                  </button>
+                )
+              )}
+            </div>
           </div>
 
           {/* Mobile: Add Another Flight - Only shown when One Way is selected */}

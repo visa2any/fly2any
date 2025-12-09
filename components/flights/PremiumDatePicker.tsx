@@ -717,38 +717,41 @@ export default function PremiumDatePicker({
             {renderMonth(getNextMonth(currentMonth), 1)}
           </div>
 
-          {/* Mobile: Premium single month calendar */}
-          <div className="md:hidden px-1">
-            {/* Month Navigation - Mobile-First */}
-            <div className="flex items-center justify-between mb-4">
+          {/* Mobile: App-like single month calendar */}
+          <div className="md:hidden">
+            {/* Month Navigation - Large Touch Targets */}
+            <div className="flex items-center justify-between mb-3 px-2">
               <button
                 onClick={handlePreviousMonth}
-                className="mobile-btn-icon"
+                className="w-11 h-11 flex items-center justify-center rounded-full bg-gray-100 hover:bg-gray-200 active:bg-gray-300 active:scale-95 transition-all touch-manipulation"
                 aria-label="Previous month"
               >
-                <ChevronLeft className="w-5 h-5" />
+                <ChevronLeft className="w-6 h-6 text-gray-700" />
               </button>
-              <div className="text-center">
-                <div className="mobile-text-heading">
+              <div className="text-center flex-1">
+                <h3 className="text-lg font-bold text-gray-900">
                   {MONTHS[currentMonth.getMonth()]} {currentMonth.getFullYear()}
-                </div>
+                </h3>
+                {loadingPrices && (
+                  <p className="text-xs text-gray-500 animate-pulse mt-0.5">Loading prices...</p>
+                )}
               </div>
               <button
                 onClick={handleNextMonth}
-                className="mobile-btn-icon"
+                className="w-11 h-11 flex items-center justify-center rounded-full bg-gray-100 hover:bg-gray-200 active:bg-gray-300 active:scale-95 transition-all touch-manipulation"
                 aria-label="Next month"
               >
-                <ChevronRight className="w-5 h-5" />
+                <ChevronRight className="w-6 h-6 text-gray-700" />
               </button>
             </div>
 
-            {/* Day headers - Premium styling */}
-            <div className="grid grid-cols-7 gap-1 mb-2 px-1">
+            {/* Day headers - Bold weekend highlight */}
+            <div className="grid grid-cols-7 mb-1">
               {DAYS_OF_WEEK.map((day, i) => (
                 <div
                   key={`mobile-${day}`}
                   className={`text-center text-xs font-bold py-2 ${
-                    i === 0 || i === 6 ? 'text-primary-500' : 'text-gray-500'
+                    i === 0 || i === 6 ? 'text-primary-600' : 'text-gray-500'
                   }`}
                 >
                   {day}
@@ -756,47 +759,51 @@ export default function PremiumDatePicker({
               ))}
             </div>
 
-            {/* Calendar Grid - Premium touch-optimized */}
-            <div className="grid grid-cols-7 gap-1 px-1">
-              {getDaysInMonth(currentMonth).map((day, dayIndex) => (
-                <button
-                  key={`mobile-day-${dayIndex}`}
-                  onClick={() => handleDateClick(day)}
-                  disabled={day.isDisabled}
-                  className={`
-                    relative w-full aspect-square rounded-xl transition-all duration-150
-                    flex flex-col items-center justify-center
-                    ${!day.isCurrentMonth ? 'opacity-30' : ''}
-                    ${day.isDisabled ? 'cursor-not-allowed' : 'cursor-pointer active:scale-90'}
-                    ${day.isSelected
-                      ? 'bg-primary-600 text-white shadow-lg shadow-primary-200'
-                      : day.isInRange
-                      ? 'bg-primary-100'
-                      : day.isToday
-                      ? 'bg-primary-50 ring-2 ring-primary-400'
-                      : day.isWeekend && day.isCurrentMonth
-                      ? 'bg-gray-50'
-                      : 'bg-white hover:bg-gray-50'
-                    }
-                    ${day.isRangeStart ? 'rounded-r-none' : ''}
-                    ${day.isRangeEnd ? 'rounded-l-none' : ''}
-                    touch-manipulation
-                  `}
-                >
-                  <span className={`text-base font-semibold ${
-                    day.isSelected ? 'text-white' : day.isCurrentMonth ? 'text-gray-900' : 'text-gray-400'
-                  }`}>
-                    {day.date.getDate()}
-                  </span>
-                  {day.price && day.isCurrentMonth && !day.isDisabled && (
-                    <span className={`text-[10px] font-bold mt-0.5 ${
-                      day.isSelected ? 'text-white/90' : 'text-green-600'
+            {/* Calendar Grid - Large 44px+ touch targets */}
+            <div className="grid grid-cols-7 gap-0.5">
+              {getDaysInMonth(currentMonth).map((day, dayIndex) => {
+                const isMultiSelected = type === 'multi' && isDateInMulti(day.date);
+                return (
+                  <button
+                    key={`mobile-day-${dayIndex}`}
+                    onClick={() => handleDateClick(day)}
+                    disabled={day.isDisabled}
+                    className={`
+                      relative min-h-[48px] py-1.5 transition-all duration-100
+                      flex flex-col items-center justify-center
+                      ${!day.isCurrentMonth ? 'opacity-25' : ''}
+                      ${day.isDisabled ? 'cursor-not-allowed opacity-40' : 'cursor-pointer active:scale-95'}
+                      ${day.isSelected || isMultiSelected
+                        ? 'bg-primary-600 text-white rounded-xl shadow-md'
+                        : day.isInRange
+                        ? 'bg-primary-100'
+                        : day.isToday
+                        ? 'bg-primary-50 rounded-xl ring-2 ring-primary-500 ring-inset'
+                        : day.isWeekend && day.isCurrentMonth
+                        ? 'bg-gray-50/70'
+                        : 'bg-transparent hover:bg-gray-100 rounded-xl'
+                      }
+                      ${day.isRangeStart && !day.isRangeEnd ? 'rounded-l-xl rounded-r-none' : ''}
+                      ${day.isRangeEnd && !day.isRangeStart ? 'rounded-r-xl rounded-l-none' : ''}
+                      ${day.isInRange && !day.isRangeStart && !day.isRangeEnd ? 'rounded-none' : ''}
+                      touch-manipulation
+                    `}
+                  >
+                    <span className={`text-base font-semibold leading-none ${
+                      day.isSelected || isMultiSelected ? 'text-white' : day.isCurrentMonth ? 'text-gray-900' : 'text-gray-400'
                     }`}>
-                      ${Math.round(day.price)}
+                      {day.date.getDate()}
                     </span>
-                  )}
-                </button>
-              ))}
+                    {day.price && day.isCurrentMonth && !day.isDisabled && (
+                      <span className={`text-[9px] font-bold leading-none mt-1 ${
+                        day.isSelected || isMultiSelected ? 'text-white/80' : 'text-success-600'
+                      }`}>
+                        ${Math.round(day.price)}
+                      </span>
+                    )}
+                  </button>
+                );
+              })}
             </div>
           </div>
 
@@ -881,11 +888,11 @@ export default function PremiumDatePicker({
           )}
         </div>
 
-        {/* Footer actions - sticky on mobile */}
-        <div className="flex items-center justify-between gap-3 p-3 border-t border-gray-200 bg-white md:bg-gray-50 rounded-b-xl md:rounded-b-lg sticky bottom-0">
+        {/* Footer actions - App-like sticky bottom */}
+        <div className="flex items-center gap-3 p-4 md:p-3 border-t border-gray-200 bg-white md:bg-gray-50 rounded-b-2xl md:rounded-b-lg sticky bottom-0">
           <button
             onClick={handleClear}
-            className="px-4 py-2.5 md:py-1.5 text-sm md:text-xs font-medium text-gray-700 hover:text-gray-900 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors active:scale-95 touch-manipulation"
+            className="px-5 py-3 md:py-1.5 text-sm md:text-xs font-semibold text-gray-700 hover:text-gray-900 bg-gray-100 hover:bg-gray-200 rounded-xl md:rounded-lg transition-all active:scale-95 touch-manipulation"
           >
             Clear
           </button>
@@ -896,10 +903,12 @@ export default function PremiumDatePicker({
                 ? multiDates.length === 0
                 : (!selectedDeparture || (type === 'range' && !selectedReturn))
             }
-            className="flex-1 md:flex-none px-6 py-2.5 md:py-1.5 text-sm md:text-xs font-semibold text-white bg-primary-600 hover:bg-primary-700 disabled:bg-gray-300 disabled:cursor-not-allowed rounded-lg transition-colors shadow-sm hover:shadow-md active:scale-95 touch-manipulation"
+            className="flex-1 py-3.5 md:py-1.5 text-base md:text-xs font-bold text-white bg-primary-600 hover:bg-primary-700 disabled:bg-gray-300 disabled:cursor-not-allowed rounded-xl md:rounded-lg transition-all shadow-md hover:shadow-lg active:scale-[0.98] touch-manipulation"
           >
             {type === 'range' && !selectedReturn && selectedDeparture
               ? 'Select Return Date'
+              : type === 'multi' && multiDates.length > 0
+              ? `Apply (${multiDates.length} dates)`
               : 'Apply'
             }
           </button>
