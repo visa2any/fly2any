@@ -57,33 +57,18 @@ export default authEdge((req) => {
   // Create response with performance and security headers
   const response = NextResponse.next();
 
-  // LANGUAGE COOKIE MANAGEMENT
+  // LANGUAGE COOKIE MANAGEMENT - DISABLED: Always use English
+  // Auto-detection disabled per user request - will be re-enabled later
   const languageCookie = req.cookies.get('fly2any_language');
 
-  if (!languageCookie) {
-    // Auto-detect language from browser on first visit
-    const acceptLanguage = req.headers.get('accept-language');
-    const detectedLanguage = detectBrowserLanguage(acceptLanguage);
-
-    // Set language cookie (1 year expiry, accessible across all paths)
-    response.cookies.set('fly2any_language', detectedLanguage, {
+  // Always force English regardless of browser settings
+  if (!languageCookie || languageCookie.value !== 'en') {
+    response.cookies.set('fly2any_language', 'en', {
       path: '/',
       maxAge: 31536000, // 1 year in seconds
       sameSite: 'lax',
       secure: process.env.NODE_ENV === 'production',
     });
-  } else {
-    // Validate existing cookie value
-    const currentLang = languageCookie.value;
-    if (!locales.includes(currentLang as Locale)) {
-      // Invalid language, reset to default
-      response.cookies.set('fly2any_language', defaultLocale, {
-        path: '/',
-        maxAge: 31536000,
-        sameSite: 'lax',
-        secure: process.env.NODE_ENV === 'production',
-      });
-    }
   }
 
   // Performance headers

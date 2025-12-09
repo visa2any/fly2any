@@ -719,107 +719,107 @@ export default function PremiumDatePicker({
             {renderMonth(getNextMonth(currentMonth), 1)}
           </div>
 
-          {/* Mobile: single month with navigation */}
-          <div className="md:hidden">
-            {/* Mobile Month Navigation */}
-            <div className="flex items-center justify-between mb-3 px-2">
+          {/* Mobile: Premium single month calendar */}
+          <div className="md:hidden px-1">
+            {/* Month Navigation - Clean & Modern */}
+            <div className="flex items-center justify-between mb-4">
               <button
                 onClick={handlePreviousMonth}
-                className="flex items-center gap-1 px-3 py-2 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors active:scale-95 touch-manipulation"
+                className="w-10 h-10 flex items-center justify-center bg-gray-50 hover:bg-gray-100 rounded-full transition-all active:scale-90 touch-manipulation"
                 aria-label="Previous month"
               >
-                <ChevronLeft className="w-4 h-4 text-gray-600" />
-                <span className="text-xs font-medium text-gray-700">Prev</span>
+                <ChevronLeft className="w-5 h-5 text-gray-700" />
               </button>
               <div className="text-center">
-                <div className="font-bold text-gray-900 text-base">
-                  {MONTHS[currentMonth.getMonth()]}
+                <div className="text-lg font-bold text-gray-900">
+                  {MONTHS[currentMonth.getMonth()]} {currentMonth.getFullYear()}
                 </div>
-                <div className="text-xs text-gray-500">{currentMonth.getFullYear()}</div>
               </div>
               <button
                 onClick={handleNextMonth}
-                className="flex items-center gap-1 px-3 py-2 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors active:scale-95 touch-manipulation"
+                className="w-10 h-10 flex items-center justify-center bg-gray-50 hover:bg-gray-100 rounded-full transition-all active:scale-90 touch-manipulation"
                 aria-label="Next month"
               >
-                <span className="text-xs font-medium text-gray-700">Next</span>
-                <ChevronRight className="w-4 h-4 text-gray-600" />
+                <ChevronRight className="w-5 h-5 text-gray-700" />
               </button>
             </div>
-            {/* Day headers for mobile */}
-            <div className="grid grid-cols-7 gap-0.5 mb-2">
-              {DAYS_OF_WEEK.map((day) => (
+
+            {/* Day headers - Premium styling */}
+            <div className="grid grid-cols-7 gap-1 mb-2 px-1">
+              {DAYS_OF_WEEK.map((day, i) => (
                 <div
                   key={`mobile-${day}`}
-                  className="text-center text-xs font-semibold text-gray-600 py-1"
+                  className={`text-center text-xs font-bold py-2 ${
+                    i === 0 || i === 6 ? 'text-primary-500' : 'text-gray-500'
+                  }`}
                 >
                   {day}
                 </div>
               ))}
             </div>
-            {/* Calendar days for mobile - larger touch targets */}
-            <div className="grid grid-cols-7 gap-1">
-              {getDaysInMonth(currentMonth).map((day, dayIndex) => {
-                const isHovered = hoverDate?.getTime() === day.date.getTime();
-                return (
-                  <button
-                    key={`mobile-day-${dayIndex}`}
-                    onClick={() => handleDateClick(day)}
-                    disabled={day.isDisabled}
-                    className={`
-                      relative aspect-square w-full rounded-lg transition-all duration-200 min-h-[44px]
-                      ${!day.isCurrentMonth ? 'text-gray-300' : 'text-gray-700'}
-                      ${day.isDisabled ? 'cursor-not-allowed opacity-40' : 'cursor-pointer active:scale-95'}
-                      ${day.isWeekend && day.isCurrentMonth && !day.isDisabled && !day.isSelected ? 'bg-gradient-to-br from-info-50 to-primary-50' : ''}
-                      ${
-                        day.isSelected
-                          ? 'bg-[#0087FF] text-white font-bold shadow-md'
-                          : day.isInRange
-                          ? 'bg-gradient-to-r from-[#E6F3FF] to-[#CCE7FF]'
-                          : 'hover:bg-[#F0F9FF]'
-                      }
-                      ${day.isRangeStart ? 'rounded-r-none' : ''}
-                      ${day.isRangeEnd ? 'rounded-l-none' : ''}
-                      ${day.isToday && !day.isSelected ? 'ring-2 ring-[#0087FF] ring-inset' : ''}
-                      touch-manipulation
-                    `}
-                  >
-                    <div className="flex flex-col items-center justify-center h-full gap-0.5">
-                      <span className="text-sm font-medium">
-                        {day.date.getDate()}
-                      </span>
-                      {day.price && day.isCurrentMonth && !day.isDisabled && (
-                        <span
-                          className={`text-[9px] px-1 rounded font-medium ${
-                            day.isSelected
-                              ? 'bg-white/90 text-[#0087FF]'
-                              : 'text-slate-500'
-                          }`}
-                        >
-                          ${Math.round(day.price)}
-                        </span>
-                      )}
-                    </div>
-                  </button>
-                );
-              })}
+
+            {/* Calendar Grid - Premium touch-optimized */}
+            <div className="grid grid-cols-7 gap-1 px-1">
+              {getDaysInMonth(currentMonth).map((day, dayIndex) => (
+                <button
+                  key={`mobile-day-${dayIndex}`}
+                  onClick={() => handleDateClick(day)}
+                  disabled={day.isDisabled}
+                  className={`
+                    relative w-full aspect-square rounded-xl transition-all duration-150
+                    flex flex-col items-center justify-center
+                    ${!day.isCurrentMonth ? 'opacity-30' : ''}
+                    ${day.isDisabled ? 'cursor-not-allowed' : 'cursor-pointer active:scale-90'}
+                    ${day.isSelected
+                      ? 'bg-primary-600 text-white shadow-lg shadow-primary-200'
+                      : day.isInRange
+                      ? 'bg-primary-100'
+                      : day.isToday
+                      ? 'bg-primary-50 ring-2 ring-primary-400'
+                      : day.isWeekend && day.isCurrentMonth
+                      ? 'bg-gray-50'
+                      : 'bg-white hover:bg-gray-50'
+                    }
+                    ${day.isRangeStart ? 'rounded-r-none' : ''}
+                    ${day.isRangeEnd ? 'rounded-l-none' : ''}
+                    touch-manipulation
+                  `}
+                >
+                  <span className={`text-base font-semibold ${
+                    day.isSelected ? 'text-white' : day.isCurrentMonth ? 'text-gray-900' : 'text-gray-400'
+                  }`}>
+                    {day.date.getDate()}
+                  </span>
+                  {day.price && day.isCurrentMonth && !day.isDisabled && (
+                    <span className={`text-[10px] font-bold mt-0.5 ${
+                      day.isSelected ? 'text-white/90' : 'text-green-600'
+                    }`}>
+                      ${Math.round(day.price)}
+                    </span>
+                  )}
+                </button>
+              ))}
             </div>
           </div>
 
-          {/* Selection summary */}
+          {/* Selection Summary - Premium Card */}
           {(selectedDeparture || selectedReturn || (type === 'multi' && multiDates.length > 0)) && (
-            <div className="mt-2 pt-2 border-t border-gray-200">
-              <div className="text-xs text-gray-600 mb-2">
+            <div className="mt-4 mx-1 p-3 bg-gradient-to-r from-primary-50 to-info-50 rounded-xl border border-primary-100">
+              <div className="text-sm">
                 {type === 'multi' ? (
                   <div>
-                    <span className="font-medium text-gray-900">Selected ({multiDates.length}/{maxDates}):</span>{' '}
-                    <div className="flex flex-wrap gap-1 mt-1">
+                    <div className="flex items-center gap-2 mb-2">
+                      <Calendar className="w-4 h-4 text-primary-600" />
+                      <span className="font-semibold text-gray-900">Selected Dates ({multiDates.length}/{maxDates})</span>
+                    </div>
+                    <div className="flex flex-wrap gap-2">
                       {multiDates.map((date, idx) => (
                         <span
                           key={idx}
-                          className="inline-flex items-center px-2 py-0.5 rounded bg-[#E6F3FF] text-[#0087FF] font-medium"
+                          className="inline-flex items-center px-3 py-1.5 rounded-lg bg-white text-primary-700 font-semibold text-sm shadow-sm"
                         >
                           {date.toLocaleDateString('en-US', {
+                            weekday: 'short',
                             month: 'short',
                             day: 'numeric'
                           })}
@@ -828,34 +828,52 @@ export default function PremiumDatePicker({
                     </div>
                   </div>
                 ) : type === 'single' ? (
-                  <div>
-                    <span className="font-medium text-gray-900">Selected:</span>{' '}
-                    {selectedDeparture?.toLocaleDateString('en-US', {
-                      month: 'short',
-                      day: 'numeric',
-                      year: 'numeric'
-                    })}
-                  </div>
-                ) : (
-                  <div className="space-y-0.5">
-                    {selectedDeparture && (
-                      <div>
-                        <span className="font-medium text-gray-900">Depart:</span>{' '}
-                        {selectedDeparture.toLocaleDateString('en-US', {
-                          month: 'short',
+                  <div className="flex items-center gap-3">
+                    <Calendar className="w-5 h-5 text-primary-600" />
+                    <div>
+                      <div className="text-xs text-gray-500 font-medium">Selected Date</div>
+                      <div className="font-bold text-gray-900">
+                        {selectedDeparture?.toLocaleDateString('en-US', {
+                          weekday: 'short',
+                          month: 'long',
                           day: 'numeric',
                           year: 'numeric'
                         })}
                       </div>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="flex items-center gap-4">
+                    {selectedDeparture && (
+                      <div className="flex-1">
+                        <div className="text-xs text-gray-500 font-medium mb-0.5">Depart</div>
+                        <div className="font-bold text-gray-900">
+                          {selectedDeparture.toLocaleDateString('en-US', {
+                            weekday: 'short',
+                            month: 'short',
+                            day: 'numeric'
+                          })}
+                        </div>
+                      </div>
                     )}
-                    {selectedReturn && (
-                      <div>
-                        <span className="font-medium text-gray-900">Return:</span>{' '}
-                        {selectedReturn.toLocaleDateString('en-US', {
-                          month: 'short',
-                          day: 'numeric',
-                          year: 'numeric'
-                        })}
+                    {selectedDeparture && selectedReturn && (
+                      <div className="text-primary-400 font-bold">→</div>
+                    )}
+                    {selectedReturn ? (
+                      <div className="flex-1 text-right">
+                        <div className="text-xs text-gray-500 font-medium mb-0.5">Return</div>
+                        <div className="font-bold text-gray-900">
+                          {selectedReturn.toLocaleDateString('en-US', {
+                            weekday: 'short',
+                            month: 'short',
+                            day: 'numeric'
+                          })}
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="flex-1 text-right">
+                        <div className="text-xs text-gray-500 font-medium mb-0.5">Return</div>
+                        <div className="text-sm text-gray-400 italic">Select date</div>
                       </div>
                     )}
                   </div>
