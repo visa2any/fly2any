@@ -4,11 +4,34 @@ import { auth } from '@/lib/auth';
 
 export const dynamic = 'force-dynamic';
 
+// Helper: Check admin authorization (session-based or token-based)
+async function isAdminAuthorized(request: NextRequest): Promise<boolean> {
+  // Method 1: Session-based auth (user with admin role)
+  const session = await auth();
+  if (session?.user && (session.user as any).role === 'admin') {
+    return true;
+  }
+
+  // Method 2: Token-based auth (Authorization header)
+  const authHeader = request.headers.get('authorization');
+  const adminSecret = process.env.ADMIN_SECRET || process.env.CRON_SECRET;
+  if (adminSecret && authHeader === `Bearer ${adminSecret}`) {
+    return true;
+  }
+
+  // Method 3: Admin email check (allow specific emails)
+  const adminEmails = (process.env.ADMIN_EMAILS || '').split(',').map(e => e.trim().toLowerCase());
+  if (session?.user?.email && adminEmails.includes(session.user.email.toLowerCase())) {
+    return true;
+  }
+
+  return false;
+}
+
 // Get PWA Statistics
 export async function GET(request: NextRequest) {
   try {
-    const session = await auth();
-    if (!session?.user || (session.user as any).role !== 'admin') {
+    if (!await isAdminAuthorized(request)) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 

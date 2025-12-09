@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { Plane, Star, ChevronDown, Heart, Share2, Check, Briefcase, Luggage } from 'lucide-react';
+import { Plane, Star, ChevronDown, Heart, Share2, Check, Briefcase, Luggage, MoreVertical } from 'lucide-react';
 import { toast } from 'react-hot-toast';
 import AirlineLogo from './AirlineLogo';
 import { DealScoreBadgeCompact } from './DealScoreBadge';
@@ -47,6 +47,7 @@ export function FlightCardMobile(props: EnhancedFlightCardProps) {
 
   const router = useRouter();
   const [showDetailsSheet, setShowDetailsSheet] = useState(false);
+  const [showOverflowMenu, setShowOverflowMenu] = useState(false);
   const [touchStart, setTouchStart] = useState<number | null>(null);
   const [touchEnd, setTouchEnd] = useState<number | null>(null);
   const [isFavorite, setIsFavorite] = useState(false);
@@ -285,9 +286,9 @@ export function FlightCardMobile(props: EnhancedFlightCardProps) {
           isComparing ? 'border-primary-500 shadow-lg shadow-primary-100' : 'border-gray-200'
         }`}
       >
-        {/* HEADER - Airline + Badge + Actions */}
+        {/* HEADER - Airline + Favorite + Badge + Overflow Menu */}
         <div className="flex items-center justify-between px-3 py-1.5 border-b border-gray-100">
-          {/* Left: Airline info */}
+          {/* Left: Airline info (compact) */}
           <div className="flex items-center gap-2 flex-1 min-w-0">
             <AirlineLogo
               code={primaryAirline}
@@ -297,59 +298,90 @@ export function FlightCardMobile(props: EnhancedFlightCardProps) {
             <span className="text-sm font-semibold text-gray-900 truncate">
               {airlineData.name}
             </span>
-            <div className="flex items-center gap-0.5 flex-shrink-0">
-              <Star className="w-3 h-3 fill-yellow-500 text-yellow-500" />
-              <span className="text-[11px] font-semibold text-gray-700">
-                {airlineData.rating.toFixed(1)}
-              </span>
-            </div>
           </div>
 
-          {/* Right: Actions + Badge */}
-          <div className="flex items-center gap-1.5 flex-shrink-0">
-            {/* Baggage Icons */}
-            <div className="flex items-center gap-1 mr-1">
-              {baggage.carryOn > 0 && (
-                <div className="flex items-center gap-0.5">
-                  <Briefcase className="w-3.5 h-3.5 text-gray-600" />
-                  <span className="text-[10px] font-semibold text-gray-600">{baggage.carryOn}</span>
-                </div>
-              )}
-              {baggage.checked > 0 && (
-                <div className="flex items-center gap-0.5">
-                  <Luggage className="w-3.5 h-3.5 text-gray-600" />
-                  <span className="text-[10px] font-semibold text-gray-600">{baggage.checked}</span>
-                </div>
-              )}
-            </div>
-
-            {/* Action Buttons */}
+          {/* Right: Favorite + Badge + Overflow */}
+          <div className="flex items-center gap-1 flex-shrink-0">
+            {/* Favorite - Always visible */}
             <button
               onClick={handleFavorite}
-              className="p-1 hover:bg-gray-100 rounded-full transition-colors active:scale-95"
+              className="p-1.5 hover:bg-gray-100 rounded-full transition-colors active:scale-95"
               aria-label="Add to favorites"
             >
-              <Heart className={`w-4 h-4 ${isFavorite ? 'fill-red-500 text-red-500' : 'text-gray-500'}`} />
-            </button>
-            <button
-              onClick={handleShare}
-              className="p-1 hover:bg-gray-100 rounded-full transition-colors active:scale-95"
-              aria-label="Share flight"
-            >
-              <Share2 className="w-4 h-4 text-gray-500" />
-            </button>
-            <button
-              onClick={handleCompare}
-              className={`p-1 rounded-full transition-colors active:scale-95 ${
-                isComparing ? 'bg-primary-100 text-primary-600' : 'hover:bg-gray-100 text-gray-500'
-              }`}
-              aria-label="Compare flight"
-            >
-              <Check className="w-4 h-4" />
+              <Heart className={`w-4 h-4 ${isFavorite ? 'fill-red-500 text-red-500' : 'text-gray-400'}`} />
             </button>
 
-            {/* Priority Badge */}
+            {/* Priority Badge - Always visible */}
             {priorityBadge()}
+
+            {/* Overflow Menu Button */}
+            <div className="relative">
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setShowOverflowMenu(!showOverflowMenu);
+                }}
+                className="p-1.5 hover:bg-gray-100 rounded-full transition-colors active:scale-95"
+                aria-label="More options"
+              >
+                <MoreVertical className="w-4 h-4 text-gray-500" />
+              </button>
+
+              {/* Overflow Dropdown Menu */}
+              {showOverflowMenu && (
+                <>
+                  {/* Backdrop to close menu */}
+                  <div
+                    className="fixed inset-0 z-40"
+                    onClick={() => setShowOverflowMenu(false)}
+                  />
+                  <div className="absolute right-0 top-full mt-1 z-50 bg-white rounded-lg shadow-lg border border-gray-200 py-1 min-w-[160px] animate-fadeIn">
+                    {/* Rating */}
+                    <div className="px-3 py-2 flex items-center gap-2 border-b border-gray-100">
+                      <Star className="w-4 h-4 fill-yellow-500 text-yellow-500" />
+                      <span className="text-sm text-gray-700">{airlineData.rating.toFixed(1)} rating</span>
+                    </div>
+
+                    {/* Baggage Info */}
+                    <div className="px-3 py-2 flex items-center gap-2 border-b border-gray-100">
+                      <Briefcase className="w-4 h-4 text-gray-500" />
+                      <span className="text-sm text-gray-700">
+                        {baggage.carryOn > 0 ? `${baggage.carryOn} carry-on` : 'No carry-on'}
+                        {baggage.checked > 0 && `, ${baggage.checked} checked`}
+                      </span>
+                    </div>
+
+                    {/* Share */}
+                    <button
+                      onClick={(e) => {
+                        handleShare(e);
+                        setShowOverflowMenu(false);
+                      }}
+                      className="w-full px-3 py-2 flex items-center gap-2 hover:bg-gray-50 transition-colors"
+                    >
+                      <Share2 className="w-4 h-4 text-gray-500" />
+                      <span className="text-sm text-gray-700">Share flight</span>
+                    </button>
+
+                    {/* Compare */}
+                    <button
+                      onClick={(e) => {
+                        handleCompare(e);
+                        setShowOverflowMenu(false);
+                      }}
+                      className={`w-full px-3 py-2 flex items-center gap-2 hover:bg-gray-50 transition-colors ${
+                        isComparing ? 'bg-primary-50' : ''
+                      }`}
+                    >
+                      <Check className={`w-4 h-4 ${isComparing ? 'text-primary-600' : 'text-gray-500'}`} />
+                      <span className={`text-sm ${isComparing ? 'text-primary-600 font-medium' : 'text-gray-700'}`}>
+                        {isComparing ? 'In comparison' : 'Add to compare'}
+                      </span>
+                    </button>
+                  </div>
+                </>
+              )}
+            </div>
           </div>
         </div>
 
