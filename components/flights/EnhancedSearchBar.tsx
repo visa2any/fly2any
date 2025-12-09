@@ -299,6 +299,7 @@ export default function EnhancedSearchBar({
     nonstop: boolean;
   }
   const [additionalFlights, setAdditionalFlights] = useState<AdditionalFlight[]>([]);
+  const [expandedFlightId, setExpandedFlightId] = useState<string | null>(null); // Accordion: track which flight card is expanded (mobile)
   const [additionalFlightDatePickerOpen, setAdditionalFlightDatePickerOpen] = useState<string | null>(null); // Track which flight's date picker is open
   const additionalFlightDateRefs = useRef<{ [key: string]: HTMLButtonElement | null }>({}); // Refs for each additional flight date button
 
@@ -729,10 +730,12 @@ export default function EnhancedSearchBar({
     });
 
     setAdditionalFlights([...additionalFlights, newFlight]);
+    setExpandedFlightId(newFlight.id); // Auto-expand newly added flight (mobile UX)
   };
 
   const handleRemoveFlight = (id: string) => {
     setAdditionalFlights(additionalFlights.filter(f => f.id !== id));
+    if (expandedFlightId === id) setExpandedFlightId(null); // Collapse if removed flight was expanded
   };
 
   const handleUpdateAdditionalFlight = (id: string, updates: Partial<AdditionalFlight>) => {
@@ -3280,93 +3283,119 @@ export default function EnhancedSearchBar({
             </div>
           </div>
 
-          {/* Mobile: Additional Flights - Only shown when flights added */}
+          {/* Mobile: Additional Flights - ACCORDION PATTERN for space optimization */}
           {tripType === 'oneway' && additionalFlights.length > 0 && (
-            <div className="space-y-2">
+            <div className="space-y-1.5">
+              {/* Progress indicator */}
+              <div className="flex items-center gap-1.5 px-1">
+                <span className="text-[10px] font-medium text-gray-500">{additionalFlights.length + 1}/5 flights</span>
+                <div className="flex-1 h-1 bg-gray-200 rounded-full overflow-hidden">
+                  <div className="h-full bg-primary-500 rounded-full transition-all" style={{ width: `${((additionalFlights.length + 1) / 5) * 100}%` }} />
+                </div>
+              </div>
 
-              {/* Render additional flights - Mobile optimized */}
-              {additionalFlights.map((flight, index) => (
-                <div key={flight.id} className="bg-gray-50 rounded-xl p-3 space-y-2">
-                  {/* Flight header with remove button */}
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2">
-                      <Plane size={14} className="text-primary-600" />
-                      <span className="text-sm font-semibold text-gray-700">Flight {index + 2}</span>
-                    </div>
-                    <div className="flex items-center gap-3">
-                      {/* Nonstop checkbox */}
-                      <label className="flex items-center gap-1 cursor-pointer">
-                        <input
-                          type="checkbox"
-                          checked={flight.nonstop}
-                          onChange={(e) => handleUpdateAdditionalFlight(flight.id, { nonstop: e.target.checked })}
-                          className="w-3.5 h-3.5 rounded border-gray-300 text-primary-600 focus:ring-primary-500 cursor-pointer"
-                        />
-                        <span className="text-xs text-gray-600">Nonstop</span>
-                      </label>
-                      {/* Remove button */}
-                      <button
-                        type="button"
-                        onClick={() => handleRemoveFlight(flight.id)}
-                        className="p-1 text-gray-400 hover:text-red-500 transition-colors"
-                        aria-label="Remove flight"
-                      >
-                        <X size={16} />
-                      </button>
-                    </div>
-                  </div>
-
-                  {/* From/To airports grid */}
-                  <div className="grid grid-cols-2 gap-2">
-                    <MultiAirportSelector
-                      label={t('from')}
-                      placeholder="Select"
-                      value={flight.origin}
-                      onChange={(codes) => handleUpdateAdditionalFlight(flight.id, { origin: codes })}
-                      maxDisplay={1}
-                      lang={lang}
-                    />
-                    <MultiAirportSelector
-                      label={t('to')}
-                      placeholder="Select"
-                      value={flight.destination}
-                      onChange={(codes) => handleUpdateAdditionalFlight(flight.id, { destination: codes })}
-                      maxDisplay={1}
-                      lang={lang}
-                    />
-                  </div>
-
-                  {/* Date picker */}
-                  <div>
-                    <label className="mobile-label">
-                      <Calendar size={14} className="text-gray-500" />
-                      {t('depart')}
-                    </label>
-                    <div className="relative">
-                      <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" size={16} />
-                      <input
-                        type="date"
-                        value={formatDateForInput(flight.departureDate)}
-                        onChange={(e) => handleUpdateAdditionalFlight(flight.id, { departureDate: e.target.value })}
-                        min={minDate}
-                        className="mobile-input-icon-left cursor-pointer"
-                      />
-                    </div>
-                  </div>
-
-                  {/* Add another flight button (only on last flight and if less than 4 additional) */}
-                  {index === additionalFlights.length - 1 && additionalFlights.length < 4 && (
+              {/* Render additional flights - ACCORDION: collapsed by default, one expanded at a time */}
+              {additionalFlights.map((flight, index) => {
+                const isExpanded = expandedFlightId === flight.id;
+                const hasData = flight.origin.length > 0 && flight.destination.length > 0;
+                return (
+                  <div key={flight.id} className="bg-gray-50/80 rounded-lg overflow-hidden border border-gray-200">
+                    {/* COLLAPSED HEADER - Always visible, tap to expand */}
                     <button
                       type="button"
-                      onClick={handleAddFlight}
-                      className="w-full px-3 py-2 border-2 border-dashed border-gray-300 hover:border-primary-400 hover:text-primary-600 hover:bg-white text-gray-500 rounded-lg text-xs font-medium transition-all flex items-center justify-center gap-1.5 min-h-[40px] touch-manipulation"
+                      onClick={() => setExpandedFlightId(isExpanded ? null : flight.id)}
+                      className="w-full flex items-center justify-between px-2.5 py-2 min-h-[40px] touch-manipulation active:bg-gray-100"
                     >
-                      <Plus size={14} />
-                      <span>Add Flight</span>
+                      <div className="flex items-center gap-2 flex-1 min-w-0">
+                        <div className="w-5 h-5 rounded-full bg-primary-100 flex items-center justify-center flex-shrink-0">
+                          <span className="text-[10px] font-bold text-primary-600">{index + 2}</span>
+                        </div>
+                        {hasData ? (
+                          <span className="text-xs font-semibold text-gray-800 truncate">
+                            {flight.origin[0]} → {flight.destination[0]} • {flight.departureDate ? format(new Date(flight.departureDate + 'T00:00:00'), 'MMM d') : '--'}
+                          </span>
+                        ) : (
+                          <span className="text-xs text-gray-400 italic">Tap to configure</span>
+                        )}
+                      </div>
+                      <div className="flex items-center gap-1.5 flex-shrink-0">
+                        {flight.nonstop && <span className="text-[9px] font-medium text-primary-600 bg-primary-50 px-1.5 py-0.5 rounded">Direct</span>}
+                        <ChevronDown size={14} className={`text-gray-400 transition-transform ${isExpanded ? 'rotate-180' : ''}`} />
+                      </div>
                     </button>
-                  )}
-                </div>
-              ))}
+
+                    {/* EXPANDED CONTENT - Only one at a time */}
+                    {isExpanded && (
+                      <div className="px-2.5 pb-2.5 pt-1 space-y-2 border-t border-gray-200 bg-white">
+                        {/* Inline: From → To in single row */}
+                        <div className="flex items-center gap-1.5">
+                          <div className="flex-1 min-w-0">
+                            <MultiAirportSelector
+                              placeholder="From"
+                              value={flight.origin}
+                              onChange={(codes) => handleUpdateAdditionalFlight(flight.id, { origin: codes })}
+                              maxDisplay={1}
+                              lang={lang}
+                            />
+                          </div>
+                          <ArrowRight size={14} className="text-gray-400 flex-shrink-0" />
+                          <div className="flex-1 min-w-0">
+                            <MultiAirportSelector
+                              placeholder="To"
+                              value={flight.destination}
+                              onChange={(codes) => handleUpdateAdditionalFlight(flight.id, { destination: codes })}
+                              maxDisplay={1}
+                              lang={lang}
+                            />
+                          </div>
+                        </div>
+
+                        {/* Date + Options + Actions - single compact row */}
+                        <div className="flex items-center gap-2">
+                          <div className="flex-1 relative">
+                            <input
+                              type="date"
+                              value={formatDateForInput(flight.departureDate)}
+                              onChange={(e) => handleUpdateAdditionalFlight(flight.id, { departureDate: e.target.value })}
+                              min={minDate}
+                              className="w-full px-2 py-1.5 text-xs font-medium border border-gray-200 rounded-lg bg-white focus:border-primary-500 outline-none"
+                            />
+                          </div>
+                          <label className="flex items-center gap-1 px-2 py-1.5 bg-gray-50 rounded-lg cursor-pointer flex-shrink-0">
+                            <input
+                              type="checkbox"
+                              checked={flight.nonstop}
+                              onChange={(e) => handleUpdateAdditionalFlight(flight.id, { nonstop: e.target.checked })}
+                              className="w-3 h-3 rounded border-gray-300 text-primary-600"
+                            />
+                            <span className="text-[10px] font-medium text-gray-600">Direct</span>
+                          </label>
+                          <button
+                            type="button"
+                            onClick={() => handleRemoveFlight(flight.id)}
+                            className="p-1.5 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors flex-shrink-0"
+                            aria-label="Remove flight"
+                          >
+                            <X size={14} />
+                          </button>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
+
+              {/* Add another flight - compact */}
+              {additionalFlights.length < 4 && (
+                <button
+                  type="button"
+                  onClick={handleAddFlight}
+                  className="w-full px-2.5 py-2 border border-dashed border-gray-300 hover:border-primary-400 hover:text-primary-600 hover:bg-primary-50 text-gray-500 rounded-lg text-xs font-medium transition-all flex items-center justify-center gap-1.5 min-h-[36px] touch-manipulation active:scale-[0.98]"
+                >
+                  <Plus size={12} />
+                  <span>Add Flight {additionalFlights.length + 2}</span>
+                </button>
+              )}
             </div>
           )}
 
@@ -3390,103 +3419,59 @@ export default function EnhancedSearchBar({
                 <ChevronDown size={12} className={`text-gray-400 transition-transform ${showPassengerDropdown ? 'rotate-180' : ''}`} />
               </button>
 
-              {/* Passenger & Class Dropdown - Mobile-First Bottom Sheet Style */}
+              {/* Passenger & Class Dropdown - ULTRA-COMPACT Mobile Bottom Sheet */}
               {showPassengerDropdown && serviceType === 'flights' && (
-                <div className="fixed md:absolute inset-x-0 bottom-0 md:bottom-auto md:left-0 md:right-auto md:top-full md:mt-2 bg-white border-t md:border border-gray-200 rounded-t-2xl md:rounded-xl shadow-2xl z-modal md:min-w-[280px] max-h-[85vh] md:max-h-none overflow-y-auto">
-                  {/* Drag Handle for mobile */}
-                  <div className="mobile-drag-handle md:hidden" />
-                  <div className="mobile-p space-y-4">
-                  {/* Adults */}
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <span className="text-sm font-medium text-gray-700">Adults</span>
-                      <p className="text-xs text-gray-500">18+</p>
-                    </div>
-                    <div className="flex items-center gap-3">
-                      <button
-                        type="button"
-                        onClick={() => handlePassengerChange('adults', -1)}
-                        disabled={passengers.adults <= 1}
-                        className="w-8 h-8 rounded-full border border-gray-300 hover:border-[#D63A35] hover:bg-primary-50 disabled:opacity-30 flex items-center justify-center transition-all"
-                      >
-                        <Minus size={16} />
-                      </button>
-                      <span className="w-8 text-center font-semibold">{passengers.adults}</span>
-                      <button
-                        type="button"
-                        onClick={() => handlePassengerChange('adults', 1)}
-                        className="w-8 h-8 rounded-full border border-gray-300 hover:border-[#D63A35] hover:bg-primary-50 flex items-center justify-center transition-all"
-                      >
-                        <Plus size={16} />
-                      </button>
+                <div className="fixed md:absolute inset-x-0 bottom-0 md:bottom-auto md:left-0 md:right-auto md:top-full md:mt-2 bg-white border-t md:border border-gray-200 rounded-t-2xl md:rounded-xl shadow-2xl z-modal md:min-w-[260px] max-h-[70vh] md:max-h-none overflow-y-auto">
+                  {/* Compact Drag Handle */}
+                  <div className="w-10 h-1 bg-gray-300 rounded-full mx-auto mt-2 mb-1 md:hidden" />
+                  <div className="px-3 py-2 space-y-2">
+                  {/* COMPACT ROW: Adults + Children + Infants - horizontal layout */}
+                  <div className="flex items-center justify-between gap-3">
+                    {/* Adults */}
+                    <div className="flex-1 flex items-center justify-between bg-gray-50 rounded-lg px-2 py-1.5">
+                      <span className="text-[11px] font-medium text-gray-600">Adults <span className="text-gray-400">18+</span></span>
+                      <div className="flex items-center gap-1.5">
+                        <button type="button" onClick={() => handlePassengerChange('adults', -1)} disabled={passengers.adults <= 1} className="w-6 h-6 rounded-full border border-gray-300 hover:border-primary-500 disabled:opacity-30 flex items-center justify-center text-xs font-bold">−</button>
+                        <span className="w-4 text-center text-xs font-bold">{passengers.adults}</span>
+                        <button type="button" onClick={() => handlePassengerChange('adults', 1)} className="w-6 h-6 rounded-full border border-gray-300 hover:border-primary-500 flex items-center justify-center text-xs font-bold">+</button>
+                      </div>
                     </div>
                   </div>
 
-                  {/* Children */}
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <span className="text-sm font-medium text-gray-700">Children</span>
-                      <p className="text-xs text-gray-500">2-17</p>
+                  {/* Children + Infants in same row */}
+                  <div className="flex items-center gap-2">
+                    {/* Children */}
+                    <div className="flex-1 flex items-center justify-between bg-gray-50 rounded-lg px-2 py-1.5">
+                      <span className="text-[11px] font-medium text-gray-600">Child <span className="text-gray-400">2-17</span></span>
+                      <div className="flex items-center gap-1.5">
+                        <button type="button" onClick={() => handlePassengerChange('children', -1)} disabled={passengers.children <= 0} className="w-6 h-6 rounded-full border border-gray-300 hover:border-primary-500 disabled:opacity-30 flex items-center justify-center text-xs font-bold">−</button>
+                        <span className="w-4 text-center text-xs font-bold">{passengers.children}</span>
+                        <button type="button" onClick={() => handlePassengerChange('children', 1)} className="w-6 h-6 rounded-full border border-gray-300 hover:border-primary-500 flex items-center justify-center text-xs font-bold">+</button>
+                      </div>
                     </div>
-                    <div className="flex items-center gap-3">
-                      <button
-                        type="button"
-                        onClick={() => handlePassengerChange('children', -1)}
-                        disabled={passengers.children <= 0}
-                        className="w-8 h-8 rounded-full border border-gray-300 hover:border-[#D63A35] hover:bg-primary-50 disabled:opacity-30 flex items-center justify-center transition-all"
-                      >
-                        <Minus size={16} />
-                      </button>
-                      <span className="w-8 text-center font-semibold">{passengers.children}</span>
-                      <button
-                        type="button"
-                        onClick={() => handlePassengerChange('children', 1)}
-                        className="w-8 h-8 rounded-full border border-gray-300 hover:border-[#D63A35] hover:bg-primary-50 flex items-center justify-center transition-all"
-                      >
-                        <Plus size={16} />
-                      </button>
+                    {/* Infants */}
+                    <div className="flex-1 flex items-center justify-between bg-gray-50 rounded-lg px-2 py-1.5">
+                      <span className="text-[11px] font-medium text-gray-600">Infant <span className="text-gray-400">&lt;2</span></span>
+                      <div className="flex items-center gap-1.5">
+                        <button type="button" onClick={() => handlePassengerChange('infants', -1)} disabled={passengers.infants <= 0} className="w-6 h-6 rounded-full border border-gray-300 hover:border-primary-500 disabled:opacity-30 flex items-center justify-center text-xs font-bold">−</button>
+                        <span className="w-4 text-center text-xs font-bold">{passengers.infants}</span>
+                        <button type="button" onClick={() => handlePassengerChange('infants', 1)} className="w-6 h-6 rounded-full border border-gray-300 hover:border-primary-500 flex items-center justify-center text-xs font-bold">+</button>
+                      </div>
                     </div>
                   </div>
 
-                  {/* Infants */}
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <span className="text-sm font-medium text-gray-700">Infants</span>
-                      <p className="text-xs text-gray-500">Under 2</p>
-                    </div>
-                    <div className="flex items-center gap-3">
-                      <button
-                        type="button"
-                        onClick={() => handlePassengerChange('infants', -1)}
-                        disabled={passengers.infants <= 0}
-                        className="w-8 h-8 rounded-full border border-gray-300 hover:border-[#D63A35] hover:bg-primary-50 disabled:opacity-30 flex items-center justify-center transition-all"
-                      >
-                        <Minus size={16} />
-                      </button>
-                      <span className="w-8 text-center font-semibold">{passengers.infants}</span>
-                      <button
-                        type="button"
-                        onClick={() => handlePassengerChange('infants', 1)}
-                        className="w-8 h-8 rounded-full border border-gray-300 hover:border-[#D63A35] hover:bg-primary-50 flex items-center justify-center transition-all"
-                      >
-                        <Plus size={16} />
-                      </button>
-                    </div>
-                  </div>
-
-                  {/* Cabin Class */}
-                  <div className="pt-4 border-t border-gray-200">
-                    <span className="text-sm font-medium text-gray-700 block mb-3">Cabin Class</span>
-                    <div className="grid grid-cols-2 gap-2">
+                  {/* Cabin Class - SINGLE ROW horizontal chips */}
+                  <div className="pt-2 border-t border-gray-100">
+                    <div className="flex items-center gap-1.5 overflow-x-auto scrollbar-hide">
                       {(['economy', 'premium', 'business', 'first'] as const).map((cls) => (
                         <button
                           key={cls}
                           type="button"
                           onClick={() => setCabinClass(cls)}
-                          className={`px-3 py-2 rounded-lg text-xs font-medium transition-all touch-manipulation active:scale-95 min-h-[40px] ${
+                          className={`flex-shrink-0 px-3 py-1.5 rounded-full text-[11px] font-semibold transition-all touch-manipulation active:scale-95 ${
                             cabinClass === cls
-                              ? 'bg-primary-600 text-white'
-                              : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                              ? 'bg-primary-600 text-white shadow-sm'
+                              : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
                           }`}
                         >
                           {t(cls)}
@@ -3495,11 +3480,11 @@ export default function EnhancedSearchBar({
                     </div>
                   </div>
 
-                  {/* Done Button - Mobile-First Primary */}
+                  {/* Done Button - Compact */}
                   <button
                     type="button"
                     onClick={() => setShowPassengerDropdown(false)}
-                    className="mobile-btn-primary"
+                    className="w-full py-2 bg-primary-600 text-white text-sm font-semibold rounded-lg touch-manipulation active:scale-[0.98]"
                   >
                     Done
                   </button>
