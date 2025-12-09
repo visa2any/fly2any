@@ -422,7 +422,7 @@ export function RecentlyViewedSection({ lang = 'en' }: RecentlyViewedSectionProp
             <Sparkles className="w-3.5 h-3.5 md:w-4 md:h-4 text-primary-600" />
           </div>
           <div>
-            <h2 className="text-base md:text-xl font-bold text-neutral-800 flex items-center gap-1.5 md:gap-2 leading-tight">
+            <h2 className="text-base md:text-xl font-bold text-neutral-800 flex items-center gap-1.5 md:gap-2 leading-tight whitespace-nowrap">
               {t.title}
               {recentlyViewed.length > maxItems && (
                 <span className="text-[9px] md:text-xs font-normal text-neutral-500 bg-neutral-100 px-1.5 md:px-2 py-0.5 rounded-full">

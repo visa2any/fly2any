@@ -1,6 +1,7 @@
 'use client';
 
 import { usePathname } from 'next/navigation';
+import Image from 'next/image';
 import { zIndex } from '@/lib/design-system';
 import type { HeaderTranslations } from '@/lib/i18n/types';
 import { useScrollDirection } from '@/lib/hooks/useScrollDirection';
@@ -13,6 +14,7 @@ interface BottomTabBarProps {
 interface Tab {
   id: string;
   icon: string;
+  iconType?: 'emoji' | 'image';  // 'emoji' for text emoji, 'image' for logo
   label: string;
   href?: string;
   onClick?: () => void;
@@ -39,8 +41,9 @@ export function BottomTabBar({ translations, onMoreClick }: BottomTabBarProps) {
   const tabs: Tab[] = [
     {
       id: 'home',
-      icon: '🏠',
-      label: 'Home',
+      icon: '/icon-72.png',  // Fly2Any orange logo
+      iconType: 'image',
+      label: 'Fly2Any',
       href: '/',
     },
     {
@@ -135,9 +138,22 @@ export function BottomTabBar({ translations, onMoreClick }: BottomTabBarProps) {
               )}
 
               {/* Icon - 24px grid */}
-              <span className={`text-[22px] leading-none mb-1 transition-transform duration-200 ${isActive ? 'scale-110' : ''}`}>
-                {tab.icon}
-              </span>
+              {tab.iconType === 'image' ? (
+                <div className={`relative w-[24px] h-[24px] mb-1 transition-transform duration-200 ${isActive ? 'scale-110' : ''}`}>
+                  <Image
+                    src={tab.icon}
+                    alt={tab.label}
+                    fill
+                    sizes="24px"
+                    className="object-contain"
+                    priority
+                  />
+                </div>
+              ) : (
+                <span className={`text-[22px] leading-none mb-1 transition-transform duration-200 ${isActive ? 'scale-110' : ''}`}>
+                  {tab.icon}
+                </span>
+              )}
 
               {/* Label - 11px for readability */}
               <span className={`text-[11px] leading-tight ${isActive ? 'font-semibold' : 'font-medium'}`}>

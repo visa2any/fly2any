@@ -79,7 +79,7 @@ export const metadata: Metadata = {
 };
 
 export const viewport = {
-  themeColor: "#006FDB",
+  themeColor: "#FAFAFA",  // Match hero gradient (neutral-50 background)
   width: "device-width",
   initialScale: 1,
   maximumScale: 5,
@@ -134,8 +134,8 @@ export default async function RootLayout({
         <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
         <meta name="apple-mobile-web-app-title" content="Fly2Any" />
         <meta name="apple-touch-fullscreen" content="yes" />
-        <meta name="theme-color" content="#006FDB" media="(prefers-color-scheme: light)" />
-        <meta name="theme-color" content="#003F93" media="(prefers-color-scheme: dark)" />
+        <meta name="theme-color" content="#FAFAFA" media="(prefers-color-scheme: light)" />
+        <meta name="theme-color" content="#1B1C20" media="(prefers-color-scheme: dark)" />
         {/* Global Structured Data for SEO */}
         <StructuredData schema={globalSchemas} />
       </head>

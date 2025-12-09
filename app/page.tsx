@@ -23,17 +23,17 @@ const content = {
   en: {
     pageTitle: 'FLY2ANY - Find Cheap Flights, Hotels, Cars & Tours',
     sectionTitle: 'Explore the World with Smart Travel Deals',
-    subtitle: 'AI-powered recommendations for the best value across all travel services',
+    subtitle: 'Best value across all travel services',
   },
   pt: {
     pageTitle: 'FLY2ANY - Encontre Voos, Hotéis, Carros e Passeios Baratos',
     sectionTitle: 'Explore o Mundo com Ofertas Inteligentes de Viagem',
-    subtitle: 'Recomendações IA para o melhor valor em todos os serviços de viagem',
+    subtitle: 'Melhor valor em todos os serviços',
   },
   es: {
     pageTitle: 'FLY2ANY - Encuentra Vuelos, Hoteles, Autos y Tours Baratos',
     sectionTitle: 'Explora el Mundo con Ofertas Inteligentes de Viaje',
-    subtitle: 'Recomendaciones IA para el mejor valor en todos los servicios de viaje',
+    subtitle: 'Mejor valor en todos los servicios',
   },
 };
 
