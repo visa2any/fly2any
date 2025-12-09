@@ -286,18 +286,24 @@ export function FlightCardMobile(props: EnhancedFlightCardProps) {
           isComparing ? 'border-primary-500 shadow-lg shadow-primary-100' : 'border-gray-200'
         }`}
       >
-        {/* HEADER - Airline + Favorite + Badge + Overflow Menu */}
-        <div className="flex items-center justify-between px-3 py-1.5 border-b border-gray-100">
-          {/* Left: Airline info (compact) */}
+        {/* HEADER - Airline + Flight Number + Favorite + Badge + Overflow Menu */}
+        <div className="flex items-center justify-between px-3 py-1 border-b border-gray-100">
+          {/* Left: Airline info with flight number (compact) */}
           <div className="flex items-center gap-2 flex-1 min-w-0">
             <AirlineLogo
               code={primaryAirline}
               size="sm"
               className="flex-shrink-0"
             />
-            <span className="text-sm font-semibold text-gray-900 truncate">
-              {airlineData.name}
-            </span>
+            <div className="flex flex-col min-w-0">
+              <span className="text-sm font-semibold text-gray-900 truncate leading-tight">
+                {airlineData.name}
+              </span>
+              <span className="text-[10px] text-gray-500 leading-tight">
+                {outboundFirstSegment.carrierCode}{outboundFirstSegment.number}
+                {isRoundTrip && returnItinerary && ` • ${returnItinerary.segments[0].carrierCode}${returnItinerary.segments[0].number}`}
+              </span>
+            </div>
           </div>
 
           {/* Right: Favorite + Badge + Overflow */}
@@ -389,11 +395,14 @@ export function FlightCardMobile(props: EnhancedFlightCardProps) {
           </div>
         </div>
 
-        {/* OUTBOUND ROUTE */}
-        <div className="px-3 py-2 border-b border-gray-100">
-          <div className="flex items-center justify-between mb-1">
-            <span className="text-[10px] font-semibold text-gray-500 uppercase">Outbound</span>
-            <span className="text-[10px] text-gray-500">{formatDate(outboundFirstSegment.departure.at)}</span>
+        {/* OUTBOUND ROUTE - Compact */}
+        <div className="px-3 py-1.5 border-b border-gray-100">
+          <div className="flex items-center justify-between mb-0.5">
+            <div className="flex items-center gap-1">
+              <span className="text-[9px] font-bold text-primary-600 uppercase tracking-wide">Outbound</span>
+              <span className="text-[9px] text-gray-500">{outboundFirstSegment.carrierCode}{outboundFirstSegment.number}</span>
+            </div>
+            <span className="text-[10px] font-semibold text-gray-700">{formatDate(outboundFirstSegment.departure.at)}</span>
           </div>
           <div className="flex items-center">
             {/* Departure */}
@@ -434,7 +443,7 @@ export function FlightCardMobile(props: EnhancedFlightCardProps) {
           </div>
         </div>
 
-        {/* RETURN ROUTE (only for round-trip) */}
+        {/* RETURN ROUTE (only for round-trip) - Compact */}
         {isRoundTrip && returnItinerary && (() => {
           const returnFirstSegment = returnItinerary.segments[0];
           const returnLastSegment = returnItinerary.segments[returnItinerary.segments.length - 1];
@@ -442,10 +451,13 @@ export function FlightCardMobile(props: EnhancedFlightCardProps) {
           const returnStopsText = returnStops === 0 ? 'Direct' : returnStops === 1 ? '1 stop' : `${returnStops} stops`;
 
           return (
-            <div className="px-3 py-2 border-b border-gray-100">
-              <div className="flex items-center justify-between mb-1">
-                <span className="text-[10px] font-semibold text-gray-500 uppercase">Return</span>
-                <span className="text-[10px] text-gray-500">{formatDate(returnFirstSegment.departure.at)}</span>
+            <div className="px-3 py-1.5 border-b border-gray-100">
+              <div className="flex items-center justify-between mb-0.5">
+                <div className="flex items-center gap-1">
+                  <span className="text-[9px] font-bold text-secondary-600 uppercase tracking-wide">Return</span>
+                  <span className="text-[9px] text-gray-500">{returnFirstSegment.carrierCode}{returnFirstSegment.number}</span>
+                </div>
+                <span className="text-[10px] font-semibold text-gray-700">{formatDate(returnFirstSegment.departure.at)}</span>
               </div>
               <div className="flex items-center">
                 {/* Departure */}

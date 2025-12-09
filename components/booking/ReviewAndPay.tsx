@@ -178,89 +178,92 @@ export function ReviewAndPay({
         </div>
 
         <div className="p-4">
-          {/* Card Payment Form - Ultra Compact Single Row */}
+          {/* Card Payment Form - Mobile-Optimized Layout */}
           <div className="space-y-3">
-              {/* All Card Fields in ONE Row */}
+              {/* Card Details Header */}
+              <div className="flex items-center justify-between mb-1">
+                <label className="text-xs font-semibold text-gray-700 flex items-center gap-1">
+                  <CreditCard className="w-3.5 h-3.5 text-primary-500" />
+                  Card Details *
+                </label>
+                <span className="text-xs text-gray-500">
+                  💳 Visa Mastercard Amex Discover
+                </span>
+              </div>
+
+              {/* Card Number - Full Width */}
               <div>
-                <div className="flex items-center justify-between mb-1">
-                  <label className="text-xs font-semibold text-gray-700 flex items-center gap-1">
-                    <CreditCard className="w-3.5 h-3.5 text-primary-500" />
-                    Card Details *
-                  </label>
-                  <span className="text-xs text-gray-500">
-                    💳 Visa Mastercard Amex Discover
-                  </span>
+                <input
+                  type="text"
+                  value={formatCardNumber(cardNumber)}
+                  onChange={(e) => setCardNumber(e.target.value.replace(/\s/g, ''))}
+                  placeholder="Card Number"
+                  maxLength={19}
+                  className="w-full px-3 py-3 text-sm border border-gray-300 rounded-lg bg-white focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+                  required
+                />
+              </div>
+
+              {/* Cardholder Name - Full Width */}
+              <div>
+                <input
+                  type="text"
+                  value={cardName}
+                  onChange={(e) => setCardName(e.target.value)}
+                  placeholder="Cardholder Name"
+                  className="w-full px-3 py-3 text-sm border border-gray-300 rounded-lg bg-white focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+                  required
+                />
+              </div>
+
+              {/* Expiry & CVV Row - Touch-Friendly */}
+              <div className="grid grid-cols-3 gap-2">
+                {/* Month */}
+                <div>
+                  <label className="block text-xs text-gray-500 mb-1">Expiry Month</label>
+                  <select
+                    value={expiryMonth}
+                    onChange={(e) => setExpiryMonth(e.target.value)}
+                    className="w-full px-3 py-3 text-sm border border-gray-300 rounded-lg bg-white focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+                    required
+                  >
+                    <option value="">MM</option>
+                    {Array.from({ length: 12 }, (_, i) => {
+                      const month = (i + 1).toString().padStart(2, '0');
+                      return <option key={month} value={month}>{month}</option>;
+                    })}
+                  </select>
                 </div>
-                <div className="grid grid-cols-12 gap-2">
-                  {/* Card Number - 5 cols */}
-                  <div className="col-span-5">
-                    <input
-                      type="text"
-                      value={formatCardNumber(cardNumber)}
-                      onChange={(e) => setCardNumber(e.target.value.replace(/\s/g, ''))}
-                      placeholder="Card Number"
-                      maxLength={19}
-                      className="w-full px-2 py-2 text-xs border border-gray-300 rounded-lg bg-white focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
-                      required
-                    />
-                  </div>
 
-                  {/* Cardholder Name - 4 cols */}
-                  <div className="col-span-4">
-                    <input
-                      type="text"
-                      value={cardName}
-                      onChange={(e) => setCardName(e.target.value)}
-                      placeholder="Cardholder Name"
-                      className="w-full px-2 py-2 text-xs border border-gray-300 rounded-lg bg-white focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
-                      required
-                    />
-                  </div>
+                {/* Year */}
+                <div>
+                  <label className="block text-xs text-gray-500 mb-1">Expiry Year</label>
+                  <select
+                    value={expiryYear}
+                    onChange={(e) => setExpiryYear(e.target.value)}
+                    className="w-full px-3 py-3 text-sm border border-gray-300 rounded-lg bg-white focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+                    required
+                  >
+                    <option value="">YY</option>
+                    {Array.from({ length: 10 }, (_, i) => {
+                      const year = (new Date().getFullYear() + i).toString().slice(-2);
+                      return <option key={year} value={year}>{year}</option>;
+                    })}
+                  </select>
+                </div>
 
-                  {/* Month - 1 col */}
-                  <div className="col-span-1">
-                    <select
-                      value={expiryMonth}
-                      onChange={(e) => setExpiryMonth(e.target.value)}
-                      className="w-full px-1 py-2 text-xs border border-gray-300 rounded-lg bg-white focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
-                      required
-                    >
-                      <option value="">MM</option>
-                      {Array.from({ length: 12 }, (_, i) => {
-                        const month = (i + 1).toString().padStart(2, '0');
-                        return <option key={month} value={month}>{month}</option>;
-                      })}
-                    </select>
-                  </div>
-
-                  {/* Year - 1 col */}
-                  <div className="col-span-1">
-                    <select
-                      value={expiryYear}
-                      onChange={(e) => setExpiryYear(e.target.value)}
-                      className="w-full px-1 py-2 text-xs border border-gray-300 rounded-lg bg-white focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
-                      required
-                    >
-                      <option value="">YY</option>
-                      {Array.from({ length: 10 }, (_, i) => {
-                        const year = (new Date().getFullYear() + i).toString().slice(-2);
-                        return <option key={year} value={year}>{year}</option>;
-                      })}
-                    </select>
-                  </div>
-
-                  {/* CVV - 1 col */}
-                  <div className="col-span-1">
-                    <input
-                      type="text"
-                      value={cvv}
-                      onChange={(e) => setCvv(e.target.value)}
-                      placeholder="CVV"
-                      maxLength={4}
-                      className="w-full px-1 py-2 text-xs border border-gray-300 rounded-lg bg-white focus:ring-2 focus:ring-primary-500 focus:border-primary-500 text-center"
-                      required
-                    />
-                  </div>
+                {/* CVV */}
+                <div>
+                  <label className="block text-xs text-gray-500 mb-1">Security Code</label>
+                  <input
+                    type="text"
+                    value={cvv}
+                    onChange={(e) => setCvv(e.target.value)}
+                    placeholder="CVV"
+                    maxLength={4}
+                    className="w-full px-3 py-3 text-sm border border-gray-300 rounded-lg bg-white focus:ring-2 focus:ring-primary-500 focus:border-primary-500 text-center"
+                    required
+                  />
                 </div>
               </div>
 
