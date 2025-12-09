@@ -527,28 +527,36 @@ export function FlightCardMobile(props: EnhancedFlightCardProps) {
             <span className="text-2xl font-bold text-primary-600 leading-tight">
               {formatPrice()}
             </span>
-            <div className="flex items-center gap-1 text-[8px] text-gray-500">
+            <div className="flex items-center flex-wrap gap-x-1 gap-y-0.5 text-[9px] text-neutral-600">
               {isMultipleTravelers ? (
                 <>
                   {travelerCounts.adults > 0 && (
                     <span className="flex items-center gap-0.5">
-                      <User className="w-2.5 h-2.5" />{travelerCounts.adults}
+                      {travelerCounts.adults} {travelerCounts.adults === 1 ? 'Adult' : 'Adults'}
                     </span>
                   )}
                   {travelerCounts.children > 0 && (
-                    <span className="flex items-center gap-0.5">
-                      <User className="w-2 h-2" />{travelerCounts.children}
-                    </span>
+                    <>
+                      <span className="text-neutral-400">·</span>
+                      <span className="flex items-center gap-0.5">
+                        {travelerCounts.children} {travelerCounts.children === 1 ? 'Child' : 'Children'}
+                      </span>
+                    </>
                   )}
                   {travelerCounts.infants > 0 && (
-                    <span className="flex items-center gap-0.5">
-                      <Baby className="w-2.5 h-2.5" />{travelerCounts.infants}
-                    </span>
+                    <>
+                      <span className="text-neutral-400">·</span>
+                      <span className="flex items-center gap-0.5">
+                        {travelerCounts.infants} {travelerCounts.infants === 1 ? 'Infant' : 'Infants'}
+                      </span>
+                    </>
                   )}
-                  <span className="text-gray-400">•</span>
+                  <span className="text-neutral-400 mx-0.5">—</span>
+                  <span className="font-medium">Total</span>
                 </>
-              ) : null}
-              <span>incl. taxes</span>
+              ) : (
+                <span>incl. taxes</span>
+              )}
             </div>
           </div>
 

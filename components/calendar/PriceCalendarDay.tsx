@@ -66,8 +66,9 @@ export function PriceCalendarDay({
       onKeyDown={handleKeyDown}
       disabled={isPast}
       className={`
-        relative aspect-square p-1.5 md:p-2
-        rounded-lg border-2 transition-all
+        relative aspect-square p-1 md:p-2
+        rounded-lg border-2 transition-all duration-150 ease-out
+        touch-manipulation active:scale-95
         ${getColorClass()}
         ${!isPast && 'focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-1'}
         ${isWeekend && !isPast && !isSelected ? 'ring-1 ring-gray-300' : ''}

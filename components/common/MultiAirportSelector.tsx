@@ -1,7 +1,7 @@
 'use client';
 
-import { useState, useRef, useEffect } from 'react';
-import { X, ChevronDown, MapPin, PlaneTakeoff, PlaneLanding } from 'lucide-react';
+import { useState, useRef, useEffect, useMemo, useCallback } from 'react';
+import { X, ChevronDown, MapPin, PlaneTakeoff, PlaneLanding, Check } from 'lucide-react';
 import { AIRPORTS as AIRPORTS_DATA } from '@/lib/data/airports-complete';
 
 export interface Airport {
@@ -11,6 +11,15 @@ export interface Airport {
   country: string;
   emoji: string;
 }
+
+// Normalize text for accent-insensitive search (São Paulo -> sao paulo)
+const normalizeText = (text: string): string => {
+  return text
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '') // Remove diacritics
+    .toLowerCase()
+    .trim();
+};
 
 interface MultiAirportSelectorProps {
   value: string[]; // Array of airport codes: ['JFK', 'EWR', 'LGA']
@@ -83,12 +92,29 @@ export default function MultiAirportSelector({
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
-  // Filter airports based on search query
-  const filteredAirports = AIRPORTS.filter(airport =>
-    airport.code.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    airport.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    airport.city.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+  // Memoized normalized search with Unicode support
+  const filteredAirports = useMemo(() => {
+    if (searchQuery.length < 2) return [];
+    const normalizedQuery = normalizeText(searchQuery);
+    return AIRPORTS.filter(airport => {
+      const normalizedCode = normalizeText(airport.code);
+      const normalizedName = normalizeText(airport.name);
+      const normalizedCity = normalizeText(airport.city);
+      const normalizedCountry = normalizeText(airport.country);
+      return (
+        normalizedCode.includes(normalizedQuery) ||
+        normalizedName.includes(normalizedQuery) ||
+        normalizedCity.includes(normalizedQuery) ||
+        normalizedCountry.includes(normalizedQuery)
+      );
+    });
+  }, [searchQuery]);
+
+  // Handle Done button - closes dropdown
+  const handleDone = useCallback(() => {
+    setIsOpen(false);
+    setSearchQuery('');
+  }, []);
 
   const handleToggleAirport = (airport: Airport) => {
     const isSelected = value.includes(airport.code);
@@ -237,18 +263,20 @@ export default function MultiAirportSelector({
           )}
 
           {/* Metro Area Quick Select - Only show when 2+ chars match metro area names */}
-          {searchQuery.length >= 2 && Object.entries(METRO_AREAS).some(([_, metro]) =>
-            metro.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-            metro.codes.some(code => code.toLowerCase().includes(searchQuery.toLowerCase()))
-          ) && (
+          {searchQuery.length >= 2 && Object.entries(METRO_AREAS).some(([_, metro]) => {
+            const normalizedQuery = normalizeText(searchQuery);
+            return normalizeText(metro.name).includes(normalizedQuery) ||
+              metro.codes.some(code => normalizeText(code).includes(normalizedQuery));
+          }) && (
             <div className="p-2 md:p-2 px-1 md:px-2 bg-gray-50 border-b border-gray-200">
               <div className="text-[10px] font-semibold text-gray-700 mb-1.5">Quick Select</div>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-1.5">
                 {Object.entries(METRO_AREAS)
-                  .filter(([_, metro]) =>
-                    metro.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                    metro.codes.some(code => code.toLowerCase().includes(searchQuery.toLowerCase()))
-                  )
+                  .filter(([_, metro]) => {
+                    const normalizedQuery = normalizeText(searchQuery);
+                    return normalizeText(metro.name).includes(normalizedQuery) ||
+                      metro.codes.some(code => normalizeText(code).includes(normalizedQuery));
+                  })
                   .map(([key, metro]) => (
                   <button
                     key={key}
@@ -264,7 +292,7 @@ export default function MultiAirportSelector({
           )}
 
           {/* Airport List - Mobile Single Column - Only show after 2+ chars typed */}
-          <div className="max-h-[60vh] overflow-y-auto p-1 md:p-1.5">
+          <div className="max-h-[50vh] overflow-y-auto p-1 md:p-1.5">
             {searchQuery.length < 2 ? (
               <div className="px-2 py-6 text-center">
                 <div className="text-xs text-gray-500 mb-1">Type at least 2 characters</div>
@@ -275,13 +303,13 @@ export default function MultiAirportSelector({
                 No airports found
               </div>
             ) : (
-              filteredAirports.map((airport) => {
+              filteredAirports.slice(0, 20).map((airport) => {
                 const isSelected = value.includes(airport.code);
                 return (
                   <button
                     key={airport.code}
                     onClick={() => handleToggleAirport(airport)}
-                    className={`w-full flex items-center gap-2 px-2 py-1.5 rounded-lg transition-all text-left mb-1 ${
+                    className={`w-full flex items-center gap-2 px-2 py-1.5 rounded-lg transition-all text-left mb-1 touch-manipulation ${
                       isSelected
                         ? 'bg-info-50 border border-info-200'
                         : 'hover:bg-gray-50 border border-transparent'
@@ -303,6 +331,18 @@ export default function MultiAirportSelector({
                 );
               })
             )}
+          </div>
+
+          {/* Done Button - Sticky Bottom */}
+          <div className="sticky bottom-0 p-2 bg-white border-t border-gray-200 shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.05)]">
+            <button
+              type="button"
+              onClick={handleDone}
+              className="w-full flex items-center justify-center gap-2 py-2.5 bg-primary-600 hover:bg-primary-700 text-white font-semibold text-sm rounded-lg transition-all active:scale-[0.98] touch-manipulation min-h-[44px]"
+            >
+              <Check size={18} strokeWidth={2.5} />
+              <span>Done{selectedAirports.length > 0 ? ` (${selectedAirports.length})` : ''}</span>
+            </button>
           </div>
         </div>
       )}
