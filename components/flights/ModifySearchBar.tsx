@@ -288,11 +288,214 @@ export default function ModifySearchBar({
 
         {/* EDIT VIEW - Expanded Inline Form */}
         {isEditing && (
-          <div className="py-3 animate-slideDown">
-            <div className="grid grid-cols-1 md:grid-cols-12 gap-2 items-end">
+          <div className="py-2 md:py-3 animate-slideDown">
+            {/* MOBILE: Compact stacked layout */}
+            <div className="md:hidden space-y-2">
+              {/* Row 1: From → To with swap */}
+              <div className="flex items-end gap-1.5">
+                <div className="flex-1 min-w-0">
+                  <label className="block text-[9px] font-bold text-gray-500 mb-0.5 uppercase tracking-wide">
+                    {t.from}
+                  </label>
+                  <AirportAutocomplete
+                    label=""
+                    placeholder="JFK"
+                    value={editFrom}
+                    onChange={setEditFrom}
+                    icon={<Plane className="w-3.5 h-3.5 text-primary-600" />}
+                    size="small"
+                  />
+                </div>
+                <button
+                  onClick={() => {
+                    const temp = editFrom;
+                    setEditFrom(editTo);
+                    setEditTo(temp);
+                  }}
+                  className="p-1.5 bg-gray-100 hover:bg-primary-50 rounded-lg transition-colors mb-0.5"
+                  title="Swap airports"
+                >
+                  <svg className="w-3.5 h-3.5 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16V4m0 0L3 8m4-4l4 4m6 0v12m0 0l4-4m-4 4l-4-4" />
+                  </svg>
+                </button>
+                <div className="flex-1 min-w-0">
+                  <label className="block text-[9px] font-bold text-gray-500 mb-0.5 uppercase tracking-wide">
+                    {t.to}
+                  </label>
+                  <AirportAutocomplete
+                    label=""
+                    placeholder="LAX"
+                    value={editTo}
+                    onChange={setEditTo}
+                    icon={<Plane className="w-3.5 h-3.5 text-secondary-600 transform rotate-180" />}
+                    size="small"
+                  />
+                </div>
+              </div>
 
+              {/* Row 2: Dates side by side */}
+              <div className="flex gap-2">
+                <div className="flex-1">
+                  <label className="block text-[9px] font-bold text-gray-500 mb-0.5 uppercase tracking-wide">
+                    {t.departure}
+                  </label>
+                  <input
+                    type="date"
+                    value={editDeparture}
+                    onChange={(e) => setEditDeparture(e.target.value)}
+                    min={new Date().toISOString().split('T')[0]}
+                    className="w-full px-2 py-1.5 text-xs rounded-lg border border-gray-200 focus:border-primary-500 focus:outline-none transition-colors"
+                  />
+                </div>
+                <div className="flex-1">
+                  <label className="block text-[9px] font-bold text-gray-500 mb-0.5 uppercase tracking-wide">
+                    {t.return}
+                  </label>
+                  <input
+                    type="date"
+                    value={editReturn}
+                    onChange={(e) => setEditReturn(e.target.value)}
+                    min={editDeparture || new Date().toISOString().split('T')[0]}
+                    className="w-full px-2 py-1.5 text-xs rounded-lg border border-gray-200 focus:border-primary-500 focus:outline-none transition-colors"
+                  />
+                </div>
+              </div>
+
+              {/* Row 3: Passengers + Class + Actions - ALL IN ONE ROW */}
+              <div className="flex items-center gap-1.5 flex-nowrap">
+                {/* Passengers - Compact chip button */}
+                <div className="relative flex-shrink-0">
+                  <button
+                    onClick={() => setShowPassengerDropdown(!showPassengerDropdown)}
+                    className="flex items-center gap-1 px-2 py-1.5 bg-gray-50 border border-gray-200 rounded-lg text-[11px] font-semibold text-gray-700 whitespace-nowrap"
+                  >
+                    <Users className="w-3 h-3 text-gray-400" />
+                    <span>{getTotalPassengers()}</span>
+                    <ChevronDown className={`w-2.5 h-2.5 text-gray-400 transition-transform ${showPassengerDropdown ? 'rotate-180' : ''}`} />
+                  </button>
+
+                  {/* Passenger Dropdown Panel */}
+                  {showPassengerDropdown && (
+                    <div className="absolute top-full left-0 mt-1 bg-white rounded-lg border border-primary-200 shadow-xl z-50 p-2.5 space-y-2 animate-slideDown min-w-[180px]">
+                      {/* Adults */}
+                      <div className="flex items-center justify-between">
+                        <span className="text-[10px] font-semibold text-gray-700">{t.adults}</span>
+                        <div className="flex items-center gap-1.5">
+                          <button
+                            onClick={() => setEditAdults(Math.max(1, editAdults - 1))}
+                            className="w-6 h-6 rounded-full bg-gray-100 hover:bg-gray-200 flex items-center justify-center font-bold text-gray-700 text-xs"
+                          >
+                            -
+                          </button>
+                          <span className="w-5 text-center font-bold text-gray-900 text-xs">{editAdults}</span>
+                          <button
+                            onClick={() => setEditAdults(Math.min(9, editAdults + 1))}
+                            className="w-6 h-6 rounded-full bg-primary-500 hover:bg-primary-600 flex items-center justify-center font-bold text-white text-xs"
+                          >
+                            +
+                          </button>
+                        </div>
+                      </div>
+                      {/* Children */}
+                      <div className="flex items-center justify-between">
+                        <span className="text-[10px] font-semibold text-gray-700">{t.children}</span>
+                        <div className="flex items-center gap-1.5">
+                          <button
+                            onClick={() => setEditChildren(Math.max(0, editChildren - 1))}
+                            className="w-6 h-6 rounded-full bg-gray-100 hover:bg-gray-200 flex items-center justify-center font-bold text-gray-700 text-xs"
+                          >
+                            -
+                          </button>
+                          <span className="w-5 text-center font-bold text-gray-900 text-xs">{editChildren}</span>
+                          <button
+                            onClick={() => setEditChildren(Math.min(9, editChildren + 1))}
+                            className="w-6 h-6 rounded-full bg-primary-500 hover:bg-primary-600 flex items-center justify-center font-bold text-white text-xs"
+                          >
+                            +
+                          </button>
+                        </div>
+                      </div>
+                      {/* Infants */}
+                      <div className="flex items-center justify-between">
+                        <span className="text-[10px] font-semibold text-gray-700">{t.infants}</span>
+                        <div className="flex items-center gap-1.5">
+                          <button
+                            onClick={() => setEditInfants(Math.max(0, editInfants - 1))}
+                            className="w-6 h-6 rounded-full bg-gray-100 hover:bg-gray-200 flex items-center justify-center font-bold text-gray-700 text-xs"
+                          >
+                            -
+                          </button>
+                          <span className="w-5 text-center font-bold text-gray-900 text-xs">{editInfants}</span>
+                          <button
+                            onClick={() => setEditInfants(Math.min(editAdults, editInfants + 1))}
+                            className="w-6 h-6 rounded-full bg-primary-500 hover:bg-primary-600 flex items-center justify-center font-bold text-white text-xs"
+                          >
+                            +
+                          </button>
+                        </div>
+                      </div>
+                      {/* Done Button */}
+                      <button
+                        onClick={() => setShowPassengerDropdown(false)}
+                        className="w-full py-1.5 bg-primary-500 hover:bg-primary-600 text-white font-bold rounded-lg text-[10px] transition-colors"
+                      >
+                        Done
+                      </button>
+                    </div>
+                  )}
+                </div>
+
+                {/* Divider */}
+                <div className="h-4 w-px bg-gray-200 flex-shrink-0" />
+
+                {/* Class - Compact select */}
+                <select
+                  value={editClass}
+                  onChange={(e) => setEditClass(e.target.value as any)}
+                  className="px-2 py-1.5 text-[11px] font-semibold rounded-lg border border-gray-200 focus:border-primary-500 focus:outline-none bg-gray-50 text-gray-700 flex-shrink-0"
+                >
+                  <option value="economy">Eco</option>
+                  <option value="premium">Prem</option>
+                  <option value="business">Biz</option>
+                  <option value="first">First</option>
+                </select>
+
+                {/* Spacer */}
+                <div className="flex-1" />
+
+                {/* Action Buttons - Compact */}
+                <div className="flex gap-1 flex-shrink-0">
+                  <button
+                    onClick={handleCancel}
+                    className="p-1.5 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg transition-all"
+                    title={t.cancel}
+                  >
+                    <X className="w-4 h-4" />
+                  </button>
+                  <button
+                    onClick={handleSearch}
+                    disabled={isSearching}
+                    className="px-3 py-1.5 bg-gradient-to-r from-primary-600 to-secondary-600 hover:from-primary-700 hover:to-secondary-700 text-white font-bold rounded-lg transition-all text-[11px] flex items-center gap-1 disabled:opacity-50"
+                  >
+                    {isSearching ? (
+                      <svg className="animate-spin h-3.5 w-3.5" viewBox="0 0 24 24">
+                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
+                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+                      </svg>
+                    ) : (
+                      <Search className="w-3.5 h-3.5" />
+                    )}
+                    <span>Go</span>
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            {/* DESKTOP: Original grid layout */}
+            <div className="hidden md:grid grid-cols-12 gap-2 items-end">
               {/* From Airport */}
-              <div className="md:col-span-2">
+              <div className="col-span-2">
                 <label className="block text-[10px] font-bold text-gray-600 mb-1 uppercase tracking-wide">
                   {t.from}
                 </label>
@@ -306,7 +509,7 @@ export default function ModifySearchBar({
               </div>
 
               {/* Swap Button */}
-              <div className="hidden md:flex md:col-span-auto items-end pb-2">
+              <div className="flex items-end pb-2">
                 <button
                   onClick={() => {
                     const temp = editFrom;
@@ -323,7 +526,7 @@ export default function ModifySearchBar({
               </div>
 
               {/* To Airport */}
-              <div className="md:col-span-2">
+              <div className="col-span-2">
                 <label className="block text-[10px] font-bold text-gray-600 mb-1 uppercase tracking-wide">
                   {t.to}
                 </label>
@@ -337,7 +540,7 @@ export default function ModifySearchBar({
               </div>
 
               {/* Departure Date */}
-              <div className="md:col-span-2">
+              <div className="col-span-2">
                 <label className="block text-[10px] font-bold text-gray-600 mb-1 uppercase tracking-wide">
                   {t.departure}
                 </label>
@@ -351,7 +554,7 @@ export default function ModifySearchBar({
               </div>
 
               {/* Return Date */}
-              <div className="md:col-span-2">
+              <div className="col-span-2">
                 <label className="block text-[10px] font-bold text-gray-600 mb-1 uppercase tracking-wide">
                   {t.return}
                 </label>
@@ -366,7 +569,7 @@ export default function ModifySearchBar({
               </div>
 
               {/* Passengers Dropdown */}
-              <div className="md:col-span-2 relative">
+              <div className="col-span-2 relative">
                 <label className="block text-[10px] font-bold text-gray-600 mb-1 uppercase tracking-wide">
                   {t.passengers}
                 </label>
@@ -456,7 +659,7 @@ export default function ModifySearchBar({
               </div>
 
               {/* Class */}
-              <div className="md:col-span-1">
+              <div className="col-span-1">
                 <label className="block text-[10px] font-bold text-gray-600 mb-1 uppercase tracking-wide">
                   {t.class}
                 </label>
@@ -473,7 +676,7 @@ export default function ModifySearchBar({
               </div>
 
               {/* Action Buttons */}
-              <div className="md:col-span-1 flex gap-1">
+              <div className="col-span-1 flex gap-1">
                 <button
                   onClick={handleCancel}
                   className="flex-1 px-3 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 font-semibold rounded-lg transition-all text-sm flex items-center justify-center gap-1"
@@ -499,10 +702,10 @@ export default function ModifySearchBar({
               </div>
             </div>
 
-            {/* Helper Text */}
-            <div className="mt-2 text-center">
+            {/* Helper Text - Desktop only */}
+            <div className="hidden md:block mt-2 text-center">
               <p className="text-[10px] text-gray-500">
-                💡 <span className="font-semibold">Quick tip:</span> Use Tab to navigate between fields
+                <span className="font-semibold">Quick tip:</span> Use Tab to navigate between fields
               </p>
             </div>
           </div>
