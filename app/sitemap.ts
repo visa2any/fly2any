@@ -178,6 +178,23 @@ export default function sitemap(): MetadataRoute.Sitemap {
   allEntries.push(...usaFlightPages);
 
   // ===================================
+  // DEALS: CHEAP FLIGHTS ROUTE PAGES
+  // /deals/cheap-flights-{origin}-to-{destination}
+  // ===================================
+  const dealRoutes = [
+    'new-york-to-miami', 'los-angeles-to-las-vegas', 'chicago-to-new-york',
+    'new-york-to-london', 'miami-to-cancun', 'san-francisco-to-los-angeles',
+    'boston-to-miami', 'dallas-to-denver', 'atlanta-to-orlando', 'seattle-to-phoenix',
+  ];
+  const dealPages = dealRoutes.map((route) => ({
+    url: `${SITE_URL}/deals/cheap-flights-${route}`,
+    lastModified: currentDate,
+    changeFrequency: 'daily' as const,
+    priority: 0.85,
+  }));
+  allEntries.push(...dealPages);
+
+  // ===================================
   // DESTINATION PAGES (International)
   // ===================================
   const internationalCityPages = TOP_INTERNATIONAL_CITIES.map((city) => ({
