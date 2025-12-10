@@ -3,7 +3,7 @@
 import { Calendar, Users, Armchair, ChevronDown, PlaneTakeoff } from 'lucide-react';
 import { format } from 'date-fns';
 import { colors, borderRadius } from '@/lib/design-system';
-import { formatCityCode, getAirportFlag } from '@/lib/data/airports';
+import { formatCityCode, getAirportFlag, getMobileCityShort } from '@/lib/data/airports';
 
 interface CompactSearchSummaryProps {
   origin: string;
@@ -193,18 +193,26 @@ export default function CompactSearchSummary({
         }}
       >
         <div className="flex items-center justify-between gap-4 py-3">
-          {/* Trip Summary */}
-          <div className="flex items-center gap-4 flex-wrap flex-1">
-            {/* Route */}
-            <div className="flex items-center gap-2 text-gray-900">
-              <span className="text-base sm:text-lg">
-                {getAirportEmoji(origin)} <span className="font-semibold">{formatCityCode(origin)}</span>
+          {/* Trip Summary - Mobile-optimized */}
+          <div className="flex items-center gap-2 sm:gap-4 flex-wrap flex-1">
+            {/* Route - City names with flags, code shown on larger screens */}
+            <div className="flex items-center gap-1.5 sm:gap-2 text-gray-900">
+              <span className="text-sm sm:text-lg flex items-center gap-1">
+                <span className="text-base">{getAirportEmoji(origin)}</span>
+                <span className="font-bold truncate max-w-[90px] sm:max-w-none">
+                  <span className="sm:hidden">{getMobileCityShort(origin, 10)}</span>
+                  <span className="hidden sm:inline">{formatCityCode(origin)}</span>
+                </span>
               </span>
-              <span className="text-gray-400 text-base sm:text-lg">
+              <span className="text-gray-400 text-sm sm:text-lg">
                 {isRoundTrip ? '⇄' : '→'}
               </span>
-              <span className="text-base sm:text-lg">
-                {getAirportEmoji(destination)} <span className="font-semibold">{formatCityCode(destination)}</span>
+              <span className="text-sm sm:text-lg flex items-center gap-1">
+                <span className="text-base">{getAirportEmoji(destination)}</span>
+                <span className="font-bold truncate max-w-[90px] sm:max-w-none">
+                  <span className="sm:hidden">{getMobileCityShort(destination, 10)}</span>
+                  <span className="hidden sm:inline">{formatCityCode(destination)}</span>
+                </span>
               </span>
             </div>
 

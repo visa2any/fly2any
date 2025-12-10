@@ -5,6 +5,7 @@ import { motion, AnimatePresence, useDragControls, PanInfo } from 'framer-motion
 import { ChevronDown, ChevronUp, Calendar, Users, MapPin, GripHorizontal } from 'lucide-react';
 import { format } from 'date-fns';
 import { useScrollDirection } from '@/lib/hooks/useScrollDirection';
+import { getMobileCityShort, getAirportFlag } from '@/lib/data/airports';
 
 export interface SearchSummary {
   origin: string;
@@ -176,11 +177,16 @@ export function CollapsibleSearchBar({
               aria-expanded="false"
             >
               <div className="flex items-center justify-between gap-2">
-                {/* Left: Route */}
-                <div className="flex items-center gap-2 flex-1 min-w-0">
-                  <MapPin className="w-4 h-4 text-primary-600 flex-shrink-0" />
-                  <span className="text-sm font-semibold text-gray-900 truncate">
-                    {searchSummary.origin || 'From'} → {searchSummary.destination || 'To'}
+                {/* Left: Route - Mobile-optimized city names with flags */}
+                <div className="flex items-center gap-1.5 flex-1 min-w-0">
+                  <span className="text-sm flex-shrink-0">{getAirportFlag(searchSummary.origin) || '✈️'}</span>
+                  <span className="text-sm font-bold text-gray-900 truncate">
+                    {getMobileCityShort(searchSummary.origin, 10) || 'From'}
+                  </span>
+                  <span className="text-gray-400 text-sm">→</span>
+                  <span className="text-sm flex-shrink-0">{getAirportFlag(searchSummary.destination) || '✈️'}</span>
+                  <span className="text-sm font-bold text-gray-900 truncate">
+                    {getMobileCityShort(searchSummary.destination, 10) || 'To'}
                   </span>
                 </div>
 

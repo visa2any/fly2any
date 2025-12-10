@@ -401,3 +401,59 @@ export function formatCityCode(code: string): string {
 export function getAirport(code: string): Airport | undefined {
   return AIRPORTS.find(a => a.code.toUpperCase() === code.toUpperCase());
 }
+
+/**
+ * Mobile-first city name display
+ * Returns just the city name for compact mobile displays
+ * @param code - Airport code (e.g., "LAX")
+ * @returns City name or code if not found (e.g., "Los Angeles")
+ */
+export function getMobileCityName(code: string): string {
+  if (!code) return '';
+  const airport = AIRPORTS.find(a => a.code.toUpperCase() === code.toUpperCase());
+  return airport ? airport.city : code.toUpperCase();
+}
+
+/**
+ * Ultra-compact display for mobile route headers
+ * Returns "City" for single airport, truncated if too long
+ * @param code - Airport code (e.g., "LAX")
+ * @param maxLength - Max characters before truncating (default: 12)
+ * @returns Truncated city name (e.g., "Los Angeles" or "San Francis…")
+ */
+export function getMobileCityShort(code: string, maxLength: number = 12): string {
+  if (!code) return '';
+  const city = getMobileCityName(code);
+  if (city.length <= maxLength) return city;
+  return city.substring(0, maxLength - 1) + '…';
+}
+
+/**
+ * Format route for mobile display
+ * Returns "City → City" format optimized for mobile
+ * @param origin - Origin airport code
+ * @param destination - Destination airport code
+ * @returns Formatted route string (e.g., "New York → Los Angeles")
+ */
+export function formatMobileRoute(origin: string, destination: string): string {
+  const originCity = getMobileCityName(origin);
+  const destCity = getMobileCityName(destination);
+  return `${originCity} → ${destCity}`;
+}
+
+/**
+ * Format route with flags for mobile display
+ * Returns "🇺🇸 City → 🇧🇷 City" format
+ * @param origin - Origin airport code
+ * @param destination - Destination airport code
+ * @returns Formatted route with flags (e.g., "🇺🇸 New York → 🇧🇷 São Paulo")
+ */
+export function formatMobileRouteWithFlags(origin: string, destination: string): string {
+  const originAirport = AIRPORTS.find(a => a.code.toUpperCase() === origin.toUpperCase());
+  const destAirport = AIRPORTS.find(a => a.code.toUpperCase() === destination.toUpperCase());
+  const originCity = originAirport ? originAirport.city : origin;
+  const destCity = destAirport ? destAirport.city : destination;
+  const originFlag = originAirport?.flag || '';
+  const destFlag = destAirport?.flag || '';
+  return `${originFlag} ${originCity} → ${destFlag} ${destCity}`;
+}

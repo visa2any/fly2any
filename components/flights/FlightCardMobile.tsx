@@ -7,7 +7,7 @@ import { toast } from 'react-hot-toast';
 import AirlineLogo from './AirlineLogo';
 import { DealScoreBadgeCompact } from './DealScoreBadge';
 import { getAirlineData } from '@/lib/flights/airline-data';
-import { formatCityCode } from '@/lib/data/airports';
+import { formatCityCode, getMobileCityName } from '@/lib/data/airports';
 import type { EnhancedFlightCardProps } from './FlightCardEnhanced';
 import { FlightDetailsSheet } from './FlightDetailsSheet';
 
@@ -421,14 +421,17 @@ export function FlightCardMobile(props: EnhancedFlightCardProps) {
             </span>
           </div>
           <div className="flex items-center">
-            {/* Departure with date */}
+            {/* Departure with date - Mobile-optimized city display */}
             <div className="flex-shrink-0">
               <div className="text-[9px] text-gray-500">{formatDate(outboundFirstSegment.departure.at)}</div>
               <div className="text-base font-bold text-gray-900 leading-none">
                 {formatTime(outboundFirstSegment.departure.at)}
               </div>
-              <div className="text-[10px] font-semibold text-gray-600">
-                {formatCityCode(outboundFirstSegment.departure.iataCode)}
+              <div className="text-[11px] font-bold text-gray-800 leading-tight truncate max-w-[80px]">
+                {getMobileCityName(outboundFirstSegment.departure.iataCode)}
+              </div>
+              <div className="text-[9px] text-gray-500">
+                {outboundFirstSegment.departure.iataCode}
               </div>
             </div>
 
@@ -439,14 +442,17 @@ export function FlightCardMobile(props: EnhancedFlightCardProps) {
               </div>
             </div>
 
-            {/* Arrival with date */}
+            {/* Arrival with date - Mobile-optimized city display */}
             <div className="flex-shrink-0 text-right">
               <div className="text-[9px] text-gray-500">{formatDate(outboundLastSegment.arrival.at)}</div>
               <div className="text-base font-bold text-gray-900 leading-none">
                 {formatTime(outboundLastSegment.arrival.at)}
               </div>
-              <div className="text-[10px] font-semibold text-gray-600">
-                {formatCityCode(outboundLastSegment.arrival.iataCode)}
+              <div className="text-[11px] font-bold text-gray-800 leading-tight truncate max-w-[80px]">
+                {getMobileCityName(outboundLastSegment.arrival.iataCode)}
+              </div>
+              <div className="text-[9px] text-gray-500">
+                {outboundLastSegment.arrival.iataCode}
               </div>
             </div>
           </div>
@@ -477,14 +483,17 @@ export function FlightCardMobile(props: EnhancedFlightCardProps) {
                 </span>
               </div>
               <div className="flex items-center">
-                {/* Departure with date */}
+                {/* Departure with date - Mobile-optimized city display */}
                 <div className="flex-shrink-0">
                   <div className="text-[9px] text-gray-500">{formatDate(returnFirstSegment.departure.at)}</div>
                   <div className="text-base font-bold text-gray-900 leading-none">
                     {formatTime(returnFirstSegment.departure.at)}
                   </div>
-                  <div className="text-[10px] font-semibold text-gray-600">
-                    {formatCityCode(returnFirstSegment.departure.iataCode)}
+                  <div className="text-[11px] font-bold text-gray-800 leading-tight truncate max-w-[80px]">
+                    {getMobileCityName(returnFirstSegment.departure.iataCode)}
+                  </div>
+                  <div className="text-[9px] text-gray-500">
+                    {returnFirstSegment.departure.iataCode}
                   </div>
                 </div>
 
@@ -495,14 +504,17 @@ export function FlightCardMobile(props: EnhancedFlightCardProps) {
                   </div>
                 </div>
 
-                {/* Arrival with date */}
+                {/* Arrival with date - Mobile-optimized city display */}
                 <div className="flex-shrink-0 text-right">
                   <div className="text-[9px] text-gray-500">{formatDate(returnLastSegment.arrival.at)}</div>
                   <div className="text-base font-bold text-gray-900 leading-none">
                     {formatTime(returnLastSegment.arrival.at)}
                   </div>
-                  <div className="text-[10px] font-semibold text-gray-600">
-                    {formatCityCode(returnLastSegment.arrival.iataCode)}
+                  <div className="text-[11px] font-bold text-gray-800 leading-tight truncate max-w-[80px]">
+                    {getMobileCityName(returnLastSegment.arrival.iataCode)}
+                  </div>
+                  <div className="text-[9px] text-gray-500">
+                    {returnLastSegment.arrival.iataCode}
                   </div>
                 </div>
               </div>
