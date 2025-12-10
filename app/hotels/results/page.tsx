@@ -417,7 +417,7 @@ function HotelResultsContent() {
     {
       threshold: 80,
       mobileOnly: true,
-      theme: 'red',
+      theme: 'orange',
     }
   );
 
