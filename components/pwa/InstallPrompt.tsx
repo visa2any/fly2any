@@ -9,6 +9,8 @@ interface BeforeInstallPromptEvent extends Event {
 }
 
 const INSTALL_DISMISSED_KEY = 'fly2any-install-dismissed';
+const VISIT_COUNT_KEY = 'fly2any-visit-count';
+const MIN_VISITS_TO_SHOW = 2;
 
 // Detect iOS (any browser) - PWA only installs from Safari
 function isIOS(): boolean {
@@ -52,6 +54,11 @@ export default function InstallPrompt() {
     // Check dismissal
     const dismissedUntil = localStorage.getItem(INSTALL_DISMISSED_KEY);
     if (dismissedUntil && new Date(dismissedUntil) > new Date()) return;
+
+    // Smart visit counting - only show after MIN_VISITS_TO_SHOW visits
+    const visits = parseInt(localStorage.getItem(VISIT_COUNT_KEY) || '0', 10) + 1;
+    localStorage.setItem(VISIT_COUNT_KEY, String(visits));
+    if (visits < MIN_VISITS_TO_SHOW) return;
 
     // For iOS: Show prompt after 3 seconds
     if (isIOSSafari()) {

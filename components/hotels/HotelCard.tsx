@@ -408,38 +408,28 @@ export function HotelCard({
             /* Collapsed State - Minimal bar with expand hint */
             <motion.div
               key="collapsed"
-              initial={{ y: 80, opacity: 0 }}
+              initial={{ y: 60, opacity: 0 }}
               animate={{ y: 0, opacity: 1 }}
-              exit={{ y: 80, opacity: 0 }}
+              exit={{ y: 60, opacity: 0 }}
               transition={{ type: 'spring', stiffness: 400, damping: 30 }}
               drag="y"
-              dragConstraints={{ top: -50, bottom: 0 }}
+              dragConstraints={{ top: -40, bottom: 0 }}
               dragElastic={0.2}
               onDragEnd={handleOverlayDragEnd}
               onClick={(e) => { e.stopPropagation(); expandOverlay(); }}
               className="absolute bottom-0 left-0 right-0 z-10 cursor-pointer touch-manipulation"
             >
-              <div className="bg-black/50 backdrop-blur-md rounded-t-2xl" style={{ boxShadow: '0 -2px 12px rgba(0,0,0,0.2)' }}>
-                {/* Drag handle */}
-                <div className="flex flex-col items-center pt-2 pb-1">
-                  <div className="w-10 h-1 bg-white/40 rounded-full mb-1" />
-                  <motion.div
-                    className="flex items-center gap-1 text-white/70"
-                    animate={{ y: [0, -3, 0] }}
-                    transition={{ duration: 1.5, repeat: Infinity, ease: 'easeInOut' }}
-                  >
-                    <ChevronUp className="w-3.5 h-3.5" />
-                    <span className="text-[9px] font-medium">Swipe up for details</span>
-                  </motion.div>
+              <div className="bg-black/50 backdrop-blur-md rounded-t-xl" style={{ boxShadow: '0 -1px 8px rgba(0,0,0,0.15)' }}>
+                {/* Compact handle + hint */}
+                <div className="flex items-center justify-center gap-1.5 pt-1.5 pb-0.5">
+                  <div className="w-6 h-0.5 bg-white/30 rounded-full" />
+                  <ChevronUp className="w-3 h-3 text-white/50" />
                 </div>
                 {/* Minimal info row */}
-                <div className="px-3 pb-2 flex items-center justify-between">
-                  <div className="flex items-center gap-2 flex-1 min-w-0">
-                    <span className="text-secondary-300">🏨</span>
-                    <span className="text-white font-bold text-[12px] truncate">{hotel.name}</span>
-                  </div>
+                <div className="px-2.5 pb-1.5 flex items-center justify-between">
+                  <span className="text-white font-semibold text-[11px] truncate flex-1" style={{ fontFamily: 'system-ui, -apple-system, sans-serif' }}>{hotel.name}</span>
                   {perNightPrice > 0 && (
-                    <span className="font-bold text-[14px] text-secondary-200 flex-shrink-0">{currencySymbol}{Math.round(perNightPrice)}<span className="text-[9px] text-white/60">{t.perNight}</span></span>
+                    <span className="font-bold text-[12px] text-secondary-200 flex-shrink-0 ml-2">{currencySymbol}{Math.round(perNightPrice)}<span className="text-[8px] text-white/50">/n</span></span>
                   )}
                 </div>
               </div>
@@ -452,95 +442,87 @@ export function HotelCard({
               animate={{ y: 0, opacity: 1 }}
               exit={{ y: 100, opacity: 0 }}
               transition={{ type: 'spring', stiffness: 350, damping: 28 }}
-              className="absolute bottom-0 left-0 right-0 z-10 bg-black/40 backdrop-blur-md rounded-t-2xl"
-              style={{ boxShadow: '0 -2px 16px rgba(0,0,0,0.25)' }}
+              className="absolute bottom-0 left-0 right-0 z-10 bg-black/45 backdrop-blur-md rounded-t-xl"
+              style={{ boxShadow: '0 -2px 12px rgba(0,0,0,0.2)' }}
             >
-              <div className="px-3 py-2.5">
-                {/* Subtle drag indicator */}
-                <div className="flex justify-center mb-1.5">
-                  <div className="w-8 h-0.5 bg-white/30 rounded-full" />
+              <div className="px-2.5 pt-1.5 pb-2">
+                {/* Drag indicator */}
+                <div className="flex justify-center mb-1">
+                  <div className="w-6 h-0.5 bg-white/25 rounded-full" />
                 </div>
 
-                {/* Row 1: Name + Price */}
-                <div className="flex items-center justify-between gap-2 mb-1">
-                  <h3 className="font-bold text-[14px] text-white leading-tight line-clamp-1 flex-1 flex items-center gap-1.5">
-                    <span className="text-secondary-300">🏨</span>
+                {/* Row 1: Name + Price - Ultra compact */}
+                <div className="flex items-center justify-between gap-1.5 mb-0.5">
+                  <h3 className="font-semibold text-[12px] text-white truncate flex-1" style={{ fontFamily: 'system-ui, -apple-system, sans-serif' }}>
                     {hotel.name}
                   </h3>
                   {perNightPrice > 0 && (
-                    <div className="flex items-baseline gap-1 flex-shrink-0">
-                      <span className="font-bold text-[16px] text-secondary-200">{currencySymbol}{Math.round(perNightPrice)}</span>
-                      <span className="text-[9px] font-semibold text-white/70">{t.perNight}</span>
-                    </div>
+                    <span className="font-bold text-[13px] text-secondary-200 flex-shrink-0">{currencySymbol}{Math.round(perNightPrice)}<span className="text-[8px] text-white/50 font-normal">/n</span></span>
                   )}
                 </div>
 
-                {/* Row 2: Location + Guests + Total */}
-                <div className="flex items-center justify-between mb-2 gap-1">
-                  <div className="flex items-center gap-2 flex-1 min-w-0">
+                {/* Row 2: Location + Total - Single line */}
+                <div className="flex items-center justify-between mb-1.5">
+                  <div className="flex items-center gap-1.5 text-white/70 text-[9px]">
                     {hotel.location?.city && (
-                      <span className="text-white/90 text-[10px] font-medium flex items-center gap-0.5 truncate">
-                        <MapPin className="w-2.5 h-2.5 flex-shrink-0" />
+                      <span className="flex items-center gap-0.5 truncate max-w-[100px]">
+                        <MapPin className="w-2 h-2" />
                         {hotel.location.city}
                       </span>
                     )}
-                    {/* Guest count */}
-                    <span className="text-white/80 text-[10px] font-medium flex items-center gap-0.5 flex-shrink-0">
-                      <Users className="w-2.5 h-2.5" />
+                    <span className="flex items-center gap-0.5">
+                      <Users className="w-2 h-2" />
                       {adults + children}
                     </span>
                   </div>
                   {perNightPrice > 0 && (
-                    <div className="flex items-center gap-1 flex-shrink-0">
-                      <span className="text-[10px] font-bold text-white/70">{currencySymbol}{Math.round(totalPrice)} · {nights}n</span>
-                      <span className="text-[8px] text-emerald-400 font-semibold">{t.inclTax}</span>
-                    </div>
+                    <span className="text-[9px] text-white/60">{currencySymbol}{Math.round(totalPrice)} · {nights}n <span className="text-emerald-400">✓</span></span>
                   )}
                 </div>
 
                 {/* Row 3: Amenities with labels + CTA */}
-                <div className="flex items-center justify-between gap-2">
-                  <div className="flex items-center gap-3 flex-1 min-w-0">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2.5">
                     {amenities.wifi && (
                       <div className="flex flex-col items-center">
-                        <Wifi className="w-3.5 h-3.5 text-white/80" strokeWidth={2.5} />
-                        <span className="text-[7px] text-white/50 font-medium">WiFi</span>
+                        <Wifi className="w-3 h-3 text-white/70" strokeWidth={2} />
+                        <span className="text-[6px] text-white/40 mt-0.5">WiFi</span>
                       </div>
                     )}
                     {amenities.pool && (
                       <div className="flex flex-col items-center">
-                        <Waves className="w-3.5 h-3.5 text-white/80" strokeWidth={2.5} />
-                        <span className="text-[7px] text-white/50 font-medium">Pool</span>
+                        <Waves className="w-3 h-3 text-white/70" strokeWidth={2} />
+                        <span className="text-[6px] text-white/40 mt-0.5">Pool</span>
                       </div>
                     )}
                     {amenities.gym && (
                       <div className="flex flex-col items-center">
-                        <Dumbbell className="w-3.5 h-3.5 text-white/80" strokeWidth={2.5} />
-                        <span className="text-[7px] text-white/50 font-medium">Gym</span>
+                        <Dumbbell className="w-3 h-3 text-white/70" strokeWidth={2} />
+                        <span className="text-[6px] text-white/40 mt-0.5">Gym</span>
                       </div>
                     )}
                     {amenities.parking && (
                       <div className="flex flex-col items-center">
-                        <Car className="w-3.5 h-3.5 text-white/80" strokeWidth={2.5} />
-                        <span className="text-[7px] text-white/50 font-medium">Park</span>
+                        <Car className="w-3 h-3 text-white/70" strokeWidth={2} />
+                        <span className="text-[6px] text-white/40 mt-0.5">Park</span>
                       </div>
                     )}
                     {hasFreeCancellation && (
                       <div className="flex flex-col items-center">
-                        <Shield className="w-3.5 h-3.5 text-emerald-400" strokeWidth={2.5} />
-                        <span className="text-[7px] text-emerald-400/70 font-medium">Free</span>
+                        <Shield className="w-3 h-3 text-emerald-400" strokeWidth={2} />
+                        <span className="text-[6px] text-emerald-400/60 mt-0.5">Free</span>
                       </div>
                     )}
                     {hasBreakfast && (
                       <div className="flex flex-col items-center">
-                        <Coffee className="w-3.5 h-3.5 text-amber-400" strokeWidth={2.5} />
-                        <span className="text-[7px] text-amber-400/70 font-medium">Bkfst</span>
+                        <Coffee className="w-3 h-3 text-amber-400" strokeWidth={2} />
+                        <span className="text-[6px] text-amber-400/60 mt-0.5">Bkfst</span>
                       </div>
                     )}
                   </div>
                   <button
                     onClick={(e) => { e.stopPropagation(); handleBooking(); }}
-                    className="px-3.5 py-1.5 rounded-xl bg-primary-500 text-white text-[10px] font-bold active:scale-95 transition-transform shadow-lg shadow-primary-500/30"
+                    className="px-3 py-1 rounded-lg bg-primary-500 text-white text-[9px] font-bold active:scale-95 transition-transform"
                   >
                     {t.bookNow}
                   </button>
