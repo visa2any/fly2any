@@ -33,6 +33,8 @@ export interface CollapsibleSearchBarProps {
   mobileOnly?: boolean;
   /** Callback when search is submitted (triggers auto-collapse on mobile) */
   onSearch?: () => void;
+  /** Auto-expand when scrolling up (default: true). Set to false to keep collapsed unless manually expanded */
+  autoExpand?: boolean;
 }
 
 /**
@@ -66,6 +68,7 @@ export function CollapsibleSearchBar({
   onCollapseChange,
   mobileOnly = true,
   onSearch,
+  autoExpand = true,
 }: CollapsibleSearchBarProps) {
   const [isCollapsed, setIsCollapsed] = useState(defaultCollapsed);
   const [manualOverride, setManualOverride] = useState(false);
@@ -77,7 +80,7 @@ export function CollapsibleSearchBar({
     mobileOnly: true,
   });
 
-  // Auto-collapse/expand based on scroll direction (unless manually overridden)
+  // Auto-collapse/expand based on scroll direction (unless manually overridden or autoExpand disabled)
   useEffect(() => {
     if (manualOverride) return;
 
@@ -86,13 +89,12 @@ export function CollapsibleSearchBar({
       setIsCollapsed(true);
       onCollapseChange?.(true);
     }
-    // Auto-expand ONLY when scrolling up (not just being at top)
-    // This prevents auto-expansion on page load and keeps form collapsed during initial loading
-    else if (scrollDirection === 'up' && isCollapsed) {
+    // Auto-expand ONLY when scrolling up AND autoExpand is enabled
+    else if (autoExpand && scrollDirection === 'up' && isCollapsed) {
       setIsCollapsed(false);
       onCollapseChange?.(false);
     }
-  }, [scrollDirection, isAtTop, manualOverride, isCollapsed, onCollapseChange]);
+  }, [scrollDirection, isAtTop, manualOverride, isCollapsed, onCollapseChange, autoExpand]);
 
   const handleToggle = () => {
     const newState = !isCollapsed;

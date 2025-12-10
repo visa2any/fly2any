@@ -660,150 +660,150 @@ function HotelCheckoutContent() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-primary-50/30">
-      {/* Header */}
+      {/* Header - Full width mobile */}
       <header className="bg-white border-b border-gray-200 sticky top-0 z-50 shadow-sm">
-        <div className="max-w-7xl mx-auto px-4 py-3">
+        <div className="w-full lg:max-w-7xl lg:mx-auto px-3 sm:px-4 py-2 sm:py-3">
           <div className="flex items-center justify-between">
-            <div className="flex items-center gap-4">
+            <div className="flex items-center gap-2 sm:gap-4">
               <Link
                 href={`/hotels/${hotelData.hotelId}?checkIn=${hotelData.checkIn}&checkOut=${hotelData.checkOut}&adults=${hotelData.adults}&children=${hotelData.children}&rooms=1`}
-                className="flex items-center gap-2 text-gray-600 hover:text-gray-900 transition-colors"
+                className="flex items-center gap-1.5 sm:gap-2 text-gray-600 hover:text-primary-600 transition-colors"
               >
-                <ChevronLeft className="w-5 h-5" />
-                <span className="text-sm font-medium">Back</span>
+                <ChevronLeft className="w-4 sm:w-5 h-4 sm:h-5" />
+                <span className="text-xs sm:text-sm font-medium">Back</span>
               </Link>
-              <div className="h-6 w-px bg-gray-200" />
-              <div className="flex items-center gap-2">
-                <Hotel className="w-5 h-5 text-primary-500" />
-                <h1 className="text-lg font-bold text-gray-900">Secure Checkout</h1>
+              <div className="h-5 sm:h-6 w-px bg-gray-200" />
+              <div className="flex items-center gap-1.5 sm:gap-2">
+                <Hotel className="w-4 sm:w-5 h-4 sm:h-5 text-primary-500" />
+                <h1 className="text-sm sm:text-lg font-bold text-gray-900">Checkout</h1>
               </div>
             </div>
 
-            {/* Price Lock Timer */}
+            {/* Price Lock Timer - Compact on mobile */}
             {prebookData && timeRemaining > 0 && (
-              <div className="flex items-center gap-2 bg-amber-50 border border-amber-200 px-3 py-1.5 rounded-full">
-                <Timer className="w-4 h-4 text-amber-600" />
-                <span className="text-sm font-bold text-amber-700">
-                  Price locked: {formatTime(timeRemaining)}
+              <div className="flex items-center gap-1.5 sm:gap-2 bg-primary-50 border border-primary-200 px-2 sm:px-3 py-1 sm:py-1.5 rounded-full">
+                <Timer className="w-3.5 sm:w-4 h-3.5 sm:h-4 text-primary-600" />
+                <span className="text-xs sm:text-sm font-bold text-primary-700">
+                  {formatTime(timeRemaining)}
                 </span>
               </div>
             )}
 
-            {/* Trust Badges */}
-            <div className="hidden md:flex items-center gap-4 text-xs text-gray-500">
+            {/* Trust Badges - Hidden on mobile */}
+            <div className="hidden lg:flex items-center gap-4 text-xs text-gray-500">
               <div className="flex items-center gap-1">
                 <Lock className="w-3.5 h-3.5 text-green-600" />
-                <span>256-bit SSL</span>
+                <span>SSL</span>
               </div>
               <div className="flex items-center gap-1">
-                <Shield className="w-3.5 h-3.5 text-blue-600" />
-                <span>PCI Compliant</span>
+                <Shield className="w-3.5 h-3.5 text-primary-600" />
+                <span>PCI</span>
               </div>
             </div>
           </div>
         </div>
       </header>
 
-      {/* Error Message */}
+      {/* Error Message - Full width mobile */}
       {error && (
-        <div className="max-w-7xl mx-auto px-4 pt-4">
-          <div className="bg-red-50 border border-red-200 rounded-xl p-4 flex items-start gap-3">
-            <AlertCircle className="w-5 h-5 text-red-600 flex-shrink-0 mt-0.5" />
+        <div className="w-full lg:max-w-7xl lg:mx-auto px-3 sm:px-4 pt-3 sm:pt-4">
+          <div className="bg-red-50 border border-red-200 rounded-none sm:rounded-xl p-3 sm:p-4 flex items-start gap-2.5 sm:gap-3">
+            <AlertCircle className="w-4 sm:w-5 h-4 sm:h-5 text-red-600 flex-shrink-0 mt-0.5" />
             <div className="flex-1">
-              <p className="text-sm font-semibold text-red-900">Error</p>
-              <p className="text-sm text-red-700 mt-1">{error}</p>
+              <p className="text-xs sm:text-sm font-semibold text-red-900">Error</p>
+              <p className="text-xs sm:text-sm text-red-700 mt-0.5 sm:mt-1">{error}</p>
             </div>
-            <button onClick={() => setError(null)} className="text-red-600 hover:text-red-800 text-xl">
+            <button onClick={() => setError(null)} className="text-red-600 hover:text-red-800 text-lg sm:text-xl">
               &times;
             </button>
           </div>
         </div>
       )}
 
-      {/* Main Content - 2 Columns (Compact) */}
-      <main className="max-w-7xl mx-auto px-4 py-4">
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-5">
+      {/* Main Content - Full width mobile, 2 Columns desktop */}
+      <main className="w-full lg:max-w-7xl lg:mx-auto px-0 sm:px-4 py-3 sm:py-4">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-3 sm:gap-5">
 
           {/* ========================= */}
-          {/* LEFT COLUMN: Guest + Payment (Compact) */}
+          {/* LEFT COLUMN: Guest + Payment - Edge-to-edge mobile */}
           {/* ========================= */}
-          <div className="lg:col-span-7 space-y-4">
+          <div className="lg:col-span-7 space-y-3 sm:space-y-4 px-3 sm:px-0">
 
-            {/* Guest Information - Compact */}
-            <div className="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden">
-              <div className="bg-gradient-to-r from-primary-500 to-primary-600 px-4 py-3 text-white">
-                <div className="flex items-center gap-2.5">
-                  <div className="w-8 h-8 bg-white/20 rounded-lg flex items-center justify-center">
-                    <User className="w-4 h-4" />
+            {/* Guest Information - Compact, edge-to-edge mobile */}
+            <div className="bg-white rounded-none sm:rounded-2xl border-y sm:border border-gray-200 shadow-none sm:shadow-sm overflow-hidden">
+              <div className="bg-gradient-to-r from-primary-500 to-primary-600 px-3 sm:px-4 py-2.5 sm:py-3 text-white">
+                <div className="flex items-center gap-2 sm:gap-2.5">
+                  <div className="w-7 sm:w-8 h-7 sm:h-8 bg-white/20 rounded-lg flex items-center justify-center">
+                    <User className="w-3.5 sm:w-4 h-3.5 sm:h-4" />
                   </div>
                   <div>
-                    <h2 className="text-base font-bold">Guest Information</h2>
-                    <p className="text-xs text-white/80">Who's checking in?</p>
+                    <h2 className="text-sm sm:text-base font-bold">Guest Information</h2>
+                    <p className="text-[10px] sm:text-xs text-white/80">Who's checking in?</p>
                   </div>
                 </div>
               </div>
 
-              <div className="p-4 space-y-3">
-                {/* Name Row - Compact */}
-                <div className="grid grid-cols-12 gap-2.5">
-                  <div className="col-span-3">
-                    <label className="block text-xs font-semibold text-gray-700 mb-1">Title *</label>
+              <div className="p-3 sm:p-4 space-y-2.5 sm:space-y-3">
+                {/* Name Row - More compact on mobile (stacked) */}
+                <div className="grid grid-cols-3 sm:grid-cols-12 gap-2 sm:gap-2.5">
+                  <div className="col-span-1 sm:col-span-3">
+                    <label className="block text-[10px] sm:text-xs font-semibold text-gray-700 mb-0.5 sm:mb-1">Title *</label>
                     <select
                       value={guest.title}
                       onChange={(e) => handleGuestUpdate('title', e.target.value)}
-                      className="w-full px-2.5 py-2 border border-gray-300 rounded-lg bg-white focus:ring-2 focus:ring-primary-500 focus:border-primary-500 text-sm"
+                      className="w-full px-2 sm:px-2.5 py-1.5 sm:py-2 border border-gray-300 rounded-lg bg-white focus:ring-2 focus:ring-primary-500 focus:border-primary-500 text-xs sm:text-sm"
                       required
                     >
-                      <option value="">Select</option>
+                      <option value="">-</option>
                       <option value="Mr">Mr</option>
                       <option value="Ms">Ms</option>
                       <option value="Mrs">Mrs</option>
                       <option value="Dr">Dr</option>
                     </select>
                   </div>
-                  <div className="col-span-4">
-                    <label className="block text-xs font-semibold text-gray-700 mb-1">First Name *</label>
+                  <div className="col-span-1 sm:col-span-4">
+                    <label className="block text-[10px] sm:text-xs font-semibold text-gray-700 mb-0.5 sm:mb-1">First *</label>
                     <input
                       type="text"
                       value={guest.firstName}
                       onChange={(e) => handleGuestUpdate('firstName', e.target.value)}
                       placeholder="John"
-                      className="w-full px-2.5 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 text-sm"
+                      className="w-full px-2 sm:px-2.5 py-1.5 sm:py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 text-xs sm:text-sm"
                       required
                     />
                   </div>
-                  <div className="col-span-5">
-                    <label className="block text-xs font-semibold text-gray-700 mb-1">Last Name *</label>
+                  <div className="col-span-1 sm:col-span-5">
+                    <label className="block text-[10px] sm:text-xs font-semibold text-gray-700 mb-0.5 sm:mb-1">Last *</label>
                     <input
                       type="text"
                       value={guest.lastName}
                       onChange={(e) => handleGuestUpdate('lastName', e.target.value)}
                       placeholder="Smith"
-                      className="w-full px-2.5 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 text-sm"
+                      className="w-full px-2 sm:px-2.5 py-1.5 sm:py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 text-xs sm:text-sm"
                       required
                     />
                   </div>
                 </div>
 
                 {/* Contact Row - Compact */}
-                <div className="grid grid-cols-2 gap-2.5">
+                <div className="grid grid-cols-2 gap-2 sm:gap-2.5">
                   <div>
-                    <label className="block text-xs font-semibold text-gray-700 mb-1">
-                      <Mail className="w-3 h-3 inline mr-1" />
+                    <label className="block text-[10px] sm:text-xs font-semibold text-gray-700 mb-0.5 sm:mb-1">
+                      <Mail className="w-2.5 sm:w-3 h-2.5 sm:h-3 inline mr-0.5 sm:mr-1" />
                       Email *
                     </label>
                     <input
                       type="email"
                       value={guest.email}
                       onChange={(e) => handleGuestUpdate('email', e.target.value)}
-                      placeholder="john@example.com"
-                      className="w-full px-2.5 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 text-sm"
+                      placeholder="email@example.com"
+                      className="w-full px-2 sm:px-2.5 py-1.5 sm:py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 text-xs sm:text-sm"
                       required
                     />
                   </div>
                   <div>
-                    <label className="block text-xs font-semibold text-gray-700 mb-1">
-                      <Phone className="w-3 h-3 inline mr-1" />
+                    <label className="block text-[10px] sm:text-xs font-semibold text-gray-700 mb-0.5 sm:mb-1">
+                      <Phone className="w-2.5 sm:w-3 h-2.5 sm:h-3 inline mr-0.5 sm:mr-1" />
                       Phone *
                     </label>
                     <input
@@ -811,7 +811,7 @@ function HotelCheckoutContent() {
                       value={guest.phone}
                       onChange={(e) => handleGuestUpdate('phone', e.target.value)}
                       placeholder="+1 555 123 4567"
-                      className="w-full px-2.5 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 text-sm"
+                      className="w-full px-2 sm:px-2.5 py-1.5 sm:py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 text-xs sm:text-sm"
                       required
                     />
                   </div>
@@ -819,36 +819,35 @@ function HotelCheckoutContent() {
 
                 {/* Special Requests - Compact */}
                 <div>
-                  <label className="block text-xs font-semibold text-gray-700 mb-1">
-                    Special Requests (Optional)
+                  <label className="block text-[10px] sm:text-xs font-semibold text-gray-700 mb-0.5 sm:mb-1">
+                    Special Requests
                   </label>
                   <textarea
                     value={guest.specialRequests}
                     onChange={(e) => handleGuestUpdate('specialRequests', e.target.value)}
-                    placeholder="e.g., Late check-in, high floor, quiet room..."
+                    placeholder="Late check-in, high floor..."
                     rows={2}
-                    className="w-full px-2.5 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 text-sm resize-none"
+                    className="w-full px-2 sm:px-2.5 py-1.5 sm:py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 text-xs sm:text-sm resize-none"
                   />
-                  <p className="text-xs text-gray-500 mt-0.5">Requests not guaranteed but hotel will try to accommodate.</p>
                 </div>
               </div>
             </div>
 
-            {/* Payment Section - Compact */}
-            <div className="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden">
-              <div className="bg-gradient-to-r from-primary-500 to-primary-600 px-4 py-3 text-white">
-                <div className="flex items-center gap-2.5">
-                  <div className="w-8 h-8 bg-white/20 rounded-lg flex items-center justify-center">
-                    <CreditCard className="w-4 h-4" />
+            {/* Payment Section - Compact, edge-to-edge mobile */}
+            <div className="bg-white rounded-none sm:rounded-2xl border-y sm:border border-gray-200 shadow-none sm:shadow-sm overflow-hidden">
+              <div className="bg-gradient-to-r from-primary-500 to-primary-600 px-3 sm:px-4 py-2.5 sm:py-3 text-white">
+                <div className="flex items-center gap-2 sm:gap-2.5">
+                  <div className="w-7 sm:w-8 h-7 sm:h-8 bg-white/20 rounded-lg flex items-center justify-center">
+                    <CreditCard className="w-3.5 sm:w-4 h-3.5 sm:h-4" />
                   </div>
                   <div>
-                    <h2 className="text-base font-bold">Payment Details</h2>
-                    <p className="text-xs text-white/80">Secure checkout with bank-level encryption</p>
+                    <h2 className="text-sm sm:text-base font-bold">Payment</h2>
+                    <p className="text-[10px] sm:text-xs text-white/80">Secure checkout</p>
                   </div>
                 </div>
               </div>
 
-              <div className="p-4">
+              <div className="p-3 sm:p-4">
                 {/* Prebooking indicator - Compact */}
                 {prebooking && (
                   <div className="mb-3 p-3 bg-blue-50 border border-blue-200 rounded-xl">
@@ -1032,24 +1031,24 @@ function HotelCheckoutContent() {
           </div>
 
           {/* ========================= */}
-          {/* RIGHT COLUMN: Booking Summary */}
+          {/* RIGHT COLUMN: Booking Summary - Edge-to-edge mobile */}
           {/* ========================= */}
-          <div className="lg:col-span-5">
-            <div className="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden sticky top-20">
-              {/* Header */}
-              <div className="bg-gradient-to-r from-blue-600 to-indigo-600 p-4 text-white">
-                <h2 className="text-lg font-bold flex items-center gap-2">
-                  <Sparkles className="w-5 h-5" />
+          <div className="lg:col-span-5 px-3 sm:px-0">
+            <div className="bg-white rounded-none sm:rounded-2xl border-y sm:border border-gray-200 shadow-none sm:shadow-sm overflow-hidden sticky top-20">
+              {/* Header - Fly2Any colors */}
+              <div className="bg-gradient-to-r from-primary-500 to-primary-600 px-3 sm:p-4 py-2.5 sm:py-4 text-white">
+                <h2 className="text-sm sm:text-lg font-bold flex items-center gap-1.5 sm:gap-2">
+                  <Sparkles className="w-4 sm:w-5 h-4 sm:h-5" />
                   Booking Summary
                 </h2>
               </div>
 
-              {/* Booking Details at Top + Hotel Image - Compact */}
+              {/* Booking Details at Top + Hotel Image - Very compact on mobile */}
               {hotelData.imageUrl && (
                 <div className="relative">
                   {/* Booking Details Overlay at Top */}
-                  <div className="absolute top-0 left-0 right-0 z-10 bg-gradient-to-b from-black/70 to-transparent px-3 py-2">
-                    <div className="flex items-center gap-x-2 text-xs whitespace-nowrap overflow-x-auto">
+                  <div className="absolute top-0 left-0 right-0 z-10 bg-gradient-to-b from-black/70 to-transparent px-2 sm:px-3 py-1.5 sm:py-2">
+                    <div className="flex items-center gap-x-1.5 sm:gap-x-2 text-[10px] sm:text-xs whitespace-nowrap overflow-x-auto">
                       {/* Check-in */}
                       <div className="flex items-center gap-1.5">
                         <Calendar className="w-3 h-3 text-blue-300 flex-shrink-0" />
@@ -1094,8 +1093,8 @@ function HotelCheckoutContent() {
                     </div>
                   </div>
 
-                  {/* Hotel Image */}
-                  <div className="relative h-32 w-full">
+                  {/* Hotel Image - Shorter on mobile */}
+                  <div className="relative h-24 sm:h-32 w-full">
                     <Image
                       src={hotelData.imageUrl}
                       alt={hotelData.hotelName}
@@ -1104,12 +1103,12 @@ function HotelCheckoutContent() {
                       unoptimized
                     />
                     <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
-                    <div className="absolute bottom-2 left-3 right-3">
-                      <h3 className="text-white font-bold text-base leading-tight">{hotelData.hotelName}</h3>
+                    <div className="absolute bottom-1.5 sm:bottom-2 left-2 sm:left-3 right-2 sm:right-3">
+                      <h3 className="text-white font-bold text-sm sm:text-base leading-tight line-clamp-1">{hotelData.hotelName}</h3>
                       {hotelData.starRating && hotelData.starRating > 0 && (
                         <div className="flex items-center gap-0.5 mt-0.5">
                           {Array.from({ length: hotelData.starRating }).map((_, i) => (
-                            <Star key={i} className="w-3 h-3 text-yellow-400 fill-yellow-400" />
+                            <Star key={i} className="w-2.5 sm:w-3 h-2.5 sm:h-3 text-yellow-400 fill-yellow-400" />
                           ))}
                         </div>
                       )}
@@ -1118,66 +1117,66 @@ function HotelCheckoutContent() {
                 </div>
               )}
 
-              <div className="p-4 space-y-3">
-                {/* Location & Address - Single Row */}
+              <div className="p-3 sm:p-4 space-y-2.5 sm:space-y-3">
+                {/* Location & Address - Single Row - More compact mobile */}
                 {hotelData.location && (
-                  <div className="flex items-center gap-2 text-sm">
-                    <MapPin className="w-4 h-4 text-gray-400 flex-shrink-0" />
-                    <p className="text-gray-600 font-medium">{hotelData.location}</p>
+                  <div className="flex items-center gap-1.5 sm:gap-2 text-xs sm:text-sm">
+                    <MapPin className="w-3.5 sm:w-4 h-3.5 sm:h-4 text-gray-400 flex-shrink-0" />
+                    <p className="text-gray-600 font-medium line-clamp-1">{hotelData.location}</p>
                   </div>
                 )}
 
-                {/* Room Info - Compact */}
-                <div className="bg-primary-50 border border-primary-100 rounded-xl px-3 py-2">
-                  <div className="flex items-center justify-between flex-wrap gap-2">
-                    <div className="flex items-center gap-2">
-                      <BedDouble className="w-4 h-4 text-primary-600" />
-                      <span className="font-semibold text-gray-900 text-sm">{hotelData.roomName}</span>
+                {/* Room Info - Compact, Fly2Any colors */}
+                <div className="bg-primary-50 border border-primary-100 rounded-lg sm:rounded-xl px-2.5 sm:px-3 py-1.5 sm:py-2">
+                  <div className="flex items-center justify-between flex-wrap gap-1.5 sm:gap-2">
+                    <div className="flex items-center gap-1.5 sm:gap-2">
+                      <BedDouble className="w-3.5 sm:w-4 h-3.5 sm:h-4 text-primary-600" />
+                      <span className="font-semibold text-gray-900 text-xs sm:text-sm line-clamp-1">{hotelData.roomName}</span>
                     </div>
-                    <div className="flex flex-wrap gap-1.5">
+                    <div className="flex flex-wrap gap-1">
                       {hotelData.refundable && (
-                        <span className="inline-flex items-center gap-1 text-xs bg-green-100 text-green-700 px-2 py-0.5 rounded-full">
-                          <CheckCircle2 className="w-3 h-3" />
-                          Free Cancellation
+                        <span className="inline-flex items-center gap-0.5 text-[10px] sm:text-xs bg-green-100 text-green-700 px-1.5 sm:px-2 py-0.5 rounded-full">
+                          <CheckCircle2 className="w-2.5 sm:w-3 h-2.5 sm:h-3" />
+                          Free
                         </span>
                       )}
                       {hotelData.breakfastIncluded && (
-                        <span className="inline-flex items-center gap-1 text-xs bg-blue-100 text-blue-700 px-2 py-0.5 rounded-full">
-                          <Coffee className="w-3 h-3" />
-                          Breakfast
+                        <span className="inline-flex items-center gap-0.5 text-[10px] sm:text-xs bg-primary-100 text-primary-700 px-1.5 sm:px-2 py-0.5 rounded-full">
+                          <Coffee className="w-2.5 sm:w-3 h-2.5 sm:h-3" />
+                          BF
                         </span>
                       )}
                     </div>
                   </div>
                 </div>
 
-                {/* Price Breakdown - Clear & Consistent */}
-                <div className="border-t border-gray-200 pt-3 space-y-1.5">
-                  <div className="flex justify-between text-sm">
+                {/* Price Breakdown - Mobile-first compact */}
+                <div className="border-t border-gray-200 pt-2.5 sm:pt-3 space-y-1 sm:space-y-1.5">
+                  <div className="flex justify-between text-[10px] sm:text-sm">
                     <span className="text-gray-600">
-                      {hotelData.currency} {hotelData.perNightPrice.toFixed(2)}/room {hotelData.rooms > 1 ? `× ${hotelData.rooms} rooms` : ''} × {hotelData.nights} {hotelData.nights === 1 ? 'night' : 'nights'}
+                      {hotelData.currency} {hotelData.perNightPrice.toFixed(0)}/night × {hotelData.nights}n {hotelData.rooms > 1 ? `× ${hotelData.rooms}r` : ''}
                     </span>
                     <span className="font-medium text-gray-900">{hotelData.currency} {getSubtotal().toFixed(2)}</span>
                   </div>
-                  <div className="flex justify-between text-sm">
+                  <div className="flex justify-between text-[10px] sm:text-sm">
                     <span className="text-gray-600">Taxes & Fees</span>
                     <span className="font-medium text-gray-900">{hotelData.currency} {getTaxesAndFees().toFixed(2)}</span>
                   </div>
 
                   {/* Promo Discount Display */}
                   {promoCode && promoDiscount && getPromoDiscountAmount() > 0 && (
-                    <div className="flex justify-between text-sm text-green-600 font-medium">
-                      <span className="flex items-center gap-1">
-                        <Gift className="w-3.5 h-3.5" />
-                        Promo: {promoCode}
+                    <div className="flex justify-between text-[10px] sm:text-sm text-green-600 font-medium">
+                      <span className="flex items-center gap-0.5 sm:gap-1">
+                        <Gift className="w-3 sm:w-3.5 h-3 sm:h-3.5" />
+                        {promoCode}
                       </span>
                       <span>-{hotelData.currency} {getPromoDiscountAmount().toFixed(2)}</span>
                     </div>
                   )}
                 </div>
 
-                {/* Promo Code Input - Reduced spacing */}
-                <div className="border-t border-gray-200 pt-3">
+                {/* Promo Code Input - Reduced spacing, compact mobile */}
+                <div className="border-t border-gray-200 pt-2.5 sm:pt-3">
                   <PromoCodeInput
                     onApply={handlePromoApply}
                     onRemove={handlePromoRemove}
@@ -1205,11 +1204,11 @@ function HotelCheckoutContent() {
                   </div>
                 )}
 
-                {/* Total - Compact */}
-                <div className="border-t-2 border-gray-300 pt-2.5">
+                {/* Total - Compact, mobile-first */}
+                <div className="border-t-2 border-gray-300 pt-2 sm:pt-2.5">
                   <div className="flex justify-between items-center">
-                    <span className="font-bold text-lg text-gray-900">Total</span>
-                    <span className="font-bold text-2xl text-primary-600">
+                    <span className="font-bold text-sm sm:text-lg text-gray-900">Total</span>
+                    <span className="font-bold text-lg sm:text-2xl text-primary-600">
                       {hotelData.currency} {getGrandTotal().toFixed(2)}
                     </span>
                   </div>
@@ -1223,32 +1222,32 @@ function HotelCheckoutContent() {
                   installments={4}
                 />
 
-                {/* Price Lock Notice - Compact */}
+                {/* Price Lock Notice - Compact, mobile-first */}
                 {prebookData && timeRemaining > 0 && (
-                  <div className="bg-amber-50 border border-amber-200 rounded-xl px-3 py-2">
-                    <div className="flex items-center gap-2">
-                      <Timer className="w-4 h-4 text-amber-600 flex-shrink-0" />
-                      <div className="flex items-center gap-2">
-                        <span className="text-xs font-semibold text-amber-900">Price locked:</span>
-                        <span className="text-lg font-bold text-amber-600">{formatTime(timeRemaining)}</span>
+                  <div className="bg-primary-50 border border-primary-200 rounded-lg sm:rounded-xl px-2.5 sm:px-3 py-1.5 sm:py-2">
+                    <div className="flex items-center gap-1.5 sm:gap-2">
+                      <Timer className="w-3.5 sm:w-4 h-3.5 sm:h-4 text-primary-600 flex-shrink-0" />
+                      <div className="flex items-center gap-1.5 sm:gap-2">
+                        <span className="text-[10px] sm:text-xs font-semibold text-primary-900">Locked:</span>
+                        <span className="text-sm sm:text-lg font-bold text-primary-600">{formatTime(timeRemaining)}</span>
                       </div>
                     </div>
                   </div>
                 )}
 
-                {/* Guarantees - Compact, All in One Row */}
-                <div className="flex flex-wrap items-center gap-x-4 gap-y-1 pt-2">
-                  <div className="flex items-center gap-1.5 text-xs text-gray-600">
-                    <CheckCircle2 className="w-3.5 h-3.5 text-green-500" />
-                    <span>Instant confirmation</span>
+                {/* Guarantees - Compact, mobile-first */}
+                <div className="flex flex-wrap items-center gap-x-3 sm:gap-x-4 gap-y-1 pt-1.5 sm:pt-2">
+                  <div className="flex items-center gap-1 sm:gap-1.5 text-[10px] sm:text-xs text-gray-600">
+                    <CheckCircle2 className="w-3 sm:w-3.5 h-3 sm:h-3.5 text-green-500" />
+                    <span>Instant</span>
                   </div>
-                  <div className="flex items-center gap-1.5 text-xs text-gray-600">
-                    <CheckCircle2 className="w-3.5 h-3.5 text-green-500" />
-                    <span>No hidden fees</span>
+                  <div className="flex items-center gap-1 sm:gap-1.5 text-[10px] sm:text-xs text-gray-600">
+                    <CheckCircle2 className="w-3 sm:w-3.5 h-3 sm:h-3.5 text-green-500" />
+                    <span>No fees</span>
                   </div>
-                  <div className="flex items-center gap-1.5 text-xs text-gray-600">
-                    <CheckCircle2 className="w-3.5 h-3.5 text-green-500" />
-                    <span>24/7 support</span>
+                  <div className="flex items-center gap-1 sm:gap-1.5 text-[10px] sm:text-xs text-gray-600">
+                    <CheckCircle2 className="w-3 sm:w-3.5 h-3 sm:h-3.5 text-green-500" />
+                    <span>24/7</span>
                   </div>
                 </div>
               </div>

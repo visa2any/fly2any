@@ -782,10 +782,10 @@ function HotelResultsContent() {
 
       <ScrollProgress />
 
-      {/* Search Bar - Collapsible for mobile, always visible for desktop (Flight-style pattern) */}
+      {/* Search Bar - Collapsible for mobile, stays collapsed until manually expanded */}
       <CollapsibleSearchBar
         searchSummary={{
-          origin: '', // Hotels don't have origin/destination like flights
+          origin: '',
           destination: searchData.destination,
           departDate: searchData.checkIn ? new Date(searchData.checkIn) : null,
           returnDate: searchData.checkOut ? new Date(searchData.checkOut) : null,
@@ -794,11 +794,12 @@ function HotelResultsContent() {
             children: searchData.children,
             infants: 0,
           },
-          tripType: 'roundtrip', // Hotel stays are conceptually like roundtrips
+          tripType: 'roundtrip',
         }}
-        defaultCollapsed={searchBarCollapsed}
+        defaultCollapsed={true}
         onCollapseChange={setSearchBarCollapsed}
         mobileOnly={true}
+        autoExpand={false}
       >
         <EnhancedSearchBar
           lang={lang}

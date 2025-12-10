@@ -17,14 +17,14 @@ const NAV_HEIGHT = 56;
 /** Minimum touch target size (WCAG AA) */
 const MIN_TOUCH_TARGET = 44;
 
-/** Scroll threshold before hiding (px) */
-const SCROLL_HIDE_THRESHOLD = 150;
+/** Scroll threshold before hiding (px) - increased for less aggressive hiding */
+const SCROLL_HIDE_THRESHOLD = 400;
 
-/** Scroll delta to trigger hide/show (px) */
-const SCROLL_DELTA_THRESHOLD = 8;
+/** Scroll delta to trigger hide/show (px) - increased to prevent jitter */
+const SCROLL_DELTA_THRESHOLD = 50;
 
-/** Debounce delay for scroll events (ms) */
-const SCROLL_DEBOUNCE = 50;
+/** Debounce delay for scroll events (ms) - increased for stability */
+const SCROLL_DEBOUNCE = 150;
 
 // ============================================================================
 // TYPES
@@ -231,18 +231,29 @@ export function BottomTabBar({ translations, onMoreClick }: BottomTabBarProps) {
         const scrollDelta = currentScrollY - lastScrollY.current;
         const absScrollDelta = Math.abs(scrollDelta);
 
-        // Ignore micro-scrolls (prevents jitter)
-        if (absScrollDelta < 3) return;
+        // Ignore micro-scrolls (prevents jitter) - increased threshold
+        if (absScrollDelta < 20) return;
 
-        // Always show near top
-        if (currentScrollY < 80) {
+        // Always show near top - increased threshold
+        if (currentScrollY < 200) {
           setIsVisible(true);
+          lastScrollY.current = currentScrollY;
+          return;
         }
-        // Hide when scrolling down past threshold
-        else if (scrollDelta > SCROLL_DELTA_THRESHOLD && currentScrollY > SCROLL_HIDE_THRESHOLD) {
+
+        // Always show near bottom (within 100px of document end)
+        const nearBottom = window.innerHeight + currentScrollY >= document.documentElement.scrollHeight - 100;
+        if (nearBottom) {
+          setIsVisible(true);
+          lastScrollY.current = currentScrollY;
+          return;
+        }
+
+        // Hide only when scrolling down with significant delta and past threshold
+        if (scrollDelta > SCROLL_DELTA_THRESHOLD && currentScrollY > SCROLL_HIDE_THRESHOLD) {
           setIsVisible(false);
         }
-        // Show when scrolling up with intent
+        // Show when scrolling up with significant intent
         else if (scrollDelta < -SCROLL_DELTA_THRESHOLD) {
           setIsVisible(true);
         }

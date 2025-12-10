@@ -4,7 +4,7 @@ import { useState, useCallback, useMemo } from 'react';
 import Image from 'next/image';
 import {
   Star, MapPin, ChevronLeft, ChevronRight, Heart, Share2,
-  Users, Coffee, Shield, Wifi, Waves, Dumbbell, Car, Loader2, BarChart2
+  Coffee, Shield, Loader2, BarChart2
 } from 'lucide-react';
 import { useHotelCompare } from '@/contexts/HotelCompareContext';
 import { getBlurDataURL } from '@/lib/utils/image-optimization';
@@ -26,17 +26,9 @@ export interface HotelCardProps {
 }
 
 const translations = {
-  en: { perNight: '/night', nights: 'n', bookNow: 'Book Now', view: 'View', freeCancel: 'Free Cancel', reviews: 'reviews', exceptional: 'Exceptional', excellent: 'Excellent', veryGood: 'Very Good', good: 'Good', breakfast: 'Breakfast', total: 'total' },
-  pt: { perNight: '/noite', nights: 'n', bookNow: 'Reservar', view: 'Ver', freeCancel: 'Cancela Grátis', reviews: 'avaliações', exceptional: 'Excepcional', excellent: 'Excelente', veryGood: 'Muito Bom', good: 'Bom', breakfast: 'Café', total: 'total' },
-  es: { perNight: '/noche', nights: 'n', bookNow: 'Reservar', view: 'Ver', freeCancel: 'Cancela Gratis', reviews: 'reseñas', exceptional: 'Excepcional', excellent: 'Excelente', veryGood: 'Muy Bueno', good: 'Bueno', breakfast: 'Desayuno', total: 'total' },
-};
-
-// Amenity icon mapping
-const amenityIcons: Record<string, { icon: any; label: string }> = {
-  wifi: { icon: Wifi, label: 'WiFi' },
-  pool: { icon: Waves, label: 'Pool' },
-  gym: { icon: Dumbbell, label: 'Gym' },
-  parking: { icon: Car, label: 'Parking' },
+  en: { perNight: '/nt', nights: 'n', bookNow: 'Book', view: 'View', freeCancel: 'Free Cancel', exceptional: 'Exceptional', excellent: 'Excellent', veryGood: 'Very Good', good: 'Good', breakfast: 'Bkfst' },
+  pt: { perNight: '/nt', nights: 'n', bookNow: 'Reservar', view: 'Ver', freeCancel: 'Cancela Grátis', exceptional: 'Excepcional', excellent: 'Excelente', veryGood: 'Muito Bom', good: 'Bom', breakfast: 'Café' },
+  es: { perNight: '/nt', nights: 'n', bookNow: 'Reservar', view: 'Ver', freeCancel: 'Cancela Gratis', exceptional: 'Excepcional', excellent: 'Excelente', veryGood: 'Muy Bueno', good: 'Bueno', breakfast: 'Desay' },
 };
 
 export function HotelCard({
@@ -52,6 +44,7 @@ export function HotelCard({
   const [loadedImages, setLoadedImages] = useState<Array<{ url: string; alt: string }>>([]);
   const [isLoadingImages, setIsLoadingImages] = useState(false);
   const [hasLoadedImages, setHasLoadedImages] = useState(false);
+  const [showArrows, setShowArrows] = useState(false);
   const t = translations[lang];
 
   const { addToCompare, removeFromCompare, isInCompare, canAddMore } = useHotelCompare();
@@ -82,18 +75,6 @@ export function HotelCard({
       setHasLoadedImages(true);
     }
   }, [hotel.id, hasLoadedImages, isLoadingImages]);
-
-  // Extract top amenities from hotel data
-  const topAmenities = useMemo(() => {
-    if (!hotel.amenities?.length) return [];
-    const found: { icon: any; label: string }[] = [];
-    const lower = hotel.amenities.map(a => a.toLowerCase());
-    if (lower.some(a => a.includes('wifi') || a.includes('internet'))) found.push(amenityIcons.wifi);
-    if (lower.some(a => a.includes('pool') || a.includes('swimming'))) found.push(amenityIcons.pool);
-    if (lower.some(a => a.includes('gym') || a.includes('fitness'))) found.push(amenityIcons.gym);
-    if (lower.some(a => a.includes('parking'))) found.push(amenityIcons.parking);
-    return found.slice(0, 4);
-  }, [hotel.amenities]);
 
   if (!hotel?.id) return null;
 
@@ -138,91 +119,199 @@ export function HotelCard({
   const currencySymbol = { 'USD': '$', 'EUR': '€', 'GBP': '£', 'BRL': 'R$' }[currency] || currency + ' ';
   const handleBooking = () => { if (bestRate) onSelect(hotel.id, bestRate.id, bestRate.offerId); else onViewDetails(hotel.id); };
 
+  // Brief arrow flash on mobile tap
+  const flashArrows = useCallback(() => {
+    if (images.length > 1) {
+      setShowArrows(true);
+      setTimeout(() => setShowArrows(false), 800);
+    }
+  }, [images.length]);
+
   return (
     <article
       data-hotel-card
       data-hotel-id={hotel.id}
-      onClick={() => onViewDetails(hotel.id)}
-      className="group bg-white rounded-none sm:rounded-2xl overflow-hidden transition-all duration-300 cursor-pointer active:scale-[0.995] hover:shadow-xl"
-      style={{ boxShadow: '0 4px 20px -6px rgba(0,0,0,0.12)' }}
+      className="group bg-white rounded-xl sm:rounded-2xl overflow-hidden transition-all duration-300 cursor-pointer active:scale-[0.98]"
+      style={{ boxShadow: '0 2px 12px -4px rgba(0,0,0,0.15)' }}
     >
-      {/* HORIZONTAL LAYOUT */}
-      <div className="flex flex-row">
+      {/* MOBILE: Full-bleed vertical card - 10% taller */}
+      <div className="sm:hidden relative w-full aspect-[4/3.3] overflow-hidden" onMouseEnter={fetchImages}>
+        <Image
+          src={images[currentImageIndex]?.url || '/images/hotel-placeholder.jpg'}
+          alt={images[currentImageIndex]?.alt || hotel.name}
+          fill
+          className="object-cover"
+          sizes="100vw"
+          priority={currentImageIndex === 0}
+          placeholder="blur"
+          blurDataURL={getBlurDataURL(images[currentImageIndex]?.url || '', 400, 300)}
+          quality={80}
+          onError={(e) => { (e.target as HTMLImageElement).src = '/images/hotel-placeholder.jpg'; }}
+        />
 
-        {/* IMAGE SECTION - 20% wider, immersive */}
-        <div
-          className="relative w-[180px] min-w-[180px] sm:w-[220px] sm:min-w-[220px] lg:w-[350px] lg:min-w-[350px] h-[150px] sm:h-[165px] lg:h-[200px] flex-shrink-0 overflow-hidden bg-slate-100"
-          onMouseEnter={fetchImages}
-        >
+        {/* Minimal top gradient for icons */}
+        <div className="absolute inset-x-0 top-0 h-16 bg-gradient-to-b from-black/40 to-transparent" />
+
+        {/* Bottom gradient for info - thin */}
+        <div className="absolute inset-x-0 bottom-0 h-24 bg-gradient-to-t from-black/80 via-black/50 to-transparent" />
+
+        {/* Top-left: Rating badge */}
+        {hotel.reviewScore > 0 && (
+          <div className={`absolute top-2.5 left-2.5 ${reviewCategory.bg} text-white px-2 py-1 rounded-lg text-xs font-bold shadow-lg`}>
+            {hotel.reviewScore.toFixed(1)}
+          </div>
+        )}
+
+        {/* Top-right: Action icons */}
+        <div className="absolute top-2.5 right-2.5 flex gap-1.5 z-10">
+          <button onClick={handleCompare} disabled={!canAddMore && !isComparing}
+            className={`p-1.5 rounded-full bg-black/30 backdrop-blur-sm ${isComparing ? 'text-primary-400' : 'text-white'} ${!canAddMore && !isComparing ? 'opacity-40' : ''}`}>
+            <BarChart2 className="w-4 h-4" />
+          </button>
+          <button onClick={handleFavorite}
+            className={`p-1.5 rounded-full bg-black/30 backdrop-blur-sm ${isFavorited ? 'text-rose-500' : 'text-white'}`}>
+            <Heart className={`w-4 h-4 ${isFavorited ? 'fill-current' : ''}`} />
+          </button>
+          <button onClick={handleShare} className="p-1.5 rounded-full bg-black/30 backdrop-blur-sm text-white">
+            <Share2 className="w-4 h-4" />
+          </button>
+        </div>
+
+        {/* Invisible touch zones for image nav */}
+        {images.length > 1 && (
+          <>
+            <div onClick={(e) => { e.stopPropagation(); prevImage(e); flashArrows(); }}
+              className="absolute left-0 top-0 w-1/4 h-full z-10 cursor-pointer" />
+            <div onClick={(e) => { e.stopPropagation(); nextImage(e); flashArrows(); }}
+              className="absolute right-0 top-0 w-1/4 h-full z-10 cursor-pointer" />
+            {/* Arrows - show on hover/flash */}
+            <div className={`absolute left-2 top-1/2 -translate-y-1/2 w-7 h-7 flex items-center justify-center rounded-full bg-black/40 text-white transition-opacity duration-300 ${showArrows ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'}`}>
+              <ChevronLeft className="w-4 h-4" />
+            </div>
+            <div className={`absolute right-2 top-1/2 -translate-y-1/2 w-7 h-7 flex items-center justify-center rounded-full bg-black/40 text-white transition-opacity duration-300 ${showArrows ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'}`}>
+              <ChevronRight className="w-4 h-4" />
+            </div>
+          </>
+        )}
+
+        {/* Center tap area - opens details */}
+        <div onClick={() => onViewDetails(hotel.id)} className="absolute left-1/4 right-1/4 top-0 bottom-0 z-5" />
+
+        {/* Bottom info overlay */}
+        <div className="absolute bottom-0 left-0 right-0 p-3 z-10">
+          {/* Row 1: Name + Stars */}
+          <div className="flex items-start justify-between gap-2 mb-1">
+            <h3 className="font-bold text-white text-sm leading-tight line-clamp-1 flex-1" style={{ textShadow: '0 1px 3px rgba(0,0,0,0.5)' }}>
+              {hotel.name}
+            </h3>
+            {hotel.rating > 0 && (
+              <div className="flex items-center flex-shrink-0">
+                {Array.from({ length: Math.min(hotel.rating, 5) }, (_, i) => (
+                  <Star key={i} className="w-3 h-3 fill-amber-400 text-amber-400" />
+                ))}
+              </div>
+            )}
+          </div>
+
+          {/* Row 2: Location + Badges + Price + CTA */}
+          <div className="flex items-center justify-between gap-2">
+            <div className="flex items-center gap-1.5 flex-1 min-w-0">
+              {hotel.location?.city && (
+                <span className="text-white/90 text-[11px] flex items-center gap-0.5 truncate">
+                  <MapPin className="w-3 h-3 flex-shrink-0" />
+                  <span className="truncate max-w-[60px]">{hotel.location.city}</span>
+                </span>
+              )}
+              {hasFreeCancellation && (
+                <span className="px-1.5 py-0.5 bg-emerald-500/90 rounded text-[9px] font-semibold text-white flex items-center gap-0.5">
+                  <Shield className="w-2.5 h-2.5" />
+                  Free
+                </span>
+              )}
+              {hasBreakfast && (
+                <span className="px-1.5 py-0.5 bg-amber-500/90 rounded text-[9px] font-semibold text-white flex items-center gap-0.5">
+                  <Coffee className="w-2.5 h-2.5" />
+                </span>
+              )}
+              {/* Image counter */}
+              {images.length > 1 && (
+                <span className="text-white/70 text-[10px] ml-auto">{currentImageIndex + 1}/{images.length}</span>
+              )}
+            </div>
+            <div className="flex items-center gap-2 flex-shrink-0">
+              {perNightPrice > 0 && (
+                <span className="text-white font-bold text-base" style={{ textShadow: '0 1px 3px rgba(0,0,0,0.5)' }}>
+                  {currencySymbol}{Math.round(perNightPrice)}<span className="text-[10px] font-normal text-white/80">{t.perNight}</span>
+                </span>
+              )}
+              <button onClick={(e) => { e.stopPropagation(); handleBooking(); }}
+                className="px-3 py-1.5 bg-primary-500 text-white text-xs font-bold rounded-lg shadow-lg active:scale-95 transition-transform">
+                {perNightPrice > 0 ? t.bookNow : t.view}
+              </button>
+            </div>
+          </div>
+        </div>
+
+        {isLoadingImages && (
+          <div className="absolute inset-0 flex items-center justify-center bg-black/20 z-20">
+            <Loader2 className="w-6 h-6 text-white animate-spin" />
+          </div>
+        )}
+      </div>
+
+      {/* TABLET/DESKTOP: Horizontal layout (unchanged logic, optimized) */}
+      <div className="hidden sm:flex flex-row" onClick={() => onViewDetails(hotel.id)}>
+        <div className="relative w-[220px] min-w-[220px] lg:w-[320px] lg:min-w-[320px] h-[160px] lg:h-[190px] flex-shrink-0 overflow-hidden bg-slate-100" onMouseEnter={fetchImages}>
           <Image
             src={images[currentImageIndex]?.url || '/images/hotel-placeholder.jpg'}
             alt={images[currentImageIndex]?.alt || hotel.name}
             fill
-            className="object-cover transition-transform duration-700 group-hover:scale-110"
-            sizes="(max-width: 640px) 180px, (max-width: 1024px) 220px, 350px"
+            className="object-cover transition-transform duration-500 group-hover:scale-105"
+            sizes="(max-width: 1024px) 220px, 320px"
             priority={currentImageIndex === 0}
             placeholder="blur"
             blurDataURL={getBlurDataURL(images[currentImageIndex]?.url || '', 320, 240)}
             quality={85}
             onError={(e) => { (e.target as HTMLImageElement).src = '/images/hotel-placeholder.jpg'; }}
           />
+          <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent" />
 
-          {/* Bottom gradient for legibility */}
-          <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-black/10 to-transparent" />
-
-          {/* Floating action icons - no background, just shadow for visibility */}
-          <div className="absolute top-2 right-2 flex gap-2 z-10">
-            <button
-              onClick={handleCompare}
-              disabled={!canAddMore && !isComparing}
-              className={`p-1 transition-all duration-200 ${isComparing ? 'text-primary-400' : 'text-white'} ${!canAddMore && !isComparing ? 'opacity-40' : ''}`}
-              style={{ filter: 'drop-shadow(0 1px 2px rgba(0,0,0,0.5))' }}
-            >
-              <BarChart2 className="w-5 h-5" />
+          {/* Action icons */}
+          <div className="absolute top-2 right-2 flex gap-1.5 z-10">
+            <button onClick={handleCompare} disabled={!canAddMore && !isComparing}
+              className={`p-1.5 rounded-full bg-black/30 backdrop-blur-sm transition-all ${isComparing ? 'text-primary-400' : 'text-white'}`}>
+              <BarChart2 className="w-4 h-4" />
             </button>
-            <button
-              onClick={handleFavorite}
-              className={`p-1 transition-all duration-200 ${isFavorited ? 'text-rose-500' : 'text-white'}`}
-              style={{ filter: 'drop-shadow(0 1px 2px rgba(0,0,0,0.5))' }}
-            >
-              <Heart className={`w-5 h-5 ${isFavorited ? 'fill-current' : ''}`} />
+            <button onClick={handleFavorite} className={`p-1.5 rounded-full bg-black/30 backdrop-blur-sm ${isFavorited ? 'text-rose-500' : 'text-white'}`}>
+              <Heart className={`w-4 h-4 ${isFavorited ? 'fill-current' : ''}`} />
             </button>
-            <button
-              onClick={handleShare}
-              className="p-1 text-white transition-all duration-200"
-              style={{ filter: 'drop-shadow(0 1px 2px rgba(0,0,0,0.5))' }}
-            >
-              <Share2 className="w-5 h-5" />
+            <button onClick={handleShare} className="p-1.5 rounded-full bg-black/30 backdrop-blur-sm text-white">
+              <Share2 className="w-4 h-4" />
             </button>
           </div>
 
-          {/* Image navigation - subtle, modern */}
+          {/* Nav arrows - desktop hover */}
           {images.length > 1 && (
             <>
-              <button onClick={prevImage} className="absolute left-2 top-1/2 -translate-y-1/2 w-8 h-8 flex items-center justify-center rounded-xl bg-black/30 backdrop-blur-sm text-white hover:bg-black/50 active:scale-90 transition-all z-10 shadow-lg">
+              <button onClick={prevImage} className="absolute left-2 top-1/2 -translate-y-1/2 w-8 h-8 flex items-center justify-center rounded-full bg-black/40 backdrop-blur-sm text-white opacity-0 group-hover:opacity-100 transition-opacity">
                 <ChevronLeft className="w-5 h-5" />
               </button>
-              <button onClick={nextImage} className="absolute right-2 top-1/2 -translate-y-1/2 w-8 h-8 flex items-center justify-center rounded-xl bg-black/30 backdrop-blur-sm text-white hover:bg-black/50 active:scale-90 transition-all z-10 shadow-lg">
+              <button onClick={nextImage} className="absolute right-2 top-1/2 -translate-y-1/2 w-8 h-8 flex items-center justify-center rounded-full bg-black/40 backdrop-blur-sm text-white opacity-0 group-hover:opacity-100 transition-opacity">
                 <ChevronRight className="w-5 h-5" />
               </button>
+              <div className="absolute bottom-2 left-2 px-2 py-0.5 bg-black/50 backdrop-blur-sm rounded-md">
+                <span className="text-white text-[10px]">{currentImageIndex + 1}/{images.length}</span>
+              </div>
             </>
           )}
 
-          {/* Image counter - bottom left, subtle */}
-          <div className="absolute bottom-2 left-2 px-2 py-1 bg-black/40 backdrop-blur-sm rounded-lg z-10">
-            <span className="text-white text-[10px] font-medium">{currentImageIndex + 1}/{images.length}</span>
-          </div>
-
-          {/* Rating badge - bottom right, prominent */}
+          {/* Rating */}
           {hotel.reviewScore > 0 && (
-            <div className="absolute bottom-2 right-2 z-10">
-              <div className={`${reviewCategory.bg} text-white px-2.5 py-1.5 rounded-xl text-sm font-black shadow-lg backdrop-blur-sm`}>
-                {hotel.reviewScore.toFixed(1)}
-              </div>
+            <div className={`absolute bottom-2 right-2 ${reviewCategory.bg} text-white px-2 py-1 rounded-lg text-sm font-bold`}>
+              {hotel.reviewScore.toFixed(1)}
             </div>
           )}
 
-          {/* Loading indicator */}
           {isLoadingImages && (
             <div className="absolute inset-0 flex items-center justify-center bg-black/20 z-20">
               <Loader2 className="w-6 h-6 text-white animate-spin" />
@@ -230,93 +319,53 @@ export function HotelCard({
           )}
         </div>
 
-        {/* CONTENT SECTION - Compact hierarchy */}
-        <div className="flex-1 p-2 sm:p-3 flex flex-col min-w-0 overflow-hidden bg-[#FAFBFC]">
-
-          {/* Row 1: Hotel Name + Stars */}
-          <div className="mb-1">
-            <h3 className="font-bold text-slate-900 text-[13px] sm:text-sm lg:text-base leading-tight line-clamp-2 mb-0.5">
-              {hotel.name}
-            </h3>
-            <div className="flex items-center gap-1.5">
+        {/* Content */}
+        <div className="flex-1 p-3 lg:p-4 flex flex-col min-w-0 bg-[#FAFBFC]">
+          <div className="mb-1.5">
+            <h3 className="font-bold text-slate-900 text-sm lg:text-base leading-tight line-clamp-2 mb-1">{hotel.name}</h3>
+            <div className="flex items-center gap-2">
               {hotel.rating > 0 && (
-                <div className="flex items-center">
-                  {Array.from({ length: Math.min(hotel.rating || 0, 5) }, (_, i) => (
-                    <Star key={i} className="w-2.5 h-2.5 fill-amber-400 text-amber-400" />
-                  ))}
-                </div>
+                <div className="flex">{Array.from({ length: Math.min(hotel.rating, 5) }, (_, i) => <Star key={i} className="w-3 h-3 fill-amber-400 text-amber-400" />)}</div>
               )}
               {hotel.location?.city && (
-                <div className="flex items-center gap-0.5 text-slate-500">
-                  <MapPin className="w-2.5 h-2.5 text-primary-500" />
-                  <span className="text-[10px] sm:text-[11px] truncate max-w-[80px] sm:max-w-[120px]">{hotel.location.city}</span>
-                </div>
+                <span className="text-slate-500 text-xs flex items-center gap-0.5">
+                  <MapPin className="w-3 h-3 text-primary-500" />{hotel.location.city}
+                </span>
               )}
             </div>
           </div>
 
-          {/* Row 2: Key badges - compact */}
-          <div className="flex items-center gap-1 flex-wrap mb-1.5">
+          <div className="flex items-center gap-1.5 flex-wrap mb-2">
             {hasFreeCancellation && (
-              <span className="inline-flex items-center gap-0.5 px-1.5 py-0.5 bg-emerald-100 rounded text-[9px] sm:text-[10px] font-semibold text-emerald-700">
-                <Shield className="w-2.5 h-2.5" />
-                {t.freeCancel}
+              <span className="inline-flex items-center gap-0.5 px-2 py-0.5 bg-emerald-100 rounded text-[10px] font-semibold text-emerald-700">
+                <Shield className="w-3 h-3" />{t.freeCancel}
               </span>
             )}
             {hasBreakfast && (
-              <span className="inline-flex items-center gap-0.5 px-1.5 py-0.5 bg-amber-100 rounded text-[9px] sm:text-[10px] font-semibold text-amber-700">
-                <Coffee className="w-2.5 h-2.5" />
-                {t.breakfast}
-              </span>
-            )}
-            {bestRate?.maxOccupancy && (
-              <span className="inline-flex items-center gap-0.5 px-1.5 py-0.5 bg-slate-100 rounded text-[9px] sm:text-[10px] font-medium text-slate-600">
-                <Users className="w-2.5 h-2.5" />
-                {bestRate.maxOccupancy}
+              <span className="inline-flex items-center gap-0.5 px-2 py-0.5 bg-amber-100 rounded text-[10px] font-semibold text-amber-700">
+                <Coffee className="w-3 h-3" />{t.breakfast}
               </span>
             )}
           </div>
 
-          {/* Row 3: Amenities strip - compact */}
-          {topAmenities.length > 0 && (
-            <div className="flex items-center gap-1.5 mb-1.5 pb-1.5 border-b border-slate-100">
-              {topAmenities.map((amenity, idx) => (
-                <div key={idx} className="flex items-center gap-0.5 text-slate-400" title={amenity.label}>
-                  <amenity.icon className="w-3 h-3" />
-                </div>
-              ))}
-            </div>
-          )}
-
-          {/* Spacer */}
           <div className="flex-1" />
 
-          {/* Row 4: Price block + CTA - compact */}
-          <div className="flex items-end justify-between gap-1.5">
+          <div className="flex items-end justify-between gap-2">
             <div>
               {perNightPrice > 0 ? (
                 <>
                   <div className="flex items-baseline gap-0.5">
-                    <span className="text-lg sm:text-xl lg:text-2xl font-black text-slate-900">{currencySymbol}{Math.round(perNightPrice)}</span>
-                    <span className="text-[9px] sm:text-[10px] text-slate-500">{t.perNight}</span>
+                    <span className="text-xl lg:text-2xl font-black text-slate-900">{currencySymbol}{Math.round(perNightPrice)}</span>
+                    <span className="text-[10px] text-slate-500">{t.perNight}</span>
                   </div>
-                  <div className="text-[9px] sm:text-[10px] text-slate-400">
-                    {currencySymbol}{Math.round(totalPrice).toLocaleString()} · {nights}{t.nights}
-                  </div>
+                  <div className="text-[10px] text-slate-400">{currencySymbol}{Math.round(totalPrice).toLocaleString()} · {nights}{t.nights}</div>
                 </>
-              ) : (
-                <span className="text-xs text-slate-500">Check availability</span>
-              )}
+              ) : <span className="text-xs text-slate-500">Check availability</span>}
             </div>
-
-            <button
-              onClick={(e) => { e.stopPropagation(); handleBooking(); }}
-              className={`px-2.5 sm:px-3 py-1 sm:py-1.5 font-bold text-[10px] sm:text-[11px] rounded-lg transition-all active:scale-95 shadow-sm flex-shrink-0 ${
-                perNightPrice > 0
-                  ? 'bg-gradient-to-r from-primary-500 to-primary-600 text-white'
-                  : 'bg-slate-200 text-slate-700'
-              }`}
-            >
+            <button onClick={(e) => { e.stopPropagation(); handleBooking(); }}
+              className={`px-4 py-1.5 font-bold text-xs rounded-lg transition-all active:scale-95 shadow-sm ${
+                perNightPrice > 0 ? 'bg-gradient-to-r from-primary-500 to-primary-600 text-white' : 'bg-slate-200 text-slate-700'
+              }`}>
               {perNightPrice > 0 ? t.bookNow : t.view}
             </button>
           </div>

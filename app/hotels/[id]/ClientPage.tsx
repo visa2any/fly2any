@@ -547,31 +547,40 @@ export default function HotelDetailPage() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* Back Button */}
+      {/* Back Button - Full width mobile - Enhanced touch handling */}
       <div className="bg-white border-b border-gray-200">
-        <div style={{ maxWidth: '1440px', margin: '0 auto', padding: '16px 24px' }}>
+        <div className="w-full lg:max-w-[1440px] lg:mx-auto px-3 sm:px-4 lg:px-6 py-3 sm:py-4">
           <button
-            onClick={() => router.back()}
-            className="flex items-center gap-2 text-gray-600 hover:text-gray-900 transition-colors"
+            type="button"
+            onClick={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              router.back();
+            }}
+            onTouchEnd={(e) => {
+              e.preventDefault();
+              router.back();
+            }}
+            className="flex items-center gap-2 text-gray-600 hover:text-primary-600 transition-colors touch-manipulation active:opacity-70 cursor-pointer select-none py-2 -my-2"
+            style={{ WebkitTapHighlightColor: 'transparent' }}
           >
             <ArrowLeft className="w-5 h-5" />
-            <span className="font-semibold">Back to Results</span>
+            <span className="font-semibold text-sm sm:text-base">Back to Results</span>
           </button>
         </div>
       </div>
 
-      {/* Demo Data Banner */}
+      {/* Demo Data Banner - Full width mobile */}
       {isDemoData && (
-        <div className="bg-blue-50 border-b border-blue-200">
-          <div style={{ maxWidth: '1440px', margin: '0 auto', padding: '12px 24px' }}>
-            <div className="flex items-center gap-3">
+        <div className="bg-primary-50 border-b border-primary-200">
+          <div className="w-full lg:max-w-[1440px] lg:mx-auto px-3 sm:px-4 lg:px-6 py-2.5 sm:py-3">
+            <div className="flex items-center gap-2 sm:gap-3">
               <div className="flex-shrink-0">
-                <Info className="w-5 h-5 text-blue-600" />
+                <Info className="w-4 sm:w-5 h-4 sm:h-5 text-primary-600" />
               </div>
               <div className="flex-1">
-                <p className="text-sm text-blue-900">
-                  <span className="font-semibold">Demo Data:</span> This is sample hotel information for demonstration purposes.
-                  {' '}Real hotel data will be available when you configure your API credentials.
+                <p className="text-xs sm:text-sm text-primary-900">
+                  <span className="font-semibold">Demo Data:</span> Sample hotel for demonstration.
                 </p>
               </div>
             </div>
@@ -579,14 +588,14 @@ export default function HotelDetailPage() {
         </div>
       )}
 
-      {/* Hotel Content */}
-      <div className="max-w-[1440px] mx-auto px-3 sm:px-4 lg:px-6 py-4 lg:py-8">
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      {/* Hotel Content - Full width on mobile, contained on desktop */}
+      <div className="w-full lg:max-w-[1440px] lg:mx-auto px-0 sm:px-4 lg:px-6 py-2 sm:py-4 lg:py-8">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-3 sm:gap-4 lg:gap-6">
           {/* Main Content */}
           <div className="lg:col-span-2">
-            {/* Premium Photo Slider with Hotel Info Overlay */}
+            {/* Premium Photo Slider with Hotel Info Overlay - Edge-to-edge on mobile */}
             {hotel?.images && hotel.images.length > 0 && (
-              <div className="relative h-56 sm:h-72 lg:h-96 rounded-xl lg:rounded-2xl overflow-hidden mb-4 lg:mb-6 group bg-gray-100 shadow-lg lg:shadow-2xl">
+              <div className="relative h-52 sm:h-72 lg:h-96 rounded-none sm:rounded-xl lg:rounded-2xl overflow-hidden mb-3 sm:mb-4 lg:mb-6 group bg-gray-100 shadow-none sm:shadow-lg lg:shadow-2xl -mx-0 sm:mx-0">
                 {/* Current Image */}
                 <img
                   src={hotel.images[selectedImageIndex]?.url || hotel.images[0]?.url || hotel.images[0] || mainImage}
@@ -703,8 +712,8 @@ export default function HotelDetailPage() {
               </div>
             )}
 
-            {/* Premium Booking Info Bar - Check-in/Check-out with Times & Star Rating */}
-            <div className="bg-white rounded-2xl p-4 mb-6 shadow-lg border border-slate-200 hover:border-primary-200 transition-colors">
+            {/* Premium Booking Info Bar - Check-in/Check-out with Times & Star Rating - Edge-to-edge mobile */}
+            <div className="bg-white rounded-none sm:rounded-2xl p-3 sm:p-4 mb-3 sm:mb-6 shadow-none sm:shadow-lg border-y sm:border border-slate-200 hover:border-primary-200 transition-colors mx-0">
               <div className="flex flex-wrap items-center justify-between gap-4">
                 {/* Check-in Section */}
                 <div className="flex items-center gap-3">
@@ -778,8 +787,8 @@ export default function HotelDetailPage() {
               </div>
             </div>
 
-            {/* Hotel Info - Description & Details */}
-            <div className="bg-white rounded-2xl p-6 mb-6 shadow-lg border border-slate-100">
+            {/* Hotel Info - Description & Details - Edge-to-edge mobile */}
+            <div className="bg-white rounded-none sm:rounded-2xl p-4 sm:p-6 mb-3 sm:mb-6 shadow-none sm:shadow-lg border-y sm:border border-slate-100">
               {/* Premium Description Section */}
               {hotel.description && (
                 <div className="mb-6">
@@ -842,9 +851,9 @@ export default function HotelDetailPage() {
               )}
             </div>
 
-            {/* Room Listings Section - Premium Styled */}
+            {/* Room Listings Section - Premium Styled - Edge-to-edge mobile, 2-column rooms */}
             {hotel.rates && hotel.rates.length > 0 && (
-              <div className="bg-white rounded-2xl p-6 shadow-lg border border-slate-200 hover:border-primary-200 transition-colors">
+              <div className="bg-white rounded-none sm:rounded-2xl p-3 sm:p-6 shadow-none sm:shadow-lg border-y sm:border border-slate-200 hover:border-primary-200 transition-colors">
                 {/* Premium Section Header */}
                 <div className="flex items-center justify-between mb-6">
                   <div className="flex items-center gap-3">
@@ -941,7 +950,7 @@ export default function HotelDetailPage() {
                   </div>
                 ) : (
                   <>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                    <div className="grid grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-3 lg:gap-4">
                       {(showAllRooms ? filteredRooms : filteredRooms.slice(0, INITIAL_ROOMS_TO_SHOW)).map((room: any, index: number) => {
                         // Extract room data
                         const roomPrice = parseFloat(room.totalPrice?.amount || 0);
@@ -1086,21 +1095,21 @@ export default function HotelDetailPage() {
               </div>
             )}
 
-            {/* Enhanced Reviews Section - Premium Styling */}
-            <div className="bg-white rounded-2xl shadow-lg border border-slate-100 overflow-hidden mt-6">
+            {/* Enhanced Reviews Section - Premium Styling - Edge-to-edge mobile */}
+            <div className="bg-white rounded-none sm:rounded-2xl shadow-none sm:shadow-lg border-y sm:border border-slate-100 overflow-hidden mt-3 sm:mt-6">
               {/* Section Header */}
-              <div className="bg-gradient-to-r from-slate-50 to-slate-100 px-6 py-4 border-b border-slate-200">
-                <div className="flex items-center gap-3">
-                  <div className="p-2 bg-gradient-to-br from-orange-100 to-amber-100 rounded-xl">
-                    <Star className="w-5 h-5 text-primary-600" />
+              <div className="bg-gradient-to-r from-slate-50 to-slate-100 px-4 sm:px-6 py-3 sm:py-4 border-b border-slate-200">
+                <div className="flex items-center gap-2 sm:gap-3">
+                  <div className="p-1.5 sm:p-2 bg-gradient-to-br from-primary-100 to-primary-200 rounded-lg sm:rounded-xl">
+                    <Star className="w-4 sm:w-5 h-4 sm:h-5 text-primary-600" />
                   </div>
                   <div>
-                    <h2 className="text-lg font-bold text-gray-900">Guest Reviews</h2>
-                    <p className="text-sm text-gray-500">Real experiences from verified guests</p>
+                    <h2 className="text-base sm:text-lg font-bold text-gray-900">Guest Reviews</h2>
+                    <p className="text-xs sm:text-sm text-gray-500">Real experiences from verified guests</p>
                   </div>
                 </div>
               </div>
-              <div className="p-6">
+              <div className="p-4 sm:p-6">
                 <HotelReviews
                   hotelId={hotelId}
                   hotelName={hotel?.name}
@@ -1110,14 +1119,14 @@ export default function HotelDetailPage() {
               </div>
             </div>
 
-            {/* Trust Badges Section */}
-            <div className="mt-6">
+            {/* Trust Badges Section - Edge-to-edge mobile */}
+            <div className="mt-3 sm:mt-6 px-3 sm:px-0">
               <HotelTrustBadges variant="full" />
             </div>
           </div>
 
-          {/* Premium Booking Sidebar */}
-          <div className="lg:col-span-1">
+          {/* Premium Booking Sidebar - Hidden on mobile (mobile CTA at bottom) */}
+          <div className="hidden lg:block lg:col-span-1 px-3 sm:px-0">
             <div className="bg-white rounded-2xl shadow-xl border border-slate-200 sticky top-24 overflow-hidden">
               {/* Premium Price Header - Shows Selected Room */}
               <div className={`p-5 ${usingEstimatedPricing ? 'bg-gradient-to-r from-amber-500 to-primary-500' : 'bg-gradient-to-r from-primary-500 to-primary-600'}`}>
