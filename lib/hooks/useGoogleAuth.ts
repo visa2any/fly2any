@@ -164,48 +164,17 @@ export function useGoogleAuth(options: UseGoogleAuthOptions = {}) {
     return () => clearTimeout(timer);
   }, [isScriptLoaded, handleCredentialResponse, context, enableOneTap]);
 
-  // Handle popup-based sign in (for button click)
+  // Handle sign in with redirect (most reliable for OAuth)
   const signInWithPopup = useCallback(async () => {
     setIsLoading(true);
-
-    // Popup dimensions
-    const width = 500;
-    const height = 600;
-    const left = window.screenX + (window.outerWidth - width) / 2;
-    const top = window.screenY + (window.outerHeight - height) / 2;
-
-    // Open popup for Google OAuth
-    const popup = window.open(
-      `/api/auth/signin/google?callbackUrl=${encodeURIComponent(callbackUrl)}`,
-      'google-signin',
-      `width=${width},height=${height},left=${left},top=${top},popup=1,toolbar=0,menubar=0`
-    );
-
-    if (!popup) {
-      // Popup blocked - fall back to redirect
-      onError?.('Popup blocked. Redirecting...');
+    try {
+      // Use NextAuth's signIn with redirect - most reliable approach
       await signIn('google', { callbackUrl });
-      return;
-    }
-
-    // Monitor popup for closure
-    const checkPopup = setInterval(() => {
-      if (popup.closed) {
-        clearInterval(checkPopup);
-        setIsLoading(false);
-        // Check if user is now authenticated by refreshing
-        window.location.reload();
-      }
-    }, 500);
-
-    // Cleanup after 5 minutes max
-    setTimeout(() => {
-      clearInterval(checkPopup);
-      if (!popup.closed) {
-        popup.close();
-      }
+    } catch (error) {
+      console.error('Google sign-in error:', error);
+      onError?.('Failed to sign in with Google');
       setIsLoading(false);
-    }, 300000);
+    }
   }, [callbackUrl, onError]);
 
   // Fallback redirect-based sign in

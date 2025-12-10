@@ -151,8 +151,8 @@ function SignUpContent() {
           {/* Google Sign Up - Apple-Class Button */}
           <button
             onClick={handleGoogleSignUp}
-            disabled={isGoogleLoading || !isGoogleConfigured}
-            className="w-full flex items-center justify-center gap-3 px-6 py-3.5 bg-white border-2 border-neutral-200 rounded-2xl text-neutral-700 font-semibold hover:bg-neutral-50 hover:border-neutral-300 hover:shadow-lg transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed active:scale-[0.98]"
+            disabled={isGoogleLoading}
+            className="w-full flex items-center justify-center gap-3 px-6 py-3.5 bg-white border-2 border-neutral-200 rounded-2xl text-neutral-700 font-semibold hover:bg-neutral-50 hover:border-neutral-300 hover:shadow-lg transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed active:scale-[0.98] touch-manipulation"
           >
             {isGoogleLoading ? (
               <Loader2 className="w-5 h-5 animate-spin text-neutral-500" />
