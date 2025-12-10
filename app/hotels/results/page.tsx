@@ -884,8 +884,8 @@ function HotelResultsContent() {
                   onClick={() => setSortBy(key as SortOption)}
                   className={`px-3 py-2 rounded-xl font-semibold text-xs transition-all flex-shrink-0 ${
                     sortBy === key
-                      ? 'bg-slate-900 text-white shadow-sm'
-                      : 'bg-white border border-slate-200 text-slate-600 hover:border-slate-300'
+                      ? 'bg-primary-500 text-white shadow-sm'
+                      : 'bg-white border border-slate-200 text-slate-600 hover:border-primary-300 hover:text-primary-600'
                   }`}
                 >
                   {label}
