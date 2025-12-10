@@ -419,7 +419,7 @@ export function HotelCard({
               onClick={(e) => { e.stopPropagation(); expandOverlay(); }}
               className="absolute bottom-0 left-0 right-0 z-10 cursor-pointer touch-manipulation"
             >
-              <div className="bg-black/50 backdrop-blur-md rounded-t-xl" style={{ boxShadow: '0 -1px 8px rgba(0,0,0,0.15)' }}>
+              <div className="bg-black/40 backdrop-blur-md rounded-t-xl" style={{ boxShadow: '0 -1px 8px rgba(0,0,0,0.15)' }}>
                 {/* Compact handle + hint */}
                 <div className="flex items-center justify-center gap-1.5 pt-1.5 pb-0.5">
                   <div className="w-6 h-0.5 bg-white/30 rounded-full" />
@@ -442,7 +442,7 @@ export function HotelCard({
               animate={{ y: 0, opacity: 1 }}
               exit={{ y: 100, opacity: 0 }}
               transition={{ type: 'spring', stiffness: 350, damping: 28 }}
-              className="absolute bottom-0 left-0 right-0 z-10 bg-black/45 backdrop-blur-md rounded-t-xl"
+              className="absolute bottom-0 left-0 right-0 z-10 bg-black/35 backdrop-blur-md rounded-t-xl"
               style={{ boxShadow: '0 -2px 12px rgba(0,0,0,0.2)' }}
             >
               <div className="px-2.5 pt-1.5 pb-2">
