@@ -324,21 +324,21 @@ export function MobileHomeSearchWrapper({
               />
             </div>
 
-            {/* Elegant Collapse Button - Mobile-First Ghost Button */}
+            {/* Compact Collapse Handle - Apple-Class Drag Pill */}
             <motion.div
-              initial={{ opacity: 0, y: -10 }}
+              initial={{ opacity: 0, y: -5 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.2, duration: 0.3 }}
-              className="flex justify-center mt-3 mb-2"
+              transition={{ delay: 0.15, duration: 0.2 }}
+              className="flex justify-center pt-1 pb-2"
             >
               <button
                 type="button"
                 onClick={handleCollapse}
-                className="mobile-btn-ghost"
+                className="flex items-center justify-center gap-0.5 px-4 py-1.5 bg-neutral-100 hover:bg-neutral-200 rounded-full transition-all duration-150 touch-manipulation active:scale-95"
                 aria-label="Minimize search form"
               >
-                <span className="font-medium">Minimize</span>
-                <ChevronUp className="w-4 h-4" />
+                <ChevronUp className="w-4 h-4 text-neutral-500" />
+                <span className="text-[10px] font-semibold text-neutral-500">Close</span>
               </button>
             </motion.div>
           </motion.div>

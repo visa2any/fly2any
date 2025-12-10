@@ -525,14 +525,14 @@ export default function PremiumDatePicker({
           {index === 0 && (
             <button
               onClick={handlePreviousMonth}
-              className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+              className="p-2 hover:bg-neutral-100 rounded-lg transition-colors"
               aria-label="Previous month"
             >
-              <ChevronLeft className="w-4 h-4 text-gray-600" />
+              <ChevronLeft className="w-4 h-4 text-neutral-600" />
             </button>
           )}
           <div className={`flex-1 text-center ${index === 1 ? 'ml-10' : ''}`}>
-            <div className="font-bold text-gray-900 text-sm">
+            <div className="font-bold text-neutral-800 text-sm">
               {monthName} {year}
             </div>
             {loadingPrices && index === 0 && (
@@ -544,10 +544,10 @@ export default function PremiumDatePicker({
           {index === 1 && (
             <button
               onClick={handleNextMonth}
-              className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+              className="p-2 hover:bg-neutral-100 rounded-lg transition-colors"
               aria-label="Next month"
             >
-              <ChevronRight className="w-4 h-4 text-gray-600" />
+              <ChevronRight className="w-4 h-4 text-neutral-600" />
             </button>
           )}
           {index === 0 && <div className="w-10" />}
@@ -558,7 +558,7 @@ export default function PremiumDatePicker({
           {DAYS_OF_WEEK.map((day) => (
             <div
               key={day}
-              className="text-center text-xs font-semibold text-gray-600 py-1"
+              className="text-center text-xs font-semibold text-neutral-600 py-1"
             >
               {day}
             </div>
@@ -579,21 +579,21 @@ export default function PremiumDatePicker({
                 disabled={day.isDisabled}
                 className={`
                   relative aspect-square w-full rounded-md transition-all duration-200
-                  ${!day.isCurrentMonth ? 'text-gray-300' : 'text-gray-700'}
+                  ${!day.isCurrentMonth ? 'text-neutral-300' : 'text-neutral-700'}
                   ${day.isDisabled ? 'cursor-not-allowed opacity-40' : 'cursor-pointer'}
                   ${day.isWeekend && day.isCurrentMonth && !day.isDisabled && !day.isSelected ? 'bg-gradient-to-br from-info-50 to-primary-50' : ''}
                   ${
                     day.isSelected
-                      ? 'bg-[#0087FF] text-white font-semibold shadow-md scale-105 z-10'
+                      ? 'bg-primary-500 text-white font-semibold shadow-md scale-105 z-10'
                       : day.isInRange
-                      ? 'bg-gradient-to-r from-[#E6F3FF] to-[#CCE7FF]'
+                      ? 'bg-gradient-to-r from-primary-50 to-primary-100'
                       : isHovered && !day.isDisabled
-                      ? 'bg-[#F0F9FF] scale-105 shadow-sm'
-                      : 'hover:bg-[#F0F9FF]'
+                      ? 'bg-primary-50 scale-105 shadow-sm'
+                      : 'hover:bg-primary-50'
                   }
                   ${day.isRangeStart ? 'rounded-r-none' : ''}
                   ${day.isRangeEnd ? 'rounded-l-none' : ''}
-                  ${day.isToday && !day.isSelected ? 'ring-2 ring-[#0087FF] ring-inset' : ''}
+                  ${day.isToday && !day.isSelected ? 'ring-2 ring-primary-500 ring-inset' : ''}
                 `}
               >
                 <div className="flex flex-col items-center justify-center h-full gap-0.5">
@@ -608,7 +608,7 @@ export default function PremiumDatePicker({
                     <span
                       className={`text-xs px-2 py-0.5 rounded-md font-medium tracking-normal ${
                         day.isSelected
-                          ? 'bg-white/90 text-[#0087FF] shadow-sm'
+                          ? 'bg-white/90 text-primary-500 shadow-sm'
                           : 'bg-slate-100 text-slate-700 border border-slate-200'
                       } transition-all duration-200`}
                     >

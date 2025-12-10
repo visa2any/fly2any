@@ -174,7 +174,7 @@ export default function MultiAirportSelector({
       >
         <MapPin className="absolute left-2.5 top-1/2 -translate-y-1/2 text-neutral-400 flex-shrink-0" size={16} />
 
-        <div className="pl-7 pr-5 py-2 w-full overflow-hidden min-h-[40px] flex items-center">
+        <div className="pl-7 pr-5 py-3 w-full overflow-hidden min-h-[48px] flex items-center">
           {selectedAirports.length === 0 ? (
             <span className="text-neutral-400 text-sm block truncate">{placeholder}</span>
           ) : (

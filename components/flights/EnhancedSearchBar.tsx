@@ -3260,7 +3260,7 @@ export default function EnhancedSearchBar({
                 <button
                   type="button"
                   onClick={() => handleOpenDatePicker('departure')}
-                  className={`relative w-full px-3 py-3 bg-white border-2 rounded-xl text-left transition-all duration-200 touch-manipulation active:scale-[0.98] ${errors.departureDate ? 'border-red-400' : 'border-neutral-200 hover:border-primary-400'}`}
+                  className={`relative w-full px-3 py-3 min-h-[48px] bg-white border-2 rounded-xl text-left transition-all duration-200 touch-manipulation active:scale-[0.98] ${errors.departureDate ? 'border-red-400' : 'border-neutral-200 hover:border-primary-400'}`}
                 >
                   <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 text-neutral-400" size={16} />
                   <span className="pl-6 text-sm font-semibold text-neutral-800 truncate">
@@ -3293,7 +3293,7 @@ export default function EnhancedSearchBar({
                   <button
                     type="button"
                     onClick={() => handleOpenDatePicker('return')}
-                    className={`relative w-full px-3 py-3 bg-white border-2 rounded-xl text-left transition-all duration-200 touch-manipulation active:scale-[0.98] ${errors.returnDate ? 'border-red-400' : 'border-neutral-200 hover:border-primary-400'}`}
+                    className={`relative w-full px-3 py-3 min-h-[48px] bg-white border-2 rounded-xl text-left transition-all duration-200 touch-manipulation active:scale-[0.98] ${errors.returnDate ? 'border-red-400' : 'border-neutral-200 hover:border-primary-400'}`}
                   >
                     <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 text-neutral-400" size={16} />
                     <span className="pl-6 text-sm font-semibold text-neutral-800 truncate">
