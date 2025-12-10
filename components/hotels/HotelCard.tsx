@@ -1,11 +1,12 @@
 'use client';
 
-import { useState, useCallback, useMemo, useEffect } from 'react';
+import { useState, useCallback, useMemo, useEffect, useRef } from 'react';
 import Image from 'next/image';
+import { motion, AnimatePresence, PanInfo } from 'framer-motion';
 import {
   Star, MapPin, ChevronLeft, ChevronRight, Heart, Share2,
   Coffee, Shield, Loader2, Wifi, Waves, Dumbbell, Car, ChevronRight as ArrowRight,
-  Sparkles, UtensilsCrossed, Wind, PawPrint, BarChart2, Users, Receipt
+  Sparkles, UtensilsCrossed, Wind, PawPrint, BarChart2, Users, Receipt, ChevronUp
 } from 'lucide-react';
 import { useHotelCompare } from '@/contexts/HotelCompareContext';
 import { getBlurDataURL } from '@/lib/utils/image-optimization';
@@ -65,10 +66,51 @@ export function HotelCard({
   const [hasLoadedImages, setHasLoadedImages] = useState(false);
   const [showArrows, setShowArrows] = useState(false);
   const [touchStart, setTouchStart] = useState<number | null>(null);
+  const [touchStartY, setTouchStartY] = useState<number | null>(null);
   const [showSwipeHint, setShowSwipeHint] = useState(false);
   const [lastTap, setLastTap] = useState(0);
   const [isTransitioning, setIsTransitioning] = useState(false);
+  // Collapsible overlay state
+  const [overlayCollapsed, setOverlayCollapsed] = useState(false);
+  const autoExpandTimerRef = useRef<NodeJS.Timeout | null>(null);
   const t = translations[lang];
+
+  // Auto-expand overlay after 3 seconds
+  const scheduleAutoExpand = useCallback(() => {
+    if (autoExpandTimerRef.current) {
+      clearTimeout(autoExpandTimerRef.current);
+    }
+    autoExpandTimerRef.current = setTimeout(() => {
+      setOverlayCollapsed(false);
+    }, 3000);
+  }, []);
+
+  // Collapse overlay when swiping photos
+  const collapseOverlay = useCallback(() => {
+    setOverlayCollapsed(true);
+    scheduleAutoExpand();
+    // Haptic feedback
+    if (navigator.vibrate) navigator.vibrate(10);
+  }, [scheduleAutoExpand]);
+
+  // Expand overlay immediately (user interaction)
+  const expandOverlay = useCallback(() => {
+    if (autoExpandTimerRef.current) {
+      clearTimeout(autoExpandTimerRef.current);
+    }
+    setOverlayCollapsed(false);
+    // Haptic feedback
+    if (navigator.vibrate) navigator.vibrate(20);
+  }, []);
+
+  // Cleanup timer on unmount
+  useEffect(() => {
+    return () => {
+      if (autoExpandTimerRef.current) {
+        clearTimeout(autoExpandTimerRef.current);
+      }
+    };
+  }, []);
 
   const { addToCompare, removeFromCompare, isInCompare, canAddMore } = useHotelCompare();
   const isComparing = isInCompare(hotel.id);
@@ -210,19 +252,29 @@ export function HotelCard({
   // Swipe handlers for touch devices with crossfade
   const handleTouchStart = (e: React.TouchEvent) => {
     setTouchStart(e.touches[0].clientX);
+    setTouchStartY(e.touches[0].clientY);
   };
 
   const handleTouchEnd = async (e: React.TouchEvent) => {
-    if (touchStart === null || images.length <= 1) return;
-    const touchEnd = e.changedTouches[0].clientX;
-    const diff = touchStart - touchEnd;
+    if (touchStart === null || images.length <= 1) {
+      setTouchStart(null);
+      setTouchStartY(null);
+      return;
+    }
+    const touchEndX = e.changedTouches[0].clientX;
+    const touchEndY = e.changedTouches[0].clientY;
+    const diffX = touchStart - touchEndX;
+    const diffY = touchStartY !== null ? touchStartY - touchEndY : 0;
     const threshold = 50; // minimum swipe distance
 
-    if (Math.abs(diff) > threshold) {
+    // Horizontal swipe - change image and collapse overlay
+    if (Math.abs(diffX) > threshold && Math.abs(diffX) > Math.abs(diffY)) {
       if (!hasLoadedImages && !isLoadingImages) await fetchImages();
       // Use crossfade transition
-      changeImage(diff > 0 ? 'next' : 'prev');
+      changeImage(diffX > 0 ? 'next' : 'prev');
       flashArrows();
+      // Collapse overlay when swiping photos
+      collapseOverlay();
       // Hide swipe hint after first successful swipe
       if (showSwipeHint) {
         setShowSwipeHint(false);
@@ -230,6 +282,15 @@ export function HotelCard({
       }
     }
     setTouchStart(null);
+    setTouchStartY(null);
+  };
+
+  // Handle swipe up on collapsed bar to expand
+  const handleOverlayDragEnd = (event: MouseEvent | TouchEvent | PointerEvent, info: PanInfo) => {
+    // If user drags up more than 30px, expand the overlay
+    if (info.offset.y < -30) {
+      expandOverlay();
+    }
   };
 
   return (
@@ -341,95 +402,153 @@ export function HotelCard({
           </div>
         )}
 
-        {/* Bottom info - Apple-class light frosted bar */}
-        <div className="absolute bottom-0 left-0 right-0 z-10 bg-black/35 backdrop-blur-sm" style={{ boxShadow: '0 -1px 8px rgba(0,0,0,0.15)' }}>
-          <div className="px-3 py-2">
-            {/* Row 1: Name + Price */}
-            <div className="flex items-center justify-between gap-2 mb-0.5">
-              <h3 className="font-bold text-[14px] text-white leading-tight line-clamp-1 flex-1 flex items-center gap-1.5">
-                <span className="text-secondary-300">🏨</span>
-                {hotel.name}
-              </h3>
-              {perNightPrice > 0 && (
-                <div className="flex items-baseline gap-1 flex-shrink-0">
-                  <span className="font-bold text-[16px] text-secondary-200">{currencySymbol}{Math.round(perNightPrice)}</span>
-                  <span className="text-[9px] font-semibold text-white/70">{t.perNight}</span>
+        {/* Bottom info - Apple-class collapsible frosted bar */}
+        <AnimatePresence mode="wait">
+          {overlayCollapsed ? (
+            /* Collapsed State - Minimal bar with expand hint */
+            <motion.div
+              key="collapsed"
+              initial={{ y: 80, opacity: 0 }}
+              animate={{ y: 0, opacity: 1 }}
+              exit={{ y: 80, opacity: 0 }}
+              transition={{ type: 'spring', stiffness: 400, damping: 30 }}
+              drag="y"
+              dragConstraints={{ top: -50, bottom: 0 }}
+              dragElastic={0.2}
+              onDragEnd={handleOverlayDragEnd}
+              onClick={(e) => { e.stopPropagation(); expandOverlay(); }}
+              className="absolute bottom-0 left-0 right-0 z-10 cursor-pointer touch-manipulation"
+            >
+              <div className="bg-black/50 backdrop-blur-md rounded-t-2xl" style={{ boxShadow: '0 -2px 12px rgba(0,0,0,0.2)' }}>
+                {/* Drag handle */}
+                <div className="flex flex-col items-center pt-2 pb-1">
+                  <div className="w-10 h-1 bg-white/40 rounded-full mb-1" />
+                  <motion.div
+                    className="flex items-center gap-1 text-white/70"
+                    animate={{ y: [0, -3, 0] }}
+                    transition={{ duration: 1.5, repeat: Infinity, ease: 'easeInOut' }}
+                  >
+                    <ChevronUp className="w-3.5 h-3.5" />
+                    <span className="text-[9px] font-medium">Swipe up for details</span>
+                  </motion.div>
                 </div>
-              )}
-            </div>
-
-            {/* Row 2: Location + Guests + Total */}
-            <div className="flex items-center justify-between mb-1.5 gap-1">
-              <div className="flex items-center gap-2 flex-1 min-w-0">
-                {hotel.location?.city && (
-                  <span className="text-white/90 text-[10px] font-medium flex items-center gap-0.5 truncate">
-                    <MapPin className="w-2.5 h-2.5 flex-shrink-0" />
-                    {hotel.location.city}
-                  </span>
-                )}
-                {/* Guest count */}
-                <span className="text-white/80 text-[10px] font-medium flex items-center gap-0.5 flex-shrink-0">
-                  <Users className="w-2.5 h-2.5" />
-                  {adults + children}
-                </span>
-              </div>
-              {perNightPrice > 0 && (
-                <div className="flex items-center gap-1 flex-shrink-0">
-                  <span className="text-[10px] font-bold text-white/70">{currencySymbol}{Math.round(totalPrice)} · {nights}n</span>
-                  <span className="text-[8px] text-emerald-400 font-semibold">{t.inclTax}</span>
+                {/* Minimal info row */}
+                <div className="px-3 pb-2 flex items-center justify-between">
+                  <div className="flex items-center gap-2 flex-1 min-w-0">
+                    <span className="text-secondary-300">🏨</span>
+                    <span className="text-white font-bold text-[12px] truncate">{hotel.name}</span>
+                  </div>
+                  {perNightPrice > 0 && (
+                    <span className="font-bold text-[14px] text-secondary-200 flex-shrink-0">{currencySymbol}{Math.round(perNightPrice)}<span className="text-[9px] text-white/60">{t.perNight}</span></span>
+                  )}
                 </div>
-              )}
-            </div>
-
-            {/* Row 3: Amenities with labels + CTA */}
-            <div className="flex items-center justify-between gap-2">
-              <div className="flex items-center gap-3 flex-1 min-w-0">
-                {amenities.wifi && (
-                  <div className="flex flex-col items-center">
-                    <Wifi className="w-3.5 h-3.5 text-white/80" strokeWidth={2.5} />
-                    <span className="text-[7px] text-white/50 font-medium">WiFi</span>
-                  </div>
-                )}
-                {amenities.pool && (
-                  <div className="flex flex-col items-center">
-                    <Waves className="w-3.5 h-3.5 text-white/80" strokeWidth={2.5} />
-                    <span className="text-[7px] text-white/50 font-medium">Pool</span>
-                  </div>
-                )}
-                {amenities.gym && (
-                  <div className="flex flex-col items-center">
-                    <Dumbbell className="w-3.5 h-3.5 text-white/80" strokeWidth={2.5} />
-                    <span className="text-[7px] text-white/50 font-medium">Gym</span>
-                  </div>
-                )}
-                {amenities.parking && (
-                  <div className="flex flex-col items-center">
-                    <Car className="w-3.5 h-3.5 text-white/80" strokeWidth={2.5} />
-                    <span className="text-[7px] text-white/50 font-medium">Park</span>
-                  </div>
-                )}
-                {hasFreeCancellation && (
-                  <div className="flex flex-col items-center">
-                    <Shield className="w-3.5 h-3.5 text-emerald-400" strokeWidth={2.5} />
-                    <span className="text-[7px] text-emerald-400/70 font-medium">Free</span>
-                  </div>
-                )}
-                {hasBreakfast && (
-                  <div className="flex flex-col items-center">
-                    <Coffee className="w-3.5 h-3.5 text-amber-400" strokeWidth={2.5} />
-                    <span className="text-[7px] text-amber-400/70 font-medium">Bkfst</span>
-                  </div>
-                )}
               </div>
-              <button
-                onClick={(e) => { e.stopPropagation(); handleBooking(); }}
-                className="px-3.5 py-1.5 rounded-lg bg-primary-500 text-white text-[10px] font-bold active:scale-95 transition-transform"
-              >
-                {t.bookNow}
-              </button>
-            </div>
-          </div>
-        </div>
+            </motion.div>
+          ) : (
+            /* Expanded State - Full info */
+            <motion.div
+              key="expanded"
+              initial={{ y: 100, opacity: 0 }}
+              animate={{ y: 0, opacity: 1 }}
+              exit={{ y: 100, opacity: 0 }}
+              transition={{ type: 'spring', stiffness: 350, damping: 28 }}
+              className="absolute bottom-0 left-0 right-0 z-10 bg-black/40 backdrop-blur-md rounded-t-2xl"
+              style={{ boxShadow: '0 -2px 16px rgba(0,0,0,0.25)' }}
+            >
+              <div className="px-3 py-2.5">
+                {/* Subtle drag indicator */}
+                <div className="flex justify-center mb-1.5">
+                  <div className="w-8 h-0.5 bg-white/30 rounded-full" />
+                </div>
+
+                {/* Row 1: Name + Price */}
+                <div className="flex items-center justify-between gap-2 mb-1">
+                  <h3 className="font-bold text-[14px] text-white leading-tight line-clamp-1 flex-1 flex items-center gap-1.5">
+                    <span className="text-secondary-300">🏨</span>
+                    {hotel.name}
+                  </h3>
+                  {perNightPrice > 0 && (
+                    <div className="flex items-baseline gap-1 flex-shrink-0">
+                      <span className="font-bold text-[16px] text-secondary-200">{currencySymbol}{Math.round(perNightPrice)}</span>
+                      <span className="text-[9px] font-semibold text-white/70">{t.perNight}</span>
+                    </div>
+                  )}
+                </div>
+
+                {/* Row 2: Location + Guests + Total */}
+                <div className="flex items-center justify-between mb-2 gap-1">
+                  <div className="flex items-center gap-2 flex-1 min-w-0">
+                    {hotel.location?.city && (
+                      <span className="text-white/90 text-[10px] font-medium flex items-center gap-0.5 truncate">
+                        <MapPin className="w-2.5 h-2.5 flex-shrink-0" />
+                        {hotel.location.city}
+                      </span>
+                    )}
+                    {/* Guest count */}
+                    <span className="text-white/80 text-[10px] font-medium flex items-center gap-0.5 flex-shrink-0">
+                      <Users className="w-2.5 h-2.5" />
+                      {adults + children}
+                    </span>
+                  </div>
+                  {perNightPrice > 0 && (
+                    <div className="flex items-center gap-1 flex-shrink-0">
+                      <span className="text-[10px] font-bold text-white/70">{currencySymbol}{Math.round(totalPrice)} · {nights}n</span>
+                      <span className="text-[8px] text-emerald-400 font-semibold">{t.inclTax}</span>
+                    </div>
+                  )}
+                </div>
+
+                {/* Row 3: Amenities with labels + CTA */}
+                <div className="flex items-center justify-between gap-2">
+                  <div className="flex items-center gap-3 flex-1 min-w-0">
+                    {amenities.wifi && (
+                      <div className="flex flex-col items-center">
+                        <Wifi className="w-3.5 h-3.5 text-white/80" strokeWidth={2.5} />
+                        <span className="text-[7px] text-white/50 font-medium">WiFi</span>
+                      </div>
+                    )}
+                    {amenities.pool && (
+                      <div className="flex flex-col items-center">
+                        <Waves className="w-3.5 h-3.5 text-white/80" strokeWidth={2.5} />
+                        <span className="text-[7px] text-white/50 font-medium">Pool</span>
+                      </div>
+                    )}
+                    {amenities.gym && (
+                      <div className="flex flex-col items-center">
+                        <Dumbbell className="w-3.5 h-3.5 text-white/80" strokeWidth={2.5} />
+                        <span className="text-[7px] text-white/50 font-medium">Gym</span>
+                      </div>
+                    )}
+                    {amenities.parking && (
+                      <div className="flex flex-col items-center">
+                        <Car className="w-3.5 h-3.5 text-white/80" strokeWidth={2.5} />
+                        <span className="text-[7px] text-white/50 font-medium">Park</span>
+                      </div>
+                    )}
+                    {hasFreeCancellation && (
+                      <div className="flex flex-col items-center">
+                        <Shield className="w-3.5 h-3.5 text-emerald-400" strokeWidth={2.5} />
+                        <span className="text-[7px] text-emerald-400/70 font-medium">Free</span>
+                      </div>
+                    )}
+                    {hasBreakfast && (
+                      <div className="flex flex-col items-center">
+                        <Coffee className="w-3.5 h-3.5 text-amber-400" strokeWidth={2.5} />
+                        <span className="text-[7px] text-amber-400/70 font-medium">Bkfst</span>
+                      </div>
+                    )}
+                  </div>
+                  <button
+                    onClick={(e) => { e.stopPropagation(); handleBooking(); }}
+                    className="px-3.5 py-1.5 rounded-xl bg-primary-500 text-white text-[10px] font-bold active:scale-95 transition-transform shadow-lg shadow-primary-500/30"
+                  >
+                    {t.bookNow}
+                  </button>
+                </div>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
 
         {isLoadingImages && (
           <div className="absolute inset-0 flex items-center justify-center bg-black/10 z-20">
