@@ -3119,25 +3119,25 @@ export default function EnhancedSearchBar({
           />
         ))}
 
-        {/* Mobile/Tablet: Stacked layout */}
-        <div className="lg:hidden space-y-2 px-0">
+        {/* Mobile/Tablet: Apple-Class Stacked layout */}
+        <div className="lg:hidden space-y-3 px-0">
           {/* FLIGHTS MOBILE FIELDS */}
           {serviceType === 'flights' && (
           <>
-          {/* Airports - Mobile Grid with aligned labels */}
-          <div className="space-y-1">
+          {/* Airports - Apple-Class Mobile Grid */}
+          <div className="space-y-1.5">
             {/* Labels row: From, To, One-way aligned */}
             <div className="grid grid-cols-2 gap-2">
-              <label className="flex items-center gap-1.5 text-sm font-medium text-gray-700">
-                <PlaneTakeoff size={14} className="text-gray-600" />
+              <label className="flex items-center gap-1.5 text-xs font-semibold text-neutral-600">
+                <PlaneTakeoff size={13} className="text-neutral-500" />
                 <span>{t('from')}</span>
               </label>
               <div className="flex items-center justify-between">
-                <label className="flex items-center gap-1.5 text-sm font-medium text-gray-700">
-                  <PlaneLanding size={14} className="text-gray-600" />
+                <label className="flex items-center gap-1.5 text-xs font-semibold text-neutral-600">
+                  <PlaneLanding size={13} className="text-neutral-500" />
                   <span>{t('to')}</span>
                 </label>
-                <label className="flex items-center gap-1.5 cursor-pointer group">
+                <label className="flex items-center gap-1.5 cursor-pointer group touch-manipulation">
                   <input
                     type="checkbox"
                     checked={tripType === 'oneway'}
@@ -3154,9 +3154,9 @@ export default function EnhancedSearchBar({
                         }
                       }
                     }}
-                    className="w-3.5 h-3.5 rounded border-gray-300 text-primary-600 focus:ring-primary-500 cursor-pointer"
+                    className="w-4 h-4 rounded-md border-neutral-300 text-primary-500 focus:ring-primary-400 focus:ring-offset-0 cursor-pointer"
                   />
-                  <span className="text-xs font-medium text-gray-600 group-hover:text-primary-600 transition-colors">
+                  <span className="text-[11px] font-semibold text-neutral-500 group-hover:text-primary-500 transition-colors">
                     {t('oneWay')}
                   </span>
                 </label>
@@ -3181,19 +3181,19 @@ export default function EnhancedSearchBar({
             </div>
           </div>
 
-          {/* Dates - Mobile-First with Multi-Dates Toggle */}
-          <div className="space-y-1">
+          {/* Dates - Apple-Class with Multi-Dates Toggle */}
+          <div className="space-y-1.5">
             {/* Labels row: Depart, Return/Add Flight, Multi-Dates aligned */}
             <div className="grid grid-cols-2 gap-2">
               {/* Depart label - with Multi-Dates toggle for one-way */}
               <div className="flex items-center justify-between">
-                <label className="flex items-center gap-1.5 text-sm font-medium text-gray-700">
-                  <CalendarDays size={14} className="text-gray-600" />
+                <label className="flex items-center gap-1.5 text-xs font-semibold text-neutral-600">
+                  <CalendarDays size={13} className="text-neutral-500" />
                   <span>{t('depart')}</span>
                 </label>
                 {/* Multi-Dates toggle for one-way */}
                 {tripType === 'oneway' && (
-                  <label className={`flex items-center gap-1.5 ${additionalFlights.length > 0 ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'} group`}>
+                  <label className={`flex items-center gap-1.5 touch-manipulation ${additionalFlights.length > 0 ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'} group`}>
                     <input
                       type="checkbox"
                       checked={useFlexibleDates}
@@ -3206,9 +3206,9 @@ export default function EnhancedSearchBar({
                           setDepartureDates([]);
                         }
                       }}
-                      className="w-3.5 h-3.5 rounded border-gray-300 text-primary-600 focus:ring-primary-500 cursor-pointer disabled:cursor-not-allowed disabled:opacity-50"
+                      className="w-4 h-4 rounded-md border-neutral-300 text-primary-500 focus:ring-primary-400 focus:ring-offset-0 cursor-pointer disabled:cursor-not-allowed disabled:opacity-50"
                     />
-                    <span className="text-xs font-medium text-gray-600 group-hover:text-primary-600 transition-colors">
+                    <span className="text-[11px] font-semibold text-neutral-500 group-hover:text-primary-500 transition-colors">
                       Multi-Dates
                     </span>
                   </label>
@@ -3216,12 +3216,12 @@ export default function EnhancedSearchBar({
               </div>
               {tripType === 'roundtrip' ? (
                 <div className="flex items-center justify-between">
-                  <label className="flex items-center gap-1.5 text-sm font-medium text-gray-700">
-                    <CalendarCheck size={14} className="text-gray-600" />
+                  <label className="flex items-center gap-1.5 text-xs font-semibold text-neutral-600">
+                    <CalendarCheck size={13} className="text-neutral-500" />
                     <span>{t('return')}</span>
                   </label>
                   {/* Multi-Dates Toggle - Disabled when multi-city flights added */}
-                  <label className={`flex items-center gap-1.5 ${additionalFlights.length > 0 ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'} group`}>
+                  <label className={`flex items-center gap-1.5 touch-manipulation ${additionalFlights.length > 0 ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'} group`}>
                     <input
                       type="checkbox"
                       checked={useFlexibleDates}
@@ -3236,9 +3236,9 @@ export default function EnhancedSearchBar({
                           setReturnDates([]);
                         }
                       }}
-                      className="w-3.5 h-3.5 rounded border-gray-300 text-primary-600 focus:ring-primary-500 cursor-pointer disabled:cursor-not-allowed disabled:opacity-50"
+                      className="w-4 h-4 rounded-md border-neutral-300 text-primary-500 focus:ring-primary-400 focus:ring-offset-0 cursor-pointer disabled:cursor-not-allowed disabled:opacity-50"
                     />
-                    <span className="text-xs font-medium text-gray-600 group-hover:text-primary-600 transition-colors">
+                    <span className="text-[11px] font-semibold text-neutral-500 group-hover:text-primary-500 transition-colors">
                       Multi-Dates
                     </span>
                   </label>
@@ -3246,24 +3246,24 @@ export default function EnhancedSearchBar({
               ) : (
                 /* One-way: Show "+ Add Flight" label */
                 additionalFlights.length === 0 && (
-                  <label className="flex items-center gap-1.5 text-sm font-medium text-gray-500">
-                    <Plane size={14} className="text-gray-400" />
+                  <label className="flex items-center gap-1.5 text-xs font-semibold text-neutral-400">
+                    <Plane size={13} className="text-neutral-400" />
                     <span>Add Flight</span>
                   </label>
                 )
               )}
             </div>
-            {/* Inputs row - Button-based date pickers */}
+            {/* Inputs row - Apple-Class date pickers */}
             <div className="grid grid-cols-2 gap-2">
               {/* Departure Date Button */}
               {!useFlexibleDates ? (
                 <button
                   type="button"
                   onClick={() => handleOpenDatePicker('departure')}
-                  className={`mobile-select text-left ${errors.departureDate ? 'border-red-500' : ''}`}
+                  className={`relative w-full px-3 py-3 bg-white border-2 rounded-xl text-left transition-all duration-200 touch-manipulation active:scale-[0.98] ${errors.departureDate ? 'border-red-400' : 'border-neutral-200 hover:border-primary-400'}`}
                 >
-                  <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
-                  <span className="pl-7 text-sm font-medium text-gray-900 truncate">
+                  <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 text-neutral-400" size={16} />
+                  <span className="pl-6 text-sm font-semibold text-neutral-800 truncate">
                     {departureDate ? formatDateForDisplay(departureDate) : 'Select date'}
                   </span>
                 </button>
@@ -3271,18 +3271,18 @@ export default function EnhancedSearchBar({
                 <button
                   type="button"
                   onClick={() => handleOpenDatePicker('departure')}
-                  className={`mobile-select text-left min-h-[48px] ${errors.departureDate ? 'border-red-500' : ''}`}
+                  className={`relative w-full px-3 py-2.5 bg-white border-2 rounded-xl text-left min-h-[48px] transition-all duration-200 touch-manipulation active:scale-[0.98] ${errors.departureDate ? 'border-red-400' : 'border-neutral-200 hover:border-primary-400'}`}
                 >
-                  <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
-                  <div className="pl-7 flex flex-wrap gap-1 items-center">
+                  <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 text-neutral-400" size={16} />
+                  <div className="pl-6 flex flex-wrap gap-1 items-center">
                     {departureDates.length > 0 ? (
                       departureDates.map((date, idx) => (
-                        <span key={idx} className="inline-flex items-center px-1.5 py-0.5 rounded bg-primary-50 text-primary-700 text-xs font-semibold">
+                        <span key={idx} className="inline-flex items-center px-2 py-0.5 rounded-lg bg-primary-50 text-primary-600 text-xs font-bold">
                           {format(date, 'MMM d')}
                         </span>
                       ))
                     ) : (
-                      <span className="text-sm text-gray-400">Select dates</span>
+                      <span className="text-sm text-neutral-400">Select dates</span>
                     )}
                   </div>
                 </button>
@@ -3293,10 +3293,10 @@ export default function EnhancedSearchBar({
                   <button
                     type="button"
                     onClick={() => handleOpenDatePicker('return')}
-                    className={`mobile-select text-left ${errors.returnDate ? 'border-red-500' : ''}`}
+                    className={`relative w-full px-3 py-3 bg-white border-2 rounded-xl text-left transition-all duration-200 touch-manipulation active:scale-[0.98] ${errors.returnDate ? 'border-red-400' : 'border-neutral-200 hover:border-primary-400'}`}
                   >
-                    <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
-                    <span className="pl-7 text-sm font-medium text-gray-900 truncate">
+                    <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 text-neutral-400" size={16} />
+                    <span className="pl-6 text-sm font-semibold text-neutral-800 truncate">
                       {returnDate ? formatDateForDisplay(returnDate) : 'Select date'}
                     </span>
                   </button>
@@ -3304,18 +3304,18 @@ export default function EnhancedSearchBar({
                   <button
                     type="button"
                     onClick={() => handleOpenDatePicker('return')}
-                    className={`mobile-select text-left min-h-[48px] ${errors.returnDate ? 'border-red-500' : ''}`}
+                    className={`relative w-full px-3 py-2.5 bg-white border-2 rounded-xl text-left min-h-[48px] transition-all duration-200 touch-manipulation active:scale-[0.98] ${errors.returnDate ? 'border-red-400' : 'border-neutral-200 hover:border-primary-400'}`}
                   >
-                    <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
-                    <div className="pl-7 flex flex-wrap gap-1 items-center">
+                    <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 text-neutral-400" size={16} />
+                    <div className="pl-6 flex flex-wrap gap-1 items-center">
                       {returnDates.length > 0 ? (
                         returnDates.map((date, idx) => (
-                          <span key={idx} className="inline-flex items-center px-1.5 py-0.5 rounded bg-primary-50 text-primary-700 text-xs font-semibold">
+                          <span key={idx} className="inline-flex items-center px-2 py-0.5 rounded-lg bg-primary-50 text-primary-600 text-xs font-bold">
                             {format(date, 'MMM d')}
                           </span>
                         ))
                       ) : (
-                        <span className="text-sm text-gray-400">Select dates</span>
+                        <span className="text-sm text-neutral-400">Select dates</span>
                       )}
                     </div>
                   </button>
@@ -3326,10 +3326,10 @@ export default function EnhancedSearchBar({
                   <button
                     type="button"
                     onClick={handleAddFlight}
-                    className="mobile-select border-dashed border-gray-300 hover:border-primary-400 hover:text-primary-600 hover:bg-primary-50 text-gray-500 flex items-center justify-center gap-1.5 touch-manipulation active:scale-[0.98]"
+                    className="relative w-full px-3 py-3 bg-white border-2 border-dashed border-neutral-300 rounded-xl hover:border-primary-400 hover:text-primary-500 hover:bg-primary-50/50 text-neutral-500 flex items-center justify-center gap-1.5 transition-all duration-200 touch-manipulation active:scale-[0.98]"
                   >
                     <Plus size={16} />
-                    <span className="text-sm font-medium">Add Flight</span>
+                    <span className="text-sm font-semibold">Add Flight</span>
                   </button>
                 )
               )}
@@ -3472,59 +3472,54 @@ export default function EnhancedSearchBar({
                 <ChevronDown size={12} className={`text-gray-400 transition-transform ${showPassengerDropdown ? 'rotate-180' : ''}`} />
               </button>
 
-              {/* Passenger & Class Dropdown - ULTRA-COMPACT Mobile Bottom Sheet */}
+              {/* Passenger & Class Dropdown - Apple-Class Mobile Bottom Sheet */}
               {showPassengerDropdown && serviceType === 'flights' && (
-                <div className="fixed md:absolute inset-x-0 bottom-0 md:bottom-auto md:left-0 md:right-auto md:top-full md:mt-2 bg-white border-t md:border border-gray-200 rounded-t-2xl md:rounded-xl shadow-2xl z-modal md:min-w-[260px] max-h-[70vh] md:max-h-none overflow-y-auto">
-                  {/* Compact Drag Handle */}
-                  <div className="w-10 h-1 bg-gray-300 rounded-full mx-auto mt-2 mb-1 md:hidden" />
-                  <div className="px-3 py-2 space-y-2">
-                  {/* COMPACT ROW: Adults + Children + Infants - horizontal layout */}
-                  <div className="flex items-center justify-between gap-3">
-                    {/* Adults */}
-                    <div className="flex-1 flex items-center justify-between bg-gray-50 rounded-lg px-2 py-1.5">
-                      <span className="text-[11px] font-medium text-gray-600">Adults <span className="text-gray-400">18+</span></span>
-                      <div className="flex items-center gap-1.5">
-                        <button type="button" onClick={() => handlePassengerChange('adults', -1)} disabled={passengers.adults <= 1} className="w-6 h-6 rounded-full border border-gray-300 hover:border-primary-500 disabled:opacity-30 flex items-center justify-center text-xs font-bold">−</button>
-                        <span className="w-4 text-center text-xs font-bold">{passengers.adults}</span>
-                        <button type="button" onClick={() => handlePassengerChange('adults', 1)} className="w-6 h-6 rounded-full border border-gray-300 hover:border-primary-500 flex items-center justify-center text-xs font-bold">+</button>
-                      </div>
+                <div className="fixed md:absolute inset-x-0 bottom-0 md:bottom-auto md:left-0 md:right-auto md:top-full md:mt-2 bg-white/95 backdrop-blur-xl border-t md:border border-neutral-200 rounded-t-3xl md:rounded-2xl shadow-2xl z-modal md:min-w-[280px] max-h-[70vh] md:max-h-none overflow-y-auto">
+                  {/* Drag Handle */}
+                  <div className="w-10 h-1 bg-neutral-300 rounded-full mx-auto mt-3 mb-2 md:hidden" />
+                  <div className="px-4 py-3 space-y-3">
+                  {/* Adults Row */}
+                  <div className="flex items-center justify-between bg-neutral-50 rounded-xl px-3 py-2.5">
+                    <span className="text-xs font-semibold text-neutral-700">Adults <span className="text-neutral-400 font-normal">18+</span></span>
+                    <div className="flex items-center gap-2">
+                      <button type="button" onClick={() => handlePassengerChange('adults', -1)} disabled={passengers.adults <= 1} className="w-7 h-7 rounded-full border-2 border-neutral-200 hover:border-primary-400 disabled:opacity-30 flex items-center justify-center text-sm font-bold text-neutral-600 transition-colors">−</button>
+                      <span className="w-5 text-center text-sm font-bold text-neutral-800">{passengers.adults}</span>
+                      <button type="button" onClick={() => handlePassengerChange('adults', 1)} className="w-7 h-7 rounded-full border-2 border-neutral-200 hover:border-primary-400 flex items-center justify-center text-sm font-bold text-neutral-600 transition-colors">+</button>
                     </div>
                   </div>
 
-                  {/* Children + Infants in same row */}
+                  {/* Children + Infants */}
                   <div className="flex items-center gap-2">
-                    {/* Children */}
-                    <div className="flex-1 flex items-center justify-between bg-gray-50 rounded-lg px-2 py-1.5">
-                      <span className="text-[11px] font-medium text-gray-600">Child <span className="text-gray-400">2-17</span></span>
-                      <div className="flex items-center gap-1.5">
-                        <button type="button" onClick={() => handlePassengerChange('children', -1)} disabled={passengers.children <= 0} className="w-6 h-6 rounded-full border border-gray-300 hover:border-primary-500 disabled:opacity-30 flex items-center justify-center text-xs font-bold">−</button>
-                        <span className="w-4 text-center text-xs font-bold">{passengers.children}</span>
-                        <button type="button" onClick={() => handlePassengerChange('children', 1)} className="w-6 h-6 rounded-full border border-gray-300 hover:border-primary-500 flex items-center justify-center text-xs font-bold">+</button>
+                    <div className="flex-1 flex items-center justify-between bg-neutral-50 rounded-xl px-3 py-2.5">
+                      <span className="text-xs font-semibold text-neutral-700">Child <span className="text-neutral-400 font-normal">2-17</span></span>
+                      <div className="flex items-center gap-2">
+                        <button type="button" onClick={() => handlePassengerChange('children', -1)} disabled={passengers.children <= 0} className="w-7 h-7 rounded-full border-2 border-neutral-200 hover:border-primary-400 disabled:opacity-30 flex items-center justify-center text-sm font-bold text-neutral-600 transition-colors">−</button>
+                        <span className="w-5 text-center text-sm font-bold text-neutral-800">{passengers.children}</span>
+                        <button type="button" onClick={() => handlePassengerChange('children', 1)} className="w-7 h-7 rounded-full border-2 border-neutral-200 hover:border-primary-400 flex items-center justify-center text-sm font-bold text-neutral-600 transition-colors">+</button>
                       </div>
                     </div>
-                    {/* Infants */}
-                    <div className="flex-1 flex items-center justify-between bg-gray-50 rounded-lg px-2 py-1.5">
-                      <span className="text-[11px] font-medium text-gray-600">Infant <span className="text-gray-400">&lt;2</span></span>
-                      <div className="flex items-center gap-1.5">
-                        <button type="button" onClick={() => handlePassengerChange('infants', -1)} disabled={passengers.infants <= 0} className="w-6 h-6 rounded-full border border-gray-300 hover:border-primary-500 disabled:opacity-30 flex items-center justify-center text-xs font-bold">−</button>
-                        <span className="w-4 text-center text-xs font-bold">{passengers.infants}</span>
-                        <button type="button" onClick={() => handlePassengerChange('infants', 1)} className="w-6 h-6 rounded-full border border-gray-300 hover:border-primary-500 flex items-center justify-center text-xs font-bold">+</button>
+                    <div className="flex-1 flex items-center justify-between bg-neutral-50 rounded-xl px-3 py-2.5">
+                      <span className="text-xs font-semibold text-neutral-700">Infant <span className="text-neutral-400 font-normal">&lt;2</span></span>
+                      <div className="flex items-center gap-2">
+                        <button type="button" onClick={() => handlePassengerChange('infants', -1)} disabled={passengers.infants <= 0} className="w-7 h-7 rounded-full border-2 border-neutral-200 hover:border-primary-400 disabled:opacity-30 flex items-center justify-center text-sm font-bold text-neutral-600 transition-colors">−</button>
+                        <span className="w-5 text-center text-sm font-bold text-neutral-800">{passengers.infants}</span>
+                        <button type="button" onClick={() => handlePassengerChange('infants', 1)} className="w-7 h-7 rounded-full border-2 border-neutral-200 hover:border-primary-400 flex items-center justify-center text-sm font-bold text-neutral-600 transition-colors">+</button>
                       </div>
                     </div>
                   </div>
 
-                  {/* Cabin Class - SINGLE ROW horizontal chips */}
-                  <div className="pt-2 border-t border-gray-100">
-                    <div className="flex items-center gap-1.5 overflow-x-auto scrollbar-hide">
+                  {/* Cabin Class - Apple-Class Chips */}
+                  <div className="pt-2 border-t border-neutral-100">
+                    <div className="flex items-center gap-2 overflow-x-auto scrollbar-hide">
                       {(['economy', 'premium', 'business', 'first'] as const).map((cls) => (
                         <button
                           key={cls}
                           type="button"
                           onClick={() => setCabinClass(cls)}
-                          className={`flex-shrink-0 px-3 py-1.5 rounded-full text-[11px] font-semibold transition-all touch-manipulation active:scale-95 ${
+                          className={`flex-shrink-0 px-4 py-2 rounded-xl text-xs font-bold transition-all duration-200 touch-manipulation active:scale-95 ${
                             cabinClass === cls
-                              ? 'bg-primary-600 text-white shadow-sm'
-                              : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                              ? 'bg-primary-500 text-white shadow-md shadow-primary-500/25'
+                              : 'bg-neutral-100 text-neutral-600 hover:bg-neutral-200'
                           }`}
                         >
                           {t(cls)}
@@ -3533,11 +3528,11 @@ export default function EnhancedSearchBar({
                     </div>
                   </div>
 
-                  {/* Done Button - Compact */}
+                  {/* Done Button - Apple-Class */}
                   <button
                     type="button"
                     onClick={() => setShowPassengerDropdown(false)}
-                    className="w-full py-2 bg-primary-600 text-white text-sm font-semibold rounded-lg touch-manipulation active:scale-[0.98]"
+                    className="w-full py-3 bg-primary-500 hover:bg-primary-600 text-white text-sm font-bold rounded-xl shadow-lg shadow-primary-500/25 transition-all duration-200 touch-manipulation active:scale-[0.98]"
                   >
                     Done
                   </button>
@@ -3547,43 +3542,43 @@ export default function EnhancedSearchBar({
             </div>
 
             {/* Vertical divider */}
-            <div className="h-4 w-px bg-gray-200 flex-shrink-0" />
+            <div className="h-4 w-px bg-neutral-200 flex-shrink-0" />
 
-            {/* Direct Flights - Mobile-First Chip Style */}
-            <label className="flex items-center gap-1.5 cursor-pointer flex-shrink-0 min-h-[36px] px-2 py-1 bg-gray-50 rounded-lg touch-manipulation active:scale-95 hover:bg-gray-100">
+            {/* Direct Flights - Apple-Class Chip */}
+            <label className="flex items-center gap-1.5 cursor-pointer flex-shrink-0 min-h-[36px] px-3 py-1.5 bg-neutral-100 rounded-xl touch-manipulation active:scale-95 hover:bg-neutral-200 transition-colors">
               <input
                 type="checkbox"
                 checked={directFlights}
                 onChange={(e) => setDirectFlights(e.target.checked)}
-                className="w-4 h-4 rounded border-gray-300 text-primary-600 focus:ring-primary-500 cursor-pointer"
+                className="w-4 h-4 rounded-md border-neutral-300 text-primary-500 focus:ring-primary-400 focus:ring-offset-0 cursor-pointer"
               />
-              <span className="text-xs font-medium text-gray-700 whitespace-nowrap">Direct</span>
+              <span className="text-xs font-semibold text-neutral-700 whitespace-nowrap">Direct</span>
             </label>
 
-            {/* Separate Tickets - Mobile-First Chip Style (round trips only) */}
+            {/* Separate Tickets - Apple-Class Chip (round trips only) */}
             {tripType === 'roundtrip' && (
               <>
-                <div className="h-4 w-px bg-gray-200 flex-shrink-0" />
-                <label className="flex items-center gap-1.5 cursor-pointer flex-shrink-0 min-h-[36px] px-2 py-1 bg-amber-50 rounded-lg touch-manipulation active:scale-95 hover:bg-amber-100" title="Find cheaper fares by combining different airlines">
+                <div className="h-4 w-px bg-neutral-200 flex-shrink-0" />
+                <label className="flex items-center gap-1.5 cursor-pointer flex-shrink-0 min-h-[36px] px-3 py-1.5 bg-amber-50 rounded-xl touch-manipulation active:scale-95 hover:bg-amber-100 transition-colors" title="Find cheaper fares by combining different airlines">
                   <input
                     type="checkbox"
                     checked={includeSeparateTickets}
                     onChange={(e) => setIncludeSeparateTickets(e.target.checked)}
-                    className="w-4 h-4 rounded border-amber-300 text-amber-500 focus:ring-amber-500 cursor-pointer"
+                    className="w-4 h-4 rounded-md border-amber-300 text-amber-500 focus:ring-amber-400 focus:ring-offset-0 cursor-pointer"
                   />
-                  <span className="text-[11px] font-medium text-gray-600 whitespace-nowrap">Split</span>
-                  <span className="px-1 py-px bg-green-100 text-green-700 text-[8px] font-bold rounded">$</span>
+                  <span className="text-[11px] font-semibold text-neutral-600 whitespace-nowrap">Split</span>
+                  <span className="px-1.5 py-0.5 bg-emerald-100 text-emerald-700 text-[8px] font-bold rounded-md">$</span>
                 </label>
               </>
             )}
           </div>
 
-          {/* Search Button - Mobile-First Primary Button */}
+          {/* Search Button - Apple-Class Primary */}
           <button
             type="button"
             onClick={handleSearch}
             disabled={isLoading}
-            className="mobile-btn-primary disabled:opacity-50 disabled:cursor-not-allowed"
+            className="w-full py-3.5 bg-gradient-to-r from-primary-500 to-primary-600 hover:from-primary-600 hover:to-primary-700 text-white font-bold text-[15px] rounded-xl shadow-lg shadow-primary-500/30 transition-all duration-200 touch-manipulation active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
           >
             {isLoading ? (
               <>
