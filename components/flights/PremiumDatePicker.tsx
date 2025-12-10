@@ -34,11 +34,13 @@ interface CalendarDay {
   price?: number;
 }
 
-const DAYS_OF_WEEK = ['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa'];
+const DAYS_OF_WEEK = ['S', 'M', 'T', 'W', 'T', 'F', 'S'];
+const DAYS_OF_WEEK_FULL = ['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa'];
 const MONTHS = [
   'January', 'February', 'March', 'April', 'May', 'June',
   'July', 'August', 'September', 'October', 'November', 'December'
 ];
+const MONTHS_SHORT = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
 
 export default function PremiumDatePicker({
   label,
@@ -654,37 +656,37 @@ export default function PremiumDatePicker({
           }
         `}
       >
-        {/* Mobile Drag Handle - Compact */}
-        <div className="md:hidden w-10 h-1 bg-gray-300 rounded-full mx-auto mt-2 mb-1" />
+        {/* Mobile Drag Handle - Apple-class */}
+        <div className="md:hidden w-8 h-1 bg-neutral-300 rounded-full mx-auto mt-1.5 mb-0.5" />
 
-        {/* Header - Ultra Compact */}
-        <div className="flex items-center justify-between px-3 py-1.5 border-b border-gray-200 sticky top-0 md:static bg-white z-10">
+        {/* Header - Apple-Class Ultra Compact */}
+        <div className="flex items-center justify-between px-3 py-1 border-b border-neutral-100 sticky top-0 md:static bg-white/95 backdrop-blur-sm z-10">
           <div className="flex items-center gap-1.5">
-            <Calendar className="w-3.5 h-3.5 text-[#0087FF]" />
-            <span className="font-semibold text-gray-900 text-sm">
+            <Calendar className="w-3.5 h-3.5 text-primary-500" />
+            <span className="font-semibold text-neutral-800 text-[13px]">
               {label || (type === 'single' ? 'Select Date' : 'Select Dates')}
               {type === 'multi' && (
-                <span className="text-[9px] text-primary-600 font-medium ml-1.5">(up to 3)</span>
+                <span className="text-[9px] text-primary-500 font-medium ml-1">(max 3)</span>
               )}
             </span>
           </div>
           <button
             onClick={onClose}
-            className="p-1 hover:bg-gray-100 rounded-full transition-colors active:scale-95"
+            className="p-1.5 hover:bg-neutral-100 rounded-full transition-colors active:scale-95"
             aria-label="Close calendar"
           >
-            <X className="w-4 h-4 text-gray-500" />
+            <X className="w-4 h-4 text-neutral-400" />
           </button>
         </div>
 
-        {/* Quick date shortcuts - Ultra Compact Scrollable */}
+        {/* Quick date shortcuts - Apple-Class Compact */}
         {type === 'range' && (
-          <div className="px-2 py-1.5 border-b border-gray-100 md:hidden">
-            <div className="flex gap-1.5 overflow-x-auto scrollbar-hide">
-              <button onClick={() => handleQuickDate('weekend')} className="px-2.5 py-1 text-[10px] font-semibold bg-gray-100 text-gray-700 rounded-full whitespace-nowrap active:scale-95">Weekend</button>
-              <button onClick={() => handleQuickDate('nextWeek')} className="px-2.5 py-1 text-[10px] font-semibold bg-gray-100 text-gray-700 rounded-full whitespace-nowrap active:scale-95">Next Week</button>
-              <button onClick={() => handleQuickDate('nextMonth')} className="px-2.5 py-1 text-[10px] font-semibold bg-gray-100 text-gray-700 rounded-full whitespace-nowrap active:scale-95">Next Month</button>
-              <button onClick={() => handleQuickDate('flexible')} className="px-2.5 py-1 text-[10px] font-semibold bg-gray-100 text-gray-700 rounded-full whitespace-nowrap active:scale-95">±3 Days</button>
+          <div className="px-2 py-1 border-b border-neutral-100 md:hidden">
+            <div className="flex gap-1 overflow-x-auto scrollbar-hide">
+              <button onClick={() => handleQuickDate('weekend')} className="px-2 py-0.5 text-[10px] font-semibold bg-neutral-100 text-neutral-600 rounded-full whitespace-nowrap active:scale-95 hover:bg-primary-50 hover:text-primary-600 transition-colors">Weekend</button>
+              <button onClick={() => handleQuickDate('nextWeek')} className="px-2 py-0.5 text-[10px] font-semibold bg-neutral-100 text-neutral-600 rounded-full whitespace-nowrap active:scale-95 hover:bg-primary-50 hover:text-primary-600 transition-colors">Next Week</button>
+              <button onClick={() => handleQuickDate('nextMonth')} className="px-2 py-0.5 text-[10px] font-semibold bg-neutral-100 text-neutral-600 rounded-full whitespace-nowrap active:scale-95 hover:bg-primary-50 hover:text-primary-600 transition-colors">Month</button>
+              <button onClick={() => handleQuickDate('flexible')} className="px-2 py-0.5 text-[10px] font-semibold bg-neutral-100 text-neutral-600 rounded-full whitespace-nowrap active:scale-95 hover:bg-primary-50 hover:text-primary-600 transition-colors">±3 Days</button>
             </div>
           </div>
         )}
@@ -697,36 +699,36 @@ export default function PremiumDatePicker({
             {renderMonth(getNextMonth(currentMonth), 1)}
           </div>
 
-          {/* Mobile: Ultra-Compact Single Month */}
+          {/* Mobile: Apple-Class Ultra-Compact Single Month */}
           <div className="md:hidden">
-            {/* Month Navigation - Compact */}
-            <div className="flex items-center justify-between mb-2">
+            {/* Month Navigation - Apple-Class Minimal */}
+            <div className="flex items-center justify-between mb-1">
               <button
                 onClick={handlePreviousMonth}
-                className="w-9 h-9 flex items-center justify-center rounded-full bg-gray-100 active:bg-gray-200 active:scale-95 transition-all touch-manipulation"
+                className="w-8 h-8 flex items-center justify-center rounded-full bg-neutral-100 active:bg-neutral-200 active:scale-95 transition-all touch-manipulation"
                 aria-label="Previous month"
               >
-                <ChevronLeft className="w-5 h-5 text-gray-700" />
+                <ChevronLeft className="w-4 h-4 text-neutral-600" />
               </button>
-              <h3 className="text-base font-bold text-gray-900">
-                {MONTHS[currentMonth.getMonth()]} {currentMonth.getFullYear()}
+              <h3 className="text-[13px] font-bold text-neutral-800 tracking-tight">
+                {MONTHS_SHORT[currentMonth.getMonth()]} {currentMonth.getFullYear()}
               </h3>
               <button
                 onClick={handleNextMonth}
-                className="w-9 h-9 flex items-center justify-center rounded-full bg-gray-100 active:bg-gray-200 active:scale-95 transition-all touch-manipulation"
+                className="w-8 h-8 flex items-center justify-center rounded-full bg-neutral-100 active:bg-neutral-200 active:scale-95 transition-all touch-manipulation"
                 aria-label="Next month"
               >
-                <ChevronRight className="w-5 h-5 text-gray-700" />
+                <ChevronRight className="w-4 h-4 text-neutral-600" />
               </button>
             </div>
 
-            {/* Day headers - Compact */}
-            <div className="grid grid-cols-7 mb-0.5">
+            {/* Day headers - Apple-Class Minimal */}
+            <div className="grid grid-cols-7">
               {DAYS_OF_WEEK.map((day, i) => (
                 <div
-                  key={`mobile-${day}`}
-                  className={`text-center text-[10px] font-bold py-1 ${
-                    i === 0 || i === 6 ? 'text-primary-600' : 'text-gray-500'
+                  key={`mobile-${day}-${i}`}
+                  className={`text-center text-[9px] font-semibold py-0.5 ${
+                    i === 0 || i === 6 ? 'text-primary-500' : 'text-neutral-400'
                   }`}
                 >
                   {day}
@@ -734,8 +736,8 @@ export default function PremiumDatePicker({
               ))}
             </div>
 
-            {/* Calendar Grid - Compact 40px cells */}
-            <div className="grid grid-cols-7 gap-px">
+            {/* Calendar Grid - Apple-Class 36px cells */}
+            <div className="grid grid-cols-7 gap-[1px]">
               {getDaysInMonth(currentMonth).map((day, dayIndex) => {
                 const isMultiSelected = type === 'multi' && isDateInMulti(day.date);
                 return (
@@ -744,33 +746,33 @@ export default function PremiumDatePicker({
                     onClick={() => handleDateClick(day)}
                     disabled={day.isDisabled}
                     className={`
-                      relative min-h-[40px] py-1 transition-all duration-75
+                      relative min-h-[36px] transition-all duration-100
                       flex flex-col items-center justify-center
-                      ${!day.isCurrentMonth ? 'opacity-20' : ''}
-                      ${day.isDisabled ? 'cursor-not-allowed opacity-30' : 'cursor-pointer active:scale-95'}
+                      ${!day.isCurrentMonth ? 'opacity-15' : ''}
+                      ${day.isDisabled ? 'cursor-not-allowed opacity-25' : 'cursor-pointer active:scale-95'}
                       ${day.isSelected || isMultiSelected
-                        ? 'bg-primary-600 text-white rounded-lg shadow-sm'
+                        ? 'bg-primary-500 text-white rounded-[10px] shadow-sm'
                         : day.isInRange
-                        ? 'bg-primary-100'
+                        ? 'bg-primary-100/70'
                         : day.isToday
-                        ? 'bg-primary-50 rounded-lg ring-1 ring-primary-500'
+                        ? 'bg-primary-50 rounded-[10px] ring-1 ring-primary-400'
                         : day.isWeekend && day.isCurrentMonth
-                        ? 'bg-gray-50'
-                        : 'hover:bg-gray-100 rounded-lg'
+                        ? 'bg-neutral-50'
+                        : 'hover:bg-neutral-100 rounded-[10px]'
                       }
-                      ${day.isRangeStart && !day.isRangeEnd ? 'rounded-l-lg rounded-r-none' : ''}
-                      ${day.isRangeEnd && !day.isRangeStart ? 'rounded-r-lg rounded-l-none' : ''}
+                      ${day.isRangeStart && !day.isRangeEnd ? 'rounded-l-[10px] rounded-r-none' : ''}
+                      ${day.isRangeEnd && !day.isRangeStart ? 'rounded-r-[10px] rounded-l-none' : ''}
                       ${day.isInRange && !day.isRangeStart && !day.isRangeEnd ? 'rounded-none' : ''}
                       touch-manipulation
                     `}
                   >
-                    <span className={`text-sm font-semibold leading-none ${
-                      day.isSelected || isMultiSelected ? 'text-white' : day.isCurrentMonth ? 'text-gray-900' : 'text-gray-400'
+                    <span className={`text-[13px] font-semibold leading-none ${
+                      day.isSelected || isMultiSelected ? 'text-white' : day.isCurrentMonth ? 'text-neutral-800' : 'text-neutral-300'
                     }`}>
                       {day.date.getDate()}
                     </span>
                     {day.price && day.isCurrentMonth && !day.isDisabled && (
-                      <span className={`text-[8px] font-bold leading-none mt-0.5 ${
+                      <span className={`text-[7px] font-bold leading-none mt-px ${
                         day.isSelected || isMultiSelected ? 'text-white/80' : 'text-success-600'
                       }`}>
                         ${Math.round(day.price)}
@@ -782,78 +784,60 @@ export default function PremiumDatePicker({
             </div>
           </div>
 
-          {/* Selection Summary - Compact Card (Mobile Only) */}
+          {/* Selection Summary - Apple-Class Compact Card */}
           {(selectedDeparture || selectedReturn || (type === 'multi' && multiDates.length > 0)) && (
-            <div className="mt-2 p-2 bg-primary-50/50 rounded-lg border border-primary-100 md:mt-4 md:mx-1 md:p-3">
-              <div className="text-xs md:text-sm">
+            <div className="mt-1.5 p-1.5 bg-neutral-50 rounded-xl border border-neutral-100 md:mt-3 md:mx-1 md:p-2.5">
+              <div className="text-xs">
                 {type === 'multi' ? (
                   <div>
-                    <div className="flex items-center gap-1.5 mb-1.5">
-                      <Calendar className="w-3.5 h-3.5 text-primary-600" />
-                      <span className="font-semibold text-gray-900 text-xs">Selected ({multiDates.length}/{maxDates})</span>
+                    <div className="flex items-center gap-1 mb-1">
+                      <Calendar className="w-3 h-3 text-primary-500" />
+                      <span className="font-semibold text-neutral-700 text-[10px]">Selected ({multiDates.length}/{maxDates})</span>
                     </div>
-                    <div className="flex flex-wrap gap-1.5">
+                    <div className="flex flex-wrap gap-1">
                       {multiDates.map((date, idx) => (
                         <span
                           key={idx}
-                          className="inline-flex items-center px-2 py-1 rounded-md bg-white text-primary-700 font-semibold text-[10px] shadow-sm"
+                          className="inline-flex items-center px-1.5 py-0.5 rounded-md bg-white text-primary-600 font-semibold text-[9px] shadow-sm"
                         >
-                          {date.toLocaleDateString('en-US', {
-                            weekday: 'short',
-                            month: 'short',
-                            day: 'numeric'
-                          })}
+                          {date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
                         </span>
                       ))}
                     </div>
                   </div>
                 ) : type === 'single' ? (
-                  <div className="flex items-center gap-2">
-                    <Calendar className="w-4 h-4 text-primary-600" />
+                  <div className="flex items-center gap-1.5">
+                    <Calendar className="w-3.5 h-3.5 text-primary-500" />
                     <div>
-                      <div className="text-[10px] text-gray-500 font-medium">Selected</div>
-                      <div className="font-bold text-gray-900 text-xs">
-                        {selectedDeparture?.toLocaleDateString('en-US', {
-                          weekday: 'short',
-                          month: 'long',
-                          day: 'numeric',
-                          year: 'numeric'
-                        })}
+                      <div className="font-semibold text-neutral-800 text-[11px]">
+                        {selectedDeparture?.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })}
                       </div>
                     </div>
                   </div>
                 ) : (
-                  <div className="flex items-center gap-2 md:gap-4">
+                  <div className="flex items-center gap-1.5">
                     {selectedDeparture && (
-                      <div className="flex-1">
-                        <div className="text-[10px] text-gray-500 font-medium">Depart</div>
-                        <div className="font-bold text-gray-900 text-xs md:text-sm">
-                          {selectedDeparture.toLocaleDateString('en-US', {
-                            weekday: 'short',
-                            month: 'short',
-                            day: 'numeric'
-                          })}
+                      <div className="flex-1 text-center px-2 py-1 bg-emerald-50 rounded-lg">
+                        <div className="text-[8px] text-emerald-600 font-medium uppercase tracking-wide">Check-in</div>
+                        <div className="font-bold text-neutral-800 text-[11px]">
+                          {selectedDeparture.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
                         </div>
                       </div>
                     )}
-                    {selectedDeparture && selectedReturn && (
-                      <div className="text-primary-400 font-bold text-xs">→</div>
+                    {selectedDeparture && (
+                      <div className="text-neutral-300 font-bold text-[10px]">→</div>
                     )}
                     {selectedReturn ? (
-                      <div className="flex-1 text-right">
-                        <div className="text-[10px] text-gray-500 font-medium">Return</div>
-                        <div className="font-bold text-gray-900 text-xs md:text-sm">
-                          {selectedReturn.toLocaleDateString('en-US', {
-                            weekday: 'short',
-                            month: 'short',
-                            day: 'numeric'
-                          })}
+                      <div className="flex-1 text-center px-2 py-1 bg-orange-50 rounded-lg">
+                        <div className="text-[8px] text-orange-600 font-medium uppercase tracking-wide">Check-out</div>
+                        <div className="font-bold text-neutral-800 text-[11px]">
+                          {selectedReturn.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
                         </div>
                       </div>
                     ) : (
-                      <div className="flex-1 text-right">
-                        <div className="text-[10px] text-gray-500 font-medium">Return</div>
-                        <div className="text-[10px] text-gray-400 italic">Select</div>
+                      <div className="flex-1 text-center px-2 py-1 bg-neutral-100 rounded-lg">
+                        <div className="text-[8px] text-neutral-400 font-medium uppercase tracking-wide">Check-out</div>
+                        <div className="text-[10px] text-neutral-400">Select</div>
                       </div>
                     )}
                   </div>
@@ -863,11 +847,11 @@ export default function PremiumDatePicker({
           )}
         </div>
 
-        {/* Footer actions - Compact fixed bottom within modal */}
-        <div className="flex items-center gap-2 px-3 py-2 md:p-3 border-t border-gray-200 bg-white md:bg-gray-50 rounded-b-2xl md:rounded-b-lg">
+        {/* Footer actions - Apple-Class Compact */}
+        <div className="flex items-center gap-2 px-3 py-1.5 md:p-2.5 border-t border-neutral-100 bg-white/95 backdrop-blur-sm rounded-b-2xl md:rounded-b-xl">
           <button
             onClick={handleClear}
-            className="px-4 py-2.5 md:py-1.5 text-xs md:text-xs font-semibold text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-lg transition-all active:scale-95 touch-manipulation"
+            className="px-3 py-2 md:py-1.5 text-[11px] font-semibold text-neutral-600 bg-neutral-100 hover:bg-neutral-200 rounded-lg transition-all active:scale-95 touch-manipulation"
           >
             Clear
           </button>
@@ -878,13 +862,13 @@ export default function PremiumDatePicker({
                 ? multiDates.length === 0
                 : (!selectedDeparture || (type === 'range' && !selectedReturn))
             }
-            className="flex-1 py-2.5 md:py-1.5 text-sm md:text-xs font-bold text-white bg-primary-600 hover:bg-primary-700 disabled:bg-gray-300 disabled:cursor-not-allowed rounded-lg transition-all shadow-sm active:scale-[0.98] touch-manipulation"
+            className="flex-1 py-2 md:py-1.5 text-[12px] font-bold text-white bg-primary-500 hover:bg-primary-600 disabled:bg-neutral-300 disabled:cursor-not-allowed rounded-lg transition-all shadow-sm active:scale-[0.98] touch-manipulation"
           >
             {type === 'range' && !selectedReturn && selectedDeparture
-              ? 'Select Return'
+              ? 'Select Check-out'
               : type === 'multi' && multiDates.length > 0
-              ? `Apply (${multiDates.length})`
-              : 'Apply'
+              ? `Done (${multiDates.length})`
+              : 'Done'
             }
           </button>
         </div>

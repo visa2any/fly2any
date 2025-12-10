@@ -242,6 +242,7 @@ export default function EnhancedSearchBar({
   const [isLoadingHotelSuggestions, setIsLoadingHotelSuggestions] = useState(false);
   const [showHotelCheckInPicker, setShowHotelCheckInPicker] = useState(false);
   const [showHotelCheckOutPicker, setShowHotelCheckOutPicker] = useState(false);
+  const [showHotelDateRangePicker, setShowHotelDateRangePicker] = useState(false); // Unified date range picker
   const [popularDistricts, setPopularDistricts] = useState<Array<{ id: string; name: string; city: string; location: { lat: number; lng: number } }>>([]);
 
   // Multi-select districts state - parse from comma-separated string if provided
@@ -321,6 +322,7 @@ export default function EnhancedSearchBar({
   const hotelDestinationRef = useRef<HTMLDivElement>(null);
   const hotelCheckInRef = useRef<HTMLButtonElement>(null);
   const hotelCheckOutRef = useRef<HTMLButtonElement>(null);
+  const hotelDateRangeRef = useRef<HTMLButtonElement>(null); // Unified date range button ref
   const carPickupDateRef = useRef<HTMLButtonElement>(null);
   const carDropoffDateRef = useRef<HTMLButtonElement>(null);
 
@@ -1829,43 +1831,42 @@ export default function EnhancedSearchBar({
           {/* HOTELS FIELDS */}
           {serviceType === 'hotels' && (
           <>
-          {/* Search Fields Row - Mobile: Stacked, Desktop: Horizontal */}
-          <div className="flex flex-col lg:flex-row lg:items-center gap-3 lg:gap-2">
-            {/* Hotel Destination - Enhanced Display */}
+          {/* Search Fields Row - Apple-Class Mobile: Stacked, Desktop: Horizontal */}
+          <div className="flex flex-col lg:flex-row lg:items-center gap-2 lg:gap-2">
+            {/* Hotel Destination - Apple-Class Display */}
             <div ref={hotelDestinationRef} className="w-full lg:flex-1 relative">
-              <label className="flex items-center gap-1.5 text-xs font-medium text-gray-700 mb-2">
-                <Building2 size={13} className="text-gray-600" />
+              <label className="hidden lg:flex items-center gap-1.5 text-[11px] font-semibold text-neutral-600 mb-1.5">
+                <Building2 size={12} className="text-neutral-500" />
                 <span>Destination</span>
               </label>
 
-              {/* Enhanced Selected Destination Display */}
+              {/* Apple-Class Selected Destination Display */}
               {selectedDestinationDetails && hotelDestination === selectedDestinationDetails.name ? (
                 <div
                   onClick={() => {
                     setShowHotelSuggestions(true);
                   }}
-                  className="w-full px-4 py-3 bg-gradient-to-r from-info-50 to-cyan-50 border-2 border-[#D63A35] rounded-lg cursor-pointer transition-all hover:border-[#0077E6] hover:shadow-md"
+                  className="w-full px-3 py-2.5 bg-white border border-primary-300 rounded-xl cursor-pointer transition-all hover:border-primary-400 hover:shadow-sm active:scale-[0.99]"
                 >
                   <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-3">
+                    <div className="flex items-center gap-2.5">
                       {/* Destination Emoji or Globe Icon */}
-                      <div className="w-10 h-10 rounded-full bg-gradient-to-br from-[#D63A35] to-cyan-500 flex items-center justify-center shadow-md">
+                      <div className="w-8 h-8 rounded-lg bg-primary-500 flex items-center justify-center shadow-sm">
                         {selectedDestinationDetails.emoji ? (
-                          <span className="text-xl">{selectedDestinationDetails.emoji}</span>
+                          <span className="text-lg">{selectedDestinationDetails.emoji}</span>
                         ) : (
-                          <Globe className="w-5 h-5 text-white" />
+                          <Globe className="w-4 h-4 text-white" />
                         )}
                       </div>
-                      <div>
-                        <div className="font-bold text-gray-900 text-sm leading-tight flex items-center gap-2">
+                      <div className="min-w-0 flex-1">
+                        <div className="font-bold text-neutral-800 text-[13px] leading-tight truncate">
                           {selectedDestinationDetails.name}
-                          <Check className="w-4 h-4 text-emerald-600" />
                         </div>
-                        <div className="text-xs text-gray-500 flex items-center gap-1">
-                          <Navigation className="w-3 h-3" />
-                          {selectedDestinationDetails.country || 'Destination selected'}
+                        <div className="text-[10px] text-neutral-500 flex items-center gap-1 truncate">
+                          <Navigation className="w-2.5 h-2.5 flex-shrink-0" />
+                          <span className="truncate">{selectedDestinationDetails.country || 'Selected'}</span>
                           {selectedDestinationDetails.type && (
-                            <span className="ml-1 px-1.5 py-0.5 bg-info-100 text-primary-600 text-[10px] rounded-full capitalize font-medium">
+                            <span className="px-1 py-px bg-primary-100 text-primary-600 text-[8px] rounded capitalize font-semibold flex-shrink-0">
                               {selectedDestinationDetails.type}
                             </span>
                           )}
@@ -1878,9 +1879,9 @@ export default function EnhancedSearchBar({
                         e.stopPropagation();
                         clearHotelDestination();
                       }}
-                      className="p-2 hover:bg-info-100 rounded-full transition-colors"
+                      className="p-1.5 hover:bg-neutral-100 rounded-lg transition-colors flex-shrink-0"
                     >
-                      <X className="w-5 h-5 text-gray-400 hover:text-gray-600" />
+                      <X className="w-4 h-4 text-neutral-400 hover:text-neutral-600" />
                     </button>
                   </div>
                 </div>
@@ -1906,8 +1907,8 @@ export default function EnhancedSearchBar({
                     }
                   }}
                   placeholder="City, hotel, or landmark"
-                  className={`w-full px-4 py-4 bg-white border rounded-lg hover:border-[#D63A35] transition-all text-sm font-medium ${
-                    errors.hotel ? 'border-red-500' : 'border-gray-300'
+                  className={`w-full px-3 py-2.5 bg-white border rounded-xl hover:border-primary-400 transition-all text-[13px] font-medium text-neutral-800 placeholder:text-neutral-400 ${
+                    errors.hotel ? 'border-error-400' : 'border-neutral-200'
                   }`}
                 />
               )}
@@ -2054,90 +2055,125 @@ export default function EnhancedSearchBar({
 
             </div>
 
-            {/* Dates Row - Side by side on mobile */}
-            <div className="flex flex-row gap-3 w-full lg:contents">
-            {/* Check-in Date - Enhanced Premium Style */}
-            <div className="flex-1 lg:flex-1">
-              <label className="flex items-center gap-1.5 text-xs font-medium text-gray-700 mb-2">
-                <CalendarDays size={13} className="text-gray-600" />
+            {/* Dates Row - Apple-Class Unified Date Range on mobile */}
+            <div className="flex flex-row gap-2 w-full lg:contents">
+            {/* Unified Date Range Button - Apple-Class Mobile (shows on mobile only as unified) */}
+            <button
+              ref={hotelDateRangeRef}
+              type="button"
+              onClick={() => setShowHotelDateRangePicker(true)}
+              className="w-full lg:hidden px-3 py-2.5 rounded-xl cursor-pointer transition-all bg-white border border-neutral-200 hover:border-primary-400 hover:shadow-sm active:scale-[0.99]"
+            >
+              <div className="flex items-center gap-2">
+                {/* Check-in side */}
+                <div className="flex-1 text-left">
+                  <div className="flex items-center gap-1.5 mb-0.5">
+                    <div className={`w-6 h-6 rounded-lg flex items-center justify-center ${checkInDate ? 'bg-emerald-500' : 'bg-neutral-100'}`}>
+                      <LogIn className={`w-3 h-3 ${checkInDate ? 'text-white' : 'text-neutral-400'}`} />
+                    </div>
+                    <span className="text-[10px] font-semibold text-neutral-500 uppercase tracking-wide">Check-in</span>
+                  </div>
+                  <div className={`text-[13px] font-bold ${checkInDate ? 'text-neutral-800' : 'text-neutral-400'}`}>
+                    {checkInDate ? formatDateForDisplay(checkInDate) : 'Select'}
+                  </div>
+                </div>
+
+                {/* Arrow divider */}
+                <div className="flex flex-col items-center px-1">
+                  <ArrowRight className="w-3.5 h-3.5 text-neutral-300" />
+                  {checkInDate && checkOutDate && (
+                    <span className="text-[9px] font-semibold text-primary-500">
+                      {Math.ceil((new Date(checkOutDate).getTime() - new Date(checkInDate).getTime()) / (1000 * 60 * 60 * 24))}n
+                    </span>
+                  )}
+                </div>
+
+                {/* Check-out side */}
+                <div className="flex-1 text-right">
+                  <div className="flex items-center justify-end gap-1.5 mb-0.5">
+                    <span className="text-[10px] font-semibold text-neutral-500 uppercase tracking-wide">Check-out</span>
+                    <div className={`w-6 h-6 rounded-lg flex items-center justify-center ${checkOutDate ? 'bg-orange-500' : 'bg-neutral-100'}`}>
+                      <LogOut className={`w-3 h-3 ${checkOutDate ? 'text-white' : 'text-neutral-400'}`} />
+                    </div>
+                  </div>
+                  <div className={`text-[13px] font-bold ${checkOutDate ? 'text-neutral-800' : 'text-neutral-400'}`}>
+                    {checkOutDate ? formatDateForDisplay(checkOutDate) : 'Select'}
+                  </div>
+                </div>
+              </div>
+            </button>
+
+            {/* Desktop: Separate Check-in/Check-out buttons (hidden on mobile) */}
+            {/* Check-in Date - Apple-Class Desktop */}
+            <div className="hidden lg:block flex-1">
+              <label className="flex items-center gap-1.5 text-[11px] font-semibold text-neutral-600 mb-1.5">
+                <CalendarDays size={12} className="text-neutral-500" />
                 <span>Check-in</span>
               </label>
               <button
                 ref={hotelCheckInRef}
                 type="button"
                 onClick={() => setShowHotelCheckInPicker(true)}
-                className={`w-full px-3 py-3 rounded-lg cursor-pointer transition-all ${
+                className={`w-full px-3 py-2.5 rounded-xl cursor-pointer transition-all ${
                   checkInDate
-                    ? 'bg-gradient-to-r from-emerald-50 to-teal-50 border-2 border-emerald-500 hover:border-emerald-600 hover:shadow-md'
-                    : 'bg-white border border-gray-300 hover:border-[#D63A35]'
+                    ? 'bg-emerald-50 border border-emerald-300 hover:border-emerald-400 hover:shadow-sm'
+                    : 'bg-white border border-neutral-200 hover:border-primary-400'
                 }`}
               >
-                <div className="flex items-center gap-3">
-                  <div className={`w-9 h-9 rounded-full flex items-center justify-center ${
-                    checkInDate
-                      ? 'bg-gradient-to-br from-emerald-500 to-teal-500 shadow-sm'
-                      : 'bg-gray-100'
+                <div className="flex items-center gap-2.5">
+                  <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${
+                    checkInDate ? 'bg-emerald-500' : 'bg-neutral-100'
                   }`}>
-                    <Calendar className={`w-4 h-4 ${checkInDate ? 'text-white' : 'text-gray-400'}`} />
+                    <Calendar className={`w-3.5 h-3.5 ${checkInDate ? 'text-white' : 'text-neutral-400'}`} />
                   </div>
                   <div className="text-left flex-1">
                     {checkInDate ? (
                       <>
-                        <div className="font-bold text-gray-900 text-sm leading-tight flex items-center gap-1.5">
+                        <div className="font-bold text-neutral-800 text-[13px] leading-tight">
                           {formatDateForDisplay(checkInDate)}
-                          <Check className="w-3.5 h-3.5 text-emerald-600" />
                         </div>
-                        <div className="text-[11px] text-gray-500 flex items-center gap-1">
-                          <LogIn className="w-3 h-3" />
-                          Check-in day
-                        </div>
+                        <div className="text-[10px] text-neutral-500">Check-in</div>
                       </>
                     ) : (
-                      <span className="text-sm text-gray-500">Select date</span>
+                      <span className="text-[13px] text-neutral-400">Select date</span>
                     )}
                   </div>
                 </div>
               </button>
             </div>
 
-            {/* Check-out Date - Enhanced Premium Style */}
-            <div className="flex-1 lg:flex-1">
-              <label className="flex items-center gap-1.5 text-xs font-medium text-gray-700 mb-2">
-                <CalendarCheck size={13} className="text-gray-600" />
+            {/* Check-out Date - Apple-Class Desktop */}
+            <div className="hidden lg:block flex-1">
+              <label className="flex items-center gap-1.5 text-[11px] font-semibold text-neutral-600 mb-1.5">
+                <CalendarCheck size={12} className="text-neutral-500" />
                 <span>Check-out</span>
               </label>
               <button
                 ref={hotelCheckOutRef}
                 type="button"
                 onClick={() => setShowHotelCheckOutPicker(true)}
-                className={`w-full px-3 py-3 rounded-lg cursor-pointer transition-all ${
+                className={`w-full px-3 py-2.5 rounded-xl cursor-pointer transition-all ${
                   checkOutDate
-                    ? 'bg-gradient-to-r from-orange-50 to-amber-50 border-2 border-orange-500 hover:border-orange-600 hover:shadow-md'
-                    : 'bg-white border border-gray-300 hover:border-[#D63A35]'
+                    ? 'bg-orange-50 border border-orange-300 hover:border-orange-400 hover:shadow-sm'
+                    : 'bg-white border border-neutral-200 hover:border-primary-400'
                 }`}
               >
-                <div className="flex items-center gap-3">
-                  <div className={`w-9 h-9 rounded-full flex items-center justify-center ${
-                    checkOutDate
-                      ? 'bg-gradient-to-br from-orange-500 to-amber-500 shadow-sm'
-                      : 'bg-gray-100'
+                <div className="flex items-center gap-2.5">
+                  <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${
+                    checkOutDate ? 'bg-orange-500' : 'bg-neutral-100'
                   }`}>
-                    <Calendar className={`w-4 h-4 ${checkOutDate ? 'text-white' : 'text-gray-400'}`} />
+                    <Calendar className={`w-3.5 h-3.5 ${checkOutDate ? 'text-white' : 'text-neutral-400'}`} />
                   </div>
                   <div className="text-left flex-1">
                     {checkOutDate ? (
                       <>
-                        <div className="font-bold text-gray-900 text-sm leading-tight flex items-center gap-1.5">
+                        <div className="font-bold text-neutral-800 text-[13px] leading-tight">
                           {formatDateForDisplay(checkOutDate)}
-                          <Check className="w-3.5 h-3.5 text-orange-600" />
                         </div>
-                        <div className="text-[11px] text-gray-500 flex items-center gap-1">
-                          <LogOut className="w-3 h-3" />
-                          Check-out day
-                        </div>
+                        <div className="text-[10px] text-neutral-500">Check-out</div>
                       </>
                     ) : (
-                      <span className="text-sm text-gray-500">Select date</span>
+                      <span className="text-[13px] text-neutral-400">Select date</span>
                     )}
                   </div>
                 </div>
@@ -2145,114 +2181,112 @@ export default function EnhancedSearchBar({
             </div>
             </div>{/* End Dates Row wrapper */}
 
-            {/* Guests & Rooms - Enhanced Premium Style */}
+            {/* Guests & Rooms - Apple-Class Styling */}
             <div className="relative w-full lg:w-64 lg:flex-shrink-0">
-              <label className="flex items-center gap-1.5 text-xs font-medium text-gray-700 mb-2">
-                <Users size={13} className="text-gray-600" />
+              <label className="hidden lg:flex items-center gap-1.5 text-[11px] font-semibold text-neutral-600 mb-1.5">
+                <Users size={12} className="text-neutral-500" />
                 <span>Guests & Rooms</span>
               </label>
               <button
                 type="button"
                 onClick={() => setShowPassengerDropdown(!showPassengerDropdown)}
-                className="w-full px-3 py-3 bg-gradient-to-r from-violet-50 to-purple-50 border-2 border-violet-500 rounded-lg hover:border-violet-600 hover:shadow-md transition-all text-left"
+                className="w-full px-3 py-2.5 bg-white border border-neutral-200 rounded-xl hover:border-primary-400 hover:shadow-sm transition-all text-left active:scale-[0.99]"
               >
-                <div className="flex items-center gap-3">
-                  <div className="w-9 h-9 rounded-full bg-gradient-to-br from-violet-500 to-purple-500 flex items-center justify-center shadow-sm">
-                    <Users className="w-4 h-4 text-white" />
+                <div className="flex items-center gap-2.5">
+                  <div className="w-8 h-8 rounded-lg bg-violet-500 flex items-center justify-center shadow-sm">
+                    <Users className="w-3.5 h-3.5 text-white" />
                   </div>
-                  <div className="flex-1">
-                    <div className="font-bold text-gray-900 text-sm leading-tight flex items-center gap-1.5">
-                      {hotelAdults + hotelChildren + hotelInfants} guest{(hotelAdults + hotelChildren + hotelInfants) > 1 ? 's' : ''}
-                      <Check className="w-3.5 h-3.5 text-violet-600" />
+                  <div className="flex-1 min-w-0">
+                    <div className="font-bold text-neutral-800 text-[13px] leading-tight truncate">
+                      {hotelAdults + hotelChildren + hotelInfants} guest{(hotelAdults + hotelChildren + hotelInfants) > 1 ? 's' : ''} · {hotelRooms} room{hotelRooms > 1 ? 's' : ''}
                     </div>
-                    <div className="text-[11px] text-gray-500 flex items-center gap-1">
-                      <BedDouble className="w-3 h-3" />
-                      {hotelRooms} room{hotelRooms > 1 ? 's' : ''} · {hotelAdults} adult{hotelAdults > 1 ? 's' : ''}{hotelChildren > 0 ? `, ${hotelChildren} child${hotelChildren > 1 ? 'ren' : ''}` : ''}{hotelInfants > 0 ? `, ${hotelInfants} infant${hotelInfants > 1 ? 's' : ''}` : ''}
+                    <div className="text-[10px] text-neutral-500 truncate">
+                      {hotelAdults} adult{hotelAdults > 1 ? 's' : ''}{hotelChildren > 0 ? ` · ${hotelChildren} child` : ''}{hotelInfants > 0 ? ` · ${hotelInfants} infant` : ''}
                     </div>
                   </div>
-                  <ChevronDown size={18} className={`text-violet-500 transition-transform ${showPassengerDropdown ? 'rotate-180' : ''}`} />
+                  <ChevronDown size={16} className={`text-neutral-400 transition-transform flex-shrink-0 ${showPassengerDropdown ? 'rotate-180' : ''}`} />
                 </div>
               </button>
 
-              {/* Guests & Rooms Dropdown - CLEAN WITH ICONS */}
+              {/* Guests & Rooms Dropdown - Apple-Class */}
               {showPassengerDropdown && (
-                <div className="absolute top-full left-0 right-0 mt-2 p-3 bg-white border border-gray-200 rounded-lg shadow-lg z-50">
+                <div className="absolute top-full left-0 right-0 mt-1.5 p-2.5 bg-white border border-neutral-200 rounded-xl shadow-lg z-50">
                   {/* Row 1: Adults & Infants */}
-                  <div className="grid grid-cols-2 gap-3 mb-3">
+                  <div className="grid grid-cols-2 gap-2 mb-2">
                     {/* Adults */}
-                    <div className="text-center">
-                      <div className="flex items-center justify-center gap-1 mb-1.5">
-                        <User size={14} className="text-gray-500" />
-                        <span className="text-xs font-semibold text-gray-700">Adults</span>
+                    <div className="text-center p-2 bg-neutral-50 rounded-lg">
+                      <div className="flex items-center justify-center gap-1 mb-1">
+                        <User size={12} className="text-neutral-500" />
+                        <span className="text-[10px] font-semibold text-neutral-600">Adults</span>
                       </div>
-                      <div className="flex items-center justify-center gap-2">
-                        <button type="button" onClick={() => setHotelAdults(Math.max(1, hotelAdults - 1))} className="w-7 h-7 rounded-full bg-gray-100 hover:bg-gray-200 flex items-center justify-center transition-colors">
-                          <Minus size={14} className="text-gray-600" />
+                      <div className="flex items-center justify-center gap-1.5">
+                        <button type="button" onClick={() => setHotelAdults(Math.max(1, hotelAdults - 1))} className="w-6 h-6 rounded-lg bg-white border border-neutral-200 hover:bg-neutral-100 flex items-center justify-center transition-colors active:scale-95">
+                          <Minus size={12} className="text-neutral-600" />
                         </button>
-                        <span className="w-6 text-center text-sm font-bold text-gray-800">{hotelAdults}</span>
-                        <button type="button" onClick={() => setHotelAdults(hotelAdults + 1)} className="w-7 h-7 rounded-full bg-gray-100 hover:bg-gray-200 flex items-center justify-center transition-colors">
-                          <Plus size={14} className="text-gray-600" />
+                        <span className="w-5 text-center text-[13px] font-bold text-neutral-800">{hotelAdults}</span>
+                        <button type="button" onClick={() => setHotelAdults(hotelAdults + 1)} className="w-6 h-6 rounded-lg bg-white border border-neutral-200 hover:bg-neutral-100 flex items-center justify-center transition-colors active:scale-95">
+                          <Plus size={12} className="text-neutral-600" />
                         </button>
                       </div>
                     </div>
                     {/* Infants */}
-                    <div className="text-center">
-                      <div className="flex items-center justify-center gap-1 mb-1.5">
-                        <Baby size={14} className="text-emerald-500" />
-                        <span className="text-xs font-semibold text-gray-700">Infants</span>
-                        <span className="text-emerald-600 text-[10px] font-bold">FREE!</span>
+                    <div className="text-center p-2 bg-emerald-50/50 rounded-lg">
+                      <div className="flex items-center justify-center gap-1 mb-1">
+                        <Baby size={12} className="text-emerald-500" />
+                        <span className="text-[10px] font-semibold text-neutral-600">Infants</span>
+                        <span className="text-emerald-600 text-[8px] font-bold">FREE</span>
                       </div>
-                      <div className="flex items-center justify-center gap-2">
-                        <button type="button" onClick={() => setHotelInfants(Math.max(0, hotelInfants - 1))} className="w-7 h-7 rounded-full bg-emerald-50 hover:bg-emerald-100 flex items-center justify-center transition-colors">
-                          <Minus size={14} className="text-emerald-600" />
+                      <div className="flex items-center justify-center gap-1.5">
+                        <button type="button" onClick={() => setHotelInfants(Math.max(0, hotelInfants - 1))} className="w-6 h-6 rounded-lg bg-white border border-emerald-200 hover:bg-emerald-100 flex items-center justify-center transition-colors active:scale-95">
+                          <Minus size={12} className="text-emerald-600" />
                         </button>
-                        <span className="w-6 text-center text-sm font-bold text-gray-800">{hotelInfants}</span>
-                        <button type="button" onClick={() => setHotelInfants(hotelInfants + 1)} className="w-7 h-7 rounded-full bg-emerald-50 hover:bg-emerald-100 flex items-center justify-center transition-colors">
-                          <Plus size={14} className="text-emerald-600" />
+                        <span className="w-5 text-center text-[13px] font-bold text-neutral-800">{hotelInfants}</span>
+                        <button type="button" onClick={() => setHotelInfants(hotelInfants + 1)} className="w-6 h-6 rounded-lg bg-white border border-emerald-200 hover:bg-emerald-100 flex items-center justify-center transition-colors active:scale-95">
+                          <Plus size={12} className="text-emerald-600" />
                         </button>
                       </div>
                     </div>
                   </div>
                   {/* Row 2: Children & Rooms */}
-                  <div className="grid grid-cols-2 gap-3 mb-3">
+                  <div className="grid grid-cols-2 gap-2 mb-2">
                     {/* Children */}
-                    <div className="text-center">
-                      <div className="flex items-center justify-center gap-1 mb-1.5">
-                        <Users size={14} className="text-violet-500" />
-                        <span className="text-xs font-semibold text-gray-700">Children</span>
+                    <div className="text-center p-2 bg-violet-50/50 rounded-lg">
+                      <div className="flex items-center justify-center gap-1 mb-1">
+                        <Users size={12} className="text-violet-500" />
+                        <span className="text-[10px] font-semibold text-neutral-600">Children</span>
                       </div>
-                      <div className="flex items-center justify-center gap-2">
-                        <button type="button" onClick={() => { const n = Math.max(0, hotelChildren - 1); setHotelChildren(n); setHotelChildAges(prev => prev.slice(0, n)); }} className="w-7 h-7 rounded-full bg-violet-50 hover:bg-violet-100 flex items-center justify-center transition-colors">
-                          <Minus size={14} className="text-violet-600" />
+                      <div className="flex items-center justify-center gap-1.5">
+                        <button type="button" onClick={() => { const n = Math.max(0, hotelChildren - 1); setHotelChildren(n); setHotelChildAges(prev => prev.slice(0, n)); }} className="w-6 h-6 rounded-lg bg-white border border-violet-200 hover:bg-violet-100 flex items-center justify-center transition-colors active:scale-95">
+                          <Minus size={12} className="text-violet-600" />
                         </button>
-                        <span className="w-6 text-center text-sm font-bold text-gray-800">{hotelChildren}</span>
-                        <button type="button" onClick={() => { const n = hotelChildren + 1; setHotelChildren(n); setHotelChildAges(prev => [...prev, 8]); }} className="w-7 h-7 rounded-full bg-violet-50 hover:bg-violet-100 flex items-center justify-center transition-colors">
-                          <Plus size={14} className="text-violet-600" />
+                        <span className="w-5 text-center text-[13px] font-bold text-neutral-800">{hotelChildren}</span>
+                        <button type="button" onClick={() => { const n = hotelChildren + 1; setHotelChildren(n); setHotelChildAges(prev => [...prev, 8]); }} className="w-6 h-6 rounded-lg bg-white border border-violet-200 hover:bg-violet-100 flex items-center justify-center transition-colors active:scale-95">
+                          <Plus size={12} className="text-violet-600" />
                         </button>
                       </div>
                     </div>
                     {/* Rooms */}
-                    <div className="text-center">
-                      <div className="flex items-center justify-center gap-1 mb-1.5">
-                        <BedDouble size={14} className="text-info-500" />
-                        <span className="text-xs font-semibold text-gray-700">Rooms</span>
+                    <div className="text-center p-2 bg-primary-50/50 rounded-lg">
+                      <div className="flex items-center justify-center gap-1 mb-1">
+                        <BedDouble size={12} className="text-primary-500" />
+                        <span className="text-[10px] font-semibold text-neutral-600">Rooms</span>
                       </div>
-                      <div className="flex items-center justify-center gap-2">
-                        <button type="button" onClick={() => setHotelRooms(Math.max(1, hotelRooms - 1))} className="w-7 h-7 rounded-full bg-info-50 hover:bg-info-100 flex items-center justify-center transition-colors">
-                          <Minus size={14} className="text-primary-500" />
+                      <div className="flex items-center justify-center gap-1.5">
+                        <button type="button" onClick={() => setHotelRooms(Math.max(1, hotelRooms - 1))} className="w-6 h-6 rounded-lg bg-white border border-primary-200 hover:bg-primary-100 flex items-center justify-center transition-colors active:scale-95">
+                          <Minus size={12} className="text-primary-600" />
                         </button>
-                        <span className="w-6 text-center text-sm font-bold text-gray-800">{hotelRooms}</span>
-                        <button type="button" onClick={() => setHotelRooms(hotelRooms + 1)} className="w-7 h-7 rounded-full bg-info-50 hover:bg-info-100 flex items-center justify-center transition-colors">
-                          <Plus size={14} className="text-primary-500" />
+                        <span className="w-5 text-center text-[13px] font-bold text-neutral-800">{hotelRooms}</span>
+                        <button type="button" onClick={() => setHotelRooms(hotelRooms + 1)} className="w-6 h-6 rounded-lg bg-white border border-primary-200 hover:bg-primary-100 flex items-center justify-center transition-colors active:scale-95">
+                          <Plus size={12} className="text-primary-600" />
                         </button>
                       </div>
                     </div>
                   </div>
-                  {/* Child Ages - Inside Dropdown */}
+                  {/* Child Ages - Apple-Class */}
                   {hotelChildren > 0 && (
-                    <div className="mb-3 bg-violet-50/70 rounded-lg p-2 border border-violet-200">
-                      <p className="text-[10px] font-semibold text-violet-700 mb-1 flex items-center gap-1">
-                        <Baby size={12} className="text-violet-600" />
+                    <div className="mb-2 bg-violet-50/50 rounded-lg p-2 border border-violet-100">
+                      <p className="text-[9px] font-semibold text-violet-600 mb-1 flex items-center gap-1 uppercase tracking-wide">
+                        <Baby size={10} className="text-violet-500" />
                         Child Ages
                       </p>
                       <div className="flex flex-wrap gap-1">
@@ -2265,7 +2299,7 @@ export default function EnhancedSearchBar({
                               newAges[index] = parseInt(e.target.value);
                               setHotelChildAges(newAges);
                             }}
-                            className="px-2 py-1 border border-violet-300 rounded text-xs font-medium focus:ring-2 focus:ring-violet-500 bg-white"
+                            className="px-1.5 py-0.5 border border-violet-200 rounded-md text-[11px] font-semibold focus:ring-1 focus:ring-violet-400 bg-white text-neutral-700"
                           >
                             {Array.from({ length: 16 }, (_, i) => i + 2).map(age => (
                               <option key={age} value={age}>{age}y</option>
@@ -2275,8 +2309,8 @@ export default function EnhancedSearchBar({
                       </div>
                     </div>
                   )}
-                  {/* Done Button */}
-                  <button onClick={() => setShowPassengerDropdown(false)} className="w-full py-2 bg-[#D63A35] hover:bg-[#0077E6] text-white font-medium rounded-lg transition-colors text-sm">
+                  {/* Done Button - Apple-Class */}
+                  <button onClick={() => setShowPassengerDropdown(false)} className="w-full py-2 bg-primary-500 hover:bg-primary-600 text-white font-semibold rounded-lg transition-colors text-[12px] active:scale-[0.98]">
                     Done
                   </button>
                 </div>
@@ -2284,18 +2318,18 @@ export default function EnhancedSearchBar({
 
             </div>
 
-            {/* Search Button - Full width on mobile */}
+            {/* Search Button - Apple-Class */}
             <div className="w-full lg:w-auto lg:flex-shrink-0">
-              <label className="hidden lg:block text-xs font-medium text-gray-700 mb-2 opacity-0">Search</label>
+              <label className="hidden lg:block text-[11px] font-semibold text-neutral-600 mb-1.5 opacity-0">Search</label>
               <button
                 type="button"
                 onClick={handleSearch}
                 disabled={isLoading}
-                className="w-full lg:w-auto py-4 px-10 bg-[#D63A35] hover:bg-[#0077E6] text-white font-semibold rounded-lg shadow-md hover:shadow-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 whitespace-nowrap text-sm touch-manipulation active:scale-[0.98]"
+                className="w-full lg:w-auto py-3 lg:py-2.5 px-8 bg-primary-500 hover:bg-primary-600 text-white font-bold rounded-xl shadow-md hover:shadow-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 whitespace-nowrap text-[13px] touch-manipulation active:scale-[0.98]"
               >
                 {isLoading ? (
                   <>
-                    <svg className="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                    <svg className="animate-spin h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                       <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
                       <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                     </svg>
@@ -2308,22 +2342,20 @@ export default function EnhancedSearchBar({
             </div>
           </div>
 
-          {/* 📍 POPULAR AREAS - Mobile: Stacked, Desktop: Single Row */}
+          {/* 📍 POPULAR AREAS - Apple-Class Ultra-Premium Styling */}
           {/* Show when we have popular districts OR previously selected districts (from results page) */}
           {(popularDistricts.length > 0 || selectedDistricts.length > 0) && hotelDestination && (
-            <div className="mt-3 px-2 lg:px-3 py-2 bg-gradient-to-r from-slate-50/80 via-blue-50/20 to-cyan-50/20 rounded-lg border border-blue-100/50 flex flex-col lg:flex-row lg:items-center gap-2 lg:gap-3">
-              {/* Left: Title Section */}
-              <div className="flex-shrink-0 flex items-center gap-2">
-                <div className="w-4 h-4 lg:w-5 lg:h-5 rounded-full bg-gradient-to-br from-[#D63A35] to-cyan-500 flex items-center justify-center">
-                  <MapPin className="w-2.5 h-2.5 lg:w-3 lg:h-3 text-white" />
+            <div className="mt-2 px-2 lg:px-3 py-1.5 bg-neutral-50/80 rounded-xl border border-neutral-100 flex flex-col lg:flex-row lg:items-center gap-1.5 lg:gap-2">
+              {/* Left: Title Section - Apple-Class Minimal */}
+              <div className="flex-shrink-0 flex items-center gap-1.5">
+                <div className="w-5 h-5 rounded-lg bg-gradient-to-br from-primary-500 to-primary-600 flex items-center justify-center shadow-sm">
+                  <MapPin className="w-2.5 h-2.5 text-white" />
                 </div>
-                <span className="text-[11px] lg:text-xs font-semibold text-gray-700 whitespace-nowrap">Popular Areas</span>
-                <span className="hidden lg:inline text-gray-300">•</span>
-                <span className="hidden lg:inline text-[11px] text-gray-400 whitespace-nowrap">multi-select</span>
+                <span className="text-[10px] lg:text-[11px] font-bold text-neutral-700 uppercase tracking-wide">Popular</span>
               </div>
 
-              {/* Middle: Scrollable District Chips - Mobile: horizontal scroll overflow */}
-              <div className="flex-1 flex items-center gap-1.5 overflow-x-auto scrollbar-hide -mx-2 px-2 lg:mx-0 lg:px-0">
+              {/* Middle: Scrollable District Chips - Apple-Class Minimal Pills */}
+              <div className="flex-1 flex items-center gap-1 overflow-x-auto scrollbar-hide -mx-2 px-2 lg:mx-0 lg:px-0 py-0.5">
                 {/* When we have popular districts from API, show those with selection state */}
                 {popularDistricts.length > 0 ? (
                   popularDistricts.map((district) => {
@@ -2337,14 +2369,14 @@ export default function EnhancedSearchBar({
                         key={district.id}
                         type="button"
                         onClick={() => toggleDistrictSelection(district)}
-                        className={`flex-shrink-0 flex items-center gap-1 px-2.5 py-1.5 rounded-md text-[11px] lg:text-xs font-medium transition-all duration-150 touch-manipulation active:scale-95 ${
+                        className={`flex-shrink-0 flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] lg:text-[11px] font-semibold transition-all duration-150 touch-manipulation active:scale-95 ${
                           isSelected
-                            ? 'bg-gradient-to-r from-[#D63A35] to-cyan-500 text-white shadow-sm'
-                            : 'bg-white text-gray-600 hover:bg-primary-50 hover:text-primary-700 border border-gray-200/80 hover:border-primary-300'
+                            ? 'bg-primary-500 text-white shadow-sm'
+                            : 'bg-white text-neutral-600 hover:bg-primary-50 hover:text-primary-600 border border-neutral-200 hover:border-primary-300'
                         }`}
                       >
-                        {isSelected && <Check className="w-3 h-3" />}
-                        {district.name}
+                        {isSelected && <Check className="w-2.5 h-2.5" />}
+                        <span className="truncate max-w-[80px]">{district.name}</span>
                       </button>
                     );
                   })
@@ -2355,24 +2387,24 @@ export default function EnhancedSearchBar({
                       key={district.id}
                       type="button"
                       onClick={() => setSelectedDistricts(selectedDistricts.filter(d => d.id !== district.id))}
-                      className="flex-shrink-0 flex items-center gap-1 px-2.5 py-1.5 rounded-md text-[11px] lg:text-xs font-medium transition-all duration-150 bg-gradient-to-r from-[#D63A35] to-cyan-500 text-white shadow-sm touch-manipulation active:scale-95"
+                      className="flex-shrink-0 flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] lg:text-[11px] font-semibold transition-all duration-150 bg-primary-500 text-white shadow-sm touch-manipulation active:scale-95"
                     >
-                      <Check className="w-3 h-3" />
-                      {district.name}
+                      <Check className="w-2.5 h-2.5" />
+                      <span className="truncate max-w-[80px]">{district.name}</span>
                     </button>
                   ))
                 )}
               </div>
 
-              {/* Right: Clear Button (only if selections) */}
+              {/* Right: Clear Button (only if selections) - Apple-Class Minimal */}
               {selectedDistricts.length > 0 && (
                 <button
                   type="button"
                   onClick={() => setSelectedDistricts([])}
-                  className="flex-shrink-0 text-[11px] text-gray-400 hover:text-red-500 flex items-center gap-0.5 transition-colors"
+                  className="flex-shrink-0 text-[10px] text-neutral-400 hover:text-error-500 flex items-center gap-0.5 transition-colors font-medium"
                 >
                   <X className="w-3 h-3" />
-                  Clear
+                  <span className="hidden lg:inline">Clear</span>
                 </button>
               )}
             </div>
@@ -3025,6 +3057,24 @@ export default function EnhancedSearchBar({
           type="single"
           minDate={checkInDate ? new Date(new Date(checkInDate).getTime() + 24 * 60 * 60 * 1000) : undefined} // Prevent selecting same day or earlier for checkout
           anchorEl={hotelCheckOutRef.current}
+        />
+
+        {/* Unified Date Range Picker for Hotels (Mobile) - Opens once, selects check-in then check-out */}
+        <PremiumDatePicker
+          label="Select Stay Dates"
+          isOpen={showHotelDateRangePicker}
+          onClose={() => setShowHotelDateRangePicker(false)}
+          value={checkInDate}
+          returnValue={checkOutDate}
+          onChange={(departure, returnDate) => {
+            setCheckInDate(departure);
+            if (returnDate) {
+              setCheckOutDate(returnDate);
+            }
+            // Auto-close handled by PremiumDatePicker when both dates selected
+          }}
+          type="range"
+          anchorEl={hotelDateRangeRef.current}
         />
 
         {/* Premium Date Pickers for Car Rentals */}
