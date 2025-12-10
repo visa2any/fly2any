@@ -5,7 +5,7 @@ import Image from 'next/image';
 import {
   Star, MapPin, ChevronLeft, ChevronRight, Heart, Share2,
   Coffee, Shield, Loader2, Wifi, Waves, Dumbbell, Car, ChevronRight as ArrowRight,
-  Sparkles, UtensilsCrossed, Wind, PawPrint
+  Sparkles, UtensilsCrossed, Wind, PawPrint, BarChart2
 } from 'lucide-react';
 import { useHotelCompare } from '@/contexts/HotelCompareContext';
 import { getBlurDataURL } from '@/lib/utils/image-optimization';
