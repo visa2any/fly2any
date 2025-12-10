@@ -515,8 +515,8 @@
   /* Standard input field - Apple-Class */
   .mobile-input {
     @apply w-full
-           min-h-[44px] md:min-h-[48px]
-           py-2.5 px-3 md:py-3 md:px-4
+           min-h-[48px]
+           py-3 px-3 md:px-4
            bg-white
            border-2 border-neutral-200 hover:border-primary-400
            focus:border-primary-500 focus:ring-2 focus:ring-primary-100
@@ -540,8 +540,8 @@
   /* Select dropdown button - Apple-Class */
   .mobile-select {
     @apply w-full relative
-           min-h-[44px] md:min-h-[48px]
-           py-2.5 px-3 md:py-3 md:px-4
+           min-h-[48px]
+           py-3 px-3 md:px-4
            bg-white
            border-2 border-neutral-200 hover:border-primary-400
            text-neutral-800 text-left

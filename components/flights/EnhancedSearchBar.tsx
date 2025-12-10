@@ -3489,29 +3489,29 @@ export default function EnhancedSearchBar({
                   <div className="flex items-center justify-between bg-neutral-50 rounded-xl px-3 py-2.5">
                     <span className="text-xs font-semibold text-neutral-700">Adults <span className="text-neutral-400 font-normal">18+</span></span>
                     <div className="flex items-center gap-2">
-                      <button type="button" onClick={() => handlePassengerChange('adults', -1)} disabled={passengers.adults <= 1} className="w-7 h-7 rounded-full border-2 border-neutral-200 hover:border-primary-400 disabled:opacity-30 flex items-center justify-center text-sm font-bold text-neutral-600 transition-colors">−</button>
-                      <span className="w-5 text-center text-sm font-bold text-neutral-800">{passengers.adults}</span>
-                      <button type="button" onClick={() => handlePassengerChange('adults', 1)} className="w-7 h-7 rounded-full border-2 border-neutral-200 hover:border-primary-400 flex items-center justify-center text-sm font-bold text-neutral-600 transition-colors">+</button>
+                      <button type="button" onClick={() => handlePassengerChange('adults', -1)} disabled={passengers.adults <= 1} className="w-8 h-8 rounded-full border-2 border-neutral-200 hover:border-primary-400 disabled:opacity-30 flex items-center justify-center text-sm font-bold text-neutral-600 transition-colors touch-manipulation active:scale-95">−</button>
+                      <span className="w-6 text-center text-sm font-bold text-neutral-800">{passengers.adults}</span>
+                      <button type="button" onClick={() => handlePassengerChange('adults', 1)} className="w-8 h-8 rounded-full border-2 border-neutral-200 hover:border-primary-400 flex items-center justify-center text-sm font-bold text-neutral-600 transition-colors touch-manipulation active:scale-95">+</button>
                     </div>
                   </div>
 
-                  {/* Children + Infants */}
-                  <div className="flex items-center gap-2">
-                    <div className="flex-1 flex items-center justify-between bg-neutral-50 rounded-xl px-3 py-2.5">
-                      <span className="text-xs font-semibold text-neutral-700">Child <span className="text-neutral-400 font-normal">2-17</span></span>
-                      <div className="flex items-center gap-2">
-                        <button type="button" onClick={() => handlePassengerChange('children', -1)} disabled={passengers.children <= 0} className="w-7 h-7 rounded-full border-2 border-neutral-200 hover:border-primary-400 disabled:opacity-30 flex items-center justify-center text-sm font-bold text-neutral-600 transition-colors">−</button>
-                        <span className="w-5 text-center text-sm font-bold text-neutral-800">{passengers.children}</span>
-                        <button type="button" onClick={() => handlePassengerChange('children', 1)} className="w-7 h-7 rounded-full border-2 border-neutral-200 hover:border-primary-400 flex items-center justify-center text-sm font-bold text-neutral-600 transition-colors">+</button>
-                      </div>
+                  {/* Children Row */}
+                  <div className="flex items-center justify-between bg-neutral-50 rounded-xl px-3 py-2.5">
+                    <span className="text-xs font-semibold text-neutral-700">Children <span className="text-neutral-400 font-normal">2-17</span></span>
+                    <div className="flex items-center gap-2">
+                      <button type="button" onClick={() => handlePassengerChange('children', -1)} disabled={passengers.children <= 0} className="w-8 h-8 rounded-full border-2 border-neutral-200 hover:border-primary-400 disabled:opacity-30 flex items-center justify-center text-sm font-bold text-neutral-600 transition-colors touch-manipulation active:scale-95">−</button>
+                      <span className="w-6 text-center text-sm font-bold text-neutral-800">{passengers.children}</span>
+                      <button type="button" onClick={() => handlePassengerChange('children', 1)} className="w-8 h-8 rounded-full border-2 border-neutral-200 hover:border-primary-400 flex items-center justify-center text-sm font-bold text-neutral-600 transition-colors touch-manipulation active:scale-95">+</button>
                     </div>
-                    <div className="flex-1 flex items-center justify-between bg-neutral-50 rounded-xl px-3 py-2.5">
-                      <span className="text-xs font-semibold text-neutral-700">Infant <span className="text-neutral-400 font-normal">&lt;2</span></span>
-                      <div className="flex items-center gap-2">
-                        <button type="button" onClick={() => handlePassengerChange('infants', -1)} disabled={passengers.infants <= 0} className="w-7 h-7 rounded-full border-2 border-neutral-200 hover:border-primary-400 disabled:opacity-30 flex items-center justify-center text-sm font-bold text-neutral-600 transition-colors">−</button>
-                        <span className="w-5 text-center text-sm font-bold text-neutral-800">{passengers.infants}</span>
-                        <button type="button" onClick={() => handlePassengerChange('infants', 1)} className="w-7 h-7 rounded-full border-2 border-neutral-200 hover:border-primary-400 flex items-center justify-center text-sm font-bold text-neutral-600 transition-colors">+</button>
-                      </div>
+                  </div>
+
+                  {/* Infants Row */}
+                  <div className="flex items-center justify-between bg-neutral-50 rounded-xl px-3 py-2.5">
+                    <span className="text-xs font-semibold text-neutral-700">Infants <span className="text-neutral-400 font-normal">&lt;2</span></span>
+                    <div className="flex items-center gap-2">
+                      <button type="button" onClick={() => handlePassengerChange('infants', -1)} disabled={passengers.infants <= 0} className="w-8 h-8 rounded-full border-2 border-neutral-200 hover:border-primary-400 disabled:opacity-30 flex items-center justify-center text-sm font-bold text-neutral-600 transition-colors touch-manipulation active:scale-95">−</button>
+                      <span className="w-6 text-center text-sm font-bold text-neutral-800">{passengers.infants}</span>
+                      <button type="button" onClick={() => handlePassengerChange('infants', 1)} className="w-8 h-8 rounded-full border-2 border-neutral-200 hover:border-primary-400 flex items-center justify-center text-sm font-bold text-neutral-600 transition-colors touch-manipulation active:scale-95">+</button>
                     </div>
                   </div>
 
