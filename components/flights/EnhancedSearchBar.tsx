@@ -2342,69 +2342,60 @@ export default function EnhancedSearchBar({
             </div>
           </div>
 
-          {/* 📍 POPULAR AREAS - Apple-Class Ultra-Premium Styling */}
-          {/* Show when we have popular districts OR previously selected districts (from results page) */}
+          {/* 📍 POPULAR AREAS - Matches Filter Bar Style (same row, horizontal scroll) */}
           {(popularDistricts.length > 0 || selectedDistricts.length > 0) && hotelDestination && (
-            <div className="mt-2 px-2 lg:px-3 py-1.5 bg-neutral-50/80 rounded-xl border border-neutral-100 flex flex-col lg:flex-row lg:items-center gap-1.5 lg:gap-2">
-              {/* Left: Title Section - Apple-Class Minimal */}
-              <div className="flex-shrink-0 flex items-center gap-1.5">
-                <div className="w-5 h-5 rounded-lg bg-gradient-to-br from-primary-500 to-primary-600 flex items-center justify-center shadow-sm">
-                  <MapPin className="w-2.5 h-2.5 text-white" />
-                </div>
-                <span className="text-[10px] lg:text-[11px] font-bold text-neutral-700 uppercase tracking-wide">Popular</span>
+            <div className="flex items-center gap-1.5 mt-2 overflow-x-auto scrollbar-hide -mx-2 px-2 lg:mx-0 lg:px-0">
+              {/* Popular Label - Same style as Filter button */}
+              <div className="flex-shrink-0 flex items-center gap-1 px-2.5 py-1.5 rounded-lg bg-secondary-100 text-secondary-700 font-bold text-[11px]">
+                <MapPin className="w-3 h-3" />
+                Popular:
               </div>
 
-              {/* Middle: Scrollable District Chips - Apple-Class Minimal Pills */}
-              <div className="flex-1 flex items-center gap-1 overflow-x-auto scrollbar-hide -mx-2 px-2 lg:mx-0 lg:px-0 py-0.5">
-                {/* When we have popular districts from API, show those with selection state */}
-                {popularDistricts.length > 0 ? (
-                  popularDistricts.map((district) => {
-                    // Case-insensitive comparison for matching selections across different sources
-                    const isSelected = selectedDistricts.some(d =>
-                      (d.id && district.id && d.id.toLowerCase() === district.id.toLowerCase()) ||
-                      (d.name && district.name && d.name.toLowerCase() === district.name.toLowerCase())
-                    );
-                    return (
-                      <button
-                        key={district.id}
-                        type="button"
-                        onClick={() => toggleDistrictSelection(district)}
-                        className={`flex-shrink-0 flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] lg:text-[11px] font-semibold transition-all duration-150 touch-manipulation active:scale-95 ${
-                          isSelected
-                            ? 'bg-primary-500 text-white shadow-sm'
-                            : 'bg-white text-neutral-600 hover:bg-primary-50 hover:text-primary-600 border border-neutral-200 hover:border-primary-300'
-                        }`}
-                      >
-                        {isSelected && <Check className="w-2.5 h-2.5" />}
-                        <span className="truncate max-w-[80px]">{district.name}</span>
-                      </button>
-                    );
-                  })
-                ) : (
-                  /* When no popular districts from API but we have selected ones (from results page), show those */
-                  selectedDistricts.map((district) => (
+              {/* District Pills - Match filter bar pill style exactly */}
+              {popularDistricts.length > 0 ? (
+                popularDistricts.map((district) => {
+                  const isSelected = selectedDistricts.some(d =>
+                    (d.id && district.id && d.id.toLowerCase() === district.id.toLowerCase()) ||
+                    (d.name && district.name && d.name.toLowerCase() === district.name.toLowerCase())
+                  );
+                  return (
                     <button
                       key={district.id}
                       type="button"
-                      onClick={() => setSelectedDistricts(selectedDistricts.filter(d => d.id !== district.id))}
-                      className="flex-shrink-0 flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] lg:text-[11px] font-semibold transition-all duration-150 bg-primary-500 text-white shadow-sm touch-manipulation active:scale-95"
+                      onClick={() => toggleDistrictSelection(district)}
+                      className={`flex-shrink-0 px-2.5 py-1.5 rounded-lg font-semibold text-[11px] transition-all active:scale-95 whitespace-nowrap ${
+                        isSelected
+                          ? 'bg-primary-500 text-white'
+                          : 'bg-white border border-neutral-200 text-neutral-600 hover:border-primary-300'
+                      }`}
                     >
-                      <Check className="w-2.5 h-2.5" />
-                      <span className="truncate max-w-[80px]">{district.name}</span>
+                      {isSelected && <Check className="w-3 h-3 inline mr-1" />}
+                      {district.name}
                     </button>
-                  ))
-                )}
-              </div>
+                  );
+                })
+              ) : (
+                selectedDistricts.map((district) => (
+                  <button
+                    key={district.id}
+                    type="button"
+                    onClick={() => setSelectedDistricts(selectedDistricts.filter(d => d.id !== district.id))}
+                    className="flex-shrink-0 px-2.5 py-1.5 rounded-lg font-semibold text-[11px] transition-all active:scale-95 whitespace-nowrap bg-primary-500 text-white"
+                  >
+                    <Check className="w-3 h-3 inline mr-1" />
+                    {district.name}
+                  </button>
+                ))
+              )}
 
-              {/* Right: Clear Button (only if selections) - Apple-Class Minimal */}
+              {/* Clear Button */}
               {selectedDistricts.length > 0 && (
                 <button
                   type="button"
                   onClick={() => setSelectedDistricts([])}
-                  className="flex-shrink-0 text-[10px] text-neutral-400 hover:text-error-500 flex items-center gap-0.5 transition-colors font-medium"
+                  className="flex-shrink-0 px-2 py-1.5 text-[11px] text-neutral-400 hover:text-error-500 font-medium transition-colors whitespace-nowrap"
                 >
-                  <X className="w-3 h-3" />
-                  <span className="hidden lg:inline">Clear</span>
+                  <X className="w-3 h-3 inline" /> Clear
                 </button>
               )}
             </div>
@@ -3680,61 +3671,80 @@ export default function EnhancedSearchBar({
               </div>
             )}
 
-            {/* Popular Districts Quick-Select (Mobile) */}
+            {/* Popular Districts Quick-Select (Mobile) - Match filter bar style */}
             {popularDistricts.length > 0 && !showHotelSuggestions && (
-              <div className="mt-2">
-                <div className="flex items-center gap-1 flex-wrap">
-                  <span className="text-[10px] text-gray-500 font-medium">Popular:</span>
-                  {popularDistricts.slice(0, 5).map((district) => (
+              <div className="flex items-center gap-1.5 mt-2 overflow-x-auto scrollbar-hide -mx-2 px-2">
+                <span className="flex-shrink-0 px-2 py-1 text-[11px] font-bold text-secondary-700 bg-secondary-100 rounded-lg">Popular:</span>
+                {popularDistricts.slice(0, 6).map((district) => {
+                  const isSelected = selectedDistricts.some(d => d.id?.toLowerCase() === district.id?.toLowerCase());
+                  return (
                     <button
                       key={district.id}
                       type="button"
-                      onClick={() => {
-                        setHotelDestination(district.name);
-                        setHotelLocation(district.location);
-                      }}
-                      className="px-1.5 py-0.5 text-[10px] font-medium bg-info-50 text-primary-600 hover:bg-info-100 rounded-full border border-info-200 transition-colors"
+                      onClick={() => toggleDistrictSelection(district)}
+                      className={`flex-shrink-0 px-2.5 py-1.5 rounded-lg font-semibold text-[11px] transition-all active:scale-95 whitespace-nowrap ${
+                        isSelected
+                          ? 'bg-primary-500 text-white'
+                          : 'bg-white border border-neutral-200 text-neutral-600 hover:border-primary-300'
+                      }`}
                     >
+                      {isSelected && <Check className="w-3 h-3 inline mr-1" />}
                       {district.name}
                     </button>
-                  ))}
-                </div>
+                  );
+                })}
               </div>
             )}
           </div>
 
-          {/* Check-in and Check-out Dates */}
-          <div className="grid grid-cols-2 gap-3">
-            <div>
-              <label className="block text-xs font-semibold text-gray-600 mb-1.5">
-                Check-in
-              </label>
-              <div className="relative">
-                <CalendarDays className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={16} />
-                <input
-                  type="date"
-                  value={checkInDate}
-                  onChange={(e) => setCheckInDate(e.target.value)}
-                  min={minDate}
-                  className="w-full pl-9 pr-3 py-2 bg-gray-50 border-2 border-gray-200 rounded-lg focus:border-primary-500 focus:ring-2 focus:ring-primary-100 outline-none transition-all text-sm font-semibold text-gray-900"
-                />
+          {/* Check-in and Check-out Dates - Unified Date Range Picker */}
+          <div>
+            <label className="block text-xs font-semibold text-gray-600 mb-1.5">
+              Stay Dates
+            </label>
+            <button
+              type="button"
+              onClick={() => setShowHotelDateRangePicker(true)}
+              className="w-full px-3 py-2.5 bg-white border border-neutral-200 rounded-xl hover:border-primary-400 transition-all active:scale-[0.99]"
+            >
+              <div className="flex items-center gap-2">
+                {/* Check-in */}
+                <div className="flex-1 text-left">
+                  <div className="flex items-center gap-1.5 mb-0.5">
+                    <div className={`w-6 h-6 rounded-lg flex items-center justify-center ${checkInDate ? 'bg-emerald-500' : 'bg-neutral-100'}`}>
+                      <LogIn className={`w-3 h-3 ${checkInDate ? 'text-white' : 'text-neutral-400'}`} />
+                    </div>
+                    <span className="text-[10px] font-semibold text-neutral-500 uppercase">Check-in</span>
+                  </div>
+                  <div className={`text-[13px] font-bold ${checkInDate ? 'text-neutral-800' : 'text-neutral-400'}`}>
+                    {checkInDate ? formatDateForDisplay(checkInDate) : 'Select'}
+                  </div>
+                </div>
+
+                {/* Arrow */}
+                <div className="flex flex-col items-center px-1">
+                  <ArrowRight className="w-3.5 h-3.5 text-neutral-300" />
+                  {checkInDate && checkOutDate && (
+                    <span className="text-[9px] font-semibold text-primary-500">
+                      {Math.ceil((new Date(checkOutDate).getTime() - new Date(checkInDate).getTime()) / (1000 * 60 * 60 * 24))}n
+                    </span>
+                  )}
+                </div>
+
+                {/* Check-out */}
+                <div className="flex-1 text-right">
+                  <div className="flex items-center justify-end gap-1.5 mb-0.5">
+                    <span className="text-[10px] font-semibold text-neutral-500 uppercase">Check-out</span>
+                    <div className={`w-6 h-6 rounded-lg flex items-center justify-center ${checkOutDate ? 'bg-orange-500' : 'bg-neutral-100'}`}>
+                      <LogOut className={`w-3 h-3 ${checkOutDate ? 'text-white' : 'text-neutral-400'}`} />
+                    </div>
+                  </div>
+                  <div className={`text-[13px] font-bold ${checkOutDate ? 'text-neutral-800' : 'text-neutral-400'}`}>
+                    {checkOutDate ? formatDateForDisplay(checkOutDate) : 'Select'}
+                  </div>
+                </div>
               </div>
-            </div>
-            <div>
-              <label className="block text-xs font-semibold text-gray-600 mb-1.5">
-                Check-out
-              </label>
-              <div className="relative">
-                <CalendarCheck className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={16} />
-                <input
-                  type="date"
-                  value={checkOutDate}
-                  onChange={(e) => setCheckOutDate(e.target.value)}
-                  min={checkInDate || minDate}
-                  className="w-full pl-9 pr-3 py-2 bg-gray-50 border-2 border-gray-200 rounded-lg focus:border-primary-500 focus:ring-2 focus:ring-primary-100 outline-none transition-all text-sm font-semibold text-gray-900"
-                />
-              </div>
-            </div>
+            </button>
           </div>
 
           {/* Guests & Rooms */}
