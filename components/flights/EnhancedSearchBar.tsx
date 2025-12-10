@@ -1110,47 +1110,56 @@ export default function EnhancedSearchBar({
         }}
       >
         {/* ============================================
-            SERVICE TYPE TABS - Option A: Minimal Icon Tabs
+            SERVICE TYPE TABS - Apple-Class Pill Style
             Fixed ordering for hydration compatibility
             Mobile: Horizontally scrollable with touch support
             ============================================ */}
-        <div className="mobile-scroll-x mb-2 border-b border-gray-200 pb-px -mb-px gap-3 md:gap-6"  style={{ WebkitOverflowScrolling: 'touch' }}>
+        <div
+          className="mobile-scroll-x mb-4 p-1.5 bg-neutral-100/80 backdrop-blur-sm rounded-2xl gap-1.5 md:gap-2"
+          style={{ WebkitOverflowScrolling: 'touch' }}
+        >
           {/* Flights Tab - FIRST */}
           <button
             type="button"
             onClick={() => setServiceType('flights')}
-            className={`flex items-center gap-1.5 pb-3 min-h-[44px] text-sm font-medium transition-all duration-200 relative flex-shrink-0 whitespace-nowrap touch-manipulation active:scale-95 ${
+            className={`flex items-center gap-2 px-4 py-2.5 min-h-[44px] text-sm font-semibold transition-all duration-300 relative flex-shrink-0 whitespace-nowrap touch-manipulation rounded-xl ${
               serviceType === 'flights'
-                ? 'text-primary-600'
-                : 'text-gray-600 hover:text-primary-600'
+                ? 'bg-white text-primary-600 shadow-lg shadow-primary-500/15'
+                : 'text-neutral-600 hover:text-neutral-900 hover:bg-white/50 active:scale-95'
             }`}
           >
-            <Plane size={16} className={serviceType === 'flights' ? 'text-primary-600' : 'text-gray-500'} />
-            <span className="text-xs sm:text-sm">{t('flights')}</span>
-            {serviceType === 'flights' && (
-              <div className="absolute bottom-0 left-0 right-0 h-[3px] bg-primary-600 rounded-t-sm" />
-            )}
+            <div className={`p-1.5 rounded-lg transition-colors duration-300 ${
+              serviceType === 'flights'
+                ? 'bg-primary-50'
+                : 'bg-neutral-200/50'
+            }`}>
+              <Plane size={14} className={serviceType === 'flights' ? 'text-primary-600' : 'text-neutral-500'} />
+            </div>
+            <span className="text-[13px] sm:text-sm tracking-tight">{t('flights')}</span>
           </button>
 
           {/* Hotels Tab - SECOND */}
           <button
             type="button"
             onClick={() => setServiceType('hotels')}
-            className={`flex items-center gap-1.5 pb-3 min-h-[44px] text-sm font-medium transition-all duration-200 relative flex-shrink-0 whitespace-nowrap touch-manipulation active:scale-95 ${
+            className={`flex items-center gap-2 px-4 py-2.5 min-h-[44px] text-sm font-semibold transition-all duration-300 relative flex-shrink-0 whitespace-nowrap touch-manipulation rounded-xl ${
               serviceType === 'hotels'
-                ? 'text-primary-600'
-                : 'text-gray-600 hover:text-primary-600'
+                ? 'bg-white text-primary-600 shadow-lg shadow-primary-500/15'
+                : 'text-neutral-600 hover:text-neutral-900 hover:bg-white/50 active:scale-95'
             }`}
           >
-            <Hotel size={16} className={serviceType === 'hotels' ? 'text-primary-600' : 'text-gray-500'} />
-            <span className="text-xs sm:text-sm">{t('hotels')}</span>
-            {serviceType === 'hotels' && (
-              <div className="absolute bottom-0 left-0 right-0 h-[3px] bg-primary-600 rounded-t-sm" />
-            )}
+            <div className={`p-1.5 rounded-lg transition-colors duration-300 ${
+              serviceType === 'hotels'
+                ? 'bg-primary-50'
+                : 'bg-neutral-200/50'
+            }`}>
+              <Hotel size={14} className={serviceType === 'hotels' ? 'text-primary-600' : 'text-neutral-500'} />
+            </div>
+            <span className="text-[13px] sm:text-sm tracking-tight">{t('hotels')}</span>
           </button>
 
           {/* ============================================
-              COMING SOON TABS - With "Soon" badge
+              COMING SOON TABS - Apple-Class Style
               Cars, Tours, Packages, Insurance
               ============================================ */}
 
@@ -1161,17 +1170,17 @@ export default function EnhancedSearchBar({
               // Show coming soon toast/notification
               if (typeof window !== 'undefined') {
                 const toast = document.createElement('div');
-                toast.className = 'fixed top-4 right-4 bg-amber-500 text-white px-4 py-2 rounded-lg shadow-lg z-50 animate-fade-in';
-                toast.innerHTML = '🚗 Car Rentals coming soon!';
+                toast.className = 'fixed top-4 left-1/2 -translate-x-1/2 bg-neutral-900 text-white px-5 py-3 rounded-2xl shadow-2xl z-50 animate-fade-in flex items-center gap-2 text-sm font-medium';
+                toast.innerHTML = '<span class="text-lg">🚗</span> Car Rentals coming soon!';
                 document.body.appendChild(toast);
                 setTimeout(() => toast.remove(), 2500);
               }
             }}
-            className="flex items-center gap-1 pb-3 text-sm font-medium transition-all duration-200 relative text-gray-400 hover:text-gray-500 cursor-pointer flex-shrink-0 whitespace-nowrap"
+            className="flex items-center gap-1.5 px-3 py-2.5 text-sm font-medium transition-all duration-300 relative text-neutral-400 hover:text-neutral-500 cursor-pointer flex-shrink-0 whitespace-nowrap rounded-xl hover:bg-white/30 active:scale-95"
           >
-            <Car size={14} className="text-gray-400" />
-            <span className="text-xs">{t('cars')}</span>
-            <span className="text-[7px] bg-orange-400 text-white px-1 py-0.5 rounded font-semibold leading-none align-top -mt-0.5">Soon</span>
+            <Car size={13} className="text-neutral-400" />
+            <span className="text-xs tracking-tight">{t('cars')}</span>
+            <span className="text-[8px] bg-gradient-to-r from-amber-400 to-orange-400 text-white px-1.5 py-0.5 rounded-full font-bold leading-none shadow-sm">Soon</span>
           </button>
 
           {/* Tours Tab - COMING SOON */}
@@ -1180,17 +1189,17 @@ export default function EnhancedSearchBar({
             onClick={() => {
               if (typeof window !== 'undefined') {
                 const toast = document.createElement('div');
-                toast.className = 'fixed top-4 right-4 bg-amber-500 text-white px-4 py-2 rounded-lg shadow-lg z-50 animate-fade-in';
-                toast.innerHTML = '🗺️ Tours coming soon!';
+                toast.className = 'fixed top-4 left-1/2 -translate-x-1/2 bg-neutral-900 text-white px-5 py-3 rounded-2xl shadow-2xl z-50 animate-fade-in flex items-center gap-2 text-sm font-medium';
+                toast.innerHTML = '<span class="text-lg">🗺️</span> Tours coming soon!';
                 document.body.appendChild(toast);
                 setTimeout(() => toast.remove(), 2500);
               }
             }}
-            className="flex items-center gap-1 pb-3 text-sm font-medium transition-all duration-200 relative text-gray-400 hover:text-gray-500 cursor-pointer flex-shrink-0 whitespace-nowrap"
+            className="flex items-center gap-1.5 px-3 py-2.5 text-sm font-medium transition-all duration-300 relative text-neutral-400 hover:text-neutral-500 cursor-pointer flex-shrink-0 whitespace-nowrap rounded-xl hover:bg-white/30 active:scale-95"
           >
-            <Map size={14} className="text-gray-400" />
-            <span className="text-xs">{t('tours')}</span>
-            <span className="text-[7px] bg-orange-400 text-white px-1 py-0.5 rounded font-semibold leading-none align-top -mt-0.5">Soon</span>
+            <Map size={13} className="text-neutral-400" />
+            <span className="text-xs tracking-tight">{t('tours')}</span>
+            <span className="text-[8px] bg-gradient-to-r from-amber-400 to-orange-400 text-white px-1.5 py-0.5 rounded-full font-bold leading-none shadow-sm">Soon</span>
           </button>
 
           {/* Packages Tab - COMING SOON */}
@@ -1199,17 +1208,17 @@ export default function EnhancedSearchBar({
             onClick={() => {
               if (typeof window !== 'undefined') {
                 const toast = document.createElement('div');
-                toast.className = 'fixed top-4 right-4 bg-amber-500 text-white px-4 py-2 rounded-lg shadow-lg z-50 animate-fade-in';
-                toast.innerHTML = '📦 Travel Packages coming soon!';
+                toast.className = 'fixed top-4 left-1/2 -translate-x-1/2 bg-neutral-900 text-white px-5 py-3 rounded-2xl shadow-2xl z-50 animate-fade-in flex items-center gap-2 text-sm font-medium';
+                toast.innerHTML = '<span class="text-lg">📦</span> Travel Packages coming soon!';
                 document.body.appendChild(toast);
                 setTimeout(() => toast.remove(), 2500);
               }
             }}
-            className="flex items-center gap-1 pb-3 text-sm font-medium transition-all duration-200 relative text-gray-400 hover:text-gray-500 cursor-pointer flex-shrink-0 whitespace-nowrap"
+            className="flex items-center gap-1.5 px-3 py-2.5 text-sm font-medium transition-all duration-300 relative text-neutral-400 hover:text-neutral-500 cursor-pointer flex-shrink-0 whitespace-nowrap rounded-xl hover:bg-white/30 active:scale-95"
           >
-            <Package size={14} className="text-gray-400" />
-            <span className="text-xs">{t('packages')}</span>
-            <span className="text-[7px] bg-orange-400 text-white px-1 py-0.5 rounded font-semibold leading-none align-top -mt-0.5">Soon</span>
+            <Package size={13} className="text-neutral-400" />
+            <span className="text-xs tracking-tight">{t('packages')}</span>
+            <span className="text-[8px] bg-gradient-to-r from-amber-400 to-orange-400 text-white px-1.5 py-0.5 rounded-full font-bold leading-none shadow-sm">Soon</span>
           </button>
 
           {/* Insurance Tab - COMING SOON */}
@@ -1218,17 +1227,17 @@ export default function EnhancedSearchBar({
             onClick={() => {
               if (typeof window !== 'undefined') {
                 const toast = document.createElement('div');
-                toast.className = 'fixed top-4 right-4 bg-amber-500 text-white px-4 py-2 rounded-lg shadow-lg z-50 animate-fade-in';
-                toast.innerHTML = '🛡️ Travel Insurance coming soon!';
+                toast.className = 'fixed top-4 left-1/2 -translate-x-1/2 bg-neutral-900 text-white px-5 py-3 rounded-2xl shadow-2xl z-50 animate-fade-in flex items-center gap-2 text-sm font-medium';
+                toast.innerHTML = '<span class="text-lg">🛡️</span> Travel Insurance coming soon!';
                 document.body.appendChild(toast);
                 setTimeout(() => toast.remove(), 2500);
               }
             }}
-            className="flex items-center gap-1 pb-3 text-sm font-medium transition-all duration-200 relative text-gray-400 hover:text-gray-500 cursor-pointer flex-shrink-0 whitespace-nowrap pr-4"
+            className="flex items-center gap-1.5 px-3 py-2.5 text-sm font-medium transition-all duration-300 relative text-neutral-400 hover:text-neutral-500 cursor-pointer flex-shrink-0 whitespace-nowrap rounded-xl hover:bg-white/30 active:scale-95 mr-2"
           >
-            <Shield size={14} className="text-gray-400" />
-            <span className="text-xs">{t('insurance')}</span>
-            <span className="text-[7px] bg-orange-400 text-white px-1 py-0.5 rounded font-semibold leading-none align-top -mt-0.5">Soon</span>
+            <Shield size={13} className="text-neutral-400" />
+            <span className="text-xs tracking-tight">{t('insurance')}</span>
+            <span className="text-[8px] bg-gradient-to-r from-amber-400 to-orange-400 text-white px-1.5 py-0.5 rounded-full font-bold leading-none shadow-sm">Soon</span>
           </button>
         </div>
 

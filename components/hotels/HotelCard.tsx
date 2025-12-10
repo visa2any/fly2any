@@ -75,14 +75,14 @@ export function HotelCard({
   const autoExpandTimerRef = useRef<NodeJS.Timeout | null>(null);
   const t = translations[lang];
 
-  // Auto-expand overlay after 3 seconds
+  // Auto-expand overlay after 6 seconds
   const scheduleAutoExpand = useCallback(() => {
     if (autoExpandTimerRef.current) {
       clearTimeout(autoExpandTimerRef.current);
     }
     autoExpandTimerRef.current = setTimeout(() => {
       setOverlayCollapsed(false);
-    }, 3000);
+    }, 6000);
   }, []);
 
   // Collapse overlay when swiping photos
