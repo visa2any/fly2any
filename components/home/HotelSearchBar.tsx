@@ -663,25 +663,25 @@ export function HotelSearchBar({ lang = 'en' }: HotelSearchBarProps) {
                   </div>
                 )}
 
-                {/* Popular Destinations - Horizontal scrolling pills */}
+                {/* Popular Destinations - Apple-Class horizontal scrolling pills */}
                 {suggestions.length === 0 && !loadingSuggestions && popularDestinations.length > 0 && (
-                  <div className="py-1.5">
-                    <div className="px-3 py-1 text-[10px] font-semibold text-slate-500 uppercase tracking-wide flex items-center gap-1">
-                      <Star className="w-3 h-3" />
+                  <div className="py-1">
+                    <div className="px-2 py-0.5 text-[9px] font-bold text-neutral-400 uppercase tracking-wider flex items-center gap-1">
+                      <Star className="w-2.5 h-2.5" />
                       {t.popularDestinations}
                     </div>
-                    <div className="flex gap-1.5 px-3 overflow-x-auto scrollbar-hide">
+                    <div className="flex gap-1 px-2 pb-1 overflow-x-auto scrollbar-hide">
                       {popularDestinations.map((dest, idx) => (
                         <button
                           key={dest.id || idx}
                           onClick={() => handleSelectLocation(dest)}
-                          className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium whitespace-nowrap transition-all flex-shrink-0 ${
+                          className={`flex items-center gap-1 px-2.5 py-1 rounded-lg text-[11px] font-semibold whitespace-nowrap transition-all flex-shrink-0 ${
                             selectedIndex === idx
-                              ? 'bg-primary-500 text-white shadow-sm'
-                              : 'bg-slate-100 text-slate-700 hover:bg-primary-50 hover:text-primary-700'
+                              ? 'bg-primary-500 text-white'
+                              : 'bg-white border border-neutral-200 text-neutral-700 hover:border-primary-300 hover:text-primary-600'
                           }`}
                         >
-                          {dest.emoji && <span className="text-sm">{dest.emoji}</span>}
+                          {dest.emoji && <span className="text-xs">{dest.emoji}</span>}
                           {dest.name}
                         </button>
                       ))}
@@ -689,13 +689,13 @@ export function HotelSearchBar({ lang = 'en' }: HotelSearchBarProps) {
                   </div>
                 )}
 
-                {/* Fallback Popular Cities - Horizontal scrolling pills */}
+                {/* Fallback Popular Cities - Apple-Class horizontal pills */}
                 {suggestions.length === 0 && !loadingSuggestions && popularDestinations.length === 0 && (
-                  <div className="py-1.5">
-                    <div className="px-3 py-1 text-[10px] font-semibold text-slate-500 uppercase tracking-wide">
+                  <div className="py-1">
+                    <div className="px-2 py-0.5 text-[9px] font-bold text-neutral-400 uppercase tracking-wider">
                       {t.popularDestinations}
                     </div>
-                    <div className="flex gap-1.5 px-3 overflow-x-auto scrollbar-hide">
+                    <div className="flex gap-1 px-2 pb-1 overflow-x-auto scrollbar-hide">
                       {POPULAR_CITIES.map((city, idx) => (
                         <button
                           key={idx}
@@ -707,13 +707,13 @@ export function HotelSearchBar({ lang = 'en' }: HotelSearchBarProps) {
                             location: { lat: city.lat, lng: city.lng },
                             type: 'city'
                           })}
-                          className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium whitespace-nowrap transition-all flex-shrink-0 ${
+                          className={`flex items-center gap-1 px-2.5 py-1 rounded-lg text-[11px] font-semibold whitespace-nowrap transition-all flex-shrink-0 ${
                             selectedIndex === idx
-                              ? 'bg-primary-500 text-white shadow-sm'
-                              : 'bg-slate-100 text-slate-700 hover:bg-primary-50 hover:text-primary-700'
+                              ? 'bg-primary-500 text-white'
+                              : 'bg-white border border-neutral-200 text-neutral-700 hover:border-primary-300 hover:text-primary-600'
                           }`}
                         >
-                          <span className="text-sm">{city.emoji}</span>
+                          <span className="text-xs">{city.emoji}</span>
                           {city.name}
                         </button>
                       ))}

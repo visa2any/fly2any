@@ -11,8 +11,8 @@ import type { HeaderTranslations } from '@/lib/i18n/types';
 // CONSTANTS & CONFIGURATION
 // ============================================================================
 
-/** Bottom nav height in pixels */
-const NAV_HEIGHT = 56;
+/** Bottom nav height in pixels - Apple-Class compact */
+const NAV_HEIGHT = 52;
 
 /** Minimum touch target size (WCAG AA) */
 const MIN_TOUCH_TARGET = 44;
@@ -347,11 +347,11 @@ export function BottomTabBar({ translations, onMoreClick }: BottomTabBarProps) {
           zIndex: zIndex.FIXED + 10, // Slightly above other fixed elements
           height: `calc(${NAV_HEIGHT}px + env(safe-area-inset-bottom, 0px))`,
           paddingBottom: 'env(safe-area-inset-bottom, 0px)',
-          background: 'linear-gradient(to top, rgba(255,255,255,0.98) 0%, rgba(255,255,255,0.96) 100%)',
-          backdropFilter: 'blur(24px) saturate(180%)',
-          WebkitBackdropFilter: 'blur(24px) saturate(180%)',
-          borderTop: '1px solid rgba(0,0,0,0.06)',
-          boxShadow: '0 -1px 12px rgba(0,0,0,0.04), 0 -4px 24px rgba(0,0,0,0.02)',
+          background: 'linear-gradient(to top, rgba(255,255,255,0.98) 0%, rgba(246,247,249,0.96) 100%)',
+          backdropFilter: 'blur(20px) saturate(180%)',
+          WebkitBackdropFilter: 'blur(20px) saturate(180%)',
+          borderTop: '1px solid rgba(239,65,54,0.08)',
+          boxShadow: '0 -1px 8px rgba(0,0,0,0.03)',
         }}
         role="navigation"
         aria-label="Main navigation"
@@ -396,7 +396,7 @@ export function BottomTabBar({ translations, onMoreClick }: BottomTabBarProps) {
                 aria-label={tab.label}
                 aria-current={isActive ? 'page' : undefined}
               >
-                {/* Active Indicator Pill */}
+                {/* Active Indicator Pill - Fly2Any Red */}
                 <motion.span
                   initial={false}
                   animate={{
@@ -408,16 +408,16 @@ export function BottomTabBar({ translations, onMoreClick }: BottomTabBarProps) {
                     stiffness: 450,
                     damping: 28,
                   }}
-                  className="absolute top-0 left-1/2 -translate-x-1/2 w-8 h-[2.5px] rounded-full bg-gradient-to-r from-primary-500 to-primary-400"
+                  className="absolute top-0 left-1/2 -translate-x-1/2 w-7 h-[2px] rounded-full bg-primary-500"
                   style={{ transformOrigin: 'center' }}
                   aria-hidden="true"
                 />
 
-                {/* Icon */}
+                {/* Icon - Compact */}
                 <motion.div
                   animate={{
-                    scale: isActive ? 1.12 : 1,
-                    y: isActive ? -1 : 0,
+                    scale: isActive ? 1.08 : 1,
+                    y: isActive ? -0.5 : 0,
                   }}
                   transition={{
                     type: 'spring',
@@ -427,19 +427,19 @@ export function BottomTabBar({ translations, onMoreClick }: BottomTabBarProps) {
                   className="relative"
                 >
                   {tab.iconType === 'image' ? (
-                    <div className="relative w-[24px] h-[24px]">
+                    <div className="relative w-[22px] h-[22px]">
                       <Image
                         src={tab.icon}
                         alt=""
                         fill
-                        sizes="24px"
+                        sizes="22px"
                         className="object-contain"
                         priority
                       />
                     </div>
                   ) : (
                     <span
-                      className="text-[22px] leading-none"
+                      className="text-[20px] leading-none"
                       role="img"
                       aria-hidden="true"
                     >
@@ -448,14 +448,14 @@ export function BottomTabBar({ translations, onMoreClick }: BottomTabBarProps) {
                   )}
                 </motion.div>
 
-                {/* Label */}
+                {/* Label - Apple-Class compact */}
                 <motion.span
                   animate={{
-                    fontWeight: isActive ? 700 : 500,
+                    fontWeight: isActive ? 700 : 600,
                   }}
                   className={`
-                    text-[10px] leading-tight mt-0.5 tracking-tight
-                    ${isActive ? 'text-primary-600' : 'text-neutral-500'}
+                    text-[9px] leading-tight mt-0.5 tracking-tight
+                    ${isActive ? 'text-primary-500' : 'text-neutral-400'}
                   `}
                 >
                   {tab.label}
