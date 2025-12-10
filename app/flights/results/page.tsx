@@ -41,6 +41,7 @@ import { isWorldCupHostCity } from '@/lib/world-cup/constants';
 import PriceCalendarMatrix from '@/components/flights/PriceCalendarMatrix';
 import AlternativeAirports from '@/components/flights/AlternativeAirports';
 import { batchCalculateDealScores } from '@/lib/flights/dealScore';
+import { getAirportCity } from '@/lib/data/airports';
 import BaggageFeeDisclaimer from '@/components/flights/BaggageFeeDisclaimer';
 import LiveActivityFeed from '@/components/conversion/LiveActivityFeed';
 import ExitIntentPopup from '@/components/conversion/ExitIntentPopup';
@@ -1793,6 +1794,7 @@ function FlightResultsContent() {
                       segmentRecommendations={segmentRecommendations}
                       urgencyVariant={urgencyVariant}
                       sessionId={sessionId}
+                      fareVariants={(flight as any).fareVariants}
                     />
                   </div>
                 );
@@ -1913,7 +1915,7 @@ function FlightResultsContent() {
               {sortedFlights.length > 0 && (
                 <SmartWait
                   currentPrice={normalizePrice(sortedFlights[0].price.total)}
-                  route={`${searchData.from} → ${searchData.to}`}
+                  route={`${getAirportCity(searchData.from)} → ${getAirportCity(searchData.to)}`}
                   departureDate={searchData.departure.split(',')[0]}
                   onBookNow={() => handleBookNow(sortedFlights[0].id)}
                   onSetAlert={handleSetAlert}

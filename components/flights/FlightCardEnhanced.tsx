@@ -121,6 +121,17 @@ export interface EnhancedFlightCardProps {
   // Mixed-carrier "Hacker Fares" (Separate Tickets)
   isSeparateTickets?: boolean;
   separateTicketDetails?: MixedCarrierFare;
+  // Fare variants from API (for correct fare family naming)
+  fareVariants?: Array<{
+    id: string;
+    name: string;
+    price: number;
+    currency: string;
+    features?: string[];
+    restrictions?: string[];
+    positives?: string[];
+    cabinClass?: string;
+  }>;
 }
 
 export function FlightCardEnhanced({
@@ -170,6 +181,8 @@ export function FlightCardEnhanced({
   // Mixed-carrier "Hacker Fares"
   isSeparateTickets = false,
   separateTicketDetails,
+  // Fare variants for correct naming
+  fareVariants,
 }: EnhancedFlightCardProps) {
   // Early return if itineraries is missing or empty
   if (!itineraries || !Array.isArray(itineraries) || itineraries.length === 0) {
@@ -325,16 +338,81 @@ export function FlightCardEnhanced({
   const legsStopsInfo = itineraries.map(itinerary => getStopsInfo(itinerary.segments));
   const onTimeBadge = getOnTimePerformanceBadge(airlineData.onTimePerformance);
 
-  // Format fare type for display
-  const formatFareType = (fareType: string): string => {
-    if (!fareType) return '';
-    // Handle common fare type patterns
-    if (fareType.includes('BASIC') || fareType.includes('LIGHT') || fareType.includes('SAVER')) return 'Basic';
-    if (fareType.includes('FLEX') || fareType.includes('FLEXIBLE')) return 'Flex';
-    if (fareType.includes('STANDARD') || fareType.includes('MAIN') || fareType.includes('CLASSIC')) return 'Standard';
-    if (fareType.includes('PREMIUM') || fareType.includes('PLUS')) return 'Premium';
-    // Default: capitalize first letter
-    return fareType.charAt(0).toUpperCase() + fareType.slice(1).toLowerCase();
+  // Get the best fare family name from fareVariants (from API) or derive it
+  const getFareFamilyName = (): string => {
+    // Priority 0: Use fareVariants[0].name if available (most accurate from API)
+    if (fareVariants && fareVariants.length > 0 && fareVariants[0].name) {
+      return fareVariants[0].name;
+    }
+    // Fallback to formatFareFamilyLabel
+    return '';
+  };
+  const fareVariantName = getFareFamilyName();
+
+  // Format full fare family label for display (e.g., "Economy Basic", "Business Flex")
+  // Uses fareVariants.name first, then brandedFareLabel, otherwise derives from fareType + cabin
+  const formatFareFamilyLabel = (fareType: string, cabin: string, brandedFareLabel?: string): string => {
+    // Cabin display names
+    const cabinNames: Record<string, string> = {
+      'ECONOMY': 'Economy',
+      'PREMIUM_ECONOMY': 'Premium Economy',
+      'BUSINESS': 'Business',
+      'FIRST': 'First Class',
+    };
+    const cabinDisplay = cabinNames[cabin] || 'Economy';
+
+    // Priority 0: Use fareVariants name if available (most accurate)
+    if (fareVariantName) {
+      return fareVariantName;
+    }
+
+    // Priority 1: Use brandedFareLabel if it looks like a proper fare family name
+    if (brandedFareLabel && brandedFareLabel.length > 2) {
+      const labelLower = brandedFareLabel.toLowerCase();
+      // If branded label already includes cabin-like terms, use it directly
+      if (labelLower.includes('economy') || labelLower.includes('business') ||
+          labelLower.includes('first') || labelLower.includes('premium') ||
+          labelLower.includes('cabin') || labelLower.includes('class') ||
+          labelLower.includes('blue') || labelLower.includes('delta') ||
+          labelLower.includes('mint') || labelLower.includes('select')) {
+        // Capitalize each word for display
+        return brandedFareLabel.split(' ').map(w => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase()).join(' ');
+      }
+      // Otherwise combine: "Economy" + "Basic" → "Economy Basic"
+      const fareLabel = brandedFareLabel.split(' ').map(w => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase()).join(' ');
+      return `${cabinDisplay} ${fareLabel}`;
+    }
+
+    // Priority 2: Derive fare tier from fareType code
+    if (!fareType) return cabinDisplay;
+    const fareUpper = fareType.toUpperCase();
+
+    // Skip if fareType is just the cabin class itself
+    if (fareUpper === 'ECONOMY' || fareUpper === 'PREMIUM_ECONOMY' || fareUpper === 'BUSINESS' || fareUpper === 'FIRST') {
+      return cabinDisplay; // Just show cabin name, no duplicate
+    }
+
+    // Map fare codes to tier names
+    let fareTier = '';
+    if (fareUpper.includes('BASIC') || fareUpper.includes('LIGHT') || fareUpper.includes('SAVER') || fareUpper.includes('ECOBAS')) {
+      fareTier = 'Basic';
+    } else if (fareUpper.includes('FLEX') || fareUpper.includes('FLEXIBLE') || fareUpper.includes('FULL')) {
+      fareTier = 'Flex';
+    } else if (fareUpper.includes('STANDARD') || fareUpper.includes('MAIN') || fareUpper.includes('CLASSIC') || fareUpper.includes('ECOSTD')) {
+      fareTier = 'Standard';
+    } else if (fareUpper.includes('PLUS') || fareUpper.includes('EXTRA') || fareUpper.includes('COMFORT')) {
+      fareTier = 'Plus';
+    } else if (fareUpper.includes('PREMIUM') || fareUpper.includes('SELECT')) {
+      fareTier = 'Premium';
+    } else if (fareType.length > 0 && fareType.length <= 8) {
+      // Short codes like "Y", "M", "V" - don't show, just cabin
+      fareTier = '';
+    } else {
+      // Unknown - default to Standard for regular economy
+      fareTier = cabin === 'ECONOMY' ? '' : '';
+    }
+
+    return fareTier ? `${cabinDisplay} ${fareTier}` : cabinDisplay;
   };
 
   // REMOVED: Fake savings calculation (no longer artificially inflating prices)
@@ -895,11 +973,9 @@ export function FlightCardEnhanced({
             </div>
           )}
 
-          {/* Fare Type + Cabin Class Badge - Combined - Hidden on mobile */}
+          {/* Fare Family Badge - e.g., "Economy Basic", "Business Flex" - Hidden on mobile */}
           <span className="hidden lg:inline-flex font-semibold px-1.5 py-0.5 bg-purple-50 text-purple-700 rounded flex-shrink-0" style={{ fontSize: typography.card.meta.size }}>
-            {formatFareType(baggageInfo.fareType)} {baggageInfo.cabin === 'PREMIUM_ECONOMY' ? 'Premium' :
-             baggageInfo.cabin === 'BUSINESS' ? 'Business' :
-             baggageInfo.cabin === 'FIRST' ? 'First' : 'Economy'}
+            {formatFareFamilyLabel(baggageInfo.fareType, baggageInfo.cabin, baggageInfo.brandedFareLabel)}
           </span>
 
           {/* Loyalty Miles Badge - Moved to header (after fare class) - Hidden on mobile */}
@@ -1099,9 +1175,7 @@ export function FlightCardEnhanced({
                             legBaggage.cabin === 'PREMIUM_ECONOMY' ? 'bg-primary-100 text-indigo-900' :
                             'bg-gray-100 text-gray-900'
                           }`}>
-                            {formatFareType(legBaggage.fareType)} {legBaggage.cabin === 'PREMIUM_ECONOMY' ? 'Premium Economy' :
-                             legBaggage.cabin === 'BUSINESS' ? 'Business' :
-                             legBaggage.cabin === 'FIRST' ? 'First' : 'Economy'}
+                            {formatFareFamilyLabel(legBaggage.fareType, legBaggage.cabin, legBaggage.brandedFareLabel)}
                           </span>
                         </div>
                       </div>
@@ -1282,7 +1356,7 @@ export function FlightCardEnhanced({
                 <div key={`baggage-compare-${index}`} className="flex items-start gap-1">
                   <span className="font-semibold text-primary-600">Leg {index + 1}:</span>
                   <span className="text-gray-700">
-                    {formatFareType(baggage.fareType)}, {baggage.checked} bag(s)
+                    {formatFareFamilyLabel(baggage.fareType, baggage.cabin, baggage.brandedFareLabel)}, {baggage.checked} bag(s)
                     {baggage.amenities.wifi && ', WiFi'}
                     {baggage.amenities.power && ', Power'}
                   </span>

@@ -44,6 +44,7 @@ export function FlightCardMobile(props: EnhancedFlightCardProps) {
     onCompare,
     isComparing = false,
     isNavigating = false,
+    fareVariants,
   } = props;
 
   const router = useRouter();
@@ -134,8 +135,24 @@ export function FlightCardMobile(props: EnhancedFlightCardProps) {
 
   const baggage = getBaggageInfo();
 
-  // Get cabin class
-  const getCabinClass = () => {
+  // Get fare family label - uses fareVariants[0].name for accurate fare family naming
+  const getFareFamilyLabel = () => {
+    // Priority 1: Use fareVariants[0].name if available (most accurate from API)
+    // This correctly differentiates "Economy Basic" vs "Economy Standard" vs "Economy Flex"
+    if (fareVariants && fareVariants.length > 0 && fareVariants[0].name) {
+      const name = fareVariants[0].name;
+      // Shorten for mobile display if needed
+      if (name.length > 16) {
+        // Extract just the fare tier (e.g., "Basic" from "Economy Basic")
+        const parts = name.split(' ');
+        if (parts.length >= 2) {
+          return parts[parts.length - 1]; // Return last word (Basic, Standard, Flex, etc.)
+        }
+      }
+      return name;
+    }
+
+    // Priority 2: Fall back to cabin class
     const fareDetails = travelerPricings?.[0]?.fareDetailsBySegment?.[0];
     const cabin = fareDetails?.cabin || 'ECONOMY';
     const cabinMap: Record<string, string> = {
@@ -147,7 +164,7 @@ export function FlightCardMobile(props: EnhancedFlightCardProps) {
     return cabinMap[cabin] || cabin;
   };
 
-  const cabinClass = getCabinClass();
+  const cabinClass = getFareFamilyLabel();
 
   // Handle favorite toggle
   const handleFavorite = (e: React.MouseEvent) => {

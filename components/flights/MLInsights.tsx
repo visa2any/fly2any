@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { Brain, Zap, TrendingUp, Clock, Database, CheckCircle2 } from 'lucide-react';
+import { getAirportCity } from '@/lib/data/airports';
 
 // ===========================
 // TYPE DEFINITIONS
@@ -274,7 +275,7 @@ export const MLInsights: React.FC<MLInsightsProps> = ({
               {t.title}
             </h3>
             <p className="text-xs text-gray-600">
-              {route.from} → {route.to}
+              {getAirportCity(route.from)} → {getAirportCity(route.to)}
             </p>
           </div>
         </div>

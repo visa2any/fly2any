@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { spacing, typography, colors, dimensions } from '@/lib/design-system';
+import { getAirportCity } from '@/lib/data/airports';
 
 // ===========================
 // TYPE DEFINITIONS
@@ -547,7 +548,7 @@ export const PriceInsights: React.FC<PriceInsightsProps> = ({
               {t.title}
             </h3>
             <p className="text-gray-600" style={{ fontSize: typography.card.meta.size }}>
-              {route.from} → {route.to}
+              {getAirportCity(route.from)} → {getAirportCity(route.to)}
             </p>
           </div>
         </div>
