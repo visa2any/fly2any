@@ -285,11 +285,11 @@ export function HotelCard({
           </div>
         </div>
 
-        {/* Dot indicators - above compact info bar */}
+        {/* Dot indicators - minimal at very bottom */}
         {images.length > 1 && (
-          <div className="absolute bottom-[76px] left-1/2 -translate-x-1/2 flex gap-1.5 z-20" style={{ filter: 'drop-shadow(0 1px 2px rgba(0,0,0,0.4))' }}>
+          <div className="absolute bottom-2 left-1/2 -translate-x-1/2 flex gap-1 z-20">
             {images.slice(0, Math.min(images.length, 5)).map((_, idx) => (
-              <div key={idx} className={`h-1.5 rounded-full transition-all ${idx === currentImageIndex ? 'bg-secondary-400 w-5' : 'bg-white/50 w-1.5'}`} />
+              <div key={idx} className={`h-1 rounded-full transition-all ${idx === currentImageIndex ? 'bg-white w-3' : 'bg-white/40 w-1'}`} />
             ))}
           </div>
         )}
@@ -339,8 +339,8 @@ export function HotelCard({
           </div>
         )}
 
-        {/* Bottom info - compact bar with brand accent */}
-        <div className="absolute bottom-0 left-0 right-0 z-10 bg-neutral-900/50 backdrop-blur-sm border-t-2 border-primary-500">
+        {/* Bottom info - Apple-class light frosted bar */}
+        <div className="absolute bottom-0 left-0 right-0 z-10 bg-black/35 backdrop-blur-sm" style={{ boxShadow: '0 -1px 8px rgba(0,0,0,0.15)' }}>
           <div className="px-3 py-2">
             {/* Row 1: Name + Price */}
             <div className="flex items-center justify-between gap-2 mb-0.5">
@@ -350,7 +350,7 @@ export function HotelCard({
               {perNightPrice > 0 && (
                 <div className="flex items-baseline gap-1 flex-shrink-0">
                   <span className="font-bold text-[16px] text-secondary-200">{currencySymbol}{Math.round(perNightPrice)}</span>
-                  <span className="text-[9px] text-white/60">{t.perNight}</span>
+                  <span className="text-[9px] font-semibold text-white/70">{t.perNight}</span>
                 </div>
               )}
             </div>
@@ -358,20 +358,20 @@ export function HotelCard({
             {/* Row 2: Location + Total */}
             <div className="flex items-center justify-between mb-1">
               {hotel.location?.city && (
-                <span className="text-white/80 text-[10px] flex items-center gap-0.5">
+                <span className="text-white/90 text-[10px] font-medium flex items-center gap-0.5">
                   <MapPin className="w-2.5 h-2.5" />
                   {hotel.location.city}{hotel.location?.country ? `, ${hotel.location.country}` : ''}
                 </span>
               )}
               {perNightPrice > 0 && (
-                <span className="text-[9px] text-white/50">{currencySymbol}{Math.round(totalPrice)} · {nights}n</span>
+                <span className="text-[9px] font-semibold text-white/60">{currencySymbol}{Math.round(totalPrice)} · {nights}n</span>
               )}
             </div>
 
             {/* Row 3: Amenities + Badges + CTA */}
             <div className="flex items-center justify-between gap-1.5">
               <div className="flex items-center gap-1.5 flex-1 min-w-0">
-                <div className="flex items-center gap-1 text-white/60">
+                <div className="flex items-center gap-1 text-white/70">
                   {amenities.wifi && <Wifi className="w-3 h-3" />}
                   {amenities.pool && <Waves className="w-3 h-3" />}
                   {amenities.gym && <Dumbbell className="w-3 h-3" />}
