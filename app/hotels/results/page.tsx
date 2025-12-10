@@ -409,7 +409,7 @@ function HotelResultsContent() {
     mobileOnly: true,
   });
 
-  // Pull-to-refresh functionality
+  // Pull-to-refresh functionality - Fly2Any theme
   const { isRefreshing: isPullRefreshing, pullIndicator } = usePullToRefresh(
     async () => {
       await fetchHotels();
@@ -417,7 +417,7 @@ function HotelResultsContent() {
     {
       threshold: 80,
       mobileOnly: true,
-      theme: 'orange',
+      theme: 'red',
     }
   );
 
@@ -579,10 +579,10 @@ function HotelResultsContent() {
     window.open(url, '_blank');
   };
 
-  // Loading state with skeleton
+  // Loading state with skeleton - Apple-Class + Fly2Any Theme
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-orange-50/20 to-slate-50">
+      <div className="min-h-screen bg-neutral-50">
         {/* Search Bar - VISIBLE during loading with FULL search params for consistency */}
         <div className="relative">
           <EnhancedSearchBar
@@ -602,30 +602,30 @@ function HotelResultsContent() {
           <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent animate-shimmer pointer-events-none rounded-2xl" />
         </div>
 
-        {/* Enhanced Loading State - State-of-the-art design */}
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-          <div className="text-center mb-8">
-            {/* Animated search indicator */}
-            <div className="relative inline-flex items-center justify-center mb-4">
-              <div className="absolute w-16 h-16 bg-orange-100 rounded-full animate-ping opacity-30" />
-              <div className="relative w-14 h-14 bg-gradient-to-br from-orange-500 to-orange-600 rounded-full flex items-center justify-center shadow-lg">
+        {/* Enhanced Loading State - Apple-Class + Fly2Any */}
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+          <div className="text-center mb-6">
+            {/* Animated search indicator - Fly2Any Red */}
+            <div className="relative inline-flex items-center justify-center mb-3">
+              <div className="absolute w-16 h-16 bg-primary-100 rounded-full animate-ping opacity-30" />
+              <div className="relative w-14 h-14 bg-gradient-to-br from-primary-500 to-primary-600 rounded-full flex items-center justify-center shadow-primary">
                 <Hotel className="w-7 h-7 text-white animate-pulse" />
               </div>
             </div>
 
-            <h2 className="text-2xl font-bold text-slate-900">{t.searching}</h2>
-            <p className="text-slate-600 mt-2">Finding the perfect stay in <span className="font-semibold text-orange-600">{searchData.destination}</span>...</p>
+            <h2 className="text-xl font-bold text-neutral-800">{t.searching}</h2>
+            <p className="text-neutral-500 mt-1 text-sm">Finding the perfect stay in <span className="font-semibold text-primary-600">{searchData.destination}</span></p>
 
-            {/* Visual search params confirmation */}
-            <div className="mt-4 inline-flex items-center gap-3 px-4 py-2 bg-orange-50 rounded-full border border-orange-200">
-              <span className="flex items-center gap-1.5 text-sm text-slate-700">
-                <Calendar className="w-4 h-4 text-orange-500" />
+            {/* Visual search params confirmation - Fly2Any themed */}
+            <div className="mt-3 inline-flex items-center gap-2 px-3 py-1.5 bg-primary-50 rounded-full border border-primary-200">
+              <span className="flex items-center gap-1 text-xs text-neutral-700">
+                <Calendar className="w-3.5 h-3.5 text-primary-500" />
                 {searchData.checkIn} → {searchData.checkOut}
               </span>
-              <span className="w-1 h-1 bg-orange-300 rounded-full" />
-              <span className="text-sm font-medium text-orange-600">{nights} {nights === 1 ? 'night' : 'nights'}</span>
-              <span className="w-1 h-1 bg-orange-300 rounded-full" />
-              <span className="text-sm text-slate-600">{searchData.adults + searchData.children} guests</span>
+              <span className="w-1 h-1 bg-primary-300 rounded-full" />
+              <span className="text-xs font-bold text-primary-600">{nights} {nights === 1 ? 'night' : 'nights'}</span>
+              <span className="w-1 h-1 bg-primary-300 rounded-full" />
+              <span className="text-xs text-neutral-600">{searchData.adults + searchData.children} guests</span>
             </div>
           </div>
           <HotelCardsSkeletonList count={5} />
@@ -634,13 +634,13 @@ function HotelResultsContent() {
     );
   }
 
-  // Error state
+  // Error state - Apple-Class + Fly2Any Theme
   if (error) {
     // Check if it's a missing params error to show appropriate UI
     const isMissingParams = error.includes('Missing required search parameters');
 
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-orange-50/20 to-slate-50">
+      <div className="min-h-screen bg-neutral-50">
         <EnhancedSearchBar
           lang={lang}
           defaultService="hotels"
@@ -652,33 +652,33 @@ function HotelResultsContent() {
           hotelRooms={searchData.rooms}
         />
 
-        <div className="flex items-center justify-center p-4 pt-20">
-          <div className="max-w-lg w-full bg-slate-50/95 backdrop-blur-xl rounded-2xl shadow-xl border-2 border-red-100/70 p-10 text-center">
-            <div className="w-24 h-24 bg-red-100/80 rounded-full flex items-center justify-center mx-auto mb-6">
-              <AlertCircle className="w-12 h-12 text-red-600" />
+        <div className="flex items-center justify-center p-4 pt-12">
+          <div className="max-w-lg w-full bg-white/95 backdrop-blur-xl rounded-2xl shadow-soft-lg border border-error-200 p-8 text-center">
+            <div className="w-20 h-20 bg-error-50 rounded-full flex items-center justify-center mx-auto mb-4">
+              <AlertCircle className="w-10 h-10 text-error-500" />
             </div>
-            <h2 className="text-3xl font-semibold text-slate-900 mb-3 leading-tight tracking-tight">{t.error}</h2>
-            <p className="text-base text-slate-600 mb-6 leading-relaxed">{error}</p>
+            <h2 className="text-2xl font-bold text-neutral-800 mb-2">{t.error}</h2>
+            <p className="text-sm text-neutral-600 mb-5">{error}</p>
 
             {isMissingParams ? (
-              <div className="space-y-4">
-                <p className="text-sm text-slate-500">
+              <div className="space-y-3">
+                <p className="text-xs text-neutral-500">
                   Please enter a destination in the search bar above and click &quot;Search Hotels&quot; to find available hotels.
                 </p>
                 <button
                   onClick={() => router.push('/')}
-                  className="inline-flex items-center gap-2 px-8 py-3.5 bg-gradient-to-r from-orange-600 to-red-600 hover:from-orange-700 hover:to-red-700 text-white font-medium rounded-xl transition-all duration-300 transform hover:scale-105 shadow-md hover:shadow-lg leading-relaxed"
+                  className="inline-flex items-center gap-2 px-6 py-2.5 bg-primary-500 hover:bg-primary-600 text-white font-bold text-sm rounded-xl transition-all active:scale-95 shadow-primary"
                 >
-                  <Hotel className="w-5 h-5" />
+                  <Hotel className="w-4 h-4" />
                   Go to Home Page
                 </button>
               </div>
             ) : (
               <button
                 onClick={() => fetchHotels()}
-                className="inline-flex items-center gap-2 px-8 py-3.5 bg-gradient-to-r from-orange-600 to-red-600 hover:from-orange-700 hover:to-red-700 text-white font-medium rounded-xl transition-all duration-300 transform hover:scale-105 shadow-md hover:shadow-lg leading-relaxed"
+                className="inline-flex items-center gap-2 px-6 py-2.5 bg-primary-500 hover:bg-primary-600 text-white font-bold text-sm rounded-xl transition-all active:scale-95 shadow-primary"
               >
-                <RefreshCcw className="w-5 h-5" />
+                <RefreshCcw className="w-4 h-4" />
                 {t.retry}
               </button>
             )}
@@ -688,10 +688,10 @@ function HotelResultsContent() {
     );
   }
 
-  // No results
+  // No results - Apple-Class + Fly2Any Theme
   if (hotels.length === 0) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-orange-50/20 to-slate-50">
+      <div className="min-h-screen bg-neutral-50">
         {/* Search Bar - with FULL search params for easy modification */}
         <EnhancedSearchBar
           lang={lang}
@@ -707,55 +707,55 @@ function HotelResultsContent() {
           hotelDistricts={searchData.districts}
         />
 
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12 text-center">
-          <div className="bg-slate-50/95 backdrop-blur-xl rounded-2xl shadow-xl border border-slate-200/60 p-8 md:p-12">
-            {/* Animated empty state illustration */}
-            <div className="relative w-28 h-28 mx-auto mb-6">
-              <div className="absolute inset-0 bg-orange-100/50 rounded-full animate-pulse" />
-              <div className="absolute inset-2 bg-slate-100/80 rounded-full flex items-center justify-center">
-                <Hotel className="w-12 h-12 text-slate-400" />
+        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8 text-center">
+          <div className="bg-white/95 backdrop-blur-xl rounded-2xl shadow-soft-lg border border-neutral-200 p-6 md:p-8">
+            {/* Animated empty state illustration - Fly2Any themed */}
+            <div className="relative w-24 h-24 mx-auto mb-4">
+              <div className="absolute inset-0 bg-primary-100/50 rounded-full animate-pulse" />
+              <div className="absolute inset-2 bg-neutral-100/80 rounded-full flex items-center justify-center">
+                <Hotel className="w-10 h-10 text-neutral-400" />
               </div>
-              <div className="absolute -top-1 -right-1 w-8 h-8 bg-orange-100 rounded-full flex items-center justify-center border-2 border-white">
-                <Search className="w-4 h-4 text-orange-500" />
+              <div className="absolute -top-1 -right-1 w-7 h-7 bg-primary-100 rounded-full flex items-center justify-center border-2 border-white">
+                <Search className="w-3.5 h-3.5 text-primary-500" />
               </div>
             </div>
 
-            <h2 className="text-2xl md:text-3xl font-semibold text-slate-900 mb-3 leading-tight tracking-tight">{t.noResults}</h2>
-            <p className="text-base text-slate-600 mb-6 leading-relaxed max-w-md mx-auto">{t.noResultsDesc}</p>
+            <h2 className="text-xl md:text-2xl font-bold text-neutral-800 mb-2">{t.noResults}</h2>
+            <p className="text-sm text-neutral-600 mb-4 max-w-md mx-auto">{t.noResultsDesc}</p>
 
-            {/* Search params summary for context */}
-            <div className="mb-6 p-4 bg-orange-50/50 rounded-xl border border-orange-100">
-              <p className="text-sm text-slate-600 mb-2">Your search:</p>
-              <div className="flex flex-wrap items-center justify-center gap-2 text-sm">
-                <span className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-white rounded-full border border-slate-200">
-                  <MapPin className="w-3.5 h-3.5 text-orange-500" />
+            {/* Search params summary for context - Fly2Any themed */}
+            <div className="mb-4 p-3 bg-primary-50/50 rounded-xl border border-primary-100">
+              <p className="text-xs text-neutral-600 mb-1.5">Your search:</p>
+              <div className="flex flex-wrap items-center justify-center gap-1.5 text-xs">
+                <span className="inline-flex items-center gap-1 px-2.5 py-1 bg-white rounded-full border border-neutral-200">
+                  <MapPin className="w-3 h-3 text-primary-500" />
                   {searchData.destination || 'Any destination'}
                 </span>
-                <span className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-white rounded-full border border-slate-200">
-                  <Calendar className="w-3.5 h-3.5 text-orange-500" />
+                <span className="inline-flex items-center gap-1 px-2.5 py-1 bg-white rounded-full border border-neutral-200">
+                  <Calendar className="w-3 h-3 text-primary-500" />
                   {searchData.checkIn} → {searchData.checkOut}
                 </span>
-                <span className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-white rounded-full border border-slate-200">
-                  <Users className="w-3.5 h-3.5 text-orange-500" />
+                <span className="inline-flex items-center gap-1 px-2.5 py-1 bg-white rounded-full border border-neutral-200">
+                  <Users className="w-3 h-3 text-primary-500" />
                   {searchData.adults + searchData.children} guests, {searchData.rooms} room
                 </span>
               </div>
             </div>
 
-            {/* Suggestions */}
-            <div className="text-left space-y-2 max-w-sm mx-auto mb-6">
-              <p className="text-sm font-medium text-slate-700 mb-2">Try these suggestions:</p>
-              <ul className="text-sm text-slate-600 space-y-1.5">
-                <li className="flex items-start gap-2">
-                  <span className="text-orange-500 mt-0.5">•</span>
+            {/* Suggestions - compact */}
+            <div className="text-left max-w-sm mx-auto mb-4">
+              <p className="text-xs font-bold text-neutral-700 mb-1.5">Try these suggestions:</p>
+              <ul className="text-xs text-neutral-600 space-y-1">
+                <li className="flex items-start gap-1.5">
+                  <span className="text-primary-500">•</span>
                   Expand your search to nearby areas
                 </li>
-                <li className="flex items-start gap-2">
-                  <span className="text-orange-500 mt-0.5">•</span>
+                <li className="flex items-start gap-1.5">
+                  <span className="text-primary-500">•</span>
                   Try different dates for more availability
                 </li>
-                <li className="flex items-start gap-2">
-                  <span className="text-orange-500 mt-0.5">•</span>
+                <li className="flex items-start gap-1.5">
+                  <span className="text-primary-500">•</span>
                   Adjust guest count or room requirements
                 </li>
               </ul>
@@ -763,7 +763,7 @@ function HotelResultsContent() {
 
             <button
               onClick={() => fetchHotels()}
-              className="inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-orange-600 to-orange-700 hover:from-orange-700 hover:to-orange-800 text-white font-medium rounded-xl transition-all duration-300 transform hover:scale-105 shadow-md hover:shadow-lg"
+              className="inline-flex items-center gap-2 px-5 py-2 bg-primary-500 hover:bg-primary-600 text-white font-bold text-sm rounded-xl transition-all active:scale-95 shadow-primary"
             >
               <RefreshCcw className="w-4 h-4" />
               {t.retry}
@@ -774,11 +774,10 @@ function HotelResultsContent() {
     );
   }
 
-  // Main results view
+  // Main results view - Apple-Class + Fly2Any Theme
   return (
-    <div className="min-h-screen bg-[#F7F9FC]">
+    <div className="min-h-screen bg-neutral-50">
       {pullIndicator}
-
 
       <ScrollProgress />
 
@@ -837,10 +836,10 @@ function HotelResultsContent() {
       <div style={{ maxWidth: '1600px', margin: '0 auto' }} className="px-2 py-2 lg:p-6">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-2 lg:gap-4">
 
-          {/* Left Sidebar - Filters */}
+          {/* Left Sidebar - Filters - Apple-Class + Fly2Any */}
           <aside className="hidden lg:block lg:col-span-2">
             <div className="lg:sticky lg:top-20">
-              <div className="bg-slate-50/95 backdrop-blur-xl rounded-2xl shadow-md border border-slate-200/60 overflow-hidden">
+              <div className="bg-white/95 backdrop-blur-xl rounded-2xl shadow-soft border border-neutral-200 overflow-hidden">
                 <HotelFilters
                   filters={filters}
                   onFiltersChange={setFilters}
@@ -853,56 +852,53 @@ function HotelResultsContent() {
 
           {/* Main Content - Hotel Results */}
           <main className="lg:col-span-8">
-            {/* Sort & Filter Bar - Clean mobile-first design */}
-            <div className="flex items-center gap-2 mb-3 overflow-x-auto scrollbar-hide -mx-3 px-3 lg:mx-0 lg:px-0">
+            {/* Sort & Filter Bar - Apple-Class + Fly2Any */}
+            <div className="flex items-center gap-1.5 mb-2 overflow-x-auto scrollbar-hide -mx-2 px-2 lg:mx-0 lg:px-0">
               {/* Filter button - Mobile only */}
               <button
                 onClick={() => setMobileFilterSheetOpen(true)}
-                className={`lg:hidden flex items-center gap-1.5 px-3 py-2 rounded-xl font-bold text-xs transition-all active:scale-95 flex-shrink-0 ${
+                className={`lg:hidden flex items-center gap-1 px-2.5 py-1.5 rounded-lg font-bold text-[11px] transition-all active:scale-95 flex-shrink-0 ${
                   activeFilterCount > 0
-                    ? 'bg-primary-500 text-white shadow-md'
-                    : 'bg-white border border-slate-200 text-slate-700'
+                    ? 'bg-primary-500 text-white'
+                    : 'bg-white border border-neutral-200 text-neutral-700'
                 }`}
               >
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z" />
+                <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z" />
                 </svg>
-                Filter{activeFilterCount > 0 ? ` (${activeFilterCount})` : ''}
+                {activeFilterCount > 0 ? activeFilterCount : 'Filter'}
               </button>
 
-              {/* Divider - Mobile only */}
-              <div className="lg:hidden w-px h-6 bg-slate-200 flex-shrink-0" />
-
-              {/* Sort options */}
+              {/* Sort options - Fly2Any themed pills */}
               {[
-                { key: 'cheapest', label: '💰 Price' },
-                { key: 'refundable', label: '🛡️ Refund' },
-                { key: 'rating', label: '⭐ Rating' },
-                { key: 'popular', label: '🔥 Popular' },
-              ].map(({ key, label }) => (
+                { key: 'cheapest', label: 'Price', icon: '💰' },
+                { key: 'refundable', label: 'Free Cancel', icon: '✓' },
+                { key: 'rating', label: 'Rating', icon: '⭐' },
+                { key: 'popular', label: 'Popular', icon: '🔥' },
+              ].map(({ key, label, icon }) => (
                 <button
                   key={key}
                   onClick={() => setSortBy(key as SortOption)}
-                  className={`px-3 py-2 rounded-xl font-semibold text-xs transition-all flex-shrink-0 ${
+                  className={`px-2.5 py-1.5 rounded-lg font-semibold text-[11px] transition-all flex-shrink-0 ${
                     sortBy === key
-                      ? 'bg-primary-500 text-white shadow-sm'
-                      : 'bg-white border border-slate-200 text-slate-600 hover:border-primary-300 hover:text-primary-600'
+                      ? 'bg-primary-500 text-white'
+                      : 'bg-white border border-neutral-200 text-neutral-600 hover:border-primary-300'
                   }`}
                 >
-                  {label}
+                  {icon} {label}
                 </button>
               ))}
 
-              {/* Hotel count badge */}
-              <div className="ml-auto flex-shrink-0 px-2.5 py-1.5 bg-primary-50 text-primary-700 rounded-lg text-xs font-bold">
-                {sortedHotels.length} {sortedHotels.length === 1 ? 'hotel' : 'hotels'}
+              {/* Hotel count - Fly2Any secondary accent */}
+              <div className="ml-auto flex-shrink-0 px-2 py-1 bg-secondary-100 text-secondary-700 rounded-lg text-[11px] font-bold">
+                {sortedHotels.length} hotels
               </div>
             </div>
 
-            {/* Active Filters Badge */}
+            {/* Active Filters Badge - Compact */}
             {activeFilterCount > 0 && (
-              <div className="mb-3 flex items-center justify-between px-3 py-2 bg-primary-50 border border-primary-200 rounded-xl">
-                <span className="text-xs font-medium text-primary-800">
+              <div className="mb-1.5 flex items-center justify-between px-2.5 py-1.5 bg-primary-50 border border-primary-200 rounded-lg">
+                <span className="text-[11px] font-semibold text-primary-700">
                   {t.filtersActive.replace('{count}', activeFilterCount.toString())}
                 </span>
                 <button
@@ -917,7 +913,7 @@ function HotelResultsContent() {
                     accessibility: [],
                     inclusiveTravel: [],
                   })}
-                  className="text-xs font-bold text-primary-600 hover:text-primary-700 underline"
+                  className="text-[11px] font-bold text-primary-600 hover:text-primary-700 underline"
                 >
                   {t.clearFilters}
                 </button>
@@ -943,44 +939,44 @@ function HotelResultsContent() {
               ))}
             </div>
 
-            {/* Infinite Scroll Sentinel */}
+            {/* Infinite Scroll Sentinel - Fly2Any themed */}
             {displayCount < sortedHotels.length && (
-              <div ref={loadMoreRef} className="mt-6 md:mt-8 text-center">
-                <div className="flex flex-col items-center justify-center py-6 space-y-3">
-                  <div className="flex items-center gap-2">
-                    <div className="w-2 h-2 bg-orange-500 rounded-full animate-bounce" style={{ animationDelay: '0ms' }}></div>
-                    <div className="w-2 h-2 bg-orange-500 rounded-full animate-bounce" style={{ animationDelay: '150ms' }}></div>
-                    <div className="w-2 h-2 bg-orange-500 rounded-full animate-bounce" style={{ animationDelay: '300ms' }}></div>
+              <div ref={loadMoreRef} className="mt-4 text-center">
+                <div className="flex flex-col items-center justify-center py-4 space-y-2">
+                  <div className="flex items-center gap-1.5">
+                    <div className="w-1.5 h-1.5 bg-primary-500 rounded-full animate-bounce" style={{ animationDelay: '0ms' }}></div>
+                    <div className="w-1.5 h-1.5 bg-primary-500 rounded-full animate-bounce" style={{ animationDelay: '150ms' }}></div>
+                    <div className="w-1.5 h-1.5 bg-primary-500 rounded-full animate-bounce" style={{ animationDelay: '300ms' }}></div>
                   </div>
-                  <p className="text-sm text-slate-600 font-medium">{t.loadingMore}</p>
+                  <p className="text-xs text-neutral-500 font-medium">{t.loadingMore}</p>
                 </div>
               </div>
             )}
 
             {/* All Results Loaded */}
             {displayCount >= sortedHotels.length && sortedHotels.length > 20 && (
-              <div className="mt-6 md:mt-8 text-center py-6">
-                <div className="inline-flex items-center gap-2 px-6 py-3 bg-green-50/80 backdrop-blur-sm border border-green-200 text-green-700 rounded-xl">
-                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+              <div className="mt-4 text-center py-3">
+                <div className="inline-flex items-center gap-1.5 px-4 py-2 bg-success-50 border border-success-200 text-success-700 rounded-lg">
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" />
                   </svg>
-                  <span className="text-sm font-medium">
+                  <span className="text-xs font-bold">
                     {t.allResultsLoaded.replace('{total}', sortedHotels.length.toString())}
                   </span>
                 </div>
               </div>
             )}
 
-            {/* No filtered results */}
+            {/* No filtered results - Apple-Class + Fly2Any */}
             {sortedHotels.length === 0 && hotels.length > 0 && (
-              <div className="bg-slate-50/95 backdrop-blur-xl rounded-2xl shadow-lg border border-slate-200/60 p-12 text-center">
-                <div className="w-20 h-20 bg-orange-100/80 rounded-full flex items-center justify-center mx-auto mb-6">
-                  <AlertCircle className="w-10 h-10 text-orange-600" />
+              <div className="bg-white/95 backdrop-blur-xl rounded-2xl shadow-soft-lg border border-neutral-200 p-8 text-center">
+                <div className="w-16 h-16 bg-primary-50 rounded-full flex items-center justify-center mx-auto mb-4">
+                  <AlertCircle className="w-8 h-8 text-primary-500" />
                 </div>
-                <h3 className="text-2xl font-semibold text-slate-900 mb-3 leading-tight tracking-tight">
+                <h3 className="text-lg font-bold text-neutral-800 mb-2">
                   No hotels match your filters
                 </h3>
-                <p className="text-base text-slate-600 mb-6 leading-relaxed">
+                <p className="text-sm text-neutral-600 mb-4">
                   Try adjusting your filter criteria to see more results.
                 </p>
                 <button
@@ -995,7 +991,7 @@ function HotelResultsContent() {
                     accessibility: [],
                     inclusiveTravel: [],
                   })}
-                  className="inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-orange-600 to-red-600 hover:from-orange-700 hover:to-red-700 text-white font-medium rounded-xl transition-all duration-300 transform hover:scale-105 shadow-md hover:shadow-lg leading-relaxed"
+                  className="inline-flex items-center gap-2 px-5 py-2 bg-primary-500 hover:bg-primary-600 text-white font-bold text-sm rounded-xl transition-all active:scale-95 shadow-primary"
                 >
                   {t.clearFilters}
                 </button>
@@ -1003,49 +999,49 @@ function HotelResultsContent() {
             )}
           </main>
 
-          {/* Right Sidebar - Insights - Desktop only */}
+          {/* Right Sidebar - Insights - Apple-Class + Fly2Any */}
           <aside className="hidden lg:block lg:col-span-2">
-            <div className="lg:sticky lg:top-20 space-y-2 md:space-y-4">
+            <div className="lg:sticky lg:top-20 space-y-2">
               {/* Price Insights */}
-              <div className="bg-slate-50/95 backdrop-blur-xl rounded-2xl shadow-md border border-slate-200/60 p-3 md:p-5">
-                <h3 className="text-base font-semibold text-slate-900 mb-2 md:mb-3 flex items-center gap-2 leading-tight">
-                  <Sparkles className="w-4 h-4 text-orange-600" />
+              <div className="bg-white/95 backdrop-blur-xl rounded-2xl shadow-soft border border-neutral-200 p-3">
+                <h3 className="text-sm font-bold text-neutral-800 mb-2 flex items-center gap-1.5">
+                  <Sparkles className="w-3.5 h-3.5 text-secondary-500" />
                   {t.priceInsights}
                 </h3>
-                <div className="space-y-2 md:space-y-3">
+                <div className="space-y-1">
                   <div className="flex items-center justify-between">
-                    <span className="text-sm text-slate-600 leading-relaxed">{t.avgPrice}</span>
-                    <span className="text-xl font-bold text-orange-600 tracking-tight">${Math.round(avgPrice)}</span>
+                    <span className="text-xs text-neutral-500">{t.avgPrice}</span>
+                    <span className="text-lg font-bold text-primary-600">${Math.round(avgPrice)}</span>
                   </div>
-                  <div className="text-sm text-slate-500 leading-relaxed">{t.perNight}</div>
-                  <div className="text-sm font-medium text-slate-800 leading-relaxed">
-                    {t.totalForNights.replace('{nights}', nights.toString())}: ${Math.round(avgPrice * nights)}
+                  <div className="text-[10px] text-neutral-400">{t.perNight}</div>
+                  <div className="text-xs font-semibold text-neutral-700">
+                    {t.totalForNights.replace('{nights}', nights.toString())}: <span className="text-secondary-600">${Math.round(avgPrice * nights)}</span>
                   </div>
                 </div>
               </div>
 
               {/* Popular Right Now */}
-              <div className="bg-slate-50/95 backdrop-blur-xl rounded-2xl shadow-md border border-slate-200/60 p-3 md:p-5">
-                <h3 className="text-base font-semibold text-slate-900 mb-2 md:mb-3 flex items-center gap-2 leading-tight">
-                  <Users className="w-4 h-4 text-orange-600" />
-                  Popular Right Now
+              <div className="bg-white/95 backdrop-blur-xl rounded-2xl shadow-soft border border-neutral-200 p-3">
+                <h3 className="text-sm font-bold text-neutral-800 mb-2 flex items-center gap-1.5">
+                  <TrendingUp className="w-3.5 h-3.5 text-primary-500" />
+                  Popular Now
                 </h3>
-                <div className="space-y-1.5 md:space-y-2.5">
+                <div className="space-y-1.5">
                   {sortedHotels.slice(0, 3).map((hotel, idx) => (
-                    <div key={hotel.id} className="flex items-center gap-2">
-                      <span className="font-bold text-orange-600 text-sm">#{idx + 1}</span>
-                      <span className="text-sm text-slate-700 truncate leading-relaxed">{hotel.name}</span>
+                    <div key={hotel.id} className="flex items-center gap-1.5">
+                      <span className="font-bold text-secondary-600 text-xs">#{idx + 1}</span>
+                      <span className="text-xs text-neutral-600 truncate">{hotel.name}</span>
                     </div>
                   ))}
                 </div>
               </div>
 
               {/* Trending Amenities */}
-              <div className="bg-slate-50/95 backdrop-blur-xl rounded-2xl shadow-md border border-slate-200/60 p-3 md:p-5">
-                <h3 className="text-base font-semibold text-slate-900 mb-2 md:mb-3 leading-tight">{t.popularAmenities}</h3>
-                <div className="flex flex-wrap gap-2">
+              <div className="bg-white/95 backdrop-blur-xl rounded-2xl shadow-soft border border-neutral-200 p-3">
+                <h3 className="text-sm font-bold text-neutral-800 mb-2">{t.popularAmenities}</h3>
+                <div className="flex flex-wrap gap-1.5">
                   {['WiFi', 'Pool', 'Gym', 'Parking'].map((amenity) => (
-                    <span key={amenity} className="px-3 py-1.5 bg-orange-50/80 text-orange-700 rounded-full text-sm font-medium leading-relaxed">
+                    <span key={amenity} className="px-2 py-1 bg-primary-50 text-primary-700 rounded-lg text-[11px] font-semibold">
                       {amenity}
                     </span>
                   ))}
@@ -1097,16 +1093,16 @@ export default function HotelResultsPage() {
     <HotelCompareProvider>
       <Suspense
         fallback={
-          <div className="min-h-screen bg-gradient-to-br from-slate-50 via-orange-50/20 to-slate-50 flex items-center justify-center">
+          <div className="min-h-screen bg-neutral-50 flex items-center justify-center">
             <div className="text-center">
-              <div className="relative w-28 h-28 mx-auto mb-8">
-                <div className="absolute inset-0 border-4 border-orange-200/70 rounded-full"></div>
-                <div className="absolute inset-0 border-4 border-orange-600 rounded-full border-t-transparent animate-spin"></div>
-                <div className="absolute inset-4 bg-slate-50 rounded-full flex items-center justify-center shadow-lg">
-                  <Hotel className="w-10 h-10 text-orange-600" />
+              <div className="relative w-24 h-24 mx-auto mb-6">
+                <div className="absolute inset-0 border-4 border-primary-200/70 rounded-full"></div>
+                <div className="absolute inset-0 border-4 border-primary-500 rounded-full border-t-transparent animate-spin"></div>
+                <div className="absolute inset-4 bg-neutral-50 rounded-full flex items-center justify-center shadow-soft">
+                  <Hotel className="w-8 h-8 text-primary-500" />
                 </div>
               </div>
-              <h2 className="text-3xl font-semibold text-slate-900 leading-tight tracking-tight">Loading hotels...</h2>
+              <h2 className="text-xl font-bold text-neutral-800">Loading hotels...</h2>
             </div>
           </div>
         }
