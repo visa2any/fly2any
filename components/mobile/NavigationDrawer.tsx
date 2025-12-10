@@ -358,10 +358,11 @@ export function NavigationDrawer({
               </a>
             </nav>
 
-            {/* Divider */}
-            <div className="mx-6 border-t border-gray-200" />
-
-            {/* Language Selector */}
+            {/* ============================================
+                TEMPORARILY HIDDEN - Language Selector
+                Uncomment when ready to launch multi-language support
+                ============================================ */}
+            {/* <div className="mx-6 border-t border-gray-200" />
             <div className="px-4 py-6">
               <div className="px-4 mb-3">
                 <span className="text-sm font-semibold text-gray-500 uppercase tracking-wide">
@@ -395,7 +396,7 @@ export function NavigationDrawer({
                   </button>
                 ))}
               </div>
-            </div>
+            </div> */}
 
             {/* Auth Buttons - Only for non-authenticated users */}
             {!userId && (

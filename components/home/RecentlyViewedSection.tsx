@@ -503,28 +503,28 @@ export function RecentlyViewedSection({ lang = 'en' }: RecentlyViewedSectionProp
                   <div></div>
                 )}
 
-                {/* Right Side - Remove Button */}
+                {/* Right Side - Remove Button - Mobile optimized: smaller, translucent */}
                 <button
                   onClick={(e) => {
                     e.stopPropagation();
                     removeItem(item.id);
                   }}
-                  className="w-5 h-5 sm:w-5.5 sm:h-5.5 bg-white/95 hover:bg-red-50 hover:text-red-600 rounded-full flex items-center justify-center transition-all duration-200 shadow-md hover:shadow-lg hover:scale-110 z-10"
+                  className="w-4 h-4 sm:w-5 sm:h-5 bg-black/40 hover:bg-red-500/90 text-white/90 hover:text-white rounded-full flex items-center justify-center transition-all duration-200 backdrop-blur-sm hover:scale-110 z-10"
                   aria-label="Remove item"
                 >
-                  <X className="w-2.5 h-2.5 sm:w-3 sm:h-3" />
+                  <X className="w-2 h-2 sm:w-2.5 sm:h-2.5" strokeWidth={3} />
                 </button>
               </div>
 
-              {/* Trip Dates Row - Below route, above badges */}
+              {/* Trip Dates Row - Positioned at bottom-left above city name */}
               {(() => {
                 const formattedDates = formatTripDates(item.departureDate, item.returnDate);
                 return formattedDates ? (
-                  <div className="absolute top-6 sm:top-7 left-1 sm:left-1.5">
+                  <div className="absolute bottom-[52px] sm:bottom-[58px] left-1 sm:left-1.5">
                     <div
-                      className="text-white/90 text-[9px] sm:text-[10px] font-semibold px-1.5 sm:px-2 py-0.5 bg-black/20 backdrop-blur-sm rounded-md"
+                      className="text-white text-[8px] sm:text-[9px] font-semibold px-1 sm:px-1.5 py-0.5 bg-black/40 backdrop-blur-sm rounded"
                       style={{
-                        textShadow: '0 2px 6px rgba(0,0,0,0.95), 0 1px 3px rgba(0,0,0,0.85), 0 0 8px rgba(0,0,0,0.7)'
+                        textShadow: '0 1px 4px rgba(0,0,0,0.9)'
                       }}
                       suppressHydrationWarning
                     >
