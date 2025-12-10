@@ -41,6 +41,7 @@ export interface Airport {
   emoji: string;          // City-specific emoji
   popular: boolean;       // Is this a major hub?
   metro?: string;         // Metro area code (NYC, LAX, etc.)
+  state?: string;         // State/Province name (for regional search)
   searchKeywords?: string[]; // Additional search terms
 }
 
@@ -165,28 +166,29 @@ const AIRPORTS_NORTH_AMERICA: Airport[] = [
 
 const AIRPORTS_SOUTH_AMERICA: Airport[] = [
   // ===== BRAZIL =====
+  // All airports include state field for regional search (e.g., "São Paulo" shows all SP airports)
 
-  // São Paulo Metro (SAO)
-  { code: 'GRU', icao: 'SBGR', name: 'São Paulo/Guarulhos International', city: 'São Paulo', country: 'Brazil', countryCode: 'BR', continent: 'SA', timezone: 'America/Sao_Paulo', coordinates: { lat: -23.4356, lon: -46.4731 }, flag: '🇧🇷', emoji: '🏙️', popular: true, metro: 'SAO' },
-  { code: 'CGH', icao: 'SBSP', name: 'Congonhas Airport', city: 'São Paulo', country: 'Brazil', countryCode: 'BR', continent: 'SA', timezone: 'America/Sao_Paulo', coordinates: { lat: -23.6269, lon: -46.6558 }, flag: '🇧🇷', emoji: '🏙️', popular: true, metro: 'SAO' },
-  { code: 'VCP', icao: 'SBKP', name: 'Viracopos International', city: 'Campinas', country: 'Brazil', countryCode: 'BR', continent: 'SA', timezone: 'America/Sao_Paulo', coordinates: { lat: -23.0074, lon: -47.1345 }, flag: '🇧🇷', emoji: '🏙️', popular: false, metro: 'SAO' },
+  // São Paulo Metro (SAO) - State: São Paulo (SP)
+  { code: 'GRU', icao: 'SBGR', name: 'São Paulo/Guarulhos International', city: 'São Paulo', country: 'Brazil', countryCode: 'BR', continent: 'SA', timezone: 'America/Sao_Paulo', coordinates: { lat: -23.4356, lon: -46.4731 }, flag: '🇧🇷', emoji: '🏙️', popular: true, metro: 'SAO', state: 'São Paulo' },
+  { code: 'CGH', icao: 'SBSP', name: 'Congonhas Airport', city: 'São Paulo', country: 'Brazil', countryCode: 'BR', continent: 'SA', timezone: 'America/Sao_Paulo', coordinates: { lat: -23.6269, lon: -46.6558 }, flag: '🇧🇷', emoji: '🏙️', popular: true, metro: 'SAO', state: 'São Paulo' },
+  { code: 'VCP', icao: 'SBKP', name: 'Viracopos International', city: 'Campinas', country: 'Brazil', countryCode: 'BR', continent: 'SA', timezone: 'America/Sao_Paulo', coordinates: { lat: -23.0074, lon: -47.1345 }, flag: '🇧🇷', emoji: '🏙️', popular: false, metro: 'SAO', state: 'São Paulo' },
 
-  // Rio de Janeiro
-  { code: 'GIG', icao: 'SBGL', name: 'Rio de Janeiro/Galeão International', city: 'Rio de Janeiro', country: 'Brazil', countryCode: 'BR', continent: 'SA', timezone: 'America/Sao_Paulo', coordinates: { lat: -22.8099, lon: -43.2436 }, flag: '🇧🇷', emoji: '🏖️', popular: true },
-  { code: 'SDU', icao: 'SBRJ', name: 'Santos Dumont Airport', city: 'Rio de Janeiro', country: 'Brazil', countryCode: 'BR', continent: 'SA', timezone: 'America/Sao_Paulo', coordinates: { lat: -22.9105, lon: -43.1631 }, flag: '🇧🇷', emoji: '🏖️', popular: false },
+  // Rio de Janeiro - State: Rio de Janeiro (RJ)
+  { code: 'GIG', icao: 'SBGL', name: 'Rio de Janeiro/Galeão International', city: 'Rio de Janeiro', country: 'Brazil', countryCode: 'BR', continent: 'SA', timezone: 'America/Sao_Paulo', coordinates: { lat: -22.8099, lon: -43.2436 }, flag: '🇧🇷', emoji: '🏖️', popular: true, state: 'Rio de Janeiro' },
+  { code: 'SDU', icao: 'SBRJ', name: 'Santos Dumont Airport', city: 'Rio de Janeiro', country: 'Brazil', countryCode: 'BR', continent: 'SA', timezone: 'America/Sao_Paulo', coordinates: { lat: -22.9105, lon: -43.1631 }, flag: '🇧🇷', emoji: '🏖️', popular: false, state: 'Rio de Janeiro' },
 
-  // Major Brazilian Cities
-  { code: 'BSB', icao: 'SBBR', name: 'Presidente Juscelino Kubitschek International', city: 'Brasília', country: 'Brazil', countryCode: 'BR', continent: 'SA', timezone: 'America/Sao_Paulo', coordinates: { lat: -15.8711, lon: -47.9181 }, flag: '🇧🇷', emoji: '🏛️', popular: true },
-  { code: 'CNF', icao: 'SBCF', name: 'Tancredo Neves International', city: 'Belo Horizonte', country: 'Brazil', countryCode: 'BR', continent: 'SA', timezone: 'America/Sao_Paulo', coordinates: { lat: -19.6244, lon: -43.9719 }, flag: '🇧🇷', emoji: '⛰️', popular: true },
-  { code: 'SSA', icao: 'SBSV', name: 'Deputado Luís Eduardo Magalhães International', city: 'Salvador', country: 'Brazil', countryCode: 'BR', continent: 'SA', timezone: 'America/Bahia', coordinates: { lat: -12.9086, lon: -38.3225 }, flag: '🇧🇷', emoji: '🏖️', popular: true },
-  { code: 'FOR', icao: 'SBFZ', name: 'Pinto Martins International', city: 'Fortaleza', country: 'Brazil', countryCode: 'BR', continent: 'SA', timezone: 'America/Fortaleza', coordinates: { lat: -3.7763, lon: -38.5326 }, flag: '🇧🇷', emoji: '🏖️', popular: true },
-  { code: 'REC', icao: 'SBRF', name: 'Recife/Guararapes–Gilberto Freyre International', city: 'Recife', country: 'Brazil', countryCode: 'BR', continent: 'SA', timezone: 'America/Recife', coordinates: { lat: -8.1264, lon: -34.9236 }, flag: '🇧🇷', emoji: '🏖️', popular: true },
-  { code: 'POA', icao: 'SBPA', name: 'Salgado Filho International', city: 'Porto Alegre', country: 'Brazil', countryCode: 'BR', continent: 'SA', timezone: 'America/Sao_Paulo', coordinates: { lat: -29.9944, lon: -51.1714 }, flag: '🇧🇷', emoji: '⚽', popular: true },
-  { code: 'CWB', icao: 'SBCT', name: 'Afonso Pena International', city: 'Curitiba', country: 'Brazil', countryCode: 'BR', continent: 'SA', timezone: 'America/Sao_Paulo', coordinates: { lat: -25.5285, lon: -49.1758 }, flag: '🇧🇷', emoji: '🌲', popular: true },
-  { code: 'MAO', icao: 'SBEG', name: 'Eduardo Gomes International', city: 'Manaus', country: 'Brazil', countryCode: 'BR', continent: 'SA', timezone: 'America/Manaus', coordinates: { lat: -3.0386, lon: -60.0497 }, flag: '🇧🇷', emoji: '🌴', popular: true },
-  { code: 'BEL', icao: 'SBBE', name: 'Val de Cans International', city: 'Belém', country: 'Brazil', countryCode: 'BR', continent: 'SA', timezone: 'America/Belem', coordinates: { lat: -1.3792, lon: -48.4761 }, flag: '🇧🇷', emoji: '🌴', popular: false },
-  { code: 'NAT', icao: 'SBSG', name: 'Governador Aluízio Alves International', city: 'Natal', country: 'Brazil', countryCode: 'BR', continent: 'SA', timezone: 'America/Fortaleza', coordinates: { lat: -5.7681, lon: -35.3761 }, flag: '🇧🇷', emoji: '🏖️', popular: false },
-  { code: 'FLN', icao: 'SBFL', name: 'Hercílio Luz International', city: 'Florianópolis', country: 'Brazil', countryCode: 'BR', continent: 'SA', timezone: 'America/Sao_Paulo', coordinates: { lat: -27.6703, lon: -48.5525 }, flag: '🇧🇷', emoji: '🏖️', popular: true },
+  // Major Brazilian Cities - Each with state
+  { code: 'BSB', icao: 'SBBR', name: 'Presidente Juscelino Kubitschek International', city: 'Brasília', country: 'Brazil', countryCode: 'BR', continent: 'SA', timezone: 'America/Sao_Paulo', coordinates: { lat: -15.8711, lon: -47.9181 }, flag: '🇧🇷', emoji: '🏛️', popular: true, state: 'Distrito Federal' },
+  { code: 'CNF', icao: 'SBCF', name: 'Tancredo Neves International', city: 'Belo Horizonte', country: 'Brazil', countryCode: 'BR', continent: 'SA', timezone: 'America/Sao_Paulo', coordinates: { lat: -19.6244, lon: -43.9719 }, flag: '🇧🇷', emoji: '⛰️', popular: true, state: 'Minas Gerais' },
+  { code: 'SSA', icao: 'SBSV', name: 'Deputado Luís Eduardo Magalhães International', city: 'Salvador', country: 'Brazil', countryCode: 'BR', continent: 'SA', timezone: 'America/Bahia', coordinates: { lat: -12.9086, lon: -38.3225 }, flag: '🇧🇷', emoji: '🏖️', popular: true, state: 'Bahia' },
+  { code: 'FOR', icao: 'SBFZ', name: 'Pinto Martins International', city: 'Fortaleza', country: 'Brazil', countryCode: 'BR', continent: 'SA', timezone: 'America/Fortaleza', coordinates: { lat: -3.7763, lon: -38.5326 }, flag: '🇧🇷', emoji: '🏖️', popular: true, state: 'Ceará' },
+  { code: 'REC', icao: 'SBRF', name: 'Recife/Guararapes–Gilberto Freyre International', city: 'Recife', country: 'Brazil', countryCode: 'BR', continent: 'SA', timezone: 'America/Recife', coordinates: { lat: -8.1264, lon: -34.9236 }, flag: '🇧🇷', emoji: '🏖️', popular: true, state: 'Pernambuco' },
+  { code: 'POA', icao: 'SBPA', name: 'Salgado Filho International', city: 'Porto Alegre', country: 'Brazil', countryCode: 'BR', continent: 'SA', timezone: 'America/Sao_Paulo', coordinates: { lat: -29.9944, lon: -51.1714 }, flag: '🇧🇷', emoji: '⚽', popular: true, state: 'Rio Grande do Sul' },
+  { code: 'CWB', icao: 'SBCT', name: 'Afonso Pena International', city: 'Curitiba', country: 'Brazil', countryCode: 'BR', continent: 'SA', timezone: 'America/Sao_Paulo', coordinates: { lat: -25.5285, lon: -49.1758 }, flag: '🇧🇷', emoji: '🌲', popular: true, state: 'Paraná' },
+  { code: 'MAO', icao: 'SBEG', name: 'Eduardo Gomes International', city: 'Manaus', country: 'Brazil', countryCode: 'BR', continent: 'SA', timezone: 'America/Manaus', coordinates: { lat: -3.0386, lon: -60.0497 }, flag: '🇧🇷', emoji: '🌴', popular: true, state: 'Amazonas' },
+  { code: 'BEL', icao: 'SBBE', name: 'Val de Cans International', city: 'Belém', country: 'Brazil', countryCode: 'BR', continent: 'SA', timezone: 'America/Belem', coordinates: { lat: -1.3792, lon: -48.4761 }, flag: '🇧🇷', emoji: '🌴', popular: false, state: 'Pará' },
+  { code: 'NAT', icao: 'SBSG', name: 'Governador Aluízio Alves International', city: 'Natal', country: 'Brazil', countryCode: 'BR', continent: 'SA', timezone: 'America/Fortaleza', coordinates: { lat: -5.7681, lon: -35.3761 }, flag: '🇧🇷', emoji: '🏖️', popular: false, state: 'Rio Grande do Norte' },
+  { code: 'FLN', icao: 'SBFL', name: 'Hercílio Luz International', city: 'Florianópolis', country: 'Brazil', countryCode: 'BR', continent: 'SA', timezone: 'America/Sao_Paulo', coordinates: { lat: -27.6703, lon: -48.5525 }, flag: '🇧🇷', emoji: '🏖️', popular: true, state: 'Santa Catarina' },
 
   // ===== ARGENTINA =====
 

@@ -10,6 +10,7 @@ export interface Airport {
   city: string;
   country: string;
   emoji: string;
+  state?: string;
 }
 
 // Normalize text for accent-insensitive search (São Paulo -> sao paulo)
@@ -37,6 +38,7 @@ const AIRPORTS: Airport[] = AIRPORTS_DATA.map(airport => ({
   city: airport.city,
   country: airport.country,
   emoji: airport.emoji,
+  state: airport.state,
 }));
 
 // Metro area groupings - Auto-generated from airports with metro field
@@ -80,7 +82,7 @@ export default function MultiAirportSelector({
     .filter((a): a is Airport => a !== undefined);
 
   
-  // Memoized normalized search with Unicode support
+  // Memoized normalized search with Unicode support - includes state search for Brazil
   const filteredAirports = useMemo(() => {
     if (searchQuery.length < 2) return [];
     const normalizedQuery = normalizeText(searchQuery);
@@ -89,11 +91,13 @@ export default function MultiAirportSelector({
       const normalizedName = normalizeText(airport.name);
       const normalizedCity = normalizeText(airport.city);
       const normalizedCountry = normalizeText(airport.country);
+      const normalizedState = airport.state ? normalizeText(airport.state) : '';
       return (
         normalizedCode.includes(normalizedQuery) ||
         normalizedName.includes(normalizedQuery) ||
         normalizedCity.includes(normalizedQuery) ||
-        normalizedCountry.includes(normalizedQuery)
+        normalizedCountry.includes(normalizedQuery) ||
+        normalizedState.includes(normalizedQuery)
       );
     });
   }, [searchQuery]);
