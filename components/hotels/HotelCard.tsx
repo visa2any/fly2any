@@ -154,151 +154,131 @@ export function HotelCard({
       className="group bg-white rounded-xl sm:rounded-2xl overflow-hidden transition-all duration-300 cursor-pointer active:scale-[0.98]"
       style={{ boxShadow: '0 2px 12px -4px rgba(0,0,0,0.15)' }}
     >
-      {/* MOBILE: Clean Photo-First Card - No overlay on photo */}
-      <div className="sm:hidden flex flex-col" onMouseEnter={fetchImages}>
-        {/* Photo Section - 100% clean, no gradients */}
-        <div className="relative w-full aspect-[16/10] overflow-hidden rounded-t-xl">
-          <Image
-            src={images[currentImageIndex]?.url || '/images/hotel-placeholder.jpg'}
-            alt={images[currentImageIndex]?.alt || hotel.name}
-            fill
-            className="object-cover"
-            style={{ filter: 'contrast(1.02) saturate(1.05)' }}
-            sizes="100vw"
-            priority={currentImageIndex === 0}
-            placeholder="blur"
-            blurDataURL={getBlurDataURL(images[currentImageIndex]?.url || '', 400, 300)}
-            quality={85}
-            onError={(e) => { (e.target as HTMLImageElement).src = '/images/hotel-placeholder.jpg'; }}
-          />
+      {/* MOBILE: Full-bleed photo with shadow-based overlay (no gradients) */}
+      <div className="sm:hidden relative w-full aspect-[16/11] overflow-hidden" onMouseEnter={fetchImages}>
+        <Image
+          src={images[currentImageIndex]?.url || '/images/hotel-placeholder.jpg'}
+          alt={images[currentImageIndex]?.alt || hotel.name}
+          fill
+          className="object-cover"
+          style={{ filter: 'contrast(1.02) saturate(1.05)' }}
+          sizes="100vw"
+          priority={currentImageIndex === 0}
+          placeholder="blur"
+          blurDataURL={getBlurDataURL(images[currentImageIndex]?.url || '', 400, 300)}
+          quality={85}
+          onError={(e) => { (e.target as HTMLImageElement).src = '/images/hotel-placeholder.jpg'; }}
+        />
 
-          {/* Minimal top gradient for icon visibility only */}
-          <div className="absolute inset-x-0 top-0 h-12 bg-gradient-to-b from-black/25 to-transparent pointer-events-none" />
-
-          {/* Top-left: Glass rating badge */}
-          {hotel.reviewScore > 0 && (
-            <div className="absolute top-2 left-2 flex items-center gap-1 px-2 py-1 rounded-lg bg-white/90 backdrop-blur-sm shadow-sm">
-              <span className="text-[#1d1d1f] text-xs font-bold">{hotel.reviewScore.toFixed(1)}</span>
-              {hotel.rating > 0 && (
-                <div className="flex">
-                  {Array.from({ length: Math.min(hotel.rating, 5) }, (_, i) => (
-                    <Star key={i} className="w-2.5 h-2.5 fill-amber-400 text-amber-400" />
-                  ))}
-                </div>
-              )}
-            </div>
-          )}
-
-          {/* Top-right: Action icons */}
-          <div className="absolute top-2 right-2 flex gap-1 z-10">
-            <button onClick={handleFavorite}
-              className={`p-1.5 rounded-full bg-white/90 backdrop-blur-sm shadow-sm transition-all active:scale-90 ${isFavorited ? 'text-rose-500' : 'text-[#1d1d1f]'}`}>
-              <Heart className={`w-4 h-4 ${isFavorited ? 'fill-current' : ''}`} />
-            </button>
-            <button onClick={handleShare} className="p-1.5 rounded-full bg-white/90 backdrop-blur-sm shadow-sm text-[#1d1d1f] transition-all active:scale-90">
-              <Share2 className="w-4 h-4" />
-            </button>
+        {/* Top-left: Rating with drop-shadow (no background) */}
+        {hotel.reviewScore > 0 && (
+          <div className="absolute top-2.5 left-2.5 flex items-center gap-1" style={{ filter: 'drop-shadow(0 2px 4px rgba(0,0,0,0.4))' }}>
+            <span className="text-white text-sm font-bold">{hotel.reviewScore.toFixed(1)}</span>
+            {hotel.rating > 0 && (
+              <div className="flex">
+                {Array.from({ length: Math.min(hotel.rating, 5) }, (_, i) => (
+                  <Star key={i} className="w-3 h-3 fill-amber-400 text-amber-400" style={{ filter: 'drop-shadow(0 1px 2px rgba(0,0,0,0.3))' }} />
+                ))}
+              </div>
+            )}
           </div>
+        )}
 
-          {/* Swipe indicator dots - shows there are more photos */}
-          {images.length > 1 && (
-            <div className="absolute bottom-2 left-1/2 -translate-x-1/2 flex gap-1 z-10">
-              {images.slice(0, Math.min(images.length, 5)).map((_, idx) => (
-                <div
-                  key={idx}
-                  className={`w-1.5 h-1.5 rounded-full transition-all ${
-                    idx === currentImageIndex ? 'bg-white w-3' : 'bg-white/50'
-                  }`}
-                />
-              ))}
-              {images.length > 5 && <span className="text-white/70 text-[8px] ml-0.5">+{images.length - 5}</span>}
-            </div>
-          )}
-
-          {/* Invisible touch zones for nav */}
-          {images.length > 1 && (
-            <>
-              <div onClick={(e) => { e.stopPropagation(); prevImage(e); flashArrows(); }}
-                className="absolute left-0 top-0 w-1/3 h-full z-10" />
-              <div onClick={(e) => { e.stopPropagation(); nextImage(e); flashArrows(); }}
-                className="absolute right-0 top-0 w-1/3 h-full z-10" />
-              {/* Arrows - flash on tap */}
-              <div className={`absolute left-2 top-1/2 -translate-y-1/2 w-7 h-7 flex items-center justify-center rounded-full bg-white/90 shadow-sm text-[#1d1d1f] transition-opacity duration-300 ${showArrows ? 'opacity-100' : 'opacity-0'}`}>
-                <ChevronLeft className="w-4 h-4" />
-              </div>
-              <div className={`absolute right-2 top-1/2 -translate-y-1/2 w-7 h-7 flex items-center justify-center rounded-full bg-white/90 shadow-sm text-[#1d1d1f] transition-opacity duration-300 ${showArrows ? 'opacity-100' : 'opacity-0'}`}>
-                <ChevronRight className="w-4 h-4" />
-              </div>
-            </>
-          )}
-
-          {/* Center tap = view details */}
-          <div onClick={() => onViewDetails(hotel.id)} className="absolute left-1/3 right-1/3 top-0 bottom-0 z-5" />
-
-          {isLoadingImages && (
-            <div className="absolute inset-0 flex items-center justify-center bg-black/10 z-20">
-              <Loader2 className="w-5 h-5 text-white animate-spin" />
-            </div>
-          )}
+        {/* Top-right: Action icons with drop-shadow (no background) */}
+        <div className="absolute top-2.5 right-2.5 flex gap-2 z-10" style={{ filter: 'drop-shadow(0 2px 4px rgba(0,0,0,0.5))' }}>
+          <button onClick={handleFavorite} className={`transition-all active:scale-90 ${isFavorited ? 'text-rose-500' : 'text-white'}`}>
+            <Heart className={`w-5 h-5 ${isFavorited ? 'fill-current' : ''}`} />
+          </button>
+          <button onClick={handleShare} className="text-white transition-all active:scale-90">
+            <Share2 className="w-5 h-5" />
+          </button>
         </div>
 
-        {/* Info Section - Clean card below photo */}
-        <div onClick={() => onViewDetails(hotel.id)} className="bg-white px-3 py-2.5 rounded-b-xl border-t border-slate-100">
-          {/* Row 1: Name + Price */}
-          <div className="flex items-start justify-between gap-2 mb-1">
-            <h3 className="font-semibold text-[14px] text-[#1d1d1f] leading-tight line-clamp-1 tracking-tight flex-1">
+        {/* Dot indicators with shadow */}
+        {images.length > 1 && (
+          <div className="absolute bottom-14 left-1/2 -translate-x-1/2 flex gap-1 z-10" style={{ filter: 'drop-shadow(0 1px 3px rgba(0,0,0,0.5))' }}>
+            {images.slice(0, Math.min(images.length, 5)).map((_, idx) => (
+              <div key={idx} className={`w-1.5 h-1.5 rounded-full transition-all ${idx === currentImageIndex ? 'bg-white w-4' : 'bg-white/60'}`} />
+            ))}
+            {images.length > 5 && <span className="text-white/80 text-[9px] ml-1">+{images.length - 5}</span>}
+          </div>
+        )}
+
+        {/* Invisible touch zones */}
+        {images.length > 1 && (
+          <>
+            <div onClick={(e) => { e.stopPropagation(); prevImage(e); flashArrows(); }} className="absolute left-0 top-0 w-1/4 h-full z-10" />
+            <div onClick={(e) => { e.stopPropagation(); nextImage(e); flashArrows(); }} className="absolute right-0 top-0 w-1/4 h-full z-10" />
+            <div className={`absolute left-2 top-1/2 -translate-y-1/2 text-white transition-opacity duration-300 ${showArrows ? 'opacity-100' : 'opacity-0'}`} style={{ filter: 'drop-shadow(0 2px 4px rgba(0,0,0,0.5))' }}>
+              <ChevronLeft className="w-6 h-6" />
+            </div>
+            <div className={`absolute right-2 top-1/2 -translate-y-1/2 text-white transition-opacity duration-300 ${showArrows ? 'opacity-100' : 'opacity-0'}`} style={{ filter: 'drop-shadow(0 2px 4px rgba(0,0,0,0.5))' }}>
+              <ChevronRight className="w-6 h-6" />
+            </div>
+          </>
+        )}
+
+        {/* Center tap */}
+        <div onClick={() => onViewDetails(hotel.id)} className="absolute left-1/4 right-1/4 top-0 bottom-0 z-5" />
+
+        {/* Bottom info - text with shadows only, no background */}
+        <div className="absolute bottom-0 left-0 right-0 p-3 z-10">
+          {/* Row 1: Name + Stars + Price */}
+          <div className="flex items-start justify-between gap-2 mb-1.5">
+            <h3 className="font-bold text-[15px] text-white leading-tight line-clamp-1 flex-1" style={{ textShadow: '0 1px 4px rgba(0,0,0,0.6), 0 2px 8px rgba(0,0,0,0.4)' }}>
               {hotel.name}
             </h3>
             {perNightPrice > 0 && (
-              <div className="flex items-baseline gap-0.5 flex-shrink-0">
-                <span className="font-bold text-[15px] text-[#1d1d1f]">{currencySymbol}{Math.round(perNightPrice)}</span>
-                <span className="text-[10px] text-[#86868b]">{t.perNight}</span>
+              <div className="flex items-baseline gap-0.5 flex-shrink-0" style={{ textShadow: '0 1px 4px rgba(0,0,0,0.6)' }}>
+                <span className="font-bold text-[16px] text-white">{currencySymbol}{Math.round(perNightPrice)}</span>
+                <span className="text-[10px] text-white/80">{t.perNight}</span>
               </div>
             )}
           </div>
 
           {/* Row 2: Location + Amenities + Badges + CTA */}
-          <div className="flex items-center justify-between gap-1">
-            <div className="flex items-center gap-1 flex-1 min-w-0 overflow-x-auto scrollbar-hide">
-              {/* Location */}
+          <div className="flex items-center justify-between gap-2">
+            <div className="flex items-center gap-1.5 flex-1 min-w-0" style={{ filter: 'drop-shadow(0 1px 3px rgba(0,0,0,0.5))' }}>
               {hotel.location?.city && (
-                <span className="text-[10px] text-[#86868b] font-medium flex items-center gap-0.5 flex-shrink-0">
-                  <MapPin className="w-2.5 h-2.5" />
-                  <span className="truncate max-w-[45px]">{hotel.location.city}</span>
+                <span className="text-white/90 text-[11px] font-medium flex items-center gap-0.5">
+                  <MapPin className="w-3 h-3" />
+                  <span className="truncate max-w-[50px]">{hotel.location.city}</span>
                 </span>
               )}
-              {/* Divider */}
-              <span className="text-[#e5e5e5]">·</span>
-              {/* Amenity icons - expanded */}
-              <div className="flex items-center gap-0.5 text-[#86868b] flex-shrink-0">
+              {/* Amenities */}
+              <div className="flex items-center gap-0.5 text-white/80">
                 {amenities.wifi && <Wifi className="w-3 h-3" />}
                 {amenities.pool && <Waves className="w-3 h-3" />}
                 {amenities.gym && <Dumbbell className="w-3 h-3" />}
                 {amenities.spa && <Sparkles className="w-3 h-3" />}
                 {amenities.restaurant && <UtensilsCrossed className="w-3 h-3" />}
                 {amenities.parking && <Car className="w-3 h-3" />}
-                {amenities.ac && <Wind className="w-3 h-3" />}
-                {amenities.pet && <PawPrint className="w-3 h-3" />}
               </div>
               {/* Badges */}
               {hasFreeCancellation && (
-                <span className="px-1 py-0.5 bg-emerald-50 rounded text-[8px] font-semibold text-emerald-600 flex-shrink-0">
-                  ✓Free
+                <span className="text-emerald-400 text-[10px] font-bold flex items-center gap-0.5">
+                  <Shield className="w-3 h-3" />
                 </span>
               )}
               {hasBreakfast && (
-                <span className="px-1 py-0.5 bg-amber-50 rounded text-[8px] font-semibold text-amber-600 flex-shrink-0">
-                  🍳
+                <span className="text-amber-400 text-[10px]">
+                  <Coffee className="w-3 h-3" />
                 </span>
               )}
             </div>
-            {/* CTA */}
+            {/* CTA - Fly2Any theme */}
             <button onClick={(e) => { e.stopPropagation(); handleBooking(); }}
-              className="px-3 py-1.5 rounded-lg bg-[#0071e3] text-white text-[11px] font-semibold shadow-sm active:scale-95 transition-transform flex-shrink-0">
+              className="px-3 py-1.5 rounded-lg bg-primary-500 text-white text-[11px] font-bold shadow-lg active:scale-95 transition-transform flex-shrink-0">
               {t.bookNow}
             </button>
           </div>
         </div>
+
+        {isLoadingImages && (
+          <div className="absolute inset-0 flex items-center justify-center bg-black/10 z-20">
+            <Loader2 className="w-5 h-5 text-white animate-spin" />
+          </div>
+        )}
       </div>
 
       {/* TABLET/DESKTOP: Horizontal layout (unchanged logic, optimized) */}
@@ -417,7 +397,7 @@ export function HotelCard({
               ) : <span className="text-xs text-[#86868b]">Check availability</span>}
             </div>
             <button onClick={(e) => { e.stopPropagation(); handleBooking(); }}
-              className="px-4 py-2 font-semibold text-xs rounded-xl bg-[#0071e3] text-white shadow-[0_2px_8px_-2px_rgba(0,113,227,0.4)] active:scale-95 transition-transform">
+              className="px-4 py-2 font-semibold text-xs rounded-xl bg-primary-500 text-white shadow-md active:scale-95 transition-transform">
               {perNightPrice > 0 ? t.bookNow : t.view}
             </button>
           </div>
