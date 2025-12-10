@@ -2,7 +2,7 @@
 
 import { useState, useEffect, cloneElement, isValidElement, useRef } from 'react';
 import { motion, AnimatePresence, useDragControls, PanInfo } from 'framer-motion';
-import { ChevronDown, ChevronUp, Calendar, Users, MapPin, GripHorizontal } from 'lucide-react';
+import { ChevronDown, ChevronUp, Calendar, Users, MapPin, GripHorizontal, Building2, BedDouble } from 'lucide-react';
 import { format } from 'date-fns';
 import { useScrollDirection } from '@/lib/hooks/useScrollDirection';
 import { getMobileCityShort, getAirportFlag } from '@/lib/data/airports';
@@ -18,7 +18,11 @@ export interface SearchSummary {
     infants: number;
   };
   tripType: 'roundtrip' | 'oneway';
+  // Hotel-specific
+  rooms?: number;
 }
+
+export type SearchMode = 'flights' | 'hotels';
 
 export interface CollapsibleSearchBarProps {
   /** Current search parameters to display in collapsed state */
@@ -35,6 +39,8 @@ export interface CollapsibleSearchBarProps {
   onSearch?: () => void;
   /** Auto-expand when scrolling up (default: true). Set to false to keep collapsed unless manually expanded */
   autoExpand?: boolean;
+  /** Search mode: flights or hotels (default: flights) */
+  mode?: SearchMode;
 }
 
 /**
@@ -69,6 +75,7 @@ export function CollapsibleSearchBar({
   mobileOnly = true,
   onSearch,
   autoExpand = true,
+  mode = 'flights',
 }: CollapsibleSearchBarProps) {
   const [isCollapsed, setIsCollapsed] = useState(defaultCollapsed);
   const [manualOverride, setManualOverride] = useState(false);
@@ -178,40 +185,77 @@ export function CollapsibleSearchBar({
               aria-label="Expand search form"
               aria-expanded="false"
             >
-              <div className="flex items-center justify-between gap-2">
-                {/* Left: Route - Mobile-optimized city names with flags */}
-                <div className="flex items-center gap-1.5 flex-1 min-w-0">
-                  <span className="text-sm flex-shrink-0">{getAirportFlag(searchSummary.origin) || '✈️'}</span>
-                  <span className="text-sm font-bold text-gray-900 truncate">
-                    {getMobileCityShort(searchSummary.origin, 10) || 'From'}
-                  </span>
-                  <span className="text-gray-400 text-sm">→</span>
-                  <span className="text-sm flex-shrink-0">{getAirportFlag(searchSummary.destination) || '✈️'}</span>
-                  <span className="text-sm font-bold text-gray-900 truncate">
-                    {getMobileCityShort(searchSummary.destination, 10) || 'To'}
-                  </span>
-                </div>
-
-                {/* Center: Dates */}
-                <div className="flex items-center gap-1.5 flex-shrink-0">
-                  <Calendar className="w-4 h-4 text-gray-500" />
-                  <span className="text-xs text-gray-600">
-                    {formatDate(searchSummary.departDate)}
-                    {searchSummary.tripType === 'roundtrip' && (
-                      <> - {formatDate(searchSummary.returnDate)}</>
-                    )}
-                  </span>
-                </div>
-
-                {/* Right: Passengers & Expand Icon */}
-                <div className="flex items-center gap-2 flex-shrink-0">
-                  <div className="flex items-center gap-1">
-                    <Users className="w-4 h-4 text-gray-500" />
-                    <span className="text-xs text-gray-600">{totalPassengers}</span>
+              {mode === 'hotels' ? (
+                /* Hotels Mode - Destination, Dates, Guests & Rooms */
+                <div className="flex items-center justify-between gap-2">
+                  {/* Left: Destination with hotel icon */}
+                  <div className="flex items-center gap-1.5 flex-1 min-w-0">
+                    <Building2 className="w-4 h-4 text-primary-500 flex-shrink-0" />
+                    <span className="text-sm font-bold text-gray-900 truncate">
+                      {searchSummary.destination || 'Where?'}
+                    </span>
                   </div>
-                  <ChevronDown className="w-5 h-5 text-primary-600" />
+
+                  {/* Center: Check-in - Check-out */}
+                  <div className="flex items-center gap-1.5 flex-shrink-0">
+                    <Calendar className="w-4 h-4 text-gray-500" />
+                    <span className="text-xs text-gray-600">
+                      {formatDate(searchSummary.departDate)} - {formatDate(searchSummary.returnDate)}
+                    </span>
+                  </div>
+
+                  {/* Right: Guests, Rooms & Expand Icon */}
+                  <div className="flex items-center gap-2 flex-shrink-0">
+                    <div className="flex items-center gap-1">
+                      <Users className="w-4 h-4 text-gray-500" />
+                      <span className="text-xs text-gray-600">{totalPassengers}</span>
+                    </div>
+                    {searchSummary.rooms && (
+                      <div className="flex items-center gap-1">
+                        <BedDouble className="w-4 h-4 text-gray-500" />
+                        <span className="text-xs text-gray-600">{searchSummary.rooms}</span>
+                      </div>
+                    )}
+                    <ChevronDown className="w-5 h-5 text-primary-600" />
+                  </div>
                 </div>
-              </div>
+              ) : (
+                /* Flights Mode - Origin → Destination, Dates, Passengers */
+                <div className="flex items-center justify-between gap-2">
+                  {/* Left: Route - Mobile-optimized city names with flags */}
+                  <div className="flex items-center gap-1.5 flex-1 min-w-0">
+                    <span className="text-sm flex-shrink-0">{getAirportFlag(searchSummary.origin) || '✈️'}</span>
+                    <span className="text-sm font-bold text-gray-900 truncate">
+                      {getMobileCityShort(searchSummary.origin, 10) || 'From'}
+                    </span>
+                    <span className="text-gray-400 text-sm">→</span>
+                    <span className="text-sm flex-shrink-0">{getAirportFlag(searchSummary.destination) || '✈️'}</span>
+                    <span className="text-sm font-bold text-gray-900 truncate">
+                      {getMobileCityShort(searchSummary.destination, 10) || 'To'}
+                    </span>
+                  </div>
+
+                  {/* Center: Dates */}
+                  <div className="flex items-center gap-1.5 flex-shrink-0">
+                    <Calendar className="w-4 h-4 text-gray-500" />
+                    <span className="text-xs text-gray-600">
+                      {formatDate(searchSummary.departDate)}
+                      {searchSummary.tripType === 'roundtrip' && (
+                        <> - {formatDate(searchSummary.returnDate)}</>
+                      )}
+                    </span>
+                  </div>
+
+                  {/* Right: Passengers & Expand Icon */}
+                  <div className="flex items-center gap-2 flex-shrink-0">
+                    <div className="flex items-center gap-1">
+                      <Users className="w-4 h-4 text-gray-500" />
+                      <span className="text-xs text-gray-600">{totalPassengers}</span>
+                    </div>
+                    <ChevronDown className="w-5 h-5 text-primary-600" />
+                  </div>
+                </div>
+              )}
             </button>
           </motion.div>
         ) : (

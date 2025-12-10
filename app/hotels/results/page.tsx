@@ -583,8 +583,8 @@ function HotelResultsContent() {
   if (loading) {
     return (
       <div className="min-h-screen bg-neutral-50">
-        {/* Search Bar - VISIBLE during loading with FULL search params for consistency */}
-        <div className="relative">
+        {/* Search Bar - Hidden on mobile during loading, visible on desktop */}
+        <div className="relative hidden md:block">
           <EnhancedSearchBar
             lang={lang}
             defaultService="hotels"
@@ -794,11 +794,13 @@ function HotelResultsContent() {
             infants: 0,
           },
           tripType: 'roundtrip',
+          rooms: searchData.rooms,
         }}
         defaultCollapsed={true}
         onCollapseChange={setSearchBarCollapsed}
         mobileOnly={true}
         autoExpand={false}
+        mode="hotels"
       >
         <EnhancedSearchBar
           lang={lang}

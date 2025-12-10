@@ -3594,108 +3594,209 @@ export default function EnhancedSearchBar({
           {/* HOTELS MOBILE FIELDS */}
           {serviceType === 'hotels' && (
           <>
-          {/* Hotel Destination */}
-          <div ref={hotelDestinationRef} className="relative">
-            <label className="block text-xs font-semibold text-gray-600 mb-1.5">
-              Destination
-            </label>
-            <div className="relative">
-              <Building2 className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={16} />
-              <input
-                type="text"
-                value={hotelDestination}
-                onChange={(e) => {
-                  console.log('📱 Mobile input onChange event:', e.target.value);
-                  handleHotelDestinationChange(e.target.value);
-                }}
-                onFocus={() => {
-                  console.log('📱 Mobile input onFocus event, current value:', hotelDestination);
-                  if (hotelDestination.length >= 2) {
-                    console.log('✅ Opening mobile suggestions (value length >= 2)');
-                    setShowHotelSuggestions(true);
-                  } else {
-                    console.log('⚠️ Not opening mobile suggestions (value too short)');
-                  }
-                }}
-                placeholder="City, hotel, or landmark"
-                className={`w-full pl-9 pr-3 py-2 bg-gray-50 border-2 rounded-lg focus:border-primary-500 focus:ring-2 focus:ring-primary-100 outline-none transition-all text-sm font-semibold text-gray-900 ${
-                  errors.hotel ? 'border-red-500' : 'border-gray-200'
-                }`}
-              />
-            </div>
-            {errors.hotel && (
-              <p className="mt-1 text-xs text-red-600" role="alert">
-                {errors.hotel}
-              </p>
-            )}
+          {/* Row 1: Destination + Guests & Rooms on same row */}
+          <div className="flex gap-2">
+            {/* Hotel Destination - Takes most space */}
+            <div ref={hotelDestinationRef} className="relative flex-1 min-w-0">
+              <label className="block text-xs font-semibold text-gray-600 mb-1.5">
+                Destination
+              </label>
+              <div className="relative">
+                <Building2 className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={16} />
+                <input
+                  type="text"
+                  value={hotelDestination}
+                  onChange={(e) => {
+                    console.log('📱 Mobile input onChange event:', e.target.value);
+                    handleHotelDestinationChange(e.target.value);
+                  }}
+                  onFocus={() => {
+                    console.log('📱 Mobile input onFocus event, current value:', hotelDestination);
+                    if (hotelDestination.length >= 2) {
+                      console.log('✅ Opening mobile suggestions (value length >= 2)');
+                      setShowHotelSuggestions(true);
+                    } else {
+                      console.log('⚠️ Not opening mobile suggestions (value too short)');
+                    }
+                  }}
+                  placeholder="City, hotel, landmark"
+                  className={`w-full pl-9 pr-3 py-2 bg-gray-50 border-2 rounded-lg focus:border-primary-500 focus:ring-2 focus:ring-primary-100 outline-none transition-all text-sm font-semibold text-gray-900 ${
+                    errors.hotel ? 'border-red-500' : 'border-gray-200'
+                  }`}
+                />
+              </div>
+              {errors.hotel && (
+                <p className="mt-1 text-xs text-red-600" role="alert">
+                  {errors.hotel}
+                </p>
+              )}
 
-            {/* Mobile Suggestions Dropdown */}
-            {showHotelSuggestions && (
-              <div className="absolute top-full left-0 right-0 mt-1 bg-white border border-gray-200 rounded-xl shadow-2xl z-dropdown max-h-64 overflow-y-auto">
-                {isLoadingHotelSuggestions ? (
-                  <div className="p-4 text-center text-gray-500 text-sm">Loading...</div>
-                ) : hotelSuggestions.length > 0 ? (
-                  <div className="py-2">
-                    {hotelSuggestions.map((suggestion, index) => (
-                      <button
-                        key={index}
-                        type="button"
-                        onClick={(e) => {
-                          e.preventDefault();
-                          e.stopPropagation();
-                          handleHotelSuggestionSelect(suggestion);
-                        }}
-                        onTouchEnd={(e) => {
-                          e.preventDefault();
-                          handleHotelSuggestionSelect(suggestion);
-                        }}
-                        className="w-full px-4 py-3 text-left hover:bg-primary-50 active:bg-primary-100 transition-colors flex items-start gap-3 touch-manipulation min-h-[48px]"
-                      >
-                        <Building2 size={14} className="text-gray-400 mt-0.5 flex-shrink-0" />
-                        <div className="flex-1 min-w-0">
-                          <div className="font-medium text-gray-900 text-sm">
-                            {suggestion.name}
-                          </div>
-                          {(suggestion.city || suggestion.country) && (
-                            <div className="text-xs text-gray-500 truncate">
-                              {[suggestion.city, suggestion.country].filter(Boolean).join(', ')}
+              {/* Mobile Suggestions Dropdown */}
+              {showHotelSuggestions && (
+                <div className="absolute top-full left-0 right-0 mt-1 bg-white border border-gray-200 rounded-xl shadow-2xl z-dropdown max-h-64 overflow-y-auto">
+                  {isLoadingHotelSuggestions ? (
+                    <div className="p-4 text-center text-gray-500 text-sm">Loading...</div>
+                  ) : hotelSuggestions.length > 0 ? (
+                    <div className="py-2">
+                      {hotelSuggestions.map((suggestion, index) => (
+                        <button
+                          key={index}
+                          type="button"
+                          onClick={(e) => {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            handleHotelSuggestionSelect(suggestion);
+                          }}
+                          onTouchEnd={(e) => {
+                            e.preventDefault();
+                            handleHotelSuggestionSelect(suggestion);
+                          }}
+                          className="w-full px-4 py-3 text-left hover:bg-primary-50 active:bg-primary-100 transition-colors flex items-start gap-3 touch-manipulation min-h-[48px]"
+                        >
+                          <Building2 size={14} className="text-gray-400 mt-0.5 flex-shrink-0" />
+                          <div className="flex-1 min-w-0">
+                            <div className="font-medium text-gray-900 text-sm">
+                              {suggestion.name}
                             </div>
-                          )}
-                        </div>
-                      </button>
-                    ))}
-                  </div>
-                ) : (
-                  <div className="p-4 text-center text-gray-500 text-sm">No results found</div>
-                )}
-              </div>
-            )}
+                            {(suggestion.city || suggestion.country) && (
+                              <div className="text-xs text-gray-500 truncate">
+                                {[suggestion.city, suggestion.country].filter(Boolean).join(', ')}
+                              </div>
+                            )}
+                          </div>
+                        </button>
+                      ))}
+                    </div>
+                  ) : (
+                    <div className="p-4 text-center text-gray-500 text-sm">No results found</div>
+                  )}
+                </div>
+              )}
+            </div>
 
-            {/* Popular Districts Quick-Select (Mobile) - Match filter bar style */}
-            {popularDistricts.length > 0 && !showHotelSuggestions && (
-              <div className="flex items-center gap-1.5 mt-2 overflow-x-auto scrollbar-hide -mx-2 px-2">
-                <span className="flex-shrink-0 px-2 py-1 text-[11px] font-bold text-secondary-700 bg-secondary-100 rounded-lg">Popular:</span>
-                {popularDistricts.slice(0, 6).map((district) => {
-                  const isSelected = selectedDistricts.some(d => d.id?.toLowerCase() === district.id?.toLowerCase());
-                  return (
-                    <button
-                      key={district.id}
-                      type="button"
-                      onClick={() => toggleDistrictSelection(district)}
-                      className={`flex-shrink-0 px-2.5 py-1.5 rounded-lg font-semibold text-[11px] transition-all active:scale-95 whitespace-nowrap ${
-                        isSelected
-                          ? 'bg-primary-500 text-white'
-                          : 'bg-white border border-neutral-200 text-neutral-600 hover:border-primary-300'
-                      }`}
-                    >
-                      {isSelected && <Check className="w-3 h-3 inline mr-1" />}
-                      {district.name}
-                    </button>
-                  );
-                })}
-              </div>
-            )}
+            {/* Guests & Rooms - Compact button on same row */}
+            <div className="relative flex-shrink-0">
+              <label className="block text-xs font-semibold text-gray-600 mb-1.5">
+                Guests
+              </label>
+              <button
+                type="button"
+                onClick={() => setShowPassengerDropdown(!showPassengerDropdown)}
+                className="flex items-center gap-1.5 px-3 py-2 bg-gray-50 border-2 border-gray-200 rounded-lg focus:border-primary-500 focus:ring-2 focus:ring-primary-100 outline-none transition-all text-xs font-semibold text-gray-900 whitespace-nowrap"
+              >
+                <Users className="text-gray-400" size={14} />
+                <span>{hotelAdults + hotelChildren}</span>
+                <span className="text-gray-300">|</span>
+                <BedDouble className="text-gray-400" size={14} />
+                <span>{hotelRooms}</span>
+                <ChevronDown className="text-gray-400" size={12} />
+              </button>
+
+              {/* Guests & Rooms Dropdown */}
+              {showPassengerDropdown && (
+                <div className="absolute top-full right-0 mt-2 w-64 p-4 bg-white border border-gray-200 rounded-xl shadow-xl z-50 space-y-4">
+                  {/* Adults */}
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm font-medium text-gray-700">Adults</span>
+                    <div className="flex items-center gap-3">
+                      <button
+                        type="button"
+                        onClick={() => setHotelAdults(Math.max(1, hotelAdults - 1))}
+                        className="w-8 h-8 rounded-full border border-gray-300 hover:border-primary-500 hover:bg-primary-50 flex items-center justify-center transition-all"
+                      >
+                        <Minus size={16} />
+                      </button>
+                      <span className="w-8 text-center font-semibold">{hotelAdults}</span>
+                      <button
+                        type="button"
+                        onClick={() => setHotelAdults(hotelAdults + 1)}
+                        className="w-8 h-8 rounded-full border border-gray-300 hover:border-primary-500 hover:bg-primary-50 flex items-center justify-center transition-all"
+                      >
+                        <Plus size={16} />
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Children */}
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm font-medium text-gray-700">Children</span>
+                    <div className="flex items-center gap-3">
+                      <button
+                        type="button"
+                        onClick={() => setHotelChildren(Math.max(0, hotelChildren - 1))}
+                        className="w-8 h-8 rounded-full border border-gray-300 hover:border-primary-500 hover:bg-primary-50 flex items-center justify-center transition-all"
+                      >
+                        <Minus size={16} />
+                      </button>
+                      <span className="w-8 text-center font-semibold">{hotelChildren}</span>
+                      <button
+                        type="button"
+                        onClick={() => setHotelChildren(hotelChildren + 1)}
+                        className="w-8 h-8 rounded-full border border-gray-300 hover:border-primary-500 hover:bg-primary-50 flex items-center justify-center transition-all"
+                      >
+                        <Plus size={16} />
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Rooms */}
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm font-medium text-gray-700">Rooms</span>
+                    <div className="flex items-center gap-3">
+                      <button
+                        type="button"
+                        onClick={() => setHotelRooms(Math.max(1, hotelRooms - 1))}
+                        className="w-8 h-8 rounded-full border border-gray-300 hover:border-primary-500 hover:bg-primary-50 flex items-center justify-center transition-all"
+                      >
+                        <Minus size={16} />
+                      </button>
+                      <span className="w-8 text-center font-semibold">{hotelRooms}</span>
+                      <button
+                        type="button"
+                        onClick={() => setHotelRooms(hotelRooms + 1)}
+                        className="w-8 h-8 rounded-full border border-gray-300 hover:border-primary-500 hover:bg-primary-50 flex items-center justify-center transition-all"
+                      >
+                        <Plus size={16} />
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Done Button */}
+                  <button
+                    onClick={() => setShowPassengerDropdown(false)}
+                    className="w-full py-2 bg-primary-500 hover:bg-primary-600 text-white font-semibold rounded-lg transition-all duration-200 ease-in-out text-xs shadow-sm hover:shadow-md"
+                  >
+                    Done
+                  </button>
+                </div>
+              )}
+            </div>
           </div>
+
+          {/* Popular Districts Quick-Select (Mobile) - Match filter bar style */}
+          {popularDistricts.length > 0 && !showHotelSuggestions && (
+            <div className="flex items-center gap-1.5 overflow-x-auto scrollbar-hide -mx-2 px-2">
+              <span className="flex-shrink-0 px-2 py-1 text-[11px] font-bold text-secondary-700 bg-secondary-100 rounded-lg">Popular:</span>
+              {popularDistricts.slice(0, 6).map((district) => {
+                const isSelected = selectedDistricts.some(d => d.id?.toLowerCase() === district.id?.toLowerCase());
+                return (
+                  <button
+                    key={district.id}
+                    type="button"
+                    onClick={() => toggleDistrictSelection(district)}
+                    className={`flex-shrink-0 px-2.5 py-1.5 rounded-lg font-semibold text-[11px] transition-all active:scale-95 whitespace-nowrap ${
+                      isSelected
+                        ? 'bg-primary-500 text-white'
+                        : 'bg-white border border-neutral-200 text-neutral-600 hover:border-primary-300'
+                    }`}
+                  >
+                    {isSelected && <Check className="w-3 h-3 inline mr-1" />}
+                    {district.name}
+                  </button>
+                );
+              })}
+            </div>
+          )}
 
           {/* Check-in and Check-out Dates - Unified Date Range Picker */}
           <div>
@@ -3745,101 +3846,6 @@ export default function EnhancedSearchBar({
                 </div>
               </div>
             </button>
-          </div>
-
-          {/* Guests & Rooms */}
-          <div>
-            <label className="block text-xs font-semibold text-gray-600 mb-1.5">
-              Guests & Rooms
-            </label>
-            <button
-              type="button"
-              onClick={() => setShowPassengerDropdown(!showPassengerDropdown)}
-              className="w-full flex items-center gap-2 pl-8 pr-3 py-2 bg-gray-50 border-2 border-gray-200 rounded-lg focus:border-primary-500 focus:ring-2 focus:ring-primary-100 outline-none transition-all text-xs font-semibold text-gray-900"
-            >
-              <Users className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={14} />
-              <span className="flex-1 text-left">{hotelAdults + hotelChildren} guests, {hotelRooms} room{hotelRooms > 1 ? 's' : ''}</span>
-              <ChevronDown className="text-gray-400" size={12} />
-            </button>
-
-            {/* Guests & Rooms Dropdown */}
-            {showPassengerDropdown && (
-              <div className="absolute left-0 right-0 mt-2 p-4 bg-white border border-gray-200 rounded-xl shadow-xl z-50 space-y-4">
-                {/* Adults */}
-                <div className="flex items-center justify-between">
-                  <span className="text-sm font-medium text-gray-700">Adults</span>
-                  <div className="flex items-center gap-3">
-                    <button
-                      type="button"
-                      onClick={() => setHotelAdults(Math.max(1, hotelAdults - 1))}
-                      className="w-8 h-8 rounded-full border border-gray-300 hover:border-[#D63A35] hover:bg-primary-50 flex items-center justify-center transition-all"
-                    >
-                      <Minus size={16} />
-                    </button>
-                    <span className="w-8 text-center font-semibold">{hotelAdults}</span>
-                    <button
-                      type="button"
-                      onClick={() => setHotelAdults(hotelAdults + 1)}
-                      className="w-8 h-8 rounded-full border border-gray-300 hover:border-[#D63A35] hover:bg-primary-50 flex items-center justify-center transition-all"
-                    >
-                      <Plus size={16} />
-                    </button>
-                  </div>
-                </div>
-
-                {/* Children */}
-                <div className="flex items-center justify-between">
-                  <span className="text-sm font-medium text-gray-700">Children</span>
-                  <div className="flex items-center gap-3">
-                    <button
-                      type="button"
-                      onClick={() => setHotelChildren(Math.max(0, hotelChildren - 1))}
-                      className="w-8 h-8 rounded-full border border-gray-300 hover:border-[#D63A35] hover:bg-primary-50 flex items-center justify-center transition-all"
-                    >
-                      <Minus size={16} />
-                    </button>
-                    <span className="w-8 text-center font-semibold">{hotelChildren}</span>
-                    <button
-                      type="button"
-                      onClick={() => setHotelChildren(hotelChildren + 1)}
-                      className="w-8 h-8 rounded-full border border-gray-300 hover:border-[#D63A35] hover:bg-primary-50 flex items-center justify-center transition-all"
-                    >
-                      <Plus size={16} />
-                    </button>
-                  </div>
-                </div>
-
-                {/* Rooms */}
-                <div className="flex items-center justify-between">
-                  <span className="text-sm font-medium text-gray-700">Rooms</span>
-                  <div className="flex items-center gap-3">
-                    <button
-                      type="button"
-                      onClick={() => setHotelRooms(Math.max(1, hotelRooms - 1))}
-                      className="w-8 h-8 rounded-full border border-gray-300 hover:border-[#D63A35] hover:bg-primary-50 flex items-center justify-center transition-all"
-                    >
-                      <Minus size={16} />
-                    </button>
-                    <span className="w-8 text-center font-semibold">{hotelRooms}</span>
-                    <button
-                      type="button"
-                      onClick={() => setHotelRooms(hotelRooms + 1)}
-                      className="w-8 h-8 rounded-full border border-gray-300 hover:border-[#D63A35] hover:bg-primary-50 flex items-center justify-center transition-all"
-                    >
-                      <Plus size={16} />
-                    </button>
-                  </div>
-                </div>
-
-                {/* Done Button */}
-                <button
-                  onClick={() => setShowPassengerDropdown(false)}
-                  className="w-full py-2 bg-[#D63A35] hover:bg-[#0077E6] text-white font-semibold rounded-lg transition-all duration-200 ease-in-out text-xs shadow-sm hover:shadow-md"
-                >
-                  Done
-                </button>
-              </div>
-            )}
           </div>
 
           {/* Search Button */}
