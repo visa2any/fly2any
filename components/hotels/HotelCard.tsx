@@ -4,7 +4,8 @@ import { useState, useCallback, useMemo } from 'react';
 import Image from 'next/image';
 import {
   Star, MapPin, ChevronLeft, ChevronRight, Heart, Share2,
-  Coffee, Shield, Loader2, BarChart2, Wifi, Waves, Dumbbell, Car, ChevronRight as ArrowRight
+  Coffee, Shield, Loader2, Wifi, Waves, Dumbbell, Car, ChevronRight as ArrowRight,
+  Sparkles, UtensilsCrossed, Wind, PawPrint
 } from 'lucide-react';
 import { useHotelCompare } from '@/contexts/HotelCompareContext';
 import { getBlurDataURL } from '@/lib/utils/image-optimization';
@@ -31,15 +32,19 @@ const translations = {
   es: { perNight: '/nt', nights: 'n', bookNow: 'Reservar', view: 'Ver', freeCancel: 'Gratis', exceptional: 'Excepcional', excellent: 'Excelente', veryGood: 'Muy Bueno', good: 'Bueno', breakfast: 'Desay' },
 };
 
-// Amenity detection helper
+// Extended amenity detection
 const detectAmenities = (amenities: string[] | undefined) => {
-  if (!amenities?.length) return { wifi: false, pool: false, gym: false, parking: false };
+  if (!amenities?.length) return { wifi: false, pool: false, gym: false, parking: false, spa: false, restaurant: false, ac: false, pet: false };
   const lower = amenities.map(a => a.toLowerCase());
   return {
-    wifi: lower.some(a => a.includes('wifi') || a.includes('internet')),
+    wifi: lower.some(a => a.includes('wifi') || a.includes('internet') || a.includes('wi-fi')),
     pool: lower.some(a => a.includes('pool') || a.includes('swimming')),
-    gym: lower.some(a => a.includes('gym') || a.includes('fitness')),
-    parking: lower.some(a => a.includes('parking')),
+    gym: lower.some(a => a.includes('gym') || a.includes('fitness') || a.includes('exercise')),
+    parking: lower.some(a => a.includes('parking') || a.includes('garage')),
+    spa: lower.some(a => a.includes('spa') || a.includes('massage') || a.includes('sauna')),
+    restaurant: lower.some(a => a.includes('restaurant') || a.includes('dining') || a.includes('bar')),
+    ac: lower.some(a => a.includes('air condition') || a.includes('a/c') || a.includes('climate')),
+    pet: lower.some(a => a.includes('pet') || a.includes('dog') || a.includes('animal')),
   };
 };
 
@@ -149,136 +154,151 @@ export function HotelCard({
       className="group bg-white rounded-xl sm:rounded-2xl overflow-hidden transition-all duration-300 cursor-pointer active:scale-[0.98]"
       style={{ boxShadow: '0 2px 12px -4px rgba(0,0,0,0.15)' }}
     >
-      {/* MOBILE: Apple-Class Ultra-Premium Card - 15% shorter */}
-      <div className="sm:hidden relative w-full aspect-[16/11] overflow-hidden" onMouseEnter={fetchImages}>
-        <Image
-          src={images[currentImageIndex]?.url || '/images/hotel-placeholder.jpg'}
-          alt={images[currentImageIndex]?.alt || hotel.name}
-          fill
-          className="object-cover"
-          sizes="100vw"
-          priority={currentImageIndex === 0}
-          placeholder="blur"
-          blurDataURL={getBlurDataURL(images[currentImageIndex]?.url || '', 400, 300)}
-          quality={80}
-          onError={(e) => { (e.target as HTMLImageElement).src = '/images/hotel-placeholder.jpg'; }}
-        />
+      {/* MOBILE: Clean Photo-First Card - No overlay on photo */}
+      <div className="sm:hidden flex flex-col" onMouseEnter={fetchImages}>
+        {/* Photo Section - 100% clean, no gradients */}
+        <div className="relative w-full aspect-[16/10] overflow-hidden rounded-t-xl">
+          <Image
+            src={images[currentImageIndex]?.url || '/images/hotel-placeholder.jpg'}
+            alt={images[currentImageIndex]?.alt || hotel.name}
+            fill
+            className="object-cover"
+            style={{ filter: 'contrast(1.02) saturate(1.05)' }}
+            sizes="100vw"
+            priority={currentImageIndex === 0}
+            placeholder="blur"
+            blurDataURL={getBlurDataURL(images[currentImageIndex]?.url || '', 400, 300)}
+            quality={85}
+            onError={(e) => { (e.target as HTMLImageElement).src = '/images/hotel-placeholder.jpg'; }}
+          />
 
-        {/* Ultra-subtle top gradient for icons */}
-        <div className="absolute inset-x-0 top-0 h-14 bg-gradient-to-b from-black/30 to-transparent" />
+          {/* Minimal top gradient for icon visibility only */}
+          <div className="absolute inset-x-0 top-0 h-12 bg-gradient-to-b from-black/25 to-transparent pointer-events-none" />
 
-        {/* Apple-style bottom gradient - only 15% */}
-        <div className="absolute inset-x-0 bottom-0 h-[60px] bg-gradient-to-t from-black/70 via-black/40 to-transparent" />
-
-        {/* Top-left: Glass rating badge with stars */}
-        {hotel.reviewScore > 0 && (
-          <div className="absolute top-2.5 left-2.5 flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl bg-white/20 backdrop-blur-xl border border-white/20 shadow-[0_2px_8px_-2px_rgba(0,0,0,0.3)]">
-            <span className={`text-white text-xs font-bold`}>{hotel.reviewScore.toFixed(1)}</span>
-            {hotel.rating > 0 && (
-              <div className="flex">
-                {Array.from({ length: Math.min(hotel.rating, 5) }, (_, i) => (
-                  <Star key={i} className="w-2.5 h-2.5 fill-amber-400 text-amber-400" />
-                ))}
-              </div>
-            )}
-          </div>
-        )}
-
-        {/* Top-right: Apple glass action pills */}
-        <div className="absolute top-2.5 right-2.5 flex gap-1 z-10">
-          <button onClick={handleFavorite}
-            className={`p-2 rounded-full bg-white/20 backdrop-blur-xl border border-white/10 transition-all duration-200 active:scale-90 ${isFavorited ? 'text-rose-500' : 'text-white'}`}>
-            <Heart className={`w-4 h-4 ${isFavorited ? 'fill-current' : ''}`} />
-          </button>
-          <button onClick={handleShare} className="p-2 rounded-full bg-white/20 backdrop-blur-xl border border-white/10 text-white transition-all duration-200 active:scale-90">
-            <Share2 className="w-4 h-4" />
-          </button>
-        </div>
-
-        {/* Invisible touch zones for image nav */}
-        {images.length > 1 && (
-          <>
-            <div onClick={(e) => { e.stopPropagation(); prevImage(e); flashArrows(); }}
-              className="absolute left-0 top-0 w-1/4 h-full z-10" />
-            <div onClick={(e) => { e.stopPropagation(); nextImage(e); flashArrows(); }}
-              className="absolute right-0 top-0 w-1/4 h-full z-10" />
-            <div className={`absolute left-2 top-1/2 -translate-y-1/2 w-7 h-7 flex items-center justify-center rounded-full bg-white/20 backdrop-blur-xl text-white transition-opacity duration-300 ${showArrows ? 'opacity-100' : 'opacity-0'}`}>
-              <ChevronLeft className="w-4 h-4" />
-            </div>
-            <div className={`absolute right-2 top-1/2 -translate-y-1/2 w-7 h-7 flex items-center justify-center rounded-full bg-white/20 backdrop-blur-xl text-white transition-opacity duration-300 ${showArrows ? 'opacity-100' : 'opacity-0'}`}>
-              <ChevronRight className="w-4 h-4" />
-            </div>
-          </>
-        )}
-
-        {/* Center tap area */}
-        <div onClick={() => onViewDetails(hotel.id)} className="absolute left-1/4 right-1/4 top-0 bottom-0 z-5" />
-
-        {/* Apple-style floating glass info card */}
-        <div className="absolute bottom-2 left-2 right-2 z-10">
-          <div className="bg-white/85 backdrop-blur-xl rounded-2xl px-3 py-2.5 shadow-[0_4px_16px_-4px_rgba(0,0,0,0.2)] border border-white/50">
-            {/* Row 1: Name + Price */}
-            <div className="flex items-start justify-between gap-2 mb-1.5">
-              <h3 className="font-semibold text-[15px] text-[#1d1d1f] leading-tight line-clamp-1 tracking-tight flex-1">
-                {hotel.name}
-              </h3>
-              {perNightPrice > 0 && (
-                <div className="flex items-baseline gap-0.5 flex-shrink-0">
-                  <span className="font-bold text-[15px] text-[#1d1d1f]">{currencySymbol}{Math.round(perNightPrice)}</span>
-                  <span className="text-[10px] text-[#86868b]">{t.perNight}</span>
+          {/* Top-left: Glass rating badge */}
+          {hotel.reviewScore > 0 && (
+            <div className="absolute top-2 left-2 flex items-center gap-1 px-2 py-1 rounded-lg bg-white/90 backdrop-blur-sm shadow-sm">
+              <span className="text-[#1d1d1f] text-xs font-bold">{hotel.reviewScore.toFixed(1)}</span>
+              {hotel.rating > 0 && (
+                <div className="flex">
+                  {Array.from({ length: Math.min(hotel.rating, 5) }, (_, i) => (
+                    <Star key={i} className="w-2.5 h-2.5 fill-amber-400 text-amber-400" />
+                  ))}
                 </div>
               )}
             </div>
+          )}
 
-            {/* Row 2: Location + Amenities + Badges + CTA */}
-            <div className="flex items-center justify-between gap-1.5">
-              <div className="flex items-center gap-1.5 flex-1 min-w-0 overflow-hidden">
-                {/* Location */}
-                {hotel.location?.city && (
-                  <span className="text-[11px] text-[#86868b] font-medium flex items-center gap-0.5 flex-shrink-0">
-                    <MapPin className="w-3 h-3" />
-                    <span className="truncate max-w-[50px]">{hotel.location.city}</span>
-                  </span>
-                )}
-                {/* Amenity icons */}
-                <div className="flex items-center gap-0.5 text-[#86868b]">
-                  {amenities.wifi && <Wifi className="w-3 h-3" />}
-                  {amenities.pool && <Waves className="w-3 h-3" />}
-                  {amenities.gym && <Dumbbell className="w-3 h-3" />}
-                  {amenities.parking && <Car className="w-3 h-3" />}
-                </div>
-                {/* Free cancellation badge */}
-                {hasFreeCancellation && (
-                  <span className="px-1.5 py-0.5 bg-emerald-100 rounded-md text-[9px] font-semibold text-emerald-700 flex items-center gap-0.5">
-                    <Shield className="w-2.5 h-2.5" />
-                    {t.freeCancel}
-                  </span>
-                )}
-                {/* Breakfast badge */}
-                {hasBreakfast && (
-                  <span className="px-1.5 py-0.5 bg-amber-100 rounded-md text-[9px] font-semibold text-amber-700">
-                    <Coffee className="w-2.5 h-2.5" />
-                  </span>
-                )}
-                {/* Image counter */}
-                {images.length > 1 && (
-                  <span className="text-[10px] text-[#86868b] ml-auto flex-shrink-0">{currentImageIndex + 1}/{images.length}</span>
-                )}
-              </div>
-              {/* Apple-style CTA chevron */}
-              <button onClick={(e) => { e.stopPropagation(); handleBooking(); }}
-                className="w-8 h-8 flex items-center justify-center rounded-full bg-[#0071e3] text-white shadow-[0_2px_8px_-2px_rgba(0,113,227,0.5)] active:scale-90 transition-transform flex-shrink-0">
-                <ArrowRight className="w-4 h-4" />
-              </button>
-            </div>
+          {/* Top-right: Action icons */}
+          <div className="absolute top-2 right-2 flex gap-1 z-10">
+            <button onClick={handleFavorite}
+              className={`p-1.5 rounded-full bg-white/90 backdrop-blur-sm shadow-sm transition-all active:scale-90 ${isFavorited ? 'text-rose-500' : 'text-[#1d1d1f]'}`}>
+              <Heart className={`w-4 h-4 ${isFavorited ? 'fill-current' : ''}`} />
+            </button>
+            <button onClick={handleShare} className="p-1.5 rounded-full bg-white/90 backdrop-blur-sm shadow-sm text-[#1d1d1f] transition-all active:scale-90">
+              <Share2 className="w-4 h-4" />
+            </button>
           </div>
+
+          {/* Swipe indicator dots - shows there are more photos */}
+          {images.length > 1 && (
+            <div className="absolute bottom-2 left-1/2 -translate-x-1/2 flex gap-1 z-10">
+              {images.slice(0, Math.min(images.length, 5)).map((_, idx) => (
+                <div
+                  key={idx}
+                  className={`w-1.5 h-1.5 rounded-full transition-all ${
+                    idx === currentImageIndex ? 'bg-white w-3' : 'bg-white/50'
+                  }`}
+                />
+              ))}
+              {images.length > 5 && <span className="text-white/70 text-[8px] ml-0.5">+{images.length - 5}</span>}
+            </div>
+          )}
+
+          {/* Invisible touch zones for nav */}
+          {images.length > 1 && (
+            <>
+              <div onClick={(e) => { e.stopPropagation(); prevImage(e); flashArrows(); }}
+                className="absolute left-0 top-0 w-1/3 h-full z-10" />
+              <div onClick={(e) => { e.stopPropagation(); nextImage(e); flashArrows(); }}
+                className="absolute right-0 top-0 w-1/3 h-full z-10" />
+              {/* Arrows - flash on tap */}
+              <div className={`absolute left-2 top-1/2 -translate-y-1/2 w-7 h-7 flex items-center justify-center rounded-full bg-white/90 shadow-sm text-[#1d1d1f] transition-opacity duration-300 ${showArrows ? 'opacity-100' : 'opacity-0'}`}>
+                <ChevronLeft className="w-4 h-4" />
+              </div>
+              <div className={`absolute right-2 top-1/2 -translate-y-1/2 w-7 h-7 flex items-center justify-center rounded-full bg-white/90 shadow-sm text-[#1d1d1f] transition-opacity duration-300 ${showArrows ? 'opacity-100' : 'opacity-0'}`}>
+                <ChevronRight className="w-4 h-4" />
+              </div>
+            </>
+          )}
+
+          {/* Center tap = view details */}
+          <div onClick={() => onViewDetails(hotel.id)} className="absolute left-1/3 right-1/3 top-0 bottom-0 z-5" />
+
+          {isLoadingImages && (
+            <div className="absolute inset-0 flex items-center justify-center bg-black/10 z-20">
+              <Loader2 className="w-5 h-5 text-white animate-spin" />
+            </div>
+          )}
         </div>
 
-        {isLoadingImages && (
-          <div className="absolute inset-0 flex items-center justify-center bg-black/20 z-20">
-            <Loader2 className="w-5 h-5 text-white animate-spin" />
+        {/* Info Section - Clean card below photo */}
+        <div onClick={() => onViewDetails(hotel.id)} className="bg-white px-3 py-2.5 rounded-b-xl border-t border-slate-100">
+          {/* Row 1: Name + Price */}
+          <div className="flex items-start justify-between gap-2 mb-1">
+            <h3 className="font-semibold text-[14px] text-[#1d1d1f] leading-tight line-clamp-1 tracking-tight flex-1">
+              {hotel.name}
+            </h3>
+            {perNightPrice > 0 && (
+              <div className="flex items-baseline gap-0.5 flex-shrink-0">
+                <span className="font-bold text-[15px] text-[#1d1d1f]">{currencySymbol}{Math.round(perNightPrice)}</span>
+                <span className="text-[10px] text-[#86868b]">{t.perNight}</span>
+              </div>
+            )}
           </div>
-        )}
+
+          {/* Row 2: Location + Amenities + Badges + CTA */}
+          <div className="flex items-center justify-between gap-1">
+            <div className="flex items-center gap-1 flex-1 min-w-0 overflow-x-auto scrollbar-hide">
+              {/* Location */}
+              {hotel.location?.city && (
+                <span className="text-[10px] text-[#86868b] font-medium flex items-center gap-0.5 flex-shrink-0">
+                  <MapPin className="w-2.5 h-2.5" />
+                  <span className="truncate max-w-[45px]">{hotel.location.city}</span>
+                </span>
+              )}
+              {/* Divider */}
+              <span className="text-[#e5e5e5]">·</span>
+              {/* Amenity icons - expanded */}
+              <div className="flex items-center gap-0.5 text-[#86868b] flex-shrink-0">
+                {amenities.wifi && <Wifi className="w-3 h-3" title="WiFi" />}
+                {amenities.pool && <Waves className="w-3 h-3" title="Pool" />}
+                {amenities.gym && <Dumbbell className="w-3 h-3" title="Gym" />}
+                {amenities.spa && <Sparkles className="w-3 h-3" title="Spa" />}
+                {amenities.restaurant && <UtensilsCrossed className="w-3 h-3" title="Restaurant" />}
+                {amenities.parking && <Car className="w-3 h-3" title="Parking" />}
+                {amenities.ac && <Wind className="w-3 h-3" title="A/C" />}
+                {amenities.pet && <PawPrint className="w-3 h-3" title="Pet Friendly" />}
+              </div>
+              {/* Badges */}
+              {hasFreeCancellation && (
+                <span className="px-1 py-0.5 bg-emerald-50 rounded text-[8px] font-semibold text-emerald-600 flex-shrink-0">
+                  ✓Free
+                </span>
+              )}
+              {hasBreakfast && (
+                <span className="px-1 py-0.5 bg-amber-50 rounded text-[8px] font-semibold text-amber-600 flex-shrink-0">
+                  🍳
+                </span>
+              )}
+            </div>
+            {/* CTA */}
+            <button onClick={(e) => { e.stopPropagation(); handleBooking(); }}
+              className="px-3 py-1.5 rounded-lg bg-[#0071e3] text-white text-[11px] font-semibold shadow-sm active:scale-95 transition-transform flex-shrink-0">
+              {t.bookNow}
+            </button>
+          </div>
+        </div>
       </div>
 
       {/* TABLET/DESKTOP: Horizontal layout (unchanged logic, optimized) */}
@@ -359,12 +379,16 @@ export function HotelCard({
 
           {/* Amenities + Badges row */}
           <div className="flex items-center gap-2 flex-wrap mb-2">
-            {/* Amenity icons */}
-            <div className="flex items-center gap-1 text-[#86868b]">
-              {amenities.wifi && <Wifi className="w-3.5 h-3.5" />}
-              {amenities.pool && <Waves className="w-3.5 h-3.5" />}
-              {amenities.gym && <Dumbbell className="w-3.5 h-3.5" />}
-              {amenities.parking && <Car className="w-3.5 h-3.5" />}
+            {/* Amenity icons - expanded */}
+            <div className="flex items-center gap-1.5 text-[#86868b]">
+              {amenities.wifi && <Wifi className="w-3.5 h-3.5" title="WiFi" />}
+              {amenities.pool && <Waves className="w-3.5 h-3.5" title="Pool" />}
+              {amenities.gym && <Dumbbell className="w-3.5 h-3.5" title="Gym" />}
+              {amenities.spa && <Sparkles className="w-3.5 h-3.5" title="Spa" />}
+              {amenities.restaurant && <UtensilsCrossed className="w-3.5 h-3.5" title="Restaurant" />}
+              {amenities.parking && <Car className="w-3.5 h-3.5" title="Parking" />}
+              {amenities.ac && <Wind className="w-3.5 h-3.5" title="A/C" />}
+              {amenities.pet && <PawPrint className="w-3.5 h-3.5" title="Pet Friendly" />}
             </div>
             {hasFreeCancellation && (
               <span className="inline-flex items-center gap-0.5 px-2 py-0.5 bg-emerald-100 rounded-md text-[10px] font-semibold text-emerald-700">
