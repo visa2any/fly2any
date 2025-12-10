@@ -430,45 +430,45 @@ export function HotelCard({
           : '0 2px 8px -2px rgba(0, 0, 0, 0.06)'
       }}
     >
-      {/* 🎨 IMAGE SECTION - HORIZONTAL: Left side on ALL screens */}
+      {/* 🎨 IMAGE SECTION - HORIZONTAL: Left side on ALL screens - Wider on mobile */}
       <div
-        className="relative w-[110px] min-w-[110px] sm:w-[140px] sm:min-w-[140px] lg:w-[260px] lg:min-w-[260px] flex-shrink-0 overflow-hidden bg-gradient-to-br from-slate-100 to-slate-200"
+        className="relative w-[130px] min-w-[130px] sm:w-[160px] sm:min-w-[160px] lg:w-[280px] lg:min-w-[280px] flex-shrink-0 overflow-hidden bg-gradient-to-br from-slate-100 to-slate-200"
         onMouseEnter={fetchImages}
         onClick={fetchImages}
       >
-        {/* Action Buttons - Ultra-compact on mobile */}
-        <div className="absolute top-1 lg:top-2.5 right-1 lg:right-2.5 z-20 flex gap-0.5 lg:gap-1.5">
+        {/* Action Buttons - Vertical stack on right side, clear of navigation */}
+        <div className="absolute top-1.5 sm:top-2 lg:top-2.5 right-1.5 sm:right-2 lg:right-2.5 z-20 flex flex-col gap-1 lg:gap-1.5">
           <button
             onClick={handleCompare}
             disabled={!canAddMore && !isComparing}
-            className={`p-1 lg:p-1.5 rounded-full transition-all touch-manipulation ${
+            className={`p-1.5 lg:p-2 rounded-full transition-all touch-manipulation shadow-sm ${
               isComparing
-                ? 'bg-blue-500/90 text-white'
+                ? 'bg-blue-500 text-white'
                 : canAddMore
-                  ? 'bg-black/30 text-white hover:bg-black/50'
-                  : 'bg-black/20 text-white/50 cursor-not-allowed'
+                  ? 'bg-white/90 text-slate-700 hover:bg-white'
+                  : 'bg-white/50 text-slate-400 cursor-not-allowed'
             }`}
             aria-label={isComparing ? 'Remove from compare' : 'Add to compare'}
           >
-            <BarChart2 className="w-3 h-3 lg:w-3.5 lg:h-3.5" />
+            <BarChart2 className="w-3.5 h-3.5 lg:w-4 lg:h-4" />
           </button>
           <button
             onClick={handleFavorite}
-            className={`p-1 lg:p-1.5 rounded-full transition-all touch-manipulation ${
+            className={`p-1.5 lg:p-2 rounded-full transition-all touch-manipulation shadow-sm ${
               isFavorited
-                ? 'bg-rose-500/90 text-white'
-                : 'bg-black/30 text-white hover:bg-black/50'
+                ? 'bg-rose-500 text-white'
+                : 'bg-white/90 text-slate-700 hover:bg-white'
             }`}
             aria-label="Favorite"
           >
-            <Heart className={`w-3 h-3 lg:w-3.5 lg:h-3.5 ${isFavorited ? 'fill-current' : ''}`} />
+            <Heart className={`w-3.5 h-3.5 lg:w-4 lg:h-4 ${isFavorited ? 'fill-current' : ''}`} />
           </button>
           <button
             onClick={handleShare}
-            className="p-1 lg:p-1.5 rounded-full bg-black/30 text-white hover:bg-black/50 transition-all touch-manipulation"
+            className="p-1.5 lg:p-2 rounded-full bg-white/90 text-slate-700 hover:bg-white transition-all touch-manipulation shadow-sm"
             aria-label="Share"
           >
-            <Share2 className="w-3 h-3 lg:w-3.5 lg:h-3.5" />
+            <Share2 className="w-3.5 h-3.5 lg:w-4 lg:h-4" />
           </button>
         </div>
 
@@ -487,7 +487,7 @@ export function HotelCard({
           alt={images[currentImageIndex]?.alt || hotel.name}
           fill
           className="object-cover transition-transform duration-500 group-hover:scale-105"
-          sizes="(max-width: 640px) 110px, (max-width: 1024px) 140px, 260px"
+          sizes="(max-width: 640px) 130px, (max-width: 1024px) 160px, 280px"
           priority={currentImageIndex === 0}
           placeholder="blur"
           blurDataURL={getBlurDataURL(images[currentImageIndex]?.url || '', 260, 200)}
@@ -500,27 +500,27 @@ export function HotelCard({
         {/* Subtle gradient */}
         <div className="absolute inset-0 bg-gradient-to-r from-transparent via-transparent to-black/10" />
 
-        {/* Image Navigation - Only visible on hover/touch, smaller */}
-        <div className="opacity-0 group-hover:opacity-100 transition-opacity">
+        {/* Image Navigation - Always visible on mobile, better positioning */}
+        <div className="flex opacity-100 lg:opacity-0 lg:group-hover:opacity-100 transition-opacity">
           <button
             onClick={prevImage}
-            className="absolute left-0.5 lg:left-1.5 top-1/2 -translate-y-1/2 w-5 h-5 lg:w-7 lg:h-7 flex items-center justify-center rounded-full bg-white/80 shadow transition-all touch-manipulation"
+            className="absolute left-1 top-[45%] -translate-y-1/2 w-6 h-6 sm:w-7 sm:h-7 lg:w-8 lg:h-8 flex items-center justify-center rounded-full bg-white/90 shadow-md hover:bg-white active:scale-95 transition-all touch-manipulation z-10"
             aria-label="Previous"
           >
-            <ChevronLeft className="w-3 h-3 lg:w-4 lg:h-4 text-slate-700" />
+            <ChevronLeft className="w-3.5 h-3.5 sm:w-4 sm:h-4 lg:w-5 lg:h-5 text-slate-700" />
           </button>
           <button
             onClick={nextImage}
-            className="absolute right-0.5 lg:right-1.5 top-1/2 -translate-y-1/2 w-5 h-5 lg:w-7 lg:h-7 flex items-center justify-center rounded-full bg-white/80 shadow transition-all touch-manipulation"
+            className="absolute right-1 top-[45%] -translate-y-1/2 w-6 h-6 sm:w-7 sm:h-7 lg:w-8 lg:h-8 flex items-center justify-center rounded-full bg-white/90 shadow-md hover:bg-white active:scale-95 transition-all touch-manipulation z-10"
             aria-label="Next"
           >
-            <ChevronRight className="w-3 h-3 lg:w-4 lg:h-4 text-slate-700" />
+            <ChevronRight className="w-3.5 h-3.5 sm:w-4 sm:h-4 lg:w-5 lg:h-5 text-slate-700" />
           </button>
         </div>
 
-        {/* Image Counter - Bottom center, tiny */}
-        <div className="absolute bottom-1 lg:bottom-2 left-1/2 -translate-x-1/2 bg-black/50 px-1.5 py-0.5 rounded-full">
-          <span className="text-white text-[8px] lg:text-[9px] font-bold">{currentImageIndex + 1}/{images.length}</span>
+        {/* Image Counter - Bottom left for better visibility */}
+        <div className="absolute bottom-1.5 left-1.5 bg-black/60 backdrop-blur-sm px-2 py-0.5 rounded-md z-10">
+          <span className="text-white text-[9px] sm:text-[10px] font-bold">{currentImageIndex + 1}/{images.length}</span>
         </div>
 
         {/* Loading Indicator */}
@@ -531,86 +531,104 @@ export function HotelCard({
         )}
       </div>
 
-      {/* 📝 CONTENT SECTION - Compact mobile-first design */}
-      <div className="flex-1 flex flex-col p-2 sm:p-2.5 lg:p-3.5 min-w-0 overflow-hidden">
+      {/* 📝 CONTENT SECTION - Enhanced mobile-first design with more info */}
+      <div className="flex-1 flex flex-col p-2.5 sm:p-3 lg:p-4 min-w-0 overflow-hidden">
 
-        {/* Top Row: Name + Price (Mobile: stacked, Desktop: side by side) */}
-        <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-0.5 lg:gap-4">
-          {/* Hotel Name */}
-          <h3 className="text-slate-900 font-bold text-xs sm:text-sm lg:text-base leading-tight line-clamp-2 lg:line-clamp-1 tracking-tight flex-1 min-w-0">
-            {hotel.name}
-          </h3>
-
-          {/* Price - Inline on mobile, absolute on desktop */}
+        {/* 🏷️ HEADER: Price (most important) + Rating */}
+        <div className="flex items-start justify-between gap-2 mb-1">
+          {/* Price - Primary visual hierarchy on mobile */}
           {perNightPrice > 0 && (
-            <div className="flex items-baseline gap-0.5 lg:text-right flex-shrink-0 mt-0.5 lg:mt-0">
-              <span className="text-base sm:text-lg lg:text-2xl font-black text-slate-900">
+            <div className="flex items-baseline gap-0.5">
+              <span className="text-lg sm:text-xl lg:text-2xl font-black text-slate-900">
                 {currencySymbol}{Math.round(perNightPrice)}
               </span>
-              <span className="text-[9px] lg:text-xs text-slate-500">{t.perNight}</span>
+              <span className="text-[9px] sm:text-[10px] lg:text-xs text-slate-500">{t.perNight}</span>
+            </div>
+          )}
+
+          {/* Review Score Badge - Prominent */}
+          {hotel.reviewScore > 0 && (
+            <div className="flex items-center gap-1 flex-shrink-0">
+              <div className={`bg-gradient-to-r ${reviewCategory.gradient} text-white px-1.5 sm:px-2 py-0.5 sm:py-1 rounded-md text-[10px] sm:text-xs font-black shadow-sm`}>
+                {hotel.reviewScore.toFixed(1)}
+              </div>
+              <div className="hidden sm:flex flex-col">
+                <span className="text-[9px] lg:text-[10px] font-bold text-slate-700 leading-tight">{reviewCategory.label}</span>
+                {hotel.reviewCount > 0 && (
+                  <span className="text-[8px] lg:text-[9px] text-slate-400">
+                    {hotel.reviewCount > 999 ? `${(hotel.reviewCount/1000).toFixed(1)}k` : hotel.reviewCount} {t.reviews}
+                  </span>
+                )}
+              </div>
             </div>
           )}
         </div>
 
-        {/* Rating & Location Row - Ultra-compact on mobile */}
-        <div className="flex items-center gap-1 lg:gap-1.5 mt-0.5 lg:mt-1 flex-wrap">
+        {/* Hotel Name - Secondary but important */}
+        <h3 className="text-slate-900 font-bold text-[11px] sm:text-sm lg:text-base leading-tight line-clamp-2 tracking-tight mb-1">
+          {hotel.name}
+        </h3>
+
+        {/* Star Rating + Location Row */}
+        <div className="flex items-center gap-1.5 lg:gap-2 mb-1.5">
           {/* Star Rating */}
           {hotel.rating > 0 && (
-            <div className="flex items-center">
+            <div className="flex items-center gap-0.5">
               {Array.from({ length: Math.min(hotel.rating || 0, 5) }, (_, i) => (
-                <Star key={i} className="w-2 h-2 sm:w-2.5 sm:h-2.5 lg:w-3 lg:h-3 fill-amber-400 text-amber-400" />
+                <Star key={i} className="w-2.5 h-2.5 sm:w-3 sm:h-3 lg:w-3.5 lg:h-3.5 fill-amber-400 text-amber-400" />
               ))}
             </div>
           )}
 
-          {/* Review Score Badge */}
-          {hotel.reviewScore > 0 && (
-            <div className="flex items-center gap-0.5">
-              <div className={`bg-gradient-to-r ${reviewCategory.gradient} text-white px-1 lg:px-1.5 py-0.5 rounded text-[8px] lg:text-[10px] font-black`}>
-                {hotel.reviewScore.toFixed(1)}
-              </div>
-              {hotel.reviewCount > 0 && (
-                <span className="text-slate-400 text-[8px] lg:text-[10px]">
-                  ({hotel.reviewCount > 999 ? `${(hotel.reviewCount/1000).toFixed(1)}k` : hotel.reviewCount})
-                </span>
-              )}
-            </div>
-          )}
-
-          {/* Location */}
+          {/* Location with icon */}
           {(hotel.location?.city || hotel.location?.country) && (
             <div className="flex items-center gap-0.5 text-slate-500">
-              <MapPin className="w-2 h-2 lg:w-2.5 lg:h-2.5 text-orange-500 flex-shrink-0" />
-              <span className="text-[8px] lg:text-[10px] font-medium truncate max-w-[70px] sm:max-w-[100px] lg:max-w-none">
+              <MapPin className="w-2.5 h-2.5 lg:w-3 lg:h-3 text-primary-500 flex-shrink-0" />
+              <span className="text-[9px] sm:text-[10px] lg:text-xs font-medium truncate max-w-[80px] sm:max-w-[120px] lg:max-w-none">
                 {hotel.location?.city || hotel.location?.country}
               </span>
             </div>
           )}
         </div>
 
+        {/* 🛏️ Room Type - Mobile visible now */}
+        {bestRate?.roomType && (
+          <div className="flex items-center gap-1 mb-1.5">
+            <Bed className="w-2.5 h-2.5 sm:w-3 sm:h-3 text-indigo-500 flex-shrink-0" />
+            <span className="text-[9px] sm:text-[10px] lg:text-xs text-slate-600 font-medium line-clamp-1">
+              {bestRate.roomType}
+            </span>
+          </div>
+        )}
+
         {/* Key Badges - Compact horizontal row */}
-        <div className="flex items-center gap-1 mt-1 lg:mt-1.5 overflow-x-auto scrollbar-hide -mx-2 px-2 lg:mx-0 lg:px-0">
+        <div className="flex items-center gap-1 overflow-x-auto scrollbar-hide -mx-2.5 px-2.5 lg:mx-0 lg:px-0">
           {hasBreakfast && (
-            <span className="flex items-center gap-0.5 px-1 lg:px-1.5 py-0.5 bg-amber-50 rounded text-[7px] lg:text-[9px] font-bold text-amber-700 flex-shrink-0 border border-amber-100">
-              <Coffee className="w-2 h-2 lg:w-2.5 lg:h-2.5" />
-              <span className="hidden sm:inline">Breakfast</span>
-              <span className="sm:hidden">B</span>
+            <span className="flex items-center gap-0.5 px-1.5 py-0.5 bg-amber-50 rounded-md text-[8px] sm:text-[9px] lg:text-[10px] font-bold text-amber-700 flex-shrink-0 border border-amber-200">
+              <Coffee className="w-2.5 h-2.5 sm:w-3 sm:h-3" />
+              <span>Breakfast</span>
             </span>
           )}
           {hasFreeCancellation && (
-            <span className="flex items-center gap-0.5 px-1 lg:px-1.5 py-0.5 bg-emerald-50 rounded text-[7px] lg:text-[9px] font-bold text-emerald-700 flex-shrink-0 border border-emerald-100">
-              <Shield className="w-2 h-2 lg:w-2.5 lg:h-2.5" />
+            <span className="flex items-center gap-0.5 px-1.5 py-0.5 bg-emerald-50 rounded-md text-[8px] sm:text-[9px] lg:text-[10px] font-bold text-emerald-700 flex-shrink-0 border border-emerald-200">
+              <Shield className="w-2.5 h-2.5 sm:w-3 sm:h-3" />
               <span className="hidden sm:inline">Free Cancel</span>
-              <span className="sm:hidden">FC</span>
+              <span className="sm:hidden">Cancel</span>
             </span>
           )}
-          {bestRate?.boardType && bestRate.boardType !== 'RO' && (
-            <span className="hidden lg:flex items-center gap-0.5 px-1.5 py-0.5 bg-slate-50 rounded text-[9px] font-bold text-slate-600 flex-shrink-0 border border-slate-100">
-              <Utensils className="w-2.5 h-2.5" />
+          {bestRate?.boardType && bestRate.boardType !== 'RO' && !hasBreakfast && (
+            <span className="flex items-center gap-0.5 px-1.5 py-0.5 bg-blue-50 rounded-md text-[8px] sm:text-[9px] lg:text-[10px] font-bold text-blue-700 flex-shrink-0 border border-blue-200">
+              <Utensils className="w-2.5 h-2.5 sm:w-3 sm:h-3" />
               {bestRate.boardType === 'BB' ? 'Breakfast' :
                bestRate.boardType === 'HB' ? 'Half Board' :
                bestRate.boardType === 'FB' ? 'Full Board' :
                bestRate.boardType === 'AI' ? 'All Incl' : bestRate.boardType}
+            </span>
+          )}
+          {bestRate?.maxOccupancy && (
+            <span className="flex items-center gap-0.5 px-1.5 py-0.5 bg-slate-50 rounded-md text-[8px] sm:text-[9px] lg:text-[10px] font-medium text-slate-600 flex-shrink-0 border border-slate-200">
+              <Users className="w-2.5 h-2.5 sm:w-3 sm:h-3" />
+              <span>{bestRate.maxOccupancy}</span>
             </span>
           )}
         </div>
