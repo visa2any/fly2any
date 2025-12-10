@@ -271,14 +271,14 @@ export function HotelCard({
               <span className="text-[#e5e5e5]">·</span>
               {/* Amenity icons - expanded */}
               <div className="flex items-center gap-0.5 text-[#86868b] flex-shrink-0">
-                {amenities.wifi && <Wifi className="w-3 h-3" title="WiFi" />}
-                {amenities.pool && <Waves className="w-3 h-3" title="Pool" />}
-                {amenities.gym && <Dumbbell className="w-3 h-3" title="Gym" />}
-                {amenities.spa && <Sparkles className="w-3 h-3" title="Spa" />}
-                {amenities.restaurant && <UtensilsCrossed className="w-3 h-3" title="Restaurant" />}
-                {amenities.parking && <Car className="w-3 h-3" title="Parking" />}
-                {amenities.ac && <Wind className="w-3 h-3" title="A/C" />}
-                {amenities.pet && <PawPrint className="w-3 h-3" title="Pet Friendly" />}
+                {amenities.wifi && <Wifi className="w-3 h-3" />}
+                {amenities.pool && <Waves className="w-3 h-3" />}
+                {amenities.gym && <Dumbbell className="w-3 h-3" />}
+                {amenities.spa && <Sparkles className="w-3 h-3" />}
+                {amenities.restaurant && <UtensilsCrossed className="w-3 h-3" />}
+                {amenities.parking && <Car className="w-3 h-3" />}
+                {amenities.ac && <Wind className="w-3 h-3" />}
+                {amenities.pet && <PawPrint className="w-3 h-3" />}
               </div>
               {/* Badges */}
               {hasFreeCancellation && (
@@ -381,14 +381,14 @@ export function HotelCard({
           <div className="flex items-center gap-2 flex-wrap mb-2">
             {/* Amenity icons - expanded */}
             <div className="flex items-center gap-1.5 text-[#86868b]">
-              {amenities.wifi && <Wifi className="w-3.5 h-3.5" title="WiFi" />}
-              {amenities.pool && <Waves className="w-3.5 h-3.5" title="Pool" />}
-              {amenities.gym && <Dumbbell className="w-3.5 h-3.5" title="Gym" />}
-              {amenities.spa && <Sparkles className="w-3.5 h-3.5" title="Spa" />}
-              {amenities.restaurant && <UtensilsCrossed className="w-3.5 h-3.5" title="Restaurant" />}
-              {amenities.parking && <Car className="w-3.5 h-3.5" title="Parking" />}
-              {amenities.ac && <Wind className="w-3.5 h-3.5" title="A/C" />}
-              {amenities.pet && <PawPrint className="w-3.5 h-3.5" title="Pet Friendly" />}
+              {amenities.wifi && <Wifi className="w-3.5 h-3.5" />}
+              {amenities.pool && <Waves className="w-3.5 h-3.5" />}
+              {amenities.gym && <Dumbbell className="w-3.5 h-3.5" />}
+              {amenities.spa && <Sparkles className="w-3.5 h-3.5" />}
+              {amenities.restaurant && <UtensilsCrossed className="w-3.5 h-3.5" />}
+              {amenities.parking && <Car className="w-3.5 h-3.5" />}
+              {amenities.ac && <Wind className="w-3.5 h-3.5" />}
+              {amenities.pet && <PawPrint className="w-3.5 h-3.5" />}
             </div>
             {hasFreeCancellation && (
               <span className="inline-flex items-center gap-0.5 px-2 py-0.5 bg-emerald-100 rounded-md text-[10px] font-semibold text-emerald-700">
