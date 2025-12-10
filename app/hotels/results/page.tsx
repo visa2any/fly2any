@@ -923,8 +923,8 @@ function HotelResultsContent() {
               </div>
             )}
 
-            {/* Hotel Cards List - Optimized spacing */}
-            <div className="space-y-3 lg:space-y-4">
+            {/* Hotel Cards List - Edge-to-edge on mobile */}
+            <div className="space-y-2 sm:space-y-3 lg:space-y-4 -mx-3 sm:mx-0">
               {displayedHotels.map((hotel) => (
                 <HotelCard
                   key={hotel.id}
