@@ -88,7 +88,7 @@ export function CompactRoomCard({
   const hasMultipleOptions = room.rateOptions && room.rateOptions > 1;
 
   return (
-    <div className="group relative bg-white border-2 border-slate-200 rounded-2xl overflow-hidden hover:border-orange-400 hover:shadow-xl transition-all duration-300 flex flex-col h-full">
+    <div className="group relative bg-white border-2 border-slate-200 rounded-2xl overflow-hidden hover:border-primary-400 hover:shadow-xl transition-all duration-300 flex flex-col h-full">
       {/* Room Image with Premium Overlay */}
       {room.images && room.images.length > 0 ? (
         <div className="relative h-40 overflow-hidden bg-gradient-to-br from-slate-100 to-slate-200">
@@ -101,13 +101,13 @@ export function CompactRoomCard({
 
           {/* Bed Type Badge on Image */}
           <div className="absolute bottom-3 left-3 flex items-center gap-1.5 px-2.5 py-1 bg-white/95 backdrop-blur-sm rounded-lg text-xs font-bold text-slate-800 shadow-lg">
-            <BedDouble className="w-3.5 h-3.5 text-orange-500" />
+            <BedDouble className="w-3.5 h-3.5 text-primary-500" />
             {bedType}
           </div>
 
           {/* Multiple Options Badge */}
           {hasMultipleOptions && (
-            <div className="absolute top-3 left-3 flex items-center gap-1 px-2 py-1 bg-gradient-to-r from-orange-500 to-amber-500 rounded-lg text-xs font-bold text-white shadow-lg">
+            <div className="absolute top-3 left-3 flex items-center gap-1 px-2 py-1 bg-gradient-to-r from-primary-500 to-primary-600 rounded-lg text-xs font-bold text-white shadow-lg">
               <Sparkles className="w-3 h-3" />
               {room.rateOptions} options
             </div>
@@ -118,11 +118,11 @@ export function CompactRoomCard({
           </button>
         </div>
       ) : (
-        <div className="relative h-40 bg-gradient-to-br from-slate-100 to-orange-50 flex items-center justify-center">
+        <div className="relative h-40 bg-gradient-to-br from-slate-100 to-primary-50 flex items-center justify-center">
           <BedDouble className="w-12 h-12 text-slate-300" />
           {/* Bed Type Badge even without image */}
           <div className="absolute bottom-3 left-3 flex items-center gap-1.5 px-2.5 py-1 bg-white/95 backdrop-blur-sm rounded-lg text-xs font-bold text-slate-800 shadow-lg">
-            <BedDouble className="w-3.5 h-3.5 text-orange-500" />
+            <BedDouble className="w-3.5 h-3.5 text-primary-500" />
             {bedType}
           </div>
         </div>
@@ -195,7 +195,7 @@ export function CompactRoomCard({
             className={`w-full px-4 py-2.5 font-bold rounded-xl transition-all text-sm shadow-md flex items-center justify-center gap-2 ${
               isSelected
                 ? 'bg-green-500 text-white ring-2 ring-green-600 ring-offset-1'
-                : 'bg-gradient-to-r from-orange-500 to-amber-500 text-white hover:from-orange-600 hover:to-amber-600 hover:shadow-lg hover:scale-[1.02] active:scale-95'
+                : 'bg-gradient-to-r from-primary-500 to-primary-600 text-white hover:from-primary-600 hover:to-primary-700 hover:shadow-lg hover:scale-[1.02] active:scale-95'
             }`}
           >
             {isSelected && <CheckCircle2 className="w-4 h-4" />}

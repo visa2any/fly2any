@@ -647,7 +647,7 @@ function HotelCheckoutContent() {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center">
-          <Loader2 className="w-10 h-10 animate-spin text-orange-500 mx-auto mb-4" />
+          <Loader2 className="w-10 h-10 animate-spin text-primary-500 mx-auto mb-4" />
           <p className="text-gray-600 font-medium">Preparing your checkout...</p>
         </div>
       </div>
@@ -659,7 +659,7 @@ function HotelCheckoutContent() {
   // ===========================
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-orange-50/30">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-primary-50/30">
       {/* Header */}
       <header className="bg-white border-b border-gray-200 sticky top-0 z-50 shadow-sm">
         <div className="max-w-7xl mx-auto px-4 py-3">
@@ -674,7 +674,7 @@ function HotelCheckoutContent() {
               </Link>
               <div className="h-6 w-px bg-gray-200" />
               <div className="flex items-center gap-2">
-                <Hotel className="w-5 h-5 text-orange-500" />
+                <Hotel className="w-5 h-5 text-primary-500" />
                 <h1 className="text-lg font-bold text-gray-900">Secure Checkout</h1>
               </div>
             </div>
@@ -731,7 +731,7 @@ function HotelCheckoutContent() {
 
             {/* Guest Information - Compact */}
             <div className="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden">
-              <div className="bg-gradient-to-r from-orange-500 to-amber-500 px-4 py-3 text-white">
+              <div className="bg-gradient-to-r from-primary-500 to-primary-600 px-4 py-3 text-white">
                 <div className="flex items-center gap-2.5">
                   <div className="w-8 h-8 bg-white/20 rounded-lg flex items-center justify-center">
                     <User className="w-4 h-4" />
@@ -751,7 +751,7 @@ function HotelCheckoutContent() {
                     <select
                       value={guest.title}
                       onChange={(e) => handleGuestUpdate('title', e.target.value)}
-                      className="w-full px-2.5 py-2 border border-gray-300 rounded-lg bg-white focus:ring-2 focus:ring-orange-500 focus:border-orange-500 text-sm"
+                      className="w-full px-2.5 py-2 border border-gray-300 rounded-lg bg-white focus:ring-2 focus:ring-primary-500 focus:border-primary-500 text-sm"
                       required
                     >
                       <option value="">Select</option>
@@ -768,7 +768,7 @@ function HotelCheckoutContent() {
                       value={guest.firstName}
                       onChange={(e) => handleGuestUpdate('firstName', e.target.value)}
                       placeholder="John"
-                      className="w-full px-2.5 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500 text-sm"
+                      className="w-full px-2.5 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 text-sm"
                       required
                     />
                   </div>
@@ -779,7 +779,7 @@ function HotelCheckoutContent() {
                       value={guest.lastName}
                       onChange={(e) => handleGuestUpdate('lastName', e.target.value)}
                       placeholder="Smith"
-                      className="w-full px-2.5 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500 text-sm"
+                      className="w-full px-2.5 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 text-sm"
                       required
                     />
                   </div>
@@ -797,7 +797,7 @@ function HotelCheckoutContent() {
                       value={guest.email}
                       onChange={(e) => handleGuestUpdate('email', e.target.value)}
                       placeholder="john@example.com"
-                      className="w-full px-2.5 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500 text-sm"
+                      className="w-full px-2.5 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 text-sm"
                       required
                     />
                   </div>
@@ -811,7 +811,7 @@ function HotelCheckoutContent() {
                       value={guest.phone}
                       onChange={(e) => handleGuestUpdate('phone', e.target.value)}
                       placeholder="+1 555 123 4567"
-                      className="w-full px-2.5 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500 text-sm"
+                      className="w-full px-2.5 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 text-sm"
                       required
                     />
                   </div>
@@ -827,7 +827,7 @@ function HotelCheckoutContent() {
                     onChange={(e) => handleGuestUpdate('specialRequests', e.target.value)}
                     placeholder="e.g., Late check-in, high floor, quiet room..."
                     rows={2}
-                    className="w-full px-2.5 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500 text-sm resize-none"
+                    className="w-full px-2.5 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 text-sm resize-none"
                   />
                   <p className="text-xs text-gray-500 mt-0.5">Requests not guaranteed but hotel will try to accommodate.</p>
                 </div>
@@ -836,7 +836,7 @@ function HotelCheckoutContent() {
 
             {/* Payment Section - Compact */}
             <div className="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden">
-              <div className="bg-gradient-to-r from-orange-500 to-amber-500 px-4 py-3 text-white">
+              <div className="bg-gradient-to-r from-primary-500 to-primary-600 px-4 py-3 text-white">
                 <div className="flex items-center gap-2.5">
                   <div className="w-8 h-8 bg-white/20 rounded-lg flex items-center justify-center">
                     <CreditCard className="w-4 h-4" />
@@ -920,12 +920,12 @@ function HotelCheckoutContent() {
                     ) : (hotelData.price > 0 || prebookData?.price?.amount) ? (
                       // Secure Payment - Ready to process (Compact)
                       <>
-                        <div className="p-3 bg-orange-50 border border-orange-200 rounded-xl">
+                        <div className="p-3 bg-primary-50 border border-primary-200 rounded-xl">
                           <div className="flex items-center gap-2 mb-0.5">
-                            <Shield className="w-4 h-4 text-orange-600" />
-                            <p className="text-sm text-orange-900 font-medium">Secure Payment Ready</p>
+                            <Shield className="w-4 h-4 text-primary-600" />
+                            <p className="text-sm text-primary-900 font-medium">Secure Payment Ready</p>
                           </div>
-                          <p className="text-xs text-orange-700">
+                          <p className="text-xs text-primary-700">
                             Protected with bank-level encryption and fraud protection.
                           </p>
                         </div>
@@ -936,7 +936,7 @@ function HotelCheckoutContent() {
                           className={`w-full py-3.5 rounded-xl font-bold text-base shadow-lg transition-all transform ${
                             !isGuestValid() || isProcessing || prebooking || !prebookData?.prebookId
                               ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
-                              : 'bg-gradient-to-r from-orange-500 to-amber-500 text-white hover:from-orange-600 hover:to-amber-600 hover:shadow-xl hover:scale-[1.02] active:scale-[0.98]'
+                              : 'bg-gradient-to-r from-primary-500 to-primary-600 text-white hover:from-primary-600 hover:to-amber-600 hover:shadow-xl hover:scale-[1.02] active:scale-[0.98]'
                           }`}
                         >
                           {isProcessing ? (
@@ -970,7 +970,7 @@ function HotelCheckoutContent() {
                   </div>
                 ) : !clientSecret ? (
                   <div className="text-center py-6">
-                    <Loader2 className="w-7 h-7 animate-spin text-orange-500 mx-auto mb-3" />
+                    <Loader2 className="w-7 h-7 animate-spin text-primary-500 mx-auto mb-3" />
                     <p className="text-gray-600 text-sm">Initializing secure payment...</p>
                   </div>
                 ) : (
@@ -1128,10 +1128,10 @@ function HotelCheckoutContent() {
                 )}
 
                 {/* Room Info - Compact */}
-                <div className="bg-orange-50 border border-orange-100 rounded-xl px-3 py-2">
+                <div className="bg-primary-50 border border-primary-100 rounded-xl px-3 py-2">
                   <div className="flex items-center justify-between flex-wrap gap-2">
                     <div className="flex items-center gap-2">
-                      <BedDouble className="w-4 h-4 text-orange-600" />
+                      <BedDouble className="w-4 h-4 text-primary-600" />
                       <span className="font-semibold text-gray-900 text-sm">{hotelData.roomName}</span>
                     </div>
                     <div className="flex flex-wrap gap-1.5">
@@ -1209,7 +1209,7 @@ function HotelCheckoutContent() {
                 <div className="border-t-2 border-gray-300 pt-2.5">
                   <div className="flex justify-between items-center">
                     <span className="font-bold text-lg text-gray-900">Total</span>
-                    <span className="font-bold text-2xl text-orange-600">
+                    <span className="font-bold text-2xl text-primary-600">
                       {hotelData.currency} {getGrandTotal().toFixed(2)}
                     </span>
                   </div>
@@ -1269,7 +1269,7 @@ export default function HotelBookingPage() {
     <Suspense fallback={
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center">
-          <Loader2 className="w-10 h-10 animate-spin text-orange-500 mx-auto mb-4" />
+          <Loader2 className="w-10 h-10 animate-spin text-primary-500 mx-auto mb-4" />
           <p className="text-gray-600 font-medium">Loading checkout...</p>
         </div>
       </div>

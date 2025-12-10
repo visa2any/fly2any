@@ -234,7 +234,7 @@ export default function HotelsPage() {
   return (
     <div className="min-h-screen bg-white" suppressHydrationWarning>
       {/* Hero Section - Orange Theme */}
-      <div className="relative bg-gradient-to-br from-amber-50 via-orange-50/30 to-amber-50 border-b border-orange-200/60 overflow-hidden">
+      <div className="relative bg-gradient-to-br from-amber-50 via-orange-50/30 to-amber-50 border-b border-primary-200/60 overflow-hidden">
         <div className="absolute inset-0 overflow-hidden pointer-events-none">
           <div className="floating-orb floating-orb-1"></div>
           <div className="floating-orb floating-orb-2"></div>
@@ -256,7 +256,7 @@ export default function HotelsPage() {
                   letterDelay={0.038}
                 />
               </h1>
-              <span className="hidden md:inline-block text-orange-400 text-2xl font-bold mx-1">•</span>
+              <span className="hidden md:inline-block text-primary-400 text-2xl font-bold mx-1">•</span>
               <p className="hero-subtitle text-gray-700/90 mb-0 font-medium text-xs sm:text-sm md:text-lg leading-tight" style={{ letterSpacing: '-0.01em' }} suppressHydrationWarning>
                 <AnimatedTitle
                   text={t('subtitle')}
@@ -297,7 +297,7 @@ export default function HotelsPage() {
       `}</style>
 
       {/* Hotel Search Bar with Multi-Service Tabs */}
-      <div className="py-6 md:py-8 bg-gradient-to-b from-orange-50/30 to-white">
+      <div className="py-2 md:py-4 bg-gradient-to-b from-primary-50/30 to-white">
         <MaxWidthContainer>
           <MobileHomeSearchWrapper lang={lang} defaultService="hotels" />
         </MaxWidthContainer>
@@ -319,7 +319,7 @@ export default function HotelsPage() {
             {baseStarCategories.map((cat, idx) => {
               const IconComponent = cat.icon;
               return (
-                <div key={idx} className="relative rounded-xl overflow-hidden shadow-md hover:shadow-2xl transition-all border border-gray-200 hover:border-orange-400 group cursor-pointer h-[320px]">
+                <div key={idx} className="relative rounded-xl overflow-hidden shadow-md hover:shadow-2xl transition-all border border-gray-200 hover:border-primary-400 group cursor-pointer h-[320px]">
                   {/* Background Image */}
                   <Image
                     src={cat.image}
@@ -348,7 +348,7 @@ export default function HotelsPage() {
                     <div>
                       <h3 className="text-xl font-bold text-white mb-2 drop-shadow-lg">{cat.title}</h3>
                       <p className="text-sm text-white/90 mb-3 drop-shadow-md">{cat.description}</p>
-                      <div className="text-xl font-bold text-orange-400 mb-3 drop-shadow-lg">{cat.priceRange}</div>
+                      <div className="text-xl font-bold text-primary-400 mb-3 drop-shadow-lg">{cat.priceRange}</div>
                       <div className="flex flex-wrap gap-2">
                         {cat.features.map((feat, i) => (
                           <span key={i} className="text-xs bg-white/20 backdrop-blur-sm px-2 py-1 rounded-full text-white border border-white/30">{feat}</span>
@@ -374,14 +374,14 @@ export default function HotelsPage() {
             {basePropertyTypes.map((prop, idx) => {
               const IconComponent = prop.icon;
               return (
-                <div key={idx} className="bg-gradient-to-br from-white to-gray-50 rounded-xl p-6 shadow-md hover:shadow-xl transition-all border border-gray-200 hover:border-orange-300 group cursor-pointer">
+                <div key={idx} className="bg-gradient-to-br from-white to-gray-50 rounded-xl p-6 shadow-md hover:shadow-xl transition-all border border-gray-200 hover:border-primary-300 group cursor-pointer">
                   <div className={`w-12 h-12 rounded-lg bg-gradient-to-br ${prop.color} flex items-center justify-center mb-4 group-hover:scale-110 transition-transform`}>
                     <IconComponent className="w-6 h-6 text-white" />
                   </div>
                   <h3 className="text-xl font-bold text-gray-900 mb-2">{prop.type}</h3>
                   <p className="text-sm text-gray-600 mb-3">{prop.description}</p>
                   <div className="flex justify-between items-center text-sm">
-                    <span className="font-semibold text-orange-600">{prop.avgPrice}</span>
+                    <span className="font-semibold text-primary-600">{prop.avgPrice}</span>
                     <span className="text-gray-500">{prop.bestFor}</span>
                   </div>
                 </div>
@@ -402,7 +402,7 @@ export default function HotelsPage() {
             {baseDealCategories.map((deal, idx) => {
               const IconComponent = deal.icon;
               return (
-                <div key={idx} className="bg-white rounded-xl p-6 shadow-md hover:shadow-xl transition-all border-2 border-orange-200 hover:border-orange-400 group cursor-pointer overflow-hidden relative">
+                <div key={idx} className="bg-white rounded-xl p-6 shadow-md hover:shadow-xl transition-all border-2 border-primary-200 hover:border-primary-400 group cursor-pointer overflow-hidden relative">
                   <div className="absolute top-0 right-0 bg-red-600 text-white px-3 py-1 text-xs font-bold rounded-bl-xl">{deal.discount}</div>
                   <div className={`w-14 h-14 rounded-xl bg-gradient-to-br ${deal.color} flex items-center justify-center mb-4 group-hover:scale-110 transition-transform`}>
                     <IconComponent className="w-7 h-7 text-white" />
@@ -417,23 +417,24 @@ export default function HotelsPage() {
         </MaxWidthContainer>
       </div>
 
-      {/* 4. Amenities Explorer */}
-      <div className="bg-white py-6 sm:py-8 md:py-12">
+      {/* 4. Amenities Explorer - Horizontal scroll on mobile */}
+      <div className="bg-white py-4 sm:py-6 md:py-10">
         <MaxWidthContainer className="px-0 md:px-6" noPadding={true}>
-          <div className="mb-6 sm:mb-8 px-4 md:px-0">
-            <h2 className="text-lg sm:text-xl md:text-3xl font-bold text-gray-900 mb-2">{t('amenitiesTitle')}</h2>
+          <div className="mb-3 sm:mb-6 px-3 md:px-0">
+            <h2 className="text-base sm:text-xl md:text-3xl font-bold text-gray-900 mb-1">{t('amenitiesTitle')}</h2>
             <p className="text-xs sm:text-sm md:text-base text-gray-600">{t('amenitiesSubtitle')}</p>
           </div>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-2 sm:gap-3 md:gap-4 px-2 md:px-0">
+          {/* Mobile: Horizontal scroll, no wrap | Desktop: Grid */}
+          <div className="flex md:grid md:grid-cols-4 gap-2 md:gap-4 px-2 md:px-0 overflow-x-auto scrollbar-hide pb-2 md:pb-0 snap-x snap-mandatory md:snap-none">
             {baseAmenities.map((amenity, idx) => {
               const IconComponent = amenity.icon;
               return (
-                <div key={idx} className="bg-gradient-to-br from-white to-gray-50 rounded-xl p-4 shadow-sm hover:shadow-md transition-all border border-gray-200 hover:border-orange-300 group cursor-pointer text-center">
-                  <div className="w-12 h-12 rounded-lg bg-orange-100 flex items-center justify-center mx-auto mb-3 group-hover:bg-orange-200 transition-colors">
-                    <IconComponent className="w-6 h-6 text-orange-600" />
+                <div key={idx} className="flex-shrink-0 w-[100px] sm:w-auto snap-start bg-gradient-to-br from-white to-gray-50 rounded-xl p-2.5 sm:p-4 shadow-sm hover:shadow-md transition-all border border-gray-200 hover:border-primary-300 group cursor-pointer text-center">
+                  <div className="w-9 h-9 sm:w-12 sm:h-12 rounded-lg bg-primary-100 flex items-center justify-center mx-auto mb-1.5 sm:mb-3 group-hover:bg-primary-200 transition-colors">
+                    <IconComponent className="w-4 h-4 sm:w-6 sm:h-6 text-primary-600" />
                   </div>
-                  <h4 className="text-sm font-semibold text-gray-900 mb-1">{amenity.name}</h4>
-                  <p className="text-xs text-gray-500">{amenity.count}</p>
+                  <h4 className="text-[10px] sm:text-sm font-semibold text-gray-900 mb-0.5 leading-tight">{amenity.name}</h4>
+                  <p className="text-[9px] sm:text-xs text-gray-500">{amenity.count}</p>
                 </div>
               );
             })}
@@ -441,20 +442,21 @@ export default function HotelsPage() {
         </MaxWidthContainer>
       </div>
 
-      {/* 5. Top Hotel Chains */}
-      <div className="bg-gradient-to-br from-gray-50 to-white py-6 sm:py-8 md:py-12">
+      {/* 5. Top Hotel Chains - Horizontal scroll on mobile */}
+      <div className="bg-gradient-to-br from-gray-50 to-white py-4 sm:py-6 md:py-10">
         <MaxWidthContainer className="px-0 md:px-6" noPadding={true}>
-          <div className="mb-6 sm:mb-8 px-4 md:px-0">
-            <h2 className="text-lg sm:text-xl md:text-3xl font-bold text-gray-900 mb-2">{t('chainsTitle')}</h2>
+          <div className="mb-3 sm:mb-6 px-3 md:px-0">
+            <h2 className="text-base sm:text-xl md:text-3xl font-bold text-gray-900 mb-1">{t('chainsTitle')}</h2>
             <p className="text-xs sm:text-sm md:text-base text-gray-600">{t('chainsSubtitle')}</p>
           </div>
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-2 sm:gap-3 md:gap-4 px-2 md:px-0">
+          {/* Mobile: Horizontal scroll | Desktop: Grid */}
+          <div className="flex md:grid md:grid-cols-3 lg:grid-cols-6 gap-2 md:gap-4 px-2 md:px-0 overflow-x-auto scrollbar-hide pb-2 md:pb-0 snap-x snap-mandatory md:snap-none">
             {baseChains.map((chain, idx) => (
-              <div key={idx} className="bg-white rounded-xl p-4 shadow-md hover:shadow-xl transition-all border border-gray-200 hover:border-orange-300 group cursor-pointer text-center">
-                <div className="text-4xl mb-2">{chain.logo}</div>
-                <h4 className="text-sm font-bold text-gray-900 mb-1">{chain.name}</h4>
-                <p className="text-xs text-gray-500 mb-2">{chain.properties}</p>
-                <span className="inline-block bg-green-100 text-green-700 px-2 py-1 rounded-full text-xs font-semibold">{chain.discount}</span>
+              <div key={idx} className="flex-shrink-0 w-[130px] sm:w-auto snap-start bg-white rounded-xl p-3 sm:p-4 shadow-md hover:shadow-xl transition-all border border-gray-200 hover:border-primary-300 group cursor-pointer text-center">
+                <div className="text-3xl sm:text-4xl mb-1.5 sm:mb-2">{chain.logo}</div>
+                <h4 className="text-[11px] sm:text-sm font-bold text-gray-900 mb-0.5 leading-tight">{chain.name}</h4>
+                <p className="text-[9px] sm:text-xs text-gray-500 mb-1.5 sm:mb-2">{chain.properties}</p>
+                <span className="inline-block bg-green-100 text-green-700 px-1.5 sm:px-2 py-0.5 sm:py-1 rounded-full text-[9px] sm:text-xs font-semibold">{chain.discount}</span>
               </div>
             ))}
           </div>

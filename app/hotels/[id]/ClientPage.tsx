@@ -200,16 +200,16 @@ export default function HotelDetailPage() {
 
     // Food & Beverage (Orange)
     if (amenityLower.includes('restaurant') || amenityLower.includes('dining')) {
-      return { icon: <UtensilsCrossed className="w-5 h-5" />, color: 'text-orange-600' };
+      return { icon: <UtensilsCrossed className="w-5 h-5" />, color: 'text-primary-600' };
     }
     if (amenityLower.includes('bar') || amenityLower.includes('lounge')) {
-      return { icon: <Wine className="w-5 h-5" />, color: 'text-orange-600' };
+      return { icon: <Wine className="w-5 h-5" />, color: 'text-primary-600' };
     }
     if (amenityLower.includes('coffee') || amenityLower.includes('breakfast') || amenityLower.includes('cafe')) {
-      return { icon: <Coffee className="w-5 h-5" />, color: 'text-orange-600' };
+      return { icon: <Coffee className="w-5 h-5" />, color: 'text-primary-600' };
     }
     if (amenityLower.includes('kitchen') || amenityLower.includes('kitchenette')) {
-      return { icon: <Utensils className="w-5 h-5" />, color: 'text-orange-600' };
+      return { icon: <Utensils className="w-5 h-5" />, color: 'text-primary-600' };
     }
 
     // Comfort & Convenience (Purple)
@@ -300,7 +300,7 @@ export default function HotelDetailPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-orange-50/30 to-slate-50">
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-primary-50/30 to-slate-50">
         {/* Header Skeleton */}
         <div className="bg-white border-b border-gray-200 shadow-sm">
           <div style={{ maxWidth: '1440px', margin: '0 auto', padding: '16px 24px' }}>
@@ -312,7 +312,7 @@ export default function HotelDetailPage() {
         </div>
 
         {/* Search Context Banner - Shows what user is searching for */}
-        <div className="bg-gradient-to-r from-orange-500 to-amber-500 text-white">
+        <div className="bg-gradient-to-r from-primary-500 to-primary-600 text-white">
           <div style={{ maxWidth: '1440px', margin: '0 auto', padding: '12px 24px' }}>
             <div className="flex flex-wrap items-center justify-center gap-4 text-sm">
               <div className="flex items-center gap-2">
@@ -345,7 +345,7 @@ export default function HotelDetailPage() {
           <div className="bg-white rounded-2xl shadow-lg border border-gray-100 p-6 mb-6">
             <div className="flex flex-col items-center text-center">
               <div className="relative mb-4">
-                <div className="w-16 h-16 bg-gradient-to-r from-orange-500 to-amber-500 rounded-full flex items-center justify-center animate-pulse">
+                <div className="w-16 h-16 bg-gradient-to-r from-primary-500 to-primary-600 rounded-full flex items-center justify-center animate-pulse">
                   <Hotel className="w-8 h-8 text-white" />
                 </div>
                 <div className="absolute -bottom-1 -right-1 w-6 h-6 bg-green-500 rounded-full flex items-center justify-center">
@@ -361,10 +361,10 @@ export default function HotelDetailPage() {
                   <CheckCircle className="w-4 h-4 text-green-500" />
                   <span className="text-green-700 font-medium">Hotel found</span>
                 </div>
-                <div className="w-8 h-0.5 bg-gradient-to-r from-green-500 to-orange-400" />
+                <div className="w-8 h-0.5 bg-gradient-to-r from-green-500 to-primary-400" />
                 <div className="flex items-center gap-1.5">
-                  <div className="w-4 h-4 border-2 border-orange-500 border-t-transparent rounded-full animate-spin" />
-                  <span className="text-orange-600 font-medium">Loading details</span>
+                  <div className="w-4 h-4 border-2 border-primary-500 border-t-transparent rounded-full animate-spin" />
+                  <span className="text-primary-600 font-medium">Loading details</span>
                 </div>
                 <div className="w-8 h-0.5 bg-gray-200" />
                 <div className="flex items-center gap-1.5">
@@ -423,7 +423,7 @@ export default function HotelDetailPage() {
                           </div>
                         </div>
                         <div className="text-right space-y-2">
-                          <div className="h-6 bg-orange-100 rounded w-20" />
+                          <div className="h-6 bg-primary-100 rounded w-20" />
                           <div className="h-4 bg-gray-100 rounded w-16" />
                         </div>
                       </div>
@@ -580,13 +580,13 @@ export default function HotelDetailPage() {
       )}
 
       {/* Hotel Content */}
-      <div style={{ maxWidth: '1440px', margin: '0 auto', padding: '32px 24px' }}>
+      <div className="max-w-[1440px] mx-auto px-3 sm:px-4 lg:px-6 py-4 lg:py-8">
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* Main Content */}
           <div className="lg:col-span-2">
             {/* Premium Photo Slider with Hotel Info Overlay */}
             {hotel?.images && hotel.images.length > 0 && (
-              <div className="relative h-96 rounded-2xl overflow-hidden mb-6 group bg-gray-100 shadow-2xl">
+              <div className="relative h-56 sm:h-72 lg:h-96 rounded-xl lg:rounded-2xl overflow-hidden mb-4 lg:mb-6 group bg-gray-100 shadow-lg lg:shadow-2xl">
                 {/* Current Image */}
                 <img
                   src={hotel.images[selectedImageIndex]?.url || hotel.images[0]?.url || hotel.images[0] || mainImage}
@@ -602,7 +602,7 @@ export default function HotelDetailPage() {
                 <div className="absolute top-4 left-4 right-24 z-10">
                   {/* Hotel Name with Icon */}
                   <div className="flex items-center gap-2.5 mb-1.5">
-                    <Building2 className="w-7 h-7 md:w-8 md:h-8 text-orange-400 flex-shrink-0" style={{ filter: 'drop-shadow(0 2px 4px rgba(0,0,0,0.8))' }} />
+                    <Building2 className="w-7 h-7 md:w-8 md:h-8 text-primary-400 flex-shrink-0" style={{ filter: 'drop-shadow(0 2px 4px rgba(0,0,0,0.8))' }} />
                     <h1 className="text-2xl md:text-3xl font-extrabold text-white line-clamp-1"
                         style={{
                           textShadow: '0 2px 4px rgba(0,0,0,0.9), 0 4px 8px rgba(0,0,0,0.7), 0 0 20px rgba(0,0,0,0.5)',
@@ -613,7 +613,7 @@ export default function HotelDetailPage() {
                   </div>
                   {/* Address */}
                   <div className="flex items-center gap-2 text-white ml-9 md:ml-10">
-                    <MapPin className="w-4 h-4 flex-shrink-0 text-orange-300" style={{ filter: 'drop-shadow(0 2px 4px rgba(0,0,0,0.8))' }} />
+                    <MapPin className="w-4 h-4 flex-shrink-0 text-primary-300" style={{ filter: 'drop-shadow(0 2px 4px rgba(0,0,0,0.8))' }} />
                     <span className="text-sm font-semibold line-clamp-1"
                           style={{ textShadow: '0 1px 3px rgba(0,0,0,0.9), 0 2px 6px rgba(0,0,0,0.7)' }}>
                       {hotel.address?.street && `${hotel.address.street}, `}
@@ -704,11 +704,11 @@ export default function HotelDetailPage() {
             )}
 
             {/* Premium Booking Info Bar - Check-in/Check-out with Times & Star Rating */}
-            <div className="bg-white rounded-2xl p-4 mb-6 shadow-lg border border-slate-200 hover:border-orange-200 transition-colors">
+            <div className="bg-white rounded-2xl p-4 mb-6 shadow-lg border border-slate-200 hover:border-primary-200 transition-colors">
               <div className="flex flex-wrap items-center justify-between gap-4">
                 {/* Check-in Section */}
                 <div className="flex items-center gap-3">
-                  <div className="flex items-center justify-center w-10 h-10 rounded-xl bg-gradient-to-br from-orange-500 to-amber-500 shadow-md">
+                  <div className="flex items-center justify-center w-10 h-10 rounded-xl bg-gradient-to-br from-primary-500 to-primary-600 shadow-md">
                     <LogIn className="w-5 h-5 text-white" />
                   </div>
                   <div>
@@ -719,7 +719,7 @@ export default function HotelDetailPage() {
                         return new Date(year, month - 1, day).toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' });
                       })() : 'Select date'}
                     </div>
-                    <div className="text-xs text-orange-600 font-semibold">
+                    <div className="text-xs text-primary-600 font-semibold">
                       {hotel.checkInTime || '3:00 PM'}
                     </div>
                   </div>
@@ -754,7 +754,7 @@ export default function HotelDetailPage() {
 
                 {/* Star Rating Badge */}
                 {(hotel.starRating || hotel.star_rating) && (
-                  <div className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-orange-500 to-amber-500 rounded-xl shadow-md">
+                  <div className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-primary-500 to-primary-600 rounded-xl shadow-md">
                     <div className="flex items-center gap-0.5">
                       {[...Array(Math.min(Math.floor(hotel.starRating || hotel.star_rating || 0), 5))].map((_, i) => (
                         <Star key={i} className="w-4 h-4 fill-white text-white" />
@@ -784,12 +784,12 @@ export default function HotelDetailPage() {
               {hotel.description && (
                 <div className="mb-6">
                   <div className="flex items-center gap-2 mb-3">
-                    <div className="flex items-center justify-center w-8 h-8 rounded-lg bg-gradient-to-br from-orange-500 to-amber-500">
+                    <div className="flex items-center justify-center w-8 h-8 rounded-lg bg-gradient-to-br from-primary-500 to-primary-600">
                       <Info className="w-4 h-4 text-white" />
                     </div>
                     <h2 className="text-lg font-bold text-slate-800">About This Property</h2>
                   </div>
-                  <p className="text-slate-600 leading-relaxed pl-10 border-l-2 border-orange-200">
+                  <p className="text-slate-600 leading-relaxed pl-10 border-l-2 border-primary-200">
                     {hotel.description}
                   </p>
                 </div>
@@ -823,7 +823,7 @@ export default function HotelDetailPage() {
                     {hotel.amenities.slice(0, 12).map((amenity: string, idx: number) => {
                       const { icon, color } = getAmenityIcon(amenity);
                       return (
-                        <div key={idx} className="flex items-center gap-2.5 text-slate-700 group p-2 rounded-lg hover:bg-orange-50 transition-colors">
+                        <div key={idx} className="flex items-center gap-2.5 text-slate-700 group p-2 rounded-lg hover:bg-primary-50 transition-colors">
                           <div className={`${color} group-hover:scale-110 transition-transform`}>
                             {icon}
                           </div>
@@ -844,7 +844,7 @@ export default function HotelDetailPage() {
 
             {/* Room Listings Section - Premium Styled */}
             {hotel.rates && hotel.rates.length > 0 && (
-              <div className="bg-white rounded-2xl p-6 shadow-lg border border-slate-200 hover:border-orange-200 transition-colors">
+              <div className="bg-white rounded-2xl p-6 shadow-lg border border-slate-200 hover:border-primary-200 transition-colors">
                 {/* Premium Section Header */}
                 <div className="flex items-center justify-between mb-6">
                   <div className="flex items-center gap-3">
@@ -860,7 +860,7 @@ export default function HotelDetailPage() {
                   </div>
                   <button
                     onClick={() => setShowFilters(!showFilters)}
-                    className="flex items-center gap-2 px-4 py-2 bg-slate-100 hover:bg-orange-50 border border-slate-200 hover:border-orange-300 rounded-xl text-slate-700 hover:text-orange-600 font-medium transition-all"
+                    className="flex items-center gap-2 px-4 py-2 bg-slate-100 hover:bg-primary-50 border border-slate-200 hover:border-primary-300 rounded-xl text-slate-700 hover:text-primary-600 font-medium transition-all"
                   >
                     <Filter className="w-4 h-4" />
                     <span className="hidden sm:inline">Filters</span>
@@ -869,7 +869,7 @@ export default function HotelDetailPage() {
 
                 {/* Filter Controls - Premium Styled */}
                 {showFilters && (
-                  <div className="mb-6 p-4 bg-gradient-to-br from-slate-50 to-orange-50/30 rounded-xl border border-slate-200">
+                  <div className="mb-6 p-4 bg-gradient-to-br from-slate-50 to-primary-50/30 rounded-xl border border-slate-200">
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                       {/* Price Filter */}
                       <div>
@@ -879,7 +879,7 @@ export default function HotelDetailPage() {
                         <select
                           value={priceFilter}
                           onChange={(e) => setPriceFilter(e.target.value)}
-                          className="w-full px-3 py-2.5 border border-slate-200 rounded-lg focus:ring-2 focus:ring-orange-500/20 focus:border-orange-400 transition-all bg-white"
+                          className="w-full px-3 py-2.5 border border-slate-200 rounded-lg focus:ring-2 focus:ring-primary-500/20 focus:border-primary-400 transition-all bg-white"
                         >
                           <option value="all">All Prices</option>
                           <option value="under150">Under $150</option>
@@ -896,7 +896,7 @@ export default function HotelDetailPage() {
                         <select
                           value={bedTypeFilter}
                           onChange={(e) => setBedTypeFilter(e.target.value)}
-                          className="w-full px-3 py-2.5 border border-slate-200 rounded-lg focus:ring-2 focus:ring-orange-500/20 focus:border-orange-400 transition-all bg-white"
+                          className="w-full px-3 py-2.5 border border-slate-200 rounded-lg focus:ring-2 focus:ring-primary-500/20 focus:border-primary-400 transition-all bg-white"
                         >
                           <option value="all">All Bed Types</option>
                           <option value="king">King</option>
@@ -914,7 +914,7 @@ export default function HotelDetailPage() {
                         <select
                           value={sortBy}
                           onChange={(e) => setSortBy(e.target.value)}
-                          className="w-full px-3 py-2.5 border border-slate-200 rounded-lg focus:ring-2 focus:ring-orange-500/20 focus:border-orange-400 transition-all bg-white"
+                          className="w-full px-3 py-2.5 border border-slate-200 rounded-lg focus:ring-2 focus:ring-primary-500/20 focus:border-primary-400 transition-all bg-white"
                         >
                           <option value="price">Price: Low to High</option>
                           <option value="price-desc">Price: High to Low</option>
@@ -926,7 +926,7 @@ export default function HotelDetailPage() {
 
                 {/* Room Cards - PREMIUM VERTICAL COMPACT with Load More */}
                 {filteredRooms.length === 0 ? (
-                  <div className="text-center py-12 bg-gradient-to-br from-slate-50 to-orange-50/30 rounded-xl border border-slate-200">
+                  <div className="text-center py-12 bg-gradient-to-br from-slate-50 to-primary-50/30 rounded-xl border border-slate-200">
                     <Info className="w-12 h-12 text-slate-400 mx-auto mb-3" />
                     <p className="text-slate-600 font-semibold">No rooms match your filters</p>
                     <button
@@ -934,7 +934,7 @@ export default function HotelDetailPage() {
                         setPriceFilter('all');
                         setBedTypeFilter('all');
                       }}
-                      className="mt-4 px-4 py-2 text-orange-600 hover:text-orange-700 font-semibold hover:bg-orange-50 rounded-lg transition-colors"
+                      className="mt-4 px-4 py-2 text-primary-600 hover:text-primary-700 font-semibold hover:bg-primary-50 rounded-lg transition-colors"
                     >
                       Clear Filters
                     </button>
@@ -993,7 +993,7 @@ export default function HotelDetailPage() {
                       <div className="mt-6 text-center">
                         <button
                           onClick={() => setShowAllRooms(true)}
-                          className="inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600 text-white font-bold rounded-xl shadow-lg hover:shadow-xl transform hover:scale-105 transition-all"
+                          className="inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-primary-500 to-primary-600 hover:from-orange-600 hover:to-amber-600 text-white font-bold rounded-xl shadow-lg hover:shadow-xl transform hover:scale-105 transition-all"
                         >
                           <BedDouble className="w-5 h-5" />
                           Load More Rooms ({filteredRooms.length - INITIAL_ROOMS_TO_SHOW} more)
@@ -1036,7 +1036,7 @@ export default function HotelDetailPage() {
 
                 {/* Estimated Price from Search (if available) */}
                 {hotel.rates && hotel.rates.length > 0 && hotel.rates[0]?.isFallback && (
-                  <div className="bg-gradient-to-br from-amber-50 to-orange-50 rounded-xl p-4 mb-4 border border-amber-200">
+                  <div className="bg-gradient-to-br from-amber-50 to-primary-50 rounded-xl p-4 mb-4 border border-amber-200">
                     <div className="flex items-center justify-between">
                       <div>
                         <p className="text-xs font-semibold text-amber-700 uppercase tracking-wide">Estimated Price</p>
@@ -1046,7 +1046,7 @@ export default function HotelDetailPage() {
                         </p>
                       </div>
                       <div className="text-right">
-                        <p className="text-lg font-bold text-orange-600">
+                        <p className="text-lg font-bold text-primary-600">
                           ~${(parseFloat(hotel.rates[0].totalPrice?.amount || '0') / nights / roomsNum).toFixed(0)}
                         </p>
                         <p className="text-xs text-slate-500">{roomsNum > 1 ? 'per room/night' : 'per night'}</p>
@@ -1063,7 +1063,7 @@ export default function HotelDetailPage() {
                 <div className="flex flex-col sm:flex-row gap-3">
                   <button
                     onClick={() => window.location.reload()}
-                    className="flex-1 flex items-center justify-center gap-2 px-4 py-3 bg-orange-600 hover:bg-orange-700 text-white font-semibold rounded-xl transition-colors"
+                    className="flex-1 flex items-center justify-center gap-2 px-4 py-3 bg-primary-600 hover:bg-primary-700 text-white font-semibold rounded-xl transition-colors"
                   >
                     <RefreshCw className="w-4 h-4" />
                     Try Again
@@ -1092,7 +1092,7 @@ export default function HotelDetailPage() {
               <div className="bg-gradient-to-r from-slate-50 to-slate-100 px-6 py-4 border-b border-slate-200">
                 <div className="flex items-center gap-3">
                   <div className="p-2 bg-gradient-to-br from-orange-100 to-amber-100 rounded-xl">
-                    <Star className="w-5 h-5 text-orange-600" />
+                    <Star className="w-5 h-5 text-primary-600" />
                   </div>
                   <div>
                     <h2 className="text-lg font-bold text-gray-900">Guest Reviews</h2>
@@ -1120,7 +1120,7 @@ export default function HotelDetailPage() {
           <div className="lg:col-span-1">
             <div className="bg-white rounded-2xl shadow-xl border border-slate-200 sticky top-24 overflow-hidden">
               {/* Premium Price Header - Shows Selected Room */}
-              <div className={`p-5 ${usingEstimatedPricing ? 'bg-gradient-to-r from-amber-500 to-orange-500' : 'bg-gradient-to-r from-orange-500 to-amber-500'}`}>
+              <div className={`p-5 ${usingEstimatedPricing ? 'bg-gradient-to-r from-amber-500 to-primary-500' : 'bg-gradient-to-r from-primary-500 to-primary-600'}`}>
                 {/* Estimated Price Warning Badge */}
                 {usingEstimatedPricing && (
                   <div className="mb-3">
@@ -1141,7 +1141,7 @@ export default function HotelDetailPage() {
                   <span className="text-4xl font-bold text-white">
                     {activeRoom?.isFallback ? '~' : ''}${activeRoomPerNight.toFixed(0)}
                   </span>
-                  <span className="text-orange-100 text-lg mb-1">{roomsNum > 1 ? '/room/night' : '/night'}</span>
+                  <span className="text-primary-100 text-lg mb-1">{roomsNum > 1 ? '/room/night' : '/night'}</span>
                 </div>
                 {checkIn && checkOut && (
                   <div className="mt-2 flex flex-col">
@@ -1169,8 +1169,8 @@ export default function HotelDetailPage() {
                   <div className="grid grid-cols-2 gap-2">
                     {/* Check-in with Date */}
                     <div className="flex items-center gap-2 p-2 bg-slate-50 rounded-lg">
-                      <div className="flex items-center justify-center w-7 h-7 rounded-md bg-orange-100 flex-shrink-0">
-                        <Calendar className="w-3.5 h-3.5 text-orange-600" />
+                      <div className="flex items-center justify-center w-7 h-7 rounded-md bg-primary-100 flex-shrink-0">
+                        <Calendar className="w-3.5 h-3.5 text-primary-600" />
                       </div>
                       <div className="min-w-0">
                         <p className="text-[10px] text-slate-500 leading-tight">Check-in</p>
@@ -1255,7 +1255,7 @@ export default function HotelDetailPage() {
                     sessionStorage.setItem(`hotel_booking_${hotelId}`, JSON.stringify(bookingData));
                     router.push(`/hotels/booking?hotelId=${hotelId}&offerId=${encodeURIComponent(roomOfferId)}&name=${encodeURIComponent(hotel.name)}&location=${encodeURIComponent(bookingData.location)}&checkIn=${bookingData.checkIn}&checkOut=${bookingData.checkOut}&nights=${nights}&adults=${adultsNum}&children=${childrenNum}&rooms=${roomsNum}&roomId=${encodeURIComponent(bookingData.roomId)}&roomName=${encodeURIComponent(activeRoomName)}&price=${activeRoomPrice}&perNight=${activeRoomPerNight}&currency=${roomCurrency}&image=${encodeURIComponent(mainImage || '')}&stars=${hotel.starRating || 0}&refundable=${bookingData.refundable}&breakfastIncluded=${bookingData.breakfastIncluded}`);
                   }}
-                  className="w-full py-4 bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600 text-white font-bold text-lg rounded-xl shadow-lg hover:shadow-xl transform hover:scale-[1.02] transition-all mb-4 flex items-center justify-center gap-2"
+                  className="w-full py-4 bg-gradient-to-r from-primary-500 to-primary-600 hover:from-orange-600 hover:to-amber-600 text-white font-bold text-lg rounded-xl shadow-lg hover:shadow-xl transform hover:scale-[1.02] transition-all mb-4 flex items-center justify-center gap-2"
                 >
                   <BedDouble className="w-5 h-5" />
                   Book Now
@@ -1277,7 +1277,7 @@ export default function HotelDetailPage() {
                 {hotel.address && (hotel.address.lat || hotel.address.city) && (
                   <div>
                     <h3 className="text-sm font-bold text-slate-800 uppercase tracking-wide mb-3 flex items-center gap-2">
-                      <MapPin className="w-4 h-4 text-orange-500" />
+                      <MapPin className="w-4 h-4 text-primary-500" />
                       Location
                     </h3>
                     {/* OpenStreetMap Embed - FREE, No API Key Required */}
@@ -1302,7 +1302,7 @@ export default function HotelDetailPage() {
                       >
                         <div className="w-full h-full flex flex-col items-center justify-center p-4 text-center">
                           <div className="w-12 h-12 bg-white rounded-full flex items-center justify-center mb-2 shadow-lg group-hover:scale-110 transition-transform border border-slate-200">
-                            <MapPin className="w-6 h-6 text-orange-500" />
+                            <MapPin className="w-6 h-6 text-primary-500" />
                           </div>
                           <p className="font-semibold text-slate-800 mb-1 text-sm">View on Map</p>
                           <p className="text-xs text-slate-500">
@@ -1315,7 +1315,7 @@ export default function HotelDetailPage() {
                       href={`https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(`${hotel.name}, ${hotel.address.city}, ${hotel.address.country}`)}`}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="mt-3 text-sm text-orange-600 hover:text-orange-700 font-semibold flex items-center gap-1.5 justify-center py-2 bg-orange-50 rounded-lg hover:bg-orange-100 transition-colors"
+                      className="mt-3 text-sm text-primary-600 hover:text-primary-700 font-semibold flex items-center gap-1.5 justify-center py-2 bg-primary-50 rounded-lg hover:bg-primary-100 transition-colors"
                     >
                       <ArrowRight className="w-4 h-4" />
                       Get Directions
@@ -1328,7 +1328,7 @@ export default function HotelDetailPage() {
                   <p className="text-xs text-slate-500 text-center mb-2">Not quite right?</p>
                   <button
                     onClick={() => router.push('/hotels')}
-                    className="w-full py-2.5 border border-slate-200 text-slate-500 hover:border-orange-300 hover:text-orange-600 hover:bg-orange-50 font-medium text-sm rounded-lg transition-all flex items-center justify-center gap-2"
+                    className="w-full py-2.5 border border-slate-200 text-slate-500 hover:border-primary-300 hover:text-primary-600 hover:bg-primary-50 font-medium text-sm rounded-lg transition-all flex items-center justify-center gap-2"
                   >
                     <ArrowRight className="w-4 h-4" />
                     View Similar Hotels
@@ -1340,10 +1340,13 @@ export default function HotelDetailPage() {
         </div>
       </div>
 
-      {/* Mobile Bottom CTA Bar - Fixed position when scrolled */}
+      {/* Mobile Bottom CTA Bar - Fixed position above bottom nav when scrolled */}
       {showMobileCTA && (
-        <div className="lg:hidden fixed bottom-0 left-0 right-0 bg-white border-t-2 border-primary-200 shadow-2xl z-50 safe-area-inset-bottom animate-slide-up">
-          <div className="px-4 py-3">
+        <div
+          className="lg:hidden fixed left-0 right-0 bg-white/95 backdrop-blur-lg border-t border-primary-200/50 shadow-2xl z-40 animate-slide-up"
+          style={{ bottom: 'var(--bottom-nav-total, 56px)' }}
+        >
+          <div className="px-3 py-2.5">
             <div className="flex items-center justify-between gap-4">
               <div className="flex-1">
                 <p className="text-xs text-gray-600">Starting from</p>
@@ -1386,7 +1389,7 @@ export default function HotelDetailPage() {
                   sessionStorage.setItem(`hotel_booking_${hotelId}`, JSON.stringify(bookingData));
                   router.push(`/hotels/booking?hotelId=${hotelId}&offerId=${encodeURIComponent(roomOfferId)}&name=${encodeURIComponent(hotel.name)}&location=${encodeURIComponent(bookingData.location)}&checkIn=${bookingData.checkIn}&checkOut=${bookingData.checkOut}&nights=${nights}&adults=${adultsNum}&children=${childrenNum}&rooms=${roomsNum}&roomId=${encodeURIComponent(bookingData.roomId)}&roomName=${encodeURIComponent(activeRoomName)}&price=${activeRoomPrice}&perNight=${activeRoomPerNight}&currency=${roomCurrency}&image=${encodeURIComponent(mainImage || '')}&stars=${hotel.starRating || 0}&refundable=${bookingData.refundable}&breakfastIncluded=${bookingData.breakfastIncluded}`);
                 }}
-                className="px-6 py-3 bg-gradient-to-r from-orange-500 to-red-600 hover:from-orange-600 hover:to-red-700 text-white font-bold rounded-lg shadow-lg active:scale-95 transition-all"
+                className="px-6 py-3 bg-gradient-to-r from-primary-500 to-primary-600 hover:from-primary-600 hover:to-primary-700 text-white font-bold rounded-lg shadow-lg active:scale-95 transition-all"
               >
                 Book Now
               </button>
