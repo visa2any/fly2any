@@ -108,6 +108,18 @@ export default function MultiAirportSelector({
     setSearchQuery('');
   }, []);
 
+  // Click outside to close
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node)) {
+        setIsOpen(false);
+        setSearchQuery('');
+      }
+    };
+    if (isOpen) document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, [isOpen]);
+
   const handleToggleAirport = (airport: Airport) => {
     const isSelected = value.includes(airport.code);
     let newCodes: string[];
@@ -166,60 +178,26 @@ export default function MultiAirportSelector({
         </label>
       )}
 
-      {/* Main Input Button - Apple-Class */}
-      <button
-        type="button"
-        onClick={() => setIsOpen(!isOpen)}
-        className="w-full relative min-h-[48px] py-3 px-3 bg-white border-2 border-neutral-200 hover:border-primary-400 text-left rounded-xl transition-all duration-200 active:scale-[0.98] touch-manipulation"
-      >
-        <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 text-neutral-400 flex-shrink-0" size={16} />
-
-        <div className="pl-6 pr-5 w-full overflow-hidden flex items-center">
-          {selectedAirports.length === 0 ? (
-            <span className="text-neutral-400 text-sm block truncate">{placeholder}</span>
-          ) : (
-            <div className="flex items-center gap-1 overflow-hidden w-full">
-              {selectedAirports.slice(0, maxDisplay).map((airport, idx) => (
-                <span
-                  key={airport.code}
-                  className="inline-flex items-center gap-0.5 text-xs font-semibold text-neutral-800 truncate"
-                >
-                  {idx > 0 && <span className="text-neutral-300 mx-0.5">•</span>}
-                  <span className="text-[10px]">{airport.emoji}</span>
-                  <span className="truncate">{airport.city}</span>
-                  <span className="text-[10px] text-neutral-500 font-medium">({airport.code})</span>
-                </span>
-              ))}
-              {selectedAirports.length > maxDisplay && (
-                <span className="inline-flex items-center px-1.5 py-0.5 bg-primary-100 text-primary-600 rounded-lg text-[10px] font-bold flex-shrink-0 ml-1">
-                  +{selectedAirports.length - maxDisplay}
-                </span>
-              )}
-            </div>
-          )}
-        </div>
-
+      {/* Main Typeable Input - Single Field */}
+      <div className="relative">
+        <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 text-neutral-400 flex-shrink-0 z-10" size={16} />
+        <input
+          type="text"
+          value={isOpen ? searchQuery : (selectedAirports.length > 0 ? `${selectedAirports[0].emoji} ${selectedAirports[0].city} (${selectedAirports[0].code})${selectedAirports.length > 1 ? ` +${selectedAirports.length - 1}` : ''}` : '')}
+          onChange={(e) => { setSearchQuery(e.target.value); if (!isOpen) setIsOpen(true); }}
+          onFocus={() => { setIsOpen(true); setSearchQuery(''); }}
+          placeholder={placeholder}
+          className="w-full min-h-[48px] py-3 pl-9 pr-8 bg-white border-2 border-neutral-200 hover:border-primary-400 focus:border-primary-500 rounded-xl text-sm font-semibold text-neutral-800 transition-all duration-200 focus:outline-none"
+        />
         <ChevronDown
-          className={`absolute right-2 top-1/2 -translate-y-1/2 text-neutral-400 transition-transform duration-200 flex-shrink-0 ${isOpen ? 'rotate-180' : ''}`}
+          className={`absolute right-2 top-1/2 -translate-y-1/2 text-neutral-400 transition-transform duration-200 flex-shrink-0 pointer-events-none ${isOpen ? 'rotate-180' : ''}`}
           size={14}
         />
-      </button>
+      </div>
 
-      {/* Dropdown - Compact Apple-Class */}
+      {/* Dropdown - No duplicate search */}
       {isOpen && (
         <div className="absolute left-0 right-0 top-full mt-1 z-dropdown w-full bg-white/95 backdrop-blur-xl rounded-xl shadow-2xl border border-neutral-200 overflow-hidden animate-in fade-in slide-in-from-top-2 duration-200 max-h-[50vh]">
-
-          {/* Search Input - Compact */}
-          <div className="p-1.5 border-b border-neutral-100">
-            <input
-              type="text"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="Search airports..."
-              className="w-full px-2.5 py-2 text-sm border border-neutral-200 rounded-lg focus:border-primary-400 focus:outline-none"
-              autoFocus
-            />
-          </div>
 
           {/* Selected Chips - Compact */}
           {selectedAirports.length > 0 && (
