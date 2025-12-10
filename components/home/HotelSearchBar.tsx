@@ -488,52 +488,51 @@ export function HotelSearchBar({ lang = 'en' }: HotelSearchBarProps) {
         e.preventDefault();
         handleSearch();
       }}
-      className="bg-white/95 backdrop-blur-xl rounded-3xl shadow-2xl border-2 border-gray-100 p-6 md:p-8"
+      className="bg-white/95 backdrop-blur-xl rounded-2xl shadow-soft-lg border border-neutral-200 p-4 md:p-5"
     >
-      {/* Title */}
-      <div className="mb-6">
-        <h2 className="text-2xl md:text-3xl font-bold bg-gradient-to-r from-orange-600 via-red-600 to-pink-600 bg-clip-text text-transparent">
+      {/* Title - Compact */}
+      <div className="mb-3">
+        <h2 className="text-lg md:text-xl font-bold text-primary-600">
           {t.title}
         </h2>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
         {/* Destination */}
         <div ref={destinationRef} className="relative">
-          <label className="block text-sm font-semibold text-gray-700 mb-2">
-            <MapPin className="w-4 h-4 inline mr-1" />
+          <label className="block text-[11px] font-bold text-neutral-500 mb-1 uppercase tracking-wide">
+            <MapPin className="w-3 h-3 inline mr-0.5" />
             {t.destination}
           </label>
           <div className="relative">
-            {/* Enhanced Selected Destination Display */}
+            {/* Selected Destination - Apple-Class compact */}
             {selectedDestinationDetails && destinationQuery === selectedDestinationDetails.name ? (
               <div
                 onClick={() => {
                   setShowDestinationDropdown(true);
                   inputRef.current?.focus();
                 }}
-                className="w-full px-4 py-3 rounded-xl border-2 border-orange-400 bg-gradient-to-r from-orange-50 to-amber-50 cursor-pointer transition-all hover:border-orange-500 hover:shadow-md"
+                className="w-full px-3 py-2 rounded-lg border border-primary-300 bg-primary-50/50 cursor-pointer transition-all hover:border-primary-400"
               >
                 <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-3">
-                    {/* Destination Emoji or Globe Icon */}
-                    <div className="w-10 h-10 rounded-full bg-gradient-to-br from-orange-500 to-red-500 flex items-center justify-center shadow-md">
+                  <div className="flex items-center gap-2">
+                    <div className="w-8 h-8 rounded-lg bg-primary-500 flex items-center justify-center">
                       {selectedDestinationDetails.emoji ? (
-                        <span className="text-xl">{selectedDestinationDetails.emoji}</span>
+                        <span className="text-base">{selectedDestinationDetails.emoji}</span>
                       ) : (
-                        <Globe className="w-5 h-5 text-white" />
+                        <Globe className="w-4 h-4 text-white" />
                       )}
                     </div>
                     <div>
-                      <div className="font-bold text-gray-900 text-lg leading-tight flex items-center gap-2">
+                      <div className="font-bold text-neutral-800 text-sm leading-tight flex items-center gap-1">
                         {selectedDestinationDetails.name}
-                        <Check className="w-4 h-4 text-emerald-600" />
+                        <Check className="w-3 h-3 text-success-500" />
                       </div>
-                      <div className="text-sm text-gray-500 flex items-center gap-1">
-                        <Navigation className="w-3 h-3" />
-                        {selectedDestinationDetails.country || 'Destination selected'}
+                      <div className="text-[10px] text-neutral-500 flex items-center gap-1">
+                        <Navigation className="w-2.5 h-2.5" />
+                        {selectedDestinationDetails.country || 'Selected'}
                         {selectedDestinationDetails.type && (
-                          <span className="ml-1 px-1.5 py-0.5 bg-orange-100 text-orange-700 text-xs rounded-full capitalize">
+                          <span className="px-1 py-0.5 bg-primary-100 text-primary-600 text-[9px] font-bold rounded capitalize">
                             {selectedDestinationDetails.type}
                           </span>
                         )}
@@ -545,30 +544,29 @@ export function HotelSearchBar({ lang = 'en' }: HotelSearchBarProps) {
                       e.stopPropagation();
                       clearDestination();
                     }}
-                    className="p-2 hover:bg-orange-100 rounded-full transition-colors"
+                    className="p-1 hover:bg-primary-100 rounded-lg transition-colors"
                   >
-                    <X className="w-5 h-5 text-gray-400 hover:text-gray-600" />
+                    <X className="w-4 h-4 text-neutral-400" />
                   </button>
                 </div>
-                {/* Selected Districts Display */}
+                {/* Selected Districts - Compact */}
                 {selectedDistricts.length > 0 && (
-                  <div className="mt-2 pt-2 border-t border-orange-200 flex items-center gap-2 flex-wrap">
-                    <span className="text-xs text-gray-500 font-medium">Areas:</span>
+                  <div className="mt-1.5 pt-1.5 border-t border-primary-200 flex items-center gap-1 flex-wrap">
+                    <span className="text-[9px] text-neutral-400 font-bold">Areas:</span>
                     {selectedDistricts.map(district => (
                       <span
                         key={district.id}
-                        className="inline-flex items-center gap-1 px-2 py-1 bg-white rounded-full text-xs font-semibold text-orange-700 border border-orange-200"
+                        className="inline-flex items-center gap-0.5 px-1.5 py-0.5 bg-white rounded text-[10px] font-semibold text-primary-600 border border-primary-200"
                       >
-                        <MapPin className="w-3 h-3" />
                         {district.name}
                         <button
                           onClick={(e) => {
                             e.stopPropagation();
                             toggleDistrictSelection(district);
                           }}
-                          className="ml-0.5 hover:text-red-500"
+                          className="hover:text-error-500"
                         >
-                          <X className="w-3 h-3" />
+                          <X className="w-2.5 h-2.5" />
                         </button>
                       </span>
                     ))}
@@ -592,70 +590,65 @@ export function HotelSearchBar({ lang = 'en' }: HotelSearchBarProps) {
                   onKeyDown={handleKeyDown}
                   placeholder="New York, Paris, London..."
                   autoComplete="off"
-                  className="w-full px-4 py-3 pr-10 rounded-xl border-2 border-gray-200 focus:border-orange-500 focus:outline-none transition-colors text-gray-900 font-medium"
+                  className="w-full px-3 py-2 pr-8 rounded-lg border border-neutral-200 focus:border-primary-500 focus:outline-none transition-colors text-neutral-800 text-sm font-medium"
                 />
                 {loadingSuggestions && (
-                  <Loader2 className="absolute right-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400 animate-spin" />
+                  <Loader2 className="absolute right-2.5 top-1/2 -translate-y-1/2 w-4 h-4 text-neutral-400 animate-spin" />
                 )}
                 {destinationQuery && !loadingSuggestions && (
                   <button
                     onClick={clearDestination}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                    className="absolute right-2.5 top-1/2 -translate-y-1/2 text-neutral-400 hover:text-neutral-600"
                   >
-                    <X className="w-5 h-5" />
+                    <X className="w-4 h-4" />
                   </button>
                 )}
               </>
             )}
           </div>
 
-          {/* Dropdown */}
+          {/* Dropdown - Apple-Class */}
           <AnimatePresence>
             {showDestinationDropdown && (
               <motion.div
-                initial={{ opacity: 0, y: -10 }}
+                initial={{ opacity: 0, y: -5 }}
                 animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -10 }}
-                className="absolute z-50 w-full mt-2 bg-white rounded-xl shadow-2xl border-2 border-gray-100 overflow-hidden max-h-[400px] overflow-y-auto"
+                exit={{ opacity: 0, y: -5 }}
+                className="absolute z-50 w-full mt-1 bg-white rounded-lg shadow-soft-lg border border-neutral-200 overflow-hidden max-h-[320px] overflow-y-auto"
               >
-                {/* Suggestions from API */}
+                {/* Suggestions from API - Compact */}
                 {suggestions.length > 0 && (
-                  <div className="py-2">
-                    <div className="px-4 py-1 text-xs font-semibold text-gray-400 uppercase tracking-wide">
+                  <div className="py-1">
+                    <div className="px-2 py-0.5 text-[9px] font-bold text-neutral-400 uppercase tracking-wider">
                       Destinations
                     </div>
                     {suggestions.map((suggestion, idx) => (
                       <button
                         key={suggestion.id || idx}
                         onClick={() => handleSelectLocation(suggestion)}
-                        className={`w-full px-4 py-3 transition-colors flex items-center gap-3 text-left ${
-                          selectedIndex === idx ? 'bg-orange-50' : 'hover:bg-gray-50'
+                        className={`w-full px-2 py-1.5 transition-colors flex items-center gap-2 text-left ${
+                          selectedIndex === idx ? 'bg-primary-50' : 'hover:bg-neutral-50'
                         }`}
                       >
-                        {/* Emoji Display - Large and Prominent */}
+                        {/* Emoji */}
                         {suggestion.emoji && (
-                          <span className="text-3xl flex-shrink-0" aria-hidden="true">
-                            {suggestion.emoji}
-                          </span>
+                          <span className="text-xl flex-shrink-0">{suggestion.emoji}</span>
                         )}
-
-                        {/* Type Icon - Small, only if no emoji */}
                         {!suggestion.emoji && getTypeIcon(suggestion.type)}
 
-                        {/* Location Info */}
+                        {/* Info */}
                         <div className="flex-1 min-w-0">
-                          <div className="font-semibold text-gray-900 truncate flex items-center gap-2">
+                          <div className="font-semibold text-neutral-800 text-sm truncate">
                             {suggestion.name}
                           </div>
-                          <div className="text-sm text-gray-500 truncate flex items-center gap-1">
-                            <MapPin className="w-3 h-3 flex-shrink-0" />
+                          <div className="text-[10px] text-neutral-500 truncate flex items-center gap-0.5">
+                            <MapPin className="w-2.5 h-2.5" />
                             {suggestion.city !== suggestion.name ? `${suggestion.city}, ` : ''}{suggestion.country}
                           </div>
                         </div>
 
                         {/* Type Badge */}
-                        <span className="text-xs text-gray-400 capitalize flex-shrink-0 flex items-center gap-1">
-                          {!suggestion.emoji && <span>•</span>}
+                        <span className="text-[9px] text-neutral-400 capitalize font-medium">
                           {suggestion.type}
                         </span>
                       </button>
@@ -726,18 +719,18 @@ export function HotelSearchBar({ lang = 'en' }: HotelSearchBarProps) {
 
         </div>
 
-        {/* Date Range Picker - Premium Calendar Experience */}
+        {/* Date Range - Apple-Class Compact */}
         <div>
-          <label className="block text-sm font-semibold text-gray-700 mb-2">
-            <Calendar className="w-4 h-4 inline mr-1" />
+          <label className="block text-[11px] font-bold text-neutral-500 mb-1 uppercase tracking-wide">
+            <Calendar className="w-3 h-3 inline mr-0.5" />
             {t.checkIn} - {t.checkOut}
           </label>
-          <div className="grid grid-cols-2 gap-2">
+          <div className="grid grid-cols-2 gap-1.5">
             <input
               type="date"
               value={checkIn}
               onChange={(e) => setCheckIn(e.target.value)}
-              className="px-4 py-3 rounded-xl border-2 border-gray-200 hover:border-gray-300 focus:border-orange-500 focus:outline-none transition-colors"
+              className="px-2.5 py-2 rounded-lg border border-neutral-200 hover:border-neutral-300 focus:border-primary-500 focus:outline-none transition-colors text-sm font-medium text-neutral-800"
               placeholder={t.checkIn}
             />
             <input
@@ -745,64 +738,64 @@ export function HotelSearchBar({ lang = 'en' }: HotelSearchBarProps) {
               value={checkOut}
               onChange={(e) => setCheckOut(e.target.value)}
               min={checkIn}
-              className="px-4 py-3 rounded-xl border-2 border-gray-200 hover:border-gray-300 focus:border-orange-500 focus:outline-none transition-colors"
+              className="px-2.5 py-2 rounded-lg border border-neutral-200 hover:border-neutral-300 focus:border-primary-500 focus:outline-none transition-colors text-sm font-medium text-neutral-800"
               placeholder={t.checkOut}
             />
           </div>
         </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mt-4">
-        {/* Guests & Rooms */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-2 mt-2">
+        {/* Guests & Rooms - Apple-Class */}
         <div ref={guestsRef} className="relative">
-          <label className="block text-sm font-semibold text-gray-700 mb-2">
-            <Users className="w-4 h-4 inline mr-1" />
+          <label className="block text-[11px] font-bold text-neutral-500 mb-1 uppercase tracking-wide">
+            <Users className="w-3 h-3 inline mr-0.5" />
             {t.guests}
           </label>
           <button
             onClick={() => setShowGuestsDropdown(!showGuestsDropdown)}
-            className="w-full px-4 py-3 rounded-xl border-2 border-gray-200 hover:border-gray-300 focus:border-orange-500 focus:outline-none transition-colors text-left font-medium text-gray-900"
+            className="w-full px-3 py-2 rounded-lg border border-neutral-200 hover:border-neutral-300 focus:border-primary-500 focus:outline-none transition-colors text-left text-sm font-medium text-neutral-800"
           >
             {adults} {adults === 1 ? t.adults.slice(0, -1) : t.adults}, {children} {t.children}, {rooms} {rooms === 1 ? t.rooms.slice(0, -1) : t.rooms}
           </button>
 
-          {/* Guests Dropdown */}
+          {/* Guests Dropdown - Apple-Class */}
           <AnimatePresence>
             {showGuestsDropdown && (
               <motion.div
-                initial={{ opacity: 0, y: -10 }}
+                initial={{ opacity: 0, y: -5 }}
                 animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -10 }}
-                className="absolute z-50 w-full mt-2 bg-white rounded-xl shadow-2xl border-2 border-gray-100 p-4"
+                exit={{ opacity: 0, y: -5 }}
+                className="absolute z-50 w-full mt-1 bg-white rounded-lg shadow-soft-lg border border-neutral-200 p-3"
               >
                 {/* Adults */}
-                <div className="flex items-center justify-between mb-4">
-                  <span className="font-semibold text-gray-900">{t.adults}</span>
-                  <div className="flex items-center gap-3">
+                <div className="flex items-center justify-between mb-3">
+                  <span className="font-semibold text-neutral-800 text-sm">{t.adults}</span>
+                  <div className="flex items-center gap-2">
                     <button
                       onClick={() => setAdults(Math.max(1, adults - 1))}
-                      className="w-10 h-10 rounded-full bg-gray-100 hover:bg-gray-200 transition-colors flex items-center justify-center font-bold text-gray-700"
+                      className="w-8 h-8 rounded-lg bg-neutral-100 hover:bg-neutral-200 transition-colors flex items-center justify-center font-bold text-neutral-700 text-sm"
                     >
                       -
                     </button>
-                    <span className="w-8 text-center font-bold text-gray-900">{adults}</span>
+                    <span className="w-6 text-center font-bold text-neutral-800 text-sm">{adults}</span>
                     <button
                       onClick={() => setAdults(Math.min(20, adults + 1))}
-                      className="w-10 h-10 rounded-full bg-orange-600 hover:bg-orange-700 transition-colors flex items-center justify-center font-bold text-white"
+                      className="w-8 h-8 rounded-lg bg-primary-500 hover:bg-primary-600 transition-colors flex items-center justify-center font-bold text-white text-sm"
                     >
                       +
                     </button>
                   </div>
                 </div>
 
-                {/* Children */}
-                <div className="mb-4">
+                {/* Children - Compact */}
+                <div className="mb-3">
                   <div className="flex items-center justify-between">
                     <div>
-                      <span className="font-semibold text-gray-900">{t.children}</span>
-                      <p className="text-xs text-gray-500">{t.childAgeHint}</p>
+                      <span className="font-semibold text-neutral-800 text-sm">{t.children}</span>
+                      <p className="text-[10px] text-neutral-400">{t.childAgeHint}</p>
                     </div>
-                    <div className="flex items-center gap-3">
+                    <div className="flex items-center gap-2">
                       <button
                         type="button"
                         onClick={() => {
@@ -810,42 +803,42 @@ export function HotelSearchBar({ lang = 'en' }: HotelSearchBarProps) {
                           setChildren(newCount);
                           setChildAges(prev => prev.slice(0, newCount));
                         }}
-                        className="w-10 h-10 rounded-full bg-gray-100 hover:bg-gray-200 transition-colors flex items-center justify-center font-bold text-gray-700"
+                        className="w-8 h-8 rounded-lg bg-neutral-100 hover:bg-neutral-200 transition-colors flex items-center justify-center font-bold text-neutral-700 text-sm"
                       >
                         -
                       </button>
-                      <span className="w-8 text-center font-bold text-gray-900">{children}</span>
+                      <span className="w-6 text-center font-bold text-neutral-800 text-sm">{children}</span>
                       <button
                         type="button"
                         onClick={() => {
                           const newCount = Math.min(10, children + 1);
                           setChildren(newCount);
-                          setChildAges(prev => [...prev, 8]); // Default age 8
+                          setChildAges(prev => [...prev, 8]);
                         }}
-                        className="w-10 h-10 rounded-full bg-orange-600 hover:bg-orange-700 transition-colors flex items-center justify-center font-bold text-white"
+                        className="w-8 h-8 rounded-lg bg-primary-500 hover:bg-primary-600 transition-colors flex items-center justify-center font-bold text-white text-sm"
                       >
                         +
                       </button>
                     </div>
                   </div>
 
-                  {/* Child Age Selectors */}
+                  {/* Child Age Selectors - Compact */}
                   {children > 0 && (
-                    <div className="mt-3 space-y-2">
-                      <div className="flex items-center gap-1.5 text-xs text-amber-600 bg-amber-50 px-2 py-1 rounded-lg">
-                        <Info className="w-3.5 h-3.5" />
+                    <div className="mt-2 space-y-1.5">
+                      <div className="flex items-center gap-1 text-[10px] text-secondary-600 bg-secondary-50 px-2 py-1 rounded">
+                        <Info className="w-3 h-3" />
                         <span>{t.infant}: {t.infantFree}</span>
                       </div>
-                      <div className="grid grid-cols-2 gap-2">
+                      <div className="grid grid-cols-2 gap-1.5">
                         {Array.from({ length: children }).map((_, idx) => (
-                          <div key={idx} className="flex items-center gap-2 bg-gray-50 rounded-lg p-2">
-                            <div className="flex items-center gap-1.5">
+                          <div key={idx} className="flex items-center gap-1.5 bg-neutral-50 rounded p-1.5">
+                            <div className="flex items-center gap-1">
                               {(childAges[idx] ?? 8) <= 2 ? (
-                                <Baby className="w-4 h-4 text-pink-500" />
+                                <Baby className="w-3 h-3 text-pink-500" />
                               ) : (
-                                <Users className="w-4 h-4 text-info-500" />
+                                <Users className="w-3 h-3 text-info-500" />
                               )}
-                              <span className="text-sm font-medium text-gray-700">
+                              <span className="text-[11px] font-medium text-neutral-600">
                                 {t.child} {idx + 1}
                               </span>
                             </div>
@@ -856,69 +849,63 @@ export function HotelSearchBar({ lang = 'en' }: HotelSearchBarProps) {
                                 newAges[idx] = parseInt(e.target.value);
                                 setChildAges(newAges);
                               }}
-                              className="flex-1 px-2 py-1 text-sm rounded border border-gray-200 focus:border-orange-500 focus:outline-none bg-white"
+                              className="flex-1 px-1.5 py-0.5 text-[11px] rounded border border-neutral-200 focus:border-primary-500 focus:outline-none bg-white"
                             >
-                              <option value={0}>0 {lang === 'en' ? 'yr' : lang === 'pt' ? 'ano' : 'año'}</option>
-                              <option value={1}>1 {lang === 'en' ? 'yr' : lang === 'pt' ? 'ano' : 'año'}</option>
-                              <option value={2}>2 {lang === 'en' ? 'yrs' : lang === 'pt' ? 'anos' : 'años'}</option>
-                              {[3,4,5,6,7,8,9,10,11,12,13,14,15,16,17].map(age => (
-                                <option key={age} value={age}>{age} {lang === 'en' ? 'yrs' : lang === 'pt' ? 'anos' : 'años'}</option>
+                              {[0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17].map(age => (
+                                <option key={age} value={age}>{age} yr{age !== 1 ? 's' : ''}</option>
                               ))}
                             </select>
                           </div>
                         ))}
                       </div>
-                      {/* Show infant count if any */}
                       {childAges.filter(age => age <= 2).length > 0 && (
-                        <div className="flex items-center gap-1.5 text-xs text-emerald-600 bg-emerald-50 px-2 py-1.5 rounded-lg">
-                          <Check className="w-3.5 h-3.5" />
-                          <span>
-                            {childAges.filter(age => age <= 2).length} {lang === 'en' ? 'infant(s) - usually stay FREE!' : lang === 'pt' ? 'bebê(s) - geralmente ficam GRÁTIS!' : 'bebé(s) - generalmente gratis!'}
-                          </span>
+                        <div className="flex items-center gap-1 text-[10px] text-success-600 bg-success-50 px-2 py-1 rounded">
+                          <Check className="w-3 h-3" />
+                          <span>{childAges.filter(age => age <= 2).length} infant(s) - FREE!</span>
                         </div>
                       )}
                     </div>
                   )}
                 </div>
 
-                {/* Pet-Friendly Toggle */}
-                <div className="flex items-center justify-between mb-4 py-3 border-t border-gray-100">
-                  <div className="flex items-center gap-2">
-                    <Dog className="w-5 h-5 text-amber-600" />
+                {/* Pet-Friendly Toggle - Compact */}
+                <div className="flex items-center justify-between mb-3 py-2 border-t border-neutral-100">
+                  <div className="flex items-center gap-1.5">
+                    <Dog className="w-4 h-4 text-secondary-500" />
                     <div>
-                      <span className="font-semibold text-gray-900">{t.pets}</span>
-                      <p className="text-xs text-gray-500">{t.petFriendly}</p>
+                      <span className="font-semibold text-neutral-800 text-sm">{t.pets}</span>
+                      <p className="text-[10px] text-neutral-400">{t.petFriendly}</p>
                     </div>
                   </div>
                   <button
                     type="button"
                     onClick={() => setPetFriendly(!petFriendly)}
-                    className={`relative w-14 h-7 rounded-full transition-colors ${
-                      petFriendly ? 'bg-orange-600' : 'bg-gray-200'
+                    className={`relative w-11 h-6 rounded-full transition-colors ${
+                      petFriendly ? 'bg-primary-500' : 'bg-neutral-200'
                     }`}
                   >
                     <span
-                      className={`absolute top-0.5 left-0.5 w-6 h-6 rounded-full bg-white shadow-md transition-transform ${
-                        petFriendly ? 'translate-x-7' : 'translate-x-0'
+                      className={`absolute top-0.5 left-0.5 w-5 h-5 rounded-full bg-white shadow-sm transition-transform ${
+                        petFriendly ? 'translate-x-5' : 'translate-x-0'
                       }`}
                     />
                   </button>
                 </div>
 
-                {/* Rooms */}
-                <div className="flex items-center justify-between mb-4">
-                  <span className="font-semibold text-gray-900">{t.rooms}</span>
-                  <div className="flex items-center gap-3">
+                {/* Rooms - Compact */}
+                <div className="flex items-center justify-between mb-3">
+                  <span className="font-semibold text-neutral-800 text-sm">{t.rooms}</span>
+                  <div className="flex items-center gap-2">
                     <button
                       onClick={() => setRooms(Math.max(1, rooms - 1))}
-                      className="w-10 h-10 rounded-full bg-gray-100 hover:bg-gray-200 transition-colors flex items-center justify-center font-bold text-gray-700"
+                      className="w-8 h-8 rounded-lg bg-neutral-100 hover:bg-neutral-200 transition-colors flex items-center justify-center font-bold text-neutral-700 text-sm"
                     >
                       -
                     </button>
-                    <span className="w-8 text-center font-bold text-gray-900">{rooms}</span>
+                    <span className="w-6 text-center font-bold text-neutral-800 text-sm">{rooms}</span>
                     <button
                       onClick={() => setRooms(Math.min(10, rooms + 1))}
-                      className="w-10 h-10 rounded-full bg-orange-600 hover:bg-orange-700 transition-colors flex items-center justify-center font-bold text-white"
+                      className="w-8 h-8 rounded-lg bg-primary-500 hover:bg-primary-600 transition-colors flex items-center justify-center font-bold text-white text-sm"
                     >
                       +
                     </button>
@@ -927,7 +914,7 @@ export function HotelSearchBar({ lang = 'en' }: HotelSearchBarProps) {
 
                 <button
                   onClick={() => setShowGuestsDropdown(false)}
-                  className="w-full py-2 bg-gray-100 hover:bg-gray-200 rounded-lg font-semibold text-gray-900 transition-colors"
+                  className="w-full py-1.5 bg-neutral-100 hover:bg-neutral-200 rounded-lg font-semibold text-neutral-800 text-sm transition-colors"
                 >
                   {t.done}
                 </button>
@@ -936,21 +923,21 @@ export function HotelSearchBar({ lang = 'en' }: HotelSearchBarProps) {
           </AnimatePresence>
         </div>
 
-        {/* Search Button */}
+        {/* Search Button - Apple-Class + Fly2Any */}
         <div className="flex items-end">
           <button
             type="submit"
             disabled={isSearching}
-            className="w-full py-4 bg-gradient-to-r from-orange-600 via-red-600 to-pink-600 hover:from-orange-700 hover:via-red-700 hover:to-pink-700 disabled:from-gray-400 disabled:via-gray-400 disabled:to-gray-400 text-white font-bold text-lg rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-[1.02] disabled:scale-100 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+            className="w-full py-2.5 bg-primary-500 hover:bg-primary-600 disabled:bg-neutral-300 text-white font-bold text-sm rounded-lg shadow-primary hover:shadow-lg transition-all active:scale-[0.98] disabled:scale-100 disabled:cursor-not-allowed flex items-center justify-center gap-2"
           >
             {isSearching ? (
               <>
-                <Loader2 className="w-6 h-6 animate-spin" />
+                <Loader2 className="w-5 h-5 animate-spin" />
                 Searching...
               </>
             ) : (
               <>
-                <Search className="w-6 h-6" />
+                <Search className="w-5 h-5" />
                 {t.search}
               </>
             )}
@@ -958,83 +945,75 @@ export function HotelSearchBar({ lang = 'en' }: HotelSearchBarProps) {
         </div>
       </div>
 
-      {/* 📍 POPULAR AREAS - Dedicated Row Below All Fields (Multi-Select) */}
+      {/* Popular Areas - Apple-Class horizontal scroll */}
       <AnimatePresence>
         {popularDistricts.length > 0 && destination && (
           <motion.div
             initial={{ opacity: 0, height: 0 }}
             animate={{ opacity: 1, height: 'auto' }}
             exit={{ opacity: 0, height: 0 }}
-            className="mt-4 overflow-hidden"
+            className="mt-2 overflow-hidden"
           >
-            <div className="p-4 bg-gradient-to-r from-slate-50 via-orange-50/30 to-amber-50/30 rounded-xl border border-orange-200/50">
-              <div className="flex items-center justify-between mb-3">
-                <div className="flex items-center gap-2">
-                  <div className="w-6 h-6 rounded-full bg-gradient-to-br from-orange-500 to-red-500 flex items-center justify-center">
-                    <MapPin className="w-3.5 h-3.5 text-white" />
-                  </div>
-                  <span className="text-sm font-semibold text-gray-700">
-                    Popular Areas in {destination}
+            <div className="p-2.5 bg-neutral-50 rounded-lg border border-neutral-200">
+              <div className="flex items-center justify-between mb-1.5">
+                <div className="flex items-center gap-1.5">
+                  <MapPin className="w-3.5 h-3.5 text-primary-500" />
+                  <span className="text-[11px] font-bold text-neutral-600">
+                    Popular in {destination}
                   </span>
-                  <span className="text-xs text-gray-400">(select multiple)</span>
+                  <span className="text-[9px] text-neutral-400">(multi)</span>
                 </div>
                 {selectedDistricts.length > 0 && (
                   <button
                     type="button"
                     onClick={() => setSelectedDistricts([])}
-                    className="text-xs text-gray-500 hover:text-red-500 flex items-center gap-1 transition-colors"
+                    className="text-[10px] text-neutral-400 hover:text-error-500 flex items-center gap-0.5"
                   >
-                    <X className="w-3 h-3" />
-                    Clear all
+                    <X className="w-2.5 h-2.5" />
+                    Clear
                   </button>
                 )}
               </div>
 
-              {/* Horizontal Scrollable Districts */}
-              <div className="flex items-center gap-2 overflow-x-auto pb-2 scrollbar-hide">
+              {/* Horizontal Scrollable Pills */}
+              <div className="flex gap-1 overflow-x-auto pb-1 scrollbar-hide">
                 {loadingDistricts ? (
-                  <div className="flex items-center gap-2 text-gray-400">
-                    <Loader2 className="w-4 h-4 animate-spin" />
-                    <span className="text-xs">Loading areas...</span>
+                  <div className="flex items-center gap-1 text-neutral-400">
+                    <Loader2 className="w-3 h-3 animate-spin" />
+                    <span className="text-[10px]">Loading...</span>
                   </div>
                 ) : (
-                  <>
-                    {popularDistricts.map((district) => {
-                      const isSelected = selectedDistricts.some(d => d.id === district.id);
-                      return (
-                        <button
-                          key={district.id}
-                          type="button"
-                          onClick={() => toggleDistrictSelection(district)}
-                          className={`flex-shrink-0 flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-medium transition-all duration-200 ${
-                            isSelected
-                              ? 'bg-gradient-to-r from-orange-500 to-red-500 text-white shadow-md scale-105'
-                              : 'bg-white text-gray-700 hover:bg-orange-50 hover:text-orange-700 border border-gray-200 hover:border-orange-300'
-                          }`}
-                        >
-                          {isSelected ? (
-                            <Check className="w-3.5 h-3.5" />
-                          ) : (
-                            <MapPin className="w-3.5 h-3.5" />
-                          )}
-                          {district.name}
-                        </button>
-                      );
-                    })}
-                  </>
+                  popularDistricts.map((district) => {
+                    const isSelected = selectedDistricts.some(d => d.id === district.id);
+                    return (
+                      <button
+                        key={district.id}
+                        type="button"
+                        onClick={() => toggleDistrictSelection(district)}
+                        className={`flex-shrink-0 flex items-center gap-1 px-2.5 py-1 rounded-lg text-[11px] font-semibold whitespace-nowrap transition-all ${
+                          isSelected
+                            ? 'bg-primary-500 text-white'
+                            : 'bg-white border border-neutral-200 text-neutral-700 hover:border-primary-300 hover:text-primary-600'
+                        }`}
+                      >
+                        {isSelected && <Check className="w-3 h-3" />}
+                        {district.name}
+                      </button>
+                    );
+                  })
                 )}
               </div>
 
-              {/* Selected Districts Summary */}
+              {/* Selected Summary */}
               {selectedDistricts.length > 0 && (
-                <div className="mt-3 pt-3 border-t border-orange-200/50">
-                  <div className="flex items-center gap-2 flex-wrap">
-                    <span className="text-xs font-medium text-emerald-600 flex items-center gap-1">
-                      <Check className="w-3 h-3" />
-                      {selectedDistricts.length} area{selectedDistricts.length > 1 ? 's' : ''} selected:
+                <div className="mt-1.5 pt-1.5 border-t border-neutral-200">
+                  <div className="flex items-center gap-1 flex-wrap">
+                    <span className="text-[9px] font-bold text-success-600 flex items-center gap-0.5">
+                      <Check className="w-2.5 h-2.5" />
+                      {selectedDistricts.length} selected:
                     </span>
                     {selectedDistricts.map(d => (
-                      <span key={d.id} className="text-xs text-gray-600 bg-white px-2 py-0.5 rounded-full border border-emerald-200">
+                      <span key={d.id} className="text-[9px] text-neutral-600 bg-white px-1.5 py-0.5 rounded border border-success-200">
                         {d.name}
                       </span>
                     ))}
@@ -1046,40 +1025,25 @@ export function HotelSearchBar({ lang = 'en' }: HotelSearchBarProps) {
         )}
       </AnimatePresence>
 
-      {/* Advanced Filters Toggle */}
-      <div className="mt-4">
+      {/* Advanced Filters Toggle - Apple-Class */}
+      <div className="mt-2">
         <button
           type="button"
-          onClick={() => {
-            console.log('Advanced Filters clicked! Current state:', showAdvancedFilters);
-            setShowAdvancedFilters(!showAdvancedFilters);
-            console.log('Advanced Filters new state will be:', !showAdvancedFilters);
-          }}
-          className="flex items-center gap-2 text-sm font-semibold text-gray-600 hover:text-orange-600 transition-colors"
+          onClick={() => setShowAdvancedFilters(!showAdvancedFilters)}
+          className="flex items-center gap-1.5 text-[11px] font-bold text-neutral-500 hover:text-primary-600 transition-colors"
         >
-          <Filter className="w-4 h-4" />
+          <Filter className="w-3 h-3" />
           <span>Advanced Filters</span>
-          {showAdvancedFilters ? (
-            <ChevronUp className="w-4 h-4" />
-          ) : (
-            <ChevronDown className="w-4 h-4" />
-          )}
+          {showAdvancedFilters ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />}
           {(selectedChains.length > 0 || selectedTypes.length > 0 || selectedStarRating.length > 0 || selectedAmenities.length > 0 || minPrice || maxPrice) && (
-            <span className="ml-1 px-2 py-0.5 bg-orange-100 text-orange-600 rounded-full text-xs font-bold">
-              {[
-                selectedChains.length,
-                selectedTypes.length,
-                selectedStarRating.length,
-                selectedAmenities.length,
-                minPrice ? 1 : 0,
-                maxPrice ? 1 : 0
-              ].reduce((a, b) => a + b, 0)} active
+            <span className="px-1.5 py-0.5 bg-primary-100 text-primary-600 rounded text-[10px] font-bold">
+              {[selectedChains.length, selectedTypes.length, selectedStarRating.length, selectedAmenities.length, minPrice ? 1 : 0, maxPrice ? 1 : 0].reduce((a, b) => a + b, 0)}
             </span>
           )}
         </button>
       </div>
 
-      {/* Advanced Filters Panel */}
+      {/* Advanced Filters Panel - Apple-Class + Fly2Any */}
       <AnimatePresence>
         {showAdvancedFilters && (
           <motion.div
@@ -1088,17 +1052,18 @@ export function HotelSearchBar({ lang = 'en' }: HotelSearchBarProps) {
             exit={{ opacity: 0, height: 0 }}
             className="overflow-hidden"
           >
-            <div className="mt-4 p-6 bg-gray-50 rounded-2xl border-2 border-gray-100 space-y-6">
-              {/* Star Rating */}
+            <div className="mt-2 p-3 bg-white/80 rounded-lg border border-neutral-200 space-y-3">
+              {/* Star Rating - Horizontal scroll pills */}
               <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-3">
-                  <Star className="w-4 h-4 inline mr-1" />
+                <label className="block text-[11px] font-bold text-neutral-500 mb-1.5 uppercase tracking-wide">
+                  <Star className="w-3 h-3 inline mr-0.5" />
                   Star Rating
                 </label>
-                <div className="flex flex-wrap gap-2">
+                <div className="flex gap-1 overflow-x-auto pb-1 scrollbar-hide">
                   {[5, 4, 3, 2, 1].map((stars) => (
                     <button
                       key={stars}
+                      type="button"
                       onClick={() => {
                         if (selectedStarRating.includes(stars)) {
                           setSelectedStarRating(selectedStarRating.filter(s => s !== stars));
@@ -1106,10 +1071,10 @@ export function HotelSearchBar({ lang = 'en' }: HotelSearchBarProps) {
                           setSelectedStarRating([...selectedStarRating, stars]);
                         }
                       }}
-                      className={`px-4 py-2 rounded-lg border-2 font-semibold transition-all ${
+                      className={`flex-shrink-0 px-2.5 py-1 rounded-lg text-[11px] font-semibold whitespace-nowrap transition-all ${
                         selectedStarRating.includes(stars)
-                          ? 'bg-orange-600 text-white border-orange-600'
-                          : 'bg-white text-gray-700 border-gray-200 hover:border-orange-300'
+                          ? 'bg-primary-500 text-white'
+                          : 'bg-white border border-neutral-200 text-neutral-700 hover:border-primary-300 hover:text-primary-600'
                       }`}
                     >
                       {stars} ⭐
@@ -1118,40 +1083,36 @@ export function HotelSearchBar({ lang = 'en' }: HotelSearchBarProps) {
                 </div>
               </div>
 
-              {/* Price Range */}
+              {/* Price Range - Compact */}
               <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-3">
-                  <DollarSign className="w-4 h-4 inline mr-1" />
+                <label className="block text-[11px] font-bold text-neutral-500 mb-1.5 uppercase tracking-wide">
+                  <DollarSign className="w-3 h-3 inline mr-0.5" />
                   Price Range (per night)
                 </label>
-                <div className="grid grid-cols-2 gap-3">
-                  <div>
-                    <input
-                      type="number"
-                      value={minPrice}
-                      onChange={(e) => setMinPrice(e.target.value)}
-                      placeholder="Min price"
-                      className="w-full px-4 py-2 rounded-lg border-2 border-gray-200 focus:border-orange-500 focus:outline-none transition-colors"
-                    />
-                  </div>
-                  <div>
-                    <input
-                      type="number"
-                      value={maxPrice}
-                      onChange={(e) => setMaxPrice(e.target.value)}
-                      placeholder="Max price"
-                      className="w-full px-4 py-2 rounded-lg border-2 border-gray-200 focus:border-orange-500 focus:outline-none transition-colors"
-                    />
-                  </div>
+                <div className="grid grid-cols-2 gap-1.5">
+                  <input
+                    type="number"
+                    value={minPrice}
+                    onChange={(e) => setMinPrice(e.target.value)}
+                    placeholder="Min"
+                    className="w-full px-2.5 py-1.5 rounded-lg border border-neutral-200 focus:border-primary-500 focus:outline-none transition-colors text-sm font-medium text-neutral-800"
+                  />
+                  <input
+                    type="number"
+                    value={maxPrice}
+                    onChange={(e) => setMaxPrice(e.target.value)}
+                    placeholder="Max"
+                    className="w-full px-2.5 py-1.5 rounded-lg border border-neutral-200 focus:border-primary-500 focus:outline-none transition-colors text-sm font-medium text-neutral-800"
+                  />
                 </div>
               </div>
 
-              {/* Popular Amenities */}
+              {/* Popular Amenities - Horizontal scroll pills */}
               <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-3">
+                <label className="block text-[11px] font-bold text-neutral-500 mb-1.5 uppercase tracking-wide">
                   Popular Amenities
                 </label>
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                <div className="flex gap-1 overflow-x-auto pb-1 scrollbar-hide">
                   {[
                     { id: 1, name: 'WiFi', icon: Wifi },
                     { id: 2, name: 'Parking', icon: Car },
@@ -1162,6 +1123,7 @@ export function HotelSearchBar({ lang = 'en' }: HotelSearchBarProps) {
                     return (
                       <button
                         key={amenity.id}
+                        type="button"
                         onClick={() => {
                           if (selectedAmenities.includes(amenity.id)) {
                             setSelectedAmenities(selectedAmenities.filter(a => a !== amenity.id));
@@ -1169,13 +1131,13 @@ export function HotelSearchBar({ lang = 'en' }: HotelSearchBarProps) {
                             setSelectedAmenities([...selectedAmenities, amenity.id]);
                           }
                         }}
-                        className={`px-4 py-3 rounded-lg border-2 font-medium transition-all flex items-center gap-2 justify-center ${
+                        className={`flex-shrink-0 flex items-center gap-1 px-2.5 py-1 rounded-lg text-[11px] font-semibold whitespace-nowrap transition-all ${
                           selectedAmenities.includes(amenity.id)
-                            ? 'bg-orange-600 text-white border-orange-600'
-                            : 'bg-white text-gray-700 border-gray-200 hover:border-orange-300'
+                            ? 'bg-primary-500 text-white'
+                            : 'bg-white border border-neutral-200 text-neutral-700 hover:border-primary-300 hover:text-primary-600'
                         }`}
                       >
-                        <Icon className="w-4 h-4" />
+                        <Icon className="w-3 h-3" />
                         {amenity.name}
                       </button>
                     );
@@ -1183,17 +1145,18 @@ export function HotelSearchBar({ lang = 'en' }: HotelSearchBarProps) {
                 </div>
               </div>
 
-              {/* Hotel Chains (if available) */}
+              {/* Hotel Chains - Horizontal scroll pills */}
               {hotelChains.length > 0 && (
                 <div>
-                  <label className="block text-sm font-semibold text-gray-700 mb-3">
-                    <Building2 className="w-4 h-4 inline mr-1" />
+                  <label className="block text-[11px] font-bold text-neutral-500 mb-1.5 uppercase tracking-wide">
+                    <Building2 className="w-3 h-3 inline mr-0.5" />
                     Hotel Chains
                   </label>
-                  <div className="grid grid-cols-2 md:grid-cols-3 gap-2 max-h-32 overflow-y-auto">
+                  <div className="flex gap-1 overflow-x-auto pb-1 scrollbar-hide">
                     {hotelChains.slice(0, 12).map((chain) => (
                       <button
                         key={chain.chainId}
+                        type="button"
                         onClick={() => {
                           if (selectedChains.includes(chain.chainId)) {
                             setSelectedChains(selectedChains.filter(c => c !== chain.chainId));
@@ -1201,10 +1164,10 @@ export function HotelSearchBar({ lang = 'en' }: HotelSearchBarProps) {
                             setSelectedChains([...selectedChains, chain.chainId]);
                           }
                         }}
-                        className={`px-3 py-2 rounded-lg border-2 text-sm font-medium transition-all text-left ${
+                        className={`flex-shrink-0 px-2.5 py-1 rounded-lg text-[11px] font-semibold whitespace-nowrap transition-all ${
                           selectedChains.includes(chain.chainId)
-                            ? 'bg-orange-600 text-white border-orange-600'
-                            : 'bg-white text-gray-700 border-gray-200 hover:border-orange-300'
+                            ? 'bg-primary-500 text-white'
+                            : 'bg-white border border-neutral-200 text-neutral-700 hover:border-primary-300 hover:text-primary-600'
                         }`}
                       >
                         {chain.name}
@@ -1214,16 +1177,17 @@ export function HotelSearchBar({ lang = 'en' }: HotelSearchBarProps) {
                 </div>
               )}
 
-              {/* Hotel Types (if available) */}
+              {/* Hotel Types - Horizontal scroll pills */}
               {hotelTypes.length > 0 && (
                 <div>
-                  <label className="block text-sm font-semibold text-gray-700 mb-3">
+                  <label className="block text-[11px] font-bold text-neutral-500 mb-1.5 uppercase tracking-wide">
                     Property Type
                   </label>
-                  <div className="flex flex-wrap gap-2">
+                  <div className="flex gap-1 overflow-x-auto pb-1 scrollbar-hide">
                     {hotelTypes.slice(0, 8).map((type) => (
                       <button
                         key={type.typeId}
+                        type="button"
                         onClick={() => {
                           if (selectedTypes.includes(type.typeId)) {
                             setSelectedTypes(selectedTypes.filter(t => t !== type.typeId));
@@ -1231,10 +1195,10 @@ export function HotelSearchBar({ lang = 'en' }: HotelSearchBarProps) {
                             setSelectedTypes([...selectedTypes, type.typeId]);
                           }
                         }}
-                        className={`px-4 py-2 rounded-lg border-2 text-sm font-medium transition-all ${
+                        className={`flex-shrink-0 px-2.5 py-1 rounded-lg text-[11px] font-semibold whitespace-nowrap transition-all ${
                           selectedTypes.includes(type.typeId)
-                            ? 'bg-orange-600 text-white border-orange-600'
-                            : 'bg-white text-gray-700 border-gray-200 hover:border-orange-300'
+                            ? 'bg-primary-500 text-white'
+                            : 'bg-white border border-neutral-200 text-neutral-700 hover:border-primary-300 hover:text-primary-600'
                         }`}
                       >
                         {type.name}
@@ -1244,10 +1208,11 @@ export function HotelSearchBar({ lang = 'en' }: HotelSearchBarProps) {
                 </div>
               )}
 
-              {/* Clear Filters Button */}
+              {/* Clear Filters Button - Compact */}
               {(selectedChains.length > 0 || selectedTypes.length > 0 || selectedStarRating.length > 0 || selectedAmenities.length > 0 || minPrice || maxPrice) && (
-                <div className="pt-4 border-t border-gray-200">
+                <div className="pt-2 border-t border-neutral-200">
                   <button
+                    type="button"
                     onClick={() => {
                       setSelectedChains([]);
                       setSelectedTypes([]);
@@ -1256,7 +1221,7 @@ export function HotelSearchBar({ lang = 'en' }: HotelSearchBarProps) {
                       setMinPrice('');
                       setMaxPrice('');
                     }}
-                    className="w-full py-2 px-4 bg-gray-200 hover:bg-gray-300 text-gray-700 font-semibold rounded-lg transition-colors"
+                    className="w-full py-1.5 bg-neutral-100 hover:bg-neutral-200 text-neutral-600 font-semibold text-sm rounded-lg transition-colors"
                   >
                     Clear All Filters
                   </button>

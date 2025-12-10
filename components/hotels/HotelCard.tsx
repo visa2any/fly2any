@@ -5,7 +5,7 @@ import Image from 'next/image';
 import {
   Star, MapPin, ChevronLeft, ChevronRight, Heart, Share2,
   Coffee, Shield, Loader2, Wifi, Waves, Dumbbell, Car, ChevronRight as ArrowRight,
-  Sparkles, UtensilsCrossed, Wind, PawPrint, BarChart2
+  Sparkles, UtensilsCrossed, Wind, PawPrint, BarChart2, Users, Receipt
 } from 'lucide-react';
 import { useHotelCompare } from '@/contexts/HotelCompareContext';
 import { getBlurDataURL } from '@/lib/utils/image-optimization';
@@ -27,9 +27,9 @@ export interface HotelCardProps {
 }
 
 const translations = {
-  en: { perNight: '/nt', nights: 'n', bookNow: 'Book', view: 'View', freeCancel: 'Free', exceptional: 'Exceptional', excellent: 'Excellent', veryGood: 'Very Good', good: 'Good', breakfast: 'Bkfst' },
-  pt: { perNight: '/nt', nights: 'n', bookNow: 'Reservar', view: 'Ver', freeCancel: 'Grátis', exceptional: 'Excepcional', excellent: 'Excelente', veryGood: 'Muito Bom', good: 'Bom', breakfast: 'Café' },
-  es: { perNight: '/nt', nights: 'n', bookNow: 'Reservar', view: 'Ver', freeCancel: 'Gratis', exceptional: 'Excepcional', excellent: 'Excelente', veryGood: 'Muy Bueno', good: 'Bueno', breakfast: 'Desay' },
+  en: { perNight: '/nt', nights: 'n', bookNow: 'Book', view: 'View', freeCancel: 'Free', exceptional: 'Exceptional', excellent: 'Excellent', veryGood: 'Very Good', good: 'Good', breakfast: 'Bkfst', guests: 'guests', inclTax: 'incl. tax', exclTax: 'excl. tax', adult: 'adult', child: 'child' },
+  pt: { perNight: '/nt', nights: 'n', bookNow: 'Reservar', view: 'Ver', freeCancel: 'Grátis', exceptional: 'Excepcional', excellent: 'Excelente', veryGood: 'Muito Bom', good: 'Bom', breakfast: 'Café', guests: 'hóspedes', inclTax: 'c/ taxas', exclTax: 's/ taxas', adult: 'adulto', child: 'criança' },
+  es: { perNight: '/nt', nights: 'n', bookNow: 'Reservar', view: 'Ver', freeCancel: 'Gratis', exceptional: 'Excepcional', excellent: 'Excelente', veryGood: 'Muy Bueno', good: 'Bueno', breakfast: 'Desay', guests: 'huéspedes', inclTax: 'c/ imp.', exclTax: 's/ imp.', adult: 'adulto', child: 'niño' },
 };
 
 // Extended amenity detection
@@ -50,6 +50,8 @@ const detectAmenities = (amenities: string[] | undefined) => {
 
 export function HotelCard({
   hotel,
+  adults,
+  children = 0,
   rooms = 1,
   nights,
   onSelect,
@@ -356,16 +358,26 @@ export function HotelCard({
               )}
             </div>
 
-            {/* Row 2: Location + Total */}
-            <div className="flex items-center justify-between mb-1.5">
-              {hotel.location?.city && (
-                <span className="text-white/90 text-[10px] font-medium flex items-center gap-0.5">
-                  <MapPin className="w-2.5 h-2.5" />
-                  {hotel.location.city}{hotel.location?.country ? `, ${hotel.location.country}` : ''}
+            {/* Row 2: Location + Guests + Total */}
+            <div className="flex items-center justify-between mb-1.5 gap-1">
+              <div className="flex items-center gap-2 flex-1 min-w-0">
+                {hotel.location?.city && (
+                  <span className="text-white/90 text-[10px] font-medium flex items-center gap-0.5 truncate">
+                    <MapPin className="w-2.5 h-2.5 flex-shrink-0" />
+                    {hotel.location.city}
+                  </span>
+                )}
+                {/* Guest count */}
+                <span className="text-white/80 text-[10px] font-medium flex items-center gap-0.5 flex-shrink-0">
+                  <Users className="w-2.5 h-2.5" />
+                  {adults + children}
                 </span>
-              )}
+              </div>
               {perNightPrice > 0 && (
-                <span className="text-[10px] font-bold text-white/70">{currencySymbol}{Math.round(totalPrice)} · {nights}n</span>
+                <div className="flex items-center gap-1 flex-shrink-0">
+                  <span className="text-[10px] font-bold text-white/70">{currencySymbol}{Math.round(totalPrice)} · {nights}n</span>
+                  <span className="text-[8px] text-emerald-400 font-semibold">{t.inclTax}</span>
+                </div>
               )}
             </div>
 
@@ -537,7 +549,18 @@ export function HotelCard({
                     <span className="text-xl lg:text-2xl font-bold text-[#1d1d1f]">{currencySymbol}{Math.round(perNightPrice)}</span>
                     <span className="text-[10px] text-[#86868b]">{t.perNight}</span>
                   </div>
-                  <div className="text-[10px] text-[#86868b]">{currencySymbol}{Math.round(totalPrice).toLocaleString()} · {nights}{t.nights}</div>
+                  <div className="flex items-center gap-2 text-[10px] text-[#86868b]">
+                    <span>{currencySymbol}{Math.round(totalPrice).toLocaleString()} · {nights}{t.nights}</span>
+                    <span className="flex items-center gap-0.5 text-emerald-600 font-medium">
+                      <Receipt className="w-3 h-3" />
+                      {t.inclTax}
+                    </span>
+                  </div>
+                  <div className="flex items-center gap-1 text-[10px] text-[#86868b] mt-0.5">
+                    <Users className="w-3 h-3" />
+                    <span>{adults} {adults === 1 ? t.adult : `${t.adult}s`}{children > 0 ? `, ${children} ${children === 1 ? t.child : `${t.child}s`}` : ''}</span>
+                    {rooms > 1 && <span>· {rooms} rooms</span>}
+                  </div>
                 </>
               ) : <span className="text-xs text-[#86868b]">Check availability</span>}
             </div>
