@@ -12,7 +12,7 @@ import { ChevronRight, AlertCircle, RefreshCcw, Sparkles, Hotel, TrendingUp, Clo
 import { motion, AnimatePresence } from 'framer-motion';
 import { MobileFilterSheet, FilterButton } from '@/components/mobile';
 import { useInfiniteScroll } from '@/lib/hooks/useInfiniteScroll';
-import { usePullToRefresh, RefreshButton } from '@/lib/hooks/usePullToRefresh';
+import { usePullToRefresh } from '@/lib/hooks/usePullToRefresh';
 import { useScrollMinimize } from '@/lib/hooks/useScrollDirection';
 import EnhancedSearchBar from '@/components/flights/EnhancedSearchBar';
 import { CollapsibleSearchBar } from '@/components/mobile/CollapsibleSearchBar';
@@ -779,13 +779,6 @@ function HotelResultsContent() {
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-orange-50/20 to-slate-50">
       {pullIndicator}
 
-      <div className="md:hidden">
-        <RefreshButton
-          onRefresh={fetchHotels}
-          isRefreshing={loading || isPullRefreshing}
-          theme="orange"
-        />
-      </div>
 
       <ScrollProgress />
 
@@ -863,7 +856,7 @@ function HotelResultsContent() {
             <div className="flex items-center justify-between mb-2 lg:mb-4 gap-2">
               {/* Left: Filter Button (Mobile only) + Sort options */}
               <div className="flex items-center gap-1.5 min-w-0 flex-1">
-                {/* Mobile Filter Button - Inline with sort */}
+                {/* Mobile: Filter + Refresh buttons inline */}
                 <button
                   onClick={() => setMobileFilterSheetOpen(true)}
                   className="lg:hidden flex items-center gap-1 px-2.5 py-1.5 bg-gradient-to-r from-primary-500 to-primary-600 text-white font-bold text-[10px] rounded-lg shadow-sm active:scale-95 transition-all touch-manipulation flex-shrink-0"
@@ -877,6 +870,14 @@ function HotelResultsContent() {
                       {activeFilterCount}
                     </span>
                   )}
+                </button>
+                <button
+                  onClick={fetchHotels}
+                  disabled={loading || isPullRefreshing}
+                  className="lg:hidden flex items-center justify-center w-8 h-8 bg-white border border-slate-200 text-slate-600 rounded-lg shadow-sm active:scale-95 transition-all touch-manipulation flex-shrink-0 disabled:opacity-50"
+                  title="Refresh"
+                >
+                  <RefreshCcw className={`w-4 h-4 ${loading || isPullRefreshing ? 'animate-spin' : ''}`} />
                 </button>
 
                 <span className="hidden lg:inline text-xs font-semibold text-slate-700 flex-shrink-0">Sort:</span>

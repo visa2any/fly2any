@@ -553,7 +553,7 @@ export function HotelCard({
                 {hotel.reviewScore.toFixed(1)}
               </div>
               <div className="hidden sm:flex flex-col">
-                <span className="text-[9px] lg:text-[10px] font-bold text-slate-700 leading-tight">{reviewCategory.label}</span>
+                <span className="text-[9px] lg:text-[10px] font-bold text-slate-700 leading-tight">{reviewCategory.text}</span>
                 {hotel.reviewCount > 0 && (
                   <span className="text-[8px] lg:text-[9px] text-slate-400">
                     {hotel.reviewCount > 999 ? `${(hotel.reviewCount/1000).toFixed(1)}k` : hotel.reviewCount} {t.reviews}
