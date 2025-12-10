@@ -3336,50 +3336,50 @@ export default function EnhancedSearchBar({
             </div>
           </div>
 
-          {/* Mobile: Additional Flights - ACCORDION PATTERN for space optimization */}
+          {/* Mobile: Additional Flights - Apple-Class Accordion */}
           {tripType === 'oneway' && additionalFlights.length > 0 && (
-            <div className="space-y-1.5">
+            <div className="space-y-2">
               {/* Progress indicator */}
-              <div className="flex items-center gap-1.5 px-1">
-                <span className="text-[10px] font-medium text-gray-500">{additionalFlights.length + 1}/5 flights</span>
-                <div className="flex-1 h-1 bg-gray-200 rounded-full overflow-hidden">
+              <div className="flex items-center gap-2 px-1">
+                <span className="text-[10px] font-semibold text-neutral-500">{additionalFlights.length + 1}/5 flights</span>
+                <div className="flex-1 h-1.5 bg-neutral-200 rounded-full overflow-hidden">
                   <div className="h-full bg-primary-500 rounded-full transition-all" style={{ width: `${((additionalFlights.length + 1) / 5) * 100}%` }} />
                 </div>
               </div>
 
-              {/* Render additional flights - ACCORDION: collapsed by default, one expanded at a time */}
+              {/* Render additional flights - Apple-Class Accordion */}
               {additionalFlights.map((flight, index) => {
                 const isExpanded = expandedFlightId === flight.id;
                 const hasData = flight.origin.length > 0 && flight.destination.length > 0;
                 return (
-                  <div key={flight.id} className="bg-gray-50/80 rounded-lg overflow-hidden border border-gray-200">
+                  <div key={flight.id} className="bg-neutral-50 rounded-xl overflow-hidden border-2 border-neutral-200">
                     {/* COLLAPSED HEADER - Always visible, tap to expand */}
                     <button
                       type="button"
                       onClick={() => setExpandedFlightId(isExpanded ? null : flight.id)}
-                      className="w-full flex items-center justify-between px-2.5 py-2 min-h-[40px] touch-manipulation active:bg-gray-100"
+                      className="w-full flex items-center justify-between px-3 py-2.5 min-h-[44px] touch-manipulation active:bg-neutral-100 transition-colors"
                     >
                       <div className="flex items-center gap-2 flex-1 min-w-0">
-                        <div className="w-5 h-5 rounded-full bg-primary-100 flex items-center justify-center flex-shrink-0">
-                          <span className="text-[10px] font-bold text-primary-600">{index + 2}</span>
+                        <div className="w-6 h-6 rounded-lg bg-primary-100 flex items-center justify-center flex-shrink-0">
+                          <span className="text-[11px] font-bold text-primary-600">{index + 2}</span>
                         </div>
                         {hasData ? (
-                          <span className="text-xs font-semibold text-gray-800 truncate">
+                          <span className="text-xs font-semibold text-neutral-800 truncate">
                             {flight.origin[0]} → {flight.destination[0]} • {flight.departureDate ? format(new Date(flight.departureDate + 'T00:00:00'), 'MMM d') : '--'}
                           </span>
                         ) : (
-                          <span className="text-xs text-gray-400 italic">Tap to configure</span>
+                          <span className="text-xs text-neutral-400 italic">Tap to configure</span>
                         )}
                       </div>
-                      <div className="flex items-center gap-1.5 flex-shrink-0">
-                        {flight.nonstop && <span className="text-[9px] font-medium text-primary-600 bg-primary-50 px-1.5 py-0.5 rounded">Direct</span>}
-                        <ChevronDown size={14} className={`text-gray-400 transition-transform ${isExpanded ? 'rotate-180' : ''}`} />
+                      <div className="flex items-center gap-2 flex-shrink-0">
+                        {flight.nonstop && <span className="text-[9px] font-bold text-primary-600 bg-primary-50 px-2 py-0.5 rounded-lg">Direct</span>}
+                        <ChevronDown size={14} className={`text-neutral-400 transition-transform ${isExpanded ? 'rotate-180' : ''}`} />
                       </div>
                     </button>
 
                     {/* EXPANDED CONTENT - Only one at a time */}
                     {isExpanded && (
-                      <div className="px-2.5 pb-2.5 pt-1 space-y-2 border-t border-gray-200 bg-white">
+                      <div className="px-3 pb-3 pt-2 space-y-2 border-t border-neutral-200 bg-white">
                         {/* Inline: From → To in single row */}
                         <div className="flex items-center gap-1.5">
                           <div className="flex-1 min-w-0">
@@ -3391,7 +3391,7 @@ export default function EnhancedSearchBar({
                               lang={lang}
                             />
                           </div>
-                          <ArrowRight size={14} className="text-gray-400 flex-shrink-0" />
+                          <ArrowRight size={14} className="text-neutral-400 flex-shrink-0" />
                           <div className="flex-1 min-w-0">
                             <MultiAirportSelector
                               placeholder="To"
@@ -3403,7 +3403,7 @@ export default function EnhancedSearchBar({
                           </div>
                         </div>
 
-                        {/* Date + Options + Actions - single compact row */}
+                        {/* Date + Options + Actions - Apple-Class row */}
                         <div className="flex items-center gap-2">
                           <div className="flex-1 relative">
                             <input
@@ -3411,22 +3411,22 @@ export default function EnhancedSearchBar({
                               value={formatDateForInput(flight.departureDate)}
                               onChange={(e) => handleUpdateAdditionalFlight(flight.id, { departureDate: e.target.value })}
                               min={minDate}
-                              className="w-full px-2 py-1.5 text-xs font-medium border border-gray-200 rounded-lg bg-white focus:border-primary-500 outline-none"
+                              className="w-full px-3 py-2 text-xs font-semibold border-2 border-neutral-200 rounded-xl bg-white focus:border-primary-400 outline-none transition-colors"
                             />
                           </div>
-                          <label className="flex items-center gap-1 px-2 py-1.5 bg-gray-50 rounded-lg cursor-pointer flex-shrink-0">
+                          <label className="flex items-center gap-1.5 px-3 py-2 bg-neutral-100 rounded-xl cursor-pointer flex-shrink-0 touch-manipulation active:scale-95">
                             <input
                               type="checkbox"
                               checked={flight.nonstop}
                               onChange={(e) => handleUpdateAdditionalFlight(flight.id, { nonstop: e.target.checked })}
-                              className="w-3 h-3 rounded border-gray-300 text-primary-600"
+                              className="w-4 h-4 rounded-md border-neutral-300 text-primary-500 focus:ring-primary-400"
                             />
-                            <span className="text-[10px] font-medium text-gray-600">Direct</span>
+                            <span className="text-[10px] font-semibold text-neutral-600">Direct</span>
                           </label>
                           <button
                             type="button"
                             onClick={() => handleRemoveFlight(flight.id)}
-                            className="p-1.5 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors flex-shrink-0"
+                            className="p-2 text-neutral-400 hover:text-red-500 hover:bg-red-50 rounded-xl transition-colors flex-shrink-0"
                             aria-label="Remove flight"
                           >
                             <X size={14} />
@@ -3438,23 +3438,23 @@ export default function EnhancedSearchBar({
                 );
               })}
 
-              {/* Add another flight - compact */}
+              {/* Add another flight - Apple-Class */}
               {additionalFlights.length < 4 && (
                 <button
                   type="button"
                   onClick={handleAddFlight}
-                  className="w-full px-2.5 py-2 border border-dashed border-gray-300 hover:border-primary-400 hover:text-primary-600 hover:bg-primary-50 text-gray-500 rounded-lg text-xs font-medium transition-all flex items-center justify-center gap-1.5 min-h-[36px] touch-manipulation active:scale-[0.98]"
+                  className="w-full px-3 py-2.5 border-2 border-dashed border-neutral-300 hover:border-primary-400 hover:text-primary-500 hover:bg-primary-50/50 text-neutral-500 rounded-xl text-xs font-semibold transition-all flex items-center justify-center gap-2 min-h-[44px] touch-manipulation active:scale-[0.98]"
                 >
-                  <Plus size={12} />
+                  <Plus size={14} />
                   <span>Add Flight {additionalFlights.length + 2}</span>
                 </button>
               )}
             </div>
           )}
 
-          {/* MOBILE: Travelers & Class + Flight Options - ALL IN ONE ROW */}
-          <div className="mobile-scroll-x pb-1">
-            {/* Travelers & Class - Mobile-First Button */}
+          {/* MOBILE: Travelers & Class + Flight Options - Apple-Class Row */}
+          <div className="flex items-center gap-2 overflow-x-auto pb-1 scrollbar-hide" style={{ WebkitOverflowScrolling: 'touch' }}>
+            {/* Travelers & Class - Apple-Class Button */}
             <div ref={passengerRef} className="relative flex-shrink-0">
               <button
                 type="button"
@@ -3463,13 +3463,13 @@ export default function EnhancedSearchBar({
                   e.stopPropagation();
                   setShowPassengerDropdown(!showPassengerDropdown);
                 }}
-                className="mobile-btn-tab min-h-[44px]"
+                className="flex items-center gap-2 px-4 py-2.5 min-h-[44px] bg-white border-2 border-neutral-200 rounded-xl text-sm font-semibold text-neutral-700 hover:border-primary-400 transition-all duration-200 touch-manipulation active:scale-[0.98]"
               >
                 <Users size={14} className="text-primary-500" />
-                <span className="font-bold">{totalPassengers}</span>
-                <span className="text-gray-300">|</span>
-                <span>{t(cabinClass as any)}</span>
-                <ChevronDown size={12} className={`text-gray-400 transition-transform ${showPassengerDropdown ? 'rotate-180' : ''}`} />
+                <span className="font-bold text-neutral-800">{totalPassengers}</span>
+                <span className="text-neutral-300">|</span>
+                <span className="text-neutral-600">{t(cabinClass as any)}</span>
+                <ChevronDown size={12} className={`text-neutral-400 transition-transform ${showPassengerDropdown ? 'rotate-180' : ''}`} />
               </button>
 
               {/* Passenger & Class Dropdown - Apple-Class Mobile Bottom Sheet */}
@@ -3602,11 +3602,11 @@ export default function EnhancedSearchBar({
           <div className="flex gap-2">
             {/* Hotel Destination - Takes most space */}
             <div ref={hotelDestinationRef} className="relative flex-1 min-w-0">
-              <label className="block text-xs font-semibold text-gray-600 mb-1.5">
+              <label className="block text-xs font-semibold text-neutral-600 mb-1.5">
                 Destination
               </label>
               <div className="relative">
-                <Building2 className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={16} />
+                <Building2 className="absolute left-3 top-1/2 -translate-y-1/2 text-neutral-400" size={16} />
                 <input
                   type="text"
                   value={hotelDestination}
@@ -3624,8 +3624,8 @@ export default function EnhancedSearchBar({
                     }
                   }}
                   placeholder="City, hotel, landmark"
-                  className={`w-full pl-9 pr-3 py-2 bg-gray-50 border-2 rounded-lg focus:border-primary-500 focus:ring-2 focus:ring-primary-100 outline-none transition-all text-sm font-semibold text-gray-900 ${
-                    errors.hotel ? 'border-red-500' : 'border-gray-200'
+                  className={`w-full pl-9 pr-3 py-2.5 bg-white border-2 rounded-xl focus:border-primary-500 focus:ring-2 focus:ring-primary-100 outline-none transition-all text-sm font-semibold text-neutral-800 ${
+                    errors.hotel ? 'border-red-400' : 'border-neutral-200'
                   }`}
                 />
               </div>
@@ -3637,9 +3637,9 @@ export default function EnhancedSearchBar({
 
               {/* Mobile Suggestions Dropdown */}
               {showHotelSuggestions && (
-                <div className="absolute top-full left-0 right-0 mt-1 bg-white border border-gray-200 rounded-xl shadow-2xl z-dropdown max-h-64 overflow-y-auto">
+                <div className="absolute top-full left-0 right-0 mt-1 bg-white/95 backdrop-blur-xl border border-neutral-200 rounded-2xl shadow-2xl z-dropdown max-h-64 overflow-y-auto">
                   {isLoadingHotelSuggestions ? (
-                    <div className="p-4 text-center text-gray-500 text-sm">Loading...</div>
+                    <div className="p-4 text-center text-neutral-500 text-sm">Loading...</div>
                   ) : hotelSuggestions.length > 0 ? (
                     <div className="py-2">
                       {hotelSuggestions.map((suggestion, index) => (
@@ -3657,13 +3657,13 @@ export default function EnhancedSearchBar({
                           }}
                           className="w-full px-4 py-3 text-left hover:bg-primary-50 active:bg-primary-100 transition-colors flex items-start gap-3 touch-manipulation min-h-[48px]"
                         >
-                          <Building2 size={14} className="text-gray-400 mt-0.5 flex-shrink-0" />
+                          <Building2 size={14} className="text-neutral-400 mt-0.5 flex-shrink-0" />
                           <div className="flex-1 min-w-0">
-                            <div className="font-medium text-gray-900 text-sm">
+                            <div className="font-medium text-neutral-800 text-sm">
                               {suggestion.name}
                             </div>
                             {(suggestion.city || suggestion.country) && (
-                              <div className="text-xs text-gray-500 truncate">
+                              <div className="text-xs text-neutral-500 truncate">
                                 {[suggestion.city, suggestion.country].filter(Boolean).join(', ')}
                               </div>
                             )}
@@ -3672,7 +3672,7 @@ export default function EnhancedSearchBar({
                       ))}
                     </div>
                   ) : (
-                    <div className="p-4 text-center text-gray-500 text-sm">No results found</div>
+                    <div className="p-4 text-center text-neutral-500 text-sm">No results found</div>
                   )}
                 </div>
               )}
@@ -3680,95 +3680,97 @@ export default function EnhancedSearchBar({
 
             {/* Guests & Rooms - Compact button on same row */}
             <div className="relative flex-shrink-0">
-              <label className="block text-xs font-semibold text-gray-600 mb-1.5">
+              <label className="block text-xs font-semibold text-neutral-600 mb-1.5">
                 Guests
               </label>
               <button
                 type="button"
                 onClick={() => setShowPassengerDropdown(!showPassengerDropdown)}
-                className="flex items-center gap-1.5 px-3 py-2 bg-gray-50 border-2 border-gray-200 rounded-lg focus:border-primary-500 focus:ring-2 focus:ring-primary-100 outline-none transition-all text-xs font-semibold text-gray-900 whitespace-nowrap"
+                className="flex items-center gap-1.5 px-3 py-2.5 bg-white border-2 border-neutral-200 rounded-xl hover:border-primary-400 transition-all text-xs font-semibold text-neutral-800 whitespace-nowrap touch-manipulation active:scale-[0.98]"
               >
-                <Users className="text-gray-400" size={14} />
-                <span>{hotelAdults + hotelChildren}</span>
-                <span className="text-gray-300">|</span>
-                <BedDouble className="text-gray-400" size={14} />
+                <Users className="text-primary-500" size={14} />
+                <span className="font-bold">{hotelAdults + hotelChildren}</span>
+                <span className="text-neutral-300">|</span>
+                <BedDouble className="text-neutral-400" size={14} />
                 <span>{hotelRooms}</span>
-                <ChevronDown className="text-gray-400" size={12} />
+                <ChevronDown className="text-neutral-400" size={12} />
               </button>
 
-              {/* Guests & Rooms Dropdown */}
+              {/* Guests & Rooms Dropdown - Apple-Class Mobile Bottom Sheet */}
               {showPassengerDropdown && (
-                <div className="absolute top-full right-0 mt-2 w-64 p-4 bg-white border border-gray-200 rounded-xl shadow-xl z-50 space-y-4">
+                <div className="fixed md:absolute inset-x-0 bottom-0 md:bottom-auto md:right-0 md:left-auto md:top-full md:mt-2 bg-white/95 backdrop-blur-xl border-t md:border border-neutral-200 rounded-t-3xl md:rounded-2xl shadow-2xl z-modal md:w-64 p-4 space-y-3">
+                  {/* Drag Handle */}
+                  <div className="w-10 h-1 bg-neutral-300 rounded-full mx-auto mb-2 md:hidden" />
                   {/* Adults */}
-                  <div className="flex items-center justify-between">
-                    <span className="text-sm font-medium text-gray-700">Adults</span>
-                    <div className="flex items-center gap-3">
+                  <div className="flex items-center justify-between bg-neutral-50 rounded-xl px-3 py-2.5">
+                    <span className="text-xs font-semibold text-neutral-700">Adults</span>
+                    <div className="flex items-center gap-2">
                       <button
                         type="button"
                         onClick={() => setHotelAdults(Math.max(1, hotelAdults - 1))}
-                        className="w-8 h-8 rounded-full border border-gray-300 hover:border-primary-500 hover:bg-primary-50 flex items-center justify-center transition-all"
+                        className="w-7 h-7 rounded-full border-2 border-neutral-200 hover:border-primary-400 flex items-center justify-center transition-colors text-neutral-600"
                       >
-                        <Minus size={16} />
+                        <Minus size={14} />
                       </button>
-                      <span className="w-8 text-center font-semibold">{hotelAdults}</span>
+                      <span className="w-5 text-center font-bold text-neutral-800">{hotelAdults}</span>
                       <button
                         type="button"
                         onClick={() => setHotelAdults(hotelAdults + 1)}
-                        className="w-8 h-8 rounded-full border border-gray-300 hover:border-primary-500 hover:bg-primary-50 flex items-center justify-center transition-all"
+                        className="w-7 h-7 rounded-full border-2 border-neutral-200 hover:border-primary-400 flex items-center justify-center transition-colors text-neutral-600"
                       >
-                        <Plus size={16} />
+                        <Plus size={14} />
                       </button>
                     </div>
                   </div>
 
                   {/* Children */}
-                  <div className="flex items-center justify-between">
-                    <span className="text-sm font-medium text-gray-700">Children</span>
-                    <div className="flex items-center gap-3">
+                  <div className="flex items-center justify-between bg-neutral-50 rounded-xl px-3 py-2.5">
+                    <span className="text-xs font-semibold text-neutral-700">Children</span>
+                    <div className="flex items-center gap-2">
                       <button
                         type="button"
                         onClick={() => setHotelChildren(Math.max(0, hotelChildren - 1))}
-                        className="w-8 h-8 rounded-full border border-gray-300 hover:border-primary-500 hover:bg-primary-50 flex items-center justify-center transition-all"
+                        className="w-7 h-7 rounded-full border-2 border-neutral-200 hover:border-primary-400 flex items-center justify-center transition-colors text-neutral-600"
                       >
-                        <Minus size={16} />
+                        <Minus size={14} />
                       </button>
-                      <span className="w-8 text-center font-semibold">{hotelChildren}</span>
+                      <span className="w-5 text-center font-bold text-neutral-800">{hotelChildren}</span>
                       <button
                         type="button"
                         onClick={() => setHotelChildren(hotelChildren + 1)}
-                        className="w-8 h-8 rounded-full border border-gray-300 hover:border-primary-500 hover:bg-primary-50 flex items-center justify-center transition-all"
+                        className="w-7 h-7 rounded-full border-2 border-neutral-200 hover:border-primary-400 flex items-center justify-center transition-colors text-neutral-600"
                       >
-                        <Plus size={16} />
+                        <Plus size={14} />
                       </button>
                     </div>
                   </div>
 
                   {/* Rooms */}
-                  <div className="flex items-center justify-between">
-                    <span className="text-sm font-medium text-gray-700">Rooms</span>
-                    <div className="flex items-center gap-3">
+                  <div className="flex items-center justify-between bg-neutral-50 rounded-xl px-3 py-2.5">
+                    <span className="text-xs font-semibold text-neutral-700">Rooms</span>
+                    <div className="flex items-center gap-2">
                       <button
                         type="button"
                         onClick={() => setHotelRooms(Math.max(1, hotelRooms - 1))}
-                        className="w-8 h-8 rounded-full border border-gray-300 hover:border-primary-500 hover:bg-primary-50 flex items-center justify-center transition-all"
+                        className="w-7 h-7 rounded-full border-2 border-neutral-200 hover:border-primary-400 flex items-center justify-center transition-colors text-neutral-600"
                       >
-                        <Minus size={16} />
+                        <Minus size={14} />
                       </button>
-                      <span className="w-8 text-center font-semibold">{hotelRooms}</span>
+                      <span className="w-5 text-center font-bold text-neutral-800">{hotelRooms}</span>
                       <button
                         type="button"
                         onClick={() => setHotelRooms(hotelRooms + 1)}
-                        className="w-8 h-8 rounded-full border border-gray-300 hover:border-primary-500 hover:bg-primary-50 flex items-center justify-center transition-all"
+                        className="w-7 h-7 rounded-full border-2 border-neutral-200 hover:border-primary-400 flex items-center justify-center transition-colors text-neutral-600"
                       >
-                        <Plus size={16} />
+                        <Plus size={14} />
                       </button>
                     </div>
                   </div>
 
-                  {/* Done Button */}
+                  {/* Done Button - Apple-Class */}
                   <button
                     onClick={() => setShowPassengerDropdown(false)}
-                    className="w-full py-2 bg-primary-500 hover:bg-primary-600 text-white font-semibold rounded-lg transition-all duration-200 ease-in-out text-xs shadow-sm hover:shadow-md"
+                    className="w-full py-3 bg-primary-500 hover:bg-primary-600 text-white font-bold rounded-xl transition-all duration-200 text-sm shadow-lg shadow-primary-500/25 touch-manipulation active:scale-[0.98]"
                   >
                     Done
                   </button>
@@ -3804,13 +3806,13 @@ export default function EnhancedSearchBar({
 
           {/* Check-in and Check-out Dates - Unified Date Range Picker */}
           <div>
-            <label className="block text-xs font-semibold text-gray-600 mb-1.5">
+            <label className="block text-xs font-semibold text-neutral-600 mb-1.5">
               Stay Dates
             </label>
             <button
               type="button"
               onClick={() => setShowHotelDateRangePicker(true)}
-              className="w-full px-3 py-2.5 bg-white border border-neutral-200 rounded-xl hover:border-primary-400 transition-all active:scale-[0.99]"
+              className="w-full px-3 py-2.5 bg-white border-2 border-neutral-200 rounded-xl hover:border-primary-400 transition-all touch-manipulation active:scale-[0.98]"
             >
               <div className="flex items-center gap-2">
                 {/* Check-in */}
@@ -3852,15 +3854,16 @@ export default function EnhancedSearchBar({
             </button>
           </div>
 
-          {/* Search Button */}
+          {/* Search Button - Apple-Class Primary */}
           <button
+            type="button"
             onClick={handleSearch}
             disabled={isLoading}
-            className="w-full h-10 bg-[#D63A35] hover:bg-[#0077E6] text-white font-bold rounded-lg shadow-lg hover:shadow-xl transition-all duration-200 ease-in-out text-sm disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+            className="w-full py-3.5 bg-gradient-to-r from-primary-500 to-primary-600 hover:from-primary-600 hover:to-primary-700 text-white font-bold text-[15px] rounded-xl shadow-lg shadow-primary-500/30 transition-all duration-200 touch-manipulation active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
           >
             {isLoading ? (
               <>
-                <svg className="animate-spin h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                <svg className="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                   <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
                   <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                 </svg>
