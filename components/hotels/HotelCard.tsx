@@ -62,6 +62,7 @@ export function HotelCard({
   const [isLoadingImages, setIsLoadingImages] = useState(false);
   const [hasLoadedImages, setHasLoadedImages] = useState(false);
   const [showArrows, setShowArrows] = useState(false);
+  const [touchStart, setTouchStart] = useState<number | null>(null);
   const t = translations[lang];
 
   const { addToCompare, removeFromCompare, isInCompare, canAddMore } = useHotelCompare();
@@ -147,6 +148,31 @@ export function HotelCard({
     }
   }, [images.length]);
 
+  // Swipe handlers for touch devices
+  const handleTouchStart = (e: React.TouchEvent) => {
+    setTouchStart(e.touches[0].clientX);
+  };
+
+  const handleTouchEnd = async (e: React.TouchEvent) => {
+    if (touchStart === null || images.length <= 1) return;
+    const touchEnd = e.changedTouches[0].clientX;
+    const diff = touchStart - touchEnd;
+    const threshold = 50; // minimum swipe distance
+
+    if (Math.abs(diff) > threshold) {
+      if (!hasLoadedImages && !isLoadingImages) await fetchImages();
+      if (diff > 0) {
+        // Swipe left → next image
+        setCurrentImageIndex((prev) => (prev + 1) % images.length);
+      } else {
+        // Swipe right → prev image
+        setCurrentImageIndex((prev) => (prev - 1 + images.length) % images.length);
+      }
+      flashArrows();
+    }
+    setTouchStart(null);
+  };
+
   return (
     <article
       data-hotel-card
@@ -155,7 +181,12 @@ export function HotelCard({
       style={{ boxShadow: '0 2px 12px -4px rgba(0,0,0,0.15)' }}
     >
       {/* MOBILE: Full-bleed photo with shadow-based overlay (no gradients) */}
-      <div className="sm:hidden relative w-full aspect-[16/11] overflow-hidden" onMouseEnter={fetchImages}>
+      <div
+        className="sm:hidden relative w-full aspect-[16/11] overflow-hidden"
+        onMouseEnter={fetchImages}
+        onTouchStart={handleTouchStart}
+        onTouchEnd={handleTouchEnd}
+      >
         <Image
           src={images[currentImageIndex]?.url || '/images/hotel-placeholder.jpg'}
           alt={images[currentImageIndex]?.alt || hotel.name}
