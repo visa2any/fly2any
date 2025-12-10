@@ -259,14 +259,14 @@ export function HotelCard({
           onError={(e) => { (e.target as HTMLImageElement).src = '/images/hotel-placeholder.jpg'; }}
         />
 
-        {/* Top-left: Rating - shadow only for clean look */}
+        {/* Top-left: Rating - minimal glass pill */}
         {hotel.reviewScore > 0 && (
-          <div className="absolute top-2.5 left-2.5 flex items-center gap-1" style={{ filter: 'drop-shadow(0 2px 4px rgba(0,0,0,0.6))' }}>
-            <span className="text-white text-sm font-bold">{hotel.reviewScore.toFixed(1)}</span>
+          <div className="absolute top-2.5 left-2.5 flex items-center gap-1 px-2 py-0.5 rounded-full bg-black/40 backdrop-blur-sm">
+            <span className="text-white text-xs font-bold">{hotel.reviewScore.toFixed(1)}</span>
             {hotel.rating > 0 && (
               <div className="flex">
                 {Array.from({ length: Math.min(hotel.rating, 5) }, (_, i) => (
-                  <Star key={i} className="w-3 h-3 fill-amber-400 text-amber-400" />
+                  <Star key={i} className="w-2.5 h-2.5 fill-amber-400 text-amber-400" />
                 ))}
               </div>
             )}
@@ -283,13 +283,12 @@ export function HotelCard({
           </button>
         </div>
 
-        {/* Dot indicators - white for visibility */}
+        {/* Dot indicators - above info bar */}
         {images.length > 1 && (
-          <div className="absolute bottom-2 left-1/2 -translate-x-1/2 flex gap-1 z-20" style={{ filter: 'drop-shadow(0 1px 3px rgba(0,0,0,0.6))' }}>
+          <div className="absolute bottom-[72px] left-1/2 -translate-x-1/2 flex gap-1.5 z-20">
             {images.slice(0, Math.min(images.length, 5)).map((_, idx) => (
-              <div key={idx} className={`w-1.5 h-1.5 rounded-full transition-all ${idx === currentImageIndex ? 'bg-white w-4' : 'bg-white/50'}`} />
+              <div key={idx} className={`h-1 rounded-full transition-all ${idx === currentImageIndex ? 'bg-white w-4' : 'bg-white/40 w-1'}`} />
             ))}
-            {images.length > 5 && <span className="text-white/70 text-[9px] ml-1">+{images.length - 5}</span>}
           </div>
         )}
 
@@ -338,70 +337,48 @@ export function HotelCard({
           </div>
         )}
 
-        {/* Bottom info - subtle gradient scrim (~15% coverage) + white text */}
-        <div className="absolute bottom-0 left-0 right-0 z-10">
-          {/* Ultra-subtle gradient - covers ~20% of photo height */}
-          <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-black/20 to-transparent" />
-
-          <div className="relative p-3">
+        {/* Bottom info - minimal frosted glass bar */}
+        <div className="absolute bottom-0 left-0 right-0 z-10 bg-black/35 backdrop-blur-[2px]">
+          <div className="p-2.5">
             {/* Row 1: Name + Price */}
-            <div className="flex items-start justify-between gap-2 mb-1">
-              <h3 className="font-bold text-[15px] text-white leading-tight line-clamp-1 flex-1">
+            <div className="flex items-start justify-between gap-2 mb-0.5">
+              <h3 className="font-bold text-[14px] text-white leading-tight line-clamp-1 flex-1">
                 {hotel.name}
               </h3>
               {perNightPrice > 0 && (
                 <div className="flex flex-col items-end flex-shrink-0">
                   <div className="flex items-baseline gap-0.5">
-                    <span className="font-bold text-[16px] text-white">{currencySymbol}{Math.round(perNightPrice)}</span>
-                    <span className="text-[10px] text-white/80">{t.perNight}</span>
+                    <span className="font-bold text-[15px] text-white">{currencySymbol}{Math.round(perNightPrice)}</span>
+                    <span className="text-[9px] text-white/70">{t.perNight}</span>
                   </div>
-                  <span className="text-[9px] text-white/60">{currencySymbol}{Math.round(totalPrice)} · {nights}{t.nights}</span>
+                  <span className="text-[8px] text-white/50">{currencySymbol}{Math.round(totalPrice)} · {nights}{t.nights}</span>
                 </div>
               )}
             </div>
 
-            {/* Row 2: Location */}
-            <div className="flex items-center gap-1 mb-1.5">
-              {hotel.location?.city && (
-                <span className="text-white/90 text-[11px] font-medium flex items-center gap-0.5">
-                  <MapPin className="w-3 h-3 flex-shrink-0" />
-                  <span className="truncate">{hotel.location.city}{hotel.location?.country ? `, ${hotel.location.country}` : ''}</span>
-                </span>
-              )}
-            </div>
-
-            {/* Row 3: Amenities + Badges + CTA */}
+            {/* Row 2: Location + Amenities + CTA */}
             <div className="flex items-center justify-between gap-2">
-              <div className="flex items-center gap-1.5 flex-1 min-w-0">
-                {/* Amenities icons */}
-                <div className="flex items-center gap-1 text-white/80">
-                  {amenities.wifi && <Wifi className="w-3 h-3" />}
-                  {amenities.pool && <Waves className="w-3 h-3" />}
-                  {amenities.gym && <Dumbbell className="w-3 h-3" />}
-                  {amenities.spa && <Sparkles className="w-3 h-3" />}
-                  {amenities.restaurant && <UtensilsCrossed className="w-3 h-3" />}
-                  {amenities.parking && <Car className="w-3 h-3" />}
+              <div className="flex items-center gap-2 flex-1 min-w-0 text-white/80">
+                {hotel.location?.city && (
+                  <span className="text-[10px] font-medium flex items-center gap-0.5">
+                    <MapPin className="w-2.5 h-2.5" />
+                    <span className="truncate max-w-[80px]">{hotel.location.city}</span>
+                  </span>
+                )}
+                {/* Amenities */}
+                <div className="flex items-center gap-0.5">
+                  {amenities.wifi && <Wifi className="w-2.5 h-2.5" />}
+                  {amenities.pool && <Waves className="w-2.5 h-2.5" />}
+                  {amenities.gym && <Dumbbell className="w-2.5 h-2.5" />}
+                  {amenities.parking && <Car className="w-2.5 h-2.5" />}
                 </div>
-                {/* Badges */}
-                {hasFreeCancellation && (
-                  <span className="text-emerald-400 text-[10px] font-bold flex items-center">
-                    <Shield className="w-3 h-3" />
-                  </span>
-                )}
-                {hasBreakfast && (
-                  <span className="text-amber-400 text-[10px]">
-                    <Coffee className="w-3 h-3" />
-                  </span>
-                )}
-                {rooms > 1 && (
-                  <span className="text-white/70 text-[10px] font-medium">{rooms}rm</span>
-                )}
+                {hasFreeCancellation && <Shield className="w-2.5 h-2.5 text-emerald-400" />}
+                {hasBreakfast && <Coffee className="w-2.5 h-2.5 text-amber-400" />}
               </div>
-              {/* CTA - Fly2Any red */}
+              {/* CTA */}
               <button
                 onClick={(e) => { e.stopPropagation(); handleBooking(); }}
-                className="px-3.5 py-1.5 rounded-lg bg-primary-500 hover:bg-primary-600 text-white text-[11px] font-bold active:scale-95 transition-all flex-shrink-0"
-                style={{ boxShadow: '0 2px 8px rgba(239, 65, 54, 0.35)' }}
+                className="px-3 py-1.5 rounded-lg bg-primary-500 text-white text-[10px] font-bold active:scale-95 transition-transform"
               >
                 {t.bookNow}
               </button>
