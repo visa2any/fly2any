@@ -25,49 +25,26 @@ export function HamburgerMenu({ isOpen, onClick, className = '' }: HamburgerMenu
   return (
     <button
       onClick={onClick}
-      className={`lg:hidden flex items-center justify-center min-w-[48px] min-h-[48px] rounded-lg hover:bg-gray-100 active:scale-95 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 ${className}`}
+      className={`lg:hidden flex items-center justify-center min-w-[48px] min-h-[48px] rounded-xl border-2 border-transparent hover:border-neutral-200 hover:bg-neutral-50 active:scale-95 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-primary-400 touch-manipulation ${className}`}
       aria-label={isOpen ? 'Close menu' : 'Open menu'}
       aria-expanded={isOpen}
       aria-controls="mobile-navigation-drawer"
     >
-      <div className="w-6 h-6 flex flex-col justify-center items-center">
-        {/* Top line */}
+      <div className="w-5 h-5 flex flex-col justify-center items-center gap-1">
         <motion.span
-          className="block w-6 h-0.5 bg-gray-700 rounded-full"
-          animate={{
-            rotate: isOpen ? 45 : 0,
-            y: isOpen ? 8 : 0,
-          }}
-          transition={{
-            duration: 0.2,
-            ease: 'easeInOut',
-          }}
+          className="block w-5 h-0.5 bg-neutral-700 rounded-full"
+          animate={{ rotate: isOpen ? 45 : 0, y: isOpen ? 6 : 0 }}
+          transition={{ duration: 0.2, ease: 'easeInOut' }}
         />
-
-        {/* Middle line */}
         <motion.span
-          className="block w-6 h-0.5 bg-gray-700 rounded-full my-1.5"
-          animate={{
-            opacity: isOpen ? 0 : 1,
-            x: isOpen ? -10 : 0,
-          }}
-          transition={{
-            duration: 0.2,
-            ease: 'easeInOut',
-          }}
+          className="block w-5 h-0.5 bg-neutral-700 rounded-full"
+          animate={{ opacity: isOpen ? 0 : 1, x: isOpen ? -10 : 0 }}
+          transition={{ duration: 0.2, ease: 'easeInOut' }}
         />
-
-        {/* Bottom line */}
         <motion.span
-          className="block w-6 h-0.5 bg-gray-700 rounded-full"
-          animate={{
-            rotate: isOpen ? -45 : 0,
-            y: isOpen ? -8 : 0,
-          }}
-          transition={{
-            duration: 0.2,
-            ease: 'easeInOut',
-          }}
+          className="block w-5 h-0.5 bg-neutral-700 rounded-full"
+          animate={{ rotate: isOpen ? -45 : 0, y: isOpen ? -6 : 0 }}
+          transition={{ duration: 0.2, ease: 'easeInOut' }}
         />
       </div>
     </button>

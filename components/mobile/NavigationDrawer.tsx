@@ -100,10 +100,10 @@ export function NavigationDrawer({
     <AnimatePresence>
       {isOpen && (
         <>
-          {/* Backdrop */}
+          {/* Backdrop - Glass morphism */}
           <motion.div
             id="mobile-navigation-backdrop"
-            className="fixed inset-0 bg-black/50 md:hidden"
+            className="fixed inset-0 bg-black/30 backdrop-blur-sm md:hidden"
             style={{ zIndex: zIndex.MODAL_BACKDROP }}
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
@@ -113,152 +113,91 @@ export function NavigationDrawer({
             aria-hidden="true"
           />
 
-          {/* Drawer */}
+          {/* Drawer - Apple-Class */}
           <motion.div
             id="mobile-navigation-drawer"
             role="dialog"
             aria-modal="true"
             aria-label="Mobile navigation menu"
-            className="fixed top-0 left-0 h-full w-80 max-w-[85vw] bg-white shadow-2xl md:hidden overflow-y-auto"
+            className="fixed top-0 left-0 h-full w-80 max-w-[85vw] bg-white/95 backdrop-blur-xl shadow-2xl md:hidden overflow-y-auto border-r border-neutral-200"
             style={{ zIndex: zIndex.MODAL_CONTENT }}
             initial={{ x: -320 }}
             animate={{ x: 0 }}
             exit={{ x: -320 }}
-            transition={{
-              type: 'spring',
-              stiffness: 300,
-              damping: 30,
-            }}
+            transition={{ type: 'spring', stiffness: 400, damping: 30 }}
           >
-            {/* Header with Logo, Notifications, and Close Button */}
-            <div className="sticky top-0 bg-white border-b border-gray-200 px-6 py-4 flex items-center justify-between">
-              <a href="/" onClick={onClose} className="flex items-center gap-2.5">
-                {/* Airplane Icon */}
-                <div className="p-1.5 rounded-xl bg-gradient-to-br from-primary-50 to-secondary-50">
-                  <Image
-                    src="/icon-192.png"
-                    alt="Fly2Any"
-                    width={28}
-                    height={28}
-                    priority
-                    className="w-7 h-7"
-                  />
+            {/* Header - Apple-Class */}
+            <div className="sticky top-0 bg-white/95 backdrop-blur-sm border-b border-neutral-100 px-4 py-3 flex items-center justify-between">
+              <a href="/" onClick={onClose} className="flex items-center gap-2 active:scale-[0.98] touch-manipulation">
+                <div className="p-1.5 rounded-xl bg-gradient-to-br from-primary-50 to-secondary-50 shadow-sm">
+                  <Image src="/icon-192.png" alt="Fly2Any" width={28} height={28} priority className="w-6 h-6" />
                 </div>
-                {/* Fly2Any Text */}
-                <span className="font-bold text-xl bg-gradient-to-r from-primary-500 to-primary-400 bg-clip-text text-transparent">
-                  Fly2Any
-                </span>
+                <span className="font-bold text-lg bg-gradient-to-r from-primary-500 to-primary-400 bg-clip-text text-transparent">Fly2Any</span>
               </a>
-              <div className="flex items-center gap-2">
-                {/* Notification Bell for Mobile */}
-                {userId && (
-                  <NotificationBell userId={userId} />
-                )}
+              <div className="flex items-center gap-1.5">
+                {userId && <NotificationBell userId={userId} />}
                 <button
                   onClick={onClose}
-                  className="min-w-[44px] min-h-[44px] flex items-center justify-center rounded-lg hover:bg-gray-100 transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-primary-500"
+                  className="min-w-[44px] min-h-[44px] flex items-center justify-center rounded-xl hover:bg-neutral-100 active:scale-95 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-primary-400 touch-manipulation"
                   aria-label="Close menu"
                 >
-                  <svg
-                    className="w-6 h-6 text-gray-700"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
-                    strokeWidth={2}
-                  >
+                  <svg className="w-5 h-5 text-neutral-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
                     <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
                   </svg>
                 </button>
               </div>
             </div>
 
-            {/* User Account Section - Only for authenticated users */}
+            {/* User Account - Apple-Class */}
             {userId && (
               <>
-                <div className="px-4 pt-6 pb-2">
-                  <div className="px-4 mb-2">
-                    <span className="text-xs font-semibold text-gray-500 uppercase tracking-wide">
-                      My Account
-                    </span>
+                <div className="px-3 pt-4 pb-2">
+                  <div className="px-3 mb-2">
+                    <span className="text-[10px] font-bold text-neutral-500 uppercase tracking-wider">My Account</span>
                   </div>
-                  <div className="space-y-1">
-                    <a
-                      href="/account"
-                      onClick={onClose}
-                      className="flex items-center gap-4 px-4 py-3 text-gray-700 hover:bg-primary-50 hover:text-primary-600 rounded-xl transition-all duration-200 font-semibold"
-                    >
-                      <span className="text-xl">👤</span>
-                      <span className="text-base">{translations.account}</span>
+                  <div className="space-y-0.5">
+                    <a href="/account" onClick={onClose} className="flex items-center gap-3 px-3 py-2.5 text-neutral-700 hover:bg-primary-50 hover:text-primary-600 rounded-xl transition-all duration-200 font-semibold active:scale-[0.98] touch-manipulation">
+                      <span className="text-lg">👤</span>
+                      <span className="text-sm">{translations.account}</span>
                     </a>
-                    <a
-                      href="/account/wishlist"
-                      onClick={onClose}
-                      className="flex items-center gap-4 px-4 py-3 text-gray-700 hover:bg-primary-50 hover:text-primary-600 rounded-xl transition-all duration-200 font-semibold"
-                    >
-                      <span className="text-xl">💖</span>
-                      <span className="text-base">{translations.wishlist}</span>
+                    <a href="/account/wishlist" onClick={onClose} className="flex items-center gap-3 px-3 py-2.5 text-neutral-700 hover:bg-primary-50 hover:text-primary-600 rounded-xl transition-all duration-200 font-semibold active:scale-[0.98] touch-manipulation">
+                      <span className="text-lg">💖</span>
+                      <span className="text-sm">{translations.wishlist}</span>
                     </a>
-                    <a
-                      href="/account/notifications"
-                      onClick={onClose}
-                      className="flex items-center gap-4 px-4 py-3 text-gray-700 hover:bg-primary-50 hover:text-primary-600 rounded-xl transition-all duration-200 font-semibold"
-                    >
-                      <span className="text-xl">🔔</span>
-                      <span className="text-base">{translations.notifications}</span>
+                    <a href="/account/notifications" onClick={onClose} className="flex items-center gap-3 px-3 py-2.5 text-neutral-700 hover:bg-primary-50 hover:text-primary-600 rounded-xl transition-all duration-200 font-semibold active:scale-[0.98] touch-manipulation">
+                      <span className="text-lg">🔔</span>
+                      <span className="text-sm">{translations.notifications}</span>
                     </a>
                   </div>
                 </div>
-                {/* Divider */}
-                <div className="mx-6 border-t border-gray-200" />
+                <div className="mx-4 border-t border-neutral-100" />
               </>
             )}
 
-            {/* Main Navigation Links */}
-            <nav className="px-4 py-6 space-y-2">
-              <div className="px-4 mb-3">
-                <span className="text-xs font-semibold text-gray-500 uppercase tracking-wide">
-                  Book Travel
-                </span>
+            {/* Main Navigation - Apple-Class */}
+            <nav className="px-3 py-4 space-y-0.5">
+              <div className="px-3 mb-2">
+                <span className="text-[10px] font-bold text-neutral-500 uppercase tracking-wider">Book Travel</span>
               </div>
-              <a
-                href="/flights"
-                onClick={onClose}
-                className="flex items-center gap-4 px-4 py-3.5 text-gray-700 hover:bg-primary-50 hover:text-primary-600 rounded-xl transition-all duration-200 font-semibold"
-              >
-                <span className="text-2xl">✈️</span>
-                <span className="text-base">{translations.flights}</span>
+              <a href="/flights" onClick={onClose} className="flex items-center gap-3 px-3 py-2.5 text-neutral-700 hover:bg-primary-50 hover:text-primary-600 rounded-xl transition-all duration-200 font-semibold active:scale-[0.98] touch-manipulation">
+                <span className="text-xl">✈️</span>
+                <span className="text-sm">{translations.flights}</span>
               </a>
-              <a
-                href="/hotels"
-                onClick={onClose}
-                className="flex items-center gap-4 px-4 py-3.5 text-gray-700 hover:bg-primary-50 hover:text-primary-600 rounded-xl transition-all duration-200 font-semibold"
-              >
-                <span className="text-2xl">🏨</span>
-                <span className="text-base">{translations.hotels}</span>
+              <a href="/hotels" onClick={onClose} className="flex items-center gap-3 px-3 py-2.5 text-neutral-700 hover:bg-primary-50 hover:text-primary-600 rounded-xl transition-all duration-200 font-semibold active:scale-[0.98] touch-manipulation">
+                <span className="text-xl">🏨</span>
+                <span className="text-sm">{translations.hotels}</span>
               </a>
-              <a
-                href="/deals"
-                onClick={onClose}
-                className="flex items-center gap-4 px-4 py-3.5 text-gray-700 hover:bg-primary-50 hover:text-primary-600 rounded-xl transition-all duration-200 font-semibold"
-              >
-                <span className="text-2xl">🔥</span>
-                <span className="text-base">{translations.deals}</span>
+              <a href="/deals" onClick={onClose} className="flex items-center gap-3 px-3 py-2.5 text-neutral-700 hover:bg-primary-50 hover:text-primary-600 rounded-xl transition-all duration-200 font-semibold active:scale-[0.98] touch-manipulation">
+                <span className="text-xl">🔥</span>
+                <span className="text-sm">{translations.deals}</span>
               </a>
-              <a
-                href="/destinations"
-                onClick={onClose}
-                className="flex items-center gap-4 px-4 py-3.5 text-gray-700 hover:bg-primary-50 hover:text-primary-600 rounded-xl transition-all duration-200 font-semibold"
-              >
-                <span className="text-2xl">🏙️</span>
-                <span className="text-base">{translations.destinations}</span>
+              <a href="/destinations" onClick={onClose} className="flex items-center gap-3 px-3 py-2.5 text-neutral-700 hover:bg-primary-50 hover:text-primary-600 rounded-xl transition-all duration-200 font-semibold active:scale-[0.98] touch-manipulation">
+                <span className="text-xl">🏙️</span>
+                <span className="text-sm">{translations.destinations}</span>
               </a>
-              <a
-                href="/airlines"
-                onClick={onClose}
-                className="flex items-center gap-4 px-4 py-3.5 text-gray-700 hover:bg-primary-50 hover:text-primary-600 rounded-xl transition-all duration-200 font-semibold"
-              >
-                <span className="text-2xl">✈️</span>
-                <span className="text-base">{translations.airlines}</span>
+              <a href="/airlines" onClick={onClose} className="flex items-center gap-3 px-3 py-2.5 text-neutral-700 hover:bg-primary-50 hover:text-primary-600 rounded-xl transition-all duration-200 font-semibold active:scale-[0.98] touch-manipulation">
+                <span className="text-xl">✈️</span>
+                <span className="text-sm">{translations.airlines}</span>
               </a>
               {/* ============================================
                   TEMPORARILY HIDDEN - Uncomment when ready to launch
@@ -304,57 +243,30 @@ export function NavigationDrawer({
                 <span className="text-2xl">🛡️</span>
                 <span className="text-base">{translations.travelInsurance}</span>
               </a> */}
-              <a
-                href="/world-cup-2026"
-                onClick={onClose}
-                className="flex items-center gap-4 px-4 py-3.5 text-white bg-gradient-to-r from-yellow-500 to-orange-500 hover:from-yellow-600 hover:to-orange-600 rounded-xl transition-all duration-200 font-black shadow-lg"
-              >
-                <span className="text-2xl animate-pulse">⚽</span>
-                <span className="text-base">WORLD CUP 2026 🏆</span>
+              <a href="/world-cup-2026" onClick={onClose} className="flex items-center gap-3 px-3 py-2.5 text-white bg-gradient-to-r from-yellow-500 to-orange-500 hover:from-yellow-600 hover:to-orange-600 rounded-xl transition-all duration-200 font-bold shadow-md active:scale-[0.98] touch-manipulation mt-2">
+                <span className="text-xl">⚽</span>
+                <span className="text-sm">WORLD CUP 2026 🏆</span>
               </a>
             </nav>
 
-            {/* Divider */}
-            <div className="mx-6 border-t border-gray-200" />
+            <div className="mx-4 border-t border-neutral-100" />
 
-            {/* Discover Section */}
-            <nav className="px-4 py-6 space-y-2">
-              <div className="px-4 mb-3">
-                <span className="text-xs font-semibold text-gray-500 uppercase tracking-wide">
-                  Discover
-                </span>
+            {/* Discover - Apple-Class */}
+            <nav className="px-3 py-4 space-y-0.5">
+              <div className="px-3 mb-2">
+                <span className="text-[10px] font-bold text-neutral-500 uppercase tracking-wider">Discover</span>
               </div>
-              <a
-                href="/deals"
-                onClick={onClose}
-                className="flex items-center gap-4 px-4 py-3.5 text-gray-700 hover:bg-primary-50 hover:text-primary-600 rounded-xl transition-all duration-200 font-semibold"
-              >
-                <span className="text-2xl">🔥</span>
-                <span className="text-base">{translations.deals}</span>
+              <a href="/explore" onClick={onClose} className="flex items-center gap-3 px-3 py-2.5 text-neutral-700 hover:bg-primary-50 hover:text-primary-600 rounded-xl transition-all duration-200 font-semibold active:scale-[0.98] touch-manipulation">
+                <span className="text-xl">🌍</span>
+                <span className="text-sm">{translations.explore}</span>
               </a>
-              <a
-                href="/explore"
-                onClick={onClose}
-                className="flex items-center gap-4 px-4 py-3.5 text-gray-700 hover:bg-primary-50 hover:text-primary-600 rounded-xl transition-all duration-200 font-semibold"
-              >
-                <span className="text-2xl">🌍</span>
-                <span className="text-base">{translations.explore}</span>
+              <a href="/travel-guide" onClick={onClose} className="flex items-center gap-3 px-3 py-2.5 text-neutral-700 hover:bg-primary-50 hover:text-primary-600 rounded-xl transition-all duration-200 font-semibold active:scale-[0.98] touch-manipulation">
+                <span className="text-xl">📚</span>
+                <span className="text-sm">{translations.travelGuide}</span>
               </a>
-              <a
-                href="/travel-guide"
-                onClick={onClose}
-                className="flex items-center gap-4 px-4 py-3.5 text-gray-700 hover:bg-primary-50 hover:text-primary-600 rounded-xl transition-all duration-200 font-semibold"
-              >
-                <span className="text-2xl">📚</span>
-                <span className="text-base">{translations.travelGuide}</span>
-              </a>
-              <a
-                href="/faq"
-                onClick={onClose}
-                className="flex items-center gap-4 px-4 py-3.5 text-gray-700 hover:bg-primary-50 hover:text-primary-600 rounded-xl transition-all duration-200 font-semibold"
-              >
-                <span className="text-2xl">❓</span>
-                <span className="text-base">{translations.faq}</span>
+              <a href="/faq" onClick={onClose} className="flex items-center gap-3 px-3 py-2.5 text-neutral-700 hover:bg-primary-50 hover:text-primary-600 rounded-xl transition-all duration-200 font-semibold active:scale-[0.98] touch-manipulation">
+                <span className="text-xl">❓</span>
+                <span className="text-sm">{translations.faq}</span>
               </a>
             </nav>
 
@@ -398,22 +310,13 @@ export function NavigationDrawer({
               </div>
             </div> */}
 
-            {/* Auth Buttons - Only for non-authenticated users */}
+            {/* Auth Buttons - Apple-Class */}
             {!userId && (
-              <div className="px-4 py-6 space-y-3">
-                <button
-                  onClick={handleSignIn}
-                  className="w-full px-6 py-3.5 text-gray-700 hover:text-primary-600 font-bold text-base rounded-xl transition-all duration-200 hover:bg-primary-50 border-2 border-gray-300 hover:border-primary-500"
-                >
+              <div className="px-3 py-4 space-y-2">
+                <button onClick={handleSignIn} className="w-full px-4 py-3 text-neutral-700 hover:text-primary-600 font-bold text-sm rounded-xl transition-all duration-200 hover:bg-primary-50 border-2 border-neutral-200 hover:border-primary-400 active:scale-[0.98] touch-manipulation">
                   {translations.signin}
                 </button>
-                <button
-                  onClick={handleSignUp}
-                  className="w-full px-6 py-3.5 bg-gradient-to-r from-primary-500 to-primary-600 text-white hover:from-primary-600 hover:to-primary-700 font-bold text-base rounded-xl transition-all duration-300 hover:scale-[1.02] hover:shadow-lg"
-                  style={{
-                    boxShadow: '0 4px 14px rgba(214, 58, 53, 0.25)',
-                  }}
-                >
+                <button onClick={handleSignUp} className="w-full px-4 py-3 bg-gradient-to-r from-primary-500 to-primary-600 text-white font-bold text-sm rounded-xl transition-all duration-200 active:scale-[0.98] touch-manipulation shadow-lg shadow-primary-500/25">
                   {translations.signup}
                 </button>
               </div>
