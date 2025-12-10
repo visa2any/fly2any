@@ -170,11 +170,11 @@ export default function MultiAirportSelector({
       <button
         type="button"
         onClick={() => setIsOpen(!isOpen)}
-        className="mobile-select"
+        className="w-full relative min-h-[48px] py-3 px-3 bg-white border-2 border-neutral-200 hover:border-primary-400 text-left rounded-xl transition-all duration-200 active:scale-[0.98] touch-manipulation"
       >
-        <MapPin className="absolute left-2.5 top-1/2 -translate-y-1/2 text-neutral-400 flex-shrink-0" size={16} />
+        <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 text-neutral-400 flex-shrink-0" size={16} />
 
-        <div className="pl-7 pr-5 py-3 w-full overflow-hidden min-h-[48px] flex items-center">
+        <div className="pl-6 pr-5 w-full overflow-hidden flex items-center">
           {selectedAirports.length === 0 ? (
             <span className="text-neutral-400 text-sm block truncate">{placeholder}</span>
           ) : (
