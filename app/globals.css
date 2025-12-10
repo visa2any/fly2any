@@ -3,9 +3,16 @@
 @tailwind utilities;
 
 @layer base {
+  /* CSS Variables for Mobile Navigation */
+  :root {
+    --bottom-nav-height: 56px;
+    --safe-area-bottom: env(safe-area-inset-bottom, 0px);
+    --bottom-nav-total: calc(var(--bottom-nav-height) + var(--safe-area-bottom));
+  }
+
   /* PWA Safe Area: Prevent browser chrome overlap */
   html {
-    padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
+    padding: env(safe-area-inset-top) env(safe-area-inset-right) 0 env(safe-area-inset-left);
   }
 
   body {
@@ -21,6 +28,19 @@
 
     html {
       padding-top: 0;
+    }
+  }
+
+  /* Mobile Bottom Navigation Utilities */
+  @media (max-width: 767px) {
+    /* Ensure content doesn't get hidden behind bottom nav */
+    .mobile-bottom-safe {
+      padding-bottom: var(--bottom-nav-total);
+    }
+
+    /* For scrollable containers that need bottom padding */
+    .mobile-scroll-safe {
+      padding-bottom: calc(var(--bottom-nav-total) + 16px);
     }
   }
 

@@ -145,21 +145,11 @@ function GlobalLayoutInner({ children }: GlobalLayoutProps) {
       {/* Global Header - now manages language internally */}
       <Header showAuth={true} />
 
-      {/* Main Content - Add padding-bottom for mobile bottom bar */}
+      {/* Main Content - No padding needed, BottomTabBar has built-in spacer */}
       <main
         id="main-content"
-        className="min-h-screen pb-20 md:pb-0"
+        className="min-h-screen w-full"
         tabIndex={-1}
-        style={{
-          // Ensure content doesn't get hidden behind bottom bar
-          // CRITICAL: Ensure full width for all pages
-          width: '100%',
-          maxWidth: '100vw',
-          margin: 0,
-          padding: 0,
-          // 64px + safe-area-inset-bottom on mobile, 0 on desktop
-          paddingBottom: 'calc(64px + env(safe-area-inset-bottom, 0px))',
-        }}
       >
         {children}
       </main>
