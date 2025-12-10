@@ -28,7 +28,11 @@ export function FilterButton({
   return (
     <motion.button
       onClick={onClick}
-      className="fixed bottom-20 right-4 z-40 flex items-center gap-2 min-w-[44px] min-h-[44px] px-4 py-3 bg-gradient-to-r from-primary-600 to-primary-500 text-white font-semibold rounded-full shadow-2xl hover:shadow-3xl active:scale-95 transition-all"
+      className="fixed right-4 z-40 flex items-center gap-2 min-w-[44px] min-h-[44px] px-4 py-2.5 bg-gradient-to-r from-primary-600 to-primary-500 text-white font-semibold rounded-full shadow-2xl hover:shadow-3xl active:scale-95 transition-all"
+      style={{
+        // Position above bottom nav + ScrollToTop button (56px nav + 16px gap + 44px button + 12px gap)
+        bottom: 'calc(var(--bottom-nav-total, 56px) + 76px)',
+      }}
       initial={{ scale: 0, opacity: 0 }}
       animate={{ scale: 1, opacity: 1 }}
       transition={{

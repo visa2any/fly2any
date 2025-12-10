@@ -423,269 +423,195 @@ export function HotelCard({
       data-hotel-id={hotel.id}
       onMouseEnter={() => setIsHovering(true)}
       onMouseLeave={() => setIsHovering(false)}
-      className="group relative bg-white rounded-xl lg:rounded-2xl overflow-hidden flex flex-col lg:flex-row transition-all duration-300 hover:shadow-2xl border border-slate-200 hover:border-orange-300 lg:min-h-[220px]"
+      className="group relative bg-white rounded-xl overflow-hidden flex flex-row transition-all duration-300 hover:shadow-xl border border-slate-200/80 hover:border-primary-300/60 min-h-[120px] lg:min-h-[200px]"
       style={{
         boxShadow: isHovering
-          ? '0 25px 50px -12px rgba(249, 115, 22, 0.25), 0 12px 24px -8px rgba(0, 0, 0, 0.1)'
-          : '0 4px 12px -2px rgba(0, 0, 0, 0.08)'
+          ? '0 20px 40px -12px rgba(239, 65, 54, 0.2), 0 8px 16px -6px rgba(0, 0, 0, 0.08)' // Brand primary red shadow
+          : '0 2px 8px -2px rgba(0, 0, 0, 0.06)'
       }}
     >
-      {/* 🎨 IMAGE SECTION - Mobile: Full-width top, Desktop: Left side */}
+      {/* 🎨 IMAGE SECTION - HORIZONTAL: Left side on ALL screens */}
       <div
-        className="relative w-full lg:w-[280px] lg:min-w-[280px] h-[140px] lg:h-auto flex-shrink-0 overflow-hidden bg-gradient-to-br from-slate-100 to-slate-200"
+        className="relative w-[110px] min-w-[110px] sm:w-[140px] sm:min-w-[140px] lg:w-[260px] lg:min-w-[260px] flex-shrink-0 overflow-hidden bg-gradient-to-br from-slate-100 to-slate-200"
         onMouseEnter={fetchImages}
         onClick={fetchImages}
       >
-        {/* Favorite, Compare & Share Buttons - Compact on mobile */}
-        <div className="absolute top-2 lg:top-3 right-2 lg:right-3 z-20 flex gap-1.5 lg:gap-2">
-          {/* Compare Button */}
+        {/* Action Buttons - Ultra-compact on mobile */}
+        <div className="absolute top-1 lg:top-2.5 right-1 lg:right-2.5 z-20 flex gap-0.5 lg:gap-1.5">
           <button
             onClick={handleCompare}
             disabled={!canAddMore && !isComparing}
-            className={`p-1.5 lg:p-2 rounded-full backdrop-blur-md transition-all duration-300 shadow-lg touch-manipulation ${
+            className={`p-1 lg:p-1.5 rounded-full transition-all touch-manipulation ${
               isComparing
-                ? 'bg-blue-500 text-white scale-110'
+                ? 'bg-blue-500/90 text-white'
                 : canAddMore
-                  ? 'bg-white/90 text-slate-600 hover:bg-white hover:scale-110 hover:text-blue-500'
-                  : 'bg-gray-100/80 text-gray-400 cursor-not-allowed'
+                  ? 'bg-black/30 text-white hover:bg-black/50'
+                  : 'bg-black/20 text-white/50 cursor-not-allowed'
             }`}
             aria-label={isComparing ? 'Remove from compare' : 'Add to compare'}
           >
-            <BarChart2 className={`w-3.5 h-3.5 lg:w-4 lg:h-4 ${isComparing ? 'fill-current' : ''}`} />
+            <BarChart2 className="w-3 h-3 lg:w-3.5 lg:h-3.5" />
           </button>
           <button
             onClick={handleFavorite}
-            className={`p-1.5 lg:p-2 rounded-full backdrop-blur-md transition-all duration-300 shadow-lg touch-manipulation ${
+            className={`p-1 lg:p-1.5 rounded-full transition-all touch-manipulation ${
               isFavorited
-                ? 'bg-rose-500 text-white scale-110'
-                : 'bg-white/90 text-slate-600 hover:bg-white hover:scale-110 hover:text-rose-500'
+                ? 'bg-rose-500/90 text-white'
+                : 'bg-black/30 text-white hover:bg-black/50'
             }`}
             aria-label="Favorite"
           >
-            <Heart className={`w-3.5 h-3.5 lg:w-4 lg:h-4 ${isFavorited ? 'fill-current' : ''}`} />
+            <Heart className={`w-3 h-3 lg:w-3.5 lg:h-3.5 ${isFavorited ? 'fill-current' : ''}`} />
           </button>
           <button
             onClick={handleShare}
-            className="p-1.5 lg:p-2 rounded-full backdrop-blur-md bg-white/90 text-slate-600 hover:bg-white hover:scale-110 transition-all duration-300 shadow-lg touch-manipulation"
+            className="p-1 lg:p-1.5 rounded-full bg-black/30 text-white hover:bg-black/50 transition-all touch-manipulation"
             aria-label="Share"
           >
-            <Share2 className="w-3.5 h-3.5 lg:w-4 lg:h-4" />
+            <Share2 className="w-3 h-3 lg:w-3.5 lg:h-3.5" />
           </button>
         </div>
 
-        {/* Top-Left Badges Stack - Compact on mobile */}
-        <div className="absolute top-2 lg:top-3 left-2 lg:left-3 z-10 flex flex-col gap-1">
-          {/* Popular Choice Badge */}
-          {isPopular && (
-            <div className="flex items-center gap-0.5 px-1.5 lg:px-2 py-0.5 lg:py-1 bg-gradient-to-r from-orange-500 to-red-500 text-white rounded shadow-lg">
-              <Flame className="w-2.5 h-2.5 lg:w-3 lg:h-3" />
-              <span className="text-[8px] lg:text-[10px] font-bold uppercase tracking-wide">{t.popularChoice}</span>
-            </div>
-          )}
-
-          {/* Limited Availability Urgency */}
-          {roomsLeft <= 3 && perNightPrice > 0 && (
-            <div className="flex items-center gap-0.5 px-1.5 lg:px-2 py-0.5 lg:py-1 bg-red-600 text-white rounded shadow-lg animate-pulse">
-              <Clock className="w-2.5 h-2.5 lg:w-3 lg:h-3" />
-              <span className="text-[8px] lg:text-[10px] font-bold">{roomsLeft} left!</span>
-            </div>
-          )}
-        </div>
+        {/* Top-Left Badge - Single, compact */}
+        {isPopular && (
+          <div className="absolute top-1 lg:top-2.5 left-1 lg:left-2.5 z-10 flex items-center gap-0.5 px-1 lg:px-1.5 py-0.5 bg-gradient-to-r from-primary-500 to-primary-700 text-white rounded text-[7px] lg:text-[9px] font-bold uppercase shadow">
+            <Flame className="w-2 h-2 lg:w-2.5 lg:h-2.5" />
+            <span className="hidden sm:inline">{t.popularChoice}</span>
+            <span className="sm:hidden">Popular</span>
+          </div>
+        )}
 
         {/* Image */}
         <Image
           src={images[currentImageIndex]?.url || '/images/hotel-placeholder.jpg'}
           alt={images[currentImageIndex]?.alt || hotel.name}
           fill
-          className="object-cover transition-transform duration-700 group-hover:scale-105"
-          sizes="280px"
+          className="object-cover transition-transform duration-500 group-hover:scale-105"
+          sizes="(max-width: 640px) 110px, (max-width: 1024px) 140px, 260px"
           priority={currentImageIndex === 0}
           placeholder="blur"
-          blurDataURL={getBlurDataURL(images[currentImageIndex]?.url || '', 280, 220)}
-          quality={85}
+          blurDataURL={getBlurDataURL(images[currentImageIndex]?.url || '', 260, 200)}
+          quality={80}
           onError={(e) => {
             (e.target as HTMLImageElement).src = '/images/hotel-placeholder.jpg';
           }}
         />
 
-        {/* Gradient Overlay */}
-        <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent" />
+        {/* Subtle gradient */}
+        <div className="absolute inset-0 bg-gradient-to-r from-transparent via-transparent to-black/10" />
 
-        {/* Loading Indicator for Images */}
-        {isLoadingImages && (
-          <div className="absolute bottom-3 right-3 z-20 flex items-center gap-1.5 px-2 py-1 bg-black/60 backdrop-blur-sm rounded-full">
-            <Loader2 className="w-3 h-3 text-white animate-spin" />
-            <span className="text-white text-[10px] font-medium">Loading photos...</span>
-          </div>
-        )}
-
-        {/* Image Navigation - Compact on mobile */}
-        <>
+        {/* Image Navigation - Only visible on hover/touch, smaller */}
+        <div className="opacity-0 group-hover:opacity-100 transition-opacity">
           <button
             onClick={prevImage}
-            className="absolute left-1.5 lg:left-2 top-1/2 -translate-y-1/2 w-6 h-6 lg:w-8 lg:h-8 flex items-center justify-center rounded-full bg-white/90 shadow-lg hover:bg-white hover:scale-110 transition-all duration-200 border border-slate-200 touch-manipulation"
+            className="absolute left-0.5 lg:left-1.5 top-1/2 -translate-y-1/2 w-5 h-5 lg:w-7 lg:h-7 flex items-center justify-center rounded-full bg-white/80 shadow transition-all touch-manipulation"
             aria-label="Previous"
           >
-            <ChevronLeft className="w-4 h-4 lg:w-5 lg:h-5 text-slate-700" />
+            <ChevronLeft className="w-3 h-3 lg:w-4 lg:h-4 text-slate-700" />
           </button>
           <button
             onClick={nextImage}
-            className="absolute right-1.5 lg:right-2 top-1/2 -translate-y-1/2 w-6 h-6 lg:w-8 lg:h-8 flex items-center justify-center rounded-full bg-white/90 shadow-lg hover:bg-white hover:scale-110 transition-all duration-200 border border-slate-200 touch-manipulation"
+            className="absolute right-0.5 lg:right-1.5 top-1/2 -translate-y-1/2 w-5 h-5 lg:w-7 lg:h-7 flex items-center justify-center rounded-full bg-white/80 shadow transition-all touch-manipulation"
             aria-label="Next"
           >
-            <ChevronRight className="w-4 h-4 lg:w-5 lg:h-5 text-slate-700" />
+            <ChevronRight className="w-3 h-3 lg:w-4 lg:h-4 text-slate-700" />
           </button>
+        </div>
 
-          {/* Image Counter - Compact pill on mobile */}
-          <div className="absolute bottom-2 lg:bottom-3 left-1/2 -translate-x-1/2 flex items-center gap-1 bg-black/50 backdrop-blur-sm px-2 py-0.5 lg:py-1 rounded-full">
-            <span className="text-white text-[9px] lg:text-[10px] font-bold">{currentImageIndex + 1}/{images.length}</span>
-          </div>
-        </>
-      </div>
+        {/* Image Counter - Bottom center, tiny */}
+        <div className="absolute bottom-1 lg:bottom-2 left-1/2 -translate-x-1/2 bg-black/50 px-1.5 py-0.5 rounded-full">
+          <span className="text-white text-[8px] lg:text-[9px] font-bold">{currentImageIndex + 1}/{images.length}</span>
+        </div>
 
-      {/* 📝 CONTENT SECTION - Mobile: Compact stacked, Desktop: Right side */}
-      <div className="flex-1 flex flex-col p-2.5 lg:p-4 relative">
-
-        {/* 💰 PRICE - Desktop: Top right absolute, Mobile: Hidden here (shown inline below) */}
-        {perNightPrice > 0 && (
-          <div className="hidden lg:block absolute top-3 right-4 text-right">
-            <div className="flex flex-col items-end">
-              {/* Per Night Price - BIG */}
-              <div className="flex items-baseline gap-0.5">
-                <span className="text-3xl font-black text-slate-900 tracking-tight">
-                  {currencySymbol}{Math.round(perNightPrice).toLocaleString()}
-                </span>
-                <span className="text-sm font-medium text-slate-500">
-                  {rooms > 1 ? '/room/night' : t.perNight}
-                </span>
-              </div>
-
-              {/* Total Price with Guest Info */}
-              <div className="text-xs text-slate-500 mt-0.5">
-                {currencySymbol}{Math.round(totalPrice).toLocaleString()} {t.total} · {nights} {t.nights}
-              </div>
-              <div className="text-[10px] text-slate-400 mt-0.5">+ taxes &amp; fees</div>
-
-              {/* Guest Count Badge */}
-              <div className="flex items-center gap-1 mt-1 text-[10px] text-slate-600">
-                <Users className="w-3 h-3" />
-                <span>
-                  {adults} {adults === 1 ? 'adult' : 'adults'}
-                  {children > 0 && `, ${children} ${children === 1 ? 'child' : 'children'}`}
-                  {rooms > 1 && <span className="text-slate-500 ml-1">({rooms} rooms)</span>}
-                </span>
-              </div>
-
-              {/* Best Price Indicator */}
-              <div className="flex items-center gap-1 mt-1 px-2 py-0.5 bg-emerald-50 rounded-full border border-emerald-200">
-                <BadgePercent className="w-3 h-3 text-emerald-600" />
-                <span className="text-[10px] font-bold text-emerald-700">{t.bestPrice}</span>
-              </div>
-            </div>
+        {/* Loading Indicator */}
+        {isLoadingImages && (
+          <div className="absolute bottom-1 right-1 z-20 p-1 bg-black/60 rounded-full">
+            <Loader2 className="w-3 h-3 text-white animate-spin" />
           </div>
         )}
+      </div>
 
-        {/* Hotel Name - Mobile: smaller, no right padding */}
-        <h3 className="text-slate-900 font-bold text-sm lg:text-lg leading-tight lg:pr-36 line-clamp-1 tracking-tight">
-          {hotel.name}
-        </h3>
+      {/* 📝 CONTENT SECTION - Compact mobile-first design */}
+      <div className="flex-1 flex flex-col p-2 sm:p-2.5 lg:p-3.5 min-w-0 overflow-hidden">
 
-        {/* Rating & Location Row - Compact on mobile */}
-        <div className="flex items-center gap-1.5 lg:gap-2 mt-1 lg:mt-1.5 flex-wrap">
-          {/* Star Rating - Compact on mobile */}
+        {/* Top Row: Name + Price (Mobile: stacked, Desktop: side by side) */}
+        <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-0.5 lg:gap-4">
+          {/* Hotel Name */}
+          <h3 className="text-slate-900 font-bold text-xs sm:text-sm lg:text-base leading-tight line-clamp-2 lg:line-clamp-1 tracking-tight flex-1 min-w-0">
+            {hotel.name}
+          </h3>
+
+          {/* Price - Inline on mobile, absolute on desktop */}
+          {perNightPrice > 0 && (
+            <div className="flex items-baseline gap-0.5 lg:text-right flex-shrink-0 mt-0.5 lg:mt-0">
+              <span className="text-base sm:text-lg lg:text-2xl font-black text-slate-900">
+                {currencySymbol}{Math.round(perNightPrice)}
+              </span>
+              <span className="text-[9px] lg:text-xs text-slate-500">{t.perNight}</span>
+            </div>
+          )}
+        </div>
+
+        {/* Rating & Location Row - Ultra-compact on mobile */}
+        <div className="flex items-center gap-1 lg:gap-1.5 mt-0.5 lg:mt-1 flex-wrap">
+          {/* Star Rating */}
           {hotel.rating > 0 && (
             <div className="flex items-center">
               {Array.from({ length: Math.min(hotel.rating || 0, 5) }, (_, i) => (
-                <Star key={i} className="w-2.5 h-2.5 lg:w-3.5 lg:h-3.5 fill-amber-400 text-amber-400" />
+                <Star key={i} className="w-2 h-2 sm:w-2.5 sm:h-2.5 lg:w-3 lg:h-3 fill-amber-400 text-amber-400" />
               ))}
             </div>
           )}
 
-          {/* Review Score Badge - Compact on mobile */}
+          {/* Review Score Badge */}
           {hotel.reviewScore > 0 && (
-            <div className="flex items-center gap-1">
-              <div className={`bg-gradient-to-r ${reviewCategory.gradient} text-white px-1.5 lg:px-2 py-0.5 rounded text-[10px] lg:text-xs font-black shadow-sm`}>
+            <div className="flex items-center gap-0.5">
+              <div className={`bg-gradient-to-r ${reviewCategory.gradient} text-white px-1 lg:px-1.5 py-0.5 rounded text-[8px] lg:text-[10px] font-black`}>
                 {hotel.reviewScore.toFixed(1)}
               </div>
-              <span className="hidden sm:inline text-slate-700 text-[10px] lg:text-xs font-semibold">
-                {reviewCategory.text}
-              </span>
               {hotel.reviewCount > 0 && (
-                <span className="text-slate-500 text-[9px] lg:text-xs">
+                <span className="text-slate-400 text-[8px] lg:text-[10px]">
                   ({hotel.reviewCount > 999 ? `${(hotel.reviewCount/1000).toFixed(1)}k` : hotel.reviewCount})
                 </span>
               )}
             </div>
           )}
 
-          {/* Location Info - Compact on mobile */}
+          {/* Location */}
           {(hotel.location?.city || hotel.location?.country) && (
-            <div className="flex items-center gap-1 text-slate-600">
-              <MapPin className="w-2.5 h-2.5 lg:w-3 lg:h-3 text-orange-500 flex-shrink-0" />
-              <span className="text-[10px] lg:text-xs font-medium truncate max-w-[100px] lg:max-w-none">
+            <div className="flex items-center gap-0.5 text-slate-500">
+              <MapPin className="w-2 h-2 lg:w-2.5 lg:h-2.5 text-orange-500 flex-shrink-0" />
+              <span className="text-[8px] lg:text-[10px] font-medium truncate max-w-[70px] sm:max-w-[100px] lg:max-w-none">
                 {hotel.location?.city || hotel.location?.country}
               </span>
-              {/* District Badge - Only show on larger mobile/tablet */}
-              {locationContext?.district && (
-                <span className="hidden sm:inline-flex items-center gap-0.5 px-1 py-0.5 bg-blue-50 rounded text-[8px] lg:text-[10px] font-semibold text-blue-700">
-                  {locationContext.district}
-                </span>
-              )}
             </div>
-          )}
-
-          {/* Distance - Mobile compact */}
-          {locationContext && (
-            <span className="hidden lg:flex items-center gap-1.5 text-[10px] text-slate-500">
-              <span className="flex items-center gap-0.5">
-                <Building2 className="w-3 h-3" />
-                {locationContext.distanceToCenter}
-              </span>
-              <span className="flex items-center gap-0.5">
-                <Plane className="w-3 h-3" />
-                {locationContext.driveTimeToAirport}
-              </span>
-            </span>
           )}
         </div>
 
-        {/* 🎯 KEY VALUE PROPOSITIONS - Mobile: Horizontal scroll, Desktop: Wrap */}
-        <div className="flex items-center gap-1.5 lg:gap-2 mt-1.5 lg:mt-2 overflow-x-auto lg:overflow-visible lg:flex-wrap scrollbar-hide -mx-2.5 px-2.5 lg:mx-0 lg:px-0">
-          {/* Breakfast Included */}
+        {/* Key Badges - Compact horizontal row */}
+        <div className="flex items-center gap-1 mt-1 lg:mt-1.5 overflow-x-auto scrollbar-hide -mx-2 px-2 lg:mx-0 lg:px-0">
           {hasBreakfast && (
-            <div className="flex items-center gap-0.5 px-1.5 lg:px-2 py-0.5 bg-amber-50 rounded border border-amber-200 flex-shrink-0">
-              <Coffee className="w-2.5 h-2.5 lg:w-3 lg:h-3 text-amber-600" />
-              <span className="text-[9px] lg:text-[10px] font-bold text-amber-700 whitespace-nowrap">{t.breakfastIncl}</span>
-            </div>
+            <span className="flex items-center gap-0.5 px-1 lg:px-1.5 py-0.5 bg-amber-50 rounded text-[7px] lg:text-[9px] font-bold text-amber-700 flex-shrink-0 border border-amber-100">
+              <Coffee className="w-2 h-2 lg:w-2.5 lg:h-2.5" />
+              <span className="hidden sm:inline">Breakfast</span>
+              <span className="sm:hidden">B</span>
+            </span>
           )}
-
-          {/* Free Cancellation - Mobile prominent */}
           {hasFreeCancellation && (
-            <div className="flex items-center gap-0.5 px-1.5 lg:px-2 py-0.5 bg-emerald-50 rounded border border-emerald-200 flex-shrink-0">
-              <Shield className="w-2.5 h-2.5 lg:w-3 lg:h-3 text-emerald-600" />
-              <span className="text-[9px] lg:text-[10px] font-bold text-emerald-700 whitespace-nowrap">Free Cancel</span>
-            </div>
+            <span className="flex items-center gap-0.5 px-1 lg:px-1.5 py-0.5 bg-emerald-50 rounded text-[7px] lg:text-[9px] font-bold text-emerald-700 flex-shrink-0 border border-emerald-100">
+              <Shield className="w-2 h-2 lg:w-2.5 lg:h-2.5" />
+              <span className="hidden sm:inline">Free Cancel</span>
+              <span className="sm:hidden">FC</span>
+            </span>
           )}
-
-          {/* Instant Confirmation */}
-          {bestRate && (
-            <div className="hidden lg:flex items-center gap-1 px-2 py-0.5 bg-blue-50 rounded border border-blue-200 flex-shrink-0">
-              <Zap className="w-3 h-3 text-blue-600" />
-              <span className="text-[10px] font-bold text-blue-700">{t.instantBook}</span>
-            </div>
-          )}
-
-          {/* Board/Meal Type - Compact on mobile */}
           {bestRate?.boardType && bestRate.boardType !== 'RO' && (
-            <div className="flex items-center gap-0.5 px-1.5 lg:px-2 py-0.5 bg-slate-50 rounded border border-slate-200 flex-shrink-0">
-              <Utensils className="w-2.5 h-2.5 lg:w-3 lg:h-3 text-slate-500" />
-              <span className="text-[9px] lg:text-[10px] font-bold text-slate-600 whitespace-nowrap">
-                {bestRate.boardType === 'BB' ? 'Breakfast' :
-                 bestRate.boardType === 'HB' ? 'Half Board' :
-                 bestRate.boardType === 'FB' ? 'Full Board' :
-                 bestRate.boardType === 'AI' ? 'All Incl' : bestRate.boardType}
-              </span>
-            </div>
+            <span className="hidden lg:flex items-center gap-0.5 px-1.5 py-0.5 bg-slate-50 rounded text-[9px] font-bold text-slate-600 flex-shrink-0 border border-slate-100">
+              <Utensils className="w-2.5 h-2.5" />
+              {bestRate.boardType === 'BB' ? 'Breakfast' :
+               bestRate.boardType === 'HB' ? 'Half Board' :
+               bestRate.boardType === 'FB' ? 'Full Board' :
+               bestRate.boardType === 'AI' ? 'All Incl' : bestRate.boardType}
+            </span>
           )}
         </div>
 
@@ -724,179 +650,52 @@ export function HotelCard({
           )}
         </div>
 
-        {/* 🏷️ AMENITIES SECTION - Mobile: Compact horizontal scroll */}
-        <div className="mt-auto pt-2 lg:pt-3 border-t border-slate-100 space-y-1.5 lg:space-y-2">
-          {/* Priority Amenities Row - Mobile: Horizontal scroll */}
-          {priorityAmenities.length > 0 && (
-            <div className="flex items-center gap-1 lg:gap-2 overflow-x-auto lg:overflow-visible lg:flex-wrap scrollbar-hide -mx-2.5 px-2.5 lg:mx-0 lg:px-0">
-              {priorityAmenities.slice(0, 4).map((amenity, idx) => {
-                const IconComponent = amenity.icon;
-                return (
-                  <div key={idx} className="flex items-center gap-0.5 lg:gap-1 px-1.5 lg:px-2 py-0.5 lg:py-1 bg-slate-50 rounded flex-shrink-0" title={amenity.original}>
-                    <IconComponent className={`w-3 h-3 lg:w-3.5 lg:h-3.5 ${amenity.color}`} />
-                    <span className="text-[9px] lg:text-[10px] text-slate-600 font-medium whitespace-nowrap">{amenity.label}</span>
-                  </div>
-                );
-              })}
-              {allAmenities.length > 4 && (
-                <button
-                  onClick={(e) => { e.stopPropagation(); setShowAllAmenities(!showAllAmenities); }}
-                  className="hidden lg:flex items-center gap-1 px-2 py-1 bg-blue-50 hover:bg-blue-100 rounded-md text-blue-600 transition-colors flex-shrink-0"
-                >
-                  <span className="text-[10px] font-semibold">
-                    {showAllAmenities ? 'Less' : `+${allAmenities.length - 4} more`}
-                  </span>
-                  {showAllAmenities ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />}
-                </button>
-              )}
-              {/* Mobile: Simple +N indicator */}
-              {allAmenities.length > 4 && (
-                <span className="lg:hidden text-[9px] text-slate-400 font-medium flex-shrink-0">+{allAmenities.length - 4}</span>
-              )}
-            </div>
-          )}
-
-          {/* Expanded All Amenities - Desktop only */}
-          {showAllAmenities && allAmenities.length > 5 && (
-            <div className="hidden lg:block p-3 bg-slate-50 rounded-lg border border-slate-200">
-              <div className="text-[10px] font-bold text-slate-700 uppercase tracking-wide mb-2">All Amenities</div>
-              <div className="flex flex-wrap gap-1.5">
-                {allAmenities.map((amenity, idx) => {
-                  const IconComponent = amenity.icon;
-                  return (
-                    <div key={idx} className="flex items-center gap-1 px-2 py-1 bg-white rounded-md border border-slate-200" title={amenity.original}>
-                      <IconComponent className={`w-3 h-3 ${amenity.color}`} />
-                      <span className="text-[9px] text-slate-600">{amenity.label}</span>
-                    </div>
-                  );
-                })}
-              </div>
-            </div>
-          )}
-
-          {/* 📅 CHECK-IN/OUT & CANCELLATION SECTION - Desktop only */}
-          <div className="hidden lg:flex items-center gap-3 flex-wrap text-[10px]">
-            {/* Check-in Time (if available) */}
-            {hotel.checkInTime && (
-              <div className="flex items-center gap-1 text-slate-600">
-                <LogIn className="w-3 h-3 text-emerald-500" />
-                <span>Check-in: <span className="font-semibold">{hotel.checkInTime}</span></span>
-              </div>
-            )}
-
-            {/* Check-out Time (if available) */}
-            {hotel.checkOutTime && (
-              <div className="flex items-center gap-1 text-slate-600">
-                <LogOut className="w-3 h-3 text-red-500" />
-                <span>Check-out: <span className="font-semibold">{hotel.checkOutTime}</span></span>
-              </div>
-            )}
-
-            {/* Default times if not provided */}
-            {!hotel.checkInTime && !hotel.checkOutTime && (
-              <>
-                <div className="flex items-center gap-1 text-slate-500">
-                  <LogIn className="w-3 h-3 text-emerald-500" />
-                  <span>Check-in: <span className="font-medium">3:00 PM</span></span>
+        {/* 🏷️ AMENITIES - Ultra-compact on mobile */}
+        {priorityAmenities.length > 0 && (
+          <div className="hidden sm:flex items-center gap-1 mt-1.5 lg:mt-2 overflow-x-auto scrollbar-hide -mx-2 px-2 lg:mx-0 lg:px-0">
+            {priorityAmenities.slice(0, 4).map((amenity, idx) => {
+              const IconComponent = amenity.icon;
+              return (
+                <div key={idx} className="flex items-center gap-0.5 px-1 lg:px-1.5 py-0.5 bg-slate-50/80 rounded flex-shrink-0" title={amenity.original}>
+                  <IconComponent className={`w-2.5 h-2.5 lg:w-3 lg:h-3 ${amenity.color}`} />
+                  <span className="text-[8px] lg:text-[9px] text-slate-600 font-medium whitespace-nowrap">{amenity.label}</span>
                 </div>
-                <div className="flex items-center gap-1 text-slate-500">
-                  <LogOut className="w-3 h-3 text-red-500" />
-                  <span>Check-out: <span className="font-medium">11:00 AM</span></span>
-                </div>
-              </>
+              );
+            })}
+            {allAmenities.length > 4 && (
+              <span className="text-[8px] lg:text-[9px] text-slate-400 font-medium flex-shrink-0">+{allAmenities.length - 4}</span>
+            )}
+          </div>
+        )}
+
+        {/* Spacer for bottom alignment */}
+        <div className="flex-1" />
+
+        {/* 📱 MOBILE CTA ROW - Bottom aligned */}
+        <div className="flex items-center justify-between gap-1.5 mt-1.5 lg:mt-2 pt-1.5 border-t border-slate-100/80">
+          {/* Total price info */}
+          <div className="flex flex-col min-w-0">
+            {perNightPrice > 0 && (
+              <span className="text-[8px] lg:text-[10px] text-slate-400 truncate">
+                {currencySymbol}{Math.round(totalPrice)} total · {nights}n
+              </span>
             )}
           </div>
 
-          {/* 🛡️ CANCELLATION POLICY - Desktop only (already shown in mobile value props) */}
-          {perNightPrice > 0 && (
-            <div className="hidden lg:flex items-center gap-3 text-[10px]">
-              {hasFreeCancellation ? (
-                <div className="flex items-center gap-1.5 px-2 py-1 bg-emerald-50 rounded border border-emerald-200">
-                  <Shield className="w-3 h-3 text-emerald-600" />
-                  <span className="font-semibold text-emerald-700">{t.freeCancellation}</span>
-                  {cancellationDeadline && (
-                    <span className="text-emerald-600 font-normal">
-                      until {new Date(cancellationDeadline).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
-                    </span>
-                  )}
-                </div>
-              ) : (
-                <div className="flex items-center gap-2">
-                  <span className="flex items-center gap-1 px-2 py-1 bg-slate-100 rounded text-slate-600">
-                    <Info className="w-3 h-3" />
-                    <span className="font-medium">{t.nonRefundable}</span>
-                  </span>
-                  <span className="flex items-center gap-1 px-2 py-1 bg-amber-50 rounded border border-amber-200 text-amber-700 font-semibold">
-                    <BadgePercent className="w-3 h-3" />
-                    Lower price
-                  </span>
-                </div>
-              )}
-            </div>
-          )}
-
-          {/* 📱 MOBILE PRICE + CTA ROW */}
-          <div className="lg:hidden flex items-center justify-between gap-2 pt-1.5 border-t border-slate-100">
-            {/* Price */}
-            <div className="flex flex-col">
-              {perNightPrice > 0 ? (
-                <>
-                  <div className="flex items-baseline gap-0.5">
-                    <span className="text-lg font-black text-slate-900">{currencySymbol}{Math.round(perNightPrice)}</span>
-                    <span className="text-[10px] text-slate-500">{t.perNight}</span>
-                  </div>
-                  <span className="text-[9px] text-slate-400">{currencySymbol}{Math.round(totalPrice)} total · {nights}n</span>
-                </>
-              ) : (
-                <span className="text-sm font-bold text-slate-600">Check rates</span>
-              )}
-            </div>
-
-            {/* CTA Button */}
-            {perNightPrice > 0 ? (
-              <button
-                onClick={handleBooking}
-                className="px-4 py-2 font-bold text-xs rounded-lg transition-all duration-200 shadow-md active:scale-95 touch-manipulation whitespace-nowrap"
-                style={{
-                  background: 'linear-gradient(135deg, #f97316 0%, #ea580c 100%)',
-                  color: 'white',
-                }}
-              >
-                Book Now
-              </button>
-            ) : (
-              <button
-                onClick={() => onViewDetails(hotel.id)}
-                className="px-4 py-2 bg-slate-100 active:bg-slate-200 text-slate-700 font-bold text-xs rounded-lg transition-all shadow-md touch-manipulation whitespace-nowrap"
-              >
-                View
-              </button>
-            )}
-          </div>
-        </div>
-
-        {/* 🔘 CTA BUTTON - Desktop only, Bottom Right */}
-        <div className="hidden lg:block absolute bottom-4 right-4">
+          {/* CTA Button - Compact on mobile - Using brand primary red */}
           {perNightPrice > 0 ? (
             <button
               onClick={handleBooking}
-              className="px-6 py-2.5 font-bold text-sm rounded-xl transition-all duration-300 shadow-lg hover:shadow-xl active:scale-95 whitespace-nowrap group/btn"
-              style={{
-                background: 'linear-gradient(135deg, #f97316 0%, #ea580c 50%, #dc2626 100%)',
-                color: 'white',
-              }}
+              className="px-2.5 sm:px-3 lg:px-5 py-1.5 lg:py-2 font-bold text-[10px] sm:text-xs lg:text-sm rounded-lg transition-all active:scale-95 touch-manipulation whitespace-nowrap flex-shrink-0 bg-gradient-to-r from-primary-500 to-primary-600 hover:from-primary-600 hover:to-primary-700 text-white shadow-sm"
             >
-              <span className="flex items-center gap-1.5">
-                Book Now
-                <ChevronRight className="w-4 h-4 transition-transform group-hover/btn:translate-x-0.5" />
-              </span>
+              Book Now
             </button>
           ) : (
             <button
               onClick={() => onViewDetails(hotel.id)}
-              className="px-6 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-sm rounded-xl transition-all shadow-md whitespace-nowrap"
+              className="px-2.5 sm:px-3 lg:px-5 py-1.5 lg:py-2 bg-slate-100 active:bg-slate-200 text-slate-700 font-bold text-[10px] sm:text-xs lg:text-sm rounded-lg transition-all touch-manipulation whitespace-nowrap flex-shrink-0"
             >
-              View Details
+              View
             </button>
           )}
         </div>

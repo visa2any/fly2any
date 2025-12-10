@@ -47,10 +47,14 @@ export default function ScrollToTop({
       {isVisible && (
         <button
           onClick={scrollToTop}
-          className="fixed bottom-8 right-8 z-50 p-4 bg-primary-600 hover:bg-primary-700 text-white rounded-full shadow-2xl transition-all duration-300 transform hover:scale-110 active:scale-95 group"
+          className="fixed right-4 lg:right-8 z-50 p-3 lg:p-4 bg-primary-600 hover:bg-primary-700 text-white rounded-full shadow-2xl transition-all duration-300 transform hover:scale-110 active:scale-95 group"
+          style={{
+            // Position above bottom nav on mobile (56px nav + 16px gap), regular on desktop
+            bottom: 'max(calc(var(--bottom-nav-total, 56px) + 16px), 2rem)',
+          }}
           aria-label="Scroll to top"
         >
-          <ArrowUp className="w-6 h-6 group-hover:animate-bounce" />
+          <ArrowUp className="w-5 h-5 lg:w-6 lg:h-6 group-hover:animate-bounce" />
 
           {/* Tooltip */}
           <span className="absolute bottom-full right-0 mb-2 px-3 py-1 bg-gray-900 text-white text-sm font-semibold rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-200 whitespace-nowrap pointer-events-none">
