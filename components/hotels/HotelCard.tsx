@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useCallback, useMemo } from 'react';
+import { useState, useCallback, useMemo, useEffect } from 'react';
 import Image from 'next/image';
 import {
   Star, MapPin, ChevronLeft, ChevronRight, Heart, Share2,
@@ -63,6 +63,9 @@ export function HotelCard({
   const [hasLoadedImages, setHasLoadedImages] = useState(false);
   const [showArrows, setShowArrows] = useState(false);
   const [touchStart, setTouchStart] = useState<number | null>(null);
+  const [showSwipeHint, setShowSwipeHint] = useState(false);
+  const [lastTap, setLastTap] = useState(0);
+  const [isTransitioning, setIsTransitioning] = useState(false);
   const t = translations[lang];
 
   const { addToCompare, removeFromCompare, isInCompare, canAddMore } = useHotelCompare();
@@ -100,19 +103,73 @@ export function HotelCard({
   const initialImages = rawImages.length > 0 ? rawImages : hotel.thumbnail ? [{ url: hotel.thumbnail, alt: hotel.name || 'Hotel' }] : [{ url: '/images/hotel-placeholder.jpg', alt: 'Hotel placeholder' }];
   const images = loadedImages.length > 0 ? loadedImages : initialImages;
 
+  // Show swipe hint for first-time users
+  useEffect(() => {
+    if (images.length > 1 && typeof window !== 'undefined') {
+      const hasSeenHint = localStorage.getItem('fly2any_swipe_hint_shown');
+      if (!hasSeenHint) {
+        setShowSwipeHint(true);
+        const timer = setTimeout(() => {
+          setShowSwipeHint(false);
+          localStorage.setItem('fly2any_swipe_hint_shown', 'true');
+        }, 4000);
+        return () => clearTimeout(timer);
+      }
+    }
+  }, [images.length]);
+
+  // Image navigation with crossfade transition
+  const changeImage = useCallback((direction: 'next' | 'prev') => {
+    if (isTransitioning) return;
+    setIsTransitioning(true);
+    setTimeout(() => {
+      setCurrentImageIndex((prev) =>
+        direction === 'next'
+          ? (prev + 1) % images.length
+          : (prev - 1 + images.length) % images.length
+      );
+      setTimeout(() => setIsTransitioning(false), 50);
+    }, 150);
+  }, [images.length, isTransitioning]);
+
   const nextImage = async (e: React.MouseEvent) => {
     e.stopPropagation();
     if (!hasLoadedImages && !isLoadingImages) await fetchImages();
-    setCurrentImageIndex((prev) => (prev + 1) % images.length);
+    changeImage('next');
   };
 
   const prevImage = async (e: React.MouseEvent) => {
     e.stopPropagation();
     if (!hasLoadedImages && !isLoadingImages) await fetchImages();
-    setCurrentImageIndex((prev) => (prev - 1 + images.length) % images.length);
+    changeImage('prev');
   };
 
   const handleFavorite = (e: React.MouseEvent) => { e.stopPropagation(); setIsFavorited(!isFavorited); };
+
+  // Double-tap to favorite handler with single-tap fallback to view details
+  const singleTapTimeoutRef = useCallback(() => {
+    // This will be called if only single tap (view details)
+    onViewDetails(hotel.id);
+  }, [hotel.id, onViewDetails]);
+
+  const handleDoubleTap = useCallback(() => {
+    const now = Date.now();
+    if (now - lastTap < 300) {
+      // Double tap detected - toggle favorite with haptic feedback
+      setIsFavorited(prev => !prev);
+      if (navigator.vibrate) navigator.vibrate(50);
+      setLastTap(0); // Reset to prevent triple-tap issues
+    } else {
+      // First tap - wait to see if double tap follows
+      setLastTap(now);
+      setTimeout(() => {
+        // If lastTap hasn't been reset (no double tap), navigate to details
+        if (Date.now() - now >= 280) {
+          singleTapTimeoutRef();
+        }
+      }, 300);
+    }
+  }, [lastTap, singleTapTimeoutRef]);
   const handleShare = (e: React.MouseEvent) => { e.stopPropagation(); if (navigator.share) navigator.share({ title: hotel.name, url: window.location.href }); };
 
   const rates = (hotel.rates || []).filter((rate) => rate?.totalPrice?.amount);
@@ -148,7 +205,7 @@ export function HotelCard({
     }
   }, [images.length]);
 
-  // Swipe handlers for touch devices
+  // Swipe handlers for touch devices with crossfade
   const handleTouchStart = (e: React.TouchEvent) => {
     setTouchStart(e.touches[0].clientX);
   };
@@ -161,14 +218,14 @@ export function HotelCard({
 
     if (Math.abs(diff) > threshold) {
       if (!hasLoadedImages && !isLoadingImages) await fetchImages();
-      if (diff > 0) {
-        // Swipe left → next image
-        setCurrentImageIndex((prev) => (prev + 1) % images.length);
-      } else {
-        // Swipe right → prev image
-        setCurrentImageIndex((prev) => (prev - 1 + images.length) % images.length);
-      }
+      // Use crossfade transition
+      changeImage(diff > 0 ? 'next' : 'prev');
       flashArrows();
+      // Hide swipe hint after first successful swipe
+      if (showSwipeHint) {
+        setShowSwipeHint(false);
+        localStorage.setItem('fly2any_swipe_hint_shown', 'true');
+      }
     }
     setTouchStart(null);
   };
@@ -187,11 +244,12 @@ export function HotelCard({
         onTouchStart={handleTouchStart}
         onTouchEnd={handleTouchEnd}
       >
+        {/* Image with crossfade transition */}
         <Image
           src={images[currentImageIndex]?.url || '/images/hotel-placeholder.jpg'}
           alt={images[currentImageIndex]?.alt || hotel.name}
           fill
-          className="object-cover"
+          className={`object-cover transition-opacity duration-200 ease-out ${isTransitioning ? 'opacity-70' : 'opacity-100'}`}
           style={{ filter: 'contrast(1.02) saturate(1.05)' }}
           sizes="100vw"
           priority={currentImageIndex === 0}
@@ -201,83 +259,134 @@ export function HotelCard({
           onError={(e) => { (e.target as HTMLImageElement).src = '/images/hotel-placeholder.jpg'; }}
         />
 
-        {/* Top-left: Rating with drop-shadow (no background) */}
+        {/* Top-left: Rating with Fly2Any yellow branding */}
         {hotel.reviewScore > 0 && (
-          <div className="absolute top-2.5 left-2.5 flex items-center gap-1" style={{ filter: 'drop-shadow(0 2px 4px rgba(0,0,0,0.4))' }}>
-            <span className="text-white text-sm font-bold">{hotel.reviewScore.toFixed(1)}</span>
+          <div className="absolute top-2.5 left-2.5 flex items-center gap-1" style={{ filter: 'drop-shadow(0 2px 4px rgba(0,0,0,0.5))' }}>
+            <span className="text-secondary-100 text-sm font-bold">{hotel.reviewScore.toFixed(1)}</span>
             {hotel.rating > 0 && (
               <div className="flex">
                 {Array.from({ length: Math.min(hotel.rating, 5) }, (_, i) => (
-                  <Star key={i} className="w-3 h-3 fill-amber-400 text-amber-400" style={{ filter: 'drop-shadow(0 1px 2px rgba(0,0,0,0.3))' }} />
+                  <Star key={i} className="w-3 h-3 fill-secondary-400 text-secondary-400" style={{ filter: 'drop-shadow(0 1px 2px rgba(0,0,0,0.3))' }} />
                 ))}
               </div>
             )}
           </div>
         )}
 
-        {/* Top-right: Action icons with drop-shadow (no background) */}
-        <div className="absolute top-2.5 right-2.5 flex gap-2 z-10" style={{ filter: 'drop-shadow(0 2px 4px rgba(0,0,0,0.5))' }}>
-          <button onClick={handleFavorite} className={`transition-all active:scale-90 ${isFavorited ? 'text-rose-500' : 'text-white'}`}>
+        {/* Top-right: Action icons with Fly2Any yellow */}
+        <div className="absolute top-2.5 right-2.5 flex gap-2 z-10" style={{ filter: 'drop-shadow(0 2px 4px rgba(0,0,0,0.6))' }}>
+          <button onClick={handleFavorite} className={`transition-all active:scale-90 ${isFavorited ? 'text-primary-500' : 'text-secondary-100'}`}>
             <Heart className={`w-5 h-5 ${isFavorited ? 'fill-current' : ''}`} />
           </button>
-          <button onClick={handleShare} className="text-white transition-all active:scale-90">
+          <button onClick={handleShare} className="text-secondary-100 transition-all active:scale-90">
             <Share2 className="w-5 h-5" />
           </button>
         </div>
 
-        {/* Dot indicators with shadow */}
+        {/* Dot indicators - at very bottom of photo, Fly2Any yellow theme */}
         {images.length > 1 && (
-          <div className="absolute bottom-14 left-1/2 -translate-x-1/2 flex gap-1 z-10" style={{ filter: 'drop-shadow(0 1px 3px rgba(0,0,0,0.5))' }}>
+          <div className="absolute bottom-2 left-1/2 -translate-x-1/2 flex gap-1 z-20" style={{ filter: 'drop-shadow(0 1px 3px rgba(0,0,0,0.6))' }}>
             {images.slice(0, Math.min(images.length, 5)).map((_, idx) => (
-              <div key={idx} className={`w-1.5 h-1.5 rounded-full transition-all ${idx === currentImageIndex ? 'bg-white w-4' : 'bg-white/60'}`} />
+              <div key={idx} className={`w-1.5 h-1.5 rounded-full transition-all ${idx === currentImageIndex ? 'bg-secondary-300 w-4' : 'bg-secondary-100/60'}`} />
             ))}
-            {images.length > 5 && <span className="text-white/80 text-[9px] ml-1">+{images.length - 5}</span>}
+            {images.length > 5 && <span className="text-secondary-200/80 text-[9px] ml-1">+{images.length - 5}</span>}
           </div>
         )}
 
-        {/* Invisible touch zones */}
+        {/* Invisible touch zones - Fly2Any yellow arrows */}
         {images.length > 1 && (
           <>
             <div onClick={(e) => { e.stopPropagation(); prevImage(e); flashArrows(); }} className="absolute left-0 top-0 w-1/4 h-full z-10" />
             <div onClick={(e) => { e.stopPropagation(); nextImage(e); flashArrows(); }} className="absolute right-0 top-0 w-1/4 h-full z-10" />
-            <div className={`absolute left-2 top-1/2 -translate-y-1/2 text-white transition-opacity duration-300 ${showArrows ? 'opacity-100' : 'opacity-0'}`} style={{ filter: 'drop-shadow(0 2px 4px rgba(0,0,0,0.5))' }}>
+            <div className={`absolute left-2 top-1/2 -translate-y-1/2 text-secondary-200 transition-opacity duration-300 ${showArrows ? 'opacity-100' : 'opacity-0'}`} style={{ filter: 'drop-shadow(0 2px 4px rgba(0,0,0,0.6))' }}>
               <ChevronLeft className="w-6 h-6" />
             </div>
-            <div className={`absolute right-2 top-1/2 -translate-y-1/2 text-white transition-opacity duration-300 ${showArrows ? 'opacity-100' : 'opacity-0'}`} style={{ filter: 'drop-shadow(0 2px 4px rgba(0,0,0,0.5))' }}>
+            <div className={`absolute right-2 top-1/2 -translate-y-1/2 text-secondary-200 transition-opacity duration-300 ${showArrows ? 'opacity-100' : 'opacity-0'}`} style={{ filter: 'drop-shadow(0 2px 4px rgba(0,0,0,0.6))' }}>
               <ChevronRight className="w-6 h-6" />
             </div>
           </>
         )}
 
-        {/* Center tap */}
-        <div onClick={() => onViewDetails(hotel.id)} className="absolute left-1/4 right-1/4 top-0 bottom-0 z-5" />
+        {/* Center tap - single tap for details, double tap for favorite */}
+        <div
+          onClick={(e) => { e.stopPropagation(); handleDoubleTap(); }}
+          onDoubleClick={(e) => { e.stopPropagation(); }}
+          className="absolute left-1/4 right-1/4 top-0 bottom-0 z-5"
+        />
 
-        {/* Bottom info - text with shadows only, no background */}
+        {/* Swipe hint overlay for first-time users - Fly2Any branded */}
+        {showSwipeHint && images.length > 1 && (
+          <div className="absolute inset-0 flex items-center justify-center z-20 pointer-events-none">
+            <div
+              className="bg-neutral-900/70 backdrop-blur-sm rounded-xl px-4 py-2.5 flex items-center gap-3 border border-secondary-500/30"
+              style={{ animation: 'pulse 2s ease-in-out infinite' }}
+            >
+              <ChevronLeft className="w-5 h-5 text-secondary-300" />
+              <span className="text-secondary-100 text-sm font-medium">Swipe for more photos</span>
+              <ChevronRight className="w-5 h-5 text-secondary-300" />
+            </div>
+          </div>
+        )}
+
+        {/* Double-tap heart animation */}
+        {isFavorited && (
+          <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-30">
+            <Heart
+              className="w-16 h-16 text-rose-500 fill-current animate-ping opacity-0"
+              style={{ animationDuration: '0.5s', animationIterationCount: '1' }}
+            />
+          </div>
+        )}
+
+        {/* Bottom info - Fly2Any branded yellow text with enhanced shadows */}
         <div className="absolute bottom-0 left-0 right-0 p-3 z-10">
-          {/* Row 1: Name + Stars + Price */}
-          <div className="flex items-start justify-between gap-2 mb-1.5">
-            <h3 className="font-bold text-[15px] text-white leading-tight line-clamp-1 flex-1" style={{ textShadow: '0 1px 4px rgba(0,0,0,0.6), 0 2px 8px rgba(0,0,0,0.4)' }}>
+          {/* Row 1: Name + Price section - Fly2Any Yellow branding */}
+          <div className="flex items-start justify-between gap-2 mb-1">
+            <h3
+              className="font-bold text-[15px] text-secondary-100 leading-tight line-clamp-1 flex-1"
+              style={{
+                textShadow: '0 1px 2px rgba(0,0,0,0.9), 0 2px 4px rgba(0,0,0,0.7), 0 4px 8px rgba(0,0,0,0.5), 0 0 20px rgba(0,0,0,0.4)'
+              }}
+            >
               {hotel.name}
             </h3>
             {perNightPrice > 0 && (
-              <div className="flex items-baseline gap-0.5 flex-shrink-0" style={{ textShadow: '0 1px 4px rgba(0,0,0,0.6)' }}>
-                <span className="font-bold text-[16px] text-white">{currencySymbol}{Math.round(perNightPrice)}</span>
-                <span className="text-[10px] text-white/80">{t.perNight}</span>
+              <div
+                className="flex flex-col items-end flex-shrink-0"
+                style={{
+                  textShadow: '0 1px 2px rgba(0,0,0,0.9), 0 2px 4px rgba(0,0,0,0.7), 0 4px 8px rgba(0,0,0,0.5)'
+                }}
+              >
+                <div className="flex items-baseline gap-0.5">
+                  <span className="font-bold text-[16px] text-secondary-200">{currencySymbol}{Math.round(perNightPrice)}</span>
+                  <span className="text-[10px] text-secondary-100">{t.perNight}</span>
+                </div>
+                <span className="text-[9px] text-secondary-200/80">{currencySymbol}{Math.round(totalPrice)} · {nights}{t.nights}</span>
               </div>
             )}
           </div>
 
-          {/* Row 2: Location + Amenities + Badges + CTA */}
+          {/* Row 2: Location (full width) - Fly2Any Yellow */}
+          <div
+            className="flex items-center gap-1 mb-1.5"
+            style={{ filter: 'drop-shadow(0 1px 2px rgba(0,0,0,0.8)) drop-shadow(0 2px 4px rgba(0,0,0,0.6))' }}
+          >
+            {hotel.location?.city && (
+              <span className="text-secondary-100 text-[11px] font-semibold flex items-center gap-0.5">
+                <MapPin className="w-3 h-3 flex-shrink-0" />
+                <span className="truncate">{hotel.location.city}{hotel.location?.country ? `, ${hotel.location.country}` : ''}</span>
+              </span>
+            )}
+          </div>
+
+          {/* Row 3: Amenities + Badges + CTA */}
           <div className="flex items-center justify-between gap-2">
-            <div className="flex items-center gap-1.5 flex-1 min-w-0" style={{ filter: 'drop-shadow(0 1px 3px rgba(0,0,0,0.5))' }}>
-              {hotel.location?.city && (
-                <span className="text-white/90 text-[11px] font-medium flex items-center gap-0.5">
-                  <MapPin className="w-3 h-3" />
-                  <span className="truncate max-w-[50px]">{hotel.location.city}</span>
-                </span>
-              )}
-              {/* Amenities */}
-              <div className="flex items-center gap-0.5 text-white/80">
+            <div
+              className="flex items-center gap-1.5 flex-1 min-w-0"
+              style={{ filter: 'drop-shadow(0 1px 2px rgba(0,0,0,0.8)) drop-shadow(0 2px 4px rgba(0,0,0,0.6))' }}
+            >
+              {/* Amenities - Fly2Any yellow icons */}
+              <div className="flex items-center gap-1 text-secondary-200">
                 {amenities.wifi && <Wifi className="w-3 h-3" />}
                 {amenities.pool && <Waves className="w-3 h-3" />}
                 {amenities.gym && <Dumbbell className="w-3 h-3" />}
@@ -285,21 +394,28 @@ export function HotelCard({
                 {amenities.restaurant && <UtensilsCrossed className="w-3 h-3" />}
                 {amenities.parking && <Car className="w-3 h-3" />}
               </div>
-              {/* Badges */}
+              {/* Badges - branded colors */}
               {hasFreeCancellation && (
-                <span className="text-emerald-400 text-[10px] font-bold flex items-center gap-0.5">
+                <span className="text-emerald-300 text-[10px] font-bold flex items-center gap-0.5">
                   <Shield className="w-3 h-3" />
                 </span>
               )}
               {hasBreakfast && (
-                <span className="text-amber-400 text-[10px]">
+                <span className="text-secondary-300 text-[10px]">
                   <Coffee className="w-3 h-3" />
                 </span>
               )}
+              {/* Guests/Rooms info */}
+              {rooms > 1 && (
+                <span className="text-secondary-200/80 text-[10px] font-medium">{rooms}rm</span>
+              )}
             </div>
-            {/* CTA - Fly2Any theme */}
-            <button onClick={(e) => { e.stopPropagation(); handleBooking(); }}
-              className="px-3 py-1.5 rounded-lg bg-primary-500 text-white text-[11px] font-bold shadow-lg active:scale-95 transition-transform flex-shrink-0">
+            {/* CTA - Fly2Any primary red with enhanced shadow */}
+            <button
+              onClick={(e) => { e.stopPropagation(); handleBooking(); }}
+              className="px-3.5 py-1.5 rounded-lg bg-primary-500 hover:bg-primary-600 text-white text-[11px] font-bold active:scale-95 transition-all flex-shrink-0"
+              style={{ boxShadow: '0 2px 8px rgba(239, 65, 54, 0.4), 0 4px 12px rgba(0,0,0,0.3)' }}
+            >
               {t.bookNow}
             </button>
           </div>
