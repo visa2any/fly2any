@@ -159,39 +159,39 @@ export default function MultiAirportSelector({
   return (
     <div ref={dropdownRef} className="relative">
       {label && (
-        <label className="flex items-center gap-1.5 text-sm font-medium text-gray-700 mb-2">
-          {label === 'From' && <PlaneTakeoff size={14} className="text-gray-600" />}
-          {label === 'To' && <PlaneLanding size={14} className="text-gray-600" />}
+        <label className="flex items-center gap-1.5 text-xs font-semibold text-neutral-600 mb-1.5">
+          {label === 'From' && <PlaneTakeoff size={14} className="text-neutral-500" />}
+          {label === 'To' && <PlaneLanding size={14} className="text-neutral-500" />}
           <span>{label}</span>
         </label>
       )}
 
-      {/* Main Input Button - ULTRA-COMPACT Mobile-First */}
+      {/* Main Input Button - Apple-Class */}
       <button
         type="button"
         onClick={() => setIsOpen(!isOpen)}
         className="mobile-select"
       >
-        <MapPin className="absolute left-2.5 top-1/2 -translate-y-1/2 text-gray-400 flex-shrink-0" size={16} />
+        <MapPin className="absolute left-2.5 top-1/2 -translate-y-1/2 text-neutral-400 flex-shrink-0" size={16} />
 
         <div className="pl-7 pr-5 py-2 w-full overflow-hidden min-h-[40px] flex items-center">
           {selectedAirports.length === 0 ? (
-            <span className="text-gray-400 text-sm block truncate">{placeholder}</span>
+            <span className="text-neutral-400 text-sm block truncate">{placeholder}</span>
           ) : (
             <div className="flex items-center gap-1 overflow-hidden w-full">
               {selectedAirports.slice(0, maxDisplay).map((airport, idx) => (
                 <span
                   key={airport.code}
-                  className="inline-flex items-center gap-0.5 text-xs font-semibold text-gray-800 truncate"
+                  className="inline-flex items-center gap-0.5 text-xs font-semibold text-neutral-800 truncate"
                 >
-                  {idx > 0 && <span className="text-gray-300 mx-0.5">•</span>}
+                  {idx > 0 && <span className="text-neutral-300 mx-0.5">•</span>}
                   <span className="text-[10px]">{airport.emoji}</span>
                   <span className="truncate">{airport.city}</span>
-                  <span className="text-[10px] text-gray-400 font-medium">({airport.code})</span>
+                  <span className="text-[10px] text-neutral-500 font-medium">({airport.code})</span>
                 </span>
               ))}
               {selectedAirports.length > maxDisplay && (
-                <span className="inline-flex items-center px-1.5 py-0.5 bg-primary-100 text-primary-700 rounded text-[10px] font-bold flex-shrink-0 ml-1">
+                <span className="inline-flex items-center px-1.5 py-0.5 bg-primary-100 text-primary-600 rounded-lg text-[10px] font-bold flex-shrink-0 ml-1">
                   +{selectedAirports.length - maxDisplay}
                 </span>
               )}
@@ -200,17 +200,17 @@ export default function MultiAirportSelector({
         </div>
 
         <ChevronDown
-          className={`absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 transition-transform duration-200 flex-shrink-0 ${isOpen ? 'rotate-180' : ''}`}
+          className={`absolute right-2 top-1/2 -translate-y-1/2 text-neutral-400 transition-transform duration-200 flex-shrink-0 ${isOpen ? 'rotate-180' : ''}`}
           size={14}
         />
       </button>
 
-      {/* Dropdown - Mobile-First Bottom Sheet */}
+      {/* Dropdown - Apple-Class Mobile Bottom Sheet */}
       {isOpen && (
-        <div className="absolute left-0 right-0 top-full mt-2 z-dropdown w-full bg-white rounded-xl shadow-2xl border border-gray-200 overflow-hidden animate-in fade-in slide-in-from-top-2 duration-200 max-h-[60vh]">
-          
-          {/* Search Input - Mobile-First */}
-          <div className="mobile-px py-2 md:p-2 border-b border-gray-200">
+        <div className="absolute left-0 right-0 top-full mt-2 z-dropdown w-full bg-white/95 backdrop-blur-xl rounded-2xl shadow-2xl border border-neutral-200 overflow-hidden animate-in fade-in slide-in-from-top-2 duration-200 max-h-[60vh]">
+
+          {/* Search Input - Apple-Class */}
+          <div className="p-2 border-b border-neutral-200">
             <input
               type="text"
               value={searchQuery}
@@ -221,28 +221,28 @@ export default function MultiAirportSelector({
             />
           </div>
 
-          {/* Selected Airports (Chips) - COMPACT */}
+          {/* Selected Airports (Chips) - Apple-Class */}
           {selectedAirports.length > 0 && (
-            <div className="px-1.5 py-1 bg-primary-50/50 border-b border-primary-100">
-              <div className="flex items-center justify-between mb-0.5">
-                <span className="text-[9px] font-semibold text-gray-600">
+            <div className="px-2 py-1.5 bg-primary-50/50 border-b border-primary-100">
+              <div className="flex items-center justify-between mb-1">
+                <span className="text-[10px] font-semibold text-neutral-600">
                   {selectedAirports.length} selected
                 </span>
-                <button onClick={handleClearAll} className="text-[9px] font-medium text-red-500 hover:text-red-600">
+                <button onClick={handleClearAll} className="text-[10px] font-semibold text-red-500 hover:text-red-600">
                   Clear
                 </button>
               </div>
-              <div className="flex flex-wrap gap-0.5">
+              <div className="flex flex-wrap gap-1">
                 {selectedAirports.map((airport) => (
                   <span
                     key={airport.code}
-                    className="inline-flex items-center gap-0.5 px-1.5 py-0.5 bg-white border border-primary-200 rounded text-[9px] font-medium text-gray-800"
+                    className="inline-flex items-center gap-0.5 px-2 py-0.5 bg-white border border-primary-200 rounded-lg text-[10px] font-semibold text-neutral-800"
                   >
                     <span>{airport.emoji}</span>
                     <span>{airport.city}</span>
                     <button
                       onClick={(e) => { e.stopPropagation(); handleRemoveAirport(airport.code); }}
-                      className="text-gray-400 hover:text-red-500 ml-0.5"
+                      className="text-neutral-400 hover:text-red-500 ml-0.5"
                     >
                       <X size={10} />
                     </button>
@@ -252,14 +252,14 @@ export default function MultiAirportSelector({
             </div>
           )}
 
-          {/* Metro Area Quick Select - Only show when 2+ chars match metro area names */}
+          {/* Metro Area Quick Select - Apple-Class */}
           {searchQuery.length >= 2 && Object.entries(METRO_AREAS).some(([_, metro]) => {
             const normalizedQuery = normalizeText(searchQuery);
             return normalizeText(metro.name).includes(normalizedQuery) ||
               metro.codes.some(code => normalizeText(code).includes(normalizedQuery));
           }) && (
-            <div className="p-1.5 md:p-2 bg-gray-50 border-b border-gray-200">
-              <div className="text-[10px] font-semibold text-gray-700 mb-1">Quick Select</div>
+            <div className="p-2 bg-neutral-50 border-b border-neutral-200">
+              <div className="text-[10px] font-semibold text-neutral-700 mb-1.5">Quick Select</div>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-1.5">
                 {Object.entries(METRO_AREAS)
                   .filter(([_, metro]) => {
@@ -271,7 +271,7 @@ export default function MultiAirportSelector({
                   <button
                     key={key}
                     onClick={() => handleSelectMetroArea(key)}
-                    className="flex items-center gap-1.5 px-2 py-1.5 bg-white border border-gray-200 rounded-lg text-[10px] font-medium text-gray-700 hover:border-[#0087FF] hover:bg-info-50 hover:text-[#0087FF] transition-all"
+                    className="flex items-center gap-1.5 px-2.5 py-2 bg-white border-2 border-neutral-200 rounded-xl text-[10px] font-semibold text-neutral-700 hover:border-primary-400 hover:bg-primary-50 hover:text-primary-600 transition-all touch-manipulation active:scale-[0.98]"
                   >
                     <span className="text-sm">{metro.icon}</span>
                     <span className="truncate">{metro.name}</span>
@@ -281,15 +281,15 @@ export default function MultiAirportSelector({
             </div>
           )}
 
-          {/* Airport List - Mobile Single Column - Only show after 2+ chars typed */}
-          <div className="max-h-[45vh] overflow-y-auto p-1">
+          {/* Airport List - Apple-Class */}
+          <div className="max-h-[45vh] overflow-y-auto p-1.5">
             {searchQuery.length < 2 ? (
               <div className="px-2 py-4 text-center">
-                <div className="text-[11px] text-gray-500 mb-0.5">Type 2+ characters</div>
-                <div className="text-[9px] text-gray-400">City, airport name, or code</div>
+                <div className="text-[11px] font-semibold text-neutral-500 mb-0.5">Type 2+ characters</div>
+                <div className="text-[9px] text-neutral-400">City, airport name, or code</div>
               </div>
             ) : filteredAirports.length === 0 ? (
-              <div className="px-2 py-2 text-center text-[11px] text-gray-500">
+              <div className="px-2 py-3 text-center text-[11px] font-semibold text-neutral-500">
                 No airports found
               </div>
             ) : (
@@ -299,32 +299,32 @@ export default function MultiAirportSelector({
                   <button
                     key={airport.code}
                     onClick={() => handleToggleAirport(airport)}
-                    className={`w-full flex items-center gap-1 px-1.5 py-1.5 rounded-lg transition-all text-left mb-0.5 touch-manipulation min-h-[36px] ${
+                    className={`w-full flex items-center gap-1.5 px-2 py-2 rounded-xl transition-all text-left mb-1 touch-manipulation min-h-[40px] active:scale-[0.98] ${
                       isSelected
-                        ? 'bg-primary-50 border border-primary-200'
-                        : 'hover:bg-gray-50 border border-transparent active:bg-gray-100'
+                        ? 'bg-primary-50 border-2 border-primary-300'
+                        : 'hover:bg-neutral-50 border-2 border-transparent active:bg-neutral-100'
                     }`}
                   >
                     <input
                       type="checkbox"
                       checked={isSelected}
                       onChange={() => {}}
-                      className="w-3 h-3 rounded border-gray-300 text-primary-600 pointer-events-none flex-shrink-0"
+                      className="w-4 h-4 rounded-md border-neutral-300 text-primary-500 pointer-events-none flex-shrink-0"
                     />
                     <span className="text-sm flex-shrink-0">{airport.emoji}</span>
                     <div className="flex flex-col min-w-0 flex-1 leading-tight">
-                      <span className="font-semibold text-gray-900 text-[11px] truncate">{airport.city}</span>
-                      <span className="text-gray-500 text-[9px] truncate">{airport.code} • {airport.name}</span>
+                      <span className="font-semibold text-neutral-800 text-[11px] truncate">{airport.city}</span>
+                      <span className="text-neutral-500 text-[9px] truncate">{airport.code} • {airport.name}</span>
                     </div>
-                    {isSelected && <Check size={14} className="text-primary-600 flex-shrink-0" />}
+                    {isSelected && <Check size={14} className="text-primary-500 flex-shrink-0" />}
                   </button>
                 );
               })
             )}
           </div>
 
-          {/* Done Button - Mobile-First Sticky Bottom */}
-          <div className="sticky bottom-0 mobile-px py-3 bg-white border-t border-gray-200 mobile-shadow-lg">
+          {/* Done Button - Apple-Class Sticky Bottom */}
+          <div className="sticky bottom-0 p-3 bg-white/95 backdrop-blur-sm border-t border-neutral-200">
             <button
               type="button"
               onClick={handleDone}
