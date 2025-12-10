@@ -259,12 +259,12 @@ export function HotelCard({
           onError={(e) => { (e.target as HTMLImageElement).src = '/images/hotel-placeholder.jpg'; }}
         />
 
-        {/* Top row: Rating (left) + Actions (right) - same line */}
-        <div className="absolute top-2.5 left-2.5 right-2.5 flex items-center justify-between z-10">
+        {/* Top row: Rating (left) + Actions (right) - very top */}
+        <div className="absolute top-2 left-2 right-2 flex items-center justify-between z-10">
           {/* Rating pill */}
           {hotel.reviewScore > 0 ? (
-            <div className="flex items-center gap-1 px-2 py-1 rounded-full bg-black/40 backdrop-blur-sm">
-              <span className="text-white text-xs font-bold">{hotel.reviewScore.toFixed(1)}</span>
+            <div className="flex items-center gap-1 px-2 py-0.5 rounded-full bg-black/40 backdrop-blur-sm">
+              <span className="text-white text-[11px] font-bold">{hotel.reviewScore.toFixed(1)}</span>
               {hotel.rating > 0 && (
                 <div className="flex">
                   {Array.from({ length: Math.min(hotel.rating, 5) }, (_, i) => (
@@ -275,11 +275,11 @@ export function HotelCard({
             </div>
           ) : <div />}
           {/* Action icons */}
-          <div className="flex gap-1.5" style={{ filter: 'drop-shadow(0 1px 3px rgba(0,0,0,0.5))' }}>
-            <button onClick={handleFavorite} className={`p-1 transition-all active:scale-90 ${isFavorited ? 'text-primary-500' : 'text-white'}`}>
+          <div className="flex gap-1" style={{ filter: 'drop-shadow(0 1px 3px rgba(0,0,0,0.5))' }}>
+            <button onClick={handleFavorite} className={`p-1.5 transition-all active:scale-90 ${isFavorited ? 'text-primary-500' : 'text-white'}`}>
               <Heart className={`w-5 h-5 ${isFavorited ? 'fill-current' : ''}`} />
             </button>
-            <button onClick={handleShare} className="p-1 text-white transition-all active:scale-90">
+            <button onClick={handleShare} className="p-1.5 text-white transition-all active:scale-90">
               <Share2 className="w-5 h-5" />
             </button>
           </div>
@@ -294,16 +294,16 @@ export function HotelCard({
           </div>
         )}
 
-        {/* Invisible touch zones + arrows */}
+        {/* Touch zones + always-visible arrows */}
         {images.length > 1 && (
           <>
-            <div onClick={(e) => { e.stopPropagation(); prevImage(e); flashArrows(); }} className="absolute left-0 top-0 w-1/4 h-full z-10" />
-            <div onClick={(e) => { e.stopPropagation(); nextImage(e); flashArrows(); }} className="absolute right-0 top-0 w-1/4 h-full z-10" />
-            <div className={`absolute left-2 top-1/2 -translate-y-1/2 text-white transition-opacity duration-300 ${showArrows ? 'opacity-100' : 'opacity-0'}`} style={{ filter: 'drop-shadow(0 2px 4px rgba(0,0,0,0.6))' }}>
-              <ChevronLeft className="w-6 h-6" />
+            <div onClick={(e) => { e.stopPropagation(); prevImage(e); }} className="absolute left-0 top-0 w-1/4 h-full z-10" />
+            <div onClick={(e) => { e.stopPropagation(); nextImage(e); }} className="absolute right-0 top-0 w-1/4 h-full z-10" />
+            <div className="absolute left-2 top-1/2 -translate-y-1/2 text-white/70" style={{ filter: 'drop-shadow(0 1px 3px rgba(0,0,0,0.5))' }}>
+              <ChevronLeft className="w-5 h-5" />
             </div>
-            <div className={`absolute right-2 top-1/2 -translate-y-1/2 text-white transition-opacity duration-300 ${showArrows ? 'opacity-100' : 'opacity-0'}`} style={{ filter: 'drop-shadow(0 2px 4px rgba(0,0,0,0.6))' }}>
-              <ChevronRight className="w-6 h-6" />
+            <div className="absolute right-2 top-1/2 -translate-y-1/2 text-white/70" style={{ filter: 'drop-shadow(0 1px 3px rgba(0,0,0,0.5))' }}>
+              <ChevronRight className="w-5 h-5" />
             </div>
           </>
         )}
@@ -344,7 +344,8 @@ export function HotelCard({
           <div className="px-3 py-2">
             {/* Row 1: Name + Price */}
             <div className="flex items-center justify-between gap-2 mb-0.5">
-              <h3 className="font-bold text-[14px] text-white leading-tight line-clamp-1 flex-1">
+              <h3 className="font-bold text-[14px] text-white leading-tight line-clamp-1 flex-1 flex items-center gap-1.5">
+                <span className="text-secondary-300">🏨</span>
                 {hotel.name}
               </h3>
               {perNightPrice > 0 && (
@@ -356,7 +357,7 @@ export function HotelCard({
             </div>
 
             {/* Row 2: Location + Total */}
-            <div className="flex items-center justify-between mb-1">
+            <div className="flex items-center justify-between mb-1.5">
               {hotel.location?.city && (
                 <span className="text-white/90 text-[10px] font-medium flex items-center gap-0.5">
                   <MapPin className="w-2.5 h-2.5" />
@@ -364,27 +365,53 @@ export function HotelCard({
                 </span>
               )}
               {perNightPrice > 0 && (
-                <span className="text-[9px] font-semibold text-white/60">{currencySymbol}{Math.round(totalPrice)} · {nights}n</span>
+                <span className="text-[10px] font-bold text-white/70">{currencySymbol}{Math.round(totalPrice)} · {nights}n</span>
               )}
             </div>
 
-            {/* Row 3: Amenities + Badges + CTA */}
-            <div className="flex items-center justify-between gap-1.5">
-              <div className="flex items-center gap-1.5 flex-1 min-w-0">
-                <div className="flex items-center gap-1 text-white/70">
-                  {amenities.wifi && <Wifi className="w-3 h-3" />}
-                  {amenities.pool && <Waves className="w-3 h-3" />}
-                  {amenities.gym && <Dumbbell className="w-3 h-3" />}
-                  {amenities.spa && <Sparkles className="w-3 h-3" />}
-                  {amenities.restaurant && <UtensilsCrossed className="w-3 h-3" />}
-                  {amenities.parking && <Car className="w-3 h-3" />}
-                </div>
-                {hasFreeCancellation && <Shield className="w-3 h-3 text-emerald-400" />}
-                {hasBreakfast && <Coffee className="w-3 h-3 text-amber-400" />}
+            {/* Row 3: Amenities with labels + CTA */}
+            <div className="flex items-center justify-between gap-2">
+              <div className="flex items-center gap-3 flex-1 min-w-0">
+                {amenities.wifi && (
+                  <div className="flex flex-col items-center">
+                    <Wifi className="w-3.5 h-3.5 text-white/80" strokeWidth={2.5} />
+                    <span className="text-[7px] text-white/50 font-medium">WiFi</span>
+                  </div>
+                )}
+                {amenities.pool && (
+                  <div className="flex flex-col items-center">
+                    <Waves className="w-3.5 h-3.5 text-white/80" strokeWidth={2.5} />
+                    <span className="text-[7px] text-white/50 font-medium">Pool</span>
+                  </div>
+                )}
+                {amenities.gym && (
+                  <div className="flex flex-col items-center">
+                    <Dumbbell className="w-3.5 h-3.5 text-white/80" strokeWidth={2.5} />
+                    <span className="text-[7px] text-white/50 font-medium">Gym</span>
+                  </div>
+                )}
+                {amenities.parking && (
+                  <div className="flex flex-col items-center">
+                    <Car className="w-3.5 h-3.5 text-white/80" strokeWidth={2.5} />
+                    <span className="text-[7px] text-white/50 font-medium">Park</span>
+                  </div>
+                )}
+                {hasFreeCancellation && (
+                  <div className="flex flex-col items-center">
+                    <Shield className="w-3.5 h-3.5 text-emerald-400" strokeWidth={2.5} />
+                    <span className="text-[7px] text-emerald-400/70 font-medium">Free</span>
+                  </div>
+                )}
+                {hasBreakfast && (
+                  <div className="flex flex-col items-center">
+                    <Coffee className="w-3.5 h-3.5 text-amber-400" strokeWidth={2.5} />
+                    <span className="text-[7px] text-amber-400/70 font-medium">Bkfst</span>
+                  </div>
+                )}
               </div>
               <button
                 onClick={(e) => { e.stopPropagation(); handleBooking(); }}
-                className="px-3 py-1.5 rounded-lg bg-primary-500 text-white text-[10px] font-bold active:scale-95 transition-transform"
+                className="px-3.5 py-1.5 rounded-lg bg-primary-500 text-white text-[10px] font-bold active:scale-95 transition-transform"
               >
                 {t.bookNow}
               </button>
