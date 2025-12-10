@@ -151,7 +151,7 @@ export function HotelCard({
 
         {/* IMAGE SECTION - 20% wider, immersive */}
         <div
-          className="relative w-[165px] min-w-[165px] sm:w-[200px] sm:min-w-[200px] lg:w-[320px] lg:min-w-[320px] aspect-[4/5] sm:aspect-[4/4] lg:aspect-[4/3] flex-shrink-0 overflow-hidden bg-slate-100"
+          className="relative w-[180px] min-w-[180px] sm:w-[220px] sm:min-w-[220px] lg:w-[350px] lg:min-w-[350px] h-[150px] sm:h-[165px] lg:h-[200px] flex-shrink-0 overflow-hidden bg-slate-100"
           onMouseEnter={fetchImages}
         >
           <Image
@@ -159,7 +159,7 @@ export function HotelCard({
             alt={images[currentImageIndex]?.alt || hotel.name}
             fill
             className="object-cover transition-transform duration-700 group-hover:scale-110"
-            sizes="(max-width: 640px) 165px, (max-width: 1024px) 200px, 320px"
+            sizes="(max-width: 640px) 180px, (max-width: 1024px) 220px, 350px"
             priority={currentImageIndex === 0}
             placeholder="blur"
             blurDataURL={getBlurDataURL(images[currentImageIndex]?.url || '', 320, 240)}
