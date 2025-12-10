@@ -1829,10 +1829,10 @@ export default function EnhancedSearchBar({
           {/* HOTELS FIELDS */}
           {serviceType === 'hotels' && (
           <>
-          {/* Search Fields Row */}
-          <div className="flex items-center gap-2">
+          {/* Search Fields Row - Mobile: Stacked, Desktop: Horizontal */}
+          <div className="flex flex-col lg:flex-row lg:items-center gap-3 lg:gap-2">
             {/* Hotel Destination - Enhanced Display */}
-            <div ref={hotelDestinationRef} className="flex-1 relative">
+            <div ref={hotelDestinationRef} className="w-full lg:flex-1 relative">
               <label className="flex items-center gap-1.5 text-xs font-medium text-gray-700 mb-2">
                 <Building2 size={13} className="text-gray-600" />
                 <span>Destination</span>
@@ -2054,8 +2054,10 @@ export default function EnhancedSearchBar({
 
             </div>
 
+            {/* Dates Row - Side by side on mobile */}
+            <div className="flex flex-row gap-3 w-full lg:contents">
             {/* Check-in Date - Enhanced Premium Style */}
-            <div className="flex-1">
+            <div className="flex-1 lg:flex-1">
               <label className="flex items-center gap-1.5 text-xs font-medium text-gray-700 mb-2">
                 <CalendarDays size={13} className="text-gray-600" />
                 <span>Check-in</span>
@@ -2099,7 +2101,7 @@ export default function EnhancedSearchBar({
             </div>
 
             {/* Check-out Date - Enhanced Premium Style */}
-            <div className="flex-1">
+            <div className="flex-1 lg:flex-1">
               <label className="flex items-center gap-1.5 text-xs font-medium text-gray-700 mb-2">
                 <CalendarCheck size={13} className="text-gray-600" />
                 <span>Check-out</span>
@@ -2141,9 +2143,10 @@ export default function EnhancedSearchBar({
                 </div>
               </button>
             </div>
+            </div>{/* End Dates Row wrapper */}
 
             {/* Guests & Rooms - Enhanced Premium Style */}
-            <div className="relative flex-shrink-0 w-64">
+            <div className="relative w-full lg:w-64 lg:flex-shrink-0">
               <label className="flex items-center gap-1.5 text-xs font-medium text-gray-700 mb-2">
                 <Users size={13} className="text-gray-600" />
                 <span>Guests & Rooms</span>
@@ -2281,14 +2284,14 @@ export default function EnhancedSearchBar({
 
             </div>
 
-            {/* Search Button */}
-            <div className="flex-shrink-0">
-              <label className="block text-xs font-medium text-gray-700 mb-2 opacity-0">Search</label>
+            {/* Search Button - Full width on mobile */}
+            <div className="w-full lg:w-auto lg:flex-shrink-0">
+              <label className="hidden lg:block text-xs font-medium text-gray-700 mb-2 opacity-0">Search</label>
               <button
                 type="button"
                 onClick={handleSearch}
                 disabled={isLoading}
-                className="py-4 px-10 bg-[#D63A35] hover:bg-[#0077E6] text-white font-semibold rounded-lg shadow-md hover:shadow-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 whitespace-nowrap text-sm"
+                className="w-full lg:w-auto py-4 px-10 bg-[#D63A35] hover:bg-[#0077E6] text-white font-semibold rounded-lg shadow-md hover:shadow-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 whitespace-nowrap text-sm touch-manipulation active:scale-[0.98]"
               >
                 {isLoading ? (
                   <>
@@ -2305,22 +2308,22 @@ export default function EnhancedSearchBar({
             </div>
           </div>
 
-          {/* 📍 POPULAR AREAS - Ultra Compact Single Row */}
+          {/* 📍 POPULAR AREAS - Mobile: Stacked, Desktop: Single Row */}
           {/* Show when we have popular districts OR previously selected districts (from results page) */}
           {(popularDistricts.length > 0 || selectedDistricts.length > 0) && hotelDestination && (
-            <div className="mt-3 px-3 py-2 bg-gradient-to-r from-slate-50/80 via-blue-50/20 to-cyan-50/20 rounded-lg border border-blue-100/50 flex items-center gap-3">
+            <div className="mt-3 px-2 lg:px-3 py-2 bg-gradient-to-r from-slate-50/80 via-blue-50/20 to-cyan-50/20 rounded-lg border border-blue-100/50 flex flex-col lg:flex-row lg:items-center gap-2 lg:gap-3">
               {/* Left: Title Section */}
               <div className="flex-shrink-0 flex items-center gap-2">
-                <div className="w-5 h-5 rounded-full bg-gradient-to-br from-[#D63A35] to-cyan-500 flex items-center justify-center">
-                  <MapPin className="w-3 h-3 text-white" />
+                <div className="w-4 h-4 lg:w-5 lg:h-5 rounded-full bg-gradient-to-br from-[#D63A35] to-cyan-500 flex items-center justify-center">
+                  <MapPin className="w-2.5 h-2.5 lg:w-3 lg:h-3 text-white" />
                 </div>
-                <span className="text-xs font-semibold text-gray-700 whitespace-nowrap">Popular Areas</span>
-                <span className="text-gray-300">•</span>
-                <span className="text-[11px] text-gray-400 whitespace-nowrap">multi-select</span>
+                <span className="text-[11px] lg:text-xs font-semibold text-gray-700 whitespace-nowrap">Popular Areas</span>
+                <span className="hidden lg:inline text-gray-300">•</span>
+                <span className="hidden lg:inline text-[11px] text-gray-400 whitespace-nowrap">multi-select</span>
               </div>
 
-              {/* Middle: Scrollable District Chips */}
-              <div className="flex-1 flex items-center gap-1.5 overflow-x-auto scrollbar-hide">
+              {/* Middle: Scrollable District Chips - Mobile: horizontal scroll overflow */}
+              <div className="flex-1 flex items-center gap-1.5 overflow-x-auto scrollbar-hide -mx-2 px-2 lg:mx-0 lg:px-0">
                 {/* When we have popular districts from API, show those with selection state */}
                 {popularDistricts.length > 0 ? (
                   popularDistricts.map((district) => {
@@ -2334,7 +2337,7 @@ export default function EnhancedSearchBar({
                         key={district.id}
                         type="button"
                         onClick={() => toggleDistrictSelection(district)}
-                        className={`flex-shrink-0 flex items-center gap-1 px-2.5 py-1 rounded-md text-xs font-medium transition-all duration-150 ${
+                        className={`flex-shrink-0 flex items-center gap-1 px-2.5 py-1.5 rounded-md text-[11px] lg:text-xs font-medium transition-all duration-150 touch-manipulation active:scale-95 ${
                           isSelected
                             ? 'bg-gradient-to-r from-[#D63A35] to-cyan-500 text-white shadow-sm'
                             : 'bg-white text-gray-600 hover:bg-primary-50 hover:text-primary-700 border border-gray-200/80 hover:border-primary-300'
@@ -2352,7 +2355,7 @@ export default function EnhancedSearchBar({
                       key={district.id}
                       type="button"
                       onClick={() => setSelectedDistricts(selectedDistricts.filter(d => d.id !== district.id))}
-                      className="flex-shrink-0 flex items-center gap-1 px-2.5 py-1 rounded-md text-xs font-medium transition-all duration-150 bg-gradient-to-r from-[#D63A35] to-cyan-500 text-white shadow-sm"
+                      className="flex-shrink-0 flex items-center gap-1 px-2.5 py-1.5 rounded-md text-[11px] lg:text-xs font-medium transition-all duration-150 bg-gradient-to-r from-[#D63A35] to-cyan-500 text-white shadow-sm touch-manipulation active:scale-95"
                     >
                       <Check className="w-3 h-3" />
                       {district.name}

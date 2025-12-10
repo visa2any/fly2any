@@ -839,9 +839,9 @@ function HotelResultsContent() {
         />
       </div>
 
-      {/* Main Content */}
-      <div style={{ maxWidth: '1600px', margin: '0 auto' }} className="p-3 md:p-6">
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-3 md:gap-4">
+      {/* Main Content - Mobile: Edge-to-edge, Desktop: Contained */}
+      <div style={{ maxWidth: '1600px', margin: '0 auto' }} className="px-2 py-2 lg:p-6">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-2 lg:gap-4">
 
           {/* Left Sidebar - Filters */}
           <aside className="hidden lg:block lg:col-span-2">
@@ -859,38 +859,41 @@ function HotelResultsContent() {
 
           {/* Main Content - Hotel Results */}
           <main className="lg:col-span-8">
-            {/* Sort Tabs */}
-            <div className="flex items-center justify-between mb-2 md:mb-4 px-1 flex-wrap gap-2">
-              <div className="flex items-center gap-1.5 flex-wrap">
-                <span className="text-xs font-semibold text-slate-700 mr-0.5">Sort:</span>
-                <div className="flex items-center gap-1.5 flex-wrap md:flex-nowrap">
+            {/* Sort Tabs - Mobile: Horizontal scroll, Desktop: Wrap */}
+            <div className="flex items-center justify-between mb-2 lg:mb-4 gap-2">
+              {/* Mobile: Horizontal scroll container */}
+              <div className="flex items-center gap-1.5 min-w-0 flex-1">
+                <span className="hidden lg:inline text-xs font-semibold text-slate-700 flex-shrink-0">Sort:</span>
+                <div className="flex items-center gap-1 lg:gap-1.5 overflow-x-auto lg:overflow-visible lg:flex-wrap scrollbar-hide -mx-3 px-3 lg:mx-0 lg:px-0">
                   {[
-                    { key: 'cheapest', label: t.lowestPrice, icon: '💰' },
-                    { key: 'refundable', label: t.refundableFirst, icon: '🛡️' },
-                    { key: 'rating', label: t.highestRating, icon: '⭐' },
-                    { key: 'popular', label: t.mostPopular, icon: '🔥' },
-                    { key: 'topRated', label: t.topRated, icon: '🏆' },
-                  ].map(({ key, label, icon }) => (
+                    { key: 'cheapest', label: 'Price', labelLg: t.lowestPrice, icon: '💰' },
+                    { key: 'refundable', label: 'Refund', labelLg: t.refundableFirst, icon: '🛡️' },
+                    { key: 'rating', label: 'Rating', labelLg: t.highestRating, icon: '⭐' },
+                    { key: 'popular', label: 'Popular', labelLg: t.mostPopular, icon: '🔥' },
+                    { key: 'topRated', label: 'Top', labelLg: t.topRated, icon: '🏆' },
+                  ].map(({ key, label, labelLg, icon }) => (
                     <button
                       key={key}
                       onClick={() => setSortBy(key as SortOption)}
-                      className={`px-3 py-1.5 rounded-lg font-semibold text-xs transition-all duration-300 ${
+                      className={`px-2 lg:px-3 py-1 lg:py-1.5 rounded-lg font-semibold text-[10px] lg:text-xs transition-all duration-200 flex-shrink-0 touch-manipulation ${
                         sortBy === key
-                          ? 'bg-gradient-to-r from-orange-500 to-orange-600 text-white shadow-md hover:shadow-lg'
-                          : 'bg-white/90 backdrop-blur-sm text-slate-700 border-2 border-slate-200 hover:border-orange-300 hover:bg-orange-50/50'
+                          ? 'bg-gradient-to-r from-orange-500 to-orange-600 text-white shadow-md'
+                          : 'bg-white/90 backdrop-blur-sm text-slate-700 border border-slate-200 lg:border-2 active:bg-orange-50'
                       }`}
                     >
-                      {icon} {label}
+                      <span className="lg:hidden">{icon} {label}</span>
+                      <span className="hidden lg:inline">{icon} {labelLg}</span>
                     </button>
                   ))}
                 </div>
               </div>
 
-              <span className="text-sm font-semibold text-slate-600 flex items-center gap-1.5">
-                <span className="inline-flex items-center justify-center w-7 h-7 bg-orange-100 text-orange-700 rounded-full text-xs font-bold">
+              {/* Hotels count - Compact on mobile */}
+              <span className="text-xs lg:text-sm font-semibold text-slate-600 flex items-center gap-1 flex-shrink-0">
+                <span className="inline-flex items-center justify-center w-5 h-5 lg:w-7 lg:h-7 bg-orange-100 text-orange-700 rounded-full text-[10px] lg:text-xs font-bold">
                   {sortedHotels.length}
                 </span>
-                {sortedHotels.length === 1 ? 'hotel' : 'hotels'}
+                <span className="hidden sm:inline">{sortedHotels.length === 1 ? 'hotel' : 'hotels'}</span>
               </span>
             </div>
 
@@ -919,8 +922,8 @@ function HotelResultsContent() {
               </div>
             )}
 
-            {/* Hotel Cards List */}
-            <div className="space-y-2">
+            {/* Hotel Cards List - Mobile: Tighter spacing */}
+            <div className="space-y-2 lg:space-y-3">
               {displayedHotels.map((hotel) => (
                 <HotelCard
                   key={hotel.id}
@@ -998,8 +1001,8 @@ function HotelResultsContent() {
             )}
           </main>
 
-          {/* Right Sidebar - Insights */}
-          <aside className="lg:col-span-2">
+          {/* Right Sidebar - Insights - Desktop only */}
+          <aside className="hidden lg:block lg:col-span-2">
             <div className="lg:sticky lg:top-20 space-y-2 md:space-y-4">
               {/* Price Insights */}
               <div className="bg-slate-50/95 backdrop-blur-xl rounded-2xl shadow-md border border-slate-200/60 p-3 md:p-5">
