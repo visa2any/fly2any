@@ -3474,10 +3474,17 @@ export default function EnhancedSearchBar({
 
               {/* Passenger & Class Dropdown - Apple-Class Mobile Bottom Sheet */}
               {showPassengerDropdown && serviceType === 'flights' && (
-                <div className="fixed md:absolute inset-x-0 bottom-0 md:bottom-auto md:left-0 md:right-auto md:top-full md:mt-2 bg-white/95 backdrop-blur-xl border-t md:border border-neutral-200 rounded-t-3xl md:rounded-2xl shadow-2xl z-modal md:min-w-[280px] max-h-[70vh] md:max-h-none overflow-y-auto">
-                  {/* Drag Handle */}
-                  <div className="w-10 h-1 bg-neutral-300 rounded-full mx-auto mt-3 mb-2 md:hidden" />
-                  <div className="px-4 py-3 space-y-3">
+                <>
+                  {/* Mobile Backdrop Overlay */}
+                  <div
+                    className="fixed inset-0 bg-black/30 backdrop-blur-sm z-modal-backdrop md:hidden animate-in fade-in duration-200"
+                    onClick={() => setShowPassengerDropdown(false)}
+                    aria-hidden="true"
+                  />
+                  <div className="fixed md:absolute inset-x-0 bottom-0 md:bottom-auto md:left-0 md:right-auto md:top-full md:mt-2 bg-white/95 backdrop-blur-xl border-t md:border border-neutral-200 rounded-t-3xl md:rounded-2xl shadow-2xl z-modal md:min-w-[280px] max-h-[70vh] md:max-h-none overflow-y-auto animate-in slide-in-from-bottom-4 duration-300 md:slide-in-from-top-2 md:fade-in safe-area-bottom">
+                    {/* Drag Handle */}
+                    <div className="w-10 h-1 bg-neutral-300 rounded-full mx-auto mt-3 mb-2 md:hidden" />
+                    <div className="px-4 py-3 pb-6 md:pb-3 space-y-3">
                   {/* Adults Row */}
                   <div className="flex items-center justify-between bg-neutral-50 rounded-xl px-3 py-2.5">
                     <span className="text-xs font-semibold text-neutral-700">Adults <span className="text-neutral-400 font-normal">18+</span></span>
@@ -3536,8 +3543,9 @@ export default function EnhancedSearchBar({
                   >
                     Done
                   </button>
+                    </div>
                   </div>
-                </div>
+                </>
               )}
             </div>
 

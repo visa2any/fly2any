@@ -42,6 +42,11 @@
     .mobile-scroll-safe {
       padding-bottom: calc(var(--bottom-nav-total) + 16px);
     }
+
+    /* Safe area bottom padding for bottom sheets */
+    .safe-area-bottom {
+      padding-bottom: var(--safe-area-bottom);
+    }
   }
 
   /* Accessibility: Screen reader only content */

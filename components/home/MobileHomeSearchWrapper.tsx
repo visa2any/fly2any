@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { motion, AnimatePresence, useSpring, useTransform } from 'framer-motion';
-import { MapPin, Search, ChevronDown } from 'lucide-react';
+import { MapPin, Search, ChevronDown, ChevronUp } from 'lucide-react';
 import { format } from 'date-fns';
 import EnhancedSearchBar from '@/components/flights/EnhancedSearchBar';
 import { useHasMounted } from '@/lib/hooks/useHasMounted';
@@ -338,7 +338,7 @@ export function MobileHomeSearchWrapper({
                 aria-label="Minimize search form"
               >
                 <span className="font-medium">Minimize</span>
-                <ChevronDown className="w-4 h-4 transition-transform group-hover:translate-y-0.5" />
+                <ChevronUp className="w-4 h-4" />
               </button>
             </motion.div>
           </motion.div>

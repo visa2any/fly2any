@@ -641,18 +641,27 @@ export default function PremiumDatePicker({
       {/* Calendar container - Centered modal on mobile, positioned dropdown on desktop */}
       <div
         ref={containerRef}
-        style={isMobile ? {} : {
+        style={isMobile ? {
+          position: 'fixed',
+          left: '0.5rem',
+          right: '0.5rem',
+          top: '50%',
+          transform: 'translateY(-50%)',
+          zIndex: 1400,
+          maxWidth: 'calc(100vw - 1rem)'
+        } : {
           position: 'fixed',
           top: `${position.top}px`,
-          left: `${position.left}px`,
-          zIndex: 1400
+          left: `${Math.max(8, Math.min(position.left, window.innerWidth - 360))}px`,
+          zIndex: 1400,
+          maxWidth: 'min(95vw, 700px)'
         }}
         className={`
-          bg-white shadow-[0_8px_30px_rgb(0,0,0,0.12)] border border-gray-100
+          bg-white shadow-[0_8px_30px_rgb(0,0,0,0.12)] border border-neutral-100
           animate-in duration-300 ease-out
           ${isMobile
-            ? 'fixed inset-x-2 top-1/2 -translate-y-1/2 z-modal rounded-2xl max-h-[80vh] overflow-y-auto slide-in-from-bottom-2'
-            : 'rounded-lg fade-in slide-in-from-top-1'
+            ? 'rounded-2xl max-h-[80vh] overflow-y-auto slide-in-from-bottom-2'
+            : 'rounded-xl fade-in slide-in-from-top-1'
           }
         `}
       >
