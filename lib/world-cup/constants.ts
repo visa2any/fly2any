@@ -183,6 +183,129 @@ export const WORLD_CUP_2026_DATES = {
 };
 
 /**
+ * FIFA World Cup 2026 Official Groups (Draw: Dec 5, 2025)
+ * 12 groups of 4 teams = 48 teams total
+ */
+export interface WorldCupGroup {
+  name: string;
+  teams: { name: string; flag: string; qualified: boolean }[];
+}
+
+export const WORLD_CUP_2026_GROUPS: WorldCupGroup[] = [
+  { name: 'A', teams: [
+    { name: 'Mexico', flag: '🇲🇽', qualified: true },
+    { name: 'South Africa', flag: '🇿🇦', qualified: true },
+    { name: 'Korea Republic', flag: '🇰🇷', qualified: true },
+    { name: 'UEFA Playoff D', flag: '🏳️', qualified: false },
+  ]},
+  { name: 'B', teams: [
+    { name: 'Switzerland', flag: '🇨🇭', qualified: true },
+    { name: 'Canada', flag: '🇨🇦', qualified: true },
+    { name: 'Qatar', flag: '🇶🇦', qualified: true },
+    { name: 'Italy/N.Ireland', flag: '🏳️', qualified: false },
+  ]},
+  { name: 'C', teams: [
+    { name: 'Spain', flag: '🇪🇸', qualified: true },
+    { name: 'Netherlands', flag: '🇳🇱', qualified: true },
+    { name: 'Ecuador', flag: '🇪🇨', qualified: true },
+    { name: 'OFC Playoff', flag: '🏳️', qualified: false },
+  ]},
+  { name: 'D', teams: [
+    { name: 'USA', flag: '🇺🇸', qualified: true },
+    { name: 'Paraguay', flag: '🇵🇾', qualified: true },
+    { name: 'Australia', flag: '🇦🇺', qualified: true },
+    { name: 'UEFA Playoff C', flag: '🏳️', qualified: false },
+  ]},
+  { name: 'E', teams: [
+    { name: 'England', flag: '🏴󠁧󠁢󠁥󠁮󠁧󠁿', qualified: true },
+    { name: 'Denmark', flag: '🇩🇰', qualified: true },
+    { name: 'Iran', flag: '🇮🇷', qualified: true },
+    { name: 'CAF Playoff', flag: '🏳️', qualified: false },
+  ]},
+  { name: 'F', teams: [
+    { name: 'Brazil', flag: '🇧🇷', qualified: true },
+    { name: 'Colombia', flag: '🇨🇴', qualified: true },
+    { name: 'Egypt', flag: '🇪🇬', qualified: true },
+    { name: 'AFC Playoff', flag: '🏳️', qualified: false },
+  ]},
+  { name: 'G', teams: [
+    { name: 'Germany', flag: '🇩🇪', qualified: true },
+    { name: 'Uruguay', flag: '🇺🇾', qualified: true },
+    { name: 'Cameroon', flag: '🇨🇲', qualified: true },
+    { name: 'CONMEBOL Playoff', flag: '🏳️', qualified: false },
+  ]},
+  { name: 'H', teams: [
+    { name: 'Portugal', flag: '🇵🇹', qualified: true },
+    { name: 'Japan', flag: '🇯🇵', qualified: true },
+    { name: 'Morocco', flag: '🇲🇦', qualified: true },
+    { name: 'CONCACAF Playoff', flag: '🏳️', qualified: false },
+  ]},
+  { name: 'I', teams: [
+    { name: 'France', flag: '🇫🇷', qualified: true },
+    { name: 'Senegal', flag: '🇸🇳', qualified: true },
+    { name: 'Norway', flag: '🇳🇴', qualified: true },
+    { name: 'CONMEBOL Playoff 2', flag: '🏳️', qualified: false },
+  ]},
+  { name: 'J', teams: [
+    { name: 'Argentina', flag: '🇦🇷', qualified: true },
+    { name: 'Austria', flag: '🇦🇹', qualified: true },
+    { name: 'Algeria', flag: '🇩🇿', qualified: true },
+    { name: 'Jordan', flag: '🇯🇴', qualified: true },
+  ]},
+  { name: 'K', teams: [
+    { name: 'Belgium', flag: '🇧🇪', qualified: true },
+    { name: 'Serbia', flag: '🇷🇸', qualified: true },
+    { name: 'Ghana', flag: '🇬🇭', qualified: true },
+    { name: 'Costa Rica', flag: '🇨🇷', qualified: true },
+  ]},
+  { name: 'L', teams: [
+    { name: 'Croatia', flag: '🇭🇷', qualified: true },
+    { name: 'Wales/Poland', flag: '🏳️', qualified: false },
+    { name: 'Saudi Arabia', flag: '🇸🇦', qualified: true },
+    { name: 'Nigeria', flag: '🇳🇬', qualified: true },
+  ]},
+];
+
+/**
+ * Key Opening Matches - FIFA World Cup 2026
+ */
+export const WORLD_CUP_2026_KEY_MATCHES = {
+  opening: {
+    match: 'Mexico vs South Africa',
+    date: '2026-06-11',
+    time: '20:00 CST',
+    venue: 'Estadio Azteca',
+    city: 'Mexico City',
+    emoji: '🇲🇽 vs 🇿🇦',
+  },
+  usaOpening: {
+    match: 'USA vs Paraguay',
+    date: '2026-06-12',
+    time: '18:00 PT',
+    venue: 'SoFi Stadium',
+    city: 'Los Angeles',
+    emoji: '🇺🇸 vs 🇵🇾',
+  },
+  canadaOpening: {
+    match: 'Canada vs TBD',
+    date: '2026-06-12',
+    time: '19:00 ET',
+    venue: 'BMO Field',
+    city: 'Toronto',
+    emoji: '🇨🇦 vs 🏳️',
+  },
+  final: {
+    match: 'TBD vs TBD',
+    date: '2026-07-19',
+    time: '15:00 ET',
+    venue: 'MetLife Stadium',
+    city: 'New York/New Jersey',
+    emoji: '🏆',
+    note: 'Half-time show featuring Coldplay',
+  },
+};
+
+/**
  * Get formatted location string for World Cup banner
  * @param lang - Language code
  * @returns Formatted string with host countries

@@ -306,6 +306,138 @@ export default function WorldCup2026Page() {
         </div>
       </section>
 
+      {/* GROUPS REVEALED SECTION - Draw Results Dec 5, 2025 */}
+      <section className="relative w-full py-16 bg-gradient-to-br from-green-900 via-blue-900 to-slate-900">
+        <div className="w-full max-w-7xl mx-auto px-6 lg:px-12">
+          <div className="text-center mb-12">
+            <div className="inline-flex items-center gap-2 bg-yellow-400 text-black px-4 py-2 rounded-full font-black text-sm mb-4 animate-pulse">
+              ⚽ DRAW REVEALED - Dec 5, 2025
+            </div>
+            <h2 className="text-4xl sm:text-5xl md:text-6xl font-black text-white mb-4">
+              12 GROUPS ARE SET!
+            </h2>
+            <p className="text-xl text-blue-200">
+              Host Nations & Defending Champions - Your Path to Glory
+            </p>
+          </div>
+
+          {/* Featured Groups Grid */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            {/* Group A - Mexico */}
+            <div className="bg-white/10 backdrop-blur-lg rounded-2xl p-6 border border-white/20 hover:border-green-400/50 transition-all">
+              <div className="flex items-center gap-2 mb-4">
+                <span className="text-2xl">🇲🇽</span>
+                <h3 className="text-xl font-black text-white">GROUP A</h3>
+              </div>
+              <div className="space-y-2">
+                <div className="flex items-center gap-2 text-white font-semibold">
+                  <span>🇲🇽</span> Mexico <span className="text-xs bg-green-500/30 px-2 py-0.5 rounded ml-auto">Host</span>
+                </div>
+                <div className="flex items-center gap-2 text-white/80">
+                  <span>🇿🇦</span> South Africa
+                </div>
+                <div className="flex items-center gap-2 text-white/80">
+                  <span>🇰🇷</span> Korea Republic
+                </div>
+                <div className="flex items-center gap-2 text-white/60 text-sm">
+                  <span>🏳️</span> UEFA Playoff D
+                </div>
+              </div>
+              <div className="mt-4 pt-4 border-t border-white/10 text-xs text-yellow-300 font-bold">
+                Opening Match: Mexico vs South Africa
+              </div>
+            </div>
+
+            {/* Group B - Canada */}
+            <div className="bg-white/10 backdrop-blur-lg rounded-2xl p-6 border border-white/20 hover:border-red-400/50 transition-all">
+              <div className="flex items-center gap-2 mb-4">
+                <span className="text-2xl">🇨🇦</span>
+                <h3 className="text-xl font-black text-white">GROUP B</h3>
+              </div>
+              <div className="space-y-2">
+                <div className="flex items-center gap-2 text-white/80">
+                  <span>🇨🇭</span> Switzerland
+                </div>
+                <div className="flex items-center gap-2 text-white font-semibold">
+                  <span>🇨🇦</span> Canada <span className="text-xs bg-red-500/30 px-2 py-0.5 rounded ml-auto">Host</span>
+                </div>
+                <div className="flex items-center gap-2 text-white/80">
+                  <span>🇶🇦</span> Qatar
+                </div>
+                <div className="flex items-center gap-2 text-white/60 text-sm">
+                  <span>🏳️</span> Italy/N.Ireland
+                </div>
+              </div>
+              <div className="mt-4 pt-4 border-t border-white/10 text-xs text-yellow-300 font-bold">
+                Could face Italy! 🇮🇹
+              </div>
+            </div>
+
+            {/* Group D - USA */}
+            <div className="bg-white/10 backdrop-blur-lg rounded-2xl p-6 border border-white/20 hover:border-blue-400/50 transition-all ring-2 ring-blue-400/50">
+              <div className="flex items-center gap-2 mb-4">
+                <span className="text-2xl">🇺🇸</span>
+                <h3 className="text-xl font-black text-white">GROUP D</h3>
+                <span className="text-xs bg-blue-500 text-white px-2 py-0.5 rounded ml-auto">Featured</span>
+              </div>
+              <div className="space-y-2">
+                <div className="flex items-center gap-2 text-white font-semibold">
+                  <span>🇺🇸</span> USA <span className="text-xs bg-blue-500/30 px-2 py-0.5 rounded ml-auto">Host</span>
+                </div>
+                <div className="flex items-center gap-2 text-white/80">
+                  <span>🇵🇾</span> Paraguay
+                </div>
+                <div className="flex items-center gap-2 text-white/80">
+                  <span>🇦🇺</span> Australia
+                </div>
+                <div className="flex items-center gap-2 text-white/60 text-sm">
+                  <span>🏳️</span> UEFA Playoff C
+                </div>
+              </div>
+              <div className="mt-4 pt-4 border-t border-white/10 text-xs text-yellow-300 font-bold">
+                USA vs Paraguay - June 12 @ SoFi Stadium
+              </div>
+            </div>
+
+            {/* Group J - Argentina */}
+            <div className="bg-white/10 backdrop-blur-lg rounded-2xl p-6 border border-white/20 hover:border-yellow-400/50 transition-all">
+              <div className="flex items-center gap-2 mb-4">
+                <span className="text-2xl">🇦🇷</span>
+                <h3 className="text-xl font-black text-white">GROUP J</h3>
+                <span className="text-xs bg-yellow-500 text-black px-2 py-0.5 rounded ml-auto">🏆 Champs</span>
+              </div>
+              <div className="space-y-2">
+                <div className="flex items-center gap-2 text-white font-semibold">
+                  <span>🇦🇷</span> Argentina <span className="text-xs bg-yellow-500/30 px-2 py-0.5 rounded ml-auto">Holders</span>
+                </div>
+                <div className="flex items-center gap-2 text-white/80">
+                  <span>🇦🇹</span> Austria
+                </div>
+                <div className="flex items-center gap-2 text-white/80">
+                  <span>🇩🇿</span> Algeria
+                </div>
+                <div className="flex items-center gap-2 text-white/80">
+                  <span>🇯🇴</span> Jordan
+                </div>
+              </div>
+              <div className="mt-4 pt-4 border-t border-white/10 text-xs text-yellow-300 font-bold">
+                Messi's Final World Cup! ⭐⭐⭐
+              </div>
+            </div>
+          </div>
+
+          {/* View All Groups CTA */}
+          <div className="text-center mt-12">
+            <Link
+              href="/world-cup-2026/groups"
+              className="inline-block px-10 py-5 bg-gradient-to-r from-green-500 via-blue-500 to-red-500 text-white font-black rounded-full text-xl hover:scale-105 transition-all duration-300 shadow-2xl"
+            >
+              View All 12 Groups →
+            </Link>
+          </div>
+        </div>
+      </section>
+
       {/* TROPHY ANIMATION SECTION */}
       <section className="relative w-full py-32 bg-gradient-to-br from-amber-400 via-orange-500 to-rose-500 overflow-hidden">
         <div className="w-full max-w-4xl mx-auto px-6 lg:px-12 text-center">
@@ -314,7 +446,7 @@ export default function WorldCup2026Page() {
             The Journey to Glory Begins
           </h2>
           <p className="text-2xl text-slate-800 mt-6 font-semibold px-4">
-            32 dreams. One trophy. Infinite passion.
+            48 dreams. One trophy. Infinite passion.
           </p>
         </div>
       </section>
