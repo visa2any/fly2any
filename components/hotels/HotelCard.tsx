@@ -170,34 +170,29 @@ export function HotelCard({
           {/* Bottom gradient for legibility */}
           <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-black/10 to-transparent" />
 
-          {/* Subtle floating action icons - more transparent */}
-          <div className="absolute top-2 right-2 flex gap-1 z-10">
+          {/* Floating action icons - no background, just shadow for visibility */}
+          <div className="absolute top-2 right-2 flex gap-2 z-10">
             <button
               onClick={handleCompare}
               disabled={!canAddMore && !isComparing}
-              className={`p-1.5 rounded-lg backdrop-blur-sm transition-all duration-200 ${
-                isComparing
-                  ? 'bg-primary-500/80 text-white'
-                  : 'bg-black/10 text-white/90 hover:bg-black/25'
-              } ${!canAddMore && !isComparing ? 'opacity-40' : ''}`}
+              className={`p-1 transition-all duration-200 ${isComparing ? 'text-primary-400' : 'text-white'} ${!canAddMore && !isComparing ? 'opacity-40' : ''}`}
+              style={{ filter: 'drop-shadow(0 1px 2px rgba(0,0,0,0.5))' }}
             >
-              <BarChart2 className="w-3.5 h-3.5" />
+              <BarChart2 className="w-5 h-5" />
             </button>
             <button
               onClick={handleFavorite}
-              className={`p-1.5 rounded-lg backdrop-blur-sm transition-all duration-200 ${
-                isFavorited
-                  ? 'bg-rose-500/80 text-white'
-                  : 'bg-black/10 text-white/90 hover:bg-black/25'
-              }`}
+              className={`p-1 transition-all duration-200 ${isFavorited ? 'text-rose-500' : 'text-white'}`}
+              style={{ filter: 'drop-shadow(0 1px 2px rgba(0,0,0,0.5))' }}
             >
-              <Heart className={`w-3.5 h-3.5 ${isFavorited ? 'fill-current' : ''}`} />
+              <Heart className={`w-5 h-5 ${isFavorited ? 'fill-current' : ''}`} />
             </button>
             <button
               onClick={handleShare}
-              className="p-1.5 rounded-lg bg-black/10 backdrop-blur-sm text-white/90 hover:bg-black/25 transition-all duration-200"
+              className="p-1 text-white transition-all duration-200"
+              style={{ filter: 'drop-shadow(0 1px 2px rgba(0,0,0,0.5))' }}
             >
-              <Share2 className="w-3.5 h-3.5" />
+              <Share2 className="w-5 h-5" />
             </button>
           </div>
 
