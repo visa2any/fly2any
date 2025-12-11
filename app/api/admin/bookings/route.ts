@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { bookingStorage } from '@/lib/bookings/storage';
 import type { BookingStatus } from '@/lib/bookings/types';
+import { requireAdmin } from '@/lib/admin/middleware';
 
 // Force Node.js runtime and dynamic rendering for database access
 export const runtime = 'nodejs';
@@ -17,6 +18,12 @@ export const dynamic = 'force-dynamic';
  * - email: Filter by customer email (optional)
  */
 export async function GET(request: NextRequest) {
+  // CRITICAL: Require admin authentication
+  const authResult = await requireAdmin(request);
+  if (authResult instanceof NextResponse) {
+    return authResult; // Return 401/403 error
+  }
+
   try {
     const { searchParams } = new URL(request.url);
 

@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { requireAdmin } from '@/lib/admin/middleware';
 
 // Force Node.js runtime
 export const runtime = 'nodejs';
@@ -11,6 +12,12 @@ export const dynamic = 'force-dynamic';
  * Returns chart data for analytics dashboard
  */
 export async function GET(request: NextRequest) {
+  // CRITICAL: Require admin authentication
+  const authResult = await requireAdmin(request);
+  if (authResult instanceof NextResponse) {
+    return authResult; // Return 401/403 error
+  }
+
   try {
     const { searchParams } = new URL(request.url);
     const type = searchParams.get('type') || 'bookings';
