@@ -942,10 +942,21 @@ class LiteAPI {
         if (!hotelInfo || !minRateData.available) continue;
 
         const totalPrice = minRateData.minimumRate?.amount;
-        if (!totalPrice) continue;
+        if (!totalPrice || totalPrice <= 0) continue;
 
         // CRITICAL FIX: LiteAPI returns TOTAL price for entire stay, not per-night
+        // Validate nights before division to prevent NaN/Infinity
+        if (!nights || nights <= 0 || !Number.isFinite(nights)) {
+          console.warn(`⚠️ Invalid nights value: ${nights}, skipping hotel ${hotelInfo.name}`);
+          continue;
+        }
         const perNightPrice = totalPrice / nights;
+
+        // Validate calculated per-night price
+        if (!Number.isFinite(perNightPrice) || perNightPrice <= 0) {
+          console.warn(`⚠️ Invalid per-night price: ${perNightPrice}, skipping hotel ${hotelInfo.name}`);
+          continue;
+        }
 
         console.log(`💰 ${hotelInfo.name}: Total $${totalPrice.toFixed(2)} ÷ ${nights} nights = $${perNightPrice.toFixed(2)}/night`);
 

@@ -1382,13 +1382,18 @@ export async function POST(request: NextRequest) {
           _markupPercentage: markupResult.markupPercentage,
         },
         // Update traveler pricing if exists
-        travelerPricings: flight.travelerPricings?.map((tp: any) => ({
-          ...tp,
-          price: {
-            ...tp.price,
-            total: markupResult.customerPrice.toString(),
-          },
-        })),
+        // CRITICAL FIX: Calculate per-person price, not assign total to each traveler
+        travelerPricings: flight.travelerPricings?.map((tp: any) => {
+          const travelerCount = flight.travelerPricings?.length || 1;
+          const perPersonPrice = (markupResult.customerPrice / travelerCount).toFixed(2);
+          return {
+            ...tp,
+            price: {
+              ...tp.price,
+              total: perPersonPrice,
+            },
+          };
+        }),
       };
 
       console.log(`  ✓ ${flight.id?.slice(-8)} (${source}): $${netPrice.toFixed(2)} → $${markupResult.customerPrice.toFixed(2)} (+$${markupResult.markupAmount.toFixed(2)} / ${markupResult.markupPercentage}%)`);

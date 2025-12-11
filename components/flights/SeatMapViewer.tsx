@@ -12,10 +12,11 @@ interface Seat {
 
 interface SeatMapViewerProps {
   flightOfferId: string;
+  source?: 'duffel' | 'amadeus' | 'unknown';  // CRITICAL FIX: Add source to determine API
   onSelectSeat?: (seatNumber: string, price: number) => void;
 }
 
-export default function SeatMapViewer({ flightOfferId, onSelectSeat }: SeatMapViewerProps) {
+export default function SeatMapViewer({ flightOfferId, source = 'unknown', onSelectSeat }: SeatMapViewerProps) {
   const [seats, setSeats] = useState<Seat[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -34,16 +35,49 @@ export default function SeatMapViewer({ flightOfferId, onSelectSeat }: SeatMapVi
       setError(null);
       setShowError(false);
 
-      const response = await fetch(`/api/seatmaps?flightOfferId=${flightOfferId}`);
+      let response: Response;
+      let seatData: Seat[] = [];
 
-      if (!response.ok) {
-        throw new Error('Failed to fetch seat map');
+      // CRITICAL FIX: Use correct API based on flight source
+      if (source === 'duffel') {
+        // Duffel uses POST with offerId
+        response = await fetch('/api/flights/seat-map/duffel', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ offerId: flightOfferId }),
+        });
+
+        if (!response.ok) {
+          throw new Error('Failed to fetch Duffel seat map');
+        }
+
+        const data = await response.json();
+        // Duffel response structure
+        seatData = data.seatMap?.data?.[0]?.cabins?.flatMap((cabin: any) =>
+          cabin.rows?.flatMap((row: any) =>
+            row.sections?.flatMap((section: any) =>
+              section.elements?.filter((el: any) => el.type === 'seat').map((seat: any) => ({
+                number: `${row.rowNumber}${seat.designator}`,
+                available: seat.available_services?.length > 0 || !seat.disclosures?.includes('OCCUPIED'),
+                price: seat.available_services?.[0]?.total_amount ? parseFloat(seat.available_services[0].total_amount) : 0,
+                characteristics: seat.disclosures || [],
+              }))
+            )
+          )
+        ) || [];
+      } else {
+        // Amadeus (default) uses GET with flightOfferId
+        response = await fetch(`/api/seatmaps?flightOfferId=${flightOfferId}`);
+
+        if (!response.ok) {
+          throw new Error('Failed to fetch seat map');
+        }
+
+        const data = await response.json();
+        // Amadeus response structure
+        seatData = data.data?.[0]?.decks?.[0]?.seats || [];
       }
 
-      const data = await response.json();
-
-      // Extract seats from response (structure varies by airline)
-      const seatData = data.data?.[0]?.decks?.[0]?.seats || [];
       setSeats(seatData);
       setIsOpen(true);
     } catch (err: any) {

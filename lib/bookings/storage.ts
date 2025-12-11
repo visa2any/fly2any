@@ -576,8 +576,28 @@ class BookingStorage {
   }
 
   /**
+   * Helper method to safely parse JSON with error handling
+   */
+  private safeJsonParse<T>(value: any, fieldName: string, defaultValue: T): T {
+    if (value === null || value === undefined) {
+      return defaultValue;
+    }
+    if (typeof value !== 'string') {
+      return value as T;
+    }
+    try {
+      return JSON.parse(value) as T;
+    } catch (error) {
+      console.error(`Error parsing ${fieldName} JSON:`, error);
+      console.error(`Raw value:`, value?.substring?.(0, 100));
+      return defaultValue;
+    }
+  }
+
+  /**
    * Helper method to deserialize booking from database row
    * Converts JSON columns back to TypeScript objects
+   * FIXED: Added error handling for corrupted JSON
    */
   private deserializeBooking(row: any): Booking {
     return {
@@ -585,32 +605,18 @@ class BookingStorage {
       bookingReference: row.booking_reference,
       status: row.status,
       userId: row.user_id,
-      contactInfo: typeof row.contact_info === 'string'
-        ? JSON.parse(row.contact_info)
-        : row.contact_info,
-      flight: typeof row.flight === 'string'
-        ? JSON.parse(row.flight)
-        : row.flight,
-      passengers: typeof row.passengers === 'string'
-        ? JSON.parse(row.passengers)
-        : row.passengers,
-      seats: typeof row.seats === 'string'
-        ? JSON.parse(row.seats)
-        : row.seats,
-      payment: typeof row.payment === 'string'
-        ? JSON.parse(row.payment)
-        : row.payment,
+      contactInfo: this.safeJsonParse(row.contact_info, 'contact_info', { email: '', phone: '' }),
+      flight: this.safeJsonParse(row.flight, 'flight', { id: '', type: 'one-way', segments: [], price: { currency: 'USD', total: 0, base: 0, taxes: 0, fees: 0 } }),
+      passengers: this.safeJsonParse(row.passengers, 'passengers', []),
+      seats: this.safeJsonParse(row.seats, 'seats', []),
+      payment: this.safeJsonParse(row.payment, 'payment', { method: 'credit_card', status: 'pending', amount: 0, currency: 'USD' }),
       specialRequests: row.special_requests
-        ? (typeof row.special_requests === 'string'
-          ? JSON.parse(row.special_requests)
-          : row.special_requests)
+        ? this.safeJsonParse(row.special_requests, 'special_requests', undefined)
         : undefined,
       notes: row.notes || undefined,
       cancellationReason: row.cancellation_reason || undefined,
       refundPolicy: row.refund_policy
-        ? (typeof row.refund_policy === 'string'
-          ? JSON.parse(row.refund_policy)
-          : row.refund_policy)
+        ? this.safeJsonParse(row.refund_policy, 'refund_policy', undefined)
         : undefined,
       createdAt: row.created_at,
       updatedAt: row.updated_at,

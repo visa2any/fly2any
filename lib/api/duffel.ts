@@ -376,7 +376,9 @@ class DuffelAPI {
       oneWay: duffelOffer.slices.length === 1,
       lastTicketingDate: duffelOffer.expires_at?.split('T')[0],
       lastTicketingDateTime: duffelOffer.expires_at,
-      numberOfBookableSeats: duffelOffer.available_services?.length || 9,
+      // NOTE: Duffel doesn't provide exact bookable seat count in offer response
+      // Default to 9 (full availability) - actual availability checked at booking time
+      numberOfBookableSeats: 9,
 
       // Itineraries
       itineraries: duffelOffer.slices.map((slice: any) => ({
@@ -436,15 +438,23 @@ class DuffelAPI {
       ],
 
       // ENHANCED: Traveler pricings with FULL baggage details from API
-      travelerPricings: duffelOffer.passengers?.map((passenger: any) => ({
-        travelerId: passenger.id,
-        fareOption: brandedFareLabel || 'STANDARD',
-        travelerType: passenger.type.toUpperCase(),
-        price: {
-          currency: duffelOffer.total_currency,
-          total: duffelOffer.total_amount,
-          base: duffelOffer.base_amount,
-        },
+      // CRITICAL FIX: Calculate PER-PERSON price, not total price
+      travelerPricings: duffelOffer.passengers?.map((passenger: any) => {
+        const passengerCount = duffelOffer.passengers?.length || 1;
+        const perPersonTotal = (parseFloat(duffelOffer.total_amount) / passengerCount).toFixed(2);
+        const perPersonBase = duffelOffer.base_amount
+          ? (parseFloat(duffelOffer.base_amount) / passengerCount).toFixed(2)
+          : perPersonTotal;
+
+        return {
+          travelerId: passenger.id,
+          fareOption: brandedFareLabel || 'STANDARD',
+          travelerType: passenger.type.toUpperCase(),
+          price: {
+            currency: duffelOffer.total_currency,
+            total: perPersonTotal,
+            base: perPersonBase,
+          },
         fareDetailsBySegment: duffelOffer.slices.flatMap((slice: any, sliceIndex: number) =>
           slice.segments.map((segment: any) => {
             // Get passenger data for this segment
@@ -467,7 +477,8 @@ class DuffelAPI {
             };
           })
         ),
-      })) || [],
+        };
+      }) || [],
 
       // ENHANCED: Fare conditions (refundability, changes)
       conditions: {

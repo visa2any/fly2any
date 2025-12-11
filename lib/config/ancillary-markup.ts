@@ -55,10 +55,20 @@ export function applyMarkup(
 } {
   const config = ANCILLARY_MARKUP[serviceType];
 
+  // CRITICAL FIX: Don't charge markup on FREE items (netPrice = 0)
+  if (netPrice <= 0) {
+    return {
+      customerPrice: 0,
+      markupAmount: 0,
+      netPrice: 0,
+      markupPercentage: 0,
+    };
+  }
+
   // Calculate markup
   let markupAmount = netPrice * config.percentage;
 
-  // Apply min/max bounds
+  // Apply min/max bounds (only when netPrice > 0)
   markupAmount = Math.max(markupAmount, config.minMarkup);
   markupAmount = Math.min(markupAmount, config.maxMarkup);
 

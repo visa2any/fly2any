@@ -66,12 +66,34 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Get contact info from first passenger
+    // CRITICAL FIX: Get contact info from ANY passenger, not just first
+    // Try primary passenger first, then fall back to any passenger with contact info
     const primaryPassenger = passengers[0];
+    let contactEmail = primaryPassenger.email || '';
+    let contactPhone = primaryPassenger.phone || '';
+
+    // If primary passenger is missing contact info, search other passengers
+    if (!contactEmail || !contactPhone) {
+      for (const passenger of passengers) {
+        if (!contactEmail && passenger.email) {
+          contactEmail = passenger.email;
+        }
+        if (!contactPhone && passenger.phone) {
+          contactPhone = passenger.phone;
+        }
+        if (contactEmail && contactPhone) break;
+      }
+    }
+
     const contactInfo: ContactInfo = {
-      email: primaryPassenger.email || '',
-      phone: primaryPassenger.phone || '',
+      email: contactEmail,
+      phone: contactPhone,
     };
+
+    // Warn if contact info is still incomplete
+    if (!contactInfo.email) {
+      console.warn('⚠️ No email found in any passenger record');
+    }
 
     // Transform booking state flight to our FlightData format
     const selectedFlight = bookingState.selectedFlight;

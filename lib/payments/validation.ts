@@ -80,15 +80,35 @@ export async function checkDuplicatePayment(
     };
   }
 
-  // Check if payment intent already exists and is processing
+  // CRITICAL FIX: Check if payment intent already exists and is processing
+  // This prevents creating multiple payment intents that could lead to double-charging
   if (booking.payment.paymentIntentId && booking.payment.status === 'pending') {
-    // Allow retry if payment is pending but warn about it
     console.warn(
-      `WARNING: Payment intent already exists for booking ${booking.bookingReference}: ${booking.payment.paymentIntentId}`
+      `⚠️ WARNING: Payment intent already exists for booking ${booking.bookingReference}: ${booking.payment.paymentIntentId}`
     );
 
-    // This is not an error - allow creating a new payment intent
-    // The old one may have expired or failed
+    // Check how old the booking is (use booking creation time as proxy for payment intent age)
+    const bookingCreatedAt = booking.createdAt ? new Date(booking.createdAt) : null;
+    const now = new Date();
+    const ageMinutes = bookingCreatedAt ? (now.getTime() - bookingCreatedAt.getTime()) / (1000 * 60) : 999;
+
+    // Only allow retry if the payment intent is older than 30 minutes (Stripe timeout)
+    // or if we don't have a timestamp
+    if (ageMinutes < 30) {
+      return {
+        valid: false,
+        error: 'Payment is already in progress. Please wait or check your payment status.',
+        details: {
+          bookingReference: booking.bookingReference,
+          existingPaymentIntentId: booking.payment.paymentIntentId,
+          paymentStatus: booking.payment.status,
+          ageMinutes: Math.round(ageMinutes),
+          message: 'If payment failed, please wait 30 minutes before retrying to avoid duplicate charges.',
+        },
+      };
+    }
+
+    console.log(`✅ Payment intent is ${Math.round(ageMinutes)} minutes old, allowing retry`);
   }
 
   return {

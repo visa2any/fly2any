@@ -63,6 +63,25 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // CRITICAL FIX: Validate currency consistency between pricing and flight
+    const pricingCurrency = pricing.currency?.toUpperCase() || 'USD';
+    const flightCurrency = selectedFlight?.currency?.toUpperCase() || selectedFlight?.price?.currency?.toUpperCase();
+
+    if (flightCurrency && pricingCurrency !== flightCurrency) {
+      console.warn(`⚠️  Currency mismatch detected: pricing=${pricingCurrency}, flight=${flightCurrency}`);
+      return NextResponse.json(
+        {
+          error: 'CURRENCY_MISMATCH',
+          message: `Currency mismatch: pricing uses ${pricingCurrency} but flight uses ${flightCurrency}`,
+          details: {
+            pricingCurrency,
+            flightCurrency,
+          }
+        },
+        { status: 400 }
+      );
+    }
+
     // Validate primary passenger
     if (!primaryPassenger?.email || !primaryPassenger?.firstName || !primaryPassenger?.lastName) {
       return NextResponse.json(

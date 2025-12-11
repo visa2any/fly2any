@@ -500,14 +500,63 @@ class PaymentService {
   }
 
   /**
-   * Handle refund
+   * Handle refund - Update booking status in database
    */
   private async handleRefund(charge: Stripe.Charge): Promise<void> {
     console.log('💰 Refund processed');
     console.log(`   Charge ID: ${charge.id}`);
     console.log(`   Amount Refunded: ${charge.amount_refunded / 100}`);
 
-    // TODO: Update booking status in database
+    try {
+      const { bookingStorage } = await import('@/lib/bookings/storage');
+
+      // Get booking reference from payment intent metadata
+      // Refunds are linked to charges which are linked to payment intents
+      const paymentIntentId = charge.payment_intent as string;
+
+      if (!paymentIntentId) {
+        console.error('❌ No payment intent ID in refund charge');
+        return;
+      }
+
+      // Retrieve payment intent to get booking reference
+      // Use getStripeClient() helper to get initialized Stripe instance
+      const stripeClient = getStripeClient();
+      const paymentIntent = await stripeClient.paymentIntents.retrieve(paymentIntentId);
+      const bookingReference = paymentIntent.metadata?.bookingReference;
+
+      if (!bookingReference) {
+        console.error('❌ No booking reference in payment metadata');
+        return;
+      }
+
+      const booking = await bookingStorage.findByReferenceAsync(bookingReference);
+
+      if (!booking) {
+        console.error(`❌ Booking not found for refund: ${bookingReference}`);
+        return;
+      }
+
+      // Determine if full or partial refund
+      const isFullRefund = charge.amount_refunded >= charge.amount;
+      const newStatus = isFullRefund ? 'refunded' : 'partially_refunded';
+      const newPaymentStatus = isFullRefund ? 'refunded' : 'partially_refunded';
+
+      // Update booking status using the correct method name
+      await bookingStorage.update(booking.id, {
+        status: newStatus as any,
+        payment: {
+          ...booking.payment,
+          status: newPaymentStatus as any,
+        },
+      });
+
+      console.log(`✅ Booking ${bookingReference} status updated to ${newStatus}`);
+      console.log(`   Payment status: ${newPaymentStatus}`);
+      console.log(`   Refund amount: $${charge.amount_refunded / 100}`);
+    } catch (error) {
+      console.error('❌ Failed to update booking after refund:', error);
+    }
   }
 
   /**
