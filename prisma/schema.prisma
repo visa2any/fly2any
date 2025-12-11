@@ -4387,3 +4387,240 @@ model NewsletterSubscriber {
   @@index([source])
   @@map("newsletter_subscribers")
 }
+
+// ==========================================
+// Fly2Any Airline Data System
+// Comprehensive airline profiles for internal API & ML
+// ==========================================
+
+model AirlineProfile {
+  id                String   @id @default(cuid())
+
+  // Core identifiers
+  iataCode          String   @unique // "AA", "BA", "LH"
+  icaoCode          String?  // "AAL", "BAW", "DLH"
+  callsign          String?  // "AMERICAN", "SPEEDBIRD"
+
+  // Basic info
+  name              String   // "American Airlines"
+  shortName         String?  // "American"
+  legalName         String?  // "American Airlines, Inc."
+
+  // Alliance & branding
+  alliance          String?  // "oneworld", "star_alliance", "skyteam"
+  logoUrl           String?
+  logoUrlSvg        String?
+  brandPrimaryColor String?  // "#0078D2"
+  brandSecondaryColor String?
+
+  // HQ & contact
+  country           String?  // "US"
+  countryName       String?
+  headquarters      String?
+  foundedYear       Int?
+  websiteUrl        String?
+  customerServicePhone String?
+
+  // Hub airports
+  hubAirports       String[] // ["DFW", "CLT", "MIA"]
+
+  // Loyalty program
+  loyaltyProgramName String?  // "AAdvantage"
+  loyaltyTiers       Json?
+
+  // Fleet summary
+  fleetSize         Int?
+  averageFleetAge   Float?
+  aircraftTypes     String[]
+
+  // Service features
+  cabinClasses      String[]
+  hasPremiumEconomy Boolean  @default(false)
+  hasLieFlat        Boolean  @default(false)
+  hasWifi           Boolean  @default(false)
+  wifiType          String?
+  hasIFE            Boolean  @default(false)
+  hasPowerOutlets   Boolean  @default(false)
+  mealService       String?
+  alcoholPolicy     String?
+
+  // Baggage
+  carryOnIncluded     Boolean @default(true)
+  checkedBagIncluded  Boolean @default(false)
+  firstBagFeeUSD      Float?
+  secondBagFeeUSD     Float?
+
+  // Ratings (0-5)
+  overallRating       Float?
+  onTimeRating        Float?
+  comfortRating       Float?
+  serviceRating       Float?
+  valueRating         Float?
+
+  // Operational stats
+  onTimePercentage    Float?
+  cancellationRate    Float?
+  avgDelayMinutes     Float?
+
+  // API sources
+  duffelId          String?
+  amadeusId         String?
+
+  // Type & status
+  airlineType       AirlineType @default(FSC)
+  isActive          Boolean  @default(true)
+
+  // ML enhancement
+  descriptionEmbedding Float[]
+  tags              String[]
+
+  // Metadata
+  lastSyncedAt      DateTime?
+  dataSource        String?
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  // Relations
+  routes            AirlineRouteProfile[]
+  fleet             AirlineFleet[]
+  operationalStats  AirlineOperationalStats[]
+  knowledgeEntries  AirlineKnowledgeEntry[]
+
+  @@index([iataCode])
+  @@index([alliance])
+  @@index([country])
+  @@index([airlineType])
+  @@map("airline_profiles")
+}
+
+enum AirlineType {
+  FSC       // Full-Service Carrier
+  LCC       // Low-Cost Carrier
+  ULCC      // Ultra Low-Cost Carrier
+  HYBRID
+  REGIONAL
+  CHARTER
+  CARGO
+}
+
+model AirlineFleet {
+  id              String   @id @default(cuid())
+  airlineId       String
+  airline         AirlineProfile @relation(fields: [airlineId], references: [id], onDelete: Cascade)
+
+  aircraftType    String   // "Boeing 737-800"
+  icaoType        String?  // "B738"
+  manufacturer    String?
+  model           String?
+  count           Int
+  averageAge      Float?
+  seatConfig      Json?
+  totalSeats      Int?
+  rangeKm         Int?
+
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@unique([airlineId, aircraftType])
+  @@index([airlineId])
+  @@map("airline_fleet")
+}
+
+model AirlineRouteProfile {
+  id              String   @id @default(cuid())
+  airlineId       String
+  airline         AirlineProfile @relation(fields: [airlineId], references: [id], onDelete: Cascade)
+
+  originIata      String
+  destinationIata String
+  routeType       String?
+
+  dailyFlights    Int?
+  weeklyFlights   Int?
+  seasonality     String?
+
+  avgEconomyFare  Float?
+  avgBusinessFare Float?
+  priceVolatility Float?
+  onTimePercentage Float?
+  avgFlightDuration Int?
+  aircraftTypes   String[]
+  competitorCount Int?
+  marketShare     Float?
+
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@unique([airlineId, originIata, destinationIata])
+  @@index([airlineId])
+  @@index([originIata])
+  @@index([destinationIata])
+  @@map("airline_routes")
+}
+
+model AirlineOperationalStats {
+  id              String   @id @default(cuid())
+  airlineId       String
+  airline         AirlineProfile @relation(fields: [airlineId], references: [id], onDelete: Cascade)
+
+  periodType      String   // "monthly", "quarterly", "yearly"
+  periodStart     DateTime
+  periodEnd       DateTime
+
+  totalFlights    Int?
+  onTimeFlights   Int?
+  delayedFlights  Int?
+  cancelledFlights Int?
+  avgDelayMinutes Float?
+  loadFactor      Float?
+  complaints      Int?
+
+  createdAt       DateTime @default(now())
+
+  @@unique([airlineId, periodType, periodStart])
+  @@index([airlineId])
+  @@index([periodStart])
+  @@map("airline_operational_stats")
+}
+
+// ==========================================
+// ML Knowledge Base for Airlines
+// ==========================================
+
+model AirlineKnowledgeEntry {
+  id              String   @id @default(cuid())
+  airlineId       String?
+  airline         AirlineProfile? @relation(fields: [airlineId], references: [id], onDelete: Cascade)
+
+  title           String
+  content         String   @db.Text
+  category        String   // "policy", "service", "history", "fleet", "route", "loyalty"
+  source          String?
+  sourceUrl       String?
+  embedding       Float[]
+  language        String   @default("en")
+  isVerified      Boolean  @default(false)
+  confidence      Float?
+
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@index([airlineId])
+  @@index([category])
+  @@map("airline_knowledge_entries")
+}
+
+model AirlineDataSyncLog {
+  id              String   @id @default(cuid())
+  source          String   // "duffel", "amadeus", "scraper"
+  status          String   // "started", "completed", "failed"
+  airlinesUpdated Int      @default(0)
+  airlinesCreated Int      @default(0)
+  errorMessage    String?
+  duration        Int?     // milliseconds
+  createdAt       DateTime @default(now())
+
+  @@index([source])
+  @@index([createdAt])
+  @@map("airline_data_sync_logs")
+}
