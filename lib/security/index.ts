@@ -88,4 +88,4 @@ export { rateLimit, RateLimitPresets } from './rate-limiter';
 export { validateCSRFToken, generateCSRFToken } from './csrf';
 export { encrypt, decrypt, hashData } from './encryption';
 export { sanitizeHTML, sanitizeInput, escapeHTML } from './sanitize';
-export { validateEmail, validateFlightSearch } from './input-validator';
+export { validateEmail, FlightSearchSchema, HotelSearchSchema, validateRequestBody } from './input-validator';
