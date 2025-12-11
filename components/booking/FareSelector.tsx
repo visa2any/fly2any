@@ -218,12 +218,12 @@ export function FareSelector({
         </div>
       )}
 
-      {/* Fare Cards Grid - sorted by cabin hierarchy - 3 per row on mobile */}
+      {/* Fare Cards Grid - Apple-class Ultra-Premium styling */}
       <div
-        className={`grid gap-1 sm:gap-2.5 ${
+        className={`grid gap-2 sm:gap-3 ${
           isSingleFare
-            ? 'grid-cols-1 max-w-sm'
-            : 'grid-cols-3 sm:grid-cols-3 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5'
+            ? 'grid-cols-1 max-w-md mx-auto'
+            : 'grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5'
         }`}
         role="radiogroup"
         aria-label="Select fare option"
@@ -231,6 +231,11 @@ export function FareSelector({
         {sortedFares.map((fare) => {
           const isSelected = selected === fare.id;
           const isRecommended = fare.recommended;
+
+          // Detect cabin class for premium styling
+          const isPremiumCabin = fare.name.toLowerCase().includes('business') ||
+                                  fare.name.toLowerCase().includes('first') ||
+                                  fare.name.toLowerCase().includes('premium economy');
 
           return (
             <button
@@ -240,104 +245,158 @@ export function FareSelector({
               aria-checked={isSelected}
               aria-label={`${fare.name} fare, ${fare.currency} ${typeof fare.price === 'number' ? fare.price.toFixed(2) : fare.price}`}
               className={`
-                relative p-1 sm:p-2.5 rounded-md border-2 text-left transition-all duration-200 hover:shadow-sm active:scale-[0.98]
+                relative p-2.5 sm:p-3.5 rounded-xl sm:rounded-2xl text-left transition-all duration-300 active:scale-[0.98]
                 ${isSelected
-                  ? 'border-primary-500 bg-primary-50 shadow-md'
-                  : 'border-gray-200 bg-white hover:border-primary-300'
+                  ? 'ring-2 ring-primary-500 shadow-lg'
+                  : 'hover:shadow-md'
                 }
-                ${isRecommended ? 'ring-1 ring-primary-200' : ''}
+                ${isRecommended ? 'ring-2 ring-secondary-400' : ''}
               `}
+              style={{
+                background: isSelected
+                  ? 'linear-gradient(180deg, #FFFFFF 0%, #FEF6F5 100%)'
+                  : isPremiumCabin
+                    ? 'linear-gradient(180deg, #FFFBF5 0%, #FFF8F0 100%)'
+                    : 'linear-gradient(180deg, #FFFFFF 0%, #FAFBFC 100%)',
+                boxShadow: isSelected
+                  ? '0 8px 24px -8px rgba(239,65,54,0.25), 0 4px 12px -4px rgba(0,0,0,0.1)'
+                  : '0 4px 16px -6px rgba(0,0,0,0.1), 0 2px 6px -2px rgba(0,0,0,0.05)',
+              }}
             >
-              {/* Recommended Badge - compact on mobile */}
+              {/* Recommended Badge - Apple-class styling */}
               {isRecommended && (
-                <div className="absolute -top-1.5 sm:-top-2 left-1/2 -translate-x-1/2 bg-gradient-to-r from-primary-500 to-primary-600 text-white text-[7px] sm:text-[10px] font-semibold px-1 sm:px-2 py-0.5 rounded-full shadow-sm">
-                  ⭐ BEST
+                <div
+                  className="absolute -top-2.5 sm:-top-3 left-1/2 -translate-x-1/2 text-white text-[9px] sm:text-[11px] font-bold px-2.5 sm:px-3 py-1 rounded-full shadow-md whitespace-nowrap"
+                  style={{
+                    background: 'linear-gradient(135deg, #F9C900 0%, #E5B800 100%)',
+                    boxShadow: '0 4px 12px -3px rgba(249,201,0,0.5)',
+                  }}
+                >
+                  ⭐ BEST VALUE
+                </div>
+              )}
+
+              {/* Premium Cabin Badge */}
+              {isPremiumCabin && !isRecommended && (
+                <div
+                  className="absolute -top-2.5 sm:-top-3 left-1/2 -translate-x-1/2 text-white text-[9px] sm:text-[11px] font-bold px-2.5 sm:px-3 py-1 rounded-full shadow-md whitespace-nowrap"
+                  style={{
+                    background: fare.name.includes('First')
+                      ? 'linear-gradient(135deg, #8B5CF6 0%, #7C3AED 100%)'
+                      : fare.name.includes('Business')
+                        ? 'linear-gradient(135deg, #F59E0B 0%, #D97706 100%)'
+                        : 'linear-gradient(135deg, #14B8A6 0%, #0D9488 100%)',
+                    boxShadow: '0 4px 12px -3px rgba(0,0,0,0.25)',
+                  }}
+                >
+                  {fare.name.includes('First') ? '👑 LUXURY' : fare.name.includes('Business') ? '✨ PREMIUM' : '🎯 UPGRADE'}
                 </div>
               )}
 
               {/* Selected Checkmark */}
               {isSelected && (
-                <div className="absolute -top-1 -right-1 sm:-top-1.5 sm:-right-1.5 w-3.5 h-3.5 sm:w-5 sm:h-5 bg-primary-500 rounded-full flex items-center justify-center shadow-sm">
-                  <Check className="w-2 h-2 sm:w-3 sm:h-3 text-white" />
+                <div
+                  className="absolute -top-1.5 -right-1.5 sm:-top-2 sm:-right-2 w-5 h-5 sm:w-6 sm:h-6 rounded-full flex items-center justify-center shadow-md"
+                  style={{
+                    background: 'linear-gradient(135deg, #EF4136 0%, #DC3A30 100%)',
+                    boxShadow: '0 4px 8px -2px rgba(239,65,54,0.4)',
+                  }}
+                >
+                  <Check className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-white" />
                 </div>
               )}
 
-              {/* Fare Name & Price - ultra compact on mobile */}
-              <div className="mb-0.5 sm:mb-2 mt-1 sm:mt-1">
-                <h3 className="text-[8px] sm:text-sm font-bold text-gray-900 mb-0.5 truncate leading-tight">{fare.name}</h3>
-                <div className="flex items-baseline gap-0.5">
-                  <span className="text-[10px] sm:text-lg font-bold text-gray-900">
-                    ${typeof fare.price === 'number' ? fare.price.toFixed(0) : fare.price}
+              {/* Fare Name & Price - Enhanced typography */}
+              <div className="mb-2 sm:mb-3 mt-1 sm:mt-2">
+                <h3
+                  className="text-[11px] sm:text-sm font-bold text-[#1d1d1f] mb-1 leading-tight"
+                  style={{ fontFamily: 'system-ui, -apple-system, sans-serif' }}
+                >
+                  {fare.name}
+                </h3>
+                <div className="flex items-baseline gap-1">
+                  <span
+                    className="text-lg sm:text-2xl font-bold tracking-tight"
+                    style={{
+                      color: '#1d1d1f',
+                      fontFamily: 'system-ui, -apple-system, sans-serif',
+                    }}
+                  >
+                    ${typeof fare.price === 'number' ? fare.price.toLocaleString() : fare.price}
                   </span>
+                  <span className="text-[9px] sm:text-[10px] text-[#86868b] font-medium">total</span>
                 </div>
               </div>
 
-              {/* Features List - only show first 2 on mobile, all on desktop */}
-              <ul className="space-y-0 sm:space-y-1 mb-0.5 sm:mb-1.5">
-                {fare.features.slice(0, 2).map((feature, idx) => (
-                  <li key={idx} className="flex items-start gap-0.5 sm:gap-1.5 text-[7px] sm:text-xs text-gray-700 leading-tight">
-                    <span className="flex-shrink-0 mt-0 sm:mt-0.5 hidden sm:block">{getFeatureIcon(feature)}</span>
-                    <span className="leading-tight truncate">{feature}</span>
-                  </li>
-                ))}
-                {/* Show remaining features only on desktop */}
-                {fare.features.slice(2).map((feature, idx) => (
-                  <li key={idx + 2} className="hidden sm:flex items-start gap-1.5 text-xs text-gray-700 leading-tight">
+              {/* Features List - Show ALL features with proper icons */}
+              <ul className="space-y-1 sm:space-y-1.5 mb-2 sm:mb-3">
+                {fare.features.map((feature, idx) => (
+                  <li key={idx} className="flex items-start gap-1.5 sm:gap-2 text-[10px] sm:text-xs text-[#424245] leading-tight">
                     <span className="flex-shrink-0 mt-0.5">{getFeatureIcon(feature)}</span>
-                    <span className="leading-tight">{feature}</span>
+                    <span className="leading-snug">{feature}</span>
                   </li>
                 ))}
               </ul>
 
-              {/* Policies Section - compact on mobile */}
-              <div className="pt-0.5 sm:pt-1.5 mt-0.5 sm:mt-1.5 border-t border-gray-100 space-y-0">
-                {/* Positive policies (green) - show first only on mobile */}
-                {fare.positives && fare.positives.slice(0, 1).map((positive, idx) => (
-                  <div key={`pos-${idx}`} className="flex items-center gap-0.5 text-[7px] sm:text-[10px]">
-                    <Check className="w-2 h-2 sm:w-3 sm:h-3 text-green-500 flex-shrink-0" />
-                    <span className="text-green-600 font-medium truncate">{positive}</span>
-                  </div>
-                ))}
-                {/* Rest only on desktop */}
-                {fare.positives && fare.positives.slice(1).map((positive, idx) => (
-                  <div key={`pos-rest-${idx}`} className="hidden sm:flex items-center gap-1 text-[10px]">
-                    <Check className="w-3 h-3 text-green-500 flex-shrink-0" />
-                    <span className="text-green-600 font-medium">{positive}</span>
+              {/* Policies Section - Full display with Apple-class styling */}
+              <div className="pt-2 sm:pt-2.5 mt-2 sm:mt-2.5 border-t border-neutral-100 space-y-1 sm:space-y-1.5">
+                {/* Positive policies (green) - show ALL */}
+                {fare.positives && fare.positives.map((positive, idx) => (
+                  <div key={`pos-${idx}`} className="flex items-center gap-1.5 text-[10px] sm:text-[11px]">
+                    <div className="w-4 h-4 rounded-full bg-green-50 flex items-center justify-center flex-shrink-0">
+                      <Check className="w-2.5 h-2.5 text-green-500" />
+                    </div>
+                    <span className="text-green-600 font-semibold">{positive}</span>
                   </div>
                 ))}
 
-                {/* Restrictions (red) - show first only on mobile */}
-                {fare.restrictions && fare.restrictions.slice(0, 1).map((restriction, idx) => (
-                  <div key={`neg-${idx}`} className="flex items-center gap-0.5 text-[7px] sm:text-[10px]">
-                    <X className="w-2 h-2 sm:w-3 sm:h-3 text-red-400 flex-shrink-0" />
-                    <span className="text-red-500 font-medium truncate">{restriction}</span>
-                  </div>
-                ))}
-                {/* Rest only on desktop */}
-                {fare.restrictions && fare.restrictions.slice(1).map((restriction, idx) => (
-                  <div key={`neg-rest-${idx}`} className="hidden sm:flex items-center gap-1 text-[10px]">
-                    <X className="w-3 h-3 text-red-400 flex-shrink-0" />
+                {/* Restrictions (red) - show ALL */}
+                {fare.restrictions && fare.restrictions.map((restriction, idx) => (
+                  <div key={`neg-${idx}`} className="flex items-center gap-1.5 text-[10px] sm:text-[11px]">
+                    <div className="w-4 h-4 rounded-full bg-red-50 flex items-center justify-center flex-shrink-0">
+                      <X className="w-2.5 h-2.5 text-red-400" />
+                    </div>
                     <span className="text-red-500 font-medium">{restriction}</span>
                   </div>
                 ))}
 
                 {/* Fallback when no policies */}
                 {(!fare.positives || fare.positives.length === 0) && (!fare.restrictions || fare.restrictions.length === 0) && (
-                  <div className="flex items-center gap-0.5 text-[7px] sm:text-[10px]">
-                    <Check className="w-2 h-2 sm:w-3 sm:h-3 text-green-500 flex-shrink-0" />
-                    <span className="text-green-600 font-medium">Flexible</span>
+                  <div className="flex items-center gap-1.5 text-[10px] sm:text-[11px]">
+                    <div className="w-4 h-4 rounded-full bg-green-50 flex items-center justify-center flex-shrink-0">
+                      <Check className="w-2.5 h-2.5 text-green-500" />
+                    </div>
+                    <span className="text-green-600 font-semibold">Standard flexibility</span>
                   </div>
                 )}
               </div>
+
+              {/* Popularity indicator for non-recommended fares */}
+              {fare.popularityPercent && !isRecommended && (
+                <div className="mt-2 pt-2 border-t border-neutral-100">
+                  <div className="flex items-center gap-1.5 text-[9px] sm:text-[10px] text-[#86868b]">
+                    <Users className="w-3 h-3" />
+                    <span>{fare.popularityPercent}% choose this fare</span>
+                  </div>
+                </div>
+              )}
             </button>
           );
         })}
       </div>
 
-      {/* Trust Signal */}
-      <p className="text-xs text-gray-500 text-center mt-2">
-        💡 All fares include 24-hour free cancellation • Prices locked for 10 minutes
-      </p>
+      {/* Trust Signal - Apple-class styling */}
+      <div className="mt-4 pt-3 border-t border-neutral-100">
+        <p
+          className="text-[11px] sm:text-xs text-[#86868b] text-center font-medium"
+          style={{ fontFamily: 'system-ui, -apple-system, sans-serif' }}
+        >
+          💡 All fares include 24-hour free cancellation • Prices locked for 10 minutes
+        </p>
+        <p className="text-[10px] sm:text-[11px] text-[#86868b]/70 text-center mt-1">
+          Prices shown are total per person including all taxes and fees
+        </p>
+      </div>
     </div>
   );
 }

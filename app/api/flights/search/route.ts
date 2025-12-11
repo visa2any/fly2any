@@ -806,6 +806,49 @@ export async function POST(request: NextRequest) {
           return sigParts.join('|');
         };
 
+        // Helper: Get cabin class priority (lower = show first)
+        // Proper hierarchy: Economy < Premium Economy < Business < First
+        const getCabinPriority = (cabin: string): number => {
+          switch (cabin) {
+            case 'FIRST': return 4;
+            case 'BUSINESS': return 3;
+            case 'PREMIUM_ECONOMY': return 2;
+            default: return 1; // ECONOMY
+          }
+        };
+
+        // Helper: Detect fare tier from branded fare name (ACTUAL API DATA)
+        const detectFareTier = (brandedFare: string): 'basic' | 'standard' | 'plus' | 'flex' => {
+          const fare = brandedFare.toUpperCase();
+          // Basic/Light/Saver tiers - most restrictive
+          if (fare.includes('BASIC') || fare.includes('LIGHT') || fare.includes('SAVER') ||
+              fare.includes('ECONOMY LIGHT') || fare.includes('ECONOMY SAVER')) {
+            return 'basic';
+          }
+          // Flex/Full/Max tiers - most flexible
+          if (fare.includes('FLEX') || fare.includes('FLEXI') || fare.includes('FULL') ||
+              fare.includes('MAX') || fare.includes('FREEDOM') || fare.includes('PLUS FLEX')) {
+            return 'flex';
+          }
+          // Plus/Comfort/Classic tiers - mid-tier
+          if (fare.includes('PLUS') || fare.includes('COMFORT') || fare.includes('CLASSIC') ||
+              fare.includes('MAIN') || fare.includes('CHOICE')) {
+            return 'plus';
+          }
+          // Default to standard
+          return 'standard';
+        };
+
+        // Helper: Get fare tier priority for sorting within same cabin (lower = show first)
+        const getFareTierPriority = (tier: 'basic' | 'standard' | 'plus' | 'flex'): number => {
+          switch (tier) {
+            case 'basic': return 1;
+            case 'standard': return 2;
+            case 'plus': return 3;
+            case 'flex': return 4;
+          }
+        };
+
         // Group offers by signature
         const fareGroups = new Map<string, FlightOffer[]>();
 
@@ -823,8 +866,34 @@ export async function POST(request: NextRequest) {
         const groupedFlights: FlightOffer[] = [];
 
         for (const [signature, variants] of fareGroups.entries()) {
-          // Sort by price (cheapest first)
+          // CRITICAL FIX: Sort by CABIN CLASS first, then by FARE TIER, then by PRICE
+          // This ensures proper hierarchy: Economy Basic < Economy Standard < Economy Plus < Economy Flex < Premium Economy < Business < First
           variants.sort((a, b) => {
+            const fareDetailsA = a.travelerPricings?.[0]?.fareDetailsBySegment?.[0] as any;
+            const fareDetailsB = b.travelerPricings?.[0]?.fareDetailsBySegment?.[0] as any;
+
+            const cabinA = fareDetailsA?.cabin || 'ECONOMY';
+            const cabinB = fareDetailsB?.cabin || 'ECONOMY';
+            const brandedFareA = (fareDetailsA?.brandedFareLabel || fareDetailsA?.brandedFare || '').toUpperCase();
+            const brandedFareB = (fareDetailsB?.brandedFareLabel || fareDetailsB?.brandedFare || '').toUpperCase();
+
+            // 1. Sort by cabin class priority first
+            const cabinPriorityA = getCabinPriority(cabinA);
+            const cabinPriorityB = getCabinPriority(cabinB);
+            if (cabinPriorityA !== cabinPriorityB) {
+              return cabinPriorityA - cabinPriorityB;
+            }
+
+            // 2. Within same cabin, sort by fare tier
+            const tierA = detectFareTier(brandedFareA);
+            const tierB = detectFareTier(brandedFareB);
+            const tierPriorityA = getFareTierPriority(tierA);
+            const tierPriorityB = getFareTierPriority(tierB);
+            if (tierPriorityA !== tierPriorityB) {
+              return tierPriorityA - tierPriorityB;
+            }
+
+            // 3. Finally, sort by price within same tier
             const priceA = parseFloat(String(a.price?.total || '999999'));
             const priceB = parseFloat(String(b.price?.total || '999999'));
             return priceA - priceB;
@@ -837,6 +906,12 @@ export async function POST(request: NextRequest) {
           const fareNames = variants.map(v => {
             const fareDetails = v.travelerPricings?.[0]?.fareDetailsBySegment?.[0] as any;
             return fareDetails?.brandedFareLabel || fareDetails?.brandedFare || fareDetails?.cabin || 'ECONOMY';
+          });
+
+          // Group variants by cabin for smart recommendation
+          const economyVariants = variants.filter(v => {
+            const cabin = (v.travelerPricings?.[0]?.fareDetailsBySegment?.[0] as any)?.cabin || 'ECONOMY';
+            return cabin === 'ECONOMY';
           });
 
           // Add all variants to the cheapest flight
@@ -858,19 +933,29 @@ export async function POST(request: NextRequest) {
               };
               const cabinPrefix = cabinDisplayName[cabin] || 'Economy';
 
-              // Determine fare type from branded fare
-              let fareType = 'Standard';
-              if (brandedFare.includes('BASIC') || brandedFare.includes('LIGHT') || brandedFare.includes('SAVER')) {
-                fareType = 'Basic';
-              } else if (brandedFare.includes('FLEX') || brandedFare.includes('FLEXI') || brandedFare.includes('FULL')) {
-                fareType = 'Flex';
-              } else if (brandedFare.includes('PLUS') || brandedFare.includes('PREMIUM') || brandedFare.includes('COMFORT')) {
-                fareType = 'Plus';
-              } else if (idx === 0 && variants.length > 1) {
-                fareType = 'Basic';
-              } else if (idx === variants.length - 1 && variants.length > 2 && cabin === 'ECONOMY') {
-                fareType = 'Flex';
-              }
+              // CRITICAL FIX: Use ACTUAL API fare brand name, not positional fallback
+              // Only use tier detection from ACTUAL branded fare data
+              const detectedTier = detectFareTier(brandedFare);
+
+              // Map tier to display name
+              const tierDisplayNames: Record<string, string> = {
+                'basic': 'Basic',
+                'standard': 'Standard',
+                'plus': 'Plus',
+                'flex': 'Flex',
+              };
+
+              // If we have an actual branded fare name, extract a cleaner display version
+              let fareType = tierDisplayNames[detectedTier];
+
+              // For branded fares with specific names, use them directly
+              if (brandedFare.includes('ECONOMY LIGHT')) fareType = 'Light';
+              if (brandedFare.includes('ECONOMY SAVER')) fareType = 'Saver';
+              if (brandedFare.includes('ECONOMY CLASSIC')) fareType = 'Classic';
+              if (brandedFare.includes('ECONOMY FLEX')) fareType = 'Flex';
+              if (brandedFare.includes('COMFORT')) fareType = 'Comfort';
+              if (brandedFare.includes('MAIN CABIN')) fareType = 'Main';
+              if (brandedFare.includes('MAIN PLUS')) fareType = 'Main Plus';
 
               // Combine cabin class + fare type for clear display
               const displayName = cabin === 'FIRST' ? 'First Class' : `${cabinPrefix} ${fareType}`;
@@ -899,20 +984,16 @@ export async function POST(request: NextRequest) {
                   positives.push(conditions.refundPenalty ? `Refundable (${conditions.refundPenalty} fee)` : 'Fully refundable');
                 }
               } else {
-                // Derive from fare brand name - industry standard fare policies
-                const isBasicFare = fareType === 'Basic' || brandedFare.includes('LIGHT') || brandedFare.includes('SAVER');
-                const isFlexFare = fareType === 'Flex' || brandedFare.includes('FLEXI') || brandedFare.includes('FULL') || brandedFare.includes('MAX');
-                const isPlusFare = fareType === 'Plus' || brandedFare.includes('COMFORT') || brandedFare.includes('PREMIUM');
-
-                if (isFlexFare) {
+                // Derive from fare tier - industry standard fare policies
+                if (detectedTier === 'flex') {
                   // Flex fares typically allow changes and refunds
                   positives.push('Free changes');
                   positives.push('Fully refundable');
-                } else if (isPlusFare) {
+                } else if (detectedTier === 'plus') {
                   // Plus/Comfort fares typically allow changes with fee
                   positives.push('Changes allowed');
                   restrictions.push('Non-refundable');
-                } else if (isBasicFare) {
+                } else if (detectedTier === 'basic') {
                   // Basic fares are most restrictive
                   restrictions.push('No changes allowed');
                   restrictions.push('Non-refundable');
@@ -923,6 +1004,18 @@ export async function POST(request: NextRequest) {
                 }
               }
 
+              // Determine recommendation: Best value is usually Economy Standard or Plus (not Basic, not Flex)
+              // Within economy, recommend index 1 (Standard) if it exists
+              const economyIdx = economyVariants.indexOf(v);
+              const isRecommended = economyIdx === 1 && economyVariants.length > 1;
+
+              // Popularity based on tier, not position
+              let popularity = 50;
+              if (detectedTier === 'basic') popularity = 26;
+              else if (detectedTier === 'standard') popularity = 74;
+              else if (detectedTier === 'plus') popularity = 42;
+              else if (detectedTier === 'flex') popularity = 18;
+
               return {
                 id: v.id,
                 name: displayName,
@@ -932,9 +1025,10 @@ export async function POST(request: NextRequest) {
                 features: extractFareFeatures(v, fareDetails),
                 restrictions: restrictions.length > 0 ? restrictions : undefined,
                 positives: positives.length > 0 ? positives : undefined, // Positive policies (changes, refunds)
-                recommended: idx === 1 && variants.length > 1, // Second option usually best value
-                popularityPercent: idx === 0 ? 26 : idx === 1 ? 74 : 18,
+                recommended: isRecommended,
+                popularityPercent: popularity,
                 cabinClass: cabin, // Store cabin class for reference
+                fareTier: detectedTier, // Store detected tier for debugging
               };
             }),
             fareVariantCount: variants.length,
