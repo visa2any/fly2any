@@ -59,19 +59,31 @@ export const selectors = {
     earliestOption: 'option[value="earliest"], option:has-text("Earliest")',
   },
 
-  // Seat Selection
+  // Seat Selection (Updated for Apple-class UI)
   seats: {
-    container: '[data-testid="seat-map"], [class*="seat-map"]',
-    seatButton: '[data-testid="seat"], button[class*="seat"]',
-    availableSeat: 'button[class*="seat"][class*="available"]',
-    selectedSeat: 'button[class*="seat"][class*="selected"]',
-    occupiedSeat: 'button[class*="seat"][class*="occupied"]',
+    // Modal & container
+    modal: '[data-testid="seat-map-modal"]',
+    container: '[data-testid="seat-map"]',
+    grid: '[data-testid="seat-grid"]',
+    legend: '[data-testid="seat-legend"]',
+    closeButton: '[data-testid="close-seat-map"]',
+    // Individual seats
+    seatButton: 'button[data-testid^="seat-"]',
+    availableSeat: 'button[data-testid^="seat-"][data-available="true"]',
+    selectedSeat: 'button[data-testid^="seat-"][data-selected="true"]',
+    occupiedSeat: 'button[data-testid^="seat-"][data-available="false"]',
+    // Preference cards
+    preferenceWindow: '[data-testid="seat-preference-window"]',
+    preferenceAisle: '[data-testid="seat-preference-aisle"]',
+    preferenceLegroom: '[data-testid="seat-preference-extra_legroom"]',
+    preferenceFront: '[data-testid="seat-preference-front"]',
+    // Actions
+    skipSeatsButton: '[data-testid="skip-seats-button"]',
+    confirmSeatsButton: '[data-testid="confirm-seats-button"]',
+    // Legacy selectors (fallback)
+    exitRowSeat: 'button[class*="seat"][data-exit-row="true"], button[title*="Exit Row"]',
     economySeat: 'button[class*="seat"][data-cabin="economy"]',
     businessSeat: 'button[class*="seat"][data-cabin="business"]',
-    exitRowSeat: 'button[class*="seat"][data-exit-row="true"]',
-    seatLegend: '[data-testid="seat-legend"]',
-    skipSeatsButton: 'button:has-text("Skip"), button:has-text("Continue Without")',
-    confirmSeatsButton: 'button:has-text("Confirm Seats"), button:has-text("Continue")',
   },
 
   // Passenger Form
