@@ -29,7 +29,7 @@ import { trackCacheHit, trackCacheMiss } from '@/lib/cache/analytics';
 import { rateLimit, createRateLimitResponse, addRateLimitHeaders, RateLimitPresets } from '@/lib/security/rate-limiter';
 
 // Cost protection - blocks bots and suspicious requests BEFORE expensive API calls
-import { checkCostGuard, COST_GUARDS } from '@/lib/security/cost-protection';
+import { checkCostGuard, refundCostBudget, COST_GUARDS } from '@/lib/security/cost-protection';
 
 // Mixed-carrier "Hacker Fare" system imports
 import {
@@ -532,6 +532,9 @@ export async function POST(request: NextRequest) {
     const cached = !bypassCache ? await getCached<any>(cacheKey) : null;
     if (cached) {
       console.log('Cache HIT:', cacheKey);
+
+      // 💰 Refund cost budget since cache hit doesn't incur API costs
+      refundCostBudget(request, COST_GUARDS.FLIGHT_SEARCH).catch(() => {});
 
       // 📊 Track cache hit for cost savings analytics
       trackCacheHit('flights', 'search', cacheKey).catch(console.error);

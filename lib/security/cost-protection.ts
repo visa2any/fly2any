@@ -280,9 +280,35 @@ export const COST_GUARDS = {
   },
 } as const;
 
+/**
+ * Decrement daily budget counter (call on cache hit to refund the cost)
+ * Since cache hits don't incur API costs, we should refund the counter
+ */
+export async function refundCostBudget(
+  request: NextRequest,
+  config: Partial<CostGuardConfig> = {}
+): Promise<void> {
+  const opts = { ...DEFAULT_CONFIG, ...config };
+  const ip = getClientIP(request);
+
+  const redis = getRedisClient();
+  if (!redis || !isRedisEnabled()) return;
+
+  const today = new Date().toISOString().split('T')[0];
+  const budgetKey = `cost_budget:${ip}:${opts.endpoint}:${today}`;
+
+  try {
+    await redis.decr(budgetKey);
+    console.log(`💰 Cost budget refunded (cache hit): ${opts.endpoint}`);
+  } catch (error) {
+    // Ignore errors - this is just an optimization
+  }
+}
+
 export default {
   checkCostGuard,
   withCostProtection,
   quickCostCheck,
+  refundCostBudget,
   COST_GUARDS,
 };
