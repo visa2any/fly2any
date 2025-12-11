@@ -56,14 +56,22 @@ export {
   HONEYPOT_FIELDS,
 } from './honeypot';
 
-// CAPTCHA integration
+// Challenge system (CAPTCHA / Math / Turnstile)
 export {
+  // Built-in math challenge (no signup needed!)
+  generateMathChallenge,
+  verifyMathChallenge,
+  // Cloudflare Turnstile
+  verifyTurnstile,
+  // hCaptcha
   verifyCaptcha,
+  // Unified challenge
   needsCaptchaChallenge,
   requireCaptcha,
   clearCaptchaRequirement,
   checkCaptchaInRequest,
   getCaptchaConfig,
+  type MathChallenge,
 } from './captcha';
 
 // Request fingerprinting
