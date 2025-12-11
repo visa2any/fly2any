@@ -254,27 +254,27 @@ export async function quickCostCheck(request: NextRequest): Promise<boolean> {
 
 export const COST_GUARDS = {
   FLIGHT_SEARCH: {
-    dailyBudget: 30,
+    dailyBudget: 500,  // Production: allow 500 searches/IP/day
     threatThreshold: 50,
     endpoint: 'flight_search',
   },
   HOTEL_SEARCH: {
-    dailyBudget: 30,
+    dailyBudget: 300,  // Production: allow 300 hotel searches/IP/day
     threatThreshold: 50,
     endpoint: 'hotel_search',
   },
   BOOKING: {
-    dailyBudget: 10,
+    dailyBudget: 50,   // Production: allow 50 bookings/IP/day
     threatThreshold: 40,
     endpoint: 'booking',
   },
   PAYMENT: {
-    dailyBudget: 5,
+    dailyBudget: 30,   // Production: allow 30 payments/IP/day
     threatThreshold: 30,
     endpoint: 'payment',
   },
   PREBOOK: {
-    dailyBudget: 15,
+    dailyBudget: 100,  // Production: allow 100 prebook/IP/day
     threatThreshold: 50,
     endpoint: 'prebook',
   },
