@@ -1,6 +1,7 @@
 import { Duffel } from '@duffel/api';
 import axios from 'axios';
 import { applyMarkup } from '@/lib/config/ancillary-markup';
+import { extractAirlineFromDuffel, updateAirlineFromFlightSearch } from '@/lib/airlines/airline-data-service';
 
 /**
  * Duffel API Client
@@ -275,6 +276,11 @@ class DuffelAPI {
 
       // Convert Duffel offers to our standard format
       const standardizedOffers = offers.map((offer: any) => this.convertDuffelOffer(offer));
+
+      // Extract and store airline data (non-blocking)
+      this.extractAndStoreAirlines(offers).catch((err) => {
+        console.warn('Failed to extract airline data:', err.message);
+      });
 
       // Apply max results limit
       const limitedOffers = params.maxResults
@@ -2912,6 +2918,49 @@ class DuffelAPI {
     } catch (error: any) {
       console.error('❌ Error creating order with services:', error);
       throw new Error(`Failed to create order with services: ${error.message || 'Unknown error'}`);
+    }
+  }
+
+  /**
+   * Extract unique airlines from Duffel offers and store in database
+   * Runs in background (non-blocking)
+   */
+  private async extractAndStoreAirlines(offers: any[]): Promise<void> {
+    if (!offers || offers.length === 0) return;
+
+    const seenAirlines = new Set<string>();
+
+    for (const offer of offers) {
+      // Extract owner airline
+      if (offer.owner?.iata_code && !seenAirlines.has(offer.owner.iata_code)) {
+        seenAirlines.add(offer.owner.iata_code);
+        const airlineData = extractAirlineFromDuffel(offer.owner);
+        if (airlineData) {
+          await updateAirlineFromFlightSearch(airlineData.iataCode, 'duffel', airlineData);
+        }
+      }
+
+      // Extract marketing carriers from slices
+      if (offer.slices) {
+        for (const slice of offer.slices) {
+          if (slice.segments) {
+            for (const segment of slice.segments) {
+              const carrier = segment.marketing_carrier || segment.operating_carrier;
+              if (carrier?.iata_code && !seenAirlines.has(carrier.iata_code)) {
+                seenAirlines.add(carrier.iata_code);
+                const airlineData = extractAirlineFromDuffel(carrier);
+                if (airlineData) {
+                  await updateAirlineFromFlightSearch(airlineData.iataCode, 'duffel', airlineData);
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+
+    if (seenAirlines.size > 0) {
+      console.log(`✈️  Extracted ${seenAirlines.size} airline(s) from Duffel: ${Array.from(seenAirlines).join(', ')}`);
     }
   }
 }
