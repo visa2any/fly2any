@@ -4296,6 +4296,7 @@ enum CabinClass {
   BUSINESS
   PREMIUM_ECONOMY
   ECONOMY
+  BASIC_ECONOMY
 }
 
 enum AirlineExclusionType {
@@ -4623,4 +4624,478 @@ model AirlineDataSyncLog {
   @@index([source])
   @@index([createdAt])
   @@map("airline_data_sync_logs")
+}
+
+// ==========================================
+// Comprehensive Aviation Intelligence System
+// ==========================================
+
+// Global Aircraft Database
+model Aircraft {
+  id              String   @id @default(cuid())
+
+  // Identifiers
+  iataCode        String   @unique // "738", "359", "77W"
+  icaoCode        String?  @unique // "B738", "A359", "B77W"
+
+  // Basic info
+  manufacturer    String   // "Boeing", "Airbus"
+  model           String   // "737-800", "A350-900"
+  fullName        String   // "Boeing 737-800"
+  family          String?  // "737", "A350"
+  variant         String?  // "-800", "-900XWB"
+
+  // Category
+  category        AircraftCategory @default(NARROWBODY)
+  engineType      String?  // "turbofan", "turboprop"
+  engineCount     Int?
+
+  // Performance specs
+  rangeKm         Int?     // Max range in km
+  rangeMiles      Int?
+  cruiseSpeedKmh  Int?
+  cruiseSpeedMph  Int?
+  maxAltitudeFt   Int?
+  fuelCapacityL   Int?
+
+  // Capacity
+  maxPassengers   Int?     // Maximum config
+  typicalSeats    Int?     // Typical 2-class
+  cargoCapacityM3 Float?
+
+  // Dimensions
+  lengthM         Float?
+  wingspanM       Float?
+  heightM         Float?
+  cabinWidthM     Float?
+
+  // Comfort features
+  hasWideBody     Boolean  @default(false)
+  aisleCount      Int      @default(1)
+  seatWidthInches Float?
+  windowsPerRow   Int?
+
+  // Operational
+  firstFlight     DateTime?
+  inProduction    Boolean  @default(true)
+  unitsBuilt      Int?
+  operators       String[] // Airlines using this type
+
+  // Images
+  imageUrl        String?
+  schematicUrl    String?
+
+  // Data source
+  dataSource      String?
+  lastUpdated     DateTime @default(now())
+  createdAt       DateTime @default(now())
+
+  // Relations
+  seatMaps        AircraftSeatMap[]
+  flightRecords   FlightRecord[]
+
+  @@index([manufacturer])
+  @@index([category])
+  @@map("aircraft")
+}
+
+enum AircraftCategory {
+  NARROWBODY      // Single aisle (737, A320)
+  WIDEBODY        // Twin aisle (777, A350)
+  REGIONAL_JET    // CRJ, ERJ
+  TURBOPROP       // ATR, Dash 8
+  BUSINESS_JET
+  FREIGHTER
+}
+
+model AircraftSeatMap {
+  id              String   @id @default(cuid())
+  aircraftId      String
+  aircraft        Aircraft @relation(fields: [aircraftId], references: [id], onDelete: Cascade)
+
+  airlineCode     String?  // Airline-specific config
+  configName      String?  // "2-class", "3-class", "high-density"
+
+  // Cabin layout
+  firstClassRows  Int      @default(0)
+  firstClassSeats Int      @default(0)
+  firstClassPitch Int?     // inches
+  firstClassWidth Float?   // inches
+
+  businessRows    Int      @default(0)
+  businessSeats   Int      @default(0)
+  businessPitch   Int?
+  businessWidth   Float?
+  businessLieFlat Boolean  @default(false)
+
+  premiumEcoRows  Int      @default(0)
+  premiumEcoSeats Int      @default(0)
+  premiumEcoPitch Int?
+  premiumEcoWidth Float?
+
+  economyRows     Int      @default(0)
+  economySeats    Int      @default(0)
+  economyPitch    Int?
+  economyWidth    Float?
+
+  totalSeats      Int
+  seatLayout      String?  // "3-3", "3-3-3", "2-4-2"
+
+  // Exit rows & amenities
+  exitRows        Int[]
+  extraLegroom    Int[]    // Row numbers
+  hasIFE          Boolean  @default(false)
+  hasPower        Boolean  @default(false)
+  hasWifi         Boolean  @default(false)
+
+  // Visual data
+  seatMapJson     Json?    // Full seat map data
+  seatMapUrl      String?
+
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@unique([aircraftId, airlineCode, configName])
+  @@index([aircraftId])
+  @@index([airlineCode])
+  @@map("aircraft_seat_maps")
+}
+
+// Global Airport Database
+model Airport {
+  id              String   @id @default(cuid())
+
+  // Identifiers
+  iataCode        String   @unique // "JFK", "LHR"
+  icaoCode        String?  @unique // "KJFK", "EGLL"
+
+  // Basic info
+  name            String   // "John F. Kennedy International"
+  shortName       String?  // "JFK"
+  city            String   // "New York"
+  cityCode        String?  // Multi-airport cities: "NYC"
+  state           String?  // "NY"
+  country         String   // "US"
+  countryName     String?  // "United States"
+  continent       String?  // "North America"
+  region          String?  // "Northeast"
+
+  // Location
+  latitude        Float?
+  longitude       Float?
+  elevation       Int?     // feet above sea level
+  timezone        String?  // "America/New_York"
+  utcOffset       Float?   // -5.0
+
+  // Size & category
+  airportType     AirportType @default(LARGE)
+  isHub           Boolean  @default(false)
+  isInternational Boolean  @default(true)
+  hubFor          String[] // Airlines using as hub
+
+  // Terminals
+  terminalCount   Int?
+  terminals       Json?    // Terminal details
+
+  // Operational
+  runways         Int?
+  longestRunway   Int?     // feet
+  annualPassengers Int?    // millions
+  annualFlights   Int?
+
+  // Amenities
+  hasLounge       Boolean  @default(false)
+  loungeCount     Int?
+  hasHotel        Boolean  @default(false)
+  hasFreeWifi     Boolean  @default(false)
+  hasMetro        Boolean  @default(false)
+  hasTrainStation Boolean  @default(false)
+
+  // Distance to city center
+  distanceToCity  Float?   // km
+  avgTransferTime Int?     // minutes
+
+  // Website & contacts
+  websiteUrl      String?
+  phoneNumber     String?
+
+  // Images
+  imageUrl        String?
+  mapUrl          String?
+
+  // Data source
+  duffelId        String?
+  amadeusId       String?
+  dataSource      String?
+  lastUpdated     DateTime @default(now())
+  createdAt       DateTime @default(now())
+
+  // Relations
+  departureFlights FlightRecord[] @relation("DepartureAirport")
+  arrivalFlights   FlightRecord[] @relation("ArrivalAirport")
+
+  @@index([city])
+  @@index([country])
+  @@index([airportType])
+  @@map("airports")
+}
+
+enum AirportType {
+  LARGE           // Major international hub
+  MEDIUM          // Regional hub
+  SMALL           // Small/regional
+  CARGO           // Cargo focused
+  MILITARY        // Civil-military
+}
+
+// Fare Classes & Brands
+model FareClass {
+  id              String   @id @default(cuid())
+
+  // Identifier
+  code            String   // "Y", "B", "M", "K", "W", "J", "F"
+  airlineCode     String?  // Airline-specific (null = generic)
+
+  // Basic info
+  name            String   // "Economy", "Premium Economy"
+  brandName       String?  // "Main Cabin", "Comfort+"
+  cabinClass      CabinClass
+  tier            Int?     // 1=highest, 10=lowest within cabin
+
+  // Booking class
+  bookingClasses  String[] // ["Y", "B", "M", "H", "K"]
+  isAward         Boolean  @default(false)
+  isUpgrade       Boolean  @default(false)
+
+  // Seat benefits
+  seatSelection   String?  // "free", "paid", "at_checkin"
+  seatPitch       Int?     // typical inches
+  seatWidth       Float?
+  seatRecline     Int?     // degrees
+  legroom         String?  // "standard", "extra", "none"
+
+  // Baggage
+  carryOnIncluded Boolean  @default(true)
+  carryOnSize     String?  // "22x14x9"
+  checkedBags     Int      @default(0)
+  firstBagWeight  Int?     // kg
+  secondBagWeight Int?     // kg
+  excessBagFee    Float?
+
+  // Flexibility
+  changeAllowed   Boolean  @default(false)
+  changeFee       Float?
+  changeAnytime   Boolean  @default(false)
+  cancelAllowed   Boolean  @default(false)
+  cancelFee       Float?
+  refundable      Boolean  @default(false)
+  refundType      String?  // "full", "voucher", "none"
+  noShowProtection Boolean @default(false)
+
+  // Earning
+  milesEarning    Int?     // percentage of base
+  eliteCredits    Int?     // percentage
+  upgradeEligible Boolean  @default(false)
+  loungAccess     Boolean  @default(false)
+
+  // Priority
+  priorityBoarding Boolean  @default(false)
+  prioritySecurity Boolean  @default(false)
+  priorityBaggage  Boolean  @default(false)
+
+  // Onboard
+  mealIncluded    Boolean  @default(false)
+  mealType        String?  // "snack", "full", "premium"
+  alcoholIncluded Boolean  @default(false)
+  entertainmentFree Boolean @default(true)
+  wifiFree        Boolean  @default(false)
+
+  // Data
+  dataSource      String?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@unique([code, airlineCode])
+  @@index([airlineCode])
+  @@index([cabinClass])
+  @@map("fare_classes")
+}
+
+// Flight Schedule Records (historical/observed)
+model FlightRecord {
+  id              String   @id @default(cuid())
+
+  // Flight identity
+  flightNumber    String   // "AA100"
+  airlineCode     String   // "AA"
+  operatingCarrier String? // If codeshare
+  operatingFlight String?
+
+  // Route
+  originId        String
+  origin          Airport  @relation("DepartureAirport", fields: [originId], references: [id])
+  destinationId   String
+  destination     Airport  @relation("ArrivalAirport", fields: [destinationId], references: [id])
+  originIata      String   // Denormalized for queries
+  destinationIata String
+
+  // Aircraft
+  aircraftId      String?
+  aircraft        Aircraft? @relation(fields: [aircraftId], references: [id])
+  aircraftIata    String?  // "738"
+  aircraftName    String?  // "Boeing 737-800"
+
+  // Schedule
+  departureDate   DateTime
+  departureTime   String?  // "14:30"
+  arrivalTime     String?  // "18:45"
+  departureLocal  DateTime?
+  arrivalLocal    DateTime?
+  durationMinutes Int?
+
+  // Status (for historical)
+  status          String?  // "scheduled", "departed", "arrived", "cancelled"
+  actualDeparture DateTime?
+  actualArrival   DateTime?
+  delayMinutes    Int?
+
+  // Pricing observed
+  economyPrice    Float?
+  businessPrice   Float?
+  firstPrice      Float?
+  currency        String   @default("USD")
+  fareClass       String?
+  fareBrand       String?
+
+  // Capacity
+  seatsTotal      Int?
+  seatsAvailable  Int?
+  loadFactor      Float?
+
+  // Data source
+  offerId         String?  // Duffel offer ID
+  source          String   @default("duffel")
+  observedAt      DateTime @default(now())
+
+  @@index([airlineCode])
+  @@index([flightNumber])
+  @@index([originIata])
+  @@index([destinationIata])
+  @@index([departureDate])
+  @@index([observedAt])
+  @@map("flight_records")
+}
+
+// Route Statistics (aggregated)
+model RouteStatistics {
+  id              String   @id @default(cuid())
+
+  // Route
+  originIata      String
+  destinationIata String
+  routeKey        String   @unique // "JFK-LHR"
+
+  // Distance
+  distanceKm      Int?
+  distanceMiles   Int?
+  flightTimeMin   Int?     // Average
+
+  // Carriers
+  operatingAirlines String[] // All airlines on route
+  carrierCount    Int?
+  dominantCarrier String?
+  marketShare     Json?    // {"AA": 35, "BA": 30, ...}
+
+  // Frequency
+  dailyFlights    Int?
+  weeklyFlights   Int?
+  seasonality     String?  // "year_round", "seasonal"
+  peakMonths      Int[]    // [6, 7, 8]
+
+  // Pricing trends
+  avgEconomyPrice Float?
+  avgBusinessPrice Float?
+  avgFirstPrice   Float?
+  priceVolatility Float?   // 0-1 scale
+  cheapestMonth   Int?
+  expensiveMonth  Int?
+  advancePurchase Int?     // Best days in advance
+
+  // Performance
+  avgDelay        Float?
+  onTimeRate      Float?   // percentage
+  cancellationRate Float?
+
+  // Competition
+  isCompetitive   Boolean  @default(false)
+  hasBudgetOption Boolean  @default(false)
+
+  // Metadata
+  lastAnalyzed    DateTime @default(now())
+  dataPoints      Int      @default(0)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@index([originIata])
+  @@index([destinationIata])
+  @@map("route_statistics")
+}
+
+// Price Trend Tracking
+model PriceTrend {
+  id              String   @id @default(cuid())
+
+  // Route
+  originIata      String
+  destinationIata String
+  airlineCode     String?  // null = all airlines
+
+  // Time bucket
+  searchDate      DateTime // When price was observed
+  departureDate   DateTime // Flight departure date
+  daysInAdvance   Int      // Days between search and departure
+
+  // Prices
+  economyMin      Float?
+  economyAvg      Float?
+  economyMax      Float?
+  businessMin     Float?
+  businessAvg     Float?
+  businessMax     Float?
+  currency        String   @default("USD")
+
+  // Volume
+  offersCount     Int      @default(1)
+
+  // Source
+  source          String   @default("duffel")
+  createdAt       DateTime @default(now())
+
+  @@index([originIata, destinationIata])
+  @@index([searchDate])
+  @@index([departureDate])
+  @@index([daysInAdvance])
+  @@map("price_trends")
+}
+
+// Aviation Data Sync Log (extended)
+model AviationDataSyncLog {
+  id              String   @id @default(cuid())
+  entityType      String   // "aircraft", "airport", "fare_class", "flight", "route"
+  source          String   // "duffel", "amadeus", "oag", "scraper"
+  operation       String   // "create", "update", "bulk_sync"
+  status          String   // "success", "partial", "failed"
+  recordsProcessed Int     @default(0)
+  recordsCreated  Int      @default(0)
+  recordsUpdated  Int      @default(0)
+  recordsFailed   Int      @default(0)
+  errorDetails    Json?
+  durationMs      Int?
+  metadata        Json?
+  createdAt       DateTime @default(now())
+
+  @@index([entityType])
+  @@index([source])
+  @@index([createdAt])
+  @@map("aviation_data_sync_logs")
 }

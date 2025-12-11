@@ -1,7 +1,7 @@
 import { Duffel } from '@duffel/api';
 import axios from 'axios';
 import { applyMarkup } from '@/lib/config/ancillary-markup';
-import { extractAirlineFromDuffel, updateAirlineFromFlightSearch } from '@/lib/airlines/airline-data-service';
+import { extractAllAviationData } from '@/lib/aviation/aviation-intelligence-service';
 
 /**
  * Duffel API Client
@@ -277,9 +277,10 @@ class DuffelAPI {
       // Convert Duffel offers to our standard format
       const standardizedOffers = offers.map((offer: any) => this.convertDuffelOffer(offer));
 
-      // Extract and store airline data (non-blocking)
-      this.extractAndStoreAirlines(offers).catch((err) => {
-        console.warn('Failed to extract airline data:', err.message);
+      // Extract and store ALL aviation data (non-blocking)
+      // Captures: Airlines, Aircraft, Airports, Routes, Flights, Fare Classes, Price Trends
+      this.extractAllAviationIntelligence(offers).catch((err) => {
+        console.warn('Aviation intelligence extraction error:', err.message);
       });
 
       // Apply max results limit
@@ -2922,45 +2923,35 @@ class DuffelAPI {
   }
 
   /**
-   * Extract unique airlines from Duffel offers and store in database
-   * Runs in background (non-blocking)
+   * Extract ALL aviation intelligence from Duffel offers
+   * Captures: Airlines, Aircraft, Airports, Routes, Flights, Fare Classes, Price Trends
+   * Runs in background (non-blocking) to avoid slowing down search response
    */
-  private async extractAndStoreAirlines(offers: any[]): Promise<void> {
+  private async extractAllAviationIntelligence(offers: any[]): Promise<void> {
     if (!offers || offers.length === 0) return;
 
-    const seenAirlines = new Set<string>();
+    try {
+      const result = await extractAllAviationData(offers);
 
-    for (const offer of offers) {
-      // Extract owner airline
-      if (offer.owner?.iata_code && !seenAirlines.has(offer.owner.iata_code)) {
-        seenAirlines.add(offer.owner.iata_code);
-        const airlineData = extractAirlineFromDuffel(offer.owner);
-        if (airlineData) {
-          await updateAirlineFromFlightSearch(airlineData.iataCode, 'duffel', airlineData);
-        }
+      // Log summary
+      const total =
+        result.airlines.created + result.airlines.updated +
+        result.aircraft.created + result.aircraft.updated +
+        result.airports.created + result.airports.updated +
+        result.routes.created + result.routes.updated +
+        result.flights.created +
+        result.fareClasses.created + result.fareClasses.updated +
+        result.priceTrends.created;
+
+      if (total > 0) {
+        console.log(`🧠 Aviation Intelligence: +${total} records (${result.duration}ms)`);
+        console.log(`   Airlines: ${result.airlines.created}/${result.airlines.updated} | Aircraft: ${result.aircraft.created}/${result.aircraft.updated}`);
+        console.log(`   Airports: ${result.airports.created}/${result.airports.updated} | Routes: ${result.routes.created}/${result.routes.updated}`);
+        console.log(`   Flights: ${result.flights.created} | Fares: ${result.fareClasses.created} | Prices: ${result.priceTrends.created}`);
       }
-
-      // Extract marketing carriers from slices
-      if (offer.slices) {
-        for (const slice of offer.slices) {
-          if (slice.segments) {
-            for (const segment of slice.segments) {
-              const carrier = segment.marketing_carrier || segment.operating_carrier;
-              if (carrier?.iata_code && !seenAirlines.has(carrier.iata_code)) {
-                seenAirlines.add(carrier.iata_code);
-                const airlineData = extractAirlineFromDuffel(carrier);
-                if (airlineData) {
-                  await updateAirlineFromFlightSearch(airlineData.iataCode, 'duffel', airlineData);
-                }
-              }
-            }
-          }
-        }
-      }
-    }
-
-    if (seenAirlines.size > 0) {
-      console.log(`✈️  Extracted ${seenAirlines.size} airline(s) from Duffel: ${Array.from(seenAirlines).join(', ')}`);
+    } catch (error: any) {
+      // Non-critical - don't throw, just log
+      console.warn('Aviation intelligence extraction warning:', error.message);
     }
   }
 }
