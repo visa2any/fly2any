@@ -245,7 +245,7 @@ export function FareSelector({
               aria-checked={isSelected}
               aria-label={`${fare.name} fare, ${fare.currency} ${typeof fare.price === 'number' ? fare.price.toFixed(2) : fare.price}`}
               className={`
-                relative p-2.5 sm:p-3.5 rounded-xl sm:rounded-2xl text-left transition-all duration-300 active:scale-[0.98]
+                relative p-2.5 sm:p-3.5 pt-5 sm:pt-6 rounded-xl sm:rounded-2xl text-left transition-all duration-300 active:scale-[0.98] flex flex-col
                 ${isSelected
                   ? 'ring-2 ring-primary-500 shadow-lg'
                   : 'hover:shadow-md'
@@ -306,10 +306,10 @@ export function FareSelector({
                 </div>
               )}
 
-              {/* Fare Name & Price - Enhanced typography */}
-              <div className="mb-2 sm:mb-3 mt-1 sm:mt-2">
+              {/* Fare Name & Price - Fixed height for alignment */}
+              <div className="mb-2 sm:mb-3 min-h-[52px] sm:min-h-[60px]">
                 <h3
-                  className="text-[11px] sm:text-sm font-bold text-[#1d1d1f] mb-1 leading-tight"
+                  className="text-[11px] sm:text-sm font-bold text-[#1d1d1f] mb-1 leading-tight line-clamp-2"
                   style={{ fontFamily: 'system-ui, -apple-system, sans-serif' }}
                 >
                   {fare.name}
@@ -328,8 +328,8 @@ export function FareSelector({
                 </div>
               </div>
 
-              {/* Features List - Show ALL features with proper icons */}
-              <ul className="space-y-1 sm:space-y-1.5 mb-2 sm:mb-3">
+              {/* Features List - Flex-grow for consistent card height */}
+              <ul className="space-y-1 sm:space-y-1.5 mb-2 sm:mb-3 flex-grow">
                 {fare.features.map((feature, idx) => (
                   <li key={idx} className="flex items-start gap-1.5 sm:gap-2 text-[10px] sm:text-xs text-[#424245] leading-tight">
                     <span className="flex-shrink-0 mt-0.5">{getFeatureIcon(feature)}</span>
