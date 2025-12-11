@@ -6,11 +6,15 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { sql } from '@/lib/db/connection';
 import { handleWebhookEvent, type DuffelWebhookEvent } from '@/lib/webhooks/event-handlers';
+import { requireAdmin } from '@/lib/admin/middleware';
 
 /**
  * GET - Retrieve webhook events with filtering
  */
 export async function GET(req: NextRequest) {
+  const authResult = await requireAdmin(req);
+  if (authResult instanceof NextResponse) return authResult;
+
   try {
     // Check if database is configured
     if (!sql) {

@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma, isPrismaAvailable } from '@/lib/db/prisma';
+import { requireAdmin } from '@/lib/admin/middleware';
 
 // Force Node.js runtime for database access
 export const runtime = 'nodejs';
@@ -15,6 +16,9 @@ export async function GET(
   request: NextRequest,
   { params }: { params: { id: string } }
 ) {
+  const authResult = await requireAdmin(request);
+  if (authResult instanceof NextResponse) return authResult;
+
   try {
     const userId = params.id;
 

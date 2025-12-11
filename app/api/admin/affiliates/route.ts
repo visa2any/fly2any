@@ -6,6 +6,7 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { sql } from '@/lib/db/connection';
+import { requireAdmin } from '@/lib/admin/middleware';
 
 /**
  * GET /api/admin/affiliates
@@ -22,6 +23,9 @@ import { sql } from '@/lib/db/connection';
  * - offset: number (default 0)
  */
 export async function GET(request: NextRequest) {
+  const authResult = await requireAdmin(request);
+  if (authResult instanceof NextResponse) return authResult;
+
   try {
     // Check if database is configured
     if (!sql) {

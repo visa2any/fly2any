@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
+import { requireAdmin } from '@/lib/admin/middleware';
 
 // Force Node.js runtime for database access
 export const runtime = 'nodejs';
@@ -16,6 +17,9 @@ export const dynamic = 'force-dynamic';
  * - Revenue metrics with trends
  */
 export async function GET(request: NextRequest) {
+  const authResult = await requireAdmin(request);
+  if (authResult instanceof NextResponse) return authResult;
+
   try {
     const { searchParams } = new URL(request.url);
     const period = searchParams.get('period') || 'week';

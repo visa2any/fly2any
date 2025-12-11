@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getPrismaClient } from '@/lib/prisma';
+import { requireAdmin } from '@/lib/admin/middleware';
 
 /**
  * Admin API - Get Card Authorizations
@@ -9,6 +10,9 @@ import { getPrismaClient } from '@/lib/prisma';
 export const dynamic = 'force-dynamic';
 
 export async function GET(request: NextRequest) {
+  const authResult = await requireAdmin(request);
+  if (authResult instanceof NextResponse) return authResult;
+
   try {
     const { searchParams } = new URL(request.url);
     const status = searchParams.get('status');

@@ -5,10 +5,11 @@
  * Includes performance metrics, error rates, health status, and alerts.
  */
 
-import { NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 import { metricsStore, healthChecker, alertManager as middlewareAlertManager } from '@/lib/monitoring/middleware';
 import { perfMonitor, getPerformanceSummary } from '@/lib/monitoring/performance';
 import { alertManager } from '@/lib/monitoring/alerts';
+import { requireAdmin } from '@/lib/admin/middleware';
 
 export const dynamic = 'force-dynamic';
 
@@ -17,7 +18,10 @@ export const dynamic = 'force-dynamic';
  *
  * Returns comprehensive metrics for monitoring dashboard
  */
-export async function GET(request: Request) {
+export async function GET(request: NextRequest) {
+  const authResult = await requireAdmin(request);
+  if (authResult instanceof NextResponse) return authResult;
+
   try {
     const { searchParams } = new URL(request.url);
     const type = searchParams.get('type'); // 'summary', 'detailed', 'performance', 'alerts'

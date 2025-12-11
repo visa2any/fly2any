@@ -15,6 +15,7 @@ import {
   getWorstPerformingEndpoints,
   getCacheEffectivenessScore,
 } from '@/lib/cache/analytics';
+import { requireAdmin } from '@/lib/admin/middleware';
 
 export const dynamic = 'force-dynamic';
 
@@ -23,6 +24,9 @@ export const dynamic = 'force-dynamic';
  * Returns cost savings analytics data
  */
 export async function GET(request: NextRequest) {
+  const authResult = await requireAdmin(request);
+  if (authResult instanceof NextResponse) return authResult;
+
   try {
     const searchParams = request.nextUrl.searchParams;
     const daysBack = parseInt(searchParams.get('days') || '7');
