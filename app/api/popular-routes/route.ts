@@ -118,7 +118,7 @@ export async function GET(request: NextRequest) {
       // Query routes originating from user's region
       routes = await client.query(
         `SELECT
-          route,
+          origin || '-' || destination as route,
           origin,
           destination,
           searches_30d,
@@ -143,7 +143,7 @@ export async function GET(request: NextRequest) {
       // Global top routes
       routes = await client.query(
         `SELECT
-          route,
+          origin || '-' || destination as route,
           origin,
           destination,
           searches_30d,
@@ -171,7 +171,7 @@ export async function GET(request: NextRequest) {
       }
       routes = await client.query(
         `SELECT
-          route,
+          origin || '-' || destination as route,
           origin,
           destination,
           searches_30d,

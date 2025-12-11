@@ -343,6 +343,10 @@ async function makeAPISearch(
         currencyCode: 'USD',
         maxResults: 20,
       },
+      headers: {
+        'X-Test-Mode': 'fare-reconciliation',
+        'User-Agent': 'Fly2Any-FareReconciliation-Test/1.0',
+      },
       timeout: 60000,
     });
 
