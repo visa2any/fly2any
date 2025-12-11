@@ -29,6 +29,7 @@ interface MultiAirportSelectorProps {
   placeholder?: string;
   maxDisplay?: number; // Max airports to show in collapsed state (default: 1)
   lang?: 'en' | 'pt' | 'es';
+  testId?: string; // For E2E testing
 }
 
 // Convert comprehensive airport data to component format
@@ -71,6 +72,7 @@ export default function MultiAirportSelector({
   placeholder = 'Select airports',
   maxDisplay = 1,
   lang = 'en',
+  testId,
 }: MultiAirportSelectorProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
@@ -187,6 +189,7 @@ export default function MultiAirportSelector({
           onChange={(e) => { setSearchQuery(e.target.value); if (!isOpen) setIsOpen(true); }}
           onFocus={() => { setIsOpen(true); setSearchQuery(''); }}
           placeholder={placeholder}
+          data-testid={testId}
           className="w-full min-h-[48px] py-3 pl-9 pr-8 bg-white border-2 border-neutral-200 hover:border-primary-400 focus:border-primary-500 rounded-xl text-sm font-semibold text-neutral-800 transition-all duration-200 focus:outline-none"
         />
         <ChevronDown

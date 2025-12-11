@@ -437,6 +437,7 @@ export default function FlightSearchForm({
               }}
               maxDisplay={2}
               lang={lang}
+              testId="origin-input"
             />
             {errors.origin && (
               <p id="origin-error" className="mt-1 text-sm text-red-600" role="alert" aria-live="polite">
@@ -461,6 +462,7 @@ export default function FlightSearchForm({
               }}
               maxDisplay={2}
               lang={lang}
+              testId="destination-input"
             />
             {errors.destination && (
               <p id="destination-error" className="mt-1 text-sm text-red-600" role="alert" aria-live="polite">
