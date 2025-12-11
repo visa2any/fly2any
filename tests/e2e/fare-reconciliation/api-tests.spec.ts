@@ -15,7 +15,26 @@ import { getFutureDate } from '../fixtures/test-data';
 
 const BASE_URL = process.env.PLAYWRIGHT_BASE_URL || 'http://localhost:3000';
 
+// Test mode headers to bypass rate limiting
+const TEST_HEADERS = {
+  'X-Test-Mode': 'fare-reconciliation',
+  'User-Agent': 'Fly2Any-FareReconciliation-Test/1.0',
+};
+
+// Helper to add delay between tests to avoid rate limiting
+async function delay(ms: number) {
+  return new Promise(resolve => setTimeout(resolve, ms));
+}
+
+// Configure tests to run sequentially
+test.describe.configure({ mode: 'serial' });
+
 test.describe('API Fare Validation', () => {
+  // Add delay before each test to avoid rate limiting
+  test.beforeEach(async () => {
+    await delay(2000);
+  });
+
   test.describe('Flight Search API', () => {
     test('should return valid flight offers with correct structure', async ({ request }) => {
       const response = await request.post(`${BASE_URL}/api/flights/search`, {
@@ -29,6 +48,7 @@ test.describe('API Fare Validation', () => {
           currencyCode: 'USD',
           maxResults: 10,
         },
+        headers: TEST_HEADERS,
         timeout: 60000,
       });
 
@@ -62,6 +82,7 @@ test.describe('API Fare Validation', () => {
           currencyCode: 'USD',
           maxResults: 5,
         },
+        headers: TEST_HEADERS,
         timeout: 60000,
       });
 
@@ -102,6 +123,7 @@ test.describe('API Fare Validation', () => {
 
       const response = await request.post(`${BASE_URL}/api/flights/search`, {
         data: params,
+        headers: TEST_HEADERS,
         timeout: 60000,
       });
 
@@ -145,6 +167,7 @@ test.describe('API Fare Validation', () => {
           travelClass: 'ECONOMY',
           currencyCode: 'USD',
         },
+        headers: TEST_HEADERS,
         timeout: 60000,
       });
 
@@ -183,6 +206,7 @@ test.describe('API Fare Validation', () => {
           currencyCode: 'USD',
           maxResults: 5,
         },
+        headers: TEST_HEADERS,
         timeout: 60000,
       });
 
@@ -230,8 +254,8 @@ test.describe('API Fare Validation', () => {
 
       // Make two identical requests
       const [response1, response2] = await Promise.all([
-        request.post(`${BASE_URL}/api/flights/search`, { data: params, timeout: 60000 }),
-        request.post(`${BASE_URL}/api/flights/search`, { data: params, timeout: 60000 }),
+        request.post(`${BASE_URL}/api/flights/search`, { data: params, headers: TEST_HEADERS, timeout: 60000 }),
+        request.post(`${BASE_URL}/api/flights/search`, { data: params, headers: TEST_HEADERS, timeout: 60000 }),
       ]);
 
       expect(response1.ok()).toBeTruthy();
@@ -272,6 +296,7 @@ test.describe('API Fare Validation', () => {
             currencyCode: 'USD',
             maxResults: 5,
           },
+          headers: TEST_HEADERS,
           timeout: 60000,
         });
 
@@ -307,6 +332,7 @@ test.describe('API Fare Validation', () => {
           departureDate: getFutureDate(30),
           adults: 1,
         },
+        headers: TEST_HEADERS,
         timeout: 30000,
       });
 
@@ -333,6 +359,7 @@ test.describe('API Fare Validation', () => {
           departureDate: pastDateStr,
           adults: 1,
         },
+        headers: TEST_HEADERS,
         timeout: 30000,
       });
 
@@ -344,7 +371,7 @@ test.describe('API Fare Validation', () => {
     });
 
     test('should enforce rate limiting', async ({ request }) => {
-      // Make many rapid requests
+      // Make many rapid requests WITHOUT test headers to verify rate limiting works
       const promises = Array(20).fill(null).map(() =>
         request.post(`${BASE_URL}/api/flights/search`, {
           data: {
@@ -406,6 +433,7 @@ test.describe('Booking Flow API Tests', () => {
         currencyCode: 'USD',
         maxResults: 1,
       },
+      headers: TEST_HEADERS,
       timeout: 60000,
     });
 

@@ -44,6 +44,18 @@ export {
   type SecurityMetrics,
 } from './security-monitor';
 
+// Security email alerts
+export {
+  sendSecurityAlert,
+  alertBotDetected,
+  alertHighThreatScore,
+  alertRateLimitExceeded,
+  alertHoneypotTriggered,
+  alertDailyBudgetExceeded,
+  getAlertStats,
+  type SecurityAlertData,
+} from './security-alerts';
+
 // Honeypot system
 export {
   isHoneypotPath,
