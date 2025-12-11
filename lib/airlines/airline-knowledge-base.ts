@@ -271,34 +271,57 @@ export async function saveKnowledgeEntries(entries: KnowledgeEntry[]): Promise<n
 
   let saved = 0;
 
+  // Group entries by airline to batch lookups
+  const entriesByAirline = new Map<string, KnowledgeEntry[]>();
   for (const entry of entries) {
+    const existing = entriesByAirline.get(entry.iataCode) || [];
+    existing.push(entry);
+    entriesByAirline.set(entry.iataCode, existing);
+  }
+
+  for (const [iataCode, airlineEntries] of entriesByAirline) {
     try {
-      await prisma.airlineKnowledgeEntry.upsert({
-        where: {
-          iataCode_category: {
-            iataCode: entry.iataCode,
-            category: entry.category,
-          },
-        },
-        create: {
-          iataCode: entry.iataCode,
-          category: entry.category,
-          title: entry.title,
-          content: entry.content,
-          tags: entry.tags,
-          embedding: entry.embedding || [],
-        },
-        update: {
-          title: entry.title,
-          content: entry.content,
-          tags: entry.tags,
-          embedding: entry.embedding || [],
-          updatedAt: new Date(),
-        },
+      // Look up airline ID
+      const airline = await prisma.airlineProfile.findUnique({
+        where: { iataCode },
+        select: { id: true },
       });
-      saved++;
+
+      if (!airline) {
+        console.warn(`Airline not found for ${iataCode}, skipping knowledge entries`);
+        continue;
+      }
+
+      for (const entry of airlineEntries) {
+        // Check if entry exists
+        const existing = await prisma.airlineKnowledgeEntry.findFirst({
+          where: { airlineId: airline.id, category: entry.category },
+        });
+
+        if (existing) {
+          await prisma.airlineKnowledgeEntry.update({
+            where: { id: existing.id },
+            data: {
+              title: entry.title,
+              content: entry.content,
+              embedding: entry.embedding || [],
+            },
+          });
+        } else {
+          await prisma.airlineKnowledgeEntry.create({
+            data: {
+              airlineId: airline.id,
+              category: entry.category,
+              title: entry.title,
+              content: entry.content,
+              embedding: entry.embedding || [],
+            },
+          });
+        }
+        saved++;
+      }
     } catch (error) {
-      console.error(`Error saving knowledge entry for ${entry.iataCode}:`, error);
+      console.error(`Error saving knowledge entries for ${iataCode}:`, error);
     }
   }
 
@@ -317,19 +340,19 @@ export async function searchKnowledge(query: string, limit: number = 10): Promis
         OR: [
           { content: { contains: query, mode: 'insensitive' } },
           { title: { contains: query, mode: 'insensitive' } },
-          { tags: { hasSome: query.toLowerCase().split(' ') } },
         ],
       },
+      include: { airline: { select: { iataCode: true } } },
       take: limit,
       orderBy: { updatedAt: 'desc' },
     });
 
     return results.map((r) => ({
-      iataCode: r.iataCode,
+      iataCode: r.airline?.iataCode || '',
       category: r.category as KnowledgeEntry['category'],
       title: r.title,
       content: r.content,
-      tags: r.tags,
+      tags: [],
     }));
   } catch (error) {
     console.error('Error searching knowledge:', error);
@@ -344,17 +367,24 @@ export async function getAirlineKnowledge(iataCode: string): Promise<KnowledgeEn
   if (!prisma) return [];
 
   try {
-    const results = await prisma.airlineKnowledgeEntry.findMany({
+    const airline = await prisma.airlineProfile.findUnique({
       where: { iataCode: iataCode.toUpperCase() },
+      select: { id: true },
+    });
+
+    if (!airline) return [];
+
+    const results = await prisma.airlineKnowledgeEntry.findMany({
+      where: { airlineId: airline.id },
       orderBy: { category: 'asc' },
     });
 
     return results.map((r) => ({
-      iataCode: r.iataCode,
+      iataCode: iataCode.toUpperCase(),
       category: r.category as KnowledgeEntry['category'],
       title: r.title,
       content: r.content,
-      tags: r.tags,
+      tags: [],
     }));
   } catch (error) {
     console.error('Error getting airline knowledge:', error);
