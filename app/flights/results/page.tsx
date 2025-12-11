@@ -820,7 +820,11 @@ function FlightResultsContent() {
             });
 
             if (!response.ok) {
-              console.error(`Leg ${index + 1} failed:`, response.status);
+              const errorData = await response.json().catch(() => ({}));
+              console.error(`Leg ${index + 1} failed:`, response.status, errorData);
+              if (response.status === 429) {
+                throw new Error('Too many searches. Please wait a moment and try again.');
+              }
               return [];
             }
 
@@ -881,7 +885,11 @@ function FlightResultsContent() {
         });
 
         if (!response.ok) {
-          throw new Error(`HTTP error! status: ${response.status}`);
+          const errorData = await response.json().catch(() => ({}));
+          if (response.status === 429) {
+            throw new Error(errorData.message || 'Too many searches. Please wait a moment and try again.');
+          }
+          throw new Error(errorData.error || errorData.message || `Search failed (${response.status})`);
         }
 
         const data = await response.json();
