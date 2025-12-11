@@ -5,6 +5,7 @@ import { validatePaymentAmount, checkDuplicatePayment } from '@/lib/payments/val
 import { mapStripeError } from '@/lib/payments/error-handler';
 import { checkRateLimit, addRateLimitHeaders } from '@/lib/security/rate-limiter';
 import { PAYMENT_RATE_LIMITS } from '@/lib/security/rate-limit-config';
+import { checkCostGuard, COST_GUARDS } from '@/lib/security/cost-protection';
 
 /**
  * Create Payment Intent API
@@ -40,6 +41,12 @@ import { PAYMENT_RATE_LIMITS } from '@/lib/security/rate-limit-config';
 
 export async function POST(request: NextRequest) {
   const startTime = Date.now();
+
+  // 🛡️ COST PROTECTION: Block bots and suspicious requests
+  const costGuard = await checkCostGuard(request, COST_GUARDS.PAYMENT);
+  if (!costGuard.allowed && costGuard.response) {
+    return costGuard.response;
+  }
 
   // Rate limiting check - strict limit for payment endpoints
   const rateLimitResult = await checkRateLimit(request, PAYMENT_RATE_LIMITS.createIntent);

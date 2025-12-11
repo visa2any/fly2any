@@ -44,6 +44,37 @@ export {
   type SecurityMetrics,
 } from './security-monitor';
 
+// Honeypot system
+export {
+  isHoneypotPath,
+  triggerHoneypot,
+  isIPBlockedByHoneypot,
+  createHoneypotResponse,
+  checkHoneypotFields,
+  withHoneypotCheck,
+  HONEYPOT_PATHS,
+  HONEYPOT_FIELDS,
+} from './honeypot';
+
+// CAPTCHA integration
+export {
+  verifyCaptcha,
+  needsCaptchaChallenge,
+  requireCaptcha,
+  clearCaptchaRequirement,
+  checkCaptchaInRequest,
+  getCaptchaConfig,
+} from './captcha';
+
+// Request fingerprinting
+export {
+  generateFingerprint,
+  trackFingerprint,
+  detectAutomation,
+  getFingerprintStats,
+  type RequestFingerprint,
+} from './fingerprint';
+
 // Legacy exports (backwards compatibility)
 export { rateLimit, RateLimitPresets } from './rate-limiter';
 export { validateCSRFToken, generateCSRFToken } from './csrf';

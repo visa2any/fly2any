@@ -4,6 +4,7 @@ import { bookingStorage } from '@/lib/bookings/storage';
 import { emailService } from '@/lib/email/service';
 import { checkRateLimit, addRateLimitHeaders } from '@/lib/security/rate-limiter';
 import { PAYMENT_RATE_LIMITS } from '@/lib/security/rate-limit-config';
+import { checkCostGuard, COST_GUARDS } from '@/lib/security/cost-protection';
 
 /**
  * Confirm Payment API
@@ -38,6 +39,12 @@ import { PAYMENT_RATE_LIMITS } from '@/lib/security/rate-limit-config';
  */
 
 export async function POST(request: NextRequest) {
+  // 🛡️ COST PROTECTION: Block bots and suspicious requests
+  const costGuard = await checkCostGuard(request, COST_GUARDS.PAYMENT);
+  if (!costGuard.allowed && costGuard.response) {
+    return costGuard.response;
+  }
+
   // Rate limiting check - strict limit for payment confirmation
   const rateLimitResult = await checkRateLimit(request, PAYMENT_RATE_LIMITS.confirm);
   if (!rateLimitResult.success) {
