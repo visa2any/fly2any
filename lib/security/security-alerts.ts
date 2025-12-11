@@ -20,7 +20,7 @@ const resend = process.env.RESEND_API_KEY ? new Resend(process.env.RESEND_API_KE
 
 // Configuration
 const CONFIG = {
-  alertEmail: process.env.SECURITY_ALERT_EMAIL || process.env.ADMIN_EMAIL || 'alerts@fly2any.com',
+  alertEmail: process.env.SECURITY_ALERT_EMAIL || process.env.ADMIN_EMAIL || 'support@fly2any.com',
   fromEmail: 'security@fly2any.com',
   // Throttle alerts to prevent spam (max 1 email per type per 5 minutes)
   throttleWindowMs: 5 * 60 * 1000,
