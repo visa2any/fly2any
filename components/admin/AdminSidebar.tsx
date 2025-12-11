@@ -30,6 +30,7 @@ import {
   Ticket,
   Star,
   Bell,
+  Plane,
 } from 'lucide-react'
 
 interface AdminSidebarProps {
@@ -77,6 +78,12 @@ export default function AdminSidebar({ role }: AdminSidebarProps) {
       label: 'AI Analytics',
       href: '/admin/ai-analytics',
       icon: Brain
+    },
+    {
+      label: 'Aviation Data',
+      href: '/admin/aviation',
+      icon: Plane,
+      roles: ['super_admin', 'admin']
     },
     {
       label: 'Routing Engine',
