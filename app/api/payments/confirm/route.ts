@@ -102,6 +102,22 @@ export async function POST(request: NextRequest) {
         );
       }
 
+      // CRITICAL SECURITY FIX: Validate payment amount matches booking
+      const expectedAmount = booking.payment?.amount || 0;
+      const tolerance = 0.01; // 1 cent tolerance for floating point
+      if (Math.abs(payment.amount - expectedAmount) > tolerance) {
+        console.error(`❌ SECURITY: Payment amount mismatch!`);
+        console.error(`   Expected: ${expectedAmount}, Got: ${payment.amount}`);
+        return NextResponse.json(
+          {
+            success: false,
+            error: 'AMOUNT_MISMATCH',
+            message: 'Payment amount does not match booking total',
+          },
+          { status: 400 }
+        );
+      }
+
       // Update payment information
       const updatedBooking = await bookingStorage.update(booking.id, {
         status: 'confirmed',

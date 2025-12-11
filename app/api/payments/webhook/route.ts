@@ -14,11 +14,41 @@ import { headers } from 'next/headers';
  * - payment_intent.succeeded: Payment completed successfully
  * - payment_intent.payment_failed: Payment failed
  * - payment_intent.requires_action: Payment requires 3D Secure
+ * - payment_intent.canceled: Payment was canceled
  * - charge.refunded: Refund processed
+ * - charge.dispute.created: Chargeback initiated
+ * - charge.dispute.closed: Dispute resolved
  *
  * IMPORTANT: This endpoint must be publicly accessible (no authentication)
  * Security is handled through Stripe webhook signature verification
  */
+
+// CRITICAL FIX: Idempotency cache to prevent duplicate event processing
+// Note: In production, use Redis or database for persistence across instances
+const processedEvents = new Map<string, number>();
+const MAX_CACHE_SIZE = 1000;
+const EVENT_EXPIRY_MS = 24 * 60 * 60 * 1000; // 24 hours
+
+function isEventProcessed(eventId: string): boolean {
+  const timestamp = processedEvents.get(eventId);
+  if (timestamp && Date.now() - timestamp < EVENT_EXPIRY_MS) {
+    return true;
+  }
+  return false;
+}
+
+function markEventProcessed(eventId: string): void {
+  // Clean up old entries if cache is too large
+  if (processedEvents.size >= MAX_CACHE_SIZE) {
+    const now = Date.now();
+    for (const [id, ts] of processedEvents.entries()) {
+      if (now - ts > EVENT_EXPIRY_MS) {
+        processedEvents.delete(id);
+      }
+    }
+  }
+  processedEvents.set(eventId, Date.now());
+}
 
 export async function POST(request: NextRequest) {
   try {
@@ -55,9 +85,19 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // CRITICAL FIX: Idempotency check - prevent duplicate processing
+    if (isEventProcessed(event.id)) {
+      console.log(`⏭️ Event ${event.id} already processed, skipping`);
+      return NextResponse.json(
+        { received: true, skipped: true, reason: 'Already processed' },
+        { status: 200 }
+      );
+    }
+
     // Handle the webhook event
     try {
       await paymentService.handleWebhookEvent(event);
+      markEventProcessed(event.id); // Mark as processed after success
       console.log('✅ Webhook event processed successfully');
     } catch (err: any) {
       console.error('❌ Error handling webhook event:', err);

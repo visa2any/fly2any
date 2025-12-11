@@ -149,9 +149,17 @@ class PaymentService {
       console.log(`   Customer: ${data.customerEmail}`);
       console.log(`   Booking: ${data.bookingReference}`);
 
+      // CRITICAL FIX: Zero-decimal currencies (JPY, KRW, etc.) don't use cents
+      const zeroDecimalCurrencies = ['JPY', 'KRW', 'VND', 'CLP', 'PYG', 'UGX', 'RWF'];
+      const isZeroDecimal = zeroDecimalCurrencies.includes(data.currency.toUpperCase());
+      const stripeAmount = isZeroDecimal ? Math.round(data.amount) : Math.round(data.amount * 100);
+
+      // CRITICAL FIX: Generate idempotency key to prevent double-charging on retries
+      const idempotencyKey = `pi_${data.bookingReference}_${Date.now()}`;
+
       // Create payment intent with automatic payment methods
       const paymentIntent = await getStripeClient().paymentIntents.create({
-        amount: Math.round(data.amount * 100), // Convert to cents
+        amount: stripeAmount,
         currency: data.currency.toLowerCase(),
         description: data.description,
         receipt_email: data.customerEmail,
@@ -166,6 +174,8 @@ class PaymentService {
         },
         // Capture automatically when payment succeeds
         capture_method: 'automatic',
+      }, {
+        idempotencyKey, // Prevents duplicate charges on network retries
       });
 
       console.log('✅ Payment intent created successfully!');
@@ -173,10 +183,13 @@ class PaymentService {
       console.log(`   Status: ${paymentIntent.status}`);
       console.log(`   Client Secret: ${paymentIntent.client_secret?.substring(0, 20)}...`);
 
+      // Convert back from Stripe amount (handle zero-decimal currencies)
+      const returnAmount = isZeroDecimal ? paymentIntent.amount : paymentIntent.amount / 100;
+
       return {
         paymentIntentId: paymentIntent.id,
         status: paymentIntent.status as any,
-        amount: paymentIntent.amount / 100,
+        amount: returnAmount,
         currency: paymentIntent.currency.toUpperCase(),
         clientSecret: paymentIntent.client_secret || undefined,
       };
