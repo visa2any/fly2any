@@ -39,8 +39,8 @@ test.describe('API Fare Validation', () => {
     test('should return valid flight offers with correct structure', async ({ request }) => {
       const response = await request.post(`${BASE_URL}/api/flights/search`, {
         data: {
-          originLocationCode: 'JFK',
-          destinationLocationCode: 'LAX',
+          origin: 'JFK',
+          destination: 'LAX',
           departureDate: getFutureDate(30),
           returnDate: getFutureDate(37),
           adults: 1,
@@ -55,9 +55,9 @@ test.describe('API Fare Validation', () => {
       expect(response.ok()).toBeTruthy();
       const data = await response.json();
 
-      // Validate response structure
-      expect(data).toHaveProperty('data');
-      expect(Array.isArray(data.data) || Array.isArray(data.flights)).toBeTruthy();
+      // Validate response structure (API returns either 'data' or 'flights' array)
+      expect(data.data || data.flights).toBeDefined();
+      expect(Array.isArray(data.data || data.flights)).toBeTruthy();
 
       const flights = data.data || data.flights || [];
       expect(flights.length).toBeGreaterThan(0);
@@ -74,8 +74,8 @@ test.describe('API Fare Validation', () => {
     test('should apply markup correctly to prices', async ({ request }) => {
       const response = await request.post(`${BASE_URL}/api/flights/search`, {
         data: {
-          originLocationCode: 'JFK',
-          destinationLocationCode: 'LAX',
+          origin: 'JFK',
+          destination: 'LAX',
           departureDate: getFutureDate(45),
           adults: 1,
           travelClass: 'ECONOMY',
@@ -111,8 +111,8 @@ test.describe('API Fare Validation', () => {
 
     test('should handle multi-passenger pricing correctly', async ({ request }) => {
       const params = {
-        originLocationCode: 'JFK',
-        destinationLocationCode: 'MIA',
+        origin: 'JFK',
+        destination: 'MIA',
         departureDate: getFutureDate(21),
         returnDate: getFutureDate(28),
         adults: 2,
@@ -159,8 +159,8 @@ test.describe('API Fare Validation', () => {
     test('should include fare family information when available', async ({ request }) => {
       const response = await request.post(`${BASE_URL}/api/flights/search`, {
         data: {
-          originLocationCode: 'JFK',
-          destinationLocationCode: 'LAX',
+          origin: 'JFK',
+          destination: 'LAX',
           departureDate: getFutureDate(60),
           returnDate: getFutureDate(67),
           adults: 1,
@@ -198,8 +198,8 @@ test.describe('API Fare Validation', () => {
     test('should include baggage information', async ({ request }) => {
       const response = await request.post(`${BASE_URL}/api/flights/search`, {
         data: {
-          originLocationCode: 'JFK',
-          destinationLocationCode: 'LHR',
+          origin: 'JFK',
+          destination: 'LHR',
           departureDate: getFutureDate(45),
           adults: 1,
           travelClass: 'ECONOMY',
@@ -243,8 +243,8 @@ test.describe('API Fare Validation', () => {
   test.describe('Price Validation', () => {
     test('should maintain price consistency across requests', async ({ request }) => {
       const params = {
-        originLocationCode: 'JFK',
-        destinationLocationCode: 'LAX',
+        origin: 'JFK',
+        destination: 'LAX',
         departureDate: getFutureDate(30),
         adults: 1,
         travelClass: 'ECONOMY',
@@ -288,8 +288,8 @@ test.describe('API Fare Validation', () => {
       for (const cabinClass of cabinClasses) {
         const response = await request.post(`${BASE_URL}/api/flights/search`, {
           data: {
-            originLocationCode: 'JFK',
-            destinationLocationCode: 'LHR',
+            origin: 'JFK',
+            destination: 'LHR',
             departureDate: getFutureDate(60),
             adults: 1,
             travelClass: cabinClass,
@@ -327,8 +327,8 @@ test.describe('API Fare Validation', () => {
     test('should handle invalid origin gracefully', async ({ request }) => {
       const response = await request.post(`${BASE_URL}/api/flights/search`, {
         data: {
-          originLocationCode: 'INVALID',
-          destinationLocationCode: 'LAX',
+          origin: 'INVALID',
+          destination: 'LAX',
           departureDate: getFutureDate(30),
           adults: 1,
         },
@@ -354,8 +354,8 @@ test.describe('API Fare Validation', () => {
 
       const response = await request.post(`${BASE_URL}/api/flights/search`, {
         data: {
-          originLocationCode: 'JFK',
-          destinationLocationCode: 'LAX',
+          origin: 'JFK',
+          destination: 'LAX',
           departureDate: pastDateStr,
           adults: 1,
         },
@@ -375,8 +375,8 @@ test.describe('API Fare Validation', () => {
       const promises = Array(20).fill(null).map(() =>
         request.post(`${BASE_URL}/api/flights/search`, {
           data: {
-            originLocationCode: 'JFK',
-            destinationLocationCode: 'LAX',
+            origin: 'JFK',
+            destination: 'LAX',
             departureDate: getFutureDate(30),
             adults: 1,
           },
@@ -425,8 +425,8 @@ test.describe('Booking Flow API Tests', () => {
     // First search for flights
     const searchResponse = await request.post(`${BASE_URL}/api/flights/search`, {
       data: {
-        originLocationCode: 'JFK',
-        destinationLocationCode: 'LAX',
+        origin: 'JFK',
+        destination: 'LAX',
         departureDate: getFutureDate(45),
         adults: 1,
         travelClass: 'ECONOMY',

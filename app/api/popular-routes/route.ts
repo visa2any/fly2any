@@ -118,24 +118,23 @@ export async function GET(request: NextRequest) {
       // Query routes originating from user's region
       routes = await client.query(
         `SELECT
-          origin || '-' || destination as route,
-          origin,
-          destination,
-          searches_30d,
-          searches_7d,
-          searches_24h,
-          avg_price,
-          min_price,
-          max_price,
-          conversion_rate,
-          last_searched_at
+          "routeKey" as route,
+          "originIata" as origin,
+          "destinationIata" as destination,
+          "dailyFlights",
+          "weeklyFlights",
+          "avgEconomyPrice" as avg_price,
+          "avgEconomyPrice" as min_price,
+          "avgBusinessPrice" as max_price,
+          "dataPoints",
+          "lastAnalyzed" as last_searched_at
         FROM route_statistics
         WHERE
-          origin = ANY($1::text[])
-          AND searches_7d > 0
+          "originIata" = ANY($1::text[])
+          AND "dataPoints" > 0
         ORDER BY
-          searches_7d DESC,
-          searches_30d DESC
+          "weeklyFlights" DESC NULLS LAST,
+          "dailyFlights" DESC NULLS LAST
         LIMIT $2`,
         [relevantAirports, limit]
       );
@@ -143,22 +142,21 @@ export async function GET(request: NextRequest) {
       // Global top routes
       routes = await client.query(
         `SELECT
-          origin || '-' || destination as route,
-          origin,
-          destination,
-          searches_30d,
-          searches_7d,
-          searches_24h,
-          avg_price,
-          min_price,
-          max_price,
-          conversion_rate,
-          last_searched_at
+          "routeKey" as route,
+          "originIata" as origin,
+          "destinationIata" as destination,
+          "dailyFlights",
+          "weeklyFlights",
+          "avgEconomyPrice" as avg_price,
+          "avgEconomyPrice" as min_price,
+          "avgBusinessPrice" as max_price,
+          "dataPoints",
+          "lastAnalyzed" as last_searched_at
         FROM route_statistics
-        WHERE searches_7d > 0
+        WHERE "dataPoints" > 0
         ORDER BY
-          searches_30d DESC,
-          searches_7d DESC
+          "weeklyFlights" DESC NULLS LAST,
+          "dailyFlights" DESC NULLS LAST
         LIMIT $1`,
         [limit]
       );
@@ -171,46 +169,50 @@ export async function GET(request: NextRequest) {
       }
       routes = await client.query(
         `SELECT
-          origin || '-' || destination as route,
-          origin,
-          destination,
-          searches_30d,
-          searches_7d,
-          searches_24h,
-          avg_price,
-          min_price,
-          max_price,
-          conversion_rate,
-          last_searched_at
+          "routeKey" as route,
+          "originIata" as origin,
+          "destinationIata" as destination,
+          "dailyFlights",
+          "weeklyFlights",
+          "avgEconomyPrice" as avg_price,
+          "avgEconomyPrice" as min_price,
+          "avgBusinessPrice" as max_price,
+          "dataPoints",
+          "lastAnalyzed" as last_searched_at
         FROM route_statistics
-        WHERE searches_7d > 0
+        WHERE "dataPoints" > 0
         ORDER BY
-          searches_30d DESC,
-          searches_7d DESC
+          "weeklyFlights" DESC NULLS LAST,
+          "dailyFlights" DESC NULLS LAST
         LIMIT $1`,
         [limit]
       );
     }
 
-    // Calculate trending score (higher weight for recent searches)
+    // Calculate trending score based on flight frequency and data points
     const routesWithTrending = routes.rows.map(route => {
-      const searches_24h = route.searches_24h || 0;
-      const searches_7d = route.searches_7d || 0;
-      const searches_30d = route.searches_30d || 0;
+      const dailyFlights = route.dailyFlights || 0;
+      const weeklyFlights = route.weeklyFlights || 0;
+      const dataPoints = route.dataPoints || 0;
 
-      const trendingScore = (searches_24h * 10) + (searches_7d * 2) + searches_30d;
+      // Score based on flight frequency and data quality
+      const trendingScore = (dailyFlights * 10) + (weeklyFlights * 2) + dataPoints;
 
-      // Determine if route is "hot" (rising searches)
-      const isHot = searches_24h > 0 && searches_7d > searches_30d / 4;
+      // Determine if route is "hot" (high frequency routes)
+      const isHot = dailyFlights >= 5 || weeklyFlights >= 50;
 
       return {
         ...route,
+        // Map to expected response structure
+        searches_30d: weeklyFlights * 4, // Estimate monthly activity
+        searches_7d: weeklyFlights,
+        searches_24h: dailyFlights,
         trendingScore,
         isHot,
         // Format prices for display
         displayPrice: route.min_price || route.avg_price || null,
         priceRange: route.min_price && route.max_price
-          ? `$${route.min_price} - $${route.max_price}`
+          ? `$${Math.round(route.min_price)} - $${Math.round(route.max_price)}`
           : null,
       };
     });
@@ -220,7 +222,7 @@ export async function GET(request: NextRequest) {
 
     if (process.env.NODE_ENV === 'development') {
       console.log(`✅ Found ${routesWithTrending.length} popular routes for region: ${userRegion}`);
-      console.log(`   Top route: ${routesWithTrending[0]?.route || 'none'} (${routesWithTrending[0]?.searches_7d || 0} searches/week)`);
+      console.log(`   Top route: ${routesWithTrending[0]?.route || 'none'} (${routesWithTrending[0]?.weeklyFlights || 0} flights/week)`);
     }
 
     await client.end();

@@ -332,8 +332,8 @@ async function makeAPISearch(
   try {
     const response = await request.post(API_ENDPOINT, {
       data: {
-        originLocationCode: params.origin,
-        destinationLocationCode: params.destination,
+        origin: params.origin,
+        destination: params.destination,
         departureDate: params.departureDate,
         returnDate: params.returnDate,
         adults: params.adults,
