@@ -285,38 +285,37 @@ export async function getRouteStatistics(route: string): Promise<{
 } | null> {
   try {
     if (!sql) {
-      console.warn('Database not configured');
       return null;
     }
 
+    // Query using actual schema columns (RouteStatistics table)
     const result = await sql`
       SELECT
-        searches_30d,
-        searches_7d,
-        searches_24h,
-        conversion_rate,
-        avg_price,
-        cache_priority,
-        recommended_ttl_seconds
+        "weeklyFlights",
+        "dailyFlights",
+        "avgEconomyPrice",
+        "dataPoints"
       FROM route_statistics
-      WHERE route = ${route}
+      WHERE "routeKey" = ${route}
     `;
 
     if (result.length === 0) return null;
 
+    const row = result[0];
+    const weeklyFlights = row.weeklyFlights || 0;
+    const dailyFlights = row.dailyFlights || 0;
+
     return {
-      searches30d: result[0].searches_30d || 0,
-      searches7d: result[0].searches_7d || 0,
-      searches24h: result[0].searches_24h || 0,
-      conversionRate: parseFloat(result[0].conversion_rate || '0'),
-      avgPrice: result[0].avg_price || 0,
-      cachePriority: result[0].cache_priority || 0,
-      recommendedTtl: result[0].recommended_ttl_seconds || 900,
+      searches30d: weeklyFlights * 4,
+      searches7d: weeklyFlights,
+      searches24h: dailyFlights,
+      conversionRate: 0,
+      avgPrice: row.avgEconomyPrice || 0,
+      cachePriority: row.dataPoints || 0,
+      recommendedTtl: 900,
     };
   } catch (error) {
-    if (process.env.NODE_ENV === 'development') {
-      console.error('Failed to get route statistics:', error instanceof Error ? error.message : 'Unknown error');
-    }
+    // Silently fail - this is non-critical analytics
     return null;
   }
 }
@@ -337,24 +336,26 @@ export async function getPopularRoutes(limit: number = 50): Promise<{
       return [];
     }
 
+    // Query using actual schema columns
     const result = await sql`
       SELECT
-        route,
-        origin,
-        destination,
-        searches_30d,
-        avg_price
+        "routeKey",
+        "originIata",
+        "destinationIata",
+        "weeklyFlights",
+        "avgEconomyPrice"
       FROM route_statistics
-      ORDER BY searches_30d DESC
+      WHERE "dataPoints" > 0
+      ORDER BY "weeklyFlights" DESC NULLS LAST
       LIMIT ${limit}
     `;
 
     return result.map((row: any) => ({
-      route: row.route,
-      origin: row.origin,
-      destination: row.destination,
-      searches30d: row.searches_30d || 0,
-      avgPrice: row.avg_price || 0,
+      route: row.routeKey,
+      origin: row.originIata,
+      destination: row.destinationIata,
+      searches30d: (row.weeklyFlights || 0) * 4,
+      avgPrice: row.avgEconomyPrice || 0,
     }));
   } catch (error) {
     if (process.env.NODE_ENV === 'development') {

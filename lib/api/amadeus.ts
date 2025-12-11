@@ -35,29 +35,37 @@ class AmadeusAPI {
     this.apiKey = process.env.AMADEUS_API_KEY || '';
     this.apiSecret = process.env.AMADEUS_API_SECRET || '';
 
+    // Check if credentials are actually configured (not placeholders)
+    this.isValidCredentials = this.hasValidCredentials();
+
     // Smart environment detection:
     // 1. Explicit AMADEUS_ENVIRONMENT takes priority
-    // 2. If in Vercel production (NODE_ENV=production), default to production
-    // 3. Otherwise default to test
+    // 2. If valid production credentials exist, default to production
+    // 3. If in Vercel/production NODE_ENV, default to production
+    // 4. Otherwise default to test (for safety with test keys)
     const explicitEnv = process.env.AMADEUS_ENVIRONMENT;
-    const isVercelProduction = process.env.NODE_ENV === 'production' && process.env.VERCEL === '1';
+    const isVercelProduction = process.env.NODE_ENV === 'production';
 
+    let detectionMethod = '';
     if (explicitEnv) {
       this.environment = explicitEnv;
-    } else if (isVercelProduction) {
-      // IMPORTANT: Default to production in Vercel production environment
-      // This prevents test mode from being accidentally used with production keys
+      detectionMethod = `AMADEUS_ENVIRONMENT=${explicitEnv}`;
+    } else if (this.isValidCredentials) {
+      // Default to production when valid credentials are configured
+      // Users with real API keys want real prices
       this.environment = 'production';
+      detectionMethod = 'Valid credentials detected (auto-production)';
+    } else if (isVercelProduction) {
+      this.environment = 'production';
+      detectionMethod = 'NODE_ENV=production (auto)';
     } else {
       this.environment = 'test';
+      detectionMethod = 'Default (test - no valid credentials)';
     }
 
     this.baseUrl = this.environment === 'production'
       ? 'https://api.amadeus.com'
       : 'https://test.api.amadeus.com';
-
-    // Check if credentials are actually configured (not placeholders)
-    this.isValidCredentials = this.hasValidCredentials();
 
     // Show startup banner (only once)
     showStartupBanner();
@@ -70,14 +78,13 @@ class AmadeusAPI {
     if (this.isValidCredentials) {
       console.log(`   API Key: ${this.apiKey.substring(0, 8)}...${this.apiKey.slice(-4)}`);
     }
-    console.log(`   Detection method: ${explicitEnv ? 'AMADEUS_ENVIRONMENT=' + explicitEnv : (isVercelProduction ? 'Vercel Production (auto)' : 'Default (test)')}`);
+    console.log(`   Detection method: ${detectionMethod}`);
 
     if (!this.isValidCredentials) {
       console.warn('   ⚠️  WARNING: Amadeus API not properly configured');
       console.warn('   📖 See: SETUP_REAL_APIS.md for setup instructions');
-    } else if (this.environment === 'test') {
-      console.warn('   ⚠️  WARNING: Using TEST environment (fake prices)');
-      console.warn('   💡 Set AMADEUS_ENVIRONMENT=production for real prices');
+    } else if (this.environment === 'production') {
+      console.log('   ✅ PRODUCTION MODE - Real prices enabled');
     }
     console.log('🔌 ================================================\n');
   }
