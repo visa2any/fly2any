@@ -62,18 +62,27 @@ export async function POST(request: NextRequest) {
       source: source,
     });
   } catch (error: any) {
-    console.error('❌ Error fetching seat map:', error);
+    console.error('❌ Error fetching seat map:', error.message || error);
 
     // Provide user-friendly error messages based on the issue
-    let userMessage = error.message || 'Failed to fetch seat map';
+    let userMessage = 'Unable to load seat map. You can still proceed with booking.';
+    let showPreferences = true; // Allow preference-based selection as fallback
 
-    if (error.message?.includes('not available for this flight')) {
-      userMessage = 'Interactive seat maps are not available for this airline. This is normal for some carriers.';
-    } else if (error.message?.includes('not configured')) {
+    // Check for specific error patterns
+    const errorMsg = error.message?.toLowerCase() || '';
+
+    if (errorMsg.includes('not available') || errorMsg.includes('not supported')) {
+      userMessage = 'Seat selection will be assigned at check-in for this flight.';
+      showPreferences = true; // Still allow preferences
+    } else if (errorMsg.includes('not configured')) {
       userMessage = 'Seat map service is temporarily unavailable.';
+      showPreferences = true;
+    } else if (errorMsg.includes('timeout') || errorMsg.includes('ETIMEDOUT')) {
+      userMessage = 'Seat map is taking too long to load. You can skip or try again.';
+      showPreferences = true;
     }
 
-    // Return error response in expected format to allow graceful fallback
+    // Return response that allows graceful fallback to preferences
     return NextResponse.json(
       {
         success: false,
@@ -81,6 +90,7 @@ export async function POST(request: NextRequest) {
         data: [],
         meta: {
           hasRealData: false,
+          showPreferences,
           reason: error.message || 'Unknown error'
         }
       },

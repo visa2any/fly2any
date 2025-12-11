@@ -1065,6 +1065,10 @@ class AmadeusAPI {
       // Clean the flight offer before sending to API
       const cleanedOffer = this.cleanFlightOfferForAPI(flightOffer);
 
+      console.log('🪑 Fetching seat map from Amadeus...');
+      console.log(`   Flight ID: ${flightOffer.id}`);
+      console.log(`   Source: ${flightOffer.source}`);
+
       const response = await axios.post(
         `${this.baseUrl}/v1/shopping/seatmaps`,
         {
@@ -1075,13 +1079,54 @@ class AmadeusAPI {
             Authorization: `Bearer ${token}`,
             'Content-Type': 'application/json',
           },
+          timeout: 15000, // 15 second timeout
         }
       );
 
+      // Validate response has actual seat data
+      const seatMapData = response.data?.data;
+      if (!seatMapData || seatMapData.length === 0) {
+        console.log('⚠️  Amadeus returned empty seat map data');
+        throw new Error('Seat maps not available for this flight');
+      }
+
+      // Check if decks have actual rows
+      const hasRows = seatMapData.some((sm: any) =>
+        sm.decks?.some((d: any) => d.seatRows?.length > 0)
+      );
+
+      if (!hasRows) {
+        console.log('⚠️  Seat map has no seat rows');
+        throw new Error('Seat maps not available for this flight');
+      }
+
+      console.log('✅ Amadeus seat map fetched successfully');
+      console.log(`   Decks: ${seatMapData[0]?.decks?.length || 0}`);
+      console.log(`   Rows: ${seatMapData[0]?.decks?.[0]?.seatRows?.length || 0}`);
+
       return response.data;
     } catch (error: any) {
-      console.error('Error getting seat map:', error.response?.data || error);
-      throw new Error('Failed to get seat map');
+      console.error('❌ Error getting seat map:', error.response?.data || error.message);
+
+      // Provide specific error messages based on API response
+      if (error.response?.status === 400) {
+        const apiError = error.response.data?.errors?.[0];
+        if (apiError?.detail?.includes('not supported') || apiError?.title?.includes('NOT SUPPORTED')) {
+          throw new Error('Seat maps not available for this flight');
+        }
+        throw new Error('Seat maps not available for this flight');
+      }
+
+      if (error.response?.status === 404) {
+        throw new Error('Seat maps not available for this flight');
+      }
+
+      if (error.message?.includes('not available')) {
+        throw error; // Re-throw our own specific errors
+      }
+
+      // Generic fallback
+      throw new Error('Seat maps not available for this flight');
     }
   }
 
