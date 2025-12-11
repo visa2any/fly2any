@@ -350,11 +350,12 @@ export async function GET(
                 return Array(count).fill(DEFAULT_CHILD_AGE);
               };
 
-              const occupancies: Array<{ adults: number; children?: number[] }> = [];
+              const occupancies: Array<{ rooms: number; adults: number; children?: number[] }> = [];
 
               if (rooms === 1) {
                 // Single room - all guests in one room
                 occupancies.push({
+                  rooms: 1,
                   adults,
                   ...(children > 0 ? { children: createChildrenAges(children) } : {})
                 });
@@ -369,6 +370,7 @@ export async function GET(
                   const roomAdults = adultsPerRoom + (i < extraAdults ? 1 : 0);
                   const roomChildren = childrenPerRoom + (i < extraChildren ? 1 : 0);
                   occupancies.push({
+                    rooms: 1,
                     adults: roomAdults || 1, // At least 1 adult per room
                     ...(roomChildren > 0 ? { children: createChildrenAges(roomChildren) } : {})
                   });
