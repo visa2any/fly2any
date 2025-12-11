@@ -6,12 +6,19 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { getServerSession } from 'next-auth';
-import { authOptions } from '@/lib/auth';
-import { getRedisClient, isRedisEnabled } from '@/lib/cache/redis';
+import { auth } from '@/lib/auth';
+import { Redis } from '@upstash/redis';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
+
+// Initialize Redis client
+const redis = process.env.UPSTASH_REDIS_REST_URL && process.env.UPSTASH_REDIS_REST_TOKEN
+  ? new Redis({
+      url: process.env.UPSTASH_REDIS_REST_URL,
+      token: process.env.UPSTASH_REDIS_REST_TOKEN,
+    })
+  : null;
 
 interface SecurityMetrics {
   overview: {
@@ -41,26 +48,29 @@ interface SecurityMetrics {
   };
 }
 
+// Helper: Check admin authorization
+async function isAdminAuthorized(request: NextRequest): Promise<boolean> {
+  const session = await auth();
+  if (session?.user && (session.user as any).role === 'admin') return true;
+
+  const authHeader = request.headers.get('authorization');
+  const adminSecret = process.env.ADMIN_SECRET || process.env.CRON_SECRET;
+  if (adminSecret && authHeader === `Bearer ${adminSecret}`) return true;
+
+  const adminEmails = (process.env.ADMIN_EMAILS || '').split(',').map(e => e.trim().toLowerCase());
+  if (session?.user?.email && adminEmails.includes(session.user.email.toLowerCase())) return true;
+
+  return false;
+}
+
 export async function GET(request: NextRequest) {
   try {
-    // Auth check
-    const session = await getServerSession(authOptions);
-    if (!session?.user?.email) {
+    if (!await isAdminAuthorized(request)) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    // Check admin role (simple check - expand as needed)
-    const adminEmails = (process.env.ADMIN_EMAILS || '').split(',');
-    if (!adminEmails.includes(session.user.email)) {
-      return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
-    }
-
-    const redis = getRedisClient();
-    if (!redis || !isRedisEnabled()) {
-      return NextResponse.json({
-        error: 'Redis not available',
-        metrics: null,
-      });
+    if (!redis) {
+      return NextResponse.json({ error: 'Redis not available', metrics: null });
     }
 
     // Fetch all metrics from Redis
@@ -71,11 +81,11 @@ export async function GET(request: NextRequest) {
       honeypotLogs,
       manualBlocked,
     ] = await Promise.all([
-      redis.hgetall('blocked_ips'),
-      redis.hgetall('honeypot_triggers'),
-      redis.lrange('suspicious_requests', 0, 49),
-      redis.lrange('honeypot_log', 0, 49),
-      redis.hgetall('manual_blocked_ips'),
+      redis.hgetall('blocked_ips') as Promise<Record<string, string> | null>,
+      redis.hgetall('honeypot_triggers') as Promise<Record<string, string> | null>,
+      redis.lrange('suspicious_requests', 0, 49) as Promise<string[]>,
+      redis.lrange('honeypot_log', 0, 49) as Promise<string[]>,
+      redis.hgetall('manual_blocked_ips') as Promise<Record<string, string> | null>,
     ]);
 
     // Process blocked IPs
@@ -86,10 +96,10 @@ export async function GET(request: NextRequest) {
 
     // Process honeypot triggers
     const honeypotCount = Object.values(honeypotTriggers || {})
-      .reduce((sum, count) => sum + Number(count), 0);
+      .reduce((sum: number, count) => sum + Number(count), 0);
 
     // Parse logs
-    const parseSafe = (str: any) => {
+    const parseSafe = (str: string) => {
       try { return JSON.parse(str); } catch { return null; }
     };
 
@@ -140,23 +150,16 @@ export async function GET(request: NextRequest) {
  */
 export async function POST(request: NextRequest) {
   try {
-    const session = await getServerSession(authOptions);
-    if (!session?.user?.email) {
+    if (!await isAdminAuthorized(request)) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const adminEmails = (process.env.ADMIN_EMAILS || '').split(',');
-    if (!adminEmails.includes(session.user.email)) {
-      return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+    if (!redis) {
+      return NextResponse.json({ error: 'Redis not available' }, { status: 503 });
     }
 
     const body = await request.json();
     const { action, ip, reason } = body;
-
-    const redis = getRedisClient();
-    if (!redis || !isRedisEnabled()) {
-      return NextResponse.json({ error: 'Redis not available' }, { status: 503 });
-    }
 
     switch (action) {
       case 'block':
