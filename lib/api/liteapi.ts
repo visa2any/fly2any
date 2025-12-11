@@ -26,8 +26,9 @@ interface HotelDetailsParams {
 }
 
 interface Occupancy {
+  rooms: number;  // Required by LiteAPI - number of rooms for this occupancy
   adults: number;
-  children?: number[];
+  children?: number[];  // Array of children ages (integers)
 }
 
 interface LiteAPIHotel {
@@ -686,11 +687,13 @@ class LiteAPI {
       console.log('👶 Child ages for rate request:', { providedAges, allChildAges, children });
 
       // Build occupancies array for multiple rooms - distribute guests across rooms
-      const occupancies: Array<{ adults: number; children?: number[] }> = [];
+      // CRITICAL: LiteAPI requires `rooms` field in each occupancy object
+      const occupancies: Occupancy[] = [];
 
       if (rooms === 1) {
         // Single room - all guests in one occupancy
         occupancies.push({
+          rooms: 1,
           adults,
           ...(allChildAges.length > 0 && { children: allChildAges })
         });
@@ -713,6 +716,7 @@ class LiteAPI {
           childAgeIndex += roomChildCount;
 
           occupancies.push({
+            rooms: 1, // Each occupancy object represents 1 room
             adults: roomAdults || 1, // At least 1 adult per room
             ...(roomChildAges.length > 0 && { children: roomChildAges })
           });
@@ -877,11 +881,13 @@ class LiteAPI {
 
       console.log('👶 MinRates child ages:', { providedAges, allChildAges, children });
 
-      const occupancies: Array<{ adults: number; children?: number[] }> = [];
+      // CRITICAL: LiteAPI requires `rooms` field in each occupancy object
+      const occupancies: Occupancy[] = [];
 
       if (rooms === 1) {
         // Single room - all guests in one occupancy
         occupancies.push({
+          rooms: 1,
           adults,
           ...(allChildAges.length > 0 && { children: allChildAges })
         });
@@ -904,6 +910,7 @@ class LiteAPI {
           childAgeIndex += roomChildCount;
 
           occupancies.push({
+            rooms: 1, // Each occupancy object represents 1 room
             adults: roomAdults || 1, // At least 1 adult per room
             ...(roomChildAges.length > 0 && { children: roomChildAges })
           });
