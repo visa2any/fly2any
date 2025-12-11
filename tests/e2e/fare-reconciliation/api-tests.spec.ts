@@ -15,9 +15,10 @@ import { getFutureDate } from '../fixtures/test-data';
 
 const BASE_URL = process.env.PLAYWRIGHT_BASE_URL || 'http://localhost:3000';
 
-// Test mode headers to bypass rate limiting
+// Test mode headers with secret token to bypass rate limiting securely
 const TEST_HEADERS = {
   'X-Test-Mode': 'fare-reconciliation',
+  'X-Test-Secret': process.env.E2E_TEST_SECRET || 'fly2any-e2e-secure-2025',
   'User-Agent': 'Fly2Any-FareReconciliation-Test/1.0',
 };
 

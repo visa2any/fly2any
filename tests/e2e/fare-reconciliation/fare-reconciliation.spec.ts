@@ -345,6 +345,7 @@ async function makeAPISearch(
       },
       headers: {
         'X-Test-Mode': 'fare-reconciliation',
+        'X-Test-Secret': process.env.E2E_TEST_SECRET || 'fly2any-e2e-secure-2025',
         'User-Agent': 'Fly2Any-FareReconciliation-Test/1.0',
       },
       timeout: 60000,
@@ -400,64 +401,93 @@ async function performUISearch(
   page: Page,
   params: TestScenario['searchParams']
 ): Promise<void> {
-  // Fill origin
-  const originInput = page.locator('input[name="origin"], input[placeholder*="From"], input[data-testid="origin-input"]').first();
-  await originInput.fill(params.origin);
-  await page.waitForTimeout(500);
+  // Helper to select airport from MultiAirportSelector
+  async function selectAirport(testId: string, code: string): Promise<void> {
+    const input = page.locator(`input[data-testid="${testId}"]`).first();
+    await input.click();
+    await input.fill(code);
+    await page.waitForTimeout(800); // Wait for autocomplete to populate
 
-  // Select from autocomplete if present
-  const originSuggestion = page.locator(`[role="option"]:has-text("${params.origin}"), [class*="suggestion"]:has-text("${params.origin}")`).first();
-  if (await originSuggestion.isVisible({ timeout: 2000 }).catch(() => false)) {
-    await originSuggestion.click();
+    // Look for the airport suggestion button and click it
+    const suggestion = page.locator(`button:has-text("${code}")`).first();
+    if (await suggestion.isVisible({ timeout: 3000 }).catch(() => false)) {
+      await suggestion.click();
+      await page.waitForTimeout(300);
+    }
+
+    // Click Done button to confirm selection
+    const doneButton = page.locator('button:has-text("Done")').first();
+    if (await doneButton.isVisible({ timeout: 2000 }).catch(() => false)) {
+      await doneButton.click();
+      await page.waitForTimeout(300);
+    }
   }
 
-  // Fill destination
-  const destInput = page.locator('input[name="destination"], input[placeholder*="To"], input[data-testid="destination-input"]').first();
-  await destInput.fill(params.destination);
-  await page.waitForTimeout(500);
+  // Select origin airport
+  await selectAirport('origin-input', params.origin);
 
-  const destSuggestion = page.locator(`[role="option"]:has-text("${params.destination}"), [class*="suggestion"]:has-text("${params.destination}")`).first();
-  if (await destSuggestion.isVisible({ timeout: 2000 }).catch(() => false)) {
-    await destSuggestion.click();
+  // Select destination airport
+  await selectAirport('destination-input', params.destination);
+
+  // Fill dates using the date picker
+  const departureDateInput = page.locator('input[type="date"]').first();
+  if (await departureDateInput.isVisible({ timeout: 2000 }).catch(() => false)) {
+    await departureDateInput.fill(params.departureDate);
   }
-
-  // Fill dates
-  const departureDateInput = page.locator('input[name="departureDate"], input[data-testid="departure-date"]').first();
-  await departureDateInput.fill(params.departureDate);
 
   if (params.returnDate) {
-    const returnDateInput = page.locator('input[name="returnDate"], input[data-testid="return-date"]').first();
-    await returnDateInput.fill(params.returnDate);
+    const returnDateInput = page.locator('input[type="date"]').nth(1);
+    if (await returnDateInput.isVisible({ timeout: 2000 }).catch(() => false)) {
+      await returnDateInput.fill(params.returnDate);
+    }
   }
 
   // Set passengers if needed
   if (params.adults > 1 || params.children || params.infants) {
-    const passengerToggle = page.locator('[data-testid="passenger-selector"], button:has-text("Traveler"), button:has-text("Passenger")').first();
-    if (await passengerToggle.isVisible({ timeout: 1000 }).catch(() => false)) {
+    // Look for the passengers dropdown button (contains passenger count text)
+    const passengerToggle = page.locator('button:has-text("Passenger"), button:has-text("Traveler"), [data-testid="passenger-selector"]').first();
+    if (await passengerToggle.isVisible({ timeout: 2000 }).catch(() => false)) {
       await passengerToggle.click();
+      await page.waitForTimeout(500);
 
       // Adjust adults
+      const adultsSection = page.locator('text=Adults').locator('..').locator('..');
       for (let i = 1; i < params.adults; i++) {
-        await page.locator('button:has-text("+"):near([data-testid="adults"], :text("Adult"))').first().click();
+        const plusButton = adultsSection.locator('button:has-text("+")').first();
+        if (await plusButton.isVisible({ timeout: 1000 }).catch(() => false)) {
+          await plusButton.click();
+          await page.waitForTimeout(200);
+        }
       }
 
       // Add children
       if (params.children) {
+        const childrenSection = page.locator('text=Children').locator('..').locator('..');
         for (let i = 0; i < params.children; i++) {
-          await page.locator('button:has-text("+"):near([data-testid="children"], :text("Child"))').first().click();
+          const plusButton = childrenSection.locator('button:has-text("+")').first();
+          if (await plusButton.isVisible({ timeout: 1000 }).catch(() => false)) {
+            await plusButton.click();
+            await page.waitForTimeout(200);
+          }
         }
+      }
+
+      // Close passenger dropdown (click Done or outside)
+      const doneBtn = page.locator('button:has-text("Done")').first();
+      if (await doneBtn.isVisible({ timeout: 1000 }).catch(() => false)) {
+        await doneBtn.click();
       }
     }
   }
 
-  // Set cabin class
+  // Set cabin class if there's a select element
   const cabinSelect = page.locator('select[name="class"], select[name="cabinClass"], [data-testid="cabin-select"]').first();
   if (await cabinSelect.isVisible({ timeout: 1000 }).catch(() => false)) {
     await cabinSelect.selectOption(params.cabinClass.toLowerCase());
   }
 
-  // Submit search
-  const searchButton = page.locator('button[type="submit"], button:has-text("Search")').first();
+  // Submit search - look for the main search button
+  const searchButton = page.locator('button[type="submit"], button:has-text("Search Flights"), button:has-text("Search")').first();
   await searchButton.click();
 }
 

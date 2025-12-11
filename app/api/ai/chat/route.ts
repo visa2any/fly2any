@@ -35,7 +35,7 @@ export async function POST(request: NextRequest) {
     });
 
     // Get current usage stats
-    const usageStats = getUsageStats();
+    const usageStats = await getUsageStats();
 
     return NextResponse.json({
       success: true,

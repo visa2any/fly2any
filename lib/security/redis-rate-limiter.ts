@@ -65,10 +65,24 @@ function generateKey(ip: string, prefix: string, path?: string): string {
 
 /**
  * Check if request is in test mode (bypass rate limiting for E2E tests)
+ * Requires matching secret token for security
  */
 function isTestMode(request: NextRequest): boolean {
   const testHeader = request.headers.get('x-test-mode');
-  return testHeader === 'fare-reconciliation' || testHeader === 'e2e-test';
+  const testSecret = request.headers.get('x-test-secret');
+
+  // Validate test mode AND secret token
+  const validModes = ['fare-reconciliation', 'e2e-test'];
+  const expectedSecret = process.env.E2E_TEST_SECRET || 'fly2any-e2e-secure-2025';
+
+  // Only allow test bypass if both mode and secret are valid
+  if (!testHeader || !validModes.includes(testHeader)) return false;
+  if (!testSecret || testSecret !== expectedSecret) {
+    console.warn('[Security] Test mode attempted without valid secret');
+    return false;
+  }
+
+  return true;
 }
 
 /**

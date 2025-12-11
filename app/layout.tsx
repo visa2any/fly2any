@@ -41,10 +41,10 @@ export const metadata: Metadata = {
     siteName: "Fly2Any",
     images: [
       {
-        url: '/og-image.jpg',
+        url: '/api/og',
         width: 1200,
         height: 630,
-        alt: 'Fly2Any - Find Cheap Flights',
+        alt: 'Fly2Any - Find Cheap Flights & Best Travel Deals',
       },
     ],
   },

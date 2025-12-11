@@ -1,17 +1,24 @@
 /**
- * Groq AI Client with Intelligent Rate Limiting
+ * Groq AI Client with Distributed Rate Limiting
  * Uses Llama 3.1 70B for blazing-fast inference
  * Free tier: 14,400 requests/day, 30 requests/minute
+ *
+ * ✅ Uses Upstash Redis for distributed rate limiting
  */
+
+import { getRedisClient, isRedisEnabled } from '@/lib/cache/redis';
 
 // Rate limiting configuration
 const DAILY_LIMIT = 14400; // Free tier daily limit
 const MINUTE_LIMIT = 30;   // Free tier requests per minute
 const TOKENS_PER_MINUTE = 6000; // Free tier tokens per minute
 
-// Usage tracking (in-memory, resets on server restart)
-// In production, use Redis or database for persistence
-let dailyUsage = {
+// Redis keys
+const REDIS_KEY_DAILY = 'groq:usage:daily';
+const REDIS_KEY_MINUTE = 'groq:usage:minute';
+
+// In-memory fallback (only used if Redis unavailable)
+let memoryFallback = {
   count: 0,
   date: new Date().toDateString(),
   minuteCount: 0,
@@ -74,80 +81,166 @@ export interface GroqUsageStats {
 }
 
 /**
- * Check if we're within rate limits
+ * Get today's date key for Redis
  */
-function checkRateLimits(): { allowed: boolean; reason?: string } {
+function getTodayKey(): string {
+  return new Date().toISOString().split('T')[0]; // YYYY-MM-DD
+}
+
+/**
+ * Get current minute key for Redis
+ */
+function getMinuteKey(): string {
+  const now = new Date();
+  return `${now.getUTCHours()}:${now.getUTCMinutes()}`;
+}
+
+/**
+ * Check if we're within rate limits (Redis-backed distributed)
+ */
+async function checkRateLimits(): Promise<{ allowed: boolean; reason?: string; dailyCount?: number; minuteCount?: number }> {
+  const redis = getRedisClient();
+  const today = getTodayKey();
+  const minute = getMinuteKey();
+
+  // Use Redis for distributed rate limiting
+  if (redis && isRedisEnabled()) {
+    try {
+      const dailyKey = `${REDIS_KEY_DAILY}:${today}`;
+      const minuteKey = `${REDIS_KEY_MINUTE}:${minute}`;
+
+      // Atomic get for both counters
+      const [rawDaily, rawMinute] = await Promise.all([
+        redis.get<number>(dailyKey),
+        redis.get<number>(minuteKey),
+      ]);
+      const dailyCount = rawDaily ?? 0;
+      const minuteCount = rawMinute ?? 0;
+
+      // Check daily limit
+      if (dailyCount >= DAILY_LIMIT) {
+        return {
+          allowed: false,
+          reason: `Daily limit reached (${DAILY_LIMIT} requests). Resets at midnight UTC.`,
+          dailyCount,
+          minuteCount,
+        };
+      }
+
+      // Check minute limit
+      if (minuteCount >= MINUTE_LIMIT) {
+        return {
+          allowed: false,
+          reason: `Rate limit reached (${MINUTE_LIMIT}/min). Please wait a moment.`,
+          dailyCount,
+          minuteCount,
+        };
+      }
+
+      return { allowed: true, dailyCount, minuteCount };
+    } catch (error) {
+      console.warn('[Groq] Redis check failed, using memory fallback:', error);
+    }
+  }
+
+  // Memory fallback for local dev / Redis unavailable
   const now = Date.now();
-  const today = new Date().toDateString();
+  const todayStr = new Date().toDateString();
 
-  // Reset daily counter if new day
-  if (dailyUsage.date !== today) {
-    dailyUsage = {
-      count: 0,
-      date: today,
-      minuteCount: 0,
-      minuteStart: now,
-      tokensThisMinute: 0,
-    };
+  if (memoryFallback.date !== todayStr) {
+    memoryFallback = { count: 0, date: todayStr, minuteCount: 0, minuteStart: now, tokensThisMinute: 0 };
   }
 
-  // Reset minute counter if minute has passed
-  if (now - dailyUsage.minuteStart >= 60000) {
-    dailyUsage.minuteCount = 0;
-    dailyUsage.minuteStart = now;
-    dailyUsage.tokensThisMinute = 0;
+  if (now - memoryFallback.minuteStart >= 60000) {
+    memoryFallback.minuteCount = 0;
+    memoryFallback.minuteStart = now;
+    memoryFallback.tokensThisMinute = 0;
   }
 
-  // Check daily limit
-  if (dailyUsage.count >= DAILY_LIMIT) {
-    return {
-      allowed: false,
-      reason: `Daily limit reached (${DAILY_LIMIT} requests). Resets at midnight.`
-    };
+  if (memoryFallback.count >= DAILY_LIMIT) {
+    return { allowed: false, reason: `Daily limit reached (${DAILY_LIMIT}).` };
   }
 
-  // Check minute limit
-  if (dailyUsage.minuteCount >= MINUTE_LIMIT) {
-    const waitTime = Math.ceil((60000 - (now - dailyUsage.minuteStart)) / 1000);
-    return {
-      allowed: false,
-      reason: `Rate limit reached. Please wait ${waitTime} seconds.`
-    };
+  if (memoryFallback.minuteCount >= MINUTE_LIMIT) {
+    return { allowed: false, reason: `Rate limit reached. Wait a moment.` };
   }
 
-  return { allowed: true };
+  return { allowed: true, dailyCount: memoryFallback.count, minuteCount: memoryFallback.minuteCount };
 }
 
 /**
- * Update usage counters after a successful request
+ * Update usage counters after a successful request (Redis-backed)
  */
-function recordUsage(tokensUsed: number = 100) {
-  dailyUsage.count++;
-  dailyUsage.minuteCount++;
-  dailyUsage.tokensThisMinute += tokensUsed;
+async function recordUsage(tokensUsed: number = 100): Promise<void> {
+  const redis = getRedisClient();
+  const today = getTodayKey();
+  const minute = getMinuteKey();
+
+  // Use Redis for distributed tracking
+  if (redis && isRedisEnabled()) {
+    try {
+      const dailyKey = `${REDIS_KEY_DAILY}:${today}`;
+      const minuteKey = `${REDIS_KEY_MINUTE}:${minute}`;
+
+      // Atomic increments with appropriate TTLs
+      await Promise.all([
+        redis.incr(dailyKey).then(() => redis.expire(dailyKey, 86400)), // 24h TTL
+        redis.incr(minuteKey).then(() => redis.expire(minuteKey, 120)), // 2min TTL
+      ]);
+
+      return;
+    } catch (error) {
+      console.warn('[Groq] Redis record failed, using memory fallback:', error);
+    }
+  }
+
+  // Memory fallback
+  memoryFallback.count++;
+  memoryFallback.minuteCount++;
+  memoryFallback.tokensThisMinute += tokensUsed;
 }
 
 /**
- * Get current usage statistics
+ * Get current usage statistics (Redis-backed)
  */
-export function getUsageStats(): GroqUsageStats {
-  const today = new Date().toDateString();
-  if (dailyUsage.date !== today) {
-    dailyUsage.count = 0;
-    dailyUsage.date = today;
+export async function getUsageStats(): Promise<GroqUsageStats> {
+  const redis = getRedisClient();
+  const today = getTodayKey();
+  const minute = getMinuteKey();
+
+  let dailyCount = 0;
+  let minuteCount = 0;
+
+  // Fetch from Redis if available
+  if (redis && isRedisEnabled()) {
+    try {
+      const [daily, min] = await Promise.all([
+        redis.get<number>(`${REDIS_KEY_DAILY}:${today}`),
+        redis.get<number>(`${REDIS_KEY_MINUTE}:${minute}`),
+      ]);
+      dailyCount = daily || 0;
+      minuteCount = min || 0;
+    } catch (error) {
+      console.warn('[Groq] Redis stats failed, using memory:', error);
+      dailyCount = memoryFallback.count;
+      minuteCount = memoryFallback.minuteCount;
+    }
+  } else {
+    dailyCount = memoryFallback.count;
+    minuteCount = memoryFallback.minuteCount;
   }
 
   const tomorrow = new Date();
-  tomorrow.setDate(tomorrow.getDate() + 1);
-  tomorrow.setHours(0, 0, 0, 0);
+  tomorrow.setUTCDate(tomorrow.getUTCDate() + 1);
+  tomorrow.setUTCHours(0, 0, 0, 0);
 
   return {
-    dailyCount: dailyUsage.count,
+    dailyCount,
     dailyLimit: DAILY_LIMIT,
-    dailyRemaining: Math.max(0, DAILY_LIMIT - dailyUsage.count),
-    minuteCount: dailyUsage.minuteCount,
+    dailyRemaining: Math.max(0, DAILY_LIMIT - dailyCount),
+    minuteCount,
     minuteLimit: MINUTE_LIMIT,
-    percentUsed: Math.round((dailyUsage.count / DAILY_LIMIT) * 100),
+    percentUsed: Math.round((dailyCount / DAILY_LIMIT) * 100),
     resetTime: tomorrow.toISOString(),
   };
 }
@@ -174,16 +267,16 @@ export async function callGroq(
     };
   }
 
-  // Check rate limits
-  const rateCheck = checkRateLimits();
+  // Check rate limits (async - Redis-backed)
+  const rateCheck = await checkRateLimits();
   if (!rateCheck.allowed) {
     return {
       success: false,
       error: rateCheck.reason,
       rateLimited: true,
       usage: {
-        dailyRemaining: Math.max(0, DAILY_LIMIT - dailyUsage.count),
-        minuteRemaining: Math.max(0, MINUTE_LIMIT - dailyUsage.minuteCount),
+        dailyRemaining: Math.max(0, DAILY_LIMIT - (rateCheck.dailyCount || 0)),
+        minuteRemaining: Math.max(0, MINUTE_LIMIT - (rateCheck.minuteCount || 0)),
       },
     };
   }
@@ -239,15 +332,19 @@ export async function callGroq(
     const message = data.choices?.[0]?.message?.content;
     const tokensUsed = data.usage?.total_tokens || 100;
 
-    // Record successful usage
-    recordUsage(tokensUsed);
+    // Record successful usage (async - Redis-backed)
+    await recordUsage(tokensUsed);
+
+    // Get updated counts for response
+    const newDailyCount = (rateCheck.dailyCount || 0) + 1;
+    const newMinuteCount = (rateCheck.minuteCount || 0) + 1;
 
     return {
       success: true,
       message,
       usage: {
-        dailyRemaining: Math.max(0, DAILY_LIMIT - dailyUsage.count),
-        minuteRemaining: Math.max(0, MINUTE_LIMIT - dailyUsage.minuteCount),
+        dailyRemaining: Math.max(0, DAILY_LIMIT - newDailyCount),
+        minuteRemaining: Math.max(0, MINUTE_LIMIT - newMinuteCount),
       },
     };
   } catch (error) {
@@ -375,10 +472,18 @@ JSON only, no explanation:`;
 }
 
 /**
- * Check if Groq is available and within limits
+ * Check if Groq is configured (sync - for quick checks)
+ * Actual rate limiting is checked async during callGroq()
  */
 export function isGroqAvailable(): boolean {
+  return !!process.env.GROQ_API_KEY;
+}
+
+/**
+ * Check if Groq is available AND within rate limits (async - accurate check)
+ */
+export async function isGroqAvailableAsync(): Promise<boolean> {
   if (!process.env.GROQ_API_KEY) return false;
-  const rateCheck = checkRateLimits();
+  const rateCheck = await checkRateLimits();
   return rateCheck.allowed;
 }
