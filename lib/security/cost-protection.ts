@@ -1,0 +1,256 @@
+/**
+ * Cost Protection Guard
+ *
+ * Blocks expensive API calls (Duffel, Amadeus) BEFORE they happen.
+ * Uses multi-layer defense: rate limit → threat score → cost budget.
+ *
+ * Key principle: Reject suspicious requests before incurring API costs.
+ */
+
+import { NextRequest, NextResponse } from 'next/server';
+import { getRedisClient, isRedisEnabled } from '@/lib/cache/redis';
+import { checkRateLimit, RATE_LIMITS, getClientIP, createRateLimitResponse } from './redis-rate-limiter';
+import { calculateThreatScore, isLikelyBot, shouldBlockRequest } from './bot-detection';
+
+export interface CostGuardConfig {
+  /** Maximum requests per IP per day for expensive endpoints */
+  dailyBudget?: number;
+  /** Threat score threshold to block (0-100) */
+  threatThreshold?: number;
+  /** Skip protection for authenticated users */
+  skipAuthenticated?: boolean;
+  /** Endpoint type for logging */
+  endpoint?: string;
+}
+
+export interface CostGuardResult {
+  allowed: boolean;
+  reason?: string;
+  threatScore?: number;
+  dailyRemaining?: number;
+  response?: NextResponse;
+}
+
+const DEFAULT_CONFIG: Required<CostGuardConfig> = {
+  dailyBudget: 50,
+  threatThreshold: 60,
+  skipAuthenticated: true,
+  endpoint: 'unknown',
+};
+
+/**
+ * Main cost protection check - run BEFORE expensive API calls
+ */
+export async function checkCostGuard(
+  request: NextRequest,
+  config: Partial<CostGuardConfig> = {}
+): Promise<CostGuardResult> {
+  const opts = { ...DEFAULT_CONFIG, ...config };
+  const ip = getClientIP(request);
+
+  // Layer 1: Quick bot check (fast path, no Redis)
+  if (isLikelyBot(request)) {
+    return {
+      allowed: false,
+      reason: 'bot_detected',
+      response: NextResponse.json(
+        { error: 'Access denied', code: 'BOT_DETECTED' },
+        { status: 403 }
+      ),
+    };
+  }
+
+  // Layer 2: Rate limit check (Redis-backed)
+  const rateConfig = opts.endpoint?.includes('flight')
+    ? RATE_LIMITS.FLIGHT_SEARCH
+    : opts.endpoint?.includes('hotel')
+      ? RATE_LIMITS.HOTEL_SEARCH
+      : RATE_LIMITS.API;
+
+  const rateResult = await checkRateLimit(request, rateConfig);
+
+  if (!rateResult.success) {
+    return {
+      allowed: false,
+      reason: 'rate_limit_exceeded',
+      response: createRateLimitResponse(rateResult),
+    };
+  }
+
+  // Layer 3: Threat score analysis
+  const threatScore = await calculateThreatScore(request, ip);
+
+  if (shouldBlockRequest(threatScore, opts.threatThreshold)) {
+    // Log suspicious request
+    await logSuspiciousRequest(ip, opts.endpoint, threatScore.reasons);
+
+    return {
+      allowed: false,
+      reason: 'threat_score_exceeded',
+      threatScore: threatScore.score,
+      response: NextResponse.json(
+        {
+          error: 'Request blocked',
+          code: 'SECURITY_CHECK_FAILED',
+          message: 'Your request was flagged by our security system. Please try again later.',
+        },
+        { status: 403 }
+      ),
+    };
+  }
+
+  // Layer 4: Daily budget check (for expensive endpoints)
+  const redis = getRedisClient();
+  if (redis && isRedisEnabled()) {
+    const today = new Date().toISOString().split('T')[0];
+    const budgetKey = `cost_budget:${ip}:${opts.endpoint}:${today}`;
+
+    try {
+      const currentCount = await redis.incr(budgetKey);
+
+      // Set expiry on first request of day
+      if (currentCount === 1) {
+        await redis.expire(budgetKey, 86400); // 24 hours
+      }
+
+      if (currentCount > opts.dailyBudget) {
+        return {
+          allowed: false,
+          reason: 'daily_budget_exceeded',
+          dailyRemaining: 0,
+          response: NextResponse.json(
+            {
+              error: 'Daily limit exceeded',
+              code: 'DAILY_LIMIT',
+              message: `You've exceeded your daily limit for this service. Please try again tomorrow.`,
+              resetAt: new Date(Date.now() + 86400000).toISOString(),
+            },
+            { status: 429 }
+          ),
+        };
+      }
+
+      return {
+        allowed: true,
+        threatScore: threatScore.score,
+        dailyRemaining: opts.dailyBudget - currentCount,
+      };
+    } catch (error) {
+      // Allow on Redis error, but log
+      console.error('[CostGuard] Redis error:', error);
+    }
+  }
+
+  return {
+    allowed: true,
+    threatScore: threatScore.score,
+  };
+}
+
+/**
+ * Log suspicious request for analysis
+ */
+async function logSuspiciousRequest(
+  ip: string,
+  endpoint: string,
+  reasons: string[]
+): Promise<void> {
+  const redis = getRedisClient();
+  if (!redis || !isRedisEnabled()) return;
+
+  try {
+    const logKey = 'suspicious_requests';
+    const entry = JSON.stringify({
+      ip,
+      endpoint,
+      reasons,
+      timestamp: new Date().toISOString(),
+    });
+
+    // Keep last 1000 entries
+    await redis.lpush(logKey, entry);
+    await redis.ltrim(logKey, 0, 999);
+  } catch (error) {
+    // Ignore logging errors
+  }
+}
+
+/**
+ * Wrapper for API route handlers
+ */
+export function withCostProtection(
+  handler: (request: NextRequest, context?: any) => Promise<NextResponse>,
+  config?: Partial<CostGuardConfig>
+) {
+  return async (request: NextRequest, context?: any): Promise<NextResponse> => {
+    const guard = await checkCostGuard(request, config);
+
+    if (!guard.allowed && guard.response) {
+      return guard.response;
+    }
+
+    // Add security headers to response
+    const response = await handler(request, context);
+
+    if (guard.threatScore !== undefined) {
+      response.headers.set('X-Threat-Score', guard.threatScore.toString());
+    }
+    if (guard.dailyRemaining !== undefined) {
+      response.headers.set('X-Daily-Remaining', guard.dailyRemaining.toString());
+    }
+
+    return response;
+  };
+}
+
+/**
+ * Quick protection for read-heavy endpoints
+ */
+export async function quickCostCheck(request: NextRequest): Promise<boolean> {
+  // Fast path: only check bot and basic rate limit
+  if (isLikelyBot(request)) {
+    return false;
+  }
+
+  const rateResult = await checkRateLimit(request, RATE_LIMITS.READ);
+  return rateResult.success;
+}
+
+// ==========================================
+// Pre-configured Guards for Common Endpoints
+// ==========================================
+
+export const COST_GUARDS = {
+  FLIGHT_SEARCH: {
+    dailyBudget: 30,
+    threatThreshold: 50,
+    endpoint: 'flight_search',
+  },
+  HOTEL_SEARCH: {
+    dailyBudget: 30,
+    threatThreshold: 50,
+    endpoint: 'hotel_search',
+  },
+  BOOKING: {
+    dailyBudget: 10,
+    threatThreshold: 40,
+    endpoint: 'booking',
+  },
+  PAYMENT: {
+    dailyBudget: 5,
+    threatThreshold: 30,
+    endpoint: 'payment',
+  },
+  PREBOOK: {
+    dailyBudget: 15,
+    threatThreshold: 50,
+    endpoint: 'prebook',
+  },
+} as const;
+
+export default {
+  checkCostGuard,
+  withCostProtection,
+  quickCostCheck,
+  COST_GUARDS,
+};

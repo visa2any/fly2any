@@ -4,6 +4,9 @@ import { searchHotels as searchHotelbeds, normalizeHotelbedsHotel } from '@/lib/
 import { getCached, setCache, generateCacheKey } from '@/lib/cache';
 import type { HotelSearchParams, Hotel } from '@/lib/hotels/types';
 
+// Cost protection - blocks bots and suspicious requests BEFORE expensive API calls
+import { checkCostGuard, COST_GUARDS } from '@/lib/security/cost-protection';
+
 // Comprehensive city name to coordinates mapping
 // Matches the suggestions API database for consistent location lookups
 const CITY_COORDINATES: Record<string, { lat: number; lng: number; country: string }> = {
@@ -240,6 +243,12 @@ function getCityCoordinates(query: string): { lat: number; lng: number; country:
  */
 export async function POST(request: NextRequest) {
   try {
+    // 🛡️ COST PROTECTION: Block bots and suspicious requests BEFORE expensive API calls
+    const costGuard = await checkCostGuard(request, COST_GUARDS.HOTEL_SEARCH);
+    if (!costGuard.allowed && costGuard.response) {
+      return costGuard.response;
+    }
+
     const body = await request.json().catch(() => ({}));
 
     // Validate required parameters

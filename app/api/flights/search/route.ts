@@ -28,6 +28,9 @@ import { trackCacheHit, trackCacheMiss } from '@/lib/cache/analytics';
 // Rate limiting - protects against API abuse and cost spikes
 import { rateLimit, createRateLimitResponse, addRateLimitHeaders, RateLimitPresets } from '@/lib/security/rate-limiter';
 
+// Cost protection - blocks bots and suspicious requests BEFORE expensive API calls
+import { checkCostGuard, COST_GUARDS } from '@/lib/security/cost-protection';
+
 // Mixed-carrier "Hacker Fare" system imports
 import {
   combineMixedCarrierFares,
@@ -324,6 +327,12 @@ export async function POST(request: NextRequest) {
   let rateLimitResult: any = null;
 
   try {
+    // 🛡️ COST PROTECTION: Block bots and suspicious requests BEFORE expensive API calls
+    const costGuard = await checkCostGuard(request, COST_GUARDS.FLIGHT_SEARCH);
+    if (!costGuard.allowed && costGuard.response) {
+      return costGuard.response;
+    }
+
     // 🛡️ Rate limiting - 60 requests per minute per IP (STANDARD preset)
     rateLimitResult = await rateLimit(request, RateLimitPresets.STANDARD);
     if (!rateLimitResult.allowed) {
@@ -1944,6 +1953,12 @@ export async function POST(request: NextRequest) {
  */
 export async function GET(request: NextRequest) {
   try {
+    // COST PROTECTION: Block bots and suspicious requests BEFORE expensive API calls
+    const costGuard = await checkCostGuard(request, COST_GUARDS.FLIGHT_SEARCH);
+    if (!costGuard.allowed && costGuard.response) {
+      return costGuard.response;
+    }
+
     const searchParams = request.nextUrl.searchParams;
 
     // Validate required parameters
