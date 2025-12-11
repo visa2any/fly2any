@@ -3,6 +3,8 @@ import { paymentService } from '@/lib/payments/payment-service';
 import { bookingStorage } from '@/lib/bookings/storage';
 import { validatePaymentAmount, checkDuplicatePayment } from '@/lib/payments/validation';
 import { mapStripeError } from '@/lib/payments/error-handler';
+import { checkRateLimit, addRateLimitHeaders } from '@/lib/security/rate-limiter';
+import { PAYMENT_RATE_LIMITS } from '@/lib/security/rate-limit-config';
 
 /**
  * Create Payment Intent API
@@ -38,6 +40,21 @@ import { mapStripeError } from '@/lib/payments/error-handler';
 
 export async function POST(request: NextRequest) {
   const startTime = Date.now();
+
+  // Rate limiting check - strict limit for payment endpoints
+  const rateLimitResult = await checkRateLimit(request, PAYMENT_RATE_LIMITS.createIntent);
+  if (!rateLimitResult.success) {
+    const response = NextResponse.json(
+      {
+        success: false,
+        error: 'RATE_LIMIT_EXCEEDED',
+        message: 'Too many payment attempts. Please try again later.',
+        retryAfter: rateLimitResult.retryAfter,
+      },
+      { status: 429 }
+    );
+    return addRateLimitHeaders(response, rateLimitResult);
+  }
 
   try {
     const body = await request.json();

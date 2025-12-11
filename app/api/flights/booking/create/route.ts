@@ -6,6 +6,8 @@ import { emailService } from '@/lib/email/service';
 import { paymentService } from '@/lib/payments/payment-service';
 import { getPrismaClient } from '@/lib/prisma';
 import type { Booking, FlightData, Passenger, SeatSelection, PaymentInfo, ContactInfo } from '@/lib/bookings/types';
+import { checkRateLimit, addRateLimitHeaders } from '@/lib/security/rate-limiter';
+import { BOOKING_RATE_LIMITS } from '@/lib/security/rate-limit-config';
 
 // CRITICAL: Import flight markup to ensure customer is charged correct amount
 import { applyFlightMarkup } from '@/lib/config/flight-markup';
@@ -48,6 +50,21 @@ import { applyFlightMarkup } from '@/lib/config/flight-markup';
  */
 
 export async function POST(request: NextRequest) {
+  // Rate limiting check - strict limit for booking creation
+  const rateLimitResult = await checkRateLimit(request, BOOKING_RATE_LIMITS.create);
+  if (!rateLimitResult.success) {
+    const response = NextResponse.json(
+      {
+        success: false,
+        error: 'RATE_LIMIT_EXCEEDED',
+        message: 'Too many booking attempts. Please try again later.',
+        retryAfter: rateLimitResult.retryAfter,
+      },
+      { status: 429 }
+    );
+    return addRateLimitHeaders(response, rateLimitResult);
+  }
+
   try {
     const body = await request.json();
     const {

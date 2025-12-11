@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from 'next/server';
 import { paymentService } from '@/lib/payments/payment-service';
 import { bookingStorage } from '@/lib/bookings/storage';
 import { emailService } from '@/lib/email/service';
+import { checkRateLimit, addRateLimitHeaders } from '@/lib/security/rate-limiter';
+import { PAYMENT_RATE_LIMITS } from '@/lib/security/rate-limit-config';
 
 /**
  * Confirm Payment API
@@ -36,6 +38,21 @@ import { emailService } from '@/lib/email/service';
  */
 
 export async function POST(request: NextRequest) {
+  // Rate limiting check - strict limit for payment confirmation
+  const rateLimitResult = await checkRateLimit(request, PAYMENT_RATE_LIMITS.confirm);
+  if (!rateLimitResult.success) {
+    const response = NextResponse.json(
+      {
+        success: false,
+        error: 'RATE_LIMIT_EXCEEDED',
+        message: 'Too many confirmation attempts. Please try again later.',
+        retryAfter: rateLimitResult.retryAfter,
+      },
+      { status: 429 }
+    );
+    return addRateLimitHeaders(response, rateLimitResult);
+  }
+
   try {
     const body = await request.json();
     const { paymentIntentId, bookingReference } = body;

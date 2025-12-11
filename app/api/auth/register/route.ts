@@ -1,4 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { checkRateLimit, addRateLimitHeaders } from '@/lib/security/rate-limiter';
+import { AUTH_RATE_LIMITS } from '@/lib/security/rate-limit-config';
 
 /**
  * User Registration API with Two-Step Verification
@@ -16,6 +18,20 @@ import { NextRequest, NextResponse } from 'next/server';
 export const runtime = 'nodejs';
 
 export async function POST(request: NextRequest) {
+  // Rate limiting check - strict limit for registration
+  const rateLimitResult = await checkRateLimit(request, AUTH_RATE_LIMITS.register);
+  if (!rateLimitResult.success) {
+    const response = NextResponse.json(
+      {
+        success: false,
+        error: 'Too many registration attempts. Please try again later.',
+        retryAfter: rateLimitResult.retryAfter,
+      },
+      { status: 429 }
+    );
+    return addRateLimitHeaders(response, rateLimitResult);
+  }
+
   try {
     const body = await request.json();
     const { name, email, phone, sessionId, language = 'en' } = body;
