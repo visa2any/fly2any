@@ -113,19 +113,58 @@ export default function robots(): MetadataRoute.Robots {
         crawlDelay: 5,
       },
 
-      // === AI TRAINING BOTS (Blocked) ===
-      // Block bots that scrape for AI model training
+      // === AI SEARCH ENGINES - ChatGPT, Google AI (Full Access) ===
+      // GPTBot powers ChatGPT Search - MUST be allowed for AI visibility
+      {
+        userAgent: ['GPTBot', 'ChatGPT-User'],
+        allow: [
+          '/',
+          '/flights/',
+          '/hotels/',
+          '/blog/',
+          '/travel-guide/',
+          '/faq/',
+          '/deals/',
+          '/destinations/',
+        ],
+        disallow: [
+          '/admin/',
+          '/api/',
+          '/account/',
+          '/agent/',
+          '/affiliate/',
+          '/private/',
+          '/booking/*/confirmation',
+        ],
+        crawlDelay: 2,
+      },
+      {
+        userAgent: 'Google-Extended', // Google Gemini/AI search
+        allow: [
+          '/',
+          '/flights/',
+          '/hotels/',
+          '/blog/',
+        ],
+        disallow: [
+          '/admin/',
+          '/api/',
+          '/account/',
+          '/private/',
+        ],
+        crawlDelay: 3,
+      },
+
+      // === AI TRAINING ONLY BOTS (Blocked) ===
+      // Block pure data extraction bots not used for search
       {
         userAgent: [
-          'GPTBot', // OpenAI training bot
-          'ChatGPT-User', // ChatGPT web browsing
-          'CCBot', // Common Crawl (used for training)
-          'anthropic-ai', // Anthropic training bot
-          'ClaudeBot', // Claude training bot
-          'Google-Extended', // Google Bard training
-          'FacebookBot', // Meta AI training
+          'CCBot', // Common Crawl (training only)
           'Diffbot', // Data extraction
           'Bytespider', // ByteDance (TikTok)
+          'FacebookBot', // Meta AI training
+          'img2dataset', // Image scraper
+          'Omgilibot', // Data scraper
         ],
         disallow: '/',
       },

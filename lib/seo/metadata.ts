@@ -144,11 +144,15 @@ export function generateMetadata(page: PageMetadata): Metadata {
       yandex: process.env.NEXT_PUBLIC_YANDEX_VERIFICATION,
       yahoo: process.env.NEXT_PUBLIC_YAHOO_VERIFICATION,
     },
-    ...(FACEBOOK_APP_ID && {
-      other: {
-        'fb:app_id': FACEBOOK_APP_ID,
-      },
-    }),
+    other: {
+      ...(FACEBOOK_APP_ID && { 'fb:app_id': FACEBOOK_APP_ID }),
+      ...(process.env.NEXT_PUBLIC_BING_VERIFICATION && {
+        'msvalidate.01': process.env.NEXT_PUBLIC_BING_VERIFICATION,
+      }),
+      ...(process.env.NEXT_PUBLIC_PINTEREST_VERIFICATION && {
+        'p:domain_verify': process.env.NEXT_PUBLIC_PINTEREST_VERIFICATION,
+      }),
+    },
   };
 
   return metadata;
