@@ -12,6 +12,8 @@ import {
   Activity,
   RefreshCw,
   Download,
+  Bot,
+  Cpu,
 } from 'lucide-react';
 
 interface DashboardStats {
@@ -56,8 +58,23 @@ interface DashboardStats {
   }>;
 }
 
+interface AIStats {
+  groq: {
+    dailyCount: number;
+    dailyLimit: number;
+    dailyRemaining: number;
+    percentUsed: number;
+  };
+  infrastructure: {
+    redisEnabled: boolean;
+    redisHealthy: boolean;
+    rateLimitingMode: string;
+  };
+}
+
 export default function AdminDashboardPage() {
   const [stats, setStats] = useState<DashboardStats | null>(null);
+  const [aiStats, setAIStats] = useState<AIStats | null>(null);
   const [loading, setLoading] = useState(true);
   const [period, setPeriod] = useState('week');
   const [lastRefresh, setLastRefresh] = useState<Date>(new Date());
@@ -65,12 +82,22 @@ export default function AdminDashboardPage() {
   const fetchStats = async () => {
     try {
       setLoading(true);
-      const response = await fetch(`/api/admin/stats?period=${period}`);
-      const data = await response.json();
+      const [statsRes, aiRes] = await Promise.all([
+        fetch(`/api/admin/stats?period=${period}`),
+        fetch('/api/admin/ai/stats'),
+      ]);
+
+      const [data, aiData] = await Promise.all([
+        statsRes.json(),
+        aiRes.json(),
+      ]);
 
       if (data.success) {
         setStats(data.stats);
         setLastRefresh(new Date());
+      }
+      if (aiData.success) {
+        setAIStats(aiData);
       }
     } catch (error) {
       console.error('Error fetching stats:', error);
@@ -177,6 +204,46 @@ export default function AdminDashboardPage() {
             value={`${stats?.searches.conversion.toFixed(1) || '0'}%`}
             change={2.3}
             subValue={`${stats?.searches.total.toLocaleString() || '0'} searches`}
+            color="orange"
+            loading={loading}
+          />
+        </div>
+
+        {/* AI & Infrastructure Status */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+          <MetricCard
+            icon={<Bot className="w-5 h-5" />}
+            label="Groq AI Usage"
+            value={`${aiStats?.groq.percentUsed || 0}%`}
+            subValue={`${aiStats?.groq.dailyRemaining?.toLocaleString() || '14,400'} / ${aiStats?.groq.dailyLimit?.toLocaleString() || '14,400'} remaining`}
+            color={aiStats?.groq.percentUsed && aiStats.groq.percentUsed > 80 ? 'red' : 'blue'}
+            loading={loading}
+            href="/admin/ai-analytics"
+          />
+
+          <MetricCard
+            icon={<Cpu className="w-5 h-5" />}
+            label="Redis Status"
+            value={aiStats?.infrastructure.redisHealthy ? 'Healthy' : 'Offline'}
+            subValue={aiStats?.infrastructure.rateLimitingMode === 'distributed' ? 'Distributed mode' : 'Memory fallback'}
+            color={aiStats?.infrastructure.redisHealthy ? 'green' : 'red'}
+            loading={loading}
+          />
+
+          <MetricCard
+            icon={<Activity className="w-5 h-5" />}
+            label="Flight Searches"
+            value={stats?.searches.flights.toLocaleString() || '0'}
+            subValue="API calls today"
+            color="purple"
+            loading={loading}
+          />
+
+          <MetricCard
+            icon={<Activity className="w-5 h-5" />}
+            label="Hotel Searches"
+            value={stats?.searches.hotels.toLocaleString() || '0'}
+            subValue="API calls today"
             color="orange"
             loading={loading}
           />
