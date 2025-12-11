@@ -87,10 +87,10 @@ export default function InlineFlightLoading({
     }
   ];
 
-  // Progress through stages
+  // Progress through stages - loops back if search not finished
   useEffect(() => {
     const stageInterval = setInterval(() => {
-      setCurrentStage(prev => (prev < stages.length - 1 ? prev + 1 : prev));
+      setCurrentStage(prev => (prev < stages.length - 1 ? prev + 1 : 0)); // Loop back to start
     }, 1200);
 
     return () => clearInterval(stageInterval);
@@ -186,63 +186,86 @@ export default function InlineFlightLoading({
           ))}
         </div>
 
-        {/* Airplane Progress Bar */}
+        {/* Airplane Progress Bar - Premium Animation */}
         <div className="mb-4">
           {/* Airport Markers */}
           <div className="flex items-center justify-between mb-1.5">
             <div className="flex items-center gap-1.5">
-              <div className="w-2 h-2 bg-primary-500 rounded-full animate-pulse"></div>
+              <div className="w-2.5 h-2.5 bg-primary-500 rounded-full ring-2 ring-primary-200 animate-pulse"></div>
               <span className="text-xs font-bold text-primary-600">{origin}</span>
             </div>
             <div className="flex items-center gap-1.5">
               <span className="text-xs font-bold text-success-600">{destination}</span>
-              <div className="w-2 h-2 bg-success-500 rounded-full"></div>
+              <div className="w-2.5 h-2.5 bg-success-500 rounded-full ring-2 ring-success-200"></div>
             </div>
           </div>
 
           {/* Flight Path */}
-          <div className="relative h-2 bg-gradient-to-r from-primary-100 via-neutral-100 to-success-100 rounded-full overflow-visible">
-            {/* Vapor Trail - fading gradient behind the plane */}
+          <div className="relative h-3 bg-gradient-to-r from-primary-100 via-neutral-50 to-success-100 rounded-full overflow-visible">
+            {/* Vapor Trail - animated gradient */}
             <div
-              className="absolute inset-y-0 left-0 bg-gradient-to-r from-primary-500/40 via-primary-400/30 to-transparent rounded-full transition-all duration-1000 ease-out"
+              className="absolute inset-y-0 left-0 rounded-full transition-all duration-700 ease-out overflow-hidden"
               style={{ width: `${((currentStage + 1) / stages.length) * 100}%` }}
             >
-              <div className="absolute inset-0 bg-white/20 animate-pulse"></div>
+              <div className="absolute inset-0 bg-gradient-to-r from-primary-400 via-primary-300 to-primary-200 opacity-60"></div>
+              <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/40 to-transparent animate-shimmer"></div>
             </div>
 
             {/* Dotted Path Line */}
-            <div className="absolute inset-0 flex items-center px-1">
-              <div className="flex-1 border-t-2 border-dashed border-neutral-300"></div>
+            <div className="absolute inset-0 flex items-center px-2">
+              <div className="flex-1 border-t-2 border-dashed border-neutral-300/50"></div>
             </div>
 
-            {/* Animated Airplane */}
+            {/* Animated Airplane with CSS animation */}
             <div
-              className="absolute top-1/2 -translate-y-1/2 transition-all duration-1000 ease-out"
-              style={{
-                left: `${((currentStage + 1) / stages.length) * 100}%`,
-                transform: `translate(-50%, -50%)`
-              }}
+              className="absolute top-1/2 -translate-y-1/2 transition-all duration-700 ease-out z-10"
+              style={{ left: `calc(${((currentStage + 1) / stages.length) * 100}% - 14px)` }}
             >
-              {/* Glow effect */}
-              <div className="absolute inset-0 w-8 h-8 bg-primary-400 rounded-full blur-md opacity-50 animate-pulse"></div>
+              {/* Engine glow */}
+              <div className="absolute -left-2 top-1/2 -translate-y-1/2 w-4 h-1 bg-gradient-to-l from-orange-400 to-transparent rounded-full opacity-70 animate-pulse"></div>
 
-              {/* Airplane Icon - rotated to point right with subtle ascent */}
-              <div
-                className="relative transition-transform duration-1000"
-                style={{
-                  transform: `rotate(${90 + Math.min(((currentStage + 1) / stages.length) * 20 - 10, 5)}deg)`
-                }}
-              >
-                <Plane className="w-6 h-6 text-primary-600 drop-shadow-lg" fill="currentColor" />
+              {/* Plane shadow */}
+              <div className="absolute top-3 left-1 w-5 h-1 bg-black/10 rounded-full blur-sm"></div>
+
+              {/* Airplane Icon - rotated to align with flight path */}
+              <div className="relative animate-fly-bob" style={{ transform: 'rotate(-12deg)' }}>
+                <Plane
+                  className="w-7 h-7 text-primary-600 drop-shadow-md"
+                  fill="currentColor"
+                  style={{ filter: 'drop-shadow(0 2px 4px rgba(0,0,0,0.2))' }}
+                />
               </div>
             </div>
           </div>
 
           {/* Progress Text */}
-          <div className="text-center mt-2 text-xs font-semibold text-neutral-700">
-            {Math.round(((currentStage + 1) / stages.length) * 100)}% • Flight In Progress
+          <div className="text-center mt-2.5 text-xs font-semibold text-neutral-700 flex items-center justify-center gap-1.5">
+            <span className="inline-flex items-center gap-1">
+              <span className="w-1.5 h-1.5 bg-primary-500 rounded-full animate-ping"></span>
+              {Math.round(((currentStage + 1) / stages.length) * 100)}%
+            </span>
+            <span className="text-neutral-400">•</span>
+            <span className="text-primary-600">Searching...</span>
           </div>
         </div>
+
+        {/* Custom CSS for animations */}
+        <style jsx>{`
+          @keyframes fly-bob {
+            0%, 100% { transform: rotate(-12deg) translateY(0); }
+            50% { transform: rotate(-8deg) translateY(-2px); }
+          }
+          @keyframes shimmer {
+            0% { transform: translateX(-100%); }
+            100% { transform: translateX(100%); }
+          }
+          .animate-fly-bob {
+            animation: fly-bob 1.5s ease-in-out infinite;
+          }
+          .animate-shimmer {
+            animation: shimmer 2s ease-in-out infinite;
+          }
+        `}</style>
 
         {/* Rotating Tips */}
         <div className="bg-gradient-to-r from-primary-50 to-secondary-50 rounded-lg p-3 border border-primary-100 overflow-hidden min-h-[60px]">
