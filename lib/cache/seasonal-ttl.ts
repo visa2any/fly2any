@@ -42,6 +42,46 @@ function getSeasonalMultiplier(date: Date): SeasonalTTLConfig {
     };
   }
 
+  // 🥶 LOW SEASON: January 11-31 (post-holiday recovery) - Prices VERY stable
+  if (month === 0 && day >= 11) {
+    return {
+      baseMultiplier: 3.0, // 3x TTL - prices very stable after holidays
+      reason: 'Post-holiday low season - very stable prices'
+    };
+  }
+
+  // 🥶 LOW SEASON: February (slowest travel month) - Prices EXTREMELY stable
+  if (month === 1) {
+    return {
+      baseMultiplier: 4.0, // 4x TTL - February is THE slowest month
+      reason: 'February low season - extremely stable prices'
+    };
+  }
+
+  // 🥶 LOW SEASON: September (back to school) - Prices very stable
+  if (month === 8) {
+    return {
+      baseMultiplier: 3.0, // 3x TTL - kids back in school, low demand
+      reason: 'September low season - very stable prices'
+    };
+  }
+
+  // 🥶 LOW SEASON: October (pre-holiday calm) - Prices stable
+  if (month === 9) {
+    return {
+      baseMultiplier: 2.5, // 2.5x TTL - calm before holiday storm
+      reason: 'October low season - stable prices'
+    };
+  }
+
+  // 🥶 LOW SEASON: Early November (Nov 1-14) - Prices still stable
+  if (month === 10 && day < 15) {
+    return {
+      baseMultiplier: 2.0, // 2x TTL - before holiday rush
+      reason: 'Early November - stable prices'
+    };
+  }
+
   // ☀️ Summer Peak (Jun - Aug) - Prices relatively stable
   if (month >= 5 && month <= 7) {
     return {
@@ -58,7 +98,7 @@ function getSeasonalMultiplier(date: Date): SeasonalTTLConfig {
     };
   }
 
-  // 📅 Regular season
+  // 📅 Regular season (March 1-14, April 16-30, May)
   return {
     baseMultiplier: 1.0,
     reason: 'Regular season - normal TTL'
@@ -210,9 +250,15 @@ export function calculateOptimalTTL(
   // Calculate final TTL
   const ttlSeconds = Math.round(BASE_TTL_SECONDS * finalMultiplier);
 
-  // Min TTL: 5 minutes (don't refresh too often - wastes resources)
-  // Max TTL: 2 hours (don't keep stale prices too long)
-  const clampedTTL = Math.max(300, Math.min(ttlSeconds, 7200));
+  // Dynamic TTL limits based on seasonal stability
+  // Low season (multiplier >= 2.0): Minimum 2 hours, max 6 hours
+  // Regular/volatile season: Min 5 minutes, max 2 hours
+  const isLowSeason = seasonal.baseMultiplier >= 2.0;
+  const minTTL = isLowSeason ? 7200 : 300; // 2hr min for low season, 5min otherwise
+  const maxTTL = isLowSeason ? 21600 : 7200; // 6hr max for low season, 2hr otherwise
+
+  // Clamp TTL to min/max based on season
+  const clampedTTL = Math.max(minTTL, Math.min(ttlSeconds, maxTTL));
 
   return {
     ttlSeconds: clampedTTL,
@@ -270,7 +316,16 @@ export function calculateBatchTTL(
  * const holiday = calculateOptimalTTL('2025-12-25', 500);
  * // Result: ~15 minutes (0.5x volatile * 1.0x weekday * 1.5x sweet spot * 2.0x popular)
  *
+ * // LOW SEASON: February (slowest month) - Maximum cache stability!
+ * const february = calculateOptimalTTL('2026-02-10', 500);
+ * // Result: UP TO 6 HOURS (4.0x low season * 1.0x weekday * 1.5x sweet spot * 2.0x popular)
+ * // User searching same route gets SAME CACHED PRICE for hours!
+ *
+ * // LOW SEASON: September (back to school)
+ * const september = calculateOptimalTTL('2025-09-15', 100);
+ * // Result: ~3-4 hours (3.0x low season * 1.2x business day * 1.5x sweet spot * 1.5x popular)
+ *
  * // Low traffic route, last minute
  * const lastMinute = calculateOptimalTTL('2025-11-05', 10);
- * // Result: ~5 minutes (MIN - 1.0x * 1.0x * 0.25x last minute * 0.5x unpopular)
+ * // Result: ~5 minutes (MIN - 2.0x early Nov * 1.0x * 0.25x last minute * 0.5x unpopular)
  */
