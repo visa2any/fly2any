@@ -2,7 +2,7 @@
 
 import { useState, useEffect, Suspense } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
-import { Plane, ChevronLeft, ChevronRight, ArrowLeft, Loader2, User, Clock, CheckCircle2, Star, Home } from 'lucide-react';
+import { Plane, ChevronLeft, ChevronRight, ArrowLeft, Loader2, User, Clock, CheckCircle2, Star, Home, X, Armchair, Info } from 'lucide-react';
 import { formatCityCode } from '@/lib/data/airports';
 import { FareSelector } from '@/components/booking/FareSelector';
 import { AddOnsTabs } from '@/components/booking/AddOnsTabs';
@@ -116,6 +116,7 @@ function BookingPageContent() {
   const [seatMapData, setSeatMapData] = useState<ParsedSeatMap | null>(null);
   const [selectedSeat, setSelectedSeat] = useState<Seat | null>(null);
   const [loadingSeatMap, setLoadingSeatMap] = useState(false);
+  const [seatMapUnavailable, setSeatMapUnavailable] = useState(false);
 
   // Price tracking
   const [priceLockTimer, setPriceLockTimer] = useState({ minutes: 10, seconds: 0 });
@@ -564,15 +565,15 @@ function BookingPageContent() {
           console.log('✅ Seat map loaded successfully');
         } else {
           console.warn('⚠️  Seat map data is not available');
-          alert('Interactive seat map is not available for this airline.\n\nYou can still select your preferred seat type (aisle, window, extra legroom) from the options above.');
+          setSeatMapUnavailable(true);
         }
       } else {
         console.warn('⚠️  Seat map not available:', data.error || 'Unknown error');
-        alert('Interactive seat map is not available for this airline.\n\nYou can still select your preferred seat type (aisle, window, extra legroom) from the options above.');
+        setSeatMapUnavailable(true);
       }
     } catch (error) {
       console.error('❌ Error fetching seat map:', error);
-      alert('Interactive seat map is not available for this airline.\n\nYou can still select your preferred seat type (aisle, window, extra legroom) from the options above.');
+      setSeatMapUnavailable(true);
     } finally {
       setLoadingSeatMap(false);
     }
@@ -1188,6 +1189,85 @@ function BookingPageContent() {
           seatMap={seatMapData}
           onSelectSeat={handleSelectSeat}
         />
+      )}
+
+      {/* Premium Seat Map Unavailable Modal - Apple-Class Design */}
+      {seatMapUnavailable && (
+        <div className="fixed inset-0 z-[60] flex items-end sm:items-center justify-center">
+          {/* Backdrop with blur */}
+          <div
+            className="absolute inset-0 bg-black/40 backdrop-blur-sm"
+            onClick={() => setSeatMapUnavailable(false)}
+          />
+
+          {/* Modal Card - Glass morphism */}
+          <div className="relative w-full sm:w-[420px] mx-4 mb-4 sm:mb-0 bg-white/95 backdrop-blur-xl rounded-3xl shadow-2xl overflow-hidden animate-in slide-in-from-bottom-4 sm:slide-in-from-bottom-0 sm:zoom-in-95 duration-300">
+            {/* Gradient accent bar */}
+            <div className="h-1 bg-gradient-to-r from-amber-400 via-amber-500 to-orange-500" />
+
+            {/* Content */}
+            <div className="p-6 sm:p-8">
+              {/* Icon with gradient background */}
+              <div className="flex justify-center mb-5">
+                <div className="relative">
+                  <div className="w-20 h-20 rounded-2xl bg-gradient-to-br from-amber-50 to-amber-100 flex items-center justify-center shadow-inner">
+                    <Armchair className="w-10 h-10 text-amber-500" strokeWidth={1.5} />
+                  </div>
+                  {/* Info badge */}
+                  <div className="absolute -top-1 -right-1 w-7 h-7 bg-amber-500 rounded-full flex items-center justify-center shadow-lg">
+                    <Info className="w-4 h-4 text-white" />
+                  </div>
+                </div>
+              </div>
+
+              {/* Title */}
+              <h3 className="text-xl sm:text-2xl font-bold text-gray-900 text-center mb-2">
+                Seat Map Unavailable
+              </h3>
+
+              {/* Subtitle */}
+              <p className="text-sm sm:text-base text-gray-500 text-center mb-6 leading-relaxed">
+                This airline doesn't provide interactive seat maps through our booking system.
+              </p>
+
+              {/* Feature card */}
+              <div className="bg-gradient-to-br from-emerald-50 to-teal-50 rounded-2xl p-4 mb-6 border border-emerald-100">
+                <div className="flex items-start gap-3">
+                  <div className="w-10 h-10 rounded-xl bg-emerald-500 flex items-center justify-center flex-shrink-0">
+                    <CheckCircle2 className="w-5 h-5 text-white" />
+                  </div>
+                  <div>
+                    <p className="font-semibold text-emerald-900 text-sm sm:text-base">Good News!</p>
+                    <p className="text-emerald-700 text-xs sm:text-sm mt-0.5">
+                      You can still select your preferred seat type — window, aisle, or extra legroom — from the options above.
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Action button */}
+              <button
+                onClick={() => setSeatMapUnavailable(false)}
+                className="w-full py-4 bg-gradient-to-r from-[#E63946] to-[#D62839] text-white font-semibold rounded-2xl shadow-lg shadow-red-500/25 hover:shadow-xl hover:shadow-red-500/30 active:scale-[0.98] transition-all duration-200"
+              >
+                Got It
+              </button>
+
+              {/* Subtle close hint */}
+              <p className="text-xs text-gray-400 text-center mt-4">
+                Tap outside to dismiss
+              </p>
+            </div>
+
+            {/* Close button */}
+            <button
+              onClick={() => setSeatMapUnavailable(false)}
+              className="absolute top-4 right-4 w-8 h-8 rounded-full bg-gray-100 hover:bg-gray-200 flex items-center justify-center transition-colors"
+            >
+              <X className="w-4 h-4 text-gray-500" />
+            </button>
+          </div>
+        </div>
       )}
 
     </div>
