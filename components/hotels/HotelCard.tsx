@@ -297,8 +297,11 @@ export function HotelCard({
     <article
       data-hotel-card
       data-hotel-id={hotel.id}
-      className="group bg-white rounded-xl sm:rounded-2xl overflow-hidden transition-all duration-300 cursor-pointer active:scale-[0.98]"
-      style={{ boxShadow: '0 2px 12px -4px rgba(0,0,0,0.15)' }}
+      className="group bg-white rounded-2xl sm:rounded-3xl overflow-hidden transition-all duration-300 cursor-pointer active:scale-[0.985] hover:shadow-2xl"
+      style={{
+        boxShadow: '0 4px 20px -6px rgba(0,0,0,0.12), 0 1px 4px -2px rgba(0,0,0,0.08)',
+        background: 'linear-gradient(180deg, #FFFFFF 0%, #FAFBFC 100%)'
+      }}
     >
       {/* MOBILE: Full-bleed photo with shadow-based overlay (no gradients) */}
       <div
@@ -547,7 +550,11 @@ export function HotelCard({
                   </div>
                   <button
                     onClick={(e) => { e.stopPropagation(); handleBooking(); }}
-                    className="px-5 py-0.5 rounded-lg bg-primary-500 text-white text-[9px] font-bold active:scale-95 transition-transform flex-shrink-0"
+                    className="px-5 py-1 rounded-lg text-white text-[10px] font-bold active:scale-95 transition-all flex-shrink-0 shadow-md"
+                    style={{
+                      background: 'linear-gradient(135deg, #EF4136 0%, #DC3A30 100%)',
+                      boxShadow: '0 2px 8px -2px rgba(239,65,54,0.4)'
+                    }}
                   >
                     {t.bookNow}
                   </button>
@@ -691,7 +698,11 @@ export function HotelCard({
               ) : <span className="text-xs text-[#86868b]">Check availability</span>}
             </div>
             <button onClick={(e) => { e.stopPropagation(); handleBooking(); }}
-              className="px-4 py-2 font-semibold text-xs rounded-xl bg-primary-500 text-white shadow-md active:scale-95 transition-transform">
+              className="px-5 py-2.5 font-semibold text-sm rounded-xl text-white active:scale-95 transition-all hover:shadow-lg"
+              style={{
+                background: 'linear-gradient(135deg, #EF4136 0%, #DC3A30 100%)',
+                boxShadow: '0 4px 12px -3px rgba(239,65,54,0.35)'
+              }}>
               {perNightPrice > 0 ? t.bookNow : t.view}
             </button>
           </div>

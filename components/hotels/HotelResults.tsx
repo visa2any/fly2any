@@ -58,8 +58,11 @@ export default function HotelResults({ hotels, onSelectHotel, isLoading, lang }:
     return (
       <div className="flex items-center justify-center py-20">
         <div className="text-center">
-          <div className="inline-block animate-spin rounded-full h-16 w-16 border-b-4 border-orange-600 mb-4"></div>
-          <p className="text-xl text-gray-600">{t.loading}</p>
+          <div
+            className="inline-block animate-spin rounded-full h-12 w-12 border-2 border-neutral-200 mb-4"
+            style={{ borderTopColor: '#EF4136' }}
+          />
+          <p className="text-lg text-[#86868b] font-medium" style={{ fontFamily: 'system-ui, -apple-system, sans-serif' }}>{t.loading}</p>
         </div>
       </div>
     );
@@ -68,26 +71,30 @@ export default function HotelResults({ hotels, onSelectHotel, isLoading, lang }:
   if (!hotels || hotels.length === 0) {
     return (
       <div className="text-center py-20">
-        <div className="text-6xl mb-4">🏨</div>
-        <p className="text-xl text-gray-600">{t.noResults}</p>
+        <div className="text-5xl mb-4 opacity-50">🏨</div>
+        <p className="text-lg text-[#86868b] font-medium" style={{ fontFamily: 'system-ui, -apple-system, sans-serif' }}>{t.noResults}</p>
       </div>
     );
   }
 
   return (
     <div>
-      <h2 className="text-2xl font-bold text-gray-900 mb-6">
-        {t.results} ({hotels.length})
+      <h2 className="text-2xl font-bold text-[#1d1d1f] mb-6 tracking-tight" style={{ fontFamily: 'system-ui, -apple-system, sans-serif' }}>
+        {t.results} <span className="text-[#86868b] font-medium">({hotels.length})</span>
       </h2>
 
-      <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+      <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-5">
         {hotels.map((hotel) => (
-          <div
+          <article
             key={hotel.id}
-            className="bg-white rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-300 overflow-hidden border-2 border-transparent hover:border-orange-500"
+            className="bg-white rounded-2xl sm:rounded-3xl overflow-hidden transition-all duration-300 cursor-pointer active:scale-[0.985]"
+            style={{
+              boxShadow: '0 4px 20px -6px rgba(0,0,0,0.12), 0 1px 4px -2px rgba(0,0,0,0.08)',
+              background: 'linear-gradient(180deg, #FFFFFF 0%, #FAFBFC 100%)'
+            }}
           >
             {/* Hotel Image */}
-            <div className="relative h-48 bg-gray-200">
+            <div className="relative h-48 bg-neutral-100">
               {hotel.images && hotel.images[0] ? (
                 <img
                   src={hotel.images[0]}
@@ -95,37 +102,43 @@ export default function HotelResults({ hotels, onSelectHotel, isLoading, lang }:
                   className="w-full h-full object-cover"
                 />
               ) : (
-                <div className="w-full h-full flex items-center justify-center text-6xl">
+                <div className="w-full h-full flex items-center justify-center text-5xl opacity-30">
                   🏨
                 </div>
               )}
               {hotel.rating && (
-                <div className="absolute top-4 right-4 bg-white px-3 py-1 rounded-full shadow-lg">
+                <div
+                  className="absolute top-3 right-3 px-2.5 py-1 rounded-xl backdrop-blur-sm text-white font-bold text-sm"
+                  style={{
+                    background: 'rgba(0,0,0,0.4)',
+                    boxShadow: '0 2px 8px -2px rgba(0,0,0,0.3)'
+                  }}
+                >
                   <div className="flex items-center gap-1">
-                    <span className="text-yellow-500">★</span>
-                    <span className="font-bold text-gray-900">{hotel.rating.toFixed(1)}</span>
+                    <span className="text-secondary-400">★</span>
+                    <span>{hotel.rating.toFixed(1)}</span>
                   </div>
                 </div>
               )}
             </div>
 
             {/* Hotel Info */}
-            <div className="p-5">
-              <h3 className="text-lg font-bold text-gray-900 mb-2 line-clamp-2">
+            <div className="p-4">
+              <h3 className="text-base font-semibold text-[#1d1d1f] mb-1.5 line-clamp-2 tracking-tight" style={{ fontFamily: 'system-ui, -apple-system, sans-serif' }}>
                 {hotel.name}
               </h3>
 
-              <p className="text-sm text-gray-600 mb-4 line-clamp-2">
+              <p className="text-sm text-[#86868b] mb-3 line-clamp-2">
                 {hotel.address}
               </p>
 
               {/* Amenities */}
               {hotel.amenities && hotel.amenities.length > 0 && (
-                <div className="flex flex-wrap gap-2 mb-4">
+                <div className="flex flex-wrap gap-1.5 mb-3">
                   {hotel.amenities.slice(0, 3).map((amenity, index) => (
                     <span
                       key={index}
-                      className="text-xs bg-gray-100 text-gray-700 px-2 py-1 rounded-full"
+                      className="text-[10px] bg-neutral-100 text-[#86868b] px-2 py-0.5 rounded-md font-medium"
                     >
                       {amenity}
                     </span>
@@ -134,22 +147,26 @@ export default function HotelResults({ hotels, onSelectHotel, isLoading, lang }:
               )}
 
               {/* Price and Action */}
-              <div className="flex items-center justify-between pt-4 border-t border-gray-200">
+              <div className="flex items-center justify-between pt-3 border-t border-neutral-100">
                 <div>
-                  <div className="text-2xl font-bold text-orange-600">
+                  <div className="text-xl font-bold text-[#1d1d1f] tracking-tight">
                     ${hotel.price.total}
                   </div>
-                  <div className="text-xs text-gray-500">{t.perNight}</div>
+                  <div className="text-[10px] text-[#86868b]">{t.perNight}</div>
                 </div>
                 <button
                   onClick={() => onSelectHotel(hotel)}
-                  className="bg-orange-600 hover:bg-orange-700 text-white font-bold py-2 px-4 rounded-xl transition-all duration-300 transform hover:scale-105 shadow-lg text-sm"
+                  className="text-white font-semibold py-2 px-4 rounded-xl transition-all text-sm active:scale-95"
+                  style={{
+                    background: 'linear-gradient(135deg, #EF4136 0%, #DC3A30 100%)',
+                    boxShadow: '0 4px 12px -3px rgba(239,65,54,0.35)'
+                  }}
                 >
-                  {t.selectHotel} →
+                  {t.selectHotel}
                 </button>
               </div>
             </div>
-          </div>
+          </article>
         ))}
       </div>
     </div>

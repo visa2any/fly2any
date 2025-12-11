@@ -187,35 +187,56 @@ export function HotelCardEnhanced({
   const isGreatDeal = bestRate && parseFloat(bestRate.totalPrice?.amount || '0') < 150;
 
   return (
-    <div
+    <article
       data-hotel-card
       data-hotel-id={hotel.id}
       onClick={() => onViewDetails(hotel.id)}
-      className="group relative bg-white rounded-2xl overflow-hidden hover:shadow-2xl transition-all duration-500 cursor-pointer border border-gray-100 hover:border-orange-300 h-full flex flex-col"
+      className="group relative bg-white rounded-2xl sm:rounded-3xl overflow-hidden transition-all duration-300 cursor-pointer active:scale-[0.985] h-full flex flex-col"
+      style={{
+        boxShadow: '0 4px 20px -6px rgba(0,0,0,0.12), 0 1px 4px -2px rgba(0,0,0,0.08)',
+        background: 'linear-gradient(180deg, #FFFFFF 0%, #FAFBFC 100%)'
+      }}
     >
-      {/* Top Badges */}
+      {/* Top Badges - Apple-class frosted glass */}
       <div className="absolute top-3 left-3 z-20 flex flex-col gap-2">
         {isTopRated && (
-          <div className="flex items-center gap-1.5 px-3 py-1.5 bg-gradient-to-r from-yellow-400 to-amber-500 text-white rounded-lg shadow-lg text-xs font-bold">
+          <div
+            className="flex items-center gap-1.5 px-3 py-1.5 text-white rounded-xl text-xs font-bold backdrop-blur-sm"
+            style={{
+              background: 'linear-gradient(135deg, #F9C900 0%, #E6B800 100%)',
+              boxShadow: '0 2px 8px -2px rgba(249,201,0,0.4)'
+            }}
+          >
             <Award className="w-3.5 h-3.5" />
             {t.topRated}
           </div>
         )}
         {isGreatDeal && (
-          <div className="flex items-center gap-1.5 px-3 py-1.5 bg-gradient-to-r from-red-500 to-rose-600 text-white rounded-lg shadow-lg text-xs font-bold animate-pulse">
+          <div
+            className="flex items-center gap-1.5 px-3 py-1.5 text-white rounded-xl text-xs font-bold"
+            style={{
+              background: 'linear-gradient(135deg, #EF4136 0%, #DC3A30 100%)',
+              boxShadow: '0 2px 8px -2px rgba(239,65,54,0.4)',
+              animation: 'pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite'
+            }}
+          >
             <TrendingUp className="w-3.5 h-3.5" />
             {t.dealOfTheDay}
           </div>
         )}
       </div>
 
-      {/* Action Buttons */}
+      {/* Action Buttons - Apple-class frosted glass */}
       <div className="absolute top-3 right-3 z-20 flex gap-2">
         <button
           onClick={handleFavorite}
-          className={`p-2.5 rounded-full backdrop-blur-xl transition-all shadow-lg hover:scale-110 active:scale-95 ${
-            isFavorited ? 'bg-red-500 text-white' : 'bg-white/95 text-slate-600 hover:bg-red-50'
+          className={`p-2.5 rounded-full backdrop-blur-md transition-all active:scale-90 ${
+            isFavorited ? 'text-primary-500' : 'text-white'
           }`}
+          style={{
+            background: 'rgba(0,0,0,0.3)',
+            boxShadow: '0 2px 8px -2px rgba(0,0,0,0.3)'
+          }}
           aria-label="Favorite"
         >
           <Heart className={`w-5 h-5 ${isFavorited ? 'fill-current' : ''}`} />
@@ -284,7 +305,7 @@ export function HotelCardEnhanced({
         {/* Hotel Name & Rating Row */}
         <div className="mb-3">
           <div className="flex items-start justify-between gap-3 mb-2">
-            <h3 className="font-bold text-gray-900 text-lg leading-tight flex-1 line-clamp-2 group-hover:text-orange-600 transition-colors">
+            <h3 className="font-bold text-[#1d1d1f] text-lg leading-tight flex-1 line-clamp-2 group-hover:text-primary-500 transition-colors tracking-tight" style={{ fontFamily: 'system-ui, -apple-system, sans-serif' }}>
               {hotel.name}
             </h3>
             {hotel.reviewScore > 0 && (
@@ -322,8 +343,8 @@ export function HotelCardEnhanced({
 
         {/* Location */}
         <div className="flex items-start gap-2 mb-3">
-          <MapPin className="w-4 h-4 text-orange-500 flex-shrink-0 mt-0.5" />
-          <p className="text-gray-700 text-sm font-medium leading-snug line-clamp-2">
+          <MapPin className="w-4 h-4 text-primary-500 flex-shrink-0 mt-0.5" />
+          <p className="text-[#86868b] text-sm font-medium leading-snug line-clamp-2">
             {hotel.location?.address || `${hotel.location?.city}, ${hotel.location?.country}`}
           </p>
         </div>
@@ -394,25 +415,29 @@ export function HotelCardEnhanced({
           )}
         </div>
 
-        {/* Pricing & CTA - Enhanced */}
+        {/* Pricing & CTA - Apple-class Premium */}
         <div className="mt-auto">
           {perNightPrice > 0 ? (
             <div className="flex items-end justify-between gap-4">
               <div className="flex-1">
-                <div className="text-gray-600 text-xs mb-1">{t.from}</div>
-                <div className="flex items-baseline gap-2">
-                  <span className="text-gray-900 font-black text-3xl leading-none">
+                <div className="text-[#86868b] text-xs mb-1">{t.from}</div>
+                <div className="flex items-baseline gap-1">
+                  <span className="text-[#1d1d1f] font-bold text-2xl leading-none tracking-tight">
                     {currencySymbol}{Math.round(perNightPrice)}
                   </span>
-                  <span className="text-gray-600 text-sm font-medium">/ night</span>
+                  <span className="text-[#86868b] text-sm font-medium">/ night</span>
                 </div>
-                <div className="text-gray-500 text-xs mt-1">
+                <div className="text-[#86868b] text-xs mt-1">
                   Total: {currencySymbol}{Math.round(totalPrice).toLocaleString()} ({nights}n)
                 </div>
               </div>
               <button
                 onClick={(e) => { e.stopPropagation(); handleBooking(); }}
-                className="px-6 py-3 font-bold text-sm rounded-xl transition-all bg-gradient-to-r from-orange-500 to-red-600 text-white hover:from-orange-600 hover:to-red-700 shadow-lg hover:shadow-xl hover:scale-105 active:scale-95"
+                className="px-6 py-3 font-bold text-sm rounded-xl transition-all text-white active:scale-95"
+                style={{
+                  background: 'linear-gradient(135deg, #EF4136 0%, #DC3A30 100%)',
+                  boxShadow: '0 4px 12px -3px rgba(239,65,54,0.35)'
+                }}
               >
                 {bestRate ? t.selectRoom : t.seeAvailability}
               </button>
@@ -420,19 +445,19 @@ export function HotelCardEnhanced({
           ) : (
             <button
               onClick={(e) => { e.stopPropagation(); onViewDetails(hotel.id); }}
-              className="w-full px-6 py-3 font-bold text-sm rounded-xl transition-all bg-gray-200 text-gray-700 hover:bg-gray-300"
+              className="w-full px-6 py-3 font-bold text-sm rounded-xl transition-all bg-neutral-100 text-[#1d1d1f] hover:bg-neutral-200 active:scale-[0.98]"
             >
               {t.viewDetails}
             </button>
           )}
         </div>
 
-        {/* Trust Badge */}
-        <div className="flex items-center gap-2 mt-3 pt-3 border-t border-gray-100">
-          <CheckCircle className="w-4 h-4 text-green-600 flex-shrink-0" />
-          <span className="text-xs text-gray-600 font-medium">Instant confirmation · Best price guarantee</span>
+        {/* Trust Badge - Apple-class subtle */}
+        <div className="flex items-center gap-2 mt-3 pt-3 border-t border-neutral-100">
+          <CheckCircle className="w-4 h-4 text-emerald-500 flex-shrink-0" />
+          <span className="text-xs text-[#86868b] font-medium">Instant confirmation · Best price guarantee</span>
         </div>
       </div>
-    </div>
+    </article>
   );
 }
