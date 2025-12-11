@@ -230,6 +230,16 @@ export async function POST(request: NextRequest) {
         });
       }
 
+      // CRITICAL FIX: Amadeus requires valid email for all travelers
+      // Fallback: use contactInfo email, or construct a placeholder if missing
+      // (placeholder should never be used in production - this is a safety net)
+      const travelerEmail = passenger.email || contactInfo?.email || `traveler${index + 1}@booking.fly2any.com`;
+      const travelerPhone = passenger.phone?.replace(/\D/g, '') || contactInfo?.phone?.replace(/\D/g, '') || '0000000000';
+
+      if (!passenger.email && !contactInfo?.email) {
+        console.warn(`⚠️ Missing email for traveler ${index + 1}: ${passenger.firstName} ${passenger.lastName}`);
+      }
+
       return {
         id: (index + 1).toString(),
         dateOfBirth,
@@ -239,12 +249,12 @@ export async function POST(request: NextRequest) {
         },
         gender: passenger.gender?.toUpperCase() === 'MALE' ? 'MALE' : 'FEMALE',
         contact: {
-          emailAddress: passenger.email || contactInfo?.email,
+          emailAddress: travelerEmail,
           phones: [
             {
               deviceType: 'MOBILE',
               countryCallingCode: '1',
-              number: passenger.phone?.replace(/\D/g, '') || contactInfo?.phone?.replace(/\D/g, '') || '0000000000',
+              number: travelerPhone,
             },
           ],
         },

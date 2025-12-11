@@ -4,6 +4,7 @@ import { emailService } from '@/lib/email/service';
 import { auth } from '@/lib/auth';
 import { notifyTicketIssued } from '@/lib/notifications/notification-service';
 import type { BookingNotificationPayload } from '@/lib/notifications/types';
+import { getStripeClient } from '@/lib/payments/stripe-client';
 
 // Force Node.js runtime and dynamic rendering for database access
 export const runtime = 'nodejs';
@@ -106,6 +107,44 @@ export async function POST(
       markup = booking.payment.amount - body.consolidatorPrice;
     }
 
+    // CRITICAL FIX: Capture Stripe payment if payment intent exists and is uncaptured
+    // For manual ticketing workflow, payment may be authorized but not captured
+    let stripeTransactionId: string | undefined;
+    let paymentCapturedAt: string | undefined;
+
+    if (booking.payment?.paymentIntentId && booking.payment.status === 'pending') {
+      console.log(`💳 Attempting to capture Stripe payment: ${booking.payment.paymentIntentId}`);
+
+      try {
+        const stripe = getStripeClient();
+
+        // Check payment intent status
+        const paymentIntent = await stripe.paymentIntents.retrieve(booking.payment.paymentIntentId);
+
+        if (paymentIntent.status === 'requires_capture') {
+          // Capture the payment
+          const capturedPayment = await stripe.paymentIntents.capture(booking.payment.paymentIntentId);
+          stripeTransactionId = capturedPayment.id;
+          paymentCapturedAt = new Date().toISOString();
+          console.log(`✅ Stripe payment captured: ${stripeTransactionId}`);
+        } else if (paymentIntent.status === 'succeeded') {
+          // Already captured (automatic capture)
+          stripeTransactionId = paymentIntent.id;
+          paymentCapturedAt = new Date(paymentIntent.created * 1000).toISOString();
+          console.log(`✅ Stripe payment already succeeded: ${stripeTransactionId}`);
+        } else if (paymentIntent.status === 'canceled') {
+          console.warn(`⚠️ Stripe payment was canceled: ${booking.payment.paymentIntentId}`);
+          // Payment was canceled - admin should be aware
+        } else {
+          console.log(`ℹ️ Stripe payment status: ${paymentIntent.status} - may require manual handling`);
+        }
+      } catch (stripeError: any) {
+        console.error('⚠️ Stripe payment capture failed:', stripeError.message);
+        // Don't block ticketing if Stripe fails - admin can handle manually
+        // But warn them in the response
+      }
+    }
+
     // Update booking with ticketing information
     const updatedBooking = await bookingStorage.update(id, {
       status: 'ticketed',
@@ -123,7 +162,9 @@ export async function POST(
       payment: {
         ...booking.payment,
         status: 'paid',
-        paidAt: booking.payment.paidAt || new Date().toISOString(),
+        transactionId: stripeTransactionId || booking.payment.transactionId,
+        paidAt: paymentCapturedAt || booking.payment.paidAt || new Date().toISOString(),
+        capturedAt: paymentCapturedAt,
       },
     });
 

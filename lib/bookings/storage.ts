@@ -44,76 +44,163 @@ class BookingStorage {
   }
 
   /**
-   * Create a new booking
+   * Create a new booking with retry logic
+   *
+   * CRITICAL FIX: Added retry logic for transient database failures to prevent
+   * orphaned bookings where payment intent exists but booking doesn't.
+   *
    * @param booking - Booking data without id/timestamps
    * @param preGeneratedRef - Optional pre-generated booking reference (for payment intent matching)
+   * @param maxRetries - Maximum retry attempts for transient failures (default: 3)
    */
   async create(
     booking: Omit<Booking, 'id' | 'bookingReference' | 'createdAt' | 'updatedAt'>,
-    preGeneratedRef?: string
+    preGeneratedRef?: string,
+    maxRetries: number = 3
   ): Promise<Booking> {
     if (!sql) {
       throw new Error('Database not configured');
     }
 
-    try {
-      const now = new Date().toISOString();
-      const id = this.generateBookingId();
-      // Use pre-generated reference if provided, otherwise generate new one
-      const bookingReference = preGeneratedRef || await this.generateBookingReference();
+    const now = new Date().toISOString();
+    const id = this.generateBookingId();
+    // Use pre-generated reference if provided, otherwise generate new one
+    const bookingReference = preGeneratedRef || await this.generateBookingReference();
 
-      const newBooking: Booking = {
-        ...booking,
-        id,
-        bookingReference,
-        createdAt: now,
-        updatedAt: now,
-      };
+    const newBooking: Booking = {
+      ...booking,
+      id,
+      bookingReference,
+      createdAt: now,
+      updatedAt: now,
+    };
 
-      // Insert booking into database
-      await sql`
-        INSERT INTO bookings (
-          id,
-          booking_reference,
-          status,
-          user_id,
-          contact_info,
-          flight,
-          passengers,
-          seats,
-          payment,
-          special_requests,
-          notes,
-          cancellation_reason,
-          refund_policy,
-          created_at,
-          updated_at,
-          cancelled_at
-        ) VALUES (
-          ${newBooking.id},
-          ${newBooking.bookingReference},
-          ${newBooking.status},
-          ${newBooking.userId || null},
-          ${JSON.stringify(newBooking.contactInfo)},
-          ${JSON.stringify(newBooking.flight)},
-          ${JSON.stringify(newBooking.passengers)},
-          ${JSON.stringify(newBooking.seats)},
-          ${JSON.stringify(newBooking.payment)},
-          ${JSON.stringify(newBooking.specialRequests || null)},
-          ${newBooking.notes || null},
-          ${newBooking.cancellationReason || null},
-          ${JSON.stringify(newBooking.refundPolicy || null)},
-          ${newBooking.createdAt},
-          ${newBooking.updatedAt},
-          ${newBooking.cancelledAt || null}
-        )
-      `;
+    let lastError: Error | null = null;
 
-      return newBooking;
-    } catch (error) {
-      console.error('Error creating booking:', error);
-      throw new Error('Failed to create booking');
+    for (let attempt = 1; attempt <= maxRetries; attempt++) {
+      try {
+        // Insert booking into database
+        await sql`
+          INSERT INTO bookings (
+            id,
+            booking_reference,
+            status,
+            user_id,
+            contact_info,
+            flight,
+            passengers,
+            seats,
+            payment,
+            special_requests,
+            notes,
+            cancellation_reason,
+            refund_policy,
+            created_at,
+            updated_at,
+            cancelled_at
+          ) VALUES (
+            ${newBooking.id},
+            ${newBooking.bookingReference},
+            ${newBooking.status},
+            ${newBooking.userId || null},
+            ${JSON.stringify(newBooking.contactInfo)},
+            ${JSON.stringify(newBooking.flight)},
+            ${JSON.stringify(newBooking.passengers)},
+            ${JSON.stringify(newBooking.seats)},
+            ${JSON.stringify(newBooking.payment)},
+            ${JSON.stringify(newBooking.specialRequests || null)},
+            ${newBooking.notes || null},
+            ${newBooking.cancellationReason || null},
+            ${JSON.stringify(newBooking.refundPolicy || null)},
+            ${newBooking.createdAt},
+            ${newBooking.updatedAt},
+            ${newBooking.cancelledAt || null}
+          )
+        `;
+
+        if (attempt > 1) {
+          console.log(`✅ Booking ${bookingReference} saved on retry attempt ${attempt}`);
+        }
+
+        return newBooking;
+      } catch (error: any) {
+        lastError = error;
+
+        // Check if this is a retryable error (connection issues, timeouts)
+        const isRetryable = this.isRetryableError(error);
+
+        if (isRetryable && attempt < maxRetries) {
+          // Exponential backoff: 100ms, 200ms, 400ms
+          const delay = Math.min(100 * Math.pow(2, attempt - 1), 1000);
+          console.warn(`⚠️ Booking create attempt ${attempt} failed, retrying in ${delay}ms:`, error.message);
+          await this.sleep(delay);
+        } else if (!isRetryable) {
+          // Non-retryable error (e.g., duplicate key), throw immediately
+          console.error('❌ Non-retryable error creating booking:', error);
+          throw new Error(`Failed to create booking: ${error.message}`);
+        }
+      }
     }
+
+    // All retries exhausted
+    console.error(`❌ CRITICAL: Failed to create booking after ${maxRetries} attempts:`, lastError);
+    throw new Error(`Failed to create booking after ${maxRetries} attempts: ${lastError?.message}`);
+  }
+
+  /**
+   * Check if an error is retryable (transient)
+   */
+  private isRetryableError(error: any): boolean {
+    const message = error?.message?.toLowerCase() || '';
+    const code = error?.code || '';
+
+    // Retryable: connection issues, timeouts, temporary failures
+    const retryablePatterns = [
+      'connection',
+      'timeout',
+      'econnreset',
+      'econnrefused',
+      'etimedout',
+      'socket',
+      'network',
+      'temporarily unavailable',
+      'too many connections',
+      'deadlock',
+      'lock wait timeout',
+    ];
+
+    // Non-retryable: duplicate key, constraint violations, syntax errors
+    const nonRetryablePatterns = [
+      'duplicate',
+      'unique constraint',
+      'foreign key',
+      'syntax error',
+      'invalid input',
+    ];
+
+    // Check non-retryable first
+    for (const pattern of nonRetryablePatterns) {
+      if (message.includes(pattern)) {
+        return false;
+      }
+    }
+
+    // Check retryable patterns
+    for (const pattern of retryablePatterns) {
+      if (message.includes(pattern) || code.toLowerCase().includes(pattern)) {
+        return true;
+      }
+    }
+
+    // Default: retry on unknown errors (conservative approach)
+    return true;
+  }
+
+  /**
+   * Sleep utility for retry delays
+   */
+  private sleep(ms: number): Promise<void> {
+    return new Promise(resolve => setTimeout(resolve, ms));
   }
 
   /**

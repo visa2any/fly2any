@@ -63,6 +63,7 @@ export interface PaymentConfirmation {
   last4?: string;
   brand?: string;
   clientSecret?: string;
+  isTestMode?: boolean; // Flag to indicate test mode payment
 }
 
 export interface RefundData {
@@ -103,11 +104,23 @@ class PaymentService {
    * with Stripe Elements and 3D Secure support
    *
    * TEST MODE: If Stripe not configured, returns mock payment intent for testing
+   *
+   * CRITICAL: Test mode is BLOCKED in production to prevent fake payments
    */
   async createPaymentIntent(data: PaymentIntentData): Promise<PaymentConfirmation> {
     // TEST MODE: If Stripe not configured, return mock payment intent
     if (!this.stripeInitialized) {
+      // CRITICAL SECURITY FIX: Block test mode in production
+      const isProduction = process.env.NODE_ENV === 'production' ||
+                           process.env.VERCEL_ENV === 'production';
+
+      if (isProduction && process.env.ENABLE_TEST_PAYMENTS !== 'true') {
+        console.error('❌ SECURITY: Stripe not configured in production - blocking payment');
+        throw new Error('Payment system is not properly configured. Please contact support.');
+      }
+
       console.warn('⚠️  Stripe not configured - using TEST MODE');
+      console.warn('⚠️  THIS IS A TEST PAYMENT - NO REAL MONEY WILL BE CHARGED');
       console.log('💳 Creating TEST MODE payment intent...');
       console.log(`   Amount: ${data.amount} ${data.currency}`);
       console.log(`   Customer: ${data.customerEmail}`);
@@ -126,6 +139,7 @@ class PaymentService {
         amount: data.amount,
         currency: data.currency.toUpperCase(),
         clientSecret: mockClientSecret,
+        isTestMode: true, // Flag to indicate test mode
       };
     }
 
@@ -410,8 +424,20 @@ class PaymentService {
         console.log('⏳ Payment requires additional action (3D Secure)');
         break;
 
+      case 'payment_intent.canceled':
+        await this.handlePaymentCanceled(event.data.object as Stripe.PaymentIntent);
+        break;
+
       case 'charge.refunded':
         await this.handleRefund(event.data.object as Stripe.Charge);
+        break;
+
+      case 'charge.dispute.created':
+        await this.handleDisputeCreated(event.data.object as Stripe.Dispute);
+        break;
+
+      case 'charge.dispute.closed':
+        await this.handleDisputeClosed(event.data.object as Stripe.Dispute);
         break;
 
       default:
@@ -557,6 +583,105 @@ class PaymentService {
     } catch (error) {
       console.error('❌ Failed to update booking after refund:', error);
     }
+  }
+
+  /**
+   * Handle payment intent canceled
+   *
+   * Updates booking status when payment is canceled
+   */
+  private async handlePaymentCanceled(paymentIntent: Stripe.PaymentIntent): Promise<void> {
+    console.log('❌ Payment canceled');
+    console.log(`   Payment Intent ID: ${paymentIntent.id}`);
+    console.log(`   Cancellation Reason: ${paymentIntent.cancellation_reason || 'Not specified'}`);
+
+    try {
+      const { bookingStorage } = await import('@/lib/bookings/storage');
+      const bookingReference = paymentIntent.metadata?.bookingReference;
+
+      if (!bookingReference) {
+        console.error('❌ No booking reference in payment metadata');
+        return;
+      }
+
+      const booking = await bookingStorage.findByReferenceAsync(bookingReference);
+
+      if (!booking) {
+        console.error(`❌ Booking not found: ${bookingReference}`);
+        return;
+      }
+
+      await bookingStorage.update(booking.id, {
+        status: 'cancelled' as any,
+        payment: {
+          ...booking.payment,
+          status: 'failed' as any,
+        },
+        cancellationReason: `Payment canceled: ${paymentIntent.cancellation_reason || 'User canceled'}`,
+      });
+
+      console.log(`✅ Booking ${bookingReference} marked as cancelled due to payment cancellation`);
+    } catch (error) {
+      console.error('❌ Failed to update booking after payment cancellation:', error);
+    }
+  }
+
+  /**
+   * Handle dispute created
+   *
+   * Notifies admin when a customer disputes a charge (chargeback)
+   */
+  private async handleDisputeCreated(dispute: Stripe.Dispute): Promise<void> {
+    console.error('⚠️ DISPUTE CREATED - Chargeback initiated!');
+    console.error(`   Dispute ID: ${dispute.id}`);
+    console.error(`   Amount: $${dispute.amount / 100}`);
+    console.error(`   Reason: ${dispute.reason}`);
+    console.error(`   Status: ${dispute.status}`);
+
+    try {
+      const chargeId = typeof dispute.charge === 'string' ? dispute.charge : dispute.charge?.id;
+      const { bookingStorage } = await import('@/lib/bookings/storage');
+
+      // Try to find booking via payment intent
+      const stripeClient = getStripeClient();
+      const charge = await stripeClient.charges.retrieve(chargeId as string);
+      const paymentIntentId = charge.payment_intent as string;
+
+      if (paymentIntentId) {
+        const paymentIntent = await stripeClient.paymentIntents.retrieve(paymentIntentId);
+        const bookingReference = paymentIntent.metadata?.bookingReference;
+
+        if (bookingReference) {
+          const booking = await bookingStorage.findByReferenceAsync(bookingReference);
+          if (booking) {
+            // Mark booking as disputed
+            await bookingStorage.update(booking.id, {
+              notes: `${booking.notes || ''}\n⚠️ DISPUTE: ${dispute.reason} on ${new Date().toISOString()}`,
+            });
+            console.log(`⚠️ Booking ${bookingReference} flagged with dispute`);
+          }
+        }
+      }
+
+      // TODO: Send admin notification (email/Telegram) for urgent attention
+      console.error('⚠️ ADMIN ACTION REQUIRED: Review and respond to dispute in Stripe dashboard');
+    } catch (error) {
+      console.error('❌ Failed to process dispute notification:', error);
+    }
+  }
+
+  /**
+   * Handle dispute closed
+   *
+   * Updates booking based on dispute outcome
+   */
+  private async handleDisputeClosed(dispute: Stripe.Dispute): Promise<void> {
+    console.log(`📋 Dispute closed: ${dispute.id}`);
+    console.log(`   Status: ${dispute.status}`);
+    console.log(`   Outcome: ${dispute.status === 'won' ? 'WON (funds retained)' : 'LOST (funds reversed)'}`);
+
+    // Log for admin awareness - no automatic action needed
+    // The refund handling will update booking if funds are reversed
   }
 
   /**
