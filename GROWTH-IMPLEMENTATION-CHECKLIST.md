@@ -181,7 +181,7 @@
 - [ ] Create personalized deal recommendations
 - [ ] Implement dynamic homepage content
 - [ ] Add personalized email content
-- [ ] Build A/B testing framework
+- [x] Build A/B testing framework (`lib/ab-testing/test-manager.ts`, `app/admin/growth/ab-testing/page.tsx`)
 - [ ] Create conversion optimization dashboard
 
 ### Analytics & Monitoring
