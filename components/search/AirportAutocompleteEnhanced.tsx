@@ -459,11 +459,11 @@ const AirportAutocompleteEnhanced: React.FC<AirportAutocompleteEnhancedProps> = 
 
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2">
-                        <span className="font-semibold text-gray-900 dark:text-white">
+                        <span className="font-semibold text-gray-900 dark:text-white md:text-lg">
                           {suggestion.code}
                         </span>
                         <span className="text-gray-400">•</span>
-                        <span className="text-sm text-gray-600 dark:text-gray-400 truncate">
+                        <span className="text-sm md:text-base text-gray-600 dark:text-gray-400 truncate">
                           {suggestion.city}
                         </span>
 
@@ -490,7 +490,7 @@ const AirportAutocompleteEnhanced: React.FC<AirportAutocompleteEnhancedProps> = 
                         )}
                       </div>
 
-                      <div className="text-xs text-gray-500 dark:text-gray-400 truncate">
+                      <div className="text-xs md:text-sm text-gray-500 dark:text-gray-400 truncate">
                         {suggestion.name}
                       </div>
                     </div>
