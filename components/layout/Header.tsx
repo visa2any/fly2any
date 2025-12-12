@@ -227,17 +227,19 @@ export function Header({
 
               {/* Fly2Any Text Logo - Level-6 Ultra-Premium Wordmark */}
               <span
-                className="font-extrabold text-[17px] sm:text-[19px] lg:text-[22px] bg-gradient-to-r from-primary-600 via-primary-500 to-primary-400 bg-clip-text text-transparent flex items-baseline"
+                className="font-extrabold text-[17px] sm:text-[19px] lg:text-[22px]"
                 style={{
                   fontFamily: "'Inter', 'SF Pro Display', system-ui, sans-serif",
                   letterSpacing: '0.02em',
                   lineHeight: 1,
+                  background: 'linear-gradient(90deg, #D43B31, #E74035, #EF6B63)',
+                  WebkitBackgroundClip: 'text',
+                  WebkitTextFillColor: 'transparent',
+                  backgroundClip: 'text',
                 }}
                 aria-label="fly2any"
               >
-                <span style={{ textTransform: 'lowercase' }}>fly</span>
-                <span style={{ fontSize: '0.78em', fontWeight: 800, position: 'relative', top: '0.02em' }}>2</span>
-                <span style={{ textTransform: 'lowercase' }}>any</span>
+                fly2any
               </span>
             </a>
 
@@ -730,8 +732,8 @@ export function Header({
               </button>
             )}
 
-            {/* Hamburger Menu (Mobile Only) - Right aligned */}
-            <div className="lg:hidden">
+            {/* Hamburger Menu (Mobile Only) - Right aligned, pushed to edge */}
+            <div className="lg:hidden -mr-1">
               <HamburgerMenu
                 isOpen={mobileMenuOpen}
                 onClick={() => setMobileMenuOpen(!mobileMenuOpen)}

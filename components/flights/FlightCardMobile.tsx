@@ -331,36 +331,38 @@ export function FlightCardMobile(props: EnhancedFlightCardProps) {
             </div>
           </div>
 
-          {/* Right: Favorite + Badge + Overflow */}
-          <div className="flex items-center gap-1 flex-shrink-0">
+          {/* Right: Favorite + Share + Overflow (Deal badge moved to details) */}
+          <div className="flex items-center gap-0 flex-shrink-0">
             {/* Favorite - Always visible */}
-            <div className="min-h-[44px] min-w-[44px] flex items-center justify-center">
+            <button
+              onClick={handleFavorite}
+              className="min-h-[44px] min-w-[40px] flex items-center justify-center hover:bg-neutral-100 rounded-full transition-all duration-150 ease-[cubic-bezier(0.2,0.8,0.2,1)] active:scale-95"
+              aria-label="Add to favorites"
+            >
+              <Heart className={`w-4 h-4 ${isFavorite ? 'fill-red-500 text-red-500' : 'text-neutral-400'}`} />
+            </button>
+
+            {/* Share - Always visible */}
+            <button
+              onClick={handleShare}
+              className="min-h-[44px] min-w-[40px] flex items-center justify-center hover:bg-neutral-100 rounded-full transition-all duration-150 ease-[cubic-bezier(0.2,0.8,0.2,1)] active:scale-95"
+              aria-label="Share flight"
+            >
+              <Share2 className="w-4 h-4 text-neutral-400" />
+            </button>
+
+            {/* Overflow Menu Button - Reduced right padding */}
+            <div className="relative -mr-1">
               <button
-                onClick={handleFavorite}
-                className="p-1.5 hover:bg-neutral-100 rounded-full transition-all duration-150 ease-[cubic-bezier(0.2,0.8,0.2,1)] active:scale-95"
-                aria-label="Add to favorites"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setShowOverflowMenu(!showOverflowMenu);
+                }}
+                className="min-h-[44px] min-w-[36px] flex items-center justify-center hover:bg-neutral-100 rounded-full transition-all duration-150 ease-[cubic-bezier(0.2,0.8,0.2,1)] active:scale-95"
+                aria-label="More options"
               >
-                <Heart className={`w-4 h-4 ${isFavorite ? 'fill-red-500 text-red-500' : 'text-neutral-400'}`} />
+                <MoreVertical className="w-4 h-4 text-neutral-500" />
               </button>
-            </div>
-
-            {/* Priority Badge - Always visible */}
-            {priorityBadge()}
-
-            {/* Overflow Menu Button */}
-            <div className="relative">
-              <div className="min-h-[44px] min-w-[44px] flex items-center justify-center">
-                <button
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    setShowOverflowMenu(!showOverflowMenu);
-                  }}
-                  className="p-1.5 hover:bg-neutral-100 rounded-full transition-all duration-150 ease-[cubic-bezier(0.2,0.8,0.2,1)] active:scale-95"
-                  aria-label="More options"
-                >
-                  <MoreVertical className="w-4 h-4 text-neutral-500" />
-                </button>
-              </div>
 
               {/* Overflow Dropdown Menu */}
               {showOverflowMenu && (
@@ -371,6 +373,13 @@ export function FlightCardMobile(props: EnhancedFlightCardProps) {
                     onClick={() => setShowOverflowMenu(false)}
                   />
                   <div className="absolute right-0 top-full mt-1 z-50 bg-white rounded-xl shadow-xl border border-neutral-200 py-1 min-w-[160px] animate-fadeIn">
+                    {/* Deal Score Badge - Moved here from compact view */}
+                    {(dealScoreBreakdown || (dealScore && dealScore >= 70)) && (
+                      <div className="px-3 py-2 border-b border-neutral-100">
+                        {priorityBadge()}
+                      </div>
+                    )}
+
                     {/* Rating */}
                     <div className="px-3 py-2 flex items-center gap-2 border-b border-neutral-100">
                       <Star className="w-4 h-4 fill-yellow-500 text-yellow-500" />
@@ -385,18 +394,6 @@ export function FlightCardMobile(props: EnhancedFlightCardProps) {
                         {baggage.checked > 0 && `, ${baggage.checked} checked`}
                       </span>
                     </div>
-
-                    {/* Share */}
-                    <button
-                      onClick={(e) => {
-                        handleShare(e);
-                        setShowOverflowMenu(false);
-                      }}
-                      className="w-full px-3 py-2 flex items-center gap-2 hover:bg-neutral-50 transition-all duration-150 ease-[cubic-bezier(0.2,0.8,0.2,1)]"
-                    >
-                      <Share2 className="w-4 h-4 text-neutral-500" />
-                      <span className="text-sm text-neutral-700">Share flight</span>
-                    </button>
 
                     {/* Compare */}
                     <button
@@ -438,17 +435,19 @@ export function FlightCardMobile(props: EnhancedFlightCardProps) {
             </span>
           </div>
           <div className="flex items-center">
-            {/* Departure with date - Mobile-optimized city display */}
+            {/* Departure with date - City + Code on same row */}
             <div className="flex-shrink-0">
               <div className="text-[9px] text-neutral-500">{formatDate(outboundFirstSegment.departure.at)}</div>
               <div className="text-base font-bold text-neutral-900 leading-none">
                 {formatTime(outboundFirstSegment.departure.at)}
               </div>
-              <div className="text-[11px] font-bold text-neutral-800 leading-tight truncate max-w-[80px]">
-                {getMobileCityName(outboundFirstSegment.departure.iataCode)}
-              </div>
-              <div className="text-[9px] text-neutral-500">
-                {outboundFirstSegment.departure.iataCode}
+              <div className="flex items-center gap-1 leading-tight">
+                <span className="text-[11px] font-bold text-neutral-800 truncate max-w-[60px]">
+                  {getMobileCityName(outboundFirstSegment.departure.iataCode)}
+                </span>
+                <span className="text-[10px] font-semibold text-neutral-500">
+                  {outboundFirstSegment.departure.iataCode}
+                </span>
               </div>
             </div>
 
@@ -459,17 +458,19 @@ export function FlightCardMobile(props: EnhancedFlightCardProps) {
               </div>
             </div>
 
-            {/* Arrival with date - Mobile-optimized city display */}
+            {/* Arrival with date - City + Code on same row */}
             <div className="flex-shrink-0 text-right">
               <div className="text-[9px] text-neutral-500">{formatDate(outboundLastSegment.arrival.at)}</div>
               <div className="text-base font-bold text-neutral-900 leading-none">
                 {formatTime(outboundLastSegment.arrival.at)}
               </div>
-              <div className="text-[11px] font-bold text-neutral-800 leading-tight truncate max-w-[80px]">
-                {getMobileCityName(outboundLastSegment.arrival.iataCode)}
-              </div>
-              <div className="text-[9px] text-neutral-500">
-                {outboundLastSegment.arrival.iataCode}
+              <div className="flex items-center justify-end gap-1 leading-tight">
+                <span className="text-[10px] font-semibold text-neutral-500">
+                  {outboundLastSegment.arrival.iataCode}
+                </span>
+                <span className="text-[11px] font-bold text-neutral-800 truncate max-w-[60px]">
+                  {getMobileCityName(outboundLastSegment.arrival.iataCode)}
+                </span>
               </div>
             </div>
           </div>
@@ -500,17 +501,19 @@ export function FlightCardMobile(props: EnhancedFlightCardProps) {
                 </span>
               </div>
               <div className="flex items-center">
-                {/* Departure with date - Mobile-optimized city display */}
+                {/* Departure with date - City + Code on same row */}
                 <div className="flex-shrink-0">
                   <div className="text-[9px] text-neutral-500">{formatDate(returnFirstSegment.departure.at)}</div>
                   <div className="text-base font-bold text-neutral-900 leading-none">
                     {formatTime(returnFirstSegment.departure.at)}
                   </div>
-                  <div className="text-[11px] font-bold text-neutral-800 leading-tight truncate max-w-[80px]">
-                    {getMobileCityName(returnFirstSegment.departure.iataCode)}
-                  </div>
-                  <div className="text-[9px] text-neutral-500">
-                    {returnFirstSegment.departure.iataCode}
+                  <div className="flex items-center gap-1 leading-tight">
+                    <span className="text-[11px] font-bold text-neutral-800 truncate max-w-[60px]">
+                      {getMobileCityName(returnFirstSegment.departure.iataCode)}
+                    </span>
+                    <span className="text-[10px] font-semibold text-neutral-500">
+                      {returnFirstSegment.departure.iataCode}
+                    </span>
                   </div>
                 </div>
 
@@ -521,17 +524,19 @@ export function FlightCardMobile(props: EnhancedFlightCardProps) {
                   </div>
                 </div>
 
-                {/* Arrival with date - Mobile-optimized city display */}
+                {/* Arrival with date - City + Code on same row */}
                 <div className="flex-shrink-0 text-right">
                   <div className="text-[9px] text-neutral-500">{formatDate(returnLastSegment.arrival.at)}</div>
                   <div className="text-base font-bold text-neutral-900 leading-none">
                     {formatTime(returnLastSegment.arrival.at)}
                   </div>
-                  <div className="text-[11px] font-bold text-neutral-800 leading-tight truncate max-w-[80px]">
-                    {getMobileCityName(returnLastSegment.arrival.iataCode)}
-                  </div>
-                  <div className="text-[9px] text-neutral-500">
-                    {returnLastSegment.arrival.iataCode}
+                  <div className="flex items-center justify-end gap-1 leading-tight">
+                    <span className="text-[10px] font-semibold text-neutral-500">
+                      {returnLastSegment.arrival.iataCode}
+                    </span>
+                    <span className="text-[11px] font-bold text-neutral-800 truncate max-w-[60px]">
+                      {getMobileCityName(returnLastSegment.arrival.iataCode)}
+                    </span>
                   </div>
                 </div>
               </div>
