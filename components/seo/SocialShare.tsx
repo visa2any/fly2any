@@ -12,7 +12,7 @@
 
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Facebook, Twitter, Linkedin, Mail, Share2, Check } from 'lucide-react';
 import { trackCustomEvent } from '@/lib/analytics/google-analytics';
 
@@ -267,12 +267,14 @@ export function SocialShareWithLabels(props: SocialShareProps) {
 export function FloatingSocialShare(props: SocialShareProps) {
   const [isVisible, setIsVisible] = useState(false);
 
-  // Show after scrolling down
-  if (typeof window !== 'undefined') {
-    window.addEventListener('scroll', () => {
+  // Show after scrolling down - FIX: moved to useEffect with cleanup
+  useEffect(() => {
+    const handleScroll = () => {
       setIsVisible(window.scrollY > 300);
-    });
-  }
+    };
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
 
   if (!isVisible) return null;
 
