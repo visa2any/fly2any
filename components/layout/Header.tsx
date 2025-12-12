@@ -204,47 +204,19 @@ export function Header({
       >
         <MaxWidthContainer noPadding className="px-3 md:px-6">
           <div className="flex items-center justify-between h-14 sm:h-16 lg:h-[72px]">
-            {/* Logo with Icon + Text - Left aligned - Level-6 Ultra-Premium */}
-            <a href="/" className="flex items-center gap-2 lg:gap-2.5 group flex-shrink-0">
-              {/* Airplane Icon - Brightened, proportional to text */}
-              <div
-                className="relative transition-all duration-200 ease-[cubic-bezier(0.2,0.8,0.2,1)] group-hover:scale-105 p-1 sm:p-1.5 lg:p-2 rounded-lg lg:rounded-xl flex-shrink-0"
-                style={{
-                  background: 'linear-gradient(135deg, rgba(231, 64, 53, 0.08), rgba(247, 201, 40, 0.06))',
-                  boxShadow: '0 1px 4px rgba(231, 64, 53, 0.08)',
-                }}
-              >
-                <Image
-                  src="/icon-192.png"
-                  alt="Fly2Any"
-                  width={32}
-                  height={32}
-                  priority
-                  className="w-5 h-5 sm:w-6 sm:h-6 lg:w-7 lg:h-7"
-                  style={{ filter: 'brightness(1.05) saturate(1.1)' }}
-                />
-              </div>
-
-              {/* Fly2Any Text Logo - Level-6 Ultra-Premium 3D Wordmark */}
-              <span
-                className="text-[18px] sm:text-[20px] lg:text-[24px] relative"
-                style={{
-                  fontFamily: "'SF Pro Display', -apple-system, BlinkMacSystemFont, system-ui, sans-serif",
-                  fontWeight: 800,
-                  letterSpacing: '-0.01em',
-                  lineHeight: 1,
-                  color: '#E74035',
-                  textShadow: `
-                    0 1px 0 #D63B34,
-                    0 2px 0 #C53530,
-                    0 3px 4px rgba(0,0,0,0.15),
-                    0 4px 8px rgba(231,64,53,0.2)
-                  `,
-                }}
-                aria-label="fly2any"
-              >
-                fly2any
-              </span>
+            {/* Logo - Level-6 Ultra-Premium */}
+            <a
+              href="/"
+              className="flex items-center flex-shrink-0 transition-all duration-200 ease-[cubic-bezier(0.2,0.8,0.2,1)] hover:opacity-90 active:scale-[0.98]"
+            >
+              <Image
+                src="/logo.png"
+                alt="Fly2Any"
+                width={180}
+                height={48}
+                priority
+                className="h-7 sm:h-8 lg:h-10 w-auto object-contain"
+              />
             </a>
 
           {/* Main Navigation - Level-6 Apple-Class Style */}
