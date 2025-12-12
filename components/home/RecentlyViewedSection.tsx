@@ -4,6 +4,7 @@ import { useState, useEffect, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
 import { Clock, X, TrendingDown, Sparkles, MapPin, ArrowRight, Flame, Zap, Tag, Filter } from 'lucide-react';
+import { getAirportCity } from '@/lib/data/airports';
 
 interface ViewedDestination {
   id: string;
@@ -110,6 +111,8 @@ const translations = {
     filterDrops: 'Price Drops',
     filterUnder: 'Under $400',
     quickFilters: 'Quick Filters:',
+    loadMore: 'Load More',
+    showLess: 'Show Less',
   },
   pt: {
     title: '👁️ Suas Pesquisas e Visualizações Recentes',
@@ -136,6 +139,8 @@ const translations = {
     filterDrops: 'Quedas',
     filterUnder: 'Abaixo $400',
     quickFilters: 'Filtros Rápidos:',
+    loadMore: 'Ver Mais',
+    showLess: 'Ver Menos',
   },
   es: {
     title: '👁️ Tus Búsquedas y Vistas Recientes',
@@ -162,6 +167,8 @@ const translations = {
     filterDrops: 'Bajadas',
     filterUnder: 'Menos $400',
     quickFilters: 'Filtros Rápidos:',
+    loadMore: 'Ver Más',
+    showLess: 'Ver Menos',
   },
 };
 
@@ -169,7 +176,8 @@ export function RecentlyViewedSection({ lang = 'en' }: RecentlyViewedSectionProp
   const t = translations[lang];
   const router = useRouter();
   const [recentlyViewed, setRecentlyViewed] = useState<ViewedDestination[]>([]);
-  const [maxItems, setMaxItems] = useState(12); // Dynamic based on screen
+  const [maxItems, setMaxItems] = useState(6); // Start with 6 on mobile
+  const [isExpanded, setIsExpanded] = useState(false);
   const [mounted, setMounted] = useState(false);
   const [activeFilter, setActiveFilter] = useState<FilterType>('all');
 
@@ -178,23 +186,26 @@ export function RecentlyViewedSection({ lang = 'en' }: RecentlyViewedSectionProp
     setMounted(true);
   }, []);
 
-  // Calculate dynamic max items based on screen width (client-side only)
+  // Calculate dynamic max items based on screen width and expansion state (client-side only)
   useEffect(() => {
     if (!mounted) return; // Skip on server-side
 
     const calculateMaxItems = () => {
       const width = window.innerWidth;
-      // Card width = 240px, gap = 12px (gap-3) - REDUCED for compactness
-      // Container padding = 32px (16px each side) - REDUCED
-      // Max container width = 1600px
+      const isMobile = width < 768;
+
+      // Mobile: 6 items initially, all items when expanded
+      if (isMobile) {
+        return isExpanded ? recentlyViewed.length : 6;
+      }
+
+      // Desktop: show more items based on screen width
       const containerWidth = Math.min(width - 32, 1600);
       const cardWidth = 240;
       const gap = 12;
       const itemsPerRow = Math.floor((containerWidth + gap) / (cardWidth + gap));
-
-      // Show 2-3 rows depending on total items
       const rows = recentlyViewed.length > itemsPerRow * 2 ? 3 : 2;
-      return Math.max(itemsPerRow * rows, 8); // Minimum 8 items
+      return Math.max(itemsPerRow * rows, 8);
     };
 
     const updateMaxItems = () => {
@@ -204,7 +215,7 @@ export function RecentlyViewedSection({ lang = 'en' }: RecentlyViewedSectionProp
     updateMaxItems();
     window.addEventListener('resize', updateMaxItems);
     return () => window.removeEventListener('resize', updateMaxItems);
-  }, [recentlyViewed.length, mounted]);
+  }, [recentlyViewed.length, mounted, isExpanded]);
 
   useEffect(() => {
     if (!mounted) return; // Skip on server-side
@@ -492,9 +503,9 @@ export function RecentlyViewedSection({ lang = 'en' }: RecentlyViewedSectionProp
                       textShadow: '0 2px 8px rgba(0,0,0,0.95), 0 1px 4px rgba(0,0,0,0.9), 0 0 10px rgba(0,0,0,0.8)'
                     }}
                   >
-                    <span className="text-[10px] sm:text-[11px] font-bold">{item.from}</span>
+                    <span className="text-[10px] sm:text-[11px] font-bold">{item.from ? getAirportCity(item.from) : 'Any'}</span>
                     <ArrowRight className="w-2.5 h-2.5 sm:w-3 sm:h-3" strokeWidth={3} />
-                    <span className="text-[10px] sm:text-[11px] font-bold">{item.to}</span>
+                    <span className="text-[10px] sm:text-[11px] font-bold">{item.city || getAirportCity(item.to)}</span>
                     <span className="text-[10px] sm:text-[11px]">•</span>
                     <Clock className="w-2.5 h-2.5 sm:w-3 sm:h-3 text-blue-300 drop-shadow-lg" strokeWidth={2.5} />
                     <span className="text-[9px] sm:text-[10px] font-semibold" suppressHydrationWarning>{formatTimeAgo(item.viewedAt)}</span>
@@ -603,6 +614,33 @@ export function RecentlyViewedSection({ lang = 'en' }: RecentlyViewedSectionProp
           );
         })}
       </div>
+
+      {/* Load More Button - Mobile only, compact Level-6 */}
+      {recentlyViewed.length > 6 && (
+        <div className="md:hidden flex justify-center mt-2 px-3">
+          <button
+            onClick={() => setIsExpanded(!isExpanded)}
+            className="flex items-center gap-1.5 px-4 py-2 bg-neutral-100 hover:bg-neutral-200 text-neutral-700 text-xs font-medium rounded-lg transition-all duration-150 ease-[cubic-bezier(0.2,0.8,0.2,1)] active:scale-95 border border-neutral-200"
+          >
+            {isExpanded ? (
+              <>
+                <span>{t.showLess}</span>
+                <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 15l7-7 7 7" />
+                </svg>
+              </>
+            ) : (
+              <>
+                <span>{t.loadMore}</span>
+                <span className="text-neutral-500">({recentlyViewed.length - 6})</span>
+                <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                </svg>
+              </>
+            )}
+          </button>
+        </div>
+      )}
 
       {/* COMPACT SEARCH INFO BAR - Sticky, Single Line */}
       <div className="sticky bottom-0 left-0 right-0 mt-2 sm:mt-2.5 md:mt-3 bg-gradient-to-r from-info-50/95 via-indigo-50/95 to-purple-50/95 backdrop-blur-sm border border-gray-200 rounded-md sm:rounded-lg shadow-md overflow-hidden">

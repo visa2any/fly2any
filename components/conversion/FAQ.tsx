@@ -206,32 +206,32 @@ export function FAQ({ title, subtitle, categories, language = 'en' }: Props) {
           })}
         </div>
 
-        {/* Contact CTA */}
-        <div className="mt-10 text-center bg-white rounded-xl border-2 border-gray-200 p-8">
-          <MessageCircle className="w-12 h-12 text-primary-600 mx-auto mb-4" />
-          <p className="text-gray-900 font-semibold text-lg mb-2">{t.stillNeedHelp}</p>
-          <p className="text-gray-600 mb-6">
-            {language === 'en'
-              ? 'Our support team is available 24/7 to assist you'
-              : language === 'pt'
-              ? 'Nossa equipe de suporte está disponível 24/7 para ajudá-lo'
-              : 'Nuestro equipo de soporte está disponible 24/7 para ayudarte'}
-          </p>
-          <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
-            <a
-              href="tel:+13322200838"
-              className="inline-flex items-center gap-2 px-6 py-3 bg-primary-600 hover:bg-primary-700 text-white font-semibold rounded-lg transition-all duration-300 hover:scale-105 hover:shadow-lg"
-            >
-              <HeadphonesIcon className="w-5 h-5" />
-              <span>{language === 'en' ? 'Call Us' : language === 'pt' ? 'Ligar' : 'Llamar'}</span>
-            </a>
-            <a
-              href="mailto:support@fly2any.com"
-              className="inline-flex items-center gap-2 px-6 py-3 bg-secondary-600 hover:bg-secondary-700 text-white font-semibold rounded-lg transition-all duration-300 hover:scale-105 hover:shadow-lg"
-            >
-              <MessageCircle className="w-5 h-5" />
-              <span>{language === 'en' ? 'Email Support' : language === 'pt' ? 'Email' : 'Email'}</span>
-            </a>
+        {/* Contact CTA - Compact */}
+        <div className="mt-4 md:mt-6 bg-white md:rounded-xl border-y md:border-2 border-neutral-200 px-3 py-3 md:p-6 mx-0">
+          <div className="flex items-center gap-3 md:flex-col md:text-center">
+            <MessageCircle className="w-8 h-8 md:w-10 md:h-10 text-primary-500 flex-shrink-0" />
+            <div className="flex-1 md:mb-3">
+              <p className="text-neutral-800 font-semibold text-sm md:text-base">{t.stillNeedHelp}</p>
+              <p className="text-neutral-500 text-xs md:text-sm">
+                {language === 'en' ? '24/7 support' : language === 'pt' ? 'Suporte 24/7' : 'Soporte 24/7'}
+              </p>
+            </div>
+            <div className="flex items-center gap-2 flex-shrink-0">
+              <a
+                href="tel:+13322200838"
+                className="inline-flex items-center gap-1.5 px-3 py-2 bg-primary-500 hover:bg-primary-600 text-white text-xs font-medium rounded-lg transition-all duration-150 ease-[cubic-bezier(0.2,0.8,0.2,1)] active:scale-[0.97]"
+              >
+                <HeadphonesIcon className="w-4 h-4" />
+                <span>{language === 'en' ? 'Call' : language === 'pt' ? 'Ligar' : 'Llamar'}</span>
+              </a>
+              <a
+                href="mailto:support@fly2any.com"
+                className="inline-flex items-center gap-1.5 px-3 py-2 bg-secondary-500 hover:bg-secondary-600 text-white text-xs font-medium rounded-lg transition-all duration-150 ease-[cubic-bezier(0.2,0.8,0.2,1)] active:scale-[0.97]"
+              >
+                <MessageCircle className="w-4 h-4" />
+                <span>Email</span>
+              </a>
+            </div>
           </div>
         </div>
       </div>

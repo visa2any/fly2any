@@ -169,6 +169,7 @@ export function AITravelAssistant({ language = 'en' }: Props) {
   const router = useRouter();
   const [isOpen, setIsOpen] = useState(false);
   const [isMinimized, setIsMinimized] = useState(false);
+  const [isMobile, setIsMobile] = useState(false);
   const [messages, setMessages] = useState<Message[]>([]);
   const [inputMessage, setInputMessage] = useState('');
   const [isTyping, setIsTyping] = useState(false);
@@ -343,6 +344,14 @@ export function AITravelAssistant({ language = 'en' }: Props) {
         clearTimeout(typingTimeoutRef.current);
       }
     };
+  }, []);
+
+  // Mobile detection for bottom positioning
+  useEffect(() => {
+    const checkMobile = () => setIsMobile(window.innerWidth < 768);
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
   }, []);
 
   // Listen for mobile bottom bar chat button clicks
@@ -1959,19 +1968,23 @@ export function AITravelAssistant({ language = 'en' }: Props) {
 
       <div
         className={`
-          fixed z-[1500] transition-all duration-300
+          fixed z-[1500] transition-all duration-300 ease-[cubic-bezier(0.2,0.8,0.2,1)]
           md:bottom-6 md:right-6 md:w-[400px] md:max-w-[calc(100vw-3rem)]
-          max-md:top-0 max-md:left-0 max-md:right-0 max-md:bottom-14 max-md:w-full
+          max-md:top-0 max-md:left-0 max-md:right-0 max-md:w-full
           ${isMinimized
             ? 'h-16 md:h-16'
             : 'h-[600px] max-h-[calc(100vh-3rem)] md:h-[600px] md:max-h-[calc(100vh-3rem)] max-md:h-full'
           }
         `}
+        style={isMobile ? {
+          // Mobile: position above BottomTabBar (52px + safe area)
+          bottom: 'calc(52px + env(safe-area-inset-bottom, 0px))'
+        } : undefined}
       >
-        {/* Chat Window */}
-        <div className="bg-white md:rounded-2xl max-md:rounded-none md:shadow-2xl max-md:shadow-none md:border md:border-gray-200 max-md:border-0 flex flex-col h-full overflow-hidden">
-          {/* Header */}
-          <div className="bg-gradient-to-r from-primary-600 to-primary-700 px-5 py-4 flex items-center justify-between">
+        {/* Chat Window - Level-6 Premium */}
+        <div className="bg-white/95 backdrop-blur-xl md:rounded-2xl max-md:rounded-none shadow-xl md:shadow-2xl md:border md:border-neutral-200/60 max-md:border-0 flex flex-col h-full overflow-hidden">
+          {/* Header - Level-6 Premium */}
+          <div className="bg-gradient-to-r from-primary-500 to-primary-600 px-4 py-3 flex items-center justify-between shadow-md">
             <div className="flex items-center gap-3">
               <div className="relative">
                 <div className="w-10 h-10 bg-white/20 backdrop-blur-sm rounded-full flex items-center justify-center">
@@ -1993,8 +2006,11 @@ export function AITravelAssistant({ language = 'en' }: Props) {
                 <Minimize2 className="w-4 h-4 text-white" />
               </button>
               <button
-                onClick={() => setIsOpen(false)}
-                className="w-8 h-8 flex items-center justify-center hover:bg-white/10 rounded-lg transition-colors"
+                onClick={() => {
+                  setIsOpen(false);
+                  window.dispatchEvent(new CustomEvent('closeChatAssistant'));
+                }}
+                className="w-8 h-8 flex items-center justify-center hover:bg-white/10 rounded-lg transition-all duration-150 ease-[cubic-bezier(0.2,0.8,0.2,1)] active:scale-95"
                 aria-label={t.close}
               >
                 <X className="w-4 h-4 text-white" />
@@ -2004,8 +2020,8 @@ export function AITravelAssistant({ language = 'en' }: Props) {
 
           {!isMinimized && (
             <>
-              {/* Messages Area */}
-              <div className="flex-1 overflow-y-auto p-4 space-y-4 bg-gray-50">
+              {/* Messages Area - Level-6 */}
+              <div className="flex-1 overflow-y-auto p-3 space-y-3 bg-neutral-50/80">
                 {messages.map((message) => (
                   <div
                     key={message.id}
@@ -2293,8 +2309,8 @@ export function AITravelAssistant({ language = 'en' }: Props) {
               </div>
               )}
 
-              {/* Input Area - Enhanced Visual Prominence */}
-              <div className="p-4 bg-white border-t-2 border-primary-100">
+              {/* Input Area - Level-6 Premium */}
+              <div className="p-3 bg-white/95 backdrop-blur-sm border-t border-neutral-200/60">
                 <div className="flex gap-2">
                   <input
                     ref={inputRef}
@@ -2303,12 +2319,12 @@ export function AITravelAssistant({ language = 'en' }: Props) {
                     onChange={(e) => setInputMessage(e.target.value)}
                     onKeyPress={handleKeyPress}
                     placeholder={t.placeholder}
-                    className="flex-1 px-4 py-3 border-2 border-gray-300 rounded-xl focus:border-primary-500 focus:ring-4 focus:ring-primary-500/20 transition-all text-sm placeholder:text-gray-400 hover:border-gray-400"
+                    className="flex-1 px-3 py-2.5 border border-neutral-200 rounded-xl focus:border-primary-500 focus:ring-2 focus:ring-primary-500/20 transition-all duration-150 ease-[cubic-bezier(0.2,0.8,0.2,1)] text-sm placeholder:text-neutral-400 bg-neutral-50/50"
                   />
                   <button
                     onClick={handleSendMessage}
                     disabled={!inputMessage.trim() || isTyping}
-                    className="px-5 py-3 bg-gradient-to-r from-primary-600 to-primary-700 hover:from-primary-700 hover:to-primary-800 disabled:from-gray-300 disabled:to-gray-300 text-white rounded-xl transition-all duration-200 flex items-center gap-2 font-semibold text-sm disabled:cursor-not-allowed shadow-md hover:shadow-lg transform hover:scale-105 active:scale-95"
+                    className="px-4 py-2.5 bg-primary-500 hover:bg-primary-600 disabled:bg-neutral-200 text-white rounded-xl transition-all duration-150 ease-[cubic-bezier(0.2,0.8,0.2,1)] flex items-center gap-2 font-medium text-sm disabled:cursor-not-allowed shadow-md active:scale-95"
                   >
                     {isTyping ? (
                       <Loader2 className="w-5 h-5 animate-spin" />
@@ -2317,7 +2333,7 @@ export function AITravelAssistant({ language = 'en' }: Props) {
                     )}
                   </button>
                 </div>
-                <p className="text-[10px] text-gray-400 mt-2.5 text-center flex items-center justify-center gap-1">
+                <p className="text-[10px] text-neutral-400 mt-2 text-center flex items-center justify-center gap-1">
                   <span className="inline-block w-1.5 h-1.5 bg-green-500 rounded-full animate-pulse"></span>
                   {t.poweredBy}
                 </p>

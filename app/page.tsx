@@ -317,12 +317,12 @@ export default function Home() {
         >
           {/* Text padding on mobile */}
           <div className="px-4 md:px-6">
-            {/* Title Container - allows line break */}
-            <div className="flex flex-col md:flex-row md:items-center gap-1 md:gap-4">
-              {/* Main Title - Level-6: allows natural wrapping */}
+            {/* Title Container - single line on mobile */}
+            <div className="flex items-center gap-1 md:gap-4 overflow-hidden">
+              {/* Main Title - Level-6: compact on mobile, no wrap */}
               <h1
                 key={`title-${animationKey}`}
-                className="hero-title text-xl md:text-[32px] font-bold tracking-[0.01em] text-neutral-800 leading-tight"
+                className="hero-title text-[13px] md:text-[32px] font-bold tracking-[0.01em] text-neutral-800 whitespace-nowrap"
               >
                 {t.sectionTitle.split('').map((char, index) => (
                   <span
@@ -340,12 +340,12 @@ export default function Home() {
               </h1>
 
               {/* Separator - Primary color */}
-              <span className="hidden md:inline-block text-primary-500 text-2xl font-bold">•</span>
+              <span className="text-primary-500 text-sm md:text-2xl font-bold flex-shrink-0">•</span>
 
-              {/* Subtitle - Level-6: allows wrapping */}
+              {/* Subtitle - Level-6: compact, no wrap */}
               <p
                 key={`subtitle-${animationKey}`}
-                className="hero-subtitle text-sm md:text-lg font-medium text-neutral-500 tracking-[0.005em] leading-snug"
+                className="hero-subtitle text-[11px] md:text-lg font-medium text-neutral-500 tracking-[0.005em] whitespace-nowrap"
               >
                 {t.subtitle.split('').map((char, index) => (
                   <span

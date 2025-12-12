@@ -152,16 +152,16 @@ export function WorldCupHeroSectionEnhanced({ lang = 'en', compact = false }: Wo
   }
 
   return (
-    <section className="py-2 md:py-4" style={{ maxWidth: '1600px', margin: '0 auto', padding: '8px 4px' }}>
-      {/* Section Header - Mobile optimized, minimal padding */}
-      <div className="flex items-center justify-between mb-2 md:mb-4 px-1">
+    <section className="py-2 md:py-4" style={{ maxWidth: '1600px', margin: '0 auto' }}>
+      {/* Section Header - Mobile optimized, edge-to-edge */}
+      <div className="flex items-center justify-between mb-2 md:mb-4 px-3 md:px-0">
         <div className="flex items-center gap-2 md:gap-3">
           {/* Trophy Icon on the left */}
           <div className="flex-shrink-0 w-8 h-8 md:w-12 md:h-12 bg-gradient-to-br from-secondary-400 via-secondary-500 to-orange-500 rounded-xl flex items-center justify-center shadow-lg">
             <TrophyIcon className="w-5 h-5 md:w-7 md:h-7 text-white" />
           </div>
           <div>
-            <h2 className="text-base md:text-2xl font-bold text-neutral-800">{t.sectionTitle}</h2>
+            <h2 className="text-sm md:text-2xl font-bold text-neutral-800 whitespace-nowrap">{t.sectionTitle}</h2>
             <p className="text-[10px] md:text-sm text-neutral-500 mt-0.5">{t.sectionSubtitle}</p>
           </div>
         </div>
@@ -173,11 +173,11 @@ export function WorldCupHeroSectionEnhanced({ lang = 'en', compact = false }: Wo
         </Link>
       </div>
 
-      {/* Divider */}
-      <div className="h-px bg-neutral-200 mb-2 md:mb-4 mx-1"></div>
+      {/* Divider - Hidden on mobile for edge-to-edge */}
+      <div className="hidden md:block h-px bg-neutral-200 mb-2 md:mb-4"></div>
 
       {/* Main World Cup Hero - Edge-to-edge on mobile */}
-      <div className="relative overflow-hidden bg-gradient-to-br from-green-900 via-blue-900 to-red-900 rounded-lg md:rounded-xl mx-1">
+      <div className="relative overflow-hidden bg-gradient-to-br from-green-900 via-blue-900 to-red-900 md:rounded-xl md:mx-0">
       {/* Stadium Background Image */}
       <div className="absolute inset-0">
         <div className="absolute inset-0 bg-gradient-to-r from-green-900/90 via-blue-900/85 to-red-900/90 z-10" />
