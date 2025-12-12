@@ -8,16 +8,15 @@
  * - Blog articles
  */
 
-import Groq from 'groq-sdk';
+// Dynamic import to avoid build errors when API key is not set
+let groqClient: any = null;
 
-// Lazy-initialize Groq client to avoid build errors when API key is not set
-let groqClient: Groq | null = null;
-
-function getGroqClient(): Groq {
+async function getGroqClient() {
   if (!groqClient) {
     if (!process.env.GROQ_API_KEY) {
       throw new Error('GROQ_API_KEY environment variable is not set');
     }
+    const { default: Groq } = await import('groq-sdk');
     groqClient = new Groq({
       apiKey: process.env.GROQ_API_KEY,
     });
@@ -64,7 +63,8 @@ ${deal.travelDates ? `- Travel dates: ${deal.travelDates}` : ''}
 
 Include relevant emojis, create urgency, and add a call to action. Make it viral-worthy.`;
 
-  const response = await getGroqClient().chat.completions.create({
+  const groq = await getGroqClient();
+  const response = await groq.chat.completions.create({
     model: 'llama-3.3-70b-versatile',
     messages: [{ role: 'user', content: prompt }],
     max_tokens: 100,
@@ -112,7 +112,8 @@ Requirements:
 
 Output in Markdown format.`;
 
-  const response = await getGroqClient().chat.completions.create({
+  const groq = await getGroqClient();
+  const response = await groq.chat.completions.create({
     model: 'llama-3.3-70b-versatile',
     messages: [{ role: 'user', content: prompt }],
     max_tokens: 3000,
@@ -162,7 +163,8 @@ Topics to cover: ${topics.join(', ')}
 
 Format as JSON array: [{"topic": "...", "content": "..."}]`;
 
-  const response = await getGroqClient().chat.completions.create({
+  const groq = await getGroqClient();
+  const response = await groq.chat.completions.create({
     model: 'llama-3.3-70b-versatile',
     messages: [{ role: 'user', content: prompt }],
     max_tokens: 1000,
@@ -215,7 +217,8 @@ Outline:
    - [sub-point]
 2. ...`;
 
-  const response = await getGroqClient().chat.completions.create({
+  const groq = await getGroqClient();
+  const response = await groq.chat.completions.create({
     model: 'llama-3.3-70b-versatile',
     messages: [{ role: 'user', content: prompt }],
     max_tokens: 800,
