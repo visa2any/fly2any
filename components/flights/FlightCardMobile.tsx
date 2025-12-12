@@ -300,14 +300,14 @@ export function FlightCardMobile(props: EnhancedFlightCardProps) {
 
   return (
     <>
-      {/* ULTRA-COMPACT CARD - Dynamic height for round-trip support */}
+      {/* ULTRA-COMPACT CARD - Level-6 Edge-to-edge mobile, rounded desktop */}
       <div
-        className={`relative bg-white rounded-xl border-2 transition-all duration-200 active:scale-[0.98] mb-3 ${
-          isComparing ? 'border-primary-500 shadow-lg shadow-primary-100' : 'border-gray-200'
+        className={`relative bg-white md:rounded-xl border-y md:border-2 transition-all duration-150 ease-[cubic-bezier(0.2,0.8,0.2,1)] active:scale-[0.99] mb-0.5 md:mb-3 ${
+          isComparing ? 'border-primary-500 shadow-lg shadow-primary-100' : 'border-neutral-200'
         }`}
       >
         {/* HEADER - Airline + Flight Number + Favorite + Badge + Overflow Menu */}
-        <div className="flex items-center justify-between px-3 py-1 border-b border-gray-100">
+        <div className="flex items-center justify-between px-3 py-1 border-b border-neutral-100">
           {/* Left: Airline info with flight number (compact) */}
           <div className="flex items-center gap-2 flex-1 min-w-0">
             <AirlineLogo
@@ -316,11 +316,11 @@ export function FlightCardMobile(props: EnhancedFlightCardProps) {
               className="flex-shrink-0"
             />
             <div className="flex flex-col min-w-0">
-              <span className="text-sm font-semibold text-gray-900 truncate leading-tight">
+              <span className="text-sm font-semibold text-neutral-900 truncate leading-tight">
                 {airlineData.name}
               </span>
               <div className="flex items-center gap-1.5">
-                <span className="text-[10px] text-gray-500 leading-tight">
+                <span className="text-[10px] text-neutral-500 leading-tight">
                   {outboundFirstSegment.carrierCode}{outboundFirstSegment.number}
                   {isRoundTrip && returnItinerary && ` • ${returnItinerary.segments[0].carrierCode}${returnItinerary.segments[0].number}`}
                 </span>
@@ -337,10 +337,10 @@ export function FlightCardMobile(props: EnhancedFlightCardProps) {
             <div className="min-h-[44px] min-w-[44px] flex items-center justify-center">
               <button
                 onClick={handleFavorite}
-                className="p-1.5 hover:bg-gray-100 rounded-full transition-colors active:scale-95"
+                className="p-1.5 hover:bg-neutral-100 rounded-full transition-all duration-150 ease-[cubic-bezier(0.2,0.8,0.2,1)] active:scale-95"
                 aria-label="Add to favorites"
               >
-                <Heart className={`w-4 h-4 ${isFavorite ? 'fill-red-500 text-red-500' : 'text-gray-400'}`} />
+                <Heart className={`w-4 h-4 ${isFavorite ? 'fill-red-500 text-red-500' : 'text-neutral-400'}`} />
               </button>
             </div>
 
@@ -355,10 +355,10 @@ export function FlightCardMobile(props: EnhancedFlightCardProps) {
                     e.stopPropagation();
                     setShowOverflowMenu(!showOverflowMenu);
                   }}
-                  className="p-1.5 hover:bg-gray-100 rounded-full transition-colors active:scale-95"
+                  className="p-1.5 hover:bg-neutral-100 rounded-full transition-all duration-150 ease-[cubic-bezier(0.2,0.8,0.2,1)] active:scale-95"
                   aria-label="More options"
                 >
-                  <MoreVertical className="w-4 h-4 text-gray-500" />
+                  <MoreVertical className="w-4 h-4 text-neutral-500" />
                 </button>
               </div>
 
@@ -370,17 +370,17 @@ export function FlightCardMobile(props: EnhancedFlightCardProps) {
                     className="fixed inset-0 z-40"
                     onClick={() => setShowOverflowMenu(false)}
                   />
-                  <div className="absolute right-0 top-full mt-1 z-50 bg-white rounded-lg shadow-lg border border-gray-200 py-1 min-w-[160px] animate-fadeIn">
+                  <div className="absolute right-0 top-full mt-1 z-50 bg-white rounded-xl shadow-xl border border-neutral-200 py-1 min-w-[160px] animate-fadeIn">
                     {/* Rating */}
-                    <div className="px-3 py-2 flex items-center gap-2 border-b border-gray-100">
+                    <div className="px-3 py-2 flex items-center gap-2 border-b border-neutral-100">
                       <Star className="w-4 h-4 fill-yellow-500 text-yellow-500" />
-                      <span className="text-sm text-gray-700">{airlineData.rating.toFixed(1)} rating</span>
+                      <span className="text-sm text-neutral-700">{airlineData.rating.toFixed(1)} rating</span>
                     </div>
 
                     {/* Baggage Info */}
-                    <div className="px-3 py-2 flex items-center gap-2 border-b border-gray-100">
-                      <Briefcase className="w-4 h-4 text-gray-500" />
-                      <span className="text-sm text-gray-700">
+                    <div className="px-3 py-2 flex items-center gap-2 border-b border-neutral-100">
+                      <Briefcase className="w-4 h-4 text-neutral-500" />
+                      <span className="text-sm text-neutral-700">
                         {baggage.carryOn > 0 ? `${baggage.carryOn} carry-on` : 'No carry-on'}
                         {baggage.checked > 0 && `, ${baggage.checked} checked`}
                       </span>
@@ -392,10 +392,10 @@ export function FlightCardMobile(props: EnhancedFlightCardProps) {
                         handleShare(e);
                         setShowOverflowMenu(false);
                       }}
-                      className="w-full px-3 py-2 flex items-center gap-2 hover:bg-gray-50 transition-colors"
+                      className="w-full px-3 py-2 flex items-center gap-2 hover:bg-neutral-50 transition-all duration-150 ease-[cubic-bezier(0.2,0.8,0.2,1)]"
                     >
-                      <Share2 className="w-4 h-4 text-gray-500" />
-                      <span className="text-sm text-gray-700">Share flight</span>
+                      <Share2 className="w-4 h-4 text-neutral-500" />
+                      <span className="text-sm text-neutral-700">Share flight</span>
                     </button>
 
                     {/* Compare */}
@@ -404,12 +404,12 @@ export function FlightCardMobile(props: EnhancedFlightCardProps) {
                         handleCompare(e);
                         setShowOverflowMenu(false);
                       }}
-                      className={`w-full px-3 py-2 flex items-center gap-2 hover:bg-gray-50 transition-colors ${
+                      className={`w-full px-3 py-2 flex items-center gap-2 hover:bg-neutral-50 transition-all duration-150 ease-[cubic-bezier(0.2,0.8,0.2,1)] ${
                         isComparing ? 'bg-primary-50' : ''
                       }`}
                     >
-                      <Check className={`w-4 h-4 ${isComparing ? 'text-primary-600' : 'text-gray-500'}`} />
-                      <span className={`text-sm ${isComparing ? 'text-primary-600 font-medium' : 'text-gray-700'}`}>
+                      <Check className={`w-4 h-4 ${isComparing ? 'text-primary-600' : 'text-neutral-500'}`} />
+                      <span className={`text-sm ${isComparing ? 'text-primary-600 font-medium' : 'text-neutral-700'}`}>
                         {isComparing ? 'In comparison' : 'Add to compare'}
                       </span>
                     </button>
@@ -421,17 +421,17 @@ export function FlightCardMobile(props: EnhancedFlightCardProps) {
         </div>
 
         {/* OUTBOUND ROUTE - Compact with dates + aircraft */}
-        <div className="px-3 py-1.5 border-b border-gray-100">
+        <div className="px-3 py-1.5 border-b border-neutral-100">
           <div className="flex items-center justify-between mb-0.5">
             <div className="flex items-center gap-1">
               <span className="text-[9px] font-bold text-primary-600 uppercase tracking-wide">Outbound</span>
-              <span className="text-[9px] text-gray-500">{outboundFirstSegment.carrierCode}{outboundFirstSegment.number}</span>
+              <span className="text-[9px] text-neutral-500">{outboundFirstSegment.carrierCode}{outboundFirstSegment.number}</span>
               {outboundFirstSegment.aircraft?.code && (
-                <span className="text-[8px] text-gray-400 bg-gray-100 px-1 rounded">✈ {outboundFirstSegment.aircraft.code}</span>
+                <span className="text-[8px] text-neutral-400 bg-neutral-100 px-1 rounded">✈ {outboundFirstSegment.aircraft.code}</span>
               )}
             </div>
             <span className="flex items-center gap-1">
-              <span className="text-[10px] font-semibold text-gray-600">{parseDuration(outboundItinerary.duration)}</span>
+              <span className="text-[10px] font-semibold text-neutral-600">{parseDuration(outboundItinerary.duration)}</span>
               <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded ${outboundStops === 0 ? 'text-green-700 bg-green-50' : outboundStops === 1 ? 'text-orange-600 bg-orange-50' : 'text-red-600 bg-red-50'}`}>
                 {outboundStopsText}
               </span>
@@ -440,35 +440,35 @@ export function FlightCardMobile(props: EnhancedFlightCardProps) {
           <div className="flex items-center">
             {/* Departure with date - Mobile-optimized city display */}
             <div className="flex-shrink-0">
-              <div className="text-[9px] text-gray-500">{formatDate(outboundFirstSegment.departure.at)}</div>
-              <div className="text-base font-bold text-gray-900 leading-none">
+              <div className="text-[9px] text-neutral-500">{formatDate(outboundFirstSegment.departure.at)}</div>
+              <div className="text-base font-bold text-neutral-900 leading-none">
                 {formatTime(outboundFirstSegment.departure.at)}
               </div>
-              <div className="text-[11px] font-bold text-gray-800 leading-tight truncate max-w-[80px]">
+              <div className="text-[11px] font-bold text-neutral-800 leading-tight truncate max-w-[80px]">
                 {getMobileCityName(outboundFirstSegment.departure.iataCode)}
               </div>
-              <div className="text-[9px] text-gray-500">
+              <div className="text-[9px] text-neutral-500">
                 {outboundFirstSegment.departure.iataCode}
               </div>
             </div>
 
             {/* Flight Path */}
             <div className="flex-1 mx-2">
-              <div className="relative h-px bg-gradient-to-r from-gray-300 via-primary-400 to-gray-300">
+              <div className="relative h-px bg-gradient-to-r from-neutral-300 via-primary-400 to-neutral-300">
                 <Plane className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-3 h-3 text-primary-600 bg-white" />
               </div>
             </div>
 
             {/* Arrival with date - Mobile-optimized city display */}
             <div className="flex-shrink-0 text-right">
-              <div className="text-[9px] text-gray-500">{formatDate(outboundLastSegment.arrival.at)}</div>
-              <div className="text-base font-bold text-gray-900 leading-none">
+              <div className="text-[9px] text-neutral-500">{formatDate(outboundLastSegment.arrival.at)}</div>
+              <div className="text-base font-bold text-neutral-900 leading-none">
                 {formatTime(outboundLastSegment.arrival.at)}
               </div>
-              <div className="text-[11px] font-bold text-gray-800 leading-tight truncate max-w-[80px]">
+              <div className="text-[11px] font-bold text-neutral-800 leading-tight truncate max-w-[80px]">
                 {getMobileCityName(outboundLastSegment.arrival.iataCode)}
               </div>
-              <div className="text-[9px] text-gray-500">
+              <div className="text-[9px] text-neutral-500">
                 {outboundLastSegment.arrival.iataCode}
               </div>
             </div>
@@ -483,17 +483,17 @@ export function FlightCardMobile(props: EnhancedFlightCardProps) {
           const returnStopsText = returnStops === 0 ? 'Direct' : returnStops === 1 ? '1 stop' : `${returnStops} stops`;
 
           return (
-            <div className="px-3 py-1.5 border-b border-gray-100">
+            <div className="px-3 py-1.5 border-b border-neutral-100">
               <div className="flex items-center justify-between mb-0.5">
                 <div className="flex items-center gap-1">
                   <span className="text-[9px] font-bold text-secondary-600 uppercase tracking-wide">Return</span>
-                  <span className="text-[9px] text-gray-500">{returnFirstSegment.carrierCode}{returnFirstSegment.number}</span>
+                  <span className="text-[9px] text-neutral-500">{returnFirstSegment.carrierCode}{returnFirstSegment.number}</span>
                   {returnFirstSegment.aircraft?.code && (
-                    <span className="text-[8px] text-gray-400 bg-gray-100 px-1 rounded">{returnFirstSegment.aircraft.code}</span>
+                    <span className="text-[8px] text-neutral-400 bg-neutral-100 px-1 rounded">{returnFirstSegment.aircraft.code}</span>
                   )}
                 </div>
                 <span className="flex items-center gap-1">
-                  <span className="text-[10px] font-semibold text-gray-600">{parseDuration(returnItinerary.duration)}</span>
+                  <span className="text-[10px] font-semibold text-neutral-600">{parseDuration(returnItinerary.duration)}</span>
                   <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded ${returnStops === 0 ? 'text-green-700 bg-green-50' : returnStops === 1 ? 'text-orange-600 bg-orange-50' : 'text-red-600 bg-red-50'}`}>
                     {returnStopsText}
                   </span>
@@ -502,35 +502,35 @@ export function FlightCardMobile(props: EnhancedFlightCardProps) {
               <div className="flex items-center">
                 {/* Departure with date - Mobile-optimized city display */}
                 <div className="flex-shrink-0">
-                  <div className="text-[9px] text-gray-500">{formatDate(returnFirstSegment.departure.at)}</div>
-                  <div className="text-base font-bold text-gray-900 leading-none">
+                  <div className="text-[9px] text-neutral-500">{formatDate(returnFirstSegment.departure.at)}</div>
+                  <div className="text-base font-bold text-neutral-900 leading-none">
                     {formatTime(returnFirstSegment.departure.at)}
                   </div>
-                  <div className="text-[11px] font-bold text-gray-800 leading-tight truncate max-w-[80px]">
+                  <div className="text-[11px] font-bold text-neutral-800 leading-tight truncate max-w-[80px]">
                     {getMobileCityName(returnFirstSegment.departure.iataCode)}
                   </div>
-                  <div className="text-[9px] text-gray-500">
+                  <div className="text-[9px] text-neutral-500">
                     {returnFirstSegment.departure.iataCode}
                   </div>
                 </div>
 
                 {/* Flight Path */}
                 <div className="flex-1 mx-2">
-                  <div className="relative h-px bg-gradient-to-r from-gray-300 via-primary-400 to-gray-300">
+                  <div className="relative h-px bg-gradient-to-r from-neutral-300 via-primary-400 to-neutral-300">
                     <Plane className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-3 h-3 text-primary-600 bg-white rotate-180" />
                   </div>
                 </div>
 
                 {/* Arrival with date - Mobile-optimized city display */}
                 <div className="flex-shrink-0 text-right">
-                  <div className="text-[9px] text-gray-500">{formatDate(returnLastSegment.arrival.at)}</div>
-                  <div className="text-base font-bold text-gray-900 leading-none">
+                  <div className="text-[9px] text-neutral-500">{formatDate(returnLastSegment.arrival.at)}</div>
+                  <div className="text-base font-bold text-neutral-900 leading-none">
                     {formatTime(returnLastSegment.arrival.at)}
                   </div>
-                  <div className="text-[11px] font-bold text-gray-800 leading-tight truncate max-w-[80px]">
+                  <div className="text-[11px] font-bold text-neutral-800 leading-tight truncate max-w-[80px]">
                     {getMobileCityName(returnLastSegment.arrival.iataCode)}
                   </div>
-                  <div className="text-[9px] text-gray-500">
+                  <div className="text-[9px] text-neutral-500">
                     {returnLastSegment.arrival.iataCode}
                   </div>
                 </div>
@@ -539,8 +539,8 @@ export function FlightCardMobile(props: EnhancedFlightCardProps) {
           );
         })()}
 
-        {/* PRICE + CTA */}
-        <div className="flex items-center justify-between px-3 py-1.5 bg-gray-50 border-t border-gray-100">
+        {/* PRICE + CTA - Level-6 Apple styling */}
+        <div className="flex items-center justify-between px-3 py-1.5 bg-neutral-50 border-t border-neutral-100">
           {/* Price with traveler icons */}
           <div className="flex flex-col">
             <span className="text-2xl font-bold text-primary-600 leading-tight" data-testid="flight-price">
@@ -586,16 +586,16 @@ export function FlightCardMobile(props: EnhancedFlightCardProps) {
             {/* More Details button */}
             <button
               onClick={() => setShowDetailsSheet(true)}
-              className="text-xs font-medium text-primary-600 px-2 py-1 hover:bg-primary-50 rounded transition-colors active:scale-95"
+              className="text-xs font-medium text-primary-600 px-2 py-1 hover:bg-primary-50 rounded-lg transition-all duration-150 ease-[cubic-bezier(0.2,0.8,0.2,1)] active:scale-95"
             >
               Details
             </button>
 
-            {/* Select button */}
+            {/* Select button - Level-6 Apple styling */}
             <button
               onClick={handleSelect}
               disabled={isNavigating}
-              className="px-3 py-1 bg-primary-600 text-white text-xs font-semibold rounded-lg active:scale-95 transition-transform disabled:opacity-50"
+              className="px-3 py-1.5 bg-primary-600 hover:bg-primary-700 text-white text-xs font-semibold rounded-lg transition-all duration-150 ease-[cubic-bezier(0.2,0.8,0.2,1)] active:scale-95 disabled:opacity-50 shadow-sm hover:shadow-md"
             >
               Select →
             </button>
@@ -603,7 +603,7 @@ export function FlightCardMobile(props: EnhancedFlightCardProps) {
         </div>
 
         {/* Swipe indicator overlay (subtle hint) */}
-        <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-gradient-to-r from-transparent via-gray-200 to-transparent opacity-50 pointer-events-none" />
+        <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-gradient-to-r from-transparent via-neutral-200 to-transparent opacity-50 pointer-events-none" />
       </div>
 
       {/* BOTTOM SHEET - Flight Details */}

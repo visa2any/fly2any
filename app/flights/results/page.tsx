@@ -1691,9 +1691,9 @@ function FlightResultsContent() {
         );
       })()}
 
-      {/* Main Content Area - Full-width mobile, 3-column desktop */}
+      {/* Main Content Area - Level-6: Edge-to-edge mobile, 3-column desktop */}
       <div
-        className="mx-auto px-1 md:px-6"
+        className="mx-auto px-0 md:px-6"
         style={{
           maxWidth: layout.container.maxWidth,
         }}
