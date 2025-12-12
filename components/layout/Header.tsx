@@ -233,17 +233,19 @@ export function Header({
                 />
               </div>
 
-              {/* Fly2Any Text Logo */}
+              {/* Fly2Any Text Logo - Level-6 Startup Style Wordmark */}
               <span
                 className="font-bold text-lg sm:text-xl md:text-2xl bg-gradient-to-r from-primary-500 to-primary-400 bg-clip-text text-transparent hidden xs:block"
                 style={{
-                  textShadow: scrolled
-                    ? '0 2px 8px rgba(214, 58, 53, 0.2)'
-                    : '0 2px 6px rgba(214, 58, 53, 0.15)',
-                  transition: 'text-shadow 0.3s ease',
+                  fontFamily: "'Inter', 'SF Pro Display', system-ui, sans-serif",
+                  fontVariantCaps: 'all-small-caps',
+                  fontFeatureSettings: '"c2sc", "smcp"',
+                  letterSpacing: '0.03em',
+                  transition: 'all 0.3s ease',
                 }}
+                aria-label="fly2any"
               >
-                Fly2Any
+                fly2any
               </span>
             </a>
 
