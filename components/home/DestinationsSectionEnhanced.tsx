@@ -471,11 +471,11 @@ export function DestinationsSectionEnhanced({ lang = 'en' }: DestinationsSection
   }, [getDestinationImage]);
 
   return (
-    <section className="pt-1 pb-2 md:py-4" style={{ maxWidth: '1600px', margin: '0 auto' }}>
-      {/* Section Header - Compact, allows line break */}
-      <div className="flex items-center justify-between mb-3 md:mb-4 gap-2 px-3 md:px-0">
+    <section className="pt-1 pb-2 md:py-6 lg:py-10" style={{ maxWidth: '1600px', margin: '0 auto' }}>
+      {/* Section Header - Level-6: Desktop prominent */}
+      <div className="flex items-center justify-between mb-3 md:mb-6 gap-2 px-3 md:px-0 lg:px-0">
         <div className="flex items-center gap-2 md:gap-3 min-w-0">
-          <h2 className="text-sm md:text-[26px] font-semibold text-neutral-800 tracking-[0.01em] whitespace-nowrap">{t.title}</h2>
+          <h2 className="text-sm md:text-[26px] lg:text-[32px] font-semibold text-neutral-800 tracking-[0.01em]">{t.title}</h2>
           {/* Cache Indicator */}
           {fromCache && cacheAgeFormatted && (
             <CacheIndicator

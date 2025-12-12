@@ -152,32 +152,32 @@ export function WorldCupHeroSectionEnhanced({ lang = 'en', compact = false }: Wo
   }
 
   return (
-    <section className="py-2 md:py-4" style={{ maxWidth: '1600px', margin: '0 auto' }}>
-      {/* Section Header - Mobile optimized, edge-to-edge */}
-      <div className="flex items-center justify-between mb-2 md:mb-4 px-3 md:px-0">
-        <div className="flex items-center gap-2 md:gap-3">
-          {/* Trophy Icon on the left */}
-          <div className="flex-shrink-0 w-8 h-8 md:w-12 md:h-12 bg-gradient-to-br from-secondary-400 via-secondary-500 to-orange-500 rounded-xl flex items-center justify-center shadow-lg">
-            <TrophyIcon className="w-5 h-5 md:w-7 md:h-7 text-white" />
+    <section className="py-2 md:py-6 lg:py-10" style={{ maxWidth: '1600px', margin: '0 auto' }}>
+      {/* Section Header - Level-6: Mobile compact, Desktop cinematic */}
+      <div className="flex items-center justify-between mb-2 md:mb-4 lg:mb-6 px-3 md:px-0">
+        <div className="flex items-center gap-2 md:gap-3 lg:gap-4">
+          {/* Trophy Icon - Level-6: Larger on desktop */}
+          <div className="flex-shrink-0 w-8 h-8 md:w-12 md:h-12 lg:w-14 lg:h-14 bg-gradient-to-br from-secondary-400 via-secondary-500 to-orange-500 rounded-xl lg:rounded-2xl flex items-center justify-center shadow-lg lg:shadow-xl">
+            <TrophyIcon className="w-5 h-5 md:w-7 md:h-7 lg:w-8 lg:h-8 text-white" />
           </div>
           <div>
-            <h2 className="text-sm md:text-2xl font-bold text-neutral-800 whitespace-nowrap">{t.sectionTitle}</h2>
-            <p className="text-[10px] md:text-sm text-neutral-500 mt-0.5">{t.sectionSubtitle}</p>
+            <h2 className="text-sm md:text-[26px] lg:text-[32px] font-bold text-neutral-800 tracking-[0.01em] whitespace-nowrap">{t.sectionTitle}</h2>
+            <p className="text-[10px] md:text-sm lg:text-base text-neutral-500 mt-0.5">{t.sectionSubtitle}</p>
           </div>
         </div>
         <Link
           href="/world-cup-2026"
-          className="text-[10px] md:text-sm font-semibold text-primary-600 hover:text-primary-700 transition-colors whitespace-nowrap"
+          className="text-[10px] md:text-sm lg:text-base font-semibold text-primary-600 hover:text-primary-700 transition-all duration-150 ease-[cubic-bezier(0.2,0.8,0.2,1)] whitespace-nowrap hover:-translate-y-0.5"
         >
           {t.viewAll} →
         </Link>
       </div>
 
-      {/* Divider - Hidden on mobile for edge-to-edge */}
-      <div className="hidden md:block h-px bg-neutral-200 mb-2 md:mb-4"></div>
+      {/* Divider - Level-6: Clean separator */}
+      <div className="hidden md:block h-px bg-neutral-200 mb-2 md:mb-4 lg:mb-6"></div>
 
-      {/* Main World Cup Hero - Edge-to-edge on mobile */}
-      <div className="relative overflow-hidden bg-gradient-to-br from-green-900 via-blue-900 to-red-900 md:rounded-xl md:mx-0">
+      {/* Main World Cup Hero - Level-6: Edge-to-edge mobile, premium rounded desktop */}
+      <div className="relative overflow-hidden bg-gradient-to-br from-green-900 via-blue-900 to-red-900 md:rounded-xl lg:rounded-2xl md:mx-0">
       {/* Stadium Background Image */}
       <div className="absolute inset-0">
         <div className="absolute inset-0 bg-gradient-to-r from-green-900/90 via-blue-900/85 to-red-900/90 z-10" />
@@ -204,8 +204,8 @@ export function WorldCupHeroSectionEnhanced({ lang = 'en', compact = false }: Wo
       {/* Flag Colors Accent */}
       <div className="absolute top-0 left-0 right-0 h-1 md:h-2 bg-gradient-to-r from-info-500 via-white to-red-500 opacity-60" />
 
-      <div className="max-w-7xl mx-auto px-3 md:px-6 py-3 md:py-10 relative z-30">
-        <div className="grid lg:grid-cols-2 gap-3 lg:gap-8 items-center">
+      <div className="max-w-7xl mx-auto px-3 md:px-6 lg:px-10 py-3 md:py-10 lg:py-14 relative z-30">
+        <div className="grid lg:grid-cols-2 gap-3 lg:gap-10 xl:gap-14 items-center">
           {/* Left Column - Content - Ultra compact on mobile */}
           <div className="text-center lg:text-left space-y-1.5 md:space-y-4">
             {/* Animated Badge - Tiny on mobile */}

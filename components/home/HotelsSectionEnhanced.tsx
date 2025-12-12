@@ -147,16 +147,17 @@ const HotelCard = memo(({
   <div
     onClick={onClick}
     className={`
-      bg-white rounded-xl border-2 border-gray-200
-      hover:border-primary-400 hover:shadow-2xl
-      transition-all duration-300 ease-out overflow-hidden cursor-pointer
-      ${isHovered ? 'scale-[1.03] shadow-2xl -translate-y-1' : ''}
+      bg-white rounded-xl lg:rounded-2xl border-2 border-gray-200
+      hover:border-primary-400
+      transition-all duration-200 ease-[cubic-bezier(0.2,0.8,0.2,1)] overflow-hidden cursor-pointer
+      shadow-sm hover:shadow-xl
+      ${isHovered ? 'scale-[1.02] lg:scale-[1.03] shadow-xl lg:shadow-2xl -translate-y-1 lg:-translate-y-2' : ''}
     `}
     onMouseEnter={onMouseEnter}
     onMouseLeave={onMouseLeave}
   >
-    {/* Hotel Photo - COMPACT with Error Handling */}
-    <div className="relative h-36 overflow-hidden bg-gradient-to-br from-primary-100 via-secondary-100 to-accent-100">
+    {/* Hotel Photo - Level-6: Responsive height */}
+    <div className="relative h-36 lg:h-44 overflow-hidden bg-gradient-to-br from-primary-100 via-secondary-100 to-accent-100">
       {/* Fallback Icon - Always present behind image */}
       <div className="absolute inset-0 flex items-center justify-center z-0">
         <span className="text-6xl">🏨</span>
@@ -209,8 +210,8 @@ const HotelCard = memo(({
       )}
     </div>
 
-    {/* Hotel Details - COMPACT */}
-    <div className="p-3">
+    {/* Hotel Details - Level-6: Generous padding on desktop */}
+    <div className="p-3 lg:p-4">
       {/* Location */}
       <div className="flex items-center gap-1 text-xs text-gray-500 mb-1">
         <MapPin className="w-3 h-3" />
@@ -366,26 +367,26 @@ export function HotelsSectionEnhanced({ lang = 'en' }: HotelsSectionEnhancedProp
   }, []);
 
   return (
-    <section className="py-2 md:py-4" style={{ maxWidth: '1600px', margin: '0 auto', padding: '8px 4px' }}>
-      {/* Section Header - Mobile optimized, minimal padding */}
-      <div className="flex items-center justify-between mb-2 md:mb-4 px-1">
+    <section className="py-2 md:py-6 lg:py-10" style={{ maxWidth: '1600px', margin: '0 auto' }}>
+      {/* Section Header - Level-6: Mobile compact, Desktop cinematic */}
+      <div className="flex items-center justify-between mb-2 md:mb-4 lg:mb-6 px-3 md:px-0">
         <div>
-          <h2 className="text-base md:text-2xl font-bold text-neutral-800 mb-0.5">{t.title}</h2>
-          <p className="text-xs md:text-sm text-neutral-500">{t.subtitle}</p>
+          <h2 className="text-sm md:text-[26px] lg:text-[32px] font-bold text-neutral-800 tracking-[0.01em] mb-0.5">{t.title}</h2>
+          <p className="text-xs md:text-sm lg:text-base text-neutral-500">{t.subtitle}</p>
         </div>
         <button
           onClick={() => window.open('/hotels', '_blank')}
-          className="text-xs md:text-sm font-semibold text-primary-600 hover:text-primary-700 transition-colors whitespace-nowrap"
+          className="text-xs md:text-sm lg:text-base font-semibold text-primary-600 hover:text-primary-700 transition-all duration-150 ease-[cubic-bezier(0.2,0.8,0.2,1)] whitespace-nowrap hover:-translate-y-0.5"
         >
           {t.viewAll} →
         </button>
       </div>
 
-      {/* Divider */}
-      <div className="h-px bg-neutral-200 mb-2 md:mb-4 mx-1"></div>
+      {/* Divider - Level-6: Clean separator */}
+      <div className="h-px bg-neutral-200 mb-2 md:mb-4 lg:mb-6 mx-3 md:mx-0"></div>
 
-      {/* Filter Buttons - Edge-to-edge scroll on mobile */}
-      <div className="flex gap-1 md:gap-2 mb-3 md:mb-6 overflow-x-auto scrollbar-hide pb-1 px-1">
+      {/* Filter Buttons - Edge-to-edge scroll on mobile, centered on desktop */}
+      <div className="flex gap-1.5 md:gap-2 lg:gap-3 mb-3 md:mb-6 lg:mb-8 overflow-x-auto scrollbar-hide pb-1 px-3 md:px-0">
         {[
           { key: 'all' as FilterType, label: t.all },
           { key: 'americas' as FilterType, label: t.americas },
@@ -418,10 +419,10 @@ export function HotelsSectionEnhanced({ lang = 'en' }: HotelsSectionEnhancedProp
         </div>
       )}
 
-      {/* Hotels Grid - Using Memoized Components for Performance */}
+      {/* Hotels Grid - Level-6: Premium card grid with proper spacing */}
       {!loading && hotels.length > 0 && (
         <>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4 lg:gap-6 mb-4 lg:mb-6 px-3 md:px-0">
             {hotels.map((hotel) => (
               <HotelCard
                 key={hotel.id}

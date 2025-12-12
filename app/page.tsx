@@ -319,10 +319,10 @@ export default function Home() {
           <div className="px-4 md:px-6">
             {/* Title Container - stacked on mobile, inline on desktop */}
             <div className="flex flex-col md:flex-row md:items-center gap-0.5 md:gap-4">
-              {/* Main Title - Level-6: prominent on mobile */}
+              {/* Main Title - Level-6: prominent on mobile, cinematic on desktop */}
               <h1
                 key={`title-${animationKey}`}
-                className="hero-title text-base md:text-[32px] font-bold tracking-[0.01em] text-neutral-800"
+                className="hero-title text-base md:text-[32px] lg:text-[42px] xl:text-[48px] font-bold tracking-[0.01em] text-neutral-800"
               >
                 {t.sectionTitle.split('').map((char, index) => (
                   <span
@@ -342,10 +342,10 @@ export default function Home() {
               {/* Separator - Hidden on mobile */}
               <span className="hidden md:block text-primary-500 text-2xl font-bold flex-shrink-0">•</span>
 
-              {/* Subtitle - Level-6: visible on separate row on mobile */}
+              {/* Subtitle - Level-6: visible on separate row on mobile, elegant on desktop */}
               <p
                 key={`subtitle-${animationKey}`}
-                className="hero-subtitle text-sm md:text-lg font-medium text-neutral-500 tracking-[0.005em]"
+                className="hero-subtitle text-sm md:text-lg lg:text-xl font-medium text-neutral-500 tracking-[0.005em]"
               >
                 {t.subtitle.split('').map((char, index) => (
                   <span
@@ -629,18 +629,18 @@ export default function Home() {
         <MaxWidthContainer className="px-0 md:px-6" noPadding={true}>
           {/* ============================================
               RECENTLY VIEWED - Personalized Recommendations
+              Level-6: Compact mobile, spacious desktop
               ============================================ */}
-          {/* Compact spacing: 12px mobile, 16px desktop */}
-          <div className="mt-3 md:mt-4">
+          <div className="mt-3 md:mt-6 lg:mt-8">
             <RecentlyViewedSection lang={lang} />
           </div>
 
         {/* ============================================
             FLASH DEALS SECTION - Time-Limited Offers
             ENHANCED with Real Duffel Flash Deals, ML/AI, Marketing
+            Level-6: Follows immediately after Recent Searches
             ============================================ */}
-        {/* Compact spacing */}
-        <div className="mt-3 md:mt-4">
+        <div className="mt-3 md:mt-6 lg:mt-8">
           <FlashDealsSectionEnhanced lang={lang} />
         </div>
 
@@ -648,16 +648,15 @@ export default function Home() {
             DESTINATIONS SECTION - Explore by Continent
             ENHANCED with Real Duffel Flight Data, ML/AI, Marketing
             ============================================ */}
-        {/* Compact spacing */}
-        <div className="mt-3 md:mt-4">
+        {/* Desktop: generous spacing, Mobile: compact */}
+        <div className="mt-3 md:mt-6 lg:mt-10">
           <DestinationsSectionEnhanced lang={lang} />
         </div>
 
         {/* ============================================
             HOTELS SECTION - ML/AI Powered with Duffel Photos
             ============================================ */}
-        {/* Compact spacing */}
-        <div className="mt-3 md:mt-4">
+        <div className="mt-3 md:mt-6 lg:mt-10">
           <HotelsSectionEnhanced lang={lang} />
         </div>
 
@@ -665,7 +664,7 @@ export default function Home() {
             FIFA WORLD CUP 2026 - Prominent Hero Section
             STRATEGIC: High-visibility placement for major event
             ============================================ */}
-        <div className="mt-3 md:mt-4">
+        <div className="mt-3 md:mt-6 lg:mt-10">
           <WorldCupHeroSectionEnhanced lang={lang} />
         </div>
 
@@ -705,10 +704,9 @@ export default function Home() {
 
         {/* ============================================
             FAQ - Answer Common Questions
-            Level-6: Compact spacing
+            Level-6: Generous desktop spacing
             ============================================ */}
-        {/* Compact spacing */}
-        <div className="mt-4 md:mt-6 mb-4 md:mb-6">
+        <div className="mt-4 md:mt-8 lg:mt-12 mb-4 md:mb-8 lg:mb-12">
           <FAQ
             title={lang === 'en' ? '❓ Frequently Asked Questions' : lang === 'pt' ? '❓ Perguntas Frequentes' : '❓ Preguntas Frecuentes'}
             subtitle={lang === 'en' ? 'Everything you need to know about booking with Fly2Any' : lang === 'pt' ? 'Tudo o que você precisa saber sobre reservas com Fly2Any' : 'Todo lo que necesitas saber sobre reservas con Fly2Any'}
