@@ -39,7 +39,7 @@ interface FlashDealsSectionEnhancedProps {
 
 const translations = {
   en: {
-    title: '🔥 Flash Deals - Expiring Soon',
+    title: '🔥 Flash Deals',
     viewAll: 'View All',
     save: 'Save',
     viewing: 'viewing',
@@ -54,7 +54,7 @@ const translations = {
     error: 'Failed to load flash deals',
   },
   pt: {
-    title: '🔥 Ofertas Relâmpago - Expirando em Breve',
+    title: '🔥 Ofertas Relâmpago',
     viewAll: 'Ver Todos',
     save: 'Economize',
     viewing: 'visualizando',
@@ -69,7 +69,7 @@ const translations = {
     error: 'Falha ao carregar ofertas relâmpago',
   },
   es: {
-    title: '🔥 Ofertas Flash - Expiran Pronto',
+    title: '🔥 Ofertas Flash',
     viewAll: 'Ver Todos',
     save: 'Ahorra',
     viewing: 'viendo',
