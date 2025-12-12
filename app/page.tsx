@@ -311,9 +311,8 @@ export default function Home() {
         }}></div>
 
         <MaxWidthContainer
-          className="relative"
+          className="relative py-4 md:py-6 lg:py-8"
           noPadding={true}
-          style={{ padding: '8px 0' }}
         >
           {/* Text padding on mobile */}
           <div className="px-4 md:px-6">
