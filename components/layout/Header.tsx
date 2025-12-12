@@ -204,17 +204,14 @@ export function Header({
       >
         <MaxWidthContainer noPadding className="px-3 md:px-6">
           <div className="flex items-center justify-between h-14 sm:h-16 lg:h-[72px]">
-            {/* Logo with Icon + Text - Left aligned */}
-            <a href="/" className="flex items-center gap-2 group flex-shrink-0">
-              {/* Airplane Icon */}
+            {/* Logo with Icon + Text - Left aligned - Level-6 Ultra-Premium */}
+            <a href="/" className="flex items-center gap-2 lg:gap-2.5 group flex-shrink-0">
+              {/* Airplane Icon - Brightened, proportional to text */}
               <div
-                className="relative transition-all duration-300 group-hover:scale-105 p-1.5 sm:p-2 rounded-lg sm:rounded-xl flex-shrink-0"
+                className="relative transition-all duration-200 ease-[cubic-bezier(0.2,0.8,0.2,1)] group-hover:scale-105 p-1 sm:p-1.5 lg:p-2 rounded-lg lg:rounded-xl flex-shrink-0"
                 style={{
-                  background: scrolled
-                    ? 'linear-gradient(135deg, rgba(214, 58, 53, 0.06), rgba(232, 197, 42, 0.06))'
-                    : 'linear-gradient(135deg, rgba(214, 58, 53, 0.08), rgba(232, 197, 42, 0.08))',
-                  boxShadow: '0 2px 8px rgba(0, 0, 0, 0.04)',
-                  transition: 'all 0.3s ease',
+                  background: 'linear-gradient(135deg, rgba(231, 64, 53, 0.08), rgba(247, 201, 40, 0.06))',
+                  boxShadow: '0 1px 4px rgba(231, 64, 53, 0.08)',
                 }}
               >
                 <Image
@@ -223,29 +220,24 @@ export function Header({
                   width={32}
                   height={32}
                   priority
-                  className="w-6 h-6 sm:w-7 sm:h-7 md:w-8 md:h-8"
-                  style={{
-                    filter: scrolled
-                      ? 'drop-shadow(0 2px 4px rgba(0, 0, 0, 0.15))'
-                      : 'drop-shadow(0 2px 4px rgba(0, 0, 0, 0.12))',
-                    transition: 'filter 0.3s ease',
-                  }}
+                  className="w-5 h-5 sm:w-6 sm:h-6 lg:w-7 lg:h-7"
+                  style={{ filter: 'brightness(1.05) saturate(1.1)' }}
                 />
               </div>
 
-              {/* Fly2Any Text Logo - Level-6 Startup Style Wordmark */}
+              {/* Fly2Any Text Logo - Level-6 Ultra-Premium Wordmark */}
               <span
-                className="font-bold text-lg sm:text-xl md:text-2xl bg-gradient-to-r from-primary-500 to-primary-400 bg-clip-text text-transparent"
+                className="font-extrabold text-[17px] sm:text-[19px] lg:text-[22px] bg-gradient-to-r from-primary-600 via-primary-500 to-primary-400 bg-clip-text text-transparent flex items-baseline"
                 style={{
                   fontFamily: "'Inter', 'SF Pro Display', system-ui, sans-serif",
-                  fontVariantCaps: 'all-small-caps',
-                  fontFeatureSettings: '"c2sc", "smcp"',
-                  letterSpacing: '0.03em',
-                  transition: 'all 0.3s ease',
+                  letterSpacing: '0.02em',
+                  lineHeight: 1,
                 }}
                 aria-label="fly2any"
               >
-                fly2any
+                <span style={{ textTransform: 'lowercase' }}>fly</span>
+                <span style={{ fontSize: '0.78em', fontWeight: 800, position: 'relative', top: '0.02em' }}>2</span>
+                <span style={{ textTransform: 'lowercase' }}>any</span>
               </span>
             </a>
 
