@@ -4,9 +4,21 @@
  * Autonomous agent that audits and monitors SEO health
  */
 
-import Groq from 'groq-sdk';
+// Dynamic import to avoid build errors when API key is not set
+let groqClient: any = null;
 
-const groq = new Groq({ apiKey: process.env.GROQ_API_KEY });
+async function getGroqClient() {
+  if (!groqClient) {
+    if (!process.env.GROQ_API_KEY) {
+      throw new Error('GROQ_API_KEY environment variable is not set');
+    }
+    const { default: Groq } = await import('groq-sdk');
+    groqClient = new Groq({
+      apiKey: process.env.GROQ_API_KEY,
+    });
+  }
+  return groqClient;
+}
 
 export interface SEOAuditResult {
   score: number; // 0-100
@@ -201,7 +213,8 @@ ${issues.map(i => `- [${i.severity}] ${i.description}`).join('\n')}
 Provide specific, actionable recommendations prioritized by impact.`;
 
   try {
-    const response = await groq.chat.completions.create({
+    const groq = await getGroqClient();
+  const response = await groq.chat.completions.create({
       model: 'llama-3.3-70b-versatile',
       messages: [{ role: 'user', content: prompt }],
       max_tokens: 500,
@@ -257,6 +270,7 @@ Metrics:
 
 Format as executive summary with key insights and next steps.`;
 
+  const groq = await getGroqClient();
   const response = await groq.chat.completions.create({
     model: 'llama-3.3-70b-versatile',
     messages: [{ role: 'user', content: prompt }],
