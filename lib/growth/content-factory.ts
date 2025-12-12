@@ -10,9 +10,20 @@
 
 import Groq from 'groq-sdk';
 
-const groq = new Groq({
-  apiKey: process.env.GROQ_API_KEY,
-});
+// Lazy-initialize Groq client to avoid build errors when API key is not set
+let groqClient: Groq | null = null;
+
+function getGroqClient(): Groq {
+  if (!groqClient) {
+    if (!process.env.GROQ_API_KEY) {
+      throw new Error('GROQ_API_KEY environment variable is not set');
+    }
+    groqClient = new Groq({
+      apiKey: process.env.GROQ_API_KEY,
+    });
+  }
+  return groqClient;
+}
 
 export interface ContentPiece {
   type: 'deal' | 'guide' | 'blog' | 'social';
@@ -53,7 +64,7 @@ ${deal.travelDates ? `- Travel dates: ${deal.travelDates}` : ''}
 
 Include relevant emojis, create urgency, and add a call to action. Make it viral-worthy.`;
 
-  const response = await groq.chat.completions.create({
+  const response = await getGroqClient().chat.completions.create({
     model: 'llama-3.3-70b-versatile',
     messages: [{ role: 'user', content: prompt }],
     max_tokens: 100,
@@ -101,7 +112,7 @@ Requirements:
 
 Output in Markdown format.`;
 
-  const response = await groq.chat.completions.create({
+  const response = await getGroqClient().chat.completions.create({
     model: 'llama-3.3-70b-versatile',
     messages: [{ role: 'user', content: prompt }],
     max_tokens: 3000,
@@ -151,7 +162,7 @@ Topics to cover: ${topics.join(', ')}
 
 Format as JSON array: [{"topic": "...", "content": "..."}]`;
 
-  const response = await groq.chat.completions.create({
+  const response = await getGroqClient().chat.completions.create({
     model: 'llama-3.3-70b-versatile',
     messages: [{ role: 'user', content: prompt }],
     max_tokens: 1000,
@@ -204,7 +215,7 @@ Outline:
    - [sub-point]
 2. ...`;
 
-  const response = await groq.chat.completions.create({
+  const response = await getGroqClient().chat.completions.create({
     model: 'llama-3.3-70b-versatile',
     messages: [{ role: 'user', content: prompt }],
     max_tokens: 800,
