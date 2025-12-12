@@ -225,17 +225,21 @@ export function Header({
                 />
               </div>
 
-              {/* Fly2Any Text Logo - Level-6 Ultra-Premium Wordmark */}
+              {/* Fly2Any Text Logo - Level-6 Ultra-Premium 3D Wordmark */}
               <span
-                className="font-extrabold text-[17px] sm:text-[19px] lg:text-[22px]"
+                className="text-[18px] sm:text-[20px] lg:text-[24px] relative"
                 style={{
-                  fontFamily: "'Inter', 'SF Pro Display', system-ui, sans-serif",
-                  letterSpacing: '0.02em',
+                  fontFamily: "'SF Pro Display', -apple-system, BlinkMacSystemFont, system-ui, sans-serif",
+                  fontWeight: 800,
+                  letterSpacing: '-0.01em',
                   lineHeight: 1,
-                  background: 'linear-gradient(90deg, #D43B31, #E74035, #EF6B63)',
-                  WebkitBackgroundClip: 'text',
-                  WebkitTextFillColor: 'transparent',
-                  backgroundClip: 'text',
+                  color: '#E74035',
+                  textShadow: `
+                    0 1px 0 #D63B34,
+                    0 2px 0 #C53530,
+                    0 3px 4px rgba(0,0,0,0.15),
+                    0 4px 8px rgba(231,64,53,0.2)
+                  `,
                 }}
                 aria-label="fly2any"
               >
