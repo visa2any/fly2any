@@ -209,68 +209,18 @@ export function BottomTabBar({ translations, onMoreClick }: BottomTabBarProps) {
   }, []);
 
   // ============================================================================
-  // SCROLL BEHAVIOR (Smart Hide/Show)
+  // VISIBILITY BEHAVIOR (Always visible - no scroll hiding per user request)
   // ============================================================================
 
   useEffect(() => {
-    // Never hide when keyboard or chat is open
-    if (isKeyboardOpen || isChatOpen) {
+    // Always keep bottom nav visible (user preference)
+    // Only hide when keyboard is open (typing)
+    if (isKeyboardOpen) {
+      setIsVisible(false);
+    } else {
       setIsVisible(true);
-      return;
     }
-
-    const handleScroll = () => {
-      // Clear existing timeout
-      if (scrollTimeout.current) {
-        clearTimeout(scrollTimeout.current);
-      }
-
-      // Debounce scroll handling
-      scrollTimeout.current = setTimeout(() => {
-        const currentScrollY = window.scrollY;
-        const scrollDelta = currentScrollY - lastScrollY.current;
-        const absScrollDelta = Math.abs(scrollDelta);
-
-        // Ignore micro-scrolls (prevents jitter) - increased threshold
-        if (absScrollDelta < 20) return;
-
-        // Always show near top - increased threshold
-        if (currentScrollY < 200) {
-          setIsVisible(true);
-          lastScrollY.current = currentScrollY;
-          return;
-        }
-
-        // Always show near bottom (within 100px of document end)
-        const nearBottom = window.innerHeight + currentScrollY >= document.documentElement.scrollHeight - 100;
-        if (nearBottom) {
-          setIsVisible(true);
-          lastScrollY.current = currentScrollY;
-          return;
-        }
-
-        // Hide only when scrolling down with significant delta and past threshold
-        if (scrollDelta > SCROLL_DELTA_THRESHOLD && currentScrollY > SCROLL_HIDE_THRESHOLD) {
-          setIsVisible(false);
-        }
-        // Show when scrolling up with significant intent
-        else if (scrollDelta < -SCROLL_DELTA_THRESHOLD) {
-          setIsVisible(true);
-        }
-
-        lastScrollY.current = currentScrollY;
-      }, SCROLL_DEBOUNCE);
-    };
-
-    window.addEventListener('scroll', handleScroll, { passive: true });
-
-    return () => {
-      window.removeEventListener('scroll', handleScroll);
-      if (scrollTimeout.current) {
-        clearTimeout(scrollTimeout.current);
-      }
-    };
-  }, [isKeyboardOpen, isChatOpen]);
+  }, [isKeyboardOpen]);
 
   // ============================================================================
   // HAPTIC FEEDBACK
