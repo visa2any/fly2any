@@ -8,6 +8,7 @@ import { WebVitalsReporter } from "@/components/WebVitalsReporter";
 import { PWAProvider } from "@/components/pwa/PWAProvider";
 import InstallPrompt from "@/components/pwa/InstallPrompt";
 import OfflineIndicator from "@/components/pwa/OfflineIndicator";
+import { PWASplashScreen } from "@/components/pwa/PWASplashScreen";
 import { StructuredData } from "@/components/seo/StructuredData";
 import {
   getOrganizationSchema,
@@ -183,6 +184,7 @@ export default async function RootLayout({
         <WebVitalsReporter />
         {/* PWA Features */}
         <PWAProvider />
+        <PWASplashScreen />
         <InstallPrompt />
         <OfflineIndicator />
         {/* Google Analytics 4 */}
