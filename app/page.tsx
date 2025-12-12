@@ -636,21 +636,21 @@ export default function Home() {
           </div>
 
         {/* ============================================
-            FLASH DEALS SECTION - Time-Limited Offers
-            ENHANCED with Real Duffel Flash Deals, ML/AI, Marketing
-            Level-6: Follows immediately after Recent Searches
+            DESTINATIONS SECTION - Explore by Continent
+            ENHANCED with Real Duffel Flight Data, ML/AI, Marketing
+            Level-6: Prime position after Recent Searches
             ============================================ */}
         <div className="mt-3 md:mt-6 lg:mt-8">
-          <FlashDealsSectionEnhanced lang={lang} />
+          <DestinationsSectionEnhanced lang={lang} />
         </div>
 
         {/* ============================================
-            DESTINATIONS SECTION - Explore by Continent
-            ENHANCED with Real Duffel Flight Data, ML/AI, Marketing
+            FLASH DEALS SECTION - Time-Limited Offers
+            ENHANCED with Real Duffel Flash Deals, ML/AI, Marketing
+            Level-6: Follows Destinations for urgency flow
             ============================================ */}
-        {/* Desktop: generous spacing, Mobile: compact */}
         <div className="mt-3 md:mt-6 lg:mt-10">
-          <DestinationsSectionEnhanced lang={lang} />
+          <FlashDealsSectionEnhanced lang={lang} />
         </div>
 
         {/* ============================================
