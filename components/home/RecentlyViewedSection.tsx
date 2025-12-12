@@ -498,32 +498,30 @@ export function RecentlyViewedSection({ lang = 'en' }: RecentlyViewedSectionProp
                 {/* Left Side - Route Display */}
                 {item.from ? (
                   <div
-                    className="flex items-center gap-0.5 sm:gap-1 text-white px-1.5 sm:px-2 py-0.5 bg-black/30 backdrop-blur-sm rounded-md"
-                    style={{
-                      textShadow: '0 2px 8px rgba(0,0,0,0.95), 0 1px 4px rgba(0,0,0,0.9), 0 0 10px rgba(0,0,0,0.8)'
-                    }}
+                    className="flex items-center gap-1 text-white px-1.5 py-0.5 bg-black/30 backdrop-blur-sm rounded-md"
+                    style={{ textShadow: '0 2px 8px rgba(0,0,0,0.95)' }}
                   >
-                    <span className="text-[10px] sm:text-[11px] font-bold">{item.from ? getAirportCity(item.from) : 'Any'}</span>
-                    <ArrowRight className="w-2.5 h-2.5 sm:w-3 sm:h-3" strokeWidth={3} />
-                    <span className="text-[10px] sm:text-[11px] font-bold">{item.city || getAirportCity(item.to)}</span>
-                    <span className="text-[10px] sm:text-[11px]">•</span>
-                    <Clock className="w-2.5 h-2.5 sm:w-3 sm:h-3 text-blue-300 drop-shadow-lg" strokeWidth={2.5} />
-                    <span className="text-[9px] sm:text-[10px] font-semibold" suppressHydrationWarning>{formatTimeAgo(item.viewedAt)}</span>
+                    <MapPin className="w-2.5 h-2.5 text-primary-300" strokeWidth={2.5} />
+                    <span className="text-[10px] font-bold">{item.from ? getAirportCity(item.from) : 'Any'}</span>
+                    <span className="text-[9px] text-white/70">•</span>
+                    <Clock className="w-2.5 h-2.5 text-blue-300" strokeWidth={2.5} />
+                    <span className="text-[9px] font-medium" suppressHydrationWarning>{formatTimeAgo(item.viewedAt)}</span>
                   </div>
                 ) : (
                   <div></div>
                 )}
 
-                {/* Right Side - Remove Button - Mobile optimized: smaller, translucent */}
+                {/* Right Side - Remove Button - Clean, no background */}
                 <button
                   onClick={(e) => {
                     e.stopPropagation();
                     removeItem(item.id);
                   }}
-                  className="w-4 h-4 sm:w-5 sm:h-5 bg-black/40 hover:bg-red-500/90 text-white/90 hover:text-white rounded-full flex items-center justify-center transition-all duration-200 backdrop-blur-sm hover:scale-110 z-10"
+                  className="w-5 h-5 text-white/80 hover:text-red-400 flex items-center justify-center transition-all duration-150 hover:scale-110 z-10"
+                  style={{ textShadow: '0 2px 4px rgba(0,0,0,0.9)' }}
                   aria-label="Remove item"
                 >
-                  <X className="w-2 h-2 sm:w-2.5 sm:h-2.5" strokeWidth={3} />
+                  <X className="w-3 h-3" strokeWidth={2.5} />
                 </button>
               </div>
 
@@ -642,8 +640,8 @@ export function RecentlyViewedSection({ lang = 'en' }: RecentlyViewedSectionProp
         </div>
       )}
 
-      {/* COMPACT SEARCH INFO BAR - Sticky, Single Line */}
-      <div className="sticky bottom-0 left-0 right-0 mt-2 sm:mt-2.5 md:mt-3 bg-gradient-to-r from-info-50/95 via-indigo-50/95 to-purple-50/95 backdrop-blur-sm border border-gray-200 rounded-md sm:rounded-lg shadow-md overflow-hidden">
+      {/* COMPACT SEARCH INFO BAR - Desktop only */}
+      <div className="hidden md:block sticky bottom-0 left-0 right-0 mt-3 bg-gradient-to-r from-info-50/95 via-indigo-50/95 to-purple-50/95 backdrop-blur-sm border border-gray-200 rounded-lg shadow-md overflow-hidden">
         <div className="flex items-center justify-between px-2.5 sm:px-4 py-1.5 sm:py-2 gap-2 sm:gap-4 overflow-x-auto scrollbar-hide">
           {/* Left: Stats */}
           <div className="flex items-center gap-2 sm:gap-4 text-[11px] sm:text-xs font-medium text-gray-700 whitespace-nowrap">
