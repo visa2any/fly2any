@@ -164,32 +164,32 @@ export default function FlightsPage() {
   }, []);
 
   return (
-    <div className="min-h-screen bg-white">
-      {/* Hero Section - Blue Theme */}
-      <div className="relative bg-gradient-to-br from-gray-50 via-blue-50/30 to-gray-50 border-b border-gray-200/60 overflow-hidden">
+    <div className="min-h-screen bg-neutral-50">
+      {/* Hero Section - Level-6 Fly2Any Brand Theme */}
+      <div className="relative bg-gradient-to-br from-neutral-50 via-primary-50/20 to-neutral-50 border-b border-neutral-200/60 overflow-hidden">
         <div className="absolute inset-0 overflow-hidden pointer-events-none">
           <div className="floating-orb floating-orb-1"></div>
           <div className="floating-orb floating-orb-2"></div>
           <div className="floating-orb floating-orb-3"></div>
         </div>
 
-        <div className="absolute inset-0 opacity-[0.03]" style={{
-          backgroundImage: 'radial-gradient(circle at 1px 1px, rgb(59, 130, 246) 1px, transparent 0)',
+        <div className="absolute inset-0 opacity-[0.02]" style={{
+          backgroundImage: 'radial-gradient(circle at 1px 1px, #E74035 1px, transparent 0)',
           backgroundSize: '40px 40px'
         }}></div>
 
         <MaxWidthContainer className="relative" noPadding={true}>
-          <div className="px-3 sm:px-4 md:px-6 py-3 sm:py-4 md:py-5">
-            <div className="flex flex-col md:flex-row md:items-center gap-0.5 sm:gap-1 md:gap-3 animate-fadeIn">
-              <h1 key={`title-${animationKey}`} className="hero-title text-base sm:text-lg md:text-3xl font-extrabold tracking-tight leading-tight">
+          <div className="px-3 sm:px-4 md:px-6 lg:px-8 py-4 md:py-6 lg:py-8">
+            <div className="flex flex-col md:flex-row md:items-center gap-1 md:gap-3 animate-fadeIn">
+              <h1 key={`title-${animationKey}`} className="hero-title text-[13px] sm:text-lg md:text-3xl lg:text-[36px] font-extrabold tracking-[0.01em] leading-tight whitespace-nowrap">
                 {mounted ? t('sectionTitle').split('').map((char, index) => (
                   <span key={index} className="letter-elastic" style={{ animationDelay: `${index * 0.038}s`, display: 'inline-block', minWidth: char === ' ' ? '0.3em' : 'auto' }}>
                     {char === ' ' ? '\u00A0' : char}
                   </span>
                 )) : <span style={{ opacity: 0 }}>{t('sectionTitle')}</span>}
               </h1>
-              <span className="hidden md:inline-block text-blue-400 text-2xl font-bold mx-1">•</span>
-              <p key={`subtitle-${animationKey}`} className="hero-subtitle text-gray-700/90 mb-0 font-medium text-xs sm:text-sm md:text-lg leading-tight" style={{ letterSpacing: '-0.01em' }}>
+              <span className="hidden md:inline-block text-primary-400 text-xl lg:text-2xl font-bold mx-2">•</span>
+              <p key={`subtitle-${animationKey}`} className="hero-subtitle text-neutral-600 mb-0 font-medium text-[11px] sm:text-sm md:text-base lg:text-lg leading-tight whitespace-nowrap" style={{ letterSpacing: '0.01em' }}>
                 {mounted ? t('subtitle').split('').map((char, index) => (
                   <span key={index} className="letter-elastic" style={{ animationDelay: `${2.0 + (index * 0.028)}s`, display: 'inline-block', minWidth: char === ' ' ? '0.3em' : 'auto' }}>
                     {char === ' ' ? '\u00A0' : char}
@@ -202,10 +202,10 @@ export default function FlightsPage() {
       </div>
 
       <style jsx>{`
-        .floating-orb { position: absolute; border-radius: 50%; filter: blur(60px); opacity: 0.15; animation: float 20s ease-in-out infinite; z-index: 0; }
-        .floating-orb-1 { width: 200px; height: 200px; background: linear-gradient(135deg, #3b82f6, #06b6d4); top: -80px; left: 5%; animation-delay: 0s; animation-duration: 25s; }
-        .floating-orb-2 { width: 180px; height: 180px; background: linear-gradient(135deg, #0891b2, #1e40af); top: -60px; right: 10%; animation-delay: 5s; animation-duration: 30s; }
-        .floating-orb-3 { width: 150px; height: 150px; background: linear-gradient(135deg, #06b6d4, #3b82f6); bottom: -50px; left: 50%; animation-delay: 10s; animation-duration: 28s; }
+        .floating-orb { position: absolute; border-radius: 50%; filter: blur(60px); opacity: 0.12; animation: float 20s ease-in-out infinite; z-index: 0; }
+        .floating-orb-1 { width: 200px; height: 200px; background: linear-gradient(135deg, #E74035, #F7C928); top: -80px; left: 5%; animation-delay: 0s; animation-duration: 25s; }
+        .floating-orb-2 { width: 180px; height: 180px; background: linear-gradient(135deg, #D63B34, #E74035); top: -60px; right: 10%; animation-delay: 5s; animation-duration: 30s; }
+        .floating-orb-3 { width: 150px; height: 150px; background: linear-gradient(135deg, #F7C928, #E74035); bottom: -50px; left: 50%; animation-delay: 10s; animation-duration: 28s; }
         @media (min-width: 768px) {
           .floating-orb-1 { width: 300px; height: 300px; top: -150px; left: 10%; }
           .floating-orb-2 { width: 250px; height: 250px; top: -100px; right: 15%; }
@@ -217,77 +217,77 @@ export default function FlightsPage() {
           50% { transform: translate(-8px, 5px) scale(0.98); }
           75% { transform: translate(6px, -6px) scale(1.01); }
         }
-        .hero-title { color: #1e40af; text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1), 0 2px 8px rgba(30, 64, 175, 0.15); position: relative; z-index: 10; transform: translateZ(0); -webkit-transform: translateZ(0); -moz-transform: translateZ(0); backface-visibility: hidden; -webkit-backface-visibility: hidden; -moz-backface-visibility: hidden; isolation: isolate; font-weight: 800; }
-        .separator-dot { animation: fadeIn 0.8s ease-out, dotPulse 2s ease-in-out infinite; display: inline-block; position: relative; z-index: 10; transform: translateZ(0); -webkit-transform: translateZ(0); -moz-transform: translateZ(0); backface-visibility: hidden; -webkit-backface-visibility: hidden; -moz-backface-visibility: hidden; }
+        .hero-title { color: #E74035; text-shadow: 0 1px 2px rgba(0, 0, 0, 0.06), 0 2px 8px rgba(231, 64, 53, 0.12); position: relative; z-index: 10; transform: translateZ(0); backface-visibility: hidden; isolation: isolate; font-weight: 800; }
+        .separator-dot { animation: fadeIn 0.8s ease-out, dotPulse 2s ease-in-out infinite; display: inline-block; position: relative; z-index: 10; transform: translateZ(0); backface-visibility: hidden; }
         @keyframes dotPulse { 0%, 100% { transform: scale(1) translateZ(0); opacity: 0.7; } 50% { transform: scale(1.2) translateZ(0); opacity: 1; } }
-        .letter-elastic { opacity: 0; animation: elasticLetterEntrance 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55) forwards; transform-origin: center center; position: relative; z-index: 1; backface-visibility: hidden; -webkit-backface-visibility: hidden; -moz-backface-visibility: hidden; }
+        .letter-elastic { opacity: 0; animation: elasticLetterEntrance 0.5s cubic-bezier(0.2, 0.8, 0.2, 1) forwards; transform-origin: center center; position: relative; z-index: 1; backface-visibility: hidden; }
         @keyframes elasticLetterEntrance { 0% { opacity: 0; transform: translateY(-5px) scale(0.9) translateZ(0); } 100% { opacity: 1; transform: translateY(0) scale(1) translateZ(0); } }
-        .hero-subtitle { position: relative; z-index: 10; transform: translateZ(0); -webkit-transform: translateZ(0); -moz-transform: translateZ(0); backface-visibility: hidden; -webkit-backface-visibility: hidden; -moz-backface-visibility: hidden; isolation: isolate; color: #374151; font-weight: 500; }
+        .hero-subtitle { position: relative; z-index: 10; transform: translateZ(0); backface-visibility: hidden; isolation: isolate; color: #525252; font-weight: 500; }
         @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
-        .animate-fadeIn { animation: fadeIn 0.6s ease-out; }
+        .animate-fadeIn { animation: fadeIn 0.6s cubic-bezier(0.2, 0.8, 0.2, 1); }
         @media (prefers-reduced-motion: reduce) { .hero-title, .separator-dot, .letter-elastic, .floating-orb { animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; } }
       `}</style>
 
       {/* Search Bar */}
-      <div className="border-b border-gray-100">
+      <div className="border-b border-neutral-100">
         <MobileHomeSearchWrapper lang={lang} />
       </div>
 
       {/* Compact Trust Bar */}
       <CompactTrustBar sticky />
 
-      {/* ============ EXISTING FLIGHT SECTIONS ============ */}
+      {/* ============ EXISTING FLIGHT SECTIONS - Level-6 Spacing ============ */}
 
       {/* Recently Viewed */}
-      <div className="mt-2 sm:mt-3 md:mt-5">
+      <div className="mt-2 md:mt-6 lg:mt-8">
         <RecentlyViewedSection lang={lang} />
       </div>
 
       {/* Flash Deals */}
-      <div className="mt-2 sm:mt-3 md:mt-5">
+      <div className="mt-2 md:mt-6 lg:mt-8">
         <FlashDealsSectionEnhanced lang={lang} />
       </div>
 
       {/* Popular Routes */}
-      <div className="mt-2 sm:mt-3 md:mt-5">
+      <div className="mt-2 md:mt-6 lg:mt-8">
         <PopularRoutesSection />
       </div>
 
       {/* ============ NEW FLIGHT-SPECIFIC SECTIONS ============ */}
 
-      {/* 1. Flight Classes & Cabin Types - WITH PHOTOS */}
-      <div className="bg-gradient-to-br from-gray-50 to-white py-6 sm:py-8 md:py-12">
+      {/* 1. Flight Classes & Cabin Types - Level-6 Ultra-Premium */}
+      <div className="bg-gradient-to-br from-neutral-50 to-white py-4 md:py-8 lg:py-12">
         <MaxWidthContainer className="px-0 md:px-6" noPadding={true}>
-          <div className="mb-6 sm:mb-8 px-4 md:px-0">
-            <h2 className="text-lg sm:text-xl md:text-3xl font-bold text-gray-900 mb-2">{t('cabinClassTitle')}</h2>
-            <p className="text-xs sm:text-sm md:text-base text-gray-600">{t('cabinClassSubtitle')}</p>
+          <div className="mb-4 md:mb-6 lg:mb-8 px-3 md:px-0">
+            <h2 className="text-sm md:text-[26px] lg:text-[32px] font-bold text-neutral-800 tracking-[0.01em] mb-1 md:mb-2">{t('cabinClassTitle')}</h2>
+            <p className="text-xs md:text-sm lg:text-base text-neutral-500">{t('cabinClassSubtitle')}</p>
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-3 md:gap-6 px-2 md:px-0">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-0.5 md:gap-6 px-0 md:px-0">
             {baseCabinClasses.map((cabin, idx) => {
               const IconComponent = cabin.icon;
               return (
-                <div key={idx} className="relative rounded-xl overflow-hidden shadow-md hover:shadow-2xl transition-all border border-gray-200 hover:border-blue-400 group cursor-pointer h-[320px]">
+                <div key={idx} className="relative md:rounded-2xl overflow-hidden shadow-md hover:shadow-xl transition-all duration-150 ease-[cubic-bezier(0.2,0.8,0.2,1)] border-y md:border border-neutral-200 hover:border-primary-400 lg:hover:-translate-y-1 group cursor-pointer h-[300px] md:h-[320px]">
                   <Image
                     src={cabin.image}
                     alt={cabin.name}
                     fill
                     sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 25vw"
-                    className="object-cover transition-transform duration-500 group-hover:scale-110"
+                    className="object-cover transition-transform duration-500 ease-[cubic-bezier(0.2,0.8,0.2,1)] group-hover:scale-105"
                   />
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/75 via-black/35 to-transparent"></div>
-                  <div className="relative h-full p-6 flex flex-col justify-between">
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent"></div>
+                  <div className="relative h-full p-4 md:p-6 flex flex-col justify-between">
                     <div>
-                      <div className={`w-14 h-14 rounded-xl bg-gradient-to-br ${cabin.color} flex items-center justify-center mb-3 group-hover:scale-110 transition-transform shadow-lg`}>
-                        <IconComponent className="w-7 h-7 text-white" />
+                      <div className={`w-12 h-12 md:w-14 md:h-14 rounded-xl bg-gradient-to-br ${cabin.color} flex items-center justify-center mb-3 group-hover:scale-110 transition-transform duration-150 ease-[cubic-bezier(0.2,0.8,0.2,1)] shadow-lg`}>
+                        <IconComponent className="w-6 h-6 md:w-7 md:h-7 text-white" />
                       </div>
                     </div>
                     <div>
-                      <h3 className="text-xl font-bold text-white mb-2 drop-shadow-lg">{cabin.name}</h3>
-                      <p className="text-sm text-white/90 mb-3 drop-shadow-md">{cabin.description}</p>
-                      <div className="text-xl font-bold text-blue-400 mb-3 drop-shadow-lg">{cabin.priceRange}</div>
-                      <div className="flex flex-wrap gap-2">
+                      <h3 className="text-lg md:text-xl font-bold text-white mb-2 drop-shadow-lg">{cabin.name}</h3>
+                      <p className="text-xs md:text-sm text-white/90 mb-2 md:mb-3 drop-shadow-md">{cabin.description}</p>
+                      <div className="text-lg md:text-xl font-bold text-primary-400 mb-2 md:mb-3 drop-shadow-lg">{cabin.priceRange}</div>
+                      <div className="flex flex-wrap gap-1.5 md:gap-2">
                         {cabin.features.map((feat, i) => (
-                          <span key={i} className="text-xs bg-white/20 backdrop-blur-sm px-2 py-1 rounded-full text-white border border-white/30">{feat}</span>
+                          <span key={i} className="text-[10px] md:text-xs bg-white/20 backdrop-blur-sm px-2 py-0.5 md:py-1 rounded-full text-white border border-white/30">{feat}</span>
                         ))}
                       </div>
                     </div>
@@ -299,25 +299,25 @@ export default function FlightsPage() {
         </MaxWidthContainer>
       </div>
 
-      {/* 2. Airlines by Alliance */}
-      <div className="bg-white py-6 sm:py-8 md:py-12">
+      {/* 2. Airlines by Alliance - Level-6 */}
+      <div className="bg-white py-4 md:py-8 lg:py-12">
         <MaxWidthContainer className="px-0 md:px-6" noPadding={true}>
-          <div className="mb-6 sm:mb-8 px-4 md:px-0">
-            <h2 className="text-lg sm:text-xl md:text-3xl font-bold text-gray-900 mb-2">{t('alliancesTitle')}</h2>
-            <p className="text-xs sm:text-sm md:text-base text-gray-600">{t('alliancesSubtitle')}</p>
+          <div className="mb-4 md:mb-6 lg:mb-8 px-3 md:px-0">
+            <h2 className="text-sm md:text-[26px] lg:text-[32px] font-bold text-neutral-800 tracking-[0.01em] mb-1 md:mb-2">{t('alliancesTitle')}</h2>
+            <p className="text-xs md:text-sm lg:text-base text-neutral-500">{t('alliancesSubtitle')}</p>
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-3 md:gap-6 px-2 md:px-0">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-0.5 md:gap-6 px-0 md:px-0">
             {baseAlliances.map((alliance, idx) => (
-              <div key={idx} className="bg-white rounded-xl p-6 shadow-md hover:shadow-xl transition-all border border-gray-200 hover:border-info-300 group cursor-pointer">
-                <div className="text-5xl mb-3 text-center">{alliance.logo}</div>
-                <h3 className="text-xl font-bold text-gray-900 mb-2 text-center">{alliance.name}</h3>
-                <p className="text-sm text-gray-600 mb-1 text-center">{alliance.airlines}</p>
-                <p className="text-sm font-semibold text-primary-500 mb-4 text-center">{alliance.network}</p>
+              <div key={idx} className="bg-white md:rounded-2xl p-4 md:p-6 shadow-md hover:shadow-xl transition-all duration-150 ease-[cubic-bezier(0.2,0.8,0.2,1)] border-y md:border border-neutral-200 hover:border-primary-300 lg:hover:-translate-y-1 group cursor-pointer">
+                <div className="text-4xl md:text-5xl mb-3 text-center">{alliance.logo}</div>
+                <h3 className="text-lg md:text-xl font-bold text-neutral-900 mb-2 text-center">{alliance.name}</h3>
+                <p className="text-xs md:text-sm text-neutral-600 mb-1 text-center">{alliance.airlines}</p>
+                <p className="text-xs md:text-sm font-semibold text-primary-500 mb-3 md:mb-4 text-center">{alliance.network}</p>
                 <div className="space-y-1">
                   {alliance.benefits.map((benefit, i) => (
                     <div key={i} className="flex items-center gap-2">
                       <ChevronRight className="w-4 h-4 text-primary-500 flex-shrink-0" />
-                      <span className="text-xs text-gray-700">{benefit}</span>
+                      <span className="text-[11px] md:text-xs text-neutral-700">{benefit}</span>
                     </div>
                   ))}
                 </div>
@@ -327,23 +327,23 @@ export default function FlightsPage() {
         </MaxWidthContainer>
       </div>
 
-      {/* 3. Flight Features & Services */}
-      <div className="bg-gradient-to-br from-info-50 to-primary-50 py-6 sm:py-8 md:py-12">
+      {/* 3. Flight Features & Services - Level-6 */}
+      <div className="bg-gradient-to-br from-primary-50/30 to-secondary-50/20 py-4 md:py-8 lg:py-12">
         <MaxWidthContainer className="px-0 md:px-6" noPadding={true}>
-          <div className="mb-6 sm:mb-8 px-4 md:px-0">
-            <h2 className="text-lg sm:text-xl md:text-3xl font-bold text-gray-900 mb-2">{t('featuresTitle')}</h2>
-            <p className="text-xs sm:text-sm md:text-base text-gray-600">{t('featuresSubtitle')}</p>
+          <div className="mb-4 md:mb-6 lg:mb-8 px-3 md:px-0">
+            <h2 className="text-sm md:text-[26px] lg:text-[32px] font-bold text-neutral-800 tracking-[0.01em] mb-1 md:mb-2">{t('featuresTitle')}</h2>
+            <p className="text-xs md:text-sm lg:text-base text-neutral-500">{t('featuresSubtitle')}</p>
           </div>
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-2 sm:gap-3 md:gap-4 px-2 md:px-0">
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-0.5 md:gap-4 px-0 md:px-0">
             {baseFlightFeatures.map((feature, idx) => {
               const IconComponent = feature.icon;
               return (
-                <div key={idx} className="bg-white rounded-xl p-4 shadow-sm hover:shadow-md transition-all border border-gray-200 hover:border-info-300 group cursor-pointer text-center">
-                  <div className="w-12 h-12 rounded-lg bg-info-100 flex items-center justify-center mx-auto mb-3 group-hover:bg-blue-200 transition-colors">
-                    <IconComponent className="w-6 h-6 text-primary-500" />
+                <div key={idx} className="bg-white md:rounded-xl p-3 md:p-4 shadow-sm hover:shadow-md transition-all duration-150 ease-[cubic-bezier(0.2,0.8,0.2,1)] border-y md:border border-neutral-200 hover:border-primary-300 lg:hover:-translate-y-0.5 group cursor-pointer text-center">
+                  <div className="w-10 h-10 md:w-12 md:h-12 rounded-lg bg-primary-50 flex items-center justify-center mx-auto mb-2 md:mb-3 group-hover:bg-primary-100 transition-colors duration-150">
+                    <IconComponent className="w-5 h-5 md:w-6 md:h-6 text-primary-500" />
                   </div>
-                  <h4 className="text-sm font-semibold text-gray-900 mb-1">{feature.name}</h4>
-                  <p className="text-xs text-gray-500">{feature.availability}</p>
+                  <h4 className="text-xs md:text-sm font-semibold text-neutral-900 mb-0.5 md:mb-1">{feature.name}</h4>
+                  <p className="text-[10px] md:text-xs text-neutral-500">{feature.availability}</p>
                 </div>
               );
             })}
@@ -351,25 +351,25 @@ export default function FlightsPage() {
         </MaxWidthContainer>
       </div>
 
-      {/* 4. Expert Booking Tips */}
-      <div className="bg-white py-6 sm:py-8 md:py-12">
+      {/* 4. Expert Booking Tips - Level-6 */}
+      <div className="bg-white py-4 md:py-8 lg:py-12">
         <MaxWidthContainer className="px-0 md:px-6" noPadding={true}>
-          <div className="mb-6 sm:mb-8 px-4 md:px-0">
-            <h2 className="text-lg sm:text-xl md:text-3xl font-bold text-gray-900 mb-2">{t('tipsTitle')}</h2>
-            <p className="text-xs sm:text-sm md:text-base text-gray-600">{t('tipsSubtitle')}</p>
+          <div className="mb-4 md:mb-6 lg:mb-8 px-3 md:px-0">
+            <h2 className="text-sm md:text-[26px] lg:text-[32px] font-bold text-neutral-800 tracking-[0.01em] mb-1 md:mb-2">{t('tipsTitle')}</h2>
+            <p className="text-xs md:text-sm lg:text-base text-neutral-500">{t('tipsSubtitle')}</p>
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2 sm:gap-3 md:gap-6 px-2 md:px-0">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-0.5 md:gap-6 px-0 md:px-0">
             {baseBookingTips.map((tip, idx) => {
               const IconComponent = tip.icon;
               return (
-                <div key={idx} className="bg-white rounded-xl p-5 shadow-md hover:shadow-xl transition-all border border-info-200">
+                <div key={idx} className="bg-white md:rounded-xl p-4 md:p-5 shadow-md hover:shadow-xl transition-all duration-150 ease-[cubic-bezier(0.2,0.8,0.2,1)] border-y md:border border-primary-100 hover:border-primary-300 lg:hover:-translate-y-0.5">
                   <div className="flex items-start gap-3">
-                    <div className="w-10 h-10 rounded-lg bg-info-100 flex items-center justify-center flex-shrink-0">
+                    <div className="w-10 h-10 rounded-lg bg-primary-50 flex items-center justify-center flex-shrink-0">
                       <IconComponent className="w-5 h-5 text-primary-500" />
                     </div>
                     <div>
-                      <h4 className="text-base font-bold text-gray-900 mb-1">{tip.tip}</h4>
-                      <p className="text-sm text-gray-600">{tip.description}</p>
+                      <h4 className="text-sm md:text-base font-bold text-neutral-900 mb-1">{tip.tip}</h4>
+                      <p className="text-xs md:text-sm text-neutral-600">{tip.description}</p>
                     </div>
                   </div>
                 </div>
@@ -380,32 +380,32 @@ export default function FlightsPage() {
       </div>
 
       {/* Destinations */}
-      <div className="mt-2 sm:mt-3 md:mt-5">
+      <div className="mt-2 md:mt-6 lg:mt-8">
         <DestinationsSectionEnhanced lang={lang} />
       </div>
 
-      {/* 5. Flight Booking FAQ */}
-      <div className="bg-gradient-to-br from-info-50 via-indigo-50 to-purple-50 py-6 sm:py-8 md:py-12">
+      {/* 5. Flight Booking FAQ - Level-6 */}
+      <div className="bg-gradient-to-br from-neutral-50 via-primary-50/10 to-neutral-50 py-4 md:py-8 lg:py-12">
         <MaxWidthContainer className="px-0 md:px-6" noPadding={true}>
-          <div className="mb-6 sm:mb-8 px-4 md:px-0">
-            <h2 className="text-lg sm:text-xl md:text-3xl font-bold text-gray-900 mb-2 sm:mb-3">{t('faqTitle')}</h2>
-            <p className="text-xs sm:text-sm md:text-base text-gray-600">{t('faqIntro')}</p>
+          <div className="mb-4 md:mb-6 lg:mb-8 px-3 md:px-0">
+            <h2 className="text-sm md:text-[26px] lg:text-[32px] font-bold text-neutral-800 tracking-[0.01em] mb-1 md:mb-2">{t('faqTitle')}</h2>
+            <p className="text-xs md:text-sm lg:text-base text-neutral-500">{t('faqIntro')}</p>
           </div>
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-2 sm:gap-3 md:gap-6 px-2 md:px-0">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-0.5 md:gap-6 px-0 md:px-0">
             {baseFaqs.map((faq, idx) => (
-              <details key={idx} className="bg-white rounded-xl p-5 md:p-6 hover:shadow-lg transition-all border border-gray-200 hover:border-info-300 group">
-                <summary className="font-bold text-gray-900 cursor-pointer list-none flex justify-between items-center gap-3">
-                  <span className="flex-1 text-base md:text-lg">{faq.q}</span>
-                  <ChevronRight className="w-5 h-5 text-primary-500 group-open:rotate-90 transition-transform flex-shrink-0" />
+              <details key={idx} className="bg-white md:rounded-xl p-4 md:p-6 hover:shadow-lg transition-all duration-150 ease-[cubic-bezier(0.2,0.8,0.2,1)] border-y md:border border-neutral-200 hover:border-primary-300 group">
+                <summary className="font-bold text-neutral-900 cursor-pointer list-none flex justify-between items-center gap-3">
+                  <span className="flex-1 text-sm md:text-base lg:text-lg">{faq.q}</span>
+                  <ChevronRight className="w-4 h-4 md:w-5 md:h-5 text-primary-500 group-open:rotate-90 transition-transform duration-150 flex-shrink-0" />
                 </summary>
-                <p className="mt-4 text-gray-600 text-sm md:text-base leading-relaxed">{faq.a}</p>
+                <p className="mt-3 md:mt-4 text-neutral-600 text-xs md:text-sm lg:text-base leading-relaxed">{faq.a}</p>
               </details>
             ))}
           </div>
-          <div className="mt-8 text-center">
-            <p className="text-gray-600 mb-4">{t('stillHaveQuestions')}</p>
-            <a href="mailto:support@fly2any.com" className="inline-flex items-center gap-2 bg-primary-500 hover:bg-primary-600 text-white px-6 py-3 rounded-xl font-semibold transition-colors shadow-md hover:shadow-lg">
-              <Shield className="w-5 h-5" />
+          <div className="mt-6 md:mt-8 text-center px-3 md:px-0">
+            <p className="text-neutral-600 text-sm md:text-base mb-3 md:mb-4">{t('stillHaveQuestions')}</p>
+            <a href="mailto:support@fly2any.com" className="inline-flex items-center gap-2 bg-primary-500 hover:bg-primary-600 text-white px-5 md:px-6 py-2.5 md:py-3 rounded-xl font-semibold transition-all duration-150 ease-[cubic-bezier(0.2,0.8,0.2,1)] shadow-md hover:shadow-lg hover:-translate-y-0.5 active:scale-[0.98] text-sm md:text-base">
+              <Shield className="w-4 h-4 md:w-5 md:h-5" />
               {t('contactSupport')}
             </a>
           </div>
