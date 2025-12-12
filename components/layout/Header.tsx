@@ -235,7 +235,7 @@ export function Header({
 
               {/* Fly2Any Text Logo - Level-6 Startup Style Wordmark */}
               <span
-                className="font-bold text-lg sm:text-xl md:text-2xl bg-gradient-to-r from-primary-500 to-primary-400 bg-clip-text text-transparent hidden xs:block"
+                className="font-bold text-lg sm:text-xl md:text-2xl bg-gradient-to-r from-primary-500 to-primary-400 bg-clip-text text-transparent"
                 style={{
                   fontFamily: "'Inter', 'SF Pro Display', system-ui, sans-serif",
                   fontVariantCaps: 'all-small-caps',
