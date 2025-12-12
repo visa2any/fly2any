@@ -315,11 +315,11 @@ export default function HotelsPage() {
             <h2 className="text-lg sm:text-xl md:text-3xl font-bold text-gray-900 mb-2">{t('starRatingTitle')}</h2>
             <p className="text-xs sm:text-sm md:text-base text-gray-600">{t('starRatingSubtitle')}</p>
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-3 md:gap-6 px-2 md:px-0">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-0.5 md:gap-6 px-0 md:px-0">
             {baseStarCategories.map((cat, idx) => {
               const IconComponent = cat.icon;
               return (
-                <div key={idx} className="relative rounded-xl overflow-hidden shadow-md hover:shadow-2xl transition-all border border-gray-200 hover:border-primary-400 group cursor-pointer h-[320px]">
+                <div key={idx} className="relative md:rounded-xl overflow-hidden shadow-md hover:shadow-2xl transition-all duration-150 ease-[cubic-bezier(0.2,0.8,0.2,1)] border-y md:border border-neutral-200 hover:border-primary-400 group cursor-pointer h-[320px]">
                   {/* Background Image */}
                   <Image
                     src={cat.image}
@@ -370,11 +370,11 @@ export default function HotelsPage() {
             <h2 className="text-lg sm:text-xl md:text-3xl font-bold text-gray-900 mb-2">{t('propertyTypesTitle')}</h2>
             <p className="text-xs sm:text-sm md:text-base text-gray-600">{t('propertyTypesSubtitle')}</p>
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2 sm:gap-3 md:gap-6 px-2 md:px-0">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-0.5 md:gap-6 px-0 md:px-0">
             {basePropertyTypes.map((prop, idx) => {
               const IconComponent = prop.icon;
               return (
-                <div key={idx} className="bg-gradient-to-br from-white to-gray-50 rounded-xl p-6 shadow-md hover:shadow-xl transition-all border border-gray-200 hover:border-primary-300 group cursor-pointer">
+                <div key={idx} className="bg-gradient-to-br from-white to-neutral-50 md:rounded-xl p-4 md:p-6 shadow-md hover:shadow-xl transition-all duration-150 ease-[cubic-bezier(0.2,0.8,0.2,1)] border-y md:border border-neutral-200 hover:border-primary-300 group cursor-pointer">
                   <div className={`w-12 h-12 rounded-lg bg-gradient-to-br ${prop.color} flex items-center justify-center mb-4 group-hover:scale-110 transition-transform`}>
                     <IconComponent className="w-6 h-6 text-white" />
                   </div>
@@ -398,11 +398,11 @@ export default function HotelsPage() {
             <h2 className="text-lg sm:text-xl md:text-3xl font-bold text-gray-900 mb-2">{t('dealsTitle')}</h2>
             <p className="text-xs sm:text-sm md:text-base text-gray-600">{t('dealsSubtitle')}</p>
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2 sm:gap-3 md:gap-6 px-2 md:px-0">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-0.5 md:gap-6 px-0 md:px-0">
             {baseDealCategories.map((deal, idx) => {
               const IconComponent = deal.icon;
               return (
-                <div key={idx} className="bg-white rounded-xl p-6 shadow-md hover:shadow-xl transition-all border-2 border-primary-200 hover:border-primary-400 group cursor-pointer overflow-hidden relative">
+                <div key={idx} className="bg-white md:rounded-xl p-4 md:p-6 shadow-md hover:shadow-xl transition-all duration-150 ease-[cubic-bezier(0.2,0.8,0.2,1)] border-y md:border-2 border-primary-200 hover:border-primary-400 group cursor-pointer overflow-hidden relative">
                   <div className="absolute top-0 right-0 bg-red-600 text-white px-3 py-1 text-xs font-bold rounded-bl-xl">{deal.discount}</div>
                   <div className={`w-14 h-14 rounded-xl bg-gradient-to-br ${deal.color} flex items-center justify-center mb-4 group-hover:scale-110 transition-transform`}>
                     <IconComponent className="w-7 h-7 text-white" />
