@@ -129,57 +129,132 @@ export function getSSEStats(): { admin: number; customer: number; total: number 
 // ==========================================
 
 /**
- * Send message to Telegram
+ * Send message to Telegram with retry logic
  */
-async function sendTelegramMessage(chatId: string, message: string): Promise<boolean> {
+async function sendTelegramMessage(
+  chatId: string,
+  message: string,
+  retries: number = 3,
+  retryDelay: number = 1000
+): Promise<{ success: boolean; error?: string; messageId?: number }> {
   if (!TELEGRAM_BOT_TOKEN) {
     console.warn('⚠️ Telegram bot token not configured - skipping');
-    return false;
+    return { success: false, error: 'TELEGRAM_BOT_TOKEN not configured' };
   }
 
-  try {
-    const response = await fetch(
-      `https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage`,
-      {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          chat_id: chatId,
-          text: message,
-          parse_mode: 'HTML',
-          disable_web_page_preview: true,
-        }),
+  // Validate chat ID format (should be numeric or @username)
+  if (!chatId || (!chatId.match(/^-?\d+$/) && !chatId.startsWith('@'))) {
+    console.error('❌ Invalid Telegram chat ID format:', chatId);
+    return { success: false, error: 'Invalid chat ID format' };
+  }
+
+  for (let attempt = 1; attempt <= retries; attempt++) {
+    try {
+      const response = await fetch(
+        `https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage`,
+        {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            chat_id: chatId,
+            text: message,
+            parse_mode: 'HTML',
+            disable_web_page_preview: true,
+          }),
+        }
+      );
+
+      const result = await response.json();
+
+      if (!result.ok) {
+        // Handle specific Telegram errors
+        const errorCode = result.error_code;
+        const errorDesc = result.description || 'Unknown error';
+
+        // Don't retry on permanent errors
+        if (errorCode === 400 || errorCode === 403 || errorCode === 404) {
+          console.error(`❌ Telegram permanent error (${errorCode}):`, errorDesc);
+          return { success: false, error: `[${errorCode}] ${errorDesc}` };
+        }
+
+        // Retry on transient errors (429 rate limit, 5xx server errors)
+        if (attempt < retries) {
+          const delay = errorCode === 429
+            ? (result.parameters?.retry_after || 5) * 1000
+            : retryDelay * attempt;
+          console.warn(`⚠️ Telegram attempt ${attempt}/${retries} failed, retrying in ${delay}ms...`);
+          await new Promise(resolve => setTimeout(resolve, delay));
+          continue;
+        }
+
+        return { success: false, error: `[${errorCode}] ${errorDesc}` };
       }
-    );
 
-    const result = await response.json();
-    if (!result.ok) {
-      console.error('❌ Telegram error:', result.description);
-      return false;
+      return {
+        success: true,
+        messageId: result.result?.message_id,
+      };
+    } catch (error: any) {
+      console.error(`❌ Telegram attempt ${attempt}/${retries} exception:`, error.message);
+
+      if (attempt < retries) {
+        await new Promise(resolve => setTimeout(resolve, retryDelay * attempt));
+        continue;
+      }
+
+      return { success: false, error: error.message };
     }
-
-    return true;
-  } catch (error) {
-    console.error('❌ Telegram send failed:', error);
-    return false;
   }
+
+  return { success: false, error: 'Max retries exceeded' };
 }
 
 /**
- * Notify all admin Telegram chats
+ * Notify all admin Telegram chats with error tracking
  */
-export async function notifyTelegramAdmins(message: string): Promise<void> {
+export async function notifyTelegramAdmins(message: string): Promise<{
+  sent: number;
+  failed: number;
+  errors: Array<{ chatId: string; error: string }>;
+}> {
   if (TELEGRAM_ADMIN_CHAT_IDS.length === 0) {
     console.warn('⚠️ No Telegram admin chat IDs configured');
-    return;
+    return { sent: 0, failed: 0, errors: [] };
   }
 
   const results = await Promise.allSettled(
-    TELEGRAM_ADMIN_CHAT_IDS.map(chatId => sendTelegramMessage(chatId.trim(), message))
+    TELEGRAM_ADMIN_CHAT_IDS.map(async chatId => {
+      const trimmedId = chatId.trim();
+      const result = await sendTelegramMessage(trimmedId, message);
+      return { chatId: trimmedId, ...result };
+    })
   );
 
-  const successful = results.filter(r => r.status === 'fulfilled' && r.value).length;
-  console.log(`📱 Telegram notifications sent: ${successful}/${TELEGRAM_ADMIN_CHAT_IDS.length}`);
+  const errors: Array<{ chatId: string; error: string }> = [];
+  let sent = 0;
+  let failed = 0;
+
+  results.forEach(r => {
+    if (r.status === 'fulfilled') {
+      if (r.value.success) {
+        sent++;
+      } else {
+        failed++;
+        errors.push({ chatId: r.value.chatId, error: r.value.error || 'Unknown error' });
+      }
+    } else {
+      failed++;
+      errors.push({ chatId: 'unknown', error: r.reason?.message || 'Promise rejected' });
+    }
+  });
+
+  console.log(`📱 Telegram notifications: ${sent} sent, ${failed} failed of ${TELEGRAM_ADMIN_CHAT_IDS.length}`);
+
+  if (errors.length > 0) {
+    console.warn('⚠️ Telegram errors:', errors);
+  }
+
+  return { sent, failed, errors };
 }
 
 /**
@@ -1134,6 +1209,218 @@ export async function getDeferredNotifications(userId: string): Promise<any[]> {
   return [];
 }
 
+// ==========================================
+// Gamification & Milestone Notifications
+// ==========================================
+
+/**
+ * Notify user of milestone progress (badge, level, streak)
+ */
+export async function notifyMilestoneProgress(
+  userId: string,
+  milestone: {
+    type: 'badge' | 'level' | 'streak'
+    name: string
+    progress: number
+    current: number
+    target: number
+    icon?: string
+    reward?: { points: number }
+  }
+): Promise<void> {
+  // Broadcast via SSE
+  broadcastSSE('customer', 'milestone_progress', {
+    type: 'milestone_progress',
+    userId,
+    milestone,
+    timestamp: new Date().toISOString(),
+  }, userId);
+
+  // Store in-app notification for progress thresholds
+  if (milestone.progress >= 75) {
+    try {
+      const prisma = getPrismaClient();
+      await prisma.notification.create({
+        data: {
+          userId,
+          type: 'gamification',
+          title: `${milestone.icon || '🎯'} Almost there!`,
+          message: `You're ${milestone.progress}% to "${milestone.name}"`,
+          priority: milestone.progress >= 90 ? 'high' : 'normal',
+          actionUrl: '/account/profile',
+          metadata: { milestone } as any,
+        },
+      });
+    } catch (error) {
+      console.error('Error creating milestone notification:', error);
+    }
+  }
+}
+
+/**
+ * Notify user of completed milestone (badge earned, level up, streak milestone)
+ */
+export async function notifyMilestoneComplete(
+  userId: string,
+  userEmail: string,
+  milestone: {
+    type: 'badge' | 'level' | 'streak'
+    name: string
+    description: string
+    icon: string
+    reward: { points: number }
+    tier?: string
+  }
+): Promise<void> {
+  const typeEmoji = { badge: '🏆', level: '⭐', streak: '🔥' };
+  const emoji = typeEmoji[milestone.type] || '🎉';
+
+  // 1. SSE broadcast for instant celebration
+  broadcastSSE('customer', 'milestone_complete', {
+    type: 'milestone_complete',
+    userId,
+    milestone,
+    celebration: milestone.tier === 'platinum' ? 'confetti' : 'stars',
+    timestamp: new Date().toISOString(),
+  }, userId);
+
+  // 2. Store in-app notification
+  try {
+    const prisma = getPrismaClient();
+    await prisma.notification.create({
+      data: {
+        userId,
+        type: 'gamification',
+        title: `${emoji} ${milestone.name} Unlocked!`,
+        message: `${milestone.description} (+${milestone.reward.points} points)`,
+        priority: 'high',
+        actionUrl: '/account/profile',
+        metadata: { milestone } as any,
+      },
+    });
+  } catch (error) {
+    console.error('Error creating milestone complete notification:', error);
+  }
+
+  // 3. Email notification for major milestones
+  if (milestone.tier === 'gold' || milestone.tier === 'platinum') {
+    await sendMilestoneEmail(userEmail, milestone);
+  }
+}
+
+/**
+ * Send milestone achievement email
+ */
+async function sendMilestoneEmail(
+  email: string,
+  milestone: { name: string; description: string; icon: string; reward: { points: number }; tier?: string }
+): Promise<boolean> {
+  try {
+    const subject = `🎉 Achievement Unlocked: ${milestone.name}!`;
+
+    const tierColors: Record<string, string> = {
+      bronze: '#CD7F32',
+      silver: '#C0C0C0',
+      gold: '#FFD700',
+      platinum: '#E5E4E2',
+    };
+
+    const color = tierColors[milestone.tier || 'bronze'] || '#2563eb';
+
+    const content = `
+      <div style="text-align: center; margin-bottom: 30px;">
+        <div style="font-size: 64px; margin-bottom: 15px;">${milestone.icon}</div>
+        <h2 style="color: ${color}; margin: 0;">Achievement Unlocked!</h2>
+        <h3 style="color: #1f2937; margin: 10px 0;">${milestone.name}</h3>
+        <p style="color: #6b7280;">${milestone.description}</p>
+      </div>
+
+      <div style="background: linear-gradient(135deg, ${color}22 0%, ${color}11 100%); padding: 20px; border-radius: 12px; text-align: center; margin: 20px 0;">
+        <p style="margin: 0; color: #1f2937; font-size: 14px;">You earned</p>
+        <p style="margin: 5px 0 0 0; font-size: 32px; font-weight: bold; color: ${color};">+${milestone.reward.points} points</p>
+      </div>
+
+      <p style="text-align: center; color: #6b7280;">Keep exploring to unlock more achievements!</p>
+
+      <div style="text-align: center; margin-top: 30px;">
+        <a href="${process.env.NEXT_PUBLIC_APP_URL || 'https://fly2any.com'}/account/profile"
+           style="display: inline-block; background: ${color}; color: ${milestone.tier === 'silver' ? '#333' : 'white'}; padding: 14px 32px; text-decoration: none; border-radius: 8px; font-weight: bold;">
+          View Your Achievements
+        </a>
+      </div>
+    `;
+
+    const html = getBaseEmailTemplate(subject, content, color);
+
+    const result = await mailgunClient.send({
+      to: email,
+      subject,
+      html,
+      text: `Achievement Unlocked: ${milestone.name}\n\n${milestone.description}\n\nYou earned +${milestone.reward.points} points!`,
+      tags: ['gamification', 'milestone'],
+    });
+
+    return result.success;
+  } catch (error) {
+    console.error('Error sending milestone email:', error);
+    return false;
+  }
+}
+
+/**
+ * Notify user of points earned
+ */
+export async function notifyPointsEarned(
+  userId: string,
+  points: number,
+  reason: string,
+  newTotal: number
+): Promise<void> {
+  broadcastSSE('customer', 'points_earned', {
+    type: 'points_earned',
+    userId,
+    points,
+    reason,
+    newTotal,
+    timestamp: new Date().toISOString(),
+  }, userId);
+}
+
+/**
+ * Notify leaderboard rank change
+ */
+export async function notifyLeaderboardChange(
+  userId: string,
+  oldRank: number,
+  newRank: number
+): Promise<void> {
+  if (newRank < oldRank) {
+    broadcastSSE('customer', 'rank_up', {
+      type: 'rank_up',
+      userId,
+      oldRank,
+      newRank,
+      timestamp: new Date().toISOString(),
+    }, userId);
+
+    try {
+      const prisma = getPrismaClient();
+      await prisma.notification.create({
+        data: {
+          userId,
+          type: 'gamification',
+          title: '📈 Rank Up!',
+          message: `You moved from #${oldRank} to #${newRank} on the leaderboard!`,
+          priority: newRank <= 10 ? 'high' : 'normal',
+          actionUrl: '/account/leaderboard',
+        },
+      });
+    } catch (error) {
+      console.error('Error creating leaderboard notification:', error);
+    }
+  }
+}
+
 export const notificationService = {
   // Email notifications
   sendOrderCreatedEmail,
@@ -1156,4 +1443,9 @@ export const notificationService = {
   shouldSendNotification,
   checkQuietHours,
   getDeferredNotifications,
+  // Gamification notifications
+  notifyMilestoneProgress,
+  notifyMilestoneComplete,
+  notifyPointsEarned,
+  notifyLeaderboardChange,
 };

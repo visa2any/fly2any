@@ -36,13 +36,21 @@ export function FlightCardResponsive(props: EnhancedFlightCardProps) {
 
   // Prevent hydration mismatch - always render desktop version on server
   if (!isMounted) {
-    return <FlightCardEnhanced {...props} />;
+    return (
+      <div data-testid="flight-card">
+        <FlightCardEnhanced {...props} />
+      </div>
+    );
   }
 
   // Client-side: render based on screen width
-  return isMobile ? (
-    <FlightCardMobile {...props} />
-  ) : (
-    <FlightCardEnhanced {...props} />
+  return (
+    <div data-testid="flight-card">
+      {isMobile ? (
+        <FlightCardMobile {...props} />
+      ) : (
+        <FlightCardEnhanced {...props} />
+      )}
+    </div>
   );
 }

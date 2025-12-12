@@ -1275,6 +1275,7 @@ export default function EnhancedSearchBar({
               onChange={handleOriginChange}
               maxDisplay={1}
               lang={lang}
+              testId="origin-input"
             />
             {errors.origin && (
               <p className="mt-1 text-xs text-red-600" role="alert">
@@ -1326,6 +1327,7 @@ export default function EnhancedSearchBar({
               onChange={handleDestinationChange}
               maxDisplay={1}
               lang={lang}
+              testId="destination-input"
             />
             {errors.destination && (
               <p className="mt-1 text-xs text-red-600" role="alert">
@@ -3170,6 +3172,7 @@ export default function EnhancedSearchBar({
                 onChange={handleOriginChange}
                 maxDisplay={2}
                 lang={lang}
+                testId="origin-input"
               />
               <MultiAirportSelector
                 placeholder="Select airports"
@@ -3177,6 +3180,7 @@ export default function EnhancedSearchBar({
                 onChange={handleDestinationChange}
                 maxDisplay={2}
                 lang={lang}
+                testId="destination-input"
               />
             </div>
           </div>

@@ -22,6 +22,9 @@ import {
   Menu,
   X,
   Award,
+  Trophy,
+  UserCircle,
+  Map,
 } from 'lucide-react';
 
 interface NavItem {
@@ -122,6 +125,12 @@ export function AccountSidebar({ unreadNotifications = 0, activeAlerts = 0 }: Ac
       isNew: true,
     },
     {
+      href: '/account/trips',
+      label: 'Trip Boards',
+      icon: <Map className="w-5 h-5" />,
+      isNew: true,
+    },
+    {
       href: '/account/referrals',
       label: 'Refer & Earn',
       icon: <Gift className="w-5 h-5" />,
@@ -134,13 +143,24 @@ export function AccountSidebar({ unreadNotifications = 0, activeAlerts = 0 }: Ac
       isNew: true,
     },
     {
+      href: '/account/leaderboard',
+      label: 'Leaderboard',
+      icon: <Trophy className="w-5 h-5" />,
+      isNew: true,
+    },
+    {
+      href: '/account/profile',
+      label: 'My Profile',
+      icon: <UserCircle className="w-5 h-5" />,
+    },
+    {
       href: '/account/preferences',
       label: 'Preferences',
       icon: <Settings className="w-5 h-5" />,
     },
     {
-      href: '/account/profile',
-      label: 'Security & Profile',
+      href: '/account/security',
+      label: 'Security',
       icon: <Shield className="w-5 h-5" />,
     },
   ];

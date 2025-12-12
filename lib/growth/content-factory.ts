@@ -251,7 +251,7 @@ export function getTodayContentPlan(): {
   scheduledTime: string;
 }[] {
   const today = new Date();
-  const dayName = today.toLocaleDateString('en-US', { weekday: 'lowercase' });
+  const dayName = today.toLocaleDateString('en-US', { weekday: 'long' }).toLowerCase();
 
   const dailyContent = CONTENT_SCHEDULE.daily.map(item => ({
     ...item,

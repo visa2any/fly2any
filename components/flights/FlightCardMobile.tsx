@@ -543,7 +543,7 @@ export function FlightCardMobile(props: EnhancedFlightCardProps) {
         <div className="flex items-center justify-between px-3 py-1.5 bg-gray-50 border-t border-gray-100">
           {/* Price with traveler icons */}
           <div className="flex flex-col">
-            <span className="text-2xl font-bold text-primary-600 leading-tight">
+            <span className="text-2xl font-bold text-primary-600 leading-tight" data-testid="flight-price">
               {formatPrice()}
             </span>
             <div className="flex items-center flex-wrap gap-x-1 gap-y-0.5 text-[9px] text-neutral-600">

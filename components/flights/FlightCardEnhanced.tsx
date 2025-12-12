@@ -1438,7 +1438,7 @@ export function FlightCardEnhanced({
         <div className="flex items-center gap-2 flex-1 min-w-0">
           <div className="flex flex-col">
             <div className="flex items-baseline gap-1">
-              <span className="font-bold text-gray-900" style={{ fontSize: typography.card.price.size, lineHeight: '1' }}>
+              <span className="font-bold text-gray-900" data-testid="flight-price" style={{ fontSize: typography.card.price.size, lineHeight: '1' }}>
                 {price.currency} {Math.round(totalPrice).toLocaleString()}
               </span>
             </div>

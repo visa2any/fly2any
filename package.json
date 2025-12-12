@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
-    "build": "next build",
+    "build": "cross-env NODE_OPTIONS=--max-old-space-size=8192 next build",
     "start": "next start",
     "lint": "next lint",
     "postinstall": "prisma generate",
@@ -78,6 +78,7 @@
     "dotenv": "^17.2.3",
     "focus-trap-react": "^11.0.4",
     "framer-motion": "^12.23.24",
+    "groq-sdk": "^0.37.0",
     "html2canvas": "^1.4.1",
     "leaflet": "^1.9.4",
     "lucide-react": "^0.544.0",

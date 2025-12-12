@@ -406,68 +406,66 @@ Manage your alerts: ${process.env.NEXT_PUBLIC_APP_URL || 'https://fly2any.com'}/
 }
 
 /**
- * Send price alert email using configured provider
+ * Send price alert email using Mailgun (unified provider)
  */
 export async function sendPriceAlertEmail(params: PriceAlertEmailParams): Promise<void> {
   const html = generateEmailHTML(params);
   const text = generateEmailText(params);
 
-  // Try Resend first (recommended for Next.js/Vercel)
-  if (process.env.RESEND_API_KEY) {
-    try {
-      const { Resend } = await import('resend');
-      const resend = new Resend(process.env.RESEND_API_KEY);
+  // Use Mailgun (unified email provider for Fly2Any)
+  const MAILGUN_API_KEY = process.env.MAILGUN_API_KEY;
+  const MAILGUN_DOMAIN = process.env.MAILGUN_DOMAIN || 'mail.fly2any.com';
+  const FROM_EMAIL = process.env.EMAIL_FROM || 'Fly2Any <noreply@mail.fly2any.com>';
 
-      await resend.emails.send({
-        from: process.env.EMAIL_FROM || 'Fly2Any <alerts@fly2any.com>',
-        to: params.to,
-        subject: `🎯 Price Alert: ${params.alert.origin} → ${params.alert.destination} is now ${params.alert.currency}${params.alert.currentPrice}!`,
-        html,
-        text,
-      });
+  if (!MAILGUN_API_KEY) {
+    console.warn('⚠️ MAILGUN_API_KEY not configured. Email not sent.');
 
-      console.log(`✅ Price alert email sent via Resend to ${params.to}`);
-      return;
-    } catch (error) {
-      console.error('Resend email failed:', error);
-      throw error;
+    // In development, log email content for testing
+    if (process.env.NODE_ENV === 'development') {
+      console.log('\n📧 EMAIL PREVIEW (Dev Mode):');
+      console.log('To:', params.to);
+      console.log('Subject:', `Price Alert: ${params.alert.origin} → ${params.alert.destination}`);
+      console.log('\nPlain Text:');
+      console.log(text);
+      console.log('\n');
     }
+    return;
   }
 
-  // Fallback to SendGrid (requires @sendgrid/mail package)
-  // Disabled to avoid build errors - install package if needed
-  // if (process.env.SENDGRID_API_KEY) {
-  //   try {
-  //     const sgMail = await import('@sendgrid/mail');
-  //     sgMail.default.setApiKey(process.env.SENDGRID_API_KEY);
-  //
-  //     await sgMail.default.send({
-  //       to: params.to,
-  //       from: process.env.EMAIL_FROM || 'alerts@fly2any.com',
-  //       subject: `🎯 Price Alert: ${params.alert.origin} → ${params.alert.destination} is now ${params.alert.currency}${params.alert.currentPrice}!`,
-  //       html,
-  //       text,
-  //     });
-  //
-  //     console.log(`✅ Price alert email sent via SendGrid to ${params.to}`);
-  //     return;
-  //   } catch (error) {
-  //     console.error('SendGrid email failed:', error);
-  //     throw error;
-  //   }
-  // }
+  try {
+    const formData = new URLSearchParams();
+    formData.append('from', FROM_EMAIL);
+    formData.append('to', params.to);
+    formData.append('subject', `🎯 Price Alert: ${params.alert.origin} → ${params.alert.destination} is now ${params.alert.currency}${params.alert.currentPrice}!`);
+    formData.append('html', html);
+    formData.append('text', text);
+    formData.append('h:Reply-To', 'support@fly2any.com');
+    formData.append('o:tag', 'price-alert');
+    formData.append('o:tracking', 'yes');
+    formData.append('o:tracking-clicks', 'yes');
+    formData.append('o:tracking-opens', 'yes');
 
-  // No email provider configured
-  console.warn('⚠️ No email provider configured. Email not sent.');
-  console.log('Configure RESEND_API_KEY or SENDGRID_API_KEY in environment variables.');
+    const response = await fetch(
+      `https://api.mailgun.net/v3/${MAILGUN_DOMAIN}/messages`,
+      {
+        method: 'POST',
+        headers: {
+          'Authorization': `Basic ${Buffer.from(`api:${MAILGUN_API_KEY}`).toString('base64')}`,
+          'Content-Type': 'application/x-www-form-urlencoded',
+        },
+        body: formData.toString(),
+      }
+    );
 
-  // In development, log email content
-  if (process.env.NODE_ENV === 'development') {
-    console.log('\n📧 EMAIL PREVIEW:');
-    console.log('To:', params.to);
-    console.log('Subject:', `Price Alert: ${params.alert.origin} → ${params.alert.destination}`);
-    console.log('\nPlain Text:');
-    console.log(text);
-    console.log('\n');
+    if (!response.ok) {
+      const errorText = await response.text();
+      throw new Error(`Mailgun API error: ${response.status} - ${errorText}`);
+    }
+
+    const result = await response.json();
+    console.log(`✅ Price alert email sent via Mailgun to ${params.to}:`, result.id);
+  } catch (error) {
+    console.error('❌ Mailgun price alert email failed:', error);
+    throw error;
   }
 }

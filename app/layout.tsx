@@ -31,7 +31,7 @@ const inter = Inter({
 
 export const metadata: Metadata = {
   title: "Fly2Any - Find Cheap Flights & Best Travel Deals 2025",
-  description: "Search & compare flights from 500+ airlines with AI-powered search. Find the best prices on flights, hotels, and vacation packages. Track price alerts, compare routes, and book with confidence. Expert travel platform based in USA.",
+  description: "Compare flights from 500+ airlines with AI-powered search. Find cheap flights, track price alerts, and book with confidence at Fly2Any.",
   keywords: "cheap flights, flight deals, airline tickets, travel booking, flight search, airfare, best flight prices, compare flights, flight comparison, travel deals, vacation packages, international flights, domestic flights",
   openGraph: {
     title: "Fly2Any - Smart Flight Search & Booking with AI",
