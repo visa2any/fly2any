@@ -15,9 +15,12 @@ import {
   Heart,
   Star,
   Gift,
+  LogOut,
+  User,
 } from 'lucide-react';
 import Link from 'next/link';
 import LoyaltyPointsWidget from '@/components/loyalty/LoyaltyPointsWidget';
+import { SignOutButton } from '@/components/account/SignOutButton';
 
 // Force Node.js runtime (required for Prisma database access)
 export const runtime = 'nodejs';
@@ -376,8 +379,21 @@ export default async function AccountPage() {
         <h2 className="text-sm md:text-lg font-bold text-neutral-800 mb-3 md:mb-4 px-0.5">Quick Actions</h2>
         <div className="grid grid-cols-2 gap-2 md:gap-3">
           <Link
+            href="/account/profile"
+            className="flex items-center gap-2 md:gap-3 p-3 bg-neutral-50 rounded-xl hover:bg-blue-50 transition-all duration-150 ease-[cubic-bezier(0.2,0.8,0.2,1)] border border-neutral-200 hover:border-blue-300 active:scale-[0.98]"
+          >
+            <div className="p-2 md:p-2.5 bg-blue-50 rounded-lg">
+              <User className="w-4 h-4 md:w-5 md:h-5 text-blue-500" />
+            </div>
+            <div className="min-w-0">
+              <h3 className="font-semibold text-neutral-800 text-sm">Profile</h3>
+              <p className="text-[10px] md:text-xs text-neutral-500 truncate">Edit info</p>
+            </div>
+          </Link>
+
+          <Link
             href="/account/preferences"
-            className="flex items-center gap-2 md:gap-3 p-3 bg-neutral-50 rounded-xl hover:bg-primary-50 transition-all duration-150 border border-neutral-200 hover:border-primary-300 active:scale-[0.98]"
+            className="flex items-center gap-2 md:gap-3 p-3 bg-neutral-50 rounded-xl hover:bg-primary-50 transition-all duration-150 ease-[cubic-bezier(0.2,0.8,0.2,1)] border border-neutral-200 hover:border-primary-300 active:scale-[0.98]"
           >
             <div className="p-2 md:p-2.5 bg-primary-50 rounded-lg">
               <Settings className="w-4 h-4 md:w-5 md:h-5 text-primary-500" />
@@ -390,7 +406,7 @@ export default async function AccountPage() {
 
           <Link
             href="/"
-            className="flex items-center gap-2 md:gap-3 p-3 bg-neutral-50 rounded-xl hover:bg-green-50 transition-all duration-150 border border-neutral-200 hover:border-green-300 active:scale-[0.98]"
+            className="flex items-center gap-2 md:gap-3 p-3 bg-neutral-50 rounded-xl hover:bg-green-50 transition-all duration-150 ease-[cubic-bezier(0.2,0.8,0.2,1)] border border-neutral-200 hover:border-green-300 active:scale-[0.98]"
           >
             <div className="p-2 md:p-2.5 bg-green-50 rounded-lg">
               <Sparkles className="w-4 h-4 md:w-5 md:h-5 text-green-500" />
@@ -400,6 +416,9 @@ export default async function AccountPage() {
               <p className="text-[10px] md:text-xs text-neutral-500 truncate">Search trips</p>
             </div>
           </Link>
+
+          {/* Sign Out Button - Client Component */}
+          <SignOutButton />
         </div>
       </div>
     </div>
