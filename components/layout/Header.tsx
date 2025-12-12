@@ -592,18 +592,64 @@ export function Header({
           </nav>
 
           {/* Right Actions */}
-          <div className="flex items-center gap-1.5 sm:gap-2 xl:gap-3" suppressHydrationWarning>
-            {/* Notification Bell - Only for authenticated users, hidden on mobile */}
+          <div className="flex items-center gap-1 sm:gap-1.5 xl:gap-3" suppressHydrationWarning>
+
+            {/* ============ MOBILE ICONS - Level-6 Apple-Class ============ */}
+
+            {/* Mobile Notification Bell */}
+            {mounted && session?.user && (
+              <a
+                href="/account/notifications"
+                className="lg:hidden relative flex items-center justify-center w-9 h-9 rounded-xl bg-neutral-100/80 hover:bg-neutral-200/80 transition-all duration-150 ease-[cubic-bezier(0.2,0.8,0.2,1)] active:scale-95"
+                aria-label="Notifications"
+              >
+                <svg className="w-[18px] h-[18px] text-neutral-700" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M14.857 17.082a23.848 23.848 0 005.454-1.31A8.967 8.967 0 0118 9.75v-.7V9A6 6 0 006 9v.75a8.967 8.967 0 01-2.312 6.022c1.733.64 3.56 1.085 5.455 1.31m5.714 0a24.255 24.255 0 01-5.714 0m5.714 0a3 3 0 11-5.714 0" />
+                </svg>
+                {/* Notification dot */}
+                <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-primary-500 rounded-full ring-2 ring-white"></span>
+              </a>
+            )}
+
+            {/* Mobile Profile Icon */}
+            {mounted && session?.user && (
+              <a
+                href="/account"
+                className="lg:hidden flex items-center justify-center w-9 h-9 rounded-xl bg-neutral-100/80 hover:bg-neutral-200/80 transition-all duration-150 ease-[cubic-bezier(0.2,0.8,0.2,1)] active:scale-95"
+                aria-label="My Account"
+              >
+                <svg className="w-[18px] h-[18px] text-neutral-700" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z" />
+                </svg>
+              </a>
+            )}
+
+            {/* Mobile Sign In - Only when not authenticated */}
+            {mounted && !session?.user && (
+              <a
+                href="/login"
+                className="lg:hidden flex items-center justify-center w-9 h-9 rounded-xl bg-primary-50 hover:bg-primary-100 transition-all duration-150 ease-[cubic-bezier(0.2,0.8,0.2,1)] active:scale-95"
+                aria-label="Sign In"
+              >
+                <svg className="w-[18px] h-[18px] text-primary-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z" />
+                </svg>
+              </a>
+            )}
+
+            {/* ============ DESKTOP ICONS ============ */}
+
+            {/* Notification Bell - Desktop only */}
             {mounted && session?.user && (
               <NotificationBell
                 userId={session.user.id}
-                className="hidden md:block"
+                className="hidden lg:block"
               />
             )}
 
-            {/* User Menu - Only for authenticated users, hidden on mobile */}
+            {/* User Menu - Desktop only */}
             {mounted && session?.user && (
-              <div className="hidden md:block">
+              <div className="hidden lg:block">
                 <UserMenu
                   user={session.user}
                   translations={userMenuTranslations}
