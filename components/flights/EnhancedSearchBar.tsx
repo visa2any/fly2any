@@ -1100,7 +1100,7 @@ export default function EnhancedSearchBar({
   }, []);
 
   return (
-    <div className="bg-white shadow-md">
+    <div className="bg-white shadow-lg lg:shadow-xl border-b border-neutral-100">
       {/* Container with max-width matching results page (Priceline-style) */}
       <MaxWidthContainer
         className="px-0 lg:px-8"
@@ -1371,8 +1371,8 @@ export default function EnhancedSearchBar({
                 ref={departureDateRef}
                 type="button"
                 onClick={() => handleOpenDatePicker('departure')}
-                className={`w-full relative px-4 py-4 bg-white border rounded-lg hover:border-[#D63A35] transition-all cursor-pointer ${
-                  errors.departureDate ? 'border-red-500' : 'border-gray-300'
+                className={`w-full relative px-4 py-3.5 h-[52px] bg-white border rounded-xl hover:border-primary-400 transition-all duration-150 ease-[cubic-bezier(0.2,0.8,0.2,1)] cursor-pointer shadow-sm hover:shadow-md ${
+                  errors.departureDate ? 'border-red-500' : 'border-neutral-200'
                 }`}
               >
                 <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={20} />
@@ -1385,8 +1385,8 @@ export default function EnhancedSearchBar({
                 ref={departureDateRef}
                 type="button"
                 onClick={() => handleOpenDatePicker('departure')}
-                className={`w-full relative px-4 py-3 bg-white border rounded-lg hover:border-[#D63A35] transition-all cursor-pointer min-h-[56px] ${
-                  errors.departureDate ? 'border-red-500' : 'border-gray-300'
+                className={`w-full relative px-4 py-3.5 min-h-[52px] bg-white border rounded-xl hover:border-primary-400 transition-all duration-150 ease-[cubic-bezier(0.2,0.8,0.2,1)] cursor-pointer shadow-sm hover:shadow-md ${
+                  errors.departureDate ? 'border-red-500' : 'border-neutral-200'
                 }`}
               >
                 <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={20} />
@@ -1447,7 +1447,7 @@ export default function EnhancedSearchBar({
                   ref={returnDateRef}
                   type="button"
                   onClick={() => handleOpenDatePicker('return')}
-                  className="w-full relative px-4 py-4 bg-white border border-gray-300 rounded-lg hover:border-[#D63A35] transition-all cursor-pointer"
+                  className="w-full relative px-4 py-3.5 h-[52px] bg-white border border-neutral-200 rounded-xl hover:border-primary-400 transition-all duration-150 ease-[cubic-bezier(0.2,0.8,0.2,1)] cursor-pointer shadow-sm hover:shadow-md"
                 >
                   <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={20} />
                   <span className="block pl-8 text-sm font-medium text-gray-900">
@@ -1459,7 +1459,7 @@ export default function EnhancedSearchBar({
                   ref={returnDateRef}
                   type="button"
                   onClick={() => handleOpenDatePicker('return')}
-                  className="w-full relative px-4 py-3 bg-white border border-gray-300 rounded-lg hover:border-[#D63A35] transition-all cursor-pointer min-h-[56px]"
+                  className="w-full relative px-4 py-3.5 min-h-[52px] bg-white border border-neutral-200 rounded-xl hover:border-primary-400 transition-all duration-150 ease-[cubic-bezier(0.2,0.8,0.2,1)] cursor-pointer shadow-sm hover:shadow-md"
                 >
                   <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={20} />
                   <div className="pl-8 flex flex-wrap gap-1.5 items-center">
@@ -1479,9 +1479,9 @@ export default function EnhancedSearchBar({
                 </button>
               )
             ) : (
-              <div className="relative w-full px-4 py-4 bg-gray-50 border border-gray-200 rounded-lg cursor-not-allowed">
-                <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-300" size={20} />
-                <span className="block pl-8 text-sm text-gray-400 italic">
+              <div className="relative w-full px-4 py-3.5 h-[52px] bg-neutral-50 border border-neutral-200 rounded-xl cursor-not-allowed flex items-center">
+                <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 text-neutral-300" size={20} />
+                <span className="block pl-8 text-sm text-neutral-400 italic">
                   One-way trip
                 </span>
               </div>
@@ -1504,13 +1504,13 @@ export default function EnhancedSearchBar({
                 closeAllDropdowns();
                 setShowPassengerDropdown(!showPassengerDropdown);
               }}
-              className="w-full relative px-4 py-4 bg-white border border-gray-300 rounded-lg hover:border-[#D63A35] transition-all text-left"
+              className="w-full relative px-4 py-3.5 h-[52px] bg-white border border-neutral-200 rounded-xl hover:border-primary-400 transition-all duration-150 ease-[cubic-bezier(0.2,0.8,0.2,1)] text-left shadow-sm hover:shadow-md"
             >
-              <Users className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
-              <span className="block pl-7 text-sm font-medium text-gray-900 pr-7">
+              <Users className="absolute left-3 top-1/2 -translate-y-1/2 text-neutral-400" size={18} />
+              <span className="block pl-7 text-sm font-medium text-neutral-800 pr-7">
                 {totalPassengers}, {t(cabinClass as any)}
               </span>
-              <ChevronDown className={`absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 transition-transform duration-200 ${showPassengerDropdown ? 'rotate-180' : ''}`} size={16} />
+              <ChevronDown className={`absolute right-3 top-1/2 -translate-y-1/2 text-neutral-400 transition-transform duration-200 ${showPassengerDropdown ? 'rotate-180' : ''}`} size={16} />
             </button>
 
             {showPassengerDropdown && (
