@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import { useSession } from 'next-auth/react';
 import { ChevronDown, ChevronUp, Star, Clock, Users, Plane, Wifi, Coffee, Zap, Heart, Share2, Info, Check, X, Shield, AlertTriangle, Award, Sparkles, Image as ImageIcon, Bell, Loader2 } from 'lucide-react';
@@ -693,11 +693,11 @@ export function FlightCardEnhanced({
     }
   };
 
-  // Handle favorite click - Authentication required
-  const handleFavoriteClick = async () => {
+  // Handle favorite click - Authentication required (memoized for INP optimization)
+  const handleFavoriteClick = useCallback(async () => {
     // Check if user is authenticated
     if (sessionStatus === 'unauthenticated' || !session) {
-      // Redirect to sign-in with callback
+      // Use startTransition for non-blocking navigation
       router.push(`/auth/signin?callbackUrl=${encodeURIComponent(window.location.href)}`);
       return;
     }
@@ -760,22 +760,22 @@ export function FlightCardEnhanced({
     } finally {
       setIsFavoriteLoading(false);
     }
-  };
+  }, [sessionStatus, session, isFavoriteLoading, isFavorited, id, itineraries, price, validatingAirlineCodes, router]);
 
-  // Handle share click - Authentication required
-  const handleShareClick = () => {
+  // Handle share click - Authentication required (memoized for INP optimization)
+  const handleShareClick = useCallback(() => {
     // Check if user is authenticated
     if (sessionStatus === 'unauthenticated' || !session) {
-      // Redirect to sign-in with callback
       router.push(`/auth/signin?callbackUrl=${encodeURIComponent(window.location.href)}`);
       return;
     }
 
     // Show share modal
     setShowShareModal(true);
-  };
+  }, [sessionStatus, session, router]);
 
-  const handleSelectClick = () => {
+  // Handle select/book click (memoized for INP optimization)
+  const handleSelectClick = useCallback(() => {
     if (isNavigating) return;
 
     // Save flight data to sessionStorage for booking page
@@ -823,7 +823,7 @@ export function FlightCardEnhanced({
     if (onSelect) {
       onSelect(id);
     }
-  };
+  }, [isNavigating, id, type, source, instantTicketingRequired, nonHomogeneous, oneWay, lastTicketingDate, lastTicketingDateTime, itineraries, price, pricingOptions, numberOfBookableSeats, validatingAirlineCodes, travelerPricings, badges, score, mlScore, priceVsMarket, co2Emissions, averageCO2, viewingCount, bookingsToday, dealScore, dealScoreBreakdown, dealTier, dealLabel, router, onSelect]);
 
   // Use provided viewing count - NO fake data
   // If no real viewing count is available, don't show any
