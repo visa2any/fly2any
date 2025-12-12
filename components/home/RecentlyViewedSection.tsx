@@ -415,14 +415,14 @@ export function RecentlyViewedSection({ lang = 'en' }: RecentlyViewedSectionProp
 
   return (
     <section className="py-2 md:py-4 animate-fadeIn" style={{ maxWidth: '1600px', margin: '0 auto', padding: '8px 4px' }}>
-      {/* Section Header - Mobile optimized, minimal padding */}
-      <div className="flex items-center justify-between mb-2 md:mb-4 px-1">
+      {/* Section Header - Mobile optimized, edge-to-edge text padding */}
+      <div className="flex items-center justify-between mb-2 md:mb-4 px-3 md:px-0">
         <div className="flex items-center gap-1.5 md:gap-2">
           <div className="p-1 md:p-1.5 bg-gradient-to-br from-info-50 to-primary-50 rounded-md">
             <Sparkles className="w-3.5 h-3.5 md:w-4 md:h-4 text-primary-600" />
           </div>
           <div>
-            <h2 className="text-base md:text-xl font-bold text-neutral-800 flex items-center gap-1.5 md:gap-2 leading-tight whitespace-nowrap">
+            <h2 className="text-xs md:text-xl font-bold text-neutral-800 flex items-center gap-1.5 md:gap-2 leading-tight whitespace-nowrap">
               {t.title}
               {recentlyViewed.length > maxItems && (
                 <span className="text-[9px] md:text-xs font-normal text-neutral-500 bg-neutral-100 px-1.5 md:px-2 py-0.5 rounded-full">
@@ -443,8 +443,8 @@ export function RecentlyViewedSection({ lang = 'en' }: RecentlyViewedSectionProp
         </button>
       </div>
 
-      {/* Responsive Grid Layout - Edge-to-edge, minimal gap on mobile */}
-      <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-1.5 md:gap-3 px-1">
+      {/* Responsive Grid Layout - Edge-to-edge, no gap on mobile */}
+      <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-0.5 md:gap-3 px-0">
         {filteredItems.map((item, index) => {
           const hasPriceDrop = isPriceDrop(item);
           const priceDropPercent = getPriceDropPercentage(item);

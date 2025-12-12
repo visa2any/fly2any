@@ -34,7 +34,7 @@ const trustItems: TrustItem[] = [
   },
   {
     icon: Gift,
-    text: 'Free Cancellation',
+    text: 'Free Cancel 24h',
     color: 'text-secondary-600'
   },
 ];

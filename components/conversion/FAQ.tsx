@@ -100,62 +100,35 @@ export function FAQ({ title, subtitle, categories, language = 'en' }: Props) {
   }, [categories, searchQuery]);
 
   return (
-    <section className="py-12 bg-gradient-to-br from-gray-50 via-blue-50/20 to-gray-50">
-      <div className="mx-auto px-4 sm:px-6 lg:px-8" style={{ maxWidth: '1600px' }}>
-        {/* Section Header */}
-        <div className="text-center mb-8">
-          <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-3">
-            {title}
-          </h2>
-          <p className="text-lg text-gray-600 mb-6">{subtitle}</p>
+    <section className="py-4 md:py-8 bg-gradient-to-br from-neutral-50 via-primary-50/10 to-neutral-50">
+      <div className="mx-auto px-0 md:px-6" style={{ maxWidth: '1600px' }}>
+        {/* Section Header - Level-6: Same row, no break, edge-to-edge */}
+        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-2 mb-4 md:mb-6 px-3 md:px-0">
+          <div className="flex items-center gap-2 min-w-0">
+            <h2 className="text-sm md:text-2xl font-bold text-neutral-800 whitespace-nowrap">
+              {title}
+            </h2>
+            <span className="hidden md:inline text-neutral-400">•</span>
+            <p className="text-xs md:text-sm text-neutral-500 whitespace-nowrap truncate">{subtitle}</p>
+          </div>
 
-          {/* Search Bar */}
-          <div className="max-w-2xl mx-auto mb-6">
+          {/* Search Bar - Compact */}
+          <div className="w-full md:w-auto md:min-w-[300px]">
             <div className="relative">
-              <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-neutral-400" />
               <input
                 type="text"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 placeholder={t.searchPlaceholder}
-                className="w-full pl-12 pr-4 py-3 border-2 border-gray-200 rounded-xl focus:border-primary-500 focus:ring-2 focus:ring-primary-500/20 transition-colors text-sm"
+                className="w-full pl-9 pr-3 py-2 border border-neutral-200 rounded-lg focus:border-primary-500 focus:ring-1 focus:ring-primary-500/20 transition-all text-xs bg-white/80"
               />
             </div>
           </div>
-
-          {/* Popular Questions Quick Links */}
-          {!searchQuery && popularQuestions.length > 0 && (
-            <div className="flex flex-wrap items-center justify-center gap-2 text-sm">
-              <span className="text-gray-500 font-medium">{t.popular}:</span>
-              {popularQuestions.map((question, idx) => {
-                const category = categories[idx];
-                if (!category) return null;
-
-                return (
-                  <button
-                    key={idx}
-                    onClick={() => {
-                      // Ensure category is open
-                      setOpenCategories(prev =>
-                        prev.includes(category.id) ? prev : [...prev, category.id]
-                      );
-                      // Small delay to ensure category opens before question
-                      setTimeout(() => {
-                        setOpenQuestion(`${category.id}-0`);
-                      }, 50);
-                    }}
-                    className="text-primary-600 hover:text-primary-700 hover:underline transition-colors"
-                  >
-                    {question.length > 40 ? question.substring(0, 40) + '...' : question}
-                  </button>
-                );
-              })}
-            </div>
-          )}
         </div>
 
-        {/* FAQ Categories Grid */}
-        <div className="grid md:grid-cols-2 gap-4 mb-8">
+        {/* FAQ Categories Grid - Edge-to-edge on mobile */}
+        <div className="grid md:grid-cols-2 gap-0.5 md:gap-4 mb-4 md:mb-8">
           {filteredCategories.map((category) => {
             const Icon = category.icon;
             const isOpen = openCategories.includes(category.id);
@@ -163,36 +136,36 @@ export function FAQ({ title, subtitle, categories, language = 'en' }: Props) {
             return (
               <div
                 key={category.id}
-                className="bg-white rounded-xl border-2 border-gray-200 overflow-hidden transition-all duration-300 hover:border-primary-300 hover:shadow-md"
+                className="bg-white md:rounded-xl border-y md:border-2 border-neutral-200 overflow-hidden transition-all duration-200 ease-[cubic-bezier(0.2,0.8,0.2,1)] hover:border-primary-300 md:hover:shadow-lg"
               >
-                {/* Category Header */}
+                {/* Category Header - Level-6 Compact */}
                 <button
                   onClick={() => toggleCategory(category.id)}
-                  className="w-full px-5 py-4 flex items-center justify-between hover:bg-gray-50 transition-colors"
+                  className="w-full px-4 py-3 flex items-center justify-between hover:bg-neutral-50 transition-colors active:scale-[0.99]"
                 >
-                  <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-lg bg-primary-100 flex items-center justify-center flex-shrink-0">
-                      <Icon className="w-5 h-5 text-primary-600" />
+                  <div className="flex items-center gap-2">
+                    <div className="w-8 h-8 rounded-lg bg-primary-50 flex items-center justify-center flex-shrink-0">
+                      <Icon className="w-4 h-4 text-primary-500" />
                     </div>
                     <div className="text-left">
-                      <h3 className="font-bold text-gray-900 text-base">
+                      <h3 className="font-semibold text-neutral-800 text-sm">
                         {category.title}
                       </h3>
-                      <p className="text-xs text-gray-500">
+                      <p className="text-[10px] text-neutral-500">
                         {category.items.length} {language === 'en' ? 'questions' : language === 'pt' ? 'perguntas' : 'preguntas'}
                       </p>
                     </div>
                   </div>
                   <ChevronDown
-                    className={`w-5 h-5 text-gray-400 transition-transform duration-300 flex-shrink-0 ${
+                    className={`w-4 h-4 text-neutral-400 transition-transform duration-200 flex-shrink-0 ${
                       isOpen ? 'rotate-180' : ''
                     }`}
                   />
                 </button>
 
-                {/* Questions List */}
+                {/* Questions List - Compact */}
                 {isOpen && (
-                  <div className="px-5 pt-4 pb-4 space-y-2 animate-slideDown">
+                  <div className="px-4 pt-2 pb-3 space-y-1 animate-slideDown bg-neutral-50/50">
                     {category.items.map((item, itemIdx) => {
                       const questionId = `${category.id}-${itemIdx}`;
                       const isQuestionOpen = openQuestion === questionId;

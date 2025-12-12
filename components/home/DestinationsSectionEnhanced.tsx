@@ -473,9 +473,9 @@ export function DestinationsSectionEnhanced({ lang = 'en' }: DestinationsSection
   return (
     <section className="py-4 md:py-6" style={{ maxWidth: '1600px', margin: '0 auto' }}>
       {/* Section Header - Compact, allows line break */}
-      <div className="flex items-center justify-between mb-3 md:mb-4 gap-2 px-4 md:px-0">
+      <div className="flex items-center justify-between mb-3 md:mb-4 gap-2 px-3 md:px-0">
         <div className="flex items-center gap-2 md:gap-3 min-w-0">
-          <h2 className="text-lg md:text-[26px] font-semibold text-neutral-800 tracking-[0.01em] leading-tight">{t.title}</h2>
+          <h2 className="text-sm md:text-[26px] font-semibold text-neutral-800 tracking-[0.01em] whitespace-nowrap">{t.title}</h2>
           {/* Cache Indicator */}
           {fromCache && cacheAgeFormatted && (
             <CacheIndicator
@@ -556,10 +556,10 @@ export function DestinationsSectionEnhanced({ lang = 'en' }: DestinationsSection
         </div>
       )}
 
-      {/* Destinations Grid - Edge-to-edge, compact spacing */}
+      {/* Destinations Grid - Edge-to-edge, no gap on mobile */}
       {!loading && !error && destinations.length > 0 && (
         <>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4 mb-3 md:mb-4 px-4 md:px-0">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-1 md:gap-4 mb-3 md:mb-4 px-0">
             {destinations.map((destination) => (
               <DestinationCard
                 key={destination.id}

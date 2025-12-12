@@ -199,9 +199,9 @@ export function FlashDealsSectionEnhanced({ lang = 'en' }: FlashDealsSectionEnha
   return (
     <section className="py-4 md:py-6" style={{ maxWidth: '1600px', margin: '0 auto' }}>
       {/* Section Header - Compact, allows line break */}
-      <div className="flex items-center justify-between mb-3 md:mb-4 px-4 md:px-0">
+      <div className="flex items-center justify-between mb-3 md:mb-4 px-3 md:px-0">
         <div className="flex items-center gap-2 md:gap-3 min-w-0">
-          <h2 className="text-lg md:text-[26px] font-semibold text-neutral-800 tracking-[0.01em] leading-tight">{t.title}</h2>
+          <h2 className="text-sm md:text-[26px] font-semibold text-neutral-800 tracking-[0.01em] whitespace-nowrap">{t.title}</h2>
           {/* Cache Indicator */}
           {fromCache && cacheAgeFormatted && (
             <CacheIndicator
@@ -256,9 +256,9 @@ export function FlashDealsSectionEnhanced({ lang = 'en' }: FlashDealsSectionEnha
             {t.scrollHint}
           </div>
 
-          {/* Cards - Edge-to-edge on mobile */}
+          {/* Cards - Edge-to-edge on mobile, no gap */}
           <div className="overflow-x-auto pb-3 md:pb-4 scrollbar-hide">
-            <div className="flex gap-3 md:gap-6 min-w-max px-4 md:px-0">
+            <div className="flex gap-2 md:gap-6 min-w-max px-0">
               {deals.map((deal) => {
                 // Get city names and airline data
                 const fromCity = getAirportCity(deal.from);
