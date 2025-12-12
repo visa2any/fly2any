@@ -235,7 +235,7 @@ Outline:
   return {
     title: titleMatch?.[1]?.trim() || topic,
     outline: outlineMatch?.[1]?.split('\n').filter(Boolean) || [],
-    keywords: keywordsMatch?.[1]?.split(',').map(k => k.trim()) || [topic],
+    keywords: keywordsMatch?.[1]?.split(',').map((k: string) => k.trim()) || [topic],
   };
 }
 

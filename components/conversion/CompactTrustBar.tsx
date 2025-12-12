@@ -15,11 +15,12 @@ interface CompactTrustBarProps {
   className?: string;
 }
 
+// Level-6: Official Fly2Any colors
 const trustItems: TrustItem[] = [
   {
     icon: Shield,
     text: 'Best Price Guarantee',
-    color: 'text-green-600'
+    color: 'text-success-600'
   },
   {
     icon: Headphones,
@@ -29,12 +30,12 @@ const trustItems: TrustItem[] = [
   {
     icon: Lock,
     text: 'Secure Booking',
-    color: 'text-purple-600'
+    color: 'text-info-600'
   },
   {
     icon: Gift,
     text: 'Free Cancellation',
-    color: 'text-orange-600'
+    color: 'text-secondary-600'
   },
 ];
 
@@ -46,21 +47,22 @@ export function CompactTrustBar({
     <div
       className={cn(
         'left-0 right-0 bg-white/98 backdrop-blur-xl',
-        'border-b border-gray-200',
-        // Only sticky on desktop, not on mobile
+        'border-b border-neutral-200/80',
+        // Only sticky on desktop
         sticky && 'md:sticky md:top-20',
         className
       )}
       style={{
         zIndex: zIndex.TRUST_BAR,
-        boxShadow: '0 2px 8px rgba(0, 0, 0, 0.06)',
-        backdropFilter: 'blur(12px) saturate(180%)', // Firefox, Safari, modern browsers
-        WebkitBackdropFilter: 'blur(12px) saturate(180%)', // Older WebKit
+        // Level-6 multi-layer shadow
+        boxShadow: '0 1px 2px rgba(0,0,0,0.04), 0 2px 4px rgba(0,0,0,0.03)',
+        backdropFilter: 'blur(12px) saturate(180%)',
+        WebkitBackdropFilter: 'blur(12px) saturate(180%)',
       }}
     >
-      {/* Single-line container with horizontal scroll - GUARANTEED no wrapping */}
+      {/* Level-6: 44px minimum height, 8pt grid spacing */}
       <div
-        className="flex items-center justify-center gap-2 sm:gap-3 md:gap-5 h-8 sm:h-9 md:h-11 px-2 sm:px-2.5 md:px-4 overflow-x-auto scrollbar-hide"
+        className="flex items-center justify-center gap-4 md:gap-6 min-h-[44px] px-4 md:px-6 overflow-x-auto scrollbar-hide"
         style={{
           WebkitOverflowScrolling: 'touch',
           scrollbarWidth: 'none',
@@ -73,13 +75,14 @@ export function CompactTrustBar({
           return (
             <div
               key={idx}
-              className="flex items-center gap-0.5 sm:gap-1 text-gray-700 flex-shrink-0"
+              className="flex items-center gap-1.5 md:gap-2 text-neutral-700 flex-shrink-0"
             >
               <Icon
-                className={cn('w-3 h-3 sm:w-3.5 sm:h-3.5 md:w-4 md:h-4', item.color)}
-                strokeWidth={2.5}
+                className={cn('w-4 h-4 md:w-[18px] md:h-[18px]', item.color)}
+                strokeWidth={2.25}
               />
-              <span className="text-[9px] sm:text-[10px] md:text-xs font-semibold whitespace-nowrap leading-none tracking-tight">
+              {/* Level-6: 12px caption, positive tracking */}
+              <span className="text-[11px] md:text-xs font-semibold whitespace-nowrap leading-none tracking-[0.005em]">
                 {item.text}
               </span>
             </div>

@@ -35,31 +35,49 @@ const config: Config = {
         'maximum': '9999',
       },
       colors: {
-        // Fly2Any Brand Red (#EF4136 base - softened for UI)
+        // ============================================
+        // OFFICIAL FLY2ANY BRAND COLORS (Level-6 Standard)
+        // ============================================
+
+        // Fly2Any Brand Red (#E74035 - Official Primary)
         primary: {
-          50: '#FEF2F2',
-          100: '#FDE8E7',
-          200: '#FACCCA',
-          300: '#F5A5A2',
-          400: '#EF6B65',
-          500: '#EF4136', // Brand Primary Red
-          600: '#DC3A30', // Hover
-          700: '#C4332A', // Pressed
-          800: '#9C2921',
-          900: '#74201A',
+          50: '#FEF2F1',
+          100: '#FDE6E4',
+          200: '#FACCC8',
+          300: '#F5A09A',
+          400: '#EF6B63',
+          500: '#E74035', // ⭐ OFFICIAL Brand Primary Red
+          600: '#D43B31', // Hover state
+          700: '#BF332A', // Pressed state
+          800: '#992821',
+          900: '#731E19',
         },
-        // Fly2Any Brand Yellow (#F9C900 base - softened for UI)
+        // Fly2Any Brand Yellow (#F7C928 - Official Accent)
         secondary: {
           50: '#FFFBEB',
           100: '#FEF5C7',
-          200: '#FEEC8A',
-          300: '#FDE047',
-          400: '#FBD62D',
-          500: '#F9C900', // Brand Accent Yellow
-          600: '#E0B500', // Hover
-          700: '#C9A200', // Pressed
-          800: '#A38500',
-          900: '#7D6600',
+          200: '#FEEB8A',
+          300: '#FDDE47',
+          400: '#FBD52D',
+          500: '#F7C928', // ⭐ OFFICIAL Brand Accent Yellow
+          600: '#DEB423', // Hover state
+          700: '#C6A01F', // Pressed state
+          800: '#9F801A',
+          900: '#786014',
+        },
+        // Layer System (Light Mode - Apple Standard)
+        layer: {
+          0: '#FAFAFA', // Base background
+          1: '#F2F2F2', // Cards
+          2: '#E6E6E6', // Elevated surfaces
+          3: '#DCDCDC', // Modal/Sheet
+        },
+        // Dark Mode Layers
+        'layer-dark': {
+          0: '#0E0E0E',
+          1: '#1A1A1A',
+          2: '#222222',
+          3: '#2B2B2B',
         },
         // Anti-Fatigue Neutral Palette
         neutral: {
@@ -128,13 +146,44 @@ const config: Config = {
         display: ['"Poppins"', '"Inter"', 'sans-serif'],
       },
       boxShadow: {
-        // Anti-eye-strain soft shadows (10-14% opacity, 20-28px blur)
+        // ============================================
+        // LEVEL-6 MULTI-LAYER SHADOW SYSTEM (Apple Standard)
+        // Always use 2-3 layer shadows for premium depth
+        // ============================================
+
+        // Soft shadows (anti-eye-strain)
         'soft-sm': '0 2px 8px rgba(27, 28, 32, 0.06)',
         'soft': '0 4px 20px rgba(27, 28, 32, 0.10)',
         'soft-md': '0 8px 24px rgba(27, 28, 32, 0.12)',
         'soft-lg': '0 12px 28px rgba(27, 28, 32, 0.14)',
-        'primary': '0 8px 24px rgba(214, 58, 53, 0.18)',
-        'secondary': '0 8px 24px rgba(232, 197, 42, 0.18)',
+
+        // Multi-layer shadows (Level-6 Standard)
+        'level-sm': '0 1px 2px rgba(0,0,0,0.06)',
+        'level-md': '0 1px 2px rgba(0,0,0,0.06), 0 2px 4px rgba(0,0,0,0.04)',
+        'level-lg': '0 1px 2px rgba(0,0,0,0.06), 0 2px 4px rgba(0,0,0,0.04), 0 4px 8px rgba(0,0,0,0.03)',
+        'level-xl': '0 4px 6px rgba(0,0,0,0.05), 0 10px 15px rgba(0,0,0,0.08), 0 20px 25px rgba(0,0,0,0.04)',
+        'level-2xl': '0 8px 10px rgba(0,0,0,0.05), 0 15px 25px rgba(0,0,0,0.10), 0 30px 40px rgba(0,0,0,0.06)',
+
+        // Brand shadows with color tint
+        'primary': '0 4px 6px rgba(231, 64, 53, 0.12), 0 10px 20px rgba(231, 64, 53, 0.15)',
+        'secondary': '0 4px 6px rgba(247, 201, 40, 0.12), 0 10px 20px rgba(247, 201, 40, 0.15)',
+
+        // Card hover shadow (premium lift effect)
+        'card-hover': '0 4px 6px rgba(0,0,0,0.05), 0 12px 20px rgba(0,0,0,0.10), 0 -2px 6px rgba(0,0,0,0.02)',
+      },
+
+      // ============================================
+      // LEVEL-6 TRANSITION TIMING (Apple Physics)
+      // ============================================
+      transitionTimingFunction: {
+        'apple': 'cubic-bezier(0.2, 0.8, 0.2, 1)',
+        'apple-bounce': 'cubic-bezier(0.68, -0.55, 0.265, 1.55)',
+      },
+      transitionDuration: {
+        'micro': '150ms',   // Microinteractions
+        'fast': '200ms',    // Quick feedback
+        'normal': '260ms',  // Screen transitions
+        'slow': '400ms',    // Complex animations
       },
       animation: {
         'fadeIn': 'fadeIn 0.3s ease-in-out',

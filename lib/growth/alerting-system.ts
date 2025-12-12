@@ -281,7 +281,8 @@ export function getAlerts(options?: {
     filtered = filtered.filter(a => a.acknowledged === options.acknowledged)
   }
   if (options?.since) {
-    filtered = filtered.filter(a => a.timestamp >= options.since)
+    const since = options.since
+    filtered = filtered.filter(a => a.timestamp >= since)
   }
   if (options?.limit) {
     filtered = filtered.slice(0, options.limit)

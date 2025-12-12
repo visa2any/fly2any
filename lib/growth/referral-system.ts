@@ -9,10 +9,10 @@
 
 import { nanoid } from 'nanoid';
 
-const REFERRER_REWARD = 10; // $10 credit
-const REFEREE_DISCOUNT = 10; // $10 off
-const MIN_BOOKING_AMOUNT = 100; // Minimum booking to qualify
-const MAX_REFERRALS_PER_USER = 50;
+export const REFERRER_REWARD = 10; // $10 credit
+export const REFEREE_DISCOUNT = 10; // $10 off
+export const MIN_BOOKING_AMOUNT = 100; // Minimum booking to qualify
+export const MAX_REFERRALS_PER_USER = 50;
 
 export interface Referral {
   id: string;

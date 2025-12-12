@@ -176,10 +176,11 @@ const DestinationCard = memo(({
   <div
     onClick={onClick}
     className={`
-      group bg-white rounded-xl border-2 border-gray-200
-      hover:border-primary-400 hover:shadow-2xl
-      transition-all duration-300 ease-out overflow-hidden cursor-pointer
-      ${isHovered ? 'scale-[1.03] shadow-2xl -translate-y-2' : ''}
+      group bg-white rounded-2xl border border-neutral-200
+      shadow-level-md hover:shadow-level-xl hover:border-primary-400
+      transition-all duration-150 ease-apple overflow-hidden cursor-pointer
+      active:scale-[0.97]
+      ${isHovered ? 'scale-[1.02] shadow-level-xl -translate-y-1' : ''}
     `}
     onMouseEnter={onMouseEnter}
     onMouseLeave={onMouseLeave}
@@ -470,12 +471,12 @@ export function DestinationsSectionEnhanced({ lang = 'en' }: DestinationsSection
   }, [getDestinationImage]);
 
   return (
-    <section className="py-2 md:py-4" style={{ maxWidth: '1600px', margin: '0 auto', padding: '8px 4px' }}>
-      {/* Section Header - Mobile optimized, minimal padding */}
-      <div className="flex items-center justify-between mb-2 md:mb-4 gap-2 px-1">
-        <div className="flex items-center gap-2 md:gap-4 flex-1 min-w-0">
-          <h2 className="text-base md:text-2xl font-extrabold text-neutral-800 whitespace-nowrap overflow-hidden text-ellipsis">{t.title}</h2>
-          {/* ✅ Cache Indicator - Shows instant load status */}
+    <section className="py-4 md:py-6" style={{ maxWidth: '1600px', margin: '0 auto' }}>
+      {/* Section Header - Level-6 Typography */}
+      <div className="flex items-center justify-between mb-4 md:mb-6 gap-4">
+        <div className="flex items-center gap-3 md:gap-4 flex-1 min-w-0">
+          <h2 className="text-xl md:text-[26px] font-semibold text-neutral-800 tracking-[0.01em] truncate">{t.title}</h2>
+          {/* Cache Indicator */}
           {fromCache && cacheAgeFormatted && (
             <CacheIndicator
               cacheAge={null}
@@ -488,19 +489,19 @@ export function DestinationsSectionEnhanced({ lang = 'en' }: DestinationsSection
           )}
         </div>
         <button
-          className="text-[11px] sm:text-xs md:text-sm font-bold text-primary-600 hover:text-primary-700 transition-colors flex-shrink-0 whitespace-nowrap"
+          className="text-sm font-semibold text-primary-500 hover:text-primary-600 transition-colors duration-150 ease-apple min-h-[44px] px-4 flex items-center flex-shrink-0"
           onClick={() => window.open('/flights/results', '_blank')}
         >
           {t.viewAll} →
         </button>
       </div>
 
-      {/* Divider */}
-      <div className="h-px bg-neutral-200 mb-2 md:mb-4 mx-1"></div>
+      {/* Divider - Subtle */}
+      <div className="h-px bg-neutral-200/80 mb-4 md:mb-6"></div>
 
-      {/* Pill-based Filter Buttons - Horizontal scroll on mobile, edge-to-edge */}
+      {/* Filter Buttons - Level-6: 44px touch targets, 8pt grid */}
       <div
-        className="flex gap-1 md:gap-2 mb-3 md:mb-5 overflow-x-auto scrollbar-hide pb-1 px-1"
+        className="flex gap-2 md:gap-3 mb-4 md:mb-6 overflow-x-auto scrollbar-hide pb-2"
         style={{
           WebkitOverflowScrolling: 'touch',
           scrollbarWidth: 'none',
@@ -520,14 +521,11 @@ export function DestinationsSectionEnhanced({ lang = 'en' }: DestinationsSection
             key={filter.key}
             onClick={() => setActiveFilter(filter.key)}
             disabled={loading}
-            className={`px-2.5 md:px-4 py-1 md:py-2 rounded-full font-bold text-[10px] md:text-sm transition-all duration-200 border-2 flex-shrink-0 whitespace-nowrap ${
+            className={`min-h-[44px] px-4 md:px-5 py-2 rounded-xl font-semibold text-sm transition-all duration-150 ease-apple border flex-shrink-0 whitespace-nowrap ${
               activeFilter === filter.key
-                ? 'bg-primary-600 text-white border-primary-600 shadow-md scale-105'
-                : 'bg-white text-gray-700 border-gray-300 hover:border-primary-500 hover:bg-primary-50 hover:scale-102 active:scale-100'
+                ? 'bg-primary-500 text-white border-primary-500 shadow-primary'
+                : 'bg-white text-neutral-700 border-neutral-200 hover:border-primary-400 hover:bg-primary-50 active:scale-[0.97]'
             } disabled:opacity-50 disabled:cursor-not-allowed`}
-            style={{
-              minWidth: 'fit-content',
-            }}
           >
             {filter.label}
           </button>
@@ -558,10 +556,10 @@ export function DestinationsSectionEnhanced({ lang = 'en' }: DestinationsSection
         </div>
       )}
 
-      {/* Destinations Grid - Using Memoized Components for Performance */}
+      {/* Destinations Grid - Level-6: 8pt grid spacing */}
       {!loading && !error && destinations.length > 0 && (
         <>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-2 md:gap-4 mb-2 md:mb-4 px-1">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6 mb-4 md:mb-6">
             {destinations.map((destination) => (
               <DestinationCard
                 key={destination.id}

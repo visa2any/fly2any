@@ -221,7 +221,7 @@ Provide specific, actionable recommendations prioritized by impact.`;
     });
 
     const content = response.choices[0]?.message?.content || '';
-    return content.split('\n').filter(line => line.trim().startsWith('-') || /^\d/.test(line.trim()));
+    return content.split('\n').filter((line: string) => line.trim().startsWith('-') || /^\d/.test(line.trim()));
   } catch {
     return ['Unable to generate AI recommendations. Please review issues manually.'];
   }

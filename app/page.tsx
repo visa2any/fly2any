@@ -293,80 +293,76 @@ export default function Home() {
   return (
     <div className="min-h-screen bg-white">
       {/* ============================================
-          PAGE TITLE - Between Header and Search Bar
-          ENHANCED: Anti-eye-strain palette, edge-to-edge mobile
+          PAGE TITLE - Level-6 Apple-Class Hero Section
+          REBUILT: Official color system, 8pt grid, premium shadows
           ============================================ */}
-      <div className="relative bg-gradient-to-br from-neutral-50 via-primary-50/20 to-neutral-50 border-b border-neutral-200 overflow-hidden md:overflow-visible max-h-[100vh] md:max-h-none">
-        {/* Animated floating orbs in background - using theme colors */}
+      <div className="relative bg-layer-0 border-b border-neutral-200/60 overflow-hidden">
+        {/* Animated floating orbs - Official Fly2Any colors */}
         <div className="absolute inset-0 overflow-hidden pointer-events-none">
           <div className="floating-orb floating-orb-1"></div>
           <div className="floating-orb floating-orb-2"></div>
           <div className="floating-orb floating-orb-3"></div>
         </div>
 
-        {/* Subtle background pattern - theme primary */}
-        <div className="absolute inset-0 opacity-[0.02]" style={{
-          backgroundImage: 'radial-gradient(circle at 1px 1px, rgb(214, 58, 53) 1px, transparent 0)',
-          backgroundSize: '40px 40px'
+        {/* Subtle dot pattern - Official primary red */}
+        <div className="absolute inset-0 opacity-[0.015]" style={{
+          backgroundImage: 'radial-gradient(circle at 1px 1px, #E74035 1px, transparent 0)',
+          backgroundSize: '32px 32px'
         }}></div>
 
         <MaxWidthContainer
-          className="relative overflow-hidden md:overflow-visible"
+          className="relative"
           noPadding={true}
-          style={{ padding: '6px 0 4px' }}
+          style={{ padding: '8px 0' }}
         >
-          <div className="px-1 md:px-6">
-          {/* REMOVED: Airplane animation (user request) */}
+          {/* 8pt grid: 16px horizontal padding on mobile */}
+          <div className="px-4 md:px-6">
+            {/* Title Container - 8pt vertical gap */}
+            <div className="flex flex-col md:flex-row md:items-center gap-2 md:gap-4">
+              {/* Main Title - Level-6 Typography: 20px mobile, 32px desktop */}
+              <h1
+                key={`title-${animationKey}`}
+                className="hero-title text-xl md:text-[32px] font-bold tracking-[0.01em] text-neutral-800"
+              >
+                {t.sectionTitle.split('').map((char, index) => (
+                  <span
+                    key={index}
+                    className="letter-elastic"
+                    style={{
+                      animationDelay: `${index * 0.038}s`,
+                      display: 'inline-block',
+                      minWidth: char === ' ' ? '0.25em' : 'auto',
+                    }}
+                  >
+                    {char === ' ' ? '\u00A0' : char}
+                  </span>
+                ))}
+              </h1>
 
-          {/* Title Container - Single line, no wrapping */}
-          <div className="flex flex-col md:flex-row md:items-center gap-1 md:gap-3 animate-fadeIn">
-            {/* Main Title - Elastic Letter Animation + Gradient Effect */}
-            <h1
-              key={`title-${animationKey}`}
-              className="hero-title text-lg sm:text-xl md:text-3xl font-extrabold tracking-tight sm:tracking-wide whitespace-nowrap overflow-x-auto scrollbar-hide"
-            >
-              {t.sectionTitle.split('').map((char, index) => (
-                <span
-                  key={index}
-                  className="letter-elastic"
-                  style={{
-                    animationDelay: `${index * 0.038}s`,
-                    display: 'inline-block',
-                    minWidth: char === ' ' ? '0.3em' : 'auto',
-                  }}
-                >
-                  {char === ' ' ? '\u00A0' : char}
-                </span>
-              ))}
-            </h1>
+              {/* Separator - Primary color */}
+              <span className="hidden md:inline-block text-primary-500 text-2xl font-bold">•</span>
 
-            {/* Separator */}
-            <span className="hidden md:inline-block text-primary-400 text-2xl font-bold mx-1">•</span>
-
-            {/* Subtitle - Letter-by-Letter Elastic Animation (unified with title) */}
-            <p
-              key={`subtitle-${animationKey}`}
-              className="hero-subtitle text-gray-700/90 mb-0 font-medium text-xs sm:text-sm md:text-lg leading-tight sm:leading-normal whitespace-nowrap overflow-x-auto scrollbar-hide"
-              style={{
-                letterSpacing: '-0.01em',
-              }}
-            >
-              {t.subtitle.split('').map((char, index) => (
-                <span
-                  key={index}
-                  className="letter-elastic"
-                  style={{
-                    animationDelay: `${2.0 + (index * 0.028)}s`,
-                    display: 'inline-block',
-                    minWidth: char === ' ' ? '0.3em' : 'auto',
-                  }}
-                >
-                  {char === ' ' ? '\u00A0' : char}
-                </span>
-              ))}
-            </p>
+              {/* Subtitle - Level-6: 14px mobile, 18px desktop, positive tracking */}
+              <p
+                key={`subtitle-${animationKey}`}
+                className="hero-subtitle text-sm md:text-lg font-medium text-neutral-500 tracking-[0.005em]"
+              >
+                {t.subtitle.split('').map((char, index) => (
+                  <span
+                    key={index}
+                    className="letter-elastic"
+                    style={{
+                      animationDelay: `${2.0 + (index * 0.028)}s`,
+                      display: 'inline-block',
+                      minWidth: char === ' ' ? '0.25em' : 'auto',
+                    }}
+                  >
+                    {char === ' ' ? '\u00A0' : char}
+                  </span>
+                ))}
+              </p>
+            </div>
           </div>
-          </div> {/* Close responsive padding wrapper */}
         </MaxWidthContainer>
       </div>
 
@@ -388,7 +384,7 @@ export default function Home() {
         .floating-orb-1 {
           width: 200px;
           height: 200px;
-          background: linear-gradient(135deg, #D63A35, #E8C52A);
+          background: linear-gradient(135deg, #E74035, #F7C928);
           top: -80px;
           left: 5%;
           animation-delay: 0s;
@@ -398,7 +394,7 @@ export default function Home() {
         .floating-orb-2 {
           width: 180px;
           height: 180px;
-          background: linear-gradient(135deg, #C7342F, #D7B622);
+          background: linear-gradient(135deg, #D43B31, #DEB423);
           top: -60px;
           right: 10%;
           animation-delay: 5s;
@@ -408,7 +404,7 @@ export default function Home() {
         .floating-orb-3 {
           width: 150px;
           height: 150px;
-          background: linear-gradient(135deg, #E8C52A, #D63A35);
+          background: linear-gradient(135deg, #F7C928, #E74035);
           bottom: -50px;
           left: 50%;
           animation-delay: 10s;
@@ -472,32 +468,31 @@ export default function Home() {
           }
         }
 
-        /* ===== SOLID COLOR TITLE (100% Cross-Browser Compatible) ===== */
+        /* ===== LEVEL-6 HERO TITLE (Apple-Class Typography) ===== */
         .hero-title {
-          /* Anti-eye-strain: Using neutral-800 instead of pure black/harsh blue */
+          /* Anti-eye-strain: neutral-800 per spec */
           color: #1B1C20;
 
-          /* Soft text shadow for depth - low opacity per anti-fatigue spec */
+          /* Multi-layer text shadow - Official Fly2Any Red #E74035 */
           text-shadow:
-            0 1px 2px rgba(27, 28, 32, 0.08),
-            0 2px 8px rgba(214, 58, 53, 0.10);
+            0 1px 2px rgba(27, 28, 32, 0.06),
+            0 2px 6px rgba(231, 64, 53, 0.08);
 
           position: relative;
-          z-index: 10; /* Keep text ABOVE background orbs */
+          z-index: 10;
 
-          /* CROSS-BROWSER: Force GPU rendering and proper stacking */
+          /* GPU rendering for smooth animations */
           transform: translateZ(0);
           -webkit-transform: translateZ(0);
-          -moz-transform: translateZ(0);
           backface-visibility: hidden;
           -webkit-backface-visibility: hidden;
-          -moz-backface-visibility: hidden;
           isolation: isolate;
           -webkit-font-smoothing: antialiased;
           -moz-osx-font-smoothing: grayscale;
 
-          /* Ensure high contrast and visibility */
-          font-weight: 800;
+          /* Level-6 Typography: 700 weight, positive tracking */
+          font-weight: 700;
+          letter-spacing: 0.01em;
         }
 
         /* ===== SEPARATOR DOT PULSE ===== */
@@ -528,29 +523,22 @@ export default function Home() {
           }
         }
 
-        /* ===== ELASTIC LETTER ENTRANCE - Restarts every 12s via JS ===== */
+        /* ===== LEVEL-6 LETTER ANIMATION (Apple Physics) ===== */
         .letter-elastic {
           opacity: 0;
-          animation: elasticLetterEntrance 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55) forwards;
+          /* Apple cubic-bezier for smooth entrance */
+          animation: elasticLetterEntrance 0.26s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
           transform-origin: center center;
-          /* PERFORMANCE FIX: Only use will-change during animation, not permanently */
-          /* CROSS-BROWSER: Ensure letters stay in front */
           position: relative;
           z-index: 1;
           backface-visibility: hidden;
           -webkit-backface-visibility: hidden;
-          -moz-backface-visibility: hidden;
-        }
-
-        /* Only apply will-change during active animation */
-        .letter-elastic:not([style*="animation-delay"]) {
-          will-change: auto;
         }
 
         @keyframes elasticLetterEntrance {
           0% {
             opacity: 0;
-            transform: translateY(-5px) scale(0.9) translateZ(0);
+            transform: translateY(8px) scale(0.95) translateZ(0);
           }
           100% {
             opacity: 1;
@@ -637,22 +625,22 @@ export default function Home() {
           Trust badges integrated into Trust Indicators section below
           ============================================ */}
       <main>
-        <MaxWidthContainer className="px-1 md:px-6" noPadding={true}>
+        {/* 8pt grid: 16px padding mobile, 24px desktop */}
+        <MaxWidthContainer className="px-4 md:px-6" noPadding={true}>
           {/* ============================================
               RECENTLY VIEWED - Personalized Recommendations
               ============================================ */}
-          {/* MOBILE OPTIMIZED: Ultra-compact spacing (8px mobile, 20px desktop) */}
-          <div className="mt-2 sm:mt-3 md:mt-5">
+          {/* 8pt grid: 16px mobile, 24px desktop */}
+          <div className="mt-4 md:mt-6">
             <RecentlyViewedSection lang={lang} />
           </div>
 
         {/* ============================================
             FLASH DEALS SECTION - Time-Limited Offers
             ENHANCED with Real Duffel Flash Deals, ML/AI, Marketing
-            STRATEGIC: Placed after Recently Viewed to drive conversion
             ============================================ */}
-        {/* MOBILE OPTIMIZED: Ultra-compact spacing (8px mobile, 20px desktop) */}
-        <div className="mt-2 sm:mt-3 md:mt-5">
+        {/* 8pt grid spacing */}
+        <div className="mt-4 md:mt-6">
           <FlashDealsSectionEnhanced lang={lang} />
         </div>
 
@@ -660,25 +648,24 @@ export default function Home() {
             DESTINATIONS SECTION - Explore by Continent
             ENHANCED with Real Duffel Flight Data, ML/AI, Marketing
             ============================================ */}
-        {/* MOBILE OPTIMIZED: Ultra-compact spacing (8px mobile, 20px desktop) */}
-        <div className="mt-2 sm:mt-3 md:mt-5">
+        {/* 8pt grid spacing */}
+        <div className="mt-4 md:mt-6">
           <DestinationsSectionEnhanced lang={lang} />
         </div>
 
         {/* ============================================
             HOTELS SECTION - ML/AI Powered with Duffel Photos
             ============================================ */}
-        {/* MOBILE OPTIMIZED: Ultra-compact spacing (8px mobile, 20px desktop) */}
-        <div className="mt-2 sm:mt-3 md:mt-5">
+        {/* 8pt grid spacing */}
+        <div className="mt-4 md:mt-6">
           <HotelsSectionEnhanced lang={lang} />
         </div>
 
         {/* ============================================
             FIFA WORLD CUP 2026 - Prominent Hero Section
             STRATEGIC: High-visibility placement for major event
-            Now with consistent section header styling
             ============================================ */}
-        <div className="mt-2 sm:mt-3 md:mt-5">
+        <div className="mt-4 md:mt-6">
           <WorldCupHeroSectionEnhanced lang={lang} />
         </div>
 
@@ -718,10 +705,10 @@ export default function Home() {
 
         {/* ============================================
             FAQ - Answer Common Questions
-            Final section - optimized spacing
+            Level-6: 8pt grid spacing
             ============================================ */}
-        {/* MOBILE OPTIMIZED: 16px mobile, 32px desktop (top & bottom) */}
-        <div className="mt-4 sm:mt-5 md:mt-8 mb-4 sm:mb-5 md:mb-8">
+        {/* 8pt grid: 24px mobile, 32px desktop */}
+        <div className="mt-6 md:mt-8 mb-6 md:mb-8">
           <FAQ
             title={lang === 'en' ? '❓ Frequently Asked Questions' : lang === 'pt' ? '❓ Perguntas Frequentes' : '❓ Preguntas Frecuentes'}
             subtitle={lang === 'en' ? 'Everything you need to know about booking with Fly2Any' : lang === 'pt' ? 'Tudo o que você precisa saber sobre reservas com Fly2Any' : 'Todo lo que necesitas saber sobre reservas con Fly2Any'}

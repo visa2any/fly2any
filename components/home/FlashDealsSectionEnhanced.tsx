@@ -197,12 +197,12 @@ export function FlashDealsSectionEnhanced({ lang = 'en' }: FlashDealsSectionEnha
   };
 
   return (
-    <section className="py-2 md:py-4" style={{ maxWidth: '1600px', margin: '0 auto', padding: '8px 4px' }}>
-      {/* Section Header - Mobile optimized typography */}
-      <div className="flex items-center justify-between mb-2 md:mb-4 px-1">
-        <div className="flex items-center gap-2 md:gap-4">
-          <h2 className="text-lg md:text-2xl font-bold text-neutral-800 whitespace-nowrap">{t.title}</h2>
-          {/* ✅ Cache Indicator */}
+    <section className="py-4 md:py-6" style={{ maxWidth: '1600px', margin: '0 auto' }}>
+      {/* Section Header - Level-6 Typography */}
+      <div className="flex items-center justify-between mb-4 md:mb-6">
+        <div className="flex items-center gap-3 md:gap-4">
+          <h2 className="text-xl md:text-[26px] font-semibold text-neutral-800 tracking-[0.01em]">{t.title}</h2>
+          {/* Cache Indicator */}
           {fromCache && cacheAgeFormatted && (
             <CacheIndicator
               cacheAge={null}
@@ -214,15 +214,15 @@ export function FlashDealsSectionEnhanced({ lang = 'en' }: FlashDealsSectionEnha
           )}
         </div>
         <button
-          className="text-sm font-semibold text-primary-600 hover:text-primary-700 transition-colors"
+          className="text-sm font-semibold text-primary-500 hover:text-primary-600 transition-colors duration-150 ease-apple min-h-[44px] px-4 flex items-center"
           onClick={() => window.open('/flights/results', '_blank')}
         >
           {t.viewAll} →
         </button>
       </div>
 
-      {/* Divider */}
-      <div className="h-px bg-neutral-200 mb-2 md:mb-4 mx-1"></div>
+      {/* Divider - Subtle */}
+      <div className="h-px bg-neutral-200/80 mb-4 md:mb-6"></div>
 
       {/* Loading State */}
       {loading && (
@@ -256,9 +256,9 @@ export function FlashDealsSectionEnhanced({ lang = 'en' }: FlashDealsSectionEnha
             {t.scrollHint}
           </div>
 
-          {/* Horizontal Scroll Container - Edge-to-edge mobile */}
-          <div className="overflow-x-auto pb-2 md:pb-4 -mx-1 px-1">
-            <div className="flex gap-2 md:gap-4 min-w-max">
+          {/* Horizontal Scroll Container - Full width */}
+          <div className="overflow-x-auto pb-4 md:pb-6 scrollbar-hide">
+            <div className="flex gap-4 md:gap-6 min-w-max">
               {deals.map((deal) => {
                 // Get city names and airline data
                 const fromCity = getAirportCity(deal.from);
@@ -272,96 +272,97 @@ export function FlashDealsSectionEnhanced({ lang = 'en' }: FlashDealsSectionEnha
                     onMouseEnter={() => setHoveredId(deal.id)}
                     onMouseLeave={() => setHoveredId(null)}
                     className={`
-                      w-80 bg-white rounded-xl border-2 border-gray-200
-                      hover:border-primary-400 hover:shadow-2xl
-                      transition-all duration-300 ease-out overflow-hidden flex-shrink-0 text-left
-                      ${hoveredId === deal.id ? 'scale-[1.03] shadow-2xl -translate-y-1' : ''}
+                      w-[320px] bg-white rounded-2xl border border-neutral-200
+                      shadow-level-md hover:shadow-level-xl hover:border-primary-400
+                      transition-all duration-150 ease-apple overflow-hidden flex-shrink-0 text-left
+                      active:scale-[0.97]
+                      ${hoveredId === deal.id ? 'scale-[1.02] shadow-level-xl -translate-y-1' : ''}
                     `}
                   >
-                    {/* COMPACT HEADER - Route, Airline, Value Score */}
-                    <div className="bg-white border-b-2 border-gray-100 p-3">
+                    {/* CARD HEADER - Level-6 8pt grid spacing */}
+                    <div className="bg-white border-b border-neutral-100 p-4">
                       {/* Row 1: Route + Value Score */}
-                      <div className="flex items-center justify-between mb-2">
-                        <div className="text-xl font-bold text-gray-900">
+                      <div className="flex items-center justify-between mb-3">
+                        <div className="text-lg md:text-xl font-semibold text-neutral-800 tracking-[0.01em]">
                           {fromCity} → {toCity}
                         </div>
                         <ValueScoreBadge score={deal.valueScore} size="sm" showLabel={false} />
                       </div>
 
                       {/* Row 2: Airline + Date */}
-                      <div className="flex items-center justify-between mb-2">
-                        <div className="flex items-center gap-1.5">
+                      <div className="flex items-center justify-between mb-3">
+                        <div className="flex items-center gap-2">
                           <span className="text-base">{airline.logo}</span>
-                          <span className="text-sm font-medium text-gray-700">{airline.name}</span>
+                          <span className="text-sm font-medium text-neutral-600">{airline.name}</span>
                         </div>
-                        <div className="flex items-center gap-1 text-xs font-semibold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200">
-                          <Calendar className="w-3 h-3" />
+                        <div className="flex items-center gap-1.5 text-xs font-semibold text-success-700 bg-success-50 px-2.5 py-1 rounded-lg border border-success-200">
+                          <Calendar className="w-3.5 h-3.5" />
                           <span>{new Date(deal.departureDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}</span>
                         </div>
                       </div>
 
-                      {/* Row 3: Price + Savings Percentage */}
+                      {/* Row 3: Price + Savings - Level-6 Typography */}
                       <div className="flex items-center justify-between">
-                        <div className="flex items-end gap-2">
-                          <div className="text-3xl font-bold text-primary-600">${deal.price.toFixed(2)}</div>
-                          <div className="text-sm line-through text-gray-500 mb-1">
-                            ${deal.originalPrice.toFixed(2)}
+                        <div className="flex items-baseline gap-2">
+                          <div className="text-2xl md:text-3xl font-bold text-primary-500">${deal.price.toFixed(0)}</div>
+                          <div className="text-sm line-through text-neutral-400">
+                            ${deal.originalPrice.toFixed(0)}
                           </div>
                         </div>
-                        <div className="bg-green-500 text-white px-2 py-1 rounded font-bold text-sm shadow-sm">
+                        <div className="bg-success-500 text-white px-3 py-1.5 rounded-lg font-bold text-sm shadow-level-sm">
                           -{deal.savingsPercent}% OFF
                         </div>
                       </div>
                     </div>
 
-                    {/* COMPACT DETAILS - All on 2-3 lines */}
-                    <div className="p-3 space-y-2">
-                      {/* Line 1: Time + Savings Amount */}
+                    {/* CARD DETAILS - Level-6 8pt grid */}
+                    <div className="p-4 space-y-3">
+                      {/* Line 1: Countdown + Savings */}
                       <div className="flex items-center justify-between">
                         <CountdownTimer
                           expiresAt={deal.expiresAt}
                           showIcon={true}
                           compact={true}
-                          className="bg-orange-50 px-2 py-1 rounded border border-orange-200"
+                          className="bg-warning-50 px-2.5 py-1.5 rounded-lg border border-warning-200"
                         />
-                        <div className="flex items-center gap-1 px-2 py-1 bg-green-50 border border-green-200 rounded text-xs font-bold text-green-700">
+                        <div className="flex items-center gap-1.5 px-2.5 py-1.5 bg-success-50 border border-success-200 rounded-lg text-xs font-bold text-success-700">
                           <span>💰</span>
-                          <span>{t.save} ${deal.savings.toFixed(2)}</span>
+                          <span>{t.save} ${deal.savings.toFixed(0)}</span>
                         </div>
                       </div>
 
-                      {/* Line 2: Urgency + Social Proof (inline) */}
+                      {/* Line 2: Urgency + Social Proof */}
                       <div className="flex items-center gap-2 flex-wrap">
                         {/* Urgency Badge */}
                         {deal.urgency === 'low-seats' && deal.urgencyValue && (
-                          <div className="flex items-center gap-1 text-xs font-bold text-red-600 bg-red-50 px-2 py-1 rounded border border-red-200">
-                            <Flame className="w-3 h-3" />
+                          <div className="flex items-center gap-1.5 text-xs font-bold text-error-600 bg-error-50 px-2.5 py-1.5 rounded-lg border border-error-200">
+                            <Flame className="w-3.5 h-3.5" />
                             <span>{t.only} {deal.urgencyValue} {t.left}</span>
                           </div>
                         )}
                         {deal.urgency === 'high-demand' && (
-                          <div className="flex items-center gap-1 text-xs font-bold text-primary-500 bg-info-50 px-2 py-1 rounded border border-info-200">
-                            <Users className="w-3 h-3" />
+                          <div className="flex items-center gap-1.5 text-xs font-bold text-info-600 bg-info-50 px-2.5 py-1.5 rounded-lg border border-info-200">
+                            <Users className="w-3.5 h-3.5" />
                             <span>{t.highDemand}</span>
                           </div>
                         )}
                         {deal.urgency === 'rising-price' && (
-                          <div className="flex items-center gap-1 text-xs font-bold text-orange-600 bg-orange-50 px-2 py-1 rounded border border-orange-200">
-                            <TrendingUp className="w-3 h-3" />
+                          <div className="flex items-center gap-1.5 text-xs font-bold text-warning-600 bg-warning-50 px-2.5 py-1.5 rounded-lg border border-warning-200">
+                            <TrendingUp className="w-3.5 h-3.5" />
                             <span>{t.rising}</span>
                           </div>
                         )}
 
-                        {/* Social Proof - Compact inline */}
+                        {/* Social Proof */}
                         {deal.viewersLast24h > 100 && (
-                          <div className="flex items-center gap-1 text-xs text-gray-600 font-semibold">
-                            <Eye className="w-3 h-3" />
+                          <div className="flex items-center gap-1 text-xs text-neutral-500 font-medium">
+                            <Eye className="w-3.5 h-3.5" />
                             <span>{deal.viewersLast24h}</span>
                           </div>
                         )}
                         {deal.bookingsLast24h > 10 && (
-                          <div className="flex items-center gap-1 text-xs text-gray-600 font-semibold">
-                            <ShoppingCart className="w-3 h-3" />
+                          <div className="flex items-center gap-1 text-xs text-neutral-500 font-medium">
+                            <ShoppingCart className="w-3.5 h-3.5" />
                             <span>{deal.bookingsLast24h}</span>
                           </div>
                         )}

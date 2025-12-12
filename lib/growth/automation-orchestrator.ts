@@ -7,8 +7,12 @@
 import { runDailyContentJob } from '@/lib/agents/content-agent'
 import { runSEOAudit } from '@/lib/agents/seo-auditor'
 import { monitorCompetitors } from '@/lib/agents/competitor-monitor'
+import { analyticsAgent } from '@/lib/agents/analytics-agent'
+import { antiScrapingAgent } from '@/lib/agents/anti-scraping-agent'
 import { generateWeeklyReport, sendScheduledReport, DEFAULT_CONFIG } from '@/lib/growth/weekly-reports'
-import { createAlert, triggerRuleAlert } from '@/lib/growth/alerting-system'
+import { contentPerformanceTracker } from '@/lib/growth/content-performance'
+import { rewardFulfillmentService } from '@/lib/growth/referral-rewards'
+import { createAlert } from '@/lib/growth/alerting-system'
 
 export interface AutomationTask {
   id: string
@@ -83,6 +87,34 @@ const AUTOMATION_TASKS: AutomationTask[] = [
   {
     id: 'cache_warmup',
     name: 'Cache Warmup for Popular Routes',
+    schedule: 'hourly',
+    enabled: true,
+    status: 'idle'
+  },
+  {
+    id: 'analytics_insights',
+    name: 'Generate Analytics Insights',
+    schedule: 'daily',
+    enabled: true,
+    status: 'idle'
+  },
+  {
+    id: 'security_monitor',
+    name: 'Security & Anti-Scraping Monitor',
+    schedule: 'hourly',
+    enabled: true,
+    status: 'idle'
+  },
+  {
+    id: 'content_performance',
+    name: 'Content Performance Analysis',
+    schedule: 'daily',
+    enabled: true,
+    status: 'idle'
+  },
+  {
+    id: 'rewards_processing',
+    name: 'Process Pending Rewards',
     schedule: 'hourly',
     enabled: true,
     status: 'idle'
@@ -168,6 +200,22 @@ export async function runAutomationTask(taskId: string): Promise<AutomationResul
         data = await runCacheWarmupTask()
         break
 
+      case 'analytics_insights':
+        data = await runAnalyticsTask()
+        break
+
+      case 'security_monitor':
+        data = await runSecurityMonitorTask()
+        break
+
+      case 'content_performance':
+        data = await runContentPerformanceTask()
+        break
+
+      case 'rewards_processing':
+        data = await runRewardsProcessingTask()
+        break
+
       default:
         throw new Error(`Unknown task: ${taskId}`)
     }
@@ -225,20 +273,26 @@ export async function runScheduledTasks(schedule: 'hourly' | 'daily' | 'weekly')
 async function runContentGenerationTask() {
   console.log('[Automation] Running content generation task')
 
-  const result = await runDailyContentJob()
+  const jobs = await runDailyContentJob()
+
+  // Count generated content by type
+  const completed = jobs.filter(j => j.status === 'completed')
+  const deals = completed.filter(j => j.type === 'deal').length
+  const guides = completed.filter(j => j.type === 'guide').length
+  const social = completed.filter(j => j.type === 'social').length
 
   // Check if content was generated
-  if (result.generated > 0) {
+  if (completed.length > 0) {
     createAlert(
       'Content Generated Successfully',
-      `Generated ${result.generated} new content pieces (${result.deals} deals, ${result.guides} guides, ${result.social} social posts)`,
+      `Generated ${completed.length} new content pieces (${deals} deals, ${guides} guides, ${social} social posts)`,
       'success',
       'content',
-      result
+      { generated: completed.length, deals, guides, social }
     )
   }
 
-  return result
+  return { generated: completed.length, deals, guides, social, total: jobs.length }
 }
 
 async function runSocialDistributionTask() {
@@ -382,6 +436,107 @@ async function runCacheWarmupTask() {
   }
 
   return { routes: popularRoutes.length, warmed }
+}
+
+async function runAnalyticsTask() {
+  console.log('[Automation] Running analytics insights task')
+
+  const report = await analyticsAgent.analyze('daily')
+
+  // Alert on critical insights
+  const criticalInsights = report.insights.filter(i => i.severity === 'critical')
+  if (criticalInsights.length > 0) {
+    createAlert(
+      'Critical Analytics Insights',
+      `${criticalInsights.length} critical issues detected: ${criticalInsights.map(i => i.title).join(', ')}`,
+      'critical',
+      'revenue',
+      { insights: criticalInsights }
+    )
+  }
+
+  return {
+    score: report.score,
+    insights: report.insights.length,
+    critical: criticalInsights.length,
+    recommendations: report.recommendations.length
+  }
+}
+
+async function runSecurityMonitorTask() {
+  console.log('[Automation] Running security monitor task')
+
+  const stats = antiScrapingAgent.getStats()
+
+  // Alert on high suspicious activity
+  if (stats.suspiciousIPs > 50) {
+    createAlert(
+      'High Suspicious Activity Detected',
+      `${stats.suspiciousIPs} suspicious IPs detected, ${stats.blockedIPs} blocked`,
+      'warning',
+      'system',
+      stats
+    )
+  }
+
+  return {
+    blockedIPs: stats.blockedIPs,
+    suspiciousIPs: stats.suspiciousIPs,
+    challengesPending: stats.challengesPending
+  }
+}
+
+async function runContentPerformanceTask() {
+  console.log('[Automation] Running content performance task')
+
+  const report = await contentPerformanceTracker.generateReport('daily')
+  const tiers = contentPerformanceTracker.getContentByTier()
+
+  // Alert on poor performing content
+  if (tiers.poor.length > 10) {
+    createAlert(
+      'Content Performance Alert',
+      `${tiers.poor.length} pieces of content are underperforming. Consider optimization.`,
+      'warning',
+      'content',
+      { poorCount: tiers.poor.length }
+    )
+  }
+
+  return {
+    totalContent: report.summary.totalContent,
+    totalViews: report.summary.totalViews,
+    avgEngagement: report.summary.avgEngagementRate.toFixed(2),
+    recommendations: report.recommendations.length,
+    topPerformers: report.topPerformers.length
+  }
+}
+
+async function runRewardsProcessingTask() {
+  console.log('[Automation] Running rewards processing task')
+
+  // Process expired claims
+  const expired = await rewardFulfillmentService.processExpiredClaims()
+
+  // Get current stats
+  const stats = rewardFulfillmentService.getStats()
+
+  if (stats.pendingClaims > 100) {
+    createAlert(
+      'High Pending Rewards',
+      `${stats.pendingClaims} reward claims pending processing`,
+      'warning',
+      'system',
+      stats
+    )
+  }
+
+  return {
+    totalWallets: stats.totalWallets,
+    pendingClaims: stats.pendingClaims,
+    expiredThisRun: expired,
+    totalRedeemed: stats.totalRedeemed
+  }
 }
 
 /**

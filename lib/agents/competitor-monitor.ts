@@ -341,3 +341,14 @@ export class CompetitorMonitorAgent {
 }
 
 export const competitorAgent = new CompetitorMonitorAgent()
+
+/**
+ * Monitor competitors (convenience function)
+ */
+export async function monitorCompetitors(domains: string[]): Promise<{
+  competitors: CompetitorData[]
+  insights: MarketInsight[]
+  recommendations: string[]
+}> {
+  return competitorAgent.runAnalysis()
+}

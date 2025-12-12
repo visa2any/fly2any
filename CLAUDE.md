@@ -13,38 +13,75 @@
 
 ---
 
-## 🎨 1. DESIGN SYSTEM — COLOR PALETTE
+## 🎨 1. OFFICIAL COLOR SYSTEM (UNIVERSAL SOURCE OF TRUTH)
 
-### Brand Colors (Softened for eye comfort)
+> **MANDATORY**: These colors MUST be applied to ALL UI, components, layouts, animations, and generated code.
+> No exceptions. This overrides ALL defaults.
+
+### Primary Brand Colors
 ```css
---fly2any-red: #E8423A;        /* Primary brand (-8% sat, -10% lum) */
---fly2any-yellow: #F7C728;     /* Accent icons */
---fly2any-red-hover: #D63B34;  /* Interactive state */
+/* Fly2Any Red - Primary Brand (CTA buttons, primary surfaces, highlights) */
+--fly2any-red: #E74035;        /* HEX: #E74035 | RGB: 231, 64, 53 */
+--fly2any-red-hover: #D63930;  /* Darker hover state */
+
+/* Fly2Any Yellow - Premium Accent (icons, accents, positive status) */
+--fly2any-yellow: #F7C928;     /* HEX: #F7C928 | RGB: 247, 201, 40 */
 ```
 
-### Light Mode Layers (Essential for depth)
+### Neutral Layer System (Apple-Grade)
 ```css
+/* Light Mode Layers */
 --layer-0: #FAFAFA;  /* Base background */
 --layer-1: #F2F2F2;  /* Cards */
 --layer-2: #E6E6E6;  /* Elevated surfaces */
 --layer-3: #DCDCDC;  /* Modal/Sheet */
+
+/* Dark Mode Layers */
+--layer-0-dark: #0E0E0E;
+--layer-1-dark: #1A1A1A;
+--layer-2-dark: #222222;
+--layer-3-dark: #2B2B2B;
 ```
 
-### Dark Mode Layers
+### Support Colors
 ```css
---layer-0: #0E0E0E;
---layer-1: #1A1A1A;
---layer-2: #222222;
---layer-3: #2B2B2B;
+--success: #27C56B;  /* Positive actions, confirmations */
+--warning: #FFC043;  /* Warnings, cautions */
+--error: #E5484D;    /* Errors, destructive actions */
+--info: #3A7BFF;     /* Informational elements */
 ```
 
-### Depth Shadows (Multi-Stack — Apple Standard)
+### Typography Colors (Apple-Class)
 ```css
-/* Always use 2-3 layer shadows */
+--text-heading: #0A0A0A;     /* Headings, primary text */
+--text-body: #1C1C1C;        /* Body text */
+--text-secondary: #6B6B6B;   /* Secondary text, labels */
+--text-placeholder: #9F9F9F; /* Placeholder text (38% opacity recommended) */
+```
+
+### Shadow System (Apple Physics - Multi-Layer)
+```css
 --shadow-sm: 0 1px 2px rgba(0,0,0,0.06);
 --shadow-md: 0 1px 2px rgba(0,0,0,0.06), 0 2px 4px rgba(0,0,0,0.04);
 --shadow-lg: 0 1px 2px rgba(0,0,0,0.06), 0 2px 4px rgba(0,0,0,0.04), 0 4px 8px rgba(0,0,0,0.03);
 --shadow-xl: 0 4px 6px rgba(0,0,0,0.05), 0 10px 15px rgba(0,0,0,0.08), 0 20px 25px rgba(0,0,0,0.04);
+```
+
+### Premium Gradient (Hero Sections)
+```css
+--gradient-prime: linear-gradient(135deg, #E74035 0%, #F7C928 100%);
+```
+
+### Color Usage Rules (MANDATORY)
+```
+✔ ALWAYS use Fly2Any Red (#E74035) for primary CTAs and actions
+✔ ALWAYS use Fly2Any Yellow (#F7C928) for accents and icons
+✔ ALWAYS apply neutral layers correctly for depth
+✔ ALWAYS follow Apple-Class shadow rules
+✔ NEVER introduce new colors unless explicitly allowed
+✔ NEVER change luminosity without instruction
+✔ ENSURE AAA contrast when possible
+✔ ENSURE consistent, premium, calm visual identity
 ```
 
 ---
