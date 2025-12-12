@@ -322,7 +322,7 @@ export default function Home() {
               {/* Main Title - Level-6: prominent on mobile */}
               <h1
                 key={`title-${animationKey}`}
-                className="hero-title text-lg md:text-[32px] font-bold tracking-[0.01em] text-neutral-800"
+                className="hero-title text-base md:text-[32px] font-bold tracking-[0.01em] text-neutral-800"
               >
                 {t.sectionTitle.split('').map((char, index) => (
                   <span

@@ -38,7 +38,7 @@ interface DestinationsSectionEnhancedProps {
 
 const translations = {
   en: {
-    title: '🌍 Explore Destinations',
+    title: '🌍 Explore Destinations by Flight',
     viewAll: 'View All',
     from: 'from',
     priceStartsFrom: 'Price Starts from',
@@ -61,7 +61,7 @@ const translations = {
     error: 'Failed to load destinations',
   },
   pt: {
-    title: '🌍 Explorar Destinos',
+    title: '🌍 Explorar Destinos por Voo',
     viewAll: 'Ver Todos',
     from: 'de',
     priceStartsFrom: 'Preço começa em',
@@ -84,7 +84,7 @@ const translations = {
     error: 'Falha ao carregar destinos',
   },
   es: {
-    title: '🌍 Explorar Destinos',
+    title: '🌍 Explorar Destinos por Vuelo',
     viewAll: 'Ver Todos',
     from: 'de',
     priceStartsFrom: 'Precio desde',
@@ -471,7 +471,7 @@ export function DestinationsSectionEnhanced({ lang = 'en' }: DestinationsSection
   }, [getDestinationImage]);
 
   return (
-    <section className="py-2 md:py-4" style={{ maxWidth: '1600px', margin: '0 auto' }}>
+    <section className="pt-1 pb-2 md:py-4" style={{ maxWidth: '1600px', margin: '0 auto' }}>
       {/* Section Header - Compact, allows line break */}
       <div className="flex items-center justify-between mb-3 md:mb-4 gap-2 px-3 md:px-0">
         <div className="flex items-center gap-2 md:gap-3 min-w-0">
