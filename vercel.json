@@ -1,4 +1,9 @@
 {
+  "build": {
+    "env": {
+      "NODE_OPTIONS": "--max-old-space-size=8192"
+    }
+  },
   "env": {
     "NEXT_PUBLIC_APP_NAME": "Fly2Any",
     "NEXT_PUBLIC_APP_URL": "https://fly2any.com"
