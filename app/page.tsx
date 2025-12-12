@@ -321,7 +321,7 @@ export default function Home() {
               {/* Main Title - Level-6: prominent on mobile, cinematic on desktop */}
               <h1
                 key={`title-${animationKey}`}
-                className="hero-title text-base md:text-[32px] lg:text-[42px] xl:text-[48px] font-bold tracking-[0.01em] text-neutral-800"
+                className="hero-title text-[13px] md:text-[32px] lg:text-[42px] xl:text-[48px] font-bold tracking-[0.01em] text-neutral-800 whitespace-nowrap"
               >
                 {t.sectionTitle.split('').map((char, index) => (
                   <span
@@ -344,7 +344,7 @@ export default function Home() {
               {/* Subtitle - Level-6: visible on separate row on mobile, elegant on desktop */}
               <p
                 key={`subtitle-${animationKey}`}
-                className="hero-subtitle text-sm md:text-lg lg:text-xl font-medium text-neutral-500 tracking-[0.005em]"
+                className="hero-subtitle text-[11px] md:text-lg lg:text-xl font-medium text-neutral-500 tracking-[0.005em] whitespace-nowrap"
               >
                 {t.subtitle.split('').map((char, index) => (
                   <span
