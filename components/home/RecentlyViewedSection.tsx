@@ -4,7 +4,7 @@ import { useState, useEffect, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
 import { Clock, X, TrendingDown, Sparkles, MapPin, ArrowRight, Flame, Zap, Tag, Filter } from 'lucide-react';
-import { getAirportCity } from '@/lib/data/airports';
+import { getAirportCity, getAirportCountry } from '@/lib/data/airports';
 
 interface ViewedDestination {
   id: string;
@@ -569,9 +569,10 @@ export function RecentlyViewedSection({ lang = 'en' }: RecentlyViewedSectionProp
 
               {/* Content Section - Bottom only */}
               <div className="absolute inset-0 p-1.5 sm:p-2 pt-7 sm:pt-8 flex flex-col justify-end">
-                {/* Destination - Optimized for mobile */}
+                {/* Destination - Smart city/country lookup */}
                 <h3 className="text-xs sm:text-[13px] font-bold text-white leading-tight" style={{ textShadow: '0 2px 6px rgba(0,0,0,0.95), 0 1px 3px rgba(0,0,0,0.85), 0 0 8px rgba(0,0,0,0.7)' }}>
-                  {item.city}, {getCountryCode(item.country)}
+                  {/* Use getAirportCity to handle comma-separated codes */}
+                  {getAirportCity(item.to) || item.city}, {getCountryCode(getAirportCountry(item.to) || item.country)}
                 </h3>
 
                 {/* Price Section - Enhanced shadows for lighter background */}

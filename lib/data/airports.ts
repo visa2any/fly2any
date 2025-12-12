@@ -363,22 +363,42 @@ export function getAirportDisplay(code: string): string {
 
 /**
  * Get airport city name
- * @param code - Airport code (e.g., "LAX")
- * @returns City name or the code if not found
+ * Handles comma-separated codes (e.g., "JFK,LGA,EWR" returns "New York")
+ * @param code - Airport code or comma-separated codes
+ * @returns City name or the first code if not found
  */
 export function getAirportCity(code: string): string {
-  const airport = AIRPORTS.find(a => a.code === code);
-  return airport ? airport.city : code;
+  if (!code) return '';
+  // Handle comma-separated codes - take the first one
+  const firstCode = code.split(',')[0].trim();
+  const airport = AIRPORTS.find(a => a.code === firstCode);
+  return airport ? airport.city : firstCode;
 }
 
 /**
  * Get airport country flag
+ * Handles comma-separated codes
  * @param code - Airport code (e.g., "LAX")
  * @returns Country flag emoji or empty string if not found
  */
 export function getAirportFlag(code: string): string {
-  const airport = AIRPORTS.find(a => a.code === code);
+  if (!code) return '';
+  const firstCode = code.split(',')[0].trim();
+  const airport = AIRPORTS.find(a => a.code === firstCode);
   return airport ? airport.flag : '';
+}
+
+/**
+ * Get airport country name
+ * Handles comma-separated codes
+ * @param code - Airport code (e.g., "LAX")
+ * @returns Country name or empty string if not found
+ */
+export function getAirportCountry(code: string): string {
+  if (!code) return '';
+  const firstCode = code.split(',')[0].trim();
+  const airport = AIRPORTS.find(a => a.code === firstCode);
+  return airport ? airport.country : '';
 }
 
 /**
