@@ -315,14 +315,14 @@ export default function Home() {
           noPadding={true}
           style={{ padding: '8px 0' }}
         >
-          {/* 8pt grid: 16px horizontal padding on mobile */}
+          {/* Text padding on mobile */}
           <div className="px-4 md:px-6">
-            {/* Title Container - 8pt vertical gap */}
-            <div className="flex flex-col md:flex-row md:items-center gap-2 md:gap-4">
-              {/* Main Title - Level-6 Typography: 20px mobile, 32px desktop */}
+            {/* Title Container - allows line break */}
+            <div className="flex flex-col md:flex-row md:items-center gap-1 md:gap-4">
+              {/* Main Title - Level-6: allows natural wrapping */}
               <h1
                 key={`title-${animationKey}`}
-                className="hero-title text-xl md:text-[32px] font-bold tracking-[0.01em] text-neutral-800"
+                className="hero-title text-xl md:text-[32px] font-bold tracking-[0.01em] text-neutral-800 leading-tight"
               >
                 {t.sectionTitle.split('').map((char, index) => (
                   <span
@@ -342,10 +342,10 @@ export default function Home() {
               {/* Separator - Primary color */}
               <span className="hidden md:inline-block text-primary-500 text-2xl font-bold">•</span>
 
-              {/* Subtitle - Level-6: 14px mobile, 18px desktop, positive tracking */}
+              {/* Subtitle - Level-6: allows wrapping */}
               <p
                 key={`subtitle-${animationKey}`}
-                className="hero-subtitle text-sm md:text-lg font-medium text-neutral-500 tracking-[0.005em]"
+                className="hero-subtitle text-sm md:text-lg font-medium text-neutral-500 tracking-[0.005em] leading-snug"
               >
                 {t.subtitle.split('').map((char, index) => (
                   <span
@@ -625,13 +625,13 @@ export default function Home() {
           Trust badges integrated into Trust Indicators section below
           ============================================ */}
       <main>
-        {/* 8pt grid: 16px padding mobile, 24px desktop */}
-        <MaxWidthContainer className="px-4 md:px-6" noPadding={true}>
+        {/* Level-6: Edge-to-edge on mobile, padded on desktop */}
+        <MaxWidthContainer className="px-0 md:px-6" noPadding={true}>
           {/* ============================================
               RECENTLY VIEWED - Personalized Recommendations
               ============================================ */}
-          {/* 8pt grid: 16px mobile, 24px desktop */}
-          <div className="mt-4 md:mt-6">
+          {/* Compact spacing: 12px mobile, 16px desktop */}
+          <div className="mt-3 md:mt-4">
             <RecentlyViewedSection lang={lang} />
           </div>
 
@@ -639,8 +639,8 @@ export default function Home() {
             FLASH DEALS SECTION - Time-Limited Offers
             ENHANCED with Real Duffel Flash Deals, ML/AI, Marketing
             ============================================ */}
-        {/* 8pt grid spacing */}
-        <div className="mt-4 md:mt-6">
+        {/* Compact spacing */}
+        <div className="mt-3 md:mt-4">
           <FlashDealsSectionEnhanced lang={lang} />
         </div>
 
@@ -648,16 +648,16 @@ export default function Home() {
             DESTINATIONS SECTION - Explore by Continent
             ENHANCED with Real Duffel Flight Data, ML/AI, Marketing
             ============================================ */}
-        {/* 8pt grid spacing */}
-        <div className="mt-4 md:mt-6">
+        {/* Compact spacing */}
+        <div className="mt-3 md:mt-4">
           <DestinationsSectionEnhanced lang={lang} />
         </div>
 
         {/* ============================================
             HOTELS SECTION - ML/AI Powered with Duffel Photos
             ============================================ */}
-        {/* 8pt grid spacing */}
-        <div className="mt-4 md:mt-6">
+        {/* Compact spacing */}
+        <div className="mt-3 md:mt-4">
           <HotelsSectionEnhanced lang={lang} />
         </div>
 
@@ -665,7 +665,7 @@ export default function Home() {
             FIFA WORLD CUP 2026 - Prominent Hero Section
             STRATEGIC: High-visibility placement for major event
             ============================================ */}
-        <div className="mt-4 md:mt-6">
+        <div className="mt-3 md:mt-4">
           <WorldCupHeroSectionEnhanced lang={lang} />
         </div>
 
@@ -705,10 +705,10 @@ export default function Home() {
 
         {/* ============================================
             FAQ - Answer Common Questions
-            Level-6: 8pt grid spacing
+            Level-6: Compact spacing
             ============================================ */}
-        {/* 8pt grid: 24px mobile, 32px desktop */}
-        <div className="mt-6 md:mt-8 mb-6 md:mb-8">
+        {/* Compact spacing */}
+        <div className="mt-4 md:mt-6 mb-4 md:mb-6">
           <FAQ
             title={lang === 'en' ? '❓ Frequently Asked Questions' : lang === 'pt' ? '❓ Perguntas Frequentes' : '❓ Preguntas Frecuentes'}
             subtitle={lang === 'en' ? 'Everything you need to know about booking with Fly2Any' : lang === 'pt' ? 'Tudo o que você precisa saber sobre reservas com Fly2Any' : 'Todo lo que necesitas saber sobre reservas con Fly2Any'}

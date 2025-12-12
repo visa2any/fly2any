@@ -46,7 +46,7 @@ export function CompactTrustBar({
   return (
     <div
       className={cn(
-        'left-0 right-0 bg-white/98 backdrop-blur-xl',
+        'w-full overflow-hidden bg-white/98 backdrop-blur-xl',
         'border-b border-neutral-200/80',
         // Only sticky on desktop
         sticky && 'md:sticky md:top-20',
@@ -62,12 +62,11 @@ export function CompactTrustBar({
     >
       {/* Level-6: 44px minimum height, 8pt grid spacing */}
       <div
-        className="flex items-center justify-center gap-4 md:gap-6 min-h-[44px] px-4 md:px-6 overflow-x-auto scrollbar-hide"
+        className="flex items-center justify-start md:justify-center gap-3 md:gap-6 min-h-[44px] px-4 md:px-6 overflow-x-auto scrollbar-hide"
         style={{
           WebkitOverflowScrolling: 'touch',
           scrollbarWidth: 'none',
           msOverflowStyle: 'none',
-          whiteSpace: 'nowrap',
         }}
       >
         {trustItems.map((item, idx) => {

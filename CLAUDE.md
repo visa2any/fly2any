@@ -119,9 +119,64 @@
 ✓ No dead space on either side
 ```
 
+### Edge-to-Edge Mobile Rule (MANDATORY)
+```
+Photos, Cards, Boxes, Images → px-0 on mobile (edge-to-edge)
+Text, Headers, Labels, Hints → px-4 on mobile (16px padding)
+Search Forms, Trust Bars     → px-0 on mobile (full-width)
+Desktop (md+)                → px-0 or px-6 (standard container)
+
+Pattern:
+- Cards/Photos container:  className="px-4 md:px-0"  (padding inside scroll)
+- Section headers:         className="px-4 md:px-0"  (text padding)
+- Grids with cards:        className="px-4 md:px-0"  (edge-to-edge cards)
+- Search forms:            className="px-0"          (full-width on all screens)
+- Trust bars:              className="px-4 md:px-6"  (prevent overflow)
+```
+
+### Typography Line Break Rule (MANDATORY)
+```
+✓ All titles and subtitles CAN break line naturally
+✓ Use leading-tight for titles (1.1-1.2 line height)
+✓ Use leading-snug for subtitles (1.3-1.4 line height)
+✓ Keep filter pills/buttons on single line with whitespace-nowrap
+
+Pattern:
+- Section titles: className="leading-tight"
+- Hero title:     className="leading-tight" (allows wrap)
+- Subtitles:      className="leading-snug" (allows wrap)
+- Filter pills:   className="whitespace-nowrap" (no wrap)
+```
+
+### Compact Spacing Rule (MANDATORY)
+```
+✓ Avoid excessive vertical spaces on mobile
+✓ Use compact margins: mb-3 md:mb-4 (not mb-4 md:mb-6)
+✓ Use compact gaps: gap-3 md:gap-4 (not gap-4 md:gap-6)
+✓ Keep UI tight and information-dense
+
+Pattern:
+- Section margins:  className="mb-3 md:mb-4"
+- Grid gaps:        className="gap-3 md:gap-4"
+```
+
+### Compact Buttons/Pills Rule (MANDATORY)
+```
+✓ Buttons and pills use compact padding
+✓ Min height 36px for pills/filters (not 44px)
+✓ Vertical padding py-1.5 for compact feel
+✓ Horizontal padding px-3 md:px-4
+✓ EXCEPTION: Primary CTA buttons keep 44px for touch targets
+
+Pattern:
+- Filter pills:  className="min-h-[36px] px-3 md:px-4 py-1.5"
+- Tab buttons:   className="min-h-[36px] px-3 py-1.5"
+- Primary CTA:   className="min-h-[44px] py-3 px-6" (keep large)
+```
+
 ### Layout Requirements
 - Containers: **full width**
-- Cards: **full width**
+- Cards: **full width, edge-to-edge on mobile**
 - Inputs: **full width**
 - Buttons: **full width**
 - Grids: auto-responsive (2-3 columns)

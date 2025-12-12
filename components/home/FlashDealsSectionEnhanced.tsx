@@ -198,10 +198,10 @@ export function FlashDealsSectionEnhanced({ lang = 'en' }: FlashDealsSectionEnha
 
   return (
     <section className="py-4 md:py-6" style={{ maxWidth: '1600px', margin: '0 auto' }}>
-      {/* Section Header - Level-6 Typography */}
-      <div className="flex items-center justify-between mb-4 md:mb-6">
-        <div className="flex items-center gap-3 md:gap-4">
-          <h2 className="text-xl md:text-[26px] font-semibold text-neutral-800 tracking-[0.01em]">{t.title}</h2>
+      {/* Section Header - Compact, allows line break */}
+      <div className="flex items-center justify-between mb-3 md:mb-4 px-4 md:px-0">
+        <div className="flex items-center gap-2 md:gap-3 min-w-0">
+          <h2 className="text-lg md:text-[26px] font-semibold text-neutral-800 tracking-[0.01em] leading-tight">{t.title}</h2>
           {/* Cache Indicator */}
           {fromCache && cacheAgeFormatted && (
             <CacheIndicator
@@ -214,15 +214,15 @@ export function FlashDealsSectionEnhanced({ lang = 'en' }: FlashDealsSectionEnha
           )}
         </div>
         <button
-          className="text-sm font-semibold text-primary-500 hover:text-primary-600 transition-colors duration-150 ease-apple min-h-[44px] px-4 flex items-center"
+          className="text-sm font-semibold text-primary-500 hover:text-primary-600 transition-colors duration-150 ease-apple min-h-[44px] px-3 flex items-center active:scale-[0.97]"
           onClick={() => window.open('/flights/results', '_blank')}
         >
           {t.viewAll} →
         </button>
       </div>
 
-      {/* Divider - Subtle */}
-      <div className="h-px bg-neutral-200/80 mb-4 md:mb-6"></div>
+      {/* Divider - Compact */}
+      <div className="h-px bg-neutral-200/80 mb-3 md:mb-4 mx-4 md:mx-0"></div>
 
       {/* Loading State */}
       {loading && (
@@ -251,14 +251,14 @@ export function FlashDealsSectionEnhanced({ lang = 'en' }: FlashDealsSectionEnha
       {/* Flash Deals Content */}
       {!loading && !error && deals.length > 0 && (
         <>
-          {/* Scroll Hint */}
-          <div className="text-center text-sm text-gray-600 mb-4 font-semibold">
+          {/* Scroll Hint - Compact */}
+          <div className="text-center text-xs text-neutral-500 mb-2 font-medium px-4 md:px-0">
             {t.scrollHint}
           </div>
 
-          {/* Horizontal Scroll Container - Full width */}
-          <div className="overflow-x-auto pb-4 md:pb-6 scrollbar-hide">
-            <div className="flex gap-4 md:gap-6 min-w-max">
+          {/* Cards - Edge-to-edge on mobile */}
+          <div className="overflow-x-auto pb-3 md:pb-4 scrollbar-hide">
+            <div className="flex gap-3 md:gap-6 min-w-max px-4 md:px-0">
               {deals.map((deal) => {
                 // Get city names and airline data
                 const fromCity = getAirportCity(deal.from);

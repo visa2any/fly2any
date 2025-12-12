@@ -472,10 +472,10 @@ export function DestinationsSectionEnhanced({ lang = 'en' }: DestinationsSection
 
   return (
     <section className="py-4 md:py-6" style={{ maxWidth: '1600px', margin: '0 auto' }}>
-      {/* Section Header - Level-6 Typography */}
-      <div className="flex items-center justify-between mb-4 md:mb-6 gap-4">
-        <div className="flex items-center gap-3 md:gap-4 flex-1 min-w-0">
-          <h2 className="text-xl md:text-[26px] font-semibold text-neutral-800 tracking-[0.01em] truncate">{t.title}</h2>
+      {/* Section Header - Compact, allows line break */}
+      <div className="flex items-center justify-between mb-3 md:mb-4 gap-2 px-4 md:px-0">
+        <div className="flex items-center gap-2 md:gap-3 min-w-0">
+          <h2 className="text-lg md:text-[26px] font-semibold text-neutral-800 tracking-[0.01em] leading-tight">{t.title}</h2>
           {/* Cache Indicator */}
           {fromCache && cacheAgeFormatted && (
             <CacheIndicator
@@ -489,19 +489,19 @@ export function DestinationsSectionEnhanced({ lang = 'en' }: DestinationsSection
           )}
         </div>
         <button
-          className="text-sm font-semibold text-primary-500 hover:text-primary-600 transition-colors duration-150 ease-apple min-h-[44px] px-4 flex items-center flex-shrink-0"
+          className="text-sm font-semibold text-primary-500 hover:text-primary-600 transition-colors duration-150 ease-apple min-h-[44px] px-3 flex items-center flex-shrink-0 active:scale-[0.97]"
           onClick={() => window.open('/flights/results', '_blank')}
         >
           {t.viewAll} →
         </button>
       </div>
 
-      {/* Divider - Subtle */}
-      <div className="h-px bg-neutral-200/80 mb-4 md:mb-6"></div>
+      {/* Divider - Compact */}
+      <div className="h-px bg-neutral-200/80 mb-3 md:mb-4 mx-4 md:mx-0"></div>
 
-      {/* Filter Buttons - Level-6: 44px touch targets, 8pt grid */}
+      {/* Filter Pills - Compact padding */}
       <div
-        className="flex gap-2 md:gap-3 mb-4 md:mb-6 overflow-x-auto scrollbar-hide pb-2"
+        className="flex gap-2 mb-3 md:mb-4 overflow-x-auto scrollbar-hide pb-1 px-4 md:px-0"
         style={{
           WebkitOverflowScrolling: 'touch',
           scrollbarWidth: 'none',
@@ -521,7 +521,7 @@ export function DestinationsSectionEnhanced({ lang = 'en' }: DestinationsSection
             key={filter.key}
             onClick={() => setActiveFilter(filter.key)}
             disabled={loading}
-            className={`min-h-[44px] px-4 md:px-5 py-2 rounded-xl font-semibold text-sm transition-all duration-150 ease-apple border flex-shrink-0 whitespace-nowrap ${
+            className={`min-h-[36px] px-3 md:px-4 py-1.5 rounded-lg font-semibold text-sm transition-all duration-150 ease-apple border flex-shrink-0 whitespace-nowrap ${
               activeFilter === filter.key
                 ? 'bg-primary-500 text-white border-primary-500 shadow-primary'
                 : 'bg-white text-neutral-700 border-neutral-200 hover:border-primary-400 hover:bg-primary-50 active:scale-[0.97]'
@@ -556,10 +556,10 @@ export function DestinationsSectionEnhanced({ lang = 'en' }: DestinationsSection
         </div>
       )}
 
-      {/* Destinations Grid - Level-6: 8pt grid spacing */}
+      {/* Destinations Grid - Edge-to-edge, compact spacing */}
       {!loading && !error && destinations.length > 0 && (
         <>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6 mb-4 md:mb-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4 mb-3 md:mb-4 px-4 md:px-0">
             {destinations.map((destination) => (
               <DestinationCard
                 key={destination.id}
@@ -578,8 +578,8 @@ export function DestinationsSectionEnhanced({ lang = 'en' }: DestinationsSection
             ))}
           </div>
 
-          {/* Click Hint */}
-          <div className="text-center text-sm text-gray-600 mt-4">
+          {/* Click Hint - Text padding */}
+          <div className="text-center text-sm text-gray-600 mt-4 px-4 md:px-0">
             {t.clickHint}
           </div>
         </>

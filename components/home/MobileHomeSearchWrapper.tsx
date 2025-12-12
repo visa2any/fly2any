@@ -212,10 +212,10 @@ export function MobileHomeSearchWrapper({
   if (!hasMounted) {
     // Return a skeleton/placeholder that matches SSR output - Apple-Class
     return (
-      <div className="w-full bg-white rounded-3xl shadow-2xl border-2 border-neutral-100 p-6 md:p-8" style={{ minHeight: '200px' }}>
+      <div className="w-full bg-white shadow-md border-y border-neutral-100 p-4 md:p-8" style={{ minHeight: '120px' }}>
         <div className="animate-pulse">
-          <div className="h-10 bg-neutral-200 rounded-xl mb-4 w-1/3"></div>
-          <div className="h-16 bg-neutral-100 rounded-xl"></div>
+          <div className="h-8 bg-neutral-200 rounded-lg mb-3 w-1/3"></div>
+          <div className="h-12 bg-neutral-100 rounded-lg"></div>
         </div>
       </div>
     );
@@ -255,11 +255,11 @@ export function MobileHomeSearchWrapper({
               damping: 28,
               mass: 0.8,
             }}
-            className="w-full px-3 py-2"
+            className="w-full px-0 py-1"
           >
             <button
               onClick={handleExpand}
-              className="w-full min-h-[52px] bg-white border-2 border-neutral-200 hover:border-primary-400 rounded-2xl p-3 shadow-lg transition-all duration-200 active:scale-[0.98] touch-manipulation"
+              className="w-full min-h-[48px] bg-white border-y-2 border-neutral-200 hover:border-primary-400 p-3 shadow-md transition-all duration-200 active:scale-[0.99] touch-manipulation"
               aria-label="Expand flight search form"
               aria-expanded="false"
               type="button"
