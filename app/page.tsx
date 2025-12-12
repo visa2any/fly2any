@@ -311,17 +311,17 @@ export default function Home() {
         }}></div>
 
         <MaxWidthContainer
-          className="relative py-4 md:py-6 lg:py-8"
+          className="relative py-4 md:py-5 lg:py-7"
           noPadding={true}
         >
-          {/* Text padding on mobile */}
-          <div className="px-4 md:px-6">
+          {/* Text padding - reduced on mobile for edge-to-edge feel */}
+          <div className="px-3 md:px-6">
             {/* Title Container - stacked on mobile, inline on desktop */}
             <div className="flex flex-col md:flex-row md:items-center gap-0.5 md:gap-4">
-              {/* Main Title - Level-6: prominent on mobile, cinematic on desktop */}
+              {/* Main Title - Level-6: +10% mobile size, premium desktop */}
               <h1
                 key={`title-${animationKey}`}
-                className="hero-title text-[13px] md:text-[32px] lg:text-[42px] xl:text-[48px] font-bold tracking-[0.01em] text-neutral-800 whitespace-nowrap"
+                className="hero-title text-[14px] md:text-[32px] lg:text-[42px] xl:text-[48px] font-bold tracking-[0.01em] text-neutral-800 whitespace-nowrap"
               >
                 {t.sectionTitle.split('').map((char, index) => (
                   <span
@@ -341,10 +341,10 @@ export default function Home() {
               {/* Separator - Hidden on mobile */}
               <span className="hidden md:block text-primary-500 text-2xl font-bold flex-shrink-0">•</span>
 
-              {/* Subtitle - Level-6: visible on separate row on mobile, elegant on desktop */}
+              {/* Subtitle - Level-6: +10% mobile size, elegant on desktop */}
               <p
                 key={`subtitle-${animationKey}`}
-                className="hero-subtitle text-[11px] md:text-lg lg:text-xl font-medium text-neutral-500 tracking-[0.005em] whitespace-nowrap"
+                className="hero-subtitle text-[12px] md:text-lg lg:text-xl font-medium text-neutral-500 tracking-[0.005em] whitespace-nowrap"
               >
                 {t.subtitle.split('').map((char, index) => (
                   <span
