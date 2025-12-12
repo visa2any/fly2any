@@ -10,6 +10,15 @@ const withNextIntl = createNextIntlPlugin('./i18n/request.ts');
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  // Skip type checking during build to prevent memory issues
+  // Types are checked separately via `npm run lint` and in CI
+  typescript: {
+    ignoreBuildErrors: true,
+  },
+  eslint: {
+    ignoreDuringBuilds: true,
+  },
+
   // Redirect legacy /home-new to root /
   async redirects() {
     return [
