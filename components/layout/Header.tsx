@@ -198,12 +198,12 @@ export function Header({
           transform: scrollDirection === 'down' && !isAtTop
             ? 'translateY(-100%)'
             : 'translateY(0)',
-          transition: 'transform 300ms cubic-bezier(0.4, 0.0, 0.2, 1), background 300ms, border 300ms, box-shadow 300ms',
+          transition: 'transform 280ms cubic-bezier(0.2, 0.8, 0.2, 1), background 200ms, border 200ms, box-shadow 200ms',
           willChange: 'transform',
         }}
       >
         <MaxWidthContainer noPadding className="px-3 md:px-6">
-          <div className="flex items-center justify-between h-14 sm:h-16 md:h-18 lg:h-20">
+          <div className="flex items-center justify-between h-14 sm:h-16 lg:h-[72px]">
             {/* Logo with Icon + Text - Left aligned */}
             <a href="/" className="flex items-center gap-2 group flex-shrink-0">
               {/* Airplane Icon */}
@@ -247,77 +247,77 @@ export function Header({
               </span>
             </a>
 
-          {/* Main Navigation - Premium Glassmorphism Style */}
-          <nav className="hidden lg:flex items-center space-x-0.5 xl:space-x-1 ml-auto mr-3 xl:mr-6" suppressHydrationWarning>
+          {/* Main Navigation - Level-6 Apple-Class Style */}
+          <nav className="hidden lg:flex items-center gap-1 xl:gap-2 ml-auto mr-4 xl:mr-8" suppressHydrationWarning>
 
             {/* Flights - First */}
             <a
               href="/flights"
-              className="group relative px-2 xl:px-3 py-2 xl:py-2.5 text-gray-700 hover:text-primary-600 transition-all duration-300 font-semibold text-xs xl:text-sm rounded-lg hover:bg-primary-50/50"
+              className="group relative px-3 xl:px-4 py-2.5 text-neutral-700 hover:text-primary-600 transition-all duration-150 ease-[cubic-bezier(0.2,0.8,0.2,1)] font-semibold text-sm rounded-xl hover:bg-primary-50/60 hover:-translate-y-0.5"
             >
-              <span className="flex items-center gap-1.5">
-                <span className="text-lg transition-transform group-hover:scale-110">
+              <span className="flex items-center gap-2">
+                <span className="text-lg transition-transform duration-150 group-hover:scale-110">
                   ✈️
                 </span>
                 {t('flights')}
               </span>
-              <span className="absolute bottom-1 left-0 w-0 h-0.5 bg-primary-600 transition-all duration-300 group-hover:w-full rounded-full"></span>
+              <span className="absolute bottom-1.5 left-3 right-3 h-0.5 bg-primary-500 rounded-full scale-x-0 group-hover:scale-x-100 transition-transform duration-150 ease-[cubic-bezier(0.2,0.8,0.2,1)] origin-left"></span>
             </a>
 
             {/* Hotels */}
             <a
               href="/hotels"
-              className="group relative px-2 xl:px-3 py-2 xl:py-2.5 text-gray-700 hover:text-primary-600 transition-all duration-300 font-semibold text-xs xl:text-sm rounded-lg hover:bg-primary-50/50"
+              className="group relative px-3 xl:px-4 py-2.5 text-neutral-700 hover:text-primary-600 transition-all duration-150 ease-[cubic-bezier(0.2,0.8,0.2,1)] font-semibold text-sm rounded-xl hover:bg-primary-50/60 hover:-translate-y-0.5"
             >
-              <span className="flex items-center gap-1.5">
-                <span className="text-lg transition-transform group-hover:scale-110">
+              <span className="flex items-center gap-2">
+                <span className="text-lg transition-transform duration-150 group-hover:scale-110">
                   🏨
                 </span>
                 {t('hotels')}
               </span>
-              <span className="absolute bottom-1 left-0 w-0 h-0.5 bg-primary-600 transition-all duration-300 group-hover:w-full rounded-full"></span>
+              <span className="absolute bottom-1.5 left-3 right-3 h-0.5 bg-primary-500 rounded-full scale-x-0 group-hover:scale-x-100 transition-transform duration-150 ease-[cubic-bezier(0.2,0.8,0.2,1)] origin-left"></span>
             </a>
 
             {/* Deals - Promoted to main nav */}
             <a
               href="/deals"
-              className="group relative px-2 xl:px-3 py-2 xl:py-2.5 text-gray-700 hover:text-primary-600 transition-all duration-300 font-semibold text-xs xl:text-sm rounded-lg hover:bg-primary-50/50"
+              className="group relative px-3 xl:px-4 py-2.5 text-neutral-700 hover:text-primary-600 transition-all duration-150 ease-[cubic-bezier(0.2,0.8,0.2,1)] font-semibold text-sm rounded-xl hover:bg-primary-50/60 hover:-translate-y-0.5"
             >
-              <span className="flex items-center gap-1 xl:gap-1.5">
-                <span className="text-base xl:text-lg transition-transform group-hover:scale-110">
+              <span className="flex items-center gap-2">
+                <span className="text-lg transition-transform duration-150 group-hover:scale-110">
                   🔥
                 </span>
                 {t('deals')}
               </span>
-              <span className="absolute bottom-1 left-0 w-0 h-0.5 bg-primary-600 transition-all duration-300 group-hover:w-full rounded-full"></span>
+              <span className="absolute bottom-1.5 left-3 right-3 h-0.5 bg-primary-500 rounded-full scale-x-0 group-hover:scale-x-100 transition-transform duration-150 ease-[cubic-bezier(0.2,0.8,0.2,1)] origin-left"></span>
             </a>
 
             {/* Destinations - Promoted to main nav */}
             <a
               href="/destinations"
-              className="group relative px-2 xl:px-3 py-2 xl:py-2.5 text-gray-700 hover:text-primary-600 transition-all duration-300 font-semibold text-xs xl:text-sm rounded-lg hover:bg-primary-50/50"
+              className="group relative px-3 xl:px-4 py-2.5 text-neutral-700 hover:text-primary-600 transition-all duration-150 ease-[cubic-bezier(0.2,0.8,0.2,1)] font-semibold text-sm rounded-xl hover:bg-primary-50/60 hover:-translate-y-0.5"
             >
-              <span className="flex items-center gap-1 xl:gap-1.5">
-                <span className="text-base xl:text-lg transition-transform group-hover:scale-110">
+              <span className="flex items-center gap-2">
+                <span className="text-lg transition-transform duration-150 group-hover:scale-110">
                   🏙️
                 </span>
                 {t('destinations')}
               </span>
-              <span className="absolute bottom-1 left-0 w-0 h-0.5 bg-primary-600 transition-all duration-300 group-hover:w-full rounded-full"></span>
+              <span className="absolute bottom-1.5 left-3 right-3 h-0.5 bg-primary-500 rounded-full scale-x-0 group-hover:scale-x-100 transition-transform duration-150 ease-[cubic-bezier(0.2,0.8,0.2,1)] origin-left"></span>
             </a>
 
             {/* Airlines - Promoted to main nav */}
             <a
               href="/airlines"
-              className="group relative px-2 xl:px-3 py-2 xl:py-2.5 text-gray-700 hover:text-primary-600 transition-all duration-300 font-semibold text-xs xl:text-sm rounded-lg hover:bg-primary-50/50"
+              className="group relative px-3 xl:px-4 py-2.5 text-neutral-700 hover:text-primary-600 transition-all duration-150 ease-[cubic-bezier(0.2,0.8,0.2,1)] font-semibold text-sm rounded-xl hover:bg-primary-50/60 hover:-translate-y-0.5"
             >
-              <span className="flex items-center gap-1 xl:gap-1.5">
-                <span className="text-base xl:text-lg transition-transform group-hover:scale-110">
+              <span className="flex items-center gap-2">
+                <span className="text-lg transition-transform duration-150 group-hover:scale-110">
                   ✈️
                 </span>
                 {t('airlines')}
               </span>
-              <span className="absolute bottom-1 left-0 w-0 h-0.5 bg-primary-600 transition-all duration-300 group-hover:w-full rounded-full"></span>
+              <span className="absolute bottom-1.5 left-3 right-3 h-0.5 bg-primary-500 rounded-full scale-x-0 group-hover:scale-x-100 transition-transform duration-150 ease-[cubic-bezier(0.2,0.8,0.2,1)] origin-left"></span>
             </a>
 
             {/* ============================================
@@ -401,28 +401,28 @@ export function Header({
             </a>
             */}
 
-            {/* Discover Dropdown */}
+            {/* Discover Dropdown - Level-6 */}
             <div className="relative discover-dropdown">
               <button
                 onClick={() => setDiscoverDropdownOpen(!discoverDropdownOpen)}
                 onMouseEnter={() => setDiscoverDropdownOpen(true)}
-                className="group relative px-2 xl:px-3 py-2 xl:py-2.5 text-gray-700 hover:text-primary-600 transition-all duration-300 font-semibold text-xs xl:text-sm rounded-lg hover:bg-primary-50/50 flex items-center gap-1 xl:gap-1.5"
+                className="group relative px-3 xl:px-4 py-2.5 text-neutral-700 hover:text-primary-600 transition-all duration-150 ease-[cubic-bezier(0.2,0.8,0.2,1)] font-semibold text-sm rounded-xl hover:bg-primary-50/60 hover:-translate-y-0.5 flex items-center gap-2"
               >
-                <span className="flex items-center gap-1 xl:gap-1.5">
-                  <span className="text-base xl:text-lg transition-transform group-hover:scale-110">
+                <span className="flex items-center gap-2">
+                  <span className="text-lg transition-transform duration-150 group-hover:scale-110">
                     🗺️
                   </span>
                   {t('discover')}
                 </span>
                 <svg
-                  className={`w-3 xl:w-4 h-3 xl:h-4 transition-all duration-300 ${discoverDropdownOpen ? 'rotate-180' : ''}`}
+                  className={`w-4 h-4 transition-transform duration-150 ease-[cubic-bezier(0.2,0.8,0.2,1)] ${discoverDropdownOpen ? 'rotate-180' : ''}`}
                   fill="none"
                   viewBox="0 0 24 24"
                   stroke="currentColor"
                 >
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M19 9l-7 7-7-7" />
                 </svg>
-                <span className="absolute bottom-1 left-0 w-0 h-0.5 bg-primary-600 transition-all duration-300 group-hover:w-full rounded-full"></span>
+                <span className="absolute bottom-1.5 left-3 right-3 h-0.5 bg-primary-500 rounded-full scale-x-0 group-hover:scale-x-100 transition-transform duration-150 ease-[cubic-bezier(0.2,0.8,0.2,1)] origin-left"></span>
               </button>
 
               {/* Dropdown Menu */}
