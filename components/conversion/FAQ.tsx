@@ -33,11 +33,8 @@ interface Props {
 }
 
 export function FAQ({ title, subtitle, categories, language = 'en' }: Props) {
-  // Allow multiple categories to be open simultaneously for visual balance
-  const [openCategories, setOpenCategories] = useState<string[]>(() => {
-    // Default: Open first 2 categories for visual balance in 2-column layout
-    return categories.slice(0, 2).map(cat => cat.id).filter(Boolean);
-  });
+  // All categories collapsed by default - user expands as needed
+  const [openCategories, setOpenCategories] = useState<string[]>([]);
   const [openQuestion, setOpenQuestion] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
 

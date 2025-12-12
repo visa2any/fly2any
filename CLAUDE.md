@@ -187,6 +187,117 @@ sm: 640px   /* Mobile landscape */
 md: 768px   /* Tablet */
 lg: 1024px  /* Desktop */
 xl: 1280px  /* Large desktop */
+2xl: 1536px /* Wide desktop */
+```
+
+---
+
+## 🖥️ 3.5 DESKTOP-FIRST — ULTRA PREMIUM SYSTEM (Level-6 Apple-Class)
+
+> **MANDATORY**: Desktop experience must feel premium, calm, global, and luxurious.
+
+### Desktop Typography Scale
+| Element | Size | Weight | Tracking |
+|---------|------|--------|----------|
+| H1 (Hero) | 48-56px | 700 | +1% |
+| H2 (Section) | 36px | 600 | +1% |
+| H3 (Card Title) | 28px | 600 | +1% |
+| Body L | 20px | 400 | +0.5% |
+| Body M | 18px | 400 | +0.5% |
+| Body S | 16px | 400 | +0.5% |
+| Caption | 14px | 400 | +0.5% |
+
+### Desktop Grid System (12-Column)
+```
+✓ Max container width: 1600px (centered)
+✓ Column gutters: 24px (gap-6)
+✓ Section padding: px-6 lg:px-12
+✓ Hero sections: full-width with centered content
+✓ Card grids: 3-4 columns depending on content type
+```
+
+### Desktop Layout Rules
+```css
+/* Container */
+max-width: 1600px;
+margin: 0 auto;
+padding: 0 48px; /* px-12 */
+
+/* Hero Section */
+height: auto;
+padding: 80px 48px; /* py-20 px-12 */
+text-align: center or left;
+
+/* Section Spacing */
+padding-top: 64px; /* py-16 */
+padding-bottom: 64px;
+margin-bottom: 0; /* No margin, use padding */
+
+/* Card Grids */
+grid-template-columns: repeat(3, 1fr); /* or repeat(4, 1fr) */
+gap: 24px; /* gap-6 */
+```
+
+### Desktop Card Standards
+```tsx
+<div className="
+  bg-white rounded-2xl
+  shadow-lg hover:shadow-xl
+  p-6
+  transition-all duration-200 ease-[cubic-bezier(0.2,0.8,0.2,1)]
+  hover:-translate-y-1
+  border border-neutral-100
+">
+```
+
+### Desktop Hover States (MANDATORY)
+```
+✓ Cards: lift 2-4px + shadow grows
+✓ Buttons: subtle scale (1.02) + color shift
+✓ Links: underline animation or color shift
+✓ Images: subtle zoom (1.03) within container
+✓ All transitions: 200ms ease-[cubic-bezier(0.2,0.8,0.2,1)]
+```
+
+### Desktop Hero Requirements
+```
+✓ Cinematic depth with layered surfaces
+✓ Ultra-sharp typography (H1 48-56px)
+✓ Premium search module (centered or integrated)
+✓ Subtle ambient animations
+✓ Emotional clarity and calm luxury
+✓ Height: auto (content-driven) or min-h-[500px]
+```
+
+### Desktop Navigation (Header)
+```
+✓ Fixed position with blur backdrop
+✓ Height: 72px (desktop)
+✓ Logo left, nav center or right
+✓ Smooth scroll-aware hide/show (optional)
+✓ Premium shadow on scroll
+```
+
+### Desktop Whitespace Rules
+```
+✓ Generous but purposeful whitespace
+✓ Section padding: py-16 lg:py-20
+✓ Grid gaps: gap-6 lg:gap-8
+✓ Card padding: p-6 lg:p-8
+✓ No dead/empty space - every area has purpose
+```
+
+### Desktop Motion (MANDATORY)
+```css
+/* Hover lift */
+transform: translateY(-4px);
+box-shadow: 0 8px 24px rgba(0,0,0,0.12);
+
+/* Smooth transitions */
+transition: all 200ms cubic-bezier(0.2, 0.8, 0.2, 1);
+
+/* Hover scale (buttons) */
+transform: scale(1.02);
 ```
 
 ---
