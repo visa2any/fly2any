@@ -722,7 +722,7 @@ export default function BookingConfirmationContent() {
           <Image
             src="/logo.png"
             alt="Fly2Any Travel"
-            width={120}
+            width={116}
             height={40}
             className="h-10 w-auto"
           />

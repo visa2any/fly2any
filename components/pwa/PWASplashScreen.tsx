@@ -77,7 +77,7 @@ export function PWASplashScreen() {
         <Image
           src="/logo.png"
           alt="Fly2Any"
-          width={280}
+          width={231}
           height={80}
           priority
           className="h-16 sm:h-20 lg:h-24 w-auto object-contain drop-shadow-lg"

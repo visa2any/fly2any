@@ -529,8 +529,8 @@ export function Footer({
                 <Image
                   src="/logo.png"
                   alt="Fly2Any Travel"
-                  width={120}
-                  height={36}
+                  width={290}
+                  height={100}
                   className="h-7 w-auto brightness-0 invert"
                 />
               )}
