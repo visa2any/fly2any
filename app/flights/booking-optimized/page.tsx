@@ -181,6 +181,7 @@ function BookingPageContent() {
         // These are grouped during search and stored as fareVariants
         if (flight.fareVariants && flight.fareVariants.length > 0) {
           console.log(`🎫 Using ${flight.fareVariants.length} fare variants from Duffel search`);
+          console.log(`🔍 First variant priceDetails:`, flight.fareVariants[0]?.priceDetails);
 
           realFares = flight.fareVariants.map((variant: any, index: number) => ({
             id: variant.id,
@@ -830,29 +831,46 @@ function BookingPageContent() {
 
     const selectedFare = fareOptions.find(f => f.id === selectedFareId);
 
-    // CRITICAL: Use price data from selected fare (which has correct base/fees)
-    // Fall back to flightData if fare not found
-    const priceDetails = selectedFare?.priceDetails || flightData.price;
-    const totalPrice = parseFloat(String(priceDetails.total || selectedFare?.price || flightData.price.total));
+    // CRITICAL FIX: When a fare is selected, use its priceDetails for accurate breakdown
+    // selectedFare.price is the TOTAL (includes taxes/fees already)
+    // priceDetails has: total, base, fees - use these for proper breakdown
+    const priceDetails = selectedFare?.priceDetails;
 
-    // Extract base fare and taxes from fare details
-    let basePrice = priceDetails.base ? parseFloat(String(priceDetails.base)) : 0;
+    let basePrice = 0;
     let taxesAndFeesAmount = 0;
+    let totalPrice = 0;
 
-    // Method 1: Use fees array if available
-    if (priceDetails.fees && Array.isArray(priceDetails.fees) && priceDetails.fees.length > 0) {
-      taxesAndFeesAmount = priceDetails.fees.reduce((sum: number, fee: any) => sum + parseFloat(String(fee.amount || 0)), 0);
-      if (basePrice === 0) basePrice = totalPrice - taxesAndFeesAmount;
-    }
-    // Method 2: Calculate from base if available
-    else if (basePrice > 0) {
-      taxesAndFeesAmount = Math.max(0, totalPrice - basePrice);
-    }
-    // Method 3: No breakdown available
-    else {
-      basePrice = totalPrice;
+    if (priceDetails) {
+      // Fare has price breakdown - use it directly
+      totalPrice = parseFloat(String(priceDetails.total || priceDetails.grandTotal || 0));
+      basePrice = parseFloat(String(priceDetails.base || 0));
+
+      // Method 1: Use fees array if available
+      if (priceDetails.fees && Array.isArray(priceDetails.fees) && priceDetails.fees.length > 0) {
+        taxesAndFeesAmount = priceDetails.fees.reduce((sum: number, fee: any) => sum + parseFloat(String(fee.amount || 0)), 0);
+      }
+      // Method 2: Calculate from base if fees not available
+      else if (basePrice > 0) {
+        taxesAndFeesAmount = Math.max(0, totalPrice - basePrice);
+      }
+    } else if (selectedFare) {
+      // Fare selected but no priceDetails - use price as total with 0 taxes
+      // (already broken down at display level)
+      totalPrice = selectedFare.price;
+      basePrice = selectedFare.price;
       taxesAndFeesAmount = 0;
-      console.warn(`⚠️ Selected fare missing price breakdown`);
+      console.warn(`⚠️ Selected fare #${selectedFare.id} missing price breakdown`);
+    } else {
+      // No fare selected - use flight data
+      const flightPrice = flightData.price;
+      totalPrice = parseFloat(String(flightPrice.total || 0));
+      basePrice = parseFloat(String(flightPrice.base || 0));
+
+      if (flightPrice.fees && Array.isArray(flightPrice.fees) && flightPrice.fees.length > 0) {
+        taxesAndFeesAmount = flightPrice.fees.reduce((sum: number, fee: any) => sum + parseFloat(String(fee.amount || 0)), 0);
+      } else if (basePrice > 0) {
+        taxesAndFeesAmount = Math.max(0, totalPrice - basePrice);
+      }
     }
 
     const farePrice = basePrice;
