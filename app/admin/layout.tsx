@@ -23,7 +23,7 @@ export default async function AdminLayout({
   const session = await auth()
 
   if (!session?.user?.id) {
-    redirect('/auth/signin?callbackUrl=/admin')
+    redirect('/auth/admin-signin?callbackUrl=/admin')
   }
 
   // Auto-initialize admin if none exists (DEV ONLY)

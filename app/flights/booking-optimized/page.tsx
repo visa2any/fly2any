@@ -27,6 +27,12 @@ interface FareOption {
   name: string;
   price: number;
   currency: string;
+  priceDetails?: { // Complete price breakdown for checkout
+    total?: any;
+    base?: any;
+    fees?: any;
+    grandTotal?: any;
+  };
   features: string[];
   restrictions?: string[];
   positives?: string[]; // Positive policies like "Free changes", "Fully refundable"
@@ -152,6 +158,16 @@ function BookingPageContent() {
 
         const flight = JSON.parse(flightJson);
         const search = JSON.parse(searchJson);
+
+        // DEBUG: Log what we received from sessionStorage
+        console.log('📦 Flight object from sessionStorage:', {
+          id: flight.id,
+          hasFareVariants: !!flight.fareVariants,
+          fareVariantCount: flight.fareVariants?.length || 0,
+          fareVariantNames: flight.fareVariants?.map((v: any) => v.name) || [],
+          price: flight.price?.total,
+          keys: Object.keys(flight).slice(0, 10)
+        });
 
         setFlightData({ ...flight, search });
 

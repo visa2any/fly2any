@@ -59,7 +59,7 @@ interface PromptNotification {
 
 interface UseGoogleAuthOptions {
   callbackUrl?: string;
-  context?: 'signin' | 'signup';
+  context?: 'signin' | 'signup' | 'admin';
   enableOneTap?: boolean;
   onSuccess?: () => void;
   onError?: (error: string) => void;

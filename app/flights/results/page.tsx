@@ -895,6 +895,14 @@ function FlightResultsContent() {
         const data = await response.json();
         let processedFlights = data.flights || [];
 
+        // DEBUG: Log what we got from API
+        console.log('📡 API Response - Flights with fareVariants:', processedFlights.slice(0, 3).map((f: any) => ({
+          id: f.id,
+          hasFareVariants: !!f.fareVariants,
+          fareVariantCount: f.fareVariants?.length || 0,
+          fareVariantNames: f.fareVariants?.map((v: any) => v.name) || []
+        })));
+
         // Capture ML metadata from API response
         if (data.metadata?.ml) {
           setMlMetadata(data.metadata.ml);
@@ -920,12 +928,15 @@ function FlightResultsContent() {
 
             const flightsWithDealScores = batchCalculateDealScores(flightsWithFactors);
 
-            processedFlights = processedFlights.map((flight: any, index: number) => ({
-              ...flight,
-              dealScore: flightsWithDealScores[index].total,
-              dealTier: flightsWithDealScores[index].tier,
-              dealLabel: flightsWithDealScores[index].label,
-            }));
+            processedFlights = processedFlights.map((flight: any, index: number) => {
+              // Ensure we preserve all original flight properties including fareVariants
+              return {
+                ...flight,
+                dealScore: flightsWithDealScores[index].total,
+                dealTier: flightsWithDealScores[index].tier,
+                dealLabel: flightsWithDealScores[index].label,
+              };
+            });
           } catch (error) {
             console.warn('Deal score calculation failed, continuing without scores:', error);
             // Continue without deal scores if calculation fails
@@ -1010,6 +1021,15 @@ function FlightResultsContent() {
         }
 
         setFlights(processedFlights);
+
+        // DEBUG: Log what went into state
+        console.log('✈️ setFlights() called with flights:', processedFlights.slice(0, 3).map((f: any) => ({
+          id: f.id,
+          hasFareVariants: !!f.fareVariants,
+          fareVariantCount: f.fareVariants?.length || 0,
+          fareVariantNames: f.fareVariants?.map((v: any) => v.name) || [],
+          dealScore: f.dealScore
+        })));
 
         // Announce results to screen readers
         announceResults(processedFlights.length);

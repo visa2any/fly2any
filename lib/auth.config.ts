@@ -11,6 +11,7 @@ import type { NextAuthConfig } from 'next-auth';
 import Google from 'next-auth/providers/google';
 import Credentials from 'next-auth/providers/credentials';
 import { prisma } from './prisma';
+import { validateAdminGoogleAuth, isAdminAuthContext } from './auth-admin';
 
 // Lazy import bcryptjs to avoid bundling in edge runtime
 // This is only evaluated when Credentials provider is used
@@ -29,6 +30,7 @@ export const authConfig = {
           prompt: 'consent',
           access_type: 'offline',
           response_type: 'code',
+          state: process.env.NEXTAUTH_SECRET, // Track admin-only requests
         },
       },
     }),
@@ -116,7 +118,22 @@ export const authConfig = {
       }
       return true;
     },
+    async jwt({ token, user, account, profile, isNewUser, trigger }) {
+      // Mark if this is an admin auth attempt
+      if (account?.provider === 'google') {
+        token.adminAuth = true;
+      }
+      if (user) {
+        token.sub = user.id;
+      }
+      return token;
+    },
     async redirect({ url, baseUrl }) {
+      // Check if this is an admin-only auth request that failed
+      if (url.includes('/auth/admin-signin') && url.includes('error=')) {
+        return `${baseUrl}/auth/admin-signin`;
+      }
+
       // Allow any valid URL for redirects (including /admin with callbackUrl)
       // If url starts with baseUrl, allow it
       if (url.startsWith(baseUrl)) return url;
@@ -143,12 +160,6 @@ export const authConfig = {
         }
       }
       return session;
-    },
-    async jwt({ token, user, account }) {
-      if (user) {
-        token.sub = user.id;
-      }
-      return token;
     },
   },
   session: {
