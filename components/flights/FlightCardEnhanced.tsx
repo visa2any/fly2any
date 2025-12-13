@@ -1430,7 +1430,7 @@ export function FlightCardEnhanced({
           <div className="flex flex-col">
             <div className="flex items-baseline gap-1">
               <span className="font-bold text-gray-900" data-testid="flight-price" style={{ fontSize: typography.card.price.size, lineHeight: '1' }}>
-                {price.currency} {Math.round(totalPrice).toLocaleString()}
+                {price.currency} {totalPrice.toFixed(2)}
               </span>
             </div>
             <span className="text-[10px] text-green-700 font-semibold leading-tight flex items-center gap-0.5">
@@ -1554,11 +1554,11 @@ export function FlightCardEnhanced({
                 {/* REQUIRED FEES */}
                 <div className="flex justify-between">
                   <span className="text-gray-700">Base fare</span>
-                  <span className="font-semibold text-gray-900">{price.currency} {Math.round(basePrice)}</span>
+                  <span className="font-semibold text-gray-900">{price.currency} {basePrice.toFixed(2)}</span>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-gray-700">Taxes & fees ({feesPercentage}%)</span>
-                  <span className="font-semibold text-gray-900">{price.currency} {Math.round(fees)}</span>
+                  <span className="font-semibold text-gray-900">{price.currency} {fees.toFixed(2)}</span>
                 </div>
 
                 {/* TOTAL - All mandatory charges (DOT Compliant All-In Price) */}
@@ -1567,7 +1567,7 @@ export function FlightCardEnhanced({
                     TOTAL PRICE
                     <span className="text-[9px] font-normal text-primary-600">(incl. all taxes & fees)</span>
                   </span>
-                  <span className="text-neutral-800">{price.currency} {Math.round(totalPrice)}</span>
+                  <span className="text-neutral-800">{price.currency} {totalPrice.toFixed(2)}</span>
                 </div>
 
                 {/* OPTIONAL ADD-ONS - Clearly separated */}
