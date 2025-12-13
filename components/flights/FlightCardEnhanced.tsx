@@ -534,41 +534,29 @@ export function FlightCardEnhanced({
       // DEBUG: Log fare detection
       console.log(`🎫 Fare Detection: ${fareOption} | ${brandedLabel} | isBasic=${isBasicEconomy} | isPremium=${isPremium}`);
 
-      // Checked baggage from API - CRITICAL: Validate against fare class
-      // Basic economy typically has 0 bags unless API explicitly says otherwise
+      // Checked baggage from API - TRANSPARENT: Show EXACTLY what API says
       let checkedBags = fareDetails.includedCheckedBags?.quantity;
 
-      // CRITICAL FIX: Override baggage based on fare class knowledge
-      // Basic Economy fares on most US airlines do NOT include checked bags
-      // even if API sometimes returns incorrect data
-      if (isBasicEconomy) {
-        // Basic economy = NO checked bags (override API if needed)
-        if (checkedBags === undefined || checkedBags === null || checkedBags > 0) {
-          console.log(`⚠️ Basic economy fare "${brandedLabel || fareOption}" - setting bags to 0 (API returned: ${checkedBags})`);
-          checkedBags = 0;
-        }
-      } else if (checkedBags === undefined || checkedBags === null) {
-        // No API data - use fare-based defaults
-        if (isPremium) {
-          checkedBags = 2; // Premium cabins usually get 2 bags
-        } else {
-          checkedBags = 0; // Standard economy - don't assume bags without API confirmation
-        }
+      // If API doesn't specify, be transparent - don't assume bags
+      if (checkedBags === undefined || checkedBags === null) {
+        console.warn(`⚠️ "${brandedLabel || fareOption}" - API did NOT specify checked bags (defaulting to 0 for customer safety)`);
+        checkedBags = 0;
       }
 
-      // DEBUG: Final baggage determination
-      console.log(`💼 Baggage for "${brandedLabel || fareOption}": API=${fareDetails.includedCheckedBags?.quantity}, Final=${checkedBags}`);
+      // Log what customer will see
+      console.log(`✓ "${brandedLabel || fareOption}": Displaying ${checkedBags} checked bag(s) | isBasic=${isBasicEconomy} | isPremium=${isPremium}`);
 
       const checkedWeight = fareDetails.includedCheckedBags?.weight
         ? `${fareDetails.includedCheckedBags.weight}${fareDetails.includedCheckedBags.weightUnit || 'kg'}`
         : '23kg';
 
-      // Cabin baggage from API (NEW - we weren't using this!)
+      // Cabin baggage from API - TRANSPARENT: Show EXACTLY what API says
       const cabinBagsData = fareDetails.includedCabinBags;
-      const cabinQuantity = cabinBagsData?.quantity || 0;
+      const cabinQuantity = cabinBagsData?.quantity;
 
-      // Determine carry-on rules - Basic economy usually restricted
-      const hasCarryOn = cabinQuantity >= 2 || (!isBasicEconomy && cabin !== 'BASIC');
+      // CRITICAL: Only show carry-on if API explicitly confirms it (quantity > 0)
+      // DO NOT default to true if API doesn't specify - be transparent about uncertainty
+      const hasCarryOn = cabinQuantity && cabinQuantity > 0;
       const carryOnWeight = isPremium ? '18kg' : '10kg';
 
       // Parse amenities array (with aircraft-based fallback)

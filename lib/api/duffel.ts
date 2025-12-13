@@ -589,7 +589,7 @@ class DuffelAPI {
         weightUnit: checkedWeight ? 'kg' : undefined,
       },
       cabin: {
-        quantity: cabinBags || 1, // At minimum personal item
+        quantity: cabinBags, // Return EXACT API value - 0 if not specified
         weight: cabinWeight,
         weightUnit: cabinWeight ? 'kg' : undefined,
       },
