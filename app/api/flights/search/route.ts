@@ -1499,6 +1499,27 @@ export async function POST(request: NextRequest) {
           _markupAmount: markupResult.markupAmount.toString(),
           _markupPercentage: markupResult.markupPercentage,
         },
+        // CRITICAL FIX #1: Apply markup to fareVariants too!
+        // Each variant needs the same markup applied individually
+        fareVariants: flight.fareVariants?.map((variant: any) => {
+          const variantNetPrice = parseFloat(String(variant.price || '0'));
+          const variantMarkupResult = applyFlightMarkup(variantNetPrice);
+          const variantOriginalBase = parseFloat(String(variant.priceDetails?.base || '0'));
+          const variantNewBase = variantOriginalBase > 0 ? variantOriginalBase + variantMarkupResult.markupAmount : 0;
+
+          return {
+            ...variant,
+            price: variantMarkupResult.customerPrice, // ✓ Mark-up applied to variant price
+            priceDetails: {
+              total: variantMarkupResult.customerPrice.toString(),
+              base: variantNewBase > 0 ? variantNewBase.toString() : variant.priceDetails?.base || '0',
+              fees: variant.priceDetails?.fees, // Keep original fees breakdown
+              grandTotal: variantMarkupResult.customerPrice.toString(),
+              _netPrice: variantNetPrice.toString(),
+              _markupAmount: variantMarkupResult.markupAmount.toString(),
+            },
+          };
+        }),
         // Update traveler pricing if exists
         // CRITICAL FIX: Calculate per-person price, not assign total to each traveler
         travelerPricings: flight.travelerPricings?.map((tp: any) => {
@@ -1515,6 +1536,14 @@ export async function POST(request: NextRequest) {
       };
 
       console.log(`  ✓ ${flight.id?.slice(-8)} (${source}): $${netPrice.toFixed(2)} → $${markupResult.customerPrice.toFixed(2)} (+$${markupResult.markupAmount.toFixed(2)} / ${markupResult.markupPercentage}%)`);
+
+      // Debug: Log fare variants markup
+      if (markedUpFlight.fareVariants && markedUpFlight.fareVariants.length > 0) {
+        console.log(`    📊 FareVariants markup applied: ${markedUpFlight.fareVariants.length} variants`);
+        markedUpFlight.fareVariants.forEach((v: any, i: number) => {
+          console.log(`      [${i}] ${v.name}: $${v.price.toFixed(2)} (base: ${v.priceDetails?.base})`);
+        });
+      }
 
       return markedUpFlight;
     });
