@@ -408,10 +408,30 @@ class LiteAPI {
     guestNationality?: string;
   }): Promise<Array<{ hotelId: string; roomTypes: LiteAPIRoomType[] }>> {
     try {
+      // CRITICAL FIX: Ensure dates are in YYYY-MM-DD format (not ISO datetime)
+      const formatDateForLiteAPI = (dateString: string): string => {
+        try {
+          // If it's already in YYYY-MM-DD format, return as-is
+          if (/^\d{4}-\d{2}-\d{2}$/.test(dateString)) {
+            return dateString;
+          }
+          // Parse and format to YYYY-MM-DD
+          const date = new Date(dateString);
+          if (isNaN(date.getTime())) {
+            console.warn(`⚠️ LiteAPI: Invalid date format: ${dateString}`);
+            return dateString;
+          }
+          return date.toISOString().split('T')[0];
+        } catch (e) {
+          console.warn(`⚠️ LiteAPI: Error parsing date ${dateString}:`, e);
+          return dateString;
+        }
+      };
+
       const requestBody = {
         hotelIds: params.hotelIds,
-        checkin: params.checkin,
-        checkout: params.checkout,
+        checkin: formatDateForLiteAPI(params.checkin),
+        checkout: formatDateForLiteAPI(params.checkout),
         occupancies: params.occupancies,
         currency: params.currency || 'USD',
         guestNationality: params.guestNationality || 'US',
@@ -430,8 +450,13 @@ class LiteAPI {
       return data;
     } catch (error) {
       const axiosError = error as AxiosError<{ error?: { message?: string } }>;
-      console.error('❌ LiteAPI: Error getting rates:', axiosError.response?.data || axiosError.message);
-      throw new Error(axiosError.response?.data?.error?.message || 'Failed to get hotel rates');
+      console.error('❌ LiteAPI: Error getting rates:', {
+        message: axiosError.message,
+        status: axiosError.response?.status,
+        statusText: axiosError.response?.statusText,
+        data: axiosError.response?.data,
+      });
+      throw new Error(axiosError.response?.data?.error?.message || axiosError.message || 'Failed to get hotel rates');
     }
   }
 
@@ -456,6 +481,22 @@ class LiteAPI {
 
       console.log(`⚡ LiteAPI: Getting rates for ${params.hotelIds.length} hotels (batched in groups of ${BATCH_SIZE})`);
 
+      // Validate input
+      if (!params.hotelIds || params.hotelIds.length === 0) {
+        console.warn('⚠️ LiteAPI: No hotel IDs provided to getHotelMinimumRates');
+        return [];
+      }
+
+      if (!params.occupancies || params.occupancies.length === 0) {
+        console.warn('⚠️ LiteAPI: No occupancies provided to getHotelMinimumRates');
+        return [];
+      }
+
+      // Validate dates
+      if (!params.checkin || !params.checkout) {
+        throw new Error('Check-in and check-out dates are required');
+      }
+
       // Split hotel IDs into batches
       for (let i = 0; i < params.hotelIds.length; i += BATCH_SIZE) {
         const batchIds = params.hotelIds.slice(i, i + BATCH_SIZE);
@@ -465,10 +506,30 @@ class LiteAPI {
         console.log(`📦 LiteAPI: Processing batch ${batchNumber}/${totalBatches} (${batchIds.length} hotels)`);
 
         try {
+          // CRITICAL FIX: Ensure dates are in YYYY-MM-DD format (not ISO datetime)
+          const formatDateForLiteAPI = (dateString: string): string => {
+            try {
+              // If it's already in YYYY-MM-DD format, return as-is
+              if (/^\d{4}-\d{2}-\d{2}$/.test(dateString)) {
+                return dateString;
+              }
+              // Parse and format to YYYY-MM-DD
+              const date = new Date(dateString);
+              if (isNaN(date.getTime())) {
+                console.warn(`⚠️ LiteAPI: Invalid date format: ${dateString}`);
+                return dateString;
+              }
+              return date.toISOString().split('T')[0];
+            } catch (e) {
+              console.warn(`⚠️ LiteAPI: Error parsing date ${dateString}:`, e);
+              return dateString;
+            }
+          };
+
           const requestBody = {
             hotelIds: batchIds,
-            checkin: params.checkin,
-            checkout: params.checkout,
+            checkin: formatDateForLiteAPI(params.checkin),
+            checkout: formatDateForLiteAPI(params.checkout),
             occupancies: params.occupancies,
             currency: params.currency || 'USD',
             guestNationality: params.guestNationality || 'US',
@@ -480,6 +541,8 @@ class LiteAPI {
           // DEBUG: Log first batch request to understand what we're sending
           if (batchNumber === 1) {
             console.log('🔍 DEBUG: First batch request body:', JSON.stringify(requestBody, null, 2));
+            console.log('🔍 DEBUG: hotelIds count:', batchIds.length);
+            console.log('🔍 DEBUG: occupancies:', JSON.stringify(params.occupancies, null, 2));
           }
 
           // Use the CORRECT endpoint: /hotels/rates (not /hotels/min-rates which doesn't exist)
@@ -596,6 +659,12 @@ class LiteAPI {
         } catch (batchError) {
           const axiosError = batchError as AxiosError<{ error?: { message?: string } }>;
           console.error(`❌ LiteAPI: Batch ${batchNumber} failed:`, axiosError.message);
+          console.error(`❌ LiteAPI: Batch ${batchNumber} error response:`, {
+            status: axiosError.response?.status,
+            statusText: axiosError.response?.statusText,
+            data: axiosError.response?.data,
+          });
+          console.error(`❌ LiteAPI: Batch ${batchNumber} request body was:`, JSON.stringify(requestBody, null, 2));
           // Continue to next batch instead of failing completely
           continue;
         }
@@ -611,8 +680,13 @@ class LiteAPI {
       return allMinimumRates;
     } catch (error) {
       const axiosError = error as AxiosError<{ error?: { message?: string } }>;
-      console.error('❌ LiteAPI: Error getting rates:', axiosError.response?.data || axiosError.message);
-      throw new Error(axiosError.response?.data?.error?.message || 'Failed to get hotel rates');
+      console.error('❌ LiteAPI: Error getting rates:', {
+        message: axiosError.message,
+        status: axiosError.response?.status,
+        statusText: axiosError.response?.statusText,
+        data: axiosError.response?.data,
+      });
+      throw new Error(axiosError.response?.data?.error?.message || axiosError.message || 'Failed to get hotel rates');
     }
   }
 
