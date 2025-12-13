@@ -1031,8 +1031,14 @@ export async function POST(request: NextRequest) {
               return {
                 id: v.id,
                 name: displayName,
-                price: price,
+                price: price, // Total price for display
                 currency: v.price?.currency || 'USD',
+                priceDetails: { // CRITICAL: Store complete price breakdown
+                  total: v.price?.total,
+                  base: v.price?.base,
+                  fees: v.price?.fees,
+                  grandTotal: v.price?.grandTotal,
+                },
                 originalOffer: v, // Store full offer for booking
                 features: extractFareFeatures(v, fareDetails),
                 restrictions: restrictions.length > 0 ? restrictions : undefined,

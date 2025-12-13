@@ -170,10 +170,15 @@ function BookingPageContent() {
             id: variant.id,
             name: variant.name || 'Economy Standard',
             price: variant.price,
+            priceDetails: variant.priceDetails || { // Use complete price breakdown from search
+              total: variant.price,
+              base: undefined,
+              fees: undefined,
+            },
             currency: variant.currency || 'USD',
             features: variant.features || ['Economy seat', 'Carry-on included'],
-            restrictions: variant.restrictions || undefined, // Include restrictions from search API
-            positives: variant.positives || undefined, // Include positive policies (Free changes, Refundable)
+            restrictions: variant.restrictions || undefined,
+            positives: variant.positives || undefined,
             recommended: variant.recommended || false,
             popularityPercent: variant.popularityPercent || (index === 0 ? 26 : index === 1 ? 74 : 18),
             originalOffer: variant.originalOffer, // Keep original offer for booking
@@ -809,20 +814,31 @@ function BookingPageContent() {
 
     const selectedFare = fareOptions.find(f => f.id === selectedFareId);
 
-    // Get total price from API (includes all taxes and fees - DOT compliant)
-    const totalPrice = selectedFare?.price || parseFloat(flightData.price.total);
+    // CRITICAL: Use price data from selected fare (which has correct base/fees)
+    // Fall back to flightData if fare not found
+    const priceDetails = selectedFare?.priceDetails || flightData.price;
+    const totalPrice = parseFloat(String(priceDetails.total || selectedFare?.price || flightData.price.total));
 
-    // Extract base fare and taxes from flight data
-    // If available, use base + separate tax amount
-    // Otherwise, show all-in price as base with 0 taxes (already included)
-    const basePrice = flightData.price.base ? parseFloat(flightData.price.base) : totalPrice;
-    const taxesAndFeesAmount = flightData.price.base
-      ? Math.max(0, totalPrice - basePrice)
-      : 0; // If no base available, taxes are already in total
+    // Extract base fare and taxes from fare details
+    let basePrice = priceDetails.base ? parseFloat(String(priceDetails.base)) : 0;
+    let taxesAndFeesAmount = 0;
 
-    // For checkout display:
-    // Show base fare separately, then taxes/fees as separate line item
-    // This matches what customer sees on flight card
+    // Method 1: Use fees array if available
+    if (priceDetails.fees && Array.isArray(priceDetails.fees) && priceDetails.fees.length > 0) {
+      taxesAndFeesAmount = priceDetails.fees.reduce((sum: number, fee: any) => sum + parseFloat(String(fee.amount || 0)), 0);
+      if (basePrice === 0) basePrice = totalPrice - taxesAndFeesAmount;
+    }
+    // Method 2: Calculate from base if available
+    else if (basePrice > 0) {
+      taxesAndFeesAmount = Math.max(0, totalPrice - basePrice);
+    }
+    // Method 3: No breakdown available
+    else {
+      basePrice = totalPrice;
+      taxesAndFeesAmount = 0;
+      console.warn(`⚠️ Selected fare missing price breakdown`);
+    }
+
     const farePrice = basePrice;
     const taxesAndFees = taxesAndFeesAmount;
 
