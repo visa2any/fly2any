@@ -1160,75 +1160,8 @@ Manual intervention required to:
         },
         { status: 500 }
       );
-    }
-  } catch (error: any) {
-    console.error('❌ Booking error:', error);
-
-    // Parse error messages from API (Amadeus or Duffel)
-    const errorMessage = error.message || 'An unexpected error occurred';
-
-    // Handle specific error types
-    if (errorMessage.startsWith('SOLD_OUT:')) {
-      return NextResponse.json(
-        {
-          error: 'SOLD_OUT',
-          message: errorMessage.replace('SOLD_OUT:', '').trim(),
-        },
-        { status: 410 }
-      );
-    }
-
-    if (errorMessage.startsWith('PRICE_CHANGED:')) {
-      return NextResponse.json(
-        {
-          error: 'PRICE_CHANGED',
-          message: errorMessage.replace('PRICE_CHANGED:', '').trim(),
-        },
-        { status: 409 }
-      );
-    }
-
-    if (errorMessage.startsWith('INVALID_DATA:')) {
-      return NextResponse.json(
-        {
-          error: 'INVALID_DATA',
-          message: errorMessage.replace('INVALID_DATA:', '').trim(),
-        },
-        { status: 400 }
-      );
-    }
-
-    if (errorMessage.startsWith('AUTHENTICATION_ERROR:')) {
-      return NextResponse.json(
-        {
-          error: 'AUTHENTICATION_ERROR',
-          message: 'Unable to process booking. Please contact support.',
-        },
-        { status: 500 }
-      );
-    }
-
-    if (errorMessage.startsWith('API_ERROR:')) {
-      return NextResponse.json(
-        {
-          error: 'API_ERROR',
-          message: errorMessage.replace('API_ERROR:', '').trim(),
-        },
-        { status: 503 }
-      );
-    }
-
-    // Generic error response
-    return NextResponse.json(
-      {
-        error: 'BOOKING_FAILED',
-        message: 'Failed to create booking. Please try again or contact support.',
-        details: process.env.NODE_ENV === 'development' ? errorMessage : undefined,
-      },
-      { status: 500 }
-    );
+    });
   }
-}
 
 // OPTIONS handler for CORS
 export async function OPTIONS(request: NextRequest) {
