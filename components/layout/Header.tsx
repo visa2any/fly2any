@@ -203,7 +203,7 @@ export function Header({
         }}
       >
         <MaxWidthContainer noPadding className="px-3 md:px-6">
-          <div className="flex items-center justify-between h-14 sm:h-16 lg:h-20">
+          <div className="flex items-center justify-between h-14 sm:h-16 lg:h-[72px]">
             {/* Logo - Level-6 Ultra-Premium */}
             <a
               href="/"
@@ -215,7 +215,7 @@ export function Header({
                 width={880}
                 height={304}
                 priority
-                className="h-12 sm:h-16 lg:h-20 w-auto object-contain"
+                className="h-12 sm:h-14 lg:h-16 w-auto object-contain"
               />
             </a>
 
