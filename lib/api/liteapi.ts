@@ -476,10 +476,11 @@ class LiteAPI {
     guestNationality?: string;
   }): Promise<Array<{ hotelId: string; minimumRate: { amount: number; currency: string }; available: boolean }>> {
     try {
-      const BATCH_SIZE = 20; // Process 20 hotels at a time for optimal performance
-      const allMinimumRates: Array<{ hotelId: string; minimumRate: { amount: number; currency: string }; available: boolean }> = [];
+      // PERFORMANCE OPTIMIZED: Increased batch size, parallel execution
+      const BATCH_SIZE = 25; // Increased from 20 for fewer API calls
+      const MAX_CONCURRENT = 3; // Process 3 batches in parallel
 
-      console.log(`⚡ LiteAPI: Getting rates for ${params.hotelIds.length} hotels (batched in groups of ${BATCH_SIZE})`);
+      console.log(`⚡ LiteAPI: Getting rates for ${params.hotelIds.length} hotels (PARALLEL batches of ${BATCH_SIZE})`);
 
       // Validate input
       if (!params.hotelIds || params.hotelIds.length === 0) {
@@ -497,185 +498,146 @@ class LiteAPI {
         throw new Error('Check-in and check-out dates are required');
       }
 
-      // Split hotel IDs into batches
+      // CRITICAL FIX: Format dates ONCE outside the loop
+      const formatDateForLiteAPI = (dateString: string): string => {
+        if (/^\d{4}-\d{2}-\d{2}$/.test(dateString)) return dateString;
+        const date = new Date(dateString);
+        return isNaN(date.getTime()) ? dateString : date.toISOString().split('T')[0];
+      };
+
+      const formattedCheckin = formatDateForLiteAPI(params.checkin);
+      const formattedCheckout = formatDateForLiteAPI(params.checkout);
+
+      // Create all batches upfront
+      const batches: string[][] = [];
       for (let i = 0; i < params.hotelIds.length; i += BATCH_SIZE) {
-        const batchIds = params.hotelIds.slice(i, i + BATCH_SIZE);
-        const batchNumber = Math.floor(i / BATCH_SIZE) + 1;
-        const totalBatches = Math.ceil(params.hotelIds.length / BATCH_SIZE);
+        batches.push(params.hotelIds.slice(i, i + BATCH_SIZE));
+      }
 
-        console.log(`📦 LiteAPI: Processing batch ${batchNumber}/${totalBatches} (${batchIds.length} hotels)`);
+      console.log(`📦 LiteAPI: Created ${batches.length} batches, processing ${MAX_CONCURRENT} in parallel`);
 
-        try {
-          // CRITICAL FIX: Ensure dates are in YYYY-MM-DD format (not ISO datetime)
-          const formatDateForLiteAPI = (dateString: string): string => {
+      // Process batches in parallel with controlled concurrency
+      const allMinimumRates: Array<{ hotelId: string; minimumRate: { amount: number; currency: string }; available: boolean }> = [];
+
+      // Process in waves of MAX_CONCURRENT batches (PARALLEL)
+      for (let wave = 0; wave < batches.length; wave += MAX_CONCURRENT) {
+        const waveBatches = batches.slice(wave, wave + MAX_CONCURRENT);
+        const waveNumber = Math.floor(wave / MAX_CONCURRENT) + 1;
+        const totalWaves = Math.ceil(batches.length / MAX_CONCURRENT);
+
+        console.log(`🚀 LiteAPI: Wave ${waveNumber}/${totalWaves} - processing ${waveBatches.length} batches in PARALLEL`);
+
+        // Execute all batches in this wave CONCURRENTLY
+        const waveResults = await Promise.all(
+          waveBatches.map(async (batchIds, idx) => {
+            const batchNumber = wave + idx + 1;
             try {
-              // If it's already in YYYY-MM-DD format, return as-is
-              if (/^\d{4}-\d{2}-\d{2}$/.test(dateString)) {
-                return dateString;
-              }
-              // Parse and format to YYYY-MM-DD
-              const date = new Date(dateString);
-              if (isNaN(date.getTime())) {
-                console.warn(`⚠️ LiteAPI: Invalid date format: ${dateString}`);
-                return dateString;
-              }
-              return date.toISOString().split('T')[0];
-            } catch (e) {
-              console.warn(`⚠️ LiteAPI: Error parsing date ${dateString}:`, e);
-              return dateString;
-            }
-          };
+              const requestBody = {
+                hotelIds: batchIds,
+                checkin: formattedCheckin,
+                checkout: formattedCheckout,
+                occupancies: params.occupancies,
+                currency: params.currency || 'USD',
+                guestNationality: params.guestNationality || 'US',
+                timeout: 5,
+                roomMapping: true,
+              };
 
-          const requestBody = {
-            hotelIds: batchIds,
-            checkin: formatDateForLiteAPI(params.checkin),
-            checkout: formatDateForLiteAPI(params.checkout),
-            occupancies: params.occupancies,
-            currency: params.currency || 'USD',
-            guestNationality: params.guestNationality || 'US',
-            // CRITICAL PARAMETERS from official Postman collection:
-            timeout: 5,        // 5 seconds - allows API more time to find availability
-            roomMapping: true, // Enable room mapping for better availability
-          };
-
-          // DEBUG: Log first batch request to understand what we're sending
-          if (batchNumber === 1) {
-            console.log('🔍 DEBUG: First batch request body:', JSON.stringify(requestBody, null, 2));
-            console.log('🔍 DEBUG: hotelIds count:', batchIds.length);
-            console.log('🔍 DEBUG: occupancies:', JSON.stringify(params.occupancies, null, 2));
-          }
-
-          // Use the CORRECT endpoint: /hotels/rates (not /hotels/min-rates which doesn't exist)
-          const response = await axios.post(`${this.baseUrl}/hotels/rates`, requestBody, {
-            headers: this.getHeaders(),
-            timeout: 15000, // 15 second timeout per batch
-          });
-
-          // DEBUG: Log first batch response
-          if (batchNumber === 1) {
-            console.log('🔍 DEBUG: First batch response:', JSON.stringify(response.data, null, 2));
-          }
-
-          // Check for API error responses
-          if (response.data.error) {
-            console.warn(`⚠️ LiteAPI: Batch ${batchNumber} error:`, response.data.error);
-            if (response.data.error.code === 2001) {
-              console.log(`ℹ️ LiteAPI: Batch ${batchNumber} - No availability found`);
-              // Add unavailable entries for this batch
-              batchIds.forEach(hotelId => {
-                allMinimumRates.push({
-                  hotelId,
-                  minimumRate: { amount: 0, currency: params.currency || 'USD' },
-                  available: false
-                });
+              const response = await axios.post(`${this.baseUrl}/hotels/rates`, requestBody, {
+                headers: this.getHeaders(),
+                timeout: 12000, // Reduced from 15s to 12s for faster failure
               });
-              continue;
-            }
-            // Continue to next batch on error
-            continue;
-          }
 
-          const data = response.data.data || [];
-          console.log(`✅ LiteAPI: Batch ${batchNumber} returned ${data.length} rates`);
+              if (response.data.error) {
+                if (response.data.error.code === 2001) {
+                  return batchIds.map(hotelId => ({
+                    hotelId,
+                    minimumRate: { amount: 0, currency: params.currency || 'USD' },
+                    available: false
+                  }));
+                }
+                return [];
+              }
 
-          // Extract minimum rates from this batch
-          const batchMinimumRates = data.map((hotelData: any) => {
-            const hotelId = hotelData.hotelId;
-            const roomTypes = hotelData.roomTypes || [];
+              const data = response.data.data || [];
+              console.log(`✅ Batch ${batchNumber}: ${data.length} rates`);
 
-            if (roomTypes.length === 0) {
-              return { hotelId, minimumRate: { amount: 0, currency: params.currency || 'USD' }, available: false };
-            }
+              return data.map((hotelData: any) => {
+                const hotelId = hotelData.hotelId;
+                const roomTypes = hotelData.roomTypes || [];
 
-            // Find the minimum price across all room types and extract refundable/boardType info
-            // Also track if ANY rate is refundable and the lowest refundable price
-            let minPrice = Infinity;
-            let minRefundablePrice = Infinity;
-            let currency = params.currency || 'USD';
-            let refundable = false; // Is the CHEAPEST rate refundable?
-            let hasRefundableRate = false; // Does this hotel have ANY refundable rate?
-            let boardType = 'RO'; // Default to Room Only
-            let cancellationDeadline: string | undefined;
-            let refundableCancellationDeadline: string | undefined;
+                if (roomTypes.length === 0) {
+                  return { hotelId, minimumRate: { amount: 0, currency: params.currency || 'USD' }, available: false };
+                }
 
-            for (const roomType of roomTypes) {
-              // Check all rates in this room type
-              const rates = roomType.rates || [];
-              for (const rate of rates) {
-                const price = rate.retailRate?.total?.[0]?.amount || roomType.offerRetailRate?.amount;
-                const rateCurrency = rate.retailRate?.total?.[0]?.currency || roomType.offerRetailRate?.currency || currency;
-                const refundableTag = rate.cancellationPolicies?.refundableTag;
-                const isRateRefundable = refundableTag === 'RFN';
-                const rateBoardType = rate.boardType || rate.boardName || 'RO';
-                const rateCancelDeadline = rate.cancellationPolicies?.cancelPolicyInfos?.[0]?.cancelTime;
+                let minPrice = Infinity;
+                let minRefundablePrice = Infinity;
+                let currency = params.currency || 'USD';
+                let refundable = false;
+                let hasRefundableRate = false;
+                let boardType = 'RO';
+                let cancellationDeadline: string | undefined;
+                let refundableCancellationDeadline: string | undefined;
 
-                // Track if ANY rate is refundable
-                if (isRateRefundable) {
-                  hasRefundableRate = true;
-                  // Track lowest refundable price
-                  if (price && price < minRefundablePrice) {
-                    minRefundablePrice = price;
-                    refundableCancellationDeadline = rateCancelDeadline;
+                for (const roomType of roomTypes) {
+                  const rates = roomType.rates || [];
+                  for (const rate of rates) {
+                    const price = rate.retailRate?.total?.[0]?.amount || roomType.offerRetailRate?.amount;
+                    const rateCurrency = rate.retailRate?.total?.[0]?.currency || roomType.offerRetailRate?.currency || currency;
+                    const isRateRefundable = rate.cancellationPolicies?.refundableTag === 'RFN';
+                    const rateBoardType = rate.boardType || rate.boardName || 'RO';
+                    const rateCancelDeadline = rate.cancellationPolicies?.cancelPolicyInfos?.[0]?.cancelTime;
+
+                    if (isRateRefundable) {
+                      hasRefundableRate = true;
+                      if (price && price < minRefundablePrice) {
+                        minRefundablePrice = price;
+                        refundableCancellationDeadline = rateCancelDeadline;
+                      }
+                    }
+
+                    if (price && price < minPrice) {
+                      minPrice = price;
+                      currency = rateCurrency;
+                      refundable = isRateRefundable;
+                      boardType = rateBoardType;
+                      cancellationDeadline = rateCancelDeadline;
+                    }
+                  }
+                  const directPrice = roomType.offerRetailRate?.amount;
+                  if (directPrice && directPrice < minPrice) {
+                    minPrice = directPrice;
+                    currency = roomType.offerRetailRate?.currency || currency;
                   }
                 }
 
-                // Track absolute lowest price (regardless of refundability)
-                if (price && price < minPrice) {
-                  minPrice = price;
-                  currency = rateCurrency;
-                  refundable = isRateRefundable;
-                  boardType = rateBoardType;
-                  cancellationDeadline = rateCancelDeadline;
-                }
-              }
-              // Fallback: check offerRetailRate directly on roomType
-              const directPrice = roomType.offerRetailRate?.amount;
-              if (directPrice && directPrice < minPrice) {
-                minPrice = directPrice;
-                currency = roomType.offerRetailRate?.currency || currency;
-              }
+                return {
+                  hotelId,
+                  minimumRate: { amount: minPrice === Infinity ? 0 : minPrice, currency },
+                  available: minPrice !== Infinity,
+                  refundable,
+                  hasRefundableRate,
+                  lowestRefundablePrice: minRefundablePrice === Infinity ? null : minRefundablePrice,
+                  refundableCancellationDeadline,
+                  boardType,
+                  cancellationDeadline
+                };
+              });
+            } catch (batchError) {
+              console.error(`❌ Batch ${batchNumber} failed:`, (batchError as Error).message);
+              return [];
             }
+          })
+        );
 
-            return {
-              hotelId,
-              minimumRate: { amount: minPrice === Infinity ? 0 : minPrice, currency },
-              available: minPrice !== Infinity,
-              refundable, // Is cheapest rate refundable?
-              hasRefundableRate, // Does hotel have ANY refundable option?
-              lowestRefundablePrice: minRefundablePrice === Infinity ? null : minRefundablePrice,
-              refundableCancellationDeadline,
-              boardType,
-              cancellationDeadline
-            };
-          });
-
-          allMinimumRates.push(...batchMinimumRates);
-
-          // Add small delay between batches to avoid rate limiting
-          if (i + BATCH_SIZE < params.hotelIds.length) {
-            await new Promise(resolve => setTimeout(resolve, 100));
-          }
-
-        } catch (batchError) {
-          const axiosError = batchError as AxiosError<{ error?: { message?: string } }>;
-          console.error(`❌ LiteAPI: Batch ${batchNumber} failed:`, axiosError.message);
-          console.error(`❌ LiteAPI: Batch ${batchNumber} error response:`, {
-            status: axiosError.response?.status,
-            statusText: axiosError.response?.statusText,
-            data: axiosError.response?.data,
-          });
-          console.error(`❌ LiteAPI: Batch ${batchNumber} request body was:`, JSON.stringify(requestBody, null, 2));
-          // Continue to next batch instead of failing completely
-          continue;
+        // Flatten wave results and add to allMinimumRates
+        for (const batchResults of waveResults) {
+          allMinimumRates.push(...batchResults);
         }
       }
 
       const availableCount = allMinimumRates.filter(r => r.available).length;
-      console.log(`✅ LiteAPI: Extracted minimum rates for ${availableCount}/${allMinimumRates.length} hotels with availability`);
-
-      if (availableCount === 0 && params.hotelIds.length > 0) {
-        console.warn('⚠️ LiteAPI: No rates returned for any hotels. This may indicate low availability for the selected dates.');
-      }
+      console.log(`✅ LiteAPI: ${availableCount}/${allMinimumRates.length} hotels with availability (PARALLEL mode)`);
 
       return allMinimumRates;
     } catch (error) {
@@ -901,9 +863,10 @@ class LiteAPI {
       console.log(`📅 LiteAPI: Calculated ${nights} nights (${checkIn} to ${checkOut})`);
 
       // Step 1: Get hotel static data
-      // INCREASED LIMIT: Get up to 200 hotels to maximize availability options
+      // PERFORMANCE OPTIMIZED: Reduced from 200 to 50 for faster results
+      // Users typically view first 30-50 hotels, no need to fetch more
       const locationParams: Parameters<typeof this.getHotelsByLocation>[0] = {
-        limit: params.limit || 200, // LiteAPI supports up to 200 hotels per request
+        limit: Math.min(params.limit || 50, 75), // Cap at 75 for performance
       };
 
       if (params.latitude !== undefined && params.longitude !== undefined) {

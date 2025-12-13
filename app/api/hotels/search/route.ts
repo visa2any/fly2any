@@ -360,17 +360,16 @@ export async function POST(request: NextRequest) {
       console.log('⚠️ Could not determine location, defaulting to New York');
     }
 
-    console.log('🔍 Searching hotels with MULTI-API AGGREGATION (LiteAPI + Hotelbeds)...', { latitude, longitude, countryCode });
+    console.log('🔍 Searching hotels (FAST mode)...', { latitude, longitude, countryCode });
 
-    // PARALLEL MULTI-API SEARCH STRATEGY
-    // Search both LiteAPI AND Hotelbeds simultaneously for maximum inventory
-    const searchPromises = [];
-
-    // 1. LiteAPI Search (Primary - Fast with minimum rates)
-    // CRITICAL: Include rooms param for accurate multi-room pricing
+    // PERFORMANCE OPTIMIZED: Single API search in production
     const roomCount = body.rooms || 1;
-    console.log(`🏨 [POST SEARCH] ${searchParams.guests?.adults || 2} adults, ${Array.isArray(searchParams.guests?.children) ? searchParams.guests.children.length : 0} children, ${roomCount} rooms`);
-    const liteAPIPromise = liteAPI.searchHotelsWithMinRates({
+    const isProduction = process.env.NODE_ENV === 'production' || process.env.VERCEL_ENV === 'production';
+
+    console.log(`🏨 [SEARCH] ${searchParams.guests?.adults || 2} adults, ${Array.isArray(searchParams.guests?.children) ? searchParams.guests.children.length : 0} children, ${roomCount} rooms`);
+
+    // LiteAPI Search (Primary - FAST with parallel batching)
+    const liteAPIResults = await liteAPI.searchHotelsWithMinRates({
       latitude,
       longitude,
       checkinDate: searchParams.checkIn!,
@@ -380,30 +379,17 @@ export async function POST(request: NextRequest) {
       rooms: roomCount,
       currency: searchParams.currency || 'USD',
       guestNationality: 'US',
-      limit: searchParams.limit || 30,
+      limit: searchParams.limit || 50, // Reduced from 30 default, capped at 75 internally
     }).catch(err => {
       console.error('⚠️ LiteAPI search failed:', err.message);
       return { hotels: [], meta: { usedMinRates: true, error: err.message } };
     });
 
-    searchPromises.push(liteAPIPromise);
+    // Hotelbeds only in development (skip entirely in production for speed)
+    let hotelbedsResults = { hotels: [] as any[], processTime: 0 };
 
-    // 2. Hotelbeds Search (Secondary - Wholesale rates)
-    const hotelbedsPromise = (async () => {
+    if (!isProduction && process.env.HOTELBEDS_API_KEY && process.env.HOTELBEDS_SECRET) {
       try {
-        // DISABLED IN PRODUCTION - Hotelbeds is for testing only
-        if (process.env.NODE_ENV === 'production' || process.env.VERCEL_ENV === 'production') {
-          console.log('🚫 Hotelbeds disabled in production environment');
-          return { hotels: [], processTime: 0 };
-        }
-
-        // Check if Hotelbeds is configured
-        if (!process.env.HOTELBEDS_API_KEY || !process.env.HOTELBEDS_SECRET) {
-          console.log('ℹ️ Hotelbeds not configured, skipping');
-          return { hotels: [], processTime: 0 };
-        }
-
-        // Build paxes array for Hotelbeds
         const paxes = [];
         const adults = searchParams.guests?.adults || 2;
         for (let i = 0; i < adults; i++) {
@@ -414,44 +400,23 @@ export async function POST(request: NextRequest) {
           paxes.push({ type: 'CH' as const, age: 10 });
         }
 
-        const hotelbedsResults = await searchHotelbeds({
-          stay: {
-            checkIn: searchParams.checkIn!,
-            checkOut: searchParams.checkOut!,
-          },
-          occupancies: [{
-            rooms: 1,
-            adults: adults,
-            children: childrenCount,
-            paxes,
-          }],
-          geolocation: {
-            latitude,
-            longitude,
-            radius: searchParams.radius || 20,
-            unit: 'km',
-          },
+        const hotelbedsData = await searchHotelbeds({
+          stay: { checkIn: searchParams.checkIn!, checkOut: searchParams.checkOut! },
+          occupancies: [{ rooms: 1, adults, children: childrenCount, paxes }],
+          geolocation: { latitude, longitude, radius: searchParams.radius || 20, unit: 'km' },
           language: 'ENG',
         });
 
-        const hotelbedsHotels = (hotelbedsResults.hotels?.hotels || []).map(hotel =>
-          normalizeHotelbedsHotel(hotel, searchParams.checkIn!, searchParams.checkOut!)
-        );
-
-        return {
-          hotels: hotelbedsHotels,
-          processTime: hotelbedsResults.auditData?.processTime,
+        hotelbedsResults = {
+          hotels: (hotelbedsData.hotels?.hotels || []).map(hotel =>
+            normalizeHotelbedsHotel(hotel, searchParams.checkIn!, searchParams.checkOut!)
+          ),
+          processTime: hotelbedsData.auditData?.processTime || 0,
         };
       } catch (err: any) {
         console.error('⚠️ Hotelbeds search failed:', err.message);
-        return { hotels: [], processTime: 0, error: err.message };
       }
-    })();
-
-    searchPromises.push(hotelbedsPromise);
-
-    // Execute searches in parallel
-    const [liteAPIResults, hotelbedsResults] = await Promise.all(searchPromises);
+    }
 
     // Combine results from both APIs
     const allHotels = [...(liteAPIResults.hotels || []), ...(hotelbedsResults.hotels || [])];
