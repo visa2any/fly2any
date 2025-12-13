@@ -7,6 +7,9 @@ import type { HotelSearchParams, Hotel } from '@/lib/hotels/types';
 // Cost protection - blocks bots and suspicious requests BEFORE expensive API calls
 import { checkCostGuard, COST_GUARDS } from '@/lib/security/cost-protection';
 
+// Error monitoring - sends alerts for all errors
+import { handleApiError } from '@/lib/monitoring/global-error-handler';
+
 // Comprehensive city name to coordinates mapping
 // Matches the suggestions API database for consistent location lookups
 const CITY_COORDINATES: Record<string, { lat: number; lng: number; country: string }> = {
@@ -242,7 +245,7 @@ function getCityCoordinates(query: string): { lat: number; lng: number; country:
  * Revenue: Commission-based (~$30-50 per booking)
  */
 export async function POST(request: NextRequest) {
-  try {
+  return handleApiError(request, async () => {
     // 🛡️ COST PROTECTION: Block bots and suspicious requests BEFORE expensive API calls
     const costGuard = await checkCostGuard(request, COST_GUARDS.HOTEL_SEARCH);
     if (!costGuard.allowed && costGuard.response) {
@@ -614,40 +617,7 @@ export async function POST(request: NextRequest) {
         'Cache-Control': 'public, max-age=900',
       }
     });
-  } catch (error: any) {
-    console.error('❌ Hotel search error:', error);
-
-    // Enhanced error logging for production debugging
-    const errorDetails = {
-      message: error.message || 'Failed to search hotels',
-      code: error.code,
-      response: error.response?.data,
-      status: error.response?.status,
-    };
-
-    console.error('📊 Error details:', JSON.stringify(errorDetails, null, 2));
-
-    // Check for specific error types
-    let userMessage = error.message || 'Failed to search hotels';
-    if (error.message?.includes('API key') || error.response?.status === 401) {
-      userMessage = 'Hotel search service is temporarily unavailable. Please try again later.';
-      console.error('🔑 LiteAPI Authentication Error - Check LITEAPI_API_KEY environment variable');
-    } else if (error.response?.status === 429) {
-      userMessage = 'Too many requests. Please wait a moment and try again.';
-    } else if (error.code === 'ECONNREFUSED' || error.code === 'ETIMEDOUT') {
-      userMessage = 'Unable to connect to hotel search service. Please check your internet connection.';
-    }
-
-    return NextResponse.json(
-      {
-        success: false,
-        error: userMessage,
-        errorCode: error.code,
-        details: process.env.NODE_ENV === 'development' ? error.stack : undefined,
-      },
-      { status: 500 }
-    );
-  }
+  });
 }
 
 /**
@@ -655,7 +625,7 @@ export async function POST(request: NextRequest) {
  * Supports both new (query/checkIn/checkOut) and legacy (cityCode/checkInDate/checkOutDate) parameters
  */
 export async function GET(request: NextRequest) {
-  try {
+  return handleApiError(request, async () => {
     const searchParams = request.nextUrl.searchParams;
 
     // Support both new and legacy parameter names
@@ -833,38 +803,5 @@ export async function GET(request: NextRequest) {
         'Cache-Control': 'public, max-age=900',
       }
     });
-  } catch (error: any) {
-    console.error('❌ Hotel search error (GET):', error);
-
-    // Enhanced error logging for production debugging
-    const errorDetails = {
-      message: error.message || 'Failed to search hotels',
-      code: error.code,
-      response: error.response?.data,
-      status: error.response?.status,
-    };
-
-    console.error('📊 Error details (GET):', JSON.stringify(errorDetails, null, 2));
-
-    // Check for specific error types
-    let userMessage = error.message || 'Failed to search hotels';
-    if (error.message?.includes('API key') || error.response?.status === 401) {
-      userMessage = 'Hotel search service is temporarily unavailable. Please try again later.';
-      console.error('🔑 LiteAPI Authentication Error - Check LITEAPI_API_KEY environment variable');
-    } else if (error.response?.status === 429) {
-      userMessage = 'Too many requests. Please wait a moment and try again.';
-    } else if (error.code === 'ECONNREFUSED' || error.code === 'ETIMEDOUT') {
-      userMessage = 'Unable to connect to hotel search service. Please check your internet connection.';
-    }
-
-    return NextResponse.json(
-      {
-        success: false,
-        error: userMessage,
-        errorCode: error.code,
-        details: process.env.NODE_ENV === 'development' ? error.stack : undefined,
-      },
-      { status: 500 }
-    );
-  }
+  });
 }
