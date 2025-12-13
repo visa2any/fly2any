@@ -740,7 +740,15 @@ function BookingPageContent() {
 
       // For Duffel fare variants, use the originalOffer from the selected fare
       // This ensures we book the correct fare class (Basic vs Economy, etc.)
-      const offerToBook = selectedFare?.originalOffer || flightData;
+      // CRITICAL: Preserve separateTicketDetails for mixed carrier flights
+      let offerToBook = selectedFare?.originalOffer || flightData;
+      if (flightData?.isSeparateTickets && flightData?.separateTicketDetails) {
+        offerToBook = {
+          ...offerToBook,
+          isSeparateTickets: true,
+          separateTicketDetails: flightData.separateTicketDetails,
+        };
+      }
 
       // Get selected add-ons
       const selectedAddOns: any[] = [];
