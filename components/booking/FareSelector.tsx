@@ -145,6 +145,14 @@ export function FareSelector({
   mlRecommendation,
   tripType = 'leisure',
 }: FareSelectorProps) {
+  // DEBUG: Log what fares we received
+  console.log('🎯 FareSelector received fares:', {
+    count: fares.length,
+    names: fares.map(f => f.name),
+    prices: fares.map(f => f.price),
+    ids: fares.map(f => f.id)
+  });
+
   const [selected, setSelected] = useState<string>(selectedFareId || fares[0]?.id || '');
 
   useEffect(() => {

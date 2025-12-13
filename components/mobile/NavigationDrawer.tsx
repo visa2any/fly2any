@@ -129,8 +129,8 @@ export function NavigationDrawer({
             {/* Header - Apple-Class */}
             <div className="sticky top-0 bg-white/95 backdrop-blur-sm border-b border-neutral-100 px-4 py-3 flex items-center justify-between">
               <a href="/" onClick={onClose} className="flex items-center gap-2 active:scale-[0.98] touch-manipulation">
-                <div className="p-1.5 rounded-xl bg-gradient-to-br from-primary-50 to-secondary-50 shadow-sm">
-                  <Image src="/icon-192.png" alt="Fly2Any" width={28} height={28} priority className="w-6 h-6" />
+                <div className="p-2 rounded-xl bg-gradient-to-br from-primary-50 to-secondary-50 shadow-sm">
+                  <Image src="/icon-192.png" alt="Fly2Any" width={36} height={36} priority className="w-8 h-8" />
                 </div>
                 <span className="font-bold text-lg bg-gradient-to-r from-primary-500 to-primary-400 bg-clip-text text-transparent">Fly2Any</span>
               </a>

@@ -212,10 +212,10 @@ export function Header({
               <Image
                 src="/logo.png"
                 alt="Fly2Any"
-                width={180}
-                height={48}
+                width={240}
+                height={64}
                 priority
-                className="h-7 sm:h-8 lg:h-10 w-auto object-contain"
+                className="h-9 sm:h-11 lg:h-14 w-auto object-contain"
               />
             </a>
 
