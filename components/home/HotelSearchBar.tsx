@@ -637,13 +637,13 @@ export function HotelSearchBar({ lang = 'en' }: HotelSearchBarProps) {
                         {!suggestion.emoji && getTypeIcon(suggestion.type)}
 
                         {/* Info */}
-                        <div className="flex-1 min-w-0">
-                          <div className="font-semibold text-neutral-800 text-sm truncate">
+                        <div className="flex-1">
+                          <div className="font-semibold text-neutral-800 text-sm leading-tight">
                             {suggestion.name}
                           </div>
-                          <div className="text-[10px] text-neutral-500 truncate flex items-center gap-0.5">
-                            <MapPin className="w-2.5 h-2.5" />
-                            {suggestion.city !== suggestion.name ? `${suggestion.city}, ` : ''}{suggestion.country}
+                          <div className="text-[10px] text-neutral-500 flex items-center gap-0.5">
+                            <MapPin className="w-2.5 h-2.5 flex-shrink-0" />
+                            <span>{suggestion.city !== suggestion.name ? `${suggestion.city}, ` : ''}{suggestion.country}</span>
                           </div>
                         </div>
 
