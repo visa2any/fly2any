@@ -808,8 +808,23 @@ function BookingPageContent() {
     if (!flightData) return { farePrice: 0, addOns: [], taxesAndFees: 0 };
 
     const selectedFare = fareOptions.find(f => f.id === selectedFareId);
-    // IMPORTANT: farePrice from API ALREADY includes all taxes and fees (DOT-compliant all-in pricing)
-    const farePrice = selectedFare?.price || parseFloat(flightData.price.total);
+
+    // Get total price from API (includes all taxes and fees - DOT compliant)
+    const totalPrice = selectedFare?.price || parseFloat(flightData.price.total);
+
+    // Extract base fare and taxes from flight data
+    // If available, use base + separate tax amount
+    // Otherwise, show all-in price as base with 0 taxes (already included)
+    const basePrice = flightData.price.base ? parseFloat(flightData.price.base) : totalPrice;
+    const taxesAndFeesAmount = flightData.price.base
+      ? Math.max(0, totalPrice - basePrice)
+      : 0; // If no base available, taxes are already in total
+
+    // For checkout display:
+    // Show base fare separately, then taxes/fees as separate line item
+    // This matches what customer sees on flight card
+    const farePrice = basePrice;
+    const taxesAndFees = taxesAndFeesAmount;
 
     const addOns: { label: string; amount: number; subtext?: string }[] = [];
 
@@ -822,13 +837,6 @@ function BookingPageContent() {
         });
       });
     });
-
-    // CRITICAL FIX: DO NOT add additional taxes on top of fare price!
-    // The farePrice from Duffel/Amadeus API already includes all taxes and fees.
-    // Adding 14% was causing DOUBLE-TAXATION (showing $1000 flight as $1140).
-    // Only add-ons need tax calculation (if applicable)
-    const addOnsSubtotal = addOns.reduce((sum, item) => sum + item.amount, 0);
-    const taxesAndFees = 0; // Taxes already included in farePrice
 
     return { farePrice, addOns, taxesAndFees };
   };
