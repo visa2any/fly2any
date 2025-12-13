@@ -92,6 +92,11 @@ export async function POST(request: NextRequest) {
       holdDuration      // NEW: Hold duration in hours
     } = body;
 
+    // Declare payment and booking status variables early to avoid TDZ issues
+    let paymentIntent: any = null;
+    let paymentStatus: 'pending' | 'paid' = 'pending';
+    let bookingStatus: 'confirmed' | 'pending' = 'pending';
+
     // Validation - with error alerting
     if (!flightOffer) {
       // CRITICAL: Alert admin about validation failure
@@ -592,9 +597,6 @@ export async function POST(request: NextRequest) {
     }
 
     // STEP 5: Process payment (only for instant bookings, NOT holds)
-    let paymentIntent: any = null;
-    let paymentStatus: 'pending' | 'paid' = 'pending';
-    let bookingStatus: 'confirmed' | 'pending' = 'pending';
 
     if (!isHold) {
       // INSTANT BOOKING: Create payment intent AFTER airline booking succeeds
@@ -1160,7 +1162,8 @@ Manual intervention required to:
         },
         { status: 500 }
       );
-    });
+    }
+  });
   }
 
 // OPTIONS handler for CORS
