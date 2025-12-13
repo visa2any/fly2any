@@ -22,7 +22,7 @@ export default function Home() {
         {/* Logo */}
         <div className="mb-6 flex justify-center">
           <Image
-            src="/fly2any-logo.png"
+            src="/logo.png"
             alt="Fly2Any Travel Logo"
             width={400}
             height={120}

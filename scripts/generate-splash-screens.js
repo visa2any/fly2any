@@ -19,7 +19,7 @@ const path = require('path');
 const sharp = require('sharp');
 
 // Source image paths
-const LOGO_PATH = path.join(__dirname, '../public/fly2any-logo.png');
+const LOGO_PATH = path.join(__dirname, '../public/logo.png');
 const ICON_SOURCE = path.join(__dirname, '../resources/icons/icon-source.png');
 
 // iOS splash screen sizes (width x height)

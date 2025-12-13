@@ -53,8 +53,8 @@ export async function POST(request: NextRequest) {
     const notificationPayload = {
       title,
       body: message,
-      icon: '/fly2any-logo.png',
-      badge: '/fly2any-logo.png',
+      icon: '/logo.png',
+      badge: '/logo.png',
       tag: tag || 'fly2any-notification',
       data: {
         url: url || '/',
@@ -157,8 +157,8 @@ export async function GET(request: NextRequest) {
     const testPayload = {
       title: 'Fly2Any Test Notification',
       body: 'Your push notifications are working perfectly!',
-      icon: '/fly2any-logo.png',
-      badge: '/fly2any-logo.png',
+      icon: '/logo.png',
+      badge: '/logo.png',
       tag: 'test-notification',
       data: {
         url: '/',

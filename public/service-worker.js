@@ -19,7 +19,7 @@ const STATIC_ASSETS = [
   '/offline',
   '/manifest.json',
   '/favicon.ico',
-  '/fly2any-logo.png',
+  '/logo.png',
   '/fly2any-logo.svg',
   '/icon-192.png',
   '/icon-512.png',
@@ -419,7 +419,7 @@ self.addEventListener('push', (event) => {
 
   const options = {
     body: data.body || 'New notification from Fly2Any',
-    icon: data.icon || '/fly2any-logo.png',
+    icon: data.icon || '/logo.png',
     badge: '/icon-192.png',
     vibrate: [200, 100, 200],
     tag: data.tag || `fly2any-${Date.now()}`,
@@ -485,7 +485,7 @@ async function checkPriceAlerts() {
       if (data.triggered?.length > 0) {
         await self.registration.showNotification('Price Alert!', {
           body: `${data.triggered.length} flight(s) dropped in price!`,
-          icon: '/fly2any-logo.png',
+          icon: '/logo.png',
           badge: '/icon-192.png',
           tag: 'price-alerts',
           data: { url: '/account/alerts' },

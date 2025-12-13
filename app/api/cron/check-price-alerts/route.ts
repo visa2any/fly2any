@@ -64,7 +64,7 @@ async function sendPushToUser(
 
     const pushPayload = JSON.stringify({
       ...payload,
-      icon: '/fly2any-logo.png',
+      icon: '/logo.png',
       tag: `price-alert-${Date.now()}`,
       requireInteraction: true,
     });

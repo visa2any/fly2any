@@ -261,52 +261,52 @@ export default function PackageDetailPage() {
   const packageImages: { src: string; fallback: string; caption: string }[] = [
     {
       src: 'https://images.unsplash.com/photo-1590077428593-a55bb07c4665?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80',
-      fallback: '/fly2any-logo.png',
+      fallback: '/logo.png',
       caption: currentLanguage === 'pt' ? 'Vista panorâmica do Vale do Douro' : 'Panoramic view of Douro Valley'
     },
     {
       src: 'https://images.unsplash.com/photo-1555881400-74d7acaacd8b?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80',
-      fallback: '/fly2any-logo.png',
+      fallback: '/logo.png',
       caption: currentLanguage === 'pt' ? 'Ponte Dom Luís I no Porto' : 'Dom Luís I Bridge in Porto'
     },
     {
       src: 'https://images.unsplash.com/photo-1570077188670-e3a8d69ac5ff?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80',
-      fallback: '/fly2any-logo.png',
+      fallback: '/logo.png',
       caption: currentLanguage === 'pt' ? 'Cruzeiro pelo Rio Douro' : 'Cruise on Douro River'
     },
     {
       src: 'https://images.unsplash.com/photo-1578662996442-48f60103fc96?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80',
-      fallback: '/fly2any-logo.png',
+      fallback: '/logo.png',
       caption: currentLanguage === 'pt' ? 'Vinhos do Porto em caves tradicionais' : 'Port wines in traditional cellars'
     },
     {
       src: 'https://images.unsplash.com/photo-1515586838455-8f8f940d6853?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80',
-      fallback: '/fly2any-logo.png',
+      fallback: '/logo.png',
       caption: currentLanguage === 'pt' ? 'Azulejos portugueses na Estação de São Bento' : 'Portuguese azulejos at São Bento Station'
     },
     {
       src: 'https://images.unsplash.com/photo-1584132967334-10e028bd69f7?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80',
-      fallback: '/fly2any-logo.png',
+      fallback: '/logo.png',
       caption: currentLanguage === 'pt' ? 'Quartos com vista para o rio' : 'Rooms with river view'
     },
     {
       src: 'https://images.unsplash.com/photo-1566073771259-6a8506099945?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80',
-      fallback: '/fly2any-logo.png',
+      fallback: '/logo.png',
       caption: currentLanguage === 'pt' ? 'Terraços com piscina no Vale do Douro' : 'Terraces with pool in Douro Valley'
     },
     {
       src: 'https://images.unsplash.com/photo-1564501049412-61c2a3083791?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80',
-      fallback: '/fly2any-logo.png',
+      fallback: '/logo.png',
       caption: currentLanguage === 'pt' ? 'Restaurantes com gastronomia portuguesa' : 'Restaurants with Portuguese cuisine'
     },
     {
       src: 'https://images.unsplash.com/photo-1414235077428-338989a2e8c0?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80',
-      fallback: '/fly2any-logo.png',
+      fallback: '/logo.png',
       caption: currentLanguage === 'pt' ? 'Jantares com especialidades regionais' : 'Dinners with regional specialties'
     },
     {
       src: 'https://images.unsplash.com/photo-1566665797739-1674de7a421a?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80',
-      fallback: '/fly2any-logo.png',
+      fallback: '/logo.png',
       caption: currentLanguage === 'pt' ? 'Bares com vinhos portugueses' : 'Bars with Portuguese wines'
     },
   ];
@@ -466,7 +466,7 @@ export default function PackageDetailPage() {
                 onError={(e) => {
                   const target = e.currentTarget as HTMLImageElement;
                   if (!target.dataset.fallbackApplied) {
-                    target.src = '/fly2any-logo.png';
+                    target.src = '/logo.png';
                     target.dataset.fallbackApplied = 'true';
                   }
                 }}
@@ -520,7 +520,7 @@ export default function PackageDetailPage() {
               onError={(e) => {
                 const target = e.currentTarget as HTMLImageElement;
                 if (!target.dataset.fallbackApplied) {
-                  target.src = '/fly2any-logo.png';
+                  target.src = '/logo.png';
                   target.dataset.fallbackApplied = 'true';
                 }
               }}

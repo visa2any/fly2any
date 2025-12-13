@@ -10,7 +10,7 @@
 const sharp = require('sharp');
 const path = require('path');
 
-const LOGO_PATH = path.join(__dirname, '../public/fly2any-logo.png');
+const LOGO_PATH = path.join(__dirname, '../public/logo.png');
 const OUTPUT_PATH = path.join(__dirname, '../resources/icons/icon-source.png');
 
 async function createSquareIcon() {

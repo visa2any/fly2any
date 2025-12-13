@@ -720,7 +720,7 @@ export default function BookingConfirmationContent() {
       <div className="bg-white border-b print:border-0 no-print">
         <div className="max-w-6xl mx-auto px-4 py-4 flex justify-between items-center">
           <Image
-            src="/fly2any-logo.png"
+            src="/logo.png"
             alt="Fly2Any Travel"
             width={120}
             height={40}

@@ -123,7 +123,7 @@ ${url && url !== '/' ? `🔗 <a href="${process.env.NEXT_PUBLIC_APP_URL || 'http
             title,
             body,
             url: url || '/',
-            icon: icon || '/fly2any-logo.png',
+            icon: icon || '/logo.png',
             tag: tag || `notification-${Date.now()}`,
             requireInteraction: true,
           });

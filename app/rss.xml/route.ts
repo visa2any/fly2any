@@ -56,7 +56,7 @@ function generateRSSFeed(): string {
     <lastBuildDate>${new Date().toUTCString()}</lastBuildDate>
     <atom:link href="${SITE_URL}/rss.xml" rel="self" type="application/rss+xml"/>
     <image>
-      <url>${SITE_URL}/fly2any-logo.png</url>
+      <url>${SITE_URL}/logo.png</url>
       <title>${SITE_NAME}</title>
       <link>${SITE_URL}/blog</link>
     </image>

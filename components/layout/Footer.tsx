@@ -527,7 +527,7 @@ export function Footer({
             <div className="flex flex-col items-center md:items-start gap-2">
               {showLogo && (
                 <Image
-                  src="/fly2any-logo.png"
+                  src="/logo.png"
                   alt="Fly2Any Travel"
                   width={120}
                   height={36}

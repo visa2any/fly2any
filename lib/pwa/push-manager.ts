@@ -165,8 +165,8 @@ export async function showNotification(payload: PushNotificationPayload): Promis
 
     await registration.showNotification(payload.title, {
       body: payload.body,
-      icon: payload.icon || '/fly2any-logo.png',
-      badge: payload.badge || '/fly2any-logo.png',
+      icon: payload.icon || '/logo.png',
+      badge: payload.badge || '/logo.png',
       tag: payload.tag,
       requireInteraction: payload.requireInteraction || false,
       silent: payload.silent || false,

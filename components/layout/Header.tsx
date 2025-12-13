@@ -57,7 +57,7 @@ export interface HeaderProps {
 export function Header({
   className = '',
   showAuth = true,
-  logoUrl = '/fly2any-logo.png',
+  logoUrl = '/logo.png',
   onSignIn,
   onSignUp,
   children,
@@ -212,10 +212,10 @@ export function Header({
               <Image
                 src="/logo.png"
                 alt="Fly2Any"
-                width={240}
-                height={64}
+                width={320}
+                height={85}
                 priority
-                className="h-9 sm:h-11 lg:h-14 w-auto object-contain"
+                className="h-12 sm:h-14 lg:h-16 w-auto object-contain"
               />
             </a>
 

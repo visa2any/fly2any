@@ -441,7 +441,7 @@ export function getTravelAgencySchema() {
     name: SITE_NAME,
     url: SITE_URL,
     description: SITE_DESCRIPTION,
-    logo: `${SITE_URL}/fly2any-logo.png`,
+    logo: `${SITE_URL}/logo.png`,
     image: `${SITE_URL}/og-image.jpg`,
     telephone: '+1-800-FLY-2ANY',
     email: 'support@fly2any.com',
@@ -496,7 +496,7 @@ export function getArticleSchema(params: {
       name: SITE_NAME,
       logo: {
         '@type': 'ImageObject',
-        url: `${SITE_URL}/fly2any-logo.png`,
+        url: `${SITE_URL}/logo.png`,
       },
     },
     mainEntityOfPage: {
@@ -595,7 +595,7 @@ export function getVideoSchema(params: {
       name: SITE_NAME,
       logo: {
         '@type': 'ImageObject',
-        url: `${SITE_URL}/fly2any-logo.png`,
+        url: `${SITE_URL}/logo.png`,
       },
     },
   };
@@ -1111,7 +1111,7 @@ export function getServiceSchema(params: {
       '@type': 'TravelAgency',
       name: SITE_NAME,
       url: SITE_URL,
-      logo: `${SITE_URL}/fly2any-logo.png`,
+      logo: `${SITE_URL}/logo.png`,
     },
     areaServed: params.areaServed?.map((area) => ({
       '@type': 'Country',
@@ -1446,7 +1446,7 @@ export function getLocalBusinessSchema() {
     name: SITE_NAME,
     alternateName: 'Fly 2 Any',
     url: SITE_URL,
-    logo: `${SITE_URL}/fly2any-logo.png`,
+    logo: `${SITE_URL}/logo.png`,
     image: `${SITE_URL}/og-image.jpg`,
     description: SITE_DESCRIPTION,
     telephone: '+1-800-FLY-2ANY',

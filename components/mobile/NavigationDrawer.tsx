@@ -42,7 +42,7 @@ export function NavigationDrawer({
   translations,
   onSignIn,
   onSignUp,
-  logoUrl = '/fly2any-logo.png',
+  logoUrl = '/logo.png',
   userId,
 }: NavigationDrawerProps) {
   // Prevent body scroll when drawer is open

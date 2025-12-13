@@ -288,8 +288,8 @@ export async function showTestNotification(): Promise<void> {
 
   await registration.showNotification('Fly2Any', {
     body: 'Test notification - Your notifications are working!',
-    icon: '/fly2any-logo.png',
-    badge: '/fly2any-logo.png',
+    icon: '/logo.png',
+    badge: '/logo.png',
     tag: 'test-notification',
     data: {
       url: '/',
