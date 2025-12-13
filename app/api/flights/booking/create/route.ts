@@ -294,90 +294,13 @@ export async function POST(request: NextRequest) {
       };
     });
 
-    // STEP 3: Process payment or create hold order
-    let paymentIntent: any = null;
-    let holdPricing: any = null;
-    let bookingStatus: 'confirmed' | 'pending' = 'pending';
-    let paymentStatus: 'pending' | 'paid' = 'pending';
-
-    // PRE-GENERATE booking reference BEFORE payment intent creation
+    // STEP 3: PRE-GENERATE booking reference (before any API calls)
     // This ensures the webhook can find the booking after payment succeeds
     const preGeneratedBookingRef = await bookingStorage.generateBookingReference();
     console.log(`📋 Pre-generated booking reference: ${preGeneratedBookingRef}`);
 
-    if (isHold) {
-      // HOLD BOOKING: Reserve without immediate payment
-      console.log('⏸️  Creating hold booking (pay later)...');
-      console.log(`   Hold Duration: ${holdDuration || 24} hours`);
-
-      // Calculate hold pricing
-      holdPricing = isHold && flightSource === 'Duffel'
-        ? duffelAPI.calculateHoldPricing(holdDuration || 24)
-        : paymentService.calculateHoldPricing(holdDuration || 24);
-
-      console.log(`   Hold Price: ${holdPricing.price} ${holdPricing.currency}`);
-      console.log(`   Expires At: ${holdPricing.expiresAt.toISOString()}`);
-
-      // For holds, we don't process payment yet, just reserve the seats
-      bookingStatus = 'pending';
-      paymentStatus = 'pending';
-      console.log('✅ Hold booking setup complete');
-    } else {
-      // INSTANT BOOKING: Process payment immediately
-      console.log('💳 Processing payment...');
-
-      try {
-        // Calculate total amount (flight + upgrades + bundles + add-ons + hold fee)
-        const baseAmount = parseFloat(confirmedOffer.price.total);
-        const upgradeAmount = fareUpgrade?.upgradePrice || 0;
-        const bundleAmount = bundle?.price || 0;
-        const addOnsAmount = addOns?.reduce((sum: number, addon: any) => sum + (addon.price * (addon.quantity || 1)), 0) || 0;
-        const totalAmount = baseAmount + upgradeAmount + bundleAmount + addOnsAmount;
-
-        console.log(`   Base Amount: ${baseAmount}`);
-        console.log(`   Upgrades: ${upgradeAmount}`);
-        console.log(`   Bundle: ${bundleAmount}`);
-        console.log(`   Add-ons: ${addOnsAmount}`);
-        console.log(`   Total: ${totalAmount} ${confirmedOffer.price.currency}`);
-
-        // Create payment intent with Stripe using PRE-GENERATED booking reference
-        // CRITICAL: This ensures the webhook can match payment to booking!
-        paymentIntent = await paymentService.createPaymentIntent({
-          amount: totalAmount,
-          currency: confirmedOffer.price.currency,
-          bookingReference: preGeneratedBookingRef, // Use pre-generated reference
-          customerEmail: contactInfo?.email || passengers[0]?.email,
-          customerName: `${passengers[0]?.firstName} ${passengers[0]?.lastName}`,
-          description: `Flight booking: ${flightOffer.itineraries[0].segments[0].departure.iataCode} → ${flightOffer.itineraries[0].segments[flightOffer.itineraries[0].segments.length - 1].arrival.iataCode}`,
-          metadata: {
-            flightOfferId: confirmedOffer.id,
-            passengerCount: passengers.length.toString(),
-            source: flightSource,
-            bookingReference: preGeneratedBookingRef, // Also in metadata for redundancy
-          },
-        });
-
-        console.log('✅ Payment intent created successfully');
-        console.log(`   Payment Intent ID: ${paymentIntent.paymentIntentId}`);
-        console.log(`   Booking Reference: ${preGeneratedBookingRef}`);
-
-        // For now, booking stays pending until payment is confirmed by client
-        bookingStatus = 'pending';
-        paymentStatus = 'pending';
-      } catch (error: any) {
-        console.error('❌ Payment processing error:', error);
-        return NextResponse.json(
-          {
-            error: 'PAYMENT_FAILED',
-            message: 'Failed to create payment intent. Please try again.',
-            details: process.env.NODE_ENV === 'development' ? error.message : undefined,
-          },
-          { status: 402 }
-        );
-      }
-    }
-
-    // STEP 4: Detect source and create booking with appropriate API
+    // STEP 4: Create airline booking FIRST (before payment)
+    // This is the most likely step to fail, so we do it before charging the customer
     // Use the flightSource already detected during price confirmation
     console.log(`✈️  Creating booking with detected source: ${flightSource}`);
 
@@ -387,6 +310,7 @@ export async function POST(request: NextRequest) {
     let isMockBooking: boolean = false;
     let duffelOrderId: string | undefined;
     let sourceApi: 'Amadeus' | 'Duffel';
+    let holdPricing: any = null;
 
     if (flightSource === 'Duffel') {
       // ========== DUFFEL BOOKING ==========
@@ -398,11 +322,19 @@ export async function POST(request: NextRequest) {
 
         if (isHold) {
           // Create hold order (pay later)
+          console.log('⏸️  Creating hold booking (pay later)...');
+          console.log(`   Hold Duration: ${holdDuration || 24} hours`);
+
           duffelOrder = await duffelAPI.createHoldOrder(
             confirmedOffer,
             passengers,
             holdDuration
           );
+
+          // Extract hold pricing
+          holdPricing = duffelAPI.calculateHoldPricing(holdDuration || 24);
+          console.log(`   Hold Price: ${holdPricing.price} ${holdPricing.currency}`);
+          console.log(`   Expires At: ${holdPricing.expiresAt.toISOString()}`);
         } else {
           // Create instant order (pay now)
           duffelOrder = await duffelAPI.createOrder(
@@ -421,11 +353,6 @@ export async function POST(request: NextRequest) {
         // Store the complete Duffel order for reference
         flightOrder = duffelOrder;
 
-        // If hold order, extract hold pricing
-        if (isHold && duffelOrder.holdPricing) {
-          holdPricing = duffelOrder.holdPricing;
-        }
-
         console.log('✅ Duffel order created successfully!');
         console.log(`   Order ID: ${duffelOrderId}`);
         console.log(`   PNR: ${pnr}`);
@@ -433,7 +360,61 @@ export async function POST(request: NextRequest) {
         console.log(`   Live Mode: ${duffelOrder.data?.live_mode ? 'Yes (real booking)' : 'No (test mode)'}`);
       } catch (error: any) {
         console.error('❌ Duffel booking failed:', error);
-        throw error; // Re-throw to be caught by outer error handler
+
+        // Extract specific error details for better user feedback
+        let userFriendlyError = 'Failed to create booking. Please try again.';
+        let errorCode = 'BOOKING_FAILED';
+        let statusCode = 500;
+
+        if (error.response?.data?.errors) {
+          const errors = error.response.data.errors;
+
+          // Check for sold out errors
+          const soldOutError = errors.find((e: any) =>
+            e.code === 'offer_no_longer_available' ||
+            e.title?.toLowerCase().includes('no longer available') ||
+            e.title?.toLowerCase().includes('sold out')
+          );
+          if (soldOutError) {
+            userFriendlyError = 'This flight is no longer available. Please search for alternative flights.';
+            errorCode = 'SOLD_OUT';
+            statusCode = 410;
+          }
+
+          // Check for price change errors
+          const priceChangeError = errors.find((e: any) =>
+            e.code === 'offer_price_changed' ||
+            e.title?.toLowerCase().includes('price changed')
+          );
+          if (priceChangeError) {
+            userFriendlyError = 'The price for this flight has changed. Please review the new price and try again.';
+            errorCode = 'PRICE_CHANGED';
+            statusCode = 409;
+          }
+
+          // Check for invalid passenger data
+          const invalidDataError = errors.find((e: any) =>
+            e.code === 'validation_error' ||
+            e.title?.toLowerCase().includes('invalid')
+          );
+          if (invalidDataError) {
+            userFriendlyError = `Passenger information error: ${invalidDataError.message || 'Invalid data provided'}`;
+            errorCode = 'INVALID_DATA';
+            statusCode = 400;
+          }
+        }
+
+        // Return specific error BEFORE creating payment
+        // CRITICAL: Customer is NOT charged yet!
+        return NextResponse.json(
+          {
+            success: false,
+            error: errorCode,
+            message: userFriendlyError,
+            details: process.env.NODE_ENV === 'development' ? error.message : undefined,
+          },
+          { status: statusCode }
+        );
       }
     } else {
       // ========== AMADEUS/GDS RESERVATION (MANUAL TICKETING WORKFLOW) ==========
@@ -514,7 +495,104 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // STEP 5: Store booking in database
+    // STEP 5: Process payment (only for instant bookings, NOT holds)
+    let paymentIntent: any = null;
+    let paymentStatus: 'pending' | 'paid' = 'pending';
+    let bookingStatus: 'confirmed' | 'pending' = 'pending';
+
+    if (!isHold) {
+      // INSTANT BOOKING: Create payment intent AFTER airline booking succeeds
+      console.log('💳 Processing payment (airline booking confirmed)...');
+
+      try {
+        // Calculate total amount (flight + upgrades + bundles + add-ons)
+        const baseAmount = parseFloat(confirmedOffer.price.total);
+        const upgradeAmount = fareUpgrade?.upgradePrice || 0;
+        const bundleAmount = bundle?.price || 0;
+        const addOnsAmount = addOns?.reduce((sum: number, addon: any) => sum + (addon.price * (addon.quantity || 1)), 0) || 0;
+        const totalAmount = baseAmount + upgradeAmount + bundleAmount + addOnsAmount;
+
+        console.log(`   Base Amount: ${baseAmount}`);
+        console.log(`   Upgrades: ${upgradeAmount}`);
+        console.log(`   Bundle: ${bundleAmount}`);
+        console.log(`   Add-ons: ${addOnsAmount}`);
+        console.log(`   Total: ${totalAmount} ${confirmedOffer.price.currency}`);
+
+        // Create payment intent with Stripe AFTER airline booking succeeds
+        // CRITICAL: This ensures the webhook can match payment to booking!
+        paymentIntent = await paymentService.createPaymentIntent({
+          amount: totalAmount,
+          currency: confirmedOffer.price.currency,
+          bookingReference: preGeneratedBookingRef, // Use pre-generated reference
+          customerEmail: contactInfo?.email || passengers[0]?.email,
+          customerName: `${passengers[0]?.firstName} ${passengers[0]?.lastName}`,
+          description: `Flight booking: ${flightOffer.itineraries[0].segments[0].departure.iataCode} → ${flightOffer.itineraries[0].segments[flightOffer.itineraries[0].segments.length - 1].arrival.iataCode}`,
+          metadata: {
+            flightOfferId: confirmedOffer.id,
+            passengerCount: passengers.length.toString(),
+            source: flightSource,
+            bookingReference: preGeneratedBookingRef, // Also in metadata for redundancy
+            duffelOrderId: duffelOrderId, // Link to airline booking
+          },
+        });
+
+        console.log('✅ Payment intent created successfully');
+        console.log(`   Payment Intent ID: ${paymentIntent.paymentIntentId}`);
+        console.log(`   Customer CHARGED: ${totalAmount} ${confirmedOffer.price.currency}`);
+
+        // For now, booking stays pending until payment is confirmed by client
+        bookingStatus = 'pending';
+        paymentStatus = 'pending';
+      } catch (paymentError: any) {
+        console.error('❌ Payment processing error:', paymentError);
+
+        // Payment failed, but airline booking exists
+        // Send alert to admin - booking exists but payment creation failed
+        try {
+          const { notifyTelegramAdmins } = await import('@/lib/notifications/notification-service');
+          await notifyTelegramAdmins(`
+⚠️ *Payment Creation Failed*
+
+Airline booking was successfully created, but payment intent creation failed!
+
+📋 *Booking Details:*
+• Booking Ref: \`${preGeneratedBookingRef}\`
+• PNR: \`${pnr}\`
+• API: ${sourceApi}
+• Amount: ${confirmedOffer.price.currency} ${parseFloat(confirmedOffer.price.total)}
+• Customer: ${contactInfo?.email || passengers[0]?.email}
+
+⚠️ *Action Required:*
+The booking exists with ${sourceApi} but payment failed in our system.
+Customer needs to complete payment to finalize booking.
+
+*Error:* ${paymentError.message}
+          `.trim());
+        } catch (notifyError) {
+          console.error('Failed to send payment error notification:', notifyError);
+        }
+
+        // Return specific payment error
+        return NextResponse.json(
+          {
+            success: false,
+            error: 'PAYMENT_FAILED',
+            message: 'Payment creation failed. Please try again or contact support. Your flight booking has been reserved.',
+            bookingReference: preGeneratedBookingRef,
+            pnr: pnr,
+            details: process.env.NODE_ENV === 'development' ? paymentError.message : undefined,
+          },
+          { status: 402 }
+        );
+      }
+    } else {
+      // HOLD BOOKING: No payment yet, will be charged later
+      console.log('⏸️  Hold booking - payment will be captured later');
+      bookingStatus = 'pending';
+      paymentStatus = 'pending';
+    }
+
+    // STEP 6: Store booking in database (with retry logic)
     console.log('💾 Saving booking to database...');
 
     try {
@@ -606,7 +684,16 @@ export async function POST(request: NextRequest) {
 
       // Create booking in database WITH PRE-GENERATED REFERENCE
       // CRITICAL: Use preGeneratedBookingRef so webhook can find booking after payment
-      const savedBooking = await bookingStorage.create({
+      // CRITICAL: Add retry logic to prevent orphaned bookings
+      let savedBooking: any = null;
+      let dbSaveError: any = null;
+      const maxRetries = 3;
+
+      for (let attempt = 0; attempt < maxRetries; attempt++) {
+        try {
+          console.log(`💾 Database save attempt ${attempt + 1}/${maxRetries}...`);
+
+          savedBooking = await bookingStorage.create({
         status: bookingStatus,
         contactInfo: bookingContactInfo,
         flight: flightData,
@@ -637,13 +724,95 @@ export async function POST(request: NextRequest) {
         airlineRecordLocator: sourceApi === 'Amadeus' ? 'PENDING' : pnr,
         // Store customer vs consolidator pricing for margin tracking
         customerPrice: totalAmount,
-      }, preGeneratedBookingRef); // Pass pre-generated reference for webhook matching
+          }, preGeneratedBookingRef); // Pass pre-generated reference for webhook matching
 
-      console.log('✅ Booking saved to database!');
-      console.log(`   Database ID: ${savedBooking.id}`);
-      console.log(`   Booking Reference: ${savedBooking.bookingReference}`);
+          console.log('✅ Booking saved to database!');
+          console.log(`   Database ID: ${savedBooking.id}`);
+          console.log(`   Booking Reference: ${savedBooking.bookingReference}`);
 
-      // STEP 6: Save card authorization if provided
+          // Success! Break out of retry loop
+          break;
+        } catch (error: any) {
+          dbSaveError = error;
+          console.error(`⚠️ Database save failed (attempt ${attempt + 1}/${maxRetries}):`, error.message);
+
+          // If not last attempt, wait before retrying
+          if (attempt < maxRetries - 1) {
+            const waitTime = Math.pow(2, attempt) * 1000; // Exponential backoff: 1s, 2s, 4s
+            console.log(`   Waiting ${waitTime}ms before retry...`);
+            await new Promise(resolve => setTimeout(resolve, waitTime));
+          }
+        }
+      }
+
+      // Check if all retries failed
+      if (!savedBooking) {
+        console.error('❌ CRITICAL DATABASE ERROR - All retries failed - ORPHANED BOOKING:', dbSaveError);
+        console.error(`   API Booking ID: ${bookingId}`);
+        console.error(`   PNR: ${pnr}`);
+        console.error(`   Source: ${sourceApi}`);
+        console.error(`   Payment Intent: ${paymentIntent?.paymentIntentId}`);
+
+        // Notify admins immediately about orphaned booking
+        try {
+          const { notifyTelegramAdmins } = await import('@/lib/notifications/notification-service');
+          await notifyTelegramAdmins(`
+🚨 *CRITICAL: ORPHANED BOOKING*
+
+A booking was created with ${sourceApi} AND payment was charged, but FAILED to save to database after 3 retries!
+
+📋 *Details:*
+• Booking Ref: \`${preGeneratedBookingRef}\`
+• PNR: \`${pnr}\`
+• API: ${sourceApi}
+• Amount: ${confirmedOffer.price.currency} ${confirmedOffer.price.total}
+• Customer: ${contactInfo?.email || passengers[0]?.email}
+• Payment Intent: \`${paymentIntent?.paymentIntentId}\`
+
+⚠️ *Action Required - URGENT:*
+This booking EXISTS in:
+✅ ${sourceApi} system (Order/Reservation: \`${bookingId}\`)
+✅ Stripe payment system (Payment Intent: \`${paymentIntent?.paymentIntentId}\`)
+❌ Our database (NOT FOUND)
+
+Manual intervention required to:
+1. Add booking to database manually
+2. Contact customer with confirmation
+3. Ensure payment is captured and booking is trackable
+
+*Error:* ${dbSaveError?.message}
+          `.trim());
+        } catch (notifyError) {
+          console.error('Failed to send orphaned booking notification:', notifyError);
+        }
+
+        // RETURN ERROR - This is NOT a success!
+        // Customer needs to know there's a problem and contact support
+        return NextResponse.json(
+          {
+            success: false,
+            error: 'DATABASE_SAVE_FAILED',
+            message: 'Your booking was created and payment was charged, but we encountered an error saving it to our system. Please contact support immediately with your confirmation number.',
+            // Include critical info so customer can reference it
+            booking: {
+              bookingReference: preGeneratedBookingRef,
+              pnr,
+              sourceApi,
+              apiBookingId: bookingId,
+              paymentIntentId: paymentIntent?.paymentIntentId,
+              totalPrice: confirmedOffer.price.total,
+              currency: confirmedOffer.price.currency,
+            },
+            supportInfo: {
+              email: 'support@fly2any.com',
+              urgency: 'Contact support within 24 hours to ensure your booking is properly recorded.',
+            },
+          },
+          { status: 500 }
+        );
+      }
+
+      // STEP 7: Save card authorization if provided
       if (payment.signatureName && payment.authorizationAccepted) {
         console.log('🔐 Saving card authorization...');
         try {
