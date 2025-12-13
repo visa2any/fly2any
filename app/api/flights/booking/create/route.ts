@@ -362,7 +362,65 @@ export async function POST(request: NextRequest) {
     let sourceApi: 'Amadeus' | 'Duffel';
     let holdPricing: any = null;
 
-    if (flightSource === 'Duffel') {
+    // Check for SEPARATE TICKET flights (mixed carrier combinations)
+    const isSeparateTickets = flightOffer.isSeparateTickets === true;
+    const separateTicketDetails = flightOffer.separateTicketDetails;
+
+    if (isSeparateTickets && separateTicketDetails) {
+      // ========== SEPARATE TICKETS BOOKING (2 BOOKINGS) ==========
+      console.log('🎫 Creating SEPARATE TICKET bookings (mixed carrier)...');
+      sourceApi = 'Duffel';
+
+      const outboundOffer = separateTicketDetails.outboundFlight;
+      const returnOffer = separateTicketDetails.returnFlight;
+
+      console.log(`   Outbound: ${outboundOffer.id} (${outboundOffer.validatingAirlineCodes?.[0] || 'Unknown'})`);
+      console.log(`   Return: ${returnOffer.id} (${returnOffer.validatingAirlineCodes?.[0] || 'Unknown'})`);
+
+      try {
+        // Book both flights in parallel
+        const [outboundOrder, returnOrder] = await Promise.all([
+          safeBookingOperation(
+            () => duffelAPI.createOrder(outboundOffer, passengers),
+            'Create Outbound Duffel Order',
+            { userEmail: contactInfo?.email, endpoint: '/api/flights/booking/create' }
+          ),
+          safeBookingOperation(
+            () => duffelAPI.createOrder(returnOffer, passengers),
+            'Create Return Duffel Order',
+            { userEmail: contactInfo?.email, endpoint: '/api/flights/booking/create' }
+          ),
+        ]);
+
+        // Extract details from both orders
+        const outboundPnr = duffelAPI.extractBookingReference(outboundOrder);
+        const returnPnr = duffelAPI.extractBookingReference(returnOrder);
+        duffelOrderId = duffelAPI.extractOrderId(outboundOrder);
+        pnr = `${outboundPnr}/${returnPnr}`; // Combined PNR for display
+        bookingId = duffelOrderId;
+        isMockBooking = !outboundOrder.data?.live_mode;
+
+        flightOrder = {
+          outboundOrder,
+          returnOrder,
+          isSeparateTickets: true,
+        };
+
+        console.log('✅ Separate ticket bookings created!');
+        console.log(`   Outbound PNR: ${outboundPnr}`);
+        console.log(`   Return PNR: ${returnPnr}`);
+      } catch (error: any) {
+        console.error('❌ Separate ticket booking failed:', error);
+        return NextResponse.json(
+          {
+            success: false,
+            error: 'BOOKING_FAILED',
+            message: 'Failed to create separate ticket booking. One or both flights may no longer be available.',
+          },
+          { status: 500 }
+        );
+      }
+    } else if (flightSource === 'Duffel') {
       // ========== DUFFEL BOOKING ==========
       console.log('🎫 Creating flight order with Duffel...');
       sourceApi = 'Duffel';
