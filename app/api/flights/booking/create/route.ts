@@ -12,6 +12,18 @@ import { BOOKING_RATE_LIMITS } from '@/lib/security/rate-limit-config';
 // CRITICAL: Import flight markup to ensure customer is charged correct amount
 import { applyFlightMarkup } from '@/lib/config/flight-markup';
 
+// CRITICAL: Import error alerting system to notify admins of customer errors
+import { alertApiError } from '@/lib/monitoring/customer-error-alerts';
+import {
+  handleApiError,
+  safeBookingOperation,
+  safePaymentOperation,
+  safeApiCall,
+  safeDbOperation,
+  ErrorCategory,
+  ErrorSeverity
+} from '@/lib/monitoring/global-error-handler';
+
 /**
  * Flight Create Orders API - Complete Flight Booking
  *
@@ -50,22 +62,22 @@ import { applyFlightMarkup } from '@/lib/config/flight-markup';
  */
 
 export async function POST(request: NextRequest) {
-  // Rate limiting check - strict limit for booking creation
-  const rateLimitResult = await checkRateLimit(request, BOOKING_RATE_LIMITS.create);
-  if (!rateLimitResult.success) {
-    const response = NextResponse.json(
-      {
-        success: false,
-        error: 'RATE_LIMIT_EXCEEDED',
-        message: 'Too many booking attempts. Please try again later.',
-        retryAfter: rateLimitResult.retryAfter,
-      },
-      { status: 429 }
-    );
-    return addRateLimitHeaders(response, rateLimitResult);
-  }
-
-  try {
+  // GLOBAL ERROR HANDLER - Catches ALL errors and sends alerts
+  return handleApiError(request, async () => {
+    // Rate limiting check - strict limit for booking creation
+    const rateLimitResult = await checkRateLimit(request, BOOKING_RATE_LIMITS.create);
+    if (!rateLimitResult.success) {
+      const response = NextResponse.json(
+        {
+          success: false,
+          error: 'RATE_LIMIT_EXCEEDED',
+          message: 'Too many booking attempts. Please try again later.',
+          retryAfter: rateLimitResult.retryAfter,
+        },
+        { status: 429 }
+      );
+      return addRateLimitHeaders(response, rateLimitResult);
+    }
     const body = await request.json();
     const {
       flightOffer,
@@ -80,8 +92,17 @@ export async function POST(request: NextRequest) {
       holdDuration      // NEW: Hold duration in hours
     } = body;
 
-    // Validation
+    // Validation - with error alerting
     if (!flightOffer) {
+      // CRITICAL: Alert admin about validation failure
+      await alertApiError(request, new Error('Flight offer is required'), {
+        errorCode: 'VALIDATION_ERROR',
+        endpoint: '/api/flights/booking/create',
+        userEmail: contactInfo?.email || passengers?.[0]?.email,
+      }, {
+        priority: 'normal',
+      }).catch(err => console.error('Failed to send alert:', err));
+
       return NextResponse.json(
         { error: 'Flight offer is required' },
         { status: 400 }
@@ -89,6 +110,15 @@ export async function POST(request: NextRequest) {
     }
 
     if (!passengers || !Array.isArray(passengers) || passengers.length === 0) {
+      // CRITICAL: Alert admin about validation failure
+      await alertApiError(request, new Error('Passenger information is required'), {
+        errorCode: 'VALIDATION_ERROR',
+        endpoint: '/api/flights/booking/create',
+        userEmail: contactInfo?.email,
+      }, {
+        priority: 'normal',
+      }).catch(err => console.error('Failed to send alert:', err));
+
       return NextResponse.json(
         { error: 'Passenger information is required' },
         { status: 400 }
@@ -159,7 +189,15 @@ export async function POST(request: NextRequest) {
     } else {
       // Amadeus price confirmation
       try {
-        const priceConfirmation = await amadeusAPI.confirmFlightPrice([flightOffer]);
+        const priceConfirmation = await safeApiCall(
+          () => amadeusAPI.confirmFlightPrice([flightOffer]),
+          'Amadeus Price Confirmation',
+          {
+            userEmail: contactInfo?.email || passengers?.[0]?.email,
+            endpoint: '/api/flights/booking/create',
+            flightRoute: `${flightOffer.itineraries[0]?.segments[0]?.departure?.iataCode} → ${flightOffer.itineraries[0]?.segments[flightOffer.itineraries[0]?.segments.length - 1]?.arrival?.iataCode}`,
+          }
+        );
 
         if (!priceConfirmation?.data || priceConfirmation.data.length === 0) {
           return NextResponse.json(
@@ -296,7 +334,14 @@ export async function POST(request: NextRequest) {
 
     // STEP 3: PRE-GENERATE booking reference (before any API calls)
     // This ensures the webhook can find the booking after payment succeeds
-    const preGeneratedBookingRef = await bookingStorage.generateBookingReference();
+    const preGeneratedBookingRef = await safeDbOperation(
+      () => bookingStorage.generateBookingReference(),
+      'Generate Booking Reference',
+      {
+        userEmail: contactInfo?.email || passengers[0]?.email,
+        endpoint: '/api/flights/booking/create',
+      }
+    );
     console.log(`📋 Pre-generated booking reference: ${preGeneratedBookingRef}`);
 
     // STEP 4: Create airline booking FIRST (before payment)
@@ -325,10 +370,20 @@ export async function POST(request: NextRequest) {
           console.log('⏸️  Creating hold booking (pay later)...');
           console.log(`   Hold Duration: ${holdDuration || 24} hours`);
 
-          duffelOrder = await duffelAPI.createHoldOrder(
-            confirmedOffer,
-            passengers,
-            holdDuration
+          duffelOrder = await safeBookingOperation(
+            () => duffelAPI.createHoldOrder(
+              confirmedOffer,
+              passengers,
+              holdDuration
+            ),
+            'Create Duffel Hold Order',
+            {
+              userEmail: contactInfo?.email || passengers[0]?.email,
+              endpoint: '/api/flights/booking/create',
+              amount: parseFloat(confirmedOffer.price.total),
+              currency: confirmedOffer.price.currency,
+              flightRoute: `${confirmedOffer.itineraries[0]?.segments[0]?.departure?.iataCode} → ${confirmedOffer.itineraries[0]?.segments[confirmedOffer.itineraries[0]?.segments.length - 1]?.arrival?.iataCode}`,
+            }
           );
 
           // Extract hold pricing
@@ -337,10 +392,20 @@ export async function POST(request: NextRequest) {
           console.log(`   Expires At: ${holdPricing.expiresAt.toISOString()}`);
         } else {
           // Create instant order (pay now)
-          duffelOrder = await duffelAPI.createOrder(
-            confirmedOffer,
-            passengers,
-            // payments can be added here for live mode
+          duffelOrder = await safeBookingOperation(
+            () => duffelAPI.createOrder(
+              confirmedOffer,
+              passengers,
+              // payments can be added here for live mode
+            ),
+            'Create Duffel Instant Order',
+            {
+              userEmail: contactInfo?.email || passengers[0]?.email,
+              endpoint: '/api/flights/booking/create',
+              amount: parseFloat(confirmedOffer.price.total),
+              currency: confirmedOffer.price.currency,
+              flightRoute: `${confirmedOffer.itineraries[0]?.segments[0]?.departure?.iataCode} → ${confirmedOffer.itineraries[0]?.segments[confirmedOffer.itineraries[0]?.segments.length - 1]?.arrival?.iataCode}`,
+            }
           );
         }
 
@@ -366,7 +431,26 @@ export async function POST(request: NextRequest) {
         let errorCode = 'BOOKING_FAILED';
         let statusCode = 500;
 
-        if (error.response?.data?.errors) {
+        // Check for configuration errors (ORDER_CREATION_DISABLED)
+        if (error.message?.includes('ORDER_CREATION_DISABLED')) {
+          userFriendlyError = 'Flight booking is currently unavailable. Please contact support.';
+          errorCode = 'SERVICE_UNAVAILABLE';
+          statusCode = 503;
+          console.error('⚠️ CONFIGURATION ERROR: DUFFEL_ENABLE_ORDERS not set to true');
+
+          // CRITICAL: Alert admin immediately about configuration error
+          await alertApiError(request, error, {
+            errorCode: 'CONFIG_ERROR',
+            endpoint: '/api/flights/booking/create',
+            userEmail: contactInfo?.email || passengers[0]?.email,
+            amount: parseFloat(confirmedOffer.price.total),
+            currency: confirmedOffer.price.currency,
+          }, {
+            priority: 'critical',
+          }).catch(alertErr => console.error('Failed to send alert:', alertErr));
+        }
+        // Check for Duffel API errors
+        else if (error.response?.data?.errors) {
           const errors = error.response.data.errors;
 
           // Check for sold out errors
@@ -403,6 +487,18 @@ export async function POST(request: NextRequest) {
             statusCode = 400;
           }
         }
+
+        // CRITICAL: Alert admin about booking failure
+        await alertApiError(request, error, {
+          errorCode,
+          endpoint: '/api/flights/booking/create',
+          userEmail: contactInfo?.email || passengers[0]?.email,
+          amount: parseFloat(confirmedOffer.price.total),
+          currency: confirmedOffer.price.currency,
+          flightRoute: `${confirmedOffer.itineraries[0]?.segments[0]?.departure?.iataCode} → ${confirmedOffer.itineraries[0]?.segments[confirmedOffer.itineraries[0]?.segments.length - 1]?.arrival?.iataCode}`,
+        }, {
+          priority: statusCode >= 500 ? 'critical' : 'high',
+        }).catch(alertErr => console.error('Failed to send alert:', alertErr));
 
         // Return specific error BEFORE creating payment
         // CRITICAL: Customer is NOT charged yet!
@@ -520,21 +616,31 @@ export async function POST(request: NextRequest) {
 
         // Create payment intent with Stripe AFTER airline booking succeeds
         // CRITICAL: This ensures the webhook can match payment to booking!
-        paymentIntent = await paymentService.createPaymentIntent({
-          amount: totalAmount,
-          currency: confirmedOffer.price.currency,
-          bookingReference: preGeneratedBookingRef, // Use pre-generated reference
-          customerEmail: contactInfo?.email || passengers[0]?.email,
-          customerName: `${passengers[0]?.firstName} ${passengers[0]?.lastName}`,
-          description: `Flight booking: ${flightOffer.itineraries[0].segments[0].departure.iataCode} → ${flightOffer.itineraries[0].segments[flightOffer.itineraries[0].segments.length - 1].arrival.iataCode}`,
-          metadata: {
-            flightOfferId: confirmedOffer.id,
-            passengerCount: passengers.length.toString(),
-            source: flightSource,
-            bookingReference: preGeneratedBookingRef, // Also in metadata for redundancy
-            duffelOrderId: duffelOrderId, // Link to airline booking
-          },
-        });
+        paymentIntent = await safePaymentOperation(
+          () => paymentService.createPaymentIntent({
+            amount: totalAmount,
+            currency: confirmedOffer.price.currency,
+            bookingReference: preGeneratedBookingRef, // Use pre-generated reference
+            customerEmail: contactInfo?.email || passengers[0]?.email,
+            customerName: `${passengers[0]?.firstName} ${passengers[0]?.lastName}`,
+            description: `Flight booking: ${flightOffer.itineraries[0].segments[0].departure.iataCode} → ${flightOffer.itineraries[0].segments[flightOffer.itineraries[0].segments.length - 1].arrival.iataCode}`,
+            metadata: {
+              flightOfferId: confirmedOffer.id,
+              passengerCount: passengers.length.toString(),
+              source: flightSource,
+              bookingReference: preGeneratedBookingRef, // Also in metadata for redundancy
+              duffelOrderId: duffelOrderId, // Link to airline booking
+            },
+          }),
+          'Create Payment Intent',
+          {
+            userEmail: contactInfo?.email || passengers[0]?.email,
+            endpoint: '/api/flights/booking/create',
+            amount: totalAmount,
+            currency: confirmedOffer.price.currency,
+            bookingReference: preGeneratedBookingRef,
+          }
+        );
 
         console.log('✅ Payment intent created successfully');
         console.log(`   Payment Intent ID: ${paymentIntent.paymentIntentId}`);
@@ -693,7 +799,8 @@ Customer needs to complete payment to finalize booking.
         try {
           console.log(`💾 Database save attempt ${attempt + 1}/${maxRetries}...`);
 
-          savedBooking = await bookingStorage.create({
+          savedBooking = await safeDbOperation(
+            () => bookingStorage.create({
         status: bookingStatus,
         contactInfo: bookingContactInfo,
         flight: flightData,
@@ -724,7 +831,16 @@ Customer needs to complete payment to finalize booking.
         airlineRecordLocator: sourceApi === 'Amadeus' ? 'PENDING' : pnr,
         // Store customer vs consolidator pricing for margin tracking
         customerPrice: totalAmount,
-          }, preGeneratedBookingRef); // Pass pre-generated reference for webhook matching
+          }, preGeneratedBookingRef), // Pass pre-generated reference for webhook matching
+            `Save Booking to Database (Attempt ${attempt + 1})`,
+            {
+              userEmail: contactInfo?.email || passengers[0]?.email,
+              endpoint: '/api/flights/booking/create',
+              amount: totalAmount,
+              currency: confirmedOffer.price.currency,
+              bookingReference: preGeneratedBookingRef,
+            }
+          );
 
           console.log('✅ Booking saved to database!');
           console.log(`   Database ID: ${savedBooking.id}`);
@@ -852,8 +968,9 @@ Manual intervention required to:
 
           const { score: riskScore, factors: riskFactors } = calculateRiskScore();
 
-          await prisma.cardAuthorization.create({
-            data: {
+          await safeDbOperation(
+            () => prisma.cardAuthorization.create({
+              data: {
               bookingReference: savedBooking.bookingReference,
               cardholderName: payment.cardName || payment.signatureName,
               cardLast4: payment.cardNumber?.replace(/\s/g, '').slice(-4) || '0000',
@@ -883,8 +1000,15 @@ Manual intervention required to:
               status: 'PENDING',
               riskScore,
               riskFactors: riskFactors,
-            },
-          });
+              },
+            }),
+            'Save Card Authorization',
+            {
+              userEmail: bookingContactInfo.email,
+              endpoint: '/api/flights/booking/create',
+              bookingReference: savedBooking.bookingReference,
+            }
+          );
 
           console.log('✅ Card authorization saved');
           console.log(`   Risk Score: ${riskScore}/100`);

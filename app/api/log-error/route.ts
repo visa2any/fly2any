@@ -1,14 +1,16 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { alertCustomerError } from '@/lib/monitoring/customer-error-alerts';
+import { ErrorCategory, ErrorSeverity } from '@/lib/monitoring/global-error-handler';
 
 /**
- * Error Log API Endpoint
+ * Error Log API Endpoint - CLIENT-SIDE ERRORS
  *
  * Receives error logs from the client and processes them.
- * This endpoint can be extended to:
- * - Store errors in a database
- * - Forward to external logging services
- * - Send alerts for critical errors
- * - Aggregate error statistics
+ * Integrated with customer error alerts system:
+ * - Sends Telegram alerts for critical errors
+ * - Sends email alerts with full context
+ * - Logs to Sentry for tracking
+ * - Stores error metadata
  */
 
 interface ErrorLogRequest {
@@ -32,42 +34,48 @@ export async function POST(request: NextRequest) {
     }
 
     // Log to server console (for development/debugging)
-    console.error('[Error API]', {
+    console.error('[Client Error]', {
       errorId: body.errorId,
       severity: body.severity,
       message: body.message,
       metadata: body.metadata,
     });
 
-    // TODO: Add production error logging
-    // Examples:
-    // 1. Store in database for analysis
-    // await db.errors.create({
-    //   data: {
-    //     errorId: body.errorId,
-    //     message: body.message,
-    //     stack: body.stack,
-    //     severity: body.severity,
-    //     metadata: body.metadata,
-    //     timestamp: new Date(),
-    //   },
-    // });
+    // Map client severity to our system severity
+    const severityMap: Record<string, ErrorSeverity> = {
+      'fatal': ErrorSeverity.CRITICAL,
+      'error': ErrorSeverity.HIGH,
+      'warning': ErrorSeverity.NORMAL,
+      'info': ErrorSeverity.LOW,
+    };
 
-    // 2. Send to external logging service (e.g., Datadog, Loggly)
-    // await fetch('https://logging-service.com/api/logs', {
-    //   method: 'POST',
-    //   headers: { 'Content-Type': 'application/json' },
-    //   body: JSON.stringify(body),
-    // });
+    const severity = severityMap[body.severity] || ErrorSeverity.HIGH;
 
-    // 3. Send alerts for critical errors
-    // if (body.severity === 'fatal') {
-    //   await sendAlert({
-    //     channel: 'engineering',
-    //     message: `Critical error: ${body.message}`,
-    //     errorId: body.errorId,
-    //   });
-    // }
+    // Determine if we should send alerts
+    // Send alerts for fatal and error severities only
+    const shouldAlert = body.severity === 'fatal' || body.severity === 'error';
+
+    if (shouldAlert) {
+      // Send customer error alert
+      await alertCustomerError({
+        errorMessage: body.message,
+        errorCode: body.errorId,
+        errorStack: body.stack,
+        category: ErrorCategory.UNKNOWN, // Client errors are categorized as unknown
+        severity,
+        url: body.metadata?.url as string,
+        userAgent: body.metadata?.userAgent as string,
+        userEmail: body.metadata?.userEmail as string,
+        endpoint: 'CLIENT_ERROR',
+      }, {
+        priority: severity,
+        sendTelegram: body.severity === 'fatal', // Only send Telegram for fatal errors
+        sendEmail: true,
+        sendSentry: true,
+      }).catch(err => {
+        console.error('Failed to send client error alert:', err);
+      });
+    }
 
     return NextResponse.json(
       {

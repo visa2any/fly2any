@@ -138,6 +138,7 @@ const nextConfig = {
       'lodash',            // Utility tree-shaking
     ],
     optimizeCss: true,     // CSS optimization for reduced CLS
+    instrumentationHook: true, // Enable instrumentation.ts for error handlers
   },
 
   // Enable Partial Pre-Rendering for faster initial load (when available)
