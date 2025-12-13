@@ -1475,12 +1475,18 @@ export async function POST(request: NextRequest) {
       // Apply markup using the flight markup config
       const markupResult = applyFlightMarkup(netPrice);
 
+      // CRITICAL: Preserve original base price, adjust for markup
+      const originalBase = parseFloat(String(flight.price?.base || '0'));
+      const newBase = originalBase > 0 ? originalBase + markupResult.markupAmount : 0;
+
       // Update flight price with customer-facing price (including markup)
       const markedUpFlight = {
         ...flight,
         price: {
           ...flight.price,
           total: markupResult.customerPrice.toString(),
+          base: newBase > 0 ? newBase.toString() : flight.price?.base, // Preserve or recalculate
+          fees: flight.price?.fees, // Preserve original fees array
           grandTotal: markupResult.customerPrice.toString(),
           // Store net price internally for routing/commission calculations
           _netPrice: netPrice.toString(),

@@ -261,25 +261,28 @@ export function FlightCardEnhanced({
 
   const totalPrice = parsePrice(price.total);
 
-  // Calculate fees and base price correctly
+  // Calculate fees and base price correctly - TRANSPARENT
   let fees = 0;
   let basePrice = parsePrice(price.base);
 
-  // If fees array exists, use it to calculate fees
+  // Method 1: Use fees array if available (most reliable)
   if (price.fees && Array.isArray(price.fees) && price.fees.length > 0) {
     fees = price.fees.reduce((sum, fee) => sum + parsePrice(fee.amount), 0);
-
-    // If base price is missing or equals total, recalculate it from fees
-    if ((basePrice === 0 || basePrice === totalPrice) && fees > 0) {
+    // Recalculate base if missing
+    if (basePrice === 0 && fees > 0) {
       basePrice = totalPrice - fees;
     }
-  } else if (basePrice > 0 && basePrice < totalPrice) {
-    // Have valid base price, calculate fees
+  }
+  // Method 2: Calculate fees from base price if available
+  else if (basePrice > 0 && basePrice < totalPrice) {
     fees = Math.max(0, totalPrice - basePrice);
-  } else if (basePrice === 0 || price.base === undefined) {
-    // Missing base price - estimate typical breakdown (85% base, 15% fees)
-    fees = totalPrice * 0.15;
-    basePrice = totalPrice * 0.85;
+  }
+  // Method 3: Base price missing - set to total (DON'T estimate)
+  else if (basePrice === 0 || price.base === undefined) {
+    // DON'T estimate - just show total as is
+    basePrice = totalPrice;
+    fees = 0;
+    console.warn(`⚠️ Flight price missing base breakdown - showing total only`);
   } else {
     // Base equals total (no fees)
     fees = 0;
