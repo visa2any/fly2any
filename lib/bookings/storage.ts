@@ -223,9 +223,9 @@ class BookingStorage {
       }
 
       return this.deserializeBooking(result[0]);
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error finding booking by ID:', error);
-      throw new Error('Failed to find booking');
+      throw new Error(`Failed to find booking: ${error?.message || 'Unknown database error'}`);
     }
   }
 
@@ -259,9 +259,9 @@ class BookingStorage {
       }
 
       return this.deserializeBooking(result[0]);
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error finding booking by reference:', error);
-      throw new Error('Failed to find booking');
+      throw new Error(`Failed to find booking by ref: ${error?.message || 'Unknown database error'}`);
     }
   }
 
