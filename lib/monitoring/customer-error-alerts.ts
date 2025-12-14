@@ -23,6 +23,12 @@ export interface CustomerErrorContext {
   userAgent?: string;
   ipAddress?: string;
 
+  // ENHANCED: Customer contact details (for admin to follow up)
+  customerName?: string;
+  customerFirstName?: string;
+  customerLastName?: string;
+  customerPhone?: string;
+
   // Request context
   url?: string;
   method?: string;
@@ -34,6 +40,12 @@ export interface CustomerErrorContext {
   paymentIntentId?: string;
   amount?: number;
   currency?: string;
+
+  // Flight context
+  flightRoute?: string;
+  departureDate?: string;
+  passengerCount?: number;
+  sourceApi?: string;
 
   // Additional metadata
   [key: string]: any;
@@ -221,6 +233,7 @@ export async function alertCustomerError(
 
 /**
  * Format error for Telegram notification
+ * ENHANCED: Now includes customer name, phone prominently for admin follow-up
  */
 function formatTelegramErrorAlert(
   context: CustomerErrorContext,
@@ -237,14 +250,31 @@ function formatTelegramErrorAlert(
 
   const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://fly2any.com';
 
-  // Build metadata from custom fields (offerId, passengerCount, errorDetail, duffelErrorsRaw, etc)
+  // Build customer name from available fields
+  const customerName = context.customerName ||
+    (context.customerFirstName && context.customerLastName
+      ? `${context.customerFirstName} ${context.customerLastName}`
+      : context.customerFirstName || context.customerLastName || null);
+
+  // Build metadata from custom fields (exclude already-displayed fields)
+  const excludedFields = [
+    'errorMessage', 'errorCode', 'userEmail', 'endpoint', 'bookingReference',
+    'amount', 'currency', 'userId', 'userAgent', 'ipAddress', 'url', 'method',
+    'errorStack', 'category', 'severity', 'customerName', 'customerFirstName',
+    'customerLastName', 'customerPhone', 'flightRoute', 'departureDate',
+    'passengerCount', 'sourceApi'
+  ];
+
   const customFields = Object.entries(context)
-    .filter(([key]) => !['errorMessage', 'errorCode', 'userEmail', 'endpoint', 'bookingReference', 'amount', 'currency', 'userId', 'userAgent', 'ipAddress', 'url', 'method', 'errorStack', 'category', 'severity'].includes(key))
+    .filter(([key]) => !excludedFields.includes(key))
+    .filter(([, value]) => value !== undefined && value !== null && value !== '')
+    .slice(0, 5) // Limit to 5 extra fields to keep message readable
     .map(([key, value]) => {
-      if (typeof value === 'string' && value.length > 150) {
-        return `${key}: ${value.substring(0, 150)}...`;
+      const displayKey = key.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase());
+      if (typeof value === 'string' && value.length > 100) {
+        return `${displayKey}: ${value.substring(0, 100)}...`;
       }
-      return `${key}: ${typeof value === 'object' ? JSON.stringify(value).substring(0, 150) : value}`;
+      return `${displayKey}: ${typeof value === 'object' ? JSON.stringify(value).substring(0, 100) : value}`;
     });
 
   return `
@@ -253,17 +283,27 @@ ${emoji} <b>CUSTOMER ERROR - ${priority.toUpperCase()}</b>
 ❌ <b>Error:</b> ${context.errorMessage}
 ${context.errorCode ? `📋 <b>Code:</b> <code>${context.errorCode}</code>` : ''}
 
-${context.userEmail ? `📧 <b>User:</b> ${context.userEmail}` : ''}
+<b>👤 CUSTOMER INFO:</b>
+${customerName ? `• <b>Name:</b> ${customerName}` : ''}
+${context.userEmail ? `• <b>Email:</b> ${context.userEmail}` : ''}
+${context.customerPhone ? `• <b>Phone:</b> ${context.customerPhone}` : ''}
+
+${context.flightRoute || context.amount ? '<b>✈️ BOOKING INFO:</b>' : ''}
+${context.flightRoute ? `• <b>Route:</b> ${context.flightRoute}` : ''}
+${context.departureDate ? `• <b>Date:</b> ${context.departureDate}` : ''}
+${context.passengerCount ? `• <b>Passengers:</b> ${context.passengerCount}` : ''}
+${context.amount ? `• <b>Amount:</b> ${context.currency || 'USD'} ${typeof context.amount === 'number' ? context.amount.toLocaleString() : context.amount}` : ''}
+${context.bookingReference ? `• <b>Ref:</b> <code>${context.bookingReference}</code>` : ''}
+${context.sourceApi ? `• <b>Source:</b> ${context.sourceApi}` : ''}
+
 ${context.endpoint ? `🔗 <b>Endpoint:</b> <code>${context.endpoint}</code>` : ''}
-${context.bookingReference ? `📋 <b>Booking:</b> <code>${context.bookingReference}</code>` : ''}
-${context.amount ? `💰 <b>Amount:</b> ${context.currency || 'USD'} ${context.amount}` : ''}
 
-${customFields.length > 0 ? `\n📊 <b>Details:</b>\n${customFields.map(f => `  • ${f}`).join('\n')}` : ''}
+${customFields.length > 0 ? `📊 <b>Extra Details:</b>\n${customFields.map(f => `  • ${f}`).join('\n')}` : ''}
 
-${context.bookingReference ? `🔗 <a href="${baseUrl}/admin/bookings?search=${context.bookingReference}">View Booking</a>` : ''}
+${context.bookingReference ? `🔗 <a href="${baseUrl}/admin/bookings?search=${context.bookingReference}">View in Admin</a>` : ''}
 
 ⏰ ${new Date().toLocaleString()}
-  `.trim();
+  `.trim().replace(/\n{3,}/g, '\n\n'); // Clean up multiple empty lines
 }
 
 /**
