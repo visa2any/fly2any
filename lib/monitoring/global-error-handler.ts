@@ -247,13 +247,24 @@ export async function handleApiError(
       console.error('Failed to send error alert:', alertErr);
     });
 
-    // Return user-friendly error response
+    // Return user-friendly error response with debug info
+    console.error('🔥 FULL ERROR DETAILS:', {
+      message: error.message,
+      name: error.name,
+      code: error.code,
+      stack: error.stack?.substring(0, 500),
+    });
+
     return NextResponse.json(
       {
         success: false,
         error: errorCode,
         message: userMessage,
-        details: process.env.NODE_ENV === 'development' ? error.message : undefined,
+        // ALWAYS include debug info to diagnose production issues
+        debugMessage: error.message || 'No error message',
+        debugCode: error.code || error.name || 'Unknown',
+        category,
+        timestamp: new Date().toISOString(),
       },
       { status: statusCode }
     );
