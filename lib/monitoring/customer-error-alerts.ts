@@ -228,6 +228,16 @@ function formatTelegramErrorAlert(
 
   const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://fly2any.com';
 
+  // Build metadata from custom fields (offerId, passengerCount, errorDetail, duffelErrorsRaw, etc)
+  const customFields = Object.entries(context)
+    .filter(([key]) => !['errorMessage', 'errorCode', 'userEmail', 'endpoint', 'bookingReference', 'amount', 'currency', 'userId', 'userAgent', 'ipAddress', 'url', 'method', 'errorStack', 'category', 'severity'].includes(key))
+    .map(([key, value]) => {
+      if (typeof value === 'string' && value.length > 150) {
+        return `${key}: ${value.substring(0, 150)}...`;
+      }
+      return `${key}: ${typeof value === 'object' ? JSON.stringify(value).substring(0, 150) : value}`;
+    });
+
   return `
 ${emoji} <b>CUSTOMER ERROR - ${priority.toUpperCase()}</b>
 
@@ -238,6 +248,8 @@ ${context.userEmail ? `📧 <b>User:</b> ${context.userEmail}` : ''}
 ${context.endpoint ? `🔗 <b>Endpoint:</b> <code>${context.endpoint}</code>` : ''}
 ${context.bookingReference ? `📋 <b>Booking:</b> <code>${context.bookingReference}</code>` : ''}
 ${context.amount ? `💰 <b>Amount:</b> ${context.currency || 'USD'} ${context.amount}` : ''}
+
+${customFields.length > 0 ? `\n📊 <b>Details:</b>\n${customFields.map(f => `  • ${f}`).join('\n')}` : ''}
 
 ${context.bookingReference ? `🔗 <a href="${baseUrl}/admin/bookings?search=${context.bookingReference}">View Booking</a>` : ''}
 

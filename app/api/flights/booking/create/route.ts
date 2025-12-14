@@ -600,6 +600,7 @@ export async function POST(request: NextRequest) {
           userEmail: contactInfo?.email || passengers[0]?.email,
           amount: parseFloat(confirmedOffer.price.total),
           currency: confirmedOffer.price.currency,
+          sourceApi: 'Duffel',
           flightRoute: `${confirmedOffer.itineraries[0]?.segments[0]?.departure?.iataCode} → ${confirmedOffer.itineraries[0]?.segments[confirmedOffer.itineraries[0]?.segments.length - 1]?.arrival?.iataCode}`,
           offerId: confirmedOffer.id,
           passengerCount: passengers.length,
