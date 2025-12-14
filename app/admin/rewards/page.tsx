@@ -46,6 +46,8 @@ interface PromoCode {
   perUserLimit?: number;
   applicableProducts: string[];
   newUsersOnly: boolean;
+  requiresAccount: boolean;
+  requiresPWAApp: boolean;
   description?: string;
   isActive: boolean;
   usageCount: number;
@@ -124,7 +126,7 @@ export default function RewardsAdminPage() {
     type: 'percentage' as 'percentage' | 'fixed',
     value: 5,
     currency: 'USD',
-    minBookingAmount: '',
+    minSpend: '',
     maxDiscount: '',
     validFrom: new Date().toISOString().split('T')[0],
     validUntil: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
@@ -132,6 +134,8 @@ export default function RewardsAdminPage() {
     perUserLimit: '1',
     applicableProducts: ['hotel', 'flight'],
     newUsersOnly: false,
+    requiresAccount: true,
+    requiresPWAApp: false,
     description: '',
     isActive: true,
   });
@@ -195,7 +199,7 @@ export default function RewardsAdminPage() {
           type: 'percentage',
           value: 5,
           currency: 'USD',
-          minBookingAmount: '',
+          minSpend: '',
           maxDiscount: '',
           validFrom: new Date().toISOString().split('T')[0],
           validUntil: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
@@ -203,6 +207,8 @@ export default function RewardsAdminPage() {
           perUserLimit: '1',
           applicableProducts: ['hotel', 'flight'],
           newUsersOnly: false,
+          requiresAccount: true,
+          requiresPWAApp: false,
           description: '',
           isActive: true,
         });
@@ -531,6 +537,16 @@ export default function RewardsAdminPage() {
                     />
                   </div>
                   <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Minimum Spend ($)</label>
+                    <input
+                      type="number"
+                      value={newPromo.minSpend}
+                      onChange={(e) => setNewPromo({ ...newPromo, minSpend: e.target.value })}
+                      placeholder="No minimum"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+                    />
+                  </div>
+                  <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">Max Discount Cap ($)</label>
                     <input
                       type="number"
@@ -607,6 +623,24 @@ export default function RewardsAdminPage() {
                         className="rounded border-gray-300 text-primary-500 focus:ring-primary-500"
                       />
                       <span className="text-sm text-gray-700">New users only</span>
+                    </label>
+                    <label className="flex items-center gap-2">
+                      <input
+                        type="checkbox"
+                        checked={newPromo.requiresAccount}
+                        onChange={(e) => setNewPromo({ ...newPromo, requiresAccount: e.target.checked })}
+                        className="rounded border-gray-300 text-primary-500 focus:ring-primary-500"
+                      />
+                      <span className="text-sm text-gray-700">Requires Account</span>
+                    </label>
+                    <label className="flex items-center gap-2">
+                      <input
+                        type="checkbox"
+                        checked={newPromo.requiresPWAApp}
+                        onChange={(e) => setNewPromo({ ...newPromo, requiresPWAApp: e.target.checked })}
+                        className="rounded border-gray-300 text-primary-500 focus:ring-primary-500"
+                      />
+                      <span className="text-sm text-gray-700">PWA App Only</span>
                     </label>
                     <label className="flex items-center gap-2">
                       <input

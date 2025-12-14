@@ -202,7 +202,7 @@ export async function POST(request: NextRequest) {
         validUntil: validUntil ? new Date(validUntil) : new Date(Date.now() + 365 * 24 * 60 * 60 * 1000),
         usageLimit: usageLimit ? parseInt(usageLimit) : undefined,
         perUserLimit: perUserLimit ? parseInt(perUserLimit) : undefined,
-        applicableProducts: applicableProducts || ['hotel', 'flight', 'car', 'activity'],
+        applicableProducts: applicableProducts && applicableProducts.length > 0 ? applicableProducts : ['hotel', 'flight'],
         newUsersOnly: newUsersOnly || false,
         description: description || '',
         isActive,

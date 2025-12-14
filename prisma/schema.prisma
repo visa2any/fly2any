@@ -549,6 +549,10 @@ model PromoCode {
   applicableHotels   String[] // Specific hotel IDs (empty = all)
   newUsersOnly       Boolean  @default(false)
 
+  // Redemption Requirements
+  requiresAccount    Boolean  @default(false) // User must be logged in
+  requiresPWAApp     Boolean  @default(false) // User must have PWA app installed
+
   // Validity
   validFrom DateTime
   validUntil DateTime

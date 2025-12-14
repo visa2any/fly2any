@@ -41,6 +41,22 @@ export async function POST(request: NextRequest) {
           });
         }
 
+        // Check account requirement
+        if (localPromo.requiresAccount && !session?.user?.id) {
+          return NextResponse.json({
+            success: true,
+            data: { valid: false, error: 'You must create an account to use this promo code' },
+          });
+        }
+
+        // Check PWA app requirement
+        if (localPromo.requiresPWAApp && !session?.user?.id) {
+          return NextResponse.json({
+            success: true,
+            data: { valid: false, error: 'This offer is only available on the Fly2Any app. Download it now!' },
+          });
+        }
+
         if (now < localPromo.validFrom) {
           return NextResponse.json({
             success: true,
