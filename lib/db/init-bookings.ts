@@ -48,12 +48,16 @@ export async function initBookingsTables() {
         travel_date_from DATE,
         travel_date_to DATE,
         cancelled_at TIMESTAMP,
+        deleted_at TIMESTAMP,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         CONSTRAINT valid_status CHECK (status IN ('pending', 'confirmed', 'cancelled', 'completed')),
         CONSTRAINT valid_payment_status CHECK (payment_status IN ('pending', 'paid', 'refunded', 'failed'))
       )
     `;
+
+    // Add deleted_at column if it doesn't exist (for existing tables)
+    await sql`ALTER TABLE bookings ADD COLUMN IF NOT EXISTS deleted_at TIMESTAMP`;
 
     console.log('Creating indexes...');
 
