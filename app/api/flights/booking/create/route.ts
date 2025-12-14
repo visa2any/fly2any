@@ -66,11 +66,10 @@ export async function POST(request: NextRequest) {
   const requestId = `BK-${Date.now()}-${Math.random().toString(36).substring(2, 8).toUpperCase()}`;
 
   console.log(`\n${'='.repeat(80)}`);
-  console.log(`🚀 BOOKING CREATE REQUEST RECEIVED - ID: ${requestId}`);
+  console.log(`🚀 [${requestId}] BOOKING CREATE REQUEST RECEIVED`);
+  console.log(`   Timestamp: ${new Date().toISOString()}`);
   console.log(`   URL: ${request.url}`);
   console.log(`   Method: ${request.method}`);
-  console.log(`   User-Agent: ${request.headers.get('user-agent')?.substring(0, 80)}`);
-  console.log(`   Time: ${new Date().toISOString()}`);
 
   // GLOBAL ERROR HANDLER - Catches ALL errors and sends alerts
   return handleApiError(request, async () => {
@@ -1496,7 +1495,7 @@ Manual intervention required to:
       );
     }
   });
-  }
+}
 
 // OPTIONS handler for CORS
 export async function OPTIONS(request: NextRequest) {
