@@ -801,8 +801,10 @@ function BookingPageContent() {
       });
 
       if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.message || 'Booking failed');
+        const errorData = await response.json().catch(() => ({}));
+        console.error('Booking API error response:', errorData);
+        const message = errorData.message || errorData.error || 'Booking failed. Please try again or contact support.';
+        throw new Error(message);
       }
 
       const result = await response.json();

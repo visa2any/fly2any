@@ -645,10 +645,14 @@ export async function POST(request: NextRequest) {
 
     if (!bookingId) {
       console.error('❌ No booking ID returned from API');
+      console.error('   sourceApi:', sourceApi);
+      console.error('   flightOrder:', flightOrder);
+      console.error('   confirmedOffer:', confirmedOffer?.id);
       return NextResponse.json(
         {
           error: 'BOOKING_FAILED',
           message: 'Failed to create booking. Please try again or contact support.',
+          debug: process.env.NODE_ENV === 'development' ? { sourceApi, hasFlightOrder: !!flightOrder } : undefined,
         },
         { status: 500 }
       );
