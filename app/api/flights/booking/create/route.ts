@@ -1161,12 +1161,44 @@ Requires manual review.
       }
 
       // STEP 7: Send payment instructions email
-      console.log('📧 Sending payment instructions email...');
+      console.log('📧 STEP 7: Sending payment instructions email...');
+      console.log(`   To: ${bookingContactInfo.email}`);
+      console.log(`   Booking Ref: ${savedBooking.bookingReference}`);
+      console.log(`   Amount: ${totalAmount} ${confirmedOffer.price.currency}`);
+
       try {
-        await emailService.sendPaymentInstructions(savedBooking);
-        console.log('✅ Payment instructions email sent');
-      } catch (emailError) {
-        console.error('⚠️  Failed to send email, but booking was created:', emailError);
+        const emailResult = await emailService.sendPaymentInstructions(savedBooking);
+        console.log('✅ Email sent successfully');
+        console.log(`   Email service response:`, JSON.stringify(emailResult, null, 2).substring(0, 200));
+      } catch (emailError: any) {
+        console.error('❌ Email sending failed (but booking still created):');
+        console.error(`   Error type: ${emailError.constructor.name}`);
+        console.error(`   Error message: ${emailError.message}`);
+        if (emailError.response) {
+          console.error(`   HTTP Status: ${emailError.response.status}`);
+          console.error(`   Response: ${JSON.stringify(emailError.response.data || emailError.response).substring(0, 300)}`);
+        }
+        console.error(`   Full error:`, emailError);
+
+        // Alert admin about email failure
+        try {
+          const { notifyTelegramAdmins } = await import('@/lib/notifications/notification-service');
+          await notifyTelegramAdmins(`
+⚠️ *Email Sending Failed*
+
+A booking was successfully created but the confirmation email failed to send!
+
+📋 *Booking Details:*
+• Ref: \`${savedBooking.bookingReference}\`
+• To Email: ${bookingContactInfo.email}
+• Amount: ${totalAmount} ${confirmedOffer.price.currency}
+• Booking ID: ${savedBooking.id}
+
+*Error:* ${emailError.message}
+          `.trim());
+        } catch (notifyErr) {
+          console.error('Failed to send email failure notification:', notifyErr);
+        }
         // Don't fail the booking if email fails
       }
 
