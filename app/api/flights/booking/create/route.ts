@@ -403,6 +403,18 @@ export async function POST(request: NextRequest) {
         ]);
 
         // Extract details from both orders
+        console.log('📦 Separate ticket responses received:');
+        console.log('   Outbound order structure:');
+        console.log(`     - Response type: ${typeof outboundOrder}`);
+        console.log(`     - Has data property: ${!!outboundOrder?.data}`);
+        console.log(`     - data.id: ${outboundOrder?.data?.id}`);
+        console.log(`     - data.booking_reference: ${outboundOrder?.data?.booking_reference}`);
+        console.log('   Return order structure:');
+        console.log(`     - Response type: ${typeof returnOrder}`);
+        console.log(`     - Has data property: ${!!returnOrder?.data}`);
+        console.log(`     - data.id: ${returnOrder?.data?.id}`);
+        console.log(`     - data.booking_reference: ${returnOrder?.data?.booking_reference}`);
+
         const outboundPnr = duffelAPI.extractBookingReference(outboundOrder);
         const returnPnr = duffelAPI.extractBookingReference(returnOrder);
         duffelOrderId = duffelAPI.extractOrderId(outboundOrder);
@@ -410,12 +422,18 @@ export async function POST(request: NextRequest) {
         bookingId = duffelOrderId;
         isMockBooking = !outboundOrder.data?.live_mode;
 
+        console.log(`   Extracted Outbound PNR: ${outboundPnr}`);
+        console.log(`   Extracted Return PNR: ${returnPnr}`);
+        console.log(`   Extracted Order ID: ${duffelOrderId}`);
+
         // CRITICAL: Validate extraction succeeded
         if (!duffelOrderId || duffelOrderId === 'N/A' || !outboundPnr || outboundPnr === 'N/A' || !returnPnr || returnPnr === 'N/A') {
           console.error('❌ CRITICAL: Failed to extract PNR/ID from separate ticket orders');
           console.error(`   Outbound PNR: ${outboundPnr}`);
           console.error(`   Return PNR: ${returnPnr}`);
           console.error(`   Order ID: ${duffelOrderId}`);
+          console.error(`   Outbound response (first 400 chars):`, JSON.stringify(outboundOrder).substring(0, 400));
+          console.error(`   Return response (first 400 chars):`, JSON.stringify(returnOrder).substring(0, 400));
           throw new Error(`Separate ticket booking failed: Invalid response. Outbound: ${outboundPnr}, Return: ${returnPnr}, OrderID: ${duffelOrderId}`);
         }
 
@@ -437,13 +455,67 @@ export async function POST(request: NextRequest) {
           console.error('   Response data:', JSON.stringify(error.response.data, null, 2));
         }
         console.error('   Full error:', error);
+
+        // Extract specific error details
+        let userFriendlyError = 'Failed to create separate ticket booking. One or both flights may no longer be available.';
+        let errorCode = 'SEPARATE_TICKET_FAILED';
+        let statusCode = 500;
+
+        // Check for sold out errors
+        const duffelErrors = error.response?.data?.errors || [];
+        const soldOutError = duffelErrors.find((e: any) =>
+          e.code === 'offer_no_longer_available' ||
+          e.title?.toLowerCase().includes('no longer available') ||
+          e.title?.toLowerCase().includes('sold out')
+        );
+        if (soldOutError) {
+          userFriendlyError = 'One or both flights are no longer available. Please search for alternative flights.';
+          errorCode = 'SOLD_OUT';
+          statusCode = 410;
+        }
+
+        // Check for price change errors
+        const priceChangeError = duffelErrors.find((e: any) =>
+          e.code === 'offer_price_changed' ||
+          e.title?.toLowerCase().includes('price changed')
+        );
+        if (priceChangeError) {
+          userFriendlyError = 'The price for one or both flights has changed. Please review the new prices and try again.';
+          errorCode = 'PRICE_CHANGED';
+          statusCode = 409;
+        }
+
+        // CRITICAL: Alert admin about separate ticket booking failure with full details
+        const errorDetails = duffelErrors.length > 0
+          ? duffelErrors.map((e: any) => `${e.code}: ${e.title} - ${e.message}`).join(' | ')
+          : error.message;
+
+        await alertApiError(request, error, {
+          errorCode,
+          endpoint: '/api/flights/booking/create',
+          userEmail: contactInfo?.email || passengers[0]?.email,
+          amount: (parseFloat(separateTicketDetails.outboundFlight.price.total) + parseFloat(separateTicketDetails.returnFlight.price.total)),
+          currency: separateTicketDetails.outboundFlight.price.currency,
+          sourceApi: 'Duffel',
+          flightRoute: `${separateTicketDetails.outboundFlight.itineraries[0]?.segments[0]?.departure?.iataCode} → ${separateTicketDetails.outboundFlight.itineraries[0]?.segments[separateTicketDetails.outboundFlight.itineraries[0]?.segments.length - 1]?.arrival?.iataCode}`,
+          bookingType: 'SEPARATE_TICKETS',
+          outboundOfferId: separateTicketDetails.outboundFlight.id,
+          returnOfferId: separateTicketDetails.returnFlight.id,
+          passengerCount: passengers.length,
+          errorDetail: errorDetails,
+          duffelErrorsRaw: JSON.stringify(duffelErrors),
+        }, {
+          priority: statusCode >= 500 ? 'critical' : 'high',
+        }).catch(alertErr => console.error('Failed to send alert:', alertErr));
+
         return NextResponse.json(
           {
             success: false,
-            error: 'BOOKING_FAILED',
-            message: 'Failed to create separate ticket booking. One or both flights may no longer be available.',
+            error: errorCode,
+            message: userFriendlyError,
+            details: process.env.NODE_ENV === 'development' ? error.message : undefined,
           },
-          { status: 500 }
+          { status: statusCode }
         );
       }
     } else if (flightSource === 'Duffel') {
@@ -453,6 +525,7 @@ export async function POST(request: NextRequest) {
 
       try {
         let duffelOrder: any;
+        let startTime = Date.now();
 
         if (isHold) {
           // Create hold order (pay later)
@@ -460,7 +533,9 @@ export async function POST(request: NextRequest) {
           console.log(`   Hold Duration: ${holdDuration || 24} hours`);
           console.log(`   Offer ID: ${confirmedOffer.id}`);
           console.log(`   Passengers: ${passengers.length}`);
+          console.log(`   Calling: duffelAPI.createHoldOrder()`);
 
+          startTime = Date.now();
           duffelOrder = await safeBookingOperation(
             () => duffelAPI.createHoldOrder(
               confirmedOffer,
@@ -488,7 +563,9 @@ export async function POST(request: NextRequest) {
           console.log(`   Offer Price: $${confirmedOffer.price.total} ${confirmedOffer.price.currency}`);
           console.log(`   Passengers count: ${passengers.length}`);
           console.log(`   First passenger: ${passengers[0]?.firstName} ${passengers[0]?.lastName}`);
+          console.log(`   Calling: duffelAPI.createOrder()`);
 
+          const startTime = Date.now();
           duffelOrder = await safeBookingOperation(
             () => duffelAPI.createOrder(
               confirmedOffer,
@@ -507,10 +584,18 @@ export async function POST(request: NextRequest) {
         }
 
         // Extract booking details from Duffel response
+        const responseTime = Date.now() - startTime;
         console.log('📦 Duffel response received:');
+        console.log(`   Response time: ${responseTime}ms`);
         console.log(`   Response type: ${typeof duffelOrder}`);
-        console.log(`   Has data: ${!!duffelOrder?.data}`);
-        console.log(`   Full response:`, JSON.stringify(duffelOrder).substring(0, 500));
+        console.log(`   Is null: ${duffelOrder === null}`);
+        console.log(`   Is undefined: ${duffelOrder === undefined}`);
+        console.log(`   Has data property: ${!!duffelOrder?.data}`);
+        console.log(`   Has id property: ${!!duffelOrder?.id}`);
+        console.log(`   Has booking_reference: ${!!duffelOrder?.booking_reference}`);
+        console.log(`   data.id: ${duffelOrder?.data?.id}`);
+        console.log(`   data.booking_reference: ${duffelOrder?.data?.booking_reference}`);
+        console.log(`   Full response (first 800 chars):`, JSON.stringify(duffelOrder).substring(0, 800));
 
         duffelOrderId = duffelAPI.extractOrderId(duffelOrder);
         pnr = duffelAPI.extractBookingReference(duffelOrder);
