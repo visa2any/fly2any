@@ -1069,6 +1069,20 @@ class DuffelAPI {
       // Transform passengers to Duffel format
       const duffelPassengers = this.transformPassengersToDuffel(passengers);
 
+      // DIAGNOSTIC: Log transformed passengers
+      console.log('📋 DUFFEL DIAGNOSTIC - Transformed passengers:');
+      duffelPassengers.forEach((p: any, idx: number) => {
+        console.log(`   Passenger ${idx + 1}:`);
+        console.log(`     - id: ${p.id}`);
+        console.log(`     - given_name: ${p.given_name}`);
+        console.log(`     - family_name: ${p.family_name}`);
+        console.log(`     - born_on: ${p.born_on}`);
+        console.log(`     - email: ${p.email}`);
+        console.log(`     - phone_number: ${p.phone_number}`);
+        console.log(`     - gender: ${p.gender}`);
+        console.log(`     - title: ${p.title}`);
+      });
+
       // Create order payload
       const orderPayload: any = {
         selected_offers: [offerRequest.id],
@@ -1081,7 +1095,12 @@ class DuffelAPI {
         orderPayload.payments = payments;
       }
 
+      // DIAGNOSTIC: Log full payload being sent
+      console.log('📋 DUFFEL DIAGNOSTIC - Order payload:');
+      console.log(JSON.stringify(orderPayload, null, 2));
+
       // Create the order
+      console.log('🚀 Sending order request to Duffel API...');
       const order = await this.client.orders.create(orderPayload);
 
       console.log('✅ Duffel order created successfully!');
@@ -1093,13 +1112,33 @@ class DuffelAPI {
     } catch (error: any) {
       console.error('❌ Duffel order creation error:', error);
 
-      // Handle specific Duffel errors
-      if (error.response?.data?.errors) {
-        const errors = error.response.data.errors;
-        console.error('Duffel API errors:', JSON.stringify(errors, null, 2));
+      // CRITICAL: Log full error structure for debugging
+      console.error('   Error type:', error.constructor?.name);
+      console.error('   Error message:', error.message);
+      console.error('   Error code:', error.code);
+      console.error('   Error status:', error.status || error.statusCode);
 
+      // Duffel SDK puts errors in error.errors (not error.response.data.errors)
+      const duffelErrors = error.errors || error.response?.data?.errors || [];
+
+      if (duffelErrors.length > 0) {
+        console.error('   Duffel API errors:');
+        duffelErrors.forEach((e: any, i: number) => {
+          console.error(`     [${i + 1}] Code: ${e.code || 'N/A'}`);
+          console.error(`         Title: ${e.title || 'N/A'}`);
+          console.error(`         Message: ${e.message || 'N/A'}`);
+          console.error(`         Source: ${JSON.stringify(e.source) || 'N/A'}`);
+        });
+      } else {
+        console.error('   No structured Duffel errors found');
+        console.error('   Raw error keys:', Object.keys(error));
+        if (error.meta) console.error('   Error meta:', JSON.stringify(error.meta));
+      }
+
+      // Handle specific Duffel errors
+      if (duffelErrors.length > 0) {
         // Check for sold out errors
-        const soldOutError = errors.find((e: any) =>
+        const soldOutError = duffelErrors.find((e: any) =>
           e.code === 'offer_no_longer_available' ||
           e.title?.toLowerCase().includes('no longer available') ||
           e.title?.toLowerCase().includes('sold out')
@@ -1110,7 +1149,7 @@ class DuffelAPI {
         }
 
         // Check for price change errors
-        const priceChangeError = errors.find((e: any) =>
+        const priceChangeError = duffelErrors.find((e: any) =>
           e.code === 'offer_price_changed' ||
           e.title?.toLowerCase().includes('price changed')
         );
@@ -1120,7 +1159,7 @@ class DuffelAPI {
         }
 
         // Check for invalid passenger data
-        const invalidDataError = errors.find((e: any) =>
+        const invalidDataError = duffelErrors.find((e: any) =>
           e.code === 'validation_error' ||
           e.title?.toLowerCase().includes('invalid')
         );
@@ -1128,10 +1167,30 @@ class DuffelAPI {
         if (invalidDataError) {
           throw new Error(`INVALID_DATA: ${invalidDataError.message || 'Invalid passenger information'}`);
         }
+
+        // Build detailed error message from all Duffel errors
+        const errorMessages = duffelErrors.map((e: any) =>
+          `${e.code || 'ERROR'}: ${e.title || e.message || 'Unknown'}`
+        ).join('; ');
+
+        // Create enhanced error with structured data attached
+        const enhancedError = new Error(`Duffel order creation failed: ${errorMessages}`) as any;
+        enhancedError.duffelErrors = duffelErrors;
+        enhancedError.code = duffelErrors[0]?.code || 'DUFFEL_API_ERROR';
+        throw enhancedError;
       }
 
-      // Generic error
-      throw new Error(`Duffel order creation failed: ${error.message || 'Unknown error'}`);
+      // Extract meaningful error message
+      const errorMsg = error.message ||
+                       error.meta?.message ||
+                       (error.status ? `HTTP ${error.status}` : 'Unknown error');
+
+      // Create enhanced error preserving original error data
+      const enhancedError = new Error(`Duffel order creation failed: ${errorMsg}`) as any;
+      enhancedError.originalError = error;
+      enhancedError.duffelErrors = error.errors || [];
+      enhancedError.code = error.code || 'DUFFEL_ERROR';
+      throw enhancedError;
     }
   }
 

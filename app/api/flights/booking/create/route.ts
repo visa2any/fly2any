@@ -609,6 +609,25 @@ export async function POST(request: NextRequest) {
           console.log(`   Offer Price: $${confirmedOffer.price.total} ${confirmedOffer.price.currency}`);
           console.log(`   Passengers count: ${passengers.length}`);
           console.log(`   First passenger: ${passengers[0]?.firstName} ${passengers[0]?.lastName}`);
+
+          // DIAGNOSTIC: Log full passenger data being sent
+          console.log('📋 DIAGNOSTIC - Passenger data:');
+          passengers.forEach((p: any, idx: number) => {
+            console.log(`   Passenger ${idx + 1}:`);
+            console.log(`     - Name: ${p.firstName} ${p.lastName}`);
+            console.log(`     - DOB: ${p.dateOfBirth}`);
+            console.log(`     - Email: ${p.email}`);
+            console.log(`     - Phone: ${p.phone}`);
+            console.log(`     - Gender: ${p.gender}`);
+          });
+
+          // DIAGNOSTIC: Log offer structure
+          console.log('📋 DIAGNOSTIC - Offer structure:');
+          console.log(`   - id: ${confirmedOffer.id}`);
+          console.log(`   - source: ${confirmedOffer.source}`);
+          console.log(`   - itineraries: ${confirmedOffer.itineraries?.length}`);
+          console.log(`   - price.total: ${confirmedOffer.price?.total}`);
+
           console.log(`   Calling: duffelAPI.createOrder()`);
 
           const startTime = Date.now();
@@ -682,14 +701,25 @@ export async function POST(request: NextRequest) {
         console.log(`   Live Mode: ${duffelOrder.data?.live_mode ? 'Yes (real booking)' : 'No (test mode)'}`);
       } catch (error: any) {
         console.error('❌ Duffel booking failed at step: Duffel API call');
-        console.error('   Error type:', error.constructor.name);
-        console.error('   Error message:', error.message);
-        console.error('   Error code:', error.code);
+        console.error('   Error type:', error.constructor?.name || 'Unknown');
+        console.error('   Error message:', error.message || 'No message');
+        console.error('   Error code:', error.code || 'No code');
+        console.error('   Error keys:', Object.keys(error || {}));
+
+        // Check all possible error locations
+        console.error('   error.errors:', error.errors ? JSON.stringify(error.errors) : 'undefined');
+        console.error('   error.duffelErrors:', error.duffelErrors ? JSON.stringify(error.duffelErrors) : 'undefined');
+        console.error('   error.meta:', error.meta ? JSON.stringify(error.meta) : 'undefined');
+
         if (error.response) {
           console.error('   HTTP Status:', error.response.status);
           console.error('   Response data:', JSON.stringify(error.response.data, null, 2));
         }
-        console.error('   Full error:', error);
+        if (error.originalError) {
+          console.error('   Original error message:', error.originalError.message);
+          console.error('   Original error keys:', Object.keys(error.originalError || {}));
+        }
+        console.error('   Full error stringified:', JSON.stringify(error, Object.getOwnPropertyNames(error), 2).substring(0, 1500));
 
         // Extract specific error details for better user feedback
         let userFriendlyError = 'Failed to create booking. Please try again.';
@@ -719,12 +749,11 @@ export async function POST(request: NextRequest) {
             priority: 'critical',
           }).catch(alertErr => console.error('Failed to send alert:', alertErr));
         }
-        // Check for Duffel API errors
-        else if (error.response?.data?.errors) {
-          const errors = error.response.data.errors;
-
+        // Check for Duffel API errors (check multiple locations)
+        const apiErrors = error.duffelErrors || error.errors || error.response?.data?.errors || [];
+        if (apiErrors.length > 0) {
           // Check for sold out errors
-          const soldOutError = errors.find((e: any) =>
+          const soldOutError = apiErrors.find((e: any) =>
             e.code === 'offer_no_longer_available' ||
             e.title?.toLowerCase().includes('no longer available') ||
             e.title?.toLowerCase().includes('sold out')
@@ -736,7 +765,7 @@ export async function POST(request: NextRequest) {
           }
 
           // Check for price change errors
-          const priceChangeError = errors.find((e: any) =>
+          const priceChangeError = apiErrors.find((e: any) =>
             e.code === 'offer_price_changed' ||
             e.title?.toLowerCase().includes('price changed')
           );
@@ -747,7 +776,7 @@ export async function POST(request: NextRequest) {
           }
 
           // Check for invalid passenger data
-          const invalidDataError = errors.find((e: any) =>
+          const invalidDataError = apiErrors.find((e: any) =>
             e.code === 'validation_error' ||
             e.title?.toLowerCase().includes('invalid')
           );
@@ -756,13 +785,25 @@ export async function POST(request: NextRequest) {
             errorCode = 'INVALID_DATA';
             statusCode = 400;
           }
+
+          // Check for offer expired
+          const expiredError = apiErrors.find((e: any) =>
+            e.code === 'offer_expired' ||
+            e.title?.toLowerCase().includes('expired')
+          );
+          if (expiredError) {
+            userFriendlyError = 'This flight offer has expired. Please search again for current prices.';
+            errorCode = 'OFFER_EXPIRED';
+            statusCode = 410;
+          }
         }
 
         // CRITICAL: Alert admin about booking failure with full details
-        const duffelErrors = error.response?.data?.errors || [];
+        // Check multiple locations for Duffel errors (SDK vs axios vs enhanced)
+        const duffelErrors = error.duffelErrors || error.errors || error.response?.data?.errors || [];
         const errorDetails = duffelErrors.length > 0
-          ? duffelErrors.map((e: any) => `${e.code}: ${e.title} - ${e.message}`).join(' | ')
-          : error.message;
+          ? duffelErrors.map((e: any) => `${e.code || 'ERR'}: ${e.title || ''} - ${e.message || 'Unknown'}`).join(' | ')
+          : error.message || 'No error details available';
 
         await alertApiError(request, error, {
           errorCode,
