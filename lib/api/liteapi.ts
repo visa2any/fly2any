@@ -863,10 +863,9 @@ class LiteAPI {
       console.log(`📅 LiteAPI: Calculated ${nights} nights (${checkIn} to ${checkOut})`);
 
       // Step 1: Get hotel static data
-      // PERFORMANCE OPTIMIZED: Reduced from 200 to 50 for faster results
-      // Users typically view first 30-50 hotels, no need to fetch more
+      // PERFORMANCE OPTIMIZED: Request 100+ hotels for better selection
       const locationParams: Parameters<typeof this.getHotelsByLocation>[0] = {
-        limit: Math.min(params.limit || 50, 75), // Cap at 75 for performance
+        limit: Math.min(params.limit || 100, 150), // Cap at 150 for good coverage
       };
 
       if (params.latitude !== undefined && params.longitude !== undefined) {

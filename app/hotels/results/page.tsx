@@ -380,7 +380,7 @@ function HotelResultsContent() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [sortBy, setSortBy] = useState<SortOption>('cheapest');
-  const [displayCount, setDisplayCount] = useState(20);
+  const [displayCount, setDisplayCount] = useState(50);
   const [selectedHotelId, setSelectedHotelId] = useState<string | null>(null);
   const [isNavigating, setIsNavigating] = useState(false);
 
@@ -537,7 +537,7 @@ function HotelResultsContent() {
     : 0;
 
   const handleLoadMore = () => {
-    setDisplayCount(prev => Math.min(prev + 20, sortedHotels.length));
+    setDisplayCount(prev => Math.min(prev + 50, sortedHotels.length));
   };
 
   // Infinite scroll hook
