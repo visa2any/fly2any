@@ -23,9 +23,9 @@ const ADMIN_EMAIL = process.env.ADMIN_EMAIL || 'admin@fly2any.com';
 const COMPANY_NAME = 'Fly2Any';
 const SUPPORT_EMAIL = 'support@fly2any.com';
 
-// Telegram Configuration (FREE)
-const TELEGRAM_BOT_TOKEN = process.env.TELEGRAM_BOT_TOKEN;
-const TELEGRAM_ADMIN_CHAT_IDS = process.env.TELEGRAM_ADMIN_CHAT_IDS?.split(',').filter(Boolean) || [];
+// Telegram Configuration (FREE) - Trim to remove any trailing newlines from env vars
+const TELEGRAM_BOT_TOKEN = process.env.TELEGRAM_BOT_TOKEN?.trim();
+const TELEGRAM_ADMIN_CHAT_IDS = process.env.TELEGRAM_ADMIN_CHAT_IDS?.trim().split(',').map(id => id.trim()).filter(Boolean) || [];
 
 // ==========================================
 // SSE (Server-Sent Events) Infrastructure

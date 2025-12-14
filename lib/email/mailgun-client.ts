@@ -41,10 +41,11 @@ export interface MailgunSendResult {
 // ===================================
 
 const CONFIG = {
-  apiKey: process.env.MAILGUN_API_KEY,
-  domain: process.env.MAILGUN_DOMAIN || 'mail.fly2any.com',
-  fromEmail: process.env.EMAIL_FROM || 'Fly2Any <noreply@mail.fly2any.com>',
-  replyToEmail: process.env.EMAIL_REPLY_TO || 'support@fly2any.com',
+  // Trim env vars to remove any trailing newlines/whitespace
+  apiKey: process.env.MAILGUN_API_KEY?.trim(),
+  domain: (process.env.MAILGUN_DOMAIN || 'mail.fly2any.com').trim(),
+  fromEmail: (process.env.EMAIL_FROM || 'Fly2Any <noreply@mail.fly2any.com>').trim(),
+  replyToEmail: (process.env.EMAIL_REPLY_TO || 'support@fly2any.com').trim(),
   isProduction: process.env.NODE_ENV === 'production',
   // Mailgun API endpoint (US region - use api.eu.mailgun.net for EU)
   get apiUrl() {
