@@ -137,10 +137,14 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    console.log('═══════════════════════════════════════════════════════════');
+    console.log('🚀 BOOKING FLOW STARTED - COMPLETE TRACKABLE PROCESS');
+    console.log('═══════════════════════════════════════════════════════════');
     console.log('📝 Processing flight booking...');
-    console.log(`   Flight: ${flightOffer.id}`);
+    console.log(`   Flight Offer ID: ${flightOffer.id}`);
     console.log(`   Passengers: ${passengers.length}`);
     console.log(`   Total Price: ${flightOffer.price?.total} ${flightOffer.price?.currency}`);
+    console.log(`   Booking Reference (Pre-generated): ${preGeneratedBookingRef || 'PENDING'}`);
     if (fareUpgrade) console.log(`   Fare Upgrade: ${fareUpgrade.fareName} (+${fareUpgrade.upgradePrice})`);
     if (bundle) console.log(`   Bundle: ${bundle.bundleName} (+${bundle.price})`);
     if (addOns && addOns.length > 0) console.log(`   Add-ons: ${addOns.length} selected`);
@@ -339,6 +343,8 @@ export async function POST(request: NextRequest) {
 
     // STEP 3: PRE-GENERATE booking reference (before any API calls)
     // This ensures the webhook can find the booking after payment succeeds
+    console.log('📋 STEP 3: Pre-generating booking reference...');
+
     const preGeneratedBookingRef = await safeDbOperation(
       () => bookingStorage.generateBookingReference(),
       'Generate Booking Reference',
@@ -347,12 +353,12 @@ export async function POST(request: NextRequest) {
         endpoint: '/api/flights/booking/create',
       }
     );
-    console.log(`📋 Pre-generated booking reference: ${preGeneratedBookingRef}`);
+    console.log(`   ✅ Booking reference generated: ${preGeneratedBookingRef}`);
 
     // STEP 4: Create airline booking FIRST (before payment)
     // This is the most likely step to fail, so we do it before charging the customer
     // Use the flightSource already detected during price confirmation
-    console.log(`✈️  Creating booking with detected source: ${flightSource}`);
+    console.log(`✈️  STEP 4: Creating booking with detected source: ${flightSource}`);
 
     let flightOrder: any;
     let bookingId: string;
@@ -378,6 +384,10 @@ export async function POST(request: NextRequest) {
       console.log(`   Return: ${returnOffer.id} (${returnOffer.validatingAirlineCodes?.[0] || 'Unknown'})`);
 
       try {
+        console.log('🎫 Creating SEPARATE TICKET bookings (mixed carrier)...');
+        console.log(`   Outbound: ${outboundOffer.id} (Price: $${outboundOffer.price.total})`);
+        console.log(`   Return: ${returnOffer.id} (Price: $${returnOffer.price.total})`);
+
         // Book both flights in parallel
         const [outboundOrder, returnOrder] = await Promise.all([
           safeBookingOperation(
@@ -410,7 +420,14 @@ export async function POST(request: NextRequest) {
         console.log(`   Outbound PNR: ${outboundPnr}`);
         console.log(`   Return PNR: ${returnPnr}`);
       } catch (error: any) {
-        console.error('❌ Separate ticket booking failed:', error);
+        console.error('❌ Separate ticket booking failed at step: Duffel API call');
+        console.error('   Error type:', error.constructor.name);
+        console.error('   Error message:', error.message);
+        if (error.response) {
+          console.error('   HTTP Status:', error.response.status);
+          console.error('   Response data:', JSON.stringify(error.response.data, null, 2));
+        }
+        console.error('   Full error:', error);
         return NextResponse.json(
           {
             success: false,
@@ -432,6 +449,8 @@ export async function POST(request: NextRequest) {
           // Create hold order (pay later)
           console.log('⏸️  Creating hold booking (pay later)...');
           console.log(`   Hold Duration: ${holdDuration || 24} hours`);
+          console.log(`   Offer ID: ${confirmedOffer.id}`);
+          console.log(`   Passengers: ${passengers.length}`);
 
           duffelOrder = await safeBookingOperation(
             () => duffelAPI.createHoldOrder(
@@ -455,6 +474,12 @@ export async function POST(request: NextRequest) {
           console.log(`   Expires At: ${holdPricing.expiresAt.toISOString()}`);
         } else {
           // Create instant order (pay now)
+          console.log('📝 Request details:');
+          console.log(`   Offer ID: ${confirmedOffer.id}`);
+          console.log(`   Offer Price: $${confirmedOffer.price.total} ${confirmedOffer.price.currency}`);
+          console.log(`   Passengers count: ${passengers.length}`);
+          console.log(`   First passenger: ${passengers[0]?.firstName} ${passengers[0]?.lastName}`);
+
           duffelOrder = await safeBookingOperation(
             () => duffelAPI.createOrder(
               confirmedOffer,
@@ -473,6 +498,10 @@ export async function POST(request: NextRequest) {
         }
 
         // Extract booking details from Duffel response
+        console.log('📦 Duffel response received:');
+        console.log(`   Response type: ${typeof duffelOrder}`);
+        console.log(`   Has data: ${!!duffelOrder?.data}`);
+
         duffelOrderId = duffelAPI.extractOrderId(duffelOrder);
         pnr = duffelAPI.extractBookingReference(duffelOrder);
         bookingId = duffelOrderId;
@@ -487,7 +516,15 @@ export async function POST(request: NextRequest) {
         console.log(`   Type: ${isHold ? 'Hold (Pay Later)' : 'Instant (Paid)'}`);
         console.log(`   Live Mode: ${duffelOrder.data?.live_mode ? 'Yes (real booking)' : 'No (test mode)'}`);
       } catch (error: any) {
-        console.error('❌ Duffel booking failed:', error);
+        console.error('❌ Duffel booking failed at step: Duffel API call');
+        console.error('   Error type:', error.constructor.name);
+        console.error('   Error message:', error.message);
+        console.error('   Error code:', error.code);
+        if (error.response) {
+          console.error('   HTTP Status:', error.response.status);
+          console.error('   Response data:', JSON.stringify(error.response.data, null, 2));
+        }
+        console.error('   Full error:', error);
 
         // Extract specific error details for better user feedback
         let userFriendlyError = 'Failed to create booking. Please try again.';
@@ -551,7 +588,12 @@ export async function POST(request: NextRequest) {
           }
         }
 
-        // CRITICAL: Alert admin about booking failure
+        // CRITICAL: Alert admin about booking failure with full details
+        const duffelErrors = error.response?.data?.errors || [];
+        const errorDetails = duffelErrors.length > 0
+          ? duffelErrors.map((e: any) => `${e.code}: ${e.title} - ${e.message}`).join(' | ')
+          : error.message;
+
         await alertApiError(request, error, {
           errorCode,
           endpoint: '/api/flights/booking/create',
@@ -559,6 +601,10 @@ export async function POST(request: NextRequest) {
           amount: parseFloat(confirmedOffer.price.total),
           currency: confirmedOffer.price.currency,
           flightRoute: `${confirmedOffer.itineraries[0]?.segments[0]?.departure?.iataCode} → ${confirmedOffer.itineraries[0]?.segments[confirmedOffer.itineraries[0]?.segments.length - 1]?.arrival?.iataCode}`,
+          offerId: confirmedOffer.id,
+          passengerCount: passengers.length,
+          errorDetail: errorDetails,
+          duffelErrorsRaw: JSON.stringify(duffelErrors),
         }, {
           priority: statusCode >= 500 ? 'critical' : 'high',
         }).catch(alertErr => console.error('Failed to send alert:', alertErr));
@@ -662,7 +708,7 @@ export async function POST(request: NextRequest) {
 
     if (!isHold) {
       // INSTANT BOOKING: Create payment intent AFTER airline booking succeeds
-      console.log('💳 Processing payment (airline booking confirmed)...');
+      console.log('💳 STEP 5: Processing payment (airline booking confirmed)...');
 
       try {
         // Calculate total amount (flight + upgrades + bundles + add-ons)
@@ -714,7 +760,14 @@ export async function POST(request: NextRequest) {
         bookingStatus = 'pending';
         paymentStatus = 'pending';
       } catch (paymentError: any) {
-        console.error('❌ Payment processing error:', paymentError);
+        console.error('❌ Payment processing failed at step: Create Payment Intent');
+        console.error('   Error type:', paymentError.constructor.name);
+        console.error('   Error message:', paymentError.message);
+        if (paymentError.response) {
+          console.error('   HTTP Status:', paymentError.response.status);
+          console.error('   Response data:', JSON.stringify(paymentError.response.data, null, 2));
+        }
+        console.error('   Full error:', paymentError);
 
         // Payment failed, but airline booking exists
         // Send alert to admin - booking exists but payment creation failed
@@ -763,7 +816,7 @@ Customer needs to complete payment to finalize booking.
     }
 
     // STEP 6: Store booking in database (with retry logic)
-    console.log('💾 Saving booking to database...');
+    console.log('💾 STEP 6: Saving booking to database...');
 
     try {
       // Transform Amadeus data to Booking format
@@ -906,9 +959,10 @@ Customer needs to complete payment to finalize booking.
             }
           );
 
-          console.log('✅ Booking saved to database!');
+          console.log('💾 ✅ Booking saved to database successfully!');
           console.log(`   Database ID: ${savedBooking.id}`);
           console.log(`   Booking Reference: ${savedBooking.bookingReference}`);
+          console.log(`   Saved passengers: ${bookingPassengers.length}`);
 
           // Success! Break out of retry loop
           break;
@@ -1119,6 +1173,25 @@ Requires manual review.
       // Determine booking status for response
       const requiresManualTicketing = sourceApi === 'Amadeus';
       const responseStatus = isHold ? 'HOLD' : (requiresManualTicketing ? 'PENDING_TICKETING' : 'PENDING_PAYMENT');
+
+      // COMPLETION SUMMARY - END OF BOOKING FLOW
+      console.log('═══════════════════════════════════════════════════════════');
+      console.log('✅ BOOKING FLOW COMPLETED SUCCESSFULLY');
+      console.log('═══════════════════════════════════════════════════════════');
+      console.log('📊 Final Booking Summary:');
+      console.log(`   Status: ${responseStatus}`);
+      console.log(`   Booking ID (DB): ${savedBooking.id}`);
+      console.log(`   Booking Ref: ${savedBooking.bookingReference}`);
+      console.log(`   API Source: ${sourceApi}`);
+      if (sourceApi === 'Duffel') console.log(`   Duffel Order ID: ${duffelOrderId}`);
+      if (sourceApi === 'Amadeus') console.log(`   Amadeus Reservation ID: ${bookingId}`);
+      console.log(`   PNR: ${pnr}`);
+      console.log(`   Total Price: ${totalAmount} ${confirmedOffer.price.currency}`);
+      console.log(`   Passengers: ${bookingPassengers.length}`);
+      console.log(`   Payment Status: ${paymentStatus}`);
+      if (paymentIntent) console.log(`   Payment Intent: ${paymentIntent.paymentIntentId}`);
+      console.log(`   Created: ${savedBooking.createdAt}`);
+      console.log('═══════════════════════════════════════════════════════════');
 
       // Return successful booking response
       return NextResponse.json(
