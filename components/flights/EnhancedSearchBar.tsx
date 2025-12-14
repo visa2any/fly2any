@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, useTransition } from 'react';
 import { Plane, Calendar, Users, ChevronDown, ArrowLeftRight, PlaneTakeoff, PlaneLanding, CalendarDays, CalendarCheck, ArrowRight, Sparkles, Armchair, X, Hotel, Car, Map, MapPin, Building2, Plus, Minus, Activity, Package, Shield, Check, Globe, Navigation, LogIn, LogOut, BedDouble, Moon, User, Baby } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { format } from 'date-fns';
@@ -398,6 +398,23 @@ export default function EnhancedSearchBar({
     const delayFetch = setTimeout(fetchDistricts, 300);
     return () => clearTimeout(delayFetch);
   }, [hotelDestination, hotelLocation]);
+
+  // Debounced hotel suggestions fetch - moved out of event handler for INP optimization
+  useEffect(() => {
+    if (hotelSuggestionsTimerRef.current) {
+      clearTimeout(hotelSuggestionsTimerRef.current);
+    }
+
+    hotelSuggestionsTimerRef.current = setTimeout(() => {
+      fetchHotelSuggestions(hotelDestination);
+    }, 300);
+
+    return () => {
+      if (hotelSuggestionsTimerRef.current) {
+        clearTimeout(hotelSuggestionsTimerRef.current);
+      }
+    };
+  }, [hotelDestination]);
 
   // Close dropdowns when clicking outside
   useEffect(() => {
@@ -951,102 +968,54 @@ export default function EnhancedSearchBar({
 
   // Hotel destination autocomplete
   const fetchHotelSuggestions = async (query: string) => {
-    console.log('🔍 fetchHotelSuggestions called with query:', query);
-
     if (query.length < 2) {
-      console.log('⚠️ Query too short, clearing suggestions');
       setHotelSuggestions([]);
       setShowHotelSuggestions(false);
       return;
     }
 
-    console.log('⏳ Loading hotel suggestions...');
     setIsLoadingHotelSuggestions(true);
     setShowHotelSuggestions(true);
 
     try {
-      const url = `/api/hotels/suggestions?query=${encodeURIComponent(query)}`;
-      console.log('📡 Fetching from:', url);
-
-      const response = await fetch(url);
+      const response = await fetch(`/api/hotels/suggestions?query=${encodeURIComponent(query)}`);
       const data = await response.json();
 
-      console.log('✅ API Response:', data);
-
       if (data.data && Array.isArray(data.data)) {
-        const suggestions = data.data.slice(0, 5); // Show top 5 suggestions
-        console.log('✅ Setting suggestions:', suggestions);
-        setHotelSuggestions(suggestions);
+        setHotelSuggestions(data.data.slice(0, 5));
       } else {
-        console.warn('⚠️ No data in response');
         setHotelSuggestions([]);
       }
-    } catch (error) {
-      console.error('❌ Error fetching hotel suggestions:', error);
+    } catch {
       setHotelSuggestions([]);
     } finally {
       setIsLoadingHotelSuggestions(false);
-      console.log('✅ Loading complete');
     }
   };
 
   const handleHotelDestinationChange = (value: string) => {
-    console.log('🎯 handleHotelDestinationChange called with:', value);
     setHotelDestination(value);
-
-    // Clear previous timer
-    if (hotelSuggestionsTimerRef.current) {
-      clearTimeout(hotelSuggestionsTimerRef.current);
-    }
-
-    // Debounce API call (300ms) for better performance
-    console.log('⏱️ Setting debounce timer (300ms)...');
-    hotelSuggestionsTimerRef.current = setTimeout(() => {
-      console.log('⏰ Debounce timer fired, calling fetchHotelSuggestions');
-      fetchHotelSuggestions(value);
-    }, 300);
   };
 
   const handleHotelSuggestionSelect = (suggestion: any) => {
-    console.log('✅ Suggestion selected - RAW DATA:', JSON.stringify(suggestion));
+    const nameValue = suggestion.name?.trim() || suggestion.city?.trim() || '';
 
-    // Extract the full destination name properly
-    let fullDestinationName = '';
+    if (!nameValue) return;
 
-    if (suggestion.type === 'city') {
-      // For cities, just use the name
-      fullDestinationName = suggestion.name || suggestion.city || '';
-    } else {
-      // For landmarks/POIs, use "Name, City" format only if city is different
-      const name = suggestion.name || '';
-      const city = suggestion.city || '';
-      if (city && city !== name) {
-        fullDestinationName = `${name}, ${city}`;
-      } else {
-        fullDestinationName = name;
-      }
-    }
-
-    console.log('📝 Full destination name extracted:', fullDestinationName);
-    console.log('📝 Length:', fullDestinationName.length, 'chars');
-
-    setHotelDestination(fullDestinationName);
+    setHotelDestination(nameValue);
+    setShowHotelSuggestions(false);
     setHotelLocation({
       lat: suggestion.location?.lat || suggestion.latitude,
       lng: suggestion.location?.lng || suggestion.longitude
     });
-
-    // Store destination details for enhanced display
     setSelectedDestinationDetails({
-      name: fullDestinationName,
+      name: nameValue,
       country: suggestion.country || '',
       emoji: suggestion.emoji,
       type: suggestion.type || 'city',
       categories: suggestion.categories,
     });
-
     setSelectedDistricts([]);
-    setShowHotelSuggestions(false);
   };
 
   // Toggle district selection (multi-select)
@@ -1904,20 +1873,14 @@ export default function EnhancedSearchBar({
                   type="text"
                   value={hotelDestination}
                   onChange={(e) => {
-                    console.log('⌨️ Input onChange event:', e.target.value);
                     handleHotelDestinationChange(e.target.value);
-                    // Clear selected details if user types something different
                     if (selectedDestinationDetails && e.target.value !== selectedDestinationDetails.name) {
                       setSelectedDestinationDetails(null);
                     }
                   }}
                   onFocus={() => {
-                    console.log('👆 Input onFocus event, current value:', hotelDestination);
                     if (hotelDestination.length >= 2) {
-                      console.log('✅ Opening suggestions (value length >= 2)');
                       setShowHotelSuggestions(true);
-                    } else {
-                      console.log('⚠️ Not opening suggestions (value too short)');
                     }
                   }}
                   placeholder="City, hotel, or landmark"
