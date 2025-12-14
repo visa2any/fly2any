@@ -62,17 +62,19 @@ import {
  */
 
 export async function POST(request: NextRequest) {
-  // CRITICAL: Generate unique request ID for tracking through entire flow
-  const requestId = `BK-${Date.now()}-${Math.random().toString(36).substring(2, 8).toUpperCase()}`;
+  // ULTRA-DIAGNOSTIC: Catch absolutely everything including module load errors
+  try {
+    // CRITICAL: Generate unique request ID for tracking through entire flow
+    const requestId = `BK-${Date.now()}-${Math.random().toString(36).substring(2, 8).toUpperCase()}`;
 
-  console.log(`\n${'='.repeat(80)}`);
-  console.log(`🚀 [${requestId}] BOOKING CREATE REQUEST RECEIVED`);
-  console.log(`   Timestamp: ${new Date().toISOString()}`);
-  console.log(`   URL: ${request.url}`);
-  console.log(`   Method: ${request.method}`);
+    console.log(`\n${'='.repeat(80)}`);
+    console.log(`🚀 [${requestId}] BOOKING CREATE REQUEST RECEIVED`);
+    console.log(`   Timestamp: ${new Date().toISOString()}`);
+    console.log(`   URL: ${request.url}`);
+    console.log(`   Method: ${request.method}`);
 
-  // GLOBAL ERROR HANDLER - Catches ALL errors and sends alerts
-  return handleApiError(request, async () => {
+    // GLOBAL ERROR HANDLER - Catches ALL errors and sends alerts
+    return await handleApiError(request, async () => {
     console.log(`\n📋 STEP 0: Request validation (ID: ${requestId})`);
 
     // Rate limiting check - strict limit for booking creation
@@ -1494,7 +1496,24 @@ Manual intervention required to:
         { status: 500 }
       );
     }
-  });
+    });
+  } catch (outerError: any) {
+    // ULTRA-DIAGNOSTIC: This catches ANY error including module load failures
+    console.error('🔥 CRITICAL OUTER ERROR:', outerError);
+    return NextResponse.json(
+      {
+        success: false,
+        error: 'CRITICAL_SYSTEM_ERROR',
+        message: 'System error occurred. Our team has been notified.',
+        debug: {
+          errorType: outerError?.constructor?.name || 'Unknown',
+          errorMessage: outerError?.message || 'No message',
+          timestamp: new Date().toISOString(),
+        },
+      },
+      { status: 500 }
+    );
+  }
 }
 
 // OPTIONS handler for CORS
