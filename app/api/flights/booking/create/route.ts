@@ -410,6 +410,15 @@ export async function POST(request: NextRequest) {
         bookingId = duffelOrderId;
         isMockBooking = !outboundOrder.data?.live_mode;
 
+        // CRITICAL: Validate extraction succeeded
+        if (!duffelOrderId || duffelOrderId === 'N/A' || !outboundPnr || outboundPnr === 'N/A' || !returnPnr || returnPnr === 'N/A') {
+          console.error('❌ CRITICAL: Failed to extract PNR/ID from separate ticket orders');
+          console.error(`   Outbound PNR: ${outboundPnr}`);
+          console.error(`   Return PNR: ${returnPnr}`);
+          console.error(`   Order ID: ${duffelOrderId}`);
+          throw new Error(`Separate ticket booking failed: Invalid response. Outbound: ${outboundPnr}, Return: ${returnPnr}, OrderID: ${duffelOrderId}`);
+        }
+
         flightOrder = {
           outboundOrder,
           returnOrder,
@@ -501,11 +510,29 @@ export async function POST(request: NextRequest) {
         console.log('📦 Duffel response received:');
         console.log(`   Response type: ${typeof duffelOrder}`);
         console.log(`   Has data: ${!!duffelOrder?.data}`);
+        console.log(`   Full response:`, JSON.stringify(duffelOrder).substring(0, 500));
 
         duffelOrderId = duffelAPI.extractOrderId(duffelOrder);
         pnr = duffelAPI.extractBookingReference(duffelOrder);
         bookingId = duffelOrderId;
         isMockBooking = !duffelOrder.data?.live_mode;
+
+        console.log(`   Extracted Order ID: ${duffelOrderId}`);
+        console.log(`   Extracted PNR: ${pnr}`);
+        console.log(`   Is valid ID: ${duffelOrderId && duffelOrderId !== 'N/A'}`);
+
+        // CRITICAL: Validate that extraction succeeded
+        if (!duffelOrderId || duffelOrderId === 'N/A' || !pnr || pnr === 'N/A') {
+          console.error('❌ CRITICAL: Failed to extract order ID or PNR from Duffel response');
+          console.error(`   duffelOrderId: ${duffelOrderId}`);
+          console.error(`   pnr: ${pnr}`);
+          console.error(`   order.data.id: ${duffelOrder?.data?.id}`);
+          console.error(`   order.id: ${duffelOrder?.id}`);
+          console.error(`   order.booking_reference: ${duffelOrder?.booking_reference}`);
+          console.error(`   order.data.booking_reference: ${duffelOrder?.data?.booking_reference}`);
+
+          throw new Error(`Duffel order creation failed: Invalid response structure. OrderID: ${duffelOrderId}, PNR: ${pnr}`);
+        }
 
         // Store the complete Duffel order for reference
         flightOrder = duffelOrder;
@@ -690,19 +717,17 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    if (!bookingId) {
-      console.error('❌ No booking ID returned from API');
+    if (!bookingId || bookingId === 'N/A') {
+      console.error('❌ CRITICAL: Invalid booking ID returned from API');
+      console.error('   bookingId:', bookingId);
       console.error('   sourceApi:', sourceApi);
-      console.error('   flightOrder:', flightOrder);
+      console.error('   duffelOrderId:', duffelOrderId);
+      console.error('   pnr:', pnr);
+      console.error('   flightOrder present:', !!flightOrder);
       console.error('   confirmedOffer:', confirmedOffer?.id);
-      return NextResponse.json(
-        {
-          error: 'BOOKING_FAILED',
-          message: 'Failed to create booking. Please try again or contact support.',
-          debug: process.env.NODE_ENV === 'development' ? { sourceApi, hasFlightOrder: !!flightOrder } : undefined,
-        },
-        { status: 500 }
-      );
+
+      // Throw error to be caught by handlers for detailed alerts
+      throw new Error(`Booking ID extraction failed: bookingId=${bookingId}, sourceApi=${sourceApi}, duffelOrderId=${duffelOrderId}, pnr=${pnr}`);
     }
 
     // STEP 5: Process payment (only for instant bookings, NOT holds)
