@@ -49,8 +49,8 @@ export function CompactTrustBar({
         'w-full overflow-hidden bg-white/98 backdrop-blur-xl',
         'border-b border-neutral-200/80',
         'mt-6 md:mt-0', // Add top margin on mobile to prevent overlap
-        // Only sticky on desktop
-        sticky && 'md:sticky md:top-20',
+        // Sticky only on mobile, static on desktop to avoid dropdown overlap
+        sticky && 'sticky top-0 md:static md:top-auto',
         className
       )}
       style={{

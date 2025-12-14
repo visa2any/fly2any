@@ -297,8 +297,8 @@ export const zIndex = {
   // Base layer (default)
   BASE: 0,
 
-  // Trust bar (Sticky trust indicators - below dropdowns to avoid overlap)
-  TRUST_BAR: 950,
+  // Trust bar (Sticky trust indicators - very low to avoid overlap with dropdowns)
+  TRUST_BAR: 20,
 
   // Dropdowns & autocompletes (Header navigation dropdowns, autocomplete lists)
   DROPDOWN: 1000,
@@ -333,7 +333,7 @@ export type ZIndexLayer = keyof typeof zIndex;
  */
 export const zIndexDescriptions: Record<ZIndexLayer, string> = {
   BASE: 'Default stacking context (0)',
-  TRUST_BAR: 'Sticky trust indicators bar - below dropdowns (950)',
+  TRUST_BAR: 'Sticky trust indicators bar - below all dropdowns (20)',
   DROPDOWN: 'Dropdowns, autocomplete lists, select menus (1000)',
   STICKY: 'Sticky headers and navigation (1100)',
   FIXED: 'Fixed elements like navigation bars (1200)',

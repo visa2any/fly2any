@@ -168,6 +168,8 @@ const CITY_COORDINATES: Record<string, { lat: number; lng: number; country: stri
   'rio de janeiro': { lat: -22.9068, lng: -43.1729, country: 'BR' },
   'rio': { lat: -22.9068, lng: -43.1729, country: 'BR' },
   'copacabana': { lat: -22.9711, lng: -43.1822, country: 'BR' },
+  'brasilia': { lat: -15.7975, lng: -47.8919, country: 'BR' },
+  'brasília': { lat: -15.7975, lng: -47.8919, country: 'BR' },
   'bogotá': { lat: 4.7110, lng: -74.0721, country: 'CO' },
   'bogota': { lat: 4.7110, lng: -74.0721, country: 'CO' },
   'cartagena': { lat: 10.3910, lng: -75.4794, country: 'CO' },

@@ -1985,7 +1985,11 @@ export default function EnhancedSearchBar({
                           <button
                             key={index}
                             type="button"
-                            onClick={() => handleHotelSuggestionSelect(suggestion)}
+                            onClick={(e) => {
+                              e.preventDefault();
+                              e.stopPropagation();
+                              handleHotelSuggestionSelect(suggestion);
+                            }}
                             className="group w-full px-4 py-4 text-left hover:bg-gradient-to-r hover:from-info-50 hover:to-cyan-50 transition-all duration-300 flex items-center gap-2 border-b border-gray-100 last:border-b-0 hover:scale-[1.01] active:scale-[0.99]"
                             style={{
                               transformOrigin: 'center'
