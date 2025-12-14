@@ -416,8 +416,8 @@ export default function BookingConfirmationContent() {
           return;
         }
 
-        // Fetch from API
-        const response = await fetch(`/api/admin/bookings/${bookingId}`);
+        // Fetch from PUBLIC API (not admin - customers don't have admin auth)
+        const response = await fetch(`/api/bookings/${bookingId}`);
 
         if (!response.ok) {
           throw new Error('Failed to fetch booking');
@@ -425,8 +425,9 @@ export default function BookingConfirmationContent() {
 
         const result = await response.json();
 
-        if (result.success && result.booking) {
-          setBookingData(result.booking);
+        // Public API returns data.booking
+        if (result.success && (result.data?.booking || result.booking)) {
+          setBookingData(result.data?.booking || result.booking);
         } else {
           console.error('Booking not found');
         }
