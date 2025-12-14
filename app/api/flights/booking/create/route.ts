@@ -920,11 +920,12 @@ export async function POST(request: NextRequest) {
       throw new Error(`Booking ID extraction failed: bookingId=${bookingId}, sourceApi=${sourceApi}, duffelOrderId=${duffelOrderId}, pnr=${pnr}`);
     }
 
-    // STEP 5: Process payment (only for instant bookings, NOT holds)
-    console.log(`\n💳 STEP 5: Payment processing (ID: ${requestId}, isHold: ${isHold})`);
+    // STEP 5: Process payment (only for instant bookings, NOT holds, NOT manual ticketing)
+    const requiresManualTicketing = sourceApi === 'Amadeus';
+    console.log(`\n💳 STEP 5: Payment processing (ID: ${requestId}, isHold: ${isHold}, manualTicketing: ${requiresManualTicketing})`);
 
-    if (!isHold) {
-      // INSTANT BOOKING: Create payment intent AFTER airline booking succeeds
+    if (!isHold && !requiresManualTicketing) {
+      // INSTANT BOOKING (Duffel only): Create payment intent AFTER airline booking succeeds
       console.log(`   [${requestId}] Creating payment intent...`);
 
       try {
@@ -1012,19 +1013,21 @@ Customer needs to complete payment to finalize booking.
           console.error('Failed to send payment error notification:', notifyError);
         }
 
-        // Return specific payment error
-        return NextResponse.json(
-          {
-            success: false,
-            error: 'PAYMENT_FAILED',
-            message: 'Payment creation failed. Please try again or contact support. Your flight booking has been reserved.',
-            bookingReference: preGeneratedBookingRef,
-            pnr: pnr,
-            details: process.env.NODE_ENV === 'development' ? paymentError.message : undefined,
-          },
-          { status: 402 }
-        );
+        // CRITICAL FIX: Don't return early - continue to save booking to database
+        // so admins can see it and manually process payment
+        console.log('⚠️  Payment failed but continuing to save booking to database...');
+        bookingStatus = 'pending';
+        paymentStatus = 'pending';
+        // paymentIntent stays null - will be handled manually
+        // Set flag to indicate payment setup failed (for response message)
+        (global as any).__paymentSetupFailed = true;
+        (global as any).__paymentSetupError = paymentError.message;
       }
+    } else if (requiresManualTicketing) {
+      // MANUAL TICKETING (Amadeus/GDS): Payment handled offline via consolidator
+      console.log('🎫 Manual ticketing - payment handled offline');
+      bookingStatus = 'pending';
+      paymentStatus = 'pending';
     } else {
       // HOLD BOOKING: No payment yet, will be charged later
       console.log('⏸️  Hold booking - payment will be captured later');
@@ -1423,8 +1426,7 @@ A booking was successfully created but the confirmation email failed to send!
         // Don't fail the booking if email fails
       }
 
-      // Determine booking status for response
-      const requiresManualTicketing = sourceApi === 'Amadeus';
+      // Determine booking status for response (requiresManualTicketing already defined above)
       const responseStatus = isHold ? 'HOLD' : (requiresManualTicketing ? 'PENDING_TICKETING' : 'PENDING_PAYMENT');
 
       // COMPLETION SUMMARY - END OF BOOKING FLOW
