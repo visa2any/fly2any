@@ -62,11 +62,24 @@ import {
  */
 
 export async function POST(request: NextRequest) {
+  // CRITICAL: Generate unique request ID for tracking through entire flow
+  const requestId = `BK-${Date.now()}-${Math.random().toString(36).substring(2, 8).toUpperCase()}`;
+
+  console.log(`\n${'='.repeat(80)}`);
+  console.log(`🚀 BOOKING CREATE REQUEST RECEIVED - ID: ${requestId}`);
+  console.log(`   URL: ${request.url}`);
+  console.log(`   Method: ${request.method}`);
+  console.log(`   User-Agent: ${request.headers.get('user-agent')?.substring(0, 80)}`);
+  console.log(`   Time: ${new Date().toISOString()}`);
+
   // GLOBAL ERROR HANDLER - Catches ALL errors and sends alerts
   return handleApiError(request, async () => {
+    console.log(`\n📋 STEP 0: Request validation (ID: ${requestId})`);
+
     // Rate limiting check - strict limit for booking creation
     const rateLimitResult = await checkRateLimit(request, BOOKING_RATE_LIMITS.create);
     if (!rateLimitResult.success) {
+      console.error(`❌ RATE LIMIT EXCEEDED (ID: ${requestId})`);
       const response = NextResponse.json(
         {
           success: false,
@@ -78,7 +91,18 @@ export async function POST(request: NextRequest) {
       );
       return addRateLimitHeaders(response, rateLimitResult);
     }
-    const body = await request.json();
+
+    console.log(`📝 Parsing request body (ID: ${requestId})...`);
+    let body: any;
+    try {
+      body = await request.json();
+    } catch (parseError: any) {
+      console.error(`❌ FAILED TO PARSE JSON (ID: ${requestId}):`, parseError.message);
+      throw new Error(`Invalid JSON in request body: ${parseError.message}`);
+    }
+
+    console.log(`✅ Body received with keys: ${Object.keys(body).join(', ')}`);
+
     const {
       flightOffer,
       passengers,
@@ -91,6 +115,23 @@ export async function POST(request: NextRequest) {
       isHold,           // NEW: Whether to hold the booking (pay later)
       holdDuration      // NEW: Hold duration in hours
     } = body;
+
+    console.log(`\n📦 REQUEST DATA (ID: ${requestId}):`);
+    console.log(`   - flightOffer: ${flightOffer?.id ? '✅ Present' : '❌ MISSING'}`);
+    console.log(`   - passengers: ${passengers?.length || 0} passenger(s)`);
+    console.log(`   - payment: ${payment ? '✅ Present' : '❌ MISSING'}`);
+    console.log(`   - contactInfo: ${contactInfo?.email ? '✅ Present' : '❌ MISSING'}`);
+    console.log(`   - isHold: ${isHold}`);
+
+    // Validate critical fields
+    if (!flightOffer || !passengers || !contactInfo) {
+      const missing = [];
+      if (!flightOffer) missing.push('flightOffer');
+      if (!passengers) missing.push('passengers');
+      if (!contactInfo) missing.push('contactInfo');
+      console.error(`❌ VALIDATION ERROR - Missing fields: ${missing.join(', ')}`);
+      throw new Error(`Missing required fields: ${missing.join(', ')}`);
+    }
 
     // Declare payment and booking status variables early to avoid TDZ issues
     let paymentIntent: any = null;
@@ -823,10 +864,11 @@ export async function POST(request: NextRequest) {
     }
 
     // STEP 5: Process payment (only for instant bookings, NOT holds)
+    console.log(`\n💳 STEP 5: Payment processing (ID: ${requestId}, isHold: ${isHold})`);
 
     if (!isHold) {
       // INSTANT BOOKING: Create payment intent AFTER airline booking succeeds
-      console.log('💳 STEP 5: Processing payment (airline booking confirmed)...');
+      console.log(`   [${requestId}] Creating payment intent...`);
 
       try {
         // Calculate total amount (flight + upgrades + bundles + add-ons)
@@ -870,9 +912,9 @@ export async function POST(request: NextRequest) {
           }
         );
 
-        console.log('✅ Payment intent created successfully');
+        console.log(`✅ [${requestId}] Payment intent created successfully!`);
         console.log(`   Payment Intent ID: ${paymentIntent.paymentIntentId}`);
-        console.log(`   Customer CHARGED: ${totalAmount} ${confirmedOffer.price.currency}`);
+        console.log(`   Amount Charged: ${totalAmount} ${confirmedOffer.price.currency}`);
 
         // For now, booking stays pending until payment is confirmed by client
         bookingStatus = 'pending';
@@ -934,7 +976,11 @@ Customer needs to complete payment to finalize booking.
     }
 
     // STEP 6: Store booking in database (with retry logic)
-    console.log('💾 STEP 6: Saving booking to database...');
+    console.log(`\n💾 STEP 6: Saving booking to database (ID: ${requestId})...`);
+    console.log(`   Booking ID: ${bookingId}`);
+    console.log(`   PNR: ${pnr}`);
+    console.log(`   Booking Status: ${bookingStatus}`);
+    console.log(`   Payment Status: ${paymentStatus}`);
 
     try {
       // Transform Amadeus data to Booking format
@@ -1077,7 +1123,7 @@ Customer needs to complete payment to finalize booking.
             }
           );
 
-          console.log('💾 ✅ Booking saved to database successfully!');
+          console.log(`✅ [${requestId}] Booking saved to database successfully!`);
           console.log(`   Database ID: ${savedBooking.id}`);
           console.log(`   Booking Reference: ${savedBooking.bookingReference}`);
           console.log(`   Saved passengers: ${bookingPassengers.length}`);
@@ -1326,9 +1372,10 @@ A booking was successfully created but the confirmation email failed to send!
 
       // COMPLETION SUMMARY - END OF BOOKING FLOW
       console.log('═══════════════════════════════════════════════════════════');
-      console.log('✅ BOOKING FLOW COMPLETED SUCCESSFULLY');
+      console.log(`✅ [${requestId}] BOOKING FLOW COMPLETED SUCCESSFULLY`);
       console.log('═══════════════════════════════════════════════════════════');
       console.log('📊 Final Booking Summary:');
+      console.log(`   Request ID: ${requestId}`);
       console.log(`   Status: ${responseStatus}`);
       console.log(`   Booking ID (DB): ${savedBooking.id}`);
       console.log(`   Booking Ref: ${savedBooking.bookingReference}`);
