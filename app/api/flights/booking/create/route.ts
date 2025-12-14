@@ -605,6 +605,7 @@ export async function POST(request: NextRequest) {
         console.log(`   Extracted Order ID: ${duffelOrderId}`);
         console.log(`   Extracted PNR: ${pnr}`);
         console.log(`   Is valid ID: ${duffelOrderId && duffelOrderId !== 'N/A'}`);
+        console.log(`   Live Mode: ${duffelOrder.data?.live_mode}`);
 
         // CRITICAL: Validate that extraction succeeded
         if (!duffelOrderId || duffelOrderId === 'N/A' || !pnr || pnr === 'N/A') {
@@ -615,6 +616,12 @@ export async function POST(request: NextRequest) {
           console.error(`   order.id: ${duffelOrder?.id}`);
           console.error(`   order.booking_reference: ${duffelOrder?.booking_reference}`);
           console.error(`   order.data.booking_reference: ${duffelOrder?.data?.booking_reference}`);
+          console.error(`   Full order keys: ${Object.keys(duffelOrder || {}).join(', ')}`);
+          console.error(`   Full order.data keys: ${Object.keys(duffelOrder?.data || {}).join(', ')}`);
+
+          // Log complete response for diagnosis
+          console.error('📋 FULL DUFFEL RESPONSE:');
+          console.error(JSON.stringify(duffelOrder, null, 2));
 
           throw new Error(`Duffel order creation failed: Invalid response structure. OrderID: ${duffelOrderId}, PNR: ${pnr}`);
         }

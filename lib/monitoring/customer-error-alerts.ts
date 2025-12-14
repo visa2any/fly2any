@@ -116,37 +116,30 @@ export async function alertCustomerError(
     }
   }
 
-  // 2. EMAIL NOTIFICATION (Detailed report to admin inbox)
+  // 2. EMAIL NOTIFICATION (Detailed report to admin inbox) - FORCE SEND FOR CRITICAL ERRORS
   if (sendEmail) {
     try {
-      const emailSent = await sendAdminAlert({
+      // Import mailgun-client directly for force sending critical errors
+      const { mailgunClient } = await import('@/lib/email/mailgun-client');
+
+      const alertData = {
         type: 'customer_error',
         priority,
         timestamp: new Date().toISOString(),
-
-        // Error details
         errorMessage: context.errorMessage,
         errorCode: context.errorCode,
         ...(includeStackTrace && context.errorStack && { errorStack: context.errorStack }),
-
-        // User context
         ...(context.userId && { userId: context.userId }),
         ...(context.userEmail && { userEmail: context.userEmail }),
         ...(context.userAgent && { userAgent: context.userAgent }),
         ...(context.ipAddress && { ipAddress: context.ipAddress }),
-
-        // Request context
         ...(context.url && { url: context.url }),
         ...(context.method && { method: context.method }),
         ...(context.endpoint && { endpoint: context.endpoint }),
-
-        // Business context
         ...(context.bookingReference && { bookingReference: context.bookingReference }),
         ...(context.paymentIntentId && { paymentIntentId: context.paymentIntentId }),
         ...(context.amount && { amount: context.amount }),
         ...(context.currency && { currency: context.currency }),
-
-        // Additional metadata
         ...Object.fromEntries(
           Object.entries(context).filter(([key]) =>
             !['errorMessage', 'errorCode', 'errorStack', 'userId', 'userEmail',
@@ -154,14 +147,30 @@ export async function alertCustomerError(
               'paymentIntentId', 'amount', 'currency'].includes(key)
           )
         ),
+      };
+
+      const html = `<html><body><h2>Customer Error Alert</h2><table style="border: 1px solid #ccc; padding: 10px;">${
+        Object.entries(alertData).map(([k,v]) => `<tr><td style="padding: 5px;"><b>${k}:</b></td><td style="padding: 5px;">${typeof v === 'object' ? JSON.stringify(v) : v}</td></tr>`).join('')
+      }</table></body></html>`;
+
+      const result = await mailgunClient.send({
+        to: process.env.ADMIN_EMAIL || 'admin@fly2any.com',
+        subject: `[${priority.toUpperCase()}] Customer Error - ${context.errorCode || 'UNKNOWN'}`,
+        html,
+        text: Object.entries(alertData).map(([k,v]) => `${k}: ${v}`).join('\n'),
+        forceSend: true, // CRITICAL: Force send even in dev mode
+        tags: ['admin', 'error', 'critical'],
       });
 
-      results.emailSent = emailSent;
-      if (emailSent) {
+      results.emailSent = result.success;
+      if (result.success) {
         console.log('✅ Email alert sent to admin');
+      } else {
+        console.error('⚠️  Email alert failed:', result.error || 'Unknown error');
       }
     } catch (error: any) {
-      console.error('❌ Email alert error:', error.message);
+      console.error('❌ Email alert exception:', error.message);
+      results.emailSent = false;
     }
   }
 
