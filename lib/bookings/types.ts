@@ -173,6 +173,15 @@ export interface Booking {
   customerPrice?: number; // What customer paid you
   markup?: number; // Your profit margin
 
+  // Admin Price Breakdown (for profit tracking)
+  netPrice?: number; // Net price from API (before markup)
+  markupAmount?: number; // Markup added to customer price
+  duffelCost?: number; // Duffel API cost ($3 + 3.5%)
+  consolidatorCost?: number; // Consolidator cost (updated after ticketing)
+  netProfit?: number; // Final net profit after all costs
+  routingChannel?: 'DUFFEL' | 'CONSOLIDATOR'; // Which channel was used
+  routingReason?: string; // Reason for routing decision
+
   createdAt: string; // ISO datetime
   updatedAt: string; // ISO datetime
   cancelledAt?: string; // ISO datetime

@@ -879,6 +879,66 @@ export default function AdminBookingDetailPage() {
                       </span>
                     </div>
                   </div>
+
+                  {/* ADMIN ONLY: Price Breakdown Details */}
+                  <div className="mt-4 pt-3 border-t border-dashed border-orange-300 bg-orange-50/50 rounded-lg p-3">
+                    <p className="text-xs font-bold text-orange-700 mb-2 flex items-center gap-1">
+                      <Building2 className="w-3 h-3" />
+                      Admin Price Details
+                    </p>
+
+                    {booking.netPrice && (
+                      <div className="flex items-center justify-between text-sm">
+                        <span className="text-gray-600">Net Price (API Cost):</span>
+                        <span className="font-semibold text-gray-900">
+                          {booking.payment.currency} {booking.netPrice.toFixed(2)}
+                        </span>
+                      </div>
+                    )}
+
+                    {booking.markupAmount && (
+                      <div className="flex items-center justify-between text-sm">
+                        <span className="text-gray-600">Markup Applied:</span>
+                        <span className="font-semibold text-blue-600">
+                          +{booking.payment.currency} {booking.markupAmount.toFixed(2)}
+                        </span>
+                      </div>
+                    )}
+
+                    {booking.duffelCost && (
+                      <div className="flex items-center justify-between text-sm">
+                        <span className="text-gray-600">Duffel Fee:</span>
+                        <span className="font-semibold text-red-500">
+                          -{booking.payment.currency} {booking.duffelCost.toFixed(2)}
+                        </span>
+                      </div>
+                    )}
+
+                    {booking.consolidatorCost && (
+                      <div className="flex items-center justify-between text-sm">
+                        <span className="text-gray-600">Consolidator Cost:</span>
+                        <span className="font-semibold text-red-500">
+                          -{booking.payment.currency} {booking.consolidatorCost.toFixed(2)}
+                        </span>
+                      </div>
+                    )}
+
+                    <div className="flex items-center justify-between text-sm pt-2 border-t border-orange-200 mt-2">
+                      <span className="font-bold text-gray-700">Net Profit:</span>
+                      <span className={`font-bold text-lg ${(booking.netProfit || 0) >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                        {booking.payment.currency} {(booking.netProfit || 0).toFixed(2)}
+                      </span>
+                    </div>
+
+                    {booking.routingChannel && (
+                      <div className="flex items-center justify-between text-xs mt-2 text-gray-500">
+                        <span>Routing:</span>
+                        <span className={`px-2 py-0.5 rounded ${booking.routingChannel === 'DUFFEL' ? 'bg-green-100 text-green-700' : 'bg-yellow-100 text-yellow-700'}`}>
+                          {booking.routingChannel}
+                        </span>
+                      </div>
+                    )}
+                  </div>
                 </div>
 
                 {booking.payment.paidAt && (

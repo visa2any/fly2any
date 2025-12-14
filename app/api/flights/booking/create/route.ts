@@ -10,7 +10,7 @@ import { checkRateLimit, addRateLimitHeaders } from '@/lib/security/rate-limiter
 import { BOOKING_RATE_LIMITS } from '@/lib/security/rate-limit-config';
 
 // CRITICAL: Import flight markup to ensure customer is charged correct amount
-import { applyFlightMarkup } from '@/lib/config/flight-markup';
+import { applyFlightMarkup, determineRoutingChannel, ROUTING_THRESHOLD } from '@/lib/config/flight-markup';
 
 // CRITICAL: Import error alerting system to notify admins of customer errors
 import { alertApiError } from '@/lib/monitoring/customer-error-alerts';
@@ -196,7 +196,33 @@ export async function POST(request: NextRequest) {
     console.log('💰 Confirming current price...');
 
     let confirmedOffer: any;
-    const flightSource = flightOffer.source || 'GDS';
+    let flightSource = flightOffer.source || 'GDS';
+
+    // Extract NET price (before markup) from the offer - this is what we pay the API
+    const totalFare = parseFloat(flightOffer.price?.total || '0');
+
+    // ROUTING LOGIC: Determine channel based on price threshold
+    // Rule 1: Under $500 → Always Duffel (auto-ticket, ancillary opportunity)
+    // Rule 2: $500+ → Check if Duffel available, else Consolidator (manual ticket)
+    const hasCommission = false; // TODO: Check airline commission table
+    const routing = determineRoutingChannel(totalFare, hasCommission);
+
+    console.log(`🔀 ROUTING DECISION:`);
+    console.log(`   Total Fare: $${totalFare.toFixed(2)}`);
+    console.log(`   Threshold: $${ROUTING_THRESHOLD.priceThreshold}`);
+    console.log(`   Original Source: ${flightSource}`);
+    console.log(`   Routing Channel: ${routing.channel}`);
+    console.log(`   Reason: ${routing.reason}`);
+
+    // Apply routing override: If under $500 and source is GDS, check if Duffel offer exists
+    if (routing.channel === 'DUFFEL' && flightSource === 'GDS') {
+      // Under $500 but source is GDS - keep as GDS (no Duffel offer available)
+      // This flight will go to manual ticketing
+      console.log(`   ⚠️ Under $${ROUTING_THRESHOLD.priceThreshold} but no Duffel offer - proceeding with GDS/Manual`);
+    } else if (routing.channel === 'CONSOLIDATOR' && flightSource === 'Duffel') {
+      // Over $500 with Duffel source - keep as Duffel (still profitable)
+      console.log(`   ✅ Over $${ROUTING_THRESHOLD.priceThreshold} with Duffel - auto-ticketing enabled`);
+    }
 
     // Extract NET price (before markup) from the offer - this is what we pay the API
     // The frontend sends the marked-up price in price.total, but we stored _netPrice
@@ -1172,6 +1198,21 @@ Customer needs to complete payment to finalize booking.
         airlineRecordLocator: sourceApi === 'Amadeus' ? 'PENDING' : pnr,
         // Store customer vs consolidator pricing for margin tracking
         customerPrice: totalAmount,
+        // Admin Price Details (for profit tracking)
+        netPrice: originalNetPrice,
+        markupAmount: totalAmount - originalNetPrice,
+        routingChannel: routing.channel,
+        routingReason: routing.reason,
+        // Calculate Duffel cost if applicable
+        ...(sourceApi === 'Duffel' && {
+          duffelCost: 3 + (originalNetPrice * 0.035), // $3 + 3.5%
+          netProfit: (totalAmount - originalNetPrice) - (3 + (originalNetPrice * 0.035)),
+        }),
+        // Consolidator cost placeholder (updated after manual ticketing)
+        ...(sourceApi === 'Amadeus' && {
+          consolidatorCost: 0, // Will be updated after manual ticketing
+          netProfit: totalAmount - originalNetPrice, // Estimated, updated later
+        }),
           }, preGeneratedBookingRef), // Pass pre-generated reference for webhook matching
             `Save Booking to Database (Attempt ${attempt + 1})`,
             {
