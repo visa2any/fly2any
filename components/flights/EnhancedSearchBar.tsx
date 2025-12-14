@@ -203,6 +203,9 @@ export default function EnhancedSearchBar({
   // Service type state (defaults to defaultService prop)
   const [serviceType, setServiceType] = useState<ServiceType>(defaultService);
 
+  // Transition for non-blocking updates
+  const [, startTransition] = useTransition();
+
   // Form state
   const [origin, setOrigin] = useState<string[]>(parseAirportCodes(initialOrigin));
   const [destination, setDestination] = useState<string[]>(parseAirportCodes(initialDestination));
@@ -1002,20 +1005,25 @@ export default function EnhancedSearchBar({
 
     if (!nameValue) return;
 
+    // Sync: Update input immediately
     setHotelDestination(nameValue);
     setShowHotelSuggestions(false);
-    setHotelLocation({
-      lat: suggestion.location?.lat || suggestion.latitude,
-      lng: suggestion.location?.lng || suggestion.longitude
+
+    // Deferred: Non-critical updates
+    startTransition(() => {
+      setHotelLocation({
+        lat: suggestion.location?.lat || suggestion.latitude,
+        lng: suggestion.location?.lng || suggestion.longitude
+      });
+      setSelectedDestinationDetails({
+        name: nameValue,
+        country: suggestion.country || '',
+        emoji: suggestion.emoji,
+        type: suggestion.type || 'city',
+        categories: suggestion.categories,
+      });
+      setSelectedDistricts([]);
     });
-    setSelectedDestinationDetails({
-      name: nameValue,
-      country: suggestion.country || '',
-      emoji: suggestion.emoji,
-      type: suggestion.type || 'city',
-      categories: suggestion.categories,
-    });
-    setSelectedDistricts([]);
   };
 
   // Toggle district selection (multi-select)
@@ -1875,12 +1883,16 @@ export default function EnhancedSearchBar({
                   onChange={(e) => {
                     handleHotelDestinationChange(e.target.value);
                     if (selectedDestinationDetails && e.target.value !== selectedDestinationDetails.name) {
-                      setSelectedDestinationDetails(null);
+                      startTransition(() => {
+                        setSelectedDestinationDetails(null);
+                      });
                     }
                   }}
                   onFocus={() => {
                     if (hotelDestination.length >= 2) {
-                      setShowHotelSuggestions(true);
+                      startTransition(() => {
+                        setShowHotelSuggestions(true);
+                      });
                     }
                   }}
                   placeholder="City, hotel, or landmark"
