@@ -1429,6 +1429,47 @@ A booking was successfully created but the confirmation email failed to send!
       // Determine booking status for response (requiresManualTicketing already defined above)
       const responseStatus = isHold ? 'HOLD' : (requiresManualTicketing ? 'PENDING_TICKETING' : 'PENDING_PAYMENT');
 
+      // STEP 8: Create admin in-app notification
+      console.log('🔔 STEP 8: Creating admin in-app notification...');
+      try {
+        const { createNotification } = await import('@/lib/services/notifications');
+        const prisma = getPrismaClient();
+
+        // Find admin users to notify
+        const adminUsers = await prisma?.user.findMany({
+          where: { role: 'admin' },
+          select: { id: true },
+        });
+
+        if (adminUsers && adminUsers.length > 0) {
+          const route = `${confirmedOffer.segments[0]?.departure?.iataCode || 'N/A'} → ${confirmedOffer.segments[confirmedOffer.segments.length - 1]?.arrival?.iataCode || 'N/A'}`;
+
+          // Create notification for each admin
+          await Promise.all(adminUsers.map(admin =>
+            createNotification({
+              userId: admin.id,
+              type: 'booking_confirmed',
+              title: `New Booking: ${savedBooking.bookingReference}`,
+              message: `${bookingPassengers[0]?.firstName || 'Customer'} booked ${route} for ${confirmedOffer.price.currency} ${totalAmount.toFixed(2)}`,
+              priority: 'high',
+              actionUrl: `/admin/bookings/${savedBooking.id}`,
+              metadata: {
+                bookingId: savedBooking.id,
+                bookingReference: savedBooking.bookingReference,
+                customerEmail: bookingContactInfo.email,
+                route,
+                amount: totalAmount,
+                currency: confirmedOffer.price.currency,
+              },
+            })
+          ));
+          console.log(`✅ Admin notifications created for ${adminUsers.length} admin(s)`);
+        }
+      } catch (notifError) {
+        console.error('⚠️ Failed to create admin notification (non-critical):', notifError);
+        // Don't fail the booking if notification fails
+      }
+
       // COMPLETION SUMMARY - END OF BOOKING FLOW
       console.log('═══════════════════════════════════════════════════════════');
       console.log(`✅ [${requestId}] BOOKING FLOW COMPLETED SUCCESSFULLY`);

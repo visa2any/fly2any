@@ -1,16 +1,13 @@
 /**
- * Email Service using Resend
+ * Email Service using Mailgun
  * Handles all transactional emails for the booking system
  */
 
-import { Resend } from 'resend';
+import { mailgunClient, MAILGUN_CONFIG } from '@/lib/email/mailgun-client';
 import type { Booking } from '@/lib/bookings/types';
 
-// Initialize Resend with API key from environment variables (only if key exists)
-const resend = process.env.RESEND_API_KEY ? new Resend(process.env.RESEND_API_KEY) : null;
-
 // Configuration
-const FROM_EMAIL = process.env.FROM_EMAIL || 'bookings@fly2any.com';
+const FROM_EMAIL = MAILGUN_CONFIG.fromEmail;
 const COMPANY_NAME = 'Fly2Any';
 const SUPPORT_EMAIL = 'support@fly2any.com';
 const ADMIN_EMAIL = process.env.ADMIN_EMAIL || 'admin@fly2any.com';
@@ -59,14 +56,14 @@ async function notifyAdminOfEmailFailure(
   console.error(`   Time: ${failure.timestamp.toISOString()}`);
   console.error('🚨 ==========================================');
 
-  // Try to notify admin
-  if (!resend || !process.env.RESEND_API_KEY) {
-    console.error('⚠️  Cannot send admin notification - RESEND_API_KEY not configured');
+  // Try to notify admin via Mailgun
+  if (!mailgunClient.isConfigured()) {
+    console.error('⚠️  Cannot send admin notification - MAILGUN_API_KEY not configured');
     return;
   }
 
   try {
-    await resend.emails.send({
+    await mailgunClient.send({
       from: FROM_EMAIL,
       to: ADMIN_EMAIL,
       subject: `🚨 Email Delivery Failed - ${emailType}`,
@@ -103,6 +100,8 @@ ${error}
 
 Action Required: Please manually send the email or investigate the failure.
       `,
+      forceSend: true,
+      tags: ['admin', 'alert', 'email-failure'],
     });
 
     console.log('✅ Admin notification sent successfully');
@@ -398,28 +397,27 @@ export async function sendPaymentInstructionsEmail(booking: Booking): Promise<bo
   try {
     const { subject, html, text } = getPaymentInstructionsEmail(booking);
 
-    if (!resend || !process.env.RESEND_API_KEY) {
-      console.warn('⚠️  RESEND_API_KEY not configured. Email will be logged to console.');
-      console.log('📧 Sending payment instructions email...');
-      console.log(`   To: ${booking.contactInfo.email}`);
-      console.log(`   Subject: ${subject}`);
-      console.log('✅ Payment instructions email sent (logged to console)');
-      return true; // Return true so booking creation continues
-    }
+    console.log('📧 Sending payment instructions email via Mailgun...');
+    console.log(`   To: ${booking.contactInfo.email}`);
+    console.log(`   Subject: ${subject}`);
 
-    const result = await resend.emails.send({
+    const result = await mailgunClient.send({
       from: FROM_EMAIL,
       to: booking.contactInfo.email,
       subject,
       html,
       text,
+      forceSend: true, // Always send booking emails
+      tags: ['booking', 'payment-instructions'],
     });
 
-    console.log('✅ Payment instructions email sent successfully');
-    console.log(`   To: ${booking.contactInfo.email}`);
-    console.log(`   Email ID: ${result.data?.id}`);
-
-    return true;
+    if (result.success) {
+      console.log('✅ Payment instructions email sent successfully');
+      console.log(`   Email ID: ${result.messageId}`);
+      return true;
+    } else {
+      throw new Error(result.error || 'Failed to send email');
+    }
   } catch (error: any) {
     console.error('❌ Error sending payment instructions email:', error);
 
@@ -439,28 +437,27 @@ export async function sendBookingConfirmationEmail(booking: Booking): Promise<bo
   try {
     const { subject, html, text } = getBookingConfirmationEmail(booking);
 
-    if (!resend || !process.env.RESEND_API_KEY) {
-      console.warn('⚠️  RESEND_API_KEY not configured. Email will be logged to console.');
-      console.log('📧 Sending booking confirmation email...');
-      console.log(`   To: ${booking.contactInfo.email}`);
-      console.log(`   Subject: ${subject}`);
-      console.log('✅ Booking confirmation email sent (logged to console)');
-      return true; // Return true so payment confirmation continues
-    }
+    console.log('📧 Sending booking confirmation email via Mailgun...');
+    console.log(`   To: ${booking.contactInfo.email}`);
+    console.log(`   Subject: ${subject}`);
 
-    const result = await resend.emails.send({
+    const result = await mailgunClient.send({
       from: FROM_EMAIL,
       to: booking.contactInfo.email,
       subject,
       html,
       text,
+      forceSend: true,
+      tags: ['booking', 'confirmation'],
     });
 
-    console.log('✅ Booking confirmation email sent successfully');
-    console.log(`   To: ${booking.contactInfo.email}`);
-    console.log(`   Email ID: ${result.data?.id}`);
-
-    return true;
+    if (result.success) {
+      console.log('✅ Booking confirmation email sent successfully');
+      console.log(`   Email ID: ${result.messageId}`);
+      return true;
+    } else {
+      throw new Error(result.error || 'Failed to send email');
+    }
   } catch (error: any) {
     console.error('❌ Error sending booking confirmation email:', error);
 
@@ -616,28 +613,27 @@ export async function sendPriceAlertEmail(
   try {
     const { subject, html, text } = getPriceAlertEmail(alert);
 
-    if (!resend || !process.env.RESEND_API_KEY) {
-      console.warn('⚠️  RESEND_API_KEY not configured. Email will be logged to console.');
-      console.log('📧 Sending price alert email...');
-      console.log(`   To: ${email}`);
-      console.log(`   Subject: ${subject}`);
-      console.log('✅ Price alert email sent (logged to console)');
-      return true;
-    }
+    console.log('📧 Sending price alert email via Mailgun...');
+    console.log(`   To: ${email}`);
+    console.log(`   Subject: ${subject}`);
 
-    const result = await resend.emails.send({
+    const result = await mailgunClient.send({
       from: FROM_EMAIL,
       to: email,
       subject,
       html,
       text,
+      forceSend: true,
+      tags: ['price-alert'],
     });
 
-    console.log('✅ Price alert email sent successfully');
-    console.log(`   To: ${email}`);
-    console.log(`   Email ID: ${result.data?.id}`);
-
-    return true;
+    if (result.success) {
+      console.log('✅ Price alert email sent successfully');
+      console.log(`   Email ID: ${result.messageId}`);
+      return true;
+    } else {
+      throw new Error(result.error || 'Failed to send email');
+    }
   } catch (error: any) {
     console.error('❌ Error sending price alert email:', error);
 
@@ -820,29 +816,28 @@ export async function sendTicketedConfirmationEmail(booking: Booking): Promise<b
   try {
     const { subject, html, text } = getTicketedConfirmationEmail(booking);
 
-    if (!resend || !process.env.RESEND_API_KEY) {
-      console.warn('⚠️  RESEND_API_KEY not configured. Email will be logged to console.');
-      console.log('📧 Sending e-ticket confirmation email...');
-      console.log(`   To: ${booking.contactInfo.email}`);
-      console.log(`   Subject: ${subject}`);
-      console.log(`   PNR: ${booking.airlineRecordLocator}`);
-      console.log('✅ E-ticket confirmation email sent (logged to console)');
-      return true;
-    }
+    console.log('📧 Sending e-ticket confirmation email via Mailgun...');
+    console.log(`   To: ${booking.contactInfo.email}`);
+    console.log(`   Subject: ${subject}`);
+    console.log(`   PNR: ${booking.airlineRecordLocator}`);
 
-    const result = await resend.emails.send({
+    const result = await mailgunClient.send({
       from: FROM_EMAIL,
       to: booking.contactInfo.email,
       subject,
       html,
       text,
+      forceSend: true,
+      tags: ['booking', 'eticket'],
     });
 
-    console.log('✅ E-ticket confirmation email sent successfully');
-    console.log(`   To: ${booking.contactInfo.email}`);
-    console.log(`   Email ID: ${result.data?.id}`);
-
-    return true;
+    if (result.success) {
+      console.log('✅ E-ticket confirmation email sent successfully');
+      console.log(`   Email ID: ${result.messageId}`);
+      return true;
+    } else {
+      throw new Error(result.error || 'Failed to send email');
+    }
   } catch (error: any) {
     console.error('❌ Error sending e-ticket confirmation email:', error);
 
