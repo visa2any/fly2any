@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { FAQ } from '@/components/conversion/FAQ';
+import ExitIntentPopup from '@/components/conversion/ExitIntentPopup';
 import { MobileHomeSearchWrapper } from '@/components/home/MobileHomeSearchWrapper';
 import { HotelsSectionEnhanced } from '@/components/home/HotelsSectionEnhanced';
 // TEMPORARILY HIDDEN - Uncomment when ready to launch
@@ -715,6 +716,28 @@ export default function Home() {
         </div>
         </MaxWidthContainer>
       </main>
+
+      {/* Exit Intent Popup - Lead Capture */}
+      <ExitIntentPopup
+        discountCode="WELCOME5"
+        discountPercent={5}
+        onEmailSubmit={(email) => {
+          // Track in analytics
+          if (typeof window !== 'undefined' && (window as any).gtag) {
+            (window as any).gtag('event', 'exit_intent_email_captured', {
+              event_category: 'lead_capture',
+              event_label: 'homepage',
+              email_captured: true,
+            });
+          }
+          // Subscribe to newsletter
+          fetch('/api/newsletter/subscribe', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ email, source: 'exit_intent_homepage' }),
+          }).catch(() => {});
+        }}
+      />
     </div>
   );
 }

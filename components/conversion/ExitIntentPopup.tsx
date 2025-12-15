@@ -31,6 +31,13 @@ export default function ExitIntentPopup({
         mouseLeaveTimer = setTimeout(() => {
           setIsVisible(true);
           sessionStorage.setItem('exitIntentShown', 'true');
+          // Track popup shown
+          if (typeof window !== 'undefined' && (window as any).gtag) {
+            (window as any).gtag('event', 'exit_intent_shown', {
+              event_category: 'lead_capture',
+              discount_percent: discountPercent,
+            });
+          }
         }, 100);
       }
     };
@@ -41,10 +48,16 @@ export default function ExitIntentPopup({
       document.removeEventListener('mouseleave', handleMouseLeave);
       if (mouseLeaveTimer) clearTimeout(mouseLeaveTimer);
     };
-  }, [isVisible]);
+  }, [isVisible, discountPercent]);
 
   const handleClose = () => {
     setIsVisible(false);
+    // Track popup dismissed
+    if (typeof window !== 'undefined' && (window as any).gtag) {
+      (window as any).gtag('event', 'exit_intent_dismissed', {
+        event_category: 'lead_capture',
+      });
+    }
   };
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -135,7 +148,7 @@ export default function ExitIntentPopup({
                 onClick={handleClose}
                 className="w-full mt-3 text-xs text-gray-500 hover:text-gray-700 transition-colors"
               >
-                No thanks, I'll pay full price
+                Continue browsing
               </button>
             </>
           ) : (

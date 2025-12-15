@@ -30,6 +30,9 @@ import {
   Eye,
   EyeOff,
   RotateCcw,
+  Share2,
+  Mail,
+  Zap,
 } from 'lucide-react';
 
 interface PromoCode {
@@ -66,6 +69,21 @@ interface LoyaltyConfig {
     minRedemptionPoints: number;
     pointsToValueRatio: number;
   };
+  referral: {
+    enabled: boolean;
+    tierRates: { level1: number; level2: number; level3: number };
+    productMultipliers: Record<string, number>;
+    defaultCommissionRates: Record<string, number>;
+    pointsLockDays: number;
+    redemptionRate: number;
+  };
+  leadCapture: {
+    newsletterSignupCredits: number;
+    exitIntentDiscountPercent: number;
+    exitIntentDiscountCode: string;
+    priceAlertSignupCredits: number;
+    appInstallCredits: number;
+  };
   hotels: {
     enabled: boolean;
     pointsPerDollar: number;
@@ -100,7 +118,7 @@ interface Stats {
   promoCodes: { total: number; active: number; totalUsages: number };
 }
 
-type TabType = 'promo-codes' | 'hotels' | 'flights' | 'global';
+type TabType = 'promo-codes' | 'referral' | 'lead-capture' | 'hotels' | 'flights' | 'global';
 
 export default function RewardsAdminPage() {
   const { data: session } = useSession();
@@ -328,6 +346,8 @@ export default function RewardsAdminPage() {
 
   const tabs: { id: TabType; label: string; icon: React.ReactNode }[] = [
     { id: 'promo-codes', label: 'Promo Codes', icon: <Percent className="w-4 h-4" /> },
+    { id: 'referral', label: 'Referral Network', icon: <Share2 className="w-4 h-4" /> },
+    { id: 'lead-capture', label: 'Lead Capture', icon: <Mail className="w-4 h-4" /> },
     { id: 'hotels', label: 'Hotels Loyalty', icon: <Hotel className="w-4 h-4" /> },
     { id: 'flights', label: 'Flights Loyalty', icon: <Plane className="w-4 h-4" /> },
     { id: 'global', label: 'Global Settings', icon: <Settings className="w-4 h-4" /> },
@@ -805,6 +825,264 @@ export default function RewardsAdminPage() {
                   )}
                 </tbody>
               </table>
+            </div>
+          </div>
+        )}
+
+        {/* Referral Network Tab */}
+        {activeTab === 'referral' && loyaltyConfig?.referral && (
+          <div className="p-6">
+            <div className="flex items-center justify-between mb-6">
+              <div>
+                <h3 className="text-lg font-semibold text-gray-900">3-Tier Referral Network</h3>
+                <p className="text-sm text-gray-500">Commission-based rewards (sustainable profitability model)</p>
+              </div>
+              <label className="flex items-center gap-2">
+                <input
+                  type="checkbox"
+                  checked={loyaltyConfig.referral.enabled}
+                  onChange={(e) => handleUpdateConfig('referral', { enabled: e.target.checked })}
+                  className="rounded border-gray-300 text-primary-500 focus:ring-primary-500"
+                />
+                <span className="text-sm font-medium text-gray-700">Enable Referral Program</span>
+              </label>
+            </div>
+
+            {/* Tier Rates */}
+            <div className="mb-6">
+              <h4 className="font-medium text-gray-900 mb-3 flex items-center gap-2">
+                <Share2 className="w-4 h-4 text-primary-500" />
+                Points per $100 Commission
+              </h4>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div className="p-4 bg-primary-50 rounded-xl border border-primary-200">
+                  <label className="block text-sm font-medium text-primary-800 mb-2">
+                    Level 1 (Direct Referral)
+                  </label>
+                  <input
+                    type="number"
+                    value={loyaltyConfig.referral.tierRates.level1}
+                    onChange={(e) => handleUpdateConfig('referral', {
+                      tierRates: { ...loyaltyConfig.referral.tierRates, level1: parseInt(e.target.value) || 0 }
+                    })}
+                    className="w-full px-3 py-2 border border-primary-300 rounded-lg focus:ring-2 focus:ring-primary-500"
+                  />
+                  <p className="text-xs text-primary-600 mt-1">
+                    = ${((loyaltyConfig.referral.tierRates.level1 || 0) * loyaltyConfig.referral.redemptionRate).toFixed(2)} reward (5% of commission)
+                  </p>
+                </div>
+                <div className="p-4 bg-blue-50 rounded-xl border border-blue-200">
+                  <label className="block text-sm font-medium text-blue-800 mb-2">
+                    Level 2 (Referral's Referral)
+                  </label>
+                  <input
+                    type="number"
+                    value={loyaltyConfig.referral.tierRates.level2}
+                    onChange={(e) => handleUpdateConfig('referral', {
+                      tierRates: { ...loyaltyConfig.referral.tierRates, level2: parseInt(e.target.value) || 0 }
+                    })}
+                    className="w-full px-3 py-2 border border-blue-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                  />
+                  <p className="text-xs text-blue-600 mt-1">
+                    = ${((loyaltyConfig.referral.tierRates.level2 || 0) * loyaltyConfig.referral.redemptionRate).toFixed(2)} reward (2% of commission)
+                  </p>
+                </div>
+                <div className="p-4 bg-purple-50 rounded-xl border border-purple-200">
+                  <label className="block text-sm font-medium text-purple-800 mb-2">
+                    Level 3 (3rd Tier)
+                  </label>
+                  <input
+                    type="number"
+                    value={loyaltyConfig.referral.tierRates.level3}
+                    onChange={(e) => handleUpdateConfig('referral', {
+                      tierRates: { ...loyaltyConfig.referral.tierRates, level3: parseInt(e.target.value) || 0 }
+                    })}
+                    className="w-full px-3 py-2 border border-purple-300 rounded-lg focus:ring-2 focus:ring-purple-500"
+                  />
+                  <p className="text-xs text-purple-600 mt-1">
+                    = ${((loyaltyConfig.referral.tierRates.level3 || 0) * loyaltyConfig.referral.redemptionRate).toFixed(2)} reward (1% of commission)
+                  </p>
+                </div>
+              </div>
+              <div className="mt-3 p-3 bg-green-50 rounded-lg border border-green-200">
+                <p className="text-sm text-green-800">
+                  <strong>Total:</strong> {(loyaltyConfig.referral.tierRates.level1 + loyaltyConfig.referral.tierRates.level2 + loyaltyConfig.referral.tierRates.level3) || 0} pts =
+                  {' '}${(((loyaltyConfig.referral.tierRates.level1 + loyaltyConfig.referral.tierRates.level2 + loyaltyConfig.referral.tierRates.level3) || 0) * loyaltyConfig.referral.redemptionRate).toFixed(2)} per $100 commission (8% sustainable model)
+                </p>
+              </div>
+            </div>
+
+            {/* Product Multipliers */}
+            <div className="mb-6">
+              <h4 className="font-medium text-gray-900 mb-3">Product Multipliers</h4>
+              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
+                {Object.entries(loyaltyConfig.referral.productMultipliers || {}).map(([product, multiplier]) => (
+                  <div key={product} className="p-3 bg-gray-50 rounded-lg">
+                    <label className="block text-xs font-medium text-gray-600 mb-1 capitalize">
+                      {product.replace('_', ' ')}
+                    </label>
+                    <input
+                      type="number"
+                      value={multiplier}
+                      onChange={(e) => handleUpdateConfig('referral', {
+                        productMultipliers: {
+                          ...loyaltyConfig.referral.productMultipliers,
+                          [product]: parseFloat(e.target.value) || 1.0
+                        }
+                      })}
+                      step="0.1"
+                      min="0.1"
+                      max="5"
+                      className="w-full px-2 py-1.5 text-sm border border-gray-300 rounded focus:ring-1 focus:ring-primary-500"
+                    />
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Settings */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="p-4 bg-gray-50 rounded-lg">
+                <label className="block text-sm font-medium text-gray-700 mb-2">Points Lock Period (Days)</label>
+                <input
+                  type="number"
+                  value={loyaltyConfig.referral.pointsLockDays}
+                  onChange={(e) => handleUpdateConfig('referral', { pointsLockDays: parseInt(e.target.value) || 14 })}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg"
+                />
+                <p className="text-xs text-gray-500 mt-1">Points unlock after trip completion + this period</p>
+              </div>
+              <div className="p-4 bg-green-50 rounded-lg border border-green-200">
+                <label className="block text-sm font-medium text-green-800 mb-2">Redemption Rate (Points to $)</label>
+                <input
+                  type="number"
+                  value={loyaltyConfig.referral.redemptionRate}
+                  onChange={(e) => handleUpdateConfig('referral', { redemptionRate: parseFloat(e.target.value) || 0.10 })}
+                  step="0.01"
+                  min="0.01"
+                  className="w-full px-3 py-2 border border-green-300 rounded-lg"
+                />
+                <p className="text-xs text-green-700 mt-1">
+                  {loyaltyConfig.referral.redemptionRate} means {Math.round(1 / loyaltyConfig.referral.redemptionRate)} points = $1
+                </p>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Lead Capture Tab */}
+        {activeTab === 'lead-capture' && loyaltyConfig?.leadCapture && (
+          <div className="p-6">
+            <div className="mb-6">
+              <h3 className="text-lg font-semibold text-gray-900">Lead Capture Incentives</h3>
+              <p className="text-sm text-gray-500">Configure credits and discounts for lead capture touchpoints</p>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {/* Newsletter Signup Credits */}
+              <div className="p-4 bg-blue-50 rounded-xl border border-blue-200">
+                <div className="flex items-center gap-2 mb-3">
+                  <Mail className="w-5 h-5 text-blue-600" />
+                  <h4 className="font-medium text-blue-800">Newsletter Signup</h4>
+                </div>
+                <label className="block text-sm text-blue-700 mb-2">Credits Awarded</label>
+                <input
+                  type="number"
+                  value={loyaltyConfig.leadCapture.newsletterSignupCredits}
+                  onChange={(e) => handleUpdateConfig('leadCapture', { newsletterSignupCredits: parseInt(e.target.value) || 0 })}
+                  className="w-full px-3 py-2 border border-blue-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                />
+                <p className="text-xs text-blue-600 mt-1">
+                  = ${((loyaltyConfig.leadCapture.newsletterSignupCredits || 0) * (loyaltyConfig.global?.pointsToValueRatio || 0.01)).toFixed(2)} value
+                </p>
+              </div>
+
+              {/* Exit Intent Discount */}
+              <div className="p-4 bg-amber-50 rounded-xl border border-amber-200">
+                <div className="flex items-center gap-2 mb-3">
+                  <Zap className="w-5 h-5 text-amber-600" />
+                  <h4 className="font-medium text-amber-800">Exit Intent Popup</h4>
+                </div>
+                <div className="space-y-3">
+                  <div>
+                    <label className="block text-sm text-amber-700 mb-1">Discount (%)</label>
+                    <input
+                      type="number"
+                      value={loyaltyConfig.leadCapture.exitIntentDiscountPercent}
+                      onChange={(e) => handleUpdateConfig('leadCapture', { exitIntentDiscountPercent: parseInt(e.target.value) || 5 })}
+                      className="w-full px-3 py-2 border border-amber-300 rounded-lg"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm text-amber-700 mb-1">Discount Code</label>
+                    <input
+                      type="text"
+                      value={loyaltyConfig.leadCapture.exitIntentDiscountCode}
+                      onChange={(e) => handleUpdateConfig('leadCapture', { exitIntentDiscountCode: e.target.value.toUpperCase() })}
+                      className="w-full px-3 py-2 border border-amber-300 rounded-lg font-mono"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {/* Price Alert Credits */}
+              <div className="p-4 bg-green-50 rounded-xl border border-green-200">
+                <div className="flex items-center gap-2 mb-3">
+                  <TrendingUp className="w-5 h-5 text-green-600" />
+                  <h4 className="font-medium text-green-800">Price Alert Signup</h4>
+                </div>
+                <label className="block text-sm text-green-700 mb-2">Credits Awarded</label>
+                <input
+                  type="number"
+                  value={loyaltyConfig.leadCapture.priceAlertSignupCredits}
+                  onChange={(e) => handleUpdateConfig('leadCapture', { priceAlertSignupCredits: parseInt(e.target.value) || 0 })}
+                  className="w-full px-3 py-2 border border-green-300 rounded-lg focus:ring-2 focus:ring-green-500"
+                />
+                <p className="text-xs text-green-600 mt-1">
+                  = ${((loyaltyConfig.leadCapture.priceAlertSignupCredits || 0) * (loyaltyConfig.global?.pointsToValueRatio || 0.01)).toFixed(2)} value
+                </p>
+              </div>
+
+              {/* App Install Credits */}
+              <div className="p-4 bg-purple-50 rounded-xl border border-purple-200">
+                <div className="flex items-center gap-2 mb-3">
+                  <Gift className="w-5 h-5 text-purple-600" />
+                  <h4 className="font-medium text-purple-800">App Install Bonus</h4>
+                </div>
+                <label className="block text-sm text-purple-700 mb-2">Credits Awarded</label>
+                <input
+                  type="number"
+                  value={loyaltyConfig.leadCapture.appInstallCredits}
+                  onChange={(e) => handleUpdateConfig('leadCapture', { appInstallCredits: parseInt(e.target.value) || 0 })}
+                  className="w-full px-3 py-2 border border-purple-300 rounded-lg focus:ring-2 focus:ring-purple-500"
+                />
+                <p className="text-xs text-purple-600 mt-1">
+                  = ${((loyaltyConfig.leadCapture.appInstallCredits || 0) * (loyaltyConfig.global?.pointsToValueRatio || 0.01)).toFixed(2)} value
+                </p>
+              </div>
+            </div>
+
+            {/* Summary */}
+            <div className="mt-6 p-4 bg-gray-100 rounded-xl">
+              <h4 className="font-medium text-gray-900 mb-2">Lead Capture Value Summary</h4>
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-3 text-sm">
+                <div className="text-center p-2 bg-white rounded-lg">
+                  <p className="text-gray-500">Newsletter</p>
+                  <p className="font-bold text-blue-600">${((loyaltyConfig.leadCapture.newsletterSignupCredits || 0) * (loyaltyConfig.global?.pointsToValueRatio || 0.01)).toFixed(2)}</p>
+                </div>
+                <div className="text-center p-2 bg-white rounded-lg">
+                  <p className="text-gray-500">Exit Intent</p>
+                  <p className="font-bold text-amber-600">{loyaltyConfig.leadCapture.exitIntentDiscountPercent}% off</p>
+                </div>
+                <div className="text-center p-2 bg-white rounded-lg">
+                  <p className="text-gray-500">Price Alert</p>
+                  <p className="font-bold text-green-600">${((loyaltyConfig.leadCapture.priceAlertSignupCredits || 0) * (loyaltyConfig.global?.pointsToValueRatio || 0.01)).toFixed(2)}</p>
+                </div>
+                <div className="text-center p-2 bg-white rounded-lg">
+                  <p className="text-gray-500">App Install</p>
+                  <p className="font-bold text-purple-600">${((loyaltyConfig.leadCapture.appInstallCredits || 0) * (loyaltyConfig.global?.pointsToValueRatio || 0.01)).toFixed(2)}</p>
+                </div>
+              </div>
             </div>
           </div>
         )}

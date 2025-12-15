@@ -18,6 +18,46 @@ const DEFAULT_LOYALTY_CONFIG = {
     minRedemptionPoints: 1000,
     pointsToValueRatio: 0.01, // 1 point = $0.01
   },
+  // Referral Network (3-Tier Commission-Based)
+  referral: {
+    enabled: true,
+    // Points per $100 of COMMISSION (not booking amount)
+    tierRates: {
+      level1: 50, // Direct referral: 50 pts/$100 = $5 (5% of commission)
+      level2: 20, // 2nd level: 20 pts/$100 = $2 (2% of commission)
+      level3: 10, // 3rd level: 10 pts/$100 = $1 (1% of commission)
+    },
+    // Product multipliers
+    productMultipliers: {
+      flight: 1.0,
+      flight_international: 1.2,
+      hotel: 1.5,
+      package: 2.0,
+      car: 1.0,
+      activity: 1.0,
+    },
+    // Default commission rates when actual commission not provided
+    defaultCommissionRates: {
+      flight: 0.03,              // 3%
+      flight_international: 0.05, // 5%
+      hotel: 0.10,               // 10%
+      package: 0.12,             // 12%
+      car: 0.08,                 // 8%
+      activity: 0.15,            // 15%
+    },
+    // Points locking period (days after trip completion)
+    pointsLockDays: 14,
+    // Redemption rate
+    redemptionRate: 0.10, // 10 points = $1
+  },
+  // Newsletter & Lead Capture Incentives
+  leadCapture: {
+    newsletterSignupCredits: 50, // $0.50 credit for newsletter signup
+    exitIntentDiscountPercent: 5,
+    exitIntentDiscountCode: 'COMEBACK5',
+    priceAlertSignupCredits: 25,
+    appInstallCredits: 100,
+  },
   // Hotel-specific settings
   hotels: {
     enabled: true,
