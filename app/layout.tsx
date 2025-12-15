@@ -167,15 +167,37 @@ export default async function RootLayout({
               {children}
             </GlobalLayout>
             <Toaster
-              position="bottom-right"
+              position="top-center"
               reverseOrder={false}
               gutter={8}
+              containerStyle={{
+                zIndex: 9999, // Above mobile nav and modals
+                top: 16,
+              }}
               toastOptions={{
                 duration: 4000,
                 style: {
-                  background: 'transparent',
-                  padding: 0,
-                  boxShadow: 'none',
+                  background: '#FFFFFF',
+                  padding: '12px 16px',
+                  boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
+                  borderRadius: '12px',
+                  fontSize: '14px',
+                  maxWidth: '90vw',
+                },
+                error: {
+                  duration: 6000,
+                  style: {
+                    background: '#FEF2F2',
+                    color: '#991B1B',
+                    border: '1px solid #FCA5A5',
+                  },
+                },
+                success: {
+                  style: {
+                    background: '#F0FDF4',
+                    color: '#166534',
+                    border: '1px solid #86EFAC',
+                  },
                 },
               }}
             />

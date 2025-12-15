@@ -3,6 +3,7 @@
 import { useState, useEffect, Suspense } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { Plane, ChevronLeft, ChevronRight, ArrowLeft, Loader2, User, Clock, CheckCircle2, Star, Home, X, Armchair, Info } from 'lucide-react';
+import toast from 'react-hot-toast';
 import { formatCityCode } from '@/lib/data/airports';
 import { FareSelector } from '@/components/booking/FareSelector';
 import { AddOnsTabs } from '@/components/booking/AddOnsTabs';
@@ -713,7 +714,19 @@ function BookingPageContent() {
   const handleContinue = () => {
     // Validate before advancing to next step
     if (currentStep === 2 && !arePassengersComplete()) {
-      alert('Please complete all required passenger information before continuing.');
+      toast.error('Please complete all required passenger information before continuing.', {
+        duration: 4000,
+        position: 'top-center',
+        style: {
+          background: '#FEF2F2',
+          color: '#991B1B',
+          border: '1px solid #FCA5A5',
+          padding: '16px',
+          borderRadius: '12px',
+          fontSize: '14px',
+          fontWeight: '500',
+        },
+      });
       return;
     }
 
@@ -841,7 +854,21 @@ function BookingPageContent() {
       router.push(`/flights/booking/confirmation?bookingId=${result.booking.id}&ref=${result.booking.bookingReference}`);
     } catch (error: any) {
       console.error('Booking error:', error);
-      alert(error.message || 'There was an error processing your booking. Please try again.');
+      toast.error(error.message || 'There was an error processing your booking. Please try again.', {
+        duration: 8000,
+        position: 'top-center',
+        style: {
+          background: '#FEF2F2',
+          color: '#991B1B',
+          border: '1px solid #FCA5A5',
+          padding: '16px 20px',
+          borderRadius: '12px',
+          fontSize: '14px',
+          fontWeight: '500',
+          maxWidth: '90vw',
+          textAlign: 'center',
+        },
+      });
     } finally {
       setIsProcessing(false);
     }
