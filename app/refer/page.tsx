@@ -35,10 +35,10 @@ export default function ReferAndEarnPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-green-50 via-white to-blue-50">
+    <div className="min-h-screen bg-gradient-to-br from-primary-50 via-white to-secondary-50">
       {/* Hero Section */}
       <section className="relative overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-to-br from-green-600 via-emerald-600 to-teal-600 opacity-90"></div>
+        <div className="absolute inset-0 bg-gradient-to-br from-primary-600 via-primary-500 to-primary-700 opacity-95"></div>
         <div className="absolute inset-0 bg-[url('/patterns/grid.svg')] opacity-10"></div>
 
         <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-24 md:py-32">
@@ -59,7 +59,7 @@ export default function ReferAndEarnPage() {
             <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
               <button
                 onClick={handleGetStarted}
-                className="px-8 py-4 bg-white text-green-600 rounded-xl font-bold text-lg hover:bg-gray-100 transition-all shadow-2xl flex items-center gap-2 group"
+                className="px-8 py-4 bg-white text-primary-600 rounded-xl font-bold text-lg hover:bg-gray-100 transition-all shadow-2xl flex items-center gap-2 group"
               >
                 <span>{session ? 'View My Rewards' : 'Start Earning - Free'}</span>
                 <ArrowRight className="h-5 w-5 group-hover:translate-x-1 transition-transform" />
@@ -188,7 +188,7 @@ export default function ReferAndEarnPage() {
                 <h3 className="text-2xl font-bold text-gray-900 mb-2">Level 2</h3>
                 <p className="text-gray-600 mb-4">Friends of Friends</p>
                 <div className="bg-blue-50 rounded-lg p-4 mb-4">
-                  <div className="text-4xl font-bold text-blue-600">30</div>
+                  <div className="text-4xl font-bold text-blue-600">20</div>
                   <div className="text-sm text-gray-600">Points per $100</div>
                 </div>
                 <p className="text-sm text-gray-500">
@@ -206,7 +206,7 @@ export default function ReferAndEarnPage() {
                 <h3 className="text-2xl font-bold text-gray-900 mb-2">Level 3</h3>
                 <p className="text-gray-600 mb-4">Extended Network</p>
                 <div className="bg-purple-50 rounded-lg p-4 mb-4">
-                  <div className="text-4xl font-bold text-purple-600">20</div>
+                  <div className="text-4xl font-bold text-purple-600">10</div>
                   <div className="text-sm text-gray-600">Points per $100</div>
                 </div>
                 <p className="text-sm text-gray-500">
@@ -252,8 +252,8 @@ export default function ReferAndEarnPage() {
                   </div>
                 </div>
                 <div className="text-right">
-                  <div className="font-bold text-blue-600">3,600 pts</div>
-                  <div className="text-xs text-gray-500">30 pts × $120</div>
+                  <div className="font-bold text-blue-600">2,400 pts</div>
+                  <div className="text-xs text-gray-500">20 pts × $120</div>
                 </div>
               </div>
 
@@ -268,18 +268,18 @@ export default function ReferAndEarnPage() {
                   </div>
                 </div>
                 <div className="text-right">
-                  <div className="font-bold text-purple-600">4,800 pts</div>
-                  <div className="text-xs text-gray-500">20 pts × $240</div>
+                  <div className="font-bold text-purple-600">2,400 pts</div>
+                  <div className="text-xs text-gray-500">10 pts × $240</div>
                 </div>
               </div>
 
               <div className="border-t-2 border-gray-200 pt-4 mt-4">
                 <div className="flex items-center justify-between">
                   <div className="font-bold text-gray-900 text-lg">Total Annual Earnings</div>
-                  <div className="text-3xl font-bold text-green-600">10,900 Points</div>
+                  <div className="text-3xl font-bold text-primary-600">7,300 Points</div>
                 </div>
                 <p className="text-sm text-gray-500 mt-2 text-right">
-                  Worth ~$218 in travel discounts per year! 🎉
+                  Worth ~$146 in travel discounts per year!
                 </p>
               </div>
             </div>
@@ -424,7 +424,7 @@ export default function ReferAndEarnPage() {
       </section>
 
       {/* CTA Section */}
-      <section className="py-20 bg-gradient-to-br from-green-600 via-emerald-600 to-teal-600">
+      <section className="py-20 bg-gradient-to-br from-primary-600 via-primary-500 to-primary-700">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <div className="inline-flex items-center justify-center p-4 bg-white/20 backdrop-blur-sm rounded-full mb-6">
             <Gift className="h-12 w-12 text-white" />
@@ -440,7 +440,7 @@ export default function ReferAndEarnPage() {
 
           <button
             onClick={handleGetStarted}
-            className="px-10 py-5 bg-white text-green-600 rounded-xl font-bold text-xl hover:bg-gray-100 transition-all shadow-2xl inline-flex items-center gap-3 group"
+            className="px-10 py-5 bg-white text-primary-600 rounded-xl font-bold text-xl hover:bg-gray-100 transition-all shadow-2xl inline-flex items-center gap-3 group"
           >
             <span>{session ? 'Go to My Dashboard' : 'Sign Up Free Now'}</span>
             <ArrowRight className="h-6 w-6 group-hover:translate-x-1 transition-transform" />
