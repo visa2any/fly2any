@@ -23,7 +23,8 @@ export const Input = React.forwardRef<HTMLInputElement, InputProps>(
     },
     ref
   ) => {
-    const baseStyles = 'h-11 px-4 rounded-xl border-2 transition-all duration-200 focus:outline-none focus:ring-4 focus:ring-opacity-20';
+    // Level-6: 48px height for optimal touch targets (Apple HIG)
+    const baseStyles = 'h-12 px-4 rounded-xl border-2 transition-all duration-200 focus:outline-none focus:ring-4 focus:ring-opacity-20 text-[15px]';
 
     const stateStyles = error
       ? 'border-error text-error focus:border-error focus:ring-error'

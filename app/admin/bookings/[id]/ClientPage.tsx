@@ -785,6 +785,31 @@ export default function AdminBookingDetailPage() {
                 </div>
               </div>
             )}
+
+            {/* Promo Code Applied */}
+            {booking.promoCode && (
+              <div className="bg-white rounded-lg border border-gray-200 shadow-sm p-6">
+                <h2 className="text-lg font-bold text-gray-900 mb-4 flex items-center gap-2">
+                  <CheckCircle2 className="w-5 h-5 text-green-600" />
+                  Promo Code Applied
+                </h2>
+                <div className="bg-green-50 rounded-lg p-4 border border-green-200">
+                  <div className="flex items-center justify-between mb-2">
+                    <div>
+                      <p className="font-bold text-lg text-green-900 font-mono">{booking.promoCode.code}</p>
+                      <p className="text-xs text-green-700 mt-1">
+                        {booking.promoCode.type === 'percentage'
+                          ? `${booking.promoCode.value}% discount`
+                          : `$${booking.promoCode.value} fixed discount`}
+                      </p>
+                    </div>
+                    <p className="text-xl font-bold text-green-600">
+                      -{booking.payment.currency} {booking.promoCode.discountAmount.toFixed(2)}
+                    </p>
+                  </div>
+                </div>
+              </div>
+            )}
           </div>
 
           {/* Sidebar */}

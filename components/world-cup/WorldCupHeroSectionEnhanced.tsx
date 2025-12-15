@@ -124,25 +124,27 @@ export function WorldCupHeroSectionEnhanced({ lang = 'en', compact = false }: Wo
 
   if (compact) {
     return (
-      <div className="bg-gradient-to-r from-green-600 via-blue-600 to-red-600 text-white py-2 px-3 relative overflow-hidden">
+      <div className="bg-gradient-to-r from-green-600 via-blue-600 to-red-600 text-white py-2.5 px-4 relative overflow-hidden">
         {/* Animated soccer balls background - MORE VISIBLE */}
         <div className="absolute inset-0 opacity-30">
           <div className="animate-float-soccer text-3xl">⚽</div>
         </div>
-        <div className="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-2 relative z-10">
-          <div className="flex items-center gap-2">
+        <div className="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-2.5 relative z-10">
+          <div className="flex items-center gap-2.5">
             <TrophyIcon className="w-6 h-6 animate-bounce" />
             <div>
+              {/* Level-6: 12px minimum for compact text */}
               <p className="font-black text-xs">{t.badge}</p>
               <p className="text-xs opacity-90" suppressHydrationWarning>
                 {hasMounted ? `${timeLeft.days} days until kickoff!` : 'World Cup 2026'}
               </p>
             </div>
           </div>
+          {/* Level-6: 36px minimum touch target */}
           <Link
             href="/world-cup-2026"
             onClick={() => handleCTAClick('packages')}
-            className="bg-gradient-to-r from-yellow-400 to-yellow-500 text-gray-900 px-3 py-1.5 rounded-lg font-black text-xs hover:from-yellow-300 hover:to-yellow-400 transition-all transform hover:scale-105 whitespace-nowrap shadow-xl"
+            className="bg-gradient-to-r from-yellow-400 to-yellow-500 text-gray-900 px-4 py-2 rounded-xl font-black text-xs hover:from-yellow-300 hover:to-yellow-400 transition-all duration-200 transform hover:scale-105 whitespace-nowrap shadow-xl min-h-[36px] flex items-center"
           >
             {t.cta.primary}
           </Link>
@@ -161,13 +163,15 @@ export function WorldCupHeroSectionEnhanced({ lang = 'en', compact = false }: Wo
             <TrophyIcon className="w-5 h-5 md:w-7 md:h-7 lg:w-8 lg:h-8 text-white" />
           </div>
           <div>
-            <h2 className="text-sm md:text-[26px] lg:text-[32px] font-bold text-neutral-800 tracking-[0.01em] whitespace-nowrap">{t.sectionTitle}</h2>
-            <p className="text-[10px] md:text-sm lg:text-base text-neutral-500 mt-0.5">{t.sectionSubtitle}</p>
+            {/* Level-6: 13px mobile minimum, proper scaling */}
+            <h2 className="text-[13px] md:text-[26px] lg:text-[32px] font-bold text-neutral-800 tracking-[0.01em] whitespace-nowrap">{t.sectionTitle}</h2>
+            <p className="text-[11px] md:text-sm lg:text-base text-neutral-500 mt-0.5">{t.sectionSubtitle}</p>
           </div>
         </div>
+        {/* Level-6: 12px mobile minimum for links */}
         <Link
           href="/world-cup-2026"
-          className="text-[10px] md:text-sm lg:text-base font-semibold text-primary-600 hover:text-primary-700 transition-all duration-150 ease-[cubic-bezier(0.2,0.8,0.2,1)] whitespace-nowrap hover:-translate-y-0.5"
+          className="text-xs md:text-sm lg:text-base font-semibold text-primary-600 hover:text-primary-700 transition-all duration-150 ease-[cubic-bezier(0.2,0.8,0.2,1)] whitespace-nowrap hover:-translate-y-0.5"
         >
           {t.viewAll} →
         </Link>
@@ -208,28 +212,28 @@ export function WorldCupHeroSectionEnhanced({ lang = 'en', compact = false }: Wo
         <div className="grid lg:grid-cols-2 gap-3 lg:gap-10 xl:gap-14 items-center">
           {/* Left Column - Content - Ultra compact on mobile */}
           <div className="text-center lg:text-left space-y-1.5 md:space-y-4">
-            {/* Animated Badge - Tiny on mobile */}
-            <div className="inline-flex items-center gap-1 bg-gradient-to-r from-yellow-400 to-orange-500 px-2 py-1 md:px-4 md:py-2 rounded-full shadow-lg animate-pulse-slow">
+            {/* Level-6: Badge with 12px mobile minimum */}
+            <div className="inline-flex items-center gap-1.5 bg-gradient-to-r from-yellow-400 to-orange-500 px-2.5 py-1.5 md:px-4 md:py-2 rounded-full shadow-lg animate-pulse-slow">
               <span className="text-sm md:text-xl">🏆</span>
-              <span className="font-black text-[10px] md:text-sm tracking-wide text-gray-900">{t.badge}</span>
+              <span className="font-black text-xs md:text-sm tracking-wide text-gray-900">{t.badge}</span>
             </div>
 
-            {/* Title with Gradient - Much smaller on mobile */}
-            <h2 className="text-lg md:text-4xl lg:text-5xl font-black leading-tight">
+            {/* Level-6: Title with proper mobile scaling */}
+            <h2 className="text-xl md:text-4xl lg:text-5xl font-black leading-tight">
               <span className="bg-gradient-to-r from-yellow-400 via-white to-yellow-400 bg-clip-text text-transparent animate-shimmer">
                 {t.title}
               </span>
             </h2>
 
-            {/* Subtitle - Compact on mobile */}
-            <p className="text-xs md:text-xl text-white/95 font-bold flex items-center justify-center lg:justify-start gap-1">
-              <SparklesIcon className="w-3 h-3 md:w-5 md:h-5 text-yellow-400 animate-pulse" />
+            {/* Level-6: Subtitle with 13px mobile minimum */}
+            <p className="text-[13px] md:text-xl text-white/95 font-bold flex items-center justify-center lg:justify-start gap-1.5">
+              <SparklesIcon className="w-3.5 h-3.5 md:w-5 md:h-5 text-yellow-400 animate-pulse" />
               {t.subtitle}
-              <SparklesIcon className="w-3 h-3 md:w-5 md:h-5 text-yellow-400 animate-pulse" />
+              <SparklesIcon className="w-3.5 h-3.5 md:w-5 md:h-5 text-yellow-400 animate-pulse" />
             </p>
 
-            {/* Stats Row - Inline on mobile */}
-            <div className="flex items-center justify-center lg:justify-start gap-2 md:gap-4 text-[10px] md:text-sm font-bold text-white/90">
+            {/* Level-6: Stats Row with 11px mobile minimum */}
+            <div className="flex items-center justify-center lg:justify-start gap-2 md:gap-4 text-[11px] md:text-sm font-bold text-white/90">
               <span className="flex items-center gap-0.5">
                 <span className="text-yellow-400 text-sm md:text-xl">48</span> {t.stats.teams}
               </span>
@@ -243,23 +247,23 @@ export function WorldCupHeroSectionEnhanced({ lang = 'en', compact = false }: Wo
               </span>
             </div>
 
-            {/* CTAs - Side by side even on mobile, smaller */}
-            <div className="flex gap-2 pt-1 md:pt-2">
+            {/* Level-6: CTAs with 36px+ mobile touch targets */}
+            <div className="flex gap-2.5 pt-2 md:pt-3">
               <Link
                 href="/world-cup-2026/packages"
                 onClick={() => handleCTAClick('packages')}
-                className="group relative flex-1 bg-gradient-to-r from-yellow-400 via-yellow-500 to-orange-500 text-gray-900 px-2 py-1.5 md:px-6 md:py-3 rounded-lg font-black text-[10px] md:text-base hover:shadow-2xl hover:scale-105 transition-all duration-300 flex items-center justify-center gap-1 overflow-hidden"
+                className="group relative flex-1 bg-gradient-to-r from-yellow-400 via-yellow-500 to-orange-500 text-gray-900 px-3 py-2 md:px-6 md:py-3 rounded-xl font-black text-xs md:text-base hover:shadow-2xl hover:scale-105 transition-all duration-200 flex items-center justify-center gap-1.5 overflow-hidden min-h-[36px] md:min-h-[48px]"
               >
                 <div className="absolute inset-0 bg-gradient-to-r from-yellow-300 to-orange-400 opacity-0 group-hover:opacity-100 transition-opacity" />
-                <TicketIcon className="w-3 h-3 md:w-5 md:h-5 relative z-10" />
+                <TicketIcon className="w-4 h-4 md:w-5 md:h-5 relative z-10" />
                 <span className="relative z-10">{t.cta.primary}</span>
               </Link>
               <Link
                 href="/world-cup-2026/stadiums"
                 onClick={() => handleCTAClick('stadiums')}
-                className="flex-1 bg-white/20 backdrop-blur-md border border-white/40 text-white px-2 py-1.5 md:px-6 md:py-3 rounded-lg font-bold text-[10px] md:text-base hover:bg-white/30 hover:border-white/60 hover:scale-105 transition-all duration-300 flex items-center justify-center gap-1"
+                className="flex-1 bg-white/20 backdrop-blur-md border border-white/40 text-white px-3 py-2 md:px-6 md:py-3 rounded-xl font-bold text-xs md:text-base hover:bg-white/30 hover:border-white/60 hover:scale-105 transition-all duration-200 flex items-center justify-center gap-1.5 min-h-[36px] md:min-h-[48px]"
               >
-                <MapPinIcon className="w-3 h-3 md:w-5 md:h-5" />
+                <MapPinIcon className="w-4 h-4 md:w-5 md:h-5" />
                 {t.cta.secondary}
               </Link>
             </div>
@@ -270,54 +274,54 @@ export function WorldCupHeroSectionEnhanced({ lang = 'en', compact = false }: Wo
             </div>
           </div>
 
-          {/* Right Column - Countdown Timer - Ultra compact on mobile */}
-          <div className="bg-gradient-to-br from-white/15 to-white/5 backdrop-blur-xl rounded-xl md:rounded-2xl p-2 md:p-6 border border-white/30 shadow-xl">
-            <p className="text-center text-[10px] md:text-lg font-black mb-1.5 md:mb-4 text-yellow-400 uppercase tracking-wide flex items-center justify-center gap-1">
-              <span className="animate-pulse text-xs md:text-lg">🔥</span>
+          {/* Level-6: Right Column - Countdown Timer with proper spacing */}
+          <div className="bg-gradient-to-br from-white/15 to-white/5 backdrop-blur-xl rounded-xl md:rounded-2xl p-3 md:p-6 border border-white/30 shadow-xl">
+            <p className="text-center text-xs md:text-lg font-black mb-2 md:mb-4 text-yellow-400 uppercase tracking-wide flex items-center justify-center gap-1.5">
+              <span className="animate-pulse text-sm md:text-lg">🔥</span>
               {t.countdown.title}
-              <span className="animate-pulse text-xs md:text-lg">🔥</span>
+              <span className="animate-pulse text-sm md:text-lg">🔥</span>
             </p>
 
-            {/* Countdown Grid - 4 cols always, ultra compact on mobile */}
-            <div className="grid grid-cols-4 gap-1 md:gap-3 mb-1.5 md:mb-4">
+            {/* Level-6: Countdown Grid with 10px mobile minimum labels */}
+            <div className="grid grid-cols-4 gap-1.5 md:gap-3 mb-2 md:mb-4">
               {/* Days */}
               <div className="text-center">
-                <div className="bg-gradient-to-br from-red-500 to-red-700 text-white rounded-md md:rounded-xl p-1 md:p-3 shadow-lg">
-                  <div className="text-base md:text-4xl font-black tabular-nums" suppressHydrationWarning>
+                <div className="bg-gradient-to-br from-red-500 to-red-700 text-white rounded-lg md:rounded-xl p-1.5 md:p-3 shadow-lg">
+                  <div className="text-lg md:text-4xl font-black tabular-nums" suppressHydrationWarning>
                     {hasMounted ? timeLeft.days : '--'}
                   </div>
                 </div>
-                <p className="text-[8px] md:text-sm font-bold mt-0.5 md:mt-1.5 text-white">{t.countdown.days}</p>
+                <p className="text-[10px] md:text-sm font-bold mt-1 md:mt-1.5 text-white">{t.countdown.days}</p>
               </div>
 
               {/* Hours */}
               <div className="text-center">
-                <div className="bg-gradient-to-br from-info-500 to-blue-700 text-white rounded-md md:rounded-xl p-1 md:p-3 shadow-lg">
-                  <div className="text-base md:text-4xl font-black tabular-nums" suppressHydrationWarning>
+                <div className="bg-gradient-to-br from-info-500 to-blue-700 text-white rounded-lg md:rounded-xl p-1.5 md:p-3 shadow-lg">
+                  <div className="text-lg md:text-4xl font-black tabular-nums" suppressHydrationWarning>
                     {hasMounted ? String(timeLeft.hours).padStart(2, '0') : '--'}
                   </div>
                 </div>
-                <p className="text-[8px] md:text-sm font-bold mt-0.5 md:mt-1.5 text-white">{t.countdown.hours}</p>
+                <p className="text-[10px] md:text-sm font-bold mt-1 md:mt-1.5 text-white">{t.countdown.hours}</p>
               </div>
 
               {/* Minutes */}
               <div className="text-center">
-                <div className="bg-gradient-to-br from-green-500 to-green-700 text-white rounded-md md:rounded-xl p-1 md:p-3 shadow-lg">
-                  <div className="text-base md:text-4xl font-black tabular-nums" suppressHydrationWarning>
+                <div className="bg-gradient-to-br from-green-500 to-green-700 text-white rounded-lg md:rounded-xl p-1.5 md:p-3 shadow-lg">
+                  <div className="text-lg md:text-4xl font-black tabular-nums" suppressHydrationWarning>
                     {hasMounted ? String(timeLeft.minutes).padStart(2, '0') : '--'}
                   </div>
                 </div>
-                <p className="text-[8px] md:text-sm font-bold mt-0.5 md:mt-1.5 text-white">{t.countdown.minutes}</p>
+                <p className="text-[10px] md:text-sm font-bold mt-1 md:mt-1.5 text-white">{t.countdown.minutes}</p>
               </div>
 
               {/* Seconds */}
               <div className="text-center">
-                <div className="bg-gradient-to-br from-yellow-400 to-orange-500 text-gray-900 rounded-md md:rounded-xl p-1 md:p-3 shadow-lg animate-pulse-fast">
-                  <div className="text-base md:text-4xl font-black tabular-nums" suppressHydrationWarning>
+                <div className="bg-gradient-to-br from-yellow-400 to-orange-500 text-gray-900 rounded-lg md:rounded-xl p-1.5 md:p-3 shadow-lg animate-pulse-fast">
+                  <div className="text-lg md:text-4xl font-black tabular-nums" suppressHydrationWarning>
                     {hasMounted ? String(timeLeft.seconds).padStart(2, '0') : '--'}
                   </div>
                 </div>
-                <p className="text-[8px] md:text-sm font-bold mt-0.5 md:mt-1.5 text-white">{t.countdown.seconds}</p>
+                <p className="text-[10px] md:text-sm font-bold mt-1 md:mt-1.5 text-white">{t.countdown.seconds}</p>
               </div>
             </div>
 

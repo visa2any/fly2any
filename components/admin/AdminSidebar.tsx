@@ -31,6 +31,10 @@ import {
   Star,
   Bell,
   Plane,
+  UserPlus,
+  MailOpen,
+  Smartphone,
+  ShieldCheck,
 } from 'lucide-react'
 
 interface AdminSidebarProps {
@@ -159,6 +163,12 @@ export default function AdminSidebar({ role }: AdminSidebarProps) {
       roles: ['super_admin', 'admin']
     },
     {
+      label: 'Subscribers',
+      href: '/admin/growth/email',
+      icon: UserPlus,
+      roles: ['super_admin', 'admin']
+    },
+    {
       label: 'Cost Savings',
       href: '/admin/cost-savings',
       icon: PiggyBank,
@@ -169,6 +179,18 @@ export default function AdminSidebar({ role }: AdminSidebarProps) {
       href: '/admin/webhooks',
       icon: Webhook,
       roles: ['super_admin', 'admin']
+    },
+    {
+      label: 'PWA & Mobile',
+      href: '/admin/pwa',
+      icon: Smartphone,
+      roles: ['super_admin', 'admin']
+    },
+    {
+      label: 'Security',
+      href: '/admin/security',
+      icon: ShieldCheck,
+      roles: ['super_admin']
     },
     {
       label: 'Settings',

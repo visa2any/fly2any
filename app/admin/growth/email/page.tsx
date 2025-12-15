@@ -1,7 +1,7 @@
 'use client'
 
-import { useState } from 'react'
-import { Mail, Send, Users, TrendingUp, Clock, CheckCircle2, Eye, MousePointer, RefreshCw, Sparkles, FileText, Bell, Gift, BarChart3 } from 'lucide-react'
+import { useState, useEffect } from 'react'
+import { Mail, Send, Users, TrendingUp, Clock, CheckCircle2, Eye, MousePointer, RefreshCw, Sparkles, FileText, Bell, Gift, BarChart3, Trash2, Download, Filter, Search } from 'lucide-react'
 
 interface EmailCampaign {
   id: string
@@ -25,6 +25,28 @@ interface EmailStats {
   clickRate: number
 }
 
+interface Subscriber {
+  id: string
+  email: string
+  firstName?: string
+  source: string
+  status: string
+  subscribedAt: string
+  emailsSent: number
+  emailsOpened: number
+  emailsClicked: number
+}
+
+interface SubscriberStats {
+  total: number
+  active: number
+  unsubscribed: number
+  exitIntent: number
+  mobileScroll: number
+  footer: number
+  website: number
+}
+
 const mockCampaigns: EmailCampaign[] = [
   { id: '1', name: 'Weekly Deals Newsletter', template: 'weekly_deals', status: 'sent', recipients: 5420, sent: 5420, opened: 2156, clicked: 432, sentAt: new Date(Date.now() - 86400000).toISOString() },
   { id: '2', name: 'Flash Sale Alert', template: 'price_alert', status: 'scheduled', recipients: 8900, sent: 0, opened: 0, clicked: 0, scheduledAt: new Date(Date.now() + 3600000).toISOString() },
@@ -35,8 +57,78 @@ const mockStats: EmailStats = { totalSent: 45230, totalOpened: 18540, totalClick
 
 export default function EmailMarketingAdmin() {
   const [campaigns] = useState<EmailCampaign[]>(mockCampaigns)
-  const [stats] = useState<EmailStats>(mockStats)
+  const [stats, setStats] = useState<EmailStats>(mockStats)
   const [activeTab, setActiveTab] = useState<'campaigns' | 'templates' | 'subscribers'>('campaigns')
+
+  // Real subscriber data
+  const [subscribers, setSubscribers] = useState<Subscriber[]>([])
+  const [subscriberStats, setSubscriberStats] = useState<SubscriberStats | null>(null)
+  const [loadingSubscribers, setLoadingSubscribers] = useState(false)
+  const [sourceFilter, setSourceFilter] = useState<string>('')
+  const [searchQuery, setSearchQuery] = useState('')
+
+  // Fetch subscribers when tab changes to subscribers
+  useEffect(() => {
+    if (activeTab === 'subscribers') {
+      fetchSubscribers()
+    }
+  }, [activeTab, sourceFilter])
+
+  const fetchSubscribers = async () => {
+    setLoadingSubscribers(true)
+    try {
+      const params = new URLSearchParams()
+      if (sourceFilter) params.set('source', sourceFilter)
+
+      const res = await fetch(`/api/admin/subscribers?${params}`)
+      if (res.ok) {
+        const data = await res.json()
+        setSubscribers(data.subscribers || [])
+        setSubscriberStats(data.stats || null)
+        // Update main stats with real subscriber count
+        if (data.stats?.total) {
+          setStats(prev => ({ ...prev, subscribers: data.stats.total }))
+        }
+      }
+    } catch (e) {
+      console.error('Failed to fetch subscribers:', e)
+    } finally {
+      setLoadingSubscribers(false)
+    }
+  }
+
+  const handleDeleteSubscriber = async (id: string) => {
+    if (!confirm('Are you sure you want to delete this subscriber?')) return
+    try {
+      const res = await fetch(`/api/admin/subscribers?id=${id}`, { method: 'DELETE' })
+      if (res.ok) {
+        setSubscribers(prev => prev.filter(s => s.id !== id))
+        fetchSubscribers() // Refresh stats
+      }
+    } catch (e) {
+      console.error('Failed to delete subscriber:', e)
+    }
+  }
+
+  const filteredSubscribers = subscribers.filter(s =>
+    !searchQuery || s.email.toLowerCase().includes(searchQuery.toLowerCase())
+  )
+
+  const getSourceLabel = (source: string) => {
+    if (source.includes('exit_intent')) return 'Exit Intent'
+    if (source.includes('mobile_scroll')) return 'Mobile Scroll'
+    if (source.includes('footer')) return 'Footer'
+    if (source.includes('world')) return 'World Cup'
+    return source.charAt(0).toUpperCase() + source.slice(1)
+  }
+
+  const getSourceColor = (source: string) => {
+    if (source.includes('exit_intent')) return 'bg-purple-100 text-purple-700'
+    if (source.includes('mobile_scroll')) return 'bg-blue-100 text-blue-700'
+    if (source.includes('footer')) return 'bg-gray-100 text-gray-700'
+    if (source.includes('world')) return 'bg-yellow-100 text-yellow-700'
+    return 'bg-green-100 text-green-700'
+  }
 
   const statusColors = {
     draft: 'bg-gray-100 text-gray-700',
@@ -179,13 +271,138 @@ export default function EmailMarketingAdmin() {
 
       {/* Subscribers Tab */}
       {activeTab === 'subscribers' && (
-        <div className="bg-white rounded-xl border border-gray-200 p-6">
-          <div className="flex items-center justify-between mb-6">
-            <h3 className="font-semibold text-gray-900">Subscriber Growth</h3>
-            <span className="text-sm text-green-600 font-medium">+12.5% this month</span>
+        <div className="space-y-4">
+          {/* Stats Cards */}
+          {subscriberStats && (
+            <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-3">
+              {[
+                { label: 'Total', value: subscriberStats.total, color: 'text-gray-900' },
+                { label: 'Active', value: subscriberStats.active, color: 'text-green-600' },
+                { label: 'Unsubscribed', value: subscriberStats.unsubscribed, color: 'text-red-600' },
+                { label: 'Exit Intent', value: subscriberStats.exitIntent, color: 'text-purple-600' },
+                { label: 'Mobile Scroll', value: subscriberStats.mobileScroll, color: 'text-blue-600' },
+                { label: 'Footer', value: subscriberStats.footer, color: 'text-gray-600' },
+                { label: 'Website', value: subscriberStats.website, color: 'text-green-600' },
+              ].map(({ label, value, color }) => (
+                <div key={label} className="bg-white rounded-xl border border-gray-200 p-4 text-center">
+                  <p className={`text-2xl font-bold ${color}`}>{value.toLocaleString()}</p>
+                  <p className="text-xs text-gray-500">{label}</p>
+                </div>
+              ))}
+            </div>
+          )}
+
+          {/* Filters & Search */}
+          <div className="bg-white rounded-xl border border-gray-200 p-4">
+            <div className="flex flex-col sm:flex-row gap-3">
+              <div className="relative flex-1">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+                <input
+                  type="text"
+                  placeholder="Search by email..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-pink-500 focus:border-transparent"
+                />
+              </div>
+              <select
+                value={sourceFilter}
+                onChange={(e) => setSourceFilter(e.target.value)}
+                className="px-4 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-pink-500 focus:border-transparent"
+              >
+                <option value="">All Sources</option>
+                <option value="exit_intent">Exit Intent</option>
+                <option value="mobile_scroll">Mobile Scroll</option>
+                <option value="footer">Footer</option>
+                <option value="website">Website</option>
+              </select>
+              <button
+                onClick={fetchSubscribers}
+                className="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 flex items-center gap-2 text-sm"
+              >
+                <RefreshCw className={`h-4 w-4 ${loadingSubscribers ? 'animate-spin' : ''}`} />
+                Refresh
+              </button>
+            </div>
           </div>
-          <div className="h-64 flex items-center justify-center text-gray-400">
-            [Subscriber growth chart would go here]
+
+          {/* Subscribers Table */}
+          <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
+            {loadingSubscribers ? (
+              <div className="p-8 text-center">
+                <RefreshCw className="h-8 w-8 animate-spin text-pink-500 mx-auto mb-3" />
+                <p className="text-gray-500">Loading subscribers...</p>
+              </div>
+            ) : filteredSubscribers.length === 0 ? (
+              <div className="p-8 text-center">
+                <Users className="h-12 w-12 text-gray-300 mx-auto mb-3" />
+                <p className="text-gray-500">No subscribers found</p>
+                <p className="text-sm text-gray-400 mt-1">Subscribers will appear here when users sign up</p>
+              </div>
+            ) : (
+              <div className="overflow-x-auto">
+                <table className="w-full">
+                  <thead className="bg-gray-50 border-b border-gray-200">
+                    <tr>
+                      <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Email</th>
+                      <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Source</th>
+                      <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Status</th>
+                      <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Subscribed</th>
+                      <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Engagement</th>
+                      <th className="px-4 py-3 text-right text-xs font-semibold text-gray-600 uppercase tracking-wider">Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-gray-100">
+                    {filteredSubscribers.map((sub) => (
+                      <tr key={sub.id} className="hover:bg-gray-50">
+                        <td className="px-4 py-3">
+                          <div className="flex items-center gap-3">
+                            <div className="w-8 h-8 rounded-full bg-pink-100 flex items-center justify-center text-pink-600 text-sm font-medium">
+                              {sub.email.charAt(0).toUpperCase()}
+                            </div>
+                            <div>
+                              <p className="text-sm font-medium text-gray-900">{sub.email}</p>
+                              {sub.firstName && <p className="text-xs text-gray-500">{sub.firstName}</p>}
+                            </div>
+                          </div>
+                        </td>
+                        <td className="px-4 py-3">
+                          <span className={`px-2 py-1 rounded-full text-xs font-medium ${getSourceColor(sub.source)}`}>
+                            {getSourceLabel(sub.source)}
+                          </span>
+                        </td>
+                        <td className="px-4 py-3">
+                          <span className={`px-2 py-1 rounded-full text-xs font-medium ${
+                            sub.status === 'ACTIVE' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'
+                          }`}>
+                            {sub.status}
+                          </span>
+                        </td>
+                        <td className="px-4 py-3 text-sm text-gray-600">
+                          {new Date(sub.subscribedAt).toLocaleDateString()}
+                        </td>
+                        <td className="px-4 py-3">
+                          <div className="flex items-center gap-3 text-xs text-gray-500">
+                            <span title="Emails Sent"><Send className="h-3 w-3 inline mr-1" />{sub.emailsSent}</span>
+                            <span title="Opened"><Eye className="h-3 w-3 inline mr-1" />{sub.emailsOpened}</span>
+                            <span title="Clicked"><MousePointer className="h-3 w-3 inline mr-1" />{sub.emailsClicked}</span>
+                          </div>
+                        </td>
+                        <td className="px-4 py-3 text-right">
+                          <button
+                            onClick={() => handleDeleteSubscriber(sub.id)}
+                            className="p-1.5 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors"
+                            title="Delete subscriber"
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </button>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
           </div>
         </div>
       )}

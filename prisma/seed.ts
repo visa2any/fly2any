@@ -30,6 +30,29 @@ async function main() {
   });
   console.log('Created/Updated WELCOME5 promo code:', welcome5.code);
 
+  // Create COMEBACK5 promo code (Exit Intent discount - works for ALL products)
+  const comeback5 = await prisma.promoCode.upsert({
+    where: { code: 'COMEBACK5' },
+    update: {
+      applicableProducts: ['hotel', 'flight', 'car', 'activity'], // Updated to include ALL products
+    },
+    create: {
+      code: 'COMEBACK5',
+      type: 'percentage',
+      value: 5,
+      currency: 'USD',
+      validFrom: new Date(),
+      validUntil: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000 * 2), // 2 years
+      usageLimit: null, // Unlimited usage
+      perUserLimit: 1, // Once per user
+      applicableProducts: ['hotel', 'flight', 'car', 'activity'], // Works for ALL products
+      newUsersOnly: false, // Available to everyone who sees exit intent
+      description: '5% off your booking - Exit intent offer for all products',
+      isActive: true,
+    },
+  });
+  console.log('Created/Updated COMEBACK5 promo code:', comeback5.code);
+
   // Create additional promo codes
   const promoCodes = [
     {

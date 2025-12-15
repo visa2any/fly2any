@@ -5,6 +5,7 @@ import { bookingStorage } from '@/lib/bookings/storage';
 import { emailService } from '@/lib/email/service';
 import { paymentService } from '@/lib/payments/payment-service';
 import { getPrismaClient } from '@/lib/prisma';
+import { auth } from '@/lib/auth';
 import type { Booking, FlightData, Passenger, SeatSelection, PaymentInfo, ContactInfo } from '@/lib/bookings/types';
 import { checkRateLimit, addRateLimitHeaders } from '@/lib/security/rate-limiter';
 import { BOOKING_RATE_LIMITS } from '@/lib/security/rate-limit-config';
@@ -93,6 +94,9 @@ export async function POST(request: NextRequest) {
       return addRateLimitHeaders(response, rateLimitResult);
     }
 
+    // Get session for tracking user ID (optional - bookings don't require auth)
+    const session = await auth();
+
     console.log(`📝 Parsing request body (ID: ${requestId})...`);
     let body: any;
     try {
@@ -114,7 +118,8 @@ export async function POST(request: NextRequest) {
       addOns,           // NEW: All selected add-ons
       seats,            // NEW: Selected seats
       isHold,           // NEW: Whether to hold the booking (pay later)
-      holdDuration      // NEW: Hold duration in hours
+      holdDuration,     // NEW: Hold duration in hours
+      promoCode,        // NEW: Promo code discount
     } = body;
 
     console.log(`\n📦 REQUEST DATA (ID: ${requestId}):`);
@@ -1177,6 +1182,7 @@ Customer needs to complete payment to finalize booking.
         fareUpgrade: fareUpgrade || undefined, // Include fare upgrade if selected
         bundle: bundle || undefined, // Include bundle if selected
         addOns: addOns || [], // Include all selected add-ons
+        promoCode: promoCode || undefined, // Include promo code discount if applied
         specialRequests: passengers.flatMap((p: any) => p.specialRequests || []),
         refundPolicy: {
           refundable: fareUpgrade?.fareName !== 'Basic', // Basic fares non-refundable
@@ -1232,6 +1238,40 @@ Customer needs to complete payment to finalize booking.
           console.log(`   Database ID: ${savedBooking.id}`);
           console.log(`   Booking Reference: ${savedBooking.bookingReference}`);
           console.log(`   Saved passengers: ${bookingPassengers.length}`);
+
+          // Track promo code usage if applied
+          if (promoCode?.code) {
+            try {
+              const prisma = getPrismaClient();
+
+              // Increment usage count on promo code
+              await prisma.promoCode.update({
+                where: { code: promoCode.code.toUpperCase() },
+                data: { usageCount: { increment: 1 } },
+              });
+
+              // Create voucher redemption record
+              await prisma.voucherRedemption.create({
+                data: {
+                  voucherCode: promoCode.code.toUpperCase(),
+                  userId: session?.user?.id || null,
+                  guestEmail: bookingContactInfo.email,
+                  bookingReference: savedBooking.bookingReference,
+                  productType: 'flight',
+                  discountType: promoCode.type,
+                  discountValue: promoCode.value,
+                  discountAmount: promoCode.discountAmount,
+                  totalAmount: totalAmount,
+                  currency: confirmedOffer.price.currency,
+                },
+              });
+
+              console.log(`📝 Promo code usage tracked: ${promoCode.code} - ${promoCode.discountAmount} discount`);
+            } catch (promoError) {
+              console.error('⚠️ Failed to track promo code usage (non-blocking):', promoError);
+              // Don't fail the booking if promo tracking fails
+            }
+          }
 
           // Success! Break out of retry loop
           break;

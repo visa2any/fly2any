@@ -35,11 +35,12 @@ export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
       danger: 'bg-gradient-to-r from-red-600 to-red-700 text-white hover:from-red-700 hover:to-red-800 focus:ring-red-300 shadow-lg hover:shadow-xl active:scale-[0.98]',
     };
 
+    // Level-6: 44px minimum touch targets (Apple HIG)
     const sizeStyles = {
-      sm: 'h-8 px-3 text-sm',
-      md: 'h-11 px-6 text-base',
-      lg: 'h-12 px-8 text-lg',
-      xl: 'h-14 px-10 text-xl',
+      sm: 'h-9 px-4 text-sm',      // 36px - compact but accessible
+      md: 'h-12 px-6 text-[15px]', // 48px - Apple standard touch target
+      lg: 'h-14 px-8 text-base',   // 56px - prominent CTA
+      xl: 'h-16 px-10 text-lg',    // 64px - hero CTA
     };
 
     const classes = [

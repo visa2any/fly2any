@@ -313,17 +313,17 @@ export default function Home() {
         }}></div>
 
         <MaxWidthContainer
-          className="relative py-4 md:py-5 lg:py-7"
+          className="relative py-5 md:py-6 lg:py-8"
           noPadding={true}
         >
-          {/* Text padding - reduced on mobile for edge-to-edge feel */}
-          <div className="px-3 md:px-6">
+          {/* Level-6: 16px mobile padding, 24px desktop */}
+          <div className="px-4 md:px-6">
             {/* Title Container - stacked on mobile, inline on desktop */}
-            <div className="flex flex-col md:flex-row md:items-center gap-0.5 md:gap-4">
-              {/* Main Title - Level-6: +10% mobile size, premium desktop */}
+            <div className="flex flex-col md:flex-row md:items-center gap-1 md:gap-4">
+              {/* Main Title - Level-6: 16px mobile (Apple standard), premium desktop */}
               <h1
                 key={`title-${animationKey}`}
-                className="hero-title text-[14px] md:text-[32px] lg:text-[42px] xl:text-[48px] font-bold tracking-[0.01em] text-neutral-800 whitespace-nowrap"
+                className="hero-title text-[16px] sm:text-[20px] md:text-[32px] lg:text-[42px] xl:text-[48px] font-bold tracking-[-0.01em] text-neutral-900 whitespace-nowrap"
               >
                 {t.sectionTitle.split('').map((char, index) => (
                   <span
@@ -343,10 +343,10 @@ export default function Home() {
               {/* Separator - Hidden on mobile */}
               <span className="hidden md:block text-primary-500 text-2xl font-bold flex-shrink-0">•</span>
 
-              {/* Subtitle - Level-6: +10% mobile size, elegant on desktop */}
+              {/* Subtitle - Level-6: 13px mobile (Apple standard), elegant on desktop */}
               <p
                 key={`subtitle-${animationKey}`}
-                className="hero-subtitle text-[12px] md:text-lg lg:text-xl font-medium text-neutral-500 tracking-[0.005em] whitespace-nowrap"
+                className="hero-subtitle text-[13px] sm:text-[15px] md:text-lg lg:text-xl font-medium text-neutral-600 tracking-[0.01em]"
               >
                 {t.subtitle.split('').map((char, index) => (
                   <span
@@ -630,34 +630,34 @@ export default function Home() {
         <MaxWidthContainer className="px-0 md:px-6" noPadding={true}>
           {/* ============================================
               RECENTLY VIEWED - Personalized Recommendations
-              Level-6: Compact mobile, spacious desktop
+              Level-6: Consistent 16px mobile, 32px tablet, 48px desktop spacing
               ============================================ */}
-          <div className="mt-3 md:mt-6 lg:mt-8">
+          <div className="mt-4 md:mt-8 lg:mt-12">
             <RecentlyViewedSection lang={lang} />
           </div>
 
         {/* ============================================
             DESTINATIONS SECTION - Explore by Continent
             ENHANCED with Real Duffel Flight Data, ML/AI, Marketing
-            Level-6: Prime position after Recent Searches
+            Level-6: Consistent rhythm
             ============================================ */}
-        <div className="mt-3 md:mt-6 lg:mt-8">
+        <div className="mt-4 md:mt-8 lg:mt-12">
           <DestinationsSectionEnhanced lang={lang} />
         </div>
 
         {/* ============================================
             FLASH DEALS SECTION - Time-Limited Offers
             ENHANCED with Real Duffel Flash Deals, ML/AI, Marketing
-            Level-6: Follows Destinations for urgency flow
+            Level-6: Consistent rhythm
             ============================================ */}
-        <div className="mt-3 md:mt-6 lg:mt-10">
+        <div className="mt-4 md:mt-8 lg:mt-12">
           <FlashDealsSectionEnhanced lang={lang} />
         </div>
 
         {/* ============================================
             HOTELS SECTION - ML/AI Powered with Duffel Photos
             ============================================ */}
-        <div className="mt-3 md:mt-6 lg:mt-10">
+        <div className="mt-4 md:mt-8 lg:mt-12">
           <HotelsSectionEnhanced lang={lang} />
         </div>
 
@@ -665,7 +665,7 @@ export default function Home() {
             FIFA WORLD CUP 2026 - Prominent Hero Section
             STRATEGIC: High-visibility placement for major event
             ============================================ */}
-        <div className="mt-3 md:mt-6 lg:mt-10">
+        <div className="mt-4 md:mt-8 lg:mt-12">
           <WorldCupHeroSectionEnhanced lang={lang} />
         </div>
 
@@ -720,7 +720,7 @@ export default function Home() {
 
       {/* Exit Intent Popup - Lead Capture (Desktop) */}
       <ExitIntentPopup
-        discountCode="WELCOME5"
+        discountCode="COMEBACK5"
         discountPercent={5}
         onEmailSubmit={(email) => {
           if (typeof window !== 'undefined' && (window as any).gtag) {
@@ -749,6 +749,12 @@ export default function Home() {
               event_label: 'homepage',
             });
           }
+          // Also save to newsletter subscribers
+          fetch('/api/newsletter/subscribe', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ email, source: 'mobile_scroll_homepage' }),
+          }).catch(() => {});
         }}
       />
     </div>

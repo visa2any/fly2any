@@ -47,8 +47,8 @@ export function CompactTrustBar({
     <div
       className={cn(
         'w-full overflow-hidden bg-white/98 backdrop-blur-xl',
-        'border-b border-neutral-200/80',
-        'mt-6 md:mt-0', // Add top margin on mobile to prevent overlap
+        'border-b border-neutral-200/60',
+        // Level-6: Compact spacing, no unnecessary gaps
         // Sticky only on mobile, static on desktop to avoid dropdown overlap
         sticky && 'sticky top-0 md:static md:top-auto',
         className
@@ -63,7 +63,7 @@ export function CompactTrustBar({
     >
       {/* Level-6: 44px minimum height, 8pt grid spacing */}
       <div
-        className="flex items-center justify-start md:justify-center gap-3 md:gap-6 min-h-[44px] px-4 md:px-6 overflow-x-auto scrollbar-hide"
+        className="flex items-center justify-start md:justify-center gap-4 md:gap-8 min-h-[44px] py-2.5 px-4 md:px-6 overflow-x-auto scrollbar-hide"
         style={{
           WebkitOverflowScrolling: 'touch',
           scrollbarWidth: 'none',
@@ -75,14 +75,14 @@ export function CompactTrustBar({
           return (
             <div
               key={idx}
-              className="flex items-center gap-1.5 md:gap-2 text-neutral-700 flex-shrink-0"
+              className="flex items-center gap-2 text-neutral-800 flex-shrink-0"
             >
               <Icon
-                className={cn('w-4 h-4 md:w-[18px] md:h-[18px]', item.color)}
-                strokeWidth={2.25}
+                className={cn('w-[18px] h-[18px] md:w-5 md:h-5', item.color)}
+                strokeWidth={2}
               />
-              {/* Level-6: 12px caption, positive tracking */}
-              <span className="text-[11px] md:text-xs font-semibold whitespace-nowrap leading-none tracking-[0.005em]">
+              {/* Level-6: 12px mobile, 13px desktop - Apple standard */}
+              <span className="text-xs md:text-[13px] font-semibold whitespace-nowrap leading-none tracking-[0.01em]">
                 {item.text}
               </span>
             </div>

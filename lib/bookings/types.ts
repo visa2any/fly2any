@@ -125,6 +125,13 @@ export interface AddOn {
   details?: string;
 }
 
+export interface PromoCodeDiscount {
+  code: string;
+  type: 'percentage' | 'fixed';
+  value: number; // percentage or fixed amount
+  discountAmount: number; // actual discount applied
+}
+
 export interface Booking {
   id: string;
   bookingReference: string; // e.g., FLY2A-ABC123
@@ -138,6 +145,7 @@ export interface Booking {
   fareUpgrade?: FareUpgrade; // Selected fare tier (Basic, Standard, Flex, etc.)
   bundle?: Bundle; // Selected smart bundle
   addOns?: AddOn[]; // All selected add-ons
+  promoCode?: PromoCodeDiscount; // Applied promo code discount
   specialRequests?: string[];
   notes?: string;
   cancellationReason?: string;

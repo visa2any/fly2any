@@ -11,6 +11,7 @@ import AirlineLogo from '@/components/flights/AirlineLogo';
 import { StickySummary } from '@/components/booking/StickySummary';
 import { CompactPassengerForm } from '@/components/booking/CompactPassengerForm';
 import { ReviewAndPay } from '@/components/booking/ReviewAndPay';
+import { PromoCodeSection } from '@/components/booking/PromoCodeSection';
 import SeatMapModal, { type SeatPreference } from '@/components/flights/SeatMapModal';
 import { parseSeatMap, type ParsedSeatMap, type Seat } from '@/lib/flights/seat-map-parser';
 import { AIRPORTS } from '@/lib/data/airports';
@@ -126,6 +127,15 @@ function BookingPageContent() {
 
   // Price tracking
   const [priceLockTimer, setPriceLockTimer] = useState({ minutes: 10, seconds: 0 });
+
+  // Promo code state
+  const [appliedPromo, setAppliedPromo] = useState<{
+    code: string;
+    type: 'percentage' | 'fixed';
+    value: number;
+    discountAmount: number;
+    description?: string;
+  } | null>(null);
 
   // Scroll direction detection for auto-hide header (Phase 8 Track 2B.1)
   const { scrollDirection, isAtTop } = useScrollDirection({
@@ -720,6 +730,15 @@ function BookingPageContent() {
     }
   };
 
+  // Promo code handlers
+  const handlePromoApply = (code: string, discount: typeof appliedPromo) => {
+    setAppliedPromo(discount);
+  };
+
+  const handlePromoRemove = () => {
+    setAppliedPromo(null);
+  };
+
   const handlePaymentSubmit = async (paymentData: any) => {
     setIsProcessing(true);
 
@@ -789,6 +808,13 @@ function BookingPageContent() {
         fareUpgrade, // Include fare upgrade if selected
         addOns: selectedAddOns, // Include all add-ons
         seats: [], // Seat selection will be added later
+        // Promo code discount
+        promoCode: appliedPromo ? {
+          code: appliedPromo.code,
+          type: appliedPromo.type,
+          value: appliedPromo.value,
+          discountAmount: appliedPromo.discountAmount,
+        } : undefined,
       };
 
       // Call the booking API
@@ -1225,7 +1251,17 @@ function BookingPageContent() {
 
             {/* STEP 3: Review & Pay */}
             {currentStep === 3 && (
-              <div className="animate-fadeIn">
+              <div className="animate-fadeIn space-y-4">
+                {/* Promo Code Section */}
+                <PromoCodeSection
+                  totalPrice={totalPrice}
+                  currency={flightData.price.currency}
+                  productType="flight"
+                  onApply={handlePromoApply}
+                  onRemove={handlePromoRemove}
+                  appliedDiscount={appliedPromo}
+                />
+
                 <ReviewAndPay
                   flightSummary={{
                     route: `${flightData.search.from} → ${flightData.search.to}`,
@@ -1234,7 +1270,7 @@ function BookingPageContent() {
                     fareClass: fareOptions.find(f => f.id === selectedFareId)?.name || 'Standard',
                     passengers: passengers.length,
                   }}
-                  totalPrice={totalPrice}
+                  totalPrice={appliedPromo ? totalPrice - appliedPromo.discountAmount : totalPrice}
                   currency={flightData.price.currency}
                   onSubmit={handlePaymentSubmit}
                   isProcessing={isProcessing}
@@ -1296,7 +1332,17 @@ function BookingPageContent() {
               }}
               currency={flightData.price.currency}
               farePrice={farePrice}
-              addOns={addOns}
+              addOns={[
+                ...addOns,
+                // Add promo discount as negative line item if applied
+                ...(appliedPromo ? [{
+                  label: `Promo: ${appliedPromo.code}`,
+                  amount: -appliedPromo.discountAmount,
+                  subtext: appliedPromo.type === 'percentage'
+                    ? `${appliedPromo.value}% off`
+                    : `$${appliedPromo.value} off`,
+                }] : []),
+              ]}
               taxesAndFees={taxesAndFees}
               onContinue={currentStep < 3 ? handleContinue : undefined}
               pricelock={priceLockTimer}
