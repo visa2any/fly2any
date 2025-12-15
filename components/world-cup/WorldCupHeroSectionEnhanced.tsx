@@ -124,13 +124,13 @@ export function WorldCupHeroSectionEnhanced({ lang = 'en', compact = false }: Wo
 
   if (compact) {
     return (
-      <div className="bg-gradient-to-r from-green-600 via-blue-600 to-red-600 text-white py-2.5 px-4 relative overflow-hidden">
-        {/* Animated soccer balls background - MORE VISIBLE */}
+      <div className="bg-gradient-to-r from-green-600 via-blue-600 to-red-600 text-white py-3 px-4 relative overflow-hidden">
+        {/* Animated soccer balls background */}
         <div className="absolute inset-0 opacity-30">
           <div className="animate-float-soccer text-3xl">⚽</div>
         </div>
-        <div className="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-2.5 relative z-10">
-          <div className="flex items-center gap-2.5">
+        <div className="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-3 relative z-10">
+          <div className="flex items-center gap-3">
             <TrophyIcon className="w-6 h-6 animate-bounce" />
             <div>
               {/* Level-6: 12px minimum for compact text */}
@@ -209,11 +209,11 @@ export function WorldCupHeroSectionEnhanced({ lang = 'en', compact = false }: Wo
       <div className="absolute top-0 left-0 right-0 h-1 md:h-2 bg-gradient-to-r from-info-500 via-white to-red-500 opacity-60" />
 
       <div className="max-w-7xl mx-auto px-3 md:px-6 lg:px-10 py-3 md:py-10 lg:py-14 relative z-30">
-        <div className="grid lg:grid-cols-2 gap-3 lg:gap-10 xl:gap-14 items-center">
-          {/* Left Column - Content - Ultra compact on mobile */}
-          <div className="text-center lg:text-left space-y-1.5 md:space-y-4">
-            {/* Level-6: Badge with 12px mobile minimum */}
-            <div className="inline-flex items-center gap-1.5 bg-gradient-to-r from-yellow-400 to-orange-500 px-2.5 py-1.5 md:px-4 md:py-2 rounded-full shadow-lg animate-pulse-slow">
+        <div className="grid lg:grid-cols-2 gap-4 lg:gap-10 xl:gap-14 items-center">
+          {/* Left Column - 8pt grid */}
+          <div className="text-center lg:text-left space-y-2 md:space-y-4">
+            {/* Level-6: Badge 8pt grid */}
+            <div className="inline-flex items-center gap-2 bg-gradient-to-r from-yellow-400 to-orange-500 px-3 py-2 md:px-4 md:py-2 rounded-full shadow-lg animate-pulse-slow">
               <span className="text-sm md:text-xl">🏆</span>
               <span className="font-black text-xs md:text-sm tracking-wide text-gray-900">{t.badge}</span>
             </div>
@@ -225,8 +225,8 @@ export function WorldCupHeroSectionEnhanced({ lang = 'en', compact = false }: Wo
               </span>
             </h2>
 
-            {/* Level-6: Subtitle with 13px mobile minimum */}
-            <p className="text-[13px] md:text-xl text-white/95 font-bold flex items-center justify-center lg:justify-start gap-1.5">
+            {/* Level-6: Subtitle 8pt grid */}
+            <p className="text-[13px] md:text-xl text-white/95 font-bold flex items-center justify-center lg:justify-start gap-2">
               <SparklesIcon className="w-3.5 h-3.5 md:w-5 md:h-5 text-yellow-400 animate-pulse" />
               {t.subtitle}
               <SparklesIcon className="w-3.5 h-3.5 md:w-5 md:h-5 text-yellow-400 animate-pulse" />
@@ -247,12 +247,12 @@ export function WorldCupHeroSectionEnhanced({ lang = 'en', compact = false }: Wo
               </span>
             </div>
 
-            {/* Level-6: CTAs with 36px+ mobile touch targets */}
-            <div className="flex gap-2.5 pt-2 md:pt-3">
+            {/* Level-6: CTAs 8pt grid, 36px+ touch targets */}
+            <div className="flex gap-3 pt-2 md:pt-4">
               <Link
                 href="/world-cup-2026/packages"
                 onClick={() => handleCTAClick('packages')}
-                className="group relative flex-1 bg-gradient-to-r from-yellow-400 via-yellow-500 to-orange-500 text-gray-900 px-3 py-2 md:px-6 md:py-3 rounded-xl font-black text-xs md:text-base hover:shadow-2xl hover:scale-105 transition-all duration-200 flex items-center justify-center gap-1.5 overflow-hidden min-h-[36px] md:min-h-[48px]"
+                className="group relative flex-1 bg-gradient-to-r from-yellow-400 via-yellow-500 to-orange-500 text-gray-900 px-3 py-2 md:px-6 md:py-3 rounded-xl font-black text-xs md:text-base hover:shadow-2xl hover:scale-105 transition-all duration-200 flex items-center justify-center gap-2 overflow-hidden min-h-[36px] md:min-h-[48px]"
               >
                 <div className="absolute inset-0 bg-gradient-to-r from-yellow-300 to-orange-400 opacity-0 group-hover:opacity-100 transition-opacity" />
                 <TicketIcon className="w-4 h-4 md:w-5 md:h-5 relative z-10" />
@@ -261,76 +261,69 @@ export function WorldCupHeroSectionEnhanced({ lang = 'en', compact = false }: Wo
               <Link
                 href="/world-cup-2026/stadiums"
                 onClick={() => handleCTAClick('stadiums')}
-                className="flex-1 bg-white/20 backdrop-blur-md border border-white/40 text-white px-3 py-2 md:px-6 md:py-3 rounded-xl font-bold text-xs md:text-base hover:bg-white/30 hover:border-white/60 hover:scale-105 transition-all duration-200 flex items-center justify-center gap-1.5 min-h-[36px] md:min-h-[48px]"
+                className="flex-1 bg-white/20 backdrop-blur-md border border-white/40 text-white px-3 py-2 md:px-6 md:py-3 rounded-xl font-bold text-xs md:text-base hover:bg-white/30 hover:border-white/60 hover:scale-105 transition-all duration-200 flex items-center justify-center gap-2 min-h-[36px] md:min-h-[48px]"
               >
                 <MapPinIcon className="w-4 h-4 md:w-5 md:h-5" />
                 {t.cta.secondary}
               </Link>
             </div>
 
-            {/* Urgency Banner - Hidden on mobile, shown on desktop */}
-            <div className="hidden md:block bg-gradient-to-r from-red-600 via-pink-600 to-red-600 px-4 py-2.5 rounded-lg text-center font-bold text-sm animate-pulse shadow-2xl border-2 border-red-400">
+            {/* Urgency Banner - 8pt grid */}
+            <div className="hidden md:block bg-gradient-to-r from-red-600 via-pink-600 to-red-600 px-4 py-3 rounded-xl text-center font-bold text-sm animate-pulse shadow-2xl border-2 border-red-400">
               {t.urgency}
             </div>
           </div>
 
-          {/* Level-6: Right Column - Countdown Timer with proper spacing */}
+          {/* Level-6: Countdown 8pt grid */}
           <div className="bg-gradient-to-br from-white/15 to-white/5 backdrop-blur-xl rounded-xl md:rounded-2xl p-3 md:p-6 border border-white/30 shadow-xl">
-            <p className="text-center text-xs md:text-lg font-black mb-2 md:mb-4 text-yellow-400 uppercase tracking-wide flex items-center justify-center gap-1.5">
+            <p className="text-center text-xs md:text-lg font-black mb-2 md:mb-4 text-yellow-400 uppercase tracking-wide flex items-center justify-center gap-2">
               <span className="animate-pulse text-sm md:text-lg">🔥</span>
               {t.countdown.title}
               <span className="animate-pulse text-sm md:text-lg">🔥</span>
             </p>
 
-            {/* Level-6: Countdown Grid with 10px mobile minimum labels */}
-            <div className="grid grid-cols-4 gap-1.5 md:gap-3 mb-2 md:mb-4">
-              {/* Days */}
+            {/* Level-6: Countdown Grid 8pt */}
+            <div className="grid grid-cols-4 gap-2 md:gap-3 mb-2 md:mb-4">
               <div className="text-center">
-                <div className="bg-gradient-to-br from-red-500 to-red-700 text-white rounded-lg md:rounded-xl p-1.5 md:p-3 shadow-lg">
+                <div className="bg-gradient-to-br from-red-500 to-red-700 text-white rounded-lg md:rounded-xl p-2 md:p-3 shadow-lg">
                   <div className="text-lg md:text-4xl font-black tabular-nums" suppressHydrationWarning>
                     {hasMounted ? timeLeft.days : '--'}
                   </div>
                 </div>
-                <p className="text-[10px] md:text-sm font-bold mt-1 md:mt-1.5 text-white">{t.countdown.days}</p>
+                <p className="text-[10px] md:text-sm font-bold mt-1 md:mt-2 text-white">{t.countdown.days}</p>
               </div>
-
-              {/* Hours */}
               <div className="text-center">
-                <div className="bg-gradient-to-br from-info-500 to-blue-700 text-white rounded-lg md:rounded-xl p-1.5 md:p-3 shadow-lg">
+                <div className="bg-gradient-to-br from-info-500 to-blue-700 text-white rounded-lg md:rounded-xl p-2 md:p-3 shadow-lg">
                   <div className="text-lg md:text-4xl font-black tabular-nums" suppressHydrationWarning>
                     {hasMounted ? String(timeLeft.hours).padStart(2, '0') : '--'}
                   </div>
                 </div>
-                <p className="text-[10px] md:text-sm font-bold mt-1 md:mt-1.5 text-white">{t.countdown.hours}</p>
+                <p className="text-[10px] md:text-sm font-bold mt-1 md:mt-2 text-white">{t.countdown.hours}</p>
               </div>
-
-              {/* Minutes */}
               <div className="text-center">
-                <div className="bg-gradient-to-br from-green-500 to-green-700 text-white rounded-lg md:rounded-xl p-1.5 md:p-3 shadow-lg">
+                <div className="bg-gradient-to-br from-green-500 to-green-700 text-white rounded-lg md:rounded-xl p-2 md:p-3 shadow-lg">
                   <div className="text-lg md:text-4xl font-black tabular-nums" suppressHydrationWarning>
                     {hasMounted ? String(timeLeft.minutes).padStart(2, '0') : '--'}
                   </div>
                 </div>
-                <p className="text-[10px] md:text-sm font-bold mt-1 md:mt-1.5 text-white">{t.countdown.minutes}</p>
+                <p className="text-[10px] md:text-sm font-bold mt-1 md:mt-2 text-white">{t.countdown.minutes}</p>
               </div>
-
-              {/* Seconds */}
               <div className="text-center">
-                <div className="bg-gradient-to-br from-yellow-400 to-orange-500 text-gray-900 rounded-lg md:rounded-xl p-1.5 md:p-3 shadow-lg animate-pulse-fast">
+                <div className="bg-gradient-to-br from-yellow-400 to-orange-500 text-gray-900 rounded-lg md:rounded-xl p-2 md:p-3 shadow-lg animate-pulse-fast">
                   <div className="text-lg md:text-4xl font-black tabular-nums" suppressHydrationWarning>
                     {hasMounted ? String(timeLeft.seconds).padStart(2, '0') : '--'}
                   </div>
                 </div>
-                <p className="text-[10px] md:text-sm font-bold mt-1 md:mt-1.5 text-white">{t.countdown.seconds}</p>
+                <p className="text-[10px] md:text-sm font-bold mt-1 md:mt-2 text-white">{t.countdown.seconds}</p>
               </div>
             </div>
 
-            {/* Live Indicator - COMPACT */}
+            {/* Live Indicator 8pt */}
             <div className="text-center pt-2 sm:pt-3 border-t border-white/20">
-              <span className="inline-flex items-center gap-1.5 text-xs sm:text-sm font-bold text-white/90">
-                <span className="w-2 h-2 sm:w-2.5 sm:h-2.5 bg-green-500 rounded-full animate-ping" />
+              <span className="inline-flex items-center gap-2 text-xs sm:text-sm font-bold text-white/90">
+                <span className="w-2 h-2 bg-green-500 rounded-full animate-ping" />
                 <span className="relative">
-                  <span className="absolute w-2 h-2 sm:w-2.5 sm:h-2.5 bg-green-500 rounded-full left-[-12px] sm:left-[-16px]" />
+                  <span className="absolute w-2 h-2 bg-green-500 rounded-full left-[-16px]" />
                   LIVE COUNTDOWN
                 </span>
               </span>
