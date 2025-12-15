@@ -62,12 +62,18 @@ export const FLIGHT_MARKUP = {
 
 /**
  * Duffel cost structure (for profit calculations)
+ *
+ * Payment Model: Balance with Markup Collection
+ * - Customer pays full amount (NET + markup) to Duffel
+ * - Duffel pays airline the NET amount
+ * - Duffel tracks your markup and pays it out to you
+ * - You only pay the $3 per order fee
  */
 export const DUFFEL_COSTS = {
-  perOrderFee: 3.0,           // $3 per booking
-  managedContentPct: 0.01,    // 1% of order value
-  paymentProcessingPct: 0.029, // 2.9% card processing
-  totalVariablePct: 0.039,    // Combined: 3.9%
+  perOrderFee: 3.0,           // $3 per booking (ONLY fee when using balance + markup)
+  managedContentPct: 0,       // No % fee with balance payment
+  paymentProcessingPct: 0,    // No card processing fee (Duffel handles)
+  totalVariablePct: 0,        // No variable fees
 } as const;
 
 /**

@@ -1083,6 +1083,24 @@ class DuffelAPI {
         console.log(`     - title: ${p.title}`);
       });
 
+      // Calculate payment with markup
+      // Customer price = NET (offer total) + MARKUP
+      // Duffel will: 1) Pay airline the NET amount, 2) Track markup for payout
+      const netAmount = parseFloat(offerRequest.total_amount || offerRequest.price?.total || '0');
+      const currency = offerRequest.total_currency || offerRequest.price?.currency || 'USD';
+
+      // Get customer price (with markup) - stored in price.total if markup was applied
+      const customerAmount = offerRequest.price?.total
+        ? parseFloat(offerRequest.price.total)
+        : netAmount;
+
+      const markupAmount = customerAmount - netAmount;
+
+      console.log('💰 DUFFEL PAYMENT - Markup Calculation:');
+      console.log(`   NET Amount (to airline): ${currency} ${netAmount.toFixed(2)}`);
+      console.log(`   Customer Amount (with markup): ${currency} ${customerAmount.toFixed(2)}`);
+      console.log(`   Markup (your profit): ${currency} ${markupAmount.toFixed(2)}`);
+
       // Create order payload
       const orderPayload: any = {
         selected_offers: [offerRequest.id],
@@ -1090,9 +1108,18 @@ class DuffelAPI {
         type: 'instant', // instant booking (not hold)
       };
 
-      // Add payments if provided (for live mode)
+      // Add payments - CRITICAL: Include customer amount WITH markup
+      // Duffel collects full amount, pays airline NET, tracks markup for you
       if (payments && payments.length > 0) {
         orderPayload.payments = payments;
+      } else if (customerAmount > 0) {
+        // Auto-generate payment with markup included
+        orderPayload.payments = [{
+          type: 'balance',
+          amount: customerAmount.toFixed(2),
+          currency: currency,
+        }];
+        console.log(`   ✅ Payment configured: ${currency} ${customerAmount.toFixed(2)} (includes ${currency} ${markupAmount.toFixed(2)} markup)`);
       }
 
       // DIAGNOSTIC: Log full payload being sent

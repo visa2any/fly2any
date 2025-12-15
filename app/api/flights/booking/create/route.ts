@@ -1204,9 +1204,11 @@ Customer needs to complete payment to finalize booking.
         routingChannel: routing.channel,
         routingReason: routing.reason,
         // Calculate Duffel cost if applicable
+        // Duffel charges ONLY $3 per order when using balance payment with markup
+        // Markup is collected by Duffel and paid out to you
         ...(sourceApi === 'Duffel' && {
-          duffelCost: 3 + (originalNetPrice * 0.035), // $3 + 3.5%
-          netProfit: (totalAmount - originalNetPrice) - (3 + (originalNetPrice * 0.035)),
+          duffelCost: 3, // Only $3 per order fee
+          netProfit: (totalAmount - originalNetPrice) - 3, // Markup minus $3 fee
         }),
         // Consolidator cost placeholder (updated after manual ticketing)
         ...(sourceApi === 'Amadeus' && {
