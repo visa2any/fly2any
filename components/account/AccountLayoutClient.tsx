@@ -47,9 +47,9 @@ export function AccountLayoutClient({ children }: AccountLayoutClientProps) {
         activeAlerts={activeAlerts}
       />
 
-      {/* Main Content Area - Level-6: Edge-to-edge mobile, padded desktop */}
+      {/* Main Content Area - Level-6: Full-width, minimal gaps */}
       <main className="flex-1 lg:ml-0">
-        <div className="max-w-7xl mx-auto px-0 md:px-6 lg:px-8 py-3 md:py-6 lg:py-8">
+        <div className="w-full px-0 md:px-4 lg:px-6 py-0 md:py-4">
           {children}
         </div>
       </main>

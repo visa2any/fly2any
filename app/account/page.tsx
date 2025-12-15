@@ -109,7 +109,7 @@ export default async function AccountPage() {
   };
 
   return (
-    <div className="max-w-7xl mx-auto px-0 md:px-6 lg:px-8 py-0 md:py-4">
+    <div className="w-full">
       {/* Database Not Configured Notice */}
       {!isDatabaseConfigured && (
         <div className="bg-yellow-50 border-l-4 border-yellow-400 p-6 mb-8 rounded-lg">

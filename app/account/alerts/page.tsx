@@ -142,8 +142,8 @@ export default function AlertsPage() {
   // Loading state
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-orange-50/30 p-4">
-        <div className="max-w-4xl mx-auto py-8">
+      <div className="w-full">
+        <div className="w-full py-4 px-3 md:px-0">
           <div className="mb-8">
             <h1 className="text-3xl font-bold text-gray-900 mb-2">Price Alerts</h1>
             <p className="text-gray-600">Get notified when prices drop</p>
@@ -165,8 +165,8 @@ export default function AlertsPage() {
   // Error state
   if (error) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-orange-50/30 p-4">
-        <div className="max-w-4xl mx-auto py-8">
+      <div className="w-full">
+        <div className="w-full py-4 px-3 md:px-0">
           <div className="bg-red-50 border border-red-200 rounded-xl p-6 text-center">
             <AlertCircle className="w-12 h-12 text-red-500 mx-auto mb-4" />
             <h2 className="text-xl font-bold text-red-900 mb-2">Error Loading Alerts</h2>
@@ -186,8 +186,8 @@ export default function AlertsPage() {
   // Empty state
   if (alerts.length === 0) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-orange-50/30 p-4">
-        <div className="max-w-4xl mx-auto py-8">
+      <div className="w-full">
+        <div className="w-full py-4 px-3 md:px-0">
           <div className="mb-8">
             <h1 className="text-3xl font-bold text-gray-900 mb-2">Price Alerts</h1>
             <p className="text-gray-600">Get notified when prices drop</p>
@@ -203,7 +203,7 @@ export default function AlertsPage() {
             </p>
             <Link
               href="/"
-              className="inline-flex items-center gap-2 px-8 py-4 bg-gradient-to-r from-orange-600 to-red-600 text-white font-semibold rounded-xl hover:from-orange-700 hover:to-red-700 transition-all duration-300 shadow-lg hover:shadow-xl"
+              className="inline-flex items-center gap-2 px-8 py-4 bg-gradient-to-r from-primary-500 to-primary-600 text-white font-semibold rounded-xl hover:from-primary-600 hover:to-primary-700 transition-all duration-300 shadow-lg hover:shadow-xl"
             >
               <Plus className="w-5 h-5" />
               Search Flights
@@ -240,8 +240,8 @@ export default function AlertsPage() {
 
   // Results view
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-orange-50/30 p-4">
-      <div className="max-w-4xl mx-auto py-8">
+    <div className="w-full">
+      <div className="w-full py-4 px-3 md:px-0">
         {/* Header */}
         <div className="mb-8 flex items-center justify-between">
           <div>
@@ -252,7 +252,7 @@ export default function AlertsPage() {
           </div>
           <Link
             href="/"
-            className="px-6 py-3 bg-orange-600 text-white font-semibold rounded-xl hover:bg-orange-700 transition-colors shadow-md hover:shadow-lg flex items-center gap-2"
+            className="px-6 py-3 bg-primary-500 text-white font-semibold rounded-xl hover:bg-primary-600 transition-colors shadow-md hover:shadow-lg flex items-center gap-2"
           >
             <Plus className="w-5 h-5" />
             New Alert

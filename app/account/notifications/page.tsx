@@ -205,8 +205,8 @@ export default function NotificationsPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 py-8">
-      <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div className="w-full">
+      <div className="w-full py-4 px-3 md:px-0">
         {/* Header */}
         <div className="mb-8">
           <div className="flex items-center gap-3 mb-2">

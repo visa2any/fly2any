@@ -80,8 +80,8 @@ export default function BookingsPage() {
 
   if (loading) {
     return (
-      <div className="p-4">
-        <div className="max-w-4xl mx-auto py-12 text-center">
+      <div className="w-full">
+        <div className="w-full py-12 text-center">
           <Loader2 className="w-8 h-8 text-primary-500 animate-spin mx-auto mb-4" />
           <p className="text-neutral-600">Loading your bookings...</p>
         </div>
@@ -91,8 +91,8 @@ export default function BookingsPage() {
 
   if (!session) {
     return (
-      <div className="p-4">
-        <div className="max-w-4xl mx-auto py-12">
+      <div className="w-full">
+        <div className="w-full py-12 px-4">
           <div className="bg-white rounded-xl shadow-lg p-8 text-center border border-neutral-200">
             <AlertCircle className="w-12 h-12 text-primary-500 mx-auto mb-4" />
             <h2 className="text-xl font-semibold mb-2">Sign in Required</h2>
@@ -110,8 +110,8 @@ export default function BookingsPage() {
   }
 
   return (
-    <div className="p-0 md:p-4">
-      <div className="max-w-4xl mx-auto py-4 md:py-8">
+    <div className="w-full">
+      <div className="w-full py-2 md:py-4">
         <h1 className="text-2xl md:text-3xl font-bold text-neutral-900 mb-4 md:mb-6 px-4 md:px-0">My Bookings</h1>
 
         {error && (
