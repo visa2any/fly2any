@@ -108,11 +108,11 @@ export function Header({
     account: t('account'),
   };
 
-  // Scroll direction detection for auto-hide behavior (Phase 8 Track 2A.1)
+  // Level-6: Smart scroll hide (show on scroll UP, hide on scroll DOWN)
   const { scrollDirection, isAtTop } = useScrollDirection({
-    threshold: 50,
-    debounceDelay: 100,
-    mobileOnly: true, // Only auto-hide on mobile
+    threshold: 80, // Trigger after 80px scroll for smoother UX
+    debounceDelay: 50, // Faster response
+    mobileOnly: false, // Apply to all devices for consistent UX
   });
 
   // Prevent hydration mismatch for session-dependent rendering
@@ -178,27 +178,31 @@ export function Header({
   return (
     <>
       <header
-        className={`sticky top-0 z-fixed ${className}`}
+        className={`sticky top-0 ${className}`}
         suppressHydrationWarning
         style={{
-          // Hide header in PWA standalone mode for clean fullscreen
+          zIndex: zIndex.STICKY,
+          // Hide header in PWA standalone mode
           display: 'var(--header-display, block)',
+          // Level-6: Frosted glass effect
           background: scrolled
-            ? 'rgba(255, 255, 255, 0.95)'
-            : 'rgba(255, 255, 255, 0.85)',
-          backdropFilter: 'blur(12px) saturate(180%)',
-          WebkitBackdropFilter: 'blur(12px) saturate(180%)',
+            ? 'rgba(255, 255, 255, 0.97)'
+            : 'rgba(255, 255, 255, 0.92)',
+          backdropFilter: 'blur(16px) saturate(180%)',
+          WebkitBackdropFilter: 'blur(16px) saturate(180%)',
+          // Level-6: Subtle border, primary tint when scrolled
           borderBottom: scrolled
-            ? '1px solid rgba(0, 0, 0, 0.12)'
-            : '1px solid rgba(0, 0, 0, 0.08)',
+            ? '1px solid rgba(231, 64, 53, 0.08)'
+            : '1px solid rgba(0, 0, 0, 0.06)',
+          // Level-6: Multi-layer shadow
           boxShadow: scrolled
-            ? '0 2px 12px rgba(0, 0, 0, 0.08)'
-            : '0 1px 4px rgba(0, 0, 0, 0.04)',
-          // Phase 8 Track 2A.1: Auto-hide on scroll down (mobile only, 80px savings)
+            ? '0 1px 3px rgba(0,0,0,0.04), 0 4px 12px rgba(0,0,0,0.06)'
+            : '0 1px 2px rgba(0,0,0,0.03)',
+          // Level-6: Smart hide on scroll DOWN, show on scroll UP
           transform: scrollDirection === 'down' && !isAtTop
             ? 'translateY(-100%)'
             : 'translateY(0)',
-          transition: 'transform 280ms cubic-bezier(0.2, 0.8, 0.2, 1), background 200ms, border 200ms, box-shadow 200ms',
+          transition: 'transform 200ms cubic-bezier(0.2, 0.8, 0.2, 1), background 150ms, border 150ms, box-shadow 150ms',
           willChange: 'transform',
         }}
       >
