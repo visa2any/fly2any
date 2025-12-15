@@ -126,6 +126,20 @@ class BookingStorage {
       } catch (error: any) {
         lastError = error;
 
+        // AUTO-INIT: If table doesn't exist, try to create it
+        if (error?.message?.includes('does not exist') || error?.message?.includes('relation')) {
+          console.warn('⚠️ Bookings table does not exist - attempting auto-init...');
+          try {
+            const { initBookingsTables } = await import('../db/init-bookings');
+            await initBookingsTables();
+            console.log('✅ Bookings table created successfully, retrying...');
+            continue; // Retry the insert
+          } catch (initError: any) {
+            console.error('❌ Failed to auto-init bookings table:', initError.message);
+            throw new Error(`Database table missing and auto-init failed: ${initError.message}`);
+          }
+        }
+
         // Check if this is a retryable error (connection issues, timeouts)
         const isRetryable = this.isRetryableError(error);
 
@@ -260,6 +274,11 @@ class BookingStorage {
 
       return this.deserializeBooking(result[0]);
     } catch (error: any) {
+      // Handle missing table gracefully - return null so booking can proceed
+      if (error?.message?.includes('does not exist') || error?.message?.includes('relation')) {
+        console.warn('⚠️ Bookings table does not exist - returning null. Please run /api/admin/init-bookings to create the table.');
+        return null;
+      }
       console.error('Error finding booking by reference:', error);
       throw new Error(`Failed to find booking by ref: ${error?.message || 'Unknown database error'}`);
     }
