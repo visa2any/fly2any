@@ -222,19 +222,44 @@ export default function ProfilePage() {
   const [activeTab, setActiveTab] = useState<'overview' | 'badges' | 'activity'>('overview');
   const [showEditModal, setShowEditModal] = useState(false);
 
-  // Mock user progress (in production, fetch from API)
+  // User progress - fetched from API when available
   const [userProgress, setUserProgress] = useState<UserProgress>({
     userId: session?.user?.id || 'guest',
-    totalPoints: 1250,
-    level: 4,
-    badges: BADGES.slice(0, 4).map(b => ({ ...b, unlockedAt: new Date() })),
-    searchCount: 45,
-    bookingCount: 3,
-    referralCount: 2,
-    alertsCreated: 8,
-    countriesVisited: ['US', 'UK', 'FR', 'ES'],
-    consecutiveDays: 5
+    totalPoints: 0,
+    level: 1,
+    badges: [],
+    searchCount: 0,
+    bookingCount: 0,
+    referralCount: 0,
+    alertsCreated: 0,
+    countriesVisited: [],
+    consecutiveDays: 0
   });
+
+  // Fetch real user stats
+  useEffect(() => {
+    const fetchUserStats = async () => {
+      if (!session?.user?.id) return;
+      try {
+        const response = await fetch('/api/account/stats');
+        if (response.ok) {
+          const data = await response.json();
+          if (data.success) {
+            setUserProgress(prev => ({
+              ...prev,
+              searchCount: data.stats?.searches || 0,
+              bookingCount: data.stats?.bookings || 0,
+              alertsCreated: data.stats?.alerts || 0,
+              totalPoints: data.stats?.points || 0,
+            }));
+          }
+        }
+      } catch (err) {
+        console.error('Failed to fetch user stats:', err);
+      }
+    };
+    fetchUserStats();
+  }, [session?.user?.id]);
 
   const gamification = useMemo(() => new GamificationService(), []);
 
@@ -483,28 +508,13 @@ export default function ProfilePage() {
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -10 }}
-            className="bg-white rounded-2xl border border-gray-100 p-4"
+            className="bg-white rounded-2xl border border-neutral-200 p-6"
           >
-            <h3 className="font-semibold text-gray-900 mb-4">Recent Activity</h3>
-            <div className="space-y-3">
-              {[
-                { icon: Search, text: 'Searched NYC to Miami', points: '+1', time: '2 hours ago', color: 'text-blue-500' },
-                { icon: Bell, text: 'Created price alert', points: '+5', time: '1 day ago', color: 'text-amber-500' },
-                { icon: Award, text: 'Earned "Explorer" badge', points: '+100', time: '3 days ago', color: 'text-purple-500' },
-                { icon: Users, text: 'Referred a friend', points: '+100', time: '1 week ago', color: 'text-green-500' },
-                { icon: Plane, text: 'Booked flight to London', points: '+50', time: '2 weeks ago', color: 'text-primary-500' },
-              ].map((activity, idx) => (
-                <div key={idx} className="flex items-center gap-3 p-3 rounded-xl hover:bg-gray-50 transition-colors">
-                  <div className={`w-10 h-10 rounded-xl bg-gray-100 flex items-center justify-center ${activity.color}`}>
-                    <activity.icon className="w-5 h-5" />
-                  </div>
-                  <div className="flex-1">
-                    <p className="text-sm font-medium text-gray-900">{activity.text}</p>
-                    <p className="text-xs text-gray-500">{activity.time}</p>
-                  </div>
-                  <span className="text-sm font-semibold text-green-600">{activity.points}</span>
-                </div>
-              ))}
+            <h3 className="font-semibold text-neutral-900 mb-4">Recent Activity</h3>
+            <div className="text-center py-8">
+              <Clock className="w-12 h-12 text-neutral-300 mx-auto mb-3" />
+              <p className="text-neutral-600 mb-2">Activity tracking coming soon</p>
+              <p className="text-sm text-neutral-500">Your searches, bookings, and rewards will appear here</p>
             </div>
           </motion.div>
         )}

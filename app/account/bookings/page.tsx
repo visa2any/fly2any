@@ -80,10 +80,10 @@ export default function BookingsPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-orange-50/30 p-4">
+      <div className="p-4">
         <div className="max-w-4xl mx-auto py-12 text-center">
-          <Loader2 className="w-8 h-8 text-orange-500 animate-spin mx-auto mb-4" />
-          <p className="text-gray-600">Loading your bookings...</p>
+          <Loader2 className="w-8 h-8 text-primary-500 animate-spin mx-auto mb-4" />
+          <p className="text-neutral-600">Loading your bookings...</p>
         </div>
       </div>
     );
@@ -91,15 +91,15 @@ export default function BookingsPage() {
 
   if (!session) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-orange-50/30 p-4">
+      <div className="p-4">
         <div className="max-w-4xl mx-auto py-12">
-          <div className="bg-white rounded-xl shadow-lg p-8 text-center">
-            <AlertCircle className="w-12 h-12 text-orange-500 mx-auto mb-4" />
+          <div className="bg-white rounded-xl shadow-lg p-8 text-center border border-neutral-200">
+            <AlertCircle className="w-12 h-12 text-primary-500 mx-auto mb-4" />
             <h2 className="text-xl font-semibold mb-2">Sign in Required</h2>
-            <p className="text-gray-600 mb-4">Please sign in to view your bookings.</p>
+            <p className="text-neutral-600 mb-4">Please sign in to view your bookings.</p>
             <Link
               href="/auth/signin"
-              className="inline-block px-6 py-3 bg-orange-600 hover:bg-orange-700 text-white rounded-lg font-medium transition-colors"
+              className="inline-block px-6 py-3 bg-primary-500 hover:bg-primary-600 text-white rounded-lg font-medium transition-colors"
             >
               Sign In
             </Link>
@@ -110,9 +110,9 @@ export default function BookingsPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-orange-50/30 p-4">
-      <div className="max-w-4xl mx-auto py-8">
-        <h1 className="text-3xl font-bold text-gray-900 mb-6">My Bookings</h1>
+    <div className="p-0 md:p-4">
+      <div className="max-w-4xl mx-auto py-4 md:py-8">
+        <h1 className="text-2xl md:text-3xl font-bold text-neutral-900 mb-4 md:mb-6 px-4 md:px-0">My Bookings</h1>
 
         {error && (
           <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-6">
@@ -121,58 +121,58 @@ export default function BookingsPage() {
         )}
 
         {bookings.length === 0 ? (
-          <div className="bg-white rounded-xl shadow-lg p-8 text-center">
-            <Plane className="w-12 h-12 text-gray-300 mx-auto mb-4" />
-            <h2 className="text-xl font-semibold text-gray-700 mb-2">No Bookings Yet</h2>
-            <p className="text-gray-600 mb-6">
+          <div className="bg-white md:rounded-xl border-y md:border border-neutral-200 p-8 text-center mx-0">
+            <Plane className="w-12 h-12 text-neutral-300 mx-auto mb-4" />
+            <h2 className="text-xl font-semibold text-neutral-800 mb-2">No Bookings Yet</h2>
+            <p className="text-neutral-600 mb-6">
               Your flight bookings will appear here once you complete a reservation.
             </p>
             <Link
               href="/"
-              className="inline-block px-6 py-3 bg-orange-600 hover:bg-orange-700 text-white rounded-lg font-medium transition-colors"
+              className="inline-block px-6 py-3 bg-primary-500 hover:bg-primary-600 text-white rounded-xl font-semibold transition-colors"
             >
               Search Flights
             </Link>
           </div>
         ) : (
-          <div className="space-y-4">
+          <div className="space-y-3 px-0 md:px-0">
             {bookings.map((booking) => (
               <Link
                 key={booking.id}
                 href={`/account/bookings/${booking.id}`}
-                className="block bg-white rounded-xl shadow-lg hover:shadow-xl transition-shadow overflow-hidden"
+                className="block bg-white md:rounded-xl border-y md:border-2 border-neutral-200 hover:border-primary-300 transition-all overflow-hidden"
               >
-                <div className="p-6">
-                  <div className="flex items-center justify-between mb-4">
+                <div className="p-4 md:p-6">
+                  <div className="flex items-center justify-between mb-3 md:mb-4">
                     <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 bg-orange-100 rounded-full flex items-center justify-center">
-                        <Plane className="w-5 h-5 text-orange-600" />
+                      <div className="w-10 h-10 bg-primary-50 rounded-xl flex items-center justify-center">
+                        <Plane className="w-5 h-5 text-primary-500" />
                       </div>
                       <div>
-                        <p className="font-semibold text-gray-900">
+                        <p className="font-semibold text-neutral-900">
                           {booking.origin} → {booking.destination}
                         </p>
-                        <p className="text-sm text-gray-500">Ref: {booking.bookingReference}</p>
+                        <p className="text-xs md:text-sm text-neutral-500">Ref: {booking.bookingReference}</p>
                       </div>
                     </div>
-                    <div className="flex items-center gap-3">
-                      <span className={`px-3 py-1 rounded-full text-xs font-medium ${getStatusColor(booking.status)}`}>
+                    <div className="flex items-center gap-2 md:gap-3">
+                      <span className={`px-2.5 py-1 rounded-full text-xs font-semibold ${getStatusColor(booking.status)}`}>
                         {booking.status}
                       </span>
-                      <ChevronRight className="w-5 h-5 text-gray-400" />
+                      <ChevronRight className="w-5 h-5 text-neutral-400" />
                     </div>
                   </div>
 
-                  <div className="grid grid-cols-3 gap-4 text-sm">
-                    <div className="flex items-center gap-2 text-gray-600">
-                      <Calendar className="w-4 h-4" />
-                      <span>{formatDate(booking.departureDate)}</span>
+                  <div className="grid grid-cols-3 gap-2 md:gap-4 text-xs md:text-sm">
+                    <div className="flex items-center gap-1.5 md:gap-2 text-neutral-600">
+                      <Calendar className="w-3.5 h-3.5 md:w-4 md:h-4" />
+                      <span className="truncate">{formatDate(booking.departureDate)}</span>
                     </div>
-                    <div className="flex items-center gap-2 text-gray-600">
-                      <Users className="w-4 h-4" />
-                      <span>{booking.passengerCount} passenger{booking.passengerCount > 1 ? 's' : ''}</span>
+                    <div className="flex items-center gap-1.5 md:gap-2 text-neutral-600">
+                      <Users className="w-3.5 h-3.5 md:w-4 md:h-4" />
+                      <span>{booking.passengerCount} pax</span>
                     </div>
-                    <div className="text-right font-semibold text-gray-900">
+                    <div className="text-right font-bold text-neutral-900">
                       {booking.currency} {booking.totalAmount?.toFixed(2)}
                     </div>
                   </div>
