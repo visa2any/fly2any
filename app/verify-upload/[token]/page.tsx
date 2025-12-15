@@ -88,7 +88,7 @@ export default function MobileUploadPage() {
   const currentDoc = DOCUMENTS[currentStep];
   const allUploaded = Object.values(documents).every(d => d.file !== null);
 
-  // Handle camera capture
+  // Handle camera capture with better mobile support
   const handleCapture = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -105,7 +105,20 @@ export default function MobileUploadPage() {
       }));
     };
     reader.readAsDataURL(file);
+
+    // Reset input for re-selection
+    e.target.value = '';
   }, [currentDoc]);
+
+  // Trigger camera with better mobile support
+  const triggerCamera = useCallback(() => {
+    if (fileInputRef.current) {
+      // Reset value to allow re-selection of same file
+      fileInputRef.current.value = '';
+      // Use click() method which works better on mobile
+      fileInputRef.current.click();
+    }
+  }, []);
 
   // Move to next step
   const handleNext = () => {
@@ -247,27 +260,29 @@ export default function MobileUploadPage() {
                   </div>
                 </div>
               ) : (
-                <div
-                  onClick={() => fileInputRef.current?.click()}
-                  className="w-full max-w-sm aspect-[4/3] border-2 border-dashed border-gray-300 rounded-2xl flex flex-col items-center justify-center cursor-pointer hover:border-primary-400 hover:bg-primary-50/50 transition-colors"
+                <button
+                  type="button"
+                  onClick={triggerCamera}
+                  className="w-full max-w-sm aspect-[4/3] border-2 border-dashed border-gray-300 rounded-2xl flex flex-col items-center justify-center cursor-pointer hover:border-primary-400 hover:bg-primary-50/50 transition-colors active:bg-primary-100"
                 >
                   <div className="w-16 h-16 bg-primary-100 rounded-full flex items-center justify-center mb-4">
                     <Camera className="w-8 h-8 text-primary-600" />
                   </div>
                   <p className="font-semibold text-gray-700">Tap to take photo</p>
                   <p className="text-xs text-gray-500 mt-1">{currentDoc.tip}</p>
-                </div>
+                </button>
               )}
             </div>
 
-            {/* Hidden file input */}
+            {/* File input - moved outside for better mobile support */}
             <input
               ref={fileInputRef}
               type="file"
               accept="image/*"
               capture="environment"
-              className="hidden"
+              className="sr-only"
               onChange={handleCapture}
+              tabIndex={-1}
             />
 
             {/* Actions */}
@@ -275,6 +290,7 @@ export default function MobileUploadPage() {
               {currentPreview ? (
                 <div className="flex gap-3">
                   <button
+                    type="button"
                     onClick={handleRetake}
                     className="flex-1 py-3 border-2 border-gray-300 text-gray-700 font-semibold rounded-xl flex items-center justify-center gap-2"
                   >
@@ -283,6 +299,7 @@ export default function MobileUploadPage() {
                   </button>
                   {currentStep < DOCUMENTS.length - 1 ? (
                     <button
+                      type="button"
                       onClick={handleNext}
                       className="flex-1 py-3 bg-gradient-to-r from-primary-500 to-primary-600 text-white font-semibold rounded-xl flex items-center justify-center gap-2"
                     >
@@ -291,6 +308,7 @@ export default function MobileUploadPage() {
                     </button>
                   ) : (
                     <button
+                      type="button"
                       onClick={handleSubmit}
                       disabled={!allUploaded || isSubmitting}
                       className="flex-1 py-3 bg-gradient-to-r from-green-500 to-emerald-500 text-white font-semibold rounded-xl flex items-center justify-center gap-2 disabled:opacity-50"
@@ -311,8 +329,9 @@ export default function MobileUploadPage() {
                 </div>
               ) : (
                 <button
-                  onClick={() => fileInputRef.current?.click()}
-                  className="w-full py-4 bg-gradient-to-r from-primary-500 to-primary-600 text-white font-bold rounded-xl flex items-center justify-center gap-2 shadow-lg"
+                  type="button"
+                  onClick={triggerCamera}
+                  className="w-full py-4 bg-gradient-to-r from-primary-500 to-primary-600 text-white font-bold rounded-xl flex items-center justify-center gap-2 shadow-lg active:scale-98 transition-transform"
                 >
                   <Camera className="w-6 h-6" />
                   Take Photo

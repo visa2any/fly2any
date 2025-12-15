@@ -313,8 +313,8 @@ export function PostPaymentVerification({
                 />
               </div>
 
-              {/* Upload cards */}
-              <div className="space-y-3">
+              {/* Upload cards - HORIZONTAL ROW on desktop */}
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
                 {DOCUMENTS.map((doc, index) => {
                   const docState = documents[doc.id];
                   const isUploaded = docState.preview || docState.uploaded;
@@ -322,7 +322,7 @@ export function PostPaymentVerification({
                   return (
                     <div
                       key={doc.id}
-                      className={`relative border-2 rounded-xl p-4 transition-all ${
+                      className={`relative border-2 rounded-xl p-3 transition-all ${
                         isUploaded
                           ? 'border-green-300 bg-green-50'
                           : 'border-dashed border-gray-300 hover:border-primary-300 hover:bg-primary-50/50'
@@ -339,10 +339,11 @@ export function PostPaymentVerification({
                         onChange={(e) => handleInputChange(doc.id, e)}
                       />
 
-                      <div className="flex items-center gap-4">
+                      {/* Compact vertical layout for each card */}
+                      <div className="flex flex-col items-center text-center">
                         {/* Preview or Icon */}
-                        <div className={`w-16 h-16 rounded-lg overflow-hidden flex-shrink-0 ${
-                          isUploaded ? 'bg-white' : `bg-${doc.color}-100`
+                        <div className={`w-16 h-16 md:w-20 md:h-20 rounded-lg overflow-hidden mb-2 ${
+                          isUploaded ? 'bg-white border-2 border-green-400' : `bg-${doc.color}-100`
                         }`}>
                           {docState.preview ? (
                             <img
@@ -357,28 +358,23 @@ export function PostPaymentVerification({
                           )}
                         </div>
 
-                        {/* Info */}
-                        <div className="flex-1 min-w-0">
-                          <div className="flex items-center gap-2">
-                            <span className="text-xs font-bold text-gray-400">
-                              {index + 1}/3
-                            </span>
-                            <h4 className="font-semibold text-gray-900">{doc.label}</h4>
-                            {isUploaded && (
-                              <CheckCircle2 className="w-4 h-4 text-green-500" />
-                            )}
-                          </div>
-                          <p className="text-xs text-gray-500 mt-0.5">{doc.hint}</p>
+                        {/* Label with status */}
+                        <div className="flex items-center gap-1 mb-1">
+                          <h4 className="text-sm font-semibold text-gray-900">{doc.label}</h4>
+                          {isUploaded && (
+                            <CheckCircle2 className="w-4 h-4 text-green-500" />
+                          )}
                         </div>
+                        <p className="text-[10px] text-gray-500 mb-2 line-clamp-1">{doc.hint}</p>
 
                         {/* Action button */}
                         {!isUploaded ? (
                           <button
                             onClick={() => fileInputRefs.current[doc.id]?.click()}
-                            className="px-4 py-2 bg-primary-100 text-primary-700 text-sm font-semibold rounded-lg hover:bg-primary-200 transition-colors flex items-center gap-1.5"
+                            className="w-full py-2 bg-primary-100 text-primary-700 text-xs font-semibold rounded-lg hover:bg-primary-200 transition-colors flex items-center justify-center gap-1"
                           >
-                            <Camera className="w-4 h-4" />
-                            <span className="hidden sm:inline">Upload</span>
+                            <Camera className="w-3.5 h-3.5" />
+                            Upload
                           </button>
                         ) : (
                           <button
@@ -388,7 +384,7 @@ export function PostPaymentVerification({
                                 [doc.id]: { file: null, preview: null, uploading: false, uploaded: false },
                               }));
                             }}
-                            className="px-3 py-2 text-gray-500 text-sm hover:text-red-500 transition-colors"
+                            className="w-full py-1.5 text-gray-500 text-xs hover:text-red-500 transition-colors"
                           >
                             Change
                           </button>
@@ -461,6 +457,14 @@ export function PostPaymentVerification({
                 Your documents are encrypted and stored securely.
                 Only used for fraud prevention.
               </p>
+
+              {/* Finish Later button */}
+              <button
+                onClick={onClose}
+                className="w-full py-2.5 text-sm text-gray-500 hover:text-gray-700 font-medium border border-gray-200 rounded-xl hover:bg-gray-50 transition-colors"
+              >
+                Finish Later (within 24 hours)
+              </button>
             </div>
           )}
 
