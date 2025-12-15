@@ -294,7 +294,7 @@ export function BottomTabBar({ translations, onMoreClick }: BottomTabBarProps) {
         }}
         className="md:hidden fixed bottom-0 left-0 right-0 w-full"
         style={{
-          zIndex: zIndex.FIXED + 10, // Slightly above other fixed elements
+          zIndex: zIndex.MOBILE_NAV, // Mobile nav layer - below modals
           height: `calc(${NAV_HEIGHT}px + env(safe-area-inset-bottom, 0px))`,
           paddingBottom: 'env(safe-area-inset-bottom, 0px)',
           background: 'linear-gradient(to top, rgba(255,255,255,0.98) 0%, rgba(246,247,249,0.96) 100%)',

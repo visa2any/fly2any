@@ -282,10 +282,11 @@ export const borderRadius = {
 //
 // Layer hierarchy (ascending order):
 // - BASE: Default layer (0)
-// - TRUST_BAR: Sticky trust bar (950) - below dropdowns to avoid overlap
+// - TRUST_BAR: Sticky trust bar (20) - below dropdowns to avoid overlap
 // - DROPDOWN: Dropdowns, autocompletes (1000)
 // - STICKY: Sticky headers (1100)
 // - FIXED: Fixed navigation (1200)
+// - MOBILE_NAV: Mobile bottom nav bar (1250) - above fixed, below modals
 // - MODAL_BACKDROP: Modal background (1300)
 // - MODAL: Modal dialogs (1400)
 // - POPOVER: Tooltips, popovers (1500)
@@ -308,6 +309,9 @@ export const zIndex = {
 
   // Fixed elements (Fixed navigation bars, sidebars)
   FIXED: 1200,
+
+  // Mobile bottom navigation (Above fixed, below modals)
+  MOBILE_NAV: 1250,
 
   // Modal backdrop (Semi-transparent overlay behind modals)
   MODAL_BACKDROP: 1300,
@@ -337,6 +341,7 @@ export const zIndexDescriptions: Record<ZIndexLayer, string> = {
   DROPDOWN: 'Dropdowns, autocomplete lists, select menus (1000)',
   STICKY: 'Sticky headers and navigation (1100)',
   FIXED: 'Fixed elements like navigation bars (1200)',
+  MOBILE_NAV: 'Mobile bottom navigation bar (1250)',
   MODAL_BACKDROP: 'Semi-transparent modal backdrop (1300)',
   MODAL_CONTENT: 'Modal dialogs and overlays (1400)',
   POPOVER: 'Tooltips, popovers, and floating content (1500)',
