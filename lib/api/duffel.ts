@@ -1083,17 +1083,19 @@ class DuffelAPI {
         console.log(`     - title: ${p.title}`);
       });
 
-      // Calculate payment with markup
-      // Customer price = NET (offer total) + MARKUP
-      // Duffel will: 1) Pay airline the NET amount, 2) Track markup for payout
-      const netAmount = parseFloat(offerRequest.total_amount || offerRequest.price?.total || '0');
+      // Calculate payment amounts
+      // NET = original Duffel offer price (what we pay), stored in _netPrice or total_amount
+      // Customer = marked-up price (what customer pays), stored in price.total
       const currency = offerRequest.total_currency || offerRequest.price?.currency || 'USD';
 
-      // Get customer price (with markup) - stored in price.total if markup was applied
-      const customerAmount = offerRequest.price?.total
-        ? parseFloat(offerRequest.price.total)
-        : netAmount;
+      // CRITICAL: Use _netPrice first (set during search with markup), then total_amount, then fallback
+      const netAmount = parseFloat(
+        offerRequest.price?._netPrice ||
+        offerRequest.total_amount ||
+        offerRequest.price?.total || '0'
+      );
 
+      const customerAmount = parseFloat(offerRequest.price?.total || netAmount.toString());
       const markupAmount = customerAmount - netAmount;
 
       console.log('💰 DUFFEL PAYMENT - Markup Calculation:');
@@ -1108,18 +1110,19 @@ class DuffelAPI {
         type: 'instant', // instant booking (not hold)
       };
 
-      // Add payments - CRITICAL: Include customer amount WITH markup
-      // Duffel collects full amount, pays airline NET, tracks markup for you
+      // Add payments - CRITICAL: Balance payment must match offer total_amount exactly
+      // Duffel charges NET amount from balance, markup is tracked separately
       if (payments && payments.length > 0) {
         orderPayload.payments = payments;
-      } else if (customerAmount > 0) {
-        // Auto-generate payment with markup included
+      } else if (netAmount > 0) {
+        // Payment amount MUST match offer's total_amount (NET price)
         orderPayload.payments = [{
           type: 'balance',
-          amount: customerAmount.toFixed(2),
+          amount: netAmount.toFixed(2),
           currency: currency,
         }];
-        console.log(`   ✅ Payment configured: ${currency} ${customerAmount.toFixed(2)} (includes ${currency} ${markupAmount.toFixed(2)} markup)`);
+        console.log(`   ✅ Payment: ${currency} ${netAmount.toFixed(2)} (NET to Duffel)`);
+        console.log(`   💰 Markup tracked: ${currency} ${markupAmount.toFixed(2)} (collected via our system)`);
       }
 
       // DIAGNOSTIC: Log full payload being sent
