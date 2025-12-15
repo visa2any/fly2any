@@ -628,44 +628,24 @@ export default function Home() {
       <main>
         {/* Level-6: Edge-to-edge on mobile, padded on desktop */}
         <MaxWidthContainer className="px-0 md:px-6" noPadding={true}>
-          {/* ============================================
-              RECENTLY VIEWED - Personalized Recommendations
-              Level-6: Consistent 16px mobile, 32px tablet, 48px desktop spacing
-              ============================================ */}
-          <div className="mt-4 md:mt-8 lg:mt-12">
+          {/* Level-6: Tight 8pt section rhythm - 16/24/32px */}
+          <div className="mt-4 md:mt-6 lg:mt-8">
             <RecentlyViewedSection lang={lang} />
           </div>
 
-        {/* ============================================
-            DESTINATIONS SECTION - Explore by Continent
-            ENHANCED with Real Duffel Flight Data, ML/AI, Marketing
-            Level-6: Consistent rhythm
-            ============================================ */}
-        <div className="mt-4 md:mt-8 lg:mt-12">
+        <div className="mt-4 md:mt-6 lg:mt-8">
           <DestinationsSectionEnhanced lang={lang} />
         </div>
 
-        {/* ============================================
-            FLASH DEALS SECTION - Time-Limited Offers
-            ENHANCED with Real Duffel Flash Deals, ML/AI, Marketing
-            Level-6: Consistent rhythm
-            ============================================ */}
-        <div className="mt-4 md:mt-8 lg:mt-12">
+        <div className="mt-4 md:mt-6 lg:mt-8">
           <FlashDealsSectionEnhanced lang={lang} />
         </div>
 
-        {/* ============================================
-            HOTELS SECTION - ML/AI Powered with Duffel Photos
-            ============================================ */}
-        <div className="mt-4 md:mt-8 lg:mt-12">
+        <div className="mt-4 md:mt-6 lg:mt-8">
           <HotelsSectionEnhanced lang={lang} />
         </div>
 
-        {/* ============================================
-            FIFA WORLD CUP 2026 - Prominent Hero Section
-            STRATEGIC: High-visibility placement for major event
-            ============================================ */}
-        <div className="mt-4 md:mt-8 lg:mt-12">
+        <div className="mt-4 md:mt-6 lg:mt-8">
           <WorldCupHeroSectionEnhanced lang={lang} />
         </div>
 
@@ -703,11 +683,8 @@ export default function Home() {
             Saved ~437px vertical space on homepage
             ============================================ */}
 
-        {/* ============================================
-            FAQ - Answer Common Questions
-            Level-6: Generous desktop spacing
-            ============================================ */}
-        <div className="mt-4 md:mt-8 lg:mt-12 mb-4 md:mb-8 lg:mb-12">
+        {/* Level-6: FAQ with tight rhythm */}
+        <div className="mt-4 md:mt-6 lg:mt-8 mb-4 md:mb-6 lg:mb-8">
           <FAQ
             title={lang === 'en' ? '❓ Frequently Asked Questions' : lang === 'pt' ? '❓ Perguntas Frequentes' : '❓ Preguntas Frecuentes'}
             subtitle={lang === 'en' ? 'Everything you need to know about booking with Fly2Any' : lang === 'pt' ? 'Tudo o que você precisa saber sobre reservas com Fly2Any' : 'Todo lo que necesitas saber sobre reservas con Fly2Any'}
