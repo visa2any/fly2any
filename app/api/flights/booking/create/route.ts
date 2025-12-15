@@ -1199,21 +1199,23 @@ Customer needs to complete payment to finalize booking.
         // Store customer vs consolidator pricing for margin tracking
         customerPrice: totalAmount,
         // Admin Price Details (for profit tracking)
-        netPrice: originalNetPrice,
-        markupAmount: totalAmount - originalNetPrice,
+        // CRITICAL: Use _netPrice from confirmedOffer (set after markup applied)
+        netPrice: parseFloat(confirmedOffer.price?._netPrice || originalNetPrice.toString()),
+        markupAmount: parseFloat(confirmedOffer.price?._markupAmount || '0') ||
+          (totalAmount - parseFloat(confirmedOffer.price?._netPrice || originalNetPrice.toString())),
         routingChannel: routing.channel,
         routingReason: routing.reason,
         // Calculate Duffel cost if applicable
-        // Duffel charges ONLY $3 per order when using balance payment with markup
-        // Markup is collected by Duffel and paid out to you
         ...(sourceApi === 'Duffel' && {
           duffelCost: 3, // Only $3 per order fee
-          netProfit: (totalAmount - originalNetPrice) - 3, // Markup minus $3 fee
+          netProfit: parseFloat(confirmedOffer.price?._markupAmount || '0') - 3 ||
+            (totalAmount - parseFloat(confirmedOffer.price?._netPrice || originalNetPrice.toString())) - 3,
         }),
         // Consolidator cost placeholder (updated after manual ticketing)
         ...(sourceApi === 'Amadeus' && {
           consolidatorCost: 0, // Will be updated after manual ticketing
-          netProfit: totalAmount - originalNetPrice, // Estimated, updated later
+          netProfit: parseFloat(confirmedOffer.price?._markupAmount || '0') ||
+            (totalAmount - parseFloat(confirmedOffer.price?._netPrice || originalNetPrice.toString())),
         }),
           }, preGeneratedBookingRef), // Pass pre-generated reference for webhook matching
             `Save Booking to Database (Attempt ${attempt + 1})`,
