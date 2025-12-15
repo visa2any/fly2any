@@ -47,17 +47,12 @@ interface SubscriberStats {
   website: number
 }
 
-const mockCampaigns: EmailCampaign[] = [
-  { id: '1', name: 'Weekly Deals Newsletter', template: 'weekly_deals', status: 'sent', recipients: 5420, sent: 5420, opened: 2156, clicked: 432, sentAt: new Date(Date.now() - 86400000).toISOString() },
-  { id: '2', name: 'Flash Sale Alert', template: 'price_alert', status: 'scheduled', recipients: 8900, sent: 0, opened: 0, clicked: 0, scheduledAt: new Date(Date.now() + 3600000).toISOString() },
-  { id: '3', name: 'Welcome Series - Day 1', template: 'welcome', status: 'sending', recipients: 150, sent: 89, opened: 0, clicked: 0 }
-]
-
-const mockStats: EmailStats = { totalSent: 45230, totalOpened: 18540, totalClicked: 4521, subscribers: 12450, openRate: 41, clickRate: 10 }
+// Default stats - will be updated with real subscriber data
+const defaultStats: EmailStats = { totalSent: 0, totalOpened: 0, totalClicked: 0, subscribers: 0, openRate: 0, clickRate: 0 }
 
 export default function EmailMarketingAdmin() {
-  const [campaigns] = useState<EmailCampaign[]>(mockCampaigns)
-  const [stats, setStats] = useState<EmailStats>(mockStats)
+  const [campaigns] = useState<EmailCampaign[]>([])
+  const [stats, setStats] = useState<EmailStats>(defaultStats)
   const [activeTab, setActiveTab] = useState<'campaigns' | 'templates' | 'subscribers'>('campaigns')
 
   // Real subscriber data
@@ -145,7 +140,7 @@ export default function EmailMarketingAdmin() {
   }
 
   return (
-    <div className="p-6 space-y-6 max-w-7xl mx-auto">
+    <div className="p-6 space-y-6 w-full">
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
@@ -197,75 +192,39 @@ export default function EmailMarketingAdmin() {
 
       {/* Campaigns Tab */}
       {activeTab === 'campaigns' && (
-        <div className="space-y-4">
-          {campaigns.map(campaign => {
-            const Icon = templateIcons[campaign.template] || Mail
-            const openRate = campaign.sent > 0 ? ((campaign.opened / campaign.sent) * 100).toFixed(1) : '0'
-            const clickRate = campaign.opened > 0 ? ((campaign.clicked / campaign.opened) * 100).toFixed(1) : '0'
-
-            return (
-              <div key={campaign.id} className="bg-white rounded-xl border border-gray-200 p-5 hover:shadow-lg transition-all">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-4">
-                    <div className="p-3 bg-pink-100 rounded-xl">
-                      <Icon className="h-6 w-6 text-pink-600" />
-                    </div>
-                    <div>
-                      <h3 className="font-semibold text-gray-900">{campaign.name}</h3>
-                      <div className="flex items-center gap-3 mt-1">
-                        <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${statusColors[campaign.status]}`}>
-                          {campaign.status}
-                        </span>
-                        <span className="text-sm text-gray-500">{campaign.recipients.toLocaleString()} recipients</span>
-                      </div>
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-6">
-                    <div className="text-center">
-                      <p className="text-lg font-bold text-gray-900">{campaign.sent.toLocaleString()}</p>
-                      <p className="text-xs text-gray-500">Sent</p>
-                    </div>
-                    <div className="text-center">
-                      <p className="text-lg font-bold text-green-600">{openRate}%</p>
-                      <p className="text-xs text-gray-500">Open Rate</p>
-                    </div>
-                    <div className="text-center">
-                      <p className="text-lg font-bold text-blue-600">{clickRate}%</p>
-                      <p className="text-xs text-gray-500">Click Rate</p>
-                    </div>
-                    {campaign.scheduledAt && (
-                      <div className="text-center">
-                        <Clock className="h-4 w-4 text-gray-400 mx-auto mb-1" />
-                        <p className="text-xs text-gray-500">{new Date(campaign.scheduledAt).toLocaleString()}</p>
-                      </div>
-                    )}
-                  </div>
-                </div>
-              </div>
-            )
-          })}
+        <div className="bg-white rounded-xl border border-gray-200 p-12 text-center">
+          <div className="p-4 bg-pink-100 rounded-full w-fit mx-auto mb-4">
+            <Send className="h-8 w-8 text-pink-600" />
+          </div>
+          <h3 className="text-xl font-semibold text-gray-900 mb-2">Email Campaigns Coming Soon</h3>
+          <p className="text-gray-500 max-w-md mx-auto mb-6">
+            Create and manage automated email campaigns, A/B test subject lines, and track performance metrics.
+          </p>
+          <div className="flex flex-wrap justify-center gap-3">
+            <span className="px-3 py-1.5 bg-pink-50 text-pink-700 rounded-full text-sm font-medium">Automated Sequences</span>
+            <span className="px-3 py-1.5 bg-pink-50 text-pink-700 rounded-full text-sm font-medium">A/B Testing</span>
+            <span className="px-3 py-1.5 bg-pink-50 text-pink-700 rounded-full text-sm font-medium">Analytics</span>
+            <span className="px-3 py-1.5 bg-pink-50 text-pink-700 rounded-full text-sm font-medium">Segmentation</span>
+          </div>
         </div>
       )}
 
       {/* Templates Tab */}
       {activeTab === 'templates' && (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {[
-            { name: 'Welcome Email', template: 'welcome', description: 'Onboarding sequence for new users', icon: Gift },
-            { name: 'Price Alert', template: 'price_alert', description: 'Notify users of price drops', icon: Bell },
-            { name: 'Weekly Deals', template: 'weekly_deals', description: 'Weekly newsletter with top deals', icon: FileText },
-            { name: 'Booking Confirmation', template: 'booking_confirmation', description: 'Transactional booking email', icon: CheckCircle2 },
-            { name: 'Abandoned Search', template: 'abandoned_search', description: 'Re-engage users who left', icon: RefreshCw },
-            { name: 'Referral Invite', template: 'referral_invite', description: 'Invite friends to join', icon: Users }
-          ].map(({ name, template, description, icon: Icon }) => (
-            <div key={template} className="bg-white rounded-xl border border-gray-200 p-5 hover:shadow-lg hover:border-pink-300 transition-all cursor-pointer">
-              <div className="p-3 bg-pink-100 rounded-xl w-fit mb-4">
-                <Icon className="h-6 w-6 text-pink-600" />
-              </div>
-              <h3 className="font-semibold text-gray-900 mb-1">{name}</h3>
-              <p className="text-sm text-gray-500">{description}</p>
-            </div>
-          ))}
+        <div className="bg-white rounded-xl border border-gray-200 p-12 text-center">
+          <div className="p-4 bg-pink-100 rounded-full w-fit mx-auto mb-4">
+            <FileText className="h-8 w-8 text-pink-600" />
+          </div>
+          <h3 className="text-xl font-semibold text-gray-900 mb-2">Email Templates Coming Soon</h3>
+          <p className="text-gray-500 max-w-md mx-auto mb-6">
+            Design beautiful email templates with our drag-and-drop editor. Pre-built templates for common travel scenarios.
+          </p>
+          <div className="flex flex-wrap justify-center gap-3">
+            <span className="px-3 py-1.5 bg-pink-50 text-pink-700 rounded-full text-sm font-medium">Welcome Series</span>
+            <span className="px-3 py-1.5 bg-pink-50 text-pink-700 rounded-full text-sm font-medium">Price Alerts</span>
+            <span className="px-3 py-1.5 bg-pink-50 text-pink-700 rounded-full text-sm font-medium">Booking Confirmations</span>
+            <span className="px-3 py-1.5 bg-pink-50 text-pink-700 rounded-full text-sm font-medium">Newsletters</span>
+          </div>
         </div>
       )}
 
