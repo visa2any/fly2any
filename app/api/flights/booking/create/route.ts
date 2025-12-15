@@ -1427,25 +1427,39 @@ Requires manual review.
         }
       }
 
-      // STEP 7: Send payment instructions email
-      console.log('📧 STEP 7: Sending payment instructions email...');
+      // STEP 7: Send appropriate email based on booking type
+      // - Card payment (not hold) → Card Payment Processing email
+      // - Hold booking → Payment Instructions email
+      // - Auto-ticketed (Duffel) → Booking Confirmation email
+      const hasCardPayment = savedBooking.payment?.cardLast4 && !isHold;
+      const isAutoTicketed = !requiresManualTicketing && !isHold;
+
+      let emailType: string;
+      let emailResult: boolean;
+
+      console.log('📧 STEP 7: Sending booking email...');
       console.log(`   To: ${bookingContactInfo.email}`);
       console.log(`   Booking Ref: ${savedBooking.bookingReference}`);
-      console.log(`   Amount: ${totalAmount} ${confirmedOffer.price.currency}`);
+      console.log(`   isHold: ${isHold}, hasCardPayment: ${hasCardPayment}, isAutoTicketed: ${isAutoTicketed}`);
 
       try {
-        const emailResult = await emailService.sendPaymentInstructions(savedBooking);
-        console.log('✅ Email sent successfully');
-        console.log(`   Email service response:`, JSON.stringify(emailResult, null, 2).substring(0, 200));
-      } catch (emailError: any) {
-        console.error('❌ Email sending failed (but booking still created):');
-        console.error(`   Error type: ${emailError.constructor.name}`);
-        console.error(`   Error message: ${emailError.message}`);
-        if (emailError.response) {
-          console.error(`   HTTP Status: ${emailError.response.status}`);
-          console.error(`   Response: ${JSON.stringify(emailError.response.data || emailError.response).substring(0, 300)}`);
+        if (isAutoTicketed) {
+          // Duffel auto-ticketed booking - send confirmation
+          emailType = 'Booking Confirmation';
+          emailResult = await emailService.sendBookingConfirmation(savedBooking);
+        } else if (hasCardPayment) {
+          // Card captured, pending manual processing - clean card email
+          emailType = 'Card Payment Processing';
+          emailResult = await emailService.sendCardPaymentProcessing(savedBooking);
+        } else {
+          // Hold or other - send payment instructions
+          emailType = 'Payment Instructions';
+          emailResult = await emailService.sendPaymentInstructions(savedBooking);
         }
-        console.error(`   Full error:`, emailError);
+
+        console.log(`✅ ${emailType} email sent successfully`);
+      } catch (emailError: any) {
+        console.error(`❌ ${emailType || 'Email'} sending failed (but booking still created):`, emailError.message);
 
         // Alert admin about email failure
         try {
@@ -1453,20 +1467,18 @@ Requires manual review.
           await notifyTelegramAdmins(`
 ⚠️ *Email Sending Failed*
 
-A booking was successfully created but the confirmation email failed to send!
+Booking created but ${emailType} email failed!
 
-📋 *Booking Details:*
+📋 *Details:*
 • Ref: \`${savedBooking.bookingReference}\`
-• To Email: ${bookingContactInfo.email}
+• Email: ${bookingContactInfo.email}
 • Amount: ${totalAmount} ${confirmedOffer.price.currency}
-• Booking ID: ${savedBooking.id}
 
 *Error:* ${emailError.message}
           `.trim());
         } catch (notifyErr) {
           console.error('Failed to send email failure notification:', notifyErr);
         }
-        // Don't fail the booking if email fails
       }
 
       // Determine booking status for response (requiresManualTicketing already defined above)
@@ -1478,11 +1490,12 @@ A booking was successfully created but the confirmation email failed to send!
         const { createNotification } = await import('@/lib/services/notifications');
         const prisma = getPrismaClient();
 
-        // Find admin users to notify
-        const adminUsers = await prisma?.user.findMany({
-          where: { role: 'admin' },
-          select: { id: true },
+        // Find admin users to notify (AdminUser table links to User)
+        const adminUsers = await prisma?.adminUser.findMany({
+          where: { role: { in: ['admin', 'super_admin'] } },
+          select: { userId: true },
         });
+        console.log(`   Found ${adminUsers?.length || 0} admin user(s) to notify`);
 
         if (adminUsers && adminUsers.length > 0) {
           const route = `${confirmedOffer.segments[0]?.departure?.iataCode || 'N/A'} → ${confirmedOffer.segments[confirmedOffer.segments.length - 1]?.arrival?.iataCode || 'N/A'}`;
@@ -1490,7 +1503,7 @@ A booking was successfully created but the confirmation email failed to send!
           // Create notification for each admin
           await Promise.all(adminUsers.map(admin =>
             createNotification({
-              userId: admin.id,
+              userId: admin.userId,
               type: 'booking_confirmed',
               title: `New Booking: ${savedBooking.bookingReference}`,
               message: `${bookingPassengers[0]?.firstName || 'Customer'} booked ${route} for ${confirmedOffer.price.currency} ${totalAmount.toFixed(2)}`,

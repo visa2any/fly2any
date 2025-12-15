@@ -257,6 +257,130 @@ ${COMPANY_NAME} Team
 }
 
 /**
+ * Card Payment Processing Email
+ * Sent when card payment is captured and pending manual processing
+ * Clean template without bank transfer info - only for card payments
+ */
+function getCardPaymentProcessingEmail(booking: Booking) {
+  const subject = `Booking Received - ${booking.bookingReference}`;
+  const route = `${booking.flight.segments[0].departure.iataCode} → ${booking.flight.segments[booking.flight.segments.length - 1].arrival.iataCode}`;
+  const departureDate = new Date(booking.flight.segments[0].departure.at).toLocaleDateString('en-US', {
+    weekday: 'long', month: 'long', day: 'numeric', year: 'numeric'
+  });
+
+  const html = `
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>${subject}</title>
+</head>
+<body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px;">
+  <div style="background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%); padding: 30px; text-align: center; border-radius: 10px 10px 0 0;">
+    <h1 style="color: white; margin: 0; font-size: 28px;">✈️ ${COMPANY_NAME}</h1>
+    <p style="color: rgba(255,255,255,0.9); margin: 10px 0 0 0;">Booking Received!</p>
+  </div>
+
+  <div style="background: #ffffff; padding: 30px; border: 1px solid #e5e7eb; border-top: none; border-radius: 0 0 10px 10px;">
+    <div style="background: #dbeafe; border: 2px solid #3b82f6; padding: 20px; border-radius: 8px; text-align: center; margin-bottom: 25px;">
+      <h2 style="color: #1e40af; margin: 0 0 8px 0; font-size: 20px;">💳 Payment Being Processed</h2>
+      <p style="color: #1e3a8a; margin: 0; font-size: 14px;">Your card has been securely captured. We're finalizing your booking now.</p>
+    </div>
+
+    <p style="margin-bottom: 20px;">Dear ${booking.passengers[0].firstName},</p>
+
+    <p style="margin-bottom: 20px;">Thank you for booking with ${COMPANY_NAME}! We've received your reservation and your payment is being processed.</p>
+
+    <div style="background: #f8fafc; padding: 20px; border-radius: 8px; margin: 20px 0; border: 1px solid #e2e8f0;">
+      <h3 style="margin: 0 0 15px 0; color: #1e293b; font-size: 16px;">Booking Summary</h3>
+      <table style="width: 100%; border-collapse: collapse;">
+        <tr>
+          <td style="padding: 10px 0; border-bottom: 1px solid #e2e8f0;"><strong>Reference:</strong></td>
+          <td style="padding: 10px 0; text-align: right; font-family: monospace; font-size: 16px; color: #2563eb; border-bottom: 1px solid #e2e8f0;">${booking.bookingReference}</td>
+        </tr>
+        <tr>
+          <td style="padding: 10px 0; border-bottom: 1px solid #e2e8f0;"><strong>Route:</strong></td>
+          <td style="padding: 10px 0; text-align: right; border-bottom: 1px solid #e2e8f0;">${route}</td>
+        </tr>
+        <tr>
+          <td style="padding: 10px 0; border-bottom: 1px solid #e2e8f0;"><strong>Date:</strong></td>
+          <td style="padding: 10px 0; text-align: right; border-bottom: 1px solid #e2e8f0;">${departureDate}</td>
+        </tr>
+        <tr>
+          <td style="padding: 10px 0; border-bottom: 1px solid #e2e8f0;"><strong>Passengers:</strong></td>
+          <td style="padding: 10px 0; text-align: right; border-bottom: 1px solid #e2e8f0;">${booking.passengers.length}</td>
+        </tr>
+        <tr>
+          <td style="padding: 10px 0;"><strong>Total:</strong></td>
+          <td style="padding: 10px 0; text-align: right; font-size: 18px; color: #059669; font-weight: bold;">${booking.payment.currency} ${booking.payment.amount.toFixed(2)}</td>
+        </tr>
+      </table>
+    </div>
+
+    <div style="background: #f0fdf4; border-left: 4px solid #22c55e; padding: 15px; margin: 20px 0; border-radius: 4px;">
+      <h4 style="margin: 0 0 8px 0; color: #166534;">What happens next?</h4>
+      <ol style="margin: 0; padding-left: 20px; color: #15803d; font-size: 14px;">
+        <li style="margin-bottom: 5px;">We verify your payment (usually within 2-4 hours)</li>
+        <li style="margin-bottom: 5px;">Your ticket is issued with the airline</li>
+        <li>You receive your e-ticket confirmation via email</li>
+      </ol>
+    </div>
+
+    <div style="background: #fefce8; border-left: 4px solid #eab308; padding: 15px; margin: 20px 0; border-radius: 4px;">
+      <p style="margin: 0; color: #854d0e; font-size: 14px;">
+        <strong>Card on file:</strong> •••• ${booking.payment.cardLast4 || '****'}<br>
+        Your card will be charged ${booking.payment.currency} ${booking.payment.amount.toFixed(2)} once verified.
+      </p>
+    </div>
+
+    <hr style="border: none; border-top: 1px solid #e5e7eb; margin: 25px 0;">
+
+    <p style="color: #6b7280; font-size: 14px; margin-bottom: 20px;">Questions? Contact our support team:</p>
+
+    <div style="text-align: center;">
+      <a href="mailto:${SUPPORT_EMAIL}" style="display: inline-block; background: #2563eb; color: white; padding: 12px 30px; text-decoration: none; border-radius: 6px; font-weight: bold;">Contact Support</a>
+    </div>
+
+    <p style="color: #9ca3af; font-size: 12px; text-align: center; margin-top: 25px;">
+      ${COMPANY_NAME} | Ref: ${booking.bookingReference}
+    </p>
+  </div>
+</body>
+</html>
+  `;
+
+  const text = `
+Booking Received - ${booking.bookingReference}
+
+Dear ${booking.passengers[0].firstName},
+
+Thank you for booking with ${COMPANY_NAME}! We've received your reservation.
+
+BOOKING SUMMARY:
+Reference: ${booking.bookingReference}
+Route: ${route}
+Date: ${departureDate}
+Passengers: ${booking.passengers.length}
+Total: ${booking.payment.currency} ${booking.payment.amount.toFixed(2)}
+
+PAYMENT STATUS:
+Your card (•••• ${booking.payment.cardLast4 || '****'}) has been captured and is being processed.
+
+WHAT HAPPENS NEXT:
+1. We verify your payment (usually within 2-4 hours)
+2. Your ticket is issued with the airline
+3. You receive your e-ticket confirmation via email
+
+Questions? Contact: ${SUPPORT_EMAIL}
+
+${COMPANY_NAME}
+  `;
+
+  return { subject, html, text };
+}
+
+/**
  * Booking Confirmation Email
  * Sent after payment is confirmed
  */
@@ -424,6 +548,49 @@ export async function sendPaymentInstructionsEmail(booking: Booking): Promise<bo
     // CRITICAL: Notify admin of failure - don't let email failures go unnoticed
     await notifyAdminOfEmailFailure(
       'Payment Instructions',
+      booking.contactInfo?.email || 'unknown',
+      error?.message || String(error),
+      booking.bookingReference
+    );
+
+    return false;
+  }
+}
+
+/**
+ * Send card payment processing email
+ * For card payments that need manual verification
+ */
+export async function sendCardPaymentProcessingEmail(booking: Booking): Promise<boolean> {
+  try {
+    const { subject, html, text } = getCardPaymentProcessingEmail(booking);
+
+    console.log('📧 Sending card payment processing email via Mailgun...');
+    console.log(`   To: ${booking.contactInfo.email}`);
+    console.log(`   Subject: ${subject}`);
+
+    const result = await mailgunClient.send({
+      from: FROM_EMAIL,
+      to: booking.contactInfo.email,
+      subject,
+      html,
+      text,
+      forceSend: true,
+      tags: ['booking', 'card-processing'],
+    });
+
+    if (result.success) {
+      console.log('✅ Card payment processing email sent successfully');
+      console.log(`   Email ID: ${result.messageId}`);
+      return true;
+    } else {
+      throw new Error(result.error || 'Failed to send email');
+    }
+  } catch (error: any) {
+    console.error('❌ Error sending card payment processing email:', error);
+
+    await notifyAdminOfEmailFailure(
+      'Card Payment Processing',
       booking.contactInfo?.email || 'unknown',
       error?.message || String(error),
       booking.bookingReference
