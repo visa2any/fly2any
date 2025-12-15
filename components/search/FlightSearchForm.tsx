@@ -968,11 +968,11 @@ export default function FlightSearchForm({
           </label>
         </div>
 
-        {/* Submit Button */}
+        {/* Level-6: Submit Button - Brand primary, 48px touch target */}
         <button
           type="submit"
           disabled={isLoading}
-          className="w-full bg-gradient-to-r from-blue-600 to-indigo-600 text-white py-3 md:py-4 px-6 md:px-8 rounded-xl font-bold text-lg shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-[1.02] disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none flex items-center justify-center gap-2"
+          className="w-full bg-gradient-to-r from-primary-500 to-primary-600 text-white py-3 md:py-4 px-6 md:px-8 rounded-xl font-bold text-base md:text-lg shadow-lg hover:shadow-xl hover:from-primary-600 hover:to-primary-700 transition-all duration-200 transform hover:scale-[1.01] active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none flex items-center justify-center gap-2 min-h-[48px]"
           aria-label={t.search}
         >
           {isLoading ? (

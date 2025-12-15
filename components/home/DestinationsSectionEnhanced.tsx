@@ -206,29 +206,28 @@ const DestinationCard = memo(({
           }
         }}
       />
-      {/* TripMATCH Gradient - Exact Match */}
-      <div className="absolute inset-0 bg-gradient-to-t from-slate-900 via-slate-900/60 to-transparent" />
+      {/* Level-6: Enhanced gradient for text legibility */}
+      <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent" />
 
-      {/* TOP LEFT - Airline Badge + Date Badge (TripMATCH style) */}
-      <div className="absolute top-3 left-3 flex flex-col gap-1.5">
+      {/* Level-6: Top badges with consistent styling */}
+      <div className="absolute top-2.5 left-2.5 flex flex-col gap-1.5">
         {(() => {
           const airline = getAirlineInfo(destination.carrier);
           return (
-            <div className="bg-info-500/90 backdrop-blur-sm px-2 py-1 rounded-lg flex items-center gap-1 text-white text-xs font-bold">
+            <div className="bg-info-500/95 backdrop-blur-md px-2 py-1 rounded-lg flex items-center gap-1.5 text-white text-[11px] md:text-xs font-semibold shadow-sm">
               <span>{airline.logo}</span>
-              <span>{airline.name}</span>
+              <span className="line-clamp-1 max-w-[100px]">{airline.name}</span>
             </div>
           );
         })()}
-        {/* Date Badge - Low Season Date */}
-        <div className="bg-emerald-500/90 backdrop-blur-sm px-2 py-1 rounded-lg flex items-center gap-1 text-white text-xs font-bold">
+        <div className="bg-success-500/95 backdrop-blur-md px-2 py-1 rounded-lg flex items-center gap-1 text-white text-[11px] md:text-xs font-semibold shadow-sm">
           <Calendar className="w-3 h-3" />
           <span>{new Date(destination.departureDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}</span>
         </div>
       </div>
 
-      {/* TOP RIGHT - Value Score + Favorite (TripMATCH style) */}
-      <div className="absolute top-3 right-3 flex gap-2">
+      {/* Level-6: Value Score + Favorite */}
+      <div className="absolute top-2.5 right-2.5 flex gap-2">
         <ValueScoreBadge score={destination.valueScore} size="sm" showLabel={false} />
         <button
           onClick={(e) => {
@@ -265,23 +264,26 @@ const DestinationCard = memo(({
         </div>
       )}
 
-      {/* BOTTOM RIGHT - Price Box (TripMATCH style) */}
+      {/* Level-6: Price Box with enhanced backdrop */}
       <div className="absolute bottom-3 right-3">
-        <div className="bg-black/60 backdrop-blur-sm px-3 py-2 rounded-lg">
-          <p className="text-white font-bold text-lg">
+        <div className="bg-black/70 backdrop-blur-md px-3 py-2 rounded-xl border border-white/10">
+          <p className="text-white font-bold text-base md:text-lg"
+             style={{ textShadow: '0 1px 2px rgba(0,0,0,0.3)' }}>
             ${destination.price.toFixed(0)}
           </p>
-          <p className="text-white/70 text-xs">per person</p>
+          <p className="text-white/80 text-[10px] md:text-xs">per person</p>
         </div>
       </div>
 
-      {/* BOTTOM LEFT - Destination (TripMATCH style) */}
+      {/* Level-6: Destination text with Apple-class shadows */}
       <div className="absolute bottom-3 left-3 right-24">
-        <h3 className="font-bold text-white text-lg mb-1 group-hover:text-primary-400 transition-colors line-clamp-1 drop-shadow-lg">
+        <h3 className="font-bold text-white text-base md:text-lg mb-0.5 group-hover:text-secondary-400 transition-colors line-clamp-1"
+            style={{ textShadow: '0 1px 3px rgba(0,0,0,0.5), 0 2px 8px rgba(0,0,0,0.3)' }}>
           {getCountryFlag(destination.country)} {destination.city}
         </h3>
-        <div className="flex items-center gap-1 text-white/60 text-sm">
-          <MapPin className="w-4 h-4" />
+        <div className="flex items-center gap-1 text-white/80 text-xs md:text-sm"
+             style={{ textShadow: '0 1px 2px rgba(0,0,0,0.4)' }}>
+          <MapPin className="w-3.5 h-3.5" />
           <span className="line-clamp-1">
             from {(() => {
               const cityMap: Record<string, string> = {
