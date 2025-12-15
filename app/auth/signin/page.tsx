@@ -2,10 +2,11 @@
 
 import { signIn } from 'next-auth/react';
 import { useSearchParams, useRouter } from 'next/navigation';
-import { useState, Suspense } from 'react';
-import { Mail, Lock, Plane, Eye, EyeOff, Loader2 } from 'lucide-react';
+import { useState, useEffect, Suspense } from 'react';
+import { Mail, Lock, Plane, Eye, EyeOff, Loader2, AlertTriangle } from 'lucide-react';
 import Link from 'next/link';
 import { useGoogleAuth } from '@/lib/hooks/useGoogleAuth';
+import { accountErrorTracker } from '@/lib/tracking/account-errors';
 
 // Google Logo SVG Component
 const GoogleLogo = () => (
@@ -17,10 +18,21 @@ const GoogleLogo = () => (
   </svg>
 );
 
+// Error messages for OAuth errors
+const OAUTH_ERROR_MESSAGES: Record<string, string> = {
+  OAuthAccountNotLinked: 'This email is already registered with a different sign-in method. Please use your original sign-in method or create a new account.',
+  OAuthSignin: 'Error starting the sign-in process. Please try again.',
+  OAuthCallback: 'Error during sign-in. Please try again.',
+  OAuthCreateAccount: 'Could not create account. Please try again.',
+  Callback: 'Sign-in error. Please try again.',
+  Default: 'An error occurred during sign-in. Please try again.',
+};
+
 function SignInContent() {
   const searchParams = useSearchParams();
   const router = useRouter();
   const callbackUrl = searchParams?.get('callbackUrl') || '/account';
+  const urlError = searchParams?.get('error');
 
   // Form state
   const [email, setEmail] = useState('');
@@ -28,6 +40,17 @@ function SignInContent() {
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
+
+  // Handle OAuth errors from URL
+  useEffect(() => {
+    if (urlError) {
+      const errorMessage = OAUTH_ERROR_MESSAGES[urlError] || OAUTH_ERROR_MESSAGES.Default;
+      setError(errorMessage);
+
+      // Track the error
+      accountErrorTracker.trackOAuthError('google', urlError);
+    }
+  }, [urlError]);
 
   // Google Auth hook with One Tap + Popup
   const {
@@ -60,12 +83,14 @@ function SignInContent() {
 
       if (result?.error) {
         setError('Invalid email or password');
+        accountErrorTracker.trackAuthError('AUTH_SIGNIN_FAILED', 'Invalid credentials', { email });
         setIsLoading(false);
       } else {
         router.push(callbackUrl);
       }
-    } catch {
+    } catch (err) {
       setError('An error occurred. Please try again.');
+      accountErrorTracker.trackAuthError('AUTH_SIGNIN_FAILED', 'Unexpected error', { email, error: String(err) });
       setIsLoading(false);
     }
   };
@@ -115,8 +140,19 @@ function SignInContent() {
 
           {/* Error Message */}
           {error && (
-            <div className="mb-5 p-4 bg-red-50 border border-red-200 rounded-2xl text-red-600 text-sm font-medium">
-              {error}
+            <div className="mb-5 p-4 bg-red-50 border border-red-200 rounded-2xl text-red-700 text-sm">
+              <div className="flex items-start gap-3">
+                <AlertTriangle className="w-5 h-5 text-red-500 flex-shrink-0 mt-0.5" />
+                <div>
+                  <p className="font-semibold mb-1">Sign-in Error</p>
+                  <p className="text-red-600">{error}</p>
+                  {urlError === 'OAuthAccountNotLinked' && (
+                    <p className="mt-2 text-xs text-red-500">
+                      Try signing in with email/password or contact support if you need help.
+                    </p>
+                  )}
+                </div>
+              </div>
             </div>
           )}
 
