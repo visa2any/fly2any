@@ -45,6 +45,7 @@ import { getAirportCity } from '@/lib/data/airports';
 import BaggageFeeDisclaimer from '@/components/flights/BaggageFeeDisclaimer';
 import LiveActivityFeed from '@/components/conversion/LiveActivityFeed';
 import ExitIntentPopup from '@/components/conversion/ExitIntentPopup';
+import PostSearchCaptureModal from '@/components/conversion/PostSearchCaptureModal';
 import { featureFlags } from '@/lib/feature-flags';
 import { trackConversion } from '@/lib/conversion-metrics';
 import { abTestManager } from '@/lib/ab-testing/test-manager';
@@ -2015,6 +2016,25 @@ function FlightResultsContent() {
           onEmailSubmit={(email) => {
             trackConversion('exit_intent_email_submitted', { email });
             console.log('Exit intent email submitted:', email);
+          }}
+        />
+      )}
+
+      {/* Post-Search Email Capture Modal - High Intent Lead Capture */}
+      {sortedFlights.length > 0 && (
+        <PostSearchCaptureModal
+          origin={searchData.origin || undefined}
+          destination={searchData.destination || undefined}
+          departureDate={searchData.departure || undefined}
+          lowestPrice={sortedFlights[0]?.price?.total ? normalizePrice(sortedFlights[0].price) : undefined}
+          currency={sortedFlights[0]?.price?.currency || 'USD'}
+          delayMs={12000}
+          onEmailSubmit={(email) => {
+            trackConversion('post_search_email_captured', {
+              email,
+              origin: searchData.origin,
+              destination: searchData.destination,
+            });
           }}
         />
       )}
