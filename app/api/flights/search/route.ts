@@ -103,10 +103,13 @@ function calculateReturnDate(departureDate: string, nights: number): string {
 
 /**
  * Deduplicate flight offers by flight segments
- * When multiple sources return the same flight, keep the cheapest one
+ * ROUTING PRIORITY:
+ * - Under $500: Prefer Duffel (auto-ticketing) over GDS (manual ticketing)
+ * - $500+: Keep cheapest regardless of source
  */
 function deduplicateFlights(flights: FlightOffer[]): FlightOffer[] {
   const flightMap = new Map<string, FlightOffer>();
+  const DUFFEL_PRIORITY_THRESHOLD = 500; // Prefer Duffel for auto-ticketing under this price
 
   for (const flight of flights) {
     // Create unique key from all segments (airline + flight number + departure time)
@@ -119,16 +122,34 @@ function deduplicateFlights(flights: FlightOffer[]): FlightOffer[] {
     const existingFlight = flightMap.get(key);
 
     if (!existingFlight) {
-      // First time seeing this flight - add it
       flightMap.set(key, flight);
     } else {
-      // Flight already exists - keep the cheaper one
       const existingPrice = parseFloat(String(existingFlight.price?.total || '999999'));
       const newPrice = parseFloat(String(flight.price?.total || '999999'));
+      const cheaperPrice = Math.min(existingPrice, newPrice);
 
-      if (newPrice < existingPrice) {
-        console.log(`  💰 Found cheaper price: ${flight.source || 'Unknown'} $${newPrice} < ${existingFlight.source || 'Unknown'} $${existingPrice}`);
-        flightMap.set(key, flight);
+      // ROUTING LOGIC: Under $500, prefer Duffel for auto-ticketing
+      if (cheaperPrice < DUFFEL_PRIORITY_THRESHOLD) {
+        const existingIsDuffel = existingFlight.source === 'Duffel';
+        const newIsDuffel = flight.source === 'Duffel';
+
+        if (newIsDuffel && !existingIsDuffel) {
+          // New is Duffel, existing is GDS → prefer Duffel (auto-ticket)
+          console.log(`  🎫 Under $500: Prefer Duffel over GDS for auto-ticketing ($${newPrice})`);
+          flightMap.set(key, flight);
+        } else if (!newIsDuffel && existingIsDuffel) {
+          // Existing is Duffel, new is GDS → keep Duffel
+          // No change needed
+        } else if (newPrice < existingPrice) {
+          // Same source type → keep cheaper
+          flightMap.set(key, flight);
+        }
+      } else {
+        // $500+ → simply keep cheapest
+        if (newPrice < existingPrice) {
+          console.log(`  💰 Found cheaper: ${flight.source} $${newPrice} < ${existingFlight.source} $${existingPrice}`);
+          flightMap.set(key, flight);
+        }
       }
     }
   }
