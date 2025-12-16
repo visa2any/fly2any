@@ -21,6 +21,9 @@ import {
 import { getAggregateStats, getRecentLogs } from '@/lib/ai/admin-observer';
 import { getCostAnalytics } from '@/lib/ai/llm-load-balancer';
 import { getAllAgentPerformances, getInsights } from '@/lib/ai/memory-learning';
+import { getExecutiveSummary, getBoardDashboard } from '@/lib/ai/kpi-intelligence';
+import { getRecentSuites, getFailureTrends, generateTestReport } from '@/lib/ai/qa-playwright-engine';
+import { getQueue, getTakeoverAnalytics, assignTakeover, resolveTakeover } from '@/lib/ai/human-takeover';
 
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
@@ -83,8 +86,30 @@ export async function GET(request: Request) {
 
       case 'insights': {
         const insights = getInsights();
-
         return NextResponse.json({ insights });
+      }
+
+      case 'kpi': {
+        const summary = getExecutiveSummary();
+        return NextResponse.json(summary);
+      }
+
+      case 'board': {
+        const dashboard = getBoardDashboard();
+        return NextResponse.json(dashboard);
+      }
+
+      case 'qa': {
+        const suites = getRecentSuites(10);
+        const trends = getFailureTrends();
+        const latestReport = suites[0] ? generateTestReport(suites[0]) : null;
+        return NextResponse.json({ suites, trends, latest_report: latestReport });
+      }
+
+      case 'takeover_queue': {
+        const queue = getQueue();
+        const analytics = getTakeoverAnalytics();
+        return NextResponse.json({ queue, analytics });
       }
 
       default:
@@ -130,6 +155,22 @@ export async function POST(request: Request) {
         if (!alert_id) return NextResponse.json({ error: 'alert_id required' }, { status: 400 });
         const success = resolveAlert(alert_id, resolved_by || 'admin', actions_taken || []);
         return NextResponse.json({ success, alert_id, action: 'resolved' });
+      }
+
+      case 'assign_takeover': {
+        const { conversation_id, agent_id } = body;
+        if (!conversation_id || !agent_id) {
+          return NextResponse.json({ error: 'conversation_id and agent_id required' }, { status: 400 });
+        }
+        const success = assignTakeover(conversation_id, agent_id);
+        return NextResponse.json({ success, conversation_id, agent_id, action: 'assigned' });
+      }
+
+      case 'resolve_takeover': {
+        const { conversation_id, resolved, notes, sentiment_delta } = body;
+        if (!conversation_id) return NextResponse.json({ error: 'conversation_id required' }, { status: 400 });
+        const success = resolveTakeover(conversation_id, resolved ?? true, notes, sentiment_delta);
+        return NextResponse.json({ success, conversation_id, action: 'takeover_resolved' });
       }
 
       default:

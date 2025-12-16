@@ -97,7 +97,7 @@ export default function ExitIntentPopup({
             <h3 className="text-xl font-bold">Wait! Don't miss this deal</h3>
           </div>
           <p className="text-white/90 text-sm">
-            Get {discountPercent}% off your first booking
+            Get {discountPercent}% off your first hotel booking
           </p>
         </div>
 
@@ -110,7 +110,7 @@ export default function ExitIntentPopup({
                   <span className="text-2xl">🎉</span>
                   <div>
                     <div className="text-sm font-semibold text-green-900">
-                      Exclusive Discount Code
+                      Exclusive Hotel Discount Code
                     </div>
                     <div className="text-xs text-green-700">
                       Use code: <span className="font-mono font-bold">{discountCode}</span>
@@ -146,7 +146,7 @@ export default function ExitIntentPopup({
                   type="submit"
                   className="w-full bg-gradient-to-r from-primary-600 to-primary-700 text-white py-2.5 rounded-lg font-semibold text-sm hover:from-primary-700 hover:to-primary-800 transition-all shadow-md hover:shadow-lg"
                 >
-                  Get My {discountPercent}% Discount
+                  Get My {discountPercent}% Hotel Discount
                 </button>
               </form>
 
