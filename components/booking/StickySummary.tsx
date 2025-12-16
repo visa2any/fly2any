@@ -183,7 +183,7 @@ export function StickySummary({
             <DollarSign className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-primary-600 flex-shrink-0" />
             <span className="text-xs sm:text-sm font-bold text-gray-900">TOTAL</span>
           </div>
-          <span className="text-lg sm:text-xl font-bold text-primary-600">
+          <span className="text-lg sm:text-xl font-bold text-primary-600" data-testid="total-price">
             {currency} {total.toFixed(2)}
           </span>
         </div>

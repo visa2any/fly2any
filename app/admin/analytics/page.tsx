@@ -12,6 +12,7 @@ import {
   Download,
   RefreshCw,
 } from 'lucide-react';
+import { AnalyticsDashboard } from '@/components/admin/AnalyticsDashboard';
 
 export default function AdminAnalyticsPage() {
   const [loading, setLoading] = useState(true);
@@ -80,7 +81,7 @@ export default function AdminAnalyticsPage() {
             </p>
           </div>
 
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2 sm:gap-3">
             <select
               value={period}
               onChange={(e) => setPeriod(e.target.value)}
@@ -110,6 +111,9 @@ export default function AdminAnalyticsPage() {
             </button>
           </div>
         </div>
+
+        {/* Real-time Metrics */}
+        <AnalyticsDashboard />
 
         {/* Bookings Trend */}
         <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-6">

@@ -84,6 +84,12 @@ export function ReviewAndPay({
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
 
+    // Validate card number with Luhn
+    if (!isValidCardNumber(cardNumber)) {
+      setCardError('Please enter a valid card number');
+      return;
+    }
+
     if (requiresDOTCompliance && !allDOTChecked) {
       alert('Please acknowledge all fare restrictions before proceeding.');
       return;
@@ -111,6 +117,26 @@ export function ReviewAndPay({
     const formatted = cleaned.match(/.{1,4}/g)?.join(' ') || cleaned;
     return formatted;
   };
+
+  // Luhn algorithm for card validation
+  const isValidCardNumber = (num: string): boolean => {
+    const digits = num.replace(/\s/g, '');
+    if (!/^\d{13,19}$/.test(digits)) return false;
+    let sum = 0;
+    let isEven = false;
+    for (let i = digits.length - 1; i >= 0; i--) {
+      let digit = parseInt(digits[i], 10);
+      if (isEven) {
+        digit *= 2;
+        if (digit > 9) digit -= 9;
+      }
+      sum += digit;
+      isEven = !isEven;
+    }
+    return sum % 10 === 0;
+  };
+
+  const [cardError, setCardError] = useState('');
 
   const toggleSection = (section: 'flight' | 'payment') => {
     setExpandedSection(expandedSection === section ? null : section);
@@ -196,12 +222,22 @@ export function ReviewAndPay({
                 <input
                   type="text"
                   value={formatCardNumber(cardNumber)}
-                  onChange={(e) => setCardNumber(e.target.value.replace(/\s/g, ''))}
+                  onChange={(e) => {
+                    const val = e.target.value.replace(/\D/g, '');
+                    setCardNumber(val);
+                    setCardError('');
+                  }}
+                  onBlur={() => {
+                    if (cardNumber.length >= 13 && !isValidCardNumber(cardNumber)) {
+                      setCardError('Invalid card number');
+                    }
+                  }}
                   placeholder="Card Number"
                   maxLength={19}
-                  className="w-full px-3 py-3 text-sm border border-gray-300 rounded-lg bg-white focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+                  className={`w-full px-3 py-3 text-sm border rounded-lg bg-white focus:ring-2 focus:ring-primary-500 focus:border-primary-500 ${cardError ? 'border-red-500' : 'border-gray-300'}`}
                   required
                 />
+                {cardError && <p className="text-xs text-red-600 mt-1">{cardError}</p>}
               </div>
 
               {/* Cardholder Name - Full Width */}
@@ -257,8 +293,9 @@ export function ReviewAndPay({
                   <label className="block text-xs text-gray-500 mb-1">Security Code</label>
                   <input
                     type="text"
+                    inputMode="numeric"
                     value={cvv}
-                    onChange={(e) => setCvv(e.target.value)}
+                    onChange={(e) => setCvv(e.target.value.replace(/\D/g, ''))}
                     placeholder="CVV"
                     maxLength={4}
                     className="w-full px-3 py-3 text-sm border border-gray-300 rounded-lg bg-white focus:ring-2 focus:ring-primary-500 focus:border-primary-500 text-center"

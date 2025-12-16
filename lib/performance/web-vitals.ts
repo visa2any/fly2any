@@ -35,7 +35,6 @@ function getRating(name: MetricName, value: number): 'good' | 'needs-improvement
  * Report metric to analytics endpoint
  */
 export function reportMetric(metric: WebVitalMetric): void {
-  // Send to your analytics service
   if (typeof navigator !== 'undefined' && 'sendBeacon' in navigator) {
     const body = JSON.stringify({
       ...metric,
@@ -43,8 +42,7 @@ export function reportMetric(metric: WebVitalMetric): void {
       timestamp: Date.now(),
     });
 
-    // Replace with your actual endpoint
-    // navigator.sendBeacon('/api/analytics/web-vitals', body);
+    navigator.sendBeacon('/api/analytics/web-vitals', body);
     console.debug(`[WebVitals] ${metric.name}: ${metric.value.toFixed(2)} (${metric.rating})`);
   }
 }

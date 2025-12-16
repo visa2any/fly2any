@@ -1020,12 +1020,609 @@ export async function sendTicketedConfirmationEmail(booking: Booking): Promise<b
   }
 }
 
+/**
+ * Email Verification Email (Apple-Class Level 6)
+ * Sent when user needs to verify their email address
+ */
+function getEmailVerificationEmail(data: {
+  firstName: string;
+  verificationUrl: string;
+  expiresIn: string;
+}) {
+  const subject = `Verify Your Email - ${COMPANY_NAME}`;
+
+  const html = `
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <title>${subject}</title>
+  <!--[if mso]><style>table{border-collapse:collapse;}</style><![endif]-->
+</head>
+<body style="margin:0;padding:0;background-color:#f3f4f6;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Arial,sans-serif;">
+  <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="background-color:#f3f4f6;">
+    <tr>
+      <td align="center" style="padding:40px 20px;">
+        <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="max-width:600px;background:#ffffff;border-radius:16px;overflow:hidden;box-shadow:0 4px 6px -1px rgba(0,0,0,0.1);">
+
+          <!-- HEADER -->
+          <tr>
+            <td style="background:#E74035;padding:32px 24px;text-align:center;">
+              <img src="https://www.fly2any.com/fly2any-logo-white.png" alt="Fly2Any" width="120" style="display:block;margin:0 auto 16px;">
+              <h1 style="margin:0;font-size:24px;font-weight:800;color:#ffffff;">Verify Your Email</h1>
+              <p style="margin:8px 0 0;font-size:16px;color:rgba(255,255,255,0.9);">One quick step to secure your account</p>
+            </td>
+          </tr>
+
+          <!-- CONTENT -->
+          <tr>
+            <td style="padding:32px 24px;">
+              <p style="margin:0 0 16px;font-size:18px;color:#111827;">Hi ${data.firstName},</p>
+              <p style="margin:0 0 24px;font-size:16px;color:#6b7280;line-height:1.6;">
+                Welcome to ${COMPANY_NAME}! Please verify your email address to complete your registration and start booking amazing flights.
+              </p>
+
+              <!-- VERIFICATION BOX -->
+              <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="margin:24px 0;">
+                <tr>
+                  <td style="background:#fef3c7;border:2px solid #f59e0b;padding:20px;border-radius:12px;text-align:center;">
+                    <p style="margin:0 0 4px;font-size:14px;color:#92400e;">⏰ This link expires in</p>
+                    <p style="margin:0;font-size:24px;font-weight:700;color:#78350f;">${data.expiresIn}</p>
+                  </td>
+                </tr>
+              </table>
+
+              <!-- CTA BUTTON -->
+              <table role="presentation" width="100%" cellspacing="0" cellpadding="0">
+                <tr>
+                  <td align="center" style="padding:24px 0;">
+                    <a href="${data.verificationUrl}" style="display:inline-block;padding:16px 48px;background:#E74035;color:#ffffff;text-decoration:none;border-radius:10px;font-weight:700;font-size:16px;">Verify Email Address</a>
+                  </td>
+                </tr>
+              </table>
+
+              <!-- FALLBACK LINK -->
+              <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="margin-top:16px;">
+                <tr>
+                  <td style="background:#f8fafc;padding:16px;border-radius:8px;">
+                    <p style="margin:0;font-size:13px;color:#6b7280;line-height:1.5;">
+                      If the button doesn't work, copy and paste this link:<br>
+                      <a href="${data.verificationUrl}" style="color:#E74035;word-break:break-all;font-size:12px;">${data.verificationUrl}</a>
+                    </p>
+                  </td>
+                </tr>
+              </table>
+
+              <!-- SECURITY NOTE -->
+              <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="margin-top:24px;">
+                <tr>
+                  <td style="background:#eff6ff;border-left:4px solid #3b82f6;padding:16px;border-radius:4px;">
+                    <p style="margin:0;font-size:14px;color:#1e40af;line-height:1.5;">
+                      <strong>🔒 Security Note:</strong> If you didn't create an account with ${COMPANY_NAME}, you can safely ignore this email.
+                    </p>
+                  </td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+
+          <!-- FOOTER -->
+          <tr>
+            <td style="background:#1e293b;padding:24px;text-align:center;">
+              <p style="margin:0;font-size:14px;color:#ffffff;">24/7 Support: ${SUPPORT_EMAIL}</p>
+              <p style="margin:8px 0 0;font-size:12px;color:#94a3b8;">
+                <a href="https://www.fly2any.com/privacy" style="color:#94a3b8;">Privacy</a> |
+                <a href="https://www.fly2any.com/terms" style="color:#94a3b8;">Terms</a>
+              </p>
+              <p style="margin:12px 0 0;font-size:11px;color:#64748b;">© ${new Date().getFullYear()} ${COMPANY_NAME}. All rights reserved.</p>
+            </td>
+          </tr>
+
+        </table>
+      </td>
+    </tr>
+  </table>
+</body>
+</html>
+  `;
+
+  const text = `
+Verify Your Email - ${COMPANY_NAME}
+
+Hi ${data.firstName},
+
+Welcome to ${COMPANY_NAME}! Please verify your email address to complete your registration.
+
+Click here to verify: ${data.verificationUrl}
+
+This link expires in ${data.expiresIn}.
+
+If you didn't create an account, you can safely ignore this email.
+
+${COMPANY_NAME}
+  `;
+
+  return { subject, html, text };
+}
+
+export async function sendEmailVerificationEmail(
+  email: string,
+  data: {
+    firstName: string;
+    verificationUrl: string;
+    expiresIn: string;
+  }
+): Promise<boolean> {
+  try {
+    const { subject, html, text } = getEmailVerificationEmail(data);
+
+    console.log('📧 Sending email verification email via Mailgun...');
+    console.log(`   To: ${email}`);
+
+    const result = await mailgunClient.send({
+      from: FROM_EMAIL,
+      to: email,
+      subject,
+      html,
+      text,
+      forceSend: true,
+      tags: ['verification', 'security'],
+    });
+
+    if (result.success) {
+      console.log('✅ Email verification email sent successfully');
+      return true;
+    } else {
+      throw new Error(result.error || 'Failed to send email');
+    }
+  } catch (error: any) {
+    console.error('❌ Error sending email verification:', error);
+    await notifyAdminOfEmailFailure('Email Verification', email, error?.message || String(error));
+    return false;
+  }
+}
+
+/**
+ * Abandoned Booking Email (Apple-Class Level 6)
+ * Sent when user abandons booking mid-flow
+ */
+function getAbandonedBookingEmail(data: {
+  firstName: string;
+  origin: string;
+  originCity: string;
+  destination: string;
+  destinationCity: string;
+  departureDate: string;
+  price: number;
+  currency: string;
+  airline?: string;
+  resumeUrl: string;
+  expiresIn?: string;
+}) {
+  const subject = `Complete your ${data.origin} → ${data.destination} booking`;
+
+  const html = `
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <title>${subject}</title>
+</head>
+<body style="margin:0;padding:0;background-color:#f3f4f6;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Arial,sans-serif;">
+  <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="background-color:#f3f4f6;">
+    <tr>
+      <td align="center" style="padding:40px 20px;">
+        <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="max-width:600px;background:#ffffff;border-radius:16px;overflow:hidden;box-shadow:0 4px 6px -1px rgba(0,0,0,0.1);">
+
+          <!-- URGENCY BANNER -->
+          <tr>
+            <td style="background:linear-gradient(135deg,#fbbf24 0%,#f59e0b 100%);padding:12px 20px;text-align:center;">
+              <p style="margin:0;font-size:14px;font-weight:600;color:#78350f;">⏰ Your flight selection is waiting - price not guaranteed</p>
+            </td>
+          </tr>
+
+          <!-- HEADER -->
+          <tr>
+            <td style="background:#E74035;padding:32px 24px;text-align:center;">
+              <img src="https://www.fly2any.com/fly2any-logo-white.png" alt="Fly2Any" width="120" style="display:block;margin:0 auto 16px;">
+              <h1 style="margin:0;font-size:24px;font-weight:800;color:#ffffff;">Don't Miss Your Flight!</h1>
+              <p style="margin:8px 0 0;font-size:16px;color:rgba(255,255,255,0.9);">Your booking is almost complete</p>
+            </td>
+          </tr>
+
+          <!-- CONTENT -->
+          <tr>
+            <td style="padding:32px 24px;">
+              <p style="margin:0 0 16px;font-size:18px;color:#111827;">Hi ${data.firstName},</p>
+              <p style="margin:0 0 24px;font-size:16px;color:#6b7280;line-height:1.6;">
+                You were so close to booking your trip! We've saved your flight selection. Complete your booking now before prices change.
+              </p>
+
+              <!-- FLIGHT CARD -->
+              <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="border:2px solid #e5e7eb;border-radius:12px;overflow:hidden;margin-bottom:24px;">
+                <tr>
+                  <td style="background:#f8fafc;padding:24px;text-align:center;">
+                    <table role="presentation" width="100%" cellspacing="0" cellpadding="0">
+                      <tr>
+                        <td width="40%" style="text-align:center;">
+                          <p style="margin:0;font-size:32px;font-weight:800;color:#E74035;">${data.origin}</p>
+                          <p style="margin:4px 0 0;font-size:13px;color:#6b7280;">${data.originCity}</p>
+                        </td>
+                        <td width="20%" style="text-align:center;">
+                          <p style="margin:0;font-size:24px;">✈️</p>
+                          ${data.airline ? `<p style="margin:4px 0 0;font-size:12px;color:#6b7280;">${data.airline}</p>` : ''}
+                        </td>
+                        <td width="40%" style="text-align:center;">
+                          <p style="margin:0;font-size:32px;font-weight:800;color:#E74035;">${data.destination}</p>
+                          <p style="margin:4px 0 0;font-size:13px;color:#6b7280;">${data.destinationCity}</p>
+                        </td>
+                      </tr>
+                    </table>
+                    <p style="margin:16px 0 0;font-size:14px;color:#6b7280;">📅 ${data.departureDate}</p>
+                  </td>
+                </tr>
+                <tr>
+                  <td style="background:#ffffff;padding:20px;border-top:2px solid #e5e7eb;text-align:center;">
+                    <p style="margin:0;font-size:14px;color:#6b7280;">Your Price</p>
+                    <p style="margin:4px 0 0;font-size:32px;font-weight:800;color:#10b981;">${data.currency} ${data.price.toLocaleString()}</p>
+                    <p style="margin:4px 0 0;font-size:12px;color:#6b7280;">Total including taxes</p>
+                  </td>
+                </tr>
+              </table>
+
+              ${data.expiresIn ? `
+              <!-- COUNTDOWN -->
+              <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="margin-bottom:24px;">
+                <tr>
+                  <td style="background:#fef3c7;border:1px solid #fde68a;padding:16px;border-radius:8px;text-align:center;">
+                    <p style="margin:0;font-size:14px;color:#92400e;"><strong>⚡ Price locked for ${data.expiresIn}</strong> - Complete your booking now!</p>
+                  </td>
+                </tr>
+              </table>
+              ` : ''}
+
+              <!-- CTA BUTTON -->
+              <table role="presentation" width="100%" cellspacing="0" cellpadding="0">
+                <tr>
+                  <td align="center" style="padding:24px 0;">
+                    <a href="${data.resumeUrl}" style="display:inline-block;padding:16px 48px;background:#E74035;color:#ffffff;text-decoration:none;border-radius:10px;font-weight:700;font-size:16px;">Complete Booking</a>
+                  </td>
+                </tr>
+              </table>
+
+              <!-- TRUST SIGNALS -->
+              <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="margin-top:16px;">
+                <tr>
+                  <td width="33%" style="text-align:center;padding:12px;">
+                    <p style="margin:0;font-size:20px;">🔒</p>
+                    <p style="margin:4px 0 0;font-size:12px;color:#6b7280;">Secure Payment</p>
+                  </td>
+                  <td width="33%" style="text-align:center;padding:12px;">
+                    <p style="margin:0;font-size:20px;">💬</p>
+                    <p style="margin:4px 0 0;font-size:12px;color:#6b7280;">24/7 Support</p>
+                  </td>
+                  <td width="33%" style="text-align:center;padding:12px;">
+                    <p style="margin:0;font-size:20px;">✅</p>
+                    <p style="margin:4px 0 0;font-size:12px;color:#6b7280;">Best Price Guarantee</p>
+                  </td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+
+          <!-- FOOTER -->
+          <tr>
+            <td style="background:#1e293b;padding:24px;text-align:center;">
+              <p style="margin:0;font-size:14px;color:#ffffff;">24/7 Support: ${SUPPORT_EMAIL}</p>
+              <p style="margin:8px 0 0;font-size:12px;color:#94a3b8;">
+                <a href="https://www.fly2any.com/privacy" style="color:#94a3b8;">Privacy</a> |
+                <a href="https://www.fly2any.com/terms" style="color:#94a3b8;">Terms</a> |
+                <a href="https://www.fly2any.com/unsubscribe" style="color:#94a3b8;">Unsubscribe</a>
+              </p>
+            </td>
+          </tr>
+
+        </table>
+      </td>
+    </tr>
+  </table>
+</body>
+</html>
+  `;
+
+  const text = `
+Complete your ${data.origin} → ${data.destination} booking
+
+Hi ${data.firstName},
+
+You were so close to booking your trip! We've saved your flight selection.
+
+Flight: ${data.origin} (${data.originCity}) → ${data.destination} (${data.destinationCity})
+Date: ${data.departureDate}
+${data.airline ? `Airline: ${data.airline}` : ''}
+Price: ${data.currency} ${data.price.toLocaleString()}
+
+Complete your booking: ${data.resumeUrl}
+
+${data.expiresIn ? `Price locked for ${data.expiresIn} - book now!` : ''}
+
+${COMPANY_NAME}
+  `;
+
+  return { subject, html, text };
+}
+
+export async function sendAbandonedBookingEmail(
+  email: string,
+  data: {
+    firstName: string;
+    origin: string;
+    originCity: string;
+    destination: string;
+    destinationCity: string;
+    departureDate: string;
+    price: number;
+    currency: string;
+    airline?: string;
+    resumeUrl: string;
+    expiresIn?: string;
+  }
+): Promise<boolean> {
+  try {
+    const { subject, html, text } = getAbandonedBookingEmail(data);
+
+    console.log('📧 Sending abandoned booking email via Mailgun...');
+    console.log(`   To: ${email}`);
+    console.log(`   Route: ${data.origin} → ${data.destination}`);
+
+    const result = await mailgunClient.send({
+      from: FROM_EMAIL,
+      to: email,
+      subject,
+      html,
+      text,
+      forceSend: true,
+      tags: ['abandoned', 'booking', 'recovery'],
+    });
+
+    if (result.success) {
+      console.log('✅ Abandoned booking email sent successfully');
+      return true;
+    } else {
+      throw new Error(result.error || 'Failed to send email');
+    }
+  } catch (error: any) {
+    console.error('❌ Error sending abandoned booking email:', error);
+    return false; // Don't notify admin for marketing emails
+  }
+}
+
+/**
+ * Abandoned Search Email (Apple-Class Level 6)
+ * Sent when user abandons search without booking
+ */
+function getAbandonedSearchEmail(data: {
+  firstName: string;
+  origin: string;
+  originCity: string;
+  destination: string;
+  destinationCity: string;
+  departureDate: string;
+  returnDate?: string;
+  lowestPrice?: number;
+  currency: string;
+  searchUrl: string;
+}) {
+  const subject = `Still looking for ${data.origin} → ${data.destination} flights?`;
+
+  const html = `
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <title>${subject}</title>
+</head>
+<body style="margin:0;padding:0;background-color:#f3f4f6;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Arial,sans-serif;">
+  <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="background-color:#f3f4f6;">
+    <tr>
+      <td align="center" style="padding:40px 20px;">
+        <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="max-width:600px;background:#ffffff;border-radius:16px;overflow:hidden;box-shadow:0 4px 6px -1px rgba(0,0,0,0.1);">
+
+          <!-- HEADER -->
+          <tr>
+            <td style="background:#E74035;padding:32px 24px;text-align:center;">
+              <img src="https://www.fly2any.com/fly2any-logo-white.png" alt="Fly2Any" width="120" style="display:block;margin:0 auto 16px;">
+              <h1 style="margin:0;font-size:24px;font-weight:800;color:#ffffff;">We Found Great Deals!</h1>
+              <p style="margin:8px 0 0;font-size:16px;color:rgba(255,255,255,0.9);">For your recent search</p>
+            </td>
+          </tr>
+
+          <!-- CONTENT -->
+          <tr>
+            <td style="padding:32px 24px;">
+              <p style="margin:0 0 16px;font-size:18px;color:#111827;">Hi ${data.firstName},</p>
+              <p style="margin:0 0 24px;font-size:16px;color:#6b7280;line-height:1.6;">
+                We noticed you were searching for flights. Great news - we've found some excellent deals for your route!
+              </p>
+
+              <!-- ROUTE CARD -->
+              <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="border:2px solid #e5e7eb;border-radius:12px;overflow:hidden;margin-bottom:24px;">
+                <tr>
+                  <td style="background:#f8fafc;padding:24px;text-align:center;">
+                    <table role="presentation" width="100%" cellspacing="0" cellpadding="0">
+                      <tr>
+                        <td width="40%" style="text-align:center;">
+                          <p style="margin:0;font-size:28px;font-weight:800;color:#E74035;">${data.origin}</p>
+                          <p style="margin:4px 0 0;font-size:13px;color:#6b7280;">${data.originCity}</p>
+                        </td>
+                        <td width="20%" style="text-align:center;">
+                          <p style="margin:0;font-size:24px;">${data.returnDate ? '↔️' : '✈️'}</p>
+                          <p style="margin:4px 0 0;font-size:12px;color:#6b7280;">${data.returnDate ? 'Round Trip' : 'One Way'}</p>
+                        </td>
+                        <td width="40%" style="text-align:center;">
+                          <p style="margin:0;font-size:28px;font-weight:800;color:#E74035;">${data.destination}</p>
+                          <p style="margin:4px 0 0;font-size:13px;color:#6b7280;">${data.destinationCity}</p>
+                        </td>
+                      </tr>
+                    </table>
+                    <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="margin-top:16px;">
+                      <tr>
+                        <td width="50%" style="text-align:center;padding:8px;">
+                          <p style="margin:0;font-size:12px;color:#6b7280;">Departure</p>
+                          <p style="margin:2px 0 0;font-size:14px;font-weight:600;color:#111827;">${data.departureDate}</p>
+                        </td>
+                        ${data.returnDate ? `
+                        <td width="50%" style="text-align:center;padding:8px;border-left:1px solid #e5e7eb;">
+                          <p style="margin:0;font-size:12px;color:#6b7280;">Return</p>
+                          <p style="margin:2px 0 0;font-size:14px;font-weight:600;color:#111827;">${data.returnDate}</p>
+                        </td>
+                        ` : ''}
+                      </tr>
+                    </table>
+                  </td>
+                </tr>
+                ${data.lowestPrice ? `
+                <tr>
+                  <td style="background:#d1fae5;padding:16px;text-align:center;border-top:2px solid #10b981;">
+                    <p style="margin:0;font-size:14px;color:#065f46;">Prices starting from</p>
+                    <p style="margin:4px 0 0;font-size:28px;font-weight:800;color:#059669;">${data.currency} ${data.lowestPrice.toLocaleString()}</p>
+                  </td>
+                </tr>
+                ` : ''}
+              </table>
+
+              <!-- CTA BUTTON -->
+              <table role="presentation" width="100%" cellspacing="0" cellpadding="0">
+                <tr>
+                  <td align="center" style="padding:24px 0;">
+                    <a href="${data.searchUrl}" style="display:inline-block;padding:16px 48px;background:#E74035;color:#ffffff;text-decoration:none;border-radius:10px;font-weight:700;font-size:16px;">See All Flights</a>
+                  </td>
+                </tr>
+              </table>
+
+              <!-- TIP BOX -->
+              <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="margin-top:16px;">
+                <tr>
+                  <td style="background:#eff6ff;border-left:4px solid #3b82f6;padding:16px;border-radius:4px;">
+                    <p style="margin:0;font-size:14px;color:#1e40af;line-height:1.5;">
+                      <strong>💡 Pro Tip:</strong> Set up a price alert to get notified when prices drop for this route!
+                    </p>
+                  </td>
+                </tr>
+              </table>
+
+              <!-- SOCIAL PROOF -->
+              <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="margin-top:20px;">
+                <tr>
+                  <td style="background:#fef3c7;padding:12px;border-radius:8px;text-align:center;">
+                    <p style="margin:0;font-size:13px;color:#92400e;">🔥 23 people booked this route today</p>
+                  </td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+
+          <!-- FOOTER -->
+          <tr>
+            <td style="background:#1e293b;padding:24px;text-align:center;">
+              <p style="margin:0;font-size:14px;color:#ffffff;">24/7 Support: ${SUPPORT_EMAIL}</p>
+              <p style="margin:8px 0 0;font-size:12px;color:#94a3b8;">
+                <a href="https://www.fly2any.com/privacy" style="color:#94a3b8;">Privacy</a> |
+                <a href="https://www.fly2any.com/terms" style="color:#94a3b8;">Terms</a> |
+                <a href="https://www.fly2any.com/unsubscribe" style="color:#94a3b8;">Unsubscribe</a>
+              </p>
+            </td>
+          </tr>
+
+        </table>
+      </td>
+    </tr>
+  </table>
+</body>
+</html>
+  `;
+
+  const text = `
+Still looking for ${data.origin} → ${data.destination} flights?
+
+Hi ${data.firstName},
+
+We noticed you were searching for flights. Great news - we've found some excellent deals!
+
+Route: ${data.origin} (${data.originCity}) → ${data.destination} (${data.destinationCity})
+Departure: ${data.departureDate}
+${data.returnDate ? `Return: ${data.returnDate}` : 'One Way'}
+${data.lowestPrice ? `Prices from: ${data.currency} ${data.lowestPrice.toLocaleString()}` : ''}
+
+Search again: ${data.searchUrl}
+
+Tip: Set up a price alert to get notified when prices drop!
+
+${COMPANY_NAME}
+  `;
+
+  return { subject, html, text };
+}
+
+export async function sendAbandonedSearchEmail(
+  email: string,
+  data: {
+    firstName: string;
+    origin: string;
+    originCity: string;
+    destination: string;
+    destinationCity: string;
+    departureDate: string;
+    returnDate?: string;
+    lowestPrice?: number;
+    currency: string;
+    searchUrl: string;
+  }
+): Promise<boolean> {
+  try {
+    const { subject, html, text } = getAbandonedSearchEmail(data);
+
+    console.log('📧 Sending abandoned search email via Mailgun...');
+    console.log(`   To: ${email}`);
+    console.log(`   Route: ${data.origin} → ${data.destination}`);
+
+    const result = await mailgunClient.send({
+      from: FROM_EMAIL,
+      to: email,
+      subject,
+      html,
+      text,
+      forceSend: true,
+      tags: ['abandoned', 'search', 'recovery'],
+    });
+
+    if (result.success) {
+      console.log('✅ Abandoned search email sent successfully');
+      return true;
+    } else {
+      throw new Error(result.error || 'Failed to send email');
+    }
+  } catch (error: any) {
+    console.error('❌ Error sending abandoned search email:', error);
+    return false;
+  }
+}
+
 export const emailService = {
   sendPaymentInstructions: sendPaymentInstructionsEmail,
   sendBookingConfirmation: sendBookingConfirmationEmail,
   sendFlightConfirmation: sendBookingConfirmationEmail, // Alias for capture endpoint
   sendPriceAlert: sendPriceAlertEmail,
   sendTicketedConfirmation: sendTicketedConfirmationEmail,
+  sendEmailVerification: sendEmailVerificationEmail,
+  sendAbandonedBooking: sendAbandonedBookingEmail,
+  sendAbandonedSearch: sendAbandonedSearchEmail,
   // Admin functions
   getEmailFailures,
   clearEmailFailures,
