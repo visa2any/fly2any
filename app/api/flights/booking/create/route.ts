@@ -1116,13 +1116,13 @@ Customer needs to complete payment to finalize booking.
         id: `passenger_${idx + 1}`,
         type: p.type || 'adult',
         title: p.title || 'Mr',
-        firstName: p.firstName,
-        lastName: p.lastName,
+        firstName: p.firstName?.toUpperCase(), // Always UPPERCASE for airline compatibility
+        lastName: p.lastName?.toUpperCase(),   // Always UPPERCASE for airline compatibility
         dateOfBirth: p.dateOfBirth || '1990-01-01',
-        nationality: p.nationality || 'US',
-        passportNumber: p.passportNumber,
+        nationality: p.nationality?.toUpperCase() || 'US',
+        passportNumber: p.passportNumber?.toUpperCase(),
         passportExpiry: p.passportExpiryDate,
-        email: p.email || contactInfo?.email,
+        email: (p.email || contactInfo?.email)?.toLowerCase(), // Always lowercase
         phone: p.phone || contactInfo?.phone,
         specialRequests: p.specialRequests || [],
         // Loyalty Program Integration
@@ -1131,9 +1131,9 @@ Customer needs to complete payment to finalize booking.
         tsaPreCheck: p.tsaPreCheck,
       }));
 
-      // Prepare contact info
+      // Prepare contact info (email always lowercase)
       const bookingContactInfo: ContactInfo = {
-        email: contactInfo?.email || travelers[0].contact.emailAddress,
+        email: (contactInfo?.email || travelers[0].contact.emailAddress)?.toLowerCase(),
         phone: contactInfo?.phone || travelers[0].contact.phones[0].number,
         alternatePhone: contactInfo?.alternatePhone,
         emergencyContact: contactInfo?.emergencyContact,
