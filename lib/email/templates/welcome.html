@@ -1,63 +1,136 @@
 <!DOCTYPE html>
-<html>
-<body style="margin:0; background:#FAFAFA; font-family:Inter, Helvetica, Arial, sans-serif;">
+<html lang="en" xmlns:v="urn:schemas-microsoft-com:vml" xmlns:o="urn:schemas-microsoft-com:office:office">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="x-apple-disable-message-reformatting">
+  <meta name="color-scheme" content="light dark">
+  <title>Welcome to Fly2Any</title>
+  <style>
+    :root { color-scheme: light dark; }
+    @media (prefers-color-scheme: dark) {
+      .dark-bg { background-color: #1A1A1A !important; }
+      .dark-card { background-color: #222222 !important; }
+      .dark-text { color: #FAFAFA !important; }
+    }
+    @media only screen and (max-width: 620px) {
+      .mobile-full { width: 100% !important; }
+      .mobile-padding { padding: 16px !important; }
+    }
+  </style>
+</head>
+<body style="margin:0; padding:0; background-color:#FAFAFA; font-family:-apple-system,BlinkMacSystemFont,'Inter','SF Pro Display',Arial,sans-serif; -webkit-font-smoothing:antialiased;">
 
-<table width="100%" cellpadding="0" cellspacing="0">
-<tr>
-<td align="center" style="padding:24px;">
+  <div style="display:none; max-height:0; overflow:hidden; font-size:1px; line-height:1px; color:#FAFAFA;">
+    Welcome to Fly2Any - Your journey starts here
+  </div>
 
-<table width="600" style="background:#FFFFFF; border-radius:16px; padding:32px; box-shadow:0 4px 12px rgba(0,0,0,0.06);">
+  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" class="dark-bg">
+    <tr>
+      <td align="center" style="padding:24px 16px;" class="mobile-padding">
+        <table role="presentation" width="600" cellpadding="0" cellspacing="0" border="0" class="mobile-full" style="max-width:600px;">
+          <tr>
+            <td style="background-color:#FFFFFF; border-radius:16px; box-shadow:0 1px 3px rgba(0,0,0,0.08), 0 4px 12px rgba(0,0,0,0.05);" class="dark-card">
 
-<tr>
-<td align="center" style="padding-bottom:24px;">
-  <img src="https://www.fly2any.com/logo-email.png" width="120" alt="Fly2Any" />
-</td>
-</tr>
+              <!-- Logo -->
+              <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
+                <tr>
+                  <td align="center" style="padding:32px 32px 24px;">
+                    <img src="https://www.fly2any.com/logo-email.png" width="140" height="40" alt="Fly2Any" style="display:block; border:0;" />
+                  </td>
+                </tr>
+              </table>
 
-<tr>
-<td style="font-size:24px; font-weight:700; text-align:center; color:#0A0A0A;">
-Welcome to Fly2Any
-</td>
-</tr>
+              <!-- Headline -->
+              <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
+                <tr>
+                  <td style="padding:0 32px 8px; text-align:center;">
+                    <h1 style="margin:0; font-size:28px; font-weight:700; color:#0A0A0A; line-height:1.2;" class="dark-text">Welcome to Fly2Any</h1>
+                  </td>
+                </tr>
+                <tr>
+                  <td style="padding:0 32px 24px; text-align:center;">
+                    <p style="margin:0; font-size:16px; color:#6B6B6B; line-height:1.5;">Your journey starts here</p>
+                  </td>
+                </tr>
+              </table>
 
-<tr>
-<td style="padding:16px 0; font-size:16px; text-align:center; color:#1C1C1C;">
-Enjoy <strong>$20 OFF flights</strong> or <strong>5% OFF hotels</strong>
-</td>
-</tr>
+              <!-- Welcome Message -->
+              <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
+                <tr>
+                  <td style="padding:0 32px 24px;">
+                    <p style="margin:0; font-size:16px; color:#1C1C1C; line-height:1.6;" class="dark-text">
+                      Hi {{first_name}}, we're excited to have you. Fly2Any makes booking travel simple, transparent, and stress-free.
+                    </p>
+                  </td>
+                </tr>
+              </table>
 
-<tr>
-<td style="text-align:center; font-size:18px; font-weight:700; color:#E74035; padding-bottom:16px;">
-WELCOME20FLIGHTS - WELCOME5HOTELS
-</td>
-</tr>
+              <!-- Welcome Gift Card -->
+              <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
+                <tr>
+                  <td style="padding:0 32px 24px;">
+                    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background:linear-gradient(135deg, #E74035 0%, #D63930 100%); border-radius:12px;">
+                      <tr>
+                        <td style="padding:28px; text-align:center;">
+                          <p style="margin:0 0 8px; font-size:14px; color:rgba(255,255,255,0.9); text-transform:uppercase; letter-spacing:1px;">Your welcome gift</p>
+                          <p style="margin:0 0 12px; font-size:36px; font-weight:700; color:#FFFFFF;">{{coupon_value}} OFF</p>
+                          <p style="margin:0; font-size:18px; font-weight:600; color:#FFFFFF; background:rgba(0,0,0,0.2); display:inline-block; padding:10px 24px; border-radius:8px; letter-spacing:2px;">{{coupon_code}}</p>
+                        </td>
+                      </tr>
+                    </table>
+                  </td>
+                </tr>
+              </table>
 
-<tr>
-<td align="center" style="padding-bottom:24px;">
-<a href="https://www.fly2any.com" style="
-background:#E74035;
-color:#FFFFFF;
-padding:14px 28px;
-border-radius:12px;
-text-decoration:none;
-font-weight:600;
-">
-Start your trip
-</a>
-</td>
-</tr>
+              <!-- CTA Button -->
+              <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
+                <tr>
+                  <td align="center" style="padding:0 32px 24px;">
+                    <a href="https://www.fly2any.com" target="_blank" style="display:inline-block; padding:16px 32px; background-color:#E74035; color:#FFFFFF; font-size:16px; font-weight:600; text-decoration:none; border-radius:12px; min-width:200px; text-align:center;">Start exploring</a>
+                  </td>
+                </tr>
+              </table>
 
-<tr>
-<td style="font-size:13px; color:#6B6B6B; text-align:center;">
-Fly2Any - Global Travel Platform
-</td>
-</tr>
+              <!-- Support Note -->
+              <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
+                <tr>
+                  <td style="padding:0 32px 24px;">
+                    <p style="margin:0; font-size:14px; color:#6B6B6B; line-height:1.6; text-align:center;">
+                      Need help? Our support team is available 24/7.
+                    </p>
+                  </td>
+                </tr>
+              </table>
 
-</table>
+              <!-- Footer -->
+              <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
+                <tr>
+                  <td style="padding:24px 32px; border-top:1px solid #E6E6E6;">
+                    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
+                      <tr>
+                        <td align="center">
+                          <p style="margin:0; font-size:13px; color:#9F9F9F; line-height:1.6;">
+                            Fly2Any Inc. • Global Travel Platform<br>
+                            <a href="https://www.fly2any.com/support" style="color:#6B6B6B; text-decoration:none;">Support</a> •
+                            <a href="https://www.fly2any.com/privacy" style="color:#6B6B6B; text-decoration:none;">Privacy</a> •
+                            <a href="https://www.fly2any.com/terms" style="color:#6B6B6B; text-decoration:none;">Terms</a>
+                            <br><a href="{{unsubscribe_url}}" style="color:#9F9F9F; text-decoration:underline;">Unsubscribe</a>
+                          </p>
+                        </td>
+                      </tr>
+                    </table>
+                  </td>
+                </tr>
+              </table>
 
-</td>
-</tr>
-</table>
+            </td>
+          </tr>
+        </table>
+      </td>
+    </tr>
+  </table>
 
 </body>
 </html>

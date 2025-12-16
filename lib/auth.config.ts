@@ -95,11 +95,38 @@ export const authConfig = {
         try {
           const existingUser = await prisma!.user.findUnique({
             where: { email: user.email! },
+            include: { accounts: true },
           });
 
-          if (!existingUser) {
-            // Create user preferences for new users
-            await prisma!.user.create({
+          if (existingUser) {
+            // Check if Google account is already linked
+            const hasGoogleAccount = existingUser.accounts?.some(
+              (acc: { provider: string }) => acc.provider === 'google'
+            );
+
+            if (!hasGoogleAccount) {
+              // AUTO-LINK: Link Google account to existing user (FIX for OAuthAccountNotLinked)
+              await prisma!.account.create({
+                data: {
+                  userId: existingUser.id,
+                  type: account.type,
+                  provider: account.provider,
+                  providerAccountId: account.providerAccountId,
+                  access_token: account.access_token,
+                  refresh_token: account.refresh_token,
+                  expires_at: account.expires_at,
+                  token_type: account.token_type,
+                  scope: account.scope,
+                  id_token: account.id_token,
+                },
+              });
+              console.log(`✅ Auto-linked Google account to existing user: ${user.email}`);
+            }
+            // Update user.id to match existing user for proper session
+            user.id = existingUser.id;
+          } else {
+            // Create new user with preferences
+            const newUser = await prisma!.user.create({
               data: {
                 email: user.email!,
                 name: user.name,
@@ -110,9 +137,10 @@ export const authConfig = {
                 },
               },
             });
+            user.id = newUser.id;
           }
         } catch (error) {
-          console.error('Error creating user:', error);
+          console.error('Error in Google signIn:', error);
           return false;
         }
       }

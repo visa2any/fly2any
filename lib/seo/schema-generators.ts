@@ -295,6 +295,86 @@ export function generateEventSchema(event: EventData) {
   };
 }
 
+// Review Schema (for social proof)
+export interface ReviewData {
+  author: string;
+  rating: number;
+  reviewBody: string;
+  datePublished: string;
+}
+
+export function generateReviewSchema(reviews: ReviewData[]) {
+  return {
+    '@context': 'https://schema.org',
+    '@type': 'Product',
+    name: 'Fly2Any Flight Search',
+    description: 'AI-powered flight and hotel search platform',
+    brand: { '@type': 'Brand', name: SITE_NAME },
+    aggregateRating: {
+      '@type': 'AggregateRating',
+      ratingValue: (reviews.reduce((sum, r) => sum + r.rating, 0) / reviews.length).toFixed(1),
+      reviewCount: reviews.length.toString(),
+      bestRating: '5',
+      worstRating: '1',
+    },
+    review: reviews.map(r => ({
+      '@type': 'Review',
+      author: { '@type': 'Person', name: r.author },
+      reviewRating: { '@type': 'Rating', ratingValue: r.rating, bestRating: 5 },
+      reviewBody: r.reviewBody,
+      datePublished: r.datePublished,
+    })),
+  };
+}
+
+// HowTo Schema (for booking guides)
+export interface HowToStep {
+  name: string;
+  text: string;
+  image?: string;
+}
+
+export function generateHowToSchema(title: string, description: string, steps: HowToStep[]) {
+  return {
+    '@context': 'https://schema.org',
+    '@type': 'HowTo',
+    name: title,
+    description,
+    totalTime: 'PT5M',
+    step: steps.map((s, i) => ({
+      '@type': 'HowToStep',
+      position: i + 1,
+      name: s.name,
+      text: s.text,
+      ...(s.image && { image: s.image }),
+    })),
+  };
+}
+
+// Video Schema
+export interface VideoData {
+  name: string;
+  description: string;
+  thumbnailUrl: string;
+  uploadDate: string;
+  duration: string;
+  contentUrl: string;
+}
+
+export function generateVideoSchema(video: VideoData) {
+  return {
+    '@context': 'https://schema.org',
+    '@type': 'VideoObject',
+    name: video.name,
+    description: video.description,
+    thumbnailUrl: video.thumbnailUrl,
+    uploadDate: video.uploadDate,
+    duration: video.duration,
+    contentUrl: video.contentUrl,
+    publisher: { '@type': 'Organization', name: SITE_NAME, logo: { '@type': 'ImageObject', url: `${SITE_URL}/logo.png` } },
+  };
+}
+
 // Combine multiple schemas
 export function combineSchemas(...schemas: object[]): string {
   return JSON.stringify(schemas.length === 1 ? schemas[0] : schemas);

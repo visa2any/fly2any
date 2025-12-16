@@ -1188,6 +1188,18 @@ class DuffelAPI {
           throw new Error('PRICE_CHANGED: The price for this flight has changed. Please review the new price.');
         }
 
+        // Check for expired/not found offer (FIX: Handle "Linked record(s) not found")
+        const notFoundError = duffelErrors.find((e: any) =>
+          e.code === 'not_found' ||
+          e.title?.toLowerCase().includes('not found') ||
+          e.message?.toLowerCase().includes('linked record') ||
+          e.message?.toLowerCase().includes('not found')
+        );
+
+        if (notFoundError) {
+          throw new Error('OFFER_EXPIRED: This flight offer has expired. Offers are only valid for 30 minutes. Please search again for current prices.');
+        }
+
         // Check for invalid passenger data
         const invalidDataError = duffelErrors.find((e: any) =>
           e.code === 'validation_error' ||

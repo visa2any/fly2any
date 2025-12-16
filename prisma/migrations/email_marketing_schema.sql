@@ -88,8 +88,6 @@ CREATE TABLE IF NOT EXISTS "EmailSuppression" (
 
 CREATE UNIQUE INDEX IF NOT EXISTS "EmailSuppression_email_key" ON "EmailSuppression"("email");
 
--- Update Subscriber table if needed
-ALTER TABLE "Subscriber" ADD COLUMN IF NOT EXISTS "bounceCount" INTEGER DEFAULT 0;
-ALTER TABLE "Subscriber" ADD COLUMN IF NOT EXISTS "lastBounceAt" TIMESTAMP(3);
-ALTER TABLE "Subscriber" ADD COLUMN IF NOT EXISTS "complainedAt" TIMESTAMP(3);
-ALTER TABLE "Subscriber" ADD COLUMN IF NOT EXISTS "unsubscribedAt" TIMESTAMP(3);
+-- Note: Subscriber columns would be added if table exists
+-- ALTER TABLE "Subscriber" ADD COLUMN IF NOT EXISTS "bounceCount" INTEGER DEFAULT 0;
+-- Run separately if Subscriber table exists
