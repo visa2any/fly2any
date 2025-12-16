@@ -89,7 +89,7 @@ export function BottomTabBar({ translations, onMoreClick }: BottomTabBarProps) {
   const tabs: Tab[] = useMemo(() => [
     {
       id: 'home',
-      icon: '/icon-72.png',
+      icon: '/favicon-32x32.png',
       iconType: 'image',
       label: 'Fly2Any',
       href: '/',

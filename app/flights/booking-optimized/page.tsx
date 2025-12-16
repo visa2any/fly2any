@@ -183,8 +183,52 @@ function BookingPageContent() {
           fareVariantCount: flight.fareVariants?.length || 0,
           fareVariantNames: flight.fareVariants?.map((v: any) => v.name) || [],
           price: flight.price?.total,
-          keys: Object.keys(flight).slice(0, 10)
+          keys: Object.keys(flight).slice(0, 10),
+          _storedAt: flight._storedAt,
+          _offerExpiresAt: flight._offerExpiresAt,
         });
+
+        // ===========================
+        // CRITICAL: OFFER FRESHNESS VALIDATION
+        // Duffel offers expire after 30 min - check EARLY to avoid wasted user effort
+        // ===========================
+        const OFFER_VALIDITY_MS = 25 * 60 * 1000; // 25 minutes (5 min safety buffer)
+        const storedAt = flight._storedAt || 0;
+        const expiresAt = flight._offerExpiresAt || (storedAt + OFFER_VALIDITY_MS);
+        const now = Date.now();
+        const offerAgeMs = now - storedAt;
+        const remainingMs = expiresAt - now;
+
+        // Log offer freshness status
+        console.log('⏱️ Offer freshness check:', {
+          storedAt: storedAt ? new Date(storedAt).toISOString() : 'unknown',
+          expiresAt: expiresAt ? new Date(expiresAt).toISOString() : 'unknown',
+          ageMinutes: Math.round(offerAgeMs / 60000),
+          remainingMinutes: Math.round(remainingMs / 60000),
+          isExpired: remainingMs <= 0,
+          isStale: storedAt === 0, // No timestamp = old cached data
+        });
+
+        // If offer is expired or has no timestamp (stale cached data), show modal immediately
+        if (remainingMs <= 0 || storedAt === 0) {
+          console.warn('⚠️ Offer expired or stale - showing refresh modal');
+
+          // Clear the expired offer from sessionStorage
+          sessionStorage.removeItem(`flight_${flightId}`);
+          sessionStorage.removeItem(`flight_search_${flightId}`);
+
+          // Set flight data for modal display (route info)
+          setFlightData({ ...flight, search });
+          setOfferCreatedAt(storedAt || (now - OFFER_VALIDITY_MS - 60000)); // Make it show as expired
+          setShowExpiredModal(true);
+          setLoading(false);
+          return; // Stop here - don't proceed with booking flow
+        }
+
+        // Update offer creation time for countdown display
+        if (storedAt > 0) {
+          setOfferCreatedAt(storedAt);
+        }
 
         setFlightData({ ...flight, search });
 
@@ -1519,7 +1563,10 @@ function BookingPageContent() {
           destination: flightData?.search?.to || '',
           departureDate: flightData?.search?.departure || '',
           returnDate: flightData?.search?.return,
-          adults: passengers.length || 1,
+          // Use URL params for passenger counts (passengers array may be empty if modal shows early)
+          adults: parseInt(searchParams.get('adults') || '1', 10),
+          children: parseInt(searchParams.get('children') || '0', 10),
+          infants: parseInt(searchParams.get('infants') || '0', 10),
         }}
         originalOffer={{
           id: flightData?.id || '',
@@ -1528,14 +1575,24 @@ function BookingPageContent() {
           departureTime: flightData?.itineraries?.[0]?.segments?.[0]?.departure?.at,
         }}
         onRefreshed={(newOffer) => {
-          // Update flight data with fresh offer
-          setFlightData((prev: any) => ({
-            ...prev,
+          // Update flight data with fresh offer and reset timestamp
+          const updatedFlight = {
+            ...flightData,
             ...newOffer,
             id: newOffer.id,
             price: newOffer.price,
-          }));
+            _storedAt: Date.now(),
+            _offerExpiresAt: Date.now() + (25 * 60 * 1000),
+          };
+          setFlightData(updatedFlight);
           setOfferCreatedAt(Date.now());
+
+          // Save updated flight to sessionStorage
+          const flightId = searchParams.get('flightId');
+          if (flightId) {
+            sessionStorage.setItem(`flight_${flightId}`, JSON.stringify(updatedFlight));
+          }
+
           toast.success('Price updated! You can continue booking.');
         }}
       />

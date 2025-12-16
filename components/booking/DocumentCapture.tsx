@@ -107,34 +107,62 @@ export function DocumentCapture({ docType, onCapture, onCancel }: DocumentCaptur
 
   const config = docConfig[docType];
 
-  // Start camera
+  const [permissionState, setPermissionState] = useState<'prompt' | 'denied' | 'granted' | null>(null);
+  const [isPWA, setIsPWA] = useState(false);
+
+  // Detect PWA mode
   useEffect(() => {
-    const startCamera = async () => {
+    const isStandalone = window.matchMedia('(display-mode: standalone)').matches ||
+                        (window.navigator as any).standalone === true;
+    setIsPWA(isStandalone);
+  }, []);
+
+  // Check permission state and start camera
+  useEffect(() => {
+    const initCamera = async () => {
       try {
-        const constraints = {
-          video: {
-            facingMode: 'environment',
-            width: { ideal: 1920 },
-            height: { ideal: 1080 },
-          },
-        };
+        // Check permission state first (if supported)
+        if (navigator.permissions?.query) {
+          const result = await navigator.permissions.query({ name: 'camera' as PermissionName });
+          setPermissionState(result.state as 'prompt' | 'denied' | 'granted');
 
-        const stream = await navigator.mediaDevices.getUserMedia(constraints);
+          // Listen for permission changes
+          result.onchange = () => setPermissionState(result.state as any);
+        }
+
+        // Request camera access
+        const stream = await navigator.mediaDevices.getUserMedia({
+          video: { facingMode: 'environment', width: { ideal: 1920 }, height: { ideal: 1080 } },
+        });
+
         streamRef.current = stream;
-
         if (videoRef.current) {
           videoRef.current.srcObject = stream;
           await videoRef.current.play();
-          setIsLoading(false);
         }
+        setIsLoading(false);
+        setError(null);
       } catch (err: any) {
         console.error('Camera error:', err);
-        setError('Camera access denied. Please allow camera permissions.');
+
+        // Detect if permanently denied vs just dismissed
+        if (navigator.permissions?.query) {
+          const result = await navigator.permissions.query({ name: 'camera' as PermissionName });
+          setPermissionState(result.state as any);
+
+          if (result.state === 'denied') {
+            setError('Camera permanently blocked. Please enable in browser settings.');
+          } else {
+            setError('Camera access needed. Tap "Allow" when prompted.');
+          }
+        } else {
+          setError('Camera access denied. Please allow camera permissions.');
+        }
         setIsLoading(false);
       }
     };
 
-    startCamera();
+    initCamera();
 
     return () => {
       if (streamRef.current) {
@@ -304,15 +332,99 @@ export function DocumentCapture({ docType, onCapture, onCancel }: DocumentCaptur
             <p>Starting camera...</p>
           </div>
         ) : error ? (
-          <div className="text-white text-center p-8">
-            <AlertCircle className="w-16 h-16 mx-auto mb-4 text-red-400" />
-            <p className="mb-4">{error}</p>
-            <button
-              onClick={onCancel}
-              className="px-6 py-2 bg-white/20 rounded-lg hover:bg-white/30 transition-colors"
-            >
-              Close
-            </button>
+          <div className="text-white text-center p-8 max-w-md">
+            <AlertCircle className="w-16 h-16 mx-auto mb-4 text-amber-400" />
+            <h3 className="text-xl font-bold mb-2">Camera Access Required</h3>
+            <p className="mb-4 text-white/80">{error}</p>
+
+            {/* Platform-specific instructions */}
+            <div className="bg-white/10 rounded-xl p-4 mb-6 text-left text-sm">
+              <p className="font-semibold mb-2 text-white">
+                {permissionState === 'denied' ? 'To enable camera:' : 'Quick tip:'}
+              </p>
+              <ul className="space-y-1 text-white/70">
+                {permissionState === 'denied' ? (
+                  // Permanently denied - show platform + PWA specific instructions
+                  /iPhone|iPad/.test(navigator.userAgent) ? (
+                    isPWA ? (
+                      <>
+                        <li>• Open iPhone <b>Settings</b></li>
+                        <li>• Scroll down to <b>Fly2Any</b></li>
+                        <li>• Enable <b>Camera</b> access</li>
+                      </>
+                    ) : (
+                      <>
+                        <li>• Open iPhone <b>Settings</b></li>
+                        <li>• Scroll to <b>Safari</b> → Camera</li>
+                        <li>• Select <b>Allow</b></li>
+                      </>
+                    )
+                  ) : /Android/.test(navigator.userAgent) ? (
+                    isPWA ? (
+                      <>
+                        <li>• Long-press <b>Fly2Any</b> app icon</li>
+                        <li>• Tap <b>App info</b> → Permissions</li>
+                        <li>• Enable <b>Camera</b></li>
+                      </>
+                    ) : (
+                      <>
+                        <li>• Tap ⋮ menu → <b>Settings</b></li>
+                        <li>• <b>Site settings</b> → Camera</li>
+                        <li>• Find this site and Allow</li>
+                      </>
+                    )
+                  ) : (
+                    <>
+                      <li>• Click 🔒 icon in address bar</li>
+                      <li>• Find <b>Camera</b> → Allow</li>
+                      <li>• Refresh this page</li>
+                    </>
+                  )
+                ) : (
+                  // Not permanently denied - can retry
+                  <>
+                    <li>• Tap <b>"Try Again"</b> below</li>
+                    <li>• When prompted, tap <b>"Allow"</b></li>
+                  </>
+                )}
+              </ul>
+            </div>
+
+            <div className="flex gap-3">
+              <button
+                onClick={() => {
+                  setError(null);
+                  setIsLoading(true);
+                  navigator.mediaDevices.getUserMedia({
+                    video: { facingMode: 'environment', width: { ideal: 1920 }, height: { ideal: 1080 } }
+                  }).then(stream => {
+                    streamRef.current = stream;
+                    if (videoRef.current) {
+                      videoRef.current.srcObject = stream;
+                      videoRef.current.play();
+                    }
+                    setIsLoading(false);
+                    setPermissionState('granted');
+                  }).catch(async () => {
+                    const result = await navigator.permissions?.query({ name: 'camera' as PermissionName });
+                    setPermissionState(result?.state as any || 'denied');
+                    setError(result?.state === 'denied'
+                      ? 'Camera blocked. Enable in browser settings.'
+                      : 'Tap "Allow" when the camera prompt appears.');
+                    setIsLoading(false);
+                  });
+                }}
+                className="flex-1 py-3 bg-primary-500 rounded-xl font-semibold hover:bg-primary-600 transition-colors"
+              >
+                {permissionState === 'denied' ? 'Check Again' : 'Try Again'}
+              </button>
+              <button
+                onClick={onCancel}
+                className="flex-1 py-3 bg-white/20 rounded-xl font-semibold hover:bg-white/30 transition-colors"
+              >
+                Upload File
+              </button>
+            </div>
           </div>
         ) : capturedImage ? (
           // Review captured image

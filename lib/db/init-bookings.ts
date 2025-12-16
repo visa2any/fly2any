@@ -59,6 +59,28 @@ export async function initBookingsTables() {
     // Add deleted_at column if it doesn't exist (for existing tables)
     await sql`ALTER TABLE bookings ADD COLUMN IF NOT EXISTS deleted_at TIMESTAMP`;
 
+    // Add admin pricing columns for profit tracking (CRITICAL for business)
+    await sql`ALTER TABLE bookings ADD COLUMN IF NOT EXISTS source_api VARCHAR(20)`;
+    await sql`ALTER TABLE bookings ADD COLUMN IF NOT EXISTS duffel_order_id VARCHAR(255)`;
+    await sql`ALTER TABLE bookings ADD COLUMN IF NOT EXISTS duffel_booking_reference VARCHAR(100)`;
+    await sql`ALTER TABLE bookings ADD COLUMN IF NOT EXISTS amadeus_booking_id VARCHAR(255)`;
+    await sql`ALTER TABLE bookings ADD COLUMN IF NOT EXISTS airline_record_locator VARCHAR(100)`;
+    await sql`ALTER TABLE bookings ADD COLUMN IF NOT EXISTS ticketing_status VARCHAR(50)`;
+    await sql`ALTER TABLE bookings ADD COLUMN IF NOT EXISTS net_price DECIMAL(10, 2)`;
+    await sql`ALTER TABLE bookings ADD COLUMN IF NOT EXISTS customer_price DECIMAL(10, 2)`;
+    await sql`ALTER TABLE bookings ADD COLUMN IF NOT EXISTS markup_amount DECIMAL(10, 2)`;
+    await sql`ALTER TABLE bookings ADD COLUMN IF NOT EXISTS duffel_cost DECIMAL(10, 2)`;
+    await sql`ALTER TABLE bookings ADD COLUMN IF NOT EXISTS consolidator_cost DECIMAL(10, 2)`;
+    await sql`ALTER TABLE bookings ADD COLUMN IF NOT EXISTS net_profit DECIMAL(10, 2)`;
+    await sql`ALTER TABLE bookings ADD COLUMN IF NOT EXISTS routing_channel VARCHAR(50)`;
+    await sql`ALTER TABLE bookings ADD COLUMN IF NOT EXISTS routing_reason VARCHAR(100)`;
+    await sql`ALTER TABLE bookings ADD COLUMN IF NOT EXISTS is_hold BOOLEAN DEFAULT FALSE`;
+    await sql`ALTER TABLE bookings ADD COLUMN IF NOT EXISTS hold_expires_at TIMESTAMP`;
+    await sql`ALTER TABLE bookings ADD COLUMN IF NOT EXISTS fare_upgrade JSONB`;
+    await sql`ALTER TABLE bookings ADD COLUMN IF NOT EXISTS bundle JSONB`;
+    await sql`ALTER TABLE bookings ADD COLUMN IF NOT EXISTS add_ons JSONB`;
+    await sql`ALTER TABLE bookings ADD COLUMN IF NOT EXISTS promo_code JSONB`;
+
     console.log('Creating indexes...');
 
     // Create indexes

@@ -1287,9 +1287,15 @@ function FlightResultsContent() {
 
     try {
       // Save flight data to sessionStorage for booking page to retrieve
-      sessionStorage.setItem(`flight_${id}`, JSON.stringify(selectedFlight));
+      // CRITICAL: Include timestamp for offer freshness validation (Duffel offers expire after 30 min)
+      const flightWithTimestamp = {
+        ...selectedFlight,
+        _storedAt: Date.now(), // Timestamp for freshness check
+        _offerExpiresAt: Date.now() + (25 * 60 * 1000), // 25 min validity (5 min buffer from Duffel's 30 min)
+      };
+      sessionStorage.setItem(`flight_${id}`, JSON.stringify(flightWithTimestamp));
 
-      // Also save search context
+      // Also save search context with timestamp
       sessionStorage.setItem(`flight_search_${id}`, JSON.stringify({
         from: searchData.from,
         to: searchData.to,
@@ -1299,6 +1305,7 @@ function FlightResultsContent() {
         children: searchData.children,
         infants: searchData.infants,
         class: searchData.class,
+        _storedAt: Date.now(),
       }));
 
       // Small delay for success feedback

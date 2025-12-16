@@ -798,6 +798,9 @@ export function FlightCardEnhanced({
       dealScoreBreakdown,
       dealTier,
       dealLabel,
+      // CRITICAL: Include timestamp for offer freshness validation (Duffel offers expire after 30 min)
+      _storedAt: Date.now(),
+      _offerExpiresAt: Date.now() + (25 * 60 * 1000), // 25 min validity
     };
 
     sessionStorage.setItem(`flight_${id}`, JSON.stringify(flightData));
@@ -896,11 +899,11 @@ export function FlightCardEnhanced({
       {/* ULTRA-COMPACT HEADER - 24px height */}
       <div className="flex items-center justify-between gap-2 px-3 py-1 bg-gradient-to-r from-gray-50 to-white border-b border-gray-100" style={{ height: dimensions.card.header }}>
         {/* Left: Airline Info (compact) */}
-        <div className="flex items-center gap-1 md:gap-2 flex-1 min-w-0 overflow-hidden">
+        <div className="flex items-center gap-1.5 md:gap-3 flex-1 min-w-0 overflow-hidden">
           {/* Airline Logo - Real Logo with Fallback */}
           <AirlineLogo
             code={primaryAirline}
-            size="md"
+            size="lg"
             className="shadow-sm flex-shrink-0"
           />
 

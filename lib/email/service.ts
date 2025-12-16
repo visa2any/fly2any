@@ -135,129 +135,194 @@ export function clearEmailFailures(): void {
  * Sent after booking is created but before payment is confirmed
  */
 function getPaymentInstructionsEmail(booking: Booking) {
-  const subject = `Payment Instructions - Booking ${booking.bookingReference}`;
+  const subject = `Payment Instructions - ${booking.bookingReference}`;
+  const route = `${booking.flight.segments[0].departure.iataCode} → ${booking.flight.segments[booking.flight.segments.length - 1].arrival.iataCode}`;
+  const bookingUrl = `${process.env.NEXT_PUBLIC_APP_URL || 'https://www.fly2any.com'}/account/bookings?ref=${booking.bookingReference}`;
 
   const html = `
 <!DOCTYPE html>
-<html>
+<html lang="en" xmlns:v="urn:schemas-microsoft-com:vml" xmlns:o="urn:schemas-microsoft-com:office:office">
 <head>
-  <meta charset="utf-8">
+  <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="x-apple-disable-message-reformatting">
   <title>${subject}</title>
+  <!--[if mso]><noscript><xml><o:OfficeDocumentSettings><o:PixelsPerInch>96</o:PixelsPerInch></o:OfficeDocumentSettings></xml></noscript><style>table{border-collapse:collapse;}</style><![endif]-->
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>@media only screen and (max-width:620px){.mobile-full{width:100%!important}.mobile-padding{padding-left:16px!important;padding-right:16px!important}.mobile-font-lg{font-size:28px!important}}</style>
 </head>
-<body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px;">
-  <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 30px; text-align: center; border-radius: 10px 10px 0 0;">
-    <h1 style="color: white; margin: 0; font-size: 28px;">✈️ ${COMPANY_NAME}</h1>
-    <p style="color: rgba(255,255,255,0.9); margin: 10px 0 0 0;">Your booking is almost complete!</p>
-  </div>
-
-  <div style="background: #ffffff; padding: 30px; border: 1px solid #e5e7eb; border-top: none; border-radius: 0 0 10px 10px;">
-    <h2 style="color: #1f2937; margin-top: 0;">Payment Instructions</h2>
-
-    <p>Dear ${booking.passengers[0].firstName},</p>
-
-    <p>Thank you for choosing ${COMPANY_NAME}! Your booking has been created successfully.</p>
-
-    <div style="background: #f3f4f6; padding: 20px; border-radius: 8px; margin: 20px 0;">
-      <h3 style="margin-top: 0; color: #1f2937;">Booking Details</h3>
-      <table style="width: 100%; border-collapse: collapse;">
-        <tr>
-          <td style="padding: 8px 0;"><strong>Booking Reference:</strong></td>
-          <td style="padding: 8px 0; text-align: right; font-family: monospace; font-size: 16px; color: #2563eb;">${booking.bookingReference}</td>
-        </tr>
-        <tr>
-          <td style="padding: 8px 0;"><strong>Route:</strong></td>
-          <td style="padding: 8px 0; text-align: right;">${booking.flight.segments[0].departure.iataCode} → ${booking.flight.segments[booking.flight.segments.length - 1].arrival.iataCode}</td>
-        </tr>
-        <tr>
-          <td style="padding: 8px 0;"><strong>Departure:</strong></td>
-          <td style="padding: 8px 0; text-align: right;">${new Date(booking.flight.segments[0].departure.at).toLocaleDateString()}</td>
-        </tr>
-        <tr>
-          <td style="padding: 8px 0;"><strong>Passengers:</strong></td>
-          <td style="padding: 8px 0; text-align: right;">${booking.passengers.length}</td>
-        </tr>
-        <tr style="border-top: 2px solid #d1d5db;">
-          <td style="padding: 12px 0;"><strong style="font-size: 18px;">Total Amount:</strong></td>
-          <td style="padding: 12px 0; text-align: right; font-size: 20px; color: #059669; font-weight: bold;">${booking.payment.currency} ${booking.payment.amount.toFixed(2)}</td>
-        </tr>
-      </table>
-    </div>
-
-    <div style="background: #fef3c7; border-left: 4px solid #f59e0b; padding: 15px; margin: 20px 0; border-radius: 4px;">
-      <h3 style="margin-top: 0; color: #92400e;">⏳ Next Steps</h3>
-      <p style="margin: 0; color: #78350f;">Please complete payment within 24 hours to confirm your booking. After payment verification, we'll send your flight confirmation and e-tickets.</p>
-    </div>
-
-    <h3 style="color: #1f2937;">Payment Methods</h3>
-
-    <div style="margin: 20px 0;">
-      <h4 style="color: #1f2937; margin-bottom: 10px;">💳 Credit Card Details:</h4>
-      <p style="margin: 5px 0; color: #4b5563;">Card ending in: •••• ${booking.payment.cardLast4 || '****'}</p>
-      <p style="margin: 5px 0; color: #4b5563; font-size: 14px;">We will process your payment manually and send confirmation within 2-4 business hours.</p>
-    </div>
-
-    <div style="margin: 20px 0;">
-      <h4 style="color: #1f2937; margin-bottom: 10px;">🏦 Bank Transfer (Alternative):</h4>
-      <div style="background: #f9fafb; padding: 15px; border-radius: 4px; border: 1px solid #e5e7eb;">
-        <p style="margin: 5px 0; font-size: 14px;"><strong>Bank Name:</strong> [Your Bank Name]</p>
-        <p style="margin: 5px 0; font-size: 14px;"><strong>Account Number:</strong> [Your Account Number]</p>
-        <p style="margin: 5px 0; font-size: 14px;"><strong>Routing Number:</strong> [Your Routing Number]</p>
-        <p style="margin: 5px 0; font-size: 14px;"><strong>SWIFT/BIC:</strong> [Your SWIFT Code]</p>
-        <p style="margin: 15px 0 5px 0; font-size: 14px;"><strong>Reference:</strong> <span style="font-family: monospace; background: #fff; padding: 4px 8px; border-radius: 4px;">${booking.bookingReference}</span></p>
-      </div>
-      <p style="margin: 10px 0 0 0; font-size: 13px; color: #6b7280;">⚠️ Please include your booking reference in the transfer description.</p>
-    </div>
-
-    <div style="background: #eff6ff; border-left: 4px solid #3b82f6; padding: 15px; margin: 20px 0; border-radius: 4px;">
-      <p style="margin: 0; color: #1e40af;"><strong>💡 Tip:</strong> After making payment, you can email your receipt to <a href="mailto:${SUPPORT_EMAIL}" style="color: #2563eb;">${SUPPORT_EMAIL}</a> for faster processing.</p>
-    </div>
-
-    <hr style="border: none; border-top: 1px solid #e5e7eb; margin: 30px 0;">
-
-    <p style="color: #6b7280; font-size: 14px; margin-bottom: 20px;">If you have any questions, please contact our support team:</p>
-
-    <div style="text-align: center; margin: 30px 0;">
-      <a href="mailto:${SUPPORT_EMAIL}" style="display: inline-block; background: #2563eb; color: white; padding: 12px 30px; text-decoration: none; border-radius: 6px; font-weight: bold;">Contact Support</a>
-    </div>
-
-    <p style="color: #9ca3af; font-size: 12px; text-align: center; margin-top: 30px;">
-      This email was sent by ${COMPANY_NAME}<br>
-      Booking Reference: ${booking.bookingReference}
-    </p>
-  </div>
+<body style="margin:0;padding:0;background-color:#FAFAFA;font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;-webkit-font-smoothing:antialiased;">
+  <div style="display:none;max-height:0;overflow:hidden;font-size:1px;line-height:1px;color:#FAFAFA;">Complete your booking ${route} - Ref: ${booking.bookingReference}</div>
+  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color:#FAFAFA;">
+    <tr>
+      <td align="center" style="padding:32px 16px;" class="mobile-padding">
+        <table role="presentation" width="600" cellpadding="0" cellspacing="0" border="0" class="mobile-full" style="max-width:600px;background:#FFFFFF;border-radius:16px;overflow:hidden;box-shadow:0 4px 24px rgba(0,0,0,0.08);">
+          <!-- HEADER -->
+          <tr>
+            <td style="background:linear-gradient(135deg,#E74035 0%,#D63930 100%);padding:32px 24px;text-align:center;">
+              <img src="https://www.fly2any.com/logo-email.png" width="140" height="40" alt="Fly2Any" style="display:block;margin:0 auto 16px;border:0;">
+              <h1 style="margin:0;font-size:26px;font-weight:800;color:#FFFFFF;letter-spacing:-0.5px;">Complete Your Booking</h1>
+              <p style="margin:8px 0 0;font-size:15px;color:rgba(255,255,255,0.9);">Your flight is reserved</p>
+            </td>
+          </tr>
+          <!-- PENDING STATUS -->
+          <tr>
+            <td style="padding:24px 24px 0;">
+              <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background:linear-gradient(135deg,#FEF3C7 0%,#FDE68A 100%);border-radius:12px;border:2px solid #F7C928;">
+                <tr>
+                  <td style="padding:20px;text-align:center;">
+                    <p style="margin:0;font-size:32px;">⏳</p>
+                    <h2 style="margin:8px 0 4px;font-size:20px;font-weight:700;color:#92400E;">Payment Pending</h2>
+                    <p style="margin:0;font-size:14px;color:#78350F;">Complete payment within 24 hours to secure your booking</p>
+                  </td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+          <!-- BOOKING REF -->
+          <tr>
+            <td style="padding:20px 24px;">
+              <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background:#1a1a1a;border-radius:10px;">
+                <tr>
+                  <td style="padding:16px 20px;">
+                    <p style="margin:0;font-size:11px;color:#9ca3af;text-transform:uppercase;letter-spacing:1px;">Booking Reference</p>
+                    <p style="margin:4px 0 0;font-size:24px;font-weight:800;color:#F7C928;font-family:'SF Mono','Fira Code',monospace;letter-spacing:2px;">${booking.bookingReference}</p>
+                  </td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+          <!-- GREETING -->
+          <tr>
+            <td style="padding:0 24px 16px;">
+              <p style="margin:0;font-size:16px;color:#1C1C1C;line-height:1.6;">Dear <strong>${booking.passengers[0].firstName}</strong>,<br><br>Thank you for choosing ${COMPANY_NAME}! Your booking has been created. Please complete payment to confirm your flight.</p>
+            </td>
+          </tr>
+          <!-- FLIGHT SUMMARY -->
+          <tr>
+            <td style="padding:0 24px 16px;">
+              <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background:linear-gradient(135deg,#F8F9FA 0%,#F2F4F5 100%);border-radius:12px;border:1px solid #E6E6E6;overflow:hidden;">
+                <tr><td style="background:#E74035;padding:10px 16px;"><p style="margin:0;font-size:12px;font-weight:600;color:#FFFFFF;">Flight Summary</p></td></tr>
+                <tr>
+                  <td style="padding:20px 16px;">
+                    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
+                      <tr>
+                        <td width="35%" style="text-align:center;"><p style="margin:0;font-size:32px;font-weight:800;color:#1a1a1a;" class="mobile-font-lg">${booking.flight.segments[0].departure.iataCode}</p></td>
+                        <td width="30%" style="text-align:center;"><p style="margin:0;font-size:11px;color:#6B6B6B;">✈️</p><div style="height:2px;background:linear-gradient(90deg,#E74035 0%,#F7C928 100%);margin:8px 0;"></div></td>
+                        <td width="35%" style="text-align:center;"><p style="margin:0;font-size:32px;font-weight:800;color:#1a1a1a;" class="mobile-font-lg">${booking.flight.segments[booking.flight.segments.length - 1].arrival.iataCode}</p></td>
+                      </tr>
+                    </table>
+                    <p style="margin:12px 0 0;font-size:13px;color:#6B6B6B;text-align:center;">📅 ${new Date(booking.flight.segments[0].departure.at).toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' })}</p>
+                    <p style="margin:8px 0 0;font-size:13px;color:#6B6B6B;text-align:center;">👥 ${booking.passengers.length} ${booking.passengers.length === 1 ? 'passenger' : 'passengers'}</p>
+                  </td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+          <!-- TOTAL -->
+          <tr>
+            <td style="padding:0 24px 16px;">
+              <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background:#F8F9FA;border-radius:10px;border:1px solid #E6E6E6;">
+                <tr>
+                  <td style="padding:16px;">
+                    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
+                      <tr>
+                        <td><p style="margin:0;font-size:14px;font-weight:600;color:#1C1C1C;">Amount Due</p></td>
+                        <td style="text-align:right;"><p style="margin:0;font-size:28px;font-weight:800;color:#E74035;">${booking.payment.currency} ${booking.payment.amount.toFixed(2)}</p></td>
+                      </tr>
+                    </table>
+                  </td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+          <!-- CARD INFO -->
+          <tr>
+            <td style="padding:0 24px 16px;">
+              <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background:#d1fae5;border-radius:10px;border:1px solid #10b981;">
+                <tr>
+                  <td style="padding:16px;">
+                    <p style="margin:0 0 8px;font-size:14px;font-weight:700;color:#065f46;">💳 Card Payment</p>
+                    <p style="margin:0;font-size:13px;color:#047857;line-height:1.6;">Card ending in •••• ${booking.payment.cardLast4 || '****'}<br>We'll process your payment and send confirmation within 2-4 hours.</p>
+                  </td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+          <!-- TIP -->
+          <tr>
+            <td style="padding:0 24px 20px;">
+              <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background:#FEF3C7;border-left:4px solid #F7C928;border-radius:8px;">
+                <tr>
+                  <td style="padding:16px;">
+                    <p style="margin:0;font-size:13px;color:#78350F;line-height:1.6;"><strong>💡 Tip:</strong> Email your receipt to <a href="mailto:${SUPPORT_EMAIL}" style="color:#E74035;font-weight:600;">${SUPPORT_EMAIL}</a> for faster processing.</p>
+                  </td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+          <!-- CTA -->
+          <tr>
+            <td align="center" style="padding:0 24px 24px;">
+              <a href="${bookingUrl}" target="_blank" style="display:inline-block;padding:16px 40px;background:#E74035;color:#FFFFFF;font-size:15px;font-weight:700;text-decoration:none;border-radius:10px;box-shadow:0 4px 12px rgba(231,64,53,0.3);">Track Your Booking</a>
+            </td>
+          </tr>
+          <!-- FOOTER -->
+          <tr><td style="padding:0 24px;"><div style="height:1px;background:#E6E6E6;"></div></td></tr>
+          <tr>
+            <td style="padding:24px;text-align:center;">
+              <p style="margin:0 0 12px;font-size:14px;color:#6B6B6B;">Questions? We're here 24/7</p>
+              <a href="mailto:${SUPPORT_EMAIL}" style="display:inline-block;padding:12px 28px;background:transparent;color:#E74035;font-size:14px;font-weight:600;text-decoration:none;border:2px solid #E74035;border-radius:8px;">Contact Support</a>
+              <p style="margin:20px 0 0;font-size:12px;color:#9F9F9F;">${COMPANY_NAME} Inc. • Global Travel Platform</p>
+              <p style="margin:12px 0 0;font-size:11px;color:#DCDCDC;">Ref: ${booking.bookingReference}</p>
+            </td>
+          </tr>
+        </table>
+      </td>
+    </tr>
+  </table>
 </body>
 </html>
   `;
 
   const text = `
-Payment Instructions - Booking ${booking.bookingReference}
+══════════════════════════════════════════════════
+FLY2ANY - COMPLETE YOUR BOOKING
+══════════════════════════════════════════════════
 
 Dear ${booking.passengers[0].firstName},
 
-Thank you for choosing ${COMPANY_NAME}! Your booking has been created successfully.
+Thank you for choosing ${COMPANY_NAME}! Your booking has been created.
 
-BOOKING DETAILS:
-Booking Reference: ${booking.bookingReference}
-Route: ${booking.flight.segments[0].departure.iataCode} → ${booking.flight.segments[booking.flight.segments.length - 1].arrival.iataCode}
-Departure: ${new Date(booking.flight.segments[0].departure.at).toLocaleDateString()}
-Passengers: ${booking.passengers.length}
-Total Amount: ${booking.payment.currency} ${booking.payment.amount.toFixed(2)}
+──────────────────────────────────────────────────
+BOOKING REFERENCE: ${booking.bookingReference}
+STATUS: Payment Pending
+──────────────────────────────────────────────────
 
-NEXT STEPS:
-Please complete payment within 24 hours to confirm your booking. After payment verification, we'll send your flight confirmation and e-tickets.
+FLIGHT: ${route}
+DATE: ${new Date(booking.flight.segments[0].departure.at).toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' })}
+PASSENGERS: ${booking.passengers.length}
 
-If you have any questions, please contact: ${SUPPORT_EMAIL}
+AMOUNT DUE: ${booking.payment.currency} ${booking.payment.amount.toFixed(2)}
 
-Best regards,
-${COMPANY_NAME} Team
+Card on file: •••• ${booking.payment.cardLast4 || '****'}
+We'll process your payment and send confirmation within 2-4 hours.
+
+──────────────────────────────────────────────────
+Track your booking: ${bookingUrl}
+Need help? Contact us at ${SUPPORT_EMAIL}
+──────────────────────────────────────────────────
+
+Fly2Any Inc. • Global Travel Platform
+www.fly2any.com
   `;
 
   return { subject, html, text };
 }
 
 /**
- * Card Payment Processing Email
+ * Card Payment Processing Email - Apple Level 6 Premium Design
  * Sent when card payment is captured and pending manual processing
  * Clean template without bank transfer info - only for card payments
  */
@@ -267,247 +332,612 @@ function getCardPaymentProcessingEmail(booking: Booking) {
   const departureDate = new Date(booking.flight.segments[0].departure.at).toLocaleDateString('en-US', {
     weekday: 'long', month: 'long', day: 'numeric', year: 'numeric'
   });
+  const bookingUrl = `${process.env.NEXT_PUBLIC_APP_URL || 'https://www.fly2any.com'}/account/bookings?ref=${booking.bookingReference}`;
 
   const html = `
 <!DOCTYPE html>
-<html>
+<html lang="en" xmlns:v="urn:schemas-microsoft-com:vml" xmlns:o="urn:schemas-microsoft-com:office:office">
 <head>
-  <meta charset="utf-8">
+  <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="x-apple-disable-message-reformatting">
+  <meta name="color-scheme" content="light">
+  <meta name="supported-color-schemes" content="light">
   <title>${subject}</title>
+  <!--[if mso]>
+  <noscript><xml><o:OfficeDocumentSettings><o:PixelsPerInch>96</o:PixelsPerInch></o:OfficeDocumentSettings></xml></noscript>
+  <style>table{border-collapse:collapse;}td,th{padding:0;}</style>
+  <![endif]-->
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    @media only screen and (max-width: 620px) {
+      .mobile-full { width: 100% !important; }
+      .mobile-padding { padding-left: 16px !important; padding-right: 16px !important; }
+      .mobile-stack { display: block !important; width: 100% !important; }
+      .mobile-center { text-align: center !important; }
+      .mobile-font-lg { font-size: 28px !important; }
+    }
+  </style>
 </head>
-<body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px;">
-  <div style="background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%); padding: 30px; text-align: center; border-radius: 10px 10px 0 0;">
-    <h1 style="color: white; margin: 0; font-size: 28px;">✈️ ${COMPANY_NAME}</h1>
-    <p style="color: rgba(255,255,255,0.9); margin: 10px 0 0 0;">Booking Received!</p>
+<body style="margin: 0; padding: 0; background-color: #FAFAFA; font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; -webkit-font-smoothing: antialiased;">
+  <!-- Preheader -->
+  <div style="display: none; max-height: 0; overflow: hidden; font-size: 1px; line-height: 1px; color: #FAFAFA;">
+    Your booking ${route} is being processed! Ref: ${booking.bookingReference}
   </div>
 
-  <div style="background: #ffffff; padding: 30px; border: 1px solid #e5e7eb; border-top: none; border-radius: 0 0 10px 10px;">
-    <div style="background: #dbeafe; border: 2px solid #3b82f6; padding: 20px; border-radius: 8px; text-align: center; margin-bottom: 25px;">
-      <h2 style="color: #1e40af; margin: 0 0 8px 0; font-size: 20px;">💳 Payment Being Processed</h2>
-      <p style="color: #1e3a8a; margin: 0; font-size: 14px;">Your card has been securely captured. We're finalizing your booking now.</p>
-    </div>
+  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color: #FAFAFA;">
+    <tr>
+      <td align="center" style="padding: 32px 16px;" class="mobile-padding">
+        <table role="presentation" width="600" cellpadding="0" cellspacing="0" border="0" class="mobile-full" style="max-width: 600px; background: #FFFFFF; border-radius: 16px; overflow: hidden; box-shadow: 0 4px 24px rgba(0,0,0,0.08);">
 
-    <p style="margin-bottom: 20px;">Dear ${booking.passengers[0].firstName},</p>
+          <!-- HEADER - Fly2Any Brand -->
+          <tr>
+            <td style="background: linear-gradient(135deg, #E74035 0%, #D63930 100%); padding: 32px 24px; text-align: center;">
+              <img src="https://www.fly2any.com/logo-email.png" width="140" height="40" alt="Fly2Any" style="display: block; margin: 0 auto 16px; border: 0;">
+              <h1 style="margin: 0; font-size: 26px; font-weight: 800; color: #FFFFFF; letter-spacing: -0.5px;">Booking Received</h1>
+              <p style="margin: 8px 0 0; font-size: 15px; color: rgba(255,255,255,0.9);">We're processing your reservation</p>
+            </td>
+          </tr>
 
-    <p style="margin-bottom: 20px;">Thank you for booking with ${COMPANY_NAME}! We've received your reservation and your payment is being processed.</p>
+          <!-- PROCESSING STATUS -->
+          <tr>
+            <td style="padding: 24px 24px 0;">
+              <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background: linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%); border-radius: 12px; border: 2px solid #3b82f6;">
+                <tr>
+                  <td style="padding: 20px; text-align: center;">
+                    <p style="margin: 0; font-size: 32px;">💳</p>
+                    <h2 style="margin: 8px 0 4px; font-size: 20px; font-weight: 700; color: #1e40af;">Payment Being Processed</h2>
+                    <p style="margin: 0; font-size: 14px; color: #1e3a8a;">Your card has been securely captured</p>
+                  </td>
+                </tr>
+              </table>
+            </td>
+          </tr>
 
-    <div style="background: #f8fafc; padding: 20px; border-radius: 8px; margin: 20px 0; border: 1px solid #e2e8f0;">
-      <h3 style="margin: 0 0 15px 0; color: #1e293b; font-size: 16px;">Booking Summary</h3>
-      <table style="width: 100%; border-collapse: collapse;">
-        <tr>
-          <td style="padding: 10px 0; border-bottom: 1px solid #e2e8f0;"><strong>Reference:</strong></td>
-          <td style="padding: 10px 0; text-align: right; font-family: monospace; font-size: 16px; color: #2563eb; border-bottom: 1px solid #e2e8f0;">${booking.bookingReference}</td>
-        </tr>
-        <tr>
-          <td style="padding: 10px 0; border-bottom: 1px solid #e2e8f0;"><strong>Route:</strong></td>
-          <td style="padding: 10px 0; text-align: right; border-bottom: 1px solid #e2e8f0;">${route}</td>
-        </tr>
-        <tr>
-          <td style="padding: 10px 0; border-bottom: 1px solid #e2e8f0;"><strong>Date:</strong></td>
-          <td style="padding: 10px 0; text-align: right; border-bottom: 1px solid #e2e8f0;">${departureDate}</td>
-        </tr>
-        <tr>
-          <td style="padding: 10px 0; border-bottom: 1px solid #e2e8f0;"><strong>Passengers:</strong></td>
-          <td style="padding: 10px 0; text-align: right; border-bottom: 1px solid #e2e8f0;">${booking.passengers.length}</td>
-        </tr>
-        <tr>
-          <td style="padding: 10px 0;"><strong>Total:</strong></td>
-          <td style="padding: 10px 0; text-align: right; font-size: 18px; color: #059669; font-weight: bold;">${booking.payment.currency} ${booking.payment.amount.toFixed(2)}</td>
-        </tr>
-      </table>
-    </div>
+          <!-- BOOKING REFERENCE STRIP -->
+          <tr>
+            <td style="padding: 20px 24px;">
+              <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background: #1a1a1a; border-radius: 10px;">
+                <tr>
+                  <td style="padding: 16px 20px;">
+                    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
+                      <tr>
+                        <td>
+                          <p style="margin: 0; font-size: 11px; color: #9ca3af; text-transform: uppercase; letter-spacing: 1px;">Booking Reference</p>
+                          <p style="margin: 4px 0 0; font-size: 24px; font-weight: 800; color: #F7C928; font-family: 'SF Mono', 'Fira Code', monospace; letter-spacing: 2px;">${booking.bookingReference}</p>
+                        </td>
+                        <td style="text-align: right;">
+                          <span style="display: inline-block; padding: 8px 16px; background: #F7C928; color: #1a1a1a; font-size: 11px; font-weight: 700; border-radius: 20px; text-transform: uppercase;">Processing</span>
+                        </td>
+                      </tr>
+                    </table>
+                  </td>
+                </tr>
+              </table>
+            </td>
+          </tr>
 
-    <div style="background: #f0fdf4; border-left: 4px solid #22c55e; padding: 15px; margin: 20px 0; border-radius: 4px;">
-      <h4 style="margin: 0 0 8px 0; color: #166534;">What happens next?</h4>
-      <ol style="margin: 0; padding-left: 20px; color: #15803d; font-size: 14px;">
-        <li style="margin-bottom: 5px;">We verify your payment (usually within 2-4 hours)</li>
-        <li style="margin-bottom: 5px;">Your ticket is issued with the airline</li>
-        <li>You receive your e-ticket confirmation via email</li>
-      </ol>
-    </div>
+          <!-- GREETING -->
+          <tr>
+            <td style="padding: 0 24px 16px;">
+              <p style="margin: 0; font-size: 16px; color: #1C1C1C; line-height: 1.6;">
+                Dear <strong>${booking.passengers[0].firstName}</strong>,<br><br>
+                Thank you for booking with ${COMPANY_NAME}! We've received your reservation and your payment is being processed.
+              </p>
+            </td>
+          </tr>
 
-    <div style="background: #fefce8; border-left: 4px solid #eab308; padding: 15px; margin: 20px 0; border-radius: 4px;">
-      <p style="margin: 0; color: #854d0e; font-size: 14px;">
-        <strong>Card on file:</strong> •••• ${booking.payment.cardLast4 || '****'}<br>
-        Your card will be charged ${booking.payment.currency} ${booking.payment.amount.toFixed(2)} once verified.
-      </p>
-    </div>
+          <!-- FLIGHT SUMMARY CARD -->
+          <tr>
+            <td style="padding: 0 24px 16px;">
+              <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background: linear-gradient(135deg, #F8F9FA 0%, #F2F4F5 100%); border-radius: 12px; border: 1px solid #E6E6E6; overflow: hidden;">
+                <tr>
+                  <td style="background: #E74035; padding: 10px 16px;">
+                    <p style="margin: 0; font-size: 12px; font-weight: 600; color: #FFFFFF;">Flight Summary</p>
+                  </td>
+                </tr>
+                <tr>
+                  <td style="padding: 20px 16px;">
+                    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
+                      <tr>
+                        <td width="35%" style="text-align: center;">
+                          <p style="margin: 0; font-size: 32px; font-weight: 800; color: #1a1a1a;" class="mobile-font-lg">${booking.flight.segments[0].departure.iataCode}</p>
+                        </td>
+                        <td width="30%" style="text-align: center; vertical-align: middle;">
+                          <p style="margin: 0; font-size: 11px; color: #6B6B6B;">✈️</p>
+                          <div style="height: 2px; background: linear-gradient(90deg, #E74035 0%, #F7C928 100%); margin: 8px 0;"></div>
+                        </td>
+                        <td width="35%" style="text-align: center;">
+                          <p style="margin: 0; font-size: 32px; font-weight: 800; color: #1a1a1a;" class="mobile-font-lg">${booking.flight.segments[booking.flight.segments.length - 1].arrival.iataCode}</p>
+                        </td>
+                      </tr>
+                    </table>
+                    <p style="margin: 12px 0 0; font-size: 13px; color: #6B6B6B; text-align: center;">📅 ${departureDate}</p>
+                  </td>
+                </tr>
+              </table>
+            </td>
+          </tr>
 
-    <hr style="border: none; border-top: 1px solid #e5e7eb; margin: 25px 0;">
+          <!-- BOOKING DETAILS -->
+          <tr>
+            <td style="padding: 0 24px 16px;">
+              <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background: #F8F9FA; border-radius: 10px; border: 1px solid #E6E6E6;">
+                <tr>
+                  <td style="padding: 16px;">
+                    <p style="margin: 0 0 12px; font-size: 11px; font-weight: 600; color: #6B6B6B; text-transform: uppercase; letter-spacing: 1px;">Booking Details</p>
+                    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
+                      <tr>
+                        <td style="padding: 8px 0;"><p style="margin: 0; font-size: 13px; color: #6B6B6B;">Passengers</p></td>
+                        <td style="padding: 8px 0; text-align: right;"><p style="margin: 0; font-size: 14px; font-weight: 600; color: #1C1C1C;">${booking.passengers.length} ${booking.passengers.length === 1 ? 'traveler' : 'travelers'}</p></td>
+                      </tr>
+                      <tr>
+                        <td style="padding: 8px 0;"><p style="margin: 0; font-size: 13px; color: #6B6B6B;">Card</p></td>
+                        <td style="padding: 8px 0; text-align: right;"><p style="margin: 0; font-size: 14px; font-weight: 600; color: #1C1C1C;">•••• ${booking.payment.cardLast4 || '****'}</p></td>
+                      </tr>
+                      <tr>
+                        <td colspan="2" style="padding-top: 12px; border-top: 1px solid #E6E6E6;">
+                          <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
+                            <tr>
+                              <td><p style="margin: 0; font-size: 14px; font-weight: 600; color: #1C1C1C;">Total</p></td>
+                              <td style="text-align: right;"><p style="margin: 0; font-size: 22px; font-weight: 800; color: #E74035;">${booking.payment.currency} ${booking.payment.amount.toFixed(2)}</p></td>
+                            </tr>
+                          </table>
+                        </td>
+                      </tr>
+                    </table>
+                  </td>
+                </tr>
+              </table>
+            </td>
+          </tr>
 
-    <p style="color: #6b7280; font-size: 14px; margin-bottom: 20px;">Questions? Contact our support team:</p>
+          <!-- WHAT'S NEXT STEPS -->
+          <tr>
+            <td style="padding: 0 24px 16px;">
+              <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background: #d1fae5; border-radius: 10px; border: 1px solid #10b981;">
+                <tr>
+                  <td style="padding: 16px;">
+                    <p style="margin: 0 0 12px; font-size: 14px; font-weight: 700; color: #065f46;">What happens next?</p>
+                    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
+                      <tr>
+                        <td style="padding: 6px 0; vertical-align: top;">
+                          <span style="display: inline-block; width: 24px; height: 24px; background: #10b981; color: #fff; border-radius: 50%; text-align: center; line-height: 24px; font-size: 12px; font-weight: 700;">1</span>
+                        </td>
+                        <td style="padding: 6px 0 6px 12px;">
+                          <p style="margin: 0; font-size: 13px; color: #047857;">We verify your payment (usually 2-4 hours)</p>
+                        </td>
+                      </tr>
+                      <tr>
+                        <td style="padding: 6px 0; vertical-align: top;">
+                          <span style="display: inline-block; width: 24px; height: 24px; background: #10b981; color: #fff; border-radius: 50%; text-align: center; line-height: 24px; font-size: 12px; font-weight: 700;">2</span>
+                        </td>
+                        <td style="padding: 6px 0 6px 12px;">
+                          <p style="margin: 0; font-size: 13px; color: #047857;">Your ticket is issued with the airline</p>
+                        </td>
+                      </tr>
+                      <tr>
+                        <td style="padding: 6px 0; vertical-align: top;">
+                          <span style="display: inline-block; width: 24px; height: 24px; background: #10b981; color: #fff; border-radius: 50%; text-align: center; line-height: 24px; font-size: 12px; font-weight: 700;">3</span>
+                        </td>
+                        <td style="padding: 6px 0 6px 12px;">
+                          <p style="margin: 0; font-size: 13px; color: #047857;">You receive your e-ticket confirmation via email</p>
+                        </td>
+                      </tr>
+                    </table>
+                  </td>
+                </tr>
+              </table>
+            </td>
+          </tr>
 
-    <div style="text-align: center;">
-      <a href="mailto:${SUPPORT_EMAIL}" style="display: inline-block; background: #2563eb; color: white; padding: 12px 30px; text-decoration: none; border-radius: 6px; font-weight: bold;">Contact Support</a>
-    </div>
+          <!-- PAYMENT NOTE -->
+          <tr>
+            <td style="padding: 0 24px 20px;">
+              <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background: #FEF3C7; border-left: 4px solid #F7C928; border-radius: 8px;">
+                <tr>
+                  <td style="padding: 16px;">
+                    <p style="margin: 0; font-size: 13px; color: #78350F; line-height: 1.6;">
+                      <strong>💳 Payment Note:</strong> Your card ending in •••• ${booking.payment.cardLast4 || '****'} will be charged ${booking.payment.currency} ${booking.payment.amount.toFixed(2)} once verified.
+                    </p>
+                  </td>
+                </tr>
+              </table>
+            </td>
+          </tr>
 
-    <p style="color: #9ca3af; font-size: 12px; text-align: center; margin-top: 25px;">
-      ${COMPANY_NAME} | Ref: ${booking.bookingReference}
-    </p>
-  </div>
+          <!-- CTA BUTTON -->
+          <tr>
+            <td align="center" style="padding: 0 24px 24px;">
+              <a href="${bookingUrl}" target="_blank" style="display: inline-block; padding: 16px 40px; background: #E74035; color: #FFFFFF; font-size: 15px; font-weight: 700; text-decoration: none; border-radius: 10px; box-shadow: 0 4px 12px rgba(231,64,53,0.3);">Track Your Booking</a>
+            </td>
+          </tr>
+
+          <!-- DIVIDER -->
+          <tr>
+            <td style="padding: 0 24px;">
+              <div style="height: 1px; background: #E6E6E6;"></div>
+            </td>
+          </tr>
+
+          <!-- FOOTER -->
+          <tr>
+            <td style="padding: 24px; text-align: center;">
+              <p style="margin: 0 0 12px; font-size: 14px; color: #6B6B6B;">Questions? We're here to help 24/7</p>
+              <a href="mailto:${SUPPORT_EMAIL}" style="display: inline-block; padding: 12px 28px; background: transparent; color: #E74035; font-size: 14px; font-weight: 600; text-decoration: none; border: 2px solid #E74035; border-radius: 8px;">Contact Support</a>
+              <p style="margin: 20px 0 0; font-size: 12px; color: #9F9F9F;">
+                ${COMPANY_NAME} Inc. • Global Travel Platform<br>
+                <a href="https://www.fly2any.com/privacy" style="color: #9F9F9F;">Privacy</a> • <a href="https://www.fly2any.com/terms" style="color: #9F9F9F;">Terms</a>
+              </p>
+              <p style="margin: 12px 0 0; font-size: 11px; color: #DCDCDC;">Ref: ${booking.bookingReference}</p>
+            </td>
+          </tr>
+
+        </table>
+      </td>
+    </tr>
+  </table>
 </body>
 </html>
   `;
 
   const text = `
-Booking Received - ${booking.bookingReference}
+══════════════════════════════════════════════════
+FLY2ANY - BOOKING RECEIVED
+══════════════════════════════════════════════════
 
 Dear ${booking.passengers[0].firstName},
 
-Thank you for booking with ${COMPANY_NAME}! We've received your reservation.
+Thank you for booking with ${COMPANY_NAME}! We've received your reservation and your payment is being processed.
 
-BOOKING SUMMARY:
-Reference: ${booking.bookingReference}
-Route: ${route}
-Date: ${departureDate}
-Passengers: ${booking.passengers.length}
+──────────────────────────────────────────────────
+BOOKING REFERENCE: ${booking.bookingReference}
+STATUS: Processing
+──────────────────────────────────────────────────
+
+FLIGHT SUMMARY:
+${route}
+${departureDate}
+${booking.passengers.length} ${booking.passengers.length === 1 ? 'traveler' : 'travelers'}
+
+PAYMENT:
+Card: •••• ${booking.payment.cardLast4 || '****'}
 Total: ${booking.payment.currency} ${booking.payment.amount.toFixed(2)}
 
-PAYMENT STATUS:
-Your card (•••• ${booking.payment.cardLast4 || '****'}) has been captured and is being processed.
-
+──────────────────────────────────────────────────
 WHAT HAPPENS NEXT:
-1. We verify your payment (usually within 2-4 hours)
+──────────────────────────────────────────────────
+1. We verify your payment (usually 2-4 hours)
 2. Your ticket is issued with the airline
 3. You receive your e-ticket confirmation via email
 
-Questions? Contact: ${SUPPORT_EMAIL}
+Track your booking: ${bookingUrl}
 
-${COMPANY_NAME}
+──────────────────────────────────────────────────
+Need help? Contact us at ${SUPPORT_EMAIL}
+──────────────────────────────────────────────────
+
+Fly2Any Inc. • Global Travel Platform
+www.fly2any.com
   `;
 
   return { subject, html, text };
 }
 
 /**
- * Booking Confirmation Email
+ * Booking Confirmation Email - Apple Level 6 Premium Design
  * Sent after payment is confirmed
  */
 function getBookingConfirmationEmail(booking: Booking) {
   const subject = `✅ Booking Confirmed - ${booking.bookingReference}`;
+  const route = `${booking.flight.segments[0].departure.iataCode} → ${booking.flight.segments[booking.flight.segments.length - 1].arrival.iataCode}`;
+  const bookingUrl = `${process.env.NEXT_PUBLIC_APP_URL || 'https://www.fly2any.com'}/account/bookings?ref=${booking.bookingReference}`;
+  const qrCodeUrl = `https://api.qrserver.com/v1/create-qr-code/?size=100x100&data=${encodeURIComponent(bookingUrl)}&bgcolor=ffffff&color=E74035`;
 
   const html = `
 <!DOCTYPE html>
-<html>
+<html lang="en" xmlns:v="urn:schemas-microsoft-com:vml" xmlns:o="urn:schemas-microsoft-com:office:office">
 <head>
-  <meta charset="utf-8">
+  <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="x-apple-disable-message-reformatting">
+  <meta name="color-scheme" content="light">
+  <meta name="supported-color-schemes" content="light">
   <title>${subject}</title>
+  <!--[if mso]>
+  <noscript><xml><o:OfficeDocumentSettings><o:PixelsPerInch>96</o:PixelsPerInch></o:OfficeDocumentSettings></xml></noscript>
+  <style>table{border-collapse:collapse;}td,th{padding:0;}</style>
+  <![endif]-->
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    @media only screen and (max-width: 620px) {
+      .mobile-full { width: 100% !important; }
+      .mobile-padding { padding-left: 16px !important; padding-right: 16px !important; }
+      .mobile-stack { display: block !important; width: 100% !important; }
+      .mobile-center { text-align: center !important; }
+      .mobile-hide { display: none !important; }
+      .mobile-font-lg { font-size: 28px !important; }
+      .mobile-font-md { font-size: 20px !important; }
+    }
+  </style>
 </head>
-<body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px;">
-  <div style="background: linear-gradient(135deg, #10b981 0%, #059669 100%); padding: 30px; text-align: center; border-radius: 10px 10px 0 0;">
-    <h1 style="color: white; margin: 0; font-size: 28px;">✈️ ${COMPANY_NAME}</h1>
-    <p style="color: rgba(255,255,255,0.9); margin: 10px 0 0 0; font-size: 18px;">✅ Your booking is confirmed!</p>
+<body style="margin: 0; padding: 0; background-color: #FAFAFA; font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; -webkit-font-smoothing: antialiased;">
+  <!-- Preheader -->
+  <div style="display: none; max-height: 0; overflow: hidden; font-size: 1px; line-height: 1px; color: #FAFAFA;">
+    Your flight ${route} is confirmed! Booking ref: ${booking.bookingReference}
   </div>
 
-  <div style="background: #ffffff; padding: 30px; border: 1px solid #e5e7eb; border-top: none; border-radius: 0 0 10px 10px;">
-    <div style="background: #d1fae5; border: 2px solid #10b981; padding: 20px; border-radius: 8px; text-align: center; margin-bottom: 30px;">
-      <h2 style="color: #065f46; margin: 0 0 10px 0;">🎉 Payment Received!</h2>
-      <p style="color: #047857; margin: 0; font-size: 16px;">Your flight is now confirmed and ready for travel.</p>
-    </div>
+  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color: #FAFAFA;">
+    <tr>
+      <td align="center" style="padding: 32px 16px;" class="mobile-padding">
+        <table role="presentation" width="600" cellpadding="0" cellspacing="0" border="0" class="mobile-full" style="max-width: 600px; background: #FFFFFF; border-radius: 16px; overflow: hidden; box-shadow: 0 4px 24px rgba(0,0,0,0.08);">
 
-    <p>Dear ${booking.passengers[0].firstName},</p>
+          <!-- HEADER - Fly2Any Brand -->
+          <tr>
+            <td style="background: linear-gradient(135deg, #E74035 0%, #D63930 100%); padding: 32px 24px; text-align: center;">
+              <img src="https://www.fly2any.com/logo-email.png" width="140" height="40" alt="Fly2Any" style="display: block; margin: 0 auto 16px; border: 0;">
+              <h1 style="margin: 0; font-size: 26px; font-weight: 800; color: #FFFFFF; letter-spacing: -0.5px;">Booking Confirmed</h1>
+              <p style="margin: 8px 0 0; font-size: 15px; color: rgba(255,255,255,0.9);">Your journey starts here</p>
+            </td>
+          </tr>
 
-    <p>Great news! We have received your payment and your booking is now confirmed. Your e-tickets and itinerary are attached to this email.</p>
+          <!-- SUCCESS BADGE -->
+          <tr>
+            <td style="padding: 24px 24px 0;">
+              <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background: linear-gradient(135deg, #d1fae5 0%, #a7f3d0 100%); border-radius: 12px; border: 2px solid #10b981;">
+                <tr>
+                  <td style="padding: 20px; text-align: center;">
+                    <p style="margin: 0; font-size: 32px;">✅</p>
+                    <h2 style="margin: 8px 0 4px; font-size: 20px; font-weight: 700; color: #065f46;">Payment Received!</h2>
+                    <p style="margin: 0; font-size: 14px; color: #047857;">Your flight is confirmed and ready for travel</p>
+                  </td>
+                </tr>
+              </table>
+            </td>
+          </tr>
 
-    <div style="background: #f3f4f6; padding: 20px; border-radius: 8px; margin: 20px 0;">
-      <h3 style="margin-top: 0; color: #1f2937;">Flight Details</h3>
+          <!-- BOOKING REFERENCE STRIP -->
+          <tr>
+            <td style="padding: 20px 24px;">
+              <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background: #1a1a1a; border-radius: 10px;">
+                <tr>
+                  <td style="padding: 16px 20px;">
+                    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
+                      <tr>
+                        <td>
+                          <p style="margin: 0; font-size: 11px; color: #9ca3af; text-transform: uppercase; letter-spacing: 1px;">Booking Reference</p>
+                          <p style="margin: 4px 0 0; font-size: 24px; font-weight: 800; color: #F7C928; font-family: 'SF Mono', 'Fira Code', monospace; letter-spacing: 2px;">${booking.bookingReference}</p>
+                        </td>
+                        <td width="100" style="text-align: right;">
+                          <img src="${qrCodeUrl}" width="80" height="80" alt="QR Code" style="display: block; border-radius: 8px; background: #fff; padding: 4px;">
+                        </td>
+                      </tr>
+                    </table>
+                  </td>
+                </tr>
+              </table>
+            </td>
+          </tr>
 
-      ${booking.flight.segments.map((segment, idx) => `
-        <div style="border-left: 4px solid #2563eb; padding-left: 15px; margin: 15px 0;">
-          <p style="margin: 5px 0; color: #6b7280; font-size: 12px;">Flight ${idx + 1}</p>
-          <div style="display: flex; justify-content: space-between; align-items: center; margin: 10px 0;">
-            <div>
-              <p style="margin: 0; font-size: 24px; font-weight: bold; color: #1f2937;">${segment.departure.iataCode}</p>
-              <p style="margin: 0; font-size: 14px; color: #6b7280;">${new Date(segment.departure.at).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}</p>
-            </div>
-            <div style="text-align: center; flex: 1; padding: 0 15px;">
-              <p style="margin: 0; color: #9ca3af;">✈️</p>
-              <p style="margin: 0; font-size: 12px; color: #6b7280;">${segment.carrierCode}${segment.flightNumber}</p>
-            </div>
-            <div style="text-align: right;">
-              <p style="margin: 0; font-size: 24px; font-weight: bold; color: #1f2937;">${segment.arrival.iataCode}</p>
-              <p style="margin: 0; font-size: 14px; color: #6b7280;">${new Date(segment.arrival.at).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}</p>
-            </div>
-          </div>
-          <p style="margin: 5px 0; font-size: 13px; color: #6b7280;">${new Date(segment.departure.at).toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}</p>
-        </div>
-      `).join('')}
+          <!-- GREETING -->
+          <tr>
+            <td style="padding: 0 24px 16px;">
+              <p style="margin: 0; font-size: 16px; color: #1C1C1C; line-height: 1.6;">
+                Dear <strong>${booking.passengers[0].firstName}</strong>,<br><br>
+                Great news! Your payment has been received and your booking is now confirmed. Your e-ticket details are below.
+              </p>
+            </td>
+          </tr>
 
-      <table style="width: 100%; border-collapse: collapse; margin-top: 20px; border-top: 2px solid #d1d5db; padding-top: 15px;">
-        <tr>
-          <td style="padding: 8px 0;"><strong>Booking Reference:</strong></td>
-          <td style="padding: 8px 0; text-align: right; font-family: monospace; font-size: 16px; color: #2563eb;">${booking.bookingReference}</td>
-        </tr>
-        <tr>
-          <td style="padding: 8px 0;"><strong>Passengers:</strong></td>
-          <td style="padding: 8px 0; text-align: right;">${booking.passengers.map(p => `${p.firstName} ${p.lastName}`).join(', ')}</td>
-        </tr>
-        <tr>
-          <td style="padding: 8px 0;"><strong>Payment Status:</strong></td>
-          <td style="padding: 8px 0; text-align: right;"><span style="background: #d1fae5; color: #065f46; padding: 4px 12px; border-radius: 12px; font-size: 12px; font-weight: bold;">PAID</span></td>
-        </tr>
-      </table>
-    </div>
+          <!-- FLIGHT CARDS -->
+          ${booking.flight.segments.map((segment, idx) => `
+          <tr>
+            <td style="padding: 0 24px 16px;">
+              <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background: linear-gradient(135deg, #F8F9FA 0%, #F2F4F5 100%); border-radius: 12px; border: 1px solid #E6E6E6; overflow: hidden;">
+                <!-- Flight Header -->
+                <tr>
+                  <td style="background: #E74035; padding: 10px 16px;">
+                    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
+                      <tr>
+                        <td>
+                          <p style="margin: 0; font-size: 12px; color: rgba(255,255,255,0.9);">Flight ${idx + 1}</p>
+                        </td>
+                        <td style="text-align: right;">
+                          <p style="margin: 0; font-size: 12px; font-weight: 600; color: #FFFFFF;">${segment.carrierCode} ${segment.flightNumber}</p>
+                        </td>
+                      </tr>
+                    </table>
+                  </td>
+                </tr>
+                <!-- Route Visual -->
+                <tr>
+                  <td style="padding: 20px 16px;">
+                    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
+                      <tr>
+                        <td width="35%" style="text-align: center;">
+                          <p style="margin: 0; font-size: 32px; font-weight: 800; color: #1a1a1a;" class="mobile-font-lg">${segment.departure.iataCode}</p>
+                          <p style="margin: 4px 0 0; font-size: 13px; color: #6B6B6B;">${new Date(segment.departure.at).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}</p>
+                        </td>
+                        <td width="30%" style="text-align: center; vertical-align: middle;">
+                          <p style="margin: 0; font-size: 11px; color: #6B6B6B;">✈️</p>
+                          <div style="height: 2px; background: linear-gradient(90deg, #E74035 0%, #F7C928 100%); margin: 8px 0;"></div>
+                          <p style="margin: 0; font-size: 10px; color: #9F9F9F;">DIRECT</p>
+                        </td>
+                        <td width="35%" style="text-align: center;">
+                          <p style="margin: 0; font-size: 32px; font-weight: 800; color: #1a1a1a;" class="mobile-font-lg">${segment.arrival.iataCode}</p>
+                          <p style="margin: 4px 0 0; font-size: 13px; color: #6B6B6B;">${new Date(segment.arrival.at).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}</p>
+                        </td>
+                      </tr>
+                    </table>
+                    <p style="margin: 12px 0 0; font-size: 13px; color: #6B6B6B; text-align: center;">
+                      📅 ${new Date(segment.departure.at).toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
+                    </p>
+                  </td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+          `).join('')}
 
-    <div style="background: #eff6ff; border-left: 4px solid #3b82f6; padding: 15px; margin: 20px 0; border-radius: 4px;">
-      <h3 style="margin-top: 0; color: #1e40af;">📋 Important Reminders</h3>
-      <ul style="margin: 10px 0; padding-left: 20px; color: #1e3a8a;">
-        <li style="margin: 5px 0;">Check in online 24-48 hours before departure</li>
-        <li style="margin: 5px 0;">Arrive at the airport at least 2 hours before departure</li>
-        <li style="margin: 5px 0;">Bring a valid photo ID and passport (for international flights)</li>
-        <li style="margin: 5px 0;">Your e-ticket reference: ${booking.bookingReference}</li>
-      </ul>
-    </div>
+          <!-- PASSENGERS -->
+          <tr>
+            <td style="padding: 0 24px 16px;">
+              <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background: #F8F9FA; border-radius: 10px; border: 1px solid #E6E6E6;">
+                <tr>
+                  <td style="padding: 16px;">
+                    <p style="margin: 0 0 12px; font-size: 11px; font-weight: 600; color: #6B6B6B; text-transform: uppercase; letter-spacing: 1px;">Passengers</p>
+                    ${booking.passengers.map((p, idx) => `
+                    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="margin-bottom: 8px;">
+                      <tr>
+                        <td>
+                          <p style="margin: 0; font-size: 14px; font-weight: 600; color: #1C1C1C;">👤 ${p.firstName} ${p.lastName}</p>
+                        </td>
+                        <td style="text-align: right;">
+                          <span style="display: inline-block; padding: 4px 10px; background: #E74035; color: #fff; font-size: 10px; font-weight: 600; border-radius: 4px; text-transform: uppercase;">${p.type || 'Adult'}</span>
+                        </td>
+                      </tr>
+                    </table>
+                    `).join('')}
+                  </td>
+                </tr>
+              </table>
+            </td>
+          </tr>
 
-    <hr style="border: none; border-top: 1px solid #e5e7eb; margin: 30px 0;">
+          <!-- PAYMENT SUMMARY -->
+          <tr>
+            <td style="padding: 0 24px 16px;">
+              <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background: #F8F9FA; border-radius: 10px; border: 1px solid #E6E6E6;">
+                <tr>
+                  <td style="padding: 16px;">
+                    <p style="margin: 0 0 12px; font-size: 11px; font-weight: 600; color: #6B6B6B; text-transform: uppercase; letter-spacing: 1px;">Payment</p>
+                    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
+                      <tr>
+                        <td style="padding: 4px 0;"><p style="margin: 0; font-size: 13px; color: #6B6B6B;">Status</p></td>
+                        <td style="padding: 4px 0; text-align: right;"><span style="display: inline-block; padding: 4px 12px; background: #d1fae5; color: #065f46; font-size: 11px; font-weight: 700; border-radius: 20px;">PAID</span></td>
+                      </tr>
+                      <tr>
+                        <td style="padding: 4px 0;"><p style="margin: 0; font-size: 13px; color: #6B6B6B;">Card</p></td>
+                        <td style="padding: 4px 0; text-align: right;"><p style="margin: 0; font-size: 13px; font-weight: 600; color: #1C1C1C;">•••• ${booking.payment.cardLast4 || '****'}</p></td>
+                      </tr>
+                      <tr>
+                        <td colspan="2" style="padding-top: 12px; border-top: 1px solid #E6E6E6;">
+                          <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
+                            <tr>
+                              <td><p style="margin: 0; font-size: 14px; font-weight: 600; color: #1C1C1C;">Total Paid</p></td>
+                              <td style="text-align: right;"><p style="margin: 0; font-size: 22px; font-weight: 800; color: #E74035;">${booking.payment.currency} ${booking.payment.amount.toFixed(2)}</p></td>
+                            </tr>
+                          </table>
+                        </td>
+                      </tr>
+                    </table>
+                  </td>
+                </tr>
+              </table>
+            </td>
+          </tr>
 
-    <p style="color: #6b7280; font-size: 14px;">Need to make changes or have questions? Contact our support team:</p>
+          <!-- IMPORTANT INFO -->
+          <tr>
+            <td style="padding: 0 24px 20px;">
+              <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background: #FEF3C7; border-left: 4px solid #F7C928; border-radius: 8px;">
+                <tr>
+                  <td style="padding: 16px;">
+                    <p style="margin: 0 0 8px; font-size: 14px; font-weight: 700; color: #92400E;">📋 Before You Fly</p>
+                    <p style="margin: 0; font-size: 13px; color: #78350F; line-height: 1.6;">
+                      • Check in online 24-48 hours before departure<br>
+                      • Arrive at the airport at least 2 hours early<br>
+                      • Bring valid photo ID and passport (international)
+                    </p>
+                  </td>
+                </tr>
+              </table>
+            </td>
+          </tr>
 
-    <div style="text-align: center; margin: 30px 0;">
-      <a href="mailto:${SUPPORT_EMAIL}" style="display: inline-block; background: #10b981; color: white; padding: 12px 30px; text-decoration: none; border-radius: 6px; font-weight: bold;">Contact Support</a>
-    </div>
+          <!-- CTA BUTTON -->
+          <tr>
+            <td align="center" style="padding: 0 24px 24px;">
+              <a href="${bookingUrl}" target="_blank" style="display: inline-block; padding: 16px 40px; background: #E74035; color: #FFFFFF; font-size: 15px; font-weight: 700; text-decoration: none; border-radius: 10px; box-shadow: 0 4px 12px rgba(231,64,53,0.3);">View Booking Online</a>
+            </td>
+          </tr>
 
-    <p style="color: #6b7280; font-size: 14px; text-align: center;">Have a great flight! ✈️</p>
+          <!-- DIVIDER -->
+          <tr>
+            <td style="padding: 0 24px;">
+              <div style="height: 1px; background: #E6E6E6;"></div>
+            </td>
+          </tr>
 
-    <p style="color: #9ca3af; font-size: 12px; text-align: center; margin-top: 30px;">
-      This email was sent by ${COMPANY_NAME}<br>
-      Booking Reference: ${booking.bookingReference}
-    </p>
-  </div>
+          <!-- FOOTER -->
+          <tr>
+            <td style="padding: 24px; text-align: center;">
+              <p style="margin: 0 0 12px; font-size: 14px; color: #6B6B6B;">Questions? We're here to help 24/7</p>
+              <a href="mailto:${SUPPORT_EMAIL}" style="display: inline-block; padding: 12px 28px; background: transparent; color: #E74035; font-size: 14px; font-weight: 600; text-decoration: none; border: 2px solid #E74035; border-radius: 8px;">Contact Support</a>
+              <p style="margin: 20px 0 0; font-size: 12px; color: #9F9F9F;">
+                ${COMPANY_NAME} Inc. • Global Travel Platform<br>
+                <a href="https://www.fly2any.com/privacy" style="color: #9F9F9F;">Privacy</a> • <a href="https://www.fly2any.com/terms" style="color: #9F9F9F;">Terms</a>
+              </p>
+              <p style="margin: 12px 0 0; font-size: 11px; color: #DCDCDC;">Ref: ${booking.bookingReference}</p>
+            </td>
+          </tr>
+
+        </table>
+      </td>
+    </tr>
+  </table>
 </body>
 </html>
   `;
 
   const text = `
-Booking Confirmed - ${booking.bookingReference}
+══════════════════════════════════════════════════
+FLY2ANY - BOOKING CONFIRMED
+══════════════════════════════════════════════════
 
 Dear ${booking.passengers[0].firstName},
 
-Great news! We have received your payment and your booking is now confirmed.
+Great news! Your payment has been received and your booking is now confirmed.
+
+──────────────────────────────────────────────────
+BOOKING REFERENCE: ${booking.bookingReference}
+──────────────────────────────────────────────────
 
 FLIGHT DETAILS:
 ${booking.flight.segments.map((seg, idx) => `
-Flight ${idx + 1}:
+Flight ${idx + 1}: ${seg.carrierCode}${seg.flightNumber}
 ${seg.departure.iataCode} → ${seg.arrival.iataCode}
-${new Date(seg.departure.at).toLocaleString()} - ${new Date(seg.arrival.at).toLocaleString()}
-${seg.carrierCode}${seg.flightNumber}
+Departure: ${new Date(seg.departure.at).toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' })} at ${new Date(seg.departure.at).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}
+Arrival: ${new Date(seg.arrival.at).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}
 `).join('\n')}
 
-BOOKING REFERENCE: ${booking.bookingReference}
-PASSENGERS: ${booking.passengers.map(p => `${p.firstName} ${p.lastName}`).join(', ')}
-PAYMENT STATUS: PAID
+PASSENGERS:
+${booking.passengers.map(p => `• ${p.firstName} ${p.lastName}`).join('\n')}
 
-IMPORTANT REMINDERS:
-- Check in online 24-48 hours before departure
-- Arrive at the airport at least 2 hours before departure
-- Bring a valid photo ID and passport (for international flights)
+PAYMENT:
+Total Paid: ${booking.payment.currency} ${booking.payment.amount.toFixed(2)}
+Card: •••• ${booking.payment.cardLast4 || '****'}
+Status: PAID
 
+──────────────────────────────────────────────────
+BEFORE YOU FLY:
+──────────────────────────────────────────────────
+• Check in online 24-48 hours before departure
+• Arrive at the airport at least 2 hours early
+• Bring valid photo ID and passport (international)
+
+View your booking online: ${bookingUrl}
+
+──────────────────────────────────────────────────
 Need help? Contact us at ${SUPPORT_EMAIL}
+──────────────────────────────────────────────────
 
 Have a great flight!
-${COMPANY_NAME} Team
+
+Fly2Any Inc. • Global Travel Platform
+www.fly2any.com
   `;
 
   return { subject, html, text };
@@ -816,164 +1246,313 @@ export async function sendPriceAlertEmail(
 }
 
 /**
- * E-Ticket Confirmation Email
+ * E-Ticket Confirmation Email - Apple Level 6 Premium Design
  * Sent after ticket is issued (manual ticketing workflow)
  */
 function getTicketedConfirmationEmail(booking: Booking) {
   const subject = `🎫 Your E-Ticket - ${booking.bookingReference}`;
+  const route = `${booking.flight.segments[0].departure.iataCode} → ${booking.flight.segments[booking.flight.segments.length - 1].arrival.iataCode}`;
+  const bookingUrl = `${process.env.NEXT_PUBLIC_APP_URL || 'https://www.fly2any.com'}/account/bookings?ref=${booking.bookingReference}`;
+  const qrCodeUrl = `https://api.qrserver.com/v1/create-qr-code/?size=100x100&data=${encodeURIComponent(bookingUrl)}&bgcolor=ffffff&color=E74035`;
 
   const html = `
 <!DOCTYPE html>
-<html>
+<html lang="en" xmlns:v="urn:schemas-microsoft-com:vml" xmlns:o="urn:schemas-microsoft-com:office:office">
 <head>
-  <meta charset="utf-8">
+  <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="x-apple-disable-message-reformatting">
+  <meta name="color-scheme" content="light">
+  <meta name="supported-color-schemes" content="light">
   <title>${subject}</title>
+  <!--[if mso]>
+  <noscript><xml><o:OfficeDocumentSettings><o:PixelsPerInch>96</o:PixelsPerInch></o:OfficeDocumentSettings></xml></noscript>
+  <style>table{border-collapse:collapse;}td,th{padding:0;}</style>
+  <![endif]-->
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    @media only screen and (max-width: 620px) {
+      .mobile-full { width: 100% !important; }
+      .mobile-padding { padding-left: 16px !important; padding-right: 16px !important; }
+      .mobile-stack { display: block !important; width: 100% !important; }
+      .mobile-center { text-align: center !important; }
+      .mobile-font-lg { font-size: 28px !important; }
+    }
+  </style>
 </head>
-<body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px;">
-  <div style="background: linear-gradient(135deg, #059669 0%, #047857 100%); padding: 30px; text-align: center; border-radius: 10px 10px 0 0;">
-    <h1 style="color: white; margin: 0; font-size: 28px;">✈️ ${COMPANY_NAME}</h1>
-    <p style="color: rgba(255,255,255,0.9); margin: 10px 0 0 0; font-size: 18px;">🎫 Your E-Ticket is Ready!</p>
+<body style="margin: 0; padding: 0; background-color: #FAFAFA; font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; -webkit-font-smoothing: antialiased;">
+  <!-- Preheader -->
+  <div style="display: none; max-height: 0; overflow: hidden; font-size: 1px; line-height: 1px; color: #FAFAFA;">
+    Your e-ticket for ${route} is ready! PNR: ${booking.airlineRecordLocator || booking.bookingReference}
   </div>
 
-  <div style="background: #ffffff; padding: 30px; border: 1px solid #e5e7eb; border-top: none; border-radius: 0 0 10px 10px;">
-    <div style="background: #d1fae5; border: 2px solid #10b981; padding: 20px; border-radius: 8px; text-align: center; margin-bottom: 30px;">
-      <h2 style="color: #065f46; margin: 0 0 10px 0;">🎉 Your Ticket Has Been Issued!</h2>
-      <p style="color: #047857; margin: 0; font-size: 16px;">You're all set for your flight. Here are your travel documents.</p>
-    </div>
+  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color: #FAFAFA;">
+    <tr>
+      <td align="center" style="padding: 32px 16px;" class="mobile-padding">
+        <table role="presentation" width="600" cellpadding="0" cellspacing="0" border="0" class="mobile-full" style="max-width: 600px; background: #FFFFFF; border-radius: 16px; overflow: hidden; box-shadow: 0 4px 24px rgba(0,0,0,0.08);">
 
-    <p>Dear ${booking.passengers[0].firstName},</p>
+          <!-- HEADER - Fly2Any Brand -->
+          <tr>
+            <td style="background: linear-gradient(135deg, #E74035 0%, #D63930 100%); padding: 32px 24px; text-align: center;">
+              <img src="https://www.fly2any.com/logo-email.png" width="140" height="40" alt="Fly2Any" style="display: block; margin: 0 auto 16px; border: 0;">
+              <h1 style="margin: 0; font-size: 26px; font-weight: 800; color: #FFFFFF; letter-spacing: -0.5px;">Your E-Ticket is Ready</h1>
+              <p style="margin: 8px 0 0; font-size: 15px; color: rgba(255,255,255,0.9);">You're all set to fly!</p>
+            </td>
+          </tr>
 
-    <p>Great news! Your ticket has been issued and you're ready to travel. Please save this email and keep the information below handy for check-in.</p>
+          <!-- SUCCESS BADGE -->
+          <tr>
+            <td style="padding: 24px 24px 0;">
+              <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background: linear-gradient(135deg, #d1fae5 0%, #a7f3d0 100%); border-radius: 12px; border: 2px solid #10b981;">
+                <tr>
+                  <td style="padding: 20px; text-align: center;">
+                    <p style="margin: 0; font-size: 32px;">🎫</p>
+                    <h2 style="margin: 8px 0 4px; font-size: 20px; font-weight: 700; color: #065f46;">Ticket Issued Successfully!</h2>
+                    <p style="margin: 0; font-size: 14px; color: #047857;">Save this email for check-in</p>
+                  </td>
+                </tr>
+              </table>
+            </td>
+          </tr>
 
-    <!-- Ticket Information -->
-    <div style="background: #f0fdf4; padding: 20px; border-radius: 8px; margin: 20px 0; border: 2px solid #86efac;">
-      <h3 style="margin-top: 0; color: #166534; text-align: center;">Your E-Ticket Details</h3>
+          <!-- PNR & QR CODE STRIP -->
+          <tr>
+            <td style="padding: 20px 24px;">
+              <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background: #1a1a1a; border-radius: 10px;">
+                <tr>
+                  <td style="padding: 16px 20px;">
+                    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
+                      <tr>
+                        <td>
+                          <p style="margin: 0; font-size: 11px; color: #9ca3af; text-transform: uppercase; letter-spacing: 1px;">Airline Confirmation (PNR)</p>
+                          <p style="margin: 4px 0 0; font-size: 28px; font-weight: 800; color: #F7C928; font-family: 'SF Mono', 'Fira Code', monospace; letter-spacing: 3px;">${booking.airlineRecordLocator || 'N/A'}</p>
+                          <p style="margin: 8px 0 0; font-size: 11px; color: #6B6B6B;">Fly2Any Ref: ${booking.bookingReference}</p>
+                        </td>
+                        <td width="100" style="text-align: right;">
+                          <img src="${qrCodeUrl}" width="80" height="80" alt="QR Code" style="display: block; border-radius: 8px; background: #fff; padding: 4px;">
+                        </td>
+                      </tr>
+                    </table>
+                  </td>
+                </tr>
+              </table>
+            </td>
+          </tr>
 
-      <table style="width: 100%; border-collapse: collapse;">
-        <tr>
-          <td style="padding: 12px 0; font-weight: bold; color: #166534;">Airline Confirmation (PNR):</td>
-          <td style="padding: 12px 0; text-align: right; font-family: monospace; font-size: 24px; color: #166534; font-weight: bold;">${booking.airlineRecordLocator || 'N/A'}</td>
-        </tr>
-        <tr>
-          <td style="padding: 12px 0; font-weight: bold; color: #166534;">Booking Reference:</td>
-          <td style="padding: 12px 0; text-align: right; font-family: monospace; font-size: 18px; color: #166534;">${booking.bookingReference}</td>
-        </tr>
-      </table>
+          <!-- GREETING -->
+          <tr>
+            <td style="padding: 0 24px 16px;">
+              <p style="margin: 0; font-size: 16px; color: #1C1C1C; line-height: 1.6;">
+                Dear <strong>${booking.passengers[0].firstName}</strong>,<br><br>
+                Great news! Your ticket has been issued and you're ready to travel. Please save this email for check-in.
+              </p>
+            </td>
+          </tr>
 
-      ${booking.eticketNumbers && booking.eticketNumbers.length > 0 ? `
-        <div style="margin-top: 15px; padding-top: 15px; border-top: 1px solid #bbf7d0;">
-          <p style="margin: 0 0 10px 0; font-weight: bold; color: #166534;">E-Ticket Numbers:</p>
-          ${booking.passengers.map((p, idx) => `
-            <div style="background: white; padding: 10px; margin: 5px 0; border-radius: 4px; display: flex; justify-content: space-between;">
-              <span style="color: #374151;">${p.firstName} ${p.lastName}</span>
-              <span style="font-family: monospace; color: #166534; font-weight: bold;">${booking.eticketNumbers?.[idx] || 'N/A'}</span>
-            </div>
+          <!-- E-TICKET NUMBERS -->
+          ${booking.eticketNumbers && booking.eticketNumbers.length > 0 ? `
+          <tr>
+            <td style="padding: 0 24px 16px;">
+              <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background: #d1fae5; border-radius: 10px; border: 1px solid #10b981;">
+                <tr>
+                  <td style="padding: 16px;">
+                    <p style="margin: 0 0 12px; font-size: 11px; font-weight: 600; color: #065f46; text-transform: uppercase; letter-spacing: 1px;">E-Ticket Numbers</p>
+                    ${booking.passengers.map((p, idx) => `
+                    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="margin-bottom: 8px; background: #fff; border-radius: 6px;">
+                      <tr>
+                        <td style="padding: 10px 12px;">
+                          <p style="margin: 0; font-size: 14px; font-weight: 600; color: #1C1C1C;">${p.firstName} ${p.lastName}</p>
+                        </td>
+                        <td style="padding: 10px 12px; text-align: right;">
+                          <p style="margin: 0; font-size: 14px; font-weight: 700; color: #065f46; font-family: 'SF Mono', monospace;">${booking.eticketNumbers?.[idx] || 'N/A'}</p>
+                        </td>
+                      </tr>
+                    </table>
+                    `).join('')}
+                  </td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+          ` : ''}
+
+          <!-- FLIGHT CARDS -->
+          ${booking.flight.segments.map((segment, idx) => `
+          <tr>
+            <td style="padding: 0 24px 16px;">
+              <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background: linear-gradient(135deg, #F8F9FA 0%, #F2F4F5 100%); border-radius: 12px; border: 1px solid #E6E6E6; overflow: hidden;">
+                <tr>
+                  <td style="background: #E74035; padding: 10px 16px;">
+                    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
+                      <tr>
+                        <td><p style="margin: 0; font-size: 12px; color: rgba(255,255,255,0.9);">Flight ${idx + 1}</p></td>
+                        <td style="text-align: right;"><p style="margin: 0; font-size: 12px; font-weight: 600; color: #FFFFFF;">${segment.carrierCode} ${segment.flightNumber}</p></td>
+                      </tr>
+                    </table>
+                  </td>
+                </tr>
+                <tr>
+                  <td style="padding: 20px 16px;">
+                    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
+                      <tr>
+                        <td width="35%" style="text-align: center;">
+                          <p style="margin: 0; font-size: 32px; font-weight: 800; color: #1a1a1a;" class="mobile-font-lg">${segment.departure.iataCode}</p>
+                          <p style="margin: 4px 0 0; font-size: 13px; color: #6B6B6B;">${new Date(segment.departure.at).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}</p>
+                        </td>
+                        <td width="30%" style="text-align: center; vertical-align: middle;">
+                          <p style="margin: 0; font-size: 11px; color: #6B6B6B;">✈️</p>
+                          <div style="height: 2px; background: linear-gradient(90deg, #E74035 0%, #F7C928 100%); margin: 8px 0;"></div>
+                          <p style="margin: 0; font-size: 10px; color: #9F9F9F;">DIRECT</p>
+                        </td>
+                        <td width="35%" style="text-align: center;">
+                          <p style="margin: 0; font-size: 32px; font-weight: 800; color: #1a1a1a;" class="mobile-font-lg">${segment.arrival.iataCode}</p>
+                          <p style="margin: 4px 0 0; font-size: 13px; color: #6B6B6B;">${new Date(segment.arrival.at).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}</p>
+                        </td>
+                      </tr>
+                    </table>
+                    <p style="margin: 12px 0 0; font-size: 13px; color: #6B6B6B; text-align: center;">
+                      📅 ${new Date(segment.departure.at).toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
+                    </p>
+                  </td>
+                </tr>
+              </table>
+            </td>
+          </tr>
           `).join('')}
-        </div>
-      ` : ''}
-    </div>
 
-    <!-- Flight Details -->
-    <div style="background: #f3f4f6; padding: 20px; border-radius: 8px; margin: 20px 0;">
-      <h3 style="margin-top: 0; color: #1f2937;">Flight Itinerary</h3>
+          <!-- PASSENGERS & CLASS -->
+          <tr>
+            <td style="padding: 0 24px 16px;">
+              <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background: #F8F9FA; border-radius: 10px; border: 1px solid #E6E6E6;">
+                <tr>
+                  <td style="padding: 16px;">
+                    <p style="margin: 0 0 12px; font-size: 11px; font-weight: 600; color: #6B6B6B; text-transform: uppercase; letter-spacing: 1px;">Passengers</p>
+                    ${booking.passengers.map((p, idx) => `
+                    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="margin-bottom: 8px;">
+                      <tr>
+                        <td><p style="margin: 0; font-size: 14px; font-weight: 600; color: #1C1C1C;">👤 ${p.firstName} ${p.lastName}</p></td>
+                        <td style="text-align: right;">
+                          <span style="display: inline-block; padding: 4px 10px; background: #E74035; color: #fff; font-size: 10px; font-weight: 600; border-radius: 4px; text-transform: uppercase;">${p.type || 'Adult'}</span>
+                        </td>
+                      </tr>
+                    </table>
+                    `).join('')}
+                    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="margin-top: 12px; padding-top: 12px; border-top: 1px solid #E6E6E6;">
+                      <tr>
+                        <td><p style="margin: 0; font-size: 13px; color: #6B6B6B;">Class</p></td>
+                        <td style="text-align: right;"><p style="margin: 0; font-size: 14px; font-weight: 600; color: #1C1C1C; text-transform: capitalize;">${booking.flight.segments[0].class || 'Economy'}</p></td>
+                      </tr>
+                    </table>
+                  </td>
+                </tr>
+              </table>
+            </td>
+          </tr>
 
-      ${booking.flight.segments.map((segment, idx) => `
-        <div style="border-left: 4px solid #059669; padding-left: 15px; margin: 15px 0;">
-          <p style="margin: 5px 0; color: #6b7280; font-size: 12px;">Flight ${idx + 1}</p>
-          <div style="display: flex; justify-content: space-between; align-items: center; margin: 10px 0;">
-            <div>
-              <p style="margin: 0; font-size: 24px; font-weight: bold; color: #1f2937;">${segment.departure.iataCode}</p>
-              <p style="margin: 0; font-size: 14px; color: #6b7280;">${new Date(segment.departure.at).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}</p>
-            </div>
-            <div style="text-align: center; flex: 1; padding: 0 15px;">
-              <p style="margin: 0; color: #9ca3af;">✈️</p>
-              <p style="margin: 0; font-size: 12px; color: #6b7280;">${segment.carrierCode}${segment.flightNumber}</p>
-            </div>
-            <div style="text-align: right;">
-              <p style="margin: 0; font-size: 24px; font-weight: bold; color: #1f2937;">${segment.arrival.iataCode}</p>
-              <p style="margin: 0; font-size: 14px; color: #6b7280;">${new Date(segment.arrival.at).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}</p>
-            </div>
-          </div>
-          <p style="margin: 5px 0; font-size: 13px; color: #6b7280;">${new Date(segment.departure.at).toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}</p>
-        </div>
-      `).join('')}
+          <!-- CHECK-IN REMINDERS -->
+          <tr>
+            <td style="padding: 0 24px 20px;">
+              <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background: #FEF3C7; border-left: 4px solid #F7C928; border-radius: 8px;">
+                <tr>
+                  <td style="padding: 16px;">
+                    <p style="margin: 0 0 8px; font-size: 14px; font-weight: 700; color: #92400E;">📋 Check-in Reminders</p>
+                    <p style="margin: 0; font-size: 13px; color: #78350F; line-height: 1.6;">
+                      • Online check-in opens 24-48 hours before departure<br>
+                      • Use your PNR <strong style="font-family: monospace; background: #fff; padding: 2px 6px; border-radius: 4px;">${booking.airlineRecordLocator || booking.bookingReference}</strong> on the airline's website<br>
+                      • Arrive at the airport at least 2 hours early (3 hours for international)<br>
+                      • Bring valid photo ID and passport (international flights)
+                    </p>
+                  </td>
+                </tr>
+              </table>
+            </td>
+          </tr>
 
-      <table style="width: 100%; border-collapse: collapse; margin-top: 20px; border-top: 2px solid #d1d5db; padding-top: 15px;">
-        <tr>
-          <td style="padding: 8px 0;"><strong>Passengers:</strong></td>
-          <td style="padding: 8px 0; text-align: right;">${booking.passengers.map(p => `${p.firstName} ${p.lastName}`).join(', ')}</td>
-        </tr>
-        <tr>
-          <td style="padding: 8px 0;"><strong>Class:</strong></td>
-          <td style="padding: 8px 0; text-align: right; text-transform: capitalize;">${booking.flight.segments[0].class}</td>
-        </tr>
-      </table>
-    </div>
+          <!-- CTA BUTTON -->
+          <tr>
+            <td align="center" style="padding: 0 24px 24px;">
+              <a href="${bookingUrl}" target="_blank" style="display: inline-block; padding: 16px 40px; background: #E74035; color: #FFFFFF; font-size: 15px; font-weight: 700; text-decoration: none; border-radius: 10px; box-shadow: 0 4px 12px rgba(231,64,53,0.3);">View E-Ticket Online</a>
+            </td>
+          </tr>
 
-    <div style="background: #eff6ff; border-left: 4px solid #3b82f6; padding: 15px; margin: 20px 0; border-radius: 4px;">
-      <h3 style="margin-top: 0; color: #1e40af;">📋 Check-in Reminders</h3>
-      <ul style="margin: 10px 0; padding-left: 20px; color: #1e3a8a;">
-        <li style="margin: 5px 0;">Online check-in opens 24-48 hours before departure</li>
-        <li style="margin: 5px 0;">Use your PNR <strong style="font-family: monospace;">${booking.airlineRecordLocator}</strong> on the airline's website</li>
-        <li style="margin: 5px 0;">Arrive at the airport at least 2 hours before departure (3 hours for international)</li>
-        <li style="margin: 5px 0;">Bring a valid photo ID and passport (for international flights)</li>
-      </ul>
-    </div>
+          <!-- DIVIDER -->
+          <tr>
+            <td style="padding: 0 24px;">
+              <div style="height: 1px; background: #E6E6E6;"></div>
+            </td>
+          </tr>
 
-    <hr style="border: none; border-top: 1px solid #e5e7eb; margin: 30px 0;">
+          <!-- FOOTER -->
+          <tr>
+            <td style="padding: 24px; text-align: center;">
+              <p style="margin: 0 0 12px; font-size: 14px; color: #6B6B6B;">Questions? We're here to help 24/7</p>
+              <a href="mailto:${SUPPORT_EMAIL}" style="display: inline-block; padding: 12px 28px; background: transparent; color: #E74035; font-size: 14px; font-weight: 600; text-decoration: none; border: 2px solid #E74035; border-radius: 8px;">Contact Support</a>
+              <p style="margin: 20px 0 0; font-size: 14px; color: #6B6B6B;">Have a great flight! ✈️</p>
+              <p style="margin: 16px 0 0; font-size: 12px; color: #9F9F9F;">
+                ${COMPANY_NAME} Inc. • Global Travel Platform<br>
+                <a href="https://www.fly2any.com/privacy" style="color: #9F9F9F;">Privacy</a> • <a href="https://www.fly2any.com/terms" style="color: #9F9F9F;">Terms</a>
+              </p>
+              <p style="margin: 12px 0 0; font-size: 11px; color: #DCDCDC;">Ref: ${booking.bookingReference} | PNR: ${booking.airlineRecordLocator || 'N/A'}</p>
+            </td>
+          </tr>
 
-    <p style="color: #6b7280; font-size: 14px;">Need to make changes or have questions? Contact our support team:</p>
-
-    <div style="text-align: center; margin: 30px 0;">
-      <a href="mailto:${SUPPORT_EMAIL}" style="display: inline-block; background: #059669; color: white; padding: 12px 30px; text-decoration: none; border-radius: 6px; font-weight: bold;">Contact Support</a>
-    </div>
-
-    <p style="color: #6b7280; font-size: 14px; text-align: center;">Have a great flight! ✈️</p>
-
-    <p style="color: #9ca3af; font-size: 12px; text-align: center; margin-top: 30px;">
-      This email was sent by ${COMPANY_NAME}<br>
-      Booking Reference: ${booking.bookingReference} | PNR: ${booking.airlineRecordLocator || 'N/A'}
-    </p>
-  </div>
+        </table>
+      </td>
+    </tr>
+  </table>
 </body>
 </html>
   `;
 
   const text = `
-Your E-Ticket - ${booking.bookingReference}
+══════════════════════════════════════════════════
+FLY2ANY - YOUR E-TICKET IS READY
+══════════════════════════════════════════════════
 
 Dear ${booking.passengers[0].firstName},
 
 Great news! Your ticket has been issued and you're ready to travel.
 
-E-TICKET DETAILS:
-Airline Confirmation (PNR): ${booking.airlineRecordLocator || 'N/A'}
-Booking Reference: ${booking.bookingReference}
+──────────────────────────────────────────────────
+AIRLINE CONFIRMATION (PNR): ${booking.airlineRecordLocator || 'N/A'}
+BOOKING REFERENCE: ${booking.bookingReference}
+──────────────────────────────────────────────────
 
+${booking.eticketNumbers && booking.eticketNumbers.length > 0 ? `
 E-TICKET NUMBERS:
-${booking.passengers.map((p, idx) => `${p.firstName} ${p.lastName}: ${booking.eticketNumbers?.[idx] || 'N/A'}`).join('\n')}
+${booking.passengers.map((p, idx) => `• ${p.firstName} ${p.lastName}: ${booking.eticketNumbers?.[idx] || 'N/A'}`).join('\n')}
+` : ''}
 
 FLIGHT DETAILS:
 ${booking.flight.segments.map((seg, idx) => `
-Flight ${idx + 1}:
+Flight ${idx + 1}: ${seg.carrierCode}${seg.flightNumber}
 ${seg.departure.iataCode} → ${seg.arrival.iataCode}
-${new Date(seg.departure.at).toLocaleString()} - ${new Date(seg.arrival.at).toLocaleString()}
-${seg.carrierCode}${seg.flightNumber}
+Departure: ${new Date(seg.departure.at).toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' })} at ${new Date(seg.departure.at).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}
 `).join('\n')}
 
-PASSENGERS: ${booking.passengers.map(p => `${p.firstName} ${p.lastName}`).join(', ')}
+PASSENGERS:
+${booking.passengers.map(p => `• ${p.firstName} ${p.lastName}`).join('\n')}
+Class: ${booking.flight.segments[0].class || 'Economy'}
 
+──────────────────────────────────────────────────
 CHECK-IN REMINDERS:
-- Online check-in opens 24-48 hours before departure
-- Use your PNR ${booking.airlineRecordLocator} on the airline's website
-- Arrive at the airport at least 2 hours before departure (3 hours for international)
-- Bring a valid photo ID and passport (for international flights)
+──────────────────────────────────────────────────
+• Online check-in opens 24-48 hours before departure
+• Use your PNR ${booking.airlineRecordLocator || booking.bookingReference} on the airline's website
+• Arrive at the airport at least 2 hours early (3 hours for international)
+• Bring valid photo ID and passport (international flights)
 
+View your e-ticket online: ${bookingUrl}
+
+──────────────────────────────────────────────────
 Need help? Contact us at ${SUPPORT_EMAIL}
+──────────────────────────────────────────────────
 
 Have a great flight!
-${COMPANY_NAME} Team
+
+Fly2Any Inc. • Global Travel Platform
+www.fly2any.com
   `;
 
   return { subject, html, text };

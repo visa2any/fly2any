@@ -216,7 +216,13 @@ export function FlightCardMobile(props: EnhancedFlightCardProps) {
     if (isNavigating) return;
 
     // Save flight data for booking page
-    sessionStorage.setItem(`flight_${id}`, JSON.stringify(props));
+    // CRITICAL: Include timestamp for offer freshness validation (Duffel offers expire after 30 min)
+    const flightWithTimestamp = {
+      ...props,
+      _storedAt: Date.now(),
+      _offerExpiresAt: Date.now() + (25 * 60 * 1000), // 25 min validity
+    };
+    sessionStorage.setItem(`flight_${id}`, JSON.stringify(flightWithTimestamp));
 
     // Haptic feedback (if supported)
     if ('vibrate' in navigator) {
@@ -309,10 +315,10 @@ export function FlightCardMobile(props: EnhancedFlightCardProps) {
         {/* HEADER - Airline + Flight Number + Favorite + Badge + Overflow Menu */}
         <div className="flex items-center justify-between px-3 py-1 border-b border-neutral-100">
           {/* Left: Airline info with flight number (compact) */}
-          <div className="flex items-center gap-2 flex-1 min-w-0">
+          <div className="flex items-center gap-2.5 flex-1 min-w-0">
             <AirlineLogo
               code={primaryAirline}
-              size="sm"
+              size="md"
               className="flex-shrink-0"
             />
             <div className="flex flex-col min-w-0">

@@ -306,7 +306,7 @@ export default function AdminBookingDetailPage() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 via-blue-50/30 to-gray-50">
-      <div className="max-w-7xl mx-auto p-6 space-y-6">
+      <div className="w-full px-4 md:px-6 py-4 space-y-4">
         {/* Header */}
         <div className="flex items-center justify-between">
           <div>
@@ -604,9 +604,77 @@ export default function AdminBookingDetailPage() {
           </div>
         )}
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
           {/* Main Content */}
-          <div className="lg:col-span-2 space-y-6">
+          <div className="lg:col-span-2 space-y-4">
+            {/* Ticketing Details Card - Critical info for manual ticketing */}
+            {(booking.status === 'pending_ticketing' || booking.status === 'ticketed') && (
+              <div className="bg-white rounded-lg border-2 border-indigo-200 shadow-sm overflow-hidden">
+                <div className="px-4 py-3 bg-gradient-to-r from-indigo-600 to-purple-600 text-white">
+                  <h3 className="font-bold flex items-center gap-2">
+                    <FileCheck className="w-5 h-5" />
+                    Ticketing Reference Details
+                  </h3>
+                  <p className="text-xs text-white/80">Key information for consolidator booking</p>
+                </div>
+                <div className="p-4 grid grid-cols-2 md:grid-cols-4 gap-4">
+                  {/* Booking Reference */}
+                  <div>
+                    <p className="text-xs text-gray-500 font-medium">Fly2Any Ref</p>
+                    <p className="text-lg font-bold text-indigo-700 font-mono">{booking.bookingReference}</p>
+                  </div>
+                  {/* Duffel Order ID */}
+                  {booking.duffelOrderId && (
+                    <div>
+                      <p className="text-xs text-gray-500 font-medium">Duffel Order ID</p>
+                      <p className="text-sm font-mono text-gray-800 break-all">{booking.duffelOrderId}</p>
+                    </div>
+                  )}
+                  {/* Source API */}
+                  <div>
+                    <p className="text-xs text-gray-500 font-medium">Source</p>
+                    <p className={`text-sm font-semibold ${
+                      booking.sourceApi === 'Duffel' ? 'text-green-600' : 'text-blue-600'
+                    }`}>
+                      {booking.sourceApi || 'Unknown'}
+                    </p>
+                  </div>
+                  {/* Net Price */}
+                  <div>
+                    <p className="text-xs text-gray-500 font-medium">Net Price (Offer)</p>
+                    <p className="text-lg font-bold text-gray-900">
+                      {booking.payment.currency} {(booking.netPrice || booking.flight.price.total).toFixed(2)}
+                    </p>
+                  </div>
+                  {/* Customer Price */}
+                  <div>
+                    <p className="text-xs text-gray-500 font-medium">Customer Paid</p>
+                    <p className="text-lg font-bold text-green-600">
+                      {booking.payment.currency} {(booking.customerPrice || booking.payment.amount).toFixed(2)}
+                    </p>
+                  </div>
+                  {/* Markup */}
+                  {booking.markupAmount && booking.markupAmount > 0 && (
+                    <div>
+                      <p className="text-xs text-gray-500 font-medium">Your Markup</p>
+                      <p className="text-lg font-bold text-amber-600">
+                        +{booking.payment.currency} {booking.markupAmount.toFixed(2)}
+                      </p>
+                    </div>
+                  )}
+                  {/* Duffel Offer ID from Notes */}
+                  {booking.notes?.includes('Duffel Offer ID:') && (
+                    <div className="col-span-2">
+                      <p className="text-xs text-gray-500 font-medium">Duffel Offer ID</p>
+                      <p className="text-xs font-mono text-gray-700 break-all">
+                        {booking.notes.split('Duffel Offer ID:')[1]?.trim()}
+                      </p>
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
+
             {/* Enhanced Flight Card */}
             <EnhancedFlightCard flight={booking.flight} />
 
@@ -666,7 +734,42 @@ export default function AdminBookingDetailPage() {
           </div>
 
           {/* Sidebar */}
-          <div className="space-y-6">
+          <div className="space-y-4">
+            {/* Customer Profile Card */}
+            <div className="bg-white rounded-lg border-2 border-blue-200 shadow-sm p-4">
+              <h3 className="text-sm font-bold text-gray-800 mb-3 flex items-center gap-2">
+                <User className="w-4 h-4 text-blue-600" />
+                Customer Profile
+              </h3>
+              <div className="space-y-2">
+                <div className="flex items-center gap-2">
+                  <Mail className="w-4 h-4 text-gray-400" />
+                  <a href={`mailto:${booking.contactInfo.email}`} className="text-sm text-blue-600 hover:underline font-medium">
+                    {booking.contactInfo.email}
+                  </a>
+                </div>
+                <div className="flex items-center gap-2">
+                  <Phone className="w-4 h-4 text-gray-400" />
+                  <a href={`tel:${booking.contactInfo.phone}`} className="text-sm text-gray-700 font-medium">
+                    {booking.contactInfo.phone}
+                  </a>
+                </div>
+                {booking.contactInfo.alternatePhone && (
+                  <div className="flex items-center gap-2">
+                    <Phone className="w-4 h-4 text-gray-300" />
+                    <span className="text-sm text-gray-600">{booking.contactInfo.alternatePhone}</span>
+                  </div>
+                )}
+                {booking.contactInfo.emergencyContact && (
+                  <div className="mt-2 pt-2 border-t border-gray-100">
+                    <p className="text-xs text-gray-500 mb-1">Emergency Contact</p>
+                    <p className="text-sm font-medium text-gray-800">{booking.contactInfo.emergencyContact.name}</p>
+                    <p className="text-xs text-gray-600">{booking.contactInfo.emergencyContact.phone} ({booking.contactInfo.emergencyContact.relationship})</p>
+                  </div>
+                )}
+              </div>
+            </div>
+
             {/* Booking Management Card */}
             <BookingManagementCard
               booking={booking}

@@ -79,7 +79,7 @@ class BookingStorage {
 
     for (let attempt = 1; attempt <= maxRetries; attempt++) {
       try {
-        // Insert booking into database
+        // Insert booking into database (includes admin pricing columns)
         await sql`
           INSERT INTO bookings (
             id,
@@ -97,7 +97,27 @@ class BookingStorage {
             refund_policy,
             created_at,
             updated_at,
-            cancelled_at
+            cancelled_at,
+            source_api,
+            duffel_order_id,
+            duffel_booking_reference,
+            amadeus_booking_id,
+            airline_record_locator,
+            ticketing_status,
+            net_price,
+            customer_price,
+            markup_amount,
+            duffel_cost,
+            consolidator_cost,
+            net_profit,
+            routing_channel,
+            routing_reason,
+            is_hold,
+            hold_expires_at,
+            fare_upgrade,
+            bundle,
+            add_ons,
+            promo_code
           ) VALUES (
             ${newBooking.id},
             ${newBooking.bookingReference},
@@ -114,7 +134,27 @@ class BookingStorage {
             ${JSON.stringify(newBooking.refundPolicy || null)},
             ${newBooking.createdAt},
             ${newBooking.updatedAt},
-            ${newBooking.cancelledAt || null}
+            ${newBooking.cancelledAt || null},
+            ${newBooking.sourceApi || null},
+            ${newBooking.duffelOrderId || null},
+            ${newBooking.duffelBookingReference || null},
+            ${newBooking.amadeusBookingId || null},
+            ${newBooking.airlineRecordLocator || null},
+            ${newBooking.ticketingStatus || null},
+            ${newBooking.netPrice || null},
+            ${newBooking.customerPrice || null},
+            ${newBooking.markupAmount || null},
+            ${newBooking.duffelCost || null},
+            ${newBooking.consolidatorCost || null},
+            ${newBooking.netProfit || null},
+            ${newBooking.routingChannel || null},
+            ${newBooking.routingReason || null},
+            ${newBooking.isHold || false},
+            ${newBooking.holdExpiresAt || null},
+            ${JSON.stringify(newBooking.fareUpgrade || null)},
+            ${JSON.stringify(newBooking.bundle || null)},
+            ${JSON.stringify(newBooking.addOns || null)},
+            ${JSON.stringify(newBooking.promoCode || null)}
           )
         `;
 
@@ -511,7 +551,27 @@ class BookingStorage {
           cancellation_reason = ${updatedBooking.cancellationReason || null},
           refund_policy = ${JSON.stringify(updatedBooking.refundPolicy || null)},
           updated_at = ${updatedBooking.updatedAt},
-          cancelled_at = ${updatedBooking.cancelledAt || null}
+          cancelled_at = ${updatedBooking.cancelledAt || null},
+          source_api = ${updatedBooking.sourceApi || null},
+          duffel_order_id = ${updatedBooking.duffelOrderId || null},
+          duffel_booking_reference = ${updatedBooking.duffelBookingReference || null},
+          amadeus_booking_id = ${updatedBooking.amadeusBookingId || null},
+          airline_record_locator = ${updatedBooking.airlineRecordLocator || null},
+          ticketing_status = ${updatedBooking.ticketingStatus || null},
+          net_price = ${updatedBooking.netPrice || null},
+          customer_price = ${updatedBooking.customerPrice || null},
+          markup_amount = ${updatedBooking.markupAmount || null},
+          duffel_cost = ${updatedBooking.duffelCost || null},
+          consolidator_cost = ${updatedBooking.consolidatorCost || null},
+          net_profit = ${updatedBooking.netProfit || null},
+          routing_channel = ${updatedBooking.routingChannel || null},
+          routing_reason = ${updatedBooking.routingReason || null},
+          is_hold = ${updatedBooking.isHold || false},
+          hold_expires_at = ${updatedBooking.holdExpiresAt || null},
+          fare_upgrade = ${JSON.stringify(updatedBooking.fareUpgrade || null)},
+          bundle = ${JSON.stringify(updatedBooking.bundle || null)},
+          add_ons = ${JSON.stringify(updatedBooking.addOns || null)},
+          promo_code = ${JSON.stringify(updatedBooking.promoCode || null)}
         WHERE id = ${id}
       `;
 
@@ -704,6 +764,7 @@ class BookingStorage {
    * Helper method to deserialize booking from database row
    * Converts JSON columns back to TypeScript objects
    * FIXED: Added error handling for corrupted JSON
+   * FIXED: Added admin pricing columns for profit tracking
    */
   private deserializeBooking(row: any): Booking {
     return {
@@ -727,6 +788,36 @@ class BookingStorage {
       createdAt: row.created_at,
       updatedAt: row.updated_at,
       cancelledAt: row.cancelled_at || undefined,
+
+      // Admin pricing columns for profit tracking
+      sourceApi: row.source_api || undefined,
+      duffelOrderId: row.duffel_order_id || undefined,
+      duffelBookingReference: row.duffel_booking_reference || undefined,
+      amadeusBookingId: row.amadeus_booking_id || undefined,
+      airlineRecordLocator: row.airline_record_locator || undefined,
+      ticketingStatus: row.ticketing_status || undefined,
+      netPrice: row.net_price ? parseFloat(row.net_price) : undefined,
+      customerPrice: row.customer_price ? parseFloat(row.customer_price) : undefined,
+      markupAmount: row.markup_amount ? parseFloat(row.markup_amount) : undefined,
+      duffelCost: row.duffel_cost ? parseFloat(row.duffel_cost) : undefined,
+      consolidatorCost: row.consolidator_cost ? parseFloat(row.consolidator_cost) : undefined,
+      netProfit: row.net_profit ? parseFloat(row.net_profit) : undefined,
+      routingChannel: row.routing_channel || undefined,
+      routingReason: row.routing_reason || undefined,
+      isHold: row.is_hold || false,
+      holdExpiresAt: row.hold_expires_at || undefined,
+      fareUpgrade: row.fare_upgrade
+        ? this.safeJsonParse(row.fare_upgrade, 'fare_upgrade', undefined)
+        : undefined,
+      bundle: row.bundle
+        ? this.safeJsonParse(row.bundle, 'bundle', undefined)
+        : undefined,
+      addOns: row.add_ons
+        ? this.safeJsonParse(row.add_ons, 'add_ons', undefined)
+        : undefined,
+      promoCode: row.promo_code
+        ? this.safeJsonParse(row.promo_code, 'promo_code', undefined)
+        : undefined,
     };
   }
 }

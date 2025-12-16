@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import Image from 'next/image';
+import Link from 'next/link';
 import { useSession } from 'next-auth/react';
 import { zIndex } from '@/lib/design-system';
 import { MaxWidthContainer } from './MaxWidthContainer';
@@ -587,7 +588,7 @@ export function Header({
 
             {/* Mobile Profile Icon */}
             {mounted && session?.user && (
-              <a
+              <Link
                 href="/account"
                 className="lg:hidden flex items-center justify-center w-9 h-9 rounded-xl bg-neutral-100/80 hover:bg-neutral-200/80 transition-all duration-150 ease-[cubic-bezier(0.2,0.8,0.2,1)] active:scale-95"
                 aria-label="My Account"
@@ -595,20 +596,20 @@ export function Header({
                 <svg className="w-[18px] h-[18px] text-neutral-700" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                   <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z" />
                 </svg>
-              </a>
+              </Link>
             )}
 
             {/* Mobile Sign In - Only when not authenticated */}
             {mounted && !session?.user && (
-              <a
-                href="/login"
+              <Link
+                href="/auth/signin"
                 className="lg:hidden flex items-center justify-center w-9 h-9 rounded-xl bg-primary-50 hover:bg-primary-100 transition-all duration-150 ease-[cubic-bezier(0.2,0.8,0.2,1)] active:scale-95"
                 aria-label="Sign In"
               >
                 <svg className="w-[18px] h-[18px] text-primary-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                   <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z" />
                 </svg>
-              </a>
+              </Link>
             )}
 
             {/* ============ DESKTOP ICONS ============ */}

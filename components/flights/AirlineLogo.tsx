@@ -14,22 +14,24 @@ import { getAirlineData } from '@/lib/flights/airline-data';
 
 interface AirlineLogoProps {
   code: string;
-  size?: 'xs' | 'sm' | 'md' | 'lg';
+  size?: 'xs' | 'sm' | 'md' | 'lg' | 'xl';
   className?: string;
 }
 
 const SIZE_MAP = {
   xs: 'w-3 h-3',
-  sm: 'w-4 h-4',
-  md: 'w-6 h-6',
-  lg: 'w-8 h-8',
+  sm: 'w-5 h-5',      // Increased: was w-4 h-4
+  md: 'w-7 h-7',      // Increased: was w-6 h-6
+  lg: 'w-10 h-10',    // Increased: was w-8 h-8
+  xl: 'w-12 h-12',    // New: extra large for desktop cards
 };
 
 const FONT_SIZE_MAP = {
   xs: 'text-[10px]',
-  sm: 'text-xs',
-  md: 'text-base',
+  sm: 'text-sm',      // Increased
+  md: 'text-lg',      // Increased
   lg: 'text-xl',
+  xl: 'text-2xl',     // New
 };
 
 export function AirlineLogo({ code, size = 'md', className = '' }: AirlineLogoProps) {
