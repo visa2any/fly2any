@@ -1,9 +1,10 @@
 'use client';
 
-import { useState, Fragment } from 'react';
+import { useState, Fragment, useEffect } from 'react';
 import { Dialog, Transition } from '@headlessui/react';
 import { XMarkIcon, EnvelopeIcon, GiftIcon } from '@heroicons/react/24/outline';
 import { trackWorldCupEmailSignup } from '@/lib/analytics/google-analytics';
+import { isUserSubscribed, markAsSubscribed, markPopupDismissed } from '@/lib/subscription-tracker';
 
 interface EmailCaptureModalProps {
   isOpen: boolean;
@@ -16,6 +17,13 @@ export function EmailCaptureModal({ isOpen, onClose, source = 'world-cup', incen
   const [email, setEmail] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
+
+  // Auto-close if user already subscribed
+  useEffect(() => {
+    if (isOpen && isUserSubscribed()) {
+      onClose();
+    }
+  }, [isOpen, onClose]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -38,6 +46,8 @@ export function EmailCaptureModal({ isOpen, onClose, source = 'world-cup', incen
         throw new Error(data.error || 'Failed to subscribe');
       }
 
+      // Mark as subscribed to prevent future popups
+      markAsSubscribed(email, source);
       setIsSuccess(true);
     } catch (error) {
       console.error('Newsletter signup error:', error);

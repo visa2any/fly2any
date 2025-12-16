@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { X, Bell, Gift } from 'lucide-react';
+import { shouldShowMarketingPopup, markAsSubscribed, markPopupDismissed } from '@/lib/subscription-tracker';
 
 interface MobileScrollCaptureProps {
   scrollThreshold?: number; // Percentage (0-100) of page scrolled
@@ -32,7 +33,10 @@ export default function MobileScrollCapture({
   useEffect(() => {
     if (!isMobile) return;
 
-    // Check if already shown
+    // Skip if user already subscribed or dismissed
+    if (!shouldShowMarketingPopup('mobile_scroll')) return;
+
+    // Check if already shown this session
     const hasSeenCapture = sessionStorage.getItem('mobileScrollCaptureShown');
     if (hasSeenCapture) return;
 
@@ -78,6 +82,7 @@ export default function MobileScrollCapture({
 
   const handleClose = () => {
     setIsVisible(false);
+    markPopupDismissed('mobile_scroll');
     if (typeof window !== 'undefined' && (window as any).gtag) {
       (window as any).gtag('event', 'mobile_scroll_capture_dismissed', {
         event_category: 'lead_capture',
@@ -96,6 +101,8 @@ export default function MobileScrollCapture({
         body: JSON.stringify({ email, source: 'mobile_scroll_capture' }),
       });
 
+      // Mark as subscribed to prevent ALL future marketing popups
+      markAsSubscribed(email, 'mobile_scroll');
       setIsSubmitted(true);
       onEmailSubmit?.(email);
 

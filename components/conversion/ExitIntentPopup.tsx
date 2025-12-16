@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { X, Mail, Tag } from 'lucide-react';
+import { shouldShowMarketingPopup, markAsSubscribed, markPopupDismissed } from '@/lib/subscription-tracker';
 
 interface ExitIntentPopupProps {
   discountCode?: string;
@@ -19,6 +20,9 @@ export default function ExitIntentPopup({
   const [isSubmitted, setIsSubmitted] = useState(false);
 
   useEffect(() => {
+    // Skip if user already subscribed or dismissed this popup
+    if (!shouldShowMarketingPopup('exit_intent')) return;
+
     // Check if user has already seen the popup in this session
     const hasSeenPopup = sessionStorage.getItem('exitIntentShown');
     if (hasSeenPopup) return;
@@ -52,6 +56,7 @@ export default function ExitIntentPopup({
 
   const handleClose = () => {
     setIsVisible(false);
+    markPopupDismissed('exit_intent');
     // Track popup dismissed
     if (typeof window !== 'undefined' && (window as any).gtag) {
       (window as any).gtag('event', 'exit_intent_dismissed', {
@@ -64,6 +69,7 @@ export default function ExitIntentPopup({
     e.preventDefault();
     if (email) {
       onEmailSubmit?.(email);
+      markAsSubscribed(email, 'exit_intent');
       setIsSubmitted(true);
       setTimeout(() => {
         setIsVisible(false);
