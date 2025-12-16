@@ -1,7 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-import AdminLayout from '@/components/admin/AdminLayout';
+import { useState } from 'react';
 import {
   Settings,
   Globe,
@@ -91,10 +90,9 @@ export default function AdminSettingsPage() {
   ];
 
   return (
-    <AdminLayout>
-      <div className="space-y-6">
-        {/* Header */}
-        <div className="flex items-center justify-between">
+    <div className="space-y-6">
+      {/* Header */}
+      <div className="flex items-center justify-between">
           <div>
             <h1 className="text-2xl font-bold text-gray-900">System Settings</h1>
             <p className="text-sm text-gray-600 mt-1">
@@ -463,6 +461,5 @@ export default function AdminSettingsPage() {
           </div>
         </div>
       </div>
-    </AdminLayout>
   );
 }

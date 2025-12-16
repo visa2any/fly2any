@@ -18,6 +18,8 @@ import {
 } from "@/lib/seo/metadata";
 import { NextIntlClientProvider } from 'next-intl';
 import { GoogleAnalytics } from "@/lib/analytics/google-analytics";
+import { Analytics } from "@vercel/analytics/next";
+import { SpeedInsights } from "@vercel/speed-insights/next";
 import { getMessages } from 'next-intl/server';
 import { Suspense } from 'react';
 
@@ -214,6 +216,9 @@ export default async function RootLayout({
         <Suspense fallback={null}>
           <GoogleAnalytics />
         </Suspense>
+        {/* Vercel Web Analytics & Speed Insights */}
+        <Analytics />
+        <SpeedInsights />
       </body>
     </html>
   );

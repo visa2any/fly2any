@@ -1,7 +1,6 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
-import AdminLayout from '@/components/admin/AdminLayout';
 import Chart from '@/components/admin/Chart';
 import {
   GitBranch,
@@ -170,10 +169,9 @@ export default function AdminRoutingPage() {
   })) || [];
 
   return (
-    <AdminLayout>
-      <div className="space-y-6">
-        {/* Header */}
-        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+    <div className="space-y-6">
+      {/* Header */}
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
           <div>
             <h1 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
               <GitBranch className="w-7 h-7 text-blue-600" />
@@ -515,6 +513,5 @@ export default function AdminRoutingPage() {
           </div>
         </div>
       </div>
-    </AdminLayout>
   );
 }

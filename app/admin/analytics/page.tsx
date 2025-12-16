@@ -1,7 +1,6 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import AdminLayout from '@/components/admin/AdminLayout';
 import Chart from '@/components/admin/Chart';
 import {
   BarChart3,
@@ -70,8 +69,7 @@ export default function AdminAnalyticsPage() {
   };
 
   return (
-    <AdminLayout>
-      <div className="space-y-6">
+    <div className="space-y-6">
         {/* Header */}
         <div className="flex items-center justify-between">
           <div>
@@ -259,6 +257,5 @@ export default function AdminAnalyticsPage() {
           </div>
         </div>
       </div>
-    </AdminLayout>
   );
 }
