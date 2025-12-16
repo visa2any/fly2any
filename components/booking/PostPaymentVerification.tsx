@@ -180,7 +180,7 @@ export function PostPaymentVerification({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
-      <div className="w-full max-w-lg bg-white rounded-2xl shadow-2xl overflow-hidden animate-in zoom-in-95 duration-300">
+      <div className="w-full max-w-2xl bg-white rounded-2xl shadow-2xl overflow-hidden animate-in zoom-in-95 duration-300 max-h-[90vh] overflow-y-auto">
         {/* Header */}
         <div className="relative bg-gradient-to-r from-green-500 via-emerald-500 to-teal-500 px-6 py-5 text-white">
           <div className="absolute inset-0 overflow-hidden">
@@ -313,20 +313,21 @@ export function PostPaymentVerification({
                 />
               </div>
 
-              {/* Upload cards - HORIZONTAL ROW on desktop */}
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-                {DOCUMENTS.map((doc, index) => {
+              {/* Upload cards - ALWAYS HORIZONTAL (3 columns) - Compact design */}
+              <div className="grid grid-cols-3 gap-2 sm:gap-3">
+                {DOCUMENTS.map((doc) => {
                   const docState = documents[doc.id];
                   const isUploaded = docState.preview || docState.uploaded;
 
                   return (
                     <div
                       key={doc.id}
-                      className={`relative border-2 rounded-xl p-3 transition-all ${
+                      className={`relative border-2 rounded-xl p-2 sm:p-3 transition-all cursor-pointer ${
                         isUploaded
-                          ? 'border-green-300 bg-green-50'
-                          : 'border-dashed border-gray-300 hover:border-primary-300 hover:bg-primary-50/50'
+                          ? 'border-green-400 bg-green-50'
+                          : 'border-dashed border-gray-300 hover:border-primary-400 hover:bg-primary-50/50'
                       }`}
+                      onClick={() => !isUploaded && fileInputRefs.current[doc.id]?.click()}
                       onDrop={(e) => handleDrop(doc.id, e)}
                       onDragOver={(e) => e.preventDefault()}
                     >
@@ -339,55 +340,37 @@ export function PostPaymentVerification({
                         onChange={(e) => handleInputChange(doc.id, e)}
                       />
 
-                      {/* Compact vertical layout for each card */}
+                      {/* Ultra-compact layout */}
                       <div className="flex flex-col items-center text-center">
-                        {/* Preview or Icon */}
-                        <div className={`w-16 h-16 md:w-20 md:h-20 rounded-lg overflow-hidden mb-2 ${
-                          isUploaded ? 'bg-white border-2 border-green-400' : `bg-${doc.color}-100`
+                        {/* Preview/Icon - smaller on mobile */}
+                        <div className={`w-12 h-12 sm:w-16 sm:h-16 rounded-lg overflow-hidden mb-1.5 ${
+                          isUploaded ? 'ring-2 ring-green-400' : 'bg-gray-100'
                         }`}>
                           {docState.preview ? (
-                            <img
-                              src={docState.preview}
-                              alt={doc.label}
-                              className="w-full h-full object-cover"
-                            />
+                            <img src={docState.preview} alt={doc.label} className="w-full h-full object-cover" />
                           ) : (
-                            <div className="w-full h-full flex items-center justify-center">
-                              <doc.icon className={`w-8 h-8 text-${doc.color}-500`} />
+                            <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-gray-50 to-gray-100">
+                              <doc.icon className="w-5 h-5 sm:w-6 sm:h-6 text-gray-400" />
                             </div>
                           )}
                         </div>
 
-                        {/* Label with status */}
-                        <div className="flex items-center gap-1 mb-1">
-                          <h4 className="text-sm font-semibold text-gray-900">{doc.label}</h4>
-                          {isUploaded && (
-                            <CheckCircle2 className="w-4 h-4 text-green-500" />
-                          )}
+                        {/* Label + Status */}
+                        <div className="flex items-center gap-1">
+                          <span className="text-[11px] sm:text-xs font-medium text-gray-800">{doc.label}</span>
+                          {isUploaded && <CheckCircle2 className="w-3.5 h-3.5 text-green-500" />}
                         </div>
-                        <p className="text-[10px] text-gray-500 mb-2 line-clamp-1">{doc.hint}</p>
 
-                        {/* Action button */}
-                        {!isUploaded ? (
+                        {/* Action */}
+                        {isUploaded ? (
                           <button
-                            onClick={() => fileInputRefs.current[doc.id]?.click()}
-                            className="w-full py-2 bg-primary-100 text-primary-700 text-xs font-semibold rounded-lg hover:bg-primary-200 transition-colors flex items-center justify-center gap-1"
-                          >
-                            <Camera className="w-3.5 h-3.5" />
-                            Upload
-                          </button>
+                            onClick={(e) => { e.stopPropagation(); setDocuments(prev => ({...prev, [doc.id]: { file: null, preview: null, uploading: false, uploaded: false }})); }}
+                            className="text-[10px] text-gray-400 hover:text-red-500 mt-1"
+                          >Change</button>
                         ) : (
-                          <button
-                            onClick={() => {
-                              setDocuments(prev => ({
-                                ...prev,
-                                [doc.id]: { file: null, preview: null, uploading: false, uploaded: false },
-                              }));
-                            }}
-                            className="w-full py-1.5 text-gray-500 text-xs hover:text-red-500 transition-colors"
-                          >
-                            Change
-                          </button>
+                          <span className="text-[10px] text-primary-500 mt-1 flex items-center gap-0.5">
+                            <Camera className="w-3 h-3" /> Tap
+                          </span>
                         )}
                       </div>
                     </div>

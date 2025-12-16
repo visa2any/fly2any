@@ -920,16 +920,19 @@ export async function POST(request: NextRequest) {
       // Notify admin about new reservation requiring manual ticketing
       try {
         const { notifyTelegramAdmins } = await import('@/lib/notifications/notification-service');
+        const flightSource = sourceApi === 'Amadeus' ? '🔵 GDS/Amadeus' : sourceApi === 'Duffel' ? '🟢 Duffel NDC' : sourceApi;
         await notifyTelegramAdmins(`
 🎫 *NEW RESERVATION - Manual Ticketing Required*
 
 📋 *Reservation:* \`${reservationId}\`
+🔗 *Source:* ${flightSource}
 ✈️ *Route:* ${confirmedOffer.itineraries[0]?.segments[0]?.departure?.iataCode} → ${confirmedOffer.itineraries[0]?.segments[confirmedOffer.itineraries[0]?.segments.length - 1]?.arrival?.iataCode}
 📅 *Date:* ${confirmedOffer.itineraries[0]?.segments[0]?.departure?.at?.split('T')[0]}
 💰 *Price:* ${confirmedOffer.price?.currency} ${confirmedOffer.price?.total}
 ✈️ *Airline:* ${confirmedOffer.validatingAirlineCodes?.[0] || 'N/A'}
 👤 *Passengers:* ${passengers.length}
 📧 *Contact:* ${contactInfo?.email || travelers[0]?.contact?.emailAddress}
+🆔 *Offer ID:* \`${confirmedOffer.id?.substring(0, 20)}...\`
 
 ⏰ *Action:* Issue ticket via consolidator within 24h
         `.trim());

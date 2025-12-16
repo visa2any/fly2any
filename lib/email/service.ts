@@ -1616,6 +1616,7 @@ export async function sendAbandonedSearchEmail(
 
 export const emailService = {
   sendPaymentInstructions: sendPaymentInstructionsEmail,
+  sendCardPaymentProcessing: sendCardPaymentProcessingEmail, // FIX: Was missing - caused email failures
   sendBookingConfirmation: sendBookingConfirmationEmail,
   sendFlightConfirmation: sendBookingConfirmationEmail, // Alias for capture endpoint
   sendPriceAlert: sendPriceAlertEmail,
