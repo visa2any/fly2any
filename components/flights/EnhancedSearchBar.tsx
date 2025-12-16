@@ -1143,6 +1143,19 @@ export default function EnhancedSearchBar({
             <span className="text-[13px] sm:text-sm tracking-tight">{t('hotels')}</span>
           </button>
 
+          {/* Journey Tab - AI Trip Builder */}
+          <button
+            type="button"
+            onClick={() => router.push('/journey')}
+            className="flex items-center gap-2 px-4 py-2.5 min-h-[44px] text-sm font-semibold transition-all duration-300 relative flex-shrink-0 whitespace-nowrap touch-manipulation rounded-xl text-neutral-600 hover:text-neutral-900 hover:bg-white/50 active:scale-95 group"
+          >
+            <div className="p-1.5 rounded-lg transition-colors duration-300 bg-gradient-to-br from-primary-100 to-amber-100 group-hover:from-primary-200 group-hover:to-amber-200">
+              <Sparkles size={14} className="text-primary-600" />
+            </div>
+            <span className="text-[13px] sm:text-sm tracking-tight bg-gradient-to-r from-primary-600 to-amber-600 bg-clip-text text-transparent font-bold">Journey</span>
+            <span className="absolute -top-1 -right-1 px-1.5 py-0.5 bg-gradient-to-r from-primary-500 to-amber-500 text-white text-[9px] font-bold rounded-full shadow-sm">AI</span>
+          </button>
+
           {/* ============================================
               COMING SOON TABS - Apple-Class Style
               Cars, Tours, Packages, Insurance
