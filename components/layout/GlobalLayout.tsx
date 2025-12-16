@@ -125,15 +125,14 @@ function GlobalLayoutInner({ children }: GlobalLayoutProps) {
   // Check if current route uses dedicated layout (admin or agent portal)
   const isAdminRoute = pathname?.startsWith('/admin');
   const isAgentRoute = pathname?.startsWith('/agent');
-  const isConfirmationPage = pathname?.includes('/confirmation');
 
   // Handle "More" tab click from bottom bar
   const handleMoreClick = () => {
     setMobileDrawerOpen(true);
   };
 
-  // Admin, Agent routes, and Confirmation pages use their own dedicated layouts - bypass global layout
-  if (isAdminRoute || isAgentRoute || isConfirmationPage) {
+  // Admin and Agent routes use their own dedicated layouts - bypass global layout
+  if (isAdminRoute || isAgentRoute) {
     return <>{children}</>;
   }
 

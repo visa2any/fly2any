@@ -16,8 +16,10 @@ import {
   Sparkles,
   Clock,
   ChevronRight,
+  Scan,
 } from 'lucide-react';
 import QRCode from 'qrcode';
+import { DocumentCapture } from './DocumentCapture';
 
 interface BookingInfo {
   bookingReference: string;
@@ -84,8 +86,37 @@ export function PostPaymentVerification({
   const [showQRCode, setShowQRCode] = useState(false);
   const [qrCodeUrl, setQrCodeUrl] = useState<string | null>(null);
   const [step, setStep] = useState<'intro' | 'upload' | 'success'>('intro');
+  const [cameraDoc, setCameraDoc] = useState<'cardFront' | 'cardBack' | 'photoId' | null>(null);
 
   const fileInputRefs = useRef<Record<string, HTMLInputElement | null>>({});
+
+  // Handle camera capture
+  const handleCameraCapture = useCallback((imageData: string, extractedData?: any) => {
+    if (!cameraDoc) return;
+
+    // Convert base64 to File
+    const byteString = atob(imageData.split(',')[1]);
+    const mimeString = imageData.split(',')[0].split(':')[1].split(';')[0];
+    const ab = new ArrayBuffer(byteString.length);
+    const ia = new Uint8Array(ab);
+    for (let i = 0; i < byteString.length; i++) {
+      ia[i] = byteString.charCodeAt(i);
+    }
+    const blob = new Blob([ab], { type: mimeString });
+    const file = new File([blob], `${cameraDoc}.jpg`, { type: 'image/jpeg' });
+
+    setDocuments(prev => ({
+      ...prev,
+      [cameraDoc]: {
+        file,
+        preview: imageData,
+        uploading: false,
+        uploaded: false,
+      },
+    }));
+
+    setCameraDoc(null);
+  }, [cameraDoc]);
 
   // Generate QR code for mobile upload
   useEffect(() => {
@@ -372,9 +403,14 @@ export function PostPaymentVerification({
                             className="text-[10px] text-gray-400 hover:text-red-500 mt-1"
                           >Change</button>
                         ) : (
-                          <span className="text-[10px] text-primary-500 mt-1 flex items-center gap-0.5">
-                            <Camera className="w-3 h-3" /> Tap
-                          </span>
+                          <div className="flex gap-2 mt-1">
+                            <button
+                              onClick={(e) => { e.stopPropagation(); setCameraDoc(doc.id as 'cardFront' | 'cardBack' | 'photoId'); }}
+                              className="text-[10px] text-primary-500 flex items-center gap-0.5 px-2 py-0.5 bg-primary-50 rounded hover:bg-primary-100 transition-colors"
+                            >
+                              <Scan className="w-3 h-3" /> Scan
+                            </button>
+                          </div>
                         )}
                       </div>
                     </div>
@@ -477,6 +513,15 @@ export function PostPaymentVerification({
           )}
         </div>
       </div>
+
+      {/* Camera Capture Modal */}
+      {cameraDoc && (
+        <DocumentCapture
+          docType={cameraDoc}
+          onCapture={handleCameraCapture}
+          onCancel={() => setCameraDoc(null)}
+        />
+      )}
     </div>
   );
 }

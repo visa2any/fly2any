@@ -855,28 +855,39 @@ END:VCALENDAR`;
       duration: bookingData.flight.segments[1].duration,
       cabin: bookingData.flight.segments[1].class,
     } : null,
-    passengers: bookingData.passengers.map((p: any, idx: number) => ({
-      id: idx + 1,
-      title: p.title,
-      firstName: p.firstName,
-      lastName: p.lastName,
-      name: `${p.firstName} ${p.lastName}`,
-      type: p.type,
-      dateOfBirth: p.dateOfBirth,
-      seat: `${idx + 20}A`,
-      baggage: '1 x 23kg',
-      frequentFlyer: p.frequentFlyerNumber || '',
-    })),
+    passengers: bookingData.passengers.map((p: any, idx: number) => {
+      // Find seat for this passenger from seats array
+      const passengerSeat = bookingData.seats?.find((s: any) => s.passengerId === p.id);
+      // Find baggage from addOns
+      const baggageAddOn = bookingData.addOns?.find((a: any) => a.category === 'baggage');
+      return {
+        id: p.id || idx + 1,
+        title: p.title,
+        firstName: p.firstName,
+        lastName: p.lastName,
+        name: `${p.firstName} ${p.lastName}`,
+        type: p.type,
+        dateOfBirth: p.dateOfBirth,
+        seat: passengerSeat?.seatNumber || null,
+        baggage: baggageAddOn?.name || null,
+        frequentFlyer: p.frequentFlyerNumber || '',
+      };
+    }),
     payment: {
-      subtotal: bookingData.payment.amount,
-      taxes: 0,
-      insurance: 0,
+      subtotal: bookingData.flight?.price?.base || bookingData.payment.amount,
+      taxes: bookingData.flight?.price?.taxes || 0,
+      fees: bookingData.flight?.price?.fees || 0,
+      insurance: bookingData.addOns?.find((a: any) => a.category === 'insurance')?.price || 0,
       total: bookingData.payment.amount,
       method: `${bookingData.payment.cardBrand || 'Card'} ****${bookingData.payment.cardLast4}`,
       transactionId: bookingData.payment.transactionId || 'N/A',
       paidOn: bookingData.payment.paidAt || bookingData.createdAt,
       currency: bookingData.payment.currency,
     },
+    // Add baggage info from addOns
+    baggage: bookingData.addOns?.filter((a: any) => a.category === 'baggage') || [],
+    // Seats from API
+    seats: bookingData.seats || [],
   } : null; // No booking data available
 
   return (
@@ -985,34 +996,6 @@ END:VCALENDAR`;
           ))}
         </div>
       )}
-
-      {/* Header with Language Switcher */}
-      <div className="bg-white border-b print:border-0 no-print">
-        <div className="max-w-6xl mx-auto px-4 py-4 flex justify-between items-center">
-          <Image
-            src="/logo.png"
-            alt="Fly2Any Travel"
-            width={116}
-            height={40}
-            className="h-10 w-auto"
-          />
-          <div className="flex gap-2">
-            {(['en', 'pt', 'es'] as Language[]).map((language) => (
-              <button
-                key={language}
-                onClick={() => setLang(language)}
-                className={`px-3 py-1.5 rounded-full text-sm font-semibold transition-all ${
-                  lang === language
-                    ? 'bg-green-600 text-white'
-                    : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-                }`}
-              >
-                {language.toUpperCase()}
-              </button>
-            ))}
-          </div>
-        </div>
-      </div>
 
       <div className="max-w-6xl mx-auto px-2 sm:px-4 py-4 sm:py-8 print:py-4">
         {/* Success Header */}
@@ -1383,14 +1366,28 @@ END:VCALENDAR`;
                   </div>
                 </div>
 
-                <div className="grid grid-cols-2 gap-4 pt-4 border-t">
+                <div className="grid grid-cols-3 gap-4 pt-4 border-t">
                   <div>
                     <span className="text-xs text-gray-500">{t.cabin}</span>
                     <p className="font-semibold text-gray-900">{displayBookingData.outboundFlight.cabin}</p>
                   </div>
                   <div>
                     <span className="text-xs text-gray-500">{t.baggage}</span>
-                    <p className="font-semibold text-gray-900">1 x 23kg</p>
+                    <p className="font-semibold text-gray-900">
+                      {displayBookingData.baggage.length > 0
+                        ? displayBookingData.baggage.map((b: any) => b.name).join(', ')
+                        : 'Included'}
+                    </p>
+                  </div>
+                  <div>
+                    <span className="text-xs text-gray-500">{t.seat}</span>
+                    <p className="font-semibold text-gray-900">
+                      {displayBookingData.passengers.some((p: any) => p.seat)
+                        ? displayBookingData.passengers.filter((p: any) => p.seat).map((p: any, i: number) => (
+                            <span key={i}>{i > 0 ? ', ' : ''}{p.seat}</span>
+                          ))
+                        : 'TBA'}
+                    </p>
                   </div>
                 </div>
               </div>
@@ -1472,14 +1469,28 @@ END:VCALENDAR`;
                   </div>
                 </div>
 
-                <div className="grid grid-cols-2 gap-4 pt-4 border-t">
+                <div className="grid grid-cols-3 gap-4 pt-4 border-t">
                   <div>
                     <span className="text-xs text-gray-500">{t.cabin}</span>
                     <p className="font-semibold text-gray-900">{displayBookingData.returnFlight.cabin}</p>
                   </div>
                   <div>
                     <span className="text-xs text-gray-500">{t.baggage}</span>
-                    <p className="font-semibold text-gray-900">1 x 23kg</p>
+                    <p className="font-semibold text-gray-900">
+                      {displayBookingData.baggage.length > 0
+                        ? displayBookingData.baggage.map((b: any) => b.name).join(', ')
+                        : 'Included'}
+                    </p>
+                  </div>
+                  <div>
+                    <span className="text-xs text-gray-500">{t.seat}</span>
+                    <p className="font-semibold text-gray-900">
+                      {displayBookingData.passengers.some((p: any) => p.seat)
+                        ? displayBookingData.passengers.filter((p: any) => p.seat).map((p: any, i: number) => (
+                            <span key={i}>{i > 0 ? ', ' : ''}{p.seat}</span>
+                          ))
+                        : 'TBA'}
+                    </p>
                   </div>
                 </div>
               </div>
@@ -1489,39 +1500,24 @@ END:VCALENDAR`;
             <div className="bg-white rounded-2xl shadow-sm border p-6 print:shadow-none print:p-4">
               <h2 className="text-xl font-bold text-gray-900 mb-4">{t.passengerInfo}</h2>
 
-              <div className="space-y-4">
+              <div className="space-y-3">
                 {displayBookingData.passengers.map((passenger: any, index: number) => (
-                  <div key={passenger.id} className="border rounded-xl p-4 print:border-gray-300">
-                    <div className="flex items-center justify-between mb-3">
-                      <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 bg-info-100 rounded-full flex items-center justify-center">
-                          <span className="font-bold text-primary-500">{index + 1}</span>
-                        </div>
-                        <div>
-                          <p className="font-bold text-gray-900">
-                            {passenger.title}. {passenger.firstName} {passenger.lastName}
-                          </p>
-                          <p className="text-sm text-gray-500">{passenger.type}</p>
-                        </div>
-                      </div>
-                      <div className="text-right">
-                        <p className="text-sm text-gray-500">{t.seat}</p>
-                        <p className="text-lg font-bold text-primary-500">{passenger.seat}</p>
-                      </div>
+                  <div key={passenger.id} className="flex items-center gap-3 p-3 border rounded-xl print:border-gray-300">
+                    <div className="w-10 h-10 bg-info-100 rounded-full flex items-center justify-center flex-shrink-0">
+                      <span className="font-bold text-primary-500">{index + 1}</span>
                     </div>
-
-                    <div className="grid grid-cols-2 gap-4 text-sm">
-                      <div>
-                        <span className="text-gray-500">{t.baggage}:</span>
-                        <span className="ml-2 font-semibold">{passenger.baggage}</span>
-                      </div>
-                      {passenger.frequentFlyer && (
-                        <div>
-                          <span className="text-gray-500">{t.frequentFlyer}:</span>
-                          <span className="ml-2 font-semibold">{passenger.frequentFlyer}</span>
-                        </div>
-                      )}
+                    <div className="flex-1 min-w-0">
+                      <p className="font-bold text-gray-900 truncate">
+                        {passenger.title}. {passenger.firstName} {passenger.lastName}
+                      </p>
+                      <p className="text-sm text-gray-500">{passenger.type}</p>
                     </div>
+                    {passenger.frequentFlyer && (
+                      <div className="text-right text-sm">
+                        <span className="text-gray-500">{t.frequentFlyer}</span>
+                        <p className="font-semibold">{passenger.frequentFlyer}</p>
+                      </div>
+                    )}
                   </div>
                 ))}
               </div>
@@ -1557,10 +1553,12 @@ END:VCALENDAR`;
                   <span>{t.subtotal}</span>
                   <span>{formatCurrency(displayBookingData.payment.subtotal)}</span>
                 </div>
-                <div className="flex justify-between text-gray-600">
-                  <span>{t.taxes}</span>
-                  <span>{formatCurrency(displayBookingData.payment.taxes)}</span>
-                </div>
+                {(displayBookingData.payment.taxes > 0 || displayBookingData.payment.fees > 0) && (
+                  <div className="flex justify-between text-gray-600">
+                    <span>{t.taxes}</span>
+                    <span>{formatCurrency((displayBookingData.payment.taxes || 0) + (displayBookingData.payment.fees || 0))}</span>
+                  </div>
+                )}
                 {displayBookingData.payment.insurance > 0 && (
                   <div className="flex justify-between text-gray-600">
                     <span>{t.insurance}</span>

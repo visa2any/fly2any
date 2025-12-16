@@ -100,6 +100,7 @@
     "stripe": "^19.3.0",
     "swr": "^2.3.6",
     "tailwind-merge": "^3.3.1",
+    "tesseract.js": "^5.1.1",
     "uuid": "^13.0.0",
     "web-push": "^3.6.7",
     "web-vitals": "^5.1.0",
