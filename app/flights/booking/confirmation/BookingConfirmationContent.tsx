@@ -599,110 +599,415 @@ export default function BookingConfirmationContent() {
     window.print();
   };
 
-  // PDF Download - generates and downloads booking confirmation
+  // PDF Download - generates Apple Level 6 styled booking confirmation
   const handleDownloadPDF = async () => {
     if (!bookingData || !displayBookingData) return;
 
     try {
-      // Generate PDF using browser print to PDF
-      const printContent = document.createElement('div');
-      printContent.innerHTML = `
-        <html>
-          <head>
-            <title>Fly2Any - Booking ${displayBookingData.bookingRef}</title>
-            <style>
-              body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; padding: 40px; max-width: 800px; margin: 0 auto; }
-              .header { text-align: center; margin-bottom: 30px; border-bottom: 2px solid #E74035; padding-bottom: 20px; }
-              .logo { font-size: 28px; font-weight: bold; color: #E74035; }
-              .booking-ref { background: #f3f4f6; padding: 15px; border-radius: 8px; text-align: center; margin: 20px 0; }
-              .booking-ref-code { font-size: 24px; font-weight: bold; font-family: monospace; }
-              .section { margin: 20px 0; padding: 15px; border: 1px solid #e5e7eb; border-radius: 8px; }
-              .section-title { font-size: 16px; font-weight: bold; margin-bottom: 10px; color: #374151; }
-              .flight-route { display: flex; justify-content: space-between; align-items: center; margin: 15px 0; }
-              .airport { text-align: center; }
-              .airport-code { font-size: 24px; font-weight: bold; }
-              .airport-time { font-size: 14px; color: #6b7280; }
-              .flight-line { flex: 1; height: 2px; background: #d1d5db; margin: 0 20px; position: relative; }
-              .passenger { padding: 10px; background: #f9fafb; border-radius: 6px; margin: 8px 0; }
-              .total { font-size: 20px; font-weight: bold; color: #059669; text-align: right; }
-              .footer { text-align: center; margin-top: 30px; padding-top: 20px; border-top: 1px solid #e5e7eb; font-size: 12px; color: #6b7280; }
-            </style>
-          </head>
-          <body>
-            <div class="header">
-              <div class="logo">✈️ Fly2Any Travel</div>
-              <p style="color: #6b7280; margin: 5px 0;">Your Journey, Our Priority</p>
+      const outbound = displayBookingData.outboundFlight;
+      const returnFlight = displayBookingData.returnFlight;
+      const passengers = displayBookingData.passengers;
+      const payment = displayBookingData.payment;
+
+      // Get airline info for logo
+      const outboundAirline = getAirlineInfo(outbound.airline);
+      const returnAirline = returnFlight ? getAirlineInfo(returnFlight.airline) : null;
+
+      // Generate rich PDF HTML
+      const pdfHtml = `
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>Fly2Any - Booking ${displayBookingData.bookingRef}</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Segoe UI', sans-serif;
+      background: linear-gradient(135deg, #f0fdf4 0%, #ecfdf5 50%, #f0fdfa 100%);
+      min-height: 100vh;
+      padding: 24px;
+      color: #1f2937;
+    }
+    .container { max-width: 800px; margin: 0 auto; }
+
+    /* Header */
+    .header {
+      background: linear-gradient(135deg, #E74035 0%, #D63930 100%);
+      color: white;
+      padding: 24px 32px;
+      border-radius: 16px 16px 0 0;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .logo { font-size: 28px; font-weight: 800; letter-spacing: -0.5px; }
+    .logo-sub { font-size: 12px; opacity: 0.9; margin-top: 4px; }
+    .header-right { text-align: right; }
+    .header-date { font-size: 12px; opacity: 0.8; }
+
+    /* Success Banner */
+    .success-banner {
+      background: white;
+      padding: 32px;
+      text-align: center;
+      border-bottom: 1px solid #e5e7eb;
+    }
+    .success-icon { font-size: 48px; margin-bottom: 12px; }
+    .success-title { font-size: 28px; font-weight: 700; color: #059669; margin-bottom: 8px; }
+    .success-subtitle { color: #6b7280; font-size: 14px; }
+
+    /* Booking Reference */
+    .booking-ref {
+      background: #f8fafc;
+      padding: 20px 32px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 24px;
+      border-bottom: 1px solid #e5e7eb;
+    }
+    .ref-box { text-align: center; }
+    .ref-label { font-size: 11px; color: #6b7280; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 4px; }
+    .ref-value { font-size: 24px; font-weight: 800; font-family: 'SF Mono', monospace; color: #1f2937; }
+    .ref-pnr { font-size: 16px; font-weight: 600; color: #3b82f6; }
+
+    /* Main Content */
+    .content { background: white; padding: 0; }
+
+    /* Flight Card */
+    .flight-card {
+      padding: 24px 32px;
+      border-bottom: 1px solid #e5e7eb;
+    }
+    .flight-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 20px;
+    }
+    .flight-title { font-size: 18px; font-weight: 700; }
+    .flight-badge {
+      font-size: 11px;
+      font-weight: 600;
+      padding: 4px 12px;
+      border-radius: 20px;
+      text-transform: uppercase;
+    }
+    .badge-outbound { background: #dbeafe; color: #1d4ed8; }
+    .badge-return { background: #f3e8ff; color: #7c3aed; }
+
+    .flight-info {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 13px;
+      color: #6b7280;
+      margin-bottom: 16px;
+    }
+    .airline-logo { width: 24px; height: 24px; border-radius: 4px; }
+    .airline-name { font-weight: 600; color: #374151; }
+
+    .flight-route {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .airport { text-align: center; min-width: 100px; }
+    .airport-time { font-size: 32px; font-weight: 700; color: #1f2937; }
+    .airport-code { font-size: 20px; font-weight: 600; color: #374151; margin-top: 4px; }
+    .airport-date { font-size: 12px; color: #6b7280; margin-top: 2px; }
+
+    .flight-line {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 0 16px;
+    }
+    .duration { font-size: 12px; color: #6b7280; margin-bottom: 8px; }
+    .line { height: 2px; width: 100%; background: linear-gradient(90deg, #3b82f6, #8b5cf6); position: relative; }
+    .plane-icon { font-size: 16px; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); background: white; padding: 0 8px; }
+    .stop-info { font-size: 11px; color: #6b7280; margin-top: 8px; }
+
+    .flight-details {
+      display: flex;
+      gap: 24px;
+      margin-top: 16px;
+      padding-top: 16px;
+      border-top: 1px solid #f3f4f6;
+    }
+    .detail-item { }
+    .detail-label { font-size: 11px; color: #9ca3af; text-transform: uppercase; }
+    .detail-value { font-size: 14px; font-weight: 600; color: #374151; margin-top: 2px; }
+
+    /* Passengers */
+    .passengers-section { padding: 24px 32px; border-bottom: 1px solid #e5e7eb; }
+    .section-title { font-size: 18px; font-weight: 700; margin-bottom: 16px; }
+    .passenger-card {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 12px 16px;
+      background: #f9fafb;
+      border-radius: 12px;
+      margin-bottom: 8px;
+    }
+    .passenger-number {
+      width: 32px;
+      height: 32px;
+      background: linear-gradient(135deg, #3b82f6, #8b5cf6);
+      color: white;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 700;
+      font-size: 14px;
+    }
+    .passenger-info { flex: 1; }
+    .passenger-name { font-weight: 600; color: #1f2937; }
+    .passenger-type { font-size: 12px; color: #6b7280; }
+
+    /* Payment */
+    .payment-section { padding: 24px 32px; }
+    .payment-row {
+      display: flex;
+      justify-content: space-between;
+      padding: 8px 0;
+      font-size: 14px;
+    }
+    .payment-label { color: #6b7280; }
+    .payment-value { font-weight: 500; color: #374151; }
+    .payment-total {
+      display: flex;
+      justify-content: space-between;
+      padding: 16px 0;
+      margin-top: 8px;
+      border-top: 2px solid #e5e7eb;
+    }
+    .total-label { font-size: 16px; font-weight: 700; color: #1f2937; }
+    .total-value { font-size: 24px; font-weight: 800; color: #059669; }
+    .payment-meta { font-size: 12px; color: #9ca3af; margin-top: 12px; }
+
+    /* Footer */
+    .footer {
+      background: #f8fafc;
+      padding: 24px 32px;
+      border-radius: 0 0 16px 16px;
+      text-align: center;
+    }
+    .footer-brand { font-size: 16px; font-weight: 700; color: #E74035; margin-bottom: 8px; }
+    .footer-contact { font-size: 13px; color: #6b7280; margin-bottom: 4px; }
+    .footer-thanks { font-size: 12px; color: #9ca3af; margin-top: 12px; }
+
+    /* Important Info */
+    .info-section {
+      padding: 20px 32px;
+      background: #fffbeb;
+      border-left: 4px solid #f59e0b;
+      margin: 0 32px 24px;
+      border-radius: 0 8px 8px 0;
+    }
+    .info-title { font-size: 14px; font-weight: 600; color: #92400e; margin-bottom: 8px; }
+    .info-text { font-size: 13px; color: #78350f; line-height: 1.5; }
+
+    @media print {
+      body { padding: 0; background: white; }
+      .container { max-width: 100%; }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <!-- Header -->
+    <div class="header">
+      <div>
+        <div class="logo">✈️ Fly2Any</div>
+        <div class="logo-sub">Your Journey, Our Priority</div>
+      </div>
+      <div class="header-right">
+        <div style="font-weight: 600;">E-Ticket Confirmation</div>
+        <div class="header-date">${new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}</div>
+      </div>
+    </div>
+
+    <!-- Success Banner -->
+    <div class="success-banner">
+      <div class="success-icon">✓</div>
+      <div class="success-title">${t.bookingConfirmed}</div>
+      <div class="success-subtitle">${t.congratulations}</div>
+    </div>
+
+    <!-- Booking Reference -->
+    <div class="booking-ref">
+      <div class="ref-box">
+        <div class="ref-label">Booking Reference</div>
+        <div class="ref-value">${displayBookingData.bookingRef}</div>
+      </div>
+      ${bookingData.airlineRecordLocator ? `
+      <div class="ref-box">
+        <div class="ref-label">Airline PNR</div>
+        <div class="ref-pnr">${bookingData.airlineRecordLocator}</div>
+      </div>
+      ` : ''}
+    </div>
+
+    <div class="content">
+      <!-- Outbound Flight -->
+      <div class="flight-card">
+        <div class="flight-header">
+          <div class="flight-title">${t.flightDetails}</div>
+          <span class="flight-badge badge-outbound">${t.departure}</span>
+        </div>
+        <div class="flight-info">
+          <img src="${outboundAirline.logo}" alt="${outboundAirline.name}" class="airline-logo" onerror="this.style.display='none'"/>
+          <span class="airline-name">${outboundAirline.name}</span>
+          <span>•</span>
+          <span>${outbound.flightNumber}</span>
+          <span>•</span>
+          <span>${outbound.aircraft || 'Aircraft'}</span>
+        </div>
+        <div class="flight-route">
+          <div class="airport">
+            <div class="airport-time">${formatTime(outbound.departure)}</div>
+            <div class="airport-code">${outbound.from.code}</div>
+            <div class="airport-date">${formatDate(outbound.departure)}</div>
+          </div>
+          <div class="flight-line">
+            <div class="duration">${outbound.duration}</div>
+            <div class="line"><span class="plane-icon">✈️</span></div>
+            <div class="stop-info">Direct</div>
+          </div>
+          <div class="airport">
+            <div class="airport-time">${formatTime(outbound.arrival)}</div>
+            <div class="airport-code">${outbound.to.code}</div>
+            <div class="airport-date">${formatDate(outbound.arrival)}</div>
+          </div>
+        </div>
+        <div class="flight-details">
+          <div class="detail-item"><div class="detail-label">Cabin</div><div class="detail-value">${outbound.cabin}</div></div>
+          <div class="detail-item"><div class="detail-label">Baggage</div><div class="detail-value">${displayBookingData.baggage.length > 0 ? displayBookingData.baggage.map((b: any) => b.name).join(', ') : 'Included'}</div></div>
+          <div class="detail-item"><div class="detail-label">Seats</div><div class="detail-value">${passengers.some((p: any) => p.seat) ? passengers.filter((p: any) => p.seat).map((p: any) => p.seat).join(', ') : 'TBA'}</div></div>
+        </div>
+      </div>
+
+      ${returnFlight ? `
+      <!-- Return Flight -->
+      <div class="flight-card">
+        <div class="flight-header">
+          <div class="flight-title">${t.flightDetails}</div>
+          <span class="flight-badge badge-return">${t.arrival}</span>
+        </div>
+        <div class="flight-info">
+          <img src="${returnAirline?.logo}" alt="${returnAirline?.name}" class="airline-logo" onerror="this.style.display='none'"/>
+          <span class="airline-name">${returnAirline?.name}</span>
+          <span>•</span>
+          <span>${returnFlight.flightNumber}</span>
+          <span>•</span>
+          <span>${returnFlight.aircraft || 'Aircraft'}</span>
+        </div>
+        <div class="flight-route">
+          <div class="airport">
+            <div class="airport-time">${formatTime(returnFlight.departure)}</div>
+            <div class="airport-code">${returnFlight.from.code}</div>
+            <div class="airport-date">${formatDate(returnFlight.departure)}</div>
+          </div>
+          <div class="flight-line">
+            <div class="duration">${returnFlight.duration}</div>
+            <div class="line"><span class="plane-icon">✈️</span></div>
+            <div class="stop-info">Direct</div>
+          </div>
+          <div class="airport">
+            <div class="airport-time">${formatTime(returnFlight.arrival)}</div>
+            <div class="airport-code">${returnFlight.to.code}</div>
+            <div class="airport-date">${formatDate(returnFlight.arrival)}</div>
+          </div>
+        </div>
+        <div class="flight-details">
+          <div class="detail-item"><div class="detail-label">Cabin</div><div class="detail-value">${returnFlight.cabin}</div></div>
+          <div class="detail-item"><div class="detail-label">Baggage</div><div class="detail-value">${displayBookingData.baggage.length > 0 ? displayBookingData.baggage.map((b: any) => b.name).join(', ') : 'Included'}</div></div>
+          <div class="detail-item"><div class="detail-label">Seats</div><div class="detail-value">${passengers.some((p: any) => p.seat) ? passengers.filter((p: any) => p.seat).map((p: any) => p.seat).join(', ') : 'TBA'}</div></div>
+        </div>
+      </div>
+      ` : ''}
+
+      <!-- Passengers -->
+      <div class="passengers-section">
+        <div class="section-title">${t.passengerInfo}</div>
+        ${passengers.map((p: any, i: number) => `
+          <div class="passenger-card">
+            <div class="passenger-number">${i + 1}</div>
+            <div class="passenger-info">
+              <div class="passenger-name">${p.title}. ${p.firstName} ${p.lastName}</div>
+              <div class="passenger-type">${p.type}${p.frequentFlyer ? ` • FF: ${p.frequentFlyer}` : ''}</div>
             </div>
+          </div>
+        `).join('')}
+      </div>
 
-            <div class="booking-ref">
-              <p style="margin: 0 0 5px 0; color: #6b7280; font-size: 12px;">BOOKING REFERENCE</p>
-              <div class="booking-ref-code">${displayBookingData.bookingRef}</div>
-              ${bookingData.airlineRecordLocator ? `<p style="margin: 5px 0 0 0; font-size: 12px;">Airline PNR: <strong>${bookingData.airlineRecordLocator}</strong></p>` : ''}
-            </div>
+      <!-- Payment -->
+      <div class="payment-section">
+        <div class="section-title">${t.paymentSummary}</div>
+        <div class="payment-row">
+          <span class="payment-label">${t.subtotal}</span>
+          <span class="payment-value">${formatCurrency(payment.subtotal)}</span>
+        </div>
+        ${(payment.taxes > 0 || payment.fees > 0) ? `
+        <div class="payment-row">
+          <span class="payment-label">${t.taxes}</span>
+          <span class="payment-value">${formatCurrency((payment.taxes || 0) + (payment.fees || 0))}</span>
+        </div>
+        ` : ''}
+        ${payment.insurance > 0 ? `
+        <div class="payment-row">
+          <span class="payment-label">${t.insurance}</span>
+          <span class="payment-value">${formatCurrency(payment.insurance)}</span>
+        </div>
+        ` : ''}
+        <div class="payment-total">
+          <span class="total-label">${t.total}</span>
+          <span class="total-value">${formatCurrency(payment.total)}</span>
+        </div>
+        <div class="payment-meta">
+          ${t.paymentMethod}: ${payment.method} • ${t.transactionId}: ${payment.transactionId}<br/>
+          ${t.paidOn}: ${formatDate(payment.paidOn)}
+        </div>
+      </div>
+    </div>
 
-            <div class="section">
-              <div class="section-title">✈️ Flight Details</div>
-              <div class="flight-route">
-                <div class="airport">
-                  <div class="airport-code">${displayBookingData.outboundFlight.from.code}</div>
-                  <div class="airport-time">${formatTime(displayBookingData.outboundFlight.departure)}</div>
-                  <div style="font-size: 12px; color: #6b7280;">${formatDate(displayBookingData.outboundFlight.departure)}</div>
-                </div>
-                <div class="flight-line"></div>
-                <div class="airport">
-                  <div class="airport-code">${displayBookingData.outboundFlight.to.code}</div>
-                  <div class="airport-time">${formatTime(displayBookingData.outboundFlight.arrival)}</div>
-                  <div style="font-size: 12px; color: #6b7280;">${formatDate(displayBookingData.outboundFlight.arrival)}</div>
-                </div>
-              </div>
-              <p style="font-size: 14px; color: #374151; text-align: center;">
-                ${displayBookingData.outboundFlight.flightNumber} • ${displayBookingData.outboundFlight.cabin} Class
-              </p>
-            </div>
+    <!-- Important Info -->
+    <div class="info-section">
+      <div class="info-title">📋 Important Information</div>
+      <div class="info-text">
+        • Online check-in opens 24 hours before departure<br/>
+        • Arrive at the airport at least 3 hours before international flights<br/>
+        • Ensure your passport is valid for at least 6 months beyond travel dates
+      </div>
+    </div>
 
-            <div class="section">
-              <div class="section-title">👥 Passengers</div>
-              ${displayBookingData.passengers.map((p: any) => `
-                <div class="passenger">
-                  <strong>${p.title}. ${p.firstName} ${p.lastName}</strong>
-                  <span style="float: right; color: #6b7280;">${p.type}</span>
-                </div>
-              `).join('')}
-            </div>
+    <!-- Footer -->
+    <div class="footer">
+      <div class="footer-brand">✈️ Fly2Any Travel</div>
+      <div class="footer-contact">📞 +1 (332) 220-0838 | 📧 support@fly2any.com</div>
+      <div class="footer-contact">🌐 www.fly2any.com</div>
+      <div class="footer-thanks">Thank you for booking with Fly2Any! Have a wonderful trip.</div>
+    </div>
+  </div>
+</body>
+</html>`;
 
-            <div class="section">
-              <div class="section-title">💳 Payment Summary</div>
-              <div style="display: flex; justify-content: space-between; margin: 8px 0;">
-                <span>Total Paid</span>
-                <span class="total">${formatCurrency(displayBookingData.payment.total)}</span>
-              </div>
-              <p style="font-size: 12px; color: #6b7280; margin-top: 10px;">
-                Paid via ${displayBookingData.payment.method} on ${formatDate(displayBookingData.payment.paidOn)}
-              </p>
-            </div>
-
-            <div class="footer">
-              <p><strong>Fly2Any Travel</strong> — Based in USA</p>
-              <p>📞 +1 (332) 220-0838 | 📧 support@fly2any.com</p>
-              <p>Thank you for booking with Fly2Any!</p>
-            </div>
-          </body>
-        </html>
-      `;
-
-      const blob = new Blob([printContent.innerHTML], { type: 'text/html' });
-      const url = URL.createObjectURL(blob);
-      const printWindow = window.open(url, '_blank');
-
+      // Open in new window for printing
+      const printWindow = window.open('', '_blank');
       if (printWindow) {
+        printWindow.document.write(pdfHtml);
+        printWindow.document.close();
         printWindow.onload = () => {
           printWindow.print();
-          URL.revokeObjectURL(url);
         };
       }
     } catch (error) {
       console.error('PDF generation error:', error);
-      // Fallback to print
       window.print();
     }
   };
