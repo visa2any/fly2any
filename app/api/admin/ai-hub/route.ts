@@ -30,6 +30,7 @@ import { getUXDashboard, getRecentSignals, getPrioritizedIssues } from '@/lib/ai
 import { getRecommendations, getPRRecommendations, autoGenerateFixes, updateFixStatus } from '@/lib/ai/ux-fix-agent';
 import { getExperiments, getExperiment, getExperimentStats, getLearnings } from '@/lib/ai/ab-experimentation';
 import { generateDailyDigest, getLatestDigest, getDigestHistory, generateEmailDigest, generateTextSummary } from '@/lib/ai/executive-digest';
+import { getInsights as getBrainInsights, getPrinciples, getLearningMetrics, getDailyLearningReport, suggestExperiment, exportLearnings } from '@/lib/ai/self-learning-brain';
 
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
@@ -190,6 +191,21 @@ export async function GET(request: Request) {
         const days = parseInt(searchParams.get('days') || '7');
         const history = getDigestHistory(days);
         return NextResponse.json({ digests: history, count: history.length });
+      }
+
+      case 'brain': {
+        const category = searchParams.get('category') as any;
+        const insights = getBrainInsights(category || undefined, 'emerging');
+        const principles = getPrinciples(category || undefined);
+        const metrics = getLearningMetrics();
+        const daily = getDailyLearningReport();
+        const suggestion = suggestExperiment();
+        return NextResponse.json({ insights, principles, metrics, daily_report: daily, experiment_suggestion: suggestion });
+      }
+
+      case 'brain_export': {
+        const data = exportLearnings();
+        return NextResponse.json(data);
       }
 
       default:
