@@ -54,3 +54,11 @@ export {
   REDDIT_TEMPLATES,
 } from './distribution-engine';
 export type { PostContent, PostResult, ScheduledPost } from './distribution-engine';
+
+// AI Growth Brain
+export { growthBrain, evaluateUser, shouldIntervene, getChurnRisk, getLTVSegment } from './ai-growth-brain';
+export type { UserContext, GrowthDecision, LTVSegment, ChurnLevel } from './ai-growth-brain';
+
+// AI Retention Engine
+export { retentionEngine, triggerRetention, onSearchAbandoned, onBookingAbandoned, onPriceDrop, onUserError } from './ai-retention-engine';
+export type { RetentionEvent, RetentionFlow, FlowType, Channel } from './ai-retention-engine';
