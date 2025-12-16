@@ -17,6 +17,8 @@ import SeatMapModal, { type SeatPreference } from '@/components/flights/SeatMapM
 import { parseSeatMap, type ParsedSeatMap, type Seat } from '@/lib/flights/seat-map-parser';
 import { AIRPORTS } from '@/lib/data/airports';
 import { useScrollDirection } from '@/lib/hooks/useScrollDirection';
+import { OfferCountdown } from '@/components/booking/OfferCountdown';
+import { OfferExpiredModal } from '@/components/booking/OfferExpiredModal';
 
 // ===========================
 // TYPE DEFINITIONS
@@ -128,6 +130,10 @@ function BookingPageContent() {
 
   // Price tracking
   const [priceLockTimer, setPriceLockTimer] = useState({ minutes: 10, seconds: 0 });
+
+  // Offer expiration handling (Duffel offers valid for 30 min)
+  const [offerCreatedAt, setOfferCreatedAt] = useState<number>(Date.now());
+  const [showExpiredModal, setShowExpiredModal] = useState(false);
 
   // Promo code state
   const [appliedPromo, setAppliedPromo] = useState<{
@@ -842,6 +848,14 @@ function BookingPageContent() {
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));
         console.error('Booking API error response:', errorData);
+
+        // CRITICAL: Handle OFFER_EXPIRED with smart recovery modal
+        if (errorData.error === 'OFFER_EXPIRED' || errorData.message?.includes('expired')) {
+          setShowExpiredModal(true);
+          setIsProcessing(false);
+          return; // Don't throw - modal will handle recovery
+        }
+
         // Show detailed error info for debugging
         const debugInfo = errorData.debugMessage ? ` (Debug: ${errorData.debugMessage})` : '';
         const message = errorData.message || errorData.error || 'Booking failed. Please try again or contact support.';
@@ -1029,6 +1043,22 @@ function BookingPageContent() {
             <span className={currentStep === 2 ? 'text-primary-600' : 'text-gray-500'}>Traveler Details</span>
             <span className={currentStep === 3 ? 'text-primary-600' : 'text-gray-500'}>Review & Pay</span>
           </div>
+
+          {/* Offer Countdown Timer - Shows warning when close to expiration */}
+          {flightData?.source === 'Duffel' && (
+            <div className="mt-2 px-2 sm:px-0">
+              <OfferCountdown
+                offerId={flightData?.id || ''}
+                createdAt={offerCreatedAt}
+                onExpired={() => setShowExpiredModal(true)}
+                onRefresh={async () => {
+                  // Trigger refresh via modal
+                  setShowExpiredModal(true);
+                }}
+                className="always"
+              />
+            </div>
+          )}
         </div>
       </div>
 
@@ -1479,6 +1509,36 @@ function BookingPageContent() {
           </div>
         </div>
       )}
+
+      {/* Offer Expired Modal - Smart Recovery */}
+      <OfferExpiredModal
+        isOpen={showExpiredModal}
+        onClose={() => setShowExpiredModal(false)}
+        searchParams={{
+          origin: flightData?.search?.from || '',
+          destination: flightData?.search?.to || '',
+          departureDate: flightData?.search?.departure || '',
+          returnDate: flightData?.search?.return,
+          adults: passengers.length || 1,
+        }}
+        originalOffer={{
+          id: flightData?.id || '',
+          price: parseFloat(flightData?.price?.total || '0'),
+          airline: flightData?.validatingAirlineCodes?.[0],
+          departureTime: flightData?.itineraries?.[0]?.segments?.[0]?.departure?.at,
+        }}
+        onRefreshed={(newOffer) => {
+          // Update flight data with fresh offer
+          setFlightData((prev: any) => ({
+            ...prev,
+            ...newOffer,
+            id: newOffer.id,
+            price: newOffer.price,
+          }));
+          setOfferCreatedAt(Date.now());
+          toast.success('Price updated! You can continue booking.');
+        }}
+      />
 
     </div>
   );
