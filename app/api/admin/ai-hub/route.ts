@@ -24,6 +24,8 @@ import { getAllAgentPerformances, getInsights } from '@/lib/ai/memory-learning';
 import { getExecutiveSummary, getBoardDashboard } from '@/lib/ai/kpi-intelligence';
 import { getRecentSuites, getFailureTrends, generateTestReport } from '@/lib/ai/qa-playwright-engine';
 import { getQueue, getTakeoverAnalytics, assignTakeover, resolveTakeover } from '@/lib/ai/human-takeover';
+import { getPersonalizationStats, getRecentDecisions as getPersonalizationDecisions } from '@/lib/ai/personalization-engine';
+import { getRevenueMetrics, getRecentDecisions as getRevenueDecisions } from '@/lib/ai/revenue-optimization';
 
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
@@ -110,6 +112,18 @@ export async function GET(request: Request) {
         const queue = getQueue();
         const analytics = getTakeoverAnalytics();
         return NextResponse.json({ queue, analytics });
+      }
+
+      case 'personalization': {
+        const stats = getPersonalizationStats();
+        const decisions = getPersonalizationDecisions(20);
+        return NextResponse.json({ stats, recent_decisions: decisions });
+      }
+
+      case 'revenue': {
+        const metrics = getRevenueMetrics();
+        const decisions = getRevenueDecisions(20);
+        return NextResponse.json({ metrics, recent_decisions: decisions });
       }
 
       default:
