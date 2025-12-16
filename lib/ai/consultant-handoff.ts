@@ -1,8 +1,17 @@
 /**
- * Consultant Handoff System
- * Manages professional transfers between travel agents
+ * Consultant Handoff System — Fly2Any AI Ecosystem
+ *
+ * Components:
+ * 1. Consultant Handoff Protocol - Seamless agent transfers
+ * 2. Emotion-Aware Tone Adapter - Dynamic tone adjustment
+ * 3. QA & Hallucination Guardrail - Response validation
  */
 
+import type { EmotionalState, UrgencyLevel, PrimaryIntent } from './smart-router';
+
+// ═══════════════════════════════════════════════════════════════════════════
+// TYPES
+// ═══════════════════════════════════════════════════════════════════════════
 export type TeamType =
   | 'customer-service'
   | 'flight-operations'
@@ -15,7 +24,9 @@ export type TeamType =
   | 'loyalty-rewards'
   | 'technical-support'
   | 'accessibility-services'
-  | 'emergency-response';
+  | 'special-services'
+  | 'emergency-response'
+  | 'crisis-management';
 
 export interface ConsultantInfo {
   team: TeamType;
@@ -103,15 +114,27 @@ export function getConsultantInfo(team: TeamType): ConsultantInfo {
       title: 'Accessibility & Special Needs Coordinator',
       emoji: '♿'
     },
+    'special-services': {
+      team: 'special-services',
+      name: 'Nina Davis',
+      title: 'Accessibility & Special Services Specialist',
+      emoji: '♿'
+    },
     'emergency-response': {
       team: 'emergency-response',
       name: 'Captain Mike Johnson',
       title: 'Emergency Response Coordinator',
       emoji: '🚨'
+    },
+    'crisis-management': {
+      team: 'crisis-management',
+      name: 'Captain Mike Johnson',
+      title: 'Crisis & Emergency Manager',
+      emoji: '🚨'
     }
   };
 
-  return consultants[team];
+  return consultants[team] || consultants['customer-service'];
 }
 
 /**
@@ -365,4 +388,309 @@ export function getPreviousConsultantTeam(
     if (team) return team as TeamType;
   }
   return null;
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// HANDOFF CONTEXT PACKAGE (Enhanced)
+// ═══════════════════════════════════════════════════════════════════════════
+export interface HandoffContextPackage {
+  from_agent: TeamType;
+  to_agent: TeamType;
+  primary_intent: string;
+  secondary_intents: string[];
+  emotional_state: string;
+  urgency_level: string;
+  user_summary: string;
+  known_data: string[];
+  open_questions: string[];
+  risk_flags: string[];
+  recommended_tone: string;
+  handoff_count: number;
+}
+
+let sessionHandoffCount = 0;
+const MAX_HANDOFFS = 2;
+
+/**
+ * Create handoff context package for agent transfer
+ */
+export function createHandoffPackage(
+  fromTeam: TeamType,
+  toTeam: TeamType,
+  context: {
+    primary_intent?: string;
+    secondary_intents?: string[];
+    emotional_state?: string;
+    urgency_level?: string;
+    user_summary?: string;
+    known_data?: string[];
+    open_questions?: string[];
+    risk_flags?: string[];
+  }
+): HandoffContextPackage {
+  sessionHandoffCount++;
+
+  // Force route to Lisa if too many handoffs
+  const finalTarget = sessionHandoffCount > MAX_HANDOFFS ? 'customer-service' : toTeam;
+
+  return {
+    from_agent: fromTeam,
+    to_agent: finalTarget as TeamType,
+    primary_intent: context.primary_intent || 'GENERAL_TRAVEL_INFO',
+    secondary_intents: context.secondary_intents || [],
+    emotional_state: context.emotional_state || 'CALM',
+    urgency_level: context.urgency_level || 'MEDIUM',
+    user_summary: context.user_summary || '',
+    known_data: context.known_data || [],
+    open_questions: context.open_questions || [],
+    risk_flags: context.risk_flags || [],
+    recommended_tone: getToneRecommendation(
+      context.emotional_state as EmotionalState || 'CALM',
+      context.urgency_level as UrgencyLevel || 'MEDIUM'
+    ).recommended_tone,
+    handoff_count: sessionHandoffCount,
+  };
+}
+
+/**
+ * Reset handoff count for new session
+ */
+export function resetHandoffSession(): void {
+  sessionHandoffCount = 0;
+}
+
+/**
+ * Check if handoff should be triggered
+ */
+export function shouldTriggerHandoff(
+  currentTeam: TeamType,
+  newIntent: string,
+  emotional_state: string,
+  urgency_level: string
+): { trigger: boolean; target: TeamType; reason: string } {
+  // CRITICAL urgency always goes to Crisis Manager
+  if (urgency_level === 'CRITICAL') {
+    return { trigger: true, target: 'crisis-management', reason: 'CRITICAL_URGENCY' };
+  }
+
+  // Payment/Legal domains need specialist
+  if (newIntent.includes('PAYMENT') || newIntent.includes('REFUND')) {
+    if (currentTeam !== 'payment-billing') {
+      return { trigger: true, target: 'payment-billing', reason: 'PAYMENT_DOMAIN' };
+    }
+  }
+
+  if (newIntent.includes('LEGAL')) {
+    if (currentTeam !== 'legal-compliance') {
+      return { trigger: true, target: 'legal-compliance', reason: 'LEGAL_DOMAIN' };
+    }
+  }
+
+  // Emotional escalation - may need different agent
+  if (emotional_state === 'PANICKED' && currentTeam !== 'crisis-management') {
+    return { trigger: true, target: 'crisis-management', reason: 'EMOTIONAL_ESCALATION' };
+  }
+
+  return { trigger: false, target: currentTeam, reason: 'NO_HANDOFF_NEEDED' };
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// EMOTION-AWARE TONE ADAPTER
+// ═══════════════════════════════════════════════════════════════════════════
+export interface ToneRecommendation {
+  recommended_tone: string;
+  verbosity_level: 'low' | 'medium' | 'high';
+  pacing: 'slow' | 'normal' | 'fast';
+  language_style: string;
+  do_not_use: string[];
+}
+
+/**
+ * Get tone recommendation based on emotional state and urgency
+ */
+export function getToneRecommendation(
+  emotional_state: EmotionalState,
+  urgency_level: UrgencyLevel
+): ToneRecommendation {
+  const recommendations: Record<EmotionalState, ToneRecommendation> = {
+    CALM: {
+      recommended_tone: 'Professional, warm, helpful',
+      verbosity_level: 'medium',
+      pacing: 'normal',
+      language_style: 'Neutral, confident, standard verbosity',
+      do_not_use: ['urgent', 'immediately', 'critical'],
+    },
+    CONFUSED: {
+      recommended_tone: 'Clear, step-by-step, educational',
+      verbosity_level: 'high',
+      pacing: 'slow',
+      language_style: 'Structured, bullet points, reassuring clarity',
+      do_not_use: ['technical jargon', 'abbreviations', 'complex terms'],
+    },
+    FRUSTRATED: {
+      recommended_tone: 'Empathetic, solution-focused, acknowledging',
+      verbosity_level: 'low',
+      pacing: 'normal',
+      language_style: 'Direct, acknowledge frustration, avoid technical language',
+      do_not_use: ['unfortunately', 'policy', 'cannot', 'impossible'],
+    },
+    ANXIOUS: {
+      recommended_tone: 'Reassuring, patient, thorough',
+      verbosity_level: 'medium',
+      pacing: 'slow',
+      language_style: 'Emphasize control and next steps, calming',
+      do_not_use: ['worry', 'concern', 'problem', 'issue', 'urgent'],
+    },
+    URGENT: {
+      recommended_tone: 'Efficient, direct, prioritized',
+      verbosity_level: 'low',
+      pacing: 'fast',
+      language_style: 'Action-oriented, no filler language, concise',
+      do_not_use: ['maybe', 'perhaps', 'might', 'could potentially'],
+    },
+    PANICKED: {
+      recommended_tone: 'Calm, decisive, action-oriented',
+      verbosity_level: 'low',
+      pacing: 'fast',
+      language_style: 'Short sentences, immediate reassurance, one step at a time',
+      do_not_use: ['panic', 'emergency', 'disaster', 'worst case'],
+    },
+  };
+
+  const base = recommendations[emotional_state];
+
+  // Override for CRITICAL urgency
+  if (urgency_level === 'CRITICAL') {
+    return {
+      ...base,
+      recommended_tone: 'Calm, decisive, immediate action',
+      verbosity_level: 'low',
+      pacing: 'fast',
+    };
+  }
+
+  return base;
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// QA & HALLUCINATION GUARDRAIL
+// ═══════════════════════════════════════════════════════════════════════════
+export interface ValidationResult {
+  valid: boolean;
+  confidence: 'high' | 'medium' | 'low';
+  risk_level: 'none' | 'low' | 'medium' | 'high';
+  warnings: string[];
+  blocked: boolean;
+  safe_fallback?: string;
+}
+
+// High-risk domains requiring extra validation
+const HIGH_RISK_DOMAINS = [
+  'price', 'pricing', 'cost', 'fee', 'charge',
+  'refund', 'cancel', 'policy',
+  'visa', 'passport', 'entry',
+  'legal', 'rights', 'compensation',
+  'insurance', 'coverage', 'claim',
+];
+
+// Patterns that suggest hallucination risk
+const HALLUCINATION_PATTERNS = [
+  /\$\d+(?:\.\d{2})?/, // Specific prices
+  /\d+%\s*(?:discount|off|refund)/, // Specific percentages
+  /guaranteed|definitely|certainly|always|never/, // Absolutes
+  /policy states|according to policy/, // Policy claims
+];
+
+/**
+ * Validate response before sending to user
+ */
+export function validateResponse(
+  response: string,
+  domain: string,
+  hasVerifiedData: boolean = false
+): ValidationResult {
+  const warnings: string[] = [];
+  let riskLevel: ValidationResult['risk_level'] = 'none';
+  let confidence: ValidationResult['confidence'] = 'high';
+
+  // Check for high-risk domain keywords
+  const isHighRiskDomain = HIGH_RISK_DOMAINS.some(keyword =>
+    domain.toLowerCase().includes(keyword) ||
+    response.toLowerCase().includes(keyword)
+  );
+
+  if (isHighRiskDomain && !hasVerifiedData) {
+    riskLevel = 'medium';
+    confidence = 'medium';
+    warnings.push('High-risk domain detected without verified data');
+  }
+
+  // Check for hallucination patterns
+  for (const pattern of HALLUCINATION_PATTERNS) {
+    if (pattern.test(response) && !hasVerifiedData) {
+      riskLevel = 'high';
+      confidence = 'low';
+      warnings.push(`Potential hallucination: ${pattern.source}`);
+    }
+  }
+
+  // Check for absolute statements
+  if (/\b(guaranteed|definitely|certainly|always|never)\b/i.test(response)) {
+    if (!hasVerifiedData) {
+      warnings.push('Absolute statement without verification');
+      confidence = 'low';
+    }
+  }
+
+  // Determine if blocked
+  const blocked = riskLevel === 'high' && !hasVerifiedData;
+
+  return {
+    valid: !blocked,
+    confidence,
+    risk_level: riskLevel,
+    warnings,
+    blocked,
+    safe_fallback: blocked
+      ? "I want to double-check this information before confirming. Let me verify the most accurate details for you."
+      : undefined,
+  };
+}
+
+/**
+ * Get safe fallback response for uncertain information
+ */
+export function getSafeFallback(domain: string): string {
+  const fallbacks: Record<string, string> = {
+    pricing: "Pricing varies and I want to give you accurate figures. Let me check the current rates.",
+    refund: "Refund policies can vary. Let me verify the specific terms for your booking.",
+    visa: "Visa requirements depend on your nationality and destination. Let me confirm the exact requirements.",
+    legal: "This involves specific regulations. Let me connect you with our legal specialist for accurate guidance.",
+    insurance: "Coverage details vary by policy. Let me verify what's included in your plan.",
+    default: "I want to make sure I give you accurate information. Let me verify this for you.",
+  };
+
+  for (const [key, fallback] of Object.entries(fallbacks)) {
+    if (domain.toLowerCase().includes(key)) {
+      return fallback;
+    }
+  }
+
+  return fallbacks.default;
+}
+
+/**
+ * Log QA incident (for monitoring)
+ */
+export function logQAIncident(
+  type: 'hallucination_prevented' | 'confidence_downgraded' | 'clarification_requested' | 'escalation_triggered',
+  details: {
+    domain: string;
+    original_response?: string;
+    fallback_used?: string;
+    escalated_to?: TeamType;
+  }
+): void {
+  // In production, this would log to monitoring system
+  console.log(`[QA Guardrail] ${type}:`, details.domain);
 }
