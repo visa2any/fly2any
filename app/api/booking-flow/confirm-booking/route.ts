@@ -6,6 +6,8 @@ import { auth } from '@/lib/auth';
 import { getPrismaClient } from '@/lib/prisma';
 import { bookingStorage } from '@/lib/bookings/storage';
 import { notifyNewBooking } from '@/lib/notifications/notification-service';
+import { triggerEmailEvent } from '@/lib/email/event-triggers';
+import { campaignEngine } from '@/lib/email/campaign-flows';
 import type { Booking, FlightSegment, Passenger, PaymentInfo, ContactInfo } from '@/lib/bookings/types';
 import type { BookingNotificationPayload } from '@/lib/notifications/types';
 
@@ -312,6 +314,27 @@ export async function POST(request: NextRequest) {
       });
 
       console.log('📤 New booking notification dispatched');
+
+      // Trigger booking confirmation email + stop recovery campaigns
+      if (contactInfo.email) {
+        triggerEmailEvent('booking_confirmed', contactInfo.email, {
+          bookingReference: booking.bookingReference,
+          customerName: notificationPayload.customerName,
+          route,
+          departureDate,
+          totalAmount: paymentInfo.amount,
+          currency: paymentInfo.currency,
+          passengerCount: transformedPassengers.length,
+        }).catch(() => null);
+
+        // Stop booking recovery campaigns (user converted)
+        try {
+          const session = await auth();
+          if (session?.user?.id) {
+            campaignEngine.markConverted(session.user.id).catch(() => null);
+          }
+        } catch { /* ignore */ }
+      }
 
       // Return success response
       return NextResponse.json(
