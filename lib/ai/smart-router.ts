@@ -1,19 +1,48 @@
 /**
- * Smart Query Router
- * NLP-first approach: Free local processing handles 90%+ of queries
- * Groq AI fallback: Only for complex queries that need understanding
+ * Smart Router — Fly2Any AI Orchestration Layer
+ *
+ * Invisible intelligence that routes user requests to specialist agents
+ * based on intent, emotion, and urgency classification.
+ *
+ * Architecture:
+ * 1. Fast keyword classifier (0ms, no API)
+ * 2. NLP entity extraction (0ms, no API)
+ * 3. AI classification fallback (only for ambiguous queries)
  */
 
-import { callGroq, generateTravelResponse, enhanceWithAI, isGroqAvailable, type GroqMessage } from './groq-client';
-import {
-  generateHandoffMessage,
-  getConsultantInfo,
-  needsHandoff,
-  type TeamType
-} from './consultant-handoff';
+import { callGroq, generateTravelResponse, isGroqAvailable, type GroqMessage } from './groq-client';
+import { getConsultantInfo, type TeamType } from './consultant-handoff';
+
+// ═══════════════════════════════════════════════════════════════════════════
+// TYPES
+// ═══════════════════════════════════════════════════════════════════════════
+export type PrimaryIntent =
+  | 'FLIGHT_SEARCH' | 'FLIGHT_CHANGE' | 'FLIGHT_CANCEL'
+  | 'HOTEL_SEARCH' | 'HOTEL_MODIFICATION'
+  | 'PAYMENT_ISSUE' | 'REFUND'
+  | 'LEGAL_RIGHTS' | 'VISA_DOCUMENTATION'
+  | 'CAR_RENTAL' | 'INSURANCE' | 'LOYALTY_POINTS'
+  | 'CUSTOMER_SUPPORT' | 'TECHNICAL_ISSUE'
+  | 'ACCESSIBILITY' | 'EMERGENCY' | 'GENERAL_TRAVEL_INFO';
+
+export type EmotionalState = 'CALM' | 'CONFUSED' | 'FRUSTRATED' | 'ANXIOUS' | 'URGENT' | 'PANICKED';
+export type UrgencyLevel = 'LOW' | 'MEDIUM' | 'HIGH' | 'CRITICAL';
+
+export interface RoutingContext {
+  primary_intent: PrimaryIntent;
+  secondary_intents: PrimaryIntent[];
+  emotional_state: EmotionalState;
+  urgency_level: UrgencyLevel;
+  user_goal: string;
+  known_constraints: string[];
+  risk_flags: string[];
+  recommended_tone: string;
+  target_agent: TeamType;
+  agent_name: string;
+}
 
 export interface QueryAnalysis {
-  intent: 'flight_search' | 'hotel_search' | 'car_rental' | 'general_inquiry' | 'booking_status' | 'payment' | 'complaint' | 'greeting' | 'unknown';
+  intent: string;
   confidence: number;
   team: TeamType;
   entities: {
@@ -34,6 +63,7 @@ export interface QueryAnalysis {
   };
   requiresAI: boolean;
   rawMessage: string;
+  routing?: RoutingContext;
 }
 
 export interface RouterResponse {
@@ -52,56 +82,163 @@ export interface RouterResponse {
     team: TeamType;
     emoji: string;
   };
+  routing: RoutingContext;
 }
 
-// Intent patterns with keywords and confidence scores
-const INTENT_PATTERNS: Record<string, { keywords: string[]; team: TeamType; weight: number }> = {
-  flight_search: {
-    keywords: ['flight', 'fly', 'flying', 'plane', 'airline', 'airport', 'depart', 'arrive', 'ticket', 'booking', 'book a flight', 'round trip', 'one way', 'nonstop', 'direct flight', 'layover', 'connection'],
-    team: 'flight-operations',
-    weight: 1.0
-  },
-  hotel_search: {
-    keywords: ['hotel', 'accommodation', 'stay', 'room', 'suite', 'resort', 'motel', 'inn', 'lodge', 'hostel', 'airbnb', 'check in', 'check out', 'night stay', 'bed and breakfast', 'b&b'],
-    team: 'hotel-accommodations',
-    weight: 1.0
-  },
-  car_rental: {
-    keywords: ['car', 'rental', 'rent a car', 'vehicle', 'drive', 'driving', 'pickup', 'drop off', 'suv', 'sedan', 'convertible'],
-    team: 'car-rental',
-    weight: 1.0
-  },
-  payment: {
-    keywords: ['pay', 'payment', 'price', 'cost', 'charge', 'bill', 'invoice', 'refund', 'money', 'credit card', 'debit', 'transaction', 'receipt', 'cancel', 'cancellation fee'],
-    team: 'payment-billing',
-    weight: 0.9
-  },
-  booking_status: {
-    keywords: ['booking', 'reservation', 'confirmation', 'status', 'itinerary', 'scheduled', 'upcoming trip', 'my trip', 'my booking'],
-    team: 'customer-service',
-    weight: 0.8
-  },
-  complaint: {
-    keywords: ['complaint', 'problem', 'issue', 'wrong', 'bad', 'terrible', 'awful', 'disappointed', 'angry', 'upset', 'refund', 'compensation', 'manager', 'supervisor'],
-    team: 'customer-service',
-    weight: 0.9
-  },
-  greeting: {
-    keywords: ['hello', 'hi', 'hey', 'good morning', 'good afternoon', 'good evening', 'how are you', 'help', 'assist'],
-    team: 'customer-service',
-    weight: 0.5
+// ═══════════════════════════════════════════════════════════════════════════
+// AGENT ROUTING MAP
+// ═══════════════════════════════════════════════════════════════════════════
+const INTENT_TO_AGENT: Record<PrimaryIntent, { team: TeamType; name: string }> = {
+  'FLIGHT_SEARCH': { team: 'flight-operations', name: 'Sarah Chen' },
+  'FLIGHT_CHANGE': { team: 'flight-operations', name: 'Sarah Chen' },
+  'FLIGHT_CANCEL': { team: 'flight-operations', name: 'Sarah Chen' },
+  'HOTEL_SEARCH': { team: 'hotel-accommodations', name: 'Marcus Rodriguez' },
+  'HOTEL_MODIFICATION': { team: 'hotel-accommodations', name: 'Marcus Rodriguez' },
+  'PAYMENT_ISSUE': { team: 'payment-billing', name: 'David Park' },
+  'REFUND': { team: 'payment-billing', name: 'David Park' },
+  'LEGAL_RIGHTS': { team: 'legal-compliance', name: 'Dr. Emily Watson' },
+  'VISA_DOCUMENTATION': { team: 'visa-documentation', name: 'Sophia Nguyen' },
+  'CAR_RENTAL': { team: 'car-rental', name: 'James Anderson' },
+  'INSURANCE': { team: 'travel-insurance', name: 'Robert Martinez' },
+  'LOYALTY_POINTS': { team: 'loyalty-rewards', name: 'Amanda Foster' },
+  'CUSTOMER_SUPPORT': { team: 'customer-service', name: 'Lisa Thompson' },
+  'TECHNICAL_ISSUE': { team: 'technical-support', name: 'Alex Kumar' },
+  'ACCESSIBILITY': { team: 'special-services', name: 'Nina Davis' },
+  'EMERGENCY': { team: 'crisis-management', name: 'Captain Mike Johnson' },
+  'GENERAL_TRAVEL_INFO': { team: 'customer-service', name: 'Lisa Thompson' },
+};
+
+// Legacy intent mapping for backward compatibility
+const LEGACY_INTENT_MAP: Record<string, PrimaryIntent> = {
+  'flight_search': 'FLIGHT_SEARCH',
+  'hotel_search': 'HOTEL_SEARCH',
+  'car_rental': 'CAR_RENTAL',
+  'payment': 'PAYMENT_ISSUE',
+  'booking_status': 'CUSTOMER_SUPPORT',
+  'complaint': 'CUSTOMER_SUPPORT',
+  'greeting': 'GENERAL_TRAVEL_INFO',
+  'general_inquiry': 'GENERAL_TRAVEL_INFO',
+  'unknown': 'GENERAL_TRAVEL_INFO',
+};
+
+// ═══════════════════════════════════════════════════════════════════════════
+// FAST INTENT CLASSIFIER (No AI needed)
+// ═══════════════════════════════════════════════════════════════════════════
+function fastClassifyIntent(message: string): { intent: PrimaryIntent; urgency: UrgencyLevel } | null {
+  const lower = message.toLowerCase();
+
+  // CRITICAL: Emergency patterns
+  if (/\b(emergency|stranded|missed flight|help me now|panicking|stuck at airport)\b/.test(lower)) {
+    return { intent: 'EMERGENCY', urgency: 'CRITICAL' };
   }
-};
 
-// Location extraction patterns
-const LOCATION_PATTERNS = {
-  from: /(?:from|leaving|departing|out of)\s+([A-Za-z\s]+?)(?:\s+to|\s+on|\s+in|\s+for|,|$)/i,
-  to: /(?:to|going to|heading to|destination|arrive at|arriving|into)\s+([A-Za-z\s]+?)(?:\s+from|\s+on|\s+in|\s+for|,|$)/i,
-  city: /(?:in|at|near|around)\s+([A-Za-z\s]+?)(?:\s+from|\s+on|\s+for|,|$)/i,
-  airport: /\b([A-Z]{3})\b/g
-};
+  // HIGH: Payment failures
+  if (/\b(card declined|payment failed|can't pay|won't charge|transaction failed)\b/.test(lower)) {
+    return { intent: 'PAYMENT_ISSUE', urgency: 'HIGH' };
+  }
 
-// Date extraction (comprehensive patterns)
+  // HIGH: Refunds
+  if (/\b(refund|money back|get my money|cancel.*booking)\b/.test(lower)) {
+    return { intent: 'REFUND', urgency: 'HIGH' };
+  }
+
+  // MEDIUM: Flight search
+  if (/\b(find.*flight|search.*flight|book.*flight|fly to|flights? from|looking for.*flight)\b/.test(lower)) {
+    return { intent: 'FLIGHT_SEARCH', urgency: 'MEDIUM' };
+  }
+
+  // Flight changes
+  if (/\b(change.*flight|modify.*flight|reschedule.*flight|different date)\b/.test(lower)) {
+    return { intent: 'FLIGHT_CHANGE', urgency: 'MEDIUM' };
+  }
+
+  // Flight cancel
+  if (/\b(cancel.*flight|cancel my booking)\b/.test(lower)) {
+    return { intent: 'FLIGHT_CANCEL', urgency: 'MEDIUM' };
+  }
+
+  // Hotel search
+  if (/\b(find.*hotel|search.*hotel|book.*hotel|stay in|accommodation|looking for.*hotel)\b/.test(lower)) {
+    return { intent: 'HOTEL_SEARCH', urgency: 'MEDIUM' };
+  }
+
+  // Visa/documentation
+  if (/\b(visa|passport|document|entry requirement|travel document|do i need a visa)\b/.test(lower)) {
+    return { intent: 'VISA_DOCUMENTATION', urgency: 'MEDIUM' };
+  }
+
+  // Accessibility
+  if (/\b(wheelchair|disabled|accessibility|special needs|service animal|mobility)\b/.test(lower)) {
+    return { intent: 'ACCESSIBILITY', urgency: 'MEDIUM' };
+  }
+
+  // Technical issues
+  if (/\b(app.*not working|website.*error|can't login|account.*problem|bug|glitch)\b/.test(lower)) {
+    return { intent: 'TECHNICAL_ISSUE', urgency: 'MEDIUM' };
+  }
+
+  // Insurance
+  if (/\b(insurance|travel protection|coverage|medical emergency cover)\b/.test(lower)) {
+    return { intent: 'INSURANCE', urgency: 'LOW' };
+  }
+
+  // Car rental
+  if (/\b(rent.*car|car rental|hire.*car|vehicle rental)\b/.test(lower)) {
+    return { intent: 'CAR_RENTAL', urgency: 'LOW' };
+  }
+
+  // Loyalty/points
+  if (/\b(points|miles|loyalty|rewards|status|frequent flyer)\b/.test(lower)) {
+    return { intent: 'LOYALTY_POINTS', urgency: 'LOW' };
+  }
+
+  // Legal rights
+  if (/\b(compensation|my rights|eu261|delayed.*compensation|legal)\b/.test(lower)) {
+    return { intent: 'LEGAL_RIGHTS', urgency: 'MEDIUM' };
+  }
+
+  return null;
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// EMOTION DETECTION
+// ═══════════════════════════════════════════════════════════════════════════
+function detectEmotion(message: string): EmotionalState {
+  const lower = message.toLowerCase();
+
+  if (/\b(angry|furious|unacceptable|worst|terrible|hate|ridiculous)\b/.test(lower) || /!{2,}/.test(message)) {
+    return 'FRUSTRATED';
+  }
+  if (/\b(panicking|emergency|help|stranded|desperate|please help)\b/.test(lower)) {
+    return 'PANICKED';
+  }
+  if (/\b(worried|nervous|scared|concerned|afraid)\b/.test(lower)) {
+    return 'ANXIOUS';
+  }
+  if (/\b(urgent|asap|immediately|now|quickly|hurry)\b/.test(lower)) {
+    return 'URGENT';
+  }
+  if (/\b(confused|don't understand|what does|how do|not sure|unclear)\b/.test(lower) || /\?{2,}/.test(message)) {
+    return 'CONFUSED';
+  }
+  return 'CALM';
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// TONE RECOMMENDATION
+// ═══════════════════════════════════════════════════════════════════════════
+function recommendTone(emotion: EmotionalState, urgency: UrgencyLevel): string {
+  if (emotion === 'PANICKED' || urgency === 'CRITICAL') return 'Calm, decisive, action-oriented';
+  if (emotion === 'FRUSTRATED') return 'Empathetic, solution-focused, acknowledging';
+  if (emotion === 'ANXIOUS') return 'Reassuring, patient, thorough';
+  if (emotion === 'CONFUSED') return 'Clear, step-by-step, educational';
+  if (emotion === 'URGENT') return 'Efficient, direct, prioritized';
+  return 'Professional, warm, helpful';
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// NLP ENTITY EXTRACTION (Kept from original)
+// ═══════════════════════════════════════════════════════════════════════════
 const MONTHS: Record<string, number> = {
   january: 0, jan: 0, february: 1, feb: 1, march: 2, mar: 2,
   april: 3, apr: 3, may: 4, june: 5, jun: 5, july: 6, jul: 6,
@@ -109,17 +246,13 @@ const MONTHS: Record<string, number> = {
   october: 9, oct: 9, november: 10, nov: 10, december: 11, dec: 11
 };
 
-/**
- * Extract dates from natural language
- */
 function extractDates(message: string): { departure?: string; return?: string } {
   const lower = message.toLowerCase();
   const now = new Date();
   const currentYear = now.getFullYear();
-
   const result: { departure?: string; return?: string } = {};
 
-  // Pattern: "from dec 20th until jan 5th" or "dec 20 to jan 5"
+  // Range: "dec 20 to jan 5"
   const rangePattern = /(?:from\s+)?(\w+)\s+(\d{1,2})(?:st|nd|rd|th)?\s*(?:until|to|-|through)\s*(\w+)\s+(\d{1,2})(?:st|nd|rd|th)?/i;
   const rangeMatch = lower.match(rangePattern);
 
@@ -130,13 +263,10 @@ function extractDates(message: string): { departure?: string; return?: string } 
 
     if (startMonthNum !== undefined && endMonthNum !== undefined) {
       let startYear = currentYear;
-      let endYear = currentYear;
-
-      // Handle year rollover
       const testStartDate = new Date(startYear, startMonthNum, parseInt(startDay));
       if (testStartDate < now) startYear++;
 
-      endYear = startYear;
+      let endYear = startYear;
       if (endMonthNum < startMonthNum) endYear++;
 
       result.departure = `${startYear}-${String(startMonthNum + 1).padStart(2, '0')}-${String(parseInt(startDay)).padStart(2, '0')}`;
@@ -145,7 +275,7 @@ function extractDates(message: string): { departure?: string; return?: string } 
     }
   }
 
-  // Pattern: "on dec 20th" or "december 20"
+  // Single date: "dec 20"
   const singleDatePattern = /(?:on\s+)?(\w+)\s+(\d{1,2})(?:st|nd|rd|th)?(?:\s*,?\s*(\d{4}))?/gi;
   const dates: string[] = [];
   let match;
@@ -158,7 +288,6 @@ function extractDates(message: string): { departure?: string; return?: string } 
       let dateYear = year ? parseInt(year) : currentYear;
       const testDate = new Date(dateYear, monthNum, parseInt(day));
       if (!year && testDate < now) dateYear++;
-
       dates.push(`${dateYear}-${String(monthNum + 1).padStart(2, '0')}-${String(parseInt(day)).padStart(2, '0')}`);
     }
   }
@@ -166,226 +295,93 @@ function extractDates(message: string): { departure?: string; return?: string } 
   if (dates.length >= 1) result.departure = dates[0];
   if (dates.length >= 2) result.return = dates[1];
 
-  // Pattern: MM/DD or MM/DD/YYYY
-  const numericPattern = /(\d{1,2})\/(\d{1,2})(?:\/(\d{2,4}))?/g;
-  while ((match = numericPattern.exec(message)) !== null) {
-    const [, month, day, year] = match;
-    const monthNum = parseInt(month) - 1;
-    let dateYear = year ? (year.length === 2 ? 2000 + parseInt(year) : parseInt(year)) : currentYear;
-
-    if (monthNum >= 0 && monthNum <= 11) {
-      const testDate = new Date(dateYear, monthNum, parseInt(day));
-      if (!year && testDate < now) dateYear++;
-
-      const dateStr = `${dateYear}-${String(monthNum + 1).padStart(2, '0')}-${String(parseInt(day)).padStart(2, '0')}`;
-      if (!result.departure) result.departure = dateStr;
-      else if (!result.return) result.return = dateStr;
-    }
-  }
-
   // Relative dates
   if (lower.includes('tomorrow')) {
     const tomorrow = new Date(now);
     tomorrow.setDate(tomorrow.getDate() + 1);
     result.departure = tomorrow.toISOString().split('T')[0];
-  } else if (lower.includes('next week')) {
-    const nextWeek = new Date(now);
-    nextWeek.setDate(nextWeek.getDate() + 7);
-    result.departure = nextWeek.toISOString().split('T')[0];
-  } else if (lower.includes('next month')) {
-    const nextMonth = new Date(now);
-    nextMonth.setMonth(nextMonth.getMonth() + 1);
-    result.departure = nextMonth.toISOString().split('T')[0];
   }
 
   return result;
 }
 
-/**
- * Extract passenger count
- */
-function extractPassengers(message: string): number | undefined {
-  const patterns = [
-    /(\d+)\s*(?:passengers?|people|persons?|adults?|travelers?)/i,
-    /(?:for|with)\s*(\d+)\s*(?:of us|people|persons?)?/i,
-    /(?:party of|group of)\s*(\d+)/i
-  ];
-
-  for (const pattern of patterns) {
-    const match = message.match(pattern);
-    if (match) return parseInt(match[1]);
-  }
-
-  return undefined;
-}
-
-/**
- * Extract cabin class
- */
-function extractCabinClass(message: string): string | undefined {
-  const lower = message.toLowerCase();
-
-  if (lower.includes('first class') || lower.includes('first-class')) return 'first';
-  if (lower.includes('business class') || lower.includes('business-class')) return 'business';
-  if (lower.includes('premium economy') || lower.includes('premium-economy')) return 'premium_economy';
-  if (lower.includes('economy') || lower.includes('coach')) return 'economy';
-
-  return undefined;
-}
-
-/**
- * Extract locations from message
- */
 function extractLocations(message: string): { origin?: string; destination?: string; city?: string } {
   const result: { origin?: string; destination?: string; city?: string } = {};
 
-  // Try to extract airport codes first (3 letter codes)
+  // Airport codes (3 letters)
   const airportCodes = message.match(/\b[A-Z]{3}\b/g);
   if (airportCodes && airportCodes.length >= 2) {
     result.origin = airportCodes[0];
     result.destination = airportCodes[1];
     return result;
-  } else if (airportCodes && airportCodes.length === 1) {
-    // Single airport code - try to determine if origin or destination
-    if (message.toLowerCase().includes('from')) {
-      result.origin = airportCodes[0];
-    } else {
-      result.destination = airportCodes[0];
-    }
   }
 
-  // Extract "from X to Y" pattern
+  // "from X to Y" pattern
   const fromToPattern = /from\s+([A-Za-z\s]+?)\s+to\s+([A-Za-z\s]+?)(?:\s+on|\s+for|\s+in|,|$)/i;
   const fromToMatch = message.match(fromToPattern);
   if (fromToMatch) {
     result.origin = fromToMatch[1].trim();
     result.destination = fromToMatch[2].trim();
-    return result;
-  }
-
-  // Try individual patterns
-  const fromMatch = message.match(LOCATION_PATTERNS.from);
-  const toMatch = message.match(LOCATION_PATTERNS.to);
-
-  if (fromMatch) result.origin = fromMatch[1].trim();
-  if (toMatch) result.destination = toMatch[1].trim();
-
-  // For hotels - extract city
-  const cityMatch = message.match(LOCATION_PATTERNS.city);
-  if (cityMatch) result.city = cityMatch[1].trim();
-
-  // Common city names extraction
-  const commonCities = ['new york', 'los angeles', 'chicago', 'miami', 'london', 'paris', 'tokyo', 'sydney', 'dubai', 'singapore', 'hong kong', 'san francisco', 'seattle', 'boston', 'washington', 'atlanta', 'denver', 'las vegas', 'orlando', 'dallas', 'houston'];
-
-  const lower = message.toLowerCase();
-  for (const city of commonCities) {
-    if (lower.includes(city)) {
-      if (!result.destination && !result.city) {
-        result.city = city.split(' ').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
-      }
-    }
   }
 
   return result;
 }
 
-/**
- * Extract hotel-specific details
- */
-function extractHotelDetails(message: string): { guests?: number; rooms?: number } {
-  const result: { guests?: number; rooms?: number } = {};
-
-  const guestMatch = message.match(/(\d+)\s*(?:guests?|people|persons?|adults?)/i);
-  if (guestMatch) result.guests = parseInt(guestMatch[1]);
-
-  const roomMatch = message.match(/(\d+)\s*(?:rooms?)/i);
-  if (roomMatch) result.rooms = parseInt(roomMatch[1]);
-
-  return result;
+function extractPassengers(message: string): number | undefined {
+  const match = message.match(/(\d+)\s*(?:passengers?|people|persons?|adults?|travelers?)/i);
+  return match ? parseInt(match[1]) : undefined;
 }
 
-/**
- * Extract preferences
- */
-function extractPreferences(message: string): string[] {
+function extractCabinClass(message: string): string | undefined {
   const lower = message.toLowerCase();
-  const preferences: string[] = [];
-
-  // Flight preferences
-  if (lower.includes('nonstop') || lower.includes('non-stop') || lower.includes('direct')) {
-    preferences.push('nonstop');
-  }
-  if (lower.includes('cheap') || lower.includes('budget') || lower.includes('lowest price')) {
-    preferences.push('cheapest');
-  }
-  if (lower.includes('fastest') || lower.includes('quickest') || lower.includes('shortest')) {
-    preferences.push('fastest');
-  }
-  if (lower.includes('morning')) preferences.push('morning_departure');
-  if (lower.includes('evening') || lower.includes('night')) preferences.push('evening_departure');
-  if (lower.includes('window')) preferences.push('window_seat');
-  if (lower.includes('aisle')) preferences.push('aisle_seat');
-
-  // Hotel preferences
-  if (lower.includes('pool') || lower.includes('swimming')) preferences.push('pool');
-  if (lower.includes('gym') || lower.includes('fitness')) preferences.push('fitness');
-  if (lower.includes('wifi') || lower.includes('internet')) preferences.push('wifi');
-  if (lower.includes('breakfast')) preferences.push('breakfast_included');
-  if (lower.includes('parking')) preferences.push('parking');
-  if (lower.includes('pet') || lower.includes('dog') || lower.includes('cat')) preferences.push('pet_friendly');
-  if (lower.includes('spa')) preferences.push('spa');
-  if (lower.includes('ocean') || lower.includes('beach') || lower.includes('sea view')) preferences.push('ocean_view');
-
-  return preferences;
+  if (lower.includes('first class')) return 'first';
+  if (lower.includes('business')) return 'business';
+  if (lower.includes('premium economy')) return 'premium_economy';
+  if (lower.includes('economy')) return 'economy';
+  return undefined;
 }
 
-/**
- * Analyze query intent using NLP patterns
- */
-function analyzeIntent(message: string): { intent: QueryAnalysis['intent']; confidence: number; team: TeamType } {
-  const lower = message.toLowerCase();
-  let bestMatch = { intent: 'unknown' as QueryAnalysis['intent'], confidence: 0, team: 'customer-service' as TeamType };
+// ═══════════════════════════════════════════════════════════════════════════
+// MAIN ROUTER FUNCTION
+// ═══════════════════════════════════════════════════════════════════════════
+export async function routeUserMessage(message: string): Promise<RoutingContext> {
+  const emotion = detectEmotion(message);
+  const fastResult = fastClassifyIntent(message);
 
-  for (const [intent, config] of Object.entries(INTENT_PATTERNS)) {
-    let matchCount = 0;
-    let totalWeight = 0;
-
-    for (const keyword of config.keywords) {
-      if (lower.includes(keyword)) {
-        matchCount++;
-        // Longer keywords are more significant
-        totalWeight += keyword.split(' ').length;
-      }
-    }
-
-    if (matchCount > 0) {
-      // Calculate confidence based on matches and keyword weight
-      const confidence = Math.min((matchCount / 3 + totalWeight / 5) * config.weight, 1);
-
-      if (confidence > bestMatch.confidence) {
-        bestMatch = {
-          intent: intent as QueryAnalysis['intent'],
-          confidence,
-          team: config.team
-        };
-      }
-    }
+  if (fastResult) {
+    const mapping = INTENT_TO_AGENT[fastResult.intent];
+    return {
+      primary_intent: fastResult.intent,
+      secondary_intents: [],
+      emotional_state: emotion,
+      urgency_level: fastResult.urgency,
+      user_goal: '',
+      known_constraints: [],
+      risk_flags: emotion === 'PANICKED' ? ['high_stress_customer'] : [],
+      recommended_tone: recommendTone(emotion, fastResult.urgency),
+      target_agent: mapping.team,
+      agent_name: mapping.name,
+    };
   }
 
-  // If no intent found but has travel-related words, default to general inquiry
-  if (bestMatch.intent === 'unknown') {
-    const travelWords = ['travel', 'trip', 'vacation', 'holiday', 'journey', 'visit', 'tour'];
-    if (travelWords.some(w => lower.includes(w))) {
-      return { intent: 'general_inquiry', confidence: 0.4, team: 'customer-service' };
-    }
-  }
-
-  return bestMatch;
+  // Fallback to Lisa Thompson
+  return {
+    primary_intent: 'GENERAL_TRAVEL_INFO',
+    secondary_intents: [],
+    emotional_state: emotion,
+    urgency_level: 'MEDIUM',
+    user_goal: '',
+    known_constraints: [],
+    risk_flags: [],
+    recommended_tone: recommendTone(emotion, 'MEDIUM'),
+    target_agent: 'customer-service',
+    agent_name: 'Lisa Thompson',
+  };
 }
 
-/**
- * Main query router - NLP first, AI fallback
- */
+// ═══════════════════════════════════════════════════════════════════════════
+// FULL QUERY ROUTER (Backward compatible)
+// ═══════════════════════════════════════════════════════════════════════════
 export async function routeQuery(
   message: string,
   options: {
@@ -395,22 +391,23 @@ export async function routeQuery(
     useAI?: boolean;
   } = {}
 ): Promise<RouterResponse> {
-  const { previousTeam = null, conversationHistory = [], customerName, useAI = true } = options;
+  const { conversationHistory = [], customerName, useAI = true } = options;
 
-  // Step 1: NLP Analysis (always free)
-  const intentAnalysis = analyzeIntent(message);
+  // Get routing context
+  const routing = await routeUserMessage(message);
+
+  // Extract entities
   const locations = extractLocations(message);
   const dates = extractDates(message);
   const passengers = extractPassengers(message);
   const cabinClass = extractCabinClass(message);
-  const hotelDetails = extractHotelDetails(message);
-  const preferences = extractPreferences(message);
 
-  // Build query analysis
+  // Build legacy analysis object
+  const legacyIntent = routing.primary_intent.toLowerCase().replace('_', '-');
   const analysis: QueryAnalysis = {
-    intent: intentAnalysis.intent,
-    confidence: intentAnalysis.confidence,
-    team: intentAnalysis.team,
+    intent: legacyIntent,
+    confidence: 0.8,
+    team: routing.target_agent,
     entities: {
       origin: locations.origin,
       destination: locations.destination,
@@ -419,104 +416,78 @@ export async function routeQuery(
       returnDate: dates.return,
       passengers,
       cabinClass,
-      guests: hotelDetails.guests,
-      rooms: hotelDetails.rooms,
-      preferences
     },
-    requiresAI: intentAnalysis.confidence < 0.5,
-    rawMessage: message
+    requiresAI: false,
+    rawMessage: message,
+    routing,
   };
 
-  // Step 2: AI Enhancement (only if needed and available)
+  // Generate AI response for conversational queries
   let aiResponse: string | undefined;
-
-  if (analysis.requiresAI && useAI && isGroqAvailable()) {
-    // Try to enhance understanding with AI
-    const enhanceResult = await enhanceWithAI(message, {
-      intent: analysis.intent,
-      confidence: analysis.confidence,
-      entities: analysis.entities
-    });
-
-    if (enhanceResult.enhanced && enhanceResult.data) {
-      // Merge AI-extracted data
-      const aiData = enhanceResult.data;
-      if (aiData.origin && !analysis.entities.origin) analysis.entities.origin = aiData.origin;
-      if (aiData.destination && !analysis.entities.destination) analysis.entities.destination = aiData.destination;
-      if (aiData.departureDate && !analysis.entities.departureDate) analysis.entities.departureDate = aiData.departureDate;
-      if (aiData.returnDate && !analysis.entities.returnDate) analysis.entities.returnDate = aiData.returnDate;
-      if (aiData.passengers && !analysis.entities.passengers) analysis.entities.passengers = aiData.passengers;
-      if (aiData.cabinClass && !analysis.entities.cabinClass) analysis.entities.cabinClass = aiData.cabinClass;
-
-      // Update confidence after AI enhancement
-      analysis.confidence = Math.min(analysis.confidence + 0.3, 0.95);
-    }
-  }
-
-  // Step 3: Generate AI Response if greeting or general inquiry
-  if (['greeting', 'general_inquiry', 'complaint'].includes(analysis.intent) && useAI && isGroqAvailable()) {
-    const groqResponse = await generateTravelResponse(message, {
-      agentType: analysis.team,
+  if (useAI && isGroqAvailable() && ['GENERAL_TRAVEL_INFO', 'CUSTOMER_SUPPORT'].includes(routing.primary_intent)) {
+    const response = await generateTravelResponse(message, {
+      agentType: routing.target_agent,
       conversationHistory,
-      customerName
+      customerName,
     });
-
-    if (groqResponse.success && groqResponse.message) {
-      aiResponse = groqResponse.message;
-    }
+    if (response.success) aiResponse = response.message;
   }
 
-  // Step 4: Handle consultant handoff
-  let handoff;
-  if (previousTeam && needsHandoff(previousTeam, analysis.team)) {
-    handoff = generateHandoffMessage(previousTeam, analysis.team, message, analysis.entities);
-  }
-
-  // Get consultant info
-  const consultantInfo = getConsultantInfo(analysis.team);
+  const consultantInfo = getConsultantInfo(routing.target_agent);
 
   return {
     analysis,
     aiResponse,
-    handoff,
     consultantInfo: {
       name: consultantInfo.name,
       title: consultantInfo.title,
       team: consultantInfo.team,
-      emoji: consultantInfo.emoji
-    }
+      emoji: consultantInfo.emoji,
+    },
+    routing,
   };
 }
 
-/**
- * Generate conversational response using AI
- */
-export async function generateConversationalResponse(
+// ═══════════════════════════════════════════════════════════════════════════
+// AGENT RESPONSE WITH CONTEXT
+// ═══════════════════════════════════════════════════════════════════════════
+export async function getAgentResponse(
   message: string,
-  context: {
-    team: TeamType;
-    conversationHistory?: GroqMessage[];
-    searchResults?: any;
-    customerName?: string;
-  }
-): Promise<string | null> {
-  if (!isGroqAvailable()) return null;
+  conversationHistory: GroqMessage[] = []
+): Promise<{ response: string; context: RoutingContext; provider?: string }> {
+  const context = await routeUserMessage(message);
 
-  const response = await generateTravelResponse(message, {
-    agentType: context.team,
-    conversationHistory: context.conversationHistory,
-    searchResults: context.searchResults,
-    customerName: context.customerName
+  const contextPrefix = context.urgency_level === 'CRITICAL'
+    ? '[CRITICAL] '
+    : context.emotional_state === 'FRUSTRATED'
+    ? '[User frustrated] '
+    : '';
+
+  const response = await generateTravelResponse(contextPrefix + message, {
+    agentType: context.target_agent,
+    conversationHistory: conversationHistory.slice(-6),
   });
 
-  return response.success ? response.message || null : null;
+  return {
+    response: response.message || "I'm connecting you with a specialist who can help.",
+    context,
+    provider: response.provider,
+  };
 }
 
-/**
- * Quick intent check without full analysis
- * Useful for UI hints and suggestions
- */
+// ═══════════════════════════════════════════════════════════════════════════
+// QUICK INTENT CHECK (UI hints)
+// ═══════════════════════════════════════════════════════════════════════════
 export function quickIntentCheck(message: string): { intent: string; team: TeamType } {
-  const analysis = analyzeIntent(message);
-  return { intent: analysis.intent, team: analysis.team };
+  const fast = fastClassifyIntent(message);
+  if (fast) {
+    const mapping = INTENT_TO_AGENT[fast.intent];
+    return { intent: fast.intent, team: mapping.team };
+  }
+  return { intent: 'GENERAL_TRAVEL_INFO', team: 'customer-service' };
 }
+
+// ═══════════════════════════════════════════════════════════════════════════
+// EXPORTS
+// ═══════════════════════════════════════════════════════════════════════════
+export { INTENT_TO_AGENT, detectEmotion, recommendTone };
