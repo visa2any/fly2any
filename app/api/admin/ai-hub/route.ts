@@ -27,6 +27,9 @@ import { getQueue, getTakeoverAnalytics, assignTakeover, resolveTakeover } from 
 import { getPersonalizationStats, getRecentDecisions as getPersonalizationDecisions } from '@/lib/ai/personalization-engine';
 import { getRevenueMetrics, getRecentDecisions as getRevenueDecisions } from '@/lib/ai/revenue-optimization';
 import { getUXDashboard, getRecentSignals, getPrioritizedIssues } from '@/lib/ai/ux-intelligence';
+import { getRecommendations, getPRRecommendations, autoGenerateFixes, updateFixStatus } from '@/lib/ai/ux-fix-agent';
+import { getExperiments, getExperiment, getExperimentStats, getLearnings } from '@/lib/ai/ab-experimentation';
+import { generateDailyDigest, getLatestDigest, getDigestHistory, generateEmailDigest, generateTextSummary } from '@/lib/ai/executive-digest';
 
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
@@ -144,6 +147,51 @@ export async function GET(request: Request) {
         return NextResponse.json({ signals, count: signals.length });
       }
 
+      case 'fixes': {
+        const status = searchParams.get('status') as any;
+        const fixes = getRecommendations(status || undefined, 20);
+        const prs = getPRRecommendations(10);
+        return NextResponse.json({ fixes, prs });
+      }
+
+      case 'auto_fixes': {
+        const limit = parseInt(searchParams.get('limit') || '5');
+        const fixes = autoGenerateFixes(limit);
+        return NextResponse.json({ fixes, count: fixes.length });
+      }
+
+      case 'experiments': {
+        const status = searchParams.get('status') as any;
+        const experiments = getExperiments(status || undefined);
+        const stats = getExperimentStats();
+        const learnings = getLearnings(10);
+        return NextResponse.json({ experiments, stats, learnings });
+      }
+
+      case 'digest': {
+        const format = searchParams.get('format') || 'json';
+        let digest = getLatestDigest();
+        if (!digest) digest = generateDailyDigest();
+
+        if (format === 'html') {
+          return new Response(generateEmailDigest(digest), {
+            headers: { 'Content-Type': 'text/html' },
+          });
+        }
+        if (format === 'text') {
+          return new Response(generateTextSummary(digest), {
+            headers: { 'Content-Type': 'text/plain' },
+          });
+        }
+        return NextResponse.json(digest);
+      }
+
+      case 'digest_history': {
+        const days = parseInt(searchParams.get('days') || '7');
+        const history = getDigestHistory(days);
+        return NextResponse.json({ digests: history, count: history.length });
+      }
+
       default:
         return NextResponse.json({ error: 'Unknown action' }, { status: 400 });
     }
@@ -203,6 +251,18 @@ export async function POST(request: Request) {
         if (!conversation_id) return NextResponse.json({ error: 'conversation_id required' }, { status: 400 });
         const success = resolveTakeover(conversation_id, resolved ?? true, notes, sentiment_delta);
         return NextResponse.json({ success, conversation_id, action: 'takeover_resolved' });
+      }
+
+      case 'update_fix_status': {
+        const { fix_id, status } = body;
+        if (!fix_id || !status) return NextResponse.json({ error: 'fix_id and status required' }, { status: 400 });
+        const success = updateFixStatus(fix_id, status);
+        return NextResponse.json({ success, fix_id, status });
+      }
+
+      case 'generate_digest': {
+        const digest = generateDailyDigest();
+        return NextResponse.json({ success: true, digest });
       }
 
       default:
