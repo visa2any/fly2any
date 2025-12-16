@@ -92,6 +92,10 @@ model User {
   tripMatchProfile  TripMatchUserProfile? @relation("TripMatchProfile")
   promoCodeUsages   PromoCodeUsage[]
 
+  // Referral Points Relations
+  pointsEarned       ReferralPointsTransaction[] @relation("PointsEarner")
+  pointsFromBookings ReferralPointsTransaction[] @relation("PointsCustomer")
+
   @@map("users")
 }
 
@@ -839,6 +843,12 @@ model ReferralPointsTransaction {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
+  // Relations (FK to User)
+  earner   User @relation("PointsEarner", fields: [earnerId], references: [id], onDelete: Cascade)
+  customer User @relation("PointsCustomer", fields: [customerId], references: [id], onDelete: Cascade)
+
+  // CRITICAL: Unique constraint prevents duplicate point awards for same booking+earner+level
+  @@unique([bookingId, earnerId, level], name: "unique_booking_earner_level")
   @@index([earnerId, status])
   @@index([customerId])
   @@index([bookingId])

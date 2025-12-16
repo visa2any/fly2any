@@ -284,6 +284,24 @@ export async function processBookingForReferralPoints({
     console.log(`🎯 Processing booking ${bookingId} for referral points...`);
     console.log(`📊 Booking: $${bookingAmount} | Commission: $${commissionAmount} (${((commissionAmount/bookingAmount)*100).toFixed(1)}%)`);
 
+    // IDEMPOTENCY CHECK: Prevent duplicate points processing
+    const existingTransactions = await prisma!.referralPointsTransaction.findMany({
+      where: { bookingId },
+      select: { id: true, earnerId: true, level: true, pointsAwarded: true },
+    });
+
+    if (existingTransactions.length > 0) {
+      const totalExisting = existingTransactions.reduce((sum, t) => sum + t.pointsAwarded, 0);
+      console.log(`⚠️ IDEMPOTENCY: Booking ${bookingId} already has ${existingTransactions.length} transactions (${totalExisting} points). Skipping duplicate processing.`);
+      return {
+        success: true,
+        transactions: existingTransactions,
+        totalPointsAwarded: totalExisting,
+        skipped: true,
+        reason: 'duplicate_booking',
+      };
+    }
+
     // Convert commission to USD if needed (simplified - you may want currency conversion API)
     const commissionUSD = currency === 'USD' ? commissionAmount : commissionAmount; // TODO: Add currency conversion
     const bookingUSD = currency === 'USD' ? bookingAmount : bookingAmount;

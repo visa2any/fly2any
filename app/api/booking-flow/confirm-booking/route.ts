@@ -193,7 +193,12 @@ export async function POST(request: NextRequest) {
       console.log(`   Booking Reference: ${booking.bookingReference}`);
       console.log(`   Status: pending_ticketing (awaiting manual booking)`);
 
-      // Process referral points (async, don't block response)
+      // TRANSACTION-LIKE PATTERN: Process referral points with proper tracking
+      // Since bookingStorage uses raw SQL and referrals use Prisma, we implement
+      // idempotency + error logging for manual review on failure
+      let referralProcessingStatus = 'not_applicable';
+      let referralError: string | null = null;
+
       try {
         const session = await auth();
         const prisma = getPrismaClient();
@@ -201,47 +206,80 @@ export async function POST(request: NextRequest) {
         if (session?.user?.email) {
           const user = await prisma.user.findUnique({
             where: { email: session.user.email },
-            select: { id: true },
+            select: { id: true, referredBy: true },
           });
 
           if (user) {
-            // Update booking with user ID
+            // STEP 1: Update booking with user ID (links user to booking)
             await bookingStorage.update(booking.id, { userId: user.id });
+            console.log(`   User linked: ${user.id}`);
 
-            const departureDate = new Date(flightData.segments[0].departure.at);
-            const arrivalDate = new Date(flightData.segments[flightData.segments.length - 1].arrival.at);
+            // STEP 2: Process referral points (only if user was referred by someone)
+            if (user.referredBy) {
+              referralProcessingStatus = 'processing';
 
-            // Determine product type based on price threshold
-            const bookingTotal = bookingState.pricing?.total || 0;
-            const productType = bookingTotal > 1000 ? 'flight_international' : 'flight';
+              const departureDate = new Date(flightData.segments[0].departure.at);
+              const arrivalDate = new Date(flightData.segments[flightData.segments.length - 1].arrival.at);
 
-            // Calculate commission from booking (rewards are based on commission, not booking amount!)
-            // This ensures we never pay more in rewards than we earn
-            const commissionAmount = calculateDefaultCommission(bookingTotal, productType);
+              // Determine product type based on price threshold
+              const bookingTotal = bookingState.pricing?.total || 0;
+              const productType = bookingTotal > 1000 ? 'flight_international' : 'flight';
 
-            console.log(`💰 Referral rewards: Booking $${bookingTotal}, Commission $${commissionAmount} (${((commissionAmount/bookingTotal)*100).toFixed(1)}%)`);
+              // Calculate commission from booking (rewards are based on commission, not booking amount!)
+              const commissionAmount = calculateDefaultCommission(bookingTotal, productType);
 
-            processBookingForReferralPoints({
-              bookingId: booking.bookingReference,
-              userId: user.id,
-              bookingAmount: bookingTotal,
-              commissionAmount: commissionAmount, // REWARDS CALCULATED FROM THIS
-              currency: bookingState.pricing?.currency || 'USD',
-              productType: productType,
-              tripStartDate: departureDate,
-              tripEndDate: arrivalDate,
-              productData: {
-                flightNumber: selectedFlight.flightNumber,
-                airline: selectedFlight.airline,
-                route: `${selectedFlight.departure?.airportCode} → ${selectedFlight.arrival?.airportCode}`,
-              },
-            }).catch((err) => {
-              console.error('⚠️ Failed to process referral points:', err);
-            });
+              console.log(`💰 Referral rewards: Booking $${bookingTotal}, Commission $${commissionAmount} (${((commissionAmount/bookingTotal)*100).toFixed(1)}%)`);
+
+              // Process referral points with idempotency (service checks for duplicates)
+              const result = await processBookingForReferralPoints({
+                bookingId: booking.bookingReference,
+                userId: user.id,
+                bookingAmount: bookingTotal,
+                commissionAmount: commissionAmount,
+                currency: bookingState.pricing?.currency || 'USD',
+                productType: productType,
+                tripStartDate: departureDate,
+                tripEndDate: arrivalDate,
+                productData: {
+                  flightNumber: selectedFlight.flightNumber,
+                  airline: selectedFlight.airline,
+                  route: `${selectedFlight.departure?.airportCode} → ${selectedFlight.arrival?.airportCode}`,
+                },
+              });
+
+              referralProcessingStatus = result.success ? 'completed' : 'failed';
+              console.log(`✅ Referral processing: ${referralProcessingStatus}`);
+            } else {
+              referralProcessingStatus = 'no_referrer';
+            }
           }
         }
-      } catch (referralError) {
-        console.error('⚠️ Error processing referral points:', referralError);
+      } catch (refError: any) {
+        // Log error but don't fail the booking - referral points can be processed later
+        referralProcessingStatus = 'failed';
+        referralError = refError.message || 'Unknown error';
+        console.error('⚠️ Referral processing failed (booking still valid):', refError);
+
+        // Log to database for admin review/manual retry
+        try {
+          const prisma = getPrismaClient();
+          await prisma.webhookEvent.create({
+            data: {
+              id: `referral_error_${Date.now()}`,
+              eventType: 'referral_processing_failed',
+              eventData: {
+                bookingReference: booking.bookingReference,
+                error: referralError,
+                timestamp: new Date().toISOString(),
+              },
+              status: 'failed',
+              errorMessage: referralError,
+              receivedAt: new Date(),
+            },
+          }).catch(() => null);
+        } catch {
+          // Ignore logging errors
+        }
       }
 
       // Send notifications to admin (Telegram + SSE + Email + Database)
@@ -286,6 +324,12 @@ export async function POST(request: NextRequest) {
             status: 'pending_ticketing',
           },
           message: 'Your booking request has been received! You will receive your e-ticket confirmation shortly.',
+          // Internal tracking (not shown to customer but logged for admin)
+          _internal: {
+            referralProcessing: referralProcessingStatus,
+            referralError: referralError,
+            timestamp: new Date().toISOString(),
+          },
         },
         { status: 201 }
       );
