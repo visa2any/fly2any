@@ -9,6 +9,52 @@ import { PostPaymentVerification } from '@/components/booking/PostPaymentVerific
 
 type Language = 'en' | 'pt' | 'es';
 
+// Airline logo URLs and names
+const AIRLINE_DATA: Record<string, { name: string; logo: string }> = {
+  'AA': { name: 'American Airlines', logo: 'https://www.gstatic.com/flights/airline_logos/70px/AA.png' },
+  'UA': { name: 'United Airlines', logo: 'https://www.gstatic.com/flights/airline_logos/70px/UA.png' },
+  'DL': { name: 'Delta Air Lines', logo: 'https://www.gstatic.com/flights/airline_logos/70px/DL.png' },
+  'WN': { name: 'Southwest Airlines', logo: 'https://www.gstatic.com/flights/airline_logos/70px/WN.png' },
+  'B6': { name: 'JetBlue Airways', logo: 'https://www.gstatic.com/flights/airline_logos/70px/B6.png' },
+  'AS': { name: 'Alaska Airlines', logo: 'https://www.gstatic.com/flights/airline_logos/70px/AS.png' },
+  'NK': { name: 'Spirit Airlines', logo: 'https://www.gstatic.com/flights/airline_logos/70px/NK.png' },
+  'F9': { name: 'Frontier Airlines', logo: 'https://www.gstatic.com/flights/airline_logos/70px/F9.png' },
+  'G4': { name: 'Allegiant Air', logo: 'https://www.gstatic.com/flights/airline_logos/70px/G4.png' },
+  'HA': { name: 'Hawaiian Airlines', logo: 'https://www.gstatic.com/flights/airline_logos/70px/HA.png' },
+  'BA': { name: 'British Airways', logo: 'https://www.gstatic.com/flights/airline_logos/70px/BA.png' },
+  'LH': { name: 'Lufthansa', logo: 'https://www.gstatic.com/flights/airline_logos/70px/LH.png' },
+  'AF': { name: 'Air France', logo: 'https://www.gstatic.com/flights/airline_logos/70px/AF.png' },
+  'KL': { name: 'KLM', logo: 'https://www.gstatic.com/flights/airline_logos/70px/KL.png' },
+  'EK': { name: 'Emirates', logo: 'https://www.gstatic.com/flights/airline_logos/70px/EK.png' },
+  'QR': { name: 'Qatar Airways', logo: 'https://www.gstatic.com/flights/airline_logos/70px/QR.png' },
+  'SQ': { name: 'Singapore Airlines', logo: 'https://www.gstatic.com/flights/airline_logos/70px/SQ.png' },
+  'CX': { name: 'Cathay Pacific', logo: 'https://www.gstatic.com/flights/airline_logos/70px/CX.png' },
+  'IB': { name: 'Iberia', logo: 'https://www.gstatic.com/flights/airline_logos/70px/IB.png' },
+  'AZ': { name: 'ITA Airways', logo: 'https://www.gstatic.com/flights/airline_logos/70px/AZ.png' },
+  'AY': { name: 'Finnair', logo: 'https://www.gstatic.com/flights/airline_logos/70px/AY.png' },
+  'SK': { name: 'SAS', logo: 'https://www.gstatic.com/flights/airline_logos/70px/SK.png' },
+  'LX': { name: 'Swiss', logo: 'https://www.gstatic.com/flights/airline_logos/70px/LX.png' },
+  'OS': { name: 'Austrian', logo: 'https://www.gstatic.com/flights/airline_logos/70px/OS.png' },
+  'TP': { name: 'TAP Portugal', logo: 'https://www.gstatic.com/flights/airline_logos/70px/TP.png' },
+  'TK': { name: 'Turkish Airlines', logo: 'https://www.gstatic.com/flights/airline_logos/70px/TK.png' },
+  'EY': { name: 'Etihad Airways', logo: 'https://www.gstatic.com/flights/airline_logos/70px/EY.png' },
+  'JL': { name: 'Japan Airlines', logo: 'https://www.gstatic.com/flights/airline_logos/70px/JL.png' },
+  'NH': { name: 'ANA', logo: 'https://www.gstatic.com/flights/airline_logos/70px/NH.png' },
+  'KE': { name: 'Korean Air', logo: 'https://www.gstatic.com/flights/airline_logos/70px/KE.png' },
+  'OZ': { name: 'Asiana Airlines', logo: 'https://www.gstatic.com/flights/airline_logos/70px/OZ.png' },
+  'AC': { name: 'Air Canada', logo: 'https://www.gstatic.com/flights/airline_logos/70px/AC.png' },
+  'QF': { name: 'Qantas', logo: 'https://www.gstatic.com/flights/airline_logos/70px/QF.png' },
+  'NZ': { name: 'Air New Zealand', logo: 'https://www.gstatic.com/flights/airline_logos/70px/NZ.png' },
+  'LA': { name: 'LATAM', logo: 'https://www.gstatic.com/flights/airline_logos/70px/LA.png' },
+  'AV': { name: 'Avianca', logo: 'https://www.gstatic.com/flights/airline_logos/70px/AV.png' },
+  'CM': { name: 'Copa Airlines', logo: 'https://www.gstatic.com/flights/airline_logos/70px/CM.png' },
+  'AM': { name: 'AeroMexico', logo: 'https://www.gstatic.com/flights/airline_logos/70px/AM.png' },
+};
+
+const getAirlineInfo = (code: string) => {
+  return AIRLINE_DATA[code] || { name: code, logo: `https://www.gstatic.com/flights/airline_logos/70px/${code}.png` };
+};
+
 const content = {
   en: {
     // Success Messages
@@ -399,6 +445,7 @@ export default function BookingConfirmationContent() {
   const [showModifyDialog, setShowModifyDialog] = useState(false);
   const [showVerificationModal, setShowVerificationModal] = useState(false);
   const [verificationStatus, setVerificationStatus] = useState<'NOT_STARTED' | 'PENDING' | 'VERIFIED' | 'REJECTED' | null>(null);
+  const [verificationCountdown, setVerificationCountdown] = useState(24 * 60 * 60); // 24 hours in seconds
   const searchParams = useSearchParams();
   const router = useRouter();
   const t = content[lang];
@@ -476,6 +523,23 @@ export default function BookingConfirmationContent() {
     return () => clearTimeout(timer);
   }, []);
 
+  // Verification countdown timer
+  useEffect(() => {
+    if (!bookingData || verificationStatus === 'VERIFIED' || verificationStatus === 'PENDING') return;
+
+    // Calculate remaining time based on booking creation
+    const createdAt = new Date(bookingData.createdAt).getTime();
+    const deadline = createdAt + (24 * 60 * 60 * 1000); // 24 hours from creation
+    const remaining = Math.max(0, Math.floor((deadline - Date.now()) / 1000));
+    setVerificationCountdown(remaining);
+
+    const interval = setInterval(() => {
+      setVerificationCountdown(prev => Math.max(0, prev - 1));
+    }, 1000);
+
+    return () => clearInterval(interval);
+  }, [bookingData, verificationStatus]);
+
   const copyBookingRef = () => {
     const refToCopy = bookingData ? bookingData.bookingReference : 'N/A';
     navigator.clipboard.writeText(refToCopy);
@@ -513,15 +577,206 @@ export default function BookingConfirmationContent() {
     window.print();
   };
 
-  const handleDownloadPDF = () => {
-    // In real app, generate PDF
-    alert('PDF download will be implemented');
+  // PDF Download - generates and downloads booking confirmation
+  const handleDownloadPDF = async () => {
+    if (!bookingData || !displayBookingData) return;
+
+    try {
+      // Generate PDF using browser print to PDF
+      const printContent = document.createElement('div');
+      printContent.innerHTML = `
+        <html>
+          <head>
+            <title>Fly2Any - Booking ${displayBookingData.bookingRef}</title>
+            <style>
+              body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; padding: 40px; max-width: 800px; margin: 0 auto; }
+              .header { text-align: center; margin-bottom: 30px; border-bottom: 2px solid #E74035; padding-bottom: 20px; }
+              .logo { font-size: 28px; font-weight: bold; color: #E74035; }
+              .booking-ref { background: #f3f4f6; padding: 15px; border-radius: 8px; text-align: center; margin: 20px 0; }
+              .booking-ref-code { font-size: 24px; font-weight: bold; font-family: monospace; }
+              .section { margin: 20px 0; padding: 15px; border: 1px solid #e5e7eb; border-radius: 8px; }
+              .section-title { font-size: 16px; font-weight: bold; margin-bottom: 10px; color: #374151; }
+              .flight-route { display: flex; justify-content: space-between; align-items: center; margin: 15px 0; }
+              .airport { text-align: center; }
+              .airport-code { font-size: 24px; font-weight: bold; }
+              .airport-time { font-size: 14px; color: #6b7280; }
+              .flight-line { flex: 1; height: 2px; background: #d1d5db; margin: 0 20px; position: relative; }
+              .passenger { padding: 10px; background: #f9fafb; border-radius: 6px; margin: 8px 0; }
+              .total { font-size: 20px; font-weight: bold; color: #059669; text-align: right; }
+              .footer { text-align: center; margin-top: 30px; padding-top: 20px; border-top: 1px solid #e5e7eb; font-size: 12px; color: #6b7280; }
+            </style>
+          </head>
+          <body>
+            <div class="header">
+              <div class="logo">✈️ Fly2Any Travel</div>
+              <p style="color: #6b7280; margin: 5px 0;">Your Journey, Our Priority</p>
+            </div>
+
+            <div class="booking-ref">
+              <p style="margin: 0 0 5px 0; color: #6b7280; font-size: 12px;">BOOKING REFERENCE</p>
+              <div class="booking-ref-code">${displayBookingData.bookingRef}</div>
+              ${bookingData.airlineRecordLocator ? `<p style="margin: 5px 0 0 0; font-size: 12px;">Airline PNR: <strong>${bookingData.airlineRecordLocator}</strong></p>` : ''}
+            </div>
+
+            <div class="section">
+              <div class="section-title">✈️ Flight Details</div>
+              <div class="flight-route">
+                <div class="airport">
+                  <div class="airport-code">${displayBookingData.outboundFlight.from.code}</div>
+                  <div class="airport-time">${formatTime(displayBookingData.outboundFlight.departure)}</div>
+                  <div style="font-size: 12px; color: #6b7280;">${formatDate(displayBookingData.outboundFlight.departure)}</div>
+                </div>
+                <div class="flight-line"></div>
+                <div class="airport">
+                  <div class="airport-code">${displayBookingData.outboundFlight.to.code}</div>
+                  <div class="airport-time">${formatTime(displayBookingData.outboundFlight.arrival)}</div>
+                  <div style="font-size: 12px; color: #6b7280;">${formatDate(displayBookingData.outboundFlight.arrival)}</div>
+                </div>
+              </div>
+              <p style="font-size: 14px; color: #374151; text-align: center;">
+                ${displayBookingData.outboundFlight.flightNumber} • ${displayBookingData.outboundFlight.cabin} Class
+              </p>
+            </div>
+
+            <div class="section">
+              <div class="section-title">👥 Passengers</div>
+              ${displayBookingData.passengers.map((p: any) => `
+                <div class="passenger">
+                  <strong>${p.title}. ${p.firstName} ${p.lastName}</strong>
+                  <span style="float: right; color: #6b7280;">${p.type}</span>
+                </div>
+              `).join('')}
+            </div>
+
+            <div class="section">
+              <div class="section-title">💳 Payment Summary</div>
+              <div style="display: flex; justify-content: space-between; margin: 8px 0;">
+                <span>Total Paid</span>
+                <span class="total">${formatCurrency(displayBookingData.payment.total)}</span>
+              </div>
+              <p style="font-size: 12px; color: #6b7280; margin-top: 10px;">
+                Paid via ${displayBookingData.payment.method} on ${formatDate(displayBookingData.payment.paidOn)}
+              </p>
+            </div>
+
+            <div class="footer">
+              <p><strong>Fly2Any Travel</strong> — Based in USA</p>
+              <p>📞 +1 (332) 220-0838 | 📧 support@fly2any.com</p>
+              <p>Thank you for booking with Fly2Any!</p>
+            </div>
+          </body>
+        </html>
+      `;
+
+      const blob = new Blob([printContent.innerHTML], { type: 'text/html' });
+      const url = URL.createObjectURL(blob);
+      const printWindow = window.open(url, '_blank');
+
+      if (printWindow) {
+        printWindow.onload = () => {
+          printWindow.print();
+          URL.revokeObjectURL(url);
+        };
+      }
+    } catch (error) {
+      console.error('PDF generation error:', error);
+      // Fallback to print
+      window.print();
+    }
   };
 
+  // Calendar event generation
   const handleAddToCalendar = (type: 'google' | 'apple' | 'outlook') => {
-    // In real app, generate calendar events
-    alert(`Add to ${type} calendar will be implemented`);
+    if (!bookingData || !displayBookingData) return;
+
+    const flight = displayBookingData.outboundFlight;
+    const title = `Flight ${flight.flightNumber} - ${flight.from.code} to ${flight.to.code}`;
+    const description = `Fly2Any Booking: ${displayBookingData.bookingRef}\\n` +
+      `Flight: ${flight.flightNumber}\\n` +
+      `From: ${flight.from.code}\\n` +
+      `To: ${flight.to.code}\\n` +
+      `${bookingData.airlineRecordLocator ? `PNR: ${bookingData.airlineRecordLocator}` : ''}`;
+
+    const startDate = new Date(flight.departure);
+    const endDate = new Date(flight.arrival);
+
+    // Format dates for calendar URLs
+    const formatCalDate = (d: Date) => d.toISOString().replace(/[-:]/g, '').split('.')[0] + 'Z';
+    const startStr = formatCalDate(startDate);
+    const endStr = formatCalDate(endDate);
+
+    let url = '';
+
+    if (type === 'google') {
+      url = `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${encodeURIComponent(title)}&dates=${startStr}/${endStr}&details=${encodeURIComponent(description)}&location=${encodeURIComponent(flight.from.code + ' Airport')}`;
+      window.open(url, '_blank');
+    } else if (type === 'outlook') {
+      url = `https://outlook.live.com/calendar/0/deeplink/compose?subject=${encodeURIComponent(title)}&startdt=${startDate.toISOString()}&enddt=${endDate.toISOString()}&body=${encodeURIComponent(description)}&location=${encodeURIComponent(flight.from.code + ' Airport')}`;
+      window.open(url, '_blank');
+    } else if (type === 'apple') {
+      // Generate ICS file for Apple Calendar
+      const icsContent = `BEGIN:VCALENDAR
+VERSION:2.0
+PRODID:-//Fly2Any//Booking//EN
+BEGIN:VEVENT
+UID:${displayBookingData.bookingRef}@fly2any.com
+DTSTART:${startStr}
+DTEND:${endStr}
+SUMMARY:${title}
+DESCRIPTION:${description.replace(/\\n/g, '\\n')}
+LOCATION:${flight.from.code} Airport
+END:VEVENT
+END:VCALENDAR`;
+
+      const blob = new Blob([icsContent], { type: 'text/calendar;charset=utf-8' });
+      const link = document.createElement('a');
+      link.href = URL.createObjectURL(blob);
+      link.download = `fly2any-flight-${displayBookingData.bookingRef}.ics`;
+      link.click();
+      URL.revokeObjectURL(link.href);
+    }
+
     setShowCalendarMenu(false);
+  };
+
+  // Share trip functionality
+  const handleShareTrip = async () => {
+    if (!bookingData || !displayBookingData) return;
+
+    const flight = displayBookingData.outboundFlight;
+    const shareText = `✈️ I'm flying with Fly2Any!\n\n` +
+      `📍 ${flight.from.code} → ${flight.to.code}\n` +
+      `📅 ${formatDate(flight.departure)}\n` +
+      `✈️ ${flight.flightNumber}\n\n` +
+      `Book your flight at fly2any.com`;
+
+    if (navigator.share) {
+      try {
+        await navigator.share({
+          title: `Fly2Any Trip - ${flight.from.code} to ${flight.to.code}`,
+          text: shareText,
+          url: window.location.href,
+        });
+      } catch (err) {
+        // User cancelled or error
+        copyToClipboard(shareText);
+      }
+    } else {
+      copyToClipboard(shareText);
+    }
+  };
+
+  const copyToClipboard = (text: string) => {
+    navigator.clipboard.writeText(text);
+    alert('Trip details copied to clipboard!');
+  };
+
+  // Format countdown for display
+  const formatCountdown = (seconds: number) => {
+    const hours = Math.floor(seconds / 3600);
+    const mins = Math.floor((seconds % 3600) / 60);
+    const secs = seconds % 60;
+    return `${hours.toString().padStart(2, '0')}:${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
   };
 
   // Show loading state
@@ -626,6 +881,20 @@ export default function BookingConfirmationContent() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-green-50 via-emerald-50 to-teal-50 print:bg-white">
+      {/* Print-Only Header with Fly2Any Branding */}
+      <div className="hidden print:block print:mb-6">
+        <div className="flex items-center justify-between border-b-2 border-[#E74035] pb-4 mb-4">
+          <div className="flex items-center gap-3">
+            <div className="text-3xl font-bold text-[#E74035]">✈️ Fly2Any</div>
+            <div className="text-sm text-gray-500">Travel</div>
+          </div>
+          <div className="text-right text-sm text-gray-600">
+            <p className="font-semibold">Booking Confirmation</p>
+            <p>{new Date().toLocaleDateString()}</p>
+          </div>
+        </div>
+      </div>
+
       {/* Cancel Order Dialog */}
       {bookingData && (
         <CancelOrderDialog
@@ -745,7 +1014,7 @@ export default function BookingConfirmationContent() {
         </div>
       </div>
 
-      <div className="max-w-6xl mx-auto px-4 py-8 print:py-4">
+      <div className="max-w-6xl mx-auto px-2 sm:px-4 py-4 sm:py-8 print:py-4">
         {/* Success Header */}
         <div className="text-center mb-8 print:mb-4">
           <div className="inline-flex items-center justify-center w-20 h-20 bg-green-500 rounded-full mb-4 print:mb-2 animate-scale-in">
@@ -912,12 +1181,23 @@ export default function BookingConfirmationContent() {
                     </>
                   ) : (
                     <>
-                      <h3 className="text-lg font-bold text-purple-800 mb-1">
-                        Quick Verification Required
-                      </h3>
+                      <div className="flex items-center justify-between mb-2">
+                        <h3 className="text-lg font-bold text-purple-800">
+                          Quick Verification Required
+                        </h3>
+                        {/* Countdown Timer */}
+                        <div className="flex items-center gap-2 bg-purple-100 px-3 py-1.5 rounded-lg">
+                          <svg className="w-4 h-4 text-purple-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                          </svg>
+                          <span className="font-mono font-bold text-purple-700 text-sm">
+                            {formatCountdown(verificationCountdown)}
+                          </span>
+                        </div>
+                      </div>
                       <p className="text-purple-700 text-sm mb-4">
-                        Complete a quick ID verification to secure your booking.
-                        It only takes 2 minutes!
+                        Complete ID verification to secure your booking.
+                        Time remaining to verify.
                       </p>
                       <button
                         onClick={() => setShowVerificationModal(true)}
@@ -926,7 +1206,7 @@ export default function BookingConfirmationContent() {
                         <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
                         </svg>
-                        Complete Verification
+                        Complete Verification Now
                       </button>
                     </>
                   )}
@@ -1015,7 +1295,10 @@ export default function BookingConfirmationContent() {
             <span className="text-sm font-semibold text-gray-700">{t.printConfirmation}</span>
           </button>
 
-          <button className="bg-white hover:bg-gray-50 border border-gray-200 rounded-xl p-4 text-center transition-all hover:shadow-md">
+          <button
+            onClick={handleShareTrip}
+            className="bg-white hover:bg-gray-50 border border-gray-200 rounded-xl p-4 text-center transition-all hover:shadow-md"
+          >
             <svg className="w-6 h-6 mx-auto mb-2 text-purple-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z" />
             </svg>
@@ -1037,7 +1320,16 @@ export default function BookingConfirmationContent() {
 
               <div className="space-y-4">
                 <div className="flex items-center gap-4 text-sm text-gray-600">
-                  <span className="font-semibold text-gray-900">{displayBookingData.outboundFlight.airline}</span>
+                  {/* Airline Logo */}
+                  <img
+                    src={getAirlineInfo(displayBookingData.outboundFlight.airline).logo}
+                    alt={getAirlineInfo(displayBookingData.outboundFlight.airline).name}
+                    className="w-8 h-8 object-contain"
+                    onError={(e) => {
+                      (e.target as HTMLImageElement).style.display = 'none';
+                    }}
+                  />
+                  <span className="font-semibold text-gray-900">{getAirlineInfo(displayBookingData.outboundFlight.airline).name}</span>
                   <span>•</span>
                   <span>{displayBookingData.outboundFlight.flightNumber}</span>
                   <span>•</span>
@@ -1115,27 +1407,38 @@ export default function BookingConfirmationContent() {
 
               <div className="space-y-4">
                 <div className="flex items-center gap-4 text-sm text-gray-600">
-                  <span className="font-semibold text-gray-900">{displayBookingData.returnFlight.airline}</span>
+                  {/* Airline Logo */}
+                  {displayBookingData.returnFlight && (
+                    <img
+                      src={getAirlineInfo(displayBookingData.returnFlight.airline).logo}
+                      alt={getAirlineInfo(displayBookingData.returnFlight.airline).name}
+                      className="w-8 h-8 object-contain"
+                      onError={(e) => {
+                        (e.target as HTMLImageElement).style.display = 'none';
+                      }}
+                    />
+                  )}
+                  <span className="font-semibold text-gray-900">{displayBookingData.returnFlight ? getAirlineInfo(displayBookingData.returnFlight.airline).name : ''}</span>
                   <span>•</span>
-                  <span>{displayBookingData.returnFlight.flightNumber}</span>
+                  <span>{displayBookingData.returnFlight?.flightNumber}</span>
                   <span>•</span>
-                  <span>{displayBookingData.returnFlight.aircraft}</span>
+                  <span>{displayBookingData.returnFlight?.aircraft}</span>
                 </div>
 
                 <div className="grid grid-cols-[1fr_auto_1fr] gap-4 items-center">
                   {/* Departure */}
                   <div>
                     <div className="text-3xl font-bold text-gray-900 print:text-2xl">
-                      {formatTime(displayBookingData.returnFlight.departure)}
+                      {displayBookingData.returnFlight && formatTime(displayBookingData.returnFlight.departure)}
                     </div>
                     <div className="text-lg font-semibold text-gray-700 print:text-base">
-                      {displayBookingData.returnFlight.from.code}
+                      {displayBookingData.returnFlight?.from.code}
                     </div>
                     <div className="text-sm text-gray-500">
-                      {formatDate(displayBookingData.returnFlight.departure)}
+                      {displayBookingData.returnFlight && formatDate(displayBookingData.returnFlight.departure)}
                     </div>
                     <div className="text-xs text-gray-400 mt-1">
-                      {displayBookingData.returnFlight.from.airport}
+                      {displayBookingData.returnFlight?.from.airport}
                     </div>
                   </div>
 
@@ -1546,36 +1849,36 @@ export default function BookingConfirmationContent() {
 
           <div className="grid md:grid-cols-3 gap-4 max-w-3xl mx-auto">
             <a
-              href="https://wa.me/551151944717"
+              href="https://wa.me/13322200838"
               className="bg-white/10 hover:bg-white/20 backdrop-blur-sm rounded-xl p-4 text-center transition-all print:bg-white/20"
             >
               <svg className="w-8 h-8 mx-auto mb-2" fill="currentColor" viewBox="0 0 24 24">
                 <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413Z"/>
               </svg>
               <div className="font-semibold">{t.whatsapp}</div>
-              <div className="text-sm text-info-100">+55 11 5194-4717</div>
+              <div className="text-sm text-info-100">+1 (332) 220-0838</div>
             </a>
 
             <a
-              href="tel:+13153061646"
+              href="tel:+13322200838"
               className="bg-white/10 hover:bg-white/20 backdrop-blur-sm rounded-xl p-4 text-center transition-all print:bg-white/20"
             >
               <svg className="w-8 h-8 mx-auto mb-2" fill="currentColor" viewBox="0 0 24 24">
                 <path d="M20.01 15.38c-1.23 0-2.42-.2-3.53-.56a.977.977 0 00-1.01.24l-1.57 1.97c-2.83-1.35-5.48-3.9-6.89-6.83l1.95-1.66c.27-.28.35-.67.24-1.02-.37-1.11-.56-2.3-.56-3.53 0-.54-.45-.99-.99-.99H4.19C3.65 3 3 3.24 3 3.99 3 13.28 10.73 21 20.01 21c.71 0 .99-.63.99-1.18v-3.45c0-.54-.45-.99-.99-.99z"/>
               </svg>
               <div className="font-semibold">{t.phone}</div>
-              <div className="text-sm text-info-100">+1 (315) 306-1646</div>
+              <div className="text-sm text-info-100">+1 (332) 220-0838</div>
             </a>
 
             <a
-              href="mailto:fly2any.travel@gmail.com"
+              href="mailto:support@fly2any.com"
               className="bg-white/10 hover:bg-white/20 backdrop-blur-sm rounded-xl p-4 text-center transition-all print:bg-white/20"
             >
               <svg className="w-8 h-8 mx-auto mb-2" fill="currentColor" viewBox="0 0 24 24">
                 <path d="M20 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 4l-8 5-8-5V6l8 5 8-5v2z"/>
               </svg>
               <div className="font-semibold">{t.email}</div>
-              <div className="text-sm text-info-100 break-all">fly2any.travel@gmail.com</div>
+              <div className="text-sm text-info-100 break-all">support@fly2any.com</div>
             </a>
           </div>
         </div>
