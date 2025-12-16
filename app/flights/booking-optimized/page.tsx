@@ -822,7 +822,7 @@ function BookingPageContent() {
         payment: paymentData,
         contactInfo: {
           email: passengers[0]?.email || '',
-          phone: passengers[0]?.email || '',
+          phone: passengers[0]?.phone || '', // FIX: Was using email instead of phone
         },
         fareUpgrade, // Include fare upgrade if selected
         addOns: selectedAddOns, // Include all add-ons

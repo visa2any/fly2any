@@ -950,16 +950,26 @@ export default function AdminBookingDetailPage() {
 
                     <div className="flex items-center justify-between text-sm pt-2 border-t border-orange-200 mt-2">
                       <span className="font-bold text-gray-700">Net Profit:</span>
-                      <span className={`font-bold text-lg ${(booking.netProfit || 0) >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-                        {booking.payment.currency} {(booking.netProfit || 0).toFixed(2)}
-                      </span>
+                      {booking.sourceApi === 'Amadeus' && (booking.netProfit || 0) === 0 ? (
+                        <span className="text-sm text-amber-600 font-medium">
+                          Commission (TBD after ticketing)
+                        </span>
+                      ) : (
+                        <span className={`font-bold text-lg ${(booking.netProfit || 0) >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                          {booking.payment.currency} {(booking.netProfit || 0).toFixed(2)}
+                        </span>
+                      )}
                     </div>
 
-                    {booking.routingChannel && (
+                    {(booking.routingChannel || booking.sourceApi) && (
                       <div className="flex items-center justify-between text-xs mt-2 text-gray-500">
-                        <span>Routing:</span>
-                        <span className={`px-2 py-0.5 rounded ${booking.routingChannel === 'DUFFEL' ? 'bg-green-100 text-green-700' : 'bg-yellow-100 text-yellow-700'}`}>
-                          {booking.routingChannel}
+                        <span>Source:</span>
+                        <span className={`px-2 py-0.5 rounded ${
+                          booking.sourceApi === 'Duffel' || booking.routingChannel === 'DUFFEL'
+                            ? 'bg-green-100 text-green-700'
+                            : 'bg-blue-100 text-blue-700'
+                        }`}>
+                          {booking.sourceApi === 'Amadeus' ? '🔵 GDS/Amadeus' : booking.sourceApi === 'Duffel' ? '🟢 Duffel NDC' : booking.routingChannel}
                         </span>
                       </div>
                     )}
