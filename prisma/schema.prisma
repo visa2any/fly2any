@@ -5113,3 +5113,98 @@ model AviationDataSyncLog {
   @@index([createdAt])
   @@map("aviation_data_sync_logs")
 }
+
+// ==========================================
+// Email Marketing System Models
+// ==========================================
+
+// Email Log - Track all sent emails
+model EmailLog {
+  id             String    @id @default(cuid())
+  recipientEmail String
+  userId         String?
+  emailType      String    // transactional, marketing, alert, recovery
+  template       String
+  event          String?   // trigger event
+  subject        String?
+  status         String    @default("sent") // sent, delivered, opened, clicked, bounced, complained, failed
+  sentAt         DateTime  @default(now())
+  deliveredAt    DateTime?
+  openedAt       DateTime?
+  clickedAt      DateTime?
+  opens          Int       @default(0)
+  clicks         Int       @default(0)
+  bounceType     String?
+  bounceReason   String?
+  failureReason  String?
+  aiDecision     String?
+  clientInfo     String?
+  geolocation    String?
+  metadata       String?
+  createdAt      DateTime  @default(now())
+
+  @@index([recipientEmail])
+  @@index([userId])
+  @@index([sentAt])
+  @@index([emailType])
+  @@map("email_logs")
+}
+
+// Email Decision Log - AI decisions
+model EmailDecisionLog {
+  id         String   @id @default(cuid())
+  email      String
+  event      String
+  decision   String   // send, delay, skip
+  reason     String
+  confidence Float?
+  metadata   String?
+  createdAt  DateTime @default(now())
+
+  @@index([email])
+  @@index([createdAt])
+  @@map("email_decision_logs")
+}
+
+// Scheduled Emails
+model ScheduledEmail {
+  id           String    @id @default(cuid())
+  email        String
+  event        String
+  payload      String
+  scheduledFor DateTime
+  status       String    @default("pending") // pending, sent, cancelled
+  sentAt       DateTime?
+  createdAt    DateTime  @default(now())
+
+  @@index([scheduledFor])
+  @@index([status])
+  @@map("scheduled_emails")
+}
+
+// Campaign Log - Track campaign flows
+model CampaignLog {
+  id         String   @id @default(cuid())
+  campaignId String
+  userId     String
+  email      String
+  event      String   // started, email_sent, completed, converted
+  step       Int?
+  metadata   String?
+  createdAt  DateTime @default(now())
+
+  @@index([campaignId])
+  @@index([userId])
+  @@map("campaign_logs")
+}
+
+// Email Suppression List
+model EmailSuppression {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  reason    String   // hard_bounce, complaint, unsubscribed
+  details   String?
+  createdAt DateTime @default(now())
+
+  @@map("email_suppressions")
+}
