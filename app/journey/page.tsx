@@ -1,15 +1,32 @@
 'use client';
 
 /**
- * Journey Page - Main Entry Point
+ * Journey Page - AI-Powered Trip Builder
  * Fly2Any Travel Operating System
  * Level 6 Ultra-Premium / Apple-Class
  */
 
 import React, { useState, useCallback, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { ArrowLeft, Sparkles } from 'lucide-react';
 import Link from 'next/link';
+import Image from 'next/image';
+import {
+  ArrowLeft,
+  Sparkles,
+  Plane,
+  Building2,
+  Map,
+  Calendar,
+  Users,
+  Shield,
+  Zap,
+  Star,
+  ChevronRight,
+  Globe,
+  Heart,
+  Award,
+} from 'lucide-react';
+import { Header } from '@/components/layout/Header';
 
 // Journey Components
 import {
@@ -106,20 +123,16 @@ function JourneyPageContent() {
       setBuildProgress(0);
 
       try {
-        // Step 1: Build journey structure (20%)
         await simulateProgress(setBuildProgress, 0, 20, 300);
         const newJourney = JourneyBuilder.build(params);
 
-        // Step 2: Generate AI suggestions (60%)
         await simulateProgress(setBuildProgress, 20, 60, 500);
         const journeyWithSuggestions = await generateSuggestions(newJourney, params);
 
-        // Step 3: Calculate pricing (80%)
         await simulateProgress(setBuildProgress, 60, 80, 300);
         const pricing = PricingAggregator.calculate(journeyWithSuggestions);
         journeyWithSuggestions.pricing = pricing;
 
-        // Step 4: Finalize (100%)
         await simulateProgress(setBuildProgress, 80, 100, 200);
 
         setJourney(journeyWithSuggestions);
@@ -133,7 +146,7 @@ function JourneyPageContent() {
     [setBuilding, setBuildProgress, setJourney]
   );
 
-  // Handle add experience - opens picker modal
+  // Handle add experience
   const handleAddExperience = useCallback(
     (dayIndex: number, timeSlot: string) => {
       if (!journey) return;
@@ -144,7 +157,6 @@ function JourneyPageContent() {
     [journey]
   );
 
-  // Handle experience selected from picker
   const handleExperienceSelected = useCallback(
     (experience: JourneyExperience) => {
       addExperience(pickerDayIndex, experience);
@@ -153,14 +165,11 @@ function JourneyPageContent() {
     [addExperience, pickerDayIndex]
   );
 
-  // Handle accept suggestion
   const handleAcceptSuggestion = useCallback(
     (dayIndex: number, experienceId: string) => {
       if (!journey) return;
-
       const day = journey.days[dayIndex];
       const experience = day.experiences.find((e) => e.id === experienceId);
-
       if (experience) {
         updateExperience(dayIndex, { ...experience, status: 'added' });
       }
@@ -168,10 +177,8 @@ function JourneyPageContent() {
     [journey, updateExperience]
   );
 
-  // Handle select flight - opens flight selector
   const handleSelectFlight = useCallback(() => {
     if (!journey) return;
-
     setFlightSearchParams({
       origin: journey.origin.code,
       destination: journey.destination.code,
@@ -184,12 +191,9 @@ function JourneyPageContent() {
     setShowFlightSelector(true);
   }, [journey]);
 
-  // Handle flight selected
   const handleFlightSelected = useCallback(
     (outbound: JourneyFlight, inbound?: JourneyFlight) => {
       if (!journey) return;
-
-      // Update outbound flight on first day
       const updatedDays = [...journey.days];
       if (updatedDays[0]) {
         updatedDays[0] = {
@@ -201,8 +205,6 @@ function JourneyPageContent() {
           ),
         };
       }
-
-      // Update return flight on last day
       if (inbound && updatedDays.length > 1) {
         const lastDayIndex = updatedDays.length - 1;
         updatedDays[lastDayIndex] = {
@@ -214,25 +216,19 @@ function JourneyPageContent() {
           ),
         };
       }
-
       setJourney({ ...journey, days: updatedDays });
       setShowFlightSelector(false);
     },
     [journey, setJourney]
   );
 
-  // Handle select hotel - opens hotel selector
   const handleSelectHotel = useCallback(() => {
     if (!journey) return;
-
     setHotelSearchParams({
       destination: journey.destination.city,
       checkIn: journey.departureDate,
       checkOut: journey.returnDate,
-      guests: {
-        adults: journey.travelers.adults,
-        children: journey.travelers.children,
-      },
+      guests: { adults: journey.travelers.adults, children: journey.travelers.children },
       rooms: 1,
       currency: 'USD',
       maxResults: 20,
@@ -240,40 +236,30 @@ function JourneyPageContent() {
     setShowHotelSelector(true);
   }, [journey]);
 
-  // Handle hotel selected
   const handleHotelSelected = useCallback(
     (hotel: JourneyHotel) => {
       if (!journey) return;
-
-      // Update hotel on all middle days (not first or last day if they have flights)
       const updatedDays = journey.days.map((day, index) => {
-        const isFirstDay = index === 0;
         const isLastDay = index === journey.days.length - 1;
-
-        // For multi-day journeys, add hotel to all days except last departure day
         if (!isLastDay || journey.days.length === 1) {
           const hotelSegment = day.segments.find(s => s.type === 'hotel');
           if (hotelSegment) {
             return {
               ...day,
               segments: day.segments.map(seg =>
-                seg.type === 'hotel'
-                  ? { ...seg, hotel }
-                  : seg
+                seg.type === 'hotel' ? { ...seg, hotel } : seg
               ),
             };
           }
         }
         return day;
       });
-
       setJourney({ ...journey, days: updatedDays });
       setShowHotelSelector(false);
     },
     [journey, setJourney]
   );
 
-  // Recalculate pricing when journey changes
   useEffect(() => {
     if (journey) {
       const newPricing = PricingAggregator.calculate(journey);
@@ -284,16 +270,13 @@ function JourneyPageContent() {
   }, [journey?.days]);
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-[#FAFAFA]">
       {/* Onboarding */}
       {showOnboarding && (
-        <JourneyOnboarding
-          onComplete={completeOnboarding}
-          onSkip={completeOnboarding}
-        />
+        <JourneyOnboarding onComplete={completeOnboarding} onSkip={completeOnboarding} />
       )}
 
-      {/* Experience Picker Modal */}
+      {/* Modals */}
       {journey && (
         <ExperiencePicker
           isOpen={showExperiencePicker}
@@ -304,8 +287,6 @@ function JourneyPageContent() {
           interests={journey.preferences.interests}
         />
       )}
-
-      {/* Flight Selector Modal */}
       {flightSearchParams && (
         <FlightSelector
           isOpen={showFlightSelector}
@@ -315,8 +296,6 @@ function JourneyPageContent() {
           isRoundTrip={!!journey?.returnDate}
         />
       )}
-
-      {/* Hotel Selector Modal */}
       {hotelSearchParams && (
         <HotelSelector
           isOpen={showHotelSelector}
@@ -326,116 +305,253 @@ function JourneyPageContent() {
         />
       )}
 
-      {/* Header */}
-      <header className="sticky top-0 z-40 bg-white border-b border-gray-200">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-between h-16">
-            <div className="flex items-center gap-4">
-              {view === 'timeline' && (
+      {/* Main Site Header */}
+      <Header />
+
+      {/* Journey Sub-header */}
+      {view === 'timeline' && journey && (
+        <div className="sticky top-16 z-40 bg-white/95 backdrop-blur-lg border-b border-gray-200">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="flex items-center justify-between h-14">
+              <div className="flex items-center gap-4">
                 <button
                   onClick={() => setView('search')}
                   className="flex items-center gap-2 text-gray-600 hover:text-gray-900 transition-colors"
                 >
                   <ArrowLeft className="w-5 h-5" />
-                  <span className="hidden sm:inline">Back</span>
+                  <span className="hidden sm:inline font-medium">New Journey</span>
                 </button>
-              )}
-              <Link href="/" className="flex items-center gap-2">
-                <Sparkles className="w-6 h-6 text-[#D63A35]" />
-                <span className="font-bold text-xl text-gray-900">Journey</span>
-              </Link>
-            </div>
-
-            {journey && view === 'timeline' && (
-              <div className="text-sm text-gray-500">
-                {journey.origin.code} → {journey.destination.code} •{' '}
-                {journey.duration} days
+                <div className="flex items-center gap-2">
+                  <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-[#D63A35] to-[#E8C52A] flex items-center justify-center">
+                    <Sparkles className="w-3.5 h-3.5 text-white" />
+                  </div>
+                  <span className="font-semibold text-gray-900">Journey Builder</span>
+                </div>
               </div>
-            )}
+              <div className="flex items-center gap-3 text-sm">
+                <span className="text-gray-500">
+                  {journey.origin.code} → {journey.destination.code}
+                </span>
+                <span className="px-2.5 py-1 bg-[#D63A35]/10 rounded-lg font-medium text-[#D63A35]">
+                  {journey.duration} days
+                </span>
+              </div>
+            </div>
           </div>
         </div>
-      </header>
+      )}
 
       {/* Main Content */}
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <main className="w-full">
         {view === 'search' ? (
-          // Search View
-          <div className="max-w-4xl mx-auto">
-            {/* Hero */}
-            <div className="text-center mb-8">
-              <h1 className="text-3xl sm:text-4xl font-bold text-gray-900">
-                Build Your Journey
-              </h1>
-              <p className="mt-2 text-lg text-gray-600">
-                Your entire trip, intelligently designed
-              </p>
-            </div>
+          <>
+            {/* Hero Section - Full Width */}
+            <section className="relative overflow-hidden w-full">
+              {/* Background Gradient */}
+              <div className="absolute inset-0 bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900" />
+              <div className="absolute inset-0 bg-[url('/grid.svg')] opacity-10" />
+              <div className="absolute top-0 right-0 w-[800px] h-[800px] bg-[#D63A35]/20 rounded-full blur-[150px]" />
+              <div className="absolute bottom-0 left-0 w-[600px] h-[600px] bg-[#E8C52A]/15 rounded-full blur-[120px]" />
 
-            {/* Search Form */}
-            <JourneySearchForm
-              onSubmit={handleBuildJourney}
-              isLoading={isBuilding}
-            />
+              <div className="relative w-full px-4 sm:px-6 lg:px-8 xl:px-12 pt-12 pb-20 lg:pt-20 lg:pb-32">
+                {/* Badge */}
+                <div className="flex justify-center mb-6">
+                  <div className="inline-flex items-center gap-2 px-4 py-2 bg-white/10 backdrop-blur-sm rounded-full border border-white/20">
+                    <Sparkles className="w-4 h-4 text-[#E8C52A]" />
+                    <span className="text-sm font-medium text-white">
+                      AI-Powered Trip Planning
+                    </span>
+                  </div>
+                </div>
+
+                {/* Headline */}
+                <div className="text-center max-w-5xl mx-auto mb-12">
+                  <h1 className="text-4xl sm:text-5xl lg:text-7xl font-bold text-white leading-tight mb-6">
+                    Your Dream Trip,{' '}
+                    <span className="bg-gradient-to-r from-[#E8C52A] to-[#D63A35] bg-clip-text text-transparent">
+                      Intelligently Designed
+                    </span>
+                  </h1>
+                  <p className="text-lg sm:text-xl lg:text-2xl text-gray-300 max-w-3xl mx-auto">
+                    Flights, hotels, and experiences — all perfectly orchestrated into one seamless journey.
+                  </p>
+                </div>
+
+                {/* Search Form - Full Width Card */}
+                <div className="max-w-5xl mx-auto">
+                  <div className="bg-white rounded-3xl shadow-2xl shadow-black/25 p-6 sm:p-8 lg:p-10">
+                    <JourneySearchForm onSubmit={handleBuildJourney} isLoading={isBuilding} />
+                  </div>
+                </div>
+
+                {/* Trust Indicators */}
+                <div className="flex flex-wrap justify-center gap-6 mt-8">
+                  {[
+                    { icon: Shield, text: 'Best Price Guarantee' },
+                    { icon: Zap, text: 'Instant Confirmation' },
+                    { icon: Heart, text: '24/7 Support' },
+                  ].map((item) => (
+                    <div key={item.text} className="flex items-center gap-2 text-gray-400">
+                      <item.icon className="w-4 h-4" />
+                      <span className="text-sm">{item.text}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </section>
 
             {/* Loading State */}
             {isBuilding && (
-              <div className="mt-8 bg-white rounded-2xl shadow-lg p-8 text-center">
-                <div className="w-16 h-16 mx-auto mb-4 relative">
-                  <div className="absolute inset-0 rounded-full border-4 border-gray-200" />
-                  <div
-                    className="absolute inset-0 rounded-full border-4 border-[#D63A35] border-t-transparent animate-spin"
-                    style={{ animationDuration: '1s' }}
-                  />
+              <section className="py-16 bg-white">
+                <div className="max-w-md mx-auto px-4 text-center">
+                  <div className="w-20 h-20 mx-auto mb-6 relative">
+                    <div className="absolute inset-0 rounded-full border-4 border-gray-100" />
+                    <div
+                      className="absolute inset-0 rounded-full border-4 border-[#D63A35] border-t-transparent animate-spin"
+                      style={{ animationDuration: '1s' }}
+                    />
+                    <div className="absolute inset-0 flex items-center justify-center">
+                      <Sparkles className="w-8 h-8 text-[#D63A35]" />
+                    </div>
+                  </div>
+                  <h3 className="text-xl font-semibold text-gray-900 mb-2">
+                    Building Your Journey
+                  </h3>
+                  <p className="text-gray-500 mb-6">
+                    {buildProgress < 20 && 'Creating itinerary structure...'}
+                    {buildProgress >= 20 && buildProgress < 60 && 'Finding perfect experiences...'}
+                    {buildProgress >= 60 && buildProgress < 80 && 'Calculating best prices...'}
+                    {buildProgress >= 80 && 'Finalizing your journey...'}
+                  </p>
+                  <div className="w-full bg-gray-100 rounded-full h-2 overflow-hidden">
+                    <div
+                      className="h-full bg-gradient-to-r from-[#D63A35] to-[#E8C52A] transition-all duration-300 ease-out"
+                      style={{ width: `${buildProgress}%` }}
+                    />
+                  </div>
+                  <p className="text-sm text-gray-400 mt-3">{buildProgress}% complete</p>
                 </div>
-                <h3 className="text-lg font-semibold text-gray-900 mb-2">
-                  Building your journey...
-                </h3>
-                <p className="text-gray-500 mb-4">
-                  {buildProgress < 20 && 'Creating your itinerary...'}
-                  {buildProgress >= 20 && buildProgress < 60 && 'Finding perfect experiences...'}
-                  {buildProgress >= 60 && buildProgress < 80 && 'Calculating best prices...'}
-                  {buildProgress >= 80 && 'Finalizing your journey...'}
-                </p>
-                <div className="w-full max-w-xs mx-auto bg-gray-200 rounded-full h-2">
-                  <div
-                    className="bg-gradient-to-r from-[#D63A35] to-[#E8C52A] h-2 rounded-full transition-all duration-300"
-                    style={{ width: `${buildProgress}%` }}
-                  />
-                </div>
-                <p className="text-sm text-gray-400 mt-2">{buildProgress}%</p>
-              </div>
+              </section>
             )}
-          </div>
-        ) : (
-          // Timeline View
-          journey && (
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-              {/* Timeline (2/3 width) */}
-              <div className="lg:col-span-2">
-                <JourneyTimeline
-                  journey={journey}
-                  selectedDayIndex={selectedDayIndex}
-                  onSelectDay={setSelectedDay}
-                  onAddExperience={handleAddExperience}
-                  onRemoveExperience={removeExperience}
-                  onAcceptSuggestion={handleAcceptSuggestion}
-                  onSelectFlight={handleSelectFlight}
-                  onSelectHotel={handleSelectHotel}
-                />
-              </div>
 
-              {/* Pricing Sidebar (1/3 width - desktop only) */}
-              <div className="hidden lg:block lg:col-span-1">
-                <div className="sticky top-24">
-                  <JourneyPricingSummary
-                    pricing={journey.pricing}
-                    travelers={journey.travelers}
-                    onCheckout={handleCheckout}
-                    isCheckoutDisabled={
-                      journey.pricing.flights.subtotal === 0 &&
-                      journey.pricing.hotels.subtotal === 0
-                    }
+            {/* Features Section */}
+            {!isBuilding && (
+              <section className="py-16 lg:py-24 bg-white w-full">
+                <div className="w-full px-4 sm:px-6 lg:px-8 xl:px-12 max-w-7xl mx-auto">
+                  <div className="text-center mb-16">
+                    <h2 className="text-3xl lg:text-4xl font-bold text-gray-900 mb-4">
+                      Everything in One Place
+                    </h2>
+                    <p className="text-lg text-gray-600 max-w-2xl mx-auto">
+                      No more juggling between tabs. Your entire trip, perfectly coordinated.
+                    </p>
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-8 lg:gap-12">
+                    {[
+                      {
+                        icon: Plane,
+                        title: 'Smart Flights',
+                        description: 'Best routes and prices from 500+ airlines worldwide.',
+                        color: 'from-blue-500 to-blue-600',
+                      },
+                      {
+                        icon: Building2,
+                        title: 'Perfect Hotels',
+                        description: 'Handpicked accommodations matching your style and budget.',
+                        color: 'from-purple-500 to-purple-600',
+                      },
+                      {
+                        icon: Map,
+                        title: 'Curated Experiences',
+                        description: 'AI-suggested activities tailored to your interests.',
+                        color: 'from-[#D63A35] to-[#E8C52A]',
+                      },
+                    ].map((feature) => (
+                      <div
+                        key={feature.title}
+                        className="group p-6 rounded-2xl bg-gray-50 hover:bg-white hover:shadow-xl transition-all duration-300 border border-transparent hover:border-gray-100"
+                      >
+                        <div className={`w-12 h-12 rounded-xl bg-gradient-to-br ${feature.color} flex items-center justify-center mb-4 group-hover:scale-110 transition-transform`}>
+                          <feature.icon className="w-6 h-6 text-white" />
+                        </div>
+                        <h3 className="text-lg font-semibold text-gray-900 mb-2">
+                          {feature.title}
+                        </h3>
+                        <p className="text-gray-600 text-sm">
+                          {feature.description}
+                        </p>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </section>
+            )}
+
+            {/* How It Works */}
+            {!isBuilding && (
+              <section className="py-16 lg:py-24 bg-gray-50 w-full">
+                <div className="w-full px-4 sm:px-6 lg:px-8 xl:px-12 max-w-7xl mx-auto">
+                  <div className="text-center mb-12">
+                    <h2 className="text-3xl font-bold text-gray-900 mb-4">
+                      How It Works
+                    </h2>
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+                    {[
+                      { step: '1', title: 'Enter Details', desc: 'Where & when you want to travel' },
+                      { step: '2', title: 'AI Builds', desc: 'We create your perfect itinerary' },
+                      { step: '3', title: 'Customize', desc: 'Pick flights, hotels & activities' },
+                      { step: '4', title: 'Book & Go', desc: 'One checkout for everything' },
+                    ].map((item, i) => (
+                      <div key={item.step} className="relative">
+                        <div className="text-center">
+                          <div className="w-12 h-12 mx-auto rounded-full bg-[#D63A35] text-white font-bold text-lg flex items-center justify-center mb-4">
+                            {item.step}
+                          </div>
+                          <h3 className="font-semibold text-gray-900 mb-1">{item.title}</h3>
+                          <p className="text-sm text-gray-500">{item.desc}</p>
+                        </div>
+                        {i < 3 && (
+                          <ChevronRight className="hidden md:block absolute top-6 -right-3 w-6 h-6 text-gray-300" />
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </section>
+            )}
+          </>
+        ) : (
+          /* Timeline View */
+          journey && (
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 lg:py-8">
+              <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 lg:gap-8">
+                <div className="lg:col-span-2">
+                  <JourneyTimeline
+                    journey={journey}
+                    selectedDayIndex={selectedDayIndex}
+                    onSelectDay={setSelectedDay}
+                    onAddExperience={handleAddExperience}
+                    onRemoveExperience={removeExperience}
+                    onAcceptSuggestion={handleAcceptSuggestion}
+                    onSelectFlight={handleSelectFlight}
+                    onSelectHotel={handleSelectHotel}
                   />
+                </div>
+                <div className="hidden lg:block">
+                  <div className="sticky top-24">
+                    <JourneyPricingSummary
+                      pricing={journey.pricing}
+                      travelers={journey.travelers}
+                      onCheckout={handleCheckout}
+                      isCheckoutDisabled={
+                        journey.pricing.flights.subtotal === 0 &&
+                        journey.pricing.hotels.subtotal === 0
+                      }
+                    />
+                  </div>
                 </div>
               </div>
             </div>
@@ -457,11 +573,26 @@ function JourneyPageContent() {
       )}
 
       {/* Footer */}
-      <footer className={`mt-16 py-8 border-t border-gray-200 bg-white ${journey && view === 'timeline' ? 'pb-32 lg:pb-8' : ''}`}>
+      <footer className={`py-8 border-t border-gray-200 bg-white ${journey && view === 'timeline' ? 'pb-32 lg:pb-8' : ''}`}>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <p className="text-center text-sm text-gray-500">
-            Powered by Fly2Any Journey System • AI-assisted travel planning
-          </p>
+          <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
+            <div className="flex items-center gap-2">
+              <Sparkles className="w-5 h-5 text-[#D63A35]" />
+              <span className="text-sm text-gray-500">
+                Powered by Fly2Any Journey System
+              </span>
+            </div>
+            <div className="flex items-center gap-4 text-sm text-gray-400">
+              <span className="flex items-center gap-1">
+                <Shield className="w-4 h-4" />
+                Secure
+              </span>
+              <span className="flex items-center gap-1">
+                <Award className="w-4 h-4" />
+                Trusted
+              </span>
+            </div>
+          </div>
         </div>
       </footer>
     </div>
@@ -469,7 +600,7 @@ function JourneyPageContent() {
 }
 
 // ============================================================================
-// HELPER FUNCTIONS
+// HELPERS
 // ============================================================================
 
 async function simulateProgress(
@@ -481,7 +612,6 @@ async function simulateProgress(
   const steps = 10;
   const stepDuration = duration / steps;
   const stepSize = (to - from) / steps;
-
   for (let i = 0; i <= steps; i++) {
     await new Promise((resolve) => setTimeout(resolve, stepDuration));
     setProgress(Math.round(from + stepSize * i));
@@ -499,15 +629,7 @@ async function generateSuggestions(
       journey.preferences,
       []
     );
-
-    return {
-      ...day,
-      experiences: suggestions.experiences,
-    };
+    return { ...day, experiences: suggestions.experiences };
   });
-
-  return {
-    ...journey,
-    days: updatedDays,
-  };
+  return { ...journey, days: updatedDays };
 }
