@@ -28,6 +28,12 @@ import {
   Loader2,
 } from 'lucide-react';
 import type { Booking } from '@/lib/bookings/types';
+import {
+  EnhancedFlightCard,
+  BookingExtrasCard,
+  AdminPricingCard,
+  BookingManagementCard,
+} from '@/components/booking';
 
 export default function AdminBookingDetailPage() {
   const router = useRouter();
@@ -601,59 +607,18 @@ export default function AdminBookingDetailPage() {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* Main Content */}
           <div className="lg:col-span-2 space-y-6">
-            {/* Flight Details */}
-            <div className="bg-white rounded-lg border border-gray-200 shadow-sm p-6">
-              <h2 className="text-lg font-bold text-gray-900 mb-4 flex items-center gap-2">
-                <Plane className="w-5 h-5 text-blue-600" />
-                Flight Details
-              </h2>
+            {/* Enhanced Flight Card */}
+            <EnhancedFlightCard flight={booking.flight} />
 
-              <div className="space-y-4">
-                {booking.flight.segments.map((segment, idx) => (
-                  <div key={idx} className="border-l-4 border-blue-500 pl-4 py-2">
-                    <div className="flex items-center justify-between mb-2">
-                      <div className="flex items-center gap-4">
-                        <div>
-                          <p className="text-2xl font-bold text-gray-900">{segment.departure.iataCode}</p>
-                          <p className="text-xs text-gray-600">
-                            {new Date(segment.departure.at).toLocaleTimeString('en-US', {
-                              hour: '2-digit',
-                              minute: '2-digit',
-                            })}
-                          </p>
-                        </div>
-                        <Plane className="w-5 h-5 text-gray-400 rotate-90" />
-                        <div>
-                          <p className="text-2xl font-bold text-gray-900">{segment.arrival.iataCode}</p>
-                          <p className="text-xs text-gray-600">
-                            {new Date(segment.arrival.at).toLocaleTimeString('en-US', {
-                              hour: '2-digit',
-                              minute: '2-digit',
-                            })}
-                          </p>
-                        </div>
-                      </div>
-
-                      <div className="text-right">
-                        <p className="text-sm font-semibold text-gray-900">
-                          {segment.carrierCode} {segment.flightNumber}
-                        </p>
-                        <p className="text-xs text-gray-600">{segment.class}</p>
-                      </div>
-                    </div>
-
-                    <p className="text-xs text-gray-600">
-                      {new Date(segment.departure.at).toLocaleDateString('en-US', {
-                        weekday: 'long',
-                        year: 'numeric',
-                        month: 'long',
-                        day: 'numeric',
-                      })}
-                    </p>
-                  </div>
-                ))}
-              </div>
-            </div>
+            {/* Booking Extras Card */}
+            <BookingExtrasCard
+              fareUpgrade={booking.fareUpgrade}
+              bundle={booking.bundle}
+              addOns={booking.addOns}
+              seats={booking.seats}
+              promoCode={booking.promoCode}
+              currency={booking.payment.currency}
+            />
 
             {/* Passengers */}
             <div className="bg-white rounded-lg border border-gray-200 shadow-sm p-6">
@@ -698,363 +663,53 @@ export default function AdminBookingDetailPage() {
               </div>
             </div>
 
-            {/* Fare Upgrade - NEW */}
-            {booking.fareUpgrade && (
-              <div className="bg-white rounded-lg border border-gray-200 shadow-sm p-6">
-                <h2 className="text-lg font-bold text-gray-900 mb-4 flex items-center gap-2">
-                  <DollarSign className="w-5 h-5 text-purple-600" />
-                  Fare Upgrade
-                </h2>
-                <div className="bg-purple-50 rounded-lg p-4 border border-purple-200">
-                  <div className="flex items-center justify-between mb-2">
-                    <p className="font-bold text-lg text-purple-900">{booking.fareUpgrade.fareName}</p>
-                    <p className="text-xl font-bold text-purple-600">
-                      +{booking.payment.currency} {booking.fareUpgrade.upgradePrice.toFixed(2)}
-                    </p>
-                  </div>
-                  <div className="space-y-1 mt-3">
-                    <p className="text-sm font-semibold text-gray-700">Benefits:</p>
-                    {booking.fareUpgrade.benefits.map((benefit, idx) => (
-                      <p key={idx} className="text-sm text-gray-600 flex items-center gap-2">
-                        <CheckCircle2 className="w-4 h-4 text-green-600" />
-                        {benefit}
-                      </p>
-                    ))}
-                  </div>
-                </div>
-              </div>
-            )}
-
-            {/* Smart Bundle - NEW */}
-            {booking.bundle && (
-              <div className="bg-white rounded-lg border border-gray-200 shadow-sm p-6">
-                <h2 className="text-lg font-bold text-gray-900 mb-4 flex items-center gap-2">
-                  <CheckCircle2 className="w-5 h-5 text-green-600" />
-                  Smart Bundle
-                </h2>
-                <div className="bg-green-50 rounded-lg p-4 border border-green-200">
-                  <div className="flex items-center justify-between mb-2">
-                    <p className="font-bold text-lg text-green-900">{booking.bundle.bundleName}</p>
-                    <p className="text-xl font-bold text-green-600">
-                      {booking.payment.currency} {booking.bundle.price.toFixed(2)}
-                    </p>
-                  </div>
-                  {booking.bundle.description && (
-                    <p className="text-sm text-gray-600 mb-3">{booking.bundle.description}</p>
-                  )}
-                  <div className="space-y-1 mt-3">
-                    <p className="text-sm font-semibold text-gray-700">Includes:</p>
-                    {booking.bundle.includes.map((item, idx) => (
-                      <p key={idx} className="text-sm text-gray-600 flex items-center gap-2">
-                        <CheckCircle2 className="w-4 h-4 text-green-600" />
-                        {item}
-                      </p>
-                    ))}
-                  </div>
-                </div>
-              </div>
-            )}
-
-            {/* Add-Ons - NEW */}
-            {booking.addOns && booking.addOns.length > 0 && (
-              <div className="bg-white rounded-lg border border-gray-200 shadow-sm p-6">
-                <h2 className="text-lg font-bold text-gray-900 mb-4 flex items-center gap-2">
-                  <DollarSign className="w-5 h-5 text-blue-600" />
-                  Add-Ons ({booking.addOns.length})
-                </h2>
-                <div className="space-y-2">
-                  {booking.addOns.map((addon, idx) => (
-                    <div key={idx} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg border border-gray-200">
-                      <div className="flex-1">
-                        <p className="font-semibold text-gray-900">{addon.name}</p>
-                        <p className="text-xs text-gray-500 capitalize">{addon.category}</p>
-                        {addon.details && (
-                          <p className="text-xs text-gray-600 mt-1">{addon.details}</p>
-                        )}
-                      </div>
-                      <div className="text-right">
-                        <p className="font-bold text-blue-600">
-                          {booking.payment.currency} {addon.price.toFixed(2)}
-                        </p>
-                        {addon.quantity && addon.quantity > 1 && (
-                          <p className="text-xs text-gray-500">Qty: {addon.quantity}</p>
-                        )}
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
-
-            {/* Promo Code Applied */}
-            {booking.promoCode && (
-              <div className="bg-white rounded-lg border border-gray-200 shadow-sm p-6">
-                <h2 className="text-lg font-bold text-gray-900 mb-4 flex items-center gap-2">
-                  <CheckCircle2 className="w-5 h-5 text-green-600" />
-                  Promo Code Applied
-                </h2>
-                <div className="bg-green-50 rounded-lg p-4 border border-green-200">
-                  <div className="flex items-center justify-between mb-2">
-                    <div>
-                      <p className="font-bold text-lg text-green-900 font-mono">{booking.promoCode.code}</p>
-                      <p className="text-xs text-green-700 mt-1">
-                        {booking.promoCode.type === 'percentage'
-                          ? `${booking.promoCode.value}% discount`
-                          : `$${booking.promoCode.value} fixed discount`}
-                      </p>
-                    </div>
-                    <p className="text-xl font-bold text-green-600">
-                      -{booking.payment.currency} {booking.promoCode.discountAmount.toFixed(2)}
-                    </p>
-                  </div>
-                </div>
-              </div>
-            )}
           </div>
 
           {/* Sidebar */}
           <div className="space-y-6">
-            {/* Payment Information - ENHANCED */}
-            <div className="bg-white rounded-lg border border-gray-200 shadow-sm p-6">
-              <h2 className="text-lg font-bold text-gray-900 mb-4 flex items-center gap-2">
-                <DollarSign className="w-5 h-5 text-green-600" />
-                Payment Details
-              </h2>
+            {/* Booking Management Card */}
+            <BookingManagementCard
+              booking={booking}
+              onRefresh={fetchBooking}
+              onConfirmPayment={booking.status === 'pending' && booking.payment.status === 'pending' ? handleConfirmPayment : undefined}
+              onSendEmail={async (type) => {
+                if (type === 'confirmation') {
+                  await handleSendConfirmationEmail();
+                }
+              }}
+              onOpenTicketing={booking.status === 'pending_ticketing' ? () => setShowTicketingForm(true) : undefined}
+            />
 
-              <div className="space-y-3">
-                <div className="flex items-center justify-between">
-                  <span className="text-sm text-gray-600">Status:</span>
-                  {getPaymentStatusBadge(booking.payment.status)}
-                </div>
+            {/* Admin Pricing Card */}
+            <AdminPricingCard booking={booking} />
 
-                <div className="flex items-center justify-between">
-                  <span className="text-sm text-gray-600">Method:</span>
-                  <span className="text-sm font-semibold text-gray-900 capitalize">
-                    {booking.payment.method.replace('_', ' ')}
-                  </span>
-                </div>
-
-                {booking.payment.cardLast4 && (
-                  <div className="flex items-center justify-between">
-                    <span className="text-sm text-gray-600">Card:</span>
-                    <span className="text-sm font-semibold text-gray-900">
-                      {booking.payment.cardBrand?.toUpperCase() || 'CARD'} •••• {booking.payment.cardLast4}
-                    </span>
-                  </div>
-                )}
-
-                {booking.payment.transactionId && (
-                  <div className="flex items-center justify-between">
-                    <span className="text-sm text-gray-600">Transaction:</span>
-                    <span className="text-xs font-mono text-gray-700">
-                      {booking.payment.transactionId}
-                    </span>
-                  </div>
-                )}
-
-                <div className="pt-3 border-t border-gray-200 space-y-2">
-                  <p className="text-xs font-semibold text-gray-700 mb-2">Price Breakdown:</p>
-
-                  <div className="flex items-center justify-between text-sm">
-                    <span className="text-gray-600">Base Fare:</span>
-                    <span className="font-semibold text-gray-900">
-                      {booking.payment.currency} {booking.flight.price.base.toFixed(2)}
-                    </span>
-                  </div>
-
-                  {booking.fareUpgrade && booking.fareUpgrade.upgradePrice > 0 && (
-                    <div className="flex items-center justify-between text-sm">
-                      <span className="text-gray-600">{booking.fareUpgrade.fareName} Upgrade:</span>
-                      <span className="font-semibold text-purple-600">
-                        +{booking.payment.currency} {booking.fareUpgrade.upgradePrice.toFixed(2)}
-                      </span>
-                    </div>
-                  )}
-
-                  {booking.bundle && (
-                    <div className="flex items-center justify-between text-sm">
-                      <span className="text-gray-600">{booking.bundle.bundleName}:</span>
-                      <span className="font-semibold text-green-600">
-                        +{booking.payment.currency} {booking.bundle.price.toFixed(2)}
-                      </span>
-                    </div>
-                  )}
-
-                  {booking.addOns && booking.addOns.length > 0 && (
-                    <div className="flex items-center justify-between text-sm">
-                      <span className="text-gray-600">Add-ons ({booking.addOns.length}):</span>
-                      <span className="font-semibold text-blue-600">
-                        +{booking.payment.currency} {booking.addOns.reduce((sum, addon) => sum + addon.price, 0).toFixed(2)}
-                      </span>
-                    </div>
-                  )}
-
-                  <div className="flex items-center justify-between text-sm">
-                    <span className="text-gray-600">Taxes & Fees:</span>
-                    <span className="font-semibold text-gray-900">
-                      {booking.payment.currency} {booking.flight.price.taxes.toFixed(2)}
-                    </span>
-                  </div>
-
-                  <div className="pt-2 border-t-2 border-gray-300">
-                    <div className="flex items-center justify-between">
-                      <span className="text-base font-bold text-gray-900">Total Amount:</span>
-                      <span className="text-2xl font-bold text-green-600">
-                        {booking.payment.currency} {booking.payment.amount.toFixed(2)}
-                      </span>
-                    </div>
-                  </div>
-
-                  {/* ADMIN ONLY: Price Breakdown Details */}
-                  <div className="mt-4 pt-3 border-t border-dashed border-orange-300 bg-orange-50/50 rounded-lg p-3">
-                    <p className="text-xs font-bold text-orange-700 mb-2 flex items-center gap-1">
-                      <Building2 className="w-3 h-3" />
-                      Admin Price Details
-                    </p>
-
-                    {booking.netPrice && (
-                      <div className="flex items-center justify-between text-sm">
-                        <span className="text-gray-600">Net Price (API Cost):</span>
-                        <span className="font-semibold text-gray-900">
-                          {booking.payment.currency} {booking.netPrice.toFixed(2)}
-                        </span>
-                      </div>
-                    )}
-
-                    {booking.markupAmount && (
-                      <div className="flex items-center justify-between text-sm">
-                        <span className="text-gray-600">Markup Applied:</span>
-                        <span className="font-semibold text-blue-600">
-                          +{booking.payment.currency} {booking.markupAmount.toFixed(2)}
-                        </span>
-                      </div>
-                    )}
-
-                    {booking.duffelCost && (
-                      <div className="flex items-center justify-between text-sm">
-                        <span className="text-gray-600">Duffel Fee:</span>
-                        <span className="font-semibold text-red-500">
-                          -{booking.payment.currency} {booking.duffelCost.toFixed(2)}
-                        </span>
-                      </div>
-                    )}
-
-                    {booking.consolidatorCost && (
-                      <div className="flex items-center justify-between text-sm">
-                        <span className="text-gray-600">Consolidator Cost:</span>
-                        <span className="font-semibold text-red-500">
-                          -{booking.payment.currency} {booking.consolidatorCost.toFixed(2)}
-                        </span>
-                      </div>
-                    )}
-
-                    <div className="flex items-center justify-between text-sm pt-2 border-t border-orange-200 mt-2">
-                      <span className="font-bold text-gray-700">Net Profit:</span>
-                      {booking.sourceApi === 'Amadeus' && (booking.netProfit || 0) === 0 ? (
-                        <span className="text-sm text-amber-600 font-medium">
-                          Commission (TBD after ticketing)
-                        </span>
-                      ) : (
-                        <span className={`font-bold text-lg ${(booking.netProfit || 0) >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-                          {booking.payment.currency} {(booking.netProfit || 0).toFixed(2)}
-                        </span>
-                      )}
-                    </div>
-
-                    {(booking.routingChannel || booking.sourceApi) && (
-                      <div className="flex items-center justify-between text-xs mt-2 text-gray-500">
-                        <span>Source:</span>
-                        <span className={`px-2 py-0.5 rounded ${
-                          booking.sourceApi === 'Duffel' || booking.routingChannel === 'DUFFEL'
-                            ? 'bg-green-100 text-green-700'
-                            : 'bg-blue-100 text-blue-700'
-                        }`}>
-                          {booking.sourceApi === 'Amadeus' ? '🔵 GDS/Amadeus' : booking.sourceApi === 'Duffel' ? '🟢 Duffel NDC' : booking.routingChannel}
-                        </span>
-                      </div>
-                    )}
-                  </div>
-                </div>
-
-                {booking.payment.paidAt && (
-                  <div className="pt-3 border-t border-gray-200">
-                    <p className="text-xs text-gray-600">
-                      Paid on: {new Date(booking.payment.paidAt).toLocaleString()}
-                    </p>
-                  </div>
-                )}
+            {/* Payment Status (compact) */}
+            <div className="bg-white rounded-lg border border-gray-200 shadow-sm p-4">
+              <div className="flex items-center justify-between mb-3">
+                <span className="text-sm font-semibold text-gray-700">Payment Status</span>
+                {getPaymentStatusBadge(booking.payment.status)}
               </div>
-            </div>
-
-            {/* Contact Information */}
-            <div className="bg-white rounded-lg border border-gray-200 shadow-sm p-6">
-              <h2 className="text-lg font-bold text-gray-900 mb-4 flex items-center gap-2">
-                <Mail className="w-5 h-5 text-blue-600" />
-                Contact
-              </h2>
-
-              <div className="space-y-3">
-                <div className="flex items-start gap-2">
-                  <Mail className="w-4 h-4 text-gray-400 mt-0.5" />
-                  <div>
-                    <p className="text-xs text-gray-600">Email</p>
-                    <p className="text-sm font-semibold text-gray-900">{booking.contactInfo.email}</p>
-                  </div>
-                </div>
-
-                <div className="flex items-start gap-2">
-                  <Phone className="w-4 h-4 text-gray-400 mt-0.5" />
-                  <div>
-                    <p className="text-xs text-gray-600">Phone</p>
-                    <p className="text-sm font-semibold text-gray-900">{booking.contactInfo.phone}</p>
-                  </div>
-                </div>
-
-                {booking.contactInfo.emergencyContact && (
-                  <div className="pt-3 border-t border-gray-200">
-                    <p className="text-xs text-gray-600 mb-2">Emergency Contact</p>
-                    <p className="text-sm font-semibold text-gray-900">
-                      {booking.contactInfo.emergencyContact.name}
-                    </p>
-                    <p className="text-sm text-gray-600">
-                      {booking.contactInfo.emergencyContact.phone}
-                    </p>
-                    <p className="text-xs text-gray-500">
-                      {booking.contactInfo.emergencyContact.relationship}
-                    </p>
-                  </div>
-                )}
-              </div>
-            </div>
-
-            {/* Booking Metadata */}
-            <div className="bg-white rounded-lg border border-gray-200 shadow-sm p-6">
-              <h2 className="text-lg font-bold text-gray-900 mb-4 flex items-center gap-2">
-                <Calendar className="w-5 h-5 text-gray-600" />
-                Details
-              </h2>
-
               <div className="space-y-2 text-sm">
                 <div className="flex justify-between">
-                  <span className="text-gray-600">Created:</span>
-                  <span className="font-semibold text-gray-900">
-                    {new Date(booking.createdAt).toLocaleString()}
-                  </span>
+                  <span className="text-gray-600">Method:</span>
+                  <span className="font-semibold capitalize">{booking.payment.method.replace('_', ' ')}</span>
                 </div>
-
-                <div className="flex justify-between">
-                  <span className="text-gray-600">Updated:</span>
-                  <span className="font-semibold text-gray-900">
-                    {new Date(booking.updatedAt).toLocaleString()}
-                  </span>
-                </div>
-
-                {booking.cancelledAt && (
+                {booking.payment.cardLast4 && (
                   <div className="flex justify-between">
-                    <span className="text-gray-600">Cancelled:</span>
-                    <span className="font-semibold text-red-700">
-                      {new Date(booking.cancelledAt).toLocaleString()}
-                    </span>
+                    <span className="text-gray-600">Card:</span>
+                    <span className="font-semibold">{booking.payment.cardBrand?.toUpperCase() || 'CARD'} •••• {booking.payment.cardLast4}</span>
+                  </div>
+                )}
+                {booking.payment.transactionId && (
+                  <div className="flex justify-between">
+                    <span className="text-gray-600">TXN:</span>
+                    <span className="font-mono text-xs">{booking.payment.transactionId.substring(0, 16)}...</span>
+                  </div>
+                )}
+                {booking.payment.paidAt && (
+                  <div className="flex justify-between text-xs text-gray-500">
+                    <span>Paid:</span>
+                    <span>{new Date(booking.payment.paidAt).toLocaleString()}</span>
                   </div>
                 )}
               </div>

@@ -29,6 +29,10 @@ import BookingActions from '@/components/account/BookingActions';
 import CancelBookingModal from '@/components/account/CancelBookingModal';
 import type { Booking, FlightSegment } from '@/lib/bookings/types';
 import Link from 'next/link';
+import {
+  EnhancedFlightCard,
+  BookingExtrasCard,
+} from '@/components/booking';
 
 interface BookingResponse {
   success: boolean;
@@ -234,115 +238,18 @@ export default function BookingDetailPage() {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mt-6">
           {/* Main Content */}
           <div className="lg:col-span-2 space-y-6">
-            {/* Flight Information */}
-            <div className="bg-white rounded-xl shadow-md overflow-hidden">
-              <div className="bg-gradient-to-r from-blue-600 to-indigo-600 p-4">
-                <h2 className="text-xl font-bold text-white flex items-center gap-2">
-                  <Plane className="w-6 h-6" />
-                  Flight Information
-                </h2>
-              </div>
+            {/* Enhanced Flight Card */}
+            <EnhancedFlightCard flight={booking.flight} />
 
-              <div className="p-6 space-y-6">
-                {/* Route Overview */}
-                <div className="flex items-center justify-between">
-                  <div className="text-center flex-1">
-                    <div className="text-3xl font-bold text-gray-900 mb-1">
-                      {firstSegment.departure.iataCode}
-                    </div>
-                    <div className="text-sm text-gray-600">
-                      {formatTime(firstSegment.departure.at)}
-                    </div>
-                    {firstSegment.departure.terminal && (
-                      <div className="text-xs text-gray-500">
-                        Terminal {firstSegment.departure.terminal}
-                      </div>
-                    )}
-                  </div>
-
-                  <div className="flex-1 flex flex-col items-center px-4">
-                    <Plane className="w-6 h-6 text-blue-600 mb-1" />
-                    <div className="w-full h-0.5 bg-gray-300 mb-1"></div>
-                    <div className="text-sm text-gray-600">
-                      {calculateDuration(
-                        firstSegment.departure.at,
-                        lastSegment.arrival.at
-                      )}
-                    </div>
-                    {booking.flight.segments.length > 1 && (
-                      <div className="text-xs text-orange-600 font-semibold mt-1">
-                        {booking.flight.segments.length - 1}{' '}
-                        {booking.flight.segments.length === 2 ? 'stop' : 'stops'}
-                      </div>
-                    )}
-                  </div>
-
-                  <div className="text-center flex-1">
-                    <div className="text-3xl font-bold text-gray-900 mb-1">
-                      {lastSegment.arrival.iataCode}
-                    </div>
-                    <div className="text-sm text-gray-600">
-                      {formatTime(lastSegment.arrival.at)}
-                    </div>
-                    {lastSegment.arrival.terminal && (
-                      <div className="text-xs text-gray-500">
-                        Terminal {lastSegment.arrival.terminal}
-                      </div>
-                    )}
-                  </div>
-                </div>
-
-                {/* Flight Segments */}
-                <div className="space-y-4 pt-6 border-t border-gray-200">
-                  {booking.flight.segments.map((segment, index) => (
-                    <div key={segment.id}>
-                      <div className="flex items-start gap-4">
-                        <div className="flex-shrink-0 w-12 h-12 bg-blue-50 rounded-lg flex items-center justify-center">
-                          <Plane className="w-6 h-6 text-blue-600" />
-                        </div>
-                        <div className="flex-1">
-                          <div className="flex items-center gap-2 mb-2">
-                            <span className="font-bold text-gray-900">
-                              {segment.carrierCode} {segment.flightNumber}
-                            </span>
-                            <span className="text-sm text-gray-600">
-                              {segment.aircraft}
-                            </span>
-                            <span className="text-xs px-2 py-0.5 bg-gray-100 text-gray-700 rounded-full capitalize">
-                              {segment.class.replace('_', ' ')}
-                            </span>
-                          </div>
-                          <div className="grid grid-cols-2 gap-4 text-sm">
-                            <div>
-                              <div className="text-gray-600">Departure</div>
-                              <div className="font-semibold text-gray-900">
-                                {segment.departure.iataCode} -{' '}
-                                {formatDateTime(segment.departure.at)}
-                              </div>
-                            </div>
-                            <div>
-                              <div className="text-gray-600">Arrival</div>
-                              <div className="font-semibold text-gray-900">
-                                {segment.arrival.iataCode} -{' '}
-                                {formatDateTime(segment.arrival.at)}
-                              </div>
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                      {index < booking.flight.segments.length - 1 && (
-                        <div className="ml-6 pl-6 my-3 border-l-2 border-dashed border-gray-300 py-2">
-                          <div className="text-sm text-gray-600">
-                            <Clock className="w-4 h-4 inline mr-1" />
-                            Layover in {segment.arrival.iataCode}
-                          </div>
-                        </div>
-                      )}
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </div>
+            {/* Booking Extras Card (fare upgrades, bundles, add-ons, seats, promo codes) */}
+            <BookingExtrasCard
+              fareUpgrade={booking.fareUpgrade}
+              bundle={booking.bundle}
+              addOns={booking.addOns}
+              seats={booking.seats}
+              promoCode={booking.promoCode}
+              currency={booking.payment.currency}
+            />
 
             {/* Passenger Information */}
             <div className="bg-white rounded-xl shadow-md overflow-hidden">

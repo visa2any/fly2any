@@ -162,15 +162,19 @@ export function PostPaymentVerification({
         body: formData,
       });
 
-      if (!response.ok) throw new Error('Upload failed');
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.error || 'Upload failed');
+      }
 
       setStep('success');
       setTimeout(() => {
         onComplete();
       }, 2000);
-    } catch (error) {
+    } catch (error: any) {
       console.error('Upload error:', error);
-      alert('Failed to upload documents. Please try again.');
+      const errorMessage = error?.message || 'Failed to upload documents. Please try again.';
+      alert(errorMessage);
     } finally {
       setIsSubmitting(false);
     }

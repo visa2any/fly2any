@@ -3,6 +3,7 @@ import { prisma } from '@/lib/prisma';
 import { bookingStorage } from '@/lib/bookings/storage';
 import { put } from '@vercel/blob';
 import crypto from 'crypto';
+import { notifyTelegramAdmins, sendAdminAlert } from '@/lib/notifications/notification-service';
 
 /**
  * POST /api/booking-flow/verify-documents
@@ -169,10 +170,88 @@ export async function POST(request: NextRequest) {
       bookingReference,
     });
 
-  } catch (error) {
-    console.error('[VERIFY_DOCUMENTS_ERROR]', error);
+  } catch (error: any) {
+    const errorMessage = error?.message || 'Unknown error';
+    const errorCode = error?.code || 'UNKNOWN';
+
+    console.error('[VERIFY_DOCUMENTS_ERROR]', {
+      error: errorMessage,
+      code: errorCode,
+      stack: error?.stack,
+    });
+
+    // Get booking info for notification
+    const formData = await request.clone().formData().catch(() => null);
+    const bookingReference = formData?.get('bookingReference') as string || 'UNKNOWN';
+
+    // Try to get customer info from booking
+    let customerInfo = { name: 'Unknown', email: 'Unknown', phone: 'Unknown' };
+    try {
+      const booking = await bookingStorage.findByReferenceAsync(bookingReference);
+      if (booking) {
+        customerInfo = {
+          name: `${booking.passengers[0]?.firstName || ''} ${booking.passengers[0]?.lastName || ''}`.trim() || 'Unknown',
+          email: booking.contactInfo?.email || booking.passengers[0]?.email || 'Unknown',
+          phone: booking.contactInfo?.phone || booking.passengers[0]?.phone || 'Unknown',
+        };
+      }
+    } catch (e) {
+      console.error('Could not fetch booking for error notification:', e);
+    }
+
+    // Send Telegram alert to admins
+    const telegramMessage = `
+🚨 <b>VERIFICATION UPLOAD FAILED</b>
+
+📋 <b>Booking:</b> <code>${bookingReference}</code>
+👤 <b>Customer:</b> ${customerInfo.name}
+📧 <b>Email:</b> ${customerInfo.email}
+📞 <b>Phone:</b> ${customerInfo.phone}
+
+❌ <b>Error:</b> ${errorMessage}
+🔢 <b>Code:</b> ${errorCode}
+
+<i>Customer was trying to complete post-payment verification.</i>
+<i>Please contact them to complete manually.</i>
+    `.trim();
+
+    // Fire and forget - don't block the response
+    notifyTelegramAdmins(telegramMessage).catch(console.error);
+
+    // Also send email alert
+    sendAdminAlert({
+      type: 'verification_upload_failed',
+      bookingReference,
+      customer: customerInfo.name,
+      customerEmail: customerInfo.email,
+      customerPhone: customerInfo.phone,
+      error: errorMessage,
+      errorCode,
+      timestamp: new Date().toISOString(),
+      priority: 'high',
+    }).catch(console.error);
+
+    // Determine user-friendly error message
+    let userMessage = 'Failed to upload documents. Please try again.';
+
+    if (errorMessage.includes('BLOB') || errorMessage.includes('storage') || errorMessage.includes('put')) {
+      userMessage = 'Failed to save documents. Our storage service is temporarily unavailable. Please try again in a few minutes.';
+    } else if (errorMessage.includes('prisma') || errorMessage.includes('database')) {
+      userMessage = 'Failed to save verification. Our database is temporarily unavailable. Please try again in a few minutes.';
+    } else if (errorMessage.includes('timeout') || errorMessage.includes('TIMEOUT')) {
+      userMessage = 'Upload timed out. Please check your internet connection and try again.';
+    } else if (errorMessage.includes('size') || errorMessage.includes('large')) {
+      userMessage = 'Files are too large. Please use smaller images (under 5MB each).';
+    } else if (errorMessage.includes('token') || errorMessage.includes('auth')) {
+      userMessage = 'Verification session expired. Please refresh the page and try again.';
+    }
+
     return NextResponse.json(
-      { error: 'Failed to upload documents' },
+      {
+        error: userMessage,
+        code: errorCode,
+        reference: bookingReference,
+      },
       { status: 500 }
     );
   }
