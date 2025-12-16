@@ -1,311 +1,312 @@
 /**
- * AI Email Decision Engine
+ * Fly2Any AI Email Decision Engine
+ * Ultra-Premium Level 6 — Apple-Class Email Intelligence
  *
- * Intelligent decision layer that determines:
- * - IF an email should be sent
- * - WHEN it should be sent (optimal timing)
- * - WHICH template to use
- * - WHAT content to personalize
- *
- * @version 1.0.0
+ * Autonomous system: IF/WHEN/WHICH email, subject, CTA
+ * Core: Helpful, elegant, timely. NEVER spam.
+ * @version 2.0.0
  */
 
 import prisma from '@/lib/prisma';
 
-// ===================================
+// ═══════════════════════════════════════════════════════════════
 // TYPES
-// ===================================
+// ═══════════════════════════════════════════════════════════════
 
-export type EmailDecision = 'send' | 'delay' | 'skip';
+export type EmailTemplate = 'TRANSACTIONAL' | 'ABANDONED_SEARCH' | 'PRICE_DROP' | 'ABANDONED_BOOKING' | 'WELCOME' | 'REENGAGEMENT';
+export type AllowedCTA = 'View my booking' | 'Continue booking' | 'Book now' | 'Complete your booking' | 'Start your trip' | 'Explore deals';
 
 export interface UserContext {
   userId?: string;
   email: string;
+  isRegistered: boolean;
+  isLoggedIn: boolean;
   timezone?: string;
   device?: 'mobile' | 'desktop';
   lastEmailSent?: Date;
   lastEmailOpened?: Date;
-  totalEmailsSent?: number;
-  totalEmailsOpened?: number;
-  searchHistory?: Array<{ origin: string; destination: string; date: Date }>;
-  bookingHistory?: Array<{ status: string; amount: number; date: Date }>;
-  priceAlertCount?: number;
+  totalEmailsSent: number;
+  totalEmailsOpened: number;
+  consecutiveUnopened: number;
+  hasBookedBefore: boolean;
+  lastBookingDate?: Date;
+  lifetimeValue: number;
+  bookingCount: number;
+  preferredOrigin?: string;
+  preferredDestination?: string;
+  priceSensitivity: 'low' | 'medium' | 'high';
+  engagementScore: number;
+  recentSearches: Array<{ origin: string; destination: string; date: Date }>;
+  hasPriceAlert: boolean;
+  daysInactive: number;
 }
 
 export interface EmailIntent {
-  type: 'transactional' | 'marketing' | 'alert' | 'recovery';
   event: string;
+  template: EmailTemplate;
   priority: 'critical' | 'high' | 'medium' | 'low';
   data: Record<string, any>;
 }
 
 export interface AIDecisionResult {
-  decision: EmailDecision;
+  send: boolean;
+  template: EmailTemplate;
+  subject: string;
+  cta: AllowedCTA;
+  sendTime: string;
   reason: string;
+  confidenceScore: number;
   delayMinutes?: number;
-  templateVariant?: string;
-  subjectVariant?: string;
-  ctaVariant?: string;
-  sendTime?: Date;
-  confidence: number;
 }
 
-// ===================================
-// CONFIGURATION
-// ===================================
+// ═══════════════════════════════════════════════════════════════
+// TRUST PROTECTION — Non-negotiable rules
+// ═══════════════════════════════════════════════════════════════
 
-const CONFIG = {
-  // Max emails per user per day
-  dailyLimit: {
-    transactional: 10,
-    marketing: 2,
-    alert: 5,
-    recovery: 1,
-  },
-  // Minimum hours between same-type emails
-  minHoursBetween: {
-    transactional: 0, // No limit for transactional
-    marketing: 24,
-    alert: 4,
-    recovery: 48,
-  },
-  // Optimal send hours (local time)
-  optimalHours: {
-    marketing: [9, 10, 11, 14, 15, 19, 20], // Business hours + evening
-    alert: [8, 9, 10, 11, 12, 14, 15, 16, 17, 18, 19, 20], // Wider window
-    recovery: [10, 11, 14, 15, 19], // Prime engagement times
-  },
-  // Never send during these hours (local time)
-  quietHours: {
-    start: 22, // 10 PM
-    end: 7,    // 7 AM
-  },
+const TRUST = {
+  maxPer24h: 1,           // Max 1 email per day
+  maxPer7d: 3,            // Max 3 per week
+  pauseAfterUnopened: 3,  // Pause if 3 ignored
+  pauseDays: 30,          // Pause duration
+  quietStart: 22,         // 10 PM
+  quietEnd: 7,            // 7 AM
+  morningStart: 9,        // Optimal morning
+  morningEnd: 11,
+  eveningStart: 18,       // Optimal evening
+  eveningEnd: 20,
+  reengageMin: 21,        // Re-engagement window
+  reengageMax: 45,
+  searchMin: 30,          // Abandoned search (minutes)
+  searchMax: 180,
+  bookingMin: 2,          // Abandoned booking (hours)
+  bookingMax: 24,
 };
 
-// ===================================
+// Subject lines — Max 45 chars, calm, NO emojis, NO hype
+const SUBJECTS: Record<EmailTemplate, string[]> = {
+  TRANSACTIONAL: ['Your booking is confirmed', 'Trip confirmed — you\'re all set'],
+  ABANDONED_SEARCH: ['Your fare is still available', 'Still planning your trip?'],
+  PRICE_DROP: ['Your flight price just dropped', 'Good news — fare reduced'],
+  ABANDONED_BOOKING: ['Complete your booking', 'Your trip is almost ready'],
+  WELCOME: ['Welcome to Fly2Any', 'Your journey starts here'],
+  REENGAGEMENT: ['We found deals for you', 'Your next adventure awaits'],
+};
+
+// CTAs — Verb-driven, calm, confidence-based
+const CTA: Record<EmailTemplate, AllowedCTA> = {
+  TRANSACTIONAL: 'View my booking',
+  ABANDONED_SEARCH: 'Continue booking',
+  PRICE_DROP: 'Book now',
+  ABANDONED_BOOKING: 'Complete your booking',
+  WELCOME: 'Start your trip',
+  REENGAGEMENT: 'Explore deals',
+};
+
+// ═══════════════════════════════════════════════════════════════
 // AI DECISION ENGINE
-// ===================================
+// ═══════════════════════════════════════════════════════════════
 
 export class AIEmailDecisionEngine {
-  /**
-   * Main decision function - determines if/when/how to send email
-   */
   async decide(user: UserContext, intent: EmailIntent): Promise<AIDecisionResult> {
-    // Step 1: Check if email should be sent at all
-    const shouldSend = await this.shouldSendEmail(user, intent);
-    if (!shouldSend.send) {
+    const now = new Date();
+
+    // Critical transactional → immediate
+    if (intent.template === 'TRANSACTIONAL' && intent.priority === 'critical') {
       return {
-        decision: 'skip',
-        reason: shouldSend.reason,
-        confidence: 0.95,
+        send: true,
+        template: 'TRANSACTIONAL',
+        subject: this.pickSubject('TRANSACTIONAL', user, intent.data),
+        cta: 'View my booking',
+        sendTime: now.toISOString(),
+        reason: 'Critical transactional — immediate',
+        confidenceScore: 100,
       };
     }
 
-    // Step 2: Determine optimal send time
-    const timing = this.calculateOptimalTiming(user, intent);
-    if (timing.delay > 0) {
-      return {
-        decision: 'delay',
-        reason: timing.reason,
-        delayMinutes: timing.delay,
-        sendTime: new Date(Date.now() + timing.delay * 60 * 1000),
-        confidence: timing.confidence,
-      };
+    // Fatigue protection
+    if (user.consecutiveUnopened >= TRUST.pauseAfterUnopened) {
+      return this.skip(intent.template, `Ignored ${user.consecutiveUnopened} emails — paused ${TRUST.pauseDays}d`);
     }
 
-    // Step 3: Select best template/content variants
-    const variants = this.selectVariants(user, intent);
+    // Frequency limits
+    const freq = await this.checkFreq(user);
+    if (!freq.ok) return this.skip(intent.template, freq.reason);
+
+    // Template-specific validation
+    const valid = this.validate(user, intent);
+    if (!valid.ok) return this.skip(intent.template, valid.reason);
+
+    // Timing optimization
+    const timing = this.timing(user, intent);
 
     return {
-      decision: 'send',
-      reason: 'All conditions met for immediate delivery',
-      templateVariant: variants.template,
-      subjectVariant: variants.subject,
-      ctaVariant: variants.cta,
-      sendTime: new Date(),
-      confidence: 0.9,
+      send: true,
+      template: intent.template,
+      subject: this.pickSubject(intent.template, user, intent.data),
+      cta: CTA[intent.template],
+      sendTime: timing.time,
+      reason: timing.reason,
+      confidenceScore: this.confidence(user, intent),
+      delayMinutes: timing.delay,
     };
   }
 
-  /**
-   * Check if email should be sent (frequency, engagement, etc.)
-   */
-  private async shouldSendEmail(
-    user: UserContext,
-    intent: EmailIntent
-  ): Promise<{ send: boolean; reason: string }> {
-    // Critical transactional emails always go through
-    if (intent.type === 'transactional' && intent.priority === 'critical') {
-      return { send: true, reason: 'Critical transactional email' };
-    }
-
-    // Check daily limit
-    const dailySent = await this.getDailyEmailCount(user.email, intent.type);
-    const limit = CONFIG.dailyLimit[intent.type];
-    if (dailySent >= limit) {
-      return { send: false, reason: `Daily limit reached (${dailySent}/${limit})` };
-    }
-
-    // Check minimum time between emails
-    if (user.lastEmailSent) {
-      const hoursSinceLastEmail = (Date.now() - user.lastEmailSent.getTime()) / (1000 * 60 * 60);
-      const minHours = CONFIG.minHoursBetween[intent.type];
-      if (hoursSinceLastEmail < minHours) {
-        return {
-          send: false,
-          reason: `Too soon since last email (${hoursSinceLastEmail.toFixed(1)}h < ${minHours}h)`
-        };
-      }
-    }
-
-    // Check engagement score for marketing emails
-    if (intent.type === 'marketing') {
-      const engagementScore = this.calculateEngagementScore(user);
-      if (engagementScore < 0.1) {
-        return { send: false, reason: 'Low engagement score - user likely uninterested' };
-      }
-    }
-
-    // Check quiet hours for non-critical emails
-    if (intent.priority !== 'critical') {
-      const userHour = this.getUserLocalHour(user.timezone);
-      if (userHour >= CONFIG.quietHours.start || userHour < CONFIG.quietHours.end) {
-        return { send: false, reason: 'Quiet hours - will delay' };
-      }
-    }
-
-    return { send: true, reason: 'All checks passed' };
+  private skip(t: EmailTemplate, reason: string): AIDecisionResult {
+    return { send: false, template: t, subject: '', cta: CTA[t], sendTime: new Date().toISOString(), reason, confidenceScore: 0 };
   }
 
-  /**
-   * Calculate optimal send timing
-   */
-  private calculateOptimalTiming(
-    user: UserContext,
-    intent: EmailIntent
-  ): { delay: number; reason: string; confidence: number } {
-    // Transactional emails send immediately
-    if (intent.type === 'transactional') {
-      return { delay: 0, reason: 'Transactional - immediate', confidence: 1.0 };
-    }
-
-    const userHour = this.getUserLocalHour(user.timezone);
-    const optimalHours = CONFIG.optimalHours[intent.type] || CONFIG.optimalHours.marketing;
-
-    // If current hour is optimal, send now
-    if (optimalHours.includes(userHour)) {
-      return { delay: 0, reason: 'Current hour is optimal', confidence: 0.85 };
-    }
-
-    // Calculate delay to next optimal hour
-    const nextOptimalHour = optimalHours.find(h => h > userHour) || optimalHours[0] + 24;
-    const delayHours = nextOptimalHour - userHour;
-    const delayMinutes = Math.max(0, delayHours * 60);
-
-    return {
-      delay: delayMinutes,
-      reason: `Delaying to optimal hour (${nextOptimalHour % 24}:00)`,
-      confidence: 0.75,
-    };
-  }
-
-  /**
-   * Select best content variants based on user profile
-   */
-  private selectVariants(
-    user: UserContext,
-    intent: EmailIntent
-  ): { template: string; subject: string; cta: string } {
-    // Mobile users get shorter content
-    if (user.device === 'mobile') {
-      return {
-        template: 'mobile_optimized',
-        subject: 'short',
-        cta: 'action_focused',
-      };
-    }
-
-    // High-value users (frequent bookers) get premium treatment
-    if (user.bookingHistory && user.bookingHistory.length > 2) {
-      return {
-        template: 'premium',
-        subject: 'personalized',
-        cta: 'exclusive',
-      };
-    }
-
-    // Price-sensitive users (many price alerts)
-    if (user.priceAlertCount && user.priceAlertCount > 3) {
-      return {
-        template: 'deal_focused',
-        subject: 'savings_highlight',
-        cta: 'book_now',
-      };
-    }
-
-    // Default variants
-    return {
-      template: 'standard',
-      subject: 'standard',
-      cta: 'standard',
-    };
-  }
-
-  /**
-   * Calculate user engagement score (0-1)
-   */
-  private calculateEngagementScore(user: UserContext): number {
-    if (!user.totalEmailsSent || user.totalEmailsSent === 0) {
-      return 0.5; // New user - neutral score
-    }
-
-    const openRate = (user.totalEmailsOpened || 0) / user.totalEmailsSent;
-    const recency = user.lastEmailOpened
-      ? Math.max(0, 1 - (Date.now() - user.lastEmailOpened.getTime()) / (30 * 24 * 60 * 60 * 1000))
-      : 0;
-
-    return openRate * 0.7 + recency * 0.3;
-  }
-
-  /**
-   * Get user's local hour based on timezone
-   */
-  private getUserLocalHour(timezone?: string): number {
+  private async checkFreq(u: UserContext): Promise<{ ok: boolean; reason: string }> {
+    if (!prisma) return { ok: true, reason: 'DB unavailable' };
     try {
-      const now = new Date();
-      if (timezone) {
-        return parseInt(now.toLocaleString('en-US', { timeZone: timezone, hour: 'numeric', hour12: false }));
+      const now = Date.now();
+      const [d1, d7] = await Promise.all([
+        prisma.emailLog.count({ where: { recipientEmail: u.email, sentAt: { gte: new Date(now - 86400000) } } }),
+        prisma.emailLog.count({ where: { recipientEmail: u.email, sentAt: { gte: new Date(now - 604800000) } } }),
+      ]);
+      if (d1 >= TRUST.maxPer24h) return { ok: false, reason: `Daily limit (${d1}/${TRUST.maxPer24h})` };
+      if (d7 >= TRUST.maxPer7d) return { ok: false, reason: `Weekly limit (${d7}/${TRUST.maxPer7d})` };
+      return { ok: true, reason: 'OK' };
+    } catch { return { ok: true, reason: 'Check failed' }; }
+  }
+
+  private validate(u: UserContext, i: EmailIntent): { ok: boolean; reason: string } {
+    const d = i.data;
+    switch (i.template) {
+      case 'ABANDONED_SEARCH': {
+        if (!d.searchTime) return { ok: true, reason: 'OK' };
+        const m = (Date.now() - new Date(d.searchTime).getTime()) / 60000;
+        if (m < TRUST.searchMin) return { ok: false, reason: 'Too soon since search (< 30 min)' };
+        if (m > TRUST.searchMax) return { ok: false, reason: 'Too late since search (> 3 hours)' };
+        return { ok: true, reason: 'OK' };
       }
-      // Default to EST if no timezone
-      return parseInt(now.toLocaleString('en-US', { timeZone: 'America/New_York', hour: 'numeric', hour12: false }));
-    } catch {
-      return new Date().getHours();
+      case 'ABANDONED_BOOKING': {
+        if (!d.abandonedAt) return { ok: true, reason: 'OK' };
+        const h = (Date.now() - new Date(d.abandonedAt).getTime()) / 3600000;
+        if (h < TRUST.bookingMin) return { ok: false, reason: 'Too soon since abandonment (< 2h)' };
+        if (h > TRUST.bookingMax) return { ok: false, reason: 'Too late since abandonment (> 24h)' };
+        return { ok: true, reason: 'OK' };
+      }
+      case 'REENGAGEMENT':
+        if (u.daysInactive < TRUST.reengageMin) return { ok: false, reason: `Not inactive enough (${u.daysInactive}d < ${TRUST.reengageMin}d)` };
+        if (u.daysInactive > TRUST.reengageMax) return { ok: false, reason: `Too inactive (${u.daysInactive}d > ${TRUST.reengageMax}d)` };
+        return { ok: true, reason: 'OK' };
+      case 'WELCOME':
+        return u.totalEmailsSent > 0 ? { ok: false, reason: 'Welcome already sent' } : { ok: true, reason: 'OK' };
+      default:
+        return { ok: true, reason: 'OK' };
     }
   }
 
-  /**
-   * Get count of emails sent today to user
-   */
-  private async getDailyEmailCount(email: string, type: string): Promise<number> {
-    if (!prisma) return 0;
+  private timing(u: UserContext, i: EmailIntent): { time: string; delay: number; reason: string } {
+    const now = new Date();
+    const h = this.hour(u.timezone);
 
-    try {
-      const today = new Date();
-      today.setHours(0, 0, 0, 0);
-
-      const count = await prisma.emailLog.count({
-        where: {
-          recipientEmail: email,
-          emailType: type,
-          sentAt: { gte: today },
-        },
-      });
-      return count;
-    } catch {
-      return 0; // If table doesn't exist, assume 0
+    // Transactional → immediate
+    if (i.template === 'TRANSACTIONAL') {
+      return { time: now.toISOString(), delay: 0, reason: 'Transactional — immediate' };
     }
+
+    // Price drop → immediate if not quiet hours
+    if (i.template === 'PRICE_DROP' && h >= TRUST.quietEnd && h < TRUST.quietStart) {
+      return { time: now.toISOString(), delay: 0, reason: 'Price drop — high priority' };
+    }
+
+    // Check optimal windows
+    const inMorning = h >= TRUST.morningStart && h <= TRUST.morningEnd;
+    const inEvening = h >= TRUST.eveningStart && h <= TRUST.eveningEnd;
+
+    if (inMorning || inEvening) {
+      return { time: now.toISOString(), delay: 0, reason: 'Optimal send hour' };
+    }
+
+    // Calculate delay to next optimal window
+    let target = h < TRUST.morningStart ? TRUST.morningStart :
+                 h < TRUST.eveningStart ? TRUST.eveningStart :
+                 TRUST.morningStart + 24;
+
+    const delay = Math.max(0, Math.round((target - h) * 60));
+    return {
+      time: new Date(now.getTime() + delay * 60000).toISOString(),
+      delay,
+      reason: `Delay to ${target % 24}:00 local`,
+    };
+  }
+
+  private pickSubject(t: EmailTemplate, u: UserContext, d: Record<string, any>): string {
+    const v = SUBJECTS[t];
+    let s = u.lifetimeValue > 1000 && v.length > 1 ? v[1] : v[0];
+    return s
+      .replace('{{destination}}', d.destination || 'your destination')
+      .replace('{{origin}}', d.origin || u.preferredOrigin || 'your city')
+      .replace('{{route}}', d.route || `${d.origin || ''} → ${d.destination || ''}`);
+  }
+
+  private confidence(u: UserContext, i: EmailIntent): number {
+    let s = 70;
+    if (u.engagementScore > 70) s += 15;
+    if (i.priority === 'critical') s += 20;
+    if (i.priority === 'high') s += 10;
+    if (u.totalEmailsSent > 5 && u.totalEmailsOpened / u.totalEmailsSent < 0.1) s -= 20;
+    return Math.min(100, Math.max(0, s));
+  }
+
+  private hour(tz?: string): number {
+    try {
+      return parseInt(new Date().toLocaleString('en-US', { timeZone: tz || 'America/New_York', hour: 'numeric', hour12: false }));
+    } catch { return new Date().getHours(); }
+  }
+
+  async buildUserContext(email: string, userId?: string): Promise<UserContext> {
+    const base: UserContext = {
+      email, userId, isRegistered: !!userId, isLoggedIn: !!userId,
+      totalEmailsSent: 0, totalEmailsOpened: 0, consecutiveUnopened: 0,
+      hasBookedBefore: false, lifetimeValue: 0, bookingCount: 0,
+      priceSensitivity: 'medium', engagementScore: 50, recentSearches: [],
+      hasPriceAlert: false, daysInactive: 0,
+    };
+    if (!prisma) return base;
+    try {
+      const [stats, bookings, alerts] = await Promise.all([
+        prisma.emailLog.aggregate({ where: { recipientEmail: email }, _count: { id: true }, _max: { sentAt: true, openedAt: true } }).catch(() => null),
+        userId ? prisma.booking.findMany({ where: { userId }, select: { totalAmount: true, createdAt: true }, orderBy: { createdAt: 'desc' }, take: 10 }).catch(() => []) : [],
+        userId ? prisma.priceAlert?.count({ where: { userId } }).catch(() => 0) : 0,
+      ]);
+      let unopened = 0;
+      if (stats?._count?.id) {
+        const recent = await prisma.emailLog.findMany({ where: { recipientEmail: email }, orderBy: { sentAt: 'desc' }, take: 5, select: { openedAt: true } }).catch(() => []);
+        for (const e of recent) { if (!e.openedAt) unopened++; else break; }
+      }
+      const ltv = bookings.reduce((s, b) => s + (b.totalAmount || 0), 0);
+      const last = stats?._max?.openedAt || stats?._max?.sentAt;
+      const inactive = last ? Math.floor((Date.now() - new Date(last).getTime()) / 86400000) : 0;
+      return {
+        ...base,
+        totalEmailsSent: stats?._count?.id || 0,
+        lastEmailSent: stats?._max?.sentAt || undefined,
+        lastEmailOpened: stats?._max?.openedAt || undefined,
+        consecutiveUnopened: unopened,
+        hasBookedBefore: bookings.length > 0,
+        lastBookingDate: bookings[0]?.createdAt,
+        lifetimeValue: ltv,
+        bookingCount: bookings.length,
+        priceSensitivity: (alerts || 0) > 3 ? 'high' : (alerts || 0) > 0 ? 'medium' : 'low',
+        engagementScore: Math.min(100, 50 + bookings.length * 10),
+        hasPriceAlert: (alerts || 0) > 0,
+        daysInactive: inactive,
+      };
+    } catch { return base; }
   }
 }
 
-// Export singleton instance
 export const aiEmailEngine = new AIEmailDecisionEngine();
+
+// Quick helper function
+export async function shouldSendEmail(email: string, template: EmailTemplate, data: Record<string, any>, userId?: string): Promise<AIDecisionResult> {
+  const ctx = await aiEmailEngine.buildUserContext(email, userId);
+  return aiEmailEngine.decide(ctx, {
+    event: template.toLowerCase(),
+    template,
+    priority: template === 'TRANSACTIONAL' ? 'critical' : template === 'PRICE_DROP' ? 'high' : 'medium',
+    data,
+  });
+}
