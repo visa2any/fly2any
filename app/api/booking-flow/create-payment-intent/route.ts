@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { paymentService } from '@/lib/payments/payment-service';
+import { notifyTelegramAdmins, sendAdminAlert } from '@/lib/notifications/notification-service';
 
 /**
  * Create Payment Intent for Booking Flow
@@ -158,6 +159,43 @@ export async function POST(request: NextRequest) {
 
   } catch (error: any) {
     console.error('❌ [Booking Flow] Payment intent creation error:', error);
+
+    // Get context for alert
+    let alertContext = { customer: 'Unknown', email: 'Unknown', amount: 'Unknown', flight: 'Unknown' };
+    try {
+      const body = await request.clone().json().catch(() => ({}));
+      const passenger = body.passengers?.[0];
+      alertContext = {
+        customer: passenger ? `${passenger.firstName} ${passenger.lastName}` : 'Unknown',
+        email: passenger?.email || 'Unknown',
+        amount: `${body.bookingState?.pricing?.total || '?'} ${body.bookingState?.pricing?.currency || 'USD'}`,
+        flight: `${body.bookingState?.selectedFlight?.airline || ''} ${body.bookingState?.selectedFlight?.flightNumber || ''}`,
+      };
+    } catch {}
+
+    // Send Telegram alert
+    notifyTelegramAdmins(`
+🚨 <b>PAYMENT INTENT FAILED</b>
+
+👤 <b>Customer:</b> ${alertContext.customer}
+📧 <b>Email:</b> ${alertContext.email}
+✈️ <b>Flight:</b> ${alertContext.flight}
+💰 <b>Amount:</b> ${alertContext.amount}
+
+❌ <b>Error:</b> ${error.message || 'Unknown error'}
+
+<i>Customer could not proceed to payment.</i>
+    `.trim()).catch(console.error);
+
+    sendAdminAlert({
+      type: 'payment_intent_failed',
+      customer: alertContext.customer,
+      customerEmail: alertContext.email,
+      amount: alertContext.amount,
+      flight: alertContext.flight,
+      error: error.message,
+      priority: 'high',
+    }).catch(console.error);
 
     return NextResponse.json(
       {

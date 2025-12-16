@@ -5,7 +5,7 @@ import { processBookingForReferralPoints, calculateDefaultCommission } from '@/l
 import { auth } from '@/lib/auth';
 import { getPrismaClient } from '@/lib/prisma';
 import { bookingStorage } from '@/lib/bookings/storage';
-import { notifyNewBooking } from '@/lib/notifications/notification-service';
+import { notifyNewBooking, notifyTelegramAdmins, sendAdminAlert } from '@/lib/notifications/notification-service';
 import { triggerEmailEvent } from '@/lib/email/event-triggers';
 import { campaignEngine } from '@/lib/email/campaign-flows';
 import type { Booking, FlightSegment, Passenger, PaymentInfo, ContactInfo } from '@/lib/bookings/types';
@@ -371,6 +371,50 @@ export async function POST(request: NextRequest) {
 
   } catch (error: any) {
     console.error('❌ [Booking Flow] Confirm booking error:', error);
+
+    // Get context for alert
+    let alertContext = { customer: 'Unknown', email: 'Unknown', phone: 'Unknown', amount: 'Unknown', flight: 'Unknown', paymentId: 'Unknown' };
+    try {
+      const body = await request.clone().json().catch(() => ({}));
+      const passenger = body.passengers?.[0];
+      alertContext = {
+        customer: passenger ? `${passenger.firstName} ${passenger.lastName}` : 'Unknown',
+        email: passenger?.email || 'Unknown',
+        phone: passenger?.phone || 'Unknown',
+        amount: `${body.bookingState?.pricing?.total || '?'} ${body.bookingState?.pricing?.currency || 'USD'}`,
+        flight: `${body.bookingState?.selectedFlight?.airline || ''} ${body.bookingState?.selectedFlight?.flightNumber || ''}`,
+        paymentId: body.paymentIntentId || 'Unknown',
+      };
+    } catch {}
+
+    // Send CRITICAL Telegram alert
+    notifyTelegramAdmins(`
+🚨🚨 <b>BOOKING CONFIRMATION FAILED</b> 🚨🚨
+
+👤 <b>Customer:</b> ${alertContext.customer}
+📧 <b>Email:</b> ${alertContext.email}
+📞 <b>Phone:</b> ${alertContext.phone}
+✈️ <b>Flight:</b> ${alertContext.flight}
+💰 <b>Amount:</b> ${alertContext.amount}
+🔐 <b>Payment ID:</b> <code>${alertContext.paymentId}</code>
+
+❌ <b>Error:</b> ${error.message || 'Unknown error'}
+
+⚠️ <b>ACTION REQUIRED:</b> Customer payment may have been charged but booking failed!
+<i>Please investigate immediately and contact customer.</i>
+    `.trim()).catch(console.error);
+
+    sendAdminAlert({
+      type: 'booking_confirmation_failed',
+      customer: alertContext.customer,
+      customerEmail: alertContext.email,
+      customerPhone: alertContext.phone,
+      amount: alertContext.amount,
+      flight: alertContext.flight,
+      paymentIntentId: alertContext.paymentId,
+      error: error.message,
+      priority: 'critical',
+    }).catch(console.error);
 
     return NextResponse.json(
       {
