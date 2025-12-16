@@ -657,28 +657,28 @@ export default function HotelDetailPage() {
                 {/* Navigation Controls - Simple arrows */}
                 {hotel.images.length > 1 && (
                   <>
-                    {/* Previous Button */}
+                    {/* Previous Button - Always visible on mobile */}
                     <button
                       onClick={(e) => {
                         e.stopPropagation();
                         setSelectedImageIndex((prev) => prev === 0 ? hotel.images.length - 1 : prev - 1);
                       }}
-                      className="absolute left-3 top-1/2 -translate-y-1/2 bg-white/90 hover:bg-white text-gray-800 rounded-full p-2 shadow-lg opacity-0 group-hover:opacity-100 transition-all duration-200 hover:scale-105"
+                      className="absolute left-2 top-1/2 -translate-y-1/2 bg-black/40 hover:bg-black/60 text-white rounded-full p-1.5 shadow-lg transition-all active:scale-95"
                       aria-label="Previous photo"
                     >
-                      <ChevronLeft className="w-5 h-5" />
+                      <ChevronLeft className="w-4 h-4" />
                     </button>
 
-                    {/* Next Button */}
+                    {/* Next Button - Always visible on mobile */}
                     <button
                       onClick={(e) => {
                         e.stopPropagation();
                         setSelectedImageIndex((prev) => prev === hotel.images.length - 1 ? 0 : prev + 1);
                       }}
-                      className="absolute right-3 top-1/2 -translate-y-1/2 bg-white/90 hover:bg-white text-gray-800 rounded-full p-2 shadow-lg opacity-0 group-hover:opacity-100 transition-all duration-200 hover:scale-105"
+                      className="absolute right-2 top-1/2 -translate-y-1/2 bg-black/40 hover:bg-black/60 text-white rounded-full p-1.5 shadow-lg transition-all active:scale-95"
                       aria-label="Next photo"
                     >
-                      <ChevronRight className="w-5 h-5" />
+                      <ChevronRight className="w-4 h-4" />
                     </button>
 
                     {/* Photo Counter - Simple badge */}
@@ -686,26 +686,23 @@ export default function HotelDetailPage() {
                       {selectedImageIndex + 1} / {hotel.images.length}
                     </div>
 
-                    {/* Dot Indicators for quick navigation */}
-                    <div className="absolute bottom-3 left-1/2 -translate-x-1/2 flex gap-1.5">
-                      {hotel.images.slice(0, Math.min(hotel.images.length, 8)).map((_img: any, index: number) => (
+                    {/* Dot Indicators - Compact */}
+                    <div className="absolute bottom-2 left-1/2 -translate-x-1/2 flex gap-1">
+                      {hotel.images.slice(0, Math.min(hotel.images.length, 6)).map((_img: any, index: number) => (
                         <button
                           key={index}
                           onClick={(e) => {
                             e.stopPropagation();
                             setSelectedImageIndex(index);
                           }}
-                          className={`w-1.5 h-1.5 rounded-full transition-all duration-200 ${
+                          className={`rounded-full transition-all ${
                             selectedImageIndex === index
-                              ? 'bg-white w-4'
-                              : 'bg-white/50 hover:bg-white/80'
+                              ? 'w-2.5 h-1 bg-white'
+                              : 'w-1 h-1 bg-white/50'
                           }`}
-                          aria-label={`Go to photo ${index + 1}`}
+                          aria-label={`Photo ${index + 1}`}
                         />
                       ))}
-                      {hotel.images.length > 8 && (
-                        <span className="text-white/80 text-xs ml-1">+{hotel.images.length - 8}</span>
-                      )}
                     </div>
                   </>
                 )}
