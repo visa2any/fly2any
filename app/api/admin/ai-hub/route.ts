@@ -26,6 +26,7 @@ import { getRecentSuites, getFailureTrends, generateTestReport } from '@/lib/ai/
 import { getQueue, getTakeoverAnalytics, assignTakeover, resolveTakeover } from '@/lib/ai/human-takeover';
 import { getPersonalizationStats, getRecentDecisions as getPersonalizationDecisions } from '@/lib/ai/personalization-engine';
 import { getRevenueMetrics, getRecentDecisions as getRevenueDecisions } from '@/lib/ai/revenue-optimization';
+import { getUXDashboard, getRecentSignals, getPrioritizedIssues } from '@/lib/ai/ux-intelligence';
 
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
@@ -124,6 +125,23 @@ export async function GET(request: Request) {
         const metrics = getRevenueMetrics();
         const decisions = getRevenueDecisions(20);
         return NextResponse.json({ metrics, recent_decisions: decisions });
+      }
+
+      case 'ux': {
+        const dashboard = getUXDashboard();
+        return NextResponse.json(dashboard);
+      }
+
+      case 'ux_issues': {
+        const limit = parseInt(searchParams.get('limit') || '20');
+        const issues = getPrioritizedIssues(limit);
+        return NextResponse.json({ issues, count: issues.length });
+      }
+
+      case 'ux_signals': {
+        const limit = parseInt(searchParams.get('limit') || '50');
+        const signals = getRecentSignals(limit);
+        return NextResponse.json({ signals, count: signals.length });
       }
 
       default:
