@@ -103,6 +103,7 @@ export default function AdminSidebar({ role }: AdminSidebarProps) {
       title: 'Growth & AI',
       defaultOpen: true,
       items: [
+        { label: 'AI Hub', href: '/admin/ai-hub', icon: Brain, roles: ['super_admin', 'admin'] },
         { label: 'AI Growth Brain', href: '/admin/growth', icon: Rocket, roles: ['super_admin', 'admin'] },
         { label: 'AI SEO Engine', href: '/admin/ai-seo', icon: Sparkles, roles: ['super_admin', 'admin'] },
         { label: 'AI Analytics', href: '/admin/ai-analytics', icon: Brain },
