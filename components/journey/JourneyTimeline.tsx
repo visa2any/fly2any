@@ -60,15 +60,17 @@ export function JourneyTimeline({
   };
 
   return (
-    <div className="w-full">
-      {/* Timeline Header */}
-      <div className="flex items-center justify-between mb-4">
-        <div className="flex items-center gap-2">
-          <Sparkles className="w-5 h-5 text-[#D63A35]" />
-          <h2 className="text-lg font-semibold text-gray-900">Your Journey</h2>
+    <div className="w-full relative">
+      {/* Timeline Header - Level 6 Apple-Class */}
+      <div className="flex items-center justify-between mb-5">
+        <div className="flex items-center gap-2.5">
+          <div className="w-8 h-8 rounded-xl bg-[#D63A35]/10 flex items-center justify-center">
+            <Sparkles className="w-4 h-4 text-[#D63A35]" />
+          </div>
+          <h2 className="text-lg font-semibold text-gray-900 tracking-tight">Your Journey</h2>
         </div>
-        <span className="text-sm text-gray-500">
-          {journey.duration} days • {journey.origin.code} → {journey.destination.code}
+        <span className="text-sm text-gray-500 font-medium">
+          {journey.duration} days · {journey.origin.code} → {journey.destination.code}
         </span>
       </div>
 
@@ -124,8 +126,8 @@ export function JourneyTimeline({
         ))}
       </div>
 
-      {/* Timeline Connector Visual */}
-      <div className="absolute left-8 top-24 bottom-8 w-0.5 bg-gradient-to-b from-[#D63A35] via-gray-200 to-[#D63A35] hidden lg:block" />
+      {/* Timeline Connector - Subtle */}
+      <div className="absolute left-[27px] top-28 bottom-12 w-px bg-gradient-to-b from-gray-200 via-gray-100 to-gray-200 hidden lg:block pointer-events-none" />
     </div>
   );
 }
@@ -202,20 +204,24 @@ function DayContainer({
 
   return (
     <div
-      className={`bg-white rounded-xl border-2 transition-all duration-200 ${
-        isSelected ? 'border-[#D63A35] shadow-lg' : 'border-gray-100 hover:border-gray-200'
+      className={`bg-white rounded-2xl border transition-all duration-300 ${
+        isSelected
+          ? 'border-[#D63A35]/30 shadow-md shadow-[#D63A35]/5 ring-1 ring-[#D63A35]/10'
+          : 'border-gray-100 hover:border-gray-200 hover:shadow-sm'
       }`}
     >
-      {/* Day Header */}
+      {/* Day Header - Level 6 */}
       <button
         onClick={onToggle}
-        className="w-full px-4 py-3 flex items-center justify-between"
+        className="w-full px-5 py-4 flex items-center justify-between"
       >
-        <div className="flex items-center gap-3">
-          {/* Day Number Circle */}
+        <div className="flex items-center gap-3.5">
+          {/* Day Number - Apple-Class */}
           <div
-            className={`w-10 h-10 rounded-full flex items-center justify-center font-semibold text-sm ${
-              isSelected ? 'bg-[#D63A35] text-white' : 'bg-gray-100 text-gray-700'
+            className={`w-11 h-11 rounded-xl flex items-center justify-center font-semibold text-sm transition-colors ${
+              isSelected
+                ? 'bg-[#D63A35] text-white shadow-sm'
+                : 'bg-gray-50 text-gray-600'
             }`}
           >
             {day.dayNumber}
@@ -223,14 +229,14 @@ function DayContainer({
 
           <div className="text-left">
             <div className="flex items-center gap-2">
-              <span className="font-medium text-gray-900">Day {day.dayNumber}</span>
+              <span className="font-semibold text-gray-900 tracking-tight">Day {day.dayNumber}</span>
               {badge && (
-                <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${badge.color}`}>
+                <span className={`text-[11px] px-2 py-0.5 rounded-md font-medium ${badge.color}`}>
                   {badge.text}
                 </span>
               )}
             </div>
-            <span className="text-sm text-gray-500">{formattedDate}</span>
+            <span className="text-sm text-gray-500 font-medium">{formattedDate}</span>
           </div>
         </div>
 
@@ -271,9 +277,9 @@ function DayContainer({
         </div>
       </button>
 
-      {/* Day Content */}
+      {/* Day Content - Level 6 */}
       {isExpanded && (
-        <div className="px-4 pb-4 space-y-3 border-t border-gray-100 pt-3">
+        <div className="px-5 pb-5 space-y-3 border-t border-gray-50 pt-4">
           {/* Flight Segments */}
           {day.segments
             .filter((s) => s.type === 'outbound-flight' || s.type === 'return-flight')

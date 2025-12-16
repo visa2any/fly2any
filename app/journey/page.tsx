@@ -26,7 +26,6 @@ import {
   Heart,
   Award,
 } from 'lucide-react';
-import { Header } from '@/components/layout/Header';
 
 // Journey Components
 import {
@@ -305,10 +304,7 @@ function JourneyPageContent() {
         />
       )}
 
-      {/* Main Site Header */}
-      <Header />
-
-      {/* Journey Sub-header */}
+      {/* Journey Sub-header - Shows in timeline view */}
       {view === 'timeline' && journey && (
         <div className="sticky top-16 z-40 bg-white/95 backdrop-blur-lg border-b border-gray-200">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -345,55 +341,50 @@ function JourneyPageContent() {
       <main className="w-full">
         {view === 'search' ? (
           <>
-            {/* Hero Section - Full Width */}
-            <section className="relative overflow-hidden w-full">
-              {/* Background Gradient */}
-              <div className="absolute inset-0 bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900" />
-              <div className="absolute inset-0 bg-[url('/grid.svg')] opacity-10" />
-              <div className="absolute top-0 right-0 w-[800px] h-[800px] bg-[#D63A35]/20 rounded-full blur-[150px]" />
-              <div className="absolute bottom-0 left-0 w-[600px] h-[600px] bg-[#E8C52A]/15 rounded-full blur-[120px]" />
+            {/* Hero Section - Level 6 Apple-Class */}
+            <section className="relative overflow-hidden w-full bg-[#0a0a0a]">
+              {/* Subtle Radial Gradient - Single Tone */}
+              <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-gray-800/50 via-gray-900/80 to-[#0a0a0a]" />
+              <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[1000px] h-[600px] bg-[#D63A35]/8 rounded-full blur-[200px]" />
 
-              <div className="relative w-full px-4 sm:px-6 lg:px-8 xl:px-12 pt-12 pb-20 lg:pt-20 lg:pb-32">
-                {/* Badge */}
-                <div className="flex justify-center mb-6">
-                  <div className="inline-flex items-center gap-2 px-4 py-2 bg-white/10 backdrop-blur-sm rounded-full border border-white/20">
-                    <Sparkles className="w-4 h-4 text-[#E8C52A]" />
-                    <span className="text-sm font-medium text-white">
-                      AI-Powered Trip Planning
+              <div className="relative w-full max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 pt-16 pb-20 lg:pt-24 lg:pb-28">
+                {/* Badge - Minimal */}
+                <div className="flex justify-center mb-8">
+                  <div className="inline-flex items-center gap-2 px-3 py-1.5 bg-white/5 backdrop-blur-sm rounded-full border border-white/10">
+                    <Sparkles className="w-3.5 h-3.5 text-[#E8C52A]" />
+                    <span className="text-xs font-medium text-gray-300 tracking-wide">
+                      AI-Powered
                     </span>
                   </div>
                 </div>
 
-                {/* Headline */}
-                <div className="text-center max-w-5xl mx-auto mb-12">
-                  <h1 className="text-4xl sm:text-5xl lg:text-7xl font-bold text-white leading-tight mb-6">
-                    Your Dream Trip,{' '}
-                    <span className="bg-gradient-to-r from-[#E8C52A] to-[#D63A35] bg-clip-text text-transparent">
-                      Intelligently Designed
-                    </span>
+                {/* Headline - Apple-like Restraint */}
+                <div className="text-center max-w-4xl mx-auto mb-10">
+                  <h1 className="text-3xl sm:text-4xl lg:text-5xl font-semibold text-white leading-[1.15] tracking-tight mb-5">
+                    Build your perfect journey
                   </h1>
-                  <p className="text-lg sm:text-xl lg:text-2xl text-gray-300 max-w-3xl mx-auto">
-                    Flights, hotels, and experiences — all perfectly orchestrated into one seamless journey.
+                  <p className="text-base sm:text-lg text-gray-400 max-w-xl mx-auto leading-relaxed">
+                    Flights, hotels, and experiences — intelligently coordinated into one seamless trip.
                   </p>
                 </div>
 
-                {/* Search Form - Full Width Card */}
-                <div className="max-w-5xl mx-auto">
-                  <div className="bg-white rounded-3xl shadow-2xl shadow-black/25 p-6 sm:p-8 lg:p-10">
+                {/* Search Form Card - Refined */}
+                <div className="max-w-4xl mx-auto">
+                  <div className="bg-white rounded-2xl shadow-xl shadow-black/10 p-5 sm:p-6 lg:p-8">
                     <JourneySearchForm onSubmit={handleBuildJourney} isLoading={isBuilding} />
                   </div>
                 </div>
 
-                {/* Trust Indicators */}
-                <div className="flex flex-wrap justify-center gap-6 mt-8">
+                {/* Trust Indicators - Subtle */}
+                <div className="flex flex-wrap justify-center gap-8 mt-10">
                   {[
-                    { icon: Shield, text: 'Best Price Guarantee' },
-                    { icon: Zap, text: 'Instant Confirmation' },
+                    { icon: Shield, text: 'Best Price' },
+                    { icon: Zap, text: 'Instant Booking' },
                     { icon: Heart, text: '24/7 Support' },
                   ].map((item) => (
-                    <div key={item.text} className="flex items-center gap-2 text-gray-400">
-                      <item.icon className="w-4 h-4" />
-                      <span className="text-sm">{item.text}</span>
+                    <div key={item.text} className="flex items-center gap-1.5 text-gray-500">
+                      <item.icon className="w-3.5 h-3.5" />
+                      <span className="text-xs tracking-wide">{item.text}</span>
                     </div>
                   ))}
                 </div>

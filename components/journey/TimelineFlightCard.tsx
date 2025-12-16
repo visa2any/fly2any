@@ -37,13 +37,13 @@ export function TimelineFlightCard({ segment, onClick }: TimelineFlightCardProps
   return (
     <div
       onClick={onClick}
-      className={`relative p-4 rounded-xl border-2 ${
+      className={`relative p-4 rounded-xl border transition-all duration-200 cursor-pointer group ${
         flight?.status === 'booked'
-          ? 'border-green-200 bg-green-50'
+          ? 'border-green-200/60 bg-green-50/50'
           : flight
-          ? 'border-gray-200 bg-white hover:border-[#D63A35] hover:shadow-md'
-          : 'border-dashed border-gray-300 bg-gray-50 hover:border-[#D63A35] hover:bg-red-50'
-      } transition-all cursor-pointer group`}
+          ? 'border-gray-100 bg-white hover:border-gray-200 hover:shadow-sm'
+          : 'border-dashed border-gray-200 bg-gray-50/50 hover:border-[#D63A35]/40 hover:bg-[#D63A35]/5'
+      }`}
     >
       {/* Status Badge */}
       <div className="absolute top-3 right-3">

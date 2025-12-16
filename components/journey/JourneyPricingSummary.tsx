@@ -29,10 +29,10 @@ export function JourneyPricingSummary({
   const hasContent = pricing.flights.subtotal > 0 || pricing.hotels.subtotal > 0;
 
   return (
-    <div className="bg-white rounded-2xl shadow-lg border border-gray-100 overflow-hidden">
-      {/* Header */}
-      <div className="px-5 py-4 bg-gradient-to-r from-gray-50 to-white border-b border-gray-100">
-        <h3 className="font-semibold text-gray-900">Journey Price</h3>
+    <div className="bg-white rounded-2xl shadow-sm border border-gray-100/80 overflow-hidden">
+      {/* Header - Level 6 Apple-Class */}
+      <div className="px-5 py-4 bg-gray-50/50 border-b border-gray-100">
+        <h3 className="font-semibold text-gray-900 tracking-tight">Trip Summary</h3>
       </div>
 
       {/* Price Breakdown */}
@@ -139,29 +139,28 @@ export function JourneyPricingSummary({
           </button>
         )}
 
-        {/* Divider */}
-        <div className="border-t border-gray-200 pt-4">
-          {/* Total */}
-          <div className="flex items-center justify-between">
-            <span className="text-lg font-semibold text-gray-900">Total</span>
-            <span className="text-2xl font-bold text-gray-900">
-              {PricingAggregator.formatPrice(pricing.total, pricing.currency)}
-            </span>
+        {/* Total - Level 6 Apple-Class */}
+        <div className="border-t border-gray-100 pt-4">
+          <div className="flex items-baseline justify-between">
+            <span className="text-sm font-medium text-gray-600">Total</span>
+            <div className="text-right">
+              <span className="text-2xl font-semibold text-gray-900 tracking-tight">
+                {PricingAggregator.formatPrice(pricing.total, pricing.currency)}
+              </span>
+              {pricing.perPerson && totalTravelers > 1 && (
+                <p className="text-xs text-gray-400 mt-0.5">
+                  {PricingAggregator.formatPrice(pricing.perPerson, pricing.currency)}/person
+                </p>
+              )}
+            </div>
           </div>
 
-          {/* Per person */}
-          {pricing.perPerson && totalTravelers > 1 && (
-            <p className="text-sm text-gray-500 text-right mt-1">
-              {PricingAggregator.formatPrice(pricing.perPerson, pricing.currency)} per person
-            </p>
-          )}
-
-          {/* Savings */}
+          {/* Savings - Subtle */}
           {pricing.savings && pricing.savings.amount > 0 && (
-            <div className="flex items-center gap-2 mt-3 p-2 bg-green-50 rounded-lg">
-              <Tag className="w-4 h-4 text-green-600" />
-              <span className="text-sm text-green-700 font-medium">
-                Save {PricingAggregator.formatPrice(pricing.savings.amount, pricing.currency)} vs booking separately
+            <div className="flex items-center gap-2 mt-3 py-2 px-3 bg-green-50/70 rounded-lg">
+              <Tag className="w-3.5 h-3.5 text-green-600" />
+              <span className="text-xs text-green-700 font-medium">
+                Save {PricingAggregator.formatPrice(pricing.savings.amount, pricing.currency)} vs separate booking
               </span>
             </div>
           )}
@@ -178,17 +177,17 @@ export function JourneyPricingSummary({
         )}
       </div>
 
-      {/* Checkout Button */}
+      {/* Checkout Button - Level 6 Apple-Class */}
       <div className="p-5 pt-0">
         <button
           onClick={onCheckout}
           disabled={isCheckoutDisabled || !hasContent}
-          className="w-full h-12 bg-gradient-to-r from-[#D63A35] to-[#C7342F] hover:from-[#C7342F] hover:to-[#B12F2B] text-white font-semibold rounded-xl shadow-lg shadow-red-200 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed disabled:shadow-none"
+          className="w-full h-12 bg-[#D63A35] hover:bg-[#C7342F] text-white font-semibold rounded-xl transition-colors duration-200 disabled:bg-gray-200 disabled:text-gray-400 disabled:cursor-not-allowed"
         >
           Continue to Checkout
         </button>
-        <p className="text-xs text-gray-500 text-center mt-2">
-          Best price guarantee • Free cancellation on select items
+        <p className="text-xs text-gray-400 text-center mt-3">
+          Best price guaranteed · Free cancellation available
         </p>
       </div>
     </div>
