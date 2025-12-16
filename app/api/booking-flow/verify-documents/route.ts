@@ -258,26 +258,65 @@ export async function POST(request: NextRequest) {
 }
 
 /**
- * GET /api/booking-flow/verify-documents?ref=XXX
+ * GET /api/booking-flow/verify-documents?ref=XXX or ?email=XXX
  *
- * Check verification status for a booking
+ * Check verification status for a booking or customer
+ * - ref: Check specific booking verification
+ * - email: Check if customer has ANY verified authorization (can bypass)
  */
 export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
     const bookingReference = searchParams.get('ref');
-
-    if (!bookingReference) {
-      return NextResponse.json(
-        { error: 'Booking reference is required' },
-        { status: 400 }
-      );
-    }
+    const email = searchParams.get('email');
 
     if (!prisma) {
       return NextResponse.json(
         { error: 'Database connection unavailable' },
         { status: 500 }
+      );
+    }
+
+    // Check by email - customer-level verification bypass
+    if (email) {
+      const verifiedAuth = await prisma.cardAuthorization.findFirst({
+        where: {
+          email: email.toLowerCase(),
+          status: 'VERIFIED',
+          cardFrontImage: { not: null },
+          cardBackImage: { not: null },
+          idDocumentImage: { not: null },
+        },
+        select: {
+          bookingReference: true,
+          verifiedAt: true,
+          status: true,
+        },
+        orderBy: { verifiedAt: 'desc' },
+      });
+
+      if (verifiedAuth) {
+        return NextResponse.json({
+          customerVerified: true,
+          canBypass: true,
+          previousBooking: verifiedAuth.bookingReference,
+          verifiedAt: verifiedAuth.verifiedAt,
+          message: 'Customer has verified documents on file',
+        });
+      }
+
+      return NextResponse.json({
+        customerVerified: false,
+        canBypass: false,
+        message: 'Customer needs to complete verification',
+      });
+    }
+
+    // Check by booking reference
+    if (!bookingReference) {
+      return NextResponse.json(
+        { error: 'Booking reference or email is required' },
+        { status: 400 }
       );
     }
 
@@ -290,6 +329,7 @@ export async function GET(request: NextRequest) {
         idDocumentImage: true,
         createdAt: true,
         verifiedAt: true,
+        email: true,
       },
     });
 
@@ -298,6 +338,7 @@ export async function GET(request: NextRequest) {
         verified: false,
         documentsUploaded: false,
         status: 'NOT_STARTED',
+        canBypass: false,
       });
     }
 
@@ -307,12 +348,26 @@ export async function GET(request: NextRequest) {
       authorization.idDocumentImage
     );
 
+    // Also check if customer has verified on another booking
+    let canBypass = authorization.status === 'VERIFIED';
+    if (!canBypass && authorization.email) {
+      const previousVerified = await prisma.cardAuthorization.findFirst({
+        where: {
+          email: authorization.email,
+          status: 'VERIFIED',
+          bookingReference: { not: bookingReference },
+        },
+      });
+      canBypass = !!previousVerified;
+    }
+
     return NextResponse.json({
       verified: authorization.status === 'VERIFIED',
       documentsUploaded,
       status: authorization.status,
       createdAt: authorization.createdAt,
       verifiedAt: authorization.verifiedAt,
+      canBypass,
     });
 
   } catch (error) {

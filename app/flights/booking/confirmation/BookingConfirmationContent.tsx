@@ -488,25 +488,47 @@ export default function BookingConfirmationContent() {
     fetchBooking();
   }, [searchParams]);
 
-  // Fetch verification status
+  // Fetch verification status - check both booking and customer-level
   useEffect(() => {
     const checkVerificationStatus = async () => {
       if (!bookingData?.bookingReference) return;
 
       try {
+        // First check booking-specific verification
         const response = await fetch(`/api/booking-flow/verify-documents?ref=${bookingData.bookingReference}`);
-        if (response.ok) {
-          const data = await response.json();
-          setVerificationStatus(data.status);
+        if (!response.ok) return;
 
-          // Auto-open verification modal if documents not yet uploaded
-          // and booking is recent (within last hour) and not yet verified
-          if (data.status === 'NOT_STARTED' || (data.status === 'PENDING' && !data.documentsUploaded)) {
-            const bookingAge = Date.now() - new Date(bookingData.createdAt).getTime();
-            const isRecent = bookingAge < 60 * 60 * 1000; // 1 hour
-            if (isRecent) {
-              setShowVerificationModal(true);
+        const data = await response.json();
+
+        // Check if customer can bypass (already verified on another booking)
+        if (data.canBypass) {
+          setVerificationStatus('VERIFIED');
+          return; // Skip modal - customer already verified
+        }
+
+        setVerificationStatus(data.status);
+
+        // If not verified by booking, check by customer email
+        if (data.status === 'NOT_STARTED' && bookingData.contactInfo?.email) {
+          const emailCheck = await fetch(`/api/booking-flow/verify-documents?email=${encodeURIComponent(bookingData.contactInfo.email)}`);
+          if (emailCheck.ok) {
+            const emailData = await emailCheck.json();
+            if (emailData.canBypass) {
+              setVerificationStatus('VERIFIED');
+              return; // Customer has verified docs on file - skip modal
             }
+          }
+        }
+
+        // Auto-open verification modal only if:
+        // - Documents not uploaded
+        // - Booking is recent (within last hour)
+        // - Not already verified/pending
+        if (data.status === 'NOT_STARTED' || (data.status === 'PENDING' && !data.documentsUploaded)) {
+          const bookingAge = Date.now() - new Date(bookingData.createdAt).getTime();
+          const isRecent = bookingAge < 60 * 60 * 1000; // 1 hour
+          if (isRecent) {
+            setShowVerificationModal(true);
           }
         }
       } catch (error) {
