@@ -1035,15 +1035,24 @@ export default function EnhancedSearchBar({
   };
 
   const handleHotelSuggestionSelect = (suggestion: any) => {
-    // Build full display name: "City, Country" for proper display
+    // Build full display name: "City, State, Country" for proper disambiguation
     const cityName = suggestion.name?.trim() || suggestion.city?.trim() || '';
+    const stateName = suggestion.state?.trim() || '';
     const countryName = suggestion.country?.trim() || '';
-    const nameValue = cityName && countryName ? `${cityName}, ${countryName}` : cityName;
+
+    // Format: "City, State, Country" or "City, Country" if no state
+    let nameValue = cityName;
+    if (stateName && countryName) {
+      nameValue = `${cityName}, ${stateName}, ${countryName}`;
+    } else if (countryName) {
+      nameValue = `${cityName}, ${countryName}`;
+    }
 
     console.log('🏨 Suggestion selected:', {
       suggestion: suggestion,
       nameValue: nameValue,
       cityName,
+      stateName,
       countryName,
     });
 

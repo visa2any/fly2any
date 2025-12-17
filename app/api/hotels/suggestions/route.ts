@@ -481,11 +481,14 @@ async function searchLiteApiPlaces(query: string): Promise<{ results: CitySugges
     console.log('📍 LiteAPI places response sample:', JSON.stringify(data.slice(0, 2)));
 
     // LiteAPI returns: { placeId, displayName, formattedAddress, types: [] }
-    // Convert to our format - map displayName to name, extract country from formattedAddress
+    // Convert to our format - extract city, state, country from formattedAddress
     const results = data.map((place: any, index: number) => {
       const name = place.displayName || place.textForSearch || place.cityName || '';
       const addressParts = (place.formattedAddress || '').split(',').map((s: string) => s.trim());
+
+      // Extract: City, State/Region, Country from address parts
       const country = addressParts[addressParts.length - 1] || place.countryName || '';
+      const state = addressParts.length >= 3 ? addressParts[addressParts.length - 2] : '';
       const city = addressParts[0] || name;
       const type = mapPlaceType(place.types?.[0] || place.type || 'city');
 
@@ -497,10 +500,14 @@ async function searchLiteApiPlaces(query: string): Promise<{ results: CitySugges
       const flag = countryCode ? countryCodeToFlag(countryCode) : '🌍';
       const continent = deriveContinent(country);
 
+      // Get state abbreviation for cleaner display
+      const stateAbbr = getStateAbbreviation(state, countryCode);
+
       return {
         id: `liteapi-${place.placeId || index}`,
         name,
         city,
+        state: stateAbbr || state, // Use abbreviation if available
         country,
         countryCode,
         continent,
@@ -698,6 +705,58 @@ function deriveCountryCode(country: string): string {
 
   const normalized = country.toLowerCase().trim();
   return countryMap[normalized] || 'XX'; // XX for unknown
+}
+
+/**
+ * Get state/province abbreviation from full name
+ * Supports US states and Brazilian states
+ */
+function getStateAbbreviation(state: string, countryCode: string): string {
+  if (!state) return '';
+  const normalized = state.toLowerCase().trim();
+
+  // US States
+  const usStates: Record<string, string> = {
+    'alabama': 'AL', 'alaska': 'AK', 'arizona': 'AZ', 'arkansas': 'AR',
+    'california': 'CA', 'colorado': 'CO', 'connecticut': 'CT', 'delaware': 'DE',
+    'florida': 'FL', 'georgia': 'GA', 'hawaii': 'HI', 'idaho': 'ID',
+    'illinois': 'IL', 'indiana': 'IN', 'iowa': 'IA', 'kansas': 'KS',
+    'kentucky': 'KY', 'louisiana': 'LA', 'maine': 'ME', 'maryland': 'MD',
+    'massachusetts': 'MA', 'michigan': 'MI', 'minnesota': 'MN', 'mississippi': 'MS',
+    'missouri': 'MO', 'montana': 'MT', 'nebraska': 'NE', 'nevada': 'NV',
+    'new hampshire': 'NH', 'new jersey': 'NJ', 'new mexico': 'NM', 'new york': 'NY',
+    'north carolina': 'NC', 'north dakota': 'ND', 'ohio': 'OH', 'oklahoma': 'OK',
+    'oregon': 'OR', 'pennsylvania': 'PA', 'rhode island': 'RI', 'south carolina': 'SC',
+    'south dakota': 'SD', 'tennessee': 'TN', 'texas': 'TX', 'utah': 'UT',
+    'vermont': 'VT', 'virginia': 'VA', 'washington': 'WA', 'west virginia': 'WV',
+    'wisconsin': 'WI', 'wyoming': 'WY', 'district of columbia': 'DC',
+  };
+
+  // Brazilian States
+  const brStates: Record<string, string> = {
+    'acre': 'AC', 'alagoas': 'AL', 'amapá': 'AP', 'amapa': 'AP', 'amazonas': 'AM',
+    'bahia': 'BA', 'ceará': 'CE', 'ceara': 'CE', 'distrito federal': 'DF',
+    'espírito santo': 'ES', 'espirito santo': 'ES', 'goiás': 'GO', 'goias': 'GO',
+    'maranhão': 'MA', 'maranhao': 'MA', 'mato grosso': 'MT', 'mato grosso do sul': 'MS',
+    'minas gerais': 'MG', 'pará': 'PA', 'para': 'PA', 'paraíba': 'PB', 'paraiba': 'PB',
+    'paraná': 'PR', 'parana': 'PR', 'pernambuco': 'PE', 'piauí': 'PI', 'piaui': 'PI',
+    'rio de janeiro': 'RJ', 'rio grande do norte': 'RN', 'rio grande do sul': 'RS',
+    'rondônia': 'RO', 'rondonia': 'RO', 'roraima': 'RR', 'santa catarina': 'SC',
+    'são paulo': 'SP', 'sao paulo': 'SP', 'sergipe': 'SE', 'tocantins': 'TO',
+  };
+
+  // Try US states first if country is US
+  if (countryCode === 'US' && usStates[normalized]) {
+    return usStates[normalized];
+  }
+
+  // Try Brazilian states if country is BR
+  if (countryCode === 'BR' && brStates[normalized]) {
+    return brStates[normalized];
+  }
+
+  // Check both maps for any match
+  return usStates[normalized] || brStates[normalized] || '';
 }
 
 /**

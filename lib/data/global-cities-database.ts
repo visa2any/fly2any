@@ -14,6 +14,7 @@ export interface CityDestination {
   id: string;
   name: string;
   city: string;
+  state?: string; // State/Province abbreviation (e.g., "FL", "CA", "SP")
   country: string;
   countryCode: string; // ISO 2-letter code for flag
   continent: 'North America' | 'South America' | 'Europe' | 'Asia' | 'Africa' | 'Oceania' | 'Middle East' | 'Caribbean';
