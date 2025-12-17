@@ -118,7 +118,10 @@ function TourResultsContent() {
         {!loading && tours.length > 0 && (
           <div className="py-4 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
             {tours.map((tour) => {
-              const price = tour.price?.amount ? parseFloat(tour.price.amount) : null;
+              // Apply 35% markup with $35 minimum
+              const basePrice = tour.price?.amount ? parseFloat(tour.price.amount) : null;
+              const markup = basePrice ? Math.max(basePrice * 0.35, 35) : null;
+              const price = basePrice && markup ? basePrice + markup : null;
               const img = tour.pictures?.[0] || 'https://images.unsplash.com/photo-1469474968028-56623f02e42e?w=600&q=80';
               return (
                 <div key={tour.id} className="bg-white rounded-xl border border-gray-100 overflow-hidden shadow-sm hover:shadow-md transition-all group">

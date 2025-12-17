@@ -117,7 +117,10 @@ function ActivityResultsContent() {
         {!loading && activities.length > 0 && (
           <div className="py-4 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
             {activities.map((activity) => {
-              const price = activity.price?.amount ? parseFloat(activity.price.amount) : null;
+              // Apply 35% markup with $35 minimum
+              const basePrice = activity.price?.amount ? parseFloat(activity.price.amount) : null;
+              const markup = basePrice ? Math.max(basePrice * 0.35, 35) : null;
+              const price = basePrice && markup ? basePrice + markup : null;
               const img = activity.pictures?.[0] || 'https://images.unsplash.com/photo-1682687220742-aba13b6e50ba?w=600&q=80';
               return (
                 <div key={activity.id} className="bg-white rounded-xl border border-gray-100 overflow-hidden shadow-sm hover:shadow-md transition-all group">
