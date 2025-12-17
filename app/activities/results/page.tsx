@@ -6,10 +6,10 @@ import Image from 'next/image';
 import { MaxWidthContainer } from '@/components/layout/MaxWidthContainer';
 import {
   Star, Clock, Users, MapPin, Heart, Loader2, ArrowLeft,
-  SlidersHorizontal, ChevronDown, Globe
+  SlidersHorizontal, Globe, Sparkles
 } from 'lucide-react';
 
-interface Tour {
+interface Activity {
   id: string;
   name: string;
   description?: string;
@@ -20,7 +20,6 @@ interface Tour {
   geoCode?: { latitude: number; longitude: number };
 }
 
-// City coordinates for search
 const CITY_COORDS: Record<string, { lat: number; lng: number; name: string }> = {
   paris: { lat: 48.8566, lng: 2.3522, name: 'Paris' },
   rome: { lat: 41.9028, lng: 12.4964, name: 'Rome' },
@@ -29,13 +28,13 @@ const CITY_COORDS: Record<string, { lat: number; lng: number; name: string }> = 
   newyork: { lat: 40.7128, lng: -74.0060, name: 'New York' },
   tokyo: { lat: 35.6762, lng: 139.6503, name: 'Tokyo' },
   dubai: { lat: 25.2048, lng: 55.2708, name: 'Dubai' },
-  lisbon: { lat: 38.7223, lng: -9.1393, name: 'Lisbon' },
+  bali: { lat: -8.3405, lng: 115.0920, name: 'Bali' },
 };
 
-function TourResultsContent() {
+function ActivityResultsContent() {
   const searchParams = useSearchParams();
   const router = useRouter();
-  const [tours, setTours] = useState<Tour[]>([]);
+  const [activities, setActivities] = useState<Activity[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
 
@@ -45,22 +44,22 @@ function TourResultsContent() {
   const cityName = CITY_COORDS[destination.toLowerCase()]?.name || destination;
 
   useEffect(() => {
-    const fetchTours = async () => {
+    const fetchActivities = async () => {
       setLoading(true);
       setError('');
       try {
-        const res = await fetch(`/api/activities/search?latitude=${lat}&longitude=${lng}&radius=15&type=tours`);
+        const res = await fetch(`/api/activities/search?latitude=${lat}&longitude=${lng}&radius=15&type=activities`);
         const data = await res.json();
         if (data.error) throw new Error(data.error);
-        setTours(data.data || []);
+        setActivities(data.data || []);
       } catch (err: any) {
-        setError(err.message || 'Failed to load tours');
-        setTours([]);
+        setError(err.message || 'Failed to load activities');
+        setActivities([]);
       } finally {
         setLoading(false);
       }
     };
-    fetchTours();
+    fetchActivities();
   }, [lat, lng]);
 
   return (
@@ -74,8 +73,8 @@ function TourResultsContent() {
                 <ArrowLeft className="w-5 h-5 text-gray-600" />
               </button>
               <div>
-                <h1 className="text-lg font-bold text-gray-900">Tours in {cityName}</h1>
-                <p className="text-xs text-gray-500">{loading ? 'Searching...' : `${tours.length} tours found`}</p>
+                <h1 className="text-lg font-bold text-gray-900">Activities in {cityName}</h1>
+                <p className="text-xs text-gray-500">{loading ? 'Searching...' : `${activities.length} activities found`}</p>
               </div>
             </div>
             <button className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-gray-100 text-gray-700 text-sm font-medium hover:bg-gray-200 transition-colors">
@@ -89,8 +88,8 @@ function TourResultsContent() {
         {/* Loading */}
         {loading && (
           <div className="flex flex-col items-center justify-center py-20">
-            <Loader2 className="w-8 h-8 text-orange-500 animate-spin mb-3" />
-            <p className="text-gray-600 font-medium">Finding tours in {cityName}...</p>
+            <Loader2 className="w-8 h-8 text-purple-500 animate-spin mb-3" />
+            <p className="text-gray-600 font-medium">Finding activities in {cityName}...</p>
           </div>
         )}
 
@@ -102,23 +101,24 @@ function TourResultsContent() {
           </div>
         )}
 
-        {/* Results Grid */}
-        {!loading && !error && tours.length === 0 && (
+        {/* Empty */}
+        {!loading && !error && activities.length === 0 && (
           <div className="text-center py-16">
-            <Globe className="w-12 h-12 text-gray-300 mx-auto mb-3" />
-            <p className="text-gray-500">No tours found in {cityName}</p>
+            <Sparkles className="w-12 h-12 text-gray-300 mx-auto mb-3" />
+            <p className="text-gray-500">No activities found in {cityName}</p>
           </div>
         )}
 
-        {!loading && tours.length > 0 && (
+        {/* Results Grid */}
+        {!loading && activities.length > 0 && (
           <div className="py-4 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
-            {tours.map((tour) => {
-              const price = tour.price?.amount ? parseFloat(tour.price.amount) : null;
-              const img = tour.pictures?.[0] || 'https://images.unsplash.com/photo-1469474968028-56623f02e42e?w=600&q=80';
+            {activities.map((activity) => {
+              const price = activity.price?.amount ? parseFloat(activity.price.amount) : null;
+              const img = activity.pictures?.[0] || 'https://images.unsplash.com/photo-1682687220742-aba13b6e50ba?w=600&q=80';
               return (
-                <div key={tour.id} className="bg-white rounded-xl border border-gray-100 overflow-hidden shadow-sm hover:shadow-md transition-all group">
+                <div key={activity.id} className="bg-white rounded-xl border border-gray-100 overflow-hidden shadow-sm hover:shadow-md transition-all group">
                   <div className="relative aspect-[16/10] overflow-hidden">
-                    <Image src={img} alt={tour.name} fill className="object-cover group-hover:scale-105 transition-transform duration-500" />
+                    <Image src={img} alt={activity.name} fill className="object-cover group-hover:scale-105 transition-transform duration-500" />
                     <button className="absolute top-2 right-2 w-7 h-7 rounded-full bg-white/90 backdrop-blur flex items-center justify-center hover:bg-white">
                       <Heart className="w-3.5 h-3.5 text-gray-600" />
                     </button>
@@ -130,15 +130,15 @@ function TourResultsContent() {
                     )}
                   </div>
                   <div className="p-2.5">
-                    <h3 className="font-semibold text-gray-900 text-sm line-clamp-2 mb-1.5 group-hover:text-orange-600 transition-colors leading-tight">
-                      {tour.name}
+                    <h3 className="font-semibold text-gray-900 text-sm line-clamp-2 mb-1.5 group-hover:text-purple-600 transition-colors leading-tight">
+                      {activity.name}
                     </h3>
                     <div className="flex items-center gap-2 text-[10px] text-gray-500">
-                      <span className="flex items-center gap-0.5"><Star className="w-3 h-3 fill-amber-400 text-amber-400" />4.8</span>
-                      <span className="flex items-center gap-0.5"><Clock className="w-3 h-3" />{tour.minimumDuration || '3h'}</span>
-                      <span className="flex items-center gap-0.5"><Users className="w-3 h-3" />Small</span>
+                      <span className="flex items-center gap-0.5"><Star className="w-3 h-3 fill-amber-400 text-amber-400" />4.7</span>
+                      <span className="flex items-center gap-0.5"><Clock className="w-3 h-3" />{activity.minimumDuration || '2h'}</span>
+                      <span className="flex items-center gap-0.5"><MapPin className="w-3 h-3" />{cityName}</span>
                     </div>
-                    <button className="w-full mt-2 py-1.5 rounded-lg bg-orange-50 text-orange-600 font-semibold text-xs hover:bg-orange-100 transition-colors">
+                    <button className="w-full mt-2 py-1.5 rounded-lg bg-purple-50 text-purple-600 font-semibold text-xs hover:bg-purple-100 transition-colors">
                       View Details
                     </button>
                   </div>
@@ -152,10 +152,14 @@ function TourResultsContent() {
   );
 }
 
-export default function TourResultsPage() {
+export default function ActivityResultsPage() {
   return (
-    <Suspense fallback={<div className="min-h-screen flex items-center justify-center"><span className="text-6xl">🗺️</span></div>}>
-      <TourResultsContent />
+    <Suspense fallback={
+      <div className="min-h-screen flex items-center justify-center">
+        <Loader2 className="w-8 h-8 text-purple-500 animate-spin" />
+      </div>
+    }>
+      <ActivityResultsContent />
     </Suspense>
   );
 }
