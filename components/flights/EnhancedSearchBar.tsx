@@ -1035,13 +1035,16 @@ export default function EnhancedSearchBar({
   };
 
   const handleHotelSuggestionSelect = (suggestion: any) => {
-    const nameValue = suggestion.name?.trim() || suggestion.city?.trim() || '';
+    // Build full display name: "City, Country" for proper display
+    const cityName = suggestion.name?.trim() || suggestion.city?.trim() || '';
+    const countryName = suggestion.country?.trim() || '';
+    const nameValue = cityName && countryName ? `${cityName}, ${countryName}` : cityName;
 
     console.log('🏨 Suggestion selected:', {
       suggestion: suggestion,
       nameValue: nameValue,
-      suggestion_name: suggestion.name,
-      suggestion_city: suggestion.city,
+      cityName,
+      countryName,
     });
 
     if (!nameValue) {
@@ -1066,8 +1069,8 @@ export default function EnhancedSearchBar({
 
     setHotelLocation(hasValidCoords ? { lat, lng } : null);
     setSelectedDestinationDetails({
-      name: nameValue,
-      country: suggestion.country || '',
+      name: cityName, // Store original city name for API queries
+      country: countryName,
       emoji: suggestion.emoji,
       type: suggestion.type || 'city',
       categories: suggestion.categories,
