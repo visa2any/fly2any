@@ -1251,17 +1251,23 @@ export default function EnhancedSearchBar({
             <span className="text-[13px] sm:text-sm tracking-tight">{t('hotels')}</span>
           </button>
 
-          {/* Cars Tab - with NEW badge */}
+          {/* Cars Tab - COMING SOON */}
           <button
             type="button"
-            onClick={() => router.push('/cars')}
-            className="flex items-center gap-2 px-4 py-2.5 min-h-[44px] text-sm font-semibold transition-all duration-300 relative flex-shrink-0 whitespace-nowrap touch-manipulation rounded-xl text-neutral-600 hover:text-neutral-900 hover:bg-white/50 active:scale-95"
+            onClick={() => {
+              if (typeof window !== 'undefined') {
+                const toast = document.createElement('div');
+                toast.className = 'fixed top-4 left-1/2 -translate-x-1/2 bg-neutral-900 text-white px-5 py-3 rounded-2xl shadow-2xl z-50 animate-fade-in flex items-center gap-2 text-sm font-medium';
+                toast.innerHTML = '<span class="text-lg">🚗</span> Car Rentals coming soon!';
+                document.body.appendChild(toast);
+                setTimeout(() => toast.remove(), 2500);
+              }
+            }}
+            className="flex items-center gap-1.5 px-3 py-2.5 text-sm font-medium transition-all duration-300 relative text-neutral-400 hover:text-neutral-500 cursor-pointer flex-shrink-0 whitespace-nowrap rounded-xl hover:bg-white/30 active:scale-95"
           >
-            <div className="p-1.5 rounded-lg transition-colors duration-300 bg-blue-100/80">
-              <Car size={14} className="text-blue-600" />
-            </div>
-            <span className="text-[13px] sm:text-sm tracking-tight">{t('cars')}</span>
-            <span className="text-[8px] bg-gradient-to-r from-green-500 to-emerald-500 text-white px-1.5 py-0.5 rounded-full font-bold leading-none shadow-sm">New</span>
+            <Car size={13} className="text-neutral-400" />
+            <span className="text-xs tracking-tight">{t('cars')}</span>
+            <span className="text-[8px] bg-gradient-to-r from-amber-400 to-orange-400 text-white px-1.5 py-0.5 rounded-full font-bold leading-none shadow-sm">Soon</span>
           </button>
 
           {/* Tours Tab - with NEW badge */}
@@ -1321,17 +1327,23 @@ export default function EnhancedSearchBar({
             <span className="text-[8px] bg-gradient-to-r from-green-500 to-emerald-500 text-white px-1.5 py-0.5 rounded-full font-bold leading-none shadow-sm">New</span>
           </button>
 
-          {/* Journey Tab - AI Trip Builder (with NEW badge) */}
+          {/* Journey Tab - AI Trip Builder (COMING SOON) */}
           <button
             type="button"
-            onClick={() => router.push('/journey')}
-            className="flex items-center gap-2 px-4 py-2.5 min-h-[44px] text-sm font-semibold transition-all duration-300 relative flex-shrink-0 whitespace-nowrap touch-manipulation rounded-xl text-neutral-600 hover:text-neutral-900 hover:bg-white/50 active:scale-95"
+            onClick={() => {
+              if (typeof window !== 'undefined') {
+                const toast = document.createElement('div');
+                toast.className = 'fixed top-4 left-1/2 -translate-x-1/2 bg-neutral-900 text-white px-5 py-3 rounded-2xl shadow-2xl z-50 animate-fade-in flex items-center gap-2 text-sm font-medium';
+                toast.innerHTML = '<span class="text-lg">✨</span> AI Journey Builder coming soon!';
+                document.body.appendChild(toast);
+                setTimeout(() => toast.remove(), 2500);
+              }
+            }}
+            className="flex items-center gap-1.5 px-3 py-2.5 text-sm font-medium transition-all duration-300 relative text-neutral-400 hover:text-neutral-500 cursor-pointer flex-shrink-0 whitespace-nowrap rounded-xl hover:bg-white/30 active:scale-95"
           >
-            <div className="p-1.5 rounded-lg bg-gradient-to-br from-primary-100/80 to-amber-100/80">
-              <Sparkles size={14} className="text-primary-500" />
-            </div>
-            <span className="text-[13px] sm:text-sm tracking-tight bg-gradient-to-r from-primary-600 to-amber-500 bg-clip-text text-transparent font-bold">Journey</span>
-            <span className="text-[8px] bg-gradient-to-r from-green-500 to-emerald-500 text-white px-1.5 py-0.5 rounded-full font-bold leading-none shadow-sm">New</span>
+            <Sparkles size={13} className="text-neutral-400" />
+            <span className="text-xs tracking-tight">Journey</span>
+            <span className="text-[8px] bg-gradient-to-r from-amber-400 to-orange-400 text-white px-1.5 py-0.5 rounded-full font-bold leading-none shadow-sm">Soon</span>
           </button>
 
           {/* Packages Tab - COMING SOON */}
@@ -3355,8 +3367,8 @@ export default function EnhancedSearchBar({
               </label>
               <input
                 type="date"
-                value={hotelCheckIn}
-                onChange={(e) => setHotelCheckIn(e.target.value)}
+                value={checkInDate}
+                onChange={(e) => setCheckInDate(e.target.value)}
                 min={minDate}
                 className="w-full px-4 py-4 bg-white border border-gray-300 rounded-lg hover:border-orange-500 focus:outline-none focus:ring-2 focus:ring-orange-500 transition-all text-sm font-medium"
               />
@@ -3390,7 +3402,7 @@ export default function EnhancedSearchBar({
                   setIsLoading(true);
                   const params = new URLSearchParams({
                     destination: hotelDestination,
-                    date: hotelCheckIn || minDate,
+                    date: checkInDate || minDate,
                     travelers: hotelAdults.toString(),
                     ...(selectedDestinationDetails?.lat && { lat: selectedDestinationDetails.lat.toString() }),
                     ...(selectedDestinationDetails?.lng && { lng: selectedDestinationDetails.lng.toString() }),
@@ -3507,8 +3519,8 @@ export default function EnhancedSearchBar({
               </label>
               <input
                 type="date"
-                value={hotelCheckIn}
-                onChange={(e) => setHotelCheckIn(e.target.value)}
+                value={checkInDate}
+                onChange={(e) => setCheckInDate(e.target.value)}
                 min={minDate}
                 className="w-full px-4 py-4 bg-white border border-gray-300 rounded-lg hover:border-purple-500 focus:outline-none focus:ring-2 focus:ring-purple-500 transition-all text-sm font-medium"
               />
@@ -3542,7 +3554,7 @@ export default function EnhancedSearchBar({
                   setIsLoading(true);
                   const params = new URLSearchParams({
                     destination: hotelDestination,
-                    date: hotelCheckIn || minDate,
+                    date: checkInDate || minDate,
                     participants: hotelAdults.toString(),
                     ...(selectedDestinationDetails?.lat && { lat: selectedDestinationDetails.lat.toString() }),
                     ...(selectedDestinationDetails?.lng && { lng: selectedDestinationDetails.lng.toString() }),
