@@ -45,6 +45,9 @@ interface EnhancedSearchBarProps {
   
   // Callbacks
   onSearchSubmit?: () => void;  // Called when search is submitted (for mobile auto-collapse)
+
+  // Layout options
+  hideTabs?: boolean;  // Hide the service tabs (for Journey page)
 }
 
 interface Airport {
@@ -176,6 +179,7 @@ export default function EnhancedSearchBar({
   lang = 'en',
   defaultService = 'flights',
   onSearchSubmit,
+  hideTabs = false,
 }: EnhancedSearchBarProps) {
   const t = useTranslations('FlightSearch');
   const router = useRouter();
@@ -1098,7 +1102,9 @@ export default function EnhancedSearchBar({
             SERVICE TYPE TABS - Apple-Class Pill Style
             Fixed ordering for hydration compatibility
             Mobile: Horizontally scrollable with touch support
+            Can be hidden via hideTabs prop (for Journey page)
             ============================================ */}
+        {!hideTabs && (
         <div
           className="mobile-scroll-x mb-4 p-1.5 bg-neutral-100/80 backdrop-blur-sm rounded-2xl gap-1.5 md:gap-2"
           style={{ WebkitOverflowScrolling: 'touch' }}
@@ -1238,6 +1244,7 @@ export default function EnhancedSearchBar({
             <span className="text-[8px] bg-gradient-to-r from-amber-400 to-orange-400 text-white px-1.5 py-0.5 rounded-full font-bold leading-none shadow-sm">Soon</span>
           </button>
         </div>
+        )}
 
         {/* Desktop: Clean Single-line Layout */}
         <div className="hidden lg:block">

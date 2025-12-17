@@ -32,6 +32,8 @@ interface MobileHomeSearchWrapperProps {
   defaultService?: 'flights' | 'hotels' | 'cars' | 'tours' | 'activities' | 'packages' | 'insurance';
   /** Callback when search is submitted (triggers auto-collapse on mobile) */
   onSearch?: () => void;
+  /** Hide the service tabs (for Journey page) */
+  hideTabs?: boolean;
 }
 
 type ViewState = 'collapsed' | 'expanded' | 'hidden';
@@ -67,6 +69,7 @@ export function MobileHomeSearchWrapper({
   lang = 'en',
   defaultService = 'flights',
   onSearch,
+  hideTabs = false,
 }: MobileHomeSearchWrapperProps) {
   // CRITICAL: Only render mobile UI after hydration to prevent SSR/CSR mismatch
   const hasMounted = useHasMounted();
@@ -234,6 +237,7 @@ export function MobileHomeSearchWrapper({
         cabinClass={cabinClass}
         lang={lang}
         defaultService={defaultService}
+        hideTabs={hideTabs}
       />
     );
   }
@@ -321,6 +325,7 @@ export function MobileHomeSearchWrapper({
                 lang={lang}
                 defaultService={defaultService}
                 onSearchSubmit={handleSearchSubmit}
+                hideTabs={hideTabs}
               />
             </div>
 

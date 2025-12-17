@@ -4,6 +4,7 @@
  * Journey Page - AI-Powered Trip Builder
  * Fly2Any Travel Operating System
  * Level 6 Ultra-Premium / Apple-Class
+ * SAME PATTERN AS FLIGHTS/HOTELS PAGE
  */
 
 import React, { useState, useCallback, useEffect } from 'react';
@@ -14,10 +15,6 @@ import {
   Plane,
   Building2,
   Map,
-  Calendar,
-  Users,
-  Shield,
-  Zap,
   Clock,
   DollarSign,
   CheckCircle2,
@@ -28,19 +25,20 @@ import {
   Palmtree,
   Mountain,
   Compass,
-  TrendingUp,
+  Shield,
   Award,
   ChevronRight,
-  Play,
 } from 'lucide-react';
 
-// Layout
+// Layout - SAME AS FLIGHTS PAGE
 import { MaxWidthContainer } from '@/components/layout/MaxWidthContainer';
+import { MobileHomeSearchWrapper } from '@/components/home/MobileHomeSearchWrapper';
 import { CompactTrustBar } from '@/components/conversion/CompactTrustBar';
+import { RecentlyViewedSection } from '@/components/home/RecentlyViewedSection';
+import { useLanguage } from '@/lib/i18n/client';
 
 // Journey Components
 import {
-  JourneySearchForm,
   JourneyTimeline,
   JourneyPricingSummary,
   JourneyOnboarding,
@@ -69,39 +67,6 @@ import {
 } from '@/lib/journey';
 
 // ============================================================================
-// ANIMATED TITLE COMPONENT
-// ============================================================================
-
-function AnimatedJourneyTitle() {
-  return (
-    <div className="text-center mb-8">
-      {/* AI Badge */}
-      <div className="inline-flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-primary-50 to-amber-50 rounded-full border border-primary-100 mb-6">
-        <div className="w-5 h-5 rounded-full bg-gradient-to-br from-primary-500 to-amber-500 flex items-center justify-center">
-          <Sparkles className="w-3 h-3 text-white" />
-        </div>
-        <span className="text-sm font-semibold bg-gradient-to-r from-primary-600 to-amber-600 bg-clip-text text-transparent">
-          AI-Powered Trip Planning
-        </span>
-      </div>
-
-      {/* Main Title with Animation */}
-      <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold text-neutral-900 tracking-tight mb-4">
-        <span className="inline-block animate-fade-in-up">Build My</span>{' '}
-        <span className="inline-block animate-fade-in-up animation-delay-100 bg-gradient-to-r from-primary-600 via-primary-500 to-amber-500 bg-clip-text text-transparent bg-[length:200%_auto] animate-gradient-x">
-          Journey
-        </span>
-      </h1>
-
-      {/* Subtitle */}
-      <p className="text-lg sm:text-xl text-neutral-600 max-w-2xl mx-auto leading-relaxed">
-        Flights, hotels, and experiences — intelligently coordinated into one seamless trip
-      </p>
-    </div>
-  );
-}
-
-// ============================================================================
 // JOURNEY PREVIEW SHOWCASE
 // ============================================================================
 
@@ -113,79 +78,47 @@ function JourneyPreviewShowcase() {
   ];
 
   return (
-    <div className="relative bg-gradient-to-br from-neutral-50 to-neutral-100/50 rounded-3xl p-6 sm:p-8 border border-neutral-200/60 overflow-hidden">
-      {/* Decorative Elements */}
-      <div className="absolute top-0 right-0 w-64 h-64 bg-gradient-to-br from-primary-500/5 to-amber-500/5 rounded-full blur-3xl" />
-      <div className="absolute bottom-0 left-0 w-48 h-48 bg-gradient-to-tr from-blue-500/5 to-purple-500/5 rounded-full blur-3xl" />
+    <div className="relative bg-gradient-to-br from-neutral-50 to-neutral-100/50 rounded-2xl p-4 sm:p-6 border border-neutral-200/60 overflow-hidden">
+      <div className="absolute top-0 right-0 w-48 h-48 bg-gradient-to-br from-primary-500/5 to-amber-500/5 rounded-full blur-3xl" />
 
       <div className="relative">
-        {/* Header */}
-        <div className="flex items-center justify-between mb-6">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-primary-500 to-amber-500 flex items-center justify-center shadow-lg shadow-primary-500/20">
-              <Sparkles className="w-5 h-5 text-white" />
+        <div className="flex items-center justify-between mb-4">
+          <div className="flex items-center gap-2">
+            <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-primary-500 to-amber-500 flex items-center justify-center">
+              <Sparkles className="w-4 h-4 text-white" />
             </div>
             <div>
-              <h3 className="font-semibold text-neutral-900">Sample Journey</h3>
-              <p className="text-sm text-neutral-500">Paris Weekend Escape</p>
+              <h3 className="font-semibold text-neutral-900 text-sm">Sample Journey</h3>
+              <p className="text-xs text-neutral-500">Paris Weekend</p>
             </div>
           </div>
-          <div className="flex items-center gap-2 px-3 py-1.5 bg-green-50 rounded-full">
-            <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
-            <span className="text-xs font-medium text-green-700">AI Generated</span>
-          </div>
+          <span className="text-xs px-2 py-1 bg-green-50 text-green-700 rounded-full font-medium">AI Generated</span>
         </div>
 
-        {/* Timeline Preview */}
-        <div className="space-y-3">
-          {previewDays.map((day, idx) => (
-            <div
-              key={day.day}
-              className="flex gap-4 p-4 bg-white rounded-2xl border border-neutral-100 shadow-sm hover:shadow-md transition-shadow group"
-              style={{ animationDelay: `${idx * 150}ms` }}
-            >
-              {/* Day Number */}
-              <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-primary-500 to-primary-600 flex items-center justify-center text-white font-bold shadow-sm flex-shrink-0">
+        <div className="space-y-2">
+          {previewDays.map((day) => (
+            <div key={day.day} className="flex gap-3 p-3 bg-white rounded-xl border border-neutral-100">
+              <div className="w-9 h-9 rounded-lg bg-primary-500 flex items-center justify-center text-white font-bold text-sm flex-shrink-0">
                 {day.day}
               </div>
-
-              {/* Day Items */}
-              <div className="flex-1 flex flex-wrap items-center gap-2">
+              <div className="flex-1 flex flex-wrap items-center gap-1.5">
                 {day.items.map((item, i) => (
-                  <span
-                    key={i}
-                    className="px-3 py-1.5 bg-neutral-50 rounded-lg text-sm text-neutral-700 border border-neutral-100"
-                  >
-                    {item}
-                  </span>
+                  <span key={i} className="px-2 py-1 bg-neutral-50 rounded text-xs text-neutral-700">{item}</span>
                 ))}
               </div>
-
-              {/* Arrow */}
-              <ChevronRight className="w-5 h-5 text-neutral-300 group-hover:text-primary-500 transition-colors flex-shrink-0 self-center" />
             </div>
           ))}
         </div>
 
-        {/* Bottom Stats */}
-        <div className="flex items-center justify-between mt-6 pt-6 border-t border-neutral-200">
-          <div className="flex items-center gap-6">
-            <div className="flex items-center gap-2">
-              <Plane className="w-4 h-4 text-primary-500" />
-              <span className="text-sm text-neutral-600">2 Flights</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <Building2 className="w-4 h-4 text-primary-500" />
-              <span className="text-sm text-neutral-600">2 Nights</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <Sparkles className="w-4 h-4 text-amber-500" />
-              <span className="text-sm text-neutral-600">5 Experiences</span>
-            </div>
+        <div className="flex items-center justify-between mt-4 pt-4 border-t border-neutral-200">
+          <div className="flex items-center gap-4 text-xs text-neutral-500">
+            <span className="flex items-center gap-1"><Plane className="w-3 h-3" /> 2 Flights</span>
+            <span className="flex items-center gap-1"><Building2 className="w-3 h-3" /> 2 Nights</span>
+            <span className="flex items-center gap-1"><Sparkles className="w-3 h-3 text-amber-500" /> 5 Exp</span>
           </div>
           <div className="text-right">
-            <p className="text-xs text-neutral-500">Est. Total</p>
-            <p className="text-lg font-bold text-neutral-900">$1,249</p>
+            <p className="text-[10px] text-neutral-400">Est. Total</p>
+            <p className="text-base font-bold text-neutral-900">$1,249</p>
           </div>
         </div>
       </div>
@@ -199,60 +132,29 @@ function JourneyPreviewShowcase() {
 
 function WhyJourneySection() {
   const features = [
-    {
-      icon: Sparkles,
-      title: 'AI-Powered',
-      description: 'Smart suggestions based on your preferences',
-      color: 'from-primary-500 to-amber-500',
-    },
-    {
-      icon: Globe,
-      title: 'All-In-One',
-      description: 'Flights, hotels & experiences combined',
-      color: 'from-blue-500 to-cyan-500',
-    },
-    {
-      icon: DollarSign,
-      title: 'Save Money',
-      description: 'Bundle pricing saves up to 30%',
-      color: 'from-green-500 to-emerald-500',
-    },
-    {
-      icon: Clock,
-      title: 'Save Time',
-      description: 'Build complete trips in minutes',
-      color: 'from-purple-500 to-pink-500',
-    },
+    { icon: Sparkles, title: 'AI-Powered', desc: 'Smart suggestions', color: 'from-primary-500 to-amber-500' },
+    { icon: Globe, title: 'All-In-One', desc: 'Flights + Hotels + Exp', color: 'from-blue-500 to-cyan-500' },
+    { icon: DollarSign, title: 'Save 30%', desc: 'Bundle pricing', color: 'from-green-500 to-emerald-500' },
+    { icon: Clock, title: '15 Minutes', desc: 'Build full trip', color: 'from-purple-500 to-pink-500' },
   ];
 
   return (
-    <section className="py-12 sm:py-16">
+    <div className="bg-white py-6 md:py-10">
       <MaxWidthContainer>
-        <div className="text-center mb-10">
-          <h2 className="text-2xl sm:text-3xl font-bold text-neutral-900 mb-3">
-            Why Journey Builder?
-          </h2>
-          <p className="text-neutral-600 max-w-xl mx-auto">
-            The smartest way to plan your entire trip
-          </p>
-        </div>
-
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
-          {features.map((feature) => (
-            <div
-              key={feature.title}
-              className="group p-5 sm:p-6 bg-white rounded-2xl border border-neutral-100 hover:border-neutral-200 hover:shadow-lg transition-all duration-300"
-            >
-              <div className={`w-12 h-12 rounded-xl bg-gradient-to-br ${feature.color} flex items-center justify-center mb-4 group-hover:scale-110 transition-transform shadow-lg`}>
-                <feature.icon className="w-6 h-6 text-white" />
+        <h2 className="text-lg md:text-2xl font-bold text-neutral-900 mb-4 md:mb-6 px-3 md:px-0">Why Journey Builder?</h2>
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4 px-3 md:px-0">
+          {features.map((f) => (
+            <div key={f.title} className="p-4 bg-neutral-50 rounded-xl border border-neutral-100 hover:shadow-md transition-shadow">
+              <div className={`w-10 h-10 rounded-lg bg-gradient-to-br ${f.color} flex items-center justify-center mb-3`}>
+                <f.icon className="w-5 h-5 text-white" />
               </div>
-              <h3 className="font-semibold text-neutral-900 mb-1">{feature.title}</h3>
-              <p className="text-sm text-neutral-500">{feature.description}</p>
+              <h3 className="font-semibold text-neutral-900 text-sm">{f.title}</h3>
+              <p className="text-xs text-neutral-500">{f.desc}</p>
             </div>
           ))}
         </div>
       </MaxWidthContainer>
-    </section>
+    </div>
   );
 }
 
@@ -262,92 +164,38 @@ function WhyJourneySection() {
 
 function JourneyTemplatesSection() {
   const templates = [
-    {
-      icon: Palmtree,
-      title: 'Beach Getaway',
-      duration: '5-7 days',
-      price: 'From $899',
-      color: 'from-cyan-500 to-blue-500',
-      image: 'https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=400&q=80',
-    },
-    {
-      icon: Building2,
-      title: 'City Explorer',
-      duration: '3-5 days',
-      price: 'From $599',
-      color: 'from-purple-500 to-indigo-500',
-      image: 'https://images.unsplash.com/photo-1499856871958-5b9627545d1a?w=400&q=80',
-    },
-    {
-      icon: Heart,
-      title: 'Romantic Escape',
-      duration: '4-5 days',
-      price: 'From $799',
-      color: 'from-pink-500 to-rose-500',
-      image: 'https://images.unsplash.com/photo-1515238152791-8216bfdf89a7?w=400&q=80',
-    },
-    {
-      icon: Mountain,
-      title: 'Adventure Trip',
-      duration: '7-10 days',
-      price: 'From $1,199',
-      color: 'from-green-500 to-emerald-500',
-      image: 'https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?w=400&q=80',
-    },
+    { icon: Palmtree, title: 'Beach Getaway', dur: '5-7 days', price: '$899', color: 'from-cyan-500 to-blue-500', img: 'https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=400&q=80' },
+    { icon: Building2, title: 'City Explorer', dur: '3-5 days', price: '$599', color: 'from-purple-500 to-indigo-500', img: 'https://images.unsplash.com/photo-1499856871958-5b9627545d1a?w=400&q=80' },
+    { icon: Heart, title: 'Romantic', dur: '4-5 days', price: '$799', color: 'from-pink-500 to-rose-500', img: 'https://images.unsplash.com/photo-1515238152791-8216bfdf89a7?w=400&q=80' },
+    { icon: Mountain, title: 'Adventure', dur: '7-10 days', price: '$1,199', color: 'from-green-500 to-emerald-500', img: 'https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?w=400&q=80' },
   ];
 
   return (
-    <section className="py-12 sm:py-16 bg-neutral-50">
+    <div className="bg-neutral-50 py-6 md:py-10">
       <MaxWidthContainer>
-        <div className="text-center mb-10">
-          <h2 className="text-2xl sm:text-3xl font-bold text-neutral-900 mb-3">
-            Popular Journey Templates
-          </h2>
-          <p className="text-neutral-600 max-w-xl mx-auto">
-            Start with a template or build from scratch
-          </p>
-        </div>
-
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
-          {templates.map((template) => (
-            <div
-              key={template.title}
-              className="group relative bg-white rounded-2xl overflow-hidden border border-neutral-100 hover:border-primary-200 hover:shadow-xl transition-all duration-300 cursor-pointer"
-            >
-              {/* Image */}
-              <div className="relative h-32 sm:h-40 overflow-hidden">
-                <Image
-                  src={template.image}
-                  alt={template.title}
-                  fill
-                  className="object-cover group-hover:scale-110 transition-transform duration-500"
-                />
-                <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
-                <div className={`absolute top-3 left-3 w-10 h-10 rounded-xl bg-gradient-to-br ${template.color} flex items-center justify-center shadow-lg`}>
-                  <template.icon className="w-5 h-5 text-white" />
+        <h2 className="text-lg md:text-2xl font-bold text-neutral-900 mb-4 md:mb-6 px-3 md:px-0">Popular Templates</h2>
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4 px-3 md:px-0">
+          {templates.map((t) => (
+            <div key={t.title} className="group bg-white rounded-xl overflow-hidden border border-neutral-100 hover:shadow-lg transition-all cursor-pointer">
+              <div className="relative h-24 md:h-32 overflow-hidden">
+                <Image src={t.img} alt={t.title} fill className="object-cover group-hover:scale-105 transition-transform" />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent" />
+                <div className={`absolute top-2 left-2 w-8 h-8 rounded-lg bg-gradient-to-br ${t.color} flex items-center justify-center`}>
+                  <t.icon className="w-4 h-4 text-white" />
                 </div>
               </div>
-
-              {/* Content */}
-              <div className="p-4">
-                <h3 className="font-semibold text-neutral-900 mb-1">{template.title}</h3>
-                <div className="flex items-center justify-between text-sm">
-                  <span className="text-neutral-500">{template.duration}</span>
-                  <span className="font-semibold text-primary-600">{template.price}</span>
+              <div className="p-3">
+                <h3 className="font-semibold text-neutral-900 text-sm">{t.title}</h3>
+                <div className="flex items-center justify-between text-xs mt-1">
+                  <span className="text-neutral-500">{t.dur}</span>
+                  <span className="font-semibold text-primary-600">From {t.price}</span>
                 </div>
-              </div>
-
-              {/* Hover Overlay */}
-              <div className="absolute inset-0 bg-primary-500/0 group-hover:bg-primary-500/5 transition-colors flex items-center justify-center opacity-0 group-hover:opacity-100">
-                <span className="px-4 py-2 bg-white rounded-full text-sm font-medium text-primary-600 shadow-lg transform translate-y-4 group-hover:translate-y-0 transition-transform">
-                  Start Journey
-                </span>
               </div>
             </div>
           ))}
         </div>
       </MaxWidthContainer>
-    </section>
+    </div>
   );
 }
 
@@ -357,131 +205,95 @@ function JourneyTemplatesSection() {
 
 function HowItWorksSection() {
   const steps = [
-    { num: '1', title: 'Enter Details', desc: 'Where & when you want to travel', icon: Compass },
-    { num: '2', title: 'AI Builds', desc: 'Smart day-by-day itinerary', icon: Sparkles },
-    { num: '3', title: 'Customize', desc: 'Add or swap experiences', icon: Map },
-    { num: '4', title: 'Book & Go', desc: 'One checkout for everything', icon: CheckCircle2 },
+    { n: '1', title: 'Enter', desc: 'Where & when', icon: Compass },
+    { n: '2', title: 'AI Builds', desc: 'Smart itinerary', icon: Sparkles },
+    { n: '3', title: 'Customize', desc: 'Add experiences', icon: Map },
+    { n: '4', title: 'Book', desc: 'One checkout', icon: CheckCircle2 },
   ];
 
   return (
-    <section className="py-12 sm:py-16">
+    <div className="bg-white py-6 md:py-10">
       <MaxWidthContainer>
-        <div className="text-center mb-10">
-          <h2 className="text-2xl sm:text-3xl font-bold text-neutral-900 mb-3">
-            How Journey Works
-          </h2>
-        </div>
-
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-6 lg:gap-8">
-          {steps.map((step, idx) => (
-            <div key={step.num} className="relative text-center">
-              {/* Connector Line */}
-              {idx < steps.length - 1 && (
-                <div className="hidden lg:block absolute top-8 left-[60%] w-[80%] h-px bg-gradient-to-r from-primary-300 to-primary-100" />
-              )}
-
-              {/* Step Circle */}
-              <div className="w-16 h-16 mx-auto rounded-2xl bg-gradient-to-br from-primary-500 to-primary-600 text-white font-bold text-xl flex items-center justify-center mb-4 shadow-lg shadow-primary-500/25">
-                <step.icon className="w-7 h-7" />
+        <h2 className="text-lg md:text-2xl font-bold text-neutral-900 mb-4 md:mb-6 px-3 md:px-0">How It Works</h2>
+        <div className="grid grid-cols-4 gap-2 md:gap-6 px-3 md:px-0">
+          {steps.map((s) => (
+            <div key={s.n} className="text-center">
+              <div className="w-12 h-12 md:w-14 md:h-14 mx-auto rounded-xl bg-primary-500 text-white flex items-center justify-center mb-2 shadow-lg shadow-primary-500/20">
+                <s.icon className="w-5 h-5 md:w-6 md:h-6" />
               </div>
-
-              <h3 className="font-semibold text-neutral-900 mb-1">{step.title}</h3>
-              <p className="text-sm text-neutral-500">{step.desc}</p>
+              <h3 className="font-semibold text-neutral-900 text-xs md:text-sm">{s.title}</h3>
+              <p className="text-[10px] md:text-xs text-neutral-500">{s.desc}</p>
             </div>
           ))}
         </div>
       </MaxWidthContainer>
-    </section>
+    </div>
   );
 }
 
 // ============================================================================
-// JOURNEY STATS SECTION
+// STATS SECTION
 // ============================================================================
 
 function JourneyStatsSection() {
   const stats = [
-    { value: '500K+', label: 'Journeys Built', icon: Globe },
-    { value: '4.9★', label: 'User Rating', icon: Star },
-    { value: '$340', label: 'Avg. Savings', icon: DollarSign },
-    { value: '15min', label: 'Avg. Build Time', icon: Clock },
+    { v: '500K+', l: 'Journeys', icon: Globe },
+    { v: '4.9★', l: 'Rating', icon: Star },
+    { v: '$340', l: 'Avg Save', icon: DollarSign },
+    { v: '15min', l: 'Build Time', icon: Clock },
   ];
 
   return (
-    <section className="py-12 sm:py-16 bg-gradient-to-br from-neutral-900 to-neutral-800">
+    <div className="bg-neutral-900 py-8 md:py-12">
       <MaxWidthContainer>
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-6 lg:gap-8">
-          {stats.map((stat) => (
-            <div key={stat.label} className="text-center">
-              <div className="w-12 h-12 mx-auto rounded-xl bg-white/10 flex items-center justify-center mb-3">
-                <stat.icon className="w-6 h-6 text-primary-400" />
+        <div className="grid grid-cols-4 gap-4 px-3 md:px-0">
+          {stats.map((s) => (
+            <div key={s.l} className="text-center">
+              <div className="w-10 h-10 mx-auto rounded-lg bg-white/10 flex items-center justify-center mb-2">
+                <s.icon className="w-5 h-5 text-primary-400" />
               </div>
-              <p className="text-3xl sm:text-4xl font-bold text-white mb-1">{stat.value}</p>
-              <p className="text-sm text-neutral-400">{stat.label}</p>
+              <p className="text-xl md:text-3xl font-bold text-white">{s.v}</p>
+              <p className="text-[10px] md:text-xs text-neutral-400">{s.l}</p>
             </div>
           ))}
         </div>
       </MaxWidthContainer>
-    </section>
+    </div>
   );
 }
 
 // ============================================================================
-// WHAT'S INCLUDED SECTION
+// WHAT'S INCLUDED
 // ============================================================================
 
 function WhatsIncludedSection() {
-  const includes = [
-    { icon: Plane, text: 'Flights from 500+ airlines', available: true },
-    { icon: Building2, text: 'Hotels from 2M+ properties', available: true },
-    { icon: Sparkles, text: 'Curated experiences & tours', available: true },
-    { icon: Shield, text: 'Travel insurance options', available: true },
-    { icon: Map, text: 'Car rentals', available: false, soon: true },
-    { icon: Award, text: 'Airport lounge access', available: false, soon: true },
+  const items = [
+    { icon: Plane, text: '500+ Airlines', ok: true },
+    { icon: Building2, text: '2M+ Hotels', ok: true },
+    { icon: Sparkles, text: 'Experiences', ok: true },
+    { icon: Shield, text: 'Insurance', ok: true },
+    { icon: Map, text: 'Car Rentals', ok: false },
+    { icon: Award, text: 'Lounges', ok: false },
   ];
 
   return (
-    <section className="py-12 sm:py-16">
+    <div className="bg-white py-6 md:py-10">
       <MaxWidthContainer>
-        <div className="text-center mb-10">
-          <h2 className="text-2xl sm:text-3xl font-bold text-neutral-900 mb-3">
-            What's Included
-          </h2>
-        </div>
-
-        <div className="max-w-3xl mx-auto grid grid-cols-1 sm:grid-cols-2 gap-4">
-          {includes.map((item) => (
-            <div
-              key={item.text}
-              className={`flex items-center gap-4 p-4 rounded-xl border ${
-                item.available
-                  ? 'bg-white border-neutral-100'
-                  : 'bg-neutral-50 border-neutral-100'
-              }`}
-            >
-              <div className={`w-10 h-10 rounded-lg flex items-center justify-center ${
-                item.available
-                  ? 'bg-primary-50 text-primary-600'
-                  : 'bg-neutral-100 text-neutral-400'
-              }`}>
-                <item.icon className="w-5 h-5" />
+        <h2 className="text-lg md:text-2xl font-bold text-neutral-900 mb-4 px-3 md:px-0">What's Included</h2>
+        <div className="grid grid-cols-2 md:grid-cols-3 gap-3 px-3 md:px-0 max-w-2xl">
+          {items.map((i) => (
+            <div key={i.text} className={`flex items-center gap-2 p-3 rounded-lg border ${i.ok ? 'bg-white border-neutral-100' : 'bg-neutral-50 border-neutral-100'}`}>
+              <div className={`w-8 h-8 rounded flex items-center justify-center ${i.ok ? 'bg-primary-50 text-primary-600' : 'bg-neutral-100 text-neutral-400'}`}>
+                <i.icon className="w-4 h-4" />
               </div>
-              <span className={item.available ? 'text-neutral-900' : 'text-neutral-500'}>
-                {item.text}
-              </span>
-              {item.available && (
-                <CheckCircle2 className="w-5 h-5 text-green-500 ml-auto" />
-              )}
-              {item.soon && (
-                <span className="ml-auto text-xs px-2 py-1 bg-amber-100 text-amber-700 rounded-full font-medium">
-                  Soon
-                </span>
-              )}
+              <span className={`text-sm ${i.ok ? 'text-neutral-900' : 'text-neutral-400'}`}>{i.text}</span>
+              {i.ok && <CheckCircle2 className="w-4 h-4 text-green-500 ml-auto" />}
+              {!i.ok && <span className="ml-auto text-[10px] px-1.5 py-0.5 bg-amber-100 text-amber-700 rounded font-medium">Soon</span>}
             </div>
           ))}
         </div>
       </MaxWidthContainer>
-    </section>
+    </div>
   );
 }
 
@@ -503,6 +315,10 @@ export default function JourneyPage() {
 
 function JourneyPageContent() {
   const router = useRouter();
+  const { language: lang } = useLanguage();
+  const [animationKey, setAnimationKey] = useState(0);
+  const [mounted, setMounted] = useState(false);
+
   const {
     journey,
     isBuilding,
@@ -520,7 +336,7 @@ function JourneyPageContent() {
   const { showOnboarding, completeOnboarding } = useJourneyOnboarding();
   const [view, setView] = useState<'search' | 'timeline'>('search');
 
-  // Modals state
+  // Modals
   const [showExperiencePicker, setShowExperiencePicker] = useState(false);
   const [pickerDayIndex, setPickerDayIndex] = useState(0);
   const [pickerTimeSlot, setPickerTimeSlot] = useState<TimeSlot>('morning');
@@ -529,44 +345,19 @@ function JourneyPageContent() {
   const [showHotelSelector, setShowHotelSelector] = useState(false);
   const [hotelSearchParams, setHotelSearchParams] = useState<JourneyHotelSearchParams | null>(null);
 
-  // Handle checkout navigation
+  useEffect(() => { setMounted(true); }, []);
+  useEffect(() => {
+    const interval = setInterval(() => setAnimationKey(p => p + 1), 12000);
+    return () => clearInterval(interval);
+  }, []);
+
+  // Handlers
   const handleCheckout = useCallback(() => {
     if (!journey) return;
     sessionStorage.setItem('journey_checkout', JSON.stringify(journey));
     router.push('/journey/checkout');
   }, [journey, router]);
 
-  // Handle form submit - Build Journey
-  const handleBuildJourney = useCallback(
-    async (params: JourneySearchParams) => {
-      setBuilding(true);
-      setBuildProgress(0);
-
-      try {
-        await simulateProgress(setBuildProgress, 0, 20, 300);
-        const newJourney = JourneyBuilder.build(params);
-
-        await simulateProgress(setBuildProgress, 20, 60, 500);
-        const journeyWithSuggestions = await generateSuggestions(newJourney, params);
-
-        await simulateProgress(setBuildProgress, 60, 80, 300);
-        const pricing = PricingAggregator.calculate(journeyWithSuggestions);
-        journeyWithSuggestions.pricing = pricing;
-
-        await simulateProgress(setBuildProgress, 80, 100, 200);
-
-        setJourney(journeyWithSuggestions);
-        setView('timeline');
-      } catch (error) {
-        console.error('Error building journey:', error);
-      } finally {
-        setBuilding(false);
-      }
-    },
-    [setBuilding, setBuildProgress, setJourney]
-  );
-
-  // Experience handlers
   const handleAddExperience = useCallback((dayIndex: number, timeSlot: string) => {
     if (!journey) return;
     setPickerDayIndex(dayIndex);
@@ -581,331 +372,226 @@ function JourneyPageContent() {
 
   const handleAcceptSuggestion = useCallback((dayIndex: number, experienceId: string) => {
     if (!journey) return;
-    const day = journey.days[dayIndex];
-    const experience = day.experiences.find((e) => e.id === experienceId);
-    if (experience) {
-      updateExperience(dayIndex, { ...experience, status: 'added' });
-    }
+    const exp = journey.days[dayIndex].experiences.find((e) => e.id === experienceId);
+    if (exp) updateExperience(dayIndex, { ...exp, status: 'added' });
   }, [journey, updateExperience]);
 
-  // Flight handlers
   const handleSelectFlight = useCallback(() => {
     if (!journey) return;
     setFlightSearchParams({
-      origin: journey.origin.code,
-      destination: journey.destination.code,
-      departureDate: journey.departureDate,
-      returnDate: journey.returnDate,
-      travelers: journey.travelers,
-      cabinClass: 'economy',
-      maxResults: 20,
+      origin: journey.origin.code, destination: journey.destination.code,
+      departureDate: journey.departureDate, returnDate: journey.returnDate,
+      travelers: journey.travelers, cabinClass: 'economy', maxResults: 20,
     });
     setShowFlightSelector(true);
   }, [journey]);
 
   const handleFlightSelected = useCallback((outbound: JourneyFlight, inbound?: JourneyFlight) => {
     if (!journey) return;
-    const updatedDays = [...journey.days];
-    if (updatedDays[0]) {
-      updatedDays[0] = {
-        ...updatedDays[0],
-        segments: updatedDays[0].segments.map(seg =>
-          seg.type === 'outbound-flight' ? { ...seg, flight: outbound } : seg
-        ),
-      };
+    const days = [...journey.days];
+    if (days[0]) days[0] = { ...days[0], segments: days[0].segments.map(s => s.type === 'outbound-flight' ? { ...s, flight: outbound } : s) };
+    if (inbound && days.length > 1) {
+      const last = days.length - 1;
+      days[last] = { ...days[last], segments: days[last].segments.map(s => s.type === 'return-flight' ? { ...s, flight: inbound } : s) };
     }
-    if (inbound && updatedDays.length > 1) {
-      const lastIdx = updatedDays.length - 1;
-      updatedDays[lastIdx] = {
-        ...updatedDays[lastIdx],
-        segments: updatedDays[lastIdx].segments.map(seg =>
-          seg.type === 'return-flight' ? { ...seg, flight: inbound } : seg
-        ),
-      };
-    }
-    setJourney({ ...journey, days: updatedDays });
+    setJourney({ ...journey, days });
     setShowFlightSelector(false);
   }, [journey, setJourney]);
 
-  // Hotel handlers
   const handleSelectHotel = useCallback(() => {
     if (!journey) return;
     setHotelSearchParams({
-      destination: journey.destination.city,
-      checkIn: journey.departureDate,
-      checkOut: journey.returnDate,
+      destination: journey.destination.city, checkIn: journey.departureDate, checkOut: journey.returnDate,
       guests: { adults: journey.travelers.adults, children: journey.travelers.children },
-      rooms: 1,
-      currency: 'USD',
-      maxResults: 20,
+      rooms: 1, currency: 'USD', maxResults: 20,
     });
     setShowHotelSelector(true);
   }, [journey]);
 
   const handleHotelSelected = useCallback((hotel: JourneyHotel) => {
     if (!journey) return;
-    const updatedDays = journey.days.map((day, index) => {
-      const isLastDay = index === journey.days.length - 1;
-      if (!isLastDay || journey.days.length === 1) {
-        const hotelSegment = day.segments.find(s => s.type === 'hotel');
-        if (hotelSegment) {
-          return {
-            ...day,
-            segments: day.segments.map(seg => seg.type === 'hotel' ? { ...seg, hotel } : seg),
-          };
-        }
+    const days = journey.days.map((d, i) => {
+      if (i < journey.days.length - 1 || journey.days.length === 1) {
+        const seg = d.segments.find(s => s.type === 'hotel');
+        if (seg) return { ...d, segments: d.segments.map(s => s.type === 'hotel' ? { ...s, hotel } : s) };
       }
-      return day;
+      return d;
     });
-    setJourney({ ...journey, days: updatedDays });
+    setJourney({ ...journey, days });
     setShowHotelSelector(false);
   }, [journey, setJourney]);
 
-  // Update pricing when journey changes
   useEffect(() => {
     if (journey) {
-      const newPricing = PricingAggregator.calculate(journey);
-      if (JSON.stringify(newPricing) !== JSON.stringify(journey.pricing)) {
-        setJourney({ ...journey, pricing: newPricing });
-      }
+      const p = PricingAggregator.calculate(journey);
+      if (JSON.stringify(p) !== JSON.stringify(journey.pricing)) setJourney({ ...journey, pricing: p });
     }
   }, [journey?.days]);
+
+  // Title text
+  const title = 'Build My Journey';
+  const subtitle = 'AI-powered trip planning made simple';
 
   // ============================================================================
   // RENDER
   // ============================================================================
 
+  if (view === 'timeline' && journey) {
+    return (
+      <div className="min-h-screen bg-neutral-50">
+        {/* Modals */}
+        <ExperiencePicker isOpen={showExperiencePicker} onClose={() => setShowExperiencePicker(false)} onSelect={handleExperienceSelected} destinationCode={journey.destination.code} timeSlot={pickerTimeSlot} interests={journey.preferences.interests} />
+        {flightSearchParams && <FlightSelector isOpen={showFlightSelector} onClose={() => setShowFlightSelector(false)} onSelect={handleFlightSelected} searchParams={flightSearchParams} isRoundTrip={!!journey.returnDate} />}
+        {hotelSearchParams && <HotelSelector isOpen={showHotelSelector} onClose={() => setShowHotelSelector(false)} onSelect={handleHotelSelected} searchParams={hotelSearchParams} />}
+
+        {/* Sub-header */}
+        <div className="sticky top-16 z-40 bg-white/95 backdrop-blur-lg border-b border-neutral-200">
+          <MaxWidthContainer>
+            <div className="flex items-center justify-between h-14 px-3 md:px-0">
+              <div className="flex items-center gap-3">
+                <button onClick={() => setView('search')} className="flex items-center gap-1.5 text-neutral-600 hover:text-neutral-900">
+                  <ArrowRight className="w-4 h-4 rotate-180" />
+                  <span className="text-sm font-medium hidden sm:inline">New</span>
+                </button>
+                <div className="flex items-center gap-2">
+                  <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-primary-500 to-amber-500 flex items-center justify-center">
+                    <Sparkles className="w-3.5 h-3.5 text-white" />
+                  </div>
+                  <span className="font-semibold text-neutral-900 text-sm">Journey Builder</span>
+                </div>
+              </div>
+              <div className="flex items-center gap-2 text-sm">
+                <span className="text-neutral-500">{journey.origin.code} → {journey.destination.code}</span>
+                <span className="px-2 py-1 bg-primary-50 rounded-lg font-medium text-primary-600 text-xs">{journey.duration}d</span>
+              </div>
+            </div>
+          </MaxWidthContainer>
+        </div>
+
+        {/* Timeline */}
+        <div className="py-4 md:py-6">
+          <MaxWidthContainer>
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 md:gap-6 px-3 md:px-0">
+              <div className="lg:col-span-2">
+                <JourneyTimeline journey={journey} selectedDayIndex={selectedDayIndex} onSelectDay={setSelectedDay} onAddExperience={handleAddExperience} onRemoveExperience={removeExperience} onAcceptSuggestion={handleAcceptSuggestion} onSelectFlight={handleSelectFlight} onSelectHotel={handleSelectHotel} />
+              </div>
+              <div className="hidden lg:block">
+                <div className="sticky top-24">
+                  <JourneyPricingSummary pricing={journey.pricing} travelers={journey.travelers} onCheckout={handleCheckout} isCheckoutDisabled={journey.pricing.flights.subtotal === 0 && journey.pricing.hotels.subtotal === 0} />
+                </div>
+              </div>
+            </div>
+          </MaxWidthContainer>
+        </div>
+
+        {/* Mobile Footer */}
+        <MobilePricingFooter pricing={journey.pricing} onExpand={() => {}} onCheckout={handleCheckout} isCheckoutDisabled={journey.pricing.flights.subtotal === 0 && journey.pricing.hotels.subtotal === 0} />
+      </div>
+    );
+  }
+
   return (
-    <div className="min-h-screen bg-[#FAFAFA]">
-      {/* Onboarding */}
-      {showOnboarding && (
-        <JourneyOnboarding onComplete={completeOnboarding} onSkip={completeOnboarding} />
-      )}
+    <div className="min-h-screen bg-neutral-50">
+      {showOnboarding && <JourneyOnboarding onComplete={completeOnboarding} onSkip={completeOnboarding} />}
 
-      {/* Modals */}
-      {journey && (
-        <ExperiencePicker
-          isOpen={showExperiencePicker}
-          onClose={() => setShowExperiencePicker(false)}
-          onSelect={handleExperienceSelected}
-          destinationCode={journey.destination.code}
-          timeSlot={pickerTimeSlot}
-          interests={journey.preferences.interests}
-        />
-      )}
-      {flightSearchParams && (
-        <FlightSelector
-          isOpen={showFlightSelector}
-          onClose={() => setShowFlightSelector(false)}
-          onSelect={handleFlightSelected}
-          searchParams={flightSearchParams}
-          isRoundTrip={!!journey?.returnDate}
-        />
-      )}
-      {hotelSearchParams && (
-        <HotelSelector
-          isOpen={showHotelSelector}
-          onClose={() => setShowHotelSelector(false)}
-          onSelect={handleHotelSelected}
-          searchParams={hotelSearchParams}
-        />
-      )}
+      {/* ============ HERO SECTION - SAME AS FLIGHTS PAGE ============ */}
+      <div className="relative bg-gradient-to-br from-neutral-50 via-primary-50/20 to-neutral-50 border-b border-neutral-200/60 overflow-hidden">
+        <div className="absolute inset-0 overflow-hidden pointer-events-none">
+          <div className="floating-orb floating-orb-1"></div>
+          <div className="floating-orb floating-orb-2"></div>
+          <div className="floating-orb floating-orb-3"></div>
+        </div>
 
-      {/* Main Content */}
-      {view === 'search' ? (
-        <>
-          {/* Hero Section */}
-          <section className="pt-8 pb-6 sm:pt-12 sm:pb-8">
-            <MaxWidthContainer>
-              {/* Animated Title */}
-              <AnimatedJourneyTitle />
+        <div className="absolute inset-0 opacity-[0.02]" style={{
+          backgroundImage: 'radial-gradient(circle at 1px 1px, #E74035 1px, transparent 0)',
+          backgroundSize: '40px 40px'
+        }}></div>
 
-              {/* Search Form Card */}
-              <div className="max-w-4xl mx-auto">
-                <div className="bg-white rounded-2xl shadow-xl shadow-neutral-200/50 border border-neutral-100 p-5 sm:p-6 lg:p-8">
-                  <JourneySearchForm onSubmit={handleBuildJourney} isLoading={isBuilding} />
-                </div>
-
-                {/* Trust Bar - Under Form */}
-                <div className="mt-6">
-                  <CompactTrustBar />
-                </div>
-              </div>
-            </MaxWidthContainer>
-          </section>
-
-          {/* Loading State */}
-          {isBuilding && (
-            <section className="py-16 bg-white">
-              <div className="max-w-md mx-auto px-4 text-center">
-                <div className="w-20 h-20 mx-auto mb-6 relative">
-                  <div className="absolute inset-0 rounded-full border-4 border-neutral-100" />
-                  <div
-                    className="absolute inset-0 rounded-full border-4 border-primary-500 border-t-transparent animate-spin"
-                    style={{ animationDuration: '1s' }}
-                  />
-                  <div className="absolute inset-0 flex items-center justify-center">
-                    <Sparkles className="w-8 h-8 text-primary-500" />
-                  </div>
-                </div>
-                <h3 className="text-xl font-semibold text-neutral-900 mb-2">
-                  Building Your Journey
-                </h3>
-                <p className="text-neutral-500 mb-6">
-                  {buildProgress < 20 && 'Creating itinerary structure...'}
-                  {buildProgress >= 20 && buildProgress < 60 && 'Finding perfect experiences...'}
-                  {buildProgress >= 60 && buildProgress < 80 && 'Calculating best prices...'}
-                  {buildProgress >= 80 && 'Finalizing your journey...'}
-                </p>
-                <div className="w-full bg-neutral-100 rounded-full h-2 overflow-hidden">
-                  <div
-                    className="h-full bg-gradient-to-r from-primary-500 to-amber-500 transition-all duration-300 ease-out"
-                    style={{ width: `${buildProgress}%` }}
-                  />
-                </div>
-                <p className="text-sm text-neutral-400 mt-3">{buildProgress}% complete</p>
-              </div>
-            </section>
-          )}
-
-          {/* Journey Preview */}
-          {!isBuilding && (
-            <section className="py-8 sm:py-12">
-              <MaxWidthContainer>
-                <JourneyPreviewShowcase />
-              </MaxWidthContainer>
-            </section>
-          )}
-
-          {/* Page Sections */}
-          {!isBuilding && (
-            <>
-              <WhyJourneySection />
-              <JourneyTemplatesSection />
-              <HowItWorksSection />
-              <JourneyStatsSection />
-              <WhatsIncludedSection />
-            </>
-          )}
-        </>
-      ) : (
-        /* Timeline View */
-        journey && (
-          <>
-            {/* Sub-header */}
-            <div className="sticky top-16 z-40 bg-white/95 backdrop-blur-lg border-b border-neutral-200">
-              <MaxWidthContainer>
-                <div className="flex items-center justify-between h-14">
-                  <div className="flex items-center gap-4">
-                    <button
-                      onClick={() => setView('search')}
-                      className="flex items-center gap-2 text-neutral-600 hover:text-neutral-900 transition-colors"
-                    >
-                      <ArrowRight className="w-5 h-5 rotate-180" />
-                      <span className="hidden sm:inline font-medium">New Journey</span>
-                    </button>
-                    <div className="flex items-center gap-2">
-                      <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-primary-500 to-amber-500 flex items-center justify-center">
-                        <Sparkles className="w-3.5 h-3.5 text-white" />
-                      </div>
-                      <span className="font-semibold text-neutral-900">Journey Builder</span>
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-3 text-sm">
-                    <span className="text-neutral-500">
-                      {journey.origin.code} → {journey.destination.code}
-                    </span>
-                    <span className="px-2.5 py-1 bg-primary-50 rounded-lg font-medium text-primary-600">
-                      {journey.duration} days
-                    </span>
-                  </div>
-                </div>
-              </MaxWidthContainer>
+        <MaxWidthContainer className="relative" noPadding={true}>
+          <div className="px-3 sm:px-4 md:px-6 lg:px-8 py-4 md:py-6 lg:py-8">
+            <div className="flex flex-col md:flex-row md:items-center gap-1 md:gap-3 animate-fadeIn">
+              <h1 key={`title-${animationKey}`} className="hero-title text-[13px] sm:text-lg md:text-3xl lg:text-[36px] font-extrabold tracking-[0.01em] leading-tight whitespace-nowrap">
+                {mounted ? title.split('').map((char, index) => (
+                  <span key={index} className="letter-elastic" style={{ animationDelay: `${index * 0.038}s`, display: 'inline-block', minWidth: char === ' ' ? '0.3em' : 'auto' }}>
+                    {char === ' ' ? '\u00A0' : char}
+                  </span>
+                )) : <span style={{ opacity: 0 }}>{title}</span>}
+              </h1>
+              <span className="hidden md:inline-block text-primary-400 text-xl lg:text-2xl font-bold mx-2">•</span>
+              <p key={`subtitle-${animationKey}`} className="hero-subtitle text-neutral-600 mb-0 font-medium text-[11px] sm:text-sm md:text-base lg:text-lg leading-tight whitespace-nowrap" style={{ letterSpacing: '0.01em' }}>
+                {mounted ? subtitle.split('').map((char, index) => (
+                  <span key={index} className="letter-elastic" style={{ animationDelay: `${2.0 + (index * 0.028)}s`, display: 'inline-block', minWidth: char === ' ' ? '0.3em' : 'auto' }}>
+                    {char === ' ' ? '\u00A0' : char}
+                  </span>
+                )) : <span style={{ opacity: 0 }}>{subtitle}</span>}
+              </p>
             </div>
+          </div>
+        </MaxWidthContainer>
+      </div>
 
-            {/* Timeline Content */}
-            <div className="py-6 lg:py-8">
-              <MaxWidthContainer>
-                <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 lg:gap-8">
-                  <div className="lg:col-span-2">
-                    <JourneyTimeline
-                      journey={journey}
-                      selectedDayIndex={selectedDayIndex}
-                      onSelectDay={setSelectedDay}
-                      onAddExperience={handleAddExperience}
-                      onRemoveExperience={removeExperience}
-                      onAcceptSuggestion={handleAcceptSuggestion}
-                      onSelectFlight={handleSelectFlight}
-                      onSelectHotel={handleSelectHotel}
-                    />
-                  </div>
-                  <div className="hidden lg:block">
-                    <div className="sticky top-24">
-                      <JourneyPricingSummary
-                        pricing={journey.pricing}
-                        travelers={journey.travelers}
-                        onCheckout={handleCheckout}
-                        isCheckoutDisabled={
-                          journey.pricing.flights.subtotal === 0 &&
-                          journey.pricing.hotels.subtotal === 0
-                        }
-                      />
-                    </div>
-                  </div>
-                </div>
-              </MaxWidthContainer>
-            </div>
-          </>
-        )
-      )}
+      <style jsx>{`
+        .floating-orb { position: absolute; border-radius: 50%; filter: blur(60px); opacity: 0.12; animation: float 20s ease-in-out infinite; z-index: 0; }
+        .floating-orb-1 { width: 200px; height: 200px; background: linear-gradient(135deg, #E74035, #F7C928); top: -80px; left: 5%; animation-delay: 0s; animation-duration: 25s; }
+        .floating-orb-2 { width: 180px; height: 180px; background: linear-gradient(135deg, #D63B34, #E74035); top: -60px; right: 10%; animation-delay: 5s; animation-duration: 30s; }
+        .floating-orb-3 { width: 150px; height: 150px; background: linear-gradient(135deg, #F7C928, #E74035); bottom: -50px; left: 50%; animation-delay: 10s; animation-duration: 28s; }
+        @media (min-width: 768px) {
+          .floating-orb-1 { width: 300px; height: 300px; top: -150px; left: 10%; }
+          .floating-orb-2 { width: 250px; height: 250px; top: -100px; right: 15%; }
+          .floating-orb-3 { width: 200px; height: 200px; bottom: -100px; }
+        }
+        @keyframes float {
+          0%, 100% { transform: translate(0, 0) scale(1); }
+          25% { transform: translate(10px, -8px) scale(1.02); }
+          50% { transform: translate(-8px, 5px) scale(0.98); }
+          75% { transform: translate(6px, -6px) scale(1.01); }
+        }
+        .hero-title { color: #E74035; text-shadow: 0 1px 2px rgba(0, 0, 0, 0.06), 0 2px 8px rgba(231, 64, 53, 0.12); position: relative; z-index: 10; transform: translateZ(0); backface-visibility: hidden; isolation: isolate; font-weight: 800; }
+        .letter-elastic { opacity: 0; animation: elasticLetterEntrance 0.5s cubic-bezier(0.2, 0.8, 0.2, 1) forwards; transform-origin: center center; position: relative; z-index: 1; backface-visibility: hidden; }
+        @keyframes elasticLetterEntrance { 0% { opacity: 0; transform: translateY(-5px) scale(0.9) translateZ(0); } 100% { opacity: 1; transform: translateY(0) scale(1) translateZ(0); } }
+        .hero-subtitle { position: relative; z-index: 10; transform: translateZ(0); backface-visibility: hidden; isolation: isolate; color: #525252; font-weight: 500; }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        .animate-fadeIn { animation: fadeIn 0.6s cubic-bezier(0.2, 0.8, 0.2, 1); }
+      `}</style>
 
-      {/* Mobile Pricing Footer */}
-      {journey && view === 'timeline' && (
-        <MobilePricingFooter
-          pricing={journey.pricing}
-          onExpand={() => {}}
-          onCheckout={handleCheckout}
-          isCheckoutDisabled={
-            journey.pricing.flights.subtotal === 0 &&
-            journey.pricing.hotels.subtotal === 0
-          }
-        />
-      )}
+      {/* ============ SEARCH BAR - SAME AS FLIGHTS PAGE (NO TABS) ============ */}
+      <div className="border-b border-neutral-100">
+        <MobileHomeSearchWrapper lang={lang} defaultService="flights" hideTabs />
+      </div>
+
+      {/* ============ TRUST BAR - SAME AS FLIGHTS PAGE ============ */}
+      <CompactTrustBar sticky />
+
+      {/* ============ JOURNEY-SPECIFIC SECTIONS ============ */}
+
+      {/* Journey Preview */}
+      <div className="mt-4 md:mt-8">
+        <MaxWidthContainer>
+          <div className="px-3 md:px-0">
+            <JourneyPreviewShowcase />
+          </div>
+        </MaxWidthContainer>
+      </div>
+
+      {/* Recently Viewed */}
+      <div className="mt-4 md:mt-8">
+        <RecentlyViewedSection lang={lang} />
+      </div>
+
+      {/* Why Journey */}
+      <WhyJourneySection />
+
+      {/* Templates */}
+      <JourneyTemplatesSection />
+
+      {/* How It Works */}
+      <HowItWorksSection />
+
+      {/* Stats */}
+      <JourneyStatsSection />
+
+      {/* What's Included */}
+      <WhatsIncludedSection />
     </div>
   );
-}
-
-// ============================================================================
-// HELPERS
-// ============================================================================
-
-async function simulateProgress(
-  setProgress: (p: number) => void,
-  from: number,
-  to: number,
-  duration: number
-): Promise<void> {
-  const steps = 10;
-  const stepDuration = duration / steps;
-  const stepSize = (to - from) / steps;
-  for (let i = 0; i <= steps; i++) {
-    await new Promise((resolve) => setTimeout(resolve, stepDuration));
-    setProgress(Math.round(from + stepSize * i));
-  }
-}
-
-async function generateSuggestions(
-  journey: Journey,
-  params: JourneySearchParams
-): Promise<Journey> {
-  const updatedDays = journey.days.map((day) => {
-    const suggestions = AIExperienceEngine.getSuggestions(
-      day,
-      params.destination,
-      journey.preferences,
-      []
-    );
-    return { ...day, experiences: suggestions.experiences };
-  });
-  return { ...journey, days: updatedDays };
 }
