@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { liteAPI } from '@/lib/api/liteapi'; // ✅ Updated with amenities support
 import { searchHotels as searchHotelbeds, normalizeHotelbedsHotel } from '@/lib/api/hotelbeds';
+import { amadeus } from '@/lib/api/amadeus'; // ✅ Amadeus fallback
+import { mapAmadeusHotelToHotel, extractCityCode } from '@/lib/mappers/amadeus-hotel-mapper';
 import { getCached, setCache, generateCacheKey } from '@/lib/cache';
 import type { HotelSearchParams, Hotel } from '@/lib/hotels/types';
 
@@ -387,6 +389,65 @@ export async function POST(request: NextRequest) {
       return { hotels: [], meta: { usedMinRates: true, error: err.message } };
     });
 
+    // Amadeus fallback - search if LiteAPI returns few results
+    let amadeusResults = { hotels: [] as any[] };
+    const locationQuery = (searchParams.location as any)?.query || '';
+
+    if ((liteAPIResults.hotels?.length || 0) < 10 && locationQuery) {
+      try {
+        const cityCode = extractCityCode(locationQuery);
+        console.log(`🔍 LiteAPI returned ${liteAPIResults.hotels?.length || 0} hotels, trying Amadeus with city code: ${cityCode}...`);
+
+        const amadeusData = await amadeus.searchHotels({
+          cityCode,
+          checkInDate: searchParams.checkIn!,
+          checkOutDate: searchParams.checkOut!,
+          adults: searchParams.guests?.adults || 2,
+          roomQuantity: roomCount,
+        });
+
+        if (amadeusData?.data?.length > 0) {
+          amadeusResults.hotels = amadeusData.data.map((offer: any) => {
+            const mapped = mapAmadeusHotelToHotel(offer);
+            // Convert to normalized format matching other sources
+            return {
+              id: `amadeus_${mapped.id}`,
+              name: mapped.name,
+              description: mapped.description || '',
+              latitude: mapped.location?.lat || latitude,
+              longitude: mapped.location?.lng || longitude,
+              address: mapped.address?.street || '',
+              city: mapped.address?.city || '',
+              country: mapped.address?.country || '',
+              stars: mapped.starRating || 4,
+              rating: mapped.starRating || 4,
+              reviewCount: 0,
+              images: mapped.images?.map(img => ({ url: img.url, alt: mapped.name })) || [],
+              image: mapped.images?.[0]?.url || null,
+              thumbnail: mapped.images?.[0]?.url || null,
+              amenities: mapped.amenities || [],
+              lowestPrice: mapped.rates?.[0] ? parseFloat(mapped.rates[0].totalPrice.amount) : 0,
+              lowestPricePerNight: mapped.rates?.[0] ? parseFloat(mapped.rates[0].totalPrice.amount) / Math.max(1, Math.ceil((new Date(searchParams.checkOut!).getTime() - new Date(searchParams.checkIn!).getTime()) / (1000*60*60*24))) : 0,
+              currency: mapped.rates?.[0]?.totalPrice.currency || 'USD',
+              rooms: mapped.rates?.map(rate => ({
+                rateId: rate.id,
+                name: rate.roomType,
+                price: parseFloat(rate.totalPrice.amount),
+                currency: rate.totalPrice.currency,
+                refundable: rate.refundable,
+                boardName: rate.mealsIncluded || 'Room Only',
+              })) || [],
+              source: 'Amadeus',
+              refundable: mapped.rates?.some(r => r.refundable) || false,
+            };
+          });
+          console.log(`✅ Amadeus returned ${amadeusResults.hotels.length} additional hotels`);
+        }
+      } catch (amErr: any) {
+        console.log(`⚠️ Amadeus hotel search failed: ${amErr.message}`);
+      }
+    }
+
     // Hotelbeds only in development (skip entirely in production for speed)
     let hotelbedsResults = { hotels: [] as any[], processTime: 0 };
 
@@ -420,10 +481,10 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    // Combine results from both APIs
-    const allHotels = [...(liteAPIResults.hotels || []), ...(hotelbedsResults.hotels || [])];
+    // Combine results from all APIs (LiteAPI + Amadeus + Hotelbeds)
+    const allHotels = [...(liteAPIResults.hotels || []), ...(amadeusResults.hotels || []), ...(hotelbedsResults.hotels || [])];
 
-    console.log(`✅ Multi-API Results: LiteAPI (${liteAPIResults.hotels?.length || 0}) + Hotelbeds (${hotelbedsResults.hotels?.length || 0}) = ${allHotels.length} total`);
+    console.log(`✅ Multi-API Results: LiteAPI (${liteAPIResults.hotels?.length || 0}) + Amadeus (${amadeusResults.hotels?.length || 0}) + Hotelbeds (${hotelbedsResults.hotels?.length || 0}) = ${allHotels.length} total`);
 
     // Deduplicate hotels by name + approximate location (within 100m radius)
     const deduplicatedHotels: Hotel[] = [];
@@ -465,6 +526,7 @@ export async function POST(request: NextRequest) {
       meta: {
         usedMinRates: 'meta' in liteAPIResults ? liteAPIResults.meta?.usedMinRates : undefined,
         liteAPICount: liteAPIResults.hotels?.length || 0,
+        amadeusCount: amadeusResults.hotels?.length || 0,
         hotelbedsCount: hotelbedsResults.hotels?.length || 0,
         totalBeforeDedup: allHotels.length,
         totalAfterDedup: deduplicatedHotels.length,
@@ -556,15 +618,16 @@ export async function POST(request: NextRequest) {
       data: mappedHotels,
       meta: {
         count: mappedHotels.length,
-        sources: ['LiteAPI', 'Hotelbeds'],
+        sources: ['LiteAPI', 'Amadeus', 'Hotelbeds'],
         apiResults: {
           liteAPI: results.meta.liteAPICount,
+          amadeus: results.meta.amadeusCount,
           hotelbeds: results.meta.hotelbedsCount,
           totalBeforeDedup: results.meta.totalBeforeDedup,
           totalAfterDedup: results.meta.totalAfterDedup,
         },
         usedMinRates: results.meta.usedMinRates,
-        performance: 'Multi-API aggregation with price deduplication',
+        performance: 'Multi-API aggregation with price deduplication (LiteAPI + Amadeus + Hotelbeds)',
         hotelbedsProcessTime: results.meta.hotelbedsTime,
       },
     };
@@ -572,14 +635,15 @@ export async function POST(request: NextRequest) {
     // Store in cache (15 minutes TTL)
     await setCache(cacheKey, response, 900);
 
-    console.log(`✅ Multi-API Aggregation: ${mappedHotels.length} hotels (LiteAPI: ${results.meta.liteAPICount}, Hotelbeds: ${results.meta.hotelbedsCount})`);
+    console.log(`✅ Multi-API Aggregation: ${mappedHotels.length} hotels (LiteAPI: ${results.meta.liteAPICount}, Amadeus: ${results.meta.amadeusCount}, Hotelbeds: ${results.meta.hotelbedsCount})`);
 
     return NextResponse.json(response, {
       headers: {
         'X-Cache-Status': 'MISS',
-        'X-API-Sources': 'LITEAPI,HOTELBEDS',
+        'X-API-Sources': 'LITEAPI,AMADEUS,HOTELBEDS',
         'X-Performance-Mode': 'MULTI-API-AGGREGATION',
         'X-Hotel-Count-LiteAPI': results.meta.liteAPICount.toString(),
+        'X-Hotel-Count-Amadeus': results.meta.amadeusCount.toString(),
         'X-Hotel-Count-Hotelbeds': results.meta.hotelbedsCount.toString(),
         'Cache-Control': 'public, max-age=900',
       }

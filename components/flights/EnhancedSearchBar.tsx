@@ -293,6 +293,13 @@ export default function EnhancedSearchBar({
   const [showCarPickupDatePicker, setShowCarPickupDatePicker] = useState(false);
   const [showCarDropoffDatePicker, setShowCarDropoffDatePicker] = useState(false);
 
+  // Transfer location suggestions state
+  const [transferSuggestions, setTransferSuggestions] = useState<any[]>([]);
+  const [showTransferPickupSuggestions, setShowTransferPickupSuggestions] = useState(false);
+  const [showTransferDropoffSuggestions, setShowTransferDropoffSuggestions] = useState(false);
+  const [isLoadingTransferSuggestions, setIsLoadingTransferSuggestions] = useState(false);
+  const transferSuggestionsTimerRef = useRef<NodeJS.Timeout | null>(null);
+
   // Calendar price display state
   const [calendarPrices, setCalendarPrices] = useState<{ [date: string]: number }>({});
   const [loadingCalendarPrices, setLoadingCalendarPrices] = useState(false);
@@ -447,11 +454,21 @@ export default function EnhancedSearchBar({
       if (destinationRef.current && !destinationRef.current.contains(target)) {
         setShowDestinationDropdown(false);
       }
+
+      // Close transfer suggestions when clicking outside
+      const transferPickupInput = target.closest('[data-transfer-pickup]');
+      const transferDropoffInput = target.closest('[data-transfer-dropoff]');
+      if (!transferPickupInput && showTransferPickupSuggestions) {
+        setShowTransferPickupSuggestions(false);
+      }
+      if (!transferDropoffInput && showTransferDropoffSuggestions) {
+        setShowTransferDropoffSuggestions(false);
+      }
     };
 
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, []);
+  }, [showTransferPickupSuggestions, showTransferDropoffSuggestions]);
 
   // Fetch calendar prices from cheapest-dates API (only when calendar opens)
   const fetchCalendarPrices = async () => {
@@ -1065,6 +1082,83 @@ export default function EnhancedSearchBar({
     setSelectedDestinationDetails(null);
     setSelectedDistricts([]);
     setPopularDistricts([]);
+  };
+
+  // Transfer location suggestion functions
+  const fetchTransferSuggestions = async (query: string) => {
+    if (!query || query.length < 2) {
+      setTransferSuggestions([]);
+      return;
+    }
+
+    setIsLoadingTransferSuggestions(true);
+
+    try {
+      const response = await fetch(`/api/hotels/suggestions?query=${encodeURIComponent(query)}`);
+      const data = await response.json();
+
+      if (data.data && Array.isArray(data.data)) {
+        // Combine cities with airports for transfers
+        const suggestions = data.data.slice(0, 5).map((s: any) => ({
+          ...s,
+          // Add airport suffix for clearer transfer suggestions
+          displayName: s.type === 'airport' ? `${s.name} Airport` : s.name
+        }));
+        setTransferSuggestions(suggestions);
+      } else {
+        setTransferSuggestions([]);
+      }
+    } catch {
+      setTransferSuggestions([]);
+    } finally {
+      setIsLoadingTransferSuggestions(false);
+    }
+  };
+
+  const handleTransferPickupChange = (value: string) => {
+    setCarPickupLocation(value);
+    if (transferSuggestionsTimerRef.current) {
+      clearTimeout(transferSuggestionsTimerRef.current);
+    }
+    if (value.length >= 2) {
+      transferSuggestionsTimerRef.current = setTimeout(() => {
+        fetchTransferSuggestions(value);
+        setShowTransferPickupSuggestions(true);
+        setShowTransferDropoffSuggestions(false);
+      }, 300);
+    } else {
+      setShowTransferPickupSuggestions(false);
+      setTransferSuggestions([]);
+    }
+  };
+
+  const handleTransferDropoffChange = (value: string) => {
+    setCarDropoffLocation(value);
+    if (transferSuggestionsTimerRef.current) {
+      clearTimeout(transferSuggestionsTimerRef.current);
+    }
+    if (value.length >= 2) {
+      transferSuggestionsTimerRef.current = setTimeout(() => {
+        fetchTransferSuggestions(value);
+        setShowTransferDropoffSuggestions(true);
+        setShowTransferPickupSuggestions(false);
+      }, 300);
+    } else {
+      setShowTransferDropoffSuggestions(false);
+      setTransferSuggestions([]);
+    }
+  };
+
+  const handleTransferSuggestionSelect = (suggestion: any, field: 'pickup' | 'dropoff') => {
+    const nameValue = suggestion.displayName || suggestion.name || suggestion.city || '';
+    if (field === 'pickup') {
+      setCarPickupLocation(nameValue);
+      setShowTransferPickupSuggestions(false);
+    } else {
+      setCarDropoffLocation(nameValue);
+      setShowTransferDropoffSuggestions(false);
+    }
+    setTransferSuggestions([]);
   };
 
   // Debug logging for hotel suggestions state
@@ -2606,19 +2700,60 @@ export default function EnhancedSearchBar({
           <>
           {/* Search Fields Row */}
           <div className="flex items-center gap-3">
-            {/* Tour Destination */}
-            <div className="flex-1">
+            {/* Tour Destination with Autocomplete */}
+            <div className="flex-1 relative" ref={hotelDestinationRef}>
               <label className="flex items-center gap-1.5 text-xs font-medium text-gray-700 mb-2">
-                <MapPin size={13} className="text-gray-600" />
+                <MapPin size={13} className="text-orange-600" />
                 <span>Destination</span>
               </label>
               <input
                 type="text"
                 value={hotelDestination}
-                onChange={(e) => setHotelDestination(e.target.value)}
+                onChange={(e) => handleHotelDestinationChange(e.target.value)}
+                onFocus={() => {
+                  if (hotelDestination.length >= 2) {
+                    setShowHotelSuggestions(true);
+                  }
+                }}
                 placeholder="City or attraction"
-                className="w-full px-4 py-4 bg-white border border-gray-300 rounded-lg hover:border-[#D63A35] transition-all text-sm font-medium"
+                className="w-full px-4 py-4 bg-white border border-gray-300 rounded-lg hover:border-orange-500 focus:outline-none focus:ring-2 focus:ring-orange-500 transition-all text-sm font-medium"
               />
+              {/* Suggestions Dropdown */}
+              {showHotelSuggestions && (
+                <div className="absolute top-full left-0 right-0 mt-2 bg-white border border-gray-200 rounded-xl shadow-2xl z-50 max-h-80 overflow-y-auto">
+                  {isLoadingHotelSuggestions ? (
+                    <div className="p-4 flex items-center justify-center gap-2">
+                      <div className="w-5 h-5 border-2 border-orange-500 border-t-transparent rounded-full animate-spin"></div>
+                      <span className="text-sm text-gray-500">Finding destinations...</span>
+                    </div>
+                  ) : hotelSuggestions.length > 0 ? (
+                    <div className="py-2">
+                      {hotelSuggestions.map((suggestion, index) => (
+                        <button
+                          key={index}
+                          type="button"
+                          onClick={(e) => {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            handleHotelSuggestionSelect(suggestion);
+                          }}
+                          className="w-full px-4 py-3 text-left hover:bg-orange-50 transition-all flex items-center gap-3 border-b border-gray-50 last:border-b-0"
+                        >
+                          <div className="w-10 h-10 flex items-center justify-center rounded-lg bg-orange-100 text-xl">
+                            {suggestion.emoji || '🏙️'}
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <div className="font-semibold text-gray-900 text-sm">{suggestion.name}</div>
+                            <div className="text-xs text-gray-500">{suggestion.country}</div>
+                          </div>
+                        </button>
+                      ))}
+                    </div>
+                  ) : hotelDestination.length >= 2 ? (
+                    <div className="p-4 text-center text-sm text-gray-500">No destinations found</div>
+                  ) : null}
+                </div>
+              )}
             </div>
 
             {/* Tour Date */}
@@ -2744,19 +2879,60 @@ export default function EnhancedSearchBar({
           {serviceType === 'activities' && (
           <>
           <div className="flex flex-col lg:flex-row items-stretch lg:items-end gap-2">
-            {/* Activity or Destination */}
-            <div className="flex-1">
+            {/* Activity or Destination with Autocomplete */}
+            <div className="flex-1 relative" ref={hotelDestinationRef}>
               <label className="flex items-center gap-1.5 text-xs font-medium text-gray-700 mb-2">
-                <MapPin size={13} className="text-gray-600" />
+                <MapPin size={13} className="text-purple-600" />
                 <span>{lang === 'en' ? 'Activity or Destination' : lang === 'pt' ? 'Atividade ou Destino' : 'Actividad o Destino'}</span>
               </label>
               <input
                 type="text"
                 value={hotelDestination}
-                onChange={(e) => setHotelDestination(e.target.value)}
+                onChange={(e) => handleHotelDestinationChange(e.target.value)}
+                onFocus={() => {
+                  if (hotelDestination.length >= 2) {
+                    setShowHotelSuggestions(true);
+                  }
+                }}
                 placeholder={lang === 'en' ? 'e.g., Scuba Diving, Paris, Bungee Jump' : lang === 'pt' ? 'ex: Mergulho, Paris, Bungee Jump' : 'ej: Buceo, París, Bungee Jump'}
-                className="w-full px-4 py-4 bg-white border border-gray-300 rounded-lg hover:border-[#D63A35] focus:outline-none focus:ring-2 focus:ring-[#D63A35] transition-all text-sm font-medium"
+                className="w-full px-4 py-4 bg-white border border-gray-300 rounded-lg hover:border-purple-500 focus:outline-none focus:ring-2 focus:ring-purple-500 transition-all text-sm font-medium"
               />
+              {/* Suggestions Dropdown */}
+              {showHotelSuggestions && (
+                <div className="absolute top-full left-0 right-0 mt-2 bg-white border border-gray-200 rounded-xl shadow-2xl z-50 max-h-80 overflow-y-auto">
+                  {isLoadingHotelSuggestions ? (
+                    <div className="p-4 flex items-center justify-center gap-2">
+                      <div className="w-5 h-5 border-2 border-purple-500 border-t-transparent rounded-full animate-spin"></div>
+                      <span className="text-sm text-gray-500">Finding destinations...</span>
+                    </div>
+                  ) : hotelSuggestions.length > 0 ? (
+                    <div className="py-2">
+                      {hotelSuggestions.map((suggestion, index) => (
+                        <button
+                          key={index}
+                          type="button"
+                          onClick={(e) => {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            handleHotelSuggestionSelect(suggestion);
+                          }}
+                          className="w-full px-4 py-3 text-left hover:bg-purple-50 transition-all flex items-center gap-3 border-b border-gray-50 last:border-b-0"
+                        >
+                          <div className="w-10 h-10 flex items-center justify-center rounded-lg bg-purple-100 text-xl">
+                            {suggestion.emoji || '🏙️'}
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <div className="font-semibold text-gray-900 text-sm">{suggestion.name}</div>
+                            <div className="text-xs text-gray-500">{suggestion.country}</div>
+                          </div>
+                        </button>
+                      ))}
+                    </div>
+                  ) : hotelDestination.length >= 2 ? (
+                    <div className="p-4 text-center text-sm text-gray-500">No destinations found</div>
+                  ) : null}
+                </div>
+              )}
             </div>
 
             {/* Activity Date */}
@@ -2889,8 +3065,8 @@ export default function EnhancedSearchBar({
           {serviceType === 'transfers' && (
           <>
           <div className="flex flex-col lg:flex-row items-stretch lg:items-end gap-2">
-            {/* Pickup Location */}
-            <div className="flex-1">
+            {/* Pickup Location with Autocomplete */}
+            <div className="flex-1 relative" data-transfer-pickup>
               <label className="flex items-center gap-1.5 text-xs font-medium text-gray-700 mb-2">
                 <LogIn size={13} className="text-teal-600" />
                 <span>Pickup Location</span>
@@ -2898,14 +3074,57 @@ export default function EnhancedSearchBar({
               <input
                 type="text"
                 value={carPickupLocation}
-                onChange={(e) => setCarPickupLocation(e.target.value)}
+                onChange={(e) => handleTransferPickupChange(e.target.value)}
+                onFocus={() => {
+                  if (carPickupLocation.length >= 2) {
+                    fetchTransferSuggestions(carPickupLocation);
+                    setShowTransferPickupSuggestions(true);
+                    setShowTransferDropoffSuggestions(false);
+                  }
+                }}
                 placeholder="Airport, hotel, or address"
                 className="w-full px-4 py-4 bg-white border border-gray-300 rounded-lg hover:border-teal-500 focus:outline-none focus:ring-2 focus:ring-teal-500 transition-all text-sm font-medium"
               />
+              {/* Pickup Suggestions Dropdown */}
+              {showTransferPickupSuggestions && (
+                <div className="absolute top-full left-0 right-0 mt-2 bg-white border border-gray-200 rounded-xl shadow-2xl z-50 max-h-80 overflow-y-auto">
+                  {isLoadingTransferSuggestions ? (
+                    <div className="p-4 flex items-center justify-center gap-2">
+                      <div className="w-5 h-5 border-2 border-teal-500 border-t-transparent rounded-full animate-spin"></div>
+                      <span className="text-sm text-gray-500">Finding locations...</span>
+                    </div>
+                  ) : transferSuggestions.length > 0 ? (
+                    <div className="py-2">
+                      {transferSuggestions.map((suggestion, index) => (
+                        <button
+                          key={index}
+                          type="button"
+                          onClick={(e) => {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            handleTransferSuggestionSelect(suggestion, 'pickup');
+                          }}
+                          className="w-full px-4 py-3 text-left hover:bg-teal-50 transition-all flex items-center gap-3 border-b border-gray-50 last:border-b-0"
+                        >
+                          <div className="w-10 h-10 flex items-center justify-center rounded-lg bg-teal-100 text-xl">
+                            {suggestion.emoji || '📍'}
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <div className="font-semibold text-gray-900 text-sm">{suggestion.displayName || suggestion.name}</div>
+                            <div className="text-xs text-gray-500">{suggestion.country}</div>
+                          </div>
+                        </button>
+                      ))}
+                    </div>
+                  ) : carPickupLocation.length >= 2 ? (
+                    <div className="p-4 text-center text-sm text-gray-500">No locations found</div>
+                  ) : null}
+                </div>
+              )}
             </div>
 
-            {/* Dropoff Location */}
-            <div className="flex-1">
+            {/* Dropoff Location with Autocomplete */}
+            <div className="flex-1 relative" data-transfer-dropoff>
               <label className="flex items-center gap-1.5 text-xs font-medium text-gray-700 mb-2">
                 <LogOut size={13} className="text-teal-600" />
                 <span>Dropoff Location</span>
@@ -2913,10 +3132,53 @@ export default function EnhancedSearchBar({
               <input
                 type="text"
                 value={carDropoffLocation}
-                onChange={(e) => setCarDropoffLocation(e.target.value)}
+                onChange={(e) => handleTransferDropoffChange(e.target.value)}
+                onFocus={() => {
+                  if (carDropoffLocation.length >= 2) {
+                    fetchTransferSuggestions(carDropoffLocation);
+                    setShowTransferDropoffSuggestions(true);
+                    setShowTransferPickupSuggestions(false);
+                  }
+                }}
                 placeholder="Airport, hotel, or address"
                 className="w-full px-4 py-4 bg-white border border-gray-300 rounded-lg hover:border-teal-500 focus:outline-none focus:ring-2 focus:ring-teal-500 transition-all text-sm font-medium"
               />
+              {/* Dropoff Suggestions Dropdown */}
+              {showTransferDropoffSuggestions && (
+                <div className="absolute top-full left-0 right-0 mt-2 bg-white border border-gray-200 rounded-xl shadow-2xl z-50 max-h-80 overflow-y-auto">
+                  {isLoadingTransferSuggestions ? (
+                    <div className="p-4 flex items-center justify-center gap-2">
+                      <div className="w-5 h-5 border-2 border-teal-500 border-t-transparent rounded-full animate-spin"></div>
+                      <span className="text-sm text-gray-500">Finding locations...</span>
+                    </div>
+                  ) : transferSuggestions.length > 0 ? (
+                    <div className="py-2">
+                      {transferSuggestions.map((suggestion, index) => (
+                        <button
+                          key={index}
+                          type="button"
+                          onClick={(e) => {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            handleTransferSuggestionSelect(suggestion, 'dropoff');
+                          }}
+                          className="w-full px-4 py-3 text-left hover:bg-teal-50 transition-all flex items-center gap-3 border-b border-gray-50 last:border-b-0"
+                        >
+                          <div className="w-10 h-10 flex items-center justify-center rounded-lg bg-teal-100 text-xl">
+                            {suggestion.emoji || '📍'}
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <div className="font-semibold text-gray-900 text-sm">{suggestion.displayName || suggestion.name}</div>
+                            <div className="text-xs text-gray-500">{suggestion.country}</div>
+                          </div>
+                        </button>
+                      ))}
+                    </div>
+                  ) : carDropoffLocation.length >= 2 ? (
+                    <div className="p-4 text-center text-sm text-gray-500">No locations found</div>
+                  ) : null}
+                </div>
+              )}
             </div>
 
             {/* Date & Time */}
