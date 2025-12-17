@@ -1,8 +1,42 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getCached, setCache, generateCacheKey } from '@/lib/cache';
 import { getCoverageLevel, COVERAGE_STATS } from '@/lib/api/coverage';
+import { amadeus } from '@/lib/api/amadeus';
 
 export const dynamic = 'force-dynamic';
+
+/**
+ * Search Amadeus for REAL airports/cities (transfers can go anywhere they service)
+ */
+async function searchAmadeusTransferLocations(query: string, limit = 15) {
+  try {
+    console.log(`🔍 Amadeus transfer locations: "${query}"`);
+    const response = await amadeus.searchAirports(query);
+
+    if (!response?.data?.length) return [];
+
+    return response.data.slice(0, limit).map((loc: any) => ({
+      id: `amadeus-${loc.iataCode || loc.id}`,
+      code: loc.iataCode || '',
+      name: loc.name || loc.detailedName || '',
+      displayName: loc.iataCode
+        ? `${loc.name} (${loc.iataCode})`
+        : `${loc.name}, ${loc.address?.countryName || ''}`,
+      city: loc.address?.cityName || loc.name || '',
+      country: loc.address?.countryName || '',
+      countryCode: loc.address?.countryCode || '',
+      latitude: loc.geoCode?.latitude || 0,
+      longitude: loc.geoCode?.longitude || 0,
+      type: loc.subType === 'AIRPORT' ? 'airport' : 'city',
+      emoji: loc.subType === 'AIRPORT' ? '✈️' : '🏙️',
+      coverage: 'high', // Amadeus only returns locations with coverage
+      source: 'Amadeus',
+    }));
+  } catch (err: any) {
+    console.error('Amadeus transfer locations error:', err.message);
+    return [];
+  }
+}
 
 // Comprehensive airports database for transfers
 const AIRPORTS = [
@@ -282,19 +316,30 @@ export async function GET(request: NextRequest) {
     }
 
     // Check cache
-    const cacheKey = generateCacheKey('transfers:locations', { query: query.toLowerCase() });
+    const cacheKey = generateCacheKey('transfers:locations:v3', { query: query.toLowerCase() });
     const cached = await getCached<any>(cacheKey);
     if (cached) {
       return NextResponse.json(cached, { headers: { 'X-Cache': 'HIT' } });
     }
 
-    // Search locations
-    const results = searchLocations(query);
+    // PRIORITY: Use Amadeus API for REAL coverage (airports + cities worldwide)
+    let results = await searchAmadeusTransferLocations(query, 15);
+
+    // Fallback to local database if Amadeus returns nothing
+    if (results.length === 0) {
+      console.log(`⚠️ Amadeus returned 0, using local fallback for "${query}"`);
+      results = searchLocations(query);
+    }
 
     const response = {
       success: true,
       data: results,
-      meta: { count: results.length, query }
+      meta: {
+        count: results.length,
+        query,
+        source: results[0]?.source || 'local',
+        coverage: COVERAGE_STATS.transfers,
+      }
     };
 
     // Cache for 1 hour

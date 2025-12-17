@@ -758,8 +758,8 @@ function mergeResults(
     return `${item.name.toLowerCase()}-${item.city.toLowerCase()}-${item.country.toLowerCase()}`.replace(/\s+/g, '');
   };
 
-  // Add local results first (they have verified coordinates and emojis)
-  for (const item of localResults) {
+  // PRIORITY: LiteAPI results FIRST (they represent REAL inventory coverage)
+  for (const item of liteApiResults) {
     const key = getKey(item);
     if (!seen.has(key)) {
       seen.add(key);
@@ -767,9 +767,8 @@ function mergeResults(
     }
   }
 
-  // Add LiteAPI results that aren't duplicates
-  // Note: LiteAPI places may not have coordinates - they can still be used via placeId
-  for (const item of liteApiResults) {
+  // Add local results only if not already from LiteAPI (fallback/enhancement)
+  for (const item of localResults) {
     const key = getKey(item);
     if (!seen.has(key)) {
       seen.add(key);
