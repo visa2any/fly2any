@@ -472,7 +472,7 @@ async function searchLiteApiPlaces(query: string): Promise<{ results: CitySugges
     const { liteAPI } = await import('@/lib/api/liteapi');
     const { data } = await liteAPI.searchPlaces(intent.cleanQuery, {
       types: intent.types,
-      limit: 15,
+      limit: 25, // Increased for better coverage from actual LiteAPI inventory
     });
 
     if (!data || data.length === 0) return { results: [], intent };

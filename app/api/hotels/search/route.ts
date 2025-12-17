@@ -391,12 +391,18 @@ export async function POST(request: NextRequest) {
 
     // Amadeus - ALWAYS search to provide more hotel options (not just fallback)
     let amadeusResults = { hotels: [] as any[] };
-    const locationQuery = (searchParams.location as any)?.query || '';
+    // Try multiple location fields: query, name, city
+    const locationQuery = (searchParams.location as any)?.query
+      || (searchParams.location as any)?.name
+      || (searchParams.location as any)?.city
+      || '';
+
+    console.log(`🔍 Location data for Amadeus:`, { locationQuery, location: searchParams.location });
 
     if (locationQuery) {
       try {
         const cityCode = extractCityCode(locationQuery);
-        console.log(`🔍 LiteAPI returned ${liteAPIResults.hotels?.length || 0} hotels, also fetching from Amadeus with city code: ${cityCode}...`);
+        console.log(`🔍 Amadeus search: "${locationQuery}" → city code: ${cityCode}`);
 
         const amadeusData = await amadeus.searchHotels({
           cityCode,
