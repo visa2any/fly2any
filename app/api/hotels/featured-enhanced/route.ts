@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { liteAPI } from '@/lib/api/liteapi';
+import { amadeus } from '@/lib/api/amadeus';
 import { getCached, setCache, generateCacheKey } from '@/lib/cache';
 import { calculateValueScore } from '@/lib/ml/value-scorer';
 
@@ -122,54 +123,93 @@ export async function GET(request: NextRequest) {
 
     console.log(`🔍 Fetching ${filteredDestinations.length} featured hotels for ${continentFilter}...`);
 
-    // City coordinates for LiteAPI search
-    const cityCoordinates: Record<string, { lat: number; lng: number }> = {
-      'Times Square, New York': { lat: 40.7580, lng: -73.9855 },
-      'South Beach, Miami': { lat: 25.7907, lng: -80.1300 },
-      'Downtown Los Angeles': { lat: 34.0522, lng: -118.2437 },
-      'Toronto Downtown': { lat: 43.6532, lng: -79.3832 },
-      'Cancun Hotel Zone': { lat: 21.1619, lng: -86.8515 },
-      'Central Paris': { lat: 48.8566, lng: 2.3522 },
-      'Rome City Center': { lat: 41.9028, lng: 12.4964 },
-      'Barcelona Gothic Quarter': { lat: 41.3851, lng: 2.1734 },
-      'London West End': { lat: 51.5074, lng: -0.1278 },
-      'Amsterdam Central': { lat: 52.3676, lng: 4.9041 },
-      'Tokyo Shibuya': { lat: 35.6580, lng: 139.7016 },
-      'Singapore Marina Bay': { lat: 1.2834, lng: 103.8607 },
-      'Bali Seminyak': { lat: -8.6913, lng: 115.1681 },
-      'Sydney Harbour': { lat: -33.8688, lng: 151.2093 },
-      'Bangkok Sukhumvit': { lat: 13.7563, lng: 100.5018 },
-      'Maldives Resort': { lat: 4.1755, lng: 73.5093 },
-      'Phuket Beach': { lat: 7.9519, lng: 98.3381 },
-      'Honolulu Waikiki': { lat: 21.2793, lng: -157.8292 },
-      'Dubai Marina': { lat: 25.0657, lng: 55.1404 },
+    // City coordinates for LiteAPI search + IATA codes for Amadeus
+    const cityData: Record<string, { lat: number; lng: number; iata: string }> = {
+      'Times Square, New York': { lat: 40.7580, lng: -73.9855, iata: 'NYC' },
+      'South Beach, Miami': { lat: 25.7907, lng: -80.1300, iata: 'MIA' },
+      'Downtown Los Angeles': { lat: 34.0522, lng: -118.2437, iata: 'LAX' },
+      'Toronto Downtown': { lat: 43.6532, lng: -79.3832, iata: 'YYZ' },
+      'Cancun Hotel Zone': { lat: 21.1619, lng: -86.8515, iata: 'CUN' },
+      'Central Paris': { lat: 48.8566, lng: 2.3522, iata: 'PAR' },
+      'Rome City Center': { lat: 41.9028, lng: 12.4964, iata: 'ROM' },
+      'Barcelona Gothic Quarter': { lat: 41.3851, lng: 2.1734, iata: 'BCN' },
+      'London West End': { lat: 51.5074, lng: -0.1278, iata: 'LON' },
+      'Amsterdam Central': { lat: 52.3676, lng: 4.9041, iata: 'AMS' },
+      'Tokyo Shibuya': { lat: 35.6580, lng: 139.7016, iata: 'TYO' },
+      'Singapore Marina Bay': { lat: 1.2834, lng: 103.8607, iata: 'SIN' },
+      'Bali Seminyak': { lat: -8.6913, lng: 115.1681, iata: 'DPS' },
+      'Sydney Harbour': { lat: -33.8688, lng: 151.2093, iata: 'SYD' },
+      'Bangkok Sukhumvit': { lat: 13.7563, lng: 100.5018, iata: 'BKK' },
+      'Maldives Resort': { lat: 4.1755, lng: 73.5093, iata: 'MLE' },
+      'Phuket Beach': { lat: 7.9519, lng: 98.3381, iata: 'HKT' },
+      'Honolulu Waikiki': { lat: 21.2793, lng: -157.8292, iata: 'HNL' },
+      'Dubai Marina': { lat: 25.0657, lng: 55.1404, iata: 'DXB' },
     };
 
-    // Fetch hotels from each destination using LiteAPI
+    // Fetch hotels from each destination using LiteAPI + Amadeus fallback
     const hotelPromises = filteredDestinations.map(async (dest) => {
       try {
-        const coords = cityCoordinates[dest.query] || { lat: 40.7128, lng: -74.0060 }; // Default to NYC
+        const city = cityData[dest.query] || { lat: 40.7128, lng: -74.0060, iata: 'NYC' };
+        let hotel: any = null;
+        let source: 'liteapi' | 'amadeus' = 'liteapi';
 
-        const results = await liteAPI.searchHotelsWithMinRates({
-          latitude: coords.lat,
-          longitude: coords.lng,
-          checkinDate: checkInStr,
-          checkoutDate: checkOutStr,
-          adults: 2,
-          children: 0,
-          currency: 'USD',
-          guestNationality: 'US',
-          limit: 3,
-        });
+        // Try LiteAPI first
+        try {
+          const results = await liteAPI.searchHotelsWithMinRates({
+            latitude: city.lat,
+            longitude: city.lng,
+            checkinDate: checkInStr,
+            checkoutDate: checkOutStr,
+            adults: 2,
+            children: 0,
+            currency: 'USD',
+            guestNationality: 'US',
+            limit: 2,
+          });
+          if (results?.hotels?.[0]) {
+            hotel = results.hotels[0];
+            source = 'liteapi';
+          }
+        } catch (liteErr) {
+          console.log(`LiteAPI failed for ${dest.city}, trying Amadeus...`);
+        }
 
-        if (results && results.hotels && results.hotels.length > 0) {
-          // Get best hotel with ML scoring
-          const hotel = results.hotels[0]; // Take first (usually best) result
+        // Fallback to Amadeus if LiteAPI fails
+        if (!hotel) {
+          try {
+            const amadeusResults = await amadeus.searchHotels({
+              cityCode: city.iata,
+              checkInDate: checkInStr,
+              checkOutDate: checkOutStr,
+              adults: 2,
+              roomQuantity: 1,
+            });
+            if (amadeusResults?.data?.[0]) {
+              const amHotel = amadeusResults.data[0];
+              hotel = {
+                id: `amadeus_${amHotel.hotel?.hotelId || amHotel.hotelId}`,
+                name: amHotel.hotel?.name || 'Hotel',
+                image: amHotel.hotel?.media?.[0]?.uri || null,
+                images: amHotel.hotel?.media?.map((m: any) => ({ url: m.uri })) || [],
+                lowestPricePerNight: parseFloat(amHotel.offers?.[0]?.price?.total || '0') /
+                  ((new Date(checkOutStr).getTime() - new Date(checkInStr).getTime()) / (1000*60*60*24)),
+                starRating: amHotel.hotel?.rating || 4,
+                amenities: [],
+                address: amHotel.hotel?.address?.lines?.join(', ') || '',
+                _amadeusOffer: amHotel.offers?.[0], // Store for booking
+              };
+              source = 'amadeus';
+            }
+          } catch (amErr) {
+            console.log(`Amadeus also failed for ${dest.city}`);
+          }
+        }
 
-          if (!hotel) return null;
+        if (!hotel) return null;
 
-          // Debug: Log photo fields for first few hotels
-          if (filteredDestinations.indexOf(dest) < 3) {
+        // Process the hotel (from either LiteAPI or Amadeus)
+        // Debug: Log photo fields for first few hotels
+        if (filteredDestinations.indexOf(dest) < 3) {
             console.log(`📸 Hotel "${hotel.name}" photo fields:`, {
               image: hotel.image,
               thumbnail: hotel.thumbnail,
@@ -269,9 +309,11 @@ export async function GET(request: NextRequest) {
             amenities: hotel.amenities || [],
             address: hotel.address,
             location: hotelAny.location || { latitude: hotel.latitude, longitude: hotel.longitude },
+
+            // Source indicator (LiteAPI or Amadeus)
+            source,
+            _amadeusOffer: hotel._amadeusOffer, // For Amadeus manual booking
           };
-        }
-        return null;
       } catch (error: any) {
         console.error(`Error fetching ${dest.city}:`, error.message);
         return null;
@@ -283,7 +325,7 @@ export async function GET(request: NextRequest) {
 
     // Log if no hotels found (no demo fallback - only real API data)
     if (validHotels.length === 0) {
-      console.log(`⚠️ LiteAPI returned no hotels for ${continentFilter} - returning empty array`);
+      console.log(`⚠️ No hotels found for ${continentFilter} (LiteAPI + Amadeus fallback)`);
     }
 
     // Sort by value score

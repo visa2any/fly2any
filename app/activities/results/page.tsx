@@ -1,14 +1,12 @@
 'use client';
 
-import { useState, useEffect, Suspense } from 'react';
+import { useState, useEffect, Suspense, memo, useCallback, useMemo } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import Image from 'next/image';
 import { MaxWidthContainer } from '@/components/layout/MaxWidthContainer';
-import {
-  Star, Clock, MapPin, Heart, Loader2, ArrowLeft,
-  SlidersHorizontal, Globe, Sparkles, Search
-} from 'lucide-react';
+import { Star, Clock, Heart, Loader2, ArrowLeft, Globe, Sparkles, Search } from 'lucide-react';
 import { GLOBAL_CITIES, CityDestination } from '@/lib/data/global-cities-database';
+import { ProductFilters, applyFilters, defaultFilters } from '@/components/shared/ProductFilters';
 
 interface Activity {
   id: string;
@@ -23,15 +21,50 @@ interface Activity {
   self?: { href: string; methods?: string[] };
 }
 
-// Use GLOBAL_CITIES for all destinations
+// Pre-filter cities once (static)
 const MAIN_CITIES = GLOBAL_CITIES.filter(c => c.type === 'city');
+const POPULAR_CITIES = MAIN_CITIES.filter(c => c.popularity && c.popularity >= 8).slice(0, 10);
 
 const findCity = (query: string): CityDestination | undefined => {
   const q = query.toLowerCase();
-  return GLOBAL_CITIES.find(c =>
-    c.id === q || c.name.toLowerCase() === q || c.aliases?.includes(q)
-  );
+  return GLOBAL_CITIES.find(c => c.id === q || c.name.toLowerCase() === q || c.aliases?.includes(q));
 };
+
+// Memoized Activity Card - Apple Level 6 styling
+const ActivityCard = memo(({ activity, onBook }: { activity: Activity; onBook: (a: Activity, price: number | null, img: string) => void }) => {
+  const basePrice = activity.price?.amount ? parseFloat(activity.price.amount) : null;
+  const price = basePrice ? basePrice + Math.max(basePrice * 0.35, 35) : null;
+  const firstPic = activity.pictures?.[0];
+  const img = typeof firstPic === 'string' ? firstPic : firstPic?.url || '/placeholder-activity.jpg';
+
+  return (
+    <div className="bg-white rounded-2xl border border-gray-100 overflow-hidden shadow-sm hover:shadow-lg transition-all duration-300 group">
+      <div className="relative aspect-[16/10] overflow-hidden bg-gray-50">
+        <Image src={img} alt={activity.name} fill className="object-cover group-hover:scale-105 transition-transform duration-500" unoptimized loading="lazy" />
+        <button className="absolute top-3 right-3 w-8 h-8 rounded-full bg-white/90 backdrop-blur-sm flex items-center justify-center shadow-sm hover:scale-110 transition-transform">
+          <Heart className="w-4 h-4 text-gray-600" />
+        </button>
+        {price && (
+          <div className="absolute bottom-3 left-3 px-3 py-1.5 rounded-xl bg-white/95 backdrop-blur-sm shadow-md">
+            <span className="font-bold text-gray-900">${price.toFixed(0)}</span>
+            <span className="text-gray-500 text-xs ml-1">/person</span>
+          </div>
+        )}
+      </div>
+      <div className="p-4">
+        <h3 className="font-semibold text-gray-900 line-clamp-2 mb-2 group-hover:text-purple-600 transition-colors">{activity.name}</h3>
+        <div className="flex items-center gap-3 text-xs text-gray-500 mb-3">
+          <span className="flex items-center gap-1"><Star className="w-3.5 h-3.5 fill-amber-400 text-amber-400" />{activity.rating || '4.7'}</span>
+          <span className="flex items-center gap-1"><Clock className="w-3.5 h-3.5" />{activity.minimumDuration || '2h'}</span>
+        </div>
+        <button onClick={() => onBook(activity, price, img)} className="w-full py-2.5 rounded-xl bg-purple-600 text-white font-semibold text-sm hover:bg-purple-700 transition-colors shadow-sm">
+          Book Now
+        </button>
+      </div>
+    </div>
+  );
+});
+ActivityCard.displayName = 'ActivityCard';
 
 function ActivityResultsContent() {
   const searchParams = useSearchParams();
@@ -41,29 +74,29 @@ function ActivityResultsContent() {
   const [error, setError] = useState('');
   const [searchInput, setSearchInput] = useState('');
   const [showSuggestions, setShowSuggestions] = useState(false);
+  const [filters, setFilters] = useState(defaultFilters);
 
   const destination = searchParams.get('destination') || 'paris';
-  const foundCity = findCity(destination);
+  const foundCity = useMemo(() => findCity(destination), [destination]);
   const lat = parseFloat(searchParams.get('lat') || '') || foundCity?.location.lat || 48.8566;
   const lng = parseFloat(searchParams.get('lng') || '') || foundCity?.location.lng || 2.3522;
   const cityName = foundCity?.name || destination;
 
-  const suggestions = searchInput.length > 0
-    ? MAIN_CITIES.filter(c =>
-        c.name.toLowerCase().includes(searchInput.toLowerCase()) ||
-        c.id.includes(searchInput.toLowerCase()) ||
-        c.country.toLowerCase().includes(searchInput.toLowerCase()) ||
-        c.aliases?.some(a => a.includes(searchInput.toLowerCase()))
-      ).slice(0, 10)
-    : MAIN_CITIES.filter(c => c.popularity && c.popularity >= 8).slice(0, 10);
+  const suggestions = useMemo(() => {
+    if (searchInput.length === 0) return POPULAR_CITIES;
+    const q = searchInput.toLowerCase();
+    return MAIN_CITIES.filter(c =>
+      c.name.toLowerCase().includes(q) || c.id.includes(q) || c.country.toLowerCase().includes(q) || c.aliases?.some(a => a.includes(q))
+    ).slice(0, 10);
+  }, [searchInput]);
 
-  const handleSelectCity = (city: CityDestination) => {
+  const handleSelectCity = useCallback((city: CityDestination) => {
     setSearchInput(city.name);
     setShowSuggestions(false);
     router.push(`/activities/results?destination=${city.id}&lat=${city.location.lat}&lng=${city.location.lng}`);
-  };
+  }, [router]);
 
-  const handleSearch = () => {
+  const handleSearch = useCallback(() => {
     const city = findCity(searchInput);
     if (city) {
       router.push(`/activities/results?destination=${city.id}&lat=${city.location.lat}&lng=${city.location.lng}`);
@@ -71,26 +104,42 @@ function ActivityResultsContent() {
       const first = suggestions[0];
       router.push(`/activities/results?destination=${first.id}&lat=${first.location.lat}&lng=${first.location.lng}`);
     }
-  };
+  }, [searchInput, suggestions, router]);
+
+  const handleBook = useCallback((activity: Activity, price: number | null, img: string) => {
+    router.push(`/activities/book?id=${activity.id}&name=${encodeURIComponent(activity.name)}&price=${price || 0}&img=${encodeURIComponent(img)}&duration=${activity.minimumDuration || '2h'}&link=${encodeURIComponent(activity.bookingLink || '')}`);
+  }, [router]);
 
   useEffect(() => {
+    const controller = new AbortController();
     const fetchActivities = async () => {
       setLoading(true);
       setError('');
       try {
-        const res = await fetch(`/api/activities/search?latitude=${lat}&longitude=${lng}&radius=15&type=activities`);
+        const res = await fetch(`/api/activities/search?latitude=${lat}&longitude=${lng}&radius=15&type=activities`, { signal: controller.signal });
         const data = await res.json();
         if (data.error) throw new Error(data.error);
         setActivities(data.data || []);
       } catch (err: any) {
-        setError(err.message || 'Failed to load activities');
-        setActivities([]);
+        if (err.name !== 'AbortError') {
+          setError(err.message || 'Failed to load activities');
+          setActivities([]);
+        }
       } finally {
         setLoading(false);
       }
     };
     fetchActivities();
+    return () => controller.abort();
   }, [lat, lng]);
+
+  // Apply filters
+  const getPrice = useCallback((a: Activity) => {
+    const base = a.price?.amount ? parseFloat(a.price.amount) : null;
+    return base ? base + Math.max(base * 0.35, 35) : null;
+  }, []);
+
+  const filteredActivities = useMemo(() => applyFilters(activities, filters, getPrice), [activities, filters, getPrice]);
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white">
@@ -146,6 +195,13 @@ function ActivityResultsContent() {
         </MaxWidthContainer>
       </div>
 
+      {/* Filters - Unified Component */}
+      {!loading && activities.length > 0 && (
+        <MaxWidthContainer>
+          <ProductFilters filters={filters} onChange={setFilters} resultCount={filteredActivities.length} accentColor="purple" />
+        </MaxWidthContainer>
+      )}
+
       <MaxWidthContainer>
         {/* Loading */}
         {loading && (
@@ -171,49 +227,21 @@ function ActivityResultsContent() {
           </div>
         )}
 
-        {/* Results Grid */}
-        {!loading && activities.length > 0 && (
-          <div className="py-4 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
-            {activities.map((activity) => {
-              // Apply 35% markup with $35 minimum
-              const basePrice = activity.price?.amount ? parseFloat(activity.price.amount) : null;
-              const markup = basePrice ? Math.max(basePrice * 0.35, 35) : null;
-              const price = basePrice && markup ? basePrice + markup : null;
-              // Handle pictures array (can be objects with url or strings)
-              const firstPic = activity.pictures?.[0];
-              const img = typeof firstPic === 'string' ? firstPic : firstPic?.url || 'https://images.unsplash.com/photo-1682687220742-aba13b6e50ba?w=600&q=80';
-              return (
-                <div key={activity.id} className="bg-white rounded-xl border border-gray-100 overflow-hidden shadow-sm hover:shadow-md transition-all group">
-                  <div className="relative aspect-[16/10] overflow-hidden">
-                    <Image src={img} alt={activity.name} fill className="object-cover group-hover:scale-105 transition-transform duration-500" unoptimized />
-                    <button className="absolute top-2 right-2 w-7 h-7 rounded-full bg-white/90 backdrop-blur flex items-center justify-center hover:bg-white">
-                      <Heart className="w-3.5 h-3.5 text-gray-600" />
-                    </button>
-                    {price && (
-                      <div className="absolute bottom-2 left-2 px-2 py-0.5 rounded-md bg-white/95 backdrop-blur shadow-sm">
-                        <span className="font-bold text-gray-900 text-sm">${price.toFixed(0)}</span>
-                        <span className="text-gray-500 text-[10px] ml-0.5">/person</span>
-                      </div>
-                    )}
-                  </div>
-                  <div className="p-2.5">
-                    <h3 className="font-semibold text-gray-900 text-sm line-clamp-2 mb-1 group-hover:text-purple-600 transition-colors leading-tight">
-                      {activity.name}
-                    </h3>
-                    <div className="flex items-center gap-2 text-[10px] text-gray-500 mb-2">
-                      <span className="flex items-center gap-0.5"><Star className="w-3 h-3 fill-amber-400 text-amber-400" />{activity.rating || '4.7'}</span>
-                      <span className="flex items-center gap-0.5"><Clock className="w-3 h-3" />{activity.minimumDuration || '2h'}</span>
-                    </div>
-                    <button
-                      onClick={() => router.push(`/activities/book?id=${activity.id}&name=${encodeURIComponent(activity.name)}&price=${price || 0}&img=${encodeURIComponent(img)}&duration=${activity.minimumDuration || '2h'}&link=${encodeURIComponent(activity.bookingLink || '')}`)}
-                      className="w-full mt-1 py-1.5 rounded-lg bg-purple-600 text-white font-semibold text-xs hover:bg-purple-700 transition-colors"
-                    >
-                      Book Now
-                    </button>
-                  </div>
-                </div>
-              );
-            })}
+        {/* Results Grid - Apple Level 6 */}
+        {!loading && filteredActivities.length > 0 && (
+          <div className="py-4 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+            {filteredActivities.map((activity) => (
+              <ActivityCard key={activity.id} activity={activity} onBook={handleBook} />
+            ))}
+          </div>
+        )}
+
+        {/* No matches after filter */}
+        {!loading && activities.length > 0 && filteredActivities.length === 0 && (
+          <div className="text-center py-16">
+            <Sparkles className="w-12 h-12 text-gray-300 mx-auto mb-3" />
+            <p className="text-gray-500">No activities match your filters</p>
+            <button onClick={() => setFilters(defaultFilters)} className="mt-3 text-purple-600 font-medium hover:underline">Clear filters</button>
           </div>
         )}
       </MaxWidthContainer>
