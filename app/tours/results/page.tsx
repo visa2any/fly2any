@@ -13,11 +13,14 @@ interface Tour {
   id: string;
   name: string;
   description?: string;
+  shortDescription?: string;
   price?: { amount: string; currencyCode: string };
   pictures?: string[];
   rating?: number;
   minimumDuration?: string;
   geoCode?: { latitude: number; longitude: number };
+  bookingLink?: string; // Provider URL for booking
+  self?: { href: string }; // API self-link
 }
 
 // City coordinates for search

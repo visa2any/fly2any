@@ -1,8 +1,10 @@
 'use client';
 
 import { useState } from 'react';
+import { useRouter } from 'next/navigation';
+import Image from 'next/image';
 import { ValueScoreBadge, calculateValueScore } from '@/components/shared/ValueScoreBadge';
-import { MapPin, Star, Users, Clock, Camera, Mountain, UtensilsCrossed, TrendingUp, Flame, Award, Compass } from 'lucide-react';
+import { MapPin, Star, Users, Clock, Camera, Mountain, UtensilsCrossed, TrendingUp, Flame, Award, Compass, ArrowRight } from 'lucide-react';
 
 interface Tour {
   id: string;
@@ -194,6 +196,7 @@ const difficultyColors = {
 
 export function ToursSection({ lang = 'en' }: ToursSectionProps) {
   const t = translations[lang];
+  const router = useRouter();
   const [hoveredId, setHoveredId] = useState<string | null>(null);
 
   const getDifficultyLabel = (difficulty?: string) => {
@@ -206,7 +209,7 @@ export function ToursSection({ lang = 'en' }: ToursSectionProps) {
   };
 
   return (
-    <section className="py-4" style={{ maxWidth: '1600px', margin: '0 auto', padding: '16px 24px' }}>
+    <section className="py-4 px-4 md:px-0">
       {/* Section Header */}
       <div className="mb-6">
         <h2 className="text-2xl font-bold text-gray-900 mb-2 flex items-center gap-2">
@@ -354,8 +357,12 @@ export function ToursSection({ lang = 'en' }: ToursSectionProps) {
 
       {/* View All Button */}
       <div className="text-center mt-6">
-        <button className="px-6 py-3 bg-white border-2 border-primary-600 text-primary-600 hover:bg-primary-50 font-bold rounded-lg transition-colors">
-          {t.viewAll} →
+        <button
+          onClick={() => router.push('/tours')}
+          className="inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-orange-500 to-amber-600 text-white hover:from-orange-600 hover:to-amber-700 font-bold rounded-lg transition-colors shadow-md hover:shadow-lg"
+        >
+          {t.viewAll}
+          <ArrowRight className="w-4 h-4" />
         </button>
       </div>
     </section>

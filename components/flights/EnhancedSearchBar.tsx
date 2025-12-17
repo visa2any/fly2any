@@ -1191,23 +1191,28 @@ export default function EnhancedSearchBar({
             <span className="text-[8px] bg-gradient-to-r from-amber-400 to-orange-400 text-white px-1.5 py-0.5 rounded-full font-bold leading-none shadow-sm">Soon</span>
           </button>
 
-          {/* Tours Tab - COMING SOON */}
+          {/* Tours Tab - ACTIVE */}
           <button
             type="button"
-            onClick={() => {
-              if (typeof window !== 'undefined') {
-                const toast = document.createElement('div');
-                toast.className = 'fixed top-4 left-1/2 -translate-x-1/2 bg-neutral-900 text-white px-5 py-3 rounded-2xl shadow-2xl z-50 animate-fade-in flex items-center gap-2 text-sm font-medium';
-                toast.innerHTML = '<span class="text-lg">🗺️</span> Tours coming soon!';
-                document.body.appendChild(toast);
-                setTimeout(() => toast.remove(), 2500);
-              }
-            }}
-            className="flex items-center gap-1.5 px-3 py-2.5 text-sm font-medium transition-all duration-300 relative text-neutral-400 hover:text-neutral-500 cursor-pointer flex-shrink-0 whitespace-nowrap rounded-xl hover:bg-white/30 active:scale-95"
+            onClick={() => router.push('/tours')}
+            className="flex items-center gap-2 px-4 py-2.5 min-h-[44px] text-sm font-semibold transition-all duration-300 relative flex-shrink-0 whitespace-nowrap touch-manipulation rounded-xl text-neutral-600 hover:text-neutral-900 hover:bg-white/50 active:scale-95"
           >
-            <Map size={13} className="text-neutral-400" />
-            <span className="text-xs tracking-tight">{t('tours')}</span>
-            <span className="text-[8px] bg-gradient-to-r from-amber-400 to-orange-400 text-white px-1.5 py-0.5 rounded-full font-bold leading-none shadow-sm">Soon</span>
+            <div className="p-1.5 rounded-lg transition-colors duration-300 bg-orange-100/80">
+              <Map size={14} className="text-orange-600" />
+            </div>
+            <span className="text-[13px] sm:text-sm tracking-tight">{t('tours')}</span>
+          </button>
+
+          {/* Activities Tab - ACTIVE */}
+          <button
+            type="button"
+            onClick={() => router.push('/activities')}
+            className="flex items-center gap-2 px-4 py-2.5 min-h-[44px] text-sm font-semibold transition-all duration-300 relative flex-shrink-0 whitespace-nowrap touch-manipulation rounded-xl text-neutral-600 hover:text-neutral-900 hover:bg-white/50 active:scale-95"
+          >
+            <div className="p-1.5 rounded-lg transition-colors duration-300 bg-purple-100/80">
+              <Activity size={14} className="text-purple-600" />
+            </div>
+            <span className="text-[13px] sm:text-sm tracking-tight">{t('activities')}</span>
           </button>
 
           {/* Packages Tab - COMING SOON */}

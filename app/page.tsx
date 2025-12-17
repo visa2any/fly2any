@@ -8,7 +8,8 @@ import { MobileHomeSearchWrapper } from '@/components/home/MobileHomeSearchWrapp
 import { HotelsSectionEnhanced } from '@/components/home/HotelsSectionEnhanced';
 // TEMPORARILY HIDDEN - Uncomment when ready to launch
 // import { CarRentalsSectionEnhanced } from '@/components/home/CarRentalsSectionEnhanced';
-// import { ToursSection } from '@/components/home/ToursSection';
+import { ToursSection } from '@/components/home/ToursSection';
+import { ActivitiesSection } from '@/components/home/ActivitiesSection';
 import { DestinationsSectionEnhanced } from '@/components/home/DestinationsSectionEnhanced';
 import { FlashDealsSectionEnhanced } from '@/components/home/FlashDealsSectionEnhanced';
 import { RecentlyViewedSection } from '@/components/home/RecentlyViewedSection';
@@ -645,6 +646,20 @@ export default function Home() {
           <HotelsSectionEnhanced lang={lang} />
         </div>
 
+        {/* ============================================
+            TOURS SECTION - Guided Tours & Day Trips
+            ============================================ */}
+        <div className="mt-4 md:mt-6 lg:mt-8">
+          <ToursSection lang={lang} />
+        </div>
+
+        {/* ============================================
+            ACTIVITIES SECTION - Experiences & Things to Do
+            ============================================ */}
+        <div className="mt-4 md:mt-6 lg:mt-8">
+          <ActivitiesSection lang={lang} />
+        </div>
+
         <div className="mt-4 md:mt-6 lg:mt-8">
           <WorldCupHeroSectionEnhanced lang={lang} />
         </div>
@@ -655,14 +670,6 @@ export default function Home() {
             ============================================ */}
         {/* <div className="mt-2 sm:mt-3 md:mt-5">
           <CarRentalsSectionEnhanced lang={lang} />
-        </div> */}
-
-        {/* ============================================
-            TOURS & ACTIVITIES SECTION - TEMPORARILY HIDDEN
-            Uncomment when ready to launch tours
-            ============================================ */}
-        {/* <div className="mt-2 sm:mt-3 md:mt-5">
-          <ToursSection lang={lang} />
         </div> */}
 
         {/* ============================================
