@@ -34,6 +34,8 @@ interface MobileHomeSearchWrapperProps {
   onSearch?: () => void;
   /** Hide the service tabs (for Journey page) */
   hideTabs?: boolean;
+  /** Journey mode - redirects to /journey/builder */
+  journeyMode?: boolean;
 }
 
 type ViewState = 'collapsed' | 'expanded' | 'hidden';
@@ -70,6 +72,7 @@ export function MobileHomeSearchWrapper({
   defaultService = 'flights',
   onSearch,
   hideTabs = false,
+  journeyMode = false,
 }: MobileHomeSearchWrapperProps) {
   // CRITICAL: Only render mobile UI after hydration to prevent SSR/CSR mismatch
   const hasMounted = useHasMounted();
@@ -238,6 +241,7 @@ export function MobileHomeSearchWrapper({
         lang={lang}
         defaultService={defaultService}
         hideTabs={hideTabs}
+        journeyMode={journeyMode}
       />
     );
   }
@@ -326,6 +330,7 @@ export function MobileHomeSearchWrapper({
                 defaultService={defaultService}
                 onSearchSubmit={handleSearchSubmit}
                 hideTabs={hideTabs}
+                journeyMode={journeyMode}
               />
             </div>
 

@@ -554,9 +554,9 @@ function JourneyPageContent() {
         .animate-fadeIn { animation: fadeIn 0.6s cubic-bezier(0.2, 0.8, 0.2, 1); }
       `}</style>
 
-      {/* ============ SEARCH BAR - SAME AS FLIGHTS PAGE (NO TABS) ============ */}
+      {/* ============ SEARCH BAR - JOURNEY MODE (NO TABS, REDIRECTS TO BUILDER) ============ */}
       <div className="border-b border-neutral-100">
-        <MobileHomeSearchWrapper lang={lang} defaultService="flights" hideTabs />
+        <MobileHomeSearchWrapper lang={lang} defaultService="flights" hideTabs journeyMode />
       </div>
 
       {/* ============ TRUST BAR - SAME AS FLIGHTS PAGE ============ */}

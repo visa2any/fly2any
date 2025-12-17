@@ -48,6 +48,7 @@ interface EnhancedSearchBarProps {
 
   // Layout options
   hideTabs?: boolean;  // Hide the service tabs (for Journey page)
+  journeyMode?: boolean;  // When true, redirects to /journey/builder instead of /flights/results
 }
 
 interface Airport {
@@ -180,6 +181,7 @@ export default function EnhancedSearchBar({
   defaultService = 'flights',
   onSearchSubmit,
   hideTabs = false,
+  journeyMode = false,
 }: EnhancedSearchBarProps) {
   const t = useTranslations('FlightSearch');
   const router = useRouter();
@@ -965,9 +967,15 @@ export default function EnhancedSearchBar({
 
     console.log('🔍 Searching with params:', Object.fromEntries(params));
 
-    // Open results page in NEW WINDOW/TAB
-    const url = `/flights/results?${params.toString()}`;
-    window.open(url, '_blank', 'noopener,noreferrer');
+    // Journey mode: redirect to journey builder, otherwise flights results
+    if (journeyMode) {
+      const url = `/journey/builder?${params.toString()}`;
+      router.push(url);
+    } else {
+      // Open results page in NEW WINDOW/TAB
+      const url = `/flights/results?${params.toString()}`;
+      window.open(url, '_blank', 'noopener,noreferrer');
+    }
 
     // Reset loading after a short delay
     setTimeout(() => setIsLoading(false), 500);
