@@ -512,7 +512,13 @@ async function searchLiteApiPlaces(query: string): Promise<{ results: CitySugges
         emoji,
         flag,
       } as CitySuggestion;
-    }).filter((p: any) => p.name);
+    }).filter((p: any) => {
+      // CRITICAL: Filter out results with missing/invalid coordinates
+      // Invalid coords (0,0 or missing) cause hotel search to use wrong location
+      const hasValidCoords = p.location?.lat && p.location?.lng &&
+        Math.abs(p.location.lat) > 0.01 && Math.abs(p.location.lng) > 0.01;
+      return p.name && hasValidCoords;
+    });
 
     return { results, intent };
   } catch (error) {
