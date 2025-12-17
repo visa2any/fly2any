@@ -437,6 +437,28 @@ function HotelResultsContent() {
       return;
     }
 
+    // ✅ Client-side date validation - prevent past dates
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const checkInDate = new Date(searchData.checkIn);
+    const checkOutDate = new Date(searchData.checkOut);
+
+    if (checkInDate < today) {
+      const errorMsg = `Check-in date (${searchData.checkIn}) is in the past. Please select a future date using the search bar above.`;
+      console.error('🚫 Hotel search error:', errorMsg);
+      setError(errorMsg);
+      setLoading(false);
+      return;
+    }
+
+    if (checkOutDate <= checkInDate) {
+      const errorMsg = `Check-out date must be after check-in date. Please correct your dates using the search bar above.`;
+      console.error('🚫 Hotel search error:', errorMsg);
+      setError(errorMsg);
+      setLoading(false);
+      return;
+    }
+
     setLoading(true);
     setError(null);
 

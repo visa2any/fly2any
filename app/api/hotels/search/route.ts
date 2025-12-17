@@ -303,6 +303,37 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // ✅ CRITICAL: Past date validation - APIs return 0 results for past dates
+    const today = new Date();
+    today.setHours(0, 0, 0, 0); // Start of today
+
+    const checkInDate = new Date(body.checkIn);
+    const checkOutDate = new Date(body.checkOut);
+
+    if (checkInDate < today) {
+      return NextResponse.json(
+        {
+          success: false,
+          error: 'Check-in date cannot be in the past',
+          hint: `Check-in date ${body.checkIn} is before today (${today.toISOString().split('T')[0]}). Please select a future date.`,
+          code: 'INVALID_CHECKIN_DATE',
+        },
+        { status: 400 }
+      );
+    }
+
+    if (checkOutDate <= checkInDate) {
+      return NextResponse.json(
+        {
+          success: false,
+          error: 'Check-out date must be after check-in date',
+          hint: `Check-out ${body.checkOut} must be at least 1 day after check-in ${body.checkIn}.`,
+          code: 'INVALID_CHECKOUT_DATE',
+        },
+        { status: 400 }
+      );
+    }
+
     // Build search parameters
     const searchParams: HotelSearchParams = {
       location: body.location,
@@ -687,6 +718,37 @@ export async function GET(request: NextRequest) {
           success: false,
           error: 'Missing required parameters',
           hint: 'Provide query/cityCode or lat/lng, checkIn/checkInDate, checkOut/checkOutDate, and adults'
+        },
+        { status: 400 }
+      );
+    }
+
+    // ✅ CRITICAL: Past date validation - APIs return 0 results for past dates
+    const today = new Date();
+    today.setHours(0, 0, 0, 0); // Start of today
+
+    const checkInDate = new Date(checkIn);
+    const checkOutDate = new Date(checkOut);
+
+    if (checkInDate < today) {
+      return NextResponse.json(
+        {
+          success: false,
+          error: 'Check-in date cannot be in the past',
+          hint: `Check-in date ${checkIn} is before today (${today.toISOString().split('T')[0]}). Please select a future date.`,
+          code: 'INVALID_CHECKIN_DATE',
+        },
+        { status: 400 }
+      );
+    }
+
+    if (checkOutDate <= checkInDate) {
+      return NextResponse.json(
+        {
+          success: false,
+          error: 'Check-out date must be after check-in date',
+          hint: `Check-out ${checkOut} must be at least 1 day after check-in ${checkIn}.`,
+          code: 'INVALID_CHECKOUT_DATE',
         },
         { status: 400 }
       );
