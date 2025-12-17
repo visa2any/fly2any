@@ -301,7 +301,7 @@ export async function GET(request: NextRequest) {
     }
 
     // Generate cache key
-    const cacheKey = generateCacheKey('hotels:suggestions:v2', { query: query.toLowerCase() });
+    const cacheKey = generateCacheKey('hotels:suggestions:v3', { query: query.toLowerCase() });
 
     // Try to get from cache (30 min TTL for dynamic results)
     const cached = await getCached<any>(cacheKey);
