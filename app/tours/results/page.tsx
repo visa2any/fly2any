@@ -8,6 +8,7 @@ import {
   Star, Clock, Users, MapPin, Heart, Loader2, ArrowLeft,
   SlidersHorizontal, ChevronDown, Globe, Search
 } from 'lucide-react';
+import { GLOBAL_CITIES, CityDestination } from '@/lib/data/global-cities-database';
 
 interface Tour {
   id: string;
@@ -23,18 +24,15 @@ interface Tour {
   self?: { href: string; methods?: string[] };
 }
 
-// City coordinates for search
-const CITY_COORDS: Record<string, { lat: number; lng: number; name: string }> = {
-  paris: { lat: 48.8566, lng: 2.3522, name: 'Paris' },
-  rome: { lat: 41.9028, lng: 12.4964, name: 'Rome' },
-  barcelona: { lat: 41.3851, lng: 2.1734, name: 'Barcelona' },
-  london: { lat: 51.5074, lng: -0.1278, name: 'London' },
-  newyork: { lat: 40.7128, lng: -74.0060, name: 'New York' },
-  nyc: { lat: 40.7128, lng: -74.0060, name: 'New York' },
-  tokyo: { lat: 35.6762, lng: 139.6503, name: 'Tokyo' },
-  dubai: { lat: 25.2048, lng: 55.2708, name: 'Dubai' },
-  lisbon: { lat: 38.7223, lng: -9.1393, name: 'Lisbon' },
-  bali: { lat: -8.3405, lng: 115.0920, name: 'Bali' },
+// Use GLOBAL_CITIES for all destinations - only get type='city' for main cities
+const MAIN_CITIES = GLOBAL_CITIES.filter(c => c.type === 'city');
+
+// Helper to find city by key or name
+const findCity = (query: string): CityDestination | undefined => {
+  const q = query.toLowerCase();
+  return GLOBAL_CITIES.find(c =>
+    c.id === q || c.name.toLowerCase() === q || c.aliases?.includes(q)
+  );
 };
 
 function TourResultsContent() {
@@ -47,35 +45,35 @@ function TourResultsContent() {
   const [showSuggestions, setShowSuggestions] = useState(false);
 
   const destination = searchParams.get('destination') || 'paris';
-  const lat = parseFloat(searchParams.get('lat') || '') || CITY_COORDS[destination.toLowerCase()]?.lat || 48.8566;
-  const lng = parseFloat(searchParams.get('lng') || '') || CITY_COORDS[destination.toLowerCase()]?.lng || 2.3522;
-  const cityName = CITY_COORDS[destination.toLowerCase()]?.name || destination;
+  const foundCity = findCity(destination);
+  const lat = parseFloat(searchParams.get('lat') || '') || foundCity?.location.lat || 48.8566;
+  const lng = parseFloat(searchParams.get('lng') || '') || foundCity?.location.lng || 2.3522;
+  const cityName = foundCity?.name || destination;
 
-  // Filter cities based on input
+  // Filter cities based on input - show top 10 matches
   const suggestions = searchInput.length > 0
-    ? Object.entries(CITY_COORDS).filter(([k, v]) =>
-        v.name.toLowerCase().includes(searchInput.toLowerCase()) || k.includes(searchInput.toLowerCase())
-      )
-    : Object.entries(CITY_COORDS);
+    ? MAIN_CITIES.filter(c =>
+        c.name.toLowerCase().includes(searchInput.toLowerCase()) ||
+        c.id.includes(searchInput.toLowerCase()) ||
+        c.country.toLowerCase().includes(searchInput.toLowerCase()) ||
+        c.aliases?.some(a => a.includes(searchInput.toLowerCase()))
+      ).slice(0, 10)
+    : MAIN_CITIES.filter(c => c.popularity && c.popularity >= 8).slice(0, 10);
 
-  const handleSelectCity = (key: string, city: { lat: number; lng: number; name: string }) => {
+  const handleSelectCity = (city: CityDestination) => {
     setSearchInput(city.name);
     setShowSuggestions(false);
-    router.push(`/tours/results?destination=${key}&lat=${city.lat}&lng=${city.lng}`);
+    router.push(`/tours/results?destination=${city.id}&lat=${city.location.lat}&lng=${city.location.lng}`);
   };
 
   const handleSearch = () => {
-    const key = searchInput.toLowerCase().replace(/\s+/g, '');
-    const city = CITY_COORDS[key];
+    const city = findCity(searchInput);
     if (city) {
-      router.push(`/tours/results?destination=${key}&lat=${city.lat}&lng=${city.lng}`);
-    } else {
-      const match = Object.entries(CITY_COORDS).find(([k, v]) =>
-        v.name.toLowerCase().includes(searchInput.toLowerCase()) || k.includes(key)
-      );
-      if (match) {
-        router.push(`/tours/results?destination=${match[0]}&lat=${match[1].lat}&lng=${match[1].lng}`);
-      }
+      router.push(`/tours/results?destination=${city.id}&lat=${city.location.lat}&lng=${city.location.lng}`);
+    } else if (suggestions.length > 0) {
+      // Use first suggestion
+      const first = suggestions[0];
+      router.push(`/tours/results?destination=${first.id}&lat=${first.location.lat}&lng=${first.location.lng}`);
     }
   };
 
@@ -128,16 +126,19 @@ function TourResultsContent() {
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
               </div>
               {/* Suggestions Dropdown */}
-              {showSuggestions && (
+              {showSuggestions && suggestions.length > 0 && (
                 <div className="absolute top-full left-0 right-0 mt-1 bg-white border border-gray-200 rounded-lg shadow-lg z-50 max-h-60 overflow-y-auto">
-                  {suggestions.map(([key, city]) => (
+                  {suggestions.map((city) => (
                     <button
-                      key={key}
-                      onClick={() => handleSelectCity(key, city)}
+                      key={city.id}
+                      onClick={() => handleSelectCity(city)}
                       className="w-full px-4 py-2.5 text-left hover:bg-orange-50 flex items-center gap-2 text-sm border-b border-gray-100 last:border-0"
                     >
-                      <MapPin className="w-4 h-4 text-orange-500" />
-                      <span className="font-medium text-gray-900">{city.name}</span>
+                      <span className="text-lg">{city.flag}</span>
+                      <div>
+                        <span className="font-medium text-gray-900">{city.name}</span>
+                        <span className="text-gray-500 ml-1 text-xs">{city.country}</span>
+                      </div>
                     </button>
                   ))}
                 </div>
