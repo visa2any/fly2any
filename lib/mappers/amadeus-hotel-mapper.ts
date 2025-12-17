@@ -486,5 +486,20 @@ export function extractCityCode(locationQuery: string): string {
   };
 
   const normalized = locationQuery.toLowerCase().trim();
-  return cityCodeMap[normalized] || 'NYC'; // Default to NYC if not found
+
+  // Direct match
+  if (cityCodeMap[normalized]) {
+    return cityCodeMap[normalized];
+  }
+
+  // Partial match (e.g., "brasilia, brazil" should match "brasilia")
+  for (const [city, code] of Object.entries(cityCodeMap)) {
+    if (normalized.includes(city) || city.includes(normalized)) {
+      return code;
+    }
+  }
+
+  // No match - return null instead of dangerous NYC default
+  console.warn(`⚠️ No Amadeus city code found for: "${locationQuery}"`);
+  return null;
 }

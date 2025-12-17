@@ -606,17 +606,21 @@ export async function POST(request: NextRequest) {
     if (locationQuery) {
       try {
         const cityCode = extractCityCode(locationQuery);
-        console.log(`🔍 Amadeus search: "${locationQuery}" → city code: ${cityCode}`);
+        // Skip Amadeus if no valid city code (prevents wrong city hotels)
+        if (!cityCode) {
+          console.log(`⚠️ Amadeus search skipped: no city code for "${locationQuery}"`);
+        } else {
+          console.log(`🔍 Amadeus search: "${locationQuery}" → city code: ${cityCode}`);
 
-        const amadeusData = await amadeus.searchHotels({
-          cityCode,
-          checkInDate: searchParams.checkIn!,
-          checkOutDate: searchParams.checkOut!,
-          adults: searchParams.guests?.adults || 2,
-          roomQuantity: roomCount,
-        });
+          const amadeusData = await amadeus.searchHotels({
+            cityCode,
+            checkInDate: searchParams.checkIn!,
+            checkOutDate: searchParams.checkOut!,
+            adults: searchParams.guests?.adults || 2,
+            roomQuantity: roomCount,
+          });
 
-        if (amadeusData?.data?.length > 0) {
+          if (amadeusData?.data?.length > 0) {
           amadeusResults.hotels = amadeusData.data.map((offer: any) => {
             const mapped = mapAmadeusHotelToHotel(offer);
             // Convert to normalized format matching other sources
@@ -652,7 +656,8 @@ export async function POST(request: NextRequest) {
             };
           });
           console.log(`✅ Amadeus returned ${amadeusResults.hotels.length} additional hotels`);
-        }
+          }
+        } // end else (valid cityCode)
       } catch (amErr: any) {
         console.log(`⚠️ Amadeus hotel search failed: ${amErr.message}`);
         // Log detailed error for debugging
@@ -1061,6 +1066,10 @@ export async function GET(request: NextRequest) {
     if (query) {
       try {
         const cityCode = extractCityCode(query);
+        // Skip Amadeus if no valid city code found (prevents wrong city hotels)
+        if (!cityCode) {
+          console.log(`⚠️ Amadeus GET search skipped: no city code for "${query}"`);
+        } else {
         console.log(`🔍 Amadeus GET search: "${query}" → city code: ${cityCode}`);
 
         const amadeusData = await amadeus.searchHotels({
@@ -1112,6 +1121,7 @@ export async function GET(request: NextRequest) {
           });
           console.log(`✅ Amadeus GET returned ${amadeusHotels.length} additional hotels`);
         }
+        } // end else (valid cityCode)
       } catch (amErr: any) {
         console.log(`⚠️ Amadeus hotel search (GET) failed: ${amErr.message}`);
       }
