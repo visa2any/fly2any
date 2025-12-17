@@ -389,10 +389,16 @@ export async function POST(request: NextRequest) {
     }
 
     if (!latitude || !longitude) {
-      // Default to New York if we can't determine location
-      latitude = 40.7128;
-      longitude = -74.0060;
-      console.log('⚠️ Could not determine location, defaulting to New York');
+      // CRITICAL: Do NOT default to any location - return error instead
+      // This prevents showing wrong city's hotels (e.g., NYC hotels in Brasilia search)
+      const locationQuery = (searchParams.location as any)?.query || (searchParams.location as any)?.name || 'unknown';
+      console.error(`❌ Could not determine coordinates for location: "${locationQuery}"`);
+      return NextResponse.json({
+        success: false,
+        error: 'LOCATION_NOT_FOUND',
+        message: `Could not find coordinates for "${locationQuery}". Please try a different city name.`,
+        hint: 'Try using a major city name like "Rio de Janeiro" or "São Paulo"',
+      }, { status: 400 });
     }
 
     console.log('🔍 Searching hotels (FAST mode)...', { latitude, longitude, countryCode });
