@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getCached, setCache, generateCacheKey } from '@/lib/cache';
+import { getCoverageLevel, COVERAGE_STATS } from '@/lib/api/coverage';
 
 export const dynamic = 'force-dynamic';
 
@@ -209,6 +210,7 @@ function searchLocations(query: string): any[] {
   // Format results
   return results.slice(0, 10).map(r => {
     if (r.type === 'airport') {
+      const coverage = getCoverageLevel(r.item.code);
       return {
         id: `airport-${r.item.code}`,
         name: r.item.name,
@@ -221,6 +223,7 @@ function searchLocations(query: string): any[] {
         longitude: r.item.lng,
         type: 'airport',
         emoji: r.item.emoji,
+        coverage, // high | medium | unknown
       };
     } else {
       return {
@@ -234,6 +237,7 @@ function searchLocations(query: string): any[] {
         longitude: r.item.lng,
         type: 'city',
         emoji: r.item.emoji,
+        coverage: 'medium', // cities have general coverage
       };
     }
   });
@@ -263,12 +267,17 @@ export async function GET(request: NextRequest) {
         longitude: a.lng,
         type: 'airport',
         emoji: a.emoji,
+        coverage: getCoverageLevel(a.code),
       }));
 
       return NextResponse.json({
         success: true,
         data: popular,
-        meta: { count: popular.length, source: 'popular' }
+        meta: {
+          count: popular.length,
+          source: 'popular',
+          coverage: COVERAGE_STATS.transfers,
+        }
       });
     }
 
