@@ -379,7 +379,7 @@ export function Header({
             */}
 
             {/* Discover Dropdown - Level-6 */}
-            <div className="relative discover-dropdown">
+            <div className="relative discover-dropdown" onMouseLeave={() => setDiscoverDropdownOpen(false)}>
               <button
                 onClick={() => setDiscoverDropdownOpen(!discoverDropdownOpen)}
                 onMouseEnter={() => setDiscoverDropdownOpen(true)}
@@ -448,7 +448,7 @@ export function Header({
             </div>
 
             {/* World Cup 2026 Dropdown - Colorful with submenus */}
-            <div className="relative worldcup-dropdown">
+            <div className="relative worldcup-dropdown" onMouseLeave={() => setWorldCupDropdownOpen(false)}>
               <button
                 onClick={() => setWorldCupDropdownOpen(!worldCupDropdownOpen)}
                 onMouseEnter={() => setWorldCupDropdownOpen(true)}

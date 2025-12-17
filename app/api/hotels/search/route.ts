@@ -389,14 +389,14 @@ export async function POST(request: NextRequest) {
       return { hotels: [], meta: { usedMinRates: true, error: err.message } };
     });
 
-    // Amadeus fallback - search if LiteAPI returns few results
+    // Amadeus - ALWAYS search to provide more hotel options (not just fallback)
     let amadeusResults = { hotels: [] as any[] };
     const locationQuery = (searchParams.location as any)?.query || '';
 
-    if ((liteAPIResults.hotels?.length || 0) < 10 && locationQuery) {
+    if (locationQuery) {
       try {
         const cityCode = extractCityCode(locationQuery);
-        console.log(`🔍 LiteAPI returned ${liteAPIResults.hotels?.length || 0} hotels, trying Amadeus with city code: ${cityCode}...`);
+        console.log(`🔍 LiteAPI returned ${liteAPIResults.hotels?.length || 0} hotels, also fetching from Amadeus with city code: ${cityCode}...`);
 
         const amadeusData = await amadeus.searchHotels({
           cityCode,
@@ -445,7 +445,13 @@ export async function POST(request: NextRequest) {
         }
       } catch (amErr: any) {
         console.log(`⚠️ Amadeus hotel search failed: ${amErr.message}`);
+        // Log detailed error for debugging
+        if (amErr.response?.data?.errors) {
+          console.log(`   Amadeus API errors:`, JSON.stringify(amErr.response.data.errors, null, 2));
+        }
       }
+    } else {
+      console.log(`⚠️ Amadeus search skipped - no location query provided`);
     }
 
     // Hotelbeds only in development (skip entirely in production for speed)

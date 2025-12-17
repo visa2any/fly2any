@@ -1094,15 +1094,16 @@ export default function EnhancedSearchBar({
     setIsLoadingTransferSuggestions(true);
 
     try {
-      const response = await fetch(`/api/hotels/suggestions?query=${encodeURIComponent(query)}`);
+      // Use dedicated transfers locations API with airports and cities
+      const response = await fetch(`/api/transfers/locations?query=${encodeURIComponent(query)}`);
       const data = await response.json();
 
       if (data.data && Array.isArray(data.data)) {
-        // Combine cities with airports for transfers
-        const suggestions = data.data.slice(0, 5).map((s: any) => ({
+        // Use displayName from API which includes airport codes: "Name (CODE)"
+        const suggestions = data.data.slice(0, 8).map((s: any) => ({
           ...s,
-          // Add airport suffix for clearer transfer suggestions
-          displayName: s.type === 'airport' ? `${s.name} Airport` : s.name
+          // displayName already has proper format for airports
+          name: s.displayName || s.name,
         }));
         setTransferSuggestions(suggestions);
       } else {

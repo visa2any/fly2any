@@ -1361,14 +1361,22 @@ class AmadeusAPI {
   }
 
   /**
-   * Transfer Search - Airport transfers
+   * Transfer Search - Airport/City transfers using Amadeus Transfer Search API
+   * Supports: PRIVATE, SHARED, TAXI, HOURLY, AIRPORT_EXPRESS, AIRPORT_BUS, HELICOPTER, PRIVATE_JET
    */
   async searchTransfers(params: {
-    startLocationCode: string;
-    endAddressLine: string;
-    transferType: 'PRIVATE' | 'SHARED' | 'TAXI';
-    startDateTime: string;
+    startLocationCode?: string;        // IATA airport code (e.g., "CDG", "JFK")
+    startGeoCode?: { latitude: number; longitude: number };
+    startAddressLine?: string;
+    endLocationCode?: string;          // IATA airport code for dropoff
+    endAddressLine?: string;           // Street address
+    endCityName?: string;
+    endCountryCode?: string;
+    endGeoCode?: { latitude: number; longitude: number };
+    transferType?: 'PRIVATE' | 'SHARED' | 'TAXI' | 'HOURLY' | 'AIRPORT_EXPRESS' | 'AIRPORT_BUS' | 'HELICOPTER' | 'PRIVATE_JET';
+    startDateTime: string;             // ISO 8601 format
     passengers: number;
+    providerCodes?: string[];          // Optional: filter by provider
   }) {
     // Check credentials before attempting API call
     if (!this.apiKey || !this.apiSecret) {
@@ -1379,20 +1387,59 @@ class AmadeusAPI {
     const token = await this.getAccessToken();
 
     try {
-      const response = await axios.get(
+      // Build request body for POST
+      const requestBody: any = {
+        startDateTime: params.startDateTime,
+        passengers: params.passengers,
+      };
+
+      // Set start location (airport code or coordinates)
+      if (params.startLocationCode) {
+        requestBody.startLocationCode = params.startLocationCode;
+      } else if (params.startGeoCode) {
+        requestBody.startGeoCode = params.startGeoCode;
+      } else if (params.startAddressLine) {
+        requestBody.startAddressLine = params.startAddressLine;
+      }
+
+      // Set end location (address, coordinates, or airport code)
+      if (params.endLocationCode) {
+        requestBody.endLocationCode = params.endLocationCode;
+      } else if (params.endGeoCode) {
+        requestBody.endGeoCode = params.endGeoCode;
+      } else if (params.endAddressLine) {
+        requestBody.endAddressLine = params.endAddressLine;
+        if (params.endCityName) requestBody.endCityName = params.endCityName;
+        if (params.endCountryCode) requestBody.endCountryCode = params.endCountryCode;
+      }
+
+      // Optional filters
+      if (params.transferType) {
+        requestBody.transferType = params.transferType;
+      }
+      if (params.providerCodes && params.providerCodes.length > 0) {
+        requestBody.providerCodes = params.providerCodes;
+      }
+
+      console.log(`🚗 Searching Amadeus transfers from ${params.startLocationCode || 'coordinates'} to ${params.endAddressLine || params.endLocationCode || 'coordinates'}...`);
+
+      const response = await axios.post(
         `${this.baseUrl}/v1/shopping/transfer-offers`,
+        requestBody,
         {
-          params,
           headers: {
             Authorization: `Bearer ${token}`,
+            'Content-Type': 'application/json',
           },
         }
       );
 
+      console.log(`✅ Amadeus returned ${response.data?.data?.length || 0} transfer offers`);
       return response.data;
     } catch (error: any) {
-      console.error('Error searching transfers:', error.response?.data || error);
-      throw new Error('Failed to search transfers');
+      console.error('Error searching Amadeus transfers:', error.response?.data || error.message);
+      // Return empty array instead of throwing to allow fallback
+      return { data: [] };
     }
   }
 
