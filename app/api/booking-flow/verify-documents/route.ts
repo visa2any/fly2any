@@ -15,6 +15,15 @@ import { notifyTelegramAdmins, sendAdminAlert } from '@/lib/notifications/notifi
  */
 export async function POST(request: NextRequest) {
   try {
+    // Check if Vercel Blob is configured
+    if (!process.env.BLOB_READ_WRITE_TOKEN) {
+      console.error('[VERIFY_DOCUMENTS] BLOB_READ_WRITE_TOKEN is not configured');
+      return NextResponse.json(
+        { error: 'Document storage is not configured. Please contact support.' },
+        { status: 500 }
+      );
+    }
+
     const formData = await request.formData();
     const bookingReference = formData.get('bookingReference') as string;
     const token = formData.get('token') as string;
@@ -47,9 +56,20 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // Validate file sizes (max 10MB each)
+    const maxSize = 10 * 1024 * 1024; // 10MB
+    if (cardFront.size > maxSize || cardBack.size > maxSize || photoId.size > maxSize) {
+      return NextResponse.json(
+        { error: 'Files are too large. Please use smaller images (max 10MB each).' },
+        { status: 400 }
+      );
+    }
+
     // Generate secure file names with encryption prefix
     const timestamp = Date.now();
     const securePrefix = crypto.randomBytes(8).toString('hex');
+
+    console.log(`[VERIFY_DOCUMENTS] Starting upload for ${bookingReference}`);
 
     // Upload to Vercel Blob (encrypted storage)
     const uploadPromises = [
@@ -71,6 +91,8 @@ export async function POST(request: NextRequest) {
     ];
 
     const [cardFrontBlob, cardBackBlob, photoIdBlob] = await Promise.all(uploadPromises);
+
+    console.log(`[VERIFY_DOCUMENTS] Upload successful for ${bookingReference}`);
 
     // Get IP address and user agent
     const ipAddress = request.headers.get('x-forwarded-for')?.split(',')[0] ||

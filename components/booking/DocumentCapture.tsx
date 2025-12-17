@@ -13,6 +13,7 @@ import {
   AlertCircle,
   Sparkles,
 } from 'lucide-react';
+import { processCardImage, processIDImage } from '@/lib/ocr/document-ocr';
 
 // Luhn algorithm for card validation
 export const validateCardNumber = (number: string): boolean => {
@@ -260,14 +261,39 @@ export function DocumentCapture({ docType, onCapture, onCancel }: DocumentCaptur
     }
   }, [docType]);
 
-  // Simplified OCR processing - in production would use Tesseract.js
+  // Real OCR processing using Tesseract.js
   const processImage = async (imageData: string, type: string): Promise<CapturedData> => {
-    // Simulate processing delay
-    await new Promise(resolve => setTimeout(resolve, 1000));
-
-    // In production, this would use Tesseract.js or Google Vision API
-    // For now, return empty data - user can still verify manually
-    return {};
+    try {
+      if (type === 'cardFront') {
+        const result = await processCardImage(imageData, 'front');
+        return {
+          cardNumber: result.cardNumber,
+          expiryDate: result.expiryDate,
+          cardHolder: result.cardHolder,
+          cardType: result.cardType,
+          isValidCard: result.isValid,
+        };
+      } else if (type === 'cardBack') {
+        const result = await processCardImage(imageData, 'back');
+        return {
+          isValidCard: result.isValid,
+        };
+      } else if (type === 'photoId') {
+        const result = await processIDImage(imageData);
+        return {
+          documentType: result.documentType,
+          documentNumber: result.documentNumber,
+          fullName: result.fullName,
+          dateOfBirth: result.dateOfBirth,
+          expiryDateId: result.expiryDate,
+        };
+      }
+      return {};
+    } catch (error) {
+      console.error('OCR processing error:', error);
+      // Return empty data on error - user can still verify manually
+      return {};
+    }
   };
 
   // Confirm and submit
@@ -304,28 +330,28 @@ export function DocumentCapture({ docType, onCapture, onCancel }: DocumentCaptur
   };
 
   return (
-    <div className="fixed inset-0 z-50 bg-black">
-      {/* Header */}
-      <div className="absolute top-0 left-0 right-0 z-10 bg-gradient-to-b from-black/80 to-transparent p-4">
+    <div className="fixed inset-0 z-50 bg-black flex flex-col" style={{ paddingTop: 'env(safe-area-inset-top)', paddingBottom: 'env(safe-area-inset-bottom)' }}>
+      {/* Compact Header - respects safe area */}
+      <div className="flex-shrink-0 z-10 bg-black/90 backdrop-blur-sm px-3 py-2">
         <div className="flex items-center justify-between">
           <button
             onClick={onCancel}
-            className="p-2 bg-white/10 rounded-full hover:bg-white/20 transition-colors"
+            className="p-1.5 bg-white/10 rounded-full hover:bg-white/20 transition-colors active:scale-95"
           >
-            <X className="w-6 h-6 text-white" />
+            <X className="w-5 h-5 text-white" />
           </button>
           <div className="text-center">
-            <div className="flex items-center gap-2 text-white">
-              <config.icon className="w-5 h-5" />
-              <span className="font-semibold">{config.title}</span>
+            <div className="flex items-center gap-1.5 text-white">
+              <config.icon className="w-4 h-4" />
+              <span className="font-semibold text-sm">{config.title}</span>
             </div>
           </div>
-          <div className="w-10" /> {/* Spacer */}
+          <div className="w-8" /> {/* Spacer */}
         </div>
       </div>
 
-      {/* Camera View / Captured Image */}
-      <div className="relative w-full h-full flex items-center justify-center">
+      {/* Camera View / Captured Image - Flex grow to fill available space */}
+      <div className="relative flex-1 min-h-0 flex items-center justify-center overflow-hidden">
         {isLoading ? (
           <div className="text-white text-center">
             <Loader2 className="w-12 h-12 animate-spin mx-auto mb-4" />
@@ -427,66 +453,59 @@ export function DocumentCapture({ docType, onCapture, onCancel }: DocumentCaptur
             </div>
           </div>
         ) : capturedImage ? (
-          // Review captured image
-          <div className="w-full h-full flex flex-col">
-            <div className="flex-1 flex items-center justify-center p-4">
+          // Review captured image - Compact layout
+          <>
+            <div className="flex-1 flex items-center justify-center p-3">
               <img
                 src={capturedImage}
                 alt="Captured document"
-                className="max-w-full max-h-[60vh] rounded-2xl shadow-2xl"
+                className="max-w-full max-h-full object-contain rounded-xl shadow-2xl"
               />
             </div>
 
             {/* Processing indicator */}
             {isProcessing && (
               <div className="absolute inset-0 flex items-center justify-center bg-black/50">
-                <div className="bg-white rounded-2xl p-6 text-center">
-                  <Scan className="w-10 h-10 mx-auto mb-3 text-primary-500 animate-pulse" />
-                  <p className="font-semibold text-gray-900">Analyzing document...</p>
-                  <p className="text-sm text-gray-500">Extracting information</p>
+                <div className="bg-white rounded-xl p-4 text-center">
+                  <Scan className="w-8 h-8 mx-auto mb-2 text-primary-500 animate-pulse" />
+                  <p className="font-semibold text-gray-900 text-sm">Analyzing...</p>
                 </div>
               </div>
             )}
 
-            {/* Extracted data preview */}
-            {extractedData && Object.keys(extractedData).length > 0 && (
-              <div className="mx-4 mb-4 p-4 bg-green-500/20 rounded-xl border border-green-500/50">
-                <div className="flex items-center gap-2 text-green-400 mb-2">
-                  <Sparkles className="w-4 h-4" />
-                  <span className="text-sm font-semibold">Data Extracted</span>
+            {/* Extracted data + Actions - Combined compact footer */}
+            <div className="flex-shrink-0 bg-black/90 backdrop-blur-sm px-4 py-3">
+              {/* Extracted data preview - inline */}
+              {extractedData && Object.keys(extractedData).length > 0 && (
+                <div className="flex items-center gap-2 text-green-400 mb-2 text-xs">
+                  <Sparkles className="w-3.5 h-3.5" />
+                  <span className="font-semibold">
+                    {extractedData.cardType && `${extractedData.cardType} detected`}
+                    {extractedData.isValidCard !== undefined && ` • ${extractedData.isValidCard ? 'Valid' : 'Invalid'}`}
+                  </span>
                 </div>
-                <div className="text-white text-sm space-y-1">
-                  {extractedData.cardType && (
-                    <p>Card Type: <span className="font-semibold">{extractedData.cardType}</span></p>
-                  )}
-                  {extractedData.isValidCard !== undefined && (
-                    <p>Valid: <span className={extractedData.isValidCard ? 'text-green-400' : 'text-red-400'}>
-                      {extractedData.isValidCard ? 'Yes' : 'No'}
-                    </span></p>
-                  )}
-                </div>
-              </div>
-            )}
+              )}
 
-            {/* Actions */}
-            <div className="p-4 flex gap-3">
-              <button
-                onClick={handleRetake}
-                className="flex-1 py-4 bg-white/10 rounded-xl text-white font-semibold flex items-center justify-center gap-2 hover:bg-white/20 transition-colors"
-              >
-                <RotateCcw className="w-5 h-5" />
-                Retake
-              </button>
-              <button
-                onClick={handleConfirm}
-                disabled={isProcessing}
-                className="flex-1 py-4 bg-green-500 rounded-xl text-white font-semibold flex items-center justify-center gap-2 hover:bg-green-600 transition-colors disabled:opacity-50"
-              >
-                <CheckCircle2 className="w-5 h-5" />
-                Use Photo
-              </button>
+              {/* Actions - Compact buttons */}
+              <div className="flex gap-2">
+                <button
+                  onClick={handleRetake}
+                  className="flex-1 py-3 bg-white/10 rounded-xl text-white font-semibold text-sm flex items-center justify-center gap-1.5 hover:bg-white/20 transition-colors active:scale-95"
+                >
+                  <RotateCcw className="w-4 h-4" />
+                  Retake
+                </button>
+                <button
+                  onClick={handleConfirm}
+                  disabled={isProcessing}
+                  className="flex-1 py-3 bg-green-500 rounded-xl text-white font-semibold text-sm flex items-center justify-center gap-1.5 hover:bg-green-600 transition-colors disabled:opacity-50 active:scale-95"
+                >
+                  <CheckCircle2 className="w-4 h-4" />
+                  Use Photo
+                </button>
+              </div>
             </div>
-          </div>
+          </>
         ) : (
           // Live camera view
           <>
@@ -529,41 +548,39 @@ export function DocumentCapture({ docType, onCapture, onCancel }: DocumentCaptur
         )}
       </div>
 
-      {/* Bottom controls */}
+      {/* Bottom controls - Compact, respects safe area */}
       {!capturedImage && !isLoading && !error && (
-        <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/90 to-transparent p-6">
-          {/* Status indicator */}
-          <div className="text-center mb-6">
-            <div className={`inline-flex items-center gap-2 px-4 py-2 rounded-full ${
+        <div className="flex-shrink-0 bg-black/90 backdrop-blur-sm px-4 py-3">
+          {/* Status + Hint - Combined compact row */}
+          <div className="flex items-center justify-between mb-3">
+            <div className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs ${
               alignment === 'perfect' ? 'bg-green-500/20 text-green-400' :
               alignment === 'good' ? 'bg-yellow-500/20 text-yellow-400' :
               alignment === 'poor' ? 'bg-red-500/20 text-red-400' :
               'bg-white/10 text-white/70'
             }`}>
-              <div className={`w-2 h-2 rounded-full ${
+              <div className={`w-1.5 h-1.5 rounded-full ${
                 alignment === 'perfect' ? 'bg-green-400 animate-pulse' :
                 alignment === 'good' ? 'bg-yellow-400' :
                 alignment === 'poor' ? 'bg-red-400' :
                 'bg-white/50'
               }`} />
-              <span className="text-sm font-medium">{getStatusText()}</span>
+              <span className="font-medium">{getStatusText()}</span>
             </div>
+            <span className="text-white/50 text-xs">{config.hint}</span>
           </div>
 
-          {/* Hint */}
-          <p className="text-center text-white/60 text-sm mb-4">{config.hint}</p>
-
-          {/* Capture button */}
+          {/* Capture button - Smaller */}
           <div className="flex justify-center">
             <button
               onClick={captureImage}
-              className={`w-20 h-20 rounded-full border-4 border-white flex items-center justify-center transition-all ${
+              className={`w-16 h-16 rounded-full border-[3px] border-white flex items-center justify-center transition-all active:scale-95 ${
                 alignment === 'perfect'
-                  ? 'bg-green-500 scale-110'
+                  ? 'bg-green-500 scale-105'
                   : 'bg-white/20 hover:bg-white/30'
               }`}
             >
-              <Camera className="w-8 h-8 text-white" />
+              <Camera className="w-6 h-6 text-white" />
             </button>
           </div>
         </div>

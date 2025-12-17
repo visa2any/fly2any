@@ -384,7 +384,7 @@ function HotelResultsContent() {
   const [hotels, setHotels] = useState<LiteAPIHotel[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [sortBy, setSortBy] = useState<SortOption>('cheapest');
+  const [sortBy, setSortBy] = useState<SortOption>('best');
   const [displayCount, setDisplayCount] = useState(50);
   const [selectedHotelId, setSelectedHotelId] = useState<string | null>(null);
   const [isNavigating, setIsNavigating] = useState(false);
@@ -978,10 +978,13 @@ function HotelResultsContent() {
 
               {/* Sort options - Fly2Any themed pills */}
               {[
-                { key: 'cheapest', label: 'Price', icon: '💰' },
+                { key: 'best', label: 'Best Value', icon: '✨' },
+                { key: 'cheapest', label: 'Lowest Price', icon: '💰' },
+                { key: 'topRated', label: 'Top Rated', icon: '🏆' },
                 { key: 'refundable', label: 'Free Cancel', icon: '✓' },
-                { key: 'rating', label: 'Rating', icon: '⭐' },
-                { key: 'popular', label: 'Popular', icon: '🔥' },
+                { key: 'rating', label: 'Guest Rating', icon: '⭐' },
+                { key: 'popular', label: 'Most Popular', icon: '🔥' },
+                { key: 'deals', label: 'Best Deals', icon: '🎯' },
               ].map(({ key, label, icon }) => (
                 <button
                   key={key}

@@ -2285,7 +2285,7 @@ export default function EnhancedSearchBar({
               </div>
             </button>
 
-            {/* Desktop: Separate Check-in/Check-out buttons (hidden on mobile) */}
+            {/* Desktop: Unified Date Range - clicking either button opens the same range picker */}
             {/* Check-in Date - Apple-Class Desktop */}
             <div className="hidden lg:block flex-1">
               <label className="flex items-center gap-1.5 text-[11px] font-semibold text-neutral-600 mb-1.5">
@@ -2295,7 +2295,7 @@ export default function EnhancedSearchBar({
               <button
                 ref={hotelCheckInRef}
                 type="button"
-                onClick={() => setShowHotelCheckInPicker(true)}
+                onClick={() => setShowHotelDateRangePicker(true)}
                 className={`w-full px-3 py-2.5 rounded-xl cursor-pointer transition-all ${
                   checkInDate
                     ? 'bg-emerald-50 border border-emerald-300 hover:border-emerald-400 hover:shadow-sm'
@@ -2333,7 +2333,7 @@ export default function EnhancedSearchBar({
               <button
                 ref={hotelCheckOutRef}
                 type="button"
-                onClick={() => setShowHotelCheckOutPicker(true)}
+                onClick={() => setShowHotelDateRangePicker(true)}
                 className={`w-full px-3 py-2.5 rounded-xl cursor-pointer transition-all ${
                   checkOutDate
                     ? 'bg-orange-50 border border-orange-300 hover:border-orange-400 hover:shadow-sm'
@@ -3445,7 +3445,7 @@ export default function EnhancedSearchBar({
           anchorEl={hotelCheckOutRef.current}
         />
 
-        {/* Unified Date Range Picker for Hotels (Mobile) - Opens once, selects check-in then check-out */}
+        {/* Unified Date Range Picker for Hotels (Mobile + Desktop) - Opens once, selects check-in then check-out */}
         <PremiumDatePicker
           label="Select Stay Dates"
           isOpen={showHotelDateRangePicker}
@@ -3460,7 +3460,7 @@ export default function EnhancedSearchBar({
             // Auto-close handled by PremiumDatePicker when both dates selected
           }}
           type="range"
-          anchorEl={hotelDateRangeRef.current}
+          anchorEl={hotelCheckInRef.current || hotelDateRangeRef.current}
         />
 
         {/* Premium Date Pickers for Car Rentals */}
