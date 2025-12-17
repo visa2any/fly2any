@@ -34,6 +34,7 @@ import {
   AdminPricingCard,
   BookingManagementCard,
 } from '@/components/booking';
+import { getConsolidatorLinkFromBooking } from '@/lib/utils/consolidator-link';
 
 export default function AdminBookingDetailPage() {
   const router = useRouter();
@@ -570,7 +571,7 @@ export default function AdminBookingDetailPage() {
           </div>
         )}
 
-        {/* Pending Ticketing Alert */}
+        {/* Pending Ticketing Alert with Quick Actions */}
         {booking.status === 'pending_ticketing' && (
           <div className="bg-gradient-to-r from-orange-50 to-amber-50 border-2 border-orange-300 rounded-xl p-6">
             <div className="flex items-start gap-4">
@@ -581,8 +582,45 @@ export default function AdminBookingDetailPage() {
                 <h3 className="text-lg font-bold text-orange-800 mb-2">Awaiting Manual Ticketing</h3>
                 <p className="text-sm text-orange-700 mb-3">
                   This booking has been received and is waiting to be ticketed via your consolidator.
-                  Click "Issue Ticket" above to enter the e-ticket and PNR information.
                 </p>
+
+                {/* Quick Action Buttons */}
+                <div className="flex flex-wrap gap-2 mb-4">
+                  {getConsolidatorLinkFromBooking(booking) && (
+                    <a
+                      href={getConsolidatorLinkFromBooking(booking) || '#'}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold rounded-lg transition-colors shadow"
+                    >
+                      <Plane className="w-4 h-4" />
+                      Open in TheBestAgent
+                    </a>
+                  )}
+                  <button
+                    onClick={() => {
+                      const seg = booking.flight?.outbound?.segments?.[0];
+                      const retSeg = booking.flight?.return?.segments?.[0];
+                      const text = `${seg?.origin || ''}-${seg?.destination || ''} ${new Date(seg?.departureTime).toLocaleDateString('en-GB')}${retSeg ? ` / ${retSeg.origin}-${retSeg.destination} ${new Date(retSeg.departureTime).toLocaleDateString('en-GB')}` : ''}`;
+                      navigator.clipboard.writeText(text);
+                    }}
+                    className="inline-flex items-center gap-2 px-4 py-2 bg-gray-600 hover:bg-gray-700 text-white text-sm font-semibold rounded-lg transition-colors"
+                  >
+                    <MapPin className="w-4 h-4" />
+                    Copy Route
+                  </button>
+                  <button
+                    onClick={() => {
+                      const names = booking.passengers?.map((p: any) => `${p.firstName} ${p.lastName}`).join(', ');
+                      navigator.clipboard.writeText(names || '');
+                    }}
+                    className="inline-flex items-center gap-2 px-4 py-2 bg-gray-600 hover:bg-gray-700 text-white text-sm font-semibold rounded-lg transition-colors"
+                  >
+                    <User className="w-4 h-4" />
+                    Copy Names
+                  </button>
+                </div>
+
                 <div className="grid grid-cols-2 gap-4 text-sm">
                   <div>
                     <span className="text-orange-600">Customer Price:</span>
