@@ -343,7 +343,7 @@ export async function POST(request: NextRequest) {
         adults: body.guests.adults,
         children: body.guests.children || [],
       },
-      radius: body.radius || 25, // 25km default for better city coverage
+      radius: body.radius || 50, // 50km default for better city coverage (major cities like Rio, NYC need wider radius)
       limit: body.limit || 100, // 100 hotels for more options
       currency: body.currency || 'USD',
     };
@@ -414,6 +414,7 @@ export async function POST(request: NextRequest) {
       rooms: roomCount,
       currency: searchParams.currency || 'USD',
       guestNationality: 'US',
+      radius: searchParams.radius || 50, // CRITICAL: Pass radius for proper city coverage (in km)
       limit: searchParams.limit || 100, // Increased for better coverage
     }).catch(err => {
       console.error('⚠️ LiteAPI search failed:', err.message);
@@ -867,6 +868,7 @@ export async function GET(request: NextRequest) {
       rooms,
       currency: searchParams.get('currency') || 'USD',
       guestNationality: 'US',
+      radius: searchParams.get('radius') ? parseInt(searchParams.get('radius')!) : 50, // CRITICAL: 50km default for proper city coverage
       limit: searchParams.get('limit') ? parseInt(searchParams.get('limit')!) : 100,
     }).catch(err => {
       console.error('⚠️ LiteAPI search failed:', err.message);

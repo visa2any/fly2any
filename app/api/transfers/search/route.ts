@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getCached, setCache, generateCacheKey } from '@/lib/cache';
 import { amadeus } from '@/lib/api/amadeus';
+import { handleApiError, ErrorCategory, ErrorSeverity } from '@/lib/monitoring/global-error-handler';
 
 export const dynamic = 'force-dynamic';
 
@@ -167,7 +168,7 @@ function extractAirportCode(location: string): string | null {
 }
 
 export async function GET(request: NextRequest) {
-  try {
+  return handleApiError(request, async () => {
     const { searchParams } = new URL(request.url);
     const pickup = searchParams.get('pickup') || '';
     const dropoff = searchParams.get('dropoff') || '';
@@ -177,17 +178,24 @@ export async function GET(request: NextRequest) {
     const transferType = searchParams.get('type') as any;
 
     if (!pickup || !dropoff || !date) {
-      return NextResponse.json({ error: 'pickup, dropoff, and date are required' }, { status: 400 });
+      return NextResponse.json({
+        success: false,
+        error: 'VALIDATION_ERROR',
+        message: 'pickup, dropoff, and date are required',
+        data: [],
+        meta: { count: 0 }
+      }, { status: 400 });
     }
 
-    // Check cache first
-    const cacheKey = generateCacheKey('transfers:search:v2', { pickup, dropoff, date, time, passengers, transferType });
+    // Check cache first (fast path)
+    const cacheKey = generateCacheKey('transfers:search:v3', { pickup, dropoff, date, time, passengers, transferType });
     const cached = await getCached<any>(cacheKey);
     if (cached) {
       console.log('✅ Returning cached transfer results');
-      return NextResponse.json(cached, { headers: { 'X-Cache': 'HIT' } });
+      return NextResponse.json(cached, { headers: { 'X-Cache': 'HIT', 'X-Response-Time': '< 50ms' } });
     }
 
+    const startTime = Date.now();
     console.log(`🔍 Searching transfers: ${pickup} → ${dropoff} on ${date} at ${time}`);
 
     // Build ISO datetime
@@ -222,25 +230,33 @@ export async function GET(request: NextRequest) {
       amadeusParams.transferType = transferType.toUpperCase().replace('-', '_');
     }
 
-    // Search Amadeus for real transfer offers
+    // Search Amadeus for real transfer offers with timeout
     let transfers: any[] = [];
+    let apiError: string | null = null;
 
     try {
-      const amadeusResponse = await amadeus.searchTransfers(amadeusParams);
+      const amadeusResponse = await Promise.race([
+        amadeus.searchTransfers(amadeusParams),
+        new Promise((_, reject) => setTimeout(() => reject(new Error('Amadeus timeout')), 15000))
+      ]) as any;
 
       if (amadeusResponse?.data && Array.isArray(amadeusResponse.data)) {
         // Apply markup ($35 or 35% whichever is higher)
         transfers = amadeusResponse.data.map((offer: any) => normalizeTransferOffer(offer, 0.35));
-        console.log(`✅ Amadeus returned ${transfers.length} transfer offers`);
+        console.log(`✅ Amadeus returned ${transfers.length} transfer offers in ${Date.now() - startTime}ms`);
       }
     } catch (amErr: any) {
+      apiError = amErr.message;
       console.error('⚠️ Amadeus transfers search failed:', amErr.message);
     }
 
+    const responseTime = Date.now() - startTime;
+
     // If no results from Amadeus, return empty with message
     if (transfers.length === 0) {
-      console.log('⚠️ No transfer offers found');
+      console.log(`⚠️ No transfer offers found (${responseTime}ms)`);
       const response = {
+        success: true,
         data: [],
         meta: {
           count: 0,
@@ -249,16 +265,22 @@ export async function GET(request: NextRequest) {
           date,
           time,
           passengers,
-          message: 'No transfers available for this route. Try a different location or date.'
+          responseTime: `${responseTime}ms`,
+          message: apiError
+            ? 'Transfer search temporarily unavailable. Please try again.'
+            : 'No transfers available for this route. Try a different location or date.'
         }
       };
-      return NextResponse.json(response);
+      // Still cache empty results to prevent repeated slow API calls (5 min)
+      await setCache(cacheKey, response, 300);
+      return NextResponse.json(response, { headers: { 'X-Cache': 'MISS', 'X-Response-Time': `${responseTime}ms` } });
     }
 
     // Sort by price
     transfers.sort((a, b) => parseFloat(a.price.amount) - parseFloat(b.price.amount));
 
     const response = {
+      success: true,
       data: transfers,
       meta: {
         count: transfers.length,
@@ -267,16 +289,15 @@ export async function GET(request: NextRequest) {
         date,
         time,
         passengers,
-        source: 'Amadeus'
+        source: 'Amadeus',
+        responseTime: `${responseTime}ms`
       }
     };
 
     // Cache for 30 minutes (transfer prices change less frequently)
     await setCache(cacheKey, response, 1800);
 
-    return NextResponse.json(response, { headers: { 'X-Cache': 'MISS' } });
-  } catch (error: any) {
-    console.error('Transfer search error:', error);
-    return NextResponse.json({ error: 'Failed to search transfers' }, { status: 500 });
-  }
+    console.log(`✅ Transfer search completed: ${transfers.length} results in ${responseTime}ms`);
+    return NextResponse.json(response, { headers: { 'X-Cache': 'MISS', 'X-Response-Time': `${responseTime}ms` } });
+  }, { category: 'external_api' as any, severity: 'high' as any });
 }

@@ -349,8 +349,8 @@ class LiteAPI {
         queryParams.latitude = params.latitude;
         queryParams.longitude = params.longitude;
         // CRITICAL: Add radius for better hotel coverage (minimum 1000 meters per LiteAPI docs)
-        // Default to 25km (25000 meters) for major city coverage
-        queryParams.radius = params.radius || 25000;
+        // Default to 50km (50000 meters) for major city coverage - cities like Rio, NYC, LA need wider radius
+        queryParams.radius = params.radius || 50000;
       } else if (params.countryCode) {
         queryParams.countryCode = params.countryCode;
         if (params.cityName) {
@@ -678,6 +678,9 @@ class LiteAPI {
       if (params.latitude !== undefined && params.longitude !== undefined) {
         locationParams.latitude = params.latitude;
         locationParams.longitude = params.longitude;
+        // CRITICAL: Pass radius for proper city coverage (default 50km for major cities)
+        // HotelSearchParams.radius is in km, LiteAPI expects meters - convert!
+        locationParams.radius = params.radius ? params.radius * 1000 : 50000; // 50km default for better coverage
       } else if (params.countryCode) {
         locationParams.countryCode = params.countryCode;
         if (params.cityName) {
@@ -871,6 +874,9 @@ class LiteAPI {
       if (params.latitude !== undefined && params.longitude !== undefined) {
         locationParams.latitude = params.latitude;
         locationParams.longitude = params.longitude;
+        // CRITICAL: Pass radius for proper city coverage (default 50km for major cities)
+        // HotelSearchParams.radius is in km, LiteAPI expects meters - convert!
+        locationParams.radius = params.radius ? params.radius * 1000 : 50000; // 50km default for better coverage
       } else if (params.countryCode) {
         locationParams.countryCode = params.countryCode;
         if (params.cityName) {

@@ -30,6 +30,23 @@ const findCity = (query: string): CityDestination | undefined => {
   return GLOBAL_CITIES.find(c => c.id === q || c.name.toLowerCase() === q || c.aliases?.includes(q));
 };
 
+// Skeleton loader for better perceived performance
+const ActivitySkeleton = memo(() => (
+  <div className="bg-white rounded-2xl border border-gray-100 overflow-hidden shadow-sm animate-pulse">
+    <div className="aspect-[16/10] bg-gray-200" />
+    <div className="p-4">
+      <div className="h-5 w-full bg-gray-200 rounded mb-2" />
+      <div className="h-4 w-3/4 bg-gray-100 rounded mb-3" />
+      <div className="flex items-center gap-3 mb-3">
+        <div className="h-4 w-12 bg-gray-100 rounded" />
+        <div className="h-4 w-10 bg-gray-100 rounded" />
+      </div>
+      <div className="h-10 w-full bg-gray-200 rounded-xl" />
+    </div>
+  </div>
+));
+ActivitySkeleton.displayName = 'ActivitySkeleton';
+
 // Memoized Activity Card - Apple Level 6 styling
 const ActivityCard = memo(({ activity, onBook }: { activity: Activity; onBook: (a: Activity, price: number | null, img: string) => void }) => {
   const basePrice = activity.price?.amount ? parseFloat(activity.price.amount) : null;
@@ -203,11 +220,16 @@ function ActivityResultsContent() {
       )}
 
       <MaxWidthContainer>
-        {/* Loading */}
+        {/* Loading Skeleton - Better perceived performance */}
         {loading && (
-          <div className="flex flex-col items-center justify-center py-20">
-            <Loader2 className="w-8 h-8 text-purple-500 animate-spin mb-3" />
-            <p className="text-gray-600 font-medium">Finding activities in {cityName}...</p>
+          <div className="py-4">
+            <div className="flex items-center gap-2 mb-4">
+              <Loader2 className="w-4 h-4 text-purple-500 animate-spin" />
+              <span className="text-sm text-gray-600">Discovering amazing activities in {cityName}...</span>
+            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+              {[1, 2, 3, 4, 5, 6, 7, 8].map((i) => <ActivitySkeleton key={i} />)}
+            </div>
           </div>
         )}
 

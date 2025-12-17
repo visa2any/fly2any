@@ -40,6 +40,37 @@ const categoryOptions = [
 ];
 
 // Memoized Transfer Card - Apple Level 6 styling
+// Skeleton loader for better perceived performance
+const TransferSkeleton = memo(() => (
+  <div className="bg-white rounded-2xl border border-gray-100 overflow-hidden shadow-sm animate-pulse">
+    <div className="p-5">
+      <div className="flex items-start justify-between mb-4">
+        <div className="flex items-center gap-3">
+          <div className="w-14 h-14 rounded-2xl bg-gray-200" />
+          <div>
+            <div className="h-5 w-32 bg-gray-200 rounded mb-2" />
+            <div className="h-3 w-24 bg-gray-100 rounded" />
+          </div>
+        </div>
+        <div className="text-right">
+          <div className="h-8 w-16 bg-gray-200 rounded mb-1" />
+          <div className="h-3 w-12 bg-gray-100 rounded" />
+        </div>
+      </div>
+      <div className="flex gap-2 mb-4">
+        <div className="h-6 w-20 bg-gray-100 rounded-lg" />
+        <div className="h-6 w-24 bg-gray-100 rounded-lg" />
+        <div className="h-6 w-16 bg-gray-100 rounded-lg" />
+      </div>
+      <div className="flex items-center justify-between pt-4 border-t border-gray-100">
+        <div className="h-4 w-28 bg-gray-100 rounded" />
+        <div className="h-10 w-24 bg-gray-200 rounded-xl" />
+      </div>
+    </div>
+  </div>
+));
+TransferSkeleton.displayName = 'TransferSkeleton';
+
 const TransferCard = memo(({ transfer, onBook }: { transfer: Transfer; onBook: (t: Transfer) => void }) => {
   const price = parseFloat(transfer.price.amount);
 
@@ -218,11 +249,16 @@ function TransferResultsContent() {
           </div>
         )}
 
-        {/* Loading */}
+        {/* Loading Skeleton - Better perceived performance */}
         {loading && (
-          <div className="flex flex-col items-center justify-center py-20">
-            <Loader2 className="w-8 h-8 text-teal-500 animate-spin mb-3" />
-            <p className="text-gray-600 font-medium">Finding transfers...</p>
+          <div className="py-4">
+            <div className="flex items-center gap-2 mb-4">
+              <Loader2 className="w-4 h-4 text-teal-500 animate-spin" />
+              <span className="text-sm text-gray-600">Finding the best transfers for you...</span>
+            </div>
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+              {[1, 2, 3, 4].map((i) => <TransferSkeleton key={i} />)}
+            </div>
           </div>
         )}
 

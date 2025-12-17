@@ -306,6 +306,7 @@ export default function EnhancedSearchBar({
   const fetchingCalendarPricesRef = useRef(false); // Deduplication guard
   const preFetchTimerRef = useRef<NodeJS.Timeout | null>(null); // Pre-fetch debounce timer
   const hotelSuggestionsTimerRef = useRef<NodeJS.Timeout | null>(null); // Hotel suggestions debounce timer
+  const isInitialHotelDestinationRef = useRef(true); // Skip auto-open dropdown on initial page load
 
   // Multi-city flights state (only for one-way mode)
   interface AdditionalFlight {
@@ -417,6 +418,10 @@ export default function EnhancedSearchBar({
 
   // Debounced hotel suggestions fetch - moved out of event handler for INP optimization
   useEffect(() => {
+    if (isInitialHotelDestinationRef.current) {
+      isInitialHotelDestinationRef.current = false;
+      return; // Skip auto-open dropdown on initial page load
+    }
     if (hotelSuggestionsTimerRef.current) {
       clearTimeout(hotelSuggestionsTimerRef.current);
     }

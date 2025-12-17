@@ -1,70 +1,118 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { amadeusAPI } from '@/lib/api/amadeus';
 import { getGeocodeWithFallback } from '@/lib/data/geocodes';
+import { getCached, setCache, generateCacheKey } from '@/lib/cache';
+import { handleApiError } from '@/lib/monitoring/global-error-handler';
 
 export const dynamic = 'force-dynamic';
 
+/**
+ * Tours Search API - OPTIMIZED with caching and error handling
+ * Uses Amadeus Tours & Activities API
+ * Cache: 4 hours (tours don't change frequently)
+ * Performance: 15s timeout, empty result caching
+ */
 export async function GET(request: NextRequest) {
-  try {
+  return handleApiError(request, async () => {
     const { searchParams } = new URL(request.url);
 
     const destination = searchParams.get('destination');
     const startDate = searchParams.get('startDate');
-    const radius = searchParams.get('radius');
+    const radius = parseInt(searchParams.get('radius') || '10');
 
     if (!destination) {
-      return NextResponse.json(
-        { error: 'destination is required' },
-        { status: 400 }
-      );
+      return NextResponse.json({
+        success: false,
+        error: 'VALIDATION_ERROR',
+        message: 'destination is required',
+        data: [],
+        meta: { count: 0 }
+      }, { status: 400 });
     }
 
     // Convert destination (city code or name) to geocode
     const geocode = getGeocodeWithFallback(destination);
 
-    console.log(`🗺️ Converting destination "${destination}" to coordinates: ${geocode.latitude}, ${geocode.longitude}`);
-
-    // Call Amadeus Activities API
-    const result = await amadeusAPI.searchActivities({
-      latitude: geocode.latitude,
-      longitude: geocode.longitude,
-      radius: radius ? parseInt(radius) : 5, // Default 5km radius
+    // Round coords to 2 decimals for better cache hits
+    const roundedLat = Math.round(geocode.latitude * 100) / 100;
+    const roundedLng = Math.round(geocode.longitude * 100) / 100;
+    const cacheKey = generateCacheKey('tours:search:v2', {
+      lat: roundedLat,
+      lng: roundedLng,
+      r: radius,
+      dest: destination.toLowerCase().substring(0, 20)
     });
 
-    return NextResponse.json(result);
-  } catch (error: any) {
-    console.error('Error in tours API:', error);
+    // Check cache first (4 hour TTL) - FAST PATH
+    const cached = await getCached<any>(cacheKey);
+    if (cached) {
+      console.log(`⚡ Tours cache HIT for ${destination}`);
+      return NextResponse.json(cached, {
+        headers: { 'X-Cache': 'HIT', 'X-Response-Time': '< 50ms', 'Cache-Control': 'public, max-age=14400' }
+      });
+    }
 
-    // Fallback to mock data if Amadeus API fails
-    console.log('🧪 Falling back to mock tour data');
-    const destination = new URL(request.url).searchParams.get('destination');
-    const tours = [
-      {
-        id: '1',
-        name: 'City Highlights Walking Tour',
-        destination,
-        price: 89,
-        duration: '4 hours',
-        groupSize: '12 max',
-        includes: ['Professional guide', 'Entry fees', 'Refreshments'],
-        rating: 4.9,
-        reviews: 342,
-        language: ['English', 'Spanish'],
-      },
-      {
-        id: '2',
-        name: 'Full Day Adventure Tour',
-        destination,
-        price: 179,
-        duration: '8 hours',
-        groupSize: '8 max',
-        includes: ['Expert guide', 'Lunch', 'Transportation', 'Equipment'],
-        rating: 4.8,
-        reviews: 218,
-        language: ['English'],
-      },
-    ];
+    const startTime = Date.now();
+    console.log(`🗺️ Searching tours at "${destination}" (${geocode.latitude}, ${geocode.longitude})...`);
 
-    return NextResponse.json({ data: tours });
-  }
+    let tours: any[] = [];
+    let apiError: string | null = null;
+
+    try {
+      // Add timeout for slow API calls
+      const result = await Promise.race([
+        amadeusAPI.searchActivities({
+          latitude: geocode.latitude,
+          longitude: geocode.longitude,
+          radius: Math.min(radius, 20), // Cap at 20km for API
+        }),
+        new Promise((_, reject) => setTimeout(() => reject(new Error('Amadeus timeout')), 15000))
+      ]) as any;
+
+      // Filter for tour-like activities
+      if (result?.data && Array.isArray(result.data)) {
+        tours = result.data.filter((item: any) => {
+          const name = (item.name || '').toLowerCase();
+          const desc = (item.description || '').toLowerCase();
+          return name.includes('tour') ||
+                 name.includes('trip') ||
+                 name.includes('excursion') ||
+                 desc.includes('guided') ||
+                 desc.includes('experience');
+        });
+      }
+    } catch (error: any) {
+      apiError = error.message;
+      console.error('⚠️ Amadeus tours search failed:', error.message);
+    }
+
+    const responseTime = Date.now() - startTime;
+
+    const response = {
+      success: true,
+      data: tours,
+      meta: {
+        count: tours.length,
+        destination,
+        location: { latitude: geocode.latitude, longitude: geocode.longitude, radius },
+        responseTime: `${responseTime}ms`,
+        message: tours.length === 0
+          ? (apiError ? 'Tours search temporarily unavailable.' : 'No tours found for this destination.')
+          : undefined
+      }
+    };
+
+    // Cache for 4 hours (or 5 min for empty results)
+    const cacheTTL = tours.length > 0 ? 14400 : 300;
+    await setCache(cacheKey, response, cacheTTL);
+    console.log(`✅ Found ${tours.length} tours in ${responseTime}ms - cached for ${cacheTTL}s`);
+
+    return NextResponse.json(response, {
+      headers: {
+        'X-Cache': 'MISS',
+        'X-Response-Time': `${responseTime}ms`,
+        'Cache-Control': `public, max-age=${cacheTTL}`
+      }
+    });
+  }, { category: 'external_api' as any, severity: 'normal' as any });
 }
