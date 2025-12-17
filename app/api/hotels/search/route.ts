@@ -12,6 +12,9 @@ import { checkCostGuard, COST_GUARDS } from '@/lib/security/cost-protection';
 // Error monitoring - sends alerts for all errors
 import { handleApiError } from '@/lib/monitoring/global-error-handler';
 
+// Global cities database - 500+ worldwide destinations with coordinates
+import { GLOBAL_CITIES } from '@/lib/data/global-cities-database';
+
 // Comprehensive city name to coordinates mapping
 // Matches the suggestions API database for consistent location lookups
 const CITY_COORDINATES: Record<string, { lat: number; lng: number; country: string }> = {
@@ -216,19 +219,88 @@ const CITY_COORDINATES: Record<string, { lat: number; lng: number; country: stri
 function getCityCoordinates(query: string): { lat: number; lng: number; country: string } | null {
   const normalized = query.toLowerCase().trim();
 
-  // Direct match
+  // 1. Direct match in CITY_COORDINATES (fastest)
   if (CITY_COORDINATES[normalized]) {
     return CITY_COORDINATES[normalized];
   }
 
-  // Partial match
+  // 2. Partial match in CITY_COORDINATES
   for (const [city, coords] of Object.entries(CITY_COORDINATES)) {
     if (normalized.includes(city) || city.includes(normalized)) {
       return coords;
     }
   }
 
+  // 3. Search in GLOBAL_CITIES database (500+ worldwide destinations)
+  const globalMatch = GLOBAL_CITIES.find(city => {
+    const cityName = city.name.toLowerCase();
+    const cityId = city.id.toLowerCase();
+    const cityCity = city.city.toLowerCase();
+
+    // Direct match
+    if (cityName === normalized || cityId === normalized || cityCity === normalized) {
+      return true;
+    }
+
+    // Alias match
+    if (city.aliases?.some(alias => alias.toLowerCase() === normalized)) {
+      return true;
+    }
+
+    // Partial match (for multi-word cities)
+    if (normalized.length >= 4) {
+      if (cityName.includes(normalized) || normalized.includes(cityName) ||
+          cityCity.includes(normalized) || normalized.includes(cityCity)) {
+        return true;
+      }
+    }
+
+    return false;
+  });
+
+  if (globalMatch) {
+    console.log(`✅ Found "${query}" in GLOBAL_CITIES: ${globalMatch.name}, ${globalMatch.country}`);
+    return {
+      lat: globalMatch.location.lat,
+      lng: globalMatch.location.lng,
+      country: globalMatch.countryCode,
+    };
+  }
+
   return null;
+}
+
+/**
+ * Geocode unknown cities using OpenStreetMap Nominatim API (free)
+ * Fallback for cities not in our database
+ */
+async function geocodeCity(query: string): Promise<{ lat: number; lng: number; country: string } | null> {
+  try {
+    const url = `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(query)}&format=json&limit=1&addressdetails=1`;
+    const response = await fetch(url, {
+      headers: { 'User-Agent': 'Fly2Any Travel Platform (contact@fly2any.com)' },
+      signal: AbortSignal.timeout(5000), // 5 second timeout
+    });
+
+    if (!response.ok) return null;
+
+    const data = await response.json();
+    if (!data || data.length === 0) return null;
+
+    const result = data[0];
+    const countryCode = result.address?.country_code?.toUpperCase() || 'XX';
+
+    console.log(`🌍 Geocoded "${query}" via Nominatim: ${result.display_name} (${result.lat}, ${result.lon})`);
+
+    return {
+      lat: parseFloat(result.lat),
+      lng: parseFloat(result.lon),
+      country: countryCode,
+    };
+  } catch (error: any) {
+    console.warn(`⚠️ Nominatim geocoding failed for "${query}":`, error.message);
+    return null;
+  }
 }
 
 /**
@@ -380,11 +452,20 @@ export async function POST(request: NextRequest) {
       latitude = location.lat;
       longitude = location.lng;
     } else if (location.query) {
+      // 1. Try local database first (fast)
       const cityCoords = getCityCoordinates(location.query);
       if (cityCoords) {
         latitude = cityCoords.lat;
         longitude = cityCoords.lng;
         countryCode = cityCoords.country;
+      } else {
+        // 2. Fallback to Nominatim geocoding for unknown cities (worldwide coverage)
+        const geocoded = await geocodeCity(location.query);
+        if (geocoded) {
+          latitude = geocoded.lat;
+          longitude = geocoded.lng;
+          countryCode = geocoded.country;
+        }
       }
     }
 
@@ -798,11 +879,20 @@ export async function GET(request: NextRequest) {
       latitude = parseFloat(lat);
       longitude = parseFloat(lng);
     } else if (query) {
+      // 1. Try local database first (fast)
       const cityCoords = getCityCoordinates(query);
       if (cityCoords) {
         latitude = cityCoords.lat;
         longitude = cityCoords.lng;
         console.log(`✅ Resolved "${query}" to coordinates:`, { latitude, longitude });
+      } else {
+        // 2. Fallback to Nominatim geocoding for unknown cities (worldwide coverage)
+        const geocoded = await geocodeCity(query);
+        if (geocoded) {
+          latitude = geocoded.lat;
+          longitude = geocoded.lng;
+          console.log(`🌍 Geocoded "${query}" via Nominatim:`, { latitude, longitude });
+        }
       }
     }
 
