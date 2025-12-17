@@ -672,7 +672,7 @@ class LiteAPI {
 
       // Step 1: Get hotel static data
       const locationParams: Parameters<typeof this.getHotelsByLocation>[0] = {
-        limit: params.limit || 30,
+        limit: params.limit || 100, // Increased from 30 for better coverage
       };
 
       if (params.latitude !== undefined && params.longitude !== undefined) {

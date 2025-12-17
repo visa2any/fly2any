@@ -312,8 +312,8 @@ export async function POST(request: NextRequest) {
         adults: body.guests.adults,
         children: body.guests.children || [],
       },
-      radius: body.radius || 5,
-      limit: body.limit || 30,
+      radius: body.radius || 25, // 25km default for better city coverage
+      limit: body.limit || 100, // 100 hotels for more options
       currency: body.currency || 'USD',
     };
 
@@ -383,7 +383,7 @@ export async function POST(request: NextRequest) {
       rooms: roomCount,
       currency: searchParams.currency || 'USD',
       guestNationality: 'US',
-      limit: searchParams.limit || 50, // Reduced from 30 default, capped at 75 internally
+      limit: searchParams.limit || 100, // Increased for better coverage
     }).catch(err => {
       console.error('⚠️ LiteAPI search failed:', err.message);
       return { hotels: [], meta: { usedMinRates: true, error: err.message } };
@@ -768,7 +768,7 @@ export async function GET(request: NextRequest) {
       rooms,
       currency: searchParams.get('currency') || 'USD',
       guestNationality: 'US',
-      limit: searchParams.get('limit') ? parseInt(searchParams.get('limit')!) : 50,
+      limit: searchParams.get('limit') ? parseInt(searchParams.get('limit')!) : 100,
     });
 
     // Map to expected format
