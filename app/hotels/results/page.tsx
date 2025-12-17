@@ -625,37 +625,115 @@ function HotelResultsContent() {
             hotelLng={searchData.lng ? parseFloat(searchData.lng) : undefined}
             hotelDistricts={searchData.districts}
           />
-          {/* Subtle loading indicator overlay on search bar */}
-          <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent animate-shimmer pointer-events-none rounded-2xl" />
         </div>
 
-        {/* Enhanced Loading State - Apple-Class + Fly2Any */}
+        {/* Ultra-Premium Loading State - Apple-Class + Fly2Any */}
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-          <div className="text-center mb-6">
-            {/* Animated search indicator - Fly2Any Red */}
-            <div className="relative inline-flex items-center justify-center mb-3">
-              <div className="absolute w-16 h-16 bg-primary-100 rounded-full animate-ping opacity-30" />
-              <div className="relative w-14 h-14 bg-gradient-to-br from-primary-500 to-primary-600 rounded-full flex items-center justify-center shadow-primary">
-                <Hotel className="w-7 h-7 text-white animate-pulse" />
-              </div>
+          {/* Premium Loading Header */}
+          <motion.div
+            initial={{ opacity: 0, y: -10 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="text-center mb-8"
+          >
+            {/* Animated Hotel Icon with Pulse Ring */}
+            <div className="relative inline-flex items-center justify-center mb-4">
+              {/* Outer pulse ring */}
+              <motion.div
+                className="absolute w-20 h-20 bg-primary-100 rounded-full"
+                animate={{ scale: [1, 1.3, 1], opacity: [0.5, 0, 0.5] }}
+                transition={{ repeat: Infinity, duration: 2, ease: 'easeOut' }}
+              />
+              {/* Middle ring */}
+              <motion.div
+                className="absolute w-16 h-16 bg-primary-200/50 rounded-full"
+                animate={{ scale: [1, 1.2, 1], opacity: [0.6, 0.2, 0.6] }}
+                transition={{ repeat: Infinity, duration: 2, ease: 'easeOut', delay: 0.3 }}
+              />
+              {/* Icon container */}
+              <motion.div
+                className="relative w-14 h-14 bg-gradient-to-br from-primary-500 to-primary-600 rounded-full flex items-center justify-center shadow-lg shadow-primary-500/30"
+                animate={{ rotate: [0, 5, -5, 0] }}
+                transition={{ repeat: Infinity, duration: 3, ease: 'easeInOut' }}
+              >
+                <Hotel className="w-7 h-7 text-white" />
+              </motion.div>
             </div>
 
-            <h2 className="text-xl font-bold text-neutral-800">{t.searching}</h2>
-            <p className="text-neutral-500 mt-1 text-sm">Finding the perfect stay in <span className="font-semibold text-primary-600">{searchData.destination}</span></p>
+            {/* Dynamic Loading Text */}
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 0.2 }}
+            >
+              <h2 className="text-xl md:text-2xl font-bold text-neutral-800 mb-1">
+                {t.searching}
+              </h2>
+              <p className="text-neutral-500 text-sm md:text-base">
+                Finding the perfect stay in{' '}
+                <span className="font-semibold text-primary-600">{searchData.destination}</span>
+              </p>
+            </motion.div>
 
-            {/* Visual search params confirmation - Fly2Any themed */}
-            <div className="mt-3 inline-flex items-center gap-2 px-3 py-1.5 bg-primary-50 rounded-full border border-primary-200">
-              <span className="flex items-center gap-1 text-xs text-neutral-700">
+            {/* Search Summary Pills - Fly2Any styled */}
+            <motion.div
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.3 }}
+              className="mt-4 flex flex-wrap items-center justify-center gap-2"
+            >
+              {/* Date pill */}
+              <div className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-white rounded-full border border-neutral-200 shadow-sm">
                 <Calendar className="w-3.5 h-3.5 text-primary-500" />
-                {searchData.checkIn} → {searchData.checkOut}
-              </span>
-              <span className="w-1 h-1 bg-primary-300 rounded-full" />
-              <span className="text-xs font-bold text-primary-600">{nights} {nights === 1 ? 'night' : 'nights'}</span>
-              <span className="w-1 h-1 bg-primary-300 rounded-full" />
-              <span className="text-xs text-neutral-600">{searchData.adults + searchData.children} guests</span>
-            </div>
-          </div>
-          <HotelCardsSkeletonList count={5} />
+                <span className="text-xs text-neutral-700">{searchData.checkIn}</span>
+                <ChevronRight className="w-3 h-3 text-neutral-400" />
+                <span className="text-xs text-neutral-700">{searchData.checkOut}</span>
+              </div>
+
+              {/* Nights pill */}
+              <div className="inline-flex items-center gap-1 px-3 py-1.5 bg-primary-50 rounded-full border border-primary-200">
+                <span className="text-xs font-bold text-primary-600">{nights}</span>
+                <span className="text-xs text-primary-600">{nights === 1 ? 'night' : 'nights'}</span>
+              </div>
+
+              {/* Guests pill */}
+              <div className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-white rounded-full border border-neutral-200 shadow-sm">
+                <Users className="w-3.5 h-3.5 text-neutral-500" />
+                <span className="text-xs text-neutral-700">{searchData.adults + searchData.children} guests</span>
+              </div>
+
+              {/* Rooms pill */}
+              {searchData.rooms > 1 && (
+                <div className="inline-flex items-center gap-1 px-3 py-1.5 bg-white rounded-full border border-neutral-200 shadow-sm">
+                  <span className="text-xs text-neutral-700">{searchData.rooms} rooms</span>
+                </div>
+              )}
+            </motion.div>
+
+            {/* Animated Progress Bar */}
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 0.5 }}
+              className="mt-6 max-w-xs mx-auto"
+            >
+              <div className="h-1 bg-neutral-200 rounded-full overflow-hidden">
+                <motion.div
+                  className="h-full bg-gradient-to-r from-primary-400 via-primary-500 to-primary-400 rounded-full"
+                  initial={{ width: '0%' }}
+                  animate={{ width: ['0%', '70%', '90%', '95%'] }}
+                  transition={{
+                    duration: 8,
+                    times: [0, 0.3, 0.7, 1],
+                    ease: 'easeOut'
+                  }}
+                />
+              </div>
+              <p className="text-xs text-neutral-400 mt-2">Searching across multiple providers...</p>
+            </motion.div>
+          </motion.div>
+
+          {/* Skeleton Cards with staggered animation */}
+          <HotelCardsSkeletonList count={6} />
         </div>
       </div>
     );
