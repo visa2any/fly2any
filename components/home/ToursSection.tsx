@@ -1,29 +1,19 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
-import { ValueScoreBadge, calculateValueScore } from '@/components/shared/ValueScoreBadge';
-import { MapPin, Star, Users, Clock, Camera, Mountain, UtensilsCrossed, TrendingUp, Flame, Award, Compass, ArrowRight } from 'lucide-react';
+import { MapPin, Star, Clock, TrendingUp, Flame, ArrowRight, Loader2 } from 'lucide-react';
 
 interface Tour {
   id: string;
-  title: string;
-  destination: string;
-  image: string;
-  rating: number;
-  reviews: number;
-  pricePerPerson: number;
-  originalPrice?: number;
-  valueScore: number;
-  duration: string;
-  category: string;
-  badges: string[];
-  trending?: boolean;
-  demandLevel?: number;
-  groupSize?: number;
-  highlights: string[];
-  difficulty?: string;
+  name: string;
+  description?: string;
+  price?: { amount: string; currencyCode: string };
+  pictures?: { url?: string }[] | string[];
+  rating?: number;
+  minimumDuration?: string;
+  bookingLink?: string;
 }
 
 interface ToursSectionProps {
@@ -31,336 +21,110 @@ interface ToursSectionProps {
 }
 
 const translations = {
-  en: {
-    title: 'Featured Tours & Activities',
-    subtitle: 'AI-curated experiences based on popularity, value, and traveler reviews',
-    viewAll: 'View All Tours',
-    perPerson: 'per person',
-    reviews: 'reviews',
-    bookNow: 'Book Now',
-    duration: 'Duration',
-    groupSize: 'Group Size',
-    difficulty: 'Difficulty',
-    easy: 'Easy',
-    moderate: 'Moderate',
-    challenging: 'Challenging',
-    spots: 'spots left',
-    highDemand: 'High demand',
-  },
-  pt: {
-    title: 'Passeios e Atividades em Destaque',
-    subtitle: 'Experiências selecionadas por IA baseadas em popularidade, valor e avaliações',
-    viewAll: 'Ver Todos os Passeios',
-    perPerson: 'por pessoa',
-    reviews: 'avaliações',
-    bookNow: 'Reservar Agora',
-    duration: 'Duração',
-    groupSize: 'Tamanho do Grupo',
-    difficulty: 'Dificuldade',
-    easy: 'Fácil',
-    moderate: 'Moderado',
-    challenging: 'Desafiador',
-    spots: 'vagas restantes',
-    highDemand: 'Alta demanda',
-  },
-  es: {
-    title: 'Tours y Actividades Destacados',
-    subtitle: 'Experiencias seleccionadas por IA basadas en popularidad, valor y reseñas',
-    viewAll: 'Ver Todos los Tours',
-    perPerson: 'por persona',
-    reviews: 'reseñas',
-    bookNow: 'Reservar Ahora',
-    duration: 'Duración',
-    groupSize: 'Tamaño del Grupo',
-    difficulty: 'Dificultad',
-    easy: 'Fácil',
-    moderate: 'Moderado',
-    challenging: 'Desafiante',
-    spots: 'lugares restantes',
-    highDemand: 'Alta demanda',
-  },
+  en: { title: 'Featured Tours', subtitle: 'Real tours from top providers', viewAll: 'View All Tours', perPerson: 'per person', bookNow: 'Book Now' },
+  pt: { title: 'Passeios em Destaque', subtitle: 'Passeios reais dos melhores fornecedores', viewAll: 'Ver Todos', perPerson: 'por pessoa', bookNow: 'Reservar' },
+  es: { title: 'Tours Destacados', subtitle: 'Tours reales de los mejores proveedores', viewAll: 'Ver Todos', perPerson: 'por persona', bookNow: 'Reservar' },
 };
 
-// Sample tour data with ML scoring
-const featuredTours: Tour[] = [
-  {
-    id: '1',
-    title: 'Grand Canyon Helicopter Tour',
-    destination: 'Las Vegas, Nevada',
-    image: '🚁',
-    rating: 4.9,
-    reviews: 5432,
-    pricePerPerson: 299,
-    originalPrice: 449,
-    valueScore: calculateValueScore({
-      price: 299,
-      marketAvgPrice: 449,
-      rating: 4.9,
-      reviewCount: 5432,
-      demandLevel: 95,
-      availabilityLevel: 10
-    }),
-    duration: '4 hours',
-    category: 'Adventure',
-    badges: ['Best Seller', 'Likely to Sell Out'],
-    trending: true,
-    demandLevel: 95,
-    groupSize: 6,
-    highlights: ['Aerial views', 'Landing on canyon floor', 'Champagne toast'],
-    difficulty: 'easy'
-  },
-  {
-    id: '2',
-    title: 'Wine Tasting in Napa Valley',
-    destination: 'Napa, California',
-    image: '🍷',
-    rating: 4.8,
-    reviews: 3241,
-    pricePerPerson: 149,
-    originalPrice: 229,
-    valueScore: calculateValueScore({
-      price: 149,
-      marketAvgPrice: 229,
-      rating: 4.8,
-      reviewCount: 3241,
-      demandLevel: 82,
-      availabilityLevel: 30
-    }),
-    duration: '6 hours',
-    category: 'Food & Wine',
-    badges: ['Top Rated', 'Small Group'],
-    demandLevel: 82,
-    groupSize: 8,
-    highlights: ['4 wineries', 'Gourmet lunch', 'Expert guide'],
-    difficulty: 'easy'
-  },
-  {
-    id: '3',
-    title: 'NYC Walking Food Tour',
-    destination: 'New York City',
-    image: '🗽',
-    rating: 4.7,
-    reviews: 8765,
-    pricePerPerson: 89,
-    originalPrice: 129,
-    valueScore: calculateValueScore({
-      price: 89,
-      marketAvgPrice: 129,
-      rating: 4.7,
-      reviewCount: 8765,
-      demandLevel: 88,
-      availabilityLevel: 45
-    }),
-    duration: '3 hours',
-    category: 'Culinary',
-    badges: ['Most Popular', 'Free Cancellation'],
-    trending: true,
-    demandLevel: 88,
-    groupSize: 12,
-    highlights: ['8 food tastings', 'Historic neighborhoods', 'Local guide'],
-    difficulty: 'easy'
-  },
-  {
-    id: '4',
-    title: 'Snorkeling Adventure',
-    destination: 'Key West, Florida',
-    image: '🤿',
-    rating: 4.6,
-    reviews: 2156,
-    pricePerPerson: 119,
-    originalPrice: 179,
-    valueScore: calculateValueScore({
-      price: 119,
-      marketAvgPrice: 179,
-      rating: 4.6,
-      reviewCount: 2156,
-      demandLevel: 76,
-      availabilityLevel: 50
-    }),
-    duration: '4 hours',
-    category: 'Water Sports',
-    badges: ['Equipment Included', 'All Levels'],
-    demandLevel: 76,
-    groupSize: 15,
-    highlights: ['Coral reef exploration', 'Equipment provided', 'Marine life'],
-    difficulty: 'moderate'
-  }
+// Popular destinations for featured tours
+const FEATURED_COORDS = [
+  { name: 'Paris', lat: 48.8566, lng: 2.3522 },
+  { name: 'Rome', lat: 41.9028, lng: 12.4964 },
+  { name: 'Barcelona', lat: 41.3851, lng: 2.1734 },
+  { name: 'New York', lat: 40.7128, lng: -74.0060 },
 ];
-
-// Difficulty level colors
-const difficultyColors = {
-  easy: 'bg-green-100 text-green-800 border-green-300',
-  moderate: 'bg-yellow-100 text-yellow-800 border-yellow-300',
-  challenging: 'bg-red-100 text-red-800 border-red-300'
-};
 
 export function ToursSection({ lang = 'en' }: ToursSectionProps) {
   const t = translations[lang];
   const router = useRouter();
-  const [hoveredId, setHoveredId] = useState<string | null>(null);
+  const [tours, setTours] = useState<Tour[]>([]);
+  const [loading, setLoading] = useState(true);
 
-  const getDifficultyLabel = (difficulty?: string) => {
-    if (!difficulty) return '';
-    return {
-      easy: t.easy,
-      moderate: t.moderate,
-      challenging: t.challenging
-    }[difficulty] || '';
+  useEffect(() => {
+    const fetchTours = async () => {
+      try {
+        // Fetch from multiple destinations
+        const results = await Promise.all(
+          FEATURED_COORDS.slice(0, 2).map(async (city) => {
+            const res = await fetch(`/api/activities/search?latitude=${city.lat}&longitude=${city.lng}&radius=10&type=tours`);
+            const data = await res.json();
+            return (data.data || []).slice(0, 2);
+          })
+        );
+        setTours(results.flat().slice(0, 4));
+      } catch (err) {
+        console.error('Failed to fetch tours:', err);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchTours();
+  }, []);
+
+  const getImage = (tour: Tour) => {
+    const firstPic = tour.pictures?.[0];
+    return typeof firstPic === 'string' ? firstPic : firstPic?.url || 'https://images.unsplash.com/photo-1469474968028-56623f02e42e?w=600&q=80';
+  };
+
+  const getPrice = (tour: Tour) => {
+    const base = tour.price?.amount ? parseFloat(tour.price.amount) : 0;
+    return base > 0 ? Math.round(base + Math.max(base * 0.35, 35)) : null;
   };
 
   return (
     <section className="py-4 px-4 md:px-0">
-      {/* Section Header */}
       <div className="mb-6">
         <h2 className="text-2xl font-bold text-gray-900 mb-2 flex items-center gap-2">
-          <div className="p-2 bg-gradient-to-br from-emerald-50 to-teal-50 rounded-lg">
-            <Compass className="w-6 h-6 text-emerald-600" />
+          <div className="p-2 bg-gradient-to-br from-orange-50 to-amber-50 rounded-lg">
+            <MapPin className="w-6 h-6 text-orange-600" />
           </div>
           {t.title}
         </h2>
         <p className="text-sm text-gray-600">{t.subtitle}</p>
       </div>
 
-      {/* Tours Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-        {featuredTours.map((tour) => (
-          <div
-            key={tour.id}
-            className={`
-              flex flex-col
-              bg-white rounded-lg border-2 border-gray-200
-              hover:border-primary-400 hover:shadow-lg
-              transition-all duration-200 overflow-hidden
-              ${hoveredId === tour.id ? 'scale-[1.02]' : ''}
-            `}
-            onMouseEnter={() => setHoveredId(tour.id)}
-            onMouseLeave={() => setHoveredId(null)}
-          >
-            {/* Tour Image */}
-            <div className="relative h-40 bg-gradient-to-br from-blue-100 to-purple-100 flex items-center justify-center">
-              <span className="text-6xl">{tour.image}</span>
-
-              {/* Value Score Badge - Top Right */}
-              <div className="absolute top-2 right-2">
-                <ValueScoreBadge score={tour.valueScore} size="sm" showLabel={false} />
-              </div>
-
-              {/* Trending Badge - Top Left */}
-              {tour.trending && (
-                <div className="absolute top-2 left-2 bg-red-500 text-white px-2 py-1 rounded text-xs font-bold flex items-center gap-1">
-                  <Flame className="w-3 h-3" />
-                  Trending
-                </div>
-              )}
-
-              {/* Category Badge - Bottom */}
-              <div className="absolute bottom-2 left-2 bg-white/90 backdrop-blur-sm px-2 py-1 rounded text-xs font-semibold text-gray-700">
-                {tour.category}
-              </div>
-            </div>
-
-            {/* Tour Details */}
-            <div className="p-2.5 flex-1 flex flex-col">
-              {/* Title and Destination */}
-              <h3 className="font-bold text-gray-900 text-base mb-0.5 line-clamp-2">{tour.title}</h3>
-              <p className="text-xs text-gray-600 mb-1.5 flex items-center gap-1">
-                <MapPin className="w-3 h-3" />
-                {tour.destination}
-              </p>
-
-              {/* Rating + Reviews + Badges + Demand - ALL ON ONE LINE */}
-              <div className="h-[52px] mb-1.5 overflow-hidden">
-                <div className="flex items-center gap-1.5 flex-wrap text-[10px]">
-                  <div className="flex items-center gap-1 bg-primary-600 text-white px-2 py-0.5 rounded font-bold">
-                    <Star className="w-3 h-3 fill-current" />
-                    {tour.rating}
-                  </div>
-                  <span className="text-xs text-gray-600">({tour.reviews.toLocaleString()})</span>
-                  {tour.badges.slice(0, 2).map((badge, idx) => (
-                    <span
-                      key={idx}
-                      className="inline-flex items-center px-1.5 py-0.5 bg-green-100 border border-green-300 text-green-700 rounded text-[10px] font-bold"
-                    >
-                      {badge}
-                    </span>
-                  ))}
-                  {tour.demandLevel && tour.demandLevel > 85 && (
-                    <span className="inline-flex items-center gap-0.5 bg-orange-100 text-orange-700 px-1.5 py-0.5 rounded font-bold">
-                      <TrendingUp className="w-2.5 h-2.5" />
-                      High
-                    </span>
-                  )}
-                  {tour.groupSize && tour.demandLevel && tour.demandLevel > 90 && (
-                    <span className="inline-flex items-center gap-0.5 bg-red-100 text-red-700 px-1.5 py-0.5 rounded font-bold">
-                      ⚠️ {Math.floor(tour.groupSize * 0.3)} left
-                    </span>
-                  )}
-                </div>
-              </div>
-
-              {/* Duration + Group Size + Difficulty - ONE LINE */}
-              <div className="flex items-center gap-2 mb-1.5 text-[10px] text-gray-600 flex-wrap">
-                <div className="flex items-center gap-1">
-                  <Clock className="w-3 h-3" />
-                  <span>{tour.duration}</span>
-                </div>
-                {tour.groupSize && (
-                  <div className="flex items-center gap-1">
-                    <Users className="w-3 h-3" />
-                    <span>Max {tour.groupSize}</span>
-                  </div>
-                )}
-                {tour.difficulty && (
-                  <span className={`inline-flex items-center px-1.5 py-0.5 border rounded text-[10px] font-semibold ${difficultyColors[tour.difficulty as keyof typeof difficultyColors]}`}>
-                    {getDifficultyLabel(tour.difficulty)}
-                  </span>
-                )}
-              </div>
-
-              {/* Highlights - COMPACT */}
-              <div className="mb-1.5">
-                <div className="flex flex-wrap gap-1">
-                  {tour.highlights.slice(0, 3).map((highlight, idx) => (
-                    <span
-                      key={idx}
-                      className="text-[10px] text-gray-600 bg-gray-50 px-1.5 py-0.5 rounded"
-                    >
-                      • {highlight}
-                    </span>
-                  ))}
-                </div>
-              </div>
-
-              {/* Price Section */}
-              <div className="mt-auto border-t border-gray-200 pt-2">
-                <div className="flex items-end justify-between">
-                  <div>
-                    {tour.originalPrice && (
-                      <div className="text-xs text-gray-500 line-through">
-                        ${tour.originalPrice}
-                      </div>
-                    )}
-                    <div className="text-lg font-bold text-primary-600">
-                      ${tour.pricePerPerson}
+      {loading ? (
+        <div className="flex justify-center py-12">
+          <Loader2 className="w-8 h-8 text-orange-500 animate-spin" />
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+          {tours.map((tour) => {
+            const price = getPrice(tour);
+            const img = getImage(tour);
+            return (
+              <div
+                key={tour.id}
+                onClick={() => router.push(`/tours/book?id=${tour.id}&name=${encodeURIComponent(tour.name)}&price=${price || 0}&img=${encodeURIComponent(img)}&duration=${tour.minimumDuration || '3h'}&link=${encodeURIComponent(tour.bookingLink || '')}`)}
+                className="bg-white rounded-lg border-2 border-gray-200 hover:border-orange-400 hover:shadow-lg transition-all overflow-hidden cursor-pointer group"
+              >
+                <div className="relative h-40 overflow-hidden">
+                  <Image src={img} alt={tour.name} fill className="object-cover group-hover:scale-110 transition-transform duration-500" unoptimized />
+                  {price && (
+                    <div className="absolute bottom-2 left-2 px-2 py-1 rounded-md bg-white/95 backdrop-blur shadow-sm">
+                      <span className="font-bold text-gray-900">${price}</span>
+                      <span className="text-gray-500 text-xs ml-1">/{t.perPerson}</span>
                     </div>
-                    <div className="text-xs text-gray-600">{t.perPerson}</div>
+                  )}
+                </div>
+                <div className="p-3">
+                  <h3 className="font-bold text-gray-900 text-sm line-clamp-2 mb-2 group-hover:text-orange-600 transition-colors">{tour.name}</h3>
+                  <div className="flex items-center gap-2 text-xs text-gray-500 mb-3">
+                    <span className="flex items-center gap-1"><Star className="w-3 h-3 fill-amber-400 text-amber-400" />{tour.rating || '4.8'}</span>
+                    <span className="flex items-center gap-1"><Clock className="w-3 h-3" />{tour.minimumDuration || '3h'}</span>
                   </div>
-                  <button className="px-3 py-2 bg-primary-600 hover:bg-primary-700 text-white text-sm font-semibold rounded-lg transition-colors">
+                  <button className="w-full py-2 bg-orange-600 hover:bg-orange-700 text-white text-sm font-semibold rounded-lg transition-colors">
                     {t.bookNow}
                   </button>
                 </div>
               </div>
-            </div>
-          </div>
-        ))}
-      </div>
+            );
+          })}
+        </div>
+      )}
 
-      {/* View All Button */}
       <div className="text-center mt-6">
-        <button
-          onClick={() => router.push('/tours')}
-          className="inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-orange-500 to-amber-600 text-white hover:from-orange-600 hover:to-amber-700 font-bold rounded-lg transition-colors shadow-md hover:shadow-lg"
-        >
+        <button onClick={() => router.push('/tours')} className="inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-orange-500 to-amber-600 text-white hover:from-orange-600 hover:to-amber-700 font-bold rounded-lg transition-colors shadow-md hover:shadow-lg">
           {t.viewAll}
           <ArrowRight className="w-4 h-4" />
         </button>
