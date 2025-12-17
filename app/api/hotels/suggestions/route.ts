@@ -352,6 +352,15 @@ export async function GET(request: NextRequest) {
 
     console.log(`✅ Found ${merged.length} suggestions for "${query}" (LiteAPI: ${liteApiResponse.results.length}, Local: ${localResults.length})`);
 
+    // Track missing city searches for database expansion
+    if (normalizedMerged.length === 0 && query.length >= 3) {
+      fetch(`${process.env.NEXT_PUBLIC_BASE_URL || 'https://fly2any.com'}/api/analytics/missing-city`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ query, source: 'hotel-suggestions' }),
+      }).catch(() => {}); // Fire and forget
+    }
+
     return NextResponse.json(response, {
       headers: {
         'X-Cache-Status': 'MISS',
