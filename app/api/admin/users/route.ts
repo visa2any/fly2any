@@ -29,8 +29,8 @@ export const GET = withPermission(Resource.USERS, Action.READ, async (request, c
       ]
     }
 
-    // Fetch users
-    const [users, total] = await Promise.all([
+    // Fetch users with bookings count
+    const [usersRaw, total] = await Promise.all([
       prisma.user.findMany({
         where,
         select: {
@@ -45,6 +45,11 @@ export const GET = withPermission(Resource.USERS, Action.READ, async (request, c
             select: {
               role: true
             }
+          },
+          _count: {
+            select: {
+              bookings: true
+            }
           }
         },
         orderBy: { [sortBy]: sortOrder },
@@ -54,7 +59,21 @@ export const GET = withPermission(Resource.USERS, Action.READ, async (request, c
       prisma.user.count({ where })
     ])
 
+    // Transform to expected format
+    const users = usersRaw.map(u => ({
+      id: u.id,
+      name: u.name || u.email?.split('@')[0] || 'Unknown',
+      email: u.email || '',
+      role: u.adminUser?.role || 'user',
+      status: u.emailVerified ? 'active' : 'pending',
+      bookingsCount: u._count?.bookings || 0,
+      totalSpent: 0, // Would need booking amounts aggregation
+      lastLogin: u.lastLoginAt?.toISOString() || u.createdAt.toISOString(),
+      createdAt: u.createdAt.toISOString(),
+    }))
+
     return NextResponse.json({
+      success: true,
       users,
       pagination: {
         page,
