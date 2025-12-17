@@ -5,7 +5,7 @@ import { useSearchParams, useRouter } from 'next/navigation';
 import Image from 'next/image';
 import { MaxWidthContainer } from '@/components/layout/MaxWidthContainer';
 import {
-  Star, Clock, Users, MapPin, Heart, Loader2, ArrowLeft,
+  Star, Clock, MapPin, Heart, Loader2, ArrowLeft,
   SlidersHorizontal, Globe, Sparkles, Search
 } from 'lucide-react';
 import { GLOBAL_CITIES, CityDestination } from '@/lib/data/global-cities-database';

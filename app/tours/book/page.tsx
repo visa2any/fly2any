@@ -4,7 +4,7 @@ import { useState, Suspense } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import Image from 'next/image';
 import { MaxWidthContainer } from '@/components/layout/MaxWidthContainer';
-import { ArrowLeft, Calendar, Users, Clock, Shield, CreditCard, Loader2, CheckCircle } from 'lucide-react';
+import { ArrowLeft, Users, Clock, Shield, CreditCard, Loader2, CheckCircle } from 'lucide-react';
 
 function TourBookingContent() {
   const searchParams = useSearchParams();
