@@ -27,9 +27,11 @@ const CITY_COORDS: Record<string, { lat: number; lng: number; name: string }> = 
   barcelona: { lat: 41.3851, lng: 2.1734, name: 'Barcelona' },
   london: { lat: 51.5074, lng: -0.1278, name: 'London' },
   newyork: { lat: 40.7128, lng: -74.0060, name: 'New York' },
+  nyc: { lat: 40.7128, lng: -74.0060, name: 'New York' },
   tokyo: { lat: 35.6762, lng: 139.6503, name: 'Tokyo' },
   dubai: { lat: 25.2048, lng: 55.2708, name: 'Dubai' },
   lisbon: { lat: 38.7223, lng: -9.1393, name: 'Lisbon' },
+  bali: { lat: -8.3405, lng: 115.0920, name: 'Bali' },
 };
 
 function TourResultsContent() {

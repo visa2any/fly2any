@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import Image from 'next/image';
+import { useRouter } from 'next/navigation';
 import {
   Activity, Sparkles, Palette, Music, Waves, Mountain,
   Users, Clock, Calendar, Star, Shield, MapPin,
@@ -16,6 +17,16 @@ import { useTranslations } from 'next-intl';
 import { useLanguage } from '@/lib/i18n/client';
 
 type Language = 'en' | 'pt' | 'es';
+
+// City coordinates for linking to results
+const CITY_DATA: Record<string, { lat: number; lng: number; key: string }> = {
+  dubai: { lat: 25.2048, lng: 55.2708, key: 'dubai' },
+  bali: { lat: -8.3405, lng: 115.0920, key: 'bali' },
+  barcelona: { lat: 41.3851, lng: 2.1734, key: 'barcelona' },
+  queenstown: { lat: -45.0312, lng: 168.6626, key: 'queenstown' },
+  paris: { lat: 48.8566, lng: 2.3522, key: 'paris' },
+  costarica: { lat: 9.7489, lng: -83.7534, key: 'costarica' },
+};
 
 
 // Base data arrays (language-agnostic)
@@ -44,8 +55,16 @@ const activityPriceRanges = ['$50-$300', '$40-$200', '$30-$150', '$25-$180', '$4
 export default function ActivitiesPage() {
   const t = useTranslations('ActivitiesPage');
   const { language: lang, setLanguage: setLang } = useLanguage();
+  const router = useRouter();
   const [animationKey, setAnimationKey] = useState(0);
   const [mounted, setMounted] = useState(false);
+
+  const navigateToDestination = (destKey: string) => {
+    const cityData = CITY_DATA[destKey];
+    if (cityData) {
+      router.push(`/activities/results?destination=${cityData.key}&lat=${cityData.lat}&lng=${cityData.lng}`);
+    }
+  };
 
   useEffect(() => {
     setMounted(true);
@@ -283,6 +302,7 @@ export default function ActivitiesPage() {
               <div
                 key={index}
                 className="bg-white rounded-xl overflow-hidden shadow-md hover:shadow-xl transition-all group cursor-pointer"
+                onClick={() => navigateToDestination(destKey)}
               >
                 <div className="relative h-48 overflow-hidden">
                   <Image
@@ -316,7 +336,10 @@ export default function ActivitiesPage() {
                       <p className="text-xs text-gray-500">Activities from</p>
                       <p className="text-xl font-bold text-purple-600">{dest.priceFrom}</p>
                     </div>
-                    <button className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors text-sm font-semibold">
+                    <button
+                      onClick={(e) => { e.stopPropagation(); navigateToDestination(destKey); }}
+                      className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors text-sm font-semibold"
+                    >
                       Explore Activities
                     </button>
                   </div>

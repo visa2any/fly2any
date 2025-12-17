@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import Image from 'next/image';
+import { useRouter } from 'next/navigation';
 import {
   Map, Mountain, Utensils, Wine, Camera, Landmark,
   Users, Clock, Calendar, Star, TrendingUp, Shield,
@@ -14,6 +15,16 @@ import { MaxWidthContainer } from '@/components/layout/MaxWidthContainer';
 import { CompactTrustBar } from '@/components/conversion/CompactTrustBar';
 import { useTranslations } from 'next-intl';
 import { useLanguage } from '@/lib/i18n/client';
+
+// City coordinates for linking to results
+const CITY_DATA: Record<string, { lat: number; lng: number; key: string }> = {
+  paris: { lat: 48.8566, lng: 2.3522, key: 'paris' },
+  tokyo: { lat: 35.6762, lng: 139.6503, key: 'tokyo' },
+  rome: { lat: 41.9028, lng: 12.4964, key: 'rome' },
+  nyc: { lat: 40.7128, lng: -74.0060, key: 'newyork' },
+  barcelona: { lat: 41.3851, lng: 2.1734, key: 'barcelona' },
+  dubai: { lat: 25.2048, lng: 55.2708, key: 'dubai' },
+};
 
 type Language = 'en' | 'pt' | 'es';
 
@@ -44,6 +55,14 @@ const tourPriceRanges = ['$30-$80', '$80-$250', '$60-$180', '$40-$120', '$90-$30
 export default function ToursPage() {
   const t = useTranslations('ToursPage');
   const { language: lang, setLanguage: setLang } = useLanguage();
+  const router = useRouter();
+
+  const navigateToDestination = (destKey: string) => {
+    const cityData = CITY_DATA[destKey];
+    if (cityData) {
+      router.push(`/tours/results?destination=${cityData.key}&lat=${cityData.lat}&lng=${cityData.lng}`);
+    }
+  };
 
   return (
     <div className="min-h-screen bg-white">
@@ -257,6 +276,7 @@ export default function ToursPage() {
               <div
                 key={index}
                 className="bg-white rounded-xl overflow-hidden shadow-md hover:shadow-xl transition-all group cursor-pointer"
+                onClick={() => navigateToDestination(destKey)}
               >
                 <div className="relative h-48 overflow-hidden">
                   <Image
@@ -290,7 +310,10 @@ export default function ToursPage() {
                       <p className="text-xs text-gray-500">{t('toursFrom')}</p>
                       <p className="text-xl font-bold text-orange-600">{dest.priceFrom}</p>
                     </div>
-                    <button className="px-4 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700 transition-colors text-sm font-semibold">
+                    <button
+                      onClick={(e) => { e.stopPropagation(); navigateToDestination(destKey); }}
+                      className="px-4 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700 transition-colors text-sm font-semibold"
+                    >
                       {t('exploreTours')}
                     </button>
                   </div>
