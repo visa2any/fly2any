@@ -44,11 +44,24 @@ function ActivityResultsContent() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [searchInput, setSearchInput] = useState('');
+  const [showSuggestions, setShowSuggestions] = useState(false);
 
   const destination = searchParams.get('destination') || 'paris';
   const lat = parseFloat(searchParams.get('lat') || '') || CITY_COORDS[destination.toLowerCase()]?.lat || 48.8566;
   const lng = parseFloat(searchParams.get('lng') || '') || CITY_COORDS[destination.toLowerCase()]?.lng || 2.3522;
   const cityName = CITY_COORDS[destination.toLowerCase()]?.name || destination;
+
+  const suggestions = searchInput.length > 0
+    ? Object.entries(CITY_COORDS).filter(([k, v]) =>
+        v.name.toLowerCase().includes(searchInput.toLowerCase()) || k.includes(searchInput.toLowerCase())
+      )
+    : Object.entries(CITY_COORDS);
+
+  const handleSelectCity = (key: string, city: { lat: number; lng: number; name: string }) => {
+    setSearchInput(city.name);
+    setShowSuggestions(false);
+    router.push(`/activities/results?destination=${key}&lat=${city.lat}&lng=${city.lng}`);
+  };
 
   const handleSearch = () => {
     const key = searchInput.toLowerCase().replace(/\s+/g, '');
@@ -99,19 +112,34 @@ function ActivityResultsContent() {
                 <p className="text-xs text-gray-500">{loading ? 'Searching...' : `${activities.length} activities found`}</p>
               </div>
             </div>
-            {/* Search Input */}
-            <div className="flex-1 max-w-md">
+            {/* Search Input with Suggestions */}
+            <div className="flex-1 max-w-md relative">
               <div className="relative">
                 <input
                   type="text"
                   placeholder="Search destination..."
                   value={searchInput}
-                  onChange={(e) => setSearchInput(e.target.value)}
+                  onChange={(e) => { setSearchInput(e.target.value); setShowSuggestions(true); }}
+                  onFocus={() => setShowSuggestions(true)}
                   onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
                   className="w-full pl-9 pr-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
                 />
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
               </div>
+              {showSuggestions && (
+                <div className="absolute top-full left-0 right-0 mt-1 bg-white border border-gray-200 rounded-lg shadow-lg z-50 max-h-60 overflow-y-auto">
+                  {suggestions.map(([key, city]) => (
+                    <button
+                      key={key}
+                      onClick={() => handleSelectCity(key, city)}
+                      className="w-full px-4 py-2.5 text-left hover:bg-purple-50 flex items-center gap-2 text-sm border-b border-gray-100 last:border-0"
+                    >
+                      <MapPin className="w-4 h-4 text-purple-500" />
+                      <span className="font-medium text-gray-900">{city.name}</span>
+                    </button>
+                  ))}
+                </div>
+              )}
             </div>
             <button onClick={handleSearch} className="px-3 py-2 rounded-lg bg-purple-600 text-white text-sm font-medium hover:bg-purple-700 transition-colors flex-shrink-0">
               Search
@@ -174,21 +202,16 @@ function ActivityResultsContent() {
                     <h3 className="font-semibold text-gray-900 text-sm line-clamp-2 mb-1 group-hover:text-purple-600 transition-colors leading-tight">
                       {activity.name}
                     </h3>
-                    {/* Provider ID for manual booking */}
-                    <p className="text-[9px] text-gray-400 font-mono mb-1.5 truncate">ID: {activity.id}</p>
                     <div className="flex items-center gap-2 text-[10px] text-gray-500 mb-2">
                       <span className="flex items-center gap-0.5"><Star className="w-3 h-3 fill-amber-400 text-amber-400" />{activity.rating || '4.7'}</span>
                       <span className="flex items-center gap-0.5"><Clock className="w-3 h-3" />{activity.minimumDuration || '2h'}</span>
                     </div>
-                    {activity.bookingLink ? (
-                      <a href={activity.bookingLink} target="_blank" rel="noopener noreferrer" className="block w-full mt-1 py-1.5 rounded-lg bg-purple-600 text-white font-semibold text-xs hover:bg-purple-700 transition-colors text-center">
-                        Book Now →
-                      </a>
-                    ) : (
-                      <button className="w-full mt-1 py-1.5 rounded-lg bg-purple-50 text-purple-600 font-semibold text-xs hover:bg-purple-100 transition-colors">
-                        View Details
-                      </button>
-                    )}
+                    <button
+                      onClick={() => router.push(`/activities/book?id=${activity.id}&name=${encodeURIComponent(activity.name)}&price=${price || 0}&img=${encodeURIComponent(img)}&duration=${activity.minimumDuration || '2h'}&link=${encodeURIComponent(activity.bookingLink || '')}`)}
+                      className="w-full mt-1 py-1.5 rounded-lg bg-purple-600 text-white font-semibold text-xs hover:bg-purple-700 transition-colors"
+                    >
+                      Book Now
+                    </button>
                   </div>
                 </div>
               );
