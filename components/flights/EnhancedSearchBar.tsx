@@ -11,7 +11,7 @@ import { InlineAirportAutocomplete } from './InlineAirportAutocomplete';
 import MultiAirportSelector, { Airport as MultiAirport } from '@/components/common/MultiAirportSelector';
 import { MaxWidthContainer } from '@/components/layout/MaxWidthContainer';
 
-type ServiceType = 'flights' | 'hotels' | 'cars' | 'tours' | 'activities' | 'packages' | 'insurance';
+type ServiceType = 'flights' | 'hotels' | 'cars' | 'tours' | 'activities' | 'transfers' | 'packages' | 'insurance';
 
 interface PassengerCounts {
   adults: number;
@@ -1213,6 +1213,24 @@ export default function EnhancedSearchBar({
               <Activity size={14} className="text-purple-600" />
             </div>
             <span className="text-[13px] sm:text-sm tracking-tight">{t('activities')}</span>
+          </button>
+
+          {/* Transfers Tab - ACTIVE */}
+          <button
+            type="button"
+            onClick={() => setServiceType('transfers')}
+            className={`flex items-center gap-2 px-4 py-2.5 min-h-[44px] text-sm font-semibold transition-all duration-300 relative flex-shrink-0 whitespace-nowrap touch-manipulation rounded-xl ${
+              serviceType === 'transfers'
+                ? 'bg-white text-primary-600 shadow-lg shadow-primary-500/15'
+                : 'text-neutral-600 hover:text-neutral-900 hover:bg-white/50 active:scale-95'
+            }`}
+          >
+            <div className={`p-1.5 rounded-lg transition-colors duration-300 ${
+              serviceType === 'transfers' ? 'bg-teal-50' : 'bg-teal-100/80'
+            }`}>
+              <Navigation size={14} className={serviceType === 'transfers' ? 'text-teal-600' : 'text-teal-600'} />
+            </div>
+            <span className="text-[13px] sm:text-sm tracking-tight">Transfers</span>
           </button>
 
           {/* Packages Tab - COMING SOON */}
@@ -2860,6 +2878,113 @@ export default function EnhancedSearchBar({
                   </>
                 ) : (
                   <span>{t('searchActivities')}</span>
+                )}
+              </button>
+            </div>
+          </div>
+          </>
+          )}
+
+          {/* TRANSFERS FIELDS */}
+          {serviceType === 'transfers' && (
+          <>
+          <div className="flex flex-col lg:flex-row items-stretch lg:items-end gap-2">
+            {/* Pickup Location */}
+            <div className="flex-1">
+              <label className="flex items-center gap-1.5 text-xs font-medium text-gray-700 mb-2">
+                <LogIn size={13} className="text-teal-600" />
+                <span>Pickup Location</span>
+              </label>
+              <input
+                type="text"
+                value={carPickupLocation}
+                onChange={(e) => setCarPickupLocation(e.target.value)}
+                placeholder="Airport, hotel, or address"
+                className="w-full px-4 py-4 bg-white border border-gray-300 rounded-lg hover:border-teal-500 focus:outline-none focus:ring-2 focus:ring-teal-500 transition-all text-sm font-medium"
+              />
+            </div>
+
+            {/* Dropoff Location */}
+            <div className="flex-1">
+              <label className="flex items-center gap-1.5 text-xs font-medium text-gray-700 mb-2">
+                <LogOut size={13} className="text-teal-600" />
+                <span>Dropoff Location</span>
+              </label>
+              <input
+                type="text"
+                value={carDropoffLocation}
+                onChange={(e) => setCarDropoffLocation(e.target.value)}
+                placeholder="Airport, hotel, or address"
+                className="w-full px-4 py-4 bg-white border border-gray-300 rounded-lg hover:border-teal-500 focus:outline-none focus:ring-2 focus:ring-teal-500 transition-all text-sm font-medium"
+              />
+            </div>
+
+            {/* Date & Time */}
+            <div className="flex-1">
+              <label className="flex items-center gap-1.5 text-xs font-medium text-gray-700 mb-2">
+                <Calendar size={13} className="text-teal-600" />
+                <span>Date & Time</span>
+              </label>
+              <div className="flex gap-2">
+                <input
+                  type="date"
+                  value={carPickupDate}
+                  onChange={(e) => setCarPickupDate(e.target.value)}
+                  min={minDate}
+                  className="flex-1 px-3 py-4 bg-white border border-gray-300 rounded-lg hover:border-teal-500 focus:outline-none focus:ring-2 focus:ring-teal-500 transition-all text-sm font-medium"
+                />
+                <input
+                  type="time"
+                  value={carPickupTime}
+                  onChange={(e) => setCarPickupTime(e.target.value)}
+                  className="w-28 px-3 py-4 bg-white border border-gray-300 rounded-lg hover:border-teal-500 focus:outline-none focus:ring-2 focus:ring-teal-500 transition-all text-sm font-medium"
+                />
+              </div>
+            </div>
+
+            {/* Passengers */}
+            <div className="w-32">
+              <label className="flex items-center gap-1.5 text-xs font-medium text-gray-700 mb-2">
+                <Users size={13} className="text-teal-600" />
+                <span>Passengers</span>
+              </label>
+              <select
+                value={hotelAdults}
+                onChange={(e) => setHotelAdults(parseInt(e.target.value))}
+                className="w-full px-3 py-4 bg-white border border-gray-300 rounded-lg hover:border-teal-500 focus:outline-none focus:ring-2 focus:ring-teal-500 transition-all text-sm font-medium"
+              >
+                {[1,2,3,4,5,6,7,8].map(n => <option key={n} value={n}>{n} {n === 1 ? 'guest' : 'guests'}</option>)}
+              </select>
+            </div>
+
+            {/* Search Button */}
+            <div className="flex-shrink-0">
+              <label className="block text-xs font-medium text-gray-700 mb-2 opacity-0">Search</label>
+              <button
+                type="button"
+                onClick={() => {
+                  if (!carPickupLocation || !carDropoffLocation || !carPickupDate) {
+                    setErrors({ transfer: 'Please fill pickup, dropoff, and date' });
+                    return;
+                  }
+                  setIsLoading(true);
+                  const params = new URLSearchParams({
+                    pickup: carPickupLocation,
+                    dropoff: carDropoffLocation,
+                    date: carPickupDate,
+                    time: carPickupTime,
+                    passengers: hotelAdults.toString(),
+                  });
+                  router.push(`/transfers/results?${params.toString()}`);
+                  setTimeout(() => setIsLoading(false), 500);
+                }}
+                disabled={isLoading}
+                className="py-4 px-10 bg-teal-600 hover:bg-teal-700 text-white font-semibold rounded-lg shadow-md hover:shadow-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 whitespace-nowrap text-sm"
+              >
+                {isLoading ? (
+                  <><svg className="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg><span>Searching...</span></>
+                ) : (
+                  <span>Search Transfers</span>
                 )}
               </button>
             </div>
