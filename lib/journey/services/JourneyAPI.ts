@@ -170,6 +170,7 @@ class JourneyAPIClient {
 
   /**
    * Search hotels for journey
+   * Uses GET endpoint: /api/hotels/search?query=&checkIn=&checkOut=&adults=
    */
   async searchHotels(params: JourneyHotelSearchParams): Promise<{
     results: HotelSearchResult[];
@@ -177,18 +178,21 @@ class JourneyAPIClient {
   }> {
     try {
       const searchParams = new URLSearchParams({
-        checkinDate: params.checkIn,
-        checkoutDate: params.checkOut,
+        checkIn: params.checkIn,
+        checkOut: params.checkOut,
         adults: String(params.guests.adults),
-        children: String(params.guests.children),
-        currency: params.currency || 'USD',
       });
 
+      // Location: prefer lat/lng, fallback to query string
       if (params.latitude && params.longitude) {
-        searchParams.set('latitude', String(params.latitude));
-        searchParams.set('longitude', String(params.longitude));
+        searchParams.set('lat', String(params.latitude));
+        searchParams.set('lng', String(params.longitude));
       } else if (params.destination) {
-        searchParams.set('cityName', params.destination);
+        searchParams.set('query', params.destination);
+      }
+
+      if (params.guests.children > 0) {
+        searchParams.set('children', String(params.guests.children));
       }
 
       if (params.rooms) {
@@ -199,8 +203,8 @@ class JourneyAPIClient {
         searchParams.set('limit', String(params.maxResults));
       }
 
-      if (params.minRating) {
-        searchParams.set('minRating', String(params.minRating));
+      if (params.currency) {
+        searchParams.set('currency', params.currency);
       }
 
       const response = await fetch(`${this.baseUrl}/hotels/search?${searchParams}`);
@@ -294,39 +298,62 @@ class JourneyAPIClient {
 
   /**
    * Transform API hotel response to JourneyHotel format
+   * Handles LiteAPI/Hotelbeds response format
    */
   private transformHotelResults(
     hotels: any[],
     params: JourneyHotelSearchParams
   ): HotelSearchResult[] {
     return hotels.slice(0, 20).map((hotel, index) => {
-      const priceTotal = hotel.minRate?.amount || hotel.price?.amount || 0;
       const nights = this.calculateNights(params.checkIn, params.checkOut);
-      const perNight = nights > 0 ? priceTotal / nights : priceTotal;
+
+      // Handle various price formats from different APIs
+      const priceTotal = hotel.lowestPrice || hotel.minRate?.amount ||
+                         hotel.price?.amount || hotel.rates?.[0]?.totalPrice?.amount || 0;
+      const perNight = hotel.lowestPricePerNight ||
+                       (nights > 0 ? priceTotal / nights : priceTotal);
+
+      // Handle images from different API formats
+      let images: string[] = [];
+      if (Array.isArray(hotel.images)) {
+        images = hotel.images.map((img: any) =>
+          typeof img === 'string' ? img : (img.url || img.src || '')
+        ).filter(Boolean);
+      } else if (hotel.hotelPhotos) {
+        images = hotel.hotelPhotos.map((p: any) => p.url).filter(Boolean);
+      }
+
+      const thumbnail = hotel.main_photo || hotel.thumbnail || images[0] || '';
+
+      // Handle address
+      const address = typeof hotel.address === 'object'
+        ? `${hotel.address.street || ''}, ${hotel.address.city || ''}`.trim().replace(/^,\s*/, '')
+        : (hotel.address || hotel.location?.address || '');
 
       return {
         id: hotel.id || hotel.hotelId || `hotel-${index}`,
         name: hotel.name || 'Unknown Hotel',
-        address: hotel.address || '',
-        city: hotel.city || params.destination,
-        country: hotel.country || '',
-        stars: hotel.stars || hotel.star_rating || 3,
-        rating: hotel.rating || hotel.review_score || 0,
+        address,
+        city: hotel.city || hotel.address?.city || hotel.location?.city || params.destination,
+        country: hotel.country || hotel.address?.country || hotel.location?.country || '',
+        stars: hotel.stars || hotel.starRating || hotel.star_rating || 3,
+        rating: hotel.rating || hotel.reviewScore || hotel.review_score || 0,
         reviewCount: hotel.reviewCount || hotel.review_count || 0,
-        thumbnail: hotel.main_photo || hotel.thumbnail || hotel.images?.[0],
-        images: hotel.images || hotel.hotelPhotos?.map((p: any) => p.url) || [],
-        amenities: hotel.facilities || hotel.amenities || [],
+        thumbnail,
+        images,
+        amenities: hotel.amenities || hotel.facilities || [],
         checkIn: params.checkIn,
         checkOut: params.checkOut,
         price: {
-          amount: priceTotal,
+          amount: Number(priceTotal) || 0,
           currency: hotel.currency || params.currency || 'USD',
-          perNight: perNight,
+          perNight: Number(perNight) || 0,
         },
         refundable: hotel.refundable !== false,
-        breakfastIncluded: hotel.boardType === 'BB' || hotel.breakfast_included || false,
-        distance: hotel.distance,
-        roomType: hotel.roomType || hotel.room_name,
+        breakfastIncluded: hotel.boardType === 'BB' || hotel.breakfast_included ||
+                           hotel.mealPlan === 'breakfast' || false,
+        distance: hotel.distanceKm || hotel.distance,
+        roomType: hotel.roomType || hotel.room_name || hotel.rates?.[0]?.roomType,
       };
     });
   }
