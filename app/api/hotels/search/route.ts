@@ -559,6 +559,35 @@ export async function POST(request: NextRequest) {
 
     console.log(`🔄 Deduplication: ${allHotels.length} → ${deduplicatedHotels.length} unique hotels`);
 
+    // 🚨 ALERT: Zero results monitoring
+    if (deduplicatedHotels.length === 0) {
+      const alertData = {
+        timestamp: new Date().toISOString(),
+        location: searchParams.location,
+        checkIn: searchParams.checkIn,
+        checkOut: searchParams.checkOut,
+        latitude,
+        longitude,
+        liteAPICount: liteAPIResults.hotels?.length || 0,
+        amadeusCount: amadeusResults.hotels?.length || 0,
+        hotelbedsCount: hotelbedsResults.hotels?.length || 0,
+        liteAPIError: (liteAPIResults as any).meta?.error || null,
+      };
+      console.error('🚨 [HOTEL_SEARCH_ZERO_RESULTS]', JSON.stringify(alertData));
+
+      // Non-blocking alert
+      import('@/lib/monitoring/customer-error-alerts').then(({ alertCustomerError }) => {
+        alertCustomerError({
+          errorMessage: `Hotel search returned 0 results for ${JSON.stringify(searchParams.location)}`,
+          errorCode: 'HOTEL_SEARCH_ZERO_RESULTS',
+          category: 'external_api',
+          severity: 'high',
+          url: `/api/hotels/search`,
+          additionalData: alertData,
+        }, { sendTelegram: true, sendEmail: true }).catch(console.error);
+      }).catch(console.error);
+    }
+
     // Sort by best price
     const results = {
       hotels: deduplicatedHotels.sort((a, b) => {
@@ -945,6 +974,34 @@ export async function GET(request: NextRequest) {
     });
 
     console.log(`🔄 GET Deduplication: ${allHotels.length} → ${sortedHotels.length} unique hotels`);
+
+    // 🚨 ALERT: Zero results monitoring (GET handler)
+    if (sortedHotels.length === 0) {
+      const alertData = {
+        timestamp: new Date().toISOString(),
+        query,
+        checkIn,
+        checkOut,
+        latitude,
+        longitude,
+        liteAPICount: liteAPIResults.hotels?.length || 0,
+        amadeusCount: amadeusHotels.length,
+        liteAPIError: (liteAPIResults as any).meta?.error || null,
+      };
+      console.error('🚨 [HOTEL_SEARCH_ZERO_RESULTS_GET]', JSON.stringify(alertData));
+
+      // Non-blocking alert
+      import('@/lib/monitoring/customer-error-alerts').then(({ alertCustomerError }) => {
+        alertCustomerError({
+          errorMessage: `Hotel search (GET) returned 0 results for query: ${query}`,
+          errorCode: 'HOTEL_SEARCH_ZERO_RESULTS',
+          category: 'external_api',
+          severity: 'high',
+          url: `/api/hotels/search?query=${query}`,
+          additionalData: alertData,
+        }, { sendTelegram: true, sendEmail: true }).catch(console.error);
+      }).catch(console.error);
+    }
 
     // Map to expected format
     const mappedHotels = sortedHotels.map(hotel => ({

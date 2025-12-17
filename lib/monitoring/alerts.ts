@@ -184,20 +184,20 @@ class AlertManager {
     this.addRule({
       id: 'external-api-failures',
       name: 'External API Failures',
-      description: 'Alert when external APIs (Duffel, Amadeus, Stripe) are failing',
+      description: 'Alert when external APIs (Duffel, Amadeus, Stripe, LiteAPI) are failing',
       severity: 'high',
       threshold: 3,
       cooldown: 300000, // 5 minutes
       enabled: true,
       condition: () => {
-        const services = ['duffel', 'amadeus', 'stripe'];
+        const services = ['duffel', 'amadeus', 'stripe', 'liteapi'];
         return services.some(service => {
           const health = healthChecker.getServiceHealth(service);
           return health ? !health.healthy : false;
         });
       },
       action: async () => {
-        const services = ['duffel', 'amadeus', 'stripe'];
+        const services = ['duffel', 'amadeus', 'stripe', 'liteapi'];
         const failedServices = services
           .map(service => ({
             name: service,
@@ -210,6 +210,32 @@ class AlertManager {
           'External API Failures',
           'high',
           { services: failedServices }
+        );
+      },
+    });
+
+    // Hotel search zero results alert
+    this.addRule({
+      id: 'hotel-search-zero-results',
+      name: 'Hotel Search Zero Results',
+      description: 'Alert when hotel searches consistently return 0 results',
+      severity: 'high',
+      threshold: 5,
+      cooldown: 600000, // 10 minutes
+      enabled: true,
+      condition: () => {
+        const health = healthChecker.getServiceHealth('liteapi');
+        return health ? !health.healthy : false;
+      },
+      action: async () => {
+        await this.sendAlert(
+          'hotel-search-zero-results',
+          'Hotel Search returning 0 results - LiteAPI/Amadeus may be down',
+          'high',
+          {
+            timestamp: new Date().toISOString(),
+            suggestion: 'Check LiteAPI API key and Amadeus credentials'
+          }
         );
       },
     });
