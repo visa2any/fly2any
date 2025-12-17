@@ -49,7 +49,6 @@ const destinationImages = [
 ];
 
 const destinationRatings = [4.8, 4.9, 4.7, 4.9, 4.6, 4.8];
-const providerRatings = [4.7, 4.8, 4.7, 4.8, 4.6, 4.7];
 const activityPriceRanges = ['$50-$300', '$40-$200', '$30-$150', '$25-$180', '$40-$250', '$35-$200'];
 
 export default function ActivitiesPage() {
@@ -447,68 +446,6 @@ export default function ActivitiesPage() {
                 </div>
               );
             })}
-          </div>
-        </MaxWidthContainer>
-      </section>
-
-      {/* Top Activity Providers */}
-      <section className="py-6 sm:py-8 md:py-12 bg-white">
-        <MaxWidthContainer className="px-0 md:px-6" noPadding={true}>
-          <div className="px-4 md:px-0 mb-6 sm:mb-8">
-            <h2 className="text-lg sm:text-xl md:text-3xl font-bold text-gray-900 mb-2 flex items-center gap-3">
-              <Award className="w-7 h-7 text-purple-600" />
-              {t('topProviders')}
-            </h2>
-            <p className="text-xs sm:text-sm md:text-base text-gray-600">Book with confidence from trusted activity providers</p>
-          </div>
-
-          <div className="grid px-2 md:px-0 gap-2 sm:gap-3 md:gap-6 grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
-            {['viator', 'getyourguide', 'klook', 'airbnb', 'tripadvisor', 'expedia'].map((providerKey, index) => {
-              const provider = {
-                name: t(`provider_${providerKey}`),
-                rating: providerRatings[index],
-                activities: t(`provider_${providerKey}_activities`),
-                destinations: t(`provider_${providerKey}_destinations`),
-                specialty: t(`provider_${providerKey}_specialty`),
-                cancellation: t(`provider_${providerKey}_cancellation`)
-              };
-              return (
-              <div
-                key={index}
-                className="bg-white rounded-xl p-6 border-2 border-gray-200 hover:border-purple-400 hover:shadow-lg transition-all"
-              >
-                <div className="flex items-start justify-between mb-4">
-                  <h3 className="text-xl font-bold text-gray-900">{provider.name}</h3>
-                  <div className="flex items-center gap-1 bg-purple-100 px-2 py-1 rounded">
-                    <Star className="w-4 h-4 text-purple-600 fill-purple-600" />
-                    <span className="text-sm font-bold text-purple-600">{provider.rating}</span>
-                  </div>
-                </div>
-
-                <div className="space-y-3 mb-4">
-                  <div className="flex items-center gap-2 text-sm text-gray-600">
-                    <Activity className="w-4 h-4 text-purple-600" />
-                    <span>{provider.activities}</span>
-                  </div>
-                  <div className="flex items-center gap-2 text-sm text-gray-600">
-                    <Globe className="w-4 h-4 text-purple-600" />
-                    <span>{provider.destinations}</span>
-                  </div>
-                  <div className="flex items-center gap-2 text-sm text-gray-600">
-                    <Award className="w-4 h-4 text-purple-600" />
-                    <span>{provider.specialty}</span>
-                  </div>
-                  <div className="flex items-center gap-2 text-sm text-gray-600">
-                    <Shield className="w-4 h-4 text-purple-600" />
-                    <span>{provider.cancellation}</span>
-                  </div>
-                </div>
-
-                <button className="w-full py-2.5 bg-gradient-to-r from-purple-600 to-violet-600 text-white rounded-lg hover:from-purple-700 hover:to-violet-700 transition-all font-semibold">
-                  View Activities
-                </button>
-              </div>
-            )})}
           </div>
         </MaxWidthContainer>
       </section>
