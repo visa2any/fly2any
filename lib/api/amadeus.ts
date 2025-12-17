@@ -1921,3 +1921,4 @@ class AmadeusAPI {
 }
 
 export const amadeusAPI = new AmadeusAPI();
+export { amadeusAPI as amadeus };
