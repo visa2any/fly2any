@@ -352,6 +352,11 @@ function HotelResultsContent() {
     ? childAgesParam.split(',').map(age => parseInt(age.trim())).filter(age => !isNaN(age) && age >= 0 && age <= 17)
     : [];
 
+  // Validate lat/lng - reject coordinates near 0,0 (invalid/missing from API)
+  const rawLat = parseFloat(searchParams.get('lat') || '0');
+  const rawLng = parseFloat(searchParams.get('lng') || '0');
+  const hasValidCoords = Math.abs(rawLat) > 0.01 && Math.abs(rawLng) > 0.01;
+
   const searchData: SearchParams = {
     destination: searchParams.get('destination') || searchParams.get('location') || searchParams.get('query') || '',
     checkIn: searchParams.get('checkIn') || '',
@@ -361,14 +366,14 @@ function HotelResultsContent() {
     childAges, // Actual ages for accurate infant/child pricing
     rooms: parseInt(searchParams.get('rooms') || '1'),
     currency: searchParams.get('currency') || 'USD',
-    lat: searchParams.get('lat') || undefined,
-    lng: searchParams.get('lng') || undefined,
+    lat: hasValidCoords ? rawLat.toString() : undefined,
+    lng: hasValidCoords ? rawLng.toString() : undefined,
     districts: searchParams.get('districts') || undefined,
     petFriendly: searchParams.get('petFriendly') === 'true',
   };
 
   // Debug: Log search data to verify districts are being extracted
-  console.log('🔍 Results page searchData:', { destination: searchData.destination, districts: searchData.districts, lat: searchData.lat, lng: searchData.lng });
+  console.log('🔍 Results page searchData:', { destination: searchData.destination, districts: searchData.districts, lat: searchData.lat, lng: searchData.lng, validCoords: hasValidCoords });
 
   // Calculate nights
   const nights = searchData.checkIn && searchData.checkOut

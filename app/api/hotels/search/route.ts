@@ -511,8 +511,8 @@ export async function POST(request: NextRequest) {
     if (body.minPrice !== undefined) searchParams.minPrice = body.minPrice;
     if (body.maxPrice !== undefined) searchParams.maxPrice = body.maxPrice;
 
-    // Generate cache key
-    const cacheKey = generateCacheKey('hotels:liteapi:search', searchParams);
+    // Generate cache key (v2: fixed coordinate validation)
+    const cacheKey = generateCacheKey('hotels:liteapi:search:v2', searchParams);
 
     // Try to get from cache (15 minutes TTL)
     const cached = await getCached<any>(cacheKey);
@@ -1006,8 +1006,8 @@ export async function GET(request: NextRequest) {
 
     console.log('👶 Child ages for search:', { childAgesParam, childAges, children });
 
-    // Generate cache key (include ALL params for accurate pricing)
-    const cacheKey = generateCacheKey('hotels:liteapi:search:get', {
+    // Generate cache key (v2: fixed coordinate validation, include ALL params for accurate pricing)
+    const cacheKey = generateCacheKey('hotels:liteapi:search:get:v2', {
       latitude,
       longitude,
       checkIn,

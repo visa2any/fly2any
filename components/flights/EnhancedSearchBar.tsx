@@ -1054,10 +1054,17 @@ export default function EnhancedSearchBar({
     // Update all state synchronously to ensure immediate input update
     setHotelDestination(nameValue);
     setShowHotelSuggestions(false);
-    setHotelLocation({
-      lat: suggestion.location?.lat || suggestion.latitude,
-      lng: suggestion.location?.lng || suggestion.longitude
-    });
+
+    // Extract coordinates and validate they're not near 0,0 (invalid)
+    const lat = suggestion.location?.lat || suggestion.latitude || 0;
+    const lng = suggestion.location?.lng || suggestion.longitude || 0;
+    const hasValidCoords = Math.abs(lat) > 0.01 && Math.abs(lng) > 0.01;
+
+    if (!hasValidCoords) {
+      console.warn('⚠️ Suggestion has invalid coordinates, will use query-based search:', { lat, lng, name: nameValue });
+    }
+
+    setHotelLocation(hasValidCoords ? { lat, lng } : null);
     setSelectedDestinationDetails({
       name: nameValue,
       country: suggestion.country || '',
