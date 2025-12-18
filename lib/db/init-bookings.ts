@@ -81,6 +81,45 @@ export async function initBookingsTables() {
     await sql`ALTER TABLE bookings ADD COLUMN IF NOT EXISTS add_ons JSONB`;
     await sql`ALTER TABLE bookings ADD COLUMN IF NOT EXISTS promo_code JSONB`;
 
+    // ==================== ENHANCED BOOKING SYNC COLUMNS ====================
+    // E-Tickets & Documents - [{passenger_id, ticket_number, issued_at}]
+    await sql`ALTER TABLE bookings ADD COLUMN IF NOT EXISTS e_tickets JSONB`;
+    // Full Duffel documents array
+    await sql`ALTER TABLE bookings ADD COLUMN IF NOT EXISTS documents JSONB`;
+
+    // Provider Sync Tracking (sync_status: pending, synced, error)
+    await sql`ALTER TABLE bookings ADD COLUMN IF NOT EXISTS last_synced_at TIMESTAMP`;
+    await sql`ALTER TABLE bookings ADD COLUMN IF NOT EXISTS sync_status VARCHAR(20) DEFAULT 'pending'`;
+    await sql`ALTER TABLE bookings ADD COLUMN IF NOT EXISTS sync_error TEXT`;
+    // provider_status: Airline's actual status
+    await sql`ALTER TABLE bookings ADD COLUMN IF NOT EXISTS provider_status VARCHAR(50)`;
+    await sql`ALTER TABLE bookings ADD COLUMN IF NOT EXISTS provider_last_update TIMESTAMP`;
+
+    // Cross-Provider Separate Tickets Support (outbound_provider: 'Duffel' or 'Amadeus')
+    await sql`ALTER TABLE bookings ADD COLUMN IF NOT EXISTS is_separate_tickets BOOLEAN DEFAULT FALSE`;
+    await sql`ALTER TABLE bookings ADD COLUMN IF NOT EXISTS outbound_provider VARCHAR(20)`;
+    await sql`ALTER TABLE bookings ADD COLUMN IF NOT EXISTS outbound_order_id VARCHAR(255)`;
+    await sql`ALTER TABLE bookings ADD COLUMN IF NOT EXISTS outbound_pnr VARCHAR(50)`;
+    await sql`ALTER TABLE bookings ADD COLUMN IF NOT EXISTS return_provider VARCHAR(20)`;
+    await sql`ALTER TABLE bookings ADD COLUMN IF NOT EXISTS return_order_id VARCHAR(255)`;
+    await sql`ALTER TABLE bookings ADD COLUMN IF NOT EXISTS return_pnr VARCHAR(50)`;
+
+    // Full API Response Storage (for debugging & audit)
+    await sql`ALTER TABLE bookings ADD COLUMN IF NOT EXISTS duffel_order_raw JSONB`;
+    await sql`ALTER TABLE bookings ADD COLUMN IF NOT EXISTS amadeus_order_raw JSONB`;
+
+    // Conditions & Policies from Duffel: {allowed, penalty_amount, deadline}
+    await sql`ALTER TABLE bookings ADD COLUMN IF NOT EXISTS cancellation_policy JSONB`;
+    await sql`ALTER TABLE bookings ADD COLUMN IF NOT EXISTS change_policy JSONB`;
+
+    // Services & Add-ons (post-booking): [{type, segment_id, quantity, price}]
+    await sql`ALTER TABLE bookings ADD COLUMN IF NOT EXISTS services JSONB`;
+    await sql`ALTER TABLE bookings ADD COLUMN IF NOT EXISTS available_services JSONB`;
+
+    // Payment Tracking (Duffel) - duffel_payment_status: awaiting_payment, paid
+    await sql`ALTER TABLE bookings ADD COLUMN IF NOT EXISTS duffel_payment_status VARCHAR(30)`;
+    await sql`ALTER TABLE bookings ADD COLUMN IF NOT EXISTS duffel_balance_due DECIMAL(10,2)`;
+
     console.log('Creating indexes...');
 
     // Create indexes
@@ -89,6 +128,11 @@ export async function initBookingsTables() {
     await sql`CREATE INDEX IF NOT EXISTS idx_bookings_guest_email ON bookings(guest_email)`;
     await sql`CREATE INDEX IF NOT EXISTS idx_bookings_created_at ON bookings(created_at DESC)`;
     await sql`CREATE INDEX IF NOT EXISTS idx_bookings_contact_email ON bookings USING gin ((contact_info -> 'email'))`;
+    // Enhanced sync indexes
+    await sql`CREATE INDEX IF NOT EXISTS idx_bookings_duffel_order ON bookings(duffel_order_id)`;
+    await sql`CREATE INDEX IF NOT EXISTS idx_bookings_sync_status ON bookings(sync_status)`;
+    await sql`CREATE INDEX IF NOT EXISTS idx_bookings_last_synced ON bookings(last_synced_at)`;
+    await sql`CREATE INDEX IF NOT EXISTS idx_bookings_source_api ON bookings(source_api)`;
 
     console.log('Creating updated_at trigger...');
 

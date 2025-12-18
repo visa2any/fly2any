@@ -190,6 +190,72 @@ export interface Booking {
   routingChannel?: 'DUFFEL' | 'CONSOLIDATOR'; // Which channel was used
   routingReason?: string; // Reason for routing decision
 
+  // ==================== ENHANCED SYNC FIELDS ====================
+  // E-Tickets & Documents
+  eTickets?: Array<{
+    passengerId: string;
+    firstName: string;
+    lastName: string;
+    ticketNumber: string;
+    issuedAt?: string;
+  }>;
+  documents?: Array<{
+    type: string;
+    passengerId?: string;
+    uniqueIdentifier?: string;
+    issuedAt?: string;
+  }>;
+
+  // Sync Tracking
+  lastSyncedAt?: string;
+  syncStatus?: 'pending' | 'synced' | 'error';
+  syncError?: string;
+  providerStatus?: string;
+  providerLastUpdate?: string;
+
+  // Cross-Provider Separate Tickets
+  isSeparateTickets?: boolean;
+  outboundProvider?: 'Duffel' | 'Amadeus';
+  outboundOrderId?: string;
+  outboundPnr?: string;
+  returnProvider?: 'Duffel' | 'Amadeus';
+  returnOrderId?: string;
+  returnPnr?: string;
+
+  // Full API Responses (for audit)
+  duffelOrderRaw?: any;
+  amadeusOrderRaw?: any;
+
+  // Policies (from provider)
+  cancellationPolicy?: {
+    allowed: boolean;
+    penaltyAmount?: number;
+    penaltyCurrency?: string;
+    deadline?: string;
+  };
+  changePolicy?: {
+    allowed: boolean;
+    penaltyAmount?: number;
+    penaltyCurrency?: string;
+    deadline?: string;
+  };
+
+  // Services
+  services?: Array<{
+    id: string;
+    type: string;
+    segmentId?: string;
+    passengerId?: string;
+    quantity: number;
+    totalAmount: number;
+    currency: string;
+  }>;
+  availableServices?: any[];
+
+  // Duffel Payment
+  duffelPaymentStatus?: string;
+  duffelBalanceDue?: number;
+
   createdAt: string; // ISO datetime
   updatedAt: string; // ISO datetime
   cancelledAt?: string; // ISO datetime
