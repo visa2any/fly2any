@@ -26,6 +26,9 @@ import {
   Building2,
   Save,
   Loader2,
+  RefreshCw,
+  CloudOff,
+  CloudCheck,
 } from 'lucide-react';
 import type { Booking } from '@/lib/bookings/types';
 import {
@@ -44,6 +47,8 @@ export default function AdminBookingDetailPage() {
   const [loading, setLoading] = useState(true);
   const [confirmingPayment, setConfirmingPayment] = useState(false);
   const [sendingEmail, setSendingEmail] = useState(false);
+  const [syncing, setSyncing] = useState(false);
+  const [syncResult, setSyncResult] = useState<{ success: boolean; changes: string[]; error?: string } | null>(null);
 
   // Ticketing form state
   const [showTicketingForm, setShowTicketingForm] = useState(false);
@@ -224,6 +229,49 @@ export default function AdminBookingDetailPage() {
     }));
   };
 
+  // Sync booking with provider (Duffel/Amadeus)
+  const handleSync = async () => {
+    if (!booking) return;
+
+    // Only sync if booking has a provider order ID
+    if (!booking.duffelOrderId && !booking.amadeusBookingId) {
+      setSyncResult({ success: false, changes: [], error: 'No provider order ID found' });
+      return;
+    }
+
+    try {
+      setSyncing(true);
+      setSyncResult(null);
+
+      const response = await fetch(`/api/admin/bookings/${booking.id}/sync`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ force: true, includeServices: true }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        setSyncResult({ success: false, changes: [], error: data.error || 'Sync failed' });
+        return;
+      }
+
+      setSyncResult({
+        success: true,
+        changes: data.changes || [],
+        error: undefined,
+      });
+
+      // Refresh booking to show updated data
+      fetchBooking();
+    } catch (error: any) {
+      console.error('Sync error:', error);
+      setSyncResult({ success: false, changes: [], error: error.message });
+    } finally {
+      setSyncing(false);
+    }
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-gray-50 via-blue-50/30 to-gray-50 flex items-center justify-center">
@@ -361,6 +409,28 @@ export default function AdminBookingDetailPage() {
               </button>
             )}
 
+            {/* Sync with Provider Button */}
+            {(booking.duffelOrderId || booking.amadeusBookingId) && (
+              <button
+                onClick={handleSync}
+                disabled={syncing}
+                className="inline-flex items-center gap-2 px-4 py-2 bg-purple-600 hover:bg-purple-700 disabled:bg-purple-400 text-white font-semibold rounded-lg transition-colors"
+                title="Sync e-tickets, status & policies from provider"
+              >
+                {syncing ? (
+                  <>
+                    <RefreshCw className="w-4 h-4 animate-spin" />
+                    Syncing...
+                  </>
+                ) : (
+                  <>
+                    <RefreshCw className="w-4 h-4" />
+                    Sync Provider
+                  </>
+                )}
+              </button>
+            )}
+
             <button
               onClick={handleSendConfirmationEmail}
               disabled={sendingEmail}
@@ -380,6 +450,32 @@ export default function AdminBookingDetailPage() {
             </button>
           </div>
         </div>
+
+        {/* Sync Result Banner */}
+        {syncResult && (
+          <div className={`p-4 rounded-lg border ${syncResult.success ? 'bg-green-50 border-green-200' : 'bg-red-50 border-red-200'}`}>
+            <div className="flex items-center gap-3">
+              {syncResult.success ? (
+                <CloudCheck className="w-5 h-5 text-green-600" />
+              ) : (
+                <CloudOff className="w-5 h-5 text-red-600" />
+              )}
+              <div className="flex-1">
+                <p className={`font-semibold ${syncResult.success ? 'text-green-800' : 'text-red-800'}`}>
+                  {syncResult.success ? 'Sync Complete' : 'Sync Failed'}
+                </p>
+                {syncResult.success && syncResult.changes.length > 0 ? (
+                  <p className="text-sm text-green-700">Updated: {syncResult.changes.join(', ')}</p>
+                ) : syncResult.success && syncResult.changes.length === 0 ? (
+                  <p className="text-sm text-green-700">No changes detected - booking is up to date</p>
+                ) : (
+                  <p className="text-sm text-red-700">{syncResult.error}</p>
+                )}
+              </div>
+              <button onClick={() => setSyncResult(null)} className="text-gray-500 hover:text-gray-700">×</button>
+            </div>
+          </div>
+        )}
 
         {/* Ticketing Form Modal */}
         {showTicketingForm && (
@@ -900,6 +996,65 @@ export default function AdminBookingDetailPage() {
 
             {/* Admin Pricing Card */}
             <AdminPricingCard booking={booking} />
+
+            {/* E-Tickets & Sync Status Card */}
+            {(booking.duffelOrderId || booking.amadeusBookingId || booking.eTickets?.length) && (
+              <div className="bg-white rounded-lg border border-gray-200 shadow-sm p-4">
+                <div className="flex items-center justify-between mb-3">
+                  <span className="text-sm font-semibold text-gray-700 flex items-center gap-2">
+                    <Ticket className="w-4 h-4" />
+                    Provider & E-Tickets
+                  </span>
+                  {booking.syncStatus && (
+                    <span className={`text-xs px-2 py-0.5 rounded-full ${
+                      booking.syncStatus === 'synced' ? 'bg-green-100 text-green-700' :
+                      booking.syncStatus === 'error' ? 'bg-red-100 text-red-700' :
+                      'bg-yellow-100 text-yellow-700'
+                    }`}>
+                      {booking.syncStatus}
+                    </span>
+                  )}
+                </div>
+                <div className="space-y-2 text-sm">
+                  {booking.sourceApi && (
+                    <div className="flex justify-between">
+                      <span className="text-gray-600">Provider:</span>
+                      <span className="font-semibold">{booking.sourceApi}</span>
+                    </div>
+                  )}
+                  {booking.duffelOrderId && (
+                    <div className="flex justify-between">
+                      <span className="text-gray-600">Order ID:</span>
+                      <span className="font-mono text-xs">{booking.duffelOrderId.substring(0, 20)}...</span>
+                    </div>
+                  )}
+                  {booking.providerStatus && (
+                    <div className="flex justify-between">
+                      <span className="text-gray-600">Status:</span>
+                      <span className="font-semibold capitalize">{booking.providerStatus}</span>
+                    </div>
+                  )}
+                  {booking.lastSyncedAt && (
+                    <div className="flex justify-between text-xs text-gray-500">
+                      <span>Last Synced:</span>
+                      <span>{new Date(booking.lastSyncedAt).toLocaleString()}</span>
+                    </div>
+                  )}
+                  {/* E-Tickets List */}
+                  {booking.eTickets && booking.eTickets.length > 0 && (
+                    <div className="mt-3 pt-3 border-t border-gray-100">
+                      <p className="text-xs font-semibold text-gray-600 mb-2">E-Tickets:</p>
+                      {booking.eTickets.map((ticket: any, idx: number) => (
+                        <div key={idx} className="flex justify-between text-xs py-1 bg-gray-50 px-2 rounded mb-1">
+                          <span className="text-gray-600">{ticket.firstName} {ticket.lastName}</span>
+                          <span className="font-mono text-green-700">{ticket.ticketNumber}</span>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
 
             {/* Payment Status (compact) */}
             <div className="bg-white rounded-lg border border-gray-200 shadow-sm p-4">
