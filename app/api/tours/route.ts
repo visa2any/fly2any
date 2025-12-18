@@ -58,6 +58,29 @@ export async function GET(request: NextRequest) {
     let tours: any[] = [];
     let apiError: string | null = null;
 
+    /**
+     * Apply markup: $35 minimum OR 35% whichever is higher
+     * This is the Fly2Any margin applied to all tour bookings
+     */
+    const applyMarkup = (item: any) => {
+      const basePrice = item.price?.amount ? parseFloat(item.price.amount) : null;
+      if (basePrice === null) return item;
+
+      const markupAmount = Math.max(35, basePrice * 0.35);
+      const finalPrice = basePrice + markupAmount;
+
+      return {
+        ...item,
+        price: {
+          ...item.price,
+          amount: finalPrice.toFixed(2),
+          baseAmount: basePrice.toFixed(2),
+          markup: markupAmount.toFixed(2),
+          markupPercent: ((markupAmount / basePrice) * 100).toFixed(1),
+        }
+      };
+    };
+
     try {
       // Cap radius at 2km for optimal performance
       // Even 1km returns 1000+ activities in major cities
@@ -80,11 +103,13 @@ export async function GET(request: NextRequest) {
           'day trip', 'sunset', 'sunrise', 'safari', 'exploration', 'sightseeing',
           'discover', 'explore', 'journey', 'expedition', 'tasting', 'walking'
         ];
-        tours = result.data.filter((item: any) => {
-          const name = (item.name || '').toLowerCase();
-          const desc = (item.shortDescription || item.description || '').toLowerCase();
-          return tourKeywords.some(kw => name.includes(kw) || desc.includes(kw));
-        });
+        tours = result.data
+          .filter((item: any) => {
+            const name = (item.name || '').toLowerCase();
+            const desc = (item.shortDescription || item.description || '').toLowerCase();
+            return tourKeywords.some(kw => name.includes(kw) || desc.includes(kw));
+          })
+          .map(applyMarkup); // Apply markup to all tours
       }
     } catch (error: any) {
       apiError = error.message;

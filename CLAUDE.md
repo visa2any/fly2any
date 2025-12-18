@@ -150,6 +150,91 @@ without slowing the user down.
 
 ---
 
+## GLOBAL ERROR HANDLING SYSTEM (MANDATORY)
+
+Fly2Any implements a production-grade error handling architecture. ALL code must integrate with this system.
+
+### API Routes — ALWAYS wrap with handleApiError:
+```typescript
+import { handleApiError, ErrorCategory, ErrorSeverity } from '@/lib/monitoring/global-error-handler';
+
+export async function POST(request: NextRequest) {
+  return handleApiError(request, async () => {
+    // Your API logic here
+    return NextResponse.json({ success: true, data });
+  }, { category: ErrorCategory.BOOKING, severity: ErrorSeverity.CRITICAL });
+}
+```
+
+### Critical Operations — Use safeExecute wrappers:
+- `safePaymentOperation()` — Payment processing (CRITICAL)
+- `safeBookingOperation()` — Booking creation/confirmation (CRITICAL)
+- `safeDbOperation()` — Database operations (HIGH)
+- `safeApiCall()` — External API calls (HIGH)
+- `safeExecute()` — Custom operations
+
+### Client-Side — ErrorBoundary wrapping:
+All page sections and components that may fail should be wrapped:
+```tsx
+<ErrorBoundary variant="section" context="flight-search">
+  <FlightSearchForm />
+</ErrorBoundary>
+```
+
+### Import Verification — BEFORE committing:
+- Verify ALL lucide-react icons are imported
+- Verify ALL component imports exist
+- Test mobile and desktop views
+- Check browser console for errors
+
+### Error Severity Levels:
+- **CRITICAL** — Payment, Booking, Order failures → Telegram + Email alert
+- **HIGH** — Database, API timeouts, Connection failures → Email alert
+- **NORMAL** — Validation errors, User input issues → Logged
+- **LOW** — Non-blocking issues → Logged only
+
+### Error Categories:
+`VALIDATION | AUTHENTICATION | AUTHORIZATION | PAYMENT | BOOKING | DATABASE | EXTERNAL_API | NETWORK | CONFIGURATION | UNKNOWN`
+
+### NEVER:
+- Leave try/catch without proper error handling
+- Swallow errors silently
+- Skip error context in API routes
+- Deploy without testing error scenarios
+- Ignore TypeScript/ESLint errors
+
+---
+
+## MARKUP FEE POLICY (REVENUE PROTECTION)
+
+ALL Tours, Activities, and Transfers MUST apply the Fly2Any markup at the API level:
+
+**Formula:** `Math.max(35, basePrice * 0.35)` — $35 minimum OR 35% whichever is higher
+
+### Implementation Locations:
+- `/api/tours/route.ts` — Tours API ✓
+- `/api/activities/search/route.ts` — Activities API ✓
+- `/api/transfers/search/route.ts` — Transfers API ✓
+
+### Price Object Structure:
+```typescript
+price: {
+  amount: finalPrice.toFixed(2),      // Customer-facing price
+  baseAmount: basePrice.toFixed(2),   // Original API price (admin only)
+  markup: markupAmount.toFixed(2),    // Our margin
+  markupPercent: percentage,          // Margin %
+  currency: 'USD'
+}
+```
+
+### NEVER:
+- Apply markup on frontend (double markup risk)
+- Expose baseAmount to customers
+- Skip markup in new product APIs
+- Change markup formula without business approval
+
+---
+
 ## FAILURE CONDITIONS
 
 Any output is invalid if it:

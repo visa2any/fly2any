@@ -158,29 +158,34 @@ const HotelCard = memo(({
   >
     {/* Hotel Photo - Level-6: Responsive height */}
     <div className="relative h-36 lg:h-44 overflow-hidden bg-gradient-to-br from-primary-100 via-secondary-100 to-accent-100">
-      {/* Fallback Icon - Always present behind image */}
-      <div className="absolute inset-0 flex items-center justify-center z-0">
-        <span className="text-6xl">🏨</span>
+      {/* Fallback Background - Always present */}
+      <div className="absolute inset-0 flex items-center justify-center z-0 bg-gradient-to-br from-blue-50 to-indigo-100">
+        <div className="text-center">
+          <span className="text-5xl block mb-1">🏨</span>
+          <span className="text-xs text-gray-500 font-medium">{hotel.city}</span>
+        </div>
       </div>
-      {hotel.mainImage && (
-        <>
-          <img
-            src={hotel.mainImage}
-            alt={hotel.name}
-            className="absolute inset-0 w-full h-full object-cover object-center transition-transform duration-500 hover:scale-110 z-10"
-            crossOrigin="anonymous"
-            loading="lazy"
-            onError={(e) => {
-              const target = e.target as HTMLImageElement;
-              target.style.display = 'none';
-              // Also hide the gradient overlay
-              const overlay = target.nextElementSibling as HTMLElement;
-              if (overlay) overlay.style.display = 'none';
-            }}
-          />
-          <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent z-10"></div>
-        </>
-      )}
+      {/* Hotel Image - Show if mainImage exists OR use city-based Unsplash fallback */}
+      <img
+        src={hotel.mainImage || `https://source.unsplash.com/600x400/?hotel,${encodeURIComponent(hotel.city)}`}
+        alt={hotel.name}
+        className="absolute inset-0 w-full h-full object-cover object-center transition-transform duration-500 hover:scale-110 z-10"
+        loading="lazy"
+        onError={(e) => {
+          const target = e.target as HTMLImageElement;
+          // Try a generic hotel image on first error
+          if (!target.dataset.fallbackAttempted) {
+            target.dataset.fallbackAttempted = 'true';
+            target.src = `https://images.unsplash.com/photo-1566073771259-6a8506099945?w=600&q=80`;
+          } else {
+            // Hide image completely on second error - show fallback
+            target.style.display = 'none';
+            const overlay = target.nextElementSibling as HTMLElement;
+            if (overlay) overlay.style.display = 'none';
+          }
+        }}
+      />
+      <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent z-10"></div>
 
       {/* Value Score Badge - Top Right */}
       <div className="absolute top-2 right-2">

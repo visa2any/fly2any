@@ -4,7 +4,7 @@ import { useState, useEffect, Suspense, memo, useCallback, useMemo } from 'react
 import { useSearchParams, useRouter } from 'next/navigation';
 import Image from 'next/image';
 import { MaxWidthContainer } from '@/components/layout/MaxWidthContainer';
-import { Star, Clock, Heart, Loader2, ArrowLeft, Globe, Sparkles, Search, ChevronLeft, ChevronRight, Share2 } from 'lucide-react';
+import { Star, Clock, Heart, Loader2, ArrowLeft, Globe, Sparkles, Search, ChevronLeft, ChevronRight, Share2, ShoppingCart } from 'lucide-react';
 import { ImageSlider } from '@/components/shared/ImageSlider';
 import { GLOBAL_CITIES, CityDestination } from '@/lib/data/global-cities-database';
 import { ProductFilters, applyFilters, defaultFilters } from '@/components/shared/ProductFilters';
@@ -50,7 +50,7 @@ const ActivitySkeleton = memo(() => (
 ActivitySkeleton.displayName = 'ActivitySkeleton';
 
 // Conversion-optimized Activity Card - Level 6 with social proof & urgency
-const ActivityCard = memo(({ activity, onViewDetails, index }: { activity: Activity; onViewDetails: (a: Activity, price: number | null, images: string[]) => void; index: number }) => {
+const ActivityCard = memo(({ activity, onViewDetails, index, cityName }: { activity: Activity; onViewDetails: (a: Activity, price: number | null, images: string[]) => void; index: number; cityName: string }) => {
   const [isFavorite, setIsFavorite] = useState(() => {
     if (typeof window !== 'undefined') {
       const favs = JSON.parse(localStorage.getItem('activity-favorites') || '[]');
@@ -58,6 +58,7 @@ const ActivityCard = memo(({ activity, onViewDetails, index }: { activity: Activ
     }
     return false;
   });
+  const [addedToCart, setAddedToCart] = useState(false);
 
   const toggleFavorite = (e: React.MouseEvent) => {
     e.stopPropagation();
@@ -78,8 +79,44 @@ const ActivityCard = memo(({ activity, onViewDetails, index }: { activity: Activ
     }
   };
 
-  const basePrice = activity.price?.amount ? parseFloat(activity.price.amount) : null;
-  const price = basePrice ? basePrice + Math.max(basePrice * 0.35, 35) : null;
+  const handleAddToCart = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    // Price already includes markup from API ($35 min or 35% whichever is higher)
+    const price = activity.price?.amount ? parseFloat(activity.price.amount) : null;
+    const images = (activity.pictures || []).map(pic => typeof pic === 'string' ? pic : pic?.url).filter(Boolean) as string[];
+
+    // Get existing cart
+    const cart = JSON.parse(localStorage.getItem('fly2any-cart') || '[]');
+
+    // Check if already in cart
+    if (cart.some((item: any) => item.id === activity.id && item.type === 'activity')) {
+      setAddedToCart(true);
+      return;
+    }
+
+    // Add to cart
+    const cartItem = {
+      id: activity.id,
+      type: 'activity',
+      name: activity.name,
+      price: price,
+      image: images[0] || '/placeholder-activity.jpg',
+      duration: activity.minimumDuration || '2h',
+      location: cityName,
+      quantity: 1,
+      addedAt: Date.now(),
+    };
+
+    cart.push(cartItem);
+    localStorage.setItem('fly2any-cart', JSON.stringify(cart));
+    setAddedToCart(true);
+
+    // Dispatch custom event for cart updates
+    window.dispatchEvent(new CustomEvent('cart-updated', { detail: cart }));
+  };
+
+  // Price already includes markup from API ($35 min or 35% whichever is higher)
+  const price = activity.price?.amount ? parseFloat(activity.price.amount) : null;
   const images = (activity.pictures || []).map(pic => typeof pic === 'string' ? pic : pic?.url).filter(Boolean) as string[];
   const mainImg = images[0] || '/placeholder-activity.jpg';
   const hasMultiple = images.length > 1;
@@ -98,7 +135,7 @@ const ActivityCard = memo(({ activity, onViewDetails, index }: { activity: Activ
     <div className="bg-white rounded-2xl border border-gray-100 overflow-hidden shadow-sm hover:shadow-2xl hover:border-purple-200 hover:-translate-y-1 transition-all duration-300 ease-out group relative cursor-pointer">
       {/* Image Section - Use slider for multiple images */}
       {hasMultiple ? (
-        <ImageSlider images={images.slice(0, 5)} alt={activity.name} height="aspect-[16/10]" showArrows={true} showDots={true}>
+        <ImageSlider images={images.slice(0, 5)} alt={activity.name} height="aspect-[16/10]" showArrows={true} showDots={true} autoSlideOnHover={true} autoSlideInterval={1200}>
           {/* Badge inside slider */}
           {(isTopRated || isPopular) && (
             <div className={`absolute top-2 left-2 z-30 px-2 py-1 text-[10px] font-bold uppercase tracking-wide rounded-lg shadow-md ${
@@ -176,9 +213,22 @@ const ActivityCard = memo(({ activity, onViewDetails, index }: { activity: Activ
             {bookedToday} joined in last {1 + (seed % 2)} hour{(seed % 2) === 0 ? '' : 's'}
           </div>
         )}
-        <button onClick={() => onViewDetails(activity, price, images)} className="w-full py-2.5 rounded-xl bg-gradient-to-r from-purple-500 to-purple-600 text-white font-semibold text-sm hover:from-purple-600 hover:to-purple-700 transition-all shadow-md hover:shadow-lg transform hover:-translate-y-0.5">
-          Explore Activity
-        </button>
+        <div className="flex gap-2">
+          <button onClick={() => onViewDetails(activity, price, images)} className="flex-1 py-2.5 rounded-xl bg-gradient-to-r from-purple-500 to-purple-600 text-white font-semibold text-sm hover:from-purple-600 hover:to-purple-700 transition-all shadow-md hover:shadow-lg transform hover:-translate-y-0.5">
+            View Details
+          </button>
+          <button
+            onClick={handleAddToCart}
+            className={`px-4 py-2.5 rounded-xl font-semibold text-sm transition-all shadow-md hover:shadow-lg transform hover:-translate-y-0.5 flex items-center gap-1.5 ${
+              addedToCart
+                ? 'bg-green-500 text-white'
+                : 'bg-gray-100 text-gray-700 hover:bg-purple-100 hover:text-purple-600'
+            }`}
+          >
+            <ShoppingCart className="w-4 h-4" />
+            {addedToCart && <span className="text-xs">✓</span>}
+          </button>
+        </div>
       </div>
     </div>
   );
@@ -258,10 +308,9 @@ function ActivityResultsContent() {
     return () => controller.abort();
   }, [lat, lng]);
 
-  // Apply filters
+  // Apply filters - price already includes API markup
   const getPrice = useCallback((a: Activity) => {
-    const base = a.price?.amount ? parseFloat(a.price.amount) : null;
-    return base ? base + Math.max(base * 0.35, 35) : null;
+    return a.price?.amount ? parseFloat(a.price.amount) : null;
   }, []);
 
   const filteredActivities = useMemo(() => applyFilters(activities, filters, getPrice), [activities, filters, getPrice]);
@@ -275,7 +324,7 @@ function ActivityResultsContent() {
           items={activities.slice(0, 20).map(a => ({
             name: a.name,
             description: a.description,
-            price: a.price?.amount ? parseFloat(a.price.amount) + Math.max(parseFloat(a.price.amount) * 0.35, 35) : 0,
+            price: a.price?.amount ? parseFloat(a.price.amount) : 0, // Price already includes API markup
             currency: a.price?.currencyCode || 'USD',
             rating: a.rating || 4.6,
             duration: a.minimumDuration,
@@ -382,7 +431,7 @@ function ActivityResultsContent() {
           <>
             <div className="py-4 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
               {filteredActivities.slice(0, visibleCount).map((activity, index) => (
-                <ActivityCard key={activity.id} activity={activity} onViewDetails={handleViewDetails} index={index} />
+                <ActivityCard key={activity.id} activity={activity} onViewDetails={handleViewDetails} index={index} cityName={cityName} />
               ))}
             </div>
             {/* Load More Button */}

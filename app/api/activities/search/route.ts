@@ -96,8 +96,34 @@ export async function GET(request: NextRequest) {
       }
     }
 
-    // Enrich activities with categories and synthetic engagement data
+    /**
+     * Apply markup: $35 minimum OR 35% whichever is higher
+     * This is the Fly2Any margin applied to all activity bookings
+     */
+    const applyMarkup = (item: any) => {
+      const basePrice = item.price?.amount ? parseFloat(item.price.amount) : null;
+      if (basePrice === null) return item;
+
+      const markupAmount = Math.max(35, basePrice * 0.35);
+      const finalPrice = basePrice + markupAmount;
+
+      return {
+        ...item,
+        price: {
+          ...item.price,
+          amount: finalPrice.toFixed(2),
+          baseAmount: basePrice.toFixed(2),
+          markup: markupAmount.toFixed(2),
+          markupPercent: ((markupAmount / basePrice) * 100).toFixed(1),
+        }
+      };
+    };
+
+    // Enrich activities with categories, markup, and synthetic engagement data
     const enrichedActivities = activities.map((activity: any) => {
+      // First apply markup
+      const withMarkup = applyMarkup(activity);
+
       const text = `${activity.name || ''} ${activity.shortDescription || ''} ${activity.description || ''}`.toLowerCase();
       const seed = (activity.id || '').charCodeAt(0) + (activity.id || '').length;
 
@@ -113,7 +139,7 @@ export async function GET(request: NextRequest) {
       if (categories.length === 0) categories.push('Experiences');
 
       return {
-        ...activity,
+        ...withMarkup,
         categories,
         // Synthetic engagement data (consistent per activity ID)
         reviewCount: 50 + (seed % 200),

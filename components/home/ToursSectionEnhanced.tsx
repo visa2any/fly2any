@@ -1,9 +1,8 @@
 'use client';
 
-import { useState, useCallback, useMemo, memo } from 'react';
+import { useState, useCallback, useMemo, memo, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { Star, Clock, Heart, Loader2, ArrowRight, Sparkles, Flame, MapPin } from 'lucide-react';
-import { useClientCache } from '@/lib/hooks/useClientCache';
 import { CacheIndicator } from '@/components/cache/CacheIndicator';
 import { ValueScoreBadge } from '@/components/shared/ValueScoreBadge';
 import { ImageSlider } from '@/components/shared/ImageSlider';
@@ -266,12 +265,12 @@ export function ToursSectionEnhanced({ lang = 'en' }: ToursSectionEnhancedProps)
   // Get coordinates for selected continent
   const getCoordinates = useCallback((filter: FilterType) => {
     if (filter === 'all') {
-      // Mix from all continents
+      // Mix from all continents - returns multiple destinations
       return [
-        CONTINENT_DESTINATIONS.europe[0],
-        CONTINENT_DESTINATIONS.americas[0],
-        CONTINENT_DESTINATIONS.asia[0],
-        CONTINENT_DESTINATIONS.caribbean[0],
+        CONTINENT_DESTINATIONS.europe[0],    // Paris
+        CONTINENT_DESTINATIONS.americas[0],  // New York
+        CONTINENT_DESTINATIONS.asia[0],      // Tokyo
+        CONTINENT_DESTINATIONS.caribbean[0], // Punta Cana
       ];
     }
     return CONTINENT_DESTINATIONS[filter] || [];
@@ -279,26 +278,93 @@ export function ToursSectionEnhanced({ lang = 'en' }: ToursSectionEnhancedProps)
 
   const coords = useMemo(() => getCoordinates(activeFilter), [activeFilter, getCoordinates]);
 
-  // Build API URL for first destination (we'll fetch from primary destination)
-  const primaryCoord = coords[0];
-  const apiUrl = primaryCoord
-    ? `/api/activities/search?latitude=${primaryCoord.lat}&longitude=${primaryCoord.lng}&radius=10&type=tours`
-    : null;
+  const [tours, setTours] = useState<Tour[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [fetchError, setFetchError] = useState<string | null>(null);
+  const [fromCache, setFromCache] = useState(false);
+  const [cacheAgeFormatted, setCacheAgeFormatted] = useState<string | null>(null);
 
-  // Use client cache for fast loads
-  const {
-    data: toursData,
-    loading,
-    error: fetchError,
-    fromCache,
-    cacheAgeFormatted,
-    refresh,
-  } = useClientCache<{ data: Tour[] }>(
-    apiUrl || '',
-    { ttl: 3600 } // 1 hour cache
-  );
+  // Fetch from multiple destinations when "ALL" is selected
+  useEffect(() => {
+    const fetchTours = async () => {
+      setLoading(true);
+      setFetchError(null);
 
-  const tours = toursData?.data?.slice(0, 8) || [];
+      try {
+        if (activeFilter === 'all' && coords.length > 1) {
+          // Fetch from multiple cities and combine results
+          const fetchPromises = coords.slice(0, 4).map(async (coord) => {
+            try {
+              const response = await fetch(
+                `/api/activities/search?latitude=${coord.lat}&longitude=${coord.lng}&radius=10&type=tours`
+              );
+              if (response.ok) {
+                const data = await response.json();
+                // Add city name to each tour for display
+                return (data.data || []).slice(0, 3).map((t: any) => ({
+                  ...t,
+                  _cityName: coord.name,
+                  _cityFlag: coord.flag,
+                }));
+              }
+              return [];
+            } catch {
+              return [];
+            }
+          });
+
+          const results = await Promise.all(fetchPromises);
+          // Flatten and interleave results from different cities
+          const combined: Tour[] = [];
+          const maxPerCity = 3;
+          for (let i = 0; i < maxPerCity; i++) {
+            for (const cityResults of results) {
+              if (cityResults[i]) {
+                combined.push(cityResults[i]);
+              }
+            }
+          }
+
+          setTours(combined.slice(0, 8));
+          setFromCache(false);
+        } else {
+          // Single destination fetch
+          const primaryCoord = coords[0];
+          if (!primaryCoord) {
+            setTours([]);
+            setLoading(false);
+            return;
+          }
+
+          const response = await fetch(
+            `/api/activities/search?latitude=${primaryCoord.lat}&longitude=${primaryCoord.lng}&radius=10&type=tours`
+          );
+
+          if (response.ok) {
+            const data = await response.json();
+            setTours((data.data || []).slice(0, 8));
+            setFromCache(response.headers.get('X-Cache') === 'HIT');
+          } else {
+            setTours([]);
+          }
+        }
+      } catch (error: any) {
+        console.error('Error fetching tours:', error);
+        setFetchError(error.message || 'Failed to fetch tours');
+        setTours([]);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchTours();
+  }, [activeFilter, coords]);
+
+  const refresh = useCallback(async () => {
+    setLoading(true);
+    // Trigger re-fetch by clearing state - useEffect will re-fetch
+    setTours([]);
+  }, []);
 
   const handleTourClick = useCallback((tour: Tour) => {
     const basePrice = tour.price?.amount ? parseFloat(tour.price.amount) : 0;

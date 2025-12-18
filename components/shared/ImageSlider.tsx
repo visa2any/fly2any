@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useCallback, useRef, memo } from 'react';
+import { useState, useCallback, useRef, memo, useEffect } from 'react';
 import Image from 'next/image';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 
@@ -11,6 +11,8 @@ interface ImageSliderProps {
   showDots?: boolean;
   showArrows?: boolean;
   showSwipeHint?: boolean;
+  autoSlideOnHover?: boolean;
+  autoSlideInterval?: number;
   className?: string;
   children?: React.ReactNode;
   onImageChange?: (index: number) => void;
@@ -22,6 +24,7 @@ interface ImageSliderProps {
  * - Navigation arrows for desktop
  * - Dot indicators
  * - Crossfade transition
+ * - Auto-slide on hover
  * - Performance optimized with lazy loading
  */
 export const ImageSlider = memo(({
@@ -31,6 +34,8 @@ export const ImageSlider = memo(({
   showDots = true,
   showArrows = true,
   showSwipeHint = false,
+  autoSlideOnHover = false,
+  autoSlideInterval = 1500,
   className = '',
   children,
   onImageChange,
@@ -40,7 +45,9 @@ export const ImageSlider = memo(({
   const [touchStart, setTouchStart] = useState<number | null>(null);
   const [touchStartY, setTouchStartY] = useState<number | null>(null);
   const [showHint, setShowHint] = useState(showSwipeHint);
+  const [isHovering, setIsHovering] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
+  const autoSlideRef = useRef<NodeJS.Timeout | null>(null);
 
   // Normalize images to array of URLs
   const imageUrls = images.map(img =>
@@ -77,6 +84,39 @@ export const ImageSlider = memo(({
       </div>
     );
   }
+
+  // Auto-slide on hover effect
+  useEffect(() => {
+    if (autoSlideOnHover && isHovering && imageUrls.length > 1) {
+      autoSlideRef.current = setInterval(() => {
+        setCurrentIndex((prev) => {
+          const newIndex = (prev + 1) % imageUrls.length;
+          onImageChange?.(newIndex);
+          return newIndex;
+        });
+      }, autoSlideInterval);
+    }
+
+    return () => {
+      if (autoSlideRef.current) {
+        clearInterval(autoSlideRef.current);
+        autoSlideRef.current = null;
+      }
+    };
+  }, [isHovering, autoSlideOnHover, autoSlideInterval, imageUrls.length, onImageChange]);
+
+  const handleMouseEnter = useCallback(() => {
+    setIsHovering(true);
+  }, []);
+
+  const handleMouseLeave = useCallback(() => {
+    setIsHovering(false);
+    // Reset to first image when mouse leaves
+    if (autoSlideOnHover) {
+      setCurrentIndex(0);
+      onImageChange?.(0);
+    }
+  }, [autoSlideOnHover, onImageChange]);
 
   const changeImage = useCallback((direction: 'next' | 'prev') => {
     if (isTransitioning) return;
@@ -152,6 +192,8 @@ export const ImageSlider = memo(({
       className={`relative ${height} ${className} overflow-hidden group`}
       onTouchStart={handleTouchStart}
       onTouchEnd={handleTouchEnd}
+      onMouseEnter={handleMouseEnter}
+      onMouseLeave={handleMouseLeave}
     >
       {/* Image with crossfade transition */}
       <Image

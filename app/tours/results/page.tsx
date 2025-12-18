@@ -4,7 +4,7 @@ import { useState, useEffect, Suspense, memo, useCallback, useMemo } from 'react
 import { useSearchParams, useRouter } from 'next/navigation';
 import Image from 'next/image';
 import { MaxWidthContainer } from '@/components/layout/MaxWidthContainer';
-import { Star, Clock, Heart, Loader2, ArrowLeft, Globe, Search, ChevronLeft, ChevronRight, Share2 } from 'lucide-react';
+import { Star, Clock, Heart, Loader2, ArrowLeft, Globe, Search, ChevronLeft, ChevronRight, Share2, ShoppingCart } from 'lucide-react';
 import { ImageSlider } from '@/components/shared/ImageSlider';
 import { GLOBAL_CITIES, CityDestination } from '@/lib/data/global-cities-database';
 import { ProductFilters, applyFilters, defaultFilters, type SortOption, type PriceRange, type DurationRange } from '@/components/shared/ProductFilters';
@@ -52,7 +52,7 @@ const TourSkeleton = memo(() => (
 TourSkeleton.displayName = 'TourSkeleton';
 
 // Conversion-optimized Tour Card - Level 6 with social proof & urgency
-const TourCard = memo(({ tour, onViewDetails, index }: { tour: Tour; onViewDetails: (tour: Tour, price: number | null, images: string[]) => void; index: number }) => {
+const TourCard = memo(({ tour, onViewDetails, index, cityName }: { tour: Tour; onViewDetails: (tour: Tour, price: number | null, images: string[]) => void; index: number; cityName: string }) => {
   const [isFavorite, setIsFavorite] = useState(() => {
     if (typeof window !== 'undefined') {
       const favs = JSON.parse(localStorage.getItem('tour-favorites') || '[]');
@@ -60,6 +60,7 @@ const TourCard = memo(({ tour, onViewDetails, index }: { tour: Tour; onViewDetai
     }
     return false;
   });
+  const [addedToCart, setAddedToCart] = useState(false);
 
   const toggleFavorite = (e: React.MouseEvent) => {
     e.stopPropagation();
@@ -80,8 +81,44 @@ const TourCard = memo(({ tour, onViewDetails, index }: { tour: Tour; onViewDetai
     }
   };
 
-  const basePrice = tour.price?.amount ? parseFloat(tour.price.amount) : null;
-  const price = basePrice ? basePrice + Math.max(basePrice * 0.35, 35) : null;
+  const handleAddToCart = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    // Price already includes markup from API ($35 min or 35% whichever is higher)
+    const price = tour.price?.amount ? parseFloat(tour.price.amount) : null;
+    const images = (tour.pictures || []).map(pic => typeof pic === 'string' ? pic : pic?.url).filter(Boolean) as string[];
+
+    // Get existing cart
+    const cart = JSON.parse(localStorage.getItem('fly2any-cart') || '[]');
+
+    // Check if already in cart
+    if (cart.some((item: any) => item.id === tour.id && item.type === 'tour')) {
+      setAddedToCart(true);
+      return;
+    }
+
+    // Add to cart
+    const cartItem = {
+      id: tour.id,
+      type: 'tour',
+      name: tour.name,
+      price: price,
+      image: images[0] || '/placeholder-tour.jpg',
+      duration: tour.minimumDuration || '3h',
+      location: cityName,
+      quantity: 1,
+      addedAt: Date.now(),
+    };
+
+    cart.push(cartItem);
+    localStorage.setItem('fly2any-cart', JSON.stringify(cart));
+    setAddedToCart(true);
+
+    // Dispatch custom event for cart updates
+    window.dispatchEvent(new CustomEvent('cart-updated', { detail: cart }));
+  };
+
+  // Price already includes markup from API ($35 min or 35% whichever is higher)
+  const price = tour.price?.amount ? parseFloat(tour.price.amount) : null;
   const images = (tour.pictures || []).map(pic => typeof pic === 'string' ? pic : pic?.url).filter(Boolean) as string[];
   const mainImg = images[0] || '/placeholder-tour.jpg';
   const hasMultiple = images.length > 1;
@@ -100,7 +137,7 @@ const TourCard = memo(({ tour, onViewDetails, index }: { tour: Tour; onViewDetai
     <div className="bg-white rounded-2xl border border-gray-100 overflow-hidden shadow-sm hover:shadow-2xl hover:border-orange-200 hover:-translate-y-1 transition-all duration-300 ease-out group relative cursor-pointer">
       {/* Image Section - Use slider for multiple images */}
       {hasMultiple ? (
-        <ImageSlider images={images.slice(0, 5)} alt={tour.name} height="aspect-[16/10]" showArrows={true} showDots={true}>
+        <ImageSlider images={images.slice(0, 5)} alt={tour.name} height="aspect-[16/10]" showArrows={true} showDots={true} autoSlideOnHover={true} autoSlideInterval={1200}>
           {/* Badge inside slider */}
           {(isTopRated || isBestSeller) && (
             <div className={`absolute top-2 left-2 z-30 px-2 py-1 text-[10px] font-bold uppercase tracking-wide rounded-lg shadow-md ${
@@ -180,9 +217,22 @@ const TourCard = memo(({ tour, onViewDetails, index }: { tour: Tour; onViewDetai
             {bookedToday} booked in last {1 + (seed % 3)} hours
           </div>
         )}
-        <button onClick={() => onViewDetails(tour, price, images)} className="w-full py-2.5 rounded-xl bg-gradient-to-r from-orange-500 to-orange-600 text-white font-semibold text-sm hover:from-orange-600 hover:to-orange-700 transition-all shadow-md hover:shadow-lg transform hover:-translate-y-0.5">
-          View Experience
-        </button>
+        <div className="flex gap-2">
+          <button onClick={() => onViewDetails(tour, price, images)} className="flex-1 py-2.5 rounded-xl bg-gradient-to-r from-orange-500 to-orange-600 text-white font-semibold text-sm hover:from-orange-600 hover:to-orange-700 transition-all shadow-md hover:shadow-lg transform hover:-translate-y-0.5">
+            View Details
+          </button>
+          <button
+            onClick={handleAddToCart}
+            className={`px-4 py-2.5 rounded-xl font-semibold text-sm transition-all shadow-md hover:shadow-lg transform hover:-translate-y-0.5 flex items-center gap-1.5 ${
+              addedToCart
+                ? 'bg-green-500 text-white'
+                : 'bg-gray-100 text-gray-700 hover:bg-orange-100 hover:text-orange-600'
+            }`}
+          >
+            <ShoppingCart className="w-4 h-4" />
+            {addedToCart && <span className="text-xs">✓</span>}
+          </button>
+        </div>
       </div>
     </div>
   );
@@ -263,10 +313,9 @@ function TourResultsContent() {
     return () => controller.abort();
   }, [lat, lng]);
 
-  // Apply filters to tours
+  // Apply filters to tours - price already includes API markup
   const getPrice = useCallback((tour: Tour) => {
-    const base = tour.price?.amount ? parseFloat(tour.price.amount) : null;
-    return base ? base + Math.max(base * 0.35, 35) : null;
+    return tour.price?.amount ? parseFloat(tour.price.amount) : null;
   }, []);
 
   const filteredTours = useMemo(() => applyFilters(tours, filters, getPrice), [tours, filters, getPrice]);
@@ -280,7 +329,7 @@ function TourResultsContent() {
           items={tours.slice(0, 20).map(t => ({
             name: t.name,
             description: t.shortDescription || t.description,
-            price: t.price?.amount ? parseFloat(t.price.amount) + Math.max(parseFloat(t.price.amount) * 0.35, 35) : 0,
+            price: t.price?.amount ? parseFloat(t.price.amount) : 0, // Price already includes API markup
             currency: t.price?.currencyCode || 'USD',
             rating: t.rating || 4.7,
             duration: t.minimumDuration,
@@ -388,7 +437,7 @@ function TourResultsContent() {
           <>
             <div className="py-4 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
               {filteredTours.slice(0, visibleCount).map((tour, index) => (
-                <TourCard key={tour.id} tour={tour} onViewDetails={handleViewDetails} index={index} />
+                <TourCard key={tour.id} tour={tour} onViewDetails={handleViewDetails} index={index} cityName={cityName} />
               ))}
             </div>
             {/* Load More Button */}

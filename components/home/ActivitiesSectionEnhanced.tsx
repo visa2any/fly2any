@@ -1,9 +1,8 @@
 'use client';
 
-import { useState, useCallback, useMemo, memo } from 'react';
+import { useState, useCallback, useMemo, memo, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { Star, Clock, Heart, Loader2, ArrowRight, Sparkles, Flame, Activity } from 'lucide-react';
-import { useClientCache } from '@/lib/hooks/useClientCache';
 import { CacheIndicator } from '@/components/cache/CacheIndicator';
 import { ValueScoreBadge } from '@/components/shared/ValueScoreBadge';
 import { ImageSlider } from '@/components/shared/ImageSlider';
@@ -266,12 +265,12 @@ export function ActivitiesSectionEnhanced({ lang = 'en' }: ActivitiesSectionEnha
   // Get coordinates for selected category
   const getCoordinates = useCallback((filter: FilterType) => {
     if (filter === 'all') {
-      // Mix from different categories
+      // Mix from different categories - returns array of destinations
       return [
-        ACTIVITY_DESTINATIONS.culture[0],
-        ACTIVITY_DESTINATIONS.adventure[0],
-        ACTIVITY_DESTINATIONS.foodDrink[0],
-        ACTIVITY_DESTINATIONS.wellness[0],
+        ACTIVITY_DESTINATIONS.culture[0],    // Rome
+        ACTIVITY_DESTINATIONS.adventure[0],  // Queenstown
+        ACTIVITY_DESTINATIONS.foodDrink[0],  // Tuscany
+        ACTIVITY_DESTINATIONS.wellness[0],   // Bali
       ];
     }
     return ACTIVITY_DESTINATIONS[filter] || [];
@@ -279,26 +278,93 @@ export function ActivitiesSectionEnhanced({ lang = 'en' }: ActivitiesSectionEnha
 
   const coords = useMemo(() => getCoordinates(activeFilter), [activeFilter, getCoordinates]);
 
-  // Build API URL for first destination
-  const primaryCoord = coords[0];
-  const apiUrl = primaryCoord
-    ? `/api/activities/search?latitude=${primaryCoord.lat}&longitude=${primaryCoord.lng}&radius=10&type=activities`
-    : null;
+  const [activities, setActivities] = useState<ActivityItem[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [fetchError, setFetchError] = useState<string | null>(null);
+  const [fromCache, setFromCache] = useState(false);
+  const [cacheAgeFormatted, setCacheAgeFormatted] = useState<string | null>(null);
 
-  // Use client cache for fast loads
-  const {
-    data: activitiesData,
-    loading,
-    error: fetchError,
-    fromCache,
-    cacheAgeFormatted,
-    refresh,
-  } = useClientCache<{ data: ActivityItem[] }>(
-    apiUrl || '',
-    { ttl: 3600 } // 1 hour cache
-  );
+  // Fetch from multiple destinations when "ALL" is selected
+  useEffect(() => {
+    const fetchActivities = async () => {
+      setLoading(true);
+      setFetchError(null);
 
-  const activities = activitiesData?.data?.slice(0, 8) || [];
+      try {
+        if (activeFilter === 'all' && coords.length > 1) {
+          // Fetch from multiple cities and combine results
+          const fetchPromises = coords.slice(0, 4).map(async (coord, idx) => {
+            try {
+              const response = await fetch(
+                `/api/activities/search?latitude=${coord.lat}&longitude=${coord.lng}&radius=10&type=activities`
+              );
+              if (response.ok) {
+                const data = await response.json();
+                // Add city name to each activity for display
+                return (data.data || []).slice(0, 3).map((a: any) => ({
+                  ...a,
+                  _cityName: coord.name,
+                  _cityFlag: coord.flag,
+                }));
+              }
+              return [];
+            } catch {
+              return [];
+            }
+          });
+
+          const results = await Promise.all(fetchPromises);
+          // Flatten and interleave results from different cities
+          const combined: ActivityItem[] = [];
+          const maxPerCity = 3;
+          for (let i = 0; i < maxPerCity; i++) {
+            for (const cityResults of results) {
+              if (cityResults[i]) {
+                combined.push(cityResults[i]);
+              }
+            }
+          }
+
+          setActivities(combined.slice(0, 8));
+          setFromCache(false);
+        } else {
+          // Single destination fetch
+          const primaryCoord = coords[0];
+          if (!primaryCoord) {
+            setActivities([]);
+            setLoading(false);
+            return;
+          }
+
+          const response = await fetch(
+            `/api/activities/search?latitude=${primaryCoord.lat}&longitude=${primaryCoord.lng}&radius=10&type=activities`
+          );
+
+          if (response.ok) {
+            const data = await response.json();
+            setActivities((data.data || []).slice(0, 8));
+            setFromCache(response.headers.get('X-Cache') === 'HIT');
+          } else {
+            setActivities([]);
+          }
+        }
+      } catch (error: any) {
+        console.error('Error fetching activities:', error);
+        setFetchError(error.message || 'Failed to fetch activities');
+        setActivities([]);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchActivities();
+  }, [activeFilter, coords]);
+
+  const refresh = useCallback(async () => {
+    setLoading(true);
+    // Trigger re-fetch by clearing state - useEffect will re-fetch
+    setActivities([]);
+  }, []);
 
   const handleActivityClick = useCallback((activity: ActivityItem) => {
     const basePrice = activity.price?.amount ? parseFloat(activity.price.amount) : 0;

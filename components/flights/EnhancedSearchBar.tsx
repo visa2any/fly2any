@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useRef, useEffect, useTransition } from 'react';
-import { Plane, Calendar, Users, ChevronDown, ArrowLeftRight, PlaneTakeoff, PlaneLanding, CalendarDays, CalendarCheck, ArrowRight, Sparkles, Armchair, X, Hotel, Car, Map, MapPin, Building2, Plus, Minus, Activity, Package, Shield, Check, Globe, Navigation, LogIn, LogOut, BedDouble, Moon, User, Baby } from 'lucide-react';
+import { Plane, Calendar, Users, ChevronDown, ArrowLeftRight, PlaneTakeoff, PlaneLanding, CalendarDays, CalendarCheck, ArrowRight, Sparkles, Armchair, X, Hotel, Car, Map, MapPin, Building2, Plus, Minus, Activity, Package, Shield, Check, Globe, Navigation, LogIn, LogOut, BedDouble, Moon, User, Baby, Search, Compass, Clock } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { format } from 'date-fns';
 import { useTranslations } from 'next-intl';
@@ -292,6 +292,7 @@ export default function EnhancedSearchBar({
   const [carDropoffTime, setCarDropoffTime] = useState('10:00');
   const [showCarPickupDatePicker, setShowCarPickupDatePicker] = useState(false);
   const [showCarDropoffDatePicker, setShowCarDropoffDatePicker] = useState(false);
+  const [showTransferDatePicker, setShowTransferDatePicker] = useState(false);
 
   // Transfer location suggestions state
   const [transferSuggestions, setTransferSuggestions] = useState<any[]>([]);
@@ -3488,6 +3489,19 @@ export default function EnhancedSearchBar({
           anchorEl={carDropoffDateRef.current}
         />
 
+        {/* Premium Date Picker for Transfers */}
+        <PremiumDatePicker
+          isOpen={showTransferDatePicker}
+          onClose={() => setShowTransferDatePicker(false)}
+          value={carPickupDate}
+          onChange={(date) => {
+            setCarPickupDate(date);
+            setShowTransferDatePicker(false);
+          }}
+          type="single"
+          label="Transfer Date"
+        />
+
         {/* Premium Date Pickers for Additional Flights */}
         {additionalFlights.map((flight) => (
           <PremiumDatePicker
@@ -4564,21 +4578,30 @@ export default function EnhancedSearchBar({
             {/* Date & Time Row */}
             <div className="grid grid-cols-2 gap-2">
               <div>
-                <label className="block text-xs font-semibold text-neutral-600 mb-1.5">Date</label>
-                <input
-                  type="date"
-                  value={formatDateForInput(carPickupDate)}
-                  onChange={(e) => setCarPickupDate(e.target.value)}
-                  min={minDate}
-                  className="w-full px-3 py-2.5 bg-white border-2 border-neutral-200 rounded-xl text-sm font-semibold focus:border-teal-500 outline-none"
-                />
+                <label className="flex items-center gap-1.5 text-xs font-semibold text-neutral-600 mb-1.5">
+                  <CalendarDays size={13} className="text-teal-600" />
+                  <span>Date</span>
+                </label>
+                <button
+                  type="button"
+                  onClick={() => setShowTransferDatePicker(true)}
+                  className="w-full px-3 py-2.5 bg-white border-2 border-neutral-200 rounded-xl text-sm font-semibold text-left hover:border-teal-400 focus:border-teal-500 focus:ring-2 focus:ring-teal-100 outline-none transition-all touch-manipulation active:scale-[0.99] flex items-center justify-between"
+                >
+                  <span className={carPickupDate ? 'text-neutral-800' : 'text-neutral-400'}>
+                    {carPickupDate ? format(new Date(carPickupDate + 'T00:00:00'), 'EEE, MMM d') : 'Select date'}
+                  </span>
+                  <Calendar size={14} className="text-teal-500" />
+                </button>
               </div>
               <div>
-                <label className="block text-xs font-semibold text-neutral-600 mb-1.5">Time</label>
+                <label className="flex items-center gap-1.5 text-xs font-semibold text-neutral-600 mb-1.5">
+                  <Clock size={13} className="text-teal-600" />
+                  <span>Time</span>
+                </label>
                 <select
                   value={carPickupTime}
                   onChange={(e) => setCarPickupTime(e.target.value)}
-                  className="w-full px-3 py-2.5 bg-white border-2 border-neutral-200 rounded-xl text-sm font-semibold focus:border-teal-500 outline-none"
+                  className="w-full px-3 py-2.5 bg-white border-2 border-neutral-200 rounded-xl text-sm font-semibold focus:border-teal-500 focus:ring-2 focus:ring-teal-100 outline-none transition-all"
                 >
                   {Array.from({ length: 48 }, (_, i) => {
                     const hour = Math.floor(i / 2);
