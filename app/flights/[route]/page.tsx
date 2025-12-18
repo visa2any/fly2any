@@ -126,6 +126,10 @@ export async function generateStaticParams(): Promise<RouteParams[]> {
 // Enable ISR: revalidate every 6 hours
 export const revalidate = 21600; // 6 hours in seconds
 
+// CRITICAL: Allow dynamic params for routes not in generateStaticParams
+// Without this, routes not pre-rendered will 404
+export const dynamicParams = true;
+
 export default async function FlightRoutePage({ params }: { params: RouteParams }) {
   const parsed = parseRouteSlug(params.route);
 

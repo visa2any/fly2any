@@ -90,10 +90,10 @@ const nextConfig = {
       { source: '/login', destination: '/auth/login', permanent: true },
       { source: '/forgot-password', destination: '/auth/login', permanent: true },
 
-      // === FLIGHT ROUTES ===
+      // === LEGACY FLIGHT ROUTES (specific patterns only - do NOT catch /flights/[route]) ===
       { source: '/miami-sao-paulo-flights', destination: '/journey/flights?origin=MIA&destination=GRU', permanent: true },
       { source: '/new-york-rio-flights', destination: '/journey/flights?origin=JFK&destination=GIG', permanent: true },
-      { source: '/flights/:path*', destination: '/journey/flights', permanent: true },
+      // REMOVED: '/flights/:path*' - was breaking programmatic SEO route pages at /flights/[route]
       { source: '/usa/flights-from-miami', destination: '/journey/flights?origin=MIA', permanent: true },
 
       // === DESTINATION PAGES ===
