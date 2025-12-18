@@ -60,7 +60,7 @@ const TourCard = memo(({ tour, onViewDetails, index }: { tour: Tour; onViewDetai
 
   // Dynamic social proof & urgency (seeded by tour id for consistency)
   const seed = tour.id.charCodeAt(0) + tour.id.length;
-  const rating = tour.rating || (4.5 + (seed % 5) * 0.1);
+  const rating = Number(tour.rating) || (4.5 + (seed % 5) * 0.1);
   const reviewCount = 50 + (seed % 200);
   const bookedToday = 3 + (seed % 12);
   const spotsLeft = 4 + (seed % 8);

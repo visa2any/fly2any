@@ -58,7 +58,7 @@ const ActivityCard = memo(({ activity, onViewDetails, index }: { activity: Activ
 
   // Dynamic social proof & urgency
   const seed = activity.id.charCodeAt(0) + activity.id.length;
-  const rating = activity.rating || (4.4 + (seed % 6) * 0.1);
+  const rating = Number(activity.rating) || (4.4 + (seed % 6) * 0.1);
   const reviewCount = 30 + (seed % 180);
   const bookedToday = 2 + (seed % 15);
   const spotsLeft = 3 + (seed % 9);
