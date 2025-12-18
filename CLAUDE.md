@@ -94,6 +94,52 @@ If unsure, default to simplicity and clarity.
 
 ---
 
+## ADMIN AREA — HYBRID LEVEL DESIGN PATTERN
+
+The admin area (/admin/*) follows a hybrid Level 6 / Level 3-4 model.
+Speed, clarity and trust are more important than visual spectacle.
+
+### Level 6 (Ultra-Premium) — Apply to:
+- Global layout shell (top bar, sidebar, navigation)
+- Page transitions (enter/exit)
+- Modals and dialogs
+- Toasts, alerts, feedback states
+- Empty states and loading states
+- Primary critical actions (publish, approve, confirm, delete)
+
+Level 6 Requirements:
+- Microinteractions with real physics (spring-based motion)
+- Natural easing (accelerate → decelerate)
+- Subtle but accurate motion, never exaggerated
+- Multi-layer shadows (macOS quality)
+- Clear depth hierarchy (foreground/mid/background)
+- Premium hover states as emotional feedback
+
+### Level 3-4 (Clean, Fast, Neutral) — Apply to:
+- Dense tables and lists
+- Data-heavy dashboards
+- Long forms
+- Settings pages
+- Logs and reports
+
+### Admin Performance Constraints:
+- Animations must be GPU-friendly
+- Prefer transform and opacity over layout reflows
+- Respect reduced-motion accessibility settings
+- Avoid blocking rendering paths
+
+### Admin UX Principles:
+- Admin is a cockpit, not a marketing page
+- Information clarity always wins over aesthetics
+- Motion should confirm actions, not distract
+- The UI must feel stable, precise and professional
+
+### Admin Final Instruction:
+Make the admin area feel expensive, precise and trustworthy —
+without slowing the user down.
+
+---
+
 ## ARCHITECTURE & CODE STANDARDS
 
 - Use Atomic Design (atoms, molecules, organisms, templates, pages)
