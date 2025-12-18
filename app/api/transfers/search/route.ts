@@ -50,8 +50,23 @@ function normalizeTransferOffer(offer: any, markup: number) {
   const markupAmount = Math.max(35, basePrice * 0.35);
   const finalPrice = basePrice + markupAmount;
 
-  // Service provider
+  // Service provider with full details
   const serviceProvider = offer.serviceProvider || {};
+  const providerContacts = serviceProvider.contacts || {};
+
+  // Payment methods
+  const methodsOfPayment = offer.methodsOfPayment || ['CREDIT_CARD'];
+
+  // Equipment options (child seats, wheelchair, etc.)
+  const equipment = (offer.equipment || []).map((e: any) => ({
+    code: e.code,
+    description: e.description,
+    price: e.quotation?.monetaryAmount ? parseFloat(e.quotation.monetaryAmount) : null,
+    currency: e.quotation?.currencyCode || 'USD',
+  }));
+
+  // Discount codes
+  const discountCodes = offer.discountCodes || [];
 
   // Cancellation info
   const cancellationRules = offer.cancellationRules || [];
@@ -121,13 +136,25 @@ function normalizeTransferOffer(offer: any, markup: number) {
       markup: markupAmount.toFixed(2),
     },
 
-    // Provider info
+    // Provider info with full details
     provider: {
       name: serviceProvider.name || 'Transfer Provider',
       code: serviceProvider.code || null,
       logoUrl: serviceProvider.logoUrl || null,
       rating: serviceProvider.rating || null,
+      termsUrl: serviceProvider.termsUrl || null,
+      phone: providerContacts.phone || null,
+      email: providerContacts.email || null,
     },
+
+    // Payment methods accepted
+    paymentMethods: methodsOfPayment,
+
+    // Available equipment (child seats, etc.)
+    equipment: equipment.length > 0 ? equipment : null,
+
+    // Discount codes if available
+    discounts: discountCodes.length > 0 ? discountCodes : null,
 
     // Duration and distance
     duration: estimatedDuration,

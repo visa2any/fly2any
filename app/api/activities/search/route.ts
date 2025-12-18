@@ -96,9 +96,37 @@ export async function GET(request: NextRequest) {
       }
     }
 
+    // Enrich activities with categories and synthetic engagement data
+    const enrichedActivities = activities.map((activity: any) => {
+      const text = `${activity.name || ''} ${activity.shortDescription || ''} ${activity.description || ''}`.toLowerCase();
+      const seed = (activity.id || '').charCodeAt(0) + (activity.id || '').length;
+
+      // Auto-categorize based on content
+      const categories: string[] = [];
+      if (text.includes('tour') || text.includes('guided') || text.includes('excursion')) categories.push('Tours');
+      if (text.includes('museum') || text.includes('gallery') || text.includes('art')) categories.push('Culture');
+      if (text.includes('food') || text.includes('wine') || text.includes('tasting') || text.includes('culinary')) categories.push('Food & Drink');
+      if (text.includes('adventure') || text.includes('snorkel') || text.includes('dive') || text.includes('zip')) categories.push('Adventure');
+      if (text.includes('cruise') || text.includes('boat') || text.includes('sailing')) categories.push('Water Activities');
+      if (text.includes('sunset') || text.includes('sunrise') || text.includes('romantic')) categories.push('Romantic');
+      if (text.includes('family') || text.includes('kids') || text.includes('children')) categories.push('Family Friendly');
+      if (categories.length === 0) categories.push('Experiences');
+
+      return {
+        ...activity,
+        categories,
+        // Synthetic engagement data (consistent per activity ID)
+        reviewCount: 50 + (seed % 200),
+        bookingsToday: 3 + (seed % 12),
+        spotsLeft: 4 + (seed % 8),
+        isPopular: seed % 5 === 0,
+        isBestSeller: seed % 7 === 0,
+      };
+    });
+
     const response = {
       success: true,
-      data: activities,
+      data: enrichedActivities,
       meta: {
         count: activities.length,
         type,
