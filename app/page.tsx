@@ -8,8 +8,9 @@ import { MobileHomeSearchWrapper } from '@/components/home/MobileHomeSearchWrapp
 import { HotelsSectionEnhanced } from '@/components/home/HotelsSectionEnhanced';
 // TEMPORARILY HIDDEN - Uncomment when ready to launch
 // import { CarRentalsSectionEnhanced } from '@/components/home/CarRentalsSectionEnhanced';
-import { ToursSection } from '@/components/home/ToursSection';
-import { ActivitiesSection } from '@/components/home/ActivitiesSection';
+import { ToursSectionEnhanced } from '@/components/home/ToursSectionEnhanced';
+import { ActivitiesSectionEnhanced } from '@/components/home/ActivitiesSectionEnhanced';
+import { TransfersSectionEnhanced } from '@/components/home/TransfersSectionEnhanced';
 import { DestinationsSectionEnhanced } from '@/components/home/DestinationsSectionEnhanced';
 import { FlashDealsSectionEnhanced } from '@/components/home/FlashDealsSectionEnhanced';
 import { RecentlyViewedSection } from '@/components/home/RecentlyViewedSection';
@@ -647,17 +648,24 @@ export default function Home() {
         </div>
 
         {/* ============================================
-            TOURS SECTION - Guided Tours & Day Trips
+            TOURS SECTION - Guided Tours & Day Trips (Enhanced)
             ============================================ */}
         <div className="mt-4 md:mt-6 lg:mt-8">
-          <ToursSection lang={lang} />
+          <ToursSectionEnhanced lang={lang} />
         </div>
 
         {/* ============================================
-            ACTIVITIES SECTION - Experiences & Things to Do
+            ACTIVITIES SECTION - Experiences & Things to Do (Enhanced)
             ============================================ */}
         <div className="mt-4 md:mt-6 lg:mt-8">
-          <ActivitiesSection lang={lang} />
+          <ActivitiesSectionEnhanced lang={lang} />
+        </div>
+
+        {/* ============================================
+            TRANSFERS SECTION - Airport Transfers (Enhanced)
+            ============================================ */}
+        <div className="mt-4 md:mt-6 lg:mt-8">
+          <TransfersSectionEnhanced lang={lang} />
         </div>
 
         <div className="mt-4 md:mt-6 lg:mt-8">
