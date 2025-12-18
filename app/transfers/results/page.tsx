@@ -71,7 +71,7 @@ const TransferSkeleton = memo(() => (
 ));
 TransferSkeleton.displayName = 'TransferSkeleton';
 
-const TransferCard = memo(({ transfer, onBook }: { transfer: Transfer; onBook: (t: Transfer) => void }) => {
+const TransferCard = memo(({ transfer, onViewDetails }: { transfer: Transfer; onViewDetails: (t: Transfer) => void }) => {
   const price = parseFloat(transfer.price.amount);
 
   return (
@@ -111,10 +111,10 @@ const TransferCard = memo(({ transfer, onBook }: { transfer: Transfer; onBook: (
             <span>{transfer.cancellation}</span>
           </div>
           <button
-            onClick={() => onBook(transfer)}
+            onClick={() => onViewDetails(transfer)}
             className="px-6 py-2.5 rounded-xl bg-teal-600 text-white font-semibold text-sm hover:bg-teal-700 transition-colors shadow-sm"
           >
-            Book Now
+            View Details
           </button>
         </div>
       </div>
@@ -138,11 +138,14 @@ function TransferResultsContent() {
   const time = searchParams.get('time') || '10:00';
   const passengers = parseInt(searchParams.get('passengers') || '1');
 
-  const handleBook = useCallback((transfer: Transfer) => {
+  const handleViewDetails = useCallback((transfer: Transfer) => {
     const params = new URLSearchParams({
       id: transfer.id,
       type: transfer.type,
       name: transfer.name,
+      icon: transfer.icon,
+      category: transfer.category,
+      maxPassengers: transfer.maxPassengers.toString(),
       price: transfer.price.amount,
       pickup,
       dropoff,
@@ -150,9 +153,11 @@ function TransferResultsContent() {
       time,
       passengers: passengers.toString(),
       duration: transfer.duration,
+      rating: transfer.rating,
+      features: transfer.features.join(','),
       cancellation: transfer.cancellation,
     });
-    router.push(`/transfers/book?${params.toString()}`);
+    router.push(`/transfers/${transfer.id}?${params.toString()}`);
   }, [pickup, dropoff, date, time, passengers, router]);
 
   useEffect(() => {
@@ -274,7 +279,7 @@ function TransferResultsContent() {
         {!loading && filteredTransfers.length > 0 && (
           <div className="py-4 grid grid-cols-1 lg:grid-cols-2 gap-4">
             {filteredTransfers.map((transfer) => (
-              <TransferCard key={transfer.id} transfer={transfer} onBook={handleBook} />
+              <TransferCard key={transfer.id} transfer={transfer} onViewDetails={handleViewDetails} />
             ))}
           </div>
         )}

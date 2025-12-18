@@ -50,7 +50,7 @@ const TourSkeleton = memo(() => (
 TourSkeleton.displayName = 'TourSkeleton';
 
 // Memoized Tour Card - Apple Level 6 styling
-const TourCard = memo(({ tour, onBook }: { tour: Tour; onBook: (tour: Tour, price: number | null, img: string) => void }) => {
+const TourCard = memo(({ tour, onViewDetails }: { tour: Tour; onViewDetails: (tour: Tour, price: number | null, img: string) => void }) => {
   const basePrice = tour.price?.amount ? parseFloat(tour.price.amount) : null;
   const price = basePrice ? basePrice + Math.max(basePrice * 0.35, 35) : null;
   const firstPic = tour.pictures?.[0];
@@ -76,8 +76,8 @@ const TourCard = memo(({ tour, onBook }: { tour: Tour; onBook: (tour: Tour, pric
           <span className="flex items-center gap-1"><Star className="w-3.5 h-3.5 fill-amber-400 text-amber-400" />{tour.rating || '4.8'}</span>
           <span className="flex items-center gap-1"><Clock className="w-3.5 h-3.5" />{tour.minimumDuration || '3h'}</span>
         </div>
-        <button onClick={() => onBook(tour, price, img)} className="w-full py-2.5 rounded-xl bg-orange-600 text-white font-semibold text-sm hover:bg-orange-700 transition-colors shadow-sm">
-          Book Now
+        <button onClick={() => onViewDetails(tour, price, img)} className="w-full py-2.5 rounded-xl bg-orange-600 text-white font-semibold text-sm hover:bg-orange-700 transition-colors shadow-sm">
+          View Details
         </button>
       </div>
     </div>
@@ -126,9 +126,10 @@ function TourResultsContent() {
     }
   }, [searchInput, suggestions, router]);
 
-  const handleBook = useCallback((tour: Tour, price: number | null, img: string) => {
-    router.push(`/tours/book?id=${tour.id}&name=${encodeURIComponent(tour.name)}&price=${price || 0}&img=${encodeURIComponent(img)}&duration=${tour.minimumDuration || '3h'}&link=${encodeURIComponent(tour.bookingLink || '')}`);
-  }, [router]);
+  const handleViewDetails = useCallback((tour: Tour, price: number | null, img: string) => {
+    const desc = tour.shortDescription || tour.description || 'Experience an unforgettable tour with expert guides and amazing sights.';
+    router.push(`/tours/${tour.id}?id=${tour.id}&name=${encodeURIComponent(tour.name)}&price=${price || 0}&img=${encodeURIComponent(img)}&duration=${tour.minimumDuration || '3h'}&location=${encodeURIComponent(cityName)}&rating=${tour.rating || 4.8}&desc=${encodeURIComponent(desc.slice(0, 300))}&link=${encodeURIComponent(tour.bookingLink || '')}`);
+  }, [router, cityName]);
 
   useEffect(() => {
     const controller = new AbortController();
@@ -257,7 +258,7 @@ function TourResultsContent() {
         {!loading && filteredTours.length > 0 && (
           <div className="py-4 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
             {filteredTours.map((tour) => (
-              <TourCard key={tour.id} tour={tour} onBook={handleBook} />
+              <TourCard key={tour.id} tour={tour} onViewDetails={handleViewDetails} />
             ))}
           </div>
         )}

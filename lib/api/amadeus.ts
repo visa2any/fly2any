@@ -1561,6 +1561,38 @@ class AmadeusAPI {
   }
 
   /**
+   * Get Activity/Tour by ID - Fetch single activity details
+   */
+  async getActivityById(activityId: string) {
+    // Check credentials before attempting API call
+    if (!this.apiKey || !this.apiSecret) {
+      console.warn('⚠️  Amadeus API credentials not configured');
+      return { data: null };
+    }
+
+    const token = await this.getAccessToken();
+
+    try {
+      console.log(`🎭 Fetching activity details for ${activityId}...`);
+
+      const response = await axios.get(
+        `${this.baseUrl}/v1/shopping/activities/${activityId}`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      console.log(`✅ Activity details fetched successfully`);
+      return response.data;
+    } catch (error: any) {
+      console.error('Error fetching activity:', error.response?.data || error);
+      throw new Error('Failed to fetch activity details');
+    }
+  }
+
+  /**
    * Price Analytics - Market insights for route
    */
   async getPriceAnalytics(params: {

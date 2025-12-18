@@ -12,6 +12,8 @@ import { AITravelAssistant } from '@/components/ai/AITravelAssistant';
 import { MobileFullscreen } from '@/components/layout/MobileFullscreen';
 import { useLanguage } from '@/lib/i18n/client';
 import { useTranslations } from 'next-intl';
+import { ExperiencesCartProvider } from '@/lib/cart/experiences-cart';
+import MiniCart from '@/components/cart/MiniCart';
 
 interface GlobalLayoutProps {
   children: React.ReactNode;
@@ -199,7 +201,10 @@ function GlobalLayoutInner({ children }: GlobalLayoutProps) {
 export function GlobalLayout({ children }: GlobalLayoutProps) {
   return (
     <SessionProvider>
-      <GlobalLayoutInner>{children}</GlobalLayoutInner>
+      <ExperiencesCartProvider>
+        <GlobalLayoutInner>{children}</GlobalLayoutInner>
+        <MiniCart />
+      </ExperiencesCartProvider>
     </SessionProvider>
   );
 }

@@ -48,7 +48,7 @@ const ActivitySkeleton = memo(() => (
 ActivitySkeleton.displayName = 'ActivitySkeleton';
 
 // Memoized Activity Card - Apple Level 6 styling
-const ActivityCard = memo(({ activity, onBook }: { activity: Activity; onBook: (a: Activity, price: number | null, img: string) => void }) => {
+const ActivityCard = memo(({ activity, onViewDetails }: { activity: Activity; onViewDetails: (a: Activity, price: number | null, img: string) => void }) => {
   const basePrice = activity.price?.amount ? parseFloat(activity.price.amount) : null;
   const price = basePrice ? basePrice + Math.max(basePrice * 0.35, 35) : null;
   const firstPic = activity.pictures?.[0];
@@ -74,8 +74,8 @@ const ActivityCard = memo(({ activity, onBook }: { activity: Activity; onBook: (
           <span className="flex items-center gap-1"><Star className="w-3.5 h-3.5 fill-amber-400 text-amber-400" />{activity.rating || '4.7'}</span>
           <span className="flex items-center gap-1"><Clock className="w-3.5 h-3.5" />{activity.minimumDuration || '2h'}</span>
         </div>
-        <button onClick={() => onBook(activity, price, img)} className="w-full py-2.5 rounded-xl bg-purple-600 text-white font-semibold text-sm hover:bg-purple-700 transition-colors shadow-sm">
-          Book Now
+        <button onClick={() => onViewDetails(activity, price, img)} className="w-full py-2.5 rounded-xl bg-purple-600 text-white font-semibold text-sm hover:bg-purple-700 transition-colors shadow-sm">
+          View Details
         </button>
       </div>
     </div>
@@ -123,9 +123,10 @@ function ActivityResultsContent() {
     }
   }, [searchInput, suggestions, router]);
 
-  const handleBook = useCallback((activity: Activity, price: number | null, img: string) => {
-    router.push(`/activities/book?id=${activity.id}&name=${encodeURIComponent(activity.name)}&price=${price || 0}&img=${encodeURIComponent(img)}&duration=${activity.minimumDuration || '2h'}&link=${encodeURIComponent(activity.bookingLink || '')}`);
-  }, [router]);
+  const handleViewDetails = useCallback((activity: Activity, price: number | null, img: string) => {
+    const desc = activity.description || 'Enjoy an exciting activity with professional guides.';
+    router.push(`/activities/${activity.id}?id=${activity.id}&name=${encodeURIComponent(activity.name)}&price=${price || 0}&img=${encodeURIComponent(img)}&duration=${activity.minimumDuration || '2h'}&location=${encodeURIComponent(cityName)}&rating=${activity.rating || 4.7}&desc=${encodeURIComponent(desc.slice(0, 300))}&link=${encodeURIComponent(activity.bookingLink || '')}`);
+  }, [router, cityName]);
 
   useEffect(() => {
     const controller = new AbortController();
@@ -253,7 +254,7 @@ function ActivityResultsContent() {
         {!loading && filteredActivities.length > 0 && (
           <div className="py-4 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
             {filteredActivities.map((activity) => (
-              <ActivityCard key={activity.id} activity={activity} onBook={handleBook} />
+              <ActivityCard key={activity.id} activity={activity} onViewDetails={handleViewDetails} />
             ))}
           </div>
         )}
