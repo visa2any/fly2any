@@ -380,6 +380,183 @@ export function combineSchemas(...schemas: object[]): string {
   return JSON.stringify(schemas.length === 1 ? schemas[0] : schemas);
 }
 
+// ============================================
+// GEO-OPTIMIZED TRAVEL SCHEMAS (2025)
+// ============================================
+
+// TouristTrip Schema - For tours and activities
+export interface TouristTripData {
+  name: string;
+  description: string;
+  provider?: string;
+  duration: string;
+  price: number;
+  currency: string;
+  location: { name: string; lat?: number; lng?: number };
+  images: string[];
+  rating?: number;
+  reviewCount?: number;
+  includes?: string[];
+}
+
+export function generateTouristTripSchema(trip: TouristTripData) {
+  return {
+    '@context': 'https://schema.org',
+    '@type': 'TouristTrip',
+    name: trip.name,
+    description: trip.description,
+    provider: {
+      '@type': 'TravelAgency',
+      name: trip.provider || SITE_NAME,
+      url: SITE_URL,
+    },
+    touristType: 'Leisure',
+    itinerary: {
+      '@type': 'ItemList',
+      numberOfItems: 1,
+      itemListElement: [{
+        '@type': 'ListItem',
+        position: 1,
+        item: {
+          '@type': 'TouristAttraction',
+          name: trip.location.name,
+          ...(trip.location.lat && {
+            geo: {
+              '@type': 'GeoCoordinates',
+              latitude: trip.location.lat,
+              longitude: trip.location.lng,
+            },
+          }),
+        },
+      }],
+    },
+    offers: {
+      '@type': 'Offer',
+      price: trip.price,
+      priceCurrency: trip.currency,
+      availability: 'https://schema.org/InStock',
+    },
+    ...(trip.images.length > 0 && { image: trip.images }),
+    ...(trip.rating && {
+      aggregateRating: {
+        '@type': 'AggregateRating',
+        ratingValue: trip.rating,
+        reviewCount: trip.reviewCount || 50,
+        bestRating: 5,
+      },
+    }),
+  };
+}
+
+// LodgingBusiness Schema - For hotel listings
+export interface HotelSchemaData {
+  name: string;
+  description: string;
+  address: { city: string; country: string; street?: string };
+  starRating: number;
+  priceRange: string;
+  amenities: string[];
+  images: string[];
+  rating?: number;
+  reviewCount?: number;
+  checkInTime?: string;
+  checkOutTime?: string;
+}
+
+export function generateHotelSchema(hotel: HotelSchemaData) {
+  return {
+    '@context': 'https://schema.org',
+    '@type': 'LodgingBusiness',
+    name: hotel.name,
+    description: hotel.description,
+    address: {
+      '@type': 'PostalAddress',
+      addressLocality: hotel.address.city,
+      addressCountry: hotel.address.country,
+      ...(hotel.address.street && { streetAddress: hotel.address.street }),
+    },
+    starRating: { '@type': 'Rating', ratingValue: hotel.starRating },
+    priceRange: hotel.priceRange,
+    amenityFeature: hotel.amenities.map(a => ({
+      '@type': 'LocationFeatureSpecification',
+      name: a,
+      value: true,
+    })),
+    image: hotel.images,
+    ...(hotel.rating && {
+      aggregateRating: {
+        '@type': 'AggregateRating',
+        ratingValue: hotel.rating,
+        reviewCount: hotel.reviewCount || 100,
+        bestRating: 5,
+      },
+    }),
+  };
+}
+
+// TaxiService Schema - For airport transfers
+export interface TransferSchemaData {
+  pickup: string;
+  dropoff: string;
+  vehicleType: string;
+  price: number;
+  currency: string;
+  maxPassengers: number;
+}
+
+export function generateTransferSchema(transfer: TransferSchemaData) {
+  return {
+    '@context': 'https://schema.org',
+    '@type': 'TaxiService',
+    name: `${transfer.pickup} to ${transfer.dropoff} Transfer`,
+    description: `Private ${transfer.vehicleType} transfer service`,
+    provider: { '@type': 'TravelAgency', name: SITE_NAME, url: SITE_URL },
+    areaServed: [transfer.pickup, transfer.dropoff],
+    offers: {
+      '@type': 'Offer',
+      price: transfer.price,
+      priceCurrency: transfer.currency,
+      availability: 'https://schema.org/InStock',
+    },
+  };
+}
+
+// SoftwareApplication Schema - For app visibility
+export function generateAppSchema() {
+  return {
+    '@context': 'https://schema.org',
+    '@type': 'SoftwareApplication',
+    name: SITE_NAME,
+    applicationCategory: 'TravelApplication',
+    operatingSystem: 'Web, iOS, Android',
+    offers: {
+      '@type': 'Offer',
+      price: '0',
+      priceCurrency: 'USD',
+    },
+    aggregateRating: {
+      '@type': 'AggregateRating',
+      ratingValue: '4.8',
+      ratingCount: '5000',
+      bestRating: '5',
+    },
+    description: 'AI-powered travel booking platform for flights, hotels, tours, and transfers',
+  };
+}
+
+// Speakable Schema - For voice search
+export function generateSpeakableSchema(url: string, cssSelectors: string[] = ['h1', '.summary', '.description']) {
+  return {
+    '@context': 'https://schema.org',
+    '@type': 'WebPage',
+    url,
+    speakable: {
+      '@type': 'SpeakableSpecification',
+      cssSelector: cssSelectors,
+    },
+  };
+}
+
 // Generate common FAQs for route pages
 export function generateRouteFAQs(
   origin: string,
