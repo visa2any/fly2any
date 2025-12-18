@@ -92,11 +92,6 @@ export const ProductFilters = memo(({ filters, onChange, resultCount, accentColo
           className="flex items-center gap-2 overflow-x-auto scrollbar-hide px-4 md:px-10"
           style={{ WebkitOverflowScrolling: 'touch', scrollbarWidth: 'none', msOverflowStyle: 'none' }}
         >
-          {/* Result count - left */}
-          <span className="flex-shrink-0 text-sm text-gray-500 pr-2 border-r border-gray-200 mr-1">
-            <span className="font-bold text-gray-900">{resultCount}</span> results
-          </span>
-
           {/* Sort pills */}
           {sortPills.map(pill => (
             <button
