@@ -136,15 +136,14 @@ function normalizeTransferOffer(offer: any, markup: number) {
       markup: markupAmount.toFixed(2),
     },
 
-    // Provider info with full details
+    // Provider info (contact details admin-only, not exposed to customers)
     provider: {
       name: serviceProvider.name || 'Transfer Provider',
       code: serviceProvider.code || null,
       logoUrl: serviceProvider.logoUrl || null,
       rating: serviceProvider.rating || null,
       termsUrl: serviceProvider.termsUrl || null,
-      phone: providerContacts.phone || null,
-      email: providerContacts.email || null,
+      // Note: phone/email stored internally for admin but not exposed
     },
 
     // Payment methods accepted
