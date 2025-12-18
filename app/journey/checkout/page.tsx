@@ -27,6 +27,7 @@ import {
 } from 'lucide-react';
 import { PricingAggregator } from '@/lib/journey/services/PricingAggregator';
 import { Journey, JourneyPricing } from '@/lib/journey/types';
+import { PromoCodeSection } from '@/components/booking/PromoCodeSection';
 
 // ============================================================================
 // TYPES
@@ -83,6 +84,12 @@ function CheckoutContent() {
     billingCountry: 'US',
   });
   const [agreedToTerms, setAgreedToTerms] = useState(false);
+  const [appliedDiscount, setAppliedDiscount] = useState<{
+    code: string;
+    type: 'percentage' | 'fixed';
+    value: number;
+    discountAmount: number;
+  } | null>(null);
 
   // Load journey from sessionStorage
   useEffect(() => {
@@ -576,17 +583,41 @@ function CheckoutContent() {
 
                 <hr className="border-gray-100" />
 
-                <div className="flex justify-between font-semibold text-lg">
+                {/* Promo Code Section */}
+                <PromoCodeSection
+                  totalPrice={journey.pricing.total}
+                  currency={journey.pricing.currency}
+                  productType="all"
+                  onApply={(code, discount) => setAppliedDiscount(discount)}
+                  onRemove={() => setAppliedDiscount(null)}
+                  appliedDiscount={appliedDiscount}
+                />
+
+                {/* Discount line */}
+                {appliedDiscount && (
+                  <div className="flex justify-between text-sm text-green-600">
+                    <span>Discount ({appliedDiscount.code})</span>
+                    <span>-{PricingAggregator.formatPrice(appliedDiscount.discountAmount, journey.pricing.currency)}</span>
+                  </div>
+                )}
+
+                <div className="flex justify-between font-semibold text-lg pt-2 border-t border-gray-100">
                   <span>Total</span>
                   <span className="text-[#D63A35]">
-                    {PricingAggregator.formatPrice(journey.pricing.total, journey.pricing.currency)}
+                    {PricingAggregator.formatPrice(
+                      journey.pricing.total - (appliedDiscount?.discountAmount || 0),
+                      journey.pricing.currency
+                    )}
                   </span>
                 </div>
 
                 {journey.pricing.savings && journey.pricing.savings.amount > 0 && (
                   <div className="mt-3 p-3 bg-green-50 rounded-xl">
                     <p className="text-sm text-green-700 font-medium">
-                      You save {PricingAggregator.formatPrice(journey.pricing.savings.amount, journey.pricing.currency)}
+                      You save {PricingAggregator.formatPrice(
+                        journey.pricing.savings.amount + (appliedDiscount?.discountAmount || 0),
+                        journey.pricing.currency
+                      )}
                     </p>
                   </div>
                 )}
@@ -612,9 +643,14 @@ function CheckoutContent() {
       <div className="lg:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 px-4 py-3 safe-area-bottom">
         <div className="flex items-center justify-between">
           <div>
-            <p className="text-sm text-gray-500">Total</p>
+            <p className="text-sm text-gray-500">
+              Total {appliedDiscount && <span className="text-green-600">(-{appliedDiscount.code})</span>}
+            </p>
             <p className="text-xl font-bold text-gray-900">
-              {PricingAggregator.formatPrice(journey.pricing.total, journey.pricing.currency)}
+              {PricingAggregator.formatPrice(
+                journey.pricing.total - (appliedDiscount?.discountAmount || 0),
+                journey.pricing.currency
+              )}
             </p>
           </div>
           {step === 3 && (
