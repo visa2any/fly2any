@@ -53,6 +53,22 @@ TourSkeleton.displayName = 'TourSkeleton';
 
 // Conversion-optimized Tour Card - Level 6 with social proof & urgency
 const TourCard = memo(({ tour, onViewDetails, index }: { tour: Tour; onViewDetails: (tour: Tour, price: number | null, images: string[]) => void; index: number }) => {
+  const [isFavorite, setIsFavorite] = useState(() => {
+    if (typeof window !== 'undefined') {
+      const favs = JSON.parse(localStorage.getItem('tour-favorites') || '[]');
+      return favs.includes(tour.id);
+    }
+    return false;
+  });
+
+  const toggleFavorite = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    const favs = JSON.parse(localStorage.getItem('tour-favorites') || '[]');
+    const newFavs = isFavorite ? favs.filter((id: string) => id !== tour.id) : [...favs, tour.id];
+    localStorage.setItem('tour-favorites', JSON.stringify(newFavs));
+    setIsFavorite(!isFavorite);
+  };
+
   const basePrice = tour.price?.amount ? parseFloat(tour.price.amount) : null;
   const price = basePrice ? basePrice + Math.max(basePrice * 0.35, 35) : null;
   const images = (tour.pictures || []).map(pic => typeof pic === 'string' ? pic : pic?.url).filter(Boolean) as string[];
@@ -71,20 +87,19 @@ const TourCard = memo(({ tour, onViewDetails, index }: { tour: Tour; onViewDetai
 
   return (
     <div className="bg-white rounded-2xl border border-gray-100 overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300 group relative">
-      {/* Badge - Top corner */}
-      {(isTopRated || isBestSeller) && (
-        <div className={`absolute top-0 left-0 z-20 px-2.5 py-1 text-[10px] font-bold uppercase tracking-wide rounded-br-xl ${
-          isBestSeller ? 'bg-gradient-to-r from-orange-500 to-amber-500 text-white' : 'bg-amber-400 text-amber-900'
-        }`}>
-          {isBestSeller ? '🔥 Best Seller' : '⭐ Top Rated'}
-        </div>
-      )}
-
       {/* Image Section - Use slider for multiple images */}
       {hasMultiple ? (
         <ImageSlider images={images.slice(0, 5)} alt={tour.name} height="aspect-[16/10]" showArrows={true} showDots={true}>
-          <button className="absolute top-3 right-3 w-8 h-8 rounded-full bg-white/90 backdrop-blur-sm flex items-center justify-center shadow-sm hover:scale-110 hover:bg-white transition-all z-30">
-            <Heart className="w-4 h-4 text-gray-600 hover:text-red-500 transition-colors" />
+          {/* Badge inside slider */}
+          {(isTopRated || isBestSeller) && (
+            <div className={`absolute top-2 left-2 z-30 px-2 py-1 text-[10px] font-bold uppercase tracking-wide rounded-lg shadow-md ${
+              isBestSeller ? 'bg-gradient-to-r from-orange-500 to-amber-500 text-white' : 'bg-amber-400 text-amber-900'
+            }`}>
+              {isBestSeller ? '🔥 Best Seller' : '⭐ Top Rated'}
+            </div>
+          )}
+          <button onClick={toggleFavorite} className="absolute top-3 right-3 w-8 h-8 rounded-full bg-white/90 backdrop-blur-sm flex items-center justify-center shadow-sm hover:scale-110 hover:bg-white transition-all z-30">
+            <Heart className={`w-4 h-4 transition-colors ${isFavorite ? 'fill-red-500 text-red-500' : 'text-gray-600 hover:text-red-500'}`} />
           </button>
           {price && (
             <div className="absolute bottom-3 left-3 px-3 py-1.5 rounded-xl bg-white/95 backdrop-blur-sm shadow-md z-30">
@@ -101,8 +116,16 @@ const TourCard = memo(({ tour, onViewDetails, index }: { tour: Tour; onViewDetai
       ) : (
         <div className="relative aspect-[16/10] overflow-hidden bg-gray-100">
           <Image src={mainImg} alt={tour.name} fill sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw" className="object-cover group-hover:scale-105 transition-transform duration-500" loading="lazy" unoptimized />
-          <button className="absolute top-3 right-3 w-8 h-8 rounded-full bg-white/90 backdrop-blur-sm flex items-center justify-center shadow-sm hover:scale-110 hover:bg-white transition-all z-10">
-            <Heart className="w-4 h-4 text-gray-600 group-hover:text-red-500 transition-colors" />
+          {/* Badge for single image */}
+          {(isTopRated || isBestSeller) && (
+            <div className={`absolute top-2 left-2 z-20 px-2 py-1 text-[10px] font-bold uppercase tracking-wide rounded-lg shadow-md ${
+              isBestSeller ? 'bg-gradient-to-r from-orange-500 to-amber-500 text-white' : 'bg-amber-400 text-amber-900'
+            }`}>
+              {isBestSeller ? '🔥 Best Seller' : '⭐ Top Rated'}
+            </div>
+          )}
+          <button onClick={toggleFavorite} className="absolute top-3 right-3 w-8 h-8 rounded-full bg-white/90 backdrop-blur-sm flex items-center justify-center shadow-sm hover:scale-110 hover:bg-white transition-all z-10">
+            <Heart className={`w-4 h-4 transition-colors ${isFavorite ? 'fill-red-500 text-red-500' : 'text-gray-600 hover:text-red-500'}`} />
           </button>
           {price && (
             <div className="absolute bottom-3 left-3 px-3 py-1.5 rounded-xl bg-white/95 backdrop-blur-sm shadow-md">
