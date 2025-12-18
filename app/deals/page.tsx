@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import DealCard from '@/components/deals/DealCard';
 import { MaxWidthContainer } from '@/components/layout/MaxWidthContainer';
+import { ResultsPageSchema } from '@/components/seo/GEOEnhancer';
 
 // Mock deals data - In production, this would come from API
 const generateMockDeals = () => {
@@ -77,6 +78,25 @@ export default function DealsPage() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-orange-50 via-white to-red-50">
+      {/* GEO Schema for AI search engines */}
+      {deals.length > 0 && (
+        <ResultsPageSchema
+          type="flight"
+          items={deals.map(deal => ({
+            name: `${deal.origin} to ${deal.destination} Flight Deal`,
+            price: deal.price,
+            currency: deal.currency,
+            origin: deal.origin,
+            destination: deal.destination,
+            airline: deal.airline,
+          }))}
+          pageInfo={{
+            title: 'Hot Travel Deals - Up to 70% Off Flights',
+            description: `Discover ${deals.length} amazing flight deals. Flash sales, last-minute offers, and exclusive discounts on flights worldwide.`,
+            totalResults: deals.length,
+          }}
+        />
+      )}
       <MaxWidthContainer className="px-0 md:px-6" noPadding={true}>
         <div className="py-6 sm:py-8">
           {/* Hero Section */}

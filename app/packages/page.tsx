@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import Image from 'next/image';
 import {
   Package, Sparkles, Plane, Hotel, Car, Utensils,
@@ -9,6 +9,7 @@ import {
   Heart, TrendingDown, Gift, Briefcase, Sun, Mountain
 } from 'lucide-react';
 import { MobileHomeSearchWrapper } from '@/components/home/MobileHomeSearchWrapper';
+import { ResultsPageSchema } from '@/components/seo/GEOEnhancer';
 import { MaxWidthContainer } from '@/components/layout/MaxWidthContainer';
 import { CompactTrustBar } from '@/components/conversion/CompactTrustBar';
 import { useTranslations } from 'next-intl';
@@ -55,8 +56,35 @@ export default function PackagesPage() {
     return () => clearInterval(interval);
   }, []);
 
+  // Package destinations for GEO schema
+  const packageDestinations = useMemo(() => [
+    { name: 'Cancun Beach Vacation Package', price: 899, location: 'Cancun, Mexico', rating: 4.8 },
+    { name: 'Maldives Luxury Resort Package', price: 2499, location: 'Maldives', rating: 4.9 },
+    { name: 'Dubai City Break Package', price: 1299, location: 'Dubai, UAE', rating: 4.7 },
+    { name: 'Bali Adventure Package', price: 1099, location: 'Bali, Indonesia', rating: 4.8 },
+    { name: 'Paris Romantic Getaway', price: 1599, location: 'Paris, France', rating: 4.6 },
+    { name: 'New York City Experience', price: 1199, location: 'New York, USA', rating: 4.7 },
+  ], []);
+
   return (
     <div className="min-h-screen bg-white">
+      {/* GEO Schema for AI search engines */}
+      <ResultsPageSchema
+        type="tour"
+        items={packageDestinations.map(pkg => ({
+          name: pkg.name,
+          price: pkg.price,
+          currency: 'USD',
+          location: pkg.location,
+          rating: pkg.rating,
+        }))}
+        pageInfo={{
+          title: 'Vacation Packages - All-Inclusive Travel Deals',
+          description: 'Compare vacation packages including flights, hotels, and activities. Beach vacations, city breaks, adventure tours, cruises, and more.',
+          totalResults: packageDestinations.length,
+        }}
+      />
+
       {/* Hero Section - Green/Emerald Theme */}
       <div className="relative bg-gradient-to-br from-emerald-50 via-teal-50/30 to-green-50 border-b border-emerald-200/60 overflow-hidden md:overflow-visible max-h-[100vh] md:max-h-none">
         <div className="absolute inset-0 overflow-hidden pointer-events-none">

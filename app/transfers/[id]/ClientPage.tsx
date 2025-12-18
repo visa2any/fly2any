@@ -13,6 +13,7 @@ import {
   Shield, Loader2, ShoppingBag, MapPin, Navigation, Plane, Info
 } from 'lucide-react';
 import { MaxWidthContainer } from '@/components/layout/MaxWidthContainer';
+import { GEOEnhancer } from '@/components/seo/GEOEnhancer';
 import { useExperiencesCart, typeColors } from '@/lib/cart/experiences-cart';
 
 interface TransferData {
@@ -125,6 +126,22 @@ export default function TransferDetailsClient({ initialData }: TransferDetailsCl
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-teal-50/50 to-white">
+      {/* GEO Schema for AI search engines */}
+      <GEOEnhancer
+        type="transfer"
+        data={{
+          name: transfer.name,
+          price: transfer.price,
+          currency: 'USD',
+          pickup: transfer.pickup,
+          dropoff: transfer.dropoff,
+          vehicleType: transfer.category,
+          maxPassengers: transfer.maxPassengers,
+          rating: parseFloat(transfer.rating),
+          duration: transfer.duration,
+        }}
+      />
+
       {/* Sticky Header */}
       <div className="sticky top-0 z-40 bg-white/80 backdrop-blur-xl border-b border-gray-100/80 shadow-sm">
         <MaxWidthContainer>

@@ -10,6 +10,7 @@ import { HotelTrustBadges } from '@/components/hotels/HotelTrustBadges';
 import { HotelQABot } from '@/components/hotels/HotelQABot';
 import { CompactRoomCard } from '@/components/hotels/CompactRoomCard';
 import { MapPin, Star, Wifi, Coffee, Dumbbell, UtensilsCrossed, Car, ArrowLeft, Calendar, Users, User, Shield, Info, AlertCircle, RefreshCw, BedDouble, CheckCircle2, CheckCircle, Hotel, X, Filter, ArrowUpDown, Clock, Wind, Tv, Bath, Snowflake, Waves, Sparkles, Utensils, Wine, ConciergeBell, DoorOpen, ParkingCircle, Phone, Wifi as WifiIcon, Globe, ChevronLeft, ChevronRight, Building2, ArrowRight, LogIn, LogOut } from 'lucide-react';
+import { GEOEnhancer } from '@/components/seo/GEOEnhancer';
 
 export default function HotelDetailPage() {
   const params = useParams();
@@ -547,6 +548,25 @@ export default function HotelDetailPage() {
 
   return (
     <div className="min-h-screen bg-[#FAFAFA]">
+      {/* GEO Schema for AI search engines */}
+      <GEOEnhancer
+        type="hotel"
+        data={{
+          name: hotel.name,
+          description: hotel.description,
+          price: perNightPrice,
+          currency: 'USD',
+          location: hotel.address?.city || '',
+          starRating: hotel.starRating || hotel.star_rating,
+          rating: parseFloat(hotel.reviewRating) || averageRating,
+          reviewCount: reviewCount || hotel.reviewCount,
+          amenities: hotel.amenities?.slice(0, 10),
+          images: hotel.images?.map((img: any) => img?.url || img).filter(Boolean),
+          checkIn: hotel.checkInTime || '3:00 PM',
+          checkOut: hotel.checkOutTime || '11:00 AM',
+        }}
+      />
+
       {/* Back Button - Full width - Compact */}
       <div className="bg-white border-b border-gray-100">
         <div className="w-full px-3 lg:px-6 py-2">

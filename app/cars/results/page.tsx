@@ -4,6 +4,7 @@ import { useState, useEffect, Suspense } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { CarCard, type CarRental } from '@/components/cars/CarCard';
 import CarFilters, { type CarFiltersType } from '@/components/cars/CarFilters';
+import { ResultsPageSchema } from '@/components/seo/GEOEnhancer';
 import { ScrollProgress } from '@/components/flights/ScrollProgress';
 import ScrollToTop from '@/components/flights/ScrollToTop';
 import { ChevronRight, AlertCircle, RefreshCcw, Sparkles, Car, TrendingUp, Clock, Users, X } from 'lucide-react';
@@ -553,6 +554,30 @@ function CarResultsContent() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 via-blue-50/30 to-gray-50">
+      {/* GEO Schema for AI search engines */}
+      {cars.length > 0 && (
+        <ResultsPageSchema
+          type="transfer"
+          items={cars.slice(0, 20).map(car => ({
+            name: `${car.name} - ${car.category}`,
+            price: car.pricePerDay * days,
+            currency: 'USD',
+            rating: car.rating,
+            reviewCount: car.reviewCount,
+            vehicleType: car.category,
+            maxPassengers: car.passengers,
+            pickup: searchData.pickup,
+            dropoff: searchData.dropoff || searchData.pickup,
+          }))}
+          pageInfo={{
+            title: `Car Rentals in ${searchData.pickup}`,
+            description: `Compare ${cars.length} car rentals in ${searchData.pickup}. ${days} day rental from $${avgPricePerDay}/day.`,
+            totalResults: cars.length,
+            location: searchData.pickup,
+          }}
+        />
+      )}
+
       {/* Scroll Progress Bar */}
       <ScrollProgress />
 
