@@ -15,7 +15,7 @@ interface ActivityData {
   name: string;
   description: string;
   price: number;
-  image: string;
+  images: string[]; // Multi-image gallery support
   duration: string;
   location: string;
   rating: number;
@@ -57,12 +57,15 @@ export default function ActivityDetailsClient({ initialData }: ActivityDetailsCl
         const basePrice = apiActivity.price?.amount ? parseFloat(apiActivity.price.amount) : 0;
         const markup = Math.max(basePrice * 0.35, 35);
 
+        // Extract all images for gallery
+        const apiImages = (apiActivity.pictures || []).map((p: any) => typeof p === 'string' ? p : p?.url).filter(Boolean);
+
         setActivity({
           id: apiActivity.id,
           name: apiActivity.name,
           description: apiActivity.description || apiActivity.shortDescription || 'Enjoy an exciting activity with professional guides.',
           price: basePrice + markup,
-          image: apiActivity.pictures?.[0]?.url || apiActivity.pictures?.[0] || '/placeholder-activity.jpg',
+          images: apiImages.length > 0 ? apiImages : ['/placeholder-activity.jpg'],
           duration: apiActivity.minimumDuration || '2h',
           location: apiActivity.geoCode ? `${apiActivity.geoCode.latitude.toFixed(2)}, ${apiActivity.geoCode.longitude.toFixed(2)}` : 'Various locations',
           rating: apiActivity.rating || 4.7,
@@ -112,13 +115,13 @@ export default function ActivityDetailsClient({ initialData }: ActivityDetailsCl
     );
   }
 
-  // Map to ExperienceData format
+  // Map to ExperienceData format with full image gallery
   const experienceData = {
     id: activity.id,
     type: 'activity' as const,
     name: activity.name,
     description: activity.description,
-    images: activity.image ? [activity.image] : [],
+    images: activity.images,
     price: activity.price,
     currency: 'USD',
     duration: activity.duration,

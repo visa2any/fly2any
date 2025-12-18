@@ -47,20 +47,27 @@ const ActivitySkeleton = memo(() => (
 ));
 ActivitySkeleton.displayName = 'ActivitySkeleton';
 
-// Memoized Activity Card - Apple Level 6 styling
-const ActivityCard = memo(({ activity, onViewDetails }: { activity: Activity; onViewDetails: (a: Activity, price: number | null, img: string) => void }) => {
+// Memoized Activity Card - Apple Level 6 styling with optimized images
+const ActivityCard = memo(({ activity, onViewDetails }: { activity: Activity; onViewDetails: (a: Activity, price: number | null, images: string[]) => void }) => {
   const basePrice = activity.price?.amount ? parseFloat(activity.price.amount) : null;
   const price = basePrice ? basePrice + Math.max(basePrice * 0.35, 35) : null;
-  const firstPic = activity.pictures?.[0];
-  const img = typeof firstPic === 'string' ? firstPic : firstPic?.url || '/placeholder-activity.jpg';
+  // Extract ALL pictures for gallery support
+  const images = (activity.pictures || []).map(pic => typeof pic === 'string' ? pic : pic?.url).filter(Boolean) as string[];
+  const mainImg = images[0] || '/placeholder-activity.jpg';
+  const hasMultiple = images.length > 1;
 
   return (
     <div className="bg-white rounded-2xl border border-gray-100 overflow-hidden shadow-sm hover:shadow-lg transition-all duration-300 group">
-      <div className="relative aspect-[16/10] overflow-hidden bg-gray-50">
-        <Image src={img} alt={activity.name} fill className="object-cover group-hover:scale-105 transition-transform duration-500" unoptimized loading="lazy" />
+      <div className="relative aspect-[16/10] overflow-hidden bg-gray-100">
+        <Image src={mainImg} alt={activity.name} fill sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw" className="object-cover group-hover:scale-105 transition-transform duration-500" loading="lazy" />
         <button className="absolute top-3 right-3 w-8 h-8 rounded-full bg-white/90 backdrop-blur-sm flex items-center justify-center shadow-sm hover:scale-110 transition-transform">
           <Heart className="w-4 h-4 text-gray-600" />
         </button>
+        {hasMultiple && (
+          <div className="absolute top-3 left-3 px-2 py-1 rounded-lg bg-black/60 text-white text-xs font-medium backdrop-blur-sm">
+            +{images.length - 1} photos
+          </div>
+        )}
         {price && (
           <div className="absolute bottom-3 left-3 px-3 py-1.5 rounded-xl bg-white/95 backdrop-blur-sm shadow-md">
             <span className="font-bold text-gray-900">${price.toFixed(0)}</span>
@@ -74,7 +81,7 @@ const ActivityCard = memo(({ activity, onViewDetails }: { activity: Activity; on
           <span className="flex items-center gap-1"><Star className="w-3.5 h-3.5 fill-amber-400 text-amber-400" />{activity.rating || '4.7'}</span>
           <span className="flex items-center gap-1"><Clock className="w-3.5 h-3.5" />{activity.minimumDuration || '2h'}</span>
         </div>
-        <button onClick={() => onViewDetails(activity, price, img)} className="w-full py-2.5 rounded-xl bg-purple-600 text-white font-semibold text-sm hover:bg-purple-700 transition-colors shadow-sm">
+        <button onClick={() => onViewDetails(activity, price, images)} className="w-full py-2.5 rounded-xl bg-purple-600 text-white font-semibold text-sm hover:bg-purple-700 transition-colors shadow-sm">
           View Details
         </button>
       </div>
@@ -123,9 +130,11 @@ function ActivityResultsContent() {
     }
   }, [searchInput, suggestions, router]);
 
-  const handleViewDetails = useCallback((activity: Activity, price: number | null, img: string) => {
+  const handleViewDetails = useCallback((activity: Activity, price: number | null, images: string[]) => {
     const desc = activity.description || 'Enjoy an exciting activity with professional guides.';
-    router.push(`/activities/${activity.id}?id=${activity.id}&name=${encodeURIComponent(activity.name)}&price=${price || 0}&img=${encodeURIComponent(img)}&duration=${activity.minimumDuration || '2h'}&location=${encodeURIComponent(cityName)}&rating=${activity.rating || 4.7}&desc=${encodeURIComponent(desc.slice(0, 300))}&link=${encodeURIComponent(activity.bookingLink || '')}`);
+    // Pass all images as comma-separated for gallery support
+    const imgsParam = images.slice(0, 5).map(i => encodeURIComponent(i)).join(',');
+    router.push(`/activities/${activity.id}?id=${activity.id}&name=${encodeURIComponent(activity.name)}&price=${price || 0}&imgs=${imgsParam}&duration=${activity.minimumDuration || '2h'}&location=${encodeURIComponent(cityName)}&rating=${activity.rating || 4.7}&desc=${encodeURIComponent(desc.slice(0, 300))}&link=${encodeURIComponent(activity.bookingLink || '')}`);
   }, [router, cityName]);
 
   useEffect(() => {

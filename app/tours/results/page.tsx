@@ -49,20 +49,27 @@ const TourSkeleton = memo(() => (
 ));
 TourSkeleton.displayName = 'TourSkeleton';
 
-// Memoized Tour Card - Apple Level 6 styling
-const TourCard = memo(({ tour, onViewDetails }: { tour: Tour; onViewDetails: (tour: Tour, price: number | null, img: string) => void }) => {
+// Memoized Tour Card - Apple Level 6 styling with optimized images
+const TourCard = memo(({ tour, onViewDetails }: { tour: Tour; onViewDetails: (tour: Tour, price: number | null, images: string[]) => void }) => {
   const basePrice = tour.price?.amount ? parseFloat(tour.price.amount) : null;
   const price = basePrice ? basePrice + Math.max(basePrice * 0.35, 35) : null;
-  const firstPic = tour.pictures?.[0];
-  const img = typeof firstPic === 'string' ? firstPic : firstPic?.url || '/placeholder-tour.jpg';
+  // Extract ALL pictures for gallery support
+  const images = (tour.pictures || []).map(pic => typeof pic === 'string' ? pic : pic?.url).filter(Boolean) as string[];
+  const mainImg = images[0] || '/placeholder-tour.jpg';
+  const hasMultiple = images.length > 1;
 
   return (
     <div className="bg-white rounded-2xl border border-gray-100 overflow-hidden shadow-sm hover:shadow-lg transition-all duration-300 group">
-      <div className="relative aspect-[16/10] overflow-hidden bg-gray-50">
-        <Image src={img} alt={tour.name} fill className="object-cover group-hover:scale-105 transition-transform duration-500" unoptimized loading="lazy" />
+      <div className="relative aspect-[16/10] overflow-hidden bg-gray-100">
+        <Image src={mainImg} alt={tour.name} fill sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw" className="object-cover group-hover:scale-105 transition-transform duration-500" loading="lazy" />
         <button className="absolute top-3 right-3 w-8 h-8 rounded-full bg-white/90 backdrop-blur-sm flex items-center justify-center shadow-sm hover:scale-110 transition-transform">
           <Heart className="w-4 h-4 text-gray-600" />
         </button>
+        {hasMultiple && (
+          <div className="absolute top-3 left-3 px-2 py-1 rounded-lg bg-black/60 text-white text-xs font-medium backdrop-blur-sm">
+            +{images.length - 1} photos
+          </div>
+        )}
         {price && (
           <div className="absolute bottom-3 left-3 px-3 py-1.5 rounded-xl bg-white/95 backdrop-blur-sm shadow-md">
             <span className="font-bold text-gray-900">${price.toFixed(0)}</span>
@@ -76,7 +83,7 @@ const TourCard = memo(({ tour, onViewDetails }: { tour: Tour; onViewDetails: (to
           <span className="flex items-center gap-1"><Star className="w-3.5 h-3.5 fill-amber-400 text-amber-400" />{tour.rating || '4.8'}</span>
           <span className="flex items-center gap-1"><Clock className="w-3.5 h-3.5" />{tour.minimumDuration || '3h'}</span>
         </div>
-        <button onClick={() => onViewDetails(tour, price, img)} className="w-full py-2.5 rounded-xl bg-orange-600 text-white font-semibold text-sm hover:bg-orange-700 transition-colors shadow-sm">
+        <button onClick={() => onViewDetails(tour, price, images)} className="w-full py-2.5 rounded-xl bg-orange-600 text-white font-semibold text-sm hover:bg-orange-700 transition-colors shadow-sm">
           View Details
         </button>
       </div>
@@ -126,9 +133,11 @@ function TourResultsContent() {
     }
   }, [searchInput, suggestions, router]);
 
-  const handleViewDetails = useCallback((tour: Tour, price: number | null, img: string) => {
+  const handleViewDetails = useCallback((tour: Tour, price: number | null, images: string[]) => {
     const desc = tour.shortDescription || tour.description || 'Experience an unforgettable tour with expert guides and amazing sights.';
-    router.push(`/tours/${tour.id}?id=${tour.id}&name=${encodeURIComponent(tour.name)}&price=${price || 0}&img=${encodeURIComponent(img)}&duration=${tour.minimumDuration || '3h'}&location=${encodeURIComponent(cityName)}&rating=${tour.rating || 4.8}&desc=${encodeURIComponent(desc.slice(0, 300))}&link=${encodeURIComponent(tour.bookingLink || '')}`);
+    // Pass all images as comma-separated for gallery support
+    const imgsParam = images.slice(0, 5).map(i => encodeURIComponent(i)).join(',');
+    router.push(`/tours/${tour.id}?id=${tour.id}&name=${encodeURIComponent(tour.name)}&price=${price || 0}&imgs=${imgsParam}&duration=${tour.minimumDuration || '3h'}&location=${encodeURIComponent(cityName)}&rating=${tour.rating || 4.8}&desc=${encodeURIComponent(desc.slice(0, 300))}&link=${encodeURIComponent(tour.bookingLink || '')}`);
   }, [router, cityName]);
 
   useEffect(() => {

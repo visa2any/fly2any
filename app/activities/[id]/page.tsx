@@ -9,12 +9,16 @@ function ActivityDetailsContent() {
   const searchParams = useSearchParams();
 
   // Get activity data from URL params (passed from results page)
+  // Parse multiple images from comma-separated imgs param
+  const imgsParam = searchParams.get('imgs') || searchParams.get('img') || '';
+  const images = imgsParam.split(',').map(i => decodeURIComponent(i)).filter(Boolean);
+
   const activityData = {
     id: searchParams.get('id') || '',
     name: decodeURIComponent(searchParams.get('name') || 'Activity'),
     description: decodeURIComponent(searchParams.get('desc') || ''),
     price: parseFloat(searchParams.get('price') || '0'),
-    image: decodeURIComponent(searchParams.get('img') || ''),
+    images: images.length > 0 ? images : ['/placeholder-activity.jpg'],
     duration: searchParams.get('duration') || '',
     location: decodeURIComponent(searchParams.get('location') || ''),
     rating: parseFloat(searchParams.get('rating') || '4.7'),

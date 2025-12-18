@@ -18,7 +18,8 @@ interface ProductFiltersProps {
   filters: FiltersState;
   onChange: (filters: FiltersState) => void;
   resultCount: number;
-  accentColor?: 'orange' | 'purple'; // Tours = orange, Activities = purple
+  accentColor?: 'orange' | 'purple' | 'teal'; // Tours=orange, Activities=purple, Transfers=teal
+  showDuration?: boolean; // Transfers don't need duration filter
 }
 
 const sortOptions: { value: SortOption; label: string }[] = [
@@ -45,19 +46,20 @@ const durationOptions: { value: DurationRange; label: string }[] = [
   { value: 'full-day', label: 'Full day' },
 ];
 
-export const ProductFilters = memo(({ filters, onChange, resultCount, accentColor = 'orange' }: ProductFiltersProps) => {
+export const ProductFilters = memo(({ filters, onChange, resultCount, accentColor = 'orange', showDuration = true }: ProductFiltersProps) => {
   const [showFilters, setShowFilters] = useState(false);
-  const accent = accentColor === 'purple' ? 'purple' : 'orange';
-  const btnClass = accent === 'purple'
-    ? 'bg-purple-600 hover:bg-purple-700 focus:ring-purple-500'
-    : 'bg-orange-600 hover:bg-orange-700 focus:ring-orange-500';
-  const chipClass = accent === 'purple'
-    ? 'border-purple-300 bg-purple-50 text-purple-700'
-    : 'border-orange-300 bg-orange-50 text-orange-700';
+
+  // Unified accent color system for all 3 products
+  const accentStyles = {
+    orange: { btn: 'bg-orange-600 hover:bg-orange-700', chip: 'border-orange-300 bg-orange-50 text-orange-700' },
+    purple: { btn: 'bg-purple-600 hover:bg-purple-700', chip: 'border-purple-300 bg-purple-50 text-purple-700' },
+    teal: { btn: 'bg-teal-600 hover:bg-teal-700', chip: 'border-teal-300 bg-teal-50 text-teal-700' },
+  };
+  const { btn: btnClass, chip: chipClass } = accentStyles[accentColor] || accentStyles.orange;
 
   const activeFiltersCount = [
     filters.priceRange !== 'all',
-    filters.durationRange !== 'all',
+    showDuration && filters.durationRange !== 'all',
     filters.minRating > 0,
   ].filter(Boolean).length;
 
@@ -130,25 +132,27 @@ export const ProductFilters = memo(({ filters, onChange, resultCount, accentColo
               </div>
             </div>
 
-            {/* Duration Filter */}
-            <div>
-              <label className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2 flex items-center gap-1">
-                <Clock className="w-3.5 h-3.5" /> Duration
-              </label>
-              <div className="flex flex-wrap gap-2">
-                {durationOptions.map(opt => (
-                  <button
-                    key={opt.value}
-                    onClick={() => onChange({ ...filters, durationRange: opt.value })}
-                    className={`px-3 py-1.5 rounded-full text-sm font-medium border transition-colors ${
-                      filters.durationRange === opt.value ? chipClass : 'border-gray-200 hover:border-gray-300'
-                    }`}
-                  >
-                    {opt.label}
-                  </button>
-                ))}
+            {/* Duration Filter - hidden for Transfers */}
+            {showDuration && (
+              <div>
+                <label className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2 flex items-center gap-1">
+                  <Clock className="w-3.5 h-3.5" /> Duration
+                </label>
+                <div className="flex flex-wrap gap-2">
+                  {durationOptions.map(opt => (
+                    <button
+                      key={opt.value}
+                      onClick={() => onChange({ ...filters, durationRange: opt.value })}
+                      className={`px-3 py-1.5 rounded-full text-sm font-medium border transition-colors ${
+                        filters.durationRange === opt.value ? chipClass : 'border-gray-200 hover:border-gray-300'
+                      }`}
+                    >
+                      {opt.label}
+                    </button>
+                  ))}
+                </div>
               </div>
-            </div>
+            )}
 
             {/* Rating Filter */}
             <div>

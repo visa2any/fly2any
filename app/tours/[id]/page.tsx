@@ -9,12 +9,16 @@ function TourDetailsContent() {
   const searchParams = useSearchParams();
 
   // Get tour data from URL params (passed from results page)
+  // Parse multiple images from comma-separated imgs param
+  const imgsParam = searchParams.get('imgs') || searchParams.get('img') || '';
+  const images = imgsParam.split(',').map(i => decodeURIComponent(i)).filter(Boolean);
+
   const tourData = {
     id: searchParams.get('id') || '',
     name: decodeURIComponent(searchParams.get('name') || 'Tour'),
     description: decodeURIComponent(searchParams.get('desc') || ''),
     price: parseFloat(searchParams.get('price') || '0'),
-    image: decodeURIComponent(searchParams.get('img') || ''),
+    images: images.length > 0 ? images : ['/placeholder-tour.jpg'],
     duration: searchParams.get('duration') || '',
     location: decodeURIComponent(searchParams.get('location') || ''),
     rating: parseFloat(searchParams.get('rating') || '4.8'),

@@ -15,7 +15,7 @@ interface TourData {
   name: string;
   description: string;
   price: number;
-  image: string;
+  images: string[]; // Multi-image gallery support
   duration: string;
   location: string;
   rating: number;
@@ -60,12 +60,15 @@ export default function TourDetailsClient({ initialData }: TourDetailsClientProp
         const basePrice = apiTour.price?.amount ? parseFloat(apiTour.price.amount) : 0;
         const markup = Math.max(basePrice * 0.35, 35);
 
+        // Extract all images for gallery
+        const apiImages = (apiTour.pictures || []).map((p: any) => typeof p === 'string' ? p : p?.url).filter(Boolean);
+
         setTour({
           id: apiTour.id,
           name: apiTour.name,
           description: apiTour.description || apiTour.shortDescription || 'Experience an unforgettable tour with expert guides and amazing sights.',
           price: basePrice + markup,
-          image: apiTour.pictures?.[0]?.url || apiTour.pictures?.[0] || '/placeholder-tour.jpg',
+          images: apiImages.length > 0 ? apiImages : ['/placeholder-tour.jpg'],
           duration: apiTour.minimumDuration || '3h',
           location: apiTour.geoCode ? `${apiTour.geoCode.latitude.toFixed(2)}, ${apiTour.geoCode.longitude.toFixed(2)}` : 'Various locations',
           rating: apiTour.rating || 4.8,
@@ -115,13 +118,13 @@ export default function TourDetailsClient({ initialData }: TourDetailsClientProp
     );
   }
 
-  // Map to ExperienceData format
+  // Map to ExperienceData format with full image gallery
   const experienceData = {
     id: tour.id,
     type: 'tour' as const,
     name: tour.name,
     description: tour.description,
-    images: tour.image ? [tour.image] : [],
+    images: tour.images,
     price: tour.price,
     currency: 'USD',
     duration: tour.duration,
