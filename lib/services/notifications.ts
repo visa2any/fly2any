@@ -8,10 +8,12 @@
  * - Redis caching with 5-minute TTL
  * - Parallel database queries
  * - Optimized query patterns
+ * - SSE broadcast for real-time updates
  */
 
 import { getPrismaClient } from '@/lib/prisma';
 import redis, { isRedisEnabled } from '@/lib/cache/redis';
+import { broadcastSSE } from '@/lib/notifications/notification-service';
 import {
   Notification,
   NotificationType,
@@ -48,7 +50,7 @@ export async function createNotification(
       },
     });
 
-    return {
+    const result: Notification = {
       ...notification,
       type: notification.type as NotificationType,
       priority: notification.priority as NotificationPriority,
@@ -57,6 +59,31 @@ export async function createNotification(
       readAt: notification.readAt || undefined,
       metadata: notification.metadata as any,
     };
+
+    // Broadcast via SSE for real-time updates to admin dashboard
+    try {
+      const eventName = data.type === 'booking_confirmed' ? 'booking_created' : 'notification';
+      broadcastSSE('admin', eventName, {
+        type: eventName,
+        bookingReference: (data.metadata as any)?.bookingReference,
+        timestamp: new Date().toISOString(),
+        payload: {
+          notificationId: notification.id,
+          title: data.title,
+          message: data.message,
+          priority: data.priority,
+          actionUrl: data.actionUrl,
+          customerName: (data.metadata as any)?.customerEmail?.split('@')[0] || 'Customer',
+          route: (data.metadata as any)?.route,
+          bookingId: (data.metadata as any)?.bookingId,
+        },
+      });
+      console.log(`📡 SSE broadcast sent: ${eventName}`);
+    } catch (sseError) {
+      console.warn('⚠️ SSE broadcast failed (non-critical):', sseError);
+    }
+
+    return result;
   } catch (error) {
     console.error('Error creating notification:', error);
     throw new Error('Failed to create notification');

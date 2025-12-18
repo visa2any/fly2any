@@ -1,19 +1,15 @@
 /**
  * Hotel Booking Confirmation Email Service
  * Sends professional HTML emails for booking confirmations, reminders, and cancellations
+ *
+ * @version 2.0.0 - Migrated from Resend to Mailgun for unified email infrastructure
  */
 
-import { Resend } from 'resend'
+import { mailgunClient, MAILGUN_CONFIG } from '@/lib/email/mailgun-client';
 import { format } from 'date-fns'
 
-if (!process.env.RESEND_API_KEY) {
-  console.warn('RESEND_API_KEY is not set. Emails will not be sent.')
-}
-
-const resend = process.env.RESEND_API_KEY ? new Resend(process.env.RESEND_API_KEY) : null
-
-const FROM_EMAIL = process.env.EMAIL_FROM || 'bookings@fly2any.com'
-const REPLY_TO_EMAIL = process.env.EMAIL_REPLY_TO || 'support@fly2any.com'
+const FROM_EMAIL = MAILGUN_CONFIG.fromEmail
+const REPLY_TO_EMAIL = MAILGUN_CONFIG.replyToEmail
 const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL || 'https://fly2any.com'
 
 export interface HotelBookingEmailData {
@@ -44,11 +40,6 @@ export interface HotelBookingEmailData {
  * Send booking confirmation email
  */
 export async function sendHotelConfirmationEmail(data: HotelBookingEmailData): Promise<boolean> {
-  if (!resend) {
-    console.error('Resend is not configured. Cannot send confirmation email.')
-    return false
-  }
-
   try {
     const checkIn = format(data.checkInDate, 'EEEE, MMMM d, yyyy')
     const checkOut = format(data.checkOutDate, 'EEEE, MMMM d, yyyy')
@@ -273,19 +264,25 @@ Need help? Contact support: ${BASE_URL}/help/contact
 © ${new Date().getFullYear()} Fly2Any. All rights reserved.
     `
 
-    await resend.emails.send({
+    const result = await mailgunClient.send({
       from: FROM_EMAIL,
       to: data.guestEmail,
       replyTo: REPLY_TO_EMAIL,
       subject: `Booking Confirmed - ${data.hotelName} (${data.confirmationNumber})`,
       html: emailHtml,
       text: plainText,
+      forceSend: true,
+      tags: ['hotel', 'booking', 'confirmation'],
     })
 
-    console.log(`✅ Confirmation email sent to ${data.guestEmail}`)
-    return true
+    if (result.success) {
+      console.log(`✅ Hotel confirmation email sent to ${data.guestEmail}`)
+    } else {
+      console.error(`❌ Hotel confirmation email failed: ${result.error}`)
+    }
+    return result.success
   } catch (error) {
-    console.error('Error sending confirmation email:', error)
+    console.error('Error sending hotel confirmation email:', error)
     return false
   }
 }
@@ -294,15 +291,10 @@ Need help? Contact support: ${BASE_URL}/help/contact
  * Send pre-arrival reminder email (24 hours before check-in)
  */
 export async function sendPreArrivalReminder(data: HotelBookingEmailData): Promise<boolean> {
-  if (!resend) {
-    console.error('Resend is not configured. Cannot send reminder email.')
-    return false
-  }
-
   try {
     const checkIn = format(data.checkInDate, 'EEEE, MMMM d, yyyy')
 
-    await resend.emails.send({
+    const result = await mailgunClient.send({
       from: FROM_EMAIL,
       to: data.guestEmail,
       replyTo: REPLY_TO_EMAIL,
@@ -318,10 +310,14 @@ export async function sendPreArrivalReminder(data: HotelBookingEmailData): Promi
         <p>View booking details: <a href="${BASE_URL}/account/bookings/${data.bookingId}">Manage Booking</a></p>
       `,
       text: `Your check-in is tomorrow at ${data.hotelName}!\n\nConfirmation: ${data.confirmationNumber}\nRoom: ${data.roomName}\n\nBring your ID and confirmation number.\n\nView booking: ${BASE_URL}/account/bookings/${data.bookingId}`,
+      forceSend: true,
+      tags: ['hotel', 'reminder', 'pre-arrival'],
     })
 
-    console.log(`✅ Pre-arrival reminder sent to ${data.guestEmail}`)
-    return true
+    if (result.success) {
+      console.log(`✅ Pre-arrival reminder sent to ${data.guestEmail}`)
+    }
+    return result.success
   } catch (error) {
     console.error('Error sending pre-arrival reminder:', error)
     return false
@@ -334,17 +330,12 @@ export async function sendPreArrivalReminder(data: HotelBookingEmailData): Promi
 export async function sendCancellationEmail(
   data: HotelBookingEmailData & { refundAmount?: number; cancellationReason?: string }
 ): Promise<boolean> {
-  if (!resend) {
-    console.error('Resend is not configured. Cannot send cancellation email.')
-    return false
-  }
-
   try {
     const refundText = data.refundAmount
       ? new Intl.NumberFormat('en-US', { style: 'currency', currency: data.currency }).format(data.refundAmount)
       : 'No refund (non-refundable booking)'
 
-    await resend.emails.send({
+    const result = await mailgunClient.send({
       from: FROM_EMAIL,
       to: data.guestEmail,
       replyTo: REPLY_TO_EMAIL,
@@ -360,12 +351,16 @@ export async function sendCancellationEmail(
         <p>If you have any questions, please contact our support team.</p>
       `,
       text: `Booking Cancelled\n\nHotel: ${data.hotelName}\nConfirmation: ${data.confirmationNumber}\nRefund: ${refundText}\n${data.refundAmount ? 'Refunds appear in 5-10 business days.' : ''}`,
+      forceSend: true,
+      tags: ['hotel', 'cancellation'],
     })
 
-    console.log(`✅ Cancellation email sent to ${data.guestEmail}`)
-    return true
+    if (result.success) {
+      console.log(`✅ Hotel cancellation email sent to ${data.guestEmail}`)
+    }
+    return result.success
   } catch (error) {
-    console.error('Error sending cancellation email:', error)
+    console.error('Error sending hotel cancellation email:', error)
     return false
   }
 }
