@@ -50,14 +50,15 @@ export async function GET(request: NextRequest) {
     let apiError: string | null = null;
 
     try {
-      // Add timeout for slow API calls
+      // Add timeout for slow API calls (25s for large datasets)
+      // Cap radius at 10km to avoid timeouts in busy cities
       const result = await Promise.race([
         amadeusAPI.searchActivities({
           latitude,
           longitude,
-          radius: Math.min(radius, 20),
+          radius: Math.min(radius, 10),
         }),
-        new Promise((_, reject) => setTimeout(() => reject(new Error('Amadeus timeout')), 15000))
+        new Promise((_, reject) => setTimeout(() => reject(new Error('Amadeus timeout')), 25000))
       ]) as any;
 
       activities = result.data || [];

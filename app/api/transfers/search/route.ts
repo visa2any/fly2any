@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getCached, setCache, generateCacheKey } from '@/lib/cache';
 import { amadeus } from '@/lib/api/amadeus';
 import { handleApiError, ErrorCategory, ErrorSeverity } from '@/lib/monitoring/global-error-handler';
+import { GLOBAL_CITIES } from '@/lib/data/global-cities-database';
 
 export const dynamic = 'force-dynamic';
 
@@ -167,6 +168,44 @@ function extractAirportCode(location: string): string | null {
   return null;
 }
 
+/**
+ * Geocode a location string to coordinates using our cities database
+ * Fallback to well-known locations
+ */
+function geocodeLocation(location: string): { latitude: number; longitude: number } | null {
+  const q = location.toLowerCase().trim();
+
+  // Search in global cities database
+  const city = GLOBAL_CITIES.find(c =>
+    c.name.toLowerCase() === q ||
+    c.id === q ||
+    c.aliases?.some(a => q.includes(a.toLowerCase())) ||
+    q.includes(c.name.toLowerCase())
+  );
+
+  if (city) {
+    return { latitude: city.location.lat, longitude: city.location.lng };
+  }
+
+  // Fallback for common city centers
+  const knownLocations: Record<string, { latitude: number; longitude: number }> = {
+    'manhattan': { latitude: 40.7831, longitude: -73.9712 },
+    'times square': { latitude: 40.7580, longitude: -73.9855 },
+    'downtown': { latitude: 40.7128, longitude: -74.0060 },
+    'city center': { latitude: 40.7128, longitude: -74.0060 },
+    'central park': { latitude: 40.7829, longitude: -73.9654 },
+    'hollywood': { latitude: 34.0928, longitude: -118.3287 },
+    'paris city': { latitude: 48.8566, longitude: 2.3522 },
+    'london city': { latitude: 51.5074, longitude: -0.1278 },
+  };
+
+  for (const [key, coords] of Object.entries(knownLocations)) {
+    if (q.includes(key)) return coords;
+  }
+
+  return null;
+}
+
 export async function GET(request: NextRequest) {
   return handleApiError(request, async () => {
     const { searchParams } = new URL(request.url);
@@ -211,18 +250,28 @@ export async function GET(request: NextRequest) {
       passengers,
     };
 
-    // Set start location
+    // Set start location (prefer airport code, then geocode, then address)
     if (pickupCode) {
       amadeusParams.startLocationCode = pickupCode;
     } else {
-      amadeusParams.startAddressLine = pickup;
+      const pickupGeo = geocodeLocation(pickup);
+      if (pickupGeo) {
+        amadeusParams.startGeoCode = pickupGeo;
+      } else {
+        amadeusParams.startAddressLine = pickup;
+      }
     }
 
-    // Set end location
+    // Set end location (prefer airport code, then geocode, then address)
     if (dropoffCode) {
       amadeusParams.endLocationCode = dropoffCode;
     } else {
-      amadeusParams.endAddressLine = dropoff;
+      const dropoffGeo = geocodeLocation(dropoff);
+      if (dropoffGeo) {
+        amadeusParams.endGeoCode = dropoffGeo;
+      } else {
+        amadeusParams.endAddressLine = dropoff;
+      }
     }
 
     // Optional transfer type filter
@@ -230,14 +279,16 @@ export async function GET(request: NextRequest) {
       amadeusParams.transferType = transferType.toUpperCase().replace('-', '_');
     }
 
-    // Search Amadeus for real transfer offers with timeout
+    // Search Amadeus for real transfer offers with timeout (25s)
     let transfers: any[] = [];
     let apiError: string | null = null;
+
+    console.log('🚗 Transfer search params:', JSON.stringify(amadeusParams, null, 2));
 
     try {
       const amadeusResponse = await Promise.race([
         amadeus.searchTransfers(amadeusParams),
-        new Promise((_, reject) => setTimeout(() => reject(new Error('Amadeus timeout')), 15000))
+        new Promise((_, reject) => setTimeout(() => reject(new Error('Amadeus timeout')), 25000))
       ]) as any;
 
       if (amadeusResponse?.data && Array.isArray(amadeusResponse.data)) {
