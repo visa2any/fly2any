@@ -3,7 +3,8 @@
 import { useState, useEffect, Suspense, memo, useCallback, useMemo } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { MaxWidthContainer } from '@/components/layout/MaxWidthContainer';
-import { Star, Clock, Users, Loader2, ArrowLeft, MapPin, Navigation, Check, Shield, ArrowUpDown } from 'lucide-react';
+import { Star, Clock, Users, Loader2, ArrowLeft, MapPin, Navigation, Check, Shield } from 'lucide-react';
+import { ProductFilters, applyFilters, defaultFilters } from '@/components/shared/ProductFilters';
 
 interface Transfer {
   id: string;
@@ -21,16 +22,7 @@ interface Transfer {
   cancellation: string;
 }
 
-type SortOption = 'recommended' | 'price-low' | 'price-high' | 'rating';
-type CategoryFilter = 'all' | 'private' | 'luxury' | 'shared' | 'group';
-
-const sortOptions = [
-  { value: 'recommended', label: 'Recommended' },
-  { value: 'price-low', label: 'Price: Low to High' },
-  { value: 'price-high', label: 'Price: High to Low' },
-  { value: 'rating', label: 'Top Rated' },
-];
-
+// Category filter chips - transfer-specific
 const categoryOptions = [
   { value: 'all', label: 'All Types' },
   { value: 'private', label: 'Private' },
@@ -123,13 +115,15 @@ const TransferCard = memo(({ transfer, onViewDetails }: { transfer: Transfer; on
 });
 TransferCard.displayName = 'TransferCard';
 
+type CategoryFilter = 'all' | 'private' | 'luxury' | 'shared' | 'group';
+
 function TransferResultsContent() {
   const searchParams = useSearchParams();
   const router = useRouter();
   const [transfers, setTransfers] = useState<Transfer[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
-  const [sort, setSort] = useState<SortOption>('recommended');
+  const [filters, setFilters] = useState(defaultFilters);
   const [category, setCategory] = useState<CategoryFilter>('all');
 
   const pickup = searchParams.get('pickup') || '';
@@ -183,16 +177,22 @@ function TransferResultsContent() {
     return () => controller.abort();
   }, [pickup, dropoff, date, passengers]);
 
+  // Price getter for ProductFilters
+  const getPrice = useCallback((t: Transfer) => parseFloat(t.price.amount), []);
+
+  // Apply unified filters + category filter
   const filteredTransfers = useMemo(() => {
-    let result = [...transfers];
-    if (category !== 'all') result = result.filter(t => t.category === category);
-    switch (sort) {
-      case 'price-low': result.sort((a, b) => parseFloat(a.price.amount) - parseFloat(b.price.amount)); break;
-      case 'price-high': result.sort((a, b) => parseFloat(b.price.amount) - parseFloat(a.price.amount)); break;
-      case 'rating': result.sort((a, b) => parseFloat(b.rating) - parseFloat(a.rating)); break;
-    }
-    return result;
-  }, [transfers, sort, category]);
+    // First apply category filter
+    let result = category !== 'all' ? transfers.filter(t => t.category === category) : transfers;
+
+    // Map to format expected by applyFilters (add rating as number)
+    const mapped = result.map(t => ({ ...t, rating: parseFloat(t.rating), minimumDuration: t.duration }));
+
+    // Apply price/rating/sort filters
+    const filtered = applyFilters(mapped, filters, (item) => getPrice(item as unknown as Transfer));
+
+    return filtered as unknown as Transfer[];
+  }, [transfers, filters, category, getPrice]);
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-teal-50/50 to-white">
@@ -229,16 +229,18 @@ function TransferResultsContent() {
           <span className="text-gray-500">{passengers} passenger{passengers > 1 ? 's' : ''}</span>
         </div>
 
-        {/* Filters */}
+        {/* Unified Filters + Category Chips */}
         {!loading && transfers.length > 0 && (
-          <div className="py-3 flex items-center gap-3 flex-wrap">
-            <div className="flex items-center gap-2">
-              <ArrowUpDown className="w-4 h-4 text-gray-400" />
-              <select value={sort} onChange={(e) => setSort(e.target.value as SortOption)} className="pl-2 pr-6 py-2 text-sm border border-gray-200 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-teal-500">
-                {sortOptions.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
-              </select>
-            </div>
-            <div className="flex gap-2">
+          <>
+            <ProductFilters
+              filters={filters}
+              onChange={setFilters}
+              resultCount={filteredTransfers.length}
+              accentColor="teal"
+              showDuration={false}
+            />
+            {/* Category Filter Chips */}
+            <div className="py-2 flex gap-2 flex-wrap">
               {categoryOptions.map(o => (
                 <button
                   key={o.value}
@@ -251,7 +253,7 @@ function TransferResultsContent() {
                 </button>
               ))}
             </div>
-          </div>
+          </>
         )}
 
         {/* Loading Skeleton - Better perceived performance */}
@@ -261,8 +263,8 @@ function TransferResultsContent() {
               <Loader2 className="w-4 h-4 text-teal-500 animate-spin" />
               <span className="text-sm text-gray-600">Finding the best transfers for you...</span>
             </div>
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-              {[1, 2, 3, 4].map((i) => <TransferSkeleton key={i} />)}
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+              {[1, 2, 3, 4, 5, 6, 7, 8].map((i) => <TransferSkeleton key={i} />)}
             </div>
           </div>
         )}
@@ -275,9 +277,9 @@ function TransferResultsContent() {
           </div>
         )}
 
-        {/* Results Grid */}
+        {/* Results Grid - Standardized 4-col layout */}
         {!loading && filteredTransfers.length > 0 && (
-          <div className="py-4 grid grid-cols-1 lg:grid-cols-2 gap-4">
+          <div className="py-4 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
             {filteredTransfers.map((transfer) => (
               <TransferCard key={transfer.id} transfer={transfer} onViewDetails={handleViewDetails} />
             ))}
@@ -289,6 +291,20 @@ function TransferResultsContent() {
           <div className="text-center py-16">
             <Navigation className="w-12 h-12 text-gray-300 mx-auto mb-3" />
             <p className="text-gray-500">No transfers found for this route</p>
+          </div>
+        )}
+
+        {/* No matches after filter */}
+        {!loading && transfers.length > 0 && filteredTransfers.length === 0 && (
+          <div className="text-center py-16">
+            <Navigation className="w-12 h-12 text-gray-300 mx-auto mb-3" />
+            <p className="text-gray-500">No transfers match your filters</p>
+            <button
+              onClick={() => { setFilters(defaultFilters); setCategory('all'); }}
+              className="mt-3 text-teal-600 font-medium hover:underline"
+            >
+              Clear filters
+            </button>
           </div>
         )}
       </MaxWidthContainer>
