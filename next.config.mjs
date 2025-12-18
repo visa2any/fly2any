@@ -19,14 +19,115 @@ const nextConfig = {
     ignoreDuringBuilds: true,
   },
 
-  // Redirect legacy /home-new to root /
+  // SEO Redirects - Legacy URLs to current routes (301 permanent)
   async redirects() {
     return [
-      {
-        source: '/home-new',
-        destination: '/',
-        permanent: true,
-      },
+      // === LEGACY HOME/MISC ===
+      { source: '/home-new', destination: '/', permanent: true },
+      { source: '/en', destination: '/', permanent: true },
+      { source: '/pt', destination: '/', permanent: true },
+      { source: '/es', destination: '/', permanent: true },
+      { source: '/sitemap', destination: '/sitemap.xml', permanent: true },
+
+      // === PORTUGUESE ROUTES → ENGLISH ===
+      { source: '/cotacao', destination: '/', permanent: true },
+      { source: '/cotacao/voos', destination: '/journey/flights', permanent: true },
+      { source: '/cotacao/hoteis', destination: '/hotels', permanent: true },
+      { source: '/cotacao/carros', destination: '/cars', permanent: true },
+      { source: '/cotacao/passeios', destination: '/tours', permanent: true },
+      { source: '/hoteis', destination: '/hotels', permanent: true },
+      { source: '/hoteis-brasil', destination: '/hotels', permanent: true },
+      { source: '/passagens-aereas', destination: '/journey/flights', permanent: true },
+      { source: '/aluguel-carros', destination: '/cars', permanent: true },
+      { source: '/aluguel-carros-brasil', destination: '/cars', permanent: true },
+      { source: '/seguro-viagem', destination: '/', permanent: true },
+      { source: '/seguro-viagem-brasil', destination: '/', permanent: true },
+      { source: '/passeios-tours', destination: '/tours', permanent: true },
+      { source: '/sobre', destination: '/', permanent: true },
+      { source: '/sobre-nos', destination: '/', permanent: true },
+      { source: '/contato', destination: '/', permanent: true },
+      { source: '/como-funciona', destination: '/', permanent: true },
+      { source: '/termos-uso', destination: '/', permanent: true },
+      { source: '/seguranca', destination: '/', permanent: true },
+      { source: '/cookies', destination: '/', permanent: true },
+
+      // === PORTUGUESE FLIGHT ROUTES ===
+      { source: '/voos-miami-sao-paulo', destination: '/journey/flights?origin=MIA&destination=GRU', permanent: true },
+      { source: '/voos-new-york-rio-janeiro', destination: '/journey/flights?origin=JFK&destination=GIG', permanent: true },
+      { source: '/voos-brasil-eua', destination: '/journey/flights', permanent: true },
+
+      // === ENGLISH STATIC PAGES ===
+      { source: '/about', destination: '/', permanent: true },
+      { source: '/contact', destination: '/', permanent: true },
+      { source: '/support', destination: '/', permanent: true },
+      { source: '/help', destination: '/', permanent: true },
+      { source: '/faq', destination: '/', permanent: true },
+      { source: '/careers', destination: '/', permanent: true },
+      { source: '/press', destination: '/', permanent: true },
+      { source: '/accessibility', destination: '/', permanent: true },
+      { source: '/terms', destination: '/', permanent: true },
+      { source: '/terms-of-service', destination: '/', permanent: true },
+      { source: '/privacy', destination: '/', permanent: true },
+      { source: '/privacy-policy', destination: '/', permanent: true },
+      { source: '/cookie-policy', destination: '/', permanent: true },
+      { source: '/security', destination: '/', permanent: true },
+      { source: '/how-it-works', destination: '/', permanent: true },
+
+      // === ENGLISH FEATURE PAGES ===
+      { source: '/packages', destination: '/', permanent: true },
+      { source: '/deals', destination: '/', permanent: true },
+      { source: '/travel-insurance', destination: '/', permanent: true },
+      { source: '/manage-booking', destination: '/account/bookings', permanent: true },
+      { source: '/flight-status', destination: '/', permanent: true },
+      { source: '/price-alerts', destination: '/account/alerts', permanent: true },
+      { source: '/group-bookings', destination: '/', permanent: true },
+      { source: '/ai-assistant', destination: '/', permanent: true },
+      { source: '/chat', destination: '/', permanent: true },
+      { source: '/refer', destination: '/account/referrals', permanent: true },
+      { source: '/affiliate', destination: '/', permanent: true },
+
+      // === AUTH PAGES ===
+      { source: '/login', destination: '/auth/login', permanent: true },
+      { source: '/forgot-password', destination: '/auth/login', permanent: true },
+
+      // === FLIGHT ROUTES ===
+      { source: '/miami-sao-paulo-flights', destination: '/journey/flights?origin=MIA&destination=GRU', permanent: true },
+      { source: '/new-york-rio-flights', destination: '/journey/flights?origin=JFK&destination=GIG', permanent: true },
+      { source: '/flights/:path*', destination: '/journey/flights', permanent: true },
+      { source: '/usa/flights-from-miami', destination: '/journey/flights?origin=MIA', permanent: true },
+
+      // === DESTINATION PAGES ===
+      { source: '/destinations/paris', destination: '/', permanent: true },
+      { source: '/destinations/tokyo', destination: '/', permanent: true },
+      { source: '/destinations/new-york', destination: '/', permanent: true },
+      { source: '/destinations/:city', destination: '/', permanent: true },
+
+      // === MULTILINGUAL CITY PAGES ===
+      { source: '/en/city/:slug', destination: '/', permanent: true },
+      { source: '/en/cidade/:slug', destination: '/', permanent: true },
+      { source: '/es/ciudad/:slug', destination: '/', permanent: true },
+      { source: '/es/cidade/:slug', destination: '/', permanent: true },
+      { source: '/pt/cidade/:slug', destination: '/', permanent: true },
+
+      // === SPANISH PAGES ===
+      { source: '/es/nosotros', destination: '/', permanent: true },
+      { source: '/es/contacto', destination: '/', permanent: true },
+
+      // === ENGLISH INFO PAGES ===
+      { source: '/en/contact', destination: '/', permanent: true },
+      { source: '/en/brazil-travel-guide', destination: '/', permanent: true },
+
+      // === BLOG REDIRECTS ===
+      { source: '/blog', destination: '/', permanent: true },
+      { source: '/blog/:id(\\d+)', destination: '/', permanent: true },
+      { source: '/blog/como-economizar-passagens-aereas', destination: '/', permanent: true },
+      { source: '/blog/melhores-voos-brasil-eua', destination: '/', permanent: true },
+      { source: '/blog/documentos-viagem-brasil-eua', destination: '/', permanent: true },
+      { source: '/blog/:slug', destination: '/', permanent: true },
+
+      // === GARBAGE URLs (invalid characters) ===
+      { source: '/%24', destination: '/', permanent: true }, // /$
+      { source: '/%26', destination: '/', permanent: true }, // /&
     ];
   },
 
