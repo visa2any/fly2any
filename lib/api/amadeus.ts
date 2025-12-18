@@ -1540,7 +1540,7 @@ class AmadeusAPI {
 
       if (params.radius) searchParams.radius = params.radius;
 
-      console.log(`🎭 Searching activities at coordinates ${params.latitude}, ${params.longitude}...`);
+      console.log(`🎭 Searching activities at coordinates ${params.latitude}, ${params.longitude} (radius: ${params.radius || 1}km)...`);
 
       const response = await axios.get(
         `${this.baseUrl}/v1/shopping/activities`,
@@ -1549,14 +1549,17 @@ class AmadeusAPI {
           headers: {
             Authorization: `Bearer ${token}`,
           },
+          timeout: 20000, // 20 second timeout
         }
       );
 
       console.log(`✅ Found ${response.data.data?.length || 0} activities`);
       return response.data;
     } catch (error: any) {
-      console.error('Error searching activities:', error.response?.data || error);
-      throw new Error('Failed to search activities');
+      // Log error but return empty instead of throwing (graceful degradation)
+      const errMsg = error.code === 'ECONNABORTED' ? 'timeout' : (error.response?.data?.errors?.[0]?.detail || error.message);
+      console.error(`⚠️ Activities search failed: ${errMsg}`);
+      return { data: [] };
     }
   }
 
