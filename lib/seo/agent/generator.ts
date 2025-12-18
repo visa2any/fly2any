@@ -1,13 +1,32 @@
 /**
  * SEO CONTENT GENERATOR AGENT
- * AI-powered programmatic content generation
+ * AI-powered programmatic content generation using Groq
  */
 
-import Anthropic from '@anthropic-ai/sdk';
+const GROQ_API_URL = 'https://api.groq.com/openai/v1/chat/completions';
 
-const anthropic = new Anthropic({
-  apiKey: process.env.ANTHROPIC_API_KEY,
-});
+async function callGroq(prompt: string, maxTokens = 2000): Promise<string> {
+  const response = await fetch(GROQ_API_URL, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${process.env.GROQ_API_KEY}`,
+    },
+    body: JSON.stringify({
+      model: 'llama-3.1-70b-versatile',
+      messages: [{ role: 'user', content: prompt }],
+      max_tokens: maxTokens,
+      temperature: 0.3,
+    }),
+  });
+
+  if (!response.ok) {
+    throw new Error(`Groq API error: ${response.status}`);
+  }
+
+  const data = await response.json();
+  return data.choices?.[0]?.message?.content || '';
+}
 
 export interface GeneratedContent {
   title: string;
@@ -82,13 +101,7 @@ Return valid JSON:
   "internalLinks": [{"text": "...", "href": "..."}]
 }`;
 
-  const response = await anthropic.messages.create({
-    model: 'claude-sonnet-4-20250514',
-    max_tokens: 2000,
-    messages: [{ role: 'user', content: prompt }],
-  });
-
-  const text = response.content[0].type === 'text' ? response.content[0].text : '';
+  const text = await callGroq(prompt, 2000);
   const jsonMatch = text.match(/\{[\s\S]*\}/);
 
   if (!jsonMatch) {
@@ -132,13 +145,7 @@ Rules:
 Return JSON array:
 [{"question": "...", "answer": "..."}]`;
 
-  const response = await anthropic.messages.create({
-    model: 'claude-sonnet-4-20250514',
-    max_tokens: 1000,
-    messages: [{ role: 'user', content: prompt }],
-  });
-
-  const text = response.content[0].type === 'text' ? response.content[0].text : '';
+  const text = await callGroq(prompt, 1000);
   const jsonMatch = text.match(/\[[\s\S]*\]/);
 
   if (!jsonMatch) {

@@ -8,7 +8,7 @@
  * - Detect sitemap mismatches
  * - Send alerts for critical issues
  *
- * Schedule: 0 */6 * * * (every 6 hours)
+ * Schedule: Every 6 hours (see vercel.json)
  */
 
 import { NextRequest, NextResponse } from 'next/server';
