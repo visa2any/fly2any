@@ -1,7 +1,7 @@
 'use client';
 
-import { memo, useState } from 'react';
-import { SlidersHorizontal, ChevronDown, X, Star, Clock, DollarSign, ArrowUpDown } from 'lucide-react';
+import { memo, useRef } from 'react';
+import { Star, X, ChevronLeft, ChevronRight } from 'lucide-react';
 
 export type SortOption = 'recommended' | 'price-low' | 'price-high' | 'rating' | 'duration';
 export type PriceRange = 'all' | 'under-50' | '50-100' | '100-200' | 'over-200';
@@ -18,179 +18,160 @@ interface ProductFiltersProps {
   filters: FiltersState;
   onChange: (filters: FiltersState) => void;
   resultCount: number;
-  accentColor?: 'orange' | 'purple' | 'teal'; // Tours=orange, Activities=purple, Transfers=teal
-  showDuration?: boolean; // Transfers don't need duration filter
+  accentColor?: 'orange' | 'purple' | 'teal';
+  showDuration?: boolean;
 }
 
-const sortOptions: { value: SortOption; label: string }[] = [
-  { value: 'recommended', label: 'Recommended' },
-  { value: 'price-low', label: 'Price: Low to High' },
-  { value: 'price-high', label: 'Price: High to Low' },
-  { value: 'rating', label: 'Top Rated' },
-  { value: 'duration', label: 'Duration' },
+// All filter pills in a single array for horizontal layout
+const sortPills: { value: SortOption; label: string; icon?: string }[] = [
+  { value: 'recommended', label: 'Recommended', icon: '✨' },
+  { value: 'price-low', label: 'Price ↓' },
+  { value: 'price-high', label: 'Price ↑' },
+  { value: 'rating', label: 'Top Rated', icon: '⭐' },
 ];
 
-const priceOptions: { value: PriceRange; label: string }[] = [
-  { value: 'all', label: 'Any Price' },
+const pricePills: { value: PriceRange; label: string }[] = [
   { value: 'under-50', label: 'Under $50' },
-  { value: '50-100', label: '$50 - $100' },
-  { value: '100-200', label: '$100 - $200' },
+  { value: '50-100', label: '$50-100' },
+  { value: '100-200', label: '$100-200' },
   { value: 'over-200', label: '$200+' },
 ];
 
-const durationOptions: { value: DurationRange; label: string }[] = [
-  { value: 'all', label: 'Any Duration' },
-  { value: 'under-2h', label: 'Under 2 hours' },
-  { value: '2-4h', label: '2 - 4 hours' },
-  { value: '4-8h', label: '4 - 8 hours' },
+const durationPills: { value: DurationRange; label: string }[] = [
+  { value: 'under-2h', label: '<2h' },
+  { value: '2-4h', label: '2-4h' },
+  { value: '4-8h', label: '4-8h' },
   { value: 'full-day', label: 'Full day' },
 ];
 
+const ratingPills = [4.5, 4, 3.5];
+
 export const ProductFilters = memo(({ filters, onChange, resultCount, accentColor = 'orange', showDuration = true }: ProductFiltersProps) => {
-  const [showFilters, setShowFilters] = useState(false);
+  const scrollRef = useRef<HTMLDivElement>(null);
 
-  // Unified accent color system for all 3 products
-  const accentStyles = {
-    orange: { btn: 'bg-orange-600 hover:bg-orange-700', chip: 'border-orange-300 bg-orange-50 text-orange-700' },
-    purple: { btn: 'bg-purple-600 hover:bg-purple-700', chip: 'border-purple-300 bg-purple-50 text-purple-700' },
-    teal: { btn: 'bg-teal-600 hover:bg-teal-700', chip: 'border-teal-300 bg-teal-50 text-teal-700' },
+  // Accent colors
+  const colors = {
+    orange: { active: 'bg-orange-500 text-white border-orange-500', hover: 'hover:border-orange-300 hover:bg-orange-50' },
+    purple: { active: 'bg-purple-500 text-white border-purple-500', hover: 'hover:border-purple-300 hover:bg-purple-50' },
+    teal: { active: 'bg-teal-500 text-white border-teal-500', hover: 'hover:border-teal-300 hover:bg-teal-50' },
   };
-  const { btn: btnClass, chip: chipClass } = accentStyles[accentColor] || accentStyles.orange;
+  const { active, hover } = colors[accentColor];
 
-  const activeFiltersCount = [
-    filters.priceRange !== 'all',
-    showDuration && filters.durationRange !== 'all',
-    filters.minRating > 0,
-  ].filter(Boolean).length;
+  const hasActiveFilters = filters.priceRange !== 'all' || filters.durationRange !== 'all' || filters.minRating > 0;
 
   const clearFilters = () => {
     onChange({ sort: 'recommended', priceRange: 'all', durationRange: 'all', minRating: 0 });
   };
 
+  const scrollLeft = () => scrollRef.current?.scrollBy({ left: -150, behavior: 'smooth' });
+  const scrollRight = () => scrollRef.current?.scrollBy({ left: 150, behavior: 'smooth' });
+
+  const pillBase = "flex-shrink-0 px-3 py-1.5 rounded-full text-sm font-medium border transition-all duration-150 whitespace-nowrap";
+  const pillInactive = `border-gray-200 bg-white ${hover}`;
+
   return (
     <div className="bg-white border-b border-gray-100 sticky top-[60px] z-30">
-      <div className="py-3 px-4 md:px-0">
-        {/* Top Row - Sort & Filter Toggle */}
-        <div className="flex items-center justify-between gap-3 mb-2">
-          <p className="text-sm text-gray-600">
-            <span className="font-semibold text-gray-900">{resultCount}</span> results
-          </p>
-          <div className="flex items-center gap-2">
-            {/* Sort Dropdown */}
-            <div className="relative">
-              <select
-                value={filters.sort}
-                onChange={(e) => onChange({ ...filters, sort: e.target.value as SortOption })}
-                className="appearance-none pl-3 pr-8 py-2 text-sm border border-gray-200 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-offset-0 cursor-pointer"
-              >
-                {sortOptions.map(opt => (
-                  <option key={opt.value} value={opt.value}>{opt.label}</option>
-                ))}
-              </select>
-              <ArrowUpDown className="absolute right-2.5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
-            </div>
-            {/* Filter Toggle */}
+      <div className="relative py-2.5">
+        {/* Desktop scroll buttons */}
+        <button
+          onClick={scrollLeft}
+          className="hidden md:flex absolute left-0 top-1/2 -translate-y-1/2 z-10 w-8 h-8 items-center justify-center bg-white/90 backdrop-blur-sm border border-gray-200 rounded-full shadow-md hover:bg-gray-50"
+        >
+          <ChevronLeft className="w-4 h-4 text-gray-600" />
+        </button>
+        <button
+          onClick={scrollRight}
+          className="hidden md:flex absolute right-0 top-1/2 -translate-y-1/2 z-10 w-8 h-8 items-center justify-center bg-white/90 backdrop-blur-sm border border-gray-200 rounded-full shadow-md hover:bg-gray-50"
+        >
+          <ChevronRight className="w-4 h-4 text-gray-600" />
+        </button>
+
+        {/* Horizontal scrollable filter bar */}
+        <div
+          ref={scrollRef}
+          className="flex items-center gap-2 overflow-x-auto scrollbar-hide px-4 md:px-10"
+          style={{ WebkitOverflowScrolling: 'touch', scrollbarWidth: 'none', msOverflowStyle: 'none' }}
+        >
+          {/* Result count - left */}
+          <span className="flex-shrink-0 text-sm text-gray-500 pr-2 border-r border-gray-200 mr-1">
+            <span className="font-bold text-gray-900">{resultCount}</span> results
+          </span>
+
+          {/* Sort pills */}
+          {sortPills.map(pill => (
             <button
-              onClick={() => setShowFilters(!showFilters)}
-              className={`flex items-center gap-2 px-3 py-2 rounded-lg border text-sm font-medium transition-colors ${
-                showFilters || activeFiltersCount > 0
-                  ? `${chipClass} border-current`
-                  : 'border-gray-200 hover:border-gray-300'
-              }`}
+              key={pill.value}
+              onClick={() => onChange({ ...filters, sort: pill.value })}
+              className={`${pillBase} ${filters.sort === pill.value ? active : pillInactive}`}
             >
-              <SlidersHorizontal className="w-4 h-4" />
-              Filters
-              {activeFiltersCount > 0 && (
-                <span className={`w-5 h-5 rounded-full ${btnClass} text-white text-xs flex items-center justify-center`}>
-                  {activeFiltersCount}
-                </span>
-              )}
+              {pill.icon && <span className="mr-1">{pill.icon}</span>}
+              {pill.label}
             </button>
-          </div>
-        </div>
+          ))}
 
-        {/* Expandable Filters Panel */}
-        {showFilters && (
-          <div className="pt-3 border-t border-gray-100 space-y-4 animate-in slide-in-from-top-2 duration-200">
-            {/* Price Filter */}
-            <div>
-              <label className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2 flex items-center gap-1">
-                <DollarSign className="w-3.5 h-3.5" /> Price Range
-              </label>
-              <div className="flex flex-wrap gap-2">
-                {priceOptions.map(opt => (
-                  <button
-                    key={opt.value}
-                    onClick={() => onChange({ ...filters, priceRange: opt.value })}
-                    className={`px-3 py-1.5 rounded-full text-sm font-medium border transition-colors ${
-                      filters.priceRange === opt.value ? chipClass : 'border-gray-200 hover:border-gray-300'
-                    }`}
-                  >
-                    {opt.label}
-                  </button>
-                ))}
-              </div>
-            </div>
+          {/* Divider */}
+          <span className="flex-shrink-0 w-px h-5 bg-gray-200 mx-1" />
 
-            {/* Duration Filter - hidden for Transfers */}
-            {showDuration && (
-              <div>
-                <label className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2 flex items-center gap-1">
-                  <Clock className="w-3.5 h-3.5" /> Duration
-                </label>
-                <div className="flex flex-wrap gap-2">
-                  {durationOptions.map(opt => (
-                    <button
-                      key={opt.value}
-                      onClick={() => onChange({ ...filters, durationRange: opt.value })}
-                      className={`px-3 py-1.5 rounded-full text-sm font-medium border transition-colors ${
-                        filters.durationRange === opt.value ? chipClass : 'border-gray-200 hover:border-gray-300'
-                      }`}
-                    >
-                      {opt.label}
-                    </button>
-                  ))}
-                </div>
-              </div>
-            )}
+          {/* Price pills */}
+          {pricePills.map(pill => (
+            <button
+              key={pill.value}
+              onClick={() => onChange({ ...filters, priceRange: filters.priceRange === pill.value ? 'all' : pill.value })}
+              className={`${pillBase} ${filters.priceRange === pill.value ? active : pillInactive}`}
+            >
+              {pill.label}
+            </button>
+          ))}
 
-            {/* Rating Filter */}
-            <div>
-              <label className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2 flex items-center gap-1">
-                <Star className="w-3.5 h-3.5" /> Minimum Rating
-              </label>
-              <div className="flex items-center gap-2">
-                {[0, 3, 3.5, 4, 4.5].map(rating => (
-                  <button
-                    key={rating}
-                    onClick={() => onChange({ ...filters, minRating: rating })}
-                    className={`px-3 py-1.5 rounded-full text-sm font-medium border transition-colors flex items-center gap-1 ${
-                      filters.minRating === rating ? chipClass : 'border-gray-200 hover:border-gray-300'
-                    }`}
-                  >
-                    {rating === 0 ? 'Any' : (
-                      <>
-                        <Star className="w-3 h-3 fill-amber-400 text-amber-400" />
-                        {rating}+
-                      </>
-                    )}
-                  </button>
-                ))}
-              </div>
-            </div>
+          {/* Duration pills - if enabled */}
+          {showDuration && (
+            <>
+              <span className="flex-shrink-0 w-px h-5 bg-gray-200 mx-1" />
+              {durationPills.map(pill => (
+                <button
+                  key={pill.value}
+                  onClick={() => onChange({ ...filters, durationRange: filters.durationRange === pill.value ? 'all' : pill.value })}
+                  className={`${pillBase} ${filters.durationRange === pill.value ? active : pillInactive}`}
+                >
+                  {pill.label}
+                </button>
+              ))}
+            </>
+          )}
 
-            {/* Clear Filters */}
-            {activeFiltersCount > 0 && (
+          {/* Rating pills */}
+          <span className="flex-shrink-0 w-px h-5 bg-gray-200 mx-1" />
+          {ratingPills.map(rating => (
+            <button
+              key={rating}
+              onClick={() => onChange({ ...filters, minRating: filters.minRating === rating ? 0 : rating })}
+              className={`${pillBase} flex items-center gap-1 ${filters.minRating === rating ? active : pillInactive}`}
+            >
+              <Star className="w-3 h-3 fill-current" />
+              {rating}+
+            </button>
+          ))}
+
+          {/* Clear filters - only if active */}
+          {hasActiveFilters && (
+            <>
+              <span className="flex-shrink-0 w-px h-5 bg-gray-200 mx-1" />
               <button
                 onClick={clearFilters}
-                className="text-sm text-gray-500 hover:text-gray-700 flex items-center gap-1"
+                className="flex-shrink-0 px-3 py-1.5 rounded-full text-sm font-medium text-red-600 hover:bg-red-50 border border-red-200 flex items-center gap-1 transition-all"
               >
-                <X className="w-4 h-4" /> Clear all filters
+                <X className="w-3 h-3" /> Clear
               </button>
-            )}
-          </div>
-        )}
+            </>
+          )}
+        </div>
       </div>
+
+      {/* Hide scrollbar CSS */}
+      <style jsx>{`
+        .scrollbar-hide::-webkit-scrollbar { display: none; }
+        .scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
+      `}</style>
     </div>
   );
 });
