@@ -59,14 +59,15 @@ export async function GET(request: NextRequest) {
     let apiError: string | null = null;
 
     try {
-      // Add timeout for slow API calls (20s)
-      // Cap radius at 5km to avoid timeouts (API max is 20km, default 1km)
-      // Busy cities like London/Paris have thousands of activities
+      // Cap radius at 2km for optimal performance
+      // Even 1km returns 1000+ activities in major cities
+      // API max is 20km but larger radius causes timeouts
+      const effectiveRadius = Math.min(radius, 2);
       const result = await Promise.race([
         amadeusAPI.searchActivities({
           latitude: geocode.latitude,
           longitude: geocode.longitude,
-          radius: Math.min(radius, 5),
+          radius: effectiveRadius,
         }),
         new Promise((_, reject) => setTimeout(() => reject(new Error('Amadeus timeout')), 20000))
       ]) as any;
