@@ -438,39 +438,69 @@ export default function AdminBookingDetailPage() {
                   />
                 </div>
 
-                {/* Consolidator Information */}
+                {/* Consolidator Information - Enhanced UX */}
                 <div className="border-t pt-6">
                   <h3 className="text-sm font-bold text-gray-700 mb-4 flex items-center gap-2">
                     <Building2 className="w-4 h-4" />
-                    Consolidator Information (Optional)
+                    Consolidator Booking Info
                   </h3>
+
+                  {/* Smart URL Paste - Auto-extracts booking ID */}
+                  <div className="mb-4 p-4 bg-blue-50 border border-blue-200 rounded-xl">
+                    <label className="block text-sm font-semibold text-blue-800 mb-2">
+                      Paste Consolidator Booking URL (auto-fills reference)
+                    </label>
+                    <input
+                      type="text"
+                      placeholder="https://air.thebestagent.pro/#booking/..."
+                      onChange={(e) => {
+                        const url = e.target.value;
+                        // Extract UUID from TheBestAgent URL
+                        const match = url.match(/booking\/([a-f0-9-]{36})/i);
+                        if (match) {
+                          setTicketingData(prev => ({
+                            ...prev,
+                            consolidatorReference: match[1],
+                            consolidatorName: prev.consolidatorName || 'TheBestAgent'
+                          }));
+                        }
+                      }}
+                      className="w-full px-3 py-2 border border-blue-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white"
+                    />
+                    <p className="text-xs text-blue-600 mt-1">Paste the booking URL and we'll extract the reference automatically</p>
+                  </div>
 
                   <div className="grid grid-cols-2 gap-4">
                     <div>
-                      <label className="block text-sm text-gray-600 mb-1">Consolidator Name</label>
-                      <input
-                        type="text"
+                      <label className="block text-sm text-gray-600 mb-1">Consolidator</label>
+                      <select
                         value={ticketingData.consolidatorName}
                         onChange={(e) => setTicketingData(prev => ({ ...prev, consolidatorName: e.target.value }))}
-                        placeholder="e.g., SkyBird, Mondee"
                         className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
-                      />
+                      >
+                        <option value="">Select...</option>
+                        <option value="TheBestAgent">TheBestAgent</option>
+                        <option value="Mondee">Mondee</option>
+                        <option value="SkyBird">SkyBird</option>
+                        <option value="TravelPort">TravelPort</option>
+                        <option value="Other">Other</option>
+                      </select>
                     </div>
 
                     <div>
-                      <label className="block text-sm text-gray-600 mb-1">Consolidator Reference</label>
+                      <label className="block text-sm text-gray-600 mb-1">Booking Reference</label>
                       <input
                         type="text"
                         value={ticketingData.consolidatorReference}
                         onChange={(e) => setTicketingData(prev => ({ ...prev, consolidatorReference: e.target.value }))}
-                        placeholder="Your consolidator's ref #"
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
+                        placeholder="UUID or reference #"
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500 font-mono text-sm"
                       />
                     </div>
                   </div>
 
                   <div className="mt-4">
-                    <label className="block text-sm text-gray-600 mb-1">Consolidator Cost (Net Price)</label>
+                    <label className="block text-sm text-gray-600 mb-1">Net Cost (Your Price)</label>
                     <div className="relative">
                       <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500">$</span>
                       <input
@@ -483,9 +513,12 @@ export default function AdminBookingDetailPage() {
                       />
                     </div>
                     {ticketingData.consolidatorPrice && booking.customerPrice && (
-                      <p className="text-sm text-green-600 mt-2">
-                        Your margin: ${(booking.customerPrice - parseFloat(ticketingData.consolidatorPrice)).toFixed(2)}
-                      </p>
+                      <div className="flex items-center justify-between mt-2 p-2 bg-green-50 rounded-lg">
+                        <span className="text-sm text-green-700">Your Profit:</span>
+                        <span className="text-lg font-bold text-green-700">
+                          ${(booking.customerPrice - parseFloat(ticketingData.consolidatorPrice)).toFixed(2)}
+                        </span>
+                      </div>
                     )}
                   </div>
                 </div>
@@ -621,7 +654,51 @@ export default function AdminBookingDetailPage() {
                   </button>
                 </div>
 
-                <div className="grid grid-cols-2 gap-4 text-sm">
+                {/* Passenger Quick Reference - All info needed for booking */}
+                <div className="mt-4 p-4 bg-white rounded-xl border border-orange-200">
+                  <h4 className="text-sm font-bold text-gray-800 mb-3 flex items-center gap-2">
+                    <User className="w-4 h-4" />
+                    Passenger Details (click to copy)
+                  </h4>
+                  <div className="space-y-2">
+                    {booking.passengers?.map((p: any, i: number) => (
+                      <div key={i} className="flex flex-wrap gap-2 items-center text-sm p-2 bg-gray-50 rounded-lg">
+                        <button
+                          onClick={() => navigator.clipboard.writeText(`${p.lastName}/${p.firstName}`)}
+                          className="px-2 py-1 bg-blue-100 hover:bg-blue-200 text-blue-800 rounded font-mono text-xs"
+                          title="Copy Name (GDS format)"
+                        >
+                          {p.lastName}/{p.firstName}
+                        </button>
+                        {p.dateOfBirth && (
+                          <button
+                            onClick={() => navigator.clipboard.writeText(new Date(p.dateOfBirth).toLocaleDateString('en-GB'))}
+                            className="px-2 py-1 bg-purple-100 hover:bg-purple-200 text-purple-800 rounded text-xs"
+                            title="Copy DOB"
+                          >
+                            DOB: {new Date(p.dateOfBirth).toLocaleDateString('en-GB')}
+                          </button>
+                        )}
+                        {p.passportNumber && (
+                          <button
+                            onClick={() => navigator.clipboard.writeText(p.passportNumber)}
+                            className="px-2 py-1 bg-green-100 hover:bg-green-200 text-green-800 rounded font-mono text-xs"
+                            title="Copy Passport"
+                          >
+                            {p.passportNumber}
+                          </button>
+                        )}
+                        {p.gender && (
+                          <span className="px-2 py-1 bg-gray-200 text-gray-700 rounded text-xs">
+                            {p.gender === 'male' ? 'M' : 'F'}
+                          </span>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-2 gap-4 text-sm mt-4">
                   <div>
                     <span className="text-orange-600">Customer Price:</span>
                     <span className="ml-2 font-bold text-orange-800">
