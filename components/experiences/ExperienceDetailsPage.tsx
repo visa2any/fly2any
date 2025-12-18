@@ -16,6 +16,21 @@ import {
 import { MaxWidthContainer } from '@/components/layout/MaxWidthContainer';
 import { useExperiencesCart, ExperienceType, typeIcons, typeColors } from '@/lib/cart/experiences-cart';
 
+// Strip HTML tags and decode entities for clean text display
+const stripHtml = (html: string): string => {
+  if (!html) return '';
+  return html
+    .replace(/<[^>]*>/g, '') // Remove HTML tags
+    .replace(/&nbsp;/g, ' ')
+    .replace(/&amp;/g, '&')
+    .replace(/&lt;/g, '<')
+    .replace(/&gt;/g, '>')
+    .replace(/&quot;/g, '"')
+    .replace(/&#39;/g, "'")
+    .replace(/\s+/g, ' ') // Normalize whitespace
+    .trim();
+};
+
 interface ExperienceData {
   id: string;
   type: ExperienceType;
@@ -236,7 +251,7 @@ export default function ExperienceDetailsPage({
               <div className="p-6">
                 {activeTab === 'overview' && (
                   <div className="space-y-6">
-                    <p className="text-gray-600 leading-relaxed">{experience.description}</p>
+                    <p className="text-gray-600 leading-relaxed">{stripHtml(experience.description)}</p>
                     {experience.highlights && experience.highlights.length > 0 && (
                       <div>
                         <h3 className="font-semibold text-gray-900 mb-3">Highlights</h3>

@@ -4271,6 +4271,357 @@ export default function EnhancedSearchBar({
           </button>
           </>
           )}
+
+          {/* TOURS MOBILE FIELDS */}
+          {serviceType === 'tours' && (
+          <>
+            {/* Tour Destination */}
+            <div className="relative">
+              <label className="flex items-center gap-1.5 text-xs font-semibold text-neutral-600 mb-1.5">
+                <Map size={13} className="text-orange-600" />
+                <span>Where do you want to explore?</span>
+              </label>
+              {selectedDestinationDetails && hotelDestination === selectedDestinationDetails.name ? (
+                <div
+                  onClick={() => setShowHotelSuggestions(true)}
+                  className="w-full px-3 py-3 bg-white border-2 border-orange-300 rounded-xl cursor-pointer transition-all touch-manipulation active:scale-[0.99]"
+                >
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2.5">
+                      <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-orange-500 to-amber-600 flex items-center justify-center shadow-sm">
+                        {selectedDestinationDetails.emoji ? (
+                          <span className="text-lg">{selectedDestinationDetails.emoji}</span>
+                        ) : (
+                          <Globe className="w-4 h-4 text-white" />
+                        )}
+                      </div>
+                      <div className="min-w-0 flex-1">
+                        <div className="font-bold text-neutral-800 text-sm">{selectedDestinationDetails.name}</div>
+                        <div className="text-[10px] text-neutral-500">{selectedDestinationDetails.country || 'Selected'}</div>
+                      </div>
+                    </div>
+                    <button type="button" onClick={(e) => { e.stopPropagation(); clearHotelDestination(); }} className="p-1.5 hover:bg-neutral-100 rounded-lg">
+                      <X className="w-4 h-4 text-neutral-400" />
+                    </button>
+                  </div>
+                </div>
+              ) : (
+                <div className="relative">
+                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-orange-500" />
+                  <input
+                    type="text"
+                    value={hotelDestination}
+                    onChange={(e) => {
+                      handleHotelDestinationChange(e.target.value);
+                      if (selectedDestinationDetails && e.target.value !== selectedDestinationDetails.name) {
+                        setSelectedDestinationDetails(null);
+                      }
+                    }}
+                    onFocus={() => { if (hotelDestination.length >= 2) setShowHotelSuggestions(true); }}
+                    placeholder="City, region or attraction"
+                    className="w-full pl-9 pr-3 py-3 bg-white border-2 border-neutral-200 rounded-xl focus:border-orange-500 focus:ring-2 focus:ring-orange-100 outline-none transition-all text-sm font-semibold text-neutral-800"
+                  />
+                </div>
+              )}
+
+              {/* Suggestions Dropdown */}
+              {showHotelSuggestions && (
+                <div className="absolute top-full left-0 right-0 mt-1 bg-white/95 backdrop-blur-xl border border-neutral-200 rounded-2xl shadow-2xl z-dropdown max-h-64 overflow-y-auto">
+                  {isLoadingHotelSuggestions ? (
+                    <div className="p-4 text-center text-neutral-500 text-sm">Finding destinations...</div>
+                  ) : hotelSuggestions.length > 0 ? (
+                    <div className="py-2">
+                      {hotelSuggestions.map((suggestion, index) => (
+                        <button
+                          key={index}
+                          type="button"
+                          onClick={(e) => { e.preventDefault(); e.stopPropagation(); handleHotelSuggestionSelect(suggestion); }}
+                          className="w-full px-4 py-3 text-left hover:bg-orange-50 active:bg-orange-100 transition-colors flex items-start gap-3 touch-manipulation min-h-[48px]"
+                        >
+                          <div className="w-8 h-8 rounded-lg bg-orange-100 flex items-center justify-center text-lg">{suggestion.emoji || '📍'}</div>
+                          <div className="flex-1 min-w-0">
+                            <div className="font-semibold text-neutral-800 text-sm">{suggestion.displayName || suggestion.name}</div>
+                            <div className="text-xs text-neutral-500">{suggestion.country}</div>
+                          </div>
+                        </button>
+                      ))}
+                    </div>
+                  ) : hotelDestination.length >= 2 ? (
+                    <div className="p-4 text-center text-neutral-500 text-sm">No destinations found</div>
+                  ) : null}
+                </div>
+              )}
+            </div>
+
+            {/* Search Button */}
+            <button
+              type="button"
+              onClick={handleSearch}
+              disabled={isLoading}
+              className="w-full py-3.5 bg-gradient-to-r from-orange-500 to-amber-600 hover:from-orange-600 hover:to-amber-700 text-white font-bold text-[15px] rounded-xl shadow-lg shadow-orange-500/30 transition-all duration-200 touch-manipulation active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+            >
+              {isLoading ? (
+                <>
+                  <svg className="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                  </svg>
+                  <span>Searching...</span>
+                </>
+              ) : (
+                <span>🗺️ Search Tours</span>
+              )}
+            </button>
+          </>
+          )}
+
+          {/* ACTIVITIES MOBILE FIELDS */}
+          {serviceType === 'activities' && (
+          <>
+            {/* Activity Destination */}
+            <div className="relative">
+              <label className="flex items-center gap-1.5 text-xs font-semibold text-neutral-600 mb-1.5">
+                <Compass size={13} className="text-purple-600" />
+                <span>Find experiences near you</span>
+              </label>
+              {selectedDestinationDetails && hotelDestination === selectedDestinationDetails.name ? (
+                <div
+                  onClick={() => setShowHotelSuggestions(true)}
+                  className="w-full px-3 py-3 bg-white border-2 border-purple-300 rounded-xl cursor-pointer transition-all touch-manipulation active:scale-[0.99]"
+                >
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2.5">
+                      <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-purple-500 to-violet-600 flex items-center justify-center shadow-sm">
+                        {selectedDestinationDetails.emoji ? (
+                          <span className="text-lg">{selectedDestinationDetails.emoji}</span>
+                        ) : (
+                          <Globe className="w-4 h-4 text-white" />
+                        )}
+                      </div>
+                      <div className="min-w-0 flex-1">
+                        <div className="font-bold text-neutral-800 text-sm">{selectedDestinationDetails.name}</div>
+                        <div className="text-[10px] text-neutral-500">{selectedDestinationDetails.country || 'Selected'}</div>
+                      </div>
+                    </div>
+                    <button type="button" onClick={(e) => { e.stopPropagation(); clearHotelDestination(); }} className="p-1.5 hover:bg-neutral-100 rounded-lg">
+                      <X className="w-4 h-4 text-neutral-400" />
+                    </button>
+                  </div>
+                </div>
+              ) : (
+                <div className="relative">
+                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-purple-500" />
+                  <input
+                    type="text"
+                    value={hotelDestination}
+                    onChange={(e) => {
+                      handleHotelDestinationChange(e.target.value);
+                      if (selectedDestinationDetails && e.target.value !== selectedDestinationDetails.name) {
+                        setSelectedDestinationDetails(null);
+                      }
+                    }}
+                    onFocus={() => { if (hotelDestination.length >= 2) setShowHotelSuggestions(true); }}
+                    placeholder="City or attraction"
+                    className="w-full pl-9 pr-3 py-3 bg-white border-2 border-neutral-200 rounded-xl focus:border-purple-500 focus:ring-2 focus:ring-purple-100 outline-none transition-all text-sm font-semibold text-neutral-800"
+                  />
+                </div>
+              )}
+
+              {/* Suggestions Dropdown */}
+              {showHotelSuggestions && (
+                <div className="absolute top-full left-0 right-0 mt-1 bg-white/95 backdrop-blur-xl border border-neutral-200 rounded-2xl shadow-2xl z-dropdown max-h-64 overflow-y-auto">
+                  {isLoadingHotelSuggestions ? (
+                    <div className="p-4 text-center text-neutral-500 text-sm">Finding locations...</div>
+                  ) : hotelSuggestions.length > 0 ? (
+                    <div className="py-2">
+                      {hotelSuggestions.map((suggestion, index) => (
+                        <button
+                          key={index}
+                          type="button"
+                          onClick={(e) => { e.preventDefault(); e.stopPropagation(); handleHotelSuggestionSelect(suggestion); }}
+                          className="w-full px-4 py-3 text-left hover:bg-purple-50 active:bg-purple-100 transition-colors flex items-start gap-3 touch-manipulation min-h-[48px]"
+                        >
+                          <div className="w-8 h-8 rounded-lg bg-purple-100 flex items-center justify-center text-lg">{suggestion.emoji || '🎯'}</div>
+                          <div className="flex-1 min-w-0">
+                            <div className="font-semibold text-neutral-800 text-sm">{suggestion.displayName || suggestion.name}</div>
+                            <div className="text-xs text-neutral-500">{suggestion.country}</div>
+                          </div>
+                        </button>
+                      ))}
+                    </div>
+                  ) : hotelDestination.length >= 2 ? (
+                    <div className="p-4 text-center text-neutral-500 text-sm">No locations found</div>
+                  ) : null}
+                </div>
+              )}
+            </div>
+
+            {/* Search Button */}
+            <button
+              type="button"
+              onClick={handleSearch}
+              disabled={isLoading}
+              className="w-full py-3.5 bg-gradient-to-r from-purple-500 to-violet-600 hover:from-purple-600 hover:to-violet-700 text-white font-bold text-[15px] rounded-xl shadow-lg shadow-purple-500/30 transition-all duration-200 touch-manipulation active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+            >
+              {isLoading ? (
+                <>
+                  <svg className="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                  </svg>
+                  <span>Searching...</span>
+                </>
+              ) : (
+                <span>🎯 Search Activities</span>
+              )}
+            </button>
+          </>
+          )}
+
+          {/* TRANSFERS MOBILE FIELDS */}
+          {serviceType === 'transfers' && (
+          <>
+            {/* Pickup Location */}
+            <div className="relative">
+              <label className="flex items-center gap-1.5 text-xs font-semibold text-neutral-600 mb-1.5">
+                <LogIn size={13} className="text-teal-600" />
+                <span>Pickup Location</span>
+              </label>
+              <div className="relative">
+                <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-teal-500" />
+                <input
+                  type="text"
+                  value={carPickupLocation}
+                  onChange={(e) => handleTransferPickupChange(e.target.value)}
+                  onFocus={() => { if (carPickupLocation.length >= 2) { fetchTransferSuggestions(carPickupLocation); setShowTransferPickupSuggestions(true); }}}
+                  placeholder="Airport, hotel, or address"
+                  className="w-full pl-9 pr-3 py-3 bg-white border-2 border-neutral-200 rounded-xl focus:border-teal-500 focus:ring-2 focus:ring-teal-100 outline-none transition-all text-sm font-semibold text-neutral-800"
+                />
+              </div>
+              {/* Pickup Suggestions */}
+              {showTransferPickupSuggestions && transferSuggestions.length > 0 && (
+                <div className="absolute top-full left-0 right-0 mt-1 bg-white/95 backdrop-blur-xl border border-neutral-200 rounded-2xl shadow-2xl z-dropdown max-h-64 overflow-y-auto">
+                  <div className="py-2">
+                    {transferSuggestions.map((suggestion, index) => (
+                      <button
+                        key={index}
+                        type="button"
+                        onClick={(e) => { e.preventDefault(); handleTransferPickupSelect(suggestion); }}
+                        className="w-full px-4 py-3 text-left hover:bg-teal-50 active:bg-teal-100 transition-colors flex items-start gap-3 touch-manipulation min-h-[48px]"
+                      >
+                        <div className="w-8 h-8 rounded-lg bg-teal-100 flex items-center justify-center text-lg">{suggestion.type === 'airport' ? '✈️' : '📍'}</div>
+                        <div className="flex-1 min-w-0">
+                          <div className="font-semibold text-neutral-800 text-sm">{suggestion.name}</div>
+                          <div className="text-xs text-neutral-500">{suggestion.city || suggestion.country}</div>
+                        </div>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* Dropoff Location */}
+            <div className="relative">
+              <label className="flex items-center gap-1.5 text-xs font-semibold text-neutral-600 mb-1.5">
+                <LogOut size={13} className="text-teal-600" />
+                <span>Dropoff Location</span>
+              </label>
+              <div className="relative">
+                <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-teal-500" />
+                <input
+                  type="text"
+                  value={carDropoffLocation}
+                  onChange={(e) => handleTransferDropoffChange(e.target.value)}
+                  onFocus={() => { if (carDropoffLocation.length >= 2) { fetchTransferSuggestions(carDropoffLocation); setShowTransferDropoffSuggestions(true); }}}
+                  placeholder="Airport, hotel, or address"
+                  className="w-full pl-9 pr-3 py-3 bg-white border-2 border-neutral-200 rounded-xl focus:border-teal-500 focus:ring-2 focus:ring-teal-100 outline-none transition-all text-sm font-semibold text-neutral-800"
+                />
+              </div>
+              {/* Dropoff Suggestions */}
+              {showTransferDropoffSuggestions && transferSuggestions.length > 0 && (
+                <div className="absolute top-full left-0 right-0 mt-1 bg-white/95 backdrop-blur-xl border border-neutral-200 rounded-2xl shadow-2xl z-dropdown max-h-64 overflow-y-auto">
+                  <div className="py-2">
+                    {transferSuggestions.map((suggestion, index) => (
+                      <button
+                        key={index}
+                        type="button"
+                        onClick={(e) => { e.preventDefault(); handleTransferDropoffSelect(suggestion); }}
+                        className="w-full px-4 py-3 text-left hover:bg-teal-50 active:bg-teal-100 transition-colors flex items-start gap-3 touch-manipulation min-h-[48px]"
+                      >
+                        <div className="w-8 h-8 rounded-lg bg-teal-100 flex items-center justify-center text-lg">{suggestion.type === 'airport' ? '✈️' : '📍'}</div>
+                        <div className="flex-1 min-w-0">
+                          <div className="font-semibold text-neutral-800 text-sm">{suggestion.name}</div>
+                          <div className="text-xs text-neutral-500">{suggestion.city || suggestion.country}</div>
+                        </div>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* Date & Time Row */}
+            <div className="grid grid-cols-2 gap-2">
+              <div>
+                <label className="block text-xs font-semibold text-neutral-600 mb-1.5">Date</label>
+                <input
+                  type="date"
+                  value={formatDateForInput(carPickupDate)}
+                  onChange={(e) => setCarPickupDate(e.target.value)}
+                  min={minDate}
+                  className="w-full px-3 py-2.5 bg-white border-2 border-neutral-200 rounded-xl text-sm font-semibold focus:border-teal-500 outline-none"
+                />
+              </div>
+              <div>
+                <label className="block text-xs font-semibold text-neutral-600 mb-1.5">Time</label>
+                <select
+                  value={carPickupTime}
+                  onChange={(e) => setCarPickupTime(e.target.value)}
+                  className="w-full px-3 py-2.5 bg-white border-2 border-neutral-200 rounded-xl text-sm font-semibold focus:border-teal-500 outline-none"
+                >
+                  {Array.from({ length: 48 }, (_, i) => {
+                    const hour = Math.floor(i / 2);
+                    const minute = i % 2 === 0 ? '00' : '30';
+                    const time = `${hour.toString().padStart(2, '0')}:${minute}`;
+                    return <option key={time} value={time}>{time}</option>;
+                  })}
+                </select>
+              </div>
+            </div>
+
+            {/* Passengers */}
+            <div>
+              <label className="block text-xs font-semibold text-neutral-600 mb-1.5">Passengers</label>
+              <div className="flex items-center gap-3 px-3 py-2.5 bg-white border-2 border-neutral-200 rounded-xl">
+                <Users size={16} className="text-teal-500" />
+                <button type="button" onClick={() => setTransferPassengers(Math.max(1, transferPassengers - 1))} className="w-8 h-8 rounded-lg border border-neutral-200 flex items-center justify-center font-bold text-neutral-600">−</button>
+                <span className="w-8 text-center font-bold text-neutral-800">{transferPassengers}</span>
+                <button type="button" onClick={() => setTransferPassengers(Math.min(8, transferPassengers + 1))} className="w-8 h-8 rounded-lg border border-neutral-200 flex items-center justify-center font-bold text-neutral-600">+</button>
+              </div>
+            </div>
+
+            {/* Search Button */}
+            <button
+              type="button"
+              onClick={handleSearch}
+              disabled={isLoading}
+              className="w-full py-3.5 bg-gradient-to-r from-teal-500 to-cyan-600 hover:from-teal-600 hover:to-cyan-700 text-white font-bold text-[15px] rounded-xl shadow-lg shadow-teal-500/30 transition-all duration-200 touch-manipulation active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+            >
+              {isLoading ? (
+                <>
+                  <svg className="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                  </svg>
+                  <span>Searching...</span>
+                </>
+              ) : (
+                <span>🚗 Search Transfers</span>
+              )}
+            </button>
+          </>
+          )}
         </div>
       </MaxWidthContainer>
     </div>

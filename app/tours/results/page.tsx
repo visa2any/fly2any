@@ -130,6 +130,8 @@ const TourCard = memo(({ tour, onViewDetails, index }: { tour: Tour; onViewDetai
 });
 TourCard.displayName = 'TourCard';
 
+const ITEMS_PER_PAGE = 12; // Show 12 items initially for performance
+
 function TourResultsContent() {
   const searchParams = useSearchParams();
   const router = useRouter();
@@ -139,6 +141,7 @@ function TourResultsContent() {
   const [searchInput, setSearchInput] = useState('');
   const [showSuggestions, setShowSuggestions] = useState(false);
   const [filters, setFilters] = useState(defaultFilters);
+  const [visibleCount, setVisibleCount] = useState(ITEMS_PER_PAGE);
 
   const destination = searchParams.get('destination') || 'paris';
   const foundCity = useMemo(() => findCity(destination), [destination]);
@@ -321,13 +324,31 @@ function TourResultsContent() {
           </div>
         )}
 
-        {/* Results Grid - Apple Level 6 */}
+        {/* Results Grid - Apple Level 6 with Pagination */}
         {!loading && filteredTours.length > 0 && (
-          <div className="py-4 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-            {filteredTours.map((tour, index) => (
-              <TourCard key={tour.id} tour={tour} onViewDetails={handleViewDetails} index={index} />
-            ))}
-          </div>
+          <>
+            <div className="py-4 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+              {filteredTours.slice(0, visibleCount).map((tour, index) => (
+                <TourCard key={tour.id} tour={tour} onViewDetails={handleViewDetails} index={index} />
+              ))}
+            </div>
+            {/* Load More Button */}
+            {visibleCount < filteredTours.length && (
+              <div className="flex justify-center py-8">
+                <button
+                  onClick={() => setVisibleCount(prev => prev + ITEMS_PER_PAGE)}
+                  className="px-8 py-3.5 bg-gradient-to-r from-orange-500 to-amber-600 hover:from-orange-600 hover:to-amber-700 text-white font-bold rounded-xl shadow-lg shadow-orange-500/25 transition-all duration-200 active:scale-[0.98] flex items-center gap-2"
+                >
+                  <span>Load More Tours</span>
+                  <span className="text-orange-200 text-sm">({filteredTours.length - visibleCount} remaining)</span>
+                </button>
+              </div>
+            )}
+            {/* Results count */}
+            <div className="text-center text-sm text-gray-500 pb-4">
+              Showing {Math.min(visibleCount, filteredTours.length)} of {filteredTours.length} tours
+            </div>
+          </>
         )}
 
         {/* No matches after filter */}

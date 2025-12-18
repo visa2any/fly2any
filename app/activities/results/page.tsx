@@ -125,6 +125,8 @@ const ActivityCard = memo(({ activity, onViewDetails, index }: { activity: Activ
 });
 ActivityCard.displayName = 'ActivityCard';
 
+const ITEMS_PER_PAGE = 12; // Show 12 items initially for performance
+
 function ActivityResultsContent() {
   const searchParams = useSearchParams();
   const router = useRouter();
@@ -134,6 +136,7 @@ function ActivityResultsContent() {
   const [searchInput, setSearchInput] = useState('');
   const [showSuggestions, setShowSuggestions] = useState(false);
   const [filters, setFilters] = useState(defaultFilters);
+  const [visibleCount, setVisibleCount] = useState(ITEMS_PER_PAGE);
 
   const destination = searchParams.get('destination') || 'paris';
   const foundCity = useMemo(() => findCity(destination), [destination]);
@@ -314,13 +317,31 @@ function ActivityResultsContent() {
           </div>
         )}
 
-        {/* Results Grid - Apple Level 6 */}
+        {/* Results Grid - Apple Level 6 with Pagination */}
         {!loading && filteredActivities.length > 0 && (
-          <div className="py-4 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-            {filteredActivities.map((activity, index) => (
-              <ActivityCard key={activity.id} activity={activity} onViewDetails={handleViewDetails} index={index} />
-            ))}
-          </div>
+          <>
+            <div className="py-4 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+              {filteredActivities.slice(0, visibleCount).map((activity, index) => (
+                <ActivityCard key={activity.id} activity={activity} onViewDetails={handleViewDetails} index={index} />
+              ))}
+            </div>
+            {/* Load More Button */}
+            {visibleCount < filteredActivities.length && (
+              <div className="flex justify-center py-8">
+                <button
+                  onClick={() => setVisibleCount(prev => prev + ITEMS_PER_PAGE)}
+                  className="px-8 py-3.5 bg-gradient-to-r from-purple-500 to-violet-600 hover:from-purple-600 hover:to-violet-700 text-white font-bold rounded-xl shadow-lg shadow-purple-500/25 transition-all duration-200 active:scale-[0.98] flex items-center gap-2"
+                >
+                  <span>Load More Activities</span>
+                  <span className="text-purple-200 text-sm">({filteredActivities.length - visibleCount} remaining)</span>
+                </button>
+              </div>
+            )}
+            {/* Results count */}
+            <div className="text-center text-sm text-gray-500 pb-4">
+              Showing {Math.min(visibleCount, filteredActivities.length)} of {filteredActivities.length} activities
+            </div>
+          </>
         )}
 
         {/* No matches after filter */}

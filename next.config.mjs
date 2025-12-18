@@ -286,7 +286,17 @@ const nextConfig = {
   images: {
     unoptimized: false, // Keep optimization enabled
     remotePatterns: [
-      // Tour images
+      // Tour images - Holibob (Amadeus Tours & Activities)
+      {
+        protocol: 'https',
+        hostname: 'images.holibob.tech',
+        pathname: '/**',
+      },
+      {
+        protocol: 'https',
+        hostname: '*.holibob.tech',
+      },
+      // Tour images - TourRadar
       {
         protocol: 'https',
         hostname: 'www.tourradar.com',
