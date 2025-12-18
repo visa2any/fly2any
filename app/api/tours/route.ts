@@ -36,7 +36,7 @@ export async function GET(request: NextRequest) {
     // Round coords to 2 decimals for better cache hits
     const roundedLat = Math.round(geocode.latitude * 100) / 100;
     const roundedLng = Math.round(geocode.longitude * 100) / 100;
-    const cacheKey = generateCacheKey('tours:search:v2', {
+    const cacheKey = generateCacheKey('tours:search:v3', {
       lat: roundedLat,
       lng: roundedLng,
       r: radius,
@@ -69,16 +69,18 @@ export async function GET(request: NextRequest) {
         new Promise((_, reject) => setTimeout(() => reject(new Error('Amadeus timeout')), 15000))
       ]) as any;
 
-      // Filter for tour-like activities
+      // Filter for tour-like activities (broadened keywords for better coverage)
       if (result?.data && Array.isArray(result.data)) {
+        const tourKeywords = [
+          'tour', 'trip', 'excursion', 'guided', 'visit', 'experience',
+          'adventure', 'cruise', 'snorkel', 'diving', 'cenote', 'ruins',
+          'day trip', 'sunset', 'sunrise', 'safari', 'exploration', 'sightseeing',
+          'discover', 'explore', 'journey', 'expedition', 'tasting', 'walking'
+        ];
         tours = result.data.filter((item: any) => {
           const name = (item.name || '').toLowerCase();
-          const desc = (item.description || '').toLowerCase();
-          return name.includes('tour') ||
-                 name.includes('trip') ||
-                 name.includes('excursion') ||
-                 desc.includes('guided') ||
-                 desc.includes('experience');
+          const desc = (item.shortDescription || item.description || '').toLowerCase();
+          return tourKeywords.some(kw => name.includes(kw) || desc.includes(kw));
         });
       }
     } catch (error: any) {

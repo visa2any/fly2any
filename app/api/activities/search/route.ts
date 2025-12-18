@@ -32,7 +32,7 @@ export async function GET(request: NextRequest) {
     // Round coords to 2 decimals for better cache hits
     const roundedLat = Math.round(latitude * 100) / 100;
     const roundedLng = Math.round(longitude * 100) / 100;
-    const cacheKey = generateCacheKey('activities:search:v2', { lat: roundedLat, lng: roundedLng, r: radius, t: type });
+    const cacheKey = generateCacheKey('activities:search:v3', { lat: roundedLat, lng: roundedLng, r: radius, t: type });
 
     // Check cache first (4 hour TTL) - FAST PATH
     const cached = await getCached<any>(cacheKey);
@@ -69,19 +69,27 @@ export async function GET(request: NextRequest) {
     const responseTime = Date.now() - startTime;
 
     // Filter by type (after we have results)
+    // Broadened filter to catch more tour-like activities
     if (activities.length > 0) {
       if (type === 'tours') {
-        activities = activities.filter((a: any) =>
-          a.name?.toLowerCase().includes('tour') ||
-          a.name?.toLowerCase().includes('trip') ||
-          a.name?.toLowerCase().includes('excursion') ||
-          a.description?.toLowerCase().includes('guided')
-        );
+        const tourKeywords = [
+          'tour', 'trip', 'excursion', 'guided', 'visit', 'experience',
+          'adventure', 'cruise', 'snorkel', 'diving', 'cenote', 'ruins',
+          'day trip', 'sunset', 'sunrise', 'safari', 'exploration', 'sightseeing',
+          'discover', 'explore', 'journey', 'expedition', 'tasting', 'walking'
+        ];
+        activities = activities.filter((a: any) => {
+          const name = (a.name || '').toLowerCase();
+          const desc = (a.shortDescription || a.description || '').toLowerCase();
+          return tourKeywords.some(kw => name.includes(kw) || desc.includes(kw));
+        });
       } else if (type === 'activities') {
-        activities = activities.filter((a: any) =>
-          !a.name?.toLowerCase().includes('tour') &&
-          !a.name?.toLowerCase().includes('trip')
-        );
+        // Activities = things that are NOT tours (classes, shows, tickets, etc.)
+        const tourKeywords = ['tour', 'trip', 'excursion', 'guided'];
+        activities = activities.filter((a: any) => {
+          const name = (a.name || '').toLowerCase();
+          return !tourKeywords.some(kw => name.includes(kw));
+        });
       }
     }
 
