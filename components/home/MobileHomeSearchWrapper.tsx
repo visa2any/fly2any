@@ -250,7 +250,7 @@ export function MobileHomeSearchWrapper({
   return (
     <div ref={wrapperRef} className="mobile-search-wrapper md:hidden">
       <AnimatePresence mode="wait">
-        {/* COLLAPSED STATE - Apple-Class Ultra-compact summary bar */}
+        {/* COLLAPSED STATE - Service-specific Apple-Class compact bar */}
         {viewState === 'collapsed' && (
           <motion.div
             key="collapsed"
@@ -267,42 +267,114 @@ export function MobileHomeSearchWrapper({
           >
             <button
               onClick={handleExpand}
-              className="w-full min-h-[48px] bg-white border-y-2 border-neutral-200 hover:border-primary-400 p-3 shadow-md transition-all duration-200 active:scale-[0.99] touch-manipulation"
-              aria-label="Expand flight search form"
+              className="w-full min-h-[52px] bg-white border-y-2 border-neutral-200 hover:border-primary-400 px-4 py-3 shadow-md transition-all duration-200 active:scale-[0.99] touch-manipulation"
+              aria-label={`Expand ${defaultService} search form`}
               aria-expanded="false"
               type="button"
             >
-              <div className="flex items-center justify-between gap-2 w-full">
-                {/* From Location */}
-                <div className="flex items-center gap-1.5 flex-1 min-w-0">
-                  <MapPin className="w-4 h-4 text-primary-500 flex-shrink-0" aria-hidden="true" />
-                  <div className="flex flex-col min-w-0">
-                    <span className="text-[9px] text-neutral-500 font-semibold leading-none uppercase tracking-wide">From</span>
-                    <span className="text-sm font-bold text-neutral-800 leading-tight truncate">
-                      {formatAirportCode(origin) || 'Select'}
-                    </span>
+              {/* Flights: From → To */}
+              {defaultService === 'flights' && (
+                <div className="flex items-center justify-between gap-2 w-full">
+                  <div className="flex items-center gap-1.5 flex-1 min-w-0">
+                    <MapPin className="w-4 h-4 text-primary-500 flex-shrink-0" />
+                    <div className="flex flex-col min-w-0">
+                      <span className="text-[9px] text-neutral-500 font-semibold leading-none uppercase tracking-wide">From</span>
+                      <span className="text-sm font-bold text-neutral-800 leading-tight truncate">{formatAirportCode(origin) || 'Select'}</span>
+                    </div>
+                  </div>
+                  <div className="flex-shrink-0 text-primary-500 font-bold text-base">→</div>
+                  <div className="flex items-center gap-1.5 flex-1 min-w-0">
+                    <div className="flex flex-col min-w-0">
+                      <span className="text-[9px] text-neutral-500 font-semibold leading-none uppercase tracking-wide">To</span>
+                      <span className="text-sm font-bold text-neutral-800 leading-tight truncate">{formatAirportCode(destination) || 'Select'}</span>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-1 bg-gradient-to-r from-primary-500 to-primary-600 text-white px-3 py-2 rounded-xl shadow-md shadow-primary-500/25 flex-shrink-0">
+                    <Search className="w-4 h-4" />
+                    <ChevronDown className="w-3.5 h-3.5" />
                   </div>
                 </div>
+              )}
 
-                {/* Arrow */}
-                <div className="flex-shrink-0 text-primary-500 font-bold text-base">→</div>
-
-                {/* To Location */}
-                <div className="flex items-center gap-1.5 flex-1 min-w-0">
-                  <div className="flex flex-col min-w-0">
-                    <span className="text-[9px] text-neutral-500 font-semibold leading-none uppercase tracking-wide">To</span>
-                    <span className="text-sm font-bold text-neutral-800 leading-tight truncate">
-                      {formatAirportCode(destination) || 'Select'}
-                    </span>
+              {/* Tours: Destination search */}
+              {defaultService === 'tours' && (
+                <div className="flex items-center gap-3 w-full">
+                  <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-orange-500 to-amber-600 flex items-center justify-center flex-shrink-0">
+                    <span className="text-lg">🗺️</span>
+                  </div>
+                  <div className="flex-1 min-w-0 text-left">
+                    <span className="text-[10px] text-neutral-500 font-semibold uppercase tracking-wide">Search Tours</span>
+                    <p className="text-sm font-bold text-neutral-800 truncate">Where do you want to explore?</p>
+                  </div>
+                  <div className="flex items-center gap-1 bg-gradient-to-r from-orange-500 to-amber-600 text-white px-4 py-2.5 rounded-xl shadow-md flex-shrink-0">
+                    <Search className="w-4 h-4" />
                   </div>
                 </div>
+              )}
 
-                {/* Search Button - Apple-Class */}
-                <div className="flex items-center gap-1 bg-gradient-to-r from-primary-500 to-primary-600 text-white px-3 py-2 rounded-xl shadow-md shadow-primary-500/25 flex-shrink-0">
-                  <Search className="w-4 h-4" aria-hidden="true" />
-                  <ChevronDown className="w-3.5 h-3.5" aria-hidden="true" />
+              {/* Activities: Destination search */}
+              {defaultService === 'activities' && (
+                <div className="flex items-center gap-3 w-full">
+                  <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-purple-500 to-violet-600 flex items-center justify-center flex-shrink-0">
+                    <span className="text-lg">🎯</span>
+                  </div>
+                  <div className="flex-1 min-w-0 text-left">
+                    <span className="text-[10px] text-neutral-500 font-semibold uppercase tracking-wide">Search Activities</span>
+                    <p className="text-sm font-bold text-neutral-800 truncate">Find experiences near you</p>
+                  </div>
+                  <div className="flex items-center gap-1 bg-gradient-to-r from-purple-500 to-violet-600 text-white px-4 py-2.5 rounded-xl shadow-md flex-shrink-0">
+                    <Search className="w-4 h-4" />
+                  </div>
                 </div>
-              </div>
+              )}
+
+              {/* Transfers: Pickup → Dropoff */}
+              {defaultService === 'transfers' && (
+                <div className="flex items-center gap-3 w-full">
+                  <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-teal-500 to-cyan-600 flex items-center justify-center flex-shrink-0">
+                    <span className="text-lg">🚗</span>
+                  </div>
+                  <div className="flex-1 min-w-0 text-left">
+                    <span className="text-[10px] text-neutral-500 font-semibold uppercase tracking-wide">Search Transfers</span>
+                    <p className="text-sm font-bold text-neutral-800 truncate">Airport & city rides</p>
+                  </div>
+                  <div className="flex items-center gap-1 bg-gradient-to-r from-teal-500 to-cyan-600 text-white px-4 py-2.5 rounded-xl shadow-md flex-shrink-0">
+                    <Search className="w-4 h-4" />
+                  </div>
+                </div>
+              )}
+
+              {/* Hotels */}
+              {defaultService === 'hotels' && (
+                <div className="flex items-center gap-3 w-full">
+                  <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center flex-shrink-0">
+                    <span className="text-lg">🏨</span>
+                  </div>
+                  <div className="flex-1 min-w-0 text-left">
+                    <span className="text-[10px] text-neutral-500 font-semibold uppercase tracking-wide">Search Hotels</span>
+                    <p className="text-sm font-bold text-neutral-800 truncate">Where are you staying?</p>
+                  </div>
+                  <div className="flex items-center gap-1 bg-gradient-to-r from-blue-500 to-indigo-600 text-white px-4 py-2.5 rounded-xl shadow-md flex-shrink-0">
+                    <Search className="w-4 h-4" />
+                  </div>
+                </div>
+              )}
+
+              {/* Other services fallback */}
+              {!['flights', 'tours', 'activities', 'transfers', 'hotels'].includes(defaultService) && (
+                <div className="flex items-center gap-3 w-full">
+                  <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-gray-500 to-gray-600 flex items-center justify-center flex-shrink-0">
+                    <Search className="w-5 h-5 text-white" />
+                  </div>
+                  <div className="flex-1 min-w-0 text-left">
+                    <span className="text-[10px] text-neutral-500 font-semibold uppercase tracking-wide">Search</span>
+                    <p className="text-sm font-bold text-neutral-800 truncate">Tap to start searching</p>
+                  </div>
+                  <div className="flex items-center gap-1 bg-gradient-to-r from-gray-500 to-gray-600 text-white px-4 py-2.5 rounded-xl shadow-md flex-shrink-0">
+                    <Search className="w-4 h-4" />
+                  </div>
+                </div>
+              )}
             </button>
           </motion.div>
         )}
