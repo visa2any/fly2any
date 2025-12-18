@@ -132,19 +132,24 @@ export function withAdmin(
 
 /**
  * Helper to wrap admin API handlers with permission check
+ * Passes both route context (with params) and admin context
  */
 export function withPermission(
   resource: Resource | string,
   action: Action,
-  handler: (request: NextRequest, context: AdminContext) => Promise<NextResponse>
+  handler: (request: NextRequest, context: { params: Promise<any>; admin: AdminContext }) => Promise<NextResponse>
 ) {
-  return async (request: NextRequest) => {
+  return async (request: NextRequest, routeContext: { params: Promise<any> }) => {
     const result = await requirePermission(request, resource, action)
 
     if (result instanceof NextResponse) {
       return result
     }
 
-    return handler(request, result as AdminContext)
+    // Merge route context (params) with admin context
+    return handler(request, {
+      params: routeContext?.params || Promise.resolve({}),
+      admin: result as AdminContext,
+    })
   }
 }

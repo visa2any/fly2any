@@ -9,9 +9,9 @@ import { Resource, Action } from '@/lib/admin/rbac';
 import { syncBooking, getBookingSyncStatus } from '@/lib/bookings/sync-service';
 
 // POST - Sync booking with provider
-export const POST = withPermission(Resource.BOOKINGS, Action.UPDATE, async (request, context) => {
+export const POST = withPermission(Resource.BOOKINGS, Action.UPDATE, async (request, ctx) => {
   try {
-    const { id } = await context.params;
+    const { id } = await ctx.params;
 
     if (!id) {
       return NextResponse.json({ error: 'Booking ID required' }, { status: 400 });
@@ -68,9 +68,9 @@ export const POST = withPermission(Resource.BOOKINGS, Action.UPDATE, async (requ
 });
 
 // GET - Get sync status
-export const GET = withPermission(Resource.BOOKINGS, Action.READ, async (request, context) => {
+export const GET = withPermission(Resource.BOOKINGS, Action.READ, async (request, ctx) => {
   try {
-    const { id } = await context.params;
+    const { id } = await ctx.params;
 
     if (!id) {
       return NextResponse.json({ error: 'Booking ID required' }, { status: 400 });
