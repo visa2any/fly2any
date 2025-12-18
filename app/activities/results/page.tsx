@@ -4,7 +4,8 @@ import { useState, useEffect, Suspense, memo, useCallback, useMemo } from 'react
 import { useSearchParams, useRouter } from 'next/navigation';
 import Image from 'next/image';
 import { MaxWidthContainer } from '@/components/layout/MaxWidthContainer';
-import { Star, Clock, Heart, Loader2, ArrowLeft, Globe, Sparkles, Search } from 'lucide-react';
+import { Star, Clock, Heart, Loader2, ArrowLeft, Globe, Sparkles, Search, ChevronLeft, ChevronRight } from 'lucide-react';
+import { ImageSlider } from '@/components/shared/ImageSlider';
 import { GLOBAL_CITIES, CityDestination } from '@/lib/data/global-cities-database';
 import { ProductFilters, applyFilters, defaultFilters } from '@/components/shared/ProductFilters';
 import { ResultsPageSchema } from '@/components/seo/GEOEnhancer';
@@ -57,14 +58,14 @@ const ActivityCard = memo(({ activity, onViewDetails, index }: { activity: Activ
   const hasMultiple = images.length > 1;
 
   // Dynamic social proof & urgency
-  const seed = activity.id.charCodeAt(0) + activity.id.length;
+  const seed = activity.id.charCodeAt(0) + activity.id.charCodeAt(Math.min(1, activity.id.length - 1)) + activity.id.length;
   const rating = Number(activity.rating) || (4.4 + (seed % 6) * 0.1);
   const reviewCount = 30 + (seed % 180);
-  const bookedToday = 2 + (seed % 15);
-  const spotsLeft = 3 + (seed % 9);
+  const bookedToday = 1 + (seed % 5); // 1-5 people - more realistic
+  const spotsLeft = 2 + (seed % 6);
   const isTopRated = rating >= 4.6;
   const isPopular = index < 4;
-  const isHot = bookedToday > 8;
+  const showSocialProof = (seed % 4) === 0; // Only show on ~25% of cards
 
   return (
     <div className="bg-white rounded-2xl border border-gray-100 overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300 group relative">
@@ -77,29 +78,43 @@ const ActivityCard = memo(({ activity, onViewDetails, index }: { activity: Activ
         </div>
       )}
 
-      <div className="relative aspect-[16/10] overflow-hidden bg-gray-100">
-        <Image src={mainImg} alt={activity.name} fill sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw" className="object-cover group-hover:scale-105 transition-transform duration-500" loading="lazy" />
-        <div className="absolute inset-0 bg-gradient-to-t from-black/30 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
-        <button className="absolute top-3 right-3 w-8 h-8 rounded-full bg-white/90 backdrop-blur-sm flex items-center justify-center shadow-sm hover:scale-110 hover:bg-white transition-all">
-          <Heart className="w-4 h-4 text-gray-600 group-hover:text-red-500 transition-colors" />
-        </button>
-        {hasMultiple && (
-          <div className="absolute top-3 left-3 px-2 py-1 rounded-lg bg-black/60 text-white text-xs font-medium backdrop-blur-sm">
-            +{images.length - 1} photos
-          </div>
-        )}
-        {price && (
-          <div className="absolute bottom-3 left-3 px-3 py-1.5 rounded-xl bg-white/95 backdrop-blur-sm shadow-md">
-            <span className="font-bold text-gray-900">${price.toFixed(0)}</span>
-            <span className="text-gray-500 text-xs ml-1">/person</span>
-          </div>
-        )}
-        {spotsLeft <= 5 && (
-          <div className="absolute bottom-3 right-3 px-2 py-1 rounded-lg bg-red-500/90 text-white text-[10px] font-semibold backdrop-blur-sm animate-pulse">
-            {spotsLeft} spots left
-          </div>
-        )}
-      </div>
+      {/* Image Section - Use slider for multiple images */}
+      {hasMultiple ? (
+        <ImageSlider images={images.slice(0, 5)} alt={activity.name} height="aspect-[16/10]" showArrows={true} showDots={true}>
+          <button className="absolute top-3 right-3 w-8 h-8 rounded-full bg-white/90 backdrop-blur-sm flex items-center justify-center shadow-sm hover:scale-110 hover:bg-white transition-all z-30">
+            <Heart className="w-4 h-4 text-gray-600 hover:text-red-500 transition-colors" />
+          </button>
+          {price && (
+            <div className="absolute bottom-3 left-3 px-3 py-1.5 rounded-xl bg-white/95 backdrop-blur-sm shadow-md z-30">
+              <span className="font-bold text-gray-900">${price.toFixed(0)}</span>
+              <span className="text-gray-500 text-xs ml-1">/person</span>
+            </div>
+          )}
+          {spotsLeft <= 4 && (
+            <div className="absolute bottom-3 right-3 px-2 py-1 rounded-lg bg-red-500/90 text-white text-[10px] font-semibold backdrop-blur-sm z-30">
+              {spotsLeft} left!
+            </div>
+          )}
+        </ImageSlider>
+      ) : (
+        <div className="relative aspect-[16/10] overflow-hidden bg-gray-100">
+          <Image src={mainImg} alt={activity.name} fill sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw" className="object-cover group-hover:scale-105 transition-transform duration-500" loading="lazy" unoptimized />
+          <button className="absolute top-3 right-3 w-8 h-8 rounded-full bg-white/90 backdrop-blur-sm flex items-center justify-center shadow-sm hover:scale-110 hover:bg-white transition-all z-10">
+            <Heart className="w-4 h-4 text-gray-600 group-hover:text-red-500 transition-colors" />
+          </button>
+          {price && (
+            <div className="absolute bottom-3 left-3 px-3 py-1.5 rounded-xl bg-white/95 backdrop-blur-sm shadow-md">
+              <span className="font-bold text-gray-900">${price.toFixed(0)}</span>
+              <span className="text-gray-500 text-xs ml-1">/person</span>
+            </div>
+          )}
+          {spotsLeft <= 4 && (
+            <div className="absolute bottom-3 right-3 px-2 py-1 rounded-lg bg-red-500/90 text-white text-[10px] font-semibold backdrop-blur-sm">
+              {spotsLeft} left!
+            </div>
+          )}
+        </div>
+      )}
       <div className="p-4">
         <h3 className="font-semibold text-gray-900 line-clamp-2 mb-1.5 group-hover:text-purple-600 transition-colors leading-snug">{activity.name}</h3>
         <div className="flex items-center gap-1 mb-2">
@@ -110,10 +125,10 @@ const ActivityCard = memo(({ activity, onViewDetails, index }: { activity: Activ
           <Clock className="w-3 h-3 text-gray-400" />
           <span className="text-gray-500 text-xs">{activity.minimumDuration || '2h'}</span>
         </div>
-        {isHot && (
+        {showSocialProof && (
           <div className="flex items-center gap-1 mb-2 text-[11px] text-green-600 font-medium">
             <span className="w-1.5 h-1.5 bg-green-500 rounded-full animate-pulse" />
-            {bookedToday} adventurers joined today
+            {bookedToday} joined in last {1 + (seed % 2)} hour{(seed % 2) === 0 ? '' : 's'}
           </div>
         )}
         <button onClick={() => onViewDetails(activity, price, images)} className="w-full py-2.5 rounded-xl bg-gradient-to-r from-purple-500 to-purple-600 text-white font-semibold text-sm hover:from-purple-600 hover:to-purple-700 transition-all shadow-md hover:shadow-lg transform hover:-translate-y-0.5">

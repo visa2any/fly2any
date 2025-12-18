@@ -4,7 +4,8 @@ import { useState, useEffect, Suspense, memo, useCallback, useMemo } from 'react
 import { useSearchParams, useRouter } from 'next/navigation';
 import Image from 'next/image';
 import { MaxWidthContainer } from '@/components/layout/MaxWidthContainer';
-import { Star, Clock, Heart, Loader2, ArrowLeft, Globe, Search } from 'lucide-react';
+import { Star, Clock, Heart, Loader2, ArrowLeft, Globe, Search, ChevronLeft, ChevronRight } from 'lucide-react';
+import { ImageSlider } from '@/components/shared/ImageSlider';
 import { GLOBAL_CITIES, CityDestination } from '@/lib/data/global-cities-database';
 import { ProductFilters, applyFilters, defaultFilters, type SortOption, type PriceRange, type DurationRange } from '@/components/shared/ProductFilters';
 import { ResultsPageSchema } from '@/components/seo/GEOEnhancer';
@@ -59,14 +60,14 @@ const TourCard = memo(({ tour, onViewDetails, index }: { tour: Tour; onViewDetai
   const hasMultiple = images.length > 1;
 
   // Dynamic social proof & urgency (seeded by tour id for consistency)
-  const seed = tour.id.charCodeAt(0) + tour.id.length;
+  const seed = tour.id.charCodeAt(0) + tour.id.charCodeAt(Math.min(1, tour.id.length - 1)) + tour.id.length;
   const rating = Number(tour.rating) || (4.5 + (seed % 5) * 0.1);
   const reviewCount = 50 + (seed % 200);
-  const bookedToday = 3 + (seed % 12);
-  const spotsLeft = 4 + (seed % 8);
+  const bookedToday = 2 + (seed % 6); // 2-7 people - more realistic
+  const spotsLeft = 3 + (seed % 6);
   const isTopRated = rating >= 4.7;
   const isBestSeller = index < 3;
-  const isTrending = bookedToday > 10;
+  const showSocialProof = (seed % 3) === 0; // Only show on ~33% of cards
 
   return (
     <div className="bg-white rounded-2xl border border-gray-100 overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300 group relative">
@@ -79,30 +80,43 @@ const TourCard = memo(({ tour, onViewDetails, index }: { tour: Tour; onViewDetai
         </div>
       )}
 
-      <div className="relative aspect-[16/10] overflow-hidden bg-gray-100">
-        <Image src={mainImg} alt={tour.name} fill sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw" className="object-cover group-hover:scale-105 transition-transform duration-500" loading="lazy" />
-        <div className="absolute inset-0 bg-gradient-to-t from-black/30 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
-        <button className="absolute top-3 right-3 w-8 h-8 rounded-full bg-white/90 backdrop-blur-sm flex items-center justify-center shadow-sm hover:scale-110 hover:bg-white transition-all">
-          <Heart className="w-4 h-4 text-gray-600 group-hover:text-red-500 transition-colors" />
-        </button>
-        {hasMultiple && (
-          <div className="absolute top-3 left-3 px-2 py-1 rounded-lg bg-black/60 text-white text-xs font-medium backdrop-blur-sm">
-            +{images.length - 1} photos
-          </div>
-        )}
-        {price && (
-          <div className="absolute bottom-3 left-3 px-3 py-1.5 rounded-xl bg-white/95 backdrop-blur-sm shadow-md">
-            <span className="font-bold text-gray-900">${price.toFixed(0)}</span>
-            <span className="text-gray-500 text-xs ml-1">/person</span>
-          </div>
-        )}
-        {/* Urgency indicator */}
-        {spotsLeft <= 6 && (
-          <div className="absolute bottom-3 right-3 px-2 py-1 rounded-lg bg-red-500/90 text-white text-[10px] font-semibold backdrop-blur-sm animate-pulse">
-            Only {spotsLeft} left!
-          </div>
-        )}
-      </div>
+      {/* Image Section - Use slider for multiple images */}
+      {hasMultiple ? (
+        <ImageSlider images={images.slice(0, 5)} alt={tour.name} height="aspect-[16/10]" showArrows={true} showDots={true}>
+          <button className="absolute top-3 right-3 w-8 h-8 rounded-full bg-white/90 backdrop-blur-sm flex items-center justify-center shadow-sm hover:scale-110 hover:bg-white transition-all z-30">
+            <Heart className="w-4 h-4 text-gray-600 hover:text-red-500 transition-colors" />
+          </button>
+          {price && (
+            <div className="absolute bottom-3 left-3 px-3 py-1.5 rounded-xl bg-white/95 backdrop-blur-sm shadow-md z-30">
+              <span className="font-bold text-gray-900">${price.toFixed(0)}</span>
+              <span className="text-gray-500 text-xs ml-1">/person</span>
+            </div>
+          )}
+          {spotsLeft <= 5 && (
+            <div className="absolute bottom-3 right-3 px-2 py-1 rounded-lg bg-red-500/90 text-white text-[10px] font-semibold backdrop-blur-sm z-30">
+              {spotsLeft} left!
+            </div>
+          )}
+        </ImageSlider>
+      ) : (
+        <div className="relative aspect-[16/10] overflow-hidden bg-gray-100">
+          <Image src={mainImg} alt={tour.name} fill sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw" className="object-cover group-hover:scale-105 transition-transform duration-500" loading="lazy" unoptimized />
+          <button className="absolute top-3 right-3 w-8 h-8 rounded-full bg-white/90 backdrop-blur-sm flex items-center justify-center shadow-sm hover:scale-110 hover:bg-white transition-all z-10">
+            <Heart className="w-4 h-4 text-gray-600 group-hover:text-red-500 transition-colors" />
+          </button>
+          {price && (
+            <div className="absolute bottom-3 left-3 px-3 py-1.5 rounded-xl bg-white/95 backdrop-blur-sm shadow-md">
+              <span className="font-bold text-gray-900">${price.toFixed(0)}</span>
+              <span className="text-gray-500 text-xs ml-1">/person</span>
+            </div>
+          )}
+          {spotsLeft <= 5 && (
+            <div className="absolute bottom-3 right-3 px-2 py-1 rounded-lg bg-red-500/90 text-white text-[10px] font-semibold backdrop-blur-sm">
+              {spotsLeft} left!
+            </div>
+          )}
+        </div>
+      )}
       <div className="p-4">
         <h3 className="font-semibold text-gray-900 line-clamp-2 mb-1.5 group-hover:text-orange-600 transition-colors leading-snug">{tour.name}</h3>
         {/* Rating with review count */}
@@ -114,11 +128,11 @@ const TourCard = memo(({ tour, onViewDetails, index }: { tour: Tour; onViewDetai
           <Clock className="w-3 h-3 text-gray-400" />
           <span className="text-gray-500 text-xs">{tour.minimumDuration || '3h'}</span>
         </div>
-        {/* Social proof */}
-        {isTrending && (
+        {/* Social proof - varied */}
+        {showSocialProof && (
           <div className="flex items-center gap-1 mb-2 text-[11px] text-green-600 font-medium">
             <span className="w-1.5 h-1.5 bg-green-500 rounded-full animate-pulse" />
-            {bookedToday} people booked today
+            {bookedToday} booked in last {1 + (seed % 3)} hours
           </div>
         )}
         <button onClick={() => onViewDetails(tour, price, images)} className="w-full py-2.5 rounded-xl bg-gradient-to-r from-orange-500 to-orange-600 text-white font-semibold text-sm hover:from-orange-600 hover:to-orange-700 transition-all shadow-md hover:shadow-lg transform hover:-translate-y-0.5">
