@@ -4,7 +4,7 @@ import { useState, useEffect, Suspense, memo, useCallback, useMemo } from 'react
 import { useSearchParams, useRouter } from 'next/navigation';
 import Image from 'next/image';
 import { MaxWidthContainer } from '@/components/layout/MaxWidthContainer';
-import { Star, Clock, Heart, Loader2, ArrowLeft, Globe, Sparkles, Search, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Star, Clock, Heart, Loader2, ArrowLeft, Globe, Sparkles, Search, ChevronLeft, ChevronRight, Share2 } from 'lucide-react';
 import { ImageSlider } from '@/components/shared/ImageSlider';
 import { GLOBAL_CITIES, CityDestination } from '@/lib/data/global-cities-database';
 import { ProductFilters, applyFilters, defaultFilters } from '@/components/shared/ProductFilters';
@@ -67,6 +67,17 @@ const ActivityCard = memo(({ activity, onViewDetails, index }: { activity: Activ
     setIsFavorite(!isFavorite);
   };
 
+  const handleShare = async (e: React.MouseEvent) => {
+    e.stopPropagation();
+    const shareData = { title: activity.name, text: `Check out this activity: ${activity.name}`, url: window.location.href };
+    if (navigator.share) {
+      await navigator.share(shareData);
+    } else {
+      navigator.clipboard.writeText(window.location.href);
+      alert('Link copied!');
+    }
+  };
+
   const basePrice = activity.price?.amount ? parseFloat(activity.price.amount) : null;
   const price = basePrice ? basePrice + Math.max(basePrice * 0.35, 35) : null;
   const images = (activity.pictures || []).map(pic => typeof pic === 'string' ? pic : pic?.url).filter(Boolean) as string[];
@@ -84,7 +95,7 @@ const ActivityCard = memo(({ activity, onViewDetails, index }: { activity: Activ
   const showSocialProof = (seed % 4) === 0; // Only show on ~25% of cards
 
   return (
-    <div className="bg-white rounded-2xl border border-gray-100 overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300 group relative">
+    <div className="bg-white rounded-2xl border border-gray-100 overflow-hidden shadow-sm hover:shadow-2xl hover:border-purple-200 hover:-translate-y-1 transition-all duration-300 ease-out group relative cursor-pointer">
       {/* Image Section - Use slider for multiple images */}
       {hasMultiple ? (
         <ImageSlider images={images.slice(0, 5)} alt={activity.name} height="aspect-[16/10]" showArrows={true} showDots={true}>
@@ -96,9 +107,14 @@ const ActivityCard = memo(({ activity, onViewDetails, index }: { activity: Activ
               {isPopular ? '✨ Popular' : '⭐ Top Rated'}
             </div>
           )}
-          <button onClick={toggleFavorite} className="absolute top-3 right-3 w-8 h-8 rounded-full bg-white/90 backdrop-blur-sm flex items-center justify-center shadow-sm hover:scale-110 hover:bg-white transition-all z-30">
-            <Heart className={`w-4 h-4 transition-colors ${isFavorite ? 'fill-red-500 text-red-500' : 'text-gray-600 hover:text-red-500'}`} />
-          </button>
+          <div className="absolute top-3 right-3 flex gap-1.5 z-30">
+            <button onClick={handleShare} className="w-8 h-8 rounded-full bg-white/90 backdrop-blur-sm flex items-center justify-center shadow-sm hover:scale-110 hover:bg-white transition-all">
+              <Share2 className="w-4 h-4 text-gray-600 hover:text-purple-500 transition-colors" />
+            </button>
+            <button onClick={toggleFavorite} className="w-8 h-8 rounded-full bg-white/90 backdrop-blur-sm flex items-center justify-center shadow-sm hover:scale-110 hover:bg-white transition-all">
+              <Heart className={`w-4 h-4 transition-colors ${isFavorite ? 'fill-red-500 text-red-500' : 'text-gray-600 hover:text-red-500'}`} />
+            </button>
+          </div>
           {price && (
             <div className="absolute bottom-3 left-3 px-3 py-1.5 rounded-xl bg-white/95 backdrop-blur-sm shadow-md z-30">
               <span className="font-bold text-gray-900">${price.toFixed(0)}</span>
@@ -113,7 +129,8 @@ const ActivityCard = memo(({ activity, onViewDetails, index }: { activity: Activ
         </ImageSlider>
       ) : (
         <div className="relative aspect-[16/10] overflow-hidden bg-gray-100">
-          <Image src={mainImg} alt={activity.name} fill sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw" className="object-cover group-hover:scale-105 transition-transform duration-500" loading="lazy" unoptimized />
+          <Image src={mainImg} alt={activity.name} fill sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw" className="object-cover group-hover:scale-110 transition-transform duration-500 ease-out" loading="lazy" unoptimized />
+          <div className="absolute inset-0 bg-gradient-to-t from-black/20 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
           {/* Badge for single image */}
           {(isTopRated || isPopular) && (
             <div className={`absolute top-2 left-2 z-20 px-2 py-1 text-[10px] font-bold uppercase tracking-wide rounded-lg shadow-md ${
@@ -122,9 +139,14 @@ const ActivityCard = memo(({ activity, onViewDetails, index }: { activity: Activ
               {isPopular ? '✨ Popular' : '⭐ Top Rated'}
             </div>
           )}
-          <button onClick={toggleFavorite} className="absolute top-3 right-3 w-8 h-8 rounded-full bg-white/90 backdrop-blur-sm flex items-center justify-center shadow-sm hover:scale-110 hover:bg-white transition-all z-10">
-            <Heart className={`w-4 h-4 transition-colors ${isFavorite ? 'fill-red-500 text-red-500' : 'text-gray-600 hover:text-red-500'}`} />
-          </button>
+          <div className="absolute top-3 right-3 flex gap-1.5 z-20">
+            <button onClick={handleShare} className="w-8 h-8 rounded-full bg-white/90 backdrop-blur-sm flex items-center justify-center shadow-sm hover:scale-110 hover:bg-white transition-all">
+              <Share2 className="w-4 h-4 text-gray-600 hover:text-purple-500 transition-colors" />
+            </button>
+            <button onClick={toggleFavorite} className="w-8 h-8 rounded-full bg-white/90 backdrop-blur-sm flex items-center justify-center shadow-sm hover:scale-110 hover:bg-white transition-all">
+              <Heart className={`w-4 h-4 transition-colors ${isFavorite ? 'fill-red-500 text-red-500' : 'text-gray-600 hover:text-red-500'}`} />
+            </button>
+          </div>
           {price && (
             <div className="absolute bottom-3 left-3 px-3 py-1.5 rounded-xl bg-white/95 backdrop-blur-sm shadow-md">
               <span className="font-bold text-gray-900">${price.toFixed(0)}</span>
