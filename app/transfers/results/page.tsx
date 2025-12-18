@@ -5,6 +5,7 @@ import { useSearchParams, useRouter } from 'next/navigation';
 import { MaxWidthContainer } from '@/components/layout/MaxWidthContainer';
 import { Star, Clock, Users, Loader2, ArrowLeft, MapPin, Navigation, Check, Shield } from 'lucide-react';
 import { ProductFilters, applyFilters, defaultFilters } from '@/components/shared/ProductFilters';
+import { ResultsPageSchema } from '@/components/seo/GEOEnhancer';
 
 interface Transfer {
   id: string;
@@ -233,6 +234,28 @@ function TransferResultsContent() {
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-teal-50/50 to-white">
+      {/* GEO Schema for AI search engines */}
+      {!loading && transfers.length > 0 && (
+        <ResultsPageSchema
+          type="transfer"
+          items={transfers.map(t => ({
+            name: t.name,
+            price: parseFloat(t.price.amount),
+            currency: t.price.currency,
+            pickup: t.pickup,
+            dropoff: t.dropoff,
+            vehicleType: t.category,
+            maxPassengers: t.maxPassengers,
+            rating: parseFloat(t.rating),
+          }))}
+          pageInfo={{
+            title: `Airport Transfers from ${pickup} to ${dropoff}`,
+            description: `Compare ${transfers.length} transfer options from ${pickup} to ${dropoff}. Private cars, luxury vehicles, and shared shuttles available.`,
+            totalResults: transfers.length,
+            location: `${pickup} to ${dropoff}`,
+          }}
+        />
+      )}
       {/* Header */}
       <div className="sticky top-0 z-40 bg-white/95 backdrop-blur-lg border-b border-gray-100 shadow-sm">
         <MaxWidthContainer>

@@ -7,6 +7,7 @@ import { MaxWidthContainer } from '@/components/layout/MaxWidthContainer';
 import { Star, Clock, Heart, Loader2, ArrowLeft, Globe, Search } from 'lucide-react';
 import { GLOBAL_CITIES, CityDestination } from '@/lib/data/global-cities-database';
 import { ProductFilters, applyFilters, defaultFilters, type SortOption, type PriceRange, type DurationRange } from '@/components/shared/ProductFilters';
+import { ResultsPageSchema } from '@/components/seo/GEOEnhancer';
 
 interface Tour {
   id: string;
@@ -210,6 +211,26 @@ function TourResultsContent() {
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white">
+      {/* GEO Schema for AI search engines */}
+      {!loading && tours.length > 0 && (
+        <ResultsPageSchema
+          type="tour"
+          items={tours.slice(0, 20).map(t => ({
+            name: t.name,
+            description: t.shortDescription || t.description,
+            price: t.price?.amount ? parseFloat(t.price.amount) + Math.max(parseFloat(t.price.amount) * 0.35, 35) : 0,
+            currency: t.price?.currencyCode || 'USD',
+            rating: t.rating || 4.7,
+            duration: t.minimumDuration,
+          }))}
+          pageInfo={{
+            title: `Tours in ${cityName}`,
+            description: `Discover ${tours.length} amazing tours and experiences in ${cityName}. Book guided tours, adventures, and cultural experiences.`,
+            totalResults: tours.length,
+            location: cityName,
+          }}
+        />
+      )}
       {/* Header */}
       <div className="sticky top-0 z-40 bg-white/95 backdrop-blur-lg border-b border-gray-100 shadow-sm">
         <MaxWidthContainer>

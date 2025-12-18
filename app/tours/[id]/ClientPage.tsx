@@ -9,6 +9,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import ExperienceDetailsPage from '@/components/experiences/ExperienceDetailsPage';
 import { Loader2 } from 'lucide-react';
+import { GEOEnhancer } from '@/components/seo/GEOEnhancer';
 
 interface TourData {
   id: string;
@@ -155,11 +156,28 @@ export default function TourDetailsClient({ initialData }: TourDetailsClientProp
   };
 
   return (
-    <ExperienceDetailsPage
-      experience={experienceData}
-      accentColor="orange"
-      gradientFrom="from-orange-50/50"
-      gradientTo="to-white"
-    />
+    <>
+      {/* GEO Schema for AI search engines */}
+      <GEOEnhancer
+        type="tour"
+        data={{
+          name: tour.name,
+          description: tour.description,
+          price: tour.price,
+          currency: 'USD',
+          location: tour.location,
+          rating: tour.rating,
+          reviewCount: experienceData.reviewCount,
+          duration: tour.duration,
+          images: tour.images,
+        }}
+      />
+      <ExperienceDetailsPage
+        experience={experienceData}
+        accentColor="orange"
+        gradientFrom="from-orange-50/50"
+        gradientTo="to-white"
+      />
+    </>
   );
 }

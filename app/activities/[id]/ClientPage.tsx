@@ -9,6 +9,7 @@ import { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import ExperienceDetailsPage from '@/components/experiences/ExperienceDetailsPage';
 import { Loader2 } from 'lucide-react';
+import { GEOEnhancer } from '@/components/seo/GEOEnhancer';
 
 interface ActivityData {
   id: string;
@@ -152,11 +153,28 @@ export default function ActivityDetailsClient({ initialData }: ActivityDetailsCl
   };
 
   return (
-    <ExperienceDetailsPage
-      experience={experienceData}
-      accentColor="purple"
-      gradientFrom="from-purple-50/50"
-      gradientTo="to-white"
-    />
+    <>
+      {/* GEO Schema for AI search engines */}
+      <GEOEnhancer
+        type="activity"
+        data={{
+          name: activity.name,
+          description: activity.description,
+          price: activity.price,
+          currency: 'USD',
+          location: activity.location,
+          rating: activity.rating,
+          reviewCount: experienceData.reviewCount,
+          duration: activity.duration,
+          images: activity.images,
+        }}
+      />
+      <ExperienceDetailsPage
+        experience={experienceData}
+        accentColor="purple"
+        gradientFrom="from-purple-50/50"
+        gradientTo="to-white"
+      />
+    </>
   );
 }

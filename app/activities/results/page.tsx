@@ -7,6 +7,7 @@ import { MaxWidthContainer } from '@/components/layout/MaxWidthContainer';
 import { Star, Clock, Heart, Loader2, ArrowLeft, Globe, Sparkles, Search } from 'lucide-react';
 import { GLOBAL_CITIES, CityDestination } from '@/lib/data/global-cities-database';
 import { ProductFilters, applyFilters, defaultFilters } from '@/components/shared/ProductFilters';
+import { ResultsPageSchema } from '@/components/seo/GEOEnhancer';
 
 interface Activity {
   id: string;
@@ -204,6 +205,26 @@ function ActivityResultsContent() {
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white">
+      {/* GEO Schema for AI search engines */}
+      {!loading && activities.length > 0 && (
+        <ResultsPageSchema
+          type="activity"
+          items={activities.slice(0, 20).map(a => ({
+            name: a.name,
+            description: a.description,
+            price: a.price?.amount ? parseFloat(a.price.amount) + Math.max(parseFloat(a.price.amount) * 0.35, 35) : 0,
+            currency: a.price?.currencyCode || 'USD',
+            rating: a.rating || 4.6,
+            duration: a.minimumDuration,
+          }))}
+          pageInfo={{
+            title: `Activities in ${cityName}`,
+            description: `Explore ${activities.length} unique activities and experiences in ${cityName}. Classes, shows, tickets, and more.`,
+            totalResults: activities.length,
+            location: cityName,
+          }}
+        />
+      )}
       {/* Header */}
       <div className="sticky top-0 z-40 bg-white/95 backdrop-blur-lg border-b border-gray-100 shadow-sm">
         <MaxWidthContainer>
