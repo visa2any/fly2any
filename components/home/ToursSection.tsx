@@ -67,8 +67,8 @@ export function ToursSection({ lang = 'en' }: ToursSectionProps) {
   };
 
   const getPrice = (tour: Tour) => {
-    const base = tour.price?.amount ? parseFloat(tour.price.amount) : 0;
-    return base > 0 ? Math.round(base + Math.max(base * 0.35, 35)) : null;
+    // API already applies markup ($35 min or 35%) - use price.amount directly
+    return tour.price?.amount ? Math.round(parseFloat(tour.price.amount)) : null;
   };
 
   return (

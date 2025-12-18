@@ -131,8 +131,8 @@ type FilterType = 'all' | 'culture' | 'adventure' | 'foodDrink' | 'wellness' | '
 
 // Memoized Activity Card - Level 6 Apple-Class design with Image Slider
 const ActivityCard = memo(({ activity, onClick, t, index }: { activity: ActivityItem; onClick: () => void; t: typeof translations['en']; index: number }) => {
-  const basePrice = activity.price?.amount ? parseFloat(activity.price.amount) : 0;
-  const price = basePrice > 0 ? Math.round(basePrice + Math.max(basePrice * 0.35, 35)) : null;
+  // API already applies markup ($35 min or 35%) - use price.amount directly
+  const price = activity.price?.amount ? Math.round(parseFloat(activity.price.amount)) : null;
 
   // Extract all images from the activity (API returns array of pictures)
   const images: string[] = (activity.pictures || []).map((pic: any) =>
@@ -367,8 +367,8 @@ export function ActivitiesSectionEnhanced({ lang = 'en' }: ActivitiesSectionEnha
   }, []);
 
   const handleActivityClick = useCallback((activity: ActivityItem) => {
-    const basePrice = activity.price?.amount ? parseFloat(activity.price.amount) : 0;
-    const price = basePrice > 0 ? Math.round(basePrice + Math.max(basePrice * 0.35, 35)) : 0;
+    // API already applies markup - use price.amount directly
+    const price = activity.price?.amount ? Math.round(parseFloat(activity.price.amount)) : 0;
     const firstPic = activity.pictures?.[0];
     const img = typeof firstPic === 'string' ? firstPic : firstPic?.url || '';
 

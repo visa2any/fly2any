@@ -4367,6 +4367,38 @@ export default function EnhancedSearchBar({
               )}
             </div>
 
+            {/* Date & Travelers Row */}
+            <div className="flex gap-2">
+              {/* Tour Date */}
+              <div className="flex-1">
+                <label className="flex items-center gap-1.5 text-xs font-semibold text-neutral-600 mb-1.5">
+                  <Calendar size={13} className="text-orange-600" />
+                  <span>When</span>
+                </label>
+                <input
+                  type="date"
+                  value={checkInDate}
+                  onChange={(e) => setCheckInDate(e.target.value)}
+                  min={minDate}
+                  className="w-full px-3 py-3 bg-white border-2 border-neutral-200 rounded-xl focus:border-orange-500 focus:ring-2 focus:ring-orange-100 outline-none transition-all text-sm font-semibold text-neutral-800"
+                />
+              </div>
+              {/* Travelers */}
+              <div className="w-28">
+                <label className="flex items-center gap-1.5 text-xs font-semibold text-neutral-600 mb-1.5">
+                  <Users size={13} className="text-orange-600" />
+                  <span>Travelers</span>
+                </label>
+                <select
+                  value={hotelAdults}
+                  onChange={(e) => setHotelAdults(parseInt(e.target.value))}
+                  className="w-full px-2 py-3 bg-white border-2 border-neutral-200 rounded-xl focus:border-orange-500 focus:ring-2 focus:ring-orange-100 outline-none transition-all text-sm font-semibold text-neutral-800"
+                >
+                  {[1,2,3,4,5,6,7,8,9,10].map(n => <option key={n} value={n}>{n}</option>)}
+                </select>
+              </div>
+            </div>
+
             {/* Search Button */}
             <button
               type="button"
@@ -4468,6 +4500,38 @@ export default function EnhancedSearchBar({
                   ) : null}
                 </div>
               )}
+            </div>
+
+            {/* Date & Travelers Row */}
+            <div className="flex gap-2">
+              {/* Activity Date */}
+              <div className="flex-1">
+                <label className="flex items-center gap-1.5 text-xs font-semibold text-neutral-600 mb-1.5">
+                  <Calendar size={13} className="text-purple-600" />
+                  <span>When</span>
+                </label>
+                <input
+                  type="date"
+                  value={checkInDate}
+                  onChange={(e) => setCheckInDate(e.target.value)}
+                  min={minDate}
+                  className="w-full px-3 py-3 bg-white border-2 border-neutral-200 rounded-xl focus:border-purple-500 focus:ring-2 focus:ring-purple-100 outline-none transition-all text-sm font-semibold text-neutral-800"
+                />
+              </div>
+              {/* Travelers */}
+              <div className="w-28">
+                <label className="flex items-center gap-1.5 text-xs font-semibold text-neutral-600 mb-1.5">
+                  <Users size={13} className="text-purple-600" />
+                  <span>Travelers</span>
+                </label>
+                <select
+                  value={hotelAdults}
+                  onChange={(e) => setHotelAdults(parseInt(e.target.value))}
+                  className="w-full px-2 py-3 bg-white border-2 border-neutral-200 rounded-xl focus:border-purple-500 focus:ring-2 focus:ring-purple-100 outline-none transition-all text-sm font-semibold text-neutral-800"
+                >
+                  {[1,2,3,4,5,6,7,8,9,10].map(n => <option key={n} value={n}>{n}</option>)}
+                </select>
+              </div>
             </div>
 
             {/* Search Button */}

@@ -1691,6 +1691,90 @@ model EmailTemplate {
   @@map("email_templates")
 }
 
+// Email Campaigns for Marketing
+model EmailCampaign {
+  id   String @id @default(cuid())
+  name String // "Winter Sale 2024", "New Year Flash"
+
+  // Campaign Type
+  type   String @default("promotional") // promotional, newsletter, announcement, drip, transactional
+  status String @default("draft") // draft, scheduled, sending, sent, paused, cancelled
+
+  // Content
+  subject   String
+  preheader String?
+  body      String  @db.Text // HTML content
+  plainText String? @db.Text // Plain text fallback
+
+  // Template reference (optional - can use predefined template)
+  templateId String?
+
+  // Targeting
+  targetAudience String   @default("all") // all, active, new, custom
+  customFilter   Json? // Custom filter criteria
+  excludeList    String[] // Emails to exclude
+
+  // Scheduling
+  scheduledAt DateTime?
+  startedAt   DateTime?
+  completedAt DateTime?
+
+  // Stats
+  totalRecipients Int @default(0)
+  sent            Int @default(0)
+  delivered       Int @default(0)
+  opened          Int @default(0)
+  clicked         Int @default(0)
+  bounced         Int @default(0)
+  unsubscribed    Int @default(0)
+  complained      Int @default(0)
+
+  // Metadata
+  createdBy String?
+  tags      String[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([status])
+  @@index([type])
+  @@index([scheduledAt])
+  @@map("email_campaigns")
+}
+
+// Individual Email Sends within a Campaign
+model EmailCampaignSend {
+  id         String @id @default(cuid())
+  campaignId String
+  email      String
+
+  // Status tracking
+  status     String @default("pending") // pending, sent, delivered, opened, clicked, bounced, complained
+
+  // Mailgun tracking
+  messageId  String?
+
+  // Timestamps
+  sentAt      DateTime?
+  deliveredAt DateTime?
+  openedAt    DateTime?
+  clickedAt   DateTime?
+  bouncedAt   DateTime?
+
+  // Metadata
+  errorMessage String?
+  metadata     Json?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([campaignId, email])
+  @@index([campaignId])
+  @@index([email])
+  @@index([status])
+  @@map("email_campaign_sends")
+}
+
 // System Health Monitoring
 model HealthCheck {
   id String @id @default(cuid())

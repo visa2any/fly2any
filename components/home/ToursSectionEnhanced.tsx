@@ -131,8 +131,8 @@ type FilterType = 'all' | 'europe' | 'americas' | 'asia' | 'caribbean' | 'middle
 
 // Memoized Tour Card - Level 6 Apple-Class design with Image Slider
 const TourCard = memo(({ tour, onClick, t, index }: { tour: Tour; onClick: () => void; t: typeof translations['en']; index: number }) => {
-  const basePrice = tour.price?.amount ? parseFloat(tour.price.amount) : 0;
-  const price = basePrice > 0 ? Math.round(basePrice + Math.max(basePrice * 0.35, 35)) : null;
+  // API already applies markup ($35 min or 35%) - use price.amount directly
+  const price = tour.price?.amount ? Math.round(parseFloat(tour.price.amount)) : null;
 
   // Extract all images from the tour (API returns array of pictures)
   const images: string[] = (tour.pictures || []).map((pic: any) =>
@@ -367,8 +367,8 @@ export function ToursSectionEnhanced({ lang = 'en' }: ToursSectionEnhancedProps)
   }, []);
 
   const handleTourClick = useCallback((tour: Tour) => {
-    const basePrice = tour.price?.amount ? parseFloat(tour.price.amount) : 0;
-    const price = basePrice > 0 ? Math.round(basePrice + Math.max(basePrice * 0.35, 35)) : 0;
+    // API already applies markup - use price.amount directly
+    const price = tour.price?.amount ? Math.round(parseFloat(tour.price.amount)) : 0;
     const firstPic = tour.pictures?.[0];
     const img = typeof firstPic === 'string' ? firstPic : firstPic?.url || '';
 

@@ -65,8 +65,8 @@ export function ActivitiesSection({ lang = 'en' }: ActivitiesSectionProps) {
   };
 
   const getPrice = (item: ActivityItem) => {
-    const base = item.price?.amount ? parseFloat(item.price.amount) : 0;
-    return base > 0 ? Math.round(base + Math.max(base * 0.35, 35)) : null;
+    // API already applies markup ($35 min or 35%) - use price.amount directly
+    return item.price?.amount ? Math.round(parseFloat(item.price.amount)) : null;
   };
 
   return (
