@@ -453,6 +453,27 @@ export async function POST(request: NextRequest) {
       const outboundOffer = separateTicketDetails.outboundFlight;
       const returnOffer = separateTicketDetails.returnFlight;
 
+      // CRITICAL: Validate offer IDs before attempting booking
+      const outboundId = outboundOffer?.id;
+      const returnId = returnOffer?.id;
+      const isValidDuffelId = (id: string) => id && (id.startsWith('off_') || id.length > 20);
+
+      if (!isValidDuffelId(outboundId) || !isValidDuffelId(returnId)) {
+        console.error(`❌ Invalid offer IDs detected: outbound=${outboundId}, return=${returnId}`);
+        console.error('   This usually means the flight data was corrupted or session expired.');
+
+        return NextResponse.json({
+          success: false,
+          error: 'INVALID_OFFER_DATA',
+          message: 'Flight offer data is invalid or corrupted. Please search again for current flights.',
+          details: {
+            outboundId,
+            returnId,
+            suggestion: 'The flight prices may have changed. Please perform a new search.'
+          }
+        }, { status: 400 });
+      }
+
       console.log(`   Outbound: ${outboundOffer.id} (${outboundOffer.validatingAirlineCodes?.[0] || 'Unknown'})`);
       console.log(`   Return: ${returnOffer.id} (${returnOffer.validatingAirlineCodes?.[0] || 'Unknown'})`);
 
