@@ -1433,17 +1433,7 @@ function BookingPageContent() {
               }}
               currency={flightData.price.currency}
               farePrice={farePrice}
-              addOns={[
-                ...addOns,
-                // Add promo discount as negative line item if applied
-                ...(appliedPromo ? [{
-                  label: `Promo: ${appliedPromo.code}`,
-                  amount: -appliedPromo.discountAmount,
-                  subtext: appliedPromo.type === 'percentage'
-                    ? `${appliedPromo.value}% off`
-                    : `$${appliedPromo.value} off`,
-                }] : []),
-              ]}
+              addOns={addOns}
               taxesAndFees={taxesAndFees}
               onContinue={currentStep < 3 ? handleContinue : undefined}
               pricelock={priceLockTimer}
@@ -1460,6 +1450,10 @@ function BookingPageContent() {
               continueButtonDisabled={currentStep === 2 ? !arePassengersComplete() : currentStep === 3}
               formId={currentStep === 3 ? 'payment-form' : undefined}
               isProcessing={isProcessing}
+              // Promo code - available at all steps
+              appliedPromo={appliedPromo}
+              onApplyPromo={handlePromoApply}
+              onRemovePromo={handlePromoRemove}
             />
           </div>
         </div>

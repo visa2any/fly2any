@@ -1,6 +1,7 @@
 'use client';
 
-import { Plane, Clock, Calendar, Users, TrendingUp, TrendingDown, Sparkles, Armchair, Luggage, Shield, Star, Utensils, Wifi, Calculator, Receipt, DollarSign, Lock } from 'lucide-react';
+import { useState } from 'react';
+import { Plane, Clock, Calendar, Users, TrendingUp, TrendingDown, Sparkles, Armchair, Luggage, Shield, Star, Utensils, Wifi, Calculator, Receipt, DollarSign, Lock, Tag, X, Check, Loader2 } from 'lucide-react';
 import { getAirportDisplay } from '@/lib/data/airports';
 
 interface Flight {
@@ -19,6 +20,14 @@ interface PriceLineItem {
   label: string;
   amount: number;
   subtext?: string;
+}
+
+interface AppliedPromo {
+  code: string;
+  type: 'percentage' | 'fixed';
+  value: number;
+  discountAmount: number;
+  description?: string;
 }
 
 interface StickySummaryProps {
@@ -41,6 +50,10 @@ interface StickySummaryProps {
   continueButtonDisabled?: boolean;
   formId?: string;
   isProcessing?: boolean;
+  // Promo code props
+  appliedPromo?: AppliedPromo | null;
+  onApplyPromo?: (code: string, discount: AppliedPromo) => void;
+  onRemovePromo?: () => void;
 }
 
 export function StickySummary({
@@ -56,9 +69,58 @@ export function StickySummary({
   continueButtonDisabled = false,
   formId,
   isProcessing = false,
+  appliedPromo,
+  onApplyPromo,
+  onRemovePromo,
 }: StickySummaryProps) {
+  const [promoCode, setPromoCode] = useState('');
+  const [promoLoading, setPromoLoading] = useState(false);
+  const [promoError, setPromoError] = useState<string | null>(null);
+  const [showPromoInput, setShowPromoInput] = useState(false);
+
   const subtotal = farePrice + addOns.reduce((sum, item) => sum + item.amount, 0);
-  const total = subtotal + taxesAndFees;
+  const discountAmount = appliedPromo?.discountAmount || 0;
+  const total = subtotal + taxesAndFees - discountAmount;
+
+  // Handle promo code validation
+  const handleApplyPromo = async () => {
+    if (!promoCode.trim() || !onApplyPromo) return;
+
+    setPromoLoading(true);
+    setPromoError(null);
+
+    try {
+      const response = await fetch('/api/promo/validate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          code: promoCode.trim().toUpperCase(),
+          totalPrice: subtotal + taxesAndFees,
+          productType: 'flight',
+        }),
+      });
+
+      const data = await response.json();
+
+      if (data.valid && data.discount) {
+        onApplyPromo(promoCode.trim().toUpperCase(), {
+          code: promoCode.trim().toUpperCase(),
+          type: data.discount.type,
+          value: data.discount.value,
+          discountAmount: data.discount.discountAmount,
+          description: data.discount.description,
+        });
+        setPromoCode('');
+        setShowPromoInput(false);
+      } else {
+        setPromoError(data.error || 'Invalid promo code');
+      }
+    } catch (err) {
+      setPromoError('Failed to validate code');
+    } finally {
+      setPromoLoading(false);
+    }
+  };
 
   const passengerCount = flight.passengers.adults + flight.passengers.children + flight.passengers.infants;
 
@@ -176,6 +238,92 @@ export function StickySummary({
             </span>
           )}
         </div>
+
+        {/* Promo Code Section */}
+        {onApplyPromo && (
+          <div className="mb-2 pt-2 border-t border-gray-100">
+            {appliedPromo ? (
+              // Show applied promo
+              <div className="flex items-center justify-between bg-green-50 rounded-lg p-2">
+                <div className="flex items-center gap-1.5">
+                  <Tag className="w-3.5 h-3.5 text-green-600" />
+                  <div>
+                    <span className="text-[10px] sm:text-xs font-bold text-green-700">
+                      {appliedPromo.code}
+                    </span>
+                    <span className="text-[10px] text-green-600 ml-1">
+                      ({appliedPromo.type === 'percentage' ? `${appliedPromo.value}% off` : `$${appliedPromo.value} off`})
+                    </span>
+                  </div>
+                </div>
+                <div className="flex items-center gap-2">
+                  <span className="text-[10px] sm:text-xs font-bold text-green-700">
+                    -{currency} {appliedPromo.discountAmount.toFixed(2)}
+                  </span>
+                  {onRemovePromo && (
+                    <button
+                      onClick={onRemovePromo}
+                      className="p-0.5 hover:bg-green-100 rounded transition-colors"
+                    >
+                      <X className="w-3.5 h-3.5 text-green-600" />
+                    </button>
+                  )}
+                </div>
+              </div>
+            ) : showPromoInput ? (
+              // Show promo input field
+              <div className="space-y-1.5">
+                <div className="flex gap-1.5">
+                  <input
+                    type="text"
+                    value={promoCode}
+                    onChange={(e) => {
+                      setPromoCode(e.target.value.toUpperCase());
+                      setPromoError(null);
+                    }}
+                    placeholder="Enter code"
+                    className="flex-1 h-8 px-2 text-xs border border-gray-200 rounded-lg focus:border-primary-500 focus:ring-1 focus:ring-primary-500 outline-none uppercase"
+                    onKeyDown={(e) => e.key === 'Enter' && handleApplyPromo()}
+                    disabled={promoLoading}
+                  />
+                  <button
+                    onClick={handleApplyPromo}
+                    disabled={promoLoading || !promoCode.trim()}
+                    className="h-8 px-3 bg-primary-500 text-white text-xs font-semibold rounded-lg hover:bg-primary-600 disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors flex items-center gap-1"
+                  >
+                    {promoLoading ? (
+                      <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                    ) : (
+                      <Check className="w-3.5 h-3.5" />
+                    )}
+                  </button>
+                  <button
+                    onClick={() => {
+                      setShowPromoInput(false);
+                      setPromoCode('');
+                      setPromoError(null);
+                    }}
+                    className="h-8 px-2 text-gray-500 hover:text-gray-700 transition-colors"
+                  >
+                    <X className="w-4 h-4" />
+                  </button>
+                </div>
+                {promoError && (
+                  <p className="text-[10px] text-red-500 font-medium">{promoError}</p>
+                )}
+              </div>
+            ) : (
+              // Show "Add promo code" button
+              <button
+                onClick={() => setShowPromoInput(true)}
+                className="flex items-center gap-1.5 text-[10px] sm:text-xs text-primary-600 hover:text-primary-700 font-medium transition-colors"
+              >
+                <Tag className="w-3.5 h-3.5" />
+                <span>Add promo code</span>
+              </button>
+            )}
+          </div>
+        )}
 
         {/* Total */}
         <div className="flex justify-between items-center pt-1.5 sm:pt-2 border-t-2 border-gray-300">

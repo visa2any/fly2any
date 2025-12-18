@@ -446,175 +446,180 @@ export async function POST(request: NextRequest) {
     const separateTicketDetails = flightOffer.separateTicketDetails;
 
     if (isSeparateTickets && separateTicketDetails) {
-      // ========== SEPARATE TICKETS BOOKING (2 BOOKINGS) ==========
+      // ========== SEPARATE TICKETS BOOKING (2 BOOKINGS - CROSS-PROVIDER SUPPORTED) ==========
       console.log('🎫 Creating SEPARATE TICKET bookings (mixed carrier)...');
-      sourceApi = 'Duffel';
 
       const outboundOffer = separateTicketDetails.outboundFlight;
       const returnOffer = separateTicketDetails.returnFlight;
 
-      // CRITICAL: Validate offer IDs before attempting booking
-      const outboundId = outboundOffer?.id;
-      const returnId = returnOffer?.id;
-      const isValidDuffelId = (id: string) => id && (id.startsWith('off_') || id.length > 20);
+      // Detect source for each flight
+      const getFlightSource = (offer: any): 'Duffel' | 'Amadeus' => {
+        if (offer.source === 'Duffel' || offer.id?.startsWith('off_')) return 'Duffel';
+        return 'Amadeus';
+      };
 
-      if (!isValidDuffelId(outboundId) || !isValidDuffelId(returnId)) {
-        console.error(`❌ Invalid offer IDs detected: outbound=${outboundId}, return=${returnId}`);
-        console.error('   This usually means the flight data was corrupted or session expired.');
+      const outboundSource = getFlightSource(outboundOffer);
+      const returnSource = getFlightSource(returnOffer);
+      const isCrossProvider = outboundSource !== returnSource;
 
+      console.log(`   📊 Provider Detection:`);
+      console.log(`      Outbound: ${outboundSource} (ID: ${outboundOffer.id})`);
+      console.log(`      Return: ${returnSource} (ID: ${returnOffer.id})`);
+      console.log(`      Cross-Provider: ${isCrossProvider ? 'YES' : 'NO'}`);
+
+      // Validate IDs based on their source
+      const validateOfferId = (id: string, source: 'Duffel' | 'Amadeus'): boolean => {
+        if (!id) return false;
+        if (source === 'Duffel') return id.startsWith('off_') || id.length > 20;
+        // Amadeus uses numeric string IDs like "1", "2", etc.
+        return id.length > 0;
+      };
+
+      if (!validateOfferId(outboundOffer?.id, outboundSource) || !validateOfferId(returnOffer?.id, returnSource)) {
+        console.error(`❌ Invalid offer IDs: outbound=${outboundOffer?.id}(${outboundSource}), return=${returnOffer?.id}(${returnSource})`);
         return NextResponse.json({
           success: false,
           error: 'INVALID_OFFER_DATA',
-          message: 'Flight offer data is invalid or corrupted. Please search again for current flights.',
-          details: {
-            outboundId,
-            returnId,
-            suggestion: 'The flight prices may have changed. Please perform a new search.'
-          }
+          message: 'Flight offer data is invalid. Please search again.',
+          details: { outboundId: outboundOffer?.id, returnId: returnOffer?.id }
         }, { status: 400 });
       }
 
-      console.log(`   Outbound: ${outboundOffer.id} (${outboundOffer.validatingAirlineCodes?.[0] || 'Unknown'})`);
-      console.log(`   Return: ${returnOffer.id} (${returnOffer.validatingAirlineCodes?.[0] || 'Unknown'})`);
+      sourceApi = isCrossProvider ? 'Duffel' : outboundSource; // Primary source for logging
 
       try {
-        console.log('🎫 Creating SEPARATE TICKET bookings (mixed carrier)...');
-        console.log(`   Outbound: ${outboundOffer.id} (Price: $${outboundOffer.price.total})`);
-        console.log(`   Return: ${returnOffer.id} (Price: $${returnOffer.price.total})`);
+        console.log('🎫 Creating SEPARATE TICKET bookings...');
+        console.log(`   Outbound: ${outboundOffer.id} via ${outboundSource} ($${outboundOffer.price.total})`);
+        console.log(`   Return: ${returnOffer.id} via ${returnSource} ($${returnOffer.price.total})`);
 
-        // Book both flights in parallel
+        // Book function based on source
+        const bookFlight = async (offer: any, source: 'Duffel' | 'Amadeus', label: string) => {
+          if (source === 'Duffel') {
+            return await safeBookingOperation(
+              () => duffelAPI.createOrder(offer, passengers),
+              `Create ${label} Duffel Order`,
+              { userEmail: contactInfo?.email, endpoint: '/api/flights/booking/create' }
+            );
+          } else {
+            // Amadeus booking
+            return await safeBookingOperation(
+              () => amadeusAPI.createFlightOrder(offer, passengers, contactInfo),
+              `Create ${label} Amadeus Order`,
+              { userEmail: contactInfo?.email, endpoint: '/api/flights/booking/create' }
+            );
+          }
+        };
+
+        // Book both flights in parallel (each to its correct provider)
         const [outboundOrder, returnOrder] = await Promise.all([
-          safeBookingOperation(
-            () => duffelAPI.createOrder(outboundOffer, passengers),
-            'Create Outbound Duffel Order',
-            { userEmail: contactInfo?.email, endpoint: '/api/flights/booking/create' }
-          ),
-          safeBookingOperation(
-            () => duffelAPI.createOrder(returnOffer, passengers),
-            'Create Return Duffel Order',
-            { userEmail: contactInfo?.email, endpoint: '/api/flights/booking/create' }
-          ),
+          bookFlight(outboundOffer, outboundSource, 'Outbound'),
+          bookFlight(returnOffer, returnSource, 'Return'),
         ]);
 
-        // Extract details from both orders
-        console.log('📦 Separate ticket responses received:');
-        console.log('   Outbound order structure:');
-        console.log(`     - Response type: ${typeof outboundOrder}`);
-        console.log(`     - Has data property: ${!!outboundOrder?.data}`);
-        console.log(`     - data.id: ${outboundOrder?.data?.id}`);
-        console.log(`     - data.booking_reference: ${outboundOrder?.data?.booking_reference}`);
-        console.log('   Return order structure:');
-        console.log(`     - Response type: ${typeof returnOrder}`);
-        console.log(`     - Has data property: ${!!returnOrder?.data}`);
-        console.log(`     - data.id: ${returnOrder?.data?.id}`);
-        console.log(`     - data.booking_reference: ${returnOrder?.data?.booking_reference}`);
+        // Extract PNR based on provider
+        const extractPnr = (order: any, source: 'Duffel' | 'Amadeus'): string => {
+          if (source === 'Duffel') {
+            return duffelAPI.extractBookingReference(order);
+          } else {
+            // Amadeus format: order.data.associatedRecords[0].reference
+            return order?.data?.associatedRecords?.[0]?.reference ||
+                   order?.data?.id ||
+                   order?.associatedRecords?.[0]?.reference ||
+                   'N/A';
+          }
+        };
 
-        const outboundPnr = duffelAPI.extractBookingReference(outboundOrder);
-        const returnPnr = duffelAPI.extractBookingReference(returnOrder);
-        duffelOrderId = duffelAPI.extractOrderId(outboundOrder);
-        pnr = `${outboundPnr}/${returnPnr}`; // Combined PNR for display
-        bookingId = duffelOrderId;
-        isMockBooking = !outboundOrder.data?.live_mode;
+        const extractOrderId = (order: any, source: 'Duffel' | 'Amadeus'): string => {
+          if (source === 'Duffel') {
+            return duffelAPI.extractOrderId(order);
+          } else {
+            return order?.data?.id || order?.id || 'N/A';
+          }
+        };
 
-        console.log(`   Extracted Outbound PNR: ${outboundPnr}`);
-        console.log(`   Extracted Return PNR: ${returnPnr}`);
-        console.log(`   Extracted Order ID: ${duffelOrderId}`);
+        console.log('📦 Extracting booking references...');
+        const outboundPnr = extractPnr(outboundOrder, outboundSource);
+        const returnPnr = extractPnr(returnOrder, returnSource);
+        const outboundOrderId = extractOrderId(outboundOrder, outboundSource);
+        const returnOrderId = extractOrderId(returnOrder, returnSource);
 
-        // CRITICAL: Validate extraction succeeded
-        if (!duffelOrderId || duffelOrderId === 'N/A' || !outboundPnr || outboundPnr === 'N/A' || !returnPnr || returnPnr === 'N/A') {
-          console.error('❌ CRITICAL: Failed to extract PNR/ID from separate ticket orders');
-          console.error(`   Outbound PNR: ${outboundPnr}`);
-          console.error(`   Return PNR: ${returnPnr}`);
-          console.error(`   Order ID: ${duffelOrderId}`);
-          console.error(`   Outbound response (first 400 chars):`, JSON.stringify(outboundOrder).substring(0, 400));
-          console.error(`   Return response (first 400 chars):`, JSON.stringify(returnOrder).substring(0, 400));
-          throw new Error(`Separate ticket booking failed: Invalid response. Outbound: ${outboundPnr}, Return: ${returnPnr}, OrderID: ${duffelOrderId}`);
+        pnr = `${outboundPnr}/${returnPnr}`; // Combined PNR display
+        bookingId = outboundOrderId;
+        duffelOrderId = outboundSource === 'Duffel' ? outboundOrderId : (returnSource === 'Duffel' ? returnOrderId : undefined);
+        isMockBooking = outboundSource === 'Duffel' ? !outboundOrder.data?.live_mode : false;
+
+        console.log(`   Outbound: ${outboundSource} PNR=${outboundPnr} ID=${outboundOrderId}`);
+        console.log(`   Return: ${returnSource} PNR=${returnPnr} ID=${returnOrderId}`);
+
+        // Validate extraction
+        if (!outboundPnr || outboundPnr === 'N/A' || !returnPnr || returnPnr === 'N/A') {
+          console.error('❌ Failed to extract PNRs from separate ticket orders');
+          throw new Error(`Booking failed: Invalid response. Outbound: ${outboundPnr}, Return: ${returnPnr}`);
         }
 
         flightOrder = {
           outboundOrder,
           returnOrder,
           isSeparateTickets: true,
+          providers: { outbound: outboundSource, return: returnSource, isCrossProvider },
         };
 
         console.log('✅ Separate ticket bookings created!');
-        console.log(`   Outbound PNR: ${outboundPnr}`);
-        console.log(`   Return PNR: ${returnPnr}`);
+        console.log(`   Combined PNR: ${pnr}`);
       } catch (error: any) {
-        console.error('❌ Separate ticket booking failed at step: Duffel API call');
-        console.error('   Error type:', error.constructor.name);
-        console.error('   Error message:', error.message);
+        console.error('❌ Separate ticket booking failed');
+        console.error('   Error:', error.message);
         if (error.response) {
           console.error('   HTTP Status:', error.response.status);
-          console.error('   Response data:', JSON.stringify(error.response.data, null, 2));
         }
-        console.error('   Full error:', error);
 
-        // Extract specific error details
-        let userFriendlyError = 'Failed to create separate ticket booking. One or both flights may no longer be available.';
+        let userFriendlyError = 'Failed to create booking. One or both flights may no longer be available.';
         let errorCode = 'SEPARATE_TICKET_FAILED';
         let statusCode = 500;
 
-        // Check for sold out errors
-        const duffelErrors = error.response?.data?.errors || [];
-        const soldOutError = duffelErrors.find((e: any) =>
+        // Check errors from both APIs
+        const apiErrors = error.response?.data?.errors || error.response?.data?.error?.errors || [];
+        const errorMsg = error.message?.toLowerCase() || '';
+
+        // Sold out check
+        if (apiErrors.some((e: any) =>
           e.code === 'offer_no_longer_available' ||
           e.title?.toLowerCase().includes('no longer available') ||
-          e.title?.toLowerCase().includes('sold out')
-        );
-        if (soldOutError) {
-          userFriendlyError = 'One or both flights are no longer available. Please search for alternative flights.';
+          e.detail?.toLowerCase().includes('sold out')
+        ) || errorMsg.includes('sold out') || errorMsg.includes('no longer available')) {
+          userFriendlyError = 'One or both flights are no longer available. Please search again.';
           errorCode = 'SOLD_OUT';
           statusCode = 410;
         }
 
-        // Check for price change errors
-        const priceChangeError = duffelErrors.find((e: any) =>
+        // Price change check
+        if (apiErrors.some((e: any) =>
           e.code === 'offer_price_changed' ||
           e.title?.toLowerCase().includes('price changed')
-        );
-        if (priceChangeError) {
-          userFriendlyError = 'The price for one or both flights has changed. Please review the new prices and try again.';
+        ) || errorMsg.includes('price changed')) {
+          userFriendlyError = 'The price has changed. Please review and try again.';
           errorCode = 'PRICE_CHANGED';
           statusCode = 409;
         }
 
-        // CRITICAL: Alert admin about separate ticket booking failure with full details
-        const errorDetails = duffelErrors.length > 0
-          ? duffelErrors.map((e: any) => `${e.code}: ${e.title} - ${e.message}`).join(' | ')
-          : error.message;
-
+        // Alert admin
         await alertApiError(request, error, {
           errorCode,
           endpoint: '/api/flights/booking/create',
-          userEmail: contactInfo?.email || passengers[0]?.email,
-          // ENHANCED: Include customer name and phone for admin follow-up
-          customerName: `${passengers[0]?.firstName || ''} ${passengers[0]?.lastName || ''}`.trim(),
-          customerPhone: contactInfo?.phone || passengers[0]?.phone,
-          amount: (parseFloat(separateTicketDetails.outboundFlight.price.total) + parseFloat(separateTicketDetails.returnFlight.price.total)),
-          currency: separateTicketDetails.outboundFlight.price.currency,
-          sourceApi: 'Duffel',
-          flightRoute: `${separateTicketDetails.outboundFlight.itineraries[0]?.segments[0]?.departure?.iataCode} → ${separateTicketDetails.outboundFlight.itineraries[0]?.segments[separateTicketDetails.outboundFlight.itineraries[0]?.segments.length - 1]?.arrival?.iataCode}`,
-          departureDate: separateTicketDetails.outboundFlight.itineraries[0]?.segments[0]?.departure?.at?.split('T')[0],
-          bookingType: 'SEPARATE_TICKETS',
-          outboundOfferId: separateTicketDetails.outboundFlight.id,
-          returnOfferId: separateTicketDetails.returnFlight.id,
-          passengerCount: passengers.length,
-          errorDetail: errorDetails,
-          duffelErrorsRaw: JSON.stringify(duffelErrors),
-        }, {
-          priority: statusCode >= 500 ? 'critical' : 'high',
-        }).catch(alertErr => console.error('Failed to send alert:', alertErr));
+          userEmail: contactInfo?.email,
+          amount: parseFloat(outboundOffer.price.total) + parseFloat(returnOffer.price.total),
+          currency: outboundOffer.price.currency,
+          bookingType: 'SEPARATE_TICKETS_CROSS_PROVIDER',
+          outboundSource,
+          returnSource,
+          isCrossProvider,
+        }, { priority: statusCode >= 500 ? 'critical' : 'high' }).catch(() => {});
 
-        return NextResponse.json(
-          {
-            success: false,
-            error: errorCode,
-            message: userFriendlyError,
-            details: process.env.NODE_ENV === 'development' ? error.message : undefined,
-          },
-          { status: statusCode }
-        );
+        return NextResponse.json({
+          success: false,
+          error: errorCode,
+          message: userFriendlyError,
+        }, { status: statusCode });
       }
     } else if (flightSource === 'Duffel') {
       // ========== DUFFEL BOOKING ==========

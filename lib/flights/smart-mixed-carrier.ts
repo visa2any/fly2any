@@ -718,7 +718,17 @@ export async function smartMixedCarrierSearch(
   console.log(`   📤 Outbound: ${outboundFlights.length} flights ${fromCache.outbound ? '(cached)' : '(fresh)'}`);
   console.log(`   📥 Return: ${returnFlights.length} flights ${fromCache.return ? '(cached)' : '(fresh)'}`);
 
-  // Step 3: Combine fares
+  // Log source breakdown for debugging
+  const countBySource = (flights: FlightOffer[]) => {
+    const duffel = flights.filter(f => (f as any).source === 'Duffel' || f.id?.startsWith('off_')).length;
+    const amadeus = flights.length - duffel;
+    return { duffel, amadeus };
+  };
+  const outSrc = countBySource(outboundFlights);
+  const retSrc = countBySource(returnFlights);
+  console.log(`   🔎 Sources: Outbound(Duffel:${outSrc.duffel}, Amadeus:${outSrc.amadeus}) Return(Duffel:${retSrc.duffel}, Amadeus:${retSrc.amadeus})`);
+
+  // Step 3: Combine fares (cross-provider supported)
   let mixedFares: MixedCarrierFare[] = [];
 
   if (outboundFlights.length > 0 && returnFlights.length > 0) {
