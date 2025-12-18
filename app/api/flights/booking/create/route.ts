@@ -501,12 +501,20 @@ export async function POST(request: NextRequest) {
               { userEmail: contactInfo?.email, endpoint: '/api/flights/booking/create' }
             );
           } else {
-            // Amadeus booking
-            return await safeBookingOperation(
-              () => amadeusAPI.createFlightOrder(offer, passengers, contactInfo),
-              `Create ${label} Amadeus Order`,
-              { userEmail: contactInfo?.email, endpoint: '/api/flights/booking/create' }
-            );
+            // Amadeus flights route to MANUAL TICKETING (no API call)
+            // Return a mock response for consolidator workflow
+            console.log(`🎫 ${label}: Amadeus flight routed to MANUAL TICKETING`);
+            const manualRef = `AMX-${Date.now().toString(36).toUpperCase()}`;
+            return {
+              data: {
+                id: manualRef,
+                type: 'manual_ticketing',
+                status: 'pending_ticketing',
+                associatedRecords: [{ reference: manualRef, origin: 'CONSOLIDATOR' }],
+              },
+              isManualTicketing: true,
+              offer, // Keep original offer for storage
+            };
           }
         };
 
@@ -1187,7 +1195,11 @@ Customer needs to complete payment to finalize booking.
       // Determine ticketing status based on source
       // - Duffel: May auto-issue or require manual (depends on airline)
       // - Amadeus/GDS: ALWAYS requires manual ticketing via consolidator
-      const ticketingStatusForBooking = sourceApi === 'Amadeus' ? 'pending_ticketing' : undefined;
+      // - Cross-provider with Amadeus: Also requires manual ticketing for the Amadeus leg
+      const hasAmadeusLeg = sourceApi === 'Amadeus' ||
+        (flightOrder?.providers?.outbound === 'Amadeus') ||
+        (flightOrder?.providers?.return === 'Amadeus');
+      const ticketingStatusForBooking = hasAmadeusLeg ? 'pending_ticketing' : undefined;
 
       // Create booking in database WITH PRE-GENERATED REFERENCE
       // CRITICAL: Use preGeneratedBookingRef so webhook can find booking after payment

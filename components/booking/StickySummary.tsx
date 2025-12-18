@@ -90,25 +90,27 @@ export function StickySummary({
     setPromoError(null);
 
     try {
-      const response = await fetch('/api/promo/validate', {
+      const response = await fetch('/api/vouchers/validate', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           code: promoCode.trim().toUpperCase(),
-          totalPrice: subtotal + taxesAndFees,
+          totalAmount: subtotal + taxesAndFees,
+          currency: 'USD',
           productType: 'flight',
         }),
       });
 
-      const data = await response.json();
+      const result = await response.json();
+      const data = result.data || result;
 
-      if (data.valid && data.discount) {
+      if (data.valid && data.voucher) {
         onApplyPromo(promoCode.trim().toUpperCase(), {
-          code: promoCode.trim().toUpperCase(),
-          type: data.discount.type,
-          value: data.discount.value,
-          discountAmount: data.discount.discountAmount,
-          description: data.discount.description,
+          code: data.voucher.code,
+          type: data.voucher.type,
+          value: data.voucher.value,
+          discountAmount: data.discountAmount,
+          description: data.voucher.description,
         });
         setPromoCode('');
         setShowPromoInput(false);

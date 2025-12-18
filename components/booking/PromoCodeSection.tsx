@@ -53,15 +53,16 @@ export function PromoCodeSection({
         }),
       });
 
-      const data = await response.json();
+      const result = await response.json();
+      const data = result.data || result;
 
-      if (data.valid) {
+      if (data.valid && data.voucher) {
         onApply(code.trim().toUpperCase(), {
-          code: code.trim().toUpperCase(),
-          type: data.discountType || 'percentage',
-          value: data.discountValue || 0,
+          code: data.voucher.code,
+          type: data.voucher.type || 'percentage',
+          value: data.voucher.value || 0,
           discountAmount: data.discountAmount || 0,
-          description: data.description,
+          description: data.voucher.description,
         });
         setCode('');
         setError(null);
