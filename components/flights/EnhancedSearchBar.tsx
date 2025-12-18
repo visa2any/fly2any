@@ -423,6 +423,10 @@ export default function EnhancedSearchBar({
       isInitialHotelDestinationRef.current = false;
       return; // Skip auto-open dropdown on initial page load
     }
+    // Skip fetch if destination was just selected (prevents dropdown from reopening)
+    if (selectedDestinationDetails && hotelDestination === selectedDestinationDetails.name) {
+      return;
+    }
     if (hotelSuggestionsTimerRef.current) {
       clearTimeout(hotelSuggestionsTimerRef.current);
     }
@@ -436,7 +440,7 @@ export default function EnhancedSearchBar({
         clearTimeout(hotelSuggestionsTimerRef.current);
       }
     };
-  }, [hotelDestination]);
+  }, [hotelDestination, selectedDestinationDetails]);
 
   // Close dropdowns when clicking outside
   useEffect(() => {
@@ -844,8 +848,66 @@ export default function EnhancedSearchBar({
   };
 
   const handleSearch = () => {
-    // Trigger mobile auto-collapse
-    onSearchSubmit?.();
+    // Tours search
+    if (serviceType === 'tours') {
+      if (!hotelDestination) {
+        setErrors({ hotel: 'Please enter a destination' });
+        return;
+      }
+      setIsLoading(true);
+      const params = new URLSearchParams({
+        destination: hotelDestination,
+        date: checkInDate || minDate,
+        travelers: hotelAdults.toString(),
+        ...(selectedDestinationDetails?.lat && { lat: selectedDestinationDetails.lat.toString() }),
+        ...(selectedDestinationDetails?.lng && { lng: selectedDestinationDetails.lng.toString() }),
+      });
+      router.push(`/tours/results?${params.toString()}`);
+      onSearchSubmit?.();
+      setTimeout(() => setIsLoading(false), 500);
+      return;
+    }
+
+    // Activities search
+    if (serviceType === 'activities') {
+      if (!hotelDestination) {
+        setErrors({ hotel: 'Please enter a destination' });
+        return;
+      }
+      setIsLoading(true);
+      const params = new URLSearchParams({
+        destination: hotelDestination,
+        date: checkInDate || minDate,
+        travelers: hotelAdults.toString(),
+        ...(selectedDestinationDetails?.lat && { lat: selectedDestinationDetails.lat.toString() }),
+        ...(selectedDestinationDetails?.lng && { lng: selectedDestinationDetails.lng.toString() }),
+      });
+      router.push(`/activities/results?${params.toString()}`);
+      onSearchSubmit?.();
+      setTimeout(() => setIsLoading(false), 500);
+      return;
+    }
+
+    // Transfers search
+    if (serviceType === 'transfers') {
+      if (!carPickupLocation || !carDropoffLocation) {
+        setErrors({ car: 'Please enter pickup and dropoff locations' });
+        return;
+      }
+      setIsLoading(true);
+      const params = new URLSearchParams({
+        pickup: carPickupLocation,
+        dropoff: carDropoffLocation,
+        date: carPickupDate || minDate,
+        time: carPickupTime,
+        passengers: transferPassengers.toString(),
+      });
+      router.push(`/transfers/results?${params.toString()}`);
+      onSearchSubmit?.();
+      setTimeout(() => setIsLoading(false), 500);
+      return;
+    }
+
     // Hotels search
     if (serviceType === 'hotels') {
       if (!hotelDestination || !checkInDate || !checkOutDate) {
@@ -892,7 +954,7 @@ export default function EnhancedSearchBar({
 
       const url = `/hotels/results?${hotelParams.toString()}`;
       window.open(url, '_blank', 'noopener,noreferrer');
-
+      onSearchSubmit?.();
       setTimeout(() => setIsLoading(false), 500);
       return;
     }
@@ -917,7 +979,7 @@ export default function EnhancedSearchBar({
 
       const url = `/cars/results?${carParams.toString()}`;
       window.open(url, '_blank', 'noopener,noreferrer');
-
+      onSearchSubmit?.();
       setTimeout(() => setIsLoading(false), 500);
       return;
     }
@@ -1000,6 +1062,7 @@ export default function EnhancedSearchBar({
       window.open(url, '_blank', 'noopener,noreferrer');
     }
 
+    onSearchSubmit?.();
     // Reset loading after a short delay
     setTimeout(() => setIsLoading(false), 500);
   };
