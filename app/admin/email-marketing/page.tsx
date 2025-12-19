@@ -3,8 +3,8 @@
 /**
  * Email Marketing Dashboard — Admin
  *
- * Full-featured email campaign management:
- * - View all campaigns with real stats
+ * Full-featured email campaign management with REAL Mailgun data:
+ * - View all campaigns with real stats from Mailgun API
  * - Create new campaigns
  * - Upload CSV email lists
  * - Send campaigns to subscribers
@@ -16,8 +16,8 @@
 import { useState, useEffect, useCallback } from 'react';
 import {
   MailPlus, Send, Eye, MousePointer, Plus, Upload, Trash2,
-  Play, Pause, Edit2, X, Check, AlertCircle, Loader2,
-  Users, FileText, RefreshCw
+  Play, X, AlertCircle, Loader2, Users, FileText, RefreshCw,
+  TrendingUp, Activity, CheckCircle, XCircle, Clock
 } from 'lucide-react';
 
 interface Campaign {
@@ -51,6 +51,29 @@ interface Stats {
   avgClickRate: string;
 }
 
+interface MailgunStats {
+  totals: {
+    sent: number;
+    delivered: number;
+    opened: number;
+    clicked: number;
+    bounced: number;
+    complained: number;
+  };
+  rates: {
+    openRate: string;
+    clickRate: string;
+    bounceRate: string;
+  };
+}
+
+interface RecentEvent {
+  event: string;
+  recipient: string;
+  timestamp: number;
+  subject?: string;
+}
+
 interface SubscriberStats {
   total: number;
   active: number;
@@ -59,15 +82,18 @@ interface SubscriberStats {
 export default function EmailMarketingPage() {
   const [campaigns, setCampaigns] = useState<Campaign[]>([]);
   const [stats, setStats] = useState<Stats | null>(null);
+  const [mailgunStats, setMailgunStats] = useState<MailgunStats | null>(null);
+  const [recentEvents, setRecentEvents] = useState<RecentEvent[]>([]);
   const [subscriberStats, setSubscriberStats] = useState<SubscriberStats>({ total: 0, active: 0 });
   const [loading, setLoading] = useState(true);
+  const [mailgunLoading, setMailgunLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [filter, setFilter] = useState<string>('all');
+  const [statsDuration, setStatsDuration] = useState<string>('7d');
 
   // Modal states
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [showUploadModal, setShowUploadModal] = useState(false);
-  const [selectedCampaign, setSelectedCampaign] = useState<Campaign | null>(null);
 
   // Form states
   const [formData, setFormData] = useState({
@@ -84,7 +110,7 @@ export default function EmailMarketingPage() {
   const [uploadedEmails, setUploadedEmails] = useState<string[]>([]);
   const [uploadStats, setUploadStats] = useState<any>(null);
 
-  // Fetch campaigns
+  // Fetch campaigns from database
   const fetchCampaigns = useCallback(async () => {
     try {
       setLoading(true);
@@ -107,6 +133,24 @@ export default function EmailMarketingPage() {
     }
   }, [filter]);
 
+  // Fetch REAL Mailgun stats
+  const fetchMailgunStats = useCallback(async () => {
+    try {
+      setMailgunLoading(true);
+      const res = await fetch(`/api/admin/mailgun-stats?duration=${statsDuration}`);
+      const data = await res.json();
+
+      if (data.success) {
+        setMailgunStats(data.stats);
+        setRecentEvents(data.recentEvents || []);
+      }
+    } catch (err) {
+      console.error('Failed to fetch Mailgun stats:', err);
+    } finally {
+      setMailgunLoading(false);
+    }
+  }, [statsDuration]);
+
   // Fetch subscriber stats
   const fetchSubscribers = useCallback(async () => {
     try {
@@ -126,7 +170,8 @@ export default function EmailMarketingPage() {
   useEffect(() => {
     fetchCampaigns();
     fetchSubscribers();
-  }, [fetchCampaigns, fetchSubscribers]);
+    fetchMailgunStats();
+  }, [fetchCampaigns, fetchSubscribers, fetchMailgunStats]);
 
   // Create campaign
   const handleCreateCampaign = async (e: React.FormEvent) => {
@@ -171,12 +216,8 @@ export default function EmailMarketingPage() {
 
     try {
       const body: any = { testMode };
-      if (testMode && testEmail) {
-        body.testEmail = testEmail;
-      }
-      if (uploadedEmails.length > 0) {
-        body.emails = uploadedEmails;
-      }
+      if (testMode && testEmail) body.testEmail = testEmail;
+      if (uploadedEmails.length > 0) body.emails = uploadedEmails;
 
       const res = await fetch(`/api/admin/campaigns/${campaign.id}/send`, {
         method: 'POST',
@@ -192,6 +233,7 @@ export default function EmailMarketingPage() {
           : `Campaign sent! ${data.stats.sent} emails delivered.`
         );
         fetchCampaigns();
+        setTimeout(fetchMailgunStats, 5000); // Refresh Mailgun stats after 5s
       } else {
         alert(data.error || 'Failed to send campaign');
       }
@@ -205,17 +247,10 @@ export default function EmailMarketingPage() {
     if (!confirm(`Delete "${campaign.name}"? This cannot be undone.`)) return;
 
     try {
-      const res = await fetch(`/api/admin/campaigns?id=${campaign.id}`, {
-        method: 'DELETE',
-      });
-
+      const res = await fetch(`/api/admin/campaigns?id=${campaign.id}`, { method: 'DELETE' });
       const data = await res.json();
-
-      if (data.success) {
-        fetchCampaigns();
-      } else {
-        alert(data.error || 'Failed to delete campaign');
-      }
+      if (data.success) fetchCampaigns();
+      else alert(data.error || 'Failed to delete campaign');
     } catch (err) {
       alert('Failed to delete campaign');
     }
@@ -230,13 +265,8 @@ export default function EmailMarketingPage() {
     formData.append('file', file);
 
     try {
-      const res = await fetch('/api/admin/campaigns/upload', {
-        method: 'POST',
-        body: formData,
-      });
-
+      const res = await fetch('/api/admin/campaigns/upload', { method: 'POST', body: formData });
       const data = await res.json();
-
       if (data.success) {
         setUploadedEmails(data.emails);
         setUploadStats(data.stats);
@@ -256,9 +286,7 @@ export default function EmailMarketingPage() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ emailText: text }),
       });
-
       const data = await res.json();
-
       if (data.success) {
         setUploadedEmails(data.emails);
         setUploadStats(data.stats);
@@ -270,6 +298,22 @@ export default function EmailMarketingPage() {
     }
   };
 
+  // Use Mailgun stats if available, otherwise fallback to DB stats
+  const displayStats = mailgunStats?.totals || {
+    sent: stats?.totalSent || 0,
+    delivered: stats?.totalDelivered || 0,
+    opened: stats?.totalOpened || 0,
+    clicked: stats?.totalClicked || 0,
+    bounced: 0,
+    complained: 0,
+  };
+
+  const displayRates = mailgunStats?.rates || {
+    openRate: stats?.avgOpenRate || '0.0',
+    clickRate: stats?.avgClickRate || '0.0',
+    bounceRate: '0.0',
+  };
+
   const statCards = [
     {
       label: 'Total Subscribers',
@@ -277,29 +321,44 @@ export default function EmailMarketingPage() {
       subtext: `${subscriberStats.active.toLocaleString()} active`,
       icon: Users,
       color: 'text-blue-600',
+      bg: 'bg-blue-50',
     },
     {
       label: 'Emails Sent',
-      value: stats?.totalSent?.toLocaleString() || '0',
-      subtext: `${stats?.totalDelivered?.toLocaleString() || '0'} delivered`,
+      value: displayStats.sent.toLocaleString(),
+      subtext: `${displayStats.delivered.toLocaleString()} delivered`,
       icon: Send,
       color: 'text-green-600',
+      bg: 'bg-green-50',
     },
     {
       label: 'Open Rate',
-      value: `${stats?.avgOpenRate || '0'}%`,
-      subtext: `${stats?.totalOpened?.toLocaleString() || '0'} opens`,
+      value: `${displayRates.openRate}%`,
+      subtext: `${displayStats.opened.toLocaleString()} opens`,
       icon: Eye,
       color: 'text-purple-600',
+      bg: 'bg-purple-50',
     },
     {
       label: 'Click Rate',
-      value: `${stats?.avgClickRate || '0'}%`,
-      subtext: `${stats?.totalClicked?.toLocaleString() || '0'} clicks`,
+      value: `${displayRates.clickRate}%`,
+      subtext: `${displayStats.clicked.toLocaleString()} clicks`,
       icon: MousePointer,
       color: 'text-orange-600',
+      bg: 'bg-orange-50',
     },
   ];
+
+  const eventIcon = (event: string) => {
+    switch (event) {
+      case 'delivered': return <CheckCircle className="w-3.5 h-3.5 text-green-500" />;
+      case 'opened': return <Eye className="w-3.5 h-3.5 text-purple-500" />;
+      case 'clicked': return <MousePointer className="w-3.5 h-3.5 text-orange-500" />;
+      case 'bounced': return <XCircle className="w-3.5 h-3.5 text-red-500" />;
+      case 'complained': return <AlertCircle className="w-3.5 h-3.5 text-red-600" />;
+      default: return <Activity className="w-3.5 h-3.5 text-gray-400" />;
+    }
+  };
 
   return (
     <div className="p-6 space-y-6">
@@ -307,7 +366,7 @@ export default function EmailMarketingPage() {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold text-gray-900">Email Marketing</h1>
-          <p className="text-sm text-gray-500">Campaign management and analytics</p>
+          <p className="text-sm text-gray-500">Campaign management with real-time Mailgun analytics</p>
         </div>
         <div className="flex gap-3">
           <button
@@ -332,7 +391,12 @@ export default function EmailMarketingPage() {
         {statCards.map((s, i) => (
           <div key={i} className="bg-white rounded-xl p-5 border border-gray-100 hover:shadow-md transition-shadow">
             <div className="flex items-center justify-between mb-3">
-              <s.icon className={`h-5 w-5 ${s.color}`} />
+              <div className={`p-2 rounded-lg ${s.bg}`}>
+                <s.icon className={`h-5 w-5 ${s.color}`} />
+              </div>
+              {mailgunLoading && i > 0 && (
+                <Loader2 className="w-4 h-4 animate-spin text-gray-300" />
+              )}
             </div>
             <div className="text-2xl font-bold text-gray-900">{s.value}</div>
             <div className="text-xs text-gray-500 mt-1">{s.label}</div>
@@ -340,6 +404,51 @@ export default function EmailMarketingPage() {
           </div>
         ))}
       </div>
+
+      {/* Mailgun Stats Period Selector */}
+      <div className="flex items-center gap-2">
+        <span className="text-sm text-gray-500">Period:</span>
+        {['1d', '7d', '30d'].map(d => (
+          <button
+            key={d}
+            onClick={() => setStatsDuration(d)}
+            className={`px-3 py-1 text-xs font-medium rounded-lg transition-colors ${
+              statsDuration === d ? 'bg-gray-900 text-white' : 'text-gray-600 hover:bg-gray-100'
+            }`}
+          >
+            {d === '1d' ? '24h' : d === '7d' ? '7 days' : '30 days'}
+          </button>
+        ))}
+        <button
+          onClick={() => { fetchMailgunStats(); fetchCampaigns(); }}
+          className="ml-2 p-1.5 hover:bg-gray-100 rounded-lg transition-colors"
+          title="Refresh stats"
+        >
+          <RefreshCw className={`w-4 h-4 text-gray-500 ${mailgunLoading ? 'animate-spin' : ''}`} />
+        </button>
+      </div>
+
+      {/* Recent Events Activity Feed */}
+      {recentEvents.length > 0 && (
+        <div className="bg-white rounded-xl border border-gray-100 p-4">
+          <div className="flex items-center gap-2 mb-3">
+            <Activity className="w-4 h-4 text-gray-600" />
+            <h3 className="text-sm font-semibold text-gray-900">Recent Activity</h3>
+            <span className="text-xs text-gray-400">Live from Mailgun</span>
+          </div>
+          <div className="flex gap-2 overflow-x-auto pb-2">
+            {recentEvents.slice(0, 10).map((event, i) => (
+              <div key={i} className="flex-shrink-0 flex items-center gap-2 px-3 py-2 bg-gray-50 rounded-lg">
+                {eventIcon(event.event)}
+                <span className="text-xs text-gray-600">{event.recipient.split('@')[0]}@...</span>
+                <span className="text-xs text-gray-400">
+                  {new Date(event.timestamp * 1000).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                </span>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
 
       {/* Uploaded Emails Banner */}
       {uploadedEmails.length > 0 && (
@@ -381,9 +490,7 @@ export default function EmailMarketingPage() {
                 key={f}
                 onClick={() => setFilter(f)}
                 className={`px-3 py-1.5 text-xs font-medium rounded-lg transition-colors ${
-                  filter === f
-                    ? 'bg-gray-900 text-white'
-                    : 'text-gray-600 hover:bg-gray-100'
+                  filter === f ? 'bg-gray-900 text-white' : 'text-gray-600 hover:bg-gray-100'
                 }`}
               >
                 {f.charAt(0).toUpperCase() + f.slice(1)}
@@ -635,20 +742,14 @@ export default function EmailMarketingPage() {
               {/* File Upload */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">Upload CSV File</label>
-                <div className="border-2 border-dashed border-gray-200 rounded-lg p-6 text-center hover:border-gray-300 transition-colors">
+                <div className="border-2 border-dashed border-gray-200 rounded-lg p-6 text-center hover:border-gray-300 transition-colors relative">
                   <Upload className="w-8 h-8 text-gray-400 mx-auto mb-2" />
                   <p className="text-sm text-gray-600 mb-2">Drag & drop or click to upload</p>
                   <input
                     type="file"
                     accept=".csv,.txt"
                     onChange={handleFileUpload}
-                    className="w-full opacity-0 absolute inset-0 cursor-pointer"
-                  />
-                  <input
-                    type="file"
-                    accept=".csv,.txt"
-                    onChange={handleFileUpload}
-                    className="px-4 py-2 bg-gray-100 text-gray-700 text-sm font-medium rounded-lg hover:bg-gray-200 cursor-pointer"
+                    className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
                   />
                 </div>
               </div>
@@ -669,9 +770,7 @@ export default function EmailMarketingPage() {
                   className="w-full px-4 py-2.5 border border-gray-200 rounded-lg focus:ring-2 focus:ring-gray-900 focus:border-transparent text-sm"
                   rows={4}
                   onBlur={(e) => {
-                    if (e.target.value.trim()) {
-                      handleTextUpload(e.target.value);
-                    }
+                    if (e.target.value.trim()) handleTextUpload(e.target.value);
                   }}
                 />
               </div>
