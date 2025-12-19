@@ -217,18 +217,18 @@ export const ImageSlider = memo(({
         className="absolute right-0 top-0 w-1/4 h-full z-10 md:hidden"
       />
 
-      {/* Navigation Arrows (desktop, hidden on mobile) */}
+      {/* Navigation Arrows (desktop, hidden on mobile) - Apple-Class transparent */}
       {showArrows && (
         <>
           <button
             onClick={prevImage}
-            className="absolute left-2 top-1/2 -translate-y-1/2 w-8 h-8 flex items-center justify-center rounded-full bg-black/50 backdrop-blur-sm text-white opacity-0 group-hover:opacity-100 transition-opacity z-20 hidden md:flex"
+            className="absolute left-2 top-1/2 -translate-y-1/2 w-8 h-8 flex items-center justify-center rounded-full bg-black/30 backdrop-blur-sm hover:bg-black/50 text-white opacity-0 group-hover:opacity-100 transition-all z-20 hidden md:flex"
           >
             <ChevronLeft className="w-4 h-4" />
           </button>
           <button
             onClick={nextImage}
-            className="absolute right-2 top-1/2 -translate-y-1/2 w-8 h-8 flex items-center justify-center rounded-full bg-black/50 backdrop-blur-sm text-white opacity-0 group-hover:opacity-100 transition-opacity z-20 hidden md:flex"
+            className="absolute right-2 top-1/2 -translate-y-1/2 w-8 h-8 flex items-center justify-center rounded-full bg-black/30 backdrop-blur-sm hover:bg-black/50 text-white opacity-0 group-hover:opacity-100 transition-all z-20 hidden md:flex"
           >
             <ChevronRight className="w-4 h-4" />
           </button>
@@ -242,7 +242,7 @@ export const ImageSlider = memo(({
             <button
               key={idx}
               onClick={(e) => { e.stopPropagation(); goToImage(idx); }}
-              className={`h-[5px] rounded-full transition-all ${
+              className={`slider-dot h-[5px] rounded-full transition-all ${
                 idx === currentIndex
                   ? 'bg-white w-3 shadow-sm'
                   : 'bg-white/50 w-[5px] hover:bg-white/70'

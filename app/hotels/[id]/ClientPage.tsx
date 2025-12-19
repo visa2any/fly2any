@@ -721,26 +721,26 @@ export default function HotelDetailPage() {
                 {/* Navigation Controls - Touch-optimized */}
                 {hotel.images.length > 1 && (
                   <>
-                    {/* Previous Button - Larger touch target on mobile */}
+                    {/* Previous Button - Apple-Class transparent */}
                     <button
                       onClick={(e) => {
                         e.stopPropagation();
                         setSelectedImageIndex((prev) => prev === 0 ? hotel.images.length - 1 : prev - 1);
                       }}
-                      className="absolute left-2 top-1/2 -translate-y-1/2 bg-white/90 backdrop-blur-sm hover:bg-white text-gray-800 rounded-xl p-2.5 shadow-lg transition-all active:scale-95 touch-manipulation"
+                      className="absolute left-2 top-1/2 -translate-y-1/2 bg-black/30 backdrop-blur-sm hover:bg-black/50 text-white rounded-full p-2 transition-all active:scale-95 touch-manipulation"
                       style={{ WebkitTapHighlightColor: 'transparent' }}
                       aria-label="Previous photo"
                     >
                       <ChevronLeft className="w-5 h-5" />
                     </button>
 
-                    {/* Next Button - Larger touch target on mobile */}
+                    {/* Next Button - Apple-Class transparent */}
                     <button
                       onClick={(e) => {
                         e.stopPropagation();
                         setSelectedImageIndex((prev) => prev === hotel.images.length - 1 ? 0 : prev + 1);
                       }}
-                      className="absolute right-2 top-1/2 -translate-y-1/2 bg-white/90 backdrop-blur-sm hover:bg-white text-gray-800 rounded-xl p-2.5 shadow-lg transition-all active:scale-95 touch-manipulation"
+                      className="absolute right-2 top-1/2 -translate-y-1/2 bg-black/30 backdrop-blur-sm hover:bg-black/50 text-white rounded-full p-2 transition-all active:scale-95 touch-manipulation"
                       style={{ WebkitTapHighlightColor: 'transparent' }}
                       aria-label="Next photo"
                     >
@@ -766,7 +766,7 @@ export default function HotelDetailPage() {
                                 e.stopPropagation();
                                 setSelectedImageIndex(index);
                               }}
-                              className={`rounded-full transition-all touch-manipulation ${
+                              className={`slider-dot rounded-full transition-all touch-manipulation ${
                                 selectedImageIndex === index
                                   ? 'w-4 h-1.5 bg-white'
                                   : 'w-1.5 h-1.5 bg-white/50'
@@ -798,7 +798,7 @@ export default function HotelDetailPage() {
                                   e.stopPropagation();
                                   setSelectedImageIndex(index);
                                 }}
-                                className={`rounded-full transition-all touch-manipulation ${
+                                className={`slider-dot rounded-full transition-all touch-manipulation ${
                                   selectedImageIndex === index
                                     ? 'w-4 h-1.5 bg-white'
                                     : 'w-1.5 h-1.5 bg-white/50'

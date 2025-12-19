@@ -158,18 +158,22 @@
   }
 
   /* iOS: Minimum touch target size (44x44px Apple Human Interface Guidelines) */
+  /* NOTE: Apply selectively to avoid affecting slider dots and small indicators */
   @media (pointer: coarse) {
-    button,
-    a,
-    [role="button"] {
+    /* Primary interactive elements get 44px minimum */
+    button:not(.slider-dot):not(.indicator-dot),
+    a:not(.slider-dot):not(.indicator-dot),
+    [role="button"]:not(.slider-dot):not(.indicator-dot) {
       min-height: 44px;
       min-width: 44px;
     }
 
     /* Allow smaller targets when explicitly marked */
-    .touch-sm {
-      min-height: 32px;
-      min-width: 32px;
+    .touch-sm,
+    .slider-dot,
+    .indicator-dot {
+      min-height: auto;
+      min-width: auto;
     }
   }
 
