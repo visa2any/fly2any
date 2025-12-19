@@ -38,7 +38,7 @@ const destinations: HotelDestination[] = [
   { query: 'Downtown Los Angeles', city: 'Los Angeles', country: 'USA', continent: 'americas', category: ['city'] },
   { query: 'Toronto Downtown', city: 'Toronto', country: 'Canada', continent: 'americas', category: ['city'] },
   { query: 'Cancun Hotel Zone', city: 'Cancún', country: 'Mexico', continent: 'americas', category: ['beach', 'resort'] },
-  { query: 'Brasilia Centro', city: 'Brasília', country: 'Brazil', continent: 'americas', category: ['city'] },
+  { query: 'Planaltina, Goias, Brazil', city: 'Planaltina', country: 'Brazil', continent: 'americas', category: ['city'] },
 
   // Europe
   { query: 'Central Paris', city: 'Paris', country: 'France', continent: 'europe', category: ['city', 'luxury'] },
@@ -131,7 +131,7 @@ export async function GET(request: NextRequest) {
       'Downtown Los Angeles': { lat: 34.0522, lng: -118.2437, iata: 'LAX' },
       'Toronto Downtown': { lat: 43.6532, lng: -79.3832, iata: 'YYZ' },
       'Cancun Hotel Zone': { lat: 21.1619, lng: -86.8515, iata: 'CUN' },
-      'Brasilia Centro': { lat: -15.7942, lng: -47.8822, iata: 'BSB' },
+      'Planaltina, Goias, Brazil': { lat: -15.4528, lng: -47.6139, iata: 'BSB' },
       'Central Paris': { lat: 48.8566, lng: 2.3522, iata: 'PAR' },
       'Rome City Center': { lat: 41.9028, lng: 12.4964, iata: 'ROM' },
       'Barcelona Gothic Quarter': { lat: 41.3851, lng: 2.1734, iata: 'BCN' },
