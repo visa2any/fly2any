@@ -83,8 +83,7 @@ const nextConfig = {
       { source: '/group-bookings', destination: '/', permanent: true },
       { source: '/ai-assistant', destination: '/', permanent: true },
       { source: '/chat', destination: '/', permanent: true },
-      { source: '/refer', destination: '/account/referrals', permanent: true },
-      { source: '/affiliate', destination: '/', permanent: true },
+      // NOTE: /refer and /affiliate have dedicated landing pages - do NOT redirect
 
       // === AUTH PAGES ===
       { source: '/login', destination: '/auth/login', permanent: true },
