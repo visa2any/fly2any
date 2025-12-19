@@ -9,7 +9,8 @@ import { HotelUrgencySignals } from '@/components/hotels/HotelUrgencySignals';
 import { HotelTrustBadges } from '@/components/hotels/HotelTrustBadges';
 import { HotelQABot } from '@/components/hotels/HotelQABot';
 import { CompactRoomCard } from '@/components/hotels/CompactRoomCard';
-import { MapPin, Star, Wifi, Coffee, Dumbbell, UtensilsCrossed, Car, ArrowLeft, Calendar, Users, User, Shield, Info, AlertCircle, RefreshCw, BedDouble, CheckCircle2, CheckCircle, Hotel, X, Filter, ArrowUpDown, Clock, Wind, Tv, Bath, Snowflake, Waves, Sparkles, Utensils, Wine, ConciergeBell, DoorOpen, ParkingCircle, Phone, Wifi as WifiIcon, Globe, ChevronLeft, ChevronRight, Building2, ArrowRight, LogIn, LogOut } from 'lucide-react';
+import { MapPin, Star, Wifi, Coffee, Dumbbell, UtensilsCrossed, Car, ArrowLeft, Calendar, Users, User, Shield, Info, AlertCircle, RefreshCw, BedDouble, CheckCircle2, CheckCircle, Hotel, X, Filter, ArrowUpDown, Clock, Wind, Tv, Bath, Snowflake, Waves, Sparkles, Utensils, Wine, ConciergeBell, DoorOpen, ParkingCircle, Phone, Wifi as WifiIcon, Globe, ChevronLeft, ChevronRight, Building2, ArrowRight, LogIn, LogOut, Heart, Share2 } from 'lucide-react';
+import Image from 'next/image';
 import { GEOEnhancer } from '@/components/seo/GEOEnhancer';
 
 export default function HotelDetailPage() {
@@ -66,6 +67,10 @@ export default function HotelDetailPage() {
   // Expandable sections state
   const [showFullDescription, setShowFullDescription] = useState(false);
   const [showAllAmenities, setShowAllAmenities] = useState(false);
+
+  // Similar hotels state
+  const [similarHotels, setSimilarHotels] = useState<any[]>([]);
+  const [isFavorited, setIsFavorited] = useState(false);
 
   // Room display state - show first 4 rooms, then "Load More"
   const [showAllRooms, setShowAllRooms] = useState(false);
@@ -141,6 +146,60 @@ export default function HotelDetailPage() {
       fetchReviews(hotel);
     }
   }, [hotel, hotelId]);
+
+  // Fetch similar hotels
+  useEffect(() => {
+    const fetchSimilarHotels = async () => {
+      if (!hotel?.address?.city) return;
+      try {
+        const response = await fetch(`/api/hotels/search?destination=${encodeURIComponent(hotel.address.city)}&checkIn=${checkIn || new Date(Date.now() + 86400000).toISOString().split('T')[0]}&checkOut=${checkOut || new Date(Date.now() + 86400000 * 2).toISOString().split('T')[0]}&adults=${adults}&limit=6`);
+        if (response.ok) {
+          const data = await response.json();
+          // Filter out current hotel and take up to 3
+          const filtered = (data.hotels || []).filter((h: any) => h.id !== hotelId).slice(0, 3);
+          setSimilarHotels(filtered);
+        }
+      } catch (err) {
+        console.error('Error fetching similar hotels:', err);
+      }
+    };
+    if (hotel) fetchSimilarHotels();
+  }, [hotel, hotelId, checkIn, checkOut, adults]);
+
+  // Check if hotel is favorited (from localStorage)
+  useEffect(() => {
+    const favorites = JSON.parse(localStorage.getItem('hotelFavorites') || '[]');
+    setIsFavorited(favorites.includes(hotelId));
+  }, [hotelId]);
+
+  // Handle favorite toggle
+  const handleFavorite = () => {
+    const favorites = JSON.parse(localStorage.getItem('hotelFavorites') || '[]');
+    if (isFavorited) {
+      const updated = favorites.filter((id: string) => id !== hotelId);
+      localStorage.setItem('hotelFavorites', JSON.stringify(updated));
+      setIsFavorited(false);
+    } else {
+      favorites.push(hotelId);
+      localStorage.setItem('hotelFavorites', JSON.stringify(favorites));
+      setIsFavorited(true);
+    }
+  };
+
+  // Handle share
+  const handleShare = async () => {
+    const shareData = {
+      title: hotel?.name || 'Hotel',
+      text: `Check out ${hotel?.name} on Fly2Any!`,
+      url: window.location.href,
+    };
+    if (navigator.share) {
+      try { await navigator.share(shareData); } catch (err) { console.log('Share cancelled'); }
+    } else {
+      navigator.clipboard.writeText(window.location.href);
+      alert('Link copied to clipboard!');
+    }
+  };
 
   // Fetch reviews with hotel context for contextually-appropriate reviews
   const fetchReviews = async (hotelData?: any) => {
@@ -717,6 +776,26 @@ export default function HotelDetailPage() {
                   </div>
                 )}
 
+                {/* Share & Favorite Buttons - Top Right under rating */}
+                <div className="absolute top-16 md:top-20 right-3 md:right-4 z-10 flex flex-col gap-2">
+                  <button
+                    onClick={handleFavorite}
+                    className="p-2 md:p-2.5 bg-black/40 backdrop-blur-sm hover:bg-black/60 rounded-full transition-all active:scale-95 touch-manipulation"
+                    aria-label={isFavorited ? 'Remove from favorites' : 'Add to favorites'}
+                    style={{ WebkitTapHighlightColor: 'transparent' }}
+                  >
+                    <Heart className={`w-4 h-4 md:w-5 md:h-5 ${isFavorited ? 'fill-red-500 text-red-500' : 'text-white'}`} />
+                  </button>
+                  <button
+                    onClick={handleShare}
+                    className="p-2 md:p-2.5 bg-black/40 backdrop-blur-sm hover:bg-black/60 rounded-full transition-all active:scale-95 touch-manipulation"
+                    aria-label="Share hotel"
+                    style={{ WebkitTapHighlightColor: 'transparent' }}
+                  >
+                    <Share2 className="w-4 h-4 md:w-5 md:h-5 text-white" />
+                  </button>
+                </div>
+
                 {/* Navigation Controls - Touch-optimized */}
                 {hotel.images.length > 1 && (
                   <>
@@ -1289,21 +1368,62 @@ export default function HotelDetailPage() {
               </div>
               <div className="p-4">
                 <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
-                  {/* Placeholder cards - would be populated from API */}
-                  {[1, 2, 3].map((i) => (
-                    <div key={i} className="group cursor-pointer" onClick={() => router.push(`/hotels/results?destination=${encodeURIComponent(hotel.address?.city || '')}&checkIn=${checkIn}&checkOut=${checkOut}&adults=${adults}`)}>
-                      <div className="aspect-[4/3] bg-gradient-to-br from-slate-100 to-slate-200 rounded-xl overflow-hidden relative">
-                        <div className="absolute inset-0 flex items-center justify-center">
-                          <Hotel className="w-8 h-8 text-slate-300" />
-                        </div>
-                        <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
-                        <div className="absolute bottom-2 left-2 right-2">
-                          <p className="text-white text-xs font-semibold">Explore More</p>
-                          <p className="text-white/70 text-[10px]">{hotel.address?.city}</p>
+                  {similarHotels.length > 0 ? (
+                    similarHotels.map((h: any) => (
+                      <div
+                        key={h.id}
+                        className="group cursor-pointer"
+                        onClick={() => router.push(`/hotels/${h.id}?checkIn=${checkIn}&checkOut=${checkOut}&adults=${adults}&rooms=${rooms}`)}
+                      >
+                        <div className="aspect-[4/3] bg-slate-100 rounded-xl overflow-hidden relative">
+                          {h.images?.[0] || h.image ? (
+                            <img
+                              src={h.images?.[0]?.url || h.images?.[0] || h.image}
+                              alt={h.name}
+                              className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                            />
+                          ) : (
+                            <div className="absolute inset-0 flex items-center justify-center">
+                              <Hotel className="w-8 h-8 text-slate-300" />
+                            </div>
+                          )}
+                          <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
+                          {/* Rating badge */}
+                          {h.rating && (
+                            <div className="absolute top-2 right-2 bg-white/90 backdrop-blur-sm rounded px-1.5 py-0.5 flex items-center gap-0.5">
+                              <Star className="w-3 h-3 text-yellow-500 fill-yellow-500" />
+                              <span className="text-[10px] font-bold text-gray-800">{parseFloat(h.rating).toFixed(1)}</span>
+                            </div>
+                          )}
+                          <div className="absolute bottom-2 left-2 right-2">
+                            <p className="text-white text-xs font-semibold line-clamp-1">{h.name}</p>
+                            <div className="flex items-center justify-between mt-0.5">
+                              <p className="text-white/70 text-[10px]">{h.address?.city || hotel.address?.city}</p>
+                              {h.price && (
+                                <p className="text-white font-bold text-xs">${Math.round(parseFloat(h.price))}<span className="text-[9px] font-normal">/nt</span></p>
+                              )}
+                            </div>
+                          </div>
                         </div>
                       </div>
-                    </div>
-                  ))}
+                    ))
+                  ) : (
+                    /* Fallback placeholders while loading */
+                    [1, 2, 3].map((i) => (
+                      <div key={i} className="group cursor-pointer" onClick={() => router.push(`/hotels/results?destination=${encodeURIComponent(hotel.address?.city || '')}&checkIn=${checkIn}&checkOut=${checkOut}&adults=${adults}`)}>
+                        <div className="aspect-[4/3] bg-gradient-to-br from-slate-100 to-slate-200 rounded-xl overflow-hidden relative animate-pulse">
+                          <div className="absolute inset-0 flex items-center justify-center">
+                            <Hotel className="w-8 h-8 text-slate-300" />
+                          </div>
+                          <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent" />
+                          <div className="absolute bottom-2 left-2 right-2">
+                            <div className="h-3 bg-white/40 rounded w-20 mb-1" />
+                            <div className="h-2 bg-white/30 rounded w-12" />
+                          </div>
+                        </div>
+                      </div>
+                    ))
+                  )}
                 </div>
                 <button
                   onClick={() => router.push(`/hotels/results?destination=${encodeURIComponent(hotel.address?.city || '')}&checkIn=${checkIn}&checkOut=${checkOut}&adults=${adults}`)}
