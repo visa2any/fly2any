@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { liteAPI } from '@/lib/api/liteapi';
-import { amadeus } from '@/lib/api/amadeus';
+// Note: Amadeus disabled for featured hotels - no real photos available
 import { getCached, setCache, generateCacheKey } from '@/lib/cache';
 import { calculateValueScore } from '@/lib/ml/value-scorer';
 
@@ -96,7 +96,7 @@ export async function GET(request: NextRequest) {
     const cacheKey = generateCacheKey('hotels:featured-enhanced', {
       continent: continentFilter,
       limit,
-      version: 'v4-improved-images', // Cache bust - improved image extraction
+      version: 'v5-no-amadeus', // Cache bust - removed Amadeus hotels
     });
 
     // Try cache (24 hour TTL - refresh once daily)
@@ -122,6 +122,30 @@ export async function GET(request: NextRequest) {
     const checkOutStr = checkOut.toISOString().split('T')[0];
 
     console.log(`🔍 Fetching ${filteredDestinations.length} featured hotels for ${continentFilter}...`);
+
+    // Premium placeholder images by city (Unsplash/CDN) for hotels without photos
+    const cityPlaceholderImages: Record<string, string[]> = {
+      'New York': ['https://images.unsplash.com/photo-1496442226666-8d4d0e62e6e9?w=800&q=80', 'https://images.unsplash.com/photo-1534430480872-3498386e7856?w=800&q=80'],
+      'Miami': ['https://images.unsplash.com/photo-1533106497176-45ae19e68ba2?w=800&q=80', 'https://images.unsplash.com/photo-1506966953602-c20cc11f75e3?w=800&q=80'],
+      'Los Angeles': ['https://images.unsplash.com/photo-1534190760961-74e8c1c5c3da?w=800&q=80', 'https://images.unsplash.com/photo-1515896769750-31548aa180ed?w=800&q=80'],
+      'Toronto': ['https://images.unsplash.com/photo-1517090504586-fde19ea6066f?w=800&q=80'],
+      'Cancún': ['https://images.unsplash.com/photo-1510097467424-192d713fd8b2?w=800&q=80'],
+      'Paris': ['https://images.unsplash.com/photo-1502602898657-3e91760cbb34?w=800&q=80', 'https://images.unsplash.com/photo-1549144511-f099e773c147?w=800&q=80'],
+      'Rome': ['https://images.unsplash.com/photo-1552832230-c0197dd311b5?w=800&q=80'],
+      'Barcelona': ['https://images.unsplash.com/photo-1583422409516-2895a77efded?w=800&q=80'],
+      'London': ['https://images.unsplash.com/photo-1513635269975-59663e0ac1ad?w=800&q=80'],
+      'Amsterdam': ['https://images.unsplash.com/photo-1534351590666-13e3e96b5017?w=800&q=80'],
+      'Tokyo': ['https://images.unsplash.com/photo-1540959733332-eab4deabeeaf?w=800&q=80'],
+      'Singapore': ['https://images.unsplash.com/photo-1525625293386-3f8f99389edd?w=800&q=80'],
+      'Bali': ['https://images.unsplash.com/photo-1537996194471-e657df975ab4?w=800&q=80'],
+      'Sydney': ['https://images.unsplash.com/photo-1506973035872-a4ec16b8e8d9?w=800&q=80'],
+      'Bangkok': ['https://images.unsplash.com/photo-1508009603885-50cf7c579365?w=800&q=80'],
+      'Malé': ['https://images.unsplash.com/photo-1514282401047-d79a71a590e8?w=800&q=80'],
+      'Phuket': ['https://images.unsplash.com/photo-1589394815804-964ed0be2eb5?w=800&q=80'],
+      'Honolulu': ['https://images.unsplash.com/photo-1507876466758-bc54f384809c?w=800&q=80'],
+      'Dubai': ['https://images.unsplash.com/photo-1512453979798-5ea266f8880c?w=800&q=80'],
+    };
+    const defaultHotelImage = 'https://images.unsplash.com/photo-1566073771259-6a8506099945?w=800&q=80';
 
     // City coordinates for LiteAPI search + IATA codes for Amadeus
     const cityData: Record<string, { lat: number; lng: number; iata: string }> = {
@@ -151,7 +175,7 @@ export async function GET(request: NextRequest) {
       try {
         const city = cityData[dest.query] || { lat: 40.7128, lng: -74.0060, iata: 'NYC' };
         let hotel: any = null;
-        let source: 'liteapi' | 'amadeus' = 'liteapi';
+        const source = 'liteapi'; // Only LiteAPI for featured (has real photos)
 
         // Try LiteAPI first
         try {
@@ -174,35 +198,10 @@ export async function GET(request: NextRequest) {
           console.log(`LiteAPI failed for ${dest.city}, trying Amadeus...`);
         }
 
-        // Fallback to Amadeus if LiteAPI fails
+        // Skip Amadeus fallback for featured hotels - only use LiteAPI
+        // Amadeus hotels don't have photos and cause broken cards
         if (!hotel) {
-          try {
-            const amadeusResults = await amadeus.searchHotels({
-              cityCode: city.iata,
-              checkInDate: checkInStr,
-              checkOutDate: checkOutStr,
-              adults: 2,
-              roomQuantity: 1,
-            });
-            if (amadeusResults?.data?.[0]) {
-              const amHotel = amadeusResults.data[0];
-              hotel = {
-                id: `amadeus_${amHotel.hotel?.hotelId || amHotel.hotelId}`,
-                name: amHotel.hotel?.name || 'Hotel',
-                image: amHotel.hotel?.media?.[0]?.uri || null,
-                images: amHotel.hotel?.media?.map((m: any) => ({ url: m.uri })) || [],
-                lowestPricePerNight: parseFloat(amHotel.offers?.[0]?.price?.total || '0') /
-                  ((new Date(checkOutStr).getTime() - new Date(checkInStr).getTime()) / (1000*60*60*24)),
-                starRating: amHotel.hotel?.rating || 4,
-                amenities: [],
-                address: amHotel.hotel?.address?.lines?.join(', ') || '',
-                _amadeusOffer: amHotel.offers?.[0], // Store for booking
-              };
-              source = 'amadeus';
-            }
-          } catch (amErr) {
-            console.log(`Amadeus also failed for ${dest.city}`);
-          }
+          console.log(`⚠️ No LiteAPI hotel for ${dest.city} - skipping (no Amadeus fallback)`);
         }
 
         if (!hotel) return null;
@@ -268,19 +267,23 @@ export async function GET(request: NextRequest) {
             viewersLast24h,
             bookingsLast24h,
 
-            // Photos - Robust extraction from LiteAPI normalized response
-            // LiteAPI returns: image (string), thumbnail (string), images (array of {url, alt})
-            images: hotel.images || [],
+            // Photos - Robust extraction with city-based fallback for Amadeus
+            images: (() => {
+              if (hotel.images && Array.isArray(hotel.images) && hotel.images.length > 0) {
+                return hotel.images;
+              }
+              // Fallback: use city placeholder images
+              const cityImages = cityPlaceholderImages[dest.city] || [defaultHotelImage];
+              return cityImages.map((url: string) => ({ url }));
+            })(),
             mainImage: (() => {
               // Try images array first (has highest quality photos)
               if (hotel.images && Array.isArray(hotel.images) && hotel.images.length > 0) {
                 const firstImg = hotel.images[0] as any;
                 if (firstImg) {
-                  // Object with url property
                   if (typeof firstImg === 'object' && firstImg.url && String(firstImg.url).length > 0) {
                     return String(firstImg.url);
                   }
-                  // Direct string URL
                   if (typeof firstImg === 'string' && firstImg.length > 0) {
                     return firstImg;
                   }
@@ -298,8 +301,12 @@ export async function GET(request: NextRequest) {
               if (hotelAny.main_photo && String(hotelAny.main_photo).length > 0) {
                 return String(hotelAny.main_photo);
               }
-              // No photo available
-              return null;
+              // FALLBACK: Use city-based placeholder image (for Amadeus hotels)
+              const cityImages = cityPlaceholderImages[dest.city];
+              if (cityImages && cityImages.length > 0) {
+                return cityImages[0];
+              }
+              return defaultHotelImage;
             })(),
 
             // Additional data

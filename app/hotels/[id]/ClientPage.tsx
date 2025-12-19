@@ -752,13 +752,12 @@ export default function HotelDetailPage() {
                       {selectedImageIndex + 1} / {hotel.images.length}
                     </div>
 
-                    {/* Dot Indicators - Mobile-friendly with sliding window */}
-                    <div className="absolute bottom-3 left-1/2 -translate-x-1/2 flex items-center gap-1.5 px-2 py-1.5 bg-black/30 backdrop-blur-sm rounded-full">
+                    {/* Dot Indicators - Compact with sliding window */}
+                    <div className="absolute bottom-2 left-1/2 -translate-x-1/2 flex items-center gap-1 px-2 py-1 bg-black/40 backdrop-blur-sm rounded-full">
                       {(() => {
                         const totalImages = hotel.images.length;
                         const maxDots = 7;
 
-                        // If total images <= maxDots, show all dots
                         if (totalImages <= maxDots) {
                           return hotel.images.map((_img: any, index: number) => (
                             <button
@@ -769,25 +768,21 @@ export default function HotelDetailPage() {
                               }}
                               className={`rounded-full transition-all touch-manipulation ${
                                 selectedImageIndex === index
-                                  ? 'w-6 h-2 bg-white'
-                                  : 'w-2 h-2 bg-white/50 hover:bg-white/70'
+                                  ? 'w-4 h-1.5 bg-white'
+                                  : 'w-1.5 h-1.5 bg-white/50'
                               }`}
                               aria-label={`Photo ${index + 1}`}
                             />
                           ));
                         }
 
-                        // For many images, show sliding window of dots
                         const halfWindow = Math.floor(maxDots / 2);
                         let startIdx = Math.max(0, selectedImageIndex - halfWindow);
                         let endIdx = startIdx + maxDots;
-
-                        // Adjust if we're near the end
                         if (endIdx > totalImages) {
                           endIdx = totalImages;
                           startIdx = Math.max(0, endIdx - maxDots);
                         }
-
                         const visibleIndices = [];
                         for (let i = startIdx; i < endIdx; i++) {
                           visibleIndices.push(i);
@@ -795,10 +790,7 @@ export default function HotelDetailPage() {
 
                         return (
                           <>
-                            {/* Show ellipsis at start if not at beginning */}
-                            {startIdx > 0 && (
-                              <span className="text-white/60 text-xs px-0.5">•</span>
-                            )}
+                            {startIdx > 0 && <span className="text-white/50 text-[8px]">•</span>}
                             {visibleIndices.map((index: number) => (
                               <button
                                 key={index}
@@ -808,16 +800,13 @@ export default function HotelDetailPage() {
                                 }}
                                 className={`rounded-full transition-all touch-manipulation ${
                                   selectedImageIndex === index
-                                    ? 'w-6 h-2 bg-white'
-                                    : 'w-2 h-2 bg-white/50 hover:bg-white/70'
+                                    ? 'w-4 h-1.5 bg-white'
+                                    : 'w-1.5 h-1.5 bg-white/50'
                                 }`}
                                 aria-label={`Photo ${index + 1}`}
                               />
                             ))}
-                            {/* Show ellipsis at end if not at end */}
-                            {endIdx < totalImages && (
-                              <span className="text-white/60 text-xs px-0.5">•</span>
-                            )}
+                            {endIdx < totalImages && <span className="text-white/50 text-[8px]">•</span>}
                           </>
                         );
                       })()}
@@ -1123,8 +1112,8 @@ export default function HotelDetailPage() {
                     </div>
                   ) : (
                     <>
-                      {/* Mobile: Single column list, Desktop: Grid */}
-                      <div className="space-y-2 lg:space-y-0 lg:grid lg:grid-cols-4 lg:gap-2">
+                      {/* Mobile: 2 columns, Desktop: 4 columns */}
+                      <div className="grid grid-cols-2 lg:grid-cols-4 gap-2">
                         {(showAllRooms ? filteredRooms : filteredRooms.slice(0, INITIAL_ROOMS_TO_SHOW)).map((room: any, index: number) => {
                           const roomPrice = parseFloat(room.totalPrice?.amount || 0);
                           const currency = room.totalPrice?.currency || 'USD';
