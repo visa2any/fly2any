@@ -87,16 +87,16 @@ export function HeroImageCarousel() {
         }
       `}</style>
 
-      {/* Carousel Indicators */}
-      <div className="absolute bottom-8 left-1/2 transform -translate-x-1/2 z-20 flex gap-2">
+      {/* Carousel Indicators - Apple-style minimal */}
+      <div className="absolute bottom-8 left-1/2 transform -translate-x-1/2 z-20 flex gap-1.5">
         {HERO_IMAGES.map((_, index) => (
           <button
             key={index}
             onClick={() => setCurrentIndex(index)}
-            className={`w-3 h-3 rounded-full transition-all duration-300 ${
+            className={`h-[6px] rounded-full transition-all duration-300 ${
               index === currentIndex
-                ? 'bg-white w-8'
-                : 'bg-white/50 hover:bg-white/75'
+                ? 'bg-white w-5'
+                : 'bg-white/50 w-[6px] hover:bg-white/75'
             }`}
             aria-label={`Go to slide ${index + 1}`}
           />

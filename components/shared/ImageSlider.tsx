@@ -235,22 +235,22 @@ export const ImageSlider = memo(({
         </>
       )}
 
-      {/* Dot indicators */}
+      {/* Dot indicators - Apple-style minimal dots */}
       {showDots && imageUrls.length > 1 && (
         <div className="absolute bottom-2 left-1/2 -translate-x-1/2 flex gap-1 z-20">
           {imageUrls.slice(0, Math.min(imageUrls.length, 6)).map((_, idx) => (
             <button
               key={idx}
               onClick={(e) => { e.stopPropagation(); goToImage(idx); }}
-              className={`h-1.5 rounded-full transition-all ${
+              className={`h-[5px] rounded-full transition-all ${
                 idx === currentIndex
-                  ? 'bg-white w-4 shadow-md'
-                  : 'bg-white/50 w-1.5 hover:bg-white/70'
+                  ? 'bg-white w-3 shadow-sm'
+                  : 'bg-white/50 w-[5px] hover:bg-white/70'
               }`}
             />
           ))}
           {imageUrls.length > 6 && (
-            <span className="text-white/70 text-[10px] ml-1">+{imageUrls.length - 6}</span>
+            <span className="text-white/60 text-[9px] ml-0.5">+{imageUrls.length - 6}</span>
           )}
         </div>
       )}
