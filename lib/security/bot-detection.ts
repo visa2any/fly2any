@@ -33,7 +33,7 @@ const BOT_PATTERNS = [
 ];
 
 // Good bot patterns (allowed crawlers + test bots)
-const GOOD_BOTS = ['googlebot', 'bingbot', 'duckduckbot', 'fly2any-farereconciliation-test', 'fly2any-faremonitor'];
+const GOOD_BOTS = ['googlebot', 'bingbot', 'duckduckbot', 'fly2any-farereconciliation-test', 'fly2any-faremonitor', 'headlesschrome', 'playwright'];
 
 // Suspicious user agent patterns
 const SUSPICIOUS_PATTERNS = [
