@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useRef, useEffect, useCallback } from 'react';
 import { ChevronDown, ChevronUp, Star, Plane, Check, Clock, Users, Wifi, Zap, Coffee, AlertCircle } from 'lucide-react';
 import { getAirlineData, getRatingColor, getOnTimePerformanceBadge } from '@/lib/flights/airline-data';
 import { formatCityCode } from '@/lib/data/airports';
@@ -75,6 +75,33 @@ export function FlightCardCompact({
   showExpanded = false,
 }: FlightCardCompactProps) {
   const [isExpanded, setIsExpanded] = useState(showExpanded);
+  const cardRef = useRef<HTMLDivElement>(null);
+  const detailsRef = useRef<HTMLDivElement>(null);
+
+  // Scroll card into view when expanded on mobile
+  const handleToggleExpand = useCallback(() => {
+    const newExpandedState = !isExpanded;
+    setIsExpanded(newExpandedState);
+
+    // Only scroll on mobile when expanding (not collapsing)
+    if (newExpandedState && window.innerWidth < 1024) {
+      // Small delay to let the DOM update
+      setTimeout(() => {
+        if (cardRef.current) {
+          // Get header height (sticky header is top-24 = 96px + some buffer)
+          const headerOffset = 120; // 96px header + 24px buffer
+          const cardTop = cardRef.current.getBoundingClientRect().top;
+          const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
+          const targetPosition = scrollTop + cardTop - headerOffset;
+
+          window.scrollTo({
+            top: Math.max(0, targetPosition),
+            behavior: 'smooth'
+          });
+        }
+      }, 50);
+    }
+  }, [isExpanded]);
 
   // Get primary airline data
   const primaryAirline = validatingAirlineCodes[0] || itineraries[0]?.segments[0]?.carrierCode || 'XX';
@@ -154,6 +181,7 @@ export function FlightCardCompact({
 
   return (
     <div
+      ref={cardRef}
       className={`group relative bg-white md:rounded-lg border-y md:border transition-all duration-200 overflow-hidden ${
         isComparing
           ? 'border-primary-500 ring-2 ring-primary-100 shadow-lg'
@@ -290,11 +318,13 @@ export function FlightCardCompact({
 
         {/* 6. EXPAND BUTTON - Minimal */}
         <button
-          onClick={() => setIsExpanded(!isExpanded)}
+          onClick={handleToggleExpand}
           disabled={isNavigating}
-          className="p-1 text-gray-600 hover:text-primary-600 hover:bg-gray-100 rounded transition-colors"
+          className="p-1 text-gray-600 hover:text-primary-600 hover:bg-gray-100 rounded transition-colors min-h-[44px] min-w-[44px] flex items-center justify-center"
+          aria-expanded={isExpanded}
+          aria-label={isExpanded ? 'Collapse details' : 'Expand details'}
         >
-          {isExpanded ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
+          {isExpanded ? <ChevronUp className="w-5 h-5" /> : <ChevronDown className="w-5 h-5" />}
         </button>
       </div>
 
@@ -347,7 +377,10 @@ export function FlightCardCompact({
 
       {/* EXPANDED DETAILS - Collapsible */}
       {isExpanded && (
-        <div className="px-3 py-3 border-t border-gray-200 bg-gray-50/50 space-y-3 animate-slideDown">
+        <div
+          ref={detailsRef}
+          className="px-3 py-3 md:py-4 border-t border-gray-200 bg-gray-50/50 space-y-3 animate-slideDown"
+        >
           {/* Key Benefits - Compact grid */}
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
             <BaggageTooltip type="checked" weight={formatBaggageWeight(23)} airline={primaryAirline}>

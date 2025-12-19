@@ -336,6 +336,33 @@ export default function FlightFilters({
   const [isMobileOpen, setIsMobileOpen] = useState(false);
   const [localFilters, setLocalFilters] = useState(filters);
 
+  // Lock body scroll when mobile filter sheet is open
+  useEffect(() => {
+    if (isMobileOpen) {
+      const scrollY = window.scrollY;
+      document.body.style.overflow = 'hidden';
+      document.body.style.position = 'fixed';
+      document.body.style.top = `-${scrollY}px`;
+      document.body.style.width = '100%';
+    } else {
+      const scrollY = document.body.style.top;
+      document.body.style.overflow = '';
+      document.body.style.position = '';
+      document.body.style.top = '';
+      document.body.style.width = '';
+      if (scrollY) {
+        window.scrollTo(0, parseInt(scrollY || '0') * -1);
+      }
+    }
+
+    return () => {
+      document.body.style.overflow = '';
+      document.body.style.position = '';
+      document.body.style.top = '';
+      document.body.style.width = '';
+    };
+  }, [isMobileOpen]);
+
   // Local state for price inputs (raw values while typing)
   const [minPriceInput, setMinPriceInput] = useState<string>('');
   const [maxPriceInput, setMaxPriceInput] = useState<string>('');
@@ -1409,18 +1436,23 @@ export default function FlightFilters({
         </div>
       </div>
 
-      {/* Mobile Toggle Button */}
-      <div className="lg:hidden fixed bottom-20 right-4 z-40">
+      {/* Mobile Toggle Button - positioned above bottom navigation */}
+      <div
+        className="lg:hidden fixed right-4 z-[60]"
+        style={{ bottom: 'calc(var(--bottom-nav-total, 56px) + 16px)' }}
+      >
         <button
           onClick={() => setIsMobileOpen(!isMobileOpen)}
-          className="bg-gradient-to-r from-primary-500 to-primary-600 text-white rounded-full shadow-2xl hover:shadow-primary transition-all duration-300 active:scale-95 flex items-center"
+          className="bg-gradient-to-r from-primary-500 to-primary-600 text-white rounded-full shadow-2xl hover:shadow-primary transition-all duration-300 active:scale-95 flex items-center min-h-[56px] min-w-[56px] justify-center"
           style={{ padding: spacing.md, gap: '4px' }}
+          aria-label={isMobileOpen ? 'Close filters' : 'Open filters'}
+          aria-expanded={isMobileOpen}
         >
-          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4" />
           </svg>
           {hasActiveFilters && (
-            <span className="absolute -top-1 -right-1 bg-secondary-500 text-white font-bold w-5 h-5 rounded-full flex items-center justify-center animate-pulse" style={{ fontSize: '11px' }}>
+            <span className="absolute -top-1 -right-1 bg-secondary-500 text-white font-bold w-6 h-6 rounded-full flex items-center justify-center animate-pulse shadow-md" style={{ fontSize: '12px' }}>
               !
             </span>
           )}
@@ -1432,28 +1464,48 @@ export default function FlightFilters({
         <>
           {/* Backdrop */}
           <div
-            className="lg:hidden fixed inset-0 bg-black/50 backdrop-blur-sm z-40 animate-fadeIn"
+            className="lg:hidden fixed inset-0 bg-black/50 backdrop-blur-sm z-[70] animate-fadeIn"
             onClick={() => setIsMobileOpen(false)}
+            aria-hidden="true"
           />
 
           {/* Bottom Sheet */}
-          <div className="lg:hidden fixed inset-x-0 bottom-0 z-50 bg-white/95 backdrop-blur-xl rounded-t-2xl shadow-2xl max-h-[85vh] overflow-hidden animate-slideUp">
+          <div
+            className="lg:hidden fixed inset-x-0 bottom-0 z-[80] bg-white/98 backdrop-blur-xl rounded-t-3xl shadow-2xl overflow-hidden animate-slideUp"
+            style={{ maxHeight: '85vh' }}
+            role="dialog"
+            aria-modal="true"
+            aria-label="Flight Filters"
+          >
             {/* Handle Bar */}
-            <div className="flex justify-center border-b border-gray-200" style={{ paddingTop: spacing.sm, paddingBottom: spacing.sm }}>
-              <div className="w-12 h-1 bg-gray-300 rounded-full" />
+            <div className="flex justify-center pt-3 pb-2 border-b border-gray-200">
+              <div className="w-12 h-1.5 bg-gray-300 rounded-full" aria-hidden="true" />
             </div>
 
-            {/* Content */}
-            <div className="overflow-y-auto max-h-[calc(85vh-8rem)] scrollbar-hide" style={{ padding: dimensions.card.padding }}>
+            {/* Content - Scrollable */}
+            <div
+              className="overflow-y-auto scrollbar-hide overscroll-contain"
+              style={{
+                maxHeight: 'calc(85vh - 140px)',
+                padding: dimensions.card.padding,
+                WebkitOverflowScrolling: 'touch',
+              }}
+            >
               <FilterContent />
             </div>
 
-            {/* Apply Button */}
-            <div className="sticky bottom-0 bg-white border-t border-gray-200" style={{ padding: dimensions.card.padding }}>
+            {/* Apply Button - Fixed at bottom with safe area padding */}
+            <div
+              className="sticky bottom-0 bg-white border-t border-gray-200"
+              style={{
+                padding: dimensions.card.padding,
+                paddingBottom: 'calc(var(--safe-area-bottom, 0px) + 16px)',
+              }}
+            >
               <button
                 onClick={() => setIsMobileOpen(false)}
-                className="w-full bg-gradient-to-r from-primary-500 to-primary-600 text-white font-bold rounded-lg shadow-lg hover:shadow-xl active:scale-98 transition-all duration-300"
-                style={{ padding: spacing.md, fontSize: '12px' }}
+                className="w-full bg-gradient-to-r from-primary-500 to-primary-600 text-white font-bold rounded-xl shadow-lg hover:shadow-xl active:scale-[0.98] transition-all duration-300 min-h-[48px]"
+                style={{ padding: spacing.md, fontSize: '14px' }}
               >
                 {t.applyFilters}
               </button>
