@@ -4461,10 +4461,13 @@ model NewsletterSubscriber {
   email           String    @unique
   firstName       String?
   source          String    @default("website") // website, world-cup, modal, footer, etc.
-  status          String    @default("ACTIVE") // ACTIVE, UNSUBSCRIBED, BOUNCED
+  status          String    @default("PENDING") // PENDING, ACTIVE, UNSUBSCRIBED, BOUNCED
   subscribedAt    DateTime  @default(now())
   unsubscribedAt  DateTime?
   reactivatedAt   DateTime?
+  verifiedAt      DateTime? // Double opt-in verification timestamp
+  verificationToken String? // Token for email verification
+  tokenExpiry     DateTime? // Token expiration
   lastEmailSentAt DateTime?
   emailsSent      Int       @default(0)
   emailsOpened    Int       @default(0)
@@ -4484,6 +4487,7 @@ model NewsletterSubscriber {
   @@index([status])
   @@index([subscribedAt])
   @@index([source])
+  @@index([verificationToken])
   @@map("newsletter_subscribers")
 }
 

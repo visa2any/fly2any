@@ -1259,4 +1259,43 @@ export class EmailService {
   static async send(options: EmailOptions): Promise<boolean> {
     return this.sendEmail(options);
   }
+
+  /**
+   * Send email verification for double opt-in
+   */
+  static async sendVerificationEmail(
+    email: string,
+    data: { email: string; firstName?: string; verifyUrl: string }
+  ): Promise<boolean> {
+    const content = `
+    ${this.getHeader("Confirm Your Subscription", 'One click to unlock exclusive deals', undefined, '#2563eb')}
+
+    <tr>
+      <td style="padding:32px 24px;text-align:center;">
+        <p style="margin:0 0 8px 0;font-size:18px;color:#374151;font-family:Arial,Helvetica,sans-serif;">Hi${data.firstName ? ` ${data.firstName}` : ''},</p>
+        <p style="margin:0 0 24px 0;font-size:16px;color:#6b7280;line-height:1.7;font-family:Arial,Helvetica,sans-serif;">
+          Thanks for signing up! Please confirm your email to start receiving exclusive travel deals.
+        </p>
+
+        <a href="${data.verifyUrl}" style="display:inline-block;background:#E74035;color:#ffffff;font-weight:bold;padding:16px 32px;border-radius:8px;text-decoration:none;font-size:16px;font-family:Arial,Helvetica,sans-serif;">
+          ✓ Confirm My Subscription
+        </a>
+
+        <p style="margin:24px 0 0 0;font-size:13px;color:#9ca3af;font-family:Arial,Helvetica,sans-serif;">
+          This link expires in 24 hours. If you didn't sign up, you can safely ignore this email.
+        </p>
+      </td>
+    </tr>
+
+    ${this.getFooter(email)}
+    `;
+
+    const options = {
+      to: email,
+      subject: '✓ Confirm your Fly2Any subscription',
+      html: this.wrapContent(content),
+    };
+
+    return this.sendEmail(options);
+  }
 }

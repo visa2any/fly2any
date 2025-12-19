@@ -14,6 +14,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
 import { EmailService } from '@/lib/services/email-service';
+import crypto from 'crypto';
 
 // Simple rate limiting using in-memory store (in production, use Redis)
 const subscriptionAttempts = new Map<string, { count: number; timestamp: number }>();
@@ -117,29 +118,37 @@ export async function POST(request: NextRequest) {
       });
     }
 
-    // Create new subscriber
+    // Generate verification token for double opt-in
+    const verificationToken = crypto.randomBytes(32).toString('hex');
+    const tokenExpiry = new Date(Date.now() + 24 * 60 * 60 * 1000); // 24 hours
+
+    // Create new subscriber with PENDING status
     await prisma?.newsletterSubscriber.create({
       data: {
         email: normalizedEmail,
         firstName: firstName || null,
         source,
-        status: 'ACTIVE',
+        status: 'PENDING',
+        verificationToken,
+        tokenExpiry,
         subscribedAt: new Date(),
       },
     });
 
-    // Send welcome/confirmation email
-    await EmailService.sendNewsletterConfirmation(normalizedEmail, {
+    // Send verification email (double opt-in)
+    const verifyUrl = `${process.env.NEXT_PUBLIC_SITE_URL}/api/newsletter/verify?token=${verificationToken}`;
+    await EmailService.sendVerificationEmail(normalizedEmail, {
       email: normalizedEmail,
       firstName: firstName || undefined,
+      verifyUrl,
     });
 
-    console.log(`✅ [NEWSLETTER] New subscriber: ${normalizedEmail} from ${source}`);
+    console.log(`📧 [NEWSLETTER] Verification sent: ${normalizedEmail}`);
 
     return NextResponse.json({
       success: true,
-      message: 'Thanks for subscribing! Check your inbox for a confirmation.',
-      newSubscriber: true,
+      message: 'Please check your email and click the verification link to confirm your subscription.',
+      pendingVerification: true,
     });
   } catch (error: any) {
     console.error('[NEWSLETTER_SUBSCRIBE_ERROR]', error);
