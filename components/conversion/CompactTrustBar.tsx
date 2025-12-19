@@ -3,7 +3,6 @@
 import { Shield, Headphones, Lock, Gift } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { zIndex } from '@/lib/design-system';
-import { ScrollHint } from '@/components/ui/ScrollHint';
 
 interface TrustItem {
   icon: typeof Shield;
@@ -17,10 +16,10 @@ interface CompactTrustBarProps {
 }
 
 const trustItems: TrustItem[] = [
-  { icon: Shield, text: 'Best Price Guarantee', color: 'text-success-600' },
+  { icon: Shield, text: 'Best Price', color: 'text-success-600' },
   { icon: Headphones, text: '24/7 Support', color: 'text-primary-500' },
-  { icon: Lock, text: 'Secure Booking', color: 'text-info-600' },
-  { icon: Gift, text: 'Free Cancel 24h', color: 'text-secondary-600' },
+  { icon: Lock, text: 'Secure', color: 'text-info-600' },
+  { icon: Gift, text: 'Free Cancel', color: 'text-secondary-600' },
 ];
 
 export function CompactTrustBar({ sticky = true, className }: CompactTrustBarProps) {
@@ -38,23 +37,20 @@ export function CompactTrustBar({ sticky = true, className }: CompactTrustBarPro
         WebkitBackdropFilter: 'blur(12px) saturate(180%)',
       }}
     >
-      {/* Level-6: ScrollHint with subtle fade edges */}
-      <ScrollHint
-        className="items-center justify-start md:justify-center gap-4 md:gap-8 min-h-[44px] py-3 px-4 md:px-6"
-        fadeColor="from-white/98"
-      >
+      {/* Level-6: Compact fit on mobile, centered on desktop */}
+      <div className="flex items-center justify-between md:justify-center gap-2 md:gap-8 min-h-[40px] md:min-h-[44px] py-2 md:py-3 px-3 md:px-6">
         {trustItems.map((item, idx) => {
           const Icon = item.icon;
           return (
-            <div key={idx} className="flex items-center gap-2 text-neutral-800 flex-shrink-0">
-              <Icon className={cn('w-[18px] h-[18px] md:w-5 md:h-5', item.color)} strokeWidth={2} />
-              <span className="text-xs md:text-[13px] font-semibold whitespace-nowrap leading-none tracking-[0.01em]">
+            <div key={idx} className="flex items-center gap-1 md:gap-2 text-neutral-800">
+              <Icon className={cn('w-3.5 h-3.5 md:w-5 md:h-5', item.color)} strokeWidth={2} />
+              <span className="text-[10px] md:text-[13px] font-semibold whitespace-nowrap leading-none">
                 {item.text}
               </span>
             </div>
           );
         })}
-      </ScrollHint>
+      </div>
     </div>
   );
 }
