@@ -174,24 +174,14 @@ const HotelCard = memo(({
       {/* Gradient Overlay */}
       <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent pointer-events-none z-10" />
 
-      {/* Value Score Badge - Top Right */}
-      <div className="absolute top-2 right-2 z-20">
-        <ValueScoreBadge score={hotel.valueScore} size="sm" showLabel={false} />
-      </div>
+      {/* Value Score Badge - Only show if real score > 0 */}
+      {hotel.valueScore > 0 && (
+        <div className="absolute top-2 right-2 z-20">
+          <ValueScoreBadge score={hotel.valueScore} size="sm" showLabel={false} />
+        </div>
+      )}
 
-      {/* Trending/Price Drop Badge - Top Left */}
-      {hotel.priceDropRecent && (
-        <div className="absolute top-2 left-2 z-20 bg-gray-700 text-white px-2 py-1 rounded-full text-xs font-bold flex items-center gap-1 shadow-lg">
-          <TrendingDown className="w-3 h-3" />
-          {t.priceDrop}
-        </div>
-      )}
-      {hotel.trending && !hotel.priceDropRecent && (
-        <div className="absolute top-2 left-2 z-20 bg-orange-500 text-white px-2 py-1 rounded-full text-xs font-bold flex items-center gap-1 shadow-lg animate-pulse">
-          <Flame className="w-3 h-3" />
-          {t.trending}
-        </div>
-      )}
+      {/* Badges - Only show real data */}
 
       {/* Star Rating Badge - Bottom Left */}
       {hotel.starRating && (
@@ -215,46 +205,19 @@ const HotelCard = memo(({
         {hotel.name}
       </h3>
 
-      {/* Reviews */}
-      {hotel.reviewCount > 0 && (
-        <div className="flex items-center gap-2 mb-3">
+
+      {/* Real Data Only - Review Score & Count from API */}
+      {hotel.reviewCount > 0 && hotel.reviewRating > 0 && (
+        <div className="flex items-center gap-2 mb-2">
           <div className="flex items-center gap-1 bg-primary-600 text-white px-2 py-0.5 rounded font-bold text-xs">
             <Star className="w-3 h-3 fill-current" />
-            {hotel.reviewRating?.toFixed(1) || hotel.starRating || '4.5'}
+            {(hotel.reviewRating / 2).toFixed(1)}
           </div>
           <span className="text-xs text-gray-600">
             ({hotel.reviewCount.toLocaleString()} {t.reviews})
           </span>
         </div>
       )}
-
-      {/* Social Proof - COMPACT ONE LINE */}
-      <div className="flex items-center gap-1.5 mb-2 flex-wrap text-[10px]">
-        {hotel.viewersLast24h > 100 && (
-          <span className="inline-flex items-center gap-0.5 bg-gray-100 text-gray-700 px-1.5 py-0.5 rounded font-semibold">
-            <Eye className="w-2.5 h-2.5" />
-            {hotel.viewersLast24h}
-          </span>
-        )}
-        {hotel.bookingsLast24h > 10 && (
-          <span className="inline-flex items-center gap-0.5 bg-gray-100 text-gray-700 px-1.5 py-0.5 rounded font-semibold">
-            <ShoppingCart className="w-2.5 h-2.5" />
-            {hotel.bookingsLast24h}
-          </span>
-        )}
-        {hotel.demandLevel > 85 && (
-          <span className="inline-flex items-center gap-0.5 bg-orange-100 text-orange-700 px-1.5 py-0.5 rounded font-bold">
-            <Flame className="w-2.5 h-2.5" />
-            High
-          </span>
-        )}
-        {hotel.availableRooms <= 5 && (
-          <span className="inline-flex items-center gap-0.5 bg-red-100 text-red-700 px-1.5 py-0.5 rounded font-bold">
-            <Clock className="w-2.5 h-2.5" />
-            {hotel.availableRooms} left
-          </span>
-        )}
-      </div>
 
       {/* Amenities Preview - COMPACT */}
       <div className="flex items-center gap-2 mb-2">
@@ -277,16 +240,6 @@ const HotelCard = memo(({
         <div className="flex-1">
           <div className="flex items-baseline gap-1.5 mb-0.5">
             <span className="text-2xl font-bold text-primary-600">${hotel.pricePerNight.toFixed(0)}</span>
-            {hotel.originalPrice && hotel.originalPrice > hotel.pricePerNight && (
-              <>
-                <span className="text-xs text-gray-400 line-through">
-                  ${hotel.originalPrice.toFixed(0)}
-                </span>
-                <span className="inline-flex items-center gap-0.5 bg-green-100 text-green-700 px-1.5 py-0.5 rounded text-[9px] font-bold">
-                  💚 {Math.round(((hotel.originalPrice - hotel.pricePerNight) / hotel.originalPrice) * 100)}%
-                </span>
-              </>
-            )}
           </div>
           <div className="text-[10px] text-gray-500">{t.perNight}</div>
         </div>

@@ -96,7 +96,7 @@ export async function GET(request: NextRequest) {
     const cacheKey = generateCacheKey('hotels:featured-enhanced', {
       continent: continentFilter,
       limit,
-      version: 'v5-no-amadeus', // Cache bust - removed Amadeus hotels
+      version: 'v6-real-data-only', // Cache bust - real data only, no fake marketing
     });
 
     // Try cache (24 hour TTL - refresh once daily)
@@ -220,25 +220,9 @@ export async function GET(request: NextRequest) {
           // LiteAPI hotel structure
           const price = hotel.lowestPricePerNight || hotel.lowestPrice || 0;
 
-          // ML Value Score Calculation (deterministic)
-          const hotelSeed = dest.city + hotel.id;
+          // Use real data only - no fake marketing signals
           const hotelAny = hotel as any;
-          const valueScore = calculateValueScore({
-            price: price || 150,
-            marketAvgPrice: (price || 150) * 1.4,
-            rating: hotelAny.starRating || hotelAny.stars || 4,
-            reviewCount: hotelAny.reviewCount || 500,
-            demandLevel: Math.floor(seededRandom(hotelSeed, 0) * 40) + 60, // 60-100
-            availabilityLevel: Math.floor(seededRandom(hotelSeed, 1) * 60) + 20, // 20-80
-          });
-
-          // Marketing signals (deterministic)
-          const demandLevel = Math.floor(seededRandom(hotelSeed, 2) * 40) + 60;
-          const availableRooms = Math.floor(seededRandom(hotelSeed, 3) * 10) + 2;
-          const viewersLast24h = Math.floor(seededRandom(hotelSeed, 4) * 150) + 50;
-          const bookingsLast24h = Math.floor(seededRandom(hotelSeed, 5) * 20) + 5;
-          const trending = demandLevel > 85;
-          const priceDropRecent = seededRandom(hotelSeed, 6) > 0.7;
+          const valueScore = 0; // Disabled - was using fake data
 
           return {
             ...hotel,
@@ -249,23 +233,18 @@ export async function GET(request: NextRequest) {
             continent: dest.continent,
             category: dest.category || [],
 
-            // Pricing - use hotel's rate data
+            // Pricing - use hotel's rate data (REAL only)
             lowestRate: hotelAny.lowestRate || price,
             pricePerNight: Math.round(price),
-            originalPrice: priceDropRecent ? Math.round(price * 1.25) : undefined,
 
-            // ML Features
-            valueScore,
-
-            // Marketing Signals
-            demandLevel,
-            availableRooms,
-            trending,
-            priceDropRecent,
-
-            // Social Proof
-            viewersLast24h,
-            bookingsLast24h,
+            // Real data only - no fake marketing signals
+            valueScore: 0,
+            demandLevel: 0,
+            availableRooms: 0,
+            trending: false,
+            priceDropRecent: false,
+            viewersLast24h: 0,
+            bookingsLast24h: 0,
 
             // Photos - Robust extraction with city-based fallback for Amadeus
             images: (() => {

@@ -1,20 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { liteAPI } from '@/lib/api/liteapi';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
 
 /**
- * CONTEXT-AWARE REVIEW GENERATOR - v7
- * Generates reviews that match the actual hotel type, brand, and amenities
- * This ensures reviews feel authentic to the specific property
+ * REAL REVIEWS API - v8
+ * Fetches real reviews from LiteAPI
  */
-
-interface HotelContext {
-  name: string;
-  city: string;
-  stars: number;
-  amenities: string[];
-}
 
 // Detect hotel brand/type from name
 function detectHotelType(hotelName: string): {
@@ -320,69 +313,94 @@ export async function GET(
 ) {
   const hotelId = params.id;
   const searchParams = request.nextUrl.searchParams;
-
   const limit = parseInt(searchParams.get('limit') || '10');
-
-  // Get hotel context from query params (passed from client)
   const hotelName = searchParams.get('hotelName') || 'Hotel';
-  const hotelCity = searchParams.get('hotelCity') || '';
-  const hotelStars = parseInt(searchParams.get('hotelStars') || '3');
-  const hotelAmenities = searchParams.get('amenities')?.split(',') || [];
 
-  console.log(`\n🔍 ============ REVIEWS API v7 (CONTEXTUAL) ============`);
-  console.log(`🔍 Hotel: ${hotelId} - "${hotelName}"`);
-  console.log(`🔍 City: ${hotelCity}, Stars: ${hotelStars}`);
-  console.log(`🔍 Amenities: ${hotelAmenities.slice(0, 5).join(', ')}...`);
+  console.log(`🔍 Reviews API v8 - Fetching REAL reviews for ${hotelId}`);
 
-  const context: HotelContext = {
-    name: hotelName,
-    city: hotelCity,
-    stars: hotelStars,
-    amenities: hotelAmenities,
-  };
+  try {
+    // Fetch real reviews from LiteAPI
+    const reviewsResult = await liteAPI.getHotelReviews(hotelId, limit, true);
+    const reviews = reviewsResult.reviews || [];
+    const sentiment = reviewsResult.sentiment;
 
-  const reviews = generateContextualReviews(hotelId, context, limit);
+    console.log(`✅ Got ${reviews.length} real reviews from LiteAPI`);
 
-  const avgRating = reviews.reduce((sum, r) => sum + r.rating, 0) / reviews.length;
-  const ratingDistribution = { 5: 0, 4: 0, 3: 0, 2: 0, 1: 0 };
-  reviews.forEach(r => {
-    const rounded = Math.round(r.rating) as 1 | 2 | 3 | 4 | 5;
-    if (rounded >= 1 && rounded <= 5) ratingDistribution[rounded]++;
-  });
+    // Calculate stats from real reviews
+    const avgRating = reviews.length > 0
+      ? reviews.reduce((sum, r) => sum + (r.rating || 0), 0) / reviews.length
+      : 0;
 
-  const response = {
-    success: true,
-    data: reviews,
-    reviews: reviews, // Also include as 'reviews' for backwards compatibility
-    averageRating: Math.round(avgRating * 10) / 10,
-    total: reviews.length,
-    summary: {
+    const ratingDistribution = { 5: 0, 4: 0, 3: 0, 2: 0, 1: 0 };
+    reviews.forEach((r: any) => {
+      const rounded = Math.round(r.rating || 0) as 1 | 2 | 3 | 4 | 5;
+      if (rounded >= 1 && rounded <= 5) ratingDistribution[rounded]++;
+    });
+
+    const response = {
+      success: true,
+      data: reviews,
+      reviews: reviews,
       averageRating: Math.round(avgRating * 10) / 10,
-      totalReviews: reviews.length,
-      ratingDistribution,
-      recommendationRate: Math.round((ratingDistribution[4] + ratingDistribution[5]) / reviews.length * 100),
-      source: 'contextual',
-    },
-    meta: {
-      hotelId,
-      hotelName,
-      limit,
-      version: 'v7-contextual',
-      timestamp: new Date().toISOString(),
-    },
-  };
+      total: reviews.length,
+      summary: {
+        averageRating: sentiment?.averageScore || Math.round(avgRating * 10) / 10,
+        totalReviews: sentiment?.totalReviews || reviews.length,
+        ratingDistribution,
+        recommendationRate: reviews.length > 0
+          ? Math.round((ratingDistribution[4] + ratingDistribution[5]) / reviews.length * 100)
+          : 0,
+        source: 'liteapi',
+        sentiment: sentiment?.overallSentiment || null,
+      },
+      meta: {
+        hotelId,
+        hotelName,
+        limit,
+        version: 'v8-real',
+        timestamp: new Date().toISOString(),
+      },
+    };
 
-  console.log(`📤 Returning ${reviews.length} CONTEXTUAL reviews for "${hotelName}"`);
-  console.log(`   Type: ${detectHotelType(hotelName).brand} / ${detectHotelType(hotelName).style}`);
-  console.log(`   First: "${reviews[0].authorName}" - "${reviews[0].title}"`);
-  console.log(`🔍 ============ REVIEWS API v7 END ============\n`);
+    return NextResponse.json(response, {
+      headers: {
+        'X-Reviews-Version': 'v8-real',
+        'X-Reviews-Source': 'liteapi',
+        'X-Reviews-Count': String(reviews.length),
+        'Cache-Control': 'public, max-age=3600',
+      },
+    });
+  } catch (error: any) {
+    console.error(`❌ Error fetching reviews: ${error.message}`);
 
-  return NextResponse.json(response, {
-    headers: {
-      'X-Reviews-Version': 'v7-contextual',
-      'X-Reviews-Source': 'contextual',
-      'X-Reviews-Count': String(reviews.length),
-      'Cache-Control': 'public, max-age=3600',
-    },
-  });
+    // Return empty reviews on error
+    return NextResponse.json({
+      success: true,
+      data: [],
+      reviews: [],
+      averageRating: 0,
+      total: 0,
+      summary: {
+        averageRating: 0,
+        totalReviews: 0,
+        ratingDistribution: { 5: 0, 4: 0, 3: 0, 2: 0, 1: 0 },
+        recommendationRate: 0,
+        source: 'none',
+        message: 'Reviews not available',
+      },
+      meta: {
+        hotelId,
+        hotelName,
+        version: 'v8-real',
+        error: error.message,
+      },
+    }, {
+      headers: {
+        'X-Reviews-Version': 'v8-real',
+        'X-Reviews-Source': 'error',
+        'X-Reviews-Count': '0',
+        'Cache-Control': 'public, max-age=300',
+      },
+    });
+  }
 }
