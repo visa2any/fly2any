@@ -294,12 +294,18 @@ function ActivityResultsContent() {
   }, [router]);
 
   const handleSearch = useCallback(() => {
+    // MOBILE FIX: Close suggestions immediately to prevent UI blocking
+    setShowSuggestions(false);
+
     const city = findCity(searchInput);
     if (city) {
       router.push(`/activities/results?destination=${city.id}&lat=${city.location.lat}&lng=${city.location.lng}`);
     } else if (suggestions.length > 0) {
       const first = suggestions[0];
       router.push(`/activities/results?destination=${first.id}&lat=${first.location.lat}&lng=${first.location.lng}`);
+    } else if (searchInput.trim()) {
+      // Allow search even without exact match - let results page handle it
+      router.push(`/activities/results?destination=${encodeURIComponent(searchInput.trim())}`);
     }
   }, [searchInput, suggestions, router]);
 
@@ -392,6 +398,7 @@ function ActivityResultsContent() {
                   value={searchInput}
                   onChange={(e) => { setSearchInput(e.target.value); setShowSuggestions(true); }}
                   onFocus={() => setShowSuggestions(true)}
+                  onBlur={() => setTimeout(() => setShowSuggestions(false), 200)}
                   onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
                   className="w-full pl-9 pr-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
                 />
@@ -402,8 +409,9 @@ function ActivityResultsContent() {
                   {suggestions.map((city) => (
                     <button
                       key={city.id}
+                      onMouseDown={(e) => e.preventDefault()}
                       onClick={() => handleSelectCity(city)}
-                      className="w-full px-4 py-2.5 text-left hover:bg-purple-50 flex items-center gap-2 text-sm border-b border-gray-100 last:border-0"
+                      className="w-full px-4 py-2.5 text-left hover:bg-purple-50 flex items-center gap-2 text-sm border-b border-gray-100 last:border-0 touch-manipulation"
                     >
                       <span className="text-lg">{city.flag}</span>
                       <div>
@@ -415,7 +423,7 @@ function ActivityResultsContent() {
                 </div>
               )}
             </div>
-            <button onClick={handleSearch} className="px-3 py-2 rounded-lg bg-purple-600 text-white text-sm font-medium hover:bg-purple-700 transition-colors flex-shrink-0">
+            <button onMouseDown={(e) => e.preventDefault()} onClick={handleSearch} className="px-3 py-2 rounded-lg bg-purple-600 text-white text-sm font-medium hover:bg-purple-700 transition-colors flex-shrink-0 touch-manipulation">
               Search
             </button>
           </div>

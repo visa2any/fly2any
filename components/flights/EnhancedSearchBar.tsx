@@ -247,6 +247,10 @@ export default function EnhancedSearchBar({
   const [hotelSuggestions, setHotelSuggestions] = useState<any[]>([]);
   const [showHotelSuggestions, setShowHotelSuggestions] = useState(false);
   const [showHotelGuestPicker, setShowHotelGuestPicker] = useState(false);
+
+  // MOBILE FIX: Prevent dropdown from re-opening after selection
+  const justSelectedRef = useRef(false);
+  const hotelInputRef = useRef<HTMLInputElement>(null);
   const [minDate, setMinDate] = useState('');
   const [isLoadingHotelSuggestions, setIsLoadingHotelSuggestions] = useState(false);
   const [showHotelCheckInPicker, setShowHotelCheckInPicker] = useState(false);
@@ -1127,9 +1131,16 @@ export default function EnhancedSearchBar({
 
     console.log('✅ Setting hotelDestination to:', nameValue);
 
+    // MOBILE FIX: Prevent dropdown from re-opening when focus moves
+    justSelectedRef.current = true;
+    setTimeout(() => { justSelectedRef.current = false; }, 300);
+
     // Update all state synchronously to ensure immediate input update
     setHotelDestination(nameValue);
     setShowHotelSuggestions(false);
+
+    // Blur input to prevent focus-triggered re-open on mobile
+    hotelInputRef.current?.blur();
 
     // Extract coordinates and validate they're not near 0,0 (invalid)
     const lat = suggestion.location?.lat || suggestion.latitude || 0;
@@ -3036,6 +3047,7 @@ export default function EnhancedSearchBar({
                 </div>
               ) : (
                 <input
+                  ref={hotelInputRef}
                   type="text"
                   value={hotelDestination}
                   onChange={(e) => {
@@ -3044,7 +3056,7 @@ export default function EnhancedSearchBar({
                       setSelectedDestinationDetails(null);
                     }
                   }}
-                  onFocus={() => { if (hotelDestination.length >= 2) setShowHotelSuggestions(true); }}
+                  onFocus={() => { if (hotelDestination.length >= 2 && !justSelectedRef.current) setShowHotelSuggestions(true); }}
                   placeholder="Where do you want to explore?"
                   className="w-full px-4 py-4 bg-white border border-gray-300 rounded-lg hover:border-orange-500 focus:outline-none focus:ring-2 focus:ring-orange-500 transition-all text-sm font-medium"
                 />
@@ -3188,6 +3200,7 @@ export default function EnhancedSearchBar({
                 </div>
               ) : (
                 <input
+                  ref={hotelInputRef}
                   type="text"
                   value={hotelDestination}
                   onChange={(e) => {
@@ -3196,7 +3209,7 @@ export default function EnhancedSearchBar({
                       setSelectedDestinationDetails(null);
                     }
                   }}
-                  onFocus={() => { if (hotelDestination.length >= 2) setShowHotelSuggestions(true); }}
+                  onFocus={() => { if (hotelDestination.length >= 2 && !justSelectedRef.current) setShowHotelSuggestions(true); }}
                   placeholder="Where do you want activities?"
                   className="w-full px-4 py-4 bg-white border border-gray-300 rounded-lg hover:border-purple-500 focus:outline-none focus:ring-2 focus:ring-purple-500 transition-all text-sm font-medium"
                 />
@@ -4386,6 +4399,7 @@ export default function EnhancedSearchBar({
                 <div className="relative">
                   <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-orange-500" />
                   <input
+                    ref={hotelInputRef}
                     type="text"
                     value={hotelDestination}
                     onChange={(e) => {
@@ -4394,7 +4408,7 @@ export default function EnhancedSearchBar({
                         setSelectedDestinationDetails(null);
                       }
                     }}
-                    onFocus={() => { if (hotelDestination.length >= 2) setShowHotelSuggestions(true); }}
+                    onFocus={() => { if (hotelDestination.length >= 2 && !justSelectedRef.current) setShowHotelSuggestions(true); }}
                     placeholder="City, region or attraction"
                     className="w-full pl-9 pr-3 py-3 bg-white border-2 border-neutral-200 rounded-xl focus:border-orange-500 focus:ring-2 focus:ring-orange-100 outline-none transition-all text-sm font-semibold text-neutral-800"
                   />
@@ -4521,6 +4535,7 @@ export default function EnhancedSearchBar({
                 <div className="relative">
                   <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-purple-500" />
                   <input
+                    ref={hotelInputRef}
                     type="text"
                     value={hotelDestination}
                     onChange={(e) => {
@@ -4529,7 +4544,7 @@ export default function EnhancedSearchBar({
                         setSelectedDestinationDetails(null);
                       }
                     }}
-                    onFocus={() => { if (hotelDestination.length >= 2) setShowHotelSuggestions(true); }}
+                    onFocus={() => { if (hotelDestination.length >= 2 && !justSelectedRef.current) setShowHotelSuggestions(true); }}
                     placeholder="City or attraction"
                     className="w-full pl-9 pr-3 py-3 bg-white border-2 border-neutral-200 rounded-xl focus:border-purple-500 focus:ring-2 focus:ring-purple-100 outline-none transition-all text-sm font-semibold text-neutral-800"
                   />
