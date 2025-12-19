@@ -672,45 +672,44 @@ export default function HotelDetailPage() {
                 {/* Premium Top Gradient Overlay */}
                 <div className="absolute inset-x-0 top-0 h-32 bg-gradient-to-b from-black/70 via-black/40 to-transparent pointer-events-none" />
 
-                {/* Hotel Name & Address - Top Left - Premium Enhanced with Icon */}
-                <div className="absolute top-4 left-4 right-24 z-10">
-                  {/* Hotel Name with Icon */}
-                  <div className="flex items-center gap-2.5 mb-1.5">
-                    <Building2 className="w-7 h-7 md:w-8 md:h-8 text-primary-400 flex-shrink-0" style={{ filter: 'drop-shadow(0 2px 4px rgba(0,0,0,0.8))' }} />
-                    <h1 className="text-2xl md:text-3xl font-extrabold text-white line-clamp-1"
+                {/* Hotel Name & Address - Top Left - Compact mobile, enhanced desktop */}
+                <div className="absolute top-3 md:top-4 left-3 md:left-4 right-20 md:right-24 z-10">
+                  {/* Hotel Name with Icon - Compact on mobile */}
+                  <div className="flex items-center gap-1.5 md:gap-2.5 mb-1">
+                    <Building2 className="w-5 h-5 md:w-8 md:h-8 text-primary-400 flex-shrink-0" style={{ filter: 'drop-shadow(0 2px 4px rgba(0,0,0,0.8))' }} />
+                    <h1 className="text-lg md:text-3xl font-bold md:font-extrabold text-white line-clamp-1 tracking-tight"
                         style={{
-                          textShadow: '0 2px 4px rgba(0,0,0,0.9), 0 4px 8px rgba(0,0,0,0.7), 0 0 20px rgba(0,0,0,0.5)',
-                          WebkitTextStroke: '0.5px rgba(0,0,0,0.3)'
+                          textShadow: '0 2px 4px rgba(0,0,0,0.9), 0 4px 8px rgba(0,0,0,0.7)',
                         }}>
                       {hotel.name}
                     </h1>
                   </div>
                   {/* Address - Smaller on mobile */}
-                  <div className="flex items-center gap-1.5 text-white ml-9 md:ml-10">
-                    <MapPin className="w-3 h-3 md:w-4 md:h-4 flex-shrink-0 text-primary-300" style={{ filter: 'drop-shadow(0 2px 4px rgba(0,0,0,0.8))' }} />
-                    <span className="text-[11px] md:text-sm font-medium line-clamp-1"
-                          style={{ textShadow: '0 1px 3px rgba(0,0,0,0.9), 0 2px 6px rgba(0,0,0,0.7)' }}>
+                  <div className="flex items-center gap-1 md:gap-1.5 text-white ml-6 md:ml-10">
+                    <MapPin className="w-2.5 h-2.5 md:w-4 md:h-4 flex-shrink-0 text-primary-300" style={{ filter: 'drop-shadow(0 2px 4px rgba(0,0,0,0.8))' }} />
+                    <span className="text-[10px] md:text-sm font-medium line-clamp-1"
+                          style={{ textShadow: '0 1px 3px rgba(0,0,0,0.9)' }}>
                       {hotel.address?.city}{hotel.address?.country && `, ${hotel.address.country}`}
                     </span>
                   </div>
                 </div>
 
-                {/* Guest Rating Badge - Top Right - Compact 15% smaller */}
+                {/* Guest Rating Badge - Top Right - 15% smaller & transparent on mobile */}
                 {hotel.reviewRating && parseFloat(hotel.reviewRating) > 0 && (
-                  <div className="absolute top-4 right-4 z-10">
-                    <div className="bg-white/95 backdrop-blur-sm rounded-lg px-2 py-1.5 shadow-lg border border-white/20">
-                      <div className="flex items-center gap-1.5">
-                        <div className="bg-green-500 text-white rounded-md px-1.5 py-0.5">
-                          <span className="text-sm font-bold">{parseFloat(hotel.reviewRating).toFixed(1)}</span>
+                  <div className="absolute top-3 md:top-4 right-3 md:right-4 z-10">
+                    <div className="bg-black/40 md:bg-white/95 backdrop-blur-sm rounded-md md:rounded-lg px-1.5 md:px-2 py-1 md:py-1.5 md:shadow-lg md:border md:border-white/20">
+                      <div className="flex items-center gap-1 md:gap-1.5">
+                        <div className="bg-green-500 text-white rounded px-1 md:px-1.5 py-0.5">
+                          <span className="text-xs md:text-sm font-bold">{parseFloat(hotel.reviewRating).toFixed(1)}</span>
                         </div>
                         <div className="text-right">
-                          <div className="text-[10px] font-semibold text-gray-800 leading-tight">
+                          <div className="text-[8px] md:text-[10px] font-semibold text-white md:text-gray-800 leading-tight">
                             {parseFloat(hotel.reviewRating) >= 4.5 ? 'Excellent' :
                              parseFloat(hotel.reviewRating) >= 4.0 ? 'Very Good' :
                              parseFloat(hotel.reviewRating) >= 3.5 ? 'Good' : 'Average'}
                           </div>
                           {hotel.reviewCount && (
-                            <div className="text-[9px] text-gray-500 leading-tight">{hotel.reviewCount} reviews</div>
+                            <div className="text-[7px] md:text-[9px] text-white/70 md:text-gray-500 leading-tight">{hotel.reviewCount} reviews</div>
                           )}
                         </div>
                       </div>
