@@ -78,28 +78,24 @@ export function FlightCardCompact({
   const cardRef = useRef<HTMLDivElement>(null);
   const detailsRef = useRef<HTMLDivElement>(null);
 
-  // Scroll card into view when expanded on mobile
+  // Scroll expanded details into view on mobile
   const handleToggleExpand = useCallback(() => {
     const newExpandedState = !isExpanded;
     setIsExpanded(newExpandedState);
 
-    // Only scroll on mobile when expanding (not collapsing)
+    // On mobile, scroll so expanded content is visible
     if (newExpandedState && window.innerWidth < 1024) {
-      // Small delay to let the DOM update
-      setTimeout(() => {
-        if (cardRef.current) {
-          // Get header height (sticky header is top-24 = 96px + some buffer)
-          const headerOffset = 120; // 96px header + 24px buffer
-          const cardTop = cardRef.current.getBoundingClientRect().top;
-          const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
-          const targetPosition = scrollTop + cardTop - headerOffset;
-
-          window.scrollTo({
-            top: Math.max(0, targetPosition),
-            behavior: 'smooth'
-          });
-        }
-      }, 50);
+      requestAnimationFrame(() => {
+        setTimeout(() => {
+          if (detailsRef.current) {
+            // Scroll the details section into view with offset for header
+            detailsRef.current.scrollIntoView({
+              behavior: 'smooth',
+              block: 'nearest'
+            });
+          }
+        }, 100);
+      });
     }
   }, [isExpanded]);
 
@@ -375,11 +371,14 @@ export function FlightCardCompact({
         </div>
       )}
 
-      {/* EXPANDED DETAILS - Collapsible */}
+      {/* EXPANDED DETAILS - Collapsible, expands downward */}
       {isExpanded && (
         <div
           ref={detailsRef}
-          className="px-3 py-3 md:py-4 border-t border-gray-200 bg-gray-50/50 space-y-3 animate-slideDown"
+          className="px-3 py-3 md:py-4 border-t border-gray-200 bg-gray-50/50 space-y-3 overflow-hidden"
+          style={{
+            animation: 'expandDown 0.25s ease-out forwards',
+          }}
         >
           {/* Key Benefits - Compact grid */}
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">

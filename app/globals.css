@@ -309,6 +309,22 @@
     animation: slideDown 0.3s ease-out;
   }
 
+  /* Expand down animation - for accordions/collapsibles */
+  @keyframes expandDown {
+    from {
+      opacity: 0;
+      max-height: 0;
+      padding-top: 0;
+      padding-bottom: 0;
+    }
+    to {
+      opacity: 1;
+      max-height: 1000px;
+      padding-top: 12px;
+      padding-bottom: 12px;
+    }
+  }
+
   /* Conversion Optimization Animations */
   @keyframes pulse-glow {
     0%, 100% {
