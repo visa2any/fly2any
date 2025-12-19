@@ -1,11 +1,10 @@
 /**
  * Affiliate Email Notification Service
  * Handles all email notifications for the affiliate program
+ * Uses Mailgun for email delivery
  */
 
 import { mailgunClient } from '@/lib/email/mailgun-client'
-
-// Initialize Resend (only if API key exists)
 
 
 // Configuration

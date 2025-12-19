@@ -209,18 +209,13 @@ export async function POST(
 </html>
     `;
 
-    // Send email via Resend
+    // Send email via Mailgun
     try {
-      if (true) {
-        await mailgunClient.send({
-          from: process.env.EMAIL_FROM || "support@fly2any.com",
-          to: quote.client.email,
-          subject: emailSubject,
-          html: emailHtml,
-        });
-      } else {
-        console.warn('[EMAIL_SKIPPED] RESEND_API_KEY not configured');
-      }
+      await mailgunClient.send({
+        to: quote.client.email,
+        subject: emailSubject,
+        html: emailHtml,
+      });
     } catch (emailError) {
       console.error("[EMAIL_SEND_ERROR]", emailError);
       // Continue anyway - quote is still marked as sent

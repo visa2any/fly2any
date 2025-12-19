@@ -172,35 +172,30 @@ export async function POST(request: NextRequest) {
 
     // Send confirmation email to agent
     try {
-      try {
-        await mailgunClient.send({
-          
-          to: agent.user.email,
-          subject: `Payout Request Received: ${payout.payoutNumber}`,
-          html: `
-            <h2>Payout Request Confirmed</h2>
-            <p>We've received your payout request and are processing it.</p>
-            <p><strong>Payout Details:</strong></p>
-            <ul>
-              <li>Payout Number: ${payout.payoutNumber}</li>
-              <li>Amount: $${payoutData.amount.toLocaleString()}</li>
-              <li>Method: ${payoutData.payoutMethod.replace('_', ' ')}</li>
-              <li>Commissions Included: ${commissionsToInclude.length}</li>
-            </ul>
-            <p><strong>Processing Time:</strong></p>
-            <ul>
-              <li>Bank Transfer: 3-5 business days</li>
-              <li>PayPal: 1-2 business days</li>
-              <li>Wire Transfer: 1-3 business days</li>
-              <li>Check: 7-10 business days</li>
-            </ul>
-            <p>You will receive a notification once the payout is processed.</p>
-            <p><a href="${process.env.NEXTAUTH_URL}/agent/payouts/${payout.id}" style="background: #3B82F6; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; display: inline-block; margin-top: 10px;">View Payout Details</a></p>
-          `,
-        });
-      } else {
-        console.warn('[PAYOUT_EMAIL_SKIPPED] RESEND_API_KEY not configured');
-      }
+      await mailgunClient.send({
+        to: agent.user.email,
+        subject: `Payout Request Received: ${payout.payoutNumber}`,
+        html: `
+          <h2>Payout Request Confirmed</h2>
+          <p>We've received your payout request and are processing it.</p>
+          <p><strong>Payout Details:</strong></p>
+          <ul>
+            <li>Payout Number: ${payout.payoutNumber}</li>
+            <li>Amount: $${payoutData.amount.toLocaleString()}</li>
+            <li>Method: ${payoutData.payoutMethod.replace('_', ' ')}</li>
+            <li>Commissions Included: ${commissionsToInclude.length}</li>
+          </ul>
+          <p><strong>Processing Time:</strong></p>
+          <ul>
+            <li>Bank Transfer: 3-5 business days</li>
+            <li>PayPal: 1-2 business days</li>
+            <li>Wire Transfer: 1-3 business days</li>
+            <li>Check: 7-10 business days</li>
+          </ul>
+          <p>You will receive a notification once the payout is processed.</p>
+          <p><a href="${process.env.NEXTAUTH_URL}/agent/payouts/${payout.id}" style="background: #3B82F6; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; display: inline-block; margin-top: 10px;">View Payout Details</a></p>
+        `,
+      });
     } catch (emailError) {
       console.error("[EMAIL_SEND_ERROR]", emailError);
       // Continue anyway

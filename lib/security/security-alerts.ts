@@ -2,7 +2,7 @@
  * Security Alert System
  *
  * Sends email notifications when suspicious activity is detected.
- * Uses Resend for reliable email delivery.
+ * Uses Mailgun for reliable email delivery.
  *
  * Alert Types:
  * - Bot detection
@@ -14,8 +14,6 @@
 
 import { mailgunClient } from '@/lib/email/mailgun-client';
 import { getRedisClient, isRedisEnabled } from '@/lib/cache/redis';
-
-// Initialize Resend
 
 
 // Configuration
@@ -262,9 +260,9 @@ export async function sendSecurityAlert(data: SecurityAlertData): Promise<boolea
     return false;
   }
 
-  // Check if Resend is configured
+  // Check if Mailgun is configured
   if (!mailgunClient.isConfigured()) {
-    console.warn('[SecurityAlerts] Resend not configured - cannot send alert');
+    console.warn('[SecurityAlerts] Mailgun not configured - cannot send alert');
     return false;
   }
 

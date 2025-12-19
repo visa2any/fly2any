@@ -103,34 +103,29 @@ export async function POST(
 
     // Send notification email to agent
     try {
-      if (true) {
-        await mailgunClient.send({
-          from: process.env.EMAIL_FROM || "support@fly2any.com",
-          to: quote.agent.user.email,
-          subject: `🎉 Quote Accepted: ${quote.quoteNumber}`,
-          html: `
-            <h2>Great News! Your quote has been accepted!</h2>
-            <p><strong>${quote.client.firstName} ${quote.client.lastName}</strong> has accepted your quote for <strong>${quote.destination}</strong>.</p>
-            <p><strong>Quote Details:</strong></p>
-            <ul>
-              <li>Quote Number: ${quote.quoteNumber}</li>
-              <li>Trip: ${quote.tripName}</li>
-              <li>Total: $${quote.total.toLocaleString()}</li>
-              <li>Travel Dates: ${new Date(quote.startDate).toLocaleDateString()} - ${new Date(quote.endDate).toLocaleDateString()}</li>
-            </ul>
-            <p><strong>Next Steps:</strong></p>
-            <ol>
-              <li>Convert the quote to a booking</li>
-              <li>Process the deposit payment</li>
-              <li>Confirm all reservations with suppliers</li>
-              <li>Send confirmation documents to the client</li>
-            </ol>
-            <p><a href="${process.env.NEXTAUTH_URL}/agent/quotes/${quote.id}" style="background: #3B82F6; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; display: inline-block; margin-top: 10px;">View Quote</a></p>
-          `,
-        });
-      } else {
-        console.warn('[EMAIL_SKIPPED] RESEND_API_KEY not configured');
-      }
+      await mailgunClient.send({
+        to: quote.agent.user.email,
+        subject: `🎉 Quote Accepted: ${quote.quoteNumber}`,
+        html: `
+          <h2>Great News! Your quote has been accepted!</h2>
+          <p><strong>${quote.client.firstName} ${quote.client.lastName}</strong> has accepted your quote for <strong>${quote.destination}</strong>.</p>
+          <p><strong>Quote Details:</strong></p>
+          <ul>
+            <li>Quote Number: ${quote.quoteNumber}</li>
+            <li>Trip: ${quote.tripName}</li>
+            <li>Total: $${quote.total.toLocaleString()}</li>
+            <li>Travel Dates: ${new Date(quote.startDate).toLocaleDateString()} - ${new Date(quote.endDate).toLocaleDateString()}</li>
+          </ul>
+          <p><strong>Next Steps:</strong></p>
+          <ol>
+            <li>Convert the quote to a booking</li>
+            <li>Process the deposit payment</li>
+            <li>Confirm all reservations with suppliers</li>
+            <li>Send confirmation documents to the client</li>
+          </ol>
+          <p><a href="${process.env.NEXTAUTH_URL}/agent/quotes/${quote.id}" style="background: #3B82F6; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; display: inline-block; margin-top: 10px;">View Quote</a></p>
+        `,
+      });
     } catch (emailError) {
       console.error("[EMAIL_SEND_ERROR]", emailError);
       // Continue anyway
