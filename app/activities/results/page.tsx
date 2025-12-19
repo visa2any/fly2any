@@ -27,9 +27,28 @@ interface Activity {
 const MAIN_CITIES = GLOBAL_CITIES.filter(c => c.type === 'city');
 const POPULAR_CITIES = MAIN_CITIES.filter(c => c.popularity && c.popularity >= 8).slice(0, 10);
 
+// Fast city lookup with fuzzy matching
 const findCity = (query: string): CityDestination | undefined => {
-  const q = query.toLowerCase();
-  return GLOBAL_CITIES.find(c => c.id === q || c.name.toLowerCase() === q || c.aliases?.includes(q));
+  if (!query) return undefined;
+  const q = query.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').trim();
+
+  // 1. Exact match on id, name, or aliases (case-insensitive)
+  const exactMatch = GLOBAL_CITIES.find(c => {
+    const cityName = c.name.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+    const cityId = c.id.toLowerCase();
+    return cityId === q || cityName === q || c.aliases?.some(a => a.toLowerCase() === q);
+  });
+  if (exactMatch) return exactMatch;
+
+  // 2. Partial match for multi-word queries
+  if (q.length >= 4) {
+    return GLOBAL_CITIES.find(c => {
+      const cityName = c.name.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+      return cityName.includes(q) || q.includes(cityName);
+    });
+  }
+
+  return undefined;
 };
 
 // Skeleton loader for better perceived performance
@@ -248,11 +267,17 @@ function ActivityResultsContent() {
   const [filters, setFilters] = useState(defaultFilters);
   const [visibleCount, setVisibleCount] = useState(ITEMS_PER_PAGE);
 
-  const destination = searchParams.get('destination') || 'paris';
+  const destination = searchParams.get('destination') || '';
   const foundCity = useMemo(() => findCity(destination), [destination]);
-  const lat = parseFloat(searchParams.get('lat') || '') || foundCity?.location.lat || 48.8566;
-  const lng = parseFloat(searchParams.get('lng') || '') || foundCity?.location.lng || 2.3522;
-  const cityName = foundCity?.name || destination;
+  // Get coordinates from URL params first, then from found city - NO hardcoded fallback
+  const urlLat = parseFloat(searchParams.get('lat') || '');
+  const urlLng = parseFloat(searchParams.get('lng') || '');
+  const lat = !isNaN(urlLat) && urlLat !== 0 ? urlLat : foundCity?.location.lat || 0;
+  const lng = !isNaN(urlLng) && urlLng !== 0 ? urlLng : foundCity?.location.lng || 0;
+  const cityName = foundCity?.name || destination || 'Unknown';
+
+  // Validate coordinates - show error if no valid location
+  const hasValidLocation = lat !== 0 && lng !== 0;
 
   const suggestions = useMemo(() => {
     if (searchInput.length === 0) return POPULAR_CITIES;
@@ -288,6 +313,14 @@ function ActivityResultsContent() {
   useEffect(() => {
     const controller = new AbortController();
     const fetchActivities = async () => {
+      // Don't fetch if no valid location
+      if (!hasValidLocation) {
+        setLoading(false);
+        setError('Please select a valid destination to search activities.');
+        setActivities([]);
+        return;
+      }
+
       setLoading(true);
       setError('');
       try {
@@ -306,7 +339,7 @@ function ActivityResultsContent() {
     };
     fetchActivities();
     return () => controller.abort();
-  }, [lat, lng]);
+  }, [lat, lng, hasValidLocation]);
 
   // Apply filters - price already includes API markup
   const getPrice = useCallback((a: Activity) => {
