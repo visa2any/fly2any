@@ -122,21 +122,20 @@ export function CompactRoomCard({
           {room.roomType}
         </h3>
 
-        {/* Features Row - Ultra Compact */}
-        <div className="flex flex-wrap gap-1 mb-1.5">
-          <span className="px-1 py-0.5 bg-gray-100 rounded text-[8px] font-medium text-gray-600">
-            {room.maxOccupancy}👤
-          </span>
-          <span className={`px-1 py-0.5 rounded text-[8px] font-medium ${
-            hasBreakfast ? 'bg-green-50 text-green-700' : 'bg-gray-50 text-gray-500'
-          }`}>
-            {hasBreakfast ? '🍳' : 'RO'}
-          </span>
-          <span className={`px-1 py-0.5 rounded text-[8px] font-bold ${
-            room.refundable ? 'bg-emerald-50 text-emerald-600' : 'bg-red-50 text-red-500'
-          }`}>
-            {room.refundable ? '✓Free' : 'NR'}
-          </span>
+        {/* Features List - Descriptive text for better decision making */}
+        <div className="flex flex-col gap-0.5 mb-1.5 text-[9px] sm:text-[10px]">
+          <div className="flex items-center gap-1 text-gray-600">
+            <Users className="w-3 h-3 text-gray-400" />
+            <span>Up to {room.maxOccupancy} guests</span>
+          </div>
+          <div className={`flex items-center gap-1 ${hasBreakfast ? 'text-green-600' : 'text-gray-500'}`}>
+            {hasBreakfast ? <Coffee className="w-3 h-3" /> : <X className="w-3 h-3" />}
+            <span>{hasBreakfast ? getBoardLabel(room.boardType) : 'Room Only'}</span>
+          </div>
+          <div className={`flex items-center gap-1 ${room.refundable ? 'text-emerald-600' : 'text-red-500'}`}>
+            {room.refundable ? <CheckCircle2 className="w-3 h-3" /> : <Shield className="w-3 h-3" />}
+            <span>{room.refundable ? t.freeCancellation : t.nonRefundable}</span>
+          </div>
         </div>
 
         {/* Price + CTA */}
