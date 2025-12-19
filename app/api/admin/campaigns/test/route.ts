@@ -3,7 +3,14 @@ import { Resend } from 'resend';
 import fs from 'fs';
 import path from 'path';
 
-const resend = new Resend(process.env.RESEND_API_KEY);
+// Lazy initialization to avoid build-time errors when env vars aren't available
+function getResendClient() {
+  const apiKey = process.env.RESEND_API_KEY;
+  if (!apiKey) {
+    throw new Error('RESEND_API_KEY environment variable is not set');
+  }
+  return new Resend(apiKey);
+}
 
 export async function POST(request: NextRequest) {
   try {
@@ -28,6 +35,7 @@ export async function POST(request: NextRequest) {
       .replace(/\{\{unsubscribe_url\}\}/g, `https://www.fly2any.com/unsubscribe?email=${encodeURIComponent(testEmail)}`);
 
     // Send test email
+    const resend = getResendClient();
     const { data, error } = await resend.emails.send({
       from: 'Fly2Any <hello@fly2any.com>',
       to: testEmail,
