@@ -1281,6 +1281,55 @@ export default function HotelDetailPage() {
               </div>
             </div>
 
+            {/* More Hotels Suggestions Section */}
+            <div className="bg-white rounded-2xl shadow-lg border border-slate-200 overflow-hidden mt-4">
+              <div className="p-4 border-b border-slate-100">
+                <h3 className="text-lg font-bold text-gray-900">More Hotels in {hotel.address?.city || 'this area'}</h3>
+                <p className="text-sm text-gray-500 mt-0.5">Similar properties you might like</p>
+              </div>
+              <div className="p-4">
+                <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+                  {/* Placeholder cards - would be populated from API */}
+                  {[1, 2, 3].map((i) => (
+                    <div key={i} className="group cursor-pointer" onClick={() => router.push(`/hotels/results?destination=${encodeURIComponent(hotel.address?.city || '')}&checkIn=${checkIn}&checkOut=${checkOut}&adults=${adults}`)}>
+                      <div className="aspect-[4/3] bg-gradient-to-br from-slate-100 to-slate-200 rounded-xl overflow-hidden relative">
+                        <div className="absolute inset-0 flex items-center justify-center">
+                          <Hotel className="w-8 h-8 text-slate-300" />
+                        </div>
+                        <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
+                        <div className="absolute bottom-2 left-2 right-2">
+                          <p className="text-white text-xs font-semibold">Explore More</p>
+                          <p className="text-white/70 text-[10px]">{hotel.address?.city}</p>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+                <button
+                  onClick={() => router.push(`/hotels/results?destination=${encodeURIComponent(hotel.address?.city || '')}&checkIn=${checkIn}&checkOut=${checkOut}&adults=${adults}`)}
+                  className="w-full mt-3 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold text-sm rounded-xl transition-colors"
+                >
+                  View All Hotels in {hotel.address?.city || 'Area'} →
+                </button>
+              </div>
+            </div>
+
+            {/* App Download Banner - Mobile (subtle, above bottom bar) */}
+            <div className="lg:hidden bg-gradient-to-r from-primary-500 to-primary-600 rounded-2xl shadow-lg overflow-hidden mt-4 mx-1">
+              <div className="p-4 flex items-center gap-3">
+                <div className="w-12 h-12 bg-white rounded-xl flex items-center justify-center flex-shrink-0">
+                  <span className="text-2xl">📱</span>
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="text-white font-bold text-sm">Get 5% Off in the App</p>
+                  <p className="text-white/80 text-xs">Exclusive deals & instant booking</p>
+                </div>
+                <button className="px-3 py-2 bg-white text-primary-600 font-bold text-xs rounded-lg flex-shrink-0 active:scale-95 transition-transform">
+                  Get App
+                </button>
+              </div>
+            </div>
+
             {/* Mobile Bottom Spacer - Gives room for floating CTA */}
             <div className="lg:hidden h-40" />
 
@@ -1505,6 +1554,54 @@ export default function HotelDetailPage() {
                     <ArrowRight className="w-4 h-4" />
                     View Similar Hotels
                   </button>
+                </div>
+              </div>
+            </div>
+
+            {/* App Download Banner - Desktop with QR Code */}
+            <div className="bg-gradient-to-br from-primary-500 via-primary-600 to-primary-700 rounded-2xl shadow-xl overflow-hidden mt-4">
+              <div className="p-5">
+                <div className="flex items-center gap-2 mb-3">
+                  <div className="w-8 h-8 bg-white rounded-lg flex items-center justify-center">
+                    <span className="text-lg">📱</span>
+                  </div>
+                  <h3 className="text-white font-bold text-sm">Get the Fly2Any App</h3>
+                </div>
+                <div className="bg-white rounded-xl p-3 mb-3">
+                  {/* QR Code placeholder - would be real QR in production */}
+                  <div className="w-full aspect-square bg-slate-100 rounded-lg flex items-center justify-center relative overflow-hidden">
+                    <div className="absolute inset-2 border-2 border-dashed border-slate-300 rounded-lg" />
+                    <div className="text-center z-10">
+                      <div className="text-3xl mb-1">📲</div>
+                      <p className="text-[10px] text-slate-500 font-medium">Scan to Download</p>
+                    </div>
+                    {/* QR pattern decoration */}
+                    <div className="absolute top-2 left-2 w-4 h-4 border-2 border-slate-800 border-r-0 border-b-0" />
+                    <div className="absolute top-2 right-2 w-4 h-4 border-2 border-slate-800 border-l-0 border-b-0" />
+                    <div className="absolute bottom-2 left-2 w-4 h-4 border-2 border-slate-800 border-r-0 border-t-0" />
+                  </div>
+                </div>
+                <div className="space-y-2 text-white">
+                  <div className="flex items-center gap-2">
+                    <CheckCircle2 className="w-4 h-4 text-green-300" />
+                    <span className="text-xs font-medium">5% OFF all hotel bookings</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <CheckCircle2 className="w-4 h-4 text-green-300" />
+                    <span className="text-xs font-medium">Exclusive app-only deals</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <CheckCircle2 className="w-4 h-4 text-green-300" />
+                    <span className="text-xs font-medium">Instant booking confirmations</span>
+                  </div>
+                </div>
+                <div className="flex gap-2 mt-4">
+                  <div className="flex-1 bg-black rounded-lg px-2 py-1.5 flex items-center justify-center gap-1">
+                    <span className="text-white text-[10px]">App Store</span>
+                  </div>
+                  <div className="flex-1 bg-black rounded-lg px-2 py-1.5 flex items-center justify-center gap-1">
+                    <span className="text-white text-[10px]">Google Play</span>
+                  </div>
                 </div>
               </div>
             </div>
