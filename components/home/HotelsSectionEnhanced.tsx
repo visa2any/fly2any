@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback, memo } from 'react';
 import { useRouter } from 'next/navigation';
 import { ValueScoreBadge } from '@/components/shared/ValueScoreBadge';
+import { ImageSlider } from '@/components/shared/ImageSlider';
 import { MapPin, Star, Users, Wifi, Coffee, Dumbbell, UtensilsCrossed, Car, TrendingUp, TrendingDown, Flame, Eye, ShoppingCart, Clock, Zap } from 'lucide-react';
 
 interface HotelEnhanced {
@@ -156,51 +157,37 @@ const HotelCard = memo(({
     onMouseEnter={onMouseEnter}
     onMouseLeave={onMouseLeave}
   >
-    {/* Hotel Photo - Level-6: Responsive height */}
-    <div className="relative h-36 lg:h-44 overflow-hidden bg-gradient-to-br from-primary-100 via-secondary-100 to-accent-100">
-      {/* Fallback Background - Always present */}
-      <div className="absolute inset-0 flex items-center justify-center z-0 bg-gradient-to-br from-blue-50 to-indigo-100">
-        <div className="text-center">
-          <span className="text-5xl block mb-1">🏨</span>
-          <span className="text-xs text-gray-500 font-medium">{hotel.city}</span>
-        </div>
-      </div>
-      {/* Hotel Image - Show if mainImage exists OR use city-based Unsplash fallback */}
-      <img
-        src={hotel.mainImage || `https://source.unsplash.com/600x400/?hotel,${encodeURIComponent(hotel.city)}`}
-        alt={hotel.name}
-        className="absolute inset-0 w-full h-full object-cover object-center transition-transform duration-500 hover:scale-110 z-10"
-        loading="lazy"
-        onError={(e) => {
-          const target = e.target as HTMLImageElement;
-          // Try a generic hotel image on first error
-          if (!target.dataset.fallbackAttempted) {
-            target.dataset.fallbackAttempted = 'true';
-            target.src = `https://images.unsplash.com/photo-1566073771259-6a8506099945?w=600&q=80`;
-          } else {
-            // Hide image completely on second error - show fallback
-            target.style.display = 'none';
-            const overlay = target.nextElementSibling as HTMLElement;
-            if (overlay) overlay.style.display = 'none';
-          }
-        }}
-      />
-      <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent z-10"></div>
+    {/* Hotel Photo Slider - Level-6 with API images */}
+    <ImageSlider
+      images={hotel.images?.length > 0
+        ? hotel.images.map((img: any) => typeof img === 'string' ? img : img.url).filter(Boolean)
+        : hotel.mainImage ? [hotel.mainImage] : []
+      }
+      alt={hotel.name}
+      height="h-36 lg:h-44"
+      showDots={hotel.images?.length > 1}
+      showArrows={hotel.images?.length > 1}
+      autoSlideOnHover={hotel.images?.length > 1}
+      autoSlideInterval={1500}
+      className="bg-gradient-to-br from-blue-50 to-indigo-100"
+    >
+      {/* Gradient Overlay */}
+      <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent pointer-events-none z-10" />
 
       {/* Value Score Badge - Top Right */}
-      <div className="absolute top-2 right-2">
+      <div className="absolute top-2 right-2 z-20">
         <ValueScoreBadge score={hotel.valueScore} size="sm" showLabel={false} />
       </div>
 
       {/* Trending/Price Drop Badge - Top Left */}
       {hotel.priceDropRecent && (
-        <div className="absolute top-2 left-2 bg-gray-700 text-white px-2 py-1 rounded-full text-xs font-bold flex items-center gap-1 shadow-lg">
+        <div className="absolute top-2 left-2 z-20 bg-gray-700 text-white px-2 py-1 rounded-full text-xs font-bold flex items-center gap-1 shadow-lg">
           <TrendingDown className="w-3 h-3" />
           {t.priceDrop}
         </div>
       )}
       {hotel.trending && !hotel.priceDropRecent && (
-        <div className="absolute top-2 left-2 bg-orange-500 text-white px-2 py-1 rounded-full text-xs font-bold flex items-center gap-1 shadow-lg animate-pulse">
+        <div className="absolute top-2 left-2 z-20 bg-orange-500 text-white px-2 py-1 rounded-full text-xs font-bold flex items-center gap-1 shadow-lg animate-pulse">
           <Flame className="w-3 h-3" />
           {t.trending}
         </div>
@@ -208,12 +195,12 @@ const HotelCard = memo(({
 
       {/* Star Rating Badge - Bottom Left */}
       {hotel.starRating && (
-        <div className="absolute bottom-2 left-2 bg-white/95 backdrop-blur-sm px-3 py-1 rounded-full flex items-center gap-1 shadow-md">
+        <div className="absolute bottom-2 left-2 z-20 bg-white/95 backdrop-blur-sm px-3 py-1 rounded-full flex items-center gap-1 shadow-md">
           <Star className="w-4 h-4 fill-yellow-400 text-yellow-400" />
           <span className="text-sm font-bold text-gray-900">{hotel.starRating}</span>
         </div>
       )}
-    </div>
+    </ImageSlider>
 
     {/* Hotel Details - Level-6: Generous padding on desktop */}
     <div className="p-3 lg:p-4">
