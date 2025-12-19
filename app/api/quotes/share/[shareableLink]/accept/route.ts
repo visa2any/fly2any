@@ -2,9 +2,9 @@
 // Client Accepts Quote - Public Endpoint
 import { NextRequest, NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
-import { Resend } from "resend";
+import { mailgunClient } from '@/lib/email/mailgun-client';
 
-const resend = process.env.RESEND_API_KEY ? new Resend(process.env.RESEND_API_KEY) : null;
+
 
 // POST /api/quotes/share/[shareableLink]/accept - Accept quote
 export async function POST(
@@ -103,8 +103,8 @@ export async function POST(
 
     // Send notification email to agent
     try {
-      if (resend) {
-        await resend.emails.send({
+      if (true) {
+        await mailgunClient.send({
           from: process.env.EMAIL_FROM || "support@fly2any.com",
           to: quote.agent.user.email,
           subject: `🎉 Quote Accepted: ${quote.quoteNumber}`,

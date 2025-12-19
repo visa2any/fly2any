@@ -3,10 +3,10 @@
  * Handles all email notifications for the affiliate program
  */
 
-import { Resend } from 'resend'
+import { mailgunClient } from '@/lib/email/mailgun-client'
 
 // Initialize Resend (only if API key exists)
-const resend = process.env.RESEND_API_KEY ? new Resend(process.env.RESEND_API_KEY) : null
+
 
 // Configuration
 const FROM_EMAIL = process.env.EMAIL_FROM || 'affiliates@fly2any.com'
@@ -35,7 +35,7 @@ interface AffiliateApprovalData {
  * Send welcome email to new affiliate applicant
  */
 export async function sendAffiliateWelcomeEmail(data: AffiliateRegistrationData) {
-  if (!resend) {
+  if (!mailgunClient.isConfigured()) {
     console.warn('⚠️  Email service not configured (RESEND_API_KEY missing)')
     return { success: false, message: 'Email service not configured' }
   }
@@ -180,7 +180,7 @@ export async function sendAffiliateWelcomeEmail(data: AffiliateRegistrationData)
 </html>
     `
 
-    const result = await resend.emails.send({
+    const result = await mailgunClient.send({
       from: FROM_EMAIL,
       to: data.email,
       subject,
@@ -199,7 +199,7 @@ export async function sendAffiliateWelcomeEmail(data: AffiliateRegistrationData)
  * Send approval email to affiliate
  */
 export async function sendAffiliateApprovalEmail(data: AffiliateApprovalData) {
-  if (!resend) {
+  if (!mailgunClient.isConfigured()) {
     console.warn('⚠️  Email service not configured (RESEND_API_KEY missing)')
     return { success: false, message: 'Email service not configured' }
   }
@@ -307,7 +307,7 @@ export async function sendAffiliateApprovalEmail(data: AffiliateApprovalData) {
 </html>
     `
 
-    const result = await resend.emails.send({
+    const result = await mailgunClient.send({
       from: FROM_EMAIL,
       to: data.email,
       subject,
@@ -326,7 +326,7 @@ export async function sendAffiliateApprovalEmail(data: AffiliateApprovalData) {
  * Send notification to admin about new affiliate application
  */
 export async function sendAdminAffiliateNotification(data: AffiliateRegistrationData) {
-  if (!resend) {
+  if (!mailgunClient.isConfigured()) {
     console.warn('⚠️  Email service not configured (RESEND_API_KEY missing)')
     return { success: false, message: 'Email service not configured' }
   }
@@ -386,7 +386,7 @@ export async function sendAdminAffiliateNotification(data: AffiliateRegistration
 </html>
     `
 
-    const result = await resend.emails.send({
+    const result = await mailgunClient.send({
       from: FROM_EMAIL,
       to: ADMIN_EMAIL,
       subject,

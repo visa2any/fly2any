@@ -3,9 +3,9 @@
 import { NextRequest, NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
 import { z } from "zod";
-import { Resend } from "resend";
+import { mailgunClient } from '@/lib/email/mailgun-client';
 
-const resend = process.env.RESEND_API_KEY ? new Resend(process.env.RESEND_API_KEY) : null;
+
 
 const DeclineSchema = z.object({
   reason: z.string().optional(),
@@ -81,8 +81,8 @@ export async function POST(
 
     // Send notification email to agent
     try {
-      if (resend) {
-        await resend.emails.send({
+      if (true) {
+        await mailgunClient.send({
           from: process.env.EMAIL_FROM || "support@fly2any.com",
           to: quote.agent.user.email,
           subject: `Quote Declined: ${quote.quoteNumber}`,

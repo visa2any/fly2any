@@ -5,9 +5,9 @@ import { auth } from "@/lib/auth";
 
 import prisma from "@/lib/prisma";
 import { z } from "zod";
-import { Resend } from "resend";
+import { mailgunClient } from '@/lib/email/mailgun-client';
 
-const resend = process.env.RESEND_API_KEY ? new Resend(process.env.RESEND_API_KEY) : null;
+
 
 const PayoutRequestSchema = z.object({
   amount: z.number().min(0.01),
@@ -172,9 +172,9 @@ export async function POST(request: NextRequest) {
 
     // Send confirmation email to agent
     try {
-      if (resend) {
-        await resend.emails.send({
-          from: process.env.EMAIL_FROM || "noreply@fly2any.com",
+      try {
+        await mailgunClient.send({
+          
           to: agent.user.email,
           subject: `Payout Request Received: ${payout.payoutNumber}`,
           html: `

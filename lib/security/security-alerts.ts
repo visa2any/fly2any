@@ -12,11 +12,11 @@
  * - Honeypot triggered
  */
 
-import { Resend } from 'resend';
+import { mailgunClient } from '@/lib/email/mailgun-client';
 import { getRedisClient, isRedisEnabled } from '@/lib/cache/redis';
 
 // Initialize Resend
-const resend = process.env.RESEND_API_KEY ? new Resend(process.env.RESEND_API_KEY) : null;
+
 
 // Configuration
 const CONFIG = {
@@ -263,7 +263,7 @@ export async function sendSecurityAlert(data: SecurityAlertData): Promise<boolea
   }
 
   // Check if Resend is configured
-  if (!resend) {
+  if (!mailgunClient.isConfigured()) {
     console.warn('[SecurityAlerts] Resend not configured - cannot send alert');
     return false;
   }
@@ -276,7 +276,7 @@ export async function sendSecurityAlert(data: SecurityAlertData): Promise<boolea
   }
 
   try {
-    const result = await resend.emails.send({
+    const result = await mailgunClient.send({
       from: CONFIG.fromEmail,
       to: CONFIG.alertEmail,
       subject: `[SECURITY] ${data.type.replace('_', ' ').toUpperCase()} - ${data.ip}`,

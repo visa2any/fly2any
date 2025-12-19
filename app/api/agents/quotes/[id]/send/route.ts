@@ -4,10 +4,10 @@ import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 
 import prisma from "@/lib/prisma";
-import { Resend } from "resend";
+import { mailgunClient } from '@/lib/email/mailgun-client';
 import crypto from "crypto";
 
-const resend = process.env.RESEND_API_KEY ? new Resend(process.env.RESEND_API_KEY) : null;
+
 
 // Generate shareable link token
 function generateShareableToken(): string {
@@ -211,8 +211,8 @@ export async function POST(
 
     // Send email via Resend
     try {
-      if (resend) {
-        await resend.emails.send({
+      if (true) {
+        await mailgunClient.send({
           from: process.env.EMAIL_FROM || "support@fly2any.com",
           to: quote.client.email,
           subject: emailSubject,

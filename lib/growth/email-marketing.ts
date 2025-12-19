@@ -42,40 +42,24 @@ export interface EmailCampaign {
 }
 
 export class EmailMarketingService {
-  private provider: 'resend' | 'sendgrid' = 'resend'
-  private apiKey: string
-
-  constructor() {
-    this.apiKey = process.env.RESEND_API_KEY || process.env.SENDGRID_API_KEY || ''
-  }
+  constructor() {}
 
   /**
-   * Send transactional email
+   * Send transactional email via Mailgun
    */
   async sendEmail(to: EmailRecipient, template: EmailTemplateType, data: Record<string, any>): Promise<boolean> {
     const emailTemplate = this.getTemplate(template, data)
 
     try {
-      if (this.provider === 'resend' && this.apiKey) {
-        const response = await fetch('https://api.resend.com/emails', {
-          method: 'POST',
-          headers: {
-            'Authorization': `Bearer ${this.apiKey}`,
-            'Content-Type': 'application/json'
-          },
-          body: JSON.stringify({
-            from: 'Fly2Any <deals@fly2any.com>',
-            to: to.email,
-            subject: emailTemplate.subject,
-            html: emailTemplate.html,
-            text: emailTemplate.text
-          })
-        })
-        return response.ok
-      }
-
-      console.log(`[Email] Would send ${template} to ${to.email}`)
-      return true
+      const { mailgunClient } = await import('@/lib/email/mailgun-client')
+      const result = await mailgunClient.send({
+        to: to.email,
+        subject: emailTemplate.subject,
+        html: emailTemplate.html,
+        text: emailTemplate.text,
+        forceSend: true,
+      })
+      return result.success
     } catch (error) {
       console.error('Email send error:', error)
       return false
