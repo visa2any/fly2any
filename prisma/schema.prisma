@@ -5292,3 +5292,72 @@ model EmailSuppression {
 
   @@map("email_suppressions")
 }
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// SOCIAL MARKETING AUTOMATION SYSTEM
+// ═══════════════════════════════════════════════════════════════════════════════
+
+model ContentQueue {
+  id            String   @id @default(cuid())
+  type          String   // deal, guide, social, blog
+  title         String
+  content       String   @db.Text
+  platforms     String[] // twitter, instagram, facebook, tiktok, blog
+  imageUrl      String?
+  imagePrompt   String?  @db.Text
+  link          String?
+  hashtags      String[]
+  productType   String?  // flight, hotel, tour, transfer
+  productId     String?
+  productData   Json?    // Cached product data for the post
+  scheduledAt   DateTime
+  timezone      String   @default("America/New_York")
+  status        String   @default("pending") // pending, processing, posted, failed, cancelled
+  priority      Int      @default(0) // Higher = more urgent
+  retryCount    Int      @default(0)
+  maxRetries    Int      @default(3)
+  error         String?  @db.Text
+  postedAt      DateTime?
+  results       Json?    // Platform-specific post results
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  createdBy     String?  // admin user id or 'system'
+
+  posts         SocialPostLog[]
+
+  @@index([status, scheduledAt])
+  @@index([platforms])
+  @@index([productType, productId])
+  @@map("content_queue")
+}
+
+model SocialPostLog {
+  id              String   @id @default(cuid())
+  contentQueueId  String?
+  contentQueue    ContentQueue? @relation(fields: [contentQueueId], references: [id])
+  platform        String   // twitter, instagram, facebook, tiktok, blog
+  platformPostId  String?  // External post ID from platform
+  platformUrl     String?  // URL to the post
+  status          String   @default("pending") // pending, posted, failed
+  content         String   @db.Text
+  imageUrl        String?
+  link            String?
+  impressions     Int      @default(0)
+  engagements     Int      @default(0)
+  clicks          Int      @default(0)
+  shares          Int      @default(0)
+  conversions     Int      @default(0)
+  revenue         Decimal  @default(0) @db.Decimal(10, 2)
+  error           String?  @db.Text
+  metadata        Json?    // Platform-specific metadata
+  postedAt        DateTime?
+  lastSyncAt      DateTime?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@unique([platform, platformPostId])
+  @@index([contentQueueId])
+  @@index([platform, status])
+  @@index([postedAt])
+  @@map("social_post_logs")
+}

@@ -12,8 +12,8 @@ const mg = mailgun.client({ username: 'api', key: process.env.MAILGUN_API_KEY })
 
 const DOMAIN = process.env.MAILGUN_DOMAIN || 'mail.fly2any.com';
 const FROM = process.env.EMAIL_FROM || 'Fly2Any <noreply@mail.fly2any.com>';
-const BATCH_SIZE = 1; // Send 1 at a time (probation mode)
-const DELAY_MS = 40000; // 40 sec between emails (100/hour = 1 every 36s + buffer)
+const BATCH_SIZE = 1; // 1 email at a time (probation: 100/hour limit)
+const DELAY_MS = 37000; // 37 sec between emails = ~97/hour (under 100 limit)
 
 async function sendCampaign() {
   // Load template

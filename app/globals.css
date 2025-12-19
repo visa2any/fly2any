@@ -24,14 +24,16 @@
     max-width: 100vw;
   }
 
-  /* PWA Standalone Mode: Hide header for clean fullscreen */
+  /* PWA Standalone Mode: Show header with safe area support */
   @media (display-mode: standalone) {
     :root {
-      --header-display: none;
+      --header-display: block;
+      --pwa-top-inset: env(safe-area-inset-top, 0px);
     }
 
-    html {
-      padding-top: 0;
+    /* Add safe area padding for notched devices */
+    header {
+      padding-top: var(--pwa-top-inset) !important;
     }
   }
 
