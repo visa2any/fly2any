@@ -226,17 +226,14 @@ export function HotelCardEnhanced({
         )}
       </div>
 
-      {/* Action Buttons - Apple-class frosted glass */}
+      {/* Action Buttons - Clean icons with drop shadow for visibility */}
       <div className="absolute top-3 right-3 z-20 flex gap-2">
         <button
           onClick={handleFavorite}
-          className={`p-2.5 rounded-full backdrop-blur-md transition-all active:scale-90 ${
+          className={`p-2 transition-all active:scale-90 slider-dot ${
             isFavorited ? 'text-primary-500' : 'text-white'
           }`}
-          style={{
-            background: 'rgba(0,0,0,0.3)',
-            boxShadow: '0 2px 8px -2px rgba(0,0,0,0.3)'
-          }}
+          style={{ filter: 'drop-shadow(0 2px 4px rgba(0,0,0,0.5))' }}
           aria-label="Favorite"
         >
           <Heart className={`w-5 h-5 ${isFavorited ? 'fill-current' : ''}`} />

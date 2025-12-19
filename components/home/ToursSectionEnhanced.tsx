@@ -193,9 +193,10 @@ const TourCard = memo(({ tour, onClick, t, index }: { tour: Tour; onClick: () =>
           <ValueScoreBadge score={valueScore} size="sm" showLabel={false} />
           <button
             onClick={(e) => { e.stopPropagation(); }}
-            className="w-7 h-7 rounded-full bg-white/90 text-gray-600 hover:text-red-500 flex items-center justify-center transition-all"
+            className="slider-dot text-white hover:text-red-400 transition-all"
+            style={{ filter: 'drop-shadow(0 2px 4px rgba(0,0,0,0.5))' }}
           >
-            <Heart className="w-3.5 h-3.5" />
+            <Heart className="w-4 h-4" />
           </button>
         </div>
 

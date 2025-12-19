@@ -600,16 +600,16 @@ export function HotelCard({
           />
           <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent" />
 
-          {/* Action icons */}
-          <div className="absolute top-2 right-2 flex gap-1.5 z-10">
+          {/* Action icons - Clean with drop shadow */}
+          <div className="absolute top-2 right-2 flex gap-1.5 z-10" style={{ filter: 'drop-shadow(0 2px 4px rgba(0,0,0,0.5))' }}>
             <button onClick={handleCompare} disabled={!canAddMore && !isComparing}
-              className={`p-1.5 rounded-full bg-black/30 backdrop-blur-sm transition-all hover:bg-black/50 ${isComparing ? 'text-primary-400' : 'text-white'}`}>
+              className={`slider-dot p-1.5 transition-all ${isComparing ? 'text-primary-400' : 'text-white'}`}>
               <BarChart2 className="w-4 h-4" />
             </button>
-            <button onClick={handleFavorite} className={`p-1.5 rounded-full bg-black/30 backdrop-blur-sm hover:bg-black/50 ${isFavorited ? 'text-rose-500' : 'text-white'}`}>
+            <button onClick={handleFavorite} className={`slider-dot p-1.5 transition-all ${isFavorited ? 'text-rose-500' : 'text-white'}`}>
               <Heart className={`w-4 h-4 ${isFavorited ? 'fill-current' : ''}`} />
             </button>
-            <button onClick={handleShare} className="p-1.5 rounded-full bg-black/30 backdrop-blur-sm text-white hover:bg-black/50">
+            <button onClick={handleShare} className="slider-dot p-1.5 text-white transition-all">
               <Share2 className="w-4 h-4" />
             </button>
           </div>
