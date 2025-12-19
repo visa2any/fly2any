@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { Inter } from 'next/font/google';
 import "./globals.css";
 import { GlobalLayout } from "@/components/layout/GlobalLayout";
-import { ErrorBoundary } from "@/components/ErrorBoundary";
+import { GlobalErrorBoundary } from "@/components/error/GlobalErrorBoundary";
 import { Toaster } from "react-hot-toast";
 import { WebVitalsReporter } from "@/components/WebVitalsReporter";
 import { PWAProvider } from "@/components/pwa/PWAProvider";
@@ -160,11 +160,7 @@ export default async function RootLayout({
           Skip to main content
         </a>
         <NextIntlClientProvider locale="en" messages={messages}>
-          <ErrorBoundary
-            variant="full-page"
-            context="root-layout"
-            showDetails={process.env.NODE_ENV === 'development'}
-          >
+          <GlobalErrorBoundary>
             <GlobalLayout>
               {children}
             </GlobalLayout>
@@ -203,7 +199,7 @@ export default async function RootLayout({
                 },
               }}
             />
-          </ErrorBoundary>
+          </GlobalErrorBoundary>
         </NextIntlClientProvider>
         {/* Web Vitals Performance Monitoring */}
         <WebVitalsReporter />

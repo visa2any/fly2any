@@ -16,129 +16,99 @@
   </noscript>
   <![endif]-->
   <style>
-    /* Reset */
     body, table, td, p, a, li { -webkit-text-size-adjust: 100%; -ms-text-size-adjust: 100%; }
     table, td { mso-table-lspace: 0pt; mso-table-rspace: 0pt; }
     img { -ms-interpolation-mode: bicubic; border: 0; outline: none; text-decoration: none; }
     body { margin: 0; padding: 0; width: 100% !important; height: 100% !important; }
-
-    /* Mobile */
-    @media only screen and (max-width: 480px) {
-      .container { width: 100% !important; }
-      .card-col { display: block !important; width: 100% !important; padding: 8px 0 !important; }
-      .card-img { height: 160px !important; }
-      .route-col { display: block !important; width: 100% !important; padding: 2px 8px !important; }
-      .section-title { font-size: 20px !important; }
-      .mobile-center { text-align: center !important; }
-      .mobile-full { width: 100% !important; }
+    @media only screen and (max-width: 620px) {
+      .container { width: 100% !important; max-width: 100% !important; border-radius: 0 !important; }
+      .wrapper { padding: 0 !important; }
+      .card-col { display: block !important; width: 100% !important; padding: 8px 16px !important; }
+      .card-img { height: 180px !important; }
+      .route-col { display: block !important; width: 100% !important; padding: 10px 16px !important; border-left: none !important; border-bottom: 1px solid #EEE !important; }
+      .route-col:last-child { border-bottom: none !important; }
       .hide-mobile { display: none !important; }
+      .voucher-col { display: block !important; width: 100% !important; padding: 8px 0 !important; }
+      .mobile-pad { padding-left: 16px !important; padding-right: 16px !important; }
+      .mobile-full { width: 100% !important; }
+      h1 { font-size: 24px !important; }
+      h2 { font-size: 20px !important; }
     }
   </style>
 </head>
 <body style="margin:0;padding:0;background-color:#F5F5F5;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;">
 
-  <!-- Preheader (hidden inbox preview text) -->
   <div style="display:none;max-height:0;overflow:hidden;mso-hide:all;">
-    Exclusive travel deals waiting for you! Flights from $199, Hotels from $89/night, and more...
+    Exclusive travel deals + $20 OFF waiting for you! Flights from $199, Hotels from $89/night...
   </div>
 
-  <!-- Email Container -->
   <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="background-color:#F5F5F5;">
     <tr>
-      <td align="center" style="padding:24px 16px;">
-
-        <!-- Main Content Card -->
+      <td class="wrapper" align="center" style="padding:24px 16px;">
         <table role="presentation" class="container" width="600" cellspacing="0" cellpadding="0" border="0" style="background-color:#FFFFFF;border-radius:16px;overflow:hidden;box-shadow:0 4px 24px rgba(0,0,0,0.08);">
 
           <!-- HEADER -->
           <tr>
             <td style="background:linear-gradient(135deg,#E74035 0%,#D63930 100%);padding:32px 24px;text-align:center;">
-              <img src="https://www.fly2any.com/images/logo-white.png" alt="Fly2Any" width="140" style="display:block;margin:0 auto 16px;">
+              <img src="https://www.fly2any.com/logo.png" alt="Fly2Any" width="140" style="display:block;margin:0 auto 16px;background:#fff;padding:8px 16px;border-radius:8px;">
               <h1 style="margin:0;color:#FFFFFF;font-size:28px;font-weight:700;letter-spacing:-0.5px;">Welcome Back! ✨</h1>
               <p style="margin:8px 0 0;color:rgba(255,255,255,0.9);font-size:15px;">Your next adventure is just a click away</p>
             </td>
           </tr>
 
-          <!-- PERSONALIZED GREETING -->
+          <!-- GREETING -->
           <tr>
             <td style="padding:24px 24px 8px;text-align:center;">
-              <p style="margin:0;color:#1C1C1C;font-size:16px;">Hi <strong>{{firstName}}</strong>, we've missed you! Here are some amazing deals curated just for you:</p>
+              <p style="margin:0;color:#1C1C1C;font-size:16px;">Hi <strong>{{firstName}}</strong>, we've missed you! Here are amazing deals curated just for you:</p>
             </td>
           </tr>
 
-          <!-- ============================================ -->
-          <!-- FLIGHTS SECTION -->
-          <!-- ============================================ -->
+          <!-- ===================== FLIGHTS ===================== -->
           <tr>
             <td style="padding:24px 16px 8px;">
               <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0">
-                <tr>
-                  <td style="border-bottom:2px solid #E74035;padding-bottom:8px;">
-                    <h2 style="margin:0;color:#1C1C1C;font-size:22px;font-weight:700;">✈️ Flight Deals</h2>
-                  </td>
-                </tr>
+                <tr><td style="border-bottom:2px solid #E74035;padding-bottom:8px;">
+                  <h2 style="margin:0;color:#1C1C1C;font-size:22px;font-weight:700;">✈️ Flight Deals</h2>
+                </td></tr>
               </table>
             </td>
           </tr>
 
-          <!-- Flight Cards Row -->
+          <!-- Flight Cards -->
           <tr>
             <td style="padding:16px 8px;">
               <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0">
                 <tr>
-                  <!-- Card 1: NYC → Paris -->
                   <td class="card-col" width="33.33%" style="padding:0 8px;vertical-align:top;">
-                    <a href="https://www.fly2any.com/flights?from=NYC&to=PAR&utm_source=email&utm_campaign=welcome_back" style="text-decoration:none;display:block;">
+                    <a href="https://www.fly2any.com/flights?utm_source=email&utm_campaign=welcome_back" style="text-decoration:none;display:block;">
                       <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="border-radius:12px;overflow:hidden;box-shadow:0 2px 8px rgba(0,0,0,0.1);">
-                        <tr>
-                          <td>
-                            <img class="card-img" src="https://images.unsplash.com/photo-1502602898657-3e91760cbb34?w=400&h=200&fit=crop" alt="Paris" width="100%" height="120" style="display:block;object-fit:cover;">
-                          </td>
-                        </tr>
-                        <tr>
-                          <td style="padding:12px;background:#FFFFFF;">
-                            <p style="margin:0 0 4px;color:#6B6B6B;font-size:11px;text-transform:uppercase;letter-spacing:0.5px;">New York → Paris</p>
-                            <p style="margin:0;color:#E74035;font-size:20px;font-weight:700;">$299<span style="font-size:12px;color:#6B6B6B;font-weight:400;">/roundtrip</span></p>
-                          </td>
-                        </tr>
+                        <tr><td><img class="card-img" src="https://images.unsplash.com/photo-1502602898657-3e91760cbb34?w=400&h=200&fit=crop" alt="Paris" width="100%" height="120" style="display:block;object-fit:cover;"></td></tr>
+                        <tr><td style="padding:12px;background:#FFFFFF;">
+                          <p style="margin:0 0 4px;color:#6B6B6B;font-size:11px;text-transform:uppercase;">New York → Paris</p>
+                          <p style="margin:0;color:#E74035;font-size:20px;font-weight:700;">$299<span style="font-size:12px;color:#6B6B6B;font-weight:400;">/rt</span></p>
+                        </td></tr>
                       </table>
                     </a>
                   </td>
-
-                  <!-- Card 2: LAX → Tokyo -->
                   <td class="card-col" width="33.33%" style="padding:0 8px;vertical-align:top;">
-                    <a href="https://www.fly2any.com/flights?from=LAX&to=TYO&utm_source=email&utm_campaign=welcome_back" style="text-decoration:none;display:block;">
+                    <a href="https://www.fly2any.com/flights?utm_source=email&utm_campaign=welcome_back" style="text-decoration:none;display:block;">
                       <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="border-radius:12px;overflow:hidden;box-shadow:0 2px 8px rgba(0,0,0,0.1);">
-                        <tr>
-                          <td>
-                            <img class="card-img" src="https://images.unsplash.com/photo-1540959733332-eab4deabeeaf?w=400&h=200&fit=crop" alt="Tokyo" width="100%" height="120" style="display:block;object-fit:cover;">
-                          </td>
-                        </tr>
-                        <tr>
-                          <td style="padding:12px;background:#FFFFFF;">
-                            <p style="margin:0 0 4px;color:#6B6B6B;font-size:11px;text-transform:uppercase;letter-spacing:0.5px;">Los Angeles → Tokyo</p>
-                            <p style="margin:0;color:#E74035;font-size:20px;font-weight:700;">$449<span style="font-size:12px;color:#6B6B6B;font-weight:400;">/roundtrip</span></p>
-                          </td>
-                        </tr>
+                        <tr><td><img class="card-img" src="https://images.unsplash.com/photo-1540959733332-eab4deabeeaf?w=400&h=200&fit=crop" alt="Tokyo" width="100%" height="120" style="display:block;object-fit:cover;"></td></tr>
+                        <tr><td style="padding:12px;background:#FFFFFF;">
+                          <p style="margin:0 0 4px;color:#6B6B6B;font-size:11px;text-transform:uppercase;">Los Angeles → Tokyo</p>
+                          <p style="margin:0;color:#E74035;font-size:20px;font-weight:700;">$449<span style="font-size:12px;color:#6B6B6B;font-weight:400;">/rt</span></p>
+                        </td></tr>
                       </table>
                     </a>
                   </td>
-
-                  <!-- Card 3: MIA → Cancun -->
                   <td class="card-col" width="33.33%" style="padding:0 8px;vertical-align:top;">
-                    <a href="https://www.fly2any.com/flights?from=MIA&to=CUN&utm_source=email&utm_campaign=welcome_back" style="text-decoration:none;display:block;">
+                    <a href="https://www.fly2any.com/flights?utm_source=email&utm_campaign=welcome_back" style="text-decoration:none;display:block;">
                       <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="border-radius:12px;overflow:hidden;box-shadow:0 2px 8px rgba(0,0,0,0.1);">
-                        <tr>
-                          <td>
-                            <img class="card-img" src="https://images.unsplash.com/photo-1552074284-5e88ef1aef18?w=400&h=200&fit=crop" alt="Cancun" width="100%" height="120" style="display:block;object-fit:cover;">
-                          </td>
-                        </tr>
-                        <tr>
-                          <td style="padding:12px;background:#FFFFFF;">
-                            <p style="margin:0 0 4px;color:#6B6B6B;font-size:11px;text-transform:uppercase;letter-spacing:0.5px;">Miami → Cancun</p>
-                            <p style="margin:0;color:#E74035;font-size:20px;font-weight:700;">$199<span style="font-size:12px;color:#6B6B6B;font-weight:400;">/roundtrip</span></p>
-                          </td>
-                        </tr>
+                        <tr><td><img class="card-img" src="https://images.unsplash.com/photo-1552074284-5e88ef1aef18?w=400&h=200&fit=crop" alt="Cancun" width="100%" height="120" style="display:block;object-fit:cover;"></td></tr>
+                        <tr><td style="padding:12px;background:#FFFFFF;">
+                          <p style="margin:0 0 4px;color:#6B6B6B;font-size:11px;text-transform:uppercase;">Miami → Cancun</p>
+                          <p style="margin:0;color:#E74035;font-size:20px;font-weight:700;">$199<span style="font-size:12px;color:#6B6B6B;font-weight:400;">/rt</span></p>
+                        </td></tr>
                       </table>
                     </a>
                   </td>
@@ -147,154 +117,124 @@
             </td>
           </tr>
 
-          <!-- Flight Routes Grid (5 rows × 3 columns) -->
+          <!-- Flight Routes Grid -->
           <tr>
             <td style="padding:0 16px 16px;">
               <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="background:#FAFAFA;border-radius:8px;">
-                <!-- Route Row 1 -->
                 <tr>
-                  <td class="route-col" width="33.33%" style="padding:8px 12px;border-bottom:1px solid #EEEEEE;">
-                    <a href="https://www.fly2any.com/flights?from=NYC&to=LON&utm_source=email&utm_campaign=welcome_back" style="text-decoration:none;color:#1C1C1C;font-size:12px;">✈️ NYC → London <span style="color:#E74035;font-weight:600;">$349</span></a>
-                  </td>
-                  <td class="route-col" width="33.33%" style="padding:8px 12px;border-bottom:1px solid #EEEEEE;border-left:1px solid #EEEEEE;">
-                    <a href="https://www.fly2any.com/flights?from=LAX&to=ICN&utm_source=email&utm_campaign=welcome_back" style="text-decoration:none;color:#1C1C1C;font-size:12px;">✈️ LA → Seoul <span style="color:#E74035;font-weight:600;">$399</span></a>
-                  </td>
-                  <td class="route-col" width="33.33%" style="padding:8px 12px;border-bottom:1px solid #EEEEEE;border-left:1px solid #EEEEEE;">
-                    <a href="https://www.fly2any.com/flights?from=MIA&to=HAV&utm_source=email&utm_campaign=welcome_back" style="text-decoration:none;color:#1C1C1C;font-size:12px;">✈️ MIA → Havana <span style="color:#E74035;font-weight:600;">$189</span></a>
-                  </td>
+                  <td class="route-col" width="33.33%" style="padding:8px 12px;border-bottom:1px solid #EEE;"><a href="https://www.fly2any.com/flights?utm_source=email&utm_campaign=welcome_back" style="text-decoration:none;color:#1C1C1C;font-size:12px;">✈️ NYC → London <span style="color:#E74035;font-weight:600;">$349</span></a></td>
+                  <td class="route-col" width="33.33%" style="padding:8px 12px;border-bottom:1px solid #EEE;border-left:1px solid #EEE;"><a href="https://www.fly2any.com/flights?utm_source=email&utm_campaign=welcome_back" style="text-decoration:none;color:#1C1C1C;font-size:12px;">✈️ LA → Seoul <span style="color:#E74035;font-weight:600;">$399</span></a></td>
+                  <td class="route-col" width="33.33%" style="padding:8px 12px;border-bottom:1px solid #EEE;border-left:1px solid #EEE;"><a href="https://www.fly2any.com/flights?utm_source=email&utm_campaign=welcome_back" style="text-decoration:none;color:#1C1C1C;font-size:12px;">🇧🇷 MIA → São Paulo <span style="color:#E74035;font-weight:600;">$499</span></a></td>
                 </tr>
-                <!-- Route Row 2 -->
                 <tr>
-                  <td class="route-col" style="padding:8px 12px;border-bottom:1px solid #EEEEEE;">
-                    <a href="https://www.fly2any.com/flights?from=NYC&to=FCO&utm_source=email&utm_campaign=welcome_back" style="text-decoration:none;color:#1C1C1C;font-size:12px;">✈️ NYC → Rome <span style="color:#E74035;font-weight:600;">$379</span></a>
-                  </td>
-                  <td class="route-col" style="padding:8px 12px;border-bottom:1px solid #EEEEEE;border-left:1px solid #EEEEEE;">
-                    <a href="https://www.fly2any.com/flights?from=LAX&to=BKK&utm_source=email&utm_campaign=welcome_back" style="text-decoration:none;color:#1C1C1C;font-size:12px;">✈️ LA → Bangkok <span style="color:#E74035;font-weight:600;">$429</span></a>
-                  </td>
-                  <td class="route-col" style="padding:8px 12px;border-bottom:1px solid #EEEEEE;border-left:1px solid #EEEEEE;">
-                    <a href="https://www.fly2any.com/flights?from=MIA&to=NAS&utm_source=email&utm_campaign=welcome_back" style="text-decoration:none;color:#1C1C1C;font-size:12px;">✈️ MIA → Nassau <span style="color:#E74035;font-weight:600;">$149</span></a>
-                  </td>
+                  <td class="route-col" style="padding:8px 12px;border-bottom:1px solid #EEE;"><a href="https://www.fly2any.com/flights?utm_source=email&utm_campaign=welcome_back" style="text-decoration:none;color:#1C1C1C;font-size:12px;">✈️ NYC → Rome <span style="color:#E74035;font-weight:600;">$379</span></a></td>
+                  <td class="route-col" style="padding:8px 12px;border-bottom:1px solid #EEE;border-left:1px solid #EEE;"><a href="https://www.fly2any.com/flights?utm_source=email&utm_campaign=welcome_back" style="text-decoration:none;color:#1C1C1C;font-size:12px;">✈️ LA → Bangkok <span style="color:#E74035;font-weight:600;">$429</span></a></td>
+                  <td class="route-col" style="padding:8px 12px;border-bottom:1px solid #EEE;border-left:1px solid #EEE;"><a href="https://www.fly2any.com/flights?utm_source=email&utm_campaign=welcome_back" style="text-decoration:none;color:#1C1C1C;font-size:12px;">🇧🇷 NYC → Rio <span style="color:#E74035;font-weight:600;">$549</span></a></td>
                 </tr>
-                <!-- Route Row 3 -->
                 <tr>
-                  <td class="route-col" style="padding:8px 12px;border-bottom:1px solid #EEEEEE;">
-                    <a href="https://www.fly2any.com/flights?from=NYC&to=MAD&utm_source=email&utm_campaign=welcome_back" style="text-decoration:none;color:#1C1C1C;font-size:12px;">✈️ NYC → Madrid <span style="color:#E74035;font-weight:600;">$329</span></a>
-                  </td>
-                  <td class="route-col" style="padding:8px 12px;border-bottom:1px solid #EEEEEE;border-left:1px solid #EEEEEE;">
-                    <a href="https://www.fly2any.com/flights?from=LAX&to=SIN&utm_source=email&utm_campaign=welcome_back" style="text-decoration:none;color:#1C1C1C;font-size:12px;">✈️ LA → Singapore <span style="color:#E74035;font-weight:600;">$479</span></a>
-                  </td>
-                  <td class="route-col" style="padding:8px 12px;border-bottom:1px solid #EEEEEE;border-left:1px solid #EEEEEE;">
-                    <a href="https://www.fly2any.com/flights?from=MIA&to=AUA&utm_source=email&utm_campaign=welcome_back" style="text-decoration:none;color:#1C1C1C;font-size:12px;">✈️ MIA → Aruba <span style="color:#E74035;font-weight:600;">$229</span></a>
-                  </td>
+                  <td class="route-col" style="padding:8px 12px;border-bottom:1px solid #EEE;"><a href="https://www.fly2any.com/flights?utm_source=email&utm_campaign=welcome_back" style="text-decoration:none;color:#1C1C1C;font-size:12px;">✈️ NYC → Madrid <span style="color:#E74035;font-weight:600;">$329</span></a></td>
+                  <td class="route-col" style="padding:8px 12px;border-bottom:1px solid #EEE;border-left:1px solid #EEE;"><a href="https://www.fly2any.com/flights?utm_source=email&utm_campaign=welcome_back" style="text-decoration:none;color:#1C1C1C;font-size:12px;">✈️ LA → Singapore <span style="color:#E74035;font-weight:600;">$479</span></a></td>
+                  <td class="route-col" style="padding:8px 12px;border-bottom:1px solid #EEE;border-left:1px solid #EEE;"><a href="https://www.fly2any.com/flights?utm_source=email&utm_campaign=welcome_back" style="text-decoration:none;color:#1C1C1C;font-size:12px;">🇧🇷 MIA → Brasília <span style="color:#E74035;font-weight:600;">$479</span></a></td>
                 </tr>
-                <!-- Route Row 4 -->
                 <tr>
-                  <td class="route-col" style="padding:8px 12px;border-bottom:1px solid #EEEEEE;">
-                    <a href="https://www.fly2any.com/flights?from=NYC&to=TXL&utm_source=email&utm_campaign=welcome_back" style="text-decoration:none;color:#1C1C1C;font-size:12px;">✈️ NYC → Berlin <span style="color:#E74035;font-weight:600;">$299</span></a>
-                  </td>
-                  <td class="route-col" style="padding:8px 12px;border-bottom:1px solid #EEEEEE;border-left:1px solid #EEEEEE;">
-                    <a href="https://www.fly2any.com/flights?from=LAX&to=HKG&utm_source=email&utm_campaign=welcome_back" style="text-decoration:none;color:#1C1C1C;font-size:12px;">✈️ LA → Hong Kong <span style="color:#E74035;font-weight:600;">$389</span></a>
-                  </td>
-                  <td class="route-col" style="padding:8px 12px;border-bottom:1px solid #EEEEEE;border-left:1px solid #EEEEEE;">
-                    <a href="https://www.fly2any.com/flights?from=MIA&to=MBJ&utm_source=email&utm_campaign=welcome_back" style="text-decoration:none;color:#1C1C1C;font-size:12px;">✈️ MIA → Jamaica <span style="color:#E74035;font-weight:600;">$199</span></a>
-                  </td>
+                  <td class="route-col" style="padding:8px 12px;border-bottom:1px solid #EEE;"><a href="https://www.fly2any.com/flights?utm_source=email&utm_campaign=welcome_back" style="text-decoration:none;color:#1C1C1C;font-size:12px;">✈️ NYC → Berlin <span style="color:#E74035;font-weight:600;">$299</span></a></td>
+                  <td class="route-col" style="padding:8px 12px;border-bottom:1px solid #EEE;border-left:1px solid #EEE;"><a href="https://www.fly2any.com/flights?utm_source=email&utm_campaign=welcome_back" style="text-decoration:none;color:#1C1C1C;font-size:12px;">✈️ LA → Hong Kong <span style="color:#E74035;font-weight:600;">$389</span></a></td>
+                  <td class="route-col" style="padding:8px 12px;border-bottom:1px solid #EEE;border-left:1px solid #EEE;"><a href="https://www.fly2any.com/flights?utm_source=email&utm_campaign=welcome_back" style="text-decoration:none;color:#1C1C1C;font-size:12px;">🇧🇷 NYC → Recife <span style="color:#E74035;font-weight:600;">$529</span></a></td>
                 </tr>
-                <!-- Route Row 5 -->
                 <tr>
-                  <td class="route-col" style="padding:8px 12px;">
-                    <a href="https://www.fly2any.com/flights?from=NYC&to=DUB&utm_source=email&utm_campaign=welcome_back" style="text-decoration:none;color:#1C1C1C;font-size:12px;">✈️ NYC → Dublin <span style="color:#E74035;font-weight:600;">$279</span></a>
-                  </td>
-                  <td class="route-col" style="padding:8px 12px;border-left:1px solid #EEEEEE;">
-                    <a href="https://www.fly2any.com/flights?from=LAX&to=MNL&utm_source=email&utm_campaign=welcome_back" style="text-decoration:none;color:#1C1C1C;font-size:12px;">✈️ LA → Manila <span style="color:#E74035;font-weight:600;">$359</span></a>
-                  </td>
-                  <td class="route-col" style="padding:8px 12px;border-left:1px solid #EEEEEE;">
-                    <a href="https://www.fly2any.com/flights?from=MIA&to=CZM&utm_source=email&utm_campaign=welcome_back" style="text-decoration:none;color:#1C1C1C;font-size:12px;">✈️ MIA → Cozumel <span style="color:#E74035;font-weight:600;">$169</span></a>
-                  </td>
+                  <td class="route-col" style="padding:8px 12px;"><a href="https://www.fly2any.com/flights?utm_source=email&utm_campaign=welcome_back" style="text-decoration:none;color:#1C1C1C;font-size:12px;">✈️ NYC → Dublin <span style="color:#E74035;font-weight:600;">$279</span></a></td>
+                  <td class="route-col" style="padding:8px 12px;border-left:1px solid #EEE;"><a href="https://www.fly2any.com/flights?utm_source=email&utm_campaign=welcome_back" style="text-decoration:none;color:#1C1C1C;font-size:12px;">✈️ LA → Manila <span style="color:#E74035;font-weight:600;">$359</span></a></td>
+                  <td class="route-col" style="padding:8px 12px;border-left:1px solid #EEE;"><a href="https://www.fly2any.com/flights?utm_source=email&utm_campaign=welcome_back" style="text-decoration:none;color:#1C1C1C;font-size:12px;">🇧🇷 MIA → Fortaleza <span style="color:#E74035;font-weight:600;">$459</span></a></td>
                 </tr>
               </table>
             </td>
           </tr>
 
-          <!-- Flight CTA Button -->
+          <!-- Flight CTA -->
           <tr>
-            <td style="padding:0 24px 32px;text-align:center;">
+            <td style="padding:0 24px 24px;text-align:center;">
               <a href="https://www.fly2any.com/flights?utm_source=email&utm_campaign=welcome_back" style="display:inline-block;background:#E74035;color:#FFFFFF;font-size:14px;font-weight:600;text-decoration:none;padding:14px 32px;border-radius:8px;">Search All Flights →</a>
             </td>
           </tr>
 
-          <!-- ============================================ -->
-          <!-- HOTELS SECTION -->
-          <!-- ============================================ -->
+          <!-- ========== REAL VOUCHERS FROM SYSTEM ========== -->
           <tr>
-            <td style="padding:24px 16px 8px;background:#FAFAFA;">
+            <td style="padding:0 16px 24px;">
               <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0">
                 <tr>
-                  <td style="border-bottom:2px solid #E74035;padding-bottom:8px;">
-                    <h2 style="margin:0;color:#1C1C1C;font-size:22px;font-weight:700;">🏨 Hotel Deals</h2>
+                  <td class="voucher-col" width="50%" style="padding-right:8px;vertical-align:top;">
+                    <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="background:linear-gradient(135deg,#1a1a2e 0%,#16213e 100%);border-radius:12px;overflow:hidden;">
+                      <tr><td style="padding:20px;text-align:center;">
+                        <p style="margin:0 0 4px;color:#F7C928;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:1px;">✈️ Flight Voucher</p>
+                        <p style="margin:0 0 8px;color:#FFFFFF;font-size:32px;font-weight:800;">$20 OFF</p>
+                        <p style="margin:0 0 4px;color:rgba(255,255,255,0.7);font-size:11px;">International flights • New customers</p>
+                        <p style="margin:0 0 12px;color:rgba(255,255,255,0.7);font-size:12px;">Use code: <span style="background:#E74035;color:#fff;padding:2px 8px;border-radius:4px;font-weight:700;">WELCOME20FLIGHTS</span></p>
+                        <a href="https://www.fly2any.com/flights?voucher=WELCOME20FLIGHTS&utm_source=email&utm_campaign=welcome_back" style="display:inline-block;background:#F7C928;color:#1a1a2e;font-size:12px;font-weight:700;text-decoration:none;padding:10px 20px;border-radius:6px;">Book Now →</a>
+                      </td></tr>
+                    </table>
+                  </td>
+                  <td class="voucher-col" width="50%" style="padding-left:8px;vertical-align:top;">
+                    <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="background:linear-gradient(135deg,#E74035 0%,#D63930 100%);border-radius:12px;overflow:hidden;">
+                      <tr><td style="padding:20px;text-align:center;">
+                        <p style="margin:0 0 4px;color:#F7C928;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:1px;">🏨 Hotel Voucher</p>
+                        <p style="margin:0 0 8px;color:#FFFFFF;font-size:32px;font-weight:800;">5% OFF</p>
+                        <p style="margin:0 0 4px;color:rgba(255,255,255,0.9);font-size:11px;">Worldwide hotels • New customers</p>
+                        <p style="margin:0 0 12px;color:rgba(255,255,255,0.9);font-size:12px;">Use code: <span style="background:#1a1a2e;color:#fff;padding:2px 8px;border-radius:4px;font-weight:700;">WELCOME5HOTELS</span></p>
+                        <a href="https://www.fly2any.com/hotels?voucher=WELCOME5HOTELS&utm_source=email&utm_campaign=welcome_back" style="display:inline-block;background:#FFFFFF;color:#E74035;font-size:12px;font-weight:700;text-decoration:none;padding:10px 20px;border-radius:6px;">Book Now →</a>
+                      </td></tr>
+                    </table>
                   </td>
                 </tr>
               </table>
             </td>
           </tr>
 
-          <!-- Hotel Cards Row -->
+          <!-- ===================== HOTELS ===================== -->
+          <tr>
+            <td style="padding:24px 16px 8px;background:#FAFAFA;">
+              <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0">
+                <tr><td style="border-bottom:2px solid #E74035;padding-bottom:8px;">
+                  <h2 style="margin:0;color:#1C1C1C;font-size:22px;font-weight:700;">🏨 Hotel Deals</h2>
+                </td></tr>
+              </table>
+            </td>
+          </tr>
+
+          <!-- Hotel Cards -->
           <tr>
             <td style="padding:16px 8px;background:#FAFAFA;">
               <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0">
                 <tr>
-                  <!-- Card 1: NYC Luxury -->
                   <td class="card-col" width="33.33%" style="padding:0 8px;vertical-align:top;">
                     <a href="https://www.fly2any.com/hotels?destination=New%20York&utm_source=email&utm_campaign=welcome_back" style="text-decoration:none;display:block;">
                       <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="border-radius:12px;overflow:hidden;box-shadow:0 2px 8px rgba(0,0,0,0.1);">
-                        <tr>
-                          <td>
-                            <img class="card-img" src="https://images.unsplash.com/photo-1566073771259-6a8506099945?w=400&h=200&fit=crop" alt="New York Hotel" width="100%" height="120" style="display:block;object-fit:cover;">
-                          </td>
-                        </tr>
-                        <tr>
-                          <td style="padding:12px;background:#FFFFFF;">
-                            <p style="margin:0 0 4px;color:#6B6B6B;font-size:11px;text-transform:uppercase;letter-spacing:0.5px;">New York City</p>
-                            <p style="margin:0;color:#E74035;font-size:20px;font-weight:700;">$189<span style="font-size:12px;color:#6B6B6B;font-weight:400;">/night</span></p>
-                          </td>
-                        </tr>
+                        <tr><td><img class="card-img" src="https://images.unsplash.com/photo-1566073771259-6a8506099945?w=400&h=200&fit=crop" alt="NYC Hotel" width="100%" height="120" style="display:block;object-fit:cover;"></td></tr>
+                        <tr><td style="padding:12px;background:#FFFFFF;">
+                          <p style="margin:0 0 4px;color:#6B6B6B;font-size:11px;text-transform:uppercase;">New York City</p>
+                          <p style="margin:0;color:#E74035;font-size:20px;font-weight:700;">$189<span style="font-size:12px;color:#6B6B6B;font-weight:400;">/night</span></p>
+                        </td></tr>
                       </table>
                     </a>
                   </td>
-
-                  <!-- Card 2: Paris -->
                   <td class="card-col" width="33.33%" style="padding:0 8px;vertical-align:top;">
                     <a href="https://www.fly2any.com/hotels?destination=Paris&utm_source=email&utm_campaign=welcome_back" style="text-decoration:none;display:block;">
                       <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="border-radius:12px;overflow:hidden;box-shadow:0 2px 8px rgba(0,0,0,0.1);">
-                        <tr>
-                          <td>
-                            <img class="card-img" src="https://images.unsplash.com/photo-1551882547-ff40c63fe5fa?w=400&h=200&fit=crop" alt="Paris Hotel" width="100%" height="120" style="display:block;object-fit:cover;">
-                          </td>
-                        </tr>
-                        <tr>
-                          <td style="padding:12px;background:#FFFFFF;">
-                            <p style="margin:0 0 4px;color:#6B6B6B;font-size:11px;text-transform:uppercase;letter-spacing:0.5px;">Paris, France</p>
-                            <p style="margin:0;color:#E74035;font-size:20px;font-weight:700;">$249<span style="font-size:12px;color:#6B6B6B;font-weight:400;">/night</span></p>
-                          </td>
-                        </tr>
+                        <tr><td><img class="card-img" src="https://images.unsplash.com/photo-1551882547-ff40c63fe5fa?w=400&h=200&fit=crop" alt="Paris Hotel" width="100%" height="120" style="display:block;object-fit:cover;"></td></tr>
+                        <tr><td style="padding:12px;background:#FFFFFF;">
+                          <p style="margin:0 0 4px;color:#6B6B6B;font-size:11px;text-transform:uppercase;">Paris, France</p>
+                          <p style="margin:0;color:#E74035;font-size:20px;font-weight:700;">$249<span style="font-size:12px;color:#6B6B6B;font-weight:400;">/night</span></p>
+                        </td></tr>
                       </table>
                     </a>
                   </td>
-
-                  <!-- Card 3: Cancun -->
                   <td class="card-col" width="33.33%" style="padding:0 8px;vertical-align:top;">
                     <a href="https://www.fly2any.com/hotels?destination=Cancun&utm_source=email&utm_campaign=welcome_back" style="text-decoration:none;display:block;">
                       <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="border-radius:12px;overflow:hidden;box-shadow:0 2px 8px rgba(0,0,0,0.1);">
-                        <tr>
-                          <td>
-                            <img class="card-img" src="https://images.unsplash.com/photo-1582719508461-905c673771fd?w=400&h=200&fit=crop" alt="Cancun Resort" width="100%" height="120" style="display:block;object-fit:cover;">
-                          </td>
-                        </tr>
-                        <tr>
-                          <td style="padding:12px;background:#FFFFFF;">
-                            <p style="margin:0 0 4px;color:#6B6B6B;font-size:11px;text-transform:uppercase;letter-spacing:0.5px;">Cancun, Mexico</p>
-                            <p style="margin:0;color:#E74035;font-size:20px;font-weight:700;">$159<span style="font-size:12px;color:#6B6B6B;font-weight:400;">/night</span></p>
-                          </td>
-                        </tr>
+                        <tr><td><img class="card-img" src="https://images.unsplash.com/photo-1582719508461-905c673771fd?w=400&h=200&fit=crop" alt="Cancun Resort" width="100%" height="120" style="display:block;object-fit:cover;"></td></tr>
+                        <tr><td style="padding:12px;background:#FFFFFF;">
+                          <p style="margin:0 0 4px;color:#6B6B6B;font-size:11px;text-transform:uppercase;">Cancun, Mexico</p>
+                          <p style="margin:0;color:#E74035;font-size:20px;font-weight:700;">$159<span style="font-size:12px;color:#6B6B6B;font-weight:400;">/night</span></p>
+                        </td></tr>
                       </table>
                     </a>
                   </td>
@@ -308,59 +248,29 @@
             <td style="padding:0 16px 16px;background:#FAFAFA;">
               <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="background:#FFFFFF;border-radius:8px;">
                 <tr>
-                  <td class="route-col" width="33.33%" style="padding:8px 12px;border-bottom:1px solid #EEEEEE;">
-                    <a href="https://www.fly2any.com/hotels?destination=Chicago&utm_source=email&utm_campaign=welcome_back" style="text-decoration:none;color:#1C1C1C;font-size:12px;">🏨 Chicago <span style="color:#E74035;font-weight:600;">$129/nt</span></a>
-                  </td>
-                  <td class="route-col" width="33.33%" style="padding:8px 12px;border-bottom:1px solid #EEEEEE;border-left:1px solid #EEEEEE;">
-                    <a href="https://www.fly2any.com/hotels?destination=London&utm_source=email&utm_campaign=welcome_back" style="text-decoration:none;color:#1C1C1C;font-size:12px;">🏨 London <span style="color:#E74035;font-weight:600;">$199/nt</span></a>
-                  </td>
-                  <td class="route-col" width="33.33%" style="padding:8px 12px;border-bottom:1px solid #EEEEEE;border-left:1px solid #EEEEEE;">
-                    <a href="https://www.fly2any.com/hotels?destination=Punta%20Cana&utm_source=email&utm_campaign=welcome_back" style="text-decoration:none;color:#1C1C1C;font-size:12px;">🏨 Punta Cana <span style="color:#E74035;font-weight:600;">$139/nt</span></a>
-                  </td>
+                  <td class="route-col" width="33.33%" style="padding:8px 12px;border-bottom:1px solid #EEE;"><a href="https://www.fly2any.com/hotels?destination=Chicago&utm_source=email&utm_campaign=welcome_back" style="text-decoration:none;color:#1C1C1C;font-size:12px;">🏨 Chicago <span style="color:#E74035;font-weight:600;">$129/nt</span></a></td>
+                  <td class="route-col" width="33.33%" style="padding:8px 12px;border-bottom:1px solid #EEE;border-left:1px solid #EEE;"><a href="https://www.fly2any.com/hotels?destination=London&utm_source=email&utm_campaign=welcome_back" style="text-decoration:none;color:#1C1C1C;font-size:12px;">🏨 London <span style="color:#E74035;font-weight:600;">$199/nt</span></a></td>
+                  <td class="route-col" width="33.33%" style="padding:8px 12px;border-bottom:1px solid #EEE;border-left:1px solid #EEE;"><a href="https://www.fly2any.com/hotels?destination=Punta%20Cana&utm_source=email&utm_campaign=welcome_back" style="text-decoration:none;color:#1C1C1C;font-size:12px;">🏨 Punta Cana <span style="color:#E74035;font-weight:600;">$139/nt</span></a></td>
                 </tr>
                 <tr>
-                  <td class="route-col" style="padding:8px 12px;border-bottom:1px solid #EEEEEE;">
-                    <a href="https://www.fly2any.com/hotels?destination=Boston&utm_source=email&utm_campaign=welcome_back" style="text-decoration:none;color:#1C1C1C;font-size:12px;">🏨 Boston <span style="color:#E74035;font-weight:600;">$169/nt</span></a>
-                  </td>
-                  <td class="route-col" style="padding:8px 12px;border-bottom:1px solid #EEEEEE;border-left:1px solid #EEEEEE;">
-                    <a href="https://www.fly2any.com/hotels?destination=Rome&utm_source=email&utm_campaign=welcome_back" style="text-decoration:none;color:#1C1C1C;font-size:12px;">🏨 Rome <span style="color:#E74035;font-weight:600;">$179/nt</span></a>
-                  </td>
-                  <td class="route-col" style="padding:8px 12px;border-bottom:1px solid #EEEEEE;border-left:1px solid #EEEEEE;">
-                    <a href="https://www.fly2any.com/hotels?destination=Bahamas&utm_source=email&utm_campaign=welcome_back" style="text-decoration:none;color:#1C1C1C;font-size:12px;">🏨 Bahamas <span style="color:#E74035;font-weight:600;">$219/nt</span></a>
-                  </td>
+                  <td class="route-col" style="padding:8px 12px;border-bottom:1px solid #EEE;"><a href="https://www.fly2any.com/hotels?destination=Boston&utm_source=email&utm_campaign=welcome_back" style="text-decoration:none;color:#1C1C1C;font-size:12px;">🏨 Boston <span style="color:#E74035;font-weight:600;">$169/nt</span></a></td>
+                  <td class="route-col" style="padding:8px 12px;border-bottom:1px solid #EEE;border-left:1px solid #EEE;"><a href="https://www.fly2any.com/hotels?destination=Rome&utm_source=email&utm_campaign=welcome_back" style="text-decoration:none;color:#1C1C1C;font-size:12px;">🏨 Rome <span style="color:#E74035;font-weight:600;">$179/nt</span></a></td>
+                  <td class="route-col" style="padding:8px 12px;border-bottom:1px solid #EEE;border-left:1px solid #EEE;"><a href="https://www.fly2any.com/hotels?destination=Bahamas&utm_source=email&utm_campaign=welcome_back" style="text-decoration:none;color:#1C1C1C;font-size:12px;">🏨 Bahamas <span style="color:#E74035;font-weight:600;">$219/nt</span></a></td>
                 </tr>
                 <tr>
-                  <td class="route-col" style="padding:8px 12px;border-bottom:1px solid #EEEEEE;">
-                    <a href="https://www.fly2any.com/hotels?destination=Las%20Vegas&utm_source=email&utm_campaign=welcome_back" style="text-decoration:none;color:#1C1C1C;font-size:12px;">🏨 Las Vegas <span style="color:#E74035;font-weight:600;">$99/nt</span></a>
-                  </td>
-                  <td class="route-col" style="padding:8px 12px;border-bottom:1px solid #EEEEEE;border-left:1px solid #EEEEEE;">
-                    <a href="https://www.fly2any.com/hotels?destination=Barcelona&utm_source=email&utm_campaign=welcome_back" style="text-decoration:none;color:#1C1C1C;font-size:12px;">🏨 Barcelona <span style="color:#E74035;font-weight:600;">$159/nt</span></a>
-                  </td>
-                  <td class="route-col" style="padding:8px 12px;border-bottom:1px solid #EEEEEE;border-left:1px solid #EEEEEE;">
-                    <a href="https://www.fly2any.com/hotels?destination=Aruba&utm_source=email&utm_campaign=welcome_back" style="text-decoration:none;color:#1C1C1C;font-size:12px;">🏨 Aruba <span style="color:#E74035;font-weight:600;">$189/nt</span></a>
-                  </td>
+                  <td class="route-col" style="padding:8px 12px;border-bottom:1px solid #EEE;"><a href="https://www.fly2any.com/hotels?destination=Las%20Vegas&utm_source=email&utm_campaign=welcome_back" style="text-decoration:none;color:#1C1C1C;font-size:12px;">🏨 Las Vegas <span style="color:#E74035;font-weight:600;">$99/nt</span></a></td>
+                  <td class="route-col" style="padding:8px 12px;border-bottom:1px solid #EEE;border-left:1px solid #EEE;"><a href="https://www.fly2any.com/hotels?destination=Barcelona&utm_source=email&utm_campaign=welcome_back" style="text-decoration:none;color:#1C1C1C;font-size:12px;">🏨 Barcelona <span style="color:#E74035;font-weight:600;">$159/nt</span></a></td>
+                  <td class="route-col" style="padding:8px 12px;border-bottom:1px solid #EEE;border-left:1px solid #EEE;"><a href="https://www.fly2any.com/hotels?destination=Aruba&utm_source=email&utm_campaign=welcome_back" style="text-decoration:none;color:#1C1C1C;font-size:12px;">🏨 Aruba <span style="color:#E74035;font-weight:600;">$189/nt</span></a></td>
                 </tr>
                 <tr>
-                  <td class="route-col" style="padding:8px 12px;border-bottom:1px solid #EEEEEE;">
-                    <a href="https://www.fly2any.com/hotels?destination=Miami&utm_source=email&utm_campaign=welcome_back" style="text-decoration:none;color:#1C1C1C;font-size:12px;">🏨 Miami <span style="color:#E74035;font-weight:600;">$149/nt</span></a>
-                  </td>
-                  <td class="route-col" style="padding:8px 12px;border-bottom:1px solid #EEEEEE;border-left:1px solid #EEEEEE;">
-                    <a href="https://www.fly2any.com/hotels?destination=Amsterdam&utm_source=email&utm_campaign=welcome_back" style="text-decoration:none;color:#1C1C1C;font-size:12px;">🏨 Amsterdam <span style="color:#E74035;font-weight:600;">$169/nt</span></a>
-                  </td>
-                  <td class="route-col" style="padding:8px 12px;border-bottom:1px solid #EEEEEE;border-left:1px solid #EEEEEE;">
-                    <a href="https://www.fly2any.com/hotels?destination=Cabo&utm_source=email&utm_campaign=welcome_back" style="text-decoration:none;color:#1C1C1C;font-size:12px;">🏨 Cabo <span style="color:#E74035;font-weight:600;">$199/nt</span></a>
-                  </td>
+                  <td class="route-col" style="padding:8px 12px;border-bottom:1px solid #EEE;"><a href="https://www.fly2any.com/hotels?destination=Miami&utm_source=email&utm_campaign=welcome_back" style="text-decoration:none;color:#1C1C1C;font-size:12px;">🏨 Miami <span style="color:#E74035;font-weight:600;">$149/nt</span></a></td>
+                  <td class="route-col" style="padding:8px 12px;border-bottom:1px solid #EEE;border-left:1px solid #EEE;"><a href="https://www.fly2any.com/hotels?destination=Amsterdam&utm_source=email&utm_campaign=welcome_back" style="text-decoration:none;color:#1C1C1C;font-size:12px;">🏨 Amsterdam <span style="color:#E74035;font-weight:600;">$169/nt</span></a></td>
+                  <td class="route-col" style="padding:8px 12px;border-bottom:1px solid #EEE;border-left:1px solid #EEE;"><a href="https://www.fly2any.com/hotels?destination=Cabo&utm_source=email&utm_campaign=welcome_back" style="text-decoration:none;color:#1C1C1C;font-size:12px;">🏨 Cabo <span style="color:#E74035;font-weight:600;">$199/nt</span></a></td>
                 </tr>
                 <tr>
-                  <td class="route-col" style="padding:8px 12px;">
-                    <a href="https://www.fly2any.com/hotels?destination=San%20Francisco&utm_source=email&utm_campaign=welcome_back" style="text-decoration:none;color:#1C1C1C;font-size:12px;">🏨 San Francisco <span style="color:#E74035;font-weight:600;">$179/nt</span></a>
-                  </td>
-                  <td class="route-col" style="padding:8px 12px;border-left:1px solid #EEEEEE;">
-                    <a href="https://www.fly2any.com/hotels?destination=Tokyo&utm_source=email&utm_campaign=welcome_back" style="text-decoration:none;color:#1C1C1C;font-size:12px;">🏨 Tokyo <span style="color:#E74035;font-weight:600;">$229/nt</span></a>
-                  </td>
-                  <td class="route-col" style="padding:8px 12px;border-left:1px solid #EEEEEE;">
-                    <a href="https://www.fly2any.com/hotels?destination=Jamaica&utm_source=email&utm_campaign=welcome_back" style="text-decoration:none;color:#1C1C1C;font-size:12px;">🏨 Jamaica <span style="color:#E74035;font-weight:600;">$179/nt</span></a>
-                  </td>
+                  <td class="route-col" style="padding:8px 12px;"><a href="https://www.fly2any.com/hotels?destination=San%20Francisco&utm_source=email&utm_campaign=welcome_back" style="text-decoration:none;color:#1C1C1C;font-size:12px;">🏨 San Francisco <span style="color:#E74035;font-weight:600;">$179/nt</span></a></td>
+                  <td class="route-col" style="padding:8px 12px;border-left:1px solid #EEE;"><a href="https://www.fly2any.com/hotels?destination=Tokyo&utm_source=email&utm_campaign=welcome_back" style="text-decoration:none;color:#1C1C1C;font-size:12px;">🏨 Tokyo <span style="color:#E74035;font-weight:600;">$229/nt</span></a></td>
+                  <td class="route-col" style="padding:8px 12px;border-left:1px solid #EEE;"><a href="https://www.fly2any.com/hotels?destination=Jamaica&utm_source=email&utm_campaign=welcome_back" style="text-decoration:none;color:#1C1C1C;font-size:12px;">🏨 Jamaica <span style="color:#E74035;font-weight:600;">$179/nt</span></a></td>
                 </tr>
               </table>
             </td>
@@ -373,79 +283,52 @@
             </td>
           </tr>
 
-          <!-- ============================================ -->
-          <!-- TOURS SECTION -->
-          <!-- ============================================ -->
+          <!-- ===================== TOURS ===================== -->
           <tr>
             <td style="padding:24px 16px 8px;">
               <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0">
-                <tr>
-                  <td style="border-bottom:2px solid #E74035;padding-bottom:8px;">
-                    <h2 style="margin:0;color:#1C1C1C;font-size:22px;font-weight:700;">🎯 Tours & Experiences</h2>
-                  </td>
-                </tr>
+                <tr><td style="border-bottom:2px solid #E74035;padding-bottom:8px;">
+                  <h2 style="margin:0;color:#1C1C1C;font-size:22px;font-weight:700;">🎯 Tours & Experiences</h2>
+                </td></tr>
               </table>
             </td>
           </tr>
 
-          <!-- Tour Cards Row -->
+          <!-- Tour Cards -->
           <tr>
             <td style="padding:16px 8px;">
               <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0">
                 <tr>
-                  <!-- Card 1: Paris Tour -->
                   <td class="card-col" width="33.33%" style="padding:0 8px;vertical-align:top;">
                     <a href="https://www.fly2any.com/tours?destination=Paris&utm_source=email&utm_campaign=welcome_back" style="text-decoration:none;display:block;">
                       <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="border-radius:12px;overflow:hidden;box-shadow:0 2px 8px rgba(0,0,0,0.1);">
-                        <tr>
-                          <td>
-                            <img class="card-img" src="https://images.unsplash.com/photo-1499856871958-5b9627545d1a?w=400&h=200&fit=crop" alt="Paris Tours" width="100%" height="120" style="display:block;object-fit:cover;">
-                          </td>
-                        </tr>
-                        <tr>
-                          <td style="padding:12px;background:#FFFFFF;">
-                            <p style="margin:0 0 4px;color:#6B6B6B;font-size:11px;text-transform:uppercase;letter-spacing:0.5px;">Paris City Tour</p>
-                            <p style="margin:0;color:#E74035;font-size:20px;font-weight:700;">$89<span style="font-size:12px;color:#6B6B6B;font-weight:400;">/person</span></p>
-                          </td>
-                        </tr>
+                        <tr><td><img class="card-img" src="https://images.unsplash.com/photo-1499856871958-5b9627545d1a?w=400&h=200&fit=crop" alt="Paris Tours" width="100%" height="120" style="display:block;object-fit:cover;"></td></tr>
+                        <tr><td style="padding:12px;background:#FFFFFF;">
+                          <p style="margin:0 0 4px;color:#6B6B6B;font-size:11px;text-transform:uppercase;">Paris City Tour</p>
+                          <p style="margin:0;color:#E74035;font-size:20px;font-weight:700;">$89<span style="font-size:12px;color:#6B6B6B;font-weight:400;">/person</span></p>
+                        </td></tr>
                       </table>
                     </a>
                   </td>
-
-                  <!-- Card 2: Machu Picchu -->
                   <td class="card-col" width="33.33%" style="padding:0 8px;vertical-align:top;">
                     <a href="https://www.fly2any.com/tours?destination=Peru&utm_source=email&utm_campaign=welcome_back" style="text-decoration:none;display:block;">
                       <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="border-radius:12px;overflow:hidden;box-shadow:0 2px 8px rgba(0,0,0,0.1);">
-                        <tr>
-                          <td>
-                            <img class="card-img" src="https://images.unsplash.com/photo-1587595431973-160d0d94add1?w=400&h=200&fit=crop" alt="Machu Picchu" width="100%" height="120" style="display:block;object-fit:cover;">
-                          </td>
-                        </tr>
-                        <tr>
-                          <td style="padding:12px;background:#FFFFFF;">
-                            <p style="margin:0 0 4px;color:#6B6B6B;font-size:11px;text-transform:uppercase;letter-spacing:0.5px;">Machu Picchu Trek</p>
-                            <p style="margin:0;color:#E74035;font-size:20px;font-weight:700;">$149<span style="font-size:12px;color:#6B6B6B;font-weight:400;">/person</span></p>
-                          </td>
-                        </tr>
+                        <tr><td><img class="card-img" src="https://images.unsplash.com/photo-1587595431973-160d0d94add1?w=400&h=200&fit=crop" alt="Machu Picchu" width="100%" height="120" style="display:block;object-fit:cover;"></td></tr>
+                        <tr><td style="padding:12px;background:#FFFFFF;">
+                          <p style="margin:0 0 4px;color:#6B6B6B;font-size:11px;text-transform:uppercase;">Machu Picchu Trek</p>
+                          <p style="margin:0;color:#E74035;font-size:20px;font-weight:700;">$149<span style="font-size:12px;color:#6B6B6B;font-weight:400;">/person</span></p>
+                        </td></tr>
                       </table>
                     </a>
                   </td>
-
-                  <!-- Card 3: Safari -->
                   <td class="card-col" width="33.33%" style="padding:0 8px;vertical-align:top;">
                     <a href="https://www.fly2any.com/tours?destination=Kenya&utm_source=email&utm_campaign=welcome_back" style="text-decoration:none;display:block;">
                       <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="border-radius:12px;overflow:hidden;box-shadow:0 2px 8px rgba(0,0,0,0.1);">
-                        <tr>
-                          <td>
-                            <img class="card-img" src="https://images.unsplash.com/photo-1516426122078-c23e76319801?w=400&h=200&fit=crop" alt="Safari" width="100%" height="120" style="display:block;object-fit:cover;">
-                          </td>
-                        </tr>
-                        <tr>
-                          <td style="padding:12px;background:#FFFFFF;">
-                            <p style="margin:0 0 4px;color:#6B6B6B;font-size:11px;text-transform:uppercase;letter-spacing:0.5px;">Kenya Safari</p>
-                            <p style="margin:0;color:#E74035;font-size:20px;font-weight:700;">$299<span style="font-size:12px;color:#6B6B6B;font-weight:400;">/person</span></p>
-                          </td>
-                        </tr>
+                        <tr><td><img class="card-img" src="https://images.unsplash.com/photo-1516426122078-c23e76319801?w=400&h=200&fit=crop" alt="Safari" width="100%" height="120" style="display:block;object-fit:cover;"></td></tr>
+                        <tr><td style="padding:12px;background:#FFFFFF;">
+                          <p style="margin:0 0 4px;color:#6B6B6B;font-size:11px;text-transform:uppercase;">Kenya Safari</p>
+                          <p style="margin:0;color:#E74035;font-size:20px;font-weight:700;">$299<span style="font-size:12px;color:#6B6B6B;font-weight:400;">/person</span></p>
+                        </td></tr>
                       </table>
                     </a>
                   </td>
@@ -459,59 +342,29 @@
             <td style="padding:0 16px 16px;">
               <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="background:#FAFAFA;border-radius:8px;">
                 <tr>
-                  <td class="route-col" width="33.33%" style="padding:8px 12px;border-bottom:1px solid #EEEEEE;">
-                    <a href="https://www.fly2any.com/tours?destination=Rome&utm_source=email&utm_campaign=welcome_back" style="text-decoration:none;color:#1C1C1C;font-size:12px;">🎯 Rome Colosseum <span style="color:#E74035;font-weight:600;">$45</span></a>
-                  </td>
-                  <td class="route-col" width="33.33%" style="padding:8px 12px;border-bottom:1px solid #EEEEEE;border-left:1px solid #EEEEEE;">
-                    <a href="https://www.fly2any.com/tours?destination=Arizona&utm_source=email&utm_campaign=welcome_back" style="text-decoration:none;color:#1C1C1C;font-size:12px;">🎯 Grand Canyon <span style="color:#E74035;font-weight:600;">$79</span></a>
-                  </td>
-                  <td class="route-col" width="33.33%" style="padding:8px 12px;border-bottom:1px solid #EEEEEE;border-left:1px solid #EEEEEE;">
-                    <a href="https://www.fly2any.com/tours?destination=Brazil&utm_source=email&utm_campaign=welcome_back" style="text-decoration:none;color:#1C1C1C;font-size:12px;">🎯 Amazon Jungle <span style="color:#E74035;font-weight:600;">$189</span></a>
-                  </td>
+                  <td class="route-col" width="33.33%" style="padding:8px 12px;border-bottom:1px solid #EEE;"><a href="https://www.fly2any.com/tours?destination=Rome&utm_source=email&utm_campaign=welcome_back" style="text-decoration:none;color:#1C1C1C;font-size:12px;">🎯 Rome Colosseum <span style="color:#E74035;font-weight:600;">$45</span></a></td>
+                  <td class="route-col" width="33.33%" style="padding:8px 12px;border-bottom:1px solid #EEE;border-left:1px solid #EEE;"><a href="https://www.fly2any.com/tours?destination=Arizona&utm_source=email&utm_campaign=welcome_back" style="text-decoration:none;color:#1C1C1C;font-size:12px;">🎯 Grand Canyon <span style="color:#E74035;font-weight:600;">$79</span></a></td>
+                  <td class="route-col" width="33.33%" style="padding:8px 12px;border-bottom:1px solid #EEE;border-left:1px solid #EEE;"><a href="https://www.fly2any.com/tours?destination=Brazil&utm_source=email&utm_campaign=welcome_back" style="text-decoration:none;color:#1C1C1C;font-size:12px;">🎯 Amazon Jungle <span style="color:#E74035;font-weight:600;">$189</span></a></td>
                 </tr>
                 <tr>
-                  <td class="route-col" style="padding:8px 12px;border-bottom:1px solid #EEEEEE;">
-                    <a href="https://www.fly2any.com/tours?destination=London&utm_source=email&utm_campaign=welcome_back" style="text-decoration:none;color:#1C1C1C;font-size:12px;">🎯 London Eye <span style="color:#E74035;font-weight:600;">$35</span></a>
-                  </td>
-                  <td class="route-col" style="padding:8px 12px;border-bottom:1px solid #EEEEEE;border-left:1px solid #EEEEEE;">
-                    <a href="https://www.fly2any.com/tours?destination=Niagara&utm_source=email&utm_campaign=welcome_back" style="text-decoration:none;color:#1C1C1C;font-size:12px;">🎯 Niagara Falls <span style="color:#E74035;font-weight:600;">$59</span></a>
-                  </td>
-                  <td class="route-col" style="padding:8px 12px;border-bottom:1px solid #EEEEEE;border-left:1px solid #EEEEEE;">
-                    <a href="https://www.fly2any.com/tours?destination=Ecuador&utm_source=email&utm_campaign=welcome_back" style="text-decoration:none;color:#1C1C1C;font-size:12px;">🎯 Galápagos <span style="color:#E74035;font-weight:600;">$349</span></a>
-                  </td>
+                  <td class="route-col" style="padding:8px 12px;border-bottom:1px solid #EEE;"><a href="https://www.fly2any.com/tours?destination=London&utm_source=email&utm_campaign=welcome_back" style="text-decoration:none;color:#1C1C1C;font-size:12px;">🎯 London Eye <span style="color:#E74035;font-weight:600;">$35</span></a></td>
+                  <td class="route-col" style="padding:8px 12px;border-bottom:1px solid #EEE;border-left:1px solid #EEE;"><a href="https://www.fly2any.com/tours?destination=Niagara&utm_source=email&utm_campaign=welcome_back" style="text-decoration:none;color:#1C1C1C;font-size:12px;">🎯 Niagara Falls <span style="color:#E74035;font-weight:600;">$59</span></a></td>
+                  <td class="route-col" style="padding:8px 12px;border-bottom:1px solid #EEE;border-left:1px solid #EEE;"><a href="https://www.fly2any.com/tours?destination=Ecuador&utm_source=email&utm_campaign=welcome_back" style="text-decoration:none;color:#1C1C1C;font-size:12px;">🎯 Galápagos <span style="color:#E74035;font-weight:600;">$349</span></a></td>
                 </tr>
                 <tr>
-                  <td class="route-col" style="padding:8px 12px;border-bottom:1px solid #EEEEEE;">
-                    <a href="https://www.fly2any.com/tours?destination=New%20York&utm_source=email&utm_campaign=welcome_back" style="text-decoration:none;color:#1C1C1C;font-size:12px;">🎯 NYC Walk <span style="color:#E74035;font-weight:600;">$29</span></a>
-                  </td>
-                  <td class="route-col" style="padding:8px 12px;border-bottom:1px solid #EEEEEE;border-left:1px solid #EEEEEE;">
-                    <a href="https://www.fly2any.com/tours?destination=Iceland&utm_source=email&utm_campaign=welcome_back" style="text-decoration:none;color:#1C1C1C;font-size:12px;">🎯 Iceland Glacier <span style="color:#E74035;font-weight:600;">$129</span></a>
-                  </td>
-                  <td class="route-col" style="padding:8px 12px;border-bottom:1px solid #EEEEEE;border-left:1px solid #EEEEEE;">
-                    <a href="https://www.fly2any.com/tours?destination=Costa%20Rica&utm_source=email&utm_campaign=welcome_back" style="text-decoration:none;color:#1C1C1C;font-size:12px;">🎯 Costa Rica <span style="color:#E74035;font-weight:600;">$99</span></a>
-                  </td>
+                  <td class="route-col" style="padding:8px 12px;border-bottom:1px solid #EEE;"><a href="https://www.fly2any.com/tours?destination=New%20York&utm_source=email&utm_campaign=welcome_back" style="text-decoration:none;color:#1C1C1C;font-size:12px;">🎯 NYC Walk <span style="color:#E74035;font-weight:600;">$29</span></a></td>
+                  <td class="route-col" style="padding:8px 12px;border-bottom:1px solid #EEE;border-left:1px solid #EEE;"><a href="https://www.fly2any.com/tours?destination=Iceland&utm_source=email&utm_campaign=welcome_back" style="text-decoration:none;color:#1C1C1C;font-size:12px;">🎯 Iceland Glacier <span style="color:#E74035;font-weight:600;">$129</span></a></td>
+                  <td class="route-col" style="padding:8px 12px;border-bottom:1px solid #EEE;border-left:1px solid #EEE;"><a href="https://www.fly2any.com/tours?destination=Costa%20Rica&utm_source=email&utm_campaign=welcome_back" style="text-decoration:none;color:#1C1C1C;font-size:12px;">🎯 Costa Rica <span style="color:#E74035;font-weight:600;">$99</span></a></td>
                 </tr>
                 <tr>
-                  <td class="route-col" style="padding:8px 12px;border-bottom:1px solid #EEEEEE;">
-                    <a href="https://www.fly2any.com/tours?destination=Barcelona&utm_source=email&utm_campaign=welcome_back" style="text-decoration:none;color:#1C1C1C;font-size:12px;">🎯 Barcelona Gaudí <span style="color:#E74035;font-weight:600;">$55</span></a>
-                  </td>
-                  <td class="route-col" style="padding:8px 12px;border-bottom:1px solid #EEEEEE;border-left:1px solid #EEEEEE;">
-                    <a href="https://www.fly2any.com/tours?destination=Switzerland&utm_source=email&utm_campaign=welcome_back" style="text-decoration:none;color:#1C1C1C;font-size:12px;">🎯 Swiss Alps <span style="color:#E74035;font-weight:600;">$99</span></a>
-                  </td>
-                  <td class="route-col" style="padding:8px 12px;border-bottom:1px solid #EEEEEE;border-left:1px solid #EEEEEE;">
-                    <a href="https://www.fly2any.com/tours?destination=Yellowstone&utm_source=email&utm_campaign=welcome_back" style="text-decoration:none;color:#1C1C1C;font-size:12px;">🎯 Yellowstone <span style="color:#E74035;font-weight:600;">$69</span></a>
-                  </td>
+                  <td class="route-col" style="padding:8px 12px;border-bottom:1px solid #EEE;"><a href="https://www.fly2any.com/tours?destination=Barcelona&utm_source=email&utm_campaign=welcome_back" style="text-decoration:none;color:#1C1C1C;font-size:12px;">🎯 Barcelona Gaudí <span style="color:#E74035;font-weight:600;">$55</span></a></td>
+                  <td class="route-col" style="padding:8px 12px;border-bottom:1px solid #EEE;border-left:1px solid #EEE;"><a href="https://www.fly2any.com/tours?destination=Switzerland&utm_source=email&utm_campaign=welcome_back" style="text-decoration:none;color:#1C1C1C;font-size:12px;">🎯 Swiss Alps <span style="color:#E74035;font-weight:600;">$99</span></a></td>
+                  <td class="route-col" style="padding:8px 12px;border-bottom:1px solid #EEE;border-left:1px solid #EEE;"><a href="https://www.fly2any.com/tours?destination=Yellowstone&utm_source=email&utm_campaign=welcome_back" style="text-decoration:none;color:#1C1C1C;font-size:12px;">🎯 Yellowstone <span style="color:#E74035;font-weight:600;">$69</span></a></td>
                 </tr>
                 <tr>
-                  <td class="route-col" style="padding:8px 12px;">
-                    <a href="https://www.fly2any.com/tours?destination=Tokyo&utm_source=email&utm_campaign=welcome_back" style="text-decoration:none;color:#1C1C1C;font-size:12px;">🎯 Tokyo Highlights <span style="color:#E74035;font-weight:600;">$65</span></a>
-                  </td>
-                  <td class="route-col" style="padding:8px 12px;border-left:1px solid #EEEEEE;">
-                    <a href="https://www.fly2any.com/tours?destination=Dubai&utm_source=email&utm_campaign=welcome_back" style="text-decoration:none;color:#1C1C1C;font-size:12px;">🎯 Dubai Desert <span style="color:#E74035;font-weight:600;">$89</span></a>
-                  </td>
-                  <td class="route-col" style="padding:8px 12px;border-left:1px solid #EEEEEE;">
-                    <a href="https://www.fly2any.com/tours?destination=Hawaii&utm_source=email&utm_campaign=welcome_back" style="text-decoration:none;color:#1C1C1C;font-size:12px;">🎯 Hawaii Volcano <span style="color:#E74035;font-weight:600;">$79</span></a>
-                  </td>
+                  <td class="route-col" style="padding:8px 12px;"><a href="https://www.fly2any.com/tours?destination=Tokyo&utm_source=email&utm_campaign=welcome_back" style="text-decoration:none;color:#1C1C1C;font-size:12px;">🎯 Tokyo Highlights <span style="color:#E74035;font-weight:600;">$65</span></a></td>
+                  <td class="route-col" style="padding:8px 12px;border-left:1px solid #EEE;"><a href="https://www.fly2any.com/tours?destination=Dubai&utm_source=email&utm_campaign=welcome_back" style="text-decoration:none;color:#1C1C1C;font-size:12px;">🎯 Dubai Desert <span style="color:#E74035;font-weight:600;">$89</span></a></td>
+                  <td class="route-col" style="padding:8px 12px;border-left:1px solid #EEE;"><a href="https://www.fly2any.com/tours?destination=Hawaii&utm_source=email&utm_campaign=welcome_back" style="text-decoration:none;color:#1C1C1C;font-size:12px;">🎯 Hawaii Volcano <span style="color:#E74035;font-weight:600;">$79</span></a></td>
                 </tr>
               </table>
             </td>
@@ -524,79 +377,52 @@
             </td>
           </tr>
 
-          <!-- ============================================ -->
-          <!-- ACTIVITIES SECTION -->
-          <!-- ============================================ -->
+          <!-- ===================== ACTIVITIES ===================== -->
           <tr>
             <td style="padding:24px 16px 8px;background:#FAFAFA;">
               <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0">
-                <tr>
-                  <td style="border-bottom:2px solid #E74035;padding-bottom:8px;">
-                    <h2 style="margin:0;color:#1C1C1C;font-size:22px;font-weight:700;">🎭 Activities & Events</h2>
-                  </td>
-                </tr>
+                <tr><td style="border-bottom:2px solid #E74035;padding-bottom:8px;">
+                  <h2 style="margin:0;color:#1C1C1C;font-size:22px;font-weight:700;">🎭 Activities & Events</h2>
+                </td></tr>
               </table>
             </td>
           </tr>
 
-          <!-- Activity Cards Row -->
+          <!-- Activity Cards -->
           <tr>
             <td style="padding:16px 8px;background:#FAFAFA;">
               <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0">
                 <tr>
-                  <!-- Card 1: Broadway -->
                   <td class="card-col" width="33.33%" style="padding:0 8px;vertical-align:top;">
                     <a href="https://www.fly2any.com/activities?destination=New%20York&utm_source=email&utm_campaign=welcome_back" style="text-decoration:none;display:block;">
                       <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="border-radius:12px;overflow:hidden;box-shadow:0 2px 8px rgba(0,0,0,0.1);">
-                        <tr>
-                          <td>
-                            <img class="card-img" src="https://images.unsplash.com/photo-1503095396549-807759245b35?w=400&h=200&fit=crop" alt="Broadway" width="100%" height="120" style="display:block;object-fit:cover;">
-                          </td>
-                        </tr>
-                        <tr>
-                          <td style="padding:12px;background:#FFFFFF;">
-                            <p style="margin:0 0 4px;color:#6B6B6B;font-size:11px;text-transform:uppercase;letter-spacing:0.5px;">Broadway Shows</p>
-                            <p style="margin:0;color:#E74035;font-size:20px;font-weight:700;">$99<span style="font-size:12px;color:#6B6B6B;font-weight:400;">/ticket</span></p>
-                          </td>
-                        </tr>
+                        <tr><td><img class="card-img" src="https://images.unsplash.com/photo-1503095396549-807759245b35?w=400&h=200&fit=crop" alt="Broadway" width="100%" height="120" style="display:block;object-fit:cover;"></td></tr>
+                        <tr><td style="padding:12px;background:#FFFFFF;">
+                          <p style="margin:0 0 4px;color:#6B6B6B;font-size:11px;text-transform:uppercase;">Broadway Shows</p>
+                          <p style="margin:0;color:#E74035;font-size:20px;font-weight:700;">$99<span style="font-size:12px;color:#6B6B6B;font-weight:400;">/ticket</span></p>
+                        </td></tr>
                       </table>
                     </a>
                   </td>
-
-                  <!-- Card 2: F1 -->
                   <td class="card-col" width="33.33%" style="padding:0 8px;vertical-align:top;">
                     <a href="https://www.fly2any.com/activities?category=Sports&utm_source=email&utm_campaign=welcome_back" style="text-decoration:none;display:block;">
                       <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="border-radius:12px;overflow:hidden;box-shadow:0 2px 8px rgba(0,0,0,0.1);">
-                        <tr>
-                          <td>
-                            <img class="card-img" src="https://images.unsplash.com/photo-1504707748692-419802cf939d?w=400&h=200&fit=crop" alt="F1 Racing" width="100%" height="120" style="display:block;object-fit:cover;">
-                          </td>
-                        </tr>
-                        <tr>
-                          <td style="padding:12px;background:#FFFFFF;">
-                            <p style="margin:0 0 4px;color:#6B6B6B;font-size:11px;text-transform:uppercase;letter-spacing:0.5px;">F1 Monaco GP</p>
-                            <p style="margin:0;color:#E74035;font-size:20px;font-weight:700;">$449<span style="font-size:12px;color:#6B6B6B;font-weight:400;">/ticket</span></p>
-                          </td>
-                        </tr>
+                        <tr><td><img class="card-img" src="https://images.unsplash.com/photo-1504707748692-419802cf939d?w=400&h=200&fit=crop" alt="F1 Racing" width="100%" height="120" style="display:block;object-fit:cover;"></td></tr>
+                        <tr><td style="padding:12px;background:#FFFFFF;">
+                          <p style="margin:0 0 4px;color:#6B6B6B;font-size:11px;text-transform:uppercase;">F1 Monaco GP</p>
+                          <p style="margin:0;color:#E74035;font-size:20px;font-weight:700;">$449<span style="font-size:12px;color:#6B6B6B;font-weight:400;">/ticket</span></p>
+                        </td></tr>
                       </table>
                     </a>
                   </td>
-
-                  <!-- Card 3: Wine Tour -->
                   <td class="card-col" width="33.33%" style="padding:0 8px;vertical-align:top;">
                     <a href="https://www.fly2any.com/activities?category=Food&utm_source=email&utm_campaign=welcome_back" style="text-decoration:none;display:block;">
                       <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="border-radius:12px;overflow:hidden;box-shadow:0 2px 8px rgba(0,0,0,0.1);">
-                        <tr>
-                          <td>
-                            <img class="card-img" src="https://images.unsplash.com/photo-1506377247377-2a5b3b417ebb?w=400&h=200&fit=crop" alt="Wine Tour" width="100%" height="120" style="display:block;object-fit:cover;">
-                          </td>
-                        </tr>
-                        <tr>
-                          <td style="padding:12px;background:#FFFFFF;">
-                            <p style="margin:0 0 4px;color:#6B6B6B;font-size:11px;text-transform:uppercase;letter-spacing:0.5px;">Napa Wine Tour</p>
-                            <p style="margin:0;color:#E74035;font-size:20px;font-weight:700;">$79<span style="font-size:12px;color:#6B6B6B;font-weight:400;">/person</span></p>
-                          </td>
-                        </tr>
+                        <tr><td><img class="card-img" src="https://images.unsplash.com/photo-1506377247377-2a5b3b417ebb?w=400&h=200&fit=crop" alt="Wine Tour" width="100%" height="120" style="display:block;object-fit:cover;"></td></tr>
+                        <tr><td style="padding:12px;background:#FFFFFF;">
+                          <p style="margin:0 0 4px;color:#6B6B6B;font-size:11px;text-transform:uppercase;">Napa Wine Tour</p>
+                          <p style="margin:0;color:#E74035;font-size:20px;font-weight:700;">$79<span style="font-size:12px;color:#6B6B6B;font-weight:400;">/person</span></p>
+                        </td></tr>
                       </table>
                     </a>
                   </td>
@@ -610,59 +436,29 @@
             <td style="padding:0 16px 16px;background:#FAFAFA;">
               <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="background:#FFFFFF;border-radius:8px;">
                 <tr>
-                  <td class="route-col" width="33.33%" style="padding:8px 12px;border-bottom:1px solid #EEEEEE;">
-                    <a href="https://www.fly2any.com/activities?destination=London&utm_source=email&utm_campaign=welcome_back" style="text-decoration:none;color:#1C1C1C;font-size:12px;">🎭 West End <span style="color:#E74035;font-weight:600;">$85</span></a>
-                  </td>
-                  <td class="route-col" width="33.33%" style="padding:8px 12px;border-bottom:1px solid #EEEEEE;border-left:1px solid #EEEEEE;">
-                    <a href="https://www.fly2any.com/activities?category=Sports&utm_source=email&utm_campaign=welcome_back" style="text-decoration:none;color:#1C1C1C;font-size:12px;">🎭 UEFA Finals <span style="color:#E74035;font-weight:600;">$299</span></a>
-                  </td>
-                  <td class="route-col" width="33.33%" style="padding:8px 12px;border-bottom:1px solid #EEEEEE;border-left:1px solid #EEEEEE;">
-                    <a href="https://www.fly2any.com/activities?category=Food&utm_source=email&utm_campaign=welcome_back" style="text-decoration:none;color:#1C1C1C;font-size:12px;">🎭 Cooking Class <span style="color:#E74035;font-weight:600;">$59</span></a>
-                  </td>
+                  <td class="route-col" width="33.33%" style="padding:8px 12px;border-bottom:1px solid #EEE;"><a href="https://www.fly2any.com/activities?destination=London&utm_source=email&utm_campaign=welcome_back" style="text-decoration:none;color:#1C1C1C;font-size:12px;">🎭 West End <span style="color:#E74035;font-weight:600;">$85</span></a></td>
+                  <td class="route-col" width="33.33%" style="padding:8px 12px;border-bottom:1px solid #EEE;border-left:1px solid #EEE;"><a href="https://www.fly2any.com/activities?category=Sports&utm_source=email&utm_campaign=welcome_back" style="text-decoration:none;color:#1C1C1C;font-size:12px;">🎭 UEFA Finals <span style="color:#E74035;font-weight:600;">$299</span></a></td>
+                  <td class="route-col" width="33.33%" style="padding:8px 12px;border-bottom:1px solid #EEE;border-left:1px solid #EEE;"><a href="https://www.fly2any.com/activities?category=Food&utm_source=email&utm_campaign=welcome_back" style="text-decoration:none;color:#1C1C1C;font-size:12px;">🎭 Cooking Class <span style="color:#E74035;font-weight:600;">$59</span></a></td>
                 </tr>
                 <tr>
-                  <td class="route-col" style="padding:8px 12px;border-bottom:1px solid #EEEEEE;">
-                    <a href="https://www.fly2any.com/activities?destination=Las%20Vegas&utm_source=email&utm_campaign=welcome_back" style="text-decoration:none;color:#1C1C1C;font-size:12px;">🎭 Vegas Cirque <span style="color:#E74035;font-weight:600;">$129</span></a>
-                  </td>
-                  <td class="route-col" style="padding:8px 12px;border-bottom:1px solid #EEEEEE;border-left:1px solid #EEEEEE;">
-                    <a href="https://www.fly2any.com/activities?category=Sports&utm_source=email&utm_campaign=welcome_back" style="text-decoration:none;color:#1C1C1C;font-size:12px;">🎭 NBA Finals <span style="color:#E74035;font-weight:600;">$349</span></a>
-                  </td>
-                  <td class="route-col" style="padding:8px 12px;border-bottom:1px solid #EEEEEE;border-left:1px solid #EEEEEE;">
-                    <a href="https://www.fly2any.com/activities?category=Food&utm_source=email&utm_campaign=welcome_back" style="text-decoration:none;color:#1C1C1C;font-size:12px;">🎭 Beer Tour <span style="color:#E74035;font-weight:600;">$45</span></a>
-                  </td>
+                  <td class="route-col" style="padding:8px 12px;border-bottom:1px solid #EEE;"><a href="https://www.fly2any.com/activities?destination=Las%20Vegas&utm_source=email&utm_campaign=welcome_back" style="text-decoration:none;color:#1C1C1C;font-size:12px;">🎭 Vegas Cirque <span style="color:#E74035;font-weight:600;">$129</span></a></td>
+                  <td class="route-col" style="padding:8px 12px;border-bottom:1px solid #EEE;border-left:1px solid #EEE;"><a href="https://www.fly2any.com/activities?category=Sports&utm_source=email&utm_campaign=welcome_back" style="text-decoration:none;color:#1C1C1C;font-size:12px;">🎭 NBA Finals <span style="color:#E74035;font-weight:600;">$349</span></a></td>
+                  <td class="route-col" style="padding:8px 12px;border-bottom:1px solid #EEE;border-left:1px solid #EEE;"><a href="https://www.fly2any.com/activities?category=Food&utm_source=email&utm_campaign=welcome_back" style="text-decoration:none;color:#1C1C1C;font-size:12px;">🎭 Beer Tour <span style="color:#E74035;font-weight:600;">$45</span></a></td>
                 </tr>
                 <tr>
-                  <td class="route-col" style="padding:8px 12px;border-bottom:1px solid #EEEEEE;">
-                    <a href="https://www.fly2any.com/activities?destination=Paris&utm_source=email&utm_campaign=welcome_back" style="text-decoration:none;color:#1C1C1C;font-size:12px;">🎭 Paris Cabaret <span style="color:#E74035;font-weight:600;">$95</span></a>
-                  </td>
-                  <td class="route-col" style="padding:8px 12px;border-bottom:1px solid #EEEEEE;border-left:1px solid #EEEEEE;">
-                    <a href="https://www.fly2any.com/activities?category=Sports&utm_source=email&utm_campaign=welcome_back" style="text-decoration:none;color:#1C1C1C;font-size:12px;">🎭 Tennis Open <span style="color:#E74035;font-weight:600;">$199</span></a>
-                  </td>
-                  <td class="route-col" style="padding:8px 12px;border-bottom:1px solid #EEEEEE;border-left:1px solid #EEEEEE;">
-                    <a href="https://www.fly2any.com/activities?category=Food&utm_source=email&utm_campaign=welcome_back" style="text-decoration:none;color:#1C1C1C;font-size:12px;">🎭 Food Market <span style="color:#E74035;font-weight:600;">$35</span></a>
-                  </td>
+                  <td class="route-col" style="padding:8px 12px;border-bottom:1px solid #EEE;"><a href="https://www.fly2any.com/activities?destination=Paris&utm_source=email&utm_campaign=welcome_back" style="text-decoration:none;color:#1C1C1C;font-size:12px;">🎭 Paris Cabaret <span style="color:#E74035;font-weight:600;">$95</span></a></td>
+                  <td class="route-col" style="padding:8px 12px;border-bottom:1px solid #EEE;border-left:1px solid #EEE;"><a href="https://www.fly2any.com/activities?category=Sports&utm_source=email&utm_campaign=welcome_back" style="text-decoration:none;color:#1C1C1C;font-size:12px;">🎭 Tennis Open <span style="color:#E74035;font-weight:600;">$199</span></a></td>
+                  <td class="route-col" style="padding:8px 12px;border-bottom:1px solid #EEE;border-left:1px solid #EEE;"><a href="https://www.fly2any.com/activities?category=Food&utm_source=email&utm_campaign=welcome_back" style="text-decoration:none;color:#1C1C1C;font-size:12px;">🎭 Food Market <span style="color:#E74035;font-weight:600;">$35</span></a></td>
                 </tr>
                 <tr>
-                  <td class="route-col" style="padding:8px 12px;border-bottom:1px solid #EEEEEE;">
-                    <a href="https://www.fly2any.com/activities?destination=Sydney&utm_source=email&utm_campaign=welcome_back" style="text-decoration:none;color:#1C1C1C;font-size:12px;">🎭 Sydney Opera <span style="color:#E74035;font-weight:600;">$75</span></a>
-                  </td>
-                  <td class="route-col" style="padding:8px 12px;border-bottom:1px solid #EEEEEE;border-left:1px solid #EEEEEE;">
-                    <a href="https://www.fly2any.com/activities?category=Sports&utm_source=email&utm_campaign=welcome_back" style="text-decoration:none;color:#1C1C1C;font-size:12px;">🎭 World Cup <span style="color:#E74035;font-weight:600;">$499</span></a>
-                  </td>
-                  <td class="route-col" style="padding:8px 12px;border-bottom:1px solid #EEEEEE;border-left:1px solid #EEEEEE;">
-                    <a href="https://www.fly2any.com/activities?destination=Spain&utm_source=email&utm_campaign=welcome_back" style="text-decoration:none;color:#1C1C1C;font-size:12px;">🎭 Tapas Tour <span style="color:#E74035;font-weight:600;">$49</span></a>
-                  </td>
+                  <td class="route-col" style="padding:8px 12px;border-bottom:1px solid #EEE;"><a href="https://www.fly2any.com/activities?destination=Sydney&utm_source=email&utm_campaign=welcome_back" style="text-decoration:none;color:#1C1C1C;font-size:12px;">🎭 Sydney Opera <span style="color:#E74035;font-weight:600;">$75</span></a></td>
+                  <td class="route-col" style="padding:8px 12px;border-bottom:1px solid #EEE;border-left:1px solid #EEE;"><a href="https://www.fly2any.com/activities?category=Sports&utm_source=email&utm_campaign=welcome_back" style="text-decoration:none;color:#1C1C1C;font-size:12px;">🎭 World Cup <span style="color:#E74035;font-weight:600;">$499</span></a></td>
+                  <td class="route-col" style="padding:8px 12px;border-bottom:1px solid #EEE;border-left:1px solid #EEE;"><a href="https://www.fly2any.com/activities?destination=Spain&utm_source=email&utm_campaign=welcome_back" style="text-decoration:none;color:#1C1C1C;font-size:12px;">🎭 Tapas Tour <span style="color:#E74035;font-weight:600;">$49</span></a></td>
                 </tr>
                 <tr>
-                  <td class="route-col" style="padding:8px 12px;">
-                    <a href="https://www.fly2any.com/activities?destination=Tokyo&utm_source=email&utm_campaign=welcome_back" style="text-decoration:none;color:#1C1C1C;font-size:12px;">🎭 Tokyo Theater <span style="color:#E74035;font-weight:600;">$65</span></a>
-                  </td>
-                  <td class="route-col" style="padding:8px 12px;border-left:1px solid #EEEEEE;">
-                    <a href="https://www.fly2any.com/activities?category=Sports&utm_source=email&utm_campaign=welcome_back" style="text-decoration:none;color:#1C1C1C;font-size:12px;">🎭 Golf Masters <span style="color:#E74035;font-weight:600;">$379</span></a>
-                  </td>
-                  <td class="route-col" style="padding:8px 12px;border-left:1px solid #EEEEEE;">
-                    <a href="https://www.fly2any.com/activities?destination=Tokyo&utm_source=email&utm_campaign=welcome_back" style="text-decoration:none;color:#1C1C1C;font-size:12px;">🎭 Sushi Class <span style="color:#E74035;font-weight:600;">$89</span></a>
-                  </td>
+                  <td class="route-col" style="padding:8px 12px;"><a href="https://www.fly2any.com/activities?destination=Tokyo&utm_source=email&utm_campaign=welcome_back" style="text-decoration:none;color:#1C1C1C;font-size:12px;">🎭 Tokyo Theater <span style="color:#E74035;font-weight:600;">$65</span></a></td>
+                  <td class="route-col" style="padding:8px 12px;border-left:1px solid #EEE;"><a href="https://www.fly2any.com/activities?category=Sports&utm_source=email&utm_campaign=welcome_back" style="text-decoration:none;color:#1C1C1C;font-size:12px;">🎭 Golf Masters <span style="color:#E74035;font-weight:600;">$379</span></a></td>
+                  <td class="route-col" style="padding:8px 12px;border-left:1px solid #EEE;"><a href="https://www.fly2any.com/activities?destination=Tokyo&utm_source=email&utm_campaign=welcome_back" style="text-decoration:none;color:#1C1C1C;font-size:12px;">🎭 Sushi Class <span style="color:#E74035;font-weight:600;">$89</span></a></td>
                 </tr>
               </table>
             </td>
@@ -675,79 +471,52 @@
             </td>
           </tr>
 
-          <!-- ============================================ -->
-          <!-- TRANSFERS SECTION -->
-          <!-- ============================================ -->
+          <!-- ===================== TRANSFERS ===================== -->
           <tr>
             <td style="padding:24px 16px 8px;">
               <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0">
-                <tr>
-                  <td style="border-bottom:2px solid #E74035;padding-bottom:8px;">
-                    <h2 style="margin:0;color:#1C1C1C;font-size:22px;font-weight:700;">🚐 Airport Transfers</h2>
-                  </td>
-                </tr>
+                <tr><td style="border-bottom:2px solid #E74035;padding-bottom:8px;">
+                  <h2 style="margin:0;color:#1C1C1C;font-size:22px;font-weight:700;">🚐 Airport Transfers</h2>
+                </td></tr>
               </table>
             </td>
           </tr>
 
-          <!-- Transfer Cards Row -->
+          <!-- Transfer Cards -->
           <tr>
             <td style="padding:16px 8px;">
               <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0">
                 <tr>
-                  <!-- Card 1: Airport Shuttle -->
                   <td class="card-col" width="33.33%" style="padding:0 8px;vertical-align:top;">
-                    <a href="https://www.fly2any.com/transfers?type=shuttle&utm_source=email&utm_campaign=welcome_back" style="text-decoration:none;display:block;">
+                    <a href="https://www.fly2any.com/transfers?utm_source=email&utm_campaign=welcome_back" style="text-decoration:none;display:block;">
                       <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="border-radius:12px;overflow:hidden;box-shadow:0 2px 8px rgba(0,0,0,0.1);">
-                        <tr>
-                          <td>
-                            <img class="card-img" src="https://images.unsplash.com/photo-1544620347-c4fd4a3d5957?w=400&h=200&fit=crop" alt="Airport Shuttle" width="100%" height="120" style="display:block;object-fit:cover;">
-                          </td>
-                        </tr>
-                        <tr>
-                          <td style="padding:12px;background:#FFFFFF;">
-                            <p style="margin:0 0 4px;color:#6B6B6B;font-size:11px;text-transform:uppercase;letter-spacing:0.5px;">Airport Shuttle</p>
-                            <p style="margin:0;color:#E74035;font-size:20px;font-weight:700;">$39<span style="font-size:12px;color:#6B6B6B;font-weight:400;">/trip</span></p>
-                          </td>
-                        </tr>
+                        <tr><td><img class="card-img" src="https://images.unsplash.com/photo-1544620347-c4fd4a3d5957?w=400&h=200&fit=crop" alt="Shuttle" width="100%" height="120" style="display:block;object-fit:cover;"></td></tr>
+                        <tr><td style="padding:12px;background:#FFFFFF;">
+                          <p style="margin:0 0 4px;color:#6B6B6B;font-size:11px;text-transform:uppercase;">Airport Shuttle</p>
+                          <p style="margin:0;color:#E74035;font-size:20px;font-weight:700;">$39<span style="font-size:12px;color:#6B6B6B;font-weight:400;">/trip</span></p>
+                        </td></tr>
                       </table>
                     </a>
                   </td>
-
-                  <!-- Card 2: Private Car -->
                   <td class="card-col" width="33.33%" style="padding:0 8px;vertical-align:top;">
-                    <a href="https://www.fly2any.com/transfers?type=private&utm_source=email&utm_campaign=welcome_back" style="text-decoration:none;display:block;">
+                    <a href="https://www.fly2any.com/transfers?utm_source=email&utm_campaign=welcome_back" style="text-decoration:none;display:block;">
                       <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="border-radius:12px;overflow:hidden;box-shadow:0 2px 8px rgba(0,0,0,0.1);">
-                        <tr>
-                          <td>
-                            <img class="card-img" src="https://images.unsplash.com/photo-1549317661-bd32c8ce0db2?w=400&h=200&fit=crop" alt="Private Car" width="100%" height="120" style="display:block;object-fit:cover;">
-                          </td>
-                        </tr>
-                        <tr>
-                          <td style="padding:12px;background:#FFFFFF;">
-                            <p style="margin:0 0 4px;color:#6B6B6B;font-size:11px;text-transform:uppercase;letter-spacing:0.5px;">Private Car</p>
-                            <p style="margin:0;color:#E74035;font-size:20px;font-weight:700;">$69<span style="font-size:12px;color:#6B6B6B;font-weight:400;">/trip</span></p>
-                          </td>
-                        </tr>
+                        <tr><td><img class="card-img" src="https://images.unsplash.com/photo-1549317661-bd32c8ce0db2?w=400&h=200&fit=crop" alt="Private Car" width="100%" height="120" style="display:block;object-fit:cover;"></td></tr>
+                        <tr><td style="padding:12px;background:#FFFFFF;">
+                          <p style="margin:0 0 4px;color:#6B6B6B;font-size:11px;text-transform:uppercase;">Private Car</p>
+                          <p style="margin:0;color:#E74035;font-size:20px;font-weight:700;">$69<span style="font-size:12px;color:#6B6B6B;font-weight:400;">/trip</span></p>
+                        </td></tr>
                       </table>
                     </a>
                   </td>
-
-                  <!-- Card 3: Luxury Limo -->
                   <td class="card-col" width="33.33%" style="padding:0 8px;vertical-align:top;">
-                    <a href="https://www.fly2any.com/transfers?type=luxury&utm_source=email&utm_campaign=welcome_back" style="text-decoration:none;display:block;">
+                    <a href="https://www.fly2any.com/transfers?utm_source=email&utm_campaign=welcome_back" style="text-decoration:none;display:block;">
                       <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="border-radius:12px;overflow:hidden;box-shadow:0 2px 8px rgba(0,0,0,0.1);">
-                        <tr>
-                          <td>
-                            <img class="card-img" src="https://images.unsplash.com/photo-1519641471654-76ce0107ad1b?w=400&h=200&fit=crop" alt="Luxury Limo" width="100%" height="120" style="display:block;object-fit:cover;">
-                          </td>
-                        </tr>
-                        <tr>
-                          <td style="padding:12px;background:#FFFFFF;">
-                            <p style="margin:0 0 4px;color:#6B6B6B;font-size:11px;text-transform:uppercase;letter-spacing:0.5px;">Luxury Limo</p>
-                            <p style="margin:0;color:#E74035;font-size:20px;font-weight:700;">$149<span style="font-size:12px;color:#6B6B6B;font-weight:400;">/trip</span></p>
-                          </td>
-                        </tr>
+                        <tr><td><img class="card-img" src="https://images.unsplash.com/photo-1519641471654-76ce0107ad1b?w=400&h=200&fit=crop" alt="Luxury Limo" width="100%" height="120" style="display:block;object-fit:cover;"></td></tr>
+                        <tr><td style="padding:12px;background:#FFFFFF;">
+                          <p style="margin:0 0 4px;color:#6B6B6B;font-size:11px;text-transform:uppercase;">Luxury Limo</p>
+                          <p style="margin:0;color:#E74035;font-size:20px;font-weight:700;">$149<span style="font-size:12px;color:#6B6B6B;font-weight:400;">/trip</span></p>
+                        </td></tr>
                       </table>
                     </a>
                   </td>
@@ -761,59 +530,29 @@
             <td style="padding:0 16px 16px;">
               <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="background:#FAFAFA;border-radius:8px;">
                 <tr>
-                  <td class="route-col" width="33.33%" style="padding:8px 12px;border-bottom:1px solid #EEEEEE;">
-                    <a href="https://www.fly2any.com/transfers?from=JFK&utm_source=email&utm_campaign=welcome_back" style="text-decoration:none;color:#1C1C1C;font-size:12px;">🚐 JFK → NYC <span style="color:#E74035;font-weight:600;">$45</span></a>
-                  </td>
-                  <td class="route-col" width="33.33%" style="padding:8px 12px;border-bottom:1px solid #EEEEEE;border-left:1px solid #EEEEEE;">
-                    <a href="https://www.fly2any.com/transfers?route=NYC-DC&utm_source=email&utm_campaign=welcome_back" style="text-decoration:none;color:#1C1C1C;font-size:12px;">🚐 NYC → DC <span style="color:#E74035;font-weight:600;">$89</span></a>
-                  </td>
-                  <td class="route-col" width="33.33%" style="padding:8px 12px;border-bottom:1px solid #EEEEEE;border-left:1px solid #EEEEEE;">
-                    <a href="https://www.fly2any.com/transfers?type=helicopter&utm_source=email&utm_campaign=welcome_back" style="text-decoration:none;color:#1C1C1C;font-size:12px;">🚁 Helicopter <span style="color:#E74035;font-weight:600;">$299</span></a>
-                  </td>
+                  <td class="route-col" width="33.33%" style="padding:8px 12px;border-bottom:1px solid #EEE;"><a href="https://www.fly2any.com/transfers?utm_source=email&utm_campaign=welcome_back" style="text-decoration:none;color:#1C1C1C;font-size:12px;">🚐 JFK → NYC <span style="color:#E74035;font-weight:600;">$45</span></a></td>
+                  <td class="route-col" width="33.33%" style="padding:8px 12px;border-bottom:1px solid #EEE;border-left:1px solid #EEE;"><a href="https://www.fly2any.com/transfers?utm_source=email&utm_campaign=welcome_back" style="text-decoration:none;color:#1C1C1C;font-size:12px;">🚐 NYC → DC <span style="color:#E74035;font-weight:600;">$89</span></a></td>
+                  <td class="route-col" width="33.33%" style="padding:8px 12px;border-bottom:1px solid #EEE;border-left:1px solid #EEE;"><a href="https://www.fly2any.com/transfers?utm_source=email&utm_campaign=welcome_back" style="text-decoration:none;color:#1C1C1C;font-size:12px;">🚁 Helicopter <span style="color:#E74035;font-weight:600;">$299</span></a></td>
                 </tr>
                 <tr>
-                  <td class="route-col" style="padding:8px 12px;border-bottom:1px solid #EEEEEE;">
-                    <a href="https://www.fly2any.com/transfers?from=LAX&utm_source=email&utm_campaign=welcome_back" style="text-decoration:none;color:#1C1C1C;font-size:12px;">🚐 LAX → LA <span style="color:#E74035;font-weight:600;">$39</span></a>
-                  </td>
-                  <td class="route-col" style="padding:8px 12px;border-bottom:1px solid #EEEEEE;border-left:1px solid #EEEEEE;">
-                    <a href="https://www.fly2any.com/transfers?route=LA-Vegas&utm_source=email&utm_campaign=welcome_back" style="text-decoration:none;color:#1C1C1C;font-size:12px;">🚐 LA → Vegas <span style="color:#E74035;font-weight:600;">$79</span></a>
-                  </td>
-                  <td class="route-col" style="padding:8px 12px;border-bottom:1px solid #EEEEEE;border-left:1px solid #EEEEEE;">
-                    <a href="https://www.fly2any.com/transfers?type=yacht&utm_source=email&utm_campaign=welcome_back" style="text-decoration:none;color:#1C1C1C;font-size:12px;">🛥️ Yacht <span style="color:#E74035;font-weight:600;">$199</span></a>
-                  </td>
+                  <td class="route-col" style="padding:8px 12px;border-bottom:1px solid #EEE;"><a href="https://www.fly2any.com/transfers?utm_source=email&utm_campaign=welcome_back" style="text-decoration:none;color:#1C1C1C;font-size:12px;">🚐 LAX → LA <span style="color:#E74035;font-weight:600;">$39</span></a></td>
+                  <td class="route-col" style="padding:8px 12px;border-bottom:1px solid #EEE;border-left:1px solid #EEE;"><a href="https://www.fly2any.com/transfers?utm_source=email&utm_campaign=welcome_back" style="text-decoration:none;color:#1C1C1C;font-size:12px;">🚐 LA → Vegas <span style="color:#E74035;font-weight:600;">$79</span></a></td>
+                  <td class="route-col" style="padding:8px 12px;border-bottom:1px solid #EEE;border-left:1px solid #EEE;"><a href="https://www.fly2any.com/transfers?utm_source=email&utm_campaign=welcome_back" style="text-decoration:none;color:#1C1C1C;font-size:12px;">🛥️ Yacht <span style="color:#E74035;font-weight:600;">$199</span></a></td>
                 </tr>
                 <tr>
-                  <td class="route-col" style="padding:8px 12px;border-bottom:1px solid #EEEEEE;">
-                    <a href="https://www.fly2any.com/transfers?from=CDG&utm_source=email&utm_campaign=welcome_back" style="text-decoration:none;color:#1C1C1C;font-size:12px;">🚐 CDG → Paris <span style="color:#E74035;font-weight:600;">$55</span></a>
-                  </td>
-                  <td class="route-col" style="padding:8px 12px;border-bottom:1px solid #EEEEEE;border-left:1px solid #EEEEEE;">
-                    <a href="https://www.fly2any.com/transfers?route=Paris-Brussels&utm_source=email&utm_campaign=welcome_back" style="text-decoration:none;color:#1C1C1C;font-size:12px;">🚐 Paris → Brussels <span style="color:#E74035;font-weight:600;">$69</span></a>
-                  </td>
-                  <td class="route-col" style="padding:8px 12px;border-bottom:1px solid #EEEEEE;border-left:1px solid #EEEEEE;">
-                    <a href="https://www.fly2any.com/transfers?type=suv&utm_source=email&utm_campaign=welcome_back" style="text-decoration:none;color:#1C1C1C;font-size:12px;">🚙 Luxury SUV <span style="color:#E74035;font-weight:600;">$89</span></a>
-                  </td>
+                  <td class="route-col" style="padding:8px 12px;border-bottom:1px solid #EEE;"><a href="https://www.fly2any.com/transfers?utm_source=email&utm_campaign=welcome_back" style="text-decoration:none;color:#1C1C1C;font-size:12px;">🚐 CDG → Paris <span style="color:#E74035;font-weight:600;">$55</span></a></td>
+                  <td class="route-col" style="padding:8px 12px;border-bottom:1px solid #EEE;border-left:1px solid #EEE;"><a href="https://www.fly2any.com/transfers?utm_source=email&utm_campaign=welcome_back" style="text-decoration:none;color:#1C1C1C;font-size:12px;">🚐 Paris → Brussels <span style="color:#E74035;font-weight:600;">$69</span></a></td>
+                  <td class="route-col" style="padding:8px 12px;border-bottom:1px solid #EEE;border-left:1px solid #EEE;"><a href="https://www.fly2any.com/transfers?utm_source=email&utm_campaign=welcome_back" style="text-decoration:none;color:#1C1C1C;font-size:12px;">🚙 Luxury SUV <span style="color:#E74035;font-weight:600;">$89</span></a></td>
                 </tr>
                 <tr>
-                  <td class="route-col" style="padding:8px 12px;border-bottom:1px solid #EEEEEE;">
-                    <a href="https://www.fly2any.com/transfers?from=LHR&utm_source=email&utm_campaign=welcome_back" style="text-decoration:none;color:#1C1C1C;font-size:12px;">🚐 LHR → London <span style="color:#E74035;font-weight:600;">$49</span></a>
-                  </td>
-                  <td class="route-col" style="padding:8px 12px;border-bottom:1px solid #EEEEEE;border-left:1px solid #EEEEEE;">
-                    <a href="https://www.fly2any.com/transfers?route=London-Oxford&utm_source=email&utm_campaign=welcome_back" style="text-decoration:none;color:#1C1C1C;font-size:12px;">🚐 London → Oxford <span style="color:#E74035;font-weight:600;">$59</span></a>
-                  </td>
-                  <td class="route-col" style="padding:8px 12px;border-bottom:1px solid #EEEEEE;border-left:1px solid #EEEEEE;">
-                    <a href="https://www.fly2any.com/transfers?type=stretch&utm_source=email&utm_campaign=welcome_back" style="text-decoration:none;color:#1C1C1C;font-size:12px;">🚐 Stretch Limo <span style="color:#E74035;font-weight:600;">$129</span></a>
-                  </td>
+                  <td class="route-col" style="padding:8px 12px;border-bottom:1px solid #EEE;"><a href="https://www.fly2any.com/transfers?utm_source=email&utm_campaign=welcome_back" style="text-decoration:none;color:#1C1C1C;font-size:12px;">🚐 LHR → London <span style="color:#E74035;font-weight:600;">$49</span></a></td>
+                  <td class="route-col" style="padding:8px 12px;border-bottom:1px solid #EEE;border-left:1px solid #EEE;"><a href="https://www.fly2any.com/transfers?utm_source=email&utm_campaign=welcome_back" style="text-decoration:none;color:#1C1C1C;font-size:12px;">🚐 London → Oxford <span style="color:#E74035;font-weight:600;">$59</span></a></td>
+                  <td class="route-col" style="padding:8px 12px;border-bottom:1px solid #EEE;border-left:1px solid #EEE;"><a href="https://www.fly2any.com/transfers?utm_source=email&utm_campaign=welcome_back" style="text-decoration:none;color:#1C1C1C;font-size:12px;">🚐 Stretch Limo <span style="color:#E74035;font-weight:600;">$129</span></a></td>
                 </tr>
                 <tr>
-                  <td class="route-col" style="padding:8px 12px;">
-                    <a href="https://www.fly2any.com/transfers?from=MIA&utm_source=email&utm_campaign=welcome_back" style="text-decoration:none;color:#1C1C1C;font-size:12px;">🚐 MIA → Miami <span style="color:#E74035;font-weight:600;">$35</span></a>
-                  </td>
-                  <td class="route-col" style="padding:8px 12px;border-left:1px solid #EEEEEE;">
-                    <a href="https://www.fly2any.com/transfers?route=Miami-Keys&utm_source=email&utm_campaign=welcome_back" style="text-decoration:none;color:#1C1C1C;font-size:12px;">🚐 Miami → Keys <span style="color:#E74035;font-weight:600;">$69</span></a>
-                  </td>
-                  <td class="route-col" style="padding:8px 12px;border-left:1px solid #EEEEEE;">
-                    <a href="https://www.fly2any.com/transfers?type=van&utm_source=email&utm_campaign=welcome_back" style="text-decoration:none;color:#1C1C1C;font-size:12px;">🚐 Group Van <span style="color:#E74035;font-weight:600;">$99</span></a>
-                  </td>
+                  <td class="route-col" style="padding:8px 12px;"><a href="https://www.fly2any.com/transfers?utm_source=email&utm_campaign=welcome_back" style="text-decoration:none;color:#1C1C1C;font-size:12px;">🚐 MIA → Miami <span style="color:#E74035;font-weight:600;">$35</span></a></td>
+                  <td class="route-col" style="padding:8px 12px;border-left:1px solid #EEE;"><a href="https://www.fly2any.com/transfers?utm_source=email&utm_campaign=welcome_back" style="text-decoration:none;color:#1C1C1C;font-size:12px;">🚐 Miami → Keys <span style="color:#E74035;font-weight:600;">$69</span></a></td>
+                  <td class="route-col" style="padding:8px 12px;border-left:1px solid #EEE;"><a href="https://www.fly2any.com/transfers?utm_source=email&utm_campaign=welcome_back" style="text-decoration:none;color:#1C1C1C;font-size:12px;">🚐 Group Van <span style="color:#E74035;font-weight:600;">$99</span></a></td>
                 </tr>
               </table>
             </td>
@@ -826,9 +565,7 @@
             </td>
           </tr>
 
-          <!-- ============================================ -->
-          <!-- APP DOWNLOAD BANNER -->
-          <!-- ============================================ -->
+          <!-- ===================== APP DOWNLOAD ===================== -->
           <tr>
             <td style="padding:0 16px 24px;">
               <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="background:linear-gradient(135deg,#E74035 0%,#D63930 100%);border-radius:16px;overflow:hidden;">
@@ -837,29 +574,22 @@
                     <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0">
                       <tr>
                         <td style="vertical-align:middle;">
-                          <p style="margin:0 0 4px;color:#FFFFFF;font-size:11px;text-transform:uppercase;letter-spacing:1px;font-weight:600;">Exclusive App Offer</p>
+                          <p style="margin:0 0 4px;color:#F7C928;font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:1px;">Exclusive App Offer</p>
                           <h3 style="margin:0 0 8px;color:#FFFFFF;font-size:24px;font-weight:700;">Get 5% OFF</h3>
-                          <p style="margin:0 0 16px;color:rgba(255,255,255,0.9);font-size:14px;">Download our app and save on every booking!</p>
+                          <p style="margin:0 0 16px;color:rgba(255,255,255,0.9);font-size:14px;">Download our app for exclusive deals!</p>
                           <table role="presentation" cellspacing="0" cellpadding="0" border="0">
                             <tr>
                               <td style="padding-right:8px;">
-                                <a href="https://apps.apple.com/app/fly2any" style="text-decoration:none;">
-                                  <img src="https://developer.apple.com/assets/elements/badges/download-on-the-app-store.svg" alt="App Store" height="40" style="display:block;">
-                                </a>
+                                <a href="https://apps.apple.com/app/fly2any" style="text-decoration:none;"><img src="https://developer.apple.com/assets/elements/badges/download-on-the-app-store.svg" alt="App Store" height="40" style="display:block;"></a>
                               </td>
                               <td>
-                                <a href="https://play.google.com/store/apps/details?id=com.fly2any" style="text-decoration:none;">
-                                  <img src="https://upload.wikimedia.org/wikipedia/commons/7/78/Google_Play_Store_badge_EN.svg" alt="Google Play" height="40" style="display:block;">
-                                </a>
+                                <a href="https://play.google.com/store/apps/details?id=com.fly2any" style="text-decoration:none;"><img src="https://upload.wikimedia.org/wikipedia/commons/7/78/Google_Play_Store_badge_EN.svg" alt="Google Play" height="40" style="display:block;"></a>
                               </td>
                             </tr>
                           </table>
                         </td>
                         <td class="hide-mobile" width="120" style="vertical-align:middle;text-align:right;">
-                          <!-- QR Code placeholder - replace with actual QR -->
-                          <div style="width:100px;height:100px;background:#FFFFFF;border-radius:8px;display:flex;align-items:center;justify-content:center;">
-                            <img src="https://api.qrserver.com/v1/create-qr-code/?size=100x100&data=https://fly2any.com/app" alt="Scan to Download" width="92" height="92" style="display:block;">
-                          </div>
+                          <img src="https://api.qrserver.com/v1/create-qr-code/?size=100x100&data=https://fly2any.com/app&bgcolor=ffffff" alt="Scan to Download" width="100" height="100" style="display:block;border-radius:8px;">
                         </td>
                       </tr>
                     </table>
@@ -869,66 +599,37 @@
             </td>
           </tr>
 
-          <!-- ============================================ -->
-          <!-- FOOTER -->
-          <!-- ============================================ -->
+          <!-- ===================== FOOTER ===================== -->
           <tr>
             <td style="background:#1C1C1C;padding:32px 24px;text-align:center;">
-              <!-- Social Icons -->
-              <table role="presentation" cellspacing="0" cellpadding="0" border="0" style="margin:0 auto 20px;">
+              <!-- Language Support -->
+              <p style="margin:0 0 16px;color:#F7C928;font-size:13px;font-weight:600;">🌍 We speak English, Português & Español</p>
+              <!-- Real Social Links -->
+              <table role="presentation" cellspacing="0" cellpadding="0" border="0" style="margin:0 auto 16px;">
                 <tr>
-                  <td style="padding:0 8px;">
-                    <a href="https://facebook.com/fly2any" style="text-decoration:none;">
-                      <img src="https://cdn-icons-png.flaticon.com/512/733/733547.png" alt="Facebook" width="24" height="24">
-                    </a>
-                  </td>
-                  <td style="padding:0 8px;">
-                    <a href="https://twitter.com/fly2any" style="text-decoration:none;">
-                      <img src="https://cdn-icons-png.flaticon.com/512/733/733579.png" alt="Twitter" width="24" height="24">
-                    </a>
-                  </td>
-                  <td style="padding:0 8px;">
-                    <a href="https://instagram.com/fly2any" style="text-decoration:none;">
-                      <img src="https://cdn-icons-png.flaticon.com/512/733/733558.png" alt="Instagram" width="24" height="24">
-                    </a>
-                  </td>
-                  <td style="padding:0 8px;">
-                    <a href="https://linkedin.com/company/fly2any" style="text-decoration:none;">
-                      <img src="https://cdn-icons-png.flaticon.com/512/733/733561.png" alt="LinkedIn" width="24" height="24">
-                    </a>
-                  </td>
+                  <td style="padding:0 8px;"><a href="https://instagram.com/fly2anyy" style="text-decoration:none;"><img src="https://cdn-icons-png.flaticon.com/512/733/733558.png" alt="Instagram @fly2anyy" width="24" height="24"></a></td>
+                  <td style="padding:0 8px;"><a href="https://fb.com/fly2any" style="text-decoration:none;"><img src="https://cdn-icons-png.flaticon.com/512/733/733547.png" alt="Facebook" width="24" height="24"></a></td>
+                  <td style="padding:0 8px;"><a href="https://twitter.com/fly2any" style="text-decoration:none;"><img src="https://cdn-icons-png.flaticon.com/512/733/733579.png" alt="Twitter/X @fly2any" width="24" height="24"></a></td>
+                  <td style="padding:0 8px;"><a href="https://wa.me/551151944717" style="text-decoration:none;"><img src="https://cdn-icons-png.flaticon.com/512/733/733585.png" alt="WhatsApp" width="24" height="24"></a></td>
                 </tr>
               </table>
-
-              <!-- Links -->
               <p style="margin:0 0 12px;font-size:12px;">
                 <a href="https://www.fly2any.com?utm_source=email&utm_campaign=welcome_back" style="color:#FFFFFF;text-decoration:none;">Home</a>
                 <span style="color:#6B6B6B;"> • </span>
-                <a href="https://www.fly2any.com/support?utm_source=email&utm_campaign=welcome_back" style="color:#FFFFFF;text-decoration:none;">Support</a>
+                <a href="https://www.fly2any.com/faq?utm_source=email&utm_campaign=welcome_back" style="color:#FFFFFF;text-decoration:none;">Help</a>
                 <span style="color:#6B6B6B;"> • </span>
                 <a href="https://www.fly2any.com/privacy?utm_source=email&utm_campaign=welcome_back" style="color:#FFFFFF;text-decoration:none;">Privacy</a>
                 <span style="color:#6B6B6B;"> • </span>
+                <a href="https://www.fly2any.com/terms?utm_source=email&utm_campaign=welcome_back" style="color:#FFFFFF;text-decoration:none;">Terms</a>
+                <span style="color:#6B6B6B;"> • </span>
                 <a href="{{unsubscribe}}" style="color:#FFFFFF;text-decoration:none;">Unsubscribe</a>
               </p>
-
-              <!-- Address -->
-              <p style="margin:0;color:#6B6B6B;font-size:11px;line-height:1.5;">
-                Fly2Any, Inc.<br>
-                123 Travel Boulevard, Suite 100<br>
-                Miami, FL 33101, USA
-              </p>
-
-              <!-- Copyright -->
-              <p style="margin:16px 0 0;color:#6B6B6B;font-size:10px;">
-                © 2024 Fly2Any. All rights reserved.<br>
-                You're receiving this email because you signed up at fly2any.com
-              </p>
+              <p style="margin:0;color:#6B6B6B;font-size:11px;line-height:1.5;">Fly2Any, Inc.</p>
+              <p style="margin:16px 0 0;color:#6B6B6B;font-size:10px;">© 2024 Fly2Any. All rights reserved.</p>
             </td>
           </tr>
 
         </table>
-        <!-- End Main Content -->
-
       </td>
     </tr>
   </table>
