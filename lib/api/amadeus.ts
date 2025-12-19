@@ -1361,6 +1361,53 @@ class AmadeusAPI {
   }
 
   /**
+   * Get Hotel Offers by Hotel ID - Fetches detailed offers for a specific hotel
+   * Used for hotel details page when viewing an Amadeus hotel
+   */
+  async getHotelOffers(params: {
+    hotelId: string;
+    checkInDate: string;
+    checkOutDate: string;
+    adults: number;
+    roomQuantity?: number;
+  }) {
+    // Check credentials before attempting API call
+    if (!this.apiKey || !this.apiSecret) {
+      console.warn('⚠️  Amadeus API credentials not configured');
+      throw new Error('Amadeus API not configured');
+    }
+
+    const token = await this.getAccessToken();
+
+    try {
+      console.log(`🏨 [AMADEUS] Getting hotel offers for ${params.hotelId}...`);
+
+      const offersResponse = await axios.get(
+        `${this.baseUrl}/v3/shopping/hotel-offers`,
+        {
+          params: {
+            hotelIds: params.hotelId,
+            checkInDate: params.checkInDate,
+            checkOutDate: params.checkOutDate,
+            adults: params.adults,
+            roomQuantity: params.roomQuantity || 1,
+          },
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+          timeout: 15000,
+        }
+      );
+
+      console.log(`✅ [AMADEUS] Found ${offersResponse.data.data?.length || 0} hotel offers`);
+      return offersResponse.data;
+    } catch (error: any) {
+      console.error('Error getting hotel offers:', error.response?.data || error);
+      throw error;
+    }
+  }
+
+  /**
    * Transfer Search - Airport/City transfers using Amadeus Transfer Search API
    * Supports: PRIVATE, SHARED, TAXI, HOURLY, AIRPORT_EXPRESS, AIRPORT_BUS, HELICOPTER, PRIVATE_JET
    */

@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { duffelStaysAPI } from '@/lib/api/duffel-stays';
 import { mockDuffelStaysAPI } from '@/lib/api/mock-duffel-stays';
 import { liteAPI } from '@/lib/api/liteapi';
+import { amadeus } from '@/lib/api/amadeus';
 import { getCached, setCache, generateCacheKey } from '@/lib/cache';
 import { isDemoHotelId } from '@/lib/utils/demo-hotels';
 
@@ -10,6 +11,13 @@ import { isDemoHotelId } from '@/lib/utils/demo-hotels';
  */
 function isLiteAPIHotelId(hotelId: string): boolean {
   return hotelId.startsWith('lp') || hotelId.length <= 10;
+}
+
+/**
+ * Check if hotel ID is from Amadeus (starts with 'amadeus_' prefix)
+ */
+function isAmadeusHotelId(hotelId: string): boolean {
+  return hotelId.startsWith('amadeus_');
 }
 
 /**
@@ -54,6 +62,164 @@ export async function GET(
         },
         { status: 404 }
       );
+    }
+
+    // Check if this is an Amadeus hotel
+    if (isAmadeusHotelId(accommodationId)) {
+      console.log(`🏨 [AMADEUS] Fetching hotel details for ${accommodationId}`);
+
+      // Extract the real Amadeus hotel ID (remove 'amadeus_' prefix)
+      const amadeusHotelId = accommodationId.replace('amadeus_', '');
+
+      // Get query params for rates
+      const searchParams = request.nextUrl.searchParams;
+      const checkIn = searchParams.get('checkIn');
+      const checkOut = searchParams.get('checkOut');
+      const adults = parseInt(searchParams.get('adults') || '2', 10);
+      const cityCode = searchParams.get('cityCode') || '';
+
+      // Generate cache key
+      const cacheKey = generateCacheKey('hotels:amadeus:details:v2', {
+        id: amadeusHotelId,
+        checkIn: checkIn || 'none',
+        checkOut: checkOut || 'none',
+        adults,
+      });
+
+      // Try cache first
+      const cached = await getCached<any>(cacheKey);
+      if (cached && cached.data?.rates?.length > 0) {
+        console.log(`✅ Returning cached Amadeus hotel details for ${amadeusHotelId}`);
+        return NextResponse.json(cached, {
+          headers: {
+            'X-Cache-Status': 'HIT',
+            'X-API-Source': 'AMADEUS',
+            'Cache-Control': 'public, max-age=1800',
+          }
+        });
+      }
+
+      try {
+        // For Amadeus, we need to call the hotel-offers endpoint with the hotel ID
+        // This requires check-in/out dates
+        if (!checkIn || !checkOut) {
+          return NextResponse.json({
+            success: false,
+            error: 'Amadeus hotels require check-in and check-out dates',
+            message: 'Please search again with dates to view this hotel.',
+          }, { status: 400 });
+        }
+
+        // Get hotel offers for this specific hotel using the public method
+        const offersResponse = await amadeus.getHotelOffers({
+          hotelId: amadeusHotelId,
+          checkInDate: checkIn,
+          checkOutDate: checkOut,
+          adults,
+          roomQuantity: 1,
+        });
+
+        const hotelOffer = offersResponse?.data?.[0];
+        if (!hotelOffer) {
+          return NextResponse.json({
+            success: false,
+            error: 'Hotel not found or no availability',
+            message: 'This hotel is not available for the selected dates. Please try different dates.',
+          }, { status: 404 });
+        }
+
+        const hotel = hotelOffer.hotel;
+        const offers = hotelOffer.offers || [];
+
+        // Build images array from Amadeus media
+        const images = (hotel.media || []).map((m: any, idx: number) => ({
+          url: m.uri,
+          caption: `${hotel.name} - Photo ${idx + 1}`,
+        }));
+
+        // Extract amenities from hotel data
+        const amenities = hotel.amenities || [];
+
+        // Format rates from offers
+        const rates = offers.map((offer: any) => ({
+          id: offer.id,
+          offerId: offer.id,
+          roomName: offer.room?.typeEstimated?.category || 'Standard Room',
+          name: offer.room?.description?.text || 'Room',
+          bedType: offer.room?.typeEstimated?.beds
+            ? `${offer.room.typeEstimated.beds} ${offer.room.typeEstimated.bedType || ''}`
+            : 'Standard Bed',
+          maxGuests: adults,
+          totalPrice: {
+            amount: offer.price?.total || '0',
+            currency: offer.price?.currency || 'USD',
+          },
+          refundable: offer.policies?.cancellation?.type !== 'FULL_PENALTY',
+          breakfastIncluded: offer.boardType === 'BREAKFAST' || offer.boardType === 'ALL_INCLUSIVE',
+          amenities: [],
+          images: images.slice(0, 2),
+          allRates: [],
+        }));
+
+        // Sort by price
+        rates.sort((a: any, b: any) => parseFloat(a.totalPrice.amount) - parseFloat(b.totalPrice.amount));
+
+        const formattedResponse = {
+          data: {
+            id: accommodationId,
+            name: hotel.name,
+            description: hotel.description?.text || '',
+            address: {
+              street: hotel.address?.lines?.join(', ') || '',
+              city: hotel.cityCode || cityCode,
+              country: hotel.address?.countryCode || '',
+              lat: hotel.latitude,
+              lng: hotel.longitude,
+            },
+            location: {
+              lat: hotel.latitude,
+              lng: hotel.longitude,
+            },
+            starRating: parseInt(hotel.rating) || 4,
+            star_rating: parseInt(hotel.rating) || 4,
+            reviewRating: 0,
+            reviewCount: 0,
+            images,
+            photos: images.map((img: any) => img.url),
+            totalPhotos: images.length,
+            amenities,
+            checkIn,
+            checkOut,
+            source: 'Amadeus',
+            rates,
+          },
+          meta: {
+            lastUpdated: new Date().toISOString(),
+            source: 'Amadeus',
+            photoCount: images.length,
+          },
+        };
+
+        // Cache for 30 minutes
+        await setCache(cacheKey, formattedResponse, 1800);
+
+        return NextResponse.json(formattedResponse, {
+          headers: {
+            'X-Cache-Status': 'MISS',
+            'X-API-Source': 'AMADEUS',
+            'Cache-Control': 'public, max-age=1800',
+          }
+        });
+      } catch (error: any) {
+        console.error('❌ Amadeus hotel details error:', error.response?.data || error.message);
+
+        // Return user-friendly error
+        return NextResponse.json({
+          success: false,
+          error: 'Failed to fetch hotel details',
+          message: error.response?.data?.errors?.[0]?.detail || 'Unable to retrieve hotel information. Please try again.',
+        }, { status: 500 });
+      }
     }
 
     // Check if this is a LiteAPI hotel
