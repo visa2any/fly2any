@@ -192,7 +192,6 @@ export async function GET(request: NextRequest) {
           });
           if (results?.hotels?.[0]) {
             hotel = results.hotels[0];
-            source = 'liteapi';
           }
         } catch (liteErr) {
           console.log(`LiteAPI failed for ${dest.city}, trying Amadeus...`);

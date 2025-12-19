@@ -326,16 +326,29 @@ export function HotelSearchBar({ lang = 'en' }: HotelSearchBarProps) {
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
-  const handleSelectLocation = useCallback((suggestion: LocationSuggestion) => {
+  // Track if selection is in progress to prevent double-firing on touch devices
+  const isSelectingRef = useRef(false);
+
+  const handleSelectLocation = useCallback((suggestion: LocationSuggestion, e?: React.MouseEvent | React.TouchEvent) => {
+    // CRITICAL: Prevent event bubbling and default behavior to avoid race conditions
+    if (e) {
+      e.preventDefault();
+      e.stopPropagation();
+    }
+
+    // Guard against double-firing on touch devices (where both onTouchEnd and onMouseDown might fire)
+    if (isSelectingRef.current) return;
+    isSelectingRef.current = true;
+
     // Use city name for destination (better UX - shows full city name in input)
     const fullDestinationName = suggestion.type === 'city'
       ? suggestion.name
       : `${suggestion.name}, ${suggestion.city}`;
 
+    // Set all states in one batch to avoid race conditions
     setDestination(fullDestinationName);
     setDestinationQuery(fullDestinationName);
     setSelectedLocation({ lat: suggestion.location.lat, lng: suggestion.location.lng });
-    setShowDestinationDropdown(false);
     setSelectedIndex(-1);
     // Clear selected districts when changing destination
     setSelectedDistricts([]);
@@ -346,6 +359,17 @@ export function HotelSearchBar({ lang = 'en' }: HotelSearchBarProps) {
       emoji: suggestion.emoji,
       type: suggestion.type,
     });
+
+    // Close dropdown AFTER all states are set (use setTimeout to ensure state updates first)
+    setTimeout(() => {
+      setShowDestinationDropdown(false);
+      // Blur input to prevent focus issues
+      inputRef.current?.blur();
+      // Reset selection guard after a short delay
+      setTimeout(() => {
+        isSelectingRef.current = false;
+      }, 100);
+    }, 0);
   }, []);
 
   // Toggle district selection (multi-select)
@@ -625,7 +649,9 @@ export function HotelSearchBar({ lang = 'en' }: HotelSearchBarProps) {
                     {suggestions.map((suggestion, idx) => (
                       <button
                         key={suggestion.id || idx}
-                        onClick={() => handleSelectLocation(suggestion)}
+                        type="button"
+                        onMouseDown={(e) => handleSelectLocation(suggestion, e)}
+                        onTouchEnd={(e) => handleSelectLocation(suggestion, e)}
                         className={`w-full px-2 py-1.5 transition-colors flex items-center gap-2 text-left ${
                           selectedIndex === idx ? 'bg-primary-50' : 'hover:bg-neutral-50'
                         }`}
@@ -667,7 +693,9 @@ export function HotelSearchBar({ lang = 'en' }: HotelSearchBarProps) {
                       {popularDestinations.map((dest, idx) => (
                         <button
                           key={dest.id || idx}
-                          onClick={() => handleSelectLocation(dest)}
+                          type="button"
+                          onMouseDown={(e) => handleSelectLocation(dest, e)}
+                          onTouchEnd={(e) => handleSelectLocation(dest, e)}
                           className={`flex items-center gap-1 px-2.5 py-1 rounded-lg text-[11px] font-semibold whitespace-nowrap transition-all flex-shrink-0 ${
                             selectedIndex === idx
                               ? 'bg-primary-500 text-white'
@@ -692,14 +720,23 @@ export function HotelSearchBar({ lang = 'en' }: HotelSearchBarProps) {
                       {POPULAR_CITIES.map((city, idx) => (
                         <button
                           key={idx}
-                          onClick={() => handleSelectLocation({
+                          type="button"
+                          onMouseDown={(e) => handleSelectLocation({
                             id: `popular-${idx}`,
                             name: city.name,
                             city: city.name,
                             country: '',
                             location: { lat: city.lat, lng: city.lng },
                             type: 'city'
-                          })}
+                          }, e)}
+                          onTouchEnd={(e) => handleSelectLocation({
+                            id: `popular-${idx}`,
+                            name: city.name,
+                            city: city.name,
+                            country: '',
+                            location: { lat: city.lat, lng: city.lng },
+                            type: 'city'
+                          }, e)}
                           className={`flex items-center gap-1 px-2.5 py-1 rounded-lg text-[11px] font-semibold whitespace-nowrap transition-all flex-shrink-0 ${
                             selectedIndex === idx
                               ? 'bg-primary-500 text-white'
