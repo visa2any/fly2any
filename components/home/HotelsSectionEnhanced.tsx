@@ -164,7 +164,7 @@ const HotelCard = memo(({
         : hotel.mainImage ? [hotel.mainImage] : []
       }
       alt={hotel.name}
-      height="h-36 lg:h-44"
+      height="h-44 lg:h-44"
       showDots={hotel.images?.length > 1}
       showArrows={hotel.images?.length > 1}
       autoSlideOnHover={hotel.images?.length > 1}
