@@ -16,6 +16,7 @@ export type LocationType = 'airport' | 'city' | 'train_station' | 'hotel' | 'dow
 export interface LocationInfo {
   code: string;
   name: string;
+  address: string;
   city: string;
   country: string;
   countryCode: string; // ISO 3166-1 alpha-2
@@ -23,6 +24,80 @@ export interface LocationInfo {
   type: LocationType;
   timezone?: string;
 }
+
+// Major airport names database
+const airportNames: Record<string, { name: string; city: string }> = {
+  // USA
+  JFK: { name: 'John F. Kennedy International Airport', city: 'New York' },
+  LAX: { name: 'Los Angeles International Airport', city: 'Los Angeles' },
+  ORD: { name: "O'Hare International Airport", city: 'Chicago' },
+  DFW: { name: 'Dallas/Fort Worth International Airport', city: 'Dallas' },
+  ATL: { name: 'Hartsfield-Jackson Atlanta International Airport', city: 'Atlanta' },
+  MIA: { name: 'Miami International Airport', city: 'Miami' },
+  SFO: { name: 'San Francisco International Airport', city: 'San Francisco' },
+  SEA: { name: 'Seattle-Tacoma International Airport', city: 'Seattle' },
+  LAS: { name: 'Harry Reid International Airport', city: 'Las Vegas' },
+  MCO: { name: 'Orlando International Airport', city: 'Orlando' },
+  BOS: { name: 'Boston Logan International Airport', city: 'Boston' },
+  DEN: { name: 'Denver International Airport', city: 'Denver' },
+  PHX: { name: 'Phoenix Sky Harbor International Airport', city: 'Phoenix' },
+  IAH: { name: 'George Bush Intercontinental Airport', city: 'Houston' },
+  EWR: { name: 'Newark Liberty International Airport', city: 'Newark' },
+  // Brazil
+  BSB: { name: 'Brasília International Airport', city: 'Brasília' },
+  GRU: { name: 'São Paulo/Guarulhos International Airport', city: 'São Paulo' },
+  GIG: { name: 'Rio de Janeiro/Galeão International Airport', city: 'Rio de Janeiro' },
+  CGH: { name: 'São Paulo/Congonhas Airport', city: 'São Paulo' },
+  SDU: { name: 'Santos Dumont Airport', city: 'Rio de Janeiro' },
+  CNF: { name: 'Belo Horizonte/Confins International Airport', city: 'Belo Horizonte' },
+  POA: { name: 'Porto Alegre/Salgado Filho International Airport', city: 'Porto Alegre' },
+  REC: { name: 'Recife/Guararapes International Airport', city: 'Recife' },
+  SSA: { name: 'Salvador/Deputado Luís Eduardo Magalhães International Airport', city: 'Salvador' },
+  FOR: { name: 'Fortaleza/Pinto Martins International Airport', city: 'Fortaleza' },
+  CWB: { name: 'Curitiba/Afonso Pena International Airport', city: 'Curitiba' },
+  // Europe
+  LHR: { name: 'London Heathrow Airport', city: 'London' },
+  CDG: { name: 'Paris Charles de Gaulle Airport', city: 'Paris' },
+  FRA: { name: 'Frankfurt Airport', city: 'Frankfurt' },
+  AMS: { name: 'Amsterdam Schiphol Airport', city: 'Amsterdam' },
+  MAD: { name: 'Adolfo Suárez Madrid-Barajas Airport', city: 'Madrid' },
+  BCN: { name: 'Barcelona El Prat Airport', city: 'Barcelona' },
+  FCO: { name: 'Rome Fiumicino Airport', city: 'Rome' },
+  MUC: { name: 'Munich Airport', city: 'Munich' },
+  ZRH: { name: 'Zurich Airport', city: 'Zurich' },
+  LGW: { name: 'London Gatwick Airport', city: 'London' },
+  // Canada
+  YYZ: { name: 'Toronto Pearson International Airport', city: 'Toronto' },
+  YVR: { name: 'Vancouver International Airport', city: 'Vancouver' },
+  YUL: { name: 'Montréal-Trudeau International Airport', city: 'Montreal' },
+  YYC: { name: 'Calgary International Airport', city: 'Calgary' },
+  // Asia
+  NRT: { name: 'Narita International Airport', city: 'Tokyo' },
+  HND: { name: 'Tokyo Haneda Airport', city: 'Tokyo' },
+  ICN: { name: 'Incheon International Airport', city: 'Seoul' },
+  SIN: { name: 'Singapore Changi Airport', city: 'Singapore' },
+  HKG: { name: 'Hong Kong International Airport', city: 'Hong Kong' },
+  BKK: { name: 'Suvarnabhumi Airport', city: 'Bangkok' },
+  // Middle East
+  DXB: { name: 'Dubai International Airport', city: 'Dubai' },
+  AUH: { name: 'Abu Dhabi International Airport', city: 'Abu Dhabi' },
+  DOH: { name: 'Hamad International Airport', city: 'Doha' },
+  // Oceania
+  SYD: { name: 'Sydney Kingsford Smith Airport', city: 'Sydney' },
+  MEL: { name: 'Melbourne Airport', city: 'Melbourne' },
+  AKL: { name: 'Auckland Airport', city: 'Auckland' },
+  // LATAM
+  EZE: { name: 'Buenos Aires Ezeiza International Airport', city: 'Buenos Aires' },
+  SCL: { name: 'Santiago Arturo Merino Benítez Airport', city: 'Santiago' },
+  BOG: { name: 'El Dorado International Airport', city: 'Bogotá' },
+  LIM: { name: 'Jorge Chávez International Airport', city: 'Lima' },
+  MEX: { name: 'Mexico City International Airport', city: 'Mexico City' },
+  CUN: { name: 'Cancún International Airport', city: 'Cancún' },
+  // Africa
+  JNB: { name: "O.R. Tambo International Airport", city: 'Johannesburg' },
+  CPT: { name: 'Cape Town International Airport', city: 'Cape Town' },
+  NBO: { name: 'Jomo Kenyatta International Airport', city: 'Nairobi' },
+};
 
 // ============================================================================
 // ISO COUNTRY CODE TO REGION MAPPING (100% GLOBAL COVERAGE)
@@ -450,10 +525,19 @@ export function getLocationInfo(code: string, customCity?: string): LocationInfo
     locationType = 'train_station';
   }
 
+  // Get airport info from database or generate default
+  const airportInfo = airportNames[upperCode];
+  const cityName = customCity || airportInfo?.city || upperCode;
+  const locationName = airportInfo?.name || `${cityName} International Airport`;
+  const address = locationType === 'airport'
+    ? `${locationName}, Car Rental Center`
+    : `${cityName} Downtown, Main Car Rental Office`;
+
   return {
     code: upperCode,
-    name: customCity ? `${customCity} ${locationType === 'airport' ? 'Airport' : 'Downtown'}` : `${upperCode} ${locationType === 'airport' ? 'Airport' : 'Location'}`,
-    city: customCity || upperCode,
+    name: locationName,
+    address,
+    city: cityName,
     country: getCountryName(countryCode),
     countryCode,
     region,

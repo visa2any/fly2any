@@ -15,6 +15,9 @@ import { handleApiError } from '@/lib/monitoring/global-error-handler';
 // Global cities database - 500+ worldwide destinations with coordinates (SINGLE SOURCE OF TRUTH)
 import { GLOBAL_CITIES } from '@/lib/data/global-cities-database';
 
+// ✅ Region service for ISO-based global coverage
+import { getHotelRegionData, getRegionFromCountryCode } from '@/lib/location/region-service';
+
 // Build a fast lookup map from GLOBAL_CITIES for O(1) access
 const CITY_LOOKUP = new Map<string, { lat: number; lng: number; country: string }>();
 
@@ -605,6 +608,10 @@ export async function POST(request: NextRequest) {
       };
     });
 
+    // ✅ Get region-specific data using ISO country code
+    const regionData = countryCode ? getHotelRegionData(countryCode) : null;
+    const region = countryCode ? getRegionFromCountryCode(countryCode) : 'global';
+
     const response = {
       success: true,
       data: mappedHotels,
@@ -621,6 +628,20 @@ export async function POST(request: NextRequest) {
         usedMinRates: results.meta.usedMinRates,
         performance: 'Multi-API aggregation with price deduplication (LiteAPI + Amadeus + Hotelbeds)',
         hotelbedsProcessTime: results.meta.hotelbedsTime,
+        // ✅ ISO-based region data for 100% global coverage
+        region: {
+          code: region,
+          countryCode: countryCode || 'XX',
+          currency: regionData?.currency || 'USD',
+          currencySymbol: regionData?.currencySymbol || '$',
+          localChains: regionData?.localChains || [],
+          priorityAmenities: regionData?.popularAmenities || [],
+          checkInTime: regionData?.checkInTime || '14:00',
+          checkOutTime: regionData?.checkOutTime || '11:00',
+          tipping: regionData?.tipping || { percentage: 10, customary: false },
+          taxIncluded: regionData?.taxIncluded ?? false,
+          language: regionData?.languagePrimary || 'en',
+        },
       },
     };
 
