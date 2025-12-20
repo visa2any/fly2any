@@ -1529,19 +1529,27 @@ class AmadeusAPI {
       if (params.driverAge) searchParams.driverAge = params.driverAge;
       if (params.currency) searchParams.currency = params.currency;
 
-      console.log(`🚗 Searching car rentals at ${params.pickupLocationCode}...`);
+      console.log(`🚗 Searching car rentals at ${params.pickupLocationCode} (Amadeus ${this.environment})...`);
 
+      // Amadeus Car Rental API v2 - correct endpoint
       const response = await axios.get(
-        `${this.baseUrl}/v1/shopping/car-rentals`,
+        `${this.baseUrl}/v2/shopping/cars/offers`,
         {
-          params: searchParams,
+          params: {
+            pickUpLocationCode: searchParams.pickUpLocation,
+            pickUpDate: searchParams.pickUpDate,
+            pickUpTime: searchParams.pickUpTime || '10:00:00',
+            dropOffLocationCode: searchParams.dropOffLocation,
+            dropOffDate: searchParams.dropOffDate,
+            dropOffTime: searchParams.dropOffTime || '10:00:00',
+          },
           headers: {
             Authorization: `Bearer ${token}`,
           },
         }
       );
 
-      console.log(`✅ Found ${response.data.data?.length || 0} car rental options`);
+      console.log(`✅ Found ${response.data.data?.length || 0} car rental options from Amadeus`);
       return response.data;
     } catch (error: any) {
       // Handle 404 gracefully - endpoint may not be available in test mode
