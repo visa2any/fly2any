@@ -217,8 +217,28 @@ export async function POST(request: NextRequest) {
     } catch (dbError: any) {
       console.error(`❌ Database error saving car booking: ${dbError.message}`);
       console.error('Full error:', dbError);
-      // THROW error to let handleApiError catch it and send alerts
-      throw new Error(`DATABASE_ERROR: ${dbError.message}`);
+      // THROW error with full context for global error handler
+      const errorContext = {
+        type: 'CAR_BOOKING_DB_ERROR',
+        customer: {
+          email: bookingData.contactInfo?.email,
+          name: `${bookingData.driver?.firstName} ${bookingData.driver?.lastName}`,
+          phone: bookingData.contactInfo?.phone
+        },
+        product: {
+          car: car.name || car.model,
+          category: car.category,
+          vendor: car.vendorName || car.supplier,
+          pickup: bookingData.pickupLocation,
+          dates: `${pickupDate} - ${dropoffDate}`
+        },
+        payment: {
+          total: bookingData.payment?.total,
+          currency: bookingData.payment?.currency
+        },
+        bookingRef: bookingReference
+      };
+      throw new Error(`DATABASE_ERROR: ${dbError.message} | Context: ${JSON.stringify(errorContext)}`);
     }
 
     // ============================================
