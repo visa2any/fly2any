@@ -689,10 +689,13 @@ export function generateMockCarRentals(params: {
     // Assign a provider from the region's available providers
     const provider = providers[index % providers.length];
 
-    // Calculate prices
-    const totalPrice = car.basePricePerDay * days;
-    const basePrice = totalPrice * 0.85;
-    const taxes = totalPrice - basePrice;
+    // Calculate prices with markup: $30 or 20%, whichever is higher
+    const baseTotal = car.basePricePerDay * days;
+    const percentMarkup = baseTotal * 0.20;
+    const markup = Math.max(30, percentMarkup);
+    const customerTotal = baseTotal + markup;
+    const markupPercent = (markup / baseTotal) * 100;
+    const customerPerDay = customerTotal / days;
 
     // Get appropriate image for the EXACT vehicle model
     const imageURL = getVehicleImage(car.vehicle.description, car.vehicle.category);
@@ -707,10 +710,12 @@ export function generateMockCarRentals(params: {
       provider,
       price: {
         currency: 'USD',
-        total: totalPrice.toFixed(2),
-        perDay: car.basePricePerDay.toFixed(2),
-        base: basePrice.toFixed(2),
-        taxes: taxes.toFixed(2),
+        total: customerTotal.toFixed(2),
+        perDay: customerPerDay.toFixed(2),
+        // Admin-only pricing breakdown (for profit tracking)
+        baseAmount: baseTotal.toFixed(2),
+        markup: markup.toFixed(2),
+        markupPercent: Math.round(markupPercent * 10) / 10,
       },
       pickupLocation: {
         code: params.pickupLocation,

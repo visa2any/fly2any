@@ -77,10 +77,14 @@ export async function POST(request: NextRequest) {
     const dropoff = new Date(dropoffDate);
     const rentalDays = Math.ceil((dropoff.getTime() - pickup.getTime()) / (1000 * 60 * 60 * 24));
 
-    // Calculate total price
-    const basePrice = car.pricePerDay * rentalDays;
+    // Calculate total price with markup: $30 or 20%, whichever is higher
+    const supplierPrice = car.pricePerDay * rentalDays;
     const extrasTotal = extras?.reduce((sum: number, e: any) => sum + (e.price || 0), 0) || 0;
-    const totalPrice = basePrice + extrasTotal;
+    const baseAmount = supplierPrice + extrasTotal;
+    const percentMarkup = baseAmount * 0.20;
+    const markup = Math.max(30, percentMarkup);
+    const totalPrice = baseAmount + markup;
+    const markupPercent = (markup / baseAmount) * 100;
 
     // Generate booking reference
     const bookingReference = generateBookingReference();
@@ -156,6 +160,11 @@ export async function POST(request: NextRequest) {
         status: 'pending',
         amount: totalPrice,
         currency: 'USD',
+        // Profit tracking (admin visibility)
+        baseAmount: baseAmount,
+        markup: markup,
+        markupPercent: Math.round(markupPercent * 10) / 10,
+        profit: markup,
         cardLast4: payment?.cardNumber?.slice(-4) || null,
         cardBrand: payment?.cardBrand || null,
         cardholderName: payment?.cardholderName || `${driver.firstName} ${driver.lastName}`,

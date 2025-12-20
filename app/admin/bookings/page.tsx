@@ -22,6 +22,9 @@ import {
   MapPin,
   Ticket,
   FileCheck,
+  Compass,
+  Activity,
+  Bus,
 } from 'lucide-react';
 import type { BookingSummary } from '@/lib/bookings/types';
 
@@ -67,9 +70,11 @@ interface CarBooking {
   createdAt: string | Date;
 }
 
+type TabType = 'flights' | 'hotels' | 'cars' | 'tours' | 'activities' | 'transfers';
+
 export default function AdminBookingsPage() {
   // Tab state
-  const [activeTab, setActiveTab] = useState<'flights' | 'hotels' | 'cars'>('flights');
+  const [activeTab, setActiveTab] = useState<TabType>('flights');
 
   // Flight bookings state
   const [bookings, setBookings] = useState<BookingSummary[]>([]);
@@ -484,7 +489,7 @@ export default function AdminBookingsPage() {
           </button>
           <button
             onClick={() => setActiveTab('cars')}
-            className={`flex-1 px-6 py-3 rounded-xl font-semibold flex items-center justify-center gap-2 transition-all duration-300 ${
+            className={`flex-1 px-4 py-3 rounded-xl font-semibold flex items-center justify-center gap-2 transition-all duration-300 ${
               activeTab === 'cars'
                 ? 'bg-white text-emerald-600 shadow-lg shadow-gray-200/50'
                 : 'text-gray-500 hover:text-gray-700'
@@ -499,6 +504,39 @@ export default function AdminBookingsPage() {
                 {carStats.total}
               </span>
             )}
+          </button>
+          <button
+            onClick={() => setActiveTab('tours')}
+            className={`flex-1 px-4 py-3 rounded-xl font-semibold flex items-center justify-center gap-2 transition-all duration-300 ${
+              activeTab === 'tours'
+                ? 'bg-white text-purple-600 shadow-lg shadow-gray-200/50'
+                : 'text-gray-500 hover:text-gray-700'
+            }`}
+          >
+            <Compass className={`w-5 h-5 transition-transform duration-300 ${activeTab === 'tours' ? 'scale-110' : ''}`} />
+            Tours
+          </button>
+          <button
+            onClick={() => setActiveTab('activities')}
+            className={`flex-1 px-4 py-3 rounded-xl font-semibold flex items-center justify-center gap-2 transition-all duration-300 ${
+              activeTab === 'activities'
+                ? 'bg-white text-pink-600 shadow-lg shadow-gray-200/50'
+                : 'text-gray-500 hover:text-gray-700'
+            }`}
+          >
+            <Activity className={`w-5 h-5 transition-transform duration-300 ${activeTab === 'activities' ? 'scale-110' : ''}`} />
+            Activities
+          </button>
+          <button
+            onClick={() => setActiveTab('transfers')}
+            className={`flex-1 px-4 py-3 rounded-xl font-semibold flex items-center justify-center gap-2 transition-all duration-300 ${
+              activeTab === 'transfers'
+                ? 'bg-white text-cyan-600 shadow-lg shadow-gray-200/50'
+                : 'text-gray-500 hover:text-gray-700'
+            }`}
+          >
+            <Bus className={`w-5 h-5 transition-transform duration-300 ${activeTab === 'transfers' ? 'scale-110' : ''}`} />
+            Transfers
           </button>
         </div>
 
@@ -944,6 +982,36 @@ export default function AdminBookingsPage() {
                 </tbody>
               </table>
             </div>
+          </div>
+        )}
+
+        {/* Tours Tab - Coming Soon */}
+        {activeTab === 'tours' && (
+          <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-12 text-center">
+            <Compass className="w-16 h-16 text-purple-300 mx-auto mb-4" />
+            <h3 className="text-xl font-bold text-gray-800 mb-2">Tours Bookings</h3>
+            <p className="text-gray-500 mb-4">Tour booking management coming soon.</p>
+            <p className="text-sm text-gray-400">When customers book tours, reservations will appear here.</p>
+          </div>
+        )}
+
+        {/* Activities Tab - Coming Soon */}
+        {activeTab === 'activities' && (
+          <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-12 text-center">
+            <Activity className="w-16 h-16 text-pink-300 mx-auto mb-4" />
+            <h3 className="text-xl font-bold text-gray-800 mb-2">Activities Bookings</h3>
+            <p className="text-gray-500 mb-4">Activity booking management coming soon.</p>
+            <p className="text-sm text-gray-400">When customers book activities, reservations will appear here.</p>
+          </div>
+        )}
+
+        {/* Transfers Tab - Coming Soon */}
+        {activeTab === 'transfers' && (
+          <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-12 text-center">
+            <Bus className="w-16 h-16 text-cyan-300 mx-auto mb-4" />
+            <h3 className="text-xl font-bold text-gray-800 mb-2">Transfers Bookings</h3>
+            <p className="text-gray-500 mb-4">Transfer booking management coming soon.</p>
+            <p className="text-sm text-gray-400">When customers book transfers, reservations will appear here.</p>
           </div>
         )}
       </div>

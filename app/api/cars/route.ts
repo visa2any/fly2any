@@ -9,6 +9,29 @@ export const dynamic = 'force-dynamic';
 const isProductionAPI = process.env.AMADEUS_ENVIRONMENT === 'production';
 
 /**
+ * CAR RENTAL MARKUP POLICY
+ * Formula: $30 minimum OR 20% of base price, whichever is HIGHER
+ */
+function applyCarMarkup(basePrice: number): {
+  customerPrice: number;
+  baseAmount: number;
+  markup: number;
+  markupPercent: number;
+} {
+  const percentMarkup = basePrice * 0.20;
+  const markup = Math.max(30, percentMarkup);
+  const customerPrice = basePrice + markup;
+  const markupPercent = (markup / basePrice) * 100;
+
+  return {
+    customerPrice: Math.round(customerPrice * 100) / 100,
+    baseAmount: Math.round(basePrice * 100) / 100,
+    markup: Math.round(markup * 100) / 100,
+    markupPercent: Math.round(markupPercent * 10) / 10,
+  };
+}
+
+/**
  * Car Rental Search API
  *
  * Uses Amadeus Car Rental API v2 in production.
@@ -49,9 +72,15 @@ export async function GET(request: NextRequest) {
     if (result.data && result.data.length > 0) {
       console.log(`✅ Amadeus returned ${result.data.length} car rental options`);
 
-      // Transform Amadeus response to our format
+      // Transform Amadeus response to our format with markup
       const transformedData = {
-        data: result.data.map((offer: any, index: number) => ({
+        data: result.data.map((offer: any, index: number) => {
+          // Apply markup: $30 or 20%, whichever is higher
+          const baseTotal = parseFloat(offer.price?.total || offer.quotation?.totalPrice?.value || '0');
+          const days = Math.ceil((new Date(dropoffDate).getTime() - new Date(pickupDate).getTime()) / (1000 * 60 * 60 * 24)) || 1;
+          const pricing = applyCarMarkup(baseTotal);
+
+          return {
           id: offer.id || `CAR_${pickupLocation}_${index}`,
           vehicle: {
             description: offer.vehicle?.description || offer.vehicle?.name || 'Car Rental',
@@ -69,10 +98,12 @@ export async function GET(request: NextRequest) {
           },
           price: {
             currency: offer.price?.currency || 'USD',
-            total: offer.price?.total || offer.quotation?.totalPrice?.value || '0',
-            perDay: offer.price?.perDay || calculatePerDay(offer.price?.total, pickupDate, dropoffDate),
-            base: offer.price?.base || offer.price?.total || '0',
-            taxes: offer.price?.taxes || '0',
+            total: pricing.customerPrice.toFixed(2),
+            perDay: (pricing.customerPrice / days).toFixed(2),
+            // Admin-only pricing breakdown
+            baseAmount: pricing.baseAmount.toFixed(2),
+            markup: pricing.markup.toFixed(2),
+            markupPercent: pricing.markupPercent,
           },
           pickupLocation: {
             code: pickupLocation,
@@ -95,7 +126,8 @@ export async function GET(request: NextRequest) {
           features: offer.features || ['AC', 'Bluetooth'],
           rating: offer.rating || 4.5,
           reviewCount: offer.reviewCount || 100,
-        })),
+        };
+        }),
         meta: {
           count: result.data.length,
           source: 'amadeus_production',
