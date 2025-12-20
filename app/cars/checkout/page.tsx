@@ -663,6 +663,38 @@ function CarCheckoutContent() {
           </div>
         </div>
       </div>
+
+      {/* Mobile Sticky Footer - Level 6 Premium */}
+      <div className="lg:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-slate-200 shadow-lg z-50 safe-area-inset-bottom">
+        <div className="px-4 py-3 flex items-center justify-between gap-4">
+          <div className="flex-1">
+            <div className="flex items-baseline gap-1">
+              <span className="text-2xl font-bold text-primary-600">${totalPrice.toFixed(2)}</span>
+              <span className="text-xs text-slate-500">total</span>
+            </div>
+            <p className="text-xs text-slate-500">{rentalDays} day{rentalDays > 1 ? 's' : ''} · {car?.name}</p>
+          </div>
+          <button
+            onClick={step === 2 ? handleSubmit : () => setStep(2)}
+            disabled={(step === 1 && !isDriverValid) || (step === 2 && (!isPaymentValid || isSubmitting))}
+            className="px-6 py-3 bg-primary-600 text-white rounded-xl font-bold text-sm hover:bg-primary-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 min-w-[140px] justify-center"
+          >
+            {isSubmitting ? (
+              <Loader2 className="w-4 h-4 animate-spin" />
+            ) : step === 1 ? (
+              <>Continue</>
+            ) : (
+              <>
+                <Lock className="w-4 h-4" />
+                Book Now
+              </>
+            )}
+          </button>
+        </div>
+      </div>
+
+      {/* Bottom padding for mobile to account for sticky footer */}
+      <div className="lg:hidden h-20" />
     </div>
   );
 }
