@@ -12,7 +12,7 @@ export const dynamic = 'force-dynamic';
  */
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  context: { params: Promise<{ id: string }> }
 ) {
   // CRITICAL: Require admin authentication
   const authResult = await requireAdmin(request);
@@ -21,7 +21,8 @@ export async function GET(
   }
 
   try {
-    const { id } = params;
+    // Next.js 14+: params is now a Promise
+    const { id } = await context.params;
 
     console.log(`📋 Fetching booking: ${id}`);
 
@@ -67,10 +68,10 @@ export async function GET(
  */
 export async function PATCH(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  context: { params: Promise<{ id: string }> }
 ) {
   try {
-    const { id } = params;
+    const { id } = await context.params;
     const updates = await request.json();
 
     console.log(`📝 Updating booking: ${id}`, updates);
@@ -117,10 +118,10 @@ export async function PATCH(
  */
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  context: { params: Promise<{ id: string }> }
 ) {
   try {
-    const { id } = params;
+    const { id } = await context.params;
 
     console.log(`🗑️  Deleting booking: ${id}`);
 

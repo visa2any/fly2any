@@ -120,33 +120,35 @@ export default function AdminBookingsPage() {
       if (statusFilter !== 'all') {
         params.append('status', statusFilter);
       }
-      params.append('productType', 'car');
 
       const response = await fetch(`/api/admin/bookings?${params.toString()}`);
       if (!response.ok) throw new Error('Failed to fetch car bookings');
 
       const data = await response.json();
-      // Filter and transform car bookings from the general bookings response
+      // Filter car bookings - getSummaries returns productType: 'car' for car rentals
+      // It also returns carName, carCategory, pickupLocation, etc. directly
       const cars = (data.bookings || [])
-        .filter((b: any) => b.productType === 'car' || b.flight?.type === 'car_rental')
+        .filter((b: any) => b.productType === 'car')
         .map((b: any) => ({
           id: b.id,
           bookingReference: b.bookingReference,
-          carName: b.flight?.name || 'Unknown Car',
-          carCategory: b.flight?.category || 'Standard',
-          company: b.flight?.company || 'Unknown',
-          pickupLocation: b.flight?.rental?.pickupLocation || b.origin || '',
-          dropoffLocation: b.flight?.rental?.dropoffLocation || b.destination || '',
-          pickupDate: b.flight?.rental?.pickupDate || b.departureDate,
-          dropoffDate: b.flight?.rental?.dropoffDate || '',
-          rentalDays: b.flight?.rental?.rentalDays || 1,
+          // Use fields from getSummaries() - it already extracts these from flight JSON
+          carName: b.carName || 'Unknown Car',
+          carCategory: b.carCategory || 'Standard',
+          company: b.company || 'Unknown',
+          pickupLocation: b.pickupLocation || b.origin || '',
+          dropoffLocation: b.dropoffLocation || b.destination || '',
+          pickupDate: b.departureDate,
+          dropoffDate: b.dropoffDate || '',
+          rentalDays: b.rentalDays || 1,
           totalPrice: b.totalAmount || 0,
           currency: b.currency || 'USD',
-          driverFirstName: b.passengers?.[0]?.firstName || '',
-          driverLastName: b.passengers?.[0]?.lastName || '',
-          driverEmail: b.passengers?.[0]?.email || '',
+          // Customer info from summary
+          driverFirstName: b.customerName?.split(' ')[0] || '',
+          driverLastName: b.customerName?.split(' ').slice(1).join(' ') || '',
+          driverEmail: b.customerEmail || '',
           status: b.status,
-          paymentStatus: b.payment?.status || 'pending',
+          paymentStatus: 'pending',
           createdAt: b.createdAt,
         }));
 

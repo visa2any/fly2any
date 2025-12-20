@@ -175,36 +175,52 @@ export async function POST(request: NextRequest) {
       updatedAt: now,
     };
 
-    // Store in database
-    if (sql) {
-      try {
-        await sql`
-          INSERT INTO bookings (
-            id, booking_reference, status, user_id,
-            contact_info, flight, passengers, seats, payment,
-            product_type, product_id,
-            created_at, updated_at
-          ) VALUES (
-            ${bookingId},
-            ${bookingReference},
-            'pending',
-            ${session?.user?.id || null},
-            ${JSON.stringify(bookingData.contactInfo)},
-            ${JSON.stringify({ type: 'car_rental', ...bookingData.car, rental: bookingData.rental })},
-            ${JSON.stringify([bookingData.driver])},
-            ${JSON.stringify([])},
-            ${JSON.stringify(bookingData.payment)},
-            'car',
-            ${car.id || null},
-            ${now},
-            ${now}
-          )
-        `;
-        console.log(`✅ Car booking saved to database: ${bookingReference}`);
-      } catch (dbError: any) {
-        console.error(`❌ Database error: ${dbError.message}`);
-        // Continue - we'll store in memory as fallback
-      }
+    // Store in database - CRITICAL: Must succeed for booking to be valid
+    if (!sql) {
+      console.error('❌ Database not configured');
+      return NextResponse.json({
+        success: false,
+        error: 'DATABASE_ERROR',
+        message: 'Database connection not available'
+      }, { status: 500 });
+    }
+
+    try {
+      await sql`
+        INSERT INTO bookings (
+          id, booking_reference, status, user_id,
+          contact_info, flight, passengers, seats, payment,
+          product_type, product_id,
+          origin, destination, departure_date,
+          created_at, updated_at
+        ) VALUES (
+          ${bookingId},
+          ${bookingReference},
+          'pending',
+          ${session?.user?.id || null},
+          ${JSON.stringify(bookingData.contactInfo)},
+          ${JSON.stringify({ type: 'car_rental', ...bookingData.car, rental: bookingData.rental })},
+          ${JSON.stringify([bookingData.driver])},
+          ${JSON.stringify([])},
+          ${JSON.stringify(bookingData.payment)},
+          'car',
+          ${car.id || null},
+          ${pickupLocation},
+          ${dropoffLocation || pickupLocation},
+          ${pickupDate},
+          ${now},
+          ${now}
+        )
+      `;
+      console.log(`✅ Car booking saved to database: ${bookingReference}`);
+    } catch (dbError: any) {
+      console.error(`❌ Database error saving car booking: ${dbError.message}`);
+      console.error('Full error:', dbError);
+      return NextResponse.json({
+        success: false,
+        error: 'DATABASE_ERROR',
+        message: 'Failed to save car booking. Please try again.'
+      }, { status: 500 });
     }
 
     // ============================================
@@ -218,78 +234,166 @@ export async function POST(request: NextRequest) {
     });
 
     try {
+      // Build vehicle specs display
+      const vehicleSpecs = [
+        car.transmission && `${car.transmission}`,
+        car.passengers && `${car.passengers} seats`,
+        car.doors && `${car.doors} doors`,
+        car.luggage && `${car.luggage} bags`,
+        car.fuelType && `${car.fuelType}`,
+      ].filter(Boolean).join(' • ');
+
       const emailHtml = `
         <!DOCTYPE html>
         <html>
         <head>
           <meta charset="utf-8">
           <meta name="viewport" content="width=device-width, initial-scale=1.0">
+          <title>Car Rental Confirmation - ${bookingReference}</title>
         </head>
-        <body style="margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background-color: #f5f5f5;">
-          <div style="max-width: 600px; margin: 0 auto; padding: 20px;">
-            <div style="background: linear-gradient(135deg, #E74035 0%, #D63930 100%); padding: 30px; border-radius: 16px 16px 0 0; text-align: center;">
-              <h1 style="color: white; margin: 0; font-size: 24px;">🚗 Car Rental Booking Received</h1>
-              <p style="color: rgba(255,255,255,0.9); margin: 10px 0 0;">Reference: <strong>${bookingReference}</strong></p>
+        <body style="margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Segoe UI', Roboto, sans-serif; background-color: #f5f5f7; -webkit-font-smoothing: antialiased;">
+          <!-- Wrapper -->
+          <div style="max-width: 600px; margin: 0 auto; padding: 24px 16px;">
+
+            <!-- Logo Header -->
+            <div style="text-align: center; padding: 24px 0;">
+              <h1 style="margin: 0; font-size: 28px; font-weight: 700; color: #E74035; letter-spacing: -0.5px;">Fly2Any</h1>
+              <p style="margin: 4px 0 0; font-size: 13px; color: #86868b; font-weight: 500;">Car Rental Services</p>
             </div>
 
-            <div style="background: white; padding: 30px; border-radius: 0 0 16px 16px; box-shadow: 0 4px 20px rgba(0,0,0,0.08);">
-              <p style="font-size: 16px; color: #333; margin: 0 0 20px;">
-                Dear ${driver.firstName},
-              </p>
-              <p style="font-size: 16px; color: #333; margin: 0 0 20px;">
-                Thank you for your car rental booking! We've received your reservation and our team is processing your payment.
-              </p>
+            <!-- Main Card -->
+            <div style="background: white; border-radius: 20px; box-shadow: 0 2px 12px rgba(0,0,0,0.08); overflow: hidden;">
 
-              <div style="background: #f8f9fa; padding: 20px; border-radius: 12px; margin: 20px 0;">
-                <h3 style="margin: 0 0 15px; color: #E74035; font-size: 18px;">📋 Rental Details</h3>
-                <table style="width: 100%; font-size: 14px;">
-                  <tr>
-                    <td style="padding: 8px 0; color: #666;">Vehicle:</td>
-                    <td style="padding: 8px 0; color: #333; font-weight: 600; text-align: right;">${car.name}</td>
-                  </tr>
-                  <tr>
-                    <td style="padding: 8px 0; color: #666;">Category:</td>
-                    <td style="padding: 8px 0; color: #333; text-align: right;">${car.category}</td>
-                  </tr>
-                  <tr>
-                    <td style="padding: 8px 0; color: #666;">Company:</td>
-                    <td style="padding: 8px 0; color: #333; text-align: right;">${car.company}</td>
-                  </tr>
-                  <tr>
-                    <td style="padding: 8px 0; color: #666;">Pickup:</td>
-                    <td style="padding: 8px 0; color: #333; text-align: right;">${pickupLocation}<br><small>${pickupDateFormatted}</small></td>
-                  </tr>
-                  <tr>
-                    <td style="padding: 8px 0; color: #666;">Drop-off:</td>
-                    <td style="padding: 8px 0; color: #333; text-align: right;">${dropoffLocation || pickupLocation}<br><small>${dropoffDateFormatted}</small></td>
-                  </tr>
-                  <tr>
-                    <td style="padding: 8px 0; color: #666;">Duration:</td>
-                    <td style="padding: 8px 0; color: #333; text-align: right;">${rentalDays} day${rentalDays > 1 ? 's' : ''}</td>
-                  </tr>
-                </table>
+              <!-- Status Header -->
+              <div style="background: linear-gradient(135deg, #34C759 0%, #30B350 100%); padding: 28px 24px; text-align: center;">
+                <div style="width: 56px; height: 56px; background: rgba(255,255,255,0.2); border-radius: 50%; margin: 0 auto 16px; display: flex; align-items: center; justify-content: center;">
+                  <span style="font-size: 28px;">✓</span>
+                </div>
+                <h2 style="color: white; margin: 0; font-size: 22px; font-weight: 600;">Booking Received</h2>
+                <p style="color: rgba(255,255,255,0.9); margin: 8px 0 0; font-size: 14px;">We're processing your reservation</p>
               </div>
 
-              <div style="background: #E74035; color: white; padding: 20px; border-radius: 12px; text-align: center; margin: 20px 0;">
-                <p style="margin: 0 0 5px; font-size: 14px; opacity: 0.9;">Total Amount</p>
-                <p style="margin: 0; font-size: 32px; font-weight: bold;">$${totalPrice.toFixed(2)}</p>
+              <!-- Booking Reference -->
+              <div style="padding: 24px; background: #fafafa; border-bottom: 1px solid #f0f0f0; text-align: center;">
+                <p style="margin: 0 0 4px; font-size: 12px; color: #86868b; text-transform: uppercase; letter-spacing: 0.5px;">Confirmation Number</p>
+                <p style="margin: 0; font-size: 24px; font-weight: 700; color: #1d1d1f; letter-spacing: 2px; font-family: 'SF Mono', Monaco, monospace;">${bookingReference}</p>
               </div>
 
-              <div style="background: #fff3cd; border-left: 4px solid #ffc107; padding: 15px; border-radius: 4px; margin: 20px 0;">
-                <p style="margin: 0; font-size: 14px; color: #856404;">
-                  <strong>⏳ What's Next?</strong><br>
-                  Our team will verify your payment within 24 hours. You'll receive a confirmation email with your rental voucher once approved.
+              <!-- Content -->
+              <div style="padding: 24px;">
+
+                <!-- Greeting -->
+                <p style="font-size: 17px; color: #1d1d1f; margin: 0 0 20px; line-height: 1.5;">
+                  Hello <strong>${driver.firstName}</strong>,<br>
+                  Thank you for choosing Fly2Any for your car rental.
                 </p>
+
+                <!-- Vehicle Card -->
+                <div style="background: linear-gradient(135deg, #f8f9fa 0%, #f0f0f5 100%); border-radius: 16px; padding: 20px; margin: 20px 0;">
+                  <div style="display: flex; align-items: center; gap: 16px;">
+                    <div style="flex: 1;">
+                      <p style="margin: 0 0 4px; font-size: 11px; color: #86868b; text-transform: uppercase; letter-spacing: 0.5px;">${car.category}</p>
+                      <h3 style="margin: 0 0 6px; font-size: 20px; font-weight: 600; color: #1d1d1f;">${car.name}</h3>
+                      <p style="margin: 0 0 8px; font-size: 13px; color: #515154; font-weight: 500;">${car.company}</p>
+                      <p style="margin: 0; font-size: 12px; color: #86868b;">${vehicleSpecs}</p>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Rental Details -->
+                <div style="margin: 24px 0;">
+                  <h4 style="margin: 0 0 16px; font-size: 13px; color: #86868b; text-transform: uppercase; letter-spacing: 0.5px; font-weight: 600;">Rental Details</h4>
+
+                  <!-- Pickup -->
+                  <div style="display: flex; align-items: flex-start; margin-bottom: 16px; padding: 16px; background: #f5fff5; border-radius: 12px; border-left: 3px solid #34C759;">
+                    <div style="flex: 1;">
+                      <p style="margin: 0 0 2px; font-size: 11px; color: #34C759; text-transform: uppercase; font-weight: 600;">Pick-up</p>
+                      <p style="margin: 0 0 4px; font-size: 15px; color: #1d1d1f; font-weight: 600;">${pickupDateFormatted}</p>
+                      <p style="margin: 0; font-size: 13px; color: #515154;">${pickupTime || '10:00 AM'} • ${pickupLocation}</p>
+                    </div>
+                  </div>
+
+                  <!-- Dropoff -->
+                  <div style="display: flex; align-items: flex-start; padding: 16px; background: #fff5f5; border-radius: 12px; border-left: 3px solid #E74035;">
+                    <div style="flex: 1;">
+                      <p style="margin: 0 0 2px; font-size: 11px; color: #E74035; text-transform: uppercase; font-weight: 600;">Drop-off</p>
+                      <p style="margin: 0 0 4px; font-size: 15px; color: #1d1d1f; font-weight: 600;">${dropoffDateFormatted}</p>
+                      <p style="margin: 0; font-size: 13px; color: #515154;">${dropoffTime || '10:00 AM'} • ${dropoffLocation || pickupLocation}</p>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Duration & Price Summary -->
+                <div style="background: #1d1d1f; border-radius: 16px; padding: 20px; margin: 24px 0; text-align: center;">
+                  <div style="display: flex; justify-content: space-around; text-align: center;">
+                    <div>
+                      <p style="margin: 0 0 4px; font-size: 12px; color: #86868b;">Duration</p>
+                      <p style="margin: 0; font-size: 20px; font-weight: 700; color: white;">${rentalDays} Day${rentalDays > 1 ? 's' : ''}</p>
+                    </div>
+                    <div style="width: 1px; background: #3a3a3c;"></div>
+                    <div>
+                      <p style="margin: 0 0 4px; font-size: 12px; color: #86868b;">Total</p>
+                      <p style="margin: 0; font-size: 20px; font-weight: 700; color: #34C759;">$${totalPrice.toFixed(2)}</p>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Driver Info -->
+                <div style="margin: 24px 0;">
+                  <h4 style="margin: 0 0 16px; font-size: 13px; color: #86868b; text-transform: uppercase; letter-spacing: 0.5px; font-weight: 600;">Driver Information</h4>
+                  <table style="width: 100%; font-size: 14px; color: #1d1d1f;">
+                    <tr>
+                      <td style="padding: 8px 0; color: #86868b; width: 40%;">Name</td>
+                      <td style="padding: 8px 0; font-weight: 500; text-align: right;">${driver.firstName} ${driver.lastName}</td>
+                    </tr>
+                    <tr>
+                      <td style="padding: 8px 0; color: #86868b;">Email</td>
+                      <td style="padding: 8px 0; font-weight: 500; text-align: right;">${contactInfo.email}</td>
+                    </tr>
+                    <tr>
+                      <td style="padding: 8px 0; color: #86868b;">Phone</td>
+                      <td style="padding: 8px 0; font-weight: 500; text-align: right;">${contactInfo.phone || 'Not provided'}</td>
+                    </tr>
+                  </table>
+                </div>
+
+                <!-- What to Bring Section -->
+                <div style="background: #fffbeb; border-radius: 12px; padding: 16px; margin: 24px 0; border: 1px solid #fef3c7;">
+                  <h4 style="margin: 0 0 12px; font-size: 14px; color: #92400e; font-weight: 600;">What to Bring at Pick-up</h4>
+                  <ul style="margin: 0; padding: 0 0 0 20px; font-size: 13px; color: #78350f; line-height: 1.8;">
+                    <li>Valid driver's license (held for at least 1 year)</li>
+                    <li>Credit card in driver's name for security deposit</li>
+                    <li>Government-issued ID or passport</li>
+                    <li>Printed or digital booking confirmation</li>
+                  </ul>
+                </div>
+
+                <!-- Status Message -->
+                <div style="background: #f0f9ff; border-radius: 12px; padding: 16px; margin: 24px 0; border: 1px solid #bae6fd;">
+                  <div style="display: flex; align-items: flex-start; gap: 12px;">
+                    <span style="font-size: 20px;">⏳</span>
+                    <div>
+                      <h4 style="margin: 0 0 6px; font-size: 14px; color: #0369a1; font-weight: 600;">Payment Processing</h4>
+                      <p style="margin: 0; font-size: 13px; color: #0c4a6e; line-height: 1.5;">
+                        Our team is verifying your payment. You'll receive a confirmation email with your rental voucher within 24 hours.
+                      </p>
+                    </div>
+                  </div>
+                </div>
+
               </div>
-
-              <p style="font-size: 14px; color: #666; margin: 20px 0 0;">
-                If you have any questions, please contact us at <a href="mailto:support@fly2any.com" style="color: #E74035;">support@fly2any.com</a>
-              </p>
             </div>
 
-            <div style="text-align: center; padding: 20px; color: #999; font-size: 12px;">
-              <p style="margin: 0;">© ${new Date().getFullYear()} Fly2Any. All rights reserved.</p>
+            <!-- Footer -->
+            <div style="text-align: center; padding: 24px 16px;">
+              <p style="margin: 0 0 8px; font-size: 13px; color: #86868b;">Need help? Contact our support team</p>
+              <a href="mailto:support@fly2any.com" style="color: #E74035; font-size: 14px; font-weight: 600; text-decoration: none;">support@fly2any.com</a>
+              <div style="margin-top: 24px; padding-top: 24px; border-top: 1px solid #e5e5e5;">
+                <p style="margin: 0; font-size: 12px; color: #86868b;">© ${new Date().getFullYear()} Fly2Any. All rights reserved.</p>
+                <p style="margin: 8px 0 0; font-size: 11px; color: #aeaeb2;">Your trusted travel partner</p>
+              </div>
             </div>
+
           </div>
         </body>
         </html>
