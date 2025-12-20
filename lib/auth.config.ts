@@ -20,20 +20,26 @@ const getBcrypt = async () => {
   return bcrypt.default;
 };
 
-export const authConfig = {
-  providers: [
-    Google({
-      clientId: process.env.GOOGLE_CLIENT_ID!,
-      clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
+// Only create Google provider if credentials are configured
+const googleProvider = process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET
+  ? Google({
+      clientId: process.env.GOOGLE_CLIENT_ID,
+      clientSecret: process.env.GOOGLE_CLIENT_SECRET,
       authorization: {
         params: {
           prompt: 'consent',
           access_type: 'offline',
           response_type: 'code',
-          state: process.env.NEXTAUTH_SECRET, // Track admin-only requests
+          state: process.env.NEXTAUTH_SECRET,
         },
       },
-    }),
+    })
+  : null;
+
+export const authConfig = {
+  providers: [
+    // Only include Google if configured
+    ...(googleProvider ? [googleProvider] : []),
     Credentials({
       name: 'credentials',
       credentials: {
