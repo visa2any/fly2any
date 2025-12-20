@@ -111,10 +111,11 @@ interface CarCardProps {
 export function CarCard({ car, days, onSelect }: CarCardProps) {
   const [imageLoaded, setImageLoaded] = useState(false);
 
-  const totalPrice = car.totalPrice || car.pricePerDay * days;
-  const hasSavings = car.totalPrice && car.totalPrice < car.pricePerDay * days;
-  const savingsAmount = hasSavings ? (car.pricePerDay * days) - car.totalPrice! : 0;
-  const savingsPercent = hasSavings ? Math.round((savingsAmount / (car.pricePerDay * days)) * 100) : 0;
+  const totalPrice = Math.round((car.totalPrice || car.pricePerDay * days) * 100) / 100;
+  const originalPrice = Math.round(car.pricePerDay * days * 100) / 100;
+  const savingsAmount = Math.round((originalPrice - totalPrice) * 100) / 100;
+  const hasSavings = savingsAmount > 0.01; // Only show if savings > 1 cent
+  const savingsPercent = hasSavings ? Math.round((savingsAmount / originalPrice) * 100) : 0;
 
   const getCategoryColor = (category: string) => {
     const colors = {
@@ -302,19 +303,19 @@ export function CarCard({ car, days, onSelect }: CarCardProps) {
               <div className="flex items-baseline gap-2">
                 {hasSavings && (
                   <span className="text-lg text-slate-500 line-through font-medium">
-                    ${car.pricePerDay * days}
+                    ${originalPrice.toFixed(2)}
                   </span>
                 )}
                 <span className="text-3xl font-extrabold text-primary-600">
-                  ${totalPrice}
+                  ${totalPrice.toFixed(2)}
                 </span>
               </div>
               <p className="text-sm text-slate-600 mt-0.5">
-                ${car.pricePerDay}/day · {days} day{days > 1 ? 's' : ''}
+                ${car.pricePerDay.toFixed(2)}/day · {days} day{days > 1 ? 's' : ''}
               </p>
               {hasSavings && (
                 <p className="text-xs text-green-600 font-semibold mt-1">
-                  You save ${savingsAmount}
+                  You save ${savingsAmount.toFixed(2)}
                 </p>
               )}
             </div>

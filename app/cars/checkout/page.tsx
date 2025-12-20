@@ -731,9 +731,16 @@ function CarCheckoutContent() {
                     fill
                     className="object-cover"
                   />
+                ) : car.image?.startsWith('/') ? (
+                  <Image
+                    src={car.image}
+                    alt={car.name}
+                    fill
+                    className="object-contain p-4"
+                  />
                 ) : (
                   <div className="w-full h-full flex items-center justify-center text-6xl">
-                    {car.image || '🚗'}
+                    🚗
                   </div>
                 )}
               </div>
