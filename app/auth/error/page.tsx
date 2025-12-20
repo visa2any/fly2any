@@ -3,7 +3,7 @@
 import { useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { AlertCircle, ArrowLeft, Mail, RefreshCw } from 'lucide-react';
-import { Suspense } from 'react';
+import { Suspense, useEffect, useState } from 'react';
 
 // Error messages for different NextAuth error codes
 const errorMessages: Record<string, { title: string; message: string; action?: string }> = {
@@ -78,6 +78,41 @@ function ErrorContent() {
   const searchParams = useSearchParams();
   const errorCode = searchParams.get('error') || 'Default';
   const errorInfo = errorMessages[errorCode] || errorMessages.Default;
+  const [isPopup, setIsPopup] = useState(false);
+
+  useEffect(() => {
+    // Detect if in popup window
+    setIsPopup(window.opener !== null);
+
+    // If in popup, notify parent of error
+    if (window.opener) {
+      window.opener.postMessage({
+        type: 'GOOGLE_AUTH_ERROR',
+        error: errorInfo.message
+      }, window.location.origin);
+    }
+  }, [errorInfo.message]);
+
+  // In popup mode, show minimal error and auto-close option
+  if (isPopup) {
+    return (
+      <div className="min-h-screen bg-white flex items-center justify-center p-4">
+        <div className="text-center max-w-sm">
+          <div className="w-12 h-12 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
+            <AlertCircle className="w-6 h-6 text-red-600" />
+          </div>
+          <h2 className="text-lg font-semibold text-gray-900 mb-2">{errorInfo.title}</h2>
+          <p className="text-sm text-gray-600 mb-4">{errorInfo.message}</p>
+          <button
+            onClick={() => window.close()}
+            className="px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg text-sm"
+          >
+            Close Window
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-gray-50 to-gray-100 flex items-center justify-center p-4">
