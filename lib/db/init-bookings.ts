@@ -59,6 +59,11 @@ export async function initBookingsTables() {
     // Add deleted_at column if it doesn't exist (for existing tables)
     await sql`ALTER TABLE bookings ADD COLUMN IF NOT EXISTS deleted_at TIMESTAMP`;
 
+    // Add booking_type for car rentals, hotels, etc (CRITICAL for multi-product)
+    await sql`ALTER TABLE bookings ADD COLUMN IF NOT EXISTS booking_type VARCHAR(20) DEFAULT 'flight'`;
+    await sql`ALTER TABLE bookings ADD COLUMN IF NOT EXISTS travel_date_from DATE`;
+    await sql`ALTER TABLE bookings ADD COLUMN IF NOT EXISTS travel_date_to DATE`;
+
     // Add admin pricing columns for profit tracking (CRITICAL for business)
     await sql`ALTER TABLE bookings ADD COLUMN IF NOT EXISTS source_api VARCHAR(20)`;
     await sql`ALTER TABLE bookings ADD COLUMN IF NOT EXISTS duffel_order_id VARCHAR(255)`;
