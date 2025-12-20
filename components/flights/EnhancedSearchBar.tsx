@@ -2943,26 +2943,46 @@ export default function EnhancedSearchBar({
               )}
             </div>
 
-            {/* Date & Time */}
+            {/* Date & Time - Premium Button + Time Select */}
             <div className="flex-1">
               <label className="flex items-center gap-1.5 text-xs font-medium text-gray-700 mb-2">
                 <Calendar size={13} className="text-teal-600" />
                 <span>Date & Time</span>
               </label>
               <div className="flex gap-2">
-                <input
-                  type="date"
-                  value={carPickupDate}
-                  onChange={(e) => setCarPickupDate(e.target.value)}
-                  min={minDate}
-                  className="flex-1 px-3 py-4 bg-white border border-gray-300 rounded-lg hover:border-teal-500 focus:outline-none focus:ring-2 focus:ring-teal-500 transition-all text-sm font-medium"
-                />
-                <input
-                  type="time"
+                <button
+                  ref={transferDateRef}
+                  type="button"
+                  onClick={() => setShowTransferDatePicker(true)}
+                  className={`flex-1 px-3 py-3.5 rounded-lg cursor-pointer transition-all flex items-center gap-2.5 ${
+                    carPickupDate
+                      ? 'bg-teal-50 border border-teal-300 hover:border-teal-400 hover:shadow-sm'
+                      : 'bg-white border border-gray-300 hover:border-teal-500'
+                  }`}
+                >
+                  <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${carPickupDate ? 'bg-teal-500' : 'bg-neutral-100'}`}>
+                    <CalendarDays className={`w-4 h-4 ${carPickupDate ? 'text-white' : 'text-neutral-400'}`} />
+                  </div>
+                  <div className="text-left flex-1">
+                    {carPickupDate ? (
+                      <div className="font-bold text-neutral-800 text-sm">{format(new Date(carPickupDate), 'EEE, MMM d')}</div>
+                    ) : (
+                      <span className="text-sm text-neutral-400">Select date</span>
+                    )}
+                  </div>
+                </button>
+                <select
                   value={carPickupTime}
                   onChange={(e) => setCarPickupTime(e.target.value)}
-                  className="w-28 px-3 py-4 bg-white border border-gray-300 rounded-lg hover:border-teal-500 focus:outline-none focus:ring-2 focus:ring-teal-500 transition-all text-sm font-medium"
-                />
+                  className="w-24 px-2 py-3.5 bg-white border border-gray-300 rounded-lg hover:border-teal-500 focus:outline-none focus:ring-2 focus:ring-teal-500 transition-all text-sm font-semibold"
+                >
+                  {Array.from({ length: 48 }, (_, i) => {
+                    const hour = Math.floor(i / 2);
+                    const minute = i % 2 === 0 ? '00' : '30';
+                    const time = `${hour.toString().padStart(2, '0')}:${minute}`;
+                    return <option key={time} value={time}>{time}</option>;
+                  })}
+                </select>
               </div>
             </div>
 
@@ -3103,19 +3123,36 @@ export default function EnhancedSearchBar({
               )}
             </div>
 
-            {/* Tour Date */}
+            {/* Tour Date - Premium Button */}
             <div className="flex-1">
               <label className="flex items-center gap-1.5 text-xs font-medium text-gray-700 mb-2">
                 <Calendar size={13} className="text-orange-600" />
                 <span>When</span>
               </label>
-              <input
-                type="date"
-                value={checkInDate}
-                onChange={(e) => setCheckInDate(e.target.value)}
-                min={minDate}
-                className="w-full px-4 py-4 bg-white border border-gray-300 rounded-lg hover:border-orange-500 focus:outline-none focus:ring-2 focus:ring-orange-500 transition-all text-sm font-medium"
-              />
+              <button
+                ref={tourDateRef}
+                type="button"
+                onClick={() => setShowTourDatePicker(true)}
+                className={`w-full px-4 py-4 rounded-lg cursor-pointer transition-all flex items-center gap-3 ${
+                  checkInDate
+                    ? 'bg-orange-50 border border-orange-300 hover:border-orange-400 hover:shadow-sm'
+                    : 'bg-white border border-gray-300 hover:border-orange-500'
+                }`}
+              >
+                <div className={`w-9 h-9 rounded-lg flex items-center justify-center ${checkInDate ? 'bg-orange-500' : 'bg-neutral-100'}`}>
+                  <CalendarDays className={`w-4 h-4 ${checkInDate ? 'text-white' : 'text-neutral-400'}`} />
+                </div>
+                <div className="text-left flex-1">
+                  {checkInDate ? (
+                    <>
+                      <div className="font-bold text-neutral-800 text-sm">{format(new Date(checkInDate), 'EEE, MMM d, yyyy')}</div>
+                      <div className="text-[10px] text-neutral-500">Tour date</div>
+                    </>
+                  ) : (
+                    <span className="text-sm text-neutral-400">Select date</span>
+                  )}
+                </div>
+              </button>
             </div>
 
             {/* Travelers */}
@@ -3256,19 +3293,36 @@ export default function EnhancedSearchBar({
               )}
             </div>
 
-            {/* Activity Date */}
+            {/* Activity Date - Premium Button */}
             <div className="flex-1">
               <label className="flex items-center gap-1.5 text-xs font-medium text-gray-700 mb-2">
                 <Calendar size={13} className="text-purple-600" />
                 <span>When</span>
               </label>
-              <input
-                type="date"
-                value={checkInDate}
-                onChange={(e) => setCheckInDate(e.target.value)}
-                min={minDate}
-                className="w-full px-4 py-4 bg-white border border-gray-300 rounded-lg hover:border-purple-500 focus:outline-none focus:ring-2 focus:ring-purple-500 transition-all text-sm font-medium"
-              />
+              <button
+                ref={activityDateRef}
+                type="button"
+                onClick={() => setShowActivityDatePicker(true)}
+                className={`w-full px-4 py-4 rounded-lg cursor-pointer transition-all flex items-center gap-3 ${
+                  checkInDate
+                    ? 'bg-purple-50 border border-purple-300 hover:border-purple-400 hover:shadow-sm'
+                    : 'bg-white border border-gray-300 hover:border-purple-500'
+                }`}
+              >
+                <div className={`w-9 h-9 rounded-lg flex items-center justify-center ${checkInDate ? 'bg-purple-500' : 'bg-neutral-100'}`}>
+                  <CalendarDays className={`w-4 h-4 ${checkInDate ? 'text-white' : 'text-neutral-400'}`} />
+                </div>
+                <div className="text-left flex-1">
+                  {checkInDate ? (
+                    <>
+                      <div className="font-bold text-neutral-800 text-sm">{format(new Date(checkInDate), 'EEE, MMM d, yyyy')}</div>
+                      <div className="text-[10px] text-neutral-500">Activity date</div>
+                    </>
+                  ) : (
+                    <span className="text-sm text-neutral-400">Select date</span>
+                  )}
+                </div>
+              </button>
             </div>
 
             {/* Participants */}
