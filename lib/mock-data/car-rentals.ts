@@ -700,6 +700,9 @@ export function generateMockCarRentals(params: {
     // Get appropriate image for the EXACT vehicle model
     const imageURL = getVehicleImage(car.vehicle.description, car.vehicle.category);
 
+    // Check if one-way rental (different pickup/dropoff)
+    const isOneWay = params.dropoffLocation && params.dropoffLocation !== params.pickupLocation;
+
     return {
       id: `CAR_${params.pickupLocation}_${car.acrissCode}_${index + 1}_${Date.now()}`,
       vehicle: {
@@ -720,22 +723,72 @@ export function generateMockCarRentals(params: {
       pickupLocation: {
         code: params.pickupLocation,
         name: pickupInfo.name || `${params.pickupLocation} Airport`,
-        address: pickupInfo.address || `${params.pickupLocation} International Airport, Car Rental Center`,
+        address: pickupInfo.address || `${params.pickupLocation} International Airport, Car Rental Center, Terminal B`,
+        phone: '+1 (800) 555-0123',
+        email: `rentals@${provider.companyName.toLowerCase().replace(/\s+/g, '')}.com`,
+        hours: '6:00 AM - 11:00 PM',
+        coordinates: { lat: 40.6413 + (Math.random() * 0.1 - 0.05), lng: -73.7781 + (Math.random() * 0.1 - 0.05) },
       },
       dropoffLocation: {
         code: dropoffCode,
         name: dropoffInfo.name || `${dropoffCode} Airport`,
-        address: dropoffInfo.address || `${dropoffCode} International Airport, Car Rental Center`,
+        address: dropoffInfo.address || `${dropoffCode} International Airport, Car Rental Center, Terminal B`,
+        phone: '+1 (800) 555-0124',
+        email: `rentals@${provider.companyName.toLowerCase().replace(/\s+/g, '')}.com`,
+        hours: '6:00 AM - 11:00 PM',
+        coordinates: { lat: 40.6413 + (Math.random() * 0.1 - 0.05), lng: -73.7781 + (Math.random() * 0.1 - 0.05) },
       },
       pickupDateTime: `${params.pickupDate}T${params.pickupTime || '10:00:00'}`,
       dropoffDateTime: `${params.dropoffDate}T${params.dropoffTime || '10:00:00'}`,
+      // COMPREHENSIVE RENTAL POLICIES
       mileage: {
         unlimited: true,
+        included: 'Unlimited',
         unit: region === 'usa' ? 'miles' : 'km',
+        extraMileageCost: null,
       },
       insurance: {
         included: ['LUXURY', 'PREMIUM', 'ELECTRIC'].includes(car.vehicle.category),
-        type: ['LUXURY', 'PREMIUM', 'ELECTRIC'].includes(car.vehicle.category) ? 'Comprehensive CDW' : undefined,
+        cdwIncluded: ['LUXURY', 'PREMIUM', 'ELECTRIC'].includes(car.vehicle.category),
+        theftProtection: ['LUXURY', 'PREMIUM', 'ELECTRIC'].includes(car.vehicle.category),
+        liabilityAmount: '$1,000,000',
+        deductible: ['LUXURY', 'PREMIUM', 'ELECTRIC'].includes(car.vehicle.category) ? '$0' : '$500',
+        type: ['LUXURY', 'PREMIUM', 'ELECTRIC'].includes(car.vehicle.category) ? 'Comprehensive CDW' : 'Basic Liability',
+      },
+      fuelPolicy: {
+        type: 'FULL_TO_FULL',
+        description: 'Full tank provided, return full',
+        fuelType: car.vehicle.fuelType,
+      },
+      driverRequirements: {
+        minimumAge: ['LUXURY', 'PREMIUM', 'CONVERTIBLE'].includes(car.vehicle.category) ? 25 : 21,
+        youngDriverAge: 25,
+        youngDriverFee: car.vehicle.category === 'LUXURY' ? '$35/day' : '$25/day',
+        licenseHeldYears: 1,
+      },
+      cancellation: {
+        freeCancellationHours: 48,
+        policy: 'Free cancellation up to 48 hours before pickup',
+        noShowFee: '100% of rental cost',
+      },
+      additionalFees: {
+        additionalDriver: '$15/day',
+        gps: '$10/day',
+        childSeat: '$12/day',
+        tollPass: '$8/day',
+        oneWayFee: isOneWay ? '$50-$150' : null,
+      },
+      termsAndConditions: {
+        depositRequired: true,
+        depositAmount: getDepositByVehicleCategory(car.vehicle.category),
+        depositCurrency: 'USD',
+        depositType: 'Credit Card Hold (Pre-authorization)',
+        depositNote: 'This hold will be released within 5-7 business days after vehicle return',
+        creditCardOnly: true,
+        debitCardAccepted: false,
+        inspectionRequired: true,
+        gracePeriodMinutes: 29,
+        lateReturnFee: 'Additional day rate after 29 minutes',
       },
       features: car.features,
       rating: car.rating,
@@ -780,6 +833,27 @@ export function generateMockCarRentals(params: {
 // ============================================================================
 // HELPER FUNCTIONS
 // ============================================================================
+// Helper: Get security deposit amount by vehicle category
+function getDepositByVehicleCategory(category: string): string {
+  const deposits: Record<string, string> = {
+    'ECONOMY': '$200',
+    'COMPACT': '$250',
+    'STANDARD': '$300',
+    'INTERMEDIATE': '$300',
+    'FULLSIZE': '$350',
+    'FULLSIZE_SUV': '$450',
+    'SUV': '$400',
+    'PREMIUM': '$500',
+    'LUXURY': '$750',
+    'CONVERTIBLE': '$500',
+    'VAN': '$350',
+    'ELECTRIC': '$500',
+    'PICKUP': '$400',
+    'WAGON': '$300',
+  };
+  return deposits[category?.toUpperCase()] || '$300';
+}
+
 function calculateDays(startDate: string, endDate: string): number {
   const start = new Date(startDate);
   const end = new Date(endDate);

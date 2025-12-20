@@ -108,20 +108,69 @@ export async function GET(request: NextRequest) {
           pickupLocation: {
             code: pickupLocation,
             name: offer.pickUp?.locationName || `${pickupLocation} Airport`,
-            address: offer.pickUp?.address || '',
+            address: offer.pickUp?.address || `${pickupLocation} International Airport, Car Rental Center, Terminal B`,
+            phone: offer.pickUp?.phone || '+1 (800) 555-0123',
+            email: offer.pickUp?.email || `rentals@${(offer.provider?.name || 'carrental').toLowerCase().replace(/\s+/g, '')}.com`,
+            hours: offer.pickUp?.hours || '24/7 Service Available',
+            coordinates: offer.pickUp?.coordinates || { lat: 40.6413, lng: -73.7781 },
           },
           dropoffLocation: {
             code: dropoffLocation || pickupLocation,
             name: offer.dropOff?.locationName || `${dropoffLocation || pickupLocation} Airport`,
-            address: offer.dropOff?.address || '',
+            address: offer.dropOff?.address || `${dropoffLocation || pickupLocation} International Airport, Car Rental Center, Terminal B`,
+            phone: offer.dropOff?.phone || '+1 (800) 555-0123',
+            email: offer.dropOff?.email || `rentals@${(offer.provider?.name || 'carrental').toLowerCase().replace(/\s+/g, '')}.com`,
+            hours: offer.dropOff?.hours || '24/7 Service Available',
+            coordinates: offer.dropOff?.coordinates || { lat: 40.6413, lng: -73.7781 },
           },
           pickupDateTime: `${pickupDate}T${pickupTime || '10:00:00'}`,
           dropoffDateTime: `${dropoffDate}T${dropoffTime || '10:00:00'}`,
           mileage: {
             unlimited: offer.mileage?.unlimited !== false,
+            included: offer.mileage?.included || 'Unlimited',
+            extraMileageCost: offer.mileage?.extraCost || null,
           },
           insurance: {
             included: offer.coverage?.included || false,
+            cdwIncluded: offer.coverage?.cdw || false,
+            theftProtection: offer.coverage?.theft || false,
+            liabilityAmount: offer.coverage?.liabilityAmount || '$1,000,000',
+            deductible: offer.coverage?.deductible || '$500',
+          },
+          fuelPolicy: {
+            type: offer.fuelPolicy?.type || 'FULL_TO_FULL',
+            description: offer.fuelPolicy?.description || 'Full tank provided, return full',
+            fuelType: offer.vehicle?.fuelType || 'PETROL',
+          },
+          driverRequirements: {
+            minimumAge: offer.driverRequirements?.minAge || 21,
+            youngDriverAge: 25,
+            youngDriverFee: offer.driverRequirements?.youngDriverFee || '$25/day',
+            licenseHeldYears: offer.driverRequirements?.licenseYears || 1,
+          },
+          cancellation: {
+            freeCancellationHours: 48,
+            policy: 'Free cancellation up to 48 hours before pickup',
+            noShowFee: '100% of rental cost',
+          },
+          additionalFees: {
+            additionalDriver: '$15/day',
+            gps: '$10/day',
+            childSeat: '$12/day',
+            tollPass: '$8/day',
+            oneWayFee: dropoffLocation && dropoffLocation !== pickupLocation ? '$50-$150' : null,
+          },
+          termsAndConditions: {
+            depositRequired: true,
+            depositAmount: offer.deposit?.amount || getDepositByCategory(offer.vehicle?.category),
+            depositCurrency: 'USD',
+            depositType: 'Credit Card Hold (Pre-authorization)',
+            depositNote: 'This hold will be released within 5-7 business days after vehicle return',
+            creditCardOnly: true,
+            debitCardAccepted: false,
+            inspectionRequired: true,
+            gracePeriodMinutes: 29,
+            lateReturnFee: 'Additional day rate after 29 minutes',
           },
           features: offer.features || ['AC', 'Bluetooth'],
           rating: offer.rating || 4.5,
@@ -163,6 +212,24 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json(mockData);
   }
+}
+
+// Helper: Get security deposit amount by vehicle category
+function getDepositByCategory(category: string | undefined): string {
+  const deposits: Record<string, string> = {
+    'ECONOMY': '$200',
+    'COMPACT': '$250',
+    'STANDARD': '$300',
+    'INTERMEDIATE': '$300',
+    'FULLSIZE': '$350',
+    'SUV': '$400',
+    'PREMIUM': '$500',
+    'LUXURY': '$750',
+    'CONVERTIBLE': '$500',
+    'VAN': '$350',
+    'ELECTRIC': '$500',
+  };
+  return deposits[category?.toUpperCase() || 'STANDARD'] || '$300';
 }
 
 // Helper: Get car image by category

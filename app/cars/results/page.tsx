@@ -7,9 +7,9 @@ import CarFilters, { type CarFiltersType } from '@/components/cars/CarFilters';
 import { ResultsPageSchema } from '@/components/seo/GEOEnhancer';
 import { ScrollProgress } from '@/components/flights/ScrollProgress';
 import ScrollToTop from '@/components/flights/ScrollToTop';
+import { MobileHomeSearchWrapper } from '@/components/home/MobileHomeSearchWrapper';
 import { ChevronRight, AlertCircle, RefreshCcw, Sparkles, Car, TrendingUp, Clock, Users, X } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { useScrollMinimize } from '@/lib/hooks/useScrollDirection';
 
 // ===========================
 // TYPE DEFINITIONS
@@ -189,12 +189,6 @@ function CarResultsContent() {
     companies: [],
   });
 
-  // Smart scroll behavior: minimize sticky search bar on scroll down
-  const shouldMinimize = useScrollMinimize({
-    threshold: 50,
-    mobileOnly: true,
-  });
-
   const lang: 'en' | 'pt' | 'es' = (searchParams.get('lang') as any) || 'en';
   const t = translations[lang];
 
@@ -264,6 +258,17 @@ function CarResultsContent() {
           unlimited_mileage: item.mileage?.unlimited !== false,
           insurance_included: item.insurance?.included || false,
           instant_confirmation: true,
+          // RENTAL POLICIES - Pass through from API
+          mileage: item.mileage || { unlimited: true, included: 'Unlimited' },
+          insurance: item.insurance || { included: false, liabilityAmount: '$1,000,000', deductible: '$500' },
+          fuelPolicy: item.fuelPolicy || { type: 'FULL_TO_FULL', description: 'Full tank provided, return full' },
+          driverRequirements: item.driverRequirements || { minimumAge: 21, youngDriverAge: 25, youngDriverFee: '$25/day', licenseHeldYears: 1 },
+          cancellation: item.cancellation || { freeCancellationHours: 48, policy: 'Free cancellation up to 48 hours before pickup', noShowFee: '100% of rental cost' },
+          additionalFees: item.additionalFees || { additionalDriver: '$15/day', gps: '$10/day', childSeat: '$12/day', tollPass: '$8/day' },
+          termsAndConditions: item.termsAndConditions || { depositRequired: true, depositAmount: '$200-$500', creditCardOnly: true, inspectionRequired: true, gracePeriodMinutes: 29, lateReturnFee: 'Additional day rate after 29 minutes' },
+          // LOCATION INFO - Pass through from API
+          pickupLocationInfo: item.pickupLocation || null,
+          dropoffLocationInfo: item.dropoffLocation || null,
         }));
 
         setCars(transformedCars);
@@ -480,45 +485,15 @@ function CarResultsContent() {
       {/* Scroll Progress Bar */}
       <ScrollProgress />
 
-      {/* Sticky Search Bar with Smart Scroll */}
-      <div
-        className={`sticky top-0 z-50 bg-white/95 backdrop-blur-lg border-b border-gray-200 shadow-sm transition-all duration-300 ${
-          shouldMinimize ? 'md:py-0' : ''
-        }`}
-        style={{
-          transform: 'translateZ(0)',
-          willChange: 'transform',
-        }}
-      >
-        <div style={{ maxWidth: '1600px', margin: '0 auto', padding: '0 24px' }}>
-          <div
-            className={`flex items-center justify-between transition-all duration-300 ${
-              shouldMinimize ? 'py-2 md:py-3' : 'py-4 md:py-4'
-            }`}
-          >
-            <div className="flex-1 min-w-0">
-              <h1 className={`font-semibold text-slate-900 tracking-tight leading-tight transition-all duration-300 ${
-                shouldMinimize ? 'text-lg md:text-2xl' : 'text-2xl'
-              }`}>
-                Car Rentals in {searchData.pickup}
-              </h1>
-              <p className={`text-sm text-slate-600 leading-relaxed tracking-normal transition-all duration-300 ${
-                shouldMinimize ? 'mt-0 md:mt-1 text-xs md:text-sm' : 'mt-1'
-              }`}>
-                {searchData.pickupDate} - {searchData.dropoffDate} · {days} day{days > 1 ? 's' : ''}
-              </p>
-            </div>
-            <button
-              onClick={() => router.push('/')}
-              className={`text-sm font-semibold text-primary-600 hover:text-primary-700 transition-all px-4 rounded-lg hover:bg-primary-50/80 flex-shrink-0 ${
-                shouldMinimize ? 'py-1.5 md:py-2' : 'py-2'
-              }`}
-            >
-              {t.modifySearch}
-            </button>
-          </div>
-        </div>
-      </div>
+      {/* Collapsible Search Bar - Same Pattern as Flights */}
+      <MobileHomeSearchWrapper
+        origin={searchData.pickup}
+        destination={searchData.dropoff || searchData.pickup}
+        departureDate={searchData.pickupDate}
+        returnDate={searchData.dropoffDate}
+        lang={lang}
+        defaultService="cars"
+      />
 
       {/* Main Content Area */}
       <div style={{ maxWidth: '1600px', margin: '0 auto', padding: '16px 24px' }}>

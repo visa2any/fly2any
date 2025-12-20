@@ -32,6 +32,70 @@ export interface CarRental {
   available?: number;
   insurance_included?: boolean;
   instant_confirmation?: boolean;
+  // Rental policies from API
+  mileage?: {
+    unlimited?: boolean;
+    included?: string;
+    extraMileageCost?: string | null;
+  };
+  insurance?: {
+    included?: boolean;
+    cdwIncluded?: boolean;
+    theftProtection?: boolean;
+    liabilityAmount?: string;
+    deductible?: string;
+    type?: string;
+  };
+  fuelPolicy?: {
+    type?: string;
+    description?: string;
+    fuelType?: string;
+  };
+  driverRequirements?: {
+    minimumAge?: number;
+    youngDriverAge?: number;
+    youngDriverFee?: string;
+    licenseHeldYears?: number;
+  };
+  cancellation?: {
+    freeCancellationHours?: number;
+    policy?: string;
+    noShowFee?: string;
+  };
+  additionalFees?: {
+    additionalDriver?: string;
+    gps?: string;
+    childSeat?: string;
+    tollPass?: string;
+    oneWayFee?: string | null;
+  };
+  termsAndConditions?: {
+    depositRequired?: boolean;
+    depositAmount?: string;
+    creditCardOnly?: boolean;
+    inspectionRequired?: boolean;
+    gracePeriodMinutes?: number;
+    lateReturnFee?: string;
+  };
+  // Location info with contact details
+  pickupLocationInfo?: {
+    code?: string;
+    name?: string;
+    address?: string;
+    phone?: string;
+    email?: string;
+    hours?: string;
+    coordinates?: { lat: number; lng: number };
+  };
+  dropoffLocationInfo?: {
+    code?: string;
+    name?: string;
+    address?: string;
+    phone?: string;
+    email?: string;
+    hours?: string;
+    coordinates?: { lat: number; lng: number };
+  };
 }
 
 interface CarCardProps {
@@ -91,8 +155,17 @@ export function CarCard({ car, days, onSelect }: CarCardProps) {
               sizes="(max-width: 768px) 100vw, 320px"
               onLoad={() => setImageLoaded(true)}
             />
+          ) : typeof car.image === 'string' && car.image.startsWith('/') ? (
+            <Image
+              src={car.image}
+              alt={car.name}
+              fill
+              className="object-contain p-4"
+              sizes="(max-width: 768px) 100vw, 320px"
+              onLoad={() => setImageLoaded(true)}
+            />
           ) : (
-            <div className="text-8xl">{car.image || '🚗'}</div>
+            <div className="text-8xl">{typeof car.image === 'string' && car.image.length === 1 ? car.image : '🚗'}</div>
           )}
 
           {/* Category Badge */}

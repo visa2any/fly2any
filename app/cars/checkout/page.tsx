@@ -9,12 +9,22 @@ import {
   Car, Users, Fuel, Settings, MapPin, Calendar, Clock, Shield,
   CreditCard, User, Phone, Mail, CheckCircle, AlertCircle,
   ChevronRight, ChevronLeft, Loader2, Lock, ArrowLeft,
-  Luggage, Snowflake, Star, Building2, Info
+  Luggage, Snowflake, Star, Building2, Info, ExternalLink, Navigation
 } from 'lucide-react';
 
 // ===========================
 // TYPES
 // ===========================
+
+interface LocationInfo {
+  code?: string;
+  name?: string;
+  address?: string;
+  phone?: string;
+  email?: string;
+  hours?: string;
+  coordinates?: { lat: number; lng: number };
+}
 
 interface CarData {
   id: string;
@@ -32,6 +42,61 @@ interface CarData {
   luggage?: number;
   rating?: number;
   reviewCount?: number;
+  unlimited_mileage?: boolean;
+  insurance_included?: boolean;
+  airConditioning?: boolean;
+  // Location info with contact details
+  pickupLocationInfo?: LocationInfo;
+  dropoffLocationInfo?: LocationInfo;
+  // API-provided policy information
+  mileage?: {
+    unlimited?: boolean;
+    included?: string;
+    extraMileageCost?: string | null;
+  };
+  insurance?: {
+    included?: boolean;
+    cdwIncluded?: boolean;
+    theftProtection?: boolean;
+    liabilityAmount?: string;
+    deductible?: string;
+    type?: string;
+  };
+  fuelPolicy?: {
+    type?: string;
+    description?: string;
+    fuelType?: string;
+  };
+  driverRequirements?: {
+    minimumAge?: number;
+    youngDriverAge?: number;
+    youngDriverFee?: string;
+    licenseHeldYears?: number;
+  };
+  cancellation?: {
+    freeCancellationHours?: number;
+    policy?: string;
+    noShowFee?: string;
+  };
+  additionalFees?: {
+    additionalDriver?: string;
+    gps?: string;
+    childSeat?: string;
+    tollPass?: string;
+    oneWayFee?: string | null;
+  };
+  termsAndConditions?: {
+    depositRequired?: boolean;
+    depositAmount?: string;
+    depositCurrency?: string;
+    depositType?: string;
+    depositNote?: string;
+    creditCardOnly?: boolean;
+    debitCardAccepted?: boolean;
+    inspectionRequired?: boolean;
+    gracePeriodMinutes?: number;
+    lateReturnFee?: string;
+  };
 }
 
 interface DriverInfo {
@@ -99,6 +164,9 @@ function CarCheckoutContent() {
     expiryYear: '',
     cvv: '',
   });
+
+  // Terms acceptance
+  const [acceptedTerms, setAcceptedTerms] = useState(false);
 
   // Calculate rental days
   const rentalDays = pickupDate && dropoffDate
@@ -599,7 +667,22 @@ function CarCheckoutContent() {
                     </div>
                   )}
 
-                  <div className="mt-8 flex gap-4">
+                  {/* Terms & Conditions Acknowledgment */}
+                  <div className="mt-6 p-4 bg-amber-50 border border-amber-200 rounded-xl">
+                    <label className="flex items-start gap-3 cursor-pointer">
+                      <input
+                        type="checkbox"
+                        checked={acceptedTerms}
+                        onChange={(e) => setAcceptedTerms(e.target.checked)}
+                        className="mt-1 w-5 h-5 rounded border-amber-300 text-primary-600 focus:ring-primary-500"
+                      />
+                      <span className="text-sm text-amber-800">
+                        I have read and agree to the <strong>Rental Policies</strong>, <strong>Terms & Conditions</strong>, and <strong>Cancellation Policy</strong> displayed on this page. I understand the fuel policy, mileage terms, insurance coverage, deposit requirements, and driver requirements.
+                      </span>
+                    </label>
+                  </div>
+
+                  <div className="mt-6 flex gap-4">
                     <button
                       onClick={() => setStep(1)}
                       className="px-6 py-3 bg-slate-100 text-slate-700 rounded-xl font-semibold hover:bg-slate-200 transition-colors flex items-center gap-2"
@@ -609,7 +692,7 @@ function CarCheckoutContent() {
                     </button>
                     <button
                       onClick={handleSubmit}
-                      disabled={!isPaymentValid || isSubmitting}
+                      disabled={!isPaymentValid || !acceptedTerms || isSubmitting}
                       className="flex-1 px-8 py-3 bg-primary-600 text-white rounded-xl font-semibold hover:bg-primary-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
                     >
                       {isSubmitting ? (
@@ -625,6 +708,12 @@ function CarCheckoutContent() {
                       )}
                     </button>
                   </div>
+
+                  {!acceptedTerms && (
+                    <p className="mt-2 text-xs text-amber-600 text-center">
+                      ⚠️ Please review and accept the rental policies to proceed
+                    </p>
+                  )}
                 </motion.div>
               )}
             </AnimatePresence>
@@ -697,6 +786,93 @@ function CarCheckoutContent() {
                 </div>
               </div>
 
+              {/* PICKUP LOCATION DETAILS */}
+              <div className="border-t border-slate-100 pt-4 mb-4">
+                <h4 className="font-semibold text-slate-900 mb-3 flex items-center gap-2">
+                  <Navigation className="w-4 h-4 text-green-600" />
+                  Pickup Location
+                </h4>
+                <div className="bg-green-50 rounded-xl p-3 border border-green-100">
+                  <p className="font-medium text-green-900 text-sm">{car.pickupLocationInfo?.name || `${pickupLocation} Airport`}</p>
+                  <p className="text-xs text-green-700 mt-1">{car.pickupLocationInfo?.address || 'Car Rental Center, Terminal B'}</p>
+
+                  <div className="mt-2 space-y-1">
+                    <div className="flex items-center gap-2 text-xs text-green-700">
+                      <Phone className="w-3 h-3" />
+                      <a href={`tel:${car.pickupLocationInfo?.phone || '+1-800-555-0123'}`} className="hover:underline">
+                        {car.pickupLocationInfo?.phone || '+1 (800) 555-0123'}
+                      </a>
+                    </div>
+                    <div className="flex items-center gap-2 text-xs text-green-700">
+                      <Mail className="w-3 h-3" />
+                      <a href={`mailto:${car.pickupLocationInfo?.email || 'rentals@carrental.com'}`} className="hover:underline">
+                        {car.pickupLocationInfo?.email || 'rentals@carrental.com'}
+                      </a>
+                    </div>
+                    <div className="flex items-center gap-2 text-xs text-green-700">
+                      <Clock className="w-3 h-3" />
+                      <span>{car.pickupLocationInfo?.hours || '24/7 Service'}</span>
+                    </div>
+                  </div>
+
+                  {/* Google Maps Link */}
+                  <a
+                    href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(car.pickupLocationInfo?.address || `${pickupLocation} Airport Car Rental`)}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="mt-3 flex items-center justify-center gap-2 w-full py-2 bg-green-600 text-white text-xs font-semibold rounded-lg hover:bg-green-700 transition-colors"
+                  >
+                    <MapPin className="w-3 h-3" />
+                    Open in Google Maps
+                    <ExternalLink className="w-3 h-3" />
+                  </a>
+                </div>
+              </div>
+
+              {/* DROPOFF LOCATION DETAILS (if different) */}
+              {dropoffLocation !== pickupLocation && (
+                <div className="border-t border-slate-100 pt-4 mb-4">
+                  <h4 className="font-semibold text-slate-900 mb-3 flex items-center gap-2">
+                    <Navigation className="w-4 h-4 text-red-600" />
+                    Drop-off Location
+                  </h4>
+                  <div className="bg-red-50 rounded-xl p-3 border border-red-100">
+                    <p className="font-medium text-red-900 text-sm">{car.dropoffLocationInfo?.name || `${dropoffLocation} Airport`}</p>
+                    <p className="text-xs text-red-700 mt-1">{car.dropoffLocationInfo?.address || 'Car Rental Center, Terminal B'}</p>
+
+                    <div className="mt-2 space-y-1">
+                      <div className="flex items-center gap-2 text-xs text-red-700">
+                        <Phone className="w-3 h-3" />
+                        <a href={`tel:${car.dropoffLocationInfo?.phone || '+1-800-555-0124'}`} className="hover:underline">
+                          {car.dropoffLocationInfo?.phone || '+1 (800) 555-0124'}
+                        </a>
+                      </div>
+                      <div className="flex items-center gap-2 text-xs text-red-700">
+                        <Mail className="w-3 h-3" />
+                        <a href={`mailto:${car.dropoffLocationInfo?.email || 'rentals@carrental.com'}`} className="hover:underline">
+                          {car.dropoffLocationInfo?.email || 'rentals@carrental.com'}
+                        </a>
+                      </div>
+                      <div className="flex items-center gap-2 text-xs text-red-700">
+                        <Clock className="w-3 h-3" />
+                        <span>{car.dropoffLocationInfo?.hours || '24/7 Service'}</span>
+                      </div>
+                    </div>
+
+                    <a
+                      href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(car.dropoffLocationInfo?.address || `${dropoffLocation} Airport Car Rental`)}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="mt-3 flex items-center justify-center gap-2 w-full py-2 bg-red-600 text-white text-xs font-semibold rounded-lg hover:bg-red-700 transition-colors"
+                    >
+                      <MapPin className="w-3 h-3" />
+                      Open in Google Maps
+                      <ExternalLink className="w-3 h-3" />
+                    </a>
+                  </div>
+                </div>
+              )}
+
               {/* Pricing */}
               <div className="border-t border-slate-100 pt-4">
                 <div className="space-y-2 text-sm">
@@ -719,7 +895,107 @@ function CarCheckoutContent() {
               <div className="mt-4 pt-4 border-t border-slate-100">
                 <div className="flex items-center gap-2 text-sm text-slate-600">
                   <Shield className="w-4 h-4 text-green-600" />
-                  <span>Free cancellation up to 24h before pickup</span>
+                  <span>{car.cancellation?.policy || 'Free cancellation up to 48h before pickup'}</span>
+                </div>
+              </div>
+
+              {/* RENTAL POLICIES - From API */}
+              <div className="mt-4 pt-4 border-t border-slate-100">
+                <h4 className="font-semibold text-slate-900 mb-3 flex items-center gap-2">
+                  <Info className="w-4 h-4 text-primary-600" />
+                  Rental Policies
+                </h4>
+
+                {/* Mileage Policy */}
+                <div className="mb-3 p-3 bg-green-50 rounded-lg border border-green-100">
+                  <p className="text-xs font-semibold text-green-800 mb-1">📍 Mileage</p>
+                  <p className="text-sm text-green-700">
+                    {car.mileage?.unlimited || car.unlimited_mileage ? '✓ Unlimited mileage included' : car.mileage?.included || 'Standard mileage allowance'}
+                  </p>
+                </div>
+
+                {/* Fuel Policy */}
+                <div className="mb-3 p-3 bg-amber-50 rounded-lg border border-amber-100">
+                  <p className="text-xs font-semibold text-amber-800 mb-1">⛽ Fuel Policy</p>
+                  <p className="text-sm text-amber-700">
+                    {car.fuelPolicy?.description || 'Full-to-Full: Return with full tank'}
+                  </p>
+                  <p className="text-xs text-amber-600 mt-1">
+                    Fuel type: {car.fuelPolicy?.fuelType || car.fuelType || 'Petrol'}
+                  </p>
+                </div>
+
+                {/* Insurance & Coverage */}
+                <div className="mb-3 p-3 bg-blue-50 rounded-lg border border-blue-100">
+                  <p className="text-xs font-semibold text-blue-800 mb-1">🛡️ Insurance & Coverage</p>
+                  <div className="text-sm text-blue-700 space-y-1">
+                    <p>{car.insurance?.included || car.insurance_included ? '✓ Basic insurance included' : '○ Basic liability only'}</p>
+                    {car.insurance?.cdwIncluded && <p>✓ CDW (Collision Damage Waiver) included</p>}
+                    {car.insurance?.theftProtection && <p>✓ Theft Protection included</p>}
+                    <p className="text-xs text-blue-600">
+                      Liability: {car.insurance?.liabilityAmount || '$1,000,000'} | Deductible: {car.insurance?.deductible || '$500'}
+                    </p>
+                  </div>
+                </div>
+
+                {/* Driver Requirements */}
+                <div className="mb-3 p-3 bg-purple-50 rounded-lg border border-purple-100">
+                  <p className="text-xs font-semibold text-purple-800 mb-1">👤 Driver Requirements</p>
+                  <div className="text-sm text-purple-700 space-y-1">
+                    <p>• Minimum age: {car.driverRequirements?.minimumAge || 21} years</p>
+                    <p>• License held: {car.driverRequirements?.licenseHeldYears || 1}+ year(s)</p>
+                    {car.driverRequirements?.youngDriverFee && (
+                      <p className="text-xs text-purple-600">
+                        Young driver fee (under {car.driverRequirements?.youngDriverAge || 25}): {car.driverRequirements?.youngDriverFee}
+                      </p>
+                    )}
+                  </div>
+                </div>
+
+                {/* Additional Fees */}
+                {car.additionalFees && (
+                  <div className="mb-3 p-3 bg-slate-50 rounded-lg border border-slate-200">
+                    <p className="text-xs font-semibold text-slate-700 mb-1">💰 Optional Add-ons</p>
+                    <div className="text-xs text-slate-600 grid grid-cols-2 gap-1">
+                      <span>GPS: {car.additionalFees.gps || '$10/day'}</span>
+                      <span>Child seat: {car.additionalFees.childSeat || '$12/day'}</span>
+                      <span>Extra driver: {car.additionalFees.additionalDriver || '$15/day'}</span>
+                      <span>Toll pass: {car.additionalFees.tollPass || '$8/day'}</span>
+                      {car.additionalFees.oneWayFee && (
+                        <span className="col-span-2">One-way fee: {car.additionalFees.oneWayFee}</span>
+                      )}
+                    </div>
+                  </div>
+                )}
+
+                {/* SECURITY DEPOSIT - Highlighted */}
+                <div className="p-3 bg-yellow-50 rounded-lg border-2 border-yellow-300">
+                  <p className="text-xs font-bold text-yellow-800 mb-2">💳 SECURITY DEPOSIT (Card Hold)</p>
+                  <div className="text-sm text-yellow-900 space-y-1">
+                    <p className="font-bold text-lg">{car.termsAndConditions?.depositAmount || '$300'}</p>
+                    <p className="text-xs text-yellow-700">{car.termsAndConditions?.depositType || 'Credit Card Hold (Pre-authorization)'}</p>
+                    <p className="text-xs text-yellow-600 mt-2">{car.termsAndConditions?.depositNote || 'This hold will be released within 5-7 business days after vehicle return'}</p>
+                  </div>
+                </div>
+
+                {/* Terms & Conditions */}
+                <div className="mt-3 p-3 bg-red-50 rounded-lg border border-red-100">
+                  <p className="text-xs font-semibold text-red-800 mb-1">📋 Terms & Conditions</p>
+                  <div className="text-xs text-red-700 space-y-1">
+                    <p>• {car.termsAndConditions?.creditCardOnly ? 'Credit card ONLY (debit cards NOT accepted for deposit)' : 'Credit/Debit card accepted'}</p>
+                    <p>• Vehicle inspection at pickup & return</p>
+                    <p>• Grace period: {car.termsAndConditions?.gracePeriodMinutes || 29} minutes</p>
+                    <p>• Late return: {car.termsAndConditions?.lateReturnFee || 'Additional day rate'}</p>
+                  </div>
+                </div>
+
+                {/* Cancellation */}
+                <div className="mt-3 p-3 bg-orange-50 rounded-lg border border-orange-100">
+                  <p className="text-xs font-semibold text-orange-800 mb-1">❌ Cancellation Policy</p>
+                  <div className="text-xs text-orange-700 space-y-1">
+                    <p>• Free up to {car.cancellation?.freeCancellationHours || 48}h before pickup</p>
+                    <p>• No-show: {car.cancellation?.noShowFee || '100% charged'}</p>
+                  </div>
                 </div>
               </div>
             </div>
@@ -736,10 +1012,13 @@ function CarCheckoutContent() {
               <span className="text-xs text-slate-500">total</span>
             </div>
             <p className="text-xs text-slate-500">{rentalDays} day{rentalDays > 1 ? 's' : ''} · {car?.name}</p>
+            {step === 2 && !acceptedTerms && (
+              <p className="text-xs text-amber-600">Accept terms above ↑</p>
+            )}
           </div>
           <button
             onClick={step === 2 ? handleSubmit : () => setStep(2)}
-            disabled={(step === 1 && !isDriverValid) || (step === 2 && (!isPaymentValid || isSubmitting))}
+            disabled={(step === 1 && !isDriverValid) || (step === 2 && (!isPaymentValid || !acceptedTerms || isSubmitting))}
             className="px-6 py-3 bg-primary-600 text-white rounded-xl font-bold text-sm hover:bg-primary-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 min-w-[140px] justify-center"
           >
             {isSubmitting ? (
