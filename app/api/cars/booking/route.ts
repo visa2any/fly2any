@@ -214,11 +214,8 @@ export async function POST(request: NextRequest) {
     } catch (dbError: any) {
       console.error(`❌ Database error saving car booking: ${dbError.message}`);
       console.error('Full error:', dbError);
-      return NextResponse.json({
-        success: false,
-        error: 'DATABASE_ERROR',
-        message: 'Failed to save car booking. Please try again.'
-      }, { status: 500 });
+      // THROW error to let handleApiError catch it and send alerts
+      throw new Error(`DATABASE_ERROR: ${dbError.message}`);
     }
 
     // ============================================
