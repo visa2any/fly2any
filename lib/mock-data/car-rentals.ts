@@ -170,34 +170,22 @@ const rentalProviders: Record<Region, AmadeusCarRentalProvider[]> = {
 };
 
 // ============================================================================
-// VEHICLE IMAGES BY CATEGORY - Using Unsplash (already whitelisted in next.config)
-// Real car photos that match the category, not specific models
+// VEHICLE IMAGES - Simple emoji fallback + placeholder service
+// Using placeholder with car silhouettes - guaranteed to work
 // ============================================================================
 const categoryImages: Record<string, string> = {
-  // Economy - Small compact cars
-  'ECONOMY': 'https://images.unsplash.com/photo-1549317661-bd32c8ce0db2?w=800&q=80',
-  // Compact - Sedans like Civic, Corolla
-  'COMPACT': 'https://images.unsplash.com/photo-1590362891991-f776e747a588?w=800&q=80',
-  // Standard - Mid-size sedans like Camry
-  'STANDARD': 'https://images.unsplash.com/photo-1621007947382-bb3c3994e3fb?w=800&q=80',
-  // SUV - Crossovers and SUVs
-  'SUV': 'https://images.unsplash.com/photo-1519641471654-76ce0107ad1b?w=800&q=80',
-  // Full-size SUV - Large SUVs like Tahoe
-  'FULLSIZE_SUV': 'https://images.unsplash.com/photo-1533473359331-0135ef1b58bf?w=800&q=80',
-  // Premium - Luxury sedans
-  'PREMIUM': 'https://images.unsplash.com/photo-1555215695-3004980ad54e?w=800&q=80',
-  // Luxury - High-end vehicles
-  'LUXURY': 'https://images.unsplash.com/photo-1563720360172-67b8f3dce741?w=800&q=80',
-  // Electric - Tesla-style EVs
-  'ELECTRIC': 'https://images.unsplash.com/photo-1560958089-b8a1929cea89?w=800&q=80',
-  // Van/Minivan - Family vehicles
-  'VAN': 'https://images.unsplash.com/photo-1559416523-140ddc3d238c?w=800&q=80',
-  // Wagon/Estate - Station wagons
-  'WAGON': 'https://images.unsplash.com/photo-1605559424843-9e4c228bf1c2?w=800&q=80',
-  // Convertible - Sports cars
-  'CONVERTIBLE': 'https://images.unsplash.com/photo-1544636331-e26879cd4d9b?w=800&q=80',
-  // Pickup - Trucks
-  'PICKUP': 'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=800&q=80',
+  'ECONOMY': 'https://placehold.co/800x500/e8f5e9/2e7d32?text=Economy+Car&font=roboto',
+  'COMPACT': 'https://placehold.co/800x500/e3f2fd/1565c0?text=Compact+Sedan&font=roboto',
+  'STANDARD': 'https://placehold.co/800x500/fff3e0/ef6c00?text=Standard+Sedan&font=roboto',
+  'SUV': 'https://placehold.co/800x500/fce4ec/c2185b?text=SUV&font=roboto',
+  'FULLSIZE_SUV': 'https://placehold.co/800x500/f3e5f5/7b1fa2?text=Full+Size+SUV&font=roboto',
+  'PREMIUM': 'https://placehold.co/800x500/e8eaf6/3949ab?text=Premium+Sedan&font=roboto',
+  'LUXURY': 'https://placehold.co/800x500/212121/ffd700?text=Luxury+Vehicle&font=roboto',
+  'ELECTRIC': 'https://placehold.co/800x500/e0f7fa/00838f?text=Electric+Vehicle&font=roboto',
+  'VAN': 'https://placehold.co/800x500/fff8e1/ff8f00?text=Minivan&font=roboto',
+  'WAGON': 'https://placehold.co/800x500/efebe9/5d4037?text=Station+Wagon&font=roboto',
+  'CONVERTIBLE': 'https://placehold.co/800x500/ffebee/d32f2f?text=Convertible&font=roboto',
+  'PICKUP': 'https://placehold.co/800x500/eceff1/455a64?text=Pickup+Truck&font=roboto',
 };
 
 function getVehicleImage(description: string, category: string): string {

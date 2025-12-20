@@ -386,6 +386,12 @@ const nextConfig = {
         hostname: 'www.enterprise.com',
         pathname: '/content/**',
       },
+      // Placeholder service for car categories
+      {
+        protocol: 'https',
+        hostname: 'placehold.co',
+        pathname: '/**',
+      },
       // Generic CDNs
       {
         protocol: 'https',
