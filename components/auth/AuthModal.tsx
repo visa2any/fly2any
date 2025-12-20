@@ -16,6 +16,7 @@ import {
   CheckCircle,
 } from 'lucide-react';
 import { toast } from 'react-hot-toast';
+import { useGoogleAuth } from '@/lib/hooks/useGoogleAuth';
 
 
 interface AuthModalProps {
@@ -42,7 +43,25 @@ export function AuthModal({ isOpen, onClose, onSuccess, flightContext }: AuthMod
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
-  const [oauthState, setOauthState] = useState<'idle' | 'connecting' | 'success'>('idle');
+
+  // Use the same Google auth hook as signin page
+  const {
+    isLoading: isGoogleLoading,
+    signInWithPopup,
+    isConfigured: isGoogleConfigured
+  } = useGoogleAuth({
+    callbackUrl: '/account',
+    context: 'signin',
+    enableOneTap: false, // Don't show One Tap in modal
+    onSuccess: () => {
+      toast.success('Welcome back!');
+      onSuccess();
+    },
+    onError: (err) => {
+      setError(err);
+      toast.error('Sign-in failed');
+    },
+  });
 
   // Capture referral code from URL on mount
   useEffect(() => {
@@ -72,70 +91,13 @@ export function AuthModal({ isOpen, onClose, onSuccess, flightContext }: AuthMod
     setError('');
     setShowPassword(false);
     setMode('signin');
-    setOauthState('idle');
     onClose();
   };
 
-  // Handle Google OAuth with popup - Level 6 seamless UX
+  // Google sign in using the hook
   const handleGoogleSignIn = async () => {
-    setIsLoading(true);
     setError('');
-    setOauthState('connecting');
-
-    const width = 500;
-    const height = 600;
-    const left = window.screenX + (window.outerWidth - width) / 2;
-    const top = window.screenY + (window.outerHeight - height) / 2;
-
-    const popup = window.open(
-      `/api/auth/signin/google?popup=true&callbackUrl=${encodeURIComponent('/auth/popup-callback')}`,
-      'google-auth',
-      `width=${width},height=${height},left=${left},top=${top},toolbar=no,menubar=no`
-    );
-
-    if (!popup) {
-      setError('Popup blocked. Please allow popups for this site.');
-      setIsLoading(false);
-      setOauthState('idle');
-      return;
-    }
-
-    let authCompleted = false;
-
-    const handleMessage = (event: MessageEvent) => {
-      if (event.origin !== window.location.origin) return;
-
-      if (event.data?.type === 'GOOGLE_AUTH_SUCCESS') {
-        authCompleted = true;
-        popup.close();
-        window.removeEventListener('message', handleMessage);
-        setOauthState('success');
-        setTimeout(() => {
-          toast.success('Welcome back!');
-          onSuccess();
-        }, 400);
-      } else if (event.data?.type === 'GOOGLE_AUTH_ERROR') {
-        authCompleted = true;
-        popup.close();
-        window.removeEventListener('message', handleMessage);
-        setOauthState('idle');
-        setIsLoading(false);
-        setError('Sign-in failed. Please try again.');
-      }
-    };
-
-    window.addEventListener('message', handleMessage);
-
-    const checkClosed = setInterval(() => {
-      if (popup.closed) {
-        clearInterval(checkClosed);
-        window.removeEventListener('message', handleMessage);
-        if (!authCompleted) {
-          setOauthState('idle');
-          setIsLoading(false);
-        }
-      }
-    }, 500);
+    await signInWithPopup();
   };
 
   // Handle email/password sign in
@@ -275,25 +237,14 @@ export function AuthModal({ isOpen, onClose, onSuccess, flightContext }: AuthMod
             </div>
           )}
 
-          {/* Social Login - Google with Level 6 State Feedback */}
+          {/* Social Login - Google */}
           <div className="mb-4">
             <button
               onClick={handleGoogleSignIn}
-              disabled={isLoading || oauthState === 'success'}
-              className={`w-full flex items-center justify-center gap-3 px-4 py-3.5 rounded-xl transition-all duration-300 ${
-                oauthState === 'success'
-                  ? 'bg-green-50 border-2 border-green-400'
-                  : oauthState === 'connecting'
-                  ? 'bg-gray-50 border-2 border-gray-300'
-                  : 'bg-white border-2 border-gray-300 hover:border-gray-400 hover:bg-gray-50 hover:shadow-md'
-              } disabled:cursor-not-allowed`}
+              disabled={isGoogleLoading || isLoading}
+              className="w-full flex items-center justify-center gap-3 px-4 py-3.5 rounded-xl transition-all duration-300 bg-white border-2 border-gray-300 hover:border-gray-400 hover:bg-gray-50 hover:shadow-md disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              {oauthState === 'success' ? (
-                <>
-                  <CheckCircle className="w-5 h-5 text-green-500" />
-                  <span className="text-sm font-semibold text-green-700">Signed in!</span>
-                </>
-              ) : oauthState === 'connecting' ? (
+              {isGoogleLoading ? (
                 <>
                   <Loader2 className="w-5 h-5 animate-spin text-gray-500" />
                   <span className="text-sm font-semibold text-gray-600">Connecting...</span>
