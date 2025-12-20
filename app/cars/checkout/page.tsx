@@ -952,19 +952,20 @@ function CarCheckoutContent() {
                   </div>
                 </div>
 
-                {/* Additional Fees */}
+                {/* Additional Fees - Available at Counter */}
                 {car.additionalFees && (
                   <div className="mb-3 p-3 bg-slate-50 rounded-lg border border-slate-200">
-                    <p className="text-xs font-semibold text-slate-700 mb-1">💰 Optional Add-ons</p>
+                    <p className="text-xs font-semibold text-slate-700 mb-1">💰 Optional Add-ons <span className="font-normal text-slate-500">(Available at Counter)</span></p>
                     <div className="text-xs text-slate-600 grid grid-cols-2 gap-1">
-                      <span>GPS: {car.additionalFees.gps || '$10/day'}</span>
-                      <span>Child seat: {car.additionalFees.childSeat || '$12/day'}</span>
-                      <span>Extra driver: {car.additionalFees.additionalDriver || '$15/day'}</span>
-                      <span>Toll pass: {car.additionalFees.tollPass || '$8/day'}</span>
+                      <span>🧭 GPS: {car.additionalFees.gps || '$10/day'}</span>
+                      <span>👶 Child seat: {car.additionalFees.childSeat || '$12/day'}</span>
+                      <span>👤 Extra driver: {car.additionalFees.additionalDriver || '$15/day'}</span>
+                      <span>🛣️ Toll pass: {car.additionalFees.tollPass || '$8/day'}</span>
                       {car.additionalFees.oneWayFee && (
-                        <span className="col-span-2">One-way fee: {car.additionalFees.oneWayFee}</span>
+                        <span className="col-span-2">↔️ One-way fee: {car.additionalFees.oneWayFee}</span>
                       )}
                     </div>
+                    <p className="text-[10px] text-slate-400 mt-2 italic">*Prices are estimates. Final pricing confirmed at pickup counter.</p>
                   </div>
                 )}
 
