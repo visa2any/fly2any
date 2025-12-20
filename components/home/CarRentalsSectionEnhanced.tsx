@@ -1,6 +1,8 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
+import Link from 'next/link';
 import { ValueScoreBadge, calculateValueScore } from '@/components/shared/ValueScoreBadge';
 import { Car, Users, Briefcase, Zap, Fuel, Settings, MapPin, Shield, TrendingUp, TrendingDown, Loader2, Eye, ShoppingCart } from 'lucide-react';
 
@@ -117,6 +119,7 @@ const locationFilters = [
 
 export function CarRentalsSectionEnhanced({ lang = 'en' }: CarRentalsSectionEnhancedProps) {
   const t = translations[lang];
+  const router = useRouter();
   const [hoveredId, setHoveredId] = useState<string | null>(null);
   const [cars, setCars] = useState<CarRental[]>([]);
   const [loading, setLoading] = useState(true);
@@ -410,7 +413,10 @@ export function CarRentalsSectionEnhanced({ lang = 'en' }: CarRentalsSectionEnha
                       </div>
                       <div className="text-[10px] text-gray-500">{t.perDay}</div>
                     </div>
-                    <button className="px-3 py-2 bg-primary-600 hover:bg-primary-700 text-white text-xs font-semibold rounded-lg transition-all duration-200 shadow-md hover:shadow-lg flex items-center gap-1">
+                    <button
+                      onClick={() => router.push(`/cars?location=${car.location || selectedLocation}`)}
+                      className="px-3 py-2 bg-primary-600 hover:bg-primary-700 text-white text-xs font-semibold rounded-lg transition-all duration-200 shadow-md hover:shadow-lg flex items-center gap-1"
+                    >
                       <span>{t.bookNow}</span>
                       <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
@@ -427,9 +433,12 @@ export function CarRentalsSectionEnhanced({ lang = 'en' }: CarRentalsSectionEnha
       {/* View All Button */}
       {!loading && cars.length > 0 && (
         <div className="text-center mt-6">
-          <button className="px-6 py-3 bg-white border-2 border-primary-600 text-primary-600 hover:bg-primary-50 font-bold rounded-lg transition-colors">
+          <Link
+            href="/cars"
+            className="inline-block px-6 py-3 bg-white border-2 border-primary-600 text-primary-600 hover:bg-primary-50 font-bold rounded-lg transition-colors"
+          >
             {t.viewAll} →
-          </button>
+          </Link>
         </div>
       )}
     </section>

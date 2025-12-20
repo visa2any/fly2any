@@ -256,6 +256,21 @@ export function Header({
               <span className="absolute bottom-1.5 left-3 right-3 h-0.5 bg-primary-500 rounded-full scale-x-0 group-hover:scale-x-100 transition-transform duration-150 ease-[cubic-bezier(0.2,0.8,0.2,1)] origin-left"></span>
             </a>
 
+            {/* Cars - NEW */}
+            <a
+              href="/cars"
+              className="group relative px-3 xl:px-4 py-2.5 text-neutral-700 hover:text-primary-600 transition-all duration-150 ease-[cubic-bezier(0.2,0.8,0.2,1)] font-semibold text-sm rounded-xl hover:bg-primary-50/60 hover:-translate-y-0.5"
+            >
+              <span className="flex items-center gap-2">
+                <span className="text-lg transition-transform duration-150 group-hover:scale-110">
+                  🚗
+                </span>
+                Cars
+                <span className="px-1.5 py-0.5 text-[10px] font-bold bg-green-500 text-white rounded-full uppercase tracking-wide">New</span>
+              </span>
+              <span className="absolute bottom-1.5 left-3 right-3 h-0.5 bg-primary-500 rounded-full scale-x-0 group-hover:scale-x-100 transition-transform duration-150 ease-[cubic-bezier(0.2,0.8,0.2,1)] origin-left"></span>
+            </a>
+
             {/* Deals - Promoted to main nav */}
             <a
               href="/deals"
