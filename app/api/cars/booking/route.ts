@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { sql } from '@/lib/db/connection';
-import { emailService } from '@/lib/email/service';
+import { mailgunClient, MAILGUN_CONFIG } from '@/lib/email/mailgun-client';
+import { notifyTelegramAdmins, broadcastSSE } from '@/lib/notifications/notification-service';
+import { getPrismaClient } from '@/lib/prisma';
 import { auth } from '@/lib/auth';
 import {
   handleApiError,
@@ -196,33 +198,192 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    // Send confirmation email with payment instructions
+    // ============================================
+    // SEND CUSTOMER EMAIL
+    // ============================================
+    const pickupDateFormatted = new Date(pickupDate).toLocaleDateString('en-US', {
+      weekday: 'long', year: 'numeric', month: 'long', day: 'numeric'
+    });
+    const dropoffDateFormatted = new Date(dropoffDate).toLocaleDateString('en-US', {
+      weekday: 'long', year: 'numeric', month: 'long', day: 'numeric'
+    });
+
     try {
-      await emailService.sendEmail({
+      const emailHtml = `
+        <!DOCTYPE html>
+        <html>
+        <head>
+          <meta charset="utf-8">
+          <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        </head>
+        <body style="margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background-color: #f5f5f5;">
+          <div style="max-width: 600px; margin: 0 auto; padding: 20px;">
+            <div style="background: linear-gradient(135deg, #E74035 0%, #D63930 100%); padding: 30px; border-radius: 16px 16px 0 0; text-align: center;">
+              <h1 style="color: white; margin: 0; font-size: 24px;">🚗 Car Rental Booking Received</h1>
+              <p style="color: rgba(255,255,255,0.9); margin: 10px 0 0;">Reference: <strong>${bookingReference}</strong></p>
+            </div>
+
+            <div style="background: white; padding: 30px; border-radius: 0 0 16px 16px; box-shadow: 0 4px 20px rgba(0,0,0,0.08);">
+              <p style="font-size: 16px; color: #333; margin: 0 0 20px;">
+                Dear ${driver.firstName},
+              </p>
+              <p style="font-size: 16px; color: #333; margin: 0 0 20px;">
+                Thank you for your car rental booking! We've received your reservation and our team is processing your payment.
+              </p>
+
+              <div style="background: #f8f9fa; padding: 20px; border-radius: 12px; margin: 20px 0;">
+                <h3 style="margin: 0 0 15px; color: #E74035; font-size: 18px;">📋 Rental Details</h3>
+                <table style="width: 100%; font-size: 14px;">
+                  <tr>
+                    <td style="padding: 8px 0; color: #666;">Vehicle:</td>
+                    <td style="padding: 8px 0; color: #333; font-weight: 600; text-align: right;">${car.name}</td>
+                  </tr>
+                  <tr>
+                    <td style="padding: 8px 0; color: #666;">Category:</td>
+                    <td style="padding: 8px 0; color: #333; text-align: right;">${car.category}</td>
+                  </tr>
+                  <tr>
+                    <td style="padding: 8px 0; color: #666;">Company:</td>
+                    <td style="padding: 8px 0; color: #333; text-align: right;">${car.company}</td>
+                  </tr>
+                  <tr>
+                    <td style="padding: 8px 0; color: #666;">Pickup:</td>
+                    <td style="padding: 8px 0; color: #333; text-align: right;">${pickupLocation}<br><small>${pickupDateFormatted}</small></td>
+                  </tr>
+                  <tr>
+                    <td style="padding: 8px 0; color: #666;">Drop-off:</td>
+                    <td style="padding: 8px 0; color: #333; text-align: right;">${dropoffLocation || pickupLocation}<br><small>${dropoffDateFormatted}</small></td>
+                  </tr>
+                  <tr>
+                    <td style="padding: 8px 0; color: #666;">Duration:</td>
+                    <td style="padding: 8px 0; color: #333; text-align: right;">${rentalDays} day${rentalDays > 1 ? 's' : ''}</td>
+                  </tr>
+                </table>
+              </div>
+
+              <div style="background: #E74035; color: white; padding: 20px; border-radius: 12px; text-align: center; margin: 20px 0;">
+                <p style="margin: 0 0 5px; font-size: 14px; opacity: 0.9;">Total Amount</p>
+                <p style="margin: 0; font-size: 32px; font-weight: bold;">$${totalPrice.toFixed(2)}</p>
+              </div>
+
+              <div style="background: #fff3cd; border-left: 4px solid #ffc107; padding: 15px; border-radius: 4px; margin: 20px 0;">
+                <p style="margin: 0; font-size: 14px; color: #856404;">
+                  <strong>⏳ What's Next?</strong><br>
+                  Our team will verify your payment within 24 hours. You'll receive a confirmation email with your rental voucher once approved.
+                </p>
+              </div>
+
+              <p style="font-size: 14px; color: #666; margin: 20px 0 0;">
+                If you have any questions, please contact us at <a href="mailto:support@fly2any.com" style="color: #E74035;">support@fly2any.com</a>
+              </p>
+            </div>
+
+            <div style="text-align: center; padding: 20px; color: #999; font-size: 12px;">
+              <p style="margin: 0;">© ${new Date().getFullYear()} Fly2Any. All rights reserved.</p>
+            </div>
+          </div>
+        </body>
+        </html>
+      `;
+
+      const result = await mailgunClient.send({
         to: contactInfo.email,
-        subject: `Car Rental Booking Received - ${bookingReference}`,
-        template: 'booking-pending',
-        data: {
-          bookingReference,
-          productType: 'Car Rental',
-          productName: `${car.name} (${car.category})`,
-          company: car.company,
-          pickupDate: new Date(pickupDate).toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' }),
-          dropoffDate: new Date(dropoffDate).toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' }),
-          pickupLocation,
-          dropoffLocation: dropoffLocation || pickupLocation,
-          rentalDays,
-          totalPrice: totalPrice.toFixed(2),
-          currency: 'USD',
-          driverName: `${driver.firstName} ${driver.lastName}`,
-          contactEmail: contactInfo.email,
-          contactPhone: contactInfo.phone,
-        }
+        subject: `🚗 Car Rental Booking Received - ${bookingReference}`,
+        html: emailHtml,
+        text: `Car Rental Booking Received - ${bookingReference}\n\nDear ${driver.firstName},\n\nThank you for your booking!\n\nVehicle: ${car.name} (${car.category})\nCompany: ${car.company}\nPickup: ${pickupLocation} on ${pickupDateFormatted}\nDrop-off: ${dropoffLocation || pickupLocation} on ${dropoffDateFormatted}\nDuration: ${rentalDays} days\nTotal: $${totalPrice.toFixed(2)}\n\nOur team will process your payment within 24 hours.\n\nFly2Any Team`,
+        forceSend: true,
+        tags: ['car-rental', 'booking-received'],
       });
-      console.log(`📧 Confirmation email sent to ${contactInfo.email}`);
+
+      if (result.success) {
+        console.log(`📧 Customer confirmation email sent to ${contactInfo.email}`);
+      } else {
+        console.warn(`⚠️ Email send returned error: ${result.error}`);
+      }
     } catch (emailError: any) {
-      console.warn(`⚠️ Failed to send email: ${emailError.message}`);
-      // Don't fail the booking for email errors
+      console.error(`❌ Failed to send customer email: ${emailError.message}`);
+    }
+
+    // ============================================
+    // SEND ADMIN NOTIFICATIONS
+    // ============================================
+    const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://fly2any.com';
+
+    // 1. Telegram notification
+    try {
+      const telegramMessage = `
+🚗 <b>NEW CAR RENTAL BOOKING</b>
+
+📋 <b>Reference:</b> <code>${bookingReference}</code>
+🟡 <b>Status:</b> Pending Payment
+
+👤 <b>Driver:</b> ${driver.firstName} ${driver.lastName}
+📧 <b>Email:</b> ${contactInfo.email}
+📞 <b>Phone:</b> ${contactInfo.phone || 'N/A'}
+
+🚙 <b>Vehicle:</b> ${car.name} (${car.category})
+🏢 <b>Company:</b> ${car.company}
+📍 <b>Pickup:</b> ${pickupLocation}
+📅 <b>Dates:</b> ${pickupDate} → ${dropoffDate} (${rentalDays} days)
+
+💰 <b>Total:</b> USD ${totalPrice.toFixed(2)}
+
+🔗 <a href="${baseUrl}/admin/bookings/${bookingId}">View in Dashboard</a>
+      `.trim();
+
+      await notifyTelegramAdmins(telegramMessage);
+      console.log(`📱 Telegram notification sent to admins`);
+    } catch (telegramError: any) {
+      console.warn(`⚠️ Failed to send Telegram notification: ${telegramError.message}`);
+    }
+
+    // 2. SSE broadcast for real-time dashboard update
+    try {
+      broadcastSSE('admin', 'booking_created', {
+        type: 'car_rental',
+        bookingReference,
+        bookingId,
+        timestamp: now,
+        customerName: `${driver.firstName} ${driver.lastName}`,
+        vehicle: `${car.name} (${car.category})`,
+        dates: `${pickupDate} → ${dropoffDate}`,
+        totalAmount: totalPrice,
+        currency: 'USD',
+        status: 'pending',
+      });
+      console.log(`📡 SSE broadcast sent to admin dashboards`);
+    } catch (sseError: any) {
+      console.warn(`⚠️ Failed to send SSE broadcast: ${sseError.message}`);
+    }
+
+    // 3. Create in-app notification for admin bell
+    try {
+      const prisma = getPrismaClient();
+      const admins = await prisma.adminUser.findMany({ select: { userId: true } });
+
+      if (admins.length > 0) {
+        await prisma.notification.createMany({
+          data: admins.map(admin => ({
+            userId: admin.userId,
+            type: 'booking',
+            title: `🚗 New Car Rental: ${bookingReference}`,
+            message: `${driver.firstName} ${driver.lastName} - ${car.name} at ${pickupLocation}`,
+            priority: 'high',
+            actionUrl: `/admin/bookings/${bookingId}`,
+            metadata: {
+              bookingId,
+              bookingReference,
+              productType: 'car',
+              customerName: `${driver.firstName} ${driver.lastName}`,
+              vehicle: car.name,
+              totalAmount: totalPrice,
+            },
+          })),
+        });
+        console.log(`🔔 Created ${admins.length} admin in-app notifications`);
+      }
+    } catch (notifError: any) {
+      console.warn(`⚠️ Failed to create in-app notifications: ${notifError.message}`);
     }
 
     console.log(`✅ [${requestId}] Car booking created: ${bookingReference}`);

@@ -283,6 +283,17 @@ export interface BookingSummary {
   totalAmount: number;
   currency: string;
   createdAt: string;
+  // Product type for multi-product support
+  productType?: 'flight' | 'car' | 'hotel' | 'tour' | 'transfer' | 'activity';
+  // Customer information
+  customerName?: string;
+  customerEmail?: string;
+  // Car rental specific fields
+  carName?: string;
+  carCategory?: string;
+  pickupLocation?: string;
+  dropoffLocation?: string;
+  dropoffDate?: string;
 }
 
 export interface BookingConfirmation {

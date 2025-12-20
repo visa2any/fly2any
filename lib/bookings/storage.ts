@@ -458,22 +458,69 @@ class BookingStorage {
 
   /**
    * Get booking summaries (lighter version for list views)
+   * Supports multiple product types: flights, car rentals, hotels, etc.
    */
   async getSummaries(params: BookingSearchParams): Promise<BookingSummary[]> {
     const bookings = await this.search(params);
 
-    return bookings.map(b => ({
-      id: b.id,
-      bookingReference: b.bookingReference,
-      status: b.status,
-      passengerCount: b.passengers.length,
-      departureDate: b.flight.segments[0].departure.at,
-      origin: b.flight.segments[0].departure.iataCode,
-      destination: b.flight.segments[b.flight.segments.length - 1].arrival.iataCode,
-      totalAmount: b.payment.amount,
-      currency: b.payment.currency,
-      createdAt: b.createdAt,
-    }));
+    return bookings.map(b => {
+      // Determine product type from flight data or product_type column
+      const productType = b.flight?.type === 'car_rental' ? 'car' : 'flight';
+
+      if (productType === 'car') {
+        // Car rental booking
+        const carData = b.flight; // Car data stored in flight column
+        const rental = carData?.rental || {};
+        const driver = b.passengers?.[0] || {};
+        const driverName = driver.firstName && driver.lastName
+          ? `${driver.firstName} ${driver.lastName}`.trim()
+          : b.contactInfo?.name || 'Unknown';
+
+        return {
+          id: b.id,
+          bookingReference: b.bookingReference,
+          status: b.status,
+          productType: 'car' as const,
+          passengerCount: 1, // Driver count for cars
+          departureDate: rental.pickupDate || b.createdAt,
+          dropoffDate: rental.dropoffDate,
+          origin: rental.pickupLocation || 'N/A',
+          destination: rental.dropoffLocation || rental.pickupLocation || 'N/A',
+          totalAmount: b.payment?.amount || 0,
+          currency: b.payment?.currency || 'USD',
+          createdAt: b.createdAt,
+          customerName: driverName,
+          customerEmail: driver.email || b.contactInfo?.email,
+          // Car specific fields
+          carName: carData?.name || 'Car Rental',
+          carCategory: carData?.category,
+          pickupLocation: rental.pickupLocation,
+          dropoffLocation: rental.dropoffLocation || rental.pickupLocation,
+        };
+      }
+
+      // Flight booking (default)
+      const mainPassenger = b.passengers?.[0];
+      const customerName = mainPassenger
+        ? `${mainPassenger.firstName || ''} ${mainPassenger.lastName || ''}`.trim()
+        : b.contactInfo?.name || 'Unknown';
+
+      return {
+        id: b.id,
+        bookingReference: b.bookingReference,
+        status: b.status,
+        productType: 'flight' as const,
+        passengerCount: b.passengers?.length || 0,
+        departureDate: b.flight?.segments?.[0]?.departure?.at || b.createdAt,
+        origin: b.flight?.segments?.[0]?.departure?.iataCode || 'N/A',
+        destination: b.flight?.segments?.[b.flight?.segments?.length - 1]?.arrival?.iataCode || 'N/A',
+        totalAmount: b.payment?.amount || 0,
+        currency: b.payment?.currency || 'USD',
+        createdAt: b.createdAt,
+        customerName,
+        customerEmail: b.contactInfo?.email || mainPassenger?.email,
+      };
+    });
   }
 
   /**

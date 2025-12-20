@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { useSession } from 'next-auth/react';
-import { Loader2, Plane, Calendar, Users, MapPin, ChevronRight, AlertCircle } from 'lucide-react';
+import { Loader2, Plane, Calendar, Users, MapPin, ChevronRight, AlertCircle, Car } from 'lucide-react';
 import Link from 'next/link';
 
 interface BookingSummary {
@@ -16,6 +16,14 @@ interface BookingSummary {
   totalAmount: number;
   currency: string;
   createdAt: string;
+  // Multi-product support
+  productType?: 'flight' | 'car' | 'hotel' | 'tour' | 'transfer' | 'activity';
+  // Car rental fields
+  carName?: string;
+  carCategory?: string;
+  pickupLocation?: string;
+  dropoffLocation?: string;
+  dropoffDate?: string;
 }
 
 export default function BookingsPage() {
@@ -122,63 +130,103 @@ export default function BookingsPage() {
 
         {bookings.length === 0 ? (
           <div className="bg-white md:rounded-xl border-y md:border border-neutral-200 p-8 text-center mx-0">
-            <Plane className="w-12 h-12 text-neutral-300 mx-auto mb-4" />
+            <div className="flex justify-center gap-2 mb-4">
+              <Plane className="w-10 h-10 text-neutral-300" />
+              <Car className="w-10 h-10 text-neutral-300" />
+            </div>
             <h2 className="text-xl font-semibold text-neutral-800 mb-2">No Bookings Yet</h2>
             <p className="text-neutral-600 mb-6">
-              Your flight bookings will appear here once you complete a reservation.
+              Your bookings will appear here once you complete a reservation.
             </p>
             <Link
               href="/"
               className="inline-block px-6 py-3 bg-primary-500 hover:bg-primary-600 text-white rounded-xl font-semibold transition-colors"
             >
-              Search Flights
+              Start Booking
             </Link>
           </div>
         ) : (
           <div className="space-y-3 px-0 md:px-0">
-            {bookings.map((booking) => (
-              <Link
-                key={booking.id}
-                href={`/account/bookings/${booking.id}`}
-                className="block bg-white md:rounded-xl border-y md:border-2 border-neutral-200 hover:border-primary-300 transition-all overflow-hidden"
-              >
-                <div className="p-4 md:p-6">
-                  <div className="flex items-center justify-between mb-3 md:mb-4">
-                    <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 bg-primary-50 rounded-xl flex items-center justify-center">
-                        <Plane className="w-5 h-5 text-primary-500" />
-                      </div>
-                      <div>
-                        <p className="font-semibold text-neutral-900">
-                          {booking.origin} → {booking.destination}
-                        </p>
-                        <p className="text-xs md:text-sm text-neutral-500">Ref: {booking.bookingReference}</p>
-                      </div>
-                    </div>
-                    <div className="flex items-center gap-2 md:gap-3">
-                      <span className={`px-2.5 py-1 rounded-full text-xs font-semibold ${getStatusColor(booking.status)}`}>
-                        {booking.status}
-                      </span>
-                      <ChevronRight className="w-5 h-5 text-neutral-400" />
-                    </div>
-                  </div>
+            {bookings.map((booking) => {
+              const isCarRental = booking.productType === 'car';
 
-                  <div className="grid grid-cols-3 gap-2 md:gap-4 text-xs md:text-sm">
-                    <div className="flex items-center gap-1.5 md:gap-2 text-neutral-600">
-                      <Calendar className="w-3.5 h-3.5 md:w-4 md:h-4" />
-                      <span className="truncate">{formatDate(booking.departureDate)}</span>
+              return (
+                <Link
+                  key={booking.id}
+                  href={`/account/bookings/${booking.id}`}
+                  className="block bg-white md:rounded-xl border-y md:border-2 border-neutral-200 hover:border-primary-300 transition-all overflow-hidden"
+                >
+                  <div className="p-4 md:p-6">
+                    <div className="flex items-center justify-between mb-3 md:mb-4">
+                      <div className="flex items-center gap-3">
+                        <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${
+                          isCarRental ? 'bg-amber-50' : 'bg-primary-50'
+                        }`}>
+                          {isCarRental ? (
+                            <Car className="w-5 h-5 text-amber-600" />
+                          ) : (
+                            <Plane className="w-5 h-5 text-primary-500" />
+                          )}
+                        </div>
+                        <div>
+                          {isCarRental ? (
+                            <>
+                              <p className="font-semibold text-neutral-900">
+                                {booking.carName || 'Car Rental'}
+                              </p>
+                              <p className="text-xs md:text-sm text-neutral-500">
+                                {booking.pickupLocation} • Ref: {booking.bookingReference}
+                              </p>
+                            </>
+                          ) : (
+                            <>
+                              <p className="font-semibold text-neutral-900">
+                                {booking.origin} → {booking.destination}
+                              </p>
+                              <p className="text-xs md:text-sm text-neutral-500">Ref: {booking.bookingReference}</p>
+                            </>
+                          )}
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-2 md:gap-3">
+                        <span className={`px-2.5 py-1 rounded-full text-xs font-semibold ${getStatusColor(booking.status)}`}>
+                          {booking.status}
+                        </span>
+                        <ChevronRight className="w-5 h-5 text-neutral-400" />
+                      </div>
                     </div>
-                    <div className="flex items-center gap-1.5 md:gap-2 text-neutral-600">
-                      <Users className="w-3.5 h-3.5 md:w-4 md:h-4" />
-                      <span>{booking.passengerCount} pax</span>
-                    </div>
-                    <div className="text-right font-bold text-neutral-900">
-                      {booking.currency} {booking.totalAmount?.toFixed(2)}
+
+                    <div className="grid grid-cols-3 gap-2 md:gap-4 text-xs md:text-sm">
+                      <div className="flex items-center gap-1.5 md:gap-2 text-neutral-600">
+                        <Calendar className="w-3.5 h-3.5 md:w-4 md:h-4" />
+                        <span className="truncate">
+                          {isCarRental && booking.dropoffDate
+                            ? `${formatDate(booking.departureDate).split(',')[0]} - ${formatDate(booking.dropoffDate).split(',')[0]}`
+                            : formatDate(booking.departureDate)
+                          }
+                        </span>
+                      </div>
+                      <div className="flex items-center gap-1.5 md:gap-2 text-neutral-600">
+                        {isCarRental ? (
+                          <>
+                            <MapPin className="w-3.5 h-3.5 md:w-4 md:h-4" />
+                            <span className="truncate">{booking.pickupLocation}</span>
+                          </>
+                        ) : (
+                          <>
+                            <Users className="w-3.5 h-3.5 md:w-4 md:h-4" />
+                            <span>{booking.passengerCount} pax</span>
+                          </>
+                        )}
+                      </div>
+                      <div className="text-right font-bold text-neutral-900">
+                        {booking.currency} {booking.totalAmount?.toFixed(2)}
+                      </div>
                     </div>
                   </div>
-                </div>
-              </Link>
-            ))}
+                </Link>
+              );
+            })}
           </div>
         )}
       </div>

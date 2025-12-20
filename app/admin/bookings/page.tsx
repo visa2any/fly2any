@@ -206,7 +206,14 @@ export default function AdminBookingsPage() {
       const data = await response.json();
       setHotelBookings(data.bookings || []);
       if (data.stats) {
-        setHotelStats(data.stats);
+        // Map API response to component state (totalRevenue -> revenue)
+        setHotelStats({
+          total: data.stats.total || 0,
+          pending: data.stats.pending || 0,
+          confirmed: data.stats.confirmed || 0,
+          cancelled: data.stats.cancelled || 0,
+          revenue: data.stats.totalRevenue || data.stats.revenue || 0,
+        });
       }
     } catch (error) {
       console.error('Error fetching hotel bookings:', error);
@@ -562,13 +569,16 @@ export default function AdminBookingsPage() {
                       Booking Ref
                     </th>
                     <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                      Customer
+                    </th>
+                    <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
                       Route
                     </th>
                     <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
                       Date
                     </th>
                     <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
-                      Passengers
+                      Pax
                     </th>
                     <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
                       Amount
@@ -587,14 +597,14 @@ export default function AdminBookingsPage() {
               <tbody className="divide-y divide-gray-200">
                 {loading ? (
                   <tr>
-                    <td colSpan={8} className="px-4 py-12 text-center">
+                    <td colSpan={9} className="px-4 py-12 text-center">
                       <div className="w-12 h-12 border-4 border-blue-200 border-t-blue-600 rounded-full animate-spin mx-auto mb-4" />
                       <p className="text-gray-600 font-medium">Loading bookings...</p>
                     </td>
                   </tr>
                 ) : filteredBookings.length === 0 ? (
                   <tr>
-                    <td colSpan={8} className="px-4 py-12 text-center">
+                    <td colSpan={9} className="px-4 py-12 text-center">
                       <AlertCircle className="w-12 h-12 text-gray-400 mx-auto mb-4" />
                       <p className="text-gray-600 font-medium">No bookings found</p>
                       <p className="text-gray-500 text-sm mt-1">
@@ -610,6 +620,18 @@ export default function AdminBookingsPage() {
                       <td className="px-4 py-3">
                         <div className="font-mono text-sm font-semibold text-blue-600">
                           {booking.bookingReference}
+                        </div>
+                      </td>
+                      <td className="px-4 py-3">
+                        <div className="text-sm">
+                          <div className="font-medium text-gray-900">
+                            {booking.customerName || 'N/A'}
+                          </div>
+                          {booking.customerEmail && (
+                            <div className="text-xs text-gray-500 truncate max-w-[150px]">
+                              {booking.customerEmail}
+                            </div>
+                          )}
                         </div>
                       </td>
                       <td className="px-4 py-3">

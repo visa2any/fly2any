@@ -378,12 +378,75 @@ function CarCheckoutContent() {
                     </div>
                     <div>
                       <label className="block text-sm font-medium text-slate-700 mb-1">Date of Birth *</label>
-                      <input
-                        type="date"
-                        value={driver.dateOfBirth}
-                        onChange={(e) => setDriver({ ...driver, dateOfBirth: e.target.value })}
-                        className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-                      />
+                      <div className="grid grid-cols-3 gap-2">
+                        {/* Month */}
+                        <select
+                          value={driver.dateOfBirth ? driver.dateOfBirth.split('-')[1] : ''}
+                          onChange={(e) => {
+                            const parts = driver.dateOfBirth ? driver.dateOfBirth.split('-') : ['', '', ''];
+                            parts[1] = e.target.value;
+                            if (parts[0] && parts[1] && parts[2]) {
+                              setDriver({ ...driver, dateOfBirth: parts.join('-') });
+                            } else {
+                              setDriver({ ...driver, dateOfBirth: `${parts[0] || ''}-${parts[1]}-${parts[2] || ''}` });
+                            }
+                          }}
+                          className="w-full px-3 py-3 rounded-xl border border-slate-200 focus:ring-2 focus:ring-primary-500 focus:border-transparent text-sm"
+                        >
+                          <option value="">Month</option>
+                          <option value="01">January</option>
+                          <option value="02">February</option>
+                          <option value="03">March</option>
+                          <option value="04">April</option>
+                          <option value="05">May</option>
+                          <option value="06">June</option>
+                          <option value="07">July</option>
+                          <option value="08">August</option>
+                          <option value="09">September</option>
+                          <option value="10">October</option>
+                          <option value="11">November</option>
+                          <option value="12">December</option>
+                        </select>
+                        {/* Day */}
+                        <select
+                          value={driver.dateOfBirth ? driver.dateOfBirth.split('-')[2] : ''}
+                          onChange={(e) => {
+                            const parts = driver.dateOfBirth ? driver.dateOfBirth.split('-') : ['', '', ''];
+                            parts[2] = e.target.value;
+                            if (parts[0] && parts[1] && parts[2]) {
+                              setDriver({ ...driver, dateOfBirth: parts.join('-') });
+                            } else {
+                              setDriver({ ...driver, dateOfBirth: `${parts[0] || ''}-${parts[1] || ''}-${parts[2]}` });
+                            }
+                          }}
+                          className="w-full px-3 py-3 rounded-xl border border-slate-200 focus:ring-2 focus:ring-primary-500 focus:border-transparent text-sm"
+                        >
+                          <option value="">Day</option>
+                          {Array.from({ length: 31 }, (_, i) => i + 1).map(day => (
+                            <option key={day} value={day.toString().padStart(2, '0')}>{day}</option>
+                          ))}
+                        </select>
+                        {/* Year */}
+                        <select
+                          value={driver.dateOfBirth ? driver.dateOfBirth.split('-')[0] : ''}
+                          onChange={(e) => {
+                            const parts = driver.dateOfBirth ? driver.dateOfBirth.split('-') : ['', '', ''];
+                            parts[0] = e.target.value;
+                            if (parts[0] && parts[1] && parts[2]) {
+                              setDriver({ ...driver, dateOfBirth: parts.join('-') });
+                            } else {
+                              setDriver({ ...driver, dateOfBirth: `${parts[0]}-${parts[1] || ''}-${parts[2] || ''}` });
+                            }
+                          }}
+                          className="w-full px-3 py-3 rounded-xl border border-slate-200 focus:ring-2 focus:ring-primary-500 focus:border-transparent text-sm"
+                        >
+                          <option value="">Year</option>
+                          {Array.from({ length: 80 }, (_, i) => new Date().getFullYear() - 18 - i).map(year => (
+                            <option key={year} value={year.toString()}>{year}</option>
+                          ))}
+                        </select>
+                      </div>
+                      <p className="text-xs text-slate-500 mt-1">Must be at least 18 years old to rent a car</p>
                     </div>
                     <div>
                       <label className="block text-sm font-medium text-slate-700 mb-1">License Country *</label>
