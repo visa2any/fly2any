@@ -464,8 +464,8 @@ class BookingStorage {
     const bookings = await this.search(params);
 
     return bookings.map(b => {
-      // Determine product type from flight data or product_type column
-      const productType = b.flight?.type === 'car_rental' ? 'car' : 'flight';
+      // Determine product type from booking_type column or flight.type fallback
+      const productType = b.bookingType === 'car' || b.flight?.type === 'car_rental' ? 'car' : 'flight';
 
       if (productType === 'car') {
         // Car rental booking
@@ -781,6 +781,7 @@ class BookingStorage {
     return {
       id: row.id,
       bookingReference: row.booking_reference,
+      bookingType: row.booking_type || 'flight',
       status: row.status,
       userId: row.user_id,
       contactInfo: this.safeJsonParse(row.contact_info, 'contact_info', { email: '', phone: '' }),

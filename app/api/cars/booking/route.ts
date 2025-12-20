@@ -186,28 +186,26 @@ export async function POST(request: NextRequest) {
     }
 
     try {
+      // Use existing schema columns only
       await sql`
         INSERT INTO bookings (
           id, booking_reference, status, user_id,
-          contact_info, flight, passengers, seats, payment,
-          product_type, product_id,
-          origin, destination, departure_date,
+          booking_type, contact_info, flight, passengers, seats, payment,
+          travel_date_from, travel_date_to,
           created_at, updated_at
         ) VALUES (
           ${bookingId},
           ${bookingReference},
           'pending',
           ${session?.user?.id || null},
+          'car',
           ${JSON.stringify(bookingData.contactInfo)},
           ${JSON.stringify({ type: 'car_rental', ...bookingData.car, rental: bookingData.rental })},
           ${JSON.stringify([bookingData.driver])},
           ${JSON.stringify([])},
           ${JSON.stringify(bookingData.payment)},
-          'car',
-          ${car.id || null},
-          ${pickupLocation},
-          ${dropoffLocation || pickupLocation},
           ${pickupDate},
+          ${dropoffDate},
           ${now},
           ${now}
         )

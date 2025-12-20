@@ -135,6 +135,7 @@ export interface PromoCodeDiscount {
 export interface Booking {
   id: string;
   bookingReference: string; // e.g., FLY2A-ABC123
+  bookingType?: 'flight' | 'car' | 'hotel'; // Product type
   status: BookingStatus;
   userId?: string; // Optional user ID for authenticated users
   contactInfo: ContactInfo;
