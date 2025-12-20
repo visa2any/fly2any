@@ -621,7 +621,7 @@ function CarCheckoutContent() {
                   </div>
                   <div className="flex items-center gap-2 text-slate-600">
                     <Calendar className="w-4 h-4" />
-                    <span>{pickupDate} at {pickupTime}</span>
+                    <span>{pickupDate ? new Date(pickupDate).toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' }) : 'N/A'} at {pickupTime}</span>
                   </div>
                   <div className="flex items-center gap-2 text-slate-600 mt-2">
                     <MapPin className="w-4 h-4 text-red-600" />
@@ -629,7 +629,7 @@ function CarCheckoutContent() {
                   </div>
                   <div className="flex items-center gap-2 text-slate-600">
                     <Calendar className="w-4 h-4" />
-                    <span>{dropoffDate} at {dropoffTime}</span>
+                    <span>{dropoffDate ? new Date(dropoffDate).toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' }) : 'N/A'} at {dropoffTime}</span>
                   </div>
                 </div>
               </div>
@@ -638,16 +638,16 @@ function CarCheckoutContent() {
               <div className="border-t border-slate-100 pt-4">
                 <div className="space-y-2 text-sm">
                   <div className="flex justify-between">
-                    <span className="text-slate-600">${car.pricePerDay}/day x {rentalDays} days</span>
-                    <span className="font-medium">${basePrice.toFixed(2)}</span>
+                    <span className="text-slate-600">${(car.pricePerDay || 0).toFixed(2)}/day x {rentalDays} day{rentalDays > 1 ? 's' : ''}</span>
+                    <span className="font-medium">${(basePrice || 0).toFixed(2)}</span>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-slate-600">Taxes & Fees</span>
-                    <span className="font-medium">${taxesAndFees.toFixed(2)}</span>
+                    <span className="font-medium">${(taxesAndFees || 0).toFixed(2)}</span>
                   </div>
                   <div className="flex justify-between pt-2 border-t border-slate-100 text-lg">
                     <span className="font-semibold text-slate-900">Total</span>
-                    <span className="font-bold text-primary-600">${totalPrice.toFixed(2)}</span>
+                    <span className="font-bold text-primary-600">${(totalPrice || 0).toFixed(2)}</span>
                   </div>
                 </div>
               </div>

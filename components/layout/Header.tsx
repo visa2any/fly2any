@@ -271,47 +271,6 @@ export function Header({
               <span className="absolute bottom-1.5 left-3 right-3 h-0.5 bg-primary-500 rounded-full scale-x-0 group-hover:scale-x-100 transition-transform duration-150 ease-[cubic-bezier(0.2,0.8,0.2,1)] origin-left"></span>
             </a>
 
-            {/* Deals - Promoted to main nav */}
-            <a
-              href="/deals"
-              className="group relative px-3 xl:px-4 py-2.5 text-neutral-700 hover:text-primary-600 transition-all duration-150 ease-[cubic-bezier(0.2,0.8,0.2,1)] font-semibold text-sm rounded-xl hover:bg-primary-50/60 hover:-translate-y-0.5"
-            >
-              <span className="flex items-center gap-2">
-                <span className="text-lg transition-transform duration-150 group-hover:scale-110">
-                  🔥
-                </span>
-                {t('deals')}
-              </span>
-              <span className="absolute bottom-1.5 left-3 right-3 h-0.5 bg-primary-500 rounded-full scale-x-0 group-hover:scale-x-100 transition-transform duration-150 ease-[cubic-bezier(0.2,0.8,0.2,1)] origin-left"></span>
-            </a>
-
-            {/* Destinations - Promoted to main nav */}
-            <a
-              href="/destinations"
-              className="group relative px-3 xl:px-4 py-2.5 text-neutral-700 hover:text-primary-600 transition-all duration-150 ease-[cubic-bezier(0.2,0.8,0.2,1)] font-semibold text-sm rounded-xl hover:bg-primary-50/60 hover:-translate-y-0.5"
-            >
-              <span className="flex items-center gap-2">
-                <span className="text-lg transition-transform duration-150 group-hover:scale-110">
-                  🏙️
-                </span>
-                {t('destinations')}
-              </span>
-              <span className="absolute bottom-1.5 left-3 right-3 h-0.5 bg-primary-500 rounded-full scale-x-0 group-hover:scale-x-100 transition-transform duration-150 ease-[cubic-bezier(0.2,0.8,0.2,1)] origin-left"></span>
-            </a>
-
-            {/* Airlines - Promoted to main nav */}
-            <a
-              href="/airlines"
-              className="group relative px-3 xl:px-4 py-2.5 text-neutral-700 hover:text-primary-600 transition-all duration-150 ease-[cubic-bezier(0.2,0.8,0.2,1)] font-semibold text-sm rounded-xl hover:bg-primary-50/60 hover:-translate-y-0.5"
-            >
-              <span className="flex items-center gap-2">
-                <span className="text-lg transition-transform duration-150 group-hover:scale-110">
-                  ✈️
-                </span>
-                {t('airlines')}
-              </span>
-              <span className="absolute bottom-1.5 left-3 right-3 h-0.5 bg-primary-500 rounded-full scale-x-0 group-hover:scale-x-100 transition-transform duration-150 ease-[cubic-bezier(0.2,0.8,0.2,1)] origin-left"></span>
-            </a>
 
             {/* ============================================
                 TEMPORARILY HIDDEN - Uncomment when ready to launch
@@ -431,6 +390,32 @@ export function Header({
                     border: '1px solid rgba(0, 0, 0, 0.1)',
                   }}
                 >
+                  {/* Deals */}
+                  <a
+                    href="/deals"
+                    className="flex items-center gap-3 px-5 py-3.5 hover:bg-primary-50/50 text-gray-700 transition-all duration-200"
+                  >
+                    <span className="text-xl">🔥</span>
+                    <span className="font-semibold text-sm">{t('deals')}</span>
+                  </a>
+                  {/* Destinations */}
+                  <a
+                    href="/destinations"
+                    className="flex items-center gap-3 px-5 py-3.5 hover:bg-primary-50/50 text-gray-700 transition-all duration-200"
+                  >
+                    <span className="text-xl">🏙️</span>
+                    <span className="font-semibold text-sm">{t('destinations')}</span>
+                  </a>
+                  {/* Airlines */}
+                  <a
+                    href="/airlines"
+                    className="flex items-center gap-3 px-5 py-3.5 hover:bg-primary-50/50 text-gray-700 transition-all duration-200"
+                  >
+                    <span className="text-xl">✈️</span>
+                    <span className="font-semibold text-sm">{t('airlines')}</span>
+                  </a>
+                  {/* Divider */}
+                  <div className="border-t border-gray-200 my-1"></div>
                   <a
                     href="/blog"
                     className="flex items-center gap-3 px-5 py-3.5 hover:bg-primary-50/50 text-gray-700 transition-all duration-200"

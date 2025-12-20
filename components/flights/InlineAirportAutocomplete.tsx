@@ -119,7 +119,10 @@ export function InlineAirportAutocomplete({
         e.preventDefault();
         if (highlightedIndex >= 0 && suggestions[highlightedIndex]) {
           handleSelectAirport(suggestions[highlightedIndex]);
-        } else if (inputValue.length === 3) {
+        } else if (suggestions.length > 0) {
+          // Auto-select first suggestion
+          handleSelectAirport(suggestions[0]);
+        } else if (inputValue.length === 3 && /^[A-Za-z]{3}$/.test(inputValue)) {
           // Allow direct 3-letter code entry
           const upperCode = inputValue.toUpperCase();
           onChange([upperCode]);
@@ -140,11 +143,12 @@ export function InlineAirportAutocomplete({
   };
 
   const handleBlur = (e: React.FocusEvent<HTMLInputElement>) => {
-    // If user types a 3-letter code, accept it
-    if (inputValue.length === 3 && inputValue !== value) {
+    // If user types a 3-letter code directly, accept it as an airport code
+    if (inputValue.length === 3 && inputValue !== value && /^[A-Za-z]{3}$/.test(inputValue)) {
       const upperCode = inputValue.toUpperCase();
       onChange([upperCode]);
     }
+    // Otherwise keep whatever value they typed (it might be a selected airport)
   };
 
   return (
@@ -167,7 +171,6 @@ export function InlineAirportAutocomplete({
           onBlur={handleBlur}
           disabled={disabled}
           placeholder={placeholder}
-          maxLength={3}
           className={`
             w-full min-h-[56px] max-h-[56px] h-[56px] pl-11 pr-10
             text-base font-medium
@@ -178,10 +181,9 @@ export function InlineAirportAutocomplete({
               : 'bg-white text-gray-900 hover:border-gray-300 focus:border-[#0087FF] focus:ring-2 focus:ring-[#0087FF]/20'
             }
             outline-none
-            uppercase
             overflow-hidden
           `}
-          style={{ textTransform: 'uppercase', lineHeight: '56px' }}
+          style={{ lineHeight: '56px' }}
         />
 
         {inputValue && !disabled && (

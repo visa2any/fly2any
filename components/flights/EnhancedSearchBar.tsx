@@ -2675,7 +2675,7 @@ export default function EnhancedSearchBar({
                 <InlineAirportAutocomplete
                   value={carPickupLocation}
                   onChange={(codes) => setCarPickupLocation(codes[0] || '')}
-                  placeholder="Airport code (e.g., MIA)"
+                  placeholder="City or airport (e.g., Miami)"
                 />
               </div>
             </div>
@@ -2709,7 +2709,7 @@ export default function EnhancedSearchBar({
                   <InlineAirportAutocomplete
                     value={carDropoffLocation || carPickupLocation}
                     onChange={(codes) => setCarDropoffLocation(codes[0] || '')}
-                    placeholder="Airport code (e.g., MIA)"
+                    placeholder="City or airport (e.g., Miami)"
                   />
                 ) : (
                   <div className="relative w-full px-4 py-4 bg-gray-50 border border-gray-200 rounded-lg cursor-not-allowed h-full flex items-center">

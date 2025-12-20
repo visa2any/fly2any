@@ -126,10 +126,10 @@ export function CarCard({ car, days, onSelect }: CarCardProps) {
 
               {car.rating && (
                 <div className="flex items-center gap-1 flex-shrink-0">
-                  <div className="bg-blue-600 text-white px-2 py-0.5 rounded font-bold text-sm">
+                  <div className="bg-primary-600 text-white px-2 py-0.5 rounded font-bold text-sm">
                     {car.rating.toFixed(1)}
                   </div>
-                  <span className="text-sm font-semibold text-blue-600">
+                  <span className="text-sm font-semibold text-primary-600">
                     {car.rating >= 4.5 ? 'Excellent' : car.rating >= 4 ? 'Very Good' : 'Good'}
                   </span>
                 </div>
@@ -232,7 +232,7 @@ export function CarCard({ car, days, onSelect }: CarCardProps) {
                     ${car.pricePerDay * days}
                   </span>
                 )}
-                <span className="text-3xl font-extrabold text-blue-600">
+                <span className="text-3xl font-extrabold text-primary-600">
                   ${totalPrice}
                 </span>
               </div>
@@ -248,7 +248,7 @@ export function CarCard({ car, days, onSelect }: CarCardProps) {
 
             <button
               onClick={onSelect}
-              className="px-6 py-3 bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-lg font-bold text-sm hover:from-blue-700 hover:to-blue-800 transition-all duration-300 shadow-md hover:shadow-lg hover:scale-105"
+              className="px-6 py-3 bg-gradient-to-r from-primary-600 to-primary-700 text-white rounded-lg font-bold text-sm hover:from-primary-700 hover:to-primary-800 transition-all duration-300 shadow-md hover:shadow-lg hover:scale-105"
             >
               Select Car →
             </button>

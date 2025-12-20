@@ -125,6 +125,49 @@ const translations = {
 };
 
 // ===========================
+// HELPER FUNCTIONS
+// ===========================
+
+function formatCategory(category: string): string {
+  const categoryMap: Record<string, string> = {
+    'ECONOMY': 'Economy',
+    'COMPACT': 'Compact',
+    'STANDARD': 'Sedan',
+    'FULLSIZE': 'Sedan',
+    'INTERMEDIATE': 'Sedan',
+    'PREMIUM': 'Luxury',
+    'LUXURY': 'Luxury',
+    'SUV': 'SUV',
+    'VAN': 'Van',
+    'MINIVAN': 'Van',
+    'CONVERTIBLE': 'Sports',
+    'SPORTS': 'Sports',
+  };
+  return categoryMap[category?.toUpperCase()] || category || 'Standard';
+}
+
+function formatTransmission(transmission: string): string {
+  const transmissionMap: Record<string, string> = {
+    'AUTOMATIC': 'Automatic',
+    'MANUAL': 'Manual',
+    'A': 'Automatic',
+    'M': 'Manual',
+  };
+  return transmissionMap[transmission?.toUpperCase()] || 'Automatic';
+}
+
+function formatFuelType(fuelType: string): string {
+  const fuelMap: Record<string, string> = {
+    'PETROL': 'Gasoline',
+    'DIESEL': 'Diesel',
+    'ELECTRIC': 'Electric',
+    'HYBRID': 'Hybrid',
+    'GASOLINE': 'Gasoline',
+  };
+  return fuelMap[fuelType?.toUpperCase()] || 'Gasoline';
+}
+
+// ===========================
 // MAIN COMPONENT
 // ===========================
 
@@ -183,191 +226,47 @@ function CarResultsContent() {
       setError(null);
 
       try {
-        // Enhanced mock data with more variety
-        const mockCars: CarRental[] = [
-          {
-            id: '1',
-            name: 'Toyota Camry',
-            category: 'Sedan',
-            company: 'Enterprise',
-            passengers: 5,
-            doors: 4,
-            luggage: 3,
-            transmission: 'Automatic',
-            fuelType: 'Gasoline',
-            pricePerDay: 45,
-            image: '🚗',
-            features: ['AC', 'Bluetooth', 'GPS', 'USB', 'Backup Camera'],
-            rating: 4.3,
-            reviewCount: 342,
-            location: searchData.pickup,
-            available: 8,
-            airConditioning: true,
-            unlimited_mileage: true,
-            insurance_included: false,
-            instant_confirmation: true,
-          },
-          {
-            id: '2',
-            name: 'Honda CR-V',
-            category: 'SUV',
-            company: 'Hertz',
-            passengers: 7,
-            doors: 5,
-            luggage: 5,
-            transmission: 'Automatic',
-            fuelType: 'Hybrid',
-            pricePerDay: 65,
-            totalPrice: 420,
-            image: '🚙',
-            features: ['AC', 'Bluetooth', 'GPS', 'USB', 'Apple CarPlay', 'Lane Assist'],
-            rating: 4.7,
-            reviewCount: 567,
-            location: searchData.pickup,
-            available: 3,
-            airConditioning: true,
-            unlimited_mileage: true,
-            insurance_included: true,
-            instant_confirmation: true,
-          },
-          {
-            id: '3',
-            name: 'Ford Mustang',
-            category: 'Sports',
-            company: 'Avis',
-            passengers: 4,
-            doors: 2,
-            luggage: 2,
-            transmission: 'Manual',
-            fuelType: 'Gasoline',
-            pricePerDay: 89,
-            image: '🏎️',
-            features: ['AC', 'Bluetooth', 'Premium Audio', 'Sport Mode', 'Leather Seats'],
-            rating: 4.9,
-            reviewCount: 234,
-            location: searchData.pickup,
-            available: 2,
-            airConditioning: true,
-            unlimited_mileage: false,
-            insurance_included: false,
-            instant_confirmation: true,
-          },
-          {
-            id: '4',
-            name: 'Tesla Model 3',
-            category: 'Luxury',
-            company: 'Enterprise',
-            passengers: 5,
-            doors: 4,
-            luggage: 2,
-            transmission: 'Automatic',
-            fuelType: 'Electric',
-            pricePerDay: 120,
-            totalPrice: 790,
-            image: '⚡',
-            features: ['AC', 'Autopilot', 'Premium Audio', 'Supercharging', 'Heated Seats'],
-            rating: 4.8,
-            reviewCount: 892,
-            location: searchData.pickup,
-            available: 4,
-            airConditioning: true,
-            unlimited_mileage: true,
-            insurance_included: true,
-            instant_confirmation: true,
-          },
-          {
-            id: '5',
-            name: 'Chevrolet Spark',
-            category: 'Economy',
-            company: 'Budget',
-            passengers: 4,
-            doors: 4,
-            luggage: 2,
-            transmission: 'Automatic',
-            fuelType: 'Gasoline',
-            pricePerDay: 35,
-            image: '🚘',
-            features: ['AC', 'Bluetooth', 'USB'],
-            rating: 4.1,
-            reviewCount: 189,
-            location: searchData.pickup,
-            available: 12,
-            airConditioning: true,
-            unlimited_mileage: true,
-            insurance_included: false,
-            instant_confirmation: true,
-          },
-          {
-            id: '6',
-            name: 'Mercedes-Benz E-Class',
-            category: 'Luxury',
-            company: 'Hertz',
-            passengers: 5,
-            doors: 4,
-            luggage: 3,
-            transmission: 'Automatic',
-            fuelType: 'Diesel',
-            pricePerDay: 150,
-            totalPrice: 980,
-            image: '🚙',
-            features: ['AC', 'Bluetooth', 'GPS', 'Leather Seats', 'Premium Audio', 'Sunroof'],
-            rating: 4.9,
-            reviewCount: 456,
-            location: searchData.pickup,
-            available: 2,
-            airConditioning: true,
-            unlimited_mileage: false,
-            insurance_included: true,
-            instant_confirmation: true,
-          },
-          {
-            id: '7',
-            name: 'Toyota RAV4',
-            category: 'SUV',
-            company: 'Avis',
-            passengers: 5,
-            doors: 5,
-            luggage: 4,
-            transmission: 'Automatic',
-            fuelType: 'Hybrid',
-            pricePerDay: 70,
-            image: '🚙',
-            features: ['AC', 'Bluetooth', 'GPS', 'USB', 'Apple CarPlay', 'Backup Camera'],
-            rating: 4.6,
-            reviewCount: 421,
-            location: searchData.pickup,
-            available: 6,
-            airConditioning: true,
-            unlimited_mileage: true,
-            insurance_included: true,
-            instant_confirmation: true,
-          },
-          {
-            id: '8',
-            name: 'Honda Civic',
-            category: 'Compact',
-            company: 'Budget',
-            passengers: 5,
-            doors: 4,
-            luggage: 2,
-            transmission: 'Automatic',
-            fuelType: 'Gasoline',
-            pricePerDay: 42,
-            image: '🚗',
-            features: ['AC', 'Bluetooth', 'USB', 'Backup Camera'],
-            rating: 4.4,
-            reviewCount: 312,
-            location: searchData.pickup,
-            available: 9,
-            airConditioning: true,
-            unlimited_mileage: true,
-            insurance_included: false,
-            instant_confirmation: true,
-          },
-        ];
+        // Fetch from the actual API
+        const params = new URLSearchParams({
+          pickupLocation: searchData.pickup,
+          dropoffLocation: searchData.dropoff || searchData.pickup,
+          pickupDate: searchData.pickupDate,
+          dropoffDate: searchData.dropoffDate,
+        });
 
-        await new Promise(resolve => setTimeout(resolve, 1200));
-        setCars(mockCars);
+        const response = await fetch(`/api/cars?${params.toString()}`);
+        const data = await response.json();
+
+        if (data.error) {
+          throw new Error(data.error);
+        }
+
+        // Transform API response to CarRental format
+        const transformedCars: CarRental[] = (data.data || []).map((item: any) => ({
+          id: item.id || `car_${Math.random().toString(36).substr(2, 9)}`,
+          name: item.vehicle?.description || item.name || 'Car Rental',
+          category: formatCategory(item.vehicle?.category || item.category || 'Standard'),
+          company: item.provider?.companyName || item.company || 'Car Rental Company',
+          passengers: item.vehicle?.seats || item.passengers || 5,
+          doors: item.vehicle?.doors || item.doors || 4,
+          luggage: item.luggage || 2,
+          transmission: formatTransmission(item.vehicle?.transmission || item.transmission || 'Automatic'),
+          fuelType: formatFuelType(item.vehicle?.fuelType || item.fuelType || 'Gasoline'),
+          pricePerDay: parseFloat(item.price?.perDay || item.pricePerDay || '0'),
+          totalPrice: parseFloat(item.price?.total || item.totalPrice || '0'),
+          image: item.vehicle?.imageURL || item.image || '🚗',
+          features: item.features || (item.vehicle?.airConditioning ? ['AC', 'Bluetooth'] : ['Bluetooth']),
+          rating: item.rating || 4.5,
+          reviewCount: item.reviewCount || 100,
+          location: item.pickupLocation?.name || searchData.pickup,
+          available: item.available || 5,
+          airConditioning: item.vehicle?.airConditioning !== false,
+          unlimited_mileage: item.mileage?.unlimited !== false,
+          insurance_included: item.insurance?.included || false,
+          instant_confirmation: true,
+        }));
+
+        setCars(transformedCars);
       } catch (err: any) {
         console.error('Error fetching cars:', err);
         setError(err.message || 'Failed to fetch cars');
@@ -505,7 +404,7 @@ function CarResultsContent() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-gray-50 via-blue-50/30 to-gray-50 flex items-center justify-center">
+      <div className="min-h-screen bg-gradient-to-br from-gray-50 via-primary-50/30 to-gray-50 flex items-center justify-center">
         <div className="text-center">
           <motion.div
             animate={{ scale: [1, 1.2, 1], rotate: [0, 10, -10, 0] }}
@@ -516,9 +415,9 @@ function CarResultsContent() {
           </motion.div>
           <h2 className="text-3xl font-bold text-gray-900 mb-3">{t.searching}</h2>
           <div className="flex items-center justify-center gap-2">
-            <div className="w-2 h-2 bg-blue-600 rounded-full animate-bounce" style={{ animationDelay: '0ms' }}></div>
-            <div className="w-2 h-2 bg-blue-600 rounded-full animate-bounce" style={{ animationDelay: '150ms' }}></div>
-            <div className="w-2 h-2 bg-blue-600 rounded-full animate-bounce" style={{ animationDelay: '300ms' }}></div>
+            <div className="w-2 h-2 bg-primary-600 rounded-full animate-bounce" style={{ animationDelay: '0ms' }}></div>
+            <div className="w-2 h-2 bg-primary-600 rounded-full animate-bounce" style={{ animationDelay: '150ms' }}></div>
+            <div className="w-2 h-2 bg-primary-600 rounded-full animate-bounce" style={{ animationDelay: '300ms' }}></div>
           </div>
         </div>
       </div>
@@ -531,14 +430,14 @@ function CarResultsContent() {
 
   if (error) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-gray-50 via-blue-50/30 to-gray-50 flex items-center justify-center p-4">
+      <div className="min-h-screen bg-gradient-to-br from-gray-50 via-primary-50/30 to-gray-50 flex items-center justify-center p-4">
         <div className="bg-white/90 backdrop-blur-xl rounded-2xl shadow-2xl p-8 max-w-md text-center border border-red-200">
           <AlertCircle className="w-16 h-16 text-red-500 mx-auto mb-4" />
           <h2 className="text-2xl font-bold text-gray-900 mb-3">{t.error}</h2>
           <p className="text-gray-600 mb-6">{t.errorDesc}</p>
           <button
             onClick={() => window.location.reload()}
-            className="px-6 py-3 bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-lg font-bold hover:from-blue-700 hover:to-blue-800 transition-all duration-300 shadow-md hover:shadow-lg flex items-center gap-2 mx-auto"
+            className="px-6 py-3 bg-gradient-to-r from-primary-600 to-primary-700 text-white rounded-lg font-bold hover:from-primary-700 hover:to-primary-800 transition-all duration-300 shadow-md hover:shadow-lg flex items-center gap-2 mx-auto"
           >
             <RefreshCcw className="w-5 h-5" />
             {t.retry}
@@ -553,7 +452,7 @@ function CarResultsContent() {
   // ===========================
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 via-blue-50/30 to-gray-50">
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 via-primary-50/30 to-gray-50">
       {/* GEO Schema for AI search engines */}
       {cars.length > 0 && (
         <ResultsPageSchema
@@ -611,7 +510,7 @@ function CarResultsContent() {
             </div>
             <button
               onClick={() => router.push('/')}
-              className={`text-sm font-semibold text-blue-600 hover:text-blue-700 transition-all px-4 rounded-lg hover:bg-blue-50/80 flex-shrink-0 ${
+              className={`text-sm font-semibold text-primary-600 hover:text-primary-700 transition-all px-4 rounded-lg hover:bg-primary-50/80 flex-shrink-0 ${
                 shouldMinimize ? 'py-1.5 md:py-2' : 'py-2'
               }`}
             >
@@ -653,8 +552,8 @@ function CarResultsContent() {
                     onClick={() => setSortBy('best')}
                     className={`px-3 py-1.5 rounded-lg font-semibold text-xs transition-all duration-300 ${
                       sortBy === 'best'
-                        ? 'bg-gradient-to-r from-blue-500 to-blue-600 text-white shadow-md hover:shadow-lg'
-                        : 'bg-white/90 backdrop-blur-sm text-slate-700 border-2 border-slate-200 hover:border-blue-300 hover:bg-blue-50/50'
+                        ? 'bg-gradient-to-r from-primary-500 to-primary-600 text-white shadow-md hover:shadow-lg'
+                        : 'bg-white/90 backdrop-blur-sm text-slate-700 border-2 border-slate-200 hover:border-primary-300 hover:bg-primary-50/50'
                     }`}
                   >
                     {t.bestValue}
@@ -665,8 +564,8 @@ function CarResultsContent() {
                     onClick={() => setSortBy('cheapest')}
                     className={`px-3 py-1.5 rounded-lg font-semibold text-xs transition-all duration-300 ${
                       sortBy === 'cheapest'
-                        ? 'bg-gradient-to-r from-blue-500 to-blue-600 text-white shadow-md hover:shadow-lg'
-                        : 'bg-white/90 backdrop-blur-sm text-slate-700 border-2 border-slate-200 hover:border-blue-300 hover:bg-blue-50/50'
+                        ? 'bg-gradient-to-r from-primary-500 to-primary-600 text-white shadow-md hover:shadow-lg'
+                        : 'bg-white/90 backdrop-blur-sm text-slate-700 border-2 border-slate-200 hover:border-primary-300 hover:bg-primary-50/50'
                     }`}
                   >
                     💰 {t.lowestPrice}
@@ -677,8 +576,8 @@ function CarResultsContent() {
                     onClick={() => setSortBy('rating')}
                     className={`px-3 py-1.5 rounded-lg font-semibold text-xs transition-all duration-300 ${
                       sortBy === 'rating'
-                        ? 'bg-gradient-to-r from-blue-500 to-blue-600 text-white shadow-md hover:shadow-lg'
-                        : 'bg-white/90 backdrop-blur-sm text-slate-700 border-2 border-slate-200 hover:border-blue-300 hover:bg-blue-50/50'
+                        ? 'bg-gradient-to-r from-primary-500 to-primary-600 text-white shadow-md hover:shadow-lg'
+                        : 'bg-white/90 backdrop-blur-sm text-slate-700 border-2 border-slate-200 hover:border-primary-300 hover:bg-primary-50/50'
                     }`}
                   >
                     ⭐ {t.highestRating}
@@ -689,8 +588,8 @@ function CarResultsContent() {
                     onClick={() => setSortBy('category')}
                     className={`px-3 py-1.5 rounded-lg font-semibold text-xs transition-all duration-300 ${
                       sortBy === 'category'
-                        ? 'bg-gradient-to-r from-blue-500 to-blue-600 text-white shadow-md hover:shadow-lg'
-                        : 'bg-white/90 backdrop-blur-sm text-slate-700 border-2 border-slate-200 hover:border-blue-300 hover:bg-blue-50/50'
+                        ? 'bg-gradient-to-r from-primary-500 to-primary-600 text-white shadow-md hover:shadow-lg'
+                        : 'bg-white/90 backdrop-blur-sm text-slate-700 border-2 border-slate-200 hover:border-primary-300 hover:bg-primary-50/50'
                     }`}
                   >
                     📂 {t.byCategory}
@@ -701,8 +600,8 @@ function CarResultsContent() {
                     onClick={() => setSortBy('popular')}
                     className={`px-3 py-1.5 rounded-lg font-semibold text-xs transition-all duration-300 ${
                       sortBy === 'popular'
-                        ? 'bg-gradient-to-r from-blue-500 to-blue-600 text-white shadow-md hover:shadow-lg'
-                        : 'bg-white/90 backdrop-blur-sm text-slate-700 border-2 border-slate-200 hover:border-blue-300 hover:bg-blue-50/50'
+                        ? 'bg-gradient-to-r from-primary-500 to-primary-600 text-white shadow-md hover:shadow-lg'
+                        : 'bg-white/90 backdrop-blur-sm text-slate-700 border-2 border-slate-200 hover:border-primary-300 hover:bg-primary-50/50'
                     }`}
                   >
                     🔥 {t.mostPopular}
@@ -713,8 +612,8 @@ function CarResultsContent() {
                     onClick={() => setSortBy('deals')}
                     className={`px-3 py-1.5 rounded-lg font-semibold text-xs transition-all duration-300 ${
                       sortBy === 'deals'
-                        ? 'bg-gradient-to-r from-blue-500 to-blue-600 text-white shadow-md hover:shadow-lg'
-                        : 'bg-white/90 backdrop-blur-sm text-slate-700 border-2 border-slate-200 hover:border-blue-300 hover:bg-blue-50/50'
+                        ? 'bg-gradient-to-r from-primary-500 to-primary-600 text-white shadow-md hover:shadow-lg'
+                        : 'bg-white/90 backdrop-blur-sm text-slate-700 border-2 border-slate-200 hover:border-primary-300 hover:bg-primary-50/50'
                     }`}
                   >
                     💎 {t.bestDealsSort}
@@ -725,8 +624,8 @@ function CarResultsContent() {
                     onClick={() => setSortBy('company')}
                     className={`px-3 py-1.5 rounded-lg font-semibold text-xs transition-all duration-300 ${
                       sortBy === 'company'
-                        ? 'bg-gradient-to-r from-blue-500 to-blue-600 text-white shadow-md hover:shadow-lg'
-                        : 'bg-white/90 backdrop-blur-sm text-slate-700 border-2 border-slate-200 hover:border-blue-300 hover:bg-blue-50/50'
+                        ? 'bg-gradient-to-r from-primary-500 to-primary-600 text-white shadow-md hover:shadow-lg'
+                        : 'bg-white/90 backdrop-blur-sm text-slate-700 border-2 border-slate-200 hover:border-primary-300 hover:bg-primary-50/50'
                     }`}
                   >
                     🏢 {t.byCompany}
@@ -736,7 +635,7 @@ function CarResultsContent() {
 
               {/* Results Count */}
               <span className="text-sm font-semibold text-slate-600 flex items-center gap-1.5">
-                <span className="inline-flex items-center justify-center w-7 h-7 bg-blue-100 text-blue-700 rounded-full text-xs font-bold">
+                <span className="inline-flex items-center justify-center w-7 h-7 bg-primary-100 text-primary-700 rounded-full text-xs font-bold">
                   {sortedCars.length}
                 </span>
                 {sortedCars.length === 1 ? 'car' : 'cars'}
@@ -745,13 +644,13 @@ function CarResultsContent() {
 
             {/* Active Filters Badge */}
             {activeFilterCount > 0 && (
-              <div className="mb-4 flex items-center justify-between px-4 py-2.5 bg-blue-50/60 border border-blue-200/70 rounded-lg">
-                <span className="text-sm font-medium text-blue-800 leading-relaxed">
+              <div className="mb-4 flex items-center justify-between px-4 py-2.5 bg-primary-50/60 border border-primary-200/70 rounded-lg">
+                <span className="text-sm font-medium text-primary-800 leading-relaxed">
                   {t.filtersActive.replace('{count}', activeFilterCount.toString())}
                 </span>
                 <button
                   onClick={clearFilters}
-                  className="text-sm font-semibold text-blue-700 hover:text-blue-800 flex items-center gap-1 transition-colors"
+                  className="text-sm font-semibold text-primary-700 hover:text-primary-800 flex items-center gap-1 transition-colors"
                 >
                   <X className="w-4 h-4" />
                   {t.clearFilters}
@@ -767,7 +666,7 @@ function CarResultsContent() {
                 <p className="text-slate-600 mb-6">{t.noResultsDesc}</p>
                 <button
                   onClick={clearFilters}
-                  className="px-6 py-3 bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-lg font-bold hover:from-blue-700 hover:to-blue-800 transition-all duration-300 shadow-md hover:shadow-lg"
+                  className="px-6 py-3 bg-gradient-to-r from-primary-600 to-primary-700 text-white rounded-lg font-bold hover:from-primary-700 hover:to-primary-800 transition-all duration-300 shadow-md hover:shadow-lg"
                 >
                   {t.clearFilters}
                 </button>
@@ -787,13 +686,13 @@ function CarResultsContent() {
                         days={days}
                         onSelect={() => {
                           // Navigate to checkout with car data
-                          const params = new URLSearchParams();
-                          params.set('car', encodeURIComponent(JSON.stringify(car)));
-                          params.set('pickup', searchParams.pickup);
-                          params.set('dropoff', searchParams.dropoff || searchParams.pickup);
-                          params.set('pickupDate', searchParams.pickupDate);
-                          params.set('dropoffDate', searchParams.dropoffDate);
-                          router.push(`/cars/checkout?${params.toString()}`);
+                          const checkoutParams = new URLSearchParams();
+                          checkoutParams.set('car', encodeURIComponent(JSON.stringify(car)));
+                          checkoutParams.set('pickup', searchData.pickup);
+                          checkoutParams.set('dropoff', searchData.dropoff || searchData.pickup);
+                          checkoutParams.set('pickupDate', searchData.pickupDate);
+                          checkoutParams.set('dropoffDate', searchData.dropoffDate);
+                          router.push(`/cars/checkout?${checkoutParams.toString()}`);
                         }}
                       />
                     </motion.div>
@@ -807,7 +706,7 @@ function CarResultsContent() {
               <div className="mt-6 text-center">
                 <button
                   onClick={() => setDisplayCount(prev => prev + 20)}
-                  className="px-8 py-4 bg-white/90 backdrop-blur-lg border-2 border-blue-200 text-blue-700 rounded-lg font-bold hover:bg-blue-50 hover:border-blue-300 transition-all duration-300 shadow-md hover:shadow-lg"
+                  className="px-8 py-4 bg-white/90 backdrop-blur-lg border-2 border-primary-200 text-primary-700 rounded-lg font-bold hover:bg-primary-50 hover:border-primary-300 transition-all duration-300 shadow-md hover:shadow-lg"
                 >
                   {t.loadMore} ({sortedCars.length - displayCount} more)
                 </button>
@@ -821,7 +720,7 @@ function CarResultsContent() {
               {/* Price Insights */}
               <div className="bg-white/90 backdrop-blur-xl rounded-2xl shadow-lg p-4 border border-slate-200">
                 <div className="flex items-center gap-2 mb-3">
-                  <Sparkles className="w-4 h-4 text-blue-600" />
+                  <Sparkles className="w-4 h-4 text-primary-600" />
                   <h3 className="text-sm font-bold text-slate-900">{t.priceInsights}</h3>
                 </div>
                 <div className="space-y-2">
@@ -831,7 +730,7 @@ function CarResultsContent() {
                   </div>
                   <div className="flex justify-between items-center">
                     <span className="text-xs text-slate-600">{t.totalPrice.replace('{days}', days.toString())}:</span>
-                    <span className="text-sm font-bold text-blue-600">${totalAvgPrice}</span>
+                    <span className="text-sm font-bold text-primary-600">${totalAvgPrice}</span>
                   </div>
                 </div>
               </div>
@@ -852,13 +751,13 @@ function CarResultsContent() {
               {/* Popular Right Now */}
               <div className="bg-white/90 backdrop-blur-xl rounded-2xl shadow-lg p-4 border border-slate-200">
                 <div className="flex items-center gap-2 mb-3">
-                  <Clock className="w-4 h-4 text-blue-600" />
+                  <Clock className="w-4 h-4 text-primary-600" />
                   <h3 className="text-sm font-bold text-slate-900">{t.popularNow}</h3>
                 </div>
                 <div className="space-y-2">
                   {popularCars.map((car, index) => (
                     <div key={car.id} className="flex items-center gap-2 text-xs">
-                      <span className="text-blue-600 font-bold">#{index + 1}</span>
+                      <span className="text-primary-600 font-bold">#{index + 1}</span>
                       <span className="text-slate-700 truncate flex-1">{car.name}</span>
                       <span className="text-slate-500">{car.reviewCount}</span>
                     </div>
@@ -869,14 +768,14 @@ function CarResultsContent() {
               {/* Top Companies */}
               <div className="bg-white/90 backdrop-blur-xl rounded-2xl shadow-lg p-4 border border-slate-200">
                 <div className="flex items-center gap-2 mb-3">
-                  <Users className="w-4 h-4 text-blue-600" />
+                  <Users className="w-4 h-4 text-primary-600" />
                   <h3 className="text-sm font-bold text-slate-900">{t.topCompanies}</h3>
                 </div>
                 <div className="flex flex-wrap gap-2">
                   {topCompanies.map((company) => (
                     <span
                       key={company}
-                      className="px-2 py-1 bg-blue-50 text-blue-700 rounded-md text-xs font-semibold border border-blue-200"
+                      className="px-2 py-1 bg-primary-50 text-primary-700 rounded-md text-xs font-semibold border border-primary-200"
                     >
                       {company}
                     </span>
