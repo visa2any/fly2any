@@ -297,6 +297,8 @@ export default function EnhancedSearchBar({
   const [showCarPickupDatePicker, setShowCarPickupDatePicker] = useState(false);
   const [showCarDropoffDatePicker, setShowCarDropoffDatePicker] = useState(false);
   const [showTransferDatePicker, setShowTransferDatePicker] = useState(false);
+  const [showTourDatePicker, setShowTourDatePicker] = useState(false);
+  const [showActivityDatePicker, setShowActivityDatePicker] = useState(false);
 
   // Transfer location suggestions state
   const [transferSuggestions, setTransferSuggestions] = useState<any[]>([]);
@@ -304,6 +306,8 @@ export default function EnhancedSearchBar({
   const [showTransferDropoffSuggestions, setShowTransferDropoffSuggestions] = useState(false);
   const [isLoadingTransferSuggestions, setIsLoadingTransferSuggestions] = useState(false);
   const transferSuggestionsTimerRef = useRef<NodeJS.Timeout | null>(null);
+  // Transfer passengers count
+  const [transferPassengers, setTransferPassengers] = useState(1);
 
   // Calendar price display state
   const [calendarPrices, setCalendarPrices] = useState<{ [date: string]: number }>({});
@@ -347,6 +351,9 @@ export default function EnhancedSearchBar({
   const hotelDateRangeRef = useRef<HTMLButtonElement>(null); // Unified date range button ref
   const carPickupDateRef = useRef<HTMLButtonElement>(null);
   const carDropoffDateRef = useRef<HTMLButtonElement>(null);
+  const tourDateRef = useRef<HTMLButtonElement>(null);
+  const activityDateRef = useRef<HTMLButtonElement>(null);
+  const transferDateRef = useRef<HTMLButtonElement>(null);
 
   // Set default dates for hotels and minDate (prevent hydration errors)
   // Only set default dates if not provided via props (e.g., from results page)
@@ -2658,20 +2665,20 @@ export default function EnhancedSearchBar({
           </>
           )}
 
-          {/* CAR RENTAL FIELDS */}
+          {/* CAR RENTAL FIELDS - Mobile Responsive */}
           {serviceType === 'cars' && (
           <>
-          {/* Search Fields Row */}
-          <div className="flex items-end gap-3">
+          {/* Search Fields - Stacked on mobile, row on desktop */}
+          <div className="flex flex-col lg:flex-row lg:items-end gap-3">
             {/* Pickup Location */}
             <div className="flex-1">
-              <div className="flex items-center justify-between h-[28px] mb-2">
+              <div className="flex items-center justify-between mb-2">
                 <label className="flex items-center gap-1.5 text-xs font-medium text-gray-700">
-                  <Car size={13} className="text-gray-600" />
+                  <Car size={13} className="text-emerald-600" />
                   <span>Pickup Location</span>
                 </label>
               </div>
-              <div className="h-[56px]">
+              <div className="h-[52px]">
                 <InlineAirportAutocomplete
                   value={carPickupLocation}
                   onChange={(codes) => setCarPickupLocation(codes[0] || '')}
@@ -2682,13 +2689,13 @@ export default function EnhancedSearchBar({
 
             {/* Dropoff Location */}
             <div className="flex-1">
-              <div className="flex items-center justify-between h-[28px] mb-2">
+              <div className="flex items-center justify-between mb-2">
                 <label className="flex items-center gap-1.5 text-xs font-medium text-gray-700">
-                  <Car size={13} className="text-gray-600" />
+                  <Car size={13} className="text-emerald-600" />
                   <span>Dropoff Location</span>
                 </label>
 
-                {/* Same location checkbox aligned to the right */}
+                {/* Same location checkbox */}
                 <label className="flex items-center gap-1 cursor-pointer group">
                   <input
                     type="checkbox"
@@ -2699,12 +2706,12 @@ export default function EnhancedSearchBar({
                         setCarDropoffLocation('');
                       }
                     }}
-                    className="w-3.5 h-3.5 rounded border-gray-300 text-[#D63A35] focus:ring-[#D63A35] cursor-pointer"
+                    className="w-3.5 h-3.5 rounded border-gray-300 text-emerald-600 focus:ring-emerald-500 cursor-pointer"
                   />
-                  <span className="text-xs font-normal text-gray-600 group-hover:text-gray-900">Same location</span>
+                  <span className="text-xs font-normal text-gray-600 group-hover:text-gray-900">Same</span>
                 </label>
               </div>
-              <div className="h-[56px]">
+              <div className="h-[52px]">
                 {!sameDropoffLocation ? (
                   <InlineAirportAutocomplete
                     value={carDropoffLocation || carPickupLocation}
@@ -2712,9 +2719,9 @@ export default function EnhancedSearchBar({
                     placeholder="City or airport (e.g., Miami)"
                   />
                 ) : (
-                  <div className="relative w-full px-4 py-4 bg-gray-50 border border-gray-200 rounded-lg cursor-not-allowed h-full flex items-center">
-                    <Car className="absolute left-3 text-gray-300" size={20} />
-                    <span className="block pl-8 text-sm text-gray-400 italic">
+                  <div className="relative w-full px-4 py-3.5 bg-gray-50 border border-gray-200 rounded-lg cursor-not-allowed h-full flex items-center">
+                    <Car className="absolute left-3 text-gray-300" size={18} />
+                    <span className="block pl-7 text-sm text-gray-400 italic">
                       Same as pickup
                     </span>
                   </div>
@@ -2722,78 +2729,79 @@ export default function EnhancedSearchBar({
               </div>
             </div>
 
-            {/* Pickup Date */}
-            <div className="flex-1">
-              <div className="flex items-center justify-between h-[28px] mb-2">
-                <label className="flex items-center gap-1.5 text-xs font-medium text-gray-700">
-                  <CalendarDays size={13} className="text-primary-500" />
-                  <span>Pickup Date</span>
-                </label>
-
-                {/* Pickup Time aligned to the right */}
-                <select
-                  value={carPickupTime}
-                  onChange={(e) => setCarPickupTime(e.target.value)}
-                  className="px-2 py-0.5 bg-white border border-gray-300 rounded-md hover:border-[#D63A35] transition-all text-xs font-medium text-gray-900 focus:outline-none focus:ring-1 focus:ring-[#D63A35]"
+            {/* Dates Row - Side by side on mobile */}
+            <div className="flex gap-2 lg:contents">
+              {/* Pickup Date */}
+              <div className="flex-1 lg:flex-1">
+                <div className="flex items-center justify-between mb-2">
+                  <label className="flex items-center gap-1.5 text-xs font-medium text-gray-700">
+                    <CalendarDays size={13} className="text-emerald-600" />
+                    <span className="hidden sm:inline">Pickup</span>
+                    <span className="sm:hidden">Pick</span>
+                  </label>
+                  <select
+                    value={carPickupTime}
+                    onChange={(e) => setCarPickupTime(e.target.value)}
+                    className="px-1.5 py-0.5 bg-white border border-gray-300 rounded-md hover:border-emerald-500 transition-all text-[10px] sm:text-xs font-medium text-gray-900 focus:outline-none focus:ring-1 focus:ring-emerald-500"
+                  >
+                    {['00:00', '01:00', '02:00', '03:00', '04:00', '05:00', '06:00', '07:00', '08:00', '09:00', '10:00', '11:00', '12:00', '13:00', '14:00', '15:00', '16:00', '17:00', '18:00', '19:00', '20:00', '21:00', '22:00', '23:00'].map(time => (
+                      <option key={`pickup-${time}`} value={time}>{time}</option>
+                    ))}
+                  </select>
+                </div>
+                <button
+                  ref={carPickupDateRef}
+                  type="button"
+                  onClick={() => setShowCarPickupDatePicker(true)}
+                  className="w-full relative px-3 py-3 sm:py-3.5 bg-white border rounded-lg hover:border-emerald-500 transition-all cursor-pointer border-gray-300 h-[52px] flex items-center"
                 >
-                  {['00:00', '01:00', '02:00', '03:00', '04:00', '05:00', '06:00', '07:00', '08:00', '09:00', '10:00', '11:00', '12:00', '13:00', '14:00', '15:00', '16:00', '17:00', '18:00', '19:00', '20:00', '21:00', '22:00', '23:00'].map(time => (
-                    <option key={`pickup-${time}`} value={time}>{time}</option>
-                  ))}
-                </select>
+                  <Calendar className="text-gray-400 flex-shrink-0" size={18} />
+                  <span className="block pl-2 text-xs sm:text-sm font-medium text-gray-900 truncate">
+                    {carPickupDate ? formatDateForDisplay(carPickupDate) : 'Select'}
+                  </span>
+                </button>
               </div>
-              <button
-                ref={carPickupDateRef}
-                type="button"
-                onClick={() => setShowCarPickupDatePicker(true)}
-                className="w-full relative px-4 py-4 bg-white border rounded-lg hover:border-[#D63A35] transition-all cursor-pointer border-gray-300"
-              >
-                <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={20} />
-                <span className="block pl-8 text-sm font-medium text-gray-900">
-                  {carPickupDate ? formatDateForDisplay(carPickupDate) : 'Select date'}
-                </span>
-              </button>
+
+              {/* Dropoff Date */}
+              <div className="flex-1 lg:flex-1">
+                <div className="flex items-center justify-between mb-2">
+                  <label className="flex items-center gap-1.5 text-xs font-medium text-gray-700">
+                    <CalendarCheck size={13} className="text-emerald-600" />
+                    <span className="hidden sm:inline">Dropoff</span>
+                    <span className="sm:hidden">Drop</span>
+                  </label>
+                  <select
+                    value={carDropoffTime}
+                    onChange={(e) => setCarDropoffTime(e.target.value)}
+                    className="px-1.5 py-0.5 bg-white border border-gray-300 rounded-md hover:border-emerald-500 transition-all text-[10px] sm:text-xs font-medium text-gray-900 focus:outline-none focus:ring-1 focus:ring-emerald-500"
+                  >
+                    {['00:00', '01:00', '02:00', '03:00', '04:00', '05:00', '06:00', '07:00', '08:00', '09:00', '10:00', '11:00', '12:00', '13:00', '14:00', '15:00', '16:00', '17:00', '18:00', '19:00', '20:00', '21:00', '22:00', '23:00'].map(time => (
+                      <option key={`dropoff-${time}`} value={time}>{time}</option>
+                    ))}
+                  </select>
+                </div>
+                <button
+                  ref={carDropoffDateRef}
+                  type="button"
+                  onClick={() => setShowCarDropoffDatePicker(true)}
+                  className="w-full relative px-3 py-3 sm:py-3.5 bg-white border border-gray-300 rounded-lg hover:border-emerald-500 transition-all cursor-pointer h-[52px] flex items-center"
+                >
+                  <Calendar className="text-gray-400 flex-shrink-0" size={18} />
+                  <span className="block pl-2 text-xs sm:text-sm font-medium text-gray-900 truncate">
+                    {carDropoffDate ? formatDateForDisplay(carDropoffDate) : 'Select'}
+                  </span>
+                </button>
+              </div>
             </div>
 
-            {/* Dropoff Date */}
-            <div className="flex-1">
-              <div className="flex items-center justify-between h-[28px] mb-2">
-                <label className="flex items-center gap-1.5 text-xs font-medium text-gray-700">
-                  <CalendarCheck size={13} className="text-primary-500" />
-                  <span>Dropoff Date</span>
-                </label>
-
-                {/* Dropoff Time aligned to the right */}
-                <select
-                  value={carDropoffTime}
-                  onChange={(e) => setCarDropoffTime(e.target.value)}
-                  className="px-2 py-0.5 bg-white border border-gray-300 rounded-md hover:border-[#D63A35] transition-all text-xs font-medium text-gray-900 focus:outline-none focus:ring-1 focus:ring-[#D63A35]"
-                >
-                  {['00:00', '01:00', '02:00', '03:00', '04:00', '05:00', '06:00', '07:00', '08:00', '09:00', '10:00', '11:00', '12:00', '13:00', '14:00', '15:00', '16:00', '17:00', '18:00', '19:00', '20:00', '21:00', '22:00', '23:00'].map(time => (
-                    <option key={`dropoff-${time}`} value={time}>{time}</option>
-                  ))}
-                </select>
-              </div>
-              <button
-                ref={carDropoffDateRef}
-                type="button"
-                onClick={() => setShowCarDropoffDatePicker(true)}
-                className="w-full relative px-4 py-4 bg-white border border-gray-300 rounded-lg hover:border-[#D63A35] transition-all cursor-pointer"
-              >
-                <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={20} />
-                <span className="block pl-8 text-sm font-medium text-gray-900">
-                  {carDropoffDate ? formatDateForDisplay(carDropoffDate) : 'Select date'}
-                </span>
-              </button>
-            </div>
-
-            {/* Search Button */}
-            <div className="flex-shrink-0">
-              <div className="h-[28px] mb-2" />
+            {/* Search Button - Full width on mobile */}
+            <div className="w-full lg:w-auto lg:flex-shrink-0">
+              <div className="hidden lg:block h-[24px] mb-2" />
               <button
                 type="button"
                 onClick={handleSearch}
                 disabled={isLoading}
-                className="py-4 px-10 bg-[#D63A35] hover:bg-[#0077E6] text-white font-semibold rounded-lg shadow-md hover:shadow-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 whitespace-nowrap text-sm h-[56px]"
+                className="w-full lg:w-auto py-3.5 px-6 lg:px-10 bg-gradient-to-r from-emerald-500 to-green-600 hover:from-emerald-600 hover:to-green-700 text-white font-semibold rounded-lg shadow-md hover:shadow-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 whitespace-nowrap text-sm h-[52px]"
               >
                 {isLoading ? (
                   <>
@@ -2804,7 +2812,10 @@ export default function EnhancedSearchBar({
                     <span>Searching...</span>
                   </>
                 ) : (
-                  <span>{t('searchCars')}</span>
+                  <>
+                    <Search size={16} />
+                    <span>{t('searchCars')}</span>
+                  </>
                 )}
               </button>
             </div>
@@ -3574,6 +3585,35 @@ export default function EnhancedSearchBar({
           }}
           type="single"
           label="Transfer Date"
+          anchorEl={transferDateRef.current}
+        />
+
+        {/* Premium Date Picker for Tours */}
+        <PremiumDatePicker
+          isOpen={showTourDatePicker}
+          onClose={() => setShowTourDatePicker(false)}
+          value={checkInDate}
+          onChange={(date) => {
+            setCheckInDate(date);
+            setShowTourDatePicker(false);
+          }}
+          type="single"
+          label="Tour Date"
+          anchorEl={tourDateRef.current}
+        />
+
+        {/* Premium Date Picker for Activities */}
+        <PremiumDatePicker
+          isOpen={showActivityDatePicker}
+          onClose={() => setShowActivityDatePicker(false)}
+          value={checkInDate}
+          onChange={(date) => {
+            setCheckInDate(date);
+            setShowActivityDatePicker(false);
+          }}
+          type="single"
+          label="Activity Date"
+          anchorEl={activityDateRef.current}
         />
 
         {/* Premium Date Pickers for Additional Flights */}
@@ -4444,19 +4484,21 @@ export default function EnhancedSearchBar({
 
             {/* Date & Travelers Row */}
             <div className="flex gap-2">
-              {/* Tour Date */}
+              {/* Tour Date - Premium Date Picker Button */}
               <div className="flex-1">
                 <label className="flex items-center gap-1.5 text-xs font-semibold text-neutral-600 mb-1.5">
                   <Calendar size={13} className="text-orange-600" />
                   <span>When</span>
                 </label>
-                <input
-                  type="date"
-                  value={checkInDate}
-                  onChange={(e) => setCheckInDate(e.target.value)}
-                  min={minDate}
-                  className="w-full px-3 py-3 bg-white border-2 border-neutral-200 rounded-xl focus:border-orange-500 focus:ring-2 focus:ring-orange-100 outline-none transition-all text-sm font-semibold text-neutral-800"
-                />
+                <button
+                  ref={tourDateRef}
+                  type="button"
+                  onClick={() => setShowTourDatePicker(true)}
+                  className="w-full px-3 py-3 bg-white border-2 border-neutral-200 rounded-xl hover:border-orange-400 focus:border-orange-500 focus:ring-2 focus:ring-orange-100 outline-none transition-all text-sm font-semibold text-neutral-800 flex items-center gap-2"
+                >
+                  <CalendarDays size={16} className="text-orange-500 flex-shrink-0" />
+                  <span className="truncate">{checkInDate ? format(new Date(checkInDate), 'MMM d, yyyy') : 'Select date'}</span>
+                </button>
               </div>
               {/* Travelers */}
               <div className="w-28">
@@ -4580,19 +4622,21 @@ export default function EnhancedSearchBar({
 
             {/* Date & Travelers Row */}
             <div className="flex gap-2">
-              {/* Activity Date */}
+              {/* Activity Date - Premium Date Picker Button */}
               <div className="flex-1">
                 <label className="flex items-center gap-1.5 text-xs font-semibold text-neutral-600 mb-1.5">
                   <Calendar size={13} className="text-purple-600" />
                   <span>When</span>
                 </label>
-                <input
-                  type="date"
-                  value={checkInDate}
-                  onChange={(e) => setCheckInDate(e.target.value)}
-                  min={minDate}
-                  className="w-full px-3 py-3 bg-white border-2 border-neutral-200 rounded-xl focus:border-purple-500 focus:ring-2 focus:ring-purple-100 outline-none transition-all text-sm font-semibold text-neutral-800"
-                />
+                <button
+                  ref={activityDateRef}
+                  type="button"
+                  onClick={() => setShowActivityDatePicker(true)}
+                  className="w-full px-3 py-3 bg-white border-2 border-neutral-200 rounded-xl hover:border-purple-400 focus:border-purple-500 focus:ring-2 focus:ring-purple-100 outline-none transition-all text-sm font-semibold text-neutral-800 flex items-center gap-2"
+                >
+                  <CalendarDays size={16} className="text-purple-500 flex-shrink-0" />
+                  <span className="truncate">{checkInDate ? format(new Date(checkInDate), 'MMM d, yyyy') : 'Select date'}</span>
+                </button>
               </div>
               {/* Travelers */}
               <div className="w-28">
@@ -4723,6 +4767,7 @@ export default function EnhancedSearchBar({
                   <span>Date</span>
                 </label>
                 <button
+                  ref={transferDateRef}
                   type="button"
                   onClick={() => setShowTransferDatePicker(true)}
                   className="w-full px-3 py-2.5 bg-white border-2 border-neutral-200 rounded-xl text-sm font-semibold text-left hover:border-teal-400 focus:border-teal-500 focus:ring-2 focus:ring-teal-100 outline-none transition-all touch-manipulation active:scale-[0.99] flex items-center justify-between"

@@ -360,8 +360,24 @@ export function MobileHomeSearchWrapper({
                 </div>
               )}
 
+              {/* Cars - Car Rentals */}
+              {defaultService === 'cars' && (
+                <div className="flex items-center gap-3 w-full">
+                  <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-emerald-500 to-green-600 flex items-center justify-center flex-shrink-0">
+                    <span className="text-lg">🚗</span>
+                  </div>
+                  <div className="flex-1 min-w-0 text-left">
+                    <span className="text-[10px] text-neutral-500 font-semibold uppercase tracking-wide">Rent a Car</span>
+                    <p className="text-sm font-bold text-neutral-800 truncate">Where & when?</p>
+                  </div>
+                  <div className="flex items-center gap-1 bg-gradient-to-r from-emerald-500 to-green-600 text-white px-4 py-2.5 rounded-xl shadow-md flex-shrink-0">
+                    <Search className="w-4 h-4" />
+                  </div>
+                </div>
+              )}
+
               {/* Other services fallback */}
-              {!['flights', 'tours', 'activities', 'transfers', 'hotels'].includes(defaultService) && (
+              {!['flights', 'tours', 'activities', 'transfers', 'hotels', 'cars'].includes(defaultService) && (
                 <div className="flex items-center gap-3 w-full">
                   <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-gray-500 to-gray-600 flex items-center justify-center flex-shrink-0">
                     <Search className="w-5 h-5 text-white" />
