@@ -1,0 +1,12 @@
+<svg viewBox="0 0 800 500" xmlns="http://www.w3.org/2000/svg">
+  <defs><linearGradient id="bg" x1="0%" y1="0%" x2="0%" y2="100%"><stop offset="0%" style="stop-color:#f3e5f5"/><stop offset="100%" style="stop-color:#e1bee7"/></linearGradient></defs>
+  <rect width="800" height="500" fill="url(#bg)"/>
+  <g transform="translate(80, 90)">
+    <path d="M20 240 L40 100 L160 60 L500 60 L590 120 L640 120 L640 270 L580 270 L580 305 L480 305 L460 270 L170 270 L150 305 L20 305 Z" fill="#7b1fa2" opacity="0.9"/>
+    <circle cx="150" cy="305" r="52" fill="#4a148c"/><circle cx="150" cy="305" r="28" fill="#f3e5f5"/>
+    <circle cx="480" cy="305" r="52" fill="#4a148c"/><circle cx="480" cy="305" r="28" fill="#f3e5f5"/>
+    <rect x="180" y="75" width="130" height="85" rx="5" fill="#ce93d8" opacity="0.7"/>
+    <rect x="330" y="75" width="110" height="85" rx="5" fill="#ce93d8" opacity="0.7"/>
+  </g>
+  <text x="400" y="455" text-anchor="middle" font-family="system-ui, sans-serif" font-size="32" font-weight="600" fill="#7b1fa2">Full Size SUV</text>
+</svg>

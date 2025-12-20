@@ -170,22 +170,22 @@ const rentalProviders: Record<Region, AmadeusCarRentalProvider[]> = {
 };
 
 // ============================================================================
-// VEHICLE IMAGES - Simple emoji fallback + placeholder service
-// Using placeholder with car silhouettes - guaranteed to work
+// VEHICLE IMAGES - Local SVG car silhouettes (hosted in /public/images/cars/)
+// No external dependencies - instant load, guaranteed to work
 // ============================================================================
 const categoryImages: Record<string, string> = {
-  'ECONOMY': 'https://placehold.co/800x500/e8f5e9/2e7d32?text=Economy+Car&font=roboto',
-  'COMPACT': 'https://placehold.co/800x500/e3f2fd/1565c0?text=Compact+Sedan&font=roboto',
-  'STANDARD': 'https://placehold.co/800x500/fff3e0/ef6c00?text=Standard+Sedan&font=roboto',
-  'SUV': 'https://placehold.co/800x500/fce4ec/c2185b?text=SUV&font=roboto',
-  'FULLSIZE_SUV': 'https://placehold.co/800x500/f3e5f5/7b1fa2?text=Full+Size+SUV&font=roboto',
-  'PREMIUM': 'https://placehold.co/800x500/e8eaf6/3949ab?text=Premium+Sedan&font=roboto',
-  'LUXURY': 'https://placehold.co/800x500/212121/ffd700?text=Luxury+Vehicle&font=roboto',
-  'ELECTRIC': 'https://placehold.co/800x500/e0f7fa/00838f?text=Electric+Vehicle&font=roboto',
-  'VAN': 'https://placehold.co/800x500/fff8e1/ff8f00?text=Minivan&font=roboto',
-  'WAGON': 'https://placehold.co/800x500/efebe9/5d4037?text=Station+Wagon&font=roboto',
-  'CONVERTIBLE': 'https://placehold.co/800x500/ffebee/d32f2f?text=Convertible&font=roboto',
-  'PICKUP': 'https://placehold.co/800x500/eceff1/455a64?text=Pickup+Truck&font=roboto',
+  'ECONOMY': '/images/cars/economy.svg',
+  'COMPACT': '/images/cars/compact.svg',
+  'STANDARD': '/images/cars/standard.svg',
+  'SUV': '/images/cars/suv.svg',
+  'FULLSIZE_SUV': '/images/cars/fullsize_suv.svg',
+  'PREMIUM': '/images/cars/premium.svg',
+  'LUXURY': '/images/cars/luxury.svg',
+  'ELECTRIC': '/images/cars/electric.svg',
+  'VAN': '/images/cars/van.svg',
+  'WAGON': '/images/cars/wagon.svg',
+  'CONVERTIBLE': '/images/cars/convertible.svg',
+  'PICKUP': '/images/cars/pickup.svg',
 };
 
 function getVehicleImage(description: string, category: string): string {

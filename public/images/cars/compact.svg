@@ -1,0 +1,12 @@
+<svg viewBox="0 0 800 500" xmlns="http://www.w3.org/2000/svg">
+  <defs><linearGradient id="bg" x1="0%" y1="0%" x2="0%" y2="100%"><stop offset="0%" style="stop-color:#e3f2fd"/><stop offset="100%" style="stop-color:#bbdefb"/></linearGradient></defs>
+  <rect width="800" height="500" fill="url(#bg)"/>
+  <g transform="translate(130, 140)">
+    <path d="M40 190 L70 110 L200 90 L380 90 L460 140 L520 140 L520 210 L480 210 L480 230 L400 230 L380 210 L140 210 L120 230 L40 230 Z" fill="#1565c0" opacity="0.9"/>
+    <circle cx="120" cy="230" r="40" fill="#0d47a1"/><circle cx="120" cy="230" r="22" fill="#e3f2fd"/>
+    <circle cx="400" cy="230" r="40" fill="#0d47a1"/><circle cx="400" cy="230" r="22" fill="#e3f2fd"/>
+    <rect x="210" y="105" width="90" height="55" rx="5" fill="#90caf9" opacity="0.7"/>
+    <rect x="320" y="105" width="70" height="55" rx="5" fill="#90caf9" opacity="0.7"/>
+  </g>
+  <text x="400" y="420" text-anchor="middle" font-family="system-ui, sans-serif" font-size="32" font-weight="600" fill="#1565c0">Compact Sedan</text>
+</svg>

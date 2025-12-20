@@ -1,0 +1,12 @@
+<svg viewBox="0 0 800 500" xmlns="http://www.w3.org/2000/svg">
+  <defs><linearGradient id="bg" x1="0%" y1="0%" x2="0%" y2="100%"><stop offset="0%" style="stop-color:#e8eaf6"/><stop offset="100%" style="stop-color:#c5cae9"/></linearGradient></defs>
+  <rect width="800" height="500" fill="url(#bg)"/>
+  <g transform="translate(100, 125)">
+    <path d="M25 205 L65 90 L240 65 L450 65 L545 130 L600 130 L600 225 L545 225 L545 255 L455 255 L435 225 L155 225 L135 255 L25 255 Z" fill="#3949ab" opacity="0.9"/>
+    <circle cx="135" cy="255" r="44" fill="#1a237e"/><circle cx="135" cy="255" r="25" fill="#e8eaf6"/>
+    <circle cx="455" cy="255" r="44" fill="#1a237e"/><circle cx="455" cy="255" r="25" fill="#e8eaf6"/>
+    <rect x="255" y="80" width="105" height="62" rx="5" fill="#9fa8da" opacity="0.7"/>
+    <rect x="380" y="80" width="85" height="62" rx="5" fill="#9fa8da" opacity="0.7"/>
+  </g>
+  <text x="400" y="430" text-anchor="middle" font-family="system-ui, sans-serif" font-size="32" font-weight="600" fill="#3949ab">Premium Sedan</text>
+</svg>

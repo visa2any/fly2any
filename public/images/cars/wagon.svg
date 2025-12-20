@@ -1,0 +1,13 @@
+<svg viewBox="0 0 800 500" xmlns="http://www.w3.org/2000/svg">
+  <defs><linearGradient id="bg" x1="0%" y1="0%" x2="0%" y2="100%"><stop offset="0%" style="stop-color:#efebe9"/><stop offset="100%" style="stop-color:#d7ccc8"/></linearGradient></defs>
+  <rect width="800" height="500" fill="url(#bg)"/>
+  <g transform="translate(90, 120)">
+    <path d="M25 210 L60 100 L220 80 L520 80 L520 140 L600 140 L600 230 L545 230 L545 260 L455 260 L435 230 L155 230 L135 260 L25 260 Z" fill="#5d4037" opacity="0.9"/>
+    <circle cx="135" cy="260" r="44" fill="#3e2723"/><circle cx="135" cy="260" r="25" fill="#efebe9"/>
+    <circle cx="455" cy="260" r="44" fill="#3e2723"/><circle cx="455" cy="260" r="25" fill="#efebe9"/>
+    <rect x="240" y="95" width="90" height="60" rx="5" fill="#a1887f" opacity="0.7"/>
+    <rect x="350" y="95" width="75" height="60" rx="5" fill="#a1887f" opacity="0.7"/>
+    <rect x="445" y="95" width="75" height="60" rx="5" fill="#a1887f" opacity="0.7"/>
+  </g>
+  <text x="400" y="435" text-anchor="middle" font-family="system-ui, sans-serif" font-size="32" font-weight="600" fill="#5d4037">Station Wagon</text>
+</svg>

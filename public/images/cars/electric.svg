@@ -1,0 +1,13 @@
+<svg viewBox="0 0 800 500" xmlns="http://www.w3.org/2000/svg">
+  <defs><linearGradient id="bg" x1="0%" y1="0%" x2="0%" y2="100%"><stop offset="0%" style="stop-color:#e0f7fa"/><stop offset="100%" style="stop-color:#b2ebf2"/></linearGradient></defs>
+  <rect width="800" height="500" fill="url(#bg)"/>
+  <g transform="translate(110, 130)">
+    <path d="M30 200 L70 95 L230 75 L430 75 L520 135 L580 135 L580 220 L530 220 L530 245 L440 245 L420 220 L150 220 L130 245 L30 245 Z" fill="#00838f" opacity="0.9"/>
+    <circle cx="130" cy="245" r="42" fill="#006064"/><circle cx="130" cy="245" r="24" fill="#e0f7fa"/>
+    <circle cx="440" cy="245" r="42" fill="#006064"/><circle cx="440" cy="245" r="24" fill="#e0f7fa"/>
+    <rect x="240" y="90" width="100" height="60" rx="5" fill="#80deea" opacity="0.7"/>
+    <rect x="360" y="90" width="80" height="60" rx="5" fill="#80deea" opacity="0.7"/>
+    <path d="M300 180 L320 150 L310 150 L330 120 L315 145 L325 145 L300 180" fill="#ffd700" stroke="#ff9800" stroke-width="2"/>
+  </g>
+  <text x="400" y="430" text-anchor="middle" font-family="system-ui, sans-serif" font-size="32" font-weight="600" fill="#00838f">Electric Vehicle</text>
+</svg>

@@ -1,0 +1,12 @@
+<svg viewBox="0 0 800 500" xmlns="http://www.w3.org/2000/svg">
+  <defs><linearGradient id="bg" x1="0%" y1="0%" x2="0%" y2="100%"><stop offset="0%" style="stop-color:#fff3e0"/><stop offset="100%" style="stop-color:#ffe0b2"/></linearGradient></defs>
+  <rect width="800" height="500" fill="url(#bg)"/>
+  <g transform="translate(110, 130)">
+    <path d="M30 200 L60 100 L220 80 L420 80 L510 140 L580 140 L580 220 L530 220 L530 240 L440 240 L420 220 L150 220 L130 240 L30 240 Z" fill="#ef6c00" opacity="0.9"/>
+    <circle cx="130" cy="240" r="42" fill="#e65100"/><circle cx="130" cy="240" r="24" fill="#fff3e0"/>
+    <circle cx="440" cy="240" r="42" fill="#e65100"/><circle cx="440" cy="240" r="24" fill="#fff3e0"/>
+    <rect x="230" y="95" width="100" height="60" rx="5" fill="#ffcc80" opacity="0.7"/>
+    <rect x="350" y="95" width="80" height="60" rx="5" fill="#ffcc80" opacity="0.7"/>
+  </g>
+  <text x="400" y="430" text-anchor="middle" font-family="system-ui, sans-serif" font-size="32" font-weight="600" fill="#ef6c00">Standard Sedan</text>
+</svg>
