@@ -147,7 +147,7 @@ export async function POST(request: NextRequest) {
       pricing: {
         pricePerDay: car.pricePerDay,
         rentalDays,
-        basePrice,
+        basePrice: supplierPrice,
         extras: extras || [],
         extrasTotal,
         totalPrice,
