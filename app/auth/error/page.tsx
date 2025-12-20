@@ -82,16 +82,19 @@ function ErrorContent() {
 
   useEffect(() => {
     // Detect if in popup window
-    setIsPopup(window.opener !== null);
+    const hasOpener = window.opener !== null;
+    setIsPopup(hasOpener);
 
-    // If in popup, notify parent of error
-    if (window.opener) {
+    // If in popup, notify parent and auto-close
+    if (hasOpener) {
       window.opener.postMessage({
         type: 'GOOGLE_AUTH_ERROR',
-        error: errorInfo.message
+        error: errorCode
       }, window.location.origin);
+      // Auto-close popup after brief delay
+      setTimeout(() => window.close(), 100);
     }
-  }, [errorInfo.message]);
+  }, [errorCode]);
 
   // In popup mode, show minimal error and auto-close option
   if (isPopup) {
