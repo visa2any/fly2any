@@ -369,6 +369,12 @@ const nextConfig = {
         hostname: 'r-xx.bstatic.com',
         pathname: '/**',
       },
+      // Wikimedia for company logos
+      {
+        protocol: 'https',
+        hostname: 'upload.wikimedia.org',
+        pathname: '/**',
+      },
       // Car rental images
       {
         protocol: 'https',

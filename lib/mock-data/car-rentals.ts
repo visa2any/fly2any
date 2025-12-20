@@ -96,7 +96,7 @@ export function generateMockCarRentals(params: {
 }): AmadeusCarRentalResponse {
   const days = calculateDays(params.pickupDate, params.dropoffDate);
 
-  // Define car inventory with realistic data
+  // Define car inventory with realistic data and REAL Unsplash photos
   const carInventory = [
     {
       vehicle: {
@@ -107,12 +107,13 @@ export function generateMockCarRentals(params: {
         seats: 5,
         doors: 4,
         fuelType: 'PETROL',
-        imageURL: '/cars/toyota-camry.jpg',
+        // Real Toyota Camry sedan photo
+        imageURL: 'https://images.unsplash.com/photo-1621007947382-bb3c3994e3fb?w=800&q=80',
       },
       provider: {
         companyCode: 'ZF',
         companyName: 'Enterprise',
-        logoURL: '/logos/enterprise.png',
+        logoURL: 'https://upload.wikimedia.org/wikipedia/commons/thumb/4/47/Enterprise_Rent-A-Car_logo.svg/200px-Enterprise_Rent-A-Car_logo.svg.png',
       },
       basePricePerDay: 45,
       rating: 4.5,
@@ -129,15 +130,16 @@ export function generateMockCarRentals(params: {
         seats: 7,
         doors: 4,
         fuelType: 'HYBRID',
-        imageURL: '/cars/honda-crv.jpg',
+        // Real Honda CR-V SUV photo
+        imageURL: 'https://images.unsplash.com/photo-1568844293986-8c3a92e8ea4c?w=800&q=80',
       },
       provider: {
         companyCode: 'ZE',
         companyName: 'Hertz',
-        logoURL: '/logos/hertz.png',
+        logoURL: 'https://upload.wikimedia.org/wikipedia/commons/thumb/c/c9/Hertz_Logo.svg/200px-Hertz_Logo.svg.png',
       },
       basePricePerDay: 65,
-      totalPrice: days * 58, // Discount for longer rental
+      totalPrice: days * 58,
       rating: 4.7,
       reviewCount: 892,
       features: ['AC', 'Bluetooth', 'GPS', 'Apple CarPlay', 'Backup Camera'],
@@ -152,12 +154,13 @@ export function generateMockCarRentals(params: {
         seats: 4,
         doors: 2,
         fuelType: 'PETROL',
-        imageURL: '/cars/ford-mustang.jpg',
+        // Real Ford Mustang convertible photo
+        imageURL: 'https://images.unsplash.com/photo-1584345604476-8ec5f82d718c?w=800&q=80',
       },
       provider: {
         companyCode: 'ZI',
         companyName: 'Avis',
-        logoURL: '/logos/avis.png',
+        logoURL: 'https://upload.wikimedia.org/wikipedia/commons/thumb/7/75/Avis_logo.svg/200px-Avis_logo.svg.png',
       },
       basePricePerDay: 89,
       rating: 4.8,
@@ -174,15 +177,16 @@ export function generateMockCarRentals(params: {
         seats: 5,
         doors: 4,
         fuelType: 'ELECTRIC',
-        imageURL: '/cars/tesla-model3.jpg',
+        // Real Tesla Model 3 photo
+        imageURL: 'https://images.unsplash.com/photo-1560958089-b8a1929cea89?w=800&q=80',
       },
       provider: {
         companyCode: 'ZE',
         companyName: 'Hertz',
-        logoURL: '/logos/hertz.png',
+        logoURL: 'https://upload.wikimedia.org/wikipedia/commons/thumb/c/c9/Hertz_Logo.svg/200px-Hertz_Logo.svg.png',
       },
       basePricePerDay: 120,
-      totalPrice: days * 105, // Discount for longer rental
+      totalPrice: days * 105,
       rating: 4.9,
       reviewCount: 421,
       features: ['AC', 'Autopilot', 'Premium Sound', 'Supercharger Access', 'WiFi Hotspot'],
@@ -197,12 +201,13 @@ export function generateMockCarRentals(params: {
         seats: 4,
         doors: 4,
         fuelType: 'PETROL',
-        imageURL: '/cars/chevrolet-spark.jpg',
+        // Economy compact car photo
+        imageURL: 'https://images.unsplash.com/photo-1549317661-bd32c8ce0db2?w=800&q=80',
       },
       provider: {
         companyCode: 'ZD',
         companyName: 'Budget',
-        logoURL: '/logos/budget.png',
+        logoURL: 'https://upload.wikimedia.org/wikipedia/commons/thumb/9/95/Budget_logo.svg/200px-Budget_logo.svg.png',
       },
       basePricePerDay: 35,
       rating: 4.2,
@@ -219,15 +224,16 @@ export function generateMockCarRentals(params: {
         seats: 5,
         doors: 4,
         fuelType: 'DIESEL',
-        imageURL: '/cars/mercedes-eclass.jpg',
+        // Real Mercedes E-Class photo
+        imageURL: 'https://images.unsplash.com/photo-1618843479313-40f8afb4b4d8?w=800&q=80',
       },
       provider: {
         companyCode: 'ZI',
         companyName: 'Avis',
-        logoURL: '/logos/avis.png',
+        logoURL: 'https://upload.wikimedia.org/wikipedia/commons/thumb/7/75/Avis_logo.svg/200px-Avis_logo.svg.png',
       },
       basePricePerDay: 150,
-      totalPrice: days * 130, // Discount for longer rental
+      totalPrice: days * 130,
       rating: 4.9,
       reviewCount: 342,
       features: ['AC', 'Leather Seats', 'Premium Sound', 'Massage Seats', 'Ambient Lighting', 'Panoramic Roof'],
@@ -242,12 +248,13 @@ export function generateMockCarRentals(params: {
         seats: 5,
         doors: 4,
         fuelType: 'HYBRID',
-        imageURL: '/cars/toyota-rav4.jpg',
+        // Real Toyota RAV4 SUV photo
+        imageURL: 'https://images.unsplash.com/photo-1519641471654-76ce0107ad1b?w=800&q=80',
       },
       provider: {
         companyCode: 'ZF',
         companyName: 'Enterprise',
-        logoURL: '/logos/enterprise.png',
+        logoURL: 'https://upload.wikimedia.org/wikipedia/commons/thumb/4/47/Enterprise_Rent-A-Car_logo.svg/200px-Enterprise_Rent-A-Car_logo.svg.png',
       },
       basePricePerDay: 70,
       rating: 4.6,
@@ -264,12 +271,13 @@ export function generateMockCarRentals(params: {
         seats: 5,
         doors: 4,
         fuelType: 'PETROL',
-        imageURL: '/cars/honda-civic.jpg',
+        // Real Honda Civic compact sedan photo
+        imageURL: 'https://images.unsplash.com/photo-1606611013016-969c19ba27bb?w=800&q=80',
       },
       provider: {
         companyCode: 'ZL',
         companyName: 'Alamo',
-        logoURL: '/logos/alamo.png',
+        logoURL: 'https://upload.wikimedia.org/wikipedia/commons/thumb/8/8c/Alamo_Rent_A_Car_logo.svg/200px-Alamo_Rent_A_Car_logo.svg.png',
       },
       basePricePerDay: 42,
       rating: 4.4,
@@ -286,12 +294,13 @@ export function generateMockCarRentals(params: {
         seats: 7,
         doors: 4,
         fuelType: 'PETROL',
-        imageURL: '/cars/dodge-caravan.jpg',
+        // Real minivan photo
+        imageURL: 'https://images.unsplash.com/photo-1559416523-140ddc3d238c?w=800&q=80',
       },
       provider: {
         companyCode: 'ZD',
         companyName: 'Budget',
-        logoURL: '/logos/budget.png',
+        logoURL: 'https://upload.wikimedia.org/wikipedia/commons/thumb/9/95/Budget_logo.svg/200px-Budget_logo.svg.png',
       },
       basePricePerDay: 75,
       rating: 4.3,
@@ -308,12 +317,13 @@ export function generateMockCarRentals(params: {
         seats: 5,
         doors: 4,
         fuelType: 'PETROL',
-        imageURL: '/cars/nissan-versa.jpg',
+        // Economy sedan photo
+        imageURL: 'https://images.unsplash.com/photo-1590362891991-f776e747a588?w=800&q=80',
       },
       provider: {
         companyCode: 'ZR',
         companyName: 'National',
-        logoURL: '/logos/national.png',
+        logoURL: 'https://upload.wikimedia.org/wikipedia/commons/thumb/8/87/National_Car_Rental_logo.svg/200px-National_Car_Rental_logo.svg.png',
       },
       basePricePerDay: 38,
       rating: 4.1,
