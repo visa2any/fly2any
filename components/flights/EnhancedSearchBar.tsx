@@ -294,8 +294,7 @@ export default function EnhancedSearchBar({
   const [carDropoffDate, setCarDropoffDate] = useState('');
   const [carPickupTime, setCarPickupTime] = useState('10:00');
   const [carDropoffTime, setCarDropoffTime] = useState('10:00');
-  const [showCarPickupDatePicker, setShowCarPickupDatePicker] = useState(false);
-  const [showCarDropoffDatePicker, setShowCarDropoffDatePicker] = useState(false);
+  const [showCarDateRangePicker, setShowCarDateRangePicker] = useState(false);
   const [showTransferDatePicker, setShowTransferDatePicker] = useState(false);
   const [showTourDatePicker, setShowTourDatePicker] = useState(false);
   const [showActivityDatePicker, setShowActivityDatePicker] = useState(false);
@@ -2729,68 +2728,77 @@ export default function EnhancedSearchBar({
               </div>
             </div>
 
-            {/* Dates Row - Side by side on mobile */}
-            <div className="flex gap-2 lg:contents">
-              {/* Pickup Date */}
-              <div className="flex-1 lg:flex-1">
-                <div className="flex items-center justify-between mb-2">
+            {/* Unified Date Range + Times Row */}
+            <div className="flex flex-col lg:flex-row gap-2 lg:contents">
+              {/* Unified Date Range Button - Single click opens calendar for both dates */}
+              <div className="flex-1 lg:flex-[2]">
+                <div className="flex items-center gap-2 mb-2">
                   <label className="flex items-center gap-1.5 text-xs font-medium text-gray-700">
                     <CalendarDays size={13} className="text-emerald-600" />
-                    <span className="hidden sm:inline">Pickup</span>
+                    <span>Rental Period</span>
+                  </label>
+                </div>
+                <button
+                  ref={carPickupDateRef}
+                  type="button"
+                  onClick={() => setShowCarDateRangePicker(true)}
+                  className={`w-full relative px-3 py-3 sm:py-3.5 bg-white border rounded-lg hover:border-emerald-500 transition-all cursor-pointer h-[52px] flex items-center justify-between ${
+                    carPickupDate && carDropoffDate ? 'border-emerald-400 bg-emerald-50/30' : 'border-gray-300'
+                  }`}
+                >
+                  <div className="flex items-center gap-2 flex-1 min-w-0">
+                    <Calendar className="text-emerald-500 flex-shrink-0" size={18} />
+                    <div className="flex items-center gap-1.5 min-w-0">
+                      <span className={`text-xs sm:text-sm font-medium truncate ${carPickupDate ? 'text-gray-900' : 'text-gray-400'}`}>
+                        {carPickupDate ? formatDateForDisplay(carPickupDate) : 'Pickup'}
+                      </span>
+                      <ArrowRight className="text-emerald-500 flex-shrink-0" size={14} />
+                      <span className={`text-xs sm:text-sm font-medium truncate ${carDropoffDate ? 'text-gray-900' : 'text-gray-400'}`}>
+                        {carDropoffDate ? formatDateForDisplay(carDropoffDate) : 'Dropoff'}
+                      </span>
+                    </div>
+                  </div>
+                  <ChevronDown className="text-gray-400 flex-shrink-0" size={16} />
+                </button>
+              </div>
+
+              {/* Times Row - Compact */}
+              <div className="flex gap-2 lg:contents">
+                {/* Pickup Time */}
+                <div className="flex-1 lg:w-24 lg:flex-none">
+                  <label className="flex items-center gap-1 text-xs font-medium text-gray-700 mb-2">
+                    <Clock size={12} className="text-emerald-600" />
+                    <span className="hidden sm:inline">Pick Time</span>
                     <span className="sm:hidden">Pick</span>
                   </label>
                   <select
                     value={carPickupTime}
                     onChange={(e) => setCarPickupTime(e.target.value)}
-                    className="px-1.5 py-0.5 bg-white border border-gray-300 rounded-md hover:border-emerald-500 transition-all text-[10px] sm:text-xs font-medium text-gray-900 focus:outline-none focus:ring-1 focus:ring-emerald-500"
+                    className="w-full px-2 py-3 sm:py-3.5 bg-white border border-gray-300 rounded-lg hover:border-emerald-500 transition-all text-xs sm:text-sm font-medium text-gray-900 focus:outline-none focus:ring-1 focus:ring-emerald-500 h-[52px]"
                   >
-                    {['00:00', '01:00', '02:00', '03:00', '04:00', '05:00', '06:00', '07:00', '08:00', '09:00', '10:00', '11:00', '12:00', '13:00', '14:00', '15:00', '16:00', '17:00', '18:00', '19:00', '20:00', '21:00', '22:00', '23:00'].map(time => (
+                    {['06:00', '07:00', '08:00', '09:00', '10:00', '11:00', '12:00', '13:00', '14:00', '15:00', '16:00', '17:00', '18:00', '19:00', '20:00', '21:00', '22:00'].map(time => (
                       <option key={`pickup-${time}`} value={time}>{time}</option>
                     ))}
                   </select>
                 </div>
-                <button
-                  ref={carPickupDateRef}
-                  type="button"
-                  onClick={() => setShowCarPickupDatePicker(true)}
-                  className="w-full relative px-3 py-3 sm:py-3.5 bg-white border rounded-lg hover:border-emerald-500 transition-all cursor-pointer border-gray-300 h-[52px] flex items-center"
-                >
-                  <Calendar className="text-gray-400 flex-shrink-0" size={18} />
-                  <span className="block pl-2 text-xs sm:text-sm font-medium text-gray-900 truncate">
-                    {carPickupDate ? formatDateForDisplay(carPickupDate) : 'Select'}
-                  </span>
-                </button>
-              </div>
 
-              {/* Dropoff Date */}
-              <div className="flex-1 lg:flex-1">
-                <div className="flex items-center justify-between mb-2">
-                  <label className="flex items-center gap-1.5 text-xs font-medium text-gray-700">
-                    <CalendarCheck size={13} className="text-emerald-600" />
-                    <span className="hidden sm:inline">Dropoff</span>
+                {/* Dropoff Time */}
+                <div className="flex-1 lg:w-24 lg:flex-none">
+                  <label className="flex items-center gap-1 text-xs font-medium text-gray-700 mb-2">
+                    <Clock size={12} className="text-emerald-600" />
+                    <span className="hidden sm:inline">Drop Time</span>
                     <span className="sm:hidden">Drop</span>
                   </label>
                   <select
                     value={carDropoffTime}
                     onChange={(e) => setCarDropoffTime(e.target.value)}
-                    className="px-1.5 py-0.5 bg-white border border-gray-300 rounded-md hover:border-emerald-500 transition-all text-[10px] sm:text-xs font-medium text-gray-900 focus:outline-none focus:ring-1 focus:ring-emerald-500"
+                    className="w-full px-2 py-3 sm:py-3.5 bg-white border border-gray-300 rounded-lg hover:border-emerald-500 transition-all text-xs sm:text-sm font-medium text-gray-900 focus:outline-none focus:ring-1 focus:ring-emerald-500 h-[52px]"
                   >
-                    {['00:00', '01:00', '02:00', '03:00', '04:00', '05:00', '06:00', '07:00', '08:00', '09:00', '10:00', '11:00', '12:00', '13:00', '14:00', '15:00', '16:00', '17:00', '18:00', '19:00', '20:00', '21:00', '22:00', '23:00'].map(time => (
+                    {['06:00', '07:00', '08:00', '09:00', '10:00', '11:00', '12:00', '13:00', '14:00', '15:00', '16:00', '17:00', '18:00', '19:00', '20:00', '21:00', '22:00'].map(time => (
                       <option key={`dropoff-${time}`} value={time}>{time}</option>
                     ))}
                   </select>
                 </div>
-                <button
-                  ref={carDropoffDateRef}
-                  type="button"
-                  onClick={() => setShowCarDropoffDatePicker(true)}
-                  className="w-full relative px-3 py-3 sm:py-3.5 bg-white border border-gray-300 rounded-lg hover:border-emerald-500 transition-all cursor-pointer h-[52px] flex items-center"
-                >
-                  <Calendar className="text-gray-400 flex-shrink-0" size={18} />
-                  <span className="block pl-2 text-xs sm:text-sm font-medium text-gray-900 truncate">
-                    {carDropoffDate ? formatDateForDisplay(carDropoffDate) : 'Select'}
-                  </span>
-                </button>
               </div>
             </div>
 
@@ -3604,28 +3612,21 @@ export default function EnhancedSearchBar({
         />
 
         {/* Premium Date Pickers for Car Rentals */}
+        {/* Car Rental Date Range Picker - Single calendar for both pickup and dropoff */}
         <PremiumDatePicker
-          isOpen={showCarPickupDatePicker}
-          onClose={() => setShowCarPickupDatePicker(false)}
+          isOpen={showCarDateRangePicker}
+          onClose={() => setShowCarDateRangePicker(false)}
           value={carPickupDate}
-          onChange={(date) => {
-            setCarPickupDate(date);
-            setShowCarPickupDatePicker(false);
+          returnValue={carDropoffDate}
+          onChange={(pickupDate, dropoffDate) => {
+            setCarPickupDate(pickupDate);
+            if (dropoffDate) {
+              setCarDropoffDate(dropoffDate);
+            }
+            // Auto-close handled by PremiumDatePicker when range is complete
           }}
-          type="single"
+          type="range"
           anchorEl={carPickupDateRef.current}
-        />
-
-        <PremiumDatePicker
-          isOpen={showCarDropoffDatePicker}
-          onClose={() => setShowCarDropoffDatePicker(false)}
-          value={carDropoffDate}
-          onChange={(date) => {
-            setCarDropoffDate(date);
-            setShowCarDropoffDatePicker(false);
-          }}
-          type="single"
-          anchorEl={carDropoffDateRef.current}
         />
 
         {/* Premium Date Picker for Transfers */}
