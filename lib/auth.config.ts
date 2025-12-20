@@ -162,6 +162,11 @@ export const authConfig = {
         return `${baseUrl}/auth/admin-signin`;
       }
 
+      // POPUP MODE: Redirect to popup callback page for seamless auth
+      if (url.includes('popup=true') || url.includes('/auth/popup-callback')) {
+        return `${baseUrl}/auth/popup-callback`;
+      }
+
       // Allow any valid URL for redirects (including /admin with callbackUrl)
       // If url starts with baseUrl, allow it
       if (url.startsWith(baseUrl)) return url;

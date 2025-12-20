@@ -164,18 +164,60 @@ export function useGoogleAuth(options: UseGoogleAuthOptions = {}) {
     return () => clearTimeout(timer);
   }, [isScriptLoaded, handleCredentialResponse, context, enableOneTap]);
 
-  // Handle sign in with redirect (most reliable for OAuth)
+  // TRUE popup window auth - no page redirect
   const signInWithPopup = useCallback(async () => {
     setIsLoading(true);
-    try {
-      // Use NextAuth's signIn with redirect - most reliable approach
-      await signIn('google', { callbackUrl });
-    } catch (error) {
-      console.error('Google sign-in error:', error);
-      onError?.('Failed to sign in with Google');
+
+    const width = 500;
+    const height = 600;
+    const left = window.screenX + (window.outerWidth - width) / 2;
+    const top = window.screenY + (window.outerHeight - height) / 2;
+
+    // Create popup URL with special flag
+    const popupUrl = `/api/auth/signin/google?popup=true&callbackUrl=${encodeURIComponent(callbackUrl)}`;
+
+    const popup = window.open(
+      popupUrl,
+      'google-auth-popup',
+      `width=${width},height=${height},left=${left},top=${top},toolbar=no,menubar=no,scrollbars=yes,resizable=yes`
+    );
+
+    if (!popup) {
+      onError?.('Popup blocked. Please allow popups for this site.');
       setIsLoading(false);
+      return;
     }
-  }, [callbackUrl, onError]);
+
+    // Listen for auth completion message from popup
+    const handleMessage = (event: MessageEvent) => {
+      if (event.origin !== window.location.origin) return;
+
+      if (event.data?.type === 'GOOGLE_AUTH_SUCCESS') {
+        popup.close();
+        setIsLoading(false);
+        onSuccess?.();
+        // Soft refresh session without page reload
+        window.dispatchEvent(new Event('visibilitychange'));
+        // Force session refresh
+        window.location.reload();
+      } else if (event.data?.type === 'GOOGLE_AUTH_ERROR') {
+        popup.close();
+        setIsLoading(false);
+        onError?.(event.data.error || 'Authentication failed');
+      }
+    };
+
+    window.addEventListener('message', handleMessage);
+
+    // Check if popup was closed without completing
+    const checkClosed = setInterval(() => {
+      if (popup.closed) {
+        clearInterval(checkClosed);
+        window.removeEventListener('message', handleMessage);
+        setIsLoading(false);
+      }
+    }, 500);
+  }, [callbackUrl, onSuccess, onError]);
 
   // Fallback redirect-based sign in
   const signInWithRedirect = useCallback(async () => {

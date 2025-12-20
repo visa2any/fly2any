@@ -146,31 +146,55 @@ export function FeatureAuthModal({
     onClose();
   };
 
+  // Google OAuth with popup (stays on same page)
   const handleGoogleSignIn = async () => {
     setIsLoading(true);
     setError('');
 
-    try {
-      const result = await signIn('google', {
-        redirect: false,
-        callbackUrl: window.location.href,
-      });
+    const width = 500;
+    const height = 600;
+    const left = window.screenX + (window.outerWidth - width) / 2;
+    const top = window.screenY + (window.outerHeight - height) / 2;
 
-      if (result?.error) {
-        throw new Error(result.error);
-      }
+    const popup = window.open(
+      `/api/auth/signin/google?popup=true&callbackUrl=${encodeURIComponent('/auth/popup-callback')}`,
+      'google-auth',
+      `width=${width},height=${height},left=${left},top=${top},toolbar=no,menubar=no`
+    );
 
-      if (result?.ok) {
+    if (!popup) {
+      setError('Popup blocked. Please allow popups for this site.');
+      setIsLoading(false);
+      return;
+    }
+
+    const handleMessage = (event: MessageEvent) => {
+      if (event.origin !== window.location.origin) return;
+
+      if (event.data?.type === 'GOOGLE_AUTH_SUCCESS') {
+        popup.close();
+        window.removeEventListener('message', handleMessage);
         toast.success('Welcome! You now have access to all features.');
         onSuccess();
+        setIsLoading(false);
+      } else if (event.data?.type === 'GOOGLE_AUTH_ERROR') {
+        popup.close();
+        window.removeEventListener('message', handleMessage);
+        setError(event.data.error || 'Authentication failed');
+        toast.error('Failed to sign in with Google');
+        setIsLoading(false);
       }
-    } catch (err: any) {
-      console.error('Google sign-in error:', err);
-      setError(err.message || 'Failed to sign in with Google');
-      toast.error('Failed to sign in with Google');
-    } finally {
-      setIsLoading(false);
-    }
+    };
+
+    window.addEventListener('message', handleMessage);
+
+    const checkClosed = setInterval(() => {
+      if (popup.closed) {
+        clearInterval(checkClosed);
+        window.removeEventListener('message', handleMessage);
+        setIsLoading(false);
+      }
+    }, 500);
   };
 
   const handleEmailSignIn = async (e: React.FormEvent) => {
