@@ -10,6 +10,7 @@ import {
   User,
   Plane,
   Hotel,
+  Car,
   Clock,
   CheckCircle2,
   AlertCircle,
@@ -45,9 +46,30 @@ interface HotelBooking {
   createdAt: string | Date;
 }
 
+interface CarBooking {
+  id: string;
+  bookingReference: string;
+  carName: string;
+  carCategory: string;
+  company: string;
+  pickupLocation: string;
+  dropoffLocation: string;
+  pickupDate: string | Date;
+  dropoffDate: string | Date;
+  rentalDays: number;
+  totalPrice: number;
+  currency: string;
+  driverFirstName: string;
+  driverLastName: string;
+  driverEmail: string;
+  status: string;
+  paymentStatus: string;
+  createdAt: string | Date;
+}
+
 export default function AdminBookingsPage() {
   // Tab state
-  const [activeTab, setActiveTab] = useState<'flights' | 'hotels'>('flights');
+  const [activeTab, setActiveTab] = useState<'flights' | 'hotels' | 'cars'>('flights');
 
   // Flight bookings state
   const [bookings, setBookings] = useState<BookingSummary[]>([]);
@@ -68,10 +90,77 @@ export default function AdminBookingsPage() {
     revenue: 0,
   });
 
+  // Car bookings state
+  const [carBookings, setCarBookings] = useState<CarBooking[]>([]);
+  const [carLoading, setCarLoading] = useState(true);
+  const [carStats, setCarStats] = useState({
+    total: 0,
+    pending: 0,
+    confirmed: 0,
+    cancelled: 0,
+    revenue: 0,
+  });
+
   useEffect(() => {
     fetchBookings();
     fetchHotelBookings();
+    fetchCarBookings();
   }, [statusFilter, sortBy, sortOrder]);
+
+  // Fetch car bookings from API
+  const fetchCarBookings = async () => {
+    try {
+      setCarLoading(true);
+      const params = new URLSearchParams();
+      if (statusFilter !== 'all') {
+        params.append('status', statusFilter);
+      }
+      params.append('productType', 'car');
+
+      const response = await fetch(`/api/admin/bookings?${params.toString()}`);
+      if (!response.ok) throw new Error('Failed to fetch car bookings');
+
+      const data = await response.json();
+      // Filter and transform car bookings from the general bookings response
+      const cars = (data.bookings || [])
+        .filter((b: any) => b.productType === 'car' || b.flight?.type === 'car_rental')
+        .map((b: any) => ({
+          id: b.id,
+          bookingReference: b.bookingReference,
+          carName: b.flight?.name || 'Unknown Car',
+          carCategory: b.flight?.category || 'Standard',
+          company: b.flight?.company || 'Unknown',
+          pickupLocation: b.flight?.rental?.pickupLocation || b.origin || '',
+          dropoffLocation: b.flight?.rental?.dropoffLocation || b.destination || '',
+          pickupDate: b.flight?.rental?.pickupDate || b.departureDate,
+          dropoffDate: b.flight?.rental?.dropoffDate || '',
+          rentalDays: b.flight?.rental?.rentalDays || 1,
+          totalPrice: b.totalAmount || 0,
+          currency: b.currency || 'USD',
+          driverFirstName: b.passengers?.[0]?.firstName || '',
+          driverLastName: b.passengers?.[0]?.lastName || '',
+          driverEmail: b.passengers?.[0]?.email || '',
+          status: b.status,
+          paymentStatus: b.payment?.status || 'pending',
+          createdAt: b.createdAt,
+        }));
+
+      setCarBookings(cars);
+      setCarStats({
+        total: cars.length,
+        pending: cars.filter((c: CarBooking) => c.status === 'pending').length,
+        confirmed: cars.filter((c: CarBooking) => c.status === 'confirmed').length,
+        cancelled: cars.filter((c: CarBooking) => c.status === 'cancelled').length,
+        revenue: cars
+          .filter((c: CarBooking) => c.status === 'confirmed')
+          .reduce((sum: number, c: CarBooking) => sum + c.totalPrice, 0),
+      });
+    } catch (error) {
+      console.error('Error fetching car bookings:', error);
+    } finally {
+      setCarLoading(false);
+    }
+  };
 
   const fetchBookings = async () => {
     try {
@@ -180,8 +269,28 @@ export default function AdminBookingsPage() {
       .reduce((sum, b) => sum + b.totalAmount, 0),
   };
 
+  // Filter car bookings
+  const filteredCarBookings = carBookings
+    .filter(booking => {
+      if (!searchTerm) return true;
+      const term = searchTerm.toLowerCase();
+      return (
+        booking.bookingReference.toLowerCase().includes(term) ||
+        booking.carName.toLowerCase().includes(term) ||
+        booking.pickupLocation.toLowerCase().includes(term) ||
+        booking.driverEmail.toLowerCase().includes(term)
+      );
+    })
+    .sort((a, b) => {
+      const order = sortOrder === 'asc' ? 1 : -1;
+      if (sortBy === 'date') {
+        return order * (new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime());
+      }
+      return order * (a.totalPrice - b.totalPrice);
+    });
+
   // Use appropriate stats based on active tab
-  const stats = activeTab === 'flights' ? flightStats : hotelStats;
+  const stats = activeTab === 'flights' ? flightStats : activeTab === 'hotels' ? hotelStats : carStats;
 
   const getStatusBadge = (status: string) => {
     const styles: Record<string, string> = {
@@ -363,6 +472,24 @@ export default function AdminBookingsPage() {
                 activeTab === 'hotels' ? 'bg-orange-100 text-orange-700' : 'bg-gray-200 text-gray-600'
               }`}>
                 {hotelStats.total}
+              </span>
+            )}
+          </button>
+          <button
+            onClick={() => setActiveTab('cars')}
+            className={`flex-1 px-6 py-3 rounded-xl font-semibold flex items-center justify-center gap-2 transition-all duration-300 ${
+              activeTab === 'cars'
+                ? 'bg-white text-emerald-600 shadow-lg shadow-gray-200/50'
+                : 'text-gray-500 hover:text-gray-700'
+            }`}
+          >
+            <Car className={`w-5 h-5 transition-transform duration-300 ${activeTab === 'cars' ? 'scale-110' : ''}`} />
+            Cars
+            {carStats.total > 0 && (
+              <span className={`ml-2 px-2.5 py-0.5 rounded-full text-xs font-bold transition-colors duration-300 ${
+                activeTab === 'cars' ? 'bg-emerald-100 text-emerald-700' : 'bg-gray-200 text-gray-600'
+              }`}>
+                {carStats.total}
               </span>
             )}
           </button>
@@ -686,6 +813,111 @@ export default function AdminBookingsPage() {
                         </tr>
                       );
                     })
+                  )}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        )}
+
+        {/* Car Rentals Table */}
+        {activeTab === 'cars' && (
+          <div className="bg-white rounded-lg border border-gray-200 shadow-sm overflow-hidden">
+            <div className="overflow-x-auto">
+              <table className="w-full">
+                <thead className="bg-gray-50 border-b border-gray-200">
+                  <tr>
+                    <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Reference</th>
+                    <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Vehicle</th>
+                    <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Pickup</th>
+                    <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Driver</th>
+                    <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Days</th>
+                    <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Total</th>
+                    <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Status</th>
+                    <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Created</th>
+                    <th className="px-4 py-3 text-right text-xs font-semibold text-gray-600 uppercase tracking-wider">Actions</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-gray-100">
+                  {carLoading ? (
+                    <tr>
+                      <td colSpan={9} className="px-4 py-8 text-center">
+                        <RefreshCw className="w-6 h-6 animate-spin text-gray-400 mx-auto mb-2" />
+                        <p className="text-sm text-gray-500">Loading car rentals...</p>
+                      </td>
+                    </tr>
+                  ) : filteredCarBookings.length === 0 ? (
+                    <tr>
+                      <td colSpan={9} className="px-4 py-8 text-center">
+                        <Car className="w-8 h-8 text-gray-300 mx-auto mb-2" />
+                        <p className="text-sm text-gray-500">No car rental bookings found</p>
+                      </td>
+                    </tr>
+                  ) : (
+                    filteredCarBookings.map((booking) => (
+                      <tr key={booking.id} className="hover:bg-gray-50 transition-colors">
+                        <td className="px-4 py-3">
+                          <div className="font-mono text-sm font-bold text-emerald-600">{booking.bookingReference}</div>
+                        </td>
+                        <td className="px-4 py-3">
+                          <div className="flex items-center gap-2">
+                            <Car className="w-4 h-4 text-emerald-500" />
+                            <div>
+                              <div className="text-sm font-medium text-gray-900">{booking.carName}</div>
+                              <div className="text-xs text-gray-500">{booking.company} - {booking.carCategory}</div>
+                            </div>
+                          </div>
+                        </td>
+                        <td className="px-4 py-3">
+                          <div className="flex items-center gap-1 text-sm text-gray-700">
+                            <MapPin className="w-3 h-3" />
+                            {booking.pickupLocation}
+                          </div>
+                          <div className="text-xs text-gray-500">
+                            {new Date(booking.pickupDate).toLocaleDateString('en-US', {
+                              month: 'short',
+                              day: 'numeric',
+                            })}
+                          </div>
+                        </td>
+                        <td className="px-4 py-3">
+                          <div className="text-sm font-medium text-gray-900">
+                            {booking.driverFirstName} {booking.driverLastName}
+                          </div>
+                          <div className="text-xs text-gray-500">{booking.driverEmail}</div>
+                        </td>
+                        <td className="px-4 py-3">
+                          <div className="text-sm text-gray-700">{booking.rentalDays} days</div>
+                        </td>
+                        <td className="px-4 py-3">
+                          <div className="text-sm font-semibold text-gray-900">
+                            ${booking.totalPrice.toFixed(2)}
+                          </div>
+                        </td>
+                        <td className="px-4 py-3">
+                          {getStatusBadge(booking.status)}
+                        </td>
+                        <td className="px-4 py-3">
+                          <div className="text-xs text-gray-600">
+                            {new Date(booking.createdAt).toLocaleString('en-US', {
+                              month: 'short',
+                              day: 'numeric',
+                              hour: '2-digit',
+                              minute: '2-digit',
+                            })}
+                          </div>
+                        </td>
+                        <td className="px-4 py-3 text-right">
+                          <Link
+                            href={`/admin/bookings/${booking.id}`}
+                            className="inline-flex items-center gap-1 px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold rounded-lg transition-colors"
+                          >
+                            <Eye className="w-3 h-3" />
+                            View
+                          </Link>
+                        </td>
+                      </tr>
+                    ))
                   )}
                 </tbody>
               </table>

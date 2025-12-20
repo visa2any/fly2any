@@ -6,8 +6,8 @@ import ExitIntentPopup from '@/components/conversion/ExitIntentPopup';
 import MobileScrollCapture from '@/components/conversion/MobileScrollCapture';
 import { MobileHomeSearchWrapper } from '@/components/home/MobileHomeSearchWrapper';
 import { HotelsSectionEnhanced } from '@/components/home/HotelsSectionEnhanced';
-// TEMPORARILY HIDDEN - Uncomment when ready to launch
-// import { CarRentalsSectionEnhanced } from '@/components/home/CarRentalsSectionEnhanced';
+// CAR RENTALS - NOW LIVE WITH AMADEUS PRODUCTION API
+import { CarRentalsSectionEnhanced } from '@/components/home/CarRentalsSectionEnhanced';
 import { ToursSectionEnhanced } from '@/components/home/ToursSectionEnhanced';
 import { ActivitiesSectionEnhanced } from '@/components/home/ActivitiesSectionEnhanced';
 import { TransfersSectionEnhanced } from '@/components/home/TransfersSectionEnhanced';
@@ -673,12 +673,11 @@ export default function Home() {
         </div>
 
         {/* ============================================
-            CAR RENTALS SECTION - TEMPORARILY HIDDEN
-            Uncomment when ready to launch car rentals
+            CAR RENTALS SECTION - LIVE WITH AMADEUS API
             ============================================ */}
-        {/* <div className="mt-2 sm:mt-3 md:mt-5">
+        <div className="mt-4 md:mt-6 lg:mt-8">
           <CarRentalsSectionEnhanced lang={lang} />
-        </div> */}
+        </div>
 
         {/* ============================================
             POPULAR ROUTES

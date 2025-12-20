@@ -785,7 +785,16 @@ function CarResultsContent() {
                       <CarCard
                         car={car}
                         days={days}
-                        onSelect={() => console.log('Selected car:', car.id)}
+                        onSelect={() => {
+                          // Navigate to checkout with car data
+                          const params = new URLSearchParams();
+                          params.set('car', encodeURIComponent(JSON.stringify(car)));
+                          params.set('pickup', searchParams.pickup);
+                          params.set('dropoff', searchParams.dropoff || searchParams.pickup);
+                          params.set('pickupDate', searchParams.pickupDate);
+                          params.set('dropoffDate', searchParams.dropoffDate);
+                          router.push(`/cars/checkout?${params.toString()}`);
+                        }}
                       />
                     </motion.div>
                   ))}
