@@ -186,7 +186,10 @@ export async function POST(request: NextRequest) {
     }
 
     try {
-      // Use existing schema columns only
+      // Validate user_id is UUID format, otherwise set null (CUID from NextAuth is not UUID)
+      const userId = session?.user?.id;
+      const isValidUuid = userId && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(userId);
+
       await sql`
         INSERT INTO bookings (
           id, booking_reference, status, user_id,
@@ -197,7 +200,7 @@ export async function POST(request: NextRequest) {
           ${bookingId},
           ${bookingReference},
           'pending',
-          ${session?.user?.id || null},
+          ${isValidUuid ? userId : null},
           'car',
           ${JSON.stringify(bookingData.contactInfo)},
           ${JSON.stringify({ type: 'car_rental', ...bookingData.car, rental: bookingData.rental })},
