@@ -82,16 +82,15 @@ export function AuthModal({ isOpen, onClose, onSuccess, flightContext }: AuthMod
     setError('');
     setOauthState('connecting');
 
-    // Smaller popup - just for Google consent
-    const width = 450;
-    const height = 550;
+    const width = 500;
+    const height = 600;
     const left = window.screenX + (window.outerWidth - width) / 2;
     const top = window.screenY + (window.outerHeight - height) / 2;
 
     const popup = window.open(
       `/api/auth/signin/google?popup=true&callbackUrl=${encodeURIComponent('/auth/popup-callback')}`,
       'google-auth',
-      `width=${width},height=${height},left=${left},top=${top},toolbar=no,menubar=no,scrollbars=no,resizable=no`
+      `width=${width},height=${height},left=${left},top=${top},toolbar=no,menubar=no`
     );
 
     if (!popup) {
@@ -101,43 +100,42 @@ export function AuthModal({ isOpen, onClose, onSuccess, flightContext }: AuthMod
       return;
     }
 
-    // Listen for auth completion
+    let authCompleted = false;
+
     const handleMessage = (event: MessageEvent) => {
       if (event.origin !== window.location.origin) return;
 
       if (event.data?.type === 'GOOGLE_AUTH_SUCCESS') {
+        authCompleted = true;
         popup.close();
         window.removeEventListener('message', handleMessage);
         setOauthState('success');
-        // Brief success state before closing modal
         setTimeout(() => {
           toast.success('Welcome back!');
           onSuccess();
-        }, 600);
+        }, 400);
       } else if (event.data?.type === 'GOOGLE_AUTH_ERROR') {
+        authCompleted = true;
         popup.close();
         window.removeEventListener('message', handleMessage);
         setOauthState('idle');
-        setError(event.data.error === 'Configuration'
-          ? 'Google sign-in unavailable. Please use email.'
-          : 'Authentication failed. Please try again.');
         setIsLoading(false);
+        setError('Sign-in failed. Please try again.');
       }
     };
 
     window.addEventListener('message', handleMessage);
 
-    // Check if popup closed without completing
     const checkClosed = setInterval(() => {
       if (popup.closed) {
         clearInterval(checkClosed);
         window.removeEventListener('message', handleMessage);
-        if (oauthState === 'connecting') {
+        if (!authCompleted) {
           setOauthState('idle');
           setIsLoading(false);
         }
       }
-    }, 300);
+    }, 500);
   };
 
   // Handle email/password sign in
