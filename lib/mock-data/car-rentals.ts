@@ -170,98 +170,38 @@ const rentalProviders: Record<Region, AmadeusCarRentalProvider[]> = {
 };
 
 // ============================================================================
-// VEHICLE IMAGES BY EXACT CAR MODEL - 100% MATCHING PHOTOS
-// Using reliable CDN sources with actual car images
+// VEHICLE IMAGES BY CATEGORY - Using Unsplash (already whitelisted in next.config)
+// Real car photos that match the category, not specific models
 // ============================================================================
-const carModelImages: Record<string, string> = {
-  // ECONOMY - Small hatchbacks
-  'VW Gol': 'https://cdn.motor1.com/images/mgl/8A36RX/s1/volkswagen-gol-2023.jpg',
-  'Chevrolet Spark': 'https://cdn.motor1.com/images/mgl/KbBR6/s1/chevrolet-spark-2024.jpg',
-  'Nissan Versa': 'https://cdn.motor1.com/images/mgl/W8V4zb/s1/nissan-versa-2024.jpg',
-  'Toyota Yaris': 'https://cdn.motor1.com/images/mgl/qkMRv/s1/toyota-yaris-2024.jpg',
-  'Renault Clio': 'https://cdn.motor1.com/images/mgl/P3x8r/s1/renault-clio-2024.jpg',
-  'VW Polo': 'https://cdn.motor1.com/images/mgl/G1pR4/s1/volkswagen-polo-2024.jpg',
-  'Honda Fit': 'https://cdn.motor1.com/images/mgl/MkXOe/s1/honda-fit-2024.jpg',
-  'Toyota Vitz': 'https://cdn.motor1.com/images/mgl/qkMRv/s1/toyota-yaris-2024.jpg',
-  'Nissan March': 'https://cdn.motor1.com/images/mgl/2ZK1r/s1/nissan-march-2024.jpg',
-
-  // COMPACT - Sedans and hatchbacks
-  'Chevrolet Onix': 'https://cdn.motor1.com/images/mgl/kolVl/s1/chevrolet-onix-2024.jpg',
-  'Hyundai HB20': 'https://cdn.motor1.com/images/mgl/RqAZv/s1/hyundai-hb20-2024.jpg',
-  'Honda Civic': 'https://cdn.motor1.com/images/mgl/BXxZ7/s1/honda-civic-2024.jpg',
-  'Toyota Corolla': 'https://cdn.motor1.com/images/mgl/qk1zV/s1/toyota-corolla-2024.jpg',
-  'VW Golf': 'https://cdn.motor1.com/images/mgl/Kb03E/s1/volkswagen-golf-2024.jpg',
-  'Toyota Prius': 'https://cdn.motor1.com/images/mgl/ZnAP9/s1/toyota-prius-2024.jpg',
-
-  // STANDARD - Mid-size sedans
-  'Toyota Camry': 'https://cdn.motor1.com/images/mgl/OE6Nv/s1/toyota-camry-2024.jpg',
-  'Nissan Altima': 'https://cdn.motor1.com/images/mgl/ngGvE/s1/nissan-altima-2024.jpg',
-  'VW Passat': 'https://cdn.motor1.com/images/mgl/P39Qx/s1/volkswagen-passat-2024.jpg',
-  'Toyota Crown': 'https://cdn.motor1.com/images/mgl/qk1vp/s1/toyota-crown-2024.jpg',
-
+const categoryImages: Record<string, string> = {
+  // Economy - Small compact cars
+  'ECONOMY': 'https://images.unsplash.com/photo-1549317661-bd32c8ce0db2?w=800&q=80',
+  // Compact - Sedans like Civic, Corolla
+  'COMPACT': 'https://images.unsplash.com/photo-1590362891991-f776e747a588?w=800&q=80',
+  // Standard - Mid-size sedans like Camry
+  'STANDARD': 'https://images.unsplash.com/photo-1621007947382-bb3c3994e3fb?w=800&q=80',
   // SUV - Crossovers and SUVs
-  'Honda CR-V': 'https://cdn.motor1.com/images/mgl/XB4WJ/s1/honda-cr-v-2024.jpg',
-  'Toyota RAV4': 'https://cdn.motor1.com/images/mgl/KbB3l/s1/toyota-rav4-2024.jpg',
-  'Jeep Renegade': 'https://cdn.motor1.com/images/mgl/ZnMv4/s1/jeep-renegade-2024.jpg',
-  'Jeep Compass': 'https://cdn.motor1.com/images/mgl/W8VzQ/s1/jeep-compass-2024.jpg',
-  'BMW X3': 'https://cdn.motor1.com/images/mgl/KbBRp/s1/bmw-x3-2024.jpg',
-  'Kia Sportage': 'https://cdn.motor1.com/images/mgl/ngGP4/s1/kia-sportage-2024.jpg',
-  'Toyota Fortuner': 'https://cdn.motor1.com/images/mgl/MkXv6/s1/toyota-fortuner-2024.jpg',
-  'Nissan Patrol': 'https://cdn.motor1.com/images/mgl/BXxOj/s1/nissan-patrol-2024.jpg',
-  'Toyota Land Cruiser': 'https://cdn.motor1.com/images/mgl/ngGBz/s1/toyota-land-cruiser-2024.jpg',
-  'Chevrolet Tahoe': 'https://cdn.motor1.com/images/mgl/qk1Zj/s1/chevrolet-tahoe-2024.jpg',
-  'Toyota Kluger': 'https://cdn.motor1.com/images/mgl/ngGP4/s1/kia-sportage-2024.jpg',
-
-  // PREMIUM/LUXURY
-  'Mercedes-Benz C-Class': 'https://cdn.motor1.com/images/mgl/MkXEP/s1/mercedes-benz-c-class-2024.jpg',
-  'Mercedes-Benz E-Class': 'https://cdn.motor1.com/images/mgl/BXx0M/s1/mercedes-benz-e-class-2024.jpg',
-  'Lexus ES': 'https://cdn.motor1.com/images/mgl/8AlVM/s1/lexus-es-2024.jpg',
-
-  // ELECTRIC
-  'Tesla Model 3': 'https://cdn.motor1.com/images/mgl/QeZJG/s1/tesla-model-3-2024.jpg',
-
-  // CONVERTIBLE
-  'Ford Mustang': 'https://cdn.motor1.com/images/mgl/W8VGr/s1/ford-mustang-convertible-2024.jpg',
-
-  // VAN/MINIVAN
-  'Chevrolet Spin': 'https://cdn.motor1.com/images/mgl/RqA4y/s1/chevrolet-spin-2024.jpg',
-  'Dodge Grand Caravan': 'https://cdn.motor1.com/images/mgl/ngGvO/s1/dodge-grand-caravan.jpg',
-  'Toyota Alphard': 'https://cdn.motor1.com/images/mgl/P3xEg/s1/toyota-alphard-2024.jpg',
-  'VW Transporter': 'https://cdn.motor1.com/images/mgl/Kb0Z3/s1/volkswagen-transporter-2024.jpg',
-  'Skoda Octavia': 'https://cdn.motor1.com/images/mgl/ngG3v/s1/skoda-octavia-2024.jpg',
-
-  // PICKUP
-  'Fiat Toro': 'https://cdn.motor1.com/images/mgl/XB4Ox/s1/fiat-toro-2024.jpg',
-  'Ford F-150': 'https://cdn.motor1.com/images/mgl/W8VGQ/s1/ford-f-150-2024.jpg',
-};
-
-// Fallback images by category (reliable, real car photos)
-const categoryFallbackImages: Record<string, string> = {
-  'ECONOMY': 'https://cdn.motor1.com/images/mgl/qkMRv/s1/toyota-yaris-2024.jpg',
-  'COMPACT': 'https://cdn.motor1.com/images/mgl/qk1zV/s1/toyota-corolla-2024.jpg',
-  'STANDARD': 'https://cdn.motor1.com/images/mgl/OE6Nv/s1/toyota-camry-2024.jpg',
-  'SUV': 'https://cdn.motor1.com/images/mgl/KbB3l/s1/toyota-rav4-2024.jpg',
-  'FULLSIZE_SUV': 'https://cdn.motor1.com/images/mgl/qk1Zj/s1/chevrolet-tahoe-2024.jpg',
-  'PREMIUM': 'https://cdn.motor1.com/images/mgl/MkXEP/s1/mercedes-benz-c-class-2024.jpg',
-  'LUXURY': 'https://cdn.motor1.com/images/mgl/BXx0M/s1/mercedes-benz-e-class-2024.jpg',
-  'ELECTRIC': 'https://cdn.motor1.com/images/mgl/QeZJG/s1/tesla-model-3-2024.jpg',
-  'VAN': 'https://cdn.motor1.com/images/mgl/ngGvO/s1/dodge-grand-caravan.jpg',
-  'WAGON': 'https://cdn.motor1.com/images/mgl/ngG3v/s1/skoda-octavia-2024.jpg',
-  'CONVERTIBLE': 'https://cdn.motor1.com/images/mgl/W8VGr/s1/ford-mustang-convertible-2024.jpg',
-  'PICKUP': 'https://cdn.motor1.com/images/mgl/W8VGQ/s1/ford-f-150-2024.jpg',
+  'SUV': 'https://images.unsplash.com/photo-1519641471654-76ce0107ad1b?w=800&q=80',
+  // Full-size SUV - Large SUVs like Tahoe
+  'FULLSIZE_SUV': 'https://images.unsplash.com/photo-1533473359331-0135ef1b58bf?w=800&q=80',
+  // Premium - Luxury sedans
+  'PREMIUM': 'https://images.unsplash.com/photo-1555215695-3004980ad54e?w=800&q=80',
+  // Luxury - High-end vehicles
+  'LUXURY': 'https://images.unsplash.com/photo-1563720360172-67b8f3dce741?w=800&q=80',
+  // Electric - Tesla-style EVs
+  'ELECTRIC': 'https://images.unsplash.com/photo-1560958089-b8a1929cea89?w=800&q=80',
+  // Van/Minivan - Family vehicles
+  'VAN': 'https://images.unsplash.com/photo-1559416523-140ddc3d238c?w=800&q=80',
+  // Wagon/Estate - Station wagons
+  'WAGON': 'https://images.unsplash.com/photo-1605559424843-9e4c228bf1c2?w=800&q=80',
+  // Convertible - Sports cars
+  'CONVERTIBLE': 'https://images.unsplash.com/photo-1544636331-e26879cd4d9b?w=800&q=80',
+  // Pickup - Trucks
+  'PICKUP': 'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=800&q=80',
 };
 
 function getVehicleImage(description: string, category: string): string {
-  // Extract car model from description (e.g., "Toyota Corolla or Similar" -> "Toyota Corolla")
-  const modelMatch = description.match(/^([A-Za-z\-]+\s+[A-Za-z0-9\-]+)/);
-  if (modelMatch) {
-    const model = modelMatch[1];
-    if (carModelImages[model]) {
-      return carModelImages[model];
-    }
-  }
-  // Fallback to category image
-  return categoryFallbackImages[category] || categoryFallbackImages['STANDARD'];
+  return categoryImages[category] || categoryImages['STANDARD'];
 }
 
 // ============================================================================
