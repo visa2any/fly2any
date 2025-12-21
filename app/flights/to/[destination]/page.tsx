@@ -409,6 +409,20 @@ export default function DestinationPage() {
         </div>
       </section>
 
+      {/* Lead Capture */}
+      <section className="py-12 bg-gradient-to-r from-primary-500 to-primary-600">
+        <div className="max-w-4xl mx-auto px-4 text-center">
+          <h2 className="text-2xl md:text-3xl font-bold text-white mb-3">Get {dest.name} Flight Deals</h2>
+          <p className="text-white/90 mb-6">Be first to know about price drops & flash sales. Save up to 40% on {dest.name} flights!</p>
+          <form className="flex flex-col md:flex-row gap-3 max-w-2xl mx-auto" onSubmit={(e) => { e.preventDefault(); alert(`Thanks! We'll send you ${dest.name} deals soon.`); }}>
+            <input type="email" placeholder="Email address" required className="flex-1 px-4 py-3 rounded-xl border-0 focus:ring-2 focus:ring-white/50" />
+            <input type="tel" placeholder="Phone (optional)" className="md:w-48 px-4 py-3 rounded-xl border-0 focus:ring-2 focus:ring-white/50" />
+            <button type="submit" className="px-6 py-3 bg-white text-primary-600 font-bold rounded-xl hover:bg-gray-100 transition-colors whitespace-nowrap">Get Alerts</button>
+          </form>
+          <p className="text-white/70 text-xs mt-3">No spam. Unsubscribe anytime.</p>
+        </div>
+      </section>
+
       {/* FAQs */}
       <section className="py-12 bg-white">
         <div className="max-w-3xl mx-auto px-4">

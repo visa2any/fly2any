@@ -221,6 +221,21 @@ export default function sitemap(): MetadataRoute.Sitemap {
   allEntries.push(...internationalCityPages);
 
   // ===================================
+  // PRIORITY AIRLINE LANDING PAGES (High-Value Keywords)
+  // /airlines/{airline-slug}
+  // ===================================
+  const priorityAirlines = [
+    'emirates', // 119K impressions - top priority
+    // Add more as created
+  ].map((airline) => ({
+    url: `${SITE_URL}/airlines/${airline}`,
+    lastModified: currentDate,
+    changeFrequency: 'daily' as const,
+    priority: 0.93, // High priority - major airline page
+  }));
+  allEntries.push(...priorityAirlines);
+
+  // ===================================
   // AIRLINE PAGES
   // ===================================
   const airlinePages = MAJOR_AIRLINES.map((airline) => ({
