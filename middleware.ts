@@ -36,6 +36,13 @@ export default authEdge((req) => {
   const { nextUrl } = req;
   const isLoggedIn = !!req.auth;
 
+  // CANONICAL DOMAIN REDIRECT: non-www → www (SEO fix)
+  const host = req.headers.get('host') || '';
+  if (host === 'fly2any.com') {
+    const redirectUrl = new URL(nextUrl.pathname + nextUrl.search, 'https://www.fly2any.com');
+    return NextResponse.redirect(redirectUrl, 301);
+  }
+
   // Protected routes
   const isAccountPage = nextUrl.pathname.startsWith('/account');
 

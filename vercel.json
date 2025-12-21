@@ -6,8 +6,16 @@
   },
   "env": {
     "NEXT_PUBLIC_APP_NAME": "Fly2Any",
-    "NEXT_PUBLIC_APP_URL": "https://fly2any.com"
+    "NEXT_PUBLIC_APP_URL": "https://www.fly2any.com"
   },
+  "redirects": [
+    {
+      "source": "/:path*",
+      "has": [{ "type": "host", "value": "fly2any.com" }],
+      "destination": "https://www.fly2any.com/:path*",
+      "permanent": true
+    }
+  ],
   "crons": [
     {
       "path": "/api/cron/seo-monitor",
