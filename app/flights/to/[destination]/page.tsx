@@ -162,6 +162,61 @@ const destinations: Record<string, {
       { q: 'When is the cheapest time to visit Brazil?', a: 'March-May and August-October offer lower prices, avoiding Carnival and peak summer holidays.' },
     ],
   },
+  oslo: {
+    name: 'Oslo',
+    code: 'OSL',
+    country: 'Norway',
+    description: 'Gateway to the fjords and Northern Lights. Find cheap flights to Oslo and discover Scandinavian beauty, Viking history, and world-class design.',
+    bestTime: 'May-September (summer), December-March (Northern Lights)',
+    highlights: ['Oslo Opera House', 'Vigeland Sculpture Park', 'Viking Ship Museum', 'Northern Lights Tours', 'Fjord Cruises'],
+    travelTips: ['Summer has 20+ hours of daylight', 'Winter offers Northern Lights and skiing', 'Oslo Pass covers museums and transport', 'Book fjord tours from Oslo or Bergen'],
+    airports: [
+      { code: 'OSL', name: 'Oslo Gardermoen' },
+      { code: 'TRF', name: 'Sandefjord Torp' },
+    ],
+    popularAirlines: ['Norwegian', 'SAS', 'United', 'Delta', 'Lufthansa', 'British Airways'],
+    faqs: [
+      { q: 'When is the cheapest time to fly to Oslo?', a: 'January-February and October-November offer the lowest fares. Avoid June-August peak summer and Christmas holidays.' },
+      { q: 'How long is the flight to Oslo from the US?', a: 'Direct flights from New York take about 8 hours. Most US cities require one connection via Europe.' },
+      { q: 'Can I see the Northern Lights from Oslo?', a: 'Northern Lights are rare in Oslo but tours run to Tromsø (90min flight). Best viewing is September-March in northern Norway.' },
+    ],
+  },
+  berlin: {
+    name: 'Berlin',
+    code: 'BER',
+    country: 'Germany',
+    description: 'History, art, and nightlife collide in Germany\'s capital. Book cheap flights to Berlin for world-class museums, the Berlin Wall, and vibrant culture.',
+    bestTime: 'May-September',
+    highlights: ['Brandenburg Gate', 'Berlin Wall Memorial', 'Museum Island', 'Reichstag Building', 'East Side Gallery'],
+    travelTips: ['Berlin is very affordable compared to other European capitals', 'Excellent public transport with U-Bahn and S-Bahn', 'Christmas markets run November-December', 'Many museums are free on certain days'],
+    airports: [
+      { code: 'BER', name: 'Berlin Brandenburg' },
+    ],
+    popularAirlines: ['Lufthansa', 'Eurowings', 'United', 'Delta', 'American', 'Ryanair', 'easyJet'],
+    faqs: [
+      { q: 'When is the cheapest time to fly to Berlin?', a: 'February-March and November (excluding holidays) offer the best deals. Avoid summer peak and Oktoberfest season.' },
+      { q: 'Are there direct flights from the US to Berlin?', a: 'Yes! United flies nonstop from Newark, and Lufthansa connects from several US cities via Frankfurt or Munich.' },
+      { q: 'Is Berlin expensive to visit?', a: 'Berlin is one of the most affordable major European cities. Food, accommodation, and transport are reasonably priced.' },
+    ],
+  },
+  munich: {
+    name: 'Munich',
+    code: 'MUC',
+    country: 'Germany',
+    description: 'Bavarian charm meets German efficiency. Find cheap flights to Munich for Oktoberfest, fairytale castles, and Alpine adventures.',
+    bestTime: 'April-October (September-October for Oktoberfest)',
+    highlights: ['Marienplatz', 'Neuschwanstein Castle', 'Oktoberfest', 'English Garden', 'BMW World', 'Day trips to Alps'],
+    travelTips: ['Book Oktoberfest travel 6+ months ahead', 'Day trips to Salzburg and Neuschwanstein are popular', 'Munich Airport is a major European hub', 'Consider flying here for Alps skiing'],
+    airports: [
+      { code: 'MUC', name: 'Munich International' },
+    ],
+    popularAirlines: ['Lufthansa', 'United', 'Delta', 'American', 'Condor', 'Eurowings'],
+    faqs: [
+      { q: 'When is Oktoberfest and how do I book flights?', a: 'Oktoberfest runs mid-September to early October. Book flights 4-6 months ahead as prices spike significantly during the festival.' },
+      { q: 'Are there direct flights from the US to Munich?', a: 'Yes! Lufthansa and United offer nonstops from major US hubs including New York, Chicago, Los Angeles, and Washington DC.' },
+      { q: 'Should I fly to Munich or Frankfurt?', a: 'Munich is better for Bavaria, the Alps, and Austria. Frankfurt is more central for Rhine Valley and Western Germany.' },
+    ],
+  },
 };
 
 function FAQItem({ question, answer }: { question: string; answer: string }) {

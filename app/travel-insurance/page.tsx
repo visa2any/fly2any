@@ -656,6 +656,22 @@ export default function TravelInsurancePage() {
         </MaxWidthContainer>
       </section>
 
+      {/* Lead Capture Section */}
+      <section className="py-12 bg-gradient-to-r from-emerald-500 to-teal-600">
+        <div className="max-w-4xl mx-auto px-4 text-center">
+          <h2 className="text-2xl md:text-3xl font-bold text-white mb-3">Get Exclusive Insurance Deals</h2>
+          <p className="text-white/90 mb-6">Subscribe for special rates, coverage tips, and travel safety alerts. Save up to 35%!</p>
+          <form className="flex flex-col md:flex-row gap-3 max-w-2xl mx-auto" onSubmit={(e) => { e.preventDefault(); alert('Thanks! We\'ll send you insurance deals soon.'); }}>
+            <input type="email" placeholder="Email address" required className="flex-1 px-4 py-3 rounded-xl border-0 focus:ring-2 focus:ring-white/50" />
+            <input type="tel" placeholder="Phone (optional)" className="md:w-48 px-4 py-3 rounded-xl border-0 focus:ring-2 focus:ring-white/50" />
+            <button type="submit" className="px-6 py-3 bg-white text-emerald-600 font-bold rounded-xl hover:bg-gray-100 transition-colors whitespace-nowrap">
+              Get Deals
+            </button>
+          </form>
+          <p className="text-white/70 text-xs mt-3">No spam. Unsubscribe anytime. We respect your privacy.</p>
+        </div>
+      </section>
+
       {/* Insurance Buying Tips */}
       <section className="py-6 sm:py-8 md:py-12 bg-gradient-to-br from-blue-50 via-indigo-50 to-blue-50">
         <MaxWidthContainer className="px-0 md:px-6" noPadding={true}>

@@ -113,10 +113,10 @@ export default function robots(): MetadataRoute.Robots {
         crawlDelay: 5,
       },
 
-      // === AI SEARCH ENGINES - ChatGPT, Google AI (Full Access) ===
+      // === AI SEARCH ENGINES - ChatGPT, Google AI, Cohere (Full Access) ===
       // GPTBot powers ChatGPT Search - MUST be allowed for AI visibility
       {
-        userAgent: ['GPTBot', 'ChatGPT-User'],
+        userAgent: ['GPTBot', 'ChatGPT-User', 'OAI-SearchBot', 'cohere-ai'],
         allow: [
           '/',
           '/flights/',

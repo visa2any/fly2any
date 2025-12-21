@@ -98,6 +98,24 @@ export default function sitemap(): MetadataRoute.Sitemap {
       priority: 0.85,
     },
     {
+      url: `${SITE_URL}/travel-insurance`,
+      lastModified: currentDate,
+      changeFrequency: 'daily' as const,
+      priority: 0.92, // High priority - 174K impressions keyword
+    },
+    {
+      url: `${SITE_URL}/solo-travel`,
+      lastModified: currentDate,
+      changeFrequency: 'weekly' as const,
+      priority: 0.93, // High priority - 509K+ impressions combined
+    },
+    {
+      url: `${SITE_URL}/travel-planning`,
+      lastModified: currentDate,
+      changeFrequency: 'daily' as const,
+      priority: 0.94, // Highest priority - 1.07M impressions
+    },
+    {
       url: `${SITE_URL}/blog`,
       lastModified: currentDate,
       changeFrequency: 'daily' as const,
@@ -144,7 +162,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
   // ===================================
   const destinationLandingPages = [
     'hawaii', 'florida', 'las-vegas', 'mexico', 'india', 'bali', 'brazil',
-    // Add more as needed - these target high-volume "cheap flights to X" keywords
+    'oslo', 'berlin', 'munich', // High-value: Oslo 1.37M, Berlin 722K, Munich 414K impressions
   ].map((dest) => ({
     url: `${SITE_URL}/flights/to/${dest}`,
     lastModified: currentDate,
@@ -229,6 +247,9 @@ export default function sitemap(): MetadataRoute.Sitemap {
     'american', // 138K impressions (aa.com)
     'united',   // 183K impressions
     'emirates', // 119K impressions
+    'spirit',   // 583K impressions - Ultra Low-Cost
+    'alaska',   // Oneworld alliance member
+    'frontier', // Ultra Low-Cost, eco-friendly
   ].map((airline) => ({
     url: `${SITE_URL}/airlines/${airline}`,
     lastModified: currentDate,

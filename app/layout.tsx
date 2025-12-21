@@ -151,6 +151,11 @@ export default async function RootLayout({
         <meta name="apple-touch-fullscreen" content="yes" />
         <meta name="theme-color" content="#FAFAFA" media="(prefers-color-scheme: light)" />
         <meta name="theme-color" content="#1B1C20" media="(prefers-color-scheme: dark)" />
+
+        {/* AI/LLM Discoverability - Help AI search engines understand our site */}
+        <link rel="alternate" type="text/plain" href="/llms.txt" title="LLM Information" />
+        <link rel="ai-plugin" href="/.well-known/ai-plugin.json" />
+
         {/* Global Structured Data for SEO */}
         <StructuredData schema={globalSchemas} />
       </head>
