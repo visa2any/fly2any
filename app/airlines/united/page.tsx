@@ -79,7 +79,7 @@ export default function UnitedPage() {
               <span className="flex items-center gap-1"><Star className="w-4 h-4 fill-yellow-400 text-yellow-400" /> {unitedData.rating}/5</span>
             </div>
           </div>
-          <div className="max-w-4xl mx-auto bg-white rounded-2xl shadow-2xl p-6"><EnhancedSearchBar compact={true} /></div>
+          <div className="w-full bg-white rounded-2xl shadow-2xl p-6"><EnhancedSearchBar compact={false} /></div>
           <div className="flex flex-wrap items-center justify-center gap-6 mt-8 text-white/90 text-sm">
             <span className="flex items-center gap-2"><CheckCircle2 className="w-5 h-5 text-green-400" /> Best Price Guarantee</span>
             <span className="flex items-center gap-2"><Shield className="w-5 h-5 text-blue-400" /> Star Alliance</span>

@@ -87,8 +87,8 @@ export default function DeltaPage() {
             </div>
           </div>
 
-          <div className="max-w-4xl mx-auto bg-white rounded-2xl shadow-2xl p-6">
-            <EnhancedSearchBar compact={true} />
+          <div className="w-full bg-white rounded-2xl shadow-2xl p-6">
+            <EnhancedSearchBar compact={false} />
           </div>
 
           <div className="flex flex-wrap items-center justify-center gap-6 mt-8 text-white/90 text-sm">

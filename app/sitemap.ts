@@ -226,7 +226,8 @@ export default function sitemap(): MetadataRoute.Sitemap {
   // ===================================
   const priorityAirlines = [
     'delta',    // 1.9M impressions
-    'united',   // 183K impressions (reservations keyword)
+    'american', // 138K impressions (aa.com)
+    'united',   // 183K impressions
     'emirates', // 119K impressions
   ].map((airline) => ({
     url: `${SITE_URL}/airlines/${airline}`,
