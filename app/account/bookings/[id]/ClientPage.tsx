@@ -33,6 +33,7 @@ import {
   EnhancedFlightCard,
   BookingExtrasCard,
 } from '@/components/booking';
+import { Car } from 'lucide-react';
 
 interface BookingResponse {
   success: boolean;
@@ -180,8 +181,13 @@ export default function BookingDetailPage() {
     );
   }
 
-  const firstSegment = booking.flight.segments[0];
-  const lastSegment = booking.flight.segments[booking.flight.segments.length - 1];
+  // Check if this is a car booking
+  const isCarBooking = (booking as any).booking_type === 'car' || booking.flight?.type === 'car_rental';
+  const carData = isCarBooking ? booking.flight : null;
+
+  // Only access segments for flight bookings
+  const firstSegment = !isCarBooking && booking.flight?.segments?.[0];
+  const lastSegment = !isCarBooking && booking.flight?.segments?.[booking.flight.segments.length - 1];
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -196,11 +202,13 @@ export default function BookingDetailPage() {
             Back to Bookings
           </Link>
 
-          <div className="bg-gradient-to-r from-blue-600 to-indigo-600 rounded-2xl p-6 text-white">
+          <div className={`rounded-2xl p-6 text-white ${isCarBooking ? 'bg-gradient-to-r from-orange-500 to-amber-500' : 'bg-gradient-to-r from-blue-600 to-indigo-600'}`}>
             <div className="flex items-start justify-between mb-4">
               <div>
-                <h1 className="text-3xl font-bold mb-2">Booking Details</h1>
-                <p className="text-blue-100">
+                <h1 className="text-3xl font-bold mb-2">
+                  {isCarBooking ? 'Car Rental Details' : 'Booking Details'}
+                </h1>
+                <p className={isCarBooking ? 'text-orange-100' : 'text-blue-100'}>
                   Reference: {booking.bookingReference}
                 </p>
               </div>
@@ -214,7 +222,7 @@ export default function BookingDetailPage() {
               </div>
             </div>
 
-            <div className="flex items-center gap-4 text-sm text-blue-100">
+            <div className={`flex items-center gap-4 text-sm ${isCarBooking ? 'text-orange-100' : 'text-blue-100'}`}>
               <div className="flex items-center gap-2">
                 <Calendar className="w-4 h-4" />
                 Booked on {formatDateTime(booking.createdAt)}
@@ -222,7 +230,7 @@ export default function BookingDetailPage() {
               {booking.status === 'confirmed' && (
                 <div className="flex items-center gap-2">
                   <CheckCircle className="w-4 h-4" />
-                  E-ticket issued
+                  {isCarBooking ? 'Reservation confirmed' : 'E-ticket issued'}
                 </div>
               )}
             </div>
@@ -238,25 +246,103 @@ export default function BookingDetailPage() {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mt-6">
           {/* Main Content */}
           <div className="lg:col-span-2 space-y-6">
-            {/* Enhanced Flight Card */}
-            <EnhancedFlightCard flight={booking.flight} />
+            {/* Car Rental Card - for car bookings */}
+            {isCarBooking && carData && (
+              <div className="bg-white rounded-xl shadow-md overflow-hidden">
+                <div className="bg-gradient-to-r from-orange-500 to-amber-500 p-4">
+                  <h2 className="text-xl font-bold text-white flex items-center gap-2">
+                    <Car className="w-6 h-6" />
+                    Car Rental Details
+                  </h2>
+                </div>
+                <div className="p-6">
+                  <div className="flex gap-6">
+                    {/* Car Image */}
+                    {(carData as any).imageUrl && (
+                      <div className="flex-shrink-0">
+                        <img
+                          src={(carData as any).imageUrl}
+                          alt={(carData as any).name || 'Car'}
+                          className="w-48 h-32 object-contain rounded-lg bg-gray-50"
+                        />
+                      </div>
+                    )}
+                    <div className="flex-1">
+                      <h3 className="text-2xl font-bold text-gray-900 mb-2">
+                        {(carData as any).name || (carData as any).model || 'Car Rental'}
+                      </h3>
+                      <p className="text-gray-600 mb-4">{(carData as any).category}</p>
 
-            {/* Booking Extras Card (fare upgrades, bundles, add-ons, seats, promo codes) */}
-            <BookingExtrasCard
-              fareUpgrade={booking.fareUpgrade}
-              bundle={booking.bundle}
-              addOns={booking.addOns}
-              seats={booking.seats}
-              promoCode={booking.promoCode}
-              currency={booking.payment.currency}
-            />
+                      <div className="grid grid-cols-2 gap-4 text-sm">
+                        <div className="flex items-center gap-2">
+                          <span className="text-gray-500">Vendor:</span>
+                          <span className="font-semibold">{(carData as any).vendorName || (carData as any).supplier}</span>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <span className="text-gray-500">Transmission:</span>
+                          <span className="font-semibold">{(carData as any).transmission || 'Automatic'}</span>
+                        </div>
+                        {(carData as any).rental && (
+                          <>
+                            <div className="flex items-center gap-2">
+                              <MapPin className="w-4 h-4 text-green-600" />
+                              <span className="text-gray-500">Pickup:</span>
+                              <span className="font-semibold">{(carData as any).rental.pickupLocation}</span>
+                            </div>
+                            <div className="flex items-center gap-2">
+                              <MapPin className="w-4 h-4 text-red-600" />
+                              <span className="text-gray-500">Drop-off:</span>
+                              <span className="font-semibold">{(carData as any).rental.dropoffLocation}</span>
+                            </div>
+                          </>
+                        )}
+                      </div>
+                    </div>
+                  </div>
 
-            {/* Passenger Information */}
+                  {/* Rental Period */}
+                  {(booking as any).travel_date_from && (
+                    <div className="mt-6 pt-6 border-t border-gray-200">
+                      <div className="flex items-center justify-between bg-gray-50 rounded-xl p-4">
+                        <div className="text-center">
+                          <p className="text-sm text-gray-500">Pick-up</p>
+                          <p className="text-lg font-bold text-gray-900">{formatDateTime((booking as any).travel_date_from)}</p>
+                        </div>
+                        <div className="flex items-center gap-2 text-gray-400">
+                          <ArrowRight className="w-6 h-6" />
+                        </div>
+                        <div className="text-center">
+                          <p className="text-sm text-gray-500">Drop-off</p>
+                          <p className="text-lg font-bold text-gray-900">{formatDateTime((booking as any).travel_date_to)}</p>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
+
+            {/* Enhanced Flight Card - for flight bookings */}
+            {!isCarBooking && <EnhancedFlightCard flight={booking.flight} />}
+
+            {/* Booking Extras Card - only for flights */}
+            {!isCarBooking && (
+              <BookingExtrasCard
+                fareUpgrade={booking.fareUpgrade}
+                bundle={booking.bundle}
+                addOns={booking.addOns}
+                seats={booking.seats}
+                promoCode={booking.promoCode}
+                currency={booking.payment.currency}
+              />
+            )}
+
+            {/* Passenger/Driver Information */}
             <div className="bg-white rounded-xl shadow-md overflow-hidden">
-              <div className="bg-gradient-to-r from-blue-600 to-indigo-600 p-4">
+              <div className={`p-4 ${isCarBooking ? 'bg-gradient-to-r from-orange-500 to-amber-500' : 'bg-gradient-to-r from-blue-600 to-indigo-600'}`}>
                 <h2 className="text-xl font-bold text-white flex items-center gap-2">
                   <Users className="w-6 h-6" />
-                  Passenger Information
+                  {isCarBooking ? 'Driver Information' : 'Passenger Information'}
                 </h2>
               </div>
 
@@ -370,24 +456,26 @@ export default function BookingDetailPage() {
                   </div>
                 </div>
 
-                <div className="pt-4 border-t border-gray-200 space-y-2 text-sm">
-                  <div className="flex justify-between">
-                    <span className="text-gray-600">Base Fare</span>
-                    <span className="font-semibold">
-                      {booking.payment.currency}
-                      {booking.flight.price.base.toFixed(2)}
-                    </span>
+                {!isCarBooking && booking.flight?.price && (
+                  <div className="pt-4 border-t border-gray-200 space-y-2 text-sm">
+                    <div className="flex justify-between">
+                      <span className="text-gray-600">Base Fare</span>
+                      <span className="font-semibold">
+                        {booking.payment.currency}
+                        {booking.flight.price.base?.toFixed(2) || '0.00'}
+                      </span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-gray-600">Taxes & Fees</span>
+                      <span className="font-semibold">
+                        {booking.payment.currency}
+                        {(
+                          (booking.flight.price.taxes || 0) + (booking.flight.price.fees || 0)
+                        ).toFixed(2)}
+                      </span>
+                    </div>
                   </div>
-                  <div className="flex justify-between">
-                    <span className="text-gray-600">Taxes & Fees</span>
-                    <span className="font-semibold">
-                      {booking.payment.currency}
-                      {(
-                        booking.flight.price.taxes + booking.flight.price.fees
-                      ).toFixed(2)}
-                    </span>
-                  </div>
-                </div>
+                )}
 
                 <div className="pt-4 border-t border-gray-200">
                   <div className="flex items-center justify-between mb-2">

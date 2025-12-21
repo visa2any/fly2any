@@ -38,6 +38,7 @@ import {
   BookingManagementCard,
 } from '@/components/booking';
 import { getConsolidatorLinkFromBooking } from '@/lib/utils/consolidator-link';
+import { Car } from 'lucide-react';
 
 export default function AdminBookingDetailPage() {
   const router = useRouter();
@@ -301,6 +302,10 @@ export default function AdminBookingDetailPage() {
       </div>
     );
   }
+
+  // Check if this is a car booking
+  const isCarBooking = (booking as any).booking_type === 'car' || booking.flight?.type === 'car_rental';
+  const carData = isCarBooking ? booking.flight : null;
 
   const getStatusBadge = (status: string) => {
     const styles: Record<string, string> = {
@@ -854,7 +859,7 @@ export default function AdminBookingDetailPage() {
                   <div>
                     <p className="text-xs text-gray-500 font-medium">Net Price (Offer)</p>
                     <p className="text-lg font-bold text-gray-900">
-                      {booking.payment.currency} {(booking.netPrice || booking.flight.price.total).toFixed(2)}
+                      {booking.payment.currency} {(booking.netPrice || booking.flight?.price?.total || booking.payment.amount).toFixed(2)}
                     </p>
                   </div>
                   {/* Customer Price */}
@@ -886,18 +891,67 @@ export default function AdminBookingDetailPage() {
               </div>
             )}
 
-            {/* Enhanced Flight Card */}
-            <EnhancedFlightCard flight={booking.flight} />
+            {/* Car Rental Card - for car bookings */}
+            {isCarBooking && carData && (
+              <div className="bg-white rounded-lg border-2 border-orange-200 shadow-sm overflow-hidden">
+                <div className="bg-gradient-to-r from-orange-500 to-amber-500 px-4 py-3">
+                  <h2 className="font-bold text-white flex items-center gap-2">
+                    <Car className="w-5 h-5" />
+                    Car Rental Details
+                  </h2>
+                </div>
+                <div className="p-4">
+                  <div className="flex gap-4">
+                    {(carData as any).imageUrl && (
+                      <img
+                        src={(carData as any).imageUrl}
+                        alt={(carData as any).name || 'Car'}
+                        className="w-40 h-28 object-contain rounded-lg bg-gray-50"
+                      />
+                    )}
+                    <div className="flex-1">
+                      <h3 className="text-xl font-bold text-gray-900">
+                        {(carData as any).name || (carData as any).model || 'Car Rental'}
+                      </h3>
+                      <p className="text-gray-600 text-sm">{(carData as any).category}</p>
+                      <div className="mt-3 grid grid-cols-2 gap-2 text-sm">
+                        <div><span className="text-gray-500">Vendor:</span> <span className="font-semibold">{(carData as any).vendorName || (carData as any).supplier}</span></div>
+                        <div><span className="text-gray-500">Transmission:</span> <span className="font-semibold">{(carData as any).transmission || 'Automatic'}</span></div>
+                        {(carData as any).rental && (
+                          <>
+                            <div><span className="text-gray-500">Pickup:</span> <span className="font-semibold">{(carData as any).rental.pickupLocation}</span></div>
+                            <div><span className="text-gray-500">Drop-off:</span> <span className="font-semibold">{(carData as any).rental.dropoffLocation}</span></div>
+                          </>
+                        )}
+                      </div>
+                      {(booking as any).travel_date_from && (
+                        <div className="mt-3 p-2 bg-gray-50 rounded-lg text-sm">
+                          <span className="text-gray-500">Period:</span>{' '}
+                          <span className="font-semibold">
+                            {new Date((booking as any).travel_date_from).toLocaleDateString()} - {new Date((booking as any).travel_date_to).toLocaleDateString()}
+                          </span>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
 
-            {/* Booking Extras Card */}
-            <BookingExtrasCard
-              fareUpgrade={booking.fareUpgrade}
-              bundle={booking.bundle}
-              addOns={booking.addOns}
-              seats={booking.seats}
-              promoCode={booking.promoCode}
-              currency={booking.payment.currency}
-            />
+            {/* Enhanced Flight Card - only for flight bookings */}
+            {!isCarBooking && <EnhancedFlightCard flight={booking.flight} />}
+
+            {/* Booking Extras Card - only for flights */}
+            {!isCarBooking && (
+              <BookingExtrasCard
+                fareUpgrade={booking.fareUpgrade}
+                bundle={booking.bundle}
+                addOns={booking.addOns}
+                seats={booking.seats}
+                promoCode={booking.promoCode}
+                currency={booking.payment.currency}
+              />
+            )}
 
             {/* Passengers */}
             <div className="bg-white rounded-lg border border-gray-200 shadow-sm p-6">

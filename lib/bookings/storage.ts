@@ -332,6 +332,17 @@ class BookingStorage {
         values.push(params.dateTo);
       }
 
+      // Filter by booking type (flight vs car)
+      if (params.bookingType) {
+        if (params.bookingType === 'car') {
+          // Car bookings: booking_type = 'car' OR flight->>'type' = 'car_rental'
+          conditions.push(`(booking_type = 'car' OR flight->>'type' = 'car_rental')`);
+        } else {
+          // Flight bookings: booking_type IS NULL or not 'car', and not car_rental type
+          conditions.push(`(booking_type IS NULL OR booking_type != 'car') AND (flight->>'type' IS NULL OR flight->>'type' != 'car_rental')`);
+        }
+      }
+
       const whereClause = conditions.length > 0 ? `WHERE ${conditions.join(' AND ')}` : '';
       const offset = params.offset || 0;
       const limit = params.limit || 50;

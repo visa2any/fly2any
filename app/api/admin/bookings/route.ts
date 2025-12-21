@@ -13,6 +13,7 @@ export const dynamic = 'force-dynamic';
  *
  * Query Parameters:
  * - status: Filter by booking status (optional)
+ * - type: Filter by booking type - 'flight' or 'car' (optional)
  * - limit: Number of results (default: 100)
  * - offset: Pagination offset (default: 0)
  * - email: Filter by customer email (optional)
@@ -29,15 +30,17 @@ export async function GET(request: NextRequest) {
 
     // Extract query parameters
     const status = searchParams.get('status') as BookingStatus | null;
+    const bookingType = searchParams.get('type') as 'flight' | 'car' | null;
     const limit = parseInt(searchParams.get('limit') || '100');
     const offset = parseInt(searchParams.get('offset') || '0');
     const email = searchParams.get('email') || undefined;
 
-    console.log('📊 Fetching bookings with filters:', { status, limit, offset, email });
+    console.log('📊 Fetching bookings with filters:', { status, bookingType, limit, offset, email });
 
     // Fetch booking summaries from database
     const bookingSummaries = await bookingStorage.getSummaries({
       status: status || undefined,
+      bookingType: bookingType || undefined,
       limit,
       offset,
       email,
@@ -46,6 +49,7 @@ export async function GET(request: NextRequest) {
     // Get total count
     const totalCount = await bookingStorage.count({
       status: status || undefined,
+      bookingType: bookingType || undefined,
       email,
     });
 

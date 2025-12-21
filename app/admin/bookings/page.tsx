@@ -117,6 +117,7 @@ export default function AdminBookingsPage() {
     try {
       setCarLoading(true);
       const params = new URLSearchParams();
+      params.append('type', 'car'); // Filter only car bookings server-side
       if (statusFilter !== 'all') {
         params.append('status', statusFilter);
       }
@@ -125,10 +126,8 @@ export default function AdminBookingsPage() {
       if (!response.ok) throw new Error('Failed to fetch car bookings');
 
       const data = await response.json();
-      // Filter car bookings - getSummaries returns productType: 'car' for car rentals
-      // It also returns carName, carCategory, pickupLocation, etc. directly
+      // Car bookings already filtered by API - map to CarBooking format
       const cars = (data.bookings || [])
-        .filter((b: any) => b.productType === 'car')
         .map((b: any) => ({
           id: b.id,
           bookingReference: b.bookingReference,
@@ -173,6 +172,7 @@ export default function AdminBookingsPage() {
     try {
       setLoading(true);
       const params = new URLSearchParams();
+      params.append('type', 'flight'); // Filter only flight bookings (exclude car rentals)
 
       if (statusFilter !== 'all') {
         params.append('status', statusFilter);

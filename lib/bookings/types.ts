@@ -267,6 +267,7 @@ export interface BookingSearchParams {
   userId?: string;
   bookingReference?: string;
   status?: BookingStatus;
+  bookingType?: 'flight' | 'car'; // Filter by product type
   dateFrom?: string; // ISO date
   dateTo?: string; // ISO date
   limit?: number;
