@@ -88,7 +88,7 @@ export function ReviewCard({ review, onHelpful, onFlag, compact = false }: Revie
           {/* Avatar */}
           <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-primary-500 to-primary-600 flex items-center justify-center text-white font-semibold text-lg flex-shrink-0 shadow-md">
             {review.userAvatar ? (
-              <img src={review.userAvatar} alt="" className="w-full h-full rounded-xl object-cover" />
+              <img src={review.userAvatar} alt={`${review.userName}'s profile photo`} className="w-full h-full rounded-xl object-cover" />
             ) : (
               review.userName[0]
             )}
