@@ -139,6 +139,21 @@ export default function sitemap(): MetadataRoute.Sitemap {
   allEntries.push(...routePages);
 
   // ===================================
+  // CHEAP FLIGHTS TO [DESTINATION] PAGES (High-Value Keywords)
+  // /flights/to/{destination}
+  // ===================================
+  const destinationLandingPages = [
+    'hawaii', 'florida', 'las-vegas', 'mexico', 'india', 'bali', 'brazil',
+    // Add more as needed - these target high-volume "cheap flights to X" keywords
+  ].map((dest) => ({
+    url: `${SITE_URL}/flights/to/${dest}`,
+    lastModified: currentDate,
+    changeFrequency: 'daily' as const,
+    priority: 0.92, // High priority - these are high-value SEO pages
+  }));
+  allEntries.push(...destinationLandingPages);
+
+  // ===================================
   // DESTINATION PAGES (US Cities)
   // ===================================
   const usCityPages = TOP_US_CITIES.map((city) => ({
