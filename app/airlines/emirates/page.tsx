@@ -80,6 +80,14 @@ export default function EmiratesPage() {
             <span className="inline-flex items-center gap-2 px-4 py-2 bg-white/20 backdrop-blur-sm rounded-full text-sm font-medium mb-4">
               <Award className="w-4 h-4" /> World's Best Airline
             </span>
+            {/* Emirates Logo */}
+            <div className="mb-6">
+              <img
+                src="https://logos-world.net/wp-content/uploads/2020/03/Emirates-Logo.png"
+                alt="Emirates Airlines Logo"
+                className="h-16 md:h-20 mx-auto object-contain"
+              />
+            </div>
             <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold mb-4">Emirates Flights</h1>
             <p className="text-xl text-white/90 max-w-2xl mx-auto">
               Fly Better with Emirates. Compare prices and book Emirates airline tickets to 150+ destinations worldwide.
