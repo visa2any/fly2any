@@ -173,8 +173,8 @@ export function useGoogleAuth(options: UseGoogleAuthOptions = {}) {
     const left = window.screenX + (window.outerWidth - width) / 2;
     const top = window.screenY + (window.outerHeight - height) / 2;
 
-    // Create popup URL with special flag
-    const popupUrl = `/api/auth/signin/google?popup=true&callbackUrl=${encodeURIComponent(callbackUrl)}`;
+    // Use dedicated popup signin page that handles OAuth flow
+    const popupUrl = `/auth/popup-signin?callbackUrl=${encodeURIComponent(callbackUrl)}`;
 
     const popup = window.open(
       popupUrl,
