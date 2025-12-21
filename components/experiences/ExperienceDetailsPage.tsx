@@ -197,7 +197,7 @@ export default function ExperienceDetailsPage({
                         selectedImage === idx ? 'ring-2 ring-primary-500 ring-offset-2' : ''
                       }`}
                     >
-                      <Image src={img} alt="" fill className="object-cover" />
+                      <Image src={img} alt={`${experience.name} - Image ${idx + 1}`} fill className="object-cover" />
                     </button>
                   ))}
                 </div>
