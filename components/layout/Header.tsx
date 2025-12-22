@@ -14,6 +14,7 @@ import { UserMenu } from './UserMenu';
 import { useTranslations } from 'next-intl';
 import { useLanguage } from '@/lib/i18n/client';
 import CartIcon from '@/components/cart/CartIcon';
+import { LocaleSwitcher } from './LocaleSwitcher';
 
 // Language type (kept for backward compatibility)
 export type Language = 'en' | 'pt' | 'es';
@@ -614,6 +615,9 @@ export function Header({
             )}
 
             {/* ============ DESKTOP ICONS ============ */}
+
+            {/* Locale Switcher - Language & Currency */}
+            <LocaleSwitcher />
 
             {/* Cart Icon - Desktop & Mobile */}
             <CartIcon className="hidden sm:block" />
