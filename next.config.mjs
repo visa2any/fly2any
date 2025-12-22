@@ -96,10 +96,8 @@ const nextConfig = {
       { source: '/usa/flights-from-miami', destination: '/journey/flights?origin=MIA', permanent: true },
 
       // === DESTINATION PAGES ===
-      { source: '/destinations/paris', destination: '/', permanent: true },
-      { source: '/destinations/tokyo', destination: '/', permanent: true },
-      { source: '/destinations/new-york', destination: '/', permanent: true },
-      { source: '/destinations/:city', destination: '/', permanent: true },
+      // NOTE: /destinations/[city] pages are now live with ISR - do NOT redirect
+      // Only redirect legacy URLs that don't match our slug format
 
       // === MULTILINGUAL CITY PAGES ===
       { source: '/en/city/:slug', destination: '/', permanent: true },
@@ -116,13 +114,11 @@ const nextConfig = {
       { source: '/en/contact', destination: '/', permanent: true },
       { source: '/en/brazil-travel-guide', destination: '/', permanent: true },
 
-      // === BLOG REDIRECTS ===
-      { source: '/blog', destination: '/', permanent: true },
-      { source: '/blog/:id(\\d+)', destination: '/', permanent: true },
+      // === BLOG REDIRECTS (only legacy Portuguese posts) ===
       { source: '/blog/como-economizar-passagens-aereas', destination: '/', permanent: true },
       { source: '/blog/melhores-voos-brasil-eua', destination: '/', permanent: true },
       { source: '/blog/documentos-viagem-brasil-eua', destination: '/', permanent: true },
-      { source: '/blog/:slug', destination: '/', permanent: true },
+      // NOTE: /blog and /blog/:slug are now live pages - do NOT redirect
 
       // === GARBAGE URLs (invalid characters) ===
       { source: '/%24', destination: '/', permanent: true }, // /$

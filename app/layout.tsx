@@ -128,9 +128,9 @@ export default async function RootLayout({
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
         <link rel="preconnect" href="https://www.googletagmanager.com" />
 
-        {/* DNS Prefetch: Resolve DNS for third-party resources early */}
-        <link rel="dns-prefetch" href="https://assets.duffel.com" />
-        <link rel="dns-prefetch" href="https://api.amadeus.com" />
+        {/* DNS Prefetch + Preconnect for critical APIs */}
+        <link rel="preconnect" href="https://api.amadeus.com" />
+        <link rel="preconnect" href="https://assets.duffel.com" />
         <link rel="dns-prefetch" href="https://images.unsplash.com" />
         <link rel="dns-prefetch" href="https://www.google-analytics.com" />
 
