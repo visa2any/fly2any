@@ -28,6 +28,7 @@ import {
   Plus,
   X,
 } from 'lucide-react';
+import { COUNTRIES } from '@/lib/data/countries';
 
 // Types
 interface PassengerProfile {
@@ -296,16 +297,8 @@ const translations = {
   },
 };
 
-// Country list (top 50 countries)
-const countries = [
-  'United States', 'United Kingdom', 'Canada', 'Australia', 'Germany', 'France', 'Spain', 'Italy',
-  'Brazil', 'Portugal', 'Mexico', 'Argentina', 'Colombia', 'Chile', 'Peru', 'Netherlands',
-  'Belgium', 'Switzerland', 'Austria', 'Sweden', 'Norway', 'Denmark', 'Finland', 'Ireland',
-  'Poland', 'Czech Republic', 'Greece', 'Turkey', 'Israel', 'United Arab Emirates', 'Saudi Arabia',
-  'India', 'China', 'Japan', 'South Korea', 'Singapore', 'Thailand', 'Malaysia', 'Indonesia',
-  'Philippines', 'Vietnam', 'New Zealand', 'South Africa', 'Egypt', 'Morocco', 'Nigeria',
-  'Kenya', 'Russia', 'Ukraine', 'Romania',
-];
+// Get country names from comprehensive list (195+ countries)
+const countries = COUNTRIES.map(c => c.name);
 
 // Tooltip component
 const Tooltip: React.FC<{ content: string; children: React.ReactNode }> = ({ content, children }) => {
@@ -1037,24 +1030,46 @@ export const PassengerDetailsForm: React.FC<PassengerDetailsFormProps> = ({
                 )}
               </div>
 
-              {/* Phone */}
+              {/* Phone with International Code */}
               <div data-field={`${index}-phone`}>
                 <label className="block text-sm font-semibold text-gray-700 mb-2">
                   {t.phone} {index === 0 && <span className="text-error">*</span>}
                 </label>
-                <div className="relative">
-                  <Phone className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={20} />
-                  <input
-                    type="tel"
-                    value={passenger.phone}
-                    onChange={(e) => updatePassenger(index, 'phone', e.target.value)}
-                    className={`w-full h-11 pl-11 pr-4 rounded-xl border-2 transition-all ${
-                      errors[`${index}-phone`]
-                        ? 'border-error focus:border-error focus:ring-4 focus:ring-error/20'
-                        : 'border-gray-300 focus:border-primary-500 focus:ring-4 focus:ring-primary-500/20'
-                    }`}
-                    placeholder="+1 (555) 123-4567"
-                  />
+                <div className="flex gap-2">
+                  {/* Country Code Selector */}
+                  <select
+                    className="w-28 h-11 px-2 rounded-xl border-2 border-gray-300 focus:border-primary-500 focus:ring-4 focus:ring-primary-500/20 text-sm"
+                    onChange={(e) => {
+                      const code = e.target.value;
+                      const currentPhone = passenger.phone.replace(/^\+\d+\s*/, '');
+                      updatePassenger(index, 'phone', code ? `${code} ${currentPhone}` : currentPhone);
+                    }}
+                    value={passenger.phone.match(/^\+\d+/)?.[0] || '+1'}
+                  >
+                    {COUNTRIES.map((c) => (
+                      <option key={c.code} value={c.dialCode}>
+                        {c.flag} {c.dialCode}
+                      </option>
+                    ))}
+                  </select>
+                  {/* Phone Number Input */}
+                  <div className="relative flex-1">
+                    <Phone className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={20} />
+                    <input
+                      type="tel"
+                      value={passenger.phone.replace(/^\+\d+\s*/, '')}
+                      onChange={(e) => {
+                        const code = passenger.phone.match(/^\+\d+/)?.[0] || '+1';
+                        updatePassenger(index, 'phone', `${code} ${e.target.value}`);
+                      }}
+                      className={`w-full h-11 pl-11 pr-4 rounded-xl border-2 transition-all ${
+                        errors[`${index}-phone`]
+                          ? 'border-error focus:border-error focus:ring-4 focus:ring-error/20'
+                          : 'border-gray-300 focus:border-primary-500 focus:ring-4 focus:ring-primary-500/20'
+                      }`}
+                      placeholder="(555) 123-4567"
+                    />
+                  </div>
                 </div>
                 {errors[`${index}-phone`] && (
                   <p className="mt-1 text-sm text-error flex items-center gap-1">
