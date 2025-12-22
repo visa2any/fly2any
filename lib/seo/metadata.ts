@@ -1583,3 +1583,189 @@ export function getEnhancedHomeMetadata(): Metadata {
     ogType: 'website',
   });
 }
+
+// ===================================
+// AI SEARCH & SHOPPING SCHEMAS (2025)
+// ===================================
+
+/**
+ * Service schema for travel booking (Google Shopping & AI)
+ */
+export function getTravelServiceSchema() {
+  return {
+    '@context': 'https://schema.org',
+    '@type': 'Service',
+    serviceType: 'Travel Booking',
+    provider: {
+      '@type': 'Organization',
+      name: SITE_NAME,
+      url: SITE_URL,
+    },
+    name: 'Flight & Hotel Booking Service',
+    description: 'Compare and book flights from 900+ airlines, hotels from 2M+ properties, and car rentals worldwide. Best price guaranteed.',
+    areaServed: {
+      '@type': 'Country',
+      name: 'Worldwide',
+    },
+    hasOfferCatalog: {
+      '@type': 'OfferCatalog',
+      name: 'Travel Services',
+      itemListElement: [
+        {
+          '@type': 'OfferCatalog',
+          name: 'Flights',
+          itemListElement: [
+            { '@type': 'Offer', itemOffered: { '@type': 'Service', name: 'Domestic Flights', description: 'US domestic flights from $49' } },
+            { '@type': 'Offer', itemOffered: { '@type': 'Service', name: 'International Flights', description: 'International flights from $199' } },
+            { '@type': 'Offer', itemOffered: { '@type': 'Service', name: 'Business Class', description: 'Premium cabin flights from $999' } },
+          ],
+        },
+        {
+          '@type': 'OfferCatalog',
+          name: 'Hotels',
+          itemListElement: [
+            { '@type': 'Offer', itemOffered: { '@type': 'Service', name: 'Budget Hotels', description: 'Hotels from $29/night' } },
+            { '@type': 'Offer', itemOffered: { '@type': 'Service', name: 'Luxury Hotels', description: '5-star hotels from $199/night' } },
+          ],
+        },
+      ],
+    },
+    aggregateRating: {
+      '@type': 'AggregateRating',
+      ratingValue: '4.8',
+      reviewCount: '15420',
+      bestRating: '5',
+    },
+  };
+}
+
+/**
+ * ItemList schema for flight search results (AI shopping)
+ */
+export function getFlightDealsListSchema(deals: Array<{
+  origin: string;
+  destination: string;
+  price: number;
+  airline: string;
+  url: string;
+}>) {
+  return {
+    '@context': 'https://schema.org',
+    '@type': 'ItemList',
+    name: 'Flight Deals',
+    description: 'Current flight deals and discounts',
+    numberOfItems: deals.length,
+    itemListElement: deals.map((deal, index) => ({
+      '@type': 'ListItem',
+      position: index + 1,
+      item: {
+        '@type': 'Product',
+        name: `Flight from ${deal.origin} to ${deal.destination}`,
+        description: `${deal.airline} flight from ${deal.origin} to ${deal.destination}`,
+        brand: { '@type': 'Brand', name: deal.airline },
+        offers: {
+          '@type': 'Offer',
+          price: deal.price.toFixed(2),
+          priceCurrency: 'USD',
+          availability: 'https://schema.org/InStock',
+          url: deal.url,
+        },
+      },
+    })),
+  };
+}
+
+/**
+ * SpecialAnnouncement schema for deals and promotions
+ */
+export function getSpecialOfferSchema(params: {
+  name: string;
+  description: string;
+  discount: string;
+  validFrom: string;
+  validThrough: string;
+  url: string;
+}) {
+  return {
+    '@context': 'https://schema.org',
+    '@type': 'SpecialAnnouncement',
+    name: params.name,
+    text: params.description,
+    category: 'https://www.wikidata.org/wiki/Q112656943', // Discount category
+    datePosted: params.validFrom,
+    expires: params.validThrough,
+    announcementLocation: {
+      '@type': 'WebSite',
+      url: SITE_URL,
+    },
+    url: params.url,
+  };
+}
+
+/**
+ * Action schema for booking (helps AI understand how to book)
+ */
+export function getBookingActionSchema() {
+  return {
+    '@context': 'https://schema.org',
+    '@type': 'WebSite',
+    name: SITE_NAME,
+    url: SITE_URL,
+    potentialAction: [
+      {
+        '@type': 'SearchAction',
+        target: {
+          '@type': 'EntryPoint',
+          urlTemplate: `${SITE_URL}/flights?from={origin}&to={destination}&date={date}`,
+        },
+        'query-input': [
+          'required name=origin',
+          'required name=destination',
+          'required name=date',
+        ],
+      },
+      {
+        '@type': 'ReserveAction',
+        target: {
+          '@type': 'EntryPoint',
+          urlTemplate: `${SITE_URL}/flights/booking/{booking_id}`,
+          actionPlatform: [
+            'https://schema.org/DesktopWebPlatform',
+            'https://schema.org/MobileWebPlatform',
+          ],
+        },
+        result: {
+          '@type': 'Reservation',
+          name: 'Flight Reservation',
+        },
+      },
+    ],
+  };
+}
+
+/**
+ * AggregateOffer schema for price ranges (Google Shopping)
+ */
+export function getAggregateOfferSchema(params: {
+  name: string;
+  lowPrice: number;
+  highPrice: number;
+  offerCount: number;
+  url: string;
+}) {
+  return {
+    '@context': 'https://schema.org',
+    '@type': 'Product',
+    name: params.name,
+    brand: { '@type': 'Brand', name: SITE_NAME },
+    offers: {
+      '@type': 'AggregateOffer',
+      lowPrice: params.lowPrice.toFixed(2),
+      highPrice: params.highPrice.toFixed(2),
+      priceCurrency: 'USD',
+      offerCount: params.offerCount,
+      availability: 'https://schema.org/InStock',
+      url: params.url,
+    },
+  };
+}
