@@ -44,11 +44,9 @@ const SITE_LOCALE = 'en_US';
 const TWITTER_HANDLE = '@fly2any';
 const FACEBOOK_APP_ID = process.env.NEXT_PUBLIC_FACEBOOK_APP_ID || '';
 
-// Supported languages for hreflang
+// Supported languages for hreflang (English only - US market focus)
 export const SUPPORTED_LANGUAGES = {
   en: 'en-US',
-  pt: 'pt-BR',
-  es: 'es-ES',
 };
 
 /**
@@ -85,15 +83,8 @@ export function generateMetadata(page: PageMetadata): Metadata {
     canonical,
   };
 
-  // Add language alternates for major pages
-  if (!page.noindex) {
-    alternates.languages = {
-      'en-US': canonical,
-      'pt-BR': canonical.replace(SITE_URL, `${SITE_URL}/pt`),
-      'es-ES': canonical.replace(SITE_URL, `${SITE_URL}/es`),
-      'x-default': canonical, // Default language
-    };
-  }
+  // English only - US market focus (no multilingual hreflang)
+  // Future: Add pt-BR/es-ES when localized routes are implemented
 
   const metadata: Metadata = {
     title,
@@ -391,7 +382,7 @@ export function getWebSiteSchema() {
       },
       'query-input': 'required name=origin,required name=destination',
     },
-    inLanguage: ['en-US', 'pt-BR', 'es-ES'],
+    inLanguage: 'en-US',
   };
 }
 
@@ -1205,7 +1196,7 @@ export function getEnhancedSearchActionSchema() {
         'query-input': 'required name=city',
       },
     ],
-    inLanguage: ['en-US', 'es-ES', 'pt-BR'],
+    inLanguage: 'en-US',
     copyrightYear: new Date().getFullYear(),
     copyrightHolder: {
       '@type': 'Organization',

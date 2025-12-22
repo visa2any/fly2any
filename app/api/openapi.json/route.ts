@@ -98,6 +98,77 @@ const OPENAPI_SPEC = {
         },
       },
     },
+    '/tours': {
+      get: {
+        operationId: 'searchTours',
+        summary: 'Search for tours and activities',
+        description: 'Find tours, activities, and experiences at your destination. 100K+ activities worldwide.',
+        parameters: [
+          { name: 'destination', in: 'query', description: 'City or destination name', required: true, schema: { type: 'string' } },
+          { name: 'date', in: 'query', description: 'Activity date (YYYY-MM-DD)', required: false, schema: { type: 'string', format: 'date' } },
+          { name: 'category', in: 'query', description: 'Activity category', required: false, schema: { type: 'string', enum: ['tours', 'attractions', 'adventures', 'food', 'culture'] } },
+        ],
+        responses: {
+          '200': { description: 'Tours and activities search results' },
+        },
+      },
+    },
+    '/transfers': {
+      get: {
+        operationId: 'searchTransfers',
+        summary: 'Search for airport transfers',
+        description: 'Book airport pickups, private transfers, and shuttle services.',
+        parameters: [
+          { name: 'pickup', in: 'query', description: 'Pickup location or airport code', required: true, schema: { type: 'string' } },
+          { name: 'dropoff', in: 'query', description: 'Drop-off location', required: true, schema: { type: 'string' } },
+          { name: 'date', in: 'query', description: 'Transfer date (YYYY-MM-DD)', required: true, schema: { type: 'string', format: 'date' } },
+          { name: 'passengers', in: 'query', description: 'Number of passengers', required: false, schema: { type: 'integer', default: 1 } },
+        ],
+        responses: {
+          '200': { description: 'Transfer options and prices' },
+        },
+      },
+    },
+    '/packages': {
+      get: {
+        operationId: 'searchPackages',
+        summary: 'Search vacation packages',
+        description: 'Find flight + hotel bundles and save up to 30% compared to booking separately.',
+        parameters: [
+          { name: 'from', in: 'query', description: 'Origin city or airport', required: true, schema: { type: 'string' } },
+          { name: 'to', in: 'query', description: 'Destination city', required: true, schema: { type: 'string' } },
+          { name: 'departure', in: 'query', description: 'Departure date', required: true, schema: { type: 'string', format: 'date' } },
+          { name: 'return', in: 'query', description: 'Return date', required: true, schema: { type: 'string', format: 'date' } },
+          { name: 'travelers', in: 'query', description: 'Number of travelers', required: false, schema: { type: 'integer', default: 2 } },
+        ],
+        responses: {
+          '200': { description: 'Vacation package options' },
+        },
+      },
+    },
+    '/destinations/{city}': {
+      get: {
+        operationId: 'getDestinationGuide',
+        summary: 'Get destination travel guide',
+        description: 'Comprehensive travel guide with flights, hotels, things to do, and travel tips.',
+        parameters: [
+          { name: 'city', in: 'path', description: 'City slug (e.g., new-york, paris, tokyo)', required: true, schema: { type: 'string' } },
+        ],
+        responses: {
+          '200': { description: 'Destination travel guide' },
+        },
+      },
+    },
+    '/world-cup-2026': {
+      get: {
+        operationId: 'getWorldCup2026',
+        summary: 'FIFA World Cup 2026 travel packages',
+        description: 'Book flights, hotels, and match tickets for FIFA World Cup 2026 in USA, Mexico, and Canada.',
+        responses: {
+          '200': { description: 'World Cup 2026 travel hub' },
+        },
+      },
+    },
   },
   components: {
     schemas: {
