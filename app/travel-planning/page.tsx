@@ -55,6 +55,13 @@ export default function TravelPlanningPage() {
             </span>
             <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold mb-4">Travel Planning</h1>
             <p className="text-xl text-white/90 max-w-2xl mx-auto">Plan your perfect trip step by step. From destination research to packing lists, we've got you covered.</p>
+
+            {/* AEO: Direct Answer Block for Featured Snippets */}
+            <div className="mt-6 bg-white/10 backdrop-blur-sm rounded-xl p-4 max-w-2xl mx-auto text-left">
+              <p className="text-white/90 text-sm leading-relaxed">
+                <strong>How to plan a trip:</strong> Start 3-6 months ahead for international travel. Choose your destination, set a budget using the 50/30/20 rule (50% flights, 30% accommodation, 20% activities). Book flights 6-8 weeks ahead for domestic, 2-4 months for international. Add a 15% emergency buffer to your budget.
+              </p>
+            </div>
             <div className="flex items-center justify-center gap-4 text-sm text-white/80 mt-4">
               <span className="flex items-center gap-1"><Globe className="w-4 h-4" /> 500+ Destinations</span>
               <span className="flex items-center gap-1"><Calendar className="w-4 h-4" /> Step-by-Step Guide</span>

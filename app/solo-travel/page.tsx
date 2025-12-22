@@ -63,6 +63,13 @@ export default function SoloTravelPage() {
             </span>
             <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold mb-4">Solo Travel Destinations</h1>
             <p className="text-xl text-white/90 max-w-2xl mx-auto">Discover the best places to travel alone. Safe destinations, budget tips, and unforgettable solo adventures await.</p>
+
+            {/* AEO: Direct Answer Block for Featured Snippets */}
+            <div className="mt-6 bg-white/10 backdrop-blur-sm rounded-xl p-4 max-w-2xl mx-auto text-left">
+              <p className="text-white/90 text-sm leading-relaxed">
+                <strong>Is solo travel safe?</strong> Yes, solo travel is safe with proper planning. The safest destinations for solo travelers are Japan, Iceland, New Zealand, and Portugal. Share your itinerary with someone, stay in social hostels, trust your instincts, and book your first night in advance. Millions travel solo safely every year.
+              </p>
+            </div>
             <div className="flex items-center justify-center gap-4 text-sm text-white/80 mt-4">
               <span className="flex items-center gap-1"><Globe className="w-4 h-4" /> 50+ Destinations</span>
               <span className="flex items-center gap-1"><Shield className="w-4 h-4" /> Safety Rated</span>

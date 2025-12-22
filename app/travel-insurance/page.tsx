@@ -369,6 +369,13 @@ export default function TravelInsurancePage() {
                   </span>
                 )) : <span style={{ opacity: 0 }}>{t.subtitle}</span>}
               </p>
+
+              {/* AEO: Direct Answer Block for Featured Snippets */}
+              <div className="mt-4 bg-blue-100/60 backdrop-blur-sm rounded-xl p-4 max-w-2xl mx-auto text-left border border-blue-200/50">
+                <p className="text-gray-700 text-sm leading-relaxed">
+                  <strong className="text-blue-700">How much does travel insurance cost?</strong> Travel insurance typically costs 4-10% of your trip cost. For a $3,000 trip, expect $45-$175 depending on coverage level. Basic plans start at $45/trip covering trip cancellation and $50K medical. Premium plans at $175 add Cancel For Any Reason (CFAR) and $250K medical coverage.
+                </p>
+              </div>
             </div>
           </div>
         </MaxWidthContainer>
