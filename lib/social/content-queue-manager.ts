@@ -4,13 +4,14 @@
  * Integrates with existing AutomationOrchestrator
  */
 
-import { PrismaClient, Prisma } from '@prisma/client';
+import { Prisma } from '@prisma/client';
+import { getPrismaClient } from '@/lib/prisma';
 import { SocialPlatform, SocialPostContent } from './types';
 import { postToPlatform, logSocialPost, isDuplicatePost, getRateLimitStatus, createDealContent } from './index';
 import { imageAgent } from './image-agent';
 import { schedulerAgent } from './scheduler-agent';
 
-const prisma = new PrismaClient();
+const prisma = getPrismaClient();
 
 export interface QueueItem {
   type: 'deal' | 'guide' | 'social' | 'blog';

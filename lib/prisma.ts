@@ -55,6 +55,13 @@ export const prisma = isDatabaseConfigured
           url: getDatabaseUrl(),
         },
       },
+      // Optimize for serverless environments (Vercel/Neon)
+      __internal: {
+        engine: {
+          // @ts-ignore - Internal Prisma optimization
+          binaryTargets: ['native'],
+        },
+      },
     }))
   : null;
 

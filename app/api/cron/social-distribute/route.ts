@@ -13,6 +13,35 @@ import { handleApiError, ErrorCategory, ErrorSeverity } from '@/lib/monitoring/g
 export const dynamic = 'force-dynamic';
 export const maxDuration = 60;
 
+// Retry helper for database operations
+async function withRetry<T>(
+  fn: () => Promise<T>,
+  maxRetries = 3,
+  delayMs = 1000
+): Promise<T> {
+  let lastError: Error | null = null;
+
+  for (let i = 0; i < maxRetries; i++) {
+    try {
+      return await fn();
+    } catch (error) {
+      lastError = error as Error;
+      const isDbError = error instanceof Error &&
+        (error.message.includes('database') ||
+         error.message.includes('P1001') ||
+         error.message.includes('connection'));
+
+      if (!isDbError || i === maxRetries - 1) throw error;
+
+      const delay = delayMs * Math.pow(2, i);
+      console.log(`[Retry] Attempt ${i + 1}/${maxRetries} failed, retrying in ${delay}ms`);
+      await new Promise(r => setTimeout(r, delay));
+    }
+  }
+
+  throw lastError;
+}
+
 export async function GET(request: NextRequest) {
   return handleApiError(request, async () => {
     const startTime = Date.now();
@@ -31,11 +60,11 @@ export async function GET(request: NextRequest) {
 
     console.log('[Social Cron] Starting social distribution job');
 
-    // Process queued content
-    const result = await contentQueueManager.processQueue(10);
+    // Process queued content with retry
+    const result = await withRetry(() => contentQueueManager.processQueue(10));
 
-    // Get queue stats
-    const stats = await contentQueueManager.getStats();
+    // Get queue stats with retry
+    const stats = await withRetry(() => contentQueueManager.getStats());
 
     const duration = Date.now() - startTime;
 
