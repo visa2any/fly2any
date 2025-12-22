@@ -1,11 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { amadeusAPI } from '@/lib/api/amadeus';
-import { generateMockCarRentals } from '@/lib/mock-data/car-rentals';
+// NO MOCK DATA - Real Amadeus API data only
 
-// Mark this route as dynamic (it uses request params)
 export const dynamic = 'force-dynamic';
 
-// Check if we're in production Amadeus environment
 const isProductionAPI = process.env.AMADEUS_ENVIRONMENT === 'production';
 
 /**
@@ -17,25 +15,30 @@ function applyCarMarkup(basePrice: number): {
   baseAmount: number;
   markup: number;
   markupPercent: number;
+  profit: number;
 } {
   const percentMarkup = basePrice * 0.20;
   const markup = Math.max(30, percentMarkup);
   const customerPrice = basePrice + markup;
-  const markupPercent = (markup / basePrice) * 100;
+  const markupPercent = basePrice > 0 ? (markup / basePrice) * 100 : 0;
 
   return {
     customerPrice: Math.round(customerPrice * 100) / 100,
     baseAmount: Math.round(basePrice * 100) / 100,
     markup: Math.round(markup * 100) / 100,
     markupPercent: Math.round(markupPercent * 10) / 10,
+    profit: Math.round(markup * 100) / 100,
   };
 }
 
 /**
- * Car Rental Search API
+ * Car Rental Search API - REAL DATA ONLY (NO MOCK DATA)
  *
- * Uses Amadeus Car Rental API v2 in production.
- * Falls back to mock data only when API returns no results.
+ * - Uses Amadeus Car Rental API v2
+ * - Returns empty if no cars available
+ * - Includes admin pricing for management
+ * - Includes deeplink for supplier booking
+ * - Ticketing routes to manual process
  */
 export async function GET(request: NextRequest) {
   try {
@@ -68,6 +71,9 @@ export async function GET(request: NextRequest) {
       driverAge: 30,
     });
 
+    // Calculate rental days
+    const rentalDays = Math.ceil((new Date(dropoffDate).getTime() - new Date(pickupDate).getTime()) / (1000 * 60 * 60 * 24)) || 1;
+
     // If Amadeus returns data, transform and return it
     if (result.data && result.data.length > 0) {
       console.log(`✅ Amadeus returned ${result.data.length} car rental options`);
@@ -77,7 +83,6 @@ export async function GET(request: NextRequest) {
         data: result.data.map((offer: any, index: number) => {
           // Apply markup: $30 or 20%, whichever is higher
           const baseTotal = parseFloat(offer.price?.total || offer.quotation?.totalPrice?.value || '0');
-          const days = Math.ceil((new Date(dropoffDate).getTime() - new Date(pickupDate).getTime()) / (1000 * 60 * 60 * 24)) || 1;
           const pricing = applyCarMarkup(baseTotal);
 
           return {
@@ -92,18 +97,53 @@ export async function GET(request: NextRequest) {
             fuelType: offer.vehicle?.fuelType || 'PETROL',
             imageURL: offer.vehicle?.imageURL || getCarImageByCategory(offer.vehicle?.category),
           },
+          source: 'amadeus',
           provider: {
-            companyCode: offer.provider?.code || offer.serviceProvider?.code || 'ZZ',
-            companyName: offer.provider?.name || offer.serviceProvider?.name || 'Car Rental Company',
+            code: offer.provider?.code || offer.serviceProvider?.code || 'ZZ',
+            name: offer.provider?.name || offer.serviceProvider?.name,
+            logoUrl: offer.serviceProvider?.logoUrl,
+            website: offer.serviceProvider?.website,
+            phone: offer.serviceProvider?.phone,
+            email: offer.serviceProvider?.email,
           },
+          // Customer pricing
           price: {
             currency: offer.price?.currency || 'USD',
             total: pricing.customerPrice.toFixed(2),
-            perDay: (pricing.customerPrice / days).toFixed(2),
-            // Admin-only pricing breakdown
-            baseAmount: pricing.baseAmount.toFixed(2),
-            markup: pricing.markup.toFixed(2),
+            perDay: (pricing.customerPrice / rentalDays).toFixed(2),
+            taxes: offer.price?.taxes || [],
+            fees: offer.price?.fees || [],
+          },
+          // Admin pricing (for management)
+          adminPricing: {
+            supplierPrice: baseTotal.toFixed(2),
+            supplierBase: offer.price?.base,
+            ourMarkup: pricing.markup.toFixed(2),
             markupPercent: pricing.markupPercent,
+            profit: pricing.profit.toFixed(2),
+          },
+          // Booking deeplink for supplier reservation
+          booking: {
+            offerId: offer.id,
+            quoteId: offer.quoteId,
+            rateId: offer.rateId,
+            deepLink: offer.deepLink || offer.reservationLink || offer.bookingUrl,
+            confirmationUrl: offer.confirmationUrl,
+            supplierReference: offer.supplierReference || offer.externalId,
+            // All data needed to book with supplier
+            bookingData: {
+              offerId: offer.id,
+              vehicleCode: offer.vehicle?.code,
+              providerCode: offer.provider?.code || offer.serviceProvider?.code,
+              pickupLocation,
+              dropoffLocation: dropoffLocation || pickupLocation,
+              pickupDate,
+              dropoffDate,
+              pickupTime: pickupTime || '10:00:00',
+              dropoffTime: dropoffTime || '10:00:00',
+              supplierPrice: baseTotal,
+              currency: offer.price?.currency || 'USD',
+            },
           },
           pickupLocation: {
             code: pickupLocation,
@@ -173,44 +213,64 @@ export async function GET(request: NextRequest) {
             lateReturnFee: 'Additional day rate after 29 minutes',
           },
           features: offer.features || ['AC', 'Bluetooth'],
-          rating: offer.rating || 4.5,
-          reviewCount: offer.reviewCount || 100,
+          rating: offer.rating,
+          reviewCount: offer.reviewCount,
+          // Raw API data for debugging (dev only)
+          _raw: process.env.NODE_ENV === 'development' ? offer : undefined,
         };
         }),
         meta: {
           count: result.data.length,
-          source: 'amadeus_production',
+          source: 'amadeus',
+          apiMode: isProductionAPI ? 'production' : 'test',
+          timestamp: new Date().toISOString(),
+          searchParams: { pickupLocation, dropoffLocation, pickupDate, dropoffDate, rentalDays },
+          dictionaries: result.dictionaries || {},
+        },
+        // Admin summary for management dashboard
+        adminSummary: {
+          totalOffers: result.data.length,
+          priceRange: {
+            min: Math.min(...result.data.map((o: any) => parseFloat(o.price?.total || '0'))),
+            max: Math.max(...result.data.map((o: any) => parseFloat(o.price?.total || '0'))),
+          },
+          providers: Array.from(new Set(result.data.map((o: any) => o.serviceProvider?.name || o.provider?.name))).filter(Boolean),
+          categories: Array.from(new Set(result.data.map((o: any) => o.vehicle?.category))).filter(Boolean),
+          totalProfit: result.data.reduce((sum: number, o: any) => {
+            const base = parseFloat(o.price?.total || '0');
+            return sum + Math.max(30, base * 0.20);
+          }, 0).toFixed(2),
         },
       };
 
       return NextResponse.json(transformedData);
     }
 
-    // Fallback to mock data if Amadeus returns no results
-    console.log('⚠️ Amadeus returned no results, using enhanced mock data');
-    const mockData = generateMockCarRentals({
-      pickupLocation,
-      dropoffLocation: dropoffLocation || pickupLocation,
-      pickupDate,
-      dropoffDate,
-      pickupTime: pickupTime || undefined,
-      dropoffTime: dropoffTime || undefined,
+    // NO MOCK DATA - Return empty when no results
+    console.log(`⚠️ No car rentals available at ${pickupLocation}`);
+    return NextResponse.json({
+      data: [],
+      meta: {
+        count: 0,
+        source: 'amadeus',
+        apiMode: isProductionAPI ? 'production' : 'test',
+        message: `No car rentals available at ${pickupLocation}. Try different location/dates.`,
+        searchParams: { pickupLocation, dropoffLocation, pickupDate, dropoffDate },
+      },
     });
-
-    return NextResponse.json(mockData);
   } catch (error: any) {
-    console.error('❌ Error in cars API:', error.message);
+    console.error('❌ Car API Error:', error.message);
 
-    // Return mock data on error
-    const { searchParams } = new URL(request.url);
-    const mockData = generateMockCarRentals({
-      pickupLocation: searchParams.get('pickupLocation') || 'JFK',
-      dropoffLocation: searchParams.get('dropoffLocation') || searchParams.get('pickupLocation') || 'JFK',
-      pickupDate: searchParams.get('pickupDate') || new Date().toISOString().split('T')[0],
-      dropoffDate: searchParams.get('dropoffDate') || new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
-    });
-
-    return NextResponse.json(mockData);
+    // NO MOCK DATA - Return error
+    return NextResponse.json({
+      error: 'CAR_SEARCH_FAILED',
+      message: error.message || 'Failed to search car rentals',
+      data: [],
+      meta: {
+        source: 'amadeus',
+        apiMode: isProductionAPI ? 'production' : 'test',
+      },
+    }, { status: 500 });
   }
 }
 
