@@ -20,6 +20,7 @@ import { WorldCupHeroSectionEnhanced } from '@/components/world-cup/WorldCupHero
 import { MaxWidthContainer } from '@/components/layout/MaxWidthContainer';
 import { CompactTrustBar } from '@/components/conversion/CompactTrustBar';
 import { CreditCard, Plane, Hotel, Car, Shield, HeadphonesIcon } from 'lucide-react';
+import { useLanguage } from '@/lib/i18n/client';
 
 type Language = 'en' | 'pt' | 'es';
 
@@ -271,7 +272,8 @@ const faqCategories = {
 };
 
 export default function Home() {
-  const [lang, setLang] = useState<Language>('en');
+  const { language } = useLanguage();
+  const lang = language as Language;
   const [animationKey, setAnimationKey] = useState(0);
   const [mounted, setMounted] = useState(false);
   const t = content[lang];
