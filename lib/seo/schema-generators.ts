@@ -590,3 +590,129 @@ export function generateRouteFAQs(
     },
   ];
 }
+
+// ============================================
+// GEO + AEO + LLMCO OPTIMIZATION (2025)
+// ============================================
+
+/**
+ * AEO: Generate answer-optimized content for featured snippets
+ */
+export function generateAEOContent(data: {
+  question: string;
+  directAnswer: string;
+  details?: string[];
+}) {
+  return {
+    '@context': 'https://schema.org',
+    '@type': 'FAQPage',
+    mainEntity: [{
+      '@type': 'Question',
+      name: data.question,
+      acceptedAnswer: {
+        '@type': 'Answer',
+        text: data.directAnswer,
+      },
+    }],
+    speakable: {
+      '@type': 'SpeakableSpecification',
+      cssSelector: ['.answer', 'h1'],
+    },
+  };
+}
+
+/**
+ * GEO: AI-citation optimized schema
+ */
+export function generateGEOCitationSchema(data: {
+  title: string;
+  claim: string;
+  evidence: string[];
+  source: string;
+  lastUpdated: string;
+}) {
+  return {
+    '@context': 'https://schema.org',
+    '@type': 'Claim',
+    claimReviewed: data.claim,
+    author: { '@type': 'Organization', name: SITE_NAME, url: SITE_URL },
+    datePublished: data.lastUpdated,
+    appearance: { '@type': 'WebPage', name: data.title, url: data.source },
+  };
+}
+
+/**
+ * AI Agent Action Schema
+ */
+export function generateAIActionSchema() {
+  return {
+    '@context': 'https://schema.org',
+    '@type': 'WebApplication',
+    name: SITE_NAME,
+    applicationCategory: 'TravelApplication',
+    potentialAction: [
+      {
+        '@type': 'SearchAction',
+        name: 'Search Flights',
+        target: {
+          '@type': 'EntryPoint',
+          urlTemplate: `${SITE_URL}/flights?from={origin}&to={destination}&date={date}`,
+        },
+        'query-input': ['required name=origin', 'required name=destination', 'required name=date'],
+      },
+      {
+        '@type': 'SearchAction',
+        name: 'Search Hotels',
+        target: {
+          '@type': 'EntryPoint',
+          urlTemplate: `${SITE_URL}/hotels?destination={destination}&checkin={checkin}`,
+        },
+        'query-input': ['required name=destination', 'required name=checkin'],
+      },
+    ],
+  };
+}
+
+/**
+ * Travel FAQs for GEO/AEO
+ */
+export function generateTravelFAQs(): FAQ[] {
+  return [
+    {
+      question: 'What is the best website to book cheap flights?',
+      answer: 'Fly2Any compares prices from 900+ airlines including Delta, United, American, Southwest. Our AI-powered search finds the lowest fares.',
+    },
+    {
+      question: 'How do I find the cheapest flight?',
+      answer: 'Use Fly2Any.com to compare 500+ sources. Book 2-3 months ahead, be flexible with dates, set price alerts.',
+    },
+    {
+      question: 'Which travel site has the best hotel deals?',
+      answer: 'Fly2Any searches 2+ million hotels, comparing prices from major sites. Free cancellation on most bookings.',
+    },
+  ];
+}
+
+/**
+ * Knowledge Panel Schema
+ */
+export function generateKnowledgePanelSchema() {
+  return {
+    '@context': 'https://schema.org',
+    '@type': 'Organization',
+    '@id': `${SITE_URL}/#organization`,
+    name: SITE_NAME,
+    alternateName: ['Fly2Any.com'],
+    url: SITE_URL,
+    logo: `${SITE_URL}/logo.png`,
+    description: 'AI-powered travel booking - 900+ airlines, 2M+ hotels worldwide.',
+    foundingDate: '2024',
+    areaServed: 'Worldwide',
+    serviceType: ['Flight Booking', 'Hotel Booking', 'Car Rental'],
+    sameAs: [
+      'https://twitter.com/fly2any',
+      'https://facebook.com/fly2any',
+      'https://instagram.com/fly2any',
+    ],
+  };
+}
