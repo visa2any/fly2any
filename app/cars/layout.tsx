@@ -2,7 +2,7 @@ import { Metadata } from 'next';
 
 export const metadata: Metadata = {
   title: 'Car Rentals & Best Rates | Compare Top Providers - Fly2Any',
-  description: 'Compare car rental prices from Hertz, Enterprise, Avis, and more. Find the best deals on SUVs, sedans, and luxury cars at airports worldwide. Free cancellation available.',
+  description: 'Compare car rental prices from Hertz, Enterprise, Avis & more. Best deals on SUVs, sedans, luxury cars at airports worldwide. Free cancellation.',
   keywords: 'car rental, rent a car, cheap car hire, airport car rental, SUV rental, luxury car rental, car rental deals, Hertz, Enterprise, Avis',
   openGraph: {
     title: 'Compare Car Rental Deals | Fly2Any',

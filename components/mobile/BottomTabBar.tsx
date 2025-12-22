@@ -380,7 +380,7 @@ export function BottomTabBar({ translations, onMoreClick }: BottomTabBarProps) {
                     <div className="relative w-[22px] h-[22px]">
                       <Image
                         src={tab.icon}
-                        alt=""
+                        alt={`${tab.label} icon`}
                         fill
                         sizes="22px"
                         className="object-contain"

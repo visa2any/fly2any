@@ -308,7 +308,7 @@ export function FeatureAuthModal({
                 {productContext.image && (
                   <img
                     src={productContext.image}
-                    alt=""
+                    alt={productContext.name || 'Product image'}
                     className="w-12 h-12 rounded-lg object-cover"
                   />
                 )}
