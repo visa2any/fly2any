@@ -16,6 +16,17 @@ const locales = ['en', 'pt', 'es'] as const;
 type Locale = (typeof locales)[number];
 const defaultLocale: Locale = 'en';
 
+// Country to currency mapping
+const COUNTRY_CURRENCY_MAP: Record<string, string> = {
+  US: 'USD', CA: 'CAD', MX: 'MXN', BR: 'BRL', AR: 'ARS', CL: 'CLP', CO: 'COP',
+  GB: 'GBP', DE: 'EUR', FR: 'EUR', ES: 'EUR', IT: 'EUR', NL: 'EUR', BE: 'EUR',
+  AT: 'EUR', PT: 'EUR', IE: 'EUR', GR: 'EUR', FI: 'EUR', CH: 'CHF', SE: 'SEK',
+  NO: 'NOK', DK: 'DKK', PL: 'PLN', CZ: 'CZK', RU: 'RUB', TR: 'TRY',
+  JP: 'JPY', CN: 'CNY', KR: 'KRW', IN: 'INR', TH: 'THB', MY: 'MYR', ID: 'IDR',
+  PH: 'PHP', VN: 'VND', SG: 'SGD', HK: 'HKD', AU: 'AUD', NZ: 'NZD',
+  AE: 'AED', SA: 'SAR', IL: 'ILS', ZA: 'ZAR', EG: 'EGP', PK: 'PKR', BD: 'BDT',
+};
+
 /**
  * Detect browser language from Accept-Language header
  */
@@ -64,15 +75,38 @@ export default authEdge((req) => {
   // Create response with performance and security headers
   const response = NextResponse.next();
 
-  // LANGUAGE COOKIE MANAGEMENT - DISABLED: Always use English
-  // Auto-detection disabled per user request - will be re-enabled later
-  const languageCookie = req.cookies.get('fly2any_language');
+  // GEO-LOCATION AUTO-DETECTION (Vercel Edge)
+  // @ts-expect-error - geo is available on Vercel Edge runtime
+  const geo = req.geo || {};
+  const countryCode = geo.country || 'US';
 
-  // Always force English regardless of browser settings
-  if (!languageCookie || languageCookie.value !== 'en') {
-    response.cookies.set('fly2any_language', 'en', {
+  // Auto-set currency based on country (only if not already set)
+  const currencyCookie = req.cookies.get('fly2any_currency');
+  if (!currencyCookie) {
+    const detectedCurrency = COUNTRY_CURRENCY_MAP[countryCode] || 'USD';
+    response.cookies.set('fly2any_currency', detectedCurrency, {
       path: '/',
-      maxAge: 31536000, // 1 year in seconds
+      maxAge: 31536000,
+      sameSite: 'lax',
+      secure: process.env.NODE_ENV === 'production',
+    });
+  }
+
+  // Store geo data for analytics/personalization
+  response.cookies.set('fly2any_country', countryCode, {
+    path: '/',
+    maxAge: 86400, // 24 hours
+    sameSite: 'lax',
+    secure: process.env.NODE_ENV === 'production',
+  });
+
+  // LANGUAGE COOKIE MANAGEMENT
+  const languageCookie = req.cookies.get('fly2any_language');
+  if (!languageCookie) {
+    const browserLang = detectBrowserLanguage(req.headers.get('accept-language'));
+    response.cookies.set('fly2any_language', browserLang, {
+      path: '/',
+      maxAge: 31536000,
       sameSite: 'lax',
       secure: process.env.NODE_ENV === 'production',
     });

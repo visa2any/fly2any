@@ -90,6 +90,15 @@ export const metadata: Metadata = {
   verification: {
     google: process.env.NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION,
   },
+  alternates: {
+    canonical: 'https://www.fly2any.com',
+    languages: {
+      'en': 'https://www.fly2any.com',
+      'pt': 'https://www.fly2any.com/pt',
+      'es': 'https://www.fly2any.com/es',
+      'x-default': 'https://www.fly2any.com',
+    },
+  },
 };
 
 export const viewport = {

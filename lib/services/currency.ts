@@ -68,17 +68,23 @@ export const CURRENCIES: Record<string, CurrencyCode> = {
   SGD: { code: 'SGD', symbol: 'S$', name: 'Singapore Dollar', symbolPosition: 'before', decimalPlaces: 2 },
   HKD: { code: 'HKD', symbol: 'HK$', name: 'Hong Kong Dollar', symbolPosition: 'before', decimalPlaces: 2 },
   KRW: { code: 'KRW', symbol: '₩', name: 'South Korean Won', symbolPosition: 'before', decimalPlaces: 0 },
-  INR: { code: 'INR', symbol: '₹', name: 'Indian Rupee', symbolPosition: 'before', decimalPlaces: 2 },
-  THB: { code: 'THB', symbol: '฿', name: 'Thai Baht', symbolPosition: 'before', decimalPlaces: 2 },
+  INR: { code: 'INR', symbol: '₹', name: 'Indian Rupee', symbolPosition: 'before', decimalPlaces: 0 },
+  THB: { code: 'THB', symbol: '฿', name: 'Thai Baht', symbolPosition: 'before', decimalPlaces: 0 },
   MYR: { code: 'MYR', symbol: 'RM', name: 'Malaysian Ringgit', symbolPosition: 'before', decimalPlaces: 2 },
   IDR: { code: 'IDR', symbol: 'Rp', name: 'Indonesian Rupiah', symbolPosition: 'before', decimalPlaces: 0 },
   PHP: { code: 'PHP', symbol: '₱', name: 'Philippine Peso', symbolPosition: 'before', decimalPlaces: 2 },
+  VND: { code: 'VND', symbol: '₫', name: 'Vietnamese Dong', symbolPosition: 'after', decimalPlaces: 0 },
+
+  // South Asia
+  PKR: { code: 'PKR', symbol: 'Rs', name: 'Pakistani Rupee', symbolPosition: 'before', decimalPlaces: 0 },
+  BDT: { code: 'BDT', symbol: '৳', name: 'Bangladeshi Taka', symbolPosition: 'before', decimalPlaces: 0 },
 
   // Middle East & Africa
   AED: { code: 'AED', symbol: 'د.إ', name: 'UAE Dirham', symbolPosition: 'before', decimalPlaces: 2 },
   SAR: { code: 'SAR', symbol: 'ر.س', name: 'Saudi Riyal', symbolPosition: 'before', decimalPlaces: 2 },
   ZAR: { code: 'ZAR', symbol: 'R', name: 'South African Rand', symbolPosition: 'before', decimalPlaces: 2 },
   ILS: { code: 'ILS', symbol: '₪', name: 'Israeli Shekel', symbolPosition: 'before', decimalPlaces: 2 },
+  EGP: { code: 'EGP', symbol: 'E£', name: 'Egyptian Pound', symbolPosition: 'before', decimalPlaces: 0 },
 
   // Eastern Europe
   RUB: { code: 'RUB', symbol: '₽', name: 'Russian Ruble', symbolPosition: 'after', decimalPlaces: 2 },
@@ -469,6 +475,29 @@ export function formatPrice(
 export const DEFAULT_CURRENCY = 'USD';
 
 /**
+ * Smart rounding for display prices by currency
+ * Rounds to psychologically appealing price points
+ */
+export function roundForDisplay(amount: number, currencyCode: string): number {
+  const currency = CURRENCIES[currencyCode.toUpperCase()];
+  if (!currency) return Math.round(amount);
+
+  // Zero decimal currencies - round to nearest 10/100/1000
+  if (currency.decimalPlaces === 0) {
+    if (amount >= 10000) return Math.round(amount / 1000) * 1000;
+    if (amount >= 1000) return Math.round(amount / 100) * 100;
+    if (amount >= 100) return Math.round(amount / 10) * 10;
+    return Math.round(amount);
+  }
+
+  // Standard currencies - round to .99 or .00
+  const whole = Math.floor(amount);
+  const decimal = amount - whole;
+  if (decimal >= 0.5) return whole + 0.99;
+  return whole;
+}
+
+/**
  * Currency service singleton
  */
 export const CurrencyService = {
@@ -494,6 +523,7 @@ export const CurrencyService = {
   // Utilities
   detect: detectUserCurrency,
   clearCache: clearCurrencyCache,
+  roundForDisplay,
 };
 
 export default CurrencyService;
