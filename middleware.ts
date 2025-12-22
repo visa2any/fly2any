@@ -16,15 +16,29 @@ const locales = ['en', 'pt', 'es'] as const;
 type Locale = (typeof locales)[number];
 const defaultLocale: Locale = 'en';
 
-// Country to currency mapping
+// Country to currency mapping (100+ countries)
 const COUNTRY_CURRENCY_MAP: Record<string, string> = {
-  US: 'USD', CA: 'CAD', MX: 'MXN', BR: 'BRL', AR: 'ARS', CL: 'CLP', CO: 'COP',
+  // Americas
+  US: 'USD', CA: 'CAD', MX: 'MXN', BR: 'BRL',
+  AR: 'ARS', CL: 'CLP', CO: 'COP', PE: 'PEN', VE: 'VES', EC: 'USD',
+  UY: 'UYU', PY: 'PYG', BO: 'BOB', CR: 'CRC', PA: 'USD', GT: 'GTQ',
+  HN: 'HNL', SV: 'USD', NI: 'NIO', DO: 'DOP', CU: 'CUP', JM: 'JMD',
+  PR: 'USD', TT: 'TTD',
+  // Europe
   GB: 'GBP', DE: 'EUR', FR: 'EUR', ES: 'EUR', IT: 'EUR', NL: 'EUR', BE: 'EUR',
   AT: 'EUR', PT: 'EUR', IE: 'EUR', GR: 'EUR', FI: 'EUR', CH: 'CHF', SE: 'SEK',
-  NO: 'NOK', DK: 'DKK', PL: 'PLN', CZ: 'CZK', RU: 'RUB', TR: 'TRY',
+  NO: 'NOK', DK: 'DKK', PL: 'PLN', CZ: 'CZK', RO: 'RON', HU: 'HUF',
+  RU: 'RUB', UA: 'UAH', TR: 'TRY', HR: 'EUR', BG: 'BGN', RS: 'RSD',
+  // Asia
   JP: 'JPY', CN: 'CNY', KR: 'KRW', IN: 'INR', TH: 'THB', MY: 'MYR', ID: 'IDR',
-  PH: 'PHP', VN: 'VND', SG: 'SGD', HK: 'HKD', AU: 'AUD', NZ: 'NZD',
-  AE: 'AED', SA: 'SAR', IL: 'ILS', ZA: 'ZAR', EG: 'EGP', PK: 'PKR', BD: 'BDT',
+  PH: 'PHP', VN: 'VND', SG: 'SGD', HK: 'HKD', TW: 'TWD', BD: 'BDT', PK: 'PKR',
+  LK: 'LKR', NP: 'NPR', MM: 'MMK', KH: 'KHR', KZ: 'KZT', UZ: 'UZS',
+  // Middle East & Africa
+  AE: 'AED', SA: 'SAR', IL: 'ILS', QA: 'QAR', KW: 'KWD', BH: 'BHD', OM: 'OMR',
+  JO: 'JOD', LB: 'LBP', IQ: 'IQD', IR: 'IRR',
+  ZA: 'ZAR', EG: 'EGP', NG: 'NGN', KE: 'KES', MA: 'MAD', GH: 'GHS',
+  // Oceania
+  AU: 'AUD', NZ: 'NZD', FJ: 'FJD', PG: 'PGK',
 };
 
 /**
