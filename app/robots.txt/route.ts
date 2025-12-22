@@ -16,7 +16,6 @@ export async function GET() {
 # ============================================
 User-agent: Googlebot
 Allow: /
-Crawl-delay: 1
 
 User-agent: Bingbot
 Allow: /
@@ -166,15 +165,21 @@ Disallow: /_next/
 Disallow: /checkout/
 Disallow: /booking/confirm/
 Disallow: /account/
+Disallow: /auth/
+Disallow: /payments/
+# Block search result pages (infinite URL variations)
+Disallow: /flights/results
+Disallow: /hotels/results
+Disallow: /cars/results
+Disallow: /tours/results
+Disallow: /activities/results
+Disallow: /transfers/results
 
 # ============================================
 # SITEMAPS
 # ============================================
 
 Sitemap: ${SITE_URL}/sitemap.xml
-Sitemap: ${SITE_URL}/sitemap-flights.xml
-Sitemap: ${SITE_URL}/sitemap-hotels.xml
-Sitemap: ${SITE_URL}/sitemap-destinations.xml
 
 # ============================================
 # AI/LLM DISCOVERY FILES
