@@ -322,12 +322,13 @@ export default function Home() {
         >
           {/* Level-6: 16px mobile padding, 24px desktop */}
           <div className="px-4 md:px-6">
-            {/* Title Container - stacked on mobile, inline on desktop */}
-            <div className="flex flex-col md:flex-row md:items-center gap-1 md:gap-4">
-              {/* Main Title - Level-6: 16px mobile (Apple standard), premium desktop */}
+            {/* Title Container - always stacked for consistent i18n support */}
+            <div className="flex flex-col gap-1 md:gap-2">
+              {/* Main Title - Responsive sizing with text-wrap for natural line breaks */}
               <h1
                 key={`title-${animationKey}`}
-                className="hero-title text-[16px] sm:text-[20px] md:text-[32px] lg:text-[42px] xl:text-[48px] font-bold tracking-[-0.01em] text-neutral-900 whitespace-nowrap"
+                className="hero-title text-[18px] sm:text-[22px] md:text-[28px] lg:text-[36px] xl:text-[42px] font-bold tracking-[-0.01em] text-neutral-900"
+                style={{ textWrap: 'balance' } as React.CSSProperties}
               >
                 {t.sectionTitle.split('').map((char, index) => (
                   <span
@@ -344,13 +345,11 @@ export default function Home() {
                 ))}
               </h1>
 
-              {/* Separator - Hidden on mobile */}
-              <span className="hidden md:block text-primary-500 text-2xl font-bold flex-shrink-0">•</span>
-
-              {/* Subtitle - Level-6: 13px mobile (Apple standard), elegant on desktop */}
+              {/* Subtitle - Responsive with text-wrap for natural line breaks */}
               <p
                 key={`subtitle-${animationKey}`}
-                className="hero-subtitle text-[13px] sm:text-[15px] md:text-lg lg:text-xl font-medium text-neutral-600 tracking-[0.01em]"
+                className="hero-subtitle text-[13px] sm:text-[15px] md:text-base lg:text-lg font-medium text-neutral-600 tracking-[0.01em]"
+                style={{ textWrap: 'balance' } as React.CSSProperties}
               >
                 {t.subtitle.split('').map((char, index) => (
                   <span

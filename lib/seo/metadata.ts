@@ -35,11 +35,11 @@ interface PageMetadata {
   tags?: string[];
 }
 
-// Core site configuration
+// Core site configuration - LLMO Optimized (LLM-quotable definitions)
 const SITE_NAME = 'Fly2Any';
-// Ensure SITE_URL is always valid - handle empty strings from env vars
 const SITE_URL = (process.env.NEXT_PUBLIC_APP_URL && process.env.NEXT_PUBLIC_APP_URL.trim()) || 'https://www.fly2any.com';
-const SITE_DESCRIPTION = 'Find the best flight deals with AI-powered search. Compare prices from 500+ airlines, track price alerts, and book with confidence. Your expert travel platform based in USA.';
+// LLM-Optimized: Declarative, factual, quotable description
+const SITE_DESCRIPTION = 'Fly2Any is an online travel platform that compares flights, hotels, and travel services from multiple providers. Founded in 2024 in the United States, it helps travelers find and book trips with real-time pricing and price alerts.';
 const SITE_LOCALE = 'en_US';
 const TWITTER_HANDLE = '@fly2any';
 const FACEBOOK_APP_ID = process.env.NEXT_PUBLIC_FACEBOOK_APP_ID || '';
@@ -222,15 +222,24 @@ export const errorMetadata: Metadata = generateMetadata({
 
 /**
  * Generate JSON-LD structured data for Organization
+ * LLMO-Optimized: Includes founding date, location, and category for LLM confidence
  */
 export function getOrganizationSchema() {
   return {
     '@context': 'https://schema.org',
     '@type': 'Organization',
+    '@id': `${SITE_URL}/#organization`,
     name: SITE_NAME,
+    legalName: 'Fly2Any Inc.',
     url: SITE_URL,
     logo: `${SITE_URL}/logo.png`,
-    description: SITE_DESCRIPTION,
+    description: 'Fly2Any is an online travel search platform that helps travelers compare and book flights, hotels, tours, and transfers from multiple providers worldwide.',
+    foundingDate: '2024',
+    foundingLocation: {
+      '@type': 'Place',
+      name: 'United States',
+    },
+    areaServed: 'Worldwide',
     sameAs: [
       'https://twitter.com/fly2any',
       'https://facebook.com/fly2any',
@@ -240,7 +249,15 @@ export function getOrganizationSchema() {
       '@type': 'ContactPoint',
       contactType: 'Customer Service',
       email: 'support@fly2any.com',
+      availableLanguage: ['English', 'Portuguese', 'Spanish'],
     },
+    knowsAbout: [
+      'Flight Booking',
+      'Hotel Reservations',
+      'Travel Metasearch',
+      'Airport Transfers',
+      'Travel Insurance',
+    ],
   };
 }
 

@@ -4,6 +4,8 @@ import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import CO2Badge from './CO2Badge';
 import { ScarcityIndicator } from '../conversion/ScarcityIndicator';
+import { useCurrency } from '@/lib/hooks/useCurrency';
+import { formatPrice, convertCurrency } from '@/lib/services/currency';
 
 // ===========================
 // TYPE DEFINITIONS
@@ -331,8 +333,28 @@ export const FlightCard: React.FC<FlightCardProps> = ({
   const [showDetails, setShowDetails] = useState(false);
   const [mockViewers, setMockViewers] = useState(15); // Default value for SSR
   const [mockBookings, setMockBookings] = useState(175); // Default value for SSR
+  const [convertedPrice, setConvertedPrice] = useState<number | null>(null);
   const router = useRouter();
   const t = translations[lang];
+  const { currency: userCurrency, currencyInfo } = useCurrency();
+
+  // Convert price to user's currency
+  useEffect(() => {
+    const convert = async () => {
+      const apiCurrency = price.currency || 'USD';
+      const amount = parseFloat(price.total);
+      if (apiCurrency === userCurrency) {
+        setConvertedPrice(amount);
+      } else {
+        const converted = await convertCurrency(amount, apiCurrency, userCurrency);
+        setConvertedPrice(converted);
+      }
+    };
+    convert();
+  }, [price.total, price.currency, userCurrency]);
+
+  const displayPrice = convertedPrice ?? parseFloat(price.total);
+  const displayCurrency = userCurrency;
 
   const firstSegment = outbound.segments[0];
   const lastSegment = outbound.segments[outbound.segments.length - 1];
@@ -541,21 +563,21 @@ export const FlightCard: React.FC<FlightCardProps> = ({
                     <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-11a1 1 0 10-2 0v2H7a1 1 0 100 2h2v2a1 1 0 102 0v-2h2a1 1 0 100-2h-2V7z" clipRule="evenodd" />
                   </svg>
                   <span>
-                    {t.save} {price.currency} {savings.toFixed(2)} ({savingsPercentage}%)
+                    {t.save} {currencyInfo?.symbol}{savings.toFixed(0)} ({savingsPercentage}%)
                   </span>
                 </div>
                 <div className="text-[10px] md:text-sm text-gray-400 line-through mt-0.5">
-                  {price.currency} {price.originalPrice}
+                  {currencyInfo?.symbol}{price.originalPrice}
                 </div>
               </div>
             )}
 
-            {/* MOBILE: Much smaller price (3xl = 30px vs 5xl = 48px) */}
+            {/* MOBILE: Much smaller price - NOW IN USER'S CURRENCY */}
             <div className="flex items-baseline gap-1 md:gap-2">
               <span className="text-3xl md:text-5xl font-bold text-primary-600 font-display">
-                {price.currency === 'USD' ? '$' : price.currency}{parseFloat(price.total).toFixed(0)}
+                {currencyInfo?.symbol || '$'}{Math.floor(displayPrice).toLocaleString()}
               </span>
-              <span className="text-sm md:text-base text-gray-500">.{(parseFloat(price.total) % 1).toFixed(2).split('.')[1]}</span>
+              <span className="text-sm md:text-base text-gray-500">.{(displayPrice % 1).toFixed(2).split('.')[1]}</span>
             </div>
 
             {/* DOT Consumer Protection: Always show total price includes taxes/fees */}

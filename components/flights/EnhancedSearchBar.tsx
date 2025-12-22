@@ -183,6 +183,95 @@ export default function EnhancedSearchBar({
   hideTabs = false,
   journeyMode = false,
 }: EnhancedSearchBarProps) {
+  // Search form label translations
+  const searchLabels = {
+    en: {
+      from: 'From',
+      to: 'To',
+      depart: 'Depart',
+      return: 'Return',
+      nonstop: 'Nonstop',
+      oneWay: 'One-way',
+      multiDates: 'Multi-Dates',
+      selectDate: 'Select date',
+      selectDates: 'Select dates (up to 3)',
+      selectAirports: 'Select airports',
+      travelers: 'Travelers & Class',
+      adults: 'Adults',
+      children: 'Children',
+      infants: 'Infants',
+      search: 'Search',
+      oneWayTrip: 'One-way trip',
+      addFlight: '+ Add Flight',
+      removeFlight: 'Remove',
+      economy: 'Economy',
+      premium: 'Premium Economy',
+      business: 'Business',
+      first: 'First Class',
+      bestPrice: 'Best Price',
+      support24: '24/7 Support',
+      securePayment: 'Secure Payment',
+      freeCancel: 'Free Cancellation',
+    },
+    pt: {
+      from: 'De',
+      to: 'Para',
+      depart: 'Partida',
+      return: 'Retorno',
+      nonstop: 'Direto',
+      oneWay: 'Só ida',
+      multiDates: 'Multi-Datas',
+      selectDate: 'Selecionar data',
+      selectDates: 'Selecionar datas (até 3)',
+      selectAirports: 'Selecionar aeroportos',
+      travelers: 'Passageiros e Classe',
+      adults: 'Adultos',
+      children: 'Crianças',
+      infants: 'Bebês',
+      search: 'Buscar',
+      oneWayTrip: 'Só ida',
+      addFlight: '+ Adicionar Voo',
+      removeFlight: 'Remover',
+      economy: 'Econômica',
+      premium: 'Premium Economy',
+      business: 'Executiva',
+      first: 'Primeira Classe',
+      bestPrice: 'Melhor Preço',
+      support24: 'Suporte 24/7',
+      securePayment: 'Pagamento Seguro',
+      freeCancel: 'Cancelamento Grátis',
+    },
+    es: {
+      from: 'Desde',
+      to: 'Hacia',
+      depart: 'Salida',
+      return: 'Regreso',
+      nonstop: 'Directo',
+      oneWay: 'Solo ida',
+      multiDates: 'Multi-Fechas',
+      selectDate: 'Seleccionar fecha',
+      selectDates: 'Seleccionar fechas (hasta 3)',
+      selectAirports: 'Seleccionar aeropuertos',
+      travelers: 'Viajeros y Clase',
+      adults: 'Adultos',
+      children: 'Niños',
+      infants: 'Bebés',
+      search: 'Buscar',
+      oneWayTrip: 'Solo ida',
+      addFlight: '+ Añadir Vuelo',
+      removeFlight: 'Eliminar',
+      economy: 'Turista',
+      premium: 'Premium Economy',
+      business: 'Business',
+      first: 'Primera Clase',
+      bestPrice: 'Mejor Precio',
+      support24: 'Soporte 24/7',
+      securePayment: 'Pago Seguro',
+      freeCancel: 'Cancelación Gratis',
+    },
+  } as const;
+
+  const labels = searchLabels[lang] || searchLabels.en;
   const t = useTranslations('FlightSearch');
   const router = useRouter();
 
@@ -1503,7 +1592,7 @@ export default function EnhancedSearchBar({
             <div className="flex items-center justify-between mb-2">
               <label className="flex items-center gap-1.5 text-xs font-medium text-gray-700">
                 <PlaneTakeoff size={13} className="text-primary-500" />
-                <span>From</span>
+                <span>{labels.from}</span>
               </label>
 
               {/* Nonstop checkbox aligned to the right */}
@@ -1514,12 +1603,12 @@ export default function EnhancedSearchBar({
                   onChange={(e) => setFromNonstop(e.target.checked)}
                   className="w-3.5 h-3.5 rounded border-gray-300 text-[#D63A35] focus:ring-[#D63A35] cursor-pointer"
                 />
-                <span className="text-xs font-normal text-gray-600 group-hover:text-gray-900">Nonstop</span>
+                <span className="text-xs font-normal text-gray-600 group-hover:text-gray-900">{labels.nonstop}</span>
               </label>
             </div>
 
             <MultiAirportSelector
-              placeholder="Select airports"
+              placeholder={labels.selectAirports}
               value={origin}
               onChange={handleOriginChange}
               maxDisplay={1}
@@ -1554,7 +1643,7 @@ export default function EnhancedSearchBar({
             <div className="flex items-center justify-between mb-2">
               <label className="flex items-center gap-1.5 text-xs font-medium text-gray-700">
                 <PlaneLanding size={13} className="text-primary-500" />
-                <span>To</span>
+                <span>{labels.to}</span>
               </label>
 
               {/* Nonstop checkbox aligned to the right - disabled for one-way trips */}
@@ -1566,12 +1655,12 @@ export default function EnhancedSearchBar({
                   disabled={tripType === 'oneway'}
                   className="w-3.5 h-3.5 rounded border-gray-300 text-[#D63A35] focus:ring-[#D63A35] cursor-pointer disabled:cursor-not-allowed disabled:opacity-50"
                 />
-                <span className="text-xs font-normal text-gray-600 group-hover:text-gray-900">Nonstop</span>
+                <span className="text-xs font-normal text-gray-600 group-hover:text-gray-900">{labels.nonstop}</span>
               </label>
             </div>
 
             <MultiAirportSelector
-              placeholder="Select airports"
+              placeholder={labels.selectAirports}
               value={destination}
               onChange={handleDestinationChange}
               maxDisplay={1}
@@ -1590,7 +1679,7 @@ export default function EnhancedSearchBar({
             <div className="flex items-center justify-between mb-2">
               <label className="flex items-center gap-1.5 text-xs font-medium text-gray-700">
                 <CalendarDays size={13} className="text-primary-500" />
-                <span>Depart</span>
+                <span>{labels.depart}</span>
               </label>
 
               {/* Multi-Dates Toggle - Disabled when multi-city flights added */}
@@ -1611,7 +1700,7 @@ export default function EnhancedSearchBar({
                   }}
                   className="w-3.5 h-3.5 rounded border-gray-300 text-[#D63A35] focus:ring-[#D63A35] cursor-pointer disabled:cursor-not-allowed disabled:opacity-50"
                 />
-                <span className="text-xs font-normal text-gray-600 group-hover:text-gray-900">Multi-Dates</span>
+                <span className="text-xs font-normal text-gray-600 group-hover:text-gray-900">{labels.multiDates}</span>
               </label>
             </div>
 
@@ -1626,7 +1715,7 @@ export default function EnhancedSearchBar({
               >
                 <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={20} />
                 <span className="block pl-8 text-sm font-medium text-gray-900">
-                  {departureDate ? formatDateForDisplay(departureDate) : 'Select date'}
+                  {departureDate ? formatDateForDisplay(departureDate) : labels.selectDate}
                 </span>
               </button>
             ) : (
@@ -1650,7 +1739,7 @@ export default function EnhancedSearchBar({
                       </span>
                     ))
                   ) : (
-                    <span className="text-sm font-medium text-gray-500">Select dates (up to 3)</span>
+                    <span className="text-sm font-medium text-gray-500">{labels.selectDates}</span>
                   )}
                 </div>
               </button>
@@ -1668,7 +1757,7 @@ export default function EnhancedSearchBar({
             <div className="flex items-center justify-between mb-2">
               <label className="flex items-center gap-1.5 text-xs font-medium text-gray-700">
                 <CalendarCheck size={13} className="text-primary-500" />
-                <span>Return</span>
+                <span>{labels.return}</span>
               </label>
 
               {/* One-way Toggle */}
@@ -1686,7 +1775,7 @@ export default function EnhancedSearchBar({
                   className="w-3.5 h-3.5 rounded border-gray-300 text-[#D63A35] focus:ring-[#D63A35] cursor-pointer"
                 />
                 <ArrowRight size={12} className="text-gray-500" />
-                <span className="text-xs font-normal text-gray-600 group-hover:text-gray-900">One-way</span>
+                <span className="text-xs font-normal text-gray-600 group-hover:text-gray-900">{labels.oneWay}</span>
               </label>
             </div>
 
@@ -1700,7 +1789,7 @@ export default function EnhancedSearchBar({
                 >
                   <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={20} />
                   <span className="block pl-8 text-sm font-medium text-gray-900">
-                    {returnDate ? formatDateForDisplay(returnDate) : 'Select date'}
+                    {returnDate ? formatDateForDisplay(returnDate) : labels.selectDate}
                   </span>
                 </button>
               ) : (
@@ -1722,7 +1811,7 @@ export default function EnhancedSearchBar({
                         </span>
                       ))
                     ) : (
-                      <span className="text-sm font-medium text-gray-500">Select dates (up to 3)</span>
+                      <span className="text-sm font-medium text-gray-500">{labels.selectDates}</span>
                     )}
                   </div>
                 </button>
@@ -1731,7 +1820,7 @@ export default function EnhancedSearchBar({
               <div className="relative w-full px-4 py-3.5 h-[52px] bg-neutral-50 border border-neutral-200 rounded-xl cursor-not-allowed flex items-center">
                 <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 text-neutral-300" size={20} />
                 <span className="block pl-8 text-sm text-neutral-400 italic">
-                  One-way trip
+                  {labels.oneWayTrip}
                 </span>
               </div>
             )}
@@ -1742,7 +1831,7 @@ export default function EnhancedSearchBar({
           <div ref={passengerRef} className="relative flex-shrink-0 w-52">
             <label className="flex items-center gap-1.5 text-xs font-medium text-gray-700 mb-2">
               <Users size={13} className="text-primary-500" />
-              <span>Travelers</span>
+              <span>{labels.travelers}</span>
               <span className="text-gray-400">&</span>
               <Armchair size={13} className="text-secondary-500" />
               <span>Class</span>
@@ -1981,12 +2070,12 @@ export default function EnhancedSearchBar({
                           onChange={(e) => handleUpdateAdditionalFlight(flight.id, { nonstop: e.target.checked })}
                           className="w-3.5 h-3.5 rounded border-gray-300 text-[#D63A35] focus:ring-[#D63A35] cursor-pointer"
                         />
-                        <span className="text-xs font-normal text-gray-600 group-hover:text-gray-900">Nonstop</span>
+                        <span className="text-xs font-normal text-gray-600 group-hover:text-gray-900">{labels.nonstop}</span>
                       </label>
                     </div>
 
                     <MultiAirportSelector
-                      placeholder="Select airports"
+                      placeholder={labels.selectAirports}
                       value={flight.origin}
                       onChange={(codes) => handleUpdateAdditionalFlight(flight.id, { origin: codes })}
                       maxDisplay={1}
@@ -2017,12 +2106,12 @@ export default function EnhancedSearchBar({
                     <div className="flex items-center justify-between mb-2">
                       <label className="flex items-center gap-1.5 text-xs font-medium text-gray-700">
                         <PlaneLanding size={13} className="text-primary-500" />
-                        <span>To</span>
+                        <span>{labels.to}</span>
                       </label>
                     </div>
 
                     <MultiAirportSelector
-                      placeholder="Select airports"
+                      placeholder={labels.selectAirports}
                       value={flight.destination}
                       onChange={(codes) => handleUpdateAdditionalFlight(flight.id, { destination: codes })}
                       maxDisplay={1}
@@ -2035,7 +2124,7 @@ export default function EnhancedSearchBar({
                     <div className="flex items-center justify-between mb-2">
                       <label className="flex items-center gap-1.5 text-xs font-medium text-gray-700">
                         <CalendarDays size={13} className="text-primary-500" />
-                        <span>Depart</span>
+                        <span>{labels.depart}</span>
                       </label>
                     </div>
 
@@ -2050,7 +2139,7 @@ export default function EnhancedSearchBar({
                     >
                       <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={20} />
                       <span className="block pl-8 text-sm font-medium text-gray-900">
-                        {flight.departureDate ? formatDateForDisplay(flight.departureDate) : 'Select date'}
+                        {flight.departureDate ? formatDateForDisplay(flight.departureDate) : labels.selectDate}
                       </span>
                     </button>
                   </div>
@@ -2069,7 +2158,7 @@ export default function EnhancedSearchBar({
                           className="flex-1 px-4 py-3 border-2 border-dashed border-gray-300 hover:border-[#D63A35] text-gray-600 hover:text-[#D63A35] rounded-lg text-sm font-medium transition-all flex items-center justify-center gap-2 hover:bg-primary-50 whitespace-nowrap"
                         >
                           <Plane size={14} />
-                          <span>Add Another Flight</span>
+                          <span>{labels.addFlight}</span>
                         </button>
                       )}
 
@@ -3734,7 +3823,7 @@ export default function EnhancedSearchBar({
             {/* Inputs row */}
             <div className="grid grid-cols-2 gap-2">
               <MultiAirportSelector
-                placeholder="Select airports"
+                placeholder={labels.selectAirports}
                 value={origin}
                 onChange={handleOriginChange}
                 maxDisplay={2}
@@ -3742,7 +3831,7 @@ export default function EnhancedSearchBar({
                 testId="origin-input"
               />
               <MultiAirportSelector
-                placeholder="Select airports"
+                placeholder={labels.selectAirports}
                 value={destination}
                 onChange={handleDestinationChange}
                 maxDisplay={2}
@@ -3760,7 +3849,7 @@ export default function EnhancedSearchBar({
               <div className="flex items-center justify-between">
                 <label className="flex items-center gap-1.5 text-xs font-semibold text-neutral-600">
                   <CalendarDays size={13} className="text-neutral-500" />
-                  <span>{t('depart')}</span>
+                  <span>{labels.depart}</span>
                 </label>
                 {/* Multi-Dates toggle for one-way */}
                 {tripType === 'oneway' && (
@@ -3780,7 +3869,7 @@ export default function EnhancedSearchBar({
                       className="w-4 h-4 rounded-md border-neutral-300 text-primary-500 focus:ring-primary-400 focus:ring-offset-0 cursor-pointer disabled:cursor-not-allowed disabled:opacity-50"
                     />
                     <span className="text-[11px] font-semibold text-neutral-500 group-hover:text-primary-500 transition-colors">
-                      Multi-Dates
+                      {labels.multiDates}
                     </span>
                   </label>
                 )}
@@ -3789,7 +3878,7 @@ export default function EnhancedSearchBar({
                 <div className="flex items-center justify-between">
                   <label className="flex items-center gap-1.5 text-xs font-semibold text-neutral-600">
                     <CalendarCheck size={13} className="text-neutral-500" />
-                    <span>{t('return')}</span>
+                    <span>{labels.return}</span>
                   </label>
                   {/* Multi-Dates Toggle - Disabled when multi-city flights added */}
                   <label className={`flex items-center gap-1.5 touch-manipulation ${additionalFlights.length > 0 ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'} group`}>
@@ -3810,7 +3899,7 @@ export default function EnhancedSearchBar({
                       className="w-4 h-4 rounded-md border-neutral-300 text-primary-500 focus:ring-primary-400 focus:ring-offset-0 cursor-pointer disabled:cursor-not-allowed disabled:opacity-50"
                     />
                     <span className="text-[11px] font-semibold text-neutral-500 group-hover:text-primary-500 transition-colors">
-                      Multi-Dates
+                      {labels.multiDates}
                     </span>
                   </label>
                 </div>
@@ -3819,7 +3908,7 @@ export default function EnhancedSearchBar({
                 additionalFlights.length === 0 && (
                   <label className="flex items-center gap-1.5 text-xs font-semibold text-neutral-400">
                     <Plane size={13} className="text-neutral-400" />
-                    <span>Add Flight</span>
+                    <span>{labels.addFlight}</span>
                   </label>
                 )
               )}
@@ -3835,7 +3924,7 @@ export default function EnhancedSearchBar({
                 >
                   <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 text-neutral-400" size={16} />
                   <span className="pl-6 text-sm font-semibold text-neutral-800 truncate">
-                    {departureDate ? formatDateForDisplay(departureDate) : 'Select date'}
+                    {departureDate ? formatDateForDisplay(departureDate) : labels.selectDate}
                   </span>
                 </button>
               ) : (
@@ -3853,7 +3942,7 @@ export default function EnhancedSearchBar({
                         </span>
                       ))
                     ) : (
-                      <span className="text-sm text-neutral-400">Select dates</span>
+                      <span className="text-sm text-neutral-400">{labels.selectDates}</span>
                     )}
                   </div>
                 </button>
@@ -3868,7 +3957,7 @@ export default function EnhancedSearchBar({
                   >
                     <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 text-neutral-400" size={16} />
                     <span className="pl-6 text-sm font-semibold text-neutral-800 truncate">
-                      {returnDate ? formatDateForDisplay(returnDate) : 'Select date'}
+                      {returnDate ? formatDateForDisplay(returnDate) : labels.selectDate}
                     </span>
                   </button>
                 ) : (
@@ -3886,7 +3975,7 @@ export default function EnhancedSearchBar({
                           </span>
                         ))
                       ) : (
-                        <span className="text-sm text-neutral-400">Select dates</span>
+                        <span className="text-sm text-neutral-400">{labels.selectDates}</span>
                       )}
                     </div>
                   </button>
@@ -3900,7 +3989,7 @@ export default function EnhancedSearchBar({
                     className="relative w-full px-3 py-3 bg-white border-2 border-dashed border-neutral-300 rounded-xl hover:border-primary-400 hover:text-primary-500 hover:bg-primary-50/50 text-neutral-500 flex items-center justify-center gap-1.5 transition-all duration-200 touch-manipulation active:scale-[0.98]"
                   >
                     <Plus size={16} />
-                    <span className="text-sm font-semibold">Add Flight</span>
+                    <span className="text-sm font-semibold">{labels.addFlight}</span>
                   </button>
                 )
               )}
