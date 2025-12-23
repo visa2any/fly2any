@@ -7,6 +7,7 @@ import path from 'path';
 
 // Force Node.js runtime (required for Prisma and file operations)
 export const runtime = 'nodejs';
+export const dynamic = 'force-dynamic';
 
 // POST /api/account/avatar - Upload avatar
 export async function POST(req: NextRequest) {

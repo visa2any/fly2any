@@ -13,6 +13,7 @@ import { auth } from '@/lib/auth';
 import { getPrismaClient } from '@/lib/prisma';
 
 export const runtime = 'nodejs';
+export const dynamic = 'force-dynamic';
 
 // Types for our campaign (since Prisma types might not be generated yet)
 interface EmailCampaign {

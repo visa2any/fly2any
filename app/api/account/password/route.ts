@@ -7,6 +7,7 @@ import { EmailService } from '@/lib/services/email-service';
 
 // Force Node.js runtime (required for Prisma and bcryptjs)
 export const runtime = 'nodejs';
+export const dynamic = 'force-dynamic';
 
 // Validation schema for password change
 const changePasswordSchema = z.object({

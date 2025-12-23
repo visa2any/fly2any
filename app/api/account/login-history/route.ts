@@ -4,6 +4,7 @@ import { getPrismaClient } from '@/lib/prisma';
 
 // Force Node.js runtime (required for Prisma)
 export const runtime = 'nodejs';
+export const dynamic = 'force-dynamic';
 
 // GET /api/account/login-history - Get login history
 export async function GET(req: NextRequest) {

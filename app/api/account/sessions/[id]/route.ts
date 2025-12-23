@@ -4,6 +4,7 @@ import { getPrismaClient } from '@/lib/prisma';
 
 // Force Node.js runtime (required for Prisma)
 export const runtime = 'nodejs';
+export const dynamic = 'force-dynamic';
 
 // DELETE /api/account/sessions/[id] - Revoke specific session
 export async function DELETE(

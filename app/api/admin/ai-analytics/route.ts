@@ -5,6 +5,7 @@ import { batchScoreLeads, segmentLeadsByTier } from '@/lib/ai/lead-scorer';
 import { getFunnelSummary } from '@/lib/analytics/funnel-alerts';
 
 export const runtime = 'nodejs';
+export const dynamic = 'force-dynamic';
 
 // GET - Get AI analytics dashboard data
 export async function GET(request: NextRequest) {

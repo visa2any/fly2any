@@ -4,6 +4,7 @@ import { prisma } from '@/lib/prisma';
 import { bookingStorage } from '@/lib/bookings/storage';
 
 export const runtime = 'nodejs';
+export const dynamic = 'force-dynamic';
 
 export async function GET() {
   try {

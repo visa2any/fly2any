@@ -26,10 +26,10 @@ export async function GET() {
     let searchChange = 0;
     try {
       const s24 = await prisma.analyticsEvent.count({
-        where: { eventType: 'flight_search', createdAt: { gte: h24 } }
+        where: { eventType: 'flight_search', timestamp: { gte: h24 } }
       });
       const s48 = await prisma.analyticsEvent.count({
-        where: { eventType: 'flight_search', createdAt: { gte: h48, lt: h24 } }
+        where: { eventType: 'flight_search', timestamp: { gte: h48, lt: h24 } }
       });
       searches = s24;
       searchChange = s48 > 0 ? Math.round(((s24 - s48) / s48) * 100) : 0;

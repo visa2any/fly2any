@@ -5,6 +5,7 @@ import { z } from 'zod';
 
 // Force Node.js runtime (required for Prisma)
 export const runtime = 'nodejs';
+export const dynamic = 'force-dynamic';
 
 // Validation schema for profile update
 const updateProfileSchema = z.object({
