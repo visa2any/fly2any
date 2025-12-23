@@ -6,6 +6,8 @@ import { useSession } from 'next-auth/react';
 import { ChevronDown, ChevronUp, Star, Clock, Users, Plane, Wifi, Coffee, Zap, Heart, Share2, Info, Check, X, Shield, AlertTriangle, Award, Sparkles, Image as ImageIcon, Bell, Loader2 } from 'lucide-react';
 import { toast } from 'react-hot-toast';
 import ShareFlightModal from './ShareFlightModal';
+import { useCurrency } from '@/lib/hooks/useCurrency';
+import { convertCurrency } from '@/lib/services/currency';
 import { FlightRichContent } from './FlightRichContent';
 import { NDCBenefitsModal } from './NDCBenefitsModal';
 import { getAirlineData, getAllianceBadgeColor, getRatingColor, getOnTimePerformanceBadge } from '@/lib/flights/airline-data';
@@ -210,6 +212,40 @@ export function FlightCardEnhanced({
   const [showShareModal, setShowShareModal] = useState(false);
   const [showRichContent, setShowRichContent] = useState(false);
   const [showNDCBenefits, setShowNDCBenefits] = useState(false);
+
+  // Currency conversion - user's preferred currency
+  const { currency: userCurrency, currencyInfo } = useCurrency();
+  const [convertedPrice, setConvertedPrice] = useState<number | null>(null);
+  const [isConverting, setIsConverting] = useState(false);
+
+  // Convert price to user's currency
+  useEffect(() => {
+    const doConvert = async () => {
+      const apiCurrency = price.currency || 'USD';
+      const amount = typeof price.total === 'number' ? price.total : parseFloat(price.total);
+
+      if (apiCurrency === userCurrency) {
+        setConvertedPrice(amount);
+        return;
+      }
+
+      setIsConverting(true);
+      try {
+        const converted = await convertCurrency(amount, apiCurrency, userCurrency);
+        setConvertedPrice(converted);
+      } catch (err) {
+        console.warn('Currency conversion failed:', err);
+        setConvertedPrice(amount); // Fallback to original
+      } finally {
+        setIsConverting(false);
+      }
+    };
+    doConvert();
+  }, [price.total, price.currency, userCurrency]);
+
+  // Display price in user's currency
+  const displayPrice = convertedPrice ?? (typeof price.total === 'number' ? price.total : parseFloat(price.total));
+  const displayCurrency = currencyInfo?.symbol || '$';
 
   // DEBUG: Log component render and conversion feature props
   useEffect(() => {
@@ -1433,7 +1469,7 @@ export function FlightCardEnhanced({
           <div className="flex flex-col">
             <div className="flex items-baseline gap-1">
               <span className="font-bold text-gray-900" data-testid="flight-price" style={{ fontSize: typography.card.price.size, lineHeight: '1' }}>
-                {price.currency} {totalPrice.toFixed(2)}
+                {displayCurrency}{displayPrice.toFixed(2)}
               </span>
             </div>
             <span className="text-[10px] text-green-700 font-semibold leading-tight flex items-center gap-0.5">
@@ -1557,11 +1593,11 @@ export function FlightCardEnhanced({
                 {/* REQUIRED FEES */}
                 <div className="flex justify-between">
                   <span className="text-gray-700">Base fare</span>
-                  <span className="font-semibold text-gray-900">{price.currency} {basePrice.toFixed(2)}</span>
+                  <span className="font-semibold text-gray-900">{displayCurrency}{(basePrice * (displayPrice / totalPrice)).toFixed(2)}</span>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-gray-700">Taxes & fees ({feesPercentage}%)</span>
-                  <span className="font-semibold text-gray-900">{price.currency} {fees.toFixed(2)}</span>
+                  <span className="font-semibold text-gray-900">{displayCurrency}{(fees * (displayPrice / totalPrice)).toFixed(2)}</span>
                 </div>
 
                 {/* TOTAL - All mandatory charges (DOT Compliant All-In Price) */}
@@ -1570,7 +1606,7 @@ export function FlightCardEnhanced({
                     TOTAL PRICE
                     <span className="text-[9px] font-normal text-primary-600">(incl. all taxes & fees)</span>
                   </span>
-                  <span className="text-neutral-800">{price.currency} {totalPrice.toFixed(2)}</span>
+                  <span className="text-neutral-800">{displayCurrency}{displayPrice.toFixed(2)}</span>
                 </div>
 
                 {/* OPTIONAL ADD-ONS - Clearly separated */}
@@ -1580,13 +1616,13 @@ export function FlightCardEnhanced({
                     {estimatedBaggage > 0 && (
                       <div className="flex justify-between items-center text-[10px]">
                         <span className="text-gray-600">+ Checked baggage</span>
-                        <span className="font-semibold text-gray-700">{price.currency} {estimatedBaggage}</span>
+                        <span className="font-semibold text-gray-700">{displayCurrency}{(estimatedBaggage * (displayPrice / totalPrice)).toFixed(0)}</span>
                       </div>
                     )}
                     {estimatedSeat > 0 && (
                       <div className="flex justify-between items-center text-[10px]">
                         <span className="text-gray-600">+ Seat selection</span>
-                        <span className="font-semibold text-gray-700">{price.currency} {estimatedSeat}</span>
+                        <span className="font-semibold text-gray-700">{displayCurrency}{(estimatedSeat * (displayPrice / totalPrice)).toFixed(0)}</span>
                       </div>
                     )}
                   </div>

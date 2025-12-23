@@ -7,6 +7,8 @@ import { formatCityCode } from '@/lib/data/airports';
 import { formatBaggageWeight } from '@/lib/flights/weight-utils';
 import BaggageTooltip from './BaggageTooltip';
 import AirlineLogo from './AirlineLogo';
+import { useCurrency } from '@/lib/hooks/useCurrency';
+import { convertCurrency } from '@/lib/services/currency';
 
 interface Segment {
   departure: {
@@ -78,6 +80,31 @@ export function FlightCardCompact({
   const cardRef = useRef<HTMLDivElement>(null);
   const detailsRef = useRef<HTMLDivElement>(null);
 
+  // Currency conversion
+  const { currency: userCurrency, currencyInfo } = useCurrency();
+  const [convertedPrice, setConvertedPrice] = useState<number | null>(null);
+
+  useEffect(() => {
+    const doConvert = async () => {
+      const apiCurrency = price.currency || 'USD';
+      const amount = typeof price.total === 'number' ? price.total : parseFloat(String(price.total));
+      if (apiCurrency === userCurrency) {
+        setConvertedPrice(amount);
+        return;
+      }
+      try {
+        const converted = await convertCurrency(amount, apiCurrency, userCurrency);
+        setConvertedPrice(converted);
+      } catch {
+        setConvertedPrice(amount);
+      }
+    };
+    doConvert();
+  }, [price.total, price.currency, userCurrency]);
+
+  const displayPrice = convertedPrice ?? (typeof price.total === 'number' ? price.total : parseFloat(String(price.total)));
+  const displaySymbol = currencyInfo?.symbol || '$';
+
   // Scroll expanded details into view on mobile
   const handleToggleExpand = useCallback(() => {
     const newExpandedState = !isExpanded;
@@ -107,9 +134,11 @@ export function FlightCardCompact({
   const rawFlightNumber = itineraries[0]?.segments[0]?.number || '';
   const primaryFlightNumber = rawFlightNumber.replace(/^[A-Z]{2}\s*/, ''); // Remove 2-letter airline code prefix
 
-  // Calculate pricing
+  // Calculate pricing - use converted prices
   const basePrice = typeof price.base === 'string' ? parseFloat(price.base) : (price.base || 0);
-  const totalPrice = typeof price.total === 'string' ? parseFloat(price.total) : price.total;
+  const totalPrice = displayPrice; // Use converted price
+  const conversionRatio = displayPrice / (typeof price.total === 'number' ? price.total : parseFloat(String(price.total)) || 1);
+  const displayBasePrice = basePrice * conversionRatio;
   const averagePrice = totalPrice * 1.18; // Mock average for comparison
   const savings = averagePrice - totalPrice;
   const savingsPercentage = Math.round((savings / averagePrice) * 100);
@@ -278,11 +307,11 @@ export function FlightCardCompact({
           <div className="flex items-baseline justify-end gap-0.5">
             {savings > 10 && (
               <span className="text-[8px] text-gray-400 line-through leading-tight">
-                ${Math.round(averagePrice)}
+                {displaySymbol}{Math.round(averagePrice)}
               </span>
             )}
             <span className="text-base md:text-lg font-black text-gray-900 leading-tight px-1.5 py-0.5 bg-secondary-100 rounded">
-              ${Math.round(totalPrice)}
+              {displaySymbol}{Math.round(totalPrice)}
             </span>
           </div>
           <div className="text-[8px] text-gray-500 leading-tight">per person</div>
@@ -499,15 +528,15 @@ export function FlightCardCompact({
             <div className="space-y-1 text-[10px]">
               <div className="flex justify-between">
                 <span className="text-gray-700">Base fare</span>
-                <span className="font-semibold">${Math.round(basePrice)}</span>
+                <span className="font-semibold">{displaySymbol}{Math.round(displayBasePrice)}</span>
               </div>
               <div className="flex justify-between">
                 <span className="text-gray-700">Taxes & fees</span>
-                <span className="font-semibold">${Math.round(totalPrice - basePrice)}</span>
+                <span className="font-semibold">{displaySymbol}{Math.round(totalPrice - displayBasePrice)}</span>
               </div>
               <div className="pt-1 border-t border-info-300 flex justify-between">
                 <span className="font-bold text-neutral-800">Total per person</span>
-                <span className="font-bold text-neutral-800">${Math.round(totalPrice)}</span>
+                <span className="font-bold text-neutral-800">{displaySymbol}{Math.round(totalPrice)}</span>
               </div>
             </div>
           </div>
@@ -516,7 +545,7 @@ export function FlightCardCompact({
           {savings > 0 && (
             <div className="bg-green-50 border border-green-200 rounded-lg p-2.5 text-center">
               <div className="text-xs font-bold text-green-900">
-                💰 You're saving ${Math.round(savings)} ({savingsPercentage}%) vs. average price
+                You're saving {displaySymbol}{Math.round(savings)} ({savingsPercentage}%) vs. average price
               </div>
               <div className="text-[9px] text-green-700 mt-0.5">
                 Based on recent searches for this route

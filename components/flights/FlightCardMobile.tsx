@@ -1,10 +1,12 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { Plane, Star, ChevronDown, Heart, Share2, Check, Briefcase, Luggage, MoreVertical, User, Baby } from 'lucide-react';
 import { toast } from 'react-hot-toast';
 import AirlineLogo from './AirlineLogo';
+import { useCurrency } from '@/lib/hooks/useCurrency';
+import { convertCurrency } from '@/lib/services/currency';
 import { DealScoreBadgeCompact } from './DealScoreBadge';
 import { getAirlineData } from '@/lib/flights/airline-data';
 import { formatCityCode, getMobileCityName } from '@/lib/data/airports';
@@ -52,6 +54,31 @@ export function FlightCardMobile(props: EnhancedFlightCardProps) {
   const [showOverflowMenu, setShowOverflowMenu] = useState(false);
   const [isFavorite, setIsFavorite] = useState(false);
 
+  // Currency conversion
+  const { currency: userCurrency, currencyInfo } = useCurrency();
+  const [convertedPrice, setConvertedPrice] = useState<number | null>(null);
+
+  useEffect(() => {
+    const doConvert = async () => {
+      const apiCurrency = price.currency || 'USD';
+      const amount = typeof price.total === 'number' ? price.total : parseFloat(String(price.total));
+      if (apiCurrency === userCurrency) {
+        setConvertedPrice(amount);
+        return;
+      }
+      try {
+        const converted = await convertCurrency(amount, apiCurrency, userCurrency);
+        setConvertedPrice(converted);
+      } catch {
+        setConvertedPrice(amount);
+      }
+    };
+    doConvert();
+  }, [price.total, price.currency, userCurrency]);
+
+  const displayPrice = convertedPrice ?? (typeof price.total === 'number' ? price.total : parseFloat(String(price.total)));
+  const displaySymbol = currencyInfo?.symbol || '$';
+
   // Parse flight data
   const outboundItinerary = itineraries[0];
   const returnItinerary = itineraries[1]; // null for one-way flights
@@ -87,10 +114,9 @@ export function FlightCardMobile(props: EnhancedFlightCardProps) {
   const outboundStops = outboundItinerary.segments.length - 1;
   const outboundStopsText = outboundStops === 0 ? 'Direct' : outboundStops === 1 ? '1 stop' : `${outboundStops} stops`;
 
-  // Format price
+  // Format price - uses converted currency
   const formatPrice = () => {
-    const total = typeof price.total === 'string' ? parseFloat(price.total) : price.total;
-    return `$${Math.round(total)}`;
+    return `${displaySymbol}${Math.round(displayPrice)}`;
   };
 
   // Get traveler counts by type
@@ -108,13 +134,12 @@ export function FlightCardMobile(props: EnhancedFlightCardProps) {
     return counts;
   };
 
-  // Get price per person (for single adult only)
+  // Get price per person (for single adult only) - uses converted currency
   const getPricePerPerson = () => {
-    const total = typeof price.total === 'string' ? parseFloat(price.total) : price.total;
     const counts = getTravelerCounts();
-    if (counts.total === 1) return total;
+    if (counts.total === 1) return displayPrice;
     // For multiple travelers, calculate average (simplified)
-    return Math.round(total / counts.total);
+    return Math.round(displayPrice / counts.total);
   };
 
   const travelerCounts = getTravelerCounts();
