@@ -25,6 +25,7 @@ import { generateMetadata as genMeta, getFlightSchema, getBreadcrumbSchema } fro
 import { StructuredData } from '@/components/seo/StructuredData';
 import { formatRouteSlug, TOP_US_CITIES, TOP_INTERNATIONAL_CITIES, MAJOR_AIRLINES } from '@/lib/seo/sitemap-helpers';
 import { generateRouteFAQs, generateFAQSchema } from '@/lib/seo/route-faq-generator';
+import { RelatedLinks } from '@/components/seo/RelatedLinks';
 
 const SITE_URL = process.env.NEXT_PUBLIC_APP_URL || 'https://www.fly2any.com';
 
@@ -332,7 +333,15 @@ export default async function FlightRoutePage({ params }: { params: RouteParams 
                 </h3>
                 <p className="text-sm text-gray-600">Return flights</p>
               </a>
-              {/* TODO: Add more related routes dynamically */}
+            </div>
+
+            {/* Helpful Resources */}
+            <div className="mt-8 pt-6 border-t border-gray-200">
+              <RelatedLinks
+                category="route"
+                variant="horizontal"
+                title="Helpful Travel Resources"
+              />
             </div>
           </div>
         </section>

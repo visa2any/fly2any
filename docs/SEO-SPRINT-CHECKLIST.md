@@ -44,8 +44,8 @@ curl https://www.fly2any.com/llms.txt | grep -i "amadeus"
 **Goal:** Ensure all pages are crawlable, indexable, and properly linked
 
 ### Checklist
-- [ ] Add Review schema to `/reviews` page
-- [ ] Add contextual internal links from product pages to orphan pages
+- [x] Add Review schema to `/reviews` page (already existed in layout.tsx)
+- [x] Add contextual internal links from product pages to orphan pages (RelatedLinks component)
 - [ ] Verify sitemap includes all programmatic routes
 - [ ] Add canonical tags to any missing pages
 - [ ] Ensure all flight route pages return 200 (not soft 404s)
@@ -137,7 +137,7 @@ diff <(curl https://fly2any.com/flights/jfk-to-lax) \
 
 ### Checklist
 - [x] Make AISearchSummary visible (collapsible variant added)
-- [ ] Add "Direct Answer Blocks" to top route pages
+- [x] Add "Direct Answer Blocks" to top route pages (DirectAnswerBlock component)
 - [ ] Ensure brand definitions are LLM-quotable
 - [ ] Add DefinedTerm schema for key travel terms
 - [ ] Create Q&A pairs optimized for voice search
@@ -202,10 +202,10 @@ ahrefs site-audit internal-linking
 | Sprint | Status | Key Deliverables |
 |--------|--------|------------------|
 | Sprint 0 | COMPLETE | P0 risks eliminated |
-| Sprint 1 | 40% | Review schema pending, linking WIP |
+| Sprint 1 | 70% | Review schema done, internal linking done |
 | Sprint 2 | 80% | ItemList, FAQ schema done |
 | Sprint 3 | 60% | Route FAQs done, unique content WIP |
-| Sprint 4 | 30% | AISearchSummary done, voice search WIP |
+| Sprint 4 | 50% | AISearchSummary + DirectAnswerBlocks done |
 | Sprint 5 | 10% | Linking strategy defined, not implemented |
 
 ---

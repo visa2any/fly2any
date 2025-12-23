@@ -1,6 +1,8 @@
 import { Metadata } from 'next';
 import Link from 'next/link';
 import { ArrowLeft, Plane, DollarSign, Info, CheckCircle, XCircle, Luggage, Scale, Ruler, AlertTriangle, HelpCircle, CreditCard, Trophy, Package, Briefcase } from 'lucide-react';
+import { RelatedLinks } from '@/components/seo/RelatedLinks';
+import { BaggageAnswers } from '@/components/seo/DirectAnswerBlock';
 
 export const metadata: Metadata = {
   title: 'Baggage Fees & Policies Guide | Fly2Any',
@@ -743,9 +745,23 @@ export default function BaggageFeesPage() {
           </div>
         </div>
 
+        {/* AEO Direct Answer Block */}
+        <section className="mt-8">
+          <BaggageAnswers />
+        </section>
+
+        {/* Related Resources */}
+        <section className="mt-8">
+          <RelatedLinks
+            category="baggage"
+            variant="card"
+            title="More Travel Resources"
+          />
+        </section>
+
         {/* Footer */}
         <div className="mt-8 text-center text-sm text-gray-500">
-          <p>Last updated: October 19, 2025</p>
+          <p>Last updated: December 2025</p>
           <p className="mt-2">
             This guide is provided for informational purposes only. Fly2Any is not responsible for changes
             to airline policies or fees.

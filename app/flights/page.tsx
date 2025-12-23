@@ -10,6 +10,8 @@ import { FlashDealsSectionEnhanced } from '@/components/home/FlashDealsSectionEn
 import { DestinationsSectionEnhanced } from '@/components/home/DestinationsSectionEnhanced';
 import { CompactTrustBar } from '@/components/conversion/CompactTrustBar';
 import { MaxWidthContainer } from '@/components/layout/MaxWidthContainer';
+import { RelatedLinks } from '@/components/seo/RelatedLinks';
+import { FlightSearchAnswers } from '@/components/seo/DirectAnswerBlock';
 import {
   Plane, Star, Wifi, TvMinimalPlay, UtensilsCrossed, Armchair,
   Luggage, CreditCard, Award, Globe, Shield, ChevronRight,
@@ -409,6 +411,24 @@ export default function FlightsPage() {
               {t('contactSupport')}
             </a>
           </div>
+        </MaxWidthContainer>
+      </div>
+
+      {/* AEO Direct Answers */}
+      <div className="bg-gradient-to-br from-neutral-50 to-blue-50 py-6 md:py-8">
+        <MaxWidthContainer className="px-3 md:px-6">
+          <FlightSearchAnswers />
+        </MaxWidthContainer>
+      </div>
+
+      {/* Helpful Resources */}
+      <div className="bg-white py-6 md:py-8">
+        <MaxWidthContainer className="px-3 md:px-6">
+          <RelatedLinks
+            category="flights"
+            variant="horizontal"
+            title="Helpful Resources"
+          />
         </MaxWidthContainer>
       </div>
     </div>

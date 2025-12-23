@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import FaqItem from '@/components/faq/FaqItem';
 import Link from 'next/link';
 import { MaxWidthContainer } from '@/components/layout/MaxWidthContainer';
+import { RelatedLinks } from '@/components/seo/RelatedLinks';
 
 const faqs = [
   // Booking FAQs
@@ -377,6 +378,15 @@ export default function FaqPage() {
               </button>
             ))}
           </div>
+        </div>
+
+        {/* Related Resources */}
+        <div className="mt-6 sm:mt-8 mx-2 md:mx-0">
+          <RelatedLinks
+            category="faq"
+            variant="card"
+            title="Explore More"
+          />
         </div>
         </div>
       </MaxWidthContainer>

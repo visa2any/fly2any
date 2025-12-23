@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import TravelTipCard from '@/components/guide/TravelTipCard';
 import { MaxWidthContainer } from '@/components/layout/MaxWidthContainer';
+import { RelatedLinks, RelatedCTA } from '@/components/seo/RelatedLinks';
 
 // Mock travel tips data
 const travelTips = [
@@ -400,6 +401,25 @@ export default function TravelGuidePage() {
               </a>
             </div>
           </div>
+        </div>
+
+        {/* Related Resources Section */}
+        <div className="mt-8 sm:mt-12 mx-2 md:mx-0">
+          <RelatedLinks
+            category="travel"
+            variant="card"
+            title="Helpful Resources"
+          />
+        </div>
+
+        {/* CTA Section */}
+        <div className="mt-6 sm:mt-8 mx-2 md:mx-0">
+          <RelatedCTA
+            title="Ready to Book Your Trip?"
+            description="Search for the best flight deals to your dream destination. Compare prices across all major airlines."
+            href="/flights"
+            buttonText="Search Flights"
+          />
         </div>
 
         {/* Disclaimer */}

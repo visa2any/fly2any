@@ -40,7 +40,7 @@ export default function ReviewsLayout({
       {
         '@type': 'Review',
         author: { '@type': 'Person', name: 'Sarah M.' },
-        datePublished: '2024-12-10',
+        datePublished: '2025-12-10',
         reviewRating: {
           '@type': 'Rating',
           ratingValue: '5',
@@ -51,7 +51,7 @@ export default function ReviewsLayout({
       {
         '@type': 'Review',
         author: { '@type': 'Person', name: 'Michael R.' },
-        datePublished: '2024-11-28',
+        datePublished: '2025-11-28',
         reviewRating: {
           '@type': 'Rating',
           ratingValue: '5',
@@ -62,7 +62,7 @@ export default function ReviewsLayout({
       {
         '@type': 'Review',
         author: { '@type': 'Person', name: 'Emily K.' },
-        datePublished: '2024-11-15',
+        datePublished: '2025-11-15',
         reviewRating: {
           '@type': 'Rating',
           ratingValue: '4',

@@ -9,6 +9,8 @@ import {
 import { ReviewCard, ReviewStatsSummary } from '@/components/reviews/ReviewCard'
 import { ReviewForm, type ReviewFormData } from '@/components/reviews/ReviewForm'
 import type { Review, ReviewStats } from '@/lib/growth/reviews'
+import { RelatedLinks } from '@/components/seo/RelatedLinks'
+import { ReviewsAnswers } from '@/components/seo/DirectAnswerBlock'
 
 const SORT_OPTIONS = [
   { value: 'recent', label: 'Most Recent' },
@@ -236,6 +238,20 @@ export default function ReviewsPage() {
                   <span className="text-sm text-gray-700">{badge.label}</span>
                 </div>
               ))}
+            </div>
+
+            {/* AEO Quick Answers */}
+            <div className="mb-6">
+              <ReviewsAnswers />
+            </div>
+
+            {/* Related Links */}
+            <div className="bg-white rounded-2xl shadow-md border border-gray-100 p-6">
+              <RelatedLinks
+                category="reviews"
+                variant="vertical"
+                title="Explore More"
+              />
             </div>
           </div>
         </div>
