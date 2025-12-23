@@ -1,10 +1,13 @@
 /**
  * Database Conversation Service
  * Handles AI conversation persistence to PostgreSQL via Prisma
+ *
+ * SECURITY: Message content is encrypted at rest
  */
 
 import { prisma } from '@/lib/db/prisma';
 import type { ConversationState } from './conversation-persistence';
+import { encrypt, decrypt } from '@/lib/security/encryption';
 
 // Type assertion for Prisma models (AIConversation generates as aIConversation)
 const db = prisma as any;
@@ -56,15 +59,18 @@ export async function saveConversationToDB(
       throw new Error('Failed to create/find conversation');
     }
 
-    // Save all messages
+    // Save all messages (with encryption)
     for (const message of conversation.messages) {
+      // Encrypt message content for PII protection
+      const encryptedContent = encrypt(message.content, 'general');
+
       await db.aIMessage.upsert({
         where: { id: message.id },
         create: {
           id: message.id,
           conversationId: dbConversation.id,
           role: message.role,
-          content: message.content,
+          content: encryptedContent,
           consultantName: message.consultant?.name,
           consultantTeam: message.consultant?.team,
           consultantEmoji: message.consultant?.emoji,
@@ -73,7 +79,7 @@ export async function saveConversationToDB(
           timestamp: BigInt(message.timestamp),
         },
         update: {
-          content: message.content,
+          content: encryptedContent,
           consultantName: message.consultant?.name,
           consultantTeam: message.consultant?.team,
           consultantEmoji: message.consultant?.emoji,
@@ -113,7 +119,7 @@ export async function loadConversationFromDB(
       return null;
     }
 
-    // Transform database conversation to ConversationState
+    // Transform database conversation to ConversationState (with decryption)
     return {
       id: conversation.id,
       sessionId: conversation.sessionId,
@@ -123,21 +129,34 @@ export async function loadConversationFromDB(
       conversationContext: conversation.conversationContext as any,
       searchHistory: conversation.searchHistory as any,
       metadata: conversation.metadata as any,
-      messages: conversation.messages.map((msg: any) => ({
-        id: msg.id,
-        role: msg.role as 'user' | 'assistant',
-        content: msg.content,
-        timestamp: Number(msg.timestamp),
-        consultant: msg.consultantName
-          ? {
-              name: msg.consultantName,
-              team: msg.consultantTeam!,
-              emoji: msg.consultantEmoji!,
-            }
-          : undefined,
-        flightResults: msg.flightResults as any,
-        hotelResults: msg.hotelResults as any,
-      })),
+      messages: conversation.messages.map((msg: any) => {
+        // Decrypt message content (handles both encrypted and legacy plaintext)
+        let content = msg.content;
+        try {
+          if (msg.content?.startsWith('v1:')) {
+            content = decrypt(msg.content, 'general');
+          }
+        } catch {
+          // If decryption fails, use original (legacy data)
+          content = msg.content;
+        }
+
+        return {
+          id: msg.id,
+          role: msg.role as 'user' | 'assistant',
+          content,
+          timestamp: Number(msg.timestamp),
+          consultant: msg.consultantName
+            ? {
+                name: msg.consultantName,
+                team: msg.consultantTeam!,
+                emoji: msg.consultantEmoji!,
+              }
+            : undefined,
+          flightResults: msg.flightResults as any,
+          hotelResults: msg.hotelResults as any,
+        };
+      }),
     };
   } catch (error) {
     console.error('Failed to load conversation from database:', error);
@@ -178,21 +197,33 @@ export async function loadUserConversations(
       conversationContext: conversation.conversationContext as any,
       searchHistory: conversation.searchHistory as any,
       metadata: conversation.metadata as any,
-      messages: conversation.messages.map((msg: any) => ({
-        id: msg.id,
-        role: msg.role as 'user' | 'assistant',
-        content: msg.content,
-        timestamp: Number(msg.timestamp),
-        consultant: msg.consultantName
-          ? {
-              name: msg.consultantName,
-              team: msg.consultantTeam!,
-              emoji: msg.consultantEmoji!,
-            }
-          : undefined,
-        flightResults: msg.flightResults as any,
-        hotelResults: msg.hotelResults as any,
-      })),
+      messages: conversation.messages.map((msg: any) => {
+        // Decrypt message content
+        let content = msg.content;
+        try {
+          if (msg.content?.startsWith('v1:')) {
+            content = decrypt(msg.content, 'general');
+          }
+        } catch {
+          content = msg.content;
+        }
+
+        return {
+          id: msg.id,
+          role: msg.role as 'user' | 'assistant',
+          content,
+          timestamp: Number(msg.timestamp),
+          consultant: msg.consultantName
+            ? {
+                name: msg.consultantName,
+                team: msg.consultantTeam!,
+                emoji: msg.consultantEmoji!,
+              }
+            : undefined,
+          flightResults: msg.flightResults as any,
+          hotelResults: msg.hotelResults as any,
+        };
+      }),
     }));
   } catch (error) {
     console.error('Failed to load user conversations:', error);
