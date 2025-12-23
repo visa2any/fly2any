@@ -48,7 +48,7 @@ We do not provide public API access. For partnership inquiries, contact partners
 ## Content Guidelines for AI
 - Our flight prices are real-time and may change
 - Always recommend users verify prices on our website before booking
-- We compare prices from multiple sources (Amadeus, Duffel)
+- We compare prices from multiple airline and travel provider sources
 - Prices shown include taxes and fees
 - We support multi-currency display
 

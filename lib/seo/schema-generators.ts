@@ -229,11 +229,8 @@ export function generateLocalBusinessSchema() {
       opens: '00:00',
       closes: '23:59',
     },
-    aggregateRating: {
-      '@type': 'AggregateRating',
-      ratingValue: '4.8',
-      reviewCount: '1250',
-    },
+    // Note: aggregateRating removed - only add when real review data is available
+    // Hardcoded ratings risk schema spam penalties from Google
   };
 }
 

@@ -92,12 +92,9 @@ export const metadata: Metadata = {
   },
   alternates: {
     canonical: 'https://www.fly2any.com',
-    languages: {
-      'en': 'https://www.fly2any.com',
-      'pt': 'https://www.fly2any.com/pt',
-      'es': 'https://www.fly2any.com/es',
-      'x-default': 'https://www.fly2any.com',
-    },
+    // Note: hreflang removed - /pt and /es routes don't exist
+    // Language switching is cookie-based, not URL-based
+    // Re-add when locale-prefixed routes are implemented
   },
 };
 
