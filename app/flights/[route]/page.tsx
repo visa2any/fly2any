@@ -21,9 +21,10 @@
 
 import { Metadata } from 'next';
 import { notFound } from 'next/navigation';
-import { generateMetadata as genMeta, getFlightSchema, getFAQSchema, getBreadcrumbSchema } from '@/lib/seo/metadata';
+import { generateMetadata as genMeta, getFlightSchema, getBreadcrumbSchema } from '@/lib/seo/metadata';
 import { StructuredData } from '@/components/seo/StructuredData';
 import { formatRouteSlug, TOP_US_CITIES, TOP_INTERNATIONAL_CITIES, MAJOR_AIRLINES } from '@/lib/seo/sitemap-helpers';
+import { generateRouteFAQs, generateFAQSchema } from '@/lib/seo/route-faq-generator';
 
 const SITE_URL = process.env.NEXT_PUBLIC_APP_URL || 'https://www.fly2any.com';
 
@@ -162,25 +163,15 @@ export default async function FlightRoutePage({ params }: { params: RouteParams 
     { name: `${origin} to ${destination}`, url: `${SITE_URL}/flights/${params.route}` },
   ]);
 
-  // Route-specific FAQs
-  const faqSchema = getFAQSchema([
-    {
-      question: `How long is the flight from ${originName} to ${destinationName}?`,
-      answer: `Direct flights from ${originName} to ${destinationName} typically take ${flightDuration}. Connecting flights may take longer depending on layover duration.`,
-    },
-    {
-      question: `What is the best time to book flights from ${origin} to ${destination}?`,
-      answer: `For the best prices, book 2-3 months in advance for domestic flights or 3-6 months for international routes. Tuesday and Wednesday departures are typically cheapest.`,
-    },
-    {
-      question: `Which airlines fly from ${origin} to ${destination}?`,
-      answer: `Multiple airlines operate this route including ${MAJOR_AIRLINES.slice(0, 5).map(a => a.name).join(', ')}, and others. Compare prices from all carriers to find the best deal.`,
-    },
-    {
-      question: `What is the cheapest month to fly from ${originName} to ${destinationName}?`,
-      answer: `Prices vary by season. Use our Price Calendar tool to find the cheapest dates. Generally, mid-week flights in shoulder seasons (spring and fall) offer the best deals.`,
-    },
-  ]);
+  // Generate unique, dynamic route FAQs
+  const routeFAQs = generateRouteFAQs({
+    origin,
+    originName,
+    destination,
+    destinationName,
+    flightDuration,
+  });
+  const faqSchema = generateFAQSchema(routeFAQs);
 
   return (
     <>
@@ -290,7 +281,7 @@ export default async function FlightRoutePage({ params }: { params: RouteParams 
           </div>
         </section>
 
-        {/* FAQ Section */}
+        {/* FAQ Section - Dynamically Generated */}
         <section className="container mx-auto px-4 py-12">
           <div className="bg-white rounded-xl shadow-lg p-8">
             <h2 className="text-3xl font-bold text-gray-900 mb-8">
@@ -298,45 +289,31 @@ export default async function FlightRoutePage({ params }: { params: RouteParams 
             </h2>
 
             <div className="space-y-6">
-              <div className="border-b border-gray-200 pb-6">
-                <h3 className="text-xl font-semibold text-gray-900 mb-2">
-                  How long is the flight from {originName} to {destinationName}?
-                </h3>
-                <p className="text-gray-700">
-                  Direct flights from {originName} to {destinationName} typically take {flightDuration}.
-                  Connecting flights may take longer depending on layover duration.
-                </p>
-              </div>
-
-              <div className="border-b border-gray-200 pb-6">
-                <h3 className="text-xl font-semibold text-gray-900 mb-2">
-                  What is the best time to book flights from {origin} to {destination}?
-                </h3>
-                <p className="text-gray-700">
-                  For the best prices, book 2-3 months in advance for domestic flights or 3-6 months for international routes.
-                  Tuesday and Wednesday departures are typically cheapest.
-                </p>
-              </div>
-
-              <div className="border-b border-gray-200 pb-6">
-                <h3 className="text-xl font-semibold text-gray-900 mb-2">
-                  Which airlines fly from {origin} to {destination}?
-                </h3>
-                <p className="text-gray-700">
-                  Multiple airlines operate this route including {MAJOR_AIRLINES.slice(0, 5).map(a => a.name).join(', ')},
-                  and others. Compare prices from all carriers to find the best deal.
-                </p>
-              </div>
-
-              <div className="pb-6">
-                <h3 className="text-xl font-semibold text-gray-900 mb-2">
-                  What is the cheapest month to fly from {originName} to {destinationName}?
-                </h3>
-                <p className="text-gray-700">
-                  Prices vary by season. Use our Price Calendar tool to find the cheapest dates.
-                  Generally, mid-week flights in shoulder seasons (spring and fall) offer the best deals.
-                </p>
-              </div>
+              {routeFAQs.slice(0, 8).map((faq, idx) => (
+                <div
+                  key={idx}
+                  className={idx < routeFAQs.length - 1 ? 'border-b border-gray-200 pb-6' : 'pb-6'}
+                  itemScope
+                  itemProp="mainEntity"
+                  itemType="https://schema.org/Question"
+                >
+                  <h3
+                    className="text-xl font-semibold text-gray-900 mb-2 faq-question"
+                    itemProp="name"
+                  >
+                    {faq.question}
+                  </h3>
+                  <div
+                    itemScope
+                    itemProp="acceptedAnswer"
+                    itemType="https://schema.org/Answer"
+                  >
+                    <p className="text-gray-700 faq-answer" itemProp="text">
+                      {faq.answer}
+                    </p>
+                  </div>
+                </div>
+              ))}
             </div>
           </div>
         </section>

@@ -197,7 +197,227 @@ export const WORLD_CUP_TEAMS: WorldCupTeamData[] = [
     slug: 'canada'
   },
 
-  // Add more teams as qualified (32 total)
+  // AFC (Asia)
+  {
+    name: 'Japan',
+    shortName: 'JPN',
+    fifaCode: 'JPN',
+    flagEmoji: '🇯🇵',
+    primaryColor: '#000080', // Navy blue
+    secondaryColor: '#FFFFFF', // White
+    accentColor: '#BC002D', // Red
+    confederation: 'AFC',
+    worldCupWins: 0,
+    bestFinish: 'Round of 16',
+    slug: 'japan'
+  },
+  {
+    name: 'South Korea',
+    shortName: 'KOR',
+    fifaCode: 'KOR',
+    flagEmoji: '🇰🇷',
+    primaryColor: '#CD2E3A', // Red
+    secondaryColor: '#FFFFFF', // White
+    accentColor: '#0047A0', // Blue
+    confederation: 'AFC',
+    worldCupWins: 0,
+    bestFinish: 'Semi-finals (2002)',
+    slug: 'south-korea'
+  },
+  {
+    name: 'Australia',
+    shortName: 'AUS',
+    fifaCode: 'AUS',
+    flagEmoji: '🇦🇺',
+    primaryColor: '#FFCD00', // Gold
+    secondaryColor: '#00843D', // Green
+    confederation: 'AFC',
+    worldCupWins: 0,
+    bestFinish: 'Round of 16 (2022)',
+    slug: 'australia'
+  },
+  {
+    name: 'Saudi Arabia',
+    shortName: 'KSA',
+    fifaCode: 'KSA',
+    flagEmoji: '🇸🇦',
+    primaryColor: '#006C35', // Green
+    secondaryColor: '#FFFFFF', // White
+    confederation: 'AFC',
+    worldCupWins: 0,
+    bestFinish: 'Round of 16 (1994)',
+    slug: 'saudi-arabia'
+  },
+  {
+    name: 'Qatar',
+    shortName: 'QAT',
+    fifaCode: 'QAT',
+    flagEmoji: '🇶🇦',
+    primaryColor: '#8D1B3D', // Maroon
+    secondaryColor: '#FFFFFF', // White
+    confederation: 'AFC',
+    worldCupWins: 0,
+    bestFinish: 'Group Stage (2022)',
+    slug: 'qatar'
+  },
+
+  // CAF (Africa)
+  {
+    name: 'Morocco',
+    shortName: 'MAR',
+    fifaCode: 'MAR',
+    flagEmoji: '🇲🇦',
+    primaryColor: '#C1272D', // Red
+    secondaryColor: '#006233', // Green
+    confederation: 'CAF',
+    worldCupWins: 0,
+    bestFinish: 'Semi-finals (2022)',
+    fifaRanking: 13,
+    slug: 'morocco'
+  },
+  {
+    name: 'Senegal',
+    shortName: 'SEN',
+    fifaCode: 'SEN',
+    flagEmoji: '🇸🇳',
+    primaryColor: '#00853F', // Green
+    secondaryColor: '#FFFF00', // Yellow
+    accentColor: '#E31B23', // Red
+    confederation: 'CAF',
+    worldCupWins: 0,
+    bestFinish: 'Quarter-finals (2002)',
+    slug: 'senegal'
+  },
+  {
+    name: 'Nigeria',
+    shortName: 'NGA',
+    fifaCode: 'NGA',
+    flagEmoji: '🇳🇬',
+    primaryColor: '#008751', // Green
+    secondaryColor: '#FFFFFF', // White
+    confederation: 'CAF',
+    worldCupWins: 0,
+    bestFinish: 'Round of 16',
+    slug: 'nigeria'
+  },
+  {
+    name: 'Cameroon',
+    shortName: 'CMR',
+    fifaCode: 'CMR',
+    flagEmoji: '🇨🇲',
+    primaryColor: '#007A3D', // Green
+    secondaryColor: '#CE1126', // Red
+    accentColor: '#FCD116', // Yellow
+    confederation: 'CAF',
+    worldCupWins: 0,
+    bestFinish: 'Quarter-finals (1990)',
+    slug: 'cameroon'
+  },
+
+  // More UEFA (Europe)
+  {
+    name: 'Belgium',
+    shortName: 'BEL',
+    fifaCode: 'BEL',
+    flagEmoji: '🇧🇪',
+    primaryColor: '#000000', // Black
+    secondaryColor: '#FDDA24', // Yellow
+    accentColor: '#EF3340', // Red
+    confederation: 'UEFA',
+    worldCupWins: 0,
+    bestFinish: 'Semi-finals (2018)',
+    slug: 'belgium'
+  },
+  {
+    name: 'Croatia',
+    shortName: 'CRO',
+    fifaCode: 'CRO',
+    flagEmoji: '🇭🇷',
+    primaryColor: '#FF0000', // Red
+    secondaryColor: '#FFFFFF', // White
+    accentColor: '#0037A0', // Blue
+    confederation: 'UEFA',
+    worldCupWins: 0,
+    bestFinish: 'Runners-up (2018)',
+    slug: 'croatia'
+  },
+  {
+    name: 'Denmark',
+    shortName: 'DEN',
+    fifaCode: 'DEN',
+    flagEmoji: '🇩🇰',
+    primaryColor: '#C8102E', // Red
+    secondaryColor: '#FFFFFF', // White
+    confederation: 'UEFA',
+    worldCupWins: 0,
+    bestFinish: 'Quarter-finals',
+    slug: 'denmark'
+  },
+  {
+    name: 'Switzerland',
+    shortName: 'SUI',
+    fifaCode: 'SUI',
+    flagEmoji: '🇨🇭',
+    primaryColor: '#D52B1E', // Red
+    secondaryColor: '#FFFFFF', // White
+    confederation: 'UEFA',
+    worldCupWins: 0,
+    bestFinish: 'Quarter-finals',
+    slug: 'switzerland'
+  },
+  {
+    name: 'Poland',
+    shortName: 'POL',
+    fifaCode: 'POL',
+    flagEmoji: '🇵🇱',
+    primaryColor: '#FFFFFF', // White
+    secondaryColor: '#DC143C', // Red
+    confederation: 'UEFA',
+    worldCupWins: 0,
+    bestFinish: 'Third place (1974, 1982)',
+    slug: 'poland'
+  },
+
+  // More CONMEBOL (South America)
+  {
+    name: 'Colombia',
+    shortName: 'COL',
+    fifaCode: 'COL',
+    flagEmoji: '🇨🇴',
+    primaryColor: '#FCD116', // Yellow
+    secondaryColor: '#003087', // Blue
+    accentColor: '#CE1126', // Red
+    confederation: 'CONMEBOL',
+    worldCupWins: 0,
+    bestFinish: 'Quarter-finals (2014)',
+    slug: 'colombia'
+  },
+  {
+    name: 'Chile',
+    shortName: 'CHI',
+    fifaCode: 'CHI',
+    flagEmoji: '🇨🇱',
+    primaryColor: '#D52B1E', // Red
+    secondaryColor: '#0033A0', // Blue
+    accentColor: '#FFFFFF', // White
+    confederation: 'CONMEBOL',
+    worldCupWins: 0,
+    bestFinish: 'Third place (1962)',
+    slug: 'chile'
+  },
+  {
+    name: 'Ecuador',
+    shortName: 'ECU',
+    fifaCode: 'ECU',
+    flagEmoji: '🇪🇨',
+    primaryColor: '#FFD100', // Yellow
+    secondaryColor: '#034EA2', // Blue
+    accentColor: '#ED1C24', // Red
+    confederation: 'CONMEBOL',
+    worldCupWins: 0,
+    bestFinish: 'Round of 16 (2006)',
+    slug: 'ecuador'
+  },
 ];
 
 // ==============================================
@@ -352,6 +572,135 @@ export const WORLD_CUP_STADIUMS: WorldCupStadiumData[] = [
     matchCount: 4
   },
 
+  // More USA Stadiums
+  {
+    name: 'Lumen Field',
+    nickname: 'The Clink',
+    city: 'Seattle',
+    state: 'Washington',
+    country: 'USA',
+    capacity: 69000,
+    opened: 2002,
+    nearestAirport: 'Seattle-Tacoma International Airport',
+    airportCode: 'SEA',
+    cityPrimaryColor: '#69BE28', // Seahawks Green
+    citySecondaryColor: '#002244', // Navy
+    slug: 'lumen-field',
+    latitude: 47.5952,
+    longitude: -122.3316,
+    imageUrl: '/stadiums/lumen-field.jpg',
+    matchCount: 6
+  },
+  {
+    name: "Levi's Stadium",
+    nickname: 'The Big Chip',
+    city: 'San Francisco Bay Area',
+    state: 'California',
+    country: 'USA',
+    capacity: 68500,
+    opened: 2014,
+    nearestAirport: 'San Jose International Airport',
+    airportCode: 'SJC',
+    cityPrimaryColor: '#AA0000', // 49ers Red
+    citySecondaryColor: '#B3995D', // Gold
+    slug: 'levis-stadium',
+    latitude: 37.4033,
+    longitude: -121.9694,
+    imageUrl: '/stadiums/levis-stadium.jpg',
+    matchCount: 6
+  },
+  {
+    name: 'Gillette Stadium',
+    nickname: 'The Razor',
+    city: 'Boston/Foxborough',
+    state: 'Massachusetts',
+    country: 'USA',
+    capacity: 65878,
+    opened: 2002,
+    nearestAirport: 'Boston Logan International Airport',
+    airportCode: 'BOS',
+    cityPrimaryColor: '#002244', // Patriots Navy
+    citySecondaryColor: '#C60C30', // Red
+    slug: 'gillette-stadium',
+    latitude: 42.0909,
+    longitude: -71.2643,
+    imageUrl: '/stadiums/gillette-stadium.jpg',
+    matchCount: 6
+  },
+  {
+    name: 'Lincoln Financial Field',
+    nickname: 'The Linc',
+    city: 'Philadelphia',
+    state: 'Pennsylvania',
+    country: 'USA',
+    capacity: 69796,
+    opened: 2003,
+    nearestAirport: 'Philadelphia International Airport',
+    airportCode: 'PHL',
+    cityPrimaryColor: '#004C54', // Eagles Green
+    citySecondaryColor: '#A5ACAF', // Silver
+    slug: 'lincoln-financial-field',
+    latitude: 39.9008,
+    longitude: -75.1675,
+    imageUrl: '/stadiums/lincoln-financial-field.jpg',
+    matchCount: 6
+  },
+  {
+    name: 'GEHA Field at Arrowhead Stadium',
+    nickname: 'The Sea of Red',
+    city: 'Kansas City',
+    state: 'Missouri',
+    country: 'USA',
+    capacity: 76416,
+    opened: 1972,
+    nearestAirport: 'Kansas City International Airport',
+    airportCode: 'MCI',
+    cityPrimaryColor: '#E31837', // Chiefs Red
+    citySecondaryColor: '#FFB612', // Gold
+    slug: 'arrowhead-stadium',
+    latitude: 39.0489,
+    longitude: -94.4839,
+    imageUrl: '/stadiums/arrowhead-stadium.jpg',
+    matchCount: 6
+  },
+  {
+    name: 'NRG Stadium',
+    nickname: '',
+    city: 'Houston',
+    state: 'Texas',
+    country: 'USA',
+    capacity: 72220,
+    opened: 2002,
+    nearestAirport: 'George Bush Intercontinental Airport',
+    airportCode: 'IAH',
+    cityPrimaryColor: '#03202F', // Texans Navy
+    citySecondaryColor: '#A71930', // Red
+    slug: 'nrg-stadium',
+    latitude: 29.6847,
+    longitude: -95.4107,
+    imageUrl: '/stadiums/nrg-stadium.jpg',
+    matchCount: 6
+  },
+
+  // Mexico Stadiums - Adding Guadalajara
+  {
+    name: 'Estadio Akron',
+    nickname: 'La Perla Tapatía',
+    city: 'Guadalajara',
+    country: 'Mexico',
+    capacity: 49850,
+    opened: 2010,
+    nearestAirport: 'Guadalajara International Airport',
+    airportCode: 'GDL',
+    cityPrimaryColor: '#C8102E', // Chivas Red
+    citySecondaryColor: '#FFFFFF', // White
+    slug: 'estadio-akron',
+    latitude: 20.6810,
+    longitude: -103.4623,
+    imageUrl: '/stadiums/estadio-akron.jpg',
+    matchCount: 4
+  },
+
   // Canada Stadiums
   {
     name: 'BC Place',
@@ -371,8 +720,24 @@ export const WORLD_CUP_STADIUMS: WorldCupStadiumData[] = [
     imageUrl: '/stadiums/bc-place.jpg',
     matchCount: 7
   },
-
-  // Add remaining stadiums (16 total)
+  {
+    name: 'BMO Field',
+    nickname: '',
+    city: 'Toronto',
+    state: 'Ontario',
+    country: 'Canada',
+    capacity: 45500,
+    opened: 2007,
+    nearestAirport: 'Toronto Pearson International Airport',
+    airportCode: 'YYZ',
+    cityPrimaryColor: '#E31837', // TFC Red
+    citySecondaryColor: '#FFFFFF', // White
+    slug: 'bmo-field',
+    latitude: 43.6332,
+    longitude: -79.4185,
+    imageUrl: '/stadiums/bmo-field.jpg',
+    matchCount: 6
+  },
 ];
 
 // ==============================================

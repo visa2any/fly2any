@@ -89,7 +89,9 @@ export function AISearchSummary({
   hotelData,
   customSummary,
   visible = false,
-}: AISearchSummaryProps) {
+  collapsible = false,
+}: AISearchSummaryProps & { collapsible?: boolean }) {
+  const [isExpanded, setIsExpanded] = React.useState(false);
   let summary = '';
 
   switch (type) {
@@ -128,21 +130,54 @@ export function AISearchSummary({
     );
   }
 
+  // Collapsible summary
+  if (collapsible) {
+    return (
+      <div
+        className="border border-neutral-200 rounded-xl mb-4 overflow-hidden"
+        role="region"
+        aria-label="Quick Summary"
+        itemScope
+        itemType="https://schema.org/Article"
+      >
+        <button
+          onClick={() => setIsExpanded(!isExpanded)}
+          className="w-full flex items-center justify-between p-3 bg-neutral-50 hover:bg-neutral-100 transition-colors"
+          aria-expanded={isExpanded}
+        >
+          <div className="flex items-center gap-2">
+            <span className="w-6 h-6 bg-blue-100 rounded flex items-center justify-center text-xs font-bold text-blue-600">AI</span>
+            <span className="text-sm font-medium text-neutral-700">Quick Summary</span>
+          </div>
+          <svg className={`w-4 h-4 text-neutral-500 transition-transform ${isExpanded ? 'rotate-180' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+          </svg>
+        </button>
+        {isExpanded && (
+          <div className="p-3 border-t border-neutral-200">
+            <p className="text-sm text-neutral-600 leading-relaxed" itemProp="description">{summary}</p>
+          </div>
+        )}
+        <meta itemProp="dateModified" content={new Date().toISOString()} />
+      </div>
+    );
+  }
+
   // Visible summary box
   return (
     <div
-      className="bg-gradient-to-r from-primary-50 to-secondary-50 border border-primary-100 rounded-xl p-4 mb-6"
+      className="bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-100 rounded-xl p-4 mb-6"
       role="region"
       aria-label="Quick Summary"
       itemScope
       itemType="https://schema.org/Article"
     >
       <div className="flex items-start gap-3">
-        <div className="w-8 h-8 bg-primary-100 rounded-lg flex items-center justify-center flex-shrink-0">
-          <span className="text-primary-600 text-sm font-bold">AI</span>
+        <div className="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center flex-shrink-0">
+          <span className="text-blue-600 text-sm font-bold">AI</span>
         </div>
         <div>
-          <h2 className="text-sm font-semibold text-primary-700 mb-1">Quick Summary</h2>
+          <h2 className="text-sm font-semibold text-blue-700 mb-1">Quick Summary</h2>
           <p className="text-sm text-neutral-700 leading-relaxed" itemProp="description">
             {summary}
           </p>
