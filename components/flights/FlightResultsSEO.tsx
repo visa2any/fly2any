@@ -29,11 +29,42 @@ interface FlightResultsSEOProps {
 }
 
 /**
+ * Generate ItemList schema for flight results (carousel eligibility)
+ */
+function generateItemListSchema(props: FlightResultsSEOProps) {
+  const { origin, originName, destination, destinationName, results, currency = 'USD' } = props;
+
+  if (!results.length) return null;
+
+  return {
+    '@context': 'https://schema.org',
+    '@type': 'ItemList',
+    name: `Flights from ${originName} to ${destinationName}`,
+    description: `Compare ${results.length} flight options from ${origin} to ${destination}`,
+    numberOfItems: results.length,
+    itemListElement: results.slice(0, 10).map((flight, idx) => ({
+      '@type': 'ListItem',
+      position: idx + 1,
+      item: {
+        '@type': 'Product',
+        name: `${flight.airline} ${origin}-${destination}`,
+        description: `${flight.duration}, ${flight.stops === 0 ? 'Direct flight' : `${flight.stops} stop(s)`}`,
+        offers: {
+          '@type': 'Offer',
+          price: flight.price,
+          priceCurrency: currency,
+          availability: 'https://schema.org/InStock',
+          seller: { '@type': 'Organization', name: 'Fly2Any' },
+        },
+      },
+    })),
+  };
+}
+
+/**
  * Generate AggregateOffer schema for flight results
  */
-function generateFlightOffersSchema(
-  props: FlightResultsSEOProps
-) {
+function generateFlightOffersSchema(props: FlightResultsSEOProps) {
   const { origin, originName, destination, destinationName, results, currency = 'USD' } = props;
 
   if (!results.length) return null;
@@ -41,7 +72,6 @@ function generateFlightOffersSchema(
   const prices = results.map(r => r.price);
   const lowPrice = Math.min(...prices);
   const highPrice = Math.max(...prices);
-  const airlines = [...new Set(results.map(r => r.airline))];
 
   return {
     '@context': 'https://schema.org',
@@ -52,15 +82,6 @@ function generateFlightOffersSchema(
     lowPrice: lowPrice,
     highPrice: highPrice,
     offerCount: results.length,
-    offers: results.slice(0, 5).map((flight, idx) => ({
-      '@type': 'Offer',
-      position: idx + 1,
-      price: flight.price,
-      priceCurrency: currency,
-      name: `${flight.airline} ${origin}-${destination}`,
-      description: `${flight.duration}, ${flight.stops === 0 ? 'Direct' : `${flight.stops} stop(s)`}`,
-      availability: 'https://schema.org/InStock',
-    })),
     seller: {
       '@type': 'Organization',
       name: 'Fly2Any',
@@ -93,19 +114,26 @@ function generateAISummary(props: FlightResultsSEOProps): string {
 }
 
 export function FlightResultsSEO(props: FlightResultsSEOProps) {
-  const schema = generateFlightOffersSchema(props);
+  const itemListSchema = generateItemListSchema(props);
+  const aggregateSchema = generateFlightOffersSchema(props);
   const summary = generateAISummary(props);
 
   return (
     <>
-      {/* Structured Data */}
-      {schema && (
+      {/* ItemList Schema for carousel eligibility */}
+      {itemListSchema && (
         <script
           type="application/ld+json"
-          dangerouslySetInnerHTML={{ __html: JSON.stringify(schema) }}
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(itemListSchema) }}
         />
       )}
-
+      {/* AggregateOffer Schema for price range */}
+      {aggregateSchema && (
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(aggregateSchema) }}
+        />
+      )}
       {/* AI Search Summary - Hidden from users, visible to crawlers */}
       <div className="sr-only" role="region" aria-label="Search Results Summary">
         <p>{summary}</p>
