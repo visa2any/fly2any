@@ -165,7 +165,48 @@ When working on Fly2Any SEO:
 
 ---
 
+## SPRINT 2: ENTITY GRAPH & STRUCTURED DATA
+
+### Entity Schema Layer
+```typescript
+// All entities use consistent @id for cross-referencing
+import { EntityIds, getRoutePageSchemaGraph, type RouteData } from '@/lib/seo/entity-schema';
+
+// Entity ID patterns:
+EntityIds.organization  // /#organization
+EntityIds.website       // /#website
+EntityIds.route('JFK', 'LAX')  // /flights/jfk-to-lax#route
+EntityIds.airport('JFK')       // /airports/jfk#airport
+EntityIds.city('miami')        // /destinations/miami#city
+```
+
+### Conditional Offer Schema
+```typescript
+// CRITICAL: Only include Offer when real inventory exists
+const routeData: RouteData = {
+  origin: 'JFK',
+  originName: 'New York, NY',
+  destination: 'LAX',
+  destinationName: 'Los Angeles, CA',
+  hasInventory: true,  // Controls Offer inclusion
+  pricing: { minPrice: 189, avgPrice: 285, currency: 'USD' },
+};
+
+const schemas = getRoutePageSchemaGraph(routeData, breadcrumbs, faqs);
+// If hasInventory=false → no AggregateOffer in schema
+```
+
+### Key Entity Files
+| Purpose | File |
+|---------|------|
+| Entity Schema Layer | `lib/seo/entity-schema.ts` |
+| Route Page (integrated) | `app/flights/[route]/page.tsx` |
+| Entity Documentation | `docs/SEO-ENTITY-GRAPH.md` |
+| No Inventory Component | `components/seo/NoFlightsAvailable.tsx` |
+
+---
+
 ## VERSION
 - Created: 2025-01-23
-- Last Updated: 2025-01-23
+- Last Updated: 2025-12-23
 - Maintainer: SEO Platform Engineering

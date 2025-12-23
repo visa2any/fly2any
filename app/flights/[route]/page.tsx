@@ -17,17 +17,18 @@
  * - Related routes and destinations
  * - FAQ section per route
  *
- * @version 2.0.0 - Soft 404 prevention
+ * @version 2.1.0 - Entity Graph integration (Sprint 2)
  */
 
 import { Metadata } from 'next';
 import { notFound } from 'next/navigation';
-import { generateMetadata as genMeta, getFlightSchema, getBreadcrumbSchema } from '@/lib/seo/metadata';
+import { generateMetadata as genMeta } from '@/lib/seo/metadata';
 import { StructuredData } from '@/components/seo/StructuredData';
 import { formatRouteSlug, TOP_US_CITIES, TOP_INTERNATIONAL_CITIES, MAJOR_AIRLINES } from '@/lib/seo/sitemap-helpers';
-import { generateRouteFAQs, generateFAQSchema } from '@/lib/seo/route-faq-generator';
+import { generateRouteFAQs } from '@/lib/seo/route-faq-generator';
 import { RelatedLinks } from '@/components/seo/RelatedLinks';
 import { NoFlightsAvailable } from '@/components/seo/NoFlightsAvailable';
+import { EntitySchema, getRoutePageSchemaGraph, type RouteData } from '@/lib/seo/entity-schema';
 
 const SITE_URL = process.env.NEXT_PUBLIC_APP_URL || 'https://www.fly2any.com';
 
@@ -207,13 +208,6 @@ export default async function FlightRoutePage({ params }: { params: RouteParams 
   // Fetch real pricing data - prevents soft 404
   const pricing = await getRoutePricing(origin, destination);
 
-  // Generate breadcrumb schema (always included)
-  const breadcrumbSchema = getBreadcrumbSchema([
-    { name: 'Home', url: SITE_URL },
-    { name: 'Flights', url: `${SITE_URL}/flights` },
-    { name: `${origin} to ${destination}`, url: `${SITE_URL}/flights/${params.route}` },
-  ]);
-
   // Generate FAQs (always included for SEO value)
   const routeFAQs = generateRouteFAQs({
     origin,
@@ -222,22 +216,35 @@ export default async function FlightRoutePage({ params }: { params: RouteParams 
     destinationName,
     flightDuration: pricing.flightDuration || '3-6 hours',
   });
-  const faqSchema = generateFAQSchema(routeFAQs);
 
-  // CONDITIONAL: Only include Offer schema if real pricing exists
-  const schemas: object[] = [breadcrumbSchema, faqSchema];
+  // Build route data for entity schema
+  const routeData: RouteData = {
+    origin,
+    originName,
+    destination,
+    destinationName,
+    hasInventory: pricing.hasInventory,
+    ...(pricing.hasInventory && pricing.minPrice && {
+      pricing: {
+        minPrice: pricing.minPrice,
+        avgPrice: pricing.avgPrice!,
+        currency: pricing.currency,
+      },
+      airlines: pricing.airlines,
+      flightDuration: pricing.flightDuration || undefined,
+    }),
+  };
 
-  if (pricing.hasInventory && pricing.avgPrice) {
-    const flightSchema = getFlightSchema({
-      origin,
-      destination,
-      departureDate: new Date().toISOString(),
-      price: pricing.avgPrice,
-      currency: pricing.currency,
-      airline: 'Multiple Airlines',
-    });
-    schemas.push(flightSchema);
-  }
+  // Breadcrumb items
+  const breadcrumbItems = [
+    { name: 'Home', url: SITE_URL },
+    { name: 'Flights', url: `${SITE_URL}/flights` },
+    { name: `${origin} to ${destination}`, url: `${SITE_URL}/flights/${params.route}` },
+  ];
+
+  // Generate complete schema graph using entity system
+  // CONDITIONAL: Offer schema only included when hasInventory=true
+  const schemas = getRoutePageSchemaGraph(routeData, breadcrumbItems, routeFAQs);
 
   // NO INVENTORY: Show alternative content (prevents soft 404)
   if (!pricing.hasInventory) {
