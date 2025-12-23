@@ -44,7 +44,7 @@ export function PWASplashScreen() {
   return (
     <div
       className={`fixed inset-0 z-[9999] flex flex-col items-center justify-center transition-opacity duration-500 ${
-        isLoaded ? 'opacity-100' : 'opacity-0'
+        isLoaded ? 'opacity-100' : 'opacity-0 pointer-events-none'
       }`}
       style={{
         background: 'linear-gradient(135deg, #FAFAFA 0%, #F5F5F5 50%, #FAFAFA 100%)',
