@@ -14,6 +14,84 @@ import { callGroq, generateTravelResponse, isGroqAvailable, type GroqMessage } f
 import { getConsultantInfo, type TeamType } from './consultant-handoff';
 
 // ═══════════════════════════════════════════════════════════════════════════
+// LANGUAGE DETECTION & LOCKING
+// ═══════════════════════════════════════════════════════════════════════════
+type SupportedLanguage = 'en' | 'pt' | 'es' | 'fr' | 'de' | 'it' | 'zh' | 'ja' | 'ko' | 'ar';
+
+const LANGUAGE_PATTERNS: Record<SupportedLanguage, RegExp[]> = {
+  pt: [/\b(olá|oi|bom dia|boa tarde|obrigado|voo|hotel|preciso|quero|para|viagem|passagem)\b/i],
+  es: [/\b(hola|buenos|gracias|vuelo|necesito|quiero|viaje|pasaje|buscar|reservar)\b/i],
+  fr: [/\b(bonjour|merci|vol|hôtel|besoin|veux|voyage|billet|chercher|réserver)\b/i],
+  de: [/\b(hallo|guten|danke|flug|hotel|brauche|möchte|reise|buchen|suchen)\b/i],
+  it: [/\b(ciao|buongiorno|grazie|volo|albergo|bisogno|voglio|viaggio|prenotare)\b/i],
+  zh: [/[\u4e00-\u9fa5]/],
+  ja: [/[\u3040-\u309f\u30a0-\u30ff]/],
+  ko: [/[\uac00-\ud7af]/],
+  ar: [/[\u0600-\u06ff]/],
+  en: [], // Default fallback
+};
+
+function detectLanguage(message: string): SupportedLanguage {
+  for (const [lang, patterns] of Object.entries(LANGUAGE_PATTERNS)) {
+    if (lang === 'en') continue;
+    for (const pattern of patterns) {
+      if (pattern.test(message)) return lang as SupportedLanguage;
+    }
+  }
+  return 'en';
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// SESSION CONTEXT (Language Lock + Trip Details)
+// ═══════════════════════════════════════════════════════════════════════════
+export interface SessionContext {
+  sessionId?: string;
+  languageLocked?: SupportedLanguage;
+  tripContext?: {
+    origin?: string;
+    destination?: string;
+    departureDate?: string;
+    returnDate?: string;
+    passengers?: number;
+    cabinClass?: string;
+    tripType?: 'one-way' | 'round-trip' | 'multi-city';
+  };
+  lastIntent?: PrimaryIntent;
+  intentHistory?: PrimaryIntent[];
+  handoffContext?: string;
+}
+
+// Merge session context (preserves trip details across handoffs)
+function mergeSessionContext(
+  existing: SessionContext | undefined,
+  newEntities: QueryAnalysis['entities'],
+  newIntent: PrimaryIntent
+): SessionContext {
+  const merged: SessionContext = { ...existing };
+
+  // Lock language on first message
+  if (!merged.languageLocked && newEntities) {
+    // Language is set externally
+  }
+
+  // Merge trip context (never overwrite with undefined)
+  merged.tripContext = {
+    origin: newEntities?.origin || merged.tripContext?.origin,
+    destination: newEntities?.destination || merged.tripContext?.destination,
+    departureDate: newEntities?.departureDate || merged.tripContext?.departureDate,
+    returnDate: newEntities?.returnDate || merged.tripContext?.returnDate,
+    passengers: newEntities?.passengers || merged.tripContext?.passengers,
+    cabinClass: newEntities?.cabinClass || merged.tripContext?.cabinClass,
+  };
+
+  // Track intent history
+  merged.intentHistory = [...(merged.intentHistory || []), newIntent].slice(-5);
+  merged.lastIntent = newIntent;
+
+  return merged;
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
 // TYPES
 // ═══════════════════════════════════════════════════════════════════════════
 export type PrimaryIntent =
@@ -389,9 +467,16 @@ export async function routeQuery(
     conversationHistory?: GroqMessage[];
     customerName?: string;
     useAI?: boolean;
+    sessionContext?: SessionContext;
   } = {}
-): Promise<RouterResponse> {
-  const { conversationHistory = [], customerName, useAI = true } = options;
+): Promise<RouterResponse & { sessionContext: SessionContext }> {
+  const { conversationHistory = [], customerName, useAI = true, sessionContext: existingContext } = options;
+
+  // ═══════════════════════════════════════════════════════════════════════════
+  // LANGUAGE LOCK: Detect and lock on first message
+  // ═══════════════════════════════════════════════════════════════════════════
+  const detectedLanguage = detectLanguage(message);
+  const lockedLanguage = existingContext?.languageLocked || detectedLanguage;
 
   // Get routing context
   const routing = await routeUserMessage(message);
@@ -422,10 +507,40 @@ export async function routeQuery(
     routing,
   };
 
-  // Generate AI response for conversational queries
+  // ═══════════════════════════════════════════════════════════════════════════
+  // CONTEXT PERSISTENCE: Merge trip details from previous turns
+  // ═══════════════════════════════════════════════════════════════════════════
+  const updatedContext = mergeSessionContext(existingContext, analysis.entities, routing.primary_intent);
+  updatedContext.languageLocked = lockedLanguage;
+
+  // Enrich entities with persisted context (if missing from current message)
+  if (updatedContext.tripContext) {
+    analysis.entities = {
+      ...analysis.entities,
+      origin: analysis.entities.origin || updatedContext.tripContext.origin,
+      destination: analysis.entities.destination || updatedContext.tripContext.destination,
+      departureDate: analysis.entities.departureDate || updatedContext.tripContext.departureDate,
+      returnDate: analysis.entities.returnDate || updatedContext.tripContext.returnDate,
+      passengers: analysis.entities.passengers || updatedContext.tripContext.passengers,
+      cabinClass: analysis.entities.cabinClass || updatedContext.tripContext.cabinClass,
+    };
+  }
+
+  // ═══════════════════════════════════════════════════════════════════════════
+  // INTENT-FIRST ENFORCEMENT: Block generic responses when intent is clear
+  // ═══════════════════════════════════════════════════════════════════════════
+  const isSpecificIntent = !['GENERAL_TRAVEL_INFO', 'CUSTOMER_SUPPORT'].includes(routing.primary_intent);
+  const shouldGenerateAI = useAI && isGroqAvailable() && !isSpecificIntent;
+
+  // Generate AI response only for general queries (intent-first)
   let aiResponse: string | undefined;
-  if (useAI && isGroqAvailable() && ['GENERAL_TRAVEL_INFO', 'CUSTOMER_SUPPORT'].includes(routing.primary_intent)) {
-    const response = await generateTravelResponse(message, {
+  if (shouldGenerateAI) {
+    // Add language instruction to maintain consistency
+    const langInstruction = lockedLanguage !== 'en'
+      ? `[RESPOND IN ${lockedLanguage.toUpperCase()} ONLY] `
+      : '';
+
+    const response = await generateTravelResponse(langInstruction + message, {
       agentType: routing.target_agent,
       conversationHistory,
       customerName,
@@ -434,6 +549,13 @@ export async function routeQuery(
   }
 
   const consultantInfo = getConsultantInfo(routing.target_agent);
+
+  // ═══════════════════════════════════════════════════════════════════════════
+  // HANDOFF CONTEXT: Preserve details when switching agents
+  // ═══════════════════════════════════════════════════════════════════════════
+  if (options.previousTeam && options.previousTeam !== routing.target_agent) {
+    updatedContext.handoffContext = `Previous: ${options.previousTeam}. Trip: ${JSON.stringify(updatedContext.tripContext)}`;
+  }
 
   return {
     analysis,
@@ -445,6 +567,7 @@ export async function routeQuery(
       emoji: consultantInfo.emoji,
     },
     routing,
+    sessionContext: updatedContext,
   };
 }
 
@@ -490,4 +613,12 @@ export function quickIntentCheck(message: string): { intent: string; team: TeamT
 // ═══════════════════════════════════════════════════════════════════════════
 // EXPORTS
 // ═══════════════════════════════════════════════════════════════════════════
-export { INTENT_TO_AGENT, detectEmotion, recommendTone };
+export {
+  INTENT_TO_AGENT,
+  detectEmotion,
+  recommendTone,
+  detectLanguage,
+  mergeSessionContext,
+  type SessionContext,
+  type SupportedLanguage,
+};

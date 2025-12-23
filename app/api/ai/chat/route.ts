@@ -6,7 +6,7 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { routeQuery, generateConversationalResponse } from '@/lib/ai/smart-router';
+import { routeQuery, type SessionContext } from '@/lib/ai/smart-router';
 import { getUsageStats, type GroqMessage } from '@/lib/ai/groq-client';
 import type { TeamType } from '@/lib/ai/consultant-handoff';
 import { checkRateLimit, addRateLimitHeaders, getClientIP } from '@/lib/security/rate-limiter';
@@ -92,8 +92,17 @@ export async function POST(request: NextRequest) {
       conversationHistory = [],
       customerName,
       useAI = true,
-      sessionToken
-    } = body;
+      sessionToken,
+      sessionContext: clientSessionContext
+    } = body as {
+      message: string;
+      previousTeam?: TeamType;
+      conversationHistory?: GroqMessage[];
+      customerName?: string;
+      useAI?: boolean;
+      sessionToken?: string;
+      sessionContext?: SessionContext;
+    };
 
     // === AUTHENTICATION ===
     // Allow either: 1) Authenticated user, or 2) Valid guest token
@@ -122,12 +131,13 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Route the query through smart router
+    // Route the query through smart router (with session context for persistence)
     const result = await routeQuery(message, {
       previousTeam: previousTeam as TeamType | null,
       conversationHistory: conversationHistory as GroqMessage[],
       customerName,
-      useAI
+      useAI,
+      sessionContext: clientSessionContext
     });
 
     // Get current usage stats
@@ -136,6 +146,8 @@ export async function POST(request: NextRequest) {
     const response = NextResponse.json({
       success: true,
       ...result,
+      // Return updated session context for client to persist
+      sessionContext: result.sessionContext,
       usage: {
         dailyRemaining: usageStats.dailyRemaining,
         percentUsed: usageStats.percentUsed
