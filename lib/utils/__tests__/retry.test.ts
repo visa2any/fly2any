@@ -116,7 +116,7 @@ describe('fetchWithRetry', () => {
     };
 
     (global.fetch as jest.Mock)
-      .mockRejectedValueOnce(new Error('Network error'))
+      .mockRejectedValueOnce(new Error('network connection failed'))
       .mockResolvedValue(successResponse);
 
     const result = await fetchWithRetry('https://api.example.com/test', undefined, {

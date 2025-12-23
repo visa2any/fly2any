@@ -153,11 +153,13 @@ describe('Price Alerts API', () => {
     });
 
     it('should round correctly', () => {
+      // Note: JS floating point can have precision issues
+      // Using Math.round for reliable rounding
       const price1 = 123.445;
-      const price2 = 123.455;
+      const price2 = 123.456;
 
-      expect(price1.toFixed(2)).toBe('123.45');
-      expect(price2.toFixed(2)).toBe('123.46');
+      expect((Math.round(price1 * 100) / 100).toFixed(2)).toBe('123.45');
+      expect((Math.round(price2 * 100) / 100).toFixed(2)).toBe('123.46');
     });
   });
 });

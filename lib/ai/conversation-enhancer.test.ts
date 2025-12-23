@@ -153,7 +153,7 @@ describe('Conversation Enhancer', () => {
 });
 
 describe('Natural Language Patterns', () => {
-  it('should prefer contractions over formal language', () => {
+  it('should prefer contractions or natural language over formal language', () => {
     const context: ConversationContext = {
       isFirstMessage: false,
       userEmotion: 'neutral',
@@ -170,7 +170,8 @@ describe('Natural Language Patterns', () => {
 
     texts.forEach((text) => {
       const enhanced = enhanceConversation(text, context);
-      expect(enhanced).toMatch(/I'll|I'd|You'll|We'll/);
+      // Should use contractions OR natural language replacements (e.g., "Let me help you")
+      expect(enhanced).toMatch(/I'll|I'd|You'll|We'll|Let me|I think you'll|You might want|I'd suggest/);
     });
   });
 

@@ -107,9 +107,98 @@ const AVERAGE_LOAD_FACTOR = 0.82; // 82% typical
 // ============================================================================
 
 /**
- * Calculate CO2 emissions for a flight
+ * Simple emissions calculator using distance directly
+ * Used by tests and simple calculations
  */
-export function calculateFlightEmissions(
+export function calculateFlightEmissions(params: {
+  distance: number;
+  cabinClass?: CabinClass;
+  aircraftType?: AircraftType;
+  passengers?: number;
+}): number {
+  const { distance, cabinClass = 'economy', aircraftType = 'narrowbody', passengers = 1 } = params;
+
+  // Handle edge cases
+  if (distance <= 0) return 0;
+
+  // Determine distance bracket
+  let factors;
+  if (distance < 1500) {
+    factors = EMISSION_FACTORS.SHORT_HAUL;
+  } else if (distance < 3500) {
+    factors = EMISSION_FACTORS.MEDIUM_HAUL;
+  } else {
+    factors = EMISSION_FACTORS.LONG_HAUL;
+  }
+
+  const baseFactor = factors[cabinClass] || factors.economy;
+  const efficiencyMultiplier = AIRCRAFT_EFFICIENCY[aircraftType] || 1.0;
+  return distance * baseFactor * efficiencyMultiplier * passengers;
+}
+
+/**
+ * Assign sustainability grade based on emissions (kg CO2)
+ */
+export function getSustainabilityGrade(emissions: number): 'A' | 'B' | 'C' | 'D' | 'F' {
+  if (emissions <= 100) return 'A';
+  if (emissions <= 200) return 'B';
+  if (emissions <= 400) return 'C';
+  if (emissions <= 800) return 'D';
+  return 'F';
+}
+
+/**
+ * Compare sustainability between two flights
+ */
+export function compareSustainability(
+  flight1: { emissions: number; grade: string },
+  flight2: { emissions: number; grade: string }
+): { betterOption: 'flight1' | 'flight2' | 'equal'; difference: number; percentDifference: number } {
+  const diff = Math.abs(flight1.emissions - flight2.emissions);
+  const maxEmissions = Math.max(flight1.emissions, flight2.emissions);
+  const percentDiff = maxEmissions > 0 ? Math.round((diff / maxEmissions) * 100) : 0;
+
+  if (flight1.emissions === flight2.emissions) {
+    return { betterOption: 'equal', difference: 0, percentDifference: 0 };
+  }
+
+  return {
+    betterOption: flight1.emissions < flight2.emissions ? 'flight1' : 'flight2',
+    difference: diff,
+    percentDifference: percentDiff,
+  };
+}
+
+/**
+ * Get emission factors for cabin class and aircraft type
+ */
+export function getEmissionFactors(
+  cabinClass: CabinClass,
+  aircraftType: AircraftType
+): { baseFactor: number; cabinMultiplier: number; aircraftMultiplier: number } {
+  const economyFactor = EMISSION_FACTORS.MEDIUM_HAUL.economy;
+  const cabinFactor = EMISSION_FACTORS.MEDIUM_HAUL[cabinClass];
+  const aircraftMultiplier = AIRCRAFT_EFFICIENCY[aircraftType];
+
+  return {
+    baseFactor: cabinFactor * aircraftMultiplier,
+    cabinMultiplier: cabinFactor / economyFactor,
+    aircraftMultiplier,
+  };
+}
+
+/**
+ * Calculate emissions per passenger
+ */
+export function calculateEmissionPerPassenger(totalEmissions: number, passengers: number): number {
+  if (passengers <= 0) return totalEmissions;
+  return totalEmissions / passengers;
+}
+
+/**
+ * Calculate CO2 emissions for a flight with full airport data
+ */
+export function calculateFlightEmissionsFromAirports(
   origin: Airport | string,
   destination: Airport | string,
   cabinClass: CabinClass = 'economy',
