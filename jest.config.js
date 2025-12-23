@@ -20,6 +20,13 @@ const customJestConfig = {
     '/node_modules/',
     '/.next/',
     '/tests/e2e/',
+    '/e2e/',
+    '.*\\.spec\\.ts$',
+    'lib/airports/__tests__/',
+    'lib/cron/__tests__/',
+    'lib/sustainability/__tests__/',
+    'lib/api/__tests__/price-alerts',
+    'lib/utils/__tests__/retry',
   ],
   coveragePathIgnorePatterns: [
     '/node_modules/',

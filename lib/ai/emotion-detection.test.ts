@@ -471,17 +471,73 @@ export function runAllTests() {
 }
 
 // ============================================================================
-// MANUAL TEST RUNNER (for Node.js)
+// JEST TEST SUITE
 // ============================================================================
 
-if (typeof window === 'undefined') {
-  // Running in Node.js - execute tests
-  // Uncomment to run automatically:
-  // runAllTests();
-}
+describe('Emotion Detection System', () => {
+  describe('detectEmotion', () => {
+    test('should detect urgent emotions', () => {
+      const result = detectEmotion('Help! My flight is in 2 hours and I lost my passport!');
+      expect(result.emotion).toBe('urgent');
+      expect(result.urgency).toBe('high');
+      expect(result.confidence).toBeGreaterThan(0.7);
+    });
+
+    test('should detect frustrated emotions', () => {
+      const result = detectEmotion("This is unacceptable! I've been waiting for 2 hours!");
+      expect(result.emotion).toBe('frustrated');
+      expect(result.urgency).toBe('high');
+    });
+
+    test('should detect worried emotions', () => {
+      const result = detectEmotion("I'm worried about the cancellation policy");
+      expect(result.emotion).toBe('worried');
+      expect(result.urgency).toBe('medium');
+    });
+
+    test('should detect neutral emotions', () => {
+      const result = detectEmotion('I need a flight from NYC to Paris');
+      expect(result.emotion).toBe('neutral');
+      expect(result.urgency).toBe('low');
+    });
+  });
+
+  describe('getEmpathyMarker', () => {
+    test('should return empathy marker for urgent emotion', () => {
+      const marker = getEmpathyMarker('urgent', 'en');
+      expect(marker).toBeTruthy();
+      expect(typeof marker).toBe('string');
+    });
+  });
+
+  describe('getEmotionVisualIndicator', () => {
+    test('should return visual indicator for each emotion', () => {
+      const emotions: EmotionalState[] = ['urgent', 'frustrated', 'neutral'];
+      emotions.forEach(emotion => {
+        const indicator = getEmotionVisualIndicator(emotion);
+        expect(indicator).toHaveProperty('bgColor');
+        expect(indicator).toHaveProperty('color');
+      });
+    });
+  });
+
+  describe('processEmotionalMessage', () => {
+    test('should process emotional message and return response', () => {
+      const response = processEmotionalMessage({
+        userMessage: 'Help! My flight was cancelled!',
+        baseConsultantTeam: 'customer-service',
+        language: 'en',
+        mainContent: 'I can help you with that.'
+      });
+      expect(response).toHaveProperty('content');
+      expect(response).toHaveProperty('emotionAnalysis');
+      expect(response).toHaveProperty('consultant');
+    });
+  });
+});
 
 // Export test functions for manual execution
-export default {
+export {
   runEmotionDetectionTests,
   testEmotionalResponseGeneration,
   testEscalationLogic,
