@@ -238,13 +238,14 @@ export default function robots(): MetadataRoute.Robots {
       },
     ],
 
-    // Sitemap references
+    // Sitemap references - organized by content type
     sitemap: [
-      `${SITE_URL}/sitemap.xml`,
-      `${SITE_URL}/sitemap-flights.xml`,
-      `${SITE_URL}/sitemap-hotels.xml`,
-      `${SITE_URL}/sitemap-blog.xml`,
-      `${SITE_URL}/sitemap-destinations.xml`,
+      `${SITE_URL}/sitemap-index.xml`,         // Master index
+      `${SITE_URL}/sitemap.xml`,               // Core pages
+      `${SITE_URL}/sitemaps/routes.xml`,       // Flight routes
+      `${SITE_URL}/sitemaps/cities.xml`,       // City pages
+      `${SITE_URL}/sitemaps/destinations.xml`, // Destinations & deals
+      `${SITE_URL}/sitemaps/blog.xml`,         // Blog & content
     ],
 
     // Host declaration (helps with multi-domain setups)

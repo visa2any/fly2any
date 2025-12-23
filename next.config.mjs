@@ -19,6 +19,16 @@ const nextConfig = {
     ignoreDuringBuilds: true,
   },
 
+  // SEO Rewrites - Clean .xml URLs for sitemaps
+  async rewrites() {
+    return [
+      { source: '/sitemaps/routes.xml', destination: '/sitemaps/routes' },
+      { source: '/sitemaps/cities.xml', destination: '/sitemaps/cities' },
+      { source: '/sitemaps/destinations.xml', destination: '/sitemaps/destinations' },
+      { source: '/sitemaps/blog.xml', destination: '/sitemaps/blog' },
+    ];
+  },
+
   // SEO Redirects - Legacy URLs to current routes (301 permanent)
   async redirects() {
     return [
