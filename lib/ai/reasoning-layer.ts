@@ -16,9 +16,19 @@ import type { GroqMessage } from './groq-client';
 
 export type ConfidenceLevel = 'low' | 'medium' | 'high';
 
+// Chaos Intent Classifications
+export type ChaosClassification =
+  | 'CHAOTIC_INTENT'      // Vague, contradictory, mixed signals
+  | 'LOW_INFORMATION'     // Minimal input, needs context
+  | 'EXPLORATORY_TRAVEL'  // Dreaming/planning, no specifics
+  | 'FAMILY_TRAVEL'       // Kids, family mentioned
+  | 'BUDGET_SENSITIVE'    // Cheap/barato without numbers
+  | 'CLEAR_INTENT';       // Standard clear request
+
 export interface ReasoningOutput {
   interpreted_intent: string;
   confidence_level: ConfidenceLevel;
+  chaos_classification: ChaosClassification;
   missing_context: string[];
   recommended_primary_agent: TeamType | null;
   recommended_secondary_agent: TeamType | null;
@@ -29,6 +39,7 @@ export interface ReasoningOutput {
   forbidden_actions: string[];
   conversion_hint: string | null;
   risk_flags: string[];
+  suggested_destinations?: string[];  // For exploratory - NO PRICES
 }
 
 export interface ReasoningInput {
@@ -69,6 +80,39 @@ const EMOTIONAL_INDICATORS = {
 };
 
 // ============================================================================
+// CHAOS DETECTION PATTERNS
+// ============================================================================
+
+const CHAOS_PATTERNS = {
+  // Vague/incomplete (EN/PT/ES)
+  vague: /\b(something|anything|somewhere|algo|qualquer|algum lugar|alguna parte)\b/i,
+  // Contradictory timing
+  contradictory_time: /\b(tomorrow|next month|maybe|or|talvez|amanhã|mês que vem|quizás|mañana)\b.*\b(tomorrow|next month|maybe|or|talvez|amanhã|mês que vem|quizás|mañana)\b/i,
+  // Pure uncertainty
+  uncertainty: /\b(don'?t know|no idea|not sure|não sei|sei lá|no sé|ni idea)\b/i,
+  // Just want to travel (no specifics)
+  just_travel: /\b(just want|only want|só quero|solo quiero)\s*(to )?(travel|go|fly|viajar|ir)\b/i,
+  // Mixed language indicators
+  mixed_lang: /[a-z]+\s+(quero|para|vou|tengo|quiero)\b|\b(quero|para|vou|tengo|quiero)\s+[a-z]+/i,
+  // Very short input (under 4 words)
+  minimal: /^(\S+\s*){1,3}$/,
+};
+
+const FAMILY_PATTERNS = /\b(kid|kids|child|children|baby|infant|family|criança|crianças|bebê|família|niño|niños|bebé|familia)\b/i;
+const BUDGET_PATTERNS = /\b(cheap|cheapest|budget|affordable|barato|econômico|económico|low cost|promocao|promoção|oferta)\b/i;
+const EXPLORATORY_PATTERNS = /\b(dream|dreaming|planning|thinking|want to go|would like|someday|one day|sonho|sonhando|planejando|pensando|quero conhecer|gostaria|sueño|soñando|planificando|quiero viajar|quiero ir)\b/i;
+
+// Destination suggestions by region (NO PRICES - NEVER)
+const DESTINATION_SUGGESTIONS: Record<string, string[]> = {
+  europe: ['Paris', 'Barcelona', 'Rome', 'Amsterdam', 'Lisbon'],
+  asia: ['Tokyo', 'Bangkok', 'Bali', 'Singapore', 'Seoul'],
+  americas: ['New York', 'Cancun', 'Buenos Aires', 'Miami', 'Toronto'],
+  beach: ['Maldives', 'Punta Cana', 'Cancun', 'Bali', 'Phuket'],
+  adventure: ['Patagonia', 'Iceland', 'New Zealand', 'Costa Rica', 'Peru'],
+  family: ['Orlando', 'Cancun', 'Lisbon', 'Barcelona', 'Tokyo'],
+};
+
+// ============================================================================
 // AGENT MAPPING
 // ============================================================================
 
@@ -91,6 +135,97 @@ const INTENT_TO_AGENT: Record<string, TeamType> = {
 
 // Uncertainty markers that indicate exploratory queries (EN/PT/ES)
 const UNCERTAINTY_MARKERS = /\b(don'?t know|not sure|maybe|perhaps|possibly|might|could be|não sei|talvez|quem sabe|pode ser|no sé|quizás|tal vez|puede ser)\b/i;
+
+/**
+ * Classify chaos level - determines how to handle vague/incomplete inputs
+ */
+function classifyChaos(message: string): { classification: ChaosClassification; suggestions?: string[] } {
+  const wordCount = message.trim().split(/\s+/).length;
+
+  // Priority 1: Family travel (clear sub-classification)
+  if (FAMILY_PATTERNS.test(message)) {
+    return {
+      classification: 'FAMILY_TRAVEL',
+      suggestions: DESTINATION_SUGGESTIONS.family
+    };
+  }
+
+  // Priority 2: Budget-sensitive (WITHOUT exposing prices)
+  if (BUDGET_PATTERNS.test(message) && !/\$|\d+\s*(usd|eur|brl|dollars?|reais)/i.test(message)) {
+    return { classification: 'BUDGET_SENSITIVE' };
+  }
+
+  // Priority 3: Exploratory/dreaming
+  if (EXPLORATORY_PATTERNS.test(message) || CHAOS_PATTERNS.just_travel.test(message)) {
+    // Detect region hints for suggestions
+    let suggestions: string[] = [];
+    if (/europ|paris|london|lisbon|roma|barcelona/i.test(message)) suggestions = DESTINATION_SUGGESTIONS.europe;
+    else if (/asia|japan|thai|bali|tokyo/i.test(message)) suggestions = DESTINATION_SUGGESTIONS.asia;
+    else if (/beach|praia|playa|mar|ocean/i.test(message)) suggestions = DESTINATION_SUGGESTIONS.beach;
+    else if (/adventure|aventura|hiking|nature/i.test(message)) suggestions = DESTINATION_SUGGESTIONS.adventure;
+    else suggestions = [...DESTINATION_SUGGESTIONS.europe.slice(0, 2), ...DESTINATION_SUGGESTIONS.beach.slice(0, 2)];
+
+    return { classification: 'EXPLORATORY_TRAVEL', suggestions };
+  }
+
+  // Priority 4: Low information (very short, minimal context)
+  if (wordCount <= 4 || CHAOS_PATTERNS.minimal.test(message)) {
+    return { classification: 'LOW_INFORMATION' };
+  }
+
+  // Priority 5: Chaotic intent (contradictory, vague, mixed)
+  const chaosSignals = [
+    CHAOS_PATTERNS.vague.test(message),
+    CHAOS_PATTERNS.contradictory_time.test(message),
+    CHAOS_PATTERNS.uncertainty.test(message),
+    CHAOS_PATTERNS.mixed_lang.test(message),
+  ].filter(Boolean).length;
+
+  if (chaosSignals >= 2) {
+    return { classification: 'CHAOTIC_INTENT' };
+  }
+
+  // Default: Clear intent
+  return { classification: 'CLEAR_INTENT' };
+}
+
+/**
+ * Generate chaos-appropriate clarifying questions (max 2)
+ */
+function getChaosQuestions(classification: ChaosClassification, language: string): string[] {
+  const questions: Record<ChaosClassification, Record<string, string[]>> = {
+    CHAOTIC_INTENT: {
+      en: ['Where would you like to explore?', 'Do you have flexible travel dates?'],
+      pt: ['Qual região você gostaria de conhecer?', 'Suas datas são flexíveis?'],
+      es: ['¿Qué región te gustaría conocer?', '¿Tus fechas son flexibles?'],
+    },
+    LOW_INFORMATION: {
+      en: ['Where are you dreaming of going?', 'When would you like to travel?'],
+      pt: ['Para onde você sonha em viajar?', 'Quando gostaria de ir?'],
+      es: ['¿A dónde sueñas con viajar?', '¿Cuándo te gustaría ir?'],
+    },
+    EXPLORATORY_TRAVEL: {
+      en: ['What type of experience are you looking for?', 'Are you traveling solo or with others?'],
+      pt: ['Que tipo de experiência você busca?', 'Vai viajar sozinho ou acompanhado?'],
+      es: ['¿Qué tipo de experiencia buscas?', '¿Viajas solo o acompañado?'],
+    },
+    FAMILY_TRAVEL: {
+      en: ['How many travelers including kids?', 'Any age restrictions to consider?'],
+      pt: ['Quantos viajantes, incluindo crianças?', 'Alguma restrição de idade?'],
+      es: ['¿Cuántos viajeros incluyendo niños?', '¿Alguna restricción de edad?'],
+    },
+    BUDGET_SENSITIVE: {
+      en: ['What\'s most important: dates, destination, or flexibility?', 'Would you consider nearby airports?'],
+      pt: ['O que é mais importante: datas, destino ou flexibilidade?', 'Consideraria aeroportos próximos?'],
+      es: ['¿Qué es más importante: fechas, destino o flexibilidad?', '¿Considerarías aeropuertos cercanos?'],
+    },
+    CLEAR_INTENT: {
+      en: [], pt: [], es: [],
+    },
+  };
+
+  return questions[classification][language] || questions[classification].en || [];
+}
 
 /**
  * Detect primary intent from user message
@@ -317,6 +452,9 @@ export function processUserIntent(input: ReasoningInput): ReasoningOutput {
   const emotion = detectEmotion(message);
   const missingContext = identifyMissingContext(message, intent, sessionState);
 
+  // CHAOS CLASSIFICATION - handle vague/incomplete inputs
+  const { classification: chaosClass, suggestions } = classifyChaos(message);
+
   // Agent routing
   const primaryAgent = INTENT_TO_AGENT[intent] || 'general';
   let secondaryAgent: TeamType | null = null;
@@ -329,10 +467,27 @@ export function processUserIntent(input: ReasoningInput): ReasoningOutput {
     secondaryAgent = 'support';
   }
 
-  // Generate guidance
-  const clarifyingQuestions = generateClarifyingQuestions(missingContext, language);
-  const toneGuidance = determineToneGuidance(emotion, intent);
-  const responseStrategy = generateResponseStrategy(intent, missingContext, emotion, sessionState);
+  // Generate guidance - use chaos questions for chaotic inputs
+  let clarifyingQuestions: string[];
+  if (chaosClass !== 'CLEAR_INTENT') {
+    // Use chaos-specific questions (max 2)
+    clarifyingQuestions = getChaosQuestions(chaosClass, language);
+  } else {
+    clarifyingQuestions = generateClarifyingQuestions(missingContext, language);
+  }
+
+  // Adapt tone for chaos
+  let toneGuidance = determineToneGuidance(emotion, intent);
+  if (chaosClass === 'CHAOTIC_INTENT' || chaosClass === 'LOW_INFORMATION') {
+    toneGuidance = 'Extra patient and encouraging. Guide gently. NEVER say "I can\'t help". Always offer forward path.';
+  }
+
+  // Adapt response strategy for chaos
+  let responseStrategy = generateResponseStrategy(intent, missingContext, emotion, sessionState);
+  if (chaosClass !== 'CLEAR_INTENT') {
+    responseStrategy = `CHAOS HANDLING (${chaosClass}): Ask max 2 questions. Suggest destinations WITHOUT prices. Never block conversation. ${responseStrategy}`;
+  }
+
   const conversionHint = identifyConversionHint(intent, sessionState);
   const riskFlags = identifyRiskFlags(message, intent);
 
@@ -344,6 +499,7 @@ export function processUserIntent(input: ReasoningInput): ReasoningOutput {
     'provide_information',
     'clarify_intent',
     'escalate_to_human',
+    'suggest_destinations',  // For exploratory
   ];
 
   const forbiddenActions = [
@@ -355,11 +511,14 @@ export function processUserIntent(input: ReasoningInput): ReasoningOutput {
     'make_legal_claims',
     'fabricate_urgency',
     'invent_discounts',
+    'say_cannot_help',      // NEVER dead-end
+    'expose_prices_in_suggestions',  // Suggestions = NO prices
   ];
 
   return {
     interpreted_intent: intent,
     confidence_level: confidence,
+    chaos_classification: chaosClass,
     missing_context: missingContext,
     recommended_primary_agent: primaryAgent as TeamType,
     recommended_secondary_agent: secondaryAgent,
@@ -370,6 +529,7 @@ export function processUserIntent(input: ReasoningInput): ReasoningOutput {
     forbidden_actions: forbiddenActions,
     conversion_hint: conversionHint,
     risk_flags: riskFlags,
+    suggested_destinations: suggestions,
   };
 }
 

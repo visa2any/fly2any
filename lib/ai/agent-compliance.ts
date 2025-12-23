@@ -195,37 +195,125 @@ export function getLocalizedTemplate(
 }
 
 // ============================================================================
-// RESPONSE BLOCKERS (Prevent Dead Ends)
+// RESPONSE BLOCKERS (Prevent Dead Ends) - CHAOS RESILIENT
 // ============================================================================
 
+// Extended dead-end patterns (EN/PT/ES) - NEVER allowed
 const DEAD_END_PATTERNS = [
-  /^i don't know/i,
-  /^i cannot help/i,
-  /^i'm not able/i,
-  /^sorry,?\s*i can't/i,
-  /^that's not possible/i,
-  /^we don't offer/i,
+  // English
+  /i don'?t know/i,
+  /i cannot help/i,
+  /i'?m not able/i,
+  /sorry,?\s*i can'?t/i,
+  /that'?s not possible/i,
+  /we don'?t offer/i,
+  /unable to assist/i,
+  /can'?t do that/i,
+  /not supported/i,
+  /impossible to/i,
+  // Portuguese
+  /não consigo/i,
+  /não posso ajudar/i,
+  /não é possível/i,
+  /impossível/i,
+  /desculpe,?\s*não/i,
+  /infelizmente não/i,
+  // Spanish
+  /no puedo ayudar/i,
+  /no es posible/i,
+  /imposible/i,
+  /lo siento,?\s*no/i,
+  /lamentablemente no/i,
 ];
+
+// Patterns that indicate prices in suggestions (FORBIDDEN)
+const PRICE_IN_SUGGESTION = /\b(from|starting|as low as|apenas|desde|a partir de)\s*[\$€R\$]?\s*\d+/i;
 
 /**
  * Check if response is a dead end and provide fallback
+ * CHAOS-RESILIENT: Always guides forward
  */
 export function preventDeadEnd(
   response: string,
   reasoning: ReasoningOutput,
   language: string
 ): string {
+  // Check for any dead-end pattern
   for (const pattern of DEAD_END_PATTERNS) {
-    if (pattern.test(response.trim())) {
+    if (pattern.test(response)) {
       // Convert dead end to forward-moving response
-      const fallback = getLocalizedTemplate('no_dead_end', language);
-      const clarification = reasoning.clarifying_questions[0] || '';
-
-      return `${fallback} ${clarification}`.trim();
+      return generateChaosRecoveryResponse(reasoning, language);
     }
   }
 
+  // Check for price exposure in suggestions (chaos mode)
+  if (reasoning.chaos_classification !== 'CLEAR_INTENT' && PRICE_IN_SUGGESTION.test(response)) {
+    // Strip prices and regenerate
+    return generateChaosRecoveryResponse(reasoning, language);
+  }
+
   return response;
+}
+
+/**
+ * Generate chaos-appropriate recovery response
+ */
+function generateChaosRecoveryResponse(reasoning: ReasoningOutput, language: string): string {
+  const parts: string[] = [];
+
+  // Opener based on chaos type
+  const openers: Record<string, Record<string, string>> = {
+    CHAOTIC_INTENT: {
+      en: "Let's figure this out together!",
+      pt: 'Vamos descobrir juntos!',
+      es: '¡Vamos a descubrirlo juntos!',
+    },
+    LOW_INFORMATION: {
+      en: "I'd love to help you explore options.",
+      pt: 'Adoraria ajudá-lo a explorar opções.',
+      es: 'Me encantaría ayudarte a explorar opciones.',
+    },
+    EXPLORATORY_TRAVEL: {
+      en: "Great choice to explore possibilities!",
+      pt: 'Ótima escolha explorar possibilidades!',
+      es: '¡Excelente idea explorar posibilidades!',
+    },
+    FAMILY_TRAVEL: {
+      en: "Traveling with family is wonderful!",
+      pt: 'Viajar em família é maravilhoso!',
+      es: '¡Viajar en familia es maravilloso!',
+    },
+    BUDGET_SENSITIVE: {
+      en: "Let's find the best value for you.",
+      pt: 'Vamos encontrar o melhor custo-benefício para você.',
+      es: 'Vamos a encontrar la mejor relación calidad-precio para ti.',
+    },
+    CLEAR_INTENT: {
+      en: "Let me help you with that.",
+      pt: 'Deixe-me ajudá-lo com isso.',
+      es: 'Déjame ayudarte con eso.',
+    },
+  };
+
+  const chaosType = reasoning.chaos_classification || 'CLEAR_INTENT';
+  parts.push(openers[chaosType]?.[language] || openers[chaosType]?.en || openers.CLEAR_INTENT.en);
+
+  // Add destination suggestions if available (NO PRICES)
+  if (reasoning.suggested_destinations?.length) {
+    const suggestionIntro: Record<string, string> = {
+      en: 'Some destinations to consider:',
+      pt: 'Alguns destinos para considerar:',
+      es: 'Algunos destinos para considerar:',
+    };
+    parts.push(`${suggestionIntro[language] || suggestionIntro.en} ${reasoning.suggested_destinations.slice(0, 3).join(', ')}.`);
+  }
+
+  // Add first clarifying question
+  if (reasoning.clarifying_questions?.[0]) {
+    parts.push(reasoning.clarifying_questions[0]);
+  }
+
+  return parts.join(' ');
 }
 
 // ============================================================================
