@@ -206,6 +206,60 @@ const schemas = getRoutePageSchemaGraph(routeData, breadcrumbs, faqs);
 
 ---
 
+## SPRINT 3: PROGRAMMATIC CONTENT & INTERNAL LINKING
+
+### Internal Linking Engine
+```typescript
+import { getRouteInternalLinks, getDestinationHubLinks } from '@/lib/seo/internal-linking';
+
+// Get all internal links for a route page
+const links = getRouteInternalLinks('JFK', 'LAX');
+// Returns: alternativeRoutes, relatedCities, returnRoute, nearbyAirports, popularFromOrigin
+
+// Get links for destination hub
+const hubLinks = getDestinationHubLinks('los-angeles');
+```
+
+### AEO Answer Blocks
+```typescript
+import { generateRouteAnswers, AnswerBlocks } from '@/lib/seo/answer-blocks';
+
+// Generate route-specific answers
+const answers = generateRouteAnswers({
+  origin: 'JFK',
+  destination: 'LAX',
+  lowestPrice: 189,
+  avgPrice: 350,
+});
+
+// Pre-built collections
+AnswerBlocks.worldCup2026;
+AnswerBlocks.baggage;
+AnswerBlocks.generalFlight;
+```
+
+### Content Governance Rules
+```typescript
+import { getContentStrategy, isValidRoute, shouldDeindexPage } from '@/lib/seo/content-governance';
+
+// Determine content rendering strategy
+const strategy = getContentStrategy({ hasInventory: true, lastUpdated: new Date() });
+// Returns: showPricing, showOfferSchema, component, robotsDirective
+
+// Check if route should be blocked
+if (!isValidRoute(origin, destination)) notFound();
+```
+
+### Sprint 3 Key Files
+| Purpose | File |
+|---------|------|
+| Internal Linking | `lib/seo/internal-linking.ts` |
+| AEO Answer Blocks | `lib/seo/answer-blocks.ts` |
+| Content Governance | `lib/seo/content-governance.ts` |
+| Sprint 3 Docs | `docs/SEO-SPRINT3-PROGRAMMATIC-CONTENT.md` |
+
+---
+
 ## VERSION
 - Created: 2025-01-23
 - Last Updated: 2025-12-23
