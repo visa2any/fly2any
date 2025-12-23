@@ -13,6 +13,7 @@
 import { callGroq, generateTravelResponse, isGroqAvailable, type GroqMessage } from './groq-client';
 import { getConsultantInfo, type TeamType } from './consultant-handoff';
 import { processUserIntent, type ReasoningOutput } from './reasoning-layer';
+import { finalComplianceCheck } from './agent-compliance';
 
 // ═══════════════════════════════════════════════════════════════════════════
 // LANGUAGE DETECTION & LOCKING
@@ -574,9 +575,21 @@ export async function routeQuery(
     updatedContext.handoffContext = `Previous: ${options.previousTeam}. Trip: ${JSON.stringify(updatedContext.tripContext)}`;
   }
 
+  // ═══════════════════════════════════════════════════════════════════════════
+  // COMPLIANCE CHECK: Enforce agent rules before response
+  // ═══════════════════════════════════════════════════════════════════════════
+  let finalResponse = aiResponse;
+  if (aiResponse && reasoning) {
+    const compliance = finalComplianceCheck(aiResponse, reasoning, lockedLanguage);
+    finalResponse = compliance.response;
+    if (compliance.wasModified) {
+      console.log('[Compliance] Response was auto-corrected');
+    }
+  }
+
   return {
     analysis,
-    aiResponse,
+    aiResponse: finalResponse,
     consultantInfo: {
       name: consultantInfo.name,
       title: consultantInfo.title,
