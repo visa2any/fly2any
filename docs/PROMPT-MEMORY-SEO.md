@@ -260,6 +260,57 @@ if (!isValidRoute(origin, destination)) notFound();
 
 ---
 
+## SPRINT 4: AI CITATION & CONVERSION ARCHITECTURE
+
+### Intent Segmentation
+```typescript
+import { getIntentConfig, detectUserIntent } from '@/lib/seo/intent-segmentation';
+
+// Intent types: 'research' | 'compare' | 'ready-to-book'
+const config = getIntentConfig('route');
+// → { showOfferSchema: true, ctaType: 'medium', ctaPlacement: 'mid-page' }
+```
+
+### Conversion Flywheel Hook
+```typescript
+import { useUserIntent } from '@/hooks/useUserIntent';
+
+const { journeyState, intent, isFirstVisit, trackSearch } = useUserIntent('route');
+// journeyState: 'first-visit' | 'returning' | 'high-intent'
+```
+
+### AEO Answer Blocks
+```typescript
+import { RouteAnswerBlock } from '@/components/seo/RouteAnswerBlock';
+
+<RouteAnswerBlock data={{
+  origin: 'JFK', destination: 'LAX',
+  avgPrice: 285, lowestPrice: 189,
+  flightDuration: '5h 30m',
+  priceConfidence: 'high',
+}} />
+```
+
+### Trust & E-E-A-T Signals
+```typescript
+import { DataFreshness, PriceConfidence, TrustBlock, RouteIntelligence } from '@/components/seo/TrustSignals';
+
+<DataFreshness lastUpdated={new Date()} variant="badge" />
+<PriceConfidence confidence="high" dataPoints={12500} />
+<TrustBlock variant="compact" />
+```
+
+### Sprint 4 Key Files
+| Purpose | File |
+|---------|------|
+| Intent Segmentation | `lib/seo/intent-segmentation.ts` |
+| Conversion Hook | `hooks/useUserIntent.ts` |
+| Trust Signals | `components/seo/TrustSignals.tsx` |
+| AEO Answer Blocks | `components/seo/RouteAnswerBlock.tsx` |
+| Sprint 4 Docs | `docs/SEO-SPRINT4-CONVERSION.md` |
+
+---
+
 ## VERSION
 - Created: 2025-01-23
 - Last Updated: 2025-12-23
