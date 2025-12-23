@@ -9,6 +9,7 @@ import { Footer } from './Footer';
 import { BottomTabBar } from '@/components/mobile/BottomTabBar';
 import { NavigationDrawer } from '@/components/mobile/NavigationDrawer';
 import { AITravelAssistant } from '@/components/ai/AITravelAssistant';
+import { ErrorBoundary } from '@/components/ErrorBoundary';
 import { MobileFullscreen } from '@/components/layout/MobileFullscreen';
 import { useLanguage } from '@/lib/i18n/client';
 import { useTranslations } from 'next-intl';
@@ -175,8 +176,26 @@ function GlobalLayoutInner({ children }: GlobalLayoutProps) {
         userId={session?.user?.id}
       />
 
-      {/* AI Travel Assistant */}
-      <AITravelAssistant language={language} />
+      {/* AI Travel Assistant - Wrapped in ErrorBoundary for crash resilience */}
+      <ErrorBoundary
+        variant="inline"
+        context="ai-travel-assistant"
+        fallback={
+          <div className="fixed bottom-20 right-4 md:bottom-6 z-40">
+            <button
+              onClick={() => window.location.reload()}
+              className="p-3 bg-neutral-100 text-neutral-400 rounded-full shadow-lg"
+              title="Chat unavailable - Click to reload"
+            >
+              <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+              </svg>
+            </button>
+          </div>
+        }
+      >
+        <AITravelAssistant language={language} />
+      </ErrorBoundary>
     </>
   );
 }

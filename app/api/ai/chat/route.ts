@@ -11,6 +11,7 @@ import { getUsageStats, type GroqMessage } from '@/lib/ai/groq-client';
 import type { TeamType } from '@/lib/ai/consultant-handoff';
 import { checkRateLimit, addRateLimitHeaders, getClientIP } from '@/lib/security/rate-limiter';
 import { AI_RATE_LIMITS } from '@/lib/security/rate-limit-config';
+import { handleApiError, ErrorCategory, ErrorSeverity } from '@/lib/monitoring/global-error-handler';
 import { auth } from '@/lib/auth';
 import crypto from 'crypto';
 
@@ -68,7 +69,7 @@ function generateGuestToken(ip: string): string {
 export async function POST(request: NextRequest) {
   const ip = getClientIP(request);
 
-  // === RATE LIMITING ===
+  // === RATE LIMITING === (outside error wrapper - expected response)
   const rateLimitResult = await checkRateLimit(request, CHAT_RATE_LIMIT);
   if (!rateLimitResult.success) {
     const response = NextResponse.json(
@@ -84,85 +85,87 @@ export async function POST(request: NextRequest) {
     return response;
   }
 
-  try {
-    const body = await request.json();
-    const {
-      message,
-      previousTeam,
-      conversationHistory = [],
-      customerName,
-      useAI = true,
-      sessionToken,
-      sessionContext: clientSessionContext
-    } = body as {
-      message: string;
-      previousTeam?: TeamType;
-      conversationHistory?: GroqMessage[];
-      customerName?: string;
-      useAI?: boolean;
-      sessionToken?: string;
-      sessionContext?: SessionContext;
-    };
+  // Wrap main business logic with global error handler
+  return handleApiError(
+    request,
+    async () => {
+      const body = await request.json();
+      const {
+        message,
+        previousTeam,
+        conversationHistory = [],
+        customerName,
+        useAI = true,
+        sessionToken,
+        sessionContext: clientSessionContext
+      } = body as {
+        message: string;
+        previousTeam?: TeamType;
+        conversationHistory?: GroqMessage[];
+        customerName?: string;
+        useAI?: boolean;
+        sessionToken?: string;
+        sessionContext?: SessionContext;
+      };
 
-    // === AUTHENTICATION ===
-    // Allow either: 1) Authenticated user, or 2) Valid guest token
-    const session = await auth();
-    const isAuthenticated = !!session?.user;
-    const hasValidGuestToken = validateGuestToken(sessionToken, ip);
+      // === AUTHENTICATION ===
+      // Allow either: 1) Authenticated user, or 2) Valid guest token
+      const session = await auth();
+      const isAuthenticated = !!session?.user;
+      const hasValidGuestToken = validateGuestToken(sessionToken || '', ip);
 
-    if (!isAuthenticated && !hasValidGuestToken) {
-      // Return new guest token for first-time users
-      const newToken = generateGuestToken(ip);
-      return NextResponse.json(
-        {
-          error: 'Session required',
-          message: 'Please use the provided session token for chat access.',
-          sessionToken: newToken,
-          success: false
-        },
-        { status: 401 }
-      );
-    }
-
-    if (!message || typeof message !== 'string') {
-      return NextResponse.json(
-        { error: 'Message is required' },
-        { status: 400 }
-      );
-    }
-
-    // Route the query through smart router (with session context for persistence)
-    const result = await routeQuery(message, {
-      previousTeam: previousTeam as TeamType | null,
-      conversationHistory: conversationHistory as GroqMessage[],
-      customerName,
-      useAI,
-      sessionContext: clientSessionContext
-    });
-
-    // Get current usage stats
-    const usageStats = await getUsageStats();
-
-    const response = NextResponse.json({
-      success: true,
-      ...result,
-      // Return updated session context for client to persist
-      sessionContext: result.sessionContext,
-      usage: {
-        dailyRemaining: usageStats.dailyRemaining,
-        percentUsed: usageStats.percentUsed
+      if (!isAuthenticated && !hasValidGuestToken) {
+        // Return new guest token for first-time users
+        const newToken = generateGuestToken(ip);
+        return NextResponse.json(
+          {
+            error: 'Session required',
+            message: 'Please use the provided session token for chat access.',
+            sessionToken: newToken,
+            success: false
+          },
+          { status: 401 }
+        );
       }
-    });
 
-    addRateLimitHeaders(response, rateLimitResult);
-    return response;
-  } catch (error) {
-    console.error('AI Chat API Error:', error);
-    return NextResponse.json(
-      { error: 'Failed to process request', success: false },
-      { status: 500 }
-    );
-  }
+      if (!message || typeof message !== 'string') {
+        return NextResponse.json(
+          { error: 'Message is required', success: false },
+          { status: 400 }
+        );
+      }
+
+      // Route the query through smart router (with session context for persistence)
+      const result = await routeQuery(message, {
+        previousTeam: previousTeam as TeamType | null,
+        conversationHistory: conversationHistory as GroqMessage[],
+        customerName,
+        useAI,
+        sessionContext: clientSessionContext
+      });
+
+      // Get current usage stats
+      const usageStats = await getUsageStats();
+
+      const response = NextResponse.json({
+        success: true,
+        ...result,
+        // Return updated session context for client to persist
+        sessionContext: result.sessionContext,
+        usage: {
+          dailyRemaining: usageStats.dailyRemaining,
+          percentUsed: usageStats.percentUsed
+        }
+      });
+
+      addRateLimitHeaders(response, rateLimitResult);
+      return response;
+    },
+    {
+      category: ErrorCategory.EXTERNAL_API,
+      severity: ErrorSeverity.HIGH
+    }
+  );
 }
 
 /**
@@ -170,7 +173,7 @@ export async function POST(request: NextRequest) {
  * Also rate limited
  */
 export async function GET(request: NextRequest) {
-  // Rate limiting for stats endpoint
+  // Rate limiting for stats endpoint (outside error wrapper)
   const rateLimitResult = await checkRateLimit(request, {
     maxRequests: 60,
     windowMs: 60 * 1000,
@@ -186,16 +189,18 @@ export async function GET(request: NextRequest) {
     return response;
   }
 
-  try {
-    const stats = getUsageStats();
-    const response = NextResponse.json({ success: true, stats });
-    addRateLimitHeaders(response, rateLimitResult);
-    return response;
-  } catch (error) {
-    console.error('AI Stats API Error:', error);
-    return NextResponse.json(
-      { error: 'Failed to get stats', success: false },
-      { status: 500 }
-    );
-  }
+  // Wrap stats retrieval with global error handler
+  return handleApiError(
+    request,
+    async () => {
+      const stats = getUsageStats();
+      const response = NextResponse.json({ success: true, stats });
+      addRateLimitHeaders(response, rateLimitResult);
+      return response;
+    },
+    {
+      category: ErrorCategory.EXTERNAL_API,
+      severity: ErrorSeverity.NORMAL
+    }
+  );
 }

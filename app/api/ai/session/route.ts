@@ -1,12 +1,14 @@
 /**
- * AI Session Management API
+ * AI Session Management API - Database-Backed
  *
- * Tracks user sessions by IP address with privacy-first approach:
- * - Anonymous session tracking
+ * Tracks user sessions with privacy-first approach:
+ * - Anonymous session tracking (IP-based)
  * - Progressive engagement
  * - GDPR/CCPA compliant
  * - IP anonymization after 24 hours
  * - Seamless migration to authenticated users
+ *
+ * STABILITY: Uses persistent PostgreSQL storage via Prisma
  *
  * @route POST /api/ai/session - Create or update session
  * @route GET /api/ai/session?sessionId=xxx or ?ip=xxx - Retrieve session
@@ -14,13 +16,13 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { UserSession } from '@/lib/ai/auth-strategy';
+import { prisma } from '@/lib/db/prisma';
 import crypto from 'crypto';
 
-// ============================================================================
-// IN-MEMORY SESSION STORE (Development)
-// ============================================================================
-// Will be replaced with database in production
-const sessionStore = new Map<string, StoredSession>();
+export const dynamic = 'force-dynamic';
+
+// Type cast for Prisma model (handles model naming)
+const db = prisma as any;
 
 interface StoredSession extends UserSession {
   userAgent?: string;
@@ -29,7 +31,7 @@ interface StoredSession extends UserSession {
 }
 
 // ============================================================================
-// SESSION MANAGEMENT FUNCTIONS
+// SESSION MANAGEMENT FUNCTIONS (Database-Backed)
 // ============================================================================
 
 /**
@@ -37,27 +39,18 @@ interface StoredSession extends UserSession {
  * Handles various proxy configurations and CDNs
  */
 function extractIPAddress(request: NextRequest): string {
-  // Check common proxy headers (in order of preference)
   const forwardedFor = request.headers.get('x-forwarded-for');
   const realIP = request.headers.get('x-real-ip');
-  const cfConnectingIP = request.headers.get('cf-connecting-ip'); // Cloudflare
+  const cfConnectingIP = request.headers.get('cf-connecting-ip');
 
-  // x-forwarded-for can contain multiple IPs (client, proxy1, proxy2)
-  // First IP is the original client
   if (forwardedFor) {
     const ips = forwardedFor.split(',').map(ip => ip.trim());
     return ips[0];
   }
 
-  if (realIP) {
-    return realIP;
-  }
+  if (realIP) return realIP;
+  if (cfConnectingIP) return cfConnectingIP;
 
-  if (cfConnectingIP) {
-    return cfConnectingIP;
-  }
-
-  // Fallback to request IP (may be proxy IP)
   return request.ip || 'unknown';
 }
 
@@ -72,8 +65,6 @@ function generateSessionId(): string {
 
 /**
  * Anonymize IP address (GDPR compliance)
- * IPv4: 192.168.1.1 -> 192.168.0.0
- * IPv6: 2001:db8::1 -> 2001:db8::
  */
 function anonymizeIP(ip: string): string {
   if (ip === 'unknown') return ip;
@@ -98,16 +89,6 @@ function anonymizeIP(ip: string): string {
 }
 
 /**
- * Check if session should be anonymized (24 hours old)
- */
-function shouldAnonymizeSession(session: StoredSession): boolean {
-  if (session.anonymizedAt) return false; // Already anonymized
-
-  const hoursSinceCreation = (Date.now() - session.createdAt.getTime()) / (1000 * 60 * 60);
-  return hoursSinceCreation >= 24;
-}
-
-/**
  * Hash IP address for lookup (privacy-preserving)
  */
 function hashIP(ip: string): string {
@@ -115,100 +96,177 @@ function hashIP(ip: string): string {
 }
 
 /**
- * Find session by IP address
+ * Find session by IP address (database)
  */
-function findSessionByIP(ip: string): StoredSession | null {
+async function findSessionByIP(ip: string): Promise<any | null> {
+  if (!prisma) return null;
+
   const ipHash = hashIP(ip);
 
-  for (const session of sessionStore.values()) {
-    if (session.ipAddress === ipHash && !session.anonymizedAt) {
-      return session;
-    }
+  try {
+    const session = await db.aISession.findFirst({
+      where: {
+        ipAddressHash: ipHash,
+        anonymizedAt: null,
+      },
+      orderBy: { lastActivity: 'desc' },
+    });
+
+    return session;
+  } catch (error) {
+    console.error('[Session] DB lookup error:', error);
+    return null;
   }
-
-  return null;
 }
 
 /**
- * Find session by session ID
+ * Find session by session ID (database)
  */
-function findSessionById(sessionId: string): StoredSession | null {
-  return sessionStore.get(sessionId) || null;
+async function findSessionById(sessionId: string): Promise<any | null> {
+  if (!prisma) return null;
+
+  try {
+    return await db.aISession.findUnique({
+      where: { sessionId },
+    });
+  } catch (error) {
+    console.error('[Session] DB lookup error:', error);
+    return null;
+  }
 }
 
 /**
- * Create new session
+ * Create new session (database)
  */
-function createSession(ip: string, userAgent?: string): StoredSession {
+async function createSession(ip: string, userAgent?: string): Promise<any> {
   const sessionId = generateSessionId();
   const ipHash = hashIP(ip);
 
-  const session: StoredSession = {
-    sessionId,
-    ipAddress: ipHash,
-    isAuthenticated: false,
-    conversationCount: 0,
-    lastActivity: new Date(),
-    createdAt: new Date(),
-    userAgent,
-    shouldAnonymize: false
-  };
+  if (!prisma) {
+    // Fallback for when DB isn't available
+    return {
+      id: sessionId,
+      sessionId,
+      ipAddressHash: ipHash,
+      isAuthenticated: false,
+      conversationCount: 0,
+      lastActivity: new Date(),
+      createdAt: new Date(),
+      userAgent,
+    };
+  }
 
-  sessionStore.set(sessionId, session);
-  return session;
+  try {
+    return await db.aISession.create({
+      data: {
+        sessionId,
+        ipAddressHash: ipHash,
+        userAgent,
+        isAuthenticated: false,
+        conversationCount: 0,
+        lastActivity: new Date(),
+      },
+    });
+  } catch (error) {
+    console.error('[Session] DB create error:', error);
+    // Return in-memory fallback
+    return {
+      id: sessionId,
+      sessionId,
+      ipAddressHash: ipHash,
+      isAuthenticated: false,
+      conversationCount: 0,
+      lastActivity: new Date(),
+      createdAt: new Date(),
+      userAgent,
+    };
+  }
 }
 
 /**
- * Update session activity and conversation count
+ * Update session activity and conversation count (database)
  */
-function updateSession(session: StoredSession, incrementConversation: boolean = false): StoredSession {
-  session.lastActivity = new Date();
+async function updateSession(session: any, incrementConversation: boolean = false): Promise<any> {
+  if (!prisma) return session;
 
-  if (incrementConversation) {
-    session.conversationCount += 1;
+  const shouldAnonymize = !session.isAuthenticated && !session.anonymizedAt &&
+    (Date.now() - new Date(session.createdAt).getTime()) >= 24 * 60 * 60 * 1000;
+
+  try {
+    return await db.aISession.update({
+      where: { id: session.id },
+      data: {
+        lastActivity: new Date(),
+        conversationCount: incrementConversation
+          ? { increment: 1 }
+          : session.conversationCount,
+        ...(shouldAnonymize && {
+          ipAddressAnonymized: anonymizeIP(session.ipAddressHash),
+          anonymizedAt: new Date(),
+        }),
+      },
+    });
+  } catch (error) {
+    console.error('[Session] DB update error:', error);
+    return session;
   }
-
-  // Check if session should be anonymized
-  if (shouldAnonymizeSession(session) && !session.isAuthenticated) {
-    session.ipAddress = anonymizeIP(session.ipAddress);
-    session.anonymizedAt = new Date();
-    session.shouldAnonymize = true;
-  }
-
-  sessionStore.set(session.sessionId, session);
-  return session;
 }
 
 /**
- * Upgrade session to authenticated user
+ * Upgrade session to authenticated user (database)
  */
-function upgradeSession(
-  session: StoredSession,
+async function upgradeSession(
+  session: any,
   userId: string,
   email: string,
   name: string
-): StoredSession {
-  session.isAuthenticated = true;
-  session.userId = userId;
-  session.email = email;
-  session.name = name;
-  session.shouldAnonymize = false; // Don't anonymize authenticated users
+): Promise<any> {
+  if (!prisma) {
+    return {
+      ...session,
+      isAuthenticated: true,
+      userId,
+      email,
+      name,
+    };
+  }
 
-  sessionStore.set(session.sessionId, session);
-  return session;
+  try {
+    return await db.aISession.update({
+      where: { id: session.id },
+      data: {
+        isAuthenticated: true,
+        userId,
+        email,
+        name,
+      },
+    });
+  } catch (error) {
+    console.error('[Session] DB upgrade error:', error);
+    return session;
+  }
 }
 
 /**
  * Clean up old sessions (garbage collection)
- * Remove sessions older than 30 days
  */
-function cleanupOldSessions(): void {
-  const thirtyDaysAgo = Date.now() - (30 * 24 * 60 * 60 * 1000);
+async function cleanupOldSessions(): Promise<number> {
+  if (!prisma) return 0;
 
-  for (const [sessionId, session] of sessionStore.entries()) {
-    if (session.createdAt.getTime() < thirtyDaysAgo && !session.isAuthenticated) {
-      sessionStore.delete(sessionId);
-    }
+  const thirtyDaysAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
+
+  try {
+    const result = await db.aISession.deleteMany({
+      where: {
+        createdAt: { lt: thirtyDaysAgo },
+        isAuthenticated: false,
+      },
+    });
+
+    return result.count;
+  } catch (error) {
+    console.error('[Session] DB cleanup error:', error);
+    return 0;
   }
 }
 
@@ -219,14 +277,6 @@ function cleanupOldSessions(): void {
 /**
  * POST /api/ai/session
  * Create or update session
- *
- * Body:
- * - action?: 'create' | 'update' | 'increment' | 'upgrade'
- * - sessionId?: string (for updates)
- * - incrementConversation?: boolean
- * - userId?: string (for upgrade)
- * - email?: string (for upgrade)
- * - name?: string (for upgrade)
  */
 export async function POST(request: NextRequest) {
   try {
@@ -236,21 +286,19 @@ export async function POST(request: NextRequest) {
     const ip = extractIPAddress(request);
     const userAgent = request.headers.get('user-agent') || undefined;
 
-    // Handle different actions
     switch (action) {
       case 'create': {
-        // Check if session already exists for this IP
-        let session = findSessionByIP(ip);
+        let session = await findSessionByIP(ip);
 
         if (!session) {
-          session = createSession(ip, userAgent);
+          session = await createSession(ip, userAgent);
         } else {
-          session = updateSession(session, false);
+          session = await updateSession(session, false);
         }
 
         return NextResponse.json({
           success: true,
-          session: formatSessionResponse(session)
+          session: formatSessionResponse(session),
         });
       }
 
@@ -263,18 +311,17 @@ export async function POST(request: NextRequest) {
           );
         }
 
-        let session = findSessionById(sessionId);
+        let session = await findSessionById(sessionId);
 
         if (!session) {
-          // Session not found, create new one
-          session = createSession(ip, userAgent);
+          session = await createSession(ip, userAgent);
         } else {
-          session = updateSession(session, incrementConversation || action === 'increment');
+          session = await updateSession(session, incrementConversation || action === 'increment');
         }
 
         return NextResponse.json({
           success: true,
-          session: formatSessionResponse(session)
+          session: formatSessionResponse(session),
         });
       }
 
@@ -293,7 +340,7 @@ export async function POST(request: NextRequest) {
           );
         }
 
-        let session = findSessionById(sessionId);
+        let session = await findSessionById(sessionId);
 
         if (!session) {
           return NextResponse.json(
@@ -302,12 +349,12 @@ export async function POST(request: NextRequest) {
           );
         }
 
-        session = upgradeSession(session, userId, email, name);
+        session = await upgradeSession(session, userId, email, name);
 
         return NextResponse.json({
           success: true,
           session: formatSessionResponse(session),
-          message: 'Session upgraded to authenticated user'
+          message: 'Session upgraded to authenticated user',
         });
       }
 
@@ -324,7 +371,7 @@ export async function POST(request: NextRequest) {
       {
         success: false,
         error: 'Internal server error',
-        message: error instanceof Error ? error.message : 'Unknown error'
+        message: error instanceof Error ? error.message : 'Unknown error',
       },
       { status: 500 }
     );
@@ -334,11 +381,6 @@ export async function POST(request: NextRequest) {
 /**
  * GET /api/ai/session?sessionId=xxx or ?ip=current
  * Retrieve session by ID or IP
- *
- * Query params:
- * - sessionId?: string - Retrieve by session ID
- * - ip?: 'current' - Retrieve by current request IP
- * - cleanup?: 'true' - Trigger garbage collection
  */
 export async function GET(request: NextRequest) {
   try {
@@ -349,17 +391,19 @@ export async function GET(request: NextRequest) {
 
     // Trigger cleanup if requested
     if (cleanup === 'true') {
-      cleanupOldSessions();
+      const deleted = await cleanupOldSessions();
+      const totalSessions = prisma ? await db.aISession.count() : 0;
+
       return NextResponse.json({
         success: true,
-        message: 'Cleanup completed',
-        totalSessions: sessionStore.size
+        message: `Cleanup completed. Deleted ${deleted} old sessions.`,
+        totalSessions,
       });
     }
 
     // Retrieve by session ID
     if (sessionId) {
-      const session = findSessionById(sessionId);
+      const session = await findSessionById(sessionId);
 
       if (!session) {
         return NextResponse.json(
@@ -368,39 +412,37 @@ export async function GET(request: NextRequest) {
         );
       }
 
-      // Update last activity
-      updateSession(session, false);
+      await updateSession(session, false);
 
       return NextResponse.json({
         success: true,
-        session: formatSessionResponse(session)
+        session: formatSessionResponse(session),
       });
     }
 
     // Retrieve by current IP
     if (ipParam === 'current') {
       const ip = extractIPAddress(request);
-      let session = findSessionByIP(ip);
+      let session = await findSessionByIP(ip);
 
       if (!session) {
-        // Create new session
         const userAgent = request.headers.get('user-agent') || undefined;
-        session = createSession(ip, userAgent);
+        session = await createSession(ip, userAgent);
       } else {
-        session = updateSession(session, false);
+        session = await updateSession(session, false);
       }
 
       return NextResponse.json({
         success: true,
-        session: formatSessionResponse(session)
+        session: formatSessionResponse(session),
       });
     }
 
     // Return stats if no params
-    const stats = getSessionStats();
+    const stats = await getSessionStats();
     return NextResponse.json({
       success: true,
-      stats
+      stats,
     });
 
   } catch (error) {
@@ -410,7 +452,7 @@ export async function GET(request: NextRequest) {
       {
         success: false,
         error: 'Internal server error',
-        message: error instanceof Error ? error.message : 'Unknown error'
+        message: error instanceof Error ? error.message : 'Unknown error',
       },
       { status: 500 }
     );
@@ -433,9 +475,18 @@ export async function DELETE(request: NextRequest) {
       );
     }
 
-    const deleted = sessionStore.delete(sessionId);
+    if (!prisma) {
+      return NextResponse.json(
+        { success: false, error: 'Database not configured' },
+        { status: 500 }
+      );
+    }
 
-    if (!deleted) {
+    try {
+      await db.aISession.delete({
+        where: { sessionId },
+      });
+    } catch {
       return NextResponse.json(
         { success: false, error: 'Session not found' },
         { status: 404 }
@@ -444,7 +495,7 @@ export async function DELETE(request: NextRequest) {
 
     return NextResponse.json({
       success: true,
-      message: 'Session deleted successfully'
+      message: 'Session deleted successfully',
     });
 
   } catch (error) {
@@ -454,7 +505,7 @@ export async function DELETE(request: NextRequest) {
       {
         success: false,
         error: 'Internal server error',
-        message: error instanceof Error ? error.message : 'Unknown error'
+        message: error instanceof Error ? error.message : 'Unknown error',
       },
       { status: 500 }
     );
@@ -468,115 +519,81 @@ export async function DELETE(request: NextRequest) {
 /**
  * Format session for API response (remove sensitive data)
  */
-function formatSessionResponse(session: StoredSession) {
+function formatSessionResponse(session: any) {
   return {
     sessionId: session.sessionId,
-    ipAddress: session.anonymizedAt ? session.ipAddress : '[hidden for privacy]',
+    ipAddress: session.anonymizedAt ? session.ipAddressAnonymized : '[hidden for privacy]',
     isAuthenticated: session.isAuthenticated,
     userId: session.userId,
     email: session.email,
     name: session.name,
     conversationCount: session.conversationCount,
-    lastActivity: session.lastActivity.toISOString(),
-    createdAt: session.createdAt.toISOString(),
-    anonymizedAt: session.anonymizedAt?.toISOString(),
-    userAgent: session.userAgent
+    lastActivity: session.lastActivity instanceof Date
+      ? session.lastActivity.toISOString()
+      : session.lastActivity,
+    createdAt: session.createdAt instanceof Date
+      ? session.createdAt.toISOString()
+      : session.createdAt,
+    anonymizedAt: session.anonymizedAt instanceof Date
+      ? session.anonymizedAt.toISOString()
+      : session.anonymizedAt,
+    userAgent: session.userAgent,
   };
 }
 
 /**
- * Get session statistics
+ * Get session statistics (database)
  */
-function getSessionStats() {
-  const sessions = Array.from(sessionStore.values());
+async function getSessionStats() {
+  if (!prisma) {
+    return {
+      totalSessions: 0,
+      authenticatedSessions: 0,
+      anonymousSessions: 0,
+      anonymizedSessions: 0,
+      activeSessions24h: 0,
+      totalConversations: 0,
+      averageConversationsPerSession: 0,
+      storageType: 'none',
+    };
+  }
 
-  return {
-    totalSessions: sessions.length,
-    authenticatedSessions: sessions.filter(s => s.isAuthenticated).length,
-    anonymousSessions: sessions.filter(s => !s.isAuthenticated).length,
-    anonymizedSessions: sessions.filter(s => s.anonymizedAt).length,
-    activeSessions24h: sessions.filter(s => {
-      const hoursSinceActivity = (Date.now() - s.lastActivity.getTime()) / (1000 * 60 * 60);
-      return hoursSinceActivity <= 24;
-    }).length,
-    totalConversations: sessions.reduce((sum, s) => sum + s.conversationCount, 0),
-    averageConversationsPerSession: sessions.length > 0
-      ? (sessions.reduce((sum, s) => sum + s.conversationCount, 0) / sessions.length).toFixed(2)
-      : 0
-  };
+  const twentyFourHoursAgo = new Date(Date.now() - 24 * 60 * 60 * 1000);
+
+  try {
+    const [
+      totalSessions,
+      authenticatedSessions,
+      anonymizedSessions,
+      activeSessions24h,
+      conversationSum,
+    ] = await Promise.all([
+      db.aISession.count(),
+      db.aISession.count({ where: { isAuthenticated: true } }),
+      db.aISession.count({ where: { anonymizedAt: { not: null } } }),
+      db.aISession.count({ where: { lastActivity: { gte: twentyFourHoursAgo } } }),
+      db.aISession.aggregate({ _sum: { conversationCount: true } }),
+    ]);
+
+    const totalConversations = conversationSum._sum.conversationCount || 0;
+
+    return {
+      totalSessions,
+      authenticatedSessions,
+      anonymousSessions: totalSessions - authenticatedSessions,
+      anonymizedSessions,
+      activeSessions24h,
+      totalConversations,
+      averageConversationsPerSession: totalSessions > 0
+        ? (totalConversations / totalSessions).toFixed(2)
+        : 0,
+      storageType: 'postgresql',
+    };
+  } catch (error) {
+    console.error('[Session] Stats error:', error);
+    return {
+      totalSessions: 0,
+      storageType: 'error',
+    };
+  }
 }
-
-// ============================================================================
-// PRIVACY COMPLIANCE
-// ============================================================================
-
-/**
- * GDPR/CCPA Compliance Notes:
- *
- * 1. Data Minimization:
- *    - Only collect necessary data (IP, user agent, conversation count)
- *    - No tracking of conversation content in session
- *
- * 2. Purpose Limitation:
- *    - IP address used only for fraud prevention and location
- *    - Session data used only for user experience improvement
- *
- * 3. Storage Limitation:
- *    - IP addresses anonymized after 24 hours
- *    - Sessions deleted after 30 days of inactivity
- *    - Authenticated sessions retained per user preference
- *
- * 4. Rights:
- *    - Right to access: GET /api/ai/session?sessionId=xxx
- *    - Right to deletion: DELETE /api/ai/session?sessionId=xxx
- *    - Right to portability: Data returned in JSON format
- *
- * 5. Security:
- *    - IP addresses hashed for storage
- *    - Cryptographically secure session IDs
- *    - No sensitive data in logs
- *
- * 6. Transparency:
- *    - Clear privacy notices shown to users
- *    - Opt-in for authenticated tracking
- *    - Easy opt-out via session deletion
- */
-
-// ============================================================================
-// MIGRATION TO DATABASE
-// ============================================================================
-
-/**
- * Database Schema (for future implementation):
- *
- * CREATE TABLE user_sessions (
- *   session_id VARCHAR(64) PRIMARY KEY,
- *   ip_address_hash VARCHAR(64) NOT NULL,
- *   ip_address_anonymized VARCHAR(45),
- *   user_agent TEXT,
- *   is_authenticated BOOLEAN DEFAULT FALSE,
- *   user_id VARCHAR(255),
- *   email VARCHAR(255),
- *   name VARCHAR(255),
- *   conversation_count INTEGER DEFAULT 0,
- *   last_activity TIMESTAMP NOT NULL,
- *   created_at TIMESTAMP NOT NULL,
- *   anonymized_at TIMESTAMP,
- *   country VARCHAR(2),
- *   INDEX idx_ip_hash (ip_address_hash),
- *   INDEX idx_user_id (user_id),
- *   INDEX idx_last_activity (last_activity),
- *   INDEX idx_created_at (created_at)
- * );
- *
- * CREATE TABLE session_analytics (
- *   id SERIAL PRIMARY KEY,
- *   session_id VARCHAR(64) NOT NULL,
- *   event_type VARCHAR(50) NOT NULL,
- *   event_data JSONB,
- *   created_at TIMESTAMP NOT NULL,
- *   INDEX idx_session_id (session_id),
- *   INDEX idx_event_type (event_type),
- *   INDEX idx_created_at (created_at)
- * );
- */

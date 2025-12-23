@@ -76,6 +76,7 @@ model User {
   aiConversations   AIConversation[]
   userSessions      UserSession[]
   loginHistory      LoginHistory[]
+  aiSessions        AISession[]    @relation("AISessionUser")
   notifications     Notification[]
   wishlistItems     WishlistItem[]
   pushSubscriptions PushSubscription[]
@@ -402,6 +403,40 @@ model LoginHistory {
 
   @@index([userId, timestamp])
   @@map("login_history")
+}
+
+// ==========================================
+// AI Chat Session (Anonymous + Authenticated)
+// Supports guest users before authentication
+// ==========================================
+
+model AISession {
+  id                  String    @id @default(cuid())
+  sessionId           String    @unique // Client-facing session ID
+  ipAddressHash       String    // Hashed for privacy
+  ipAddressAnonymized String?   // Anonymized after 24h
+  userAgent           String?
+
+  // Authentication state
+  isAuthenticated     Boolean   @default(false)
+  userId              String?   // Null for anonymous users
+  email               String?
+  name                String?
+
+  // Activity tracking
+  conversationCount   Int       @default(0)
+  lastActivity        DateTime  @default(now())
+  createdAt           DateTime  @default(now())
+  anonymizedAt        DateTime? // When IP was anonymized
+
+  // Optional user relation
+  user User? @relation("AISessionUser", fields: [userId], references: [id], onDelete: SetNull)
+
+  @@index([ipAddressHash])
+  @@index([userId])
+  @@index([lastActivity])
+  @@index([createdAt])
+  @@map("ai_sessions")
 }
 
 // ==========================================
