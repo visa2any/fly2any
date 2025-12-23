@@ -16,8 +16,15 @@ export const revalidate = 86400;
 
 const SITE_URL = process.env.NEXT_PUBLIC_APP_URL || 'https://www.fly2any.com';
 
+// Generate staggered lastmod based on priority (higher priority = more recent)
+function getLastmod(priority: number): string {
+  const now = new Date();
+  const daysAgo = priority >= 0.8 ? 0 : priority >= 0.6 ? 3 : 7;
+  now.setDate(now.getDate() - daysAgo);
+  return now.toISOString().split('T')[0];
+}
+
 export async function GET() {
-  const today = new Date().toISOString().split('T')[0];
   const urls: string[] = [];
 
   // All US airports (50 codes)
@@ -36,7 +43,7 @@ export async function GET() {
         const priority = calculateRoutePriority(origin, dest);
         urls.push(`  <url>
     <loc>${SITE_URL}/flights/${slug}</loc>
-    <lastmod>${today}</lastmod>
+    <lastmod>${getLastmod(priority)}</lastmod>
     <changefreq>daily</changefreq>
     <priority>${priority.toFixed(1)}</priority>
   </url>`);
@@ -50,7 +57,7 @@ export async function GET() {
       const slug = formatRouteSlug(origin, dest);
       urls.push(`  <url>
     <loc>${SITE_URL}/flights/${slug}</loc>
-    <lastmod>${today}</lastmod>
+    <lastmod>${getLastmod(0.7)}</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.7</priority>
   </url>`);
@@ -63,7 +70,7 @@ export async function GET() {
       const slug = formatRouteSlug(origin, dest);
       urls.push(`  <url>
     <loc>${SITE_URL}/flights/${slug}</loc>
-    <lastmod>${today}</lastmod>
+    <lastmod>${getLastmod(0.6)}</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.6</priority>
   </url>`);
@@ -78,7 +85,7 @@ export async function GET() {
         const slug = formatRouteSlug(topIntl[i], topIntl[j]);
         urls.push(`  <url>
     <loc>${SITE_URL}/flights/${slug}</loc>
-    <lastmod>${today}</lastmod>
+    <lastmod>${getLastmod(0.5)}</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.5</priority>
   </url>`);
