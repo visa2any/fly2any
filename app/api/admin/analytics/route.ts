@@ -234,9 +234,9 @@ async function getRoutesData(startDate: Date) {
 async function getDevicesData(startDate: Date) {
   // Get from analytics events if available
   const events = await prisma.analyticsEvent.groupBy({
-    by: ['metadata'],
+    by: ['eventData'],
     where: {
-      createdAt: { gte: startDate },
+      timestamp: { gte: startDate },
       eventType: 'page_view',
     },
     _count: { id: true },
@@ -247,7 +247,7 @@ async function getDevicesData(startDate: Date) {
   let total = 0;
 
   events.forEach((e) => {
-    const meta = e.metadata as any;
+    const meta = e.eventData as any;
     if (meta?.device) {
       const device = meta.device as string;
       if (device.toLowerCase().includes('mobile')) devices.Mobile += e._count.id;
@@ -421,7 +421,7 @@ async function getConversionFunnelData(startDate: Date) {
 
   // Calculate from actual data
   const visits = await prisma.analyticsEvent.count({
-    where: { createdAt: { gte: startDate }, eventType: 'page_view' },
+    where: { timestamp: { gte: startDate }, eventType: 'page_view' },
   }).catch(() => 0);
 
   const searches = await prisma.recentSearch.count({
