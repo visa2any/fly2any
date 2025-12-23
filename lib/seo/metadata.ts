@@ -50,6 +50,38 @@ export const SUPPORTED_LANGUAGES = {
 };
 
 /**
+ * Generate canonical URL from path
+ * Always returns absolute URL with https://www.fly2any.com
+ */
+export function getCanonicalUrl(path: string = ''): string {
+  const cleanPath = path.startsWith('/') ? path : `/${path}`;
+  // Remove trailing slash except for homepage
+  const normalizedPath = cleanPath === '/' ? '' : cleanPath.replace(/\/$/, '');
+  // Remove query params for canonical (pagination, filters)
+  const pathWithoutQuery = normalizedPath.split('?')[0];
+  return `${SITE_URL}${pathWithoutQuery}`;
+}
+
+/**
+ * Quick metadata for pages needing only basic SEO
+ * Auto-generates self-referencing canonical
+ */
+export function quickMetadata(
+  path: string,
+  title: string,
+  description: string,
+  options?: { noindex?: boolean; keywords?: string[] }
+): Metadata {
+  return generateMetadata({
+    title,
+    description,
+    canonical: getCanonicalUrl(path),
+    keywords: options?.keywords,
+    noindex: options?.noindex,
+  });
+}
+
+/**
  * Safely create a URL object with fallback
  */
 function safeURL(url: string, fallback: string = 'https://www.fly2any.com'): URL {
