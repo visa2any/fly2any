@@ -12,6 +12,7 @@
 
 import { callGroq, generateTravelResponse, isGroqAvailable, type GroqMessage } from './groq-client';
 import { getConsultantInfo, type TeamType } from './consultant-handoff';
+import { processUserIntent, type ReasoningOutput } from './reasoning-layer';
 
 // ═══════════════════════════════════════════════════════════════════════════
 // LANGUAGE DETECTION & LOCKING
@@ -59,6 +60,8 @@ export interface SessionContext {
   lastIntent?: PrimaryIntent;
   intentHistory?: PrimaryIntent[];
   handoffContext?: string;
+  // Reasoning layer output (internal guidance)
+  reasoning?: ReasoningOutput;
 }
 
 // Merge session context (preserves trip details across handoffs)
@@ -525,6 +528,20 @@ export async function routeQuery(
       cabinClass: analysis.entities.cabinClass || updatedContext.tripContext.cabinClass,
     };
   }
+
+  // ═══════════════════════════════════════════════════════════════════════════
+  // REASONING LAYER: Process intent for agent guidance (internal only)
+  // ═══════════════════════════════════════════════════════════════════════════
+  const reasoning = processUserIntent({
+    message,
+    language: lockedLanguage,
+    sessionState: {
+      hasSearched: !!updatedContext.tripContext?.destination,
+      previousIntents: updatedContext.intentHistory?.map(i => i.toString()),
+    },
+    conversationHistory,
+  });
+  updatedContext.reasoning = reasoning;
 
   // ═══════════════════════════════════════════════════════════════════════════
   // INTENT-FIRST ENFORCEMENT: Block generic responses when intent is clear
