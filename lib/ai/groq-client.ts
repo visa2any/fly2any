@@ -43,8 +43,9 @@ Rules:
 - Own every problem and provide next steps
 - Keep responses concise and actionable
 - Respond conversationally, no markdown formatting
+- NEVER start with generic openers like "How can I help you?"
+- If context is missing, ask 1-2 smart clarifying questions
 
-Language: English only.
 Tone: Premium, empathetic, confident.`;
 
 // ═══════════════════════════════════════════════════════════════════════════
@@ -672,11 +673,43 @@ export async function generateTravelResponse(
     conversationHistory?: GroqMessage[];
     searchResults?: any;
     customerName?: string;
+    reasoning?: {
+      language?: string;
+      missing_context?: string[];
+      clarifying_questions?: string[];
+      tone_guidance?: string;
+      response_strategy?: string;
+      confidence_level?: string;
+    };
   } = {}
 ): Promise<GroqResponse> {
-  const { agentType = 'customer-service', conversationHistory = [], searchResults, customerName } = context;
+  const { agentType = 'customer-service', conversationHistory = [], searchResults, customerName, reasoning } = context;
 
+  // Build context with reasoning guidance
   let contextInfo = '';
+
+  // CRITICAL: Language instruction from reasoning layer
+  if (reasoning?.language && reasoning.language !== 'en') {
+    contextInfo += `[LANGUAGE INSTRUCTION: You MUST respond in ${reasoning.language.toUpperCase()} only. Do NOT switch to English.]\n\n`;
+  }
+
+  // Reasoning-guided behavior
+  if (reasoning?.tone_guidance) {
+    contextInfo += `[TONE: ${reasoning.tone_guidance}]\n`;
+  }
+  if (reasoning?.response_strategy) {
+    contextInfo += `[STRATEGY: ${reasoning.response_strategy}]\n`;
+  }
+  if (reasoning?.missing_context?.length) {
+    contextInfo += `[MISSING INFO: ${reasoning.missing_context.join(', ')}. Ask clarifying questions.]\n`;
+  }
+  if (reasoning?.clarifying_questions?.length) {
+    contextInfo += `[SUGGESTED QUESTIONS: ${reasoning.clarifying_questions.join(' OR ')}]\n`;
+  }
+  if (reasoning?.confidence_level === 'low' || reasoning?.confidence_level === 'medium') {
+    contextInfo += `[Be consultative. Help user explore options before committing.]\n`;
+  }
+
   if (customerName) contextInfo += `Customer: ${customerName}\n`;
   if (searchResults?.flights?.length) {
     contextInfo += `Found ${searchResults.flights.length} flights. `;

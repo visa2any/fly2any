@@ -12,17 +12,18 @@ import type { ReasoningOutput } from './reasoning-layer';
 // ============================================================================
 
 const FORBIDDEN_OPENERS = [
-  /^how can i help you/i,
-  /^what can i assist you with/i,
-  /^how may i assist/i,
-  /^hello[,!]?\s*how can/i,
-  /^hi[,!]?\s*what can i/i,
-  /^welcome[,!]?\s*how may/i,
+  /how can i help/i,
+  /what can i assist/i,
+  /how may i assist/i,
+  /what can i help/i,
+  /how can i assist/i,
 ];
 
 const FORBIDDEN_CONTENT = [
   /\$\d+.*margin/i,
+  /\d+%.*margin/i,
   /commission.*\d+%/i,
+  /\d+%.*commission/i,
   /internal.*logic/i,
   /admin.*data/i,
   /backend.*system/i,
@@ -66,9 +67,9 @@ export function validateAgentResponse(
     // Language validation would be done at response generation
   }
 
-  // Rule 4: Forbidden generic openers
+  // Rule 4: Forbidden generic openers (check entire response)
   for (const pattern of FORBIDDEN_OPENERS) {
-    if (pattern.test(response.trim())) {
+    if (pattern.test(response)) {
       violations.push('GENERIC_OPENER_USED');
       corrections.push('Replace generic opener with context-aware greeting');
       break;
@@ -176,9 +177,9 @@ const LANGUAGE_TEMPLATES: Record<string, Record<string, string>> = {
     es: "Permítame ayudarle a explorar algunas opciones.",
   },
   consultative: {
-    en: "To find the best option for you, could you tell me",
-    pt: "Para encontrar a melhor opção para você, poderia me dizer",
-    es: "Para encontrar la mejor opción para usted, ¿podría decirme",
+    en: "To find the best option for you, could you tell me more?",
+    pt: "Para encontrar a melhor opção para você, poderia me dizer mais?",
+    es: "Para encontrar la mejor opción para usted, ¿podría decirme más?",
   },
 };
 
@@ -260,7 +261,11 @@ export function finalComplianceCheck(
     const revalidation = validateAgentResponse(finalResponse, reasoning, language);
     if (!revalidation.compliant) {
       console.error('[Compliance] Could not auto-correct:', revalidation.violations);
-      // Don't throw - return best effort response
+      // HARD GUARD: Generate reasoning-compliant fallback
+      if (reasoning) {
+        finalResponse = generateReasoningCompliantResponse(reasoning, language);
+        wasModified = true;
+      }
     }
   }
 
@@ -270,4 +275,42 @@ export function finalComplianceCheck(
   }
 
   return { response: finalResponse, wasModified };
+}
+
+/**
+ * Generate a response that fully complies with reasoning output
+ * Used as fallback when original response is non-compliant
+ */
+function generateReasoningCompliantResponse(
+  reasoning: ReasoningOutput,
+  language: string
+): string {
+  const parts: string[] = [];
+
+  // Empathy first if needed
+  if (reasoning.risk_flags.includes('HIGH_CHURN_RISK')) {
+    parts.push(getLocalizedTemplate('empathy_frustration', language));
+  }
+
+  // Consultative opener based on intent
+  if (reasoning.confidence_level !== 'high') {
+    parts.push(getLocalizedTemplate('consultative', language));
+  }
+
+  // Add clarifying question
+  if (reasoning.clarifying_questions.length > 0) {
+    parts.push(reasoning.clarifying_questions[0]);
+  } else if (reasoning.missing_context.length > 0) {
+    // Generate question from missing context
+    const context = reasoning.missing_context[0];
+    const questions: Record<string, Record<string, string>> = {
+      origin_city: { en: 'Where would you like to fly from?', pt: 'De onde você gostaria de voar?', es: '¿Desde dónde le gustaría volar?' },
+      destination_city: { en: 'Where are you heading to?', pt: 'Para onde você vai?', es: '¿A dónde va?' },
+      travel_dates: { en: 'When are you planning to travel?', pt: 'Quando você planeja viajar?', es: '¿Cuándo planea viajar?' },
+    };
+    const q = questions[context]?.[language] || questions[context]?.en;
+    if (q) parts.push(q);
+  }
+
+  return parts.join(' ');
 }

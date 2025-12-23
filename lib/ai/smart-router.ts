@@ -553,15 +553,19 @@ export async function routeQuery(
   // Generate AI response only for general queries (intent-first)
   let aiResponse: string | undefined;
   if (shouldGenerateAI) {
-    // Add language instruction to maintain consistency
-    const langInstruction = lockedLanguage !== 'en'
-      ? `[RESPOND IN ${lockedLanguage.toUpperCase()} ONLY] `
-      : '';
-
-    const response = await generateTravelResponse(langInstruction + message, {
+    // Pass reasoning context to guide AI response
+    const response = await generateTravelResponse(message, {
       agentType: routing.target_agent,
       conversationHistory,
       customerName,
+      reasoning: {
+        language: lockedLanguage,
+        missing_context: reasoning.missing_context,
+        clarifying_questions: reasoning.clarifying_questions,
+        tone_guidance: reasoning.tone_guidance,
+        response_strategy: reasoning.response_strategy,
+        confidence_level: reasoning.confidence_level,
+      },
     });
     if (response.success) aiResponse = response.message;
   }

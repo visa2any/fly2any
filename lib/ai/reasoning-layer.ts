@@ -49,16 +49,16 @@ export interface ReasoningInput {
 // ============================================================================
 
 const INTENT_PATTERNS = {
-  flight_search: /\b(fly|flight|ticket|book|travel|trip)\s*(to|from)?\s*\w+/i,
-  hotel_search: /\b(hotel|stay|accommodation|lodge|resort|airbnb)\b/i,
-  booking_status: /\b(booking|reservation|status|confirmation|pnr|reference)\b/i,
-  payment_issue: /\b(pay|payment|card|charge|refund|money)\b/i,
-  cancellation: /\b(cancel|refund|change|modify)\b/i,
-  complaint: /\b(problem|issue|wrong|bad|terrible|angry|frustrated)\b/i,
-  pricing: /\b(price|cost|how much|cheap|expensive|deal|discount)\b/i,
-  visa_passport: /\b(visa|passport|travel document|entry requirement)\b/i,
-  baggage: /\b(bag|baggage|luggage|carry-on|check-in)\b/i,
-  general_inquiry: /\b(what|how|when|where|why|can you|do you)\b/i,
+  flight_search: /\b(fly|flight|ticket|book|travel|trip|voo|viagem|passagem|quero ir|viajar)\b/i,
+  hotel_search: /\b(hotel|stay|accommodation|lodge|resort|airbnb|hospedagem|pousada)\b/i,
+  booking_status: /\b(booking|reservation|status|confirmation|pnr|reference|reserva|confirmação)\b/i,
+  payment_issue: /\b(pay|payment|card|charge|refund|money|pagamento|cartão|reembolso)\b/i,
+  cancellation: /\b(cancel|refund|change|modify|cancelar|alterar|mudar)\b/i,
+  complaint: /\b(problem|issue|wrong|bad|terrible|angry|frustrated|problema|ruim|péssimo)\b/i,
+  pricing: /\b(price|cost|how much|cheap|expensive|deal|discount|preço|barato|caro|promoção)\b/i,
+  visa_passport: /\b(visa|passport|travel document|entry requirement|visto|passaporte)\b/i,
+  baggage: /\b(bag|baggage|luggage|carry-on|check-in|mala|bagagem)\b/i,
+  general_inquiry: /\b(what|how|when|where|why|can you|do you|o que|como|quando|onde)\b/i,
 };
 
 const EMOTIONAL_INDICATORS = {
@@ -89,16 +89,27 @@ const INTENT_TO_AGENT: Record<string, TeamType> = {
 // CORE REASONING FUNCTIONS
 // ============================================================================
 
+// Uncertainty markers that indicate exploratory queries (EN/PT/ES)
+const UNCERTAINTY_MARKERS = /\b(don'?t know|not sure|maybe|perhaps|possibly|might|could be|não sei|talvez|quem sabe|pode ser|no sé|quizás|tal vez|puede ser)\b/i;
+
 /**
  * Detect primary intent from user message
  */
 function detectIntent(message: string): { intent: string; confidence: ConfidenceLevel } {
   const lowerMessage = message.toLowerCase();
 
+  // Check for uncertainty markers - these indicate exploratory queries
+  const hasUncertainty = UNCERTAINTY_MARKERS.test(message);
+
   // Check each pattern
   for (const [intent, pattern] of Object.entries(INTENT_PATTERNS)) {
     if (pattern.test(lowerMessage)) {
-      // Higher confidence if message is focused
+      // If uncertainty markers present, always use low/medium confidence
+      if (hasUncertainty) {
+        return { intent, confidence: 'low' };
+      }
+
+      // Otherwise, higher confidence if message is focused
       const wordCount = message.split(/\s+/).length;
       const confidence: ConfidenceLevel = wordCount < 5 ? 'medium' :
                                           wordCount < 15 ? 'high' : 'medium';
@@ -132,15 +143,18 @@ function identifyMissingContext(
   const missing: string[] = [];
 
   if (intent === 'flight_search') {
-    if (!/\b(from|departing|leaving)\s+\w+/i.test(message)) missing.push('origin_city');
-    if (!/\b(to|arriving|going)\s+\w+/i.test(message)) missing.push('destination_city');
-    if (!/\b\d{1,2}[\/\-]\d{1,2}|\b(jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec)/i.test(message)) {
+    // Origin: from/de/saindo de
+    if (!/\b(from|departing|leaving|de |saindo)\s+\w+/i.test(message)) missing.push('origin_city');
+    // Destination check - but "Europa" is a destination, so we check for specifics
+    // if user says "para Europa" that's a destination but vague
+    // Dates: check for dates or month names (EN/PT)
+    if (!/\b\d{1,2}[\/\-]\d{1,2}|\b(jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec|janeiro|fevereiro|março|abril|maio|junho|julho|agosto|setembro|outubro|novembro|dezembro)/i.test(message)) {
       missing.push('travel_dates');
     }
   }
 
   if (intent === 'hotel_search') {
-    if (!/\b(in|at|near)\s+\w+/i.test(message)) missing.push('destination');
+    if (!/\b(in|at|near|em|no|na)\s+\w+/i.test(message)) missing.push('destination');
     if (!/\b\d{1,2}[\/\-]\d{1,2}/i.test(message)) missing.push('check_in_date');
   }
 
