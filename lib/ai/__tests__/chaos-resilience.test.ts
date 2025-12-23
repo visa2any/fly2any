@@ -275,8 +275,9 @@ describe('Full Chaos Pipeline Integration', () => {
 
     expect(reasoning.chaos_classification).toBe('BUDGET_SENSITIVE');
 
-    // Forbidden action should be set
-    expect(reasoning.forbidden_actions).toContain('expose_prices_in_suggestions');
+    // Budget sensitive goes to NARROWING stage - prices forbidden there
+    expect(reasoning.conversation_stage).toBe('NARROWING');
+    expect(reasoning.stage_forbidden).toContain('show_prices');
     expect(reasoning.forbidden_actions).toContain('say_cannot_help');
   });
 });

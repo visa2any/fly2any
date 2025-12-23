@@ -16,6 +16,14 @@ import type { GroqMessage } from './groq-client';
 
 export type ConfidenceLevel = 'low' | 'medium' | 'high';
 
+// Conversation Stage Tracking - CRITICAL for conversion intelligence
+export type ConversationStage =
+  | 'DISCOVERY'         // User exploring, no specifics → inspire, guide, ask
+  | 'NARROWING'         // Some context → suggest destinations, seasons, tips
+  | 'READY_TO_SEARCH'   // Has dates/city → ask for remaining details
+  | 'READY_TO_BOOK'     // All details, flight selected → explicit permission only
+  | 'POST_BOOKING';     // Booking complete → support, upsell
+
 // Chaos Intent Classifications
 export type ChaosClassification =
   | 'CHAOTIC_INTENT'      // Vague, contradictory, mixed signals
@@ -29,6 +37,9 @@ export interface ReasoningOutput {
   interpreted_intent: string;
   confidence_level: ConfidenceLevel;
   chaos_classification: ChaosClassification;
+  conversation_stage: ConversationStage;
+  stage_actions: string[];              // What agent CAN do at this stage
+  stage_forbidden: string[];            // What agent MUST NOT do at this stage
   missing_context: string[];
   recommended_primary_agent: TeamType | null;
   recommended_secondary_agent: TeamType | null;
@@ -50,7 +61,17 @@ export interface ReasoningInput {
     hasSearched?: boolean;
     hasSelectedFlight?: boolean;
     hasBookingInProgress?: boolean;
+    hasBookingComplete?: boolean;
     previousIntents?: string[];
+    // Conversation stage tracking
+    currentStage?: ConversationStage;
+    collectedContext?: {
+      origin?: string;
+      destination?: string;
+      dates?: string;
+      passengers?: number;
+      travelType?: string;  // leisure, business, family
+    };
   };
   conversationHistory?: GroqMessage[];
 }
@@ -111,6 +132,122 @@ const DESTINATION_SUGGESTIONS: Record<string, string[]> = {
   adventure: ['Patagonia', 'Iceland', 'New Zealand', 'Costa Rica', 'Peru'],
   family: ['Orlando', 'Cancun', 'Lisbon', 'Barcelona', 'Tokyo'],
 };
+
+// ============================================================================
+// CONVERSATION STAGE RULES - CONVERSION INTELLIGENCE
+// ============================================================================
+
+// Stage detection patterns - robust date/destination detection
+const DATE_PATTERNS = /\b(\d{1,2}[\/\-]\d{1,2}|\d{4}|january|february|march|april|may|june|july|august|september|october|november|december|jan|feb|mar|apr|jun|jul|aug|sep|oct|nov|dec|janeiro|fevereiro|março|abril|maio|junho|julho|agosto|setembro|outubro|novembro|dezembro|next week|next month|próxima semana|próximo mês)\b/i;
+const DESTINATION_DETECTION = /\b(to|in|for|para|em|a )\s*(paris|london|rome|roma|tokyo|barcelona|new york|los angeles|miami|cancun|orlando|lisbon|lisboa|amsterdam|bali|bangkok|dubai|singapore|europe|europa|asia|ásia)/i;
+const PASSENGER_PATTERNS = /\b(\d+)\s*(adult|passenger|person|people|traveler|adulto|passageiro|pessoa|viajante)s?\b/i;
+
+// Stage-specific allowed/forbidden actions
+const STAGE_RULES: Record<ConversationStage, { allowed: string[]; forbidden: string[] }> = {
+  DISCOVERY: {
+    allowed: ['inspire', 'ask_open_questions', 'suggest_regions', 'share_tips', 'explore_preferences'],
+    forbidden: ['show_prices', 'initiate_search', 'show_booking_form', 'collect_payment_info', 'rush_to_book'],
+  },
+  NARROWING: {
+    allowed: ['suggest_destinations', 'share_seasonal_tips', 'ask_dates', 'ask_travelers', 'compare_options'],
+    forbidden: ['show_prices', 'show_booking_form', 'collect_payment_info', 'skip_to_booking'],
+  },
+  READY_TO_SEARCH: {
+    allowed: ['confirm_details', 'initiate_search', 'show_flight_results', 'compare_flights'],
+    forbidden: ['collect_payment_info', 'auto_book', 'skip_confirmation'],
+  },
+  READY_TO_BOOK: {
+    allowed: ['show_booking_summary', 'collect_passenger_details', 'process_payment', 'confirm_booking'],
+    forbidden: ['auto_book_without_permission', 'skip_review'],
+  },
+  POST_BOOKING: {
+    allowed: ['show_confirmation', 'offer_add_ons', 'provide_support', 'send_itinerary'],
+    forbidden: ['pressure_upsell', 'hide_cancellation_policy'],
+  },
+};
+
+/**
+ * Determine conversation stage based on context
+ * CRITICAL: Agents MUST NOT skip stages
+ */
+function determineConversationStage(
+  message: string,
+  chaosClass: ChaosClassification,
+  sessionState?: ReasoningInput['sessionState']
+): ConversationStage {
+  // POST_BOOKING: Already completed
+  if (sessionState?.hasBookingComplete) {
+    return 'POST_BOOKING';
+  }
+
+  // READY_TO_BOOK: Flight selected, booking in progress
+  if (sessionState?.hasSelectedFlight || sessionState?.hasBookingInProgress) {
+    return 'READY_TO_BOOK';
+  }
+
+  // Check collected context
+  const ctx = sessionState?.collectedContext;
+  const hasDates = ctx?.dates || DATE_PATTERNS.test(message);
+  const hasDestination = ctx?.destination || DESTINATION_DETECTION.test(message);
+  const hasOrigin = ctx?.origin || /\b(from|de |saindo de)\s+[A-Z][a-z]+/i.test(message);
+
+  // READY_TO_SEARCH: Has core details (dates + destination or origin)
+  if (hasDates && (hasDestination || hasOrigin)) {
+    return 'READY_TO_SEARCH';
+  }
+
+  // NARROWING: Has some specifics but not complete
+  if (hasDestination || hasOrigin || hasDates ||
+      chaosClass === 'FAMILY_TRAVEL' ||
+      chaosClass === 'BUDGET_SENSITIVE') {
+    return 'NARROWING';
+  }
+
+  // DISCOVERY: Vague, exploratory, or new conversation
+  if (chaosClass === 'CHAOTIC_INTENT' ||
+      chaosClass === 'LOW_INFORMATION' ||
+      chaosClass === 'EXPLORATORY_TRAVEL' ||
+      !sessionState?.previousIntents?.length) {
+    return 'DISCOVERY';
+  }
+
+  // Default to current stage or DISCOVERY
+  return sessionState?.currentStage || 'DISCOVERY';
+}
+
+/**
+ * Get stage-specific guidance for agents (Lisa Thompson, Sarah Chen, etc.)
+ */
+function getStageGuidance(stage: ConversationStage, language: string): string {
+  const guidance: Record<ConversationStage, Record<string, string>> = {
+    DISCOVERY: {
+      en: 'DISCOVERY STAGE: Inspire and explore. Ask open questions. Suggest dream destinations. Do NOT show prices or initiate searches yet.',
+      pt: 'FASE DESCOBERTA: Inspire e explore. Faça perguntas abertas. Sugira destinos dos sonhos. NÃO mostre preços ainda.',
+      es: 'FASE DESCUBRIMIENTO: Inspira y explora. Haz preguntas abiertas. Sugiere destinos soñados. NO muestres precios aún.',
+    },
+    NARROWING: {
+      en: 'NARROWING STAGE: Help refine choices. Suggest seasons, destinations. Ask for dates and travelers. Do NOT show prices yet.',
+      pt: 'FASE REFINAMENTO: Ajude a refinar escolhas. Sugira épocas, destinos. Pergunte datas e viajantes. NÃO mostre preços ainda.',
+      es: 'FASE REFINAMIENTO: Ayuda a refinar opciones. Sugiere temporadas, destinos. Pregunta fechas y viajeros. NO muestres precios aún.',
+    },
+    READY_TO_SEARCH: {
+      en: 'READY TO SEARCH: Confirm final details. Initiate search. Show flight options. Guide toward selection.',
+      pt: 'PRONTO PARA BUSCAR: Confirme detalhes finais. Inicie a busca. Mostre opções de voo. Guie para seleção.',
+      es: 'LISTO PARA BUSCAR: Confirma detalles finales. Inicia la búsqueda. Muestra opciones de vuelo. Guía hacia la selección.',
+    },
+    READY_TO_BOOK: {
+      en: 'READY TO BOOK: ONLY proceed with explicit user permission. Show clear summary. Collect details step by step.',
+      pt: 'PRONTO PARA RESERVAR: SÓ prossiga com permissão explícita. Mostre resumo claro. Colete dados passo a passo.',
+      es: 'LISTO PARA RESERVAR: SOLO procede con permiso explícito. Muestra resumen claro. Recoge datos paso a paso.',
+    },
+    POST_BOOKING: {
+      en: 'POST BOOKING: Celebrate! Provide confirmation details. Offer helpful add-ons. Be ready for support questions.',
+      pt: 'PÓS-RESERVA: Celebre! Forneça detalhes de confirmação. Ofereça extras úteis. Esteja pronto para suporte.',
+      es: 'POST-RESERVA: ¡Celebra! Proporciona detalles de confirmación. Ofrece extras útiles. Prepárate para soporte.',
+    },
+  };
+  return guidance[stage][language] || guidance[stage].en;
+}
 
 // ============================================================================
 // AGENT MAPPING
@@ -455,6 +592,11 @@ export function processUserIntent(input: ReasoningInput): ReasoningOutput {
   // CHAOS CLASSIFICATION - handle vague/incomplete inputs
   const { classification: chaosClass, suggestions } = classifyChaos(message);
 
+  // CONVERSATION STAGE TRACKING - conversion intelligence
+  const conversationStage = determineConversationStage(message, chaosClass, sessionState);
+  const stageRules = STAGE_RULES[conversationStage];
+  const stageGuidance = getStageGuidance(conversationStage, language);
+
   // Agent routing
   const primaryAgent = INTENT_TO_AGENT[intent] || 'general';
   let secondaryAgent: TeamType | null = null;
@@ -482,43 +624,42 @@ export function processUserIntent(input: ReasoningInput): ReasoningOutput {
     toneGuidance = 'Extra patient and encouraging. Guide gently. NEVER say "I can\'t help". Always offer forward path.';
   }
 
-  // Adapt response strategy for chaos
+  // Adapt response strategy for chaos AND stage
   let responseStrategy = generateResponseStrategy(intent, missingContext, emotion, sessionState);
   if (chaosClass !== 'CLEAR_INTENT') {
     responseStrategy = `CHAOS HANDLING (${chaosClass}): Ask max 2 questions. Suggest destinations WITHOUT prices. Never block conversation. ${responseStrategy}`;
   }
+  // Add stage guidance to strategy
+  responseStrategy = `[${conversationStage}] ${stageGuidance} | ${responseStrategy}`;
 
   const conversionHint = identifyConversionHint(intent, sessionState);
   const riskFlags = identifyRiskFlags(message, intent);
 
-  // Governance: Define allowed/forbidden actions
+  // Governance: Combine base actions with stage-specific rules
   const allowedActions = [
-    'search_flights',
-    'search_hotels',
-    'lookup_booking',
-    'provide_information',
+    ...stageRules.allowed,
     'clarify_intent',
     'escalate_to_human',
-    'suggest_destinations',  // For exploratory
   ];
 
   const forbiddenActions = [
+    ...stageRules.forbidden,
     'expose_pricing_internals',
     'share_margins_or_commissions',
     'access_admin_data',
-    'confirm_booking_without_payment',
     'share_pii',
     'make_legal_claims',
-    'fabricate_urgency',
-    'invent_discounts',
-    'say_cannot_help',      // NEVER dead-end
-    'expose_prices_in_suggestions',  // Suggestions = NO prices
+    'say_cannot_help',
+    'skip_stages',  // CRITICAL: Never jump stages
   ];
 
   return {
     interpreted_intent: intent,
     confidence_level: confidence,
     chaos_classification: chaosClass,
+    conversation_stage: conversationStage,
+    stage_actions: stageRules.allowed,
+    stage_forbidden: stageRules.forbidden,
     missing_context: missingContext,
     recommended_primary_agent: primaryAgent as TeamType,
     recommended_secondary_agent: secondaryAgent,
