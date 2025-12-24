@@ -64,3 +64,11 @@ export {
   generateDashboard,
   logDashboard,
 } from './recommendation-engine';
+
+// Traffic Origin (Analytics-Safe)
+export {
+  type TrafficOrigin,
+  type OriginMetadata,
+  extractTrafficOrigin,
+  isValidOrigin,
+} from './traffic-origin';
