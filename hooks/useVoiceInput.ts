@@ -42,8 +42,15 @@ export function useVoiceInput(options: UseVoiceInputOptions = {}) {
     confidence: 0,
   });
 
+  // Use ref to track listening state to avoid stale closure
+  const isListeningRef = useRef(false);
   const recognitionRef = useRef<SpeechRecognition | null>(null);
   const timeoutRef = useRef<NodeJS.Timeout | null>(null);
+
+  // Sync ref with state
+  useEffect(() => {
+    isListeningRef.current = state.isListening;
+  }, [state.isListening]);
 
   // Check browser support
   useEffect(() => {
@@ -63,6 +70,7 @@ export function useVoiceInput(options: UseVoiceInputOptions = {}) {
     recognition.maxAlternatives = 1;
 
     recognition.onstart = () => {
+      isListeningRef.current = true;
       setState(s => ({ ...s, isListening: true, error: null }));
     };
 
@@ -108,39 +116,69 @@ export function useVoiceInput(options: UseVoiceInputOptions = {}) {
       };
 
       const errorMsg = errorMessages[event.error] || `Error: ${event.error}`;
+      isListeningRef.current = false;
       setState(s => ({ ...s, error: errorMsg, isListening: false }));
       onError?.(errorMsg);
     };
 
     recognition.onend = () => {
-      setState(s => ({ ...s, isListening: false }));
+      isListeningRef.current = false;
+      setState(s => ({ ...s, isListening: false, interimTranscript: '' }));
     };
 
     return recognition;
   }, [language, continuous, onTranscript, onError]);
 
+  // Clear error and reset state
+  const clearError = useCallback(() => {
+    setState(s => ({ ...s, error: null }));
+  }, []);
+
   // Start listening
   const startListening = useCallback(async () => {
-    // Request microphone permission first
+    // Clear any previous error first
+    setState(s => ({ ...s, error: null }));
+
+    // Request microphone permission - this triggers browser permission dialog
     try {
-      await navigator.mediaDevices.getUserMedia({ audio: true });
-    } catch {
-      const errorMsg = 'Microphone access denied';
-      setState(s => ({ ...s, error: errorMsg }));
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      // Stop the stream immediately - we just needed permission
+      stream.getTracks().forEach(track => track.stop());
+    } catch (err) {
+      const errorMsg = 'Microphone access denied. Click to retry.';
+      setState(s => ({ ...s, error: errorMsg, isListening: false }));
       onError?.(errorMsg);
       return;
     }
 
     // Stop any existing recognition
     if (recognitionRef.current) {
-      recognitionRef.current.abort();
+      try {
+        recognitionRef.current.abort();
+      } catch {
+        // Ignore abort errors
+      }
+      recognitionRef.current = null;
+    }
+
+    // Clear timeout
+    if (timeoutRef.current) {
+      clearTimeout(timeoutRef.current);
+      timeoutRef.current = null;
     }
 
     // Initialize and start
     recognitionRef.current = initRecognition();
     if (recognitionRef.current) {
       setState(s => ({ ...s, transcript: '', interimTranscript: '', error: null }));
-      recognitionRef.current.start();
+
+      try {
+        recognitionRef.current.start();
+      } catch (err) {
+        console.error('Failed to start recognition:', err);
+        setState(s => ({ ...s, error: 'Failed to start voice recognition', isListening: false }));
+        return;
+      }
 
       // Auto-stop after 30 seconds (prevent infinite listening)
       timeoutRef.current = setTimeout(() => {
@@ -157,24 +195,35 @@ export function useVoiceInput(options: UseVoiceInputOptions = {}) {
     }
 
     if (recognitionRef.current) {
-      recognitionRef.current.stop();
+      try {
+        recognitionRef.current.stop();
+      } catch {
+        // Ignore stop errors
+      }
     }
+
+    isListeningRef.current = false;
+    setState(s => ({ ...s, isListening: false }));
   }, []);
 
-  // Toggle listening
+  // Toggle listening - uses ref to avoid stale closure
   const toggleListening = useCallback(() => {
-    if (state.isListening) {
+    if (isListeningRef.current) {
       stopListening();
     } else {
       startListening();
     }
-  }, [state.isListening, startListening, stopListening]);
+  }, [startListening, stopListening]);
 
   // Cleanup on unmount
   useEffect(() => {
     return () => {
       if (recognitionRef.current) {
-        recognitionRef.current.abort();
+        try {
+          recognitionRef.current.abort();
+        } catch {
+          // Ignore
+        }
       }
       if (timeoutRef.current) {
         clearTimeout(timeoutRef.current);
@@ -187,6 +236,7 @@ export function useVoiceInput(options: UseVoiceInputOptions = {}) {
     startListening,
     stopListening,
     toggleListening,
+    clearError,
   };
 }
 

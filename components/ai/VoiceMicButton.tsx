@@ -159,19 +159,17 @@ export function VoiceMicButton({
           onMouseDown={() => setIsPressed(true)}
           onMouseUp={() => setIsPressed(false)}
           onMouseLeave={() => setIsPressed(false)}
-          disabled={!!error && error.includes('denied')}
           className={cn(
             'relative flex items-center justify-center',
             'focus:outline-none focus-visible:ring-2 focus-visible:ring-fly2any-red/50 focus-visible:ring-offset-2',
-            'disabled:opacity-50 disabled:cursor-not-allowed',
             'active:scale-95 transition-transform duration-100',
             isPressed && !isListening && 'scale-95',
             sizeClasses[size],
             variantClasses[variant],
             className
           )}
-          aria-label={isListening ? 'Stop voice input' : 'Start voice input'}
-          title={error ? 'Microphone access denied' : isListening ? 'Click to stop' : 'Click to speak'}
+          aria-label={isListening ? 'Stop voice input' : error ? 'Retry voice input' : 'Start voice input'}
+          title={error ? 'Click to retry' : isListening ? 'Click to stop' : 'Click to speak'}
         >
           {/* Inner Glow when listening */}
           {isListening && (
