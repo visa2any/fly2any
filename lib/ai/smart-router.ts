@@ -14,6 +14,7 @@ import { callGroq, generateTravelResponse, isGroqAvailable, type GroqMessage } f
 import { getConsultantInfo, type TeamType } from './consultant-handoff';
 import { processUserIntent, type ReasoningOutput } from './reasoning-layer';
 import { finalComplianceCheck } from './agent-compliance';
+import { orchestrateExecution, type OrchestrationResult } from './runtime-orchestrator';
 
 // ═══════════════════════════════════════════════════════════════════════════
 // LANGUAGE DETECTION & LOCKING
@@ -63,6 +64,8 @@ export interface SessionContext {
   handoffContext?: string;
   // Reasoning layer output (internal guidance)
   reasoning?: ReasoningOutput;
+  // Orchestration result (action execution status)
+  orchestration?: OrchestrationResult;
 }
 
 // Merge session context (preserves trip details across handoffs)
@@ -545,6 +548,32 @@ export async function routeQuery(
   updatedContext.reasoning = reasoning;
 
   // ═══════════════════════════════════════════════════════════════════════════
+  // RUNTIME ORCHESTRATION: Execute actions based on reasoning + stage rules
+  // ═══════════════════════════════════════════════════════════════════════════
+  const sessionId = updatedContext.sessionId || `session_${Date.now()}`;
+  updatedContext.sessionId = sessionId;
+
+  try {
+    const orchestrationResult = await orchestrateExecution({
+      sessionId,
+      message,
+      reasoning,
+      language: lockedLanguage,
+    });
+    updatedContext.orchestration = orchestrationResult;
+
+    // Log orchestration for observability
+    if (orchestrationResult.actionExecuted) {
+      console.log(`[SMART-ROUTER] Action executed successfully`);
+    } else if (orchestrationResult.blockedReason) {
+      console.log(`[SMART-ROUTER] Action blocked: ${orchestrationResult.blockedReason}`);
+    }
+  } catch (orchError) {
+    console.error('[SMART-ROUTER] Orchestration error:', orchError);
+    // Continue without orchestration - don't break the main flow
+  }
+
+  // ═══════════════════════════════════════════════════════════════════════════
   // INTENT-FIRST ENFORCEMENT: Block generic responses when intent is clear
   // ═══════════════════════════════════════════════════════════════════════════
   const isSpecificIntent = !['GENERAL_TRAVEL_INFO', 'CUSTOMER_SUPPORT'].includes(routing.primary_intent);
@@ -653,6 +682,6 @@ export {
   recommendTone,
   detectLanguage,
   mergeSessionContext,
-  type SessionContext,
+  // SessionContext already exported via interface declaration
   type SupportedLanguage,
 };

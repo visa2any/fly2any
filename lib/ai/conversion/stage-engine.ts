@@ -422,6 +422,48 @@ export function getConsentPrompt(stage: ConversationStage, language: string): st
 }
 
 // ============================================================================
+// CONSENT MANAGEMENT
+// ============================================================================
+
+/**
+ * Grant search consent for session
+ */
+export function grantSearchConsent(sessionId: string): void {
+  const context = getOrCreateStageContext(sessionId);
+  context.userConsents.searchPermission = true;
+  context.userConsents.searchPermissionTime = Date.now();
+  stageStore.set(sessionId, context);
+}
+
+/**
+ * Grant booking consent for session
+ */
+export function grantBookingConsent(sessionId: string): void {
+  const context = getOrCreateStageContext(sessionId);
+  context.userConsents.bookingPermission = true;
+  context.userConsents.bookingPermissionTime = Date.now();
+  stageStore.set(sessionId, context);
+}
+
+/**
+ * Process stage transition (wrapper for attemptTransition with default chaos)
+ */
+export function processStageTransition(
+  sessionId: string,
+  message: string,
+  chaosClass: ChaosClassification = 'CLEAR_INTENT'
+): TransitionResult {
+  return attemptTransition(sessionId, message, chaosClass);
+}
+
+/**
+ * Reset stage context (for testing)
+ */
+export function resetStageContext(sessionId: string): void {
+  stageStore.delete(sessionId);
+}
+
+// ============================================================================
 // EXPORTS
 // ============================================================================
 
