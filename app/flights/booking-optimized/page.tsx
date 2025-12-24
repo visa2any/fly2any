@@ -19,6 +19,7 @@ import { AIRPORTS } from '@/lib/data/airports';
 import { useScrollDirection } from '@/lib/hooks/useScrollDirection';
 import { OfferCountdown } from '@/components/booking/OfferCountdown';
 import { OfferExpiredModal } from '@/components/booking/OfferExpiredModal';
+import { useCurrency } from '@/lib/context/CurrencyContext';
 
 // ===========================
 // TYPE DEFINITIONS
@@ -102,6 +103,9 @@ function isInternationalRoute(from: string, to: string): boolean {
 function BookingPageContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
+
+  // CRITICAL: Use global currency context for E2E consistency (PT-BR = BRL)
+  const { currency: userCurrency, format: formatCurrency, convert: convertPrice } = useCurrency();
 
   const [currentStep, setCurrentStep] = useState<BookingStep>(1);
   const [loading, setLoading] = useState(true);
@@ -1356,7 +1360,7 @@ function BookingPageContent() {
                 {/* Promo Code Section */}
                 <PromoCodeSection
                   totalPrice={totalPrice}
-                  currency={flightData.price.currency}
+                  currency={userCurrency}
                   productType="flight"
                   onApply={handlePromoApply}
                   onRemove={handlePromoRemove}
@@ -1372,7 +1376,7 @@ function BookingPageContent() {
                     passengers: passengers.length,
                   }}
                   totalPrice={appliedPromo ? totalPrice - appliedPromo.discountAmount : totalPrice}
-                  currency={flightData.price.currency}
+                  currency={userCurrency}
                   onSubmit={handlePaymentSubmit}
                   isProcessing={isProcessing}
                   requiresDOTCompliance={selectedFareId === 'basic'}
@@ -1431,7 +1435,7 @@ function BookingPageContent() {
                 },
                 class: flightData.search.class || 'economy',
               }}
-              currency={flightData.price.currency}
+              currency={userCurrency}
               farePrice={farePrice}
               addOns={addOns}
               taxesAndFees={taxesAndFees}

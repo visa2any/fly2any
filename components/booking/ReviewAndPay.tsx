@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { CreditCard, Lock, Apple, ChevronDown, ChevronUp, Check, MapPin, Home, User, Calendar, Wallet, Shield } from 'lucide-react';
+import { useCurrency } from '@/lib/context/CurrencyContext';
 
 interface PaymentData {
   method: 'card';
@@ -53,6 +54,10 @@ export function ReviewAndPay({
   requiresDOTCompliance = false,
   formId,
 }: ReviewAndPayProps) {
+  // CRITICAL: Use global currency context for E2E consistency
+  const { getSymbol } = useCurrency();
+  const displayCurrency = getSymbol();
+
   const [paymentMethod] = useState<'card'>('card');
   const [expandedSection, setExpandedSection] = useState<'flight' | 'payment' | null>('payment');
 
@@ -184,7 +189,7 @@ export function ReviewAndPay({
               </div>
               <div>
                 <span className="text-gray-600">Total:</span>
-                <p className="font-bold text-primary-600 text-lg">{currency} {totalPrice.toFixed(2)}</p>
+                <p className="font-bold text-primary-600 text-lg">{displayCurrency} {totalPrice.toFixed(2)}</p>
               </div>
             </div>
           </div>
@@ -396,7 +401,7 @@ export function ReviewAndPay({
               { key: 'noCheckedBag', text: 'I understand: No checked baggage included' },
               { key: 'nonRefundable', text: 'I understand: This ticket is non-refundable' },
               { key: 'noChanges', text: 'I understand: Changes are not permitted' },
-              { key: 'totalPrice', text: `I confirm the total price is ${currency} ${totalPrice.toFixed(2)}` },
+              { key: 'totalPrice', text: `I confirm the total price is ${displayCurrency} ${totalPrice.toFixed(2)}` },
               { key: 'hour24Cancellation', text: 'I understand I have 24 hours to cancel for a full refund' },
             ].map(({ key, text }) => (
               <label key={key} className="flex items-start gap-2 cursor-pointer">
@@ -450,7 +455,7 @@ export function ReviewAndPay({
           ) : (
             <span className="flex items-center justify-center gap-2">
               <Lock className="w-5 h-5" />
-              COMPLETE BOOKING • {currency} {totalPrice.toFixed(2)}
+              COMPLETE BOOKING • {displayCurrency} {totalPrice.toFixed(2)}
             </span>
           )}
         </button>

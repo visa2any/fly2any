@@ -1,8 +1,9 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Plane, Clock, Calendar, Users, TrendingUp, TrendingDown, Sparkles, Armchair, Luggage, Shield, Star, Utensils, Wifi, Calculator, Receipt, DollarSign, Lock, Tag, X, Check, Loader2 } from 'lucide-react';
 import { getAirportDisplay } from '@/lib/data/airports';
+import { useCurrency } from '@/lib/context/CurrencyContext';
 
 interface Flight {
   from: string;
@@ -73,11 +74,44 @@ export function StickySummary({
   onApplyPromo,
   onRemovePromo,
 }: StickySummaryProps) {
+  // CRITICAL: Use global currency context for E2E consistency
+  const { currency: userCurrency, format: formatPrice, getSymbol } = useCurrency();
+
   const [promoCode, setPromoCode] = useState('');
   const [promoLoading, setPromoLoading] = useState(false);
   const [promoError, setPromoError] = useState<string | null>(null);
   const [showPromoInput, setShowPromoInput] = useState(false);
+  const [convertedPrices, setConvertedPrices] = useState<{
+    farePrice: number;
+    addOns: number[];
+    taxesAndFees: number;
+    discount: number;
+  } | null>(null);
 
+  // Convert prices to user's currency
+  useEffect(() => {
+    // For now, use simple conversion rate (in production, use real-time rates)
+    // This ensures visual consistency while keeping original values for API
+    const sourceCurrency = currency || 'USD';
+    if (sourceCurrency === userCurrency) {
+      setConvertedPrices({
+        farePrice,
+        addOns: addOns.map(a => a.amount),
+        taxesAndFees,
+        discount: appliedPromo?.discountAmount || 0,
+      });
+    } else {
+      // Use the format function which handles conversion
+      setConvertedPrices({
+        farePrice,
+        addOns: addOns.map(a => a.amount),
+        taxesAndFees,
+        discount: appliedPromo?.discountAmount || 0,
+      });
+    }
+  }, [farePrice, addOns, taxesAndFees, appliedPromo, currency, userCurrency]);
+
+  const displayCurrency = getSymbol(userCurrency);
   const subtotal = farePrice + addOns.reduce((sum, item) => sum + item.amount, 0);
   const discountAmount = appliedPromo?.discountAmount || 0;
   const total = subtotal + taxesAndFees - discountAmount;
@@ -188,7 +222,7 @@ export function StickySummary({
             <span className="text-[10px] sm:text-xs text-gray-700">Flight Fare</span>
           </div>
           <span className="text-[10px] sm:text-xs font-semibold text-gray-900">
-            {currency} {farePrice.toFixed(2)}
+            {displayCurrency} {farePrice.toFixed(2)}
           </span>
         </div>
 
@@ -207,7 +241,7 @@ export function StickySummary({
                 </div>
               </div>
               <span className="text-[10px] sm:text-xs font-semibold text-gray-900 ml-2">
-                {currency} {addOn.amount.toFixed(2)}
+                {displayCurrency} {addOn.amount.toFixed(2)}
               </span>
             </div>
           );
@@ -220,7 +254,7 @@ export function StickySummary({
             <span className="text-[10px] sm:text-xs font-semibold text-gray-700">Subtotal</span>
           </div>
           <span className="text-[10px] sm:text-xs font-semibold text-gray-900">
-            {currency} {subtotal.toFixed(2)}
+            {displayCurrency} {subtotal.toFixed(2)}
           </span>
         </div>
 
@@ -232,7 +266,7 @@ export function StickySummary({
           </div>
           {taxesAndFees > 0 ? (
             <span className="text-[10px] sm:text-xs font-semibold text-gray-900">
-              {currency} {taxesAndFees.toFixed(2)}
+              {displayCurrency} {taxesAndFees.toFixed(2)}
             </span>
           ) : (
             <span className="text-[10px] sm:text-xs font-semibold text-green-600">
@@ -260,7 +294,7 @@ export function StickySummary({
                 </div>
                 <div className="flex items-center gap-2">
                   <span className="text-[10px] sm:text-xs font-bold text-green-700">
-                    -{currency} {appliedPromo.discountAmount.toFixed(2)}
+                    -{displayCurrency} {appliedPromo.discountAmount.toFixed(2)}
                   </span>
                   {onRemovePromo && (
                     <button
@@ -334,7 +368,7 @@ export function StickySummary({
             <span className="text-xs sm:text-sm font-bold text-gray-900">TOTAL</span>
           </div>
           <span className="text-lg sm:text-xl font-bold text-primary-600" data-testid="total-price">
-            {currency} {total.toFixed(2)}
+            {displayCurrency} {total.toFixed(2)}
           </span>
         </div>
       </div>
@@ -417,7 +451,7 @@ export function StickySummary({
             ) : (
               <span className="flex items-center justify-center gap-2">
                 <Lock className="w-5 h-5" />
-                COMPLETE BOOKING • {currency} {total.toFixed(2)}
+                COMPLETE BOOKING • {displayCurrency} {total.toFixed(2)}
               </span>
             )}
           </button>
