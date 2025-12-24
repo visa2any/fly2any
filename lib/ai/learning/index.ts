@@ -8,15 +8,13 @@
  * - Governance rules are immutable
  */
 
+// Interaction Tracker
 export {
-  // Tracker
   trackInteraction,
   metricsStore,
   type InteractionMetric,
   type InteractionOutcome,
   type ResponsePattern,
-
-  // Analytics
   getAgentPerformance,
   getMostFailedIntents,
   getMostSuccessfulFlows,
@@ -25,8 +23,8 @@ export {
   type IntentAnalysis,
 } from './interaction-tracker';
 
+// Suggestion Engine
 export {
-  // Suggestion Engine
   generateSuggestions,
   getPendingSuggestions,
   approveSuggestion,
@@ -38,3 +36,28 @@ export {
   type ResponseSuggestion,
   type SuggestionStatus,
 } from './suggestion-engine';
+
+// Store Abstraction
+export {
+  type ILearningStore,
+  type AggregatedMetrics,
+  type TimeBucket,
+  type StoreConfig,
+  InMemoryLearningStore,
+  createLearningStore,
+  getActiveStore,
+  setActiveStore,
+} from './store-abstraction';
+
+// Recommendation Engine
+export {
+  type Recommendation,
+  type RecommendationType,
+  type RecommendationStatus,
+  type DashboardReport,
+  isBlockedDomain,
+  recommendationStore,
+  generateRecommendations,
+  generateDashboard,
+  logDashboard,
+} from './recommendation-engine';
