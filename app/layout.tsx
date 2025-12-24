@@ -22,7 +22,6 @@ import { Analytics } from "@vercel/analytics/next";
 import { SpeedInsights } from "@vercel/speed-insights/next";
 import { getMessages } from 'next-intl/server';
 import { Suspense } from 'react';
-import { CurrencyProvider } from '@/lib/context/CurrencyContext';
 
 // Optimized font loading with display swap for better FCP
 const inter = Inter({
@@ -172,11 +171,10 @@ export default async function RootLayout({
           Skip to main content
         </a>
         <NextIntlClientProvider locale="en" messages={messages}>
-          <CurrencyProvider>
-            <GlobalErrorBoundary>
-              <GlobalLayout>
-                {children}
-              </GlobalLayout>
+          <GlobalErrorBoundary>
+            <GlobalLayout>
+              {children}
+            </GlobalLayout>
             <Toaster
               position="top-center"
               reverseOrder={false}
@@ -212,8 +210,7 @@ export default async function RootLayout({
                 },
               }}
             />
-            </GlobalErrorBoundary>
-          </CurrencyProvider>
+          </GlobalErrorBoundary>
         </NextIntlClientProvider>
         {/* Web Vitals Performance Monitoring */}
         <WebVitalsReporter />

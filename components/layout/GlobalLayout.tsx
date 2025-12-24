@@ -15,6 +15,7 @@ import { useLanguage } from '@/lib/i18n/client';
 import { useTranslations } from 'next-intl';
 import { ExperiencesCartProvider } from '@/lib/cart/experiences-cart';
 import MiniCart from '@/components/cart/MiniCart';
+import { CurrencyProvider } from '@/lib/context/CurrencyContext';
 
 interface GlobalLayoutProps {
   children: React.ReactNode;
@@ -220,10 +221,12 @@ function GlobalLayoutInner({ children }: GlobalLayoutProps) {
 export function GlobalLayout({ children }: GlobalLayoutProps) {
   return (
     <SessionProvider>
-      <ExperiencesCartProvider>
-        <GlobalLayoutInner>{children}</GlobalLayoutInner>
-        <MiniCart />
-      </ExperiencesCartProvider>
+      <CurrencyProvider>
+        <ExperiencesCartProvider>
+          <GlobalLayoutInner>{children}</GlobalLayoutInner>
+          <MiniCart />
+        </ExperiencesCartProvider>
+      </CurrencyProvider>
     </SessionProvider>
   );
 }

@@ -121,10 +121,22 @@ export function CurrencyProvider({ children }: { children: ReactNode }) {
 // HOOK
 // ===========================
 
+// Default fallback for when used outside provider (SSR safety)
+const defaultCurrencyContext: CurrencyContextType = {
+  currency: 'USD',
+  setCurrency: () => {},
+  convert: async (amount: number) => amount,
+  format: (amount: number | string) => `$${typeof amount === 'string' ? amount : amount.toFixed(2)}`,
+  getSymbol: () => '$',
+  popularCurrencies: [],
+  isLoading: false,
+};
+
 export function useCurrency() {
   const context = useContext(CurrencyContext);
+  // Return default instead of throwing - prevents SSR/hydration crashes
   if (context === undefined) {
-    throw new Error('useCurrency must be used within a CurrencyProvider');
+    return defaultCurrencyContext;
   }
   return context;
 }
