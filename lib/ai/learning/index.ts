@@ -43,10 +43,13 @@ export {
   type AggregatedMetrics,
   type TimeBucket,
   type StoreConfig,
+  type StoreHealth,
   InMemoryLearningStore,
+  RedisLearningStore,
   createLearningStore,
   getActiveStore,
   setActiveStore,
+  checkStoreHealth,
 } from './store-abstraction';
 
 // Recommendation Engine
