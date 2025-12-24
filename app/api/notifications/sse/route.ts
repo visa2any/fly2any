@@ -16,11 +16,14 @@
 
 import { NextRequest } from 'next/server';
 import { auth } from '@/lib/auth';
+import { getPrismaClient } from '@/lib/prisma';
 import {
   registerSSEClient,
   unregisterSSEClient,
   getSSEStats,
 } from '@/lib/notifications/notification-service';
+
+const prisma = getPrismaClient();
 
 export const dynamic = 'force-dynamic';
 export const runtime = 'nodejs';
@@ -44,15 +47,29 @@ export async function GET(request: NextRequest) {
     const session = await auth();
     userId = session?.user?.id;
 
-    // Check if user is admin (for admin SSE connections)
-    if (clientType === 'admin' && userId) {
-      // Note: In production, verify admin role from database
-      // For now, allow authenticated users to connect as admin
-      // The actual admin check happens in the dashboard
-      isAdmin = true;
+    // SECURITY: Verify admin status from database - fail closed
+    if (clientType === 'admin' && userId && prisma) {
+      const adminUser = await prisma.adminUser.findUnique({
+        where: { userId },
+      });
+      isAdmin = !!adminUser;
+
+      // Block non-admin users from admin SSE connections
+      if (!isAdmin) {
+        console.warn(`[SSE] Non-admin user ${userId} attempted admin connection`);
+      }
     }
   } catch (error) {
     // Continue without auth for customer connections
+    // Admin connections will fail closed (isAdmin stays false)
+  }
+
+  // SECURITY: Reject admin SSE connections from non-admin users
+  if (clientType === 'admin' && !isAdmin) {
+    return new Response(
+      JSON.stringify({ error: 'Admin access required for admin SSE connections' }),
+      { status: 403, headers: { 'Content-Type': 'application/json' } }
+    );
   }
 
   // Create SSE stream

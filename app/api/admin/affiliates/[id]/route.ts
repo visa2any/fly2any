@@ -7,6 +7,7 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { sql } from '@/lib/db/connection';
+import { requireAdmin, logAdminAction } from '@/lib/admin/middleware';
 
 /**
  * GET /api/admin/affiliates/[id]
@@ -18,22 +19,16 @@ export async function GET(
   { params }: { params: { id: string } }
 ) {
   try {
+    // SECURITY: Enforce admin authentication - fail closed
+    const authResult = await requireAdmin(request);
+    if (authResult instanceof NextResponse) return authResult;
+
     // Check if database is configured
     if (!sql) {
       return NextResponse.json(
         { error: 'Database not configured' },
         { status: 503 }
       );
-    }
-
-    // TODO: Check admin authentication
-    const isAdmin = true;
-
-    if (!isAdmin) {
-      return NextResponse.json({
-        success: false,
-        error: 'Admin access required',
-      }, { status: 403 });
     }
 
     const { id: affiliateId } = params;
@@ -182,23 +177,17 @@ export async function PATCH(
   { params }: { params: { id: string } }
 ) {
   try {
+    // SECURITY: Enforce admin authentication - fail closed
+    const authResult = await requireAdmin(request);
+    if (authResult instanceof NextResponse) return authResult;
+    const adminUserId = authResult.userId;
+
     // Check if database is configured
     if (!sql) {
       return NextResponse.json(
         { error: 'Database not configured' },
         { status: 503 }
       );
-    }
-
-    // TODO: Check admin authentication
-    const isAdmin = true;
-    const adminUserId = 'admin-001';
-
-    if (!isAdmin) {
-      return NextResponse.json({
-        success: false,
-        error: 'Admin access required',
-      }, { status: 403 });
     }
 
     const { id: affiliateId } = params;

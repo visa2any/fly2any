@@ -35,16 +35,7 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    // TODO: Check admin authentication
-    // For now, using demo admin user
-    const isAdmin = true;
-
-    if (!isAdmin) {
-      return NextResponse.json({
-        success: false,
-        error: 'Admin access required',
-      }, { status: 403 });
-    }
+    // SECURITY: Admin auth already enforced by requireAdmin() above
 
     // Parse query params
     const searchParams = request.nextUrl.searchParams;
