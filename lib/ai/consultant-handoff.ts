@@ -393,6 +393,12 @@ export function getPreviousConsultantTeam(
 // ═══════════════════════════════════════════════════════════════════════════
 // HANDOFF CONTEXT PACKAGE (Enhanced with Compliance Persistence)
 // ═══════════════════════════════════════════════════════════════════════════
+// Structured slot with confidence for handoff
+export interface HandoffSlot<T = string> {
+  value: T;
+  confidence: number;
+}
+
 export interface HandoffContextPackage {
   from_agent: TeamType;
   to_agent: TeamType;
@@ -413,6 +419,16 @@ export interface HandoffContextPackage {
   userConsents: {                  // Consent status
     searchPermission: boolean;
     bookingPermission: boolean;
+  };
+  // NEW: Structured slots with confidence scores
+  structuredSlots?: {
+    origin?: HandoffSlot;
+    destination?: HandoffSlot;
+    departureDate?: HandoffSlot;
+    returnDate?: HandoffSlot;
+    passengers?: HandoffSlot<number>;
+    cabinClass?: HandoffSlot;
+    tripType?: HandoffSlot;
   };
 }
 
@@ -440,12 +456,23 @@ export function createHandoffPackage(
     conversationStage?: string;
     stageCollectedData?: Record<string, unknown>;
     userConsents?: { searchPermission: boolean; bookingPermission: boolean };
+    // NEW: Structured slots with confidence
+    structuredSlots?: HandoffContextPackage['structuredSlots'];
   }
 ): HandoffContextPackage {
   sessionHandoffCount++;
 
   // Force route to Lisa if too many handoffs
   const finalTarget = sessionHandoffCount > MAX_HANDOFFS ? 'customer-service' : toTeam;
+
+  // Log handoff with slot preservation
+  if (context.structuredSlots) {
+    console.log(`[HANDOFF] ${fromTeam} → ${finalTarget} with slots:`, {
+      origin: context.structuredSlots.origin?.value,
+      destination: context.structuredSlots.destination?.value,
+      date: context.structuredSlots.departureDate?.value,
+    });
+  }
 
   return {
     from_agent: fromTeam,
@@ -468,6 +495,8 @@ export function createHandoffPackage(
     conversationStage: context.conversationStage || 'DISCOVERY',
     stageCollectedData: context.stageCollectedData || {},
     userConsents: context.userConsents || { searchPermission: false, bookingPermission: false },
+    // NEW: Structured slots (MUST persist)
+    structuredSlots: context.structuredSlots,
   };
 }
 

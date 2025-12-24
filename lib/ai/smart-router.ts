@@ -22,6 +22,15 @@ import {
   MandatoryActionViolation,
   type ActionExecutionStatus,
 } from './conversion/stage-engine';
+import {
+  extractEntitiesWithConfidence,
+  toHandoffSlots,
+  getSlotsNeedingConfirmation,
+  shouldTrustSlot,
+  validateNoResetViolation,
+  type ExtractedEntities,
+  type HandoffSlots,
+} from './entity-extractor';
 
 // ═══════════════════════════════════════════════════════════════════════════
 // LANGUAGE DETECTION & LOCKING
@@ -66,6 +75,10 @@ export interface SessionContext {
     cabinClass?: string;
     tripType?: 'one-way' | 'round-trip' | 'multi-city';
   };
+  // NEW: Structured slots with confidence scores for handoff
+  structuredSlots?: HandoffSlots;
+  extractedEntities?: ExtractedEntities;
+  slotsNeedingConfirmation?: { slot: string; value: string; prompt: string }[];
   lastIntent?: PrimaryIntent;
   intentHistory?: PrimaryIntent[];
   handoffContext?: string;
@@ -73,6 +86,29 @@ export interface SessionContext {
   reasoning?: ReasoningOutput;
   // Orchestration result (action execution status)
   orchestration?: OrchestrationResult;
+}
+
+// Merge slots (preserves higher confidence values)
+function mergeSlots(existing: HandoffSlots | undefined, newSlots: HandoffSlots): HandoffSlots {
+  if (!existing) return newSlots;
+
+  const merged: HandoffSlots = { language: newSlots.language };
+
+  // For each slot, keep the one with higher confidence
+  const slotNames: (keyof HandoffSlots)[] = ['origin', 'destination', 'departureDate', 'returnDate', 'passengers', 'cabinClass', 'tripType'];
+
+  for (const slot of slotNames) {
+    const existingSlot = existing[slot] as { value: unknown; confidence: number } | undefined;
+    const newSlot = newSlots[slot] as { value: unknown; confidence: number } | undefined;
+
+    if (newSlot && (!existingSlot || newSlot.confidence >= existingSlot.confidence)) {
+      (merged as Record<string, unknown>)[slot] = newSlot;
+    } else if (existingSlot) {
+      (merged as Record<string, unknown>)[slot] = existingSlot;
+    }
+  }
+
+  return merged;
 }
 
 // Merge session context (preserves trip details across handoffs)
@@ -495,26 +531,41 @@ export async function routeQuery(
   // Get routing context
   const routing = await routeUserMessage(message);
 
-  // Extract entities
+  // ═══════════════════════════════════════════════════════════════════════════
+  // ENTITY EXTRACTION WITH CONFIDENCE SCORES (handles typos, multi-language)
+  // ═══════════════════════════════════════════════════════════════════════════
+  const extractedEntities = extractEntitiesWithConfidence(message, lockedLanguage as 'en' | 'pt' | 'es');
+  const structuredSlots = toHandoffSlots(extractedEntities);
+  const confirmationsNeeded = getSlotsNeedingConfirmation(extractedEntities);
+
+  console.log('[SMART-ROUTER] Entity extraction:', {
+    origin: extractedEntities.origin ? `${extractedEntities.origin.value} (${extractedEntities.origin.confidence.toFixed(2)})` : 'none',
+    destination: extractedEntities.destination ? `${extractedEntities.destination.value} (${extractedEntities.destination.confidence.toFixed(2)})` : 'none',
+    departureDate: extractedEntities.departureDate ? `${extractedEntities.departureDate.value} (${extractedEntities.departureDate.confidence.toFixed(2)})` : 'none',
+    confirmationsNeeded: confirmationsNeeded.length,
+  });
+
+  // Also run legacy extraction for backward compatibility
   const locations = extractLocations(message);
   const dates = extractDates(message);
   const passengers = extractPassengers(message);
   const cabinClass = extractCabinClass(message);
 
-  // Build legacy analysis object
+  // Build analysis with confidence-enhanced entities
   const legacyIntent = routing.primary_intent.toLowerCase().replace('_', '-');
   const analysis: QueryAnalysis = {
     intent: legacyIntent,
     confidence: 0.8,
     team: routing.target_agent,
     entities: {
-      origin: locations.origin,
-      destination: locations.destination,
+      // Prefer confidence-based extraction
+      origin: shouldTrustSlot(extractedEntities.origin) ? extractedEntities.origin?.value : locations.origin,
+      destination: shouldTrustSlot(extractedEntities.destination) ? extractedEntities.destination?.value : locations.destination,
       city: locations.city,
-      departureDate: dates.departure,
-      returnDate: dates.return,
-      passengers,
-      cabinClass,
+      departureDate: shouldTrustSlot(extractedEntities.departureDate) ? extractedEntities.departureDate?.value : dates.departure,
+      returnDate: shouldTrustSlot(extractedEntities.returnDate) ? extractedEntities.returnDate?.value : dates.return,
+      passengers: shouldTrustSlot(extractedEntities.passengers) ? extractedEntities.passengers?.value : passengers,
+      cabinClass: shouldTrustSlot(extractedEntities.cabinClass) ? extractedEntities.cabinClass?.value : cabinClass,
     },
     requiresAI: false,
     rawMessage: message,
@@ -526,6 +577,17 @@ export async function routeQuery(
   // ═══════════════════════════════════════════════════════════════════════════
   const updatedContext = mergeSessionContext(existingContext, analysis.entities, routing.primary_intent);
   updatedContext.languageLocked = lockedLanguage;
+
+  // Store structured slots with confidence for handoff
+  updatedContext.extractedEntities = extractedEntities;
+  updatedContext.structuredSlots = mergeSlots(existingContext?.structuredSlots, structuredSlots);
+  if (confirmationsNeeded.length > 0) {
+    updatedContext.slotsNeedingConfirmation = confirmationsNeeded.map(c => ({
+      slot: c.slot as string,
+      value: c.value,
+      prompt: c.confirmationPrompt[lockedLanguage] || c.confirmationPrompt.en,
+    }));
+  }
 
   // Enrich entities with persisted context (if missing from current message)
   if (updatedContext.tripContext) {
