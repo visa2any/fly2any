@@ -14,8 +14,13 @@ import {
   Sparkles,
   LogIn,
   UserPlus,
-  Plane
+  Plane,
+  Mic,
+  Volume2
 } from 'lucide-react';
+import { useVoiceInput } from '@/hooks/useVoiceInput';
+import { useVoiceOutput } from '@/hooks/useVoiceOutput';
+import { VoiceMicButton, VoiceStatusIndicator } from './VoiceMicButton';
 import { getConsultant, type TeamType, type ConsultantProfile } from '@/lib/ai/consultant-profiles';
 import { getEngagementStage, buildAuthPrompt, type UserSession } from '@/lib/ai/auth-strategy';
 import { FlightResultCard } from './FlightResultCard';
@@ -206,6 +211,23 @@ export function AITravelAssistant({ language = 'en' }: Props) {
   const [conversation, setConversation] = useState<ConversationState | null>(null);
   const [recoverableConversation, setRecoverableConversation] = useState<ConversationState | null>(null);
   const [showRecoveryBanner, setShowRecoveryBanner] = useState(false);
+
+  // VOICE INPUT/OUTPUT INTEGRATION
+  const [voiceEnabled, setVoiceEnabled] = useState(true);
+  const voiceInput = useVoiceInput({
+    language: language === 'pt' ? 'pt-BR' : language === 'es' ? 'es-ES' : 'en-US',
+    onTranscript: (text) => {
+      // Set transcript to input - will be sent via mic button release or manual send
+      setInputMessage(text);
+    },
+  });
+
+  const voiceOutput = useVoiceOutput({
+    language: language === 'pt' ? 'pt-BR' : language === 'es' ? 'es-ES' : 'en-US',
+  });
+
+  // Voice message handler reference (set after handleSendMessage is defined)
+  const voiceMessageRef = useRef<(text: string) => void>(() => {});
 
   // Analytics tracking
   const analytics = useAIAnalytics({
@@ -2309,16 +2331,40 @@ export function AITravelAssistant({ language = 'en' }: Props) {
               </div>
               )}
 
-              {/* Input Area - Level-6 Premium */}
+              {/* Input Area - Level-6 Premium with Voice */}
               <div className="p-3 bg-white/95 backdrop-blur-sm border-t border-neutral-200/60">
+                {/* Voice Status Indicator */}
+                {(voiceInput.isListening || voiceOutput.isSpeaking) && (
+                  <div className="flex justify-center mb-2">
+                    <VoiceStatusIndicator
+                      isListening={voiceInput.isListening}
+                      isSpeaking={voiceOutput.isSpeaking}
+                      language={voiceInput.language}
+                    />
+                  </div>
+                )}
                 <div className="flex gap-2">
+                  {/* Voice Mic Button */}
+                  {voiceEnabled && voiceInput.isSupported && (
+                    <VoiceMicButton
+                      isListening={voiceInput.isListening}
+                      isSupported={voiceInput.isSupported}
+                      isSpeaking={voiceOutput.isSpeaking}
+                      error={voiceInput.error}
+                      interimTranscript={voiceInput.interimTranscript}
+                      onToggle={voiceInput.toggleListening}
+                      onStopSpeaking={voiceOutput.stop}
+                      size="md"
+                      variant="default"
+                    />
+                  )}
                   <input
                     ref={inputRef}
                     type="text"
                     value={inputMessage}
                     onChange={(e) => setInputMessage(e.target.value)}
                     onKeyPress={handleKeyPress}
-                    placeholder={t.placeholder}
+                    placeholder={voiceInput.isListening ? (language === 'pt' ? 'Ouvindo...' : language === 'es' ? 'Escuchando...' : 'Listening...') : t.placeholder}
                     className="flex-1 px-3 py-2.5 border border-neutral-200 rounded-xl focus:border-primary-500 focus:ring-2 focus:ring-primary-500/20 transition-all duration-150 ease-[cubic-bezier(0.2,0.8,0.2,1)] text-sm placeholder:text-neutral-400 bg-neutral-50/50"
                   />
                   <button
