@@ -45,8 +45,9 @@ export function registerOffer(
 
 /**
  * Get offer freshness status
+ * Also accepts optional flightOffer object to extract created_at directly
  */
-export function getOfferStatus(offerId: string): {
+export function getOfferStatus(offerId: string, flightOffer?: any): {
   isValid: boolean;
   isWarning: boolean;
   remainingMs: number;
@@ -58,8 +59,18 @@ export function getOfferStatus(offerId: string): {
 } {
   const offer = offerCache.get(offerId);
 
-  if (!offer) {
-    // Unknown offer - assume it was just created
+  // Try to extract created_at from offer object if provided (Duffel includes this)
+  let createdAt: number | null = null;
+  if (flightOffer?.created_at) {
+    createdAt = new Date(flightOffer.created_at).getTime();
+  } else if (flightOffer?.createdAt) {
+    createdAt = new Date(flightOffer.createdAt).getTime();
+  } else if (offer) {
+    createdAt = offer.createdAt;
+  }
+
+  if (!createdAt) {
+    // Unknown offer without timestamp - assume it was just created
     return {
       isValid: true,
       isWarning: false,
@@ -71,7 +82,7 @@ export function getOfferStatus(offerId: string): {
     };
   }
 
-  const ageMs = Date.now() - offer.createdAt;
+  const ageMs = Date.now() - createdAt;
   const remainingMs = Math.max(0, OFFER_VALIDITY_MS - ageMs);
 
   return {
@@ -80,9 +91,9 @@ export function getOfferStatus(offerId: string): {
     remainingMs,
     remainingSeconds: Math.floor(remainingMs / 1000),
     remainingMinutes: Math.floor(remainingMs / 60000),
-    expiresAt: offer.createdAt + OFFER_VALIDITY_MS,
+    expiresAt: createdAt + OFFER_VALIDITY_MS,
     shouldRefresh: ageMs >= OFFER_REFRESH_MS,
-    searchParams: offer.searchParams,
+    searchParams: offer?.searchParams,
   };
 }
 

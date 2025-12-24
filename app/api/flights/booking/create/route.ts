@@ -13,6 +13,9 @@ import { BOOKING_RATE_LIMITS } from '@/lib/security/rate-limit-config';
 // CRITICAL: Import flight markup to ensure customer is charged correct amount
 import { applyFlightMarkup, determineRoutingChannel, ROUTING_THRESHOLD } from '@/lib/config/flight-markup';
 
+// CRITICAL: Import offer freshness to prevent OFFER_EXPIRED errors
+import { getOfferStatus, buildSearchUrl } from '@/lib/flights/offer-freshness';
+
 // CRITICAL: Import error alerting system to notify admins of customer errors
 import { alertApiError } from '@/lib/monitoring/customer-error-alerts';
 import {
@@ -137,6 +140,63 @@ export async function POST(request: NextRequest) {
       if (!contactInfo) missing.push('contactInfo');
       console.error(`❌ VALIDATION ERROR - Missing fields: ${missing.join(', ')}`);
       throw new Error(`Missing required fields: ${missing.join(', ')}`);
+    }
+
+    // ═══════════════════════════════════════════════════════════════════════
+    // OFFER EXPIRATION PRE-CHECK (Duffel offers expire after 30 minutes)
+    // ═══════════════════════════════════════════════════════════════════════
+    const isDuffelOffer = flightOffer.source === 'Duffel' || flightOffer.id?.startsWith('off_');
+    if (isDuffelOffer) {
+      // Pass full flightOffer to extract created_at timestamp from Duffel
+      const offerStatus = getOfferStatus(flightOffer.id, flightOffer);
+      console.log(`⏱️  Offer freshness check: ${flightOffer.id}`);
+      console.log(`   Valid: ${offerStatus.isValid}, Remaining: ${offerStatus.remainingMinutes}min`);
+      console.log(`   Created At: ${flightOffer.created_at || flightOffer.createdAt || 'unknown'}`);
+
+      if (!offerStatus.isValid) {
+        console.error(`❌ OFFER EXPIRED: ${flightOffer.id}`);
+
+        // Build re-search URL from offer data
+        const origin = flightOffer.itineraries?.[0]?.segments?.[0]?.departure?.iataCode;
+        const destination = flightOffer.itineraries?.[0]?.segments?.[flightOffer.itineraries[0]?.segments?.length - 1]?.arrival?.iataCode;
+        const departureDate = flightOffer.itineraries?.[0]?.segments?.[0]?.departure?.at?.split('T')[0];
+        const returnDate = flightOffer.itineraries?.[1]?.segments?.[0]?.departure?.at?.split('T')[0];
+
+        const searchUrl = buildSearchUrl({
+          origin: origin || '',
+          destination: destination || '',
+          departureDate: departureDate || '',
+          returnDate,
+          passengers: passengers.length,
+        });
+
+        // Alert admin
+        await alertApiError(request, new Error('OFFER_EXPIRED before booking attempt'), {
+          errorCode: 'OFFER_EXPIRED_PREFLIGHT',
+          endpoint: '/api/flights/booking/create',
+          userEmail: contactInfo?.email,
+          customerName: `${passengers[0]?.firstName || ''} ${passengers[0]?.lastName || ''}`.trim(),
+          customerPhone: contactInfo?.phone,
+          offerId: flightOffer.id,
+          flightRoute: `${origin} → ${destination}`,
+          departureDate,
+          amount: parseFloat(flightOffer.price?.total || '0'),
+          currency: flightOffer.price?.currency || 'USD',
+        }, { priority: 'normal' }).catch(() => {});
+
+        return NextResponse.json({
+          success: false,
+          error: 'OFFER_EXPIRED',
+          message: 'This flight offer has expired. Flight prices are only guaranteed for 30 minutes. Please search again for current prices.',
+          searchUrl,
+          offerAge: `${30 - offerStatus.remainingMinutes} minutes old`,
+        }, { status: 410 });
+      }
+
+      // Warn if close to expiring
+      if (offerStatus.isWarning) {
+        console.warn(`⚠️  Offer expiring soon: ${offerStatus.remainingMinutes}min remaining`);
+      }
     }
 
     // Declare payment and booking status variables early to avoid TDZ issues
