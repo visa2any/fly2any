@@ -20,6 +20,12 @@ import { processUserIntent, type ReasoningOutput, type ConversationStage } from 
 import { finalComplianceCheck } from './agent-compliance';
 import { type HandoffSlots } from './entity-extractor';
 import { type TeamType } from './consultant-handoff';
+import {
+  executeFlightSearch,
+  generatePostActionResponse,
+  type RawFlightSlots,
+  type SearchExecutionResult,
+} from './flight-search-executor';
 
 // ============================================================================
 // TYPES
@@ -46,6 +52,8 @@ export interface PipelineInput {
 export interface PipelineOutput {
   response: string;
   agentState: AgentState;
+  actionExecuted?: boolean;
+  searchResults?: any;
   debugLog: {
     stateInjected: boolean;
     intent: string;
@@ -53,6 +61,7 @@ export interface PipelineOutput {
     language: string;
     slotsCount: number;
     finalPromptLog: string;
+    actionBlocked?: boolean;
   };
 }
 
@@ -197,9 +206,10 @@ your ONLY valid action is to proceed with search.
  * STRICT ORDER:
  * 1. reasoningLayer(userInput, session)
  * 2. stageEngine(reasoning, session)
- * 3. complianceLayer(reasoning, stage, session)
- * 4. systemPrompt = buildMandatoryPrompt(reasoning, stage)
- * 5. LLM(systemPrompt, userMessage)
+ * 3. ACTION-FIRST: If READY_TO_SEARCH → execute action BEFORE LLM
+ * 4. complianceLayer(reasoning, stage, session)
+ * 5. systemPrompt = buildMandatoryPrompt(reasoning, stage)
+ * 6. LLM(systemPrompt, userMessage) — ONLY if action not mandatory
  *
  * @throws PipelineNotExecutedError if any step fails
  */
@@ -263,15 +273,16 @@ export async function executePipeline(input: PipelineInput): Promise<PipelineOut
   const systemPrompt = buildMandatorySystemPrompt(reasoning, stage, slots, agentName);
 
   // ═══════════════════════════════════════════════════════════════════════════
-  // STEP 5: LOG FINAL PROMPT (DEBUG)
+  // STEP 5: DEBUG LOG
   // ═══════════════════════════════════════════════════════════════════════════
   console.log('[EXECUTION_PIPELINE] ==========================================');
-  console.log('[EXECUTION_PIPELINE] FINAL SYSTEM PROMPT:');
-  console.log(systemPrompt);
+  console.log('[EXECUTION_PIPELINE] Intent:', reasoning.intent);
+  console.log('[EXECUTION_PIPELINE] Stage:', stage);
+  console.log('[EXECUTION_PIPELINE] Slots:', JSON.stringify(slots, null, 2));
   console.log('[EXECUTION_PIPELINE] ==========================================');
 
   // ═══════════════════════════════════════════════════════════════════════════
-  // STEP 6: BUILD AGENT STATE FOR INJECTION
+  // STEP 6: BUILD AGENT STATE
   // ═══════════════════════════════════════════════════════════════════════════
   const agentState = buildAgentState(input);
   agentState.intent = reasoning.intent;
@@ -279,14 +290,62 @@ export async function executePipeline(input: PipelineInput): Promise<PipelineOut
   agentState.language = (reasoning.language || input.language) as 'en' | 'pt' | 'es';
 
   // ═══════════════════════════════════════════════════════════════════════════
-  // STEP 7: CALL LLM WITH MANDATORY STATE
+  // STEP 7: ACTION-FIRST EXECUTION (CRITICAL)
+  // If intent is FLIGHT_SEARCH and stage is READY_TO_SEARCH → BLOCK LLM, execute action
+  // ═══════════════════════════════════════════════════════════════════════════
+  const isFlightSearch = reasoning.intent === 'FLIGHT_SEARCH';
+  const isReadyToSearch = stage === 'READY_TO_SEARCH';
+
+  if (isFlightSearch && isReadyToSearch) {
+    console.log('[EXECUTION_PIPELINE] ACTION-FIRST: Blocking LLM, executing flight search');
+
+    // Build raw slots for search
+    const rawSlots: RawFlightSlots = {
+      origin: slots.origin,
+      destination: slots.destination,
+      departureDate: slots.departureDate,
+      returnDate: slots.returnDate,
+      passengers: slots.passengers,
+      cabinClass: slots.cabinClass,
+      tripType: slots.tripType,
+      direct: input.message.toLowerCase().includes('direto') || input.message.toLowerCase().includes('direct'),
+    };
+
+    // Execute search (NEVER LLM before this)
+    const searchResult = await executeFlightSearch(rawSlots, agentState.language);
+
+    // Generate response AFTER action
+    const actionResponse = generatePostActionResponse(searchResult, agentState.language);
+
+    console.log('[EXECUTION_PIPELINE] ACTION-FIRST: Search executed:', searchResult.executed);
+    console.log('[EXECUTION_PIPELINE] ACTION-FIRST: Success:', searchResult.success);
+
+    return {
+      response: actionResponse,
+      agentState,
+      actionExecuted: searchResult.executed,
+      searchResults: searchResult.results,
+      debugLog: {
+        stateInjected: true,
+        intent: reasoning.intent,
+        stage: stage,
+        language: agentState.language,
+        slotsCount: Object.keys(slots).length,
+        finalPromptLog: systemPrompt,
+        actionBlocked: true, // LLM was blocked, action executed first
+      },
+    };
+  }
+
+  // ═══════════════════════════════════════════════════════════════════════════
+  // STEP 8: REGULAR LLM FLOW (Only for non-action stages)
   // ═══════════════════════════════════════════════════════════════════════════
   const response = await generateTravelResponse(input.message, {
     agentType: input.agentType,
     conversationHistory: input.conversationHistory,
     customerName: input.customerName,
     searchResults: input.searchResults,
-    agentState, // MANDATORY - triggers state injection path
+    agentState,
   });
 
   if (!response.success || !response.message) {
@@ -294,7 +353,7 @@ export async function executePipeline(input: PipelineInput): Promise<PipelineOut
   }
 
   // ═══════════════════════════════════════════════════════════════════════════
-  // STEP 8: COMPLIANCE CHECK (post-generation validation)
+  // STEP 9: COMPLIANCE CHECK
   // ═══════════════════════════════════════════════════════════════════════════
   let finalResponse = response.message;
   try {
@@ -305,7 +364,6 @@ export async function executePipeline(input: PipelineInput): Promise<PipelineOut
     }
   } catch (e) {
     console.warn('[EXECUTION_PIPELINE] complianceLayer warning:', e);
-    // Don't throw - compliance is post-validation
   }
 
   return {
