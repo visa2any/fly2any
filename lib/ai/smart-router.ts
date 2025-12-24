@@ -11,7 +11,7 @@
  */
 
 import { callGroq, generateTravelResponse, isGroqAvailable, type GroqMessage } from './groq-client';
-import { executePipeline, StateNotInjectedError, type PipelineInput } from './execution-pipeline';
+import { executePipeline, StateNotInjectedError, PipelineNotExecutedError, type PipelineInput } from './execution-pipeline';
 import { type AgentState } from './agent-state-injector';
 import { getConsultantInfo, type TeamType } from './consultant-handoff';
 import { processUserIntent, type ReasoningOutput } from './reasoning-layer';
@@ -722,9 +722,9 @@ export async function routeQuery(
       });
 
     } catch (error) {
-      if (error instanceof StateNotInjectedError) {
-        console.error('[SMART-ROUTER] STATE_NOT_INJECTED:', error.message);
-        // Block response - cannot generate without state
+      if (error instanceof StateNotInjectedError || error instanceof PipelineNotExecutedError) {
+        console.error('[SMART-ROUTER] AI_PIPELINE_NOT_EXECUTED:', error.message);
+        // Block response - cannot generate without proper pipeline execution
         aiResponse = undefined;
       } else {
         console.error('[SMART-ROUTER] Pipeline error:', error);
