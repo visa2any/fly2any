@@ -26,6 +26,14 @@ import {
   type RawFlightSlots,
   type SearchExecutionResult,
 } from './flight-search-executor';
+import {
+  getOrCreateSession,
+  updateSession,
+  shouldForceSearch,
+  hasAllRequiredSlots,
+  getDebugPanelData,
+  type SessionState,
+} from './session-manager';
 
 // ============================================================================
 // TYPES
@@ -41,6 +49,9 @@ export interface PipelineInput {
   // Structured slots from entity extraction
   slots: HandoffSlots;
 
+  // Session tracking (CRITICAL for persistence)
+  sessionId?: string;
+
   // Optional context
   conversationHistory?: GroqMessage[];
   customerName?: string;
@@ -54,6 +65,21 @@ export interface PipelineOutput {
   agentState: AgentState;
   actionExecuted?: boolean;
   searchResults?: any;
+  debugPanel?: {
+    sessionId: string;
+    activeAgent: string;
+    language: string;
+    stage: string;
+    slots: Record<string, any>;
+    lastAction?: string;
+    apiStatus?: string;
+    guards: {
+      blockSlotQuestions: boolean;
+      blockEnglish: boolean;
+      forceSearch: boolean;
+      hasAllSlots: boolean;
+    };
+  };
   debugLog: {
     stateInjected: boolean;
     intent: string;
@@ -215,6 +241,46 @@ your ONLY valid action is to proceed with search.
  */
 export async function executePipeline(input: PipelineInput): Promise<PipelineOutput> {
   // ═══════════════════════════════════════════════════════════════════════════
+  // STEP 0: SESSION MANAGEMENT (CRITICAL - Persistence layer)
+  // ═══════════════════════════════════════════════════════════════════════════
+  const sessionId = input.sessionId || `session_${Date.now()}`;
+  const session = getOrCreateSession(sessionId);
+
+  // Update session with input slots (MERGE, never overwrite)
+  const sessionSlots: Record<string, any> = {};
+  if (input.slots) {
+    if (input.slots.origin) sessionSlots.origin = input.slots.origin.value;
+    if (input.slots.destination) sessionSlots.destination = input.slots.destination.value;
+    if (input.slots.departureDate) sessionSlots.departureDate = input.slots.departureDate.value;
+    if (input.slots.returnDate) sessionSlots.returnDate = input.slots.returnDate.value;
+    if (input.slots.passengers) sessionSlots.adults = input.slots.passengers.value;
+    if (input.slots.cabinClass) sessionSlots.cabin = input.slots.cabinClass.value;
+    if (input.slots.tripType) sessionSlots.tripType = input.slots.tripType.value;
+  }
+
+  // Detect direct flight from message
+  if (input.message.toLowerCase().includes('direto') || input.message.toLowerCase().includes('direct')) {
+    sessionSlots.direct = true;
+  }
+
+  // Get agent name
+  const agentNameMap: Record<string, string> = {
+    'customer-service': 'Lisa Thompson',
+    'flight-operations': 'Sarah Chen',
+    'hotel-accommodations': 'Marcus Rodriguez',
+    'payment-billing': 'David Park',
+    'crisis-management': 'Captain Mike Johnson',
+  };
+  const agentName = agentNameMap[input.agentType] || 'Travel Consultant';
+
+  // Update session (language LOCKED, slots MERGED, stage PROGRESSED)
+  updateSession(sessionId, {
+    language: input.language === 'pt' ? 'pt' : session.language,
+    slots: sessionSlots,
+    activeAgent: agentName,
+  });
+
+  // ═══════════════════════════════════════════════════════════════════════════
   // STEP 1: REASONING LAYER
   // ═══════════════════════════════════════════════════════════════════════════
   let reasoning: ReasoningOutput;
@@ -236,9 +302,19 @@ export async function executePipeline(input: PipelineInput): Promise<PipelineOut
   }
 
   // ═══════════════════════════════════════════════════════════════════════════
-  // STEP 2: STAGE ENGINE (from reasoning)
+  // STEP 2: STAGE ENGINE (from reasoning) + SESSION UPDATE
   // ═══════════════════════════════════════════════════════════════════════════
-  const stage: ConversationStage = reasoning.stage || input.stage || 'GATHERING_DETAILS';
+  let stage: ConversationStage = reasoning.stage || input.stage || 'GATHERING_DETAILS';
+
+  // GUARD: If all slots present, force READY_TO_SEARCH
+  const updatedSession = getOrCreateSession(sessionId);
+  if (hasAllRequiredSlots(updatedSession) && reasoning.intent === 'FLIGHT_SEARCH') {
+    stage = 'READY_TO_SEARCH';
+    console.log('[EXECUTION_PIPELINE] GUARD: All slots present → READY_TO_SEARCH');
+  }
+
+  // Update session stage
+  updateSession(sessionId, { stage });
 
   if (!stage) {
     console.error('[AI_PIPELINE_NOT_EXECUTED] stage is null');
@@ -262,14 +338,7 @@ export async function executePipeline(input: PipelineInput): Promise<PipelineOut
   // ═══════════════════════════════════════════════════════════════════════════
   // STEP 4: BUILD MANDATORY SYSTEM PROMPT WITH AGENT NAME
   // ═══════════════════════════════════════════════════════════════════════════
-  const agentNameMap: Record<string, string> = {
-    'customer-service': 'Lisa Thompson',
-    'flight-operations': 'Sarah Chen',
-    'hotel-accommodations': 'Marcus Rodriguez',
-    'payment-billing': 'David Park',
-    'crisis-management': 'Captain Mike Johnson',
-  };
-  const agentName = agentNameMap[input.agentType] || 'Travel Consultant';
+  // Note: agentName already defined in STEP 0
   const systemPrompt = buildMandatorySystemPrompt(reasoning, stage, slots, agentName);
 
   // ═══════════════════════════════════════════════════════════════════════════
@@ -299,20 +368,33 @@ export async function executePipeline(input: PipelineInput): Promise<PipelineOut
   if (isFlightSearch && isReadyToSearch) {
     console.log('[EXECUTION_PIPELINE] ACTION-FIRST: Blocking LLM, executing flight search');
 
-    // Build raw slots for search
+    // Update session: API pending
+    updateSession(sessionId, { apiStatus: 'pending', lastAction: 'flight_search_started' });
+
+    // Build raw slots from SESSION (not input) for search — SESSION IS SOURCE OF TRUTH
+    const currentSession = getOrCreateSession(sessionId);
     const rawSlots: RawFlightSlots = {
-      origin: slots.origin,
-      destination: slots.destination,
-      departureDate: slots.departureDate,
-      returnDate: slots.returnDate,
-      passengers: slots.passengers,
-      cabinClass: slots.cabinClass,
+      origin: currentSession.slots.origin || slots.origin,
+      destination: currentSession.slots.destination || slots.destination,
+      departureDate: currentSession.slots.departureDate || slots.departureDate,
+      returnDate: currentSession.slots.returnDate || slots.returnDate,
+      passengers: currentSession.slots.adults || slots.passengers,
+      cabinClass: currentSession.slots.cabin || slots.cabinClass,
       tripType: slots.tripType,
-      direct: input.message.toLowerCase().includes('direto') || input.message.toLowerCase().includes('direct'),
+      direct: currentSession.slots.direct || input.message.toLowerCase().includes('direto') || input.message.toLowerCase().includes('direct'),
     };
+
+    console.log('[EXECUTION_PIPELINE] ACTION-FIRST: Using session slots:', JSON.stringify(rawSlots, null, 2));
 
     // Execute search (NEVER LLM before this)
     const searchResult = await executeFlightSearch(rawSlots, agentState.language);
+
+    // Update session: API result
+    updateSession(sessionId, {
+      apiStatus: searchResult.success ? 'success' : 'error',
+      lastAction: searchResult.success ? 'flight_search_success' : 'flight_search_failed',
+      stage: 'SEARCH_EXECUTED',
+    });
 
     // Generate response AFTER action
     const actionResponse = generatePostActionResponse(searchResult, agentState.language);
@@ -320,11 +402,15 @@ export async function executePipeline(input: PipelineInput): Promise<PipelineOut
     console.log('[EXECUTION_PIPELINE] ACTION-FIRST: Search executed:', searchResult.executed);
     console.log('[EXECUTION_PIPELINE] ACTION-FIRST: Success:', searchResult.success);
 
+    // Get debug panel data for return
+    const debugPanelData = getDebugPanelData(sessionId);
+
     return {
       response: actionResponse,
       agentState,
       actionExecuted: searchResult.executed,
       searchResults: searchResult.results,
+      debugPanel: debugPanelData || undefined,
       debugLog: {
         stateInjected: true,
         intent: reasoning.intent,
@@ -366,9 +452,16 @@ export async function executePipeline(input: PipelineInput): Promise<PipelineOut
     console.warn('[EXECUTION_PIPELINE] complianceLayer warning:', e);
   }
 
+  // Update session with last action
+  updateSession(sessionId, { lastAction: 'llm_response_generated' });
+
+  // Get debug panel data for return
+  const debugPanelData = getDebugPanelData(sessionId);
+
   return {
     response: finalResponse,
     agentState,
+    debugPanel: debugPanelData || undefined,
     debugLog: {
       stateInjected: true,
       intent: reasoning.intent,
