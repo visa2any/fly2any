@@ -734,6 +734,129 @@ export function updateCollectedDataWithPromotion(
 }
 
 // ============================================================================
+// MANDATORY ACTION ASSERTION (RUNTIME ENFORCEMENT)
+// ============================================================================
+
+export class MandatoryActionViolation extends Error {
+  constructor(
+    public sessionId: string,
+    public stage: ConversationStage,
+    public expectedAction: string,
+    public reason: string
+  ) {
+    super(`[MANDATORY_ACTION_VIOLATION] Stage=${stage}, ExpectedAction=${expectedAction}: ${reason}`);
+    this.name = 'MandatoryActionViolation';
+  }
+}
+
+export interface ActionExecutionStatus {
+  actionExecuted: boolean;
+  actionType: 'execute_search' | 'execute_hotel' | 'ask_consent' | null;
+  results?: { count: number; data?: unknown[] };
+  error?: string;
+}
+
+/**
+ * CRITICAL ASSERTION: Throws if action was required but not executed
+ *
+ * Call this BEFORE generating AI response to enforce mandatory actions.
+ * If this throws, the agent CANNOT respond with fallback.
+ */
+export function assertMandatoryActionExecuted(
+  sessionId: string,
+  intent: string,
+  riskLevel: 'LOW' | 'MEDIUM' | 'HIGH',
+  actionStatus: ActionExecutionStatus
+): void {
+  const enforcement = enforceActionExecution(sessionId, intent, riskLevel);
+
+  // Log action status
+  console.log(`[ASSERT-ACTION] sessionId=${sessionId}, intent=${intent}, mustExecute=${enforcement.mustExecuteAction}, wasExecuted=${actionStatus.actionExecuted}`);
+
+  // If no enforcement required, pass
+  if (!enforcement.mustExecuteAction) {
+    console.log(`[ASSERT-ACTION] PASS: No enforcement required`);
+    return;
+  }
+
+  // If enforcement required and action was executed, pass
+  if (actionStatus.actionExecuted) {
+    console.log(`[ASSERT-ACTION] PASS: Action ${actionStatus.actionType} executed`);
+    return;
+  }
+
+  // VIOLATION: Action required but not executed
+  console.error(`[ASSERT-ACTION] FAIL: ${enforcement.actionType} required but not executed!`);
+
+  throw new MandatoryActionViolation(
+    sessionId,
+    enforcement.stageAfter,
+    enforcement.actionType || 'unknown',
+    enforcement.reason
+  );
+}
+
+/**
+ * Generate response based on action result (NOT fallback)
+ */
+export function generateActionBasedResponse(
+  actionStatus: ActionExecutionStatus,
+  language: string = 'en'
+): { response: string; type: 'results' | 'empty' | 'error' | 'consent' } {
+  const responses = {
+    results: {
+      en: (count: number) => `I found ${count} options for you. Here are the best matches:`,
+      pt: (count: number) => `Encontrei ${count} opções para você. Aqui estão as melhores correspondências:`,
+      es: (count: number) => `Encontré ${count} opciones para ti. Estas son las mejores coincidencias:`,
+    },
+    empty: {
+      en: "I searched but couldn't find available options for those exact dates. Would you like me to check alternative dates or nearby airports?",
+      pt: "Pesquisei mas não encontrei opções disponíveis para essas datas. Gostaria que eu verifique datas alternativas ou aeroportos próximos?",
+      es: "Busqué pero no encontré opciones disponibles para esas fechas. ¿Quieres que verifique fechas alternativas o aeropuertos cercanos?",
+    },
+    error: {
+      en: "I encountered an issue while searching. Let me try again. Can you confirm your travel dates?",
+      pt: "Encontrei um problema ao buscar. Deixe-me tentar novamente. Pode confirmar suas datas de viagem?",
+      es: "Encontré un problema al buscar. Déjame intentar de nuevo. ¿Puedes confirmar tus fechas de viaje?",
+    },
+    consent: {
+      en: "I have all the details! Can I search the best options for you now?",
+      pt: "Tenho todos os detalhes! Posso buscar as melhores opções para você agora?",
+      es: "¡Tengo todos los detalles! ¿Puedo buscar las mejores opciones para ti ahora?",
+    },
+  };
+
+  const lang = language.substring(0, 2) as 'en' | 'pt' | 'es';
+
+  if (actionStatus.actionType === 'ask_consent') {
+    return {
+      response: responses.consent[lang] || responses.consent.en,
+      type: 'consent',
+    };
+  }
+
+  if (actionStatus.error) {
+    return {
+      response: responses.error[lang] || responses.error.en,
+      type: 'error',
+    };
+  }
+
+  if (actionStatus.results && actionStatus.results.count > 0) {
+    const msg = responses.results[lang] || responses.results.en;
+    return {
+      response: msg(actionStatus.results.count),
+      type: 'results',
+    };
+  }
+
+  return {
+    response: responses.empty[lang] || responses.empty.en,
+    type: 'empty',
+  };
+}
+
+// ============================================================================
 // EXPORTS
 // ============================================================================
 

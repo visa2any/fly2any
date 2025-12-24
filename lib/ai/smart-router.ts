@@ -15,6 +15,13 @@ import { getConsultantInfo, type TeamType } from './consultant-handoff';
 import { processUserIntent, type ReasoningOutput } from './reasoning-layer';
 import { finalComplianceCheck } from './agent-compliance';
 import { orchestrateExecution, type OrchestrationResult } from './runtime-orchestrator';
+import {
+  enforceActionExecution,
+  assertMandatoryActionExecuted,
+  generateActionBasedResponse,
+  MandatoryActionViolation,
+  type ActionExecutionStatus,
+} from './conversion/stage-engine';
 
 // ═══════════════════════════════════════════════════════════════════════════
 // LANGUAGE DETECTION & LOCKING
@@ -574,13 +581,51 @@ export async function routeQuery(
   }
 
   // ═══════════════════════════════════════════════════════════════════════════
-  // INTENT-FIRST ENFORCEMENT: Block generic responses when intent is clear
+  // MANDATORY ACTION ENFORCEMENT: Block fallback when action is required
+  // ═══════════════════════════════════════════════════════════════════════════
+  const isSearchIntent = ['FLIGHT_SEARCH', 'HOTEL_SEARCH'].includes(routing.primary_intent);
+  const orchestration = updatedContext.orchestration;
+
+  // Build action status from orchestration result
+  const actionStatus: ActionExecutionStatus = {
+    actionExecuted: orchestration?.actionExecuted || false,
+    actionType: orchestration?.actionResult ? 'execute_search' : (orchestration?.nextAction === 'ask_consent' ? 'ask_consent' : null),
+    results: orchestration?.actionResult?.data ? {
+      count: orchestration.actionResult.data.count || 0,
+      data: orchestration.actionResult.data.offers || orchestration.actionResult.data.results,
+    } : undefined,
+    error: orchestration?.actionResult?.error,
+  };
+
+  let aiResponse: string | undefined;
+  let enforcementHandled = false;
+
+  // If search intent + action was executed → use action-based response (NOT AI fallback)
+  if (isSearchIntent && actionStatus.actionExecuted) {
+    const actionResponse = generateActionBasedResponse(actionStatus, lockedLanguage);
+    aiResponse = actionResponse.response;
+    enforcementHandled = true;
+    console.log(`[SMART-ROUTER] ACTION_BASED_RESPONSE: type=${actionResponse.type}`);
+  }
+
+  // If search intent + needs consent → use consent prompt (NOT AI fallback)
+  if (isSearchIntent && orchestration?.nextAction === 'ask_consent') {
+    const consentResponse = generateActionBasedResponse(
+      { actionExecuted: false, actionType: 'ask_consent' },
+      lockedLanguage
+    );
+    aiResponse = consentResponse.response;
+    enforcementHandled = true;
+    console.log(`[SMART-ROUTER] CONSENT_PROMPT_RESPONSE`);
+  }
+
+  // ═══════════════════════════════════════════════════════════════════════════
+  // FALLBACK AI RESPONSE: Only for non-search intents or when enforcement allows
   // ═══════════════════════════════════════════════════════════════════════════
   const isSpecificIntent = !['GENERAL_TRAVEL_INFO', 'CUSTOMER_SUPPORT'].includes(routing.primary_intent);
-  const shouldGenerateAI = useAI && isGroqAvailable() && !isSpecificIntent;
+  const shouldGenerateAI = useAI && isGroqAvailable() && !isSpecificIntent && !enforcementHandled;
 
-  // Generate AI response only for general queries (intent-first)
-  let aiResponse: string | undefined;
+  // Generate AI response only for general queries (NOT search intents with enforcement)
   if (shouldGenerateAI) {
     // Pass reasoning context to guide AI response
     const response = await generateTravelResponse(message, {
@@ -597,6 +642,31 @@ export async function routeQuery(
       },
     });
     if (response.success) aiResponse = response.message;
+  }
+
+  // ═══════════════════════════════════════════════════════════════════════════
+  // RUNTIME ASSERTION: Throw if mandatory action was NOT executed
+  // ═══════════════════════════════════════════════════════════════════════════
+  if (isSearchIntent && !enforcementHandled) {
+    try {
+      assertMandatoryActionExecuted(
+        sessionId,
+        routing.primary_intent,
+        routing.urgency_level === 'HIGH' || routing.urgency_level === 'CRITICAL' ? 'HIGH' : 'LOW',
+        actionStatus
+      );
+    } catch (err) {
+      if (err instanceof MandatoryActionViolation) {
+        // Log violation but don't crash - generate consent prompt instead
+        console.error(`[SMART-ROUTER] MANDATORY_ACTION_VIOLATION: ${err.message}`);
+        aiResponse = generateActionBasedResponse(
+          { actionExecuted: false, actionType: 'ask_consent' },
+          lockedLanguage
+        ).response;
+      } else {
+        throw err;
+      }
+    }
   }
 
   const consultantInfo = getConsultantInfo(routing.target_agent);
