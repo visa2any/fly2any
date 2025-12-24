@@ -753,6 +753,158 @@ export function validateHandoffMessage(
   return { valid, corrected };
 }
 
+// ═══════════════════════════════════════════════════════════════════════════
+// HANDOFF COMPLIANCE MIDDLEWARE - MUST RUN AFTER EVERY HANDOFF
+// ═══════════════════════════════════════════════════════════════════════════
+
+export interface HandoffComplianceState {
+  languageLocked: string;
+  conversationStage: string;
+  stageCollectedData: Record<string, unknown>;
+  emotionalState: string;
+  userConsents: { searchPermission: boolean; bookingPermission: boolean };
+}
+
+// Session store for compliance state persistence
+const complianceStateStore = new Map<string, HandoffComplianceState>();
+
+/**
+ * CRITICAL: Re-apply compliance after handoff
+ * Call this AFTER every agent transfer to ensure state persists
+ */
+export function reapplyComplianceAfterHandoff(
+  sessionId: string,
+  handoffPackage: HandoffContextPackage
+): HandoffComplianceState {
+  const state: HandoffComplianceState = {
+    languageLocked: handoffPackage.languageLocked,
+    conversationStage: handoffPackage.conversationStage,
+    stageCollectedData: handoffPackage.stageCollectedData,
+    emotionalState: handoffPackage.emotional_state,
+    userConsents: handoffPackage.userConsents,
+  };
+
+  // Store for this session
+  complianceStateStore.set(sessionId, state);
+
+  console.log(`[HANDOFF-COMPLIANCE] Re-applied for session ${sessionId}:`, {
+    language: state.languageLocked,
+    stage: state.conversationStage,
+    emotion: state.emotionalState,
+  });
+
+  return state;
+}
+
+/**
+ * Get persisted compliance state for session
+ */
+export function getComplianceState(sessionId: string): HandoffComplianceState | null {
+  return complianceStateStore.get(sessionId) || null;
+}
+
+/**
+ * Validate agent response doesn't violate compliance
+ * BLOCKS: Language changes, stage resets, generic greetings
+ */
+export function validateAgentComplianceAfterHandoff(
+  sessionId: string,
+  agentResponse: string,
+  targetLanguage: string
+): { valid: boolean; violations: string[]; correctedResponse: string } {
+  const violations: string[] = [];
+  let correctedResponse = agentResponse;
+  const state = getComplianceState(sessionId);
+
+  // Rule 1: Language lock - detect if agent switched language
+  if (state && state.languageLocked !== targetLanguage) {
+    violations.push(`LANGUAGE_SWITCH_BLOCKED: Tried to switch from ${state.languageLocked} to ${targetLanguage}`);
+    // Force language back
+    targetLanguage = state.languageLocked;
+  }
+
+  // Rule 2: Check for generic greetings after handoff
+  const GENERIC_GREETING_PATTERNS = [
+    /^(hi|hello|hey)[!,.]?\s*(how can i|what can i|how may i)/i,
+    /^(olá|oi)[!,.]?\s*(como posso|em que posso)/i,
+    /^(hola)[!,.]?\s*(cómo puedo|en qué puedo)/i,
+    /welcome back.*how can/i,
+    /good (morning|afternoon|evening).*how can/i,
+  ];
+
+  for (const pattern of GENERIC_GREETING_PATTERNS) {
+    if (pattern.test(agentResponse)) {
+      violations.push('GENERIC_GREETING_AFTER_HANDOFF');
+      // Don't just flag - actually replace
+      correctedResponse = correctedResponse.replace(pattern, '');
+      break;
+    }
+  }
+
+  // Rule 3: Prevent stage reset language
+  const STAGE_RESET_PATTERNS = [
+    /let'?s start from the beginning/i,
+    /to get started/i,
+    /first,?\s*let me ask/i,
+    /vamos começar do início/i,
+    /primero,?\s*déjame preguntar/i,
+  ];
+
+  if (state && state.conversationStage !== 'DISCOVERY') {
+    for (const pattern of STAGE_RESET_PATTERNS) {
+      if (pattern.test(agentResponse)) {
+        violations.push(`STAGE_RESET_BLOCKED: Agent tried to reset from ${state.conversationStage}`);
+        correctedResponse = correctedResponse.replace(pattern, '');
+        break;
+      }
+    }
+  }
+
+  return {
+    valid: violations.length === 0,
+    violations,
+    correctedResponse: correctedResponse.trim(),
+  };
+}
+
+/**
+ * Enforce language lock on response
+ * If response is in wrong language, flag it
+ */
+export function enforceLanguageLock(
+  sessionId: string,
+  response: string
+): { enforced: boolean; language: string } {
+  const state = getComplianceState(sessionId);
+  if (!state) {
+    return { enforced: false, language: 'en' };
+  }
+
+  // Simple language detection heuristics
+  const isPT = /\b(você|para|não|está|agora|obrigado|ajudar|viagem)\b/i.test(response);
+  const isES = /\b(usted|para|está|ahora|gracias|ayudar|viaje)\b/i.test(response);
+  const isEN = /\b(you|for|not|is|now|thank|help|travel|the|and)\b/i.test(response);
+
+  let detectedLang = 'en';
+  if (isPT && !isEN) detectedLang = 'pt';
+  else if (isES && !isEN) detectedLang = 'es';
+
+  const enforced = detectedLang !== state.languageLocked;
+
+  if (enforced) {
+    console.warn(`[HANDOFF-COMPLIANCE] Language mismatch! Expected: ${state.languageLocked}, Detected: ${detectedLang}`);
+  }
+
+  return { enforced, language: state.languageLocked };
+}
+
+/**
+ * Clear compliance state for session (for testing)
+ */
+export function clearComplianceState(sessionId: string): void {
+  complianceStateStore.delete(sessionId);
+}
+
 /**
  * Generate compliant handoff introduction with language enforcement
  */
