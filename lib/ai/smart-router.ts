@@ -11,6 +11,8 @@
  */
 
 import { callGroq, generateTravelResponse, isGroqAvailable, type GroqMessage } from './groq-client';
+import { executePipeline, StateNotInjectedError, type PipelineInput } from './execution-pipeline';
+import { type AgentState } from './agent-state-injector';
 import { getConsultantInfo, type TeamType } from './consultant-handoff';
 import { processUserIntent, type ReasoningOutput } from './reasoning-layer';
 import { finalComplianceCheck } from './agent-compliance';
@@ -682,28 +684,53 @@ export async function routeQuery(
   }
 
   // ═══════════════════════════════════════════════════════════════════════════
-  // FALLBACK AI RESPONSE: Only for non-search intents or when enforcement allows
+  // UNIFIED PIPELINE: ALL AI responses go through mandatory state injection
   // ═══════════════════════════════════════════════════════════════════════════
   const isSpecificIntent = !['GENERAL_TRAVEL_INFO', 'CUSTOMER_SUPPORT'].includes(routing.primary_intent);
-  const shouldGenerateAI = useAI && isGroqAvailable() && !isSpecificIntent && !enforcementHandled;
+  const shouldGenerateAI = useAI && isGroqAvailable() && !enforcementHandled;
 
-  // Generate AI response only for general queries (NOT search intents with enforcement)
   if (shouldGenerateAI) {
-    // Pass reasoning context to guide AI response
-    const response = await generateTravelResponse(message, {
-      agentType: routing.target_agent,
-      conversationHistory,
-      customerName,
-      reasoning: {
-        language: lockedLanguage,
-        missing_context: reasoning.missing_context,
-        clarifying_questions: reasoning.clarifying_questions,
-        tone_guidance: reasoning.tone_guidance,
-        response_strategy: reasoning.response_strategy,
-        confidence_level: reasoning.confidence_level,
-      },
-    });
-    if (response.success) aiResponse = response.message;
+    try {
+      // Determine stage from reasoning
+      const stage = reasoning.stage || 'GATHERING_DETAILS';
+
+      // Build pipeline input with MANDATORY state
+      const pipelineInput: PipelineInput = {
+        message,
+        language: (lockedLanguage === 'pt' || lockedLanguage === 'es' ? lockedLanguage : 'en') as 'en' | 'pt' | 'es',
+        intent: routing.primary_intent,
+        stage: stage,
+        agentType: routing.target_agent,
+        slots: updatedContext.structuredSlots || { language: lockedLanguage as 'en' | 'pt' | 'es' },
+        conversationHistory,
+        customerName,
+        reasoning,
+        handoffFrom: options.previousTeam ? `Agent (${options.previousTeam})` : undefined,
+        searchResults: orchestration?.actionResult?.data,
+      };
+
+      // Execute unified pipeline (throws if state not injected)
+      const pipelineResult = await executePipeline(pipelineInput);
+      aiResponse = pipelineResult.response;
+
+      // Log successful pipeline execution
+      console.log('[SMART-ROUTER] PIPELINE_SUCCESS:', {
+        intent: pipelineResult.debugLog.intent,
+        stage: pipelineResult.debugLog.stage,
+        language: pipelineResult.debugLog.language,
+        slotsCount: pipelineResult.debugLog.slotsCount,
+      });
+
+    } catch (error) {
+      if (error instanceof StateNotInjectedError) {
+        console.error('[SMART-ROUTER] STATE_NOT_INJECTED:', error.message);
+        // Block response - cannot generate without state
+        aiResponse = undefined;
+      } else {
+        console.error('[SMART-ROUTER] Pipeline error:', error);
+        throw error;
+      }
+    }
   }
 
   // ═══════════════════════════════════════════════════════════════════════════
@@ -767,30 +794,39 @@ export async function routeQuery(
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
-// AGENT RESPONSE WITH CONTEXT
+// AGENT RESPONSE WITH CONTEXT (Uses unified pipeline)
 // ═══════════════════════════════════════════════════════════════════════════
 export async function getAgentResponse(
   message: string,
   conversationHistory: GroqMessage[] = []
 ): Promise<{ response: string; context: RoutingContext; provider?: string }> {
   const context = await routeUserMessage(message);
+  const detectedLang = detectLanguage(message);
 
-  const contextPrefix = context.urgency_level === 'CRITICAL'
-    ? '[CRITICAL] '
-    : context.emotional_state === 'FRUSTRATED'
-    ? '[User frustrated] '
-    : '';
+  try {
+    // Use unified pipeline with mandatory state injection
+    const pipelineResult = await executePipeline({
+      message,
+      language: (detectedLang === 'pt' || detectedLang === 'es' ? detectedLang : 'en') as 'en' | 'pt' | 'es',
+      intent: context.primary_intent,
+      stage: 'GATHERING_DETAILS',
+      agentType: context.target_agent,
+      slots: { language: (detectedLang === 'pt' || detectedLang === 'es' ? detectedLang : 'en') as 'en' | 'pt' | 'es' },
+      conversationHistory: conversationHistory.slice(-6),
+    });
 
-  const response = await generateTravelResponse(contextPrefix + message, {
-    agentType: context.target_agent,
-    conversationHistory: conversationHistory.slice(-6),
-  });
-
-  return {
-    response: response.message || "I'm connecting you with a specialist who can help.",
-    context,
-    provider: response.provider,
-  };
+    return {
+      response: pipelineResult.response,
+      context,
+      provider: 'groq',
+    };
+  } catch (error) {
+    console.error('[getAgentResponse] Pipeline failed:', error);
+    return {
+      response: "I'm connecting you with a specialist who can help.",
+      context,
+    };
+  }
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
