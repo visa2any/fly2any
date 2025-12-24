@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, useCallback } from 'react';
 import {
   MessageCircle,
   X,
@@ -19,6 +19,7 @@ import {
 import { useVoiceInput } from '@/hooks/useVoiceInput';
 import { useVoiceOutput } from '@/hooks/useVoiceOutput';
 import { VoiceMicButton, VoiceStatusIndicator } from './VoiceMicButton';
+import { cn } from '@/lib/utils';
 import { getConsultant, type TeamType, type ConsultantProfile } from '@/lib/ai/consultant-profiles';
 import { getEngagementStage, buildAuthPrompt, type UserSession } from '@/lib/ai/auth-strategy';
 import { FlightResultCard } from './FlightResultCard';
@@ -212,11 +213,19 @@ export function AITravelAssistant({ language = 'en' }: Props) {
 
   // VOICE INPUT/OUTPUT INTEGRATION
   const [voiceEnabled, setVoiceEnabled] = useState(true);
+  const [voiceAutoSending, setVoiceAutoSending] = useState(false);
+  const sendMessageRef = useRef<() => void>(() => {});
+
   const voiceInput = useVoiceInput({
     language: language === 'pt' ? 'pt-BR' : language === 'es' ? 'es-ES' : 'en-US',
     onTranscript: (text) => {
-      // Set transcript to input - will be sent via mic button release or manual send
+      // Set transcript and auto-send after 800ms visual feedback
       setInputMessage(text);
+      setVoiceAutoSending(true);
+      setTimeout(() => {
+        setVoiceAutoSending(false);
+        sendMessageRef.current();
+      }, 800);
     },
   });
 
@@ -1195,6 +1204,11 @@ export function AITravelAssistant({ language = 'en' }: Props) {
       handleSendMessage();
     }
   };
+
+  // Voice auto-send ref update
+  useEffect(() => {
+    sendMessageRef.current = handleSendMessage;
+  }, [handleSendMessage]);
 
   // ============================================================================
   // E2E BOOKING FLOW HANDLERS
@@ -2345,7 +2359,7 @@ export function AITravelAssistant({ language = 'en' }: Props) {
                 )}
                 <div className="flex gap-2">
                   {/* Voice Mic Button */}
-                  {voiceEnabled && voiceInput.isSupported && (
+                  {voiceEnabled && (
                     <VoiceMicButton
                       isListening={voiceInput.isListening}
                       isSupported={voiceInput.isSupported}
@@ -2365,14 +2379,29 @@ export function AITravelAssistant({ language = 'en' }: Props) {
                     onChange={(e) => setInputMessage(e.target.value)}
                     onKeyPress={handleKeyPress}
                     placeholder={voiceInput.isListening ? (language === 'pt' ? 'Ouvindo...' : language === 'es' ? 'Escuchando...' : 'Listening...') : t.placeholder}
-                    className="flex-1 px-3 py-2.5 border border-neutral-200 rounded-xl focus:border-primary-500 focus:ring-2 focus:ring-primary-500/20 transition-all duration-150 ease-[cubic-bezier(0.2,0.8,0.2,1)] text-sm placeholder:text-neutral-400 bg-neutral-50/50"
+                    className={cn(
+                      'flex-1 px-3 py-2.5 border rounded-xl text-sm placeholder:text-neutral-400 transition-all duration-200',
+                      voiceAutoSending
+                        ? 'border-success bg-success/5 ring-2 ring-success/30 animate-pulse'
+                        : voiceInput.isListening
+                        ? 'border-fly2any-red/50 bg-fly2any-red/5'
+                        : 'border-neutral-200 bg-neutral-50/50 focus:border-primary-500 focus:ring-2 focus:ring-primary-500/20'
+                    )}
+                    disabled={voiceAutoSending}
                   />
                   <button
                     onClick={handleSendMessage}
-                    disabled={!inputMessage.trim() || isTyping}
-                    className="px-4 py-2.5 bg-primary-500 hover:bg-primary-600 disabled:bg-neutral-200 text-white rounded-xl transition-all duration-150 ease-[cubic-bezier(0.2,0.8,0.2,1)] flex items-center gap-2 font-medium text-sm disabled:cursor-not-allowed shadow-md active:scale-95"
+                    disabled={!inputMessage.trim() || isTyping || voiceAutoSending}
+                    className={cn(
+                      'px-4 py-2.5 text-white rounded-xl transition-all duration-150 flex items-center gap-2 font-medium text-sm shadow-md active:scale-95',
+                      voiceAutoSending
+                        ? 'bg-success hover:bg-success cursor-wait'
+                        : 'bg-primary-500 hover:bg-primary-600 disabled:bg-neutral-200 disabled:cursor-not-allowed'
+                    )}
                   >
                     {isTyping ? (
+                      <Loader2 className="w-5 h-5 animate-spin" />
+                    ) : voiceAutoSending ? (
                       <Loader2 className="w-5 h-5 animate-spin" />
                     ) : (
                       <Send className="w-5 h-5" />
