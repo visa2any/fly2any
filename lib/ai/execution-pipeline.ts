@@ -156,30 +156,34 @@ export function buildAgentState(input: PipelineInput): AgentState {
 }
 
 /**
- * Build MANDATORY system prompt (NON-NEGOTIABLE format)
+ * Build MANDATORY system prompt — ABSOLUTE TRUTH format
  */
 export function buildMandatorySystemPrompt(
   reasoning: ReasoningOutput,
   stage: ConversationStage,
-  slots: Record<string, any>
+  slots: Record<string, any>,
+  agentName: string = 'Travel Consultant'
 ): string {
   return `
-SYSTEM STATE (NON-NEGOTIABLE)
+SYSTEM STATE — ABSOLUTE TRUTH
 
 Language: ${reasoning.language || 'en'}
+Active Agent: ${agentName}
 Intent: ${reasoning.intent}
 Stage: ${stage}
 
-Slots:
+Slots (DO NOT ASK AGAIN):
 ${JSON.stringify(slots, null, 2)}
 
 Rules:
-- Never ask for slots already filled
+- Never ask for slots already present
+- Never say "I couldn't find flights" before search
 - Never switch language
-- Never claim no results before search
-- Act according to stage only
+- Never restart conversation
+- Act ONLY according to stage
 
-If you violate any rule, the response is invalid.
+If slots are complete and stage is READY_TO_SEARCH,
+your ONLY valid action is to proceed with search.
 `;
 }
 
@@ -246,9 +250,17 @@ export async function executePipeline(input: PipelineInput): Promise<PipelineOut
   }
 
   // ═══════════════════════════════════════════════════════════════════════════
-  // STEP 4: BUILD MANDATORY SYSTEM PROMPT
+  // STEP 4: BUILD MANDATORY SYSTEM PROMPT WITH AGENT NAME
   // ═══════════════════════════════════════════════════════════════════════════
-  const systemPrompt = buildMandatorySystemPrompt(reasoning, stage, slots);
+  const agentNameMap: Record<string, string> = {
+    'customer-service': 'Lisa Thompson',
+    'flight-operations': 'Sarah Chen',
+    'hotel-accommodations': 'Marcus Rodriguez',
+    'payment-billing': 'David Park',
+    'crisis-management': 'Captain Mike Johnson',
+  };
+  const agentName = agentNameMap[input.agentType] || 'Travel Consultant';
+  const systemPrompt = buildMandatorySystemPrompt(reasoning, stage, slots, agentName);
 
   // ═══════════════════════════════════════════════════════════════════════════
   // STEP 5: LOG FINAL PROMPT (DEBUG)
