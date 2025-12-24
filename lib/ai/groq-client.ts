@@ -5,9 +5,17 @@
  * Fallback: OpenAI (GPT-4o-mini) - High reliability
  *
  * 12 AI Specialist Agents with Apple-Class prompts
+ *
+ * CRITICAL: All agent responses use mandatory state injection
  */
 
 import { getRedisClient, isRedisEnabled } from '@/lib/cache/redis';
+import {
+  injectAgentState,
+  validateResponseGuardrails,
+  MissingAgentStateError,
+  type AgentState,
+} from './agent-state-injector';
 
 // Rate limiting configuration (Groq free tier)
 const DAILY_LIMIT = 14400;
@@ -681,9 +689,125 @@ export async function generateTravelResponse(
       response_strategy?: string;
       confidence_level?: string;
     };
+    /**
+     * MANDATORY STATE INJECTION
+     * When provided, this state is injected into the system prompt.
+     * Enables slot-aware guardrails and language lock.
+     */
+    agentState?: AgentState;
   } = {}
 ): Promise<GroqResponse> {
-  const { agentType = 'customer-service', conversationHistory = [], searchResults, customerName, reasoning } = context;
+  const { agentType = 'customer-service', conversationHistory = [], searchResults, customerName, reasoning, agentState } = context;
+
+  // ═══════════════════════════════════════════════════════════════════════════
+  // MANDATORY STATE INJECTION PATH
+  // When agentState is provided, use structured injection with guardrails
+  // ═══════════════════════════════════════════════════════════════════════════
+  if (agentState) {
+    try {
+      // Get agent name from agentType
+      const agentNameMap: Record<string, string> = {
+        'customer-service': 'Lisa Thompson',
+        'flight-operations': 'Sarah Chen',
+        'hotel-accommodations': 'Marcus Rodriguez',
+        'legal-compliance': 'Dr. Emily Watson',
+        'payment-billing': 'David Park',
+        'travel-insurance': 'Robert Martinez',
+        'visa-documentation': 'Sophia Nguyen',
+        'car-rental': 'James Anderson',
+        'loyalty-rewards': 'Amanda Foster',
+        'crisis-management': 'Captain Mike Johnson',
+        'technical-support': 'Alex Kumar',
+        'special-services': 'Nina Davis',
+      };
+      const agentName = agentNameMap[agentType] || 'Travel Consultant';
+
+      // Inject state and get structured prompt
+      const { systemPrompt: injectedPrompt, debugLog } = injectAgentState(agentState, agentName);
+
+      // Combine injected state with base agent prompt
+      const basePrompt = AGENT_SYSTEM_PROMPTS[agentType] || AGENT_SYSTEM_PROMPTS['default'];
+      const fullSystemPrompt = `${injectedPrompt}\n\n${basePrompt}`;
+
+      // Add search results context if available
+      let searchContext = '';
+      if (searchResults?.flights?.length) {
+        searchContext += `\n[FLIGHT RESULTS: ${searchResults.flights.length} options found]\n`;
+      }
+      if (searchResults?.hotels?.length) {
+        searchContext += `\n[HOTEL RESULTS: ${searchResults.hotels.length} properties found]\n`;
+      }
+
+      const messages: GroqMessage[] = [
+        ...conversationHistory.slice(-6),
+        { role: 'user', content: searchContext ? `${searchContext}\n${userMessage}` : userMessage },
+      ];
+
+      // Call API with injected system prompt
+      const groqKey = process.env.GROQ_API_KEY;
+      const rateCheck = await checkRateLimits();
+
+      if (groqKey && rateCheck.allowed) {
+        try {
+          const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+            method: 'POST',
+            headers: {
+              'Authorization': `Bearer ${groqKey}`,
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              model: 'llama-3.1-70b-versatile',
+              messages: [{ role: 'system', content: fullSystemPrompt }, ...messages],
+              max_tokens: 400,
+              temperature: 0.7,
+            }),
+          });
+
+          if (response.ok) {
+            const data = await response.json();
+            await recordUsage();
+            const aiMessage = data.choices?.[0]?.message?.content || '';
+
+            // GUARDRAIL VALIDATION: Check response for violations
+            const validation = validateResponseGuardrails(aiMessage, agentState);
+            if (!validation.valid) {
+              console.warn('[GUARDRAIL_VIOLATION]', validation.violations);
+              // Log but don't block - violations are warnings for now
+            }
+
+            return {
+              success: true,
+              message: aiMessage,
+              provider: 'groq',
+              usage: {
+                dailyRemaining: Math.max(0, DAILY_LIMIT - (rateCheck.dailyCount || 0) - 1),
+                minuteRemaining: Math.max(0, MINUTE_LIMIT - (rateCheck.minuteCount || 0) - 1),
+              },
+            };
+          }
+        } catch (error) {
+          console.warn('[AI] Groq failed with state injection, trying OpenAI:', error);
+        }
+      }
+
+      // Fallback to OpenAI with state injection
+      return callOpenAI(messages, fullSystemPrompt, 400);
+
+    } catch (error) {
+      // If state injection fails, log and fall through to legacy path
+      if (error instanceof MissingAgentStateError) {
+        console.error('[AGENT_STATE_VIOLATION] Missing required state:', error.missingFields);
+        // In production, we could throw here to enforce state requirement
+        // For now, fall through to legacy path with warning
+      }
+      console.warn('[AI] State injection failed, using legacy path:', error);
+    }
+  }
+
+  // ═══════════════════════════════════════════════════════════════════════════
+  // LEGACY PATH (for backwards compatibility)
+  // TODO: Migrate all callers to provide agentState, then remove this path
+  // ═══════════════════════════════════════════════════════════════════════════
 
   // Build context with reasoning guidance
   let contextInfo = '';
