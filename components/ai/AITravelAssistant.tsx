@@ -14,9 +14,7 @@ import {
   Sparkles,
   LogIn,
   UserPlus,
-  Plane,
-  Mic,
-  Volume2
+  Plane
 } from 'lucide-react';
 import { useVoiceInput } from '@/hooks/useVoiceInput';
 import { useVoiceOutput } from '@/hooks/useVoiceOutput';
@@ -225,9 +223,6 @@ export function AITravelAssistant({ language = 'en' }: Props) {
   const voiceOutput = useVoiceOutput({
     language: language === 'pt' ? 'pt-BR' : language === 'es' ? 'es-ES' : 'en-US',
   });
-
-  // Voice message handler reference (set after handleSendMessage is defined)
-  const voiceMessageRef = useRef<(text: string) => void>(() => {});
 
   // Analytics tracking
   const analytics = useAIAnalytics({
@@ -531,6 +526,11 @@ export function AITravelAssistant({ language = 'en' }: Props) {
     setTypingState(null);
     setCurrentTypingConsultant(null);
     setTypingStage(0);
+
+    // Auto-speak AI response if voice is enabled (skip widget-heavy responses)
+    if (voiceEnabled && voiceOutput.isSupported && !additionalData?.flightResults && !additionalData?.hotelResults) {
+      voiceOutput.speak(responseContent, 'DISCOVERY');
+    }
 
     // Save assistant message to conversation persistence
     if (conversation) {
