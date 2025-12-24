@@ -464,6 +464,276 @@ export function resetStageContext(sessionId: string): void {
 }
 
 // ============================================================================
+// MANDATORY ACTION ENFORCEMENT
+// ============================================================================
+
+export interface EnforcementResult {
+  mustExecuteAction: boolean;
+  actionType: 'execute_search' | 'ask_consent' | 'collect_data' | null;
+  blockFallback: boolean;
+  reason: string;
+  stageBefore: ConversationStage;
+  stageAfter: ConversationStage;
+  missingContext: string[];
+  log: EnforcementLog;
+}
+
+export interface EnforcementLog {
+  timestamp: number;
+  sessionId: string;
+  stageBefore: ConversationStage;
+  stageAfter: ConversationStage;
+  intent: string;
+  riskLevel: 'LOW' | 'MEDIUM' | 'HIGH';
+  contextComplete: boolean;
+  actionEnforced: string | null;
+  fallbackBlocked: boolean;
+}
+
+/**
+ * CRITICAL: Enforce mandatory action execution
+ *
+ * Rules:
+ * - If intent = FLIGHT_SEARCH AND missingContext.length === 0 AND risk is LOW/MEDIUM
+ *   → MUST either auto-promote to READY_TO_SEARCH + execute, OR ask consent
+ * - BLOCK generic fallback when context is complete
+ * - In READY_TO_SEARCH, action execution is MANDATORY before agent response
+ */
+export function enforceActionExecution(
+  sessionId: string,
+  intent: string,
+  riskLevel: 'LOW' | 'MEDIUM' | 'HIGH'
+): EnforcementResult {
+  const context = getOrCreateStageContext(sessionId);
+  const stageBefore = context.currentStage;
+
+  // Calculate missing context
+  const missingContext: string[] = [];
+  if (!context.collectedData.destination && !context.collectedData.origin) {
+    missingContext.push('origin_or_destination');
+  }
+  if (!context.collectedData.dates) {
+    missingContext.push('travel_dates');
+  }
+
+  const contextComplete = missingContext.length === 0;
+  const isFlightSearch = /flight|voo|vuelo|fly/i.test(intent);
+  const isHotelSearch = /hotel|hospedagem|alojamiento|stay|accommodation/i.test(intent);
+  const isSearchIntent = isFlightSearch || isHotelSearch;
+  const isLowRisk = riskLevel === 'LOW' || riskLevel === 'MEDIUM';
+
+  // Create enforcement log
+  const log: EnforcementLog = {
+    timestamp: Date.now(),
+    sessionId,
+    stageBefore,
+    stageAfter: stageBefore, // Will be updated
+    intent,
+    riskLevel,
+    contextComplete,
+    actionEnforced: null,
+    fallbackBlocked: false,
+  };
+
+  // ============================================================================
+  // RULE 1: Context complete + Search intent + Low risk = MUST ACT
+  // ============================================================================
+  if (isSearchIntent && contextComplete && isLowRisk) {
+    // Check if we have search consent
+    if (context.userConsents.searchPermission) {
+      // AUTO-PROMOTE to READY_TO_SEARCH if not there
+      if (context.currentStage !== 'READY_TO_SEARCH') {
+        context.previousStage = context.currentStage;
+        context.currentStage = 'READY_TO_SEARCH';
+        context.stageHistory.push({
+          from: stageBefore,
+          to: 'READY_TO_SEARCH',
+          timestamp: Date.now(),
+          trigger: `[ENFORCEMENT] Auto-promoted for ${intent}`,
+        });
+        stageStore.set(sessionId, context);
+      }
+
+      log.stageAfter = 'READY_TO_SEARCH';
+      log.actionEnforced = 'execute_search';
+      log.fallbackBlocked = true;
+
+      console.log(`[STAGE-ENGINE-ENFORCE] MUST EXECUTE: intent=${intent}, stage=${stageBefore}→READY_TO_SEARCH`);
+
+      return {
+        mustExecuteAction: true,
+        actionType: 'execute_search',
+        blockFallback: true,
+        reason: 'Context complete, consent granted, search MUST execute',
+        stageBefore,
+        stageAfter: 'READY_TO_SEARCH',
+        missingContext: [],
+        log,
+      };
+    } else {
+      // No consent - MUST ask for consent (not fallback)
+      log.stageAfter = context.currentStage;
+      log.actionEnforced = 'ask_consent';
+      log.fallbackBlocked = true;
+
+      console.log(`[STAGE-ENGINE-ENFORCE] MUST ASK CONSENT: intent=${intent}, stage=${stageBefore}`);
+
+      return {
+        mustExecuteAction: true,
+        actionType: 'ask_consent',
+        blockFallback: true,
+        reason: 'Context complete but consent required - must ask permission',
+        stageBefore,
+        stageAfter: context.currentStage,
+        missingContext: [],
+        log,
+      };
+    }
+  }
+
+  // ============================================================================
+  // RULE 2: In READY_TO_SEARCH - action is MANDATORY before response
+  // ============================================================================
+  if (context.currentStage === 'READY_TO_SEARCH' && isSearchIntent) {
+    if (context.userConsents.searchPermission && contextComplete) {
+      log.stageAfter = 'READY_TO_SEARCH';
+      log.actionEnforced = 'execute_search';
+      log.fallbackBlocked = true;
+
+      console.log(`[STAGE-ENGINE-ENFORCE] MANDATORY IN READY_TO_SEARCH: execute_search`);
+
+      return {
+        mustExecuteAction: true,
+        actionType: 'execute_search',
+        blockFallback: true,
+        reason: 'In READY_TO_SEARCH with consent - execution mandatory',
+        stageBefore,
+        stageAfter: 'READY_TO_SEARCH',
+        missingContext: [],
+        log,
+      };
+    }
+
+    if (!context.userConsents.searchPermission) {
+      log.stageAfter = 'READY_TO_SEARCH';
+      log.actionEnforced = 'ask_consent';
+      log.fallbackBlocked = true;
+
+      return {
+        mustExecuteAction: true,
+        actionType: 'ask_consent',
+        blockFallback: true,
+        reason: 'In READY_TO_SEARCH but missing consent',
+        stageBefore,
+        stageAfter: 'READY_TO_SEARCH',
+        missingContext: [],
+        log,
+      };
+    }
+  }
+
+  // ============================================================================
+  // RULE 3: Context incomplete - collect data (allow fallback for discovery)
+  // ============================================================================
+  if (isSearchIntent && !contextComplete) {
+    log.stageAfter = context.currentStage;
+    log.actionEnforced = 'collect_data';
+    log.fallbackBlocked = false;
+
+    return {
+      mustExecuteAction: false,
+      actionType: 'collect_data',
+      blockFallback: false,
+      reason: `Missing context: ${missingContext.join(', ')}`,
+      stageBefore,
+      stageAfter: context.currentStage,
+      missingContext,
+      log,
+    };
+  }
+
+  // ============================================================================
+  // DEFAULT: No enforcement
+  // ============================================================================
+  log.stageAfter = context.currentStage;
+
+  return {
+    mustExecuteAction: false,
+    actionType: null,
+    blockFallback: false,
+    reason: 'No enforcement required',
+    stageBefore,
+    stageAfter: context.currentStage,
+    missingContext,
+    log,
+  };
+}
+
+/**
+ * Check if fallback response is allowed
+ */
+export function isFallbackAllowed(
+  sessionId: string,
+  intent: string,
+  riskLevel: 'LOW' | 'MEDIUM' | 'HIGH'
+): { allowed: boolean; reason: string } {
+  const enforcement = enforceActionExecution(sessionId, intent, riskLevel);
+
+  if (enforcement.blockFallback) {
+    return {
+      allowed: false,
+      reason: enforcement.reason,
+    };
+  }
+
+  return {
+    allowed: true,
+    reason: 'Fallback permitted',
+  };
+}
+
+/**
+ * Update collected data and auto-promote if ready
+ */
+export function updateCollectedDataWithPromotion(
+  sessionId: string,
+  message: string
+): { promoted: boolean; newStage: ConversationStage } {
+  const context = getOrCreateStageContext(sessionId);
+  const beforeStage = context.currentStage;
+
+  // Extract data
+  context.collectedData = extractDataFromMessage(message, context.collectedData);
+
+  // Check if ready to promote
+  const hasDestination = !!context.collectedData.destination;
+  const hasOrigin = !!context.collectedData.origin;
+  const hasDates = !!context.collectedData.dates;
+
+  if ((hasDestination || hasOrigin) && hasDates) {
+    // Ready for search - promote to READY_TO_SEARCH if in earlier stage
+    if (beforeStage === 'DISCOVERY' || beforeStage === 'NARROWING') {
+      context.previousStage = beforeStage;
+      context.currentStage = 'READY_TO_SEARCH';
+      context.stageHistory.push({
+        from: beforeStage,
+        to: 'READY_TO_SEARCH',
+        timestamp: Date.now(),
+        trigger: '[AUTO-PROMOTE] Data complete',
+      });
+      stageStore.set(sessionId, context);
+
+      console.log(`[STAGE-ENGINE] AUTO-PROMOTED: ${beforeStage} → READY_TO_SEARCH`);
+
+      return { promoted: true, newStage: 'READY_TO_SEARCH' };
+    }
+  }
+
+  stageStore.set(sessionId, context);
+  return { promoted: false, newStage: context.currentStage };
+}
+
+// ============================================================================
 // EXPORTS
 // ============================================================================
 
