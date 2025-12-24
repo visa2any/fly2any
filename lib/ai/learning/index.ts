@@ -72,3 +72,22 @@ export {
   extractTrafficOrigin,
   isValidOrigin,
 } from './traffic-origin';
+
+// ML Signal Engine (Advisory-Only)
+export {
+  type MLModelType,
+  type MLSignal,
+  type MLSignalStatus,
+  type IntentConfidenceSignal,
+  type StageDropoffSignal,
+  type AgentRoutingSignal,
+  type MLAnalysisReport,
+  mlSignalStore,
+  mlAuditLog,
+  predictIntentConfidence,
+  predictStageDropoff,
+  predictOptimalAgent,
+  runMLAnalysis,
+  getApprovedSignals,
+  isMLSafeForDomain,
+} from './ml-signal-engine';
