@@ -391,7 +391,7 @@ export function getPreviousConsultantTeam(
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
-// HANDOFF CONTEXT PACKAGE (Enhanced)
+// HANDOFF CONTEXT PACKAGE (Enhanced with Compliance Persistence)
 // ═══════════════════════════════════════════════════════════════════════════
 export interface HandoffContextPackage {
   from_agent: TeamType;
@@ -406,6 +406,14 @@ export interface HandoffContextPackage {
   risk_flags: string[];
   recommended_tone: string;
   handoff_count: number;
+  // COMPLIANCE PERSISTENCE (IMMUTABLE during handoff)
+  languageLocked: string;          // MUST persist: en, pt, es
+  conversationStage: string;       // MUST persist: DISCOVERY, NARROWING, etc.
+  stageCollectedData: Record<string, unknown>; // Trip data collected so far
+  userConsents: {                  // Consent status
+    searchPermission: boolean;
+    bookingPermission: boolean;
+  };
 }
 
 let sessionHandoffCount = 0;
@@ -413,6 +421,7 @@ const MAX_HANDOFFS = 2;
 
 /**
  * Create handoff context package for agent transfer
+ * CRITICAL: Preserves compliance state across handoffs
  */
 export function createHandoffPackage(
   fromTeam: TeamType,
@@ -426,6 +435,11 @@ export function createHandoffPackage(
     known_data?: string[];
     open_questions?: string[];
     risk_flags?: string[];
+    // COMPLIANCE FIELDS (MUST be passed through)
+    languageLocked?: string;
+    conversationStage?: string;
+    stageCollectedData?: Record<string, unknown>;
+    userConsents?: { searchPermission: boolean; bookingPermission: boolean };
   }
 ): HandoffContextPackage {
   sessionHandoffCount++;
@@ -449,6 +463,11 @@ export function createHandoffPackage(
       context.urgency_level as UrgencyLevel || 'MEDIUM'
     ).recommended_tone,
     handoff_count: sessionHandoffCount,
+    // COMPLIANCE PERSISTENCE (NEVER LOST)
+    languageLocked: context.languageLocked || 'en',
+    conversationStage: context.conversationStage || 'DISCOVERY',
+    stageCollectedData: context.stageCollectedData || {},
+    userConsents: context.userConsents || { searchPermission: false, bookingPermission: false },
   };
 }
 
@@ -693,4 +712,95 @@ export function logQAIncident(
 ): void {
   // In production, this would log to monitoring system
   console.log(`[QA Guardrail] ${type}:`, details.domain);
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// HANDOFF COMPLIANCE VALIDATION
+// ═══════════════════════════════════════════════════════════════════════════
+
+const FORBIDDEN_HANDOFF_PATTERNS = [
+  /how can i help/i,
+  /what can i assist/i,
+  /how may i assist/i,
+];
+
+/**
+ * Validate handoff message against compliance rules
+ * CRITICAL: Ensures forbidden openers don't bypass during handoff
+ */
+export function validateHandoffMessage(
+  message: string,
+  languageLocked: string
+): { valid: boolean; corrected: string } {
+  let corrected = message;
+  let valid = true;
+
+  // Check forbidden openers
+  for (const pattern of FORBIDDEN_HANDOFF_PATTERNS) {
+    if (pattern.test(message)) {
+      valid = false;
+      // Replace with context-aware greeting based on language
+      const contextOpeners: Record<string, string> = {
+        en: "I'm here to assist with your travel plans.",
+        pt: 'Estou aqui para ajudar com seus planos de viagem.',
+        es: 'Estoy aquí para ayudar con sus planes de viaje.',
+      };
+      corrected = message.replace(pattern, contextOpeners[languageLocked] || contextOpeners.en);
+      break;
+    }
+  }
+
+  return { valid, corrected };
+}
+
+/**
+ * Generate compliant handoff introduction with language enforcement
+ */
+export function generateCompliantHandoffIntro(
+  consultant: ConsultantInfo,
+  handoffPackage: HandoffContextPackage
+): string {
+  const lang = handoffPackage.languageLocked || 'en';
+  const emotion = handoffPackage.emotional_state;
+
+  // Emotion-aware greetings
+  const greetings: Record<string, Record<string, string>> = {
+    CALM: {
+      en: `Hello! I'm ${consultant.name}, your ${consultant.title}. ${consultant.emoji}`,
+      pt: `Olá! Sou ${consultant.name}, seu ${consultant.title}. ${consultant.emoji}`,
+      es: `¡Hola! Soy ${consultant.name}, su ${consultant.title}. ${consultant.emoji}`,
+    },
+    FRUSTRATED: {
+      en: `I understand this has been frustrating. I'm ${consultant.name}, and I'm here to help resolve this for you. ${consultant.emoji}`,
+      pt: `Entendo que isso tem sido frustrante. Sou ${consultant.name}, e estou aqui para ajudar a resolver isso. ${consultant.emoji}`,
+      es: `Entiendo que esto ha sido frustrante. Soy ${consultant.name}, y estoy aquí para ayudar a resolverlo. ${consultant.emoji}`,
+    },
+    URGENT: {
+      en: `I'm ${consultant.name}, let me help you right away. ${consultant.emoji}`,
+      pt: `Sou ${consultant.name}, deixe-me ajudá-lo imediatamente. ${consultant.emoji}`,
+      es: `Soy ${consultant.name}, permítame ayudarle de inmediato. ${consultant.emoji}`,
+    },
+    PANICKED: {
+      en: `Stay calm, I'm ${consultant.name}. I'm taking over and will help you immediately. ${consultant.emoji}`,
+      pt: `Fique calmo, sou ${consultant.name}. Estou assumindo e vou ajudá-lo imediatamente. ${consultant.emoji}`,
+      es: `Mantenga la calma, soy ${consultant.name}. Estoy tomando el control y le ayudaré de inmediato. ${consultant.emoji}`,
+    },
+  };
+
+  const greeting = greetings[emotion]?.[lang] || greetings.CALM[lang] || greetings.CALM.en;
+
+  // Context acknowledgment (using persisted data)
+  const data = handoffPackage.stageCollectedData;
+  let contextAck = '';
+
+  if (data.destination) {
+    const ackTemplates: Record<string, string> = {
+      en: `I see you're interested in ${data.destination}.`,
+      pt: `Vejo que você está interessado em ${data.destination}.`,
+      es: `Veo que está interesado en ${data.destination}.`,
+    };
+    contextAck = ' ' + (ackTemplates[lang] || ackTemplates.en);
+  }
+
+  return greeting + contextAck;
 }
