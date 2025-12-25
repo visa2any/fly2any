@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useRef, useCallback, useEffect } from 'react';
+import { useState, useRef, useCallback, useEffect, Component, ReactNode } from 'react';
 import {
   CheckCircle2,
   Shield,
@@ -215,44 +215,97 @@ export function PostPaymentVerification({
     if (file) handleFileSelect(docId, file);
   }, [handleFileSelect]);
 
-  // Submit all documents
+  // Error state for user-friendly display
+  const [submitError, setSubmitError] = useState<string | null>(null);
+  const [retryCount, setRetryCount] = useState(0);
+
+  // Submit all documents with retry logic
   const handleSubmit = async () => {
     if (!isComplete) return;
 
     setIsSubmitting(true);
-    try {
-      // Create FormData with all images
-      const formData = new FormData();
-      formData.append('bookingReference', booking.bookingReference);
-      formData.append('token', uploadToken);
+    setSubmitError(null);
 
-      Object.entries(documents).forEach(([key, doc]) => {
-        if (doc.file) {
-          formData.append(key, doc.file);
+    const maxRetries = 2;
+
+    for (let attempt = 0; attempt <= maxRetries; attempt++) {
+      try {
+        // Create FormData with all images
+        const formData = new FormData();
+        formData.append('bookingReference', booking.bookingReference);
+        formData.append('token', uploadToken);
+
+        // Add files with size check
+        let totalSize = 0;
+        for (const [key, doc] of Object.entries(documents)) {
+          if (doc.file) {
+            totalSize += doc.file.size;
+            formData.append(key, doc.file);
+          }
         }
-      });
 
-      const response = await fetch('/api/booking-flow/verify-documents', {
-        method: 'POST',
-        body: formData,
-      });
+        // Check total size (max 25MB total)
+        if (totalSize > 25 * 1024 * 1024) {
+          throw new Error('Total file size too large. Please use smaller images.');
+        }
 
-      if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}));
-        throw new Error(errorData.error || 'Upload failed');
+        console.log(`[VERIFICATION] Submitting attempt ${attempt + 1}, total size: ${(totalSize / 1024 / 1024).toFixed(2)}MB`);
+
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 60000); // 60s timeout
+
+        const response = await fetch('/api/booking-flow/verify-documents', {
+          method: 'POST',
+          body: formData,
+          signal: controller.signal,
+        });
+
+        clearTimeout(timeoutId);
+
+        if (!response.ok) {
+          const errorData = await response.json().catch(() => ({ error: 'Server error' }));
+          throw new Error(errorData.error || `Upload failed (${response.status})`);
+        }
+
+        // Success!
+        setStep('success');
+        setTimeout(() => {
+          onComplete();
+        }, 2000);
+        return; // Exit on success
+
+      } catch (error: any) {
+        console.error(`[VERIFICATION] Attempt ${attempt + 1} failed:`, error);
+
+        // Check if it's a network/timeout error and we have retries left
+        const isRetryable = error.name === 'AbortError' ||
+          error.message?.includes('network') ||
+          error.message?.includes('timeout') ||
+          error.message?.includes('fetch');
+
+        if (isRetryable && attempt < maxRetries) {
+          setRetryCount(attempt + 1);
+          await new Promise(r => setTimeout(r, 2000)); // Wait 2s before retry
+          continue;
+        }
+
+        // Final error - show to user
+        let userMessage = error?.message || 'Upload failed. Please try again.';
+
+        // Mobile-specific error handling
+        if (error.name === 'AbortError') {
+          userMessage = 'Upload timed out. Please check your connection and try again.';
+        } else if (error.message?.includes('network') || error.message?.includes('Failed to fetch')) {
+          userMessage = 'Connection lost. Please check your internet and try again.';
+        }
+
+        setSubmitError(userMessage);
+        break;
       }
-
-      setStep('success');
-      setTimeout(() => {
-        onComplete();
-      }, 2000);
-    } catch (error: any) {
-      console.error('Upload error:', error);
-      const errorMessage = error?.message || 'Failed to upload documents. Please try again.';
-      alert(errorMessage);
-    } finally {
-      setIsSubmitting(false);
     }
+
+    setIsSubmitting(false);
+    setRetryCount(0);
   };
 
   if (!isOpen) return null;
@@ -500,6 +553,30 @@ export function PostPaymentVerification({
                 )}
               </div>
 
+              {/* Error display */}
+              {submitError && (
+                <div className="p-3 bg-red-50 border border-red-200 rounded-xl text-red-700 text-sm flex items-start gap-2">
+                  <X className="w-5 h-5 flex-shrink-0 mt-0.5" />
+                  <div>
+                    <p className="font-medium">Upload Failed</p>
+                    <p className="text-red-600">{submitError}</p>
+                    <button
+                      onClick={() => { setSubmitError(null); handleSubmit(); }}
+                      className="mt-2 text-xs font-semibold text-red-700 underline"
+                    >
+                      Try Again
+                    </button>
+                  </div>
+                </div>
+              )}
+
+              {/* Retry indicator */}
+              {retryCount > 0 && isSubmitting && (
+                <div className="p-2 bg-yellow-50 border border-yellow-200 rounded-lg text-yellow-700 text-xs text-center">
+                  Connection issue. Retrying... (attempt {retryCount + 1}/3)
+                </div>
+              )}
+
               {/* Submit button */}
               <button
                 onClick={handleSubmit}
@@ -513,7 +590,7 @@ export function PostPaymentVerification({
                 {isSubmitting ? (
                   <>
                     <Loader2 className="w-5 h-5 animate-spin" />
-                    Uploading...
+                    {retryCount > 0 ? `Retrying...` : 'Uploading...'}
                   </>
                 ) : (
                   <>
@@ -571,5 +648,70 @@ export function PostPaymentVerification({
         />
       )}
     </div>
+  );
+}
+
+// Error Boundary wrapper for the verification component
+
+interface ErrorState {
+  hasError: boolean;
+  error?: Error;
+}
+
+class VerificationErrorBoundary extends Component<
+  { children: ReactNode; onClose: () => void; booking: BookingInfo },
+  ErrorState
+> {
+  constructor(props: any) {
+    super(props);
+    this.state = { hasError: false };
+  }
+
+  static getDerivedStateFromError(error: Error): ErrorState {
+    return { hasError: true, error };
+  }
+
+  componentDidCatch(error: Error, errorInfo: any) {
+    console.error('[VERIFICATION_ERROR_BOUNDARY]', error, errorInfo);
+  }
+
+  render() {
+    if (this.state.hasError) {
+      return (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50">
+          <div className="w-full max-w-md bg-white rounded-2xl p-6 text-center">
+            <div className="w-16 h-16 mx-auto mb-4 bg-red-100 rounded-full flex items-center justify-center">
+              <X className="w-8 h-8 text-red-500" />
+            </div>
+            <h3 className="text-xl font-bold text-gray-900 mb-2">
+              Something went wrong
+            </h3>
+            <p className="text-gray-600 mb-4">
+              We couldn't load the verification form. Please try again or contact support.
+            </p>
+            <p className="text-xs text-gray-400 mb-4">
+              Ref: {this.props.booking.bookingReference}
+            </p>
+            <button
+              onClick={this.props.onClose}
+              className="w-full py-3 bg-primary-500 text-white font-bold rounded-xl hover:bg-primary-600"
+            >
+              Close & Try Later
+            </button>
+          </div>
+        </div>
+      );
+    }
+
+    return this.props.children;
+  }
+}
+
+// Wrapped export with error boundary
+export function PostPaymentVerificationWithBoundary(props: PostPaymentVerificationProps) {
+  return (
+    <VerificationErrorBoundary onClose={props.onClose} booking={props.booking}>
+      <PostPaymentVerification {...props} />
+    </VerificationErrorBoundary>
   );
 }
