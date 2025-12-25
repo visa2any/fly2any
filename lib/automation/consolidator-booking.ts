@@ -616,27 +616,53 @@ export class ConsolidatorBookingAutomation {
 
 /**
  * Convert Fly2Any booking to consolidator format
+ * Handles both raw Amadeus format (itineraries) and stored booking format (flight.segments)
  */
 export function convertBookingToAutomationFormat(fly2anyBooking: any): BookingData {
-  const flightData = fly2anyBooking.flightData || fly2anyBooking.flightOffer;
+  // Try multiple sources for flight data
+  const rawFlightData = fly2anyBooking.flightData || fly2anyBooking.flightOffer || fly2anyBooking.offer;
+  const storedFlight = fly2anyBooking.flight; // Stored booking format
 
-  // Extract flight segments
-  const segments = flightData.itineraries?.flatMap((itin: any, itinIdx: number) =>
-    itin.segments?.map((seg: any) => ({
-      airline: seg.carrierCode || seg.operating?.carrierCode,
-      flightNumber: seg.number || seg.flightNumber,
+  let segments: any[] = [];
+  let tripType: 'one_way' | 'round_trip' = 'one_way';
+  let cabin = 'ECONOMY';
+
+  // Format 1: Raw Amadeus format with itineraries
+  if (rawFlightData?.itineraries) {
+    segments = rawFlightData.itineraries.flatMap((itin: any) =>
+      itin.segments?.map((seg: any) => ({
+        airline: seg.carrierCode || seg.operating?.carrierCode,
+        flightNumber: seg.number || seg.flightNumber,
+        origin: seg.departure?.iataCode,
+        destination: seg.arrival?.iataCode,
+        departureDate: seg.departure?.at?.split('T')[0],
+        departureTime: seg.departure?.at?.split('T')[1]?.substring(0, 5),
+        arrivalTime: seg.arrival?.at?.split('T')[1]?.substring(0, 5),
+        cabin: rawFlightData.travelerPricings?.[0]?.fareDetailsBySegment?.[0]?.cabin || 'ECONOMY',
+      }))
+    ) || [];
+    tripType = rawFlightData.itineraries.length > 1 ? 'round_trip' : 'one_way';
+    cabin = rawFlightData.travelerPricings?.[0]?.fareDetailsBySegment?.[0]?.cabin || 'ECONOMY';
+  }
+  // Format 2: Stored booking format with flight.segments
+  else if (storedFlight?.segments && storedFlight.segments.length > 0) {
+    segments = storedFlight.segments.map((seg: any) => ({
+      airline: seg.carrierCode,
+      flightNumber: seg.flightNumber,
       origin: seg.departure?.iataCode,
       destination: seg.arrival?.iataCode,
       departureDate: seg.departure?.at?.split('T')[0],
       departureTime: seg.departure?.at?.split('T')[1]?.substring(0, 5),
       arrivalTime: seg.arrival?.at?.split('T')[1]?.substring(0, 5),
-      cabin: flightData.travelerPricings?.[0]?.fareDetailsBySegment?.[0]?.cabin || 'ECONOMY',
-    }))
-  ) || [];
-
-  // Determine trip type
-  const itineraryCount = flightData.itineraries?.length || 1;
-  const tripType = itineraryCount > 1 ? 'round_trip' : 'one_way';
+      cabin: seg.class?.toUpperCase() || 'ECONOMY',
+    }));
+    tripType = storedFlight.type === 'round-trip' ? 'round_trip' : 'one_way';
+    cabin = storedFlight.segments[0]?.class?.toUpperCase() || 'ECONOMY';
+  }
+  // No valid flight data found
+  else {
+    throw new Error(`Invalid booking data: missing flight segments. Booking ID: ${fly2anyBooking.id || fly2anyBooking.bookingReference}`);
+  }
 
   // Convert passengers
   const passengers = (fly2anyBooking.passengers || []).map((pax: any) => ({
@@ -655,9 +681,8 @@ export function convertBookingToAutomationFormat(fly2anyBooking: any): BookingDa
   }));
 
   // Extract fare details from booking
-  const fareSegment = flightData.travelerPricings?.[0]?.fareDetailsBySegment?.[0];
-  const cabin = fareSegment?.cabin || 'ECONOMY';
-  const brandedFare = fareSegment?.brandedFare || flightData.brandedFareName || '';
+  const fareSegment = rawFlightData?.travelerPricings?.[0]?.fareDetailsBySegment?.[0];
+  const brandedFare = fareSegment?.brandedFare || rawFlightData?.brandedFareName || fly2anyBooking.fareUpgrade?.name || '';
 
   // Detect fare class name from branded fare or cabin
   let fareClass = 'Economy';
@@ -708,11 +733,18 @@ export function convertBookingToAutomationFormat(fly2anyBooking: any): BookingDa
       bagCount: includedBags || (hasBagsFromAmenities ? 1 : 0),
     },
     pricing: {
-      customerPaid: parseFloat(fly2anyBooking.totalPrice || fly2anyBooking.pricing?.total || '0'),
-      netPrice: parseFloat(fly2anyBooking.pricing?.netPrice || '0'),
-      currency: fly2anyBooking.currency || 'USD',
+      customerPaid: parseFloat(
+        fly2anyBooking.customerPrice ||
+        fly2anyBooking.totalPrice ||
+        fly2anyBooking.payment?.amount ||
+        storedFlight?.price?.total ||
+        fly2anyBooking.pricing?.total ||
+        '0'
+      ),
+      netPrice: parseFloat(fly2anyBooking.netPrice || fly2anyBooking.pricing?.netPrice || '0'),
+      currency: fly2anyBooking.currency || storedFlight?.price?.currency || 'USD',
     },
-    contactEmail: fly2anyBooking.contactEmail || passengers[0]?.email || '',
-    contactPhone: fly2anyBooking.contactPhone || passengers[0]?.phone || '',
+    contactEmail: fly2anyBooking.contactInfo?.email || fly2anyBooking.contactEmail || passengers[0]?.email || '',
+    contactPhone: fly2anyBooking.contactInfo?.phone || fly2anyBooking.contactPhone || passengers[0]?.phone || '',
   };
 }
