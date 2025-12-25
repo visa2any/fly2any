@@ -987,33 +987,129 @@ export default function AdminBookingsPage() {
           </div>
         )}
 
-        {/* Tours Tab - Coming Soon */}
+        {/* Tours Tab */}
         {activeTab === 'tours' && (
-          <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-12 text-center">
-            <Compass className="w-16 h-16 text-purple-300 mx-auto mb-4" />
-            <h3 className="text-xl font-bold text-gray-800 mb-2">Tours Bookings</h3>
-            <p className="text-gray-500 mb-4">Tour booking management coming soon.</p>
-            <p className="text-sm text-gray-400">When customers book tours, reservations will appear here.</p>
+          <div className="bg-white rounded-lg border border-gray-200 shadow-sm overflow-hidden">
+            <div className="overflow-x-auto">
+              <table className="w-full">
+                <thead className="bg-gray-50 border-b border-gray-200">
+                  <tr>
+                    <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Reference</th>
+                    <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Tour</th>
+                    <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Customer</th>
+                    <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Date</th>
+                    <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Travelers</th>
+                    <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Total</th>
+                    <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Status</th>
+                    <th className="px-4 py-3 text-right text-xs font-semibold text-gray-600 uppercase tracking-wider">Actions</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-gray-100">
+                  {loading ? (
+                    <tr><td colSpan={8} className="px-4 py-8 text-center"><RefreshCw className="w-6 h-6 animate-spin text-gray-400 mx-auto mb-2" /><p className="text-sm text-gray-500">Loading tours...</p></td></tr>
+                  ) : filteredBookings.filter(b => (b as any).productType === 'tour' || b.bookingReference?.startsWith('TUR')).length === 0 ? (
+                    <tr><td colSpan={8} className="px-4 py-8 text-center"><Compass className="w-8 h-8 text-gray-300 mx-auto mb-2" /><p className="text-sm text-gray-500">No tour bookings found</p></td></tr>
+                  ) : (
+                    filteredBookings.filter(b => (b as any).productType === 'tour' || b.bookingReference?.startsWith('TUR')).map((booking) => (
+                      <tr key={booking.id} className="hover:bg-gray-50 transition-colors">
+                        <td className="px-4 py-3"><div className="font-mono text-sm font-bold text-purple-600">{booking.bookingReference}</div></td>
+                        <td className="px-4 py-3"><div className="text-sm font-medium text-gray-900">{booking.origin || 'Tour'}</div></td>
+                        <td className="px-4 py-3"><div className="text-sm font-medium text-gray-900">{booking.customerName}</div><div className="text-xs text-gray-500">{booking.customerEmail}</div></td>
+                        <td className="px-4 py-3"><div className="text-sm text-gray-700">{new Date(booking.departureDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</div></td>
+                        <td className="px-4 py-3"><div className="text-sm text-gray-700">{booking.passengerCount}</div></td>
+                        <td className="px-4 py-3"><div className="text-sm font-semibold text-gray-900">${booking.totalAmount.toFixed(2)}</div></td>
+                        <td className="px-4 py-3">{getStatusBadge(booking.status)}</td>
+                        <td className="px-4 py-3 text-right"><Link href={`/admin/bookings/${booking.id}`} className="inline-flex items-center gap-1 px-3 py-1.5 bg-purple-600 hover:bg-purple-700 text-white text-xs font-semibold rounded-lg transition-colors"><Eye className="w-3 h-3" />View</Link></td>
+                      </tr>
+                    ))
+                  )}
+                </tbody>
+              </table>
+            </div>
           </div>
         )}
 
-        {/* Activities Tab - Coming Soon */}
+        {/* Activities Tab */}
         {activeTab === 'activities' && (
-          <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-12 text-center">
-            <Activity className="w-16 h-16 text-pink-300 mx-auto mb-4" />
-            <h3 className="text-xl font-bold text-gray-800 mb-2">Activities Bookings</h3>
-            <p className="text-gray-500 mb-4">Activity booking management coming soon.</p>
-            <p className="text-sm text-gray-400">When customers book activities, reservations will appear here.</p>
+          <div className="bg-white rounded-lg border border-gray-200 shadow-sm overflow-hidden">
+            <div className="overflow-x-auto">
+              <table className="w-full">
+                <thead className="bg-gray-50 border-b border-gray-200">
+                  <tr>
+                    <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Reference</th>
+                    <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Activity</th>
+                    <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Customer</th>
+                    <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Date</th>
+                    <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Participants</th>
+                    <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Total</th>
+                    <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Status</th>
+                    <th className="px-4 py-3 text-right text-xs font-semibold text-gray-600 uppercase tracking-wider">Actions</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-gray-100">
+                  {loading ? (
+                    <tr><td colSpan={8} className="px-4 py-8 text-center"><RefreshCw className="w-6 h-6 animate-spin text-gray-400 mx-auto mb-2" /><p className="text-sm text-gray-500">Loading activities...</p></td></tr>
+                  ) : filteredBookings.filter(b => (b as any).productType === 'activity' || b.bookingReference?.startsWith('ACT')).length === 0 ? (
+                    <tr><td colSpan={8} className="px-4 py-8 text-center"><Activity className="w-8 h-8 text-gray-300 mx-auto mb-2" /><p className="text-sm text-gray-500">No activity bookings found</p></td></tr>
+                  ) : (
+                    filteredBookings.filter(b => (b as any).productType === 'activity' || b.bookingReference?.startsWith('ACT')).map((booking) => (
+                      <tr key={booking.id} className="hover:bg-gray-50 transition-colors">
+                        <td className="px-4 py-3"><div className="font-mono text-sm font-bold text-pink-600">{booking.bookingReference}</div></td>
+                        <td className="px-4 py-3"><div className="text-sm font-medium text-gray-900">{booking.origin || 'Activity'}</div></td>
+                        <td className="px-4 py-3"><div className="text-sm font-medium text-gray-900">{booking.customerName}</div><div className="text-xs text-gray-500">{booking.customerEmail}</div></td>
+                        <td className="px-4 py-3"><div className="text-sm text-gray-700">{new Date(booking.departureDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</div></td>
+                        <td className="px-4 py-3"><div className="text-sm text-gray-700">{booking.passengerCount}</div></td>
+                        <td className="px-4 py-3"><div className="text-sm font-semibold text-gray-900">${booking.totalAmount.toFixed(2)}</div></td>
+                        <td className="px-4 py-3">{getStatusBadge(booking.status)}</td>
+                        <td className="px-4 py-3 text-right"><Link href={`/admin/bookings/${booking.id}`} className="inline-flex items-center gap-1 px-3 py-1.5 bg-pink-600 hover:bg-pink-700 text-white text-xs font-semibold rounded-lg transition-colors"><Eye className="w-3 h-3" />View</Link></td>
+                      </tr>
+                    ))
+                  )}
+                </tbody>
+              </table>
+            </div>
           </div>
         )}
 
-        {/* Transfers Tab - Coming Soon */}
+        {/* Transfers Tab */}
         {activeTab === 'transfers' && (
-          <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-12 text-center">
-            <Bus className="w-16 h-16 text-cyan-300 mx-auto mb-4" />
-            <h3 className="text-xl font-bold text-gray-800 mb-2">Transfers Bookings</h3>
-            <p className="text-gray-500 mb-4">Transfer booking management coming soon.</p>
-            <p className="text-sm text-gray-400">When customers book transfers, reservations will appear here.</p>
+          <div className="bg-white rounded-lg border border-gray-200 shadow-sm overflow-hidden">
+            <div className="overflow-x-auto">
+              <table className="w-full">
+                <thead className="bg-gray-50 border-b border-gray-200">
+                  <tr>
+                    <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Reference</th>
+                    <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Route</th>
+                    <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Customer</th>
+                    <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Date & Time</th>
+                    <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Passengers</th>
+                    <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Total</th>
+                    <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Status</th>
+                    <th className="px-4 py-3 text-right text-xs font-semibold text-gray-600 uppercase tracking-wider">Actions</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-gray-100">
+                  {loading ? (
+                    <tr><td colSpan={8} className="px-4 py-8 text-center"><RefreshCw className="w-6 h-6 animate-spin text-gray-400 mx-auto mb-2" /><p className="text-sm text-gray-500">Loading transfers...</p></td></tr>
+                  ) : filteredBookings.filter(b => (b as any).productType === 'transfer' || b.bookingReference?.startsWith('TRF')).length === 0 ? (
+                    <tr><td colSpan={8} className="px-4 py-8 text-center"><Bus className="w-8 h-8 text-gray-300 mx-auto mb-2" /><p className="text-sm text-gray-500">No transfer bookings found</p></td></tr>
+                  ) : (
+                    filteredBookings.filter(b => (b as any).productType === 'transfer' || b.bookingReference?.startsWith('TRF')).map((booking) => (
+                      <tr key={booking.id} className="hover:bg-gray-50 transition-colors">
+                        <td className="px-4 py-3"><div className="font-mono text-sm font-bold text-cyan-600">{booking.bookingReference}</div></td>
+                        <td className="px-4 py-3"><div className="flex items-center gap-1 text-sm"><MapPin className="w-3 h-3" />{booking.origin} → {booking.destination}</div></td>
+                        <td className="px-4 py-3"><div className="text-sm font-medium text-gray-900">{booking.customerName}</div><div className="text-xs text-gray-500">{booking.customerEmail}</div></td>
+                        <td className="px-4 py-3"><div className="text-sm text-gray-700">{new Date(booking.departureDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</div></td>
+                        <td className="px-4 py-3"><div className="text-sm text-gray-700">{booking.passengerCount}</div></td>
+                        <td className="px-4 py-3"><div className="text-sm font-semibold text-gray-900">${booking.totalAmount.toFixed(2)}</div></td>
+                        <td className="px-4 py-3">{getStatusBadge(booking.status)}</td>
+                        <td className="px-4 py-3 text-right"><Link href={`/admin/bookings/${booking.id}`} className="inline-flex items-center gap-1 px-3 py-1.5 bg-cyan-600 hover:bg-cyan-700 text-white text-xs font-semibold rounded-lg transition-colors"><Eye className="w-3 h-3" />View</Link></td>
+                      </tr>
+                    ))
+                  )}
+                </tbody>
+              </table>
+            </div>
           </div>
         )}
       </div>

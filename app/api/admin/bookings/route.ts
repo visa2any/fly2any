@@ -30,7 +30,7 @@ export async function GET(request: NextRequest) {
 
     // Extract query parameters
     const status = searchParams.get('status') as BookingStatus | null;
-    const bookingType = searchParams.get('type') as 'flight' | 'car' | null;
+    const bookingType = searchParams.get('type') as 'flight' | 'car' | 'activity' | 'tour' | 'transfer' | null;
     const limit = parseInt(searchParams.get('limit') || '100');
     const offset = parseInt(searchParams.get('offset') || '0');
     const email = searchParams.get('email') || undefined;

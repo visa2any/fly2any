@@ -1061,6 +1061,11 @@ export async function POST(request: NextRequest) {
                   grandTotal: v.price?.grandTotal,
                 },
                 originalOffer: v, // Store full offer for booking
+                // CRITICAL FIX: Explicitly preserve expires_at for offer validity checks
+                // This ensures the booking API can validate offer freshness
+                expires_at: v.expires_at || v.lastTicketingDateTime,
+                lastTicketingDateTime: v.lastTicketingDateTime || v.expires_at,
+                created_at: v.created_at,
                 features: extractFareFeatures(v, fareDetails),
                 restrictions: restrictions.length > 0 ? restrictions : undefined,
                 positives: positives.length > 0 ? positives : undefined, // Positive policies (changes, refunds)

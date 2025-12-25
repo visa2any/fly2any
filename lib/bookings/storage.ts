@@ -332,14 +332,20 @@ class BookingStorage {
         values.push(params.dateTo);
       }
 
-      // Filter by booking type (flight vs car)
+      // Filter by booking type (flight, car, activity, tour, transfer)
       if (params.bookingType) {
         if (params.bookingType === 'car') {
           // Car bookings: booking_type = 'car' OR flight->>'type' = 'car_rental'
           conditions.push(`(booking_type = 'car' OR flight->>'type' = 'car_rental')`);
+        } else if (params.bookingType === 'activity') {
+          conditions.push(`(booking_type = 'activity' OR flight->>'type' = 'activity')`);
+        } else if (params.bookingType === 'tour') {
+          conditions.push(`(booking_type = 'tour' OR flight->>'type' = 'tour')`);
+        } else if (params.bookingType === 'transfer') {
+          conditions.push(`(booking_type = 'transfer' OR flight->>'type' = 'transfer')`);
         } else {
-          // Flight bookings: booking_type IS NULL or not 'car', and not car_rental type
-          conditions.push(`(booking_type IS NULL OR booking_type != 'car') AND (flight->>'type' IS NULL OR flight->>'type' != 'car_rental')`);
+          // Flight bookings: booking_type IS NULL or 'flight', exclude other types
+          conditions.push(`(booking_type IS NULL OR booking_type = 'flight') AND (flight->>'type' IS NULL OR flight->>'type' NOT IN ('car_rental', 'activity', 'tour', 'transfer'))`);
         }
       }
 
@@ -476,23 +482,29 @@ class BookingStorage {
 
     return bookings.map(b => {
       // Determine product type from booking_type column or flight.type fallback
-      const productType = b.bookingType === 'car' || b.flight?.type === 'car_rental' ? 'car' : 'flight';
+      const flightType = b.flight?.type;
+      let productType: 'flight' | 'car' | 'activity' | 'tour' | 'transfer' = 'flight';
+      if (b.bookingType === 'car' || flightType === 'car_rental') productType = 'car';
+      else if (b.bookingType === 'activity' || flightType === 'activity') productType = 'activity';
+      else if (b.bookingType === 'tour' || flightType === 'tour') productType = 'tour';
+      else if (b.bookingType === 'transfer' || flightType === 'transfer') productType = 'transfer';
+
+      const mainPassenger = b.passengers?.[0] || {};
+      const customerName = mainPassenger.firstName && mainPassenger.lastName
+        ? `${mainPassenger.firstName} ${mainPassenger.lastName}`.trim()
+        : b.contactInfo?.name || 'Unknown';
+      const customerEmail = mainPassenger.email || b.contactInfo?.email;
 
       if (productType === 'car') {
         // Car rental booking
-        const carData = b.flight; // Car data stored in flight column
+        const carData = b.flight;
         const rental = carData?.rental || {};
-        const driver = b.passengers?.[0] || {};
-        const driverName = driver.firstName && driver.lastName
-          ? `${driver.firstName} ${driver.lastName}`.trim()
-          : b.contactInfo?.name || 'Unknown';
-
         return {
           id: b.id,
           bookingReference: b.bookingReference,
           status: b.status,
           productType: 'car' as const,
-          passengerCount: 1, // Driver count for cars
+          passengerCount: 1,
           departureDate: rental.pickupDate || b.createdAt,
           dropoffDate: rental.dropoffDate,
           origin: rental.pickupLocation || 'N/A',
@@ -500,9 +512,8 @@ class BookingStorage {
           totalAmount: b.payment?.amount || 0,
           currency: b.payment?.currency || 'USD',
           createdAt: b.createdAt,
-          customerName: driverName,
-          customerEmail: driver.email || b.contactInfo?.email,
-          // Car specific fields
+          customerName,
+          customerEmail,
           carName: carData?.name || 'Car Rental',
           carCategory: carData?.category,
           pickupLocation: rental.pickupLocation,
@@ -510,12 +521,74 @@ class BookingStorage {
         };
       }
 
-      // Flight booking (default)
-      const mainPassenger = b.passengers?.[0];
-      const customerName = mainPassenger
-        ? `${mainPassenger.firstName || ''} ${mainPassenger.lastName || ''}`.trim()
-        : b.contactInfo?.name || 'Unknown';
+      if (productType === 'activity') {
+        // Activity booking
+        const activityData = b.flight;
+        return {
+          id: b.id,
+          bookingReference: b.bookingReference,
+          status: b.status,
+          productType: 'activity' as const,
+          passengerCount: activityData?.travelers || 1,
+          departureDate: activityData?.date || b.createdAt,
+          origin: activityData?.name || 'Activity',
+          destination: '',
+          totalAmount: b.payment?.amount || 0,
+          currency: b.payment?.currency || 'USD',
+          createdAt: b.createdAt,
+          customerName,
+          customerEmail,
+          activityName: activityData?.name,
+          activityDate: activityData?.date,
+        };
+      }
 
+      if (productType === 'tour') {
+        // Tour booking
+        const tourData = b.flight;
+        return {
+          id: b.id,
+          bookingReference: b.bookingReference,
+          status: b.status,
+          productType: 'tour' as const,
+          passengerCount: tourData?.travelers || 1,
+          departureDate: tourData?.date || b.createdAt,
+          origin: tourData?.name || 'Tour',
+          destination: '',
+          totalAmount: b.payment?.amount || 0,
+          currency: b.payment?.currency || 'USD',
+          createdAt: b.createdAt,
+          customerName,
+          customerEmail,
+          tourName: tourData?.name,
+          tourDate: tourData?.date,
+        };
+      }
+
+      if (productType === 'transfer') {
+        // Transfer booking
+        const transferData = b.flight;
+        return {
+          id: b.id,
+          bookingReference: b.bookingReference,
+          status: b.status,
+          productType: 'transfer' as const,
+          passengerCount: transferData?.passengers || 1,
+          departureDate: transferData?.date || b.createdAt,
+          origin: transferData?.pickup || 'N/A',
+          destination: transferData?.dropoff || 'N/A',
+          totalAmount: b.payment?.amount || 0,
+          currency: b.payment?.currency || 'USD',
+          createdAt: b.createdAt,
+          customerName,
+          customerEmail,
+          pickup: transferData?.pickup,
+          dropoff: transferData?.dropoff,
+          transferTime: transferData?.time,
+        };
+      }
+
+      // Flight booking (default)
       return {
         id: b.id,
         bookingReference: b.bookingReference,
@@ -529,7 +602,7 @@ class BookingStorage {
         currency: b.payment?.currency || 'USD',
         createdAt: b.createdAt,
         customerName,
-        customerEmail: b.contactInfo?.email || mainPassenger?.email,
+        customerEmail,
       };
     });
   }

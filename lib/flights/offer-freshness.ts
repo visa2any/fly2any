@@ -141,15 +141,34 @@ export function getOfferStatus(offerId: string, flightOffer?: any): {
   }
 
   // PRIORITY 3: Unknown offer without any timestamp
-  // CRITICAL: For Duffel offers, this means we lost the expiration data!
-  // Log warning and assume valid (but flag for debugging)
+  // CRITICAL FIX: For Duffel offers WITHOUT expiration data, assume EXPIRED!
+  // This forces re-validation/re-search instead of causing OFFER_EXPIRED at booking time.
+  const isDuffelOffer = offerId?.startsWith('off_');
+
   console.warn(`⚠️  OFFER ${offerId}: No expiration data found!`);
   console.warn(`   offer.expires_at: ${flightOffer?.expires_at}`);
   console.warn(`   offer.duffelMetadata?.expires_at: ${flightOffer?.duffelMetadata?.expires_at}`);
   console.warn(`   offer.lastTicketingDateTime: ${flightOffer?.lastTicketingDateTime}`);
   console.warn(`   offer.created_at: ${flightOffer?.created_at}`);
-  console.warn(`   Assuming valid - but this may cause OFFER_EXPIRED at Duffel!`);
 
+  // CRITICAL: Duffel offers without expiration data should be considered expired
+  // Better to force re-search than have customer see OFFER_EXPIRED error at checkout!
+  if (isDuffelOffer) {
+    console.error(`❌ Duffel offer ${offerId}: Missing expiration data - assuming EXPIRED to prevent booking failure!`);
+    return {
+      isValid: false,
+      isWarning: true,
+      remainingMs: 0,
+      remainingSeconds: 0,
+      remainingMinutes: 0,
+      expiresAt: now,
+      shouldRefresh: true,
+      searchParams: offer?.searchParams,
+    };
+  }
+
+  // Non-Duffel offers (Amadeus): assume valid as they handle expiry differently
+  console.warn(`   Non-Duffel offer - assuming valid`);
   return {
     isValid: true,
     isWarning: true, // Flag as warning since we don't know true status

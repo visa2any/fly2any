@@ -852,7 +852,27 @@ function BookingPageContent() {
       // For Duffel fare variants, use the originalOffer from the selected fare
       // This ensures we book the correct fare class (Basic vs Economy, etc.)
       // CRITICAL: Preserve separateTicketDetails for mixed carrier flights
+      // CRITICAL FIX: Always merge expires_at from parent flight to prevent OFFER_EXPIRED errors
       let offerToBook = selectedFare?.originalOffer || flightData;
+
+      // Ensure expires_at is always present for Duffel offer validation
+      // Priority: selectedFare.expires_at > flightData._offerExpiresAt > flightData.expires_at > originalOffer.expires_at
+      const expiresAtTimestamp = flightData?._offerExpiresAt ||
+                        (selectedFare as any)?.expires_at && new Date((selectedFare as any).expires_at).getTime() ||
+                        flightData?.expires_at && new Date(flightData.expires_at).getTime() ||
+                        selectedFare?.originalOffer?.expires_at && new Date(selectedFare.originalOffer.expires_at).getTime();
+
+      const expiresAtISO = expiresAtTimestamp ? new Date(expiresAtTimestamp).toISOString() : undefined;
+
+      if (expiresAtISO) {
+        offerToBook = {
+          ...offerToBook,
+          expires_at: expiresAtISO,
+          lastTicketingDateTime: expiresAtISO,
+          created_at: offerToBook.created_at || flightData?.created_at,
+        };
+      }
+
       if (flightData?.isSeparateTickets && flightData?.separateTicketDetails) {
         offerToBook = {
           ...offerToBook,
