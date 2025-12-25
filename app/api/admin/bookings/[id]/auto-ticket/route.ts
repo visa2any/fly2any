@@ -12,7 +12,6 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { getPrismaClient } from '@/lib/prisma';
 import { bookingStorage } from '@/lib/bookings/storage';
 import {
   ConsolidatorBookingAutomation,
@@ -110,19 +109,16 @@ export async function POST(
       if (dryRun) {
         console.log('📝 Dry run complete - booking recorded, not issued');
 
-        // Update booking with consolidator details (but not confirmed yet)
-        const prisma = await getPrismaClient();
+        // Update booking with consolidator details (preserving customer price)
         const profit = automationData.pricing.customerPaid - (result.consolidatorPrice || 0);
 
-        await prisma.booking.update({
-          where: { id: bookingId },
-          data: {
-            status: 'pending_ticketing', // Still pending until manually issued
-            consolidatorPrice: result.consolidatorPrice,
-            consolidatorName: 'TheBestAgent.PRO',
-            ticketingNotes: `Recorded in consolidator on ${new Date().toISOString()}. Ready to issue. Expected profit: $${profit.toFixed(2)}`,
-            updatedAt: new Date(),
-          },
+        await bookingStorage.update(bookingId, {
+          status: 'pending_ticketing', // Still pending until manually issued
+          consolidatorPrice: result.consolidatorPrice,
+          consolidatorName: 'TheBestAgent.PRO',
+          customerPrice: automationData.pricing.customerPaid, // PRESERVE original customer price
+          markup: profit, // Track our profit
+          ticketingNotes: `Recorded in consolidator on ${new Date().toISOString()}. Ready to issue. Expected profit: $${profit.toFixed(2)}`,
         });
 
         // Notify admin about dry run
@@ -153,18 +149,19 @@ export async function POST(
 
       // LIVE: Ticket issued - update booking with PNR
       if (result.pnr) {
-        const prisma = await getPrismaClient();
+        const profit = automationData.pricing.customerPaid - (result.consolidatorPrice || 0);
 
-        await prisma.booking.update({
-          where: { id: bookingId },
-          data: {
-            status: 'confirmed',
-            airlineRecordLocator: result.pnr,
-            consolidatorPrice: result.consolidatorPrice,
-            consolidatorName: 'TheBestAgent.PRO',
-            ticketingNotes: `Auto-ticketed via automation on ${new Date().toISOString()}`,
-            updatedAt: new Date(),
-          },
+        await bookingStorage.update(bookingId, {
+          status: 'confirmed',
+          ticketingStatus: 'ticketed',
+          airlineRecordLocator: result.pnr,
+          consolidatorPrice: result.consolidatorPrice,
+          consolidatorName: 'TheBestAgent.PRO',
+          customerPrice: automationData.pricing.customerPaid, // PRESERVE original customer price
+          markup: profit, // Track our profit
+          netProfit: profit, // Final profit
+          ticketedAt: new Date().toISOString(),
+          ticketingNotes: `Auto-ticketed via automation on ${new Date().toISOString()}`,
         });
 
         // Notify admin
