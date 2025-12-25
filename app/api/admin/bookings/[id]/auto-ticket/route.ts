@@ -99,10 +99,53 @@ export async function POST(
       );
     }
 
-    // 6. Check if running in serverless environment (Vercel)
+    // 6. Check if running in serverless environment (Vercel) - use n8n webhook
     const isVercel = process.env.VERCEL === '1' || process.env.VERCEL_ENV;
+    const n8nWebhookUrl = process.env.N8N_AUTO_TICKET_WEBHOOK;
+
     if (isVercel) {
-      // Notify admin - manual ticketing required
+      // If n8n webhook is configured, send to n8n for automation
+      if (n8nWebhookUrl) {
+        try {
+          console.log('🚀 Sending to n8n webhook for automation...');
+          const n8nResponse = await fetch(n8nWebhookUrl, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              bookingId,
+              bookingReference: automationData.bookingReference,
+              dryRun,
+              automationData,
+              consolidatorEmail: process.env.CONSOLIDATOR_EMAIL,
+              consolidatorPassword: process.env.CONSOLIDATOR_PASSWORD,
+            }),
+          });
+
+          const n8nResult = await n8nResponse.json();
+
+          if (n8nResult.success) {
+            // n8n processed successfully
+            if (n8nResult.pnr) {
+              await bookingStorage.update(bookingId, {
+                status: 'confirmed',
+                ticketingStatus: 'ticketed',
+                airlineRecordLocator: n8nResult.pnr,
+                consolidatorPrice: n8nResult.consolidatorPrice,
+                ticketedAt: new Date().toISOString(),
+              });
+            }
+            return NextResponse.json(n8nResult);
+          } else {
+            // n8n failed - notify and return error
+            throw new Error(n8nResult.error || 'n8n automation failed');
+          }
+        } catch (n8nError: any) {
+          console.error('n8n webhook error:', n8nError);
+          // Fall through to manual ticketing notification
+        }
+      }
+
+      // No n8n webhook or it failed - notify for manual ticketing
       try {
         const { notifyTelegramAdmins } = await import('@/lib/notifications/notification-service');
         await notifyTelegramAdmins(`
@@ -121,8 +164,8 @@ export async function POST(
 
       return NextResponse.json({
         success: false,
-        error: 'Auto-ticketing unavailable in serverless environment',
-        message: 'Playwright browser automation requires a dedicated server. Please ticket manually via consolidator portal.',
+        error: n8nWebhookUrl ? 'n8n automation failed' : 'Auto-ticketing requires n8n webhook configuration',
+        message: 'Please ticket manually via consolidator portal or configure N8N_AUTO_TICKET_WEBHOOK.',
         bookingData: {
           reference: automationData.bookingReference,
           route: `${automationData.flights.segments[0]?.origin} → ${automationData.flights.segments[0]?.destination}`,
