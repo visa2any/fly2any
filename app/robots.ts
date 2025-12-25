@@ -31,6 +31,10 @@ export default function robots(): MetadataRoute.Robots {
           '/booking/*/confirmation',
           '/_next/static/',
           '/private/',
+          // OLD LOCALE-PREFIXED ROUTES (Removed - now using cookie-based locale)
+          '/en/',
+          '/es/',
+          '/pt/',
         ],
         crawlDelay: 0, // No delay for Google
       },
@@ -233,6 +237,10 @@ export default function robots(): MetadataRoute.Robots {
           '/*?*sort=', // Block sort parameters
           '/*?*filter=', // Block filter parameters
           '/*?*page=', // Block pagination parameters
+          // OLD LOCALE-PREFIXED ROUTES (Removed - now using cookie-based locale)
+          '/en/',
+          '/es/',
+          '/pt/',
         ],
         crawlDelay: 2,
       },

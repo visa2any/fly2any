@@ -34,9 +34,6 @@ const nextConfig = {
     return [
       // === LEGACY HOME/MISC ===
       { source: '/home-new', destination: '/', permanent: true },
-      { source: '/en', destination: '/', permanent: true },
-      { source: '/pt', destination: '/', permanent: true },
-      { source: '/es', destination: '/', permanent: true },
       { source: '/sitemap', destination: '/sitemap.xml', permanent: true },
 
       // === PORTUGUESE ROUTES → ENGLISH ===
@@ -71,22 +68,19 @@ const nextConfig = {
       { source: '/contact', destination: '/', permanent: true },
       { source: '/support', destination: '/', permanent: true },
       { source: '/help', destination: '/', permanent: true },
-      { source: '/faq', destination: '/', permanent: true },
+      // NOTE: /faq page exists - do NOT redirect
       { source: '/careers', destination: '/', permanent: true },
       { source: '/press', destination: '/', permanent: true },
       { source: '/accessibility', destination: '/', permanent: true },
-      { source: '/terms', destination: '/', permanent: true },
-      { source: '/terms-of-service', destination: '/', permanent: true },
-      { source: '/privacy', destination: '/', permanent: true },
-      { source: '/privacy-policy', destination: '/', permanent: true },
+      // NOTE: /terms and /privacy pages exist - redirect aliases only
+      { source: '/terms-of-service', destination: '/terms', permanent: true },
+      { source: '/privacy-policy', destination: '/privacy', permanent: true },
       { source: '/cookie-policy', destination: '/', permanent: true },
       { source: '/security', destination: '/', permanent: true },
       { source: '/how-it-works', destination: '/', permanent: true },
 
       // === ENGLISH FEATURE PAGES ===
-      { source: '/packages', destination: '/', permanent: true },
-      { source: '/deals', destination: '/', permanent: true },
-      { source: '/travel-insurance', destination: '/', permanent: true },
+      // NOTE: /packages, /deals, /travel-insurance pages exist - do NOT redirect
       { source: '/manage-booking', destination: '/account/bookings', permanent: true },
       { source: '/flight-status', destination: '/', permanent: true },
       { source: '/price-alerts', destination: '/account/alerts', permanent: true },
@@ -133,6 +127,18 @@ const nextConfig = {
       // === GARBAGE URLs (invalid characters) ===
       { source: '/%24', destination: '/', permanent: true }, // /$
       { source: '/%26', destination: '/', permanent: true }, // /&
+
+      // === OLD LOCALE-PREFIXED ROUTES (CATCH-ALL) ===
+      // These must come LAST - they catch any remaining locale-prefixed URLs
+      // that weren't caught by specific patterns above
+      // Root locale paths (no subpath)
+      { source: '/en', destination: '/', permanent: true },
+      { source: '/pt', destination: '/', permanent: true },
+      { source: '/es', destination: '/', permanent: true },
+      // Catch-all patterns (redirect to equivalent path without locale)
+      { source: '/en/:path*', destination: '/:path*', permanent: true },
+      { source: '/es/:path*', destination: '/:path*', permanent: true },
+      { source: '/pt/:path*', destination: '/:path*', permanent: true },
     ];
   },
 
