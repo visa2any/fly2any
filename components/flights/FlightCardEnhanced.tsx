@@ -909,11 +909,56 @@ export function FlightCardEnhanced({
     }
   }, []);
 
-  // Translations for Track Price button
+  // Translations for UI elements
   const translations = {
-    en: { trackPrice: 'Track Price' },
-    pt: { trackPrice: 'Monitorar Preço' },
-    es: { trackPrice: 'Seguir Precio' },
+    en: {
+      trackPrice: 'Track Price',
+      select: 'Select',
+      details: 'Details',
+      seatsLeft: 'left',
+      allDirect: 'All Direct',
+      flight: 'Flight',
+      airlines: 'Airlines',
+      legs: 'Legs',
+      flightSelected: 'Flight Selected!',
+      direct: 'Direct',
+      stop: 'stop',
+      stops: 'stops',
+      layover: 'Layover in',
+      viewPhotos: 'View Photos & Details',
+    },
+    pt: {
+      trackPrice: 'Monitorar Preço',
+      select: 'Selecionar',
+      details: 'Detalhes',
+      seatsLeft: 'restante(s)',
+      allDirect: 'Todos Diretos',
+      flight: 'Voo',
+      airlines: 'Cias Aéreas',
+      legs: 'Trechos',
+      flightSelected: 'Voo Selecionado!',
+      direct: 'Direto',
+      stop: 'parada',
+      stops: 'paradas',
+      layover: 'Conexão em',
+      viewPhotos: 'Ver Fotos e Detalhes',
+    },
+    es: {
+      trackPrice: 'Seguir Precio',
+      select: 'Seleccionar',
+      details: 'Detalles',
+      seatsLeft: 'restante(s)',
+      allDirect: 'Todos Directos',
+      flight: 'Vuelo',
+      airlines: 'Aerolíneas',
+      legs: 'Tramos',
+      flightSelected: '¡Vuelo Seleccionado!',
+      direct: 'Directo',
+      stop: 'escala',
+      stops: 'escalas',
+      layover: 'Escala en',
+      viewPhotos: 'Ver Fotos y Detalles',
+    },
   };
   const t = translations[lang];
 
@@ -946,17 +991,17 @@ export function FlightCardEnhanced({
           {/* Airline Name + Flight Number (or "Multi-City" for multiple airlines) */}
           <div className="flex items-baseline gap-1 md:gap-1.5 truncate min-w-0">
             <span className="font-semibold text-gray-900 truncate" style={{ fontSize: typography.card.title.size }}>
-              {hasMultipleAirlines ? 'Multi-City Journey' : airlineData.name}
+              {hasMultipleAirlines ? (lang === 'pt' ? 'Viagem Multi-Trecho' : lang === 'es' ? 'Viaje Multi-Ciudad' : 'Multi-City Journey') : airlineData.name}
             </span>
             {!hasMultipleAirlines && primaryFlightNumber && (
               <span className="hidden sm:flex font-medium text-gray-500 truncate items-baseline gap-1" style={{ fontSize: '11px' }}>
-                <span className="text-gray-400">Flight</span>
+                <span className="text-gray-400">{t.flight}</span>
                 <span className="text-gray-600 font-semibold">{primaryFlightNumber}</span>
               </span>
             )}
             {hasMultipleAirlines && (
               <span className="hidden sm:flex font-medium text-gray-500 truncate" style={{ fontSize: '11px' }}>
-                {allAirlines.length} Airlines • {itineraries.length} Legs
+                {allAirlines.length} {t.airlines} • {itineraries.length} {t.legs}
               </span>
             )}
           </div>
@@ -973,14 +1018,14 @@ export function FlightCardEnhanced({
           {/* Badge 1: Seats left - URGENCY (only if critical) - ALWAYS SHOW */}
           {numberOfBookableSeats <= 3 && (
             <span className="font-bold text-orange-600 px-1.5 py-0.5 bg-orange-50 rounded flex-shrink-0" style={{ fontSize: typography.card.meta.size }}>
-              ⚠️ {numberOfBookableSeats} left
+              ⚠️ {numberOfBookableSeats} {t.seatsLeft}
             </span>
           )}
 
           {/* Badge 2: Direct flight badge (only if ALL legs are direct for multi-city) - Hidden on mobile */}
           {legsStopsInfo.every(stops => stops.text === 'Direct') && (
             <span className="hidden md:inline-flex font-semibold px-1.5 py-0.5 bg-green-50 text-green-700 rounded flex-shrink-0" style={{ fontSize: typography.card.meta.size }}>
-              ✈️ All Direct
+              ✈️ {t.allDirect}
             </span>
           )}
 
@@ -1542,7 +1587,7 @@ export function FlightCardEnhanced({
             aria-label={isExpanded ? "Hide flight details" : "Show flight details"}
             data-testid="expand-details-button"
           >
-            Details {isExpanded ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />}
+            {t.details} {isExpanded ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />}
           </button>
 
           <button
@@ -1566,7 +1611,7 @@ export function FlightCardEnhanced({
                 Loading
               </span>
             ) : (
-              'Select →'
+              `${t.select} →`
             )}
           </button>
         </div>
@@ -1778,7 +1823,7 @@ export function FlightCardEnhanced({
                         className="px-3 py-1.5 bg-white border border-info-300 text-primary-600 rounded-lg text-xs font-semibold hover:bg-info-50 transition-colors flex items-center gap-1"
                       >
                         <ImageIcon className="w-4 h-4" />
-                        View Photos & Details
+                        {t.viewPhotos}
                       </button>
                     )}
                     <button
@@ -1856,7 +1901,7 @@ export function FlightCardEnhanced({
         <div className="absolute top-3 right-3 z-50 animate-slideDown">
           <div className="bg-success text-white px-4 py-2 rounded-lg shadow-xl flex items-center gap-2 text-sm">
             <Check className="w-4 h-4" />
-            <span className="font-semibold">Flight Selected!</span>
+            <span className="font-semibold">{t.flightSelected}</span>
           </div>
         </div>
       )}

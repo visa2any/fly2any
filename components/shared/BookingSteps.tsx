@@ -3,19 +3,30 @@
 import { memo } from 'react';
 import { Check } from 'lucide-react';
 
+// Booking step translations
+const stepTranslations = {
+  en: ['Details', 'Payment', 'Confirmation'],
+  pt: ['Detalhes', 'Pagamento', 'Confirmação'],
+  es: ['Detalles', 'Pago', 'Confirmación'],
+};
+
 interface BookingStepsProps {
   currentStep: number;
   totalSteps?: number;
   accentColor?: 'orange' | 'purple' | 'primary' | 'teal';
   labels?: string[];
+  lang?: 'en' | 'pt' | 'es';
 }
 
 export const BookingSteps = memo(({
   currentStep,
   totalSteps = 3,
   accentColor = 'orange',
-  labels = ['Details', 'Payment', 'Confirmation']
+  labels,
+  lang = 'en',
 }: BookingStepsProps) => {
+  const defaultLabels = stepTranslations[lang] || stepTranslations.en;
+  const stepLabels = labels || defaultLabels;
   const colorMap = {
     orange: { active: 'bg-orange-600', complete: 'bg-orange-500', ring: 'ring-orange-200' },
     purple: { active: 'bg-purple-600', complete: 'bg-purple-500', ring: 'ring-purple-200' },
@@ -46,7 +57,7 @@ export const BookingSteps = memo(({
                 {isComplete ? <Check className="w-4 h-4" /> : stepNum}
               </div>
               <span className={`text-xs mt-1.5 font-medium transition-colors ${isActive ? 'text-gray-900' : 'text-gray-400'}`}>
-                {labels[i] || `Step ${stepNum}`}
+                {stepLabels[i] || `Step ${stepNum}`}
               </span>
             </div>
             {i < totalSteps - 1 && (

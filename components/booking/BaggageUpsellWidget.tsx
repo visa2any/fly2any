@@ -3,12 +3,47 @@
 import { useState } from 'react';
 import { Briefcase, Check, Plus, Minus } from 'lucide-react';
 import { BaggageOption } from '@/types/booking-flow';
+import { useCurrency } from '@/lib/context/CurrencyContext';
+
+const translations = {
+  en: {
+    title: 'Add Checked Baggage',
+    subtitle: 'Save by adding bags now vs. at airport',
+    mostPopular: 'Most Popular',
+    none: 'None',
+    bag: 'Bag',
+    bags: 'Bags',
+    free: 'Free',
+    customAmount: 'Custom Amount',
+  },
+  pt: {
+    title: 'Adicionar Bagagem Despachada',
+    subtitle: 'Economize adicionando bagagem agora',
+    mostPopular: 'Mais Popular',
+    none: 'Nenhuma',
+    bag: 'Mala',
+    bags: 'Malas',
+    free: 'Grátis',
+    customAmount: 'Quantidade Personalizada',
+  },
+  es: {
+    title: 'Agregar Equipaje Facturado',
+    subtitle: 'Ahorra agregando equipaje ahora',
+    mostPopular: 'Más Popular',
+    none: 'Ninguna',
+    bag: 'Maleta',
+    bags: 'Maletas',
+    free: 'Gratis',
+    customAmount: 'Cantidad Personalizada',
+  },
+};
 
 interface BaggageUpsellWidgetProps {
   options: BaggageOption[];
   selectedQuantity?: number;
   onSelect: (quantity: number) => void;
   maxBags?: number;
+  lang?: 'en' | 'pt' | 'es';
 }
 
 /**
@@ -22,8 +57,12 @@ export function BaggageUpsellWidget({
   selectedQuantity = 0,
   onSelect,
   maxBags = 3,
+  lang = 'en',
 }: BaggageUpsellWidgetProps) {
   const [quantity, setQuantity] = useState(selectedQuantity);
+  const { getSymbol } = useCurrency();
+  const t = translations[lang] || translations.en;
+  const currencySymbol = getSymbol();
 
   const handleQuantityChange = (newQuantity: number) => {
     const validQuantity = Math.max(0, Math.min(newQuantity, maxBags));
@@ -43,8 +82,8 @@ export function BaggageUpsellWidget({
           <Briefcase className="w-4 h-4 text-primary-600" />
         </div>
         <div>
-          <h4 className="text-sm font-bold text-gray-900">Add Checked Baggage</h4>
-          <p className="text-[10px] text-gray-600">Save by adding bags now vs. at airport</p>
+          <h4 className="text-sm font-bold text-gray-900">{t.title}</h4>
+          <p className="text-[10px] text-gray-600">{t.subtitle}</p>
         </div>
       </div>
 
@@ -69,7 +108,7 @@ export function BaggageUpsellWidget({
               {/* Popular Badge */}
               {isMostPopular && (
                 <div className="absolute -top-1.5 left-1/2 -translate-x-1/2 bg-primary-600 text-white text-[8px] font-bold px-1.5 py-0.5 rounded-full whitespace-nowrap">
-                  Most Popular
+                  {t.mostPopular}
                 </div>
               )}
 
@@ -84,13 +123,13 @@ export function BaggageUpsellWidget({
               <div className="mb-1.5">
                 <Briefcase className={`w-5 h-5 mx-auto ${isSelected ? 'text-primary-600' : 'text-gray-400'}`} />
                 <div className="text-xs font-bold text-gray-900 mt-1">
-                  {option.quantity === 0 ? 'None' : `${option.quantity} Bag${option.quantity > 1 ? 's' : ''}`}
+                  {option.quantity === 0 ? t.none : `${option.quantity} ${option.quantity > 1 ? t.bags : t.bag}`}
                 </div>
               </div>
 
               {/* Price */}
               <div className={`text-sm font-bold ${isSelected ? 'text-primary-600' : 'text-gray-900'}`}>
-                {option.price === 0 ? 'Free' : `+$${option.price}`}
+                {option.price === 0 ? t.free : `+${currencySymbol}${option.price}`}
               </div>
 
               {/* Weight Info */}
@@ -105,7 +144,7 @@ export function BaggageUpsellWidget({
       {/* Custom Quantity Selector (if more than 3 bags needed) */}
       {maxBags > 3 && (
         <div className="bg-gray-50 rounded-lg p-2.5 flex items-center justify-between">
-          <span className="text-xs font-semibold text-gray-700">Custom Amount:</span>
+          <span className="text-xs font-semibold text-gray-700">{t.customAmount}:</span>
           <div className="flex items-center gap-2">
             <button
               onClick={() => handleQuantityChange(quantity - 1)}

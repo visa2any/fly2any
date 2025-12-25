@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { FlightOffer, normalizePrice } from '@/lib/flights/types';
 import { spacing, typography, colors, dimensions } from '@/lib/design-system';
+import { useCurrency } from '@/lib/context/CurrencyContext';
 
 // Filter state interface
 export interface FlightFilters {
@@ -333,6 +334,8 @@ export default function FlightFilters({
   lang = 'en',
 }: FlightFiltersProps) {
   const t = content[lang];
+  const { getSymbol } = useCurrency();
+  const currencySymbol = getSymbol();
   const [isMobileOpen, setIsMobileOpen] = useState(false);
   const [localFilters, setLocalFilters] = useState(filters);
 
@@ -808,10 +811,10 @@ export default function FlightFilters({
             />
           </div>
 
-          {/* Price Inputs - EDITABLE with $ symbol - FIXED AUTO-RESET BUG */}
+          {/* Price Inputs - EDITABLE with currency symbol - FIXED AUTO-RESET BUG */}
           <div className="flex items-center justify-between gap-2 mt-1">
             <div className="flex-1 relative">
-              <span className="absolute left-2 top-1/2 -translate-y-1/2 text-primary-700 font-bold text-xs pointer-events-none">$</span>
+              <span className="absolute left-2 top-1/2 -translate-y-1/2 text-primary-700 font-bold text-xs pointer-events-none">{currencySymbol}</span>
               <input
                 type="text"
                 value={isMinFocused ? minPriceInput : formatPrice(localFilters.priceRange[0])}
@@ -834,14 +837,14 @@ export default function FlightFilters({
                     }
                   }
                 }}
-                className="w-full bg-gradient-to-br from-primary-50 to-primary-100 border border-primary-300 rounded-md shadow-sm text-primary-700 font-bold text-xs pl-5 pr-2 py-1.5 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all hover:shadow-md"
+                className="w-full bg-gradient-to-br from-primary-50 to-primary-100 border border-primary-300 rounded-md shadow-sm text-primary-700 font-bold text-xs pl-6 pr-2 py-1.5 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all hover:shadow-md"
                 placeholder={String(minPrice)}
                 aria-label="Minimum price"
               />
             </div>
             <span className="text-gray-400 font-semibold text-xs flex-shrink-0">—</span>
             <div className="flex-1 relative">
-              <span className="absolute left-2 top-1/2 -translate-y-1/2 text-primary-700 font-bold text-xs pointer-events-none">$</span>
+              <span className="absolute left-2 top-1/2 -translate-y-1/2 text-primary-700 font-bold text-xs pointer-events-none">{currencySymbol}</span>
               <input
                 type="text"
                 value={isMaxFocused ? maxPriceInput : formatPrice(localFilters.priceRange[1])}
@@ -864,7 +867,7 @@ export default function FlightFilters({
                     }
                   }
                 }}
-                className="w-full bg-gradient-to-br from-primary-50 to-primary-100 border border-primary-300 rounded-md shadow-sm text-primary-700 font-bold text-xs pl-5 pr-2 py-1.5 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all hover:shadow-md"
+                className="w-full bg-gradient-to-br from-primary-50 to-primary-100 border border-primary-300 rounded-md shadow-sm text-primary-700 font-bold text-xs pl-6 pr-2 py-1.5 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all hover:shadow-md"
                 placeholder={String(maxPrice)}
                 aria-label="Maximum price"
               />

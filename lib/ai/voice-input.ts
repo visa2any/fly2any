@@ -272,6 +272,16 @@ export function needsClarification(transcription: VoiceTranscription): boolean {
 }
 
 /**
+ * Alias for detectLanguage (for voice-specific naming)
+ */
+export const detectLanguageFromVoice = detectLanguage;
+
+/**
+ * Alias for detectEmotion (for voice-specific naming)
+ */
+export const detectEmotionFromVoice = detectEmotion;
+
+/**
  * Get clarification prompt based on voice issues
  */
 export function getClarificationPrompt(
