@@ -1,26 +1,39 @@
 /**
- * NEXT.JS INSTRUMENTATION
- *
- * This file is automatically loaded by Next.js before the server starts.
- * It's the perfect place to initialize global error handlers and monitoring.
- *
- * @see https://nextjs.org/docs/app/building-your-application/optimizing/instrumentation
+ * Next.js Instrumentation Hook
+ * 
+ * Runs once on server startup. Perfect for:
+ * - Setting up global error handlers
+ * - Initializing monitoring services
+ * - Database connection monitoring
  */
 
 export async function register() {
-  // Only run on server-side
+  // Only run on server
   if (process.env.NEXT_RUNTIME === 'nodejs') {
-    console.log('[Instrumentation] Initializing server-side error handlers...');
+    // Global unhandled error handler for Node.js
+    process.on('uncaughtException', (error) => {
+      console.error('[UNCAUGHT EXCEPTION]', {
+        message: error.message,
+        stack: error.stack,
+        timestamp: new Date().toISOString(),
+      });
+      // In production: send to Sentry/monitoring service
+    });
 
-    // Initialize process-level error handlers
-    const { initProcessErrorHandlers } = await import('./lib/monitoring/process-error-handler');
-    initProcessErrorHandlers();
+    process.on('unhandledRejection', (reason, promise) => {
+      console.error('[UNHANDLED REJECTION]', {
+        reason: reason instanceof Error ? reason.message : String(reason),
+        stack: reason instanceof Error ? reason.stack : undefined,
+        timestamp: new Date().toISOString(),
+      });
+      // In production: send to Sentry/monitoring service
+    });
 
-    console.log('✅ [Instrumentation] Server-side error handlers initialized successfully');
+    console.log('[Instrumentation] Server-side error handlers registered');
   }
 
-  // Edge runtime (optional - for edge functions)
+  // Edge runtime
   if (process.env.NEXT_RUNTIME === 'edge') {
-    console.log('[Instrumentation] Running in Edge runtime - skipping process handlers');
+    console.log('[Instrumentation] Edge runtime initialized');
   }
 }
