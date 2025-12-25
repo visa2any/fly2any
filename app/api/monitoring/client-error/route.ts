@@ -1,69 +1,38 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { alertCustomerError } from '@/lib/monitoring/customer-error-alerts';
-import { ErrorCategory, ErrorSeverity } from '@/lib/monitoring/global-error-handler';
+
+export const runtime = 'nodejs';
 
 /**
- * CLIENT ERROR MONITORING API
- *
- * Receives React errors from ErrorBoundary and sends alerts
- * This is specifically for errors caught by React Error Boundaries
- *
- * @endpoint POST /api/monitoring/client-error
+ * Client Error Logging Endpoint
+ * Receives error reports from the browser via sendBeacon
  */
-
-interface ClientErrorRequest {
-  errorMessage: string;
-  errorStack?: string;
-  componentStack?: string;
-  userAgent?: string;
-  url?: string;
-  userEmail?: string;
-  timestamp: string;
-}
-
 export async function POST(request: NextRequest) {
   try {
-    const body: ClientErrorRequest = await request.json();
+    const body = await request.text();
+    const errorData = JSON.parse(body);
 
-    console.error('❌ [Client Error Boundary] Error received:', {
-      message: body.errorMessage,
-      url: body.url,
-      userEmail: body.userEmail,
+    // Log to console (in production, send to monitoring service)
+    console.error('[CLIENT ERROR]', {
+      timestamp: errorData.timestamp || new Date().toISOString(),
+      message: errorData.message,
+      component: errorData.component,
+      action: errorData.action,
+      category: errorData.category,
+      severity: errorData.severity,
+      url: errorData.url,
+      userAgent: errorData.userAgent?.substring(0, 100),
+      stack: errorData.stack?.substring(0, 500),
+      additionalData: errorData.additionalData,
     });
 
-    // Send customer error alert (CRITICAL for React errors)
-    await alertCustomerError({
-      errorMessage: body.errorMessage,
-      errorCode: 'REACT_ERROR_BOUNDARY',
-      errorStack: body.errorStack,
-      category: ErrorCategory.UNKNOWN,
-      severity: ErrorSeverity.CRITICAL,
-      url: body.url,
-      userAgent: body.userAgent,
-      userEmail: body.userEmail,
-      endpoint: 'CLIENT_REACT_ERROR',
-    }, {
-      priority: ErrorSeverity.CRITICAL,
-      sendTelegram: true, // Always send Telegram for React errors
-      sendEmail: true,
-      sendSentry: true,
-    }).catch(err => {
-      console.error('Failed to send client error alert:', err);
-    });
+    // For critical errors, could send Telegram notification
+    // if (errorData.severity === 'CRITICAL') {
+    //   await sendTelegramAlert(errorData);
+    // }
 
-    return NextResponse.json({
-      success: true,
-      message: 'Client error logged and alerts sent',
-    });
-  } catch (error: any) {
-    console.error('❌ [Client Error API] Failed to process error:', error);
-
-    return NextResponse.json({
-      success: false,
-      error: 'Failed to process client error',
-    }, { status: 500 });
+    return new NextResponse(null, { status: 204 });
+  } catch (error) {
+    console.error('[CLIENT ERROR ENDPOINT] Failed:', error);
+    return new NextResponse(null, { status: 204 });
   }
 }
-
-// Prevent caching
-export const dynamic = 'force-dynamic';

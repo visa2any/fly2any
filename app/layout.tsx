@@ -10,6 +10,7 @@ import InstallPrompt from "@/components/pwa/InstallPrompt";
 import OfflineIndicator from "@/components/pwa/OfflineIndicator";
 import { PWASplashScreen } from "@/components/pwa/PWASplashScreen";
 import { StructuredData } from "@/components/seo/StructuredData";
+import { GlobalClientErrorListener } from "@/components/error/GlobalClientErrorListener";
 import {
   getOrganizationSchema,
   getWebSiteSchema,
@@ -218,6 +219,8 @@ export default async function RootLayout({
         {/* Vercel Web Analytics & Speed Insights */}
         <Analytics />
         <SpeedInsights />
+        {/* Global Client Error Listener - Catches ALL unhandled errors */}
+        <GlobalClientErrorListener />
       </body>
     </html>
   );

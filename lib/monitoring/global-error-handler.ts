@@ -402,6 +402,62 @@ export async function safeBookingOperation<T>(
   });
 }
 
+/**
+ * Report client-side errors to the backend for logging/monitoring
+ * Use this for fetch errors, network errors, etc.
+ */
+export async function reportClientError(
+  error: Error | string,
+  context: {
+    component?: string;
+    action?: string;
+    category?: ErrorCategory;
+    severity?: ErrorSeverity;
+    url?: string;
+    userAgent?: string;
+    additionalData?: Record<string, any>;
+  } = {}
+): Promise<void> {
+  try {
+    const errorMessage = typeof error === 'string' ? error : error.message;
+    const errorStack = typeof error === 'string' ? undefined : error.stack;
+
+    // Determine severity based on error type
+    let severity = context.severity || ErrorSeverity.HIGH;
+    if (errorMessage.toLowerCase().includes('network') ||
+        errorMessage.toLowerCase().includes('fetch') ||
+        errorMessage.toLowerCase().includes('timeout')) {
+      severity = ErrorSeverity.HIGH;
+    }
+
+    const payload = {
+      message: errorMessage,
+      stack: errorStack,
+      component: context.component || 'Unknown',
+      action: context.action || 'Unknown',
+      category: context.category || ErrorCategory.NETWORK,
+      severity,
+      url: context.url || (typeof window !== 'undefined' ? window.location.href : ''),
+      userAgent: context.userAgent || (typeof navigator !== 'undefined' ? navigator.userAgent : ''),
+      timestamp: new Date().toISOString(),
+      additionalData: context.additionalData,
+    };
+
+    // Log to console in development
+    console.error('[GlobalErrorHandler] Client Error:', payload);
+
+    // Send to backend error logging endpoint
+    if (typeof window !== 'undefined') {
+      // Use sendBeacon for reliability (won't be cancelled on page unload)
+      const blob = new Blob([JSON.stringify(payload)], { type: 'application/json' });
+      navigator.sendBeacon('/api/monitoring/client-error', blob);
+    }
+  } catch (reportError) {
+    // Silently fail - don't cause additional errors
+    console.error('[GlobalErrorHandler] Failed to report error:', reportError);
+  }
+}
+
 export const globalErrorHandler = {
   handleApiError,
   safeExecute,
@@ -410,6 +466,7 @@ export const globalErrorHandler = {
   safePaymentOperation,
   safeBookingOperation,
   createAppError,
+  reportClientError,
   ErrorSeverity,
   ErrorCategory,
 };
