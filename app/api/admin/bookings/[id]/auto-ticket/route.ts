@@ -53,11 +53,12 @@ export async function POST(
     }
 
     // 2. Verify booking requires manual ticketing
-    if (booking.status !== 'pending_ticketing' && booking.status !== 'pending') {
+    const validStatuses = ['pending', 'pending_ticketing', 'confirmed'];
+    if (!validStatuses.includes(booking.status)) {
       return NextResponse.json(
         {
           success: false,
-          error: `Booking status is '${booking.status}', expected 'pending_ticketing'`,
+          error: `Booking status is '${booking.status}', expected one of: ${validStatuses.join(', ')}`,
         },
         { status: 400 }
       );

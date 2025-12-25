@@ -422,8 +422,9 @@ export default function AdminBookingDetailPage() {
           </div>
 
           <div className="flex items-center gap-3">
-            {/* Issue Ticket Buttons - Only for pending_ticketing */}
-            {booking.status === 'pending_ticketing' && (
+            {/* Issue Ticket Buttons - For pending or pending_ticketing (non-Duffel bookings) */}
+            {(booking.status === 'pending_ticketing' || booking.status === 'pending') &&
+             booking.sourceApi !== 'Duffel' && (
               <>
                 {/* Auto-Ticket Button */}
                 <button
