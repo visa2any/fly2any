@@ -17,12 +17,13 @@ import {
   ConsolidatorBookingAutomation,
   convertBookingToAutomationFormat,
 } from '@/lib/automation/consolidator-booking';
+import { handleApiError, ErrorCategory, ErrorSeverity } from '@/lib/monitoring/global-error-handler';
 
 export async function POST(
   request: NextRequest,
   { params }: { params: { id: string } }
 ) {
-  try {
+  return handleApiError(request, async () => {
     const bookingId = params.id;
 
     // Parse request body for options
@@ -43,7 +44,7 @@ export async function POST(
     console.log('═══════════════════════════════════════════════════');
 
     // 1. Fetch booking from database
-    const booking = await bookingStorage.getBookingById(bookingId);
+    const booking = await bookingStorage.findById(bookingId);
 
     if (!booking) {
       return NextResponse.json(
@@ -218,17 +219,10 @@ Please ticket manually.
       { status: 500 }
     );
 
-  } catch (error: any) {
-    console.error('❌ Auto-ticket error:', error);
-
-    return NextResponse.json(
-      {
-        success: false,
-        error: error.message || 'Internal server error',
-      },
-      { status: 500 }
-    );
-  }
+  }, {
+    category: ErrorCategory.BOOKING,
+    severity: ErrorSeverity.CRITICAL
+  });
 }
 
 /**
