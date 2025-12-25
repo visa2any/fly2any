@@ -16,6 +16,9 @@ import { applyFlightMarkup, determineRoutingChannel, ROUTING_THRESHOLD } from '@
 // CRITICAL: Import offer freshness to prevent OFFER_EXPIRED errors
 import { getOfferStatus, buildSearchUrl } from '@/lib/flights/offer-freshness';
 
+// CRITICAL: Unified source detection for Duffel vs Amadeus routing
+import { detectFlightSource, isDuffelOffer } from '@/lib/flights/source-detector';
+
 // CRITICAL: Import error alerting system to notify admins of customer errors
 import { alertApiError } from '@/lib/monitoring/customer-error-alerts';
 import {
@@ -145,8 +148,8 @@ export async function POST(request: NextRequest) {
     // ═══════════════════════════════════════════════════════════════════════
     // OFFER EXPIRATION PRE-CHECK (Duffel offers expire after 30 minutes)
     // ═══════════════════════════════════════════════════════════════════════
-    const isDuffelOffer = flightOffer.source === 'Duffel' || flightOffer.id?.startsWith('off_');
-    if (isDuffelOffer) {
+    const isDuffelOfferDetected = isDuffelOffer(flightOffer);
+    if (isDuffelOfferDetected) {
       // Pass full flightOffer to extract expires_at timestamp from Duffel
       const offerStatus = getOfferStatus(flightOffer.id, flightOffer);
       console.log(`⏱️  OFFER VALIDITY CHECK: ${flightOffer.id}`);
@@ -263,7 +266,15 @@ export async function POST(request: NextRequest) {
     console.log('💰 Confirming current price...');
 
     let confirmedOffer: any;
-    let flightSource = flightOffer.source || 'GDS';
+
+    // CRITICAL FIX: Use unified source detection (fixes bug where Duffel offers without explicit source went to manual)
+    const sourceDetection = detectFlightSource(flightOffer);
+    let flightSource = sourceDetection.source === 'Duffel' ? 'Duffel' : 'GDS';
+
+    console.log(`🔍 SOURCE DETECTION:`);
+    console.log(`   Detected: ${sourceDetection.source} (${sourceDetection.confidence} confidence)`);
+    console.log(`   Method: ${sourceDetection.detectionMethod}`);
+    console.log(`   Auto-Ticketable: ${sourceDetection.isAutoTicketable}`);
 
     // Extract NET price (before markup) from the offer - this is what we pay the API
     const totalFare = parseFloat(flightOffer.price?.total || '0');
@@ -954,19 +965,57 @@ export async function POST(request: NextRequest) {
           priority: statusCode >= 500 ? 'critical' : 'high',
         }).catch(alertErr => console.error('Failed to send alert:', alertErr));
 
-        // Return specific error BEFORE creating payment
-        // CRITICAL: Customer is NOT charged yet!
-        return NextResponse.json(
-          {
-            success: false,
-            error: errorCode,
-            message: userFriendlyError,
-            details: process.env.NODE_ENV === 'development' ? error.message : undefined,
-          },
-          { status: statusCode }
-        );
+        // SMART FALLBACK: For transient Duffel errors, fallback to manual ticketing
+        // This ensures customer doesn't lose booking opportunity
+        const isRecoverableError = [
+          'SERVICE_UNAVAILABLE', 'TIMEOUT', 'NETWORK_ERROR', 'RATE_LIMIT'
+        ].includes(errorCode) || statusCode >= 500;
+
+        if (isRecoverableError && process.env.DUFFEL_FALLBACK_TO_MANUAL === 'true') {
+          console.log('⚠️ DUFFEL FAILED - Falling back to manual ticketing...');
+          console.log(`   Original error: ${errorCode} - ${userFriendlyError}`);
+
+          // Switch to manual ticketing flow
+          flightSource = 'GDS';
+          sourceApi = 'Amadeus';
+
+          // Notify admin about fallback
+          try {
+            const { notifyTelegramAdmins } = await import('@/lib/notifications/notification-service');
+            await notifyTelegramAdmins(`
+⚠️ *Duffel Fallback Triggered*
+
+A Duffel booking failed and was automatically routed to manual ticketing.
+
+📋 *Details:*
+• Customer: ${contactInfo?.email}
+• Route: ${confirmedOffer.itineraries[0]?.segments[0]?.departure?.iataCode} → ${confirmedOffer.itineraries[0]?.segments[confirmedOffer.itineraries[0]?.segments.length - 1]?.arrival?.iataCode}
+• Price: ${confirmedOffer.price.currency} ${confirmedOffer.price.total}
+• Original Error: ${errorCode}
+
+⚡ *Action:* Issue ticket manually via consolidator.
+            `.trim());
+          } catch {}
+
+          // Continue to manual ticketing flow below (don't return)
+        } else {
+          // Return specific error BEFORE creating payment
+          // CRITICAL: Customer is NOT charged yet!
+          return NextResponse.json(
+            {
+              success: false,
+              error: errorCode,
+              message: userFriendlyError,
+              details: process.env.NODE_ENV === 'development' ? error.message : undefined,
+            },
+            { status: statusCode }
+          );
+        }
       }
-    } else {
+    }
+
+    // FALLBACK PATH: If Duffel failed with recoverable error, this creates manual reservation
+    if (flightSource === 'GDS' && !flightOrder) {
       // ========== AMADEUS/GDS RESERVATION (MANUAL TICKETING WORKFLOW) ==========
       // Amadeus flights are NOT booked through the API
       // Instead, we create a RESERVATION in our system for manual ticketing via consolidator

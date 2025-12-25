@@ -51,6 +51,9 @@ export default function AdminBookingDetailPage() {
   const [syncing, setSyncing] = useState(false);
   const [syncResult, setSyncResult] = useState<{ success: boolean; changes: string[]; error?: string } | null>(null);
 
+  // Auto-ticketing state
+  const [autoTicketing, setAutoTicketing] = useState(false);
+
   // Ticketing form state
   const [showTicketingForm, setShowTicketingForm] = useState(false);
   const [savingTicketing, setSavingTicketing] = useState(false);
@@ -273,6 +276,42 @@ export default function AdminBookingDetailPage() {
     }
   };
 
+  // Auto-ticket via consolidator automation
+  const handleAutoTicket = async () => {
+    if (!booking) return;
+
+    if (!confirm('Start auto-ticketing via consolidator?\n\nThis will automatically book the flight on TheBestAgent.PRO using the exact flight details from the customer reservation.')) {
+      return;
+    }
+
+    try {
+      setAutoTicketing(true);
+
+      const response = await fetch(`/api/admin/bookings/${booking.id}/auto-ticket`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Auto-ticketing failed');
+      }
+
+      if (data.success) {
+        alert(`✅ Auto-ticketing successful!\n\nPNR: ${data.pnr}\nConsolidator Price: $${data.consolidatorPrice}`);
+        fetchBooking(); // Refresh booking data
+      } else {
+        alert(`❌ Auto-ticketing failed: ${data.error}`);
+      }
+    } catch (error: any) {
+      console.error('Auto-ticket error:', error);
+      alert('Auto-ticketing error: ' + error.message);
+    } finally {
+      setAutoTicketing(false);
+    }
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-gray-50 via-blue-50/30 to-gray-50 flex items-center justify-center">
@@ -383,15 +422,38 @@ export default function AdminBookingDetailPage() {
           </div>
 
           <div className="flex items-center gap-3">
-            {/* Issue Ticket Button - Only for pending_ticketing */}
+            {/* Issue Ticket Buttons - Only for pending_ticketing */}
             {booking.status === 'pending_ticketing' && (
-              <button
-                onClick={() => setShowTicketingForm(true)}
-                className="inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white font-bold rounded-lg transition-colors shadow-lg"
-              >
-                <Ticket className="w-5 h-5" />
-                Issue Ticket
-              </button>
+              <>
+                {/* Auto-Ticket Button */}
+                <button
+                  onClick={handleAutoTicket}
+                  disabled={autoTicketing}
+                  className="inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 disabled:from-green-400 disabled:to-emerald-400 text-white font-bold rounded-lg transition-colors shadow-lg"
+                  title="Automatically book via consolidator"
+                >
+                  {autoTicketing ? (
+                    <>
+                      <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                      Auto-Ticketing...
+                    </>
+                  ) : (
+                    <>
+                      <Plane className="w-5 h-5" />
+                      Auto-Ticket
+                    </>
+                  )}
+                </button>
+
+                {/* Manual Ticket Button */}
+                <button
+                  onClick={() => setShowTicketingForm(true)}
+                  className="inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white font-bold rounded-lg transition-colors shadow-lg"
+                >
+                  <Ticket className="w-5 h-5" />
+                  Manual Ticket
+                </button>
+              </>
             )}
 
             {booking.status === 'pending' && booking.payment.status === 'pending' && (
