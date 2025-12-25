@@ -14,6 +14,7 @@ import {
   X,
   RotateCcw,
 } from 'lucide-react';
+import { reportClientError } from '@/lib/monitoring/global-error-handler';
 
 /**
  * Mobile-Optimized Verification Upload Page
@@ -88,27 +89,109 @@ export default function MobileUploadPage() {
   const currentDoc = DOCUMENTS[currentStep];
   const allUploaded = Object.values(documents).every(d => d.file !== null);
 
-  // Handle camera capture with better mobile support
-  const handleCapture = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+  // Compress and convert image to JPEG (handles HEIC from iPhone)
+  const processImage = useCallback((file: File): Promise<{ file: File; preview: string }> => {
+    return new Promise((resolve, reject) => {
+      const img = new Image();
+      const reader = new FileReader();
+
+      reader.onload = (e) => {
+        img.onload = () => {
+          try {
+            // Create canvas for compression
+            const canvas = document.createElement('canvas');
+            const ctx = canvas.getContext('2d');
+            if (!ctx) {
+              reject(new Error('Canvas not supported'));
+              return;
+            }
+
+            // Max dimensions (optimized for verification)
+            const MAX_WIDTH = 1200;
+            const MAX_HEIGHT = 1200;
+            let { width, height } = img;
+
+            // Scale down if needed
+            if (width > MAX_WIDTH || height > MAX_HEIGHT) {
+              const ratio = Math.min(MAX_WIDTH / width, MAX_HEIGHT / height);
+              width = Math.round(width * ratio);
+              height = Math.round(height * ratio);
+            }
+
+            canvas.width = width;
+            canvas.height = height;
+            ctx.drawImage(img, 0, 0, width, height);
+
+            // Convert to JPEG blob with 85% quality
+            canvas.toBlob(
+              (blob) => {
+                if (!blob) {
+                  reject(new Error('Failed to process image'));
+                  return;
+                }
+                const processedFile = new File(
+                  [blob],
+                  file.name.replace(/\.(heic|heif|png|webp)$/i, '.jpg'),
+                  { type: 'image/jpeg' }
+                );
+                const preview = canvas.toDataURL('image/jpeg', 0.85);
+                resolve({ file: processedFile, preview });
+              },
+              'image/jpeg',
+              0.85
+            );
+          } catch (err) {
+            reject(err);
+          }
+        };
+
+        img.onerror = () => reject(new Error('Failed to load image'));
+        img.src = e.target?.result as string;
+      };
+
+      reader.onerror = () => reject(new Error('Failed to read file'));
+      reader.readAsDataURL(file);
+    });
+  }, []);
+
+  // Handle camera capture with HEIC support and compression
+  const handleCapture = useCallback(async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
 
-    // Create preview
-    const reader = new FileReader();
-    reader.onload = (ev) => {
+    setError(null);
+
+    try {
+      // Show loading state
       setDocuments(prev => ({
         ...prev,
-        [currentDoc.id]: {
-          file,
-          preview: ev.target?.result as string,
-        },
+        [currentDoc.id]: { file: null, preview: 'loading' },
       }));
-    };
-    reader.readAsDataURL(file);
+
+      const { file: processedFile, preview } = await processImage(file);
+
+      setDocuments(prev => ({
+        ...prev,
+        [currentDoc.id]: { file: processedFile, preview },
+      }));
+    } catch (err: any) {
+      console.error('Image processing error:', err);
+      reportClientError(err, {
+        context: 'mobile-upload-image-processing',
+        docType: currentDoc.id,
+        bookingRef: bookingInfo?.ref,
+        userAgent: navigator.userAgent,
+      });
+      setError('Could not process image. Please try again.');
+      setDocuments(prev => ({
+        ...prev,
+        [currentDoc.id]: { file: null, preview: null },
+      }));
+    }
 
     // Reset input for re-selection
     e.target.value = '';
-  }, [currentDoc]);
+  }, [currentDoc, processImage]);
 
   // Trigger camera with better mobile support
   const triggerCamera = useCallback(() => {
@@ -135,40 +218,68 @@ export default function MobileUploadPage() {
     }));
   };
 
-  // Submit all documents
+  // Submit all documents with retry logic
   const handleSubmit = async () => {
     if (!allUploaded || !bookingInfo) return;
 
     setIsSubmitting(true);
     setError(null);
 
-    try {
-      const formData = new FormData();
-      formData.append('bookingReference', bookingInfo.ref);
-      formData.append('token', token);
+    const maxRetries = 2;
+    let lastError: Error | null = null;
 
-      Object.entries(documents).forEach(([key, doc]) => {
-        if (doc.file) {
-          formData.append(key, doc.file);
+    for (let attempt = 0; attempt <= maxRetries; attempt++) {
+      try {
+        const formData = new FormData();
+        formData.append('bookingReference', bookingInfo.ref);
+        formData.append('token', token);
+
+        Object.entries(documents).forEach(([key, doc]) => {
+          if (doc.file) {
+            formData.append(key, doc.file);
+          }
+        });
+
+        const response = await fetch('/api/booking-flow/verify-documents', {
+          method: 'POST',
+          body: formData,
+        });
+
+        if (!response.ok) {
+          const data = await response.json().catch(() => ({}));
+          throw new Error(data.error || `Upload failed (${response.status})`);
         }
-      });
 
-      const response = await fetch('/api/booking-flow/verify-documents', {
-        method: 'POST',
-        body: formData,
-      });
+        setIsComplete(true);
+        return; // Success!
+      } catch (err: any) {
+        lastError = err;
+        console.error(`Upload attempt ${attempt + 1} failed:`, err);
 
-      if (!response.ok) {
-        throw new Error('Upload failed');
+        // Don't retry on certain errors
+        if (err.message?.includes('required') || err.message?.includes('Invalid')) {
+          break;
+        }
+
+        // Wait before retry
+        if (attempt < maxRetries) {
+          await new Promise(r => setTimeout(r, 1000 * (attempt + 1)));
+        }
       }
-
-      setIsComplete(true);
-    } catch (err) {
-      console.error('Upload error:', err);
-      setError('Failed to upload. Please try again.');
-    } finally {
-      setIsSubmitting(false);
     }
+
+    // All retries failed - report to global error system
+    if (lastError) {
+      reportClientError(lastError, {
+        context: 'mobile-upload-submit',
+        bookingRef: bookingInfo?.ref,
+        token,
+        userAgent: navigator.userAgent,
+        documentsCount: Object.values(documents).filter(d => d.file).length,
+      });
+    }
+    setError(lastError?.message || 'Failed to upload. Please check your connection and try again.');
+    setIsSubmitting(false);
   };
 
   // Success screen
@@ -248,7 +359,12 @@ export default function MobileUploadPage() {
 
             {/* Preview or Camera */}
             <div className="flex-1 flex items-center justify-center p-4 min-h-[300px]">
-              {currentPreview ? (
+              {currentPreview === 'loading' ? (
+                <div className="w-full max-w-sm aspect-[4/3] bg-gray-100 rounded-2xl flex flex-col items-center justify-center">
+                  <Loader2 className="w-10 h-10 text-primary-500 animate-spin mb-3" />
+                  <p className="text-sm text-gray-600">Processing image...</p>
+                </div>
+              ) : currentPreview ? (
                 <div className="relative w-full max-w-sm">
                   <img
                     src={currentPreview}
@@ -278,7 +394,7 @@ export default function MobileUploadPage() {
             <input
               ref={fileInputRef}
               type="file"
-              accept="image/*"
+              accept="image/*,.heic,.heif"
               capture="environment"
               className="sr-only"
               onChange={handleCapture}
@@ -287,7 +403,7 @@ export default function MobileUploadPage() {
 
             {/* Actions */}
             <div className="p-4 border-t border-gray-100 bg-gray-50">
-              {currentPreview ? (
+              {currentPreview && currentPreview !== 'loading' ? (
                 <div className="flex gap-3">
                   <button
                     type="button"

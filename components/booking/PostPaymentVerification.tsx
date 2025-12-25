@@ -135,28 +135,72 @@ export function PostPaymentVerification({
   const progressPercent = (uploadedCount / 3) * 100;
   const isComplete = uploadedCount === 3;
 
-  // Handle file selection
+  // Compress and convert image to JPEG (handles HEIC from iPhone)
+  const processImage = useCallback((file: File): Promise<{ file: File; preview: string }> => {
+    return new Promise((resolve, reject) => {
+      const img = new Image();
+      const reader = new FileReader();
+
+      reader.onload = (e) => {
+        img.onload = () => {
+          try {
+            const canvas = document.createElement('canvas');
+            const ctx = canvas.getContext('2d');
+            if (!ctx) { reject(new Error('Canvas not supported')); return; }
+
+            const MAX_SIZE = 1200;
+            let { width, height } = img;
+            if (width > MAX_SIZE || height > MAX_SIZE) {
+              const ratio = Math.min(MAX_SIZE / width, MAX_SIZE / height);
+              width = Math.round(width * ratio);
+              height = Math.round(height * ratio);
+            }
+
+            canvas.width = width;
+            canvas.height = height;
+            ctx.drawImage(img, 0, 0, width, height);
+
+            canvas.toBlob(
+              (blob) => {
+                if (!blob) { reject(new Error('Failed to process')); return; }
+                const processedFile = new File([blob], file.name.replace(/\.(heic|heif|png|webp)$/i, '.jpg'), { type: 'image/jpeg' });
+                resolve({ file: processedFile, preview: canvas.toDataURL('image/jpeg', 0.85) });
+              },
+              'image/jpeg',
+              0.85
+            );
+          } catch (err) { reject(err); }
+        };
+        img.onerror = () => reject(new Error('Failed to load'));
+        img.src = e.target?.result as string;
+      };
+      reader.onerror = () => reject(new Error('Failed to read'));
+      reader.readAsDataURL(file);
+    });
+  }, []);
+
+  // Handle file selection with compression
   const handleFileSelect = useCallback(async (docId: string, file: File) => {
-    if (!file.type.startsWith('image/')) {
+    if (!file.type.startsWith('image/') && !file.name.match(/\.(heic|heif)$/i)) {
       alert('Please select an image file');
       return;
     }
 
-    // Create preview
-    const reader = new FileReader();
-    reader.onload = (e) => {
+    // Show loading
+    setDocuments(prev => ({ ...prev, [docId]: { file: null, preview: null, uploading: true, uploaded: false } }));
+
+    try {
+      const { file: processedFile, preview } = await processImage(file);
       setDocuments(prev => ({
         ...prev,
-        [docId]: {
-          file,
-          preview: e.target?.result as string,
-          uploading: false,
-          uploaded: false,
-        },
+        [docId]: { file: processedFile, preview, uploading: false, uploaded: false },
       }));
-    };
-    reader.readAsDataURL(file);
-  }, []);
+    } catch (err) {
+      console.error('Image processing error:', err);
+      alert('Could not process image. Please try again.');
+      setDocuments(prev => ({ ...prev, [docId]: { file: null, preview: null, uploading: false, uploaded: false } }));
+    }
+  }, [processImage]);
 
   // Handle drag and drop
   const handleDrop = useCallback((docId: string, e: React.DragEvent) => {
@@ -369,7 +413,7 @@ export function PostPaymentVerification({
                       <input
                         ref={(el) => { fileInputRefs.current[doc.id] = el; }}
                         type="file"
-                        accept="image/*"
+                        accept="image/*,.heic,.heif"
                         capture="environment"
                         className="hidden"
                         onChange={(e) => handleInputChange(doc.id, e)}
@@ -381,7 +425,11 @@ export function PostPaymentVerification({
                         <div className={`w-12 h-12 sm:w-16 sm:h-16 rounded-lg overflow-hidden mb-1.5 ${
                           isUploaded ? 'ring-2 ring-green-400' : 'bg-gray-100'
                         }`}>
-                          {docState.preview ? (
+                          {docState.uploading ? (
+                            <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-gray-50 to-gray-100">
+                              <Loader2 className="w-5 h-5 sm:w-6 sm:h-6 text-primary-500 animate-spin" />
+                            </div>
+                          ) : docState.preview ? (
                             <img src={docState.preview} alt={doc.label} className="w-full h-full object-cover" />
                           ) : (
                             <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-gray-50 to-gray-100">

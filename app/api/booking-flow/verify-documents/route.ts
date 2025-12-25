@@ -4,6 +4,7 @@ import { bookingStorage } from '@/lib/bookings/storage';
 import { put } from '@vercel/blob';
 import crypto from 'crypto';
 import { notifyTelegramAdmins, sendAdminAlert } from '@/lib/notifications/notification-service';
+import { handleApiError, ErrorCategory, ErrorSeverity } from '@/lib/monitoring/global-error-handler';
 
 /**
  * POST /api/booking-flow/verify-documents
@@ -14,7 +15,9 @@ import { notifyTelegramAdmins, sendAdminAlert } from '@/lib/notifications/notifi
  * Documents are stored securely in Vercel Blob with encryption.
  */
 export async function POST(request: NextRequest) {
-  try {
+  return handleApiError(
+    request,
+    async () => {
     // Check if Vercel Blob is configured
     if (!process.env.BLOB_READ_WRITE_TOKEN) {
       console.error('[VERIFY_DOCUMENTS] BLOB_READ_WRITE_TOKEN is not configured');
@@ -277,6 +280,9 @@ export async function POST(request: NextRequest) {
       { status: 500 }
     );
   }
+    },
+    { category: ErrorCategory.BOOKING, severity: ErrorSeverity.CRITICAL }
+  );
 }
 
 /**
