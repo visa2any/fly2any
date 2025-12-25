@@ -520,14 +520,22 @@ export class ConsolidatorBookingAutomation {
 
   /**
    * Main booking flow - FULL E2E
+   * @param booking - Booking data
+   * @param headless - Run browser in headless mode
+   * @param dryRun - If true, fills all details but does NOT click final BOOK button (safe mode)
    */
-  async bookFlight(booking: BookingData, headless: boolean = true): Promise<BookingResult> {
+  async bookFlight(
+    booking: BookingData,
+    headless: boolean = true,
+    dryRun: boolean = true // DEFAULT: dry run (safe) - set to false to actually issue
+  ): Promise<BookingResult> {
     try {
       console.log('═══════════════════════════════════════════════════');
-      console.log(`🎫 CONSOLIDATOR BOOKING AUTOMATION`);
+      console.log(`🎫 CONSOLIDATOR BOOKING AUTOMATION${dryRun ? ' (DRY RUN)' : ''}`);
       console.log(`   Booking: ${booking.bookingReference}`);
       console.log(`   Route: ${booking.flights.segments.map(s => `${s.origin}→${s.destination}`).join(' | ')}`);
       console.log(`   Passengers: ${booking.passengers.length}`);
+      console.log(`   Mode: ${dryRun ? '📝 Record Only (no issue)' : '🚀 LIVE BOOKING'}`);
       console.log('═══════════════════════════════════════════════════');
 
       // Initialize
@@ -554,11 +562,31 @@ export class ConsolidatorBookingAutomation {
       // Step 6: Fill passengers
       await this.fillPassengers(booking);
 
-      // Step 7: Complete booking
+      // Step 7: Complete booking (or stop if dry run)
+      if (dryRun) {
+        console.log('═══════════════════════════════════════════════════');
+        console.log('📝 DRY RUN COMPLETE - BOOKING RECORDED (NOT ISSUED)');
+        console.log(`   Consolidator Price: $${priceCheck.consolidatorPrice}`);
+        console.log(`   Customer Paid: $${booking.pricing.customerPaid}`);
+        console.log(`   Expected Profit: $${(booking.pricing.customerPaid - priceCheck.consolidatorPrice).toFixed(2)}`);
+        console.log('═══════════════════════════════════════════════════');
+        console.log('⚠️ To actually issue, call with dryRun=false');
+
+        await this.screenshot('dry-run-complete');
+
+        return {
+          success: true,
+          pnr: undefined, // No PNR in dry run
+          consolidatorPrice: priceCheck.consolidatorPrice,
+          screenshots: this.screenshots,
+        };
+      }
+
+      // LIVE: Complete the booking
       const pnr = await this.completeBooking();
 
       console.log('═══════════════════════════════════════════════════');
-      console.log(`✅ BOOKING COMPLETE`);
+      console.log(`✅ BOOKING COMPLETE - TICKET ISSUED`);
       console.log(`   PNR: ${pnr}`);
       console.log(`   Consolidator Price: $${priceCheck.consolidatorPrice}`);
       console.log('═══════════════════════════════════════════════════');
