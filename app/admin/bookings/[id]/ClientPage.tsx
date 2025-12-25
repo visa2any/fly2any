@@ -294,19 +294,38 @@ export default function AdminBookingDetailPage() {
 
       const data = await response.json();
 
+      // Handle serverless environment - show manual ticketing info
+      if (response.status === 503 && data.bookingData) {
+        const { bookingData, consolidatorUrl } = data;
+        const info = `📋 MANUAL TICKETING REQUIRED\n\n` +
+          `Reference: ${bookingData.reference}\n` +
+          `Route: ${bookingData.route}\n` +
+          `Flight: ${bookingData.flight}\n` +
+          `Date: ${bookingData.date}\n` +
+          `Passengers: ${bookingData.passengers?.join(', ')}\n` +
+          `Customer Paid: $${bookingData.customerPaid}\n\n` +
+          `Open consolidator portal to ticket manually.\n\n` +
+          `Portal: ${consolidatorUrl}`;
+
+        if (confirm(info + '\n\nOpen consolidator portal?')) {
+          window.open(consolidatorUrl, '_blank');
+        }
+        return;
+      }
+
       if (!response.ok) {
-        throw new Error(data.error || 'Auto-ticketing failed');
+        throw new Error(data.error || data.message || 'Auto-ticketing failed');
       }
 
       if (data.success) {
         alert(`✅ Auto-ticketing successful!\n\nPNR: ${data.pnr}\nConsolidator Price: $${data.consolidatorPrice}`);
-        fetchBooking(); // Refresh booking data
+        fetchBooking();
       } else {
         alert(`❌ Auto-ticketing failed: ${data.error}`);
       }
     } catch (error: any) {
       console.error('Auto-ticket error:', error);
-      alert('Auto-ticketing error: ' + error.message);
+      alert('❌ Auto-ticketing error: ' + error.message);
     } finally {
       setAutoTicketing(false);
     }
