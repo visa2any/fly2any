@@ -140,15 +140,7 @@ export default async function RootLayout({
         <link rel="dns-prefetch" href="https://images.unsplash.com" />
         <link rel="dns-prefetch" href="https://www.google-analytics.com" />
 
-        {/* Preload: Critical fonts for LCP text rendering - only preload the most common weight */}
-        <link
-          rel="preload"
-          href="https://fonts.gstatic.com/s/inter/v13/UcCO3FwrK3iLTeHuS_fvQtMwCp50KnMw2boKoduKmMEVuLyfAZ9hjp-Ek-_EeA.woff2"
-          as="font"
-          type="font/woff2"
-          crossOrigin="anonymous"
-          media="all"
-        />
+        {/* Font preload handled by next/font/google - manual preload removed to prevent 404 */}
         {/* PWA Meta Tags - Enhanced mobile browser chrome integration */}
         <meta name="mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-capable" content="yes" />
