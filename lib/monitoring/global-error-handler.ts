@@ -211,10 +211,10 @@ export async function handleApiError(
   } catch (error: any) {
     console.error('❌ [API Error]', error);
 
-    // Determine error details
+    // Determine error details - context values take priority
     const appError = error as AppError;
-    const severity = appError.severity || determineErrorSeverity(error);
-    const category = appError.category || determineErrorCategory(error);
+    const severity = context?.severity || appError.severity || determineErrorSeverity(error);
+    const category = context?.category || appError.category || determineErrorCategory(error);
     const statusCode = appError.statusCode || (category === ErrorCategory.VALIDATION ? 400 : 500);
     const errorCode = appError.code || `${category.toUpperCase()}_ERROR`;
     const userMessage = getUserFriendlyMessage(error);
