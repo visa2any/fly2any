@@ -1466,8 +1466,6 @@ function BookingPageContent() {
               taxesAndFees={taxesAndFees}
               onContinue={currentStep < 3 ? handleContinue : undefined}
               pricelock={priceLockTimer}
-              {/* REMOVED fake urgency - ethical compliance */}
-              {/* Real ML predictions can be re-enabled when backed by actual data */}
               continueButtonText={
                 currentStep === 1 ? 'Continue to Details →' :
                 currentStep === 2 ? 'Continue to Payment →' :

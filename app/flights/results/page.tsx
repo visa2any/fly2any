@@ -1834,8 +1834,6 @@ function FlightResultsContent() {
                       dealScore={(flight as any).dealScore}
                       dealTier={(flight as any).dealTier}
                       dealLabel={(flight as any).dealLabel}
-                      {/* REMOVED: Fake urgency indicators - ethical compliance */}
-                      {/* viewingCount and bookingsToday removed - were using Math.random() */}
                       onSelect={handleSelectFlight}
                       onCompare={handleCompareToggle}
                       onTrackPrice={handleTrackPrice}
