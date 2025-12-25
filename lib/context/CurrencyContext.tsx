@@ -46,18 +46,28 @@ export function CurrencyProvider({ children }: { children: ReactNode }) {
   const [isLoading, setIsLoading] = useState(true);
   const [popularCurrencies, setPopularCurrencies] = useState<CurrencyCode[]>([]);
 
-  // Initialize currency from localStorage or detect from locale
+  // Initialize currency from localStorage/cookie (MUST match useCurrency hook)
+  // CRITICAL: Use same storage keys as @/lib/hooks/useCurrency for sync
   useEffect(() => {
     const initializeCurrency = () => {
       try {
-        // Try to get from localStorage
-        const savedCurrency = localStorage.getItem('preferred-currency');
-        if (savedCurrency) {
-          setCurrencyState(savedCurrency);
-        } else {
-          // Detect from user locale
-          const detected = detectUserCurrency();
-          setCurrencyState(detected);
+        // PRIORITY 1: Check cookie (same as useCurrency hook)
+        const cookies = document.cookie.split(';');
+        const currCookie = cookies.find(c => c.trim().startsWith('fly2any_currency='));
+        if (currCookie) {
+          const curr = currCookie.split('=')[1].trim();
+          setCurrencyState(curr);
+        }
+        // PRIORITY 2: Check localStorage with SAME key as hook
+        else {
+          const savedCurrency = localStorage.getItem('fly2any_currency');
+          if (savedCurrency) {
+            setCurrencyState(savedCurrency);
+          } else {
+            // Detect from user locale
+            const detected = detectUserCurrency();
+            setCurrencyState(detected);
+          }
         }
 
         // Load popular currencies
@@ -72,13 +82,27 @@ export function CurrencyProvider({ children }: { children: ReactNode }) {
     };
 
     initializeCurrency();
+
+    // CRITICAL: Listen for currency changes from header selector (useCurrency hook)
+    const handleCurrencyChange = (e: CustomEvent<string>) => {
+      console.log('CurrencyContext: Received currency change event:', e.detail);
+      setCurrencyState(e.detail);
+    };
+
+    window.addEventListener('currencyChange', handleCurrencyChange as EventListener);
+    return () => window.removeEventListener('currencyChange', handleCurrencyChange as EventListener);
   }, []);
 
-  // Update currency and persist to localStorage
+  // Update currency and persist (MUST match useCurrency hook storage)
   const setCurrency = (newCurrency: string) => {
     try {
       setCurrencyState(newCurrency);
-      localStorage.setItem('preferred-currency', newCurrency);
+      // Use SAME storage keys as @/lib/hooks/useCurrency for global sync
+      const maxAge = 60 * 60 * 24 * 365;
+      document.cookie = `fly2any_currency=${newCurrency}; path=/; max-age=${maxAge}; SameSite=Lax`;
+      localStorage.setItem('fly2any_currency', newCurrency);
+      // Dispatch event so other components using useCurrency hook also update
+      window.dispatchEvent(new CustomEvent('currencyChange', { detail: newCurrency }));
       console.log(`✓ Currency set to ${newCurrency}`);
     } catch (error) {
       console.error('Error saving currency preference:', error);

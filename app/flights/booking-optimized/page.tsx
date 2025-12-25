@@ -197,25 +197,50 @@ function BookingPageContent() {
         // Duffel offers expire after 30 min - check EARLY to avoid wasted user effort
         // ===========================
         const OFFER_VALIDITY_MS = 25 * 60 * 1000; // 25 minutes (5 min safety buffer)
-        const storedAt = flight._storedAt || 0;
-        const expiresAt = flight._offerExpiresAt || (storedAt + OFFER_VALIDITY_MS);
         const now = Date.now();
+
+        // Get stored timestamp - if missing, assume user JUST clicked (fresh navigation)
+        // This prevents false "expired" popups when _storedAt wasn't saved correctly
+        const storedAt = flight._storedAt || now;
+
+        // Get expiration time from multiple sources (Duffel stores in different places)
+        // Priority: _offerExpiresAt > expires_at > lastTicketingDateTime > fallback
+        let expiresAt = flight._offerExpiresAt;
+        if (!expiresAt && flight.expires_at) {
+          expiresAt = new Date(flight.expires_at).getTime();
+        }
+        if (!expiresAt && flight.lastTicketingDateTime) {
+          expiresAt = new Date(flight.lastTicketingDateTime).getTime();
+        }
+        if (!expiresAt && flight.duffelMetadata?.expires_at) {
+          expiresAt = new Date(flight.duffelMetadata.expires_at).getTime();
+        }
+        // Final fallback: if no expiration info, assume 25 min from when stored
+        if (!expiresAt || isNaN(expiresAt)) {
+          expiresAt = storedAt + OFFER_VALIDITY_MS;
+        }
+
         const offerAgeMs = now - storedAt;
         const remainingMs = expiresAt - now;
 
         // Log offer freshness status
         console.log('⏱️ Offer freshness check:', {
-          storedAt: storedAt ? new Date(storedAt).toISOString() : 'unknown',
-          expiresAt: expiresAt ? new Date(expiresAt).toISOString() : 'unknown',
+          storedAt: new Date(storedAt).toISOString(),
+          expiresAt: new Date(expiresAt).toISOString(),
           ageMinutes: Math.round(offerAgeMs / 60000),
           remainingMinutes: Math.round(remainingMs / 60000),
           isExpired: remainingMs <= 0,
-          isStale: storedAt === 0, // No timestamp = old cached data
+          hadStoredAt: !!flight._storedAt,
+          expiresAtSource: flight._offerExpiresAt ? '_offerExpiresAt' :
+                          flight.expires_at ? 'expires_at' :
+                          flight.lastTicketingDateTime ? 'lastTicketingDateTime' :
+                          flight.duffelMetadata?.expires_at ? 'duffelMetadata' : 'fallback',
         });
 
-        // If offer is expired or has no timestamp (stale cached data), show modal immediately
-        if (remainingMs <= 0 || storedAt === 0) {
-          console.warn('⚠️ Offer expired or stale - showing refresh modal');
+        // ONLY show expired modal if offer is ACTUALLY expired (remainingMs <= 0)
+        // Don't show it just because _storedAt is missing - that's a data issue, not an expiration
+        if (remainingMs <= 0) {
+          console.warn('⚠️ Offer expired - showing refresh modal');
 
           // Clear the expired offer from sessionStorage
           sessionStorage.removeItem(`flight_${flightId}`);
@@ -223,7 +248,7 @@ function BookingPageContent() {
 
           // Set flight data for modal display (route info)
           setFlightData({ ...flight, search });
-          setOfferCreatedAt(storedAt || (now - OFFER_VALIDITY_MS - 60000)); // Make it show as expired
+          setOfferCreatedAt(storedAt);
           setShowExpiredModal(true);
           setLoading(false);
           return; // Stop here - don't proceed with booking flow

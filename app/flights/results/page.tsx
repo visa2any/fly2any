@@ -1847,6 +1847,7 @@ function FlightResultsContent() {
                       urgencyVariant={urgencyVariant}
                       sessionId={sessionId}
                       fareVariants={(flight as any).fareVariants}
+                      lastTicketingDateTime={(flight as any).lastTicketingDateTime || (flight as any).expires_at}
                     />
                   </div>
                 );
