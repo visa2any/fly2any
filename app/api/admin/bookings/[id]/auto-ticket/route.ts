@@ -102,7 +102,23 @@ export async function POST(
     // 6. Check if running in serverless environment (Vercel)
     const isVercel = process.env.VERCEL === '1' || process.env.VERCEL_ENV;
     if (isVercel) {
-      // Playwright cannot run in Vercel serverless - return booking data for manual processing
+      // Notify admin - manual ticketing required
+      try {
+        const { notifyTelegramAdmins } = await import('@/lib/notifications/notification-service');
+        await notifyTelegramAdmins(`
+⚠️ *MANUAL TICKETING REQUIRED*
+
+📋 *Booking:* \`${automationData.bookingReference}\`
+✈️ *Flight:* ${automationData.flights.segments[0]?.airline} ${automationData.flights.segments[0]?.flightNumber}
+📍 *Route:* ${automationData.flights.segments[0]?.origin} → ${automationData.flights.segments[0]?.destination}
+📅 *Date:* ${automationData.flights.segments[0]?.departureDate}
+👤 *Passengers:* ${automationData.passengers.map(p => p.firstName + ' ' + p.lastName).join(', ')}
+💰 *Customer Paid:* $${automationData.pricing.customerPaid}
+
+🔗 [Open Consolidator Portal](https://thebestagent.pro)
+        `.trim());
+      } catch {}
+
       return NextResponse.json({
         success: false,
         error: 'Auto-ticketing unavailable in serverless environment',
