@@ -99,13 +99,33 @@ export async function POST(
       );
     }
 
-    // 6. Run automation
+    // 6. Check if running in serverless environment (Vercel)
+    const isVercel = process.env.VERCEL === '1' || process.env.VERCEL_ENV;
+    if (isVercel) {
+      // Playwright cannot run in Vercel serverless - return booking data for manual processing
+      return NextResponse.json({
+        success: false,
+        error: 'Auto-ticketing unavailable in serverless environment',
+        message: 'Playwright browser automation requires a dedicated server. Please ticket manually via consolidator portal.',
+        bookingData: {
+          reference: automationData.bookingReference,
+          route: `${automationData.flights.segments[0]?.origin} → ${automationData.flights.segments[0]?.destination}`,
+          flight: `${automationData.flights.segments[0]?.airline} ${automationData.flights.segments[0]?.flightNumber}`,
+          date: automationData.flights.segments[0]?.departureDate,
+          passengers: automationData.passengers.map(p => `${p.firstName} ${p.lastName}`),
+          customerPaid: automationData.pricing.customerPaid,
+        },
+        consolidatorUrl: 'https://thebestagent.pro',
+      }, { status: 503 });
+    }
+
+    // 7. Run automation (local/dedicated server only)
     const automation = new ConsolidatorBookingAutomation();
-    const headless = process.env.NODE_ENV === 'production'; // Visible in dev for debugging
+    const headless = process.env.NODE_ENV === 'production';
 
     const result = await automation.bookFlight(automationData, headless, dryRun);
 
-    // 7. Handle results
+    // 8. Handle results
     if (result.success) {
       // DRY RUN: Booking recorded but not issued
       if (dryRun) {
