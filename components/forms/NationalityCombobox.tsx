@@ -140,13 +140,14 @@ export function NationalityCombobox({
         />
       </div>
 
-      {/* Dropdown */}
+      {/* Dropdown - High z-index to appear above all containers */}
       {isOpen && (
         <ul
           id="nationality-listbox"
           ref={listRef}
           role="listbox"
-          className="absolute z-50 w-full mt-1 bg-white border border-gray-200 rounded-xl shadow-lg max-h-64 overflow-y-auto"
+          className="absolute z-[9999] w-full mt-1 bg-white border border-gray-200 rounded-xl shadow-2xl max-h-64 overflow-y-auto"
+          style={{ position: 'absolute', top: '100%' }}
         >
           {filteredCountries.length > 0 ? (
             filteredCountries.map((country, idx) => (

@@ -301,6 +301,18 @@ const translations = {
 // Get country names from comprehensive list (195+ countries)
 const countries = COUNTRIES.map(c => c.name);
 
+// Helper: Capitalize first letter of each word, rest lowercase
+const capitalizeFirstLetter = (str: string): string => {
+  return str
+    .toLowerCase()
+    .split(' ')
+    .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+    .join(' ');
+};
+
+// Helper: Force lowercase for email
+const toLowerCaseEmail = (str: string): string => str.toLowerCase();
+
 // Tooltip component
 const Tooltip: React.FC<{ content: string; children: React.ReactNode }> = ({ content, children }) => {
   const [show, setShow] = useState(false);
@@ -766,7 +778,7 @@ export const PassengerDetailsForm: React.FC<PassengerDetailsFormProps> = ({
                   <input
                     type="text"
                     value={passenger.firstName}
-                    onChange={(e) => updatePassenger(index, 'firstName', e.target.value)}
+                    onChange={(e) => updatePassenger(index, 'firstName', capitalizeFirstLetter(e.target.value))}
                     className={`w-full h-11 pl-11 pr-4 rounded-xl border-2 transition-all ${
                       errors[`${index}-firstName`]
                         ? 'border-error focus:border-error focus:ring-4 focus:ring-error/20'
@@ -793,7 +805,7 @@ export const PassengerDetailsForm: React.FC<PassengerDetailsFormProps> = ({
                 <input
                   type="text"
                   value={passenger.middleName || ''}
-                  onChange={(e) => updatePassenger(index, 'middleName', e.target.value)}
+                  onChange={(e) => updatePassenger(index, 'middleName', capitalizeFirstLetter(e.target.value))}
                   className="w-full h-11 px-4 rounded-xl border-2 border-gray-300 focus:border-primary-500 focus:ring-4 focus:ring-primary-500/20 transition-all"
                   placeholder="Michael"
                 />
@@ -807,7 +819,7 @@ export const PassengerDetailsForm: React.FC<PassengerDetailsFormProps> = ({
                 <input
                   type="text"
                   value={passenger.lastName}
-                  onChange={(e) => updatePassenger(index, 'lastName', e.target.value)}
+                  onChange={(e) => updatePassenger(index, 'lastName', capitalizeFirstLetter(e.target.value))}
                   className={`w-full h-11 px-4 rounded-xl border-2 transition-all ${
                     errors[`${index}-lastName`]
                       ? 'border-error focus:border-error focus:ring-4 focus:ring-error/20'
@@ -824,7 +836,7 @@ export const PassengerDetailsForm: React.FC<PassengerDetailsFormProps> = ({
               </div>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4" style={{ overflow: 'visible' }}>
               {/* Date of Birth */}
               <div data-field={`${index}-dateOfBirth`}>
                 <label className="block text-sm font-semibold text-gray-700 mb-2 flex items-center gap-2">
@@ -996,8 +1008,8 @@ export const PassengerDetailsForm: React.FC<PassengerDetailsFormProps> = ({
                   <input
                     type="email"
                     value={passenger.email}
-                    onChange={(e) => updatePassenger(index, 'email', e.target.value)}
-                    className={`w-full h-11 pl-11 pr-4 rounded-xl border-2 transition-all ${
+                    onChange={(e) => updatePassenger(index, 'email', toLowerCaseEmail(e.target.value))}
+                    className={`w-full h-11 pl-11 pr-4 rounded-xl border-2 transition-all lowercase ${
                       errors[`${index}-email`]
                         ? 'border-error focus:border-error focus:ring-4 focus:ring-error/20'
                         : 'border-gray-300 focus:border-primary-500 focus:ring-4 focus:ring-primary-500/20'
@@ -1358,9 +1370,9 @@ export const PassengerDetailsForm: React.FC<PassengerDetailsFormProps> = ({
                   type="email"
                   value={emergencyContact.email}
                   onChange={(e) =>
-                    setEmergencyContact({ ...emergencyContact, email: e.target.value })
+                    setEmergencyContact({ ...emergencyContact, email: toLowerCaseEmail(e.target.value) })
                   }
-                  className={`w-full h-11 pl-11 pr-4 rounded-xl border-2 transition-all ${
+                  className={`w-full h-11 pl-11 pr-4 rounded-xl border-2 transition-all lowercase ${
                     errors['emergency-email']
                       ? 'border-error focus:border-error focus:ring-4 focus:ring-error/20'
                       : 'border-gray-300 focus:border-primary-500 focus:ring-4 focus:ring-primary-500/20'
