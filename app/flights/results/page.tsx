@@ -1834,8 +1834,8 @@ function FlightResultsContent() {
                       dealScore={(flight as any).dealScore}
                       dealTier={(flight as any).dealTier}
                       dealLabel={(flight as any).dealLabel}
-                      viewingCount={Math.floor(Math.random() * 50) + 20}
-                      bookingsToday={Math.floor(Math.random() * 150) + 100}
+                      {/* REMOVED: Fake urgency indicators - ethical compliance */}
+                      {/* viewingCount and bookingsToday removed - were using Math.random() */}
                       onSelect={handleSelectFlight}
                       onCompare={handleCompareToggle}
                       onTrackPrice={handleTrackPrice}

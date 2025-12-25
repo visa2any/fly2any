@@ -29,6 +29,7 @@ import {
   X,
 } from 'lucide-react';
 import { COUNTRIES } from '@/lib/data/countries';
+import { NationalityCombobox } from '@/components/forms/NationalityCombobox';
 
 // Types
 interface PassengerProfile {
@@ -880,7 +881,7 @@ export const PassengerDetailsForm: React.FC<PassengerDetailsFormProps> = ({
                 )}
               </div>
 
-              {/* Nationality */}
+              {/* Nationality - Searchable Combobox */}
               <div data-field={`${index}-nationality`}>
                 <label className="block text-sm font-semibold text-gray-700 mb-2 flex items-center gap-2">
                   {t.nationality} <span className="text-error">*</span>
@@ -888,31 +889,13 @@ export const PassengerDetailsForm: React.FC<PassengerDetailsFormProps> = ({
                     <Info size={16} className="text-gray-400 cursor-help" />
                   </Tooltip>
                 </label>
-                <div className="relative">
-                  <Globe className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={20} />
-                  <select
-                    value={passenger.nationality}
-                    onChange={(e) => updatePassenger(index, 'nationality', e.target.value)}
-                    className={`w-full h-11 pl-11 pr-4 rounded-xl border-2 transition-all ${
-                      errors[`${index}-nationality`]
-                        ? 'border-error focus:border-error focus:ring-4 focus:ring-error/20'
-                        : 'border-gray-300 focus:border-primary-500 focus:ring-4 focus:ring-primary-500/20'
-                    }`}
-                  >
-                    <option value="">{t.selectCountry}</option>
-                    {countries.map((country) => (
-                      <option key={country} value={country}>
-                        {country}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-                {errors[`${index}-nationality`] && (
-                  <p className="mt-1 text-sm text-error flex items-center gap-1">
-                    <AlertCircle size={14} />
-                    {errors[`${index}-nationality`]}
-                  </p>
-                )}
+                <NationalityCombobox
+                  value={passenger.nationality}
+                  onChange={(code) => updatePassenger(index, 'nationality', code)}
+                  error={errors[`${index}-nationality`]}
+                  placeholder={t.selectCountry}
+                  required
+                />
               </div>
             </div>
 
