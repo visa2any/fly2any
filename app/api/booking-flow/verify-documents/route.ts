@@ -70,23 +70,31 @@ export async function POST(request: NextRequest) {
     const securePrefix = crypto.randomBytes(8).toString('hex');
 
     console.log(`[VERIFY_DOCUMENTS] Starting upload for ${bookingReference}`);
+    console.log(`[VERIFY_DOCUMENTS] File sizes: front=${cardFront.size}, back=${cardBack.size}, id=${photoId.size}`);
+
+    // Convert Files to ArrayBuffer for reliable upload (fixes mobile issues)
+    const [frontBuffer, backBuffer, idBuffer] = await Promise.all([
+      cardFront.arrayBuffer(),
+      cardBack.arrayBuffer(),
+      photoId.arrayBuffer(),
+    ]);
 
     // Upload to Vercel Blob (encrypted storage)
     const uploadPromises = [
       put(
         `verifications/${bookingReference}/${securePrefix}-card-front-${timestamp}.jpg`,
-        cardFront,
-        { access: 'public', addRandomSuffix: true }
+        Buffer.from(frontBuffer),
+        { access: 'public', addRandomSuffix: true, contentType: 'image/jpeg' }
       ),
       put(
         `verifications/${bookingReference}/${securePrefix}-card-back-${timestamp}.jpg`,
-        cardBack,
-        { access: 'public', addRandomSuffix: true }
+        Buffer.from(backBuffer),
+        { access: 'public', addRandomSuffix: true, contentType: 'image/jpeg' }
       ),
       put(
         `verifications/${bookingReference}/${securePrefix}-photo-id-${timestamp}.jpg`,
-        photoId,
-        { access: 'public', addRandomSuffix: true }
+        Buffer.from(idBuffer),
+        { access: 'public', addRandomSuffix: true, contentType: 'image/jpeg' }
       ),
     ];
 
