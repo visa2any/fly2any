@@ -834,9 +834,12 @@ export function FlightCardEnhanced({
       dealScoreBreakdown,
       dealTier,
       dealLabel,
-      // CRITICAL: Include timestamp for offer freshness validation (Duffel offers expire after 30 min)
+      // CRITICAL: Use ACTUAL expires_at from Duffel, NOT a calculated value!
+      // lastTicketingDateTime is mapped from Duffel's expires_at in convertDuffelOffer
       _storedAt: Date.now(),
-      _offerExpiresAt: Date.now() + (25 * 60 * 1000), // 25 min validity
+      _offerExpiresAt: lastTicketingDateTime
+        ? new Date(lastTicketingDateTime).getTime()
+        : Date.now() + (25 * 60 * 1000), // Fallback only if no Duffel timestamp
     };
 
     sessionStorage.setItem(`flight_${id}`, JSON.stringify(flightData));

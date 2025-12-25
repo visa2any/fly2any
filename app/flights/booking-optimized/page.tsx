@@ -1574,13 +1574,20 @@ function BookingPageContent() {
         }}
         onRefreshed={(newOffer) => {
           // Update flight data with fresh offer and reset timestamp
+          // CRITICAL: Use ACTUAL expires_at from Duffel, NOT a calculated value!
+          const duffelExpiresAt = newOffer.expires_at
+            ? new Date(newOffer.expires_at).getTime()
+            : newOffer.lastTicketingDateTime
+              ? new Date(newOffer.lastTicketingDateTime).getTime()
+              : Date.now() + (25 * 60 * 1000); // Fallback only if no Duffel timestamp
+
           const updatedFlight = {
             ...flightData,
             ...newOffer,
             id: newOffer.id,
             price: newOffer.price,
             _storedAt: Date.now(),
-            _offerExpiresAt: Date.now() + (25 * 60 * 1000),
+            _offerExpiresAt: duffelExpiresAt,
           };
           setFlightData(updatedFlight);
           setOfferCreatedAt(Date.now());

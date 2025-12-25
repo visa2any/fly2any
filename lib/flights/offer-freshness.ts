@@ -45,7 +45,15 @@ export function registerOffer(
 
 /**
  * Get offer freshness status
- * Also accepts optional flightOffer object to extract created_at directly
+ *
+ * CRITICAL: Duffel offers expire 30 minutes after creation.
+ * We use expires_at directly (more accurate than calculating from created_at).
+ *
+ * Priority for expiration check:
+ * 1. expires_at / duffelMetadata.expires_at (direct from Duffel)
+ * 2. lastTicketingDateTime (mapped from expires_at)
+ * 3. created_at + 25 min validity (fallback)
+ * 4. Assume valid (last resort for unknown offers)
  */
 export function getOfferStatus(offerId: string, flightOffer?: any): {
   isValid: boolean;
@@ -58,8 +66,49 @@ export function getOfferStatus(offerId: string, flightOffer?: any): {
   searchParams?: OfferTimestamp['searchParams'];
 } {
   const offer = offerCache.get(offerId);
+  const now = Date.now();
 
-  // Try to extract created_at from offer object if provided (Duffel includes this)
+  // PRIORITY 1: Use expires_at directly from Duffel (most accurate)
+  let expiresAt: number | null = null;
+
+  // Check direct expires_at field
+  if (flightOffer?.expires_at) {
+    expiresAt = new Date(flightOffer.expires_at).getTime();
+  }
+  // Check duffelMetadata.expires_at
+  else if (flightOffer?.duffelMetadata?.expires_at) {
+    expiresAt = new Date(flightOffer.duffelMetadata.expires_at).getTime();
+  }
+  // Check lastTicketingDateTime (we map expires_at to this field)
+  else if (flightOffer?.lastTicketingDateTime) {
+    expiresAt = new Date(flightOffer.lastTicketingDateTime).getTime();
+  }
+
+  // If we have expires_at, use direct comparison
+  if (expiresAt) {
+    const remainingMs = Math.max(0, expiresAt - now);
+    const warningThresholdMs = 10 * 60 * 1000; // Warn at 10 min remaining
+    const refreshThresholdMs = 8 * 60 * 1000;  // Suggest refresh at 8 min remaining
+
+    console.log(`⏱️  Offer ${offerId} expires_at check:`);
+    console.log(`   Expires: ${new Date(expiresAt).toISOString()}`);
+    console.log(`   Now: ${new Date(now).toISOString()}`);
+    console.log(`   Remaining: ${Math.floor(remainingMs / 60000)} min ${Math.floor((remainingMs % 60000) / 1000)} sec`);
+    console.log(`   Valid: ${remainingMs > 0}`);
+
+    return {
+      isValid: remainingMs > 0,
+      isWarning: remainingMs <= warningThresholdMs && remainingMs > 0,
+      remainingMs,
+      remainingSeconds: Math.floor(remainingMs / 1000),
+      remainingMinutes: Math.floor(remainingMs / 60000),
+      expiresAt,
+      shouldRefresh: remainingMs <= refreshThresholdMs && remainingMs > 0,
+      searchParams: offer?.searchParams,
+    };
+  }
+
+  // PRIORITY 2: Fallback to created_at + validity period
   let createdAt: number | null = null;
   if (flightOffer?.created_at) {
     createdAt = new Date(flightOffer.created_at).getTime();
@@ -69,31 +118,46 @@ export function getOfferStatus(offerId: string, flightOffer?: any): {
     createdAt = offer.createdAt;
   }
 
-  if (!createdAt) {
-    // Unknown offer without timestamp - assume it was just created
+  if (createdAt) {
+    const ageMs = now - createdAt;
+    const remainingMs = Math.max(0, OFFER_VALIDITY_MS - ageMs);
+
+    console.log(`⏱️  Offer ${offerId} created_at fallback check:`);
+    console.log(`   Created: ${new Date(createdAt).toISOString()}`);
+    console.log(`   Age: ${Math.floor(ageMs / 60000)} min`);
+    console.log(`   Remaining: ${Math.floor(remainingMs / 60000)} min`);
+    console.log(`   Valid: ${remainingMs > 0}`);
+
     return {
-      isValid: true,
-      isWarning: false,
-      remainingMs: OFFER_VALIDITY_MS,
-      remainingSeconds: Math.floor(OFFER_VALIDITY_MS / 1000),
-      remainingMinutes: Math.floor(OFFER_VALIDITY_MS / 60000),
-      expiresAt: Date.now() + OFFER_VALIDITY_MS,
-      shouldRefresh: false,
+      isValid: remainingMs > 0,
+      isWarning: ageMs >= OFFER_WARNING_MS,
+      remainingMs,
+      remainingSeconds: Math.floor(remainingMs / 1000),
+      remainingMinutes: Math.floor(remainingMs / 60000),
+      expiresAt: createdAt + OFFER_VALIDITY_MS,
+      shouldRefresh: ageMs >= OFFER_REFRESH_MS,
+      searchParams: offer?.searchParams,
     };
   }
 
-  const ageMs = Date.now() - createdAt;
-  const remainingMs = Math.max(0, OFFER_VALIDITY_MS - ageMs);
+  // PRIORITY 3: Unknown offer without any timestamp
+  // CRITICAL: For Duffel offers, this means we lost the expiration data!
+  // Log warning and assume valid (but flag for debugging)
+  console.warn(`⚠️  OFFER ${offerId}: No expiration data found!`);
+  console.warn(`   offer.expires_at: ${flightOffer?.expires_at}`);
+  console.warn(`   offer.duffelMetadata?.expires_at: ${flightOffer?.duffelMetadata?.expires_at}`);
+  console.warn(`   offer.lastTicketingDateTime: ${flightOffer?.lastTicketingDateTime}`);
+  console.warn(`   offer.created_at: ${flightOffer?.created_at}`);
+  console.warn(`   Assuming valid - but this may cause OFFER_EXPIRED at Duffel!`);
 
   return {
-    isValid: remainingMs > 0,
-    isWarning: ageMs >= OFFER_WARNING_MS,
-    remainingMs,
-    remainingSeconds: Math.floor(remainingMs / 1000),
-    remainingMinutes: Math.floor(remainingMs / 60000),
-    expiresAt: createdAt + OFFER_VALIDITY_MS,
-    shouldRefresh: ageMs >= OFFER_REFRESH_MS,
-    searchParams: offer?.searchParams,
+    isValid: true,
+    isWarning: true, // Flag as warning since we don't know true status
+    remainingMs: OFFER_VALIDITY_MS,
+    remainingSeconds: Math.floor(OFFER_VALIDITY_MS / 1000),
+    remainingMinutes: Math.floor(OFFER_VALIDITY_MS / 60000),
+    expiresAt: now + OFFER_VALIDITY_MS,
+    shouldRefresh: false,
   };
 }
 

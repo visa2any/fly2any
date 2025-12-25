@@ -250,12 +250,15 @@ export function calculateOptimalTTL(
   // Calculate final TTL
   const ttlSeconds = Math.round(BASE_TTL_SECONDS * finalMultiplier);
 
-  // Dynamic TTL limits based on seasonal stability
-  // Low season (multiplier >= 2.0): Minimum 2 hours, max 6 hours
-  // Regular/volatile season: Min 5 minutes, max 2 hours
+  // CRITICAL: Duffel offers expire after 30 minutes
+  // Maximum TTL for flight searches MUST be 25 minutes (with 5 min safety buffer)
+  // This prevents OFFER_EXPIRED errors during checkout
+  const DUFFEL_OFFER_MAX_TTL = 1500; // 25 minutes in seconds
+
+  // Dynamic TTL limits - CAPPED at Duffel's offer validity
   const isLowSeason = seasonal.baseMultiplier >= 2.0;
-  const minTTL = isLowSeason ? 7200 : 300; // 2hr min for low season, 5min otherwise
-  const maxTTL = isLowSeason ? 21600 : 7200; // 6hr max for low season, 2hr otherwise
+  const minTTL = isLowSeason ? 900 : 300; // 15min for low season, 5min otherwise
+  const maxTTL = DUFFEL_OFFER_MAX_TTL; // ALWAYS cap at 25 min for offer validity
 
   // Clamp TTL to min/max based on season
   const clampedTTL = Math.max(minTTL, Math.min(ttlSeconds, maxTTL));

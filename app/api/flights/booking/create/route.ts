@@ -147,11 +147,13 @@ export async function POST(request: NextRequest) {
     // ═══════════════════════════════════════════════════════════════════════
     const isDuffelOffer = flightOffer.source === 'Duffel' || flightOffer.id?.startsWith('off_');
     if (isDuffelOffer) {
-      // Pass full flightOffer to extract created_at timestamp from Duffel
+      // Pass full flightOffer to extract expires_at timestamp from Duffel
       const offerStatus = getOfferStatus(flightOffer.id, flightOffer);
-      console.log(`⏱️  Offer freshness check: ${flightOffer.id}`);
-      console.log(`   Valid: ${offerStatus.isValid}, Remaining: ${offerStatus.remainingMinutes}min`);
-      console.log(`   Created At: ${flightOffer.created_at || flightOffer.createdAt || 'unknown'}`);
+      console.log(`⏱️  OFFER VALIDITY CHECK: ${flightOffer.id}`);
+      console.log(`   ✓ Expires At: ${flightOffer.expires_at || flightOffer.duffelMetadata?.expires_at || flightOffer.lastTicketingDateTime || 'MISSING!'}`);
+      console.log(`   ✓ Created At: ${flightOffer.created_at || flightOffer.createdAt || 'not provided'}`);
+      console.log(`   ✓ Valid: ${offerStatus.isValid}, Remaining: ${offerStatus.remainingMinutes}min ${offerStatus.remainingSeconds % 60}sec`);
+      console.log(`   ✓ Warning: ${offerStatus.isWarning}, ShouldRefresh: ${offerStatus.shouldRefresh}`);
 
       if (!offerStatus.isValid) {
         console.error(`❌ OFFER EXPIRED: ${flightOffer.id}`);

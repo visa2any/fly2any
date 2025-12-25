@@ -241,11 +241,15 @@ export function FlightCardMobile(props: EnhancedFlightCardProps) {
     if (isNavigating) return;
 
     // Save flight data for booking page
-    // CRITICAL: Include timestamp for offer freshness validation (Duffel offers expire after 30 min)
+    // CRITICAL: Use ACTUAL expires_at from Duffel, NOT a calculated value!
+    // lastTicketingDateTime is mapped from Duffel's expires_at in convertDuffelOffer
+    const lastTicketingDateTime = (props as any).lastTicketingDateTime;
     const flightWithTimestamp = {
       ...props,
       _storedAt: Date.now(),
-      _offerExpiresAt: Date.now() + (25 * 60 * 1000), // 25 min validity
+      _offerExpiresAt: lastTicketingDateTime
+        ? new Date(lastTicketingDateTime).getTime()
+        : Date.now() + (25 * 60 * 1000), // Fallback only if no Duffel timestamp
     };
     sessionStorage.setItem(`flight_${id}`, JSON.stringify(flightWithTimestamp));
 

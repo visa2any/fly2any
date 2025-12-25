@@ -383,6 +383,9 @@ class DuffelAPI {
       oneWay: duffelOffer.slices.length === 1,
       lastTicketingDate: duffelOffer.expires_at?.split('T')[0],
       lastTicketingDateTime: duffelOffer.expires_at,
+      // CRITICAL: Preserve expires_at for offer validity checks (Duffel offers expire in 30 min)
+      expires_at: duffelOffer.expires_at,
+      created_at: duffelOffer.created_at,
       // NOTE: Duffel doesn't provide exact bookable seat count in offer response
       // Default to 9 (full availability) - actual availability checked at booking time
       numberOfBookableSeats: 9,

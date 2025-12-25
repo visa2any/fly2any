@@ -1287,11 +1287,27 @@ function FlightResultsContent() {
 
     try {
       // Save flight data to sessionStorage for booking page to retrieve
-      // CRITICAL: Include timestamp for offer freshness validation (Duffel offers expire after 30 min)
+      // CRITICAL: Use ACTUAL expires_at from Duffel, NOT a calculated value!
+      // Duffel offers expire 30 min from creation - we must respect their timestamp
+      const now = Date.now();
+      const duffelExpiresAt = selectedFlight.expires_at
+        ? new Date(selectedFlight.expires_at).getTime()
+        : selectedFlight.duffelMetadata?.expires_at
+          ? new Date(selectedFlight.duffelMetadata.expires_at).getTime()
+          : selectedFlight.lastTicketingDateTime
+            ? new Date(selectedFlight.lastTicketingDateTime).getTime()
+            : now + (25 * 60 * 1000); // Fallback only if no Duffel timestamp
+
+      // Safety check: if Duffel's expires_at is in the past or too close, warn
+      const remainingMs = duffelExpiresAt - now;
+      if (remainingMs < 5 * 60 * 1000) { // Less than 5 minutes
+        console.warn(`⚠️ OFFER NEAR EXPIRATION: ${id} - Only ${Math.round(remainingMs / 60000)} min left!`);
+      }
+
       const flightWithTimestamp = {
         ...selectedFlight,
-        _storedAt: Date.now(), // Timestamp for freshness check
-        _offerExpiresAt: Date.now() + (25 * 60 * 1000), // 25 min validity (5 min buffer from Duffel's 30 min)
+        _storedAt: now, // When user clicked "Book"
+        _offerExpiresAt: duffelExpiresAt, // ACTUAL Duffel expiration, NOT calculated
       };
       sessionStorage.setItem(`flight_${id}`, JSON.stringify(flightWithTimestamp));
 
