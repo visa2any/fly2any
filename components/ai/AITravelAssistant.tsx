@@ -217,7 +217,7 @@ export function AITravelAssistant({ language = 'en' }: Props) {
 
   // VOICE INPUT/OUTPUT INTEGRATION
   // Voice OFF by default - user must click speaker icon to enable
-  const [voiceEnabled, setVoiceEnabled] = useState(false);
+  const [voiceEnabled, setVoiceEnabled] = useState(true);
   const [voiceAutoSending, setVoiceAutoSending] = useState(false);
   const sendMessageRef = useRef<() => void>(() => {});
 
@@ -2608,7 +2608,7 @@ export function AITravelAssistant({ language = 'en' }: Props) {
               )}
 
               {/* Input Area - Apple Level 6 Ultra-Premium with Voice */}
-              <div className="p-4 bg-white dark:bg-[#0E0E0E] border-t border-neutral-200 dark:border-[#222222] shadow-[0_-4px_24px_rgba(0,0,0,0.04)]">
+              <div className="p-4 bg-white dark:bg-[#1A1A1A] border-t border-neutral-200 dark:border-[#222222] shadow-[0_-4px_24px_rgba(0,0,0,0.04)]">
                 {/* Voice Status Indicator */}
                 {(voiceInput.isListening || voiceOutput.isSpeaking) && (
                   <div className="flex justify-center mb-3">
@@ -2645,7 +2645,7 @@ export function AITravelAssistant({ language = 'en' }: Props) {
                       onKeyPress={handleKeyPress}
                       placeholder={voiceInput.isListening ? (language === 'pt' ? 'Ouvindo...' : language === 'es' ? 'Escuchando...' : 'Listening...') : t.placeholder}
                       className={cn(
-                        'w-full px-4 py-3 border-2 rounded-2xl text-[14px] text-[#1C1C1C] dark:text-white placeholder:text-[#9F9F9F] dark:placeholder:text-neutral-500 transition-all duration-300 ease-[cubic-bezier(0.2,0.8,0.2,1)] bg-[#FAFAFA] dark:bg-[#1A1A1A]',
+                        'w-full px-4 py-3 border rounded-2xl text-[14px] text-[#1C1C1C] dark:text-white placeholder:text-[#9F9F9F] dark:placeholder:text-neutral-500 transition-all duration-300 ease-[cubic-bezier(0.2,0.8,0.2,1)] bg-[#FAFAFA] dark:bg-[#1A1A1A]',
                         voiceAutoSending
                           ? 'border-[#27C56B] bg-[#27C56B]/5 ring-2 ring-[#27C56B]/30 animate-pulse'
                           : voiceInput.isListening
