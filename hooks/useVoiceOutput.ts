@@ -62,14 +62,22 @@ export function useVoiceOutput(options: UseVoiceOutputOptions = {}) {
       const availableVoices = synth.getVoices();
       setState(s => ({ ...s, voices: availableVoices }));
 
-      // Auto-select best voice for language
+      // Auto-select best voice for language (prefer natural/premium voices)
       if (autoSelectVoice && availableVoices.length > 0) {
         const langCode = getVoiceLanguageCode(language.split('-')[0]);
-        const preferredVoice = availableVoices.find(v =>
-          v.lang.startsWith(langCode.split('-')[0]) && v.localService
-        ) || availableVoices.find(v =>
+        const langVoices = availableVoices.filter(v =>
           v.lang.startsWith(langCode.split('-')[0])
-        ) || availableVoices[0];
+        );
+
+        // Priority: Google/Microsoft premium > Natural > Online > Local > Any
+        const preferredVoice =
+          langVoices.find(v => v.name.includes('Natural') || v.name.includes('Neural')) ||
+          langVoices.find(v => v.name.includes('Google') && !v.localService) ||
+          langVoices.find(v => v.name.includes('Microsoft') && v.name.includes('Online')) ||
+          langVoices.find(v => v.name.includes('Samantha') || v.name.includes('Alex')) || // macOS
+          langVoices.find(v => !v.localService) || // Cloud voices
+          langVoices.find(v => v.localService) ||
+          availableVoices[0];
 
         setState(s => ({ ...s, selectedVoice: preferredVoice }));
       }

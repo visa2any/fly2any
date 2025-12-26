@@ -213,7 +213,8 @@ export function AITravelAssistant({ language = 'en' }: Props) {
   const [showRecoveryBanner, setShowRecoveryBanner] = useState(false);
 
   // VOICE INPUT/OUTPUT INTEGRATION
-  const [voiceEnabled, setVoiceEnabled] = useState(true);
+  // Voice OFF by default - user must click speaker icon to enable
+  const [voiceEnabled, setVoiceEnabled] = useState(false);
   const [voiceAutoSending, setVoiceAutoSending] = useState(false);
   const sendMessageRef = useRef<() => void>(() => {});
 
@@ -232,6 +233,8 @@ export function AITravelAssistant({ language = 'en' }: Props) {
 
   const voiceOutput = useVoiceOutput({
     language: language === 'pt' ? 'pt-BR' : language === 'es' ? 'es-ES' : 'en-US',
+    rate: 0.95,   // Slightly slower for natural sound
+    pitch: 1.05,  // Slightly higher for friendlier tone
   });
 
   // AI STREAMING: Real-time token-by-token responses from Groq/OpenAI
