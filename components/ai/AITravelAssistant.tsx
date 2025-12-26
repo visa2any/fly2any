@@ -924,24 +924,41 @@ export function AITravelAssistant({ language = 'en' }: Props) {
     const isHotelQuery = detectHotelSearchIntent(queryText);
 
     // HANDLE CONVERSATIONAL RESPONSES (greetings, small talk, etc.)
-    // BUT: Skip if this is clearly a flight or hotel search
+    // NOW USES REAL AI for human-like responses instead of templates
     if (analysis.requiresPersonalResponse && !analysis.isServiceRequest && !isFlightQuery && !isHotelQuery) {
-      const naturalResponse = getConversationalResponse(
-        analysis,
-        {
-          name: consultant.name,
-          personality: consultant.personality || 'friendly',
-          emoji: '😊'
-        },
-        conversationContext
-      );
+      // Use REAL AI streaming for conversational responses
+      // This ensures human-like, contextual responses instead of template-based ones
+      const streamHistory = messages.map(m => ({
+        role: m.role as 'user' | 'assistant',
+        content: m.content,
+      }));
 
-      // CRITICAL: Pass the actual intent so typing indicator shows appropriate message
-      // Example: "Hi" → greeting intent → shows "Typing a response..." not "Searching..."
-      await sendAIResponseWithTyping(naturalResponse, consultant, queryText, undefined, analysis.intent);
+      try {
+        const aiResponse = await sendStreamingAIResponse(
+          queryText,
+          consultant,
+          streamHistory,
+          getPreviousConsultantTeam(messages) as TeamType | undefined,
+          analysis.intent
+        );
 
-      // Track conversation context
-      conversationContext.addInteraction(analysis.intent, naturalResponse, queryText);
+        // Track conversation context with AI response
+        conversationContext.addInteraction(analysis.intent, aiResponse, queryText);
+      } catch (error) {
+        // Fallback to template only if AI fails
+        console.error('[AI Conversational] Failed, using fallback:', error);
+        const fallbackResponse = getConversationalResponse(
+          analysis,
+          {
+            name: consultant.name,
+            personality: consultant.personality || 'friendly',
+            emoji: '😊'
+          },
+          conversationContext
+        );
+        await sendAIResponseWithTyping(fallbackResponse, consultant, queryText, undefined, analysis.intent);
+        conversationContext.addInteraction(analysis.intent, fallbackResponse, queryText);
+      }
 
       return; // Exit early for conversational responses
     }
@@ -1354,12 +1371,25 @@ export function AITravelAssistant({ language = 'en' }: Props) {
     }
 
     if (!isFlightQuery && !isHotelQuery) {
-      // SERVICE REQUEST OR GENERAL INQUIRY
-      // Use real AI streaming for intelligent, context-aware responses
+      // ALL OTHER QUERIES - Use REAL AI streaming
+      // This ensures human-like, contextual responses instead of templates
+      const conversationHistoryForAI = messages
+        .filter(m => m.role === 'user' || m.role === 'assistant')
+        .map(m => ({ role: m.role as 'user' | 'assistant', content: m.content }));
+
       let responseContent: string;
 
-      if (analysis.isServiceRequest) {
-        // Quick service requests - use conversational templates for speed
+      try {
+        responseContent = await sendStreamingAIResponse(
+          queryText,
+          consultant,
+          conversationHistoryForAI,
+          previousTeam as TeamType,
+          analysis.intent
+        );
+      } catch (error) {
+        // Fallback only if AI completely fails
+        console.error('[AI General Query] Failed, using fallback:', error);
         responseContent = getConversationalResponse(
           analysis,
           {
@@ -1370,19 +1400,6 @@ export function AITravelAssistant({ language = 'en' }: Props) {
           conversationContext
         );
         await sendAIResponseWithTyping(responseContent, consultant, queryText, undefined, analysis.intent);
-      } else {
-        // Complex queries - use REAL AI with streaming for intelligent responses
-        const conversationHistoryForAI = messages
-          .filter(m => m.role === 'user' || m.role === 'assistant')
-          .map(m => ({ role: m.role as 'user' | 'assistant', content: m.content }));
-
-        responseContent = await sendStreamingAIResponse(
-          queryText,
-          consultant,
-          conversationHistoryForAI,
-          previousTeam as TeamType,
-          analysis.intent
-        );
       }
 
       // Track conversation context
