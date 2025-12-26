@@ -799,6 +799,7 @@ export function AITravelAssistant({ language = 'en' }: Props) {
   const handleSendMessage = async () => {
     if (!inputMessage.trim()) return;
 
+    const queryText = inputMessage;
     const userMessage: Message = {
       id: Date.now().toString(),
       role: 'user',
@@ -807,9 +808,10 @@ export function AITravelAssistant({ language = 'en' }: Props) {
     };
 
     setMessages(prev => [...prev, userMessage]);
-    const queryText = inputMessage;
     setInputMessage('');
     setIsTyping(true);
+
+    try {
 
     // Save user message to conversation persistence
     if (conversation) {
@@ -1493,6 +1495,19 @@ export function AITravelAssistant({ language = 'en' }: Props) {
           : 'pre_booking';
         analytics.trackAuthPromptShown(stage as any);
       }
+    }
+    } catch (error) {
+      // GLOBAL ERROR CATCH - ensures UI never breaks silently
+      console.error('[AI Assistant] Unhandled error:', error);
+      setIsTyping(false);
+      const consultant = getConsultant('concierge');
+      setMessages(prev => [...prev, {
+        id: Date.now().toString(),
+        role: 'assistant',
+        content: `I apologize, something went wrong on my end. Please try again or refresh the page if the issue persists.`,
+        timestamp: new Date(),
+        consultant
+      }]);
     }
   };
 
