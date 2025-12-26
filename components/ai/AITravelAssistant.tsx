@@ -2620,8 +2620,8 @@ export function AITravelAssistant({ language = 'en' }: Props) {
                   </div>
                 )}
                 <div className="flex gap-2.5 items-center">
-                  {/* Voice Mic Button */}
-                  {voiceEnabled && (
+                  {/* Voice Mic Button - Always visible if supported (independent from voice output) */}
+                  {voiceInput.isSupported && (
                     <VoiceMicButton
                       isListening={voiceInput.isListening}
                       isSupported={voiceInput.isSupported}
