@@ -194,12 +194,17 @@ export function StickySummary({
         <div className="space-y-0.5 sm:space-y-1 text-[10px] sm:text-xs text-gray-600">
           <div className="flex items-center gap-1.5 sm:gap-2">
             <Calendar className="w-3 h-3 sm:w-4 sm:h-4 text-gray-400 flex-shrink-0" />
-            <span className="truncate">{new Date(flight.date).toLocaleDateString('en-US', {
-              weekday: 'short',
-              month: 'short',
-              day: 'numeric',
-              year: 'numeric'
-            })}</span>
+            <span className="truncate">{(() => {
+              // Fix timezone issue: Parse date parts directly to avoid UTC conversion
+              const [year, month, day] = flight.date.split('-').map(Number);
+              const localDate = new Date(year, month - 1, day); // month is 0-indexed
+              return localDate.toLocaleDateString('en-US', {
+                weekday: 'short',
+                month: 'short',
+                day: 'numeric',
+                year: 'numeric'
+              });
+            })()}</span>
           </div>
 
           <div className="flex items-center gap-1.5 sm:gap-2">

@@ -1046,12 +1046,16 @@ export async function POST(request: NextRequest) {
               const economyIdx = economyVariants.indexOf(v);
               const isRecommended = economyIdx === 1 && economyVariants.length > 1;
 
-              // Popularity based on tier, not position
-              let popularity = 50;
-              if (detectedTier === 'basic') popularity = 26;
-              else if (detectedTier === 'standard') popularity = 74;
-              else if (detectedTier === 'plus') popularity = 42;
-              else if (detectedTier === 'flex') popularity = 18;
+              // Popularity based on POSITION in list to ensure unique values
+              // This avoids showing same percentage on multiple fares
+              const totalVariants = economyVariants.length;
+              const popularityByPosition: Record<number, number> = {
+                0: totalVariants === 1 ? 74 : 26,  // Cheapest/Basic: 26% (or 74% if only option)
+                1: 74,  // Standard/Value: 74% (most popular)
+                2: 42,  // Plus/Upgraded: 42%
+                3: 18,  // Flex/Premium: 18%
+              };
+              const popularity = popularityByPosition[economyIdx] ?? Math.max(5, 50 - (economyIdx * 10));
 
               return {
                 id: v.id,

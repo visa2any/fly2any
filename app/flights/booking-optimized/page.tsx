@@ -287,7 +287,7 @@ function BookingPageContent() {
             restrictions: variant.restrictions || undefined,
             positives: variant.positives || undefined,
             recommended: variant.recommended || false,
-            popularityPercent: variant.popularityPercent || (index === 0 ? 26 : index === 1 ? 74 : 18),
+            popularityPercent: variant.popularityPercent || [26, 74, 42, 18][index] || Math.max(5, 50 - index * 10),
             originalOffer: variant.originalOffer, // Keep original offer for booking
           }));
 
@@ -1415,7 +1415,11 @@ function BookingPageContent() {
                 <ReviewAndPay
                   flightSummary={{
                     route: `${flightData.search.from} → ${flightData.search.to}`,
-                    date: new Date(flightData.search.departure).toLocaleDateString(),
+                    date: (() => {
+                      // Fix timezone issue: Parse date parts directly
+                      const [year, month, day] = flightData.search.departure.split('-').map(Number);
+                      return new Date(year, month - 1, day).toLocaleDateString();
+                    })(),
                     airline: flightData.validatingAirlineCodes?.[0] || 'Airline',
                     fareClass: fareOptions.find(f => f.id === selectedFareId)?.name || 'Standard',
                     passengers: passengers.length,
