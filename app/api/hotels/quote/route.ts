@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { duffelStaysAPI } from '@/lib/api/duffel-stays';
 import type { CreateQuoteParams } from '@/lib/api/duffel-stays';
+import { handleApiError, ErrorCategory, ErrorSeverity } from '@/lib/monitoring/global-error-handler';
 
 /**
  * Hotel Quote API Route
@@ -39,7 +40,7 @@ import type { CreateQuoteParams } from '@/lib/api/duffel-stays';
  * }
  */
 export async function POST(request: NextRequest) {
-  try {
+  return handleApiError(request, async () => {
     const body = await request.json();
 
     // Validate required parameters
@@ -112,40 +113,7 @@ export async function POST(request: NextRequest) {
         createdAt: new Date().toISOString(),
       },
     });
-  } catch (error: any) {
-    console.error('❌ Hotel quote error:', error);
-
-    // Handle specific errors
-    if (error.message.includes('RATE_NOT_AVAILABLE')) {
-      return NextResponse.json(
-        {
-          error: 'Rate not available',
-          message: 'This rate is no longer available. Please search again.',
-          code: 'RATE_NOT_AVAILABLE',
-        },
-        { status: 409 }
-      );
-    }
-
-    if (error.message.includes('PRICE_CHANGED')) {
-      return NextResponse.json(
-        {
-          error: 'Price changed',
-          message: 'The price has changed. Please review the new price.',
-          code: 'PRICE_CHANGED',
-        },
-        { status: 409 }
-      );
-    }
-
-    return NextResponse.json(
-      {
-        error: error.message || 'Failed to create quote',
-        details: process.env.NODE_ENV === 'development' ? error.stack : undefined,
-      },
-      { status: 500 }
-    );
-  }
+  }, { category: ErrorCategory.BOOKING, severity: ErrorSeverity.HIGH });
 }
 
 // Note: Using Node.js runtime (not edge) because Duffel SDK requires Node.js APIs

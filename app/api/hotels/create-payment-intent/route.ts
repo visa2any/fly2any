@@ -5,6 +5,7 @@
 
 import { NextRequest, NextResponse } from 'next/server'
 import { createHotelPaymentIntent } from '@/lib/payments/stripe-hotel'
+import { handleApiError, ErrorCategory, ErrorSeverity } from '@/lib/monitoring/global-error-handler'
 
 export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'
@@ -24,7 +25,7 @@ interface CreatePaymentIntentRequest {
 }
 
 export async function POST(request: NextRequest) {
-  try {
+  return handleApiError(request, async () => {
     const body: CreatePaymentIntentRequest = await request.json()
 
     // Validation
@@ -81,14 +82,5 @@ export async function POST(request: NextRequest) {
       clientSecret: paymentIntent.client_secret,
       paymentIntentId: paymentIntent.id,
     })
-  } catch (error: any) {
-    console.error('Error creating payment intent:', error)
-    return NextResponse.json(
-      {
-        error: 'Failed to create payment intent',
-        message: error.message,
-      },
-      { status: 500 }
-    )
-  }
+  }, { category: ErrorCategory.PAYMENT, severity: ErrorSeverity.CRITICAL })
 }

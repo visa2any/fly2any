@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { liteAPI } from '@/lib/api/liteapi';
 import { getCached, setCache, generateCacheKey } from '@/lib/cache/helpers';
+import { handleApiError, ErrorCategory, ErrorSeverity } from '@/lib/monitoring/global-error-handler';
 
 export const dynamic = 'force-dynamic';
 
@@ -71,12 +72,11 @@ function extractCityCode(value: string | null): string {
 }
 
 export async function GET(request: NextRequest) {
-  let cityCode: string | null = null;
-  let checkInDate: string | null = null;
-  let checkOutDate: string | null = null;
-  let cacheKey: string = '';
-
-  try {
+  return handleApiError(request, async () => {
+    let cityCode: string | null = null;
+    let checkInDate: string | null = null;
+    let checkOutDate: string | null = null;
+    let cacheKey: string = '';
     console.log('🏨 Hotels API - Request received');
 
     const { searchParams } = new URL(request.url);
@@ -280,27 +280,5 @@ export async function GET(request: NextRequest) {
         'X-API-Source': 'LITEAPI',
       }
     });
-  } catch (error: any) {
-    console.error('❌ Error in hotels API:', error);
-    console.error('Error details:', {
-      message: error?.message,
-      stack: error?.stack,
-      cityCode,
-      checkInDate,
-      checkOutDate,
-    });
-
-    // Return empty result on error with detailed message
-    const errorMessage = error?.message || error?.toString() || 'Unknown error occurred';
-    const emptyResponse = {
-      data: [],
-      meta: {
-        count: 0,
-        message: `Unable to search hotels at this time. ${errorMessage}`,
-      }
-    };
-
-    // IMPORTANT: Return 200 status with empty data instead of 500
-    return NextResponse.json(emptyResponse, { status: 200 });
-  }
+  }, { category: ErrorCategory.EXTERNAL_API, severity: ErrorSeverity.HIGH });
 }

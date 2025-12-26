@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { liteAPI } from '@/lib/api/liteapi';
 import { checkRateLimit, prebookRateLimit, addRateLimitHeaders } from '@/lib/security/rate-limiter';
+import { handleApiError, ErrorCategory, ErrorSeverity } from '@/lib/monitoring/global-error-handler';
 
 /**
  * Hotel Prebook API Endpoint
@@ -46,7 +47,7 @@ import { checkRateLimit, prebookRateLimit, addRateLimitHeaders } from '@/lib/sec
  * }
  */
 export async function POST(request: NextRequest) {
-  try {
+  return handleApiError(request, async () => {
     // Rate limiting to prevent abuse
     const rateLimitResult = await checkRateLimit(request, prebookRateLimit);
     if (!rateLimitResult.success) {
@@ -129,46 +130,7 @@ export async function POST(request: NextRequest) {
         paymentSdkEnabled: !!prebookResponse.secretKey,
       }
     });
-
-  } catch (error: any) {
-    console.error('❌ Hotel Prebook Error:', error);
-
-    // Handle specific LiteAPI errors
-    if (error.message.includes('no longer available')) {
-      return NextResponse.json({
-        success: false,
-        error: 'Room unavailable',
-        message: 'This room is no longer available. Please select another option.',
-        code: 'ROOM_UNAVAILABLE'
-      }, { status: 409 });
-    }
-
-    if (error.message.includes('price changed')) {
-      return NextResponse.json({
-        success: false,
-        error: 'Price changed',
-        message: 'The price for this room has changed. Please review the new price.',
-        code: 'PRICE_CHANGED'
-      }, { status: 409 });
-    }
-
-    if (error.message.includes('timeout') || error.message.includes('ECONNABORTED')) {
-      return NextResponse.json({
-        success: false,
-        error: 'Request timeout',
-        message: 'The request took too long. Please try again.',
-        code: 'TIMEOUT'
-      }, { status: 504 });
-    }
-
-    // Generic error response
-    return NextResponse.json({
-      success: false,
-      error: 'Failed to prebook hotel',
-      message: error.message || 'An unexpected error occurred. Please try again.',
-      details: process.env.NODE_ENV === 'development' ? error.stack : undefined
-    }, { status: 500 });
-  }
+  }, { category: ErrorCategory.BOOKING, severity: ErrorSeverity.CRITICAL });
 }
 
 /**
@@ -191,7 +153,7 @@ export async function POST(request: NextRequest) {
  * }
  */
 export async function GET(request: NextRequest) {
-  try {
+  return handleApiError(request, async () => {
     const searchParams = request.nextUrl.searchParams;
     const prebookId = searchParams.get('prebookId');
     const expiresAt = searchParams.get('expiresAt');
@@ -221,13 +183,5 @@ export async function GET(request: NextRequest) {
         timeRemainingSeconds: timeRemaining % 60,
       }
     });
-
-  } catch (error: any) {
-    console.error('❌ Prebook Status Check Error:', error);
-    return NextResponse.json({
-      success: false,
-      error: 'Failed to check prebook status',
-      message: error.message
-    }, { status: 500 });
-  }
+  }, { category: ErrorCategory.BOOKING, severity: ErrorSeverity.NORMAL });
 }

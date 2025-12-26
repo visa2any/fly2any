@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { handleApiError, ErrorCategory, ErrorSeverity } from '@/lib/monitoring/global-error-handler';
 
 /**
  * Payment Verification API Endpoint
@@ -26,7 +27,7 @@ import { NextRequest, NextResponse } from 'next/server';
  * }
  */
 export async function POST(request: NextRequest) {
-  try {
+  return handleApiError(request, async () => {
     const body = await request.json();
     const { paymentIntentId, transactionId } = body;
 
@@ -99,16 +100,7 @@ export async function POST(request: NextRequest) {
       status: 'failed',
       message: 'Unable to verify payment',
     }, { status: 400 });
-
-  } catch (error: any) {
-    console.error('[Verify Payment] Error:', error);
-
-    return NextResponse.json({
-      success: false,
-      status: 'failed',
-      message: error.message || 'Payment verification failed',
-    }, { status: 500 });
-  }
+  }, { category: ErrorCategory.PAYMENT, severity: ErrorSeverity.CRITICAL });
 }
 
 /**
@@ -117,7 +109,7 @@ export async function POST(request: NextRequest) {
  * Alternative GET endpoint for simple status checks
  */
 export async function GET(request: NextRequest) {
-  try {
+  return handleApiError(request, async () => {
     const searchParams = request.nextUrl.searchParams;
     const paymentIntentId = searchParams.get('pi') || searchParams.get('payment_intent');
     const transactionId = searchParams.get('tid') || searchParams.get('transaction_id');
@@ -156,13 +148,5 @@ export async function GET(request: NextRequest) {
       status: 'unknown',
       message: 'Unable to determine payment status',
     }, { status: 400 });
-
-  } catch (error: any) {
-    console.error('[Verify Payment GET] Error:', error);
-    return NextResponse.json({
-      success: false,
-      status: 'failed',
-      message: 'Verification failed',
-    }, { status: 500 });
-  }
+  }, { category: ErrorCategory.PAYMENT, severity: ErrorSeverity.HIGH });
 }

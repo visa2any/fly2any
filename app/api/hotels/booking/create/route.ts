@@ -5,6 +5,7 @@ import { getPaymentIntent } from '@/lib/payments/stripe-hotel';
 import { sendHotelConfirmationEmail } from '@/lib/email/hotel-confirmation';
 import { auth } from '@/lib/auth';
 import { checkRateLimit, bookingRateLimit, addRateLimitHeaders } from '@/lib/security/rate-limiter';
+import { handleApiError, ErrorCategory, ErrorSeverity } from '@/lib/monitoring/global-error-handler';
 
 // Environment flags for production safety
 const ALLOW_DEMO_PAYMENTS = process.env.ALLOW_DEMO_PAYMENTS === 'true';
@@ -50,7 +51,7 @@ const IS_PRODUCTION = process.env.NODE_ENV === 'production';
  * }
  */
 export async function POST(request: NextRequest) {
-  try {
+  return handleApiError(request, async () => {
     // SECURITY: Rate limiting to prevent abuse
     const rateLimitResult = await checkRateLimit(request, bookingRateLimit);
 
@@ -387,16 +388,5 @@ export async function POST(request: NextRequest) {
         emailSent: dbBooking?.confirmationEmailSent || false,
       },
     }, { status: 201 });
-
-  } catch (error: any) {
-    console.error('❌ Hotel booking error:', error);
-
-    return NextResponse.json(
-      {
-        error: error.message || 'Failed to create booking',
-        details: process.env.NODE_ENV === 'development' ? error.stack : undefined,
-      },
-      { status: 500 }
-    );
-  }
+  }, { category: ErrorCategory.BOOKING, severity: ErrorSeverity.CRITICAL });
 }
