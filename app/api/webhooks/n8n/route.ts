@@ -75,7 +75,15 @@ async function handleAutoTicketCallback(payload: N8NWebhookPayload) {
 
   const booking = await bookingStorage.findById(bookingId);
   if (!booking) {
-    return NextResponse.json({ error: 'Booking not found' }, { status: 404 });
+    // Return 200 with error message to avoid N8N treating it as failure
+    // The booking might not exist yet or the ID might be invalid
+    console.log('[N8N Webhook] Booking not found:', bookingId);
+    return NextResponse.json({
+      success: false,
+      error: 'Booking not found',
+      bookingId,
+      processed: true
+    });
   }
 
   if (success && data?.pnr) {
