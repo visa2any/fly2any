@@ -197,6 +197,209 @@ app.post('/auto-ticket', async (req, res) => {
   }
 });
 
+// ═══════════════════════════════════════════════════════════════════
+// VIATOR TOURS/ACTIVITIES AUTOMATION
+// ═══════════════════════════════════════════════════════════════════
+
+app.post('/viator-book', async (req, res) => {
+  const {
+    bookingId,
+    bookingReference,
+    tourData,
+    viatorEmail,
+    viatorPassword,
+    dryRun = true
+  } = req.body;
+
+  if (!tourData || !viatorEmail || !viatorPassword) {
+    return res.status(400).json({ success: false, error: 'Missing required fields' });
+  }
+
+  console.log('═══════════════════════════════════════════════════');
+  console.log(`🎫 VIATOR BOOKING: ${bookingReference}`);
+  console.log(`   Tour: ${tourData.tourName}`);
+  console.log(`   Mode: ${dryRun ? 'DRY RUN' : 'LIVE'}`);
+  console.log('═══════════════════════════════════════════════════');
+
+  let browser: Browser | null = null;
+  const screenshots: string[] = [];
+
+  try {
+    browser = await chromium.launch({ headless: true });
+    const context = await browser.newContext();
+    const page = await context.newPage();
+
+    // 1. Login to Viator Travel Agent portal
+    console.log('📍 Step 1: Logging into Viator Travel Agents...');
+    await page.goto('https://travelagents.viator.com/login');
+    await page.waitForLoadState('networkidle');
+
+    await page.fill('input[name="email"], input[type="email"], #email', viatorEmail);
+    await page.fill('input[name="password"], input[type="password"], #password', viatorPassword);
+    await page.click('button[type="submit"], input[type="submit"]');
+    await page.waitForLoadState('networkidle');
+    await page.waitForTimeout(3000);
+
+    // Check login
+    const loginFailed = await page.$('text=Invalid, text=incorrect, .error');
+    if (loginFailed) {
+      throw new Error('Viator login failed - check credentials');
+    }
+    console.log('✅ Logged into Viator');
+
+    // 2. Search for tour/activity
+    console.log(`📍 Step 2: Searching for tour: ${tourData.tourName}...`);
+
+    // Navigate to search or use direct product code if available
+    if (tourData.productCode) {
+      await page.goto(`https://travelagents.viator.com/product/${tourData.productCode}`);
+    } else {
+      await page.goto('https://travelagents.viator.com/search');
+      await page.waitForLoadState('networkidle');
+
+      const searchInput = await page.$('input[type="search"], input[name="search"], input[placeholder*="Search"]');
+      if (searchInput) {
+        await searchInput.fill(tourData.tourName);
+        await page.keyboard.press('Enter');
+        await page.waitForLoadState('networkidle');
+        await page.waitForTimeout(2000);
+      }
+    }
+
+    // 3. Select date and time
+    console.log(`📍 Step 3: Selecting date: ${tourData.date}...`);
+
+    // Find date picker
+    const dateInput = await page.$('input[type="date"], input[name="date"], [data-testid="date-picker"]');
+    if (dateInput) {
+      await dateInput.fill(tourData.date);
+    } else {
+      // Try clicking calendar and selecting date
+      await page.click('button:has-text("Select date"), .date-picker-trigger').catch(() => {});
+      await page.waitForTimeout(500);
+    }
+
+    // Select time slot if available
+    if (tourData.timeSlot) {
+      await page.click(`text=${tourData.timeSlot}`).catch(() => {
+        console.log('⚠️ Time slot not found, using default');
+      });
+    }
+
+    // 4. Set travelers count
+    console.log(`📍 Step 4: Setting ${tourData.travelers} travelers...`);
+
+    const travelersInput = await page.$('input[name="travelers"], input[name="adults"], select[name="travelers"]');
+    if (travelersInput) {
+      const tagName = await travelersInput.evaluate(el => el.tagName);
+      if (tagName === 'SELECT') {
+        await travelersInput.selectOption(tourData.travelers.toString());
+      } else {
+        await travelersInput.fill(tourData.travelers.toString());
+      }
+    }
+
+    // Check availability
+    await page.click('button:has-text("Check availability"), button:has-text("Check")').catch(() => {});
+    await page.waitForTimeout(2000);
+
+    // Get agent price
+    const priceElement = await page.$('.agent-price, .net-price, [class*="price"]:not([class*="retail"])');
+    let agentPrice = 0;
+    if (priceElement) {
+      const priceText = await priceElement.textContent();
+      const priceMatch = priceText?.match(/\$?([0-9,]+\.?[0-9]*)/);
+      if (priceMatch) {
+        agentPrice = parseFloat(priceMatch[1].replace(',', ''));
+      }
+    }
+    console.log(`💰 Agent price: $${agentPrice}`);
+
+    // 5. Fill traveler details
+    console.log('📍 Step 5: Filling traveler details...');
+
+    for (let i = 0; i < tourData.passengers.length; i++) {
+      const pax = tourData.passengers[i];
+      const prefix = i === 0 ? '' : `[${i}]`;
+
+      const firstNameInput = await page.$(`input[name="firstName${prefix}"], input[name="travelers[${i}].firstName"]`);
+      if (firstNameInput) await firstNameInput.fill(pax.firstName);
+
+      const lastNameInput = await page.$(`input[name="lastName${prefix}"], input[name="travelers[${i}].lastName"]`);
+      if (lastNameInput) await lastNameInput.fill(pax.lastName);
+    }
+
+    // Lead traveler contact
+    const leadEmail = await page.$('input[name="leadEmail"], input[name="email"], input[type="email"]:not([name="login"])');
+    if (leadEmail && tourData.passengers[0]?.email) {
+      await leadEmail.fill(tourData.passengers[0].email);
+    }
+
+    const leadPhone = await page.$('input[name="leadPhone"], input[name="phone"], input[type="tel"]');
+    if (leadPhone && tourData.passengers[0]?.phone) {
+      await leadPhone.fill(tourData.passengers[0].phone);
+    }
+
+    console.log('✅ Traveler details filled');
+
+    // 6. Complete booking
+    if (dryRun) {
+      console.log('📝 DRY RUN - Stopping before payment');
+
+      const screenshotBuffer = await page.screenshot({ fullPage: true });
+      screenshots.push(screenshotBuffer.toString('base64'));
+
+      return res.json({
+        success: true,
+        dryRun: true,
+        agentPrice,
+        message: 'Dry run complete - booking NOT submitted',
+        screenshots,
+      });
+    }
+
+    // LIVE MODE
+    console.log('🚀 LIVE MODE - Completing booking...');
+    await page.click('button:has-text("Book now"), button:has-text("Complete"), button[type="submit"]');
+    await page.waitForLoadState('networkidle');
+    await page.waitForTimeout(5000);
+
+    // Extract confirmation/voucher number
+    const confirmElement = await page.$('[class*="confirmation"], [class*="voucher"], [class*="booking-ref"]');
+    let voucherNumber = '';
+    if (confirmElement) {
+      const confirmText = await confirmElement.textContent();
+      const voucherMatch = confirmText?.match(/[A-Z0-9]{6,}/);
+      if (voucherMatch) {
+        voucherNumber = voucherMatch[0];
+      }
+    }
+
+    console.log(`✅ VIATOR BOOKING COMPLETE! Voucher: ${voucherNumber}`);
+
+    return res.json({
+      success: true,
+      dryRun: false,
+      voucherNumber,
+      agentPrice,
+      message: 'Tour booked successfully via Viator',
+    });
+
+  } catch (error: any) {
+    console.error('❌ Viator booking error:', error.message);
+    return res.status(500).json({
+      success: false,
+      error: error.message,
+      screenshots,
+    });
+  } finally {
+    if (browser) await browser.close();
+  }
+});
+
 app.listen(PORT, () => {
   console.log(`🚀 Auto-ticket API running on port ${PORT}`);
+  console.log(`   Endpoints:`);
+  console.log(`   - POST /auto-ticket (Flight consolidator)`);
+  console.log(`   - POST /viator-book (Tours/Activities)`);
 });
