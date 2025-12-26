@@ -39,6 +39,11 @@ const config: Config = {
         // OFFICIAL FLY2ANY BRAND COLORS (Level-6 Standard)
         // ============================================
 
+        // Direct brand tokens (CLAUDE.md compliant)
+        'fly2any-red': '#E74035',
+        'fly2any-red-hover': '#D63930',
+        'fly2any-yellow': '#F7C928',
+
         // Fly2Any Brand Red (#E74035 - Official Primary)
         primary: {
           50: '#FEF2F1',
