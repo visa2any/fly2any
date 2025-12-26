@@ -21,6 +21,8 @@ interface VoiceMicButtonProps {
   isSpeaking?: boolean;
   error?: string | null;
   interimTranscript?: string;
+  audioLevel?: number;          // 0-100 for waveform
+  recordingDuration?: number;   // seconds
   onToggle: () => void;
   onStopSpeaking?: () => void;
   className?: string;
@@ -34,12 +36,20 @@ export function VoiceMicButton({
   isSpeaking = false,
   error,
   interimTranscript,
+  audioLevel = 0,
+  recordingDuration = 0,
   onToggle,
   onStopSpeaking,
   className,
   size = 'md',
   variant = 'default',
 }: VoiceMicButtonProps) {
+  // Format duration as MM:SS
+  const formatDuration = (seconds: number) => {
+    const mins = Math.floor(seconds / 60);
+    const secs = seconds % 60;
+    return `${mins}:${secs.toString().padStart(2, '0')}`;
+  };
   const [showPermissionHint, setShowPermissionHint] = useState(false);
   const [isPressed, setIsPressed] = useState(false);
 
@@ -176,19 +186,25 @@ export function VoiceMicButton({
             <span className="absolute inset-0 rounded-full bg-white/20 animate-pulse" />
           )}
 
-          {/* Sound Wave Bars when listening */}
+          {/* WhatsApp-style Sound Wave Bars - Real audio level */}
           {isListening && (
-            <div className="absolute inset-0 flex items-center justify-center gap-0.5 opacity-30">
-              {[0, 1, 2, 3, 4].map((i) => (
-                <span
-                  key={i}
-                  className="w-0.5 bg-white rounded-full animate-[voice-bar_0.8s_ease-in-out_infinite]"
-                  style={{
-                    height: `${30 + Math.random() * 40}%`,
-                    animationDelay: `${i * 0.1}s`,
-                  }}
-                />
-              ))}
+            <div className="absolute inset-0 flex items-center justify-center gap-0.5 opacity-40">
+              {[0, 1, 2, 3, 4].map((i) => {
+                // Calculate height based on real audio level with variation
+                const baseHeight = Math.max(20, audioLevel * 0.8);
+                const variation = Math.sin(Date.now() / 200 + i) * 15;
+                const height = Math.min(80, baseHeight + variation);
+                return (
+                  <span
+                    key={i}
+                    className="w-0.5 bg-white rounded-full transition-all duration-75"
+                    style={{
+                      height: `${height}%`,
+                      transform: `scaleY(${0.5 + (audioLevel / 200)})`,
+                    }}
+                  />
+                );
+              })}
             </div>
           )}
 
@@ -223,19 +239,50 @@ export function VoiceMicButton({
         </button>
       )}
 
-      {/* Live Transcript Bubble - Premium glass effect */}
-      {isListening && interimTranscript && (
+      {/* WhatsApp-style Recording Timer + Live Transcript */}
+      {isListening && (
         <div className="absolute left-full ml-3 top-1/2 -translate-y-1/2 whitespace-nowrap z-20">
           <div className={cn(
-            'flex items-center gap-2 px-4 py-2',
-            'bg-white/90 dark:bg-neutral-900/90 backdrop-blur-md',
-            'rounded-2xl text-sm text-neutral-700 dark:text-neutral-200',
+            'flex items-center gap-3 px-4 py-2',
+            'bg-white/95 dark:bg-neutral-900/95 backdrop-blur-md',
+            'rounded-2xl text-sm',
             'border border-neutral-200/50 dark:border-neutral-700/50',
             'shadow-[0_4px_20px_rgba(0,0,0,0.08),0_2px_8px_rgba(0,0,0,0.04)]',
             'animate-[fade-in_0.2s_ease-out]'
           )}>
-            <Loader2 size={14} className="animate-spin text-fly2any-red flex-shrink-0" />
-            <span className="max-w-[220px] truncate font-medium">{interimTranscript}</span>
+            {/* Recording indicator dot */}
+            <span className="relative flex h-2 w-2">
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-fly2any-red opacity-75" />
+              <span className="relative inline-flex rounded-full h-2 w-2 bg-fly2any-red" />
+            </span>
+
+            {/* Timer */}
+            <span className="font-mono text-fly2any-red font-semibold min-w-[40px]">
+              {formatDuration(recordingDuration)}
+            </span>
+
+            {/* Waveform mini visualization */}
+            <div className="flex items-center gap-px h-4">
+              {[...Array(8)].map((_, i) => (
+                <span
+                  key={i}
+                  className="w-0.5 bg-fly2any-red/60 rounded-full transition-all duration-75"
+                  style={{
+                    height: `${Math.max(4, (audioLevel / 100) * 16 + Math.sin(Date.now() / 150 + i) * 4)}px`,
+                  }}
+                />
+              ))}
+            </div>
+
+            {/* Transcript if available */}
+            {interimTranscript && (
+              <>
+                <span className="w-px h-4 bg-neutral-200 dark:bg-neutral-700" />
+                <span className="max-w-[180px] truncate text-neutral-600 dark:text-neutral-300">
+                  {interimTranscript}
+                </span>
+              </>
+            )}
           </div>
         </div>
       )}
