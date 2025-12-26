@@ -1070,26 +1070,60 @@ export function AITravelAssistant({ language = 'en' }: Props) {
         } else {
           setMessages(prev => prev.filter(m => !m.isSearching));
 
-          const errorContent = language === 'en'
-            ? "I couldn't find flights matching your criteria. Could you provide more details like the origin city, destination, and travel dates?"
-            : language === 'pt'
-            ? "Não consegui encontrar voos correspondentes aos seus critérios. Você poderia fornecer mais detalhes como cidade de origem, destino e datas de viagem?"
-            : "No pude encontrar vuelos que coincidan con tus criterios. ¿Podrías proporcionar más detalles como la ciudad de origen, el destino y las fechas de viaje?";
+          // AI-generated "no results" response - sounds natural, not templated
+          const noResultsHistory = [
+            ...conversationHistoryForAI.slice(-4),
+            { role: 'user' as const, content: queryText },
+            { role: 'assistant' as const, content: `[SYSTEM: Flight search returned no results. Ask the user for more details about their trip - origin city, destination, or dates. Be helpful and conversational, don't sound like an error message.]` }
+          ];
 
-          await sendAIResponseWithTyping(errorContent, consultant, queryText, undefined, 'question');
+          try {
+            await sendStreamingAIResponse(
+              queryText,
+              consultant,
+              noResultsHistory,
+              undefined,
+              'no-results'
+            );
+          } catch {
+            // Minimal fallback only if AI fails
+            const errorContent = language === 'en'
+              ? "I couldn't find flights for that route. What city are you flying from?"
+              : language === 'pt'
+              ? "Não encontrei voos para essa rota. De qual cidade você está saindo?"
+              : "No encontré vuelos para esa ruta. ¿De qué ciudad sales?";
+            await sendAIResponseWithTyping(errorContent, consultant, queryText, undefined, 'question');
+          }
         }
       } catch (error) {
         console.error('Flight search error:', error);
         setIsSearchingFlights(false);
         setMessages(prev => prev.filter(m => !m.isSearching));
 
-        const errorContent = language === 'en'
-          ? "I encountered an error searching for flights. Please try again or contact support if the issue persists."
-          : language === 'pt'
-          ? "Encontrei um erro ao pesquisar voos. Tente novamente ou entre em contato com o suporte se o problema persistir."
-          : "Encontré un error al buscar vuelos. Por favor, inténtalo de nuevo o contacta con soporte si el problema persiste.";
+        // AI-generated error response - sounds natural
+        const errorHistory = [
+          ...conversationHistoryForAI.slice(-4),
+          { role: 'user' as const, content: queryText },
+          { role: 'assistant' as const, content: `[SYSTEM: There was a technical issue searching for flights. Apologize briefly, reassure the customer, and offer to try again or help another way. Be warm, not robotic.]` }
+        ];
 
-        await sendAIResponseWithTyping(errorContent, consultant, queryText, undefined, 'service-request');
+        try {
+          await sendStreamingAIResponse(
+            queryText,
+            consultant,
+            errorHistory,
+            undefined,
+            'error-recovery'
+          );
+        } catch {
+          // Minimal fallback
+          const errorContent = language === 'en'
+            ? "Oops, hit a snag! Let me try that search again. 🔄"
+            : language === 'pt'
+            ? "Ops, tive um problema! Deixe-me tentar novamente. 🔄"
+            : "¡Ups, hubo un problema! Déjame intentar de nuevo. 🔄";
+          await sendAIResponseWithTyping(errorContent, consultant, queryText, undefined, 'service-request');
+        }
       }
     }
 
@@ -1209,25 +1243,57 @@ export function AITravelAssistant({ language = 'en' }: Props) {
         } else {
           setMessages(prev => prev.filter(m => !m.isSearching));
 
-          const errorContent = language === 'en'
-            ? "I couldn't find hotels matching your request. Could you provide the city, check-in date, check-out date, and number of guests?"
-            : language === 'pt'
-            ? "Não consegui encontrar hotéis correspondentes à sua solicitação. Você poderia fornecer a cidade, data de check-in, data de check-out e número de hóspedes?"
-            : "No pude encontrar hoteles que coincidan con tu solicitud. ¿Podrías proporcionar la ciudad, fecha de entrada, fecha de salida y número de huéspedes?";
+          // AI-generated "no hotels found" response
+          const noHotelsHistory = [
+            ...conversationHistoryForAI.slice(-4),
+            { role: 'user' as const, content: queryText },
+            { role: 'assistant' as const, content: `[SYSTEM: Hotel search returned no results. Ask the user for more details - city, check-in/out dates, or number of guests. Be warm and helpful, like a concierge.]` }
+          ];
 
-          await sendAIResponseWithTyping(errorContent, consultant, queryText, undefined, 'question');
+          try {
+            await sendStreamingAIResponse(
+              queryText,
+              consultant,
+              noHotelsHistory,
+              undefined,
+              'no-results'
+            );
+          } catch {
+            const errorContent = language === 'en'
+              ? "Hmm, I couldn't find hotels for those dates. Which city are you looking for?"
+              : language === 'pt'
+              ? "Hmm, não encontrei hotéis para essas datas. Qual cidade você procura?"
+              : "Hmm, no encontré hoteles para esas fechas. ¿Qué ciudad buscas?";
+            await sendAIResponseWithTyping(errorContent, consultant, queryText, undefined, 'question');
+          }
         }
       } catch (error) {
         console.error('Hotel search error:', error);
         setMessages(prev => prev.filter(m => !m.isSearching));
 
-        const errorContent = language === 'en'
-          ? "I encountered an error searching for hotels. Please try again or contact support if the issue persists."
-          : language === 'pt'
-          ? "Encontrei um erro ao pesquisar hotéis. Tente novamente ou entre em contato com o suporte se o problema persistir."
-          : "Encontré un error al buscar hoteles. Por favor, inténtalo de nuevo o contacta con soporte si el problema persiste.";
+        // AI-generated error response
+        const hotelErrorHistory = [
+          ...conversationHistoryForAI.slice(-4),
+          { role: 'user' as const, content: queryText },
+          { role: 'assistant' as const, content: `[SYSTEM: Technical issue with hotel search. Apologize briefly, be warm, and offer to try again. Don't sound like an error message.]` }
+        ];
 
-        await sendAIResponseWithTyping(errorContent, consultant, queryText, undefined, 'service-request');
+        try {
+          await sendStreamingAIResponse(
+            queryText,
+            consultant,
+            hotelErrorHistory,
+            undefined,
+            'error-recovery'
+          );
+        } catch {
+          const errorContent = language === 'en'
+            ? "Had a small hiccup! Let me try that hotel search again. 🏨"
+            : language === 'pt'
+            ? "Tive um pequeno problema! Deixe-me tentar a busca novamente. 🏨"
+            : "¡Tuve un pequeño problema! Déjame intentar la búsqueda de nuevo. 🏨";
+          await sendAIResponseWithTyping(errorContent, consultant, queryText, undefined, 'service-request');
+        }
       }
     }
 
@@ -2935,14 +3001,51 @@ function extractSearchContext(userMessage: string, team: string): any {
 
   // Flight context extraction
   if (team === 'flight-operations') {
-    // Try to extract origin and destination (handle "nonstop" etc in destination)
-    const fromMatch = msg.match(/from\s+([a-z\s]+?)(?:\s+to\s+|\s+on\s+|\s+in\s+|\s+from\s+|\s*$)/i);
-    const toMatch = msg.match(/to\s+([a-z\s]+?)(?:\s+nonstop|\s+non-stop|\s+direct|\s+on\s+|\s+in\s+|\s+from\s+|\s+for\s+|\s*$)/i);
+    // Common action words to exclude from destination
+    const actionWords = ['book', 'find', 'search', 'get', 'buy', 'purchase', 'need', 'want', 'looking'];
 
-    // Clean destination (remove "nonstop" etc if captured)
-    let destination = toMatch ? toMatch[1].trim() : undefined;
+    // Try to extract "from X to Y" pattern first (most reliable)
+    const fromToMatch = msg.match(/from\s+([a-z\s]+?)\s+to\s+([a-z\s]+?)(?:\s+nonstop|\s+non-stop|\s+direct|\s+on\s+|\s+in\s+|\s+for\s+|\s*$)/i);
+
+    let origin: string | undefined;
+    let destination: string | undefined;
+
+    if (fromToMatch) {
+      origin = fromToMatch[1].trim();
+      destination = fromToMatch[2].trim();
+    } else {
+      // Try separate patterns
+      const fromMatch = msg.match(/from\s+([a-z\s]+?)(?:\s+to\s+|\s+on\s+|\s+in\s+|\s*$)/i);
+      if (fromMatch) origin = fromMatch[1].trim();
+
+      // Look for destination: "to [city]" but skip common action phrases like "to book"
+      // Use a pattern that specifically looks for "to [city]" followed by context clues
+      const toPatterns = [
+        /\bto\s+([a-z]+(?:\s+[a-z]+)?)\s+(?:nonstop|non-stop|direct|for\s+\d|on\s+|in\s+\w+\s*\d)/i,  // "to tokyo for 2" or "to new york on march"
+        /flights?\s+to\s+([a-z]+(?:\s+[a-z]+)?)/i,  // "flights to tokyo" or "flight to new york"
+        /\bto\s+([a-z]+(?:\s+[a-z]+)?)\s*$/i,  // "to tokyo" at end of message
+      ];
+
+      for (const pattern of toPatterns) {
+        const match = msg.match(pattern);
+        if (match && match[1]) {
+          const potentialDest = match[1].trim();
+          // Verify it's not an action word
+          if (!actionWords.includes(potentialDest.split(' ')[0])) {
+            destination = potentialDest;
+            break;
+          }
+        }
+      }
+    }
+
+    // Clean destination (remove trailing modifiers)
     if (destination) {
-      destination = destination.replace(/\s*(nonstop|non-stop|direct|business|economy|first class).*$/i, '').trim();
+      destination = destination.replace(/\s*(nonstop|non-stop|direct|business|economy|first class|flights?).*$/i, '').trim();
+      // Final check: reject if it's just action words
+      if (actionWords.includes(destination.split(' ')[0])) {
+        destination = undefined;
+      }
     }
 
     // Enhanced date extraction with comprehensive patterns
@@ -2956,7 +3059,7 @@ function extractSearchContext(userMessage: string, team: string): any {
     const hasEconomyClass = msg.includes('economy') || msg.includes('coach');
 
     const context: any = {};
-    if (fromMatch) context.origin = fromMatch[1].trim();
+    if (origin) context.origin = origin;
     if (destination) context.destination = destination;
     if (departureDate) context.departureDate = departureDate;
     if (returnDate) context.returnDate = returnDate;

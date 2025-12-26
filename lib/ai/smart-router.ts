@@ -437,6 +437,10 @@ function extractDates(message: string): { departure?: string; return?: string } 
 
 function extractLocations(message: string): { origin?: string; destination?: string; city?: string } {
   const result: { origin?: string; destination?: string; city?: string } = {};
+  const lowerMsg = message.toLowerCase();
+
+  // Action words to exclude from destination
+  const actionWords = ['book', 'find', 'search', 'get', 'buy', 'purchase', 'need', 'want', 'looking', 'help'];
 
   // Airport codes (3 letters)
   const airportCodes = message.match(/\b[A-Z]{3}\b/g);
@@ -446,12 +450,51 @@ function extractLocations(message: string): { origin?: string; destination?: str
     return result;
   }
 
-  // "from X to Y" pattern
-  const fromToPattern = /from\s+([A-Za-z\s]+?)\s+to\s+([A-Za-z\s]+?)(?:\s+on|\s+for|\s+in|,|$)/i;
+  // "from X to Y" pattern (most reliable)
+  const fromToPattern = /from\s+([A-Za-z\s]+?)\s+to\s+([A-Za-z\s]+?)(?:\s+nonstop|\s+non-stop|\s+on|\s+for|\s+in|,|$)/i;
   const fromToMatch = message.match(fromToPattern);
   if (fromToMatch) {
     result.origin = fromToMatch[1].trim();
-    result.destination = fromToMatch[2].trim();
+    let dest = fromToMatch[2].trim();
+    // Clean destination
+    dest = dest.replace(/\s*(nonstop|non-stop|direct|business|economy|flights?).*$/i, '').trim();
+    if (!actionWords.includes(dest.split(' ')[0].toLowerCase())) {
+      result.destination = dest;
+    }
+    return result;
+  }
+
+  // "flights to [city]" pattern
+  const flightsToMatch = lowerMsg.match(/flights?\s+to\s+([a-z]+(?:\s+[a-z]+)?)/i);
+  if (flightsToMatch) {
+    const dest = flightsToMatch[1].trim();
+    if (!actionWords.includes(dest.split(' ')[0])) {
+      result.destination = dest;
+    }
+  }
+
+  // "to [city]" at end or before keywords pattern
+  if (!result.destination) {
+    const toPatterns = [
+      /\bto\s+([a-z]+(?:\s+[a-z]+)?)\s+(?:for\s+\d|on\s+|in\s+\w+\s*\d)/i,
+      /\bto\s+([a-z]+(?:\s+[a-z]+)?)\s*$/i,
+    ];
+    for (const pattern of toPatterns) {
+      const match = lowerMsg.match(pattern);
+      if (match && match[1]) {
+        const dest = match[1].trim();
+        if (!actionWords.includes(dest.split(' ')[0])) {
+          result.destination = dest;
+          break;
+        }
+      }
+    }
+  }
+
+  // City extraction for hotels
+  const inMatch = lowerMsg.match(/(?:in|at|near)\s+([a-z]+(?:\s+[a-z]+)?)/i);
+  if (inMatch && !result.destination) {
+    result.city = inMatch[1].trim();
   }
 
   return result;
