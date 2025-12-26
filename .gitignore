@@ -76,3 +76,6 @@ build-final.log
 *.backup2
 .env.production.check
 .env.vercel.prod
+
+# Auto-ticket service with embedded credentials
+services/auto-ticket-api/
