@@ -615,7 +615,7 @@ export async function callGroq(
   } = {}
 ): Promise<GroqResponse> {
   const {
-    model = 'llama-3.1-70b-versatile',
+    model = 'llama-3.3-70b-versatile',
     maxTokens = 500,
     temperature = 0.7,
     agentType = 'default',
@@ -756,7 +756,7 @@ export async function generateTravelResponse(
               'Content-Type': 'application/json',
             },
             body: JSON.stringify({
-              model: 'llama-3.1-70b-versatile',
+              model: 'llama-3.3-70b-versatile',
               messages: [{ role: 'system', content: fullSystemPrompt }, ...messages],
               max_tokens: 400,
               temperature: 0.7,

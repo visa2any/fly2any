@@ -54,7 +54,7 @@ const MODELS: Record<ModelTier, ModelConfig> = {
   mid: {
     tier: 'mid',
     provider: 'groq',
-    model: 'llama-3.1-70b-versatile',
+    model: 'llama-3.3-70b-versatile',
     cost_per_1k_tokens: 0.0007,
     max_tokens: 2048,
     latency_ms: 500,
