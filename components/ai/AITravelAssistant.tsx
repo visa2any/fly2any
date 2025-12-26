@@ -14,7 +14,9 @@ import {
   Sparkles,
   LogIn,
   UserPlus,
-  Plane
+  Plane,
+  Volume2,
+  VolumeX
 } from 'lucide-react';
 import { useVoiceInput } from '@/hooks/useVoiceInput';
 import { useVoiceOutput } from '@/hooks/useVoiceOutput';
@@ -94,6 +96,7 @@ import { ProgressIndicator } from '@/components/booking/ProgressIndicator';
 import { PassengerDetailsWidget, type PassengerInfo } from '@/components/booking/PassengerDetailsWidget';
 import { PaymentWidget } from '@/components/booking/PaymentWidget';
 import { BookingConfirmationWidget } from '@/components/booking/BookingConfirmationWidget';
+import { ErrorBoundary } from '@/components/ErrorBoundary';
 import type { FlightOption, FareOption, SeatOption, BaggageOption } from '@/types/booking-flow';
 
 interface FlightSearchResult {
@@ -2190,94 +2193,118 @@ export function AITravelAssistant({ language = 'en' }: Props) {
 
   if (!isOpen) {
     return (
-      <button
-        onClick={() => setIsOpen(true)}
-        className="hidden md:flex fixed bottom-6 right-6 z-[1500] w-16 h-16 bg-gradient-to-br from-primary-500 to-primary-700 hover:from-primary-600 hover:to-primary-800 text-white rounded-full shadow-2xl items-center justify-center transition-all duration-300 hover:scale-110 group"
-        aria-label="Open AI Travel Assistant"
-      >
-        <Bot className="w-7 h-7 group-hover:rotate-12 transition-transform" />
-        <div className="absolute -top-1 -right-1 w-4 h-4 bg-green-500 border-2 border-white rounded-full animate-pulse" />
-        <Sparkles className="absolute -top-2 -left-2 w-5 h-5 text-yellow-400 animate-pulse" />
-      </button>
+      <ErrorBoundary variant="inline" context="ai-chat-fab">
+        <button
+          onClick={() => setIsOpen(true)}
+          className="hidden md:flex fixed bottom-6 right-6 z-[1500] w-16 h-16 bg-gradient-to-br from-fly2any-red to-[#C93028] hover:from-[#D63930] hover:to-[#B82820] text-white rounded-2xl shadow-[0_8px_32px_rgba(231,64,53,0.35),0_4px_12px_rgba(231,64,53,0.25)] items-center justify-center transition-all duration-300 ease-[cubic-bezier(0.2,0.8,0.2,1)] hover:scale-105 hover:shadow-[0_12px_40px_rgba(231,64,53,0.4),0_6px_16px_rgba(231,64,53,0.3)] active:scale-95 group"
+          aria-label="Open AI Travel Assistant"
+        >
+          <Bot className="w-7 h-7 group-hover:scale-110 transition-transform duration-200 drop-shadow-sm" />
+          <div className="absolute -top-1 -right-1 w-4 h-4 bg-emerald-400 border-2 border-white rounded-full animate-pulse shadow-[0_2px_8px_rgba(52,211,153,0.5)]" />
+          <div className="absolute -top-2 -left-2 w-6 h-6 bg-fly2any-yellow/90 rounded-lg flex items-center justify-center shadow-[0_2px_8px_rgba(247,201,40,0.4)] animate-bounce">
+            <Sparkles className="w-3.5 h-3.5 text-neutral-900" />
+          </div>
+        </button>
+      </ErrorBoundary>
     );
   }
 
   return (
-    <>
-      {/* Conversation Recovery Banner */}
-      {showRecoveryBanner && recoverableConversation && (
-        <ConversationRecoveryBanner
-          conversation={recoverableConversation}
-          onResume={handleResumeConversation}
-          onStartNew={handleStartNewConversation}
-          onDismiss={handleDismissRecoveryBanner}
-        />
-      )}
+    <ErrorBoundary variant="section" context="ai-travel-assistant">
+      <>
+        {/* Conversation Recovery Banner */}
+        {showRecoveryBanner && recoverableConversation && (
+          <ConversationRecoveryBanner
+            conversation={recoverableConversation}
+            onResume={handleResumeConversation}
+            onStartNew={handleStartNewConversation}
+            onDismiss={handleDismissRecoveryBanner}
+          />
+        )}
 
-      <div
-        className={`
-          fixed z-[1500] transition-all duration-300 ease-[cubic-bezier(0.2,0.8,0.2,1)]
-          md:bottom-6 md:right-6 md:w-[400px] md:max-w-[calc(100vw-3rem)]
-          max-md:top-0 max-md:left-0 max-md:right-0 max-md:w-full
-          ${isMinimized
-            ? 'h-16 md:h-16'
-            : 'h-[600px] max-h-[calc(100vh-3rem)] md:h-[600px] md:max-h-[calc(100vh-3rem)] max-md:h-full'
-          }
-        `}
-        style={isMobile ? {
-          // Mobile: position above BottomTabBar (52px + safe area)
-          bottom: 'calc(52px + env(safe-area-inset-bottom, 0px))'
-        } : undefined}
-      >
-        {/* Chat Window - Level-6 Premium */}
-        <div className="bg-white/95 backdrop-blur-xl md:rounded-2xl max-md:rounded-none shadow-xl md:shadow-2xl md:border md:border-neutral-200/60 max-md:border-0 flex flex-col h-full overflow-hidden">
-          {/* Header - Level-6 Premium */}
-          <div className="bg-gradient-to-r from-primary-500 to-primary-600 px-4 py-3 flex items-center justify-between shadow-md">
+        <div
+          className={`
+            fixed z-[1500] transition-all duration-300 ease-[cubic-bezier(0.2,0.8,0.2,1)]
+            md:bottom-6 md:right-6 md:w-[400px] md:max-w-[calc(100vw-3rem)]
+            max-md:top-0 max-md:left-0 max-md:right-0 max-md:w-full
+            ${isMinimized
+              ? 'h-16 md:h-16'
+              : 'h-[600px] max-h-[calc(100vh-3rem)] md:h-[600px] md:max-h-[calc(100vh-3rem)] max-md:h-full'
+            }
+          `}
+          style={isMobile ? {
+            // Mobile: position above BottomTabBar (52px + safe area)
+            bottom: 'calc(52px + env(safe-area-inset-bottom, 0px))'
+          } : undefined}
+        >
+        {/* Chat Window - Apple Level 6 Ultra-Premium */}
+        <div className="bg-white/98 dark:bg-neutral-900/98 backdrop-blur-2xl md:rounded-3xl max-md:rounded-none shadow-[0_8px_32px_rgba(0,0,0,0.12),0_2px_8px_rgba(0,0,0,0.08)] md:shadow-[0_25px_50px_-12px_rgba(0,0,0,0.25),0_8px_24px_-8px_rgba(0,0,0,0.15)] md:border md:border-neutral-200/40 dark:md:border-neutral-700/40 max-md:border-0 flex flex-col h-full overflow-hidden">
+          {/* Header - Fly2Any Premium Red Gradient */}
+          <div className="bg-gradient-to-r from-fly2any-red via-[#D63930] to-[#C93028] px-4 py-3.5 flex items-center justify-between shadow-[0_4px_12px_rgba(231,64,53,0.3)]">
             <div className="flex items-center gap-3">
               <div className="relative">
-                <div className="w-10 h-10 bg-white/20 backdrop-blur-sm rounded-full flex items-center justify-center">
-                  <Bot className="w-6 h-6 text-white" />
+                <div className="w-11 h-11 bg-white/15 backdrop-blur-md rounded-2xl flex items-center justify-center border border-white/20 shadow-[inset_0_1px_0_rgba(255,255,255,0.2)]">
+                  <Bot className="w-6 h-6 text-white drop-shadow-sm" />
                 </div>
-                <div className="absolute -bottom-0.5 -right-0.5 w-3.5 h-3.5 bg-green-500 border-2 border-primary-600 rounded-full" />
+                <div className="absolute -bottom-0.5 -right-0.5 w-4 h-4 bg-emerald-400 border-2 border-fly2any-red rounded-full shadow-[0_2px_8px_rgba(52,211,153,0.5)]" />
               </div>
               <div className="text-white">
-                <h3 className="font-bold text-base">{t.title}</h3>
-                <p className="text-xs text-primary-100">{t.subtitle}</p>
+                <h3 className="font-bold text-[15px] tracking-tight drop-shadow-sm">{t.title}</h3>
+                <p className="text-[11px] text-white/80 font-medium">{t.subtitle}</p>
               </div>
             </div>
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-1.5">
+              {/* Voice Toggle Button */}
+              <button
+                onClick={() => setVoiceEnabled(!voiceEnabled)}
+                className={cn(
+                  'w-9 h-9 flex items-center justify-center rounded-xl transition-all duration-200',
+                  voiceEnabled
+                    ? 'bg-white/20 text-white'
+                    : 'bg-white/10 text-white/60 hover:bg-white/15 hover:text-white/80'
+                )}
+                aria-label={voiceEnabled ? 'Disable voice' : 'Enable voice'}
+                title={voiceEnabled ? 'Voice enabled' : 'Voice disabled'}
+              >
+                {voiceEnabled ? (
+                  <Volume2 className="w-4 h-4" />
+                ) : (
+                  <VolumeX className="w-4 h-4" />
+                )}
+              </button>
               <button
                 onClick={() => setIsMinimized(!isMinimized)}
-                className="hidden md:flex w-8 h-8 items-center justify-center hover:bg-white/10 rounded-lg transition-colors"
+                className="hidden md:flex w-9 h-9 items-center justify-center hover:bg-white/15 rounded-xl transition-all duration-200"
                 aria-label={t.minimize}
               >
-                <Minimize2 className="w-4 h-4 text-white" />
+                <Minimize2 className="w-4 h-4 text-white/90" />
               </button>
               <button
                 onClick={() => {
                   setIsOpen(false);
                   window.dispatchEvent(new CustomEvent('closeChatAssistant'));
                 }}
-                className="w-8 h-8 flex items-center justify-center hover:bg-white/10 rounded-lg transition-all duration-150 ease-[cubic-bezier(0.2,0.8,0.2,1)] active:scale-95"
+                className="w-9 h-9 flex items-center justify-center hover:bg-white/15 rounded-xl transition-all duration-200 ease-[cubic-bezier(0.2,0.8,0.2,1)] active:scale-90"
                 aria-label={t.close}
               >
-                <X className="w-4 h-4 text-white" />
+                <X className="w-4 h-4 text-white/90" />
               </button>
             </div>
           </div>
 
           {!isMinimized && (
             <>
-              {/* Messages Area - Level-6 */}
-              <div className="flex-1 overflow-y-auto p-3 space-y-3 bg-neutral-50/80">
+              {/* Messages Area - Apple Level 6 Ultra-Premium */}
+              <div className="flex-1 overflow-y-auto p-4 space-y-4 bg-gradient-to-b from-neutral-50/90 via-white/50 to-neutral-50/90 dark:from-neutral-900/90 dark:via-neutral-800/50 dark:to-neutral-900/90">
                 {messages.map((message) => (
                   <div
                     key={message.id}
-                    className={`flex gap-3 ${
+                    className={cn(
+                      'flex gap-3 animate-[fade-in_0.3s_ease-out]',
                       message.role === 'user' ? 'flex-row-reverse' : 'flex-row'
-                    }`}
+                    )}
                   >
-                    {/* Professional Avatar */}
+                    {/* Professional Avatar with Premium Styling */}
                     {message.role === 'user' ? (
                       <UserAvatar size="sm" />
                     ) : message.consultant ? (
@@ -2289,40 +2316,44 @@ export function AITravelAssistant({ language = 'en' }: Props) {
                         onClick={() => handleAvatarClick(message.consultant!)}
                       />
                     ) : (
-                      <div className="w-8 h-8 rounded-full bg-gradient-to-br from-primary-500 to-primary-700 flex items-center justify-center flex-shrink-0">
-                        <Bot className="w-4 h-4 text-white" />
+                      <div className="w-9 h-9 rounded-2xl bg-gradient-to-br from-fly2any-red to-[#C93028] flex items-center justify-center flex-shrink-0 shadow-[0_2px_8px_rgba(231,64,53,0.25)]">
+                        <Bot className="w-4 h-4 text-white drop-shadow-sm" />
                       </div>
                     )}
 
-                    {/* Message Bubble */}
-                    <div className="flex flex-col gap-1 max-w-[75%]">
-                      {/* Consultant Name & Title */}
+                    {/* Message Bubble - Apple Level 6 Premium */}
+                    <div className="flex flex-col gap-1.5 max-w-[78%] md:max-w-[75%]">
+                      {/* Consultant Name & Title with Premium Typography */}
                       {message.role === 'assistant' && message.consultant && (
                         <div className="flex items-center gap-2 px-1">
-                          <p className="text-[11px] font-semibold text-gray-700">
+                          <p className="text-[11px] font-semibold text-neutral-700 dark:text-neutral-200 tracking-tight">
                             {message.consultant.name}
                           </p>
-                          <span className="text-[10px] text-gray-400">•</span>
-                          <p className="text-[10px] text-gray-500">
+                          <span className="w-1 h-1 rounded-full bg-neutral-300 dark:bg-neutral-600" />
+                          <p className="text-[10px] text-neutral-500 dark:text-neutral-400 font-medium">
                             {message.consultant.title}
                           </p>
                         </div>
                       )}
 
                       <div
-                        className={`rounded-2xl px-4 py-2.5 ${
+                        className={cn(
+                          'rounded-2xl px-4 py-3 transition-all duration-200',
                           message.role === 'user'
-                            ? 'bg-primary-600 text-white'
-                            : 'bg-white text-gray-900 border border-gray-200'
-                        }`}
+                            ? 'bg-gradient-to-br from-fly2any-red to-[#C93028] text-white shadow-[0_4px_16px_rgba(231,64,53,0.25),0_2px_4px_rgba(231,64,53,0.15)]'
+                            : 'bg-white/95 dark:bg-neutral-800/95 backdrop-blur-sm text-neutral-800 dark:text-neutral-100 border border-neutral-200/60 dark:border-neutral-700/60 shadow-[0_2px_12px_rgba(0,0,0,0.06),0_1px_3px_rgba(0,0,0,0.04)]'
+                        )}
                       >
-                        <p className="text-sm leading-relaxed whitespace-pre-wrap">
+                        <p className="text-[14px] leading-relaxed whitespace-pre-wrap">
                           {message.content}
                         </p>
                         <p
-                          className={`text-[10px] mt-1.5 ${
-                            message.role === 'user' ? 'text-primary-100' : 'text-gray-400'
-                          }`}
+                          className={cn(
+                            'text-[10px] mt-2 font-medium',
+                            message.role === 'user'
+                              ? 'text-white/70'
+                              : 'text-neutral-400 dark:text-neutral-500'
+                          )}
                         >
                           {message.timestamp.toLocaleTimeString([], {
                             hour: '2-digit',
@@ -2352,7 +2383,7 @@ export function AITravelAssistant({ language = 'en' }: Props) {
                         ))}
                         <button
                           onClick={handleSeeMoreFlights}
-                          className="w-full py-2 bg-white border-2 border-primary-600 text-primary-600 font-semibold rounded-lg hover:bg-primary-50 transition-all text-sm"
+                          className="w-full py-2.5 bg-white/95 dark:bg-neutral-800/95 backdrop-blur-sm border border-fly2any-red/30 text-fly2any-red font-semibold rounded-xl hover:bg-fly2any-red hover:text-white hover:border-fly2any-red transition-all duration-200 text-sm shadow-[0_2px_8px_rgba(0,0,0,0.04)] hover:shadow-[0_4px_16px_rgba(231,64,53,0.2)]"
                         >
                           See More Flights →
                         </button>
@@ -2388,7 +2419,7 @@ export function AITravelAssistant({ language = 'en' }: Props) {
                               router.push(`/hotels/results?${params.toString()}`);
                             }
                           }}
-                          className="w-full py-2 bg-white border-2 border-primary-600 text-primary-600 font-semibold rounded-lg hover:bg-primary-50 transition-all text-sm"
+                          className="w-full py-2.5 bg-white/95 dark:bg-neutral-800/95 backdrop-blur-sm border border-fly2any-red/30 text-fly2any-red font-semibold rounded-xl hover:bg-fly2any-red hover:text-white hover:border-fly2any-red transition-all duration-200 text-sm shadow-[0_2px_8px_rgba(0,0,0,0.04)] hover:shadow-[0_4px_16px_rgba(231,64,53,0.2)]"
                         >
                           See More Hotels →
                         </button>
@@ -2410,27 +2441,27 @@ export function AITravelAssistant({ language = 'en' }: Props) {
                   return null;
                 })}
 
-                {/* Enhanced Typing Indicator - Context-Aware */}
+                {/* Enhanced Typing Indicator - Apple Level 6 */}
                 {isTyping && currentTypingConsultant && typingState && (
-                  <div className="flex gap-3 animate-fade-in">
+                  <div className="flex gap-3 animate-[fade-in_0.3s_ease-out]">
                     <ConsultantAvatar
                       consultantId={currentTypingConsultant.id}
                       name={currentTypingConsultant.name}
                       size="sm"
                       showStatus={true}
                     />
-                    <div className="flex flex-col gap-1 flex-1">
-                      <p className="text-[10px] text-gray-500 px-1 font-medium">
+                    <div className="flex flex-col gap-1.5 flex-1">
+                      <p className="text-[10px] text-neutral-500 dark:text-neutral-400 px-1 font-medium tracking-tight">
                         {currentTypingConsultant.name}
                       </p>
-                      <div className="bg-white border border-gray-200 rounded-2xl px-4 py-2.5 max-w-[280px]">
-                        <div className="flex items-center gap-2">
-                          <div className="flex gap-0.5">
-                            <div className="w-1.5 h-1.5 bg-primary-500 rounded-full animate-bounce" />
-                            <div className="w-1.5 h-1.5 bg-primary-500 rounded-full animate-bounce [animation-delay:0.2s]" />
-                            <div className="w-1.5 h-1.5 bg-primary-500 rounded-full animate-bounce [animation-delay:0.4s]" />
+                      <div className="bg-white/95 dark:bg-neutral-800/95 backdrop-blur-sm border border-neutral-200/60 dark:border-neutral-700/60 rounded-2xl px-4 py-3 max-w-[280px] shadow-[0_2px_8px_rgba(0,0,0,0.04)]">
+                        <div className="flex items-center gap-3">
+                          <div className="flex gap-1">
+                            <div className="w-2 h-2 bg-fly2any-red rounded-full animate-bounce" />
+                            <div className="w-2 h-2 bg-fly2any-red/80 rounded-full animate-bounce [animation-delay:0.15s]" />
+                            <div className="w-2 h-2 bg-fly2any-red/60 rounded-full animate-bounce [animation-delay:0.3s]" />
                           </div>
-                          <span className="text-xs text-gray-600">
+                          <span className="text-[13px] text-neutral-600 dark:text-neutral-300 font-medium">
                             {typingState.contextMessage || 'Typing...'}
                           </span>
                         </div>
@@ -2439,20 +2470,20 @@ export function AITravelAssistant({ language = 'en' }: Props) {
                   </div>
                 )}
 
-                {/* Flight Search Loading */}
+                {/* Flight Search Loading - Apple Level 6 */}
                 {isSearchingFlights && (
-                  <div className="flex gap-3">
-                    <div className="w-8 h-8 rounded-full bg-gradient-to-br from-primary-500 to-primary-700 flex items-center justify-center">
-                      <Plane className="w-4 h-4 text-white animate-pulse" />
+                  <div className="flex gap-3 animate-[fade-in_0.3s_ease-out]">
+                    <div className="w-9 h-9 rounded-2xl bg-gradient-to-br from-fly2any-red to-[#C93028] flex items-center justify-center shadow-[0_2px_8px_rgba(231,64,53,0.25)]">
+                      <Plane className="w-4 h-4 text-white animate-pulse drop-shadow-sm" />
                     </div>
-                    <div className="flex flex-col gap-1">
-                      <p className="text-[10px] text-gray-500 px-1">
+                    <div className="flex flex-col gap-1.5">
+                      <p className="text-[10px] text-neutral-500 dark:text-neutral-400 px-1 font-medium tracking-tight">
                         Searching flights...
                       </p>
-                      <div className="bg-white border border-gray-200 rounded-2xl px-4 py-2.5">
-                        <div className="flex items-center gap-2">
-                          <div className="w-4 h-4 border-2 border-primary-500 border-t-transparent rounded-full animate-spin" />
-                          <span className="text-xs text-gray-600">Finding best options...</span>
+                      <div className="bg-white/95 dark:bg-neutral-800/95 backdrop-blur-sm border border-neutral-200/60 dark:border-neutral-700/60 rounded-2xl px-4 py-3 shadow-[0_2px_8px_rgba(0,0,0,0.04)]">
+                        <div className="flex items-center gap-3">
+                          <div className="w-4 h-4 border-2 border-fly2any-red border-t-transparent rounded-full animate-spin" />
+                          <span className="text-[13px] text-neutral-600 dark:text-neutral-300 font-medium">Finding best options...</span>
                         </div>
                       </div>
                     </div>
@@ -2462,26 +2493,28 @@ export function AITravelAssistant({ language = 'en' }: Props) {
                 <div ref={messagesEndRef} />
               </div>
 
-              {/* Ultra-Compact Auth Prompt - Redesigned for better UX */}
+              {/* Auth Prompt - Apple Level 6 Premium */}
               {showAuthPrompt && !userSession.isAuthenticated && (
-                <div className="mx-3 my-2 px-3 py-2 bg-gradient-to-r from-primary-50 to-secondary-50 border border-primary-300 rounded-lg animate-fadeIn">
-                  <div className="flex items-center justify-between gap-2">
-                    <div className="flex items-center gap-2 flex-1">
-                      <Sparkles className="w-4 h-4 text-primary-600 flex-shrink-0" />
-                      <p className="text-[10px] text-gray-700 font-medium line-clamp-1">
+                <div className="mx-3 my-2 px-4 py-3 bg-gradient-to-r from-fly2any-red/5 via-fly2any-yellow/5 to-fly2any-red/5 dark:from-fly2any-red/10 dark:via-fly2any-yellow/10 dark:to-fly2any-red/10 border border-fly2any-red/20 dark:border-fly2any-red/30 rounded-2xl animate-[fade-in_0.3s_ease-out] backdrop-blur-sm shadow-[0_2px_8px_rgba(231,64,53,0.08)]">
+                  <div className="flex items-center justify-between gap-3">
+                    <div className="flex items-center gap-2.5 flex-1 min-w-0">
+                      <div className="w-7 h-7 rounded-xl bg-gradient-to-br from-fly2any-red to-[#C93028] flex items-center justify-center flex-shrink-0 shadow-[0_2px_6px_rgba(231,64,53,0.3)]">
+                        <Sparkles className="w-3.5 h-3.5 text-white" />
+                      </div>
+                      <p className="text-[11px] text-neutral-700 dark:text-neutral-200 font-medium line-clamp-1">
                         {authPromptMessage}
                       </p>
                     </div>
-                    <div className="flex gap-1.5">
+                    <div className="flex gap-2 flex-shrink-0">
                       <button
                         onClick={() => {
                           analytics.trackAuthPromptClicked('signup');
                           router.push('/auth/signup');
                           setShowAuthPrompt(false);
                         }}
-                        className="flex items-center gap-1 px-2 py-1 bg-primary-600 hover:bg-primary-700 text-white text-[10px] font-semibold rounded transition-colors"
+                        className="flex items-center gap-1.5 px-3 py-1.5 bg-gradient-to-b from-fly2any-red to-[#C93028] hover:from-[#D63930] hover:to-[#B82820] text-white text-[11px] font-semibold rounded-xl transition-all duration-200 shadow-[0_2px_8px_rgba(231,64,53,0.25)] hover:shadow-[0_4px_12px_rgba(231,64,53,0.35)]"
                       >
-                        <UserPlus className="w-2.5 h-2.5" />
+                        <UserPlus className="w-3 h-3" />
                         <span className="hidden sm:inline">Sign Up</span>
                       </button>
                       <button
@@ -2490,9 +2523,9 @@ export function AITravelAssistant({ language = 'en' }: Props) {
                           router.push('/auth/signin');
                           setShowAuthPrompt(false);
                         }}
-                        className="flex items-center gap-1 px-2 py-1 bg-white hover:bg-gray-50 border border-primary-600 text-primary-600 text-[10px] font-semibold rounded transition-colors"
+                        className="flex items-center gap-1.5 px-3 py-1.5 bg-white/80 dark:bg-neutral-800/80 hover:bg-white dark:hover:bg-neutral-700 border border-fly2any-red/30 text-fly2any-red text-[11px] font-semibold rounded-xl transition-all duration-200"
                       >
-                        <LogIn className="w-2.5 h-2.5" />
+                        <LogIn className="w-3 h-3" />
                         <span className="hidden sm:inline">Sign In</span>
                       </button>
                       <button
@@ -2500,28 +2533,28 @@ export function AITravelAssistant({ language = 'en' }: Props) {
                           analytics.trackAuthPromptClicked('dismiss');
                           setShowAuthPrompt(false);
                         }}
-                        className="text-gray-400 hover:text-gray-600 transition-colors ml-1"
+                        className="text-neutral-400 hover:text-neutral-600 dark:hover:text-neutral-300 transition-colors"
                         title="Dismiss"
                       >
-                        <X className="w-3 h-3" />
+                        <X className="w-4 h-4" />
                       </button>
                     </div>
                   </div>
                 </div>
               )}
 
-              {/* Quick Actions - Compact Horizontal Pills */}
+              {/* Quick Actions - Apple Level 6 Premium Pills */}
               {messages.length === 1 && (
-                <div className="px-3 py-2 bg-white border-t border-gray-100">
-                  <p className="text-[10px] font-semibold text-gray-500 mb-1.5">
+                <div className="px-4 py-3 bg-white/95 dark:bg-neutral-900/95 backdrop-blur-sm border-t border-neutral-200/60 dark:border-neutral-700/60">
+                  <p className="text-[10px] font-semibold text-neutral-500 dark:text-neutral-400 mb-2 uppercase tracking-wider">
                     {t.quickActions}
                   </p>
-                  <div className="flex flex-wrap gap-1.5">
+                  <div className="flex flex-wrap gap-2">
                     {t.quickQuestions.map((question, idx) => (
                       <button
                         key={idx}
                         onClick={() => handleQuickQuestion(question)}
-                        className="text-[11px] px-2.5 py-1 bg-gray-50 hover:bg-primary-50 border border-gray-200 hover:border-primary-300 text-gray-700 hover:text-primary-700 rounded-full transition-colors"
+                        className="text-[12px] px-3.5 py-1.5 bg-neutral-50/80 dark:bg-neutral-800/80 hover:bg-fly2any-red/10 dark:hover:bg-fly2any-red/20 border border-neutral-200/60 dark:border-neutral-700/60 hover:border-fly2any-red/40 text-neutral-700 dark:text-neutral-200 hover:text-fly2any-red rounded-full transition-all duration-200 font-medium"
                       >
                         {question}
                       </button>
@@ -2530,38 +2563,38 @@ export function AITravelAssistant({ language = 'en' }: Props) {
                 </div>
               )}
 
-              {/* Ultra-Compact Contact Support - Only show after 3+ messages */}
+              {/* Contact Support - Apple Level 6 Premium */}
               {messages.length >= 3 && (
-              <div className="px-3 py-1.5 bg-gray-50 border-t border-gray-200 flex items-center justify-between animate-fadeIn">
-                <p className="text-[9px] text-gray-500 font-medium">
+              <div className="px-4 py-2.5 bg-neutral-50/80 dark:bg-neutral-900/80 backdrop-blur-sm border-t border-neutral-200/60 dark:border-neutral-700/60 flex items-center justify-between animate-[fade-in_0.3s_ease-out]">
+                <p className="text-[10px] text-neutral-500 dark:text-neutral-400 font-medium">
                   {t.contactSupport}
                 </p>
-                <div className="flex gap-1.5">
+                <div className="flex gap-2">
                   <a
                     href="tel:+13322200838"
                     title="Call Us"
-                    className="flex items-center gap-1 px-2 py-1 bg-primary-600 hover:bg-primary-700 text-white text-[10px] font-semibold rounded transition-colors"
+                    className="flex items-center gap-1.5 px-3 py-1.5 bg-gradient-to-b from-fly2any-red to-[#C93028] hover:from-[#D63930] hover:to-[#B82820] text-white text-[10px] font-semibold rounded-xl transition-all duration-200 shadow-[0_2px_6px_rgba(231,64,53,0.2)] hover:shadow-[0_3px_10px_rgba(231,64,53,0.3)]"
                   >
-                    <Phone className="w-2.5 h-2.5" />
+                    <Phone className="w-3 h-3" />
                     <span className="hidden sm:inline">{t.callUs}</span>
                   </a>
                   <a
                     href="mailto:support@fly2any.com"
                     title="Email Us"
-                    className="flex items-center gap-1 px-2 py-1 bg-secondary-600 hover:bg-secondary-700 text-white text-[10px] font-semibold rounded transition-colors"
+                    className="flex items-center gap-1.5 px-3 py-1.5 bg-gradient-to-b from-fly2any-yellow to-[#E0B520] hover:from-[#F7C928] hover:to-[#D4AA18] text-neutral-900 text-[10px] font-semibold rounded-xl transition-all duration-200 shadow-[0_2px_6px_rgba(247,201,40,0.25)] hover:shadow-[0_3px_10px_rgba(247,201,40,0.35)]"
                   >
-                    <Mail className="w-2.5 h-2.5" />
+                    <Mail className="w-3 h-3" />
                     <span className="hidden sm:inline">{t.emailUs}</span>
                   </a>
                 </div>
               </div>
               )}
 
-              {/* Input Area - Level-6 Premium with Voice */}
-              <div className="p-3 bg-white/95 backdrop-blur-sm border-t border-neutral-200/60">
+              {/* Input Area - Apple Level 6 Ultra-Premium with Voice */}
+              <div className="p-4 bg-white/98 dark:bg-neutral-900/98 backdrop-blur-xl border-t border-neutral-200/60 dark:border-neutral-700/60 shadow-[0_-4px_24px_rgba(0,0,0,0.04)]">
                 {/* Voice Status Indicator */}
                 {(voiceInput.isListening || voiceOutput.isSpeaking) && (
-                  <div className="flex justify-center mb-2">
+                  <div className="flex justify-center mb-3">
                     <VoiceStatusIndicator
                       isListening={voiceInput.isListening}
                       isSpeaking={voiceOutput.isSpeaking}
@@ -2569,7 +2602,7 @@ export function AITravelAssistant({ language = 'en' }: Props) {
                     />
                   </div>
                 )}
-                <div className="flex gap-2">
+                <div className="flex gap-2.5 items-center">
                   {/* Voice Mic Button */}
                   {voiceEnabled && (
                     <VoiceMicButton
@@ -2578,50 +2611,59 @@ export function AITravelAssistant({ language = 'en' }: Props) {
                       isSpeaking={voiceOutput.isSpeaking}
                       error={voiceInput.error}
                       interimTranscript={voiceInput.interimTranscript}
+                      audioLevel={voiceInput.audioLevel}
+                      recordingDuration={voiceInput.recordingDuration}
                       onToggle={voiceInput.toggleListening}
                       onStopSpeaking={voiceOutput.stop}
                       size="md"
                       variant="default"
                     />
                   )}
-                  <input
-                    ref={inputRef}
-                    type="text"
-                    value={inputMessage}
-                    onChange={(e) => setInputMessage(e.target.value)}
-                    onKeyPress={handleKeyPress}
-                    placeholder={voiceInput.isListening ? (language === 'pt' ? 'Ouvindo...' : language === 'es' ? 'Escuchando...' : 'Listening...') : t.placeholder}
-                    className={cn(
-                      'flex-1 px-3 py-2.5 border rounded-xl text-sm placeholder:text-neutral-400 transition-all duration-200',
-                      voiceAutoSending
-                        ? 'border-success bg-success/5 ring-2 ring-success/30 animate-pulse'
-                        : voiceInput.isListening
-                        ? 'border-fly2any-red/50 bg-fly2any-red/5'
-                        : 'border-neutral-200 bg-neutral-50/50 focus:border-primary-500 focus:ring-2 focus:ring-primary-500/20'
-                    )}
-                    disabled={voiceAutoSending}
-                  />
+                  <div className="flex-1 relative">
+                    <input
+                      ref={inputRef}
+                      type="text"
+                      value={inputMessage}
+                      onChange={(e) => setInputMessage(e.target.value)}
+                      onKeyPress={handleKeyPress}
+                      placeholder={voiceInput.isListening ? (language === 'pt' ? 'Ouvindo...' : language === 'es' ? 'Escuchando...' : 'Listening...') : t.placeholder}
+                      className={cn(
+                        'w-full px-4 py-3 border-2 rounded-2xl text-[14px] placeholder:text-neutral-400 dark:placeholder:text-neutral-500 transition-all duration-300 ease-[cubic-bezier(0.2,0.8,0.2,1)] bg-neutral-50/80 dark:bg-neutral-800/80',
+                        voiceAutoSending
+                          ? 'border-success bg-success/5 ring-2 ring-success/30 animate-pulse'
+                          : voiceInput.isListening
+                          ? 'border-fly2any-red/60 bg-fly2any-red/5 dark:bg-fly2any-red/10 ring-2 ring-fly2any-red/20'
+                          : 'border-neutral-200/80 dark:border-neutral-700/80 focus:border-fly2any-red/60 focus:ring-4 focus:ring-fly2any-red/10 dark:focus:ring-fly2any-red/20'
+                      )}
+                      disabled={voiceAutoSending}
+                    />
+                  </div>
                   <button
                     onClick={handleSendMessage}
                     disabled={!inputMessage.trim() || isTyping || voiceAutoSending}
                     className={cn(
-                      'px-4 py-2.5 text-white rounded-xl transition-all duration-150 flex items-center gap-2 font-medium text-sm shadow-md active:scale-95',
+                      'w-12 h-12 rounded-2xl transition-all duration-200 ease-[cubic-bezier(0.2,0.8,0.2,1)] flex items-center justify-center active:scale-90',
                       voiceAutoSending
-                        ? 'bg-success hover:bg-success cursor-wait'
-                        : 'bg-primary-500 hover:bg-primary-600 disabled:bg-neutral-200 disabled:cursor-not-allowed'
+                        ? 'bg-success cursor-wait shadow-[0_4px_16px_rgba(39,197,107,0.3)]'
+                        : !inputMessage.trim() || isTyping
+                        ? 'bg-neutral-200 dark:bg-neutral-700 cursor-not-allowed'
+                        : 'bg-gradient-to-b from-fly2any-red to-[#C93028] hover:from-[#D63930] hover:to-[#B82820] shadow-[0_4px_16px_rgba(231,64,53,0.25)] hover:shadow-[0_6px_20px_rgba(231,64,53,0.35)]'
                     )}
                   >
                     {isTyping ? (
-                      <Loader2 className="w-5 h-5 animate-spin" />
+                      <Loader2 className="w-5 h-5 text-white animate-spin" />
                     ) : voiceAutoSending ? (
-                      <Loader2 className="w-5 h-5 animate-spin" />
+                      <Loader2 className="w-5 h-5 text-white animate-spin" />
                     ) : (
-                      <Send className="w-5 h-5" />
+                      <Send className={cn(
+                        'w-5 h-5 transition-colors',
+                        !inputMessage.trim() ? 'text-neutral-400 dark:text-neutral-500' : 'text-white drop-shadow-sm'
+                      )} />
                     )}
                   </button>
                 </div>
-                <p className="text-[10px] text-neutral-400 mt-2 text-center flex items-center justify-center gap-1">
-                  <span className="inline-block w-1.5 h-1.5 bg-green-500 rounded-full animate-pulse"></span>
+                <p className="text-[10px] text-neutral-400 dark:text-neutral-500 mt-3 text-center flex items-center justify-center gap-1.5 font-medium">
+                  <span className="inline-block w-1.5 h-1.5 bg-emerald-500 rounded-full animate-pulse shadow-[0_0_6px_rgba(52,211,153,0.5)]"></span>
                   {t.poweredBy}
                 </p>
               </div>
@@ -2639,7 +2681,8 @@ export function AITravelAssistant({ language = 'en' }: Props) {
           language={language}
         />
       )}
-    </>
+      </>
+    </ErrorBoundary>
   );
 }
 
