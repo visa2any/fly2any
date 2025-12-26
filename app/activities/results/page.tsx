@@ -9,6 +9,7 @@ import { ImageSlider } from '@/components/shared/ImageSlider';
 import { GLOBAL_CITIES, CityDestination } from '@/lib/data/global-cities-database';
 import { ProductFilters, applyFilters, defaultFilters } from '@/components/shared/ProductFilters';
 import { ResultsPageSchema } from '@/components/seo/GEOEnhancer';
+import { useExperiencesCart } from '@/lib/cart/experiences-cart';
 
 interface Activity {
   id: string;
@@ -69,7 +70,7 @@ const ActivitySkeleton = memo(() => (
 ActivitySkeleton.displayName = 'ActivitySkeleton';
 
 // Conversion-optimized Activity Card - Level 6 with social proof & urgency
-const ActivityCard = memo(({ activity, onViewDetails, index, cityName }: { activity: Activity; onViewDetails: (a: Activity, price: number | null, images: string[]) => void; index: number; cityName: string }) => {
+const ActivityCard = memo(({ activity, onViewDetails, index, cityName, onAddToCart }: { activity: Activity; onViewDetails: (a: Activity, price: number | null, images: string[]) => void; index: number; cityName: string; onAddToCart: (activity: Activity, cityName: string) => void }) => {
   const [isFavorite, setIsFavorite] = useState(() => {
     if (typeof window !== 'undefined') {
       const favs = JSON.parse(localStorage.getItem('activity-favorites') || '[]');
@@ -100,38 +101,8 @@ const ActivityCard = memo(({ activity, onViewDetails, index, cityName }: { activ
 
   const handleAddToCart = (e: React.MouseEvent) => {
     e.stopPropagation();
-    // Price already includes markup from API ($35 min or 35% whichever is higher)
-    const price = activity.price?.amount ? parseFloat(activity.price.amount) : null;
-    const images = (activity.pictures || []).map(pic => typeof pic === 'string' ? pic : pic?.url).filter(Boolean) as string[];
-
-    // Get existing cart
-    const cart = JSON.parse(localStorage.getItem('fly2any-cart') || '[]');
-
-    // Check if already in cart
-    if (cart.some((item: any) => item.id === activity.id && item.type === 'activity')) {
-      setAddedToCart(true);
-      return;
-    }
-
-    // Add to cart
-    const cartItem = {
-      id: activity.id,
-      type: 'activity',
-      name: activity.name,
-      price: price,
-      image: images[0] || '/placeholder-activity.jpg',
-      duration: activity.minimumDuration || '2h',
-      location: cityName,
-      quantity: 1,
-      addedAt: Date.now(),
-    };
-
-    cart.push(cartItem);
-    localStorage.setItem('fly2any-cart', JSON.stringify(cart));
+    onAddToCart(activity, cityName);
     setAddedToCart(true);
-
-    // Dispatch custom event for cart updates
-    window.dispatchEvent(new CustomEvent('cart-updated', { detail: cart }));
   };
 
   // Price already includes markup from API ($35 min or 35% whichever is higher)
@@ -259,6 +230,7 @@ const ITEMS_PER_PAGE = 12; // Show 12 items initially for performance
 function ActivityResultsContent() {
   const searchParams = useSearchParams();
   const router = useRouter();
+  const { addItem } = useExperiencesCart();
   const [activities, setActivities] = useState<Activity[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -315,6 +287,26 @@ function ActivityResultsContent() {
     const imgsParam = images.slice(0, 5).map(i => encodeURIComponent(i)).join(',');
     router.push(`/activities/${activity.id}?id=${activity.id}&name=${encodeURIComponent(activity.name)}&price=${price || 0}&imgs=${imgsParam}&duration=${activity.minimumDuration || '2h'}&location=${encodeURIComponent(cityName)}&rating=${activity.rating || 4.7}&desc=${encodeURIComponent(desc.slice(0, 300))}&link=${encodeURIComponent(activity.bookingLink || '')}`);
   }, [router, cityName]);
+
+  const handleAddToCart = useCallback((activity: Activity, location: string) => {
+    const price = activity.price?.amount ? parseFloat(activity.price.amount) : 0;
+    const images = (activity.pictures || []).map(pic => typeof pic === 'string' ? pic : pic?.url).filter(Boolean) as string[];
+
+    addItem({
+      type: 'activity',
+      productId: activity.id,
+      name: activity.name,
+      image: images[0] || '/placeholder-activity.jpg',
+      date: new Date().toISOString().split('T')[0], // Default to today
+      duration: activity.minimumDuration || '2h',
+      location,
+      participants: { adults: 1, children: 0 },
+      unitPrice: price,
+      totalPrice: price,
+      currency: activity.price?.currencyCode || 'USD',
+      bookingLink: activity.bookingLink,
+    });
+  }, [addItem]);
 
   useEffect(() => {
     const controller = new AbortController();
@@ -472,7 +464,7 @@ function ActivityResultsContent() {
           <>
             <div className="py-4 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
               {filteredActivities.slice(0, visibleCount).map((activity, index) => (
-                <ActivityCard key={activity.id} activity={activity} onViewDetails={handleViewDetails} index={index} cityName={cityName} />
+                <ActivityCard key={activity.id} activity={activity} onViewDetails={handleViewDetails} index={index} cityName={cityName} onAddToCart={handleAddToCart} />
               ))}
             </div>
             {/* Load More Button */}

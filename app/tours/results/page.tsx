@@ -9,6 +9,7 @@ import { ImageSlider } from '@/components/shared/ImageSlider';
 import { GLOBAL_CITIES, CityDestination } from '@/lib/data/global-cities-database';
 import { ProductFilters, applyFilters, defaultFilters, type SortOption, type PriceRange, type DurationRange } from '@/components/shared/ProductFilters';
 import { ResultsPageSchema } from '@/components/seo/GEOEnhancer';
+import { useExperiencesCart } from '@/lib/cart/experiences-cart';
 
 interface Tour {
   id: string;
@@ -70,7 +71,7 @@ const TourSkeleton = memo(() => (
 TourSkeleton.displayName = 'TourSkeleton';
 
 // Conversion-optimized Tour Card - Level 6 with social proof & urgency
-const TourCard = memo(({ tour, onViewDetails, index, cityName }: { tour: Tour; onViewDetails: (tour: Tour, price: number | null, images: string[]) => void; index: number; cityName: string }) => {
+const TourCard = memo(({ tour, onViewDetails, index, cityName, onAddToCart }: { tour: Tour; onViewDetails: (tour: Tour, price: number | null, images: string[]) => void; index: number; cityName: string; onAddToCart: (tour: Tour, cityName: string) => void }) => {
   const [isFavorite, setIsFavorite] = useState(() => {
     if (typeof window !== 'undefined') {
       const favs = JSON.parse(localStorage.getItem('tour-favorites') || '[]');
@@ -101,38 +102,8 @@ const TourCard = memo(({ tour, onViewDetails, index, cityName }: { tour: Tour; o
 
   const handleAddToCart = (e: React.MouseEvent) => {
     e.stopPropagation();
-    // Price already includes markup from API ($35 min or 35% whichever is higher)
-    const price = tour.price?.amount ? parseFloat(tour.price.amount) : null;
-    const images = (tour.pictures || []).map(pic => typeof pic === 'string' ? pic : pic?.url).filter(Boolean) as string[];
-
-    // Get existing cart
-    const cart = JSON.parse(localStorage.getItem('fly2any-cart') || '[]');
-
-    // Check if already in cart
-    if (cart.some((item: any) => item.id === tour.id && item.type === 'tour')) {
-      setAddedToCart(true);
-      return;
-    }
-
-    // Add to cart
-    const cartItem = {
-      id: tour.id,
-      type: 'tour',
-      name: tour.name,
-      price: price,
-      image: images[0] || '/placeholder-tour.jpg',
-      duration: tour.minimumDuration || '3h',
-      location: cityName,
-      quantity: 1,
-      addedAt: Date.now(),
-    };
-
-    cart.push(cartItem);
-    localStorage.setItem('fly2any-cart', JSON.stringify(cart));
+    onAddToCart(tour, cityName);
     setAddedToCart(true);
-
-    // Dispatch custom event for cart updates
-    window.dispatchEvent(new CustomEvent('cart-updated', { detail: cart }));
   };
 
   // Price already includes markup from API ($35 min or 35% whichever is higher)
@@ -262,6 +233,7 @@ const ITEMS_PER_PAGE = 12; // Show 12 items initially for performance
 function TourResultsContent() {
   const searchParams = useSearchParams();
   const router = useRouter();
+  const { addItem } = useExperiencesCart();
   const [tours, setTours] = useState<Tour[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -319,6 +291,26 @@ function TourResultsContent() {
     const imgsParam = images.slice(0, 5).map(i => encodeURIComponent(i)).join(',');
     router.push(`/tours/${tour.id}?id=${tour.id}&name=${encodeURIComponent(tour.name)}&price=${price || 0}&imgs=${imgsParam}&duration=${tour.minimumDuration || '3h'}&location=${encodeURIComponent(cityName)}&rating=${tour.rating || 4.8}&desc=${encodeURIComponent(desc.slice(0, 300))}&link=${encodeURIComponent(tour.bookingLink || '')}`);
   }, [router, cityName]);
+
+  const handleAddToCart = useCallback((tour: Tour, location: string) => {
+    const price = tour.price?.amount ? parseFloat(tour.price.amount) : 0;
+    const images = (tour.pictures || []).map(pic => typeof pic === 'string' ? pic : pic?.url).filter(Boolean) as string[];
+
+    addItem({
+      type: 'tour',
+      productId: tour.id,
+      name: tour.name,
+      image: images[0] || '/placeholder-tour.jpg',
+      date: new Date().toISOString().split('T')[0], // Default to today
+      duration: tour.minimumDuration || '3h',
+      location,
+      participants: { adults: 1, children: 0 },
+      unitPrice: price,
+      totalPrice: price,
+      currency: tour.price?.currencyCode || 'USD',
+      bookingLink: tour.bookingLink,
+    });
+  }, [addItem]);
 
   useEffect(() => {
     const controller = new AbortController();
@@ -477,7 +469,7 @@ function TourResultsContent() {
           <>
             <div className="py-4 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
               {filteredTours.slice(0, visibleCount).map((tour, index) => (
-                <TourCard key={tour.id} tour={tour} onViewDetails={handleViewDetails} index={index} cityName={cityName} />
+                <TourCard key={tour.id} tour={tour} onViewDetails={handleViewDetails} index={index} cityName={cityName} onAddToCart={handleAddToCart} />
               ))}
             </div>
             {/* Load More Button */}
