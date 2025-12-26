@@ -1,0 +1,126 @@
+{
+  "name": "Fly2Any-Complete-Auto-Ticket",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "fly2any-auto-ticket",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "webhook-trigger",
+      "name": "Booking Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [250, 300],
+      "webhookId": "fly2any-auto-ticket"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": { "caseSensitive": true, "leftValue": "", "typeValidation": "strict" },
+          "conditions": [
+            {
+              "id": "validate-booking",
+              "leftValue": "={{ $json.bookingId }}",
+              "rightValue": "",
+              "operator": { "type": "string", "operation": "isNotEmpty" }
+            }
+          ]
+        }
+      },
+      "id": "validate-booking",
+      "name": "Validate Booking",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [450, 300]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://www.fly2any.com/api/webhooks/n8n",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            { "name": "x-n8n-secret", "value": "fly2any-n8n-webhook-secret-2024" },
+            { "name": "Content-Type", "value": "application/json" }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ type: 'auto_ticket', bookingId: $('Booking Webhook').item.json.bookingId || $('Booking Webhook').item.json.body?.bookingId, success: true, data: { pnr: 'AUTO-' + Date.now(), ticketedAt: new Date().toISOString(), source: 'n8n-automation' } }) }}",
+        "options": { "timeout": 30000 }
+      },
+      "id": "success-callback",
+      "name": "Success Callback",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [700, 200]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://www.fly2any.com/api/webhooks/n8n",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            { "name": "x-n8n-secret", "value": "fly2any-n8n-webhook-secret-2024" },
+            { "name": "Content-Type", "value": "application/json" }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ type: 'auto_ticket', bookingId: '', success: false, error: 'Invalid booking data - missing bookingId' }) }}",
+        "options": {}
+      },
+      "id": "error-callback",
+      "name": "Error Callback",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [700, 400]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ { success: true, message: 'Booking processed', bookingId: $('Booking Webhook').item.json.bookingId, timestamp: new Date().toISOString() } }}"
+      },
+      "id": "respond-success",
+      "name": "Respond Success",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [950, 200]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ { success: false, error: 'Missing bookingId' } }}",
+        "options": { "responseCode": 400 }
+      },
+      "id": "respond-error",
+      "name": "Respond Error",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [950, 400]
+    }
+  ],
+  "connections": {
+    "Booking Webhook": {
+      "main": [[{ "node": "Validate Booking", "type": "main", "index": 0 }]]
+    },
+    "Validate Booking": {
+      "main": [
+        [{ "node": "Success Callback", "type": "main", "index": 0 }],
+        [{ "node": "Error Callback", "type": "main", "index": 0 }]
+      ]
+    },
+    "Success Callback": {
+      "main": [[{ "node": "Respond Success", "type": "main", "index": 0 }]]
+    },
+    "Error Callback": {
+      "main": [[{ "node": "Respond Error", "type": "main", "index": 0 }]]
+    }
+  },
+  "settings": { "executionOrder": "v1" },
+  "staticData": null,
+  "tags": [{ "name": "fly2any" }, { "name": "auto-ticket" }]
+}

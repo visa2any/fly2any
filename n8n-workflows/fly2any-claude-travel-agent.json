@@ -1,0 +1,209 @@
+{
+  "name": "Fly2Any-Claude-Travel-Agent",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "fly2any-travel-query",
+        "options": {
+          "responseMode": "responseNode"
+        }
+      },
+      "id": "webhook-trigger",
+      "name": "Travel Query Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [200, 300],
+      "webhookId": "fly2any-travel"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ $json.query }}",
+        "options": {
+          "systemMessage": "You are a senior travel booking assistant for Fly2Any, a premium travel platform.\n\nYour capabilities:\n1. Search flights using Amadeus API\n2. Compare prices across airlines\n3. Suggest optimal itineraries\n4. Handle multi-leg/round-trip flights\n5. Provide booking recommendations\n\nResponse format (JSON):\n{\n  \"intent\": \"flight_search|hotel_search|booking|general\",\n  \"parsed_query\": {\n    \"origin\": \"IATA code\",\n    \"destination\": \"IATA code\",\n    \"departure_date\": \"YYYY-MM-DD\",\n    \"return_date\": \"YYYY-MM-DD or null\",\n    \"passengers\": 1,\n    \"cabin_class\": \"economy|business|first\",\n    \"max_price\": number or null\n  },\n  \"response_text\": \"Natural language response\",\n  \"action_required\": \"search_flights|search_hotels|confirm_booking|none\"\n}\n\nLanguage: Respond in the same language as the query (Portuguese/English).\nAlways validate IATA codes. If unsure, ask for clarification."
+        }
+      },
+      "id": "claude-agent",
+      "name": "Claude Travel Agent",
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 1.7,
+      "position": [420, 300]
+    },
+    {
+      "parameters": {
+        "model": "claude-sonnet-4-20250514",
+        "options": {
+          "maxTokensToSample": 4096,
+          "temperature": 0.3
+        }
+      },
+      "id": "anthropic-model",
+      "name": "Claude Sonnet",
+      "type": "@n8n/n8n-nodes-langchain.lmChatAnthropic",
+      "typeVersion": 1.2,
+      "position": [420, 500],
+      "credentials": {
+        "anthropicApi": {
+          "id": "ANTHROPIC_CREDENTIAL_ID",
+          "name": "Anthropic API"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "toolDescription": "Search flights using Amadeus API. Input: JSON with origin, destination, departureDate, returnDate (optional), adults, cabinClass.",
+        "method": "GET",
+        "url": "https://api.amadeus.com/v2/shopping/flight-offers",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "oAuth2Api",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {"name": "originLocationCode", "value": "={{ $fromAI('origin') }}"},
+            {"name": "destinationLocationCode", "value": "={{ $fromAI('destination') }}"},
+            {"name": "departureDate", "value": "={{ $fromAI('departureDate') }}"},
+            {"name": "adults", "value": "={{ $fromAI('adults') || 1 }}"},
+            {"name": "max", "value": "10"},
+            {"name": "currencyCode", "value": "USD"}
+          ]
+        },
+        "options": {"timeout": 30000}
+      },
+      "id": "amadeus-search",
+      "name": "Amadeus Flight Search",
+      "type": "@n8n/n8n-nodes-langchain.toolHttpRequest",
+      "typeVersion": 1.1,
+      "position": [620, 500],
+      "credentials": {
+        "oAuth2Api": {
+          "id": "AMADEUS_CREDENTIAL_ID",
+          "name": "Amadeus OAuth2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict"
+          },
+          "conditions": [
+            {
+              "id": "condition-flight",
+              "leftValue": "={{ $json.output }}",
+              "rightValue": "search_flights",
+              "operator": {"type": "string", "operation": "contains"}
+            }
+          ]
+        }
+      },
+      "id": "route-action",
+      "name": "Route by Action",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [640, 300]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://www.fly2any.com/api/webhooks/n8n",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {"name": "x-n8n-secret", "value": "={{ $env.FLY2ANY_WEBHOOK_SECRET }}"},
+            {"name": "Content-Type", "value": "application/json"}
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ type: 'ai_response', query: $('Travel Query Webhook').item.json.query, response: $json.output, timestamp: new Date().toISOString() }) }}"
+      },
+      "id": "fly2any-callback",
+      "name": "Fly2Any Callback",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [860, 300]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ { success: true, data: JSON.parse($json.output || '{}'), processed_at: new Date().toISOString() } }}"
+      },
+      "id": "respond-webhook",
+      "name": "Respond to Webhook",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [1080, 300]
+    },
+    {
+      "parameters": {
+        "operation": "get",
+        "key": "fly2any:query:{{ $json.query.substring(0,50) }}"
+      },
+      "id": "cache-check",
+      "name": "Check Cache",
+      "type": "n8n-nodes-base.redis",
+      "typeVersion": 1,
+      "position": [200, 500],
+      "credentials": {
+        "redis": {
+          "id": "REDIS_CREDENTIAL_ID",
+          "name": "Upstash Redis"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "errorMessage": "={{ $json.error || 'Unknown error occurred' }}"
+      },
+      "id": "error-handler",
+      "name": "Error Handler",
+      "type": "n8n-nodes-base.stopAndError",
+      "typeVersion": 1,
+      "position": [860, 500]
+    }
+  ],
+  "connections": {
+    "Travel Query Webhook": {
+      "main": [[{"node": "Claude Travel Agent", "type": "main", "index": 0}]]
+    },
+    "Claude Travel Agent": {
+      "main": [[{"node": "Route by Action", "type": "main", "index": 0}]]
+    },
+    "Claude Sonnet": {
+      "ai_languageModel": [[{"node": "Claude Travel Agent", "type": "ai_languageModel", "index": 0}]]
+    },
+    "Amadeus Flight Search": {
+      "ai_tool": [[{"node": "Claude Travel Agent", "type": "ai_tool", "index": 0}]]
+    },
+    "Route by Action": {
+      "main": [
+        [{"node": "Fly2Any Callback", "type": "main", "index": 0}],
+        [{"node": "Respond to Webhook", "type": "main", "index": 0}]
+      ]
+    },
+    "Fly2Any Callback": {
+      "main": [[{"node": "Respond to Webhook", "type": "main", "index": 0}]]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "saveManualExecutions": true,
+    "callerPolicy": "workflowsFromSameOwner",
+    "errorWorkflow": "error-handler"
+  },
+  "staticData": null,
+  "tags": [
+    {"name": "fly2any"},
+    {"name": "claude-ai"},
+    {"name": "travel"},
+    {"name": "amadeus"}
+  ],
+  "triggerCount": 1,
+  "meta": {
+    "instanceId": "fly2any-production"
+  }
+}

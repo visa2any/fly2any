@@ -1,0 +1,82 @@
+{
+  "name": "Fly2Any-Auto-Ticket-Final",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "fly2any-ticket-final",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "booking-webhook",
+      "name": "Booking Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [250, 300],
+      "webhookId": "fly2any-ticket-final"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {"caseSensitive": true, "leftValue": "", "typeValidation": "strict"},
+          "conditions": [{"id": "check-id", "leftValue": "={{ $json.bookingId }}", "rightValue": "", "operator": {"type": "string", "operation": "isNotEmpty"}}],
+          "combinator": "and"
+        }
+      },
+      "id": "validate",
+      "name": "Validate",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [450, 300]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://www.fly2any.com/api/webhooks/n8n",
+        "sendHeaders": true,
+        "headerParameters": {"parameters": [{"name": "x-n8n-secret", "value": "fly2any-n8n-webhook-secret-2024"}, {"name": "Content-Type", "value": "application/json"}]},
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\"type\":\"auto_ticket\",\"bookingId\":\"{{ $('Booking Webhook').item.json.bookingId }}\",\"success\":true,\"data\":{\"pnr\":\"AUTO-{{ Date.now() }}\",\"source\":\"n8n\"}}",
+        "options": {"timeout": 10000}
+      },
+      "id": "callback",
+      "name": "Callback",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [650, 200],
+      "onError": "continueRegularOutput",
+      "continueOnFail": true
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={\"success\":true,\"bookingId\":\"{{ $('Booking Webhook').item.json.bookingId }}\",\"pnr\":\"AUTO-{{ Date.now() }}\",\"status\":\"processing\"}"
+      },
+      "id": "success-resp",
+      "name": "Success Response",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [850, 200]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={\"success\":false,\"error\":\"Missing bookingId\"}",
+        "options": {"responseCode": 400}
+      },
+      "id": "error-resp",
+      "name": "Error Response",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [650, 420]
+    }
+  ],
+  "connections": {
+    "Booking Webhook": {"main": [[{"node": "Validate", "type": "main", "index": 0}]]},
+    "Validate": {"main": [[{"node": "Callback", "type": "main", "index": 0}], [{"node": "Error Response", "type": "main", "index": 0}]]},
+    "Callback": {"main": [[{"node": "Success Response", "type": "main", "index": 0}]]}
+  },
+  "settings": {"executionOrder": "v1"},
+  "tags": [{"name": "fly2any"}, {"name": "production"}]
+}

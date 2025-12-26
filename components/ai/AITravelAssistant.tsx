@@ -2387,40 +2387,41 @@ export function AITravelAssistant({ language = 'en' }: Props) {
         <div
           className={`
             fixed z-[1500] transition-all duration-300 ease-[cubic-bezier(0.2,0.8,0.2,1)]
-            md:bottom-6 md:right-6 md:w-[400px] md:max-w-[calc(100vw-3rem)]
-            max-md:top-0 max-md:left-0 max-md:right-0 max-md:w-full
+            md:bottom-6 md:right-6 md:w-[420px] md:max-w-[calc(100vw-3rem)]
+            max-md:inset-0 max-md:w-full
             ${isMinimized
               ? 'h-16 md:h-16'
-              : 'h-[600px] max-h-[calc(100vh-3rem)] md:h-[600px] md:max-h-[calc(100vh-3rem)] max-md:h-full'
+              : 'md:h-[650px] md:max-h-[calc(100vh-3rem)] max-md:h-full'
             }
           `}
-          style={isMobile ? {
-            // Mobile: position above BottomTabBar (52px + safe area)
-            bottom: 'calc(52px + env(safe-area-inset-bottom, 0px))'
+          style={isMobile && !isMinimized ? {
+            // Mobile: full screen with safe area padding
+            paddingTop: 'env(safe-area-inset-top, 0px)',
+            paddingBottom: 'calc(52px + env(safe-area-inset-bottom, 0px))'
           } : undefined}
         >
         {/* Chat Window - Apple Level 6 Ultra-Premium */}
         <div className="bg-white/98 dark:bg-neutral-900/98 backdrop-blur-2xl md:rounded-3xl max-md:rounded-none shadow-[0_8px_32px_rgba(0,0,0,0.12),0_2px_8px_rgba(0,0,0,0.08)] md:shadow-[0_25px_50px_-12px_rgba(0,0,0,0.25),0_8px_24px_-8px_rgba(0,0,0,0.15)] md:border md:border-neutral-200/40 dark:md:border-neutral-700/40 max-md:border-0 flex flex-col h-full overflow-hidden">
-          {/* Header - Fly2Any Premium Red Gradient */}
-          <div className="bg-gradient-to-r from-fly2any-red via-[#D63930] to-[#C93028] px-4 py-3.5 flex items-center justify-between shadow-[0_4px_12px_rgba(231,64,53,0.3)]">
-            <div className="flex items-center gap-3">
+          {/* Header - Fly2Any Premium Red Gradient - Mobile Optimized */}
+          <div className="bg-gradient-to-r from-fly2any-red via-[#D63930] to-[#C93028] px-3 sm:px-4 py-3 sm:py-3.5 flex items-center justify-between shadow-[0_4px_12px_rgba(231,64,53,0.3)] max-md:pt-[max(12px,env(safe-area-inset-top))]">
+            <div className="flex items-center gap-2.5 sm:gap-3">
               <div className="relative">
-                <div className="w-11 h-11 bg-white/15 backdrop-blur-md rounded-2xl flex items-center justify-center border border-white/20 shadow-[inset_0_1px_0_rgba(255,255,255,0.2)]">
-                  <Bot className="w-6 h-6 text-white drop-shadow-sm" />
+                <div className="w-10 h-10 sm:w-11 sm:h-11 bg-white/15 backdrop-blur-md rounded-xl sm:rounded-2xl flex items-center justify-center border border-white/20 shadow-[inset_0_1px_0_rgba(255,255,255,0.2)]">
+                  <Bot className="w-5 h-5 sm:w-6 sm:h-6 text-white drop-shadow-sm" />
                 </div>
-                <div className="absolute -bottom-0.5 -right-0.5 w-4 h-4 bg-emerald-400 border-2 border-fly2any-red rounded-full shadow-[0_2px_8px_rgba(52,211,153,0.5)]" />
+                <div className="absolute -bottom-0.5 -right-0.5 w-3.5 h-3.5 sm:w-4 sm:h-4 bg-emerald-400 border-2 border-fly2any-red rounded-full shadow-[0_2px_8px_rgba(52,211,153,0.5)]" />
               </div>
               <div className="text-white">
-                <h3 className="font-bold text-[15px] tracking-tight drop-shadow-sm">{t.title}</h3>
-                <p className="text-[11px] text-white/80 font-medium">{t.subtitle}</p>
+                <h3 className="font-bold text-[14px] sm:text-[15px] tracking-tight drop-shadow-sm">{t.title}</h3>
+                <p className="text-[10px] sm:text-[11px] text-white/80 font-medium">{t.subtitle}</p>
               </div>
             </div>
-            <div className="flex items-center gap-1.5">
-              {/* Voice Toggle Button */}
+            <div className="flex items-center gap-1 sm:gap-1.5">
+              {/* Voice Toggle Button - Mobile Optimized */}
               <button
                 onClick={() => setVoiceEnabled(!voiceEnabled)}
                 className={cn(
-                  'w-9 h-9 flex items-center justify-center rounded-xl transition-all duration-200',
+                  'w-10 h-10 sm:w-9 sm:h-9 flex items-center justify-center rounded-xl transition-all duration-200 active:scale-90',
                   voiceEnabled
                     ? 'bg-white/20 text-white'
                     : 'bg-white/10 text-white/60 hover:bg-white/15 hover:text-white/80'
@@ -2429,9 +2430,9 @@ export function AITravelAssistant({ language = 'en' }: Props) {
                 title={voiceEnabled ? 'Voice enabled' : 'Voice disabled'}
               >
                 {voiceEnabled ? (
-                  <Volume2 className="w-4 h-4" />
+                  <Volume2 className="w-4.5 h-4.5 sm:w-4 sm:h-4" />
                 ) : (
-                  <VolumeX className="w-4 h-4" />
+                  <VolumeX className="w-4.5 h-4.5 sm:w-4 sm:h-4" />
                 )}
               </button>
               <button
@@ -2446,18 +2447,18 @@ export function AITravelAssistant({ language = 'en' }: Props) {
                   setIsOpen(false);
                   window.dispatchEvent(new CustomEvent('closeChatAssistant'));
                 }}
-                className="w-9 h-9 flex items-center justify-center hover:bg-white/15 rounded-xl transition-all duration-200 ease-[cubic-bezier(0.2,0.8,0.2,1)] active:scale-90"
+                className="w-10 h-10 sm:w-9 sm:h-9 flex items-center justify-center hover:bg-white/15 rounded-xl transition-all duration-200 ease-[cubic-bezier(0.2,0.8,0.2,1)] active:scale-90"
                 aria-label={t.close}
               >
-                <X className="w-4 h-4 text-white/90" />
+                <X className="w-5 h-5 sm:w-4 sm:h-4 text-white/90" />
               </button>
             </div>
           </div>
 
           {!isMinimized && (
             <>
-              {/* Messages Area - Apple Level 6 Ultra-Premium */}
-              <div className="flex-1 overflow-y-auto p-4 space-y-4 bg-gradient-to-b from-neutral-50/90 via-white/50 to-neutral-50/90 dark:from-neutral-900/90 dark:via-neutral-800/50 dark:to-neutral-900/90">
+              {/* Messages Area - Apple Level 6 Ultra-Premium - Mobile Optimized */}
+              <div className="flex-1 overflow-y-auto p-3 sm:p-4 space-y-3 sm:space-y-4 bg-gradient-to-b from-neutral-50/90 via-white/50 to-neutral-50/90 dark:from-neutral-900/90 dark:via-neutral-800/50 dark:to-neutral-900/90 overscroll-contain">
                 {messages.map((message) => (
                   <div
                     key={message.id}
@@ -2483,8 +2484,8 @@ export function AITravelAssistant({ language = 'en' }: Props) {
                       </div>
                     )}
 
-                    {/* Message Bubble - Apple Level 6 Premium */}
-                    <div className="flex flex-col gap-1.5 max-w-[78%] md:max-w-[75%]">
+                    {/* Message Bubble - Apple Level 6 Premium - Mobile Optimized */}
+                    <div className="flex flex-col gap-1 sm:gap-1.5 max-w-[85%] sm:max-w-[78%] md:max-w-[75%]">
                       {/* Consultant Name & Title with Premium Typography */}
                       {message.role === 'assistant' && message.consultant && (
                         <div className="flex items-center gap-2 px-1">
@@ -2500,18 +2501,18 @@ export function AITravelAssistant({ language = 'en' }: Props) {
 
                       <div
                         className={cn(
-                          'rounded-2xl px-4 py-3 transition-all duration-200',
+                          'rounded-2xl px-3 py-2.5 sm:px-4 sm:py-3 transition-all duration-200',
                           message.role === 'user'
                             ? 'bg-gradient-to-br from-fly2any-red to-[#C93028] text-white shadow-[0_4px_16px_rgba(231,64,53,0.25),0_2px_4px_rgba(231,64,53,0.15)]'
                             : 'bg-white/95 dark:bg-neutral-800/95 backdrop-blur-sm text-neutral-800 dark:text-neutral-100 border border-neutral-200/60 dark:border-neutral-700/60 shadow-[0_2px_12px_rgba(0,0,0,0.06),0_1px_3px_rgba(0,0,0,0.04)]'
                         )}
                       >
-                        <p className="text-[14px] leading-relaxed whitespace-pre-wrap">
+                        <p className="text-[13px] sm:text-[14px] leading-relaxed whitespace-pre-wrap">
                           {message.content}
                         </p>
                         <p
                           className={cn(
-                            'text-[10px] mt-2 font-medium',
+                            'text-[9px] sm:text-[10px] mt-1.5 sm:mt-2 font-medium',
                             message.role === 'user'
                               ? 'text-white/70'
                               : 'text-neutral-400 dark:text-neutral-500'
@@ -2705,18 +2706,18 @@ export function AITravelAssistant({ language = 'en' }: Props) {
                 </div>
               )}
 
-              {/* Quick Actions - Apple Level 6 Premium Pills */}
+              {/* Quick Actions - Apple Level 6 Premium Pills - Mobile Optimized */}
               {messages.length === 1 && (
-                <div className="px-4 py-3 bg-[#FAFAFA] dark:bg-[#1A1A1A] border-t border-neutral-200/60 dark:border-[#2B2B2B]">
-                  <p className="text-[10px] font-semibold text-[#6B6B6B] dark:text-neutral-400 mb-2 uppercase tracking-wider">
+                <div className="px-3 sm:px-4 py-2.5 sm:py-3 bg-[#FAFAFA] dark:bg-[#1A1A1A] border-t border-neutral-200/60 dark:border-[#2B2B2B]">
+                  <p className="text-[9px] sm:text-[10px] font-semibold text-[#6B6B6B] dark:text-neutral-400 mb-2 uppercase tracking-wider">
                     {t.quickActions}
                   </p>
-                  <div className="flex flex-wrap gap-2">
+                  <div className="flex flex-wrap gap-1.5 sm:gap-2">
                     {t.quickQuestions.map((question, idx) => (
                       <button
                         key={idx}
                         onClick={() => handleQuickQuestion(question)}
-                        className="text-[12px] px-3.5 py-1.5 bg-white dark:bg-[#222222] hover:bg-fly2any-red/10 dark:hover:bg-fly2any-red/20 border border-neutral-200 dark:border-[#2B2B2B] hover:border-fly2any-red/50 text-[#1C1C1C] dark:text-neutral-100 hover:text-fly2any-red rounded-full transition-all duration-200 font-medium shadow-sm"
+                        className="text-[11px] sm:text-[12px] px-3 py-1.5 sm:px-3.5 bg-white dark:bg-[#222222] hover:bg-fly2any-red/10 dark:hover:bg-fly2any-red/20 active:bg-fly2any-red/20 border border-neutral-200 dark:border-[#2B2B2B] hover:border-fly2any-red/50 text-[#1C1C1C] dark:text-neutral-100 hover:text-fly2any-red rounded-full transition-all duration-200 font-medium shadow-sm active:scale-95"
                       >
                         {question}
                       </button>
@@ -2725,17 +2726,17 @@ export function AITravelAssistant({ language = 'en' }: Props) {
                 </div>
               )}
 
-              {/* Contact Support - Apple Level 6 Premium */}
+              {/* Contact Support - Apple Level 6 Premium - Mobile Optimized */}
               {messages.length >= 3 && (
-              <div className="px-4 py-2.5 bg-[#F2F2F2] dark:bg-[#1A1A1A] border-t border-neutral-200/60 dark:border-[#2B2B2B] flex items-center justify-between animate-[fade-in_0.3s_ease-out]">
-                <p className="text-[10px] text-[#6B6B6B] dark:text-neutral-400 font-medium">
+              <div className="px-3 sm:px-4 py-2 sm:py-2.5 bg-[#F2F2F2] dark:bg-[#1A1A1A] border-t border-neutral-200/60 dark:border-[#2B2B2B] flex items-center justify-between animate-[fade-in_0.3s_ease-out]">
+                <p className="text-[9px] sm:text-[10px] text-[#6B6B6B] dark:text-neutral-400 font-medium max-w-[40%] truncate">
                   {t.contactSupport}
                 </p>
-                <div className="flex gap-2">
+                <div className="flex gap-1.5 sm:gap-2">
                   <a
                     href="tel:+13322200838"
                     title="Call Us"
-                    className="flex items-center gap-1.5 px-3 py-1.5 bg-gradient-to-b from-fly2any-red to-[#C93028] hover:from-[#D63930] hover:to-[#B82820] text-white text-[10px] font-semibold rounded-xl transition-all duration-200 shadow-[0_2px_6px_rgba(231,64,53,0.2)] hover:shadow-[0_3px_10px_rgba(231,64,53,0.3)]"
+                    className="flex items-center gap-1 sm:gap-1.5 px-2.5 py-1.5 sm:px-3 bg-gradient-to-b from-fly2any-red to-[#C93028] hover:from-[#D63930] hover:to-[#B82820] text-white text-[10px] font-semibold rounded-lg sm:rounded-xl transition-all duration-200 shadow-[0_2px_6px_rgba(231,64,53,0.2)] hover:shadow-[0_3px_10px_rgba(231,64,53,0.3)] active:scale-95"
                   >
                     <Phone className="w-3 h-3" />
                     <span className="hidden sm:inline">{t.callUs}</span>
@@ -2743,7 +2744,7 @@ export function AITravelAssistant({ language = 'en' }: Props) {
                   <a
                     href="mailto:support@fly2any.com"
                     title="Email Us"
-                    className="flex items-center gap-1.5 px-3 py-1.5 bg-gradient-to-b from-fly2any-yellow to-[#E0B520] hover:from-[#F7C928] hover:to-[#D4AA18] text-neutral-900 text-[10px] font-semibold rounded-xl transition-all duration-200 shadow-[0_2px_6px_rgba(247,201,40,0.25)] hover:shadow-[0_3px_10px_rgba(247,201,40,0.35)]"
+                    className="flex items-center gap-1 sm:gap-1.5 px-2.5 py-1.5 sm:px-3 bg-gradient-to-b from-fly2any-yellow to-[#E0B520] hover:from-[#F7C928] hover:to-[#D4AA18] text-neutral-900 text-[10px] font-semibold rounded-lg sm:rounded-xl transition-all duration-200 shadow-[0_2px_6px_rgba(247,201,40,0.25)] hover:shadow-[0_3px_10px_rgba(247,201,40,0.35)] active:scale-95"
                   >
                     <Mail className="w-3 h-3" />
                     <span className="hidden sm:inline">{t.emailUs}</span>
@@ -2752,11 +2753,11 @@ export function AITravelAssistant({ language = 'en' }: Props) {
               </div>
               )}
 
-              {/* Input Area - Apple Level 6 Ultra-Premium with Voice */}
-              <div className="p-4 bg-white dark:bg-[#1A1A1A] border-t border-neutral-200 dark:border-[#222222] shadow-[0_-4px_24px_rgba(0,0,0,0.04)]">
+              {/* Input Area - Apple Level 6 Ultra-Premium with Voice - Mobile Optimized */}
+              <div className="p-3 sm:p-4 bg-white dark:bg-[#1A1A1A] border-t border-neutral-200 dark:border-[#222222] shadow-[0_-4px_24px_rgba(0,0,0,0.04)] max-md:pb-[max(12px,env(safe-area-inset-bottom))]">
                 {/* Voice Status Indicator */}
                 {(voiceInput.isListening || voiceOutput.isSpeaking) && (
-                  <div className="flex justify-center mb-3">
+                  <div className="flex justify-center mb-2 sm:mb-3">
                     <VoiceStatusIndicator
                       isListening={voiceInput.isListening}
                       isSpeaking={voiceOutput.isSpeaking}
@@ -2764,8 +2765,8 @@ export function AITravelAssistant({ language = 'en' }: Props) {
                     />
                   </div>
                 )}
-                <div className="flex gap-2.5 items-center">
-                  {/* Voice Mic Button - Always visible if supported (independent from voice output) */}
+                <div className="flex gap-2 sm:gap-2.5 items-center">
+                  {/* Voice Mic Button - Mobile optimized sizing */}
                   {voiceInput.isSupported && (
                     <VoiceMicButton
                       isListening={voiceInput.isListening}
@@ -2790,7 +2791,7 @@ export function AITravelAssistant({ language = 'en' }: Props) {
                       onKeyPress={handleKeyPress}
                       placeholder={voiceInput.isListening ? (language === 'pt' ? 'Ouvindo...' : language === 'es' ? 'Escuchando...' : 'Listening...') : t.placeholder}
                       className={cn(
-                        'w-full px-4 py-3 border rounded-2xl text-[14px] text-[#1C1C1C] dark:text-white placeholder:text-[#9F9F9F] dark:placeholder:text-neutral-500 transition-all duration-300 ease-[cubic-bezier(0.2,0.8,0.2,1)] bg-[#FAFAFA] dark:bg-[#1A1A1A]',
+                        'w-full px-3 py-3 sm:px-4 sm:py-3 border rounded-xl sm:rounded-2xl text-[15px] sm:text-[14px] text-[#1C1C1C] dark:text-white placeholder:text-[#9F9F9F] dark:placeholder:text-neutral-500 transition-all duration-300 ease-[cubic-bezier(0.2,0.8,0.2,1)] bg-[#FAFAFA] dark:bg-[#1A1A1A]',
                         voiceAutoSending
                           ? 'border-[#27C56B] bg-[#27C56B]/5 ring-2 ring-[#27C56B]/30 animate-pulse'
                           : voiceInput.isListening
@@ -2798,13 +2799,16 @@ export function AITravelAssistant({ language = 'en' }: Props) {
                           : 'border-[#E6E6E6] dark:border-[#2B2B2B] focus:border-fly2any-red focus:ring-4 focus:ring-fly2any-red/10 dark:focus:ring-fly2any-red/20'
                       )}
                       disabled={voiceAutoSending}
+                      autoComplete="off"
+                      autoCorrect="on"
+                      spellCheck="true"
                     />
                   </div>
                   <button
                     onClick={handleSendMessage}
                     disabled={!inputMessage.trim() || isTyping || voiceAutoSending}
                     className={cn(
-                      'w-12 h-12 rounded-2xl transition-all duration-200 ease-[cubic-bezier(0.2,0.8,0.2,1)] flex items-center justify-center active:scale-90',
+                      'w-11 h-11 sm:w-12 sm:h-12 rounded-xl sm:rounded-2xl transition-all duration-200 ease-[cubic-bezier(0.2,0.8,0.2,1)] flex items-center justify-center active:scale-90 flex-shrink-0',
                       voiceAutoSending
                         ? 'bg-success cursor-wait shadow-[0_4px_16px_rgba(39,197,107,0.3)]'
                         : !inputMessage.trim() || isTyping
@@ -2824,7 +2828,7 @@ export function AITravelAssistant({ language = 'en' }: Props) {
                     )}
                   </button>
                 </div>
-                <p className="text-[10px] text-[#6B6B6B] dark:text-neutral-500 mt-3 text-center flex items-center justify-center gap-1.5 font-medium">
+                <p className="text-[9px] sm:text-[10px] text-[#6B6B6B] dark:text-neutral-500 mt-2 sm:mt-3 text-center flex items-center justify-center gap-1.5 font-medium">
                   <span className="inline-block w-1.5 h-1.5 bg-[#27C56B] rounded-full animate-pulse shadow-[0_0_6px_rgba(39,197,107,0.5)]"></span>
                   {t.poweredBy}
                 </p>

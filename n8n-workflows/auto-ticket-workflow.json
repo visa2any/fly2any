@@ -1,0 +1,207 @@
+{
+  "name": "Fly2Any Auto-Ticket Workflow",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "fly2any-auto-ticket",
+        "options": {}
+      },
+      "id": "webhook-trigger",
+      "name": "Booking Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [250, 300]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "string": [
+            {
+              "value1": "={{$json[\"bookingId\"]}}",
+              "operation": "isNotEmpty"
+            }
+          ]
+        }
+      },
+      "id": "validate-booking",
+      "name": "Validate Booking",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 1,
+      "position": [450, 300]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.thebestagent.pro/v1/bookings",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "booking_reference",
+              "value": "={{$json[\"bookingReference\"]}}"
+            },
+            {
+              "name": "offer_id",
+              "value": "={{$json[\"offerId\"]}}"
+            },
+            {
+              "name": "passengers",
+              "value": "={{$json[\"passengers\"]}}"
+            },
+            {
+              "name": "contact",
+              "value": "={{$json[\"contact\"]}}"
+            }
+          ]
+        },
+        "options": {
+          "timeout": 120000
+        }
+      },
+      "id": "call-consolidator",
+      "name": "Call Consolidator API",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 3,
+      "position": [650, 200]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://www.fly2any.com/api/webhooks/n8n",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "x-n8n-secret",
+              "value": "={{$env[\"FLY2ANY_WEBHOOK_SECRET\"]}}"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"type\": \"auto_ticket\",\n  \"bookingId\": \"{{$node[\"Booking Webhook\"].json[\"bookingId\"]}}\",\n  \"success\": true,\n  \"data\": {\n    \"pnr\": \"{{$json[\"pnr\"]}}\",\n    \"eticketNumbers\": {{$json[\"eticket_numbers\"]}},\n    \"consolidatorPrice\": {{$json[\"net_price\"]}},\n    \"consolidatorReference\": \"{{$json[\"reference\"]}}\",\n    \"ticketedAt\": \"{{$now.toISO()}}\"\n  }\n}",
+        "options": {}
+      },
+      "id": "success-callback",
+      "name": "Success Callback",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 3,
+      "position": [850, 200]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://www.fly2any.com/api/webhooks/n8n",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "x-n8n-secret",
+              "value": "={{$env[\"FLY2ANY_WEBHOOK_SECRET\"]}}"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"type\": \"auto_ticket\",\n  \"bookingId\": \"{{$node[\"Booking Webhook\"].json[\"bookingId\"]}}\",\n  \"success\": false,\n  \"error\": \"{{$json[\"message\"] || \"Consolidator API error\"}}\"\n}",
+        "options": {}
+      },
+      "id": "error-callback",
+      "name": "Error Callback",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 3,
+      "position": [850, 400]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://www.fly2any.com/api/webhooks/n8n",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "x-n8n-secret",
+              "value": "={{$env[\"FLY2ANY_WEBHOOK_SECRET\"]}}"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"type\": \"auto_ticket\",\n  \"bookingId\": \"\",\n  \"success\": false,\n  \"error\": \"Invalid booking data - missing bookingId\"\n}",
+        "options": {}
+      },
+      "id": "invalid-callback",
+      "name": "Invalid Data Callback",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 3,
+      "position": [650, 450]
+    }
+  ],
+  "connections": {
+    "Booking Webhook": {
+      "main": [
+        [
+          {
+            "node": "Validate Booking",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Validate Booking": {
+      "main": [
+        [
+          {
+            "node": "Call Consolidator API",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Invalid Data Callback",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Call Consolidator API": {
+      "main": [
+        [
+          {
+            "node": "Success Callback",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "errorWorkflow": "error-callback"
+  },
+  "staticData": null,
+  "tags": ["fly2any", "auto-ticket", "consolidator"]
+}

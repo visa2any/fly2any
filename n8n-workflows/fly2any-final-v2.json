@@ -1,0 +1,61 @@
+{
+  "name": "Fly2Any-Ticket-v2",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "fly2any-v2",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "webhook",
+      "name": "Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [250, 300]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {"caseSensitive": true, "leftValue": "", "typeValidation": "loose"},
+          "conditions": [{"id": "c1", "leftValue": "={{ $json.body?.bookingId || $json.bookingId }}", "rightValue": "", "operator": {"type": "string", "operation": "isNotEmpty"}}],
+          "combinator": "and"
+        }
+      },
+      "id": "if",
+      "name": "Check",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [450, 300]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={\"success\":true,\"bookingId\":\"{{ $json.body?.bookingId || $json.bookingId }}\",\"pnr\":\"AUTO-{{ Date.now() }}\",\"status\":\"queued\"}"
+      },
+      "id": "ok",
+      "name": "OK",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [650, 200]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={\"success\":false,\"error\":\"bookingId required\"}",
+        "options": {"responseCode": 400}
+      },
+      "id": "err",
+      "name": "Error",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [650, 420]
+    }
+  ],
+  "connections": {
+    "Webhook": {"main": [[{"node": "Check", "type": "main", "index": 0}]]},
+    "Check": {"main": [[{"node": "OK", "type": "main", "index": 0}], [{"node": "Error", "type": "main", "index": 0}]]}
+  },
+  "settings": {"executionOrder": "v1"},
+  "tags": [{"name": "fly2any"}]
+}
