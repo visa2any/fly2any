@@ -18,6 +18,7 @@ import {
 } from 'lucide-react';
 import { useVoiceInput } from '@/hooks/useVoiceInput';
 import { useVoiceOutput } from '@/hooks/useVoiceOutput';
+import { useAIStream, type StreamMessage } from '@/lib/hooks/useAIStream';
 import { VoiceMicButton, VoiceStatusIndicator } from './VoiceMicButton';
 import { cn } from '@/lib/utils';
 import { getConsultant, type TeamType, type ConsultantProfile } from '@/lib/ai/consultant-profiles';
@@ -232,6 +233,10 @@ export function AITravelAssistant({ language = 'en' }: Props) {
   const voiceOutput = useVoiceOutput({
     language: language === 'pt' ? 'pt-BR' : language === 'es' ? 'es-ES' : 'en-US',
   });
+
+  // AI STREAMING: Real-time token-by-token responses from Groq/OpenAI
+  const aiStream = useAIStream();
+  const [sessionToken, setSessionToken] = useState<string | null>(null);
 
   // Analytics tracking
   const analytics = useAIAnalytics({
@@ -589,6 +594,201 @@ export function AITravelAssistant({ language = 'en' }: Props) {
       await sendAIResponseWithTyping(content, consultant, userMessage, additionalData);
     }
   };
+
+  /**
+   * Send AI query using real-time streaming from Groq/OpenAI
+   * This replaces the template-based generateAIResponse for intelligent responses
+   */
+  const sendStreamingAIResponse = async (
+    queryText: string,
+    consultant: ReturnType<typeof getConsultant>,
+    conversationHistory: Array<{ role: 'user' | 'assistant'; content: string }>,
+    previousTeam?: TeamType,
+    intentType?: string
+  ): Promise<string> => {
+    // Build streaming message options
+    const streamMessages: StreamMessage[] = conversationHistory.slice(-6).map(m => ({
+      role: m.role,
+      content: m.content,
+    }));
+
+    // Create a placeholder message for streaming content
+    const streamingMessageId = `stream_${Date.now()}`;
+    const streamingMessage: Message = {
+      id: streamingMessageId,
+      role: 'assistant',
+      content: '',
+      timestamp: new Date(),
+      consultant: {
+        id: consultant.id,
+        name: consultant.name,
+        title: consultant.title,
+        avatar: consultant.avatar,
+        team: consultant.team,
+      },
+    };
+
+    // Add the streaming message placeholder
+    setMessages(prev => [...prev, streamingMessage]);
+    setCurrentTypingConsultant(consultant);
+    setIsTyping(true);
+    setTypingState({
+      phase: 'typing',
+      consultantName: consultant.name,
+      message: '',
+      contextMessage: `${consultant.name} is thinking...`,
+    });
+
+    try {
+      const fullResponse = await aiStream.sendMessage(queryText, {
+        conversationHistory: streamMessages,
+        sessionToken: sessionToken || undefined,
+        previousTeam,
+        customerName: userSession.sessionId,
+        onChunk: (chunk, fullText) => {
+          // Update the streaming message in real-time
+          setMessages(prev =>
+            prev.map(m =>
+              m.id === streamingMessageId
+                ? { ...m, content: fullText }
+                : m
+            )
+          );
+        },
+        onComplete: (fullText, metadata) => {
+          // Update with final content and metadata
+          setMessages(prev =>
+            prev.map(m =>
+              m.id === streamingMessageId
+                ? {
+                    ...m,
+                    content: fullText,
+                    consultant: metadata.consultantName
+                      ? {
+                          id: consultant.id,
+                          name: metadata.consultantName,
+                          title: metadata.consultantTitle || consultant.title,
+                          avatar: consultant.avatar,
+                          team: metadata.team || consultant.team,
+                        }
+                      : m.consultant,
+                  }
+                : m
+            )
+          );
+
+          // Save to conversation persistence
+          if (conversation) {
+            const updatedConversation = addMessage(conversation, {
+              role: 'assistant',
+              content: fullText,
+              consultant: {
+                name: metadata.consultantName || consultant.name,
+                team: metadata.team || consultant.team,
+                emoji: consultant.avatar,
+              },
+            });
+            setConversation(updatedConversation);
+          }
+
+          // Voice output for completed response
+          if (voiceEnabled && voiceOutput.isSupported) {
+            voiceOutput.speak(fullText, 'DISCOVERY');
+          }
+        },
+        onError: (error) => {
+          console.error('[AIStream] Error:', error);
+          // Handle session token errors
+          if (error.includes('Session required')) {
+            // Try to get new token from error response
+            fetchSessionToken();
+          }
+        },
+      });
+
+      // Track analytics
+      analytics.trackMessage('assistant', {
+        team: consultant.team,
+        name: consultant.name,
+      });
+
+      return fullResponse;
+    } catch (error: any) {
+      console.error('[Streaming Error]', error);
+
+      // Fallback to non-streaming response
+      const fallbackResponse = await fetch('/api/ai/chat', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          message: queryText,
+          conversationHistory: streamMessages,
+          previousTeam,
+          useAI: true,
+          sessionToken,
+        }),
+      });
+
+      if (fallbackResponse.ok) {
+        const data = await fallbackResponse.json();
+        const responseText = data.response || '';
+
+        // Update session token if provided
+        if (data.sessionToken) {
+          setSessionToken(data.sessionToken);
+        }
+
+        // Update the streaming message with fallback content
+        setMessages(prev =>
+          prev.map(m =>
+            m.id === streamingMessageId
+              ? { ...m, content: responseText }
+              : m
+          )
+        );
+
+        // Voice output
+        if (voiceEnabled && voiceOutput.isSupported && responseText) {
+          voiceOutput.speak(responseText, 'DISCOVERY');
+        }
+
+        return responseText;
+      }
+
+      throw error;
+    } finally {
+      setIsTyping(false);
+      setTypingState(null);
+      setCurrentTypingConsultant(null);
+    }
+  };
+
+  /**
+   * Fetch initial session token for AI authentication
+   */
+  const fetchSessionToken = useCallback(async () => {
+    try {
+      const response = await fetch('/api/ai/chat', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ message: 'init' }),
+      });
+
+      const data = await response.json();
+      if (data.sessionToken) {
+        setSessionToken(data.sessionToken);
+      }
+    } catch (error) {
+      console.error('[Session Token] Failed to fetch:', error);
+    }
+  }, []);
+
+  // Fetch session token on mount
+  useEffect(() => {
+    if (!sessionToken) {
+      fetchSessionToken();
+    }
+  }, [sessionToken, fetchSessionToken]);
 
   const handleSendMessage = async () => {
     if (!inputMessage.trim()) return;
@@ -1149,11 +1349,11 @@ export function AITravelAssistant({ language = 'en' }: Props) {
 
     if (!isFlightQuery && !isHotelQuery) {
       // SERVICE REQUEST OR GENERAL INQUIRY
-      // Use conversational response if available, otherwise fall back to service response
+      // Use real AI streaming for intelligent, context-aware responses
       let responseContent: string;
 
       if (analysis.isServiceRequest) {
-        // Service request - use conversational response which will be natural + helpful
+        // Quick service requests - use conversational templates for speed
         responseContent = getConversationalResponse(
           analysis,
           {
@@ -1163,12 +1363,21 @@ export function AITravelAssistant({ language = 'en' }: Props) {
           },
           conversationContext
         );
+        await sendAIResponseWithTyping(responseContent, consultant, queryText, undefined, analysis.intent);
       } else {
-        // Use legacy response for complex queries
-        responseContent = generateAIResponse(queryText, language, consultant);
-      }
+        // Complex queries - use REAL AI with streaming for intelligent responses
+        const conversationHistoryForAI = messages
+          .filter(m => m.role === 'user' || m.role === 'assistant')
+          .map(m => ({ role: m.role as 'user' | 'assistant', content: m.content }));
 
-      await sendAIResponseWithTyping(responseContent, consultant, queryText, undefined, analysis.intent);
+        responseContent = await sendStreamingAIResponse(
+          queryText,
+          consultant,
+          conversationHistoryForAI,
+          previousTeam as TeamType,
+          analysis.intent
+        );
+      }
 
       // Track conversation context
       conversationContext.addInteraction(
