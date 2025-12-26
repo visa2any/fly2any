@@ -340,25 +340,84 @@ export function AITravelAssistant({ language = 'en' }: Props) {
 
   const t = translations[language];
 
-  // Initialize with welcome message from Lisa (Customer Service)
+  // Initialize with AI-generated welcome message from Lisa
   useEffect(() => {
     if (isOpen && messages.length === 0) {
       const lisaConsultant = getConsultant('customer-service');
-      setMessages([
-        {
-          id: '1',
-          role: 'assistant',
-          content: lisaConsultant.greeting[language],
-          timestamp: new Date(),
-          consultant: {
-            id: lisaConsultant.id,
-            name: lisaConsultant.name,
-            title: lisaConsultant.title,
-            avatar: lisaConsultant.avatar,
-            team: lisaConsultant.team
+      const consultant = {
+        id: lisaConsultant.id,
+        name: lisaConsultant.name,
+        title: lisaConsultant.title,
+        avatar: lisaConsultant.avatar,
+        team: lisaConsultant.team
+      };
+
+      // Show typing indicator while AI generates greeting
+      setIsTyping(true);
+
+      // Generate AI-powered greeting
+      const generateAIGreeting = async () => {
+        try {
+          const greetingPrompt = language === 'en'
+            ? `You are Lisa Thompson, Travel Concierge at Fly2Any. Generate a warm, friendly 1-2 sentence welcome greeting. Be natural and inviting. Mention you can help with flights, hotels, activities. Don't use emojis excessively. Keep it professional yet warm.`
+            : language === 'pt'
+            ? `Você é Lisa Thompson, Concierge de Viagens na Fly2Any. Gere uma saudação calorosa e amigável de 1-2 frases em português. Seja natural e convidativo.`
+            : `Eres Lisa Thompson, Conserje de Viajes en Fly2Any. Genera un saludo cálido y amigable de 1-2 oraciones en español. Sé natural y acogedor.`;
+
+          const response = await fetch('/api/ai/chat/stream', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              message: greetingPrompt,
+              conversationHistory: [],
+              consultantContext: { name: lisaConsultant.name, team: lisaConsultant.team },
+              responseType: 'greeting'
+            })
+          });
+
+          if (!response.ok || !response.body) throw new Error('Greeting failed');
+
+          const reader = response.body.getReader();
+          const decoder = new TextDecoder();
+          let greeting = '';
+
+          while (true) {
+            const { done, value } = await reader.read();
+            if (done) break;
+            const chunk = decoder.decode(value);
+            const lines = chunk.split('\n').filter(l => l.startsWith('data: '));
+            for (const line of lines) {
+              const data = line.slice(6);
+              if (data === '[DONE]') continue;
+              try {
+                const parsed = JSON.parse(data);
+                if (parsed.content) greeting += parsed.content;
+              } catch {}
+            }
           }
+
+          setIsTyping(false);
+          setMessages([{
+            id: '1',
+            role: 'assistant',
+            content: greeting || lisaConsultant.greeting[language],
+            timestamp: new Date(),
+            consultant
+          }]);
+        } catch {
+          // Fallback to template on error
+          setIsTyping(false);
+          setMessages([{
+            id: '1',
+            role: 'assistant',
+            content: lisaConsultant.greeting[language],
+            timestamp: new Date(),
+            consultant
+          }]);
         }
-      ]);
+      };
+
+      generateAIGreeting();
     }
   }, [isOpen, messages.length, language]);
 
