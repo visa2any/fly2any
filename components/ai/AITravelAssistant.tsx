@@ -890,7 +890,7 @@ export function AITravelAssistant({ language = 'en' }: Props) {
       // New consultant introduces themselves via AI streaming (NATURAL response)
       // The AI will generate a personalized introduction + response to user's query
       const handoffHistory = [
-        ...conversationHistory.slice(-4).map(m => ({ role: m.role, content: m.content })),
+        ...messages.slice(-4).map(m => ({ role: m.role as 'user' | 'assistant', content: m.content })),
         { role: 'user' as const, content: queryText }
       ];
 
