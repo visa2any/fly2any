@@ -28,6 +28,10 @@ import { trackCacheHit, trackCacheMiss } from '@/lib/cache/analytics';
 // Rate limiting - protects against API abuse and cost spikes
 import { rateLimit, createRateLimitResponse, addRateLimitHeaders, RateLimitPresets } from '@/lib/security/rate-limiter';
 
+// Global error handling - catches all errors and alerts admins
+import { handleApiError, ErrorCategory, ErrorSeverity } from '@/lib/monitoring/global-error-handler';
+import { alertApiError } from '@/lib/monitoring/customer-error-alerts';
+
 // Cost protection - blocks bots and suspicious requests BEFORE expensive API calls
 import { checkCostGuard, refundCostBudget, COST_GUARDS } from '@/lib/security/cost-protection';
 
@@ -1995,8 +1999,15 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // 500+ - Server errors
+    // 500+ - Server errors - Alert admins
     if (statusCode >= 500) {
+      await alertApiError(request, error, {
+        errorCode: 'FLIGHT_SEARCH_SERVER_ERROR',
+        endpoint: '/api/flights/search',
+        flightRoute: flightSearchParams ? `${flightSearchParams.origin} → ${flightSearchParams.destination}` : 'unknown',
+        departureDate: flightSearchParams?.departureDate,
+      }, { priority: 'high' }).catch(() => {});
+
       return NextResponse.json(
         {
           error: 'Flight search service temporarily unavailable',
@@ -2006,7 +2017,14 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Default error handler
+    // Default error handler - Alert admins for unexpected errors
+    await alertApiError(request, error, {
+      errorCode: 'FLIGHT_SEARCH_UNKNOWN_ERROR',
+      endpoint: '/api/flights/search',
+      flightRoute: flightSearchParams ? `${flightSearchParams.origin} → ${flightSearchParams.destination}` : 'unknown',
+      departureDate: flightSearchParams?.departureDate,
+    }, { priority: 'normal' }).catch(() => {});
+
     return NextResponse.json(
       {
         error: error.message || 'Failed to search flights',
@@ -2083,6 +2101,13 @@ export async function GET(request: NextRequest) {
     return POST(postRequest);
   } catch (error: any) {
     console.error('Flight search error:', error);
+
+    // Alert admins for GET endpoint errors
+    await alertApiError(request, error, {
+      errorCode: 'FLIGHT_SEARCH_GET_ERROR',
+      endpoint: '/api/flights/search (GET)',
+    }, { priority: 'normal' }).catch(() => {});
+
     return NextResponse.json(
       { error: error.message || 'Failed to search flights' },
       { status: 500 }

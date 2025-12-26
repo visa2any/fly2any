@@ -5,6 +5,7 @@ import { useSearchParams, useRouter } from 'next/navigation';
 import { MaxWidthContainer } from '@/components/layout/MaxWidthContainer';
 import { ArrowLeft, Users, Clock, Shield, CreditCard, Loader2, CheckCircle, MapPin, Navigation, Calendar, Download, Share2 } from 'lucide-react';
 import { BookingSteps, inputStyles, labelStyles, buttonStyles } from '@/components/shared/BookingSteps';
+import { ExperienceConfirmation } from '@/components/booking/ExperienceConfirmation';
 
 function TransferBookingContent() {
   const searchParams = useSearchParams();
@@ -65,6 +66,32 @@ function TransferBookingContent() {
       setLoading(false);
     }
   }, [transferId, transferType, transferName, price, pickup, dropoff, date, time, passengers, formData]);
+
+  // Step 3: Premium Full-Page Confirmation
+  if (step === 3) {
+    return (
+      <ExperienceConfirmation
+        type="transfer"
+        confirmationId={confirmationId}
+        productName={transferName}
+        duration={duration}
+        date={date}
+        time={time}
+        participants={passengers}
+        pickup={pickup}
+        dropoff={dropoff}
+        flightNumber={formData.flightNumber}
+        customerName={`${formData.firstName} ${formData.lastName}`}
+        customerEmail={formData.email}
+        customerPhone={formData.phone}
+        specialRequests={formData.notes}
+        pricePerPerson={price}
+        totalPrice={price}
+        currency="USD"
+        cancellable={cancellation?.toLowerCase().includes('free')}
+      />
+    );
+  }
 
   // Teal color styles for transfers
   const tealInputStyles = `${inputStyles.base} focus:ring-teal-500`;
@@ -178,32 +205,6 @@ function TransferBookingContent() {
               </div>
             )}
 
-            {/* Step 3: Confirmation */}
-            {step === 3 && (
-              <div className="bg-white rounded-2xl p-8 shadow-lg border border-gray-100/50 text-center">
-                <div className="w-20 h-20 bg-gradient-to-br from-green-100 to-emerald-100 rounded-full flex items-center justify-center mx-auto mb-5 shadow-inner">
-                  <CheckCircle className="w-10 h-10 text-green-600" />
-                </div>
-                <h2 className="text-2xl font-bold text-gray-900 mb-2">Booking Confirmed!</h2>
-                <p className="text-gray-500 mb-1">Confirmation #{confirmationId}</p>
-                <p className="text-gray-600 mb-6">Your driver details will be sent to <span className="font-medium">{formData.email}</span></p>
-
-                <div className="bg-gray-50 rounded-xl p-4 mb-6 text-left">
-                  <div className="grid grid-cols-2 gap-3 text-sm">
-                    <div><span className="text-gray-500">Transfer</span><p className="font-semibold text-gray-900">{transferName}</p></div>
-                    <div><span className="text-gray-500">Date & Time</span><p className="font-semibold text-gray-900">{date} at {time}</p></div>
-                    <div><span className="text-gray-500">Route</span><p className="font-semibold text-gray-900 truncate">{pickup} → {dropoff}</p></div>
-                    <div><span className="text-gray-500">Total Paid</span><p className="font-semibold text-teal-600">${price.toFixed(0)}</p></div>
-                  </div>
-                </div>
-
-                <div className="flex gap-3 justify-center">
-                  <button className="px-5 py-2.5 border border-gray-200 rounded-xl font-medium text-gray-700 hover:bg-gray-50 transition-colors flex items-center gap-2"><Download className="w-4 h-4" /> Voucher</button>
-                  <button className="px-5 py-2.5 border border-gray-200 rounded-xl font-medium text-gray-700 hover:bg-gray-50 transition-colors flex items-center gap-2"><Share2 className="w-4 h-4" /> Share</button>
-                </div>
-                <button onClick={() => router.push('/')} className={`${tealButtonStyles} mt-6`}>Back to Home</button>
-              </div>
-            )}
           </div>
 
           {/* Sidebar - Transfer Summary */}

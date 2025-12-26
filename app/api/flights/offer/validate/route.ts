@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { Duffel } from '@duffel/api';
+import { alertApiError } from '@/lib/monitoring/customer-error-alerts';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -50,6 +51,13 @@ export async function POST(request: NextRequest) {
     }
   } catch (error: any) {
     console.error('[Offer Validate]', error.message);
+
+    // Alert admins about validation failures
+    await alertApiError(request, error, {
+      errorCode: 'OFFER_VALIDATION_FAILED',
+      endpoint: '/api/flights/offer/validate',
+    }, { priority: 'normal' }).catch(() => {});
+
     return NextResponse.json({
       valid: false,
       error: 'VALIDATION_FAILED',

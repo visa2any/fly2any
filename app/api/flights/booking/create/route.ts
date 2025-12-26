@@ -1720,6 +1720,64 @@ Booking created but ${emailType} email failed!
         // Don't fail the booking if notification fails
       }
 
+      // STEP 9: SSE broadcast for real-time admin dashboard updates
+      console.log('📡 STEP 9: Broadcasting SSE update...');
+      try {
+        const { broadcastSSE } = await import('@/lib/notifications/notification-service');
+        const route = `${confirmedOffer.itineraries?.[0]?.segments?.[0]?.departure?.iataCode || 'N/A'} → ${confirmedOffer.itineraries?.[0]?.segments?.[confirmedOffer.itineraries[0]?.segments?.length - 1]?.arrival?.iataCode || 'N/A'}`;
+
+        broadcastSSE('admin', 'booking_created', {
+          type: 'flight',
+          bookingId: savedBooking.id,
+          bookingReference: savedBooking.bookingReference,
+          pnr,
+          customerName: `${bookingPassengers[0]?.firstName || ''} ${bookingPassengers[0]?.lastName || ''}`.trim(),
+          customerEmail: bookingContactInfo.email,
+          route,
+          amount: totalAmount,
+          currency: confirmedOffer.price.currency,
+          sourceApi,
+          status: responseStatus,
+          createdAt: new Date().toISOString(),
+        });
+        console.log('✅ SSE broadcast sent');
+      } catch (sseError) {
+        console.error('⚠️ Failed to broadcast SSE (non-critical):', sseError);
+      }
+
+      // STEP 10: Telegram notification for successful booking
+      console.log('📱 STEP 10: Sending Telegram admin notification...');
+      try {
+        const { notifyTelegramAdmins } = await import('@/lib/notifications/notification-service');
+        const route = `${confirmedOffer.itineraries?.[0]?.segments?.[0]?.departure?.iataCode || 'N/A'} → ${confirmedOffer.itineraries?.[0]?.segments?.[confirmedOffer.itineraries[0]?.segments?.length - 1]?.arrival?.iataCode || 'N/A'}`;
+        const departDate = confirmedOffer.itineraries?.[0]?.segments?.[0]?.departure?.at?.split('T')[0] || 'N/A';
+        const airline = confirmedOffer.validatingAirlineCodes?.[0] || 'N/A';
+
+        await notifyTelegramAdmins(`
+✈️ <b>NEW FLIGHT BOOKING</b>
+
+📋 <b>Booking:</b> <code>${savedBooking.bookingReference}</code>
+🎫 <b>PNR:</b> <code>${pnr}</code>
+🔗 <b>Source:</b> ${sourceApi === 'Duffel' ? '🟢 Duffel NDC' : '🔵 GDS/Amadeus'}
+✈️ <b>Route:</b> ${route}
+📅 <b>Date:</b> ${departDate}
+🛫 <b>Airline:</b> ${airline}
+👥 <b>Passengers:</b> ${bookingPassengers.length}
+💰 <b>Total:</b> ${confirmedOffer.price.currency} ${totalAmount.toLocaleString()}
+
+👤 <b>Customer:</b>
+• Name: ${bookingPassengers[0]?.firstName || ''} ${bookingPassengers[0]?.lastName || ''}
+• Email: ${bookingContactInfo.email}
+• Phone: ${bookingContactInfo.phone || 'N/A'}
+
+📊 <b>Status:</b> ${responseStatus}
+${requiresManualTicketing ? '⏰ <b>Action:</b> Issue ticket via consolidator' : '✅ Auto-ticketing via Duffel'}
+        `.trim());
+        console.log('✅ Telegram notification sent');
+      } catch (telegramError) {
+        console.error('⚠️ Failed to send Telegram notification (non-critical):', telegramError);
+      }
+
       // COMPLETION SUMMARY - END OF BOOKING FLOW
       console.log('═══════════════════════════════════════════════════════════');
       console.log(`✅ [${requestId}] BOOKING FLOW COMPLETED SUCCESSFULLY`);

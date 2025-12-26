@@ -172,7 +172,8 @@ export default function AdminBookingsPage() {
     try {
       setLoading(true);
       const params = new URLSearchParams();
-      params.append('type', 'flight'); // Filter only flight bookings (exclude car rentals)
+      // Don't filter by type - get ALL bookings (flights, tours, activities, transfers)
+      // Client-side filtering handles tab separation
 
       if (statusFilter !== 'all') {
         params.append('status', statusFilter);
@@ -229,8 +230,23 @@ export default function AdminBookingsPage() {
     }
   };
 
-  // Filter flight bookings
-  const filteredBookings = bookings
+  // Separate bookings by type
+  const flightOnlyBookings = bookings.filter(b =>
+    !(b as any).productType || (b as any).productType === 'flight' ||
+    (!b.bookingReference?.startsWith('TUR') && !b.bookingReference?.startsWith('ACT') && !b.bookingReference?.startsWith('TRF'))
+  );
+  const tourBookings = bookings.filter(b =>
+    (b as any).productType === 'tour' || b.bookingReference?.startsWith('TUR')
+  );
+  const activityBookings = bookings.filter(b =>
+    (b as any).productType === 'activity' || b.bookingReference?.startsWith('ACT')
+  );
+  const transferBookings = bookings.filter(b =>
+    (b as any).productType === 'transfer' || b.bookingReference?.startsWith('TRF')
+  );
+
+  // Filter flight bookings (search)
+  const filteredBookings = flightOnlyBookings
     .filter(booking => {
       if (!searchTerm) return true;
       const term = searchTerm.toLowerCase();
@@ -270,17 +286,38 @@ export default function AdminBookingsPage() {
       return order * (priceA - priceB);
     });
 
-  // Flight stats
+  // Flight stats (only actual flights)
   const flightStats = {
-    total: bookings.length,
-    pending: bookings.filter(b => b.status === 'pending').length,
-    pendingTicketing: bookings.filter(b => b.status === 'pending_ticketing').length,
-    ticketed: bookings.filter(b => b.status === 'ticketed').length,
-    confirmed: bookings.filter(b => b.status === 'confirmed').length,
-    cancelled: bookings.filter(b => b.status === 'cancelled').length,
-    revenue: bookings
+    total: flightOnlyBookings.length,
+    pending: flightOnlyBookings.filter(b => b.status === 'pending').length,
+    pendingTicketing: flightOnlyBookings.filter(b => b.status === 'pending_ticketing').length,
+    ticketed: flightOnlyBookings.filter(b => b.status === 'ticketed').length,
+    confirmed: flightOnlyBookings.filter(b => b.status === 'confirmed').length,
+    cancelled: flightOnlyBookings.filter(b => b.status === 'cancelled').length,
+    revenue: flightOnlyBookings
       .filter(b => b.status === 'confirmed' || b.status === 'ticketed')
       .reduce((sum, b) => sum + b.totalAmount, 0),
+  };
+
+  // Tours stats
+  const tourStats = {
+    total: tourBookings.length,
+    pending: tourBookings.filter(b => b.status === 'pending').length,
+    confirmed: tourBookings.filter(b => b.status === 'confirmed').length,
+  };
+
+  // Activities stats
+  const activityStats = {
+    total: activityBookings.length,
+    pending: activityBookings.filter(b => b.status === 'pending').length,
+    confirmed: activityBookings.filter(b => b.status === 'confirmed').length,
+  };
+
+  // Transfers stats
+  const transferStats = {
+    total: transferBookings.length,
+    pending: transferBookings.filter(b => b.status === 'pending').length,
+    confirmed: transferBookings.filter(b => b.status === 'confirmed').length,
   };
 
   // Filter car bookings
@@ -517,6 +554,11 @@ export default function AdminBookingsPage() {
           >
             <Compass className={`w-5 h-5 transition-transform duration-300 ${activeTab === 'tours' ? 'scale-110' : ''}`} />
             Tours
+            {tourStats.total > 0 && (
+              <span className={`ml-1 px-2 py-0.5 rounded-full text-xs font-bold ${activeTab === 'tours' ? 'bg-purple-100 text-purple-700' : 'bg-gray-200 text-gray-600'}`}>
+                {tourStats.total}
+              </span>
+            )}
           </button>
           <button
             onClick={() => setActiveTab('activities')}
@@ -528,6 +570,11 @@ export default function AdminBookingsPage() {
           >
             <Activity className={`w-5 h-5 transition-transform duration-300 ${activeTab === 'activities' ? 'scale-110' : ''}`} />
             Activities
+            {activityStats.total > 0 && (
+              <span className={`ml-1 px-2 py-0.5 rounded-full text-xs font-bold ${activeTab === 'activities' ? 'bg-pink-100 text-pink-700' : 'bg-gray-200 text-gray-600'}`}>
+                {activityStats.total}
+              </span>
+            )}
           </button>
           <button
             onClick={() => setActiveTab('transfers')}
@@ -539,6 +586,11 @@ export default function AdminBookingsPage() {
           >
             <Bus className={`w-5 h-5 transition-transform duration-300 ${activeTab === 'transfers' ? 'scale-110' : ''}`} />
             Transfers
+            {transferStats.total > 0 && (
+              <span className={`ml-1 px-2 py-0.5 rounded-full text-xs font-bold ${activeTab === 'transfers' ? 'bg-cyan-100 text-cyan-700' : 'bg-gray-200 text-gray-600'}`}>
+                {transferStats.total}
+              </span>
+            )}
           </button>
         </div>
 
@@ -1007,10 +1059,10 @@ export default function AdminBookingsPage() {
                 <tbody className="divide-y divide-gray-100">
                   {loading ? (
                     <tr><td colSpan={8} className="px-4 py-8 text-center"><RefreshCw className="w-6 h-6 animate-spin text-gray-400 mx-auto mb-2" /><p className="text-sm text-gray-500">Loading tours...</p></td></tr>
-                  ) : filteredBookings.filter(b => (b as any).productType === 'tour' || b.bookingReference?.startsWith('TUR')).length === 0 ? (
+                  ) : tourBookings.length === 0 ? (
                     <tr><td colSpan={8} className="px-4 py-8 text-center"><Compass className="w-8 h-8 text-gray-300 mx-auto mb-2" /><p className="text-sm text-gray-500">No tour bookings found</p></td></tr>
                   ) : (
-                    filteredBookings.filter(b => (b as any).productType === 'tour' || b.bookingReference?.startsWith('TUR')).map((booking) => (
+                    tourBookings.map((booking) => (
                       <tr key={booking.id} className="hover:bg-gray-50 transition-colors">
                         <td className="px-4 py-3"><div className="font-mono text-sm font-bold text-purple-600">{booking.bookingReference}</div></td>
                         <td className="px-4 py-3"><div className="text-sm font-medium text-gray-900">{booking.origin || 'Tour'}</div></td>
@@ -1049,10 +1101,10 @@ export default function AdminBookingsPage() {
                 <tbody className="divide-y divide-gray-100">
                   {loading ? (
                     <tr><td colSpan={8} className="px-4 py-8 text-center"><RefreshCw className="w-6 h-6 animate-spin text-gray-400 mx-auto mb-2" /><p className="text-sm text-gray-500">Loading activities...</p></td></tr>
-                  ) : filteredBookings.filter(b => (b as any).productType === 'activity' || b.bookingReference?.startsWith('ACT')).length === 0 ? (
+                  ) : activityBookings.length === 0 ? (
                     <tr><td colSpan={8} className="px-4 py-8 text-center"><Activity className="w-8 h-8 text-gray-300 mx-auto mb-2" /><p className="text-sm text-gray-500">No activity bookings found</p></td></tr>
                   ) : (
-                    filteredBookings.filter(b => (b as any).productType === 'activity' || b.bookingReference?.startsWith('ACT')).map((booking) => (
+                    activityBookings.map((booking) => (
                       <tr key={booking.id} className="hover:bg-gray-50 transition-colors">
                         <td className="px-4 py-3"><div className="font-mono text-sm font-bold text-pink-600">{booking.bookingReference}</div></td>
                         <td className="px-4 py-3"><div className="text-sm font-medium text-gray-900">{booking.origin || 'Activity'}</div></td>
@@ -1091,10 +1143,10 @@ export default function AdminBookingsPage() {
                 <tbody className="divide-y divide-gray-100">
                   {loading ? (
                     <tr><td colSpan={8} className="px-4 py-8 text-center"><RefreshCw className="w-6 h-6 animate-spin text-gray-400 mx-auto mb-2" /><p className="text-sm text-gray-500">Loading transfers...</p></td></tr>
-                  ) : filteredBookings.filter(b => (b as any).productType === 'transfer' || b.bookingReference?.startsWith('TRF')).length === 0 ? (
+                  ) : transferBookings.length === 0 ? (
                     <tr><td colSpan={8} className="px-4 py-8 text-center"><Bus className="w-8 h-8 text-gray-300 mx-auto mb-2" /><p className="text-sm text-gray-500">No transfer bookings found</p></td></tr>
                   ) : (
-                    filteredBookings.filter(b => (b as any).productType === 'transfer' || b.bookingReference?.startsWith('TRF')).map((booking) => (
+                    transferBookings.map((booking) => (
                       <tr key={booking.id} className="hover:bg-gray-50 transition-colors">
                         <td className="px-4 py-3"><div className="font-mono text-sm font-bold text-cyan-600">{booking.bookingReference}</div></td>
                         <td className="px-4 py-3"><div className="flex items-center gap-1 text-sm"><MapPin className="w-3 h-3" />{booking.origin} → {booking.destination}</div></td>

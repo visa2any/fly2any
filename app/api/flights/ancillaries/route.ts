@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { duffelAPI } from '@/lib/api/duffel';
 import { applyMarkup, ANCILLARY_MARKUP, getMarkupSummary } from '@/lib/config/ancillary-markup';
+import { alertApiError } from '@/lib/monitoring/customer-error-alerts';
 
 /**
  * POST /api/flights/ancillaries
@@ -238,6 +239,12 @@ export async function POST(request: NextRequest) {
     });
   } catch (error: any) {
     console.error('❌ Error in ancillaries API:', error);
+
+    // Alert admins for ancillaries errors
+    await alertApiError(request, error, {
+      errorCode: 'ANCILLARIES_FETCH_FAILED',
+      endpoint: '/api/flights/ancillaries',
+    }, { priority: 'normal' }).catch(() => {});
 
     return NextResponse.json(
       {

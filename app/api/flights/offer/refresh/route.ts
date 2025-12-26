@@ -7,6 +7,7 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { duffelAPI } from '@/lib/api/duffel';
+import { alertApiError } from '@/lib/monitoring/customer-error-alerts';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -137,6 +138,12 @@ export async function POST(request: NextRequest) {
     });
   } catch (error: any) {
     console.error('❌ Offer refresh failed:', error);
+
+    // Alert admins about refresh failures
+    await alertApiError(request, error, {
+      errorCode: 'OFFER_REFRESH_FAILED',
+      endpoint: '/api/flights/offer/refresh',
+    }, { priority: 'normal' }).catch(() => {});
 
     return NextResponse.json({
       success: false,

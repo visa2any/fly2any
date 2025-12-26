@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { amadeusAPI } from '@/lib/api/amadeus';
 import { duffelAPI } from '@/lib/api/duffel';
+import { alertApiError } from '@/lib/monitoring/customer-error-alerts';
 
 /**
  * Universal Seat Map API Route
@@ -63,6 +64,12 @@ export async function POST(request: NextRequest) {
     });
   } catch (error: any) {
     console.error('❌ Error fetching seat map:', error.message || error);
+
+    // Alert admins for seat map errors (low priority since it's non-blocking)
+    await alertApiError(request, error, {
+      errorCode: 'SEAT_MAP_FETCH_FAILED',
+      endpoint: '/api/flights/seat-map',
+    }, { priority: 'low' }).catch(() => {});
 
     // Provide user-friendly error messages based on the issue
     let userMessage = 'Unable to load seat map. You can still proceed with booking.';

@@ -6,6 +6,7 @@ import Image from 'next/image';
 import { MaxWidthContainer } from '@/components/layout/MaxWidthContainer';
 import { ArrowLeft, Users, Clock, Shield, CreditCard, Loader2, CheckCircle, Star, MapPin, Calendar, Download, Share2 } from 'lucide-react';
 import { BookingSteps, inputStyles, labelStyles, buttonStyles } from '@/components/shared/BookingSteps';
+import { ExperienceConfirmation } from '@/components/booking/ExperienceConfirmation';
 
 function TourBookingContent() {
   const searchParams = useSearchParams();
@@ -60,6 +61,30 @@ function TourBookingContent() {
       setLoading(false);
     }
   }, [tourId, tourName, price, totalPrice, bookingLink, formData]);
+
+  // Step 3: Premium Full-Page Confirmation
+  if (step === 3) {
+    return (
+      <ExperienceConfirmation
+        type="tour"
+        confirmationId={confirmationId}
+        productName={tourName}
+        productImage={img}
+        duration={duration}
+        rating={4.8}
+        date={formData.date}
+        participants={formData.travelers}
+        customerName={`${formData.firstName} ${formData.lastName}`}
+        customerEmail={formData.email}
+        customerPhone={formData.phone}
+        specialRequests={formData.notes}
+        pricePerPerson={price}
+        totalPrice={totalPrice}
+        currency="USD"
+        cancellable={true}
+      />
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-orange-50/50 to-white">
@@ -233,51 +258,6 @@ function TourBookingContent() {
               </div>
             )}
 
-            {/* Step 3: Confirmation */}
-            {step === 3 && (
-              <div className="bg-white rounded-2xl p-8 shadow-lg border border-gray-100/50 text-center">
-                <div className="w-20 h-20 bg-gradient-to-br from-green-100 to-emerald-100 rounded-full flex items-center justify-center mx-auto mb-5 shadow-inner">
-                  <CheckCircle className="w-10 h-10 text-green-600" />
-                </div>
-                <h2 className="text-2xl font-bold text-gray-900 mb-2">Booking Confirmed!</h2>
-                <p className="text-gray-500 mb-1">Confirmation #{confirmationId}</p>
-                <p className="text-gray-600 mb-6">Check your email at <span className="font-medium">{formData.email}</span> for your voucher.</p>
-
-                <div className="bg-gray-50 rounded-xl p-4 mb-6 text-left">
-                  <div className="grid grid-cols-2 gap-3 text-sm">
-                    <div>
-                      <span className="text-gray-500">Tour</span>
-                      <p className="font-semibold text-gray-900 truncate">{tourName}</p>
-                    </div>
-                    <div>
-                      <span className="text-gray-500">Date</span>
-                      <p className="font-semibold text-gray-900">{formData.date}</p>
-                    </div>
-                    <div>
-                      <span className="text-gray-500">Travelers</span>
-                      <p className="font-semibold text-gray-900">{formData.travelers} {formData.travelers === 1 ? 'person' : 'people'}</p>
-                    </div>
-                    <div>
-                      <span className="text-gray-500">Total Paid</span>
-                      <p className="font-semibold text-orange-600">${totalPrice.toFixed(0)}</p>
-                    </div>
-                  </div>
-                </div>
-
-                <div className="flex gap-3 justify-center">
-                  <button className="px-5 py-2.5 border border-gray-200 rounded-xl font-medium text-gray-700 hover:bg-gray-50 transition-colors flex items-center gap-2">
-                    <Download className="w-4 h-4" /> Voucher
-                  </button>
-                  <button className="px-5 py-2.5 border border-gray-200 rounded-xl font-medium text-gray-700 hover:bg-gray-50 transition-colors flex items-center gap-2">
-                    <Share2 className="w-4 h-4" /> Share
-                  </button>
-                </div>
-
-                <button onClick={() => router.push('/tours')} className={`${buttonStyles.base} ${buttonStyles.primary.orange} mt-6`}>
-                  Book Another Tour
-                </button>
-              </div>
-            )}
           </div>
 
           {/* Sidebar - Tour Summary - Apple Level 6 */}

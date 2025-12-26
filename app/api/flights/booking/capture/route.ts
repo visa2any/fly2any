@@ -4,6 +4,9 @@ import { duffelAPI } from '@/lib/api/duffel';
 import { emailService } from '@/lib/email/service';
 import { paymentService } from '@/lib/payments/payment-service';
 import { applyFlightMarkup } from '@/lib/config/flight-markup';
+import { handleApiError, ErrorCategory, ErrorSeverity } from '@/lib/monitoring/global-error-handler';
+import { alertApiError } from '@/lib/monitoring/customer-error-alerts';
+import { notifyTelegramAdmins, broadcastSSE } from '@/lib/notifications/notification-service';
 
 /**
  * Flight Booking Capture API - Finalize Hold Bookings
@@ -379,6 +382,31 @@ export async function POST(request: NextRequest) {
     console.log(`   Markup Earned: ${currency} ${markupResult.markupAmount.toFixed(2)}`);
     console.log('===========================================\n');
 
+    // Notify admins of successful capture
+    await notifyTelegramAdmins(`
+✈️ <b>HOLD BOOKING CAPTURED</b>
+
+📋 <b>Booking:</b> <code>${booking.bookingReference}</code>
+✅ <b>Status:</b> CONFIRMED
+
+👤 <b>Customer:</b> ${booking.passengers[0]?.firstName || ''} ${booking.passengers[0]?.lastName || ''}
+📧 <b>Email:</b> ${booking.contactInfo?.email || 'N/A'}
+
+💰 <b>Payment:</b>
+• Customer Paid: ${currency} ${customerAmount.toFixed(2)}
+• Net (Duffel): ${currency} ${netPrice.toFixed(2)}
+• Markup: ${currency} ${markupResult.markupAmount.toFixed(2)}
+    `.trim()).catch(() => {});
+
+    // SSE broadcast
+    broadcastSSE('admin', 'booking_captured', {
+      type: 'flight_hold_capture',
+      bookingReference: booking.bookingReference,
+      amount: customerAmount,
+      currency,
+      status: 'confirmed',
+    });
+
     return NextResponse.json({
       success: true,
       message: 'Booking confirmed successfully',
@@ -398,6 +426,12 @@ export async function POST(request: NextRequest) {
 
   } catch (error: any) {
     console.error('❌ Hold capture error:', error);
+
+    // Alert admins about capture failure
+    await alertApiError(request, error, {
+      errorCode: 'HOLD_CAPTURE_FAILED',
+      endpoint: '/api/flights/booking/capture',
+    }, { priority: 'critical' }).catch(() => {});
 
     return NextResponse.json(
       {

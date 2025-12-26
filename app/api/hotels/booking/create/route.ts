@@ -1,11 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { prisma } from '@/lib/prisma';
+import { prisma, getPrismaClient } from '@/lib/prisma';
 import { liteAPI } from '@/lib/api/liteapi';
 import { getPaymentIntent } from '@/lib/payments/stripe-hotel';
 import { sendHotelConfirmationEmail } from '@/lib/email/hotel-confirmation';
 import { auth } from '@/lib/auth';
 import { checkRateLimit, bookingRateLimit, addRateLimitHeaders } from '@/lib/security/rate-limiter';
 import { handleApiError, ErrorCategory, ErrorSeverity } from '@/lib/monitoring/global-error-handler';
+import { notifyTelegramAdmins, broadcastSSE } from '@/lib/notifications/notification-service';
 
 // Environment flags for production safety
 const ALLOW_DEMO_PAYMENTS = process.env.ALLOW_DEMO_PAYMENTS === 'true';
@@ -367,6 +368,75 @@ export async function POST(request: NextRequest) {
         }
       } catch (emailError) {
         console.warn('⚠️ Email failed:', emailError);
+      }
+
+      // STEP 5: Telegram admin notification
+      const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://fly2any.com';
+      try {
+        await notifyTelegramAdmins(`
+🏨 <b>NEW HOTEL BOOKING</b>
+
+📋 <b>Confirmation:</b> <code>${confirmationNumber}</code>
+🟢 <b>Status:</b> Confirmed
+
+👤 <b>Guest:</b> ${body.guestFirstName} ${body.guestLastName}
+📧 <b>Email:</b> ${body.guestEmail}
+📞 <b>Phone:</b> ${body.guestPhone || 'N/A'}
+
+🏨 <b>Hotel:</b> ${body.hotelName}
+📍 <b>Location:</b> ${body.hotelCity || 'N/A'}
+🛏️ <b>Room:</b> ${body.roomName}
+📅 <b>Check-in:</b> ${body.checkInDate}
+📅 <b>Check-out:</b> ${body.checkOutDate}
+
+💰 <b>Total:</b> ${body.currency} ${parseFloat(body.totalPrice).toFixed(2)}
+
+🔗 <a href="${baseUrl}/admin/hotels/bookings/${dbBooking.id}">View in Dashboard</a>
+        `.trim());
+        console.log('📱 Telegram sent');
+      } catch (telegramError: any) {
+        console.warn('⚠️ Telegram failed:', telegramError.message);
+      }
+
+      // STEP 6: SSE broadcast
+      try {
+        broadcastSSE('admin', 'booking_created', {
+          type: 'hotel',
+          confirmationNumber,
+          bookingId: dbBooking.id,
+          timestamp: new Date().toISOString(),
+          customerName: `${body.guestFirstName} ${body.guestLastName}`,
+          hotel: body.hotelName,
+          checkIn: body.checkInDate,
+          checkOut: body.checkOutDate,
+          totalAmount: parseFloat(body.totalPrice),
+          currency: body.currency,
+          status: 'confirmed',
+        });
+      } catch (sseError: any) {
+        console.warn('⚠️ SSE failed:', sseError.message);
+      }
+
+      // STEP 7: In-app admin notifications
+      try {
+        const prismaClient = getPrismaClient();
+        const admins = await prismaClient.adminUser.findMany({ select: { userId: true } });
+        if (admins.length > 0) {
+          await prismaClient.notification.createMany({
+            data: admins.map(admin => ({
+              userId: admin.userId,
+              type: 'booking',
+              title: `🏨 New Hotel: ${confirmationNumber}`,
+              message: `${body.guestFirstName} ${body.guestLastName} - ${body.hotelName}`,
+              priority: 'high',
+              actionUrl: `/admin/hotels/bookings/${dbBooking.id}`,
+              metadata: { bookingId: dbBooking.id, confirmationNumber, productType: 'hotel', hotel: body.hotelName, totalAmount: body.totalPrice },
+            })),
+          });
+          console.log(`🔔 Created ${admins.length} admin notifications`);
+        }
+      } catch (notifError: any) {
+        console.warn('⚠️ Notifications failed:', notifError.message);
       }
     }
 
