@@ -217,7 +217,7 @@ export function AITravelAssistant({ language = 'en' }: Props) {
 
   // VOICE INPUT/OUTPUT INTEGRATION
   // Voice OFF by default - user must click speaker icon to enable
-  const [voiceEnabled, setVoiceEnabled] = useState(true);
+  const [voiceEnabled, setVoiceEnabled] = useState(false);
   const [voiceAutoSending, setVoiceAutoSending] = useState(false);
   const sendMessageRef = useRef<() => void>(() => {});
 

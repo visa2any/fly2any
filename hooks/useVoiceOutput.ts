@@ -62,20 +62,41 @@ export function useVoiceOutput(options: UseVoiceOutputOptions = {}) {
       const availableVoices = synth.getVoices();
       setState(s => ({ ...s, voices: availableVoices }));
 
-      // Auto-select best voice for language (prefer natural/premium voices)
+      // Auto-select best voice for language (prefer most human-like voices)
       if (autoSelectVoice && availableVoices.length > 0) {
         const langCode = getVoiceLanguageCode(language.split('-')[0]);
         const langVoices = availableVoices.filter(v =>
           v.lang.startsWith(langCode.split('-')[0])
         );
 
-        // Priority: Google/Microsoft premium > Natural > Online > Local > Any
+        // PRIORITY ORDER: Most human-like voices first
+        // 1. Microsoft Edge Neural voices (best quality on Windows)
+        // 2. macOS Enhanced voices (best on Mac)
+        // 3. Google Cloud voices
+        // 4. Any Neural/Natural voice
+        // 5. Online voices (cloud-based = better quality)
+        // 6. Local voices as fallback
+
         const preferredVoice =
-          langVoices.find(v => v.name.includes('Natural') || v.name.includes('Neural')) ||
-          langVoices.find(v => v.name.includes('Google') && !v.localService) ||
+          // Microsoft Edge Neural voices - MOST HUMAN (Windows 10/11 + Edge)
+          langVoices.find(v => v.name.includes('Microsoft') && v.name.includes('Online') && v.name.includes('Natural')) ||
+          langVoices.find(v => v.name.includes('Microsoft Aria')) ||
+          langVoices.find(v => v.name.includes('Microsoft Jenny')) ||
+          langVoices.find(v => v.name.includes('Microsoft Guy')) ||
           langVoices.find(v => v.name.includes('Microsoft') && v.name.includes('Online')) ||
-          langVoices.find(v => v.name.includes('Samantha') || v.name.includes('Alex')) || // macOS
-          langVoices.find(v => !v.localService) || // Cloud voices
+          // macOS Premium voices
+          langVoices.find(v => v.name.includes('Samantha') && v.name.includes('Enhanced')) ||
+          langVoices.find(v => v.name.includes('Ava') && !v.name.includes('Compact')) ||
+          langVoices.find(v => v.name.includes('Samantha')) ||
+          langVoices.find(v => v.name.includes('Alex')) ||
+          langVoices.find(v => v.name.includes('Karen') || v.name.includes('Daniel')) || // UK English
+          // Any Neural/Natural voice
+          langVoices.find(v => v.name.includes('Neural') || v.name.includes('Natural')) ||
+          // Google Chrome voices
+          langVoices.find(v => v.name.includes('Google') && v.lang.includes('en')) ||
+          // Cloud voices (usually better than local)
+          langVoices.find(v => !v.localService) ||
+          // Local voices as last resort
           langVoices.find(v => v.localService) ||
           availableVoices[0];
 
@@ -111,11 +132,54 @@ export function useVoiceOutput(options: UseVoiceOutputOptions = {}) {
       return;
     }
 
-    // Create utterance
+    // Create utterance with emotional modulation for natural human feel
     const utterance = new SpeechSynthesisUtterance(processed.text);
     utterance.lang = getVoiceLanguageCode(language.split('-')[0]);
-    utterance.rate = processed.config.speed === 'fast' ? 1.1 : processed.config.speed === 'slow' ? 0.9 : rate;
-    utterance.pitch = pitch;
+
+    // Apply emotional voice modulation for more human-like delivery
+    // Base rates adjusted per emotion for natural prosody
+    let emotionalRate = rate;
+    let emotionalPitch = pitch;
+
+    if (emotion) {
+      switch (emotion) {
+        case 'happy':
+        case 'excited':
+          emotionalRate = 1.05;   // Slightly faster, energetic
+          emotionalPitch = 1.08;  // Slightly higher, cheerful
+          break;
+        case 'frustrated':
+        case 'angry':
+          emotionalRate = 0.88;   // Slower, calming
+          emotionalPitch = 0.95;  // Slightly lower, soothing
+          break;
+        case 'confused':
+        case 'uncertain':
+          emotionalRate = 0.90;   // Slower for clarity
+          emotionalPitch = 1.02;  // Slight uptick, reassuring
+          break;
+        case 'urgent':
+          emotionalRate = 1.08;   // Faster to match urgency
+          emotionalPitch = 1.02;  // Slight emphasis
+          break;
+        case 'sad':
+        case 'disappointed':
+          emotionalRate = 0.85;   // Slower, empathetic
+          emotionalPitch = 0.92;  // Lower, warm
+          break;
+        default:
+          // Professional neutral - slight warmth
+          emotionalRate = 0.95;
+          emotionalPitch = 1.0;
+      }
+    }
+
+    // Apply speed override from processed config
+    if (processed.config.speed === 'fast') emotionalRate = Math.min(emotionalRate + 0.1, 1.2);
+    if (processed.config.speed === 'slow') emotionalRate = Math.max(emotionalRate - 0.1, 0.75);
+
+    utterance.rate = emotionalRate;
+    utterance.pitch = emotionalPitch;
     utterance.volume = volume;
 
     if (state.selectedVoice) {
