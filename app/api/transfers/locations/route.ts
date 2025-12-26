@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getCached, setCache, generateCacheKey } from '@/lib/cache';
 import { getCoverageLevel, COVERAGE_STATS } from '@/lib/api/coverage';
 import { amadeus } from '@/lib/api/amadeus';
+import { handleApiError, ErrorCategory, ErrorSeverity } from '@/lib/monitoring/global-error-handler';
 
 export const dynamic = 'force-dynamic';
 
@@ -284,7 +285,7 @@ function searchLocations(query: string): any[] {
  * Returns airports and cities for transfer pickup/dropoff
  */
 export async function GET(request: NextRequest) {
-  try {
+  return handleApiError(request, async () => {
     const query = request.nextUrl.searchParams.get('query');
 
     // Return popular airports if no query
@@ -346,8 +347,5 @@ export async function GET(request: NextRequest) {
     await setCache(cacheKey, response, 3600);
 
     return NextResponse.json(response, { headers: { 'X-Cache': 'MISS' } });
-  } catch (error: any) {
-    console.error('Transfer locations error:', error);
-    return NextResponse.json({ error: 'Failed to search locations' }, { status: 500 });
-  }
+  }, { category: ErrorCategory.EXTERNAL_API, severity: ErrorSeverity.NORMAL });
 }

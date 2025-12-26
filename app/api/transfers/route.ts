@@ -1,8 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { amadeusAPI } from '@/lib/api/amadeus';
+import { handleApiError, ErrorCategory, ErrorSeverity } from '@/lib/monitoring/global-error-handler';
 
 export async function POST(request: NextRequest) {
-  try {
+  return handleApiError(request, async () => {
     const { startLocationCode, endAddressLine, transferType, startDateTime, passengers } = await request.json();
 
     if (!startLocationCode || !endAddressLine) {
@@ -25,16 +26,5 @@ export async function POST(request: NextRequest) {
     console.log('✅ Successfully fetched transfers');
 
     return NextResponse.json(transfersData);
-  } catch (error: any) {
-    console.error('❌ Error fetching transfers:', error);
-
-    // Return empty data instead of error to allow graceful fallback
-    return NextResponse.json(
-      {
-        data: [],
-        meta: { hasRealData: false }
-      },
-      { status: 200 } // Return 200 so component can handle gracefully
-    );
-  }
+  }, { category: ErrorCategory.EXTERNAL_API, severity: ErrorSeverity.HIGH });
 }
