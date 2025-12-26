@@ -2562,8 +2562,8 @@ export function AITravelAssistant({ language = 'en' }: Props) {
 
               {/* Quick Actions - Apple Level 6 Premium Pills */}
               {messages.length === 1 && (
-                <div className="px-4 py-3 bg-white/95 dark:bg-neutral-900/95 backdrop-blur-sm border-t border-neutral-200/60 dark:border-neutral-700/60">
-                  <p className="text-[10px] font-semibold text-neutral-500 dark:text-neutral-400 mb-2 uppercase tracking-wider">
+                <div className="px-4 py-3 bg-[#FAFAFA] dark:bg-[#1A1A1A] border-t border-neutral-200/60 dark:border-[#2B2B2B]">
+                  <p className="text-[10px] font-semibold text-[#6B6B6B] dark:text-neutral-400 mb-2 uppercase tracking-wider">
                     {t.quickActions}
                   </p>
                   <div className="flex flex-wrap gap-2">
@@ -2571,7 +2571,7 @@ export function AITravelAssistant({ language = 'en' }: Props) {
                       <button
                         key={idx}
                         onClick={() => handleQuickQuestion(question)}
-                        className="text-[12px] px-3.5 py-1.5 bg-neutral-50/80 dark:bg-neutral-800/80 hover:bg-fly2any-red/10 dark:hover:bg-fly2any-red/20 border border-neutral-200/60 dark:border-neutral-700/60 hover:border-fly2any-red/40 text-neutral-700 dark:text-neutral-200 hover:text-fly2any-red rounded-full transition-all duration-200 font-medium"
+                        className="text-[12px] px-3.5 py-1.5 bg-white dark:bg-[#222222] hover:bg-fly2any-red/10 dark:hover:bg-fly2any-red/20 border border-neutral-200 dark:border-[#2B2B2B] hover:border-fly2any-red/50 text-[#1C1C1C] dark:text-neutral-100 hover:text-fly2any-red rounded-full transition-all duration-200 font-medium shadow-sm"
                       >
                         {question}
                       </button>
@@ -2582,8 +2582,8 @@ export function AITravelAssistant({ language = 'en' }: Props) {
 
               {/* Contact Support - Apple Level 6 Premium */}
               {messages.length >= 3 && (
-              <div className="px-4 py-2.5 bg-neutral-50/80 dark:bg-neutral-900/80 backdrop-blur-sm border-t border-neutral-200/60 dark:border-neutral-700/60 flex items-center justify-between animate-[fade-in_0.3s_ease-out]">
-                <p className="text-[10px] text-neutral-500 dark:text-neutral-400 font-medium">
+              <div className="px-4 py-2.5 bg-[#F2F2F2] dark:bg-[#1A1A1A] border-t border-neutral-200/60 dark:border-[#2B2B2B] flex items-center justify-between animate-[fade-in_0.3s_ease-out]">
+                <p className="text-[10px] text-[#6B6B6B] dark:text-neutral-400 font-medium">
                   {t.contactSupport}
                 </p>
                 <div className="flex gap-2">
@@ -2608,7 +2608,7 @@ export function AITravelAssistant({ language = 'en' }: Props) {
               )}
 
               {/* Input Area - Apple Level 6 Ultra-Premium with Voice */}
-              <div className="p-4 bg-white/98 dark:bg-neutral-900/98 backdrop-blur-xl border-t border-neutral-200/60 dark:border-neutral-700/60 shadow-[0_-4px_24px_rgba(0,0,0,0.04)]">
+              <div className="p-4 bg-white dark:bg-[#0E0E0E] border-t border-neutral-200 dark:border-[#222222] shadow-[0_-4px_24px_rgba(0,0,0,0.04)]">
                 {/* Voice Status Indicator */}
                 {(voiceInput.isListening || voiceOutput.isSpeaking) && (
                   <div className="flex justify-center mb-3">
@@ -2645,12 +2645,12 @@ export function AITravelAssistant({ language = 'en' }: Props) {
                       onKeyPress={handleKeyPress}
                       placeholder={voiceInput.isListening ? (language === 'pt' ? 'Ouvindo...' : language === 'es' ? 'Escuchando...' : 'Listening...') : t.placeholder}
                       className={cn(
-                        'w-full px-4 py-3 border-2 rounded-2xl text-[14px] placeholder:text-neutral-400 dark:placeholder:text-neutral-500 transition-all duration-300 ease-[cubic-bezier(0.2,0.8,0.2,1)] bg-neutral-50/80 dark:bg-neutral-800/80',
+                        'w-full px-4 py-3 border-2 rounded-2xl text-[14px] text-[#1C1C1C] dark:text-white placeholder:text-[#9F9F9F] dark:placeholder:text-neutral-500 transition-all duration-300 ease-[cubic-bezier(0.2,0.8,0.2,1)] bg-[#FAFAFA] dark:bg-[#1A1A1A]',
                         voiceAutoSending
-                          ? 'border-success bg-success/5 ring-2 ring-success/30 animate-pulse'
+                          ? 'border-[#27C56B] bg-[#27C56B]/5 ring-2 ring-[#27C56B]/30 animate-pulse'
                           : voiceInput.isListening
                           ? 'border-fly2any-red/60 bg-fly2any-red/5 dark:bg-fly2any-red/10 ring-2 ring-fly2any-red/20'
-                          : 'border-neutral-200/80 dark:border-neutral-700/80 focus:border-fly2any-red/60 focus:ring-4 focus:ring-fly2any-red/10 dark:focus:ring-fly2any-red/20'
+                          : 'border-[#E6E6E6] dark:border-[#2B2B2B] focus:border-fly2any-red focus:ring-4 focus:ring-fly2any-red/10 dark:focus:ring-fly2any-red/20'
                       )}
                       disabled={voiceAutoSending}
                     />
@@ -2679,8 +2679,8 @@ export function AITravelAssistant({ language = 'en' }: Props) {
                     )}
                   </button>
                 </div>
-                <p className="text-[10px] text-neutral-400 dark:text-neutral-500 mt-3 text-center flex items-center justify-center gap-1.5 font-medium">
-                  <span className="inline-block w-1.5 h-1.5 bg-emerald-500 rounded-full animate-pulse shadow-[0_0_6px_rgba(52,211,153,0.5)]"></span>
+                <p className="text-[10px] text-[#6B6B6B] dark:text-neutral-500 mt-3 text-center flex items-center justify-center gap-1.5 font-medium">
+                  <span className="inline-block w-1.5 h-1.5 bg-[#27C56B] rounded-full animate-pulse shadow-[0_0_6px_rgba(39,197,107,0.5)]"></span>
                   {t.poweredBy}
                 </p>
               </div>
