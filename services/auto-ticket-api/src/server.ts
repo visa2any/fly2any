@@ -397,9 +397,206 @@ app.post('/viator-book', async (req, res) => {
   }
 });
 
+// ═══════════════════════════════════════════════════════════════════
+// GETYOURGUIDE PARTNER AUTOMATION
+// ═══════════════════════════════════════════════════════════════════
+
+app.post('/gyg-book', async (req, res) => {
+  const {
+    bookingId,
+    bookingReference,
+    tourData,
+    gygEmail,
+    gygPassword,
+    dryRun = true
+  } = req.body;
+
+  if (!tourData || !gygEmail || !gygPassword) {
+    return res.status(400).json({ success: false, error: 'Missing required fields' });
+  }
+
+  console.log('═══════════════════════════════════════════════════');
+  console.log(`🎟️ GETYOURGUIDE BOOKING: ${bookingReference}`);
+  console.log(`   Tour: ${tourData.tourName}`);
+  console.log(`   Mode: ${dryRun ? 'DRY RUN' : 'LIVE'}`);
+  console.log('═══════════════════════════════════════════════════');
+
+  let browser: Browser | null = null;
+  const screenshots: string[] = [];
+
+  try {
+    browser = await chromium.launch({ headless: true });
+    const context = await browser.newContext();
+    const page = await context.newPage();
+
+    // 1. Login to GetYourGuide Partner portal
+    console.log('📍 Step 1: Logging into GetYourGuide Partner...');
+    await page.goto('https://partner.getyourguide.com/login');
+    await page.waitForLoadState('networkidle');
+
+    await page.fill('input[name="email"], input[type="email"], #email', gygEmail);
+    await page.fill('input[name="password"], input[type="password"], #password', gygPassword);
+    await page.click('button[type="submit"]');
+    await page.waitForLoadState('networkidle');
+    await page.waitForTimeout(3000);
+
+    const loginFailed = await page.$('text=Invalid, text=incorrect, .error, [class*="error"]');
+    if (loginFailed) {
+      throw new Error('GetYourGuide login failed - check credentials');
+    }
+    console.log('✅ Logged into GetYourGuide Partner');
+
+    // 2. Search for activity
+    console.log(`📍 Step 2: Searching for: ${tourData.tourName}...`);
+
+    if (tourData.productCode || tourData.activityId) {
+      await page.goto(`https://partner.getyourguide.com/activity/${tourData.productCode || tourData.activityId}`);
+    } else {
+      // Use search
+      const searchInput = await page.$('input[type="search"], input[placeholder*="Search"], [data-testid="search-input"]');
+      if (searchInput) {
+        await searchInput.fill(tourData.tourName);
+        await page.keyboard.press('Enter');
+        await page.waitForLoadState('networkidle');
+        await page.waitForTimeout(2000);
+
+        // Click first result
+        await page.click('.activity-card, [data-testid="activity-item"], .search-result').catch(() => {});
+      }
+    }
+
+    await page.waitForLoadState('networkidle');
+
+    // 3. Select date and options
+    console.log(`📍 Step 3: Selecting date: ${tourData.date}...`);
+
+    const dateInput = await page.$('input[type="date"], [data-testid="date-picker"], input[name="date"]');
+    if (dateInput) {
+      await dateInput.fill(tourData.date);
+    } else {
+      // Calendar picker
+      await page.click('[data-testid="calendar-trigger"], button:has-text("Select date")').catch(() => {});
+      await page.waitForTimeout(500);
+    }
+
+    // Time slot
+    if (tourData.timeSlot) {
+      await page.click(`text=${tourData.timeSlot}, [data-time="${tourData.timeSlot}"]`).catch(() => {
+        console.log('⚠️ Time slot selector not found');
+      });
+    }
+
+    // 4. Set participants
+    console.log(`📍 Step 4: Setting ${tourData.travelers} participants...`);
+
+    const participantsInput = await page.$('input[name="participants"], input[name="adults"], select[name="travelers"]');
+    if (participantsInput) {
+      const tag = await participantsInput.evaluate(el => el.tagName);
+      if (tag === 'SELECT') {
+        await participantsInput.selectOption(tourData.travelers.toString());
+      } else {
+        await participantsInput.fill(tourData.travelers.toString());
+      }
+    } else {
+      // +/- buttons
+      for (let i = 1; i < tourData.travelers; i++) {
+        await page.click('button[aria-label="Increase"], button:has-text("+")').catch(() => {});
+        await page.waitForTimeout(200);
+      }
+    }
+
+    // Get partner price
+    const priceEl = await page.$('.partner-price, .net-price, [class*="price"]:not([class*="retail"])');
+    let partnerPrice = 0;
+    if (priceEl) {
+      const priceText = await priceEl.textContent();
+      const match = priceText?.match(/[\$€]?([0-9,]+\.?[0-9]*)/);
+      if (match) partnerPrice = parseFloat(match[1].replace(',', ''));
+    }
+    console.log(`💰 Partner price: $${partnerPrice}`);
+
+    // 5. Fill traveler details
+    console.log('📍 Step 5: Filling traveler details...');
+
+    for (let i = 0; i < tourData.passengers.length; i++) {
+      const pax = tourData.passengers[i];
+
+      const fnInput = await page.$(`input[name="participants[${i}].firstName"], input[name="firstName"]`);
+      if (fnInput) await fnInput.fill(pax.firstName);
+
+      const lnInput = await page.$(`input[name="participants[${i}].lastName"], input[name="lastName"]`);
+      if (lnInput) await lnInput.fill(pax.lastName);
+    }
+
+    // Contact info
+    const emailInput = await page.$('input[name="contactEmail"], input[name="email"]:not([type="hidden"])');
+    if (emailInput && tourData.passengers[0]?.email) {
+      await emailInput.fill(tourData.passengers[0].email);
+    }
+
+    const phoneInput = await page.$('input[name="contactPhone"], input[name="phone"], input[type="tel"]');
+    if (phoneInput && tourData.passengers[0]?.phone) {
+      await phoneInput.fill(tourData.passengers[0].phone);
+    }
+
+    console.log('✅ Traveler details filled');
+
+    // 6. Complete or dry run
+    if (dryRun) {
+      console.log('📝 DRY RUN - Stopping before booking');
+      const screenshotBuffer = await page.screenshot({ fullPage: true });
+      screenshots.push(screenshotBuffer.toString('base64'));
+
+      return res.json({
+        success: true,
+        dryRun: true,
+        partnerPrice,
+        message: 'Dry run complete - booking NOT submitted',
+        screenshots,
+      });
+    }
+
+    // LIVE
+    console.log('🚀 LIVE MODE - Completing booking...');
+    await page.click('button:has-text("Book"), button:has-text("Confirm"), button[type="submit"]');
+    await page.waitForLoadState('networkidle');
+    await page.waitForTimeout(5000);
+
+    // Get confirmation
+    const confirmEl = await page.$('[class*="confirmation"], [class*="booking-ref"], [data-testid="booking-reference"]');
+    let confirmationCode = '';
+    if (confirmEl) {
+      const text = await confirmEl.textContent();
+      const match = text?.match(/[A-Z0-9]{6,}/);
+      if (match) confirmationCode = match[0];
+    }
+
+    console.log(`✅ GYG BOOKING COMPLETE! Confirmation: ${confirmationCode}`);
+
+    return res.json({
+      success: true,
+      dryRun: false,
+      confirmationCode,
+      partnerPrice,
+      message: 'Activity booked via GetYourGuide',
+    });
+
+  } catch (error: any) {
+    console.error('❌ GetYourGuide error:', error.message);
+    return res.status(500).json({
+      success: false,
+      error: error.message,
+      screenshots,
+    });
+  } finally {
+    if (browser) await browser.close();
+  }
+});
+
 app.listen(PORT, () => {
   console.log(`🚀 Auto-ticket API running on port ${PORT}`);
   console.log(`   Endpoints:`);
   console.log(`   - POST /auto-ticket (Flight consolidator)`);
-  console.log(`   - POST /viator-book (Tours/Activities)`);
+  console.log(`   - POST /viator-book (Tours - Viator)`);
+  console.log(`   - POST /gyg-book (Tours - GetYourGuide)`);
 });
