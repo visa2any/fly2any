@@ -868,41 +868,54 @@ export function AITravelAssistant({ language = 'en' }: Props) {
     const handoffNeeded = needsHandoff(previousTeam, consultantTeam as HandoffTeamType);
 
     if (handoffNeeded && previousTeam) {
-      // Previous consultant briefly announces transfer (template OK for this)
-      const previousConsultant = getConsultant(previousTeam as TeamType);
-      const transferMsg = language === 'en'
-        ? `Let me connect you with ${consultant.name}, our ${consultant.title.toLowerCase()}...`
-        : language === 'pt'
-        ? `Deixe-me conectá-lo com ${consultant.name}, nosso especialista...`
-        : `Permíteme conectarte con ${consultant.name}, nuestro especialista...`;
+      try {
+        // Previous consultant briefly announces transfer (template OK for this)
+        const previousConsultant = getConsultant(previousTeam as TeamType);
+        const transferMsg = language === 'en'
+          ? `Let me connect you with ${consultant.name}, our ${consultant.title.toLowerCase()}...`
+          : language === 'pt'
+          ? `Deixe-me conectá-lo com ${consultant.name}, nosso especialista...`
+          : `Permíteme conectarte con ${consultant.name}, nuestro especialista...`;
 
-      await sendAIResponseWithTyping(
-        transferMsg,
-        previousConsultant,
-        queryText,
-        undefined,
-        'service-request'
-      );
+        await sendAIResponseWithTyping(
+          transferMsg,
+          previousConsultant,
+          queryText,
+          undefined,
+          'service-request'
+        );
 
-      // Small delay for smooth transition
-      await new Promise(resolve => setTimeout(resolve, 1200));
+        // Small delay for smooth transition
+        await new Promise(resolve => setTimeout(resolve, 1200));
 
-      // New consultant introduces themselves via AI streaming (NATURAL response)
-      // The AI will generate a personalized introduction + response to user's query
-      const handoffHistory = [
-        ...messages.slice(-4).map(m => ({ role: m.role as 'user' | 'assistant', content: m.content })),
-        { role: 'user' as const, content: queryText }
-      ];
+        // New consultant introduces themselves via AI streaming (NATURAL response)
+        const handoffHistory = [
+          ...messages.slice(-4).map(m => ({ role: m.role as 'user' | 'assistant', content: m.content })),
+          { role: 'user' as const, content: queryText }
+        ];
 
-      await sendStreamingAIResponse(
-        queryText,
-        consultant,
-        handoffHistory,
-        previousTeam,
-        'handoff'
-      );
+        await sendStreamingAIResponse(
+          queryText,
+          consultant,
+          handoffHistory,
+          previousTeam,
+          'handoff'
+        );
 
-      return; // AI handled the full response including introduction
+        return; // AI handled the full response including introduction
+      } catch (handoffError) {
+        console.error('[AI Assistant] Handoff error:', handoffError);
+        // Graceful recovery: Show error message and let user retry
+        setIsTyping(false);
+        setMessages(prev => [...prev, {
+          id: Date.now().toString(),
+          role: 'assistant',
+          content: `I apologize, I encountered a brief issue connecting you. Let me help you directly - could you please repeat your request?`,
+          timestamp: new Date(),
+          consultant
+        }]);
+        return;
+      }
     }
 
     const engagement = getEngagementStage(
