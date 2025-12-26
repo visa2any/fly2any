@@ -868,49 +868,41 @@ export function AITravelAssistant({ language = 'en' }: Props) {
     const handoffNeeded = needsHandoff(previousTeam, consultantTeam as HandoffTeamType);
 
     if (handoffNeeded && previousTeam) {
-      // Extract context from user message for handoff
-      const contextParams = extractSearchContext(queryText, consultantTeam);
-
-      const handoff = generateHandoffMessage(
-        previousTeam as HandoffTeamType,
-        consultantTeam as HandoffTeamType,
-        queryText,
-        contextParams // Pass extracted context
-      );
-
-      // Previous consultant announces transfer
+      // Previous consultant briefly announces transfer (template OK for this)
       const previousConsultant = getConsultant(previousTeam as TeamType);
+      const transferMsg = language === 'en'
+        ? `Let me connect you with ${consultant.name}, our ${consultant.title.toLowerCase()}...`
+        : language === 'pt'
+        ? `Deixe-me conectá-lo com ${consultant.name}, nosso especialista...`
+        : `Permíteme conectarte con ${consultant.name}, nuestro especialista...`;
+
       await sendAIResponseWithTyping(
-        handoff.transferAnnouncement,
+        transferMsg,
         previousConsultant,
         queryText,
         undefined,
         'service-request'
       );
 
-      // Small delay between consultants
-      await new Promise(resolve => setTimeout(resolve, 1500));
+      // Small delay for smooth transition
+      await new Promise(resolve => setTimeout(resolve, 1200));
 
-      // New consultant introduces themselves with context
-      await sendAIResponseWithTyping(
-        handoff.introduction,
-        consultant,
+      // New consultant introduces themselves via AI streaming (NATURAL response)
+      // The AI will generate a personalized introduction + response to user's query
+      const handoffHistory = [
+        ...conversationHistory.slice(-4).map(m => ({ role: m.role, content: m.content })),
+        { role: 'user' as const, content: queryText }
+      ];
+
+      await sendStreamingAIResponse(
         queryText,
-        undefined,
-        'service-request'
+        consultant,
+        handoffHistory,
+        previousTeam,
+        'handoff'
       );
 
-      // If context was understood, display confirmation
-      if (handoff.context) {
-        await new Promise(resolve => setTimeout(resolve, 800));
-        await sendAIResponseWithTyping(
-          handoff.context,
-          consultant,
-          queryText,
-          undefined,
-          'confirmation'
-        );
-      }
+      return; // AI handled the full response including introduction
     }
 
     const engagement = getEngagementStage(
