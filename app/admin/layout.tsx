@@ -100,6 +100,11 @@ export default async function AdminLayout({
     }
   }
 
+  // Final safety check - if still no adminUser, redirect
+  if (!adminUser) {
+    redirect('/?error=admin_access_required')
+  }
+
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Full-width admin header */}
