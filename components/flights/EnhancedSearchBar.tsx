@@ -4855,7 +4855,7 @@ export default function EnhancedSearchBar({
                       <button
                         key={index}
                         type="button"
-                        onClick={(e) => { e.preventDefault(); handleTransferPickupSelect(suggestion); }}
+                        onClick={(e) => { e.preventDefault(); handleTransferSuggestionSelect(suggestion, 'pickup'); }}
                         className="w-full px-4 py-3 text-left hover:bg-teal-50 active:bg-teal-100 transition-colors flex items-start gap-3 touch-manipulation min-h-[48px]"
                       >
                         <div className="w-8 h-8 rounded-lg bg-teal-100 flex items-center justify-center text-lg">{suggestion.type === 'airport' ? '✈️' : '📍'}</div>
@@ -4895,7 +4895,7 @@ export default function EnhancedSearchBar({
                       <button
                         key={index}
                         type="button"
-                        onClick={(e) => { e.preventDefault(); handleTransferDropoffSelect(suggestion); }}
+                        onClick={(e) => { e.preventDefault(); handleTransferSuggestionSelect(suggestion, 'dropoff'); }}
                         className="w-full px-4 py-3 text-left hover:bg-teal-50 active:bg-teal-100 transition-colors flex items-start gap-3 touch-manipulation min-h-[48px]"
                       >
                         <div className="w-8 h-8 rounded-lg bg-teal-100 flex items-center justify-center text-lg">{suggestion.type === 'airport' ? '✈️' : '📍'}</div>
