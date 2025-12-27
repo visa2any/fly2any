@@ -379,18 +379,50 @@ export async function GET(request: NextRequest) {
       return NextResponse.json(cached, { headers: { 'X-Cache': 'HIT' } });
     }
 
-    // PRIORITY: Use Amadeus API for REAL coverage (airports + cities worldwide)
-    let results = await searchAmadeusTransferLocations(query, 15);
+    // MERGE Amadeus airports with local hotels/landmarks/POIs
+    // Amadeus only returns airports - we need local database for hotels & landmarks
+    const [amadeusResults, localResults] = await Promise.all([
+      searchAmadeusTransferLocations(query, 10),
+      Promise.resolve(searchLocations(query))
+    ]);
 
-    // Fallback to local database if Amadeus returns nothing
-    if (results.length === 0) {
-      console.log(`⚠️ Amadeus returned 0, using local fallback for "${query}"`);
-      results = searchLocations(query);
+    // Dedupe by combining both sources, prioritizing hotels/landmarks visibility
+    const seenIds = new Set<string>();
+    const results: any[] = [];
+
+    // Add hotels & landmarks FIRST (they're often what users search for)
+    for (const item of localResults) {
+      if ((item.type === 'hotel' || item.type === 'landmark' || item.type === 'area' || item.type === 'venue') && !seenIds.has(item.id)) {
+        seenIds.add(item.id);
+        results.push(item);
+      }
     }
+
+    // Then add Amadeus airports (more comprehensive global coverage)
+    for (const item of amadeusResults) {
+      const key = item.code ? `airport-${item.code}` : item.id;
+      if (!seenIds.has(key)) {
+        seenIds.add(key);
+        results.push(item);
+      }
+    }
+
+    // Finally add local airports and cities
+    for (const item of localResults) {
+      if ((item.type === 'airport' || item.type === 'city') && !seenIds.has(item.id)) {
+        seenIds.add(item.id);
+        results.push(item);
+      }
+    }
+
+    // Limit to top 15 results
+    const finalResults = results.slice(0, 15);
+
+    console.log(`🔍 Transfer locations: "${query}" → ${amadeusResults.length} Amadeus + ${localResults.length} local = ${finalResults.length} results`);
 
     const response = {
       success: true,
-      data: results,
+      data: finalResults,
       meta: {
         count: results.length,
         query,

@@ -398,6 +398,9 @@ export default function EnhancedSearchBar({
   const transferSuggestionsTimerRef = useRef<NodeJS.Timeout | null>(null);
   // Transfer passengers count
   const [transferPassengers, setTransferPassengers] = useState(1);
+  // Transfer location GPS coordinates (for hotels/landmarks that need geocoding)
+  const [transferPickupGeo, setTransferPickupGeo] = useState<{ lat: number; lng: number } | null>(null);
+  const [transferDropoffGeo, setTransferDropoffGeo] = useState<{ lat: number; lng: number } | null>(null);
 
   // Calendar price display state
   const [calendarPrices, setCalendarPrices] = useState<{ [date: string]: number }>({});
@@ -1003,6 +1006,15 @@ export default function EnhancedSearchBar({
         time: carPickupTime,
         passengers: transferPassengers.toString(),
       });
+      // Add GPS coordinates if available (for hotels, landmarks, POIs)
+      if (transferPickupGeo) {
+        params.set('pickupLat', transferPickupGeo.lat.toString());
+        params.set('pickupLng', transferPickupGeo.lng.toString());
+      }
+      if (transferDropoffGeo) {
+        params.set('dropoffLat', transferDropoffGeo.lat.toString());
+        params.set('dropoffLng', transferDropoffGeo.lng.toString());
+      }
       router.push(`/transfers/results?${params.toString()}`);
       onSearchSubmit?.();
       setTimeout(() => setIsLoading(false), 500);
@@ -1348,12 +1360,20 @@ export default function EnhancedSearchBar({
 
   const handleTransferSuggestionSelect = (suggestion: any, field: 'pickup' | 'dropoff') => {
     const nameValue = suggestion.displayName || suggestion.name || suggestion.city || '';
+
+    // Extract GPS coordinates if available (for hotels, landmarks, POIs)
+    const lat = suggestion.latitude || suggestion.location?.lat || 0;
+    const lng = suggestion.longitude || suggestion.location?.lng || 0;
+    const hasValidCoords = Math.abs(lat) > 0.01 && Math.abs(lng) > 0.01;
+
     if (field === 'pickup') {
       setCarPickupLocation(nameValue);
       setShowTransferPickupSuggestions(false);
+      setTransferPickupGeo(hasValidCoords ? { lat, lng } : null);
     } else {
       setCarDropoffLocation(nameValue);
       setShowTransferDropoffSuggestions(false);
+      setTransferDropoffGeo(hasValidCoords ? { lat, lng } : null);
     }
     setTransferSuggestions([]);
   };
@@ -3123,6 +3143,15 @@ export default function EnhancedSearchBar({
                     time: carPickupTime,
                     passengers: hotelAdults.toString(),
                   });
+                  // Add GPS coordinates if available (for hotels, landmarks, POIs)
+                  if (transferPickupGeo) {
+                    params.set('pickupLat', transferPickupGeo.lat.toString());
+                    params.set('pickupLng', transferPickupGeo.lng.toString());
+                  }
+                  if (transferDropoffGeo) {
+                    params.set('dropoffLat', transferDropoffGeo.lat.toString());
+                    params.set('dropoffLng', transferDropoffGeo.lng.toString());
+                  }
                   router.push(`/transfers/results?${params.toString()}`);
                   setTimeout(() => setIsLoading(false), 500);
                 }}

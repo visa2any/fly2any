@@ -169,6 +169,11 @@ function TransferResultsContent() {
   const date = searchParams.get('date') || '';
   const time = searchParams.get('time') || '10:00';
   const passengers = parseInt(searchParams.get('passengers') || '1');
+  // GPS coordinates for hotels/landmarks (optional)
+  const pickupLat = searchParams.get('pickupLat');
+  const pickupLng = searchParams.get('pickupLng');
+  const dropoffLat = searchParams.get('dropoffLat');
+  const dropoffLng = searchParams.get('dropoffLng');
 
   const handleViewDetails = useCallback((transfer: Transfer) => {
     const params = new URLSearchParams({
@@ -198,7 +203,23 @@ function TransferResultsContent() {
       setLoading(true);
       setError('');
       try {
-        const res = await fetch(`/api/transfers/search?pickup=${encodeURIComponent(pickup)}&dropoff=${encodeURIComponent(dropoff)}&date=${date}&passengers=${passengers}`, { signal: controller.signal });
+        // Build API URL with GPS coordinates if available
+        const apiParams = new URLSearchParams({
+          pickup: pickup,
+          dropoff: dropoff,
+          date: date,
+          passengers: passengers.toString(),
+        });
+        // Add GPS coordinates for hotels/landmarks (for accurate geocoding)
+        if (pickupLat && pickupLng) {
+          apiParams.set('pickupLat', pickupLat);
+          apiParams.set('pickupLng', pickupLng);
+        }
+        if (dropoffLat && dropoffLng) {
+          apiParams.set('dropoffLat', dropoffLat);
+          apiParams.set('dropoffLng', dropoffLng);
+        }
+        const res = await fetch(`/api/transfers/search?${apiParams.toString()}`, { signal: controller.signal });
         const data = await res.json();
         if (data.error) throw new Error(data.error);
         setTransfers(data.data || []);
@@ -213,7 +234,7 @@ function TransferResultsContent() {
     };
     if (pickup && dropoff) fetchTransfers();
     return () => controller.abort();
-  }, [pickup, dropoff, date, passengers]);
+  }, [pickup, dropoff, date, passengers, pickupLat, pickupLng, dropoffLat, dropoffLng]);
 
   // Price getter for ProductFilters
   const getPrice = useCallback((t: Transfer) => parseFloat(t.price.amount), []);

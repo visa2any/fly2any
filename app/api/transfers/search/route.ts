@@ -241,6 +241,11 @@ export async function GET(request: NextRequest) {
     const time = searchParams.get('time') || '10:00';
     const passengers = parseInt(searchParams.get('passengers') || '2');
     const transferType = searchParams.get('type') as any;
+    // GPS coordinates passed from search bar (for hotels/landmarks)
+    const pickupLat = searchParams.get('pickupLat');
+    const pickupLng = searchParams.get('pickupLng');
+    const dropoffLat = searchParams.get('dropoffLat');
+    const dropoffLng = searchParams.get('dropoffLng');
 
     if (!pickup || !dropoff || !date) {
       return NextResponse.json({
@@ -276,9 +281,12 @@ export async function GET(request: NextRequest) {
       passengers,
     };
 
-    // Set start location (prefer airport code, then geocode, then address)
+    // Set start location (prefer airport code, then passed GPS coords, then geocode, then address)
     if (pickupCode) {
       amadeusParams.startLocationCode = pickupCode;
+    } else if (pickupLat && pickupLng) {
+      // Use GPS coordinates passed from search bar (for hotels/landmarks)
+      amadeusParams.startGeoCode = { latitude: parseFloat(pickupLat), longitude: parseFloat(pickupLng) };
     } else {
       const pickupGeo = geocodeLocation(pickup);
       if (pickupGeo) {
@@ -288,9 +296,12 @@ export async function GET(request: NextRequest) {
       }
     }
 
-    // Set end location (prefer airport code, then geocode, then address)
+    // Set end location (prefer airport code, then passed GPS coords, then geocode, then address)
     if (dropoffCode) {
       amadeusParams.endLocationCode = dropoffCode;
+    } else if (dropoffLat && dropoffLng) {
+      // Use GPS coordinates passed from search bar (for hotels/landmarks)
+      amadeusParams.endGeoCode = { latitude: parseFloat(dropoffLat), longitude: parseFloat(dropoffLng) };
     } else {
       const dropoffGeo = geocodeLocation(dropoff);
       if (dropoffGeo) {
