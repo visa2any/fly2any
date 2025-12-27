@@ -414,7 +414,21 @@ export function CarRentalsSectionEnhanced({ lang = 'en' }: CarRentalsSectionEnha
                       <div className="text-[10px] text-gray-500">{t.perDay}</div>
                     </div>
                     <button
-                      onClick={() => router.push(`/cars?location=${car.location || selectedLocation}`)}
+                      onClick={() => {
+                        // Navigate to car results with proper search params
+                        const tomorrow = new Date();
+                        tomorrow.setDate(tomorrow.getDate() + 1);
+                        const nextWeek = new Date();
+                        nextWeek.setDate(nextWeek.getDate() + 8);
+                        const locationCode = selectedLocation !== 'all' ? selectedLocation : 'LAX';
+                        const params = new URLSearchParams({
+                          pickup: locationCode,
+                          dropoff: locationCode,
+                          pickupDate: tomorrow.toISOString().split('T')[0],
+                          dropoffDate: nextWeek.toISOString().split('T')[0],
+                        });
+                        router.push(`/cars/results?${params.toString()}`);
+                      }}
                       className="px-3 py-2 bg-primary-600 hover:bg-primary-700 text-white text-xs font-semibold rounded-lg transition-all duration-200 shadow-md hover:shadow-lg flex items-center gap-1"
                     >
                       <span>{t.bookNow}</span>

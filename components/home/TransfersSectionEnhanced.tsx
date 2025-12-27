@@ -240,13 +240,13 @@ export function TransfersSectionEnhanced({ lang = 'en' }: TransfersSectionEnhanc
     : POPULAR_ROUTES.filter(r => r.region === activeFilter).slice(0, 8);
 
   const handleTransferClick = useCallback((route: TransferRoute) => {
-    // Navigate to transfers search with pre-filled data
+    // Navigate to transfers search with airport code in pickup
     const tomorrow = new Date();
     tomorrow.setDate(tomorrow.getDate() + 1);
     const dateStr = tomorrow.toISOString().split('T')[0];
 
     const params = new URLSearchParams({
-      pickup: route.pickup,
+      pickup: `${route.pickup} (${route.pickupCode})`,
       dropoff: route.dropoff,
       date: dateStr,
       time: '10:00',
