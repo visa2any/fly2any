@@ -1,0 +1,216 @@
+{
+  "name": "Fly2Any - All Cron Jobs",
+  "nodes": [
+    {
+      "parameters": { "rule": { "interval": [{ "field": "hours", "hoursInterval": 6 }] } },
+      "name": "SEO Monitor (6hr)",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "position": [100, 100]
+    },
+    {
+      "parameters": {
+        "method": "GET",
+        "url": "https://www.fly2any.com/api/cron/seo-monitor",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "options": {}
+      },
+      "name": "Call SEO Monitor",
+      "type": "n8n-nodes-base.httpRequest",
+      "position": [300, 100]
+    },
+    {
+      "parameters": { "rule": { "interval": [{ "field": "cronExpression", "expression": "0 2 * * *" }] } },
+      "name": "SEO Generate (2am)",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "position": [100, 200]
+    },
+    {
+      "parameters": {
+        "method": "GET",
+        "url": "https://www.fly2any.com/api/cron/seo-generate",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "options": {}
+      },
+      "name": "Call SEO Generate",
+      "type": "n8n-nodes-base.httpRequest",
+      "position": [300, 200]
+    },
+    {
+      "parameters": { "rule": { "interval": [{ "field": "cronExpression", "expression": "0 3 * * *" }] } },
+      "name": "Affiliate Commissions (3am)",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "position": [100, 300]
+    },
+    {
+      "parameters": {
+        "method": "GET",
+        "url": "https://www.fly2any.com/api/cron/process-affiliate-commissions",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "options": {}
+      },
+      "name": "Call Affiliate Commissions",
+      "type": "n8n-nodes-base.httpRequest",
+      "position": [300, 300]
+    },
+    {
+      "parameters": { "rule": { "interval": [{ "field": "hours", "hoursInterval": 1 }] } },
+      "name": "Commission Lifecycle (1hr)",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "position": [100, 400]
+    },
+    {
+      "parameters": {
+        "method": "GET",
+        "url": "https://www.fly2any.com/api/cron/process-commission-lifecycle",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "options": {}
+      },
+      "name": "Call Commission Lifecycle",
+      "type": "n8n-nodes-base.httpRequest",
+      "position": [300, 400]
+    },
+    {
+      "parameters": { "rule": { "interval": [{ "field": "hours", "hoursInterval": 4 }] } },
+      "name": "ML Prefetch (4hr)",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "position": [100, 500]
+    },
+    {
+      "parameters": {
+        "method": "GET",
+        "url": "https://www.fly2any.com/api/ml/prefetch",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "options": {}
+      },
+      "name": "Call ML Prefetch",
+      "type": "n8n-nodes-base.httpRequest",
+      "position": [300, 500]
+    },
+    {
+      "parameters": { "rule": { "interval": [{ "field": "hours", "hoursInterval": 4 }] } },
+      "name": "Price Alerts (4hr)",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "position": [100, 600]
+    },
+    {
+      "parameters": {
+        "method": "GET",
+        "url": "https://www.fly2any.com/api/cron/check-price-alerts",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "options": {}
+      },
+      "name": "Call Price Alerts",
+      "type": "n8n-nodes-base.httpRequest",
+      "position": [300, 600]
+    },
+    {
+      "parameters": { "rule": { "interval": [{ "field": "hours", "hoursInterval": 6 }] } },
+      "name": "Precompute Routes (6hr)",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "position": [100, 700]
+    },
+    {
+      "parameters": {
+        "method": "GET",
+        "url": "https://www.fly2any.com/api/cron/precompute-routes",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "options": {}
+      },
+      "name": "Call Precompute Routes",
+      "type": "n8n-nodes-base.httpRequest",
+      "position": [300, 700]
+    },
+    {
+      "parameters": { "rule": { "interval": [{ "field": "hours", "hoursInterval": 4 }] } },
+      "name": "Price Monitor (4hr)",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "position": [100, 800]
+    },
+    {
+      "parameters": {
+        "method": "GET",
+        "url": "https://www.fly2any.com/api/cron/price-monitor",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "options": {}
+      },
+      "name": "Call Price Monitor",
+      "type": "n8n-nodes-base.httpRequest",
+      "position": [300, 800]
+    },
+    {
+      "parameters": { "rule": { "interval": [{ "field": "cronExpression", "expression": "0 3 * * *" }] } },
+      "name": "Scheduled Tasks (3am)",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "position": [100, 900]
+    },
+    {
+      "parameters": {
+        "method": "GET",
+        "url": "https://www.fly2any.com/api/cron/scheduled-tasks",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "options": {}
+      },
+      "name": "Call Scheduled Tasks",
+      "type": "n8n-nodes-base.httpRequest",
+      "position": [300, 900]
+    },
+    {
+      "parameters": { "rule": { "interval": [{ "field": "hours", "hoursInterval": 4 }] } },
+      "name": "Social Distribute (4hr)",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "position": [100, 1000]
+    },
+    {
+      "parameters": {
+        "method": "GET",
+        "url": "https://www.fly2any.com/api/cron/social-distribute",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "options": {}
+      },
+      "name": "Call Social Distribute",
+      "type": "n8n-nodes-base.httpRequest",
+      "position": [300, 1000]
+    },
+    {
+      "parameters": { "rule": { "interval": [{ "field": "cronExpression", "expression": "0 6,14 * * *" }] } },
+      "name": "Content Generate (6am,2pm)",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "position": [100, 1100]
+    },
+    {
+      "parameters": {
+        "method": "GET",
+        "url": "https://www.fly2any.com/api/cron/content-generate",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "options": {}
+      },
+      "name": "Call Content Generate",
+      "type": "n8n-nodes-base.httpRequest",
+      "position": [300, 1100]
+    }
+  ],
+  "connections": {
+    "SEO Monitor (6hr)": { "main": [[{ "node": "Call SEO Monitor", "type": "main", "index": 0 }]] },
+    "SEO Generate (2am)": { "main": [[{ "node": "Call SEO Generate", "type": "main", "index": 0 }]] },
+    "Affiliate Commissions (3am)": { "main": [[{ "node": "Call Affiliate Commissions", "type": "main", "index": 0 }]] },
+    "Commission Lifecycle (1hr)": { "main": [[{ "node": "Call Commission Lifecycle", "type": "main", "index": 0 }]] },
+    "ML Prefetch (4hr)": { "main": [[{ "node": "Call ML Prefetch", "type": "main", "index": 0 }]] },
+    "Price Alerts (4hr)": { "main": [[{ "node": "Call Price Alerts", "type": "main", "index": 0 }]] },
+    "Precompute Routes (6hr)": { "main": [[{ "node": "Call Precompute Routes", "type": "main", "index": 0 }]] },
+    "Price Monitor (4hr)": { "main": [[{ "node": "Call Price Monitor", "type": "main", "index": 0 }]] },
+    "Scheduled Tasks (3am)": { "main": [[{ "node": "Call Scheduled Tasks", "type": "main", "index": 0 }]] },
+    "Social Distribute (4hr)": { "main": [[{ "node": "Call Social Distribute", "type": "main", "index": 0 }]] },
+    "Content Generate (6am,2pm)": { "main": [[{ "node": "Call Content Generate", "type": "main", "index": 0 }]] }
+  }
+}
