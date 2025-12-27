@@ -274,20 +274,36 @@ export function useVoiceInput(options: UseVoiceInputOptions = {}) {
     }
   }, [initRecognition, onError, startAudioAnalysis, stopAudioAnalysis, maxDuration]);
 
-  // Stop listening
-  const stopListening = useCallback(() => {
+  // Stop listening (with optional cancel)
+  const stopListening = useCallback((cancel = false) => {
     if (timeoutRef.current) clearTimeout(timeoutRef.current);
     if (durationIntervalRef.current) clearInterval(durationIntervalRef.current);
     if (silenceTimerRef.current) clearTimeout(silenceTimerRef.current);
 
     if (recognitionRef.current) {
-      try { recognitionRef.current.stop(); } catch {}
+      try {
+        if (cancel) {
+          recognitionRef.current.abort(); // Cancel without firing result
+        } else {
+          recognitionRef.current.stop();
+        }
+      } catch {}
     }
 
     stopAudioAnalysis();
     isListeningRef.current = false;
-    setState(s => ({ ...s, isListening: false, recordingDuration: 0 }));
+    setState(s => ({
+      ...s,
+      isListening: false,
+      recordingDuration: 0,
+      ...(cancel ? { transcript: '', interimTranscript: '' } : {})
+    }));
   }, [stopAudioAnalysis]);
+
+  // Cancel recording (clears transcript)
+  const cancelListening = useCallback(() => {
+    stopListening(true);
+  }, [stopListening]);
 
   // Toggle listening
   const toggleListening = useCallback(() => {
@@ -315,6 +331,7 @@ export function useVoiceInput(options: UseVoiceInputOptions = {}) {
     ...state,
     startListening,
     stopListening,
+    cancelListening,
     toggleListening,
     clearError,
   };

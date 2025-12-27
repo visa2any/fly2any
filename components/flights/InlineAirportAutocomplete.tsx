@@ -7,8 +7,10 @@ import { AIRPORTS, searchAirports, type Airport } from '@/lib/data/airports-all'
 interface InlineAirportAutocompleteProps {
   value: string;
   onChange: (codes: string[]) => void;
+  onSelectFull?: (airport: { code: string; name: string; city: string }) => void;
   placeholder?: string;
   disabled?: boolean;
+  displayName?: string; // Show this instead of just code
 }
 
 // Get popular airports for initial display
@@ -23,22 +25,26 @@ const popularAirports = AIRPORTS.filter(a => a.popular).slice(0, 20);
 export function InlineAirportAutocomplete({
   value,
   onChange,
+  onSelectFull,
   placeholder = 'Airport code',
-  disabled = false
+  disabled = false,
+  displayName
 }: InlineAirportAutocompleteProps) {
-  const [inputValue, setInputValue] = useState(value);
+  const [inputValue, setInputValue] = useState(displayName || value);
   const [showDropdown, setShowDropdown] = useState(false);
   const [suggestions, setSuggestions] = useState<Airport[]>([]);
   const [highlightedIndex, setHighlightedIndex] = useState(-1);
   const containerRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
-  // Update input when value prop changes
+  // Update input when value/displayName prop changes
   useEffect(() => {
-    if (value && value !== inputValue) {
+    if (displayName) {
+      setInputValue(displayName);
+    } else if (value && value !== inputValue && !inputValue.includes('(')) {
       setInputValue(value);
     }
-  }, [value]);
+  }, [value, displayName]);
 
   // Close dropdown when clicking outside
   useEffect(() => {
@@ -80,8 +86,10 @@ export function InlineAirportAutocomplete({
   };
 
   const handleSelectAirport = (airport: Airport) => {
-    setInputValue(airport.code);
+    const display = `${airport.city} (${airport.code})`;
+    setInputValue(display);
     onChange([airport.code]);
+    onSelectFull?.({ code: airport.code, name: airport.name, city: airport.city });
     setShowDropdown(false);
   };
 

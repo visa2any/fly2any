@@ -24,10 +24,14 @@ interface VoiceMicButtonProps {
   audioLevel?: number;          // 0-100 for waveform
   recordingDuration?: number;   // seconds
   onToggle: () => void;
+  onStart?: () => void;         // For hold-to-record
+  onStop?: () => void;          // For hold-to-record (sends)
+  onCancel?: () => void;        // For swipe-to-cancel
   onStopSpeaking?: () => void;
   className?: string;
   size?: 'sm' | 'md' | 'lg';
   variant?: 'default' | 'minimal' | 'floating';
+  holdToRecord?: boolean;       // Enable WhatsApp-style hold
 }
 
 export function VoiceMicButton({
@@ -39,10 +43,14 @@ export function VoiceMicButton({
   audioLevel = 0,
   recordingDuration = 0,
   onToggle,
+  onStart,
+  onStop,
+  onCancel,
   onStopSpeaking,
   className,
   size = 'md',
   variant = 'default',
+  holdToRecord = false,
 }: VoiceMicButtonProps) {
   // Format duration as MM:SS
   const formatDuration = (seconds: number) => {
@@ -52,6 +60,55 @@ export function VoiceMicButton({
   };
   const [showPermissionHint, setShowPermissionHint] = useState(false);
   const [isPressed, setIsPressed] = useState(false);
+  const [isHolding, setIsHolding] = useState(false);
+  const [swipeOffset, setSwipeOffset] = useState(0);
+  const [cancelled, setCancelled] = useState(false);
+  const startXRef = { current: 0 };
+
+  // WhatsApp-style hold-to-record handlers
+  const handleTouchStart = (e: React.TouchEvent) => {
+    if (!holdToRecord) return;
+    e.preventDefault();
+    startXRef.current = e.touches[0].clientX;
+    setIsHolding(true);
+    setCancelled(false);
+    setSwipeOffset(0);
+    onStart?.();
+  };
+
+  const handleTouchMove = (e: React.TouchEvent) => {
+    if (!isHolding) return;
+    const offset = e.touches[0].clientX - startXRef.current;
+    setSwipeOffset(Math.min(0, offset)); // Only allow left swipe
+    if (offset < -80) {
+      setCancelled(true);
+    }
+  };
+
+  const handleTouchEnd = () => {
+    if (!isHolding) return;
+    setIsHolding(false);
+    if (cancelled) {
+      onCancel?.(); // Cancel without sending
+    } else {
+      onStop?.(); // Stop and send
+    }
+    setSwipeOffset(0);
+    setCancelled(false);
+  };
+
+  const handleMouseDown = () => {
+    if (!holdToRecord) return;
+    setIsHolding(true);
+    setCancelled(false);
+    onStart?.();
+  };
+
+  const handleMouseUp = () => {
+    if (!isHolding) return;
+    setIsHolding(false);
+    onStop?.();
+  };
 
   const sizeClasses = {
     sm: 'h-9 w-9',
@@ -162,24 +219,32 @@ export function VoiceMicButton({
           </>
         )}
 
-        {/* Button */}
+        {/* Button - WhatsApp-style with hold-to-record */}
         <button
           type="button"
-          onClick={onToggle}
-          onMouseDown={() => setIsPressed(true)}
-          onMouseUp={() => setIsPressed(false)}
-          onMouseLeave={() => setIsPressed(false)}
+          onClick={!holdToRecord ? onToggle : undefined}
+          onMouseDown={holdToRecord ? handleMouseDown : () => setIsPressed(true)}
+          onMouseUp={holdToRecord ? handleMouseUp : () => setIsPressed(false)}
+          onMouseLeave={() => { setIsPressed(false); if (isHolding) handleMouseUp(); }}
+          onTouchStart={handleTouchStart}
+          onTouchMove={handleTouchMove}
+          onTouchEnd={handleTouchEnd}
           className={cn(
-            'relative flex items-center justify-center',
+            'relative flex items-center justify-center touch-none select-none',
             'focus:outline-none focus-visible:ring-2 focus-visible:ring-fly2any-red/50 focus-visible:ring-offset-2',
-            'active:scale-95 transition-transform duration-100',
-            isPressed && !isListening && 'scale-95',
+            'transition-all duration-100',
+            (isPressed || isHolding) && !isListening && 'scale-110',
+            isListening && 'scale-105',
+            cancelled && 'opacity-50',
             sizeClasses[size],
             variantClasses[variant],
+            // Mobile: larger touch target
+            'min-w-[44px] min-h-[44px]',
             className
           )}
-          aria-label={isListening ? 'Stop voice input' : error ? 'Retry voice input' : 'Start voice input'}
-          title={error ? 'Click to retry' : isListening ? 'Click to stop' : 'Click to speak'}
+          style={{ transform: swipeOffset ? `translateX(${swipeOffset}px)` : undefined }}
+          aria-label={isListening ? 'Release to send' : holdToRecord ? 'Hold to record' : 'Tap to speak'}
+          title={holdToRecord ? 'Hold to record, swipe left to cancel' : 'Tap to speak'}
         >
           {/* Inner Glow when listening */}
           {isListening && (
@@ -239,49 +304,72 @@ export function VoiceMicButton({
         </button>
       )}
 
-      {/* WhatsApp-style Recording Timer + Live Transcript */}
+      {/* WhatsApp-style Recording Panel - Mobile Optimized */}
       {isListening && (
-        <div className="absolute left-full ml-3 top-1/2 -translate-y-1/2 whitespace-nowrap z-20">
+        <div className={cn(
+          'absolute z-20 animate-[fade-in_0.2s_ease-out]',
+          // Mobile: Show below button, Desktop: Show to the right
+          'max-sm:left-1/2 max-sm:-translate-x-1/2 max-sm:top-full max-sm:mt-2',
+          'sm:left-full sm:ml-3 sm:top-1/2 sm:-translate-y-1/2'
+        )}>
           <div className={cn(
-            'flex items-center gap-3 px-4 py-2',
+            'flex items-center gap-2 sm:gap-3 px-3 sm:px-4 py-2',
             'bg-white/95 dark:bg-neutral-900/95 backdrop-blur-md',
             'rounded-2xl text-sm',
             'border border-neutral-200/50 dark:border-neutral-700/50',
             'shadow-[0_4px_20px_rgba(0,0,0,0.08),0_2px_8px_rgba(0,0,0,0.04)]',
-            'animate-[fade-in_0.2s_ease-out]'
+            cancelled && 'bg-error/10 border-error/30'
           )}>
+            {/* Cancel hint on swipe */}
+            {holdToRecord && cancelled && (
+              <span className="text-error text-xs font-medium animate-pulse">← Cancel</span>
+            )}
+
             {/* Recording indicator dot */}
-            <span className="relative flex h-2 w-2">
-              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-fly2any-red opacity-75" />
-              <span className="relative inline-flex rounded-full h-2 w-2 bg-fly2any-red" />
-            </span>
+            {!cancelled && (
+              <span className="relative flex h-2.5 w-2.5">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-fly2any-red opacity-75" />
+                <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-fly2any-red" />
+              </span>
+            )}
 
             {/* Timer */}
-            <span className="font-mono text-fly2any-red font-semibold min-w-[40px]">
+            <span className={cn(
+              'font-mono font-semibold min-w-[40px]',
+              cancelled ? 'text-error' : 'text-fly2any-red'
+            )}>
               {formatDuration(recordingDuration)}
             </span>
 
-            {/* Waveform mini visualization */}
-            <div className="flex items-center gap-px h-4">
-              {[...Array(8)].map((_, i) => (
+            {/* Waveform visualization - More bars on mobile */}
+            <div className="flex items-center gap-0.5 h-5">
+              {[...Array(10)].map((_, i) => (
                 <span
                   key={i}
-                  className="w-0.5 bg-fly2any-red/60 rounded-full transition-all duration-75"
+                  className={cn(
+                    'w-[3px] rounded-full transition-all duration-75',
+                    cancelled ? 'bg-error/40' : 'bg-fly2any-red/60'
+                  )}
                   style={{
-                    height: `${Math.max(4, (audioLevel / 100) * 16 + Math.sin(Date.now() / 150 + i) * 4)}px`,
+                    height: `${Math.max(4, (audioLevel / 100) * 20 + Math.sin(Date.now() / 100 + i * 0.5) * 4)}px`,
                   }}
                 />
               ))}
             </div>
 
-            {/* Transcript if available */}
-            {interimTranscript && (
+            {/* Transcript - Hidden on very small screens */}
+            {interimTranscript && !cancelled && (
               <>
-                <span className="w-px h-4 bg-neutral-200 dark:bg-neutral-700" />
-                <span className="max-w-[180px] truncate text-neutral-600 dark:text-neutral-300">
+                <span className="hidden sm:block w-px h-4 bg-neutral-200 dark:bg-neutral-700" />
+                <span className="hidden sm:block max-w-[160px] truncate text-neutral-600 dark:text-neutral-300 text-xs">
                   {interimTranscript}
                 </span>
               </>
+            )}
+
+            {/* Swipe hint on mobile */}
+            {holdToRecord && !cancelled && (
+              <span className="sm:hidden text-[10px] text-neutral-400 ml-1">← swipe</span>
             )}
           </div>
         </div>

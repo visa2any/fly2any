@@ -210,6 +210,20 @@ export function AITravelAssistant({ language = 'en' }: Props) {
   const [conversionStage, setConversionStage] = useState<ConversionStage>('awareness');
   const [upsellOpportunities, setUpsellOpportunities] = useState<UpsellOpportunity[]>([]);
 
+  // ACTIVE SEARCH CONTEXT: Track when a specialist is working on a search
+  // Prevents premature handoffs when user gives follow-up responses like "Both", "yes", etc.
+  const [activeSearchContext, setActiveSearchContext] = useState<{
+    team: TeamType | null;
+    searchType: 'flight' | 'hotel' | null;
+    pendingInfo: string[]; // What info we still need from user
+    hasResults: boolean; // Whether search results have been shown
+  }>({
+    team: null,
+    searchType: null,
+    pendingInfo: [],
+    hasResults: false
+  });
+
   // CONVERSATION PERSISTENCE
   const [conversation, setConversation] = useState<ConversationState | null>(null);
   const [recoverableConversation, setRecoverableConversation] = useState<ConversationState | null>(null);
@@ -916,7 +930,24 @@ export function AITravelAssistant({ language = 'en' }: Props) {
     // Adapt tone based on customer behavior
     const adaptedTone = getAdaptedTone(newBehavior);
 
-    const consultantTeam = determineConsultantTeam(queryText);
+    // SMART CONSULTANT ROUTING: Check if we should keep the current specialist
+    const previousTeam = getPreviousConsultantTeam(messages);
+
+    // Determine if this is a follow-up response in an active search context
+    const isFollowUpInSearchContext = activeSearchContext.team &&
+      previousTeam === activeSearchContext.team &&
+      !activeSearchContext.hasResults && // No results shown yet
+      isFollowUpResponse(queryText);
+
+    // Use previous team if in active search context, otherwise route based on message
+    let consultantTeam = determineConsultantTeam(queryText);
+
+    // CRITICAL: Keep the specialist if they're working on a search and haven't shown results
+    if (isFollowUpInSearchContext && previousTeam) {
+      console.log('[AI Assistant] Keeping specialist in active search context:', previousTeam);
+      consultantTeam = previousTeam;
+    }
+
     const consultant = getConsultant(consultantTeam);
 
     analytics.trackConsultantRouted({
@@ -925,10 +956,29 @@ export function AITravelAssistant({ language = 'en' }: Props) {
     });
 
     // CHECK IF CONSULTANT HANDOFF IS NEEDED
-    const previousTeam = getPreviousConsultantTeam(messages);
-    const handoffNeeded = needsHandoff(previousTeam, consultantTeam as HandoffTeamType);
+    // Pass userMessage to needsHandoff for smart follow-up detection
+    const handoffNeeded = needsHandoff(previousTeam, consultantTeam as HandoffTeamType, queryText);
 
-    if (handoffNeeded && previousTeam) {
+    // PERSISTENT CONSULTANT: Block handoff while specialist is handling customer
+    // Sarah (flight-operations) stays until customer EXPLICITLY requests different service
+    // This ensures full service completion (search → select → book → confirmation)
+    const isExplicitTopicChange = detectExplicitTopicChange(queryText, previousTeam);
+    const shouldBlockHandoff = activeSearchContext.team !== null &&
+      activeSearchContext.team === previousTeam &&
+      !isExplicitTopicChange;
+
+    // DEBUG: Log handoff decision
+    if (handoffNeeded) {
+      console.log('[AI Assistant] Handoff decision:', {
+        previousTeam,
+        newTeam: consultantTeam,
+        activeContext: activeSearchContext.team,
+        isExplicitTopicChange,
+        shouldBlock: shouldBlockHandoff
+      });
+    }
+
+    if (handoffNeeded && previousTeam && !shouldBlockHandoff) {
       try {
         // Previous consultant briefly announces transfer (template OK for this)
         const previousConsultant = getConsultant(previousTeam as TeamType);
@@ -1029,18 +1079,36 @@ export function AITravelAssistant({ language = 'en' }: Props) {
       return; // Exit early for conversational responses
     }
 
-    if (isFlightQuery && consultantTeam === 'flight-operations') {
+    // SMART FLIGHT SEARCH TRIGGER: Also trigger for follow-up responses in flight context
+    // This handles cases like: Sarah asks "one-way or round-trip?" → User says "Both"
+    const shouldTriggerFlightSearch = (isFlightQuery && consultantTeam === 'flight-operations') ||
+      (activeSearchContext.team === 'flight-operations' &&
+       activeSearchContext.searchType === 'flight' &&
+       !activeSearchContext.hasResults &&
+       isFollowUpResponse(queryText));
+
+    if (shouldTriggerFlightSearch) {
+      // Ensure we use Sarah Chen for flight searches
+      const flightConsultant = consultantTeam === 'flight-operations' ? consultant : getConsultant('flight-operations');
       const searchInitMessage = language === 'en'
         ? "I'll search for flights for you right away..."
         : language === 'pt'
         ? "Vou pesquisar voos para você agora mesmo..."
         : "Buscaré vuelos para ti de inmediato...";
 
-      await sendAIResponseWithTyping(searchInitMessage, consultant, queryText, {
+      await sendAIResponseWithTyping(searchInitMessage, flightConsultant, queryText, {
         isSearching: true
       }, 'flight-search');
 
       setIsSearchingFlights(true);
+
+      // TRACK ACTIVE SEARCH CONTEXT: Sarah Chen is now working on flight search
+      setActiveSearchContext({
+        team: 'flight-operations',
+        searchType: 'flight',
+        pendingInfo: [],
+        hasResults: false
+      });
 
       const searchStartTime = Date.now();
       try {
@@ -1140,7 +1208,11 @@ export function AITravelAssistant({ language = 'en' }: Props) {
             {
               content: followUpContent
             }
-          ], consultant, queryText);
+          ], flightConsultant, queryText);
+
+          // RESULTS SHOWN but Sarah stays - she remains until customer explicitly changes topic
+          // hasResults=true just marks that search was successful, NOT that conversation is done
+          setActiveSearchContext(prev => ({ ...prev, hasResults: true }));
         } else {
           setMessages(prev => prev.filter(m => !m.isSearching));
 
@@ -1154,7 +1226,7 @@ export function AITravelAssistant({ language = 'en' }: Props) {
           try {
             await sendStreamingAIResponse(
               queryText,
-              consultant,
+              flightConsultant,
               noResultsHistory,
               undefined,
               'no-results'
@@ -1166,7 +1238,7 @@ export function AITravelAssistant({ language = 'en' }: Props) {
               : language === 'pt'
               ? "Não encontrei voos para essa rota. De qual cidade você está saindo?"
               : "No encontré vuelos para esa ruta. ¿De qué ciudad sales?";
-            await sendAIResponseWithTyping(errorContent, consultant, queryText, undefined, 'question');
+            await sendAIResponseWithTyping(errorContent, flightConsultant, queryText, undefined, 'question');
           }
         }
       } catch (error) {
@@ -1184,7 +1256,7 @@ export function AITravelAssistant({ language = 'en' }: Props) {
         try {
           await sendStreamingAIResponse(
             queryText,
-            consultant,
+            flightConsultant,
             errorHistory,
             undefined,
             'error-recovery'
@@ -1196,22 +1268,39 @@ export function AITravelAssistant({ language = 'en' }: Props) {
             : language === 'pt'
             ? "Ops, tive um problema! Deixe-me tentar novamente. 🔄"
             : "¡Ups, hubo un problema! Déjame intentar de nuevo. 🔄";
-          await sendAIResponseWithTyping(errorContent, consultant, queryText, undefined, 'service-request');
+          await sendAIResponseWithTyping(errorContent, flightConsultant, queryText, undefined, 'service-request');
         }
       }
     }
 
-    // HANDLE HOTEL SEARCH
-    if (isHotelQuery && consultantTeam === 'hotel-accommodations') {
+    // HANDLE HOTEL SEARCH - Same persistent logic as flights
+    // Marcus Rodriguez stays until customer finishes hotel booking
+    const shouldTriggerHotelSearch = (isHotelQuery && consultantTeam === 'hotel-accommodations') ||
+      (activeSearchContext.team === 'hotel-accommodations' &&
+       activeSearchContext.searchType === 'hotel' &&
+       !activeSearchContext.hasResults &&
+       isFollowUpResponse(queryText));
+
+    if (shouldTriggerHotelSearch) {
+      // Ensure we use Marcus Rodriguez for hotel searches
+      const hotelConsultant = consultantTeam === 'hotel-accommodations' ? consultant : getConsultant('hotel-accommodations');
       const searchInitMessage = language === 'en'
         ? "Let me search for the perfect accommodations for you..."
         : language === 'pt'
         ? "Deixe-me procurar as acomodações perfeitas para você..."
         : "Déjame buscar el alojamiento perfecto para ti...";
 
-      await sendAIResponseWithTyping(searchInitMessage, consultant, queryText, {
+      await sendAIResponseWithTyping(searchInitMessage, hotelConsultant, queryText, {
         isSearching: true
       }, 'hotel-search');
+
+      // TRACK ACTIVE SEARCH CONTEXT: Marcus is now working on hotel search
+      setActiveSearchContext({
+        team: 'hotel-accommodations',
+        searchType: 'hotel',
+        pendingInfo: [],
+        hasResults: false
+      });
 
       try {
         const response = await fetch('/api/ai/search-hotels', {
@@ -1313,7 +1402,10 @@ export function AITravelAssistant({ language = 'en' }: Props) {
             {
               content: followUpContent
             }
-          ], consultant, queryText);
+          ], hotelConsultant, queryText);
+
+          // RESULTS SHOWN but Marcus stays - he remains until customer explicitly changes topic
+          setActiveSearchContext(prev => ({ ...prev, hasResults: true }));
         } else {
           setMessages(prev => prev.filter(m => !m.isSearching));
 
@@ -1327,7 +1419,7 @@ export function AITravelAssistant({ language = 'en' }: Props) {
           try {
             await sendStreamingAIResponse(
               queryText,
-              consultant,
+              hotelConsultant,
               noHotelsHistory,
               undefined,
               'no-results'
@@ -1338,7 +1430,7 @@ export function AITravelAssistant({ language = 'en' }: Props) {
               : language === 'pt'
               ? "Hmm, não encontrei hotéis para essas datas. Qual cidade você procura?"
               : "Hmm, no encontré hoteles para esas fechas. ¿Qué ciudad buscas?";
-            await sendAIResponseWithTyping(errorContent, consultant, queryText, undefined, 'question');
+            await sendAIResponseWithTyping(errorContent, hotelConsultant, queryText, undefined, 'question');
           }
         }
       } catch (error) {
@@ -1355,7 +1447,7 @@ export function AITravelAssistant({ language = 'en' }: Props) {
         try {
           await sendStreamingAIResponse(
             queryText,
-            consultant,
+            hotelConsultant,
             hotelErrorHistory,
             undefined,
             'error-recovery'
@@ -1366,7 +1458,7 @@ export function AITravelAssistant({ language = 'en' }: Props) {
             : language === 'pt'
             ? "Tive um pequeno problema! Deixe-me tentar a busca novamente. 🏨"
             : "¡Tuve un pequeño problema! Déjame intentar la búsqueda de nuevo. 🏨";
-          await sendAIResponseWithTyping(errorContent, consultant, queryText, undefined, 'service-request');
+          await sendAIResponseWithTyping(errorContent, hotelConsultant, queryText, undefined, 'service-request');
         }
       }
     }
@@ -2766,7 +2858,7 @@ export function AITravelAssistant({ language = 'en' }: Props) {
                   </div>
                 )}
                 <div className="flex gap-2 sm:gap-2.5 items-center">
-                  {/* Voice Mic Button - Mobile optimized sizing */}
+                  {/* Voice Mic Button - WhatsApp-style hold-to-record on mobile */}
                   {voiceInput.isSupported && (
                     <VoiceMicButton
                       isListening={voiceInput.isListening}
@@ -2777,9 +2869,13 @@ export function AITravelAssistant({ language = 'en' }: Props) {
                       audioLevel={voiceInput.audioLevel}
                       recordingDuration={voiceInput.recordingDuration}
                       onToggle={voiceInput.toggleListening}
+                      onStart={voiceInput.startListening}
+                      onStop={voiceInput.stopListening}
+                      onCancel={voiceInput.cancelListening}
                       onStopSpeaking={voiceOutput.stop}
                       size="md"
                       variant="default"
+                      holdToRecord={true}
                     />
                   )}
                   <div className="flex-1 relative">
@@ -2850,6 +2946,117 @@ export function AITravelAssistant({ language = 'en' }: Props) {
       </>
     </ErrorBoundary>
   );
+}
+
+/**
+ * Detect if user is EXPLICITLY requesting a different service/topic
+ * Returns true ONLY if user is clearly asking for hotel, payment, support, etc.
+ * NOT triggered by short responses or follow-ups in current context
+ */
+function detectExplicitTopicChange(userMessage: string, currentTeam: string | null): boolean {
+  const msg = userMessage.toLowerCase().trim();
+
+  // Short messages are almost never explicit topic changes
+  if (msg.length < 15) return false;
+
+  // If currently in flight-operations, only change on EXPLICIT hotel/payment/other requests
+  if (currentTeam === 'flight-operations') {
+    // Explicit hotel requests
+    if (/\b(hotel|accommodation|place to stay|resort|airbnb)\b/i.test(msg) &&
+        /\b(need|want|find|book|search|looking for)\b/i.test(msg)) {
+      return true;
+    }
+
+    // Explicit payment/billing requests
+    if (/\b(payment|billing|refund|charge|credit card|invoice)\b/i.test(msg) &&
+        !msg.includes('flight')) {
+      return true;
+    }
+
+    // Explicit support requests
+    if (/\b(speak to|talk to|human|manager|supervisor|complaint)\b/i.test(msg)) {
+      return true;
+    }
+
+    // Explicit visa/documentation requests
+    if (/\b(visa|passport|travel document|entry requirement)\b/i.test(msg) &&
+        /\b(need|apply|check|help)\b/i.test(msg)) {
+      return true;
+    }
+  }
+
+  // If currently in hotel-accommodations, only change on EXPLICIT flight/payment/other requests
+  if (currentTeam === 'hotel-accommodations') {
+    // Explicit flight requests
+    if (/\b(flight|fly|airline|plane|airport)\b/i.test(msg) &&
+        /\b(need|want|find|book|search|looking for)\b/i.test(msg)) {
+      return true;
+    }
+
+    // Explicit payment/billing requests
+    if (/\b(payment|billing|refund|charge|credit card|invoice)\b/i.test(msg) &&
+        !msg.includes('hotel')) {
+      return true;
+    }
+  }
+
+  return false;
+}
+
+/**
+ * Detect if user message is a follow-up response (short answer to a consultant's question)
+ * Used to prevent premature handoffs during active search contexts
+ */
+function isFollowUpResponse(userMessage: string): boolean {
+  const msg = userMessage.toLowerCase().trim();
+
+  // Very short responses are almost always follow-ups
+  if (msg.length < 25) {
+    // Direct answers
+    if (/^(yes|no|ok|okay|sure|both|either|neither|maybe|please|thanks|thank you|correct|right|exactly|perfect|great|good|fine|yeah|yep|nope)$/i.test(msg)) {
+      return true;
+    }
+
+    // Selection responses
+    if (/^(the (?:first|second|third|last|cheapest|fastest|best|earliest|latest)|option \d|#?\d|one|two|three)$/i.test(msg)) {
+      return true;
+    }
+
+    // Short action requests
+    if (/^(show|see|check|find|search|book|select|choose|get|i'll take)/i.test(msg)) {
+      return true;
+    }
+
+    // Location/date only responses (answering "where?" or "when?")
+    const commonLocations = ['boston', 'new york', 'nyc', 'los angeles', 'la', 'miami', 'chicago', 'dubai', 'london', 'paris', 'tokyo', 'orlando'];
+    if (commonLocations.some(loc => msg === loc || msg.includes(loc))) {
+      return true;
+    }
+  }
+
+  // Contextual follow-ups (slightly longer)
+  if (msg.length < 60) {
+    if (/^(what about|how about|and the|also|can you|could you|is there|are there|do you have)/i.test(msg)) {
+      return true;
+    }
+
+    // Trip type responses
+    if (/^(one.?way|round.?trip|return|direct|non.?stop)/i.test(msg)) {
+      return true;
+    }
+
+    // Date responses
+    if (/^(on |from |next |this |tomorrow|today|in )/i.test(msg)) {
+      return true;
+    }
+
+    // Passenger count responses
+    if (/^(\d+ ?(adult|passenger|person|people|guest|traveler))/i.test(msg)) {
+      return true;
+    }
+  }
+
+  return false;
 }
 
 /**

@@ -54,6 +54,7 @@ import { useInfiniteScroll } from '@/lib/hooks/useInfiniteScroll';
 import { usePullToRefresh, RefreshButton } from '@/lib/hooks/usePullToRefresh';
 import { useTranslations } from 'next-intl';
 import { useLanguage } from '@/lib/i18n/client';
+import { reportClientError, ErrorCategory, ErrorSeverity } from '@/lib/monitoring/global-error-handler';
 
 // ===========================
 // TYPE DEFINITIONS
@@ -858,6 +859,15 @@ function FlightResultsContent() {
           console.error('Multi-city search error:', error);
           setError(`Multi-city search failed: ${error.message}`);
           setLoading(false);
+
+          // Report to global error handler
+          reportClientError(error, {
+            component: 'FlightResults',
+            action: 'fetchMultiCityFlights',
+            category: ErrorCategory.EXTERNAL_API,
+            severity: ErrorSeverity.HIGH,
+            metadata: { errorMessage: error.message }
+          });
           return;
         }
       }
@@ -1053,6 +1063,20 @@ function FlightResultsContent() {
       } catch (err: any) {
         console.error('Error fetching flights:', err);
         setError(err.message || 'Failed to fetch flights');
+
+        // Report to global error handler for monitoring
+        reportClientError(err, {
+          component: 'FlightResults',
+          action: 'fetchFlights',
+          category: ErrorCategory.EXTERNAL_API,
+          severity: err.message?.includes('BOT_DETECTED') ? ErrorSeverity.LOW : ErrorSeverity.HIGH,
+          metadata: {
+            from: params?.from,
+            to: params?.to,
+            departure: params?.departure,
+            errorMessage: err.message,
+          }
+        });
       } finally {
         setLoading(false);
         // Auto-collapse search bar after results load (success or empty results)
@@ -1351,10 +1375,19 @@ function FlightResultsContent() {
 
       // Navigate to OPTIMIZED booking page (3-step flow)
       router.push(`/flights/booking-optimized?${params.toString()}`);
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error navigating to booking:', error);
       setIsNavigating(false);
       setSelectedFlightId(null);
+
+      // Report booking navigation error
+      reportClientError(error, {
+        component: 'FlightResults',
+        action: 'navigateToBooking',
+        category: ErrorCategory.BOOKING,
+        severity: ErrorSeverity.CRITICAL,
+        metadata: { flightId: id, errorMessage: error?.message }
+      });
     }
   };
 

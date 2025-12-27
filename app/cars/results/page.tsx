@@ -240,7 +240,7 @@ function CarResultsContent() {
           id: item.id || `car_${Math.random().toString(36).substr(2, 9)}`,
           name: item.vehicle?.description || item.name || 'Car Rental',
           category: formatCategory(item.vehicle?.category || item.category || 'Standard'),
-          company: item.provider?.companyName || item.company || 'Car Rental Company',
+          company: item.provider?.name || item.provider?.companyName || item.company || 'Car Rental Company',
           passengers: item.vehicle?.seats || item.passengers || 5,
           doors: item.vehicle?.doors || item.doors || 4,
           luggage: item.luggage || 2,

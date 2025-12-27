@@ -132,6 +132,66 @@ const AIRPORTS = [
   { code: 'AUH', name: 'Abu Dhabi International Airport', city: 'Abu Dhabi', country: 'United Arab Emirates', countryCode: 'AE', lat: 24.4330, lng: 54.6511, emoji: '✈️' },
 ];
 
+// Popular hotels & landmarks for transfers
+const HOTELS_LANDMARKS = [
+  // New York
+  { name: 'Times Square', city: 'New York', country: 'United States', countryCode: 'US', lat: 40.7580, lng: -73.9855, emoji: '🏨', type: 'landmark' },
+  { name: 'The Plaza Hotel', city: 'New York', country: 'United States', countryCode: 'US', lat: 40.7645, lng: -73.9744, emoji: '🏨', type: 'hotel' },
+  { name: 'Hilton Midtown', city: 'New York', country: 'United States', countryCode: 'US', lat: 40.7624, lng: -73.9793, emoji: '🏨', type: 'hotel' },
+  { name: 'Empire State Building', city: 'New York', country: 'United States', countryCode: 'US', lat: 40.7484, lng: -73.9857, emoji: '🏢', type: 'landmark' },
+  { name: 'Manhattan Downtown', city: 'New York', country: 'United States', countryCode: 'US', lat: 40.7128, lng: -74.0060, emoji: '🏙️', type: 'area' },
+  // Las Vegas
+  { name: 'The Venetian', city: 'Las Vegas', country: 'United States', countryCode: 'US', lat: 36.1215, lng: -115.1699, emoji: '🏨', type: 'hotel' },
+  { name: 'Bellagio Hotel', city: 'Las Vegas', country: 'United States', countryCode: 'US', lat: 36.1126, lng: -115.1767, emoji: '🏨', type: 'hotel' },
+  { name: 'MGM Grand', city: 'Las Vegas', country: 'United States', countryCode: 'US', lat: 36.1025, lng: -115.1702, emoji: '🏨', type: 'hotel' },
+  { name: 'Las Vegas Strip', city: 'Las Vegas', country: 'United States', countryCode: 'US', lat: 36.1147, lng: -115.1728, emoji: '🎰', type: 'landmark' },
+  // Miami
+  { name: 'South Beach', city: 'Miami', country: 'United States', countryCode: 'US', lat: 25.7826, lng: -80.1341, emoji: '🏖️', type: 'area' },
+  { name: 'Fontainebleau Miami Beach', city: 'Miami', country: 'United States', countryCode: 'US', lat: 25.8006, lng: -80.1221, emoji: '🏨', type: 'hotel' },
+  { name: 'Miami Beach Convention Center', city: 'Miami', country: 'United States', countryCode: 'US', lat: 25.7959, lng: -80.1300, emoji: '🏢', type: 'venue' },
+  // Los Angeles
+  { name: 'Beverly Hills Hotel', city: 'Los Angeles', country: 'United States', countryCode: 'US', lat: 34.0819, lng: -118.4130, emoji: '🏨', type: 'hotel' },
+  { name: 'Hollywood Sign', city: 'Los Angeles', country: 'United States', countryCode: 'US', lat: 34.1341, lng: -118.3215, emoji: '🎬', type: 'landmark' },
+  { name: 'Santa Monica Pier', city: 'Los Angeles', country: 'United States', countryCode: 'US', lat: 34.0086, lng: -118.4986, emoji: '🎡', type: 'landmark' },
+  // London
+  { name: 'The Ritz London', city: 'London', country: 'United Kingdom', countryCode: 'GB', lat: 51.5072, lng: -0.1411, emoji: '🏨', type: 'hotel' },
+  { name: 'Buckingham Palace', city: 'London', country: 'United Kingdom', countryCode: 'GB', lat: 51.5014, lng: -0.1419, emoji: '🏰', type: 'landmark' },
+  { name: 'Big Ben', city: 'London', country: 'United Kingdom', countryCode: 'GB', lat: 51.5007, lng: -0.1246, emoji: '🕰️', type: 'landmark' },
+  // Paris
+  { name: 'Eiffel Tower', city: 'Paris', country: 'France', countryCode: 'FR', lat: 48.8584, lng: 2.2945, emoji: '🗼', type: 'landmark' },
+  { name: 'The Ritz Paris', city: 'Paris', country: 'France', countryCode: 'FR', lat: 48.8682, lng: 2.3286, emoji: '🏨', type: 'hotel' },
+  { name: 'Champs-Élysées', city: 'Paris', country: 'France', countryCode: 'FR', lat: 48.8698, lng: 2.3078, emoji: '🛍️', type: 'landmark' },
+  // Dubai
+  { name: 'Burj Al Arab', city: 'Dubai', country: 'United Arab Emirates', countryCode: 'AE', lat: 25.1412, lng: 55.1854, emoji: '🏨', type: 'hotel' },
+  { name: 'Burj Khalifa', city: 'Dubai', country: 'United Arab Emirates', countryCode: 'AE', lat: 25.1972, lng: 55.2744, emoji: '🏢', type: 'landmark' },
+  { name: 'Dubai Mall', city: 'Dubai', country: 'United Arab Emirates', countryCode: 'AE', lat: 25.1985, lng: 55.2796, emoji: '🛍️', type: 'landmark' },
+  { name: 'Palm Jumeirah', city: 'Dubai', country: 'United Arab Emirates', countryCode: 'AE', lat: 25.1124, lng: 55.1390, emoji: '🏝️', type: 'area' },
+  // Cancun
+  { name: 'Cancún Hotel Zone', city: 'Cancún', country: 'Mexico', countryCode: 'MX', lat: 21.0936, lng: -86.7712, emoji: '🏖️', type: 'area' },
+  { name: 'Moon Palace Cancún', city: 'Cancún', country: 'Mexico', countryCode: 'MX', lat: 20.9938, lng: -86.8306, emoji: '🏨', type: 'hotel' },
+  // Rome
+  { name: 'Colosseum', city: 'Rome', country: 'Italy', countryCode: 'IT', lat: 41.8902, lng: 12.4922, emoji: '🏛️', type: 'landmark' },
+  { name: 'Vatican City', city: 'Rome', country: 'Italy', countryCode: 'IT', lat: 41.9022, lng: 12.4539, emoji: '⛪', type: 'landmark' },
+  // Barcelona
+  { name: 'La Sagrada Familia', city: 'Barcelona', country: 'Spain', countryCode: 'ES', lat: 41.4036, lng: 2.1744, emoji: '⛪', type: 'landmark' },
+  { name: 'Las Ramblas', city: 'Barcelona', country: 'Spain', countryCode: 'ES', lat: 41.3809, lng: 2.1733, emoji: '🛍️', type: 'landmark' },
+  // Tokyo
+  { name: 'Shibuya Crossing', city: 'Tokyo', country: 'Japan', countryCode: 'JP', lat: 35.6595, lng: 139.7004, emoji: '🚶', type: 'landmark' },
+  { name: 'Tokyo Disneyland', city: 'Tokyo', country: 'Japan', countryCode: 'JP', lat: 35.6329, lng: 139.8804, emoji: '🏰', type: 'landmark' },
+  // Singapore
+  { name: 'Marina Bay Sands', city: 'Singapore', country: 'Singapore', countryCode: 'SG', lat: 1.2834, lng: 103.8607, emoji: '🏨', type: 'hotel' },
+  { name: 'Orchard Road', city: 'Singapore', country: 'Singapore', countryCode: 'SG', lat: 1.3048, lng: 103.8318, emoji: '🛍️', type: 'landmark' },
+  // Sydney
+  { name: 'Sydney Opera House', city: 'Sydney', country: 'Australia', countryCode: 'AU', lat: -33.8568, lng: 151.2153, emoji: '🎭', type: 'landmark' },
+  { name: 'Bondi Beach', city: 'Sydney', country: 'Australia', countryCode: 'AU', lat: -33.8915, lng: 151.2767, emoji: '🏖️', type: 'landmark' },
+  // Bangkok
+  { name: 'Grand Palace', city: 'Bangkok', country: 'Thailand', countryCode: 'TH', lat: 13.7500, lng: 100.4913, emoji: '🏯', type: 'landmark' },
+  { name: 'Khao San Road', city: 'Bangkok', country: 'Thailand', countryCode: 'TH', lat: 13.7588, lng: 100.4970, emoji: '🎉', type: 'landmark' },
+  // Bali
+  { name: 'Seminyak Beach', city: 'Bali', country: 'Indonesia', countryCode: 'ID', lat: -8.6873, lng: 115.1585, emoji: '🏖️', type: 'area' },
+  { name: 'Ubud Center', city: 'Bali', country: 'Indonesia', countryCode: 'ID', lat: -8.5069, lng: 115.2625, emoji: '🌴', type: 'area' },
+];
+
 // Popular cities for transfers
 const CITIES = [
   { name: 'New York', country: 'United States', countryCode: 'US', lat: 40.7128, lng: -74.0060, emoji: '🗽' },
@@ -170,13 +230,13 @@ function normalizeString(str: string): string {
 }
 
 /**
- * Search for transfer locations (airports + cities)
+ * Search for transfer locations (airports + cities + hotels/landmarks)
  */
 function searchLocations(query: string): any[] {
   const normalized = normalizeString(query);
   if (normalized.length < 2) return [];
 
-  const results: Array<{ item: any; score: number; type: 'airport' | 'city' }> = [];
+  const results: Array<{ item: any; score: number; type: 'airport' | 'city' | 'hotel' | 'landmark' }> = [];
 
   // Search airports
   for (const airport of AIRPORTS) {
@@ -185,30 +245,27 @@ function searchLocations(query: string): any[] {
     const normalizedName = normalizeString(airport.name);
     const normalizedCity = normalizeString(airport.city);
 
-    // Exact airport code match (highest priority)
-    if (normalizedCode === normalized) {
-      score = 100;
-    }
-    // Airport code starts with query
-    else if (normalizedCode.startsWith(normalized)) {
-      score = 95;
-    }
-    // Airport name contains query
-    else if (normalizedName.includes(normalized)) {
-      score = 85;
-    }
-    // City name matches
-    else if (normalizedCity.includes(normalized) || normalized.includes(normalizedCity)) {
-      score = 75;
-    }
-    // Airport code in query (e.g., "JFK airport")
-    else if (normalized.includes(normalizedCode)) {
-      score = 90;
-    }
+    if (normalizedCode === normalized) score = 100;
+    else if (normalizedCode.startsWith(normalized)) score = 95;
+    else if (normalizedName.includes(normalized)) score = 85;
+    else if (normalizedCity.includes(normalized) || normalized.includes(normalizedCity)) score = 75;
+    else if (normalized.includes(normalizedCode)) score = 90;
 
-    if (score > 0) {
-      results.push({ item: airport, score, type: 'airport' });
-    }
+    if (score > 0) results.push({ item: airport, score, type: 'airport' });
+  }
+
+  // Search hotels & landmarks
+  for (const poi of HOTELS_LANDMARKS) {
+    let score = 0;
+    const normalizedName = normalizeString(poi.name);
+    const normalizedCity = normalizeString(poi.city);
+
+    if (normalizedName === normalized) score = 85;
+    else if (normalizedName.startsWith(normalized)) score = 78;
+    else if (normalizedName.includes(normalized)) score = 65;
+    else if (normalizedCity.includes(normalized)) score = 55;
+
+    if (score > 0) results.push({ item: poi, score, type: poi.type === 'hotel' ? 'hotel' : 'landmark' });
   }
 
   // Search cities
@@ -217,35 +274,20 @@ function searchLocations(query: string): any[] {
     const normalizedName = normalizeString(city.name);
     const normalizedCountry = normalizeString(city.country);
 
-    // Exact city name match
-    if (normalizedName === normalized) {
-      score = 80;
-    }
-    // City name starts with query
-    else if (normalizedName.startsWith(normalized)) {
-      score = 70;
-    }
-    // City name contains query
-    else if (normalizedName.includes(normalized)) {
-      score = 60;
-    }
-    // Country contains query
-    else if (normalizedCountry.includes(normalized)) {
-      score = 40;
-    }
+    if (normalizedName === normalized) score = 80;
+    else if (normalizedName.startsWith(normalized)) score = 70;
+    else if (normalizedName.includes(normalized)) score = 60;
+    else if (normalizedCountry.includes(normalized)) score = 40;
 
-    if (score > 0) {
-      results.push({ item: city, score, type: 'city' });
-    }
+    if (score > 0) results.push({ item: city, score, type: 'city' });
   }
 
   // Sort by score
   results.sort((a, b) => b.score - a.score);
 
   // Format results
-  return results.slice(0, 10).map(r => {
+  return results.slice(0, 12).map(r => {
     if (r.type === 'airport') {
-      const coverage = getCoverageLevel(r.item.code);
       return {
         id: `airport-${r.item.code}`,
         name: r.item.name,
@@ -258,13 +300,27 @@ function searchLocations(query: string): any[] {
         longitude: r.item.lng,
         type: 'airport',
         emoji: r.item.emoji,
-        coverage, // high | medium | unknown
+        coverage: getCoverageLevel(r.item.code),
+      };
+    } else if (r.type === 'hotel' || r.type === 'landmark') {
+      return {
+        id: `${r.item.type}-${normalizeString(r.item.name)}`,
+        name: r.item.name,
+        displayName: `${r.item.emoji} ${r.item.name}, ${r.item.city}`,
+        city: r.item.city,
+        country: r.item.country,
+        countryCode: r.item.countryCode,
+        latitude: r.item.lat,
+        longitude: r.item.lng,
+        type: r.item.type, // hotel, landmark, area, venue
+        emoji: r.item.emoji,
+        coverage: 'high',
       };
     } else {
       return {
         id: `city-${normalizeString(r.item.name)}`,
         name: r.item.name,
-        displayName: `${r.item.name}, ${r.item.country}`,
+        displayName: `${r.item.emoji} ${r.item.name}, ${r.item.country}`,
         city: r.item.name,
         country: r.item.country,
         countryCode: r.item.countryCode,
@@ -272,7 +328,7 @@ function searchLocations(query: string): any[] {
         longitude: r.item.lng,
         type: 'city',
         emoji: r.item.emoji,
-        coverage: 'medium', // cities have general coverage
+        coverage: 'medium',
       };
     }
   });

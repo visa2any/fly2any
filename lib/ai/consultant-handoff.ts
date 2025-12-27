@@ -362,10 +362,12 @@ function parseNaturalDate(dateString: string): Date | null {
 /**
  * Check if handoff is needed
  * Returns true if consultant changed from previous message
+ * SMART: Prevents handoff for follow-up responses in same context
  */
 export function needsHandoff(
   previousTeam: TeamType | null,
-  currentTeam: TeamType
+  currentTeam: TeamType,
+  userMessage?: string
 ): boolean {
   // No handoff if no previous team (first message)
   if (!previousTeam) return false;
@@ -373,7 +375,34 @@ export function needsHandoff(
   // No handoff if same team
   if (previousTeam === currentTeam) return false;
 
-  // Handoff needed when team changes
+  // SMART: Prevent handoff for short follow-up responses
+  // These are typically answers to consultant questions, not new requests
+  if (userMessage) {
+    const msg = userMessage.toLowerCase().trim();
+
+    // Short responses (under 20 chars) that are likely follow-ups
+    const isShortFollowUp = msg.length < 20 && (
+      /^(yes|no|ok|okay|sure|both|either|neither|maybe|please|thanks|thank you|correct|right|exactly)$/i.test(msg) ||
+      /^(the (?:first|second|third|cheapest|fastest|best)|option \d|#?\d)$/i.test(msg) ||
+      /^(show|see|check|find|search|book|select|choose)/i.test(msg)
+    );
+
+    if (isShortFollowUp) {
+      // Keep previous consultant for follow-up responses
+      return false;
+    }
+
+    // Also prevent handoff if user is asking about something just discussed
+    const isContextualFollowUp =
+      /^(what about|how about|and the|also|can you|could you|is there|are there|do you have)/i.test(msg) &&
+      msg.length < 50;
+
+    if (isContextualFollowUp) {
+      return false;
+    }
+  }
+
+  // Handoff needed when team changes for new topics
   return true;
 }
 

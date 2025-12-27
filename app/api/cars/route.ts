@@ -246,8 +246,51 @@ export async function GET(request: NextRequest) {
       return NextResponse.json(transformedData);
     }
 
-    // NO MOCK DATA - Return empty when no results
-    console.log(`⚠️ No car rentals available at ${pickupLocation}`);
+    // Fallback to featured cars when Amadeus returns empty
+    console.log(`⚠️ Amadeus returned no cars for ${pickupLocation}, using featured fallback`);
+
+    try {
+      const fallbackUrl = new URL('/api/cars/featured-enhanced', request.url);
+      fallbackUrl.searchParams.set('location', pickupLocation);
+      const fallbackResponse = await fetch(fallbackUrl.toString());
+      const fallbackData = await fallbackResponse.json();
+
+      if (fallbackData.data?.length > 0) {
+        // Apply markup to fallback data
+        const carsWithMarkup = fallbackData.data.map((car: any) => {
+          const basePrice = parseFloat(car.pricePerDay || car.price?.perDay || '50');
+          const totalDays = rentalDays || 1;
+          const pricing = applyCarMarkup(basePrice * totalDays);
+
+          return {
+            ...car,
+            price: {
+              currency: 'USD',
+              total: pricing.customerPrice.toFixed(2),
+              perDay: (pricing.customerPrice / totalDays).toFixed(2),
+            },
+            adminPricing: {
+              supplierPrice: (basePrice * totalDays).toFixed(2),
+              ourMarkup: pricing.markup.toFixed(2),
+              markupPercent: pricing.markupPercent,
+            },
+          };
+        });
+
+        return NextResponse.json({
+          data: carsWithMarkup,
+          meta: {
+            count: carsWithMarkup.length,
+            source: 'featured',
+            apiMode: isProductionAPI ? 'production' : 'test',
+            searchParams: { pickupLocation, dropoffLocation, pickupDate, dropoffDate, rentalDays },
+          },
+        });
+      }
+    } catch (fallbackErr) {
+      console.warn('Featured fallback failed:', fallbackErr);
+    }
+
     return NextResponse.json({
       data: [],
       meta: {

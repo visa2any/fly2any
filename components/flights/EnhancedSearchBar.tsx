@@ -377,7 +377,9 @@ export default function EnhancedSearchBar({
 
   // Car rental-specific state
   const [carPickupLocation, setCarPickupLocation] = useState('');
+  const [carPickupDisplayName, setCarPickupDisplayName] = useState('');
   const [carDropoffLocation, setCarDropoffLocation] = useState('');
+  const [carDropoffDisplayName, setCarDropoffDisplayName] = useState('');
   const [sameDropoffLocation, setSameDropoffLocation] = useState(false); // Return to same location
   const [carPickupDate, setCarPickupDate] = useState('');
   const [carDropoffDate, setCarDropoffDate] = useState('');
@@ -2769,7 +2771,9 @@ export default function EnhancedSearchBar({
               <div className="h-[52px]">
                 <InlineAirportAutocomplete
                   value={carPickupLocation}
+                  displayName={carPickupDisplayName}
                   onChange={(codes) => setCarPickupLocation(codes[0] || '')}
+                  onSelectFull={(a) => setCarPickupDisplayName(`${a.city} (${a.code})`)}
                   placeholder="City or airport (e.g., Miami)"
                 />
               </div>
@@ -2792,6 +2796,7 @@ export default function EnhancedSearchBar({
                       setSameDropoffLocation(e.target.checked);
                       if (e.target.checked) {
                         setCarDropoffLocation('');
+                        setCarDropoffDisplayName('');
                       }
                     }}
                     className="w-3.5 h-3.5 rounded border-gray-300 text-emerald-600 focus:ring-emerald-500 cursor-pointer"
@@ -2803,7 +2808,9 @@ export default function EnhancedSearchBar({
                 {!sameDropoffLocation ? (
                   <InlineAirportAutocomplete
                     value={carDropoffLocation || carPickupLocation}
+                    displayName={carDropoffDisplayName || carPickupDisplayName}
                     onChange={(codes) => setCarDropoffLocation(codes[0] || '')}
+                    onSelectFull={(a) => setCarDropoffDisplayName(`${a.city} (${a.code})`)}
                     placeholder="City or airport (e.g., Miami)"
                   />
                 ) : (

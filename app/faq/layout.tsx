@@ -1,10 +1,12 @@
 import type { Metadata } from 'next';
+import { getBreadcrumbSchema } from '@/lib/seo/metadata';
 
-const SITE_URL = 'https://www.fly2any.com';
+const SITE_URL = process.env.NEXT_PUBLIC_APP_URL || 'https://www.fly2any.com';
 
 export const metadata: Metadata = {
   title: 'FAQ - Frequently Asked Questions | Fly2Any',
-  description: 'Find answers to common questions about booking flights, payments, cancellations, and more. Get help with your Fly2Any travel bookings.',
+  description: 'Find answers to common questions about booking flights, payments, cancellations, refunds, baggage, and more. 24/7 support available.',
+  keywords: 'fly2any faq, flight booking help, cancellation policy, refund policy, baggage allowance, payment methods',
   alternates: {
     canonical: `${SITE_URL}/faq`,
   },
