@@ -438,6 +438,31 @@ export async function POST(request: NextRequest) {
       } catch (notifError: any) {
         console.warn('⚠️ Notifications failed:', notifError.message);
       }
+
+      // STEP 8: n8n upsell sequence (fire and forget)
+      if (process.env.N8N_WEBHOOK_URL) {
+        fetch(`${process.env.N8N_WEBHOOK_URL}/booking-confirmed`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${process.env.N8N_WEBHOOK_SECRET || ''}`,
+          },
+          body: JSON.stringify({
+            bookingId: confirmationNumber,
+            type: 'hotel',
+            email: body.guestEmail,
+            firstName: body.guestFirstName,
+            destination: body.hotelCity || body.hotelName,
+            checkIn: body.checkInDate,
+            checkOut: body.checkOutDate,
+            totalAmount: parseFloat(body.totalPrice),
+            currency: body.currency,
+          }),
+        }).catch((err) => {
+          console.warn('⚠️ n8n upsell webhook failed (non-blocking):', err.message);
+        });
+        console.log('📤 n8n upsell sequence triggered for hotel');
+      }
     }
 
     // Return success response

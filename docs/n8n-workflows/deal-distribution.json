@@ -1,0 +1,260 @@
+{
+  "name": "Fly2Any - Automated Deal Distribution",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "hours",
+              "hoursInterval": 2
+            }
+          ]
+        }
+      },
+      "id": "schedule-trigger",
+      "name": "Every 2 Hours",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "position": [250, 300]
+    },
+    {
+      "parameters": {
+        "method": "GET",
+        "url": "https://www.fly2any.com/api/flights/flash-deals-enhanced",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "options": {}
+      },
+      "id": "fetch-deals",
+      "name": "Fetch Flash Deals",
+      "type": "n8n-nodes-base.httpRequest",
+      "position": [450, 300]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "number": [
+            {
+              "value1": "={{ $json.discount }}",
+              "operation": "largerEqual",
+              "value2": 25
+            }
+          ]
+        }
+      },
+      "id": "filter-deals",
+      "name": "Filter Deals >= 25%",
+      "type": "n8n-nodes-base.filter",
+      "position": [650, 300]
+    },
+    {
+      "parameters": {
+        "batchSize": 3,
+        "options": {}
+      },
+      "id": "limit-deals",
+      "name": "Limit to 3 Deals",
+      "type": "n8n-nodes-base.splitInBatches",
+      "position": [850, 300]
+    },
+    {
+      "parameters": {
+        "resource": "completion",
+        "model": "gpt-4o-mini",
+        "prompt": "Create a compelling travel deal announcement for social media:\n\nRoute: {{ $json.origin }} → {{ $json.destination }}\nPrice: ${{ $json.price }} (was ${{ $json.originalPrice }})\nDiscount: {{ $json.discount }}%\nAirline: {{ $json.airline }}\n\nGenerate:\n1. Twitter post (max 280 chars, include emoji, urgency)\n2. Instagram caption (include 5 hashtags)\n3. Facebook post (2-3 sentences)\n\nFormat as JSON with keys: twitter, instagram, facebook",
+        "options": {
+          "temperature": 0.7
+        }
+      },
+      "id": "generate-content",
+      "name": "Generate Social Content",
+      "type": "n8n-nodes-base.openAi",
+      "position": [1050, 300]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Parse AI response and check rate limits\nconst content = JSON.parse($input.first().json.message.content);\nconst deal = $node['Limit to 3 Deals'].json;\n\n// Check if we should post (simulate rate limit check)\nconst hour = new Date().getHours();\nconst isOptimalTime = [8, 12, 17, 18, 19].includes(hour);\n\nreturn {\n  deal,\n  content,\n  shouldPostTwitter: isOptimalTime,\n  shouldPostFacebook: isOptimalTime,\n  tweetText: content.twitter,\n  fbText: content.facebook,\n  igCaption: content.instagram,\n  dealLink: `https://www.fly2any.com/flights?from=${deal.origin}&to=${deal.destination}`\n};"
+      },
+      "id": "prepare-posts",
+      "name": "Prepare Social Posts",
+      "type": "n8n-nodes-base.code",
+      "position": [1250, 300]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "boolean": [
+            {
+              "value1": "={{ $json.shouldPostTwitter }}",
+              "value2": true
+            }
+          ]
+        }
+      },
+      "id": "check-twitter",
+      "name": "Post to Twitter?",
+      "type": "n8n-nodes-base.if",
+      "position": [1450, 200]
+    },
+    {
+      "parameters": {
+        "text": "={{ $json.tweetText }}"
+      },
+      "id": "post-twitter",
+      "name": "Post to Twitter",
+      "type": "n8n-nodes-base.twitter",
+      "position": [1650, 100],
+      "credentials": {
+        "twitterOAuth2Api": {
+          "id": "twitter-creds",
+          "name": "Twitter API"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "boolean": [
+            {
+              "value1": "={{ $json.shouldPostFacebook }}",
+              "value2": true
+            }
+          ]
+        }
+      },
+      "id": "check-facebook",
+      "name": "Post to Facebook?",
+      "type": "n8n-nodes-base.if",
+      "position": [1450, 400]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://www.fly2any.com/api/webhooks/n8n",
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "type",
+              "value": "social_posted"
+            },
+            {
+              "name": "data",
+              "value": "={{ JSON.stringify({ channel: 'twitter', dealId: $json.deal.id }) }}"
+            },
+            {
+              "name": "metadata",
+              "value": "={{ JSON.stringify({ discount: $json.deal.discount, route: $json.deal.origin + '-' + $json.deal.destination }) }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "log-twitter-post",
+      "name": "Log Twitter Post",
+      "type": "n8n-nodes-base.httpRequest",
+      "position": [1850, 100]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "number": [
+            {
+              "value1": "={{ $node['Prepare Posts'].json.deal.discount }}",
+              "operation": "largerEqual",
+              "value2": 40
+            }
+          ]
+        }
+      },
+      "id": "check-email-blast",
+      "name": "Discount >= 40%?",
+      "type": "n8n-nodes-base.if",
+      "position": [1450, 600]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://www.fly2any.com/api/admin/campaigns/flash-deal/send",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "dealData",
+              "value": "={{ JSON.stringify($node['Prepare Posts'].json.deal) }}"
+            },
+            {
+              "name": "subject",
+              "value": "🔥 {{ $node['Prepare Posts'].json.deal.discount }}% OFF: {{ $node['Prepare Posts'].json.deal.origin }} → {{ $node['Prepare Posts'].json.deal.destination }} from ${{ $node['Prepare Posts'].json.deal.price }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "send-email-blast",
+      "name": "Send Email Blast",
+      "type": "n8n-nodes-base.httpRequest",
+      "position": [1650, 600]
+    }
+  ],
+  "connections": {
+    "Every 2 Hours": {
+      "main": [
+        [{ "node": "Fetch Flash Deals", "type": "main", "index": 0 }]
+      ]
+    },
+    "Fetch Flash Deals": {
+      "main": [
+        [{ "node": "Filter Deals >= 25%", "type": "main", "index": 0 }]
+      ]
+    },
+    "Filter Deals >= 25%": {
+      "main": [
+        [{ "node": "Limit to 3 Deals", "type": "main", "index": 0 }]
+      ]
+    },
+    "Limit to 3 Deals": {
+      "main": [
+        [{ "node": "Generate Social Content", "type": "main", "index": 0 }]
+      ]
+    },
+    "Generate Social Content": {
+      "main": [
+        [{ "node": "Prepare Social Posts", "type": "main", "index": 0 }]
+      ]
+    },
+    "Prepare Social Posts": {
+      "main": [
+        [
+          { "node": "Post to Twitter?", "type": "main", "index": 0 },
+          { "node": "Post to Facebook?", "type": "main", "index": 0 },
+          { "node": "Discount >= 40%?", "type": "main", "index": 0 }
+        ]
+      ]
+    },
+    "Post to Twitter?": {
+      "main": [
+        [{ "node": "Post to Twitter", "type": "main", "index": 0 }],
+        []
+      ]
+    },
+    "Post to Twitter": {
+      "main": [
+        [{ "node": "Log Twitter Post", "type": "main", "index": 0 }]
+      ]
+    },
+    "Discount >= 40%?": {
+      "main": [
+        [{ "node": "Send Email Blast", "type": "main", "index": 0 }],
+        []
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "staticData": null,
+  "tags": ["fly2any", "deal-distribution", "social", "automation", "marketing"]
+}

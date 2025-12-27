@@ -1,0 +1,205 @@
+{
+  "name": "Fly2Any - Weekly Personalized Digest",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "cronExpression",
+              "expression": "0 9 * * 0"
+            }
+          ]
+        }
+      },
+      "id": "schedule-trigger",
+      "name": "Every Sunday 9 AM ET",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "position": [250, 300],
+      "notes": "Runs every Sunday at 9 AM Eastern Time"
+    },
+    {
+      "parameters": {
+        "method": "GET",
+        "url": "https://www.fly2any.com/api/admin/subscribers",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "qs": {
+          "status": "ACTIVE",
+          "limit": "500"
+        },
+        "options": {}
+      },
+      "id": "fetch-subscribers",
+      "name": "Fetch Active Subscribers",
+      "type": "n8n-nodes-base.httpRequest",
+      "position": [450, 300]
+    },
+    {
+      "parameters": {
+        "batchSize": 50,
+        "options": {}
+      },
+      "id": "batch-subscribers",
+      "name": "Process in Batches of 50",
+      "type": "n8n-nodes-base.splitInBatches",
+      "position": [650, 300]
+    },
+    {
+      "parameters": {
+        "method": "GET",
+        "url": "https://www.fly2any.com/api/flights/flash-deals-enhanced",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "qs": {
+          "limit": "10",
+          "minDiscount": "20"
+        },
+        "options": {}
+      },
+      "id": "fetch-deals",
+      "name": "Fetch Top Deals",
+      "type": "n8n-nodes-base.httpRequest",
+      "position": [850, 300]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Prepare digest data for each subscriber\nconst subscribers = $node['Process in Batches of 50'].json;\nconst deals = $node['Fetch Top Deals'].json.deals || [];\n\n// Format deals for email\nconst formattedDeals = deals.slice(0, 5).map(deal => ({\n  origin: deal.origin,\n  destination: deal.destination,\n  price: deal.price,\n  originalPrice: deal.originalPrice,\n  discount: deal.discount,\n  link: `https://www.fly2any.com/flights?from=${deal.origin}&to=${deal.destination}`\n}));\n\nreturn {\n  email: subscribers.email,\n  firstName: subscribers.firstName,\n  deals: formattedDeals,\n  maxDiscount: Math.max(...formattedDeals.map(d => d.discount)),\n  unsubscribeUrl: `https://www.fly2any.com/api/newsletter/unsubscribe?email=${encodeURIComponent(subscribers.email)}`\n};"
+      },
+      "id": "prepare-digest",
+      "name": "Prepare Digest Data",
+      "type": "n8n-nodes-base.code",
+      "position": [1050, 300]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.mailgun.net/v3/{{$env.MAILGUN_DOMAIN}}/messages",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpBasicAuth",
+        "sendBody": true,
+        "contentType": "multipart-form-data",
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "from",
+              "value": "Fly2Any <deals@mail.fly2any.com>"
+            },
+            {
+              "name": "to",
+              "value": "={{ $json.email }}"
+            },
+            {
+              "name": "subject",
+              "value": "✈️ This week's best flight deals - Up to {{ $json.maxDiscount }}% off"
+            },
+            {
+              "name": "template",
+              "value": "weekly-digest"
+            },
+            {
+              "name": "h:X-Mailgun-Variables",
+              "value": "={{ JSON.stringify({ firstName: $json.firstName, deals: $json.deals, unsubscribeUrl: $json.unsubscribeUrl }) }}"
+            },
+            {
+              "name": "o:tag",
+              "value": "weekly-digest"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "send-digest",
+      "name": "Send Weekly Digest",
+      "type": "n8n-nodes-base.httpRequest",
+      "position": [1250, 300]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://www.fly2any.com/api/webhooks/n8n",
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "type",
+              "value": "email_sent"
+            },
+            {
+              "name": "data",
+              "value": "={{ JSON.stringify({ email: $json.email, campaignId: 'weekly-digest' }) }}"
+            },
+            {
+              "name": "metadata",
+              "value": "={{ JSON.stringify({ type: 'digest', dealsCount: $json.deals.length }) }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "log-digest-sent",
+      "name": "Log Digest Sent",
+      "type": "n8n-nodes-base.httpRequest",
+      "position": [1450, 300]
+    },
+    {
+      "parameters": {
+        "amount": 100,
+        "unit": "milliseconds"
+      },
+      "id": "rate-limit",
+      "name": "Rate Limit Delay",
+      "type": "n8n-nodes-base.wait",
+      "position": [1650, 300],
+      "notes": "Prevent Mailgun rate limits"
+    }
+  ],
+  "connections": {
+    "Every Sunday 9 AM ET": {
+      "main": [
+        [{ "node": "Fetch Active Subscribers", "type": "main", "index": 0 }]
+      ]
+    },
+    "Fetch Active Subscribers": {
+      "main": [
+        [{ "node": "Process in Batches of 50", "type": "main", "index": 0 }]
+      ]
+    },
+    "Process in Batches of 50": {
+      "main": [
+        [{ "node": "Fetch Top Deals", "type": "main", "index": 0 }]
+      ]
+    },
+    "Fetch Top Deals": {
+      "main": [
+        [{ "node": "Prepare Digest Data", "type": "main", "index": 0 }]
+      ]
+    },
+    "Prepare Digest Data": {
+      "main": [
+        [{ "node": "Send Weekly Digest", "type": "main", "index": 0 }]
+      ]
+    },
+    "Send Weekly Digest": {
+      "main": [
+        [{ "node": "Log Digest Sent", "type": "main", "index": 0 }]
+      ]
+    },
+    "Log Digest Sent": {
+      "main": [
+        [{ "node": "Rate Limit Delay", "type": "main", "index": 0 }]
+      ]
+    },
+    "Rate Limit Delay": {
+      "main": [
+        [{ "node": "Process in Batches of 50", "type": "main", "index": 0 }]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "timezone": "America/New_York"
+  },
+  "staticData": null,
+  "tags": ["fly2any", "weekly-digest", "newsletter", "automation"]
+}

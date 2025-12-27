@@ -1,0 +1,295 @@
+{
+  "name": "Fly2Any - Cart Abandonment Recovery",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "cart-abandoned",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "webhook-trigger",
+      "name": "Cart Abandoned Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "position": [250, 300],
+      "webhookId": "cart-abandoned"
+    },
+    {
+      "parameters": {
+        "amount": 1,
+        "unit": "hours"
+      },
+      "id": "wait-1-hour",
+      "name": "Wait 1 Hour",
+      "type": "n8n-nodes-base.wait",
+      "position": [450, 300]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://www.fly2any.com/api/webhooks/n8n",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "type",
+              "value": "cart_recovery_check"
+            },
+            {
+              "name": "data",
+              "value": "={{ JSON.stringify({ abandonmentId: $json.abandonmentId }) }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "check-conversion-1",
+      "name": "Check If Converted",
+      "type": "n8n-nodes-base.httpRequest",
+      "position": [650, 300]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "boolean": [
+            {
+              "value1": "={{ $json.converted }}",
+              "value2": false
+            }
+          ]
+        }
+      },
+      "id": "if-not-converted-1",
+      "name": "Not Converted?",
+      "type": "n8n-nodes-base.if",
+      "position": [850, 300]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.mailgun.net/v3/{{$env.MAILGUN_DOMAIN}}/messages",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpBasicAuth",
+        "sendBody": true,
+        "contentType": "multipart-form-data",
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "from",
+              "value": "Fly2Any <noreply@mail.fly2any.com>"
+            },
+            {
+              "name": "to",
+              "value": "={{ $node['Cart Abandoned Webhook'].json.data.email }}"
+            },
+            {
+              "name": "subject",
+              "value": "Your trip is waiting - Complete your booking! ✈️"
+            },
+            {
+              "name": "template",
+              "value": "cart-recovery-1"
+            },
+            {
+              "name": "h:X-Mailgun-Variables",
+              "value": "={{ JSON.stringify({ firstName: $node['Cart Abandoned Webhook'].json.metadata.firstName, cartValue: $node['Cart Abandoned Webhook'].json.metadata.cartValue, recoveryUrl: 'https://www.fly2any.com/checkout?recover=' + $node['Cart Abandoned Webhook'].json.abandonmentId }) }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "send-email-1",
+      "name": "Send Recovery Email #1",
+      "type": "n8n-nodes-base.httpRequest",
+      "position": [1050, 200]
+    },
+    {
+      "parameters": {
+        "amount": 23,
+        "unit": "hours"
+      },
+      "id": "wait-23-hours",
+      "name": "Wait 23 Hours",
+      "type": "n8n-nodes-base.wait",
+      "position": [1250, 200]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://www.fly2any.com/api/webhooks/n8n",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "type",
+              "value": "cart_recovery_check"
+            },
+            {
+              "name": "data",
+              "value": "={{ JSON.stringify({ abandonmentId: $node['Cart Abandoned Webhook'].json.abandonmentId }) }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "check-conversion-2",
+      "name": "Check If Converted (2)",
+      "type": "n8n-nodes-base.httpRequest",
+      "position": [1450, 200]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "boolean": [
+            {
+              "value1": "={{ $json.converted }}",
+              "value2": false
+            }
+          ]
+        }
+      },
+      "id": "if-not-converted-2",
+      "name": "Still Not Converted?",
+      "type": "n8n-nodes-base.if",
+      "position": [1650, 200]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.mailgun.net/v3/{{$env.MAILGUN_DOMAIN}}/messages",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpBasicAuth",
+        "sendBody": true,
+        "contentType": "multipart-form-data",
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "from",
+              "value": "Fly2Any <noreply@mail.fly2any.com>"
+            },
+            {
+              "name": "to",
+              "value": "={{ $node['Cart Abandoned Webhook'].json.data.email }}"
+            },
+            {
+              "name": "subject",
+              "value": "⏰ Hurry! Your trip price may increase"
+            },
+            {
+              "name": "template",
+              "value": "cart-recovery-2"
+            },
+            {
+              "name": "h:X-Mailgun-Variables",
+              "value": "={{ JSON.stringify({ firstName: $node['Cart Abandoned Webhook'].json.metadata.firstName, cartValue: $node['Cart Abandoned Webhook'].json.metadata.cartValue, recoveryUrl: 'https://www.fly2any.com/checkout?recover=' + $node['Cart Abandoned Webhook'].json.abandonmentId, expiresIn: '24 hours' }) }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "send-email-2",
+      "name": "Send Urgency Email #2",
+      "type": "n8n-nodes-base.httpRequest",
+      "position": [1850, 100]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://www.fly2any.com/api/webhooks/n8n",
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "type",
+              "value": "email_sent"
+            },
+            {
+              "name": "data",
+              "value": "={{ JSON.stringify({ email: $node['Cart Abandoned Webhook'].json.data.email, campaignId: 'cart-recovery' }) }}"
+            },
+            {
+              "name": "metadata",
+              "value": "={{ JSON.stringify({ type: 'cart-recovery', emailNumber: 2 }) }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "log-email-sent",
+      "name": "Log Email Sent",
+      "type": "n8n-nodes-base.httpRequest",
+      "position": [2050, 100]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ { success: true, abandonmentId: $json.abandonmentId, message: 'Recovery sequence started' } }}"
+      },
+      "id": "respond",
+      "name": "Respond to Webhook",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "position": [450, 500]
+    }
+  ],
+  "connections": {
+    "Cart Abandoned Webhook": {
+      "main": [
+        [
+          { "node": "Wait 1 Hour", "type": "main", "index": 0 },
+          { "node": "Respond to Webhook", "type": "main", "index": 0 }
+        ]
+      ]
+    },
+    "Wait 1 Hour": {
+      "main": [
+        [{ "node": "Check If Converted", "type": "main", "index": 0 }]
+      ]
+    },
+    "Check If Converted": {
+      "main": [
+        [{ "node": "Not Converted?", "type": "main", "index": 0 }]
+      ]
+    },
+    "Not Converted?": {
+      "main": [
+        [{ "node": "Send Recovery Email #1", "type": "main", "index": 0 }],
+        []
+      ]
+    },
+    "Send Recovery Email #1": {
+      "main": [
+        [{ "node": "Wait 23 Hours", "type": "main", "index": 0 }]
+      ]
+    },
+    "Wait 23 Hours": {
+      "main": [
+        [{ "node": "Check If Converted (2)", "type": "main", "index": 0 }]
+      ]
+    },
+    "Check If Converted (2)": {
+      "main": [
+        [{ "node": "Still Not Converted?", "type": "main", "index": 0 }]
+      ]
+    },
+    "Still Not Converted?": {
+      "main": [
+        [{ "node": "Send Urgency Email #2", "type": "main", "index": 0 }],
+        []
+      ]
+    },
+    "Send Urgency Email #2": {
+      "main": [
+        [{ "node": "Log Email Sent", "type": "main", "index": 0 }]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "staticData": null,
+  "tags": ["fly2any", "cart-recovery", "automation", "revenue"]
+}

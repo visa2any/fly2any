@@ -334,6 +334,34 @@ export async function POST(request: NextRequest) {
             campaignEngine.markConverted(session.user.id).catch(() => null);
           }
         } catch { /* ignore */ }
+
+        // Trigger n8n upsell sequence (fire and forget)
+        if (process.env.N8N_WEBHOOK_URL) {
+          const destination = selectedFlight.arrival?.city || selectedFlight.arrival?.airportCode || '';
+          const checkInDate = selectedFlight.departure?.time ?
+            new Date(selectedFlight.departure.time).toISOString().split('T')[0] : '';
+
+          fetch(`${process.env.N8N_WEBHOOK_URL}/booking-confirmed`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': `Bearer ${process.env.N8N_WEBHOOK_SECRET || ''}`,
+            },
+            body: JSON.stringify({
+              bookingId: booking.bookingReference,
+              type: 'flight',
+              email: contactInfo.email,
+              firstName: primaryPassenger.firstName || '',
+              destination,
+              checkIn: checkInDate,
+              totalAmount: paymentInfo.amount,
+              currency: paymentInfo.currency,
+            }),
+          }).catch((err) => {
+            console.warn('⚠️ n8n upsell webhook failed (non-blocking):', err.message);
+          });
+          console.log('📤 n8n upsell sequence triggered');
+        }
       }
 
       // Return success response

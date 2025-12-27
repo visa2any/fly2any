@@ -1,0 +1,274 @@
+{
+  "name": "Fly2Any - Post-Booking Upsell Sequence",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "booking-confirmed",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "webhook-trigger",
+      "name": "Booking Confirmed Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "position": [250, 300],
+      "webhookId": "booking-confirmed"
+    },
+    {
+      "parameters": {
+        "amount": 2,
+        "unit": "hours"
+      },
+      "id": "wait-2-hours",
+      "name": "Wait 2 Hours",
+      "type": "n8n-nodes-base.wait",
+      "position": [450, 300]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://www.fly2any.com/api/webhooks/n8n",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "type",
+              "value": "upsell_trigger"
+            },
+            {
+              "name": "bookingId",
+              "value": "={{ $node['Booking Confirmed Webhook'].json.bookingId }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "get-upsell-data",
+      "name": "Get Upsell Recommendations",
+      "type": "n8n-nodes-base.httpRequest",
+      "position": [650, 300]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "boolean": [
+            {
+              "value1": "={{ $json.skipUpsell }}",
+              "value2": false
+            }
+          ]
+        }
+      },
+      "id": "should-upsell",
+      "name": "Should Send Upsell?",
+      "type": "n8n-nodes-base.if",
+      "position": [850, 300]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "string": [
+            {
+              "value1": "={{ $json.booking.type }}",
+              "value2": "flight"
+            }
+          ]
+        }
+      },
+      "id": "is-flight",
+      "name": "Is Flight Booking?",
+      "type": "n8n-nodes-base.if",
+      "position": [1050, 200]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.mailgun.net/v3/{{$env.MAILGUN_DOMAIN}}/messages",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpBasicAuth",
+        "sendBody": true,
+        "contentType": "multipart-form-data",
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "from",
+              "value": "Fly2Any <noreply@mail.fly2any.com>"
+            },
+            {
+              "name": "to",
+              "value": "={{ $node['Get Upsell Recommendations'].json.booking.email }}"
+            },
+            {
+              "name": "subject",
+              "value": "Complete your {{ $node['Get Upsell Recommendations'].json.booking.destination }} trip - Find your perfect hotel 🏨"
+            },
+            {
+              "name": "template",
+              "value": "upsell-flight-to-hotel"
+            },
+            {
+              "name": "h:X-Mailgun-Variables",
+              "value": "={{ JSON.stringify({ firstName: $node['Get Upsell Recommendations'].json.booking.firstName, destination: $node['Get Upsell Recommendations'].json.booking.destination, checkIn: $node['Get Upsell Recommendations'].json.booking.checkIn, hotelSearchUrl: $node['Get Upsell Recommendations'].json.recommendations[0].link }) }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "send-hotel-upsell",
+      "name": "Send Hotel Upsell Email",
+      "type": "n8n-nodes-base.httpRequest",
+      "position": [1250, 100]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "string": [
+            {
+              "value1": "={{ $node['Get Upsell Recommendations'].json.booking.type }}",
+              "value2": "hotel"
+            }
+          ]
+        }
+      },
+      "id": "is-hotel",
+      "name": "Is Hotel Booking?",
+      "type": "n8n-nodes-base.if",
+      "position": [1050, 400]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.mailgun.net/v3/{{$env.MAILGUN_DOMAIN}}/messages",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpBasicAuth",
+        "sendBody": true,
+        "contentType": "multipart-form-data",
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "from",
+              "value": "Fly2Any <noreply@mail.fly2any.com>"
+            },
+            {
+              "name": "to",
+              "value": "={{ $node['Get Upsell Recommendations'].json.booking.email }}"
+            },
+            {
+              "name": "subject",
+              "value": "Enhance your {{ $node['Get Upsell Recommendations'].json.booking.destination }} stay - Transfers & Activities 🌟"
+            },
+            {
+              "name": "template",
+              "value": "upsell-hotel-to-transfer"
+            },
+            {
+              "name": "h:X-Mailgun-Variables",
+              "value": "={{ JSON.stringify({ firstName: $node['Get Upsell Recommendations'].json.booking.firstName, destination: $node['Get Upsell Recommendations'].json.booking.destination, transferSearchUrl: $node['Get Upsell Recommendations'].json.recommendations[0].link, activitiesSearchUrl: $node['Get Upsell Recommendations'].json.recommendations[1].link }) }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "send-transfer-upsell",
+      "name": "Send Transfer/Activity Upsell",
+      "type": "n8n-nodes-base.httpRequest",
+      "position": [1250, 400]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://www.fly2any.com/api/webhooks/n8n",
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "type",
+              "value": "email_sent"
+            },
+            {
+              "name": "data",
+              "value": "={{ JSON.stringify({ email: $node['Get Upsell Recommendations'].json.booking.email, userId: $node['Get Upsell Recommendations'].json.booking.userId, campaignId: 'upsell-sequence' }) }}"
+            },
+            {
+              "name": "metadata",
+              "value": "={{ JSON.stringify({ type: 'upsell', bookingType: $node['Get Upsell Recommendations'].json.booking.type }) }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "log-upsell-sent",
+      "name": "Log Upsell Email Sent",
+      "type": "n8n-nodes-base.httpRequest",
+      "position": [1450, 250]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ { success: true, bookingId: $json.bookingId, message: 'Upsell sequence started' } }}"
+      },
+      "id": "respond",
+      "name": "Respond to Webhook",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "position": [450, 500]
+    }
+  ],
+  "connections": {
+    "Booking Confirmed Webhook": {
+      "main": [
+        [
+          { "node": "Wait 2 Hours", "type": "main", "index": 0 },
+          { "node": "Respond to Webhook", "type": "main", "index": 0 }
+        ]
+      ]
+    },
+    "Wait 2 Hours": {
+      "main": [
+        [{ "node": "Get Upsell Recommendations", "type": "main", "index": 0 }]
+      ]
+    },
+    "Get Upsell Recommendations": {
+      "main": [
+        [{ "node": "Should Send Upsell?", "type": "main", "index": 0 }]
+      ]
+    },
+    "Should Send Upsell?": {
+      "main": [
+        [
+          { "node": "Is Flight Booking?", "type": "main", "index": 0 },
+          { "node": "Is Hotel Booking?", "type": "main", "index": 0 }
+        ],
+        []
+      ]
+    },
+    "Is Flight Booking?": {
+      "main": [
+        [{ "node": "Send Hotel Upsell Email", "type": "main", "index": 0 }],
+        []
+      ]
+    },
+    "Is Hotel Booking?": {
+      "main": [
+        [{ "node": "Send Transfer/Activity Upsell", "type": "main", "index": 0 }],
+        []
+      ]
+    },
+    "Send Hotel Upsell Email": {
+      "main": [
+        [{ "node": "Log Upsell Email Sent", "type": "main", "index": 0 }]
+      ]
+    },
+    "Send Transfer/Activity Upsell": {
+      "main": [
+        [{ "node": "Log Upsell Email Sent", "type": "main", "index": 0 }]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "staticData": null,
+  "tags": ["fly2any", "upsell", "automation", "revenue", "post-booking"]
+}

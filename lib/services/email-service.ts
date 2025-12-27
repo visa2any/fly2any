@@ -1298,4 +1298,424 @@ export class EmailService {
 
     return this.sendEmail(options);
   }
+
+  // ===================================
+  // CART RECOVERY EMAILS (Growth Automation)
+  // ===================================
+
+  /**
+   * Cart Recovery Email #1 - Soft Reminder (sent 1 hour after abandonment)
+   */
+  static async sendCartRecoveryEmail1(
+    email: string,
+    data: {
+      firstName?: string;
+      cartItems: Array<{ title: string; subtitle?: string; price: number }>;
+      cartValue: number;
+      currency?: string;
+      recoveryUrl: string;
+    }
+  ): Promise<boolean> {
+    const currency = data.currency || 'USD';
+    const cartItemsHtml = data.cartItems.map(item => `
+      <tr>
+        <td style="padding:12px 16px;border-bottom:1px solid #e5e7eb;">
+          <table role="presentation" style="width:100%;border:none;border-spacing:0;">
+            <tr>
+              <td>
+                <p style="margin:0;font-size:15px;font-weight:600;color:#111827;font-family:Arial,Helvetica,sans-serif;">${item.title}</p>
+                ${item.subtitle ? `<p style="margin:4px 0 0 0;font-size:13px;color:#6b7280;font-family:Arial,Helvetica,sans-serif;">${item.subtitle}</p>` : ''}
+              </td>
+              <td align="right" style="font-weight:700;color:#1e40af;font-family:Arial,Helvetica,sans-serif;">$${item.price.toLocaleString()}</td>
+            </tr>
+          </table>
+        </td>
+      </tr>
+    `).join('');
+
+    const content = `
+    ${this.getHeader('Still thinking it over?', 'Your trip is waiting for you', undefined, '#2563eb')}
+
+    <tr>
+      <td style="padding:32px 24px;">
+        <p style="margin:0 0 8px 0;font-size:18px;color:#374151;font-family:Arial,Helvetica,sans-serif;">Hi${data.firstName ? ` ${data.firstName}` : ''},</p>
+        <p style="margin:0 0 24px 0;font-size:16px;color:#6b7280;line-height:1.7;font-family:Arial,Helvetica,sans-serif;">
+          We noticed you were checking out an amazing trip. Your items are still saved and ready whenever you are!
+        </p>
+
+        <!-- CART ITEMS -->
+        <table role="presentation" style="width:100%;border:none;border-spacing:0;border:1px solid #e5e7eb;border-radius:12px;overflow:hidden;">
+          <tr>
+            <td style="background:#f9fafb;padding:12px 16px;font-weight:700;color:#374151;font-size:14px;text-transform:uppercase;letter-spacing:0.5px;font-family:Arial,Helvetica,sans-serif;">
+              Your Saved Trip
+            </td>
+          </tr>
+          ${cartItemsHtml}
+          <tr>
+            <td style="padding:16px;background:#f0f9ff;">
+              <table role="presentation" style="width:100%;border:none;border-spacing:0;">
+                <tr>
+                  <td style="font-size:16px;font-weight:600;color:#374151;font-family:Arial,Helvetica,sans-serif;">Total</td>
+                  <td align="right" style="font-size:24px;font-weight:800;color:#1e40af;font-family:Arial,Helvetica,sans-serif;">${currency} $${data.cartValue.toLocaleString()}</td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+        </table>
+
+        ${this.getButton('Complete My Booking', data.recoveryUrl, '#E74035')}
+
+        <p style="margin:24px 0 0 0;font-size:14px;color:#6b7280;text-align:center;font-family:Arial,Helvetica,sans-serif;">
+          Need help? Reply to this email or call us at <strong>1-332-220-0838</strong>
+        </p>
+      </td>
+    </tr>
+
+    ${this.getCrossSellSection('general')}
+    ${this.getFooter()}`;
+
+    const html = this.getEmailWrapper(content, '#2563eb');
+
+    return this.sendEmail({
+      to: email,
+      subject: `Your trip is waiting - Complete your booking! ✈️`,
+      html,
+      tags: ['cart-recovery', 'email-1', 'automation'],
+    });
+  }
+
+  /**
+   * Cart Recovery Email #2 - Urgency (sent 24 hours after abandonment)
+   */
+  static async sendCartRecoveryEmail2(
+    email: string,
+    data: {
+      firstName?: string;
+      cartItems: Array<{ title: string; subtitle?: string; price: number }>;
+      cartValue: number;
+      currency?: string;
+      recoveryUrl: string;
+      expiresIn?: string;
+    }
+  ): Promise<boolean> {
+    const currency = data.currency || 'USD';
+    const expiresIn = data.expiresIn || '24 hours';
+
+    const content = `
+    ${this.getHeader('Prices may increase soon', 'Your saved trip is about to expire', undefined, '#dc2626')}
+
+    <tr>
+      <td style="padding:32px 24px;">
+        <!-- URGENCY BANNER -->
+        <table role="presentation" style="width:100%;border:none;border-spacing:0;margin-bottom:24px;">
+          <tr>
+            <td style="background:#fef2f2;border:2px solid #fecaca;padding:16px;border-radius:12px;text-align:center;">
+              <p style="margin:0;font-size:28px;">⏰</p>
+              <p style="margin:8px 0 0 0;font-size:16px;font-weight:700;color:#dc2626;font-family:Arial,Helvetica,sans-serif;">Your saved prices expire in ${expiresIn}</p>
+              <p style="margin:4px 0 0 0;font-size:14px;color:#7f1d1d;font-family:Arial,Helvetica,sans-serif;">Book now to lock in today's rates</p>
+            </td>
+          </tr>
+        </table>
+
+        <p style="margin:0 0 8px 0;font-size:18px;color:#374151;font-family:Arial,Helvetica,sans-serif;">Hi${data.firstName ? ` ${data.firstName}` : ''},</p>
+        <p style="margin:0 0 24px 0;font-size:16px;color:#6b7280;line-height:1.7;font-family:Arial,Helvetica,sans-serif;">
+          Travel prices change constantly. The trip you saved is still available at the same price, but we can't guarantee it for much longer.
+        </p>
+
+        <!-- PRICE BOX -->
+        <table role="presentation" style="width:100%;border:none;border-spacing:0;background:linear-gradient(135deg,#1e40af 0%,#3b82f6 100%);border-radius:12px;overflow:hidden;">
+          <tr>
+            <td style="padding:24px;text-align:center;">
+              <p style="margin:0;font-size:14px;color:rgba(255,255,255,0.9);font-family:Arial,Helvetica,sans-serif;">Your saved price</p>
+              <p style="margin:8px 0;font-size:42px;font-weight:800;color:#ffffff;letter-spacing:-2px;font-family:Arial,Helvetica,sans-serif;">${currency} $${data.cartValue.toLocaleString()}</p>
+              <p style="margin:0;font-size:13px;color:rgba(255,255,255,0.8);font-family:Arial,Helvetica,sans-serif;">Includes all taxes & fees</p>
+            </td>
+          </tr>
+        </table>
+
+        ${this.getButton('Book Now - Lock In Price', data.recoveryUrl, '#dc2626')}
+
+        <!-- TRUST SIGNALS -->
+        <table role="presentation" style="width:100%;border:none;border-spacing:0;margin-top:24px;">
+          <tr>
+            <td width="33%" style="text-align:center;padding:8px;">
+              <p style="margin:0;font-size:20px;">🔒</p>
+              <p style="margin:4px 0 0 0;font-size:12px;color:#6b7280;font-family:Arial,Helvetica,sans-serif;">Secure Checkout</p>
+            </td>
+            <td width="33%" style="text-align:center;padding:8px;">
+              <p style="margin:0;font-size:20px;">✅</p>
+              <p style="margin:4px 0 0 0;font-size:12px;color:#6b7280;font-family:Arial,Helvetica,sans-serif;">Best Price Guarantee</p>
+            </td>
+            <td width="33%" style="text-align:center;padding:8px;">
+              <p style="margin:0;font-size:20px;">📞</p>
+              <p style="margin:4px 0 0 0;font-size:12px;color:#6b7280;font-family:Arial,Helvetica,sans-serif;">24/7 Support</p>
+            </td>
+          </tr>
+        </table>
+      </td>
+    </tr>
+
+    ${this.getFooter()}`;
+
+    const html = this.getEmailWrapper(content, '#991b1b');
+
+    return this.sendEmail({
+      to: email,
+      subject: `⏰ Hurry! Your $${data.cartValue.toLocaleString()} trip price may increase`,
+      html,
+      tags: ['cart-recovery', 'email-2', 'urgency', 'automation'],
+    });
+  }
+
+  // ===================================
+  // UPSELL EMAILS (Post-Booking)
+  // ===================================
+
+  /**
+   * Flight Booked → Hotel Upsell Email
+   */
+  static async sendFlightToHotelUpsell(
+    email: string,
+    data: {
+      firstName: string;
+      bookingRef: string;
+      destination: string;
+      checkIn: string;
+      checkOut?: string;
+      hotelSearchUrl: string;
+    }
+  ): Promise<boolean> {
+    const content = `
+    ${this.getHeader('Complete Your Trip! 🏨', `Your flight to ${data.destination} is confirmed`, data.bookingRef, '#059669')}
+
+    <tr>
+      <td style="padding:32px 24px;">
+        <p style="margin:0 0 8px 0;font-size:18px;color:#374151;font-family:Arial,Helvetica,sans-serif;">Hi ${data.firstName},</p>
+        <p style="margin:0 0 24px 0;font-size:16px;color:#6b7280;line-height:1.7;font-family:Arial,Helvetica,sans-serif;">
+          Exciting news - your flight is booked! Now let's find you the perfect place to stay in ${data.destination}.
+        </p>
+
+        <!-- TRIP INFO -->
+        <table role="presentation" style="width:100%;border:none;border-spacing:0;background:#f0fdf4;border:2px solid #bbf7d0;border-radius:12px;overflow:hidden;margin-bottom:24px;">
+          <tr>
+            <td style="padding:20px;text-align:center;">
+              <p style="margin:0;font-size:14px;color:#166534;font-weight:600;font-family:Arial,Helvetica,sans-serif;">YOUR TRIP</p>
+              <p style="margin:8px 0;font-size:28px;font-weight:800;color:#15803d;font-family:Arial,Helvetica,sans-serif;">✈️ → ${data.destination}</p>
+              <p style="margin:0;font-size:16px;color:#166534;font-family:Arial,Helvetica,sans-serif;">${data.checkIn}${data.checkOut ? ` - ${data.checkOut}` : ''}</p>
+            </td>
+          </tr>
+        </table>
+
+        <!-- WHY BOOK HOTEL -->
+        <h3 style="margin:0 0 16px 0;font-size:18px;color:#1e40af;font-family:Arial,Helvetica,sans-serif;">Why book your hotel with Fly2Any?</h3>
+
+        <table role="presentation" style="width:100%;border:none;border-spacing:0;">
+          <tr>
+            <td style="padding:8px 0;">
+              <table role="presentation" style="width:100%;border:none;border-spacing:0;">
+                <tr>
+                  <td width="40" style="font-size:24px;">💰</td>
+                  <td style="font-size:15px;color:#374151;font-family:Arial,Helvetica,sans-serif;"><strong>Best Price Guarantee</strong> - Find it cheaper? We'll match it</td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+          <tr>
+            <td style="padding:8px 0;">
+              <table role="presentation" style="width:100%;border:none;border-spacing:0;">
+                <tr>
+                  <td width="40" style="font-size:24px;">🏆</td>
+                  <td style="font-size:15px;color:#374151;font-family:Arial,Helvetica,sans-serif;"><strong>Earn Fly2Any Points</strong> - 2x points on hotel bookings</td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+          <tr>
+            <td style="padding:8px 0;">
+              <table role="presentation" style="width:100%;border:none;border-spacing:0;">
+                <tr>
+                  <td width="40" style="font-size:24px;">❌</td>
+                  <td style="font-size:15px;color:#374151;font-family:Arial,Helvetica,sans-serif;"><strong>Free Cancellation</strong> - Plans change, we get it</td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+        </table>
+
+        ${this.getButton(`Find Hotels in ${data.destination}`, data.hotelSearchUrl, '#2563eb')}
+      </td>
+    </tr>
+
+    ${this.getCrossSellSection('flight')}
+    ${this.getFooter()}`;
+
+    const html = this.getEmailWrapper(content, '#047857');
+
+    return this.sendEmail({
+      to: email,
+      subject: `Complete your ${data.destination} trip - Find your perfect hotel 🏨`,
+      html,
+      tags: ['upsell', 'flight-to-hotel', 'automation'],
+    });
+  }
+
+  /**
+   * Hotel Booked → Transfer/Activities Upsell Email
+   */
+  static async sendHotelToTransferUpsell(
+    email: string,
+    data: {
+      firstName: string;
+      bookingRef: string;
+      hotelName: string;
+      destination: string;
+      checkIn: string;
+      transferSearchUrl: string;
+      activitiesSearchUrl: string;
+    }
+  ): Promise<boolean> {
+    const content = `
+    ${this.getHeader('Make Your Stay Special! 🌟', `Your hotel in ${data.destination} is confirmed`, data.bookingRef, '#7c3aed')}
+
+    <tr>
+      <td style="padding:32px 24px;">
+        <p style="margin:0 0 8px 0;font-size:18px;color:#374151;font-family:Arial,Helvetica,sans-serif;">Hi ${data.firstName},</p>
+        <p style="margin:0 0 24px 0;font-size:16px;color:#6b7280;line-height:1.7;font-family:Arial,Helvetica,sans-serif;">
+          Great choice! Your stay at <strong>${data.hotelName}</strong> is confirmed. Now let's make your trip unforgettable!
+        </p>
+
+        <!-- RECOMMENDATIONS -->
+        <table role="presentation" style="width:100%;border:none;border-spacing:0;">
+          <!-- TRANSFER -->
+          <tr>
+            <td style="padding:12px;background:#f5f3ff;border-radius:12px;margin-bottom:12px;">
+              <table role="presentation" style="width:100%;border:none;border-spacing:0;">
+                <tr>
+                  <td width="60" style="font-size:36px;text-align:center;">🚐</td>
+                  <td style="padding-left:12px;">
+                    <h4 style="margin:0;font-size:16px;font-weight:700;color:#5b21b6;font-family:Arial,Helvetica,sans-serif;">Airport Transfer</h4>
+                    <p style="margin:4px 0 0 0;font-size:14px;color:#6b7280;font-family:Arial,Helvetica,sans-serif;">Skip the taxi line with a pre-booked transfer</p>
+                    <a href="${data.transferSearchUrl}" style="display:inline-block;margin-top:8px;font-size:13px;color:#7c3aed;font-weight:600;text-decoration:none;font-family:Arial,Helvetica,sans-serif;">Book Transfer →</a>
+                  </td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+          <tr><td style="height:12px;"></td></tr>
+          <!-- ACTIVITIES -->
+          <tr>
+            <td style="padding:12px;background:#fef3c7;border-radius:12px;">
+              <table role="presentation" style="width:100%;border:none;border-spacing:0;">
+                <tr>
+                  <td width="60" style="font-size:36px;text-align:center;">🎯</td>
+                  <td style="padding-left:12px;">
+                    <h4 style="margin:0;font-size:16px;font-weight:700;color:#b45309;font-family:Arial,Helvetica,sans-serif;">Local Experiences</h4>
+                    <p style="margin:4px 0 0 0;font-size:14px;color:#6b7280;font-family:Arial,Helvetica,sans-serif;">Tours, activities, and hidden gems</p>
+                    <a href="${data.activitiesSearchUrl}" style="display:inline-block;margin-top:8px;font-size:13px;color:#b45309;font-weight:600;text-decoration:none;font-family:Arial,Helvetica,sans-serif;">Explore Activities →</a>
+                  </td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+        </table>
+
+        <p style="margin:24px 0 0 0;font-size:14px;color:#6b7280;text-align:center;font-family:Arial,Helvetica,sans-serif;">
+          💡 <strong>Pro tip:</strong> Book activities in advance to skip the lines and save up to 20%
+        </p>
+      </td>
+    </tr>
+
+    ${this.getCrossSellSection('hotel')}
+    ${this.getFooter()}`;
+
+    const html = this.getEmailWrapper(content, '#5b21b6');
+
+    return this.sendEmail({
+      to: email,
+      subject: `Enhance your ${data.destination} stay - Transfers & Activities 🌟`,
+      html,
+      tags: ['upsell', 'hotel-to-transfer', 'automation'],
+    });
+  }
+
+  /**
+   * Weekly Personalized Deal Digest
+   */
+  static async sendWeeklyDigest(
+    email: string,
+    data: {
+      firstName?: string;
+      deals: Array<{
+        origin: string;
+        destination: string;
+        price: number;
+        originalPrice: number;
+        discount: number;
+        imageUrl?: string;
+        link: string;
+      }>;
+      savedSearchMatches?: number;
+      unsubscribeUrl: string;
+    }
+  ): Promise<boolean> {
+    const dealsHtml = data.deals.slice(0, 5).map(deal => `
+      <tr>
+        <td style="padding:12px;border-bottom:1px solid #e5e7eb;">
+          <table role="presentation" style="width:100%;border:none;border-spacing:0;">
+            <tr>
+              <td>
+                <p style="margin:0;font-size:15px;font-weight:700;color:#111827;font-family:Arial,Helvetica,sans-serif;">${deal.origin} → ${deal.destination}</p>
+                <p style="margin:4px 0 0 0;font-size:13px;color:#6b7280;font-family:Arial,Helvetica,sans-serif;">
+                  <span style="text-decoration:line-through;">$${deal.originalPrice}</span>
+                  <span style="color:#dc2626;font-weight:600;margin-left:8px;">Save ${deal.discount}%</span>
+                </p>
+              </td>
+              <td align="right">
+                <a href="${deal.link}" style="display:inline-block;background:#1e40af;color:#ffffff;padding:8px 16px;border-radius:6px;font-size:14px;font-weight:600;text-decoration:none;font-family:Arial,Helvetica,sans-serif;">$${deal.price}</a>
+              </td>
+            </tr>
+          </table>
+        </td>
+      </tr>
+    `).join('');
+
+    const content = `
+    ${this.getHeader("This Week's Best Deals ✈️", 'Handpicked flights just for you', undefined, '#1e40af')}
+
+    <tr>
+      <td style="padding:32px 24px;">
+        <p style="margin:0 0 8px 0;font-size:18px;color:#374151;font-family:Arial,Helvetica,sans-serif;">Hi${data.firstName ? ` ${data.firstName}` : ''},</p>
+        <p style="margin:0 0 24px 0;font-size:16px;color:#6b7280;line-height:1.7;font-family:Arial,Helvetica,sans-serif;">
+          We've found some amazing deals this week! ${data.savedSearchMatches ? `Including ${data.savedSearchMatches} matches for your saved searches.` : 'Check them out before they disappear.'}
+        </p>
+
+        <!-- DEALS LIST -->
+        <table role="presentation" style="width:100%;border:none;border-spacing:0;border:1px solid #e5e7eb;border-radius:12px;overflow:hidden;">
+          <tr>
+            <td style="background:#f9fafb;padding:12px 16px;font-weight:700;color:#374151;font-size:14px;font-family:Arial,Helvetica,sans-serif;">
+              🔥 Top Deals This Week
+            </td>
+          </tr>
+          ${dealsHtml}
+        </table>
+
+        ${this.getButton('See All Deals', `${this.baseUrl}/deals`, '#E74035')}
+
+        <p style="margin:24px 0 0 0;font-size:12px;color:#9ca3af;text-align:center;font-family:Arial,Helvetica,sans-serif;">
+          <a href="${data.unsubscribeUrl}" style="color:#9ca3af;text-decoration:underline;">Unsubscribe from weekly digest</a>
+        </p>
+      </td>
+    </tr>
+
+    ${this.getFooter()}`;
+
+    const html = this.getEmailWrapper(content, '#1e40af');
+
+    return this.sendEmail({
+      to: email,
+      subject: `✈️ This week's best flight deals - Up to ${Math.max(...data.deals.map(d => d.discount))}% off`,
+      html,
+      tags: ['digest', 'weekly', 'automation'],
+    });
+  }
 }
