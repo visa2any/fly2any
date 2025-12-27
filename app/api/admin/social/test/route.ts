@@ -9,20 +9,26 @@ import { NextRequest, NextResponse } from 'next/server';
 import { auth } from '@/lib/auth';
 import { getConfiguredAdapters, postToPlatform, SocialPlatform } from '@/lib/social';
 import { handleApiError, ErrorCategory, ErrorSeverity } from '@/lib/monitoring/global-error-handler';
+import prisma from '@/lib/prisma';
 
 export const dynamic = 'force-dynamic';
 
-// Check if user is admin
+// Check if user is admin via AdminUser table
 async function isAdmin(request: NextRequest): Promise<boolean> {
+  // Allow cron secret auth
   const authHeader = request.headers.get('authorization');
   const cronSecret = process.env.CRON_SECRET;
-  if (authHeader === `Bearer ${cronSecret}`) return true;
+  if (cronSecret && authHeader === `Bearer ${cronSecret}`) return true;
 
+  // Check session + AdminUser table
   const session = await auth();
-  if (!session?.user?.email) return false;
+  if (!session?.user?.id) return false;
 
-  const adminEmails = (process.env.ADMIN_NOTIFICATION_EMAILS || '').split(',');
-  return adminEmails.includes(session.user.email);
+  const adminUser = await prisma?.adminUser.findUnique({
+    where: { userId: session.user.id },
+  });
+
+  return !!adminUser;
 }
 
 export async function GET(request: NextRequest) {
