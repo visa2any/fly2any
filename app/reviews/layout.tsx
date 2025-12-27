@@ -1,5 +1,8 @@
 import type { Metadata } from 'next'
-import { reviewService } from '@/lib/growth/reviews'
+import { StructuredData } from '@/components/seo/StructuredData'
+import { generateBreadcrumbSchema } from '@/lib/seo/schema-generators'
+
+const SITE_URL = process.env.NEXT_PUBLIC_APP_URL || 'https://www.fly2any.com'
 
 export const metadata: Metadata = {
   title: 'Reviews & Ratings | Fly2Any - See What Travelers Say',
@@ -119,20 +122,33 @@ export default function ReviewsLayout({
     ],
   }
 
+  // Breadcrumbs
+  const breadcrumbs = [
+    { name: 'Home', url: SITE_URL },
+    { name: 'Reviews', url: `${SITE_URL}/reviews` },
+  ]
+
+  // Speakable for voice search
+  const speakableSchema = {
+    '@context': 'https://schema.org',
+    '@type': 'WebPage',
+    name: 'Fly2Any Reviews',
+    url: `${SITE_URL}/reviews`,
+    speakable: {
+      '@type': 'SpeakableSpecification',
+      cssSelector: ['h1', '.review-summary', '.review-text', '.rating-value'],
+    },
+  }
+
   return (
     <>
-      <script
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(reviewSchema) }}
-      />
-      <script
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(organizationSchema) }}
-      />
-      <script
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(faqSchema) }}
-      />
+      <StructuredData schema={[
+        reviewSchema,
+        organizationSchema,
+        faqSchema,
+        generateBreadcrumbSchema(breadcrumbs),
+        speakableSchema,
+      ]} />
       {children}
     </>
   )

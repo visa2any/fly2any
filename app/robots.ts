@@ -7,8 +7,8 @@
  * - Rate limiting for aggressive bots
  * - Strategic content access control
  *
- * @version 2.0.0
- * @last-updated 2025-01-19
+ * @version 2.1.0
+ * @last-updated 2025-12-26
  */
 
 import { MetadataRoute } from 'next';
@@ -118,9 +118,24 @@ export default function robots(): MetadataRoute.Robots {
       },
 
       // === AI SEARCH ENGINES - ChatGPT, Google AI, Cohere (Full Access) ===
-      // GPTBot powers ChatGPT Search - MUST be allowed for AI visibility
+      // OAI-SearchBot = ChatGPT Search (Dec 2025: primary search crawler)
+      // GPTBot = Training data collection
+      // ChatGPT-User = User-initiated browsing (Dec 2025: ignores robots.txt)
       {
-        userAgent: ['GPTBot', 'ChatGPT-User', 'OAI-SearchBot', 'cohere-ai'],
+        userAgent: ['OAI-SearchBot'], // ChatGPT Search - PRIORITY
+        allow: '/',
+        disallow: [
+          '/admin/',
+          '/api/',
+          '/account/',
+          '/agent/',
+          '/private/',
+          '/booking/*/confirmation',
+        ],
+        crawlDelay: 1, // Fast access for search
+      },
+      {
+        userAgent: ['GPTBot', 'cohere-ai'], // Training + Cohere
         allow: [
           '/',
           '/flights/',
