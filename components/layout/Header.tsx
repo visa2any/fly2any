@@ -257,7 +257,7 @@ export function Header({
               <span className="absolute bottom-1.5 left-3 right-3 h-0.5 bg-primary-500 rounded-full scale-x-0 group-hover:scale-x-100 transition-transform duration-150 ease-[cubic-bezier(0.2,0.8,0.2,1)] origin-left"></span>
             </a>
 
-            {/* Cars - NEW */}
+            {/* Cars */}
             <a
               href="/cars"
               className="group relative px-3 xl:px-4 py-2.5 text-neutral-700 hover:text-primary-600 transition-all duration-150 ease-[cubic-bezier(0.2,0.8,0.2,1)] font-semibold text-sm rounded-xl hover:bg-primary-50/60 hover:-translate-y-0.5"
@@ -267,11 +267,51 @@ export function Header({
                   🚗
                 </span>
                 Cars
-                <span className="px-1.5 py-0.5 text-[10px] font-bold bg-green-500 text-white rounded-full uppercase tracking-wide">New</span>
               </span>
               <span className="absolute bottom-1.5 left-3 right-3 h-0.5 bg-primary-500 rounded-full scale-x-0 group-hover:scale-x-100 transition-transform duration-150 ease-[cubic-bezier(0.2,0.8,0.2,1)] origin-left"></span>
             </a>
 
+            {/* Tours */}
+            <a
+              href="/tours"
+              className="group relative px-3 xl:px-4 py-2.5 text-neutral-700 hover:text-primary-600 transition-all duration-150 ease-[cubic-bezier(0.2,0.8,0.2,1)] font-semibold text-sm rounded-xl hover:bg-primary-50/60 hover:-translate-y-0.5"
+            >
+              <span className="flex items-center gap-2">
+                <span className="text-lg transition-transform duration-150 group-hover:scale-110">
+                  🎯
+                </span>
+                Tours
+              </span>
+              <span className="absolute bottom-1.5 left-3 right-3 h-0.5 bg-primary-500 rounded-full scale-x-0 group-hover:scale-x-100 transition-transform duration-150 ease-[cubic-bezier(0.2,0.8,0.2,1)] origin-left"></span>
+            </a>
+
+            {/* Activities */}
+            <a
+              href="/activities"
+              className="group relative px-3 xl:px-4 py-2.5 text-neutral-700 hover:text-primary-600 transition-all duration-150 ease-[cubic-bezier(0.2,0.8,0.2,1)] font-semibold text-sm rounded-xl hover:bg-primary-50/60 hover:-translate-y-0.5"
+            >
+              <span className="flex items-center gap-2">
+                <span className="text-lg transition-transform duration-150 group-hover:scale-110">
+                  🎪
+                </span>
+                Activities
+              </span>
+              <span className="absolute bottom-1.5 left-3 right-3 h-0.5 bg-primary-500 rounded-full scale-x-0 group-hover:scale-x-100 transition-transform duration-150 ease-[cubic-bezier(0.2,0.8,0.2,1)] origin-left"></span>
+            </a>
+
+            {/* Transfers */}
+            <a
+              href="/transfers"
+              className="group relative px-3 xl:px-4 py-2.5 text-neutral-700 hover:text-primary-600 transition-all duration-150 ease-[cubic-bezier(0.2,0.8,0.2,1)] font-semibold text-sm rounded-xl hover:bg-primary-50/60 hover:-translate-y-0.5"
+            >
+              <span className="flex items-center gap-2">
+                <span className="text-lg transition-transform duration-150 group-hover:scale-110">
+                  🚐
+                </span>
+                Transfers
+              </span>
+              <span className="absolute bottom-1.5 left-3 right-3 h-0.5 bg-primary-500 rounded-full scale-x-0 group-hover:scale-x-100 transition-transform duration-150 ease-[cubic-bezier(0.2,0.8,0.2,1)] origin-left"></span>
+            </a>
 
             {/* ============================================
                 TEMPORARILY HIDDEN - Uncomment when ready to launch
@@ -445,11 +485,22 @@ export function Header({
                     <span className="text-xl">❓</span>
                     <span className="font-semibold text-sm">{t('faq')}</span>
                   </a>
+                  {/* Divider */}
+                  <div className="border-t border-gray-200 my-1"></div>
+                  {/* World Cup 2026 */}
+                  <a
+                    href="/world-cup-2026"
+                    className="flex items-center gap-3 px-5 py-3.5 hover:bg-gradient-to-r hover:from-blue-50 hover:to-red-50 text-gray-700 transition-all duration-200"
+                  >
+                    <span className="text-xl">⚽</span>
+                    <span className="font-bold text-sm bg-gradient-to-r from-blue-600 via-red-500 to-yellow-500 bg-clip-text text-transparent">World Cup 2026</span>
+                  </a>
                 </div>
               )}
             </div>
 
-            {/* World Cup 2026 Dropdown - Colorful with submenus */}
+            {/* World Cup 2026 Dropdown - MOVED TO DISCOVER - Keeping code for reference */}
+            {/* HIDDEN:
             <div className="relative worldcup-dropdown" onMouseLeave={() => setWorldCupDropdownOpen(false)}>
               <button
                 onClick={() => setWorldCupDropdownOpen(!worldCupDropdownOpen)}
@@ -566,6 +617,7 @@ export function Header({
                   </a>
               </div>
             </div>
+            END HIDDEN */}
           </nav>
 
           {/* Right Actions */}

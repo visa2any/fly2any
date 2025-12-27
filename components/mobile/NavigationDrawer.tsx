@@ -199,9 +199,24 @@ export function NavigationDrawer({
                 <span className="text-xl">✈️</span>
                 <span className="text-sm">{translations.airlines}</span>
               </a>
+              <a href="/cars" onClick={onClose} className="flex items-center gap-3 px-3 py-2.5 text-neutral-700 hover:bg-primary-50 hover:text-primary-600 rounded-xl transition-all duration-200 font-semibold active:scale-[0.98] touch-manipulation">
+                <span className="text-xl">🚗</span>
+                <span className="text-sm">Cars</span>
+              </a>
+              <a href="/tours" onClick={onClose} className="flex items-center gap-3 px-3 py-2.5 text-neutral-700 hover:bg-primary-50 hover:text-primary-600 rounded-xl transition-all duration-200 font-semibold active:scale-[0.98] touch-manipulation">
+                <span className="text-xl">🎯</span>
+                <span className="text-sm">Tours</span>
+              </a>
+              <a href="/activities" onClick={onClose} className="flex items-center gap-3 px-3 py-2.5 text-neutral-700 hover:bg-primary-50 hover:text-primary-600 rounded-xl transition-all duration-200 font-semibold active:scale-[0.98] touch-manipulation">
+                <span className="text-xl">🎪</span>
+                <span className="text-sm">Activities</span>
+              </a>
+              <a href="/transfers" onClick={onClose} className="flex items-center gap-3 px-3 py-2.5 text-neutral-700 hover:bg-primary-50 hover:text-primary-600 rounded-xl transition-all duration-200 font-semibold active:scale-[0.98] touch-manipulation">
+                <span className="text-xl">🚐</span>
+                <span className="text-sm">Transfers</span>
+              </a>
               {/* ============================================
-                  TEMPORARILY HIDDEN - Uncomment when ready to launch
-                  Cars, Tours, Activities, Packages, Insurance mobile nav links
+                  TEMPORARILY HIDDEN - Packages, Insurance mobile nav links
                   ============================================ */}
               {/* <a
                 href="/cars"
@@ -243,10 +258,6 @@ export function NavigationDrawer({
                 <span className="text-2xl">🛡️</span>
                 <span className="text-base">{translations.travelInsurance}</span>
               </a> */}
-              <a href="/world-cup-2026" onClick={onClose} className="flex items-center gap-3 px-3 py-2.5 text-white bg-gradient-to-r from-yellow-500 to-orange-500 hover:from-yellow-600 hover:to-orange-600 rounded-xl transition-all duration-200 font-bold shadow-md active:scale-[0.98] touch-manipulation mt-2">
-                <span className="text-xl">⚽</span>
-                <span className="text-sm">WORLD CUP 2026 🏆</span>
-              </a>
             </nav>
 
             <div className="mx-4 border-t border-neutral-100" />
@@ -267,6 +278,10 @@ export function NavigationDrawer({
               <a href="/faq" onClick={onClose} className="flex items-center gap-3 px-3 py-2.5 text-neutral-700 hover:bg-primary-50 hover:text-primary-600 rounded-xl transition-all duration-200 font-semibold active:scale-[0.98] touch-manipulation">
                 <span className="text-xl">❓</span>
                 <span className="text-sm">{translations.faq}</span>
+              </a>
+              <a href="/world-cup-2026" onClick={onClose} className="flex items-center gap-3 px-3 py-2.5 text-white bg-gradient-to-r from-blue-500 via-red-500 to-yellow-500 hover:opacity-90 rounded-xl transition-all duration-200 font-bold shadow-md active:scale-[0.98] touch-manipulation mt-1">
+                <span className="text-xl">⚽</span>
+                <span className="text-sm">World Cup 2026 🏆</span>
               </a>
             </nav>
 
