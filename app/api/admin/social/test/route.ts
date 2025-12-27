@@ -9,7 +9,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { auth } from '@/lib/auth';
 import { getConfiguredAdapters, postToPlatform, SocialPlatform } from '@/lib/social';
 import { handleApiError, ErrorCategory, ErrorSeverity } from '@/lib/monitoring/global-error-handler';
-import prisma from '@/lib/prisma';
+import { getPrismaClient } from '@/lib/prisma';
 
 export const dynamic = 'force-dynamic';
 
@@ -24,7 +24,8 @@ async function isAdmin(request: NextRequest): Promise<boolean> {
   const session = await auth();
   if (!session?.user?.id) return false;
 
-  const adminUser = await prisma?.adminUser.findUnique({
+  const prisma = getPrismaClient();
+  const adminUser = await prisma.adminUser.findUnique({
     where: { userId: session.user.id },
   });
 
