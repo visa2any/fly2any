@@ -10,6 +10,7 @@ import ScrollToTop from '@/components/flights/ScrollToTop';
 import { MobileHomeSearchWrapper } from '@/components/home/MobileHomeSearchWrapper';
 import { ChevronRight, AlertCircle, RefreshCcw, Sparkles, Car, TrendingUp, Clock, Users, X } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { getAirportDisplayName, getAirportCity } from '@/lib/data/airports-all';
 
 // ===========================
 // TYPE DEFINITIONS
@@ -238,7 +239,7 @@ function CarResultsContent() {
         // Transform API response to CarRental format
         const transformedCars: CarRental[] = (data.data || []).map((item: any) => ({
           id: item.id || `car_${Math.random().toString(36).substr(2, 9)}`,
-          name: item.vehicle?.description || item.name || 'Car Rental',
+          name: item.vehicle?.description || item.model || item.name || `${formatCategory(item.vehicle?.category || item.category || 'Standard')} Car`,
           category: formatCategory(item.vehicle?.category || item.category || 'Standard'),
           company: item.provider?.name || item.provider?.companyName || item.company || 'Car Rental Company',
           passengers: item.vehicle?.seats || item.passengers || 5,
@@ -252,7 +253,7 @@ function CarResultsContent() {
           features: item.features || (item.vehicle?.airConditioning ? ['AC', 'Bluetooth'] : ['Bluetooth']),
           rating: item.rating || 4.5,
           reviewCount: item.reviewCount || 100,
-          location: item.pickupLocation?.name || searchData.pickup,
+          location: item.pickupLocation?.name || getAirportCity(searchData.pickup),
           available: item.available || 5,
           airConditioning: item.vehicle?.airConditioning !== false,
           unlimited_mileage: item.mileage?.unlimited !== false,
@@ -474,10 +475,10 @@ function CarResultsContent() {
             dropoff: searchData.dropoff || searchData.pickup,
           }))}
           pageInfo={{
-            title: `Car Rentals in ${searchData.pickup}`,
-            description: `Compare ${cars.length} car rentals in ${searchData.pickup}. ${days} day rental from $${avgPricePerDay}/day.`,
+            title: `Car Rentals in ${getAirportCity(searchData.pickup)}`,
+            description: `Compare ${cars.length} car rentals in ${getAirportCity(searchData.pickup)}. ${days} day rental from $${avgPricePerDay}/day.`,
             totalResults: cars.length,
-            location: searchData.pickup,
+            location: getAirportCity(searchData.pickup),
           }}
         />
       )}
@@ -487,8 +488,8 @@ function CarResultsContent() {
 
       {/* Collapsible Search Bar - Same Pattern as Flights */}
       <MobileHomeSearchWrapper
-        origin={searchData.pickup}
-        destination={searchData.dropoff || searchData.pickup}
+        origin={getAirportDisplayName(searchData.pickup)}
+        destination={getAirportDisplayName(searchData.dropoff || searchData.pickup)}
         departureDate={searchData.pickupDate}
         returnDate={searchData.dropoffDate}
         lang={lang}

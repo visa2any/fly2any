@@ -6109,6 +6109,21 @@ export function getAirport(code: string): Airport | undefined {
   return AIRPORTS_BY_CODE.get(code.toUpperCase());
 }
 
+// Helper function to get display name for airport code
+export function getAirportDisplayName(code: string): string {
+  const airport = AIRPORTS_BY_CODE.get(code?.toUpperCase());
+  if (airport) {
+    return `${airport.city} (${airport.code})`;
+  }
+  return code || '';
+}
+
+// Helper function to get city name for airport code
+export function getAirportCity(code: string): string {
+  const airport = AIRPORTS_BY_CODE.get(code?.toUpperCase());
+  return airport?.city || code || '';
+}
+
 // Helper function to search airports
 export function searchAirports(query: string, limit: number = 50): Airport[] {
   const q = query.toLowerCase();
