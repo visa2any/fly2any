@@ -29,6 +29,7 @@ export default function AdminSocialPage() {
   const [testing, setTesting] = useState<string | null>(null);
   const [testResult, setTestResult] = useState<TestResult | null>(null);
   const [customText, setCustomText] = useState('');
+  const [isAdmin, setIsAdmin] = useState(false);
 
   useEffect(() => {
     fetchStatus();
@@ -40,7 +41,8 @@ export default function AdminSocialPage() {
       const data = await res.json();
       if (data.success) {
         setStatus(data.platforms);
-        setEnvVars(data.envVars);
+        setEnvVars(data.envVars || {});
+        setIsAdmin(data.isAdmin);
       }
     } catch (error) {
       console.error('Failed to fetch status:', error);
@@ -97,6 +99,15 @@ export default function AdminSocialPage() {
     <div className="p-8 max-w-6xl mx-auto">
       <h1 className="text-2xl font-bold mb-6">Social Media Dashboard</h1>
 
+      {!isAdmin && (
+        <div className="mb-6 p-4 bg-yellow-50 border border-yellow-200 rounded-xl">
+          <p className="text-yellow-800">
+            <strong>Login required</strong> - Sign in with an admin account to test posting.
+            <a href="/auth/signin" className="ml-2 text-blue-600 hover:underline">Sign in →</a>
+          </p>
+        </div>
+      )}
+
       {/* Platform Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-8">
         {platforms.map(platform => {
@@ -133,28 +144,30 @@ export default function AdminSocialPage() {
                 </div>
               )}
 
-              <div className="flex gap-2">
-                <button
-                  onClick={() => testPlatform(platform.id, true)}
-                  disabled={testing === platform.id}
-                  className="flex-1 px-3 py-1.5 text-sm bg-gray-100 hover:bg-gray-200 rounded-lg disabled:opacity-50"
-                >
-                  {testing === platform.id ? 'Testing...' : 'Dry Run'}
-                </button>
-                {isConfigured && (
+              {isAdmin && (
+                <div className="flex gap-2">
                   <button
-                    onClick={() => {
-                      if (confirm('This will post a real tweet. Continue?')) {
-                        testPlatform(platform.id, false);
-                      }
-                    }}
+                    onClick={() => testPlatform(platform.id, true)}
                     disabled={testing === platform.id}
-                    className="flex-1 px-3 py-1.5 text-sm bg-blue-500 text-white hover:bg-blue-600 rounded-lg disabled:opacity-50"
+                    className="flex-1 px-3 py-1.5 text-sm bg-gray-100 hover:bg-gray-200 rounded-lg disabled:opacity-50"
                   >
-                    Post Now
+                    {testing === platform.id ? 'Testing...' : 'Dry Run'}
                   </button>
-                )}
-              </div>
+                  {isConfigured && (
+                    <button
+                      onClick={() => {
+                        if (confirm('This will post a real tweet. Continue?')) {
+                          testPlatform(platform.id, false);
+                        }
+                      }}
+                      disabled={testing === platform.id}
+                      className="flex-1 px-3 py-1.5 text-sm bg-blue-500 text-white hover:bg-blue-600 rounded-lg disabled:opacity-50"
+                    >
+                      Post Now
+                    </button>
+                  )}
+                </div>
+              )}
             </div>
           );
         })}

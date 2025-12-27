@@ -27,11 +27,9 @@ async function isAdmin(request: NextRequest): Promise<boolean> {
 
 export async function GET(request: NextRequest) {
   return handleApiError(request, async () => {
-    if (!await isAdmin(request)) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
+    const isAdminUser = await isAdmin(request);
 
-    // Get status of all adapters
+    // Get status of all adapters (public info - just shows configured/not)
     const adapters = getConfiguredAdapters();
     const status: Record<string, { configured: boolean; platform: string }> = {};
 
@@ -45,14 +43,13 @@ export async function GET(request: NextRequest) {
       };
     }
 
-    // Check env vars (without exposing values)
-    const envStatus = {
+    // Check env vars (only show to admins)
+    const envStatus = isAdminUser ? {
       twitter: {
         TWITTER_API_KEY: !!process.env.TWITTER_API_KEY,
         TWITTER_API_SECRET: !!process.env.TWITTER_API_SECRET,
         TWITTER_ACCESS_TOKEN: !!process.env.TWITTER_ACCESS_TOKEN,
         TWITTER_ACCESS_SECRET: !!process.env.TWITTER_ACCESS_SECRET,
-        TWITTER_BEARER_TOKEN: !!process.env.TWITTER_BEARER_TOKEN,
       },
       meta: {
         META_ACCESS_TOKEN: !!process.env.META_ACCESS_TOKEN,
@@ -63,10 +60,11 @@ export async function GET(request: NextRequest) {
         TIKTOK_ACCESS_TOKEN: !!process.env.TIKTOK_ACCESS_TOKEN,
         TIKTOK_OPEN_ID: !!process.env.TIKTOK_OPEN_ID,
       },
-    };
+    } : null;
 
     return NextResponse.json({
       success: true,
+      isAdmin: isAdminUser,
       platforms: status,
       envVars: envStatus,
       configuredCount: adapters.length,
