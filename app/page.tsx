@@ -11,6 +11,7 @@ import { CarRentalsSectionEnhanced } from '@/components/home/CarRentalsSectionEn
 import { ToursSectionEnhanced } from '@/components/home/ToursSectionEnhanced';
 import { ActivitiesSectionEnhanced } from '@/components/home/ActivitiesSectionEnhanced';
 import { TransfersSectionEnhanced } from '@/components/home/TransfersSectionEnhanced';
+import ExperiencesSection from '@/components/home/ExperiencesSection';
 import { DestinationsSectionEnhanced } from '@/components/home/DestinationsSectionEnhanced';
 import { FlashDealsSectionEnhanced } from '@/components/home/FlashDealsSectionEnhanced';
 import { RecentlyViewedSection } from '@/components/home/RecentlyViewedSection';
@@ -667,6 +668,13 @@ export default function Home() {
             ============================================ */}
         <div className="mt-4 md:mt-6 lg:mt-8">
           <TransfersSectionEnhanced lang={lang} />
+        </div>
+
+        {/* ============================================
+            EXPERIENCES SECTION - Curated Categories
+            ============================================ */}
+        <div className="mt-4 md:mt-6 lg:mt-8">
+          <ExperiencesSection />
         </div>
 
         <div className="mt-4 md:mt-6 lg:mt-8">
