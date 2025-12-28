@@ -8,6 +8,11 @@
     "NEXT_PUBLIC_APP_NAME": "Fly2Any",
     "NEXT_PUBLIC_APP_URL": "https://www.fly2any.com"
   },
+  "git": {
+    "deploymentEnabled": {
+      "main": true
+    }
+  },
   "redirects": [
     {
       "source": "/:path*",
