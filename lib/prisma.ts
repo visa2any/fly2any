@@ -45,16 +45,12 @@ function getDatabaseUrl(): string | undefined {
   }
 }
 
-// Only create PrismaClient if DATABASE_URL is configured
+// Only create PrismaClient if database is configured
+// Use direct URL from env - Supabase already handles pooling
 export const prisma = isDatabaseConfigured
   ? (globalForPrisma.prisma ??
     new PrismaClient({
       log: process.env.NODE_ENV === 'development' ? ['error', 'warn'] : ['error'],
-      datasources: {
-        db: {
-          url: getDatabaseUrl(),
-        },
-      },
       // Optimize for serverless environments (Vercel/Neon)
       __internal: {
         engine: {
