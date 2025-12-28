@@ -237,21 +237,74 @@ function BookingPageContent() {
                           flight.duffelMetadata?.expires_at ? 'duffelMetadata' : 'fallback',
         });
 
-        // ONLY show expired modal if offer is ACTUALLY expired (remainingMs <= 0)
-        // Don't show it just because _storedAt is missing - that's a data issue, not an expiration
+        // AUTO-REFRESH: If offer expired, automatically get new price
         if (remainingMs <= 0) {
-          console.warn('⚠️ Offer expired - showing refresh modal');
+          console.warn('⚠️ Offer expired - auto-refreshing price...');
 
           // Clear the expired offer from sessionStorage
           sessionStorage.removeItem(`flight_${flightId}`);
           sessionStorage.removeItem(`flight_search_${flightId}`);
 
-          // Set flight data for modal display (route info)
+          // Set flight data first for display
           setFlightData({ ...flight, search });
-          setOfferCreatedAt(storedAt);
-          setShowExpiredModal(true);
-          setLoading(false);
-          return; // Stop here - don't proceed with booking flow
+
+          // AUTO-REFRESH: Try to get new price automatically
+          try {
+            const refreshResponse = await fetch('/api/flights/offer/refresh', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                originalOfferId: flight.id,
+                origin: search?.from || flight.origin?.iata,
+                destination: search?.to || flight.destination?.iata,
+                departureDate: search?.departure || flight.departureTime?.split('T')[0],
+                returnDate: search?.return,
+                adults: search?.adults || 1,
+                children: search?.children || 0,
+                infants: search?.infants || 0,
+                originalPrice: flight.price?.total || flight.price,
+                originalAirline: flight.airline?.code,
+                originalDepartureTime: flight.departureTime,
+              }),
+            });
+
+            const refreshData = await refreshResponse.json();
+
+            if (refreshData.success && refreshData.offer) {
+              console.log('✅ Auto-refreshed offer:', refreshData.offer.id);
+              // Update flight data with new offer
+              const newFlight = {
+                ...flight,
+                id: refreshData.offer.id,
+                price: refreshData.offer.price,
+                expires_at: refreshData.offer.expires_at,
+                _storedAt: Date.now(),
+              };
+              setFlightData({ ...newFlight, search });
+              setOfferCreatedAt(Date.now());
+              // Show toast if price changed
+              if (refreshData.priceChange && Math.abs(refreshData.priceChange) > 0.5) {
+                const diff = refreshData.priceChange;
+                toast(diff > 0 ? `Price updated: +$${diff.toFixed(2)}` : `Price dropped: -$${Math.abs(diff).toFixed(2)}`, {
+                  icon: diff > 0 ? '📈' : '🎉',
+                  duration: 5000,
+                });
+              }
+              // Continue with booking flow - don't return
+            } else {
+              // Auto-refresh failed - show modal for manual action
+              setOfferCreatedAt(storedAt);
+              setShowExpiredModal(true);
+              setLoading(false);
+              return;
+            }
+          } catch (refreshError) {
+            console.error('Auto-refresh failed:', refreshError);
+            setOfferCreatedAt(storedAt);
+            setShowExpiredModal(true);
+            setLoading(false);
+            return;
+          }
         }
 
         // Update offer creation time for countdown display
