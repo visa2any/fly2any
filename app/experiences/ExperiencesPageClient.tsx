@@ -55,67 +55,112 @@ const ALL_CATEGORIES = [
   { id: 'private-tours', name: 'Private Tours', icon: '🎯', image: 'https://images.unsplash.com/photo-1476514525535-07fb3b4ae5f1?w=800&q=80', cities: 65 },
 ];
 
-// REGIONS with countries and cities
+// REGIONS with countries and cities - EXPANDED with all product destinations
 const REGIONS = [
   {
     name: 'Europe',
     emoji: '🇪🇺',
+    gradient: 'from-blue-600 to-indigo-600',
+    image: 'https://images.unsplash.com/photo-1499856871958-5b9627545d1a?w=400&q=80',
     countries: [
-      { name: 'Spain', flag: '🇪🇸', cities: [{ name: 'Barcelona', slug: 'barcelona' }, { name: 'Madrid', slug: 'madrid' }, { name: 'Seville', slug: 'seville' }] },
-      { name: 'France', flag: '🇫🇷', cities: [{ name: 'Paris', slug: 'paris' }, { name: 'Nice', slug: 'nice' }, { name: 'Lyon', slug: 'lyon' }] },
-      { name: 'Italy', flag: '🇮🇹', cities: [{ name: 'Rome', slug: 'rome' }, { name: 'Florence', slug: 'florence' }, { name: 'Venice', slug: 'venice' }] },
-      { name: 'UK', flag: '🇬🇧', cities: [{ name: 'London', slug: 'london' }, { name: 'Edinburgh', slug: 'edinburgh' }] },
-      { name: 'Greece', flag: '🇬🇷', cities: [{ name: 'Santorini', slug: 'santorini' }, { name: 'Athens', slug: 'athens' }, { name: 'Mykonos', slug: 'mykonos' }] },
+      { name: 'Spain', flag: '🇪🇸', cities: [{ name: 'Barcelona', slug: 'barcelona' }, { name: 'Madrid', slug: 'madrid' }, { name: 'Seville', slug: 'seville' }, { name: 'Valencia', slug: 'valencia' }, { name: 'Ibiza', slug: 'ibiza' }] },
+      { name: 'France', flag: '🇫🇷', cities: [{ name: 'Paris', slug: 'paris' }, { name: 'Nice', slug: 'nice' }, { name: 'Lyon', slug: 'lyon' }, { name: 'Marseille', slug: 'marseille' }, { name: 'Bordeaux', slug: 'bordeaux' }] },
+      { name: 'Italy', flag: '🇮🇹', cities: [{ name: 'Rome', slug: 'rome' }, { name: 'Florence', slug: 'florence' }, { name: 'Venice', slug: 'venice' }, { name: 'Milan', slug: 'milan' }, { name: 'Amalfi', slug: 'amalfi' }] },
+      { name: 'UK', flag: '🇬🇧', cities: [{ name: 'London', slug: 'london' }, { name: 'Edinburgh', slug: 'edinburgh' }, { name: 'Manchester', slug: 'manchester' }, { name: 'Liverpool', slug: 'liverpool' }] },
+      { name: 'Greece', flag: '🇬🇷', cities: [{ name: 'Santorini', slug: 'santorini' }, { name: 'Athens', slug: 'athens' }, { name: 'Mykonos', slug: 'mykonos' }, { name: 'Crete', slug: 'crete' }] },
+      { name: 'Portugal', flag: '🇵🇹', cities: [{ name: 'Lisbon', slug: 'lisbon' }, { name: 'Porto', slug: 'porto' }, { name: 'Algarve', slug: 'algarve' }] },
+      { name: 'Netherlands', flag: '🇳🇱', cities: [{ name: 'Amsterdam', slug: 'amsterdam' }, { name: 'Rotterdam', slug: 'rotterdam' }] },
+      { name: 'Germany', flag: '🇩🇪', cities: [{ name: 'Berlin', slug: 'berlin' }, { name: 'Munich', slug: 'munich' }, { name: 'Frankfurt', slug: 'frankfurt' }] },
+      { name: 'Switzerland', flag: '🇨🇭', cities: [{ name: 'Zurich', slug: 'zurich' }, { name: 'Geneva', slug: 'geneva' }, { name: 'Interlaken', slug: 'interlaken' }] },
+      { name: 'Austria', flag: '🇦🇹', cities: [{ name: 'Vienna', slug: 'vienna' }, { name: 'Salzburg', slug: 'salzburg' }] },
+      { name: 'Croatia', flag: '🇭🇷', cities: [{ name: 'Dubrovnik', slug: 'dubrovnik' }, { name: 'Split', slug: 'split' }] },
+      { name: 'Czech Republic', flag: '🇨🇿', cities: [{ name: 'Prague', slug: 'prague' }] },
     ]
   },
   {
     name: 'Asia',
     emoji: '🌏',
+    gradient: 'from-red-500 to-orange-500',
+    image: 'https://images.unsplash.com/photo-1480796927426-f609979314bd?w=400&q=80',
     countries: [
-      { name: 'Japan', flag: '🇯🇵', cities: [{ name: 'Tokyo', slug: 'tokyo' }, { name: 'Kyoto', slug: 'kyoto' }, { name: 'Osaka', slug: 'osaka' }] },
-      { name: 'Thailand', flag: '🇹🇭', cities: [{ name: 'Bangkok', slug: 'bangkok' }, { name: 'Phuket', slug: 'phuket' }, { name: 'Chiang Mai', slug: 'chiang-mai' }] },
-      { name: 'Indonesia', flag: '🇮🇩', cities: [{ name: 'Bali', slug: 'bali' }, { name: 'Jakarta', slug: 'jakarta' }] },
+      { name: 'China', flag: '🇨🇳', cities: [{ name: 'Shanghai', slug: 'shanghai' }, { name: 'Beijing', slug: 'beijing' }, { name: 'Hong Kong', slug: 'hong-kong' }, { name: 'Shenzhen', slug: 'shenzhen' }, { name: 'Guangzhou', slug: 'guangzhou' }, { name: 'Xi\'an', slug: 'xian' }, { name: 'Chengdu', slug: 'chengdu' }, { name: 'Hangzhou', slug: 'hangzhou' }] },
+      { name: 'Japan', flag: '🇯🇵', cities: [{ name: 'Tokyo', slug: 'tokyo' }, { name: 'Kyoto', slug: 'kyoto' }, { name: 'Osaka', slug: 'osaka' }, { name: 'Hiroshima', slug: 'hiroshima' }, { name: 'Fukuoka', slug: 'fukuoka' }] },
+      { name: 'South Korea', flag: '🇰🇷', cities: [{ name: 'Seoul', slug: 'seoul' }, { name: 'Busan', slug: 'busan' }, { name: 'Jeju', slug: 'jeju' }] },
+      { name: 'Thailand', flag: '🇹🇭', cities: [{ name: 'Bangkok', slug: 'bangkok' }, { name: 'Phuket', slug: 'phuket' }, { name: 'Chiang Mai', slug: 'chiang-mai' }, { name: 'Krabi', slug: 'krabi' }, { name: 'Koh Samui', slug: 'koh-samui' }] },
+      { name: 'Indonesia', flag: '🇮🇩', cities: [{ name: 'Bali', slug: 'bali' }, { name: 'Jakarta', slug: 'jakarta' }, { name: 'Yogyakarta', slug: 'yogyakarta' }, { name: 'Lombok', slug: 'lombok' }] },
       { name: 'Singapore', flag: '🇸🇬', cities: [{ name: 'Singapore', slug: 'singapore' }] },
-      { name: 'Vietnam', flag: '🇻🇳', cities: [{ name: 'Ho Chi Minh', slug: 'ho-chi-minh' }, { name: 'Hanoi', slug: 'hanoi' }] },
+      { name: 'Malaysia', flag: '🇲🇾', cities: [{ name: 'Kuala Lumpur', slug: 'kuala-lumpur' }, { name: 'Penang', slug: 'penang' }, { name: 'Langkawi', slug: 'langkawi' }] },
+      { name: 'Vietnam', flag: '🇻🇳', cities: [{ name: 'Ho Chi Minh', slug: 'ho-chi-minh' }, { name: 'Hanoi', slug: 'hanoi' }, { name: 'Da Nang', slug: 'da-nang' }, { name: 'Hoi An', slug: 'hoi-an' }] },
+      { name: 'Philippines', flag: '🇵🇭', cities: [{ name: 'Manila', slug: 'manila' }, { name: 'Cebu', slug: 'cebu' }, { name: 'Boracay', slug: 'boracay' }, { name: 'Palawan', slug: 'palawan' }] },
+      { name: 'India', flag: '🇮🇳', cities: [{ name: 'Delhi', slug: 'delhi' }, { name: 'Mumbai', slug: 'mumbai' }, { name: 'Jaipur', slug: 'jaipur' }, { name: 'Goa', slug: 'goa' }, { name: 'Agra', slug: 'agra' }] },
+      { name: 'Taiwan', flag: '🇹🇼', cities: [{ name: 'Taipei', slug: 'taipei' }, { name: 'Kaohsiung', slug: 'kaohsiung' }] },
+      { name: 'Maldives', flag: '🇲🇻', cities: [{ name: 'Malé', slug: 'male' }] },
+      { name: 'Sri Lanka', flag: '🇱🇰', cities: [{ name: 'Colombo', slug: 'colombo' }, { name: 'Kandy', slug: 'kandy' }] },
+      { name: 'Nepal', flag: '🇳🇵', cities: [{ name: 'Kathmandu', slug: 'kathmandu' }] },
+      { name: 'Cambodia', flag: '🇰🇭', cities: [{ name: 'Siem Reap', slug: 'siem-reap' }, { name: 'Phnom Penh', slug: 'phnom-penh' }] },
     ]
   },
   {
     name: 'Middle East',
     emoji: '🕌',
+    gradient: 'from-amber-500 to-yellow-500',
+    image: 'https://images.unsplash.com/photo-1512453979798-5ea266f8880c?w=400&q=80',
     countries: [
-      { name: 'UAE', flag: '🇦🇪', cities: [{ name: 'Dubai', slug: 'dubai' }, { name: 'Abu Dhabi', slug: 'abu-dhabi' }] },
+      { name: 'UAE', flag: '🇦🇪', cities: [{ name: 'Dubai', slug: 'dubai' }, { name: 'Abu Dhabi', slug: 'abu-dhabi' }, { name: 'Sharjah', slug: 'sharjah' }] },
+      { name: 'Saudi Arabia', flag: '🇸🇦', cities: [{ name: 'Riyadh', slug: 'riyadh' }, { name: 'Jeddah', slug: 'jeddah' }, { name: 'Mecca', slug: 'mecca' }, { name: 'Medina', slug: 'medina' }] },
       { name: 'Qatar', flag: '🇶🇦', cities: [{ name: 'Doha', slug: 'doha' }] },
-      { name: 'Jordan', flag: '🇯🇴', cities: [{ name: 'Amman', slug: 'amman' }, { name: 'Petra', slug: 'petra' }] },
-      { name: 'Israel', flag: '🇮🇱', cities: [{ name: 'Tel Aviv', slug: 'tel-aviv' }, { name: 'Jerusalem', slug: 'jerusalem' }] },
+      { name: 'Oman', flag: '🇴🇲', cities: [{ name: 'Muscat', slug: 'muscat' }] },
+      { name: 'Jordan', flag: '🇯🇴', cities: [{ name: 'Amman', slug: 'amman' }, { name: 'Petra', slug: 'petra' }, { name: 'Dead Sea', slug: 'dead-sea' }] },
+      { name: 'Israel', flag: '🇮🇱', cities: [{ name: 'Tel Aviv', slug: 'tel-aviv' }, { name: 'Jerusalem', slug: 'jerusalem' }, { name: 'Eilat', slug: 'eilat' }] },
+      { name: 'Turkey', flag: '🇹🇷', cities: [{ name: 'Istanbul', slug: 'istanbul' }, { name: 'Cappadocia', slug: 'cappadocia' }, { name: 'Antalya', slug: 'antalya' }, { name: 'Bodrum', slug: 'bodrum' }] },
+      { name: 'Bahrain', flag: '🇧🇭', cities: [{ name: 'Manama', slug: 'manama' }] },
+      { name: 'Kuwait', flag: '🇰🇼', cities: [{ name: 'Kuwait City', slug: 'kuwait-city' }] },
     ]
   },
   {
     name: 'Americas',
     emoji: '🌎',
+    gradient: 'from-green-500 to-teal-500',
+    image: 'https://images.unsplash.com/photo-1485738422979-f5c462d49f74?w=400&q=80',
     countries: [
-      { name: 'USA', flag: '🇺🇸', cities: [{ name: 'New York', slug: 'new-york' }, { name: 'Miami', slug: 'miami' }, { name: 'Los Angeles', slug: 'los-angeles' }, { name: 'Las Vegas', slug: 'las-vegas' }] },
-      { name: 'Mexico', flag: '🇲🇽', cities: [{ name: 'Cancun', slug: 'cancun' }, { name: 'Mexico City', slug: 'mexico-city' }] },
-      { name: 'Brazil', flag: '🇧🇷', cities: [{ name: 'Rio de Janeiro', slug: 'rio-de-janeiro' }, { name: 'São Paulo', slug: 'sao-paulo' }] },
-      { name: 'Argentina', flag: '🇦🇷', cities: [{ name: 'Buenos Aires', slug: 'buenos-aires' }] },
+      { name: 'USA', flag: '🇺🇸', cities: [{ name: 'New York', slug: 'new-york' }, { name: 'Miami', slug: 'miami' }, { name: 'Los Angeles', slug: 'los-angeles' }, { name: 'Las Vegas', slug: 'las-vegas' }, { name: 'San Francisco', slug: 'san-francisco' }, { name: 'Orlando', slug: 'orlando' }, { name: 'Chicago', slug: 'chicago' }, { name: 'Hawaii', slug: 'hawaii' }] },
+      { name: 'Canada', flag: '🇨🇦', cities: [{ name: 'Toronto', slug: 'toronto' }, { name: 'Vancouver', slug: 'vancouver' }, { name: 'Montreal', slug: 'montreal' }, { name: 'Banff', slug: 'banff' }] },
+      { name: 'Mexico', flag: '🇲🇽', cities: [{ name: 'Cancun', slug: 'cancun' }, { name: 'Mexico City', slug: 'mexico-city' }, { name: 'Playa del Carmen', slug: 'playa-del-carmen' }, { name: 'Los Cabos', slug: 'los-cabos' }, { name: 'Puerto Vallarta', slug: 'puerto-vallarta' }] },
+      { name: 'Brazil', flag: '🇧🇷', cities: [{ name: 'Rio de Janeiro', slug: 'rio-de-janeiro' }, { name: 'São Paulo', slug: 'sao-paulo' }, { name: 'Salvador', slug: 'salvador' }, { name: 'Florianópolis', slug: 'florianopolis' }] },
+      { name: 'Argentina', flag: '🇦🇷', cities: [{ name: 'Buenos Aires', slug: 'buenos-aires' }, { name: 'Mendoza', slug: 'mendoza' }, { name: 'Patagonia', slug: 'patagonia' }] },
+      { name: 'Peru', flag: '🇵🇪', cities: [{ name: 'Lima', slug: 'lima' }, { name: 'Cusco', slug: 'cusco' }, { name: 'Machu Picchu', slug: 'machu-picchu' }] },
+      { name: 'Colombia', flag: '🇨🇴', cities: [{ name: 'Bogota', slug: 'bogota' }, { name: 'Cartagena', slug: 'cartagena' }, { name: 'Medellin', slug: 'medellin' }] },
+      { name: 'Chile', flag: '🇨🇱', cities: [{ name: 'Santiago', slug: 'santiago' }, { name: 'Valparaiso', slug: 'valparaiso' }] },
+      { name: 'Costa Rica', flag: '🇨🇷', cities: [{ name: 'San Jose', slug: 'san-jose' }, { name: 'Guanacaste', slug: 'guanacaste' }] },
+      { name: 'Caribbean', flag: '🏝️', cities: [{ name: 'Punta Cana', slug: 'punta-cana' }, { name: 'Jamaica', slug: 'jamaica' }, { name: 'Bahamas', slug: 'bahamas' }, { name: 'Aruba', slug: 'aruba' }] },
     ]
   },
   {
     name: 'Oceania',
     emoji: '🌊',
+    gradient: 'from-cyan-500 to-blue-500',
+    image: 'https://images.unsplash.com/photo-1523482580672-f109ba8cb9be?w=400&q=80',
     countries: [
-      { name: 'Australia', flag: '🇦🇺', cities: [{ name: 'Sydney', slug: 'sydney' }, { name: 'Melbourne', slug: 'melbourne' }, { name: 'Gold Coast', slug: 'gold-coast' }] },
-      { name: 'New Zealand', flag: '🇳🇿', cities: [{ name: 'Auckland', slug: 'auckland' }, { name: 'Queenstown', slug: 'queenstown' }] },
-      { name: 'Fiji', flag: '🇫🇯', cities: [{ name: 'Nadi', slug: 'nadi' }] },
+      { name: 'Australia', flag: '🇦🇺', cities: [{ name: 'Sydney', slug: 'sydney' }, { name: 'Melbourne', slug: 'melbourne' }, { name: 'Gold Coast', slug: 'gold-coast' }, { name: 'Brisbane', slug: 'brisbane' }, { name: 'Cairns', slug: 'cairns' }, { name: 'Perth', slug: 'perth' }] },
+      { name: 'New Zealand', flag: '🇳🇿', cities: [{ name: 'Auckland', slug: 'auckland' }, { name: 'Queenstown', slug: 'queenstown' }, { name: 'Wellington', slug: 'wellington' }, { name: 'Rotorua', slug: 'rotorua' }] },
+      { name: 'Fiji', flag: '🇫🇯', cities: [{ name: 'Nadi', slug: 'nadi' }, { name: 'Suva', slug: 'suva' }] },
+      { name: 'French Polynesia', flag: '🇵🇫', cities: [{ name: 'Bora Bora', slug: 'bora-bora' }, { name: 'Tahiti', slug: 'tahiti' }] },
     ]
   },
   {
     name: 'Africa',
     emoji: '🌍',
+    gradient: 'from-orange-600 to-red-600',
+    image: 'https://images.unsplash.com/photo-1523805009345-7448845a9e53?w=400&q=80',
     countries: [
-      { name: 'South Africa', flag: '🇿🇦', cities: [{ name: 'Cape Town', slug: 'cape-town' }, { name: 'Johannesburg', slug: 'johannesburg' }] },
-      { name: 'Morocco', flag: '🇲🇦', cities: [{ name: 'Marrakech', slug: 'marrakech' }, { name: 'Casablanca', slug: 'casablanca' }] },
-      { name: 'Egypt', flag: '🇪🇬', cities: [{ name: 'Cairo', slug: 'cairo' }, { name: 'Luxor', slug: 'luxor' }] },
-      { name: 'Kenya', flag: '🇰🇪', cities: [{ name: 'Nairobi', slug: 'nairobi' }] },
+      { name: 'South Africa', flag: '🇿🇦', cities: [{ name: 'Cape Town', slug: 'cape-town' }, { name: 'Johannesburg', slug: 'johannesburg' }, { name: 'Durban', slug: 'durban' }, { name: 'Kruger', slug: 'kruger' }] },
+      { name: 'Morocco', flag: '🇲🇦', cities: [{ name: 'Marrakech', slug: 'marrakech' }, { name: 'Casablanca', slug: 'casablanca' }, { name: 'Fes', slug: 'fes' }, { name: 'Chefchaouen', slug: 'chefchaouen' }] },
+      { name: 'Egypt', flag: '🇪🇬', cities: [{ name: 'Cairo', slug: 'cairo' }, { name: 'Luxor', slug: 'luxor' }, { name: 'Hurghada', slug: 'hurghada' }, { name: 'Sharm El Sheikh', slug: 'sharm-el-sheikh' }] },
+      { name: 'Kenya', flag: '🇰🇪', cities: [{ name: 'Nairobi', slug: 'nairobi' }, { name: 'Mombasa', slug: 'mombasa' }, { name: 'Masai Mara', slug: 'masai-mara' }] },
+      { name: 'Tanzania', flag: '🇹🇿', cities: [{ name: 'Zanzibar', slug: 'zanzibar' }, { name: 'Serengeti', slug: 'serengeti' }] },
+      { name: 'Mauritius', flag: '🇲🇺', cities: [{ name: 'Port Louis', slug: 'port-louis' }] },
+      { name: 'Tunisia', flag: '🇹🇳', cities: [{ name: 'Tunis', slug: 'tunis' }] },
+      { name: 'Seychelles', flag: '🇸🇨', cities: [{ name: 'Mahé', slug: 'mahe' }] },
     ]
   },
 ];
@@ -324,74 +369,135 @@ export default function ExperiencesPageClient() {
         </div>
       </section>
 
-      {/* BROWSE BY REGION - NEW SECTION */}
-      <section className="py-16 lg:py-20 bg-gradient-to-b from-gray-50 to-white relative">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} className="text-center mb-10">
-            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-gradient-to-r from-blue-50 to-purple-50 text-blue-600 text-sm font-bold mb-4">
-              <Map className="w-4 h-4" />
-              BROWSE BY REGION
+      {/* BROWSE BY REGION - ULTRA PREMIUM SECTION */}
+      <section className="py-20 lg:py-28 bg-gradient-to-b from-gray-900 via-gray-900 to-black relative overflow-hidden">
+        {/* Animated background particles */}
+        <div className="absolute inset-0 overflow-hidden">
+          <div className="absolute top-20 left-10 w-72 h-72 bg-red-500/10 rounded-full blur-3xl animate-pulse" />
+          <div className="absolute bottom-20 right-10 w-96 h-96 bg-orange-500/10 rounded-full blur-3xl animate-pulse" style={{ animationDelay: '1s' }} />
+          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-gradient-to-r from-red-500/5 to-orange-500/5 rounded-full blur-3xl" />
+        </div>
+
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative">
+          <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} className="text-center mb-12">
+            <div className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-white/10 backdrop-blur-sm text-white text-sm font-bold mb-6 border border-white/20">
+              <Globe className="w-4 h-4 text-[#E74035]" />
+              EXPLORE THE WORLD
             </div>
-            <h2 className="text-3xl lg:text-5xl font-black text-gray-900 mb-4">
-              Where Will You <span className="text-[#E74035]">Go?</span>
+            <h2 className="text-4xl lg:text-6xl font-black text-white mb-4">
+              Where Will You <span className="bg-gradient-to-r from-[#E74035] to-[#F7C928] bg-clip-text text-transparent">Go?</span>
             </h2>
-            <p className="text-lg text-gray-600">6 continents • 40+ countries • 100+ cities</p>
+            <p className="text-lg text-gray-400">6 continents • 60+ countries • 200+ cities worldwide</p>
           </motion.div>
 
-          {/* Region Tabs */}
-          <div className="flex flex-wrap justify-center gap-2 mb-10">
+          {/* Region Tabs - Premium Glass Design */}
+          <div className="flex flex-wrap justify-center gap-3 mb-12">
             {REGIONS.map((region, i) => (
               <motion.button
                 key={region.name}
                 onClick={() => setActiveRegion(i)}
-                className={`px-5 py-3 rounded-2xl font-semibold transition-all ${activeRegion === i ? 'text-white shadow-lg' : 'bg-white text-gray-700 hover:bg-gray-50 shadow'}`}
-                style={activeRegion === i ? { background: 'linear-gradient(135deg, #E74035 0%, #FF6B6B 100%)' } : {}}
-                whileHover={{ scale: 1.02 }}
+                className={`group relative px-6 py-4 rounded-2xl font-bold transition-all overflow-hidden ${activeRegion === i ? 'text-white shadow-2xl scale-105' : 'bg-white/5 text-white/70 hover:text-white hover:bg-white/10 backdrop-blur-sm border border-white/10'}`}
+                style={activeRegion === i ? { background: `linear-gradient(135deg, ${region.gradient.split(' ')[0].replace('from-', '')} 0%, ${region.gradient.split(' ')[1].replace('to-', '')} 100%)`.replace(/(\w+)-(\d+)/g, 'var(--$1-$2, #E74035)') } : {}}
+                whileHover={{ scale: activeRegion === i ? 1.05 : 1.03 }}
                 whileTap={{ scale: 0.98 }}
               >
-                <span className="mr-2">{region.emoji}</span>
-                {region.name}
+                {activeRegion === i && (
+                  <motion.div layoutId="activeRegionBg" className={`absolute inset-0 bg-gradient-to-r ${region.gradient}`} transition={{ type: 'spring', bounce: 0.2 }} />
+                )}
+                <span className="relative flex items-center gap-2">
+                  <span className="text-2xl">{region.emoji}</span>
+                  <span>{region.name}</span>
+                  <span className="text-xs opacity-60">({region.countries.length})</span>
+                </span>
               </motion.button>
             ))}
           </div>
 
-          {/* Countries Grid */}
+          {/* Region Hero Card */}
           <AnimatePresence mode="wait">
             <motion.div
-              key={activeRegion}
+              key={`hero-${activeRegion}`}
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -20 }}
+              className="relative h-48 md:h-56 rounded-3xl overflow-hidden mb-8"
+            >
+              <Image src={REGIONS[activeRegion].image} alt={REGIONS[activeRegion].name} fill className="object-cover" />
+              <div className={`absolute inset-0 bg-gradient-to-r ${REGIONS[activeRegion].gradient} opacity-60`} />
+              <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent" />
+              <div className="absolute bottom-6 left-6 right-6">
+                <div className="flex items-center gap-4">
+                  <span className="text-5xl">{REGIONS[activeRegion].emoji}</span>
+                  <div>
+                    <h3 className="text-3xl md:text-4xl font-black text-white">{REGIONS[activeRegion].name}</h3>
+                    <p className="text-white/80">{REGIONS[activeRegion].countries.length} countries • {REGIONS[activeRegion].countries.reduce((sum, c) => sum + c.cities.length, 0)} destinations</p>
+                  </div>
+                </div>
+              </div>
+            </motion.div>
+          </AnimatePresence>
+
+          {/* Countries Grid - Premium Cards */}
+          <AnimatePresence mode="wait">
+            <motion.div
+              key={activeRegion}
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
               transition={{ duration: 0.3 }}
               className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4"
             >
               {REGIONS[activeRegion].countries.map((country, index) => (
                 <motion.div
                   key={country.name}
-                  initial={{ opacity: 0, scale: 0.95 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  transition={{ delay: index * 0.05 }}
-                  className="bg-white rounded-2xl p-5 shadow-lg hover:shadow-xl transition-all border border-gray-100"
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: index * 0.03 }}
+                  className="group bg-white/5 backdrop-blur-sm rounded-2xl p-5 border border-white/10 hover:border-white/30 hover:bg-white/10 transition-all"
                 >
                   <div className="flex items-center gap-3 mb-4">
-                    <span className="text-3xl">{country.flag}</span>
-                    <h3 className="font-bold text-lg text-gray-900">{country.name}</h3>
+                    <span className="text-4xl drop-shadow-lg">{country.flag}</span>
+                    <div>
+                      <h3 className="font-bold text-lg text-white">{country.name}</h3>
+                      <p className="text-xs text-gray-400">{country.cities.length} destinations</p>
+                    </div>
                   </div>
                   <div className="flex flex-wrap gap-2">
-                    {country.cities.map((city) => (
+                    {country.cities.slice(0, 6).map((city) => (
                       <Link
                         key={city.slug}
                         href={`/experiences/${city.slug}`}
-                        className="px-3 py-1.5 rounded-full bg-gray-100 text-sm font-medium text-gray-700 hover:bg-[#E74035] hover:text-white transition-all"
+                        className="px-3 py-1.5 rounded-full bg-white/10 text-sm font-medium text-white/80 hover:bg-[#E74035] hover:text-white transition-all border border-white/10 hover:border-transparent"
                       >
                         {city.name}
                       </Link>
                     ))}
+                    {country.cities.length > 6 && (
+                      <span className="px-3 py-1.5 rounded-full bg-white/5 text-sm text-white/50">+{country.cities.length - 6} more</span>
+                    )}
                   </div>
                 </motion.div>
               ))}
             </motion.div>
           </AnimatePresence>
+
+          {/* Quick Stats */}
+          <motion.div initial={{ opacity: 0 }} whileInView={{ opacity: 1 }} viewport={{ once: true }} className="mt-12 flex flex-wrap justify-center gap-8">
+            {[
+              { value: '200+', label: 'Cities', icon: MapPin },
+              { value: '60+', label: 'Countries', icon: Globe },
+              { value: '6', label: 'Continents', icon: Map },
+              { value: '15K+', label: 'Experiences', icon: Sparkles },
+            ].map((stat, i) => (
+              <div key={stat.label} className="text-center">
+                <div className="flex items-center justify-center gap-2 mb-1">
+                  <stat.icon className="w-5 h-5 text-[#E74035]" />
+                  <span className="text-2xl font-black text-white">{stat.value}</span>
+                </div>
+                <span className="text-sm text-gray-400">{stat.label}</span>
+              </div>
+            ))}
+          </motion.div>
         </div>
       </section>
 
