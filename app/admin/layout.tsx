@@ -1,11 +1,11 @@
+export const dynamic = 'force-dynamic';
+
 import { redirect } from 'next/navigation'
 import { auth } from '@/lib/auth'
-import { getPrismaClient } from '@/lib/prisma'
+import { getPrismaClient, isPrismaAvailable } from '@/lib/prisma'
 import AdminSidebar from '@/components/admin/AdminSidebar'
 import AdminHeader from '@/components/admin/AdminHeader'
 import { autoInitializeAdmin } from '@/lib/admin/auto-init'
-
-const prisma = getPrismaClient()
 
 // Whitelisted admin emails - these users automatically get super_admin access
 const ADMIN_WHITELIST = [
@@ -19,8 +19,22 @@ export default async function AdminLayout({
 }: {
   children: React.ReactNode
 }) {
+  // Check if database is available
+  if (!isPrismaAvailable()) {
+    console.error('Database not configured for admin panel')
+    redirect('/?error=database_unavailable')
+  }
+
+  const prisma = getPrismaClient();
+
   // Check authentication
-  const session = await auth()
+  let session;
+  try {
+    session = await auth()
+  } catch (error) {
+    console.error('Auth error in admin layout:', error)
+    redirect('/auth/admin-signin?callbackUrl=/admin')
+  }
 
   if (!session?.user?.id) {
     redirect('/auth/admin-signin?callbackUrl=/admin')
@@ -44,6 +58,8 @@ export default async function AdminLayout({
     })
   } catch (error) {
     console.error('Error checking admin status:', error)
+    // Database error - redirect with error
+    redirect('/?error=database_error')
   }
 
   // If not admin, check if user is in whitelist or can be made admin
@@ -65,10 +81,15 @@ export default async function AdminLayout({
       } catch (error) {
         console.error('Error auto-creating whitelisted admin:', error)
         // If creation fails (e.g., race condition), try to fetch again
-        adminUser = await prisma.adminUser.findUnique({
-          where: { userId: session.user.id },
-          include: { user: true }
-        })
+        try {
+          adminUser = await prisma.adminUser.findUnique({
+            where: { userId: session.user.id },
+            include: { user: true }
+          })
+        } catch (retryError) {
+          console.error('Retry fetch admin failed:', retryError)
+          redirect('/?error=database_error')
+        }
       }
     }
 

@@ -7,15 +7,15 @@ const globalForPrisma = globalThis as unknown as {
   prisma: PrismaClient | undefined;
 };
 
-// Check if DATABASE_URL or POSTGRES_URL is configured before creating Prisma client
-const isDatabaseConfigured = !!(process.env.DATABASE_URL || process.env.POSTGRES_URL);
+// Check if database is configured (Supabase, Neon, or other Postgres)
+const isDatabaseConfigured = !!(process.env.SUPABASE_POSTGRES_URL || process.env.POSTGRES_URL || process.env.DATABASE_URL);
 
 /**
  * Get the database URL with proper connection pooling settings for serverless
  * Neon/Vercel PostgreSQL require specific connection settings
  */
 function getDatabaseUrl(): string | undefined {
-  const baseUrl = process.env.POSTGRES_URL || process.env.DATABASE_URL;
+  const baseUrl = process.env.SUPABASE_POSTGRES_URL || process.env.POSTGRES_URL || process.env.DATABASE_URL;
   if (!baseUrl) return undefined;
 
   // Parse and enhance the URL with pooling settings if not already present
