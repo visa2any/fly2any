@@ -35,19 +35,23 @@ const DESTINATIONS = [
   { name: 'Paris', lat: 48.8566, lng: 2.3522, temp: '12°C', image: 'https://images.unsplash.com/photo-1502602898657-3e91760cbb34?w=1400', emoji: '💕', vibe: 'Romance' },
 ];
 
+// High-quality curated images for each category (always use these over API images)
 const CATEGORY_IMAGES: Record<string, string> = {
-  'cruises': 'https://images.unsplash.com/photo-1548574505-5e239809ee19?w=600',
-  'food-wine': 'https://images.unsplash.com/photo-1510812431401-41d2bd2722f3?w=600',
-  'shows': 'https://images.unsplash.com/photo-1503095396549-807759245b35?w=600',
-  'adventure': 'https://images.unsplash.com/photo-1527004013197-933c4bb611b3?w=600',
-  'museums': 'https://images.unsplash.com/photo-1565060169194-19fabf63012c?w=600',
-  'water-sports': 'https://images.unsplash.com/photo-1544551763-46a013bb70d5?w=600',
-  'air': 'https://images.unsplash.com/photo-1436491865332-7a61a109cc05?w=600',
-  'wellness': 'https://images.unsplash.com/photo-1544161515-4ab6ce6db874?w=600',
-  'nightlife': 'https://images.unsplash.com/photo-1514525253161-7a46d19cd819?w=600',
-  'walking-tours': 'https://images.unsplash.com/photo-1569154941061-e231b4725ef1?w=600',
-  'landmarks': 'https://images.unsplash.com/photo-1492136344046-866c85e0bf04?w=600',
-  'classes': 'https://images.unsplash.com/photo-1556910103-1c02745aae4d?w=600',
+  'cruises': 'https://images.unsplash.com/photo-1548574505-5e239809ee19?w=800&q=80&auto=format',
+  'food-wine': 'https://images.unsplash.com/photo-1414235077428-338989a2e8c0?w=800&q=80&auto=format',
+  'shows': 'https://images.unsplash.com/photo-1507676184212-d03ab07a01bf?w=800&q=80&auto=format',
+  'adventure': 'https://images.unsplash.com/photo-1682687220742-aba13b6e50ba?w=800&q=80&auto=format',
+  'museums': 'https://images.unsplash.com/photo-1554907984-15263bfd63bd?w=800&q=80&auto=format',
+  'water-sports': 'https://images.unsplash.com/photo-1530053969600-caed2596d242?w=800&q=80&auto=format',
+  'air': 'https://images.unsplash.com/photo-1473116763249-2faaef81ccda?w=800&q=80&auto=format',
+  'wellness': 'https://images.unsplash.com/photo-1600334089648-b0d9d3028eb2?w=800&q=80&auto=format',
+  'nightlife': 'https://images.unsplash.com/photo-1566417713940-fe7c737a9ef2?w=800&q=80&auto=format',
+  'walking-tours': 'https://images.unsplash.com/photo-1513635269975-59663e0ac1ad?w=800&q=80&auto=format',
+  'landmarks': 'https://images.unsplash.com/photo-1499856871958-5b9627545d1a?w=800&q=80&auto=format',
+  'classes': 'https://images.unsplash.com/photo-1556910103-1c02745aae4d?w=800&q=80&auto=format',
+  'day-trips': 'https://images.unsplash.com/photo-1469474968028-56623f02e42e?w=800&q=80&auto=format',
+  'photography': 'https://images.unsplash.com/photo-1502920917128-1aa500764cbd?w=800&q=80&auto=format',
+  'private-tours': 'https://images.unsplash.com/photo-1476514525535-07fb3b4ae5f1?w=800&q=80&auto=format',
 };
 
 export default function ExperiencesPageClient() {
@@ -254,8 +258,8 @@ export default function ExperiencesPageClient() {
               <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-4 lg:gap-5">
                 {availableCategories.map((cat, index) => {
                   const items = experienceData[cat.id] || [];
-                  const firstItem = items[0];
-                  const image = firstItem?.pictures?.[0] || CATEGORY_IMAGES[cat.id];
+                  // Always use curated high-quality images for categories
+                  const image = CATEGORY_IMAGES[cat.id] || 'https://images.unsplash.com/photo-1488646953014-85cb44e25828?w=800&q=80';
                   const prices = items.map(i => parseFloat(i.price?.amount || '0')).filter(p => p > 0);
                   const fromPrice = prices.length > 0 ? Math.min(...prices) : 50;
 

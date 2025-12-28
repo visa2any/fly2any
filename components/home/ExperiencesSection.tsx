@@ -33,16 +33,16 @@ const FEATURED_CATEGORIES = [
   'museums', 'water-sports', 'air', 'wellness'
 ];
 
-// Default images per category (fallback)
+// High-quality curated images for each category
 const CATEGORY_IMAGES: Record<string, string> = {
-  'cruises': 'https://images.unsplash.com/photo-1548574505-5e239809ee19?w=600',
-  'food-wine': 'https://images.unsplash.com/photo-1510812431401-41d2bd2722f3?w=600',
-  'shows': 'https://images.unsplash.com/photo-1503095396549-807759245b35?w=600',
-  'adventure': 'https://images.unsplash.com/photo-1527004013197-933c4bb611b3?w=600',
-  'museums': 'https://images.unsplash.com/photo-1565060169194-19fabf63012c?w=600',
-  'water-sports': 'https://images.unsplash.com/photo-1544551763-46a013bb70d5?w=600',
-  'air': 'https://images.unsplash.com/photo-1436491865332-7a61a109cc05?w=600',
-  'wellness': 'https://images.unsplash.com/photo-1544161515-4ab6ce6db874?w=600',
+  'cruises': 'https://images.unsplash.com/photo-1548574505-5e239809ee19?w=800&q=80&auto=format',
+  'food-wine': 'https://images.unsplash.com/photo-1414235077428-338989a2e8c0?w=800&q=80&auto=format',
+  'shows': 'https://images.unsplash.com/photo-1507676184212-d03ab07a01bf?w=800&q=80&auto=format',
+  'adventure': 'https://images.unsplash.com/photo-1682687220742-aba13b6e50ba?w=800&q=80&auto=format',
+  'museums': 'https://images.unsplash.com/photo-1554907984-15263bfd63bd?w=800&q=80&auto=format',
+  'water-sports': 'https://images.unsplash.com/photo-1530053969600-caed2596d242?w=800&q=80&auto=format',
+  'air': 'https://images.unsplash.com/photo-1473116763249-2faaef81ccda?w=800&q=80&auto=format',
+  'wellness': 'https://images.unsplash.com/photo-1600334089648-b0d9d3028eb2?w=800&q=80&auto=format',
 };
 
 interface ExperiencesSectionProps {
@@ -99,10 +99,9 @@ export default function ExperiencesSection({
       .map(catId => {
         const category = data.categories.find(c => c.id === catId);
         const items = data.data[catId] || [];
-        const firstItem = items[0];
 
-        // Get real image from API or fallback
-        const image = firstItem?.pictures?.[0] || CATEGORY_IMAGES[catId];
+        // Always use curated high-quality images
+        const image = CATEGORY_IMAGES[catId] || 'https://images.unsplash.com/photo-1488646953014-85cb44e25828?w=800&q=80';
 
         // Get lowest price (already with markup)
         const prices = items
