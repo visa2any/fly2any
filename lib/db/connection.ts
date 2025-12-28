@@ -3,17 +3,20 @@ import { neon, neonConfig, NeonQueryFunction } from '@neondatabase/serverless';
 // Configure Neon for edge runtime
 neonConfig.fetchConnectionCache = true;
 
-// Check if POSTGRES_URL is configured (and not a placeholder)
+// Get database URL (Supabase or legacy Neon)
+const dbUrl = process.env.SUPABASE_POSTGRES_URL || process.env.POSTGRES_URL || process.env.DATABASE_URL;
+
+// Check if database is configured (and not a placeholder)
 const isPostgresConfigured = !!(
-  process.env.POSTGRES_URL &&
-  !process.env.POSTGRES_URL.includes('placeholder') &&
-  !process.env.POSTGRES_URL.includes('localhost')
+  dbUrl &&
+  !dbUrl.includes('placeholder') &&
+  !dbUrl.includes('localhost')
 );
 
-// Only create Neon connection if POSTGRES_URL is configured
-// Export null if not configured to prevent import-time errors
+// Only create Neon connection if database is configured
+// Works with both Neon and Supabase (compatible Postgres)
 const sql: NeonQueryFunction<false, false> | null = isPostgresConfigured
-  ? neon(process.env.POSTGRES_URL!)
+  ? neon(dbUrl!)
   : null;
 
 // Helper function to check if database is available
@@ -24,7 +27,7 @@ export function isDatabaseAvailable(): boolean {
 // Log warning in development if not configured
 if (!isPostgresConfigured && process.env.NODE_ENV === 'development') {
   console.warn(
-    '⚠️  POSTGRES_URL not configured or using placeholder/localhost. Database features will use demo data.'
+    '⚠️  Database URL not configured (SUPABASE_POSTGRES_URL/POSTGRES_URL). Database features will use demo data.'
   );
 }
 
