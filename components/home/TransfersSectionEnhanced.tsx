@@ -252,6 +252,8 @@ export function TransfersSectionEnhanced({ lang = 'en' }: TransfersSectionEnhanc
       dropoff: route.dropoff,
       dropoffLat: route.dropoffLat.toString(),
       dropoffLng: route.dropoffLng.toString(),
+      dropoffCity: route.city,
+      dropoffCountry: route.country,
       date: dateStr,
       time: '10:00',
       passengers: '2',

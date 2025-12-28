@@ -246,6 +246,8 @@ export async function GET(request: NextRequest) {
     const pickupLng = searchParams.get('pickupLng');
     const dropoffLat = searchParams.get('dropoffLat');
     const dropoffLng = searchParams.get('dropoffLng');
+    const dropoffCity = searchParams.get('dropoffCity');
+    const dropoffCountry = searchParams.get('dropoffCountry');
 
     if (!pickup || !dropoff || !date) {
       return NextResponse.json({
@@ -302,6 +304,8 @@ export async function GET(request: NextRequest) {
     } else if (dropoffLat && dropoffLng) {
       // Use GPS coordinates passed from search bar (for hotels/landmarks)
       amadeusParams.endGeoCode = { latitude: parseFloat(dropoffLat), longitude: parseFloat(dropoffLng) };
+      if (dropoffCity) amadeusParams.endCityName = dropoffCity;
+      if (dropoffCountry) amadeusParams.endCountryCode = dropoffCountry;
     } else {
       const dropoffGeo = geocodeLocation(dropoff);
       if (dropoffGeo) {

@@ -1454,6 +1454,9 @@ class AmadeusAPI {
         requestBody.endLocationCode = params.endLocationCode;
       } else if (params.endGeoCode) {
         requestBody.endGeoCode = params.endGeoCode;
+        // Also add city/country for better matching when available
+        if (params.endCityName) requestBody.endCityName = params.endCityName;
+        if (params.endCountryCode) requestBody.endCountryCode = params.endCountryCode;
       } else if (params.endAddressLine) {
         requestBody.endAddressLine = params.endAddressLine;
         if (params.endCityName) requestBody.endCityName = params.endCityName;
