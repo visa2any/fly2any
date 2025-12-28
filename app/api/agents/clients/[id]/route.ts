@@ -1,3 +1,5 @@
+export const dynamic = 'force-dynamic';
+
 // app/api/agents/clients/[id]/route.ts
 // Client Detail, Update, Delete
 import { NextRequest, NextResponse } from "next/server";

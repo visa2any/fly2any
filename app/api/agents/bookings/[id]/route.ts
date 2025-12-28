@@ -1,3 +1,5 @@
+export const dynamic = 'force-dynamic';
+
 // app/api/agents/bookings/[id]/route.ts
 // Get, Update, and Cancel Booking
 import { NextRequest, NextResponse } from "next/server";

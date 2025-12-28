@@ -1,3 +1,5 @@
+export const dynamic = 'force-dynamic';
+
 // app/api/agents/integrations/products/[id]/route.ts
 // Get, Update, and Delete Product
 import { NextRequest, NextResponse } from "next/server";

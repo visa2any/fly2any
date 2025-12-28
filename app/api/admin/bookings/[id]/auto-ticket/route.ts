@@ -1,3 +1,5 @@
+export const dynamic = 'force-dynamic';
+
 /**
  * Auto-Ticket API - Triggers consolidator booking automation
  *

@@ -1,3 +1,5 @@
+export const dynamic = 'force-dynamic';
+
 /**
  * Admin Promo Code Individual API
  * GET, PUT, DELETE operations for single promo code

@@ -1,3 +1,5 @@
+export const dynamic = 'force-dynamic';
+
 /**
  * Admin Webhooks API
  * Provides webhook event management for admin dashboard

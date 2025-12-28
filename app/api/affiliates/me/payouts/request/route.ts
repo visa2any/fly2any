@@ -1,3 +1,5 @@
+export const dynamic = 'force-dynamic';
+
 /**
  * Affiliate Payout Request API
  *

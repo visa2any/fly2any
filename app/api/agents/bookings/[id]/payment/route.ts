@@ -1,3 +1,5 @@
+export const dynamic = 'force-dynamic';
+
 // app/api/agents/bookings/[id]/payment/route.ts
 // Record payment for a booking
 import { NextRequest, NextResponse } from "next/server";

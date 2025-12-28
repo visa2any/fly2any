@@ -1,3 +1,5 @@
+export const dynamic = 'force-dynamic';
+
 // app/api/agents/quotes/[id]/route.ts
 // Quote Detail, Update, Delete
 import { NextRequest, NextResponse } from "next/server";

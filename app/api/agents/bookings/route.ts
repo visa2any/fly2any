@@ -1,3 +1,5 @@
+export const dynamic = 'force-dynamic';
+
 // app/api/agents/bookings/route.ts
 // List all bookings for the authenticated agent
 import { NextRequest, NextResponse } from "next/server";

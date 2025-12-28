@@ -1,3 +1,5 @@
+export const dynamic = 'force-dynamic';
+
 /**
  * CSV Email List Upload API
  *

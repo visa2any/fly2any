@@ -1,3 +1,5 @@
+export const dynamic = 'force-dynamic';
+
 // app/api/agents/integrations/suppliers/route.ts
 // Manage supplier/vendor relationships for manual product entry
 import { NextRequest, NextResponse } from "next/server";

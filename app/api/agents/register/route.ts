@@ -1,3 +1,5 @@
+export const dynamic = 'force-dynamic';
+
 // app/api/agents/register/route.ts
 // Agent Registration Endpoint
 import { NextRequest, NextResponse } from "next/server";

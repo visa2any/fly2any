@@ -1,3 +1,5 @@
+export const dynamic = 'force-dynamic';
+
 // app/api/agents/quotes/[id]/send/route.ts
 // Send Quote to Client via Email
 import { NextRequest, NextResponse } from "next/server";

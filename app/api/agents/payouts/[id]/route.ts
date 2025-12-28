@@ -1,3 +1,5 @@
+export const dynamic = 'force-dynamic';
+
 // app/api/agents/payouts/[id]/route.ts
 // Get specific payout details
 import { NextRequest, NextResponse } from "next/server";

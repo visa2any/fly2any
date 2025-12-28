@@ -1,3 +1,5 @@
+export const dynamic = 'force-dynamic';
+
 // app/api/agents/commissions/route.ts
 // List and manage agent commissions
 import { NextRequest, NextResponse } from "next/server";

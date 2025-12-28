@@ -1,3 +1,5 @@
+export const dynamic = 'force-dynamic';
+
 /**
  * Admin Promo Codes API
  * Full CRUD operations for promotional codes management

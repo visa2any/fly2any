@@ -1,3 +1,5 @@
+export const dynamic = 'force-dynamic';
+
 // app/api/agents/integrations/products/route.ts
 // Manage product catalog (activities, transfers, car rentals, insurance, etc.)
 import { NextRequest, NextResponse } from "next/server";

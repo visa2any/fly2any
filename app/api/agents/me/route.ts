@@ -1,3 +1,5 @@
+export const dynamic = 'force-dynamic';
+
 // app/api/agents/me/route.ts
 // Get and Update Agent Profile
 import { NextRequest, NextResponse } from "next/server";

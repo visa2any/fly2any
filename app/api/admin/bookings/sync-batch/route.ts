@@ -1,3 +1,5 @@
+export const dynamic = 'force-dynamic';
+
 /**
  * Admin Batch Booking Sync API
  * POST /api/admin/bookings/sync-batch - Sync multiple bookings

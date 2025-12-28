@@ -1,3 +1,5 @@
+export const dynamic = 'force-dynamic';
+
 /**
  * Admin Booking Sync API
  * POST /api/admin/bookings/[id]/sync - Sync booking with provider

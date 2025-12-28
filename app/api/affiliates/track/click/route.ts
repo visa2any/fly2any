@@ -1,3 +1,5 @@
+export const dynamic = 'force-dynamic';
+
 import { NextRequest, NextResponse } from 'next/server'
 import { trackReferralClick } from '@/lib/services/referralTrackingService'
 

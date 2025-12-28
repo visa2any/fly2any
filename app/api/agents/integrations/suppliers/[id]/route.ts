@@ -1,3 +1,5 @@
+export const dynamic = 'force-dynamic';
+
 // app/api/agents/integrations/suppliers/[id]/route.ts
 // Get, Update, and Delete Supplier
 import { NextRequest, NextResponse } from "next/server";

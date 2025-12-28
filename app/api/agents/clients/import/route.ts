@@ -1,3 +1,5 @@
+export const dynamic = 'force-dynamic';
+
 // app/api/agents/clients/import/route.ts
 // Bulk Client Import from CSV
 import { NextRequest, NextResponse } from "next/server";

@@ -1,3 +1,5 @@
+export const dynamic = 'force-dynamic';
+
 // app/api/agents/quotes/[id]/pdf/route.ts
 // Generate and Download Quote PDF
 import { NextRequest, NextResponse } from "next/server";

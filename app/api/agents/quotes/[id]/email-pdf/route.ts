@@ -1,3 +1,5 @@
+export const dynamic = 'force-dynamic';
+
 // app/api/agents/quotes/[id]/email-pdf/route.ts
 // Email Quote PDF to Client
 import { NextRequest, NextResponse } from "next/server";

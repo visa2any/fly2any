@@ -1,3 +1,5 @@
+export const dynamic = 'force-dynamic';
+
 // app/api/agents/me/dashboard/route.ts
 // Agent Dashboard Statistics
 import { NextRequest, NextResponse } from "next/server";

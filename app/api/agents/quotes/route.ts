@@ -1,3 +1,5 @@
+export const dynamic = 'force-dynamic';
+
 // app/api/agents/quotes/route.ts
 // Quote Management - List and Create
 import { NextRequest, NextResponse } from "next/server";

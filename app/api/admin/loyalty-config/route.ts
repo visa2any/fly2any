@@ -1,3 +1,5 @@
+export const dynamic = 'force-dynamic';
+
 /**
  * Admin Loyalty Configuration API
  * Manages loyalty program settings for Hotels and Flights

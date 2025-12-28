@@ -1,3 +1,5 @@
+export const dynamic = 'force-dynamic';
+
 // app/api/agents/payouts/request/route.ts
 // Request payout of available commissions
 import { NextRequest, NextResponse } from "next/server";
