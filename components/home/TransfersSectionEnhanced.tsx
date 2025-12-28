@@ -10,6 +10,8 @@ interface TransferRoute {
   pickup: string;
   pickupCode: string;
   dropoff: string;
+  dropoffLat: number;
+  dropoffLng: number;
   city: string;
   country: string;
   flag: string;
@@ -97,28 +99,28 @@ const translations = {
 // Curated popular transfer routes by region
 const POPULAR_ROUTES: TransferRoute[] = [
   // Americas
-  { id: 'jfk-manhattan', pickup: 'JFK Airport', pickupCode: 'JFK', dropoff: 'Manhattan', city: 'New York', country: 'USA', flag: '🇺🇸', region: 'americas', basePrice: 85, duration: '45-60 min', distance: '26 km', rating: 4.8, reviewCount: 1250, isPopular: true, vehicleType: 'Private Sedan', icon: '🚗' },
-  { id: 'lax-hollywood', pickup: 'LAX Airport', pickupCode: 'LAX', dropoff: 'Hollywood', city: 'Los Angeles', country: 'USA', flag: '🇺🇸', region: 'americas', basePrice: 65, duration: '30-45 min', distance: '18 km', rating: 4.7, reviewCount: 890, isPopular: true, vehicleType: 'Private Sedan', icon: '🚗' },
-  { id: 'mia-southbeach', pickup: 'MIA Airport', pickupCode: 'MIA', dropoff: 'South Beach', city: 'Miami', country: 'USA', flag: '🇺🇸', region: 'americas', basePrice: 55, duration: '25-35 min', distance: '15 km', rating: 4.9, reviewCount: 720, isPopular: true, vehicleType: 'Private SUV', icon: '🚙' },
-  { id: 'gru-paulista', pickup: 'GRU Airport', pickupCode: 'GRU', dropoff: 'Av. Paulista', city: 'São Paulo', country: 'Brazil', flag: '🇧🇷', region: 'americas', basePrice: 45, duration: '45-60 min', distance: '28 km', rating: 4.6, reviewCount: 450, isPopular: false, vehicleType: 'Private Sedan', icon: '🚗' },
+  { id: 'jfk-manhattan', pickup: 'JFK Airport', pickupCode: 'JFK', dropoff: 'Manhattan', dropoffLat: 40.7831, dropoffLng: -73.9712, city: 'New York', country: 'USA', flag: '🇺🇸', region: 'americas', basePrice: 85, duration: '45-60 min', distance: '26 km', rating: 4.8, reviewCount: 1250, isPopular: true, vehicleType: 'Private Sedan', icon: '🚗' },
+  { id: 'lax-hollywood', pickup: 'LAX Airport', pickupCode: 'LAX', dropoff: 'Hollywood', dropoffLat: 34.0928, dropoffLng: -118.3287, city: 'Los Angeles', country: 'USA', flag: '🇺🇸', region: 'americas', basePrice: 65, duration: '30-45 min', distance: '18 km', rating: 4.7, reviewCount: 890, isPopular: true, vehicleType: 'Private Sedan', icon: '🚗' },
+  { id: 'mia-southbeach', pickup: 'MIA Airport', pickupCode: 'MIA', dropoff: 'South Beach', dropoffLat: 25.7907, dropoffLng: -80.1300, city: 'Miami', country: 'USA', flag: '🇺🇸', region: 'americas', basePrice: 55, duration: '25-35 min', distance: '15 km', rating: 4.9, reviewCount: 720, isPopular: true, vehicleType: 'Private SUV', icon: '🚙' },
+  { id: 'gru-paulista', pickup: 'GRU Airport', pickupCode: 'GRU', dropoff: 'Av. Paulista', dropoffLat: -23.5614, dropoffLng: -46.6558, city: 'São Paulo', country: 'Brazil', flag: '🇧🇷', region: 'americas', basePrice: 45, duration: '45-60 min', distance: '28 km', rating: 4.6, reviewCount: 450, isPopular: false, vehicleType: 'Private Sedan', icon: '🚗' },
 
   // Europe
-  { id: 'cdg-paris', pickup: 'CDG Airport', pickupCode: 'CDG', dropoff: 'City Center', city: 'Paris', country: 'France', flag: '🇫🇷', region: 'europe', basePrice: 75, duration: '40-55 min', distance: '25 km', rating: 4.8, reviewCount: 2100, isPopular: true, vehicleType: 'Mercedes E-Class', icon: '🚘' },
-  { id: 'lhr-london', pickup: 'Heathrow', pickupCode: 'LHR', dropoff: 'Central London', city: 'London', country: 'UK', flag: '🇬🇧', region: 'europe', basePrice: 95, duration: '45-60 min', distance: '24 km', rating: 4.9, reviewCount: 1850, isPopular: true, vehicleType: 'Mercedes V-Class', icon: '🚐' },
-  { id: 'fco-rome', pickup: 'Fiumicino', pickupCode: 'FCO', dropoff: 'Rome Center', city: 'Rome', country: 'Italy', flag: '🇮🇹', region: 'europe', basePrice: 65, duration: '35-50 min', distance: '30 km', rating: 4.7, reviewCount: 980, isPopular: true, vehicleType: 'Private Sedan', icon: '🚗' },
-  { id: 'bcn-barcelona', pickup: 'El Prat', pickupCode: 'BCN', dropoff: 'Las Ramblas', city: 'Barcelona', country: 'Spain', flag: '🇪🇸', region: 'europe', basePrice: 55, duration: '25-35 min', distance: '15 km', rating: 4.8, reviewCount: 1120, isPopular: false, vehicleType: 'Private Sedan', icon: '🚗' },
+  { id: 'cdg-paris', pickup: 'CDG Airport', pickupCode: 'CDG', dropoff: 'City Center', dropoffLat: 48.8566, dropoffLng: 2.3522, city: 'Paris', country: 'France', flag: '🇫🇷', region: 'europe', basePrice: 75, duration: '40-55 min', distance: '25 km', rating: 4.8, reviewCount: 2100, isPopular: true, vehicleType: 'Mercedes E-Class', icon: '🚘' },
+  { id: 'lhr-london', pickup: 'Heathrow', pickupCode: 'LHR', dropoff: 'Central London', dropoffLat: 51.5074, dropoffLng: -0.1278, city: 'London', country: 'UK', flag: '🇬🇧', region: 'europe', basePrice: 95, duration: '45-60 min', distance: '24 km', rating: 4.9, reviewCount: 1850, isPopular: true, vehicleType: 'Mercedes V-Class', icon: '🚐' },
+  { id: 'fco-rome', pickup: 'Fiumicino', pickupCode: 'FCO', dropoff: 'Rome Center', dropoffLat: 41.9028, dropoffLng: 12.4964, city: 'Rome', country: 'Italy', flag: '🇮🇹', region: 'europe', basePrice: 65, duration: '35-50 min', distance: '30 km', rating: 4.7, reviewCount: 980, isPopular: true, vehicleType: 'Private Sedan', icon: '🚗' },
+  { id: 'bcn-barcelona', pickup: 'El Prat', pickupCode: 'BCN', dropoff: 'Las Ramblas', dropoffLat: 41.3809, dropoffLng: 2.1741, city: 'Barcelona', country: 'Spain', flag: '🇪🇸', region: 'europe', basePrice: 55, duration: '25-35 min', distance: '15 km', rating: 4.8, reviewCount: 1120, isPopular: false, vehicleType: 'Private Sedan', icon: '🚗' },
 
   // Asia
-  { id: 'nrt-tokyo', pickup: 'Narita', pickupCode: 'NRT', dropoff: 'Shinjuku', city: 'Tokyo', country: 'Japan', flag: '🇯🇵', region: 'asia', basePrice: 180, duration: '60-90 min', distance: '65 km', rating: 4.9, reviewCount: 890, isPopular: true, vehicleType: 'Toyota Alphard', icon: '🚐' },
-  { id: 'sin-marina', pickup: 'Changi', pickupCode: 'SIN', dropoff: 'Marina Bay', city: 'Singapore', country: 'Singapore', flag: '🇸🇬', region: 'asia', basePrice: 45, duration: '20-30 min', distance: '20 km', rating: 4.9, reviewCount: 1560, isPopular: true, vehicleType: 'Mercedes E-Class', icon: '🚘' },
-  { id: 'hkg-central', pickup: 'Hong Kong Intl', pickupCode: 'HKG', dropoff: 'Central', city: 'Hong Kong', country: 'Hong Kong', flag: '🇭🇰', region: 'asia', basePrice: 85, duration: '35-45 min', distance: '35 km', rating: 4.8, reviewCount: 720, isPopular: false, vehicleType: 'Private Sedan', icon: '🚗' },
-  { id: 'bkk-sukhumvit', pickup: 'Suvarnabhumi', pickupCode: 'BKK', dropoff: 'Sukhumvit', city: 'Bangkok', country: 'Thailand', flag: '🇹🇭', region: 'asia', basePrice: 35, duration: '30-45 min', distance: '28 km', rating: 4.7, reviewCount: 980, isPopular: false, vehicleType: 'Toyota Camry', icon: '🚗' },
+  { id: 'nrt-tokyo', pickup: 'Narita', pickupCode: 'NRT', dropoff: 'Shinjuku', dropoffLat: 35.6938, dropoffLng: 139.7034, city: 'Tokyo', country: 'Japan', flag: '🇯🇵', region: 'asia', basePrice: 180, duration: '60-90 min', distance: '65 km', rating: 4.9, reviewCount: 890, isPopular: true, vehicleType: 'Toyota Alphard', icon: '🚐' },
+  { id: 'sin-marina', pickup: 'Changi', pickupCode: 'SIN', dropoff: 'Marina Bay', dropoffLat: 1.2838, dropoffLng: 103.8591, city: 'Singapore', country: 'Singapore', flag: '🇸🇬', region: 'asia', basePrice: 45, duration: '20-30 min', distance: '20 km', rating: 4.9, reviewCount: 1560, isPopular: true, vehicleType: 'Mercedes E-Class', icon: '🚘' },
+  { id: 'hkg-central', pickup: 'Hong Kong Intl', pickupCode: 'HKG', dropoff: 'Central', dropoffLat: 22.2819, dropoffLng: 114.1577, city: 'Hong Kong', country: 'Hong Kong', flag: '🇭🇰', region: 'asia', basePrice: 85, duration: '35-45 min', distance: '35 km', rating: 4.8, reviewCount: 720, isPopular: false, vehicleType: 'Private Sedan', icon: '🚗' },
+  { id: 'bkk-sukhumvit', pickup: 'Suvarnabhumi', pickupCode: 'BKK', dropoff: 'Sukhumvit', dropoffLat: 13.7308, dropoffLng: 100.5695, city: 'Bangkok', country: 'Thailand', flag: '🇹🇭', region: 'asia', basePrice: 35, duration: '30-45 min', distance: '28 km', rating: 4.7, reviewCount: 980, isPopular: false, vehicleType: 'Toyota Camry', icon: '🚗' },
 
   // Middle East
-  { id: 'dxb-downtown', pickup: 'Dubai Intl', pickupCode: 'DXB', dropoff: 'Downtown Dubai', city: 'Dubai', country: 'UAE', flag: '🇦🇪', region: 'middleEast', basePrice: 45, duration: '15-25 min', distance: '12 km', rating: 4.9, reviewCount: 2200, isPopular: true, vehicleType: 'Lexus ES', icon: '🚘' },
-  { id: 'ist-taksim', pickup: 'Istanbul Airport', pickupCode: 'IST', dropoff: 'Taksim', city: 'Istanbul', country: 'Turkey', flag: '🇹🇷', region: 'middleEast', basePrice: 55, duration: '45-60 min', distance: '40 km', rating: 4.7, reviewCount: 650, isPopular: true, vehicleType: 'Mercedes E-Class', icon: '🚘' },
-  { id: 'cai-giza', pickup: 'Cairo Intl', pickupCode: 'CAI', dropoff: 'Giza Pyramids', city: 'Cairo', country: 'Egypt', flag: '🇪🇬', region: 'middleEast', basePrice: 35, duration: '40-55 min', distance: '35 km', rating: 4.6, reviewCount: 420, isPopular: false, vehicleType: 'Private Sedan', icon: '🚗' },
-  { id: 'tlv-telaviv', pickup: 'Ben Gurion', pickupCode: 'TLV', dropoff: 'Tel Aviv Center', city: 'Tel Aviv', country: 'Israel', flag: '🇮🇱', region: 'middleEast', basePrice: 65, duration: '20-30 min', distance: '18 km', rating: 4.8, reviewCount: 380, isPopular: false, vehicleType: 'Private Sedan', icon: '🚗' },
+  { id: 'dxb-downtown', pickup: 'Dubai Intl', pickupCode: 'DXB', dropoff: 'Downtown Dubai', dropoffLat: 25.1972, dropoffLng: 55.2744, city: 'Dubai', country: 'UAE', flag: '🇦🇪', region: 'middleEast', basePrice: 45, duration: '15-25 min', distance: '12 km', rating: 4.9, reviewCount: 2200, isPopular: true, vehicleType: 'Lexus ES', icon: '🚘' },
+  { id: 'ist-taksim', pickup: 'Istanbul Airport', pickupCode: 'IST', dropoff: 'Taksim', dropoffLat: 41.0370, dropoffLng: 28.9850, city: 'Istanbul', country: 'Turkey', flag: '🇹🇷', region: 'middleEast', basePrice: 55, duration: '45-60 min', distance: '40 km', rating: 4.7, reviewCount: 650, isPopular: true, vehicleType: 'Mercedes E-Class', icon: '🚘' },
+  { id: 'cai-giza', pickup: 'Cairo Intl', pickupCode: 'CAI', dropoff: 'Giza Pyramids', dropoffLat: 29.9773, dropoffLng: 31.1325, city: 'Cairo', country: 'Egypt', flag: '🇪🇬', region: 'middleEast', basePrice: 35, duration: '40-55 min', distance: '35 km', rating: 4.6, reviewCount: 420, isPopular: false, vehicleType: 'Private Sedan', icon: '🚗' },
+  { id: 'tlv-telaviv', pickup: 'Ben Gurion', pickupCode: 'TLV', dropoff: 'Tel Aviv Center', dropoffLat: 32.0853, dropoffLng: 34.7818, city: 'Tel Aviv', country: 'Israel', flag: '🇮🇱', region: 'middleEast', basePrice: 65, duration: '20-30 min', distance: '18 km', rating: 4.8, reviewCount: 380, isPopular: false, vehicleType: 'Private Sedan', icon: '🚗' },
 ];
 
 type FilterType = 'all' | 'americas' | 'europe' | 'asia' | 'middleEast';
@@ -248,6 +250,8 @@ export function TransfersSectionEnhanced({ lang = 'en' }: TransfersSectionEnhanc
     const params = new URLSearchParams({
       pickup: `${route.pickup} (${route.pickupCode})`,
       dropoff: route.dropoff,
+      dropoffLat: route.dropoffLat.toString(),
+      dropoffLng: route.dropoffLng.toString(),
       date: dateStr,
       time: '10:00',
       passengers: '2',
