@@ -222,10 +222,10 @@ export default function ExperiencesPageClient() {
         </motion.div>
       </section>
 
-      {/* Categories Section */}
+      {/* Categories Section - Full Width */}
       <section className="py-16 lg:py-24 relative">
         <div className="absolute top-0 left-0 w-full h-32 bg-gradient-to-b from-orange-900/10 to-transparent" />
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="w-full px-4 sm:px-8 lg:px-12 xl:px-16">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
@@ -251,7 +251,7 @@ export default function ExperiencesPageClient() {
             </div>
           ) : (
             <>
-              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-5 lg:gap-7">
+              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-4 lg:gap-5">
                 {availableCategories.map((cat, index) => {
                   const items = experienceData[cat.id] || [];
                   const firstItem = items[0];
