@@ -142,11 +142,10 @@ export default function ExperiencesPageClient() {
             </motion.div>
 
             <motion.h1
-              className="text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-black mb-6 leading-tight"
+              className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-black mb-6"
               style={{ textShadow: '0 4px 30px rgba(0,0,0,0.5)' }}
             >
-              <span className="block">Life is Short.</span>
-              <span className="block bg-gradient-to-r from-yellow-400 to-orange-500 bg-clip-text text-transparent">Travel More.</span>
+              Life is Short. <span className="bg-gradient-to-r from-yellow-400 to-orange-500 bg-clip-text text-transparent">Travel More.</span>
             </motion.h1>
 
             <p className="text-xl md:text-2xl text-white/90 mb-4 font-light" style={{ textShadow: '0 2px 20px rgba(0,0,0,0.3)' }}>
