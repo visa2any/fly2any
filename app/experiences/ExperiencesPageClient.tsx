@@ -142,10 +142,23 @@ export default function ExperiencesPageClient() {
             </motion.div>
 
             <motion.h1
-              className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-black mb-6"
+              className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl xl:text-8xl font-black mb-6"
               style={{ textShadow: '0 4px 30px rgba(0,0,0,0.5)' }}
             >
-              Life is Short. <span className="bg-gradient-to-r from-yellow-400 to-orange-500 bg-clip-text text-transparent">Travel More.</span>
+              Life is Short.{' '}
+              <motion.span
+                className="inline-block"
+                style={{
+                  background: 'linear-gradient(135deg, #FFD700 0%, #FFF 25%, #FFD700 50%, #FF6B6B 75%, #FFD700 100%)',
+                  backgroundSize: '200% 200%',
+                  WebkitBackgroundClip: 'text',
+                  WebkitTextFillColor: 'transparent',
+                }}
+                animate={{ backgroundPosition: ['0% 0%', '100% 100%', '0% 0%'] }}
+                transition={{ duration: 4, repeat: Infinity, ease: 'linear' }}
+              >
+                Travel More.
+              </motion.span>
             </motion.h1>
 
             <p className="text-xl md:text-2xl text-white/90 mb-4 font-light" style={{ textShadow: '0 2px 20px rgba(0,0,0,0.3)' }}>
