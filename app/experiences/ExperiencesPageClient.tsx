@@ -123,27 +123,12 @@ export default function ExperiencesPageClient() {
         <div className="absolute inset-0 bg-gradient-to-b from-black/40 via-black/20 to-orange-900/60" />
         <div className="absolute inset-0 bg-gradient-to-r from-red-900/30 via-transparent to-yellow-900/30" />
 
-        <div className="absolute inset-0 pointer-events-none overflow-hidden">
-          {[0,1,2,3,4,5].map((i) => (
-            <motion.div
-              key={i}
-              className="absolute text-4xl"
-              style={{ left: `${10 + i * 15}%` }}
-              initial={{ y: '100vh' }}
-              animate={{ y: '-10vh' }}
-              transition={{ duration: 15 + i * 3, repeat: Infinity, ease: 'linear', delay: i * 2 }}
-            >
-              {['✈️', '🌴', '☀️', '🌊', '🏝️', '🎉'][i]}
-            </motion.div>
-          ))}
-        </div>
-
         <div className="absolute inset-0 flex flex-col items-center justify-center text-white px-4">
           <motion.div
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8 }}
-            className="text-center max-w-4xl"
+            className="text-center w-full max-w-6xl mx-auto"
           >
             <motion.div
               className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full mb-6"
@@ -157,10 +142,11 @@ export default function ExperiencesPageClient() {
             </motion.div>
 
             <motion.h1
-              className="text-4xl md:text-6xl lg:text-7xl xl:text-8xl font-black mb-6 whitespace-nowrap"
+              className="text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-black mb-6 leading-tight"
               style={{ textShadow: '0 4px 30px rgba(0,0,0,0.5)' }}
             >
-              Life is Short. <span className="bg-gradient-to-r from-yellow-400 to-orange-500 bg-clip-text text-transparent">Travel More.</span>
+              <span className="block">Life is Short.</span>
+              <span className="block bg-gradient-to-r from-yellow-400 to-orange-500 bg-clip-text text-transparent">Travel More.</span>
             </motion.h1>
 
             <p className="text-xl md:text-2xl text-white/90 mb-4 font-light" style={{ textShadow: '0 2px 20px rgba(0,0,0,0.3)' }}>
