@@ -227,14 +227,14 @@ export function Header({
             </a>
 
           {/* Main Navigation - Level-6 Apple-Class Style */}
-          <nav className="hidden lg:flex items-center gap-1 xl:gap-2 ml-auto mr-4 xl:mr-8" suppressHydrationWarning>
+          <nav className="hidden lg:flex items-center gap-0 xl:gap-0.5 ml-auto mr-2 xl:mr-4" suppressHydrationWarning>
 
             {/* Flights - First */}
             <a
               href="/flights"
-              className="group relative px-3 xl:px-4 py-2.5 text-neutral-700 hover:text-primary-600 transition-all duration-150 ease-[cubic-bezier(0.2,0.8,0.2,1)] font-semibold text-sm rounded-xl hover:bg-primary-50/60 hover:-translate-y-0.5"
+              className="group relative px-2 xl:px-3 py-2 text-neutral-700 hover:text-primary-600 transition-all duration-150 ease-[cubic-bezier(0.2,0.8,0.2,1)] font-semibold text-sm rounded-xl hover:bg-primary-50/60 hover:-translate-y-0.5"
             >
-              <span className="flex items-center gap-2">
+              <span className="flex items-center gap-1.5">
                 <span className="text-lg transition-transform duration-150 group-hover:scale-110">
                   ✈️
                 </span>
@@ -246,9 +246,9 @@ export function Header({
             {/* Hotels */}
             <a
               href="/hotels"
-              className="group relative px-3 xl:px-4 py-2.5 text-neutral-700 hover:text-primary-600 transition-all duration-150 ease-[cubic-bezier(0.2,0.8,0.2,1)] font-semibold text-sm rounded-xl hover:bg-primary-50/60 hover:-translate-y-0.5"
+              className="group relative px-2 xl:px-3 py-2 text-neutral-700 hover:text-primary-600 transition-all duration-150 ease-[cubic-bezier(0.2,0.8,0.2,1)] font-semibold text-sm rounded-xl hover:bg-primary-50/60 hover:-translate-y-0.5"
             >
-              <span className="flex items-center gap-2">
+              <span className="flex items-center gap-1.5">
                 <span className="text-lg transition-transform duration-150 group-hover:scale-110">
                   🏨
                 </span>
@@ -260,9 +260,9 @@ export function Header({
             {/* Cars */}
             <a
               href="/cars"
-              className="group relative px-3 xl:px-4 py-2.5 text-neutral-700 hover:text-primary-600 transition-all duration-150 ease-[cubic-bezier(0.2,0.8,0.2,1)] font-semibold text-sm rounded-xl hover:bg-primary-50/60 hover:-translate-y-0.5"
+              className="group relative px-2 xl:px-3 py-2 text-neutral-700 hover:text-primary-600 transition-all duration-150 ease-[cubic-bezier(0.2,0.8,0.2,1)] font-semibold text-sm rounded-xl hover:bg-primary-50/60 hover:-translate-y-0.5"
             >
-              <span className="flex items-center gap-2">
+              <span className="flex items-center gap-1.5">
                 <span className="text-lg transition-transform duration-150 group-hover:scale-110">
                   🚗
                 </span>
@@ -274,9 +274,9 @@ export function Header({
             {/* Tours */}
             <a
               href="/tours"
-              className="group relative px-3 xl:px-4 py-2.5 text-neutral-700 hover:text-primary-600 transition-all duration-150 ease-[cubic-bezier(0.2,0.8,0.2,1)] font-semibold text-sm rounded-xl hover:bg-primary-50/60 hover:-translate-y-0.5"
+              className="group relative px-2 xl:px-3 py-2 text-neutral-700 hover:text-primary-600 transition-all duration-150 ease-[cubic-bezier(0.2,0.8,0.2,1)] font-semibold text-sm rounded-xl hover:bg-primary-50/60 hover:-translate-y-0.5"
             >
-              <span className="flex items-center gap-2">
+              <span className="flex items-center gap-1.5">
                 <span className="text-lg transition-transform duration-150 group-hover:scale-110">
                   🎯
                 </span>
@@ -288,9 +288,9 @@ export function Header({
             {/* Activities */}
             <a
               href="/activities"
-              className="group relative px-3 xl:px-4 py-2.5 text-neutral-700 hover:text-primary-600 transition-all duration-150 ease-[cubic-bezier(0.2,0.8,0.2,1)] font-semibold text-sm rounded-xl hover:bg-primary-50/60 hover:-translate-y-0.5"
+              className="group relative px-2 xl:px-3 py-2 text-neutral-700 hover:text-primary-600 transition-all duration-150 ease-[cubic-bezier(0.2,0.8,0.2,1)] font-semibold text-sm rounded-xl hover:bg-primary-50/60 hover:-translate-y-0.5"
             >
-              <span className="flex items-center gap-2">
+              <span className="flex items-center gap-1.5">
                 <span className="text-lg transition-transform duration-150 group-hover:scale-110">
                   🎪
                 </span>
@@ -302,9 +302,9 @@ export function Header({
             {/* Transfers */}
             <a
               href="/transfers"
-              className="group relative px-3 xl:px-4 py-2.5 text-neutral-700 hover:text-primary-600 transition-all duration-150 ease-[cubic-bezier(0.2,0.8,0.2,1)] font-semibold text-sm rounded-xl hover:bg-primary-50/60 hover:-translate-y-0.5"
+              className="group relative px-2 xl:px-3 py-2 text-neutral-700 hover:text-primary-600 transition-all duration-150 ease-[cubic-bezier(0.2,0.8,0.2,1)] font-semibold text-sm rounded-xl hover:bg-primary-50/60 hover:-translate-y-0.5"
             >
-              <span className="flex items-center gap-2">
+              <span className="flex items-center gap-1.5">
                 <span className="text-lg transition-transform duration-150 group-hover:scale-110">
                   🚐
                 </span>
@@ -316,9 +316,9 @@ export function Header({
             {/* Experiences */}
             <a
               href="/experiences"
-              className="group relative px-3 xl:px-4 py-2.5 text-neutral-700 hover:text-primary-600 transition-all duration-150 ease-[cubic-bezier(0.2,0.8,0.2,1)] font-semibold text-sm rounded-xl hover:bg-primary-50/60 hover:-translate-y-0.5"
+              className="group relative px-2 xl:px-3 py-2 text-neutral-700 hover:text-primary-600 transition-all duration-150 ease-[cubic-bezier(0.2,0.8,0.2,1)] font-semibold text-sm rounded-xl hover:bg-primary-50/60 hover:-translate-y-0.5"
             >
-              <span className="flex items-center gap-2">
+              <span className="flex items-center gap-1.5">
                 <span className="text-lg transition-transform duration-150 group-hover:scale-110">
                   🌟
                 </span>
@@ -413,9 +413,9 @@ export function Header({
               <button
                 onClick={() => setDiscoverDropdownOpen(!discoverDropdownOpen)}
                 onMouseEnter={() => setDiscoverDropdownOpen(true)}
-                className="group relative px-3 xl:px-4 py-2.5 text-neutral-700 hover:text-primary-600 transition-all duration-150 ease-[cubic-bezier(0.2,0.8,0.2,1)] font-semibold text-sm rounded-xl hover:bg-primary-50/60 hover:-translate-y-0.5 flex items-center gap-2"
+                className="group relative px-2 xl:px-3 py-2 text-neutral-700 hover:text-primary-600 transition-all duration-150 ease-[cubic-bezier(0.2,0.8,0.2,1)] font-semibold text-sm rounded-xl hover:bg-primary-50/60 hover:-translate-y-0.5 flex items-center gap-1.5"
               >
-                <span className="flex items-center gap-2">
+                <span className="flex items-center gap-1.5">
                   <span className="text-lg transition-transform duration-150 group-hover:scale-110">
                     🗺️
                   </span>
@@ -627,7 +627,7 @@ export function Header({
                     <button
                       key={languageKey}
                       onClick={() => handleLanguageChange(languageKey)}
-                      className={`w-full flex items-center gap-2.5 px-4 py-2.5 transition-all duration-150 ${
+                      className={`w-full flex items-center gap-1.5.5 px-4 py-2.5 transition-all duration-150 ${
                         language === languageKey
                           ? 'bg-primary-600 text-white'
                           : 'hover:bg-gray-50 text-gray-700'
