@@ -72,7 +72,8 @@ export default function CategoryPage() {
     async function fetchExperiences() {
       setLoading(true);
       try {
-        const res = await fetch(`/api/experiences/categories?latitude=${destInfo.lat}&longitude=${destInfo.lng}&radius=15`);
+        // Pass specific category to API for accurate filtering
+        const res = await fetch(`/api/experiences/categories?latitude=${destInfo.lat}&longitude=${destInfo.lng}&radius=20&category=${category}`);
         const json = await res.json();
         if (json.success && json.data[category]) {
           setExperiences(json.data[category] || []);
@@ -83,7 +84,9 @@ export default function CategoryPage() {
         setLoading(false);
       }
     }
-    fetchExperiences();
+    if (category && destInfo.lat) {
+      fetchExperiences();
+    }
   }, [destination, category, destInfo.lat, destInfo.lng]);
 
   const toggleFavorite = (id: string) => {

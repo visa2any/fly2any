@@ -28,40 +28,43 @@ const EXPERIENCE_CATEGORIES: Record<string, {
   'cruises': {
     name: 'Cruises & Boat Tours',
     icon: '🚢',
-    keywords: ['cruise', 'boat', 'sailing', 'catamaran', 'yacht', 'ferry', 'river cruise', 'harbor', 'sunset cruise', 'dinner cruise'],
-    excludeKeywords: ['transfer'],
+    keywords: ['cruise', 'boat tour', 'boat trip', 'sailing', 'catamaran', 'yacht', 'ferry ride', 'river cruise', 'harbor cruise', 'sunset cruise', 'dinner cruise', 'dhow', 'speedboat'],
+    excludeKeywords: ['transfer', 'airport', 'hotel', 'desert', 'safari', 'city tour', 'walking'],
     description: 'Harbor cruises, sunset sails, and river boat experiences'
   },
   'museums': {
     name: 'Museums & Culture',
     icon: '🏛️',
-    keywords: ['museum', 'gallery', 'art', 'exhibition', 'cultural', 'heritage', 'historical', 'palace', 'castle'],
-    excludeKeywords: ['tour'],
+    keywords: ['museum', 'gallery', 'art exhibit', 'exhibition', 'cultural center', 'heritage site', 'historical site', 'palace visit', 'castle entrance'],
+    excludeKeywords: ['tour', 'walking', 'cruise', 'desert', 'safari'],
     description: 'Skip-the-line tickets and cultural experiences'
   },
   'food-wine': {
     name: 'Food & Wine',
     icon: '🍷',
-    keywords: ['food', 'wine', 'tasting', 'culinary', 'cooking', 'gastronomy', 'dinner', 'lunch', 'champagne', 'brewery', 'distillery', 'chef'],
+    keywords: ['food tour', 'wine tasting', 'wine tour', 'culinary', 'cooking class', 'gastronomy', 'dinner experience', 'champagne', 'brewery tour', 'distillery', 'chef table', 'tasting menu'],
+    excludeKeywords: ['desert', 'safari', 'cruise', 'transfer'],
     description: 'Wine tastings, cooking classes, and food tours'
   },
   'shows': {
     name: 'Shows & Entertainment',
     icon: '🎭',
-    keywords: ['show', 'broadway', 'theater', 'theatre', 'concert', 'cabaret', 'moulin rouge', 'lido', 'flamenco', 'performance', 'musical'],
+    keywords: ['show ticket', 'broadway', 'theater ticket', 'theatre', 'concert ticket', 'cabaret', 'moulin rouge', 'lido', 'flamenco show', 'live performance', 'musical show', 'opera'],
+    excludeKeywords: ['tour', 'desert', 'safari', 'cruise'],
     description: 'Broadway shows, cabarets, and live performances'
   },
   'adventure': {
     name: 'Adventure Activities',
     icon: '🏔️',
-    keywords: ['adventure', 'zip', 'zipline', 'atv', 'quad', 'rafting', 'bungee', 'paragliding', 'skydiving', 'hiking', 'climbing', 'jungle'],
+    keywords: ['adventure', 'zipline', 'zip line', 'atv', 'quad bike', 'rafting', 'bungee', 'paragliding', 'skydiving', 'hiking trail', 'rock climbing', 'jungle trek', 'dune bashing', 'desert safari'],
+    excludeKeywords: ['transfer', 'airport', 'cruise'],
     description: 'Zip lines, ATV rides, and outdoor adventures'
   },
   'water-sports': {
     name: 'Water Sports',
     icon: '🤿',
-    keywords: ['snorkel', 'snorkeling', 'diving', 'scuba', 'kayak', 'surf', 'surfing', 'jet ski', 'paddleboard', 'swimming'],
-    excludeKeywords: ['transfer'],
+    keywords: ['snorkel', 'snorkeling', 'scuba diving', 'dive trip', 'kayak', 'surfing lesson', 'jet ski', 'paddleboard', 'swimming with', 'water sport'],
+    excludeKeywords: ['transfer', 'cruise', 'boat tour'],
     description: 'Snorkeling, diving, and water activities'
   },
   'wellness': {
