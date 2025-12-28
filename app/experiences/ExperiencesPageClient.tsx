@@ -157,14 +157,10 @@ export default function ExperiencesPageClient() {
             </motion.div>
 
             <motion.h1
-              className="text-5xl md:text-6xl lg:text-7xl font-black mb-6"
+              className="text-4xl md:text-6xl lg:text-7xl xl:text-8xl font-black mb-6 whitespace-nowrap"
               style={{ textShadow: '0 4px 30px rgba(0,0,0,0.5)' }}
             >
-              Life is Short.
-              <br />
-              <span className="bg-gradient-to-r from-yellow-400 to-orange-500 bg-clip-text text-transparent">
-                Travel More.
-              </span>
+              Life is Short. <span className="bg-gradient-to-r from-yellow-400 to-orange-500 bg-clip-text text-transparent">Travel More.</span>
             </motion.h1>
 
             <p className="text-xl md:text-2xl text-white/90 mb-4 font-light" style={{ textShadow: '0 2px 20px rgba(0,0,0,0.3)' }}>
@@ -174,12 +170,12 @@ export default function ExperiencesPageClient() {
               From tropical beaches to vibrant cities — your next adventure awaits
             </p>
 
-            <div className="flex flex-wrap justify-center gap-3 mb-8">
+            <div className="flex flex-nowrap justify-center gap-2 mb-8">
               {DESTINATIONS.slice(0, 6).map((dest, i) => (
                 <motion.button
                   key={dest.name}
                   onClick={() => setSelectedDestination(dest)}
-                  className="group relative px-5 py-3 rounded-2xl font-semibold transition-all"
+                  className="group relative px-4 py-2.5 rounded-xl font-semibold transition-all"
                   style={{
                     background: selectedDestination.name === dest.name
                       ? 'linear-gradient(135deg, #E74035 0%, #FF6B6B 100%)'
