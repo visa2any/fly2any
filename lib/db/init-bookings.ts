@@ -61,6 +61,23 @@ export async function initBookingsTables() {
     // Add deleted_at column if it doesn't exist (for existing tables)
     await sql`ALTER TABLE bookings ADD COLUMN IF NOT EXISTS deleted_at TIMESTAMP`;
 
+    // Add guest columns for existing tables (Supabase migration fix)
+    await sql`ALTER TABLE bookings ADD COLUMN IF NOT EXISTS guest_email VARCHAR(255)`;
+    await sql`ALTER TABLE bookings ADD COLUMN IF NOT EXISTS guest_first_name VARCHAR(100)`;
+    await sql`ALTER TABLE bookings ADD COLUMN IF NOT EXISTS guest_last_name VARCHAR(100)`;
+    await sql`ALTER TABLE bookings ADD COLUMN IF NOT EXISTS guest_phone VARCHAR(20)`;
+    await sql`ALTER TABLE bookings ADD COLUMN IF NOT EXISTS booking_details JSONB`;
+    await sql`ALTER TABLE bookings ADD COLUMN IF NOT EXISTS total_amount DECIMAL(10, 2)`;
+    await sql`ALTER TABLE bookings ADD COLUMN IF NOT EXISTS currency VARCHAR(3) DEFAULT 'USD'`;
+    await sql`ALTER TABLE bookings ADD COLUMN IF NOT EXISTS commission_amount DECIMAL(10, 2)`;
+    await sql`ALTER TABLE bookings ADD COLUMN IF NOT EXISTS payment_status VARCHAR(20) DEFAULT 'pending'`;
+    await sql`ALTER TABLE bookings ADD COLUMN IF NOT EXISTS payment_method VARCHAR(50)`;
+    await sql`ALTER TABLE bookings ADD COLUMN IF NOT EXISTS payment_intent_id VARCHAR(255)`;
+    await sql`ALTER TABLE bookings ADD COLUMN IF NOT EXISTS provider VARCHAR(50)`;
+    await sql`ALTER TABLE bookings ADD COLUMN IF NOT EXISTS provider_booking_id VARCHAR(255)`;
+    await sql`ALTER TABLE bookings ADD COLUMN IF NOT EXISTS provider_confirmation_code VARCHAR(100)`;
+    await sql`ALTER TABLE bookings ADD COLUMN IF NOT EXISTS booking_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP`;
+
     // Add booking_type for car rentals, hotels, etc (CRITICAL for multi-product)
     await sql`ALTER TABLE bookings ADD COLUMN IF NOT EXISTS booking_type VARCHAR(20) DEFAULT 'flight'`;
     await sql`ALTER TABLE bookings ADD COLUMN IF NOT EXISTS travel_date_from DATE`;
