@@ -159,8 +159,10 @@ function GlobalLayoutInner({ children }: GlobalLayoutProps) {
         {children}
       </main>
 
-      {/* Global Footer */}
-      <Footer content={footerContent[language]} language={language} />
+      {/* Global Footer - Hidden on mobile for /account (has own bottom nav) */}
+      <div className={isAccountRoute ? 'hidden lg:block' : ''}>
+        <Footer content={footerContent[language]} language={language} />
+      </div>
 
       {/* Mobile Bottom Tab Bar - Hidden on /account (has its own nav) */}
       {!isAccountRoute && (

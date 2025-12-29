@@ -68,10 +68,13 @@ export default function WishlistPage() {
 
   if (status === 'loading' || isLoading) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin text-6xl mb-4">✈️</div>
-          <p className="text-gray-600">Loading your wishlist...</p>
+      <div className="w-full space-y-4">
+        <div className="bg-gradient-to-r from-rose-500 to-pink-600 md:rounded-2xl p-4 md:p-6 text-white">
+          <h1 className="text-2xl md:text-3xl font-bold mb-1">My Wishlist</h1>
+          <p className="text-white/80 text-sm">Loading your saved flights...</p>
+        </div>
+        <div className="px-3 md:px-0 flex justify-center py-8">
+          <div className="animate-spin text-4xl">✈️</div>
         </div>
       </div>
     );
@@ -82,97 +85,96 @@ export default function WishlistPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-indigo-50">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Header */}
-        <div className="mb-8">
-          <div className="flex items-center justify-between mb-4">
-            <div>
-              <h1 className="text-4xl font-bold text-gray-900 mb-2">
-                My Travel Wishlist ❤️
-              </h1>
-              <p className="text-gray-600">
-                Save your favorite flights and get notified when prices drop
-              </p>
-            </div>
-            <Link
-              href="/flights"
-              className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg font-semibold transition-colors"
-            >
-              Search Flights
-            </Link>
+    <div className="w-full space-y-4">
+      {/* Header - Edge-to-edge on mobile */}
+      <div className="bg-gradient-to-r from-rose-500 to-pink-600 md:rounded-2xl p-4 md:p-6 text-white">
+        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
+          <div>
+            <h1 className="text-2xl md:text-3xl font-bold mb-1">My Wishlist</h1>
+            <p className="text-white/80 text-sm md:text-base">
+              Save flights and get notified when prices drop
+            </p>
           </div>
-
-          {/* Stats Cards */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-            <div className="bg-white rounded-lg shadow-sm p-4 border border-gray-100">
-              <div className="flex items-center gap-3">
-                <div className="text-3xl">💙</div>
-                <div>
-                  <div className="text-2xl font-bold text-gray-900">
-                    {wishlistItems.length}
-                  </div>
-                  <div className="text-sm text-gray-600">Saved Flights</div>
-                </div>
-              </div>
-            </div>
-            <div className="bg-white rounded-lg shadow-sm p-4 border border-gray-100">
-              <div className="flex items-center gap-3">
-                <div className="text-3xl">🔔</div>
-                <div>
-                  <div className="text-2xl font-bold text-gray-900">
-                    {wishlistItems.filter((item) => item.notifyOnDrop).length}
-                  </div>
-                  <div className="text-sm text-gray-600">Price Alerts Active</div>
-                </div>
-              </div>
-            </div>
-            <div className="bg-gradient-to-r from-green-500 to-emerald-500 rounded-lg shadow-sm p-4 text-white">
-              <div className="flex items-center gap-3">
-                <div className="text-3xl">🎉</div>
-                <div>
-                  <div className="text-2xl font-bold">{priceDropItems.length}</div>
-                  <div className="text-sm">Price Drops Detected!</div>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* Sort Options */}
-          {wishlistItems.length > 0 && (
-            <div className="flex items-center gap-2">
-              <span className="text-sm text-gray-600">Sort by:</span>
-              <div className="flex gap-2">
-                {[
-                  { value: 'date', label: 'Date Added' },
-                  { value: 'price', label: 'Price' },
-                  { value: 'destination', label: 'Destination' },
-                ].map((option) => (
-                  <button
-                    key={option.value}
-                    onClick={() => setSortBy(option.value as any)}
-                    className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
-                      sortBy === option.value
-                        ? 'bg-blue-600 text-white'
-                        : 'bg-white text-gray-700 hover:bg-gray-50 border border-gray-200'
-                    }`}
-                  >
-                    {option.label}
-                  </button>
-                ))}
-              </div>
-            </div>
-          )}
+          <Link
+            href="/flights"
+            className="bg-white/20 hover:bg-white/30 backdrop-blur text-white px-4 py-2 rounded-xl font-semibold transition-colors text-sm md:text-base w-fit"
+          >
+            Search Flights
+          </Link>
         </div>
+      </div>
+
+      {/* Content wrapper with padding on mobile */}
+      <div className="px-3 md:px-0 space-y-4">
+        {/* Stats Cards - Horizontal scroll on mobile */}
+        <div className="flex md:grid md:grid-cols-3 gap-3 overflow-x-auto pb-2 -mx-3 px-3 md:mx-0 md:px-0 md:overflow-visible scrollbar-hide">
+          <div className="bg-white rounded-xl shadow-sm p-4 border border-gray-100 min-w-[140px] flex-shrink-0 md:min-w-0">
+            <div className="flex items-center gap-3">
+              <div className="text-2xl">💙</div>
+              <div>
+                <div className="text-xl font-bold text-gray-900">
+                  {wishlistItems.length}
+                </div>
+                <div className="text-xs text-gray-500">Saved</div>
+              </div>
+            </div>
+          </div>
+          <div className="bg-white rounded-xl shadow-sm p-4 border border-gray-100 min-w-[140px] flex-shrink-0 md:min-w-0">
+            <div className="flex items-center gap-3">
+              <div className="text-2xl">🔔</div>
+              <div>
+                <div className="text-xl font-bold text-gray-900">
+                  {wishlistItems.filter((item) => item.notifyOnDrop).length}
+                </div>
+                <div className="text-xs text-gray-500">Alerts</div>
+              </div>
+            </div>
+          </div>
+          <div className="bg-gradient-to-r from-green-500 to-emerald-500 rounded-xl shadow-sm p-4 text-white min-w-[140px] flex-shrink-0 md:min-w-0">
+            <div className="flex items-center gap-3">
+              <div className="text-2xl">🎉</div>
+              <div>
+                <div className="text-xl font-bold">{priceDropItems.length}</div>
+                <div className="text-xs text-white/80">Price Drops</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Sort Options */}
+        {wishlistItems.length > 0 && (
+          <div className="flex items-center gap-2 overflow-x-auto pb-2 scrollbar-hide">
+            <span className="text-sm text-gray-600 flex-shrink-0">Sort:</span>
+            <div className="flex gap-2">
+              {[
+                { value: 'date', label: 'Date' },
+                { value: 'price', label: 'Price' },
+                { value: 'destination', label: 'Destination' },
+              ].map((option) => (
+                <button
+                  key={option.value}
+                  onClick={() => setSortBy(option.value as any)}
+                  className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors flex-shrink-0 ${
+                    sortBy === option.value
+                      ? 'bg-blue-600 text-white'
+                      : 'bg-white text-gray-700 hover:bg-gray-50 border border-gray-200'
+                  }`}
+                >
+                  {option.label}
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
 
         {/* Price Drop Alerts */}
         {priceDropItems.length > 0 && (
-          <div className="mb-8">
-            <h2 className="text-2xl font-bold text-gray-900 mb-4 flex items-center gap-2">
+          <div>
+            <h2 className="text-lg md:text-xl font-bold text-gray-900 mb-3 flex items-center gap-2">
               <span>🎯</span>
               Price Drop Alerts
             </h2>
-            <div className="grid grid-cols-1 gap-4">
+            <div className="space-y-3">
               {priceDropItems.map((item) => (
                 <WishlistCard
                   key={item.id}
@@ -187,50 +189,50 @@ export default function WishlistPage() {
 
         {/* Wishlist Items */}
         {wishlistItems.length === 0 ? (
-          <div className="bg-white rounded-2xl shadow-lg p-12 text-center">
-            <div className="text-6xl mb-4">✈️</div>
-            <h2 className="text-2xl font-bold text-gray-900 mb-2">
+          <div className="bg-white rounded-2xl shadow-lg p-8 md:p-12 text-center">
+            <div className="text-5xl md:text-6xl mb-4">✈️</div>
+            <h2 className="text-xl md:text-2xl font-bold text-gray-900 mb-2">
               Your wishlist is empty
             </h2>
-            <p className="text-gray-600 mb-6">
-              Start saving your favorite flights and we'll help you track prices!
+            <p className="text-gray-600 text-sm md:text-base mb-6">
+              Start saving your favorite flights!
             </p>
             <Link
               href="/flights"
-              className="inline-block bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white px-8 py-3 rounded-lg font-semibold transition-all transform hover:scale-105"
+              className="inline-block bg-gradient-to-r from-blue-600 to-indigo-600 text-white px-6 py-3 rounded-xl font-semibold text-sm md:text-base"
             >
               Search Flights
             </Link>
-            <div className="mt-8 grid grid-cols-1 md:grid-cols-3 gap-4 text-left">
-              <div className="bg-blue-50 rounded-lg p-4">
-                <div className="text-2xl mb-2">❤️</div>
-                <h3 className="font-semibold text-gray-900 mb-1">Save Flights</h3>
-                <p className="text-sm text-gray-600">
-                  Click the heart icon on any flight to save it
+            <div className="mt-6 grid grid-cols-1 md:grid-cols-3 gap-3 text-left">
+              <div className="bg-blue-50 rounded-xl p-4">
+                <div className="text-xl mb-2">❤️</div>
+                <h3 className="font-semibold text-gray-900 mb-1 text-sm">Save Flights</h3>
+                <p className="text-xs text-gray-600">
+                  Click the heart icon to save
                 </p>
               </div>
-              <div className="bg-blue-50 rounded-lg p-4">
-                <div className="text-2xl mb-2">🔔</div>
-                <h3 className="font-semibold text-gray-900 mb-1">Get Alerts</h3>
-                <p className="text-sm text-gray-600">
-                  Set target prices and receive notifications
+              <div className="bg-blue-50 rounded-xl p-4">
+                <div className="text-xl mb-2">🔔</div>
+                <h3 className="font-semibold text-gray-900 mb-1 text-sm">Get Alerts</h3>
+                <p className="text-xs text-gray-600">
+                  Set target prices for alerts
                 </p>
               </div>
-              <div className="bg-blue-50 rounded-lg p-4">
-                <div className="text-2xl mb-2">📝</div>
-                <h3 className="font-semibold text-gray-900 mb-1">Add Notes</h3>
-                <p className="text-sm text-gray-600">
-                  Keep track of travel plans and preferences
+              <div className="bg-blue-50 rounded-xl p-4">
+                <div className="text-xl mb-2">📝</div>
+                <h3 className="font-semibold text-gray-900 mb-1 text-sm">Add Notes</h3>
+                <p className="text-xs text-gray-600">
+                  Track your travel plans
                 </p>
               </div>
             </div>
           </div>
         ) : (
           <div>
-            <h2 className="text-2xl font-bold text-gray-900 mb-4">
+            <h2 className="text-lg md:text-xl font-bold text-gray-900 mb-3">
               All Saved Flights ({wishlistItems.length})
             </h2>
-            <div className="grid grid-cols-1 gap-4">
+            <div className="space-y-3">
               {getSortedItems().map((item) => (
                 <WishlistCard
                   key={item.id}
@@ -245,19 +247,19 @@ export default function WishlistPage() {
 
         {/* Share Wishlist Feature (Coming Soon) */}
         {wishlistItems.length > 0 && (
-          <div className="mt-8 bg-gradient-to-r from-purple-50 to-pink-50 rounded-xl p-6 border border-purple-100">
-            <div className="flex items-start gap-4">
-              <div className="text-4xl">🔗</div>
+          <div className="bg-gradient-to-r from-purple-50 to-pink-50 rounded-xl p-4 md:p-6 border border-purple-100">
+            <div className="flex items-start gap-3 md:gap-4">
+              <div className="text-3xl md:text-4xl">🔗</div>
               <div className="flex-1">
-                <h3 className="text-lg font-bold text-gray-900 mb-2">
+                <h3 className="text-base md:text-lg font-bold text-gray-900 mb-1">
                   Share Your Wishlist
                 </h3>
-                <p className="text-gray-600 mb-3">
-                  Planning a trip with friends or family? Share your wishlist and plan together!
+                <p className="text-gray-600 text-sm mb-3">
+                  Plan trips with friends and family!
                 </p>
                 <button
                   disabled
-                  className="bg-purple-600 text-white px-6 py-2 rounded-lg font-semibold opacity-50 cursor-not-allowed"
+                  className="bg-purple-600 text-white px-4 py-2 rounded-lg font-semibold opacity-50 cursor-not-allowed text-sm"
                 >
                   Coming Soon
                 </button>

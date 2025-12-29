@@ -195,43 +195,43 @@ export default function ReferralsPage() {
           </div>
         </div>
 
-        {/* Points Summary */}
+        {/* Points Summary - Horizontal scroll on mobile */}
         {pointsSummary && (
-          <div className="mt-6 grid grid-cols-1 md:grid-cols-4 gap-4">
-            <div className="bg-white/10 backdrop-blur-sm rounded-xl p-4 border border-white/20">
-              <div className="flex items-center gap-2 mb-1">
-                <Unlock className="w-4 h-4 text-white/80" />
-                <p className="text-sm text-white/80">Available Points</p>
+          <div className="mt-4 md:mt-6 flex md:grid md:grid-cols-4 gap-3 overflow-x-auto pb-2 -mx-4 px-4 md:mx-0 md:px-0 md:overflow-visible scrollbar-hide">
+            <div className="bg-white/10 backdrop-blur-sm rounded-xl p-3 md:p-4 border border-white/20 min-w-[130px] flex-shrink-0 md:min-w-0">
+              <div className="flex items-center gap-1.5 mb-1">
+                <Unlock className="w-3.5 h-3.5 text-white/80" />
+                <p className="text-xs text-white/80">Available</p>
               </div>
-              <p className="text-3xl font-bold">{pointsSummary.available.toLocaleString()}</p>
-              <p className="text-xs text-white/70 mt-1">${pointsSummary.available} value</p>
+              <p className="text-xl md:text-3xl font-bold">{pointsSummary.available.toLocaleString()}</p>
+              <p className="text-[10px] md:text-xs text-white/70 mt-1">${pointsSummary.available}</p>
             </div>
 
-            <div className="bg-white/10 backdrop-blur-sm rounded-xl p-4 border border-white/20">
-              <div className="flex items-center gap-2 mb-1">
-                <Lock className="w-4 h-4 text-white/80" />
-                <p className="text-sm text-white/80">Locked Points</p>
+            <div className="bg-white/10 backdrop-blur-sm rounded-xl p-3 md:p-4 border border-white/20 min-w-[130px] flex-shrink-0 md:min-w-0">
+              <div className="flex items-center gap-1.5 mb-1">
+                <Lock className="w-3.5 h-3.5 text-white/80" />
+                <p className="text-xs text-white/80">Locked</p>
               </div>
-              <p className="text-3xl font-bold">{pointsSummary.locked.toLocaleString()}</p>
-              <p className="text-xs text-white/70 mt-1">{pointsSummary.pendingTransactions} trips in progress</p>
+              <p className="text-xl md:text-3xl font-bold">{pointsSummary.locked.toLocaleString()}</p>
+              <p className="text-[10px] md:text-xs text-white/70 mt-1">{pointsSummary.pendingTransactions} pending</p>
             </div>
 
-            <div className="bg-white/10 backdrop-blur-sm rounded-xl p-4 border border-white/20">
-              <div className="flex items-center gap-2 mb-1">
-                <Award className="w-4 h-4 text-white/80" />
-                <p className="text-sm text-white/80">Lifetime Earned</p>
+            <div className="bg-white/10 backdrop-blur-sm rounded-xl p-3 md:p-4 border border-white/20 min-w-[130px] flex-shrink-0 md:min-w-0">
+              <div className="flex items-center gap-1.5 mb-1">
+                <Award className="w-3.5 h-3.5 text-white/80" />
+                <p className="text-xs text-white/80">Lifetime</p>
               </div>
-              <p className="text-3xl font-bold">{pointsSummary.lifetime.toLocaleString()}</p>
-              <p className="text-xs text-white/70 mt-1">All-time total</p>
+              <p className="text-xl md:text-3xl font-bold">{pointsSummary.lifetime.toLocaleString()}</p>
+              <p className="text-[10px] md:text-xs text-white/70 mt-1">All-time</p>
             </div>
 
-            <div className="bg-white/10 backdrop-blur-sm rounded-xl p-4 border border-white/20">
-              <div className="flex items-center gap-2 mb-1">
-                <Users className="w-4 h-4 text-white/80" />
-                <p className="text-sm text-white/80">Network Size</p>
+            <div className="bg-white/10 backdrop-blur-sm rounded-xl p-3 md:p-4 border border-white/20 min-w-[130px] flex-shrink-0 md:min-w-0">
+              <div className="flex items-center gap-1.5 mb-1">
+                <Users className="w-3.5 h-3.5 text-white/80" />
+                <p className="text-xs text-white/80">Network</p>
               </div>
-              <p className="text-3xl font-bold">{pointsSummary.totalNetwork.toLocaleString()}</p>
-              <p className="text-xs text-white/70 mt-1">{pointsSummary.directReferrals} direct referrals</p>
+              <p className="text-xl md:text-3xl font-bold">{pointsSummary.totalNetwork.toLocaleString()}</p>
+              <p className="text-[10px] md:text-xs text-white/70 mt-1">{pointsSummary.directReferrals} direct</p>
             </div>
           </div>
         )}
@@ -276,34 +276,37 @@ export default function ReferralsPage() {
         )}
       </div>
 
-      {/* Tabs */}
+      {/* Tabs - Content wrapper with padding on mobile */}
+      <div className="px-3 md:px-0">
       <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
         <div className="flex border-b border-gray-200">
           <button
             onClick={() => setActiveTab('overview')}
-            className={`flex-1 px-6 py-4 font-semibold transition-colors ${
+            className={`flex-1 px-3 md:px-6 py-3 md:py-4 text-sm md:text-base font-semibold transition-colors ${
               activeTab === 'overview'
                 ? 'bg-primary-50 text-primary-600 border-b-2 border-primary-600'
                 : 'text-gray-600 hover:bg-gray-50'
             }`}
           >
-            Overview & How It Works
+            <span className="hidden md:inline">Overview & How It Works</span>
+            <span className="md:hidden">Overview</span>
           </button>
           <button
             onClick={() => setActiveTab('network')}
-            className={`flex-1 px-6 py-4 font-semibold transition-colors ${
+            className={`flex-1 px-3 md:px-6 py-3 md:py-4 text-sm md:text-base font-semibold transition-colors ${
               activeTab === 'network'
                 ? 'bg-primary-50 text-primary-600 border-b-2 border-primary-600'
                 : 'text-gray-600 hover:bg-gray-50'
             }`}
           >
-            My Network ({networkTree?.total || 0})
+            <span className="hidden md:inline">My Network ({networkTree?.total || 0})</span>
+            <span className="md:hidden">Network ({networkTree?.total || 0})</span>
           </button>
         </div>
 
-        <div className="p-6">
+        <div className="p-4 md:p-6">
           {activeTab === 'overview' && (
-            <div className="space-y-6">
+            <div className="space-y-4 md:space-y-6">
               {/* How It Works - Travel Rewards */}
               <div>
                 <div className="flex items-center gap-2 mb-4">
@@ -521,6 +524,7 @@ export default function ReferralsPage() {
           )}
         </div>
       </div>
+      </div>{/* Close content wrapper */}
     </div>
   );
 }

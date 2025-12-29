@@ -132,16 +132,16 @@ export default function SavedSearchesPage() {
   // Loading state
   if (loading) {
     return (
-      <div className="w-full space-y-4 md:space-y-6">
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">Saved Searches</h1>
-          <p className="text-gray-600">Quick access to your favorite flight searches</p>
+      <div className="w-full space-y-4">
+        <div className="bg-gradient-to-r from-blue-500 to-indigo-600 md:rounded-2xl p-4 md:p-6 text-white">
+          <h1 className="text-2xl md:text-3xl font-bold mb-1">Saved Searches</h1>
+          <p className="text-white/80 text-sm md:text-base">Quick access to your favorite flights</p>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {[1, 2, 3, 4, 5, 6].map(i => (
-            <div key={i} className="bg-white rounded-xl shadow-md p-6 animate-pulse">
-              <div className="h-4 bg-gray-200 rounded w-3/4 mb-4"></div>
+        <div className="px-3 md:px-0 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          {[1, 2, 3].map(i => (
+            <div key={i} className="bg-white rounded-xl shadow-sm p-4 animate-pulse">
+              <div className="h-4 bg-gray-200 rounded w-3/4 mb-3"></div>
               <div className="h-3 bg-gray-200 rounded w-1/2 mb-2"></div>
               <div className="h-3 bg-gray-200 rounded w-2/3"></div>
             </div>
@@ -154,21 +154,27 @@ export default function SavedSearchesPage() {
   // Error state
   if (error) {
     return (
-      <div className="w-full space-y-4 md:space-y-6">
-        <div className="bg-red-50 border border-red-200 rounded-xl p-6 text-center">
-          <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
-            <svg className="w-8 h-8 text-red-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-            </svg>
+      <div className="w-full space-y-4">
+        <div className="bg-gradient-to-r from-blue-500 to-indigo-600 md:rounded-2xl p-4 md:p-6 text-white">
+          <h1 className="text-2xl md:text-3xl font-bold mb-1">Saved Searches</h1>
+          <p className="text-white/80 text-sm md:text-base">Quick access to your favorite flights</p>
+        </div>
+        <div className="px-3 md:px-0">
+          <div className="bg-red-50 border border-red-200 rounded-xl p-6 text-center">
+            <div className="w-14 h-14 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-3">
+              <svg className="w-7 h-7 text-red-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+            </div>
+            <h2 className="text-lg font-bold text-red-900 mb-2">Error Loading Searches</h2>
+            <p className="text-red-700 text-sm mb-4">{error}</p>
+            <button
+              onClick={fetchSavedSearches}
+              className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors font-semibold text-sm"
+            >
+              Try Again
+            </button>
           </div>
-          <h2 className="text-xl font-bold text-red-900 mb-2">Error Loading Searches</h2>
-          <p className="text-red-700 mb-4">{error}</p>
-          <button
-            onClick={fetchSavedSearches}
-            className="px-6 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors font-semibold"
-          >
-            Try Again
-          </button>
         </div>
       </div>
     );
@@ -177,27 +183,29 @@ export default function SavedSearchesPage() {
   // Empty state
   if (searches.length === 0) {
     return (
-      <div className="w-full space-y-4 md:space-y-6">
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">Saved Searches</h1>
-          <p className="text-gray-600">Quick access to your favorite flight searches</p>
+      <div className="w-full space-y-4">
+        <div className="bg-gradient-to-r from-blue-500 to-indigo-600 md:rounded-2xl p-4 md:p-6 text-white">
+          <h1 className="text-2xl md:text-3xl font-bold mb-1">Saved Searches</h1>
+          <p className="text-white/80 text-sm md:text-base">Quick access to your favorite flights</p>
         </div>
 
-        <div className="bg-white rounded-2xl shadow-xl border border-gray-200 p-12 text-center">
-          <div className="w-24 h-24 bg-blue-50 rounded-full flex items-center justify-center mx-auto mb-6">
-            <BookmarkIcon className="w-12 h-12 text-blue-600" />
+        <div className="px-3 md:px-0">
+          <div className="bg-white rounded-2xl shadow-lg border border-gray-100 p-8 md:p-12 text-center">
+            <div className="w-16 h-16 md:w-20 md:h-20 bg-blue-50 rounded-full flex items-center justify-center mx-auto mb-4">
+              <BookmarkIcon className="w-8 h-8 md:w-10 md:h-10 text-blue-600" />
+            </div>
+            <h2 className="text-xl md:text-2xl font-bold text-gray-900 mb-2">No Saved Searches</h2>
+            <p className="text-gray-600 text-sm md:text-base mb-6 max-w-md mx-auto">
+              Search for flights and save your favorite routes for quick access later.
+            </p>
+            <Link
+              href="/"
+              className="inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-semibold rounded-xl text-sm md:text-base"
+            >
+              <Sparkles className="w-4 h-4 md:w-5 md:h-5" />
+              Start Searching
+            </Link>
           </div>
-          <h2 className="text-2xl font-bold text-gray-900 mb-3">No Saved Searches Yet</h2>
-          <p className="text-gray-600 mb-8 max-w-md mx-auto">
-            Start searching for flights and save your favorite routes for quick access later. You'll see them here!
-          </p>
-          <Link
-            href="/"
-            className="inline-flex items-center gap-2 px-8 py-4 bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-semibold rounded-xl hover:from-blue-700 hover:to-indigo-700 transition-all duration-300 shadow-lg hover:shadow-xl transform hover:scale-105"
-          >
-            <Sparkles className="w-5 h-5" />
-            Start Searching
-          </Link>
         </div>
       </div>
     );
@@ -205,48 +213,40 @@ export default function SavedSearchesPage() {
 
   // Results view
   return (
-    <div className="w-full space-y-4 md:space-y-6">
-      {/* Header */}
-      <div className="mb-8 flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">Saved Searches</h1>
-          <p className="text-gray-600">
-            {searches.length} saved {searches.length === 1 ? 'search' : 'searches'}
-          </p>
+    <div className="w-full space-y-4">
+      {/* Header - Edge-to-edge on mobile */}
+      <div className="bg-gradient-to-r from-blue-500 to-indigo-600 md:rounded-2xl p-4 md:p-6 text-white">
+        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
+          <div>
+            <h1 className="text-2xl md:text-3xl font-bold mb-1">Saved Searches</h1>
+            <p className="text-white/80 text-sm md:text-base">
+              {searches.length} saved {searches.length === 1 ? 'search' : 'searches'}
+            </p>
+          </div>
+          <Link
+            href="/"
+            className="bg-white/20 hover:bg-white/30 backdrop-blur text-white px-4 py-2 rounded-xl font-semibold transition-colors text-sm md:text-base w-fit"
+          >
+            New Search
+          </Link>
         </div>
-        <Link
-          href="/"
-          className="px-6 py-3 bg-blue-600 text-white font-semibold rounded-xl hover:bg-blue-700 transition-colors shadow-md hover:shadow-lg"
-        >
-          New Search
-        </Link>
       </div>
 
-      {/* Search Cards Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {searches.map(search => (
-          <SavedSearchCard
-            key={search.id}
-            search={search}
-            onDelete={handleDelete}
-            onUpdateName={handleUpdateName}
-            onQuickSearch={handleQuickSearch}
-            isDeleting={deletingId === search.id}
-          />
-        ))}
-      </div>
-
-      {/* Back to Account Link */}
-      <div className="mt-12 text-center">
-        <Link
-          href="/account"
-          className="inline-flex items-center gap-2 text-blue-600 hover:text-blue-700 font-semibold transition-colors"
-        >
-          <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
-          </svg>
-          Back to Account
-        </Link>
+      {/* Content wrapper with padding on mobile */}
+      <div className="px-3 md:px-0 space-y-4">
+        {/* Search Cards Grid */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          {searches.map(search => (
+            <SavedSearchCard
+              key={search.id}
+              search={search}
+              onDelete={handleDelete}
+              onUpdateName={handleUpdateName}
+              onQuickSearch={handleQuickSearch}
+              isDeleting={deletingId === search.id}
+            />
+          ))}
+        </div>
       </div>
     </div>
   );

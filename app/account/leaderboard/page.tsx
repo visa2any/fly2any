@@ -209,20 +209,23 @@ export default function LeaderboardPage() {
   }
 
   return (
-    <div className="max-w-4xl mx-auto p-4 md:p-6 space-y-6">
-      {/* Header */}
+    <div className="w-full space-y-4">
+      {/* Header - Edge-to-edge on mobile */}
       <motion.div
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
-        className="text-center"
+        className="bg-gradient-to-r from-amber-500 to-orange-600 md:rounded-2xl p-4 md:p-6 text-white"
       >
-        <div className="inline-flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-amber-400 to-orange-500 text-white rounded-full text-sm font-medium mb-4">
-          <Trophy className="w-4 h-4" />
-          Global Leaderboard
+        <div className="flex items-center gap-2 mb-2">
+          <Trophy className="w-5 h-5" />
+          <span className="text-sm font-medium text-white/80">Global Leaderboard</span>
         </div>
-        <h1 className="text-3xl font-bold text-gray-900 mb-2">Top Travelers</h1>
-        <p className="text-gray-500">Compete with fellow travelers and earn rewards</p>
+        <h1 className="text-2xl md:text-3xl font-bold mb-1">Top Travelers</h1>
+        <p className="text-white/80 text-sm md:text-base">Compete and earn rewards</p>
       </motion.div>
+
+      {/* Content wrapper with padding on mobile */}
+      <div className="px-3 md:px-0 space-y-4">
 
       {/* Your Rank Card */}
       {currentUserEntry && currentUserRank > 3 && (
@@ -302,33 +305,34 @@ export default function LeaderboardPage() {
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ delay: 0.5 }}
-        className="bg-gradient-to-br from-violet-50 to-purple-50 rounded-2xl border border-purple-100 p-6"
+        className="bg-gradient-to-br from-violet-50 to-purple-50 rounded-2xl border border-purple-100 p-4 md:p-6"
       >
-        <div className="flex items-start gap-4">
-          <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-violet-500 to-purple-600 flex items-center justify-center">
-            <Star className="w-6 h-6 text-white" />
+        <div className="flex flex-col md:flex-row items-start gap-4">
+          <div className="w-10 h-10 md:w-12 md:h-12 rounded-xl bg-gradient-to-br from-violet-500 to-purple-600 flex items-center justify-center flex-shrink-0">
+            <Star className="w-5 h-5 md:w-6 md:h-6 text-white" />
           </div>
-          <div className="flex-1">
-            <h3 className="font-semibold text-gray-900 mb-1">Monthly Rewards</h3>
-            <p className="text-sm text-gray-600 mb-3">
-              Top 10 travelers at the end of each month win exclusive rewards!
+          <div className="flex-1 w-full">
+            <h3 className="font-semibold text-gray-900 mb-1 text-sm md:text-base">Monthly Rewards</h3>
+            <p className="text-xs md:text-sm text-gray-600 mb-3">
+              Top 10 travelers win exclusive rewards!
             </p>
-            <div className="grid grid-cols-3 gap-3">
+            <div className="grid grid-cols-3 gap-2 md:gap-3">
               {[
-                { place: '1st', reward: '$100 Credit', icon: '🥇' },
-                { place: '2nd-3rd', reward: '$50 Credit', icon: '🥈' },
-                { place: '4th-10th', reward: '500 Bonus Points', icon: '🎁' },
+                { place: '1st', reward: '$100', icon: '🥇' },
+                { place: '2nd-3rd', reward: '$50', icon: '🥈' },
+                { place: '4th-10th', reward: '500 pts', icon: '🎁' },
               ].map((item, idx) => (
-                <div key={idx} className="bg-white rounded-xl p-3 text-center">
-                  <span className="text-2xl">{item.icon}</span>
-                  <p className="text-xs text-gray-500 mt-1">{item.place}</p>
-                  <p className="text-sm font-semibold text-gray-900">{item.reward}</p>
+                <div key={idx} className="bg-white rounded-xl p-2 md:p-3 text-center">
+                  <span className="text-xl md:text-2xl">{item.icon}</span>
+                  <p className="text-[10px] md:text-xs text-gray-500 mt-1">{item.place}</p>
+                  <p className="text-xs md:text-sm font-semibold text-gray-900">{item.reward}</p>
                 </div>
               ))}
             </div>
           </div>
         </div>
       </motion.div>
+      </div>{/* Close content wrapper */}
     </div>
   );
 }

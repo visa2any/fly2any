@@ -216,20 +216,23 @@ export default function PWASettingsPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 py-8">
-      <div className="container mx-auto px-4 max-w-4xl">
-        {/* Header */}
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">
+    <div className="w-full bg-gray-50">
+      <div className="w-full px-0 md:px-4 lg:px-6 py-0 md:py-4">
+        {/* Header - Edge-to-edge on mobile */}
+        <div className="bg-gradient-to-r from-indigo-500 to-purple-600 md:rounded-2xl p-4 md:p-6 text-white mb-4">
+          <h1 className="text-2xl md:text-3xl font-bold mb-1">
             PWA Settings
           </h1>
-          <p className="text-gray-600">
-            Manage your Progressive Web App features and settings
+          <p className="text-white/80 text-sm md:text-base">
+            Manage your Progressive Web App features
           </p>
         </div>
 
+        {/* Content wrapper with padding on mobile */}
+        <div className="px-3 md:px-0 space-y-4">
+
         {/* Installation Status */}
-        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 mb-6">
+        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-4 md:p-6">
           <div className="flex items-center gap-3 mb-4">
             <Smartphone className="w-6 h-6 text-blue-600" />
             <h2 className="text-xl font-bold text-gray-900">Installation Status</h2>
@@ -264,7 +267,7 @@ export default function PWASettingsPage() {
         </div>
 
         {/* Push Notifications */}
-        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 mb-6">
+        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-4 md:p-6">
           <div className="flex items-center gap-3 mb-4">
             <Bell className="w-6 h-6 text-blue-600" />
             <h2 className="text-xl font-bold text-gray-900">Push Notifications</h2>
@@ -317,7 +320,7 @@ export default function PWASettingsPage() {
         </div>
 
         {/* Background Sync */}
-        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 mb-6">
+        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-4 md:p-6">
           <div className="flex items-center gap-3 mb-4">
             <Wifi className="w-6 h-6 text-blue-600" />
             <h2 className="text-xl font-bold text-gray-900">Background Sync</h2>
@@ -441,6 +444,7 @@ export default function PWASettingsPage() {
             </div>
           </div>
         </div>
+        </div>{/* Close content wrapper */}
       </div>
     </div>
   );
