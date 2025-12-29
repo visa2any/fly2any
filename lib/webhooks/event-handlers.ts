@@ -5,7 +5,7 @@
 
 import { bookingStorage } from '../bookings/storage';
 import { notificationService } from '../notifications/notification-service';
-import { sql } from '../db/connection';
+import { getSql } from '../db/connection';
 import type { Booking, PaymentStatus } from '../bookings/types';
 
 /**

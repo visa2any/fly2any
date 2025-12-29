@@ -3,7 +3,7 @@
  * Provider-agnostic sync engine for booking management
  */
 
-import { sql } from '@/lib/db/connection';
+import { getSql } from '@/lib/db/connection';
 import { duffelAdapter } from './providers/duffel-adapter';
 import type {
   BookingProvider,

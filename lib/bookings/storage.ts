@@ -4,7 +4,7 @@
  */
 
 import { Booking, BookingSearchParams, BookingSummary } from './types';
-import { sql } from '../db/connection';
+import { getSql } from '../db/connection';
 
 // PostgreSQL storage implementation
 class BookingStorage {
@@ -58,6 +58,7 @@ class BookingStorage {
     preGeneratedRef?: string,
     maxRetries: number = 3
   ): Promise<Booking> {
+    const sql = getSql();
     if (!sql) {
       throw new Error('Database not configured');
     }
@@ -226,6 +227,7 @@ class BookingStorage {
    * Note: Excludes soft-deleted bookings by default
    */
   async findById(id: string, includeDeleted: boolean = false): Promise<Booking | null> {
+    const sql = getSql();
     if (!sql) {
       console.warn('Database not configured');
       return null;
@@ -262,6 +264,7 @@ class BookingStorage {
    * Note: Excludes soft-deleted bookings by default
    */
   async findByReferenceAsync(reference: string, includeDeleted: boolean = false): Promise<Booking | null> {
+    const sql = getSql();
     if (!sql) {
       console.warn('Database not configured');
       return null;
@@ -292,6 +295,7 @@ class BookingStorage {
    * Search bookings with filters
    */
   async search(params: BookingSearchParams): Promise<Booking[]> {
+    const sql = getSql();
     if (!sql) {
       console.warn('Database not configured');
       return [];
@@ -373,6 +377,7 @@ class BookingStorage {
    * Note: Excludes soft-deleted bookings by default
    */
   private async executeSearchQuery(params: BookingSearchParams): Promise<any[]> {
+    const sql = getSql();
     if (!sql) {
       return [];
     }
@@ -611,6 +616,7 @@ class BookingStorage {
    * Update an existing booking
    */
   async update(id: string, updates: Partial<Booking>): Promise<Booking | null> {
+    const sql = getSql();
     if (!sql) {
       console.warn('Database not configured');
       return null;
@@ -681,6 +687,7 @@ class BookingStorage {
    * Cancel a booking (soft delete)
    */
   async cancel(id: string, reason?: string): Promise<Booking | null> {
+    const sql = getSql();
     if (!sql) {
       console.warn('Database not configured');
       return null;
@@ -723,6 +730,7 @@ class BookingStorage {
    * Hard delete a booking (for admin/testing purposes)
    */
   async delete(id: string): Promise<boolean> {
+    const sql = getSql();
     if (!sql) {
       console.warn('Database not configured');
       return false;
@@ -746,6 +754,7 @@ class BookingStorage {
    * Note: Excludes soft-deleted bookings by default
    */
   async count(params?: BookingSearchParams): Promise<number> {
+    const sql = getSql();
     if (!sql) {
       console.warn('Database not configured');
       return 0;
@@ -802,6 +811,7 @@ class BookingStorage {
    * Clear all bookings (for testing purposes)
    */
   async clearAll(): Promise<void> {
+    const sql = getSql();
     if (!sql) {
       throw new Error('Database not configured');
     }
@@ -819,6 +829,7 @@ class BookingStorage {
    * Note: Excludes soft-deleted bookings by default
    */
   async getAll(includeDeleted: boolean = false): Promise<Booking[]> {
+    const sql = getSql();
     if (!sql) {
       console.warn('Database not configured');
       return [];

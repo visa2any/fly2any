@@ -3,7 +3,7 @@
  * Production-ready functions for querying flight booking counts and trends
  */
 
-import { sql } from './connection';
+import { getSql } from './connection';
 
 // ============================================
 // TYPES AND INTERFACES
