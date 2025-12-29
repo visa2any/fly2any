@@ -129,6 +129,7 @@ function GlobalLayoutInner({ children }: GlobalLayoutProps) {
   // Check if current route uses dedicated layout (admin or agent portal)
   const isAdminRoute = pathname?.startsWith('/admin');
   const isAgentRoute = pathname?.startsWith('/agent');
+  const isAccountRoute = pathname?.startsWith('/account');
 
   // Handle "More" tab click from bottom bar
   const handleMoreClick = () => {
@@ -161,11 +162,13 @@ function GlobalLayoutInner({ children }: GlobalLayoutProps) {
       {/* Global Footer */}
       <Footer content={footerContent[language]} language={language} />
 
-      {/* Mobile Bottom Tab Bar */}
-      <BottomTabBar
-        translations={headerTranslationsAdapter}
-        onMoreClick={handleMoreClick}
-      />
+      {/* Mobile Bottom Tab Bar - Hidden on /account (has its own nav) */}
+      {!isAccountRoute && (
+        <BottomTabBar
+          translations={headerTranslationsAdapter}
+          onMoreClick={handleMoreClick}
+        />
+      )}
 
       {/* Mobile Navigation Drawer */}
       <NavigationDrawer
