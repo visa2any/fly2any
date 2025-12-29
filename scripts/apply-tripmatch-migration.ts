@@ -5,13 +5,14 @@
  * Run with: npx tsx scripts/apply-tripmatch-migration.ts
  */
 
-import { sql } from '../lib/db/connection';
+import { getSql } from '../lib/db/connection';
 import * as fs from 'fs';
 import * as path from 'path';
 
 async function applyMigration() {
   console.log('🚀 Starting TripMatch database migration...\n');
 
+  const sql = getSql();
   if (!sql) {
     console.error('❌ Database not configured. Please check your DATABASE_URL environment variable.');
     process.exit(1);
@@ -111,11 +112,7 @@ async function applyMigration() {
   }
 }
 
-// Check database connection before running
-if (!sql) {
-  console.error('❌ Database not configured. Please check your DATABASE_URL environment variable.');
-  process.exit(1);
-}
+// Connection check happens inside applyMigration()
 
 function extractTableName(statement: string): string {
   // Extract table name from CREATE TABLE, CREATE INDEX, etc.

@@ -40,6 +40,19 @@ export async function syncBooking(
 
   try {
     // Get booking from database
+    const sql = getSql();
+    if (!sql) {
+      return {
+        success: false,
+        bookingId,
+        provider: 'unknown',
+        changes: [],
+        error: 'Database not configured',
+        syncedAt: new Date().toISOString(),
+        duration: Date.now() - startTime,
+      };
+    }
+
     const bookings = await sql`
       SELECT * FROM bookings WHERE id = ${bookingId} OR booking_reference = ${bookingId}
     `;
@@ -141,8 +154,9 @@ export async function syncBooking(
     console.error(`❌ Sync failed for ${bookingId}:`, error.message);
 
     // Update sync error in database
-    if (sql) {
-      await sql`
+    const sqlConn = getSql();
+    if (sqlConn) {
+      await sqlConn`
         UPDATE bookings SET
           sync_status = 'error',
           sync_error = ${error.message},
@@ -171,24 +185,22 @@ export async function syncBookingsBatch(
 ): Promise<{ total: number; synced: number; failed: number; results: SyncResult[] }> {
   const { status, provider, unsynced = true, limit = 50 } = filter;
 
-  // Build query
-  let query = sql`
-    SELECT id FROM bookings WHERE deleted_at IS NULL
-  `;
-
-  if (status) {
-    query = sql`${query} AND status = ${status}`;
-  }
-  if (provider) {
-    query = sql`${query} AND source_api = ${provider}`;
-  }
-  if (unsynced) {
-    query = sql`${query} AND (last_synced_at IS NULL OR last_synced_at < NOW() - INTERVAL '1 hour')`;
+  const sql = getSql();
+  if (!sql) {
+    return { total: 0, synced: 0, failed: 0, results: [] };
   }
 
-  query = sql`${query} ORDER BY created_at DESC LIMIT ${limit}`;
+  // Build query dynamically
+  const conditions: string[] = ['deleted_at IS NULL'];
+  if (status) conditions.push(`status = '${status}'`);
+  if (provider) conditions.push(`source_api = '${provider}'`);
+  if (unsynced) conditions.push(`(last_synced_at IS NULL OR last_synced_at < NOW() - INTERVAL '1 hour')`);
 
-  const bookings = await query;
+  const whereClause = conditions.join(' AND ');
+  const bookings = await sql.unsafe(`
+    SELECT id FROM bookings WHERE ${whereClause} ORDER BY created_at DESC LIMIT ${limit}
+  `);
+
   const results: SyncResult[] = [];
 
   for (const booking of bookings) {

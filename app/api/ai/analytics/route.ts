@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { sql, isDatabaseAvailable } from '@/lib/db/connection';
+import { getSql, isDatabaseAvailable } from '@/lib/db/connection';
 import { createHash } from 'crypto';
 
 // ===========================
@@ -86,12 +86,10 @@ export async function POST(request: NextRequest) {
     const fingerprint = generateFingerprint(userAgent, accept);
 
     // Store events in database if available
+    const sql = getSql();
     if (isDatabaseAvailable() && sql) {
       const insertPromises = validEvents.map(async (event) => {
         try {
-          // TypeScript null check - sql is already checked above but TS doesn't narrow properly
-          if (!sql) return;
-
           await sql`
             INSERT INTO ai_analytics_events (
               event_type,
@@ -207,6 +205,7 @@ export async function GET(request: NextRequest) {
     const startDate = new Date();
     startDate.setDate(startDate.getDate() - days);
 
+    const sql = getSql();
     if (!isDatabaseAvailable() || !sql) {
       // Return demo data when database not available
       const demoStats: AIAnalyticsStats = {

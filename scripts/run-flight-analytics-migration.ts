@@ -10,13 +10,14 @@
  * Run with: npx tsx scripts/run-flight-analytics-migration.ts
  */
 
-import { sql } from '../lib/db/connection';
+import { getSql } from '../lib/db/connection';
 import * as fs from 'fs';
 import * as path from 'path';
 
 async function runMigration() {
   console.log('🚀 Starting flight search analytics migration...\n');
 
+  const sql = getSql();
   if (!sql) {
     console.error('❌ Database not configured. Please check your DATABASE_URL environment variable.');
     process.exit(1);
@@ -152,11 +153,7 @@ async function runMigration() {
   }
 }
 
-// Check database connection before running
-if (!sql) {
-  console.error('❌ Database not configured. Please check your DATABASE_URL environment variable.');
-  process.exit(1);
-}
+// Connection check happens inside runMigration()
 
 // Run the migration
 runMigration()
