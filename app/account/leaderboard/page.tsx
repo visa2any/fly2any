@@ -209,17 +209,20 @@ export default function LeaderboardPage() {
   }
 
   return (
-    <div className="w-full space-y-4 md:space-y-6">
-      {/* Header - Level 6 Mobile */}
-      <div className="bg-gradient-to-r from-amber-400 to-orange-500 md:rounded-2xl p-4 md:p-6 text-white text-center">
-        <div className="flex items-center justify-center gap-2 mb-2">
-          <Trophy className="w-6 h-6" />
-          <h1 className="text-xl md:text-2xl font-bold">Leaderboard</h1>
+    <div className="max-w-4xl mx-auto p-4 md:p-6 space-y-6">
+      {/* Header */}
+      <motion.div
+        initial={{ opacity: 0, y: -20 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="text-center"
+      >
+        <div className="inline-flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-amber-400 to-orange-500 text-white rounded-full text-sm font-medium mb-4">
+          <Trophy className="w-4 h-4" />
+          Global Leaderboard
         </div>
-        <p className="text-white/80 text-sm">Compete & earn rewards</p>
-      </div>
-
-      <div className="px-3 md:px-0 space-y-4">
+        <h1 className="text-3xl font-bold text-gray-900 mb-2">Top Travelers</h1>
+        <p className="text-gray-500">Compete with fellow travelers and earn rewards</p>
+      </motion.div>
 
       {/* Your Rank Card */}
       {currentUserEntry && currentUserRank > 3 && (
@@ -326,7 +329,6 @@ export default function LeaderboardPage() {
           </div>
         </div>
       </motion.div>
-      </div>
     </div>
   );
 }

@@ -204,26 +204,29 @@ export default function PWASettingsPage() {
 
   if (loading) {
     return (
-      <div className="w-full flex items-center justify-center py-20">
-        <RefreshCw className="w-8 h-8 animate-spin text-blue-600" />
+      <div className="min-h-screen bg-gray-50 py-8">
+        <div className="container mx-auto px-4 max-w-4xl">
+          <div className="text-center py-12">
+            <RefreshCw className="w-8 h-8 animate-spin text-blue-600 mx-auto mb-4" />
+            <p className="text-gray-600">Loading PWA settings...</p>
+          </div>
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="w-full space-y-4 md:space-y-6">
-      {/* Header - Level 6 Mobile */}
-      <div className="bg-gradient-to-r from-blue-500 to-indigo-500 md:rounded-2xl p-4 md:p-6 text-white">
-        <div className="flex items-center gap-3">
-          <Smartphone className="w-6 h-6" />
-          <div>
-            <h1 className="text-xl md:text-2xl font-bold">PWA Settings</h1>
-            <p className="text-white/80 text-sm">App installation & features</p>
-          </div>
+    <div className="min-h-screen bg-gray-50 py-8">
+      <div className="container mx-auto px-4 max-w-4xl">
+        {/* Header */}
+        <div className="mb-8">
+          <h1 className="text-3xl font-bold text-gray-900 mb-2">
+            PWA Settings
+          </h1>
+          <p className="text-gray-600">
+            Manage your Progressive Web App features and settings
+          </p>
         </div>
-      </div>
-
-      <div className="px-3 md:px-0">
 
         {/* Installation Status */}
         <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 mb-6">
@@ -438,7 +441,6 @@ export default function PWASettingsPage() {
             </div>
           </div>
         </div>
-      </div>
       </div>
     </div>
   );
