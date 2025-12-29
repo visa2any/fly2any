@@ -53,8 +53,8 @@ export async function initBookingsTables() {
         deleted_at TIMESTAMP,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-        CONSTRAINT valid_status CHECK (status IN ('pending', 'confirmed', 'cancelled', 'completed')),
-        CONSTRAINT valid_payment_status CHECK (payment_status IN ('pending', 'paid', 'refunded', 'failed'))
+        CONSTRAINT valid_status CHECK (status IN ('pending', 'confirmed', 'cancelled', 'completed', 'VERIFICATION_PENDING')),
+        CONSTRAINT valid_payment_status CHECK (payment_status IN ('pending', 'paid', 'refunded', 'failed', 'authorized'))
       )
     `;
 
@@ -159,6 +159,21 @@ export async function initBookingsTables() {
     // Payment Tracking (Duffel) - duffel_payment_status: awaiting_payment, paid
     await sql`ALTER TABLE bookings ADD COLUMN IF NOT EXISTS duffel_payment_status VARCHAR(30)`;
     await sql`ALTER TABLE bookings ADD COLUMN IF NOT EXISTS duffel_balance_due DECIMAL(10,2)`;
+
+    // Update constraints for existing tables (drop and recreate)
+    console.log('Updating constraints...');
+    try {
+      await sql`ALTER TABLE bookings DROP CONSTRAINT IF EXISTS valid_status`;
+      await sql`ALTER TABLE bookings ADD CONSTRAINT valid_status CHECK (status IN ('pending', 'confirmed', 'cancelled', 'completed', 'VERIFICATION_PENDING'))`;
+    } catch (e) {
+      console.log('Status constraint update skipped (may already be correct)');
+    }
+    try {
+      await sql`ALTER TABLE bookings DROP CONSTRAINT IF EXISTS valid_payment_status`;
+      await sql`ALTER TABLE bookings ADD CONSTRAINT valid_payment_status CHECK (payment_status IN ('pending', 'paid', 'refunded', 'failed', 'authorized'))`;
+    } catch (e) {
+      console.log('Payment status constraint update skipped (may already be correct)');
+    }
 
     console.log('Creating indexes...');
 

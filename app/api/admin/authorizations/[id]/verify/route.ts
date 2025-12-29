@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getPrismaClient } from '@/lib/prisma';
+import { getSql } from '@/lib/db/connection';
 import { auth } from '@/lib/auth';
 
 /**
@@ -73,6 +74,30 @@ export async function POST(
     });
 
     console.log(`✅ [Card Auth] Authorization ${id} ${body.action}d by ${adminUserId}`);
+
+    // CRITICAL: Update booking status when authorization is approved
+    if (body.action === 'approve') {
+      try {
+        const sql = getSql();
+        if (sql) {
+          // Update booking status to 'confirmed' now that authorization is verified
+          await sql`
+            UPDATE bookings SET
+              status = 'confirmed',
+              payment_status = 'paid',
+              updated_at = CURRENT_TIMESTAMP
+            WHERE booking_reference = ${authorization.bookingReference}
+              AND (status = 'pending' OR status = 'VERIFICATION_PENDING')
+          `;
+          console.log(`✅ [Booking] Status updated to confirmed for ${authorization.bookingReference}`);
+        } else {
+          console.error('⚠️ Database not available to update booking status');
+        }
+      } catch (bookingUpdateError) {
+        console.error('⚠️ Failed to update booking status:', bookingUpdateError);
+        // Don't fail the whole request - authorization was still updated
+      }
+    }
 
     // Send notification to customer
     try {
