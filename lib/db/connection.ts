@@ -10,13 +10,16 @@ const isPostgresConfigured = !!(
   !dbUrl.includes('localhost')
 );
 
-// Create postgres connection with Supabase-compatible settings
+// Create connection with serverless-optimized settings
+// Connection is created lazily by postgres package on first query
 const sql = isPostgresConfigured
   ? postgres(dbUrl!, {
       ssl: 'require',
-      max: 10,
-      idle_timeout: 20,
-      connect_timeout: 30,
+      max: 3,              // Reduced for serverless (Vercel limit)
+      idle_timeout: 10,    // Close idle faster
+      connect_timeout: 10, // 10s timeout (was 30s)
+      max_lifetime: 60,    // Recycle after 1 min
+      prepare: false,      // Disable prepared statements (PgBouncer compat)
     })
   : null;
 
@@ -27,19 +30,7 @@ export function isDatabaseAvailable(): boolean {
 
 // Log warning in development if not configured
 if (!isPostgresConfigured && process.env.NODE_ENV === 'development') {
-  console.warn(
-    '⚠️  Database URL not configured (SUPABASE_POSTGRES_URL/POSTGRES_URL). Database features will use demo data.'
-  );
+  console.warn('⚠️  Database URL not configured.');
 }
 
 export { sql };
-
-// Note: postgres package uses tagged template literals
-// Usage: await sql`SELECT * FROM users WHERE id = ${userId}`
-//
-// IMPORTANT: Always check isDatabaseAvailable() before using sql!
-// Example:
-//   if (!isDatabaseAvailable() || !sql) {
-//     return NextResponse.json({ error: 'Database not configured' }, { status: 503 });
-//   }
-//   const result = await sql`SELECT * FROM trips`;
