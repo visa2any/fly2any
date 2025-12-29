@@ -1,26 +1,36 @@
 import postgres from 'postgres';
 
-// Use PRISMA URL which has ?pgbouncer=true for connection pooling
-const dbUrl = process.env.SUPABASE_POSTGRES_PRISMA_URL ||
-              process.env.SUPABASE_POSTGRES_URL ||
-              process.env.POSTGRES_URL ||
-              process.env.DATABASE_URL;
+// Build the correct URL with serverless parameters
+function buildConnectionUrl(): string | undefined {
+  const baseUrl = process.env.SUPABASE_POSTGRES_PRISMA_URL ||
+                  process.env.SUPABASE_POSTGRES_URL ||
+                  process.env.POSTGRES_URL ||
+                  process.env.DATABASE_URL;
 
-const isPostgresConfigured = !!(
-  dbUrl && !dbUrl.includes('placeholder') && !dbUrl.includes('localhost')
-);
+  if (!baseUrl || baseUrl.includes('placeholder') || baseUrl.includes('localhost')) {
+    return undefined;
+  }
+
+  try {
+    const url = new URL(baseUrl);
+    url.searchParams.set('pgbouncer', 'true');
+    url.searchParams.set('connection_limit', '1');
+    return url.toString();
+  } catch {
+    return baseUrl;
+  }
+}
+
+const dbUrl = buildConnectionUrl();
+const isPostgresConfigured = !!dbUrl;
 
 const sql = isPostgresConfigured
   ? postgres(dbUrl!, {
       ssl: 'require',
       max: 1,
-      idle_timeout: 0,
-      connect_timeout: 30,    // Increased for cold starts
-      prepare: false,         // Required for PgBouncer
-      fetch_types: false,
-      transform: {
-        undefined: null,      // Handle undefined values
-      },
+      idle_timeout: 20,
+      connect_timeout: 30,
+      prepare: false,  // Required for PgBouncer
     })
   : null;
 
