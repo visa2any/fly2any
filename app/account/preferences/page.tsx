@@ -216,26 +216,21 @@ export default function PreferencesPage() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-gray-50 py-8 px-4">
-        <div className="max-w-4xl mx-auto">
-          <div className="flex items-center justify-center py-20">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-500"></div>
-          </div>
-        </div>
+      <div className="w-full flex items-center justify-center py-20">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-500"></div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 py-8 px-4">
-      <div className="max-w-4xl mx-auto">
-        {/* Page Header */}
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900">Preferences</h1>
-          <p className="text-gray-600 mt-2">
-            Customize your experience and manage your notification settings
-          </p>
-        </div>
+    <div className="w-full space-y-4 md:space-y-6">
+      {/* Header - Level 6 Mobile */}
+      <div className="bg-gradient-to-r from-gray-700 to-gray-800 md:rounded-2xl p-4 md:p-6 text-white">
+        <h1 className="text-xl md:text-2xl font-bold">Preferences</h1>
+        <p className="text-white/80 text-sm mt-1">Customize your experience</p>
+      </div>
+
+      <div className="px-0 md:px-0">
 
         <div className="space-y-6">
           {/* Travel Preferences */}

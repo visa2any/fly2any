@@ -29,38 +29,22 @@ export default async function ConversationsPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
-      {/* Header */}
-      <div className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-4">
-              <Link
-                href="/account"
-                className="text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white transition-colors"
-              >
-                <ArrowLeft className="w-5 h-5" />
-              </Link>
-              <div className="flex items-center gap-3">
-                <div className="p-2 bg-blue-100 dark:bg-blue-900 rounded-lg">
-                  <MessageCircle className="w-6 h-6 text-blue-600 dark:text-blue-400" />
-                </div>
-                <div>
-                  <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
-                    Conversation History
-                  </h1>
-                  <p className="text-sm text-gray-600 dark:text-gray-400">
-                    Review your past conversations with our AI travel assistants
-                  </p>
-                </div>
-              </div>
-            </div>
+    <div className="w-full space-y-4 md:space-y-6">
+      {/* Header - Level 6 Mobile */}
+      <div className="bg-gradient-to-r from-green-500 to-emerald-500 md:rounded-2xl p-4 md:p-6 text-white">
+        <div className="flex items-center gap-3">
+          <div className="p-2.5 bg-white/20 rounded-xl">
+            <MessageCircle className="w-6 h-6" />
+          </div>
+          <div>
+            <h1 className="text-xl md:text-2xl font-bold">AI Conversations</h1>
+            <p className="text-white/80 text-sm mt-0.5">Chat history with travel assistants</p>
           </div>
         </div>
       </div>
 
       {/* Main Content */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <div className="px-0 md:px-0">
         <ConversationHistoryWrapper />
       </div>
     </div>

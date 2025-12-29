@@ -82,26 +82,27 @@ export default function WishlistPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-indigo-50">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Header */}
-        <div className="mb-8">
-          <div className="flex items-center justify-between mb-4">
-            <div>
-              <h1 className="text-4xl font-bold text-gray-900 mb-2">
-                My Travel Wishlist ❤️
-              </h1>
-              <p className="text-gray-600">
-                Save your favorite flights and get notified when prices drop
-              </p>
-            </div>
-            <Link
-              href="/flights"
-              className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg font-semibold transition-colors"
-            >
-              Search Flights
-            </Link>
+    <div className="w-full space-y-4 md:space-y-6">
+      {/* Header - Level 6 Mobile */}
+      <div className="bg-gradient-to-r from-pink-500 to-rose-500 md:rounded-2xl p-4 md:p-6 text-white">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+          <div>
+            <h1 className="text-xl md:text-2xl font-bold flex items-center gap-2">
+              <span>❤️</span>
+              My Wishlist
+            </h1>
+            <p className="text-white/80 text-sm mt-1">Save flights & get price alerts</p>
           </div>
+          <Link
+            href="/flights"
+            className="flex items-center justify-center gap-2 px-4 py-2.5 bg-white text-pink-600 rounded-xl font-semibold hover:bg-white/90 transition-all shadow-lg active:scale-[0.98]"
+          >
+            Search Flights
+          </Link>
+        </div>
+      </div>
+
+      <div className="px-3 md:px-0">
 
           {/* Stats Cards */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
@@ -265,6 +266,7 @@ export default function WishlistPage() {
             </div>
           </div>
         )}
+      </div>
       </div>
     </div>
   );
