@@ -389,32 +389,28 @@ export default function TripBoardsPage() {
   const budget = selectedBoard ? tripBoardService.calculateBudget(selectedBoard.destinations) : { flights: 0, estimated: 0, total: 0 }
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      {/* Header */}
-      <div className="bg-white border-b border-gray-100 sticky top-0 z-30">
-        <div className="max-w-7xl mx-auto px-4 py-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-4">
-              <div className="w-10 h-10 bg-gradient-to-br from-primary-500 to-primary-600 rounded-xl flex items-center justify-center">
-                <Map className="w-5 h-5 text-white" />
-              </div>
-              <div>
-                <h1 className="text-xl font-bold text-gray-900">Trip Boards</h1>
-                <p className="text-sm text-gray-500">Plan and share your dream trips</p>
-              </div>
+    <div className="w-full space-y-4 md:space-y-6">
+      {/* Header - Level 6 Mobile */}
+      <div className="bg-gradient-to-r from-primary-500 to-primary-600 md:rounded-2xl p-4 md:p-6 text-white">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <Map className="w-6 h-6" />
+            <div>
+              <h1 className="text-xl md:text-2xl font-bold">Trip Boards</h1>
+              <p className="text-white/80 text-sm">Plan your dream trips</p>
             </div>
-            <button
-              onClick={() => setShowCreateModal(true)}
-              className="inline-flex items-center gap-2 px-4 py-2.5 bg-primary-500 text-white rounded-xl font-medium hover:bg-primary-600 transition-colors"
-            >
-              <Plus className="w-5 h-5" />
-              New Board
-            </button>
           </div>
+          <button
+            onClick={() => setShowCreateModal(true)}
+            className="flex items-center gap-2 px-4 py-2.5 bg-white text-primary-600 rounded-xl font-semibold hover:bg-white/90 transition-all active:scale-[0.98]"
+          >
+            <Plus className="w-5 h-5" />
+            <span className="hidden sm:inline">New Board</span>
+          </button>
         </div>
       </div>
 
-      <div className="max-w-7xl mx-auto px-4 py-6">
+      <div className="px-0 md:px-0">
         <div className="grid grid-cols-12 gap-6">
           {/* Board List Sidebar */}
           <div className="col-span-12 md:col-span-3">

@@ -182,16 +182,16 @@ export default function ReferralsPage() {
   }
 
   return (
-    <div className="max-w-7xl mx-auto space-y-6">
-      {/* Header with Gradient */}
-      <div className="bg-gradient-to-r from-primary-500 to-primary-600 rounded-2xl p-8 text-white shadow-xl">
+    <div className="w-full space-y-4 md:space-y-6">
+      {/* Header - Level 6 Mobile */}
+      <div className="bg-gradient-to-r from-primary-500 to-primary-600 md:rounded-2xl p-4 md:p-8 text-white">
         <div className="flex items-center gap-3 mb-4">
-          <div className="bg-white/20 backdrop-blur-sm rounded-xl p-3">
-            <Network className="w-8 h-8" />
+          <div className="bg-white/20 backdrop-blur-sm rounded-xl p-2 md:p-3">
+            <Network className="w-6 h-6 md:w-8 md:h-8" />
           </div>
           <div>
-            <h1 className="text-3xl font-bold">Fly2Any Rewards Network</h1>
-            <p className="text-primary-100 mt-1">Build your network and earn points on every booking</p>
+            <h1 className="text-xl md:text-3xl font-bold">Refer & Earn</h1>
+            <p className="text-white/80 text-sm mt-0.5">Earn points on every booking</p>
           </div>
         </div>
 
