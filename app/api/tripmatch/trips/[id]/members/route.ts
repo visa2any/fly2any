@@ -6,7 +6,7 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { sql } from '@/lib/db/connection';
+import { getSql } from '@/lib/db/connection';
 import { generateInviteCode, calculateMemberReward } from '@/lib/tripmatch/credits';
 import crypto from 'crypto';
 

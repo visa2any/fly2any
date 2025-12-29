@@ -1,4 +1,4 @@
-import { sql } from './connection';
+import { getSql } from './connection';
 import { readFileSync } from 'fs';
 import { join } from 'path';
 

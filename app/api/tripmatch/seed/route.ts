@@ -8,7 +8,7 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { sql } from '@/lib/db/connection';
+import { getSql } from '@/lib/db/connection';
 import * as fs from 'fs';
 import * as path from 'path';
 

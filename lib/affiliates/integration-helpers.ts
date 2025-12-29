@@ -4,7 +4,7 @@
  * These functions make it easy to integrate affiliate tracking throughout the app
  */
 
-import { sql } from '@/lib/db/connection';
+import { getSql } from '@/lib/db/connection';
 import { calculateAndCreateCommission, markCommissionCompleted, reverseCommission } from './commission-calculator';
 
 /**

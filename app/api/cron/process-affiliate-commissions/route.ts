@@ -11,7 +11,7 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { sql } from '@/lib/db/connection';
+import { getSql } from '@/lib/db/connection';
 
 export const dynamic = 'force-dynamic';
 export const maxDuration = 300; // 5 minutes

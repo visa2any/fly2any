@@ -6,7 +6,7 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { sql } from '@/lib/db/connection';
+import { getSql } from '@/lib/db/connection';
 import type { TripGroup, TripSummary } from '@/lib/tripmatch/types';
 import { withQueryCache, CachePresets } from '@/lib/cache';
 

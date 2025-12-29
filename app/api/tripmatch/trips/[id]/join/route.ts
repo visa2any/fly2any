@@ -5,7 +5,7 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { sql } from '@/lib/db/connection';
+import { getSql } from '@/lib/db/connection';
 import { calculateMemberReward } from '@/lib/tripmatch/credits';
 
 /**

@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { sql } from '@/lib/db/connection';
+import { getSql } from '@/lib/db/connection';
 import { mailgunClient, MAILGUN_CONFIG } from '@/lib/email/mailgun-client';
 import { notifyTelegramAdmins, broadcastSSE } from '@/lib/notifications/notification-service';
 import { getPrismaClient } from '@/lib/prisma';

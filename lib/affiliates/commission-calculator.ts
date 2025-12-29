@@ -4,7 +4,7 @@
  * Handles commission calculation for both commission-based and markup-based revenue models
  */
 
-import { sql } from '@/lib/db/connection';
+import { getSql } from '@/lib/db/connection';
 
 export interface BookingData {
   bookingId: string;

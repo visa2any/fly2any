@@ -3,7 +3,7 @@
  * Focused initialization for booking system
  */
 
-import { sql } from './connection';
+import { getSql } from './connection';
 
 export async function initBookingsTables() {
   if (!sql) {

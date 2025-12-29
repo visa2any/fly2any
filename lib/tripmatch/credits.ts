@@ -3,7 +3,7 @@
  * Handles all credit calculations, awards, and spending logic
  */
 
-import { sql } from '@/lib/db/connection';
+import { getSql } from '@/lib/db/connection';
 import type {
   CreditRewardConfig,
   CreditCalculation,

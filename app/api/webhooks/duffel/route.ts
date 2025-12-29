@@ -5,7 +5,7 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import crypto from 'crypto';
-import { sql } from '@/lib/db/connection';
+import { getSql } from '@/lib/db/connection';
 import { handleWebhookEvent, type DuffelWebhookEvent } from '@/lib/webhooks/event-handlers';
 
 /**
