@@ -1,7 +1,4 @@
-import { neon, neonConfig, NeonQueryFunction } from '@neondatabase/serverless';
-
-// Configure Neon for edge runtime
-neonConfig.fetchConnectionCache = true;
+import postgres from 'postgres';
 
 // Get database URL (Supabase or legacy Neon)
 const dbUrl = process.env.SUPABASE_POSTGRES_URL || process.env.POSTGRES_URL || process.env.DATABASE_URL;
@@ -13,10 +10,14 @@ const isPostgresConfigured = !!(
   !dbUrl.includes('localhost')
 );
 
-// Only create Neon connection if database is configured
-// Works with both Neon and Supabase (compatible Postgres)
-const sql: NeonQueryFunction<false, false> | null = isPostgresConfigured
-  ? neon(dbUrl!)
+// Create postgres connection with Supabase-compatible settings
+const sql = isPostgresConfigured
+  ? postgres(dbUrl!, {
+      ssl: 'require',
+      max: 10,
+      idle_timeout: 20,
+      connect_timeout: 30,
+    })
   : null;
 
 // Helper function to check if database is available
@@ -33,9 +34,8 @@ if (!isPostgresConfigured && process.env.NODE_ENV === 'development') {
 
 export { sql };
 
-// Note: Neon serverless uses tagged template literals
+// Note: postgres package uses tagged template literals
 // Usage: await sql`SELECT * FROM users WHERE id = ${userId}`
-// Not: await sql('SELECT * FROM users WHERE id = $1', [userId])
 //
 // IMPORTANT: Always check isDatabaseAvailable() before using sql!
 // Example:
