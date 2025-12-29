@@ -61,6 +61,22 @@ export async function initBookingsTables() {
     // Add deleted_at column if it doesn't exist (for existing tables)
     await sql`ALTER TABLE bookings ADD COLUMN IF NOT EXISTS deleted_at TIMESTAMP`;
 
+    // CRITICAL: Add core columns that may be missing from Supabase
+    await sql`ALTER TABLE bookings ADD COLUMN IF NOT EXISTS user_id UUID`;
+    await sql`ALTER TABLE bookings ADD COLUMN IF NOT EXISTS status VARCHAR(20)`;
+    await sql`ALTER TABLE bookings ADD COLUMN IF NOT EXISTS contact_info JSONB`;
+    await sql`ALTER TABLE bookings ADD COLUMN IF NOT EXISTS flight JSONB`;
+    await sql`ALTER TABLE bookings ADD COLUMN IF NOT EXISTS passengers JSONB`;
+    await sql`ALTER TABLE bookings ADD COLUMN IF NOT EXISTS seats JSONB`;
+    await sql`ALTER TABLE bookings ADD COLUMN IF NOT EXISTS payment JSONB`;
+    await sql`ALTER TABLE bookings ADD COLUMN IF NOT EXISTS special_requests JSONB`;
+    await sql`ALTER TABLE bookings ADD COLUMN IF NOT EXISTS notes TEXT`;
+    await sql`ALTER TABLE bookings ADD COLUMN IF NOT EXISTS cancellation_reason TEXT`;
+    await sql`ALTER TABLE bookings ADD COLUMN IF NOT EXISTS refund_policy JSONB`;
+    await sql`ALTER TABLE bookings ADD COLUMN IF NOT EXISTS created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP`;
+    await sql`ALTER TABLE bookings ADD COLUMN IF NOT EXISTS updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP`;
+    await sql`ALTER TABLE bookings ADD COLUMN IF NOT EXISTS cancelled_at TIMESTAMP`;
+
     // Add guest columns for existing tables (Supabase migration fix)
     await sql`ALTER TABLE bookings ADD COLUMN IF NOT EXISTS guest_email VARCHAR(255)`;
     await sql`ALTER TABLE bookings ADD COLUMN IF NOT EXISTS guest_first_name VARCHAR(100)`;
