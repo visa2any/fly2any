@@ -8,7 +8,7 @@
  * - Zero-cost calendar price crowdsourcing
  */
 
-import { sql } from '@/lib/db/connection';
+import { getSql } from '@/lib/db/connection';
 import { createHash } from 'crypto';
 
 export interface FlightSearchLog {
@@ -94,8 +94,9 @@ async function resolveGeolocation(ipAddress: string): Promise<{
     }
 
     // Call ipapi.co (free, no auth required)
+    // PERF: Reduced timeout to 1s - geolocation is nice-to-have, not critical
     const response = await fetch(`https://ipapi.co/${ipAddress}/json/`, {
-      signal: AbortSignal.timeout(3000), // 3 second timeout
+      signal: AbortSignal.timeout(1000), // 1 second timeout
       headers: {
         'User-Agent': 'Fly2Any-Analytics/1.0'
       }
@@ -136,8 +137,9 @@ export async function logFlightSearch(
   request?: Request
 ): Promise<string | null> {
   try {
+    const sql = getSql();
     if (!sql) {
-      console.warn('Database not configured - skipping search logging');
+      // Database not configured - silently skip (non-blocking for search)
       return null;
     }
 
@@ -246,8 +248,8 @@ export async function logBookingConversion(
   conversion: BookingConversion
 ): Promise<void> {
   try {
+    const sql = getSql();
     if (!sql) {
-      console.warn('Database not configured - skipping booking conversion logging');
       return;
     }
 
@@ -284,6 +286,7 @@ export async function getRouteStatistics(route: string): Promise<{
   recommendedTtl: number;
 } | null> {
   try {
+    const sql = getSql();
     if (!sql) {
       return null;
     }
@@ -331,8 +334,8 @@ export async function getPopularRoutes(limit: number = 50): Promise<{
   avgPrice: number;
 }[]> {
   try {
+    const sql = getSql();
     if (!sql) {
-      console.warn('Database not configured');
       return [];
     }
 
@@ -376,8 +379,8 @@ export async function updateCacheCoverage(
   source: 'user-search' | 'pre-warm' | 'demo' = 'user-search'
 ): Promise<void> {
   try {
+    const sql = getSql();
     if (!sql) {
-      console.warn('Database not configured - skipping cache coverage update');
       return;
     }
 
@@ -439,8 +442,8 @@ export async function getCacheCoverage(
   expiresAt: string | null;
 }[]> {
   try {
+    const sql = getSql();
     if (!sql) {
-      console.warn('Database not configured');
       return [];
     }
 

@@ -25,6 +25,9 @@ export const authConfig = {
     Google({
       clientId: process.env.GOOGLE_CLIENT_ID || '',
       clientSecret: process.env.GOOGLE_CLIENT_SECRET || '',
+      // FIX: Allow linking Google to existing email/password accounts
+      // This prevents OAuthAccountNotLinked error for admin users
+      allowDangerousEmailAccountLinking: true,
       authorization: {
         params: {
           prompt: 'consent',

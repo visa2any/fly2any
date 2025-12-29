@@ -1,4 +1,4 @@
-import postgres from 'postgres';
+import postgres, { type Sql } from 'postgres';
 
 // Build the correct URL with serverless parameters
 function buildConnectionUrl(): string | undefined {
@@ -21,21 +21,45 @@ function buildConnectionUrl(): string | undefined {
   }
 }
 
-const dbUrl = buildConnectionUrl();
-const isPostgresConfigured = !!dbUrl;
+// LAZY CONNECTION: Don't connect at module load time
+// This prevents blocking cold starts for API routes that import this module
+// but don't actually use the database (like flight search)
+let _sql: Sql | null = null;
+let _connectionAttempted = false;
 
-const sql = isPostgresConfigured
-  ? postgres(dbUrl!, {
-      ssl: 'require',
-      max: 1,
-      idle_timeout: 20,
-      connect_timeout: 30,
-      prepare: false,  // Required for PgBouncer
-    })
-  : null;
+/**
+ * Get the database connection (lazy initialization)
+ * Connection is only established on first call, not at module import
+ */
+export function getSql(): Sql | null {
+  if (_connectionAttempted) {
+    return _sql;
+  }
 
-export function isDatabaseAvailable(): boolean {
-  return isPostgresConfigured;
+  _connectionAttempted = true;
+  const dbUrl = buildConnectionUrl();
+
+  if (!dbUrl) {
+    return null;
+  }
+
+  _sql = postgres(dbUrl, {
+    ssl: 'require',
+    max: 1,
+    idle_timeout: 20,
+    connect_timeout: 30,
+    prepare: false,  // Required for PgBouncer
+  });
+
+  return _sql;
 }
 
-export { sql };
+// Legacy export - kept for backwards compatibility
+// NOTE: This is null at import time but getSql() provides the actual connection
+// Files that need DB access should use getSql() for lazy loading
+export const sql: Sql | null = null;
+
+export function isDatabaseAvailable(): boolean {
+  const dbUrl = buildConnectionUrl();
+  return !!dbUrl;
+}

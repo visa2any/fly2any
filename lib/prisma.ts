@@ -30,11 +30,13 @@ const databaseUrl = buildDatabaseUrl();
 const isDatabaseConfigured = !!databaseUrl;
 
 // Create Prisma client with runtime URL
+// Note: PrismaClient uses lazy connections internally - it doesn't actually
+// connect to the database until a query is made
 export const prisma = isDatabaseConfigured
   ? (globalForPrisma.prisma ??
     new PrismaClient({
       log: process.env.NODE_ENV === 'development' ? ['error', 'warn'] : ['error'],
-      datasourceUrl: databaseUrl, // Override schema URL at runtime
+      datasourceUrl: databaseUrl,
     }))
   : null;
 

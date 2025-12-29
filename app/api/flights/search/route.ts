@@ -1770,85 +1770,70 @@ export async function POST(request: NextRequest) {
       : 0;
 
     // 📅 Cache price by date for calendar display with seasonal TTL
-    // When users search JFK→MIA on Nov 5, cache $99 for Nov 5
-    // Next user opening calendar sees cached prices on searched dates
+    // PERF FIX: Fire-and-forget to not block response (getRouteStatistics was blocking)
     if (lowestPrice > 0 && departureDate) {
-      // Get route popularity statistics for smarter TTL
-      const routeKey = `${originCodes[0]}-${destinationCodes[0]}`;
-      const routeStats = await getRouteStatistics(routeKey).catch(() => null);
-      const searches30d = routeStats?.searches30d || 0;
+      const cacheOrigin = originCodes[0];
+      const cacheDest = destinationCodes[0];
+      const cacheReturnDate = body.returnDate;
+      const cacheCurrency = body.currencyCode || 'USD';
 
-      // Calculate seasonal TTL for departure date
-      const departureTTL = calculateOptimalTTL(departureDate, searches30d);
+      // Non-blocking: Run cache operations in background
+      (async () => {
+        try {
+          const routeKey = `${cacheOrigin}-${cacheDest}`;
+          // Use default TTL (15min) - skip DB query for speed
+          // Route stats are nice-to-have, not critical for caching
+          const departureTTL = calculateOptimalTTL(departureDate, 0);
 
-      const priceData = {
-        price: lowestPrice,
-        currency: body.currencyCode || 'USD',
-        timestamp: new Date().toISOString(),
-        route: routeKey,
-      };
+          const priceData = {
+            price: lowestPrice,
+            currency: cacheCurrency,
+            timestamp: new Date().toISOString(),
+            route: routeKey,
+          };
 
-      // Cache departure date price with seasonal TTL
-      const departurePriceCacheKey = generateCacheKey('calendar-price', {
-        origin: originCodes[0],
-        destination: destinationCodes[0],
-        date: departureDate,
-      });
-      await setCache(departurePriceCacheKey, priceData, departureTTL.ttlSeconds);
+          const departurePriceCacheKey = generateCacheKey('calendar-price', {
+            origin: cacheOrigin,
+            destination: cacheDest,
+            date: departureDate,
+          });
+          await setCache(departurePriceCacheKey, priceData, departureTTL.ttlSeconds);
 
-      // Track cache coverage in Postgres (for analytics)
-      updateCacheCoverage(
-        routeKey,
-        departureDate,
-        Math.round(lowestPrice * 100), // Convert to cents
-        departureTTL.ttlSeconds,
-        'user-search'
-      ).catch(console.error); // Don't block on analytics
+          // Track cache coverage (fire-and-forget)
+          updateCacheCoverage(
+            routeKey,
+            departureDate,
+            Math.round(lowestPrice * 100),
+            departureTTL.ttlSeconds,
+            'user-search'
+          ).catch(() => {});
 
-      // Cache return date price if round trip
-      let returnTTL = departureTTL;
-      if (body.returnDate) {
-        const reverseRouteKey = `${destinationCodes[0]}-${originCodes[0]}`;
-        const returnStats = await getRouteStatistics(reverseRouteKey).catch(() => null);
-        returnTTL = calculateOptimalTTL(body.returnDate, returnStats?.searches30d || 0);
+          // Cache return date price if round trip
+          if (cacheReturnDate) {
+            const reverseRouteKey = `${cacheDest}-${cacheOrigin}`;
+            const returnTTL = calculateOptimalTTL(cacheReturnDate, 0);
 
-        const returnPriceData = {
-          ...priceData,
-          route: reverseRouteKey, // Reverse route for return
-        };
-        const returnPriceCacheKey = generateCacheKey('calendar-price', {
-          origin: destinationCodes[0],
-          destination: originCodes[0],
-          date: body.returnDate,
-        });
-        await setCache(returnPriceCacheKey, returnPriceData, returnTTL.ttlSeconds);
+            const returnPriceData = { ...priceData, route: reverseRouteKey };
+            const returnPriceCacheKey = generateCacheKey('calendar-price', {
+              origin: cacheDest,
+              destination: cacheOrigin,
+              date: cacheReturnDate,
+            });
+            await setCache(returnPriceCacheKey, returnPriceData, returnTTL.ttlSeconds);
 
-        // Track return flight cache coverage
-        updateCacheCoverage(
-          reverseRouteKey,
-          body.returnDate,
-          Math.round(lowestPrice * 100),
-          returnTTL.ttlSeconds,
-          'user-search'
-        ).catch(console.error);
-      }
-
-      console.log('📅 Cached calendar prices (seasonal TTL):', {
-        route: `${originCodes[0]} → ${destinationCodes[0]}`,
-        departureDate,
-        departureTTL: `${departureTTL.ttlMinutes}min (${departureTTL.finalMultiplier}x)`,
-        returnDate: body.returnDate || null,
-        returnTTL: body.returnDate ? `${returnTTL.ttlMinutes}min (${returnTTL.finalMultiplier}x)` : null,
-        price: `${priceData.currency} ${lowestPrice}`,
-        popularity: searches30d > 0 ? `${searches30d} searches/30d` : 'new route',
-        factors: departureTTL.factors,
-      });
-
-      // 🚫 CALENDAR CROWDSOURCING DISABLED
-      // Previously cached approximate prices for ±30 days around search date
-      // DISABLED: Only show ACTUAL searched date prices, not approximations
-      // This ensures calendar shows real prices users actually searched for
-      console.log('📅 Calendar price cached for searched date only (crowdsourcing disabled)');
+            updateCacheCoverage(
+              reverseRouteKey,
+              cacheReturnDate,
+              Math.round(lowestPrice * 100),
+              returnTTL.ttlSeconds,
+              'user-search'
+            ).catch(() => {});
+          }
+        } catch (err) {
+          // Silently fail - caching is non-critical
+          console.error('Calendar cache error:', err);
+        }
+      })();
     }
 
     const searchLog: RouteSearchLog = {
