@@ -369,6 +369,7 @@ export default function AdminBookingDetailPage() {
     const styles: Record<string, string> = {
       pending: 'bg-yellow-100 text-yellow-800 border-yellow-300',
       pending_ticketing: 'bg-orange-100 text-orange-800 border-orange-300',
+      VERIFICATION_PENDING: 'bg-purple-100 text-purple-800 border-purple-300',
       ticketed: 'bg-emerald-100 text-emerald-800 border-emerald-300',
       confirmed: 'bg-green-100 text-green-800 border-green-300',
       cancelled: 'bg-red-100 text-red-800 border-red-300',
@@ -378,6 +379,7 @@ export default function AdminBookingDetailPage() {
     const icons: Record<string, React.ReactNode> = {
       pending: <Clock className="w-4 h-4" />,
       pending_ticketing: <Ticket className="w-4 h-4" />,
+      VERIFICATION_PENDING: <CreditCard className="w-4 h-4" />,
       ticketed: <FileCheck className="w-4 h-4" />,
       confirmed: <CheckCircle2 className="w-4 h-4" />,
       cancelled: <XCircle className="w-4 h-4" />,
@@ -387,6 +389,7 @@ export default function AdminBookingDetailPage() {
     const labels: Record<string, string> = {
       pending: 'Pending',
       pending_ticketing: 'Needs Ticketing',
+      VERIFICATION_PENDING: 'Card Verification',
       ticketed: 'Ticketed',
       confirmed: 'Confirmed',
       cancelled: 'Cancelled',
@@ -441,9 +444,10 @@ export default function AdminBookingDetailPage() {
           </div>
 
           <div className="flex items-center gap-3">
-            {/* Issue Ticket Buttons - For pending or pending_ticketing (non-Duffel bookings) */}
-            {(booking.status === 'pending_ticketing' || booking.status === 'pending') &&
-             booking.sourceApi !== 'Duffel' && (
+            {/* Issue Ticket Buttons - For bookings that need manual ticketing */}
+            {['pending', 'pending_ticketing', 'confirmed', 'VERIFICATION_PENDING'].includes(booking.status) &&
+             booking.sourceApi !== 'Duffel' &&
+             booking.ticketingStatus !== 'ticketed' && (
               <>
                 {/* Auto-Ticket Button */}
                 <button
