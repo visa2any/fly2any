@@ -49,10 +49,12 @@ export function showStartupBanner() {
     process.env.DUFFEL_ACCESS_TOKEN.startsWith('duffel_')
   );
 
+  // Check all possible database URLs (Supabase, Neon, legacy)
+  const dbUrl = process.env.SUPABASE_POSTGRES_URL || process.env.POSTGRES_URL || process.env.DATABASE_URL;
   const dbConfigured = !!(
-    process.env.POSTGRES_URL &&
-    !process.env.POSTGRES_URL.includes('placeholder') &&
-    !process.env.POSTGRES_URL.includes('localhost')
+    dbUrl &&
+    !dbUrl.includes('placeholder') &&
+    !dbUrl.includes('localhost')
   );
 
   const allConfigured = amadeusConfigured && duffelConfigured && dbConfigured;

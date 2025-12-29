@@ -11,12 +11,14 @@ const path = require('path');
 async function runMigration() {
   console.log('🚀 Starting TripMatch database migration...\n');
 
-  // Check for POSTGRES_URL (used by Neon/Vercel)
-  const DATABASE_URL = process.env.POSTGRES_URL || process.env.DATABASE_URL;
+  // Check for database URL (Supabase, Neon, or legacy Vercel Postgres)
+  const DATABASE_URL = process.env.SUPABASE_POSTGRES_URL || process.env.POSTGRES_URL || process.env.DATABASE_URL;
   if (!DATABASE_URL) {
-    console.error('❌ POSTGRES_URL environment variable not found!');
-    console.error('   Make sure you have a .env.local file with POSTGRES_URL set.');
-    console.error('   (This is the Neon/Vercel database connection string)');
+    console.error('❌ Database URL not found!');
+    console.error('   Make sure you have a .env.local file with one of these set:');
+    console.error('   - SUPABASE_POSTGRES_URL (Supabase via Vercel)');
+    console.error('   - POSTGRES_URL (Neon/Vercel Postgres)');
+    console.error('   - DATABASE_URL (legacy)');
     process.exit(1);
   }
 

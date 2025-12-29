@@ -13,10 +13,12 @@ export async function GET() {
     !process.env.AMADEUS_API_KEY.includes('placeholder')
   );
 
+  // Check all possible database URLs (Supabase, Neon, legacy)
+  const dbUrl = process.env.SUPABASE_POSTGRES_URL || process.env.POSTGRES_URL || process.env.DATABASE_URL;
   const databaseConfigured = !!(
-    process.env.DATABASE_URL &&
-    !process.env.DATABASE_URL.includes('placeholder') &&
-    !process.env.DATABASE_URL.includes('localhost')
+    dbUrl &&
+    !dbUrl.includes('placeholder') &&
+    !dbUrl.includes('localhost')
   );
 
   const nextauthConfigured = !!(

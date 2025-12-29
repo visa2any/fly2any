@@ -57,8 +57,9 @@ function getUserRegion(request: NextRequest): string {
 }
 
 export async function GET(request: NextRequest) {
-  // Check if database is configured
-  if (!process.env.POSTGRES_URL || process.env.POSTGRES_URL.includes('placeholder')) {
+  // Check if database is configured (Supabase or legacy Neon/Vercel Postgres)
+  const dbUrl = process.env.SUPABASE_POSTGRES_URL || process.env.POSTGRES_URL || process.env.DATABASE_URL;
+  if (!dbUrl || dbUrl.includes('placeholder')) {
     if (process.env.NODE_ENV === 'development') {
       console.log('⚠️  Database not configured - using demo popular routes');
     }
@@ -90,7 +91,7 @@ export async function GET(request: NextRequest) {
   }
 
   const client = new Client({
-    connectionString: process.env.POSTGRES_URL,
+    connectionString: dbUrl,
   });
 
   try {

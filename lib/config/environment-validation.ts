@@ -290,7 +290,7 @@ export function getEnvironmentSummary(): {
           process.env.VERCEL_ENV === 'preview' ? 'staging' : 'development',
     hasPayments: !!(process.env.STRIPE_SECRET_KEY && process.env.NEXT_PUBLIC_STRIPE_PUBLIC_KEY),
     hasBooking: !!process.env.DUFFEL_ACCESS_TOKEN,
-    hasDatabase: !!process.env.DATABASE_URL,
+    hasDatabase: !!(process.env.SUPABASE_POSTGRES_URL || process.env.POSTGRES_URL || process.env.DATABASE_URL),
     hasMonitoring: !!process.env.NEXT_PUBLIC_SENTRY_DSN,
     hasCaching: !!(process.env.UPSTASH_REDIS_REST_URL && process.env.UPSTASH_REDIS_REST_TOKEN),
   };
