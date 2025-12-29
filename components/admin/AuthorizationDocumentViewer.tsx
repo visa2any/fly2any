@@ -440,12 +440,40 @@ export default function AuthorizationDocumentViewer({ authorization, onClose, is
             </>
           ) : (
             /* PDF Preview Tab */
-            <div className="flex-1 bg-slate-100 p-4">
-              <iframe
-                src={`/api/admin/generate-authorization-pdf?id=${authorization.id}&inline=true`}
-                className="w-full h-full rounded-xl shadow-lg bg-white"
-                title="Authorization Document PDF"
-              />
+            <div className="flex-1 bg-slate-100 p-4 flex items-center justify-center">
+              <div className="text-center max-w-md">
+                <div className="w-20 h-20 mx-auto mb-6 bg-gradient-to-br from-red-500 to-red-600 rounded-2xl flex items-center justify-center shadow-xl">
+                  <FileText className="w-10 h-10 text-white" />
+                </div>
+                <h3 className="text-xl font-semibold text-slate-800 mb-2">Authorization Document PDF</h3>
+                <p className="text-slate-500 mb-6">
+                  ARC-compliant document with transaction details, cardholder info, uploaded documents, and digital signature.
+                </p>
+                <div className="flex flex-col gap-3">
+                  <button
+                    onClick={() => window.open(`/api/admin/generate-authorization-pdf?id=${authorization.id}&inline=true`, '_blank')}
+                    className="flex items-center justify-center gap-2 px-6 py-3 bg-slate-900 text-white rounded-xl hover:bg-slate-800 transition-all font-medium shadow-lg"
+                  >
+                    <Maximize2 className="w-4 h-4" />
+                    Open PDF in New Tab
+                  </button>
+                  <button
+                    onClick={handleDownloadPdf}
+                    disabled={pdfLoading}
+                    className="flex items-center justify-center gap-2 px-6 py-3 bg-white text-slate-700 border border-slate-200 rounded-xl hover:bg-slate-50 transition-all font-medium"
+                  >
+                    <Download className="w-4 h-4" />
+                    {pdfLoading ? 'Generating...' : 'Download PDF'}
+                  </button>
+                  <button
+                    onClick={handlePrint}
+                    className="flex items-center justify-center gap-2 px-6 py-3 bg-white text-slate-700 border border-slate-200 rounded-xl hover:bg-slate-50 transition-all font-medium"
+                  >
+                    <Printer className="w-4 h-4" />
+                    Print Document
+                  </button>
+                </div>
+              </div>
             </div>
           )}
         </div>

@@ -673,6 +673,8 @@ export async function GET(request: NextRequest) {
         'Content-Type': 'application/pdf',
         'Content-Disposition': inline ? `inline; filename="${filename}"` : `attachment; filename="${filename}"`,
         'Cache-Control': 'no-store',
+        'X-Frame-Options': 'SAMEORIGIN',
+        'Content-Security-Policy': "frame-ancestors 'self'",
       },
     });
 
