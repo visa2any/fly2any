@@ -8,7 +8,8 @@ const globalForPrisma = globalThis as unknown as {
 };
 
 // Check if database is configured (Supabase, Neon, or other Postgres)
-const isDatabaseConfigured = !!(process.env.SUPABASE_POSTGRES_URL || process.env.POSTGRES_URL || process.env.DATABASE_URL);
+// Use PRISMA_URL for PgBouncer compatibility
+const isDatabaseConfigured = !!(process.env.SUPABASE_POSTGRES_PRISMA_URL || process.env.SUPABASE_POSTGRES_URL || process.env.POSTGRES_URL || process.env.DATABASE_URL);
 
 /**
  * Get the database URL with proper connection pooling settings for serverless
