@@ -53,6 +53,11 @@
     .safe-area-bottom {
       padding-bottom: var(--safe-area-bottom);
     }
+
+    /* Safe area inset for fixed bottom elements (iPhone home indicator) */
+    .safe-area-inset-bottom {
+      padding-bottom: env(safe-area-inset-bottom, 0px);
+    }
   }
 
   /* Accessibility: Screen reader only content */

@@ -218,87 +218,82 @@ export default function TravelersPage() {
   }
 
   return (
-    <div className="w-full space-y-4 md:space-y-6 px-3 md:px-0">
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
-            <Users className="w-7 h-7 text-primary-500" />
-            Frequent Travelers
-          </h1>
-          <p className="text-gray-600 mt-1">Save traveler information for faster booking</p>
+    <div className="w-full space-y-4 md:space-y-6">
+      {/* Header - Level 6 Mobile */}
+      <div className="bg-gradient-to-r from-primary-500 to-primary-600 md:rounded-2xl p-4 md:p-6 text-white">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+          <div>
+            <h1 className="text-xl md:text-2xl font-bold flex items-center gap-2">
+              <Users className="w-6 h-6 md:w-7 md:h-7" />
+              Frequent Travelers
+            </h1>
+            <p className="text-white/80 text-sm mt-1">Save info for faster booking</p>
+          </div>
+          <button
+            onClick={() => handleOpenModal()}
+            className="flex items-center justify-center gap-2 px-4 py-2.5 bg-white text-primary-600 rounded-xl font-semibold hover:bg-white/90 transition-all shadow-lg active:scale-[0.98]"
+          >
+            <Plus className="w-5 h-5" />
+            <span>Add Traveler</span>
+          </button>
         </div>
-        <button
-          onClick={() => handleOpenModal()}
-          className="flex items-center gap-2 px-4 py-2.5 bg-gradient-to-r from-primary-500 to-primary-600 text-white rounded-lg hover:from-primary-600 hover:to-primary-700 transition-all shadow-md hover:shadow-lg"
-        >
-          <Plus className="w-5 h-5" />
-          Add Traveler
-        </button>
       </div>
 
-      {/* Stats */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <div className="bg-white rounded-xl p-5 border border-gray-200">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-gray-600 text-sm">Total Travelers</p>
-              <p className="text-2xl font-bold text-gray-900 mt-1">{travelers.length}</p>
+      {/* Stats - Horizontal scroll mobile */}
+      <div className="flex md:grid md:grid-cols-3 gap-3 overflow-x-auto scrollbar-hide px-3 md:px-0 pb-1">
+        <div className="flex-shrink-0 w-[140px] md:w-auto bg-white md:rounded-xl border-y md:border p-4 border-neutral-200">
+          <div className="flex items-center justify-between mb-2">
+            <div className="p-2 bg-primary-50 rounded-lg">
+              <Users className="w-5 h-5 text-primary-500" />
             </div>
-            <div className="p-3 bg-primary-50 rounded-lg">
-              <Users className="w-6 h-6 text-primary-500" />
-            </div>
+            <span className="text-2xl font-bold text-neutral-800">{travelers.length}</span>
           </div>
+          <p className="text-sm font-medium text-neutral-800">Travelers</p>
+          <p className="text-xs text-neutral-500">Total saved</p>
         </div>
 
-        <div className="bg-white rounded-xl p-5 border border-gray-200">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-gray-600 text-sm">With Passports</p>
-              <p className="text-2xl font-bold text-gray-900 mt-1">
-                {travelers.filter(t => t.passportNumber).length}
-              </p>
+        <div className="flex-shrink-0 w-[140px] md:w-auto bg-white md:rounded-xl border-y md:border p-4 border-neutral-200">
+          <div className="flex items-center justify-between mb-2">
+            <div className="p-2 bg-green-50 rounded-lg">
+              <Shield className="w-5 h-5 text-green-500" />
             </div>
-            <div className="p-3 bg-success-50 rounded-lg">
-              <Shield className="w-6 h-6 text-success-500" />
-            </div>
+            <span className="text-2xl font-bold text-neutral-800">{travelers.filter(t => t.passportNumber).length}</span>
           </div>
+          <p className="text-sm font-medium text-neutral-800">Passports</p>
+          <p className="text-xs text-neutral-500">Documented</p>
         </div>
 
-        <div className="bg-white rounded-xl p-5 border border-gray-200">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-gray-600 text-sm">TSA PreCheck</p>
-              <p className="text-2xl font-bold text-gray-900 mt-1">
-                {travelers.filter(t => t.knownTravelerNumber).length}
-              </p>
+        <div className="flex-shrink-0 w-[140px] md:w-auto bg-white md:rounded-xl border-y md:border p-4 border-neutral-200">
+          <div className="flex items-center justify-between mb-2">
+            <div className="p-2 bg-blue-50 rounded-lg">
+              <Plane className="w-5 h-5 text-blue-500" />
             </div>
-            <div className="p-3 bg-info-50 rounded-lg">
-              <Plane className="w-6 h-6 text-info-500" />
-            </div>
+            <span className="text-2xl font-bold text-neutral-800">{travelers.filter(t => t.knownTravelerNumber).length}</span>
           </div>
+          <p className="text-sm font-medium text-neutral-800">PreCheck</p>
+          <p className="text-xs text-neutral-500">TSA/Global Entry</p>
         </div>
       </div>
 
       {/* Travelers List */}
       {travelers.length === 0 ? (
-        <div className="bg-white rounded-xl p-12 text-center border-2 border-dashed border-gray-300">
-          <Users className="w-16 h-16 text-gray-400 mx-auto mb-4" />
-          <h3 className="text-lg font-semibold text-gray-900 mb-2">No travelers yet</h3>
-          <p className="text-gray-600 mb-6">Add your first traveler to speed up future bookings</p>
+        <div className="bg-white md:rounded-xl border-y md:border-2 border-dashed border-neutral-300 p-8 md:p-12 text-center mx-0">
+          <Users className="w-12 h-12 md:w-16 md:h-16 text-neutral-300 mx-auto mb-4" />
+          <h3 className="text-lg font-semibold text-neutral-800 mb-2">No travelers yet</h3>
+          <p className="text-sm text-neutral-600 mb-6">Add your first traveler for faster bookings</p>
           <button
             onClick={() => handleOpenModal()}
-            className="px-6 py-3 bg-gradient-to-r from-primary-500 to-primary-600 text-white rounded-lg hover:from-primary-600 hover:to-primary-700 transition-all shadow-md"
+            className="px-6 py-3 bg-gradient-to-r from-primary-500 to-primary-600 text-white rounded-xl font-semibold hover:from-primary-600 hover:to-primary-700 transition-all shadow-lg active:scale-[0.98]"
           >
             Add Your First Traveler
           </button>
         </div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-0.5 md:gap-4 px-0">
           {travelers.map((traveler) => (
             <div
               key={traveler.id}
-              className="bg-white rounded-xl p-5 border-2 border-gray-200 hover:border-primary-300 transition-all relative"
+              className="bg-white md:rounded-xl border-y md:border-2 border-neutral-200 hover:border-primary-300 p-4 md:p-5 transition-all relative"
             >
               {/* Default Badge */}
               {traveler.isDefault && (

@@ -263,16 +263,8 @@ export function AccountSidebar({ unreadNotifications = 0, activeAlerts = 0 }: Ac
     </aside>
   );
 
-  // Mobile Menu Button (Fixed Position)
-  const MobileMenuButton = () => (
-    <button
-      onClick={() => setIsMobileOpen(!isMobileOpen)}
-      className="lg:hidden fixed bottom-6 right-6 z-50 p-4 bg-gradient-to-r from-primary-500 to-primary-600 text-white rounded-full shadow-2xl hover:shadow-primary/50 transition-all duration-200 hover:scale-110 active:scale-95"
-      aria-label="Open account menu"
-    >
-      <Menu className="w-6 h-6" />
-    </button>
-  );
+  // Mobile Menu Button - Hidden (using bottom nav instead)
+  const MobileMenuButton = () => null;
 
   // Mobile Sidebar (Overlay)
   const MobileSidebar = () => (
