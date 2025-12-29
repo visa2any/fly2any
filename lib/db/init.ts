@@ -1,13 +1,16 @@
 import { sql } from './connection';
 import { readFileSync } from 'fs';
 import { join } from 'path';
-import { neon } from '@neondatabase/serverless';
 
 /**
  * Initialize database schema
  * This function reads the schema.sql file and executes it
  */
 export async function initDatabase() {
+  if (!sql) {
+    throw new Error('Database not configured');
+  }
+
   try {
     const schemaPath = join(process.cwd(), 'lib', 'db', 'schema.sql');
     const schema = readFileSync(schemaPath, 'utf-8');
@@ -20,8 +23,8 @@ export async function initDatabase() {
 
     for (const statement of statements) {
       try {
-        // Use sql.query for raw SQL statements (Neon v3+ syntax)
-        await (sql as any).query(statement);
+        // Use sql.unsafe() for raw SQL statements with postgres package
+        await sql.unsafe(statement);
       } catch (err: any) {
         // Skip errors for already existing objects
         if (!err.message?.includes('already exists')) {
