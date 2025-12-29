@@ -197,7 +197,7 @@ export default function ReferralsPage() {
 
         {/* Points Summary - Horizontal scroll on mobile */}
         {pointsSummary && (
-          <div className="mt-4 md:mt-6 flex md:grid md:grid-cols-4 gap-3 overflow-x-auto pb-2 -mx-4 px-4 md:mx-0 md:px-0 md:overflow-visible scrollbar-hide">
+          <div className="mt-4 md:mt-6 flex md:grid md:grid-cols-4 gap-3 overflow-x-auto pb-2 md:overflow-visible scrollbar-hide">
             <div className="bg-white/10 backdrop-blur-sm rounded-xl p-3 md:p-4 border border-white/20 min-w-[130px] flex-shrink-0 md:min-w-0">
               <div className="flex items-center gap-1.5 mb-1">
                 <Unlock className="w-3.5 h-3.5 text-white/80" />

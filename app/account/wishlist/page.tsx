@@ -107,7 +107,7 @@ export default function WishlistPage() {
       {/* Content wrapper with padding on mobile */}
       <div className="px-3 md:px-0 space-y-4">
         {/* Stats Cards - Horizontal scroll on mobile */}
-        <div className="flex md:grid md:grid-cols-3 gap-3 overflow-x-auto pb-2 -mx-3 px-3 md:mx-0 md:px-0 md:overflow-visible scrollbar-hide">
+        <div className="flex md:grid md:grid-cols-3 gap-3 overflow-x-auto pb-2 md:overflow-visible scrollbar-hide">
           <div className="bg-white rounded-xl shadow-sm p-4 border border-gray-100 min-w-[140px] flex-shrink-0 md:min-w-0">
             <div className="flex items-center gap-3">
               <div className="text-2xl">💙</div>

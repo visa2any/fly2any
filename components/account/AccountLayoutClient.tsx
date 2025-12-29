@@ -61,15 +61,15 @@ export function AccountLayoutClient({ children }: AccountLayoutClientProps) {
   };
 
   return (
-    <div className="flex min-h-screen bg-neutral-50">
+    <div className="flex min-h-screen bg-neutral-50 w-full max-w-full overflow-x-hidden">
       <AccountSidebar
         unreadNotifications={unreadNotifications}
         activeAlerts={activeAlerts}
       />
 
       {/* Main Content Area - Level-6 Ultra Premium Mobile */}
-      <main className="flex-1 lg:ml-0 pb-20 lg:pb-0">
-        <div className="w-full px-0 md:px-4 lg:px-6 py-0 md:py-4 min-h-screen">
+      <main className="flex-1 lg:ml-0 pb-20 lg:pb-0 w-full max-w-full overflow-x-hidden">
+        <div className="w-full max-w-full px-0 md:px-4 lg:px-6 py-0 md:py-4 min-h-screen overflow-x-hidden">
           {children}
         </div>
       </main>
