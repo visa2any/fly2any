@@ -601,18 +601,22 @@ const AuthorizationPDF = ({ data }: { data: AuthorizationData }) => (
 );
 
 /**
- * GET /api/admin/generate-authorization-pdf?ref=XXX
+ * GET /api/admin/generate-authorization-pdf?ref=XXX or ?id=XXX
  *
  * Generate PDF authorization document for a booking
+ * Supports: ref (booking reference) or id (authorization id)
+ * Optional: inline=true for browser preview
  */
 export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
     const bookingReference = searchParams.get('ref');
+    const authorizationId = searchParams.get('id');
+    const inline = searchParams.get('inline') === 'true';
 
-    if (!bookingReference) {
+    if (!bookingReference && !authorizationId) {
       return NextResponse.json(
-        { error: 'Booking reference is required' },
+        { error: 'Booking reference or authorization ID is required' },
         { status: 400 }
       );
     }
@@ -625,9 +629,9 @@ export async function GET(request: NextRequest) {
     }
 
     // Get authorization data with booking info
-    const authorization = await prisma.cardAuthorization.findUnique({
-      where: { bookingReference },
-    });
+    const authorization = authorizationId
+      ? await prisma.cardAuthorization.findUnique({ where: { id: authorizationId } })
+      : await prisma.cardAuthorization.findUnique({ where: { bookingReference: bookingReference! } });
 
     if (!authorization) {
       return NextResponse.json(
@@ -663,10 +667,11 @@ export async function GET(request: NextRequest) {
     );
 
     // Return PDF (convert Buffer to Uint8Array for Response compatibility)
+    const filename = `Authorization-${authorization.bookingReference}.pdf`;
     return new NextResponse(new Uint8Array(pdfBuffer), {
       headers: {
         'Content-Type': 'application/pdf',
-        'Content-Disposition': `attachment; filename="Authorization-${bookingReference}.pdf"`,
+        'Content-Disposition': inline ? `inline; filename="${filename}"` : `attachment; filename="${filename}"`,
         'Cache-Control': 'no-store',
       },
     });

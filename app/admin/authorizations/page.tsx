@@ -21,7 +21,9 @@ import {
   MapPin,
   FileImage,
   AlertCircle,
+  FileText,
 } from 'lucide-react';
+import AuthorizationDocumentViewer from '@/components/admin/AuthorizationDocumentViewer';
 
 type AuthStatus = 'ALL' | 'PENDING' | 'VERIFIED' | 'REJECTED' | 'EXPIRED';
 
@@ -61,6 +63,7 @@ export default function AdminAuthorizationsPage() {
   const [showModal, setShowModal] = useState(false);
   const [actionLoading, setActionLoading] = useState(false);
   const [rejectionReason, setRejectionReason] = useState('');
+  const [showDocViewer, setShowDocViewer] = useState(false);
 
   // Stats
   const [stats, setStats] = useState({
@@ -588,6 +591,14 @@ export default function AdminAuthorizationsPage() {
                     </div>
                   )}
                 </div>
+                {/* View Full Document Button */}
+                <button
+                  onClick={() => setShowDocViewer(true)}
+                  className="w-full mt-3 flex items-center justify-center gap-2 px-4 py-2.5 bg-gradient-to-r from-slate-800 to-slate-900 text-white text-sm font-medium rounded-xl hover:from-slate-700 hover:to-slate-800 transition-all shadow-lg hover:shadow-xl"
+                >
+                  <FileText className="w-4 h-4" />
+                  View Full Authorization Document
+                </button>
               </div>
 
               {/* Signature */}
@@ -657,6 +668,15 @@ export default function AdminAuthorizationsPage() {
             </div>
           </div>
         </div>
+      )}
+
+      {/* Document Viewer Modal */}
+      {selectedAuth && (
+        <AuthorizationDocumentViewer
+          authorization={selectedAuth}
+          isOpen={showDocViewer}
+          onClose={() => setShowDocViewer(false)}
+        />
       )}
     </div>
   );
