@@ -3058,6 +3058,238 @@ class DuffelAPI {
       console.warn('Aviation intelligence extraction warning:', error.message);
     }
   }
+
+  // ═══════════════════════════════════════════════════════════════════════════
+  // DUFFEL CARD PAYMENTS - Charge customer card directly (no Stripe fees!)
+  // ═══════════════════════════════════════════════════════════════════════════
+
+  /**
+   * Tokenize Customer Card via Duffel Cards API
+   * PCI-compliant card tokenization at api.duffel.cards
+   */
+  async tokenizeCard(cardDetails: {
+    number: string;
+    name: string;
+    cvc: string;
+    expiry_month: string;
+    expiry_year: string;
+    address_line_1: string;
+    address_city: string;
+    address_region: string;
+    address_postal_code: string;
+    address_country_code: string;
+    address_line_2?: string;
+  }): Promise<{ id: string; last_four_digits: string; brand: string }> {
+    const token = process.env.DUFFEL_ACCESS_TOKEN?.trim();
+    if (!token) throw new Error('DUFFEL_ACCESS_TOKEN not configured');
+
+    console.log('💳 Tokenizing card via Duffel Cards API...');
+
+    const response = await axios.post(
+      'https://api.duffel.cards/payments/cards',
+      { data: cardDetails },
+      {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Duffel-Version': 'v2',
+          'Content-Type': 'application/json',
+        },
+      }
+    );
+
+    console.log(`✅ Card tokenized: ${response.data.data.id}`);
+    return response.data.data;
+  }
+
+  /**
+   * Create 3D Secure Session for Card Payment Authentication
+   */
+  async create3DSSession(
+    cardId: string,
+    resourceId: string,
+    services?: Array<{ id: string; quantity: number }>
+  ): Promise<{
+    id: string;
+    status: 'challenge_required' | 'ready_for_payment' | 'failed' | 'expired';
+    client_id?: string;
+  }> {
+    const token = process.env.DUFFEL_ACCESS_TOKEN?.trim();
+    if (!token) throw new Error('DUFFEL_ACCESS_TOKEN not configured');
+
+    console.log('🔐 Creating 3D Secure session...');
+    console.log(`   Card ID: ${cardId}`);
+    console.log(`   Resource ID: ${resourceId}`);
+
+    const payload: any = {
+      data: {
+        card_id: cardId,
+        resource_id: resourceId,
+      },
+    };
+
+    if (services?.length) {
+      payload.data.services = services;
+    }
+
+    const response = await axios.post(
+      'https://api.duffel.com/payments/three_d_secure_sessions',
+      payload,
+      {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Duffel-Version': 'v2',
+          'Content-Type': 'application/json',
+        },
+      }
+    );
+
+    const session = response.data.data;
+    console.log(`✅ 3DS Session created: ${session.id} (status: ${session.status})`);
+    return session;
+  }
+
+  /**
+   * Create Order with Direct Card Payment
+   * Charges customer card directly via Duffel - NO Stripe fees!
+   * Only $3/order Duffel fee
+   */
+  async createOrderWithCard(
+    offerRequest: any,
+    passengers: any[],
+    threeDSecureSessionId: string
+  ): Promise<any> {
+    if (process.env.DUFFEL_ENABLE_ORDERS !== 'true') {
+      throw new Error('ORDER_CREATION_DISABLED');
+    }
+
+    console.log('🎫 Creating Duffel order with CARD payment...');
+    console.log(`   3DS Session: ${threeDSecureSessionId}`);
+
+    const duffelPassengers = this.transformPassengersToDuffel(passengers);
+    const currency = offerRequest.total_currency || offerRequest.price?.currency || 'USD';
+
+    // FULL AMOUNT = flight + markup (customer pays full price)
+    const fullAmount = parseFloat(offerRequest.price?.total || offerRequest.total_amount || '0');
+
+    console.log(`💰 Charging customer card: ${currency} ${fullAmount.toFixed(2)}`);
+
+    const orderPayload = {
+      selected_offers: [offerRequest.id],
+      passengers: duffelPassengers,
+      type: 'instant',
+      payments: [{
+        type: 'card',
+        amount: fullAmount.toFixed(2),
+        currency: currency,
+        three_d_secure_session_id: threeDSecureSessionId,
+      }],
+    };
+
+    const order = await this.client.orders.create(orderPayload as any);
+
+    console.log('✅ Order created with card payment!');
+    console.log(`   Order ID: ${order.data.id}`);
+    console.log(`   PNR: ${order.data.booking_reference}`);
+    console.log(`   Amount charged: ${currency} ${fullAmount.toFixed(2)}`);
+
+    return order;
+  }
+
+  /**
+   * Full Card Payment Flow - Tokenize → 3DS → Create Order
+   * Single method for complete card checkout
+   */
+  async processCardPayment(
+    offerRequest: any,
+    passengers: any[],
+    cardDetails: {
+      number: string;
+      name: string;
+      cvc: string;
+      expiry_month: string;
+      expiry_year: string;
+      address_line_1: string;
+      address_city: string;
+      address_region: string;
+      address_postal_code: string;
+      address_country_code: string;
+    }
+  ): Promise<{
+    success: boolean;
+    order?: any;
+    requires3DSChallenge?: boolean;
+    threeDSClientId?: string;
+    threeDSSessionId?: string;
+    cardId?: string;
+    error?: string;
+  }> {
+    try {
+      console.log('═══════════════════════════════════════════════════');
+      console.log('💳 DUFFEL CARD PAYMENT FLOW');
+      console.log('═══════════════════════════════════════════════════');
+
+      // Step 1: Tokenize card
+      const card = await this.tokenizeCard(cardDetails);
+      console.log(`   Card: ****${card.last_four_digits} (${card.brand})`);
+
+      // Step 2: Create 3DS session
+      const session = await this.create3DSSession(card.id, offerRequest.id);
+
+      // Step 3: Check if 3DS challenge required
+      if (session.status === 'challenge_required') {
+        console.log('⚠️ 3DS Challenge required - returning to frontend');
+        return {
+          success: false,
+          requires3DSChallenge: true,
+          threeDSClientId: session.client_id,
+          threeDSSessionId: session.id,
+          cardId: card.id,
+        };
+      }
+
+      if (session.status === 'failed') {
+        throw new Error('3DS authentication failed - card declined');
+      }
+
+      if (session.status === 'expired') {
+        throw new Error('3DS session expired - please try again');
+      }
+
+      // Step 4: Create order with card payment
+      const order = await this.createOrderWithCard(offerRequest, passengers, session.id);
+
+      console.log('═══════════════════════════════════════════════════');
+      console.log('✅ CARD PAYMENT SUCCESSFUL!');
+      console.log(`   PNR: ${order.data.booking_reference}`);
+      console.log('═══════════════════════════════════════════════════');
+
+      return { success: true, order };
+
+    } catch (error: any) {
+      console.error('❌ Card payment failed:', error.message);
+
+      // Extract Duffel error details
+      const duffelErrors = error.response?.data?.errors || [];
+      const errorMessage = duffelErrors.length > 0
+        ? duffelErrors.map((e: any) => e.message).join(', ')
+        : error.message;
+
+      return { success: false, error: errorMessage };
+    }
+  }
+
+  /**
+   * Complete 3DS Challenge and Create Order
+   * Called after frontend completes 3DS challenge
+   */
+  async complete3DSAndCreateOrder(
+    offerRequest: any,
+    passengers: any[],
+    threeDSecureSessionId: string
+  ): Promise<any> {
+    console.log('🔐 Completing 3DS challenge and creating order...');
+    return this.createOrderWithCard(offerRequest, passengers, threeDSecureSessionId);
+  }
 }
 
 // Export singleton instance

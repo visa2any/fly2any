@@ -741,41 +741,40 @@ export async function POST(request: NextRequest) {
           console.log(`   Hold Price: ${holdPricing.price} ${holdPricing.currency}`);
           console.log(`   Expires At: ${holdPricing.expiresAt.toISOString()}`);
         } else {
-          // Create instant order (pay now)
-          console.log('📝 Request details:');
+          // Create instant order with CARD PAYMENT (charges customer directly, no Stripe fees!)
+          console.log('💳 DUFFEL CARD PAYMENT - Charging customer card directly...');
           console.log(`   Offer ID: ${confirmedOffer.id}`);
-          console.log(`   Offer Price: $${confirmedOffer.price.total} ${confirmedOffer.price.currency}`);
-          console.log(`   Passengers count: ${passengers.length}`);
-          console.log(`   First passenger: ${passengers[0]?.firstName} ${passengers[0]?.lastName}`);
+          console.log(`   Total Amount: $${confirmedOffer.price.total} ${confirmedOffer.price.currency}`);
+          console.log(`   Passengers: ${passengers.length}`);
 
-          // DIAGNOSTIC: Log full passenger data being sent
-          console.log('📋 DIAGNOSTIC - Passenger data:');
-          passengers.forEach((p: any, idx: number) => {
-            console.log(`   Passenger ${idx + 1}:`);
-            console.log(`     - Name: ${p.firstName} ${p.lastName}`);
-            console.log(`     - DOB: ${p.dateOfBirth}`);
-            console.log(`     - Email: ${p.email}`);
-            console.log(`     - Phone: ${p.phone}`);
-            console.log(`     - Gender: ${p.gender}`);
-          });
+          // Validate card details
+          if (!payment?.cardNumber || !payment?.expiryMonth || !payment?.expiryYear || !payment?.cvv) {
+            throw new Error('Card details required for Duffel payment. Please provide cardNumber, expiryMonth, expiryYear, and cvv.');
+          }
 
-          // DIAGNOSTIC: Log offer structure
-          console.log('📋 DIAGNOSTIC - Offer structure:');
-          console.log(`   - id: ${confirmedOffer.id}`);
-          console.log(`   - source: ${confirmedOffer.source}`);
-          console.log(`   - itineraries: ${confirmedOffer.itineraries?.length}`);
-          console.log(`   - price.total: ${confirmedOffer.price?.total}`);
+          // Prepare card details for Duffel
+          const cardDetails = {
+            number: payment.cardNumber.replace(/\s/g, ''),
+            name: payment.cardName || `${passengers[0]?.firstName} ${passengers[0]?.lastName}`,
+            cvc: payment.cvv,
+            expiry_month: payment.expiryMonth.toString().padStart(2, '0'),
+            expiry_year: payment.expiryYear.toString().slice(-2),
+            address_line_1: payment.billingAddress || contactInfo?.address || '123 Main St',
+            address_city: payment.billingCity || contactInfo?.city || 'New York',
+            address_region: payment.billingState || contactInfo?.state || 'NY',
+            address_postal_code: payment.billingZip || contactInfo?.zip || '10001',
+            address_country_code: payment.billingCountry || contactInfo?.countryCode || 'US',
+          };
 
-          console.log(`   Calling: duffelAPI.createOrder()`);
+          console.log(`   Card: ****${cardDetails.number.slice(-4)}`);
+          console.log(`   Billing: ${cardDetails.address_city}, ${cardDetails.address_region}`);
 
-          const startTime = Date.now();
-          duffelOrder = await safeBookingOperation(
-            () => duffelAPI.createOrder(
-              confirmedOffer,
-              passengers,
-              // payments can be added here for live mode
-            ),
-            'Create Duffel Instant Order',
+          startTime = Date.now(); // Reset startTime for card payment
+
+          // Process card payment - Tokenize → 3DS → Create Order
+          const cardPaymentResult = await safeBookingOperation(
+            () => duffelAPI.processCardPayment(confirmedOffer, passengers, cardDetails),
+            'Process Duffel Card Payment',
             {
               userEmail: contactInfo?.email || passengers[0]?.email,
               endpoint: '/api/flights/booking/create',
@@ -784,6 +783,29 @@ export async function POST(request: NextRequest) {
               flightRoute: `${confirmedOffer.itineraries[0]?.segments[0]?.departure?.iataCode} → ${confirmedOffer.itineraries[0]?.segments[confirmedOffer.itineraries[0]?.segments.length - 1]?.arrival?.iataCode}`,
             }
           );
+
+          // Handle 3DS challenge (requires frontend interaction)
+          if (cardPaymentResult.requires3DSChallenge) {
+            console.log('⚠️ 3DS Challenge required - returning to frontend');
+            return NextResponse.json({
+              success: false,
+              requires3DS: true,
+              threeDSClientId: cardPaymentResult.threeDSClientId,
+              threeDSSessionId: cardPaymentResult.threeDSSessionId,
+              cardId: cardPaymentResult.cardId,
+              offerId: confirmedOffer.id,
+              message: '3D Secure authentication required. Please complete verification.',
+            }, { status: 202 });
+          }
+
+          // Check for payment failure
+          if (!cardPaymentResult.success) {
+            console.error('❌ Card payment failed:', cardPaymentResult.error);
+            throw new Error(cardPaymentResult.error || 'Card payment failed');
+          }
+
+          duffelOrder = cardPaymentResult.order;
+          console.log(`✅ Card payment successful in ${Date.now() - startTime}ms`);
         }
 
         // Extract booking details from Duffel response
@@ -1101,10 +1123,16 @@ A Duffel booking failed and was automatically routed to manual ticketing.
 
     // STEP 5: Process payment (only for instant bookings, NOT holds, NOT manual ticketing)
     const requiresManualTicketing = sourceApi === 'Amadeus';
-    console.log(`\n💳 STEP 5: Payment processing (ID: ${requestId}, isHold: ${isHold}, manualTicketing: ${requiresManualTicketing})`);
+    const duffelCardPayment = sourceApi === 'Duffel' && !isHold; // Card already charged via Duffel
+    console.log(`\n💳 STEP 5: Payment processing (ID: ${requestId}, isHold: ${isHold}, manualTicketing: ${requiresManualTicketing}, duffelCard: ${duffelCardPayment})`);
 
-    if (!isHold && !requiresManualTicketing) {
-      // INSTANT BOOKING (Duffel only): Create payment intent AFTER airline booking succeeds
+    if (duffelCardPayment) {
+      // DUFFEL CARD PAYMENT: Card already charged directly - no Stripe needed!
+      console.log(`   ✅ [${requestId}] Card already charged via Duffel - skipping Stripe`);
+      bookingStatus = 'confirmed';
+      paymentStatus = 'paid';
+    } else if (!isHold && !requiresManualTicketing) {
+      // FALLBACK: Use Stripe for non-Duffel bookings
       console.log(`   [${requestId}] Creating payment intent...`);
 
       try {
@@ -1507,9 +1535,10 @@ Manual intervention required to:
         );
       }
 
-      // STEP 7: Save card authorization if provided
-      if (payment.signatureName && payment.authorizationAccepted) {
-        console.log('🔐 Saving card authorization...');
+      // STEP 7: Save card authorization if provided (SKIP for Duffel - 3DS provides chargeback protection)
+      const skipAuthorization = sourceApi === 'Duffel'; // Duffel uses 3DS = no auth doc needed
+      if (!skipAuthorization && payment?.signatureName && payment?.authorizationAccepted) {
+        console.log('🔐 Saving card authorization (Amadeus/manual ticketing)...');
         try {
           const prisma = getPrismaClient();
 
@@ -1619,9 +1648,11 @@ Requires manual review.
           console.error('⚠️ Failed to save card authorization:', authError);
           // Don't fail the booking if authorization save fails
         }
+      } else if (skipAuthorization) {
+        console.log('✅ Skipping authorization doc - Duffel 3DS provides chargeback protection');
       }
 
-      // STEP 7: Send appropriate email based on booking type
+      // STEP 8: Send appropriate email based on booking type
       // - Card payment (not hold) → Card Payment Processing email
       // - Hold booking → Payment Instructions email
       // - Auto-ticketed (Duffel) → Booking Confirmation email
