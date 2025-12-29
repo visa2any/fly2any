@@ -19,6 +19,8 @@ export async function GET(
 ) {
   try {
     // Check if database is configured
+    const sql = getSql();
+
     if (!sql) {
       return NextResponse.json(
         { error: 'Database not configured' },
@@ -113,6 +115,8 @@ export async function PATCH(
 ) {
   try {
     // Check if database is configured
+    const sql = getSql();
+
     if (!sql) {
       return NextResponse.json(
         { error: 'Database not configured' },
@@ -321,6 +325,8 @@ export async function DELETE(
 ) {
   try {
     // Check if database is configured
+    const sql = getSql();
+
     if (!sql) {
       return NextResponse.json(
         { error: 'Database not configured' },

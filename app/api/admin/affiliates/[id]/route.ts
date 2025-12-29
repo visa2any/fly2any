@@ -26,6 +26,8 @@ export async function GET(
     if (authResult instanceof NextResponse) return authResult;
 
     // Check if database is configured
+    const sql = getSql();
+
     if (!sql) {
       return NextResponse.json(
         { error: 'Database not configured' },
@@ -185,6 +187,8 @@ export async function PATCH(
     const adminUserId = authResult.userId;
 
     // Check if database is configured
+    const sql = getSql();
+
     if (!sql) {
       return NextResponse.json(
         { error: 'Database not configured' },

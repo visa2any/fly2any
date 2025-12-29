@@ -23,6 +23,8 @@ import { withQueryCache, CachePresets } from '@/lib/cache';
 async function tripsHandler(request: NextRequest) {
   try {
     // Check if database is configured
+    const sql = getSql();
+
     if (!sql) {
       if (process.env.NODE_ENV === 'development') {
         console.log('⚠️  Database not configured - using demo TripMatch data');
@@ -622,6 +624,8 @@ export const GET = withQueryCache(
 export async function POST(request: NextRequest) {
   try {
     // Check if database is configured
+    const sql = getSql();
+
     if (!sql) {
       return NextResponse.json(
         { error: 'Database not configured' },

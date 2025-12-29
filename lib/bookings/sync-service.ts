@@ -264,6 +264,8 @@ async function updateBookingFromProvider(
   order: ProviderOrder,
   changes: SyncChange[]
 ): Promise<void> {
+  const sql = getSql();
+
   if (!sql) return;
 
   // Extract e-tickets
@@ -332,6 +334,8 @@ export async function getBookingSyncStatus(bookingId: string): Promise<{
   hasETickets: boolean;
   providerStatus: string | null;
 }> {
+  const sql = getSql();
+
   if (!sql) {
     return { lastSynced: null, status: 'pending', error: null, hasETickets: false, providerStatus: null };
   }

@@ -176,6 +176,8 @@ export async function POST(request: NextRequest) {
     };
 
     // Store in database - CRITICAL: Must succeed for booking to be valid
+    const sql = getSql();
+
     if (!sql) {
       console.error('❌ Database not configured');
       return NextResponse.json({

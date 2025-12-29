@@ -17,6 +17,8 @@ export async function linkUserSignupToReferral(
   clickId?: string
 ): Promise<boolean> {
   try {
+    const sql = getSql();
+
     if (!sql) {
       return false;
     }
@@ -219,6 +221,8 @@ export async function checkAffiliatePayoutEligibility(
   approvedCommissionCount: number;
 }> {
   try {
+    const sql = getSql();
+
     if (!sql) {
       return {
         eligible: false,

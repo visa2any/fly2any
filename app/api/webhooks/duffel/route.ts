@@ -80,6 +80,8 @@ async function logWebhookEvent(
   error?: string
 ): Promise<void> {
   try {
+    const sql = getSql();
+
     if (!sql) {
       console.warn('Database not configured - skipping webhook event logging');
       return;
@@ -120,6 +122,8 @@ async function logWebhookEvent(
  */
 async function isEventProcessed(eventId: string): Promise<boolean> {
   try {
+    const sql = getSql();
+
     if (!sql) {
       console.warn('Database not configured');
       return false;
@@ -293,6 +297,8 @@ async function processEventAsync(event: DuffelWebhookEvent): Promise<void> {
 export async function GET(req: NextRequest) {
   try {
     // Check if database is configured
+    const sql = getSql();
+
     if (!sql) {
       return NextResponse.json(
         {

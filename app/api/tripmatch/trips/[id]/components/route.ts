@@ -44,6 +44,8 @@ export async function POST(
 ) {
   try {
     // Check if database is configured
+    const sql = getSql();
+
     if (!sql) {
       return NextResponse.json(
         { error: 'Database not configured' },
@@ -231,6 +233,8 @@ export async function GET(
 ) {
   try {
     // Check if database is configured
+    const sql = getSql();
+
     if (!sql) {
       return NextResponse.json(
         { error: 'Database not configured' },

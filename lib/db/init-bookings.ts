@@ -6,6 +6,8 @@
 import { getSql } from './connection';
 
 export async function initBookingsTables() {
+  const sql = getSql();
+
   if (!sql) {
     throw new Error('Database not configured');
   }
@@ -172,6 +174,8 @@ export async function initBookingsTables() {
 }
 
 export async function checkBookingsTable() {
+  const sql = getSql();
+
   if (!sql) {
     return {
       success: false,

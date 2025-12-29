@@ -34,6 +34,8 @@ export async function POST(
     const adminUserId = authResult.userId;
 
     // Check if database is configured
+    const sql = getSql();
+
     if (!sql) {
       return NextResponse.json(
         { error: 'Database not configured' },

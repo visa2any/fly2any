@@ -19,6 +19,8 @@ export async function GET(req: NextRequest) {
 
   try {
     // Check if database is configured
+    const sql = getSql();
+
     if (!sql) {
       return NextResponse.json(
         { error: 'Database not configured' },
@@ -123,6 +125,8 @@ export async function GET(req: NextRequest) {
 export async function POST(req: NextRequest) {
   try {
     // Check if database is configured
+    const sql = getSql();
+
     if (!sql) {
       return NextResponse.json(
         { error: 'Database not configured' },
@@ -232,6 +236,8 @@ export async function POST(req: NextRequest) {
  * (Neon's sql template doesn't support dynamic parameter building well)
  */
 async function executeQuery(query: string, params: any[]): Promise<any[]> {
+  const sql = getSql();
+
   if (!sql) {
     console.warn('Database not configured');
     return [];
@@ -320,6 +326,8 @@ async function executeQuery(query: string, params: any[]): Promise<any[]> {
  * Get webhook statistics
  */
 async function getWebhookStats() {
+  const sql = getSql();
+
   if (!sql) {
     console.warn('Database not configured');
     return {

@@ -35,6 +35,8 @@ export async function calculateAndCreateCommission(
   bookingData: BookingData
 ): Promise<CommissionResult> {
   try {
+    const sql = getSql();
+
     if (!sql) {
       return { success: false, error: 'Database not configured' };
     }
@@ -213,6 +215,8 @@ export async function calculateAndCreateCommission(
  */
 export async function markCommissionCompleted(bookingId: string): Promise<boolean> {
   try {
+    const sql = getSql();
+
     if (!sql) {
       return false;
     }
@@ -309,6 +313,8 @@ export async function reverseCommission(
   reason: string
 ): Promise<boolean> {
   try {
+    const sql = getSql();
+
     if (!sql) {
       return false;
     }
@@ -397,6 +403,8 @@ function getTierCommissionRate(tier: string): number {
  */
 async function checkAndUpgradeTier(affiliateId: string): Promise<void> {
   try {
+    const sql = getSql();
+
     if (!sql) {
       return;
     }

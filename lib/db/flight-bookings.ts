@@ -45,6 +45,8 @@ export interface PopularFlight {
  * @returns Number of confirmed bookings in last 24 hours
  */
 export async function getBookingsToday(flightId: string): Promise<number> {
+  const sql = getSql();
+
   if (!sql) {
     console.warn('Database not configured');
     return 0;
@@ -73,6 +75,8 @@ export async function getBookingsToday(flightId: string): Promise<number> {
  * @returns Number of confirmed bookings yesterday
  */
 export async function getBookingsYesterday(flightId: string): Promise<number> {
+  const sql = getSql();
+
   if (!sql) {
     console.warn('Database not configured');
     return 0;
@@ -131,6 +135,8 @@ export async function getBookingsTrend(flightId: string): Promise<'rising' | 'st
  * @returns Complete booking count object with trend
  */
 export async function getFlightBookingStats(flightId: string): Promise<FlightBookingCount> {
+  const sql = getSql();
+
   if (!sql) {
     console.warn('Database not configured');
     return {
@@ -220,6 +226,8 @@ export async function getFlightBookingStats(flightId: string): Promise<FlightBoo
 export async function getBatchBookingCounts(
   flightIds: string[]
 ): Promise<Map<string, number>> {
+  const sql = getSql();
+
   if (!sql) {
     console.warn('Database not configured');
     return new Map();
@@ -261,6 +269,8 @@ export async function getBatchBookingCounts(
 export async function getBatchBookingStats(
   flightIds: string[]
 ): Promise<Map<string, FlightBookingCount>> {
+  const sql = getSql();
+
   if (!sql) {
     console.warn('Database not configured');
     return new Map();
@@ -341,6 +351,8 @@ export async function getBatchBookingStats(
  * @returns Route booking statistics
  */
 export async function getRouteBookingStats(routeKey: string): Promise<RouteBookingStats> {
+  const sql = getSql();
+
   if (!sql) {
     console.warn('Database not configured');
     return {
@@ -408,6 +420,8 @@ export async function getRouteBookingStats(routeKey: string): Promise<RouteBooki
  * @returns Array of popular flights with booking counts
  */
 export async function getPopularFlights(limit: number = 10): Promise<PopularFlight[]> {
+  const sql = getSql();
+
   if (!sql) {
     console.warn('Database not configured');
     return [];

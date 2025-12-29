@@ -167,6 +167,8 @@ export function dollarsToCredits(
  */
 export async function getUserCredits(userId: string): Promise<UserCredits | null> {
   try {
+    const sql = getSql();
+
     if (!sql) {
       console.warn('Database not configured');
       return null;
@@ -213,6 +215,8 @@ export async function awardCredits(
   } = {}
 ): Promise<CreditTransaction | null> {
   try {
+    const sql = getSql();
+
     if (!sql) {
       console.warn('Database not configured');
       return null;
@@ -277,6 +281,8 @@ export async function spendCredits(
   } = {}
 ): Promise<CreditTransaction | null> {
   try {
+    const sql = getSql();
+
     if (!sql) {
       console.warn('Database not configured');
       return null;
@@ -340,6 +346,8 @@ export async function getCreditHistory(
   limit: number = 50
 ): Promise<CreditTransaction[]> {
   try {
+    const sql = getSql();
+
     if (!sql) {
       console.warn('Database not configured');
       return [];
@@ -509,6 +517,8 @@ export async function checkAndAwardCreatorAchievements(
   creatorId: string
 ): Promise<void> {
   try {
+    const sql = getSql();
+
     if (!sql) {
       console.warn('Database not configured');
       return;
@@ -582,6 +592,8 @@ export async function getTopCreditEarners(limit: number = 10): Promise<
   }>
 > {
   try {
+    const sql = getSql();
+
     if (!sql) {
       console.warn('Database not configured');
       return [];
@@ -622,6 +634,8 @@ export async function getCreditStats(): Promise<{
   avgCreditsPerUser: number;
 }> {
   try {
+    const sql = getSql();
+
     if (!sql) {
       console.warn('Database not configured');
       return {

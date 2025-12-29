@@ -114,6 +114,8 @@ export async function POST(request: NextRequest) {
     };
 
     // Save to database
+    const sql = getSql();
+
     if (!sql) {
       console.error('❌ Database not configured');
       return NextResponse.json({

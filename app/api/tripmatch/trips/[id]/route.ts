@@ -28,6 +28,8 @@ export async function GET(
     const tripId = params.id;
 
     // Check if database is configured
+    const sql = getSql();
+
     if (!sql) {
       if (process.env.NODE_ENV === 'development') {
         console.log(`⚠️  Database not configured - using demo data for trip ${tripId}`);
@@ -807,6 +809,8 @@ export async function PATCH(
 ) {
   try {
     // Check if database is configured
+    const sql = getSql();
+
     if (!sql) {
       return NextResponse.json(
         { error: 'Database not configured' },
@@ -905,6 +909,8 @@ export async function DELETE(
 ) {
   try {
     // Check if database is configured
+    const sql = getSql();
+
     if (!sql) {
       return NextResponse.json(
         { error: 'Database not configured' },

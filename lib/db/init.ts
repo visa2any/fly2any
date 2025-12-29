@@ -7,6 +7,8 @@ import { join } from 'path';
  * This function reads the schema.sql file and executes it
  */
 export async function initDatabase() {
+  const sql = getSql();
+
   if (!sql) {
     throw new Error('Database not configured');
   }
@@ -45,6 +47,8 @@ export async function initDatabase() {
  * Check if database is properly initialized
  */
 export async function checkDatabase() {
+  const sql = getSql();
+
   if (!sql) {
     throw new Error('Database not configured');
   }

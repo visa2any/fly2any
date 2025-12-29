@@ -63,6 +63,8 @@ async function handleCronJob(request: NextRequest) {
     }
 
     // Check if database is configured
+    const sql = getSql();
+
     if (!sql) {
       return NextResponse.json(
         { error: 'Database not configured' },
