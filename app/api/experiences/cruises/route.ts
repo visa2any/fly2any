@@ -8,23 +8,35 @@ export const dynamic = 'force-dynamic';
 /**
  * Cruises & Boat Tours API
  * Filters cruise/boat experiences from Amadeus Activities API
- *
- * Products include:
- * - River cruises (Seine, Thames, etc.)
- * - Harbor cruises
- * - Sunset sails
- * - Dinner cruises
- * - Yacht tours
- * - Catamaran experiences
  */
 
+// Clean text from API - fix HTML entities, special chars, encoding issues
+function cleanText(text: string): string {
+  if (!text) return '';
+  return text
+    .replace(/&#(\d+);/g, (_, code) => String.fromCharCode(parseInt(code)))
+    .replace(/&amp;/g, '&').replace(/&lt;/g, '<').replace(/&gt;/g, '>')
+    .replace(/&quot;/g, '"').replace(/&apos;/g, "'").replace(/&nbsp;/g, ' ')
+    .replace(/&#39;/g, "'").replace(/&#x27;/g, "'").replace(/&#x2F;/g, '/')
+    .replace(/\\u[\dA-Fa-f]{4}/g, (m) => String.fromCharCode(parseInt(m.slice(2), 16)))
+    .replace(/([a-zA-Z])0([a-zA-Z])/g, '$1o$2')
+    .replace(/([a-zA-Z])1([a-zA-Z])/g, '$1i$2')
+    .replace(/([a-zA-Z])3([a-zA-Z])/g, '$1e$2')
+    .replace(/\s+/g, ' ').trim();
+}
+
 const CRUISE_KEYWORDS = [
-  'cruise', 'boat', 'sailing', 'catamaran', 'yacht', 'ferry',
-  'river cruise', 'harbor', 'sunset cruise', 'dinner cruise',
-  'speedboat', 'gondola', 'water taxi'
+  'cruise', 'boat tour', 'boat trip', 'boat ride', 'sailing', 'sail',
+  'catamaran', 'yacht', 'ferry', 'harbor cruise', 'harbour cruise',
+  'sunset cruise', 'dinner cruise', 'lunch cruise', 'brunch cruise',
+  'speedboat', 'jet boat', 'gondola', 'water taxi', 'canal cruise',
+  'sightseeing cruise', 'river cruise', 'circle line', 'statue of liberty',
+  'statue cruise', 'liberty cruise', 'hudson river', 'east river',
+  'manhattan cruise', 'nyc cruise', 'new york cruise', 'city cruise',
+  'skyline cruise', 'best of nyc'
 ];
 
-const EXCLUDE_KEYWORDS = ['transfer', 'airport', 'shuttle'];
+const EXCLUDE_KEYWORDS = ['transfer only', 'airport shuttle', 'hotel pickup only'];
 
 function isCruiseExperience(activity: any): boolean {
   const text = `${activity.name || ''} ${activity.shortDescription || ''}`.toLowerCase();
@@ -35,14 +47,19 @@ function isCruiseExperience(activity: any): boolean {
 
 function applyMarkup(activity: any): any {
   const basePrice = activity.price?.amount ? parseFloat(activity.price.amount) : null;
-  if (basePrice === null) return activity;
-  const markupAmount = Math.max(35, basePrice * 0.35);
-  const finalPrice = basePrice + markupAmount;
-  return {
+  const cleaned = {
     ...activity,
+    name: cleanText(activity.name || ''),
+    shortDescription: cleanText(activity.shortDescription || activity.description || ''),
     category: 'cruises',
     categoryName: 'Cruises & Boat Tours',
     categoryIcon: '🚢',
+  };
+  if (basePrice === null) return cleaned;
+  const markupAmount = Math.max(35, basePrice * 0.35);
+  const finalPrice = basePrice + markupAmount;
+  return {
+    ...cleaned,
     price: {
       ...activity.price,
       amount: finalPrice.toFixed(2),
@@ -71,7 +88,7 @@ export async function GET(request: NextRequest) {
 
     const roundedLat = Math.round(latitude * 100) / 100;
     const roundedLng = Math.round(longitude * 100) / 100;
-    const cacheKey = generateCacheKey('experiences:cruises:v1', { lat: roundedLat, lng: roundedLng, r: radius });
+    const cacheKey = generateCacheKey('experiences:cruises:v2', { lat: roundedLat, lng: roundedLng, r: radius });
 
     const cached = await getCached<any>(cacheKey);
     if (cached) {

@@ -36,6 +36,8 @@ interface MobileHomeSearchWrapperProps {
   hideTabs?: boolean;
   /** Journey mode - redirects to /journey/builder */
   journeyMode?: boolean;
+  /** Enable glassmorphism style for hero overlay */
+  glassmorphism?: boolean;
 }
 
 type ViewState = 'collapsed' | 'expanded' | 'hidden';
@@ -73,6 +75,7 @@ export function MobileHomeSearchWrapper({
   onSearch,
   hideTabs = false,
   journeyMode = false,
+  glassmorphism = false,
 }: MobileHomeSearchWrapperProps) {
   // Mobile collapsed state label translations
   const mobileLabels = {
@@ -291,24 +294,37 @@ export function MobileHomeSearchWrapper({
   if (!isMobile) {
     // Desktop: Pass all search data props to preserve form state
     return (
-      <EnhancedSearchBar
-        origin={origin}
-        destination={destination}
-        departureDate={departureDate}
-        returnDate={returnDate}
-        passengers={passengers}
-        cabinClass={cabinClass}
-        lang={lang}
-        defaultService={defaultService}
-        hideTabs={hideTabs}
-        journeyMode={journeyMode}
-      />
+      <div className={glassmorphism ? 'mx-4 md:mx-6' : ''}>
+        <div
+          className={glassmorphism ? 'rounded-2xl overflow-hidden' : ''}
+          style={glassmorphism ? {
+            background: 'rgba(255,255,255,0.92)',
+            backdropFilter: 'blur(20px)',
+            WebkitBackdropFilter: 'blur(20px)',
+            border: '1px solid rgba(255,255,255,0.3)',
+            boxShadow: '0 8px 32px rgba(0,0,0,0.15), 0 2px 8px rgba(0,0,0,0.1)',
+          } : {}}
+        >
+          <EnhancedSearchBar
+            origin={origin}
+            destination={destination}
+            departureDate={departureDate}
+            returnDate={returnDate}
+            passengers={passengers}
+            cabinClass={cabinClass}
+            lang={lang}
+            defaultService={defaultService}
+            hideTabs={hideTabs}
+            journeyMode={journeyMode}
+          />
+        </div>
+      </div>
     );
   }
 
   // Mobile rendering with three states (only after hydration on mobile devices)
   return (
-    <div ref={wrapperRef} className="mobile-search-wrapper md:hidden">
+    <div ref={wrapperRef} className={`mobile-search-wrapper md:hidden ${glassmorphism ? 'px-4' : ''}`}>
       <AnimatePresence mode="wait">
         {/* COLLAPSED STATE - Service-specific Apple-Class compact bar */}
         {viewState === 'collapsed' && (
@@ -327,7 +343,17 @@ export function MobileHomeSearchWrapper({
           >
             <button
               onClick={handleExpand}
-              className="w-full min-h-[52px] bg-white border-y-2 border-neutral-200 hover:border-primary-400 px-4 py-3 shadow-md transition-all duration-200 active:scale-[0.99] touch-manipulation"
+              className={`w-full min-h-[52px] px-4 py-3 transition-all duration-200 active:scale-[0.99] touch-manipulation ${
+                glassmorphism
+                  ? 'rounded-2xl border border-white/30'
+                  : 'bg-white border-y-2 border-neutral-200 hover:border-primary-400 shadow-md'
+              }`}
+              style={glassmorphism ? {
+                background: 'rgba(255,255,255,0.9)',
+                backdropFilter: 'blur(16px)',
+                WebkitBackdropFilter: 'blur(16px)',
+                boxShadow: '0 4px 24px rgba(0,0,0,0.15)',
+              } : {}}
               aria-label={`Expand ${defaultService} search form`}
               aria-expanded="false"
               type="button"

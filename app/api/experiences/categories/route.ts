@@ -17,6 +17,36 @@ export const dynamic = 'force-dynamic';
  * This endpoint filters activities by category to create dedicated product sections.
  */
 
+/**
+ * Clean text from API - fix HTML entities, special chars, encoding issues
+ */
+function cleanText(text: string): string {
+  if (!text) return '';
+  return text
+    // HTML entities
+    .replace(/&#(\d+);/g, (_, code) => String.fromCharCode(parseInt(code)))
+    .replace(/&amp;/g, '&')
+    .replace(/&lt;/g, '<')
+    .replace(/&gt;/g, '>')
+    .replace(/&quot;/g, '"')
+    .replace(/&apos;/g, "'")
+    .replace(/&nbsp;/g, ' ')
+    .replace(/&#39;/g, "'")
+    .replace(/&#x27;/g, "'")
+    .replace(/&#x2F;/g, '/')
+    // Unicode escapes
+    .replace(/\\u[\dA-Fa-f]{4}/g, (m) => String.fromCharCode(parseInt(m.slice(2), 16)))
+    // Fix common misspellings from OCR/encoding (numbers in words)
+    .replace(/([a-zA-Z])0([a-zA-Z])/g, '$1o$2') // l0ve -> love
+    .replace(/([a-zA-Z])1([a-zA-Z])/g, '$1i$2') // h1stor1c -> historic
+    .replace(/([a-zA-Z])3([a-zA-Z])/g, '$1e$2') // thr33 -> three
+    .replace(/([a-zA-Z])4([a-zA-Z])/g, '$1a$2') // gre4t -> great
+    .replace(/([a-zA-Z])5([a-zA-Z])/g, '$1s$2') // 5ight5 -> sights
+    // Clean up extra whitespace
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
 // Category definitions with keywords and display info
 const EXPERIENCE_CATEGORIES: Record<string, {
   name: string;
@@ -28,8 +58,8 @@ const EXPERIENCE_CATEGORIES: Record<string, {
   'cruises': {
     name: 'Cruises & Boat Tours',
     icon: '🚢',
-    keywords: ['cruise', 'boat tour', 'boat trip', 'sailing', 'catamaran', 'yacht', 'ferry ride', 'river cruise', 'harbor cruise', 'sunset cruise', 'dinner cruise', 'dhow', 'speedboat'],
-    excludeKeywords: ['transfer', 'airport', 'hotel', 'desert', 'safari', 'city tour', 'walking'],
+    keywords: ['cruise', 'boat tour', 'boat trip', 'boat ride', 'sailing', 'sail', 'catamaran', 'yacht', 'ferry', 'river cruise', 'harbor cruise', 'harbour cruise', 'sunset cruise', 'dinner cruise', 'lunch cruise', 'brunch cruise', 'dhow', 'speedboat', 'jet boat', 'pontoon', 'gondola', 'canal cruise', 'sightseeing cruise', 'circle line', 'statue of liberty cruise', 'statue cruise', 'liberty cruise', 'hudson river', 'east river', 'manhattan cruise', 'nyc cruise', 'new york cruise', 'city cruise', 'best of nyc', 'skyline cruise'],
+    excludeKeywords: ['transfer', 'airport shuttle', 'hotel pickup only'],
     description: 'Harbor cruises, sunset sails, and river boat experiences'
   },
   'museums': {
@@ -146,17 +176,25 @@ function matchesCategory(activity: any, categoryKey: string): boolean {
 }
 
 /**
- * Apply markup: $35 minimum OR 35% whichever is higher
+ * Apply markup + clean text: $35 minimum OR 35% whichever is higher
  */
 function applyMarkup(activity: any): any {
   const basePrice = activity.price?.amount ? parseFloat(activity.price.amount) : null;
-  if (basePrice === null) return activity;
+
+  // Clean text fields
+  const cleaned = {
+    ...activity,
+    name: cleanText(activity.name || ''),
+    shortDescription: cleanText(activity.shortDescription || activity.description || ''),
+  };
+
+  if (basePrice === null) return cleaned;
 
   const markupAmount = Math.max(35, basePrice * 0.35);
   const finalPrice = basePrice + markupAmount;
 
   return {
-    ...activity,
+    ...cleaned,
     price: {
       ...activity.price,
       amount: finalPrice.toFixed(2),
@@ -193,7 +231,7 @@ export async function GET(request: NextRequest) {
     // Round coords for cache key
     const roundedLat = Math.round(latitude * 100) / 100;
     const roundedLng = Math.round(longitude * 100) / 100;
-    const cacheKey = generateCacheKey('experiences:categories:v1', {
+    const cacheKey = generateCacheKey('experiences:categories:v2', {
       lat: roundedLat,
       lng: roundedLng,
       r: radius,
