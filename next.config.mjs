@@ -64,18 +64,18 @@ const nextConfig = {
       { source: '/voos-brasil-eua', destination: '/journey/flights', permanent: true },
 
       // === ENGLISH STATIC PAGES ===
-      { source: '/about', destination: '/', permanent: true },
-      { source: '/contact', destination: '/', permanent: true },
-      { source: '/support', destination: '/', permanent: true },
-      { source: '/help', destination: '/', permanent: true },
+      // REMOVED: /about page now exists
+      // REMOVED: /contact page now exists
+      { source: '/support', destination: '/help', permanent: true },
+      // REMOVED: /help page now exists
       // NOTE: /faq page exists - do NOT redirect
-      { source: '/careers', destination: '/', permanent: true },
-      { source: '/press', destination: '/', permanent: true },
+      // REMOVED: /careers page now exists
+      // REMOVED: /press page now exists
       { source: '/accessibility', destination: '/', permanent: true },
       // NOTE: /terms and /privacy pages exist - redirect aliases only
       { source: '/terms-of-service', destination: '/terms', permanent: true },
       { source: '/privacy-policy', destination: '/privacy', permanent: true },
-      { source: '/cookie-policy', destination: '/', permanent: true },
+      { source: '/cookie-policy', destination: '/cookies', permanent: true },
       { source: '/security', destination: '/', permanent: true },
       { source: '/how-it-works', destination: '/', permanent: true },
 
