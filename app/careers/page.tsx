@@ -144,7 +144,7 @@ export default function CareersPage() {
             className="p-8 md:p-12 rounded-3xl bg-gradient-to-br from-gray-900 to-gray-800 text-center">
             <h2 className="text-3xl md:text-4xl font-bold text-white mb-4">Don&apos;t See Your Role?</h2>
             <p className="text-gray-400 mb-8 max-w-lg mx-auto">We&apos;re always looking for talented people.</p>
-            <a href="mailto:careers@fly2any.com" className="inline-flex items-center gap-2 px-8 py-4 rounded-full bg-white text-gray-900 font-semibold hover:bg-gray-100 transition-colors">
+            <a href="mailto:support@fly2any.com" className="inline-flex items-center gap-2 px-8 py-4 rounded-full bg-white text-gray-900 font-semibold hover:bg-gray-100 transition-colors">
               Send Your Resume <ChevronRight className="w-5 h-5" />
             </a>
           </motion.div>

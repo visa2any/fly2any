@@ -2,7 +2,7 @@
 
 import Link from 'next/link'
 import {
-  Luggage, BookOpen, Star, Plane, HelpCircle,
+  BookOpen, Star, Plane, HelpCircle,
   MapPin, Calendar, TrendingUp, Shield, Users
 } from 'lucide-react'
 
@@ -18,8 +18,7 @@ interface RelatedLink {
 const LINK_COLLECTIONS: Record<string, RelatedLink[]> = {
   // For flight search/results pages
   flights: [
-    { href: '/baggage-fees', label: 'Baggage Fees Guide', description: 'Compare airline baggage policies', icon: Luggage },
-    { href: '/travel-guide', label: 'Travel Tips', description: 'Visa, currency & destination guides', icon: BookOpen },
+        { href: '/travel-guide', label: 'Travel Tips', description: 'Visa, currency & destination guides', icon: BookOpen },
     { href: '/reviews', label: 'Traveler Reviews', description: '4.7★ from 1,200+ travelers', icon: Star },
     { href: '/faq', label: 'FAQ', description: 'Common booking questions', icon: HelpCircle },
   ],
@@ -35,8 +34,7 @@ const LINK_COLLECTIONS: Record<string, RelatedLink[]> = {
   travel: [
     { href: '/flights', label: 'Search Flights', description: 'Find the best deals', icon: Plane },
     { href: '/hotels', label: 'Book Hotels', description: 'Compare prices', icon: MapPin },
-    { href: '/baggage-fees', label: 'Baggage Fees', description: 'Airline policies guide', icon: Luggage },
-    { href: '/reviews', label: 'Our Reviews', description: '4.7★ rating', icon: Star },
+        { href: '/reviews', label: 'Our Reviews', description: '4.7★ rating', icon: Star },
   ],
 
   // For reviews page
@@ -58,15 +56,13 @@ const LINK_COLLECTIONS: Record<string, RelatedLink[]> = {
   // For FAQ page
   faq: [
     { href: '/flights', label: 'Search Flights', description: 'Start your search', icon: Plane },
-    { href: '/baggage-fees', label: 'Baggage Guide', description: 'Airline policies', icon: Luggage },
-    { href: '/reviews', label: 'Customer Reviews', description: 'See experiences', icon: Star },
+        { href: '/reviews', label: 'Customer Reviews', description: 'See experiences', icon: Star },
     { href: '/travel-guide', label: 'Travel Guide', description: 'Destination tips', icon: BookOpen },
   ],
 
   // For flight route pages
   route: [
-    { href: '/baggage-fees', label: 'Baggage Fees', description: 'What to expect', icon: Luggage },
-    { href: '/travel-guide', label: 'Travel Tips', description: 'Prepare for your trip', icon: BookOpen },
+        { href: '/travel-guide', label: 'Travel Tips', description: 'Prepare for your trip', icon: BookOpen },
     { href: '/reviews', label: 'Traveler Reviews', description: 'See what others say', icon: Star },
   ],
 }

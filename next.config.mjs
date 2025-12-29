@@ -56,7 +56,7 @@ const nextConfig = {
       { source: '/como-funciona', destination: '/', permanent: true },
       { source: '/termos-uso', destination: '/', permanent: true },
       { source: '/seguranca', destination: '/', permanent: true },
-      { source: '/cookies', destination: '/', permanent: true },
+      // REMOVED: /cookies page now exists
 
       // === PORTUGUESE FLIGHT ROUTES ===
       { source: '/voos-miami-sao-paulo', destination: '/journey/flights?origin=MIA&destination=GRU', permanent: true },
@@ -69,7 +69,8 @@ const nextConfig = {
       { source: '/support', destination: '/help', permanent: true },
       // REMOVED: /help page now exists
       // NOTE: /faq page exists - do NOT redirect
-      // REMOVED: /careers page now exists
+      { source: '/careers', destination: '/', permanent: false }, // Hidden for now
+      { source: '/baggage-fees', destination: '/', permanent: false }, // Hidden for now
       // REMOVED: /press page now exists
       { source: '/accessibility', destination: '/', permanent: true },
       // NOTE: /terms and /privacy pages exist - redirect aliases only

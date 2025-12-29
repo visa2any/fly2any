@@ -73,8 +73,7 @@ export async function GET() {
     { path: '/travel-guide', priority: 0.85 },
     { path: '/faq', priority: 0.7 },
     { path: '/reviews', priority: 0.75 },
-    { path: '/baggage-fees', priority: 0.7 },
-    { path: '/airport-guides', priority: 0.75 },
+        { path: '/airport-guides', priority: 0.75 },
   ];
 
   contentPages.forEach(({ path, priority }) => {

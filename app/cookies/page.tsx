@@ -101,7 +101,7 @@ export default function CookiesPage() {
             <div className="space-y-4 text-gray-600">
               <p>Cookies are small text files stored on your device. They help us provide a better experience by remembering your preferences and understanding how you use our platform.</p>
               <h3 className="text-lg font-semibold text-gray-900 pt-2">Your Rights</h3>
-              <p>Under GDPR and CCPA, you have the right to access, modify, or delete your data. You can manage cookie preferences above or contact us at privacy@fly2any.com.</p>
+              <p>Under GDPR and CCPA, you have the right to access, modify, or delete your data. You can manage cookie preferences above or contact us at support@fly2any.com.</p>
               <p className="text-sm text-gray-500 pt-4">Last updated: December 2024</p>
             </div>
           </div>

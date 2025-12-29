@@ -343,8 +343,7 @@ export function Footer({
               <li><a href="/contact" className="text-xs md:text-sm text-gray-400 hover:text-white transition-colors">{t('contact')}</a></li>
               <li><a href="/faq" className="text-xs md:text-sm text-gray-400 hover:text-white transition-colors">{t('faq')}</a></li>
               <li><a href="/reviews" className="text-xs md:text-sm text-gray-400 hover:text-white transition-colors">Customer Reviews</a></li>
-              <li><a href="https://wa.me/13057971087" target="_blank" rel="noopener noreferrer" className="text-xs md:text-sm text-gray-400 hover:text-white transition-colors flex items-center gap-1"><span className="text-green-400 text-[10px]">📱</span>WhatsApp</a></li>
-            </ul>
+                          </ul>
           </div>
 
           {/* Resources Column - Fix orphan pages */}
@@ -352,8 +351,7 @@ export function Footer({
             <h4 className="font-semibold text-xs md:text-sm mb-2 md:mb-3 text-gray-300">Resources</h4>
             <ul className="space-y-1.5 md:space-y-2">
               <li><a href="/travel-guide" className="text-xs md:text-sm text-gray-400 hover:text-white transition-colors">Travel Guide</a></li>
-              <li><a href="/baggage-fees" className="text-xs md:text-sm text-gray-400 hover:text-white transition-colors">Baggage Calculator</a></li>
-              <li><a href="/solo-travel" className="text-xs md:text-sm text-gray-400 hover:text-white transition-colors">Solo Travel Tips</a></li>
+                            <li><a href="/solo-travel" className="text-xs md:text-sm text-gray-400 hover:text-white transition-colors">Solo Travel Tips</a></li>
               <li><a href="/travel-planning" className="text-xs md:text-sm text-gray-400 hover:text-white transition-colors">Trip Planning</a></li>
               <li><a href="/travel-insurance" className="text-xs md:text-sm text-gray-400 hover:text-white transition-colors">Travel Insurance</a></li>
             </ul>
@@ -426,7 +424,7 @@ export function Footer({
             {/* Logo & Copyright */}
             <div className="flex flex-col items-center gap-1.5">
               {showLogo && (
-                <Image src="/logo.png" alt="Fly2Any" width={290} height={100} className="h-5 md:h-7 w-auto brightness-0 invert" />
+                <Image src="/logo.png" alt="Fly2Any" width={290} height={100} className="h-5 md:h-7 w-auto" style={{ filter: 'brightness(0) invert(1)' }} loading="eager" />
               )}
               <p className="text-[10px] md:text-xs text-gray-500 text-center">{t('copyright')}</p>
             </div>

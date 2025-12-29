@@ -105,8 +105,8 @@ export default function PressPage() {
         <div className="max-w-3xl mx-auto px-4 text-center">
           <h2 className="text-2xl font-bold mb-4">Media Contact</h2>
           <p className="text-gray-600 mb-6">For press inquiries, interviews, or partnership opportunities:</p>
-          <a href="mailto:press@fly2any.com" className="inline-flex items-center gap-2 px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700">
-            <Mail className="w-5 h-5" /> press@fly2any.com
+          <a href="mailto:support@fly2any.com" className="inline-flex items-center gap-2 px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700">
+            <Mail className="w-5 h-5" /> support@fly2any.com
           </a>
         </div>
       </section>

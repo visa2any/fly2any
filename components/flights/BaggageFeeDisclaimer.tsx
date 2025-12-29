@@ -1,7 +1,6 @@
 'use client';
 
 import { Info } from 'lucide-react';
-import Link from 'next/link';
 
 /**
  * DOT COMPLIANCE: 14 CFR 399.85 Baggage Fee Disclosure
@@ -22,24 +21,19 @@ interface BaggageFeeDisclaimerProps {
   lang?: 'en' | 'pt' | 'es';
   /** Optional custom styling */
   className?: string;
-  /** Show link to baggage fees page */
-  showLink?: boolean;
 }
 
 const content = {
   en: {
     disclaimer: 'Baggage fees may apply and vary by airline.',
-    linkText: 'View baggage fee details',
     additionalInfo: 'Checked bag allowances and fees differ by fare class and route. See individual flight details for specific baggage policies.',
   },
   pt: {
     disclaimer: 'Taxas de bagagem podem ser aplicadas e variam por companhia aérea.',
-    linkText: 'Ver detalhes de taxas de bagagem',
     additionalInfo: 'Franquias e taxas de bagagem despachada diferem por classe tarifária e rota. Consulte os detalhes individuais do voo para políticas específicas.',
   },
   es: {
     disclaimer: 'Se pueden aplicar tarifas de equipaje y varían según la aerolínea.',
-    linkText: 'Ver detalles de tarifas de equipaje',
     additionalInfo: 'Las franquicias y tarifas de equipaje facturado difieren según la clase tarifaria y la ruta. Consulte los detalles individuales del vuelo para conocer las políticas específicas.',
   },
 };
@@ -47,7 +41,6 @@ const content = {
 export default function BaggageFeeDisclaimer({
   lang = 'en',
   className = '',
-  showLink = true,
 }: BaggageFeeDisclaimerProps) {
   const t = content[lang];
 
@@ -75,19 +68,7 @@ export default function BaggageFeeDisclaimer({
         <div className="flex-1">
           <p className="text-sm font-semibold text-blue-900">
             {t.disclaimer}
-            {showLink && (
-              <>
-                {' '}
-                <Link
-                  href="/baggage-fees"
-                  className="text-blue-600 underline font-semibold hover:text-blue-800 transition-colors"
-                  aria-label={t.linkText}
-                >
-                  {t.linkText}
-                </Link>
-              </>
-            )}
-          </p>
+                      </p>
 
           {/* Additional Context (Optional - can be hidden on mobile) */}
           <p className="hidden sm:block mt-1 text-xs text-blue-700">
