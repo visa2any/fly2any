@@ -224,7 +224,8 @@ export function Header({
                 priority
                 className="h-6 sm:h-7 lg:h-7 w-auto object-contain transition-all duration-200"
                 style={{
-                  filter: scrolled ? 'none' : 'brightness(1.3) drop-shadow(0 1px 3px rgba(0,0,0,0.5))',
+                  filter: scrolled ? 'none' : 'brightness(1.5) drop-shadow(0 2px 4px rgba(0,0,0,0.6))',
+                  mixBlendMode: scrolled ? 'normal' : 'lighten',
                 }}
               />
             </a>
