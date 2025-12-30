@@ -486,20 +486,6 @@ export const ExperienceConfirmation = memo(({
                   </div>
                 </a>
 
-                <a
-                  href="https://wa.me/18885550123"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="flex items-center gap-3 p-4 rounded-xl border border-gray-200 hover:border-gray-300 hover:bg-gray-50 transition-all group"
-                >
-                  <div className="w-10 h-10 bg-green-100 rounded-full flex items-center justify-center group-hover:bg-green-200 transition-colors">
-                    <MessageCircle className="w-5 h-5 text-green-600" />
-                  </div>
-                  <div>
-                    <p className="font-semibold text-gray-900">WhatsApp</p>
-                    <p className="text-xs text-gray-500">Chat with us</p>
-                  </div>
-                </a>
               </div>
             </div>
           </div>

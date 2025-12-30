@@ -124,9 +124,6 @@ export default function HelpPage() {
               <Link href="/contact" className="px-8 py-4 rounded-full bg-white text-emerald-600 font-semibold hover:bg-gray-100 transition-colors">
                 Contact Us
               </Link>
-              <a href="https://wa.me/13057971087" className="px-8 py-4 rounded-full bg-white/20 text-white font-semibold hover:bg-white/30 transition-colors flex items-center justify-center gap-2">
-                <MessageCircle className="w-5 h-5" /> WhatsApp
-              </a>
             </div>
           </motion.div>
         </div>
