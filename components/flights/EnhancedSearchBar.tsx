@@ -1841,7 +1841,7 @@ export default function EnhancedSearchBar({
                   }}
                   className="w-3.5 h-3.5 rounded border-gray-300 text-[#D63A35] focus:ring-[#D63A35] cursor-pointer"
                 />
-                <ArrowRight size={12} className="text-gray-500" />
+                <ArrowRight size={12} className={transparent ? "text-white" : "text-primary-500"} />
                 <span className={`text-xs font-bold ${transparent ? "text-white" : "text-gray-700"}`}>{labels.oneWay}</span>
               </label>
             </div>
