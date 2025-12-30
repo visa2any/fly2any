@@ -38,9 +38,15 @@ const getLogoUrl = (code: string) => `https://assets.duffel.com/img/airlines/for
 
 export function AirlineLogosMarquee() {
   return (
-    <div className="w-screen relative overflow-hidden -mx-4 py-3 mb-16 md:mb-24">
+    <div className="w-screen relative overflow-hidden -mx-4 py-3 mb-4 md:mb-6">
       {/* Animated track with duplicated content for seamless loop */}
-      <div className="flex animate-airline-marquee" style={{ width: 'fit-content' }}>
+      <div
+        className="flex"
+        style={{
+          width: 'fit-content',
+          animation: 'airline-scroll 150s linear infinite'
+        }}
+      >
         <div
           className="flex items-center gap-12 md:gap-16 px-6"
         >

@@ -3922,13 +3922,13 @@ export default function EnhancedSearchBar({
           <div className="space-y-1.5">
             {/* Labels row: From, To, One-way aligned */}
             <div className="grid grid-cols-2 gap-2">
-              <label className="flex items-center gap-1.5 text-xs font-semibold text-neutral-600">
-                <PlaneTakeoff size={13} className="text-neutral-500" />
+              <label className={`flex items-center gap-1.5 text-xs font-semibold ${transparent ? 'text-white/80' : 'text-neutral-600'}`}>
+                <PlaneTakeoff size={13} className={transparent ? 'text-white/60' : 'text-neutral-500'} />
                 <span>{t('from')}</span>
               </label>
               <div className="flex items-center justify-between">
-                <label className="flex items-center gap-1.5 text-xs font-semibold text-neutral-600">
-                  <PlaneLanding size={13} className="text-neutral-500" />
+                <label className={`flex items-center gap-1.5 text-xs font-semibold ${transparent ? 'text-white/80' : 'text-neutral-600'}`}>
+                  <PlaneLanding size={13} className={transparent ? 'text-white/60' : 'text-neutral-500'} />
                   <span>{t('to')}</span>
                 </label>
                 <label className="flex items-center gap-1.5 cursor-pointer group touch-manipulation">
@@ -3948,9 +3948,9 @@ export default function EnhancedSearchBar({
                         }
                       }
                     }}
-                    className="w-4 h-4 rounded-md border-neutral-300 text-primary-500 focus:ring-primary-400 focus:ring-offset-0 cursor-pointer"
+                    className={`w-4 h-4 rounded-md text-primary-500 focus:ring-primary-400 focus:ring-offset-0 cursor-pointer ${transparent ? 'border-white/40' : 'border-neutral-300'}`}
                   />
-                  <span className="text-[11px] font-semibold text-neutral-500 group-hover:text-primary-500 transition-colors">
+                  <span className={`text-[11px] font-semibold transition-colors ${transparent ? 'text-white/70 group-hover:text-white' : 'text-neutral-500 group-hover:text-primary-500'}`}>
                     {t('oneWay')}
                   </span>
                 </label>
@@ -3985,8 +3985,8 @@ export default function EnhancedSearchBar({
             <div className="grid grid-cols-2 gap-2">
               {/* Depart label - with Multi-Dates toggle for one-way */}
               <div className="flex items-center justify-between">
-                <label className="flex items-center gap-1.5 text-xs font-semibold text-neutral-600">
-                  <CalendarDays size={13} className="text-neutral-500" />
+                <label className={`flex items-center gap-1.5 text-xs font-semibold ${transparent ? 'text-white/80' : 'text-neutral-600'}`}>
+                  <CalendarDays size={13} className={transparent ? 'text-white/60' : 'text-neutral-500'} />
                   <span>{labels.depart}</span>
                 </label>
                 {/* Multi-Dates toggle for one-way */}
@@ -4004,9 +4004,9 @@ export default function EnhancedSearchBar({
                           setDepartureDates([]);
                         }
                       }}
-                      className="w-4 h-4 rounded-md border-neutral-300 text-primary-500 focus:ring-primary-400 focus:ring-offset-0 cursor-pointer disabled:cursor-not-allowed disabled:opacity-50"
+                      className={`w-4 h-4 rounded-md text-primary-500 focus:ring-primary-400 focus:ring-offset-0 cursor-pointer disabled:cursor-not-allowed disabled:opacity-50 ${transparent ? 'border-white/40' : 'border-neutral-300'}`}
                     />
-                    <span className="text-[11px] font-semibold text-neutral-500 group-hover:text-primary-500 transition-colors">
+                    <span className={`text-[11px] font-semibold transition-colors ${transparent ? 'text-white/70 group-hover:text-white' : 'text-neutral-500 group-hover:text-primary-500'}`}>
                       {labels.multiDates}
                     </span>
                   </label>
@@ -4014,8 +4014,8 @@ export default function EnhancedSearchBar({
               </div>
               {tripType === 'roundtrip' ? (
                 <div className="flex items-center justify-between">
-                  <label className="flex items-center gap-1.5 text-xs font-semibold text-neutral-600">
-                    <CalendarCheck size={13} className="text-neutral-500" />
+                  <label className={`flex items-center gap-1.5 text-xs font-semibold ${transparent ? 'text-white/80' : 'text-neutral-600'}`}>
+                    <CalendarCheck size={13} className={transparent ? 'text-white/60' : 'text-neutral-500'} />
                     <span>{labels.return}</span>
                   </label>
                   {/* Multi-Dates Toggle - Disabled when multi-city flights added */}
@@ -4034,9 +4034,9 @@ export default function EnhancedSearchBar({
                           setReturnDates([]);
                         }
                       }}
-                      className="w-4 h-4 rounded-md border-neutral-300 text-primary-500 focus:ring-primary-400 focus:ring-offset-0 cursor-pointer disabled:cursor-not-allowed disabled:opacity-50"
+                      className={`w-4 h-4 rounded-md text-primary-500 focus:ring-primary-400 focus:ring-offset-0 cursor-pointer disabled:cursor-not-allowed disabled:opacity-50 ${transparent ? 'border-white/40' : 'border-neutral-300'}`}
                     />
-                    <span className="text-[11px] font-semibold text-neutral-500 group-hover:text-primary-500 transition-colors">
+                    <span className={`text-[11px] font-semibold transition-colors ${transparent ? 'text-white/70 group-hover:text-white' : 'text-neutral-500 group-hover:text-primary-500'}`}>
                       {labels.multiDates}
                     </span>
                   </label>
@@ -4044,8 +4044,8 @@ export default function EnhancedSearchBar({
               ) : (
                 /* One-way: Show "+ Add Flight" label */
                 additionalFlights.length === 0 && (
-                  <label className="flex items-center gap-1.5 text-xs font-semibold text-neutral-400">
-                    <Plane size={13} className="text-neutral-400" />
+                  <label className={`flex items-center gap-1.5 text-xs font-semibold ${transparent ? 'text-white/50' : 'text-neutral-400'}`}>
+                    <Plane size={13} className={transparent ? 'text-white/50' : 'text-neutral-400'} />
                     <span>{labels.addFlight}</span>
                   </label>
                 )
@@ -4062,8 +4062,8 @@ export default function EnhancedSearchBar({
                     transparent ? 'bg-black/30 backdrop-blur-sm text-white' : 'bg-white'
                   } ${errors.departureDate ? 'border-red-400' : transparent ? 'border-white/30 hover:border-primary-400' : 'border-neutral-200 hover:border-primary-400'}`}
                 >
-                  <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 text-neutral-400" size={16} />
-                  <span className="pl-6 text-sm font-semibold text-neutral-800 truncate">
+                  <Calendar className={`absolute left-3 top-1/2 -translate-y-1/2 ${transparent ? 'text-white/60' : 'text-neutral-400'}`} size={16} />
+                  <span className={`pl-6 text-sm font-semibold truncate ${transparent ? 'text-white' : 'text-neutral-800'}`}>
                     {departureDate ? formatDateForDisplay(departureDate) : labels.selectDate}
                   </span>
                 </button>
@@ -4075,16 +4075,16 @@ export default function EnhancedSearchBar({
                     transparent ? 'bg-black/30 backdrop-blur-sm text-white' : 'bg-white'
                   } ${errors.departureDate ? 'border-red-400' : transparent ? 'border-white/30 hover:border-primary-400' : 'border-neutral-200 hover:border-primary-400'}`}
                 >
-                  <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 text-neutral-400" size={16} />
+                  <Calendar className={`absolute left-3 top-1/2 -translate-y-1/2 ${transparent ? 'text-white/60' : 'text-neutral-400'}`} size={16} />
                   <div className="pl-6 flex flex-wrap gap-1 items-center">
                     {departureDates.length > 0 ? (
                       departureDates.map((date, idx) => (
-                        <span key={idx} className="inline-flex items-center px-2 py-0.5 rounded-lg bg-primary-50 text-primary-600 text-xs font-bold">
+                        <span key={idx} className={`inline-flex items-center px-2 py-0.5 rounded-lg text-xs font-bold ${transparent ? 'bg-white/20 text-white' : 'bg-primary-50 text-primary-600'}`}>
                           {format(date, 'MMM d')}
                         </span>
                       ))
                     ) : (
-                      <span className="text-sm text-neutral-400">{labels.selectDates}</span>
+                      <span className={`text-sm ${transparent ? 'text-white/50' : 'text-neutral-400'}`}>{labels.selectDates}</span>
                     )}
                   </div>
                 </button>
@@ -4099,8 +4099,8 @@ export default function EnhancedSearchBar({
                       transparent ? 'bg-black/30 backdrop-blur-sm text-white' : 'bg-white'
                     } ${errors.returnDate ? 'border-red-400' : transparent ? 'border-white/30 hover:border-primary-400' : 'border-neutral-200 hover:border-primary-400'}`}
                   >
-                    <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 text-neutral-400" size={16} />
-                    <span className="pl-6 text-sm font-semibold text-neutral-800 truncate">
+                    <Calendar className={`absolute left-3 top-1/2 -translate-y-1/2 ${transparent ? 'text-white/60' : 'text-neutral-400'}`} size={16} />
+                    <span className={`pl-6 text-sm font-semibold truncate ${transparent ? 'text-white' : 'text-neutral-800'}`}>
                       {returnDate ? formatDateForDisplay(returnDate) : labels.selectDate}
                     </span>
                   </button>
@@ -4112,16 +4112,16 @@ export default function EnhancedSearchBar({
                       transparent ? 'bg-black/30 backdrop-blur-sm text-white' : 'bg-white'
                     } ${errors.returnDate ? 'border-red-400' : transparent ? 'border-white/30 hover:border-primary-400' : 'border-neutral-200 hover:border-primary-400'}`}
                   >
-                    <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 text-neutral-400" size={16} />
+                    <Calendar className={`absolute left-3 top-1/2 -translate-y-1/2 ${transparent ? 'text-white/60' : 'text-neutral-400'}`} size={16} />
                     <div className="pl-6 flex flex-wrap gap-1 items-center">
                       {returnDates.length > 0 ? (
                         returnDates.map((date, idx) => (
-                          <span key={idx} className="inline-flex items-center px-2 py-0.5 rounded-lg bg-primary-50 text-primary-600 text-xs font-bold">
+                          <span key={idx} className={`inline-flex items-center px-2 py-0.5 rounded-lg text-xs font-bold ${transparent ? 'bg-white/20 text-white' : 'bg-primary-50 text-primary-600'}`}>
                             {format(date, 'MMM d')}
                           </span>
                         ))
                       ) : (
-                        <span className="text-sm text-neutral-400">{labels.selectDates}</span>
+                        <span className={`text-sm ${transparent ? 'text-white/50' : 'text-neutral-400'}`}>{labels.selectDates}</span>
                       )}
                     </div>
                   </button>
@@ -4277,15 +4277,15 @@ export default function EnhancedSearchBar({
                   e.stopPropagation();
                   setShowPassengerDropdown(!showPassengerDropdown);
                 }}
-                className={`flex items-center gap-2 px-4 py-2.5 min-h-[44px] border-2 rounded-xl text-sm font-semibold text-neutral-700 hover:border-primary-400 transition-all duration-200 touch-manipulation active:scale-[0.98] ${
-                  transparent ? 'bg-black/30 backdrop-blur-sm border-white/20 text-white placeholder:text-white/50' : 'bg-white border-neutral-200'
+                className={`flex items-center gap-2 px-4 py-2.5 min-h-[44px] border-2 rounded-xl text-sm font-semibold hover:border-primary-400 transition-all duration-200 touch-manipulation active:scale-[0.98] ${
+                  transparent ? 'bg-black/30 backdrop-blur-sm border-white/20 text-white' : 'bg-white border-neutral-200 text-neutral-700'
                 }`}
               >
-                <Users size={14} className="text-primary-500" />
-                <span className="font-bold text-neutral-800">{totalPassengers}</span>
-                <span className="text-neutral-300">|</span>
-                <span className="text-neutral-600">{t(cabinClass as any)}</span>
-                <ChevronDown size={12} className={`text-neutral-400 transition-transform ${showPassengerDropdown ? 'rotate-180' : ''}`} />
+                <Users size={14} className={transparent ? 'text-white' : 'text-primary-500'} />
+                <span className={`font-bold ${transparent ? 'text-white' : 'text-neutral-800'}`}>{totalPassengers}</span>
+                <span className={transparent ? 'text-white/40' : 'text-neutral-300'}>|</span>
+                <span className={transparent ? 'text-white/80' : 'text-neutral-600'}>{t(cabinClass as any)}</span>
+                <ChevronDown size={12} className={`transition-transform ${showPassengerDropdown ? 'rotate-180' : ''} ${transparent ? 'text-white/60' : 'text-neutral-400'}`} />
               </button>
 
               {/* Passenger & Class Dropdown - Apple-Class Mobile Bottom Sheet */}
@@ -4366,32 +4366,36 @@ export default function EnhancedSearchBar({
             </div>
 
             {/* Vertical divider */}
-            <div className="h-4 w-px bg-neutral-200 flex-shrink-0" />
+            <div className={`h-4 w-px flex-shrink-0 ${transparent ? 'bg-white/20' : 'bg-neutral-200'}`} />
 
             {/* Direct Flights - Apple-Class Chip */}
-            <label className="flex items-center gap-1.5 cursor-pointer flex-shrink-0 min-h-[36px] px-3 py-1.5 bg-neutral-100 rounded-xl touch-manipulation active:scale-95 hover:bg-neutral-200 transition-colors">
+            <label className={`flex items-center gap-1.5 cursor-pointer flex-shrink-0 min-h-[36px] px-3 py-1.5 rounded-xl touch-manipulation active:scale-95 transition-colors ${
+              transparent ? 'bg-white/10 hover:bg-white/20' : 'bg-neutral-100 hover:bg-neutral-200'
+            }`}>
               <input
                 type="checkbox"
                 checked={directFlights}
                 onChange={(e) => setDirectFlights(e.target.checked)}
-                className="w-4 h-4 rounded-md border-neutral-300 text-primary-500 focus:ring-primary-400 focus:ring-offset-0 cursor-pointer"
+                className={`w-4 h-4 rounded-md text-primary-500 focus:ring-primary-400 focus:ring-offset-0 cursor-pointer ${transparent ? 'border-white/40' : 'border-neutral-300'}`}
               />
-              <span className="text-xs font-semibold text-neutral-700 whitespace-nowrap">Direct</span>
+              <span className={`text-xs font-semibold whitespace-nowrap ${transparent ? 'text-white' : 'text-neutral-700'}`}>Direct</span>
             </label>
 
             {/* Separate Tickets - Apple-Class Chip (round trips only) */}
             {tripType === 'roundtrip' && (
               <>
-                <div className="h-4 w-px bg-neutral-200 flex-shrink-0" />
-                <label className="flex items-center gap-1.5 cursor-pointer flex-shrink-0 min-h-[36px] px-3 py-1.5 bg-amber-50 rounded-xl touch-manipulation active:scale-95 hover:bg-amber-100 transition-colors" title="Find cheaper fares by combining different airlines">
+                <div className={`h-4 w-px flex-shrink-0 ${transparent ? 'bg-white/20' : 'bg-neutral-200'}`} />
+                <label className={`flex items-center gap-1.5 cursor-pointer flex-shrink-0 min-h-[36px] px-3 py-1.5 rounded-xl touch-manipulation active:scale-95 transition-colors ${
+                  transparent ? 'bg-amber-500/20 hover:bg-amber-500/30' : 'bg-amber-50 hover:bg-amber-100'
+                }`} title="Find cheaper fares by combining different airlines">
                   <input
                     type="checkbox"
                     checked={includeSeparateTickets}
                     onChange={(e) => setIncludeSeparateTickets(e.target.checked)}
-                    className="w-4 h-4 rounded-md border-amber-300 text-amber-500 focus:ring-amber-400 focus:ring-offset-0 cursor-pointer"
+                    className={`w-4 h-4 rounded-md text-amber-500 focus:ring-amber-400 focus:ring-offset-0 cursor-pointer ${transparent ? 'border-amber-300/50' : 'border-amber-300'}`}
                   />
-                  <span className="text-[11px] font-semibold text-neutral-600 whitespace-nowrap">Split</span>
-                  <span className="px-1.5 py-0.5 bg-emerald-100 text-emerald-700 text-[8px] font-bold rounded-md">$</span>
+                  <span className={`text-[11px] font-semibold whitespace-nowrap ${transparent ? 'text-white' : 'text-neutral-600'}`}>Split</span>
+                  <span className={`px-1.5 py-0.5 text-[8px] font-bold rounded-md ${transparent ? 'bg-emerald-500/30 text-emerald-300' : 'bg-emerald-100 text-emerald-700'}`}>$</span>
                 </label>
               </>
             )}
@@ -4426,7 +4430,7 @@ export default function EnhancedSearchBar({
           <div className="flex gap-2">
             {/* Hotel Destination - Takes most space */}
             <div ref={hotelDestinationRef} className="relative flex-1 min-w-0">
-              <label className="block text-xs font-semibold text-neutral-600 mb-1.5">
+              <label className={`block text-xs font-semibold mb-1.5 ${transparent ? 'text-white/80' : 'text-neutral-600'}`}>
                 Destination
               </label>
               <div className="relative">
@@ -4634,7 +4638,7 @@ export default function EnhancedSearchBar({
 
           {/* Check-in and Check-out Dates - Unified Date Range Picker */}
           <div>
-            <label className="block text-xs font-semibold text-neutral-600 mb-1.5">
+            <label className={`block text-xs font-semibold mb-1.5 ${transparent ? 'text-white/80' : 'text-neutral-600'}`}>
               Stay Dates
             </label>
             <button
@@ -4648,21 +4652,21 @@ export default function EnhancedSearchBar({
                 {/* Check-in */}
                 <div className="flex-1 text-left">
                   <div className="flex items-center gap-1.5 mb-0.5">
-                    <div className={`w-6 h-6 rounded-lg flex items-center justify-center ${checkInDate ? 'bg-emerald-500' : 'bg-neutral-100'}`}>
-                      <LogIn className={`w-3 h-3 ${checkInDate ? 'text-white' : 'text-neutral-400'}`} />
+                    <div className={`w-6 h-6 rounded-lg flex items-center justify-center ${checkInDate ? 'bg-emerald-500' : transparent ? 'bg-white/10' : 'bg-neutral-100'}`}>
+                      <LogIn className={`w-3 h-3 ${checkInDate ? 'text-white' : transparent ? 'text-white/50' : 'text-neutral-400'}`} />
                     </div>
-                    <span className="text-[10px] font-semibold text-neutral-500 uppercase">Check-in</span>
+                    <span className={`text-[10px] font-semibold uppercase ${transparent ? 'text-white/60' : 'text-neutral-500'}`}>Check-in</span>
                   </div>
-                  <div className={`text-[13px] font-bold ${checkInDate ? 'text-neutral-800' : 'text-neutral-400'}`}>
+                  <div className={`text-[13px] font-bold ${checkInDate ? (transparent ? 'text-white' : 'text-neutral-800') : (transparent ? 'text-white/50' : 'text-neutral-400')}`}>
                     {checkInDate ? formatDateForDisplay(checkInDate) : 'Select'}
                   </div>
                 </div>
 
                 {/* Arrow */}
                 <div className="flex flex-col items-center px-1">
-                  <ArrowRight className="w-3.5 h-3.5 text-neutral-300" />
+                  <ArrowRight className={`w-3.5 h-3.5 ${transparent ? 'text-white/30' : 'text-neutral-300'}`} />
                   {checkInDate && checkOutDate && (
-                    <span className="text-[9px] font-semibold text-primary-500">
+                    <span className={`text-[9px] font-semibold ${transparent ? 'text-white' : 'text-primary-500'}`}>
                       {Math.ceil((new Date(checkOutDate).getTime() - new Date(checkInDate).getTime()) / (1000 * 60 * 60 * 24))}n
                     </span>
                   )}
@@ -4671,12 +4675,12 @@ export default function EnhancedSearchBar({
                 {/* Check-out */}
                 <div className="flex-1 text-right">
                   <div className="flex items-center justify-end gap-1.5 mb-0.5">
-                    <span className="text-[10px] font-semibold text-neutral-500 uppercase">Check-out</span>
-                    <div className={`w-6 h-6 rounded-lg flex items-center justify-center ${checkOutDate ? 'bg-orange-500' : 'bg-neutral-100'}`}>
-                      <LogOut className={`w-3 h-3 ${checkOutDate ? 'text-white' : 'text-neutral-400'}`} />
+                    <span className={`text-[10px] font-semibold uppercase ${transparent ? 'text-white/60' : 'text-neutral-500'}`}>Check-out</span>
+                    <div className={`w-6 h-6 rounded-lg flex items-center justify-center ${checkOutDate ? 'bg-orange-500' : transparent ? 'bg-white/10' : 'bg-neutral-100'}`}>
+                      <LogOut className={`w-3 h-3 ${checkOutDate ? 'text-white' : transparent ? 'text-white/50' : 'text-neutral-400'}`} />
                     </div>
                   </div>
-                  <div className={`text-[13px] font-bold ${checkOutDate ? 'text-neutral-800' : 'text-neutral-400'}`}>
+                  <div className={`text-[13px] font-bold ${checkOutDate ? (transparent ? 'text-white' : 'text-neutral-800') : (transparent ? 'text-white/50' : 'text-neutral-400')}`}>
                     {checkOutDate ? formatDateForDisplay(checkOutDate) : 'Select'}
                   </div>
                 </div>
