@@ -172,16 +172,19 @@ export default function Home() {
     setMounted(true);
   }, []);
 
-  // Rotate hero images every 5 seconds
+  // Rotate hero images every 6 seconds (only after mount to prevent SSR issues)
   useEffect(() => {
+    if (!mounted) return;
+
     const photoCount = HERO_PHOTOS[activeService].length;
+    if (photoCount <= 1) return; // No rotation needed for single image
 
     const interval = setInterval(() => {
       setHeroIndex((prev) => (prev + 1) % photoCount);
-    }, 5000);
+    }, 6000);
 
     return () => clearInterval(interval);
-  }, [activeService]);
+  }, [activeService, mounted]);
 
   // Handle service type change from search form
   const handleServiceChange = (service: string) => {
@@ -264,7 +267,7 @@ export default function Home() {
                       WebkitTextFillColor: 'transparent',
                     }}
                     animate={{ backgroundPosition: ['0% 0%', '100% 100%', '0% 0%'] }}
-                    transition={{ duration: 4, repeat: Infinity, ease: 'linear' }}
+                    transition={{ duration: 10, repeat: Infinity, ease: 'easeInOut' }}
                   >
                     {t.titleHighlight}
                   </motion.span>
