@@ -30,6 +30,7 @@ interface MultiAirportSelectorProps {
   maxDisplay?: number; // Max airports to show in collapsed state (default: 1)
   lang?: 'en' | 'pt' | 'es';
   testId?: string; // For E2E testing
+  transparent?: boolean; // Level-6 glassmorphism mode
 }
 
 // Convert comprehensive airport data to component format
@@ -73,6 +74,7 @@ export default function MultiAirportSelector({
   maxDisplay = 1,
   lang = 'en',
   testId,
+  transparent = false,
 }: MultiAirportSelectorProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
@@ -173,16 +175,16 @@ export default function MultiAirportSelector({
   return (
     <div ref={dropdownRef} className="relative">
       {label && (
-        <label className="flex items-center gap-1.5 text-xs font-semibold text-neutral-600 mb-1.5">
-          {label === 'From' && <PlaneTakeoff size={14} className="text-neutral-500" />}
-          {label === 'To' && <PlaneLanding size={14} className="text-neutral-500" />}
+        <label className={`flex items-center gap-1.5 text-xs font-semibold mb-1.5 ${transparent ? 'text-white/90' : 'text-neutral-600'}`}>
+          {label === 'From' && <PlaneTakeoff size={14} className={transparent ? 'text-white/70' : 'text-neutral-500'} />}
+          {label === 'To' && <PlaneLanding size={14} className={transparent ? 'text-white/70' : 'text-neutral-500'} />}
           <span>{label}</span>
         </label>
       )}
 
       {/* Main Typeable Input - Single Field */}
       <div className="relative">
-        <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 text-neutral-400 flex-shrink-0 z-10" size={16} />
+        <MapPin className={`absolute left-3 top-1/2 -translate-y-1/2 flex-shrink-0 z-10 ${transparent ? 'text-white/60' : 'text-neutral-400'}`} size={16} />
         <input
           type="text"
           value={isOpen ? searchQuery : (selectedAirports.length > 0 ? `${selectedAirports[0].emoji} ${selectedAirports[0].city} (${selectedAirports[0].code})${selectedAirports.length > 1 ? ` +${selectedAirports.length - 1}` : ''}` : '')}
@@ -190,10 +192,14 @@ export default function MultiAirportSelector({
           onFocus={() => { setIsOpen(true); setSearchQuery(''); }}
           placeholder={placeholder}
           data-testid={testId}
-          className="w-full min-h-[48px] py-3 pl-9 pr-8 bg-white border-2 border-neutral-200 hover:border-primary-400 focus:border-primary-500 rounded-xl text-sm font-semibold text-neutral-800 transition-all duration-200 focus:outline-none"
+          className={`w-full h-[52px] py-3 pl-9 pr-8 border-2 rounded-xl text-sm font-semibold transition-all duration-200 focus:outline-none ${
+            transparent
+              ? 'bg-black/30 backdrop-blur-sm border-white/20 text-white placeholder:text-white/50 hover:border-white/40 focus:border-white/50'
+              : 'bg-white border-neutral-200 text-neutral-800 hover:border-primary-400 focus:border-primary-500'
+          }`}
         />
         <ChevronDown
-          className={`absolute right-2 top-1/2 -translate-y-1/2 text-neutral-400 transition-transform duration-200 flex-shrink-0 pointer-events-none ${isOpen ? 'rotate-180' : ''}`}
+          className={`absolute right-2 top-1/2 -translate-y-1/2 transition-transform duration-200 flex-shrink-0 pointer-events-none ${isOpen ? 'rotate-180' : ''} ${transparent ? 'text-white/50' : 'text-neutral-400'}`}
           size={14}
         />
       </div>

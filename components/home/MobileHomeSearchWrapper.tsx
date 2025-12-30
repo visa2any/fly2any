@@ -295,16 +295,7 @@ export function MobileHomeSearchWrapper({
     // Desktop: Pass all search data props to preserve form state
     return (
       <div className={glassmorphism ? 'mx-4 md:mx-6' : ''}>
-        <div
-          className={glassmorphism ? 'rounded-2xl overflow-hidden' : ''}
-          style={glassmorphism ? {
-            background: 'rgba(255,255,255,0.92)',
-            backdropFilter: 'blur(20px)',
-            WebkitBackdropFilter: 'blur(20px)',
-            border: '1px solid rgba(255,255,255,0.3)',
-            boxShadow: '0 8px 32px rgba(0,0,0,0.15), 0 2px 8px rgba(0,0,0,0.1)',
-          } : {}}
-        >
+        <div>
           <EnhancedSearchBar
             origin={origin}
             destination={destination}
@@ -316,6 +307,7 @@ export function MobileHomeSearchWrapper({
             defaultService={defaultService}
             hideTabs={hideTabs}
             journeyMode={journeyMode}
+            transparent={glassmorphism}
           />
         </div>
       </div>
@@ -345,15 +337,9 @@ export function MobileHomeSearchWrapper({
               onClick={handleExpand}
               className={`w-full min-h-[52px] px-4 py-3 transition-all duration-200 active:scale-[0.99] touch-manipulation ${
                 glassmorphism
-                  ? 'rounded-2xl border border-white/30'
+                  ? 'rounded-2xl bg-black/20 backdrop-blur-sm border border-white/20'
                   : 'bg-white border-y-2 border-neutral-200 hover:border-primary-400 shadow-md'
               }`}
-              style={glassmorphism ? {
-                background: 'rgba(255,255,255,0.9)',
-                backdropFilter: 'blur(16px)',
-                WebkitBackdropFilter: 'blur(16px)',
-                boxShadow: '0 4px 24px rgba(0,0,0,0.15)',
-              } : {}}
               aria-label={`Expand ${defaultService} search form`}
               aria-expanded="false"
               type="button"
@@ -505,10 +491,11 @@ export function MobileHomeSearchWrapper({
                 onSearchSubmit={handleSearchSubmit}
                 hideTabs={hideTabs}
                 journeyMode={journeyMode}
+                transparent={glassmorphism}
               />
             </div>
 
-            {/* Compact Collapse Handle - Apple-Class Drag Pill */}
+            {/* Compact Collapse Handle - Level-6 Style */}
             <motion.div
               initial={{ opacity: 0, y: -5 }}
               animate={{ opacity: 1, y: 0 }}
@@ -518,11 +505,15 @@ export function MobileHomeSearchWrapper({
               <button
                 type="button"
                 onClick={handleCollapse}
-                className="flex items-center justify-center gap-0.5 px-4 py-1.5 bg-neutral-100 hover:bg-neutral-200 rounded-full transition-all duration-150 touch-manipulation active:scale-95"
+                className={`flex items-center justify-center gap-0.5 px-4 py-1.5 rounded-full transition-all duration-150 touch-manipulation active:scale-95 ${
+                  glassmorphism
+                    ? 'bg-white/40 hover:bg-white/60 border border-white/30'
+                    : 'bg-neutral-100 hover:bg-neutral-200'
+                }`}
                 aria-label="Minimize search form"
               >
-                <ChevronUp className="w-4 h-4 text-neutral-500" />
-                <span className="text-[10px] font-semibold text-neutral-500">{labels.close}</span>
+                <ChevronUp className={`w-4 h-4 ${glassmorphism ? 'text-neutral-600' : 'text-neutral-500'}`} />
+                <span className={`text-[10px] font-semibold ${glassmorphism ? 'text-neutral-600' : 'text-neutral-500'}`}>{labels.close}</span>
               </button>
             </motion.div>
           </motion.div>

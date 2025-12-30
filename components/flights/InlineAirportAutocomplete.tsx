@@ -11,6 +11,7 @@ interface InlineAirportAutocompleteProps {
   placeholder?: string;
   disabled?: boolean;
   displayName?: string; // Show this instead of just code
+  transparent?: boolean; // Level-6 glassmorphism mode
 }
 
 // Get popular airports for initial display
@@ -28,7 +29,8 @@ export function InlineAirportAutocomplete({
   onSelectFull,
   placeholder = 'Airport code',
   disabled = false,
-  displayName
+  displayName,
+  transparent = false
 }: InlineAirportAutocompleteProps) {
   const [inputValue, setInputValue] = useState(displayName || value);
   const [showDropdown, setShowDropdown] = useState(false);
@@ -164,7 +166,7 @@ export function InlineAirportAutocomplete({
       <div className="relative">
         <MapPin
           className={`absolute left-3 top-1/2 -translate-y-1/2 ${
-            disabled ? 'text-gray-300' : 'text-gray-400'
+            disabled ? 'text-gray-300' : transparent ? 'text-white/70' : 'text-gray-400'
           }`}
           size={20}
         />
@@ -180,13 +182,15 @@ export function InlineAirportAutocomplete({
           disabled={disabled}
           placeholder={placeholder}
           className={`
-            w-full min-h-[56px] max-h-[56px] h-[56px] pl-11 pr-10
+            w-full h-[52px] pl-11 pr-10
             text-base font-medium
-            border border-gray-200 rounded-lg
+            border rounded-xl
             transition-all duration-200
             ${disabled
-              ? 'bg-gray-50 text-gray-400 cursor-not-allowed'
-              : 'bg-white text-gray-900 hover:border-gray-300 focus:border-[#0087FF] focus:ring-2 focus:ring-[#0087FF]/20'
+              ? 'bg-gray-50 text-gray-400 cursor-not-allowed border-gray-200'
+              : transparent
+                ? 'bg-black/30 backdrop-blur-sm text-white border-white/20 placeholder:text-white/50 hover:border-white/40 focus:border-white/50 focus:ring-2 focus:ring-white/20'
+                : 'bg-white text-gray-900 border-gray-200 hover:border-gray-300 focus:border-[#0087FF] focus:ring-2 focus:ring-[#0087FF]/20'
             }
             outline-none
             overflow-hidden

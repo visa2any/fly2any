@@ -49,6 +49,7 @@ interface EnhancedSearchBarProps {
   // Layout options
   hideTabs?: boolean;  // Hide the service tabs (for Journey page)
   journeyMode?: boolean;  // When true, redirects to /journey/builder instead of /flights/results
+  transparent?: boolean;  // Level-6 glassmorphism mode for hero overlay
 }
 
 interface Airport {
@@ -182,6 +183,7 @@ export default function EnhancedSearchBar({
   onSearchSubmit,
   hideTabs = false,
   journeyMode = false,
+  transparent = false,
 }: EnhancedSearchBarProps) {
   // Search form label translations
   const searchLabels = {
@@ -1408,7 +1410,7 @@ export default function EnhancedSearchBar({
   }, []);
 
   return (
-    <div className="bg-white shadow-lg lg:shadow-xl border-b border-neutral-100">
+    <div className={transparent ? '' : 'bg-white shadow-lg lg:shadow-xl border-b border-neutral-100'}>
       {/* Container with max-width matching results page (Priceline-style) */}
       <MaxWidthContainer
         className="px-0 lg:px-8"
@@ -1425,7 +1427,11 @@ export default function EnhancedSearchBar({
             ============================================ */}
         {!hideTabs && (
         <div
-          className="mobile-scroll-x mb-4 p-1.5 bg-neutral-100/80 backdrop-blur-sm rounded-2xl gap-1.5 md:gap-2"
+          className={`mobile-scroll-x mb-4 p-1.5 rounded-2xl gap-1.5 md:gap-2 ${
+            transparent
+              ? 'bg-black/30 backdrop-blur-sm border border-white/15'
+              : 'bg-neutral-100/80 backdrop-blur-sm'
+          }`}
           style={{ WebkitOverflowScrolling: 'touch' }}
         >
           {/* Flights Tab - FIRST */}
@@ -1434,16 +1440,20 @@ export default function EnhancedSearchBar({
             onClick={() => setServiceType('flights')}
             className={`flex items-center gap-2 px-4 py-2.5 min-h-[44px] text-sm font-semibold transition-all duration-300 relative flex-shrink-0 whitespace-nowrap touch-manipulation rounded-xl ${
               serviceType === 'flights'
-                ? 'bg-white text-primary-600 shadow-lg shadow-primary-500/15'
-                : 'text-neutral-600 hover:text-neutral-900 hover:bg-white/50 active:scale-95'
+                ? transparent
+                  ? 'bg-white/90 text-primary-600 shadow-lg shadow-black/20'
+                  : 'bg-white text-primary-600 shadow-lg shadow-primary-500/15'
+                : transparent
+                  ? 'text-white hover:bg-white/20 active:scale-95'
+                  : 'text-neutral-600 hover:text-neutral-900 hover:bg-white/50 active:scale-95'
             }`}
           >
             <div className={`p-1.5 rounded-lg transition-colors duration-300 ${
               serviceType === 'flights'
                 ? 'bg-primary-50'
-                : 'bg-neutral-200/50'
+                : transparent ? 'bg-white/20' : 'bg-neutral-200/50'
             }`}>
-              <Plane size={14} className={serviceType === 'flights' ? 'text-primary-600' : 'text-neutral-500'} />
+              <Plane size={14} className={serviceType === 'flights' ? 'text-primary-600' : transparent ? 'text-white' : 'text-neutral-500'} />
             </div>
             <span className="text-[13px] sm:text-sm tracking-tight">{t('flights')}</span>
           </button>
@@ -1454,16 +1464,20 @@ export default function EnhancedSearchBar({
             onClick={() => setServiceType('hotels')}
             className={`flex items-center gap-2 px-4 py-2.5 min-h-[44px] text-sm font-semibold transition-all duration-300 relative flex-shrink-0 whitespace-nowrap touch-manipulation rounded-xl ${
               serviceType === 'hotels'
-                ? 'bg-white text-primary-600 shadow-lg shadow-primary-500/15'
-                : 'text-neutral-600 hover:text-neutral-900 hover:bg-white/50 active:scale-95'
+                ? transparent
+                  ? 'bg-white/90 text-primary-600 shadow-lg shadow-black/20'
+                  : 'bg-white text-primary-600 shadow-lg shadow-primary-500/15'
+                : transparent
+                  ? 'text-white hover:bg-white/20 active:scale-95'
+                  : 'text-neutral-600 hover:text-neutral-900 hover:bg-white/50 active:scale-95'
             }`}
           >
             <div className={`p-1.5 rounded-lg transition-colors duration-300 ${
               serviceType === 'hotels'
                 ? 'bg-primary-50'
-                : 'bg-neutral-200/50'
+                : transparent ? 'bg-white/20' : 'bg-neutral-200/50'
             }`}>
-              <Hotel size={14} className={serviceType === 'hotels' ? 'text-primary-600' : 'text-neutral-500'} />
+              <Hotel size={14} className={serviceType === 'hotels' ? 'text-primary-600' : transparent ? 'text-white' : 'text-neutral-500'} />
             </div>
             <span className="text-[13px] sm:text-sm tracking-tight">{t('hotels')}</span>
           </button>
@@ -1474,14 +1488,18 @@ export default function EnhancedSearchBar({
             onClick={() => setServiceType('tours')}
             className={`flex items-center gap-2 px-4 py-2.5 min-h-[44px] text-sm font-semibold transition-all duration-300 relative flex-shrink-0 whitespace-nowrap touch-manipulation rounded-xl ${
               serviceType === 'tours'
-                ? 'bg-white text-orange-600 shadow-lg shadow-orange-500/15'
-                : 'text-neutral-600 hover:text-neutral-900 hover:bg-white/50 active:scale-95'
+                ? transparent
+                  ? 'bg-white/90 text-orange-600 shadow-lg shadow-black/20'
+                  : 'bg-white text-orange-600 shadow-lg shadow-orange-500/15'
+                : transparent
+                  ? 'text-white hover:bg-white/20 active:scale-95'
+                  : 'text-neutral-600 hover:text-neutral-900 hover:bg-white/50 active:scale-95'
             }`}
           >
             <div className={`p-1.5 rounded-lg transition-colors duration-300 ${
-              serviceType === 'tours' ? 'bg-orange-50' : 'bg-orange-100/80'
+              serviceType === 'tours' ? 'bg-orange-50' : transparent ? 'bg-white/20' : 'bg-orange-100/80'
             }`}>
-              <Map size={14} className="text-orange-600" />
+              <Map size={14} className={serviceType === 'tours' ? 'text-orange-600' : transparent ? 'text-white' : 'text-orange-600'} />
             </div>
             <span className="text-[13px] sm:text-sm tracking-tight">{t('tours')}</span>
             <span className="text-[8px] bg-gradient-to-r from-green-500 to-emerald-500 text-white px-1.5 py-0.5 rounded-full font-bold leading-none shadow-sm">New</span>
@@ -1493,14 +1511,18 @@ export default function EnhancedSearchBar({
             onClick={() => setServiceType('activities')}
             className={`flex items-center gap-2 px-4 py-2.5 min-h-[44px] text-sm font-semibold transition-all duration-300 relative flex-shrink-0 whitespace-nowrap touch-manipulation rounded-xl ${
               serviceType === 'activities'
-                ? 'bg-white text-purple-600 shadow-lg shadow-purple-500/15'
-                : 'text-neutral-600 hover:text-neutral-900 hover:bg-white/50 active:scale-95'
+                ? transparent
+                  ? 'bg-white/90 text-purple-600 shadow-lg shadow-black/20'
+                  : 'bg-white text-purple-600 shadow-lg shadow-purple-500/15'
+                : transparent
+                  ? 'text-white hover:bg-white/20 active:scale-95'
+                  : 'text-neutral-600 hover:text-neutral-900 hover:bg-white/50 active:scale-95'
             }`}
           >
             <div className={`p-1.5 rounded-lg transition-colors duration-300 ${
-              serviceType === 'activities' ? 'bg-purple-50' : 'bg-purple-100/80'
+              serviceType === 'activities' ? 'bg-purple-50' : transparent ? 'bg-white/20' : 'bg-purple-100/80'
             }`}>
-              <Activity size={14} className="text-purple-600" />
+              <Activity size={14} className={serviceType === 'activities' ? 'text-purple-600' : transparent ? 'text-white' : 'text-purple-600'} />
             </div>
             <span className="text-[13px] sm:text-sm tracking-tight">{t('activities')}</span>
             <span className="text-[8px] bg-gradient-to-r from-green-500 to-emerald-500 text-white px-1.5 py-0.5 rounded-full font-bold leading-none shadow-sm">New</span>
@@ -1512,14 +1534,18 @@ export default function EnhancedSearchBar({
             onClick={() => setServiceType('transfers')}
             className={`flex items-center gap-2 px-4 py-2.5 min-h-[44px] text-sm font-semibold transition-all duration-300 relative flex-shrink-0 whitespace-nowrap touch-manipulation rounded-xl ${
               serviceType === 'transfers'
-                ? 'bg-white text-primary-600 shadow-lg shadow-primary-500/15'
-                : 'text-neutral-600 hover:text-neutral-900 hover:bg-white/50 active:scale-95'
+                ? transparent
+                  ? 'bg-white/90 text-primary-600 shadow-lg shadow-black/20'
+                  : 'bg-white text-primary-600 shadow-lg shadow-primary-500/15'
+                : transparent
+                  ? 'text-white hover:bg-white/20 active:scale-95'
+                  : 'text-neutral-600 hover:text-neutral-900 hover:bg-white/50 active:scale-95'
             }`}
           >
             <div className={`p-1.5 rounded-lg transition-colors duration-300 ${
-              serviceType === 'transfers' ? 'bg-teal-50' : 'bg-teal-100/80'
+              serviceType === 'transfers' ? 'bg-teal-50' : transparent ? 'bg-white/20' : 'bg-teal-100/80'
             }`}>
-              <Navigation size={14} className={serviceType === 'transfers' ? 'text-teal-600' : 'text-teal-600'} />
+              <Navigation size={14} className={serviceType === 'transfers' ? 'text-teal-600' : transparent ? 'text-white' : 'text-teal-600'} />
             </div>
             <span className="text-[13px] sm:text-sm tracking-tight">Transfers</span>
             <span className="text-[8px] bg-gradient-to-r from-green-500 to-emerald-500 text-white px-1.5 py-0.5 rounded-full font-bold leading-none shadow-sm">New</span>
@@ -1531,12 +1557,18 @@ export default function EnhancedSearchBar({
             onClick={() => setServiceType('cars')}
             className={`flex items-center gap-2 px-4 py-2.5 min-h-[44px] text-sm font-semibold transition-all duration-300 relative flex-shrink-0 whitespace-nowrap touch-manipulation rounded-xl ${
               serviceType === 'cars'
-                ? 'bg-white text-emerald-600 shadow-lg shadow-emerald-500/15'
-                : 'text-neutral-600 hover:text-neutral-900 hover:bg-white/50 active:scale-95'
+                ? transparent
+                  ? 'bg-white/90 text-emerald-600 shadow-lg shadow-black/20'
+                  : 'bg-white text-emerald-600 shadow-lg shadow-emerald-500/15'
+                : transparent
+                  ? 'text-white hover:bg-white/20 active:scale-95'
+                  : 'text-neutral-600 hover:text-neutral-900 hover:bg-white/50 active:scale-95'
             }`}
           >
-            <div className={`p-1.5 rounded-lg transition-all duration-300 ${serviceType === 'cars' ? 'bg-emerald-100' : 'bg-neutral-100'}`}>
-              <Car size={14} className={serviceType === 'cars' ? 'text-emerald-600' : 'text-emerald-600'} />
+            <div className={`p-1.5 rounded-lg transition-all duration-300 ${
+              serviceType === 'cars' ? 'bg-emerald-100' : transparent ? 'bg-white/20' : 'bg-neutral-100'
+            }`}>
+              <Car size={14} className={serviceType === 'cars' ? 'text-emerald-600' : transparent ? 'text-white' : 'text-emerald-600'} />
             </div>
             <span className="text-[13px] sm:text-sm tracking-tight">{t('cars')}</span>
             <span className="text-[8px] bg-gradient-to-r from-green-500 to-emerald-500 text-white px-1.5 py-0.5 rounded-full font-bold leading-none shadow-sm">New</span>
@@ -1612,8 +1644,8 @@ export default function EnhancedSearchBar({
           <div ref={originRef} className="flex-1 relative">
             {/* Custom label with Nonstop checkbox */}
             <div className="flex items-center justify-between mb-2">
-              <label className="flex items-center gap-1.5 text-xs font-medium text-gray-700">
-                <PlaneTakeoff size={13} className="text-primary-500" />
+              <label className={`flex items-center gap-1.5 text-xs font-medium ${transparent ? "text-white/90" : "text-gray-700"}`}>
+                <PlaneTakeoff size={13} className={transparent ? "text-white/70" : "text-primary-500"} />
                 <span>{labels.from}</span>
               </label>
 
@@ -1625,7 +1657,7 @@ export default function EnhancedSearchBar({
                   onChange={(e) => setFromNonstop(e.target.checked)}
                   className="w-3.5 h-3.5 rounded border-gray-300 text-[#D63A35] focus:ring-[#D63A35] cursor-pointer"
                 />
-                <span className="text-xs font-normal text-gray-600 group-hover:text-gray-900">{labels.nonstop}</span>
+                <span className={`text-xs font-normal ${transparent ? "text-white/80 group-hover:text-white" : "text-gray-600 group-hover:text-gray-900"}`}>{labels.nonstop}</span>
               </label>
             </div>
 
@@ -1636,6 +1668,7 @@ export default function EnhancedSearchBar({
               maxDisplay={1}
               lang={lang}
               testId="origin-input"
+              transparent={transparent}
             />
             {errors.origin && (
               <p className="mt-1 text-xs text-red-600" role="alert">
@@ -1663,8 +1696,8 @@ export default function EnhancedSearchBar({
           <div ref={destinationRef} className="flex-1">
             {/* Custom label with Nonstop checkbox */}
             <div className="flex items-center justify-between mb-2">
-              <label className="flex items-center gap-1.5 text-xs font-medium text-gray-700">
-                <PlaneLanding size={13} className="text-primary-500" />
+              <label className={`flex items-center gap-1.5 text-xs font-medium ${transparent ? "text-white/90" : "text-gray-700"}`}>
+                <PlaneLanding size={13} className={transparent ? "text-white/70" : "text-primary-500"} />
                 <span>{labels.to}</span>
               </label>
 
@@ -1677,7 +1710,7 @@ export default function EnhancedSearchBar({
                   disabled={tripType === 'oneway'}
                   className="w-3.5 h-3.5 rounded border-gray-300 text-[#D63A35] focus:ring-[#D63A35] cursor-pointer disabled:cursor-not-allowed disabled:opacity-50"
                 />
-                <span className="text-xs font-normal text-gray-600 group-hover:text-gray-900">{labels.nonstop}</span>
+                <span className={`text-xs font-normal ${transparent ? "text-white/80 group-hover:text-white" : "text-gray-600 group-hover:text-gray-900"}`}>{labels.nonstop}</span>
               </label>
             </div>
 
@@ -1688,6 +1721,7 @@ export default function EnhancedSearchBar({
               maxDisplay={1}
               lang={lang}
               testId="destination-input"
+            transparent={transparent}
             />
             {errors.destination && (
               <p className="mt-1 text-xs text-red-600" role="alert">
@@ -1699,8 +1733,8 @@ export default function EnhancedSearchBar({
           {/* Depart Date */}
           <div className="flex-1">
             <div className="flex items-center justify-between mb-2">
-              <label className="flex items-center gap-1.5 text-xs font-medium text-gray-700">
-                <CalendarDays size={13} className="text-primary-500" />
+              <label className={`flex items-center gap-1.5 text-xs font-medium ${transparent ? "text-white/90" : "text-gray-700"}`}>
+                <CalendarDays size={13} className={transparent ? "text-white/70" : "text-primary-500"} />
                 <span>{labels.depart}</span>
               </label>
 
@@ -1722,7 +1756,7 @@ export default function EnhancedSearchBar({
                   }}
                   className="w-3.5 h-3.5 rounded border-gray-300 text-[#D63A35] focus:ring-[#D63A35] cursor-pointer disabled:cursor-not-allowed disabled:opacity-50"
                 />
-                <span className="text-xs font-normal text-gray-600 group-hover:text-gray-900">{labels.multiDates}</span>
+                <span className={`text-xs font-normal ${transparent ? "text-white/80 group-hover:text-white" : "text-gray-600 group-hover:text-gray-900"}`}>{labels.multiDates}</span>
               </label>
             </div>
 
@@ -1731,8 +1765,10 @@ export default function EnhancedSearchBar({
                 ref={departureDateRef}
                 type="button"
                 onClick={() => handleOpenDatePicker('departure')}
-                className={`w-full relative px-4 py-3.5 h-[52px] bg-white border rounded-xl hover:border-primary-400 transition-all duration-150 ease-[cubic-bezier(0.2,0.8,0.2,1)] cursor-pointer shadow-sm hover:shadow-md ${
-                  errors.departureDate ? 'border-red-500' : 'border-neutral-200'
+                className={`w-full relative px-4 py-3.5 h-[52px] border rounded-xl hover:border-primary-400 transition-all duration-150 ease-[cubic-bezier(0.2,0.8,0.2,1)] cursor-pointer shadow-sm hover:shadow-md ${
+                  transparent ? 'bg-black/30 backdrop-blur-sm text-white' : 'bg-white'
+                } ${
+                  errors.departureDate ? 'border-red-500' : transparent ? 'border-white/30' : 'border-neutral-200'
                 }`}
               >
                 <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={20} />
@@ -1745,8 +1781,10 @@ export default function EnhancedSearchBar({
                 ref={departureDateRef}
                 type="button"
                 onClick={() => handleOpenDatePicker('departure')}
-                className={`w-full relative px-4 py-3.5 min-h-[52px] bg-white border rounded-xl hover:border-primary-400 transition-all duration-150 ease-[cubic-bezier(0.2,0.8,0.2,1)] cursor-pointer shadow-sm hover:shadow-md ${
-                  errors.departureDate ? 'border-red-500' : 'border-neutral-200'
+                className={`w-full relative px-4 py-3.5 min-h-[52px] border rounded-xl hover:border-primary-400 transition-all duration-150 ease-[cubic-bezier(0.2,0.8,0.2,1)] cursor-pointer shadow-sm hover:shadow-md ${
+                  transparent ? 'bg-black/30 backdrop-blur-sm text-white' : 'bg-white'
+                } ${
+                  errors.departureDate ? 'border-red-500' : transparent ? 'border-white/30' : 'border-neutral-200'
                 }`}
               >
                 <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={20} />
@@ -1777,8 +1815,8 @@ export default function EnhancedSearchBar({
           {/* Return Date */}
           <div className="flex-1">
             <div className="flex items-center justify-between mb-2">
-              <label className="flex items-center gap-1.5 text-xs font-medium text-gray-700">
-                <CalendarCheck size={13} className="text-primary-500" />
+              <label className={`flex items-center gap-1.5 text-xs font-medium ${transparent ? "text-white/90" : "text-gray-700"}`}>
+                <CalendarCheck size={13} className={transparent ? "text-white/70" : "text-primary-500"} />
                 <span>{labels.return}</span>
               </label>
 
@@ -1797,7 +1835,7 @@ export default function EnhancedSearchBar({
                   className="w-3.5 h-3.5 rounded border-gray-300 text-[#D63A35] focus:ring-[#D63A35] cursor-pointer"
                 />
                 <ArrowRight size={12} className="text-gray-500" />
-                <span className="text-xs font-normal text-gray-600 group-hover:text-gray-900">{labels.oneWay}</span>
+                <span className={`text-xs font-normal ${transparent ? "text-white/80 group-hover:text-white" : "text-gray-600 group-hover:text-gray-900"}`}>{labels.oneWay}</span>
               </label>
             </div>
 
@@ -1807,7 +1845,9 @@ export default function EnhancedSearchBar({
                   ref={returnDateRef}
                   type="button"
                   onClick={() => handleOpenDatePicker('return')}
-                  className="w-full relative px-4 py-3.5 h-[52px] bg-white border border-neutral-200 rounded-xl hover:border-primary-400 transition-all duration-150 ease-[cubic-bezier(0.2,0.8,0.2,1)] cursor-pointer shadow-sm hover:shadow-md"
+                  className={`w-full relative px-4 py-3.5 h-[52px] border rounded-xl hover:border-primary-400 transition-all duration-150 ease-[cubic-bezier(0.2,0.8,0.2,1)] cursor-pointer shadow-sm hover:shadow-md ${
+                    transparent ? 'bg-black/30 backdrop-blur-sm border-white/20 text-white placeholder:text-white/50' : 'bg-white border-neutral-200'
+                  }`}
                 >
                   <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={20} />
                   <span className="block pl-8 text-sm font-medium text-gray-900">
@@ -1819,7 +1859,9 @@ export default function EnhancedSearchBar({
                   ref={returnDateRef}
                   type="button"
                   onClick={() => handleOpenDatePicker('return')}
-                  className="w-full relative px-4 py-3.5 min-h-[52px] bg-white border border-neutral-200 rounded-xl hover:border-primary-400 transition-all duration-150 ease-[cubic-bezier(0.2,0.8,0.2,1)] cursor-pointer shadow-sm hover:shadow-md"
+                  className={`w-full relative px-4 py-3.5 min-h-[52px] border rounded-xl hover:border-primary-400 transition-all duration-150 ease-[cubic-bezier(0.2,0.8,0.2,1)] cursor-pointer shadow-sm hover:shadow-md ${
+                    transparent ? 'bg-black/30 backdrop-blur-sm border-white/20 text-white placeholder:text-white/50' : 'bg-white border-neutral-200'
+                  }`}
                 >
                   <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={20} />
                   <div className="pl-8 flex flex-wrap gap-1.5 items-center">
@@ -1864,7 +1906,9 @@ export default function EnhancedSearchBar({
                 closeAllDropdowns();
                 setShowPassengerDropdown(!showPassengerDropdown);
               }}
-              className="w-full relative px-4 py-3.5 h-[52px] bg-white border border-neutral-200 rounded-xl hover:border-primary-400 transition-all duration-150 ease-[cubic-bezier(0.2,0.8,0.2,1)] text-left shadow-sm hover:shadow-md"
+              className={`w-full relative px-4 py-3.5 h-[52px] border rounded-xl hover:border-primary-400 transition-all duration-150 ease-[cubic-bezier(0.2,0.8,0.2,1)] text-left shadow-sm hover:shadow-md ${
+                transparent ? 'bg-black/30 backdrop-blur-sm border-white/20 text-white placeholder:text-white/50' : 'bg-white border-neutral-200'
+              }`}
             >
               <Users className="absolute left-3 top-1/2 -translate-y-1/2 text-neutral-400" size={18} />
               <span className="block pl-7 text-sm font-medium text-neutral-800 pr-7">
@@ -2079,8 +2123,8 @@ export default function EnhancedSearchBar({
                   <div className="flex-1 relative">
                     {/* Custom label with Nonstop checkbox */}
                     <div className="flex items-center justify-between mb-2">
-                      <label className="flex items-center gap-1.5 text-xs font-medium text-gray-700">
-                        <Plane size={13} className="text-primary-500" />
+                      <label className={`flex items-center gap-1.5 text-xs font-medium ${transparent ? "text-white/90" : "text-gray-700"}`}>
+                        <Plane size={13} className={transparent ? "text-white/70" : "text-primary-500"} />
                         <span>Flight {index + 2}</span>
                       </label>
 
@@ -2092,7 +2136,7 @@ export default function EnhancedSearchBar({
                           onChange={(e) => handleUpdateAdditionalFlight(flight.id, { nonstop: e.target.checked })}
                           className="w-3.5 h-3.5 rounded border-gray-300 text-[#D63A35] focus:ring-[#D63A35] cursor-pointer"
                         />
-                        <span className="text-xs font-normal text-gray-600 group-hover:text-gray-900">{labels.nonstop}</span>
+                        <span className={`text-xs font-normal ${transparent ? "text-white/80 group-hover:text-white" : "text-gray-600 group-hover:text-gray-900"}`}>{labels.nonstop}</span>
                       </label>
                     </div>
 
@@ -2102,6 +2146,7 @@ export default function EnhancedSearchBar({
                       onChange={(codes) => handleUpdateAdditionalFlight(flight.id, { origin: codes })}
                       maxDisplay={1}
                       lang={lang}
+                    transparent={transparent}
                     />
 
                     {/* Swap Button - Centered between From and To - EXACT COPY */}
@@ -2126,8 +2171,8 @@ export default function EnhancedSearchBar({
                   <div className="flex-1">
                     {/* Custom label */}
                     <div className="flex items-center justify-between mb-2">
-                      <label className="flex items-center gap-1.5 text-xs font-medium text-gray-700">
-                        <PlaneLanding size={13} className="text-primary-500" />
+                      <label className={`flex items-center gap-1.5 text-xs font-medium ${transparent ? "text-white/90" : "text-gray-700"}`}>
+                        <PlaneLanding size={13} className={transparent ? "text-white/70" : "text-primary-500"} />
                         <span>{labels.to}</span>
                       </label>
                     </div>
@@ -2138,14 +2183,15 @@ export default function EnhancedSearchBar({
                       onChange={(codes) => handleUpdateAdditionalFlight(flight.id, { destination: codes })}
                       maxDisplay={1}
                       lang={lang}
+                    transparent={transparent}
                     />
                   </div>
 
                   {/* Depart Date - EXACT COPY */}
                   <div className="flex-1">
                     <div className="flex items-center justify-between mb-2">
-                      <label className="flex items-center gap-1.5 text-xs font-medium text-gray-700">
-                        <CalendarDays size={13} className="text-primary-500" />
+                      <label className={`flex items-center gap-1.5 text-xs font-medium ${transparent ? "text-white/90" : "text-gray-700"}`}>
+                        <CalendarDays size={13} className={transparent ? "text-white/70" : "text-primary-500"} />
                         <span>{labels.depart}</span>
                       </label>
                     </div>
@@ -2220,7 +2266,9 @@ export default function EnhancedSearchBar({
                   onClick={() => {
                     setShowHotelSuggestions(true);
                   }}
-                  className="w-full px-3 py-2.5 bg-white border border-primary-300 rounded-xl cursor-pointer transition-all hover:border-primary-400 hover:shadow-sm active:scale-[0.99]"
+                  className={`w-full px-3 py-2.5 rounded-xl cursor-pointer transition-all hover:border-primary-400 hover:shadow-sm active:scale-[0.99] ${
+                    transparent ? 'bg-black/30 backdrop-blur-sm border-white/20 text-white placeholder:text-white/50' : 'bg-white border border-primary-300'
+                  }`}
                 >
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2.5">
@@ -2275,8 +2323,10 @@ export default function EnhancedSearchBar({
                     }
                   }}
                   placeholder="City, hotel, or landmark"
-                  className={`w-full px-3 py-2.5 bg-white border rounded-xl hover:border-primary-400 transition-all text-[13px] font-medium text-neutral-800 placeholder:text-neutral-400 ${
-                    errors.hotel ? 'border-error-400' : 'border-neutral-200'
+                  className={`w-full px-3 py-2.5 border rounded-xl hover:border-primary-400 transition-all text-[13px] font-medium placeholder:text-neutral-400 ${
+                    transparent ? 'bg-black/30 backdrop-blur-sm text-white' : 'bg-white text-neutral-800'
+                  } ${
+                    errors.hotel ? 'border-error-400' : transparent ? 'border-white/30' : 'border-neutral-200'
                   }`}
                 />
               )}
@@ -2434,7 +2484,9 @@ export default function EnhancedSearchBar({
               ref={hotelDateRangeRef}
               type="button"
               onClick={() => setShowHotelDateRangePicker(true)}
-              className="w-full lg:hidden px-3 py-2.5 rounded-xl cursor-pointer transition-all bg-white border border-neutral-200 hover:border-primary-400 hover:shadow-sm active:scale-[0.99]"
+              className={`w-full lg:hidden px-3 py-2.5 rounded-xl cursor-pointer transition-all hover:border-primary-400 hover:shadow-sm active:scale-[0.99] ${
+                transparent ? 'bg-black/30 backdrop-blur-sm border-white/20 text-white placeholder:text-white/50' : 'bg-white border border-neutral-200'
+              }`}
             >
               <div className="flex items-center gap-2">
                 {/* Check-in side */}
@@ -2489,7 +2541,9 @@ export default function EnhancedSearchBar({
                 className={`w-full px-3 py-2.5 rounded-xl cursor-pointer transition-all ${
                   checkInDate
                     ? 'bg-emerald-50 border border-emerald-300 hover:border-emerald-400 hover:shadow-sm'
-                    : 'bg-white border border-neutral-200 hover:border-primary-400'
+                    : transparent
+                      ? 'bg-black/30 backdrop-blur-sm border-white/20 text-white placeholder:text-white/50 hover:border-primary-400'
+                      : 'bg-white border border-neutral-200 hover:border-primary-400'
                 }`}
               >
                 <div className="flex items-center gap-2.5">
@@ -2527,7 +2581,9 @@ export default function EnhancedSearchBar({
                 className={`w-full px-3 py-2.5 rounded-xl cursor-pointer transition-all ${
                   checkOutDate
                     ? 'bg-orange-50 border border-orange-300 hover:border-orange-400 hover:shadow-sm'
-                    : 'bg-white border border-neutral-200 hover:border-primary-400'
+                    : transparent
+                      ? 'bg-black/30 backdrop-blur-sm border-white/20 text-white placeholder:text-white/50 hover:border-primary-400'
+                      : 'bg-white border border-neutral-200 hover:border-primary-400'
                 }`}
               >
                 <div className="flex items-center gap-2.5">
@@ -2562,7 +2618,9 @@ export default function EnhancedSearchBar({
               <button
                 type="button"
                 onClick={() => setShowPassengerDropdown(!showPassengerDropdown)}
-                className="w-full px-3 py-2.5 bg-white border border-neutral-200 rounded-xl hover:border-primary-400 hover:shadow-sm transition-all text-left active:scale-[0.99]"
+                className={`w-full px-3 py-2.5 rounded-xl hover:border-primary-400 hover:shadow-sm transition-all text-left active:scale-[0.99] ${
+                  transparent ? 'bg-black/30 backdrop-blur-sm border-white/20 text-white placeholder:text-white/50' : 'bg-white border border-neutral-200'
+                }`}
               >
                 <div className="flex items-center gap-2.5">
                   <div className="w-8 h-8 rounded-lg bg-violet-500 flex items-center justify-center shadow-sm">
@@ -2783,8 +2841,8 @@ export default function EnhancedSearchBar({
             {/* Pickup Location */}
             <div className="flex-1">
               <div className="flex items-center justify-between mb-2">
-                <label className="flex items-center gap-1.5 text-xs font-medium text-gray-700">
-                  <Car size={13} className="text-emerald-600" />
+                <label className={`flex items-center gap-1.5 text-xs font-medium ${transparent ? 'text-white/90' : 'text-gray-700'}`}>
+                  <Car size={13} className={transparent ? 'text-emerald-400' : 'text-emerald-600'} />
                   <span>Pickup Location</span>
                 </label>
               </div>
@@ -2795,6 +2853,7 @@ export default function EnhancedSearchBar({
                   onChange={(codes) => setCarPickupLocation(codes[0] || '')}
                   onSelectFull={(a) => setCarPickupDisplayName(`${a.city} (${a.code})`)}
                   placeholder="City or airport (e.g., Miami)"
+                  transparent={transparent}
                 />
               </div>
             </div>
@@ -2802,8 +2861,8 @@ export default function EnhancedSearchBar({
             {/* Dropoff Location */}
             <div className="flex-1">
               <div className="flex items-center justify-between mb-2">
-                <label className="flex items-center gap-1.5 text-xs font-medium text-gray-700">
-                  <Car size={13} className="text-emerald-600" />
+                <label className={`flex items-center gap-1.5 text-xs font-medium ${transparent ? 'text-white/90' : 'text-gray-700'}`}>
+                  <Car size={13} className={transparent ? 'text-emerald-400' : 'text-emerald-600'} />
                   <span>Dropoff Location</span>
                 </label>
 
@@ -2821,7 +2880,7 @@ export default function EnhancedSearchBar({
                     }}
                     className="w-3.5 h-3.5 rounded border-gray-300 text-emerald-600 focus:ring-emerald-500 cursor-pointer"
                   />
-                  <span className="text-xs font-normal text-gray-600 group-hover:text-gray-900">Same</span>
+                  <span className={`text-xs font-normal ${transparent ? 'text-white/70 group-hover:text-white' : 'text-gray-600 group-hover:text-gray-900'}`}>Same</span>
                 </label>
               </div>
               <div className="h-[52px]">
@@ -2832,11 +2891,14 @@ export default function EnhancedSearchBar({
                     onChange={(codes) => setCarDropoffLocation(codes[0] || '')}
                     onSelectFull={(a) => setCarDropoffDisplayName(`${a.city} (${a.code})`)}
                     placeholder="City or airport (e.g., Miami)"
+                    transparent={transparent}
                   />
                 ) : (
-                  <div className="relative w-full px-4 py-3.5 bg-gray-50 border border-gray-200 rounded-lg cursor-not-allowed h-full flex items-center">
-                    <Car className="absolute left-3 text-gray-300" size={18} />
-                    <span className="block pl-7 text-sm text-gray-400 italic">
+                  <div className={`relative w-full px-4 py-3.5 border rounded-xl cursor-not-allowed h-full flex items-center ${
+                    transparent ? 'bg-black/10 backdrop-blur-sm border-white/10' : 'bg-gray-50 border-gray-200'
+                  }`}>
+                    <Car className={`absolute left-3 ${transparent ? 'text-white/30' : 'text-gray-300'}`} size={18} />
+                    <span className={`block pl-7 text-sm italic ${transparent ? 'text-white/40' : 'text-gray-400'}`}>
                       Same as pickup
                     </span>
                   </div>
@@ -2849,8 +2911,8 @@ export default function EnhancedSearchBar({
               {/* Unified Date Range Button - Single click opens calendar for both dates */}
               <div className="flex-1 lg:flex-[2]">
                 <div className="flex items-center gap-2 mb-2">
-                  <label className="flex items-center gap-1.5 text-xs font-medium text-gray-700">
-                    <CalendarDays size={13} className="text-emerald-600" />
+                  <label className={`flex items-center gap-1.5 text-xs font-medium ${transparent ? 'text-white/90' : 'text-gray-700'}`}>
+                    <CalendarDays size={13} className={transparent ? 'text-emerald-400' : 'text-emerald-600'} />
                     <span>Rental Period</span>
                   </label>
                 </div>
@@ -2858,23 +2920,27 @@ export default function EnhancedSearchBar({
                   ref={carPickupDateRef}
                   type="button"
                   onClick={() => setShowCarDateRangePicker(true)}
-                  className={`w-full relative px-3 py-3 sm:py-3.5 bg-white border rounded-lg hover:border-emerald-500 transition-all cursor-pointer h-[52px] flex items-center justify-between ${
-                    carPickupDate && carDropoffDate ? 'border-emerald-400 bg-emerald-50/30' : 'border-gray-300'
+                  className={`w-full relative px-3 py-3 sm:py-3.5 border rounded-lg hover:border-emerald-500 transition-all cursor-pointer h-[52px] flex items-center justify-between ${
+                    carPickupDate && carDropoffDate
+                      ? 'border-emerald-400 bg-emerald-50/30'
+                      : transparent
+                        ? 'bg-black/30 backdrop-blur-sm border-white/20 text-white placeholder:text-white/50'
+                        : 'bg-white border-gray-300'
                   }`}
                 >
                   <div className="flex items-center gap-2 flex-1 min-w-0">
-                    <Calendar className="text-emerald-500 flex-shrink-0" size={18} />
+                    <Calendar className={transparent ? 'text-emerald-400' : 'text-emerald-500'} size={18} />
                     <div className="flex items-center gap-1.5 min-w-0">
-                      <span className={`text-xs sm:text-sm font-medium truncate ${carPickupDate ? 'text-gray-900' : 'text-gray-400'}`}>
+                      <span className={`text-xs sm:text-sm font-medium truncate ${carPickupDate ? (transparent ? 'text-white' : 'text-gray-900') : (transparent ? 'text-white/50' : 'text-gray-400')}`}>
                         {carPickupDate ? formatDateForDisplay(carPickupDate) : 'Pickup'}
                       </span>
-                      <ArrowRight className="text-emerald-500 flex-shrink-0" size={14} />
-                      <span className={`text-xs sm:text-sm font-medium truncate ${carDropoffDate ? 'text-gray-900' : 'text-gray-400'}`}>
+                      <ArrowRight className={transparent ? 'text-emerald-400' : 'text-emerald-500'} size={14} />
+                      <span className={`text-xs sm:text-sm font-medium truncate ${carDropoffDate ? (transparent ? 'text-white' : 'text-gray-900') : (transparent ? 'text-white/50' : 'text-gray-400')}`}>
                         {carDropoffDate ? formatDateForDisplay(carDropoffDate) : 'Dropoff'}
                       </span>
                     </div>
                   </div>
-                  <ChevronDown className="text-gray-400 flex-shrink-0" size={16} />
+                  <ChevronDown className={transparent ? 'text-white/50' : 'text-gray-400'} size={16} />
                 </button>
               </div>
 
@@ -2882,15 +2948,17 @@ export default function EnhancedSearchBar({
               <div className="flex gap-2 lg:contents">
                 {/* Pickup Time */}
                 <div className="flex-1 lg:w-24 lg:flex-none">
-                  <label className="flex items-center gap-1 text-xs font-medium text-gray-700 mb-2">
-                    <Clock size={12} className="text-emerald-600" />
+                  <label className={`flex items-center gap-1 text-xs font-medium mb-2 ${transparent ? 'text-white/90' : 'text-gray-700'}`}>
+                    <Clock size={12} className={transparent ? 'text-emerald-400' : 'text-emerald-600'} />
                     <span className="hidden sm:inline">Pick Time</span>
                     <span className="sm:hidden">Pick</span>
                   </label>
                   <select
                     value={carPickupTime}
                     onChange={(e) => setCarPickupTime(e.target.value)}
-                    className="w-full px-2 py-3 sm:py-3.5 bg-white border border-gray-300 rounded-lg hover:border-emerald-500 transition-all text-xs sm:text-sm font-medium text-gray-900 focus:outline-none focus:ring-1 focus:ring-emerald-500 h-[52px]"
+                    className={`w-full px-2 py-3 sm:py-3.5 rounded-lg hover:border-emerald-500 transition-all text-xs sm:text-sm font-medium focus:outline-none focus:ring-1 focus:ring-emerald-500 h-[52px] ${
+                      transparent ? 'bg-black/30 backdrop-blur-sm border-white/20 text-white' : 'bg-white border border-gray-300 text-gray-900'
+                    }`}
                   >
                     {['06:00', '07:00', '08:00', '09:00', '10:00', '11:00', '12:00', '13:00', '14:00', '15:00', '16:00', '17:00', '18:00', '19:00', '20:00', '21:00', '22:00'].map(time => (
                       <option key={`pickup-${time}`} value={time}>{time}</option>
@@ -2900,15 +2968,17 @@ export default function EnhancedSearchBar({
 
                 {/* Dropoff Time */}
                 <div className="flex-1 lg:w-24 lg:flex-none">
-                  <label className="flex items-center gap-1 text-xs font-medium text-gray-700 mb-2">
-                    <Clock size={12} className="text-emerald-600" />
+                  <label className={`flex items-center gap-1 text-xs font-medium mb-2 ${transparent ? 'text-white/90' : 'text-gray-700'}`}>
+                    <Clock size={12} className={transparent ? 'text-emerald-400' : 'text-emerald-600'} />
                     <span className="hidden sm:inline">Drop Time</span>
                     <span className="sm:hidden">Drop</span>
                   </label>
                   <select
                     value={carDropoffTime}
                     onChange={(e) => setCarDropoffTime(e.target.value)}
-                    className="w-full px-2 py-3 sm:py-3.5 bg-white border border-gray-300 rounded-lg hover:border-emerald-500 transition-all text-xs sm:text-sm font-medium text-gray-900 focus:outline-none focus:ring-1 focus:ring-emerald-500 h-[52px]"
+                    className={`w-full px-2 py-3 sm:py-3.5 rounded-lg hover:border-emerald-500 transition-all text-xs sm:text-sm font-medium focus:outline-none focus:ring-1 focus:ring-emerald-500 h-[52px] ${
+                      transparent ? 'bg-black/30 backdrop-blur-sm border-white/20 text-white' : 'bg-white border border-gray-300 text-gray-900'
+                    }`}
                   >
                     {['06:00', '07:00', '08:00', '09:00', '10:00', '11:00', '12:00', '13:00', '14:00', '15:00', '16:00', '17:00', '18:00', '19:00', '20:00', '21:00', '22:00'].map(time => (
                       <option key={`dropoff-${time}`} value={time}>{time}</option>
@@ -2969,7 +3039,9 @@ export default function EnhancedSearchBar({
                   }
                 }}
                 placeholder="Airport, hotel, or address"
-                className="w-full px-4 py-4 bg-white border border-gray-300 rounded-lg hover:border-teal-500 focus:outline-none focus:ring-2 focus:ring-teal-500 transition-all text-sm font-medium"
+                className={`w-full px-4 py-4 rounded-lg hover:border-teal-500 focus:outline-none focus:ring-2 focus:ring-teal-500 transition-all text-sm font-medium ${
+                  transparent ? 'bg-black/30 backdrop-blur-sm border-white/20 text-white placeholder:text-white/50' : 'bg-white border border-gray-300'
+                }`}
               />
               {/* Pickup Suggestions Dropdown */}
               {showTransferPickupSuggestions && (
@@ -3027,7 +3099,9 @@ export default function EnhancedSearchBar({
                   }
                 }}
                 placeholder="Airport, hotel, or address"
-                className="w-full px-4 py-4 bg-white border border-gray-300 rounded-lg hover:border-teal-500 focus:outline-none focus:ring-2 focus:ring-teal-500 transition-all text-sm font-medium"
+                className={`w-full px-4 py-4 rounded-lg hover:border-teal-500 focus:outline-none focus:ring-2 focus:ring-teal-500 transition-all text-sm font-medium ${
+                  transparent ? 'bg-black/30 backdrop-blur-sm border-white/20 text-white placeholder:text-white/50' : 'bg-white border border-gray-300'
+                }`}
               />
               {/* Dropoff Suggestions Dropdown */}
               {showTransferDropoffSuggestions && (
@@ -3081,7 +3155,9 @@ export default function EnhancedSearchBar({
                   className={`flex-1 px-3 py-3.5 rounded-lg cursor-pointer transition-all flex items-center gap-2.5 ${
                     carPickupDate
                       ? 'bg-teal-50 border border-teal-300 hover:border-teal-400 hover:shadow-sm'
-                      : 'bg-white border border-gray-300 hover:border-teal-500'
+                      : transparent
+                        ? 'bg-black/30 backdrop-blur-sm border-white/20 text-white placeholder:text-white/50 hover:border-teal-500'
+                        : 'bg-white border border-gray-300 hover:border-teal-500'
                   }`}
                 >
                   <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${carPickupDate ? 'bg-teal-500' : 'bg-neutral-100'}`}>
@@ -3098,7 +3174,9 @@ export default function EnhancedSearchBar({
                 <select
                   value={carPickupTime}
                   onChange={(e) => setCarPickupTime(e.target.value)}
-                  className="w-24 px-2 py-3.5 bg-white border border-gray-300 rounded-lg hover:border-teal-500 focus:outline-none focus:ring-2 focus:ring-teal-500 transition-all text-sm font-semibold"
+                  className={`w-24 px-2 py-3.5 rounded-lg hover:border-teal-500 focus:outline-none focus:ring-2 focus:ring-teal-500 transition-all text-sm font-semibold ${
+                    transparent ? 'bg-black/30 backdrop-blur-sm border-white/20 text-white placeholder:text-white/50' : 'bg-white border border-gray-300'
+                  }`}
                 >
                   {Array.from({ length: 48 }, (_, i) => {
                     const hour = Math.floor(i / 2);
@@ -3119,7 +3197,9 @@ export default function EnhancedSearchBar({
               <select
                 value={hotelAdults}
                 onChange={(e) => setHotelAdults(parseInt(e.target.value))}
-                className="w-full px-3 py-4 bg-white border border-gray-300 rounded-lg hover:border-teal-500 focus:outline-none focus:ring-2 focus:ring-teal-500 transition-all text-sm font-medium"
+                className={`w-full px-3 py-4 rounded-lg hover:border-teal-500 focus:outline-none focus:ring-2 focus:ring-teal-500 transition-all text-sm font-medium ${
+                  transparent ? 'bg-black/30 backdrop-blur-sm border-white/20 text-white placeholder:text-white/50' : 'bg-white border border-gray-300'
+                }`}
               >
                 {[1,2,3,4,5,6,7,8].map(n => <option key={n} value={n}>{n} {n === 1 ? 'guest' : 'guests'}</option>)}
               </select>
@@ -3183,7 +3263,9 @@ export default function EnhancedSearchBar({
               {selectedDestinationDetails && hotelDestination === selectedDestinationDetails.name ? (
                 <div
                   onClick={() => setShowHotelSuggestions(true)}
-                  className="w-full px-3 py-3.5 bg-white border border-orange-300 rounded-xl cursor-pointer transition-all hover:border-orange-400 hover:shadow-sm active:scale-[0.99]"
+                  className={`w-full px-3 py-3.5 rounded-xl cursor-pointer transition-all hover:border-orange-400 hover:shadow-sm active:scale-[0.99] ${
+                    transparent ? 'bg-black/30 backdrop-blur-sm border-white/20 text-white placeholder:text-white/50' : 'bg-white border border-orange-300'
+                  }`}
                 >
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2.5">
@@ -3220,7 +3302,9 @@ export default function EnhancedSearchBar({
                   }}
                   onFocus={() => { if (hotelDestination.length >= 2 && !justSelectedRef.current) setShowHotelSuggestions(true); }}
                   placeholder="Where do you want to explore?"
-                  className="w-full px-4 py-4 bg-white border border-gray-300 rounded-lg hover:border-orange-500 focus:outline-none focus:ring-2 focus:ring-orange-500 transition-all text-sm font-medium"
+                  className={`w-full px-4 py-4 rounded-lg hover:border-orange-500 focus:outline-none focus:ring-2 focus:ring-orange-500 transition-all text-sm font-medium ${
+                    transparent ? 'bg-black/30 backdrop-blur-sm border-white/20 text-white placeholder:text-white/50' : 'bg-white border border-gray-300'
+                  }`}
                 />
               )}
 
@@ -3269,7 +3353,9 @@ export default function EnhancedSearchBar({
                 className={`w-full px-4 py-4 rounded-lg cursor-pointer transition-all flex items-center gap-3 ${
                   checkInDate
                     ? 'bg-orange-50 border border-orange-300 hover:border-orange-400 hover:shadow-sm'
-                    : 'bg-white border border-gray-300 hover:border-orange-500'
+                    : transparent
+                      ? 'bg-black/30 backdrop-blur-sm border-white/20 text-white placeholder:text-white/50 hover:border-orange-500'
+                      : 'bg-white border border-gray-300 hover:border-orange-500'
                 }`}
               >
                 <div className={`w-9 h-9 rounded-lg flex items-center justify-center ${checkInDate ? 'bg-orange-500' : 'bg-neutral-100'}`}>
@@ -3297,7 +3383,9 @@ export default function EnhancedSearchBar({
               <select
                 value={hotelAdults}
                 onChange={(e) => setHotelAdults(parseInt(e.target.value))}
-                className="w-full px-3 py-4 bg-white border border-gray-300 rounded-lg hover:border-orange-500 focus:outline-none focus:ring-2 focus:ring-orange-500 transition-all text-sm font-medium"
+                className={`w-full px-3 py-4 rounded-lg hover:border-orange-500 focus:outline-none focus:ring-2 focus:ring-orange-500 transition-all text-sm font-medium ${
+                  transparent ? 'bg-black/30 backdrop-blur-sm border-white/20 text-white placeholder:text-white/50' : 'bg-white border border-gray-300'
+                }`}
               >
                 {[1,2,3,4,5,6,7,8,9,10].map(n => <option key={n} value={n}>{n} {n === 1 ? 'person' : 'people'}</option>)}
               </select>
@@ -3353,7 +3441,9 @@ export default function EnhancedSearchBar({
               {selectedDestinationDetails && hotelDestination === selectedDestinationDetails.name ? (
                 <div
                   onClick={() => setShowHotelSuggestions(true)}
-                  className="w-full px-3 py-3.5 bg-white border border-purple-300 rounded-xl cursor-pointer transition-all hover:border-purple-400 hover:shadow-sm active:scale-[0.99]"
+                  className={`w-full px-3 py-3.5 rounded-xl cursor-pointer transition-all hover:border-purple-400 hover:shadow-sm active:scale-[0.99] ${
+                    transparent ? 'bg-black/30 backdrop-blur-sm border-white/20 text-white placeholder:text-white/50' : 'bg-white border border-purple-300'
+                  }`}
                 >
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2.5">
@@ -3390,7 +3480,9 @@ export default function EnhancedSearchBar({
                   }}
                   onFocus={() => { if (hotelDestination.length >= 2 && !justSelectedRef.current) setShowHotelSuggestions(true); }}
                   placeholder="Where do you want activities?"
-                  className="w-full px-4 py-4 bg-white border border-gray-300 rounded-lg hover:border-purple-500 focus:outline-none focus:ring-2 focus:ring-purple-500 transition-all text-sm font-medium"
+                  className={`w-full px-4 py-4 rounded-lg hover:border-purple-500 focus:outline-none focus:ring-2 focus:ring-purple-500 transition-all text-sm font-medium ${
+                    transparent ? 'bg-black/30 backdrop-blur-sm border-white/20 text-white placeholder:text-white/50' : 'bg-white border border-gray-300'
+                  }`}
                 />
               )}
 
@@ -3439,7 +3531,9 @@ export default function EnhancedSearchBar({
                 className={`w-full px-4 py-4 rounded-lg cursor-pointer transition-all flex items-center gap-3 ${
                   checkInDate
                     ? 'bg-purple-50 border border-purple-300 hover:border-purple-400 hover:shadow-sm'
-                    : 'bg-white border border-gray-300 hover:border-purple-500'
+                    : transparent
+                      ? 'bg-black/30 backdrop-blur-sm border-white/20 text-white placeholder:text-white/50 hover:border-purple-500'
+                      : 'bg-white border border-gray-300 hover:border-purple-500'
                 }`}
               >
                 <div className={`w-9 h-9 rounded-lg flex items-center justify-center ${checkInDate ? 'bg-purple-500' : 'bg-neutral-100'}`}>
@@ -3467,7 +3561,9 @@ export default function EnhancedSearchBar({
               <select
                 value={hotelAdults}
                 onChange={(e) => setHotelAdults(parseInt(e.target.value))}
-                className="w-full px-3 py-4 bg-white border border-gray-300 rounded-lg hover:border-purple-500 focus:outline-none focus:ring-2 focus:ring-purple-500 transition-all text-sm font-medium"
+                className={`w-full px-3 py-4 rounded-lg hover:border-purple-500 focus:outline-none focus:ring-2 focus:ring-purple-500 transition-all text-sm font-medium ${
+                  transparent ? 'bg-black/30 backdrop-blur-sm border-white/20 text-white placeholder:text-white/50' : 'bg-white border border-gray-300'
+                }`}
               >
                 {[1,2,3,4,5,6,7,8,9,10].map(n => <option key={n} value={n}>{n} {n === 1 ? 'person' : 'people'}</option>)}
               </select>
@@ -3865,7 +3961,8 @@ export default function EnhancedSearchBar({
                 maxDisplay={2}
                 lang={lang}
                 testId="origin-input"
-              />
+              transparent={transparent}
+            />
               <MultiAirportSelector
                 placeholder={labels.selectAirports}
                 value={destination}
@@ -3873,6 +3970,7 @@ export default function EnhancedSearchBar({
                 maxDisplay={2}
                 lang={lang}
                 testId="destination-input"
+              transparent={transparent}
               />
             </div>
           </div>
@@ -3956,7 +4054,9 @@ export default function EnhancedSearchBar({
                 <button
                   type="button"
                   onClick={() => handleOpenDatePicker('departure')}
-                  className={`relative w-full px-3 py-3 min-h-[48px] bg-white border-2 rounded-xl text-left transition-all duration-200 touch-manipulation active:scale-[0.98] ${errors.departureDate ? 'border-red-400' : 'border-neutral-200 hover:border-primary-400'}`}
+                  className={`relative w-full px-3 py-3 min-h-[48px] border-2 rounded-xl text-left transition-all duration-200 touch-manipulation active:scale-[0.98] ${
+                    transparent ? 'bg-black/30 backdrop-blur-sm text-white' : 'bg-white'
+                  } ${errors.departureDate ? 'border-red-400' : transparent ? 'border-white/30 hover:border-primary-400' : 'border-neutral-200 hover:border-primary-400'}`}
                 >
                   <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 text-neutral-400" size={16} />
                   <span className="pl-6 text-sm font-semibold text-neutral-800 truncate">
@@ -3967,7 +4067,9 @@ export default function EnhancedSearchBar({
                 <button
                   type="button"
                   onClick={() => handleOpenDatePicker('departure')}
-                  className={`relative w-full px-3 py-2.5 bg-white border-2 rounded-xl text-left min-h-[48px] transition-all duration-200 touch-manipulation active:scale-[0.98] ${errors.departureDate ? 'border-red-400' : 'border-neutral-200 hover:border-primary-400'}`}
+                  className={`relative w-full px-3 py-2.5 border-2 rounded-xl text-left min-h-[48px] transition-all duration-200 touch-manipulation active:scale-[0.98] ${
+                    transparent ? 'bg-black/30 backdrop-blur-sm text-white' : 'bg-white'
+                  } ${errors.departureDate ? 'border-red-400' : transparent ? 'border-white/30 hover:border-primary-400' : 'border-neutral-200 hover:border-primary-400'}`}
                 >
                   <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 text-neutral-400" size={16} />
                   <div className="pl-6 flex flex-wrap gap-1 items-center">
@@ -3989,7 +4091,9 @@ export default function EnhancedSearchBar({
                   <button
                     type="button"
                     onClick={() => handleOpenDatePicker('return')}
-                    className={`relative w-full px-3 py-3 min-h-[48px] bg-white border-2 rounded-xl text-left transition-all duration-200 touch-manipulation active:scale-[0.98] ${errors.returnDate ? 'border-red-400' : 'border-neutral-200 hover:border-primary-400'}`}
+                    className={`relative w-full px-3 py-3 min-h-[48px] border-2 rounded-xl text-left transition-all duration-200 touch-manipulation active:scale-[0.98] ${
+                      transparent ? 'bg-black/30 backdrop-blur-sm text-white' : 'bg-white'
+                    } ${errors.returnDate ? 'border-red-400' : transparent ? 'border-white/30 hover:border-primary-400' : 'border-neutral-200 hover:border-primary-400'}`}
                   >
                     <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 text-neutral-400" size={16} />
                     <span className="pl-6 text-sm font-semibold text-neutral-800 truncate">
@@ -4000,7 +4104,9 @@ export default function EnhancedSearchBar({
                   <button
                     type="button"
                     onClick={() => handleOpenDatePicker('return')}
-                    className={`relative w-full px-3 py-2.5 bg-white border-2 rounded-xl text-left min-h-[48px] transition-all duration-200 touch-manipulation active:scale-[0.98] ${errors.returnDate ? 'border-red-400' : 'border-neutral-200 hover:border-primary-400'}`}
+                    className={`relative w-full px-3 py-2.5 border-2 rounded-xl text-left min-h-[48px] transition-all duration-200 touch-manipulation active:scale-[0.98] ${
+                      transparent ? 'bg-black/30 backdrop-blur-sm text-white' : 'bg-white'
+                    } ${errors.returnDate ? 'border-red-400' : transparent ? 'border-white/30 hover:border-primary-400' : 'border-neutral-200 hover:border-primary-400'}`}
                   >
                     <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 text-neutral-400" size={16} />
                     <div className="pl-6 flex flex-wrap gap-1 items-center">
@@ -4022,7 +4128,9 @@ export default function EnhancedSearchBar({
                   <button
                     type="button"
                     onClick={handleAddFlight}
-                    className="relative w-full px-3 py-3 bg-white border-2 border-dashed border-neutral-300 rounded-xl hover:border-primary-400 hover:text-primary-500 hover:bg-primary-50/50 text-neutral-500 flex items-center justify-center gap-1.5 transition-all duration-200 touch-manipulation active:scale-[0.98]"
+                    className={`relative w-full px-3 py-3 border-2 border-dashed rounded-xl hover:border-primary-400 hover:text-primary-500 hover:bg-primary-50/50 text-neutral-500 flex items-center justify-center gap-1.5 transition-all duration-200 touch-manipulation active:scale-[0.98] ${
+                      transparent ? 'bg-black/30 backdrop-blur-sm border-white/20 text-white placeholder:text-white/50' : 'bg-white border-neutral-300'
+                    }`}
                   >
                     <Plus size={16} />
                     <span className="text-sm font-semibold">{labels.addFlight}</span>
@@ -4085,6 +4193,7 @@ export default function EnhancedSearchBar({
                               onChange={(codes) => handleUpdateAdditionalFlight(flight.id, { origin: codes })}
                               maxDisplay={1}
                               lang={lang}
+                            transparent={transparent}
                             />
                           </div>
                           <ArrowRight size={14} className="text-neutral-400 flex-shrink-0" />
@@ -4095,6 +4204,7 @@ export default function EnhancedSearchBar({
                               onChange={(codes) => handleUpdateAdditionalFlight(flight.id, { destination: codes })}
                               maxDisplay={1}
                               lang={lang}
+                            transparent={transparent}
                             />
                           </div>
                         </div>
@@ -4107,7 +4217,9 @@ export default function EnhancedSearchBar({
                               value={formatDateForInput(flight.departureDate)}
                               onChange={(e) => handleUpdateAdditionalFlight(flight.id, { departureDate: e.target.value })}
                               min={minDate}
-                              className="w-full px-3 py-2 text-xs font-semibold border-2 border-neutral-200 rounded-xl bg-white focus:border-primary-400 outline-none transition-colors"
+                              className={`w-full px-3 py-2 text-xs font-semibold border-2 rounded-xl focus:border-primary-400 outline-none transition-colors ${
+                                transparent ? 'bg-black/30 backdrop-blur-sm border-white/20 text-white placeholder:text-white/50' : 'bg-white border-neutral-200'
+                              }`}
                             />
                           </div>
                           <label className="flex items-center gap-1.5 px-3 py-2 bg-neutral-100 rounded-xl cursor-pointer flex-shrink-0 touch-manipulation active:scale-95">
@@ -4139,7 +4251,9 @@ export default function EnhancedSearchBar({
                 <button
                   type="button"
                   onClick={handleAddFlight}
-                  className="w-full px-3 py-2.5 border-2 border-dashed border-neutral-300 hover:border-primary-400 hover:text-primary-500 hover:bg-primary-50/50 text-neutral-500 rounded-xl text-xs font-semibold transition-all flex items-center justify-center gap-2 min-h-[44px] touch-manipulation active:scale-[0.98]"
+                  className={`w-full px-3 py-2.5 border-2 border-dashed hover:border-primary-400 hover:text-primary-500 hover:bg-primary-50/50 text-neutral-500 rounded-xl text-xs font-semibold transition-all flex items-center justify-center gap-2 min-h-[44px] touch-manipulation active:scale-[0.98] ${
+                    transparent ? 'bg-black/30 backdrop-blur-sm border-white/20 text-white placeholder:text-white/50' : 'border-neutral-300'
+                  }`}
                 >
                   <Plus size={14} />
                   <span>Add Flight {additionalFlights.length + 2}</span>
@@ -4159,7 +4273,9 @@ export default function EnhancedSearchBar({
                   e.stopPropagation();
                   setShowPassengerDropdown(!showPassengerDropdown);
                 }}
-                className="flex items-center gap-2 px-4 py-2.5 min-h-[44px] bg-white border-2 border-neutral-200 rounded-xl text-sm font-semibold text-neutral-700 hover:border-primary-400 transition-all duration-200 touch-manipulation active:scale-[0.98]"
+                className={`flex items-center gap-2 px-4 py-2.5 min-h-[44px] border-2 rounded-xl text-sm font-semibold text-neutral-700 hover:border-primary-400 transition-all duration-200 touch-manipulation active:scale-[0.98] ${
+                  transparent ? 'bg-black/30 backdrop-blur-sm border-white/20 text-white placeholder:text-white/50' : 'bg-white border-neutral-200'
+                }`}
               >
                 <Users size={14} className="text-primary-500" />
                 <span className="font-bold text-neutral-800">{totalPassengers}</span>
@@ -4328,8 +4444,10 @@ export default function EnhancedSearchBar({
                     }
                   }}
                   placeholder="City, hotel, landmark"
-                  className={`w-full pl-9 pr-3 py-2.5 bg-white border-2 rounded-xl focus:border-primary-500 focus:ring-2 focus:ring-primary-100 outline-none transition-all text-sm font-semibold text-neutral-800 ${
-                    errors.hotel ? 'border-red-400' : 'border-neutral-200'
+                  className={`w-full pl-9 pr-3 py-2.5 border-2 rounded-xl focus:border-primary-500 focus:ring-2 focus:ring-primary-100 outline-none transition-all text-sm font-semibold text-neutral-800 ${
+                    transparent ? 'bg-black/30 backdrop-blur-sm text-white' : 'bg-white'
+                  } ${
+                    errors.hotel ? 'border-red-400' : transparent ? 'border-white/30' : 'border-neutral-200'
                   }`}
                 />
               </div>
@@ -4390,7 +4508,9 @@ export default function EnhancedSearchBar({
               <button
                 type="button"
                 onClick={() => setShowPassengerDropdown(!showPassengerDropdown)}
-                className="flex items-center gap-1.5 px-3 py-2.5 bg-white border-2 border-neutral-200 rounded-xl hover:border-primary-400 transition-all text-xs font-semibold text-neutral-800 whitespace-nowrap touch-manipulation active:scale-[0.98]"
+                className={`flex items-center gap-1.5 px-3 py-2.5 border-2 rounded-xl hover:border-primary-400 transition-all text-xs font-semibold text-neutral-800 whitespace-nowrap touch-manipulation active:scale-[0.98] ${
+                  transparent ? 'bg-black/30 backdrop-blur-sm border-white/20 text-white placeholder:text-white/50' : 'bg-white border-neutral-200'
+                }`}
               >
                 <Users className="text-primary-500" size={14} />
                 <span className="font-bold">{hotelAdults + hotelChildren}</span>
@@ -4516,7 +4636,9 @@ export default function EnhancedSearchBar({
             <button
               type="button"
               onClick={() => setShowHotelDateRangePicker(true)}
-              className="w-full px-3 py-2.5 bg-white border-2 border-neutral-200 rounded-xl hover:border-primary-400 transition-all touch-manipulation active:scale-[0.98]"
+              className={`w-full px-3 py-2.5 border-2 rounded-xl hover:border-primary-400 transition-all touch-manipulation active:scale-[0.98] ${
+                transparent ? 'bg-black/30 backdrop-blur-sm border-white/20 text-white placeholder:text-white/50' : 'bg-white border-neutral-200'
+              }`}
             >
               <div className="flex items-center gap-2">
                 {/* Check-in */}
@@ -4592,7 +4714,9 @@ export default function EnhancedSearchBar({
               {selectedDestinationDetails && hotelDestination === selectedDestinationDetails.name ? (
                 <div
                   onClick={() => setShowHotelSuggestions(true)}
-                  className="w-full px-3 py-3 bg-white border-2 border-orange-300 rounded-xl cursor-pointer transition-all touch-manipulation active:scale-[0.99]"
+                  className={`w-full px-3 py-3 border-2 rounded-xl cursor-pointer transition-all touch-manipulation active:scale-[0.99] ${
+                    transparent ? 'bg-black/30 backdrop-blur-sm border-white/20 text-white placeholder:text-white/50' : 'bg-white border-orange-300'
+                  }`}
                 >
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2.5">
@@ -4628,7 +4752,9 @@ export default function EnhancedSearchBar({
                     }}
                     onFocus={() => { if (hotelDestination.length >= 2 && !justSelectedRef.current) setShowHotelSuggestions(true); }}
                     placeholder="City, region or attraction"
-                    className="w-full pl-9 pr-3 py-3 bg-white border-2 border-neutral-200 rounded-xl focus:border-orange-500 focus:ring-2 focus:ring-orange-100 outline-none transition-all text-sm font-semibold text-neutral-800"
+                    className={`w-full pl-9 pr-3 py-3 border-2 rounded-xl focus:border-orange-500 focus:ring-2 focus:ring-orange-100 outline-none transition-all text-sm font-semibold text-neutral-800 ${
+                      transparent ? 'bg-black/30 backdrop-blur-sm border-white/20 text-white placeholder:text-white/50' : 'bg-white border-neutral-200'
+                    }`}
                   />
                 </div>
               )}
@@ -4674,7 +4800,9 @@ export default function EnhancedSearchBar({
                   ref={tourDateRef}
                   type="button"
                   onClick={() => setShowTourDatePicker(true)}
-                  className="w-full px-3 py-3 bg-white border-2 border-neutral-200 rounded-xl hover:border-orange-400 focus:border-orange-500 focus:ring-2 focus:ring-orange-100 outline-none transition-all text-sm font-semibold text-neutral-800 flex items-center gap-2"
+                  className={`w-full px-3 py-3 border-2 rounded-xl hover:border-orange-400 focus:border-orange-500 focus:ring-2 focus:ring-orange-100 outline-none transition-all text-sm font-semibold text-neutral-800 flex items-center gap-2 ${
+                    transparent ? 'bg-black/30 backdrop-blur-sm border-white/20 text-white placeholder:text-white/50' : 'bg-white border-neutral-200'
+                  }`}
                 >
                   <CalendarDays size={16} className="text-orange-500 flex-shrink-0" />
                   <span className="truncate">{checkInDate ? format(new Date(checkInDate), 'MMM d, yyyy') : 'Select date'}</span>
@@ -4689,7 +4817,9 @@ export default function EnhancedSearchBar({
                 <select
                   value={hotelAdults}
                   onChange={(e) => setHotelAdults(parseInt(e.target.value))}
-                  className="w-full px-2 py-3 bg-white border-2 border-neutral-200 rounded-xl focus:border-orange-500 focus:ring-2 focus:ring-orange-100 outline-none transition-all text-sm font-semibold text-neutral-800"
+                  className={`w-full px-2 py-3 border-2 rounded-xl focus:border-orange-500 focus:ring-2 focus:ring-orange-100 outline-none transition-all text-sm font-semibold text-neutral-800 ${
+                    transparent ? 'bg-black/30 backdrop-blur-sm border-white/20 text-white placeholder:text-white/50' : 'bg-white border-neutral-200'
+                  }`}
                 >
                   {[1,2,3,4,5,6,7,8,9,10].map(n => <option key={n} value={n}>{n}</option>)}
                 </select>
@@ -4730,7 +4860,9 @@ export default function EnhancedSearchBar({
               {selectedDestinationDetails && hotelDestination === selectedDestinationDetails.name ? (
                 <div
                   onClick={() => setShowHotelSuggestions(true)}
-                  className="w-full px-3 py-3 bg-white border-2 border-purple-300 rounded-xl cursor-pointer transition-all touch-manipulation active:scale-[0.99]"
+                  className={`w-full px-3 py-3 border-2 rounded-xl cursor-pointer transition-all touch-manipulation active:scale-[0.99] ${
+                    transparent ? 'bg-black/30 backdrop-blur-sm border-white/20 text-white placeholder:text-white/50' : 'bg-white border-purple-300'
+                  }`}
                 >
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2.5">
@@ -4766,7 +4898,9 @@ export default function EnhancedSearchBar({
                     }}
                     onFocus={() => { if (hotelDestination.length >= 2 && !justSelectedRef.current) setShowHotelSuggestions(true); }}
                     placeholder="City or attraction"
-                    className="w-full pl-9 pr-3 py-3 bg-white border-2 border-neutral-200 rounded-xl focus:border-purple-500 focus:ring-2 focus:ring-purple-100 outline-none transition-all text-sm font-semibold text-neutral-800"
+                    className={`w-full pl-9 pr-3 py-3 border-2 rounded-xl focus:border-purple-500 focus:ring-2 focus:ring-purple-100 outline-none transition-all text-sm font-semibold text-neutral-800 ${
+                      transparent ? 'bg-black/30 backdrop-blur-sm border-white/20 text-white placeholder:text-white/50' : 'bg-white border-neutral-200'
+                    }`}
                   />
                 </div>
               )}
@@ -4812,7 +4946,9 @@ export default function EnhancedSearchBar({
                   ref={activityDateRef}
                   type="button"
                   onClick={() => setShowActivityDatePicker(true)}
-                  className="w-full px-3 py-3 bg-white border-2 border-neutral-200 rounded-xl hover:border-purple-400 focus:border-purple-500 focus:ring-2 focus:ring-purple-100 outline-none transition-all text-sm font-semibold text-neutral-800 flex items-center gap-2"
+                  className={`w-full px-3 py-3 border-2 rounded-xl hover:border-purple-400 focus:border-purple-500 focus:ring-2 focus:ring-purple-100 outline-none transition-all text-sm font-semibold text-neutral-800 flex items-center gap-2 ${
+                    transparent ? 'bg-black/30 backdrop-blur-sm border-white/20 text-white placeholder:text-white/50' : 'bg-white border-neutral-200'
+                  }`}
                 >
                   <CalendarDays size={16} className="text-purple-500 flex-shrink-0" />
                   <span className="truncate">{checkInDate ? format(new Date(checkInDate), 'MMM d, yyyy') : 'Select date'}</span>
@@ -4827,7 +4963,9 @@ export default function EnhancedSearchBar({
                 <select
                   value={hotelAdults}
                   onChange={(e) => setHotelAdults(parseInt(e.target.value))}
-                  className="w-full px-2 py-3 bg-white border-2 border-neutral-200 rounded-xl focus:border-purple-500 focus:ring-2 focus:ring-purple-100 outline-none transition-all text-sm font-semibold text-neutral-800"
+                  className={`w-full px-2 py-3 border-2 rounded-xl focus:border-purple-500 focus:ring-2 focus:ring-purple-100 outline-none transition-all text-sm font-semibold text-neutral-800 ${
+                    transparent ? 'bg-black/30 backdrop-blur-sm border-white/20 text-white placeholder:text-white/50' : 'bg-white border-neutral-200'
+                  }`}
                 >
                   {[1,2,3,4,5,6,7,8,9,10].map(n => <option key={n} value={n}>{n}</option>)}
                 </select>
@@ -4873,7 +5011,9 @@ export default function EnhancedSearchBar({
                   onChange={(e) => handleTransferPickupChange(e.target.value)}
                   onFocus={() => { if (carPickupLocation.length >= 2) { fetchTransferSuggestions(carPickupLocation); setShowTransferPickupSuggestions(true); }}}
                   placeholder="Airport, hotel, or address"
-                  className="w-full pl-9 pr-3 py-3 bg-white border-2 border-neutral-200 rounded-xl focus:border-teal-500 focus:ring-2 focus:ring-teal-100 outline-none transition-all text-sm font-semibold text-neutral-800"
+                  className={`w-full pl-9 pr-3 py-3 border-2 rounded-xl focus:border-teal-500 focus:ring-2 focus:ring-teal-100 outline-none transition-all text-sm font-semibold text-neutral-800 ${
+                    transparent ? 'bg-black/30 backdrop-blur-sm border-white/20 text-white placeholder:text-white/50' : 'bg-white border-neutral-200'
+                  }`}
                 />
               </div>
               {/* Pickup Suggestions */}
@@ -4913,7 +5053,9 @@ export default function EnhancedSearchBar({
                   onChange={(e) => handleTransferDropoffChange(e.target.value)}
                   onFocus={() => { if (carDropoffLocation.length >= 2) { fetchTransferSuggestions(carDropoffLocation); setShowTransferDropoffSuggestions(true); }}}
                   placeholder="Airport, hotel, or address"
-                  className="w-full pl-9 pr-3 py-3 bg-white border-2 border-neutral-200 rounded-xl focus:border-teal-500 focus:ring-2 focus:ring-teal-100 outline-none transition-all text-sm font-semibold text-neutral-800"
+                  className={`w-full pl-9 pr-3 py-3 border-2 rounded-xl focus:border-teal-500 focus:ring-2 focus:ring-teal-100 outline-none transition-all text-sm font-semibold text-neutral-800 ${
+                    transparent ? 'bg-black/30 backdrop-blur-sm border-white/20 text-white placeholder:text-white/50' : 'bg-white border-neutral-200'
+                  }`}
                 />
               </div>
               {/* Dropoff Suggestions */}
@@ -4950,7 +5092,9 @@ export default function EnhancedSearchBar({
                   ref={transferDateRef}
                   type="button"
                   onClick={() => setShowTransferDatePicker(true)}
-                  className="w-full px-3 py-2.5 bg-white border-2 border-neutral-200 rounded-xl text-sm font-semibold text-left hover:border-teal-400 focus:border-teal-500 focus:ring-2 focus:ring-teal-100 outline-none transition-all touch-manipulation active:scale-[0.99] flex items-center justify-between"
+                  className={`w-full px-3 py-2.5 border-2 rounded-xl text-sm font-semibold text-left hover:border-teal-400 focus:border-teal-500 focus:ring-2 focus:ring-teal-100 outline-none transition-all touch-manipulation active:scale-[0.99] flex items-center justify-between ${
+                    transparent ? 'bg-black/30 backdrop-blur-sm border-white/20 text-white placeholder:text-white/50' : 'bg-white border-neutral-200'
+                  }`}
                 >
                   <span className={carPickupDate ? 'text-neutral-800' : 'text-neutral-400'}>
                     {carPickupDate ? format(new Date(carPickupDate + 'T00:00:00'), 'EEE, MMM d') : 'Select date'}
@@ -4966,7 +5110,9 @@ export default function EnhancedSearchBar({
                 <select
                   value={carPickupTime}
                   onChange={(e) => setCarPickupTime(e.target.value)}
-                  className="w-full px-3 py-2.5 bg-white border-2 border-neutral-200 rounded-xl text-sm font-semibold focus:border-teal-500 focus:ring-2 focus:ring-teal-100 outline-none transition-all"
+                  className={`w-full px-3 py-2.5 border-2 rounded-xl text-sm font-semibold focus:border-teal-500 focus:ring-2 focus:ring-teal-100 outline-none transition-all ${
+                    transparent ? 'bg-black/30 backdrop-blur-sm border-white/20 text-white placeholder:text-white/50' : 'bg-white border-neutral-200'
+                  }`}
                 >
                   {Array.from({ length: 48 }, (_, i) => {
                     const hour = Math.floor(i / 2);
@@ -4981,7 +5127,9 @@ export default function EnhancedSearchBar({
             {/* Passengers */}
             <div>
               <label className="block text-xs font-semibold text-neutral-600 mb-1.5">Passengers</label>
-              <div className="flex items-center gap-3 px-3 py-2.5 bg-white border-2 border-neutral-200 rounded-xl">
+              <div className={`flex items-center gap-3 px-3 py-2.5 border-2 rounded-xl ${
+                transparent ? 'bg-black/30 backdrop-blur-sm border-white/20 text-white placeholder:text-white/50' : 'bg-white border-neutral-200'
+              }`}>
                 <Users size={16} className="text-teal-500" />
                 <button type="button" onClick={() => setTransferPassengers(Math.max(1, transferPassengers - 1))} className="w-8 h-8 rounded-lg border border-neutral-200 flex items-center justify-center font-bold text-neutral-600">−</button>
                 <span className="w-8 text-center font-bold text-neutral-800">{transferPassengers}</span>

@@ -208,54 +208,15 @@ export default function Home() {
             </div>
           </div>
 
-          {/* Bottom Section - Destination Buttons & Scroll */}
-          <div className="pb-5 md:pb-6 px-4 md:px-6">
-            <MaxWidthContainer noPadding>
-              <motion.div
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.5, duration: 0.5 }}
-                className="flex flex-col items-center gap-3"
-              >
-                {/* Destination Buttons - Glassmorphism */}
-                <div className="flex flex-wrap justify-center gap-2">
-                  {HERO_DESTINATIONS.map((dest, i) => (
-                    <motion.button
-                      key={dest.name}
-                      onClick={() => setHeroIndex(i)}
-                      className="px-3 py-2 rounded-xl font-semibold text-sm"
-                      style={{
-                        background: heroIndex === i
-                          ? 'linear-gradient(135deg, #E74035 0%, #FF6B6B 100%)'
-                          : 'rgba(255,255,255,0.15)',
-                        backdropFilter: 'blur(10px)',
-                        boxShadow: heroIndex === i
-                          ? '0 4px 20px rgba(231,64,53,0.4)'
-                          : '0 2px 10px rgba(0,0,0,0.1)',
-                        border: heroIndex === i ? 'none' : '1px solid rgba(255,255,255,0.2)',
-                      }}
-                      whileHover={{ scale: 1.05, y: -2 }}
-                      whileTap={{ scale: 0.98 }}
-                      initial={{ opacity: 0, y: 20 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      transition={{ delay: 0.5 + i * 0.08 }}
-                    >
-                      <span className="mr-1.5">{dest.emoji}</span>
-                      <span className="text-white">{dest.name}</span>
-                    </motion.button>
-                  ))}
-                </div>
-
-                {/* Scroll Indicator */}
-                <motion.div
-                  className="flex flex-col items-center"
-                  animate={{ y: [0, 6, 0] }}
-                  transition={{ repeat: Infinity, duration: 1.5 }}
-                >
-                  <ChevronDown className="w-5 h-5 text-white/50" />
-                </motion.div>
-              </motion.div>
-            </MaxWidthContainer>
+          {/* Scroll Indicator */}
+          <div className="pb-4 md:pb-5">
+            <motion.div
+              className="flex flex-col items-center"
+              animate={{ y: [0, 6, 0] }}
+              transition={{ repeat: Infinity, duration: 1.5 }}
+            >
+              <ChevronDown className="w-5 h-5 text-white/50" />
+            </motion.div>
           </div>
         </div>
       </section>
