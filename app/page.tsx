@@ -275,9 +275,7 @@ export default function Home() {
           </div>
 
           {/* Airlines Logo Marquee */}
-          <div className="px-4">
-            <AirlineLogosMarquee />
-          </div>
+          <AirlineLogosMarquee />
 
           {/* Trust Signals - Above fold */}
           <div className="pb-12 md:pb-16">

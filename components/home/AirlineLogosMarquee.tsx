@@ -34,13 +34,11 @@ const AIRLINES = [
 
 export function AirlineLogosMarquee() {
   return (
-    <div className="w-full py-2 relative overflow-hidden">
-
-      {/* Marquee track */}
-      <div className="flex overflow-hidden group">
-        {/* First set */}
+    <div className="w-screen relative overflow-hidden -mx-4 py-3">
+      {/* Marquee track - full width slow scroll */}
+      <div className="flex overflow-hidden">
         <div
-          className="flex items-center gap-10 md:gap-14 animate-marquee group-hover:[animation-play-state:paused]"
+          className="flex items-center gap-12 md:gap-16 animate-marquee-slow"
           style={{ minWidth: 'max-content' }}
         >
           {AIRLINES.map((airline, i) => (
@@ -58,7 +56,7 @@ export function AirlineLogosMarquee() {
 
         {/* Duplicate for seamless loop */}
         <div
-          className="flex items-center gap-10 md:gap-14 animate-marquee group-hover:[animation-play-state:paused]"
+          className="flex items-center gap-12 md:gap-16 animate-marquee-slow"
           style={{ minWidth: 'max-content' }}
           aria-hidden="true"
         >

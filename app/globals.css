@@ -412,6 +412,10 @@
     animation: marquee 60s linear infinite;
   }
 
+  .animate-marquee-slow {
+    animation: marquee 90s linear infinite;
+  }
+
   @keyframes flame-pulse {
     0%, 100% {
       transform: scale(1);
