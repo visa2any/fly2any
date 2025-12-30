@@ -12,11 +12,15 @@ const languages = {
 
 type Language = keyof typeof languages;
 
+interface LocaleSwitcherProps {
+  scrolled?: boolean;
+}
+
 /**
  * Ultra-compact Language & Currency Switcher
  * Level-6 Apple-class design - subtle, minimal footprint
  */
-export function LocaleSwitcher() {
+export function LocaleSwitcher({ scrolled = true }: LocaleSwitcherProps) {
   const { language, setLanguage } = useLanguage();
   const { currency, setCurrency, currencyInfo } = useCurrency();
   const [isOpen, setIsOpen] = useState(false);
@@ -49,19 +53,24 @@ export function LocaleSwitcher() {
       {/* Trigger Button - Ultra Compact */}
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className="flex items-center gap-1 px-2 py-1.5 text-neutral-600 hover:text-neutral-900 hover:bg-neutral-100 rounded-lg transition-all duration-150 text-xs font-medium"
+        className={`flex items-center gap-1 px-2 py-1.5 rounded-lg transition-all duration-150 text-xs font-medium ${
+          scrolled
+            ? 'text-neutral-600 hover:text-neutral-900 hover:bg-neutral-100'
+            : 'text-white hover:text-white/90 hover:bg-white/10'
+        }`}
+        style={{ textShadow: scrolled ? 'none' : '0 1px 3px rgba(0,0,0,0.5)' }}
         aria-label="Language and Currency"
       >
         <span className="text-sm">{languages[language as Language]?.flag || '🌐'}</span>
-        <span className="hidden sm:inline text-[10px] uppercase tracking-wide opacity-70">
+        <span className="hidden sm:inline text-[10px] uppercase tracking-wide opacity-80">
           {languages[language as Language]?.code || 'EN'}
         </span>
-        <span className="text-neutral-300 hidden sm:inline">|</span>
+        <span className={`hidden sm:inline ${scrolled ? 'text-neutral-300' : 'text-white/50'}`}>|</span>
         <span className="hidden sm:inline text-[10px] font-semibold">
           {currencyInfo.symbol}
         </span>
         <svg
-          className={`w-3 h-3 opacity-50 transition-transform duration-150 ${isOpen ? 'rotate-180' : ''}`}
+          className={`w-3 h-3 opacity-60 transition-transform duration-150 ${isOpen ? 'rotate-180' : ''}`}
           fill="none"
           viewBox="0 0 24 24"
           stroke="currentColor"

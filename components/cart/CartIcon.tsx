@@ -10,18 +10,28 @@ import { useExperiencesCart } from '@/lib/cart/experiences-cart';
 
 interface CartIconProps {
   className?: string;
+  scrolled?: boolean;
 }
 
-export default function CartIcon({ className = '' }: CartIconProps) {
+export default function CartIcon({ className = '', scrolled = true }: CartIconProps) {
   const { itemCount, toggleCart } = useExperiencesCart();
 
   return (
     <button
       onClick={toggleCart}
-      className={`relative p-2.5 rounded-xl hover:bg-gray-100 transition-colors group ${className}`}
+      className={`relative p-2.5 rounded-xl transition-colors group ${className} ${
+        scrolled ? 'hover:bg-gray-100' : 'hover:bg-white/10'
+      }`}
       aria-label={`Shopping cart with ${itemCount} items`}
     >
-      <ShoppingBag className="w-5 h-5 text-gray-600 group-hover:text-gray-900 transition-colors" />
+      <ShoppingBag
+        className={`w-5 h-5 transition-colors ${
+          scrolled
+            ? 'text-gray-600 group-hover:text-gray-900'
+            : 'text-white group-hover:text-white/90'
+        }`}
+        style={{ filter: scrolled ? 'none' : 'drop-shadow(0 1px 2px rgba(0,0,0,0.4))' }}
+      />
 
       {/* Badge */}
       {itemCount > 0 && (

@@ -611,10 +611,10 @@ export function Header({
             {/* ============ DESKTOP ICONS ============ */}
 
             {/* Locale Switcher - Language & Currency */}
-            <LocaleSwitcher />
+            <LocaleSwitcher scrolled={scrolled} />
 
             {/* Cart Icon - Desktop & Mobile */}
-            <CartIcon className="hidden sm:block" />
+            <CartIcon className="hidden sm:block" scrolled={scrolled} />
 
             {/* Notification Bell - Desktop only */}
             {mounted && session?.user && (
