@@ -19,7 +19,7 @@ import { RecentlyViewedSection } from '@/components/home/RecentlyViewedSection';
 import { WorldCupHeroSectionEnhanced } from '@/components/world-cup/WorldCupHeroSectionEnhanced';
 import { MaxWidthContainer } from '@/components/layout/MaxWidthContainer';
 import { CompactTrustBar } from '@/components/conversion/CompactTrustBar';
-import { CreditCard, Plane, Hotel, Car, Shield, HeadphonesIcon, Sparkles } from 'lucide-react';
+import { CreditCard, Plane, Hotel, Car, Shield, HeadphonesIcon, Sparkles, Sun, Globe, ChevronDown } from 'lucide-react';
 import { useLanguage } from '@/lib/i18n/client';
 
 type Language = 'en' | 'pt' | 'es';
@@ -131,18 +131,18 @@ export default function Home() {
   return (
     <div className="min-h-screen bg-white">
       {/* ============================================
-          LEVEL-6 IMMERSIVE HERO - Full-Bleed Image Slider
-          Premium Apple-Class Design
+          LEVEL-6 ULTRA-PREMIUM HERO - Apple-Class Design
+          Matching /experiences page hero exactly
           ============================================ */}
-      <section className="relative min-h-[520px] md:min-h-[480px] overflow-hidden">
+      <section className="relative min-h-[600px] md:min-h-[580px] overflow-hidden">
         {/* Rotating Background Images with Ken Burns Effect */}
         <AnimatePresence mode="wait">
           <motion.div
             key={heroIndex}
             initial={{ opacity: 0, scale: 1.1 }}
-            animate={{ opacity: 1, scale: 1.02 }}
+            animate={{ opacity: 1, scale: 1 }}
             exit={{ opacity: 0 }}
-            transition={{ duration: 1.2, ease: [0.25, 0.46, 0.45, 0.94] }}
+            transition={{ duration: 1.5 }}
             className="absolute inset-0"
           >
             <Image
@@ -156,110 +156,121 @@ export default function Home() {
           </motion.div>
         </AnimatePresence>
 
-        {/* Premium Gradient Overlays */}
-        <div className="absolute inset-0 bg-gradient-to-b from-black/60 via-black/40 to-black/70" />
-        <div className="absolute inset-0 bg-gradient-to-r from-black/30 via-transparent to-black/30" />
+        {/* Ultra-Premium Gradient Overlays - Warm Brand Colors */}
+        <div className="absolute inset-0 bg-gradient-to-b from-black/40 via-black/20 to-orange-900/60" />
+        <div className="absolute inset-0 bg-gradient-to-r from-red-900/30 via-transparent to-yellow-900/30" />
 
         {/* Content Container */}
         <div className="relative z-10 h-full flex flex-col">
-          {/* Top Section - Title & Badge */}
+          {/* Top Section - Animated Badge & Title */}
           <div className="pt-4 md:pt-6 px-4 md:px-6">
             <MaxWidthContainer noPadding>
-              <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
-                {/* Title + Subtitle */}
-                <div className="flex-1">
-                  <motion.div
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.6 }}
-                    className="flex flex-col md:flex-row md:items-baseline gap-1 md:gap-3"
-                  >
-                    <h1 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-black text-white tracking-tight"
-                        style={{ textShadow: '0 2px 20px rgba(0,0,0,0.5)' }}>
-                      {t.sectionTitle}
-                    </h1>
-                    <span className="hidden md:inline text-white/40 text-2xl">•</span>
-                    <p className="text-sm md:text-base lg:text-lg text-white/80 font-medium"
-                       style={{ textShadow: '0 1px 10px rgba(0,0,0,0.3)' }}>
-                      {t.subtitle}
-                    </p>
-                  </motion.div>
-                </div>
-
-                {/* Trust Badge - Glassmorphism */}
+              <motion.div
+                initial={{ opacity: 0, y: 30 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.8 }}
+                className="text-center md:text-left"
+              >
+                {/* Animated Pulsing Badge */}
                 <motion.div
-                  initial={{ opacity: 0, scale: 0.9 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  transition={{ delay: 0.3, duration: 0.5 }}
-                  className="hidden md:flex items-center gap-2 px-4 py-2 rounded-full"
+                  className="inline-flex items-center gap-2 px-4 py-2 rounded-full mb-4"
                   style={{
-                    background: 'rgba(255,255,255,0.15)',
-                    backdropFilter: 'blur(12px)',
-                    border: '1px solid rgba(255,255,255,0.2)',
+                    background: 'linear-gradient(135deg, rgba(247,201,40,0.9) 0%, rgba(255,150,50,0.9) 100%)',
+                    boxShadow: '0 4px 30px rgba(247,201,40,0.4)',
                   }}
+                  animate={{ scale: [1, 1.02, 1] }}
+                  transition={{ repeat: Infinity, duration: 2 }}
                 >
-                  <Sparkles className="w-4 h-4 text-yellow-400" />
-                  <span className="text-sm font-semibold text-white">{t.badge}</span>
+                  <Sun className="w-4 h-4 text-white" />
+                  <span className="text-sm font-bold text-white">{t.badge}</span>
+                  <Sparkles className="w-4 h-4 text-white" />
                 </motion.div>
-              </div>
+
+                {/* Animated Gradient Title */}
+                <h1
+                  className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-black text-white mb-2"
+                  style={{ textShadow: '0 4px 30px rgba(0,0,0,0.5)' }}
+                >
+                  {lang === 'en' ? 'Your Next Adventure' : lang === 'pt' ? 'Sua Próxima Aventura' : 'Tu Próxima Aventura'}{' '}
+                  <motion.span
+                    className="inline-block"
+                    style={{
+                      background: 'linear-gradient(135deg, #FFD700 0%, #FFF 25%, #FFD700 50%, #FF6B6B 75%, #FFD700 100%)',
+                      backgroundSize: '200% 200%',
+                      WebkitBackgroundClip: 'text',
+                      WebkitTextFillColor: 'transparent',
+                    }}
+                    animate={{ backgroundPosition: ['0% 0%', '100% 100%', '0% 0%'] }}
+                    transition={{ duration: 4, repeat: Infinity, ease: 'linear' }}
+                  >
+                    {lang === 'en' ? 'Starts Here' : lang === 'pt' ? 'Começa Aqui' : 'Comienza Aquí'}
+                  </motion.span>
+                </h1>
+
+                <p
+                  className="text-sm md:text-base lg:text-lg text-white/90 font-medium"
+                  style={{ textShadow: '0 2px 20px rgba(0,0,0,0.3)' }}
+                >
+                  {t.subtitle}
+                </p>
+              </motion.div>
             </MaxWidthContainer>
           </div>
 
-          {/* Search Form Section */}
+          {/* Search Form Section - Same Position */}
           <div className="flex-1 flex items-start pt-3 md:pt-4">
             <div className="w-full">
               <MobileHomeSearchWrapper lang={lang} glassmorphism />
             </div>
           </div>
 
-          {/* Bottom Section - Destination Indicators */}
-          <div className="pb-4 md:pb-5 px-4 md:px-6">
+          {/* Bottom Section - Interactive Destination Buttons */}
+          <div className="pb-6 md:pb-8 px-4 md:px-6">
             <MaxWidthContainer noPadding>
               <motion.div
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.5, duration: 0.5 }}
-                className="flex items-center justify-between"
+                className="flex flex-col items-center gap-4"
               >
-                {/* Current Destination */}
-                <div className="flex items-center gap-3">
-                  <AnimatePresence mode="wait">
-                    <motion.div
-                      key={heroIndex}
-                      initial={{ opacity: 0, x: -10 }}
-                      animate={{ opacity: 1, x: 0 }}
-                      exit={{ opacity: 0, x: 10 }}
-                      transition={{ duration: 0.3 }}
-                      className="flex items-center gap-2 px-3 py-1.5 rounded-full"
-                      style={{
-                        background: 'rgba(255,255,255,0.15)',
-                        backdropFilter: 'blur(8px)',
-                        border: '1px solid rgba(255,255,255,0.2)',
-                      }}
-                    >
-                      <span className="text-lg">{HERO_DESTINATIONS[heroIndex].emoji}</span>
-                      <span className="text-sm font-semibold text-white">
-                        {HERO_DESTINATIONS[heroIndex].name}, {HERO_DESTINATIONS[heroIndex].country}
-                      </span>
-                    </motion.div>
-                  </AnimatePresence>
-                </div>
-
-                {/* Dot Indicators */}
-                <div className="flex items-center gap-1.5">
-                  {HERO_DESTINATIONS.map((_, i) => (
-                    <button
-                      key={i}
+                {/* Destination Buttons - Glassmorphism */}
+                <div className="flex flex-wrap justify-center gap-2">
+                  {HERO_DESTINATIONS.map((dest, i) => (
+                    <motion.button
+                      key={dest.name}
                       onClick={() => setHeroIndex(i)}
-                      className={`transition-all duration-300 rounded-full ${
-                        i === heroIndex
-                          ? 'w-6 h-2 bg-white'
-                          : 'w-2 h-2 bg-white/40 hover:bg-white/60'
-                      }`}
-                      aria-label={`Go to ${HERO_DESTINATIONS[i].name}`}
-                    />
+                      className="group relative px-3 py-2 rounded-xl font-semibold text-sm transition-all"
+                      style={{
+                        background: heroIndex === i
+                          ? 'linear-gradient(135deg, #E74035 0%, #FF6B6B 100%)'
+                          : 'rgba(255,255,255,0.15)',
+                        backdropFilter: 'blur(10px)',
+                        boxShadow: heroIndex === i
+                          ? '0 4px 20px rgba(231,64,53,0.4)'
+                          : '0 2px 10px rgba(0,0,0,0.1)',
+                        border: heroIndex === i ? 'none' : '1px solid rgba(255,255,255,0.2)',
+                      }}
+                      whileHover={{ scale: 1.05, y: -2 }}
+                      whileTap={{ scale: 0.98 }}
+                      initial={{ opacity: 0, y: 20 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: 0.6 + i * 0.1 }}
+                    >
+                      <span className="mr-1.5">{dest.emoji}</span>
+                      <span className="text-white">{dest.name}</span>
+                    </motion.button>
                   ))}
                 </div>
+
+                {/* Scroll Indicator */}
+                <motion.div
+                  className="flex flex-col items-center"
+                  animate={{ y: [0, 8, 0] }}
+                  transition={{ repeat: Infinity, duration: 1.5 }}
+                >
+                  <span className="text-xs text-white/60 mb-1">Scroll to explore</span>
+                  <ChevronDown className="w-5 h-5 text-white/60" />
+                </motion.div>
               </motion.div>
             </MaxWidthContainer>
           </div>
