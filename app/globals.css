@@ -416,6 +416,20 @@
     animation: marquee 120s linear infinite;
   }
 
+  /* Airline logos marquee - uses -50% for duplicated content seamless loop */
+  @keyframes airline-scroll {
+    0% {
+      transform: translateX(0);
+    }
+    100% {
+      transform: translateX(-50%);
+    }
+  }
+
+  .animate-airline-marquee {
+    animation: airline-scroll 150s linear infinite;
+  }
+
   @keyframes flame-pulse {
     0%, 100% {
       transform: scale(1);
