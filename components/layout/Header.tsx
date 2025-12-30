@@ -217,15 +217,14 @@ export function Header({
               className="flex items-center flex-shrink-0 transition-all duration-200 ease-[cubic-bezier(0.2,0.8,0.2,1)] hover:opacity-90 active:scale-[0.98]"
             >
               <Image
-                src="/logo.png"
+                src="/logo-transparent.png"
                 alt="Fly2Any"
                 width={880}
                 height={304}
                 priority
-                className="h-6 sm:h-7 lg:h-7 w-auto object-contain transition-all duration-200"
+                className="h-6 sm:h-7 lg:h-8 w-auto object-contain transition-all duration-200"
                 style={{
-                  filter: scrolled ? 'none' : 'brightness(1.5) drop-shadow(0 2px 4px rgba(0,0,0,0.6))',
-                  mixBlendMode: scrolled ? 'normal' : 'lighten',
+                  filter: scrolled ? 'none' : 'brightness(1.15) drop-shadow(0 2px 6px rgba(0,0,0,0.5))',
                 }}
               />
             </a>
