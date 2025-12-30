@@ -24,15 +24,59 @@ import { useLanguage } from '@/lib/i18n/client';
 
 type Language = 'en' | 'pt' | 'es';
 
-// Premium Hero Destinations (removed Santorini & Bali per request)
-const HERO_DESTINATIONS = [
-  { name: 'Paris', country: 'France', image: 'https://images.unsplash.com/photo-1502602898657-3e91760cbb34?w=1920&q=85', emoji: '🗼' },
-  { name: 'Dubai', country: 'UAE', image: 'https://images.unsplash.com/photo-1512453979798-5ea266f8880c?w=1920&q=85', emoji: '✨' },
-  { name: 'Maldives', country: 'Paradise', image: 'https://images.unsplash.com/photo-1514282401047-d79a71a590e8?w=1920&q=85', emoji: '🏝️' },
-  { name: 'New York', country: 'USA', image: 'https://images.unsplash.com/photo-1496442226666-8d4d0e62e6e9?w=1920&q=85', emoji: '🗽' },
-  { name: 'Tokyo', country: 'Japan', image: 'https://images.unsplash.com/photo-1540959733332-eab4deabeeaf?w=1920&q=85', emoji: '🗾' },
-  { name: 'London', country: 'UK', image: 'https://images.unsplash.com/photo-1513635269975-59663e0ac1ad?w=1920&q=85', emoji: '🇬🇧' },
-];
+// Level-6 Ultra-Premium: Tab-Contextual Hero Photos
+type ServiceType = 'flights' | 'hotels' | 'cars' | 'tours' | 'activities' | 'transfers' | 'packages' | 'insurance';
+
+const HERO_PHOTOS: Record<ServiceType, { name: string; image: string }[]> = {
+  flights: [
+    { name: 'Airplane Wing Sunset', image: 'https://images.unsplash.com/photo-1436491865332-7a61a109cc05?w=1920&q=90' },
+    { name: 'Aircraft Takeoff', image: 'https://images.unsplash.com/photo-1569154941061-e231b4725ef1?w=1920&q=90' },
+    { name: 'Above the Clouds', image: 'https://images.unsplash.com/photo-1464037866556-6812c9d1c72e?w=1920&q=90' },
+    { name: 'Airport Terminal', image: 'https://images.unsplash.com/photo-1529074963764-98f45c47344b?w=1920&q=90' },
+  ],
+  hotels: [
+    { name: 'Luxury Suite', image: 'https://images.unsplash.com/photo-1618773928121-c32242e63f39?w=1920&q=90' },
+    { name: 'Resort Pool', image: 'https://images.unsplash.com/photo-1571896349842-33c89424de2d?w=1920&q=90' },
+    { name: 'Hotel Lobby', image: 'https://images.unsplash.com/photo-1566073771259-6a8506099945?w=1920&q=90' },
+    { name: 'Ocean View Room', image: 'https://images.unsplash.com/photo-1582719508461-905c673771fd?w=1920&q=90' },
+  ],
+  cars: [
+    { name: 'Scenic Drive', image: 'https://images.unsplash.com/photo-1449965408869-eaa3f722e40d?w=1920&q=90' },
+    { name: 'Convertible Coast', image: 'https://images.unsplash.com/photo-1503376780353-7e6692767b70?w=1920&q=90' },
+    { name: 'Mountain Road', image: 'https://images.unsplash.com/photo-1469285994282-454c4c3e3eff?w=1920&q=90' },
+    { name: 'City Driving', image: 'https://images.unsplash.com/photo-1494976388531-d1058494cdd8?w=1920&q=90' },
+  ],
+  tours: [
+    { name: 'Eiffel Tower', image: 'https://images.unsplash.com/photo-1502602898657-3e91760cbb34?w=1920&q=90' },
+    { name: 'Machu Picchu', image: 'https://images.unsplash.com/photo-1587595431973-160d0d94add1?w=1920&q=90' },
+    { name: 'Colosseum Rome', image: 'https://images.unsplash.com/photo-1552832230-c0197dd311b5?w=1920&q=90' },
+    { name: 'Great Wall', image: 'https://images.unsplash.com/photo-1508804185872-d7badad00f7d?w=1920&q=90' },
+  ],
+  activities: [
+    { name: 'Snorkeling', image: 'https://images.unsplash.com/photo-1544551763-46a013bb70d5?w=1920&q=90' },
+    { name: 'Hot Air Balloon', image: 'https://images.unsplash.com/photo-1507608616759-54f48f0af0ee?w=1920&q=90' },
+    { name: 'Safari Adventure', image: 'https://images.unsplash.com/photo-1516426122078-c23e76319801?w=1920&q=90' },
+    { name: 'Hiking Trail', image: 'https://images.unsplash.com/photo-1551632811-561732d1e306?w=1920&q=90' },
+  ],
+  transfers: [
+    { name: 'Airport Pickup', image: 'https://images.unsplash.com/photo-1449965408869-eaa3f722e40d?w=1920&q=90' },
+    { name: 'Luxury Transfer', image: 'https://images.unsplash.com/photo-1549317661-bd32c8ce0db2?w=1920&q=90' },
+    { name: 'Private Driver', image: 'https://images.unsplash.com/photo-1619767886558-efdc259cde1a?w=1920&q=90' },
+    { name: 'City Transfer', image: 'https://images.unsplash.com/photo-1494976388531-d1058494cdd8?w=1920&q=90' },
+  ],
+  packages: [
+    { name: 'Dubai Package', image: 'https://images.unsplash.com/photo-1512453979798-5ea266f8880c?w=1920&q=90' },
+    { name: 'Maldives Package', image: 'https://images.unsplash.com/photo-1514282401047-d79a71a590e8?w=1920&q=90' },
+    { name: 'Paris Getaway', image: 'https://images.unsplash.com/photo-1502602898657-3e91760cbb34?w=1920&q=90' },
+    { name: 'Tokyo Experience', image: 'https://images.unsplash.com/photo-1540959733332-eab4deabeeaf?w=1920&q=90' },
+  ],
+  insurance: [
+    { name: 'Travel Protection', image: 'https://images.unsplash.com/photo-1488646953014-85cb44e25828?w=1920&q=90' },
+    { name: 'Family Travel', image: 'https://images.unsplash.com/photo-1476514525535-07fb3b4ae5f1?w=1920&q=90' },
+    { name: 'Adventure Coverage', image: 'https://images.unsplash.com/photo-1530789253388-582c481c54b0?w=1920&q=90' },
+    { name: 'Peace of Mind', image: 'https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=1920&q=90' },
+  ],
+};
 
 const content = {
   en: {
@@ -114,19 +158,32 @@ export default function Home() {
   const lang = language as Language;
   const t = content[lang];
   const [heroIndex, setHeroIndex] = useState(0);
+  const [activeService, setActiveService] = useState<ServiceType>('flights');
   const [mounted, setMounted] = useState(false);
+
+  // Get current photos based on active service tab
+  const currentPhotos = HERO_PHOTOS[activeService];
 
   useEffect(() => {
     setMounted(true);
   }, []);
 
-  // Rotate hero images every 7 seconds
+  // Rotate hero images every 7 seconds within active service photos
   useEffect(() => {
     const interval = setInterval(() => {
-      setHeroIndex((prev) => (prev + 1) % HERO_DESTINATIONS.length);
+      setHeroIndex((prev) => (prev + 1) % currentPhotos.length);
     }, 7000);
     return () => clearInterval(interval);
-  }, []);
+  }, [currentPhotos.length]);
+
+  // Handle service type change from search form
+  const handleServiceChange = (service: string) => {
+    const validService = service as ServiceType;
+    if (HERO_PHOTOS[validService]) {
+      setActiveService(validService);
+      setHeroIndex(0); // Reset to first photo of new service
+    }
+  };
 
   return (
     <div className="min-h-screen bg-white">
@@ -134,10 +191,10 @@ export default function Home() {
           LEVEL-6 ULTRA-PREMIUM HERO - Apple-Class Design
           ============================================ */}
       <section className="relative min-h-[620px] md:min-h-[600px] overflow-hidden">
-        {/* Rotating Background Images with Ken Burns Effect */}
+        {/* Rotating Background Images with Ken Burns Effect - Tab Contextual */}
         <AnimatePresence mode="wait">
           <motion.div
-            key={heroIndex}
+            key={`${activeService}-${heroIndex}`}
             initial={{ opacity: 0, scale: 1.1 }}
             animate={{ opacity: 1, scale: 1 }}
             exit={{ opacity: 0 }}
@@ -145,12 +202,12 @@ export default function Home() {
             className="absolute inset-0"
           >
             <Image
-              src={HERO_DESTINATIONS[heroIndex].image}
-              alt={HERO_DESTINATIONS[heroIndex].name}
+              src={currentPhotos[heroIndex]?.image || currentPhotos[0].image}
+              alt={currentPhotos[heroIndex]?.name || currentPhotos[0].name}
               fill
               className="object-cover"
               priority
-              quality={85}
+              quality={90}
             />
           </motion.div>
         </AnimatePresence>
@@ -204,27 +261,38 @@ export default function Home() {
           {/* Search Form Section - Centered Position */}
           <div className="flex-1 flex items-start pt-2 md:pt-4">
             <div className="w-full">
-              <MobileHomeSearchWrapper lang={lang} glassmorphism />
+              <MobileHomeSearchWrapper lang={lang} glassmorphism onServiceTypeChange={handleServiceChange} />
             </div>
           </div>
 
-          {/* Scroll Indicator */}
-          <div className="pb-4 md:pb-5">
+          {/* Scroll Indicator + Trust Signals at Bottom */}
+          <div className="mt-auto pb-3 md:pb-4">
             <motion.div
-              className="flex flex-col items-center"
-              animate={{ y: [0, 6, 0] }}
+              className="flex flex-col items-center mb-2"
+              animate={{ y: [0, 4, 0] }}
               transition={{ repeat: Infinity, duration: 1.5 }}
             >
-              <ChevronDown className="w-5 h-5 text-white/50" />
+              <ChevronDown className="w-4 h-4 text-white/30" />
             </motion.div>
+            {/* Subtle Trust Signals */}
+            <div className="flex items-center justify-center gap-3 md:gap-6">
+              {[
+                { icon: Shield, text: 'Best Price' },
+                { icon: HeadphonesIcon, text: '24/7 Support' },
+                { icon: CreditCard, text: 'Secure' },
+                { icon: Sparkles, text: 'Free Cancel' },
+              ].map((item, idx) => (
+                <div key={idx} className="flex items-center gap-1">
+                  <item.icon className="w-3 h-3 md:w-3.5 md:h-3.5 text-white/50" strokeWidth={2} />
+                  <span className="text-[9px] md:text-[11px] font-medium text-white/50 whitespace-nowrap">
+                    {item.text}
+                  </span>
+                </div>
+              ))}
+            </div>
           </div>
         </div>
       </section>
-
-      {/* ============================================
-          COMPACT TRUST BAR - Sticky Trust Signals
-          ============================================ */}
-      <CompactTrustBar sticky />
 
       {/* ============================================
           MAIN CONTENT SECTIONS

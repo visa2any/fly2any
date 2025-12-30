@@ -38,6 +38,8 @@ interface MobileHomeSearchWrapperProps {
   journeyMode?: boolean;
   /** Enable glassmorphism style for hero overlay */
   glassmorphism?: boolean;
+  /** Callback when service type changes (for hero photo sync) */
+  onServiceTypeChange?: (serviceType: string) => void;
 }
 
 type ViewState = 'collapsed' | 'expanded' | 'hidden';
@@ -76,6 +78,7 @@ export function MobileHomeSearchWrapper({
   hideTabs = false,
   journeyMode = false,
   glassmorphism = false,
+  onServiceTypeChange,
 }: MobileHomeSearchWrapperProps) {
   // Mobile collapsed state label translations
   const mobileLabels = {
@@ -308,6 +311,7 @@ export function MobileHomeSearchWrapper({
             hideTabs={hideTabs}
             journeyMode={journeyMode}
             transparent={glassmorphism}
+            onServiceTypeChange={onServiceTypeChange}
           />
         </div>
       </div>
@@ -492,6 +496,7 @@ export function MobileHomeSearchWrapper({
                 hideTabs={hideTabs}
                 journeyMode={journeyMode}
                 transparent={glassmorphism}
+                onServiceTypeChange={onServiceTypeChange}
               />
             </div>
 

@@ -45,6 +45,7 @@ interface EnhancedSearchBarProps {
   
   // Callbacks
   onSearchSubmit?: () => void;  // Called when search is submitted (for mobile auto-collapse)
+  onServiceTypeChange?: (serviceType: string) => void;  // Called when tab changes (for hero photo sync)
 
   // Layout options
   hideTabs?: boolean;  // Hide the service tabs (for Journey page)
@@ -181,6 +182,7 @@ export default function EnhancedSearchBar({
   lang = 'en',
   defaultService = 'flights',
   onSearchSubmit,
+  onServiceTypeChange,
   hideTabs = false,
   journeyMode = false,
   transparent = false,
@@ -299,6 +301,11 @@ export default function EnhancedSearchBar({
 
   // Service type state (defaults to defaultService prop)
   const [serviceType, setServiceType] = useState<ServiceType>(defaultService);
+
+  // Notify parent when service type changes (for hero photo sync)
+  useEffect(() => {
+    onServiceTypeChange?.(serviceType);
+  }, [serviceType, onServiceTypeChange]);
 
   // Transition for non-blocking updates
   const [, startTransition] = useTransition();
@@ -1644,7 +1651,7 @@ export default function EnhancedSearchBar({
           <div ref={originRef} className="flex-1 relative">
             {/* Custom label with Nonstop checkbox */}
             <div className="flex items-center justify-between mb-2">
-              <label className={`flex items-center gap-1.5 text-xs font-semibold ${transparent ? "text-white/90" : "text-gray-700"}`}>
+              <label className={`flex items-center gap-1.5 text-xs font-bold ${transparent ? "text-white" : "text-gray-700"}`}>
                 <PlaneTakeoff size={13} className={transparent ? "text-white/70" : "text-primary-500"} />
                 <span>{labels.from}</span>
               </label>
@@ -1696,7 +1703,7 @@ export default function EnhancedSearchBar({
           <div ref={destinationRef} className="flex-1">
             {/* Custom label with Nonstop checkbox */}
             <div className="flex items-center justify-between mb-2">
-              <label className={`flex items-center gap-1.5 text-xs font-semibold ${transparent ? "text-white/90" : "text-gray-700"}`}>
+              <label className={`flex items-center gap-1.5 text-xs font-bold ${transparent ? "text-white" : "text-gray-700"}`}>
                 <PlaneLanding size={13} className={transparent ? "text-white/70" : "text-primary-500"} />
                 <span>{labels.to}</span>
               </label>
@@ -1733,7 +1740,7 @@ export default function EnhancedSearchBar({
           {/* Depart Date */}
           <div className="flex-1">
             <div className="flex items-center justify-between mb-2">
-              <label className={`flex items-center gap-1.5 text-xs font-semibold ${transparent ? "text-white/90" : "text-gray-700"}`}>
+              <label className={`flex items-center gap-1.5 text-xs font-bold ${transparent ? "text-white" : "text-gray-700"}`}>
                 <CalendarDays size={13} className={transparent ? "text-white/70" : "text-primary-500"} />
                 <span>{labels.depart}</span>
               </label>
@@ -1815,7 +1822,7 @@ export default function EnhancedSearchBar({
           {/* Return Date */}
           <div className="flex-1">
             <div className="flex items-center justify-between mb-2">
-              <label className={`flex items-center gap-1.5 text-xs font-semibold ${transparent ? "text-white/90" : "text-gray-700"}`}>
+              <label className={`flex items-center gap-1.5 text-xs font-bold ${transparent ? "text-white" : "text-gray-700"}`}>
                 <CalendarCheck size={13} className={transparent ? "text-white/70" : "text-primary-500"} />
                 <span>{labels.return}</span>
               </label>
@@ -1891,14 +1898,11 @@ export default function EnhancedSearchBar({
           </div>
 
 
-          {/* Combined Travelers + Class Dropdown */}
+          {/* Travelers Dropdown */}
           <div ref={passengerRef} className="relative flex-shrink-0 w-52">
             <label className={`flex items-center gap-1.5 text-xs font-semibold mb-2 ${transparent ? "text-white/90" : "text-gray-700"}`}>
               <Users size={13} className={transparent ? "text-white/70" : "text-primary-500"} />
               <span>{labels.travelers}</span>
-              <span className={transparent ? "text-white/50" : "text-gray-400"}>&</span>
-              <Armchair size={13} className={transparent ? "text-white/70" : "text-secondary-500"} />
-              <span>Class</span>
             </label>
             <button
               type="button"
@@ -2123,7 +2127,7 @@ export default function EnhancedSearchBar({
                   <div className="flex-1 relative">
                     {/* Custom label with Nonstop checkbox */}
                     <div className="flex items-center justify-between mb-2">
-                      <label className={`flex items-center gap-1.5 text-xs font-semibold ${transparent ? "text-white/90" : "text-gray-700"}`}>
+                      <label className={`flex items-center gap-1.5 text-xs font-bold ${transparent ? "text-white" : "text-gray-700"}`}>
                         <Plane size={13} className={transparent ? "text-white/70" : "text-primary-500"} />
                         <span>Flight {index + 2}</span>
                       </label>
@@ -2171,7 +2175,7 @@ export default function EnhancedSearchBar({
                   <div className="flex-1">
                     {/* Custom label */}
                     <div className="flex items-center justify-between mb-2">
-                      <label className={`flex items-center gap-1.5 text-xs font-semibold ${transparent ? "text-white/90" : "text-gray-700"}`}>
+                      <label className={`flex items-center gap-1.5 text-xs font-bold ${transparent ? "text-white" : "text-gray-700"}`}>
                         <PlaneLanding size={13} className={transparent ? "text-white/70" : "text-primary-500"} />
                         <span>{labels.to}</span>
                       </label>
@@ -2190,7 +2194,7 @@ export default function EnhancedSearchBar({
                   {/* Depart Date - EXACT COPY */}
                   <div className="flex-1">
                     <div className="flex items-center justify-between mb-2">
-                      <label className={`flex items-center gap-1.5 text-xs font-semibold ${transparent ? "text-white/90" : "text-gray-700"}`}>
+                      <label className={`flex items-center gap-1.5 text-xs font-bold ${transparent ? "text-white" : "text-gray-700"}`}>
                         <CalendarDays size={13} className={transparent ? "text-white/70" : "text-primary-500"} />
                         <span>{labels.depart}</span>
                       </label>
@@ -2841,7 +2845,7 @@ export default function EnhancedSearchBar({
             {/* Pickup Location */}
             <div className="flex-1">
               <div className="flex items-center justify-between mb-2">
-                <label className={`flex items-center gap-1.5 text-xs font-semibold ${transparent ? 'text-white/90' : 'text-gray-700'}`}>
+                <label className={`flex items-center gap-1.5 text-xs font-bold ${transparent ? 'text-white' : 'text-gray-700'}`}>
                   <Car size={13} className={transparent ? 'text-emerald-400' : 'text-emerald-600'} />
                   <span>Pickup Location</span>
                 </label>
@@ -2861,7 +2865,7 @@ export default function EnhancedSearchBar({
             {/* Dropoff Location */}
             <div className="flex-1">
               <div className="flex items-center justify-between mb-2">
-                <label className={`flex items-center gap-1.5 text-xs font-semibold ${transparent ? 'text-white/90' : 'text-gray-700'}`}>
+                <label className={`flex items-center gap-1.5 text-xs font-bold ${transparent ? 'text-white' : 'text-gray-700'}`}>
                   <Car size={13} className={transparent ? 'text-emerald-400' : 'text-emerald-600'} />
                   <span>Dropoff Location</span>
                 </label>
@@ -2911,7 +2915,7 @@ export default function EnhancedSearchBar({
               {/* Unified Date Range Button - Single click opens calendar for both dates */}
               <div className="flex-1 lg:flex-[2]">
                 <div className="flex items-center gap-2 mb-2">
-                  <label className={`flex items-center gap-1.5 text-xs font-semibold ${transparent ? 'text-white/90' : 'text-gray-700'}`}>
+                  <label className={`flex items-center gap-1.5 text-xs font-bold ${transparent ? 'text-white' : 'text-gray-700'}`}>
                     <CalendarDays size={13} className={transparent ? 'text-emerald-400' : 'text-emerald-600'} />
                     <span>Rental Period</span>
                   </label>
