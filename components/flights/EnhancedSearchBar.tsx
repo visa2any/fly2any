@@ -200,7 +200,7 @@ export default function EnhancedSearchBar({
       selectDate: 'Select date',
       selectDates: 'Select dates (up to 3)',
       selectAirports: 'Select airports',
-      travelers: 'Travelers',
+      travelers: 'Travelers & Class',
       adults: 'Adults',
       children: 'Children',
       infants: 'Infants',

@@ -282,12 +282,26 @@ export function MobileHomeSearchWrapper({
   // HYDRATION FIX: Don't render anything until client-side hydration completes
   // This prevents ALL server/client mismatches
   if (!hasMounted) {
-    // Return a skeleton/placeholder that matches SSR output - Apple-Class
+    // Return a skeleton/placeholder that matches SSR output - Level-6 Ultra-Premium
     return (
-      <div className="w-full bg-white shadow-md border-y border-neutral-100 p-4 md:p-8" style={{ minHeight: '120px' }}>
-        <div className="animate-pulse">
-          <div className="h-8 bg-neutral-200 rounded-lg mb-3 w-1/3"></div>
-          <div className="h-12 bg-neutral-100 rounded-lg"></div>
+      <div className={`w-full ${glassmorphism ? 'mx-4 md:mx-6' : ''}`} style={{ minHeight: '120px' }}>
+        <div className={`${glassmorphism ? 'bg-black/20 backdrop-blur-xl border border-white/10 rounded-2xl' : 'bg-white shadow-md border-y border-neutral-100'} p-4 md:p-6`}>
+          <div className="animate-pulse">
+            {/* Tab pills skeleton */}
+            <div className="flex gap-2 mb-4 overflow-hidden">
+              {[1,2,3,4,5,6].map(i => (
+                <div key={i} className={`h-10 w-20 ${glassmorphism ? 'bg-white/10' : 'bg-neutral-200'} rounded-full flex-shrink-0`}></div>
+              ))}
+            </div>
+            {/* Form fields skeleton */}
+            <div className="grid grid-cols-1 md:grid-cols-5 gap-3">
+              <div className={`h-[52px] ${glassmorphism ? 'bg-white/10' : 'bg-neutral-100'} rounded-xl`}></div>
+              <div className={`h-[52px] ${glassmorphism ? 'bg-white/10' : 'bg-neutral-100'} rounded-xl`}></div>
+              <div className={`h-[52px] ${glassmorphism ? 'bg-white/10' : 'bg-neutral-100'} rounded-xl`}></div>
+              <div className={`h-[52px] ${glassmorphism ? 'bg-white/10' : 'bg-neutral-100'} rounded-xl`}></div>
+              <div className={`h-[52px] ${glassmorphism ? 'bg-red-500/50' : 'bg-red-100'} rounded-xl`}></div>
+            </div>
+          </div>
         </div>
       </div>
     );

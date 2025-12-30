@@ -277,7 +277,7 @@ export default function Home() {
                 { icon: Shield, text: 'Best Price', color: 'text-emerald-400' },
                 { icon: HeadphonesIcon, text: '24/7 Support', color: 'text-sky-400' },
                 { icon: CreditCard, text: 'Secure', color: 'text-blue-400' },
-                { icon: Sparkles, text: 'Free Cancel', color: 'text-amber-400' },
+                { icon: Sparkles, text: 'Free Cancel 24h', color: 'text-amber-400' },
               ].map((item, idx) => (
                 <div key={idx} className="flex items-center gap-1.5">
                   <item.icon className={`w-4 h-4 md:w-5 md:h-5 ${item.color}`} strokeWidth={2} />
