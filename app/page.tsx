@@ -170,16 +170,16 @@ export default function Home() {
     setMounted(true);
   }, []);
 
-  // Rotate hero images every 7 seconds within active service photos
+  // Rotate hero images every 5 seconds
   useEffect(() => {
-    if (!mounted) return;
+    const photoCount = HERO_PHOTOS[activeService].length;
 
     const interval = setInterval(() => {
-      setHeroIndex((prev) => (prev + 1) % currentPhotos.length);
-    }, 6000); // 6s rotation
+      setHeroIndex((prev) => (prev + 1) % photoCount);
+    }, 5000);
 
     return () => clearInterval(interval);
-  }, [mounted, activeService, currentPhotos.length]);
+  }, [activeService]);
 
   // Handle service type change from search form
   const handleServiceChange = (service: string) => {
