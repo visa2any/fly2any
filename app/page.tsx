@@ -19,39 +19,39 @@ import { RecentlyViewedSection } from '@/components/home/RecentlyViewedSection';
 import { WorldCupHeroSectionEnhanced } from '@/components/world-cup/WorldCupHeroSectionEnhanced';
 import { MaxWidthContainer } from '@/components/layout/MaxWidthContainer';
 import { CompactTrustBar } from '@/components/conversion/CompactTrustBar';
-import { CreditCard, Plane, Hotel, Car, Shield, HeadphonesIcon, Sparkles, Sun, Globe, ChevronDown } from 'lucide-react';
+import { CreditCard, Plane, Hotel, Car, Shield, HeadphonesIcon, Sparkles, ChevronDown } from 'lucide-react';
 import { useLanguage } from '@/lib/i18n/client';
 
 type Language = 'en' | 'pt' | 'es';
 
-// Premium Hero Destinations with curated images
+// Premium Hero Destinations (removed Santorini & Bali per request)
 const HERO_DESTINATIONS = [
-  { name: 'Santorini', country: 'Greece', image: 'https://images.unsplash.com/photo-1570077188670-e3a8d69ac5ff?w=1920&q=85', emoji: '🇬🇷' },
-  { name: 'Bali', country: 'Indonesia', image: 'https://images.unsplash.com/photo-1537996194471-e657df975ab4?w=1920&q=85', emoji: '🌴' },
   { name: 'Paris', country: 'France', image: 'https://images.unsplash.com/photo-1502602898657-3e91760cbb34?w=1920&q=85', emoji: '🗼' },
   { name: 'Dubai', country: 'UAE', image: 'https://images.unsplash.com/photo-1512453979798-5ea266f8880c?w=1920&q=85', emoji: '✨' },
   { name: 'Maldives', country: 'Paradise', image: 'https://images.unsplash.com/photo-1514282401047-d79a71a590e8?w=1920&q=85', emoji: '🏝️' },
   { name: 'New York', country: 'USA', image: 'https://images.unsplash.com/photo-1496442226666-8d4d0e62e6e9?w=1920&q=85', emoji: '🗽' },
+  { name: 'Tokyo', country: 'Japan', image: 'https://images.unsplash.com/photo-1540959733332-eab4deabeeaf?w=1920&q=85', emoji: '🗾' },
+  { name: 'London', country: 'UK', image: 'https://images.unsplash.com/photo-1513635269975-59663e0ac1ad?w=1920&q=85', emoji: '🇬🇧' },
 ];
 
 const content = {
   en: {
     pageTitle: 'FLY2ANY - Find Cheap Flights, Hotels, Cars & Tours',
-    sectionTitle: 'Your Next Adventure Starts Here',
-    subtitle: 'Compare 500+ airlines & 2M+ hotels worldwide',
-    badge: 'Trusted by 2M+ travelers',
+    sectionTitle: 'Explore the World with',
+    titleHighlight: 'Smart Travel Deals',
+    subtitle: 'Best value across all travel services',
   },
   pt: {
     pageTitle: 'FLY2ANY - Encontre Voos, Hotéis, Carros e Passeios Baratos',
-    sectionTitle: 'Sua Próxima Aventura Começa Aqui',
-    subtitle: 'Compare 500+ companhias aéreas e 2M+ hotéis',
-    badge: 'Confiado por 2M+ viajantes',
+    sectionTitle: 'Explore o Mundo com',
+    titleHighlight: 'Ofertas Inteligentes',
+    subtitle: 'Melhor valor em todos os serviços',
   },
   es: {
     pageTitle: 'FLY2ANY - Encuentra Vuelos, Hoteles, Autos y Tours Baratos',
-    sectionTitle: 'Tu Próxima Aventura Comienza Aquí',
-    subtitle: 'Compara 500+ aerolíneas y 2M+ hoteles',
-    badge: 'Confiado por 2M+ viajeros',
+    sectionTitle: 'Explora el Mundo con',
+    titleHighlight: 'Ofertas Inteligentes',
+    subtitle: 'Mejor valor en todos los servicios',
   },
 };
 
@@ -132,9 +132,8 @@ export default function Home() {
     <div className="min-h-screen bg-white">
       {/* ============================================
           LEVEL-6 ULTRA-PREMIUM HERO - Apple-Class Design
-          Matching /experiences page hero exactly
           ============================================ */}
-      <section className="relative min-h-[600px] md:min-h-[580px] overflow-hidden">
+      <section className="relative min-h-[620px] md:min-h-[600px] overflow-hidden">
         {/* Rotating Background Images with Ken Burns Effect */}
         <AnimatePresence mode="wait">
           <motion.div
@@ -156,42 +155,27 @@ export default function Home() {
           </motion.div>
         </AnimatePresence>
 
-        {/* Ultra-Premium Gradient Overlays - Warm Brand Colors */}
-        <div className="absolute inset-0 bg-gradient-to-b from-black/40 via-black/20 to-orange-900/60" />
-        <div className="absolute inset-0 bg-gradient-to-r from-red-900/30 via-transparent to-yellow-900/30" />
+        {/* Ultra-Premium Gradient Overlays */}
+        <div className="absolute inset-0 bg-gradient-to-b from-black/50 via-black/30 to-orange-900/70" />
+        <div className="absolute inset-0 bg-gradient-to-r from-red-900/40 via-transparent to-yellow-900/40" />
 
         {/* Content Container */}
-        <div className="relative z-10 h-full flex flex-col">
-          {/* Top Section - Animated Badge & Title */}
-          <div className="pt-4 md:pt-6 px-4 md:px-6">
+        <div className="relative z-10 h-full flex flex-col justify-center">
+          {/* Title Section - Centered */}
+          <div className="pt-6 md:pt-10 px-4 md:px-6">
             <MaxWidthContainer noPadding>
               <motion.div
                 initial={{ opacity: 0, y: 30 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.8 }}
-                className="text-center md:text-left"
+                className="text-center"
               >
-                {/* Animated Pulsing Badge */}
-                <motion.div
-                  className="inline-flex items-center gap-2 px-4 py-2 rounded-full mb-4"
-                  style={{
-                    background: 'linear-gradient(135deg, rgba(247,201,40,0.9) 0%, rgba(255,150,50,0.9) 100%)',
-                    boxShadow: '0 4px 30px rgba(247,201,40,0.4)',
-                  }}
-                  animate={{ scale: [1, 1.02, 1] }}
-                  transition={{ repeat: Infinity, duration: 2 }}
-                >
-                  <Sun className="w-4 h-4 text-white" />
-                  <span className="text-sm font-bold text-white">{t.badge}</span>
-                  <Sparkles className="w-4 h-4 text-white" />
-                </motion.div>
-
-                {/* Animated Gradient Title */}
+                {/* Large Animated Title */}
                 <h1
-                  className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-black text-white mb-2"
-                  style={{ textShadow: '0 4px 30px rgba(0,0,0,0.5)' }}
+                  className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-black text-white mb-3"
+                  style={{ textShadow: '0 4px 40px rgba(0,0,0,0.6)' }}
                 >
-                  {lang === 'en' ? 'Your Next Adventure' : lang === 'pt' ? 'Sua Próxima Aventura' : 'Tu Próxima Aventura'}{' '}
+                  {t.sectionTitle}{' '}
                   <motion.span
                     className="inline-block"
                     style={{
@@ -203,13 +187,13 @@ export default function Home() {
                     animate={{ backgroundPosition: ['0% 0%', '100% 100%', '0% 0%'] }}
                     transition={{ duration: 4, repeat: Infinity, ease: 'linear' }}
                   >
-                    {lang === 'en' ? 'Starts Here' : lang === 'pt' ? 'Começa Aqui' : 'Comienza Aquí'}
+                    {t.titleHighlight}
                   </motion.span>
                 </h1>
 
                 <p
-                  className="text-sm md:text-base lg:text-lg text-white/90 font-medium"
-                  style={{ textShadow: '0 2px 20px rgba(0,0,0,0.3)' }}
+                  className="text-base md:text-lg lg:text-xl text-white/90 font-medium mb-6"
+                  style={{ textShadow: '0 2px 20px rgba(0,0,0,0.4)' }}
                 >
                   {t.subtitle}
                 </p>
@@ -217,21 +201,21 @@ export default function Home() {
             </MaxWidthContainer>
           </div>
 
-          {/* Search Form Section - Same Position */}
-          <div className="flex-1 flex items-start pt-3 md:pt-4">
+          {/* Search Form Section - Centered Position */}
+          <div className="flex-1 flex items-start pt-2 md:pt-4">
             <div className="w-full">
               <MobileHomeSearchWrapper lang={lang} glassmorphism />
             </div>
           </div>
 
-          {/* Bottom Section - Interactive Destination Buttons */}
-          <div className="pb-6 md:pb-8 px-4 md:px-6">
+          {/* Bottom Section - Destination Buttons & Scroll */}
+          <div className="pb-5 md:pb-6 px-4 md:px-6">
             <MaxWidthContainer noPadding>
               <motion.div
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.5, duration: 0.5 }}
-                className="flex flex-col items-center gap-4"
+                className="flex flex-col items-center gap-3"
               >
                 {/* Destination Buttons - Glassmorphism */}
                 <div className="flex flex-wrap justify-center gap-2">
@@ -239,7 +223,7 @@ export default function Home() {
                     <motion.button
                       key={dest.name}
                       onClick={() => setHeroIndex(i)}
-                      className="group relative px-3 py-2 rounded-xl font-semibold text-sm transition-all"
+                      className="px-3 py-2 rounded-xl font-semibold text-sm"
                       style={{
                         background: heroIndex === i
                           ? 'linear-gradient(135deg, #E74035 0%, #FF6B6B 100%)'
@@ -254,7 +238,7 @@ export default function Home() {
                       whileTap={{ scale: 0.98 }}
                       initial={{ opacity: 0, y: 20 }}
                       animate={{ opacity: 1, y: 0 }}
-                      transition={{ delay: 0.6 + i * 0.1 }}
+                      transition={{ delay: 0.5 + i * 0.08 }}
                     >
                       <span className="mr-1.5">{dest.emoji}</span>
                       <span className="text-white">{dest.name}</span>
@@ -265,11 +249,10 @@ export default function Home() {
                 {/* Scroll Indicator */}
                 <motion.div
                   className="flex flex-col items-center"
-                  animate={{ y: [0, 8, 0] }}
+                  animate={{ y: [0, 6, 0] }}
                   transition={{ repeat: Infinity, duration: 1.5 }}
                 >
-                  <span className="text-xs text-white/60 mb-1">Scroll to explore</span>
-                  <ChevronDown className="w-5 h-5 text-white/60" />
+                  <ChevronDown className="w-5 h-5 text-white/50" />
                 </motion.div>
               </motion.div>
             </MaxWidthContainer>
