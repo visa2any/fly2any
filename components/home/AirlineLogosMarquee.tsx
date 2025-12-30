@@ -35,9 +35,6 @@ const AIRLINES = [
 export function AirlineLogosMarquee() {
   return (
     <div className="w-full py-2 relative overflow-hidden">
-      {/* Subtle fade edges */}
-      <div className="absolute left-0 top-0 bottom-0 w-16 md:w-24 bg-gradient-to-r from-black/40 to-transparent z-10 pointer-events-none" />
-      <div className="absolute right-0 top-0 bottom-0 w-16 md:w-24 bg-gradient-to-l from-black/40 to-transparent z-10 pointer-events-none" />
 
       {/* Marquee track */}
       <div className="flex overflow-hidden group">
@@ -52,11 +49,8 @@ export function AirlineLogosMarquee() {
               src={airline.logo}
               alt={airline.name}
               title={airline.name}
-              className="h-5 md:h-6 w-auto object-contain opacity-50 hover:opacity-70 transition-opacity"
-              style={{
-                filter: 'brightness(0) invert(1)',
-                maxWidth: '70px',
-              }}
+              className="h-4 md:h-5 w-auto object-contain opacity-70 hover:opacity-100 transition-opacity"
+              style={{ maxWidth: '60px' }}
               loading="lazy"
             />
           ))}
@@ -73,11 +67,8 @@ export function AirlineLogosMarquee() {
               key={`b-${i}`}
               src={airline.logo}
               alt=""
-              className="h-5 md:h-6 w-auto object-contain opacity-50 hover:opacity-70 transition-opacity"
-              style={{
-                filter: 'brightness(0) invert(1)',
-                maxWidth: '70px',
-              }}
+              className="h-4 md:h-5 w-auto object-contain opacity-70 hover:opacity-100 transition-opacity"
+              style={{ maxWidth: '60px' }}
               loading="lazy"
             />
           ))}
