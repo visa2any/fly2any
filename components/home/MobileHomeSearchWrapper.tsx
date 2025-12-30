@@ -40,6 +40,8 @@ interface MobileHomeSearchWrapperProps {
   glassmorphism?: boolean;
   /** Callback when service type changes (for hero photo sync) */
   onServiceTypeChange?: (serviceType: string) => void;
+  /** Callback when expand/collapse state changes (for hero height sync) */
+  onExpandStateChange?: (isExpanded: boolean) => void;
 }
 
 type ViewState = 'collapsed' | 'expanded' | 'hidden';
@@ -79,6 +81,7 @@ export function MobileHomeSearchWrapper({
   journeyMode = false,
   glassmorphism = false,
   onServiceTypeChange,
+  onExpandStateChange,
 }: MobileHomeSearchWrapperProps) {
   // Mobile collapsed state label translations
   const mobileLabels = {
@@ -244,6 +247,13 @@ export function MobileHomeSearchWrapper({
     };
   }, [isMobile, viewState]);
 
+  // Notify parent of expand/collapse state changes
+  useEffect(() => {
+    if (isMobile && onExpandStateChange) {
+      onExpandStateChange(viewState === 'expanded');
+    }
+  }, [viewState, isMobile, onExpandStateChange]);
+
   // Haptic feedback (if available on device)
   const triggerHaptic = useCallback(() => {
     if ('vibrate' in navigator) {
@@ -366,17 +376,17 @@ export function MobileHomeSearchWrapper({
               {defaultService === 'flights' && (
                 <div className="flex items-center justify-between gap-2 w-full">
                   <div className="flex items-center gap-1.5 flex-1 min-w-0">
-                    <MapPin className="w-4 h-4 text-primary-500 flex-shrink-0" />
+                    <MapPin className={`w-4 h-4 flex-shrink-0 ${glassmorphism ? 'text-white' : 'text-primary-500'}`} />
                     <div className="flex flex-col min-w-0">
-                      <span className="text-[9px] text-neutral-500 font-semibold leading-none uppercase tracking-wide">{labels.from}</span>
-                      <span className="text-sm font-bold text-neutral-800 leading-tight truncate">{formatAirportCode(origin) || labels.select}</span>
+                      <span className={`text-[9px] font-semibold leading-none uppercase tracking-wide ${glassmorphism ? 'text-white/60' : 'text-neutral-500'}`}>{labels.from}</span>
+                      <span className={`text-sm font-bold leading-tight truncate ${glassmorphism ? 'text-white' : 'text-neutral-800'}`}>{formatAirportCode(origin) || labels.select}</span>
                     </div>
                   </div>
-                  <div className="flex-shrink-0 text-primary-500 font-bold text-base">→</div>
+                  <div className={`flex-shrink-0 font-bold text-base ${glassmorphism ? 'text-white' : 'text-primary-500'}`}>→</div>
                   <div className="flex items-center gap-1.5 flex-1 min-w-0">
                     <div className="flex flex-col min-w-0">
-                      <span className="text-[9px] text-neutral-500 font-semibold leading-none uppercase tracking-wide">{labels.to}</span>
-                      <span className="text-sm font-bold text-neutral-800 leading-tight truncate">{formatAirportCode(destination) || labels.select}</span>
+                      <span className={`text-[9px] font-semibold leading-none uppercase tracking-wide ${glassmorphism ? 'text-white/60' : 'text-neutral-500'}`}>{labels.to}</span>
+                      <span className={`text-sm font-bold leading-tight truncate ${glassmorphism ? 'text-white' : 'text-neutral-800'}`}>{formatAirportCode(destination) || labels.select}</span>
                     </div>
                   </div>
                   <div className="flex items-center gap-1 bg-gradient-to-r from-primary-500 to-primary-600 text-white px-3 py-2 rounded-xl shadow-md shadow-primary-500/25 flex-shrink-0">
@@ -393,8 +403,8 @@ export function MobileHomeSearchWrapper({
                     <span className="text-lg">🗺️</span>
                   </div>
                   <div className="flex-1 min-w-0 text-left">
-                    <span className="text-[10px] text-neutral-500 font-semibold uppercase tracking-wide">{labels.searchTours}</span>
-                    <p className="text-sm font-bold text-neutral-800 truncate">{labels.whereExplore}</p>
+                    <span className={`text-[10px] font-semibold uppercase tracking-wide ${glassmorphism ? 'text-white/60' : 'text-neutral-500'}`}>{labels.searchTours}</span>
+                    <p className={`text-sm font-bold truncate ${glassmorphism ? 'text-white' : 'text-neutral-800'}`}>{labels.whereExplore}</p>
                   </div>
                   <div className="flex items-center gap-1 bg-gradient-to-r from-orange-500 to-amber-600 text-white px-4 py-2.5 rounded-xl shadow-md flex-shrink-0">
                     <Search className="w-4 h-4" />
@@ -409,8 +419,8 @@ export function MobileHomeSearchWrapper({
                     <span className="text-lg">🎯</span>
                   </div>
                   <div className="flex-1 min-w-0 text-left">
-                    <span className="text-[10px] text-neutral-500 font-semibold uppercase tracking-wide">{labels.searchActivities}</span>
-                    <p className="text-sm font-bold text-neutral-800 truncate">{labels.findExperiences}</p>
+                    <span className={`text-[10px] font-semibold uppercase tracking-wide ${glassmorphism ? 'text-white/60' : 'text-neutral-500'}`}>{labels.searchActivities}</span>
+                    <p className={`text-sm font-bold truncate ${glassmorphism ? 'text-white' : 'text-neutral-800'}`}>{labels.findExperiences}</p>
                   </div>
                   <div className="flex items-center gap-1 bg-gradient-to-r from-purple-500 to-violet-600 text-white px-4 py-2.5 rounded-xl shadow-md flex-shrink-0">
                     <Search className="w-4 h-4" />
@@ -425,8 +435,8 @@ export function MobileHomeSearchWrapper({
                     <span className="text-lg">🚗</span>
                   </div>
                   <div className="flex-1 min-w-0 text-left">
-                    <span className="text-[10px] text-neutral-500 font-semibold uppercase tracking-wide">{labels.searchTransfers}</span>
-                    <p className="text-sm font-bold text-neutral-800 truncate">{labels.airportRides}</p>
+                    <span className={`text-[10px] font-semibold uppercase tracking-wide ${glassmorphism ? 'text-white/60' : 'text-neutral-500'}`}>{labels.searchTransfers}</span>
+                    <p className={`text-sm font-bold truncate ${glassmorphism ? 'text-white' : 'text-neutral-800'}`}>{labels.airportRides}</p>
                   </div>
                   <div className="flex items-center gap-1 bg-gradient-to-r from-teal-500 to-cyan-600 text-white px-4 py-2.5 rounded-xl shadow-md flex-shrink-0">
                     <Search className="w-4 h-4" />
@@ -441,8 +451,8 @@ export function MobileHomeSearchWrapper({
                     <span className="text-lg">🏨</span>
                   </div>
                   <div className="flex-1 min-w-0 text-left">
-                    <span className="text-[10px] text-neutral-500 font-semibold uppercase tracking-wide">{labels.searchHotels}</span>
-                    <p className="text-sm font-bold text-neutral-800 truncate">{labels.whereStaying}</p>
+                    <span className={`text-[10px] font-semibold uppercase tracking-wide ${glassmorphism ? 'text-white/60' : 'text-neutral-500'}`}>{labels.searchHotels}</span>
+                    <p className={`text-sm font-bold truncate ${glassmorphism ? 'text-white' : 'text-neutral-800'}`}>{labels.whereStaying}</p>
                   </div>
                   <div className="flex items-center gap-1 bg-gradient-to-r from-blue-500 to-indigo-600 text-white px-4 py-2.5 rounded-xl shadow-md flex-shrink-0">
                     <Search className="w-4 h-4" />
@@ -457,8 +467,8 @@ export function MobileHomeSearchWrapper({
                     <span className="text-lg">🚗</span>
                   </div>
                   <div className="flex-1 min-w-0 text-left">
-                    <span className="text-[10px] text-neutral-500 font-semibold uppercase tracking-wide">{labels.rentCar}</span>
-                    <p className="text-sm font-bold text-neutral-800 truncate">{labels.whereWhen}</p>
+                    <span className={`text-[10px] font-semibold uppercase tracking-wide ${glassmorphism ? 'text-white/60' : 'text-neutral-500'}`}>{labels.rentCar}</span>
+                    <p className={`text-sm font-bold truncate ${glassmorphism ? 'text-white' : 'text-neutral-800'}`}>{labels.whereWhen}</p>
                   </div>
                   <div className="flex items-center gap-1 bg-gradient-to-r from-emerald-500 to-green-600 text-white px-4 py-2.5 rounded-xl shadow-md flex-shrink-0">
                     <Search className="w-4 h-4" />
@@ -473,8 +483,8 @@ export function MobileHomeSearchWrapper({
                     <Search className="w-5 h-5 text-white" />
                   </div>
                   <div className="flex-1 min-w-0 text-left">
-                    <span className="text-[10px] text-neutral-500 font-semibold uppercase tracking-wide">{labels.search}</span>
-                    <p className="text-sm font-bold text-neutral-800 truncate">{labels.tapToSearch}</p>
+                    <span className={`text-[10px] font-semibold uppercase tracking-wide ${glassmorphism ? 'text-white/60' : 'text-neutral-500'}`}>{labels.search}</span>
+                    <p className={`text-sm font-bold truncate ${glassmorphism ? 'text-white' : 'text-neutral-800'}`}>{labels.tapToSearch}</p>
                   </div>
                   <div className="flex items-center gap-1 bg-gradient-to-r from-gray-500 to-gray-600 text-white px-4 py-2.5 rounded-xl shadow-md flex-shrink-0">
                     <Search className="w-4 h-4" />

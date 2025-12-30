@@ -163,6 +163,7 @@ export default function Home() {
   const [heroIndex, setHeroIndex] = useState(0);
   const [activeService, setActiveService] = useState<ServiceType>('flights');
   const [mounted, setMounted] = useState(false);
+  const [isFormExpanded, setIsFormExpanded] = useState(false);
 
   // Get current photos based on active service tab
   const currentPhotos = HERO_PHOTOS[activeService];
@@ -191,13 +192,21 @@ export default function Home() {
     }
   };
 
+  // Handle form expand/collapse state change (mobile only)
+  const handleExpandStateChange = (expanded: boolean) => {
+    setIsFormExpanded(expanded);
+  };
+
   return (
     <div className="min-h-screen bg-white">
       {/* ============================================
           LEVEL-6 ULTRA-PREMIUM HERO - 100vh Immersive Full Screen
           Negative margin pulls hero BEHIND sticky header for transparency
+          Mobile: Collapses when search form is collapsed, expands with form
           ============================================ */}
-      <section className="relative min-h-[100svh] md:min-h-screen overflow-hidden -mt-14 sm:-mt-16 lg:-mt-[72px]">
+      <section className={`relative overflow-hidden -mt-14 sm:-mt-16 lg:-mt-[72px] transition-all duration-500 ease-out ${
+        isFormExpanded ? 'min-h-[100svh]' : 'min-h-[320px]'
+      } md:min-h-screen`}>
         {/* Rotating Background Images with Ken Burns Effect - Tab Contextual */}
         <AnimatePresence mode="wait">
           <motion.div
@@ -228,7 +237,9 @@ export default function Home() {
         <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent" />
 
         {/* Content Container - Full height with flex */}
-        <div className="relative z-10 flex flex-col min-h-[100svh] md:min-h-screen">
+        <div className={`relative z-10 flex flex-col transition-all duration-500 ease-out ${
+          isFormExpanded ? 'min-h-[100svh]' : 'min-h-[320px] pb-4'
+        } md:min-h-screen md:pb-0`}>
           {/* Title Section - Top */}
           <div className="pt-24 md:pt-28 lg:pt-32 px-2 md:px-6">
             <MaxWidthContainer noPadding>
@@ -271,14 +282,21 @@ export default function Home() {
 
           {/* Search Form Section */}
           <div className="flex-1 pt-2 md:pt-4">
-            <MobileHomeSearchWrapper lang={lang} glassmorphism onServiceTypeChange={handleServiceChange} />
+            <MobileHomeSearchWrapper
+              lang={lang}
+              glassmorphism
+              onServiceTypeChange={handleServiceChange}
+              onExpandStateChange={handleExpandStateChange}
+            />
           </div>
 
-          {/* Airlines Logo Marquee */}
-          <AirlineLogosMarquee />
+          {/* Airlines Logo Marquee (hidden when collapsed on mobile) */}
+          <div className={`${isFormExpanded ? 'block' : 'hidden md:block'}`}>
+            <AirlineLogosMarquee />
+          </div>
 
-          {/* Trust Signals - At bottom of hero */}
-          <div className="mt-auto pb-4 md:pb-6">
+          {/* Trust Signals - At bottom of hero (hidden when collapsed on mobile) */}
+          <div className={`pb-4 md:pb-6 ${isFormExpanded ? 'mt-auto' : 'mt-4 hidden md:block'} md:mt-auto`}>
             {/* Trust Signals - Visible with Colored Icons */}
             <div className="flex items-center justify-center gap-4 md:gap-8 mb-3">
               {[

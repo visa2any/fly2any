@@ -222,7 +222,7 @@ export function Header({
                 width={880}
                 height={304}
                 priority
-                className="h-9 sm:h-10 lg:h-12 w-auto object-contain transition-all duration-200"
+                className="h-[43px] sm:h-10 lg:h-12 w-auto object-contain transition-all duration-200"
                 style={{
                   filter: scrolled ? 'none' : 'brightness(1.15) drop-shadow(0 2px 6px rgba(0,0,0,0.5))',
                 }}
@@ -726,6 +726,7 @@ export function Header({
               <HamburgerMenu
                 isOpen={mobileMenuOpen}
                 onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+                scrolled={scrolled}
               />
             </div>
 
