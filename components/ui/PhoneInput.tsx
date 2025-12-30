@@ -69,7 +69,7 @@ export function PhoneInput({
         </label>
       )}
 
-      <div className="relative z-10">
+      <div className="relative z-[100]">
         {/* Phone Input Field */}
         <div className={`
           flex items-center border rounded-lg overflow-hidden transition-all
@@ -104,7 +104,7 @@ export function PhoneInput({
         {isOpen && (
           <div
             ref={dropdownRef}
-            className="absolute top-full left-0 right-0 mt-1 bg-white border-2 border-primary-300 rounded-lg shadow-2xl z-dropdown max-h-64 overflow-hidden"
+            className="absolute top-full left-0 right-0 mt-1 bg-white border-2 border-primary-300 rounded-lg shadow-2xl z-[9999] max-h-64 overflow-hidden"
             style={{ minWidth: '280px' }}
           >
             {/* Search */}
