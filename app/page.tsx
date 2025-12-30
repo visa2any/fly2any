@@ -277,8 +277,8 @@ export default function Home() {
           {/* Airlines Logo Marquee */}
           <AirlineLogosMarquee />
 
-          {/* Trust Signals - Above fold */}
-          <div className="pt-8 md:pt-10 pb-10 md:pb-14">
+          {/* Trust Signals - At bottom of hero */}
+          <div className="mt-auto pb-4 md:pb-6">
             {/* Trust Signals - Visible with Colored Icons */}
             <div className="flex items-center justify-center gap-4 md:gap-8 mb-3">
               {[

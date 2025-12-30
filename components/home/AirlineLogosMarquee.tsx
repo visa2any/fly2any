@@ -42,8 +42,8 @@ export function AirlineLogosMarquee() {
       {/* Marquee track - full width slow scroll */}
       <div className="flex overflow-hidden">
         <div
-          className="flex items-center gap-12 md:gap-16 animate-marquee-slow"
-          style={{ minWidth: 'max-content' }}
+          className="flex items-center gap-12 md:gap-16"
+          style={{ minWidth: 'max-content', animation: 'marquee 150s linear infinite' }}
         >
           {AIRLINES.map((airline, i) => (
             <img
@@ -63,8 +63,8 @@ export function AirlineLogosMarquee() {
 
         {/* Duplicate for seamless loop */}
         <div
-          className="flex items-center gap-12 md:gap-16 animate-marquee-slow"
-          style={{ minWidth: 'max-content' }}
+          className="flex items-center gap-12 md:gap-16"
+          style={{ minWidth: 'max-content', animation: 'marquee 150s linear infinite' }}
           aria-hidden="true"
         >
           {AIRLINES.map((airline, i) => (
