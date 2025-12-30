@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import Image from 'next/image';
 import { FAQ } from '@/components/conversion/FAQ';
@@ -195,14 +195,17 @@ export default function Home() {
     };
   }, [activeService]);
 
-  // Handle service type change from search form
-  const handleServiceChange = (service: string) => {
-    const validService = service as ServiceType;
-    if (HERO_PHOTOS[validService]) {
-      setActiveService(validService);
-      setHeroIndex(0); // Reset to first photo of new service
-    }
-  };
+  // Handle service type change from search form - useCallback for stable reference
+  const handleServiceChange = useCallback((service: string) => {
+    setActiveService((current) => {
+      const validService = service as ServiceType;
+      if (HERO_PHOTOS[validService] && validService !== current) {
+        setHeroIndex(0); // Only reset when actually changing service
+        return validService;
+      }
+      return current;
+    });
+  }, []);
 
   // Handle form expand/collapse state change (mobile only)
   const handleExpandStateChange = (expanded: boolean) => {
