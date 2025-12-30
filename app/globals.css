@@ -99,14 +99,20 @@
   }
 
   /* Accessibility: Reduce motion for users who prefer it */
+  /* IMPORTANT: Excludes .force-animation (marquee) and framer-motion elements (hero slider) */
   @media (prefers-reduced-motion: reduce) {
-    *,
-    *::before,
-    *::after {
+    *:not(.force-animation):not([style*="opacity"]):not([style*="transform"]),
+    *:not(.force-animation)::before,
+    *:not(.force-animation)::after {
       animation-duration: 0.01ms !important;
       animation-iteration-count: 1 !important;
-      transition-duration: 0.01ms !important;
       scroll-behavior: auto !important;
+    }
+    /* Allow framer-motion transitions (they use inline styles with opacity/transform) */
+    /* But reduce duration for accessibility */
+    [style*="opacity"],
+    [style*="transform"] {
+      transition-duration: 0.3s !important;
     }
   }
 
