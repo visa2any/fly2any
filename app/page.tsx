@@ -19,6 +19,7 @@ import { RecentlyViewedSection } from '@/components/home/RecentlyViewedSection';
 import { WorldCupHeroSectionEnhanced } from '@/components/world-cup/WorldCupHeroSectionEnhanced';
 import { MaxWidthContainer } from '@/components/layout/MaxWidthContainer';
 import { CompactTrustBar } from '@/components/conversion/CompactTrustBar';
+import { AirlineLogosMarquee } from '@/components/home/AirlineLogosMarquee';
 import { CreditCard, Plane, Hotel, Car, Shield, HeadphonesIcon, Sparkles, ChevronDown } from 'lucide-react';
 import { useLanguage } from '@/lib/i18n/client';
 
@@ -273,8 +274,13 @@ export default function Home() {
             <MobileHomeSearchWrapper lang={lang} glassmorphism onServiceTypeChange={handleServiceChange} />
           </div>
 
+          {/* Airlines Logo Marquee */}
+          <div className="px-4">
+            <AirlineLogosMarquee />
+          </div>
+
           {/* Trust Signals - Above fold */}
-          <div className="pb-16 md:pb-20">
+          <div className="pb-12 md:pb-16">
             {/* Trust Signals - Visible with Colored Icons */}
             <div className="flex items-center justify-center gap-4 md:gap-8 mb-3">
               {[
