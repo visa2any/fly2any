@@ -187,20 +187,20 @@ export function Header({
           zIndex: zIndex.STICKY,
           // Hide header in PWA standalone mode
           display: 'var(--header-display, block)',
-          // Level-6: Frosted glass effect
+          // Level-6: Transparent at top (immersive), frosted glass on scroll
           background: scrolled
             ? 'rgba(255, 255, 255, 0.97)'
-            : 'rgba(255, 255, 255, 0.92)',
-          backdropFilter: 'blur(16px) saturate(180%)',
-          WebkitBackdropFilter: 'blur(16px) saturate(180%)',
-          // Level-6: Subtle border, primary tint when scrolled
+            : 'transparent',
+          backdropFilter: scrolled ? 'blur(16px) saturate(180%)' : 'none',
+          WebkitBackdropFilter: scrolled ? 'blur(16px) saturate(180%)' : 'none',
+          // Level-6: Border only when scrolled
           borderBottom: scrolled
             ? '1px solid rgba(231, 64, 53, 0.08)'
-            : '1px solid rgba(0, 0, 0, 0.06)',
-          // Level-6: Multi-layer shadow
+            : 'none',
+          // Level-6: Shadow only when scrolled
           boxShadow: scrolled
             ? '0 1px 3px rgba(0,0,0,0.04), 0 4px 12px rgba(0,0,0,0.06)'
-            : '0 1px 2px rgba(0,0,0,0.03)',
+            : 'none',
           // Level-6: Smart hide on scroll DOWN, show on scroll UP
           transform: scrollDirection === 'down' && !isAtTop
             ? 'translateY(-100%)'
@@ -227,7 +227,13 @@ export function Header({
             </a>
 
           {/* Main Navigation - Level-6 Apple-Class Style */}
-          <nav className="hidden lg:flex items-center gap-0 xl:gap-0.5 ml-auto mr-2 xl:mr-4" suppressHydrationWarning>
+          <nav
+            className="hidden lg:flex items-center gap-0 xl:gap-0.5 ml-auto mr-2 xl:mr-4"
+            suppressHydrationWarning
+            style={{
+              textShadow: scrolled ? 'none' : '0 1px 3px rgba(0,0,0,0.3), 0 0 8px rgba(255,255,255,0.5)'
+            }}
+          >
 
             {/* Flights - First */}
             <a

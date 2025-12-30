@@ -269,8 +269,8 @@ export default function Home() {
             <MobileHomeSearchWrapper lang={lang} glassmorphism onServiceTypeChange={handleServiceChange} />
           </div>
 
-          {/* Trust Signals at Absolute Bottom */}
-          <div className="pb-6 md:pb-8">
+          {/* Trust Signals - Above fold */}
+          <div className="pb-16 md:pb-20">
             {/* Trust Signals - Visible with Colored Icons */}
             <div className="flex items-center justify-center gap-4 md:gap-8 mb-3">
               {[

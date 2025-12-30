@@ -1664,7 +1664,7 @@ export default function EnhancedSearchBar({
                   onChange={(e) => setFromNonstop(e.target.checked)}
                   className="w-3.5 h-3.5 rounded border-gray-300 text-[#D63A35] focus:ring-[#D63A35] cursor-pointer"
                 />
-                <span className={`text-xs font-semibold ${transparent ? "text-white" : "text-gray-700"}`}>{labels.nonstop}</span>
+                <span className={`text-xs font-bold ${transparent ? "text-white" : "text-gray-700"}`}>{labels.nonstop}</span>
               </label>
             </div>
 
@@ -1717,7 +1717,7 @@ export default function EnhancedSearchBar({
                   disabled={tripType === 'oneway'}
                   className="w-3.5 h-3.5 rounded border-gray-300 text-[#D63A35] focus:ring-[#D63A35] cursor-pointer disabled:cursor-not-allowed disabled:opacity-50"
                 />
-                <span className={`text-xs font-semibold ${transparent ? "text-white" : "text-gray-700"}`}>{labels.nonstop}</span>
+                <span className={`text-xs font-bold ${transparent ? "text-white" : "text-gray-700"}`}>{labels.nonstop}</span>
               </label>
             </div>
 
@@ -1763,7 +1763,7 @@ export default function EnhancedSearchBar({
                   }}
                   className="w-3.5 h-3.5 rounded border-gray-300 text-[#D63A35] focus:ring-[#D63A35] cursor-pointer disabled:cursor-not-allowed disabled:opacity-50"
                 />
-                <span className={`text-xs font-semibold ${transparent ? "text-white" : "text-gray-700"}`}>{labels.multiDates}</span>
+                <span className={`text-xs font-bold ${transparent ? "text-white" : "text-gray-700"}`}>{labels.multiDates}</span>
               </label>
             </div>
 
@@ -1842,7 +1842,7 @@ export default function EnhancedSearchBar({
                   className="w-3.5 h-3.5 rounded border-gray-300 text-[#D63A35] focus:ring-[#D63A35] cursor-pointer"
                 />
                 <ArrowRight size={12} className="text-gray-500" />
-                <span className={`text-xs font-semibold ${transparent ? "text-white" : "text-gray-700"}`}>{labels.oneWay}</span>
+                <span className={`text-xs font-bold ${transparent ? "text-white" : "text-gray-700"}`}>{labels.oneWay}</span>
               </label>
             </div>
 
@@ -2140,7 +2140,7 @@ export default function EnhancedSearchBar({
                           onChange={(e) => handleUpdateAdditionalFlight(flight.id, { nonstop: e.target.checked })}
                           className="w-3.5 h-3.5 rounded border-gray-300 text-[#D63A35] focus:ring-[#D63A35] cursor-pointer"
                         />
-                        <span className={`text-xs font-semibold ${transparent ? "text-white" : "text-gray-700"}`}>{labels.nonstop}</span>
+                        <span className={`text-xs font-bold ${transparent ? "text-white" : "text-gray-700"}`}>{labels.nonstop}</span>
                       </label>
                     </div>
 
