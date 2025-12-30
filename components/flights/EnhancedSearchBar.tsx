@@ -1644,7 +1644,7 @@ export default function EnhancedSearchBar({
           <div ref={originRef} className="flex-1 relative">
             {/* Custom label with Nonstop checkbox */}
             <div className="flex items-center justify-between mb-2">
-              <label className={`flex items-center gap-1.5 text-xs font-medium ${transparent ? "text-white/90" : "text-gray-700"}`}>
+              <label className={`flex items-center gap-1.5 text-xs font-semibold ${transparent ? "text-white/90" : "text-gray-700"}`}>
                 <PlaneTakeoff size={13} className={transparent ? "text-white/70" : "text-primary-500"} />
                 <span>{labels.from}</span>
               </label>
@@ -1696,7 +1696,7 @@ export default function EnhancedSearchBar({
           <div ref={destinationRef} className="flex-1">
             {/* Custom label with Nonstop checkbox */}
             <div className="flex items-center justify-between mb-2">
-              <label className={`flex items-center gap-1.5 text-xs font-medium ${transparent ? "text-white/90" : "text-gray-700"}`}>
+              <label className={`flex items-center gap-1.5 text-xs font-semibold ${transparent ? "text-white/90" : "text-gray-700"}`}>
                 <PlaneLanding size={13} className={transparent ? "text-white/70" : "text-primary-500"} />
                 <span>{labels.to}</span>
               </label>
@@ -1733,7 +1733,7 @@ export default function EnhancedSearchBar({
           {/* Depart Date */}
           <div className="flex-1">
             <div className="flex items-center justify-between mb-2">
-              <label className={`flex items-center gap-1.5 text-xs font-medium ${transparent ? "text-white/90" : "text-gray-700"}`}>
+              <label className={`flex items-center gap-1.5 text-xs font-semibold ${transparent ? "text-white/90" : "text-gray-700"}`}>
                 <CalendarDays size={13} className={transparent ? "text-white/70" : "text-primary-500"} />
                 <span>{labels.depart}</span>
               </label>
@@ -1771,8 +1771,8 @@ export default function EnhancedSearchBar({
                   errors.departureDate ? 'border-red-500' : transparent ? 'border-white/30' : 'border-neutral-200'
                 }`}
               >
-                <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={20} />
-                <span className="block pl-8 text-sm font-medium text-gray-900">
+                <Calendar className={`absolute left-3 top-1/2 -translate-y-1/2 ${transparent ? "text-white/60" : "text-gray-400"}`} size={20} />
+                <span className={`block pl-8 text-sm font-medium ${transparent ? "text-white" : "text-gray-900"}`}>
                   {departureDate ? formatDateForDisplay(departureDate) : labels.selectDate}
                 </span>
               </button>
@@ -1787,7 +1787,7 @@ export default function EnhancedSearchBar({
                   errors.departureDate ? 'border-red-500' : transparent ? 'border-white/30' : 'border-neutral-200'
                 }`}
               >
-                <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={20} />
+                <Calendar className={`absolute left-3 top-1/2 -translate-y-1/2 ${transparent ? "text-white/60" : "text-gray-400"}`} size={20} />
                 <div className="pl-8 flex flex-wrap gap-1.5 items-center">
                   {departureDates.length > 0 ? (
                     departureDates.map((date, idx) => (
@@ -1799,7 +1799,7 @@ export default function EnhancedSearchBar({
                       </span>
                     ))
                   ) : (
-                    <span className="text-sm font-medium text-gray-500">{labels.selectDates}</span>
+                    <span className={`text-sm font-medium ${transparent ? "text-white/70" : "text-gray-500"}`}>{labels.selectDates}</span>
                   )}
                 </div>
               </button>
@@ -1815,7 +1815,7 @@ export default function EnhancedSearchBar({
           {/* Return Date */}
           <div className="flex-1">
             <div className="flex items-center justify-between mb-2">
-              <label className={`flex items-center gap-1.5 text-xs font-medium ${transparent ? "text-white/90" : "text-gray-700"}`}>
+              <label className={`flex items-center gap-1.5 text-xs font-semibold ${transparent ? "text-white/90" : "text-gray-700"}`}>
                 <CalendarCheck size={13} className={transparent ? "text-white/70" : "text-primary-500"} />
                 <span>{labels.return}</span>
               </label>
@@ -1849,8 +1849,8 @@ export default function EnhancedSearchBar({
                     transparent ? 'bg-black/30 backdrop-blur-sm border-white/20 text-white placeholder:text-white/50' : 'bg-white border-neutral-200'
                   }`}
                 >
-                  <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={20} />
-                  <span className="block pl-8 text-sm font-medium text-gray-900">
+                  <Calendar className={`absolute left-3 top-1/2 -translate-y-1/2 ${transparent ? "text-white/60" : "text-gray-400"}`} size={20} />
+                  <span className={`block pl-8 text-sm font-medium ${transparent ? "text-white" : "text-gray-900"}`}>
                     {returnDate ? formatDateForDisplay(returnDate) : labels.selectDate}
                   </span>
                 </button>
@@ -1863,7 +1863,7 @@ export default function EnhancedSearchBar({
                     transparent ? 'bg-black/30 backdrop-blur-sm border-white/20 text-white placeholder:text-white/50' : 'bg-white border-neutral-200'
                   }`}
                 >
-                  <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={20} />
+                  <Calendar className={`absolute left-3 top-1/2 -translate-y-1/2 ${transparent ? "text-white/60" : "text-gray-400"}`} size={20} />
                   <div className="pl-8 flex flex-wrap gap-1.5 items-center">
                     {returnDates.length > 0 ? (
                       returnDates.map((date, idx) => (
@@ -1875,7 +1875,7 @@ export default function EnhancedSearchBar({
                         </span>
                       ))
                     ) : (
-                      <span className="text-sm font-medium text-gray-500">{labels.selectDates}</span>
+                      <span className={`text-sm font-medium ${transparent ? "text-white/70" : "text-gray-500"}`}>{labels.selectDates}</span>
                     )}
                   </div>
                 </button>
@@ -1893,11 +1893,11 @@ export default function EnhancedSearchBar({
 
           {/* Combined Travelers + Class Dropdown */}
           <div ref={passengerRef} className="relative flex-shrink-0 w-52">
-            <label className="flex items-center gap-1.5 text-xs font-medium text-gray-700 mb-2">
-              <Users size={13} className="text-primary-500" />
+            <label className={`flex items-center gap-1.5 text-xs font-semibold mb-2 ${transparent ? "text-white/90" : "text-gray-700"}`}>
+              <Users size={13} className={transparent ? "text-white/70" : "text-primary-500"} />
               <span>{labels.travelers}</span>
-              <span className="text-gray-400">&</span>
-              <Armchair size={13} className="text-secondary-500" />
+              <span className={transparent ? "text-white/50" : "text-gray-400"}>&</span>
+              <Armchair size={13} className={transparent ? "text-white/70" : "text-secondary-500"} />
               <span>Class</span>
             </label>
             <button
@@ -1910,11 +1910,11 @@ export default function EnhancedSearchBar({
                 transparent ? 'bg-black/30 backdrop-blur-sm border-white/20 text-white placeholder:text-white/50' : 'bg-white border-neutral-200'
               }`}
             >
-              <Users className="absolute left-3 top-1/2 -translate-y-1/2 text-neutral-400" size={18} />
-              <span className="block pl-7 text-sm font-medium text-neutral-800 pr-7">
+              <Users className={`absolute left-3 top-1/2 -translate-y-1/2 ${transparent ? "text-white/60" : "text-neutral-400"}`} size={18} />
+              <span className={`block pl-7 text-sm font-medium pr-7 ${transparent ? "text-white" : "text-neutral-800"}`}>
                 {totalPassengers}, {t(cabinClass as any)}
               </span>
-              <ChevronDown className={`absolute right-3 top-1/2 -translate-y-1/2 text-neutral-400 transition-transform duration-200 ${showPassengerDropdown ? 'rotate-180' : ''}`} size={16} />
+              <ChevronDown className={`absolute right-3 top-1/2 -translate-y-1/2 transition-transform duration-200 ${showPassengerDropdown ? 'rotate-180' : ''} ${transparent ? "text-white/50" : "text-neutral-400"}`} size={16} />
             </button>
 
             {showPassengerDropdown && (
@@ -2123,7 +2123,7 @@ export default function EnhancedSearchBar({
                   <div className="flex-1 relative">
                     {/* Custom label with Nonstop checkbox */}
                     <div className="flex items-center justify-between mb-2">
-                      <label className={`flex items-center gap-1.5 text-xs font-medium ${transparent ? "text-white/90" : "text-gray-700"}`}>
+                      <label className={`flex items-center gap-1.5 text-xs font-semibold ${transparent ? "text-white/90" : "text-gray-700"}`}>
                         <Plane size={13} className={transparent ? "text-white/70" : "text-primary-500"} />
                         <span>Flight {index + 2}</span>
                       </label>
@@ -2171,7 +2171,7 @@ export default function EnhancedSearchBar({
                   <div className="flex-1">
                     {/* Custom label */}
                     <div className="flex items-center justify-between mb-2">
-                      <label className={`flex items-center gap-1.5 text-xs font-medium ${transparent ? "text-white/90" : "text-gray-700"}`}>
+                      <label className={`flex items-center gap-1.5 text-xs font-semibold ${transparent ? "text-white/90" : "text-gray-700"}`}>
                         <PlaneLanding size={13} className={transparent ? "text-white/70" : "text-primary-500"} />
                         <span>{labels.to}</span>
                       </label>
@@ -2190,7 +2190,7 @@ export default function EnhancedSearchBar({
                   {/* Depart Date - EXACT COPY */}
                   <div className="flex-1">
                     <div className="flex items-center justify-between mb-2">
-                      <label className={`flex items-center gap-1.5 text-xs font-medium ${transparent ? "text-white/90" : "text-gray-700"}`}>
+                      <label className={`flex items-center gap-1.5 text-xs font-semibold ${transparent ? "text-white/90" : "text-gray-700"}`}>
                         <CalendarDays size={13} className={transparent ? "text-white/70" : "text-primary-500"} />
                         <span>{labels.depart}</span>
                       </label>
@@ -2205,8 +2205,8 @@ export default function EnhancedSearchBar({
                       }}
                       className="w-full relative px-4 py-4 bg-white border border-gray-300 rounded-lg hover:border-[#D63A35] transition-all cursor-pointer"
                     >
-                      <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={20} />
-                      <span className="block pl-8 text-sm font-medium text-gray-900">
+                      <Calendar className={`absolute left-3 top-1/2 -translate-y-1/2 ${transparent ? "text-white/60" : "text-gray-400"}`} size={20} />
+                      <span className={`block pl-8 text-sm font-medium ${transparent ? "text-white" : "text-gray-900"}`}>
                         {flight.departureDate ? formatDateForDisplay(flight.departureDate) : labels.selectDate}
                       </span>
                     </button>
@@ -2841,7 +2841,7 @@ export default function EnhancedSearchBar({
             {/* Pickup Location */}
             <div className="flex-1">
               <div className="flex items-center justify-between mb-2">
-                <label className={`flex items-center gap-1.5 text-xs font-medium ${transparent ? 'text-white/90' : 'text-gray-700'}`}>
+                <label className={`flex items-center gap-1.5 text-xs font-semibold ${transparent ? 'text-white/90' : 'text-gray-700'}`}>
                   <Car size={13} className={transparent ? 'text-emerald-400' : 'text-emerald-600'} />
                   <span>Pickup Location</span>
                 </label>
@@ -2861,7 +2861,7 @@ export default function EnhancedSearchBar({
             {/* Dropoff Location */}
             <div className="flex-1">
               <div className="flex items-center justify-between mb-2">
-                <label className={`flex items-center gap-1.5 text-xs font-medium ${transparent ? 'text-white/90' : 'text-gray-700'}`}>
+                <label className={`flex items-center gap-1.5 text-xs font-semibold ${transparent ? 'text-white/90' : 'text-gray-700'}`}>
                   <Car size={13} className={transparent ? 'text-emerald-400' : 'text-emerald-600'} />
                   <span>Dropoff Location</span>
                 </label>
@@ -2911,7 +2911,7 @@ export default function EnhancedSearchBar({
               {/* Unified Date Range Button - Single click opens calendar for both dates */}
               <div className="flex-1 lg:flex-[2]">
                 <div className="flex items-center gap-2 mb-2">
-                  <label className={`flex items-center gap-1.5 text-xs font-medium ${transparent ? 'text-white/90' : 'text-gray-700'}`}>
+                  <label className={`flex items-center gap-1.5 text-xs font-semibold ${transparent ? 'text-white/90' : 'text-gray-700'}`}>
                     <CalendarDays size={13} className={transparent ? 'text-emerald-400' : 'text-emerald-600'} />
                     <span>Rental Period</span>
                   </label>
@@ -2948,7 +2948,7 @@ export default function EnhancedSearchBar({
               <div className="flex gap-2 lg:contents">
                 {/* Pickup Time */}
                 <div className="flex-1 lg:w-24 lg:flex-none">
-                  <label className={`flex items-center gap-1 text-xs font-medium mb-2 ${transparent ? 'text-white/90' : 'text-gray-700'}`}>
+                  <label className={`flex items-center gap-1 text-xs font-semibold mb-2 ${transparent ? 'text-white/90' : 'text-gray-700'}`}>
                     <Clock size={12} className={transparent ? 'text-emerald-400' : 'text-emerald-600'} />
                     <span className="hidden sm:inline">Pick Time</span>
                     <span className="sm:hidden">Pick</span>
@@ -2968,7 +2968,7 @@ export default function EnhancedSearchBar({
 
                 {/* Dropoff Time */}
                 <div className="flex-1 lg:w-24 lg:flex-none">
-                  <label className={`flex items-center gap-1 text-xs font-medium mb-2 ${transparent ? 'text-white/90' : 'text-gray-700'}`}>
+                  <label className={`flex items-center gap-1 text-xs font-semibold mb-2 ${transparent ? 'text-white/90' : 'text-gray-700'}`}>
                     <Clock size={12} className={transparent ? 'text-emerald-400' : 'text-emerald-600'} />
                     <span className="hidden sm:inline">Drop Time</span>
                     <span className="sm:hidden">Drop</span>
@@ -3023,7 +3023,7 @@ export default function EnhancedSearchBar({
           <div className="flex flex-col lg:flex-row items-stretch lg:items-end gap-2">
             {/* Pickup Location with Autocomplete */}
             <div className="flex-1 relative" data-transfer-pickup>
-              <label className="flex items-center gap-1.5 text-xs font-medium text-gray-700 mb-2">
+              <label className="flex items-center gap-1.5 text-xs font-semibold text-gray-700 mb-2">
                 <LogIn size={13} className="text-teal-600" />
                 <span>Pickup Location</span>
               </label>
@@ -3083,7 +3083,7 @@ export default function EnhancedSearchBar({
 
             {/* Dropoff Location with Autocomplete */}
             <div className="flex-1 relative" data-transfer-dropoff>
-              <label className="flex items-center gap-1.5 text-xs font-medium text-gray-700 mb-2">
+              <label className="flex items-center gap-1.5 text-xs font-semibold text-gray-700 mb-2">
                 <LogOut size={13} className="text-teal-600" />
                 <span>Dropoff Location</span>
               </label>
@@ -3143,7 +3143,7 @@ export default function EnhancedSearchBar({
 
             {/* Date & Time - Premium Button + Time Select */}
             <div className="flex-1">
-              <label className="flex items-center gap-1.5 text-xs font-medium text-gray-700 mb-2">
+              <label className="flex items-center gap-1.5 text-xs font-semibold text-gray-700 mb-2">
                 <Calendar size={13} className="text-teal-600" />
                 <span>Date & Time</span>
               </label>
@@ -3190,7 +3190,7 @@ export default function EnhancedSearchBar({
 
             {/* Passengers */}
             <div className="w-32">
-              <label className="flex items-center gap-1.5 text-xs font-medium text-gray-700 mb-2">
+              <label className="flex items-center gap-1.5 text-xs font-semibold text-gray-700 mb-2">
                 <Users size={13} className="text-teal-600" />
                 <span>Passengers</span>
               </label>
@@ -3207,7 +3207,7 @@ export default function EnhancedSearchBar({
 
             {/* Search Button */}
             <div className="flex-shrink-0">
-              <label className="block text-xs font-medium text-gray-700 mb-2 opacity-0">Search</label>
+              <label className="block text-xs font-semibold text-gray-700 mb-2 opacity-0">Search</label>
               <button
                 type="button"
                 onClick={() => {
@@ -3255,7 +3255,7 @@ export default function EnhancedSearchBar({
           <div className="flex flex-col lg:flex-row items-stretch lg:items-end gap-2">
             {/* Tour Destination with Autocomplete (reuses hotel suggestions) */}
             <div className="flex-1 lg:flex-[2] relative" data-tours-destination>
-              <label className="flex items-center gap-1.5 text-xs font-medium text-gray-700 mb-2">
+              <label className="flex items-center gap-1.5 text-xs font-semibold text-gray-700 mb-2">
                 <Map size={13} className="text-orange-600" />
                 <span>Destination</span>
               </label>
@@ -3342,7 +3342,7 @@ export default function EnhancedSearchBar({
 
             {/* Tour Date - Premium Button */}
             <div className="flex-1">
-              <label className="flex items-center gap-1.5 text-xs font-medium text-gray-700 mb-2">
+              <label className="flex items-center gap-1.5 text-xs font-semibold text-gray-700 mb-2">
                 <Calendar size={13} className="text-orange-600" />
                 <span>When</span>
               </label>
@@ -3376,7 +3376,7 @@ export default function EnhancedSearchBar({
 
             {/* Travelers */}
             <div className="w-32">
-              <label className="flex items-center gap-1.5 text-xs font-medium text-gray-700 mb-2">
+              <label className="flex items-center gap-1.5 text-xs font-semibold text-gray-700 mb-2">
                 <Users size={13} className="text-orange-600" />
                 <span>Travelers</span>
               </label>
@@ -3393,7 +3393,7 @@ export default function EnhancedSearchBar({
 
             {/* Search Button */}
             <div className="flex-shrink-0">
-              <label className="block text-xs font-medium text-gray-700 mb-2 opacity-0">Search</label>
+              <label className="block text-xs font-semibold text-gray-700 mb-2 opacity-0">Search</label>
               <button
                 type="button"
                 onClick={() => {
@@ -3433,7 +3433,7 @@ export default function EnhancedSearchBar({
           <div className="flex flex-col lg:flex-row items-stretch lg:items-end gap-2">
             {/* Activity Destination with Autocomplete (reuses hotel suggestions) */}
             <div className="flex-1 lg:flex-[2] relative" data-activities-destination>
-              <label className="flex items-center gap-1.5 text-xs font-medium text-gray-700 mb-2">
+              <label className="flex items-center gap-1.5 text-xs font-semibold text-gray-700 mb-2">
                 <Activity size={13} className="text-purple-600" />
                 <span>Destination</span>
               </label>
@@ -3520,7 +3520,7 @@ export default function EnhancedSearchBar({
 
             {/* Activity Date - Premium Button */}
             <div className="flex-1">
-              <label className="flex items-center gap-1.5 text-xs font-medium text-gray-700 mb-2">
+              <label className="flex items-center gap-1.5 text-xs font-semibold text-gray-700 mb-2">
                 <Calendar size={13} className="text-purple-600" />
                 <span>When</span>
               </label>
@@ -3554,7 +3554,7 @@ export default function EnhancedSearchBar({
 
             {/* Participants */}
             <div className="w-32">
-              <label className="flex items-center gap-1.5 text-xs font-medium text-gray-700 mb-2">
+              <label className="flex items-center gap-1.5 text-xs font-semibold text-gray-700 mb-2">
                 <Users size={13} className="text-purple-600" />
                 <span>Participants</span>
               </label>
@@ -3571,7 +3571,7 @@ export default function EnhancedSearchBar({
 
             {/* Search Button */}
             <div className="flex-shrink-0">
-              <label className="block text-xs font-medium text-gray-700 mb-2 opacity-0">Search</label>
+              <label className="block text-xs font-semibold text-gray-700 mb-2 opacity-0">Search</label>
               <button
                 type="button"
                 onClick={() => {
@@ -3611,7 +3611,7 @@ export default function EnhancedSearchBar({
           <div className="flex flex-col lg:flex-row items-stretch lg:items-end gap-2">
             {/* Destination */}
             <div className="flex-1">
-              <label className="flex items-center gap-1.5 text-xs font-medium text-gray-700 mb-2">
+              <label className="flex items-center gap-1.5 text-xs font-semibold text-gray-700 mb-2">
                 <MapPin size={13} className="text-gray-600" />
                 <span>{lang === 'en' ? 'Destination' : lang === 'pt' ? 'Destino' : 'Destino'}</span>
               </label>
@@ -3626,7 +3626,7 @@ export default function EnhancedSearchBar({
 
             {/* Check-in Date */}
             <div className="flex-1">
-              <label className="flex items-center gap-1.5 text-xs font-medium text-gray-700 mb-2">
+              <label className="flex items-center gap-1.5 text-xs font-semibold text-gray-700 mb-2">
                 <Calendar size={13} className="text-gray-600" />
                 <span>{lang === 'en' ? 'Departure Date' : lang === 'pt' ? 'Data de Partida' : 'Fecha de Salida'}</span>
               </label>
@@ -3648,7 +3648,7 @@ export default function EnhancedSearchBar({
 
             {/* Travelers */}
             <div className="flex-1 relative">
-              <label className="flex items-center gap-1.5 text-xs font-medium text-gray-700 mb-2">
+              <label className="flex items-center gap-1.5 text-xs font-semibold text-gray-700 mb-2">
                 <Users size={13} className="text-primary-500" />
                 <span>{lang === 'en' ? 'Travelers' : lang === 'pt' ? 'Viajantes' : 'Viajeros'}</span>
               </label>
@@ -3692,7 +3692,7 @@ export default function EnhancedSearchBar({
 
             {/* Search Button */}
             <div className="flex-shrink-0">
-              <label className="block text-xs font-medium text-gray-700 mb-2 opacity-0">Search</label>
+              <label className="block text-xs font-semibold text-gray-700 mb-2 opacity-0">Search</label>
               <button type="button" onClick={handleSearch} disabled={isLoading} className="py-4 px-10 bg-[#D63A35] hover:bg-[#0077E6] text-white font-semibold rounded-lg shadow-md hover:shadow-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 whitespace-nowrap text-sm">
                 {isLoading ? (<><svg className="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg><span>Searching...</span></>) : (<span>{t('searchPackages')}</span>)}
               </button>
@@ -3707,7 +3707,7 @@ export default function EnhancedSearchBar({
           <div className="flex flex-col lg:flex-row items-stretch lg:items-end gap-2">
             {/* Trip Destination */}
             <div className="flex-1">
-              <label className="flex items-center gap-1.5 text-xs font-medium text-gray-700 mb-2">
+              <label className="flex items-center gap-1.5 text-xs font-semibold text-gray-700 mb-2">
                 <MapPin size={13} className="text-gray-600" />
                 <span>{lang === 'en' ? 'Trip Destination' : lang === 'pt' ? 'Destino da Viagem' : 'Destino del Viaje'}</span>
               </label>
@@ -3722,7 +3722,7 @@ export default function EnhancedSearchBar({
 
             {/* Trip Start Date */}
             <div className="flex-1">
-              <label className="flex items-center gap-1.5 text-xs font-medium text-gray-700 mb-2">
+              <label className="flex items-center gap-1.5 text-xs font-semibold text-gray-700 mb-2">
                 <Calendar size={13} className="text-gray-600" />
                 <span>{lang === 'en' ? 'Trip Start Date' : lang === 'pt' ? 'Data de Início' : 'Fecha de Inicio'}</span>
               </label>
@@ -3744,7 +3744,7 @@ export default function EnhancedSearchBar({
 
             {/* Trip Cost */}
             <div className="flex-1">
-              <label className="flex items-center gap-1.5 text-xs font-medium text-gray-700 mb-2">
+              <label className="flex items-center gap-1.5 text-xs font-semibold text-gray-700 mb-2">
                 <Shield size={13} className="text-gray-600" />
                 <span>{lang === 'en' ? 'Trip Cost' : lang === 'pt' ? 'Custo da Viagem' : 'Costo del Viaje'}</span>
               </label>
@@ -3757,7 +3757,7 @@ export default function EnhancedSearchBar({
 
             {/* Get Quote Button */}
             <div className="flex-shrink-0">
-              <label className="block text-xs font-medium text-gray-700 mb-2 opacity-0">Quote</label>
+              <label className="block text-xs font-semibold text-gray-700 mb-2 opacity-0">Quote</label>
               <button type="button" onClick={handleSearch} disabled={isLoading} className="py-4 px-10 bg-[#D63A35] hover:bg-[#0077E6] text-white font-semibold rounded-lg shadow-md hover:shadow-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 whitespace-nowrap text-sm">
                 {isLoading ? (<><svg className="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg><span>Loading...</span></>) : (<span>{t('searchInsurance')}</span>)}
               </button>

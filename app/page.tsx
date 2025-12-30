@@ -155,9 +155,9 @@ export default function Home() {
           </motion.div>
         </AnimatePresence>
 
-        {/* Ultra-Premium Gradient Overlays */}
-        <div className="absolute inset-0 bg-gradient-to-b from-black/50 via-black/30 to-orange-900/70" />
-        <div className="absolute inset-0 bg-gradient-to-r from-red-900/40 via-transparent to-yellow-900/40" />
+        {/* Ultra-Premium Gradient Overlays - Reduced opacity for better photo visibility */}
+        <div className="absolute inset-0 bg-gradient-to-b from-black/40 via-black/20 to-orange-900/50" />
+        <div className="absolute inset-0 bg-gradient-to-r from-red-900/30 via-transparent to-yellow-900/30" />
 
         {/* Content Container */}
         <div className="relative z-10 h-full flex flex-col justify-center">
