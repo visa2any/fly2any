@@ -2,6 +2,12 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Global keyframes - outside @layer for universal access */
+@keyframes airline-scroll {
+  0% { transform: translateX(0); }
+  100% { transform: translateX(-50%); }
+}
+
 @layer base {
   /* CSS Variables for Mobile Navigation */
   :root {

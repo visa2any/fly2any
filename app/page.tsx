@@ -197,7 +197,7 @@ export default function Home() {
           LEVEL-6 ULTRA-PREMIUM HERO - 100vh Immersive Full Screen
           Negative margin pulls hero BEHIND sticky header for transparency
           ============================================ */}
-      <section className="relative min-h-screen overflow-hidden -mt-14 sm:-mt-16 lg:-mt-[72px]">
+      <section className="relative min-h-[100svh] md:min-h-screen overflow-hidden -mt-14 sm:-mt-16 lg:-mt-[72px]">
         {/* Rotating Background Images with Ken Burns Effect - Tab Contextual */}
         <AnimatePresence mode="wait">
           <motion.div
@@ -228,9 +228,9 @@ export default function Home() {
         <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent" />
 
         {/* Content Container - Full height with flex */}
-        <div className="relative z-10 min-h-screen flex flex-col">
+        <div className="relative z-10 flex flex-col min-h-[100svh] md:min-h-screen">
           {/* Title Section - Top */}
-          <div className="pt-24 md:pt-28 lg:pt-32 px-4 md:px-6">
+          <div className="pt-24 md:pt-28 lg:pt-32 px-2 md:px-6">
             <MaxWidthContainer noPadding>
               <motion.div
                 initial={{ opacity: 0, y: 30 }}
