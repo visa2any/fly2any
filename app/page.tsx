@@ -210,30 +210,24 @@ export default function Home() {
       <section className={`relative overflow-hidden -mt-14 sm:-mt-16 lg:-mt-[72px] transition-all duration-500 ease-out ${
         isFormExpanded ? 'min-h-[100svh]' : 'min-h-[320px]'
       } md:min-h-screen`}>
-        {/* Rotating Background Images with Ken Burns Effect - Tab Contextual */}
-        <AnimatePresence mode="wait">
-          <motion.div
-            key={`${activeService}-${heroIndex}`}
-            initial={{ opacity: 0, scale: 1.1 }}
-            animate={{ opacity: 1, scale: 1.05 }}
-            exit={{ opacity: 0 }}
-            transition={{
-              opacity: { duration: 1.5, ease: "easeInOut" },
-              scale: { duration: 7, ease: "linear" }
-            }}
-            className="absolute inset-0"
+        {/* Rotating Background Images - CSS transitions for reliability */}
+        {currentPhotos.map((photo, index) => (
+          <div
+            key={`hero-${activeService}-${index}`}
+            className="absolute inset-0 transition-opacity duration-[1500ms] ease-in-out"
+            style={{ opacity: index === heroIndex ? 1 : 0 }}
           >
             <Image
-              src={currentPhotos[heroIndex]?.image || currentPhotos[0].image}
-              alt={currentPhotos[heroIndex]?.name || currentPhotos[0].name}
+              src={photo.image}
+              alt={photo.name}
               fill
-              className="object-cover"
-              priority
+              className="object-cover scale-105"
+              priority={index === 0}
               quality={95}
               sizes="100vw"
             />
-          </motion.div>
-        </AnimatePresence>
+          </div>
+        ))}
 
         {/* Ultra-Premium Gradient Overlays - Cinematic Look */}
         <div className="absolute inset-0 bg-gradient-to-b from-black/50 via-black/20 to-black/60" />
