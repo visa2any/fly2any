@@ -197,10 +197,13 @@ export default function Home() {
         <AnimatePresence mode="wait">
           <motion.div
             key={`${activeService}-${heroIndex}`}
-            initial={{ opacity: 0, scale: 1.05 }}
-            animate={{ opacity: 1, scale: 1 }}
-            exit={{ opacity: 0, scale: 1.02 }}
-            transition={{ duration: 2, ease: "easeOut" }}
+            initial={{ opacity: 0, scale: 1.1 }}
+            animate={{ opacity: 1, scale: 1.05 }}
+            exit={{ opacity: 0 }}
+            transition={{
+              opacity: { duration: 1.5, ease: "easeInOut" },
+              scale: { duration: 7, ease: "linear" }
+            }}
             className="absolute inset-0"
           >
             <Image
@@ -219,10 +222,10 @@ export default function Home() {
         <div className="absolute inset-0 bg-gradient-to-b from-black/50 via-black/20 to-black/60" />
         <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent" />
 
-        {/* Content Container */}
-        <div className="relative z-10 h-full flex flex-col justify-center">
-          {/* Title Section - Centered */}
-          <div className="pt-6 md:pt-10 px-4 md:px-6">
+        {/* Content Container - Full height with flex */}
+        <div className="relative z-10 min-h-screen flex flex-col">
+          {/* Title Section - Top */}
+          <div className="pt-24 md:pt-28 lg:pt-32 px-4 md:px-6">
             <MaxWidthContainer noPadding>
               <motion.div
                 initial={{ opacity: 0, y: 30 }}
@@ -261,15 +264,13 @@ export default function Home() {
             </MaxWidthContainer>
           </div>
 
-          {/* Search Form Section - Centered Position */}
-          <div className="flex-1 flex items-start pt-2 md:pt-4">
-            <div className="w-full">
-              <MobileHomeSearchWrapper lang={lang} glassmorphism onServiceTypeChange={handleServiceChange} />
-            </div>
+          {/* Search Form Section */}
+          <div className="flex-1 pt-2 md:pt-4">
+            <MobileHomeSearchWrapper lang={lang} glassmorphism onServiceTypeChange={handleServiceChange} />
           </div>
 
-          {/* Trust Signals at Bottom + Scroll Indicator */}
-          <div className="mt-auto pb-4 md:pb-6">
+          {/* Trust Signals at Absolute Bottom */}
+          <div className="pb-6 md:pb-8">
             {/* Trust Signals - Visible with Colored Icons */}
             <div className="flex items-center justify-center gap-4 md:gap-8 mb-3">
               {[

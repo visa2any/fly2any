@@ -200,7 +200,7 @@ export default function EnhancedSearchBar({
       selectDate: 'Select date',
       selectDates: 'Select dates (up to 3)',
       selectAirports: 'Select airports',
-      travelers: 'Travelers & Class',
+      travelers: 'Travelers',
       adults: 'Adults',
       children: 'Children',
       infants: 'Infants',
@@ -1652,7 +1652,7 @@ export default function EnhancedSearchBar({
             {/* Custom label with Nonstop checkbox */}
             <div className="flex items-center justify-between mb-2">
               <label className={`flex items-center gap-1.5 text-xs font-bold ${transparent ? "text-white" : "text-gray-700"}`}>
-                <PlaneTakeoff size={13} className={transparent ? "text-white/70" : "text-primary-500"} />
+                <PlaneTakeoff size={13} className={transparent ? "text-white" : "text-primary-500"} />
                 <span>{labels.from}</span>
               </label>
 
@@ -1664,7 +1664,7 @@ export default function EnhancedSearchBar({
                   onChange={(e) => setFromNonstop(e.target.checked)}
                   className="w-3.5 h-3.5 rounded border-gray-300 text-[#D63A35] focus:ring-[#D63A35] cursor-pointer"
                 />
-                <span className={`text-xs font-normal ${transparent ? "text-white/80 group-hover:text-white" : "text-gray-600 group-hover:text-gray-900"}`}>{labels.nonstop}</span>
+                <span className={`text-xs font-semibold ${transparent ? "text-white" : "text-gray-700"}`}>{labels.nonstop}</span>
               </label>
             </div>
 
@@ -1704,7 +1704,7 @@ export default function EnhancedSearchBar({
             {/* Custom label with Nonstop checkbox */}
             <div className="flex items-center justify-between mb-2">
               <label className={`flex items-center gap-1.5 text-xs font-bold ${transparent ? "text-white" : "text-gray-700"}`}>
-                <PlaneLanding size={13} className={transparent ? "text-white/70" : "text-primary-500"} />
+                <PlaneLanding size={13} className={transparent ? "text-white" : "text-primary-500"} />
                 <span>{labels.to}</span>
               </label>
 
@@ -1717,7 +1717,7 @@ export default function EnhancedSearchBar({
                   disabled={tripType === 'oneway'}
                   className="w-3.5 h-3.5 rounded border-gray-300 text-[#D63A35] focus:ring-[#D63A35] cursor-pointer disabled:cursor-not-allowed disabled:opacity-50"
                 />
-                <span className={`text-xs font-normal ${transparent ? "text-white/80 group-hover:text-white" : "text-gray-600 group-hover:text-gray-900"}`}>{labels.nonstop}</span>
+                <span className={`text-xs font-semibold ${transparent ? "text-white" : "text-gray-700"}`}>{labels.nonstop}</span>
               </label>
             </div>
 
@@ -1741,7 +1741,7 @@ export default function EnhancedSearchBar({
           <div className="flex-1">
             <div className="flex items-center justify-between mb-2">
               <label className={`flex items-center gap-1.5 text-xs font-bold ${transparent ? "text-white" : "text-gray-700"}`}>
-                <CalendarDays size={13} className={transparent ? "text-white/70" : "text-primary-500"} />
+                <CalendarDays size={13} className={transparent ? "text-white" : "text-primary-500"} />
                 <span>{labels.depart}</span>
               </label>
 
@@ -1763,7 +1763,7 @@ export default function EnhancedSearchBar({
                   }}
                   className="w-3.5 h-3.5 rounded border-gray-300 text-[#D63A35] focus:ring-[#D63A35] cursor-pointer disabled:cursor-not-allowed disabled:opacity-50"
                 />
-                <span className={`text-xs font-normal ${transparent ? "text-white/80 group-hover:text-white" : "text-gray-600 group-hover:text-gray-900"}`}>{labels.multiDates}</span>
+                <span className={`text-xs font-semibold ${transparent ? "text-white" : "text-gray-700"}`}>{labels.multiDates}</span>
               </label>
             </div>
 
@@ -1823,7 +1823,7 @@ export default function EnhancedSearchBar({
           <div className="flex-1">
             <div className="flex items-center justify-between mb-2">
               <label className={`flex items-center gap-1.5 text-xs font-bold ${transparent ? "text-white" : "text-gray-700"}`}>
-                <CalendarCheck size={13} className={transparent ? "text-white/70" : "text-primary-500"} />
+                <CalendarCheck size={13} className={transparent ? "text-white" : "text-primary-500"} />
                 <span>{labels.return}</span>
               </label>
 
@@ -1842,7 +1842,7 @@ export default function EnhancedSearchBar({
                   className="w-3.5 h-3.5 rounded border-gray-300 text-[#D63A35] focus:ring-[#D63A35] cursor-pointer"
                 />
                 <ArrowRight size={12} className="text-gray-500" />
-                <span className={`text-xs font-normal ${transparent ? "text-white/80 group-hover:text-white" : "text-gray-600 group-hover:text-gray-900"}`}>{labels.oneWay}</span>
+                <span className={`text-xs font-semibold ${transparent ? "text-white" : "text-gray-700"}`}>{labels.oneWay}</span>
               </label>
             </div>
 
@@ -1901,7 +1901,7 @@ export default function EnhancedSearchBar({
           {/* Travelers Dropdown */}
           <div ref={passengerRef} className="relative flex-shrink-0 w-52">
             <label className={`flex items-center gap-1.5 text-xs font-semibold mb-2 ${transparent ? "text-white/90" : "text-gray-700"}`}>
-              <Users size={13} className={transparent ? "text-white/70" : "text-primary-500"} />
+              <Users size={13} className={transparent ? "text-white" : "text-primary-500"} />
               <span>{labels.travelers}</span>
             </label>
             <button
@@ -2128,7 +2128,7 @@ export default function EnhancedSearchBar({
                     {/* Custom label with Nonstop checkbox */}
                     <div className="flex items-center justify-between mb-2">
                       <label className={`flex items-center gap-1.5 text-xs font-bold ${transparent ? "text-white" : "text-gray-700"}`}>
-                        <Plane size={13} className={transparent ? "text-white/70" : "text-primary-500"} />
+                        <Plane size={13} className={transparent ? "text-white" : "text-primary-500"} />
                         <span>Flight {index + 2}</span>
                       </label>
 
@@ -2140,7 +2140,7 @@ export default function EnhancedSearchBar({
                           onChange={(e) => handleUpdateAdditionalFlight(flight.id, { nonstop: e.target.checked })}
                           className="w-3.5 h-3.5 rounded border-gray-300 text-[#D63A35] focus:ring-[#D63A35] cursor-pointer"
                         />
-                        <span className={`text-xs font-normal ${transparent ? "text-white/80 group-hover:text-white" : "text-gray-600 group-hover:text-gray-900"}`}>{labels.nonstop}</span>
+                        <span className={`text-xs font-semibold ${transparent ? "text-white" : "text-gray-700"}`}>{labels.nonstop}</span>
                       </label>
                     </div>
 
@@ -2176,7 +2176,7 @@ export default function EnhancedSearchBar({
                     {/* Custom label */}
                     <div className="flex items-center justify-between mb-2">
                       <label className={`flex items-center gap-1.5 text-xs font-bold ${transparent ? "text-white" : "text-gray-700"}`}>
-                        <PlaneLanding size={13} className={transparent ? "text-white/70" : "text-primary-500"} />
+                        <PlaneLanding size={13} className={transparent ? "text-white" : "text-primary-500"} />
                         <span>{labels.to}</span>
                       </label>
                     </div>
@@ -2195,7 +2195,7 @@ export default function EnhancedSearchBar({
                   <div className="flex-1">
                     <div className="flex items-center justify-between mb-2">
                       <label className={`flex items-center gap-1.5 text-xs font-bold ${transparent ? "text-white" : "text-gray-700"}`}>
-                        <CalendarDays size={13} className={transparent ? "text-white/70" : "text-primary-500"} />
+                        <CalendarDays size={13} className={transparent ? "text-white" : "text-primary-500"} />
                         <span>{labels.depart}</span>
                       </label>
                     </div>
