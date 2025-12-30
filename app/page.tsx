@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import Image from 'next/image';
 import { FAQ } from '@/components/conversion/FAQ';
@@ -172,19 +172,28 @@ export default function Home() {
     setMounted(true);
   }, []);
 
-  // Rotate hero images every 6 seconds (only after mount to prevent SSR issues)
+  // Rotate hero images every 6 seconds - use ref to prevent reset
+  const intervalRef = useRef<NodeJS.Timeout | null>(null);
+
   useEffect(() => {
-    if (!mounted) return;
+    // Clear any existing interval
+    if (intervalRef.current) {
+      clearInterval(intervalRef.current);
+    }
 
     const photoCount = HERO_PHOTOS[activeService].length;
-    if (photoCount <= 1) return; // No rotation needed for single image
+    if (photoCount <= 1) return;
 
-    const interval = setInterval(() => {
+    intervalRef.current = setInterval(() => {
       setHeroIndex((prev) => (prev + 1) % photoCount);
     }, 6000);
 
-    return () => clearInterval(interval);
-  }, [activeService, mounted]);
+    return () => {
+      if (intervalRef.current) {
+        clearInterval(intervalRef.current);
+      }
+    };
+  }, [activeService]);
 
   // Handle service type change from search form
   const handleServiceChange = (service: string) => {
