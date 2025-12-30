@@ -210,27 +210,30 @@ export default function Home() {
       <section className={`relative overflow-hidden -mt-14 sm:-mt-16 lg:-mt-[72px] transition-all duration-500 ease-out ${
         isFormExpanded ? 'min-h-[100svh]' : 'min-h-[320px]'
       } md:min-h-screen`}>
-        {/* Rotating Background Images - CSS-based for reliability */}
-        {currentPhotos.map((photo, index) => (
-          <div
-            key={`${activeService}-${index}`}
-            className="absolute inset-0 transition-opacity duration-1000 ease-in-out"
-            style={{
-              opacity: index === heroIndex ? 1 : 0,
-              zIndex: index === heroIndex ? 1 : 0,
+        {/* Rotating Background Images with Ken Burns Effect - Tab Contextual */}
+        <AnimatePresence mode="wait">
+          <motion.div
+            key={`${activeService}-${heroIndex}`}
+            initial={{ opacity: 0, scale: 1.1 }}
+            animate={{ opacity: 1, scale: 1.05 }}
+            exit={{ opacity: 0 }}
+            transition={{
+              opacity: { duration: 1.5, ease: "easeInOut" },
+              scale: { duration: 7, ease: "linear" }
             }}
+            className="absolute inset-0"
           >
             <Image
-              src={photo.image}
-              alt={photo.name}
+              src={currentPhotos[heroIndex]?.image || currentPhotos[0].image}
+              alt={currentPhotos[heroIndex]?.name || currentPhotos[0].name}
               fill
-              className="object-cover hero-ken-burns"
-              priority={index === 0}
-              quality={90}
+              className="object-cover"
+              priority
+              quality={95}
               sizes="100vw"
             />
-          </div>
-        ))}
+          </motion.div>
+        </AnimatePresence>
 
         {/* Ultra-Premium Gradient Overlays - Cinematic Look */}
         <div className="absolute inset-0 bg-gradient-to-b from-black/50 via-black/20 to-black/60" />
@@ -255,18 +258,19 @@ export default function Home() {
                   style={{ textShadow: '0 4px 40px rgba(0,0,0,0.6)' }}
                 >
                   {t.sectionTitle}{' '}
-                  <span
-                    className="inline-block animate-gradient-text"
+                  <motion.span
+                    className="inline-block"
                     style={{
-                      background: 'linear-gradient(90deg, #F7C928 0%, #FFFFFF 20%, #F7C928 40%, #E74035 60%, #F7C928 80%, #FFFFFF 100%)',
-                      backgroundSize: '300% 100%',
+                      background: 'linear-gradient(135deg, #FFD700 0%, #FFF 25%, #FFD700 50%, #FF6B6B 75%, #FFD700 100%)',
+                      backgroundSize: '200% 200%',
                       WebkitBackgroundClip: 'text',
                       WebkitTextFillColor: 'transparent',
-                      backgroundClip: 'text',
                     }}
+                    animate={{ backgroundPosition: ['0% 0%', '100% 100%', '0% 0%'] }}
+                    transition={{ duration: 10, repeat: Infinity, ease: 'easeInOut' }}
                   >
                     {t.titleHighlight}
-                  </span>
+                  </motion.span>
                 </h1>
 
                 <p

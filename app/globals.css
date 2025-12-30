@@ -9,27 +9,6 @@
   100% { transform: translateX(-50%); }
 }
 
-/* Gradient text animation for "Smart Travel Deals" - matches logo colors */
-@keyframes gradient-text {
-  0% { background-position: 0% 50%; }
-  50% { background-position: 100% 50%; }
-  100% { background-position: 0% 50%; }
-}
-
-.animate-gradient-text {
-  animation: gradient-text 8s ease-in-out infinite !important;
-}
-
-/* Ken Burns effect for hero images - subtle zoom */
-@keyframes ken-burns {
-  0% { transform: scale(1); }
-  100% { transform: scale(1.08); }
-}
-
-.hero-ken-burns {
-  animation: ken-burns 8s ease-out forwards !important;
-}
-
 /* Force airline marquee animation even with reduced motion (subtle, non-disorienting) */
 .force-animation {
   animation-duration: 150s !important;
