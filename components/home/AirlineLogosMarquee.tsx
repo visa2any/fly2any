@@ -41,7 +41,7 @@ export function AirlineLogosMarquee() {
     <div className="w-screen relative overflow-hidden -mx-4 py-3 mb-4 md:mb-6">
       {/* Animated track with duplicated content for seamless loop */}
       <div
-        className="flex"
+        className="flex force-animation"
         style={{
           width: 'fit-content',
           animation: 'airline-scroll 150s linear infinite'

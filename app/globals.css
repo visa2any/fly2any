@@ -3,9 +3,16 @@
 @tailwind utilities;
 
 /* Global keyframes - outside @layer for universal access */
+/* Uses !important to override prefers-reduced-motion for subtle decorative animations */
 @keyframes airline-scroll {
   0% { transform: translateX(0); }
   100% { transform: translateX(-50%); }
+}
+
+/* Force airline marquee animation even with reduced motion (subtle, non-disorienting) */
+.force-animation {
+  animation-duration: 150s !important;
+  animation-iteration-count: infinite !important;
 }
 
 @layer base {
