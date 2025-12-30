@@ -222,7 +222,10 @@ export function Header({
                 width={880}
                 height={304}
                 priority
-                className="h-6 sm:h-7 lg:h-7 w-auto object-contain"
+                className="h-6 sm:h-7 lg:h-7 w-auto object-contain transition-all duration-200"
+                style={{
+                  filter: scrolled ? 'none' : 'brightness(1.3) drop-shadow(0 1px 3px rgba(0,0,0,0.5))',
+                }}
               />
             </a>
 
@@ -230,15 +233,17 @@ export function Header({
           <nav
             className="hidden lg:flex items-center gap-0 xl:gap-0.5 ml-auto mr-2 xl:mr-4"
             suppressHydrationWarning
-            style={{
-              textShadow: scrolled ? 'none' : '0 1px 3px rgba(0,0,0,0.3), 0 0 8px rgba(255,255,255,0.5)'
-            }}
           >
 
             {/* Flights - First */}
             <a
               href="/flights"
-              className="group relative px-2 xl:px-3 py-2 text-neutral-700 hover:text-primary-600 transition-all duration-150 ease-[cubic-bezier(0.2,0.8,0.2,1)] font-semibold text-sm rounded-xl hover:bg-primary-50/60 hover:-translate-y-0.5"
+              className={`group relative px-2 xl:px-3 py-2 transition-all duration-150 ease-[cubic-bezier(0.2,0.8,0.2,1)] font-semibold text-sm rounded-xl hover:-translate-y-0.5 ${
+                scrolled
+                  ? 'text-neutral-700 hover:text-primary-600 hover:bg-primary-50/60'
+                  : 'text-white hover:text-white/90 hover:bg-white/10'
+              }`}
+              style={{ textShadow: scrolled ? 'none' : '0 1px 3px rgba(0,0,0,0.5)' }}
             >
               <span className="flex items-center gap-1.5">
                 <span className="text-lg transition-transform duration-150 group-hover:scale-110">
@@ -252,7 +257,12 @@ export function Header({
             {/* Hotels */}
             <a
               href="/hotels"
-              className="group relative px-2 xl:px-3 py-2 text-neutral-700 hover:text-primary-600 transition-all duration-150 ease-[cubic-bezier(0.2,0.8,0.2,1)] font-semibold text-sm rounded-xl hover:bg-primary-50/60 hover:-translate-y-0.5"
+              className={`group relative px-2 xl:px-3 py-2 transition-all duration-150 ease-[cubic-bezier(0.2,0.8,0.2,1)] font-semibold text-sm rounded-xl hover:-translate-y-0.5 ${
+                scrolled
+                  ? 'text-neutral-700 hover:text-primary-600 hover:bg-primary-50/60'
+                  : 'text-white hover:text-white/90 hover:bg-white/10'
+              }`}
+              style={{ textShadow: scrolled ? 'none' : '0 1px 3px rgba(0,0,0,0.5)' }}
             >
               <span className="flex items-center gap-1.5">
                 <span className="text-lg transition-transform duration-150 group-hover:scale-110">
@@ -266,7 +276,12 @@ export function Header({
             {/* Cars */}
             <a
               href="/cars"
-              className="group relative px-2 xl:px-3 py-2 text-neutral-700 hover:text-primary-600 transition-all duration-150 ease-[cubic-bezier(0.2,0.8,0.2,1)] font-semibold text-sm rounded-xl hover:bg-primary-50/60 hover:-translate-y-0.5"
+              className={`group relative px-2 xl:px-3 py-2 transition-all duration-150 ease-[cubic-bezier(0.2,0.8,0.2,1)] font-semibold text-sm rounded-xl hover:-translate-y-0.5 ${
+                scrolled
+                  ? 'text-neutral-700 hover:text-primary-600 hover:bg-primary-50/60'
+                  : 'text-white hover:text-white/90 hover:bg-white/10'
+              }`}
+              style={{ textShadow: scrolled ? 'none' : '0 1px 3px rgba(0,0,0,0.5)' }}
             >
               <span className="flex items-center gap-1.5">
                 <span className="text-lg transition-transform duration-150 group-hover:scale-110">
@@ -280,7 +295,12 @@ export function Header({
             {/* Tours */}
             <a
               href="/tours"
-              className="group relative px-2 xl:px-3 py-2 text-neutral-700 hover:text-primary-600 transition-all duration-150 ease-[cubic-bezier(0.2,0.8,0.2,1)] font-semibold text-sm rounded-xl hover:bg-primary-50/60 hover:-translate-y-0.5"
+              className={`group relative px-2 xl:px-3 py-2 transition-all duration-150 ease-[cubic-bezier(0.2,0.8,0.2,1)] font-semibold text-sm rounded-xl hover:-translate-y-0.5 ${
+                scrolled
+                  ? 'text-neutral-700 hover:text-primary-600 hover:bg-primary-50/60'
+                  : 'text-white hover:text-white/90 hover:bg-white/10'
+              }`}
+              style={{ textShadow: scrolled ? 'none' : '0 1px 3px rgba(0,0,0,0.5)' }}
             >
               <span className="flex items-center gap-1.5">
                 <span className="text-lg transition-transform duration-150 group-hover:scale-110">
@@ -294,7 +314,12 @@ export function Header({
             {/* Activities */}
             <a
               href="/activities"
-              className="group relative px-2 xl:px-3 py-2 text-neutral-700 hover:text-primary-600 transition-all duration-150 ease-[cubic-bezier(0.2,0.8,0.2,1)] font-semibold text-sm rounded-xl hover:bg-primary-50/60 hover:-translate-y-0.5"
+              className={`group relative px-2 xl:px-3 py-2 transition-all duration-150 ease-[cubic-bezier(0.2,0.8,0.2,1)] font-semibold text-sm rounded-xl hover:-translate-y-0.5 ${
+                scrolled
+                  ? 'text-neutral-700 hover:text-primary-600 hover:bg-primary-50/60'
+                  : 'text-white hover:text-white/90 hover:bg-white/10'
+              }`}
+              style={{ textShadow: scrolled ? 'none' : '0 1px 3px rgba(0,0,0,0.5)' }}
             >
               <span className="flex items-center gap-1.5">
                 <span className="text-lg transition-transform duration-150 group-hover:scale-110">
@@ -308,7 +333,12 @@ export function Header({
             {/* Transfers */}
             <a
               href="/transfers"
-              className="group relative px-2 xl:px-3 py-2 text-neutral-700 hover:text-primary-600 transition-all duration-150 ease-[cubic-bezier(0.2,0.8,0.2,1)] font-semibold text-sm rounded-xl hover:bg-primary-50/60 hover:-translate-y-0.5"
+              className={`group relative px-2 xl:px-3 py-2 transition-all duration-150 ease-[cubic-bezier(0.2,0.8,0.2,1)] font-semibold text-sm rounded-xl hover:-translate-y-0.5 ${
+                scrolled
+                  ? 'text-neutral-700 hover:text-primary-600 hover:bg-primary-50/60'
+                  : 'text-white hover:text-white/90 hover:bg-white/10'
+              }`}
+              style={{ textShadow: scrolled ? 'none' : '0 1px 3px rgba(0,0,0,0.5)' }}
             >
               <span className="flex items-center gap-1.5">
                 <span className="text-lg transition-transform duration-150 group-hover:scale-110">
@@ -322,7 +352,12 @@ export function Header({
             {/* Experiences */}
             <a
               href="/experiences"
-              className="group relative px-2 xl:px-3 py-2 text-neutral-700 hover:text-primary-600 transition-all duration-150 ease-[cubic-bezier(0.2,0.8,0.2,1)] font-semibold text-sm rounded-xl hover:bg-primary-50/60 hover:-translate-y-0.5"
+              className={`group relative px-2 xl:px-3 py-2 transition-all duration-150 ease-[cubic-bezier(0.2,0.8,0.2,1)] font-semibold text-sm rounded-xl hover:-translate-y-0.5 ${
+                scrolled
+                  ? 'text-neutral-700 hover:text-primary-600 hover:bg-primary-50/60'
+                  : 'text-white hover:text-white/90 hover:bg-white/10'
+              }`}
+              style={{ textShadow: scrolled ? 'none' : '0 1px 3px rgba(0,0,0,0.5)' }}
             >
               <span className="flex items-center gap-1.5">
                 <span className="text-lg transition-transform duration-150 group-hover:scale-110">
@@ -419,7 +454,12 @@ export function Header({
               <button
                 onClick={() => setDiscoverDropdownOpen(!discoverDropdownOpen)}
                 onMouseEnter={() => setDiscoverDropdownOpen(true)}
-                className="group relative px-2 xl:px-3 py-2 text-neutral-700 hover:text-primary-600 transition-all duration-150 ease-[cubic-bezier(0.2,0.8,0.2,1)] font-semibold text-sm rounded-xl hover:bg-primary-50/60 hover:-translate-y-0.5 flex items-center gap-1.5"
+                className={`group relative px-2 xl:px-3 py-2 transition-all duration-150 ease-[cubic-bezier(0.2,0.8,0.2,1)] font-semibold text-sm rounded-xl hover:-translate-y-0.5 flex items-center gap-1.5 ${
+                  scrolled
+                    ? 'text-neutral-700 hover:text-primary-600 hover:bg-primary-50/60'
+                    : 'text-white hover:text-white/90 hover:bg-white/10'
+                }`}
+                style={{ textShadow: scrolled ? 'none' : '0 1px 3px rgba(0,0,0,0.5)' }}
               >
                 <span className="flex items-center gap-1.5">
                   <span className="text-lg transition-transform duration-150 group-hover:scale-110">

@@ -191,8 +191,9 @@ export default function Home() {
     <div className="min-h-screen bg-white">
       {/* ============================================
           LEVEL-6 ULTRA-PREMIUM HERO - 100vh Immersive Full Screen
+          Negative margin pulls hero BEHIND sticky header for transparency
           ============================================ */}
-      <section className="relative min-h-screen overflow-hidden">
+      <section className="relative min-h-screen overflow-hidden -mt-14 sm:-mt-16 lg:-mt-[72px]">
         {/* Rotating Background Images with Ken Burns Effect - Tab Contextual */}
         <AnimatePresence mode="wait">
           <motion.div
