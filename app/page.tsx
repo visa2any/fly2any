@@ -29,10 +29,12 @@ type ServiceType = 'flights' | 'hotels' | 'cars' | 'tours' | 'activities' | 'tra
 
 const HERO_PHOTOS: Record<ServiceType, { name: string; image: string }[]> = {
   flights: [
-    { name: 'Airplane Wing Sunset', image: 'https://images.unsplash.com/photo-1436491865332-7a61a109cc05?w=1920&q=90' },
-    { name: 'Aircraft Takeoff', image: 'https://images.unsplash.com/photo-1569154941061-e231b4725ef1?w=1920&q=90' },
-    { name: 'Above the Clouds', image: 'https://images.unsplash.com/photo-1464037866556-6812c9d1c72e?w=1920&q=90' },
-    { name: 'Airport Terminal', image: 'https://images.unsplash.com/photo-1529074963764-98f45c47344b?w=1920&q=90' },
+    { name: 'Airplane Window Clouds', image: 'https://images.unsplash.com/photo-1436491865332-7a61a109cc05?w=1920&q=95' },
+    { name: 'Maldives Paradise', image: 'https://images.unsplash.com/photo-1514282401047-d79a71a590e8?w=1920&q=95' },
+    { name: 'Santorini Greece', image: 'https://images.unsplash.com/photo-1570077188670-e3a8d69ac5ff?w=1920&q=95' },
+    { name: 'Bora Bora Beach', image: 'https://images.unsplash.com/photo-1589197331516-4d84b72ebde3?w=1920&q=95' },
+    { name: 'Dubai Skyline', image: 'https://images.unsplash.com/photo-1512453979798-5ea266f8880c?w=1920&q=95' },
+    { name: 'Northern Lights', image: 'https://images.unsplash.com/photo-1531366936337-7c912a4589a7?w=1920&q=95' },
   ],
   hotels: [
     { name: 'Luxury Suite', image: 'https://images.unsplash.com/photo-1618773928121-c32242e63f39?w=1920&q=90' },
@@ -188,17 +190,17 @@ export default function Home() {
   return (
     <div className="min-h-screen bg-white">
       {/* ============================================
-          LEVEL-6 ULTRA-PREMIUM HERO - Apple-Class Design
+          LEVEL-6 ULTRA-PREMIUM HERO - 100vh Immersive Full Screen
           ============================================ */}
-      <section className="relative min-h-[620px] md:min-h-[600px] overflow-hidden">
+      <section className="relative min-h-screen overflow-hidden">
         {/* Rotating Background Images with Ken Burns Effect - Tab Contextual */}
         <AnimatePresence mode="wait">
           <motion.div
             key={`${activeService}-${heroIndex}`}
-            initial={{ opacity: 0, scale: 1.1 }}
+            initial={{ opacity: 0, scale: 1.05 }}
             animate={{ opacity: 1, scale: 1 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: 1.5 }}
+            exit={{ opacity: 0, scale: 1.02 }}
+            transition={{ duration: 2, ease: "easeOut" }}
             className="absolute inset-0"
           >
             <Image
@@ -207,14 +209,15 @@ export default function Home() {
               fill
               className="object-cover"
               priority
-              quality={90}
+              quality={95}
+              sizes="100vw"
             />
           </motion.div>
         </AnimatePresence>
 
-        {/* Ultra-Premium Gradient Overlays - Reduced opacity for better photo visibility */}
-        <div className="absolute inset-0 bg-gradient-to-b from-black/40 via-black/20 to-orange-900/50" />
-        <div className="absolute inset-0 bg-gradient-to-r from-red-900/30 via-transparent to-yellow-900/30" />
+        {/* Ultra-Premium Gradient Overlays - Cinematic Look */}
+        <div className="absolute inset-0 bg-gradient-to-b from-black/50 via-black/20 to-black/60" />
+        <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent" />
 
         {/* Content Container */}
         <div className="relative z-10 h-full flex flex-col justify-center">
@@ -265,31 +268,32 @@ export default function Home() {
             </div>
           </div>
 
-          {/* Scroll Indicator + Trust Signals at Bottom */}
-          <div className="mt-auto pb-3 md:pb-4">
-            <motion.div
-              className="flex flex-col items-center mb-2"
-              animate={{ y: [0, 4, 0] }}
-              transition={{ repeat: Infinity, duration: 1.5 }}
-            >
-              <ChevronDown className="w-4 h-4 text-white/30" />
-            </motion.div>
-            {/* Subtle Trust Signals */}
-            <div className="flex items-center justify-center gap-3 md:gap-6">
+          {/* Trust Signals at Bottom + Scroll Indicator */}
+          <div className="mt-auto pb-4 md:pb-6">
+            {/* Trust Signals - Visible with Colored Icons */}
+            <div className="flex items-center justify-center gap-4 md:gap-8 mb-3">
               {[
-                { icon: Shield, text: 'Best Price' },
-                { icon: HeadphonesIcon, text: '24/7 Support' },
-                { icon: CreditCard, text: 'Secure' },
-                { icon: Sparkles, text: 'Free Cancel' },
+                { icon: Shield, text: 'Best Price', color: 'text-emerald-400' },
+                { icon: HeadphonesIcon, text: '24/7 Support', color: 'text-sky-400' },
+                { icon: CreditCard, text: 'Secure', color: 'text-blue-400' },
+                { icon: Sparkles, text: 'Free Cancel', color: 'text-amber-400' },
               ].map((item, idx) => (
-                <div key={idx} className="flex items-center gap-1">
-                  <item.icon className="w-3 h-3 md:w-3.5 md:h-3.5 text-white/50" strokeWidth={2} />
-                  <span className="text-[9px] md:text-[11px] font-medium text-white/50 whitespace-nowrap">
+                <div key={idx} className="flex items-center gap-1.5">
+                  <item.icon className={`w-4 h-4 md:w-5 md:h-5 ${item.color}`} strokeWidth={2} />
+                  <span className="text-[10px] md:text-xs font-semibold text-white whitespace-nowrap">
                     {item.text}
                   </span>
                 </div>
               ))}
             </div>
+            {/* Scroll Indicator */}
+            <motion.div
+              className="flex flex-col items-center"
+              animate={{ y: [0, 6, 0] }}
+              transition={{ repeat: Infinity, duration: 1.5 }}
+            >
+              <ChevronDown className="w-5 h-5 text-white/60" />
+            </motion.div>
           </div>
         </div>
       </section>
