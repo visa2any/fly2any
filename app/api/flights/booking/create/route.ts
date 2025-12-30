@@ -16,6 +16,9 @@ import { applyFlightMarkup, determineRoutingChannel, ROUTING_THRESHOLD } from '@
 // CRITICAL: Import offer freshness to prevent OFFER_EXPIRED errors
 import { getOfferStatus, buildSearchUrl } from '@/lib/flights/offer-freshness';
 
+// CRITICAL: Import Duffel API for auto-refresh of expired offers
+import { duffelAPI as duffelRefreshAPI } from '@/lib/api/duffel';
+
 // CRITICAL: Unified source detection for Duffel vs Amadeus routing
 import { detectFlightSource, isDuffelOffer } from '@/lib/flights/source-detector';
 
@@ -158,50 +161,139 @@ export async function POST(request: NextRequest) {
       console.log(`   ✓ Valid: ${offerStatus.isValid}, Remaining: ${offerStatus.remainingMinutes}min ${offerStatus.remainingSeconds % 60}sec`);
       console.log(`   ✓ Warning: ${offerStatus.isWarning}, ShouldRefresh: ${offerStatus.shouldRefresh}`);
 
-      if (!offerStatus.isValid) {
-        console.error(`❌ OFFER EXPIRED: ${flightOffer.id}`);
+      if (!offerStatus.isValid || offerStatus.shouldRefresh) {
+        console.warn(`⚠️ OFFER ${offerStatus.isValid ? 'EXPIRING SOON' : 'EXPIRED'}: ${flightOffer.id}`);
+        console.log(`🔄 AUTO-REFRESH: Attempting to get fresh offer...`);
 
-        // Build re-search URL from offer data
+        // Extract search params from expired offer
         const origin = flightOffer.itineraries?.[0]?.segments?.[0]?.departure?.iataCode;
         const destination = flightOffer.itineraries?.[0]?.segments?.[flightOffer.itineraries[0]?.segments?.length - 1]?.arrival?.iataCode;
         const departureDate = flightOffer.itineraries?.[0]?.segments?.[0]?.departure?.at?.split('T')[0];
         const returnDate = flightOffer.itineraries?.[1]?.segments?.[0]?.departure?.at?.split('T')[0];
+        const originalPrice = parseFloat(flightOffer.price?.total || '0');
+        const originalAirline = flightOffer.validatingAirlineCodes?.[0] || flightOffer.owner?.iata_code;
+        const originalDepartureTime = flightOffer.itineraries?.[0]?.segments?.[0]?.departure?.at;
 
-        const searchUrl = buildSearchUrl({
-          origin: origin || '',
-          destination: destination || '',
-          departureDate: departureDate || '',
-          returnDate,
-          passengers: passengers.length,
-        });
+        try {
+          // AUTO-REFRESH: Re-search Duffel for fresh offer
+          const searchResult = await duffelRefreshAPI.searchFlights({
+            origin: origin || '',
+            destination: destination || '',
+            departureDate: departureDate || '',
+            returnDate,
+            adults: passengers.filter((p: any) => p.type === 'adult' || !p.type).length || 1,
+            children: passengers.filter((p: any) => p.type === 'child').length || 0,
+            infants: passengers.filter((p: any) => p.type === 'infant_without_seat').length || 0,
+            cabinClass: flightOffer.cabin_class || 'economy',
+            maxResults: 20,
+          });
 
-        // Alert admin
-        await alertApiError(request, new Error('OFFER_EXPIRED before booking attempt'), {
-          errorCode: 'OFFER_EXPIRED_PREFLIGHT',
-          endpoint: '/api/flights/booking/create',
-          userEmail: contactInfo?.email,
-          customerName: `${passengers[0]?.firstName || ''} ${passengers[0]?.lastName || ''}`.trim(),
-          customerPhone: contactInfo?.phone,
-          offerId: flightOffer.id,
-          flightRoute: `${origin} → ${destination}`,
-          departureDate,
-          amount: parseFloat(flightOffer.price?.total || '0'),
-          currency: flightOffer.price?.currency || 'USD',
-        }, { priority: 'normal' }).catch(() => {});
+          const offers = searchResult.data || [];
 
-        return NextResponse.json({
-          success: false,
-          error: 'OFFER_EXPIRED',
-          message: 'This flight offer has expired. Flight prices are only guaranteed for 30 minutes. Please search again for current prices.',
-          searchUrl,
-          offerAge: `${30 - offerStatus.remainingMinutes} minutes old`,
-        }, { status: 410 });
+          if (offers.length > 0) {
+            // Find best matching offer (same airline, similar time, similar price)
+            let bestMatch = offers[0];
+            let bestScore = 0;
+
+            for (const offer of offers) {
+              let score = 0;
+              // Match airline (+3)
+              if (originalAirline && offer.validatingAirlineCodes?.includes(originalAirline)) score += 3;
+              if (originalAirline && offer.owner?.iata_code === originalAirline) score += 3;
+              // Match departure time within 2 hours (+2)
+              if (originalDepartureTime) {
+                const origTime = new Date(originalDepartureTime).getTime();
+                const offerTime = new Date(offer.itineraries?.[0]?.segments?.[0]?.departure?.at).getTime();
+                if (Math.abs(origTime - offerTime) <= 2 * 60 * 60 * 1000) score += 2;
+              }
+              // Price within 15% (+1)
+              const offerPrice = parseFloat(offer.price?.total || '0');
+              if (originalPrice && Math.abs(offerPrice - originalPrice) / originalPrice <= 0.15) score += 1;
+
+              if (score > bestScore) {
+                bestScore = score;
+                bestMatch = offer;
+              }
+            }
+
+            const newPrice = parseFloat(bestMatch.price?.total || '0');
+            const priceChange = originalPrice ? ((newPrice - originalPrice) / originalPrice * 100) : 0;
+
+            console.log(`✅ AUTO-REFRESH SUCCESS: Found fresh offer ${bestMatch.id}`);
+            console.log(`   Original: $${originalPrice.toFixed(2)} → New: $${newPrice.toFixed(2)} (${priceChange > 0 ? '+' : ''}${priceChange.toFixed(1)}%)`);
+            console.log(`   Match Score: ${bestScore}/6`);
+
+            // Replace expired offer with fresh one
+            body.flightOffer = bestMatch;
+            body.originalOffer = flightOffer; // Keep original for reference
+            body.autoRefreshed = true;
+            body.priceChange = priceChange;
+
+            // Alert admin about auto-refresh (info level)
+            console.log(`📧 Auto-refresh successful for ${contactInfo?.email} - ${origin}→${destination}`);
+          } else {
+            // No offers found - return error
+            console.error(`❌ AUTO-REFRESH FAILED: No flights found for ${origin}→${destination} on ${departureDate}`);
+
+            const searchUrl = buildSearchUrl({
+              origin: origin || '',
+              destination: destination || '',
+              departureDate: departureDate || '',
+              returnDate,
+              passengers: passengers.length,
+            });
+
+            await alertApiError(request, new Error('OFFER_EXPIRED and no refresh available'), {
+              errorCode: 'OFFER_EXPIRED_NO_REFRESH',
+              endpoint: '/api/flights/booking/create',
+              userEmail: contactInfo?.email,
+              customerName: `${passengers[0]?.firstName || ''} ${passengers[0]?.lastName || ''}`.trim(),
+              customerPhone: contactInfo?.phone,
+              offerId: flightOffer.id,
+              flightRoute: `${origin} → ${destination}`,
+              departureDate,
+              amount: originalPrice,
+              currency: flightOffer.price?.currency || 'USD',
+            }, { priority: 'high' }).catch(() => {});
+
+            return NextResponse.json({
+              success: false,
+              error: 'OFFER_EXPIRED',
+              message: 'This flight is no longer available. Please search again for current flights.',
+              searchUrl,
+            }, { status: 410 });
+          }
+        } catch (refreshError: any) {
+          console.error(`❌ AUTO-REFRESH ERROR:`, refreshError.message);
+
+          const searchUrl = buildSearchUrl({
+            origin: origin || '',
+            destination: destination || '',
+            departureDate: departureDate || '',
+            returnDate,
+            passengers: passengers.length,
+          });
+
+          await alertApiError(request, refreshError, {
+            errorCode: 'OFFER_REFRESH_FAILED',
+            endpoint: '/api/flights/booking/create',
+            userEmail: contactInfo?.email,
+            offerId: flightOffer.id,
+            flightRoute: `${origin} → ${destination}`,
+          }, { priority: 'high' }).catch(() => {});
+
+          return NextResponse.json({
+            success: false,
+            error: 'OFFER_EXPIRED',
+            message: 'This flight offer has expired. Please search again for current prices.',
+            searchUrl,
+          }, { status: 410 });
+        }
+
+        // Update flightOffer reference after auto-refresh
+        Object.assign(flightOffer, body.flightOffer);
       }
 
-      // Warn if close to expiring
-      if (offerStatus.isWarning) {
-        console.warn(`⚠️  Offer expiring soon: ${offerStatus.remainingMinutes}min remaining`);
-      }
     }
 
     // Declare payment and booking status variables early to avoid TDZ issues
