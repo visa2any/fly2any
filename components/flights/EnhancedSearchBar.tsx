@@ -1593,9 +1593,9 @@ export default function EnhancedSearchBar({
                 setTimeout(() => toast.remove(), 2500);
               }
             }}
-            className="flex items-center gap-1.5 px-3 py-2.5 text-sm font-medium transition-all duration-300 relative text-neutral-400 hover:text-neutral-500 cursor-pointer flex-shrink-0 whitespace-nowrap rounded-xl hover:bg-white/30 active:scale-95"
+            className={`flex items-center gap-1.5 px-3 py-2.5 text-sm font-medium transition-all duration-300 relative cursor-pointer flex-shrink-0 whitespace-nowrap rounded-xl hover:bg-white/30 active:scale-95 ${transparent ? 'text-white/70 hover:text-white' : 'text-neutral-400 hover:text-neutral-500'}`}
           >
-            <Sparkles size={13} className="text-neutral-400" />
+            <Sparkles size={13} className={transparent ? 'text-white/70' : 'text-neutral-400'} />
             <span className="text-xs tracking-tight">Journey</span>
             <span className="text-[8px] bg-gradient-to-r from-amber-400 to-orange-400 text-white px-1.5 py-0.5 rounded-full font-bold leading-none shadow-sm">Soon</span>
           </button>
@@ -1612,9 +1612,9 @@ export default function EnhancedSearchBar({
                 setTimeout(() => toast.remove(), 2500);
               }
             }}
-            className="flex items-center gap-1.5 px-3 py-2.5 text-sm font-medium transition-all duration-300 relative text-neutral-400 hover:text-neutral-500 cursor-pointer flex-shrink-0 whitespace-nowrap rounded-xl hover:bg-white/30 active:scale-95"
+            className={`flex items-center gap-1.5 px-3 py-2.5 text-sm font-medium transition-all duration-300 relative cursor-pointer flex-shrink-0 whitespace-nowrap rounded-xl hover:bg-white/30 active:scale-95 ${transparent ? 'text-white/70 hover:text-white' : 'text-neutral-400 hover:text-neutral-500'}`}
           >
-            <Package size={13} className="text-neutral-400" />
+            <Package size={13} className={transparent ? 'text-white/70' : 'text-neutral-400'} />
             <span className="text-xs tracking-tight">{t('packages')}</span>
             <span className="text-[8px] bg-gradient-to-r from-amber-400 to-orange-400 text-white px-1.5 py-0.5 rounded-full font-bold leading-none shadow-sm">Soon</span>
           </button>
@@ -1631,9 +1631,9 @@ export default function EnhancedSearchBar({
                 setTimeout(() => toast.remove(), 2500);
               }
             }}
-            className="flex items-center gap-1.5 px-3 py-2.5 text-sm font-medium transition-all duration-300 relative text-neutral-400 hover:text-neutral-500 cursor-pointer flex-shrink-0 whitespace-nowrap rounded-xl hover:bg-white/30 active:scale-95 mr-2"
+            className={`flex items-center gap-1.5 px-3 py-2.5 text-sm font-medium transition-all duration-300 relative cursor-pointer flex-shrink-0 whitespace-nowrap rounded-xl hover:bg-white/30 active:scale-95 mr-2 ${transparent ? 'text-white/70 hover:text-white' : 'text-neutral-400 hover:text-neutral-500'}`}
           >
-            <Shield size={13} className="text-neutral-400" />
+            <Shield size={13} className={transparent ? 'text-white/70' : 'text-neutral-400'} />
             <span className="text-xs tracking-tight">{t('insurance')}</span>
             <span className="text-[8px] bg-gradient-to-r from-amber-400 to-orange-400 text-white px-1.5 py-0.5 rounded-full font-bold leading-none shadow-sm">Soon</span>
           </button>
