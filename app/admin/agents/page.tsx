@@ -42,9 +42,12 @@ export default async function AdminAgentsPage() {
     _sum: { agentEarnings: true, platformFee: true },
   });
 
-  // Serialize for client component
+  // Serialize dates AND Decimals for client component
   const serializedAgents = agents.map(a => ({
     ...a,
+    defaultCommission: Number(a.defaultCommission) || 0.05,
+    totalSales: Number(a.totalSales) || 0,
+    totalCommissions: Number(a.totalCommissions) || 0,
     createdAt: a.createdAt.toISOString(),
     updatedAt: a.updatedAt?.toISOString() || null,
   }));
@@ -54,8 +57,8 @@ export default async function AdminAgentsPage() {
       initialAgents={serializedAgents as any}
       stats={{
         byStatus: Object.fromEntries(stats.map(s => [s.status, s._count.id])),
-        totalCommissions: commissionStats._sum.agentEarnings || 0,
-        platformFees: commissionStats._sum.platformFee || 0,
+        totalCommissions: Number(commissionStats._sum.agentEarnings) || 0,
+        platformFees: Number(commissionStats._sum.platformFee) || 0,
         total: agents.length,
       }}
     />

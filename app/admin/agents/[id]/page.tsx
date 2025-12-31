@@ -41,12 +41,15 @@ export default async function AdminAgentDetailPage({ params }: Props) {
 
   if (!agent) notFound();
 
-  const totalEarnings = agent.commissions.reduce((sum, c) => sum + c.agentEarnings, 0);
-  const platformFees = agent.commissions.reduce((sum, c) => sum + c.platformFee, 0);
+  const totalEarnings = agent.commissions.reduce((sum, c) => sum + Number(c.agentEarnings), 0);
+  const platformFees = agent.commissions.reduce((sum, c) => sum + Number(c.platformFee), 0);
 
-  // Serialize for client component
+  // Serialize dates AND Decimals for client component
   const serializedAgent = {
     ...agent,
+    defaultCommission: Number(agent.defaultCommission) || 0.05,
+    totalSales: Number(agent.totalSales) || 0,
+    totalCommissions: Number(agent.totalCommissions) || 0,
     createdAt: agent.createdAt.toISOString(),
     updatedAt: agent.updatedAt?.toISOString() || null,
     user: {
@@ -55,14 +58,18 @@ export default async function AdminAgentDetailPage({ params }: Props) {
     },
     quotes: agent.quotes.map(q => ({
       ...q,
+      total: Number(q.total) || 0,
       createdAt: q.createdAt.toISOString(),
     })),
     bookings: agent.bookings.map(b => ({
       ...b,
+      total: Number(b.total) || 0,
       createdAt: b.createdAt.toISOString(),
     })),
     commissions: agent.commissions.map(c => ({
       ...c,
+      agentEarnings: Number(c.agentEarnings) || 0,
+      platformFee: Number(c.platformFee) || 0,
       createdAt: c.createdAt.toISOString(),
     })),
   };

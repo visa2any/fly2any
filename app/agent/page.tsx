@@ -159,9 +159,10 @@ export default async function AgentDashboardPage() {
     .filter((c) => pendingStatuses.includes(c.status))
     .reduce((sum, c) => sum + (c._sum.agentEarnings || 0), 0);
 
-  // Serialize dates for client components
+  // Serialize dates AND Decimals for client components
   const serializedQuotes = recentQuotes.map(q => ({
     ...q,
+    total: Number(q.total) || 0,
     createdAt: q.createdAt.toISOString(),
     updatedAt: q.updatedAt?.toISOString() || null,
     expiresAt: q.expiresAt?.toISOString() || null,
@@ -169,6 +170,7 @@ export default async function AgentDashboardPage() {
 
   const serializedBookings = recentBookings.map(b => ({
     ...b,
+    total: Number(b.total) || 0,
     createdAt: b.createdAt.toISOString(),
     updatedAt: b.updatedAt?.toISOString() || null,
     startDate: b.startDate?.toISOString() || null,
@@ -177,6 +179,7 @@ export default async function AgentDashboardPage() {
 
   const serializedUpcomingTrips = upcomingTrips.map(t => ({
     ...t,
+    total: Number(t.total) || 0,
     createdAt: t.createdAt.toISOString(),
     updatedAt: t.updatedAt?.toISOString() || null,
     startDate: t.startDate?.toISOString() || null,
@@ -188,18 +191,18 @@ export default async function AgentDashboardPage() {
       totalQuotes: quotesCount,
       totalBookings: bookingsCount,
       totalClients: clientsCount,
-      totalRevenue: agent.totalSales,
+      totalRevenue: Number(agent.totalSales) || 0,
       thisMonth: {
         quotes: thisMonthQuotes,
         bookings: thisMonthBookings,
-        revenue: thisMonthRevenue._sum.total || 0,
+        revenue: Number(thisMonthRevenue._sum.total) || 0,
       },
     },
     commissions: {
-      available: availableAmount,
-      pending: pendingAmount,
-      paid: paidAmount,
-      total: agent.totalCommissions,
+      available: Number(availableAmount) || 0,
+      pending: Number(pendingAmount) || 0,
+      paid: Number(paidAmount) || 0,
+      total: Number(agent.totalCommissions) || 0,
     },
     recentQuotes: serializedQuotes,
     recentBookings: serializedBookings,
