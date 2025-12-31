@@ -30,10 +30,18 @@ export default async function AgentLayout({
   // Check if user is a registered travel agent (with admin fallback)
   const agent = await getAgentWithAdminFallback(session.user.id);
 
-  // Fetch full agent details with user info
+  // Fetch ONLY needed fields - avoid DateTime/non-serializable types
   const fullAgent = agent ? await prisma!.travelAgent.findUnique({
     where: { id: agent.id },
-    include: {
+    select: {
+      id: true,
+      tier: true,
+      status: true,
+      businessName: true,
+      isTestAccount: true,
+      availableBalance: true,
+      pendingBalance: true,
+      currentBalance: true,
       user: {
         select: {
           name: true,
