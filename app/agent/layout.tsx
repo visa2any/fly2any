@@ -97,18 +97,21 @@ export default async function AgentLayout({
     );
   }
 
+  // SERIALIZE for client components
+  const serializedAgent = JSON.parse(JSON.stringify(fullAgent));
+
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Admin Mode Banner (shows when admin is accessing agent portal) */}
       {fullAgent.isTestAccount && <AdminModeBanner />}
 
       {/* Sidebar */}
-      <AgentSidebar agent={fullAgent} />
+      <AgentSidebar agent={serializedAgent} />
 
       {/* Main Content Area */}
       <div className="lg:pl-64">
         {/* Top Bar */}
-        <AgentTopBar agent={fullAgent} user={session.user} />
+        <AgentTopBar agent={serializedAgent} user={session.user} />
 
         {/* Page Content */}
         <main className="py-6 px-4 sm:px-6 lg:px-8 pb-24 lg:pb-6">
