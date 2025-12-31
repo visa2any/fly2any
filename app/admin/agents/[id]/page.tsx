@@ -41,40 +41,10 @@ export default async function AdminAgentDetailPage({ params }: Props) {
 
   if (!agent) notFound();
 
+  // BULLETPROOF: JSON stringify/parse
   const totalEarnings = agent.commissions.reduce((sum, c) => sum + Number(c.agentEarnings), 0);
   const platformFees = agent.commissions.reduce((sum, c) => sum + Number(c.platformFee), 0);
-
-  // Serialize - EXPLICIT fields only (no spread)
-  const serializedAgent = {
-    id: agent.id,
-    businessName: agent.businessName,
-    status: agent.status,
-    phone: agent.phone,
-    defaultCommission: Number(agent.defaultCommission) || 0.05,
-    createdAt: agent.createdAt.toISOString(),
-    user: {
-      id: agent.user.id,
-      name: agent.user.name,
-      email: agent.user.email,
-      image: agent.user.image,
-    },
-    quotes: agent.quotes.map(q => ({
-      id: q.id,
-      quoteNumber: q.quoteNumber,
-      tripName: q.tripName,
-      status: q.status,
-      total: Number(q.total) || 0,
-      createdAt: q.createdAt.toISOString(),
-    })),
-    bookings: agent.bookings.map(b => ({
-      id: b.id,
-      bookingNumber: b.bookingNumber,
-      status: b.status,
-      total: Number(b.total) || 0,
-      createdAt: b.createdAt.toISOString(),
-    })),
-    _count: agent._count,
-  };
+  const serializedAgent = JSON.parse(JSON.stringify(agent));
 
   return <AgentDetailAdmin agent={serializedAgent} stats={{ totalEarnings, platformFees }} />;
 }

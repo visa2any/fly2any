@@ -159,59 +159,29 @@ export default async function AgentDashboardPage() {
     .filter((c) => pendingStatuses.includes(c.status))
     .reduce((sum, c) => sum + (c._sum.agentEarnings || 0), 0);
 
-  // Serialize - EXPLICIT fields only (no spread to avoid hidden Decimals)
-  const serializedQuotes = recentQuotes.map(q => ({
-    id: q.id,
-    quoteNumber: q.quoteNumber,
-    tripName: q.tripName,
-    status: q.status,
-    total: Number(q.total) || 0,
-    createdAt: q.createdAt.toISOString(),
-    client: q.client,
-  }));
-
-  const serializedBookings = recentBookings.map(b => ({
-    id: b.id,
-    bookingNumber: b.bookingNumber,
-    status: b.status,
-    total: Number(b.total) || 0,
-    createdAt: b.createdAt.toISOString(),
-    client: b.client,
-  }));
-
-  const serializedUpcomingTrips = upcomingTrips.map(t => ({
-    id: t.id,
-    bookingNumber: t.bookingNumber,
-    destination: t.destination,
-    status: t.status,
-    total: Number(t.total) || 0,
-    startDate: t.startDate?.toISOString() || null,
-    endDate: t.endDate?.toISOString() || null,
-    client: t.client,
-  }));
-
-  const dashboardData = {
+  // BULLETPROOF: JSON stringify/parse ensures all values are serializable
+  const dashboardData = JSON.parse(JSON.stringify({
     overview: {
       totalQuotes: quotesCount,
       totalBookings: bookingsCount,
       totalClients: clientsCount,
-      totalRevenue: Number(agent.totalSales) || 0,
+      totalRevenue: agent.totalSales,
       thisMonth: {
         quotes: thisMonthQuotes,
         bookings: thisMonthBookings,
-        revenue: Number(thisMonthRevenue._sum.total) || 0,
+        revenue: thisMonthRevenue._sum.total || 0,
       },
     },
     commissions: {
-      available: Number(availableAmount) || 0,
-      pending: Number(pendingAmount) || 0,
-      paid: Number(paidAmount) || 0,
-      total: Number(agent.totalCommissions) || 0,
+      available: availableAmount,
+      pending: pendingAmount,
+      paid: paidAmount,
+      total: agent.totalCommissions,
     },
-    recentQuotes: serializedQuotes,
-    recentBookings: serializedBookings,
-    upcomingTrips: serializedUpcomingTrips,
-  };
+    recentQuotes: recentQuotes,
+    recentBookings: recentBookings,
+    upcomingTrips: upcomingTrips,
+  }));
 
   return (
     <div className="space-y-6">

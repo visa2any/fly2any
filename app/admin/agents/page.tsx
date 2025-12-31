@@ -42,28 +42,18 @@ export default async function AdminAgentsPage() {
     _sum: { agentEarnings: true, platformFee: true },
   });
 
-  // Serialize - EXPLICIT fields only (no spread)
-  const serializedAgents = agents.map(a => ({
-    id: a.id,
-    userId: a.userId,
-    businessName: a.businessName,
-    status: a.status,
-    phone: a.phone,
-    defaultCommission: Number(a.defaultCommission) || 0.05,
-    createdAt: a.createdAt.toISOString(),
-    user: a.user,
-    _count: a._count,
-  }));
+  // BULLETPROOF: JSON stringify/parse
+  const serializedAgents = JSON.parse(JSON.stringify(agents));
 
   return (
     <AgentsAdminClient
-      initialAgents={serializedAgents as any}
-      stats={{
+      initialAgents={serializedAgents}
+      stats={JSON.parse(JSON.stringify({
         byStatus: Object.fromEntries(stats.map(s => [s.status, s._count.id])),
-        totalCommissions: Number(commissionStats._sum.agentEarnings) || 0,
-        platformFees: Number(commissionStats._sum.platformFee) || 0,
+        totalCommissions: commissionStats._sum.agentEarnings || 0,
+        platformFees: commissionStats._sum.platformFee || 0,
         total: agents.length,
-      }}
+      }))}
     />
   );
 }
