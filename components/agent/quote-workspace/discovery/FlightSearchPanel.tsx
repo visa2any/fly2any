@@ -360,64 +360,99 @@ export default function FlightSearchPanel() {
                 </div>
               </div>
 
-              {/* ROW 2: Dates with independent flex controls */}
+              {/* ROW 2: Dates - Departure & Return with Flex/Multi toggles */}
               <div className="grid grid-cols-2 gap-2">
-                {/* Departure */}
+                {/* Departure Column */}
                 <div>
                   <div className="flex items-center justify-between mb-1">
                     <span className="text-xs font-semibold text-gray-600">Departure</span>
-                    <button
-                      type="button"
-                      onClick={() => setParams({ ...params, departureFlex: params.departureFlex === 0 ? 3 : 0 })}
-                      className={`flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-bold transition-all ${
-                        params.departureFlex > 0
-                          ? "bg-amber-100 text-amber-700"
-                          : "bg-gray-100 text-gray-500 hover:bg-gray-200"
-                      }`}
-                    >
-                      <Sparkles className="w-3 h-3" />
-                      {params.departureFlex > 0 ? `±${params.departureFlex}d` : "Flex"}
-                    </button>
+                    <div className="flex items-center gap-0.5">
+                      <button
+                        type="button"
+                        onClick={() => setParams({ ...params, departureFlex: params.departureFlex === 0 ? 3 : 0, useMultiDate: false, departureDates: [] })}
+                        className={`flex items-center gap-0.5 px-1.5 py-0.5 rounded-l text-[10px] font-bold transition-all border-r border-gray-200 ${
+                          params.departureFlex > 0 && !params.useMultiDate ? "bg-amber-100 text-amber-700" : "bg-gray-100 text-gray-500"
+                        }`}
+                      >
+                        <Sparkles className="w-2.5 h-2.5" />
+                        {params.departureFlex > 0 ? `±${params.departureFlex}` : "Flex"}
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setParams({ ...params, useMultiDate: !params.useMultiDate, departureFlex: 0, departureDate: "", departureDates: [] })}
+                        className={`px-1.5 py-0.5 rounded-r text-[10px] font-bold transition-all ${
+                          params.useMultiDate ? "bg-purple-100 text-purple-700" : "bg-gray-100 text-gray-500"
+                        }`}
+                      >
+                        Multi
+                      </button>
+                    </div>
                   </div>
-                  <div className="relative">
-                    <input
-                      type="date"
+                  {!params.useMultiDate ? (
+                    <PremiumDatePicker
                       value={params.departureDate}
-                      min={getMinDate()}
-                      onChange={(e) => setParams({ ...params, departureDate: e.target.value })}
-                      className="w-full px-3 py-2.5 border border-gray-200 rounded-xl text-sm font-medium focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white"
+                      onChange={(date) => setParams({ ...params, departureDate: date })}
+                      minDate={getMinDate()}
+                      placeholder="Depart"
                     />
-                  </div>
+                  ) : (
+                    <div className="space-y-1.5">
+                      {params.departureDates.length > 0 && (
+                        <div className="flex flex-wrap gap-1">
+                          {params.departureDates.map((date, idx) => (
+                            <span key={idx} className="inline-flex items-center gap-0.5 px-1.5 py-0.5 bg-purple-50 text-purple-700 rounded text-[10px] font-medium border border-purple-200">
+                              {format(date, "M/d")}
+                              <button type="button" onClick={() => removeMultiDate(idx)}><X className="w-2.5 h-2.5" /></button>
+                            </span>
+                          ))}
+                        </div>
+                      )}
+                      {params.departureDates.length < 7 && (
+                        <div className="relative">
+                          <div className="flex items-center gap-1 p-2 bg-white border border-dashed border-gray-300 rounded-lg hover:border-purple-400 cursor-pointer text-xs text-gray-500">
+                            <Plus className="w-3 h-3" /> Add ({7 - params.departureDates.length})
+                          </div>
+                          <input type="date" min={getMinDate()} onChange={(e) => { addMultiDate(e.target.value); e.target.value = ""; }} className="absolute inset-0 opacity-0 cursor-pointer" />
+                        </div>
+                      )}
+                    </div>
+                  )}
                 </div>
 
-                {/* Return */}
+                {/* Return Column */}
                 <div className={params.tripType === "oneway" ? "opacity-40 pointer-events-none" : ""}>
                   <div className="flex items-center justify-between mb-1">
                     <span className="text-xs font-semibold text-gray-600">Return</span>
                     <button
                       type="button"
                       onClick={() => setParams({ ...params, returnFlex: params.returnFlex === 0 ? 3 : 0 })}
-                      disabled={params.tripType === "oneway"}
-                      className={`flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-bold transition-all ${
-                        params.returnFlex > 0
-                          ? "bg-amber-100 text-amber-700"
-                          : "bg-gray-100 text-gray-500 hover:bg-gray-200"
-                      }`}
+                      disabled={params.tripType === "oneway" || params.useMultiDate}
+                      className={`flex items-center gap-0.5 px-1.5 py-0.5 rounded text-[10px] font-bold transition-all ${
+                        params.returnFlex > 0 ? "bg-amber-100 text-amber-700" : "bg-gray-100 text-gray-500"
+                      } ${params.useMultiDate ? "opacity-50" : ""}`}
                     >
-                      <Sparkles className="w-3 h-3" />
-                      {params.returnFlex > 0 ? `±${params.returnFlex}d` : "Flex"}
+                      <Sparkles className="w-2.5 h-2.5" />
+                      {params.returnFlex > 0 ? `±${params.returnFlex}` : "Flex"}
                     </button>
                   </div>
-                  <div className="relative">
-                    <input
-                      type="date"
+                  {params.useMultiDate ? (
+                    <div className="flex items-center justify-between bg-gray-50 rounded-lg px-3 py-2.5 border text-xs">
+                      <span className="text-gray-600">Duration</span>
+                      <div className="flex items-center gap-1">
+                        <button type="button" onClick={() => setParams({ ...params, tripDuration: Math.max(1, params.tripDuration - 1) })} className="w-5 h-5 rounded border flex items-center justify-center">-</button>
+                        <span className="w-6 text-center font-bold">{params.tripDuration}n</span>
+                        <button type="button" onClick={() => setParams({ ...params, tripDuration: Math.min(30, params.tripDuration + 1) })} className="w-5 h-5 rounded border flex items-center justify-center">+</button>
+                      </div>
+                    </div>
+                  ) : (
+                    <PremiumDatePicker
                       value={params.returnDate || ""}
-                      min={params.departureDate || getMinDate()}
-                      onChange={(e) => setParams({ ...params, returnDate: e.target.value })}
+                      onChange={(date) => setParams({ ...params, returnDate: date })}
+                      minDate={params.departureDate || getMinDate()}
+                      placeholder="Return"
                       disabled={params.tripType === "oneway"}
-                      className="w-full px-3 py-2.5 border border-gray-200 rounded-xl text-sm font-medium focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white disabled:bg-gray-50"
                     />
-                  </div>
+                  )}
                 </div>
               </div>
 
