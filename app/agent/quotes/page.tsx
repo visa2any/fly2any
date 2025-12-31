@@ -1,7 +1,7 @@
 import { auth } from "@/lib/auth";
 import { redirect } from "next/navigation";
 import { prisma } from "@/lib/prisma";
-import QuoteListClient from "@/components/agent/QuoteListClient";
+import Link from "next/link";
 
 export const metadata = {
   title: "My Quotes | Agent Portal",
@@ -15,7 +15,6 @@ export default async function QuotesPage() {
     redirect("/auth/signin");
   }
 
-  // Get agent with quotes - NO DateTime fields
   const agent = await prisma?.travelAgent.findUnique({
     where: { userId: session.user.id },
     select: {
@@ -30,16 +29,14 @@ export default async function QuotesPage() {
           shareableLink: true,
           client: {
             select: {
-              id: true,
               firstName: true,
               lastName: true,
               email: true,
             },
           },
         },
-        orderBy: {
-          createdAt: "desc",
-        },
+        orderBy: { createdAt: "desc" },
+        take: 50,
       },
     },
   });
@@ -48,82 +45,109 @@ export default async function QuotesPage() {
     redirect("/agent/register");
   }
 
-  // Serialize with explicit primitives - NO DateTime
-  const serializedQuotes = (agent.quotes || []).map((q: any) => ({
+  const quotes = (agent.quotes || []).map((q: any) => ({
     id: String(q.id || ""),
-    title: q.title ? String(q.title) : null,
+    title: q.title ? String(q.title) : "Untitled Quote",
     status: String(q.status || "DRAFT"),
     total: Number(q.total) || 0,
     currency: String(q.currency || "USD"),
     shareableLink: q.shareableLink ? String(q.shareableLink) : null,
-    client: q.client ? {
-      id: String(q.client.id || ""),
-      firstName: q.client.firstName ? String(q.client.firstName) : null,
-      lastName: q.client.lastName ? String(q.client.lastName) : null,
-      email: q.client.email ? String(q.client.email) : null,
-    } : null,
+    clientName: q.client
+      ? `${q.client.firstName || ""} ${q.client.lastName || ""}`.trim() || "No Client"
+      : "No Client",
   }));
 
   const stats = {
-    total: serializedQuotes.length,
-    draft: serializedQuotes.filter((q) => q.status === "DRAFT").length,
-    sent: serializedQuotes.filter((q) => q.status === "SENT").length,
-    viewed: serializedQuotes.filter((q) => q.status === "VIEWED").length,
-    accepted: serializedQuotes.filter((q) => q.status === "ACCEPTED").length,
-    declined: serializedQuotes.filter((q) => q.status === "DECLINED").length,
-    expired: serializedQuotes.filter((q) => q.status === "EXPIRED").length,
-    converted: serializedQuotes.filter((q) => q.status === "CONVERTED").length,
+    total: quotes.length,
+    draft: quotes.filter((q) => q.status === "DRAFT").length,
+    sent: quotes.filter((q) => q.status === "SENT").length,
+    accepted: quotes.filter((q) => q.status === "ACCEPTED").length,
   };
 
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900">My Quotes</h1>
-          <p className="text-gray-600 mt-1">View and manage your travel quotes</p>
+          <h1 className="text-2xl font-bold text-gray-900">My Quotes</h1>
+          <p className="text-gray-600">Manage your travel quotes</p>
         </div>
-        <a
+        <Link
           href="/agent/quotes/workspace"
-          className="inline-flex items-center px-6 py-3 bg-gradient-to-r from-primary-600 to-primary-700 text-white rounded-lg font-medium hover:from-primary-700 hover:to-primary-800 transition-all shadow-sm"
+          className="px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700"
         >
-          <svg className="w-5 h-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-          </svg>
-          Create New Quote
-        </a>
+          + Create Quote
+        </Link>
       </div>
 
-      <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-8 gap-4">
-        <StatCard label="Total" value={stats.total} color="gray" />
-        <StatCard label="Draft" value={stats.draft} color="gray" />
-        <StatCard label="Sent" value={stats.sent} color="blue" />
-        <StatCard label="Viewed" value={stats.viewed} color="purple" />
-        <StatCard label="Accepted" value={stats.accepted} color="green" />
-        <StatCard label="Declined" value={stats.declined} color="red" />
-        <StatCard label="Expired" value={stats.expired} color="orange" />
-        <StatCard label="Converted" value={stats.converted} color="teal" />
+      <div className="grid grid-cols-4 gap-4">
+        <div className="bg-white p-4 rounded-lg border">
+          <p className="text-sm text-gray-600">Total</p>
+          <p className="text-2xl font-bold">{stats.total}</p>
+        </div>
+        <div className="bg-blue-50 p-4 rounded-lg border border-blue-200">
+          <p className="text-sm text-blue-600">Sent</p>
+          <p className="text-2xl font-bold text-blue-900">{stats.sent}</p>
+        </div>
+        <div className="bg-green-50 p-4 rounded-lg border border-green-200">
+          <p className="text-sm text-green-600">Accepted</p>
+          <p className="text-2xl font-bold text-green-900">{stats.accepted}</p>
+        </div>
+        <div className="bg-gray-50 p-4 rounded-lg border">
+          <p className="text-sm text-gray-600">Draft</p>
+          <p className="text-2xl font-bold">{stats.draft}</p>
+        </div>
       </div>
 
-      <QuoteListClient quotes={serializedQuotes} />
-    </div>
-  );
-}
-
-function StatCard({ label, value, color }: { label: string; value: number; color: string }) {
-  const colorClasses: Record<string, string> = {
-    gray: "bg-gray-50 border-gray-200 text-gray-900",
-    blue: "bg-blue-50 border-blue-200 text-blue-900",
-    purple: "bg-purple-50 border-purple-200 text-purple-900",
-    green: "bg-green-50 border-green-200 text-green-900",
-    red: "bg-red-50 border-red-200 text-red-900",
-    orange: "bg-orange-50 border-orange-200 text-orange-900",
-    teal: "bg-teal-50 border-teal-200 text-teal-900",
-  };
-
-  return (
-    <div className={`border rounded-lg p-4 ${colorClasses[color] || colorClasses.gray}`}>
-      <p className="text-sm opacity-75">{label}</p>
-      <p className="text-2xl font-bold mt-1">{value}</p>
+      <div className="bg-white rounded-lg border overflow-hidden">
+        <table className="w-full">
+          <thead className="bg-gray-50">
+            <tr>
+              <th className="px-4 py-3 text-left text-sm font-medium text-gray-600">Title</th>
+              <th className="px-4 py-3 text-left text-sm font-medium text-gray-600">Client</th>
+              <th className="px-4 py-3 text-left text-sm font-medium text-gray-600">Status</th>
+              <th className="px-4 py-3 text-right text-sm font-medium text-gray-600">Total</th>
+              <th className="px-4 py-3 text-right text-sm font-medium text-gray-600">Actions</th>
+            </tr>
+          </thead>
+          <tbody className="divide-y">
+            {quotes.length === 0 ? (
+              <tr>
+                <td colSpan={5} className="px-4 py-8 text-center text-gray-500">
+                  No quotes yet. Create your first quote!
+                </td>
+              </tr>
+            ) : (
+              quotes.map((quote) => (
+                <tr key={quote.id} className="hover:bg-gray-50">
+                  <td className="px-4 py-3 font-medium">{quote.title}</td>
+                  <td className="px-4 py-3 text-gray-600">{quote.clientName}</td>
+                  <td className="px-4 py-3">
+                    <span className={`px-2 py-1 text-xs rounded-full ${
+                      quote.status === "ACCEPTED" ? "bg-green-100 text-green-700" :
+                      quote.status === "SENT" ? "bg-blue-100 text-blue-700" :
+                      quote.status === "DECLINED" ? "bg-red-100 text-red-700" :
+                      "bg-gray-100 text-gray-700"
+                    }`}>
+                      {quote.status}
+                    </span>
+                  </td>
+                  <td className="px-4 py-3 text-right font-medium">
+                    ${quote.total.toLocaleString()}
+                  </td>
+                  <td className="px-4 py-3 text-right">
+                    <Link
+                      href={`/agent/quotes/${quote.id}`}
+                      className="text-primary-600 hover:underline text-sm"
+                    >
+                      View
+                    </Link>
+                  </td>
+                </tr>
+              ))
+            )}
+          </tbody>
+        </table>
+      </div>
     </div>
   );
 }
