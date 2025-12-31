@@ -35,8 +35,13 @@ export default async function CreateQuotePage() {
     redirect("/agent/register");
   }
 
+  // SERIALIZE all data for client components
+  const agentStatus = String(agent.status);
+  const serializedAgent = JSON.parse(JSON.stringify(agent));
+  const serializedClients = JSON.parse(JSON.stringify(agent.clients || []));
+
   // Check if agent can create quotes
-  if (agent.status !== "ACTIVE" && agent.status !== "PENDING") {
+  if (agentStatus !== "ACTIVE" && agentStatus !== "PENDING") {
     return (
       <div className="max-w-2xl mx-auto mt-12">
         <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-8 text-center">
@@ -45,7 +50,7 @@ export default async function CreateQuotePage() {
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
             </svg>
           </div>
-          <h2 className="text-2xl font-bold text-gray-900 mb-2">Account Status: {agent.status}</h2>
+          <h2 className="text-2xl font-bold text-gray-900 mb-2">Account Status: {agentStatus}</h2>
           <p className="text-gray-600 mb-6">
             Your account needs to be approved before you can create quotes.
           </p>
@@ -85,8 +90,8 @@ export default async function CreateQuotePage() {
 
       {/* Quote Builder Component */}
       <QuoteBuilder
-        agent={agent}
-        clients={agent.clients}
+        agent={serializedAgent}
+        clients={serializedClients}
         products={[]}
         suppliers={[]}
       />
