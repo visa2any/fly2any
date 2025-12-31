@@ -7,6 +7,7 @@ import AgentSidebar from "@/components/agent/AgentSidebar";
 import AgentTopBar from "@/components/agent/AgentTopBar";
 import AdminModeBanner from "@/components/agent/AdminModeBanner";
 import AgentMobileNav from "@/components/agent/AgentMobileNav";
+import AgentContentWrapper from "@/components/agent/AgentContentWrapper";
 import prisma from "@/lib/prisma";
 
 export const metadata = {
@@ -108,35 +109,28 @@ export default async function AgentLayout({
       {/* Sidebar */}
       <AgentSidebar agent={serializedAgent} />
 
-      {/* Main Content Area */}
-      <div className="lg:pl-64">
+      {/* Main Content Area - Dynamic padding based on sidebar */}
+      <AgentContentWrapper>
         {/* Top Bar */}
         <AgentTopBar agent={serializedAgent} user={session.user} />
 
         {/* Page Content */}
-        <main className="py-6 px-4 sm:px-6 lg:px-8 pb-24 lg:pb-6">
+        <main className="py-4 px-4 sm:px-6 lg:px-8 pb-24 lg:pb-6">
           {/* Pending Approval Banner */}
           {fullAgent.status === "PENDING" && !fullAgent.isTestAccount && (
-            <div className="mb-6 bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+            <div className="mb-4 bg-yellow-50 border border-yellow-200 rounded-lg p-3">
               <div className="flex items-center">
-                <svg className="w-5 h-5 text-yellow-600 mr-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <svg className="w-5 h-5 text-yellow-600 mr-3 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
                 </svg>
-                <div>
-                  <p className="text-sm font-medium text-yellow-800">
-                    Your agent account is pending approval
-                  </p>
-                  <p className="text-sm text-yellow-700 mt-1">
-                    You can explore the portal, but some features will be limited until your account is approved.
-                  </p>
-                </div>
+                <p className="text-sm text-yellow-800">Your account is pending approval. Some features are limited.</p>
               </div>
             </div>
           )}
 
           {children}
         </main>
-      </div>
+      </AgentContentWrapper>
 
       {/* Mobile Bottom Navigation */}
       <AgentMobileNav />
