@@ -1,9 +1,16 @@
-"use client";
+'use client';
 
-import { useState } from "react";
-import { useRouter } from "next/navigation";
-import { toast } from "react-hot-toast";
-import Link from "next/link";
+// components/agent/QuoteListClient.tsx
+// Level 6 Ultra-Premium Quote List
+import { useState } from 'react';
+import { useRouter } from 'next/navigation';
+import { toast } from 'react-hot-toast';
+import Link from 'next/link';
+import { motion, AnimatePresence } from 'framer-motion';
+import {
+  Search, MapPin, Calendar, Users, DollarSign, Send, Eye, CheckCircle,
+  XCircle, Clock, ChevronRight, Trash2, Copy, ExternalLink, FileText
+} from 'lucide-react';
 
 interface Quote {
   id: string;
@@ -16,359 +23,208 @@ interface Quote {
   total: number;
   currency: string;
   status: string;
-  client: {
-    firstName: string;
-    lastName: string;
-    email: string;
-  };
+  shareableLink?: string | null;
+  client: { firstName: string; lastName: string; email: string };
   createdAt: Date;
   sentAt: Date | null;
-  viewedAt: Date | null;
-  acceptedAt: Date | null;
-  declinedAt: Date | null;
   expiresAt: Date;
 }
 
-interface QuoteListClientProps {
-  quotes: Quote[];
-}
+const statusConfig: Record<string, { bg: string; text: string; icon: any; dot: string }> = {
+  DRAFT: { bg: 'bg-gray-50', text: 'text-gray-700', icon: FileText, dot: 'bg-gray-400' },
+  SENT: { bg: 'bg-blue-50', text: 'text-blue-700', icon: Send, dot: 'bg-blue-500' },
+  VIEWED: { bg: 'bg-purple-50', text: 'text-purple-700', icon: Eye, dot: 'bg-purple-500' },
+  ACCEPTED: { bg: 'bg-emerald-50', text: 'text-emerald-700', icon: CheckCircle, dot: 'bg-emerald-500' },
+  DECLINED: { bg: 'bg-red-50', text: 'text-red-700', icon: XCircle, dot: 'bg-red-500' },
+  EXPIRED: { bg: 'bg-orange-50', text: 'text-orange-700', icon: Clock, dot: 'bg-orange-500' },
+  CONVERTED: { bg: 'bg-teal-50', text: 'text-teal-700', icon: CheckCircle, dot: 'bg-teal-500' },
+};
 
-export default function QuoteListClient({ quotes }: QuoteListClientProps) {
+export default function QuoteListClient({ quotes }: { quotes: Quote[] }) {
   const router = useRouter();
-  const [searchQuery, setSearchQuery] = useState("");
-  const [statusFilter, setStatusFilter] = useState<string>("ALL");
+  const [searchQuery, setSearchQuery] = useState('');
+  const [statusFilter, setStatusFilter] = useState('ALL');
   const [loading, setLoading] = useState<string | null>(null);
 
-  // Filter quotes
-  const filteredQuotes = quotes.filter((quote) => {
-    // Status filter
-    if (statusFilter !== "ALL" && quote.status !== statusFilter) {
-      return false;
-    }
-
-    // Search filter
+  const filteredQuotes = quotes.filter(q => {
+    if (statusFilter !== 'ALL' && q.status !== statusFilter) return false;
     if (searchQuery) {
-      const query = searchQuery.toLowerCase();
-      return (
-        quote.tripName.toLowerCase().includes(query) ||
-        quote.destination.toLowerCase().includes(query) ||
-        quote.client.firstName.toLowerCase().includes(query) ||
-        quote.client.lastName.toLowerCase().includes(query) ||
-        quote.client.email.toLowerCase().includes(query)
-      );
+      const s = searchQuery.toLowerCase();
+      return q.tripName.toLowerCase().includes(s) || q.destination.toLowerCase().includes(s) ||
+        `${q.client.firstName} ${q.client.lastName}`.toLowerCase().includes(s);
     }
-
     return true;
   });
 
-  const handleSendQuote = async (quoteId: string, clientName: string) => {
-    if (!confirm(`Send this quote to ${clientName}?`)) {
-      return;
-    }
-
-    setLoading(quoteId);
+  const handleSend = async (id: string, name: string) => {
+    if (!confirm(`Send quote to ${name}?`)) return;
+    setLoading(id);
     try {
-      const response = await fetch(`/api/agents/quotes/${quoteId}/send`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          subject: "Your Travel Quote",
-          message: "Please review your personalized travel quote.",
-        }),
+      const res = await fetch(`/api/agents/quotes/${id}/send`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ subject: 'Your Travel Quote', message: 'Please review your quote.' }),
       });
-
-      if (!response.ok) {
-        const data = await response.json();
-        throw new Error(data.error || "Failed to send quote");
-      }
-
-      toast.success("Quote sent successfully!");
+      if (!res.ok) throw new Error('Failed');
+      toast.success('Quote sent!');
       router.refresh();
-    } catch (error: any) {
-      console.error("Send quote error:", error);
-      toast.error(error.message || "Failed to send quote");
+    } catch {
+      toast.error('Failed to send');
     } finally {
       setLoading(null);
     }
   };
 
-  const handleDeleteQuote = async (quoteId: string, tripName: string) => {
-    if (!confirm(`Delete quote "${tripName}"? This action cannot be undone.`)) {
-      return;
-    }
-
-    setLoading(quoteId);
+  const handleDelete = async (id: string, name: string) => {
+    if (!confirm(`Delete "${name}"?`)) return;
+    setLoading(id);
     try {
-      const response = await fetch(`/api/agents/quotes/${quoteId}`, {
-        method: "DELETE",
-      });
-
-      if (!response.ok) {
-        const data = await response.json();
-        throw new Error(data.error || "Failed to delete quote");
-      }
-
-      toast.success("Quote deleted successfully!");
+      const res = await fetch(`/api/agents/quotes/${id}`, { method: 'DELETE' });
+      if (!res.ok) throw new Error('Failed');
+      toast.success('Quote deleted');
       router.refresh();
-    } catch (error: any) {
-      console.error("Delete quote error:", error);
-      toast.error(error.message || "Failed to delete quote");
+    } catch {
+      toast.error('Failed to delete');
     } finally {
       setLoading(null);
     }
   };
 
-  const formatCurrency = (amount: number, currency: string) => {
-    return `${currency === "USD" ? "$" : currency} ${amount.toLocaleString(undefined, {
-      minimumFractionDigits: 2,
-      maximumFractionDigits: 2,
-    })}`;
+  const copyLink = (link: string) => {
+    navigator.clipboard.writeText(`${window.location.origin}/client/quotes/${link}`);
+    toast.success('Link copied!');
   };
 
-  const formatDate = (date: Date) => {
-    return new Date(date).toLocaleDateString("en-US", {
-      year: "numeric",
-      month: "short",
-      day: "numeric",
-    });
-  };
+  const formatCurrency = (n: number) => new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(n);
+  const formatDate = (d: Date) => new Date(d).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
 
-  const getStatusBadge = (status: string) => {
-    const badges = {
-      DRAFT: { bg: "bg-gray-100", text: "text-gray-800", label: "Draft" },
-      SENT: { bg: "bg-blue-100", text: "text-blue-800", label: "Sent" },
-      VIEWED: { bg: "bg-purple-100", text: "text-purple-800", label: "Viewed" },
-      ACCEPTED: { bg: "bg-green-100", text: "text-green-800", label: "Accepted" },
-      DECLINED: { bg: "bg-red-100", text: "text-red-800", label: "Declined" },
-      EXPIRED: { bg: "bg-orange-100", text: "text-orange-800", label: "Expired" },
-      CONVERTED: { bg: "bg-teal-100", text: "text-teal-800", label: "Converted" },
-    };
-
-    const badge = badges[status as keyof typeof badges] || badges.DRAFT;
-
-    return (
-      <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${badge.bg} ${badge.text}`}>
-        {badge.label}
-      </span>
-    );
-  };
+  const statuses = ['ALL', 'DRAFT', 'SENT', 'VIEWED', 'ACCEPTED', 'DECLINED', 'EXPIRED'];
 
   return (
     <div className="space-y-6">
       {/* Filters */}
-      <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {/* Search */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">Search</label>
+      <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="bg-white rounded-2xl p-4 border border-gray-100 shadow-[0_1px_3px_rgba(0,0,0,0.05)]">
+        <div className="flex flex-col lg:flex-row lg:items-center gap-4">
+          <div className="flex-1 relative">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
             <input
               type="text"
+              placeholder="Search quotes..."
               value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="Search by client, trip, or destination..."
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+              onChange={e => setSearchQuery(e.target.value)}
+              className="w-full pl-10 pr-4 py-2.5 border border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
             />
           </div>
-
-          {/* Status Filter */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">Status</label>
-            <select
-              value={statusFilter}
-              onChange={(e) => setStatusFilter(e.target.value)}
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-            >
-              <option value="ALL">All Statuses</option>
-              <option value="DRAFT">Draft</option>
-              <option value="SENT">Sent</option>
-              <option value="VIEWED">Viewed</option>
-              <option value="ACCEPTED">Accepted</option>
-              <option value="DECLINED">Declined</option>
-              <option value="EXPIRED">Expired</option>
-              <option value="CONVERTED">Converted</option>
-            </select>
-          </div>
-        </div>
-
-        {/* Results Count */}
-        <div className="mt-4 pt-4 border-t border-gray-200">
-          <p className="text-sm text-gray-600">
-            Showing <strong>{filteredQuotes.length}</strong> of <strong>{quotes.length}</strong> quotes
-          </p>
-        </div>
-      </div>
-
-      {/* Quote List */}
-      {filteredQuotes.length === 0 ? (
-        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-12 text-center">
-          <svg
-            className="w-16 h-16 text-gray-400 mx-auto mb-4"
-            fill="none"
-            viewBox="0 0 24 24"
-            stroke="currentColor"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
-            />
-          </svg>
-          {searchQuery || statusFilter !== "ALL" ? (
-            <>
-              <p className="text-gray-600 mb-4">No quotes match your filters</p>
+          <div className="flex items-center gap-2 overflow-x-auto pb-2 lg:pb-0">
+            {statuses.map(s => (
               <button
-                onClick={() => {
-                  setSearchQuery("");
-                  setStatusFilter("ALL");
-                }}
-                className="text-primary-600 hover:text-primary-700 font-medium"
+                key={s}
+                onClick={() => setStatusFilter(s)}
+                className={`px-3 py-1.5 rounded-lg text-sm font-medium whitespace-nowrap transition-all ${
+                  statusFilter === s ? 'bg-indigo-600 text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                }`}
               >
-                Clear Filters
+                {s === 'ALL' ? 'All' : s.charAt(0) + s.slice(1).toLowerCase()}
               </button>
-            </>
-          ) : (
-            <>
-              <p className="text-gray-600 mb-4">You haven't created any quotes yet</p>
-              <Link
-                href="/agent/quotes/create"
-                className="inline-block bg-primary-600 text-white px-6 py-2 rounded-lg hover:bg-primary-700"
-              >
-                Create Your First Quote
-              </Link>
-            </>
-          )}
+            ))}
+          </div>
         </div>
-      ) : (
-        <div className="grid grid-cols-1 gap-4">
-          {filteredQuotes.map((quote) => (
-            <div
-              key={quote.id}
-              className="bg-white rounded-lg shadow-sm border border-gray-200 hover:border-primary-300 transition-all"
-            >
-              <div className="p-6">
-                <div className="flex items-start justify-between">
-                  {/* Left: Quote Info */}
-                  <div className="flex-1">
-                    <div className="flex items-center gap-3 mb-2">
-                      <h3 className="text-lg font-semibold text-gray-900">{quote.tripName}</h3>
-                      {getStatusBadge(quote.status)}
-                    </div>
+      </motion.div>
 
-                    <div className="space-y-1 text-sm text-gray-600 mb-4">
-                      <p className="flex items-center">
-                        <span className="mr-2">📍</span>
-                        {quote.destination}
-                      </p>
-                      <p className="flex items-center">
-                        <span className="mr-2">👤</span>
-                        {quote.client.firstName} {quote.client.lastName} • {quote.client.email}
-                      </p>
-                      <p className="flex items-center">
-                        <span className="mr-2">📅</span>
-                        {formatDate(quote.startDate)} - {formatDate(quote.endDate)} ({quote.duration} days)
-                      </p>
-                      <p className="flex items-center">
-                        <span className="mr-2">👥</span>
-                        {quote.travelers} {quote.travelers === 1 ? "Traveler" : "Travelers"}
-                      </p>
-                    </div>
+      <p className="text-sm text-gray-500">
+        Showing <span className="font-medium text-gray-900">{filteredQuotes.length}</span> quotes
+      </p>
 
-                    {/* Timeline */}
-                    <div className="flex items-center gap-4 text-xs text-gray-500">
-                      <span>Created {formatDate(quote.createdAt)}</span>
-                      {quote.sentAt && <span>• Sent {formatDate(quote.sentAt)}</span>}
-                      {quote.viewedAt && <span>• Viewed {formatDate(quote.viewedAt)}</span>}
-                      {quote.acceptedAt && <span>• Accepted {formatDate(quote.acceptedAt)}</span>}
-                      {quote.declinedAt && <span>• Declined {formatDate(quote.declinedAt)}</span>}
-                    </div>
-                  </div>
-
-                  {/* Right: Price & Actions */}
-                  <div className="ml-6 text-right">
-                    <p className="text-sm text-gray-600 mb-1">Total</p>
-                    <p className="text-2xl font-bold text-gray-900 mb-1">
-                      {formatCurrency(quote.total, quote.currency)}
-                    </p>
-                    <p className="text-xs text-gray-500 mb-4">
-                      {formatCurrency(quote.total / quote.travelers, quote.currency)} per person
-                    </p>
-
-                    {/* Action Buttons */}
-                    <div className="flex flex-col gap-2">
-                      <Link
-                        href={`/agent/quotes/${quote.id}`}
-                        className="px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 text-sm font-medium text-center"
-                      >
-                        View Details
-                      </Link>
-
-                      {quote.status === "DRAFT" && (
-                        <>
-                          <button
-                            onClick={() => handleSendQuote(quote.id, `${quote.client.firstName} ${quote.client.lastName}`)}
-                            disabled={loading === quote.id}
-                            className="px-4 py-2 border border-blue-600 text-blue-600 rounded-lg hover:bg-blue-50 text-sm font-medium disabled:opacity-50"
-                          >
-                            {loading === quote.id ? "Sending..." : "Send to Client"}
-                          </button>
-                          <Link
-                            href={`/agent/quotes/${quote.id}/edit`}
-                            className="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 text-sm font-medium text-center"
-                          >
-                            Edit
-                          </Link>
-                        </>
-                      )}
-
-                      {(quote.status === "SENT" || quote.status === "VIEWED") && (
-                        <button
-                          onClick={() => handleSendQuote(quote.id, `${quote.client.firstName} ${quote.client.lastName}`)}
-                          disabled={loading === quote.id}
-                          className="px-4 py-2 border border-blue-600 text-blue-600 rounded-lg hover:bg-blue-50 text-sm font-medium disabled:opacity-50"
-                        >
-                          {loading === quote.id ? "Sending..." : "Resend"}
-                        </button>
-                      )}
-
-                      {quote.status === "ACCEPTED" && (
-                        <Link
-                          href={`/agent/bookings/convert?quoteId=${quote.id}`}
-                          className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 text-sm font-medium text-center"
-                        >
-                          Convert to Booking
-                        </Link>
-                      )}
-
-                      {(quote.status === "DRAFT" || quote.status === "DECLINED" || quote.status === "EXPIRED") && (
-                        <button
-                          onClick={() => handleDeleteQuote(quote.id, quote.tripName)}
-                          disabled={loading === quote.id}
-                          className="px-4 py-2 border border-red-600 text-red-600 rounded-lg hover:bg-red-50 text-sm font-medium disabled:opacity-50"
-                        >
-                          {loading === quote.id ? "Deleting..." : "Delete"}
-                        </button>
-                      )}
-                    </div>
-                  </div>
-                </div>
-
-                {/* Expiration Warning */}
-                {(quote.status === "SENT" || quote.status === "VIEWED") && (
-                  <div className="mt-4 pt-4 border-t border-gray-200">
-                    <p className="text-xs text-gray-600">
-                      Expires on {formatDate(quote.expiresAt)}
-                      {new Date(quote.expiresAt) < new Date() && (
-                        <span className="ml-2 text-red-600 font-medium">(Expired)</span>
-                      )}
-                    </p>
-                  </div>
-                )}
-              </div>
-            </div>
-          ))}
-        </div>
+      {filteredQuotes.length === 0 && (
+        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="bg-white rounded-2xl p-12 text-center border border-gray-100">
+          <FileText className="w-12 h-12 text-gray-300 mx-auto mb-4" />
+          <h3 className="text-lg font-semibold text-gray-900">No quotes found</h3>
+          <p className="text-gray-500 mt-1">Try adjusting filters or create a new quote</p>
+        </motion.div>
       )}
+
+      {/* Quote Cards */}
+      <AnimatePresence>
+        {filteredQuotes.length > 0 && (
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {filteredQuotes.map((q, idx) => {
+              const sc = statusConfig[q.status] || statusConfig.DRAFT;
+              const StatusIcon = sc.icon;
+              const isExpired = new Date() > new Date(q.expiresAt) && !['ACCEPTED', 'CONVERTED', 'DECLINED'].includes(q.status);
+              return (
+                <motion.div
+                  key={q.id}
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: idx * 0.02 }}
+                  className="bg-white rounded-2xl p-5 border border-gray-100 shadow-[0_1px_3px_rgba(0,0,0,0.05)] hover:shadow-[0_4px_12px_rgba(0,0,0,0.08)] transition-all"
+                >
+                  <div className="flex items-start justify-between mb-3">
+                    <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium ${sc.bg} ${sc.text}`}>
+                      <span className={`w-1.5 h-1.5 rounded-full ${sc.dot}`} />
+                      {isExpired ? 'Expired' : q.status.replace('_', ' ')}
+                    </span>
+                    <div className="flex gap-1">
+                      {q.shareableLink && (
+                        <button onClick={() => copyLink(q.shareableLink!)} className="p-1.5 text-gray-400 hover:text-indigo-600 transition-colors">
+                          <Copy className="w-4 h-4" />
+                        </button>
+                      )}
+                      <button onClick={() => handleDelete(q.id, q.tripName)} disabled={loading === q.id} className="p-1.5 text-gray-400 hover:text-red-500 transition-colors disabled:opacity-50">
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                    </div>
+                  </div>
+
+                  <Link href={`/agent/quotes/${q.id}`} className="block">
+                    <h3 className="font-semibold text-gray-900 mb-1 line-clamp-1">{q.tripName}</h3>
+                    <div className="flex items-center gap-1.5 text-sm text-gray-500 mb-3">
+                      <MapPin className="w-4 h-4" />
+                      <span className="truncate">{q.destination}</span>
+                    </div>
+
+                    <div className="flex items-center gap-1.5 text-sm text-gray-500 mb-1">
+                      <Users className="w-4 h-4" />
+                      {q.client.firstName} {q.client.lastName}
+                    </div>
+                    <div className="flex items-center gap-1.5 text-sm text-gray-500 mb-3">
+                      <Calendar className="w-4 h-4" />
+                      {formatDate(q.startDate)} · {q.duration} days
+                    </div>
+
+                    <div className="flex items-center justify-between pt-3 border-t border-gray-100">
+                      <p className="text-xl font-bold text-gray-900">{formatCurrency(q.total)}</p>
+                      <ChevronRight className="w-5 h-5 text-gray-400" />
+                    </div>
+                  </Link>
+
+                  {q.status === 'DRAFT' && (
+                    <button
+                      onClick={() => handleSend(q.id, `${q.client.firstName} ${q.client.lastName}`)}
+                      disabled={loading === q.id}
+                      className="w-full mt-3 flex items-center justify-center gap-2 px-4 py-2.5 bg-indigo-600 text-white rounded-xl font-medium hover:bg-indigo-700 transition-colors disabled:opacity-50"
+                    >
+                      <Send className="w-4 h-4" />
+                      {loading === q.id ? 'Sending...' : 'Send to Client'}
+                    </button>
+                  )}
+
+                  {q.shareableLink && q.status !== 'DRAFT' && (
+                    <a
+                      href={`/client/quotes/${q.shareableLink}`}
+                      target="_blank"
+                      className="w-full mt-3 flex items-center justify-center gap-2 px-4 py-2.5 bg-gray-100 text-gray-700 rounded-xl font-medium hover:bg-gray-200 transition-colors"
+                    >
+                      <ExternalLink className="w-4 h-4" />
+                      View as Client
+                    </a>
+                  )}
+                </motion.div>
+              );
+            })}
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }

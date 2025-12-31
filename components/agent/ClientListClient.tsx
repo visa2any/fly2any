@@ -1,9 +1,16 @@
-"use client";
+'use client';
 
-import { useState } from "react";
-import { useRouter } from "next/navigation";
-import { toast } from "react-hot-toast";
-import Link from "next/link";
+// components/agent/ClientListClient.tsx
+// Level 6 Ultra-Premium Client List
+import { useState } from 'react';
+import { useRouter } from 'next/navigation';
+import { toast } from 'react-hot-toast';
+import Link from 'next/link';
+import { motion, AnimatePresence } from 'framer-motion';
+import {
+  Search, LayoutGrid, List, User, Mail, Phone, Building2,
+  Star, ChevronRight, Calendar, FileText, Plane, Trash2, Filter
+} from 'lucide-react';
 
 interface Client {
   id: string;
@@ -15,473 +22,233 @@ interface Client {
   segment: string;
   isVip: boolean;
   homeAirport: string | null;
-  preferredLanguage: string | null;
   tags: string[];
-  _count: {
-    quotes: number;
-    bookings: number;
-  };
+  _count: { quotes: number; bookings: number };
   createdAt: Date;
   lastContactDate: Date | null;
 }
 
-interface ClientListClientProps {
-  clients: Client[];
-}
+const segmentConfig: Record<string, { bg: string; text: string; label: string }> = {
+  STANDARD: { bg: 'bg-gray-50', text: 'text-gray-700', label: 'Standard' },
+  VIP: { bg: 'bg-purple-50', text: 'text-purple-700', label: 'VIP' },
+  HONEYMOON: { bg: 'bg-pink-50', text: 'text-pink-700', label: 'Honeymoon' },
+  FAMILY: { bg: 'bg-blue-50', text: 'text-blue-700', label: 'Family' },
+  BUSINESS: { bg: 'bg-teal-50', text: 'text-teal-700', label: 'Business' },
+  GROUP_ORGANIZER: { bg: 'bg-orange-50', text: 'text-orange-700', label: 'Group' },
+  CORPORATE: { bg: 'bg-indigo-50', text: 'text-indigo-700', label: 'Corporate' },
+  LUXURY: { bg: 'bg-amber-50', text: 'text-amber-700', label: 'Luxury' },
+};
 
-export default function ClientListClient({ clients }: ClientListClientProps) {
+export default function ClientListClient({ clients }: { clients: Client[] }) {
   const router = useRouter();
-  const [searchQuery, setSearchQuery] = useState("");
-  const [segmentFilter, setSegmentFilter] = useState<string>("ALL");
-  const [viewMode, setViewMode] = useState<"grid" | "table">("grid");
-  const [sortBy, setSortBy] = useState<string>("recent");
+  const [searchQuery, setSearchQuery] = useState('');
+  const [segmentFilter, setSegmentFilter] = useState('ALL');
+  const [viewMode, setViewMode] = useState<'grid' | 'table'>('grid');
+  const [sortBy, setSortBy] = useState('recent');
   const [loading, setLoading] = useState<string | null>(null);
 
-  // Filter clients
   const filteredClients = clients
-    .filter((client) => {
-      // Segment filter
-      if (segmentFilter !== "ALL" && client.segment !== segmentFilter) {
-        return false;
-      }
-
-      // Search filter
+    .filter(c => {
+      if (segmentFilter !== 'ALL' && c.segment !== segmentFilter) return false;
       if (searchQuery) {
-        const query = searchQuery.toLowerCase();
+        const q = searchQuery.toLowerCase();
         return (
-          client.firstName.toLowerCase().includes(query) ||
-          client.lastName.toLowerCase().includes(query) ||
-          client.email.toLowerCase().includes(query) ||
-          client.phone?.toLowerCase().includes(query) ||
-          client.company?.toLowerCase().includes(query) ||
-          client.tags?.some((tag) => tag.toLowerCase().includes(query))
+          c.firstName.toLowerCase().includes(q) ||
+          c.lastName.toLowerCase().includes(q) ||
+          c.email.toLowerCase().includes(q) ||
+          c.company?.toLowerCase().includes(q)
         );
       }
-
       return true;
     })
     .sort((a, b) => {
-      switch (sortBy) {
-        case "recent":
-          return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
-        case "name":
-          return `${a.firstName} ${a.lastName}`.localeCompare(`${b.firstName} ${b.lastName}`);
-        case "lastContact":
-          const aDate = a.lastContactDate ? new Date(a.lastContactDate).getTime() : 0;
-          const bDate = b.lastContactDate ? new Date(b.lastContactDate).getTime() : 0;
-          return bDate - aDate;
-        case "quotes":
-          return b._count.quotes - a._count.quotes;
-        case "bookings":
-          return b._count.bookings - a._count.bookings;
-        default:
-          return 0;
-      }
+      if (sortBy === 'name') return `${a.firstName} ${a.lastName}`.localeCompare(`${b.firstName} ${b.lastName}`);
+      if (sortBy === 'quotes') return b._count.quotes - a._count.quotes;
+      if (sortBy === 'bookings') return b._count.bookings - a._count.bookings;
+      return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
     });
 
-  const handleDeleteClient = async (clientId: string, clientName: string) => {
-    if (!confirm(`Archive client "${clientName}"? They will be moved to archived clients.`)) {
-      return;
-    }
-
-    setLoading(clientId);
+  const handleDelete = async (id: string, name: string) => {
+    if (!confirm(`Archive client "${name}"?`)) return;
+    setLoading(id);
     try {
-      const response = await fetch(`/api/agents/clients/${clientId}`, {
-        method: "DELETE",
-      });
-
-      if (!response.ok) {
-        const data = await response.json();
-        throw new Error(data.error || "Failed to archive client");
-      }
-
-      toast.success("Client archived successfully!");
+      const res = await fetch(`/api/agents/clients/${id}`, { method: 'DELETE' });
+      if (!res.ok) throw new Error('Failed');
+      toast.success('Client archived');
       router.refresh();
-    } catch (error: any) {
-      console.error("Archive client error:", error);
-      toast.error(error.message || "Failed to archive client");
+    } catch {
+      toast.error('Failed to archive');
     } finally {
       setLoading(null);
     }
   };
 
-  const getSegmentBadge = (segment: string) => {
-    const badges = {
-      STANDARD: { bg: "bg-gray-100", text: "text-gray-800", label: "Standard" },
-      VIP: { bg: "bg-purple-100", text: "text-purple-800", label: "VIP" },
-      HONEYMOON: { bg: "bg-pink-100", text: "text-pink-800", label: "Honeymoon" },
-      FAMILY: { bg: "bg-blue-100", text: "text-blue-800", label: "Family" },
-      BUSINESS: { bg: "bg-teal-100", text: "text-teal-800", label: "Business" },
-      GROUP_ORGANIZER: { bg: "bg-orange-100", text: "text-orange-800", label: "Group" },
-      CORPORATE: { bg: "bg-indigo-100", text: "text-indigo-800", label: "Corporate" },
-      LUXURY: { bg: "bg-amber-100", text: "text-amber-800", label: "Luxury" },
-    };
+  const formatDate = (d: Date | null) => d ? new Date(d).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : 'Never';
 
-    const badge = badges[segment as keyof typeof badges] || badges.STANDARD;
-
-    return (
-      <span
-        className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${badge.bg} ${badge.text}`}
-      >
-        {badge.label}
-      </span>
-    );
-  };
-
-  const formatDate = (date: Date | null) => {
-    if (!date) return "Never";
-    return new Date(date).toLocaleDateString("en-US", {
-      year: "numeric",
-      month: "short",
-      day: "numeric",
-    });
-  };
+  const segments = ['ALL', 'STANDARD', 'VIP', 'HONEYMOON', 'FAMILY', 'BUSINESS', 'CORPORATE', 'LUXURY'];
 
   return (
     <div className="space-y-6">
-      {/* Filters & Search */}
-      <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-          {/* Search */}
-          <div className="md:col-span-2">
-            <label className="block text-sm font-medium text-gray-700 mb-2">Search</label>
+      {/* Filters */}
+      <motion.div
+        initial={{ opacity: 0, y: 10 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="bg-white rounded-2xl p-4 border border-gray-100 shadow-[0_1px_3px_rgba(0,0,0,0.05)]"
+      >
+        <div className="flex flex-col lg:flex-row lg:items-center gap-4">
+          <div className="flex-1 relative">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
             <input
               type="text"
+              placeholder="Search clients..."
               value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="Search by name, email, company, or tags..."
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+              onChange={e => setSearchQuery(e.target.value)}
+              className="w-full pl-10 pr-4 py-2.5 border border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
             />
           </div>
-
-          {/* Segment Filter */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">Segment</label>
-            <select
-              value={segmentFilter}
-              onChange={(e) => setSegmentFilter(e.target.value)}
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-            >
-              <option value="ALL">All Segments</option>
-              <option value="STANDARD">Standard</option>
-              <option value="VIP">VIP</option>
-              <option value="HONEYMOON">Honeymoon</option>
-              <option value="FAMILY">Family</option>
-              <option value="BUSINESS">Business</option>
-              <option value="GROUP_ORGANIZER">Group Organizer</option>
-              <option value="CORPORATE">Corporate</option>
-              <option value="LUXURY">Luxury</option>
-            </select>
+          <div className="flex items-center gap-2 overflow-x-auto pb-2 lg:pb-0">
+            {segments.map(s => (
+              <button
+                key={s}
+                onClick={() => setSegmentFilter(s)}
+                className={`px-3 py-1.5 rounded-lg text-sm font-medium whitespace-nowrap transition-all ${
+                  segmentFilter === s ? 'bg-indigo-600 text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                }`}
+              >
+                {s === 'ALL' ? 'All' : segmentConfig[s]?.label || s}
+              </button>
+            ))}
           </div>
-
-          {/* Sort By */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">Sort By</label>
+          <div className="flex items-center gap-2">
             <select
               value={sortBy}
-              onChange={(e) => setSortBy(e.target.value)}
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+              onChange={e => setSortBy(e.target.value)}
+              className="px-3 py-2 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-indigo-500"
             >
-              <option value="recent">Recently Added</option>
-              <option value="name">Name (A-Z)</option>
-              <option value="lastContact">Last Contact</option>
-              <option value="quotes">Most Quotes</option>
-              <option value="bookings">Most Bookings</option>
+              <option value="recent">Recent</option>
+              <option value="name">Name</option>
+              <option value="quotes">Quotes</option>
+              <option value="bookings">Bookings</option>
             </select>
-          </div>
-        </div>
-
-        {/* View Mode Toggle & Results Count */}
-        <div className="mt-4 pt-4 border-t border-gray-200 flex items-center justify-between">
-          <p className="text-sm text-gray-600">
-            Showing <strong>{filteredClients.length}</strong> of <strong>{clients.length}</strong>{" "}
-            clients
-          </p>
-
-          <div className="flex items-center gap-2">
-            <button
-              onClick={() => setViewMode("grid")}
-              className={`p-2 rounded-lg ${
-                viewMode === "grid"
-                  ? "bg-primary-100 text-primary-700"
-                  : "bg-gray-100 text-gray-600 hover:bg-gray-200"
-              }`}
-            >
-              <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"
-                />
-              </svg>
-            </button>
-            <button
-              onClick={() => setViewMode("table")}
-              className={`p-2 rounded-lg ${
-                viewMode === "table"
-                  ? "bg-primary-100 text-primary-700"
-                  : "bg-gray-100 text-gray-600 hover:bg-gray-200"
-              }`}
-            >
-              <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M4 6h16M4 10h16M4 14h16M4 18h16"
-                />
-              </svg>
-            </button>
-          </div>
-        </div>
-      </div>
-
-      {/* Client List */}
-      {filteredClients.length === 0 ? (
-        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-12 text-center">
-          <svg
-            className="w-16 h-16 text-gray-400 mx-auto mb-4"
-            fill="none"
-            viewBox="0 0 24 24"
-            stroke="currentColor"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"
-            />
-          </svg>
-          {searchQuery || segmentFilter !== "ALL" ? (
-            <>
-              <p className="text-gray-600 mb-4">No clients match your filters</p>
-              <button
-                onClick={() => {
-                  setSearchQuery("");
-                  setSegmentFilter("ALL");
-                }}
-                className="text-primary-600 hover:text-primary-700 font-medium"
-              >
-                Clear Filters
+            <div className="flex items-center gap-1 p-1 bg-gray-100 rounded-xl">
+              <button onClick={() => setViewMode('grid')} className={`p-2 rounded-lg ${viewMode === 'grid' ? 'bg-white shadow-sm text-indigo-600' : 'text-gray-500'}`}>
+                <LayoutGrid className="w-4 h-4" />
               </button>
-            </>
-          ) : (
-            <>
-              <p className="text-gray-600 mb-4">You haven't added any clients yet</p>
-              <Link
-                href="/agent/clients/create"
-                className="inline-block bg-primary-600 text-white px-6 py-2 rounded-lg hover:bg-primary-700"
-              >
-                Add Your First Client
-              </Link>
-            </>
-          )}
-        </div>
-      ) : viewMode === "grid" ? (
-        // Grid View
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {filteredClients.map((client) => (
-            <div
-              key={client.id}
-              className="bg-white rounded-lg shadow-sm border border-gray-200 hover:border-primary-300 transition-all p-6"
-            >
-              <div className="flex items-start justify-between mb-4">
-                <div className="flex items-center">
-                  <div className="w-12 h-12 rounded-full bg-gradient-to-br from-primary-400 to-primary-600 flex items-center justify-center text-white font-semibold text-lg mr-3">
-                    {client.firstName.charAt(0)}
-                    {client.lastName.charAt(0)}
-                  </div>
-                  <div>
-                    <h3 className="font-semibold text-gray-900">
-                      {client.firstName} {client.lastName}
-                    </h3>
-                    {client.isVip && <span className="text-xs text-purple-600">⭐ VIP</span>}
-                  </div>
-                </div>
-                {getSegmentBadge(client.segment)}
-              </div>
-
-              <div className="space-y-2 mb-4">
-                <p className="text-sm text-gray-600 flex items-center">
-                  <svg
-                    className="w-4 h-4 mr-2"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"
-                    />
-                  </svg>
-                  {client.email}
-                </p>
-                {client.phone && (
-                  <p className="text-sm text-gray-600 flex items-center">
-                    <svg
-                      className="w-4 h-4 mr-2"
-                      fill="none"
-                      viewBox="0 0 24 24"
-                      stroke="currentColor"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"
-                      />
-                    </svg>
-                    {client.phone}
-                  </p>
-                )}
-                {client.company && (
-                  <p className="text-sm text-gray-600 flex items-center">
-                    <svg
-                      className="w-4 h-4 mr-2"
-                      fill="none"
-                      viewBox="0 0 24 24"
-                      stroke="currentColor"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"
-                      />
-                    </svg>
-                    {client.company}
-                  </p>
-                )}
-              </div>
-
-              {/* Stats */}
-              <div className="flex items-center gap-4 mb-4 pb-4 border-b border-gray-200">
-                <div className="text-center">
-                  <p className="text-xl font-bold text-gray-900">{client._count.quotes}</p>
-                  <p className="text-xs text-gray-600">Quotes</p>
-                </div>
-                <div className="text-center">
-                  <p className="text-xl font-bold text-green-600">{client._count.bookings}</p>
-                  <p className="text-xs text-gray-600">Bookings</p>
-                </div>
-                <div className="text-center flex-1">
-                  <p className="text-xs text-gray-600">Last Contact</p>
-                  <p className="text-xs font-medium text-gray-900">{formatDate(client.lastContactDate)}</p>
-                </div>
-              </div>
-
-              {/* Actions */}
-              <div className="flex gap-2">
-                <Link
-                  href={`/agent/clients/${client.id}`}
-                  className="flex-1 px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 text-sm font-medium text-center"
-                >
-                  View Profile
-                </Link>
-                <Link
-                  href={`/agent/quotes/create?clientId=${client.id}`}
-                  className="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 text-sm font-medium"
-                  title="Create Quote"
-                >
-                  <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
-                    />
-                  </svg>
-                </Link>
-              </div>
+              <button onClick={() => setViewMode('table')} className={`p-2 rounded-lg ${viewMode === 'table' ? 'bg-white shadow-sm text-indigo-600' : 'text-gray-500'}`}>
+                <List className="w-4 h-4" />
+              </button>
             </div>
-          ))}
+          </div>
         </div>
-      ) : (
-        // Table View
-        <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
-          <table className="min-w-full divide-y divide-gray-200">
-            <thead className="bg-gray-50">
-              <tr>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Client
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Contact
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Segment
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Quotes
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Bookings
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Last Contact
-                </th>
-                <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Actions
-                </th>
-              </tr>
-            </thead>
-            <tbody className="bg-white divide-y divide-gray-200">
-              {filteredClients.map((client) => (
-                <tr key={client.id} className="hover:bg-gray-50">
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="flex items-center">
-                      <div className="w-10 h-10 rounded-full bg-gradient-to-br from-primary-400 to-primary-600 flex items-center justify-center text-white font-semibold mr-3">
-                        {client.firstName.charAt(0)}
-                        {client.lastName.charAt(0)}
+      </motion.div>
+
+      <p className="text-sm text-gray-500">
+        Showing <span className="font-medium text-gray-900">{filteredClients.length}</span> clients
+      </p>
+
+      {/* Empty */}
+      {filteredClients.length === 0 && (
+        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="bg-white rounded-2xl p-12 text-center border border-gray-100">
+          <User className="w-12 h-12 text-gray-300 mx-auto mb-4" />
+          <h3 className="text-lg font-semibold text-gray-900">No clients found</h3>
+          <p className="text-gray-500 mt-1">Try adjusting your filters or add a new client</p>
+        </motion.div>
+      )}
+
+      {/* Grid View */}
+      <AnimatePresence mode="wait">
+        {viewMode === 'grid' && filteredClients.length > 0 && (
+          <motion.div key="grid" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {filteredClients.map((c, idx) => {
+              const seg = segmentConfig[c.segment] || segmentConfig.STANDARD;
+              return (
+                <motion.div key={c.id} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: idx * 0.02 }}>
+                  <Link href={`/agent/clients/${c.id}`} className="block bg-white rounded-2xl p-5 border border-gray-100 shadow-[0_1px_3px_rgba(0,0,0,0.05)] hover:shadow-[0_4px_12px_rgba(0,0,0,0.08)] transition-all">
+                    <div className="flex items-start justify-between mb-3">
+                      <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-indigo-400 to-indigo-600 flex items-center justify-center text-white font-bold text-lg">
+                        {c.firstName.charAt(0)}{c.lastName.charAt(0)}
                       </div>
-                      <div>
-                        <div className="text-sm font-medium text-gray-900">
-                          {client.firstName} {client.lastName}
-                          {client.isVip && <span className="ml-1 text-xs text-purple-600">⭐</span>}
-                        </div>
-                        {client.company && (
-                          <div className="text-xs text-gray-500">{client.company}</div>
-                        )}
+                      <div className="flex items-center gap-2">
+                        {c.isVip && <Star className="w-4 h-4 text-amber-500 fill-amber-500" />}
+                        <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${seg.bg} ${seg.text}`}>{seg.label}</span>
                       </div>
                     </div>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="text-sm text-gray-900">{client.email}</div>
-                    {client.phone && <div className="text-xs text-gray-500">{client.phone}</div>}
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap">{getSegmentBadge(client.segment)}</td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                    {client._count.quotes}
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-green-600">
-                    {client._count.bookings}
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                    {formatDate(client.lastContactDate)}
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                    <Link
-                      href={`/agent/clients/${client.id}`}
-                      className="text-primary-600 hover:text-primary-900 mr-3"
-                    >
-                      View
-                    </Link>
-                    <Link
-                      href={`/agent/quotes/create?clientId=${client.id}`}
-                      className="text-green-600 hover:text-green-900"
-                    >
-                      Quote
-                    </Link>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      )}
+                    <h3 className="font-semibold text-gray-900">{c.firstName} {c.lastName}</h3>
+                    <p className="text-sm text-gray-500 truncate">{c.email}</p>
+                    {c.company && <p className="text-xs text-gray-400 mt-1">{c.company}</p>}
+                    <div className="flex items-center gap-4 mt-4 pt-3 border-t border-gray-100 text-sm text-gray-500">
+                      <div className="flex items-center gap-1"><FileText className="w-4 h-4" /> {c._count.quotes}</div>
+                      <div className="flex items-center gap-1"><Plane className="w-4 h-4" /> {c._count.bookings}</div>
+                    </div>
+                  </Link>
+                </motion.div>
+              );
+            })}
+          </motion.div>
+        )}
+
+        {/* Table View */}
+        {viewMode === 'table' && filteredClients.length > 0 && (
+          <motion.div key="table" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="bg-white rounded-2xl border border-gray-100 shadow-[0_1px_3px_rgba(0,0,0,0.05)] overflow-hidden">
+            <div className="overflow-x-auto">
+              <table className="w-full">
+                <thead className="bg-gray-50 border-b border-gray-100">
+                  <tr>
+                    {['Client', 'Contact', 'Segment', 'Quotes', 'Bookings', 'Created', ''].map(h => (
+                      <th key={h} className="px-5 py-3 text-left text-xs font-semibold text-gray-500 uppercase">{h}</th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-gray-50">
+                  {filteredClients.map((c, idx) => {
+                    const seg = segmentConfig[c.segment] || segmentConfig.STANDARD;
+                    return (
+                      <motion.tr key={c.id} initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: idx * 0.02 }} className="hover:bg-gray-50">
+                        <td className="px-5 py-4">
+                          <div className="flex items-center gap-3">
+                            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-indigo-400 to-indigo-600 flex items-center justify-center text-white font-bold text-sm">
+                              {c.firstName.charAt(0)}{c.lastName.charAt(0)}
+                            </div>
+                            <div>
+                              <p className="font-medium text-gray-900 flex items-center gap-1.5">
+                                {c.firstName} {c.lastName}
+                                {c.isVip && <Star className="w-3.5 h-3.5 text-amber-500 fill-amber-500" />}
+                              </p>
+                              {c.company && <p className="text-xs text-gray-500">{c.company}</p>}
+                            </div>
+                          </div>
+                        </td>
+                        <td className="px-5 py-4">
+                          <p className="text-sm text-gray-900">{c.email}</p>
+                          {c.phone && <p className="text-xs text-gray-500">{c.phone}</p>}
+                        </td>
+                        <td className="px-5 py-4"><span className={`px-2 py-0.5 rounded-full text-xs font-medium ${seg.bg} ${seg.text}`}>{seg.label}</span></td>
+                        <td className="px-5 py-4 text-gray-900 font-medium">{c._count.quotes}</td>
+                        <td className="px-5 py-4 text-gray-900 font-medium">{c._count.bookings}</td>
+                        <td className="px-5 py-4 text-sm text-gray-500">{formatDate(c.createdAt)}</td>
+                        <td className="px-5 py-4 text-right">
+                          <div className="flex items-center justify-end gap-2">
+                            <Link href={`/agent/clients/${c.id}`} className="text-indigo-600 hover:text-indigo-700 font-medium text-sm inline-flex items-center gap-1">
+                              View <ChevronRight className="w-4 h-4" />
+                            </Link>
+                            <button
+                              onClick={e => { e.preventDefault(); handleDelete(c.id, `${c.firstName} ${c.lastName}`); }}
+                              disabled={loading === c.id}
+                              className="p-1.5 text-gray-400 hover:text-red-500 transition-colors disabled:opacity-50"
+                            >
+                              <Trash2 className="w-4 h-4" />
+                            </button>
+                          </div>
+                        </td>
+                      </motion.tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }

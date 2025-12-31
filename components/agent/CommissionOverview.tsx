@@ -1,7 +1,10 @@
-// components/agent/CommissionOverview.tsx
-"use client";
+'use client';
 
-import Link from "next/link";
+// components/agent/CommissionOverview.tsx
+// Level 6 Ultra-Premium Apple-Class Commission Overview
+import { motion } from 'framer-motion';
+import Link from 'next/link';
+import { CheckCircle, Clock, Wallet, ArrowRight, TrendingUp } from 'lucide-react';
 
 interface CommissionOverviewProps {
   data: {
@@ -13,121 +16,139 @@ interface CommissionOverviewProps {
 }
 
 export default function CommissionOverview({ data }: CommissionOverviewProps) {
-  const commissionBreakdown = [
+  const breakdown = [
     {
-      label: "Available for Payout",
+      label: 'Available',
       amount: data.available,
-      color: "text-success-600",
-      bgColor: "bg-success-50",
-      borderColor: "border-success-200",
-      icon: (
-        <svg className="w-5 h-5 text-success-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-        </svg>
-      ),
-      description: "Ready to withdraw",
+      icon: CheckCircle,
+      gradient: 'from-emerald-500 to-teal-500',
+      bgColor: 'bg-emerald-50',
+      textColor: 'text-emerald-700',
+      description: 'Ready to withdraw',
     },
     {
-      label: "Pending Commissions",
+      label: 'Pending',
       amount: data.pending,
-      color: "text-warning-600",
-      bgColor: "bg-warning-50",
-      borderColor: "border-warning-200",
-      icon: (
-        <svg className="w-5 h-5 text-warning-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-        </svg>
-      ),
-      description: "In hold period or trip in progress",
+      icon: Clock,
+      gradient: 'from-amber-500 to-orange-500',
+      bgColor: 'bg-amber-50',
+      textColor: 'text-amber-700',
+      description: 'In hold period',
     },
     {
-      label: "Total Paid Out",
+      label: 'Paid Out',
       amount: data.paid,
-      color: "text-info-600",
-      bgColor: "bg-info-50",
-      borderColor: "border-info-200",
-      icon: (
-        <svg className="w-5 h-5 text-info-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z" />
-        </svg>
-      ),
-      description: "Lifetime payouts received",
+      icon: Wallet,
+      gradient: 'from-blue-500 to-indigo-500',
+      bgColor: 'bg-blue-50',
+      textColor: 'text-blue-700',
+      description: 'Lifetime payouts',
     },
   ];
 
-  const totalPercentage = data.total > 0 ? (data.available / data.total) * 100 : 0;
+  const availablePercentage = data.total > 0 ? (data.available / data.total) * 100 : 0;
 
   return (
-    <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-      <div className="flex items-center justify-between mb-6">
-        <div>
-          <h2 className="text-lg font-semibold text-gray-900">Commission Overview</h2>
-          <p className="text-sm text-gray-600 mt-1">
-            Total Lifetime: <span className="font-semibold text-gray-900">${data.total.toLocaleString()}</span>
-          </p>
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ delay: 0.2 }}
+      className="bg-white rounded-2xl shadow-[0_1px_3px_rgba(0,0,0,0.05),0_4px_12px_rgba(0,0,0,0.03)] border border-gray-100/80 overflow-hidden"
+    >
+      {/* Header */}
+      <div className="px-6 py-5 border-b border-gray-100 flex items-center justify-between">
+        <div className="flex items-center gap-3">
+          <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center shadow-lg shadow-emerald-500/20">
+            <TrendingUp className="w-5 h-5 text-white" />
+          </div>
+          <div>
+            <h2 className="font-semibold text-gray-900">Commissions</h2>
+            <p className="text-sm text-gray-500">
+              Lifetime: <span className="font-medium text-gray-900">${data.total.toLocaleString()}</span>
+            </p>
+          </div>
         </div>
         <Link
           href="/agent/commissions"
-          className="text-sm text-primary-600 hover:text-primary-700 font-medium"
+          className="flex items-center gap-1 text-sm font-medium text-primary-600 hover:text-primary-700 transition-colors group"
         >
-          View All →
+          View All
+          <ArrowRight className="w-4 h-4 group-hover:translate-x-0.5 transition-transform" />
         </Link>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-        {commissionBreakdown.map((item) => (
-          <div
-            key={item.label}
-            className={`${item.bgColor} ${item.borderColor} border rounded-lg p-4`}
+      {/* Stats Grid */}
+      <div className="p-6">
+        <div className="grid grid-cols-3 gap-4 mb-6">
+          {breakdown.map((item, idx) => {
+            const Icon = item.icon;
+            return (
+              <motion.div
+                key={item.label}
+                initial={{ opacity: 0, scale: 0.95 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={{ delay: 0.3 + idx * 0.1 }}
+                className={`${item.bgColor} rounded-xl p-4 relative overflow-hidden`}
+              >
+                <div className="flex items-center gap-2 mb-2">
+                  <Icon className={`w-4 h-4 ${item.textColor}`} />
+                  <span className="text-xs font-medium text-gray-600">{item.label}</span>
+                </div>
+                <p className={`text-xl md:text-2xl font-bold ${item.textColor}`}>
+                  ${item.amount.toLocaleString()}
+                </p>
+                <p className="text-xs text-gray-500 mt-1">{item.description}</p>
+
+                {/* Subtle gradient decoration */}
+                <div className={`absolute -bottom-2 -right-2 w-16 h-16 rounded-full bg-gradient-to-br ${item.gradient} opacity-10 blur-xl`} />
+              </motion.div>
+            );
+          })}
+        </div>
+
+        {/* Progress Bar */}
+        {data.total > 0 && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.5 }}
           >
-            <div className="flex items-center justify-between mb-2">
-              <span className="text-sm font-medium text-gray-700">{item.label}</span>
-              {item.icon}
+            <div className="flex items-center justify-between text-sm mb-2">
+              <span className="text-gray-600">Availability</span>
+              <span className="font-medium text-gray-900">{availablePercentage.toFixed(0)}%</span>
             </div>
-            <p className={`text-2xl font-bold ${item.color}`}>
-              ${item.amount.toLocaleString()}
-            </p>
-            <p className="text-xs text-gray-600 mt-1">{item.description}</p>
-          </div>
-        ))}
-      </div>
+            <div className="w-full h-2 bg-gray-100 rounded-full overflow-hidden">
+              <motion.div
+                initial={{ width: 0 }}
+                animate={{ width: `${availablePercentage}%` }}
+                transition={{ delay: 0.6, duration: 0.8, ease: 'easeOut' }}
+                className="h-full bg-gradient-to-r from-emerald-500 to-teal-500 rounded-full"
+              />
+            </div>
+          </motion.div>
+        )}
 
-      {/* Progress Bar */}
-      {data.total > 0 && (
-        <div>
-          <div className="flex items-center justify-between text-sm mb-2">
-            <span className="text-gray-600">Availability Progress</span>
-            <span className="font-medium text-gray-900">{totalPercentage.toFixed(1)}%</span>
-          </div>
-          <div className="w-full bg-gray-200 rounded-full h-2">
-            <div
-              className="bg-gradient-to-r from-success-500 to-success-600 h-2 rounded-full transition-all duration-500"
-              style={{ width: `${totalPercentage}%` }}
-            ></div>
-          </div>
-          <p className="text-xs text-gray-500 mt-2">
-            {data.available > 0
-              ? "You have funds available for payout"
-              : "Commissions will become available after hold periods"}
-          </p>
-        </div>
-      )}
-
-      {/* Request Payout Button */}
-      {data.available > 0 && (
-        <div className="mt-6 pt-6 border-t border-gray-200">
-          <Link
-            href="/agent/payouts/request"
-            className="w-full inline-flex items-center justify-center px-6 py-3 bg-gradient-to-r from-success-600 to-success-700 text-white text-sm font-medium rounded-lg hover:from-success-700 hover:to-success-800 shadow-sm transition-all"
-            aria-label={`Request payout of $${data.available.toLocaleString()}`}
+        {/* Payout Button */}
+        {data.available > 0 && (
+          <motion.div
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.7 }}
+            className="mt-6"
           >
-            <svg className="w-5 h-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-            </svg>
-            Request Payout (${data.available.toLocaleString()} Available)
-          </Link>
-        </div>
-      )}
-    </div>
+            <Link href="/agent/payouts/request">
+              <motion.button
+                whileHover={{ scale: 1.01 }}
+                whileTap={{ scale: 0.99 }}
+                className="w-full py-3.5 bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 text-white font-semibold rounded-xl shadow-lg shadow-emerald-500/25 flex items-center justify-center gap-2 transition-all"
+              >
+                <Wallet className="w-5 h-5" />
+                Request Payout (${data.available.toLocaleString()})
+              </motion.button>
+            </Link>
+          </motion.div>
+        )}
+      </div>
+    </motion.div>
   );
 }

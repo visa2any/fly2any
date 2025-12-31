@@ -115,6 +115,7 @@ export default function AdminSidebar({ role }: AdminSidebarProps) {
     {
       title: 'Business',
       items: [
+        { label: 'Agents', href: '/admin/agents', icon: Briefcase, roles: ['super_admin', 'admin'] },
         { label: 'Affiliates', href: '/admin/affiliates', icon: Award, roles: ['super_admin', 'admin'] },
         { label: 'Payouts', href: '/admin/payouts', icon: DollarSign, roles: ['super_admin', 'admin'] },
         { label: 'Referrals', href: '/admin/referrals', icon: Gift, roles: ['super_admin', 'admin'] },

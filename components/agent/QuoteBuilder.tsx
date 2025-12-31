@@ -3,6 +3,8 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "react-hot-toast";
+import { motion, AnimatePresence } from "framer-motion";
+import { Search, MapPin, Package, DollarSign, Send, Check, Sparkles } from "lucide-react";
 import QuoteBuilderStep1ProductSearch from "./quote-builder/Step1ProductSearch";
 import QuoteBuilderStep2TripDetails from "./quote-builder/Step2TripDetails";
 import QuoteBuilderStep3Products from "./quote-builder/Step3Products";
@@ -123,13 +125,13 @@ export default function QuoteBuilder({ agent, clients: initialClients, products,
   const [loading, setLoading] = useState(false);
   const [clients, setClients] = useState(initialClients);
 
-  // NEW WORKFLOW - Product-first!
+  // NEW WORKFLOW - Product-first! (Level 6 Apple-Class)
   const steps = [
-    { number: 1, name: "Search Products", icon: "🔍", description: "Find flights & hotels" },
-    { number: 2, name: "Trip Details", icon: "✈️", description: "Destination & dates" },
-    { number: 3, name: "Add More", icon: "🏨", description: "Activities & extras" },
-    { number: 4, name: "Pricing", icon: "💰", description: "Calculate costs" },
-    { number: 5, name: "Client & Send", icon: "📧", description: "Select client & send" },
+    { number: 1, name: "Search", icon: Search, description: "Flights & hotels", gradient: "from-violet-500 to-purple-600" },
+    { number: 2, name: "Trip Details", icon: MapPin, description: "Destination & dates", gradient: "from-blue-500 to-cyan-600" },
+    { number: 3, name: "Add More", icon: Package, description: "Activities & extras", gradient: "from-teal-500 to-emerald-600" },
+    { number: 4, name: "Pricing", icon: DollarSign, description: "Calculate costs", gradient: "from-amber-500 to-orange-600" },
+    { number: 5, name: "Send", icon: Send, description: "Select client & send", gradient: "from-rose-500 to-pink-600" },
   ];
 
   const updateQuoteData = (data: Partial<QuoteData>) => {
@@ -288,72 +290,99 @@ export default function QuoteBuilder({ agent, clients: initialClients, products,
 
   return (
     <div className="space-y-6">
-      {/* Workflow Explanation Banner */}
-      <div className="bg-gradient-to-r from-primary-50 to-blue-50 border-2 border-primary-200 rounded-xl p-6">
-        <div className="flex items-start gap-4">
-          <div className="w-12 h-12 bg-primary-500 rounded-full flex items-center justify-center flex-shrink-0">
-            <svg className="w-6 h-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
-            </svg>
-          </div>
+      {/* Level 6 Workflow Banner */}
+      <motion.div
+        initial={{ opacity: 0, y: -10 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="relative overflow-hidden bg-gradient-to-r from-violet-500 via-purple-500 to-pink-500 rounded-2xl p-6 text-white shadow-xl shadow-purple-500/20"
+      >
+        <div className="absolute inset-0 bg-[url('/grid-pattern.svg')] opacity-10" />
+        <div className="relative flex items-center gap-4">
+          <motion.div
+            animate={{ rotate: [0, 5, -5, 0] }}
+            transition={{ repeat: Infinity, duration: 3 }}
+            className="w-14 h-14 bg-white/20 backdrop-blur-sm rounded-xl flex items-center justify-center"
+          >
+            <Sparkles className="w-7 h-7" />
+          </motion.div>
           <div>
-            <h3 className="text-lg font-bold text-gray-900 mb-1">Natural Workflow - Search First!</h3>
-            <p className="text-sm text-gray-700">
-              <strong>1. Search products</strong> (flights, hotels) →
-              <strong> 2. Build quote</strong> →
-              <strong> 3. Select client & send</strong>
-            </p>
-            <p className="text-xs text-gray-600 mt-2">
-              💡 No need to create a client first! Search what your client needs, then add their info when saving.
+            <h3 className="text-lg font-bold mb-1">Smart Quote Builder</h3>
+            <p className="text-sm text-white/90">
+              Search products → Build quote → Send to client. No client creation needed first!
             </p>
           </div>
         </div>
-      </div>
+      </motion.div>
 
-      {/* Progress Steps */}
-      <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-        <div className="flex items-center justify-between">
-          {steps.map((step, index) => (
-            <div key={step.number} className="flex items-center flex-1">
-              {/* Step Circle */}
-              <button
-                onClick={() => goToStep(step.number)}
-                className={`flex items-center justify-center w-12 h-12 rounded-full text-sm font-semibold transition-all ${
-                  currentStep === step.number
-                    ? "bg-primary-600 text-white scale-110 shadow-lg"
-                    : currentStep > step.number
-                    ? "bg-green-500 text-white hover:bg-green-600"
-                    : "bg-gray-200 text-gray-600 hover:bg-gray-300"
-                }`}
-              >
-                {currentStep > step.number ? (
-                  <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                  </svg>
-                ) : (
-                  <span className="text-xl">{step.icon}</span>
+      {/* Level 6 Progress Steps */}
+      <div className="bg-white rounded-2xl shadow-[0_1px_3px_rgba(0,0,0,0.05),0_4px_12px_rgba(0,0,0,0.03)] border border-gray-100/80 p-4 md:p-6">
+        <div className="flex items-center justify-between gap-2 md:gap-0">
+          {steps.map((step, index) => {
+            const Icon = step.icon;
+            const isActive = currentStep === step.number;
+            const isCompleted = currentStep > step.number;
+
+            return (
+              <div key={step.number} className="flex items-center flex-1">
+                {/* Step Button */}
+                <motion.button
+                  onClick={() => goToStep(step.number)}
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                  className={`relative flex items-center justify-center w-11 h-11 md:w-14 md:h-14 rounded-xl md:rounded-2xl font-semibold transition-all ${
+                    isActive
+                      ? `bg-gradient-to-br ${step.gradient} text-white shadow-lg`
+                      : isCompleted
+                      ? "bg-emerald-500 text-white"
+                      : "bg-gray-100 text-gray-400 hover:bg-gray-200"
+                  }`}
+                >
+                  {isCompleted ? (
+                    <Check className="w-5 h-5 md:w-6 md:h-6" strokeWidth={3} />
+                  ) : (
+                    <Icon className="w-5 h-5 md:w-6 md:h-6" />
+                  )}
+                  {isActive && (
+                    <motion.div
+                      layoutId="activeStep"
+                      className="absolute inset-0 rounded-xl md:rounded-2xl ring-4 ring-primary-200"
+                      transition={{ type: "spring", stiffness: 300, damping: 30 }}
+                    />
+                  )}
+                </motion.button>
+
+                {/* Step Label - Hidden on mobile */}
+                <div className="hidden md:block ml-3 flex-1 min-w-0">
+                  <p className={`text-sm font-semibold truncate ${isActive ? "text-gray-900" : "text-gray-500"}`}>
+                    {step.name}
+                  </p>
+                  <p className={`text-xs truncate ${isActive ? "text-gray-600" : "text-gray-400"}`}>
+                    {step.description}
+                  </p>
+                </div>
+
+                {/* Connector Line */}
+                {index < steps.length - 1 && (
+                  <div className="hidden md:block flex-1 mx-3">
+                    <div className="h-0.5 w-full bg-gray-100 rounded-full overflow-hidden">
+                      <motion.div
+                        initial={{ width: 0 }}
+                        animate={{ width: isCompleted ? "100%" : "0%" }}
+                        className="h-full bg-emerald-500 rounded-full"
+                        transition={{ duration: 0.3 }}
+                      />
+                    </div>
+                  </div>
                 )}
-              </button>
-
-              {/* Step Label */}
-              <div className="ml-3 flex-1">
-                <p className={`text-sm font-medium ${currentStep === step.number ? "text-primary-600" : "text-gray-600"}`}>
-                  Step {step.number}
-                </p>
-                <p className={`text-xs ${currentStep === step.number ? "text-gray-900 font-semibold" : "text-gray-500"}`}>
-                  {step.name}
-                </p>
-                <p className={`text-xs ${currentStep === step.number ? "text-gray-600" : "text-gray-400"}`}>
-                  {step.description}
-                </p>
               </div>
+            );
+          })}
+        </div>
 
-              {/* Connector Line */}
-              {index < steps.length - 1 && (
-                <div className={`h-0.5 flex-1 mx-4 ${currentStep > step.number ? "bg-green-500" : "bg-gray-200"}`}></div>
-              )}
-            </div>
-          ))}
+        {/* Mobile Step Label */}
+        <div className="md:hidden mt-4 text-center">
+          <p className="text-sm font-semibold text-gray-900">{steps[currentStep - 1].name}</p>
+          <p className="text-xs text-gray-500">{steps[currentStep - 1].description}</p>
         </div>
       </div>
 

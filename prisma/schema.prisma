@@ -1940,6 +1940,7 @@ model TravelAgent {
   suppliers              AgentSupplier[]          @relation("AgentSuppliers")
   team                   AgentTeamMember[]        @relation("AgencyTeam")
   memberOf               AgentTeamMember[]        @relation("AgentMemberships")
+  markupRules            AgencyMarkupRule[]       @relation("AgencyMarkupRules")
   user                   User                     @relation("UserTravelAgent", fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([tier, status])
@@ -1947,6 +1948,29 @@ model TravelAgent {
   @@index([userId])
   @@index([bookingsThisMonth])
   @@map("travel_agents")
+}
+
+model AgencyMarkupRule {
+  id                String      @id @default(cuid())
+  agencyId          String
+  name              String
+  description       String?
+  productType       String?     // FLIGHT, HOTEL, ACTIVITY, TRANSFER, ALL
+  minPrice          Float?
+  maxPrice          Float?
+  minMarkup         Float       @default(5)
+  maxMarkup         Float       @default(50)
+  suggestedMarkup   Float       @default(15)
+  appliesToAll      Boolean     @default(true)
+  agentIds          String[]
+  priority          Int         @default(0)
+  active            Boolean     @default(true)
+  createdAt         DateTime    @default(now())
+  updatedAt         DateTime    @updatedAt
+  agency            TravelAgent @relation("AgencyMarkupRules", fields: [agencyId], references: [id], onDelete: Cascade)
+
+  @@index([agencyId, active])
+  @@map("agency_markup_rules")
 }
 
 model AgentClient {
@@ -2098,6 +2122,14 @@ model AgentQuote {
   shareableLink          String?       @unique
   linkPassword           String?
   linkExpiresAt          DateTime?
+  // Payment Link System
+  paymentLinkId          String?       @unique
+  paymentLink            String?
+  paymentStatus          PaymentLinkStatus @default(UNPAID)
+  paidAt                 DateTime?
+  paidAmount             Float?
+  stripePaymentIntentId  String?       @unique
+  stripeCheckoutSessionId String?      @unique
   emailSentCount         Int           @default(0)
   smsSentCount           Int           @default(0)
   convertedToBooking     Boolean       @default(false)
@@ -3689,6 +3721,15 @@ enum QuoteStatus {
   EXPIRED
   DECLINED
   CONVERTED
+}
+
+enum PaymentLinkStatus {
+  UNPAID
+  PENDING
+  PAID
+  FAILED
+  REFUNDED
+  EXPIRED
   CANCELLED
   ARCHIVED
 }

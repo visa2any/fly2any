@@ -1,9 +1,18 @@
 "use client";
 
+// components/agent/QuoteDetailClient.tsx
+// Level 6 Ultra-Premium Quote Detail with Payment Link
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { motion, AnimatePresence } from "framer-motion";
 import { toast } from "react-hot-toast";
 import Link from "next/link";
+import {
+  Plane, Building2, Car, MapPin, Shield, Calendar,
+  Users, DollarSign, Send, Copy, ExternalLink, Clock,
+  CheckCircle, XCircle, Eye, CreditCard, RefreshCw,
+  ChevronDown, ChevronRight, Percent, FileText, Mail
+} from "lucide-react";
 
 interface QuoteDetailClientProps {
   quote: {
@@ -48,6 +57,10 @@ interface QuoteDetailClientProps {
     viewedAt: Date | null;
     acceptedAt: Date | null;
     declinedAt: Date | null;
+    paymentLinkId?: string | null;
+    paymentStatus?: string | null;
+    paidAt?: Date | null;
+    paidAmount?: number | null;
     client: {
       id: string;
       firstName: string;
@@ -65,6 +78,9 @@ interface QuoteDetailClientProps {
 export default function QuoteDetailClient({ quote }: QuoteDetailClientProps) {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
+  const [sendingQuote, setSendingQuote] = useState(false);
+  const [generatingLink, setGeneratingLink] = useState(false);
+  const [expandedSection, setExpandedSection] = useState<string | null>("flights");
 
   // Parse JSON arrays
   const flights = Array.isArray(quote.flights) ? quote.flights : JSON.parse(quote.flights as string || "[]");
@@ -75,8 +91,12 @@ export default function QuoteDetailClient({ quote }: QuoteDetailClientProps) {
   const insurance = Array.isArray(quote.insurance) ? quote.insurance : JSON.parse(quote.insurance as string || "[]");
   const customItems = Array.isArray(quote.customItems) ? quote.customItems : JSON.parse(quote.customItems as string || "[]");
 
+  const paymentLink = quote.paymentLinkId
+    ? `${window.location.origin}/pay/${quote.paymentLinkId}`
+    : null;
+
   const handleSendQuote = async () => {
-    setLoading(true);
+    setSendingQuote(true);
     try {
       const response = await fetch(`/api/agents/quotes/${quote.id}/send`, {
         method: "POST",
@@ -87,572 +107,499 @@ export default function QuoteDetailClient({ quote }: QuoteDetailClientProps) {
         }),
       });
 
-      if (!response.ok) {
-        const data = await response.json();
-        throw new Error(data.error || "Failed to send quote");
-      }
+      if (!response.ok) throw new Error("Failed to send quote");
 
-      toast.success("Quote sent successfully!");
+      toast.success("Quote sent to client!");
       router.refresh();
     } catch (error: any) {
-      console.error("Send quote error:", error);
       toast.error(error.message || "Failed to send quote");
     } finally {
-      setLoading(false);
+      setSendingQuote(false);
     }
   };
 
-  const handleDownloadPDF = async () => {
-    setLoading(true);
+  const handleGeneratePaymentLink = async () => {
+    setGeneratingLink(true);
     try {
-      const response = await fetch(`/api/agents/quotes/${quote.id}/pdf`);
-
-      if (!response.ok) {
-        const data = await response.json();
-        throw new Error(data.error || "Failed to generate PDF");
-      }
-
-      // Create blob and download
-      const blob = await response.blob();
-      const url = window.URL.createObjectURL(blob);
-      const a = document.createElement("a");
-      a.href = url;
-      a.download = `Itinerary-${quote.tripName.replace(/[^a-zA-Z0-9]/g, "-")}.pdf`;
-      document.body.appendChild(a);
-      a.click();
-      window.URL.revokeObjectURL(url);
-      document.body.removeChild(a);
-
-      toast.success("PDF downloaded successfully!");
-    } catch (error: any) {
-      console.error("Download PDF error:", error);
-      toast.error(error.message || "Failed to download PDF");
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleEmailPDF = async () => {
-    if (!confirm(`Send PDF itinerary to ${quote.client.firstName} ${quote.client.lastName} (${quote.client.email})?`)) {
-      return;
-    }
-
-    setLoading(true);
-    try {
-      const response = await fetch(`/api/agents/quotes/${quote.id}/email-pdf`, {
+      const response = await fetch(`/api/agents/quotes/${quote.id}/payment-link`, {
         method: "POST",
       });
 
-      if (!response.ok) {
-        const data = await response.json();
-        throw new Error(data.error || "Failed to send PDF");
-      }
+      if (!response.ok) throw new Error("Failed to generate payment link");
 
-      const data = await response.json();
-      toast.success(data.message || "PDF sent successfully!");
+      toast.success("Payment link generated!");
+      router.refresh();
     } catch (error: any) {
-      console.error("Email PDF error:", error);
-      toast.error(error.message || "Failed to send PDF");
+      toast.error(error.message || "Failed to generate payment link");
     } finally {
-      setLoading(false);
+      setGeneratingLink(false);
     }
   };
 
-  const handleDeleteQuote = async () => {
-    if (!confirm(`Delete quote "${quote.tripName}"? This action cannot be undone.`)) {
-      return;
-    }
-
-    setLoading(true);
-    try {
-      const response = await fetch(`/api/agents/quotes/${quote.id}`, {
-        method: "DELETE",
-      });
-
-      if (!response.ok) {
-        const data = await response.json();
-        throw new Error(data.error || "Failed to delete quote");
-      }
-
-      toast.success("Quote deleted successfully!");
-      router.push("/agent/quotes");
-    } catch (error: any) {
-      console.error("Delete quote error:", error);
-      toast.error(error.message || "Failed to delete quote");
-    } finally {
-      setLoading(false);
+  const copyPaymentLink = () => {
+    if (paymentLink) {
+      navigator.clipboard.writeText(paymentLink);
+      toast.success("Payment link copied!");
     }
   };
 
-  const formatCurrency = (amount: number) => {
-    return `${quote.currency === "USD" ? "$" : quote.currency} ${amount.toLocaleString(undefined, {
-      minimumFractionDigits: 2,
-      maximumFractionDigits: 2,
-    })}`;
+  const getStatusConfig = (status: string) => {
+    const configs: Record<string, { icon: any; color: string; bg: string; label: string }> = {
+      DRAFT: { icon: FileText, color: "text-gray-600", bg: "bg-gray-100", label: "Draft" },
+      SENT: { icon: Send, color: "text-blue-600", bg: "bg-blue-100", label: "Sent" },
+      VIEWED: { icon: Eye, color: "text-purple-600", bg: "bg-purple-100", label: "Viewed" },
+      ACCEPTED: { icon: CheckCircle, color: "text-emerald-600", bg: "bg-emerald-100", label: "Accepted" },
+      DECLINED: { icon: XCircle, color: "text-red-600", bg: "bg-red-100", label: "Declined" },
+      EXPIRED: { icon: Clock, color: "text-orange-600", bg: "bg-orange-100", label: "Expired" },
+      CONVERTED: { icon: CreditCard, color: "text-teal-600", bg: "bg-teal-100", label: "Converted" },
+    };
+    return configs[status] || configs.DRAFT;
   };
 
-  const formatDate = (date: Date) => {
-    return new Date(date).toLocaleDateString("en-US", {
-      year: "numeric",
-      month: "long",
-      day: "numeric",
-    });
-  };
+  const statusConfig = getStatusConfig(quote.status);
+  const StatusIcon = statusConfig.icon;
 
-  const formatDateTime = (date: Date) => {
-    return new Date(date).toLocaleString("en-US", {
-      year: "numeric",
-      month: "long",
-      day: "numeric",
-      hour: "numeric",
-      minute: "numeric",
-    });
-  };
+  const sections = [
+    { key: "flights", label: "Flights", icon: Plane, cost: quote.flightsCost, items: flights },
+    { key: "hotels", label: "Hotels", icon: Building2, cost: quote.hotelsCost, items: hotels },
+    { key: "activities", label: "Activities", icon: MapPin, cost: quote.activitiesCost, items: activities },
+    { key: "transfers", label: "Transfers", icon: Car, cost: quote.transfersCost, items: transfers },
+    { key: "carRentals", label: "Car Rentals", icon: Car, cost: quote.carRentalsCost, items: carRentals },
+    { key: "insurance", label: "Insurance", icon: Shield, cost: quote.insuranceCost, items: insurance },
+  ].filter(s => s.items.length > 0 || s.cost > 0);
 
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-      {/* Left Column: Quote Details */}
+    <div className="grid lg:grid-cols-3 gap-6">
+      {/* Main Content */}
       <div className="lg:col-span-2 space-y-6">
-        {/* Action Buttons */}
-        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-          <div className="space-y-4">
-            {/* Primary Actions */}
-            <div className="flex flex-wrap gap-3">
-              {quote.status === "DRAFT" && (
-                <>
-                  <button
-                    onClick={handleSendQuote}
-                    disabled={loading}
-                    className="px-6 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 disabled:opacity-50 font-medium"
-                  >
-                    {loading ? "Sending..." : "Send to Client"}
-                  </button>
-                  <Link
-                    href={`/agent/quotes/${quote.id}/edit`}
-                    className="px-6 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 font-medium"
-                  >
-                    Edit Quote
-                  </Link>
-                </>
-              )}
-
-              {(quote.status === "SENT" || quote.status === "VIEWED") && (
-                <button
-                  onClick={handleSendQuote}
-                  disabled={loading}
-                  className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 font-medium"
-                >
-                  {loading ? "Resending..." : "Resend to Client"}
-                </button>
-              )}
-
-              {quote.status === "ACCEPTED" && !quote.booking && (
-                <Link
-                  href={`/agent/bookings/convert?quoteId=${quote.id}`}
-                  className="px-6 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 font-medium"
-                >
-                  Convert to Booking
-                </Link>
-              )}
-
-              {quote.status === "CONVERTED" && quote.booking && (
-                <Link
-                  href={`/agent/bookings/${quote.booking.id}`}
-                  className="px-6 py-2 bg-teal-600 text-white rounded-lg hover:bg-teal-700 font-medium"
-                >
-                  View Booking
-                </Link>
-              )}
-
-              {(quote.status === "DRAFT" || quote.status === "DECLINED" || quote.status === "EXPIRED") && (
-                <button
-                  onClick={handleDeleteQuote}
-                  disabled={loading}
-                  className="px-6 py-2 border border-red-600 text-red-600 rounded-lg hover:bg-red-50 disabled:opacity-50 font-medium"
-                >
-                  {loading ? "Deleting..." : "Delete Quote"}
-                </button>
-              )}
-            </div>
-
-            {/* PDF Actions */}
-            <div className="pt-4 border-t border-gray-200">
-              <p className="text-sm font-medium text-gray-700 mb-3">Itinerary PDF</p>
-              <div className="flex flex-wrap gap-3">
-                <button
-                  onClick={handleDownloadPDF}
-                  disabled={loading}
-                  className="inline-flex items-center px-4 py-2 border border-purple-600 text-purple-600 rounded-lg hover:bg-purple-50 disabled:opacity-50 font-medium"
-                >
-                  <svg className="w-5 h-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                  </svg>
-                  Download PDF
-                </button>
-                <button
-                  onClick={handleEmailPDF}
-                  disabled={loading}
-                  className="inline-flex items-center px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 disabled:opacity-50 font-medium"
-                >
-                  <svg className="w-5 h-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
-                  </svg>
-                  Email PDF to Client
-                </button>
+        {/* Trip Overview Card */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="bg-white rounded-2xl p-6 border border-gray-100 shadow-[0_1px_3px_rgba(0,0,0,0.05),0_4px_12px_rgba(0,0,0,0.03)]"
+        >
+          <div className="flex items-start justify-between mb-6">
+            <div>
+              <div className="flex items-center gap-3 mb-2">
+                <span className={`flex items-center gap-1.5 px-3 py-1 rounded-full text-sm font-medium ${statusConfig.bg} ${statusConfig.color}`}>
+                  <StatusIcon className="w-4 h-4" />
+                  {statusConfig.label}
+                </span>
+                {quote.paymentStatus === "PAID" && (
+                  <span className="flex items-center gap-1.5 px-3 py-1 rounded-full text-sm font-medium bg-emerald-100 text-emerald-600">
+                    <CheckCircle className="w-4 h-4" />
+                    Paid
+                  </span>
+                )}
               </div>
-              <p className="text-xs text-gray-500 mt-2">
-                Professional itinerary with all trip details, products, and pricing
+              <h2 className="text-xl font-bold text-gray-900">{quote.destination}</h2>
+            </div>
+            <div className="text-right">
+              <p className="text-sm text-gray-500">Quote ID</p>
+              <p className="font-mono text-sm font-medium text-gray-900">#{quote.id.slice(0, 8).toUpperCase()}</p>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            <div className="p-3 bg-gray-50 rounded-xl">
+              <Calendar className="w-4 h-4 text-gray-400 mb-1" />
+              <p className="text-xs text-gray-500">Dates</p>
+              <p className="text-sm font-semibold text-gray-900">
+                {new Date(quote.startDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })} - {new Date(quote.endDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+              </p>
+            </div>
+            <div className="p-3 bg-gray-50 rounded-xl">
+              <Clock className="w-4 h-4 text-gray-400 mb-1" />
+              <p className="text-xs text-gray-500">Duration</p>
+              <p className="text-sm font-semibold text-gray-900">{quote.duration} nights</p>
+            </div>
+            <div className="p-3 bg-gray-50 rounded-xl">
+              <Users className="w-4 h-4 text-gray-400 mb-1" />
+              <p className="text-xs text-gray-500">Travelers</p>
+              <p className="text-sm font-semibold text-gray-900">{quote.travelers} guests</p>
+            </div>
+            <div className="p-3 bg-gray-50 rounded-xl">
+              <Clock className="w-4 h-4 text-gray-400 mb-1" />
+              <p className="text-xs text-gray-500">Expires</p>
+              <p className="text-sm font-semibold text-gray-900">
+                {new Date(quote.expiresAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
               </p>
             </div>
           </div>
-        </div>
+        </motion.div>
 
-        {/* Client Information */}
-        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-          <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
-            <span className="mr-2">👤</span>
-            Client Information
-          </h3>
-          <div className="space-y-2">
-            <p className="text-gray-900 font-medium text-lg">
-              {quote.client.firstName} {quote.client.lastName}
-            </p>
-            <p className="text-gray-600 text-sm">{quote.client.email}</p>
-            {quote.client.phone && <p className="text-gray-600 text-sm">{quote.client.phone}</p>}
+        {/* Itinerary Sections */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.1 }}
+          className="bg-white rounded-2xl border border-gray-100 shadow-[0_1px_3px_rgba(0,0,0,0.05),0_4px_12px_rgba(0,0,0,0.03)] overflow-hidden"
+        >
+          <div className="px-6 py-4 border-b border-gray-100">
+            <h3 className="font-semibold text-gray-900">Itinerary</h3>
           </div>
-        </div>
+          <div className="divide-y divide-gray-100">
+            {sections.map((section) => {
+              const Icon = section.icon;
+              const isExpanded = expandedSection === section.key;
 
-        {/* Trip Details */}
-        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-          <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
-            <span className="mr-2">✈️</span>
-            Trip Details
-          </h3>
-          <div className="space-y-3">
-            <div>
-              <p className="text-sm text-gray-600">Trip Name</p>
-              <p className="text-gray-900 font-medium">{quote.tripName}</p>
-            </div>
-            <div>
-              <p className="text-sm text-gray-600">Destination</p>
-              <p className="text-gray-900 font-medium">{quote.destination}</p>
-            </div>
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <p className="text-sm text-gray-600">Departure</p>
-                <p className="text-gray-900 font-medium">{formatDate(quote.startDate)}</p>
-              </div>
-              <div>
-                <p className="text-sm text-gray-600">Return</p>
-                <p className="text-gray-900 font-medium">{formatDate(quote.endDate)}</p>
-              </div>
-            </div>
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <p className="text-sm text-gray-600">Duration</p>
-                <p className="text-gray-900 font-medium">
-                  {quote.duration} {quote.duration === 1 ? "Day" : "Days"}
-                </p>
-              </div>
-              <div>
-                <p className="text-sm text-gray-600">Travelers</p>
-                <p className="text-gray-900 font-medium">
-                  {quote.travelers} Total ({quote.adults} Adults
-                  {quote.children > 0 && `, ${quote.children} Children`}
-                  {quote.infants > 0 && `, ${quote.infants} Infants`})
-                </p>
-              </div>
-            </div>
+              return (
+                <div key={section.key}>
+                  <button
+                    onClick={() => setExpandedSection(isExpanded ? null : section.key)}
+                    className="w-full px-6 py-4 flex items-center justify-between hover:bg-gray-50 transition-colors"
+                  >
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 rounded-xl bg-indigo-50 flex items-center justify-center">
+                        <Icon className="w-5 h-5 text-indigo-600" />
+                      </div>
+                      <div className="text-left">
+                        <p className="font-medium text-gray-900">{section.label}</p>
+                        <p className="text-sm text-gray-500">{section.items.length} item{section.items.length !== 1 ? 's' : ''}</p>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-4">
+                      <span className="font-semibold text-gray-900">${section.cost.toLocaleString()}</span>
+                      <ChevronDown className={`w-5 h-5 text-gray-400 transition-transform ${isExpanded ? 'rotate-180' : ''}`} />
+                    </div>
+                  </button>
+                  <AnimatePresence>
+                    {isExpanded && section.items.length > 0 && (
+                      <motion.div
+                        initial={{ height: 0, opacity: 0 }}
+                        animate={{ height: "auto", opacity: 1 }}
+                        exit={{ height: 0, opacity: 0 }}
+                        className="overflow-hidden"
+                      >
+                        <div className="px-6 pb-4 space-y-3">
+                          {section.items.map((item: any, idx: number) => (
+                            <div key={idx} className="p-4 bg-gray-50 rounded-xl">
+                              <p className="font-medium text-gray-900">{item.name || item.title || `${section.label} ${idx + 1}`}</p>
+                              {item.description && <p className="text-sm text-gray-500 mt-1">{item.description}</p>}
+                              {item.price && <p className="text-sm font-semibold text-indigo-600 mt-2">${item.price.toLocaleString()}</p>}
+                            </div>
+                          ))}
+                        </div>
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
+                </div>
+              );
+            })}
           </div>
-        </div>
+        </motion.div>
 
-        {/* Products Included */}
-        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-          <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
-            <span className="mr-2">📦</span>
-            Products Included
-          </h3>
-          <div className="space-y-4">
-            {flights.length > 0 && (
-              <ProductSection title="Flights" icon="✈️" items={flights} currency={quote.currency} />
-            )}
-            {hotels.length > 0 && (
-              <ProductSection title="Hotels" icon="🏨" items={hotels} currency={quote.currency} />
-            )}
-            {activities.length > 0 && (
-              <ProductSection title="Activities" icon="🎯" items={activities} currency={quote.currency} />
-            )}
-            {transfers.length > 0 && (
-              <ProductSection title="Transfers" icon="🚗" items={transfers} currency={quote.currency} />
-            )}
-            {carRentals.length > 0 && (
-              <ProductSection title="Car Rentals" icon="🚙" items={carRentals} currency={quote.currency} />
-            )}
-            {insurance.length > 0 && (
-              <ProductSection title="Insurance" icon="🛡️" items={insurance} currency={quote.currency} />
-            )}
-            {customItems.length > 0 && (
-              <ProductSection title="Custom Items" icon="📝" items={customItems} currency={quote.currency} />
-            )}
-          </div>
-        </div>
-
-        {/* Messages */}
+        {/* Notes */}
         {quote.notes && (
-          <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-            <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
-              <span className="mr-2">💬</span>
-              Message to Client
-            </h3>
-            <p className="text-gray-700 whitespace-pre-wrap">{quote.notes}</p>
-          </div>
-        )}
-
-        {quote.agentNotes && (
-          <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-6">
-            <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
-              <span className="mr-2">📝</span>
-              Internal Notes (Private)
-            </h3>
-            <p className="text-gray-700 whitespace-pre-wrap">{quote.agentNotes}</p>
-          </div>
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.2 }}
+            className="bg-white rounded-2xl p-6 border border-gray-100 shadow-[0_1px_3px_rgba(0,0,0,0.05),0_4px_12px_rgba(0,0,0,0.03)]"
+          >
+            <h3 className="font-semibold text-gray-900 mb-3">Notes for Client</h3>
+            <p className="text-gray-600 whitespace-pre-wrap">{quote.notes}</p>
+          </motion.div>
         )}
       </div>
 
-      {/* Right Column: Pricing & Timeline */}
-      <div className="lg:col-span-1 space-y-6">
-        {/* Pricing Summary */}
-        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 sticky top-6">
-          <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
-            <span className="mr-2">💰</span>
-            Pricing Summary
-          </h3>
-
-          <div className="space-y-3">
-            {quote.flightsCost > 0 && (
-              <div className="flex justify-between text-sm">
-                <span className="text-gray-600">Flights</span>
-                <span className="font-medium text-gray-900">{formatCurrency(quote.flightsCost)}</span>
-              </div>
-            )}
-            {quote.hotelsCost > 0 && (
-              <div className="flex justify-between text-sm">
-                <span className="text-gray-600">Hotels</span>
-                <span className="font-medium text-gray-900">{formatCurrency(quote.hotelsCost)}</span>
-              </div>
-            )}
-            {quote.activitiesCost > 0 && (
-              <div className="flex justify-between text-sm">
-                <span className="text-gray-600">Activities</span>
-                <span className="font-medium text-gray-900">{formatCurrency(quote.activitiesCost)}</span>
-              </div>
-            )}
-            {quote.transfersCost > 0 && (
-              <div className="flex justify-between text-sm">
-                <span className="text-gray-600">Transfers</span>
-                <span className="font-medium text-gray-900">{formatCurrency(quote.transfersCost)}</span>
-              </div>
-            )}
-            {quote.carRentalsCost > 0 && (
-              <div className="flex justify-between text-sm">
-                <span className="text-gray-600">Car Rentals</span>
-                <span className="font-medium text-gray-900">{formatCurrency(quote.carRentalsCost)}</span>
-              </div>
-            )}
-            {quote.insuranceCost > 0 && (
-              <div className="flex justify-between text-sm">
-                <span className="text-gray-600">Insurance</span>
-                <span className="font-medium text-gray-900">{formatCurrency(quote.insuranceCost)}</span>
-              </div>
-            )}
-            {quote.customItemsCost > 0 && (
-              <div className="flex justify-between text-sm">
-                <span className="text-gray-600">Other Items</span>
-                <span className="font-medium text-gray-900">{formatCurrency(quote.customItemsCost)}</span>
-              </div>
-            )}
-
-            <div className="border-t border-gray-200 pt-3 mt-3"></div>
-            <div className="flex justify-between">
-              <span className="text-gray-700 font-medium">Subtotal</span>
-              <span className="font-semibold text-gray-900">{formatCurrency(quote.subtotal)}</span>
+      {/* Sidebar */}
+      <div className="space-y-6">
+        {/* Client Info */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.1 }}
+          className="bg-white rounded-2xl p-5 border border-gray-100 shadow-[0_1px_3px_rgba(0,0,0,0.05),0_4px_12px_rgba(0,0,0,0.03)]"
+        >
+          <h3 className="font-semibold text-gray-900 mb-4">Client</h3>
+          <div className="flex items-center gap-3 mb-4">
+            <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-white font-semibold">
+              {quote.client.firstName[0]}{quote.client.lastName[0]}
             </div>
+            <div>
+              <p className="font-medium text-gray-900">{quote.client.firstName} {quote.client.lastName}</p>
+              <p className="text-sm text-gray-500">{quote.client.email}</p>
+            </div>
+          </div>
+          {quote.client.phone && (
+            <p className="text-sm text-gray-500">{quote.client.phone}</p>
+          )}
+        </motion.div>
 
+        {/* Pricing Summary */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.2 }}
+          className="bg-white rounded-2xl p-5 border border-gray-100 shadow-[0_1px_3px_rgba(0,0,0,0.05),0_4px_12px_rgba(0,0,0,0.03)]"
+        >
+          <h3 className="font-semibold text-gray-900 mb-4">Pricing</h3>
+          <div className="space-y-3">
+            <div className="flex justify-between text-sm">
+              <span className="text-gray-500">Subtotal</span>
+              <span className="text-gray-900">${quote.subtotal.toLocaleString()}</span>
+            </div>
             {quote.agentMarkup > 0 && (
               <div className="flex justify-between text-sm">
-                <span className="text-gray-600">Agent Markup ({quote.agentMarkupPercent}%)</span>
-                <span className="font-medium text-green-600">+{formatCurrency(quote.agentMarkup)}</span>
+                <span className="text-gray-500 flex items-center gap-1">
+                  <Percent className="w-3 h-3" />
+                  Markup ({quote.agentMarkupPercent}%)
+                </span>
+                <span className="text-emerald-600">+${quote.agentMarkup.toLocaleString()}</span>
               </div>
             )}
-
             {quote.taxes > 0 && (
               <div className="flex justify-between text-sm">
-                <span className="text-gray-600">Taxes & Fees</span>
-                <span className="font-medium text-gray-900">+{formatCurrency(quote.taxes)}</span>
+                <span className="text-gray-500">Taxes</span>
+                <span className="text-gray-900">${quote.taxes.toLocaleString()}</span>
               </div>
             )}
-
+            {quote.fees > 0 && (
+              <div className="flex justify-between text-sm">
+                <span className="text-gray-500">Fees</span>
+                <span className="text-gray-900">${quote.fees.toLocaleString()}</span>
+              </div>
+            )}
             {quote.discount > 0 && (
               <div className="flex justify-between text-sm">
-                <span className="text-gray-600">Discount</span>
-                <span className="font-medium text-red-600">-{formatCurrency(quote.discount)}</span>
+                <span className="text-gray-500">Discount</span>
+                <span className="text-red-500">-${quote.discount.toLocaleString()}</span>
               </div>
             )}
-
-            <div className="border-t-2 border-gray-300 pt-3 mt-3">
-              <div className="flex justify-between items-center">
-                <span className="text-lg font-bold text-gray-900">Total</span>
-                <span className="text-2xl font-bold text-primary-600">{formatCurrency(quote.total)}</span>
-              </div>
-            </div>
-
-            <div className="bg-primary-50 rounded-lg p-3 mt-3">
-              <div className="flex justify-between items-center">
-                <span className="text-sm text-gray-700">Per Person</span>
-                <span className="text-lg font-bold text-primary-700">
-                  {formatCurrency(quote.total / quote.travelers)}
-                </span>
-              </div>
+            <div className="border-t border-gray-100 pt-3 flex justify-between">
+              <span className="font-semibold text-gray-900">Total</span>
+              <span className="text-xl font-bold text-gray-900">${quote.total.toLocaleString()}</span>
             </div>
           </div>
-        </div>
+        </motion.div>
 
-        {/* Activity Timeline */}
-        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-          <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
-            <span className="mr-2">📅</span>
-            Activity Timeline
-          </h3>
-          <div className="space-y-4">
-            <TimelineItem
-              title="Quote Created"
-              time={formatDateTime(quote.createdAt)}
-              icon="📝"
-              color="gray"
-            />
-
-            {quote.sentAt && (
-              <TimelineItem
-                title="Sent to Client"
-                time={formatDateTime(quote.sentAt)}
-                icon="📧"
-                color="blue"
-              />
-            )}
-
-            {quote.viewedAt && (
-              <TimelineItem
-                title="Viewed by Client"
-                time={formatDateTime(quote.viewedAt)}
-                icon="👁️"
-                color="purple"
-              />
-            )}
-
-            {quote.acceptedAt && (
-              <TimelineItem
-                title="Accepted by Client"
-                time={formatDateTime(quote.acceptedAt)}
-                icon="✅"
-                color="green"
-              />
-            )}
-
-            {quote.declinedAt && (
-              <TimelineItem
-                title="Declined by Client"
-                time={formatDateTime(quote.declinedAt)}
-                icon="❌"
-                color="red"
-              />
-            )}
-
-            {quote.booking && (
-              <TimelineItem
-                title="Converted to Booking"
-                time="Booking created"
-                icon="🎉"
-                color="teal"
-              />
-            )}
-
-            <TimelineItem
-              title="Expires"
-              time={formatDate(quote.expiresAt)}
-              icon="⏰"
-              color={new Date(quote.expiresAt) < new Date() ? "red" : "orange"}
-            />
+        {/* Payment Link */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.3 }}
+          className="bg-gradient-to-br from-indigo-500 to-purple-600 rounded-2xl p-5 text-white"
+        >
+          <div className="flex items-center gap-2 mb-3">
+            <CreditCard className="w-5 h-5" />
+            <h3 className="font-semibold">Payment Link</h3>
           </div>
-        </div>
 
-        {/* Booking Info */}
-        {quote.booking && (
-          <div className="bg-teal-50 border border-teal-200 rounded-lg p-4">
-            <h4 className="font-medium text-teal-900 mb-2">Converted to Booking</h4>
-            <p className="text-sm text-teal-700 mb-3">
-              Reference: <strong>{quote.booking.confirmationNumber}</strong>
-            </p>
+          {paymentLink ? (
+            <div className="space-y-3">
+              <div className="bg-white/20 rounded-xl p-3">
+                <p className="text-xs text-white/70 mb-1">Link</p>
+                <p className="text-sm font-mono truncate">{paymentLink}</p>
+              </div>
+              <div className="flex gap-2">
+                <button
+                  onClick={copyPaymentLink}
+                  className="flex-1 flex items-center justify-center gap-2 py-2 bg-white/20 rounded-lg text-sm font-medium hover:bg-white/30 transition-colors"
+                >
+                  <Copy className="w-4 h-4" />
+                  Copy
+                </button>
+                <a
+                  href={paymentLink}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex-1 flex items-center justify-center gap-2 py-2 bg-white/20 rounded-lg text-sm font-medium hover:bg-white/30 transition-colors"
+                >
+                  <ExternalLink className="w-4 h-4" />
+                  Open
+                </a>
+              </div>
+              {quote.paymentStatus === "PAID" && (
+                <div className="mt-3 p-3 bg-emerald-500/30 rounded-xl flex items-center gap-2">
+                  <CheckCircle className="w-5 h-5" />
+                  <div>
+                    <p className="font-medium">Paid</p>
+                    <p className="text-xs text-white/80">
+                      {quote.paidAt && new Date(quote.paidAt).toLocaleDateString()}
+                    </p>
+                  </div>
+                </div>
+              )}
+            </div>
+          ) : (
+            <div>
+              <p className="text-sm text-white/80 mb-3">
+                Generate a payment link for your client to pay this quote directly.
+              </p>
+              <button
+                onClick={handleGeneratePaymentLink}
+                disabled={generatingLink || quote.status === "DRAFT"}
+                className="w-full py-2.5 bg-white text-indigo-600 rounded-xl font-semibold hover:bg-white/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+              >
+                {generatingLink ? (
+                  <>
+                    <RefreshCw className="w-4 h-4 animate-spin" />
+                    Generating...
+                  </>
+                ) : (
+                  <>
+                    <CreditCard className="w-4 h-4" />
+                    Generate Link
+                  </>
+                )}
+              </button>
+              {quote.status === "DRAFT" && (
+                <p className="text-xs text-white/60 mt-2 text-center">
+                  Send the quote first to generate a payment link
+                </p>
+              )}
+            </div>
+          )}
+        </motion.div>
+
+        {/* Actions */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.4 }}
+          className="space-y-3"
+        >
+          {quote.status === "DRAFT" && (
+            <button
+              onClick={handleSendQuote}
+              disabled={sendingQuote}
+              className="w-full py-3 bg-indigo-600 text-white rounded-xl font-semibold hover:bg-indigo-700 transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
+            >
+              {sendingQuote ? (
+                <>
+                  <RefreshCw className="w-4 h-4 animate-spin" />
+                  Sending...
+                </>
+              ) : (
+                <>
+                  <Mail className="w-4 h-4" />
+                  Send to Client
+                </>
+              )}
+            </button>
+          )}
+
+          <Link
+            href={`/agent/quotes/${quote.id}/edit`}
+            className="w-full py-3 border border-gray-300 text-gray-700 rounded-xl font-medium hover:bg-gray-50 transition-colors flex items-center justify-center gap-2"
+          >
+            Edit Quote
+          </Link>
+
+          {quote.booking && (
             <Link
               href={`/agent/bookings/${quote.booking.id}`}
-              className="inline-block px-4 py-2 bg-teal-600 text-white rounded-lg hover:bg-teal-700 text-sm font-medium"
+              className="w-full py-3 bg-emerald-50 text-emerald-700 rounded-xl font-medium hover:bg-emerald-100 transition-colors flex items-center justify-center gap-2"
             >
+              <CheckCircle className="w-4 h-4" />
               View Booking
             </Link>
+          )}
+        </motion.div>
+
+        {/* Timeline */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.5 }}
+          className="bg-white rounded-2xl p-5 border border-gray-100 shadow-[0_1px_3px_rgba(0,0,0,0.05),0_4px_12px_rgba(0,0,0,0.03)]"
+        >
+          <h3 className="font-semibold text-gray-900 mb-4">Timeline</h3>
+          <div className="space-y-4">
+            <TimelineItem
+              icon={FileText}
+              label="Created"
+              date={quote.createdAt}
+              active
+            />
+            {quote.sentAt && (
+              <TimelineItem
+                icon={Send}
+                label="Sent"
+                date={quote.sentAt}
+                active
+              />
+            )}
+            {quote.viewedAt && (
+              <TimelineItem
+                icon={Eye}
+                label="Viewed"
+                date={quote.viewedAt}
+                active
+              />
+            )}
+            {quote.acceptedAt && (
+              <TimelineItem
+                icon={CheckCircle}
+                label="Accepted"
+                date={quote.acceptedAt}
+                active
+                success
+              />
+            )}
+            {quote.declinedAt && (
+              <TimelineItem
+                icon={XCircle}
+                label="Declined"
+                date={quote.declinedAt}
+                active
+                error
+              />
+            )}
+            {quote.paidAt && (
+              <TimelineItem
+                icon={CreditCard}
+                label="Paid"
+                date={quote.paidAt}
+                active
+                success
+              />
+            )}
           </div>
-        )}
+        </motion.div>
       </div>
     </div>
   );
 }
 
-function ProductSection({ title, icon, items, currency }: any) {
-  const formatCurrency = (amount: number) => {
-    return `${currency === "USD" ? "$" : currency} ${amount.toLocaleString(undefined, {
-      minimumFractionDigits: 2,
-      maximumFractionDigits: 2,
-    })}`;
-  };
-
+function TimelineItem({
+  icon: Icon,
+  label,
+  date,
+  active,
+  success,
+  error,
+}: {
+  icon: any;
+  label: string;
+  date: Date;
+  active?: boolean;
+  success?: boolean;
+  error?: boolean;
+}) {
   return (
-    <div>
-      <p className="text-sm font-medium text-gray-700 mb-2 flex items-center">
-        <span className="mr-1">{icon}</span>
-        {title} ({items.length})
-      </p>
-      <div className="ml-6 space-y-2">
-        {items.map((item: any, index: number) => (
-          <div key={index} className="flex justify-between text-sm">
-            <div className="flex-1">
-              <p className="text-gray-900 font-medium">{item.name}</p>
-              {item.description && <p className="text-gray-600 text-xs">{item.description}</p>}
-            </div>
-            <span className="font-medium text-gray-900 ml-4">{formatCurrency(item.price)}</span>
-          </div>
-        ))}
-      </div>
-    </div>
-  );
-}
-
-function TimelineItem({ title, time, icon, color }: any) {
-  const colors = {
-    gray: "bg-gray-100 text-gray-800",
-    blue: "bg-blue-100 text-blue-800",
-    purple: "bg-purple-100 text-purple-800",
-    green: "bg-green-100 text-green-800",
-    red: "bg-red-100 text-red-800",
-    orange: "bg-orange-100 text-orange-800",
-    teal: "bg-teal-100 text-teal-800",
-  };
-
-  return (
-    <div className="flex items-start gap-3">
-      <div className={`w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 ${colors[color as keyof typeof colors]}`}>
-        <span className="text-sm">{icon}</span>
+    <div className="flex items-center gap-3">
+      <div
+        className={`w-8 h-8 rounded-lg flex items-center justify-center ${
+          success ? 'bg-emerald-100 text-emerald-600' :
+          error ? 'bg-red-100 text-red-600' :
+          active ? 'bg-indigo-100 text-indigo-600' :
+          'bg-gray-100 text-gray-400'
+        }`}
+      >
+        <Icon className="w-4 h-4" />
       </div>
       <div className="flex-1">
-        <p className="text-sm font-medium text-gray-900">{title}</p>
-        <p className="text-xs text-gray-600">{time}</p>
+        <p className="text-sm font-medium text-gray-900">{label}</p>
+        <p className="text-xs text-gray-500">
+          {new Date(date).toLocaleString('en-US', {
+            month: 'short',
+            day: 'numeric',
+            hour: 'numeric',
+            minute: '2-digit',
+          })}
+        </p>
       </div>
     </div>
   );

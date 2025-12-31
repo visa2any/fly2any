@@ -1,85 +1,117 @@
-// components/agent/QuickActions.tsx
-"use client";
+'use client';
 
-import Link from "next/link";
+// components/agent/QuickActions.tsx
+// Level 6 Ultra-Premium Apple-Class Quick Actions
+import { motion } from 'framer-motion';
+import Link from 'next/link';
+import { Plus, UserPlus, Calendar, Wallet, Search, FileText, ChevronRight } from 'lucide-react';
 
 export default function QuickActions() {
   const actions = [
     {
-      name: "Create Quote",
-      description: "Build a new multi-product quote",
-      href: "/agent/quotes/create",
-      icon: (
-        <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-        </svg>
-      ),
-      color: "bg-gradient-to-br from-primary-500 to-primary-600",
-      hoverColor: "hover:from-primary-600 hover:to-primary-700",
+      name: 'New Quote',
+      description: 'Build a multi-product quote',
+      href: '/agent/quotes/create',
+      icon: Plus,
+      gradient: 'from-primary-500 to-rose-500',
+      shadowColor: 'shadow-primary-500/25',
     },
     {
-      name: "Add Client",
-      description: "Add a new client to your CRM",
-      href: "/agent/clients/create",
-      icon: (
-        <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z" />
-        </svg>
-      ),
-      color: "bg-gradient-to-br from-info-500 to-info-600",
-      hoverColor: "hover:from-info-600 hover:to-info-700",
+      name: 'Add Client',
+      description: 'Add to your CRM',
+      href: '/agent/clients/create',
+      icon: UserPlus,
+      gradient: 'from-blue-500 to-cyan-500',
+      shadowColor: 'shadow-blue-500/25',
     },
     {
-      name: "View Bookings",
-      description: "Manage active bookings",
-      href: "/agent/bookings",
-      icon: (
-        <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
-        </svg>
-      ),
-      color: "bg-gradient-to-br from-success-500 to-success-600",
-      hoverColor: "hover:from-success-600 hover:to-success-700",
+      name: 'Search Flights',
+      description: 'Find best fares',
+      href: '/agent/quotes/create?step=search',
+      icon: Search,
+      gradient: 'from-violet-500 to-purple-500',
+      shadowColor: 'shadow-violet-500/25',
     },
     {
-      name: "Request Payout",
-      description: "Withdraw available earnings",
-      href: "/agent/payouts/request",
-      icon: (
-        <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z" />
-        </svg>
-      ),
-      color: "bg-gradient-to-br from-secondary-500 to-secondary-600",
-      hoverColor: "hover:from-secondary-600 hover:to-secondary-700",
+      name: 'View Bookings',
+      description: 'Manage active trips',
+      href: '/agent/bookings',
+      icon: Calendar,
+      gradient: 'from-emerald-500 to-teal-500',
+      shadowColor: 'shadow-emerald-500/25',
     },
   ];
 
+  const containerVariants = {
+    hidden: { opacity: 0 },
+    visible: {
+      opacity: 1,
+      transition: { staggerChildren: 0.08 },
+    },
+  };
+
+  const itemVariants = {
+    hidden: { opacity: 0, y: 10 },
+    visible: {
+      opacity: 1,
+      y: 0,
+      transition: { type: 'spring', stiffness: 150, damping: 20 },
+    },
+  };
+
   return (
-    <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-      <h2 className="text-lg font-semibold text-gray-900 mb-4">Quick Actions</h2>
-      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
-        {actions.map((action) => (
-          <Link
-            key={action.name}
-            href={action.href}
-            className="group relative overflow-hidden rounded-lg p-4 text-white transition-all hover:shadow-lg"
-            aria-label={`${action.name}: ${action.description}`}
-          >
-            <div className={`absolute inset-0 ${action.color} ${action.hoverColor} transition-all`}></div>
-            <div className="relative z-10">
-              <div className="mb-3 w-6 h-6">{action.icon}</div>
-              <h3 className="font-semibold text-sm">{action.name}</h3>
-              <p className="text-xs opacity-90 mt-1">{action.description}</p>
-            </div>
-            <div className="absolute bottom-0 right-0 opacity-10 z-0">
-              <svg className="w-20 h-20" fill="currentColor" viewBox="0 0 24 24">
-                <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5" />
-              </svg>
-            </div>
-          </Link>
-        ))}
-      </div>
-    </div>
+    <motion.div
+      variants={containerVariants}
+      initial="hidden"
+      animate="visible"
+      className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4"
+    >
+      {actions.map((action) => {
+        const Icon = action.icon;
+        return (
+          <motion.div key={action.name} variants={itemVariants}>
+            <Link href={action.href} className="block group">
+              <motion.div
+                whileHover={{ scale: 1.02, y: -2 }}
+                whileTap={{ scale: 0.98 }}
+                className={`relative overflow-hidden rounded-2xl bg-gradient-to-br ${action.gradient} p-4 md:p-5 text-white shadow-lg ${action.shadowColor} hover:shadow-xl transition-shadow duration-300`}
+              >
+                {/* Background Pattern */}
+                <div className="absolute inset-0 opacity-10">
+                  <svg className="w-full h-full" viewBox="0 0 80 80">
+                    <pattern id={`grid-${action.name}`} width="20" height="20" patternUnits="userSpaceOnUse">
+                      <circle cx="10" cy="10" r="1" fill="currentColor" />
+                    </pattern>
+                    <rect width="100%" height="100%" fill={`url(#grid-${action.name})`} />
+                  </svg>
+                </div>
+
+                {/* Content */}
+                <div className="relative">
+                  <div className="flex items-center justify-between mb-3">
+                    <div className="w-10 h-10 md:w-11 md:h-11 bg-white/20 backdrop-blur-sm rounded-xl flex items-center justify-center group-hover:bg-white/30 transition-colors">
+                      <Icon className="w-5 h-5 md:w-6 md:h-6" strokeWidth={2} />
+                    </div>
+                    <motion.div
+                      initial={{ x: 0, opacity: 0.6 }}
+                      whileHover={{ x: 3, opacity: 1 }}
+                      className="hidden md:block"
+                    >
+                      <ChevronRight className="w-5 h-5 opacity-60 group-hover:opacity-100 transition-opacity" />
+                    </motion.div>
+                  </div>
+
+                  <h3 className="font-semibold text-sm md:text-base">{action.name}</h3>
+                  <p className="text-xs md:text-sm text-white/80 mt-0.5">{action.description}</p>
+                </div>
+
+                {/* Decorative Element */}
+                <div className="absolute -bottom-4 -right-4 w-20 h-20 bg-white/5 rounded-full blur-xl" />
+              </motion.div>
+            </Link>
+          </motion.div>
+        );
+      })}
+    </motion.div>
   );
 }

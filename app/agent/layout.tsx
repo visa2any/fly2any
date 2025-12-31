@@ -6,6 +6,7 @@ import { getAgentWithAdminFallback } from "@/lib/auth-helpers";
 import AgentSidebar from "@/components/agent/AgentSidebar";
 import AgentTopBar from "@/components/agent/AgentTopBar";
 import AdminModeBanner from "@/components/agent/AdminModeBanner";
+import AgentMobileNav from "@/components/agent/AgentMobileNav";
 import prisma from "@/lib/prisma";
 
 export const metadata = {
@@ -110,7 +111,7 @@ export default async function AgentLayout({
         <AgentTopBar agent={fullAgent} user={session.user} />
 
         {/* Page Content */}
-        <main className="py-6 px-4 sm:px-6 lg:px-8">
+        <main className="py-6 px-4 sm:px-6 lg:px-8 pb-24 lg:pb-6">
           {/* Pending Approval Banner */}
           {fullAgent.status === "PENDING" && !fullAgent.isTestAccount && (
             <div className="mb-6 bg-yellow-50 border border-yellow-200 rounded-lg p-4">
@@ -133,6 +134,9 @@ export default async function AgentLayout({
           {children}
         </main>
       </div>
+
+      {/* Mobile Bottom Navigation */}
+      <AgentMobileNav />
     </div>
   );
 }

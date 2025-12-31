@@ -1,8 +1,15 @@
-"use client";
+'use client';
 
-import { useState } from "react";
-import Link from "next/link";
-import { formatDate, formatCurrency } from "@/lib/utils";
+// components/agent/BookingsClient.tsx
+// Level 6 Ultra-Premium Bookings Client
+import { useState } from 'react';
+import Link from 'next/link';
+import { motion, AnimatePresence } from 'framer-motion';
+import {
+  Search, Calendar, DollarSign, CreditCard, Clock, User,
+  LayoutGrid, List, ChevronRight, Wallet, Receipt, AlertCircle
+} from 'lucide-react';
+import { formatDate, formatCurrency } from '@/lib/utils';
 
 interface Booking {
   id: string;
@@ -16,491 +23,302 @@ interface Booking {
   depositAmount: number;
   balanceDue: number;
   currency: string;
-  client: {
-    id: string;
-    firstName: string;
-    lastName: string;
-    email: string;
-    phone: string | null;
-  };
-  quote: {
-    id: string;
-    quoteNumber: string;
-    tripName: string;
-  } | null;
-  commissions: {
-    id: string;
-    status: string;
-    agentEarnings: number;
-    platformFee: number;
-  }[];
+  client: { id: string; firstName: string; lastName: string; email: string; phone: string | null };
+  quote: { id: string; quoteNumber: string; tripName: string } | null;
+  commissions: { id: string; status: string; agentEarnings: number; platformFee: number }[];
   createdAt: Date;
 }
 
 interface BookingsClientProps {
   initialData: {
     bookings: Booking[];
-    stats: {
-      totalBookings: number;
-      totalRevenue: number;
-      totalDeposits: number;
-      totalBalance: number;
-    };
+    stats: { totalBookings: number; totalRevenue: number; totalDeposits: number; totalBalance: number };
     statusCounts: Record<string, number>;
   };
 }
 
+const statusConfig: Record<string, { bg: string; text: string; dot: string }> = {
+  PENDING: { bg: 'bg-amber-50', text: 'text-amber-700', dot: 'bg-amber-500' },
+  CONFIRMED: { bg: 'bg-emerald-50', text: 'text-emerald-700', dot: 'bg-emerald-500' },
+  IN_PROGRESS: { bg: 'bg-blue-50', text: 'text-blue-700', dot: 'bg-blue-500' },
+  COMPLETED: { bg: 'bg-gray-50', text: 'text-gray-700', dot: 'bg-gray-500' },
+  CANCELLED: { bg: 'bg-red-50', text: 'text-red-700', dot: 'bg-red-500' },
+};
+
+const paymentConfig: Record<string, { bg: string; text: string }> = {
+  PENDING: { bg: 'bg-red-50', text: 'text-red-700' },
+  DEPOSIT_PAID: { bg: 'bg-amber-50', text: 'text-amber-700' },
+  PARTIALLY_PAID: { bg: 'bg-blue-50', text: 'text-blue-700' },
+  PAID: { bg: 'bg-emerald-50', text: 'text-emerald-700' },
+  REFUNDED: { bg: 'bg-gray-50', text: 'text-gray-700' },
+};
+
 export default function BookingsClient({ initialData }: BookingsClientProps) {
   const [bookings] = useState<Booking[]>(initialData.bookings);
-  const [filter, setFilter] = useState<string>("ALL");
-  const [searchTerm, setSearchTerm] = useState("");
-  const [viewMode, setViewMode] = useState<"grid" | "table">("table");
+  const [filter, setFilter] = useState('ALL');
+  const [searchTerm, setSearchTerm] = useState('');
+  const [viewMode, setViewMode] = useState<'grid' | 'table'>('table');
 
-  // Filter bookings based on status and search
-  const filteredBookings = bookings.filter((booking) => {
-    const matchesFilter = filter === "ALL" || booking.status === filter;
-    const matchesSearch =
-      searchTerm === "" ||
-      booking.bookingNumber?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      booking.quote?.tripName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      `${booking.client.firstName} ${booking.client.lastName}`
-        .toLowerCase()
-        .includes(searchTerm.toLowerCase());
+  const filteredBookings = bookings.filter(b => {
+    const matchesFilter = filter === 'ALL' || b.status === filter;
+    const matchesSearch = !searchTerm ||
+      b.bookingNumber?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      b.quote?.tripName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      `${b.client.firstName} ${b.client.lastName}`.toLowerCase().includes(searchTerm.toLowerCase());
     return matchesFilter && matchesSearch;
   });
 
-  // Status badge component
-  const StatusBadge = ({ status }: { status: string }) => {
-    const colors: Record<string, string> = {
-      PENDING: "bg-yellow-100 text-yellow-800",
-      CONFIRMED: "bg-green-100 text-green-800",
-      IN_PROGRESS: "bg-blue-100 text-blue-800",
-      COMPLETED: "bg-gray-100 text-gray-800",
-      CANCELLED: "bg-red-100 text-red-800",
-    };
+  const statCards = [
+    { label: 'Total Bookings', value: initialData.stats.totalBookings, icon: Receipt, color: 'indigo' },
+    { label: 'Total Revenue', value: formatCurrency(initialData.stats.totalRevenue), icon: DollarSign, color: 'emerald' },
+    { label: 'Deposits', value: formatCurrency(initialData.stats.totalDeposits), icon: Wallet, color: 'amber' },
+    { label: 'Balance Due', value: formatCurrency(initialData.stats.totalBalance), icon: CreditCard, color: 'purple' },
+  ];
 
-    return (
-      <span
-        className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-          colors[status] || "bg-gray-100 text-gray-800"
-        }`}
-      >
-        {status.replace("_", " ")}
-      </span>
-    );
-  };
-
-  // Payment status badge
-  const PaymentBadge = ({ status }: { status: string }) => {
-    const colors: Record<string, string> = {
-      PENDING: "bg-red-100 text-red-800",
-      DEPOSIT_PAID: "bg-yellow-100 text-yellow-800",
-      PARTIALLY_PAID: "bg-blue-100 text-blue-800",
-      PAID: "bg-green-100 text-green-800",
-      REFUNDED: "bg-gray-100 text-gray-800",
-    };
-
-    return (
-      <span
-        className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-          colors[status] || "bg-gray-100 text-gray-800"
-        }`}
-      >
-        {status.replace("_", " ")}
-      </span>
-    );
-  };
+  const filters = [
+    { value: 'ALL', label: 'All' },
+    { value: 'PENDING', label: 'Pending' },
+    { value: 'CONFIRMED', label: 'Confirmed' },
+    { value: 'IN_PROGRESS', label: 'In Progress' },
+    { value: 'COMPLETED', label: 'Completed' },
+  ];
 
   return (
     <div className="space-y-6">
       {/* Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm font-medium text-gray-600">Total Bookings</p>
-              <p className="text-3xl font-bold text-gray-900 mt-2">
-                {initialData.stats.totalBookings}
-              </p>
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+        {statCards.map((stat, idx) => (
+          <motion.div
+            key={stat.label}
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: idx * 0.05 }}
+            className="bg-white rounded-2xl p-5 border border-gray-100 shadow-[0_1px_3px_rgba(0,0,0,0.05),0_4px_12px_rgba(0,0,0,0.03)]"
+          >
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-gray-500">{stat.label}</p>
+                <p className="text-2xl font-bold text-gray-900 mt-1">{stat.value}</p>
+              </div>
+              <div className={`w-11 h-11 rounded-xl bg-${stat.color}-100 flex items-center justify-center`}>
+                <stat.icon className={`w-5 h-5 text-${stat.color}-600`} />
+              </div>
             </div>
-            <div className="p-3 bg-blue-100 rounded-lg">
-              <svg
-                className="w-6 h-6 text-blue-600"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"
-                />
-              </svg>
-            </div>
-          </div>
-        </div>
-
-        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm font-medium text-gray-600">Total Revenue</p>
-              <p className="text-3xl font-bold text-gray-900 mt-2">
-                {formatCurrency(initialData.stats.totalRevenue)}
-              </p>
-            </div>
-            <div className="p-3 bg-green-100 rounded-lg">
-              <svg
-                className="w-6 h-6 text-green-600"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-                />
-              </svg>
-            </div>
-          </div>
-        </div>
-
-        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm font-medium text-gray-600">Deposits Received</p>
-              <p className="text-3xl font-bold text-gray-900 mt-2">
-                {formatCurrency(initialData.stats.totalDeposits)}
-              </p>
-            </div>
-            <div className="p-3 bg-yellow-100 rounded-lg">
-              <svg
-                className="w-6 h-6 text-yellow-600"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z"
-                />
-              </svg>
-            </div>
-          </div>
-        </div>
-
-        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm font-medium text-gray-600">Balance Due</p>
-              <p className="text-3xl font-bold text-gray-900 mt-2">
-                {formatCurrency(initialData.stats.totalBalance)}
-              </p>
-            </div>
-            <div className="p-3 bg-purple-100 rounded-lg">
-              <svg
-                className="w-6 h-6 text-purple-600"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z"
-                />
-              </svg>
-            </div>
-          </div>
-        </div>
+          </motion.div>
+        ))}
       </div>
 
-      {/* Filters and Search */}
-      <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
-        <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
-          {/* Search */}
-          <div className="flex-1 max-w-md">
+      {/* Filters */}
+      <motion.div
+        initial={{ opacity: 0, y: 10 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.2 }}
+        className="bg-white rounded-2xl p-4 border border-gray-100 shadow-[0_1px_3px_rgba(0,0,0,0.05)]"
+      >
+        <div className="flex flex-col lg:flex-row lg:items-center gap-4">
+          <div className="flex-1 relative">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
             <input
               type="text"
-              placeholder="Search bookings, clients, trips..."
+              placeholder="Search bookings..."
               value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              onChange={e => setSearchTerm(e.target.value)}
+              className="w-full pl-10 pr-4 py-2.5 border border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all"
             />
           </div>
-
-          {/* Status Filter */}
           <div className="flex items-center gap-2 flex-wrap">
-            {[
-              { value: "ALL", label: "All" },
-              { value: "PENDING", label: "Pending" },
-              { value: "CONFIRMED", label: "Confirmed" },
-              { value: "IN_PROGRESS", label: "In Progress" },
-              { value: "COMPLETED", label: "Completed" },
-              { value: "CANCELLED", label: "Cancelled" },
-            ].map((status) => (
+            {filters.map(f => (
               <button
-                key={status.value}
-                onClick={() => setFilter(status.value)}
-                className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
-                  filter === status.value
-                    ? "bg-blue-600 text-white"
-                    : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+                key={f.value}
+                onClick={() => setFilter(f.value)}
+                className={`px-4 py-2 rounded-xl text-sm font-medium transition-all ${
+                  filter === f.value
+                    ? 'bg-indigo-600 text-white shadow-sm'
+                    : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
                 }`}
               >
-                {status.label}
+                {f.label}
               </button>
             ))}
           </div>
-
-          {/* View Mode Toggle */}
-          <div className="flex items-center gap-2 border border-gray-300 rounded-lg p-1">
+          <div className="flex items-center gap-1 p-1 bg-gray-100 rounded-xl">
             <button
-              onClick={() => setViewMode("table")}
-              className={`p-2 rounded ${
-                viewMode === "table" ? "bg-blue-100 text-blue-600" : "text-gray-600"
-              }`}
+              onClick={() => setViewMode('table')}
+              className={`p-2 rounded-lg transition-all ${viewMode === 'table' ? 'bg-white shadow-sm text-indigo-600' : 'text-gray-500'}`}
             >
-              <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M4 6h16M4 10h16M4 14h16M4 18h16"
-                />
-              </svg>
+              <List className="w-5 h-5" />
             </button>
             <button
-              onClick={() => setViewMode("grid")}
-              className={`p-2 rounded ${
-                viewMode === "grid" ? "bg-blue-100 text-blue-600" : "text-gray-600"
-              }`}
+              onClick={() => setViewMode('grid')}
+              className={`p-2 rounded-lg transition-all ${viewMode === 'grid' ? 'bg-white shadow-sm text-indigo-600' : 'text-gray-500'}`}
             >
-              <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"
-                />
-              </svg>
+              <LayoutGrid className="w-5 h-5" />
             </button>
           </div>
         </div>
-      </div>
+      </motion.div>
 
-      {/* Results Count */}
-      <div className="flex items-center justify-between">
-        <p className="text-sm text-gray-600">
-          Showing <span className="font-medium">{filteredBookings.length}</span> of{" "}
-          <span className="font-medium">{bookings.length}</span> bookings
-        </p>
-      </div>
+      {/* Results */}
+      <p className="text-sm text-gray-500">
+        Showing <span className="font-medium text-gray-900">{filteredBookings.length}</span> of {bookings.length} bookings
+      </p>
 
       {/* Empty State */}
       {filteredBookings.length === 0 && (
-        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-12 text-center">
-          <svg
-            className="w-16 h-16 text-gray-400 mx-auto mb-4"
-            fill="none"
-            viewBox="0 0 24 24"
-            stroke="currentColor"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"
-            />
-          </svg>
-          <h3 className="text-lg font-medium text-gray-900 mb-2">No bookings found</h3>
-          <p className="text-gray-600">
-            {searchTerm || filter !== "ALL"
-              ? "Try adjusting your search or filters"
-              : "Accepted quotes will appear here as bookings"}
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          className="bg-white rounded-2xl p-12 text-center border border-gray-100"
+        >
+          <AlertCircle className="w-12 h-12 text-gray-300 mx-auto mb-4" />
+          <h3 className="text-lg font-semibold text-gray-900">No bookings found</h3>
+          <p className="text-gray-500 mt-1">
+            {searchTerm || filter !== 'ALL' ? 'Try adjusting your filters' : 'Accepted quotes appear here'}
           </p>
-        </div>
+        </motion.div>
       )}
 
       {/* Table View */}
-      {viewMode === "table" && filteredBookings.length > 0 && (
-        <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
-          <div className="overflow-x-auto">
-            <table className="min-w-full divide-y divide-gray-200">
-              <thead className="bg-gray-50">
-                <tr>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Booking
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Client
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Trip
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Dates
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Total
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Status
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Payment
-                  </th>
-                  <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Actions
-                  </th>
-                </tr>
-              </thead>
-              <tbody className="bg-white divide-y divide-gray-200">
-                {filteredBookings.map((booking) => (
-                  <tr key={booking.id} className="hover:bg-gray-50">
-                    <td className="px-6 py-4 whitespace-nowrap">
+      <AnimatePresence mode="wait">
+        {viewMode === 'table' && filteredBookings.length > 0 && (
+          <motion.div
+            key="table"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="bg-white rounded-2xl border border-gray-100 shadow-[0_1px_3px_rgba(0,0,0,0.05)] overflow-hidden"
+          >
+            <div className="overflow-x-auto">
+              <table className="w-full">
+                <thead className="bg-gray-50 border-b border-gray-100">
+                  <tr>
+                    {['Booking', 'Client', 'Trip', 'Dates', 'Total', 'Status', 'Payment', ''].map(h => (
+                      <th key={h} className="px-5 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wide">
+                        {h}
+                      </th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-gray-50">
+                  {filteredBookings.map((b, idx) => {
+                    const sc = statusConfig[b.status] || statusConfig.PENDING;
+                    const pc = paymentConfig[b.paymentStatus] || paymentConfig.PENDING;
+                    return (
+                      <motion.tr
+                        key={b.id}
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        transition={{ delay: idx * 0.02 }}
+                        className="hover:bg-gray-50 transition-colors"
+                      >
+                        <td className="px-5 py-4">
+                          <p className="font-medium text-gray-900">{b.bookingNumber}</p>
+                          {b.bookingReference && <p className="text-xs text-gray-500">Ref: {b.bookingReference}</p>}
+                        </td>
+                        <td className="px-5 py-4">
+                          <p className="font-medium text-gray-900">{b.client.firstName} {b.client.lastName}</p>
+                          <p className="text-sm text-gray-500">{b.client.email}</p>
+                        </td>
+                        <td className="px-5 py-4 text-gray-900">{b.quote?.tripName || 'N/A'}</td>
+                        <td className="px-5 py-4">
+                          <p className="text-gray-900">{formatDate(b.startDate)}</p>
+                          <p className="text-xs text-gray-500">to {formatDate(b.endDate)}</p>
+                        </td>
+                        <td className="px-5 py-4">
+                          <p className="font-semibold text-gray-900">{formatCurrency(b.total)}</p>
+                          {b.commissions.length > 0 && (
+                            <p className="text-xs text-emerald-600">
+                              +{formatCurrency(b.commissions.reduce((s, c) => s + c.agentEarnings, 0))}
+                            </p>
+                          )}
+                        </td>
+                        <td className="px-5 py-4">
+                          <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium ${sc.bg} ${sc.text}`}>
+                            <span className={`w-1.5 h-1.5 rounded-full ${sc.dot}`} />
+                            {b.status.replace('_', ' ')}
+                          </span>
+                        </td>
+                        <td className="px-5 py-4">
+                          <span className={`px-2.5 py-1 rounded-full text-xs font-medium ${pc.bg} ${pc.text}`}>
+                            {b.paymentStatus.replace('_', ' ')}
+                          </span>
+                        </td>
+                        <td className="px-5 py-4 text-right">
+                          <Link
+                            href={`/agent/bookings/${b.id}`}
+                            className="text-indigo-600 hover:text-indigo-700 font-medium text-sm inline-flex items-center gap-1"
+                          >
+                            View <ChevronRight className="w-4 h-4" />
+                          </Link>
+                        </td>
+                      </motion.tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+          </motion.div>
+        )}
+
+        {/* Grid View */}
+        {viewMode === 'grid' && filteredBookings.length > 0 && (
+          <motion.div
+            key="grid"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4"
+          >
+            {filteredBookings.map((b, idx) => {
+              const sc = statusConfig[b.status] || statusConfig.PENDING;
+              const pc = paymentConfig[b.paymentStatus] || paymentConfig.PENDING;
+              return (
+                <motion.div
+                  key={b.id}
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: idx * 0.03 }}
+                >
+                  <Link
+                    href={`/agent/bookings/${b.id}`}
+                    className="block bg-white rounded-2xl p-5 border border-gray-100 shadow-[0_1px_3px_rgba(0,0,0,0.05)] hover:shadow-[0_4px_12px_rgba(0,0,0,0.08)] transition-all"
+                  >
+                    <div className="flex items-center justify-between mb-3">
+                      <span className="text-sm font-medium text-gray-500">{b.bookingNumber}</span>
+                      <span className={`inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-xs font-medium ${sc.bg} ${sc.text}`}>
+                        <span className={`w-1.5 h-1.5 rounded-full ${sc.dot}`} />
+                        {b.status.replace('_', ' ')}
+                      </span>
+                    </div>
+                    <h3 className="font-semibold text-gray-900 mb-3">{b.quote?.tripName || 'Booking'}</h3>
+                    <div className="space-y-2 text-sm text-gray-600 mb-4">
+                      <div className="flex items-center gap-2">
+                        <User className="w-4 h-4 text-gray-400" />
+                        {b.client.firstName} {b.client.lastName}
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <Calendar className="w-4 h-4 text-gray-400" />
+                        {formatDate(b.startDate)} - {formatDate(b.endDate)}
+                      </div>
+                    </div>
+                    <div className="flex items-center justify-between pt-3 border-t border-gray-100">
                       <div>
-                        <div className="text-sm font-medium text-gray-900">
-                          {booking.bookingNumber}
-                        </div>
-                        {booking.bookingReference && (
-                          <div className="text-sm text-gray-500">
-                            Ref: {booking.bookingReference}
-                          </div>
+                        <p className="text-xl font-bold text-gray-900">{formatCurrency(b.total)}</p>
+                        {b.commissions.length > 0 && (
+                          <p className="text-xs text-emerald-600">+{formatCurrency(b.commissions.reduce((s, c) => s + c.agentEarnings, 0))} commission</p>
                         )}
                       </div>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div>
-                        <div className="text-sm font-medium text-gray-900">
-                          {booking.client.firstName} {booking.client.lastName}
-                        </div>
-                        <div className="text-sm text-gray-500">{booking.client.email}</div>
-                      </div>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="text-sm text-gray-900">
-                        {booking.quote?.tripName || "N/A"}
-                      </div>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="text-sm text-gray-900">
-                        {formatDate(booking.startDate)}
-                      </div>
-                      <div className="text-sm text-gray-500">
-                        to {formatDate(booking.endDate)}
-                      </div>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="text-sm font-medium text-gray-900">
-                        {booking.currency} {formatCurrency(booking.total)}
-                      </div>
-                      {booking.commissions.length > 0 && (
-                        <div className="text-xs text-green-600">
-                          Commission: {formatCurrency(booking.commissions.reduce((sum, c) => sum + c.agentEarnings, 0))}
-                        </div>
-                      )}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <StatusBadge status={booking.status} />
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <PaymentBadge status={booking.paymentStatus} />
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                      <Link
-                        href={`/agent/bookings/${booking.id}`}
-                        className="text-blue-600 hover:text-blue-900"
-                      >
-                        View Details
-                      </Link>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </div>
-      )}
-
-      {/* Grid View */}
-      {viewMode === "grid" && filteredBookings.length > 0 && (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {filteredBookings.map((booking) => (
-            <Link
-              key={booking.id}
-              href={`/agent/bookings/${booking.id}`}
-              className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 hover:shadow-md transition-shadow"
-            >
-              <div className="flex items-center justify-between mb-4">
-                <span className="text-sm font-medium text-gray-900">
-                  {booking.bookingNumber}
-                </span>
-                <StatusBadge status={booking.status} />
-              </div>
-
-              <h3 className="text-lg font-semibold text-gray-900 mb-2">
-                {booking.quote?.tripName || "Booking"}
-              </h3>
-
-              <div className="space-y-2 mb-4">
-                <div className="flex items-center text-sm text-gray-600">
-                  <svg
-                    className="w-4 h-4 mr-2"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
-                    />
-                  </svg>
-                  {booking.client.firstName} {booking.client.lastName}
-                </div>
-
-                <div className="flex items-center text-sm text-gray-600">
-                  <svg
-                    className="w-4 h-4 mr-2"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
-                    />
-                  </svg>
-                  {formatDate(booking.startDate)} - {formatDate(booking.endDate)}
-                </div>
-              </div>
-
-              <div className="flex items-center justify-between pt-4 border-t border-gray-200">
-                <div>
-                  <div className="text-2xl font-bold text-gray-900">
-                    {booking.currency} {formatCurrency(booking.total)}
-                  </div>
-                  {booking.commissions.length > 0 && (
-                    <div className="text-xs text-green-600">
-                      Commission: {formatCurrency(booking.commissions.reduce((sum, c) => sum + c.agentEarnings, 0))}
+                      <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${pc.bg} ${pc.text}`}>
+                        {b.paymentStatus.replace('_', ' ')}
+                      </span>
                     </div>
-                  )}
-                </div>
-                <PaymentBadge status={booking.paymentStatus} />
-              </div>
-            </Link>
-          ))}
-        </div>
-      )}
+                  </Link>
+                </motion.div>
+              );
+            })}
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }

@@ -33,15 +33,17 @@ export default async function QuoteDetailPage({ params }: Props) {
   // Layout already shows pending banner for non-active agents
   // No need to block access - they can view quotes even while pending
 
-  // Get quote
+  // Get quote with payment link fields
   const quote = await prisma!.agentQuote.findUnique({
     where: {
       id: params.id,
-      agentId: agent.id, // Ensure agent owns this quote
+      agentId: agent.id,
     },
     include: {
       client: true,
-      booking: true,
+      booking: {
+        select: { id: true, confirmationNumber: true },
+      },
     },
   });
 

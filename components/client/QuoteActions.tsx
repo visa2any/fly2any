@@ -1,8 +1,14 @@
-"use client";
+'use client';
 
-import { useState } from "react";
-import { useRouter } from "next/navigation";
-import { toast } from "react-hot-toast";
+// components/client/QuoteActions.tsx
+// Level 6 Ultra-Premium Accept/Decline Actions
+import { useState } from 'react';
+import { useRouter } from 'next/navigation';
+import { toast } from 'react-hot-toast';
+import { motion, AnimatePresence } from 'framer-motion';
+import {
+  CheckCircle, X, Loader2, Info, MessageSquare
+} from 'lucide-react';
 
 interface QuoteActionsProps {
   quote: {
@@ -17,7 +23,7 @@ export default function QuoteActions({ quote, canAccept }: QuoteActionsProps) {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
   const [showDeclineModal, setShowDeclineModal] = useState(false);
-  const [declineReason, setDeclineReason] = useState("");
+  const [declineReason, setDeclineReason] = useState('');
 
   const handleAccept = async () => {
     if (!canAccept || !quote.shareableLink) return;
@@ -25,21 +31,21 @@ export default function QuoteActions({ quote, canAccept }: QuoteActionsProps) {
     setLoading(true);
     try {
       const response = await fetch(`/api/quotes/share/${quote.shareableLink}/accept`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
       });
 
       const data = await response.json();
 
       if (!response.ok) {
-        throw new Error(data.error || "Failed to accept quote");
+        throw new Error(data.error || 'Failed to accept quote');
       }
 
-      toast.success("Quote accepted! Your travel agent will contact you shortly.");
+      toast.success('Quote accepted! Your travel agent will contact you shortly.');
       router.refresh();
     } catch (error: any) {
-      console.error("Accept error:", error);
-      toast.error(error.message || "Failed to accept quote");
+      console.error('Accept error:', error);
+      toast.error(error.message || 'Failed to accept quote');
     } finally {
       setLoading(false);
     }
@@ -51,25 +57,25 @@ export default function QuoteActions({ quote, canAccept }: QuoteActionsProps) {
     setLoading(true);
     try {
       const response = await fetch(`/api/quotes/share/${quote.shareableLink}/decline`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          reason: declineReason || "No reason provided",
+          reason: declineReason || 'No reason provided',
         }),
       });
 
       const data = await response.json();
 
       if (!response.ok) {
-        throw new Error(data.error || "Failed to decline quote");
+        throw new Error(data.error || 'Failed to decline quote');
       }
 
-      toast.success("Quote declined. Your agent has been notified.");
+      toast.success('Quote declined. Your agent has been notified.');
       setShowDeclineModal(false);
       router.refresh();
     } catch (error: any) {
-      console.error("Decline error:", error);
-      toast.error(error.message || "Failed to decline quote");
+      console.error('Decline error:', error);
+      toast.error(error.message || 'Failed to decline quote');
     } finally {
       setLoading(false);
     }
@@ -81,163 +87,146 @@ export default function QuoteActions({ quote, canAccept }: QuoteActionsProps) {
 
   return (
     <>
-      <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-        <h2 className="text-lg font-semibold text-gray-900 mb-4">Ready to Book?</h2>
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.4 }}
+        className="bg-white rounded-2xl shadow-[0_1px_3px_rgba(0,0,0,0.05),0_4px_12px_rgba(0,0,0,0.03)] border border-gray-100 overflow-hidden"
+      >
+        <div className="p-6">
+          <h2 className="text-lg font-bold text-gray-900 mb-4">Ready to Book?</h2>
 
-        <div className="space-y-3">
-          {/* Accept Button */}
-          <button
-            onClick={handleAccept}
-            disabled={loading}
-            className="w-full bg-gradient-to-r from-green-600 to-green-700 text-white py-3 px-6 rounded-lg font-medium hover:from-green-700 hover:to-green-800 disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-sm"
-          >
-            {loading ? (
-              <span className="flex items-center justify-center">
-                <svg className="animate-spin h-5 w-5 mr-2" viewBox="0 0 24 24">
-                  <circle
-                    className="opacity-25"
-                    cx="12"
-                    cy="12"
-                    r="10"
-                    stroke="currentColor"
-                    strokeWidth="4"
-                    fill="none"
-                  />
-                  <path
-                    className="opacity-75"
-                    fill="currentColor"
-                    d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                  />
-                </svg>
-                Processing...
-              </span>
-            ) : (
-              <span className="flex items-center justify-center">
-                <svg className="w-5 h-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
-                  />
-                </svg>
-                Accept This Quote
-              </span>
-            )}
-          </button>
-
-          {/* Decline Button */}
-          <button
-            onClick={() => setShowDeclineModal(true)}
-            disabled={loading}
-            className="w-full bg-white border-2 border-gray-300 text-gray-700 py-3 px-6 rounded-lg font-medium hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
-          >
-            <span className="flex items-center justify-center">
-              <svg className="w-5 h-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M6 18L18 6M6 6l12 12"
-                />
-              </svg>
-              Decline Quote
-            </span>
-          </button>
-        </div>
-
-        {/* Info */}
-        <div className="mt-6 pt-6 border-t border-gray-200">
-          <div className="flex items-start text-sm text-gray-600">
-            <svg
-              className="w-5 h-5 text-gray-400 mr-2 mt-0.5 flex-shrink-0"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
+          <div className="space-y-3">
+            {/* Accept Button */}
+            <motion.button
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
+              onClick={handleAccept}
+              disabled={loading}
+              className="w-full flex items-center justify-center gap-2 bg-gradient-to-r from-emerald-500 to-emerald-600 text-white py-4 px-6 rounded-xl font-semibold hover:from-emerald-600 hover:to-emerald-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-[0_4px_12px_rgba(16,185,129,0.25)]"
             >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-              />
-            </svg>
-            <p>
-              By accepting this quote, you're indicating your intent to book. Your travel agent will
-              contact you to finalize payment and confirm all details.
-            </p>
+              {loading ? (
+                <>
+                  <Loader2 className="w-5 h-5 animate-spin" />
+                  Processing...
+                </>
+              ) : (
+                <>
+                  <CheckCircle className="w-5 h-5" />
+                  Accept This Quote
+                </>
+              )}
+            </motion.button>
+
+            {/* Decline Button */}
+            <motion.button
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
+              onClick={() => setShowDeclineModal(true)}
+              disabled={loading}
+              className="w-full flex items-center justify-center gap-2 bg-white border-2 border-gray-200 text-gray-700 py-3.5 px-6 rounded-xl font-medium hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+            >
+              <X className="w-5 h-5" />
+              Decline Quote
+            </motion.button>
           </div>
-        </div>
-      </div>
 
-      {/* Decline Modal */}
-      {showDeclineModal && (
-        <div className="fixed inset-0 z-50 overflow-y-auto">
-          <div className="flex items-center justify-center min-h-screen px-4 pt-4 pb-20 text-center sm:block sm:p-0">
-            {/* Background overlay */}
-            <div
-              className="fixed inset-0 transition-opacity bg-gray-500 bg-opacity-75"
-              onClick={() => !loading && setShowDeclineModal(false)}
-            ></div>
-
-            {/* Modal */}
-            <div className="inline-block align-bottom bg-white rounded-lg px-4 pt-5 pb-4 text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full sm:p-6">
-              <div>
-                <div className="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-red-100">
-                  <svg
-                    className="h-6 w-6 text-red-600"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M6 18L18 6M6 6l12 12"
-                    />
-                  </svg>
-                </div>
-                <div className="mt-3 text-center sm:mt-5">
-                  <h3 className="text-lg leading-6 font-medium text-gray-900">Decline This Quote?</h3>
-                  <div className="mt-2">
-                    <p className="text-sm text-gray-500">
-                      Your travel agent will be notified. You can optionally provide a reason below.
-                    </p>
-                  </div>
-                  <div className="mt-4">
-                    <textarea
-                      value={declineReason}
-                      onChange={(e) => setDeclineReason(e.target.value)}
-                      placeholder="Let your agent know why you're declining (optional)"
-                      rows={4}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-                    />
-                  </div>
-                </div>
-              </div>
-              <div className="mt-5 sm:mt-6 sm:grid sm:grid-cols-2 sm:gap-3 sm:grid-flow-row-dense">
-                <button
-                  type="button"
-                  onClick={handleDecline}
-                  disabled={loading}
-                  className="w-full inline-flex justify-center rounded-lg border border-transparent shadow-sm px-4 py-2 bg-red-600 text-base font-medium text-white hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 sm:col-start-2 sm:text-sm disabled:opacity-50"
-                >
-                  {loading ? "Declining..." : "Decline Quote"}
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setShowDeclineModal(false)}
-                  disabled={loading}
-                  className="mt-3 w-full inline-flex justify-center rounded-lg border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 sm:mt-0 sm:col-start-1 sm:text-sm disabled:opacity-50"
-                >
-                  Cancel
-                </button>
-              </div>
+          {/* Info */}
+          <div className="mt-6 pt-6 border-t border-gray-100">
+            <div className="flex items-start gap-3 text-sm text-gray-600">
+              <Info className="w-5 h-5 text-gray-400 flex-shrink-0 mt-0.5" />
+              <p>
+                By accepting this quote, you're indicating your intent to book. Your travel agent
+                will contact you to finalize payment and confirm all details.
+              </p>
             </div>
           </div>
         </div>
-      )}
+      </motion.div>
+
+      {/* Decline Modal */}
+      <AnimatePresence>
+        {showDeclineModal && (
+          <div className="fixed inset-0 z-50 overflow-y-auto">
+            {/* Backdrop */}
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="fixed inset-0 bg-black/50 backdrop-blur-sm"
+              onClick={() => !loading && setShowDeclineModal(false)}
+            />
+
+            {/* Modal */}
+            <div className="flex min-h-full items-center justify-center p-4">
+              <motion.div
+                initial={{ opacity: 0, scale: 0.95, y: 20 }}
+                animate={{ opacity: 1, scale: 1, y: 0 }}
+                exit={{ opacity: 0, scale: 0.95, y: 20 }}
+                transition={{ type: 'spring', stiffness: 400, damping: 30 }}
+                className="relative bg-white rounded-2xl shadow-2xl max-w-lg w-full overflow-hidden"
+              >
+                <div className="p-6">
+                  {/* Icon */}
+                  <div className="w-14 h-14 rounded-2xl bg-red-100 flex items-center justify-center mx-auto mb-4">
+                    <X className="w-7 h-7 text-red-600" />
+                  </div>
+
+                  {/* Title */}
+                  <h3 className="text-xl font-bold text-gray-900 text-center mb-2">
+                    Decline This Quote?
+                  </h3>
+                  <p className="text-gray-600 text-center mb-6">
+                    Your travel agent will be notified. You can optionally provide feedback below.
+                  </p>
+
+                  {/* Reason Input */}
+                  <div className="mb-6">
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      <MessageSquare className="w-4 h-4 inline mr-1.5" />
+                      Feedback (Optional)
+                    </label>
+                    <textarea
+                      value={declineReason}
+                      onChange={e => setDeclineReason(e.target.value)}
+                      placeholder="Let your agent know why you're declining..."
+                      rows={4}
+                      className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-transparent resize-none transition-all"
+                    />
+                  </div>
+
+                  {/* Buttons */}
+                  <div className="grid grid-cols-2 gap-3">
+                    <motion.button
+                      whileTap={{ scale: 0.98 }}
+                      onClick={() => setShowDeclineModal(false)}
+                      disabled={loading}
+                      className="py-3 px-4 bg-gray-100 text-gray-700 rounded-xl font-medium hover:bg-gray-200 disabled:opacity-50 transition-colors"
+                    >
+                      Cancel
+                    </motion.button>
+                    <motion.button
+                      whileTap={{ scale: 0.98 }}
+                      onClick={handleDecline}
+                      disabled={loading}
+                      className="py-3 px-4 bg-red-600 text-white rounded-xl font-medium hover:bg-red-700 disabled:opacity-50 transition-colors flex items-center justify-center gap-2"
+                    >
+                      {loading ? (
+                        <>
+                          <Loader2 className="w-4 h-4 animate-spin" />
+                          Declining...
+                        </>
+                      ) : (
+                        'Decline Quote'
+                      )}
+                    </motion.button>
+                  </div>
+                </div>
+              </motion.div>
+            </div>
+          </div>
+        )}
+      </AnimatePresence>
     </>
   );
 }
