@@ -1097,5 +1097,3 @@ function FlightResultCard({ flight, onAdd, index }: { flight: any; onAdd: () => 
     </motion.div>
   );
 }
-
-const softSpring = { stiffness: 200, damping: 25 };
