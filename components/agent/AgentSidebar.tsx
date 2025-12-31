@@ -40,11 +40,13 @@ const tierColors: Record<string, string> = {
 
 export default function AgentSidebar({ agent }: AgentSidebarProps) {
   const pathname = usePathname();
+  const [mounted, setMounted] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isCollapsed, setIsCollapsed] = useState(true); // Default collapsed
 
-  // Persist collapsed state
+  // Persist collapsed state - only after mount to avoid hydration mismatch
   useEffect(() => {
+    setMounted(true);
     const saved = localStorage.getItem("agentSidebarCollapsed");
     if (saved !== null) setIsCollapsed(saved === "true");
   }, []);
@@ -106,10 +108,9 @@ export default function AgentSidebar({ agent }: AgentSidebarProps) {
 
       {/* Sidebar */}
       <aside
-        className={`fixed top-0 left-0 bottom-0 z-50 bg-white border-r border-gray-200 flex flex-col transition-all duration-200 ease-out
-          ${isCollapsed ? "w-16" : "w-64"}
-          ${isMobileMenuOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"}
-        `}
+        className="fixed top-0 left-0 bottom-0 z-50 bg-white border-r border-gray-200 flex flex-col transition-all duration-200 ease-out w-16 -translate-x-full lg:translate-x-0"
+        style={{ width: mounted ? (isCollapsed ? '4rem' : '16rem') : undefined, transform: isMobileMenuOpen ? 'translateX(0)' : undefined }}
+        suppressHydrationWarning
       >
         {/* Logo */}
         <div className={`h-14 flex items-center border-b border-gray-200 ${isCollapsed ? "justify-center px-2" : "justify-between px-4"}`}>
