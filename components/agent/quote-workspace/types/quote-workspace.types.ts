@@ -162,6 +162,8 @@ export interface WorkspaceUI {
   isSaving: boolean;
   lastSavedAt: string | null;
   sidebarExpanded: boolean;
+  discoveryPanelWidth: number;
+  searchFormCollapsed: boolean;
 }
 
 // Main workspace state

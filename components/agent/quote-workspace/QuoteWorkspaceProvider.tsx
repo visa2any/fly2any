@@ -51,6 +51,8 @@ const initialState: QuoteWorkspaceState = {
     isSaving: false,
     lastSavedAt: null,
     sidebarExpanded: false,
+    discoveryPanelWidth: 320,
+    searchFormCollapsed: false,
   },
   historyIndex: 0,
 };
@@ -269,6 +271,8 @@ interface QuoteWorkspaceContextType {
   openSendModal: () => void;
   closeSendModal: () => void;
   toggleSidebar: () => void;
+  setDiscoveryPanelWidth: (width: number) => void;
+  setSearchFormCollapsed: (collapsed: boolean) => void;
   saveQuote: () => Promise<void>;
   loadQuote: (id: string) => Promise<void>;
 }
@@ -307,6 +311,8 @@ export function QuoteWorkspaceProvider({ children, initialQuoteId }: { children:
   const openSendModal = useCallback(() => dispatch({ type: "SET_UI", payload: { sendModalOpen: true } }), []);
   const closeSendModal = useCallback(() => dispatch({ type: "SET_UI", payload: { sendModalOpen: false } }), []);
   const toggleSidebar = useCallback(() => dispatch({ type: "SET_UI", payload: { sidebarExpanded: !state.ui.sidebarExpanded } }), [state.ui.sidebarExpanded]);
+  const setDiscoveryPanelWidth = useCallback((width: number) => dispatch({ type: "SET_UI", payload: { discoveryPanelWidth: Math.max(280, Math.min(480, width)) } }), []);
+  const setSearchFormCollapsed = useCallback((collapsed: boolean) => dispatch({ type: "SET_UI", payload: { searchFormCollapsed: collapsed } }), []);
 
   // Save quote to API
   const saveQuote = useCallback(async () => {
@@ -402,10 +408,12 @@ export function QuoteWorkspaceProvider({ children, initialQuoteId }: { children:
       openSendModal,
       closeSendModal,
       toggleSidebar,
+      setDiscoveryPanelWidth,
+      setSearchFormCollapsed,
       saveQuote,
       loadQuote,
     }),
-    [state, setTripName, setDestination, setDates, setTravelers, addItem, updateItem, removeItem, reorderItems, setMarkup, setCurrency, setClient, setActiveTab, setSearchResults, expandItem, openPreview, closePreview, openClientModal, closeClientModal, openSendModal, closeSendModal, toggleSidebar, saveQuote, loadQuote]
+    [state, setTripName, setDestination, setDates, setTravelers, addItem, updateItem, removeItem, reorderItems, setMarkup, setCurrency, setClient, setActiveTab, setSearchResults, expandItem, openPreview, closePreview, openClientModal, closeClientModal, openSendModal, closeSendModal, toggleSidebar, setDiscoveryPanelWidth, setSearchFormCollapsed, saveQuote, loadQuote]
   );
 
   return <QuoteWorkspaceContext.Provider value={contextValue}>{children}</QuoteWorkspaceContext.Provider>;
