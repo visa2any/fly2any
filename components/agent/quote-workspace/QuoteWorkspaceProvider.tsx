@@ -50,6 +50,7 @@ const initialState: QuoteWorkspaceState = {
     sendModalOpen: false,
     isSaving: false,
     lastSavedAt: null,
+    sidebarExpanded: false,
   },
   historyIndex: 0,
 };
@@ -267,6 +268,7 @@ interface QuoteWorkspaceContextType {
   closeClientModal: () => void;
   openSendModal: () => void;
   closeSendModal: () => void;
+  toggleSidebar: () => void;
   saveQuote: () => Promise<void>;
   loadQuote: (id: string) => Promise<void>;
 }
@@ -304,6 +306,7 @@ export function QuoteWorkspaceProvider({ children, initialQuoteId }: { children:
   const closeClientModal = useCallback(() => dispatch({ type: "SET_UI", payload: { clientModalOpen: false } }), []);
   const openSendModal = useCallback(() => dispatch({ type: "SET_UI", payload: { sendModalOpen: true } }), []);
   const closeSendModal = useCallback(() => dispatch({ type: "SET_UI", payload: { sendModalOpen: false } }), []);
+  const toggleSidebar = useCallback(() => dispatch({ type: "SET_UI", payload: { sidebarExpanded: !state.ui.sidebarExpanded } }), [state.ui.sidebarExpanded]);
 
   // Save quote to API
   const saveQuote = useCallback(async () => {
@@ -398,10 +401,11 @@ export function QuoteWorkspaceProvider({ children, initialQuoteId }: { children:
       closeClientModal,
       openSendModal,
       closeSendModal,
+      toggleSidebar,
       saveQuote,
       loadQuote,
     }),
-    [state, setTripName, setDestination, setDates, setTravelers, addItem, updateItem, removeItem, reorderItems, setMarkup, setCurrency, setClient, setActiveTab, setSearchResults, expandItem, openPreview, closePreview, openClientModal, closeClientModal, openSendModal, closeSendModal, saveQuote, loadQuote]
+    [state, setTripName, setDestination, setDates, setTravelers, addItem, updateItem, removeItem, reorderItems, setMarkup, setCurrency, setClient, setActiveTab, setSearchResults, expandItem, openPreview, closePreview, openClientModal, closeClientModal, openSendModal, closeSendModal, toggleSidebar, saveQuote, loadQuote]
   );
 
   return <QuoteWorkspaceContext.Provider value={contextValue}>{children}</QuoteWorkspaceContext.Provider>;

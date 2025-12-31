@@ -161,6 +161,7 @@ export interface WorkspaceUI {
   sendModalOpen: boolean;
   isSaving: boolean;
   lastSavedAt: string | null;
+  sidebarExpanded: boolean;
 }
 
 // Main workspace state
