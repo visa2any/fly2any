@@ -3,6 +3,8 @@ import { redirect } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import Link from "next/link";
 
+export const dynamic = "force-dynamic";
+
 export const metadata = {
   title: "My Quotes | Agent Portal",
   description: "View and manage your travel quotes",
@@ -17,41 +19,43 @@ export default async function QuotesPage() {
 
   const agent = await prisma?.travelAgent.findUnique({
     where: { userId: session.user.id },
-    select: {
-      id: true,
-      quotes: {
-        select: {
-          id: true,
-          title: true,
-          status: true,
-          total: true,
-          currency: true,
-          shareableLink: true,
-          client: {
-            select: {
-              firstName: true,
-              lastName: true,
-              email: true,
-            },
-          },
-        },
-        orderBy: { createdAt: "desc" },
-        take: 50,
-      },
-    },
+    select: { id: true },
   });
 
   if (!agent) {
     redirect("/agent/register");
   }
 
-  const quotes = (agent.quotes || []).map((q: any) => ({
+  // Fetch quotes separately with correct field names
+  const quotesRaw = await prisma?.agentQuote.findMany({
+    where: { agentId: agent.id },
+    select: {
+      id: true,
+      tripName: true,
+      quoteNumber: true,
+      status: true,
+      total: true,
+      currency: true,
+      destination: true,
+      client: {
+        select: {
+          firstName: true,
+          lastName: true,
+        },
+      },
+    },
+    orderBy: { createdAt: "desc" },
+    take: 50,
+  });
+
+  const quotes = (quotesRaw || []).map((q: any) => ({
     id: String(q.id || ""),
-    title: q.title ? String(q.title) : "Untitled Quote",
+    title: q.tripName ? String(q.tripName) : "Untitled Quote",
+    quoteNumber: q.quoteNumber ? String(q.quoteNumber) : null,
     status: String(q.status || "DRAFT"),
     total: Number(q.total) || 0,
     currency: String(q.currency || "USD"),
-    shareableLink: q.shareableLink ? String(q.shareableLink) : null,
+    destination: q.destination ? String(q.destination) : null,
     clientName: q.client
       ? `${q.client.firstName || ""} ${q.client.lastName || ""}`.trim() || "No Client"
       : "No Client",
