@@ -62,8 +62,22 @@ export default function PremiumDatePicker({
   );
   const [isHovered, setIsHovered] = useState(false);
   const [direction, setDirection] = useState(0); // -1 for prev, 1 for next
+  const [dropdownPos, setDropdownPos] = useState({ top: 0, left: 0, width: 300 });
   const containerRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLButtonElement>(null);
+
+  // Calculate dropdown position when opening
+  const openDropdown = () => {
+    if (inputRef.current) {
+      const rect = inputRef.current.getBoundingClientRect();
+      const spaceBelow = window.innerHeight - rect.bottom;
+      const dropdownHeight = 380;
+      // Position below if space, otherwise above
+      const top = spaceBelow > dropdownHeight ? rect.bottom + 8 : rect.top - dropdownHeight - 8;
+      setDropdownPos({ top, left: rect.left, width: Math.max(300, rect.width) });
+    }
+    setIsOpen(true);
+  };
 
   // Parse dates
   const selectedDate = value ? parseISO(value) : null;
@@ -180,7 +194,7 @@ export default function PremiumDatePicker({
       <motion.button
         ref={inputRef}
         type="button"
-        onClick={() => !disabled && setIsOpen(!isOpen)}
+        onClick={() => !disabled && (isOpen ? setIsOpen(false) : openDropdown())}
         onHoverStart={() => setIsHovered(true)}
         onHoverEnd={() => setIsHovered(false)}
         disabled={disabled}
@@ -278,13 +292,12 @@ export default function PremiumDatePicker({
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: -10, scale: 0.95 }}
             transition={{ type: "spring", ...springConfig }}
-            className="
-              absolute z-50 mt-2 left-0 right-0 min-w-[300px]
-              bg-white rounded-2xl
-              border border-gray-200
-              overflow-hidden
-            "
+            className="fixed z-[9999] bg-white rounded-2xl border border-gray-200 overflow-hidden"
             style={{
+              top: dropdownPos.top,
+              left: dropdownPos.left,
+              width: dropdownPos.width,
+              minWidth: 300,
               boxShadow: `
                 0 4px 6px -1px rgba(0, 0, 0, 0.05),
                 0 10px 15px -3px rgba(0, 0, 0, 0.08),
