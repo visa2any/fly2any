@@ -1,15 +1,220 @@
 // app/agent/page.tsx
-// MINIMAL TEST - No database, no components
+import { auth } from "@/lib/auth";
+import { redirect } from "next/navigation";
+import { prisma } from "@/lib/prisma";
+import Link from "next/link";
+
+export const dynamic = "force-dynamic";
+
 export const metadata = {
   title: "Dashboard - Agent Portal",
   description: "Travel agent dashboard",
 };
 
-export default function AgentDashboardPage() {
+export default async function AgentDashboardPage() {
+  const session = await auth();
+
+  if (!session?.user?.id) {
+    redirect("/auth/signin?callbackUrl=/agent");
+  }
+
+  const agent = await prisma?.travelAgent.findUnique({
+    where: { userId: session.user.id },
+    select: { id: true, tier: true, businessName: true },
+  });
+
+  if (!agent) {
+    redirect("/agent/register");
+  }
+
+  // Fetch stats in parallel
+  const [quotesCount, bookingsCount, clientsCount, commissionsData] = await Promise.all([
+    prisma?.agentQuote.count({ where: { agentId: agent.id } }) || 0,
+    prisma?.agentBooking.count({ where: { agentId: agent.id } }) || 0,
+    prisma?.agentClient.count({ where: { agentId: agent.id, status: { not: "ARCHIVED" } } }) || 0,
+    prisma?.agentCommission.aggregate({
+      where: { agentId: agent.id, status: { not: "CANCELLED" } },
+      _sum: { agentEarnings: true },
+    }),
+  ]);
+
+  const totalEarnings = Number(commissionsData?._sum?.agentEarnings) || 0;
+
+  // Recent quotes
+  const recentQuotesRaw = await prisma?.agentQuote.findMany({
+    where: { agentId: agent.id },
+    select: {
+      id: true,
+      tripName: true,
+      status: true,
+      total: true,
+      destination: true,
+    },
+    orderBy: { createdAt: "desc" },
+    take: 5,
+  });
+
+  const recentQuotes = (recentQuotesRaw || []).map((q: any) => ({
+    id: String(q.id),
+    tripName: String(q.tripName || "Untitled"),
+    status: String(q.status || "DRAFT"),
+    total: Number(q.total) || 0,
+    destination: q.destination ? String(q.destination) : null,
+  }));
+
+  const statusColors: Record<string, string> = {
+    DRAFT: "bg-gray-100 text-gray-700",
+    SENT: "bg-blue-100 text-blue-700",
+    VIEWED: "bg-purple-100 text-purple-700",
+    ACCEPTED: "bg-green-100 text-green-700",
+    DECLINED: "bg-red-100 text-red-700",
+    EXPIRED: "bg-yellow-100 text-yellow-700",
+  };
+
   return (
-    <div className="p-8">
-      <h1 className="text-2xl font-bold text-gray-900">Agent Dashboard</h1>
-      <p className="text-gray-600 mt-2">Minimal test page - if you see this, layout works!</p>
+    <div className="space-y-6">
+      {/* Header */}
+      <div>
+        <h1 className="text-3xl font-bold text-gray-900">Dashboard</h1>
+        <p className="text-gray-600 mt-1">
+          Welcome back{agent.businessName ? `, ${agent.businessName}` : ""}
+        </p>
+      </div>
+
+      {/* Stats Grid */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+        <Link href="/agent/quotes" className="bg-white p-5 rounded-xl border hover:shadow-md transition-shadow">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm text-gray-500">Quotes</p>
+              <p className="text-3xl font-bold text-gray-900">{quotesCount}</p>
+            </div>
+            <span className="text-3xl">📋</span>
+          </div>
+        </Link>
+
+        <Link href="/agent/bookings" className="bg-white p-5 rounded-xl border hover:shadow-md transition-shadow">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm text-gray-500">Bookings</p>
+              <p className="text-3xl font-bold text-gray-900">{bookingsCount}</p>
+            </div>
+            <span className="text-3xl">✈️</span>
+          </div>
+        </Link>
+
+        <Link href="/agent/clients" className="bg-white p-5 rounded-xl border hover:shadow-md transition-shadow">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm text-gray-500">Clients</p>
+              <p className="text-3xl font-bold text-gray-900">{clientsCount}</p>
+            </div>
+            <span className="text-3xl">👥</span>
+          </div>
+        </Link>
+
+        <Link href="/agent/commissions" className="bg-gradient-to-r from-green-500 to-emerald-600 p-5 rounded-xl text-white hover:shadow-md transition-shadow">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm text-green-100">Earnings</p>
+              <p className="text-3xl font-bold">${totalEarnings.toLocaleString()}</p>
+            </div>
+            <span className="text-3xl">💰</span>
+          </div>
+        </Link>
+      </div>
+
+      {/* Quick Actions */}
+      <div className="bg-white rounded-xl border p-6">
+        <h2 className="text-lg font-semibold text-gray-900 mb-4">Quick Actions</h2>
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+          <Link
+            href="/agent/quotes/workspace"
+            className="flex items-center gap-3 p-4 bg-primary-50 rounded-lg hover:bg-primary-100 transition-colors"
+          >
+            <span className="text-2xl">✨</span>
+            <span className="font-medium text-primary-700">New Quote</span>
+          </Link>
+          <Link
+            href="/agent/clients/create"
+            className="flex items-center gap-3 p-4 bg-blue-50 rounded-lg hover:bg-blue-100 transition-colors"
+          >
+            <span className="text-2xl">👤</span>
+            <span className="font-medium text-blue-700">Add Client</span>
+          </Link>
+          <Link
+            href="/agent/products"
+            className="flex items-center gap-3 p-4 bg-purple-50 rounded-lg hover:bg-purple-100 transition-colors"
+          >
+            <span className="text-2xl">🎫</span>
+            <span className="font-medium text-purple-700">Products</span>
+          </Link>
+          <Link
+            href="/agent/payouts"
+            className="flex items-center gap-3 p-4 bg-green-50 rounded-lg hover:bg-green-100 transition-colors"
+          >
+            <span className="text-2xl">💵</span>
+            <span className="font-medium text-green-700">Payouts</span>
+          </Link>
+        </div>
+      </div>
+
+      {/* Recent Quotes */}
+      <div className="bg-white rounded-xl border overflow-hidden">
+        <div className="p-4 border-b flex items-center justify-between">
+          <h2 className="text-lg font-semibold text-gray-900">Recent Quotes</h2>
+          <Link href="/agent/quotes" className="text-sm text-primary-600 hover:underline">
+            View All →
+          </Link>
+        </div>
+        {recentQuotes.length === 0 ? (
+          <div className="p-8 text-center text-gray-500">
+            <p>No quotes yet.</p>
+            <Link href="/agent/quotes/workspace" className="text-primary-600 hover:underline mt-2 inline-block">
+              Create your first quote
+            </Link>
+          </div>
+        ) : (
+          <div className="divide-y">
+            {recentQuotes.map((quote) => (
+              <Link
+                key={quote.id}
+                href={`/agent/quotes/${quote.id}`}
+                className="flex items-center justify-between p-4 hover:bg-gray-50 transition-colors"
+              >
+                <div>
+                  <p className="font-medium text-gray-900">{quote.tripName}</p>
+                  {quote.destination && (
+                    <p className="text-sm text-gray-500">{quote.destination}</p>
+                  )}
+                </div>
+                <div className="flex items-center gap-3">
+                  <span className={`px-2 py-1 text-xs rounded-full ${statusColors[quote.status] || "bg-gray-100"}`}>
+                    {quote.status}
+                  </span>
+                  <span className="font-medium text-gray-900">${quote.total.toLocaleString()}</span>
+                </div>
+              </Link>
+            ))}
+          </div>
+        )}
+      </div>
+
+      {/* Tier Info */}
+      <div className="bg-gradient-to-r from-gray-800 to-gray-900 rounded-xl p-6 text-white">
+        <div className="flex items-center justify-between">
+          <div>
+            <p className="text-gray-400 text-sm">Current Tier</p>
+            <p className="text-2xl font-bold mt-1">{agent.tier || "STARTER"}</p>
+          </div>
+          <Link
+            href="/agent/settings"
+            className="px-4 py-2 bg-white/10 rounded-lg text-sm hover:bg-white/20 transition-colors"
+          >
+            Upgrade →
+          </Link>
+        </div>
+      </div>
     </div>
   );
 }
