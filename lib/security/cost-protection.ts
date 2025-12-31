@@ -78,6 +78,24 @@ export async function checkCostGuard(
     };
   }
 
+  // Bypass bot detection for authenticated agent portal requests
+  // Agents are trusted users - skip aggressive bot checks
+  const referer = request.headers.get('referer') || '';
+  const hasAuthCookie = request.cookies.has('authjs.session-token') ||
+                        request.cookies.has('__Secure-authjs.session-token') ||
+                        request.cookies.has('next-auth.session-token') ||
+                        request.cookies.has('__Secure-next-auth.session-token');
+  const isAgentPortal = referer.includes('/agent/');
+
+  if (hasAuthCookie && isAgentPortal) {
+    // Authenticated agent - allow with higher rate limit
+    return {
+      allowed: true,
+      threatScore: 0,
+      dailyRemaining: opts.dailyBudget,
+    };
+  }
+
   // Layer 1: Quick bot check (fast path, no Redis)
   if (isLikelyBot(request)) {
     // Send alert (non-blocking)
