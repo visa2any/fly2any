@@ -98,8 +98,30 @@ export default async function AgentLayout({
     );
   }
 
-  // SERIALIZE for client components
-  const serializedAgent = JSON.parse(JSON.stringify(fullAgent));
+  // SERIALIZE for client components - handle Date objects safely
+  // Note: session.user and Prisma objects may have non-serializable types
+  const serializedAgent = {
+    id: fullAgent.id,
+    tier: fullAgent.tier,
+    status: fullAgent.status,
+    businessName: fullAgent.businessName,
+    isTestAccount: fullAgent.isTestAccount,
+    availableBalance: fullAgent.availableBalance ?? 0,
+    pendingBalance: fullAgent.pendingBalance ?? 0,
+    currentBalance: fullAgent.currentBalance ?? 0,
+    user: {
+      name: fullAgent.user?.name ?? null,
+      email: fullAgent.user?.email ?? '',
+      image: fullAgent.user?.image ?? null,
+    },
+  };
+
+  // Serialize session user separately for AgentTopBar
+  const serializedUser = {
+    name: session.user.name ?? null,
+    email: session.user.email ?? null,
+    image: session.user.image ?? null,
+  };
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -112,7 +134,7 @@ export default async function AgentLayout({
       {/* Main Content Area - Dynamic padding based on sidebar */}
       <AgentContentWrapper>
         {/* Top Bar */}
-        <AgentTopBar agent={serializedAgent} user={session.user} />
+        <AgentTopBar agent={serializedAgent} user={serializedUser} />
 
         {/* Page Content */}
         <main className="py-4 px-4 sm:px-6 lg:px-8 pb-24 lg:pb-6">
