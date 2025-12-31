@@ -45,19 +45,22 @@ export default async function ClientsPage() {
   // Layout already shows pending banner for non-active agents
   // No need to block access - they can manage clients even while pending
 
+  // SERIALIZE clients for client component
+  const serializedClients = JSON.parse(JSON.stringify(agent.clients || []));
+
   // Calculate client statistics
   const stats = {
-    total: agent.clients.length,
-    standard: agent.clients.filter((c) => c.segment === "STANDARD").length,
-    vip: agent.clients.filter((c) => c.segment === "VIP").length,
-    honeymoon: agent.clients.filter((c) => c.segment === "HONEYMOON").length,
-    family: agent.clients.filter((c) => c.segment === "FAMILY").length,
-    business: agent.clients.filter((c) => c.segment === "BUSINESS").length,
-    corporate: agent.clients.filter((c) => c.segment === "CORPORATE").length,
-    luxury: agent.clients.filter((c) => c.segment === "LUXURY").length,
-    withQuotes: agent.clients.filter((c) => c._count.quotes > 0).length,
-    withBookings: agent.clients.filter((c) => c._count.bookings > 0).length,
-    maxClients: agent.maxClients,
+    total: serializedClients.length,
+    standard: serializedClients.filter((c: any) => c.segment === "STANDARD").length,
+    vip: serializedClients.filter((c: any) => c.segment === "VIP").length,
+    honeymoon: serializedClients.filter((c: any) => c.segment === "HONEYMOON").length,
+    family: serializedClients.filter((c: any) => c.segment === "FAMILY").length,
+    business: serializedClients.filter((c: any) => c.segment === "BUSINESS").length,
+    corporate: serializedClients.filter((c: any) => c.segment === "CORPORATE").length,
+    luxury: serializedClients.filter((c: any) => c.segment === "LUXURY").length,
+    withQuotes: serializedClients.filter((c: any) => c._count?.quotes > 0).length,
+    withBookings: serializedClients.filter((c: any) => c._count?.bookings > 0).length,
+    maxClients: Number(agent.maxClients) || 100,
   };
 
   return (
@@ -116,7 +119,7 @@ export default async function ClientsPage() {
       </div>
 
       {/* Client List with Filters */}
-      <ClientListClient clients={agent.clients} />
+      <ClientListClient clients={serializedClients} />
     </div>
   );
 }

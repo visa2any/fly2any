@@ -34,19 +34,19 @@ export default async function QuotesPage() {
     redirect("/agent/register");
   }
 
-  // Layout already shows pending banner for non-active agents
-  // No need to block access - they can view quotes even while pending
+  // SERIALIZE quotes for client component
+  const serializedQuotes = JSON.parse(JSON.stringify(agent.quotes || []));
 
   // Calculate quote statistics
   const stats = {
-    total: agent.quotes.length,
-    draft: agent.quotes.filter((q) => q.status === "DRAFT").length,
-    sent: agent.quotes.filter((q) => q.status === "SENT").length,
-    viewed: agent.quotes.filter((q) => q.status === "VIEWED").length,
-    accepted: agent.quotes.filter((q) => q.status === "ACCEPTED").length,
-    declined: agent.quotes.filter((q) => q.status === "DECLINED").length,
-    expired: agent.quotes.filter((q) => q.status === "EXPIRED").length,
-    converted: agent.quotes.filter((q) => q.status === "CONVERTED").length,
+    total: serializedQuotes.length,
+    draft: serializedQuotes.filter((q: any) => q.status === "DRAFT").length,
+    sent: serializedQuotes.filter((q: any) => q.status === "SENT").length,
+    viewed: serializedQuotes.filter((q: any) => q.status === "VIEWED").length,
+    accepted: serializedQuotes.filter((q: any) => q.status === "ACCEPTED").length,
+    declined: serializedQuotes.filter((q: any) => q.status === "DECLINED").length,
+    expired: serializedQuotes.filter((q: any) => q.status === "EXPIRED").length,
+    converted: serializedQuotes.filter((q: any) => q.status === "CONVERTED").length,
   };
 
   return (
@@ -81,7 +81,7 @@ export default async function QuotesPage() {
       </div>
 
       {/* Quote List with Filters */}
-      <QuoteListClient quotes={agent.quotes} />
+      <QuoteListClient quotes={serializedQuotes} />
     </div>
   );
 }
