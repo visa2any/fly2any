@@ -106,30 +106,29 @@ export default async function AgentLayout({
     );
   }
 
-  // SERIALIZE for client components - handle Date objects safely
-  // Note: session.user and Prisma objects may have non-serializable types
-  const serializedAgent = {
+  // FORCE JSON serialization to strip Prisma Proxy objects
+  // This is the ONLY reliable way to prevent RSC streaming errors
+  const serializedAgent = JSON.parse(JSON.stringify({
     id: fullAgent.id,
     tier: fullAgent.tier,
     status: fullAgent.status,
-    businessName: fullAgent.businessName,
-    isTestAccount: fullAgent.isTestAccount,
-    availableBalance: fullAgent.availableBalance ?? 0,
-    pendingBalance: fullAgent.pendingBalance ?? 0,
-    currentBalance: fullAgent.currentBalance ?? 0,
+    businessName: fullAgent.businessName ?? null,
+    isTestAccount: fullAgent.isTestAccount ?? false,
+    availableBalance: Number(fullAgent.availableBalance) || 0,
+    pendingBalance: Number(fullAgent.pendingBalance) || 0,
+    currentBalance: Number(fullAgent.currentBalance) || 0,
     user: {
       name: fullAgent.user?.name ?? null,
       email: fullAgent.user?.email ?? '',
       image: fullAgent.user?.image ?? null,
     },
-  };
+  }));
 
-  // Serialize session user separately for AgentTopBar
-  const serializedUser = {
+  const serializedUser = JSON.parse(JSON.stringify({
     name: session.user.name ?? null,
     email: session.user.email ?? null,
     image: session.user.image ?? null,
-  };
+  }));
 
   return (
     <div className="min-h-screen bg-gray-50">
