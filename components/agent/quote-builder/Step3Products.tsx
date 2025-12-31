@@ -1,7 +1,18 @@
 "use client";
 
 import { useState } from "react";
+import { motion } from "framer-motion";
 import { QuoteData } from "../QuoteBuilder";
+import { Plane, Building2, Car, Compass, Bus, Shield, Package, Plus, Edit2, Trash2, DollarSign } from "lucide-react";
+import {
+  FlightEntryModal,
+  HotelEntryModal,
+  ActivityEntryModal,
+  TransferEntryModal,
+  CarRentalEntryModal,
+  InsuranceEntryModal,
+  CustomItemEntryModal,
+} from "./ProductEntryModals";
 
 interface Step3ProductsProps {
   quoteData: QuoteData;
@@ -15,22 +26,22 @@ interface Step3ProductsProps {
 export default function QuoteBuilderStep3Products({
   quoteData,
   updateQuoteData,
-  products,
-  suppliers,
   onNext,
   onPrev,
 }: Step3ProductsProps) {
-  const [activeTab, setActiveTab] = useState<"flights" | "hotels" | "activities" | "transfers" | "cars" | "insurance" | "custom">("flights");
+  // Modal states
+  const [flightModal, setFlightModal] = useState(false);
+  const [hotelModal, setHotelModal] = useState(false);
+  const [activityModal, setActivityModal] = useState(false);
+  const [transferModal, setTransferModal] = useState(false);
+  const [carModal, setCarModal] = useState(false);
+  const [insuranceModal, setInsuranceModal] = useState(false);
+  const [customModal, setCustomModal] = useState(false);
 
-  const tabs = [
-    { id: "flights", name: "Flights", icon: "✈️", count: quoteData.flights.length },
-    { id: "hotels", name: "Hotels", icon: "🏨", count: quoteData.hotels.length },
-    { id: "activities", name: "Activities", icon: "🎯", count: quoteData.activities.length },
-    { id: "transfers", name: "Transfers", icon: "🚗", count: quoteData.transfers.length },
-    { id: "cars", name: "Car Rentals", icon: "🚙", count: quoteData.carRentals.length },
-    { id: "insurance", name: "Insurance", icon: "🛡️", count: quoteData.insurance.length },
-    { id: "custom", name: "Custom Items", icon: "📝", count: quoteData.customItems.length },
-  ];
+  // Edit states
+  const [editItem, setEditItem] = useState<any>(null);
+  const [editIndex, setEditIndex] = useState<number>(-1);
+  const [editType, setEditType] = useState<string>("");
 
   const totalItems =
     quoteData.flights.length +
@@ -41,634 +52,299 @@ export default function QuoteBuilderStep3Products({
     quoteData.insurance.length +
     quoteData.customItems.length;
 
-  // Functions to add/remove items
-  const addFlight = (flight: any) => {
-    updateQuoteData({ flights: [...quoteData.flights, flight] });
+  const totalCost =
+    quoteData.flightsCost +
+    quoteData.hotelsCost +
+    quoteData.activitiesCost +
+    quoteData.transfersCost +
+    quoteData.carRentalsCost +
+    quoteData.insuranceCost +
+    quoteData.customItemsCost;
+
+  // Generic handlers
+  const handleAdd = (type: string, item: any) => {
+    const key = type === "car" ? "carRentals" : type === "custom" ? "customItems" : `${type}s`;
+    const costKey = type === "car" ? "carRentalsCost" : type === "custom" ? "customItemsCost" : `${type}sCost`;
+    updateQuoteData({
+      [key]: [...(quoteData as any)[key], item],
+      [costKey]: (quoteData as any)[costKey] + (item.price || 0),
+    });
   };
 
-  const removeFlight = (index: number) => {
-    updateQuoteData({ flights: quoteData.flights.filter((_, i) => i !== index) });
+  const handleUpdate = (type: string, index: number, item: any) => {
+    const key = type === "car" ? "carRentals" : type === "custom" ? "customItems" : `${type}s`;
+    const costKey = type === "car" ? "carRentalsCost" : type === "custom" ? "customItemsCost" : `${type}sCost`;
+    const items = [...(quoteData as any)[key]];
+    const oldPrice = items[index]?.price || 0;
+    items[index] = item;
+    updateQuoteData({
+      [key]: items,
+      [costKey]: (quoteData as any)[costKey] - oldPrice + (item.price || 0),
+    });
+    setEditItem(null);
+    setEditIndex(-1);
+    setEditType("");
   };
 
-  const addHotel = (hotel: any) => {
-    updateQuoteData({ hotels: [...quoteData.hotels, hotel] });
+  const handleDelete = (type: string, index: number) => {
+    const key = type === "car" ? "carRentals" : type === "custom" ? "customItems" : `${type}s`;
+    const costKey = type === "car" ? "carRentalsCost" : type === "custom" ? "customItemsCost" : `${type}sCost`;
+    const items = (quoteData as any)[key];
+    const deletedPrice = items[index]?.price || 0;
+    updateQuoteData({
+      [key]: items.filter((_: any, i: number) => i !== index),
+      [costKey]: (quoteData as any)[costKey] - deletedPrice,
+    });
   };
 
-  const removeHotel = (index: number) => {
-    updateQuoteData({ hotels: quoteData.hotels.filter((_, i) => i !== index) });
+  const openEdit = (type: string, index: number) => {
+    const key = type === "car" ? "carRentals" : type === "custom" ? "customItems" : `${type}s`;
+    setEditItem((quoteData as any)[key][index]);
+    setEditIndex(index);
+    setEditType(type);
+    // Open appropriate modal
+    if (type === "flight") setFlightModal(true);
+    else if (type === "hotel") setHotelModal(true);
+    else if (type === "activity") setActivityModal(true);
+    else if (type === "transfer") setTransferModal(true);
+    else if (type === "car") setCarModal(true);
+    else if (type === "insurance") setInsuranceModal(true);
+    else if (type === "custom") setCustomModal(true);
   };
 
-  const addActivity = (activity: any) => {
-    updateQuoteData({ activities: [...quoteData.activities, activity] });
-  };
+  // Product card component
+  const ProductCard = ({ item, type, index, icon: Icon, gradient }: any) => (
+    <motion.div
+      initial={{ opacity: 0, scale: 0.95 }}
+      animate={{ opacity: 1, scale: 1 }}
+      className="bg-white border border-gray-200 rounded-xl p-4 hover:shadow-md transition-shadow"
+    >
+      <div className="flex items-start gap-3">
+        <div className={`w-10 h-10 bg-gradient-to-br ${gradient} rounded-lg flex items-center justify-center flex-shrink-0`}>
+          <Icon className="w-5 h-5 text-white" />
+        </div>
+        <div className="flex-1 min-w-0">
+          <h4 className="font-semibold text-gray-900 truncate">
+            {item.name || item.airline || item.company || item.provider || "Item"}
+          </h4>
+          <p className="text-sm text-gray-500 truncate">
+            {item.destination || item.location || item.pickupLocation || item.planName || item.category || ""}
+          </p>
+          <p className="text-sm font-bold text-emerald-600 mt-1">
+            ${(item.price || 0).toLocaleString()}
+          </p>
+        </div>
+        <div className="flex gap-1">
+          <button
+            onClick={() => openEdit(type, index)}
+            className="p-2 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+          >
+            <Edit2 className="w-4 h-4" />
+          </button>
+          <button
+            onClick={() => handleDelete(type, index)}
+            className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+          >
+            <Trash2 className="w-4 h-4" />
+          </button>
+        </div>
+      </div>
+    </motion.div>
+  );
 
-  const removeActivity = (index: number) => {
-    updateQuoteData({ activities: quoteData.activities.filter((_, i) => i !== index) });
-  };
-
-  const addTransfer = (transfer: any) => {
-    updateQuoteData({ transfers: [...quoteData.transfers, transfer] });
-  };
-
-  const removeTransfer = (index: number) => {
-    updateQuoteData({ transfers: quoteData.transfers.filter((_, i) => i !== index) });
-  };
-
-  const addCarRental = (car: any) => {
-    updateQuoteData({ carRentals: [...quoteData.carRentals, car] });
-  };
-
-  const removeCarRental = (index: number) => {
-    updateQuoteData({ carRentals: quoteData.carRentals.filter((_, i) => i !== index) });
-  };
-
-  const addInsurance = (insurance: any) => {
-    updateQuoteData({ insurance: [...quoteData.insurance, insurance] });
-  };
-
-  const removeInsurance = (index: number) => {
-    updateQuoteData({ insurance: quoteData.insurance.filter((_, i) => i !== index) });
-  };
-
-  const addCustomItem = (item: any) => {
-    updateQuoteData({ customItems: [...quoteData.customItems, item] });
-  };
-
-  const removeCustomItem = (index: number) => {
-    updateQuoteData({ customItems: quoteData.customItems.filter((_, i) => i !== index) });
-  };
-
-  const handleNext = () => {
-    // Can proceed without products (will show warning later)
-    onNext();
-  };
+  // Section component
+  const ProductSection = ({ title, items, type, icon: Icon, gradient, onAdd }: any) => (
+    <div className="space-y-3">
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-2">
+          <div className={`w-8 h-8 bg-gradient-to-br ${gradient} rounded-lg flex items-center justify-center`}>
+            <Icon className="w-4 h-4 text-white" />
+          </div>
+          <h3 className="font-semibold text-gray-900">{title}</h3>
+          {items.length > 0 && (
+            <span className="px-2 py-0.5 bg-gray-100 text-gray-600 text-xs font-medium rounded-full">
+              {items.length}
+            </span>
+          )}
+        </div>
+        <button
+          onClick={onAdd}
+          className="flex items-center gap-1 px-3 py-1.5 text-sm font-medium text-primary-600 hover:bg-primary-50 rounded-lg transition-colors"
+        >
+          <Plus className="w-4 h-4" />
+          Add
+        </button>
+      </div>
+      {items.length > 0 ? (
+        <div className="grid gap-2">
+          {items.map((item: any, index: number) => (
+            <ProductCard key={item.id || index} item={item} type={type} index={index} icon={Icon} gradient={gradient} />
+          ))}
+        </div>
+      ) : (
+        <p className="text-sm text-gray-400 italic py-2">No {title.toLowerCase()} added</p>
+      )}
+    </div>
+  );
 
   return (
     <div className="space-y-6">
+      {/* Header */}
       <div>
-        <h2 className="text-2xl font-bold text-gray-900 mb-2">Add Products</h2>
+        <h2 className="text-2xl font-bold text-gray-900 mb-2 flex items-center gap-3">
+          <Package className="w-7 h-7 text-teal-500" />
+          Review & Add Products
+        </h2>
         <p className="text-gray-600">
-          Build your quote by adding flights, hotels, activities, and more
+          Edit, add, or remove products from your quote. All products you added in Step 1 appear here.
         </p>
       </div>
 
-      {/* Product Count Summary */}
-      {totalItems > 0 && (
-        <div className="bg-gradient-to-r from-green-50 to-blue-50 border border-green-200 rounded-lg p-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center">
-              <svg className="w-5 h-5 text-green-600 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-              </svg>
-              <span className="text-sm font-medium text-gray-900">
-                {totalItems} {totalItems === 1 ? "item" : "items"} added to quote
-              </span>
+      {/* Summary Card */}
+      <div className="bg-gradient-to-r from-emerald-50 to-teal-50 border border-emerald-200 rounded-2xl p-5">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-4">
+            <div className="w-12 h-12 bg-emerald-500 rounded-xl flex items-center justify-center">
+              <DollarSign className="w-6 h-6 text-white" />
             </div>
-            <span className="text-xs text-gray-600">You can add more items or proceed to pricing</span>
+            <div>
+              <p className="text-sm text-gray-600">Total Products Cost</p>
+              <p className="text-2xl font-bold text-gray-900">${totalCost.toLocaleString()}</p>
+            </div>
+          </div>
+          <div className="text-right">
+            <p className="text-3xl font-bold text-emerald-600">{totalItems}</p>
+            <p className="text-sm text-gray-500">items</p>
           </div>
         </div>
-      )}
-
-      {/* Product Tabs */}
-      <div className="border-b border-gray-200">
-        <div className="flex space-x-4 overflow-x-auto">
-          {tabs.map((tab) => (
-            <button
-              key={tab.id}
-              onClick={() => setActiveTab(tab.id as any)}
-              className={`px-4 py-3 text-sm font-medium whitespace-nowrap border-b-2 transition-colors ${
-                activeTab === tab.id
-                  ? "border-primary-600 text-primary-600"
-                  : "border-transparent text-gray-600 hover:text-gray-900 hover:border-gray-300"
-              }`}
-            >
-              <span className="mr-2">{tab.icon}</span>
-              {tab.name}
-              {tab.count > 0 && (
-                <span className="ml-2 px-2 py-0.5 bg-primary-100 text-primary-700 rounded-full text-xs">
-                  {tab.count}
-                </span>
-              )}
-            </button>
-          ))}
-        </div>
       </div>
 
-      {/* Tab Content */}
-      <div className="min-h-96">
-        {activeTab === "flights" && (
-          <FlightsTab
-            flights={quoteData.flights}
-            addFlight={addFlight}
-            removeFlight={removeFlight}
-            tripData={{
-              destination: quoteData.destination,
-              startDate: quoteData.startDate,
-              endDate: quoteData.endDate,
-              travelers: quoteData.travelers,
-            }}
-          />
-        )}
-
-        {activeTab === "hotels" && (
-          <HotelsTab
-            hotels={quoteData.hotels}
-            addHotel={addHotel}
-            removeHotel={removeHotel}
-            tripData={{
-              destination: quoteData.destination,
-              startDate: quoteData.startDate,
-              endDate: quoteData.endDate,
-              travelers: quoteData.travelers,
-            }}
-          />
-        )}
-
-        {activeTab === "activities" && (
-          <ProductCatalogTab
-            type="ACTIVITY"
-            items={quoteData.activities}
-            products={products.filter(p => p.productType === "ACTIVITY")}
-            addItem={addActivity}
-            removeItem={removeActivity}
-          />
-        )}
-
-        {activeTab === "transfers" && (
-          <ProductCatalogTab
-            type="TRANSFER"
-            items={quoteData.transfers}
-            products={products.filter(p => p.productType === "TRANSFER")}
-            addItem={addTransfer}
-            removeItem={removeTransfer}
-          />
-        )}
-
-        {activeTab === "cars" && (
-          <ProductCatalogTab
-            type="CAR_RENTAL"
-            items={quoteData.carRentals}
-            products={products.filter(p => p.productType === "CAR_RENTAL")}
-            addItem={addCarRental}
-            removeItem={removeCarRental}
-          />
-        )}
-
-        {activeTab === "insurance" && (
-          <ProductCatalogTab
-            type="INSURANCE"
-            items={quoteData.insurance}
-            products={products.filter(p => p.productType === "INSURANCE")}
-            addItem={addInsurance}
-            removeItem={removeInsurance}
-          />
-        )}
-
-        {activeTab === "custom" && (
-          <CustomItemsTab
-            items={quoteData.customItems}
-            addItem={addCustomItem}
-            removeItem={removeCustomItem}
-          />
-        )}
+      {/* Product Sections */}
+      <div className="space-y-6">
+        <ProductSection
+          title="Flights"
+          items={quoteData.flights}
+          type="flight"
+          icon={Plane}
+          gradient="from-blue-500 to-indigo-600"
+          onAdd={() => { setEditItem(null); setFlightModal(true); }}
+        />
+        <ProductSection
+          title="Hotels"
+          items={quoteData.hotels}
+          type="hotel"
+          icon={Building2}
+          gradient="from-purple-500 to-pink-600"
+          onAdd={() => { setEditItem(null); setHotelModal(true); }}
+        />
+        <ProductSection
+          title="Car Rentals"
+          items={quoteData.carRentals}
+          type="car"
+          icon={Car}
+          gradient="from-cyan-500 to-blue-600"
+          onAdd={() => { setEditItem(null); setCarModal(true); }}
+        />
+        <ProductSection
+          title="Tours & Activities"
+          items={quoteData.activities}
+          type="activity"
+          icon={Compass}
+          gradient="from-emerald-500 to-teal-600"
+          onAdd={() => { setEditItem(null); setActivityModal(true); }}
+        />
+        <ProductSection
+          title="Transfers"
+          items={quoteData.transfers}
+          type="transfer"
+          icon={Bus}
+          gradient="from-amber-500 to-orange-600"
+          onAdd={() => { setEditItem(null); setTransferModal(true); }}
+        />
+        <ProductSection
+          title="Insurance"
+          items={quoteData.insurance}
+          type="insurance"
+          icon={Shield}
+          gradient="from-rose-500 to-pink-600"
+          onAdd={() => { setEditItem(null); setInsuranceModal(true); }}
+        />
+        <ProductSection
+          title="Custom Items"
+          items={quoteData.customItems}
+          type="custom"
+          icon={Package}
+          gradient="from-gray-600 to-gray-800"
+          onAdd={() => { setEditItem(null); setCustomModal(true); }}
+        />
       </div>
 
-      {/* Navigation Buttons */}
-      <div className="flex justify-between pt-6 border-t border-gray-200">
+      {/* Navigation */}
+      <div className="flex items-center justify-between pt-6 border-t border-gray-200">
         <button
           onClick={onPrev}
-          className="px-6 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-all"
+          className="px-6 py-3 border-2 border-gray-300 text-gray-700 rounded-xl hover:bg-gray-50 font-medium transition-all flex items-center gap-2"
         >
-          ← Back
-        </button>
-        <button
-          onClick={handleNext}
-          className="px-8 py-3 bg-gradient-to-r from-primary-600 to-primary-700 text-white rounded-lg font-medium hover:from-primary-700 hover:to-primary-800 transition-all shadow-sm"
-        >
-          Next: Pricing →
-        </button>
-      </div>
-    </div>
-  );
-}
-
-// Sub-components for each tab
-function FlightsTab({ flights, addFlight, removeFlight, tripData }: any) {
-  const [showManualEntry, setShowManualEntry] = useState(false);
-  const [manualFlight, setManualFlight] = useState({
-    name: "",
-    description: "",
-    price: 0,
-  });
-
-  const handleAdd = () => {
-    if (!manualFlight.name.trim()) {
-      alert("Please enter flight details");
-      return;
-    }
-    addFlight(manualFlight);
-    setManualFlight({ name: "", description: "", price: 0 });
-    setShowManualEntry(false);
-  };
-
-  return (
-    <div className="space-y-4">
-      <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-        <p className="text-sm text-blue-900">
-          💡 <strong>Tip:</strong> Flight search integration coming soon! For now, manually enter flight details or cost.
-        </p>
-      </div>
-
-      {/* Added Flights */}
-      {flights.length > 0 && (
-        <div className="space-y-3">
-          {flights.map((flight: any, index: number) => (
-            <div key={index} className="bg-white border border-gray-200 rounded-lg p-4 flex items-center justify-between">
-              <div className="flex-1">
-                <p className="font-medium text-gray-900">{flight.name}</p>
-                {flight.description && <p className="text-sm text-gray-600 mt-1">{flight.description}</p>}
-                <p className="text-sm font-semibold text-primary-600 mt-2">${flight.price.toLocaleString()}</p>
-              </div>
-              <button
-                onClick={() => removeFlight(index)}
-                className="ml-4 p-2 text-red-600 hover:bg-red-50 rounded-lg"
-              >
-                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                </svg>
-              </button>
-            </div>
-          ))}
-        </div>
-      )}
-
-      {/* Manual Entry Form */}
-      {showManualEntry ? (
-        <div className="bg-gray-50 border border-gray-300 rounded-lg p-4">
-          <div className="space-y-3">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Flight Details *</label>
-              <input
-                type="text"
-                value={manualFlight.name}
-                onChange={(e) => setManualFlight(prev => ({ ...prev, name: e.target.value }))}
-                placeholder="e.g., NYC to Paris - Air France - Roundtrip"
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg"
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Description (Optional)</label>
-              <input
-                type="text"
-                value={manualFlight.description}
-                onChange={(e) => setManualFlight(prev => ({ ...prev, description: e.target.value }))}
-                placeholder="Economy class, 1 checked bag included"
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg"
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Price (Total for all travelers) *</label>
-              <input
-                type="number"
-                value={manualFlight.price}
-                onChange={(e) => setManualFlight(prev => ({ ...prev, price: parseFloat(e.target.value) || 0 }))}
-                placeholder="1200"
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg"
-              />
-            </div>
-            <div className="flex gap-2">
-              <button
-                onClick={handleAdd}
-                className="px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700"
-              >
-                Add Flight
-              </button>
-              <button
-                onClick={() => setShowManualEntry(false)}
-                className="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50"
-              >
-                Cancel
-              </button>
-            </div>
-          </div>
-        </div>
-      ) : (
-        <button
-          onClick={() => setShowManualEntry(true)}
-          className="w-full py-3 border-2 border-dashed border-gray-300 rounded-lg text-gray-600 hover:border-primary-500 hover:text-primary-600 transition-colors"
-        >
-          <svg className="w-5 h-5 mx-auto mb-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+          <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
           </svg>
-          Add Flight Manually
+          Back
         </button>
-      )}
-    </div>
-  );
-}
 
-// Similar tabs for Hotels, Product Catalog, and Custom Items (shortened for brevity)
-function HotelsTab({ hotels, addHotel, removeHotel, tripData }: any) {
-  const [showManualEntry, setShowManualEntry] = useState(false);
-  const [manualHotel, setManualHotel] = useState({
-    name: "",
-    description: "",
-    price: 0,
-  });
-
-  const handleAdd = () => {
-    if (!manualHotel.name.trim()) {
-      alert("Please enter hotel details");
-      return;
-    }
-    addHotel(manualHotel);
-    setManualHotel({ name: "", description: "", price: 0 });
-    setShowManualEntry(false);
-  };
-
-  return (
-    <div className="space-y-4">
-      <div className="bg-purple-50 border border-purple-200 rounded-lg p-4">
-        <p className="text-sm text-purple-900">
-          💡 <strong>Tip:</strong> Hotel search available! Use the search below or add manually.
-        </p>
-      </div>
-
-      {/* Added Hotels */}
-      {hotels.length > 0 && (
-        <div className="space-y-3">
-          {hotels.map((hotel: any, index: number) => (
-            <div key={index} className="bg-white border border-gray-200 rounded-lg p-4 flex items-center justify-between">
-              <div className="flex-1">
-                <p className="font-medium text-gray-900">{hotel.name}</p>
-                {hotel.description && <p className="text-sm text-gray-600 mt-1">{hotel.description}</p>}
-                <p className="text-sm font-semibold text-primary-600 mt-2">${hotel.price.toLocaleString()}</p>
-              </div>
-              <button
-                onClick={() => removeHotel(index)}
-                className="ml-4 p-2 text-red-600 hover:bg-red-50 rounded-lg"
-              >
-                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                </svg>
-              </button>
-            </div>
-          ))}
-        </div>
-      )}
-
-      {/* Manual Entry */}
-      {showManualEntry ? (
-        <div className="bg-gray-50 border border-gray-300 rounded-lg p-4">
-          <div className="space-y-3">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Hotel Name *</label>
-              <input
-                type="text"
-                value={manualHotel.name}
-                onChange={(e) => setManualHotel(prev => ({ ...prev, name: e.target.value }))}
-                placeholder="e.g., Marriott Paris - Deluxe Room"
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg"
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Description</label>
-              <input
-                type="text"
-                value={manualHotel.description}
-                onChange={(e) => setManualHotel(prev => ({ ...prev, description: e.target.value }))}
-                placeholder="5 nights, breakfast included"
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg"
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Total Price *</label>
-              <input
-                type="number"
-                value={manualHotel.price}
-                onChange={(e) => setManualHotel(prev => ({ ...prev, price: parseFloat(e.target.value) || 0 }))}
-                placeholder="800"
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg"
-              />
-            </div>
-            <div className="flex gap-2">
-              <button
-                onClick={handleAdd}
-                className="px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700"
-              >
-                Add Hotel
-              </button>
-              <button
-                onClick={() => setShowManualEntry(false)}
-                className="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50"
-              >
-                Cancel
-              </button>
-            </div>
-          </div>
-        </div>
-      ) : (
         <button
-          onClick={() => setShowManualEntry(true)}
-          className="w-full py-3 border-2 border-dashed border-gray-300 rounded-lg text-gray-600 hover:border-primary-500 hover:text-primary-600 transition-colors"
+          onClick={onNext}
+          className="px-8 py-3 bg-gradient-to-r from-primary-600 to-primary-700 text-white rounded-xl font-semibold hover:from-primary-700 hover:to-primary-800 transition-all shadow-lg shadow-primary-500/25 flex items-center gap-2"
         >
-          <svg className="w-5 h-5 mx-auto mb-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+          Next: Pricing
+          <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
           </svg>
-          Add Hotel Manually
         </button>
-      )}
-    </div>
-  );
-}
-
-// Product Catalog Tab (for activities, transfers, cars, insurance)
-function ProductCatalogTab({ type, items, products, addItem, removeItem }: any) {
-  const typeName = type === "CAR_RENTAL" ? "Car Rental" : type.charAt(0) + type.slice(1).toLowerCase();
-
-  if (products.length === 0) {
-    return (
-      <div className="text-center py-12">
-        <svg className="w-16 h-16 text-gray-400 mx-auto mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
-        </svg>
-        <p className="text-gray-600 mb-4">No {typeName.toLowerCase()}s in your product catalog</p>
-        <a
-          href="/agent/products"
-          className="inline-block text-primary-600 hover:text-primary-700 font-medium"
-        >
-          Add products to your catalog →
-        </a>
       </div>
-    );
-  }
 
-  return (
-    <div className="space-y-4">
-      {/* Added Items */}
-      {items.length > 0 && (
-        <div className="space-y-3 mb-6">
-          <h3 className="font-medium text-gray-900">Added to Quote:</h3>
-          {items.map((item: any, index: number) => (
-            <div key={index} className="bg-green-50 border border-green-200 rounded-lg p-4 flex items-center justify-between">
-              <div className="flex-1">
-                <p className="font-medium text-gray-900">{item.name}</p>
-                {item.description && <p className="text-sm text-gray-600 mt-1">{item.description}</p>}
-                <p className="text-sm font-semibold text-green-600 mt-2">${item.price.toLocaleString()}</p>
-              </div>
-              <button
-                onClick={() => removeItem(index)}
-                className="ml-4 p-2 text-red-600 hover:bg-red-50 rounded-lg"
-              >
-                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                </svg>
-              </button>
-            </div>
-          ))}
-        </div>
-      )}
-
-      {/* Product Catalog */}
-      <h3 className="font-medium text-gray-900">Select from your catalog:</h3>
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-3 max-h-96 overflow-y-auto">
-        {products.map((product: any) => (
-          <div key={product.id} className="bg-white border border-gray-200 rounded-lg p-4">
-            <div className="flex items-start justify-between">
-              <div className="flex-1">
-                <p className="font-medium text-gray-900">{product.name}</p>
-                {product.description && <p className="text-xs text-gray-600 mt-1">{product.description}</p>}
-                <div className="mt-2 flex items-center justify-between">
-                  <p className="text-sm font-semibold text-primary-600">${product.sellingPrice.toLocaleString()}</p>
-                  <button
-                    onClick={() => addItem({
-                      name: product.name,
-                      description: product.description,
-                      price: product.sellingPrice,
-                    })}
-                    className="px-3 py-1 bg-primary-600 text-white text-xs rounded-lg hover:bg-primary-700"
-                  >
-                    Add
-                  </button>
-                </div>
-              </div>
-            </div>
-          </div>
-        ))}
-      </div>
-    </div>
-  );
-}
-
-// Custom Items Tab
-function CustomItemsTab({ items, addItem, removeItem }: any) {
-  const [showForm, setShowForm] = useState(false);
-  const [customItem, setCustomItem] = useState({
-    name: "",
-    description: "",
-    price: 0,
-  });
-
-  const handleAdd = () => {
-    if (!customItem.name.trim()) {
-      alert("Please enter item name");
-      return;
-    }
-    addItem(customItem);
-    setCustomItem({ name: "", description: "", price: 0 });
-    setShowForm(false);
-  };
-
-  return (
-    <div className="space-y-4">
-      <p className="text-sm text-gray-600">
-        Add any custom items like visa fees, parking, special equipment, or other costs not covered by the other categories.
-      </p>
-
-      {/* Added Custom Items */}
-      {items.length > 0 && (
-        <div className="space-y-3">
-          {items.map((item: any, index: number) => (
-            <div key={index} className="bg-white border border-gray-200 rounded-lg p-4 flex items-center justify-between">
-              <div className="flex-1">
-                <p className="font-medium text-gray-900">{item.name}</p>
-                {item.description && <p className="text-sm text-gray-600 mt-1">{item.description}</p>}
-                <p className="text-sm font-semibold text-primary-600 mt-2">${item.price.toLocaleString()}</p>
-              </div>
-              <button
-                onClick={() => removeItem(index)}
-                className="ml-4 p-2 text-red-600 hover:bg-red-50 rounded-lg"
-              >
-                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                </svg>
-              </button>
-            </div>
-          ))}
-        </div>
-      )}
-
-      {/* Custom Item Form */}
-      {showForm ? (
-        <div className="bg-gray-50 border border-gray-300 rounded-lg p-4">
-          <div className="space-y-3">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Item Name *</label>
-              <input
-                type="text"
-                value={customItem.name}
-                onChange={(e) => setCustomItem(prev => ({ ...prev, name: e.target.value }))}
-                placeholder="e.g., Visa Fee, Travel Guide, Parking Pass"
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg"
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Description (Optional)</label>
-              <textarea
-                value={customItem.description}
-                onChange={(e) => setCustomItem(prev => ({ ...prev, description: e.target.value }))}
-                placeholder="Additional details about this item"
-                rows={2}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg"
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Price *</label>
-              <input
-                type="number"
-                value={customItem.price}
-                onChange={(e) => setCustomItem(prev => ({ ...prev, price: parseFloat(e.target.value) || 0 }))}
-                placeholder="50"
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg"
-              />
-            </div>
-            <div className="flex gap-2">
-              <button
-                onClick={handleAdd}
-                className="px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700"
-              >
-                Add Item
-              </button>
-              <button
-                onClick={() => setShowForm(false)}
-                className="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50"
-              >
-                Cancel
-              </button>
-            </div>
-          </div>
-        </div>
-      ) : (
-        <button
-          onClick={() => setShowForm(true)}
-          className="w-full py-3 border-2 border-dashed border-gray-300 rounded-lg text-gray-600 hover:border-primary-500 hover:text-primary-600 transition-colors"
-        >
-          <svg className="w-5 h-5 mx-auto mb-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-          </svg>
-          Add Custom Item
-        </button>
-      )}
+      {/* Modals */}
+      <FlightEntryModal
+        isOpen={flightModal}
+        onClose={() => { setFlightModal(false); setEditItem(null); }}
+        onSave={(item) => editType === "flight" && editIndex >= 0 ? handleUpdate("flight", editIndex, item) : handleAdd("flight", item)}
+        editData={editType === "flight" ? editItem : undefined}
+      />
+      <HotelEntryModal
+        isOpen={hotelModal}
+        onClose={() => { setHotelModal(false); setEditItem(null); }}
+        onSave={(item) => editType === "hotel" && editIndex >= 0 ? handleUpdate("hotel", editIndex, item) : handleAdd("hotel", item)}
+        editData={editType === "hotel" ? editItem : undefined}
+      />
+      <ActivityEntryModal
+        isOpen={activityModal}
+        onClose={() => { setActivityModal(false); setEditItem(null); }}
+        onSave={(item) => editType === "activity" && editIndex >= 0 ? handleUpdate("activity", editIndex, item) : handleAdd("activity", item)}
+        editData={editType === "activity" ? editItem : undefined}
+      />
+      <TransferEntryModal
+        isOpen={transferModal}
+        onClose={() => { setTransferModal(false); setEditItem(null); }}
+        onSave={(item) => editType === "transfer" && editIndex >= 0 ? handleUpdate("transfer", editIndex, item) : handleAdd("transfer", item)}
+        editData={editType === "transfer" ? editItem : undefined}
+      />
+      <CarRentalEntryModal
+        isOpen={carModal}
+        onClose={() => { setCarModal(false); setEditItem(null); }}
+        onSave={(item) => editType === "car" && editIndex >= 0 ? handleUpdate("car", editIndex, item) : handleAdd("car", item)}
+        editData={editType === "car" ? editItem : undefined}
+      />
+      <InsuranceEntryModal
+        isOpen={insuranceModal}
+        onClose={() => { setInsuranceModal(false); setEditItem(null); }}
+        onSave={(item) => editType === "insurance" && editIndex >= 0 ? handleUpdate("insurance", editIndex, item) : handleAdd("insurance", item)}
+        editData={editType === "insurance" ? editItem : undefined}
+      />
+      <CustomItemEntryModal
+        isOpen={customModal}
+        onClose={() => { setCustomModal(false); setEditItem(null); }}
+        onSave={(item) => editType === "custom" && editIndex >= 0 ? handleUpdate("custom", editIndex, item) : handleAdd("custom", item)}
+        editData={editType === "custom" ? editItem : undefined}
+      />
     </div>
   );
 }
