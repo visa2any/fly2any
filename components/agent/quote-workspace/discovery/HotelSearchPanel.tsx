@@ -2,46 +2,31 @@
 
 import { useState, useRef, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Search, Building2, Loader2, Plus, Star, MapPin, AlertCircle, Users, ChevronDown, Minus, X } from "lucide-react";
+import { Search, Building2, Loader2, Plus, Star, MapPin, AlertCircle, Users, ChevronDown, Minus, X, Plane, Landmark } from "lucide-react";
 import { useQuoteWorkspace } from "../QuoteWorkspaceProvider";
 import PremiumDatePicker from "@/components/common/PremiumDatePicker";
 import type { HotelItem, HotelSearchParams } from "../types/quote-workspace.types";
 
-const POPULAR_DESTINATIONS = [
-  // USA - Primary Market (sorted by travel volume)
-  { name: "Orlando", country: "USA" },      // #1 US tourist destination
-  { name: "New York", country: "USA" },
-  { name: "Las Vegas", country: "USA" },
-  { name: "Miami", country: "USA" },
-  { name: "Los Angeles", country: "USA" },
-  { name: "San Francisco", country: "USA" },
-  { name: "Honolulu", country: "USA" },
-  { name: "Chicago", country: "USA" },
-  { name: "Washington DC", country: "USA" },
-  { name: "Boston", country: "USA" },
-  { name: "Seattle", country: "USA" },
-  { name: "San Diego", country: "USA" },
-  // Caribbean & Mexico
-  { name: "Cancun", country: "Mexico" },
-  { name: "Punta Cana", country: "Dominican Republic" },
-  { name: "Nassau", country: "Bahamas" },
-  // Europe
-  { name: "Paris", country: "France" },
-  { name: "London", country: "UK" },
-  { name: "Rome", country: "Italy" },
-  { name: "Barcelona", country: "Spain" },
-  { name: "Amsterdam", country: "Netherlands" },
-  { name: "Lisbon", country: "Portugal" },
-  // Asia & Middle East
-  { name: "Dubai", country: "UAE" },
-  { name: "Tokyo", country: "Japan" },
-  { name: "Bangkok", country: "Thailand" },
-  { name: "Singapore", country: "Singapore" },
-  { name: "Bali", country: "Indonesia" },
-  // Oceania & South America
-  { name: "Sydney", country: "Australia" },
-  { name: "Rio de Janeiro", country: "Brazil" },
-];
+interface LocationSuggestion {
+  id: string;
+  name: string;
+  city: string;
+  country: string;
+  location: { lat: number; lng: number };
+  type: 'city' | 'landmark' | 'airport' | 'neighborhood' | 'poi';
+  placeId?: string;
+  emoji?: string;
+}
+
+const getTypeIcon = (type: string) => {
+  switch (type) {
+    case 'airport': return <Plane className="w-4 h-4 text-blue-500" />;
+    case 'landmark': return <Landmark className="w-4 h-4 text-amber-500" />;
+    case 'poi': return <Star className="w-4 h-4 text-purple-500" />;
+    case 'neighborhood': return <Building2 className="w-4 h-4 text-green-500" />;
+    default: return <MapPin className="w-4 h-4 text-orange-500" />;
+  }
+};
 
 export default function HotelSearchPanel() {
   const { state, addItem, setSearchResults } = useQuoteWorkspace();
@@ -60,7 +45,11 @@ export default function HotelSearchPanel() {
   const [error, setError] = useState<string | null>(null);
   const [showSuggestions, setShowSuggestions] = useState(false);
   const [showGuestDropdown, setShowGuestDropdown] = useState(false);
-  const [filteredDest, setFilteredDest] = useState(POPULAR_DESTINATIONS);
+  const [suggestions, setSuggestions] = useState<LocationSuggestion[]>([]);
+  const [popularDestinations, setPopularDestinations] = useState<LocationSuggestion[]>([]);
+  const [loadingSuggestions, setLoadingSuggestions] = useState(false);
+  const [selectedDestination, setSelectedDestination] = useState<LocationSuggestion | null>(null);
+
   const suggestRef = useRef<HTMLDivElement>(null);
   const guestRef = useRef<HTMLDivElement>(null);
 
@@ -71,18 +60,49 @@ export default function HotelSearchPanel() {
   const totalGuests = params.adults + params.children;
   const minDate = new Date().toISOString().split("T")[0];
 
+  // Fetch popular destinations on mount
   useEffect(() => {
-    if (params.location.trim()) {
-      const q = params.location.toLowerCase();
-      const filtered = POPULAR_DESTINATIONS.filter(
-        (d) => d.name.toLowerCase().includes(q) || d.country.toLowerCase().includes(q)
-      );
-      setFilteredDest(filtered.length > 0 ? filtered : POPULAR_DESTINATIONS);
-    } else {
-      setFilteredDest(POPULAR_DESTINATIONS);
+    const fetchPopular = async () => {
+      try {
+        const res = await fetch('/api/hotels/suggestions?popular=true');
+        const data = await res.json();
+        if (data.success && data.data) {
+          setPopularDestinations(data.data);
+        }
+      } catch (err) {
+        console.error('Error fetching popular destinations:', err);
+      }
+    };
+    fetchPopular();
+  }, []);
+
+  // Fetch suggestions as user types (debounced)
+  useEffect(() => {
+    if (!params.location.trim() || params.location.length < 2) {
+      setSuggestions([]);
+      return;
     }
+
+    const fetchSuggestions = async () => {
+      setLoadingSuggestions(true);
+      try {
+        const res = await fetch(`/api/hotels/suggestions?query=${encodeURIComponent(params.location)}`);
+        const data = await res.json();
+        if (data.success && data.data) {
+          setSuggestions(data.data);
+        }
+      } catch (err) {
+        console.error('Error fetching suggestions:', err);
+      } finally {
+        setLoadingSuggestions(false);
+      }
+    };
+
+    const debounce = setTimeout(fetchSuggestions, 200);
+    return () => clearTimeout(debounce);
   }, [params.location]);
 
+  // Close dropdowns on outside click
   useEffect(() => {
     const handler = (e: MouseEvent) => {
       const target = e.target as Node;
@@ -92,6 +112,14 @@ export default function HotelSearchPanel() {
     document.addEventListener("mousedown", handler);
     return () => document.removeEventListener("mousedown", handler);
   }, []);
+
+  const handleSelectDestination = (dest: LocationSuggestion) => {
+    setParams({ ...params, location: dest.name });
+    setSelectedDestination(dest);
+    setShowSuggestions(false);
+  };
+
+  const displaySuggestions = params.location.trim().length >= 2 ? suggestions : popularDestinations;
 
   const handleSearch = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -155,6 +183,7 @@ export default function HotelSearchPanel() {
       </div>
 
       <form onSubmit={handleSearch} className="space-y-3">
+        {/* Destination with API Autocomplete */}
         <div className="relative" ref={suggestRef}>
           <label className="flex items-center gap-1.5 text-[11px] font-bold text-gray-500 uppercase tracking-wider mb-1.5">
             <div className="w-4 h-4 rounded bg-gradient-to-br from-purple-500 to-pink-600 flex items-center justify-center">
@@ -167,20 +196,21 @@ export default function HotelSearchPanel() {
             <input
               type="text"
               value={params.location}
-              onChange={(e) => setParams({ ...params, location: e.target.value })}
+              onChange={(e) => { setParams({ ...params, location: e.target.value }); setSelectedDestination(null); }}
               onFocus={() => setShowSuggestions(true)}
-              placeholder="City, region, or hotel"
+              placeholder="City, airport, or landmark"
               className={`w-full pl-10 pr-8 py-2.5 border-2 rounded-xl text-sm font-medium transition-all ${showSuggestions ? "border-purple-400 ring-4 ring-purple-100" : "border-gray-200 hover:border-gray-300"}`}
             />
-            {params.location && (
-              <button type="button" onClick={() => setParams({ ...params, location: "" })} className="absolute right-3 top-1/2 -translate-y-1/2">
+            {loadingSuggestions && <Loader2 className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-purple-500 animate-spin" />}
+            {params.location && !loadingSuggestions && (
+              <button type="button" onClick={() => { setParams({ ...params, location: "" }); setSelectedDestination(null); }} className="absolute right-3 top-1/2 -translate-y-1/2">
                 <X className="w-3 h-3 text-gray-400" />
               </button>
             )}
           </div>
 
           <AnimatePresence>
-            {showSuggestions && (
+            {showSuggestions && displaySuggestions.length > 0 && (
               <motion.div
                 initial={{ opacity: 0, y: -10 }}
                 animate={{ opacity: 1, y: 0 }}
@@ -188,23 +218,28 @@ export default function HotelSearchPanel() {
                 className="absolute z-50 mt-2 left-0 right-0 bg-white border border-gray-200 rounded-2xl shadow-2xl overflow-hidden"
               >
                 <div className="p-2 border-b border-gray-100">
-                  <p className="text-[10px] font-bold text-gray-400 uppercase px-2">Popular Destinations</p>
+                  <p className="text-[10px] font-bold text-gray-400 uppercase px-2">
+                    {params.location.trim().length >= 2 ? "Search Results" : "Popular Destinations"}
+                  </p>
                 </div>
-                <div className="max-h-48 overflow-y-auto p-2 space-y-1">
-                  {filteredDest.map((dest) => (
+                <div className="max-h-64 overflow-y-auto p-2 space-y-1">
+                  {displaySuggestions.map((dest) => (
                     <button
-                      key={dest.name}
+                      key={dest.id}
                       type="button"
-                      onClick={() => { setParams({ ...params, location: dest.name }); setShowSuggestions(false); }}
-                      className="w-full flex items-center gap-3 px-3 py-2 rounded-xl hover:bg-purple-50 text-left transition-all"
+                      onClick={() => handleSelectDestination(dest)}
+                      className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-purple-50 text-left transition-all group"
                     >
-                      <div className="w-8 h-8 rounded-lg bg-purple-100 flex items-center justify-center">
-                        <Building2 className="w-4 h-4 text-purple-600" />
+                      <div className="w-9 h-9 rounded-lg bg-gray-100 group-hover:bg-purple-100 flex items-center justify-center transition-colors">
+                        {dest.emoji ? <span className="text-lg">{dest.emoji}</span> : getTypeIcon(dest.type)}
                       </div>
-                      <div>
-                        <p className="text-sm font-semibold text-gray-900">{dest.name}</p>
-                        <p className="text-xs text-gray-500">{dest.country}</p>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-semibold text-gray-900 truncate">{dest.name}</p>
+                        <p className="text-xs text-gray-500 truncate">{dest.city !== dest.name ? `${dest.city}, ` : ''}{dest.country}</p>
                       </div>
+                      <span className="text-[10px] font-medium text-gray-400 uppercase bg-gray-100 px-2 py-0.5 rounded-full">
+                        {dest.type}
+                      </span>
                     </button>
                   ))}
                 </div>
@@ -213,6 +248,7 @@ export default function HotelSearchPanel() {
           </AnimatePresence>
         </div>
 
+        {/* Dates */}
         <div className="grid grid-cols-2 gap-2">
           <PremiumDatePicker
             label="Check-in"
@@ -234,6 +270,7 @@ export default function HotelSearchPanel() {
           <div className="text-center text-sm text-purple-600 font-bold">{nights} night{nights > 1 ? "s" : ""}</div>
         )}
 
+        {/* Guests */}
         <div className="relative" ref={guestRef}>
           <label className="flex items-center gap-1.5 text-[11px] font-bold text-gray-500 uppercase tracking-wider mb-1.5">
             <div className="w-4 h-4 rounded bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center">
@@ -284,6 +321,7 @@ export default function HotelSearchPanel() {
         </motion.button>
       </form>
 
+      {/* Results */}
       <AnimatePresence mode="wait">
         {searchLoading && (
           <motion.div key="loading" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="space-y-3">
