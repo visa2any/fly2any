@@ -1,7 +1,10 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { motion } from "framer-motion";
+import { MapPin, Calendar, Users, Minus, Plus, Clock } from "lucide-react";
 import { QuoteData } from "../QuoteBuilder";
+import DestinationAutocomplete from "./DestinationAutocomplete";
 
 interface Step2TripDetailsProps {
   quoteData: QuoteData;
@@ -27,289 +30,258 @@ export default function QuoteBuilderStep2TripDetails({
     infants: quoteData.infants,
   });
 
-  // Calculate duration when dates change
-  useEffect(() => {
-    if (formData.startDate && formData.endDate) {
-      const start = new Date(formData.startDate);
-      const end = new Date(formData.endDate);
-      const diffTime = end.getTime() - start.getTime();
-      const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+  const [errors, setErrors] = useState<Record<string, string>>({});
 
-      if (diffDays >= 0) {
-        updateQuoteData({ duration: diffDays });
-      }
-    }
-  }, [formData.startDate, formData.endDate]);
+  // Calculate duration
+  const duration =
+    formData.startDate && formData.endDate
+      ? Math.ceil(
+          (new Date(formData.endDate).getTime() - new Date(formData.startDate).getTime()) /
+            (1000 * 60 * 60 * 24)
+        )
+      : 0;
 
-  // Update total travelers when counts change
+  // Update total travelers
   useEffect(() => {
     const total = formData.adults + formData.children + formData.infants;
-    setFormData(prev => ({ ...prev, travelers: total }));
+    setFormData((prev) => ({ ...prev, travelers: total }));
   }, [formData.adults, formData.children, formData.infants]);
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value, type } = e.target;
-    const newValue = type === "number" ? parseInt(value) || 0 : value;
-    setFormData((prev) => ({ ...prev, [name]: newValue }));
+  const handleChange = (name: string, value: string | number) => {
+    setFormData((prev) => ({ ...prev, [name]: value }));
+    setErrors((prev) => ({ ...prev, [name]: "" }));
   };
 
   const handleNext = () => {
-    // Validation
-    if (!formData.tripName.trim()) {
-      alert("Please enter a trip name");
-      return;
+    const newErrors: Record<string, string> = {};
+
+    if (!formData.tripName.trim()) newErrors.tripName = "Trip name is required";
+    if (!formData.destination.trim()) newErrors.destination = "Destination is required";
+    if (!formData.startDate) newErrors.startDate = "Start date is required";
+    if (!formData.endDate) newErrors.endDate = "End date is required";
+    if (formData.startDate && formData.endDate && new Date(formData.endDate) < new Date(formData.startDate)) {
+      newErrors.endDate = "End date must be after start date";
     }
-    if (!formData.destination.trim()) {
-      alert("Please enter a destination");
-      return;
-    }
-    if (!formData.startDate) {
-      alert("Please select a start date");
-      return;
-    }
-    if (!formData.endDate) {
-      alert("Please select an end date");
-      return;
-    }
-    if (new Date(formData.endDate) < new Date(formData.startDate)) {
-      alert("End date must be after start date");
-      return;
-    }
-    if (formData.travelers < 1) {
-      alert("Please add at least one traveler");
+    if (formData.travelers < 1) newErrors.travelers = "Add at least one traveler";
+
+    if (Object.keys(newErrors).length > 0) {
+      setErrors(newErrors);
       return;
     }
 
-    // Save data
-    updateQuoteData(formData);
+    updateQuoteData({ ...formData, duration });
     onNext();
   };
 
+  // Traveler counter component
+  const TravelerCounter = ({
+    label,
+    sublabel,
+    value,
+    onChange,
+    gradient,
+  }: {
+    label: string;
+    sublabel: string;
+    value: number;
+    onChange: (v: number) => void;
+    gradient: string;
+  }) => (
+    <motion.div
+      initial={{ opacity: 0, y: 10 }}
+      animate={{ opacity: 1, y: 0 }}
+      className="bg-white border border-gray-200 rounded-xl p-4 hover:shadow-md transition-shadow"
+    >
+      <div className="flex items-center justify-between">
+        <div>
+          <p className="font-semibold text-gray-900">{label}</p>
+          <p className="text-xs text-gray-500">{sublabel}</p>
+        </div>
+        <div className="flex items-center gap-3">
+          <button
+            onClick={() => value > 0 && onChange(value - 1)}
+            disabled={value === 0}
+            className="w-9 h-9 rounded-full border border-gray-300 flex items-center justify-center hover:bg-gray-100 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+          >
+            <Minus className="w-4 h-4" />
+          </button>
+          <span className={`text-2xl font-bold w-8 text-center bg-gradient-to-r ${gradient} bg-clip-text text-transparent`}>
+            {value}
+          </span>
+          <button
+            onClick={() => onChange(value + 1)}
+            className="w-9 h-9 rounded-full bg-gradient-to-r from-primary-500 to-primary-600 text-white flex items-center justify-center hover:from-primary-600 hover:to-primary-700 transition-colors shadow-md"
+          >
+            <Plus className="w-4 h-4" />
+          </button>
+        </div>
+      </div>
+    </motion.div>
+  );
+
   return (
-    <div className="space-y-6">
+    <div className="space-y-8">
+      {/* Header */}
       <div>
-        <h2 className="text-2xl font-bold text-gray-900 mb-2">Trip Details</h2>
-        <p className="text-gray-600">Provide the basic trip information</p>
+        <h2 className="text-2xl font-bold text-gray-900 mb-2 flex items-center gap-3">
+          <MapPin className="w-7 h-7 text-blue-500" />
+          Trip Details
+        </h2>
+        <p className="text-gray-600">Tell us about the trip you're planning</p>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        {/* Trip Name */}
-        <div className="md:col-span-2">
-          <label className="block text-sm font-medium text-gray-700 mb-2">
-            Trip Name *
-          </label>
-          <input
-            type="text"
-            name="tripName"
-            value={formData.tripName}
-            onChange={handleChange}
-            placeholder="e.g., European Adventure, Bali Getaway, Hawaii Family Vacation"
-            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-            required
-          />
-          <p className="text-xs text-gray-500 mt-1">
-            This will be displayed as the main title of the quote
-          </p>
-        </div>
+      {/* Trip Name */}
+      <div>
+        <label className="block text-sm font-medium text-gray-700 mb-1.5">Trip Name *</label>
+        <input
+          type="text"
+          value={formData.tripName}
+          onChange={(e) => handleChange("tripName", e.target.value)}
+          placeholder="e.g., European Adventure, Bali Getaway..."
+          className={`w-full px-4 py-3 border rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-all ${
+            errors.tripName ? "border-red-500" : "border-gray-300"
+          }`}
+        />
+        {errors.tripName && <p className="text-red-500 text-sm mt-1">{errors.tripName}</p>}
+        <p className="text-xs text-gray-500 mt-1.5">Displayed as the quote headline to your client</p>
+      </div>
 
-        {/* Destination */}
-        <div className="md:col-span-2">
-          <label className="block text-sm font-medium text-gray-700 mb-2">
-            Destination *
-          </label>
-          <input
-            type="text"
-            name="destination"
-            value={formData.destination}
-            onChange={handleChange}
-            placeholder="e.g., Paris, France | Bali, Indonesia | Multiple Cities"
-            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-            required
-          />
-        </div>
+      {/* Destination with Autocomplete */}
+      <div>
+        <DestinationAutocomplete
+          value={formData.destination}
+          onChange={(v) => handleChange("destination", v)}
+          label="Destination *"
+          placeholder="Where are they going?"
+        />
+        {errors.destination && <p className="text-red-500 text-sm mt-1">{errors.destination}</p>}
+      </div>
 
-        {/* Start Date */}
+      {/* Dates */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">
+          <label className="block text-sm font-medium text-gray-700 mb-1.5 flex items-center gap-2">
+            <Calendar className="w-4 h-4 text-gray-400" />
             Departure Date *
           </label>
           <input
             type="date"
-            name="startDate"
             value={formData.startDate}
-            onChange={handleChange}
+            onChange={(e) => handleChange("startDate", e.target.value)}
             min={new Date().toISOString().split("T")[0]}
-            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-            required
+            className={`w-full px-4 py-3 border rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-primary-500 ${
+              errors.startDate ? "border-red-500" : "border-gray-300"
+            }`}
           />
+          {errors.startDate && <p className="text-red-500 text-sm mt-1">{errors.startDate}</p>}
         </div>
-
-        {/* End Date */}
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">
+          <label className="block text-sm font-medium text-gray-700 mb-1.5 flex items-center gap-2">
+            <Calendar className="w-4 h-4 text-gray-400" />
             Return Date *
           </label>
           <input
             type="date"
-            name="endDate"
             value={formData.endDate}
-            onChange={handleChange}
+            onChange={(e) => handleChange("endDate", e.target.value)}
             min={formData.startDate || new Date().toISOString().split("T")[0]}
-            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-            required
+            className={`w-full px-4 py-3 border rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-primary-500 ${
+              errors.endDate ? "border-red-500" : "border-gray-300"
+            }`}
           />
+          {errors.endDate && <p className="text-red-500 text-sm mt-1">{errors.endDate}</p>}
         </div>
       </div>
 
-      {/* Duration Display */}
-      {formData.startDate && formData.endDate && (
-        <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-          <div className="flex items-center">
-            <svg className="w-5 h-5 text-blue-600 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-            </svg>
-            <span className="text-sm text-blue-900 font-medium">
-              Trip Duration: {Math.ceil((new Date(formData.endDate).getTime() - new Date(formData.startDate).getTime()) / (1000 * 60 * 60 * 24))} {Math.ceil((new Date(formData.endDate).getTime() - new Date(formData.startDate).getTime()) / (1000 * 60 * 60 * 24)) === 1 ? "Day" : "Days"}
-            </span>
+      {/* Duration Badge */}
+      {duration > 0 && (
+        <motion.div
+          initial={{ opacity: 0, scale: 0.95 }}
+          animate={{ opacity: 1, scale: 1 }}
+          className="bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-xl p-4"
+        >
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 bg-blue-500 rounded-lg flex items-center justify-center">
+              <Clock className="w-5 h-5 text-white" />
+            </div>
+            <div>
+              <p className="text-sm text-gray-600">Trip Duration</p>
+              <p className="text-xl font-bold text-gray-900">
+                {duration} {duration === 1 ? "Day" : "Days"} / {duration > 0 ? duration - 1 : 0} {duration === 2 ? "Night" : "Nights"}
+              </p>
+            </div>
           </div>
-        </div>
+        </motion.div>
       )}
 
       {/* Travelers */}
       <div>
-        <h3 className="text-lg font-semibold text-gray-900 mb-4">Travelers</h3>
+        <div className="flex items-center gap-2 mb-4">
+          <Users className="w-5 h-5 text-gray-400" />
+          <h3 className="text-lg font-semibold text-gray-900">Travelers</h3>
+        </div>
+
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          {/* Adults */}
-          <div className="bg-gray-50 border border-gray-200 rounded-lg p-4">
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Adults (12+ years) *
-            </label>
-            <div className="flex items-center justify-between">
-              <button
-                type="button"
-                onClick={() => formData.adults > 0 && setFormData(prev => ({ ...prev, adults: prev.adults - 1 }))}
-                className="w-10 h-10 bg-white border border-gray-300 rounded-lg hover:bg-gray-100 disabled:opacity-50"
-                disabled={formData.adults === 0}
-              >
-                <svg className="w-5 h-5 mx-auto" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 12H4" />
-                </svg>
-              </button>
-              <input
-                type="number"
-                name="adults"
-                value={formData.adults}
-                onChange={handleChange}
-                min="0"
-                className="w-20 text-center text-2xl font-bold text-gray-900 bg-transparent border-none focus:ring-0"
-              />
-              <button
-                type="button"
-                onClick={() => setFormData(prev => ({ ...prev, adults: prev.adults + 1 }))}
-                className="w-10 h-10 bg-white border border-gray-300 rounded-lg hover:bg-gray-100"
-              >
-                <svg className="w-5 h-5 mx-auto" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-                </svg>
-              </button>
-            </div>
-          </div>
-
-          {/* Children */}
-          <div className="bg-gray-50 border border-gray-200 rounded-lg p-4">
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Children (2-11 years)
-            </label>
-            <div className="flex items-center justify-between">
-              <button
-                type="button"
-                onClick={() => formData.children > 0 && setFormData(prev => ({ ...prev, children: prev.children - 1 }))}
-                className="w-10 h-10 bg-white border border-gray-300 rounded-lg hover:bg-gray-100 disabled:opacity-50"
-                disabled={formData.children === 0}
-              >
-                <svg className="w-5 h-5 mx-auto" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 12H4" />
-                </svg>
-              </button>
-              <input
-                type="number"
-                name="children"
-                value={formData.children}
-                onChange={handleChange}
-                min="0"
-                className="w-20 text-center text-2xl font-bold text-gray-900 bg-transparent border-none focus:ring-0"
-              />
-              <button
-                type="button"
-                onClick={() => setFormData(prev => ({ ...prev, children: prev.children + 1 }))}
-                className="w-10 h-10 bg-white border border-gray-300 rounded-lg hover:bg-gray-100"
-              >
-                <svg className="w-5 h-5 mx-auto" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-                </svg>
-              </button>
-            </div>
-          </div>
-
-          {/* Infants */}
-          <div className="bg-gray-50 border border-gray-200 rounded-lg p-4">
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Infants (0-2 years)
-            </label>
-            <div className="flex items-center justify-between">
-              <button
-                type="button"
-                onClick={() => formData.infants > 0 && setFormData(prev => ({ ...prev, infants: prev.infants - 1 }))}
-                className="w-10 h-10 bg-white border border-gray-300 rounded-lg hover:bg-gray-100 disabled:opacity-50"
-                disabled={formData.infants === 0}
-              >
-                <svg className="w-5 h-5 mx-auto" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 12H4" />
-                </svg>
-              </button>
-              <input
-                type="number"
-                name="infants"
-                value={formData.infants}
-                onChange={handleChange}
-                min="0"
-                className="w-20 text-center text-2xl font-bold text-gray-900 bg-transparent border-none focus:ring-0"
-              />
-              <button
-                type="button"
-                onClick={() => setFormData(prev => ({ ...prev, infants: prev.infants + 1 }))}
-                className="w-10 h-10 bg-white border border-gray-300 rounded-lg hover:bg-gray-100"
-              >
-                <svg className="w-5 h-5 mx-auto" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-                </svg>
-              </button>
-            </div>
-          </div>
+          <TravelerCounter
+            label="Adults"
+            sublabel="12+ years"
+            value={formData.adults}
+            onChange={(v) => handleChange("adults", v)}
+            gradient="from-blue-600 to-indigo-600"
+          />
+          <TravelerCounter
+            label="Children"
+            sublabel="2-11 years"
+            value={formData.children}
+            onChange={(v) => handleChange("children", v)}
+            gradient="from-emerald-600 to-teal-600"
+          />
+          <TravelerCounter
+            label="Infants"
+            sublabel="Under 2"
+            value={formData.infants}
+            onChange={(v) => handleChange("infants", v)}
+            gradient="from-amber-600 to-orange-600"
+          />
         </div>
 
-        {/* Total Travelers Display */}
-        <div className="mt-4 bg-primary-50 border border-primary-200 rounded-lg p-4">
+        {errors.travelers && <p className="text-red-500 text-sm mt-2">{errors.travelers}</p>}
+
+        {/* Total */}
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          className="mt-4 bg-gradient-to-r from-primary-50 to-rose-50 border border-primary-200 rounded-xl p-4"
+        >
           <div className="flex items-center justify-between">
-            <span className="text-sm font-medium text-gray-700">Total Travelers:</span>
-            <span className="text-2xl font-bold text-primary-600">{formData.travelers}</span>
+            <span className="font-medium text-gray-700">Total Travelers</span>
+            <span className="text-3xl font-bold bg-gradient-to-r from-primary-600 to-rose-600 bg-clip-text text-transparent">
+              {formData.travelers}
+            </span>
           </div>
-        </div>
+        </motion.div>
       </div>
 
-      {/* Navigation Buttons */}
-      <div className="flex justify-between pt-6 border-t border-gray-200">
+      {/* Navigation */}
+      <div className="flex items-center justify-between pt-6 border-t border-gray-200">
         <button
           onClick={onPrev}
-          className="px-6 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-all"
+          className="px-6 py-3 border-2 border-gray-300 text-gray-700 rounded-xl hover:bg-gray-50 font-medium transition-all flex items-center gap-2"
         >
-          ← Back
+          <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+          </svg>
+          Back
         </button>
+
         <button
           onClick={handleNext}
-          className="px-8 py-3 bg-gradient-to-r from-primary-600 to-primary-700 text-white rounded-lg font-medium hover:from-primary-700 hover:to-primary-800 transition-all shadow-sm"
+          className="px-8 py-3 bg-gradient-to-r from-primary-600 to-primary-700 text-white rounded-xl font-semibold hover:from-primary-700 hover:to-primary-800 transition-all shadow-lg shadow-primary-500/25 flex items-center gap-2"
         >
-          Next: Add Products →
+          Next: Add Products
+          <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
+          </svg>
         </button>
       </div>
     </div>
