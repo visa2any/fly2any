@@ -44,34 +44,36 @@ export default async function AdminAgentDetailPage({ params }: Props) {
   const totalEarnings = agent.commissions.reduce((sum, c) => sum + Number(c.agentEarnings), 0);
   const platformFees = agent.commissions.reduce((sum, c) => sum + Number(c.platformFee), 0);
 
-  // Serialize dates AND Decimals for client component
+  // Serialize - EXPLICIT fields only (no spread)
   const serializedAgent = {
-    ...agent,
+    id: agent.id,
+    businessName: agent.businessName,
+    status: agent.status,
+    phone: agent.phone,
     defaultCommission: Number(agent.defaultCommission) || 0.05,
-    totalSales: Number(agent.totalSales) || 0,
-    totalCommissions: Number(agent.totalCommissions) || 0,
     createdAt: agent.createdAt.toISOString(),
-    updatedAt: agent.updatedAt?.toISOString() || null,
     user: {
-      ...agent.user,
-      createdAt: agent.user.createdAt?.toISOString() || null,
+      id: agent.user.id,
+      name: agent.user.name,
+      email: agent.user.email,
+      image: agent.user.image,
     },
     quotes: agent.quotes.map(q => ({
-      ...q,
+      id: q.id,
+      quoteNumber: q.quoteNumber,
+      tripName: q.tripName,
+      status: q.status,
       total: Number(q.total) || 0,
       createdAt: q.createdAt.toISOString(),
     })),
     bookings: agent.bookings.map(b => ({
-      ...b,
+      id: b.id,
+      bookingNumber: b.bookingNumber,
+      status: b.status,
       total: Number(b.total) || 0,
       createdAt: b.createdAt.toISOString(),
     })),
-    commissions: agent.commissions.map(c => ({
-      ...c,
-      agentEarnings: Number(c.agentEarnings) || 0,
-      platformFee: Number(c.platformFee) || 0,
-      createdAt: c.createdAt.toISOString(),
-    })),
+    _count: agent._count,
   };
 
   return <AgentDetailAdmin agent={serializedAgent} stats={{ totalEarnings, platformFees }} />;

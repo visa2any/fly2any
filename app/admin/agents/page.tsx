@@ -42,14 +42,17 @@ export default async function AdminAgentsPage() {
     _sum: { agentEarnings: true, platformFee: true },
   });
 
-  // Serialize dates AND Decimals for client component
+  // Serialize - EXPLICIT fields only (no spread)
   const serializedAgents = agents.map(a => ({
-    ...a,
+    id: a.id,
+    userId: a.userId,
+    businessName: a.businessName,
+    status: a.status,
+    phone: a.phone,
     defaultCommission: Number(a.defaultCommission) || 0.05,
-    totalSales: Number(a.totalSales) || 0,
-    totalCommissions: Number(a.totalCommissions) || 0,
     createdAt: a.createdAt.toISOString(),
-    updatedAt: a.updatedAt?.toISOString() || null,
+    user: a.user,
+    _count: a._count,
   }));
 
   return (

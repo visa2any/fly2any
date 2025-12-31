@@ -159,31 +159,35 @@ export default async function AgentDashboardPage() {
     .filter((c) => pendingStatuses.includes(c.status))
     .reduce((sum, c) => sum + (c._sum.agentEarnings || 0), 0);
 
-  // Serialize dates AND Decimals for client components
+  // Serialize - EXPLICIT fields only (no spread to avoid hidden Decimals)
   const serializedQuotes = recentQuotes.map(q => ({
-    ...q,
+    id: q.id,
+    quoteNumber: q.quoteNumber,
+    tripName: q.tripName,
+    status: q.status,
     total: Number(q.total) || 0,
     createdAt: q.createdAt.toISOString(),
-    updatedAt: q.updatedAt?.toISOString() || null,
-    expiresAt: q.expiresAt?.toISOString() || null,
+    client: q.client,
   }));
 
   const serializedBookings = recentBookings.map(b => ({
-    ...b,
+    id: b.id,
+    bookingNumber: b.bookingNumber,
+    status: b.status,
     total: Number(b.total) || 0,
     createdAt: b.createdAt.toISOString(),
-    updatedAt: b.updatedAt?.toISOString() || null,
-    startDate: b.startDate?.toISOString() || null,
-    endDate: b.endDate?.toISOString() || null,
+    client: b.client,
   }));
 
   const serializedUpcomingTrips = upcomingTrips.map(t => ({
-    ...t,
+    id: t.id,
+    bookingNumber: t.bookingNumber,
+    destination: t.destination,
+    status: t.status,
     total: Number(t.total) || 0,
-    createdAt: t.createdAt.toISOString(),
-    updatedAt: t.updatedAt?.toISOString() || null,
     startDate: t.startDate?.toISOString() || null,
     endDate: t.endDate?.toISOString() || null,
+    client: t.client,
   }));
 
   const dashboardData = {
