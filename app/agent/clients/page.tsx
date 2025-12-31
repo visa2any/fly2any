@@ -1,6 +1,6 @@
 import { auth } from "@/lib/auth";
 import { redirect } from "next/navigation";
-import prisma from "@/lib/prisma";
+import { prisma } from "@/lib/prisma";
 import ClientListClient from "@/components/agent/ClientListClient";
 
 export const metadata = {
@@ -11,19 +11,28 @@ export const metadata = {
 export default async function ClientsPage() {
   const session = await auth();
 
-  if (!session) {
+  if (!session?.user?.id) {
     redirect("/auth/signin");
   }
 
-  // Get agent
-  const agent = await prisma!.travelAgent.findUnique({
+  // Get agent with clients - use SELECT to avoid DateTime fields
+  const agent = await prisma?.travelAgent.findUnique({
     where: { userId: session.user.id },
-    include: {
+    select: {
+      id: true,
+      maxClients: true,
       clients: {
         where: {
           status: { not: "ARCHIVED" },
         },
-        include: {
+        select: {
+          id: true,
+          firstName: true,
+          lastName: true,
+          email: true,
+          phone: true,
+          segment: true,
+          status: true,
           _count: {
             select: {
               quotes: true,
@@ -42,36 +51,41 @@ export default async function ClientsPage() {
     redirect("/agent/register");
   }
 
-  // Layout already shows pending banner for non-active agents
-  // No need to block access - they can manage clients even while pending
+  // Serialize with explicit primitives
+  const serializedClients = (agent.clients || []).map((c: any) => ({
+    id: String(c.id || ""),
+    firstName: c.firstName ? String(c.firstName) : null,
+    lastName: c.lastName ? String(c.lastName) : null,
+    email: c.email ? String(c.email) : null,
+    phone: c.phone ? String(c.phone) : null,
+    segment: String(c.segment || "STANDARD"),
+    status: String(c.status || "ACTIVE"),
+    _count: {
+      quotes: Number(c._count?.quotes) || 0,
+      bookings: Number(c._count?.bookings) || 0,
+    },
+  }));
 
-  // SERIALIZE clients for client component
-  const serializedClients = JSON.parse(JSON.stringify(agent.clients || []));
-
-  // Calculate client statistics
   const stats = {
     total: serializedClients.length,
-    standard: serializedClients.filter((c: any) => c.segment === "STANDARD").length,
-    vip: serializedClients.filter((c: any) => c.segment === "VIP").length,
-    honeymoon: serializedClients.filter((c: any) => c.segment === "HONEYMOON").length,
-    family: serializedClients.filter((c: any) => c.segment === "FAMILY").length,
-    business: serializedClients.filter((c: any) => c.segment === "BUSINESS").length,
-    corporate: serializedClients.filter((c: any) => c.segment === "CORPORATE").length,
-    luxury: serializedClients.filter((c: any) => c.segment === "LUXURY").length,
-    withQuotes: serializedClients.filter((c: any) => c._count?.quotes > 0).length,
-    withBookings: serializedClients.filter((c: any) => c._count?.bookings > 0).length,
+    standard: serializedClients.filter((c) => c.segment === "STANDARD").length,
+    vip: serializedClients.filter((c) => c.segment === "VIP").length,
+    honeymoon: serializedClients.filter((c) => c.segment === "HONEYMOON").length,
+    family: serializedClients.filter((c) => c.segment === "FAMILY").length,
+    business: serializedClients.filter((c) => c.segment === "BUSINESS").length,
+    corporate: serializedClients.filter((c) => c.segment === "CORPORATE").length,
+    luxury: serializedClients.filter((c) => c.segment === "LUXURY").length,
+    withQuotes: serializedClients.filter((c) => c._count.quotes > 0).length,
+    withBookings: serializedClients.filter((c) => c._count.bookings > 0).length,
     maxClients: Number(agent.maxClients) || 100,
   };
 
   return (
     <div className="space-y-6">
-      {/* Header */}
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold text-gray-900">Client Management</h1>
-          <p className="text-gray-600 mt-1">
-            Manage your travel clients and build lasting relationships
-          </p>
+          <p className="text-gray-600 mt-1">Manage your travel clients</p>
         </div>
         <a
           href="/agent/clients/create"
@@ -84,60 +98,21 @@ export default async function ClientsPage() {
         </a>
       </div>
 
-      {/* Statistics Cards */}
       <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-4">
-        <StatCard
-          label="Total Clients"
-          value={stats.total}
-          max={stats.maxClients}
-          color="blue"
-          icon="👥"
-        />
+        <StatCard label="Total Clients" value={stats.total} max={stats.maxClients} color="blue" icon="👥" />
         <StatCard label="VIP Clients" value={stats.vip} color="purple" icon="⭐" />
         <StatCard label="Active Quotes" value={stats.withQuotes} color="orange" icon="📋" />
         <StatCard label="Booked Trips" value={stats.withBookings} color="green" icon="✈️" />
-        <StatCard
-          label="Business/Corporate"
-          value={stats.business + stats.corporate}
-          color="teal"
-          icon="💼"
-        />
+        <StatCard label="Business" value={stats.business + stats.corporate} color="teal" icon="💼" />
       </div>
 
-      {/* Segment Breakdown */}
-      <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-        <h3 className="text-lg font-semibold text-gray-900 mb-4">Client Segments</h3>
-        <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-3">
-          <SegmentBadge label="Standard" count={stats.standard} />
-          <SegmentBadge label="VIP" count={stats.vip} />
-          <SegmentBadge label="Honeymoon" count={stats.honeymoon} />
-          <SegmentBadge label="Family" count={stats.family} />
-          <SegmentBadge label="Business" count={stats.business} />
-          <SegmentBadge label="Corporate" count={stats.corporate} />
-          <SegmentBadge label="Luxury" count={stats.luxury} />
-        </div>
-      </div>
-
-      {/* Client List with Filters */}
       <ClientListClient clients={serializedClients} />
     </div>
   );
 }
 
-function StatCard({
-  label,
-  value,
-  max,
-  color,
-  icon,
-}: {
-  label: string;
-  value: number;
-  max?: number;
-  color: string;
-  icon: string;
-}) {
-  const colorClasses = {
+function StatCard({ label, value, max, color, icon }: { label: string; value: number; max?: number; color: string; icon: string }) {
+  const colorClasses: Record<string, string> = {
     blue: "bg-blue-50 border-blue-200",
     purple: "bg-purple-50 border-purple-200",
     orange: "bg-orange-50 border-orange-200",
@@ -146,26 +121,13 @@ function StatCard({
   };
 
   return (
-    <div className={`border rounded-lg p-4 ${colorClasses[color as keyof typeof colorClasses]}`}>
+    <div className={`border rounded-lg p-4 ${colorClasses[color] || colorClasses.blue}`}>
       <div className="flex items-center justify-between mb-2">
         <span className="text-2xl">{icon}</span>
-        {max && (
-          <span className="text-xs text-gray-600">
-            / {max}
-          </span>
-        )}
+        {max && <span className="text-xs text-gray-600">/ {max}</span>}
       </div>
       <p className="text-sm text-gray-600">{label}</p>
       <p className="text-2xl font-bold text-gray-900 mt-1">{value}</p>
-    </div>
-  );
-}
-
-function SegmentBadge({ label, count }: { label: string; count: number }) {
-  return (
-    <div className="bg-gray-50 border border-gray-200 rounded-lg p-3 text-center">
-      <p className="text-xs text-gray-600 mb-1">{label}</p>
-      <p className="text-xl font-bold text-gray-900">{count}</p>
     </div>
   );
 }

@@ -11,17 +11,32 @@ export const metadata = {
 export default async function QuotesPage() {
   const session = await auth();
 
-  if (!session) {
+  if (!session?.user?.id) {
     redirect("/auth/signin");
   }
 
-  // Get agent
-  const agent = await prisma!.travelAgent.findUnique({
+  // Get agent with quotes - use SELECT to avoid DateTime fields
+  const agent = await prisma?.travelAgent.findUnique({
     where: { userId: session.user.id },
-    include: {
+    select: {
+      id: true,
       quotes: {
-        include: {
-          client: true,
+        select: {
+          id: true,
+          title: true,
+          status: true,
+          total: true,
+          currency: true,
+          validUntil: true,
+          shareableLink: true,
+          client: {
+            select: {
+              id: true,
+              firstName: true,
+              lastName: true,
+              email: true,
+            },
+          },
         },
         orderBy: {
           createdAt: "desc",
@@ -34,24 +49,36 @@ export default async function QuotesPage() {
     redirect("/agent/register");
   }
 
-  // SERIALIZE quotes for client component
-  const serializedQuotes = JSON.parse(JSON.stringify(agent.quotes || []));
+  // Serialize with explicit primitives
+  const serializedQuotes = (agent.quotes || []).map((q: any) => ({
+    id: String(q.id || ""),
+    title: q.title ? String(q.title) : null,
+    status: String(q.status || "DRAFT"),
+    total: Number(q.total) || 0,
+    currency: String(q.currency || "USD"),
+    validUntil: q.validUntil ? new Date(q.validUntil).toISOString() : null,
+    shareableLink: q.shareableLink ? String(q.shareableLink) : null,
+    client: q.client ? {
+      id: String(q.client.id || ""),
+      firstName: q.client.firstName ? String(q.client.firstName) : null,
+      lastName: q.client.lastName ? String(q.client.lastName) : null,
+      email: q.client.email ? String(q.client.email) : null,
+    } : null,
+  }));
 
-  // Calculate quote statistics
   const stats = {
     total: serializedQuotes.length,
-    draft: serializedQuotes.filter((q: any) => q.status === "DRAFT").length,
-    sent: serializedQuotes.filter((q: any) => q.status === "SENT").length,
-    viewed: serializedQuotes.filter((q: any) => q.status === "VIEWED").length,
-    accepted: serializedQuotes.filter((q: any) => q.status === "ACCEPTED").length,
-    declined: serializedQuotes.filter((q: any) => q.status === "DECLINED").length,
-    expired: serializedQuotes.filter((q: any) => q.status === "EXPIRED").length,
-    converted: serializedQuotes.filter((q: any) => q.status === "CONVERTED").length,
+    draft: serializedQuotes.filter((q) => q.status === "DRAFT").length,
+    sent: serializedQuotes.filter((q) => q.status === "SENT").length,
+    viewed: serializedQuotes.filter((q) => q.status === "VIEWED").length,
+    accepted: serializedQuotes.filter((q) => q.status === "ACCEPTED").length,
+    declined: serializedQuotes.filter((q) => q.status === "DECLINED").length,
+    expired: serializedQuotes.filter((q) => q.status === "EXPIRED").length,
+    converted: serializedQuotes.filter((q) => q.status === "CONVERTED").length,
   };
 
   return (
     <div className="space-y-6">
-      {/* Header */}
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold text-gray-900">My Quotes</h1>
@@ -59,7 +86,7 @@ export default async function QuotesPage() {
         </div>
         <a
           href="/agent/quotes/workspace"
-          className="inline-flex items-center px-6 py-3 bg-gradient-to-r from-primary-600 to-primary-700 text-white rounded-lg font-medium hover:from-primary-700 hover:to-primary-800 transition-all shadow-sm shadow-primary-500/25"
+          className="inline-flex items-center px-6 py-3 bg-gradient-to-r from-primary-600 to-primary-700 text-white rounded-lg font-medium hover:from-primary-700 hover:to-primary-800 transition-all shadow-sm"
         >
           <svg className="w-5 h-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
@@ -68,7 +95,6 @@ export default async function QuotesPage() {
         </a>
       </div>
 
-      {/* Statistics Cards */}
       <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-8 gap-4">
         <StatCard label="Total" value={stats.total} color="gray" />
         <StatCard label="Draft" value={stats.draft} color="gray" />
@@ -80,14 +106,13 @@ export default async function QuotesPage() {
         <StatCard label="Converted" value={stats.converted} color="teal" />
       </div>
 
-      {/* Quote List with Filters */}
       <QuoteListClient quotes={serializedQuotes} />
     </div>
   );
 }
 
 function StatCard({ label, value, color }: { label: string; value: number; color: string }) {
-  const colorClasses = {
+  const colorClasses: Record<string, string> = {
     gray: "bg-gray-50 border-gray-200 text-gray-900",
     blue: "bg-blue-50 border-blue-200 text-blue-900",
     purple: "bg-purple-50 border-purple-200 text-purple-900",
@@ -98,7 +123,7 @@ function StatCard({ label, value, color }: { label: string; value: number; color
   };
 
   return (
-    <div className={`border rounded-lg p-4 ${colorClasses[color as keyof typeof colorClasses]}`}>
+    <div className={`border rounded-lg p-4 ${colorClasses[color] || colorClasses.gray}`}>
       <p className="text-sm opacity-75">{label}</p>
       <p className="text-2xl font-bold mt-1">{value}</p>
     </div>
