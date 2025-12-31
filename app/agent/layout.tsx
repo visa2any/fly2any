@@ -20,15 +20,16 @@ export default async function AgentLayout({
 }: {
   children: React.ReactNode;
 }) {
-  const session = await auth();
+  try {
+    const session = await auth();
 
-  // Redirect if not authenticated
-  if (!session?.user?.id) {
-    redirect("/auth/signin?callbackUrl=/agent");
-  }
+    // Redirect if not authenticated
+    if (!session?.user?.id) {
+      redirect("/auth/signin?callbackUrl=/agent");
+    }
 
-  // Check if user is a registered travel agent (with admin fallback)
-  const agent = await getAgentWithAdminFallback(session.user.id);
+    // Check if user is a registered travel agent (with admin fallback)
+    const agent = await getAgentWithAdminFallback(session.user.id);
 
   // Fetch ONLY needed fields - avoid DateTime/non-serializable types
   const fullAgent = agent ? await prisma!.travelAgent.findUnique({
@@ -133,7 +134,7 @@ export default async function AgentLayout({
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Admin Mode Banner (shows when admin is accessing agent portal) */}
-      {fullAgent.isTestAccount && <AdminModeBanner />}
+      {serializedAgent.isTestAccount && <AdminModeBanner />}
 
       {/* Sidebar */}
       <AgentSidebar agent={serializedAgent} />
@@ -146,7 +147,7 @@ export default async function AgentLayout({
         {/* Page Content */}
         <main className="py-4 px-4 sm:px-6 lg:px-8 pb-24 lg:pb-6">
           {/* Pending Approval Banner */}
-          {fullAgent.status === "PENDING" && !fullAgent.isTestAccount && (
+          {serializedAgent.status === "PENDING" && !serializedAgent.isTestAccount && (
             <div className="mb-4 bg-yellow-50 border border-yellow-200 rounded-lg p-3">
               <div className="flex items-center">
                 <svg className="w-5 h-5 text-yellow-600 mr-3 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -165,4 +166,9 @@ export default async function AgentLayout({
       <AgentMobileNav />
     </div>
   );
+  } catch (error) {
+    console.error("[AgentLayout] Server Error:", error);
+    // Re-throw to trigger error boundary
+    throw error;
+  }
 }
