@@ -5,29 +5,19 @@ import { CSS } from "@dnd-kit/utilities";
 import ItineraryCard from "./ItineraryCard";
 import type { QuoteItem } from "../types/quote-workspace.types";
 
-interface SortableItineraryCardProps {
-  item: QuoteItem;
-}
-
-export default function SortableItineraryCard({ item }: SortableItineraryCardProps) {
-  const {
-    attributes,
-    listeners,
-    setNodeRef,
-    transform,
-    transition,
-    isDragging,
-  } = useSortable({ id: item.id });
-
-  const style = {
-    transform: CSS.Transform.toString(transform),
-    transition,
-    opacity: isDragging ? 0.5 : 1,
-    zIndex: isDragging ? 50 : "auto",
-  };
+export default function SortableItineraryCard({ item }: { item: QuoteItem }) {
+  const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id: item.id });
 
   return (
-    <div ref={setNodeRef} style={style} {...attributes}>
+    <div
+      ref={setNodeRef}
+      {...attributes}
+      style={{
+        transform: CSS.Transform.toString(transform),
+        transition: transition || "transform 150ms ease",
+      }}
+      className={isDragging ? "relative z-50 opacity-90 scale-[1.02] shadow-xl rounded-xl" : ""}
+    >
       <ItineraryCard item={item} dragListeners={listeners} isDragging={isDragging} />
     </div>
   );
