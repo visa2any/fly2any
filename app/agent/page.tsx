@@ -94,24 +94,26 @@ export default async function AgentDashboardPage() {
     .filter((c) => pendingStatuses.includes(c.status))
     .reduce((sum, c) => sum + (c._sum.agentEarnings || 0), 0);
 
-  // BULLETPROOF SERIALIZATION
+  // BULLETPROOF SERIALIZATION - ALL data must go through JSON.parse/stringify
+  const agentName = String(agent.agencyName || session.user.name || "Agent");
+
   const dashboardData = JSON.parse(JSON.stringify({
     overview: {
       totalQuotes: quotesCount,
       totalBookings: bookingsCount,
       totalClients: clientsCount,
-      totalRevenue: agent.totalSales,
+      totalRevenue: Number(agent.totalSales) || 0,
       thisMonth: {
         quotes: thisMonthQuotes,
         bookings: thisMonthBookings,
-        revenue: thisMonthRevenue._sum.total || 0,
+        revenue: Number(thisMonthRevenue._sum.total) || 0,
       },
     },
     commissions: {
-      available: availableAmount,
-      pending: pendingAmount,
-      paid: paidAmount,
-      total: agent.totalCommissions,
+      available: Number(availableAmount) || 0,
+      pending: Number(pendingAmount) || 0,
+      paid: Number(paidAmount) || 0,
+      total: Number(agent.totalCommissions) || 0,
     },
     recentQuotes,
     recentBookings,
@@ -123,7 +125,7 @@ export default async function AgentDashboardPage() {
       {/* Welcome Header */}
       <div>
         <h1 className="text-2xl font-bold text-gray-900">
-          Welcome back, {agent.agencyName || session.user.name || "Agent"}!
+          Welcome back, {agentName}!
         </h1>
         <p className="text-gray-600 mt-1">
           Here&apos;s what&apos;s happening with your travel business today.
