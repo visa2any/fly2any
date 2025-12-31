@@ -3,8 +3,22 @@
 import { useMemo } from "react";
 import { motion } from "framer-motion";
 import { format, parseISO } from "date-fns";
+import {
+  DndContext,
+  closestCenter,
+  KeyboardSensor,
+  PointerSensor,
+  useSensor,
+  useSensors,
+  DragEndEvent,
+} from "@dnd-kit/core";
+import {
+  SortableContext,
+  sortableKeyboardCoordinates,
+  verticalListSortingStrategy,
+} from "@dnd-kit/sortable";
 import { useQuoteWorkspace, useQuoteItems } from "../QuoteWorkspaceProvider";
-import ItineraryCard from "./ItineraryCard";
+import SortableItineraryCard from "./SortableItineraryCard";
 import DayMarker from "./DayMarker";
 import type { QuoteItem } from "../types/quote-workspace.types";
 
@@ -12,7 +26,6 @@ import type { QuoteItem } from "../types/quote-workspace.types";
 function groupItemsByDate(items: QuoteItem[]): Map<string, QuoteItem[]> {
   const groups = new Map<string, QuoteItem[]>();
 
-  // Sort items by date first, then by sortOrder
   const sorted = [...items].sort((a, b) => {
     const dateCompare = a.date.localeCompare(b.date);
     if (dateCompare !== 0) return dateCompare;
@@ -20,7 +33,7 @@ function groupItemsByDate(items: QuoteItem[]): Map<string, QuoteItem[]> {
   });
 
   sorted.forEach((item) => {
-    const dateKey = item.date.split("T")[0]; // Get just the date part
+    const dateKey = item.date.split("T")[0];
     const existing = groups.get(dateKey) || [];
     groups.set(dateKey, [...existing, item]);
   });
@@ -30,15 +43,25 @@ function groupItemsByDate(items: QuoteItem[]): Map<string, QuoteItem[]> {
 
 export default function ItineraryTimeline() {
   const items = useQuoteItems();
-  const { state } = useQuoteWorkspace();
+  const { state, reorderItems } = useQuoteWorkspace();
 
-  // Group items by date
+  const sensors = useSensors(
+    useSensor(PointerSensor, { activationConstraint: { distance: 8 } }),
+    useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates })
+  );
+
   const groupedItems = useMemo(() => groupItemsByDate(items), [items]);
   const dateKeys = useMemo(() => Array.from(groupedItems.keys()).sort(), [groupedItems]);
 
+  const handleDragEnd = (event: DragEndEvent) => {
+    const { active, over } = event;
+    if (over && active.id !== over.id) {
+      reorderItems(active.id as string, over.id as string);
+    }
+  };
+
   return (
     <div className="space-y-4">
-      {/* Trip Header */}
       {state.tripName && (
         <motion.div
           initial={{ opacity: 0, y: -10 }}
@@ -46,9 +69,7 @@ export default function ItineraryTimeline() {
           className="text-center pb-4 border-b border-gray-200"
         >
           <h2 className="text-2xl font-bold text-gray-900">{state.tripName}</h2>
-          {state.destination && (
-            <p className="text-gray-500 mt-1">{state.destination}</p>
-          )}
+          {state.destination && <p className="text-gray-500 mt-1">{state.destination}</p>}
           {state.startDate && state.endDate && (
             <p className="text-sm text-gray-400 mt-1">
               {format(parseISO(state.startDate), "MMM d")} - {format(parseISO(state.endDate), "MMM d, yyyy")}
@@ -57,30 +78,25 @@ export default function ItineraryTimeline() {
         </motion.div>
       )}
 
-      {/* Timeline */}
       <div className="relative">
-        {/* Vertical connector line */}
         <div className="absolute left-6 top-0 bottom-0 w-0.5 bg-gradient-to-b from-gray-200 via-gray-300 to-gray-200" />
 
-        {/* Day groups */}
         {dateKeys.map((dateKey, dayIndex) => {
           const dayItems = groupedItems.get(dateKey) || [];
+          const itemIds = dayItems.map((i) => i.id);
 
           return (
             <div key={dateKey} className="relative">
               <DayMarker date={dateKey} dayNumber={dayIndex + 1} />
 
               <div className="ml-14 space-y-3 pb-6">
-                {dayItems.map((item, itemIndex) => (
-                  <motion.div
-                    key={item.id}
-                    initial={{ opacity: 0, x: -20 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    transition={{ delay: itemIndex * 0.05 }}
-                  >
-                    <ItineraryCard item={item} />
-                  </motion.div>
-                ))}
+                <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
+                  <SortableContext items={itemIds} strategy={verticalListSortingStrategy}>
+                    {dayItems.map((item) => (
+                      <SortableItineraryCard key={item.id} item={item} />
+                    ))}
+                  </SortableContext>
+                </DndContext>
               </div>
             </div>
           );

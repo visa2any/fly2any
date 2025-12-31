@@ -20,9 +20,11 @@ const productConfig: Record<ProductType, { icon: typeof Plane; gradient: string;
 
 interface ItineraryCardProps {
   item: QuoteItem;
+  dragListeners?: any;
+  isDragging?: boolean;
 }
 
-export default function ItineraryCard({ item }: ItineraryCardProps) {
+export default function ItineraryCard({ item, dragListeners, isDragging }: ItineraryCardProps) {
   const { state, removeItem, expandItem } = useQuoteWorkspace();
   const [showMenu, setShowMenu] = useState(false);
   const isExpanded = state.ui.expandedItemId === item.id;
@@ -114,8 +116,13 @@ export default function ItineraryCard({ item }: ItineraryCardProps) {
         isExpanded ? "ring-2 ring-primary-500" : ""
       }`}
     >
-      {/* Drag Handle (Phase 3 - will wire up) */}
-      <div className="absolute left-0 top-0 bottom-0 w-8 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity cursor-grab active:cursor-grabbing bg-gradient-to-r from-gray-50 to-transparent">
+      {/* Drag Handle */}
+      <div
+        {...dragListeners}
+        className={`absolute left-0 top-0 bottom-0 w-8 flex items-center justify-center transition-opacity cursor-grab active:cursor-grabbing bg-gradient-to-r from-gray-50 to-transparent ${
+          isDragging ? "opacity-100" : "opacity-0 group-hover:opacity-100"
+        }`}
+      >
         <GripVertical className="w-4 h-4 text-gray-400" />
       </div>
 

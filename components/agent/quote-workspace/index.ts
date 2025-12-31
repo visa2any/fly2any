@@ -15,6 +15,7 @@ export { default as HotelSearchPanel } from "./discovery/HotelSearchPanel";
 export { default as ItineraryZone } from "./itinerary/ItineraryZone";
 export { default as ItineraryTimeline } from "./itinerary/ItineraryTimeline";
 export { default as ItineraryCard } from "./itinerary/ItineraryCard";
+export { default as SortableItineraryCard } from "./itinerary/SortableItineraryCard";
 export { default as DayMarker } from "./itinerary/DayMarker";
 export { default as EmptyItinerary } from "./itinerary/EmptyItinerary";
 
