@@ -219,15 +219,29 @@ export type WorkspaceAction =
 
 // Search params for each product type
 export interface FlightSearchParams {
-  origin: string;
-  destination: string;
-  departureDate: string;
+  // Multi-airport support
+  origin: string[];           // Array of airport codes: ['JFK', 'EWR', 'LGA']
+  destination: string[];      // Array of airport codes: ['CDG', 'ORY']
+
+  // Date modes
+  departureDate: string;      // Single date mode: YYYY-MM-DD
+  departureDates: Date[];     // Multi-date mode: Array of specific dates (up to 7)
+  useMultiDate: boolean;      // Toggle between single-date and multi-date mode
   returnDate?: string;
+
+  // Flexible dates
+  departureFlex: number;      // ±N days for departure (0-5) - only for single date mode
+  tripDuration: number;       // Number of nights for round trips (1-30)
+
+  // Passengers
   adults: number;
   children: number;
   infants: number;
-  cabinClass: string;
+
+  // Options
+  cabinClass: 'economy' | 'premium_economy' | 'business' | 'first';
   tripType: 'roundtrip' | 'oneway';
+  directFlights: boolean;     // Non-stop flights only
 }
 
 export interface HotelSearchParams {
