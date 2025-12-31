@@ -1,12 +1,18 @@
 // app/agent/page.tsx
-// Agent Dashboard - SIMPLIFIED for debugging
+// Agent Dashboard - Level 6 Ultra-Premium / Apple-Class
 import { auth } from "@/lib/auth";
 import { redirect } from "next/navigation";
+import prisma from "@/lib/prisma";
 import { getAgentWithAdminFallback } from "@/lib/auth-helpers";
+import DashboardStats from "@/components/agent/DashboardStats";
+import RecentActivity from "@/components/agent/RecentActivity";
+import QuickActions from "@/components/agent/QuickActions";
+import UpcomingTrips from "@/components/agent/UpcomingTrips";
+import CommissionOverview from "@/components/agent/CommissionOverview";
 
 export const metadata = {
   title: "Dashboard - Agent Portal",
-  description: "Travel agent dashboard",
+  description: "Travel agent dashboard with real-time statistics and insights",
 };
 
 export default async function AgentDashboardPage() {
@@ -16,24 +22,128 @@ export default async function AgentDashboardPage() {
     redirect("/auth/signin?callbackUrl=/agent");
   }
 
-  // Get agent with admin fallback
   const agent = await getAgentWithAdminFallback(session.user.id);
 
   if (!agent) {
     redirect("/agent/register");
   }
 
-  // Return minimal UI to test
+  // Fetch dashboard data
+  const startOfMonth = new Date();
+  startOfMonth.setDate(1);
+  startOfMonth.setHours(0, 0, 0, 0);
+
+  const [
+    quotesCount,
+    bookingsCount,
+    clientsCount,
+    recentQuotes,
+    recentBookings,
+    commissionStats,
+    upcomingTrips,
+    thisMonthQuotes,
+    thisMonthBookings,
+    thisMonthRevenue,
+  ] = await Promise.all([
+    prisma!.agentQuote.count({ where: { agentId: agent.id } }),
+    prisma!.agentBooking.count({ where: { agentId: agent.id } }),
+    prisma!.agentClient.count({ where: { agentId: agent.id } }),
+    prisma!.agentQuote.findMany({
+      where: { agentId: agent.id },
+      include: { client: { select: { firstName: true, lastName: true } } },
+      orderBy: { createdAt: "desc" },
+      take: 5,
+    }),
+    prisma!.agentBooking.findMany({
+      where: { agentId: agent.id },
+      include: { client: { select: { firstName: true, lastName: true } } },
+      orderBy: { createdAt: "desc" },
+      take: 5,
+    }),
+    prisma!.agentCommission.groupBy({
+      by: ['status'],
+      where: { agentId: agent.id },
+      _sum: { agentEarnings: true },
+    }),
+    prisma!.agentBooking.findMany({
+      where: {
+        agentId: agent.id,
+        startDate: { gte: new Date() },
+        status: { in: ["CONFIRMED", "PENDING"] },
+      },
+      include: { client: { select: { firstName: true, lastName: true, email: true } } },
+      orderBy: { startDate: "asc" },
+      take: 5,
+    }),
+    prisma!.agentQuote.count({
+      where: { agentId: agent.id, createdAt: { gte: startOfMonth } },
+    }),
+    prisma!.agentBooking.count({
+      where: { agentId: agent.id, createdAt: { gte: startOfMonth } },
+    }),
+    prisma!.agentBooking.aggregate({
+      where: { agentId: agent.id, createdAt: { gte: startOfMonth } },
+      _sum: { total: true },
+    }),
+  ]);
+
+  const availableAmount = commissionStats.find((c) => c.status === "AVAILABLE")?._sum.agentEarnings || 0;
+  const paidAmount = commissionStats.find((c) => c.status === "PAID")?._sum.agentEarnings || 0;
+  const pendingStatuses = ["PENDING", "CONFIRMED", "TRIP_IN_PROGRESS", "IN_HOLD_PERIOD"];
+  const pendingAmount = commissionStats
+    .filter((c) => pendingStatuses.includes(c.status))
+    .reduce((sum, c) => sum + (c._sum.agentEarnings || 0), 0);
+
+  // BULLETPROOF SERIALIZATION
+  const dashboardData = JSON.parse(JSON.stringify({
+    overview: {
+      totalQuotes: quotesCount,
+      totalBookings: bookingsCount,
+      totalClients: clientsCount,
+      totalRevenue: agent.totalSales,
+      thisMonth: {
+        quotes: thisMonthQuotes,
+        bookings: thisMonthBookings,
+        revenue: thisMonthRevenue._sum.total || 0,
+      },
+    },
+    commissions: {
+      available: availableAmount,
+      pending: pendingAmount,
+      paid: paidAmount,
+      total: agent.totalCommissions,
+    },
+    recentQuotes,
+    recentBookings,
+    upcomingTrips,
+  }));
+
   return (
-    <div className="p-8">
-      <h1 className="text-2xl font-bold text-gray-900 mb-4">
-        Welcome back, {agent.agencyName || session.user.name || "Agent"}!
-      </h1>
-      <p className="text-gray-600">Agent ID: {agent.id}</p>
-      <p className="text-gray-600">Status: {agent.status}</p>
-      <p className="text-gray-600 mt-4">Dashboard is loading...</p>
-      <a href="/agent/quotes" className="text-blue-600 hover:underline block mt-4">Go to Quotes</a>
-      <a href="/agent/bookings" className="text-blue-600 hover:underline block mt-2">Go to Bookings</a>
+    <div className="space-y-6">
+      {/* Welcome Header */}
+      <div>
+        <h1 className="text-2xl font-bold text-gray-900">
+          Welcome back, {agent.agencyName || session.user.name || "Agent"}!
+        </h1>
+        <p className="text-gray-600 mt-1">
+          Here&apos;s what&apos;s happening with your travel business today.
+        </p>
+      </div>
+
+      {/* Quick Actions */}
+      <QuickActions />
+
+      {/* Stats Overview */}
+      <DashboardStats data={dashboardData.overview} />
+
+      {/* Commission Overview */}
+      <CommissionOverview data={dashboardData.commissions} />
+
+      {/* Two Column Layout */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <UpcomingTrips trips={dashboardData.upcomingTrips} />
+        <RecentActivity quotes={dashboardData.recentQuotes} bookings={dashboardData.recentBookings} />
+      </div>
     </div>
   );
 }
