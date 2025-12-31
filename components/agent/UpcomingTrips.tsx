@@ -10,6 +10,7 @@ interface UpcomingTripsProps {
   trips: Array<{
     id: string;
     bookingNumber?: string;
+    tripName?: string;
     destination?: string;
     startDate?: string | null;
     endDate?: string | null;
@@ -100,7 +101,7 @@ export default function UpcomingTrips({ trips }: UpcomingTripsProps) {
                     {/* Trip Info */}
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2">
-                        <p className="text-sm font-medium text-gray-900 truncate">{trip.destination || trip.bookingNumber || 'Upcoming Trip'}</p>
+                        <p className="text-sm font-medium text-gray-900 truncate">{trip.tripName || trip.destination || 'Upcoming Trip'}</p>
                         <span className={`w-5 h-5 rounded-full ${config.bg} flex items-center justify-center`}>
                           <Icon className={`w-3 h-3 ${config.color}`} />
                         </span>
