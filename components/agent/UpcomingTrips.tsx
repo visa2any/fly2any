@@ -9,14 +9,13 @@ import { Calendar, MapPin, ArrowRight, Plane, CheckCircle, Clock } from 'lucide-
 interface UpcomingTripsProps {
   trips: Array<{
     id: string;
-    confirmationNumber: string;
-    tripName: string;
-    destination: string;
-    startDate: Date;
-    endDate: Date;
-    total: number;
+    bookingNumber?: string;
+    destination?: string;
+    startDate?: string | null;
+    endDate?: string | null;
+    total?: number;
     status: string;
-    client: { firstName: string; lastName: string; email: string };
+    client?: { firstName?: string; lastName?: string; email?: string } | null;
   }>;
 }
 
@@ -78,7 +77,7 @@ export default function UpcomingTrips({ trips }: UpcomingTripsProps) {
           </div>
         ) : (
           trips.map((trip, idx) => {
-            const daysUntil = getDaysUntil(trip.startDate);
+            const daysUntil = trip.startDate ? getDaysUntil(new Date(trip.startDate)) : 999;
             const config = getStatusConfig(trip.status);
             const Icon = config.icon;
             return (
@@ -101,25 +100,25 @@ export default function UpcomingTrips({ trips }: UpcomingTripsProps) {
                     {/* Trip Info */}
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2">
-                        <p className="text-sm font-medium text-gray-900 truncate">{trip.tripName}</p>
+                        <p className="text-sm font-medium text-gray-900 truncate">{trip.destination || trip.bookingNumber || 'Upcoming Trip'}</p>
                         <span className={`w-5 h-5 rounded-full ${config.bg} flex items-center justify-center`}>
                           <Icon className={`w-3 h-3 ${config.color}`} />
                         </span>
                       </div>
                       <div className="flex items-center gap-2 mt-0.5">
                         <MapPin className="w-3 h-3 text-gray-400" />
-                        <p className="text-xs text-gray-500 truncate">{trip.destination}</p>
+                        <p className="text-xs text-gray-500 truncate">{trip.destination || 'Destination TBD'}</p>
                       </div>
                       <p className="text-xs text-gray-400 mt-0.5">
-                        {trip.client.firstName} {trip.client.lastName}
+                        {trip.client?.firstName || ''} {trip.client?.lastName || ''}
                       </p>
                     </div>
 
                     {/* Date & Amount */}
                     <div className="text-right flex-shrink-0">
-                      <p className="text-sm font-semibold text-gray-900">${trip.total.toLocaleString()}</p>
+                      <p className="text-sm font-semibold text-gray-900">${(trip.total || 0).toLocaleString()}</p>
                       <p className="text-xs text-gray-400 mt-0.5">
-                        {new Date(trip.startDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+                        {trip.startDate ? new Date(trip.startDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) : '—'}
                       </p>
                     </div>
                   </div>

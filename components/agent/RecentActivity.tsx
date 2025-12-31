@@ -9,29 +9,39 @@ import { FileText, CheckCircle, Clock, ArrowRight, XCircle, Eye, Inbox } from 'l
 interface RecentActivityProps {
   quotes: Array<{
     id: string;
-    quoteNumber: string;
-    tripName: string;
-    destination: string;
-    total: number;
+    quoteNumber?: string;
+    tripName?: string;
+    total?: number;
     status: string;
-    createdAt: Date;
-    client: { firstName: string; lastName: string };
+    createdAt: string;
+    client?: { firstName?: string; lastName?: string } | null;
   }>;
   bookings: Array<{
     id: string;
-    confirmationNumber: string;
-    tripName: string;
-    total: number;
+    bookingNumber?: string;
+    total?: number;
     status: string;
-    createdAt: Date;
-    client: { firstName: string; lastName: string };
+    createdAt: string;
+    client?: { firstName?: string; lastName?: string } | null;
   }>;
 }
 
-export default function RecentActivity({ quotes, bookings }: RecentActivityProps) {
+export default function RecentActivity({ quotes = [], bookings = [] }: RecentActivityProps) {
   const activities = [
-    ...quotes.map((q) => ({ ...q, type: 'quote' as const, identifier: q.quoteNumber, link: `/agent/quotes/${q.id}` })),
-    ...bookings.map((b) => ({ ...b, type: 'booking' as const, identifier: b.confirmationNumber, link: `/agent/bookings/${b.id}` })),
+    ...quotes.map((q) => ({
+      ...q,
+      type: 'quote' as const,
+      identifier: q.quoteNumber || 'Q-',
+      name: q.tripName || 'Quote',
+      link: `/agent/quotes/${q.id}`
+    })),
+    ...bookings.map((b) => ({
+      ...b,
+      type: 'booking' as const,
+      identifier: b.bookingNumber || 'B-',
+      name: 'Booking',
+      link: `/agent/bookings/${b.id}`
+    })),
   ].sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()).slice(0, 5);
 
   const getStatusConfig = (status: string, type: string) => {
@@ -113,17 +123,17 @@ export default function RecentActivity({ quotes, bookings }: RecentActivityProps
                       </div>
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-2">
-                          <p className="text-sm font-medium text-gray-900 truncate">{activity.tripName}</p>
+                          <p className="text-sm font-medium text-gray-900 truncate">{activity.name}</p>
                           <span className={`px-1.5 py-0.5 text-[10px] font-medium rounded ${config.bg} ${config.color}`}>
                             {activity.status}
                           </span>
                         </div>
                         <p className="text-xs text-gray-500 mt-0.5 truncate">
-                          {activity.client.firstName} {activity.client.lastName} • {activity.identifier}
+                          {activity.client?.firstName || ''} {activity.client?.lastName || ''} • {activity.identifier}
                         </p>
                       </div>
                       <div className="text-right flex-shrink-0">
-                        <p className="text-sm font-semibold text-gray-900">${activity.total.toLocaleString()}</p>
+                        <p className="text-sm font-semibold text-gray-900">${(activity.total || 0).toLocaleString()}</p>
                         <p className="text-xs text-gray-400 mt-0.5">{getRelativeTime(activity.createdAt)}</p>
                       </div>
                     </div>
