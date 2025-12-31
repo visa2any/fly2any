@@ -42,9 +42,16 @@ export default async function AdminAgentsPage() {
     _sum: { agentEarnings: true, platformFee: true },
   });
 
+  // Serialize for client component
+  const serializedAgents = agents.map(a => ({
+    ...a,
+    createdAt: a.createdAt.toISOString(),
+    updatedAt: a.updatedAt?.toISOString() || null,
+  }));
+
   return (
     <AgentsAdminClient
-      initialAgents={agents}
+      initialAgents={serializedAgents as any}
       stats={{
         byStatus: Object.fromEntries(stats.map(s => [s.status, s._count.id])),
         totalCommissions: commissionStats._sum.agentEarnings || 0,

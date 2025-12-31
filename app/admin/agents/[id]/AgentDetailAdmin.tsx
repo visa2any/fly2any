@@ -28,7 +28,7 @@ const formatCurrency = (n: number) => new Intl.NumberFormat('en-US', { style: 'c
 export default function AgentDetailAdmin({ agent, stats }: Props) {
   const router = useRouter();
   const [editing, setEditing] = useState(false);
-  const [commissionRate, setCommissionRate] = useState(agent.commissionRate);
+  const [commissionRate, setCommissionRate] = useState((agent.defaultCommission || 0.05) * 100);
   const [loading, setLoading] = useState(false);
 
   const updateAgent = async (data: any) => {
@@ -148,7 +148,7 @@ export default function AgentDetailAdmin({ agent, stats }: Props) {
                   className="w-full mt-1 px-3 py-2 border border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500"
                 />
               ) : (
-                <p className="font-medium text-gray-900 text-xl">{agent.commissionRate}%</p>
+                <p className="font-medium text-gray-900 text-xl">{((agent.defaultCommission || 0.05) * 100).toFixed(0)}%</p>
               )}
             </div>
             <div className="flex gap-2">

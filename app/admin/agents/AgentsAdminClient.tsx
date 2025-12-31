@@ -16,9 +16,9 @@ interface Agent {
   userId: string;
   businessName: string | null;
   status: string;
-  commissionRate: number;
+  defaultCommission: number;
   phone: string | null;
-  createdAt: Date;
+  createdAt: string;
   user: { id: string; name: string | null; email: string; image: string | null };
   _count: { quotes: number; bookings: number; clients: number; commissions: number };
 }
@@ -200,7 +200,7 @@ export default function AgentsAdminClient({ initialAgents, stats }: Props) {
                         </div>
                       </td>
                       <td className="px-5 py-4">
-                        <p className="text-sm font-medium text-gray-900">{agent.commissionRate}%</p>
+                        <p className="text-sm font-medium text-gray-900">{(agent.defaultCommission * 100).toFixed(0)}%</p>
                         <p className="text-xs text-gray-500">{agent._count.commissions} earned</p>
                       </td>
                       <td className="px-5 py-4">

@@ -100,8 +100,7 @@ export async function PATCH(req: NextRequest) {
       where: { id: agentId },
       data: {
         ...(status && { status }),
-        ...(commissionRate !== undefined && { commissionRate }),
-        ...(notes && { adminNotes: notes }),
+        ...(commissionRate !== undefined && { defaultCommission: commissionRate / 100 }),
       },
       include: { user: { select: { name: true, email: true } } },
     });

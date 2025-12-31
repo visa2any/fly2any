@@ -44,5 +44,28 @@ export default async function AdminAgentDetailPage({ params }: Props) {
   const totalEarnings = agent.commissions.reduce((sum, c) => sum + c.agentEarnings, 0);
   const platformFees = agent.commissions.reduce((sum, c) => sum + c.platformFee, 0);
 
-  return <AgentDetailAdmin agent={agent} stats={{ totalEarnings, platformFees }} />;
+  // Serialize for client component
+  const serializedAgent = {
+    ...agent,
+    createdAt: agent.createdAt.toISOString(),
+    updatedAt: agent.updatedAt?.toISOString() || null,
+    user: {
+      ...agent.user,
+      createdAt: agent.user.createdAt?.toISOString() || null,
+    },
+    quotes: agent.quotes.map(q => ({
+      ...q,
+      createdAt: q.createdAt.toISOString(),
+    })),
+    bookings: agent.bookings.map(b => ({
+      ...b,
+      createdAt: b.createdAt.toISOString(),
+    })),
+    commissions: agent.commissions.map(c => ({
+      ...c,
+      createdAt: c.createdAt.toISOString(),
+    })),
+  };
+
+  return <AgentDetailAdmin agent={serializedAgent} stats={{ totalEarnings, platformFees }} />;
 }

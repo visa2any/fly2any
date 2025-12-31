@@ -159,6 +159,30 @@ export default async function AgentDashboardPage() {
     .filter((c) => pendingStatuses.includes(c.status))
     .reduce((sum, c) => sum + (c._sum.agentEarnings || 0), 0);
 
+  // Serialize dates for client components
+  const serializedQuotes = recentQuotes.map(q => ({
+    ...q,
+    createdAt: q.createdAt.toISOString(),
+    updatedAt: q.updatedAt?.toISOString() || null,
+    expiresAt: q.expiresAt?.toISOString() || null,
+  }));
+
+  const serializedBookings = recentBookings.map(b => ({
+    ...b,
+    createdAt: b.createdAt.toISOString(),
+    updatedAt: b.updatedAt?.toISOString() || null,
+    startDate: b.startDate?.toISOString() || null,
+    endDate: b.endDate?.toISOString() || null,
+  }));
+
+  const serializedUpcomingTrips = upcomingTrips.map(t => ({
+    ...t,
+    createdAt: t.createdAt.toISOString(),
+    updatedAt: t.updatedAt?.toISOString() || null,
+    startDate: t.startDate?.toISOString() || null,
+    endDate: t.endDate?.toISOString() || null,
+  }));
+
   const dashboardData = {
     overview: {
       totalQuotes: quotesCount,
@@ -177,9 +201,9 @@ export default async function AgentDashboardPage() {
       paid: paidAmount,
       total: agent.totalCommissions,
     },
-    recentQuotes,
-    recentBookings,
-    upcomingTrips,
+    recentQuotes: serializedQuotes,
+    recentBookings: serializedBookings,
+    upcomingTrips: serializedUpcomingTrips,
   };
 
   return (
@@ -206,10 +230,10 @@ export default async function AgentDashboardPage() {
       {/* Two Column Layout */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         {/* Upcoming Trips */}
-        <UpcomingTrips trips={upcomingTrips} />
+        <UpcomingTrips trips={dashboardData.upcomingTrips as any} />
 
         {/* Recent Activity */}
-        <RecentActivity quotes={recentQuotes} bookings={recentBookings} />
+        <RecentActivity quotes={dashboardData.recentQuotes as any} bookings={dashboardData.recentBookings as any} />
       </div>
     </div>
   );
