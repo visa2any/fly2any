@@ -47,6 +47,7 @@ export default function FlightSearchPanel() {
     useMultiDate: false,
     returnDate: state.endDate || "",
     departureFlex: 0,
+    returnFlex: 0,
     tripDuration: 7,
     adults: state.travelers.adults,
     children: state.travelers.children,
@@ -324,436 +325,223 @@ export default function FlightSearchPanel() {
               </button>
             )}
 
-            {/* Search Form */}
+            {/* Search Form - Compact Layout */}
             <form ref={formRef} onSubmit={handleSearch} className="space-y-3">
-              {/* Trip Type Toggle */}
-              <div className="flex gap-1.5 p-1 bg-gray-100 rounded-xl">
-          <button
-            type="button"
-            onClick={() => setParams({ ...params, tripType: "roundtrip" })}
-            className={`flex-1 py-2 px-3 text-xs font-semibold rounded-lg transition-all ${
-              params.tripType === "roundtrip"
-                ? "bg-white text-blue-600 shadow-sm"
-                : "text-gray-600 hover:text-gray-900"
-            }`}
-          >
-            Round Trip
-          </button>
-          <button
-            type="button"
-            onClick={() => setParams({ ...params, tripType: "oneway", returnDate: "" })}
-            className={`flex-1 py-2 px-3 text-xs font-semibold rounded-lg transition-all ${
-              params.tripType === "oneway"
-                ? "bg-white text-blue-600 shadow-sm"
-                : "text-gray-600 hover:text-gray-900"
-            }`}
-          >
-            One Way
-          </button>
-        </div>
-
-        {/* Multi-Airport Origin */}
-        <div>
-          <MultiAirportSelector
-            label="From"
-            placeholder="Search airports..."
-            value={params.origin}
-            onChange={(codes) => setParams({ ...params, origin: codes })}
-            maxDisplay={2}
-          />
-        </div>
-
-        {/* Multi-Airport Destination */}
-        <div>
-          <MultiAirportSelector
-            label="To"
-            placeholder="Search airports..."
-            value={params.destination}
-            onChange={(codes) => setParams({ ...params, destination: codes })}
-            maxDisplay={2}
-          />
-        </div>
-
-        {/* Date Mode Toggle */}
-        <div className="flex items-center justify-between">
-          <span className="text-xs font-semibold text-gray-600">Departure</span>
-          <div className="flex items-center gap-1 bg-gray-100 rounded-lg p-0.5">
-            <button
-              type="button"
-              onClick={() => setParams({ ...params, useMultiDate: false, departureDates: [] })}
-              className={`px-2 py-1 rounded text-[10px] font-semibold transition-all ${
-                !params.useMultiDate
-                  ? "bg-white text-blue-600 shadow-sm"
-                  : "text-gray-600 hover:text-gray-900"
-              }`}
-            >
-              Single Date
-            </button>
-            <button
-              type="button"
-              onClick={() => setParams({ ...params, useMultiDate: true, departureDate: "" })}
-              className={`px-2 py-1 rounded text-[10px] font-semibold transition-all ${
-                params.useMultiDate
-                  ? "bg-white text-blue-600 shadow-sm"
-                  : "text-gray-600 hover:text-gray-900"
-              }`}
-            >
-              Multi-Date
-            </button>
-          </div>
-        </div>
-
-        {/* Single Date Mode */}
-        {!params.useMultiDate && (
-          <div className="space-y-3">
-            {/* Departure Date - Level 6 Ultra-Premium */}
-            <PremiumDatePicker
-              label="Departure"
-              value={params.departureDate}
-              onChange={(date) => setParams({ ...params, departureDate: date })}
-              minDate={getMinDate()}
-              placeholder="When do you depart?"
-            />
-
-            {/* Return Date - Level 6 Ultra-Premium */}
-            {params.tripType === "roundtrip" && (
-              <PremiumDatePicker
-                label="Return"
-                value={params.returnDate || ""}
-                onChange={(date) => setParams({ ...params, returnDate: date })}
-                minDate={params.departureDate || getMinDate()}
-                placeholder="When do you return?"
-              />
-            )}
-
-            {/* Flexible Dates Stepper */}
-            <div className="flex items-center justify-between bg-gray-50 rounded-xl px-3 py-2 border border-gray-200">
-              <div className="flex items-center gap-2">
-                <Sparkles className="w-4 h-4 text-amber-500" />
-                <span className="text-xs font-semibold text-gray-700">Flexible Dates</span>
-              </div>
-              <div className="flex items-center gap-1">
-                <button
-                  type="button"
-                  onClick={() => setParams({ ...params, departureFlex: Math.max(0, params.departureFlex - 1) })}
-                  disabled={params.departureFlex === 0}
-                  className="w-7 h-7 rounded-full border border-gray-300 flex items-center justify-center hover:border-blue-500 disabled:opacity-30 text-sm font-bold"
-                >
-                  <Minus className="w-3 h-3" />
-                </button>
-                <span className="w-12 text-center text-xs font-bold text-gray-700">
-                  {params.departureFlex === 0 ? "Exact" : `±${params.departureFlex}d`}
-                </span>
-                <button
-                  type="button"
-                  onClick={() => setParams({ ...params, departureFlex: Math.min(5, params.departureFlex + 1) })}
-                  disabled={params.departureFlex === 5}
-                  className="w-7 h-7 rounded-full border border-gray-300 flex items-center justify-center hover:border-blue-500 disabled:opacity-30 text-sm font-bold"
-                >
-                  <Plus className="w-3 h-3" />
-                </button>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* Multi-Date Mode - Level 6 Premium Styling */}
-        {params.useMultiDate && (
-          <div className="space-y-3">
-            <label className="block text-xs font-semibold text-gray-600 tracking-wide">
-              Departure Dates
-            </label>
-
-            {/* Selected Dates Pills */}
-            {params.departureDates.length > 0 && (
-              <motion.div
-                initial={{ opacity: 0, y: -5 }}
-                animate={{ opacity: 1, y: 0 }}
-                className="flex flex-wrap gap-2"
-              >
-                {params.departureDates.map((date, index) => (
-                  <motion.span
-                    key={index}
-                    initial={{ scale: 0.8, opacity: 0 }}
-                    animate={{ scale: 1, opacity: 1 }}
-                    exit={{ scale: 0.8, opacity: 0 }}
-                    className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-gradient-to-r from-blue-50 to-indigo-50 text-blue-700 rounded-xl text-xs font-semibold border border-blue-200 shadow-sm"
-                  >
-                    <Calendar className="w-3 h-3" />
-                    {format(date, "EEE, MMM d")}
+              {/* ROW 1: From + To with One-way toggle */}
+              <div className="grid grid-cols-2 gap-2">
+                <MultiAirportSelector
+                  label="From"
+                  placeholder="Origin"
+                  value={params.origin}
+                  onChange={(codes) => setParams({ ...params, origin: codes })}
+                  maxDisplay={1}
+                />
+                <div>
+                  <div className="flex items-center justify-between mb-1">
+                    <span className="text-xs font-semibold text-gray-600">To</span>
                     <button
                       type="button"
-                      onClick={() => removeMultiDate(index)}
-                      className="w-4 h-4 rounded-full flex items-center justify-center hover:bg-blue-200 transition-colors"
+                      onClick={() => setParams({ ...params, tripType: params.tripType === "oneway" ? "roundtrip" : "oneway", returnDate: "" })}
+                      className={`px-2 py-0.5 rounded-full text-[10px] font-bold transition-all ${
+                        params.tripType === "oneway"
+                          ? "bg-blue-600 text-white"
+                          : "bg-gray-100 text-gray-500 hover:bg-gray-200"
+                      }`}
                     >
-                      <X className="w-3 h-3" />
+                      One-way
                     </button>
-                  </motion.span>
-                ))}
-              </motion.div>
-            )}
-
-            {/* Add Date Button/Input */}
-            {params.departureDates.length < 7 && (
-              <div className="relative">
-                <div className="flex items-center gap-2 p-3 bg-white border border-dashed border-gray-300 rounded-xl hover:border-blue-400 hover:bg-blue-50/30 transition-all cursor-pointer group">
-                  <div className="w-9 h-9 rounded-lg bg-gray-100 group-hover:bg-blue-100 flex items-center justify-center transition-colors">
-                    <Plus className="w-4 h-4 text-gray-500 group-hover:text-blue-600 transition-colors" />
                   </div>
-                  <div className="flex-1">
-                    <p className="text-sm font-medium text-gray-700 group-hover:text-blue-700 transition-colors">
-                      Add departure date
-                    </p>
-                    <p className="text-xs text-gray-400">
-                      {7 - params.departureDates.length} more dates available
-                    </p>
+                  <MultiAirportSelector
+                    placeholder="Destination"
+                    value={params.destination}
+                    onChange={(codes) => setParams({ ...params, destination: codes })}
+                    maxDisplay={1}
+                  />
+                </div>
+              </div>
+
+              {/* ROW 2: Dates with independent flex controls */}
+              <div className="grid grid-cols-2 gap-2">
+                {/* Departure */}
+                <div>
+                  <div className="flex items-center justify-between mb-1">
+                    <span className="text-xs font-semibold text-gray-600">Departure</span>
+                    <button
+                      type="button"
+                      onClick={() => setParams({ ...params, departureFlex: params.departureFlex === 0 ? 3 : 0 })}
+                      className={`flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-bold transition-all ${
+                        params.departureFlex > 0
+                          ? "bg-amber-100 text-amber-700"
+                          : "bg-gray-100 text-gray-500 hover:bg-gray-200"
+                      }`}
+                    >
+                      <Sparkles className="w-3 h-3" />
+                      {params.departureFlex > 0 ? `±${params.departureFlex}d` : "Flex"}
+                    </button>
+                  </div>
+                  <div className="relative">
+                    <input
+                      type="date"
+                      value={params.departureDate}
+                      min={getMinDate()}
+                      onChange={(e) => setParams({ ...params, departureDate: e.target.value })}
+                      className="w-full px-3 py-2.5 border border-gray-200 rounded-xl text-sm font-medium focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white"
+                    />
                   </div>
                 </div>
-                <input
-                  type="date"
-                  min={getMinDate()}
-                  onChange={(e) => {
-                    addMultiDate(e.target.value);
-                    e.target.value = "";
-                  }}
-                  className="absolute inset-0 opacity-0 cursor-pointer"
-                />
-              </div>
-            )}
-          </div>
-        )}
 
-        {/* Trip Duration (Round Trip Only) */}
-        {params.tripType === "roundtrip" && params.useMultiDate && (
-          <div className="flex items-center justify-between bg-gray-50 rounded-xl px-3 py-2 border border-gray-200">
-            <div className="flex items-center gap-2">
-              <Clock className="w-4 h-4 text-purple-500" />
-              <span className="text-xs font-semibold text-gray-700">Trip Duration</span>
-            </div>
-            <div className="flex items-center gap-1">
-              <button
-                type="button"
-                onClick={() => setParams({ ...params, tripDuration: Math.max(1, params.tripDuration - 1) })}
-                disabled={params.tripDuration <= 1}
-                className="w-7 h-7 rounded-full border border-gray-300 flex items-center justify-center hover:border-blue-500 disabled:opacity-30"
-              >
-                <Minus className="w-3 h-3" />
-              </button>
-              <input
-                type="number"
-                value={params.tripDuration}
-                onChange={(e) => {
-                  const val = parseInt(e.target.value);
-                  if (!isNaN(val) && val >= 1 && val <= 30) {
-                    setParams({ ...params, tripDuration: val });
-                  }
-                }}
-                min="1"
-                max="30"
-                className="w-12 text-center text-xs font-bold text-gray-700 border-0 bg-transparent"
-              />
-              <span className="text-xs text-gray-500">nights</span>
-              <button
-                type="button"
-                onClick={() => setParams({ ...params, tripDuration: Math.min(30, params.tripDuration + 1) })}
-                disabled={params.tripDuration >= 30}
-                className="w-7 h-7 rounded-full border border-gray-300 flex items-center justify-center hover:border-blue-500 disabled:opacity-30"
-              >
-                <Plus className="w-3 h-3" />
-              </button>
-            </div>
-          </div>
-        )}
-
-        {/* Passengers & Class Row */}
-        <div className="grid grid-cols-2 gap-2">
-          {/* Passengers Dropdown */}
-          <div className="relative">
-            <label className="block text-xs font-medium text-gray-500 mb-1">Travelers</label>
-            <button
-              type="button"
-              onClick={() => { setShowPassengerDropdown(!showPassengerDropdown); setShowClassDropdown(false); }}
-              className="w-full flex items-center justify-between px-3 py-2.5 border border-gray-300 rounded-xl text-sm font-medium hover:border-gray-400 transition-colors"
-            >
-              <div className="flex items-center gap-2">
-                <Users className="w-4 h-4 text-gray-400" />
-                <span>{totalPassengers} Pax</span>
-              </div>
-              <ChevronDown className={`w-4 h-4 text-gray-400 transition-transform ${showPassengerDropdown ? "rotate-180" : ""}`} />
-            </button>
-
-            {/* Passenger Dropdown */}
-            <AnimatePresence>
-              {showPassengerDropdown && (
-                <>
-                  <div className="fixed inset-0 z-10" onClick={() => setShowPassengerDropdown(false)} />
-                  <motion.div
-                    initial={{ opacity: 0, y: -10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0, y: -10 }}
-                    className="absolute z-20 mt-1 left-0 right-0 bg-white border border-gray-200 rounded-xl shadow-xl p-3 space-y-3"
-                  >
-                    {/* Adults */}
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <div className="text-sm font-semibold text-gray-900">Adults</div>
-                        <div className="text-xs text-gray-500">12+ years</div>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <button type="button" onClick={() => updatePassenger("adults", -1)} disabled={params.adults <= 1} className="w-8 h-8 rounded-full border border-gray-300 flex items-center justify-center hover:border-blue-500 disabled:opacity-30">
-                          <Minus className="w-3 h-3" />
-                        </button>
-                        <span className="w-6 text-center font-bold">{params.adults}</span>
-                        <button type="button" onClick={() => updatePassenger("adults", 1)} disabled={params.adults >= 9} className="w-8 h-8 rounded-full border border-gray-300 flex items-center justify-center hover:border-blue-500 disabled:opacity-30">
-                          <Plus className="w-3 h-3" />
-                        </button>
-                      </div>
-                    </div>
-                    {/* Children */}
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <div className="text-sm font-semibold text-gray-900">Children</div>
-                        <div className="text-xs text-gray-500">2-12 years</div>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <button type="button" onClick={() => updatePassenger("children", -1)} disabled={params.children <= 0} className="w-8 h-8 rounded-full border border-gray-300 flex items-center justify-center hover:border-blue-500 disabled:opacity-30">
-                          <Minus className="w-3 h-3" />
-                        </button>
-                        <span className="w-6 text-center font-bold">{params.children}</span>
-                        <button type="button" onClick={() => updatePassenger("children", 1)} disabled={params.children >= 9} className="w-8 h-8 rounded-full border border-gray-300 flex items-center justify-center hover:border-blue-500 disabled:opacity-30">
-                          <Plus className="w-3 h-3" />
-                        </button>
-                      </div>
-                    </div>
-                    {/* Infants */}
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <div className="text-sm font-semibold text-gray-900">Infants</div>
-                        <div className="text-xs text-gray-500">Under 2 years</div>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <button type="button" onClick={() => updatePassenger("infants", -1)} disabled={params.infants <= 0} className="w-8 h-8 rounded-full border border-gray-300 flex items-center justify-center hover:border-blue-500 disabled:opacity-30">
-                          <Minus className="w-3 h-3" />
-                        </button>
-                        <span className="w-6 text-center font-bold">{params.infants}</span>
-                        <button type="button" onClick={() => updatePassenger("infants", 1)} disabled={params.infants >= params.adults || params.infants >= 9} className="w-8 h-8 rounded-full border border-gray-300 flex items-center justify-center hover:border-blue-500 disabled:opacity-30">
-                          <Plus className="w-3 h-3" />
-                        </button>
-                      </div>
-                    </div>
+                {/* Return */}
+                <div className={params.tripType === "oneway" ? "opacity-40 pointer-events-none" : ""}>
+                  <div className="flex items-center justify-between mb-1">
+                    <span className="text-xs font-semibold text-gray-600">Return</span>
                     <button
                       type="button"
-                      onClick={() => setShowPassengerDropdown(false)}
-                      className="w-full py-2 bg-blue-600 text-white rounded-lg text-sm font-semibold"
+                      onClick={() => setParams({ ...params, returnFlex: params.returnFlex === 0 ? 3 : 0 })}
+                      disabled={params.tripType === "oneway"}
+                      className={`flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-bold transition-all ${
+                        params.returnFlex > 0
+                          ? "bg-amber-100 text-amber-700"
+                          : "bg-gray-100 text-gray-500 hover:bg-gray-200"
+                      }`}
                     >
-                      Done
+                      <Sparkles className="w-3 h-3" />
+                      {params.returnFlex > 0 ? `±${params.returnFlex}d` : "Flex"}
                     </button>
-                  </motion.div>
-                </>
-              )}
-            </AnimatePresence>
-          </div>
+                  </div>
+                  <div className="relative">
+                    <input
+                      type="date"
+                      value={params.returnDate || ""}
+                      min={params.departureDate || getMinDate()}
+                      onChange={(e) => setParams({ ...params, returnDate: e.target.value })}
+                      disabled={params.tripType === "oneway"}
+                      className="w-full px-3 py-2.5 border border-gray-200 rounded-xl text-sm font-medium focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white disabled:bg-gray-50"
+                    />
+                  </div>
+                </div>
+              </div>
 
-          {/* Cabin Class Dropdown */}
-          <div className="relative">
-            <label className="block text-xs font-medium text-gray-500 mb-1">Class</label>
-            <button
-              type="button"
-              onClick={() => { setShowClassDropdown(!showClassDropdown); setShowPassengerDropdown(false); }}
-              className="w-full flex items-center justify-between px-3 py-2.5 border border-gray-300 rounded-xl text-sm font-medium hover:border-gray-400 transition-colors"
-            >
-              <span className="truncate">
-                {CABIN_CLASSES.find((c) => c.value === params.cabinClass)?.label || "Economy"}
-              </span>
-              <ChevronDown className={`w-4 h-4 text-gray-400 transition-transform ${showClassDropdown ? "rotate-180" : ""}`} />
-            </button>
-
-            {/* Class Dropdown */}
-            <AnimatePresence>
-              {showClassDropdown && (
-                <>
-                  <div className="fixed inset-0 z-10" onClick={() => setShowClassDropdown(false)} />
-                  <motion.div
-                    initial={{ opacity: 0, y: -10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0, y: -10 }}
-                    className="absolute z-20 mt-1 left-0 right-0 bg-white border border-gray-200 rounded-xl shadow-xl overflow-hidden"
+              {/* ROW 3: Travelers + Class + Direct */}
+              <div className="flex items-center gap-2">
+                {/* Travelers */}
+                <div className="relative flex-1">
+                  <button
+                    type="button"
+                    onClick={() => { setShowPassengerDropdown(!showPassengerDropdown); setShowClassDropdown(false); }}
+                    className="w-full flex items-center justify-between px-3 py-2 border border-gray-200 rounded-xl text-sm font-medium hover:border-gray-300 transition-colors bg-white"
                   >
-                    {CABIN_CLASSES.map((cabin) => (
-                      <button
-                        key={cabin.value}
-                        type="button"
-                        onClick={() => {
-                          setParams({ ...params, cabinClass: cabin.value });
-                          setShowClassDropdown(false);
-                        }}
-                        className={`w-full flex items-center justify-between px-3 py-2.5 text-sm transition-colors ${
-                          params.cabinClass === cabin.value
-                            ? "bg-blue-50 text-blue-700"
-                            : "hover:bg-gray-50"
-                        }`}
-                      >
-                        <div className="flex items-center gap-2">
-                          <span className="w-5 h-5 rounded bg-gray-100 flex items-center justify-center text-xs font-bold text-gray-600">
-                            {cabin.icon}
-                          </span>
-                          <span className="font-medium">{cabin.label}</span>
-                        </div>
-                        {params.cabinClass === cabin.value && (
-                          <Check className="w-4 h-4 text-blue-600" />
-                        )}
-                      </button>
-                    ))}
-                  </motion.div>
-                </>
+                    <div className="flex items-center gap-1.5">
+                      <Users className="w-4 h-4 text-gray-400" />
+                      <span>{totalPassengers}</span>
+                    </div>
+                    <ChevronDown className={`w-3.5 h-3.5 text-gray-400 transition-transform ${showPassengerDropdown ? "rotate-180" : ""}`} />
+                  </button>
+                  <AnimatePresence>
+                    {showPassengerDropdown && (
+                      <>
+                        <div className="fixed inset-0 z-10" onClick={() => setShowPassengerDropdown(false)} />
+                        <motion.div
+                          initial={{ opacity: 0, y: -10 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          exit={{ opacity: 0, y: -10 }}
+                          className="absolute z-20 mt-1 left-0 w-56 bg-white border border-gray-200 rounded-xl shadow-xl p-3 space-y-2"
+                        >
+                          {[
+                            { key: "adults", label: "Adults", sub: "12+" },
+                            { key: "children", label: "Children", sub: "2-12" },
+                            { key: "infants", label: "Infants", sub: "<2" },
+                          ].map(({ key, label, sub }) => (
+                            <div key={key} className="flex items-center justify-between">
+                              <div>
+                                <span className="text-sm font-medium">{label}</span>
+                                <span className="text-xs text-gray-400 ml-1">{sub}</span>
+                              </div>
+                              <div className="flex items-center gap-1">
+                                <button type="button" onClick={() => updatePassenger(key as any, -1)} className="w-7 h-7 rounded-full border flex items-center justify-center hover:border-blue-500 disabled:opacity-30" disabled={key === "adults" ? params.adults <= 1 : (params as any)[key] <= 0}>
+                                  <Minus className="w-3 h-3" />
+                                </button>
+                                <span className="w-5 text-center font-bold text-sm">{(params as any)[key]}</span>
+                                <button type="button" onClick={() => updatePassenger(key as any, 1)} className="w-7 h-7 rounded-full border flex items-center justify-center hover:border-blue-500 disabled:opacity-30" disabled={(params as any)[key] >= 9 || (key === "infants" && params.infants >= params.adults)}>
+                                  <Plus className="w-3 h-3" />
+                                </button>
+                              </div>
+                            </div>
+                          ))}
+                          <button type="button" onClick={() => setShowPassengerDropdown(false)} className="w-full py-1.5 bg-blue-600 text-white rounded-lg text-xs font-semibold mt-2">Done</button>
+                        </motion.div>
+                      </>
+                    )}
+                  </AnimatePresence>
+                </div>
+
+                {/* Class */}
+                <div className="relative flex-1">
+                  <button
+                    type="button"
+                    onClick={() => { setShowClassDropdown(!showClassDropdown); setShowPassengerDropdown(false); }}
+                    className="w-full flex items-center justify-between px-3 py-2 border border-gray-200 rounded-xl text-sm font-medium hover:border-gray-300 transition-colors bg-white"
+                  >
+                    <span className="truncate text-xs">{CABIN_CLASSES.find((c) => c.value === params.cabinClass)?.label || "Economy"}</span>
+                    <ChevronDown className={`w-3.5 h-3.5 text-gray-400 transition-transform ${showClassDropdown ? "rotate-180" : ""}`} />
+                  </button>
+                  <AnimatePresence>
+                    {showClassDropdown && (
+                      <>
+                        <div className="fixed inset-0 z-10" onClick={() => setShowClassDropdown(false)} />
+                        <motion.div
+                          initial={{ opacity: 0, y: -10 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          exit={{ opacity: 0, y: -10 }}
+                          className="absolute z-20 mt-1 left-0 right-0 bg-white border border-gray-200 rounded-xl shadow-xl overflow-hidden"
+                        >
+                          {CABIN_CLASSES.map((cabin) => (
+                            <button
+                              key={cabin.value}
+                              type="button"
+                              onClick={() => { setParams({ ...params, cabinClass: cabin.value }); setShowClassDropdown(false); }}
+                              className={`w-full flex items-center justify-between px-3 py-2 text-xs transition-colors ${params.cabinClass === cabin.value ? "bg-blue-50 text-blue-700" : "hover:bg-gray-50"}`}
+                            >
+                              <span className="font-medium">{cabin.label}</span>
+                              {params.cabinClass === cabin.value && <Check className="w-3.5 h-3.5 text-blue-600" />}
+                            </button>
+                          ))}
+                        </motion.div>
+                      </>
+                    )}
+                  </AnimatePresence>
+                </div>
+
+                {/* Direct Toggle */}
+                <button
+                  type="button"
+                  onClick={() => setParams({ ...params, directFlights: !params.directFlights })}
+                  className={`px-3 py-2 rounded-xl text-xs font-semibold border transition-all flex-shrink-0 ${
+                    params.directFlights
+                      ? "bg-blue-600 text-white border-blue-600"
+                      : "bg-white text-gray-600 border-gray-200 hover:border-gray-300"
+                  }`}
+                >
+                  Direct
+                </button>
+              </div>
+
+              {/* Error */}
+              {error && (
+                <div className="flex items-center gap-2 p-2 bg-red-50 border border-red-200 rounded-lg text-xs text-red-700">
+                  <AlertCircle className="w-3.5 h-3.5 flex-shrink-0" />
+                  {error}
+                </div>
               )}
-            </AnimatePresence>
-          </div>
-        </div>
-
-        {/* Direct Flights Toggle */}
-        <label className="flex items-center gap-3 cursor-pointer py-1">
-          <div className="relative">
-            <input
-              type="checkbox"
-              checked={params.directFlights}
-              onChange={(e) => setParams({ ...params, directFlights: e.target.checked })}
-              className="sr-only"
-            />
-            <div className={`w-9 h-5 rounded-full transition-colors ${params.directFlights ? "bg-blue-600" : "bg-gray-300"}`}>
-              <div className={`w-4 h-4 rounded-full bg-white shadow transform transition-transform ${params.directFlights ? "translate-x-4.5" : "translate-x-0.5"} mt-0.5`} />
-            </div>
-          </div>
-          <span className="text-sm font-medium text-gray-700">Direct flights only</span>
-        </label>
-
-        {/* Error */}
-        {error && (
-          <div className="flex items-center gap-2 p-3 bg-red-50 border border-red-200 rounded-xl text-sm text-red-700">
-            <AlertCircle className="w-4 h-4 flex-shrink-0" />
-            {error}
-          </div>
-        )}
 
               {/* Search Button */}
               <motion.button
                 type="submit"
                 disabled={searchLoading}
-                whileHover={{ scale: 1.02 }}
-                whileTap={{ scale: 0.98 }}
-                className="w-full flex items-center justify-center gap-2 py-3 bg-gradient-to-r from-blue-500 to-indigo-600 text-white font-semibold rounded-xl shadow-lg shadow-blue-500/25 disabled:opacity-50 transition-all"
+                whileHover={{ scale: 1.01 }}
+                whileTap={{ scale: 0.99 }}
+                className="w-full flex items-center justify-center gap-2 py-2.5 bg-gradient-to-r from-blue-500 to-indigo-600 text-white font-semibold rounded-xl shadow-lg shadow-blue-500/25 disabled:opacity-50 transition-all text-sm"
               >
-                {searchLoading ? (
-                  <>
-                    <Loader2 className="w-5 h-5 animate-spin" />
-                    Searching...
-                  </>
-                ) : (
-                  <>
-                    <Search className="w-5 h-5" />
-                    Search Flights
-                  </>
-                )}
+                {searchLoading ? <><Loader2 className="w-4 h-4 animate-spin" />Searching...</> : <><Search className="w-4 h-4" />Search Flights</>}
               </motion.button>
             </form>
           </motion.div>

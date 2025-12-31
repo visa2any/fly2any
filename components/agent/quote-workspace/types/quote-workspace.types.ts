@@ -233,7 +233,8 @@ export interface FlightSearchParams {
   returnDate?: string;
 
   // Flexible dates
-  departureFlex: number;      // ±N days for departure (0-5) - only for single date mode
+  departureFlex: number;      // ±N days for departure (0-5)
+  returnFlex: number;         // ±N days for return (0-5) - independent
   tripDuration: number;       // Number of nights for round trips (1-30)
 
   // Passengers
