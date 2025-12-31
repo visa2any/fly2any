@@ -441,6 +441,10 @@ const sentryWebpackPluginOptions = {
   tunnelRoute: '/monitoring',
   reactComponentAnnotation: {
     enabled: true,
+    ignoreComponents: [
+      '**/quote-workspace/**',
+      '**/discovery/**',
+    ],
   },
   automaticVercelMonitors: false,
 };

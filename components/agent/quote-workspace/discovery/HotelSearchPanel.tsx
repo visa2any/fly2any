@@ -1,16 +1,30 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Search, Building2, Loader2, Plus, Star, MapPin, AlertCircle } from "lucide-react";
+import { Search, Building2, Loader2, Plus, Star, MapPin, AlertCircle, Users, ChevronDown, Minus, X } from "lucide-react";
 import { useQuoteWorkspace } from "../QuoteWorkspaceProvider";
+import PremiumDatePicker from "@/components/common/PremiumDatePicker";
 import type { HotelItem, HotelSearchParams } from "../types/quote-workspace.types";
+
+const POPULAR_DESTINATIONS = [
+  { name: "Paris", country: "France" },
+  { name: "London", country: "UK" },
+  { name: "New York", country: "USA" },
+  { name: "Dubai", country: "UAE" },
+  { name: "Tokyo", country: "Japan" },
+  { name: "Rome", country: "Italy" },
+  { name: "Barcelona", country: "Spain" },
+  { name: "Miami", country: "USA" },
+  { name: "Los Angeles", country: "USA" },
+  { name: "Singapore", country: "Singapore" },
+];
 
 export default function HotelSearchPanel() {
   const { state, addItem, setSearchResults } = useQuoteWorkspace();
-  const { searchLoading, searchResults } = state.ui;
+  const searchLoading = state.ui.searchLoading;
+  const searchResults = state.ui.searchResults;
 
-  // Search form state
   const [params, setParams] = useState<HotelSearchParams>({
     location: state.destination || "",
     checkIn: state.startDate || "",
@@ -21,25 +35,49 @@ export default function HotelSearchPanel() {
   });
 
   const [error, setError] = useState<string | null>(null);
+  const [showSuggestions, setShowSuggestions] = useState(false);
+  const [showGuestDropdown, setShowGuestDropdown] = useState(false);
+  const [filteredDest, setFilteredDest] = useState(POPULAR_DESTINATIONS);
+  const suggestRef = useRef<HTMLDivElement>(null);
+  const guestRef = useRef<HTMLDivElement>(null);
 
-  // Calculate nights
-  const nights =
-    params.checkIn && params.checkOut
-      ? Math.max(1, Math.ceil((new Date(params.checkOut).getTime() - new Date(params.checkIn).getTime()) / (1000 * 60 * 60 * 24)))
-      : 0;
+  const nights = params.checkIn && params.checkOut
+    ? Math.max(1, Math.ceil((new Date(params.checkOut).getTime() - new Date(params.checkIn).getTime()) / 86400000))
+    : 0;
 
-  // Handle search
+  const totalGuests = params.adults + params.children;
+  const minDate = new Date().toISOString().split("T")[0];
+
+  useEffect(() => {
+    if (params.location.trim()) {
+      const q = params.location.toLowerCase();
+      const filtered = POPULAR_DESTINATIONS.filter(
+        (d) => d.name.toLowerCase().includes(q) || d.country.toLowerCase().includes(q)
+      );
+      setFilteredDest(filtered.length > 0 ? filtered : POPULAR_DESTINATIONS);
+    } else {
+      setFilteredDest(POPULAR_DESTINATIONS);
+    }
+  }, [params.location]);
+
+  useEffect(() => {
+    const handler = (e: MouseEvent) => {
+      const target = e.target as Node;
+      if (suggestRef.current && !suggestRef.current.contains(target)) setShowSuggestions(false);
+      if (guestRef.current && !guestRef.current.contains(target)) setShowGuestDropdown(false);
+    };
+    document.addEventListener("mousedown", handler);
+    return () => document.removeEventListener("mousedown", handler);
+  }, []);
+
   const handleSearch = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
-
     if (!params.location || !params.checkIn || !params.checkOut) {
-      setError("Please fill in location, check-in, and check-out dates");
+      setError("Please fill in all required fields");
       return;
     }
-
     setSearchResults(true, null);
-
     try {
       const query = new URLSearchParams({
         location: params.location,
@@ -49,219 +87,205 @@ export default function HotelSearchPanel() {
         adults: params.adults.toString(),
         children: params.children.toString(),
       });
-
       const res = await fetch(`/api/hotels/search?${query}`);
       const data = await res.json();
-
-      if (!res.ok) {
-        throw new Error(data.error || "Search failed");
-      }
-
+      if (!res.ok) throw new Error(data.error || "Search failed");
       setSearchResults(false, data.hotels || []);
-    } catch (err: any) {
-      setError(err.message || "Failed to search hotels");
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : "Search failed");
       setSearchResults(false, null);
     }
   };
 
-  // Add hotel to quote
   const handleAddHotel = (hotel: any) => {
-    const hotelItem: Omit<HotelItem, "id" | "sortOrder" | "createdAt"> = {
+    const item: Omit<HotelItem, "id" | "sortOrder" | "createdAt"> = {
       type: "hotel",
-      price: hotel.price?.total || hotel.price?.amount || (hotel.price?.perNight * nights) || 0,
+      price: hotel.price?.total || hotel.price?.amount || (hotel.price?.perNight ? hotel.price.perNight * nights : 0) || 0,
       currency: "USD",
       date: params.checkIn,
       name: hotel.name || "Hotel",
       location: hotel.location || hotel.address || params.location,
       checkIn: params.checkIn,
       checkOut: params.checkOut,
-      nights: nights,
-      roomType: hotel.roomType || hotel.room?.type || "Standard Room",
-      stars: hotel.stars || hotel.rating || 4,
+      nights,
+      roomType: hotel.roomType || "Standard Room",
+      stars: hotel.stars || 4,
       amenities: hotel.amenities || [],
       image: hotel.image || hotel.images?.[0],
-      guests: params.adults + params.children,
+      guests: totalGuests,
       apiSource: "liteapi",
       apiOfferId: hotel.id,
     };
-
-    addItem(hotelItem);
+    addItem(item);
   };
 
   return (
     <div className="p-4 space-y-4">
-      {/* Search Form */}
-      <form onSubmit={handleSearch} className="space-y-4">
-        {/* Location */}
+      <div className="flex items-center gap-2">
+        <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-purple-500 to-pink-600 flex items-center justify-center shadow-lg">
+          <Building2 className="w-4 h-4 text-white" />
+        </div>
         <div>
-          <label className="block text-xs font-medium text-gray-500 mb-1">Destination</label>
+          <h3 className="text-sm font-bold text-gray-900">Find Hotels</h3>
+          <p className="text-[10px] text-gray-400">Search and add to quote</p>
+        </div>
+      </div>
+
+      <form onSubmit={handleSearch} className="space-y-3">
+        <div className="relative" ref={suggestRef}>
+          <label className="flex items-center gap-1.5 text-[11px] font-bold text-gray-500 uppercase tracking-wider mb-1.5">
+            <div className="w-4 h-4 rounded bg-gradient-to-br from-purple-500 to-pink-600 flex items-center justify-center">
+              <MapPin className="w-2.5 h-2.5 text-white" />
+            </div>
+            Destination
+          </label>
           <div className="relative">
             <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
             <input
               type="text"
               value={params.location}
               onChange={(e) => setParams({ ...params, location: e.target.value })}
-              placeholder="City or destination"
-              className="w-full pl-10 pr-3 py-2.5 border border-gray-300 rounded-xl text-sm focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+              onFocus={() => setShowSuggestions(true)}
+              placeholder="City, region, or hotel"
+              className={`w-full pl-10 pr-8 py-2.5 border-2 rounded-xl text-sm font-medium transition-all ${showSuggestions ? "border-purple-400 ring-4 ring-purple-100" : "border-gray-200 hover:border-gray-300"}`}
             />
+            {params.location && (
+              <button type="button" onClick={() => setParams({ ...params, location: "" })} className="absolute right-3 top-1/2 -translate-y-1/2">
+                <X className="w-3 h-3 text-gray-400" />
+              </button>
+            )}
           </div>
+
+          <AnimatePresence>
+            {showSuggestions && (
+              <motion.div
+                initial={{ opacity: 0, y: -10 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -10 }}
+                className="absolute z-50 mt-2 left-0 right-0 bg-white border border-gray-200 rounded-2xl shadow-2xl overflow-hidden"
+              >
+                <div className="p-2 border-b border-gray-100">
+                  <p className="text-[10px] font-bold text-gray-400 uppercase px-2">Popular Destinations</p>
+                </div>
+                <div className="max-h-48 overflow-y-auto p-2 space-y-1">
+                  {filteredDest.map((dest) => (
+                    <button
+                      key={dest.name}
+                      type="button"
+                      onClick={() => { setParams({ ...params, location: dest.name }); setShowSuggestions(false); }}
+                      className="w-full flex items-center gap-3 px-3 py-2 rounded-xl hover:bg-purple-50 text-left transition-all"
+                    >
+                      <div className="w-8 h-8 rounded-lg bg-purple-100 flex items-center justify-center">
+                        <Building2 className="w-4 h-4 text-purple-600" />
+                      </div>
+                      <div>
+                        <p className="text-sm font-semibold text-gray-900">{dest.name}</p>
+                        <p className="text-xs text-gray-500">{dest.country}</p>
+                      </div>
+                    </button>
+                  ))}
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
         </div>
 
-        {/* Dates */}
         <div className="grid grid-cols-2 gap-2">
-          <div>
-            <label className="block text-xs font-medium text-gray-500 mb-1">Check-in</label>
-            <input
-              type="date"
-              value={params.checkIn}
-              onChange={(e) => setParams({ ...params, checkIn: e.target.value })}
-              min={new Date().toISOString().split("T")[0]}
-              className="w-full px-3 py-2.5 border border-gray-300 rounded-xl text-sm focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
-            />
-          </div>
-          <div>
-            <label className="block text-xs font-medium text-gray-500 mb-1">Check-out</label>
-            <input
-              type="date"
-              value={params.checkOut}
-              onChange={(e) => setParams({ ...params, checkOut: e.target.value })}
-              min={params.checkIn || new Date().toISOString().split("T")[0]}
-              className="w-full px-3 py-2.5 border border-gray-300 rounded-xl text-sm focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
-            />
-          </div>
+          <PremiumDatePicker
+            label="Check-in"
+            value={params.checkIn}
+            onChange={(date) => setParams({ ...params, checkIn: date })}
+            minDate={minDate}
+            placeholder="Check-in"
+          />
+          <PremiumDatePicker
+            label="Check-out"
+            value={params.checkOut}
+            onChange={(date) => setParams({ ...params, checkOut: date })}
+            minDate={params.checkIn || minDate}
+            placeholder="Check-out"
+          />
         </div>
 
-        {/* Nights indicator */}
         {nights > 0 && (
-          <div className="text-center text-sm text-primary-600 font-medium">
-            {nights} night{nights > 1 ? "s" : ""}
-          </div>
+          <div className="text-center text-sm text-purple-600 font-bold">{nights} night{nights > 1 ? "s" : ""}</div>
         )}
 
-        {/* Guests */}
-        <div className="grid grid-cols-3 gap-2">
-          <div>
-            <label className="block text-xs font-medium text-gray-500 mb-1">Rooms</label>
-            <input
-              type="number"
-              value={params.rooms}
-              onChange={(e) => setParams({ ...params, rooms: parseInt(e.target.value) || 1 })}
-              min={1}
-              max={10}
-              className="w-full px-3 py-2.5 border border-gray-300 rounded-xl text-sm focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
-            />
-          </div>
-          <div>
-            <label className="block text-xs font-medium text-gray-500 mb-1">Adults</label>
-            <input
-              type="number"
-              value={params.adults}
-              onChange={(e) => setParams({ ...params, adults: parseInt(e.target.value) || 1 })}
-              min={1}
-              max={10}
-              className="w-full px-3 py-2.5 border border-gray-300 rounded-xl text-sm focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
-            />
-          </div>
-          <div>
-            <label className="block text-xs font-medium text-gray-500 mb-1">Children</label>
-            <input
-              type="number"
-              value={params.children}
-              onChange={(e) => setParams({ ...params, children: parseInt(e.target.value) || 0 })}
-              min={0}
-              max={10}
-              className="w-full px-3 py-2.5 border border-gray-300 rounded-xl text-sm focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
-            />
-          </div>
+        <div className="relative" ref={guestRef}>
+          <label className="flex items-center gap-1.5 text-[11px] font-bold text-gray-500 uppercase tracking-wider mb-1.5">
+            <div className="w-4 h-4 rounded bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center">
+              <Users className="w-2.5 h-2.5 text-white" />
+            </div>
+            Guests &amp; Rooms
+          </label>
+          <button
+            type="button"
+            onClick={() => setShowGuestDropdown(!showGuestDropdown)}
+            className={`w-full flex items-center justify-between px-3 py-2.5 border-2 rounded-xl text-sm font-medium transition-all bg-white ${showGuestDropdown ? "border-indigo-400 ring-4 ring-indigo-100" : "border-gray-200 hover:border-gray-300"}`}
+          >
+            <span className="font-semibold text-gray-900">{params.rooms} room{params.rooms > 1 ? "s" : ""} • {totalGuests} guest{totalGuests > 1 ? "s" : ""}</span>
+            <ChevronDown className={`w-4 h-4 text-gray-400 transition-transform ${showGuestDropdown ? "rotate-180" : ""}`} />
+          </button>
+
+          <AnimatePresence>
+            {showGuestDropdown && (
+              <motion.div
+                initial={{ opacity: 0, y: -10 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -10 }}
+                className="absolute z-50 mt-2 left-0 right-0 bg-white border border-gray-200 rounded-2xl shadow-2xl p-4 space-y-3"
+              >
+                <GuestRow label="Rooms" value={params.rooms} min={1} onChange={(v) => setParams({ ...params, rooms: v })} />
+                <GuestRow label="Adults" sub="12+ years" value={params.adults} min={1} onChange={(v) => setParams({ ...params, adults: v })} />
+                <GuestRow label="Children" sub="2-12 years" value={params.children} min={0} onChange={(v) => setParams({ ...params, children: v })} />
+              </motion.div>
+            )}
+          </AnimatePresence>
         </div>
 
-        {/* Error */}
         {error && (
           <div className="flex items-center gap-2 p-3 bg-red-50 border border-red-200 rounded-xl text-sm text-red-700">
-            <AlertCircle className="w-4 h-4 flex-shrink-0" />
+            <AlertCircle className="w-4 h-4" />
             {error}
           </div>
         )}
 
-        {/* Search Button */}
         <motion.button
           type="submit"
           disabled={searchLoading}
-          whileHover={{ scale: 1.02 }}
+          whileHover={{ scale: 1.02, y: -2 }}
           whileTap={{ scale: 0.98 }}
-          className="w-full flex items-center justify-center gap-2 py-3 bg-gradient-to-r from-purple-500 to-pink-600 text-white font-semibold rounded-xl shadow-lg shadow-purple-500/25 disabled:opacity-50 transition-all"
+          className="w-full flex items-center justify-center gap-2 py-3 bg-gradient-to-r from-purple-500 to-pink-600 text-white font-bold rounded-xl shadow-lg disabled:opacity-50"
         >
-          {searchLoading ? (
-            <>
-              <Loader2 className="w-5 h-5 animate-spin" />
-              Searching...
-            </>
-          ) : (
-            <>
-              <Search className="w-5 h-5" />
-              Search Hotels
-            </>
-          )}
+          {searchLoading ? <><Loader2 className="w-5 h-5 animate-spin" /> Searching...</> : <><Search className="w-5 h-5" /> Search Hotels</>}
         </motion.button>
       </form>
 
-      {/* Results */}
       <AnimatePresence mode="wait">
         {searchLoading && (
-          <motion.div
-            key="loading"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="space-y-3"
-          >
+          <motion.div key="loading" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="space-y-3">
             {[1, 2, 3].map((i) => (
               <div key={i} className="bg-gray-100 rounded-xl p-4 animate-pulse">
                 <div className="flex gap-3">
                   <div className="w-20 h-20 bg-gray-200 rounded-lg" />
-                  <div className="flex-1">
-                    <div className="h-4 bg-gray-200 rounded w-3/4 mb-2" />
-                    <div className="h-3 bg-gray-200 rounded w-1/2" />
-                  </div>
+                  <div className="flex-1"><div className="h-4 bg-gray-200 rounded w-3/4 mb-2" /><div className="h-3 bg-gray-200 rounded w-1/2" /></div>
                 </div>
               </div>
             ))}
           </motion.div>
         )}
-
         {!searchLoading && searchResults && searchResults.length > 0 && (
-          <motion.div
-            key="results"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="space-y-3"
-          >
-            <p className="text-sm text-gray-500">
-              {searchResults.length} hotels found
-            </p>
+          <motion.div key="results" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="space-y-3">
+            <p className="text-sm text-gray-500">{searchResults.length} hotels found</p>
             {searchResults.slice(0, 10).map((hotel: any, idx: number) => (
-              <HotelResultCard
-                key={hotel.id || idx}
-                hotel={hotel}
-                nights={nights}
-                onAdd={() => handleAddHotel(hotel)}
-              />
+              <HotelCard key={hotel.id || idx} hotel={hotel} nights={nights} onAdd={() => handleAddHotel(hotel)} />
             ))}
           </motion.div>
         )}
-
         {!searchLoading && searchResults && searchResults.length === 0 && (
-          <motion.div
-            key="empty"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="text-center py-8"
-          >
+          <motion.div key="empty" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="text-center py-8">
             <Building2 className="w-12 h-12 text-gray-300 mx-auto mb-3" />
             <p className="text-gray-500">No hotels found</p>
-            <p className="text-sm text-gray-400">Try different dates or location</p>
           </motion.div>
         )}
       </AnimatePresence>
@@ -269,60 +293,48 @@ export default function HotelSearchPanel() {
   );
 }
 
-// Hotel Result Card
-function HotelResultCard({ hotel, nights, onAdd }: { hotel: any; nights: number; onAdd: () => void }) {
-  const price = hotel.price?.total || hotel.price?.amount || (hotel.price?.perNight * nights) || 0;
+function GuestRow({ label, sub, value, min, onChange }: { label: string; sub?: string; value: number; min: number; onChange: (v: number) => void }) {
+  return (
+    <div className="flex items-center justify-between py-1">
+      <div>
+        <span className="text-sm font-semibold text-gray-900">{label}</span>
+        {sub && <p className="text-xs text-gray-400">{sub}</p>}
+      </div>
+      <div className="flex items-center gap-2">
+        <button type="button" onClick={() => onChange(Math.max(min, value - 1))} disabled={value <= min} className="w-8 h-8 rounded-xl bg-gray-100 hover:bg-purple-100 flex items-center justify-center disabled:opacity-30">
+          <Minus className="w-3.5 h-3.5" />
+        </button>
+        <span className="w-6 text-center font-bold">{value}</span>
+        <button type="button" onClick={() => onChange(Math.min(10, value + 1))} className="w-8 h-8 rounded-xl bg-gray-100 hover:bg-purple-100 flex items-center justify-center">
+          <Plus className="w-3.5 h-3.5" />
+        </button>
+      </div>
+    </div>
+  );
+}
+
+function HotelCard({ hotel, nights, onAdd }: { hotel: any; nights: number; onAdd: () => void }) {
+  const price = hotel.price?.total || hotel.price?.amount || (hotel.price?.perNight ? hotel.price.perNight * nights : 0) || 0;
   const stars = hotel.stars || hotel.rating || 4;
+  const imageUrl = hotel.image || hotel.images?.[0];
 
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 10 }}
-      animate={{ opacity: 1, y: 0 }}
-      className="bg-white border border-gray-200 rounded-xl p-3 hover:border-primary-300 hover:shadow-md transition-all group"
-    >
+    <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} whileHover={{ scale: 1.02 }} className="bg-white border-2 border-gray-100 rounded-2xl p-3 hover:border-purple-200 hover:shadow-lg transition-all group">
       <div className="flex gap-3">
-        {/* Image */}
-        <div className="w-20 h-20 rounded-lg bg-gray-100 overflow-hidden flex-shrink-0">
-          {hotel.image || hotel.images?.[0] ? (
-            <img
-              src={hotel.image || hotel.images?.[0]}
-              alt={hotel.name}
-              className="w-full h-full object-cover"
-            />
-          ) : (
-            <div className="w-full h-full flex items-center justify-center">
-              <Building2 className="w-8 h-8 text-gray-300" />
-            </div>
-          )}
+        <div className="w-20 h-20 rounded-xl bg-purple-100 overflow-hidden flex-shrink-0">
+          {imageUrl ? <img src={imageUrl} alt={hotel.name} className="w-full h-full object-cover" /> : <div className="w-full h-full flex items-center justify-center"><Building2 className="w-8 h-8 text-purple-300" /></div>}
         </div>
-
-        {/* Info */}
         <div className="flex-1 min-w-0">
-          <h4 className="font-semibold text-gray-900 truncate text-sm">{hotel.name}</h4>
-          <div className="flex items-center gap-1 mt-0.5">
-            {Array.from({ length: stars }).map((_, i) => (
-              <Star key={i} className="w-3 h-3 fill-amber-400 text-amber-400" />
-            ))}
-          </div>
-          <p className="text-xs text-gray-500 truncate mt-1">
-            {hotel.location || hotel.address}
-          </p>
+          <h4 className="font-bold text-gray-900 truncate text-sm">{hotel.name}</h4>
+          <div className="flex items-center gap-1 mt-0.5">{Array.from({ length: stars }).map((_, i) => <Star key={i} className="w-3 h-3 fill-amber-400 text-amber-400" />)}</div>
+          <p className="text-xs text-gray-500 truncate mt-1">{hotel.location || hotel.address}</p>
         </div>
-
-        {/* Price & Add */}
         <div className="flex flex-col items-end justify-between">
           <div className="text-right">
-            <p className="text-lg font-bold text-gray-900">
-              ${typeof price === "number" ? price.toLocaleString() : price}
-            </p>
-            <p className="text-xs text-gray-400">total</p>
+            <p className="text-lg font-black text-gray-900">${typeof price === "number" ? price.toLocaleString() : price}</p>
+            <p className="text-[10px] text-gray-400">total</p>
           </div>
-          <motion.button
-            whileHover={{ scale: 1.1 }}
-            whileTap={{ scale: 0.9 }}
-            onClick={onAdd}
-            className="w-8 h-8 flex items-center justify-center bg-primary-100 text-primary-600 rounded-full hover:bg-primary-600 hover:text-white transition-colors"
-          >
+          <motion.button whileHover={{ scale: 1.15, rotate: 90 }} whileTap={{ scale: 0.9 }} onClick={onAdd} className="w-8 h-8 flex items-center justify-center bg-gradient-to-br from-purple-500 to-pink-600 text-white rounded-full shadow-lg opacity-0 group-hover:opacity-100 transition-opacity">
             <Plus className="w-4 h-4" />
           </motion.button>
         </div>

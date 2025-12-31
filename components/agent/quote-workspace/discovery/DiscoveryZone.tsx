@@ -6,7 +6,7 @@ import { Plane, Building2, Car, Compass, Bus, Shield, Package, MapPin, Calendar,
 import { useQuoteWorkspace } from "../QuoteWorkspaceProvider";
 import FlightSearchPanel from "./FlightSearchPanel";
 import HotelSearchPanel from "./HotelSearchPanel";
-import PremiumDateRangePicker from "@/components/common/PremiumDateRangePicker";
+import PremiumDatePicker from "@/components/common/PremiumDatePicker";
 import type { ProductType } from "../types/quote-workspace.types";
 
 const PRODUCT_TABS: {
@@ -89,7 +89,7 @@ export default function DiscoveryZone() {
   );
 }
 
-// Generic Search Panel for Coming Soon Products
+// Generic Search Panel for Coming Soon Products - Premium Pattern
 function GenericSearchPanel({
   type,
   label,
@@ -101,7 +101,7 @@ function GenericSearchPanel({
   label: string;
   icon: typeof Plane;
   gradient: string;
-  fields: { key: string; label: string; type: "text" | "date" | "number"; placeholder?: string }[];
+  fields: { key: string; label: string; type: "text" | "date" | "number"; placeholder?: string; minDateKey?: string }[];
 }) {
   const [formData, setFormData] = useState<Record<string, string>>({});
   const minDate = new Date().toISOString().split("T")[0];
@@ -127,17 +127,31 @@ function GenericSearchPanel({
       <div className="space-y-3">
         {fields.map((field) => (
           <div key={field.key}>
-            <label className="flex items-center gap-1.5 text-[11px] font-bold text-gray-500 uppercase tracking-wider mb-1.5">
-              {field.label}
-            </label>
-            <input
-              type={field.type}
-              value={formData[field.key] || ""}
-              onChange={(e) => setFormData({ ...formData, [field.key]: e.target.value })}
-              placeholder={field.placeholder}
-              min={field.type === "date" ? minDate : undefined}
-              className="w-full px-3 py-2.5 border-2 border-gray-200 rounded-xl text-sm font-medium hover:border-gray-300 focus:border-indigo-400 focus:ring-4 focus:ring-indigo-100 transition-all"
-            />
+            {field.type === "date" ? (
+              <PremiumDatePicker
+                label={field.label}
+                value={formData[field.key] || ""}
+                onChange={(date) => setFormData({ ...formData, [field.key]: date })}
+                minDate={field.minDateKey ? formData[field.minDateKey] || minDate : minDate}
+                placeholder={field.placeholder || field.label}
+              />
+            ) : (
+              <>
+                <label className="flex items-center gap-1.5 text-[11px] font-bold text-gray-500 uppercase tracking-wider mb-1.5">
+                  <div className={`w-4 h-4 rounded bg-gradient-to-br ${gradient} flex items-center justify-center`}>
+                    {field.type === "text" ? <MapPin className="w-2.5 h-2.5 text-white" /> : <Users className="w-2.5 h-2.5 text-white" />}
+                  </div>
+                  {field.label}
+                </label>
+                <input
+                  type={field.type}
+                  value={formData[field.key] || ""}
+                  onChange={(e) => setFormData({ ...formData, [field.key]: e.target.value })}
+                  placeholder={field.placeholder}
+                  className="w-full px-3 py-2.5 border-2 border-gray-200 rounded-xl text-sm font-medium hover:border-gray-300 focus:border-indigo-400 focus:ring-4 focus:ring-indigo-100 transition-all"
+                />
+              </>
+            )}
           </div>
         ))}
       </div>
@@ -182,7 +196,7 @@ function CarSearchPanel() {
       fields={[
         { key: "pickupLocation", label: "Pickup Location", type: "text", placeholder: "Airport or city" },
         { key: "pickupDate", label: "Pickup Date", type: "date" },
-        { key: "dropoffDate", label: "Dropoff Date", type: "date" },
+        { key: "dropoffDate", label: "Dropoff Date", type: "date", minDateKey: "pickupDate" },
       ]}
     />
   );
@@ -198,7 +212,7 @@ function ActivitiesSearchPanel() {
       gradient="from-emerald-500 to-teal-600"
       fields={[
         { key: "destination", label: "Destination", type: "text", placeholder: "City or attraction" },
-        { key: "date", label: "Date", type: "date" },
+        { key: "date", label: "Activity Date", type: "date" },
         { key: "participants", label: "Participants", type: "number", placeholder: "Number of people" },
       ]}
     />
@@ -233,7 +247,7 @@ function InsuranceSearchPanel() {
       fields={[
         { key: "destination", label: "Destination", type: "text", placeholder: "Country or region" },
         { key: "startDate", label: "Trip Start", type: "date" },
-        { key: "endDate", label: "Trip End", type: "date" },
+        { key: "endDate", label: "Trip End", type: "date", minDateKey: "startDate" },
         { key: "travelers", label: "Travelers", type: "number", placeholder: "Number of travelers" },
       ]}
     />
