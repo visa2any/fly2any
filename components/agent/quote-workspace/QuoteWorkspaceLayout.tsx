@@ -68,13 +68,13 @@ export default function QuoteWorkspaceLayout({
 
       {/* Main Layout */}
       <main className="flex-1 min-h-0 flex">
-        {/* Left: Discovery Panel */}
-        <aside className="hidden lg:flex flex-shrink-0 bg-white border-r border-gray-100 overflow-hidden">
+        {/* Left: Discovery Panel - z-30 ensures dropdowns appear above itinerary */}
+        <aside className="hidden lg:flex flex-shrink-0 bg-white border-r border-gray-100 z-30">
           <div className="relative flex" style={{ width: panelWidth }}>
-            {/* Panel Content */}
+            {/* Panel Content - overflow-y-auto here, not on aside */}
             <div
               style={{ width: panelWidth }}
-              className="h-full overflow-y-auto scrollbar-thin scrollbar-thumb-gray-200 bg-white"
+              className="h-full overflow-y-auto overflow-x-visible scrollbar-thin scrollbar-thumb-gray-200 bg-white"
             >
               {discovery}
             </div>
