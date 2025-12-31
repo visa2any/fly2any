@@ -15,7 +15,7 @@ export default async function QuotesPage() {
     redirect("/auth/signin");
   }
 
-  // Get agent with quotes - use SELECT to avoid DateTime fields
+  // Get agent with quotes - NO DateTime fields
   const agent = await prisma?.travelAgent.findUnique({
     where: { userId: session.user.id },
     select: {
@@ -27,7 +27,6 @@ export default async function QuotesPage() {
           status: true,
           total: true,
           currency: true,
-          validUntil: true,
           shareableLink: true,
           client: {
             select: {
@@ -49,14 +48,13 @@ export default async function QuotesPage() {
     redirect("/agent/register");
   }
 
-  // Serialize with explicit primitives
+  // Serialize with explicit primitives - NO DateTime
   const serializedQuotes = (agent.quotes || []).map((q: any) => ({
     id: String(q.id || ""),
     title: q.title ? String(q.title) : null,
     status: String(q.status || "DRAFT"),
     total: Number(q.total) || 0,
     currency: String(q.currency || "USD"),
-    validUntil: q.validUntil ? new Date(q.validUntil).toISOString() : null,
     shareableLink: q.shareableLink ? String(q.shareableLink) : null,
     client: q.client ? {
       id: String(q.client.id || ""),
