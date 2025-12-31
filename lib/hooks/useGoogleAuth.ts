@@ -196,10 +196,8 @@ export function useGoogleAuth(options: UseGoogleAuthOptions = {}) {
         popup.close();
         setIsLoading(false);
         onSuccess?.();
-        // Soft refresh session without page reload
-        window.dispatchEvent(new Event('visibilitychange'));
-        // Force session refresh
-        window.location.reload();
+        // Redirect to callbackUrl instead of reloading
+        window.location.href = callbackUrl;
       } else if (event.data?.type === 'GOOGLE_AUTH_ERROR') {
         popup.close();
         setIsLoading(false);
