@@ -8,16 +8,39 @@ import PremiumDatePicker from "@/components/common/PremiumDatePicker";
 import type { HotelItem, HotelSearchParams } from "../types/quote-workspace.types";
 
 const POPULAR_DESTINATIONS = [
-  { name: "Paris", country: "France" },
-  { name: "London", country: "UK" },
+  // USA - Primary Market (sorted by travel volume)
+  { name: "Orlando", country: "USA" },      // #1 US tourist destination
   { name: "New York", country: "USA" },
-  { name: "Dubai", country: "UAE" },
-  { name: "Tokyo", country: "Japan" },
-  { name: "Rome", country: "Italy" },
-  { name: "Barcelona", country: "Spain" },
+  { name: "Las Vegas", country: "USA" },
   { name: "Miami", country: "USA" },
   { name: "Los Angeles", country: "USA" },
+  { name: "San Francisco", country: "USA" },
+  { name: "Honolulu", country: "USA" },
+  { name: "Chicago", country: "USA" },
+  { name: "Washington DC", country: "USA" },
+  { name: "Boston", country: "USA" },
+  { name: "Seattle", country: "USA" },
+  { name: "San Diego", country: "USA" },
+  // Caribbean & Mexico
+  { name: "Cancun", country: "Mexico" },
+  { name: "Punta Cana", country: "Dominican Republic" },
+  { name: "Nassau", country: "Bahamas" },
+  // Europe
+  { name: "Paris", country: "France" },
+  { name: "London", country: "UK" },
+  { name: "Rome", country: "Italy" },
+  { name: "Barcelona", country: "Spain" },
+  { name: "Amsterdam", country: "Netherlands" },
+  { name: "Lisbon", country: "Portugal" },
+  // Asia & Middle East
+  { name: "Dubai", country: "UAE" },
+  { name: "Tokyo", country: "Japan" },
+  { name: "Bangkok", country: "Thailand" },
   { name: "Singapore", country: "Singapore" },
+  { name: "Bali", country: "Indonesia" },
+  // Oceania & South America
+  { name: "Sydney", country: "Australia" },
+  { name: "Rio de Janeiro", country: "Brazil" },
 ];
 
 export default function HotelSearchPanel() {
