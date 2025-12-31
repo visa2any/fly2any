@@ -1,10 +1,12 @@
 "use client";
 
-import { motion } from "framer-motion";
-import { Plane, Building2, Car, Compass, Bus, Shield, Package, Map } from "lucide-react";
+import { useState } from "react";
+import { motion, AnimatePresence } from "framer-motion";
+import { Plane, Building2, Car, Compass, Bus, Shield, Package, MapPin, Calendar, Users, Search, Sparkles } from "lucide-react";
 import { useQuoteWorkspace } from "../QuoteWorkspaceProvider";
 import FlightSearchPanel from "./FlightSearchPanel";
 import HotelSearchPanel from "./HotelSearchPanel";
+import PremiumDateRangePicker from "@/components/common/PremiumDateRangePicker";
 import type { ProductType } from "../types/quote-workspace.types";
 
 const PRODUCT_TABS: {
@@ -17,7 +19,7 @@ const PRODUCT_TABS: {
   { type: "flight", icon: Plane, label: "Flights", gradient: "from-blue-500 to-indigo-600", shadowColor: "shadow-blue-500/30" },
   { type: "hotel", icon: Building2, label: "Hotels", gradient: "from-purple-500 to-pink-600", shadowColor: "shadow-purple-500/30" },
   { type: "car", icon: Car, label: "Cars", gradient: "from-cyan-500 to-blue-600", shadowColor: "shadow-cyan-500/30" },
-  { type: "activity", icon: Compass, label: "Tours", gradient: "from-emerald-500 to-teal-600", shadowColor: "shadow-emerald-500/30" },
+  { type: "activity", icon: Compass, label: "Activities", gradient: "from-emerald-500 to-teal-600", shadowColor: "shadow-emerald-500/30" },
   { type: "transfer", icon: Bus, label: "Transfers", gradient: "from-amber-500 to-orange-600", shadowColor: "shadow-amber-500/30" },
   { type: "insurance", icon: Shield, label: "Insurance", gradient: "from-rose-500 to-pink-600", shadowColor: "shadow-rose-500/30" },
   { type: "custom", icon: Package, label: "Custom", gradient: "from-gray-600 to-gray-800", shadowColor: "shadow-gray-500/30" },
@@ -76,67 +78,181 @@ export default function DiscoveryZone() {
         >
           {activeTab === "flight" && <FlightSearchPanel />}
           {activeTab === "hotel" && <HotelSearchPanel />}
-          {activeTab === "car" && <ComingSoon type="car" label="Cars" icon={Car} gradient="from-cyan-500 to-blue-600" />}
-          {activeTab === "activity" && <ComingSoon type="activity" label="Activities" icon={Compass} gradient="from-emerald-500 to-teal-600" />}
-          {activeTab === "transfer" && <ComingSoon type="transfer" label="Transfers" icon={Bus} gradient="from-amber-500 to-orange-600" />}
-          {activeTab === "insurance" && <ComingSoon type="insurance" label="Insurance" icon={Shield} gradient="from-rose-500 to-pink-600" />}
-          {activeTab === "custom" && <ComingSoon type="custom" label="Custom" icon={Package} gradient="from-gray-600 to-gray-800" />}
+          {activeTab === "car" && <CarSearchPanel />}
+          {activeTab === "activity" && <ActivitiesSearchPanel />}
+          {activeTab === "transfer" && <TransfersSearchPanel />}
+          {activeTab === "insurance" && <InsuranceSearchPanel />}
+          {activeTab === "custom" && <CustomItemPanel />}
         </motion.div>
       </div>
     </div>
   );
 }
 
-// Premium Coming Soon Component
-function ComingSoon({
+// Generic Search Panel for Coming Soon Products
+function GenericSearchPanel({
   type,
   label,
   icon: Icon,
-  gradient
+  gradient,
+  fields
 }: {
   type: string;
   label: string;
   icon: typeof Plane;
   gradient: string;
+  fields: { key: string; label: string; type: "text" | "date" | "number"; placeholder?: string }[];
 }) {
+  const [formData, setFormData] = useState<Record<string, string>>({});
+  const minDate = new Date().toISOString().split("T")[0];
+
   return (
     <motion.div
       initial={{ opacity: 0, scale: 0.95 }}
       animate={{ opacity: 1, scale: 1 }}
-      className="flex flex-col items-center justify-center h-60 text-center p-6"
+      className="p-4 space-y-4"
     >
-      {/* Icon with animated background */}
-      <div className="relative mb-4">
-        <motion.div
-          animate={{ scale: [1, 1.1, 1], opacity: [0.5, 0.2, 0.5] }}
-          transition={{ duration: 2, repeat: Infinity }}
-          className={`absolute inset-0 w-20 h-20 rounded-2xl bg-gradient-to-br ${gradient} blur-xl`}
-        />
-        <div className={`relative w-20 h-20 rounded-2xl bg-gradient-to-br ${gradient} flex items-center justify-center shadow-xl`}>
-          <Icon className="w-10 h-10 text-white" />
+      {/* Header */}
+      <div className="flex items-center gap-2">
+        <div className={`w-8 h-8 rounded-xl bg-gradient-to-br ${gradient} flex items-center justify-center shadow-lg`}>
+          <Icon className="w-4 h-4 text-white" />
+        </div>
+        <div>
+          <h3 className="text-sm font-bold text-gray-900">Find {label}</h3>
+          <p className="text-[10px] text-gray-400">Search and add to quote</p>
         </div>
       </div>
 
-      {/* Text content */}
-      <h3 className="text-lg font-bold text-gray-800 mb-1">{label}</h3>
-      <p className="text-sm text-gray-400 max-w-[200px]">
-        This feature is coming soon. Stay tuned for updates!
-      </p>
+      {/* Form Fields */}
+      <div className="space-y-3">
+        {fields.map((field) => (
+          <div key={field.key}>
+            <label className="flex items-center gap-1.5 text-[11px] font-bold text-gray-500 uppercase tracking-wider mb-1.5">
+              {field.label}
+            </label>
+            <input
+              type={field.type}
+              value={formData[field.key] || ""}
+              onChange={(e) => setFormData({ ...formData, [field.key]: e.target.value })}
+              placeholder={field.placeholder}
+              min={field.type === "date" ? minDate : undefined}
+              className="w-full px-3 py-2.5 border-2 border-gray-200 rounded-xl text-sm font-medium hover:border-gray-300 focus:border-indigo-400 focus:ring-4 focus:ring-indigo-100 transition-all"
+            />
+          </div>
+        ))}
+      </div>
 
-      {/* Progress indicator */}
-      <div className="mt-4 flex items-center gap-2">
+      {/* Search Button */}
+      <motion.button
+        type="button"
+        whileHover={{ scale: 1.02, y: -2 }}
+        whileTap={{ scale: 0.98 }}
+        className={`w-full flex items-center justify-center gap-2 py-3 bg-gradient-to-r ${gradient} text-white font-bold rounded-xl shadow-lg disabled:opacity-50 transition-all`}
+      >
+        <Search className="w-5 h-5" />
+        Search {label}
+      </motion.button>
+
+      {/* Coming Soon Badge */}
+      <div className="flex items-center justify-center gap-2 pt-2">
         <div className="flex gap-1">
           {[1, 2, 3].map((i) => (
             <motion.div
               key={i}
               animate={{ opacity: [0.3, 1, 0.3] }}
               transition={{ duration: 1.5, repeat: Infinity, delay: i * 0.2 }}
-              className={`w-2 h-2 rounded-full bg-gradient-to-r ${gradient}`}
+              className={`w-1.5 h-1.5 rounded-full bg-gradient-to-r ${gradient}`}
             />
           ))}
         </div>
-        <span className="text-xs text-gray-400">In development</span>
+        <span className="text-[10px] text-gray-400 font-medium">API Integration Coming Soon</span>
       </div>
     </motion.div>
+  );
+}
+
+// Car Rental Search Panel
+function CarSearchPanel() {
+  return (
+    <GenericSearchPanel
+      type="car"
+      label="Car Rentals"
+      icon={Car}
+      gradient="from-cyan-500 to-blue-600"
+      fields={[
+        { key: "pickupLocation", label: "Pickup Location", type: "text", placeholder: "Airport or city" },
+        { key: "pickupDate", label: "Pickup Date", type: "date" },
+        { key: "dropoffDate", label: "Dropoff Date", type: "date" },
+      ]}
+    />
+  );
+}
+
+// Activities/Tours Search Panel
+function ActivitiesSearchPanel() {
+  return (
+    <GenericSearchPanel
+      type="activity"
+      label="Activities & Tours"
+      icon={Compass}
+      gradient="from-emerald-500 to-teal-600"
+      fields={[
+        { key: "destination", label: "Destination", type: "text", placeholder: "City or attraction" },
+        { key: "date", label: "Date", type: "date" },
+        { key: "participants", label: "Participants", type: "number", placeholder: "Number of people" },
+      ]}
+    />
+  );
+}
+
+// Transfers Search Panel
+function TransfersSearchPanel() {
+  return (
+    <GenericSearchPanel
+      type="transfer"
+      label="Transfers"
+      icon={Bus}
+      gradient="from-amber-500 to-orange-600"
+      fields={[
+        { key: "pickup", label: "Pickup Location", type: "text", placeholder: "Airport or hotel" },
+        { key: "dropoff", label: "Drop-off Location", type: "text", placeholder: "Hotel or address" },
+        { key: "date", label: "Transfer Date", type: "date" },
+      ]}
+    />
+  );
+}
+
+// Insurance Search Panel
+function InsuranceSearchPanel() {
+  return (
+    <GenericSearchPanel
+      type="insurance"
+      label="Travel Insurance"
+      icon={Shield}
+      gradient="from-rose-500 to-pink-600"
+      fields={[
+        { key: "destination", label: "Destination", type: "text", placeholder: "Country or region" },
+        { key: "startDate", label: "Trip Start", type: "date" },
+        { key: "endDate", label: "Trip End", type: "date" },
+        { key: "travelers", label: "Travelers", type: "number", placeholder: "Number of travelers" },
+      ]}
+    />
+  );
+}
+
+// Custom Item Panel
+function CustomItemPanel() {
+  return (
+    <GenericSearchPanel
+      type="custom"
+      label="Custom Items"
+      icon={Package}
+      gradient="from-gray-600 to-gray-800"
+      fields={[
+        { key: "name", label: "Item Name", type: "text", placeholder: "Service or product name" },
+        { key: "description", label: "Description", type: "text", placeholder: "Brief description" },
+        { key: "price", label: "Price (USD)", type: "number", placeholder: "0.00" },
+      ]}
+    />
   );
 }

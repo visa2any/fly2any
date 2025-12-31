@@ -27,6 +27,7 @@ import {
 import { useQuoteWorkspace } from "../QuoteWorkspaceProvider";
 import MultiAirportSelector from "@/components/common/MultiAirportSelector";
 import PremiumDatePicker from "@/components/common/PremiumDatePicker";
+// import PremiumDateRangePicker from "@/components/common/PremiumDateRangePicker";
 import type { FlightItem, FlightSearchParams } from "../types/quote-workspace.types";
 
 // Cabin class options with premium styling
@@ -440,145 +441,101 @@ export default function FlightSearchPanel() {
                 </div>
               </div>
 
-              {/* ROW 2: Dates - Departure & Return with Premium Flex/Multi toggles */}
-              <div className="grid grid-cols-2 gap-2">
-                {/* Departure Column */}
-                <div>
-                  <div className="flex items-center justify-between mb-1.5">
-                    <label className="flex items-center gap-1.5 text-[11px] font-bold text-gray-500 uppercase tracking-wider">
-                      <div className="w-4 h-4 rounded bg-gradient-to-br from-amber-500 to-orange-600 flex items-center justify-center">
-                        <Calendar className="w-2.5 h-2.5 text-white" />
-                      </div>
-                      Departure
-                    </label>
-                    {/* Premium Toggle Group */}
-                    <div className="flex items-center bg-gray-100 rounded-lg p-0.5 shadow-inner">
-                      <motion.button
-                        type="button"
-                        onClick={() => setParams({ ...params, departureFlex: params.departureFlex === 0 ? 3 : 0, useMultiDate: false, departureDates: [] })}
-                        whileHover={{ scale: 1.02 }}
-                        whileTap={{ scale: 0.98 }}
-                        className={`flex items-center gap-0.5 px-2 py-1 rounded-md text-[10px] font-bold transition-all ${
-                          params.departureFlex > 0 && !params.useMultiDate
-                            ? "bg-gradient-to-r from-amber-400 to-orange-500 text-white shadow-sm"
-                            : "text-gray-500 hover:text-gray-700"
-                        }`}
-                      >
-                        <Sparkles className="w-2.5 h-2.5" />
-                        {params.departureFlex > 0 && !params.useMultiDate ? `±${params.departureFlex}` : "Flex"}
-                      </motion.button>
-                      <motion.button
-                        type="button"
-                        onClick={() => setParams({ ...params, useMultiDate: !params.useMultiDate, departureFlex: 0, departureDate: "", departureDates: [] })}
-                        whileHover={{ scale: 1.02 }}
-                        whileTap={{ scale: 0.98 }}
-                        className={`px-2 py-1 rounded-md text-[10px] font-bold transition-all ${
-                          params.useMultiDate
-                            ? "bg-gradient-to-r from-purple-500 to-pink-500 text-white shadow-sm"
-                            : "text-gray-500 hover:text-gray-700"
-                        }`}
-                      >
-                        Multi
-                      </motion.button>
+              {/* ROW 2: Dates - Range Picker or Multi-Date Mode */}
+              <div>
+                <div className="flex items-center justify-between mb-1.5">
+                  <label className="flex items-center gap-1.5 text-[11px] font-bold text-gray-500 uppercase tracking-wider">
+                    <div className="w-4 h-4 rounded bg-gradient-to-br from-amber-500 to-orange-600 flex items-center justify-center">
+                      <Calendar className="w-2.5 h-2.5 text-white" />
                     </div>
-                  </div>
+                    Travel Dates
+                  </label>
+                  {/* Premium Toggle: Multi-date mode */}
+                  <motion.button
+                    type="button"
+                    onClick={() => setParams({ ...params, useMultiDate: !params.useMultiDate, departureFlex: 0, departureDate: "", returnDate: "", departureDates: [] })}
+                    whileHover={{ scale: 1.02 }}
+                    whileTap={{ scale: 0.98 }}
+                    className={`px-2.5 py-1 rounded-lg text-[10px] font-bold transition-all ${
+                      params.useMultiDate
+                        ? "bg-gradient-to-r from-purple-500 to-pink-500 text-white shadow-sm"
+                        : "bg-gray-100 text-gray-500 hover:bg-gray-200"
+                    }`}
+                  >
+                    Multi-Date
+                  </motion.button>
+                </div>
 
-                  {!params.useMultiDate ? (
+                {!params.useMultiDate ? (
+                  /* Standard Date Pickers */
+                  <div className="grid grid-cols-2 gap-2">
                     <PremiumDatePicker
                       value={params.departureDate}
                       onChange={(date) => setParams({ ...params, departureDate: date })}
                       minDate={getMinDate()}
                       placeholder="Depart"
                     />
-                  ) : (
-                    <div className="space-y-2">
-                      {params.departureDates.length > 0 && (
-                        <motion.div
-                          initial={{ opacity: 0, height: 0 }}
-                          animate={{ opacity: 1, height: "auto" }}
-                          className="flex flex-wrap gap-1"
-                        >
-                          {params.departureDates.map((date, idx) => (
-                            <motion.span
-                              key={idx}
-                              initial={{ scale: 0, opacity: 0 }}
-                              animate={{ scale: 1, opacity: 1 }}
-                              exit={{ scale: 0, opacity: 0 }}
-                              whileHover={{ scale: 1.05 }}
-                              className="inline-flex items-center gap-1 px-2 py-1 bg-gradient-to-r from-purple-50 to-pink-50 text-purple-700 rounded-lg text-[11px] font-semibold border border-purple-200 shadow-sm"
-                            >
-                              {format(date, "MMM d")}
-                              <button
-                                type="button"
-                                onClick={() => removeMultiDate(idx)}
-                                className="hover:bg-purple-200 rounded-full p-0.5 transition-colors"
-                              >
-                                <X className="w-2.5 h-2.5" />
-                              </button>
-                            </motion.span>
-                          ))}
-                        </motion.div>
-                      )}
-                      {params.departureDates.length < 7 && (
-                        <motion.div
-                          whileHover={{ scale: 1.01, borderColor: "rgba(168, 85, 247, 0.5)" }}
-                          className="relative"
-                        >
-                          <div className="flex items-center gap-2 p-2.5 bg-white border-2 border-dashed border-purple-200 rounded-xl hover:bg-purple-50/50 cursor-pointer text-xs text-purple-600 font-medium transition-all">
-                            <Plus className="w-3.5 h-3.5" />
-                            Add date ({7 - params.departureDates.length} left)
-                          </div>
-                          <input
-                            type="date"
-                            min={getMinDate()}
-                            onChange={(e) => { addMultiDate(e.target.value); e.target.value = ""; }}
-                            className="absolute inset-0 opacity-0 cursor-pointer"
-                          />
-                        </motion.div>
-                      )}
-                    </div>
-                  )}
-                </div>
-
-                {/* Return Column */}
-                <motion.div
-                  animate={{
-                    opacity: params.tripType === "oneway" ? 0.4 : 1,
-                    filter: params.tripType === "oneway" ? "grayscale(0.5)" : "grayscale(0)",
-                  }}
-                  className={params.tripType === "oneway" ? "pointer-events-none" : ""}
-                >
-                  <div className="flex items-center justify-between mb-1.5">
-                    <label className="flex items-center gap-1.5 text-[11px] font-bold text-gray-500 uppercase tracking-wider">
-                      <div className="w-4 h-4 rounded bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center">
-                        <Calendar className="w-2.5 h-2.5 text-white" />
+                    {params.tripType === "roundtrip" && (
+                      <PremiumDatePicker
+                        value={params.returnDate || ""}
+                        onChange={(date) => setParams({ ...params, returnDate: date })}
+                        minDate={params.departureDate || getMinDate()}
+                        placeholder="Return"
+                      />
+                    )}
+                    {params.tripType === "oneway" && (
+                      <div className="flex items-center justify-center text-sm text-gray-400 bg-gray-50 rounded-xl">
+                        One-way
                       </div>
-                      Return
-                    </label>
-                    <motion.button
-                      type="button"
-                      onClick={() => setParams({ ...params, returnFlex: params.returnFlex === 0 ? 3 : 0 })}
-                      disabled={params.tripType === "oneway" || params.useMultiDate}
-                      whileHover={{ scale: params.useMultiDate ? 1 : 1.05 }}
-                      whileTap={{ scale: params.useMultiDate ? 1 : 0.95 }}
-                      className={`flex items-center gap-0.5 px-2 py-1 rounded-lg text-[10px] font-bold transition-all ${
-                        params.returnFlex > 0
-                          ? "bg-gradient-to-r from-amber-400 to-orange-500 text-white shadow-sm"
-                          : "bg-gray-100 text-gray-500 hover:bg-gray-200"
-                      } ${params.useMultiDate ? "opacity-50 cursor-not-allowed" : ""}`}
-                    >
-                      <Sparkles className="w-2.5 h-2.5" />
-                      {params.returnFlex > 0 ? `±${params.returnFlex}` : "Flex"}
-                    </motion.button>
+                    )}
                   </div>
-
-                  {params.useMultiDate ? (
-                    <motion.div
-                      initial={{ opacity: 0 }}
-                      animate={{ opacity: 1 }}
-                      className="relative"
-                    >
-                      <div className="flex items-center justify-between bg-gradient-to-r from-gray-50 to-white rounded-xl px-3 py-2.5 border border-gray-200 shadow-sm">
+                ) : (
+                  /* Multi-Date Mode */
+                  <div className="space-y-2">
+                    {params.departureDates.length > 0 && (
+                      <motion.div
+                        initial={{ opacity: 0, height: 0 }}
+                        animate={{ opacity: 1, height: "auto" }}
+                        className="flex flex-wrap gap-1"
+                      >
+                        {params.departureDates.map((date, idx) => (
+                          <motion.span
+                            key={idx}
+                            initial={{ scale: 0, opacity: 0 }}
+                            animate={{ scale: 1, opacity: 1 }}
+                            exit={{ scale: 0, opacity: 0 }}
+                            whileHover={{ scale: 1.05 }}
+                            className="inline-flex items-center gap-1 px-2 py-1 bg-gradient-to-r from-purple-50 to-pink-50 text-purple-700 rounded-lg text-[11px] font-semibold border border-purple-200 shadow-sm"
+                          >
+                            {format(date, "MMM d")}
+                            <button
+                              type="button"
+                              onClick={() => removeMultiDate(idx)}
+                              className="hover:bg-purple-200 rounded-full p-0.5 transition-colors"
+                            >
+                              <X className="w-2.5 h-2.5" />
+                            </button>
+                          </motion.span>
+                        ))}
+                      </motion.div>
+                    )}
+                    {params.departureDates.length < 7 && (
+                      <motion.div whileHover={{ scale: 1.01 }} className="relative">
+                        <div className="flex items-center gap-2 p-2.5 bg-white border-2 border-dashed border-purple-200 rounded-xl hover:bg-purple-50/50 cursor-pointer text-xs text-purple-600 font-medium transition-all">
+                          <Plus className="w-3.5 h-3.5" />
+                          Add date ({7 - params.departureDates.length} left)
+                        </div>
+                        <input
+                          type="date"
+                          min={getMinDate()}
+                          onChange={(e) => { addMultiDate(e.target.value); e.target.value = ""; }}
+                          className="absolute inset-0 opacity-0 cursor-pointer"
+                        />
+                      </motion.div>
+                    )}
+                    {/* Trip Duration for multi-date */}
+                    {params.tripType === "roundtrip" && (
+                      <div className="flex items-center justify-between bg-gradient-to-r from-gray-50 to-white rounded-xl px-3 py-2 border border-gray-200">
                         <div className="flex items-center gap-2">
                           <Clock className="w-4 h-4 text-gray-400" />
                           <span className="text-xs font-medium text-gray-600">Duration</span>
@@ -589,7 +546,7 @@ export default function FlightSearchPanel() {
                             onClick={() => setParams({ ...params, tripDuration: Math.max(1, params.tripDuration - 1) })}
                             whileHover={{ scale: 1.1 }}
                             whileTap={{ scale: 0.9 }}
-                            className="w-6 h-6 rounded-lg bg-gray-100 hover:bg-gray-200 flex items-center justify-center text-gray-600 transition-colors"
+                            className="w-6 h-6 rounded-lg bg-gray-100 hover:bg-gray-200 flex items-center justify-center text-gray-600"
                           >
                             <Minus className="w-3 h-3" />
                           </motion.button>
@@ -599,23 +556,15 @@ export default function FlightSearchPanel() {
                             onClick={() => setParams({ ...params, tripDuration: Math.min(30, params.tripDuration + 1) })}
                             whileHover={{ scale: 1.1 }}
                             whileTap={{ scale: 0.9 }}
-                            className="w-6 h-6 rounded-lg bg-gray-100 hover:bg-gray-200 flex items-center justify-center text-gray-600 transition-colors"
+                            className="w-6 h-6 rounded-lg bg-gray-100 hover:bg-gray-200 flex items-center justify-center text-gray-600"
                           >
                             <Plus className="w-3 h-3" />
                           </motion.button>
                         </div>
                       </div>
-                    </motion.div>
-                  ) : (
-                    <PremiumDatePicker
-                      value={params.returnDate || ""}
-                      onChange={(date) => setParams({ ...params, returnDate: date })}
-                      minDate={params.departureDate || getMinDate()}
-                      placeholder="Return"
-                      disabled={params.tripType === "oneway"}
-                    />
-                  )}
-                </motion.div>
+                    )}
+                  </div>
+                )}
               </div>
 
               {/* ROW 3: Travelers + Class + Direct - Premium Styling */}
