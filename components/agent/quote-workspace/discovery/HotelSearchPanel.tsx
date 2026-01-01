@@ -270,8 +270,8 @@ export default function HotelSearchPanel() {
           <PremiumDateRangePicker
             startDate={params.checkIn}
             endDate={params.checkOut}
-            onChangeStart={(date) => setParams({ ...params, checkIn: date })}
-            onChangeEnd={(date) => setParams({ ...params, checkOut: date })}
+            onChangeStart={(date) => setParams(prev => ({ ...prev, checkIn: date }))}
+            onChangeEnd={(date) => setParams(prev => ({ ...prev, checkOut: date }))}
             minDate={minDate}
             startPlaceholder="Check-in"
             endPlaceholder="Check-out"

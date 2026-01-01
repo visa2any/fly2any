@@ -989,19 +989,21 @@ function FlightResultCard({ flight, onAdd, index }: { flight: any; onAdd: () => 
       )}
 
       <div className="flex">
-        {/* Logo - Centered Vertically */}
-        <div className="flex flex-col items-center justify-center px-1.5 py-2 border-r border-gray-100 w-[60px] flex-shrink-0">
+        {/* Logo - Thin strip on left */}
+        <div className="flex items-center justify-center px-1 border-r border-gray-100 w-[28px] flex-shrink-0">
           <AirlineLogo code={airlineCode} size="sm" className="flex-shrink-0" />
-          <p className="text-[8px] font-bold text-gray-900 mt-1 text-center truncate w-full">{airlineInfo.name}</p>
-          <p className="text-[7px] text-indigo-600 font-medium bg-indigo-50 px-1 py-0.5 rounded mt-0.5 truncate">{fareType}</p>
         </div>
 
         {/* Flights */}
         <div className="flex-1 min-w-0">
           {/* Outbound */}
           <div className="flex items-center gap-1 px-2 py-2 border-b border-gray-100">
-            <span className="text-[9px] font-bold text-indigo-600 uppercase flex-shrink-0">→OUT</span>
-            <span className="text-[10px] text-gray-500 flex-shrink-0">{airlineCode}{outNum}</span>
+            <div className="flex items-center gap-1 flex-shrink-0">
+              <span className="text-[9px] font-bold text-indigo-600">→</span>
+              <span className="text-[9px] font-semibold text-gray-700 truncate max-w-[60px]">{airlineInfo.name}</span>
+              <span className="text-[9px] text-gray-400">{airlineCode}{outNum}</span>
+              <span className="text-[8px] text-indigo-600 bg-indigo-50 px-1 rounded">{fareType}</span>
+            </div>
             <div className="text-center flex-shrink-0">
               <p className="text-xs font-bold text-gray-900">{formatTime(outDep.at)}</p>
               <p className="text-[10px] text-gray-500">{outDep.iataCode}</p>
@@ -1026,26 +1028,28 @@ function FlightResultCard({ flight, onAdd, index }: { flight: any; onAdd: () => 
           {/* Return */}
           {isRoundtrip && (
             <div className="flex items-center gap-1 px-2 py-2 bg-gray-50/50">
-              <span className="text-[9px] font-bold text-orange-600 uppercase flex-shrink-0">←RET</span>
-              <span className="text-[10px] text-gray-500 flex-shrink-0">{airlineCode}{inNum}</span>
-              <div className="text-center flex-shrink-0">
-                <p className="text-sm font-bold text-gray-900">{formatTime(inDep.at)}</p>
-                <p className="text-xs text-gray-500">{inDep.iataCode}</p>
+              <div className="flex items-center gap-1 flex-shrink-0">
+                <span className="text-[9px] font-bold text-orange-600">←</span>
+                <span className="text-[9px] text-gray-400">{airlineCode}{inNum}</span>
               </div>
-              <div className="flex-1 px-2">
+              <div className="text-center flex-shrink-0">
+                <p className="text-xs font-bold text-gray-900">{formatTime(inDep.at)}</p>
+                <p className="text-[10px] text-gray-500">{inDep.iataCode}</p>
+              </div>
+              <div className="flex-1 min-w-[40px] px-1">
                 <div className="relative h-px bg-gradient-to-r from-gray-300 via-orange-400 to-gray-300">
-                  <Plane className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-3 h-3 text-orange-500 bg-white rotate-180" />
+                  <Plane className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-2.5 h-2.5 text-orange-500 bg-white rotate-180" />
                 </div>
-                <div className="flex items-center justify-center gap-1 mt-1">
-                  <span className="text-xs text-gray-500">{parseDuration(inbound?.duration)}</span>
-                  <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded ${stopsStyle(getStops(inSegs))}`}>
-                    {getStops(inSegs) === 0 ? "Direct" : `${getStops(inSegs)} stop`}
+                <div className="flex items-center justify-center gap-0.5 mt-0.5">
+                  <span className="text-[10px] text-gray-500">{parseDuration(inbound?.duration)}</span>
+                  <span className={`text-[9px] font-bold px-1 py-0.5 rounded ${stopsStyle(getStops(inSegs))}`}>
+                    {getStops(inSegs) === 0 ? "Direct" : `${getStops(inSegs)}stop`}
                   </span>
                 </div>
               </div>
               <div className="text-center flex-shrink-0">
-                <p className="text-sm font-bold text-gray-900">{formatTime(inArr.at)}</p>
-                <p className="text-xs text-gray-500">{inArr.iataCode}</p>
+                <p className="text-xs font-bold text-gray-900">{formatTime(inArr.at)}</p>
+                <p className="text-[10px] text-gray-500">{inArr.iataCode}</p>
               </div>
             </div>
           )}
