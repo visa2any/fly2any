@@ -135,7 +135,7 @@ export default function CarSearchPanel() {
       const res = await fetch(`/api/cars?${query}`);
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || "Search failed");
-      setSearchResults(false, data.cars || data.results || []);
+      setSearchResults(false, data.data || data.cars || data.results || []);
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : "Search failed");
       setSearchResults(false, null);
@@ -145,17 +145,17 @@ export default function CarSearchPanel() {
   const handleAddCar = (car: any) => {
     addItem({
       type: "car",
-      price: car.price?.total || car.price?.amount || 0,
-      currency: "USD",
+      price: parseFloat(car.price?.total) || car.price?.amount || 0,
+      currency: car.price?.currency || "USD",
       date: params.pickupDate,
-      name: `${car.vehicle?.name || car.name || 'Car Rental'}`,
+      name: `${car.vehicle?.description || car.vehicle?.name || car.name || 'Car Rental'}`,
       pickupLocation: params.pickupLocation,
       dropoffLocation: params.sameDropoff ? params.pickupLocation : params.dropoffLocation,
       pickupDate: params.pickupDate,
       dropoffDate: params.dropoffDate,
       days,
       vehicleType: car.vehicle?.category || car.category || 'Standard',
-      image: car.vehicle?.image || car.image,
+      image: car.vehicle?.imageURL || car.vehicle?.image || car.image,
       apiSource: "cars",
       apiOfferId: car.id,
     });
@@ -309,10 +309,10 @@ export default function CarSearchPanel() {
               <motion.div key={car.id || idx} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} whileHover={{ scale: 1.02 }} className="bg-white border-2 border-gray-100 rounded-2xl p-3 hover:border-cyan-200 hover:shadow-lg transition-all group">
                 <div className="flex gap-3">
                   <div className="w-20 h-16 rounded-xl bg-cyan-100 overflow-hidden flex-shrink-0 flex items-center justify-center">
-                    {car.vehicle?.image || car.image ? <img src={car.vehicle?.image || car.image} alt={car.name} className="w-full h-full object-contain" /> : <Car className="w-8 h-8 text-cyan-300" />}
+                    {car.vehicle?.imageURL || car.vehicle?.image || car.image ? <img src={car.vehicle?.imageURL || car.vehicle?.image || car.image} alt={car.vehicle?.description || car.name} className="w-full h-full object-contain" /> : <Car className="w-8 h-8 text-cyan-300" />}
                   </div>
                   <div className="flex-1 min-w-0">
-                    <h4 className="font-bold text-gray-900 truncate text-sm">{car.vehicle?.name || car.name}</h4>
+                    <h4 className="font-bold text-gray-900 truncate text-sm">{car.vehicle?.description || car.vehicle?.name || car.name}</h4>
                     <p className="text-xs text-gray-500">{car.vehicle?.category || car.category}</p>
                   </div>
                   <div className="flex flex-col items-end justify-between">
