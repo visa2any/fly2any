@@ -166,7 +166,8 @@ export default function HotelSearchPanel() {
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || data.hint || "Search failed");
-      setSearchResults(false, data.hotels || []);
+      // API returns { success, data: hotels[], meta } - hotels are in data.data
+      setSearchResults(false, data.data || data.hotels || []);
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : "Search failed");
       setSearchResults(false, null);
