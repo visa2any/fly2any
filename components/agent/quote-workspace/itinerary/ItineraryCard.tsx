@@ -5,6 +5,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { format, parseISO } from "date-fns";
 import { Plane, Building2, Car, Compass, Bus, Shield, Package, MoreVertical, Edit2, Copy, Trash2, GripVertical, ChevronDown, ChevronUp } from "lucide-react";
 import { useQuoteWorkspace } from "../QuoteWorkspaceProvider";
+import AirlineLogo from "@/components/flights/AirlineLogo";
 import type { QuoteItem, FlightItem, HotelItem, CarItem, ActivityItem, TransferItem, InsuranceItem, CustomItem, ProductType } from "../types/quote-workspace.types";
 
 // Icon and gradient config
@@ -109,6 +110,128 @@ export default function ItineraryCard({ item, dragListeners, isDragging }: Itine
     expandItem(isExpanded ? null : item.id);
   };
 
+  // Render flight-specific compact card with return flight
+  if (item.type === "flight") {
+    const f = item as FlightItem;
+    const isRoundtrip = !!f.returnDepartureTime;
+    const getStopsStyle = (stops: number) =>
+      stops === 0 ? "bg-emerald-100 text-emerald-700" : stops === 1 ? "bg-amber-100 text-amber-700" : "bg-red-100 text-red-700";
+
+    return (
+      <motion.div
+        layout
+        className={`group relative bg-white border border-gray-200 rounded-xl overflow-hidden shadow-sm hover:shadow-md transition-shadow ${
+          isExpanded ? "ring-2 ring-primary-500" : ""
+        }`}
+      >
+        {/* Drag Handle */}
+        <div
+          {...dragListeners}
+          className={`absolute left-0 top-0 bottom-0 w-6 flex items-center justify-center transition-opacity cursor-grab active:cursor-grabbing bg-gradient-to-r from-gray-50 to-transparent ${
+            isDragging ? "opacity-100" : "opacity-0 group-hover:opacity-100"
+          }`}
+        >
+          <GripVertical className="w-3 h-3 text-gray-400" />
+        </div>
+
+        {/* Outbound Row */}
+        <div className="pl-7 pr-3 py-2 flex items-center gap-2">
+          <AirlineLogo code={f.airline} size="sm" className="flex-shrink-0" />
+          <div className="min-w-[60px]">
+            <p className="text-xs font-bold text-gray-900">{f.airline}</p>
+            {f.flightNumber && <p className="text-[9px] text-gray-500">{f.flightNumber}</p>}
+          </div>
+          <div className="flex items-center gap-1 flex-1 min-w-0">
+            <span className="text-[7px] font-bold text-indigo-600 uppercase">→OUT</span>
+            <div className="text-center">
+              <p className="text-xs font-bold text-gray-900">{f.departureTime || "--:--"}</p>
+              <p className="text-[8px] text-gray-500">{f.origin}</p>
+            </div>
+            <div className="flex-1 px-1">
+              <div className="h-px bg-gradient-to-r from-gray-300 via-indigo-400 to-gray-300 relative">
+                <Plane className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-2 h-2 text-indigo-500 bg-white" />
+              </div>
+              <div className="flex items-center justify-center gap-0.5 mt-0.5">
+                <span className="text-[7px] text-gray-500">{f.duration}</span>
+                <span className={`text-[6px] font-bold px-0.5 rounded ${getStopsStyle(f.stops)}`}>
+                  {f.stops === 0 ? "Direct" : `${f.stops}stop`}
+                </span>
+              </div>
+            </div>
+            <div className="text-center">
+              <p className="text-xs font-bold text-gray-900">{f.arrivalTime || "--:--"}</p>
+              <p className="text-[8px] text-gray-500">{f.destination}</p>
+            </div>
+          </div>
+          <div className="text-right ml-auto">
+            <p className="text-sm font-black text-gray-900 bg-yellow-100 px-1 rounded">{formatPrice(f.price)}</p>
+            <p className="text-[8px] text-gray-400">{f.passengers} pax</p>
+          </div>
+          <div className="flex items-center gap-0.5">
+            <button onClick={handleExpand} className="p-1 text-gray-400 hover:text-gray-600 rounded">
+              {isExpanded ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />}
+            </button>
+            <button onClick={() => setShowMenu(!showMenu)} className="p-1 text-gray-400 hover:text-gray-600 rounded">
+              <MoreVertical className="w-3 h-3" />
+            </button>
+          </div>
+        </div>
+
+        {/* Return Row */}
+        {isRoundtrip && (
+          <div className="pl-7 pr-3 py-1.5 bg-gray-50 border-t border-gray-100 flex items-center gap-2">
+            <div className="min-w-[60px]" />
+            <div className="flex items-center gap-1 flex-1 min-w-0" style={{ marginLeft: "28px" }}>
+              <span className="text-[7px] font-bold text-orange-600 uppercase">←RET</span>
+              <div className="text-center">
+                <p className="text-xs font-bold text-gray-900">{f.returnDepartureTime || "--:--"}</p>
+                <p className="text-[8px] text-gray-500">{f.destination}</p>
+              </div>
+              <div className="flex-1 px-1">
+                <div className="h-px bg-gradient-to-r from-gray-300 via-orange-400 to-gray-300 relative">
+                  <Plane className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-2 h-2 text-orange-500 bg-white rotate-180" />
+                </div>
+                <div className="flex items-center justify-center gap-0.5 mt-0.5">
+                  <span className="text-[7px] text-gray-500">{f.returnDuration}</span>
+                  <span className={`text-[6px] font-bold px-0.5 rounded ${getStopsStyle(f.returnStops || 0)}`}>
+                    {(f.returnStops || 0) === 0 ? "Direct" : `${f.returnStops}stop`}
+                  </span>
+                </div>
+              </div>
+              <div className="text-center">
+                <p className="text-xs font-bold text-gray-900">{f.returnArrivalTime || "--:--"}</p>
+                <p className="text-[8px] text-gray-500">{f.origin}</p>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Dropdown Menu */}
+        <AnimatePresence>
+          {showMenu && (
+            <>
+              <div className="fixed inset-0 z-10" onClick={() => setShowMenu(false)} />
+              <motion.div
+                initial={{ opacity: 0, scale: 0.95 }}
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0, scale: 0.95 }}
+                className="absolute right-2 top-10 w-32 bg-white border border-gray-200 rounded-lg shadow-xl z-20 overflow-hidden"
+              >
+                <button onClick={() => { expandItem(item.id); setShowMenu(false); }} className="w-full flex items-center gap-2 px-2 py-1.5 text-xs text-gray-700 hover:bg-gray-50">
+                  <Edit2 className="w-3 h-3" /> Edit
+                </button>
+                <button onClick={handleDelete} className="w-full flex items-center gap-2 px-2 py-1.5 text-xs text-red-600 hover:bg-red-50">
+                  <Trash2 className="w-3 h-3" /> Remove
+                </button>
+              </motion.div>
+            </>
+          )}
+        </AnimatePresence>
+      </motion.div>
+    );
+  }
+
+  // Default card for non-flight items
   return (
     <motion.div
       layout
@@ -127,45 +250,33 @@ export default function ItineraryCard({ item, dragListeners, isDragging }: Itine
       </div>
 
       {/* Main Content */}
-      <div className="pl-8 pr-4 py-4">
+      <div className="pl-8 pr-4 py-3">
         <div className="flex items-start gap-3">
           {/* Type Icon */}
-          <div className={`w-10 h-10 rounded-xl bg-gradient-to-br ${config.gradient} flex items-center justify-center flex-shrink-0 shadow-sm`}>
-            <Icon className="w-5 h-5 text-white" />
+          <div className={`w-9 h-9 rounded-xl bg-gradient-to-br ${config.gradient} flex items-center justify-center flex-shrink-0 shadow-sm`}>
+            <Icon className="w-4 h-4 text-white" />
           </div>
 
           {/* Info */}
           <div className="flex-1 min-w-0">
-            <h4 className="font-semibold text-gray-900 truncate">{getTitle()}</h4>
-            <p className="text-sm text-gray-500 truncate">{getSubtitle()}</p>
+            <h4 className="font-semibold text-gray-900 truncate text-sm">{getTitle()}</h4>
+            <p className="text-xs text-gray-500 truncate">{getSubtitle()}</p>
           </div>
 
           {/* Price */}
           <div className="text-right flex-shrink-0">
-            <p className="font-bold text-gray-900">{formatPrice(item.price)}</p>
-            {item.type === "flight" && (
-              <p className="text-xs text-gray-400">{(item as FlightItem).passengers} pax</p>
-            )}
+            <p className="font-bold text-gray-900 text-sm">{formatPrice(item.price)}</p>
           </div>
 
           {/* Actions */}
-          <div className="flex items-center gap-1 ml-2">
-            <button
-              onClick={handleExpand}
-              className="p-1.5 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
-            >
+          <div className="flex items-center gap-1 ml-1">
+            <button onClick={handleExpand} className="p-1 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition-colors">
               {isExpanded ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
             </button>
-
             <div className="relative">
-              <button
-                onClick={() => setShowMenu(!showMenu)}
-                className="p-1.5 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
-              >
+              <button onClick={() => setShowMenu(!showMenu)} className="p-1 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition-colors">
                 <MoreVertical className="w-4 h-4" />
               </button>
-
-              {/* Dropdown Menu */}
               <AnimatePresence>
                 {showMenu && (
                   <>
@@ -174,29 +285,17 @@ export default function ItineraryCard({ item, dragListeners, isDragging }: Itine
                       initial={{ opacity: 0, scale: 0.95, y: -10 }}
                       animate={{ opacity: 1, scale: 1, y: 0 }}
                       exit={{ opacity: 0, scale: 0.95, y: -10 }}
-                      className="absolute right-0 top-full mt-1 w-40 bg-white border border-gray-200 rounded-xl shadow-xl z-20 overflow-hidden"
+                      className="absolute right-0 top-full mt-1 w-36 bg-white border border-gray-200 rounded-xl shadow-xl z-20 overflow-hidden"
                     >
-                      <button
-                        onClick={() => { expandItem(item.id); setShowMenu(false); }}
-                        className="w-full flex items-center gap-2 px-3 py-2 text-sm text-gray-700 hover:bg-gray-50"
-                      >
-                        <Edit2 className="w-4 h-4" />
-                        Edit
+                      <button onClick={() => { expandItem(item.id); setShowMenu(false); }} className="w-full flex items-center gap-2 px-3 py-2 text-sm text-gray-700 hover:bg-gray-50">
+                        <Edit2 className="w-4 h-4" /> Edit
                       </button>
-                      <button
-                        onClick={() => setShowMenu(false)}
-                        className="w-full flex items-center gap-2 px-3 py-2 text-sm text-gray-700 hover:bg-gray-50"
-                      >
-                        <Copy className="w-4 h-4" />
-                        Duplicate
+                      <button onClick={() => setShowMenu(false)} className="w-full flex items-center gap-2 px-3 py-2 text-sm text-gray-700 hover:bg-gray-50">
+                        <Copy className="w-4 h-4" /> Duplicate
                       </button>
                       <div className="border-t border-gray-100" />
-                      <button
-                        onClick={handleDelete}
-                        className="w-full flex items-center gap-2 px-3 py-2 text-sm text-red-600 hover:bg-red-50"
-                      >
-                        <Trash2 className="w-4 h-4" />
-                        Remove
+                      <button onClick={handleDelete} className="w-full flex items-center gap-2 px-3 py-2 text-sm text-red-600 hover:bg-red-50">
+                        <Trash2 className="w-4 h-4" /> Remove
                       </button>
                     </motion.div>
                   </>
@@ -214,13 +313,10 @@ export default function ItineraryCard({ item, dragListeners, isDragging }: Itine
               animate={{ height: "auto", opacity: 1 }}
               exit={{ height: 0, opacity: 0 }}
               transition={{ duration: 0.2 }}
-              className="mt-4 pt-4 border-t border-gray-100"
+              className="mt-3 pt-3 border-t border-gray-100"
             >
-              <div className={`p-4 ${config.bgLight} rounded-lg`}>
-                {/* Expanded content will show editable fields - Phase 3 */}
-                <p className="text-sm text-gray-600">
-                  Click Edit to modify this item. Full inline editing coming in Phase 3.
-                </p>
+              <div className={`p-3 ${config.bgLight} rounded-lg`}>
+                <p className="text-xs text-gray-600">Click Edit to modify this item.</p>
               </div>
             </motion.div>
           )}

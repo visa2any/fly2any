@@ -33,6 +33,12 @@ export interface FlightItem extends QuoteItemBase {
   baggage?: string;
   apiSource?: 'amadeus' | 'duffel';
   apiOfferId?: string;
+  // Return flight data (for roundtrip)
+  returnDate?: string;
+  returnDepartureTime?: string;
+  returnArrivalTime?: string;
+  returnDuration?: string;
+  returnStops?: number;
 }
 
 // Hotel item
