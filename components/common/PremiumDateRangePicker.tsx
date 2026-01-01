@@ -64,7 +64,7 @@ export default function PremiumDateRangePicker({
   const [selectingEnd, setSelectingEnd] = useState(false);
   const [hoverDate, setHoverDate] = useState<Date | null>(null);
   const [direction, setDirection] = useState(0);
-  const [dropdownPos, setDropdownPos] = useState({ top: 0, left: 0, width: 340 });
+  const [dropdownPos, setDropdownPos] = useState({ top: 0, left: 0, width: 290 });
   const [mounted, setMounted] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLDivElement>(null);
@@ -77,7 +77,7 @@ export default function PremiumDateRangePicker({
     if (inputRef.current) {
       const rect = inputRef.current.getBoundingClientRect();
       const viewportWidth = window.innerWidth;
-      const dropdownWidth = 340;
+      const dropdownWidth = 290;
       let left = rect.left;
       if (left + dropdownWidth > viewportWidth - 16) {
         left = viewportWidth - dropdownWidth - 16;
@@ -225,34 +225,34 @@ export default function PremiumDateRangePicker({
               className="fixed z-[9999] bg-white rounded-2xl border border-gray-200 overflow-hidden"
               style={{ top: dropdownPos.top, left: dropdownPos.left, width: dropdownPos.width, boxShadow: "0 4px 6px -1px rgba(0,0,0,0.05), 0 10px 15px -3px rgba(0,0,0,0.08), 0 20px 25px -5px rgba(0,0,0,0.06)" }}
             >
-              <div className="px-4 py-2 bg-gradient-to-r from-indigo-50 to-purple-50 border-b border-indigo-100">
-                <p className="text-xs font-bold text-indigo-700 flex items-center gap-2">
-                  <span className={`w-2 h-2 rounded-full ${selectingEnd ? "bg-purple-500" : "bg-indigo-500"} animate-pulse`} />
+              <div className="px-3 py-1.5 bg-gradient-to-r from-indigo-50 to-purple-50 border-b border-indigo-100">
+                <p className="text-[10px] font-bold text-indigo-700 flex items-center gap-1.5">
+                  <span className={`w-1.5 h-1.5 rounded-full ${selectingEnd ? "bg-purple-500" : "bg-indigo-500"} animate-pulse`} />
                   {selectingEnd ? "Select return date" : "Select departure date"}
                 </p>
               </div>
 
-              <div className="flex items-center justify-between px-4 py-3 bg-gradient-to-r from-gray-50 to-white border-b border-gray-100">
-                <motion.button type="button" onClick={goToPrevMonth} whileHover={{ scale: 1.15 }} whileTap={{ scale: 0.9 }} className="w-9 h-9 rounded-xl flex items-center justify-center text-gray-600 hover:bg-white hover:shadow-md">
-                  <ChevronLeft className="w-5 h-5" />
+              <div className="flex items-center justify-between px-3 py-2 bg-gradient-to-r from-gray-50 to-white border-b border-gray-100">
+                <motion.button type="button" onClick={goToPrevMonth} whileHover={{ scale: 1.15 }} whileTap={{ scale: 0.9 }} className="w-7 h-7 rounded-lg flex items-center justify-center text-gray-600 hover:bg-white hover:shadow-md">
+                  <ChevronLeft className="w-4 h-4" />
                 </motion.button>
                 <AnimatePresence mode="wait" custom={direction}>
                   <motion.div key={format(currentMonth, "MMM yyyy")} custom={direction} variants={monthVariants} initial="enter" animate="center" exit="exit" transition={{ type: "spring", stiffness: 300, damping: 30 }} className="text-center">
-                    <h3 className="text-sm font-black text-gray-900">{format(currentMonth, "MMMM yyyy")}</h3>
+                    <h3 className="text-xs font-black text-gray-900">{format(currentMonth, "MMMM yyyy")}</h3>
                   </motion.div>
                 </AnimatePresence>
-                <motion.button type="button" onClick={goToNextMonth} whileHover={{ scale: 1.15 }} whileTap={{ scale: 0.9 }} className="w-9 h-9 rounded-xl flex items-center justify-center text-gray-600 hover:bg-white hover:shadow-md">
-                  <ChevronRight className="w-5 h-5" />
+                <motion.button type="button" onClick={goToNextMonth} whileHover={{ scale: 1.15 }} whileTap={{ scale: 0.9 }} className="w-7 h-7 rounded-lg flex items-center justify-center text-gray-600 hover:bg-white hover:shadow-md">
+                  <ChevronRight className="w-4 h-4" />
                 </motion.button>
               </div>
 
-              <div className="grid grid-cols-7 px-3 pt-3 pb-2">
+              <div className="grid grid-cols-7 px-2 pt-2 pb-1">
                 {WEEKDAYS.map((day) => (
-                  <div key={day} className="text-center text-[10px] font-bold text-gray-400 uppercase">{day}</div>
+                  <div key={day} className="text-center text-[9px] font-bold text-gray-400 uppercase">{day}</div>
                 ))}
               </div>
 
-              <div className="grid grid-cols-7 gap-1 px-3 pb-3">
+              <div className="grid grid-cols-7 gap-0.5 px-2 pb-2">
                 {calendarDays.map((day, idx) => {
                   const isCurrentMonth = isSameMonth(day, currentMonth);
                   const isStart = startDateParsed && isSameDay(day, startDateParsed);
@@ -269,13 +269,13 @@ export default function PremiumDateRangePicker({
                       onMouseEnter={() => selectingEnd && startDateParsed && setHoverDate(day)}
                       onMouseLeave={() => setHoverDate(null)}
                       disabled={isDisabled || !isCurrentMonth}
-                      whileHover={!isDisabled && isCurrentMonth ? { scale: 1.15 } : {}}
+                      whileHover={!isDisabled && isCurrentMonth ? { scale: 1.1 } : {}}
                       whileTap={!isDisabled && isCurrentMonth ? { scale: 0.9 } : {}}
-                      className={`relative w-9 h-9 mx-auto rounded-lg text-sm font-semibold flex items-center justify-center transition-all
+                      className={`relative w-8 h-8 mx-auto rounded-md text-xs font-semibold flex items-center justify-center transition-all
                         ${!isCurrentMonth ? "text-gray-200" : ""}
                         ${isDisabled && isCurrentMonth ? "text-gray-300 cursor-not-allowed" : ""}
-                        ${isStart ? "bg-gradient-to-br from-indigo-500 to-indigo-600 text-white shadow-lg shadow-indigo-500/40 rounded-r-none" : ""}
-                        ${isEnd ? "bg-gradient-to-br from-purple-500 to-purple-600 text-white shadow-lg shadow-purple-500/40 rounded-l-none" : ""}
+                        ${isStart ? "bg-gradient-to-br from-indigo-500 to-indigo-600 text-white shadow-md shadow-indigo-500/40 rounded-r-none" : ""}
+                        ${isEnd ? "bg-gradient-to-br from-purple-500 to-purple-600 text-white shadow-md shadow-purple-500/40 rounded-l-none" : ""}
                         ${inRange && !isStart && !isEnd ? "bg-indigo-100 text-indigo-700 rounded-none" : ""}
                         ${!isStart && !isEnd && !inRange && isCurrentMonth && !isDisabled ? "text-gray-700 hover:bg-gray-100" : ""}
                         ${isTodayDate && !isStart && !isEnd ? "ring-2 ring-indigo-300" : ""}
@@ -287,14 +287,14 @@ export default function PremiumDateRangePicker({
                 })}
               </div>
 
-              <div className="flex items-center justify-between px-4 py-3 border-t border-gray-100 bg-gradient-to-r from-gray-50/50 to-white">
-                <div className="flex items-center gap-2 text-xs text-gray-500">
-                  {startDateParsed && <span className="px-2 py-1 bg-indigo-100 text-indigo-700 rounded-lg font-semibold">{format(startDateParsed, "MMM d")}</span>}
-                  {startDateParsed && endDateParsed && <ArrowRight className="w-3 h-3" />}
-                  {endDateParsed && <span className="px-2 py-1 bg-purple-100 text-purple-700 rounded-lg font-semibold">{format(endDateParsed, "MMM d")}</span>}
+              <div className="flex items-center justify-between px-3 py-2 border-t border-gray-100 bg-gradient-to-r from-gray-50/50 to-white">
+                <div className="flex items-center gap-1.5 text-[10px] text-gray-500">
+                  {startDateParsed && <span className="px-1.5 py-0.5 bg-indigo-100 text-indigo-700 rounded font-semibold">{format(startDateParsed, "MMM d")}</span>}
+                  {startDateParsed && endDateParsed && <ArrowRight className="w-2.5 h-2.5" />}
+                  {endDateParsed && <span className="px-1.5 py-0.5 bg-purple-100 text-purple-700 rounded font-semibold">{format(endDateParsed, "MMM d")}</span>}
                 </div>
-                <motion.button type="button" onClick={() => setIsOpen(false)} whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }} className="flex items-center gap-1 px-4 py-1.5 text-xs font-bold text-white bg-gradient-to-r from-indigo-500 to-purple-600 rounded-lg shadow-md">
-                  <Check className="w-3 h-3" /> Done
+                <motion.button type="button" onClick={() => setIsOpen(false)} whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }} className="flex items-center gap-1 px-3 py-1 text-[10px] font-bold text-white bg-gradient-to-r from-indigo-500 to-purple-600 rounded-md shadow-sm">
+                  <Check className="w-2.5 h-2.5" /> Done
                 </motion.button>
               </div>
             </motion.div>

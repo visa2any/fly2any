@@ -295,12 +295,12 @@ export default function PremiumDatePicker({
               animate={{ opacity: 1, y: 0, scale: 1 }}
               exit={{ opacity: 0, y: -10, scale: 0.95 }}
               transition={{ type: "spring", ...springConfig }}
-              className="fixed z-[9999] bg-white rounded-2xl border border-gray-200 overflow-hidden"
+              className="fixed z-[9999] bg-white rounded-xl border border-gray-200 overflow-hidden"
               style={{
                 top: dropdownPos.top,
                 left: dropdownPos.left,
                 width: dropdownPos.width,
-                minWidth: 300,
+                minWidth: 255,
                 boxShadow: `
                   0 4px 6px -1px rgba(0, 0, 0, 0.05),
                   0 10px 15px -3px rgba(0, 0, 0, 0.08),
@@ -310,15 +310,15 @@ export default function PremiumDatePicker({
               }}
             >
             {/* Header with Gradient */}
-            <div className="flex items-center justify-between px-4 py-3 bg-gradient-to-r from-gray-50 to-white border-b border-gray-100">
+            <div className="flex items-center justify-between px-3 py-2 bg-gradient-to-r from-gray-50 to-white border-b border-gray-100">
               <motion.button
                 type="button"
                 onClick={goToPrevMonth}
                 whileHover={{ scale: 1.15, x: -2 }}
                 whileTap={{ scale: 0.9 }}
-                className="w-9 h-9 rounded-xl flex items-center justify-center text-gray-600 hover:bg-white hover:shadow-md transition-all"
+                className="w-7 h-7 rounded-lg flex items-center justify-center text-gray-600 hover:bg-white hover:shadow-md transition-all"
               >
-                <ChevronLeft className="w-5 h-5" />
+                <ChevronLeft className="w-4 h-4" />
               </motion.button>
 
               <AnimatePresence mode="wait" custom={direction}>
@@ -332,10 +332,10 @@ export default function PremiumDatePicker({
                   transition={{ type: "spring", stiffness: 300, damping: 30 }}
                   className="text-center"
                 >
-                  <h3 className="text-sm font-black text-gray-900">
+                  <h3 className="text-xs font-black text-gray-900">
                     {format(currentMonth, "MMMM")}
                   </h3>
-                  <p className="text-xs text-gray-500 font-medium">{format(currentMonth, "yyyy")}</p>
+                  <p className="text-[10px] text-gray-500 font-medium">{format(currentMonth, "yyyy")}</p>
                 </motion.div>
               </AnimatePresence>
 
@@ -344,18 +344,18 @@ export default function PremiumDatePicker({
                 onClick={goToNextMonth}
                 whileHover={{ scale: 1.15, x: 2 }}
                 whileTap={{ scale: 0.9 }}
-                className="w-9 h-9 rounded-xl flex items-center justify-center text-gray-600 hover:bg-white hover:shadow-md transition-all"
+                className="w-7 h-7 rounded-lg flex items-center justify-center text-gray-600 hover:bg-white hover:shadow-md transition-all"
               >
-                <ChevronRight className="w-5 h-5" />
+                <ChevronRight className="w-4 h-4" />
               </motion.button>
             </div>
 
             {/* Weekday Headers */}
-            <div className="grid grid-cols-7 px-3 pt-3 pb-2">
+            <div className="grid grid-cols-7 px-2 pt-2 pb-1">
               {WEEKDAYS.map((day) => (
                 <div
                   key={day}
-                  className="text-center text-[10px] font-bold text-gray-400 uppercase tracking-wider"
+                  className="text-center text-[9px] font-bold text-gray-400 uppercase tracking-wider"
                 >
                   {day}
                 </div>
@@ -363,7 +363,7 @@ export default function PremiumDatePicker({
             </div>
 
             {/* Calendar Grid with Staggered Animation */}
-            <div className="grid grid-cols-7 gap-1 px-3 pb-3">
+            <div className="grid grid-cols-7 gap-0.5 px-2 pb-2">
               {calendarDays.map((day, idx) => {
                 const isCurrentMonth = isSameMonth(day, currentMonth);
                 const isSelected = selectedDate && isSameDay(day, selectedDate);
@@ -379,10 +379,10 @@ export default function PremiumDatePicker({
                     initial={{ opacity: 0, scale: 0.8 }}
                     animate={{ opacity: 1, scale: 1 }}
                     transition={{ delay: idx * 0.01, type: "spring", ...softSpring }}
-                    whileHover={!isDisabled && isCurrentMonth ? { scale: 1.2, y: -2 } : {}}
+                    whileHover={!isDisabled && isCurrentMonth ? { scale: 1.1, y: -1 } : {}}
                     whileTap={!isDisabled && isCurrentMonth ? { scale: 0.9 } : {}}
                     className={`
-                      relative w-9 h-9 mx-auto rounded-xl text-sm font-semibold
+                      relative w-8 h-8 mx-auto rounded-md text-xs font-semibold
                       flex items-center justify-center
                       transition-all duration-150 ease-out
                       ${!isCurrentMonth
@@ -390,7 +390,7 @@ export default function PremiumDatePicker({
                         : isDisabled
                           ? "text-gray-300 cursor-not-allowed"
                           : isSelected
-                            ? "bg-gradient-to-br from-indigo-500 via-indigo-600 to-purple-600 text-white shadow-lg shadow-indigo-500/40"
+                            ? "bg-gradient-to-br from-indigo-500 via-indigo-600 to-purple-600 text-white shadow-md shadow-indigo-500/40"
                             : isTodayDate
                               ? "text-indigo-600 font-bold bg-indigo-50 hover:bg-indigo-100 ring-2 ring-indigo-200"
                               : "text-gray-700 hover:bg-gray-100 hover:text-gray-900"
@@ -402,8 +402,8 @@ export default function PremiumDatePicker({
                     {/* Selected day glow effect */}
                     {isSelected && (
                       <motion.div
-                        className="absolute inset-0 rounded-xl bg-gradient-to-br from-indigo-500 to-purple-600"
-                        animate={{ scale: [1, 1.15, 1], opacity: [0.4, 0, 0.4] }}
+                        className="absolute inset-0 rounded-md bg-gradient-to-br from-indigo-500 to-purple-600"
+                        animate={{ scale: [1, 1.1, 1], opacity: [0.4, 0, 0.4] }}
                         transition={{ duration: 2, repeat: Infinity }}
                       />
                     )}
@@ -415,7 +415,7 @@ export default function PremiumDatePicker({
                         transition={{ duration: 1.5, repeat: Infinity }}
                         className="absolute -top-0.5 -right-0.5"
                       >
-                        <Sparkles className="w-3 h-3 text-indigo-500" />
+                        <Sparkles className="w-2.5 h-2.5 text-indigo-500" />
                       </motion.div>
                     )}
                   </motion.button>
@@ -424,15 +424,15 @@ export default function PremiumDatePicker({
             </div>
 
             {/* Footer with Premium Styling */}
-            <div className="flex items-center justify-between px-4 py-3 border-t border-gray-100 bg-gradient-to-r from-gray-50/50 to-white">
+            <div className="flex items-center justify-between px-3 py-2 border-t border-gray-100 bg-gradient-to-r from-gray-50/50 to-white">
               <motion.button
                 type="button"
                 onClick={goToToday}
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
-                className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold text-indigo-600 hover:text-indigo-700 hover:bg-indigo-50 rounded-lg transition-all"
+                className="flex items-center gap-1 px-2 py-1 text-[10px] font-bold text-indigo-600 hover:text-indigo-700 hover:bg-indigo-50 rounded-md transition-all"
               >
-                <Sparkles className="w-3.5 h-3.5" />
+                <Sparkles className="w-3 h-3" />
                 Today
               </motion.button>
               <motion.button
@@ -440,7 +440,7 @@ export default function PremiumDatePicker({
                 onClick={() => setIsOpen(false)}
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
-                className="px-4 py-1.5 text-xs font-bold text-gray-600 hover:text-gray-800 hover:bg-gray-100 rounded-lg transition-all"
+                className="px-3 py-1 text-[10px] font-bold text-gray-600 hover:text-gray-800 hover:bg-gray-100 rounded-md transition-all"
               >
                 Done
               </motion.button>
