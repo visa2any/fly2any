@@ -176,24 +176,38 @@ export default function HotelSearchPanel() {
   };
 
   const handleAddHotel = (hotel: any) => {
+    // Extract price - API returns lowestPrice: { amount, currency } or lowestPricePerNight as number
+    const totalPrice = hotel.lowestPrice?.amount
+      ? parseFloat(hotel.lowestPrice.amount)
+      : (hotel.lowestPricePerNight ? hotel.lowestPricePerNight * nights : 0);
+
+    // Extract image URL - API returns images: [{ url, alt }] array
+    const imageUrl = hotel.thumbnail
+      || hotel.images?.[0]?.url
+      || hotel.image
+      || (typeof hotel.images?.[0] === 'string' ? hotel.images[0] : null);
+
+    // Location string
+    const locationStr = typeof hotel.location === 'object'
+      ? (hotel.location?.city || hotel.location?.address || params.location)
+      : (hotel.location || hotel.address || params.location);
+
     const item: Omit<HotelItem, "id" | "sortOrder" | "createdAt"> = {
       type: "hotel",
-      price: hotel.price?.total || hotel.price?.amount || (hotel.price?.perNight ? hotel.price.perNight * nights : 0) || 0,
-      currency: "USD",
+      price: totalPrice,
+      currency: hotel.lowestPrice?.currency || "USD",
       date: params.checkIn,
       name: hotel.name || "Hotel",
-      location: typeof hotel.location === 'object'
-        ? (hotel.location?.city || hotel.location?.address || params.location)
-        : (hotel.location || hotel.address || params.location),
+      location: locationStr,
       checkIn: params.checkIn,
       checkOut: params.checkOut,
       nights,
-      roomType: hotel.roomType || "Standard Room",
-      stars: hotel.stars || 4,
+      roomType: hotel.rates?.[0]?.roomType || hotel.roomType || "Standard Room",
+      stars: hotel.rating || hotel.stars || 4,
       amenities: hotel.amenities || [],
-      image: hotel.image || hotel.images?.[0],
+      image: imageUrl,
       guests: totalGuests,
-      apiSource: "liteapi",
+      apiSource: hotel.source || "liteapi",
       apiOfferId: hotel.id,
     };
     addItem(item);
@@ -462,27 +476,110 @@ function GuestRow({ label, sub, value, min, onChange }: { label: string; sub?: s
 }
 
 function HotelCard({ hotel, nights, onAdd }: { hotel: any; nights: number; onAdd: () => void }) {
-  const price = hotel.price?.total || hotel.price?.amount || (hotel.price?.perNight ? hotel.price.perNight * nights : 0) || 0;
-  const stars = hotel.stars || hotel.rating || 4;
-  const imageUrl = hotel.image || hotel.images?.[0];
+  // Extract price - API returns lowestPrice: { amount, currency } or lowestPricePerNight as number
+  const totalPrice = hotel.lowestPrice?.amount
+    ? parseFloat(hotel.lowestPrice.amount)
+    : (hotel.lowestPricePerNight ? hotel.lowestPricePerNight * nights : 0);
+  const perNightPrice = hotel.lowestPricePerNight || (totalPrice > 0 ? totalPrice / nights : 0);
+
+  const stars = hotel.rating || hotel.stars || 4;
+  const reviewScore = hotel.reviewScore || 0;
+
+  // Extract image URL - API returns images: [{ url, alt }] array
+  const imageUrl = hotel.thumbnail
+    || hotel.images?.[0]?.url
+    || hotel.image
+    || (typeof hotel.images?.[0] === 'string' ? hotel.images[0] : null);
+
+  // Location string
+  const locationStr = typeof hotel.location === 'object'
+    ? (hotel.location?.city || hotel.location?.address || '')
+    : (hotel.location || hotel.address || '');
+
+  // Amenities preview (first 3)
+  const topAmenities = (hotel.amenities || []).slice(0, 3);
 
   return (
-    <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} whileHover={{ scale: 1.02 }} className="bg-white border-2 border-gray-100 rounded-2xl p-3 hover:border-purple-200 hover:shadow-lg transition-all group">
+    <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} whileHover={{ scale: 1.01 }} className="bg-white border-2 border-gray-100 rounded-2xl p-3 hover:border-purple-200 hover:shadow-lg transition-all group">
       <div className="flex gap-3">
-        <div className="w-20 h-20 rounded-xl bg-purple-100 overflow-hidden flex-shrink-0">
-          {imageUrl ? <img src={imageUrl} alt={hotel.name} className="w-full h-full object-cover" /> : <div className="w-full h-full flex items-center justify-center"><Building2 className="w-8 h-8 text-purple-300" /></div>}
+        {/* Image */}
+        <div className="w-24 h-24 rounded-xl bg-purple-100 overflow-hidden flex-shrink-0 relative">
+          {imageUrl ? (
+            <img src={imageUrl} alt={hotel.name} className="w-full h-full object-cover" onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }} />
+          ) : (
+            <div className="w-full h-full flex items-center justify-center">
+              <Building2 className="w-8 h-8 text-purple-300" />
+            </div>
+          )}
+          {/* Refundable badge */}
+          {hotel.refundable && (
+            <div className="absolute top-1 left-1 bg-green-500 text-white text-[8px] font-bold px-1.5 py-0.5 rounded">
+              FREE CANCEL
+            </div>
+          )}
         </div>
+
+        {/* Info */}
         <div className="flex-1 min-w-0">
-          <h4 className="font-bold text-gray-900 truncate text-sm">{hotel.name}</h4>
-          <div className="flex items-center gap-1 mt-0.5">{Array.from({ length: stars }).map((_, i) => <Star key={i} className="w-3 h-3 fill-amber-400 text-amber-400" />)}</div>
-          <p className="text-xs text-gray-500 truncate mt-1">{typeof hotel.location === 'object' ? (hotel.location?.city || hotel.location?.address || '') : (hotel.location || hotel.address || '')}</p>
-        </div>
-        <div className="flex flex-col items-end justify-between">
-          <div className="text-right">
-            <p className="text-lg font-black text-gray-900">${typeof price === "number" ? price.toLocaleString() : price}</p>
-            <p className="text-[10px] text-gray-400">total</p>
+          <h4 className="font-bold text-gray-900 truncate text-sm leading-tight">{hotel.name}</h4>
+
+          {/* Stars & Review */}
+          <div className="flex items-center gap-2 mt-1">
+            <div className="flex items-center gap-0.5">
+              {Array.from({ length: Math.min(stars, 5) }).map((_, i) => (
+                <Star key={i} className="w-3 h-3 fill-amber-400 text-amber-400" />
+              ))}
+            </div>
+            {reviewScore > 0 && (
+              <span className="text-[10px] font-bold text-white bg-purple-600 px-1.5 py-0.5 rounded">
+                {reviewScore.toFixed(1)}
+              </span>
+            )}
           </div>
-          <motion.button whileHover={{ scale: 1.15, rotate: 90 }} whileTap={{ scale: 0.9 }} onClick={onAdd} className="w-8 h-8 flex items-center justify-center bg-gradient-to-br from-purple-500 to-pink-600 text-white rounded-full shadow-lg opacity-0 group-hover:opacity-100 transition-opacity">
+
+          {/* Location */}
+          <p className="text-[11px] text-gray-500 truncate mt-1 flex items-center gap-1">
+            <MapPin className="w-3 h-3 flex-shrink-0" />
+            {locationStr}
+          </p>
+
+          {/* Amenities */}
+          {topAmenities.length > 0 && (
+            <div className="flex flex-wrap gap-1 mt-1.5">
+              {topAmenities.map((amenity: string, i: number) => (
+                <span key={i} className="text-[9px] bg-gray-100 text-gray-600 px-1.5 py-0.5 rounded">
+                  {amenity}
+                </span>
+              ))}
+            </div>
+          )}
+
+          {/* Board type */}
+          {hotel.boardType && hotel.boardType !== 'RO' && (
+            <span className="inline-block mt-1 text-[9px] bg-blue-100 text-blue-700 px-1.5 py-0.5 rounded font-medium">
+              {hotel.boardType === 'BB' ? 'Breakfast' : hotel.boardType === 'HB' ? 'Half Board' : hotel.boardType === 'FB' ? 'Full Board' : hotel.boardType === 'AI' ? 'All Inclusive' : hotel.boardType}
+            </span>
+          )}
+        </div>
+
+        {/* Price & Action */}
+        <div className="flex flex-col items-end justify-between min-w-[70px]">
+          <div className="text-right">
+            {totalPrice > 0 ? (
+              <>
+                <p className="text-lg font-black text-gray-900">${Math.round(totalPrice).toLocaleString()}</p>
+                <p className="text-[10px] text-gray-400">${Math.round(perNightPrice)}/night</p>
+              </>
+            ) : (
+              <p className="text-sm font-semibold text-gray-400">Price on request</p>
+            )}
+          </div>
+          <motion.button
+            whileHover={{ scale: 1.15, rotate: 90 }}
+            whileTap={{ scale: 0.9 }}
+            onClick={onAdd}
+            className="w-8 h-8 flex items-center justify-center bg-gradient-to-br from-purple-500 to-pink-600 text-white rounded-full shadow-lg opacity-0 group-hover:opacity-100 transition-opacity"
+          >
             <Plus className="w-4 h-4" />
           </motion.button>
         </div>
