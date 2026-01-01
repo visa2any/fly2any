@@ -26,6 +26,13 @@ export { default as PricingZone } from "./pricing/PricingZone";
 export { default as ClientSelectModal } from "./overlays/ClientSelectModal";
 export { default as QuotePreviewOverlay } from "./overlays/QuotePreviewOverlay";
 export { default as SendQuoteModal } from "./overlays/SendQuoteModal";
+export { default as QuoteTemplatesPanel } from "./overlays/QuoteTemplatesPanel";
+export { default as TermsConditionsEditor } from "./overlays/TermsConditionsEditor";
+
+// Additional Components
+export { default as SmartRecommendations } from "./SmartRecommendations";
+export { default as PriceAlertBadge } from "./PriceAlertBadge";
+export { default as MobileQuoteWorkspace } from "./MobileQuoteWorkspace";
 
 // Types
 export * from "./types/quote-workspace.types";

@@ -177,6 +177,7 @@ export interface WorkspaceUI {
   previewOpen: boolean;
   clientModalOpen: boolean;
   sendModalOpen: boolean;
+  templatesPanelOpen: boolean;
   isSaving: boolean;
   lastSavedAt: string | null;
   sidebarExpanded: boolean;

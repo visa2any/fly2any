@@ -1941,6 +1941,9 @@ model TravelAgent {
   team                   AgentTeamMember[]        @relation("AgencyTeam")
   memberOf               AgentTeamMember[]        @relation("AgentMemberships")
   markupRules            AgencyMarkupRule[]       @relation("AgencyMarkupRules")
+  quoteTemplates         QuoteTemplate[]          @relation("AgentQuoteTemplates")
+  quoteAnalytics         QuoteAnalytics[]         @relation("AgentQuoteAnalytics")
+  quoteComparisons       QuoteComparison[]        @relation("AgentQuoteComparisons")
   user                   User                     @relation("UserTravelAgent", fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([tier, status])
@@ -2045,6 +2048,7 @@ model AgentClient {
   agent                 TravelAgent           @relation(fields: [agentId], references: [id], onDelete: Cascade)
   user                  User?                 @relation("UserAgentClient", fields: [userId], references: [id])
   quotes                AgentQuote[]
+  quoteComparisons      QuoteComparison[]     @relation("ClientQuoteComparisons")
 
   @@unique([agentId, email])
   @@index([agentId])
@@ -2150,6 +2154,8 @@ model AgentQuote {
   booking                AgentBooking?
   agent                  TravelAgent   @relation(fields: [agentId], references: [id], onDelete: Cascade)
   client                 AgentClient   @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  views                  QuoteView[]
+  messages               QuoteMessage[]
 
   @@index([agentId, status])
   @@index([clientId, status])
@@ -2542,6 +2548,175 @@ model AgentActivityLog {
   @@index([activityType])
   @@index([entityType, entityId])
   @@map("agent_activity_logs")
+}
+
+// ============================================
+// QUOTE SYSTEM EXTENSIONS
+// ============================================
+
+model QuoteTemplate {
+  id              String      @id @default(cuid())
+  agentId         String
+  name            String
+  description     String?
+  category        String?     // honeymoon, business, family, luxury, budget
+  isDefault       Boolean     @default(false)
+  isPublic        Boolean     @default(false)
+  usageCount      Int         @default(0)
+  // Template Data
+  tripName        String?
+  destination     String?
+  duration        Int?
+  travelers       Int?
+  adults          Int?
+  children        Int?
+  infants         Int?
+  flights         Json[]
+  hotels          Json[]
+  activities      Json[]
+  transfers       Json[]
+  carRentals      Json[]
+  insurance       Json?
+  customItems     Json[]
+  // Pricing defaults
+  agentMarkupPercent Float?
+  taxes           Float?
+  fees            Float?
+  // Content
+  inclusions      String[]
+  exclusions      String[]
+  importantInfo   String?
+  termsAndConditions String?
+  customNotes     String?
+  // Metadata
+  lastUsedAt      DateTime?
+  createdAt       DateTime    @default(now())
+  updatedAt       DateTime    @updatedAt
+  agent           TravelAgent @relation("AgentQuoteTemplates", fields: [agentId], references: [id], onDelete: Cascade)
+
+  @@index([agentId])
+  @@index([category])
+  @@index([isPublic])
+  @@map("quote_templates")
+}
+
+model QuoteView {
+  id            String    @id @default(cuid())
+  quoteId       String
+  sessionId     String?
+  ipAddress     String?
+  userAgent     String?
+  device        String?   // mobile, tablet, desktop
+  browser       String?
+  os            String?
+  country       String?
+  city          String?
+  referrer      String?
+  duration      Int?      // seconds spent viewing
+  scrollDepth   Int?      // 0-100 percentage
+  sectionsViewed String[] // intro, itinerary, pricing, etc.
+  clickedCTA    Boolean   @default(false)
+  ctaType       String?   // accept, decline, download, share
+  createdAt     DateTime  @default(now())
+  quote         AgentQuote @relation(fields: [quoteId], references: [id], onDelete: Cascade)
+
+  @@index([quoteId])
+  @@index([createdAt])
+  @@map("quote_views")
+}
+
+model QuoteAnalytics {
+  id                  String   @id @default(cuid())
+  agentId             String
+  period              String   // daily, weekly, monthly
+  periodStart         DateTime
+  periodEnd           DateTime
+  // Quote Metrics
+  totalQuotes         Int      @default(0)
+  draftQuotes         Int      @default(0)
+  sentQuotes          Int      @default(0)
+  viewedQuotes        Int      @default(0)
+  acceptedQuotes      Int      @default(0)
+  declinedQuotes      Int      @default(0)
+  expiredQuotes       Int      @default(0)
+  convertedQuotes     Int      @default(0)
+  // Financial
+  totalQuoteValue     Float    @default(0)
+  avgQuoteValue       Float    @default(0)
+  totalAcceptedValue  Float    @default(0)
+  totalDeclinedValue  Float    @default(0)
+  // Performance
+  avgTimeToView       Float?   // minutes
+  avgTimeToAccept     Float?   // minutes
+  avgTimeToDecline    Float?   // minutes
+  conversionRate      Float    @default(0)
+  viewRate            Float    @default(0)
+  // Engagement
+  totalViews          Int      @default(0)
+  uniqueViews         Int      @default(0)
+  avgViewDuration     Float?
+  avgScrollDepth      Float?
+  mobileViews         Int      @default(0)
+  desktopViews        Int      @default(0)
+  // Delivery
+  emailsSent          Int      @default(0)
+  smsSent             Int      @default(0)
+  whatsappSent        Int      @default(0)
+  // Top performers
+  topDestinations     Json?
+  topProducts         Json?
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
+  agent               TravelAgent @relation("AgentQuoteAnalytics", fields: [agentId], references: [id], onDelete: Cascade)
+
+  @@unique([agentId, period, periodStart])
+  @@index([agentId, period])
+  @@index([periodStart, periodEnd])
+  @@map("quote_analytics")
+}
+
+model QuoteComparison {
+  id          String   @id @default(cuid())
+  agentId     String
+  clientId    String
+  name        String
+  description String?
+  quoteIds    String[] // Array of quote IDs to compare
+  isActive    Boolean  @default(true)
+  shareableLink String? @unique
+  viewCount   Int      @default(0)
+  lastViewedAt DateTime?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  expiresAt   DateTime?
+  agent       TravelAgent @relation("AgentQuoteComparisons", fields: [agentId], references: [id], onDelete: Cascade)
+  client      AgentClient @relation("ClientQuoteComparisons", fields: [clientId], references: [id], onDelete: Cascade)
+
+  @@index([agentId])
+  @@index([clientId])
+  @@map("quote_comparisons")
+}
+
+model QuoteMessage {
+  id          String    @id @default(cuid())
+  quoteId     String
+  channel     String    // email, sms, whatsapp
+  recipient   String
+  subject     String?
+  content     String
+  status      String    @default("pending") // pending, sent, delivered, failed
+  sentAt      DateTime?
+  deliveredAt DateTime?
+  failedAt    DateTime?
+  failReason  String?
+  externalId  String?   // Twilio SID, etc.
+  metadata    Json?
+  createdAt   DateTime  @default(now())
+  quote       AgentQuote @relation(fields: [quoteId], references: [id], onDelete: Cascade)
+
+  @@index([quoteId])
+  @@index([channel, status])
+  @@map("quote_messages")
 }
 
 model WorldCupTeam {

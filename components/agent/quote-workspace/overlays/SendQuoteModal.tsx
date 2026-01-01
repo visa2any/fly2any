@@ -4,18 +4,23 @@ import { useState } from "react";
 import { motion } from "framer-motion";
 import { Dialog, Transition } from "@headlessui/react";
 import { Fragment } from "react";
-import { X, Send, Mail, FileText, Loader2, Check, Sparkles } from "lucide-react";
+import { X, Send, Mail, FileText, Loader2, Check, Sparkles, MessageCircle, Smartphone, Copy, ExternalLink } from "lucide-react";
 import { useQuoteWorkspace, useQuotePricing } from "../QuoteWorkspaceProvider";
+
+type DeliveryChannel = "email" | "sms" | "whatsapp";
 
 export default function SendQuoteModal() {
   const { state, closeSendModal, saveQuote } = useQuoteWorkspace();
   const pricing = useQuotePricing();
   const isOpen = state.ui.sendModalOpen;
 
+  const [channel, setChannel] = useState<DeliveryChannel>("email");
+  const [phoneNumber, setPhoneNumber] = useState(state.client?.phone || "");
   const [message, setMessage] = useState("");
   const [includePdf, setIncludePdf] = useState(true);
   const [sending, setSending] = useState(false);
   const [sent, setSent] = useState(false);
+  const [shareableLink, setShareableLink] = useState("");
 
   // Format price
   const formatPrice = (amount: number) => {
@@ -29,27 +34,47 @@ export default function SendQuoteModal() {
 
   const handleSend = async () => {
     if (!state.client) return;
+    if ((channel === "sms" || channel === "whatsapp") && !phoneNumber) return;
 
     setSending(true);
 
     try {
       // Save quote first
-      await saveQuote();
+      const savedQuote = await saveQuote();
+      const quoteId = state.id || savedQuote?.id;
 
-      // Send email
-      const res = await fetch("/api/agent/quotes/send", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          quoteId: state.id,
-          clientId: state.client.id,
-          message,
-          includePdf,
-        }),
-      });
-
-      if (res.ok) {
-        setSent(true);
+      if (channel === "email") {
+        // Send email
+        const res = await fetch(`/api/agents/quotes/${quoteId}/send`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            message,
+            includePdf,
+          }),
+        });
+        if (res.ok) {
+          const data = await res.json();
+          setShareableLink(data.shareableUrl || "");
+          setSent(true);
+        }
+      } else {
+        // Send SMS or WhatsApp
+        const res = await fetch(`/api/agents/quotes/${quoteId}/send-sms`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            channel,
+            phoneNumber: phoneNumber.startsWith("+") ? phoneNumber : `+1${phoneNumber.replace(/\D/g, "")}`,
+            message: message || undefined,
+            includeLink: true,
+          }),
+        });
+        if (res.ok) {
+          const data = await res.json();
+          setShareableLink(data.shareableLink || "");
+          setSent(true);
+        }
       }
     } catch (error) {
       console.error("Failed to send quote:", error);
@@ -111,11 +136,42 @@ export default function SendQuoteModal() {
                     </motion.div>
 
                     <h3 className="text-2xl font-bold text-gray-900 mb-2">Quote Sent!</h3>
-                    <p className="text-gray-600 mb-6">
-                      {state.client?.firstName} will receive this quote at
+                    <p className="text-gray-600 mb-4">
+                      {state.client?.firstName} will receive this quote via
                       <br />
-                      <span className="font-medium text-gray-900">{state.client?.email}</span>
+                      <span className="font-medium text-gray-900">
+                        {channel === "email"
+                          ? state.client?.email
+                          : channel === "whatsapp"
+                          ? `WhatsApp (${phoneNumber})`
+                          : `SMS (${phoneNumber})`
+                        }
+                      </span>
                     </p>
+
+                    {/* Shareable Link */}
+                    {shareableLink && (
+                      <div className="mb-6 p-3 bg-gray-50 rounded-xl">
+                        <p className="text-xs text-gray-500 mb-2">Shareable Link</p>
+                        <div className="flex items-center gap-2">
+                          <input
+                            type="text"
+                            value={shareableLink}
+                            readOnly
+                            className="flex-1 text-xs bg-white border border-gray-200 rounded-lg px-3 py-2 text-gray-600"
+                          />
+                          <button
+                            onClick={() => {
+                              navigator.clipboard.writeText(shareableLink);
+                            }}
+                            className="p-2 hover:bg-gray-200 rounded-lg transition-colors"
+                            title="Copy link"
+                          >
+                            <Copy className="w-4 h-4 text-gray-500" />
+                          </button>
+                        </div>
+                      </div>
+                    )}
 
                     <div className="flex gap-3">
                       <button
@@ -150,6 +206,51 @@ export default function SendQuoteModal() {
 
                     {/* Content */}
                     <div className="p-5 space-y-5">
+                      {/* Delivery Channel Selector */}
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                          Delivery Method
+                        </label>
+                        <div className="grid grid-cols-3 gap-2">
+                          <button
+                            type="button"
+                            onClick={() => setChannel("email")}
+                            className={`flex flex-col items-center gap-1.5 p-3 rounded-xl border-2 transition-all ${
+                              channel === "email"
+                                ? "border-primary-500 bg-primary-50 text-primary-700"
+                                : "border-gray-200 text-gray-600 hover:border-gray-300"
+                            }`}
+                          >
+                            <Mail className="w-5 h-5" />
+                            <span className="text-xs font-medium">Email</span>
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => setChannel("sms")}
+                            className={`flex flex-col items-center gap-1.5 p-3 rounded-xl border-2 transition-all ${
+                              channel === "sms"
+                                ? "border-primary-500 bg-primary-50 text-primary-700"
+                                : "border-gray-200 text-gray-600 hover:border-gray-300"
+                            }`}
+                          >
+                            <Smartphone className="w-5 h-5" />
+                            <span className="text-xs font-medium">SMS</span>
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => setChannel("whatsapp")}
+                            className={`flex flex-col items-center gap-1.5 p-3 rounded-xl border-2 transition-all ${
+                              channel === "whatsapp"
+                                ? "border-emerald-500 bg-emerald-50 text-emerald-700"
+                                : "border-gray-200 text-gray-600 hover:border-gray-300"
+                            }`}
+                          >
+                            <MessageCircle className="w-5 h-5" />
+                            <span className="text-xs font-medium">WhatsApp</span>
+                          </button>
+                        </div>
+                      </div>
+
                       {/* Recipient */}
                       {state.client && (
                         <div className="flex items-center gap-3 p-3 bg-primary-50 border border-primary-200 rounded-xl">
@@ -160,8 +261,35 @@ export default function SendQuoteModal() {
                             <p className="font-medium text-gray-900">
                               {state.client.firstName} {state.client.lastName}
                             </p>
-                            <p className="text-sm text-gray-500">{state.client.email}</p>
+                            <p className="text-sm text-gray-500">
+                            {channel === "email" ? state.client.email : (state.client.phone || "No phone on file")}
+                          </p>
                           </div>
+                        </div>
+                      )}
+
+                      {/* Phone Number Input (for SMS/WhatsApp) */}
+                      {(channel === "sms" || channel === "whatsapp") && (
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 mb-2">
+                            Phone Number
+                          </label>
+                          <div className="relative">
+                            <Smartphone className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                            <input
+                              type="tel"
+                              value={phoneNumber}
+                              onChange={(e) => setPhoneNumber(e.target.value)}
+                              placeholder="+1 (555) 123-4567"
+                              className="w-full pl-10 pr-4 py-2.5 border border-gray-300 rounded-xl text-sm focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+                            />
+                          </div>
+                          <p className="mt-1.5 text-xs text-gray-500">
+                            {channel === "whatsapp"
+                              ? "Client must have WhatsApp installed"
+                              : "Standard SMS rates may apply"
+                            }
+                          </p>
                         </div>
                       )}
 
@@ -190,19 +318,36 @@ export default function SendQuoteModal() {
                         />
                       </div>
 
-                      {/* Options */}
-                      <label className="flex items-center gap-3 cursor-pointer">
-                        <input
-                          type="checkbox"
-                          checked={includePdf}
-                          onChange={(e) => setIncludePdf(e.target.checked)}
-                          className="w-4 h-4 text-primary-600 border-gray-300 rounded focus:ring-primary-500"
-                        />
-                        <div className="flex items-center gap-2">
-                          <FileText className="w-4 h-4 text-gray-400" />
-                          <span className="text-sm text-gray-700">Include PDF attachment</span>
+                      {/* Options - PDF only for email */}
+                      {channel === "email" && (
+                        <label className="flex items-center gap-3 cursor-pointer">
+                          <input
+                            type="checkbox"
+                            checked={includePdf}
+                            onChange={(e) => setIncludePdf(e.target.checked)}
+                            className="w-4 h-4 text-primary-600 border-gray-300 rounded focus:ring-primary-500"
+                          />
+                          <div className="flex items-center gap-2">
+                            <FileText className="w-4 h-4 text-gray-400" />
+                            <span className="text-sm text-gray-700">Include PDF attachment</span>
+                          </div>
+                        </label>
+                      )}
+
+                      {/* Shareable Link Preview */}
+                      {(channel === "sms" || channel === "whatsapp") && (
+                        <div className="p-3 bg-blue-50 border border-blue-200 rounded-xl">
+                          <div className="flex items-start gap-2">
+                            <ExternalLink className="w-4 h-4 text-blue-500 mt-0.5" />
+                            <div>
+                              <p className="text-sm font-medium text-blue-800">Includes shareable link</p>
+                              <p className="text-xs text-blue-600 mt-0.5">
+                                Client will receive a link to view the full quote online
+                              </p>
+                            </div>
+                          </div>
                         </div>
-                      </label>
+                      )}
                     </div>
 
                     {/* Footer */}

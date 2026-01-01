@@ -48,6 +48,7 @@ const initialState: QuoteWorkspaceState = {
     previewOpen: false,
     clientModalOpen: false,
     sendModalOpen: false,
+    templatesPanelOpen: false,
     isSaving: false,
     lastSavedAt: null,
     sidebarExpanded: false,
@@ -270,6 +271,8 @@ interface QuoteWorkspaceContextType {
   closeClientModal: () => void;
   openSendModal: () => void;
   closeSendModal: () => void;
+  openTemplatesPanel: () => void;
+  closeTemplatesPanel: () => void;
   toggleSidebar: () => void;
   setDiscoveryPanelWidth: (width: number) => void;
   setSearchFormCollapsed: (collapsed: boolean) => void;
@@ -310,6 +313,8 @@ export function QuoteWorkspaceProvider({ children, initialQuoteId }: { children:
   const closeClientModal = useCallback(() => dispatch({ type: "SET_UI", payload: { clientModalOpen: false } }), []);
   const openSendModal = useCallback(() => dispatch({ type: "SET_UI", payload: { sendModalOpen: true } }), []);
   const closeSendModal = useCallback(() => dispatch({ type: "SET_UI", payload: { sendModalOpen: false } }), []);
+  const openTemplatesPanel = useCallback(() => dispatch({ type: "SET_UI", payload: { templatesPanelOpen: true } }), []);
+  const closeTemplatesPanel = useCallback(() => dispatch({ type: "SET_UI", payload: { templatesPanelOpen: false } }), []);
   const toggleSidebar = useCallback(() => dispatch({ type: "SET_UI", payload: { sidebarExpanded: !state.ui.sidebarExpanded } }), [state.ui.sidebarExpanded]);
   const setDiscoveryPanelWidth = useCallback((width: number) => dispatch({ type: "SET_UI", payload: { discoveryPanelWidth: Math.max(280, Math.min(480, width)) } }), []);
   const setSearchFormCollapsed = useCallback((collapsed: boolean) => dispatch({ type: "SET_UI", payload: { searchFormCollapsed: collapsed } }), []);
@@ -407,13 +412,15 @@ export function QuoteWorkspaceProvider({ children, initialQuoteId }: { children:
       closeClientModal,
       openSendModal,
       closeSendModal,
+      openTemplatesPanel,
+      closeTemplatesPanel,
       toggleSidebar,
       setDiscoveryPanelWidth,
       setSearchFormCollapsed,
       saveQuote,
       loadQuote,
     }),
-    [state, setTripName, setDestination, setDates, setTravelers, addItem, updateItem, removeItem, reorderItems, setMarkup, setCurrency, setClient, setActiveTab, setSearchResults, expandItem, openPreview, closePreview, openClientModal, closeClientModal, openSendModal, closeSendModal, toggleSidebar, setDiscoveryPanelWidth, setSearchFormCollapsed, saveQuote, loadQuote]
+    [state, setTripName, setDestination, setDates, setTravelers, addItem, updateItem, removeItem, reorderItems, setMarkup, setCurrency, setClient, setActiveTab, setSearchResults, expandItem, openPreview, closePreview, openClientModal, closeClientModal, openSendModal, closeSendModal, openTemplatesPanel, closeTemplatesPanel, toggleSidebar, setDiscoveryPanelWidth, setSearchFormCollapsed, saveQuote, loadQuote]
   );
 
   return <QuoteWorkspaceContext.Provider value={contextValue}>{children}</QuoteWorkspaceContext.Provider>;

@@ -1,16 +1,53 @@
 "use client";
 
-import { motion } from "framer-motion";
-import { Eye, Send, User, Package, DollarSign } from "lucide-react";
+import { useState } from "react";
+import { motion, AnimatePresence } from "framer-motion";
+import { Eye, Send, User, Package, DollarSign, MoreHorizontal, Copy, FileText, Save, Download } from "lucide-react";
 import { useQuoteWorkspace } from "./QuoteWorkspaceProvider";
 
 export default function QuoteFooter() {
-  const { state, openPreview, openClientModal, openSendModal } = useQuoteWorkspace();
+  const { state, openPreview, openClientModal, openSendModal, saveQuote, openTemplatesPanel } = useQuoteWorkspace();
+  const [showMoreMenu, setShowMoreMenu] = useState(false);
+  const [duplicating, setDuplicating] = useState(false);
   const { items, pricing, client } = state;
 
   const itemCount = items.length;
   const canPreview = itemCount > 0;
   const canSend = itemCount > 0 && client !== null;
+
+  // Duplicate quote
+  const handleDuplicate = async () => {
+    if (!state.id) return;
+    setDuplicating(true);
+    try {
+      const res = await fetch(`/api/agents/quotes/${state.id}/duplicate`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ keepClient: true }),
+      });
+      if (res.ok) {
+        const data = await res.json();
+        window.location.href = `/agent/quotes/workspace?id=${data.id}`;
+      }
+    } catch (error) {
+      console.error("Failed to duplicate:", error);
+    } finally {
+      setDuplicating(false);
+      setShowMoreMenu(false);
+    }
+  };
+
+  // Export PDF
+  const handleExportPdf = async () => {
+    if (!state.id) {
+      await saveQuote?.();
+    }
+    const quoteId = state.id;
+    if (!quoteId) return;
+
+    window.open(`/api/agents/quotes/${quoteId}/pdf`, "_blank");
+    setShowMoreMenu(false);
+  };
 
   // Format currency
   const formatPrice = (amount: number) => {
@@ -93,6 +130,74 @@ export default function QuoteFooter() {
           <Eye className="w-4 h-4" />
           <span className="hidden sm:inline">Preview</span>
         </motion.button>
+
+        {/* More Actions Menu */}
+        <div className="relative">
+          <motion.button
+            whileHover={{ scale: 1.02 }}
+            whileTap={{ scale: 0.98 }}
+            onClick={() => setShowMoreMenu(!showMoreMenu)}
+            className="flex items-center gap-2 px-3 py-2.5 rounded-xl font-medium bg-gray-100 text-gray-700 hover:bg-gray-200 transition-all"
+          >
+            <MoreHorizontal className="w-4 h-4" />
+          </motion.button>
+
+          <AnimatePresence>
+            {showMoreMenu && (
+              <>
+                <motion.div
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  className="fixed inset-0 z-40"
+                  onClick={() => setShowMoreMenu(false)}
+                />
+                <motion.div
+                  initial={{ opacity: 0, scale: 0.95, y: 10 }}
+                  animate={{ opacity: 1, scale: 1, y: 0 }}
+                  exit={{ opacity: 0, scale: 0.95, y: 10 }}
+                  className="absolute bottom-full right-0 mb-2 w-48 bg-white rounded-xl shadow-xl border border-gray-200 overflow-hidden z-50"
+                >
+                  <div className="p-1">
+                    <button
+                      onClick={() => {
+                        openTemplatesPanel?.();
+                        setShowMoreMenu(false);
+                      }}
+                      className="flex items-center gap-3 w-full px-3 py-2.5 text-left text-sm text-gray-700 hover:bg-gray-50 rounded-lg transition-colors"
+                    >
+                      <FileText className="w-4 h-4 text-gray-400" />
+                      Templates
+                    </button>
+                    <button
+                      onClick={() => saveQuote?.()}
+                      className="flex items-center gap-3 w-full px-3 py-2.5 text-left text-sm text-gray-700 hover:bg-gray-50 rounded-lg transition-colors"
+                    >
+                      <Save className="w-4 h-4 text-gray-400" />
+                      Save Quote
+                    </button>
+                    <button
+                      onClick={handleDuplicate}
+                      disabled={!state.id || duplicating}
+                      className="flex items-center gap-3 w-full px-3 py-2.5 text-left text-sm text-gray-700 hover:bg-gray-50 rounded-lg transition-colors disabled:opacity-50"
+                    >
+                      <Copy className="w-4 h-4 text-gray-400" />
+                      {duplicating ? "Duplicating..." : "Duplicate"}
+                    </button>
+                    <button
+                      onClick={handleExportPdf}
+                      disabled={itemCount === 0}
+                      className="flex items-center gap-3 w-full px-3 py-2.5 text-left text-sm text-gray-700 hover:bg-gray-50 rounded-lg transition-colors disabled:opacity-50"
+                    >
+                      <Download className="w-4 h-4 text-gray-400" />
+                      Export PDF
+                    </button>
+                  </div>
+                </motion.div>
+              </>
+            )}
+          </AnimatePresence>
+        </div>
 
         {/* Send Quote Button */}
         <motion.button

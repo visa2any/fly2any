@@ -13,6 +13,7 @@ import {
 import ClientSelectModal from "@/components/agent/quote-workspace/overlays/ClientSelectModal";
 import QuotePreviewOverlay from "@/components/agent/quote-workspace/overlays/QuotePreviewOverlay";
 import SendQuoteModal from "@/components/agent/quote-workspace/overlays/SendQuoteModal";
+import QuoteTemplatesPanel from "@/components/agent/quote-workspace/overlays/QuoteTemplatesPanel";
 
 export default function QuoteWorkspace() {
   const searchParams = useSearchParams();
@@ -38,6 +39,7 @@ function WorkspaceOverlays() {
       <ClientSelectModal />
       <QuotePreviewOverlay />
       <SendQuoteModal />
+      <QuoteTemplatesPanel />
     </>
   );
 }
