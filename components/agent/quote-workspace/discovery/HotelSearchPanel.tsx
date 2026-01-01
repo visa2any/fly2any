@@ -476,112 +476,46 @@ function GuestRow({ label, sub, value, min, onChange }: { label: string; sub?: s
 }
 
 function HotelCard({ hotel, nights, onAdd }: { hotel: any; nights: number; onAdd: () => void }) {
-  // Extract price - API returns lowestPrice: { amount, currency } or lowestPricePerNight as number
-  const totalPrice = hotel.lowestPrice?.amount
-    ? parseFloat(hotel.lowestPrice.amount)
-    : (hotel.lowestPricePerNight ? hotel.lowestPricePerNight * nights : 0);
-  const perNightPrice = hotel.lowestPricePerNight || (totalPrice > 0 ? totalPrice / nights : 0);
-
+  const totalPrice = hotel.lowestPrice?.amount ? parseFloat(hotel.lowestPrice.amount) : (hotel.lowestPricePerNight ? hotel.lowestPricePerNight * nights : 0);
+  const perNight = hotel.lowestPricePerNight || (totalPrice > 0 ? totalPrice / nights : 0);
   const stars = hotel.rating || hotel.stars || 4;
-  const reviewScore = hotel.reviewScore || 0;
-
-  // Extract image URL - API returns images: [{ url, alt }] array
-  const imageUrl = hotel.thumbnail
-    || hotel.images?.[0]?.url
-    || hotel.image
-    || (typeof hotel.images?.[0] === 'string' ? hotel.images[0] : null);
-
-  // Location string
-  const locationStr = typeof hotel.location === 'object'
-    ? (hotel.location?.city || hotel.location?.address || '')
-    : (hotel.location || hotel.address || '');
-
-  // Amenities preview (first 3)
-  const topAmenities = (hotel.amenities || []).slice(0, 3);
+  const score = hotel.reviewScore || 0;
+  const img = hotel.thumbnail || hotel.images?.[0]?.url || hotel.image;
+  const loc = typeof hotel.location === 'object' ? (hotel.location?.city || hotel.location?.address || '') : (hotel.location || hotel.address || '');
+  const amenities = (hotel.amenities || []).slice(0, 2);
+  const board = hotel.boardType && hotel.boardType !== 'RO' ? ({ BB: 'B&B', HB: 'Half', FB: 'Full', AI: 'All-Inc' }[hotel.boardType] || hotel.boardType) : null;
 
   return (
-    <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} whileHover={{ scale: 1.01 }} className="bg-white border-2 border-gray-100 rounded-2xl p-3 hover:border-purple-200 hover:shadow-lg transition-all group">
-      <div className="flex gap-3">
+    <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} whileHover={{ scale: 1.01 }} className="bg-white border border-gray-100 rounded-xl p-2 hover:border-purple-200 hover:shadow-md transition-all group">
+      <div className="flex gap-2.5">
         {/* Image */}
-        <div className="w-24 h-24 rounded-xl bg-purple-100 overflow-hidden flex-shrink-0 relative">
-          {imageUrl ? (
-            <img src={imageUrl} alt={hotel.name} className="w-full h-full object-cover" onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }} />
-          ) : (
-            <div className="w-full h-full flex items-center justify-center">
-              <Building2 className="w-8 h-8 text-purple-300" />
-            </div>
-          )}
-          {/* Refundable badge */}
-          {hotel.refundable && (
-            <div className="absolute top-1 left-1 bg-green-500 text-white text-[8px] font-bold px-1.5 py-0.5 rounded">
-              FREE CANCEL
-            </div>
-          )}
+        <div className="w-16 h-16 rounded-lg bg-purple-50 overflow-hidden flex-shrink-0 relative">
+          {img ? <img src={img} alt="" className="w-full h-full object-cover" onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }} /> : <Building2 className="w-6 h-6 text-purple-200 absolute inset-0 m-auto" />}
+          {hotel.refundable && <span className="absolute top-0.5 left-0.5 bg-green-500 text-white text-[6px] font-bold px-1 rounded">FREE</span>}
         </div>
 
-        {/* Info */}
-        <div className="flex-1 min-w-0">
-          <h4 className="font-bold text-gray-900 truncate text-sm leading-tight">{hotel.name}</h4>
-
-          {/* Stars & Review */}
-          <div className="flex items-center gap-2 mt-1">
-            <div className="flex items-center gap-0.5">
-              {Array.from({ length: Math.min(stars, 5) }).map((_, i) => (
-                <Star key={i} className="w-3 h-3 fill-amber-400 text-amber-400" />
-              ))}
-            </div>
-            {reviewScore > 0 && (
-              <span className="text-[10px] font-bold text-white bg-purple-600 px-1.5 py-0.5 rounded">
-                {reviewScore.toFixed(1)}
-              </span>
-            )}
+        {/* Info - Compact 2 rows */}
+        <div className="flex-1 min-w-0 flex flex-col justify-center gap-0.5">
+          {/* Row 1: Name + Stars + Score */}
+          <div className="flex items-center gap-1.5">
+            <h4 className="font-semibold text-gray-900 text-xs truncate max-w-[120px]">{hotel.name}</h4>
+            <div className="flex items-center gap-0.5 flex-shrink-0">{Array.from({ length: Math.min(stars, 5) }).map((_, i) => <Star key={i} className="w-2.5 h-2.5 fill-amber-400 text-amber-400" />)}</div>
+            {score > 0 && <span className="text-[8px] font-bold text-white bg-purple-600 px-1 py-px rounded flex-shrink-0">{score.toFixed(1)}</span>}
           </div>
-
-          {/* Location */}
-          <p className="text-[11px] text-gray-500 truncate mt-1 flex items-center gap-1">
-            <MapPin className="w-3 h-3 flex-shrink-0" />
-            {locationStr}
-          </p>
-
-          {/* Amenities */}
-          {topAmenities.length > 0 && (
-            <div className="flex flex-wrap gap-1 mt-1.5">
-              {topAmenities.map((amenity: string, i: number) => (
-                <span key={i} className="text-[9px] bg-gray-100 text-gray-600 px-1.5 py-0.5 rounded">
-                  {amenity}
-                </span>
-              ))}
-            </div>
-          )}
-
-          {/* Board type */}
-          {hotel.boardType && hotel.boardType !== 'RO' && (
-            <span className="inline-block mt-1 text-[9px] bg-blue-100 text-blue-700 px-1.5 py-0.5 rounded font-medium">
-              {hotel.boardType === 'BB' ? 'Breakfast' : hotel.boardType === 'HB' ? 'Half Board' : hotel.boardType === 'FB' ? 'Full Board' : hotel.boardType === 'AI' ? 'All Inclusive' : hotel.boardType}
-            </span>
-          )}
+          {/* Row 2: Location + Amenities + Board */}
+          <div className="flex items-center gap-1.5 text-[9px] text-gray-500">
+            <span className="flex items-center gap-0.5 truncate max-w-[80px]"><MapPin className="w-2.5 h-2.5" />{loc}</span>
+            {amenities.map((a: string, i: number) => <span key={i} className="bg-gray-100 px-1 py-px rounded truncate max-w-[60px]">{a}</span>)}
+            {board && <span className="bg-blue-100 text-blue-700 px-1 py-px rounded font-medium">{board}</span>}
+          </div>
         </div>
 
-        {/* Price & Action */}
-        <div className="flex flex-col items-end justify-between min-w-[70px]">
+        {/* Price + Add */}
+        <div className="flex items-center gap-2 flex-shrink-0">
           <div className="text-right">
-            {totalPrice > 0 ? (
-              <>
-                <p className="text-lg font-black text-gray-900">${Math.round(totalPrice).toLocaleString()}</p>
-                <p className="text-[10px] text-gray-400">${Math.round(perNightPrice)}/night</p>
-              </>
-            ) : (
-              <p className="text-sm font-semibold text-gray-400">Price on request</p>
-            )}
+            {totalPrice > 0 ? (<><p className="text-sm font-black text-gray-900">${Math.round(totalPrice)}</p><p className="text-[8px] text-gray-400">${Math.round(perNight)}/n</p></>) : <p className="text-[10px] text-gray-400">On request</p>}
           </div>
-          <motion.button
-            whileHover={{ scale: 1.15, rotate: 90 }}
-            whileTap={{ scale: 0.9 }}
-            onClick={onAdd}
-            className="w-8 h-8 flex items-center justify-center bg-gradient-to-br from-purple-500 to-pink-600 text-white rounded-full shadow-lg opacity-0 group-hover:opacity-100 transition-opacity"
-          >
-            <Plus className="w-4 h-4" />
-          </motion.button>
+          <motion.button whileHover={{ scale: 1.1, rotate: 90 }} whileTap={{ scale: 0.9 }} onClick={onAdd} className="w-7 h-7 flex items-center justify-center bg-gradient-to-br from-purple-500 to-pink-600 text-white rounded-full shadow opacity-0 group-hover:opacity-100 transition-opacity"><Plus className="w-3.5 h-3.5" /></motion.button>
         </div>
       </div>
     </motion.div>
