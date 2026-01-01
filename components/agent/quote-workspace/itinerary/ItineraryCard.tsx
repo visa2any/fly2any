@@ -467,6 +467,151 @@ export default function ItineraryCard({ item, dragListeners, isDragging }: Itine
     );
   }
 
+  // Hotel-specific card with photo and more info
+  if (item.type === "hotel") {
+    const h = item as HotelItem;
+    return (
+      <motion.div
+        layout
+        className={`group relative bg-white border border-gray-200 rounded-xl shadow-sm hover:shadow-md transition-shadow ${
+          isExpanded ? "ring-2 ring-purple-400" : ""
+        }`}
+      >
+        {/* Drag Handle */}
+        <div
+          {...dragListeners}
+          className={`absolute left-0 top-0 bottom-0 w-5 flex items-center justify-center transition-opacity cursor-grab active:cursor-grabbing bg-gradient-to-r from-gray-50 to-transparent z-10 ${
+            isDragging ? "opacity-100" : "opacity-0 group-hover:opacity-100"
+          }`}
+        >
+          <GripVertical className="w-3 h-3 text-gray-400" />
+        </div>
+
+        {/* Main Content */}
+        <div className="flex ml-5">
+          {/* Photo Thumbnail */}
+          <div className="w-24 h-20 rounded-l-xl bg-purple-100 overflow-hidden flex-shrink-0">
+            {h.image ? (
+              <img src={h.image} alt={h.name} className="w-full h-full object-cover" />
+            ) : (
+              <div className="w-full h-full flex items-center justify-center">
+                <Building2 className="w-8 h-8 text-purple-300" />
+              </div>
+            )}
+          </div>
+
+          {/* Info Section */}
+          <div className="flex-1 min-w-0 px-3 py-2">
+            <div className="flex items-start justify-between gap-2">
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center gap-2">
+                  <h4 className="font-bold text-gray-900 text-sm truncate">{h.name}</h4>
+                  {h.starRating && (
+                    <div className="flex items-center gap-0.5">
+                      {[...Array(h.starRating)].map((_, i) => (
+                        <Star key={i} className="w-3 h-3 text-yellow-400 fill-yellow-400" />
+                      ))}
+                    </div>
+                  )}
+                </div>
+                <div className="flex items-center gap-2 mt-0.5">
+                  <span className="text-[9px] text-purple-600 bg-purple-50 px-1.5 py-0.5 rounded font-medium">{h.roomType}</span>
+                  {h.boardType && (
+                    <span className="text-[9px] text-gray-500 bg-gray-100 px-1.5 py-0.5 rounded">{h.boardType}</span>
+                  )}
+                </div>
+                <div className="flex items-center gap-2 mt-1 flex-wrap">
+                  <span className="flex items-center gap-0.5 text-[10px] text-gray-500">
+                    <MapPin className="w-3 h-3" />{h.location}
+                  </span>
+                  <span className="flex items-center gap-0.5 text-[10px] text-gray-500">
+                    <Clock className="w-3 h-3" />{h.nights} night{h.nights > 1 ? "s" : ""}
+                  </span>
+                  <span className="flex items-center gap-0.5 text-[10px] text-gray-500">
+                    <Users className="w-3 h-3" />{h.guests} guest{h.guests > 1 ? "s" : ""}
+                  </span>
+                </div>
+              </div>
+              {/* Price */}
+              <div className="flex-shrink-0 text-right">
+                <p className="font-black text-gray-900 text-sm bg-yellow-100 px-2 py-0.5 rounded">{formatPrice(h.price)}</p>
+                <p className="text-[9px] text-gray-400 mt-0.5">{h.checkIn ? format(parseISO(h.checkIn), "MMM d") : ""}</p>
+              </div>
+            </div>
+          </div>
+
+          {/* Actions */}
+          <div className="flex flex-col items-center justify-center px-2 border-l border-gray-100 gap-1">
+            <button onClick={handleExpand} className="p-1 text-gray-400 hover:text-purple-600 hover:bg-purple-50 rounded transition-colors">
+              {isExpanded ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
+            </button>
+            <button onClick={() => setShowMenu(!showMenu)} className="p-1 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded transition-colors">
+              <MoreVertical className="w-4 h-4" />
+            </button>
+          </div>
+        </div>
+
+        {/* Expanded Details */}
+        <AnimatePresence>
+          {isExpanded && (
+            <motion.div
+              initial={{ height: 0, opacity: 0 }}
+              animate={{ height: "auto", opacity: 1 }}
+              exit={{ height: 0, opacity: 0 }}
+              transition={{ duration: 0.2 }}
+              className="border-t border-gray-200"
+            >
+              <div className="p-3 bg-gradient-to-br from-purple-50/50 to-pink-50/50">
+                <div className="grid grid-cols-2 gap-2">
+                  <div className="bg-white rounded-lg p-2 border border-gray-100">
+                    <p className="text-[8px] text-gray-500 uppercase">Check-in</p>
+                    <p className="text-xs font-semibold text-gray-900">{h.checkIn ? format(parseISO(h.checkIn), "EEE, MMM d") : ""}</p>
+                  </div>
+                  <div className="bg-white rounded-lg p-2 border border-gray-100">
+                    <p className="text-[8px] text-gray-500 uppercase">Check-out</p>
+                    <p className="text-xs font-semibold text-gray-900">{h.checkOut ? format(parseISO(h.checkOut), "EEE, MMM d") : ""}</p>
+                  </div>
+                </div>
+                {h.amenities && h.amenities.length > 0 && (
+                  <div className="mt-2 flex flex-wrap gap-1">
+                    {h.amenities.slice(0, 6).map((amenity, i) => (
+                      <span key={i} className="text-[9px] px-1.5 py-0.5 bg-purple-100 text-purple-700 rounded-full">{amenity}</span>
+                    ))}
+                    {h.amenities.length > 6 && (
+                      <span className="text-[9px] px-1.5 py-0.5 bg-gray-100 text-gray-500 rounded-full">+{h.amenities.length - 6} more</span>
+                    )}
+                  </div>
+                )}
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+
+        {/* Dropdown Menu - Fixed z-index */}
+        <AnimatePresence>
+          {showMenu && (
+            <>
+              <div className="fixed inset-0 z-[100]" onClick={() => setShowMenu(false)} />
+              <motion.div
+                initial={{ opacity: 0, scale: 0.95 }}
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0, scale: 0.95 }}
+                className="absolute right-2 top-12 w-32 bg-white border border-gray-200 rounded-lg shadow-xl z-[101] overflow-hidden"
+              >
+                <button onClick={() => { expandItem(item.id); setShowMenu(false); }} className="w-full flex items-center gap-2 px-2 py-1.5 text-xs text-gray-700 hover:bg-gray-50">
+                  <Edit2 className="w-3 h-3" /> Edit
+                </button>
+                <button onClick={handleDelete} className="w-full flex items-center gap-2 px-2 py-1.5 text-xs text-red-600 hover:bg-red-50">
+                  <Trash2 className="w-3 h-3" /> Remove
+                </button>
+              </motion.div>
+            </>
+          )}
+        </AnimatePresence>
+      </motion.div>
+    );
+  }
+
   // Car-specific card with photo and more info
   if (item.type === "car") {
     const c = item as CarItem;

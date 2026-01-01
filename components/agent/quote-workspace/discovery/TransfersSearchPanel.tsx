@@ -219,12 +219,17 @@ export default function TransfersSearchPanel() {
 
   const handleAddTransfer = (transfer: any) => {
     // TransferItem type expects: provider, vehicleType, pickupLocation, dropoffLocation, pickupTime, passengers, meetAndGreet
+    // Note: transfer.provider can be an object with {name, code, logoUrl, rating, termsUrl} from the API
+    const providerName = typeof transfer.provider === 'object'
+      ? transfer.provider?.name
+      : transfer.provider;
+
     addItem({
       type: "transfer",
       price: parseFloat(transfer.price?.amount) || 0,
       currency: transfer.price?.currency || "USD",
       date: params.date,
-      provider: transfer.provider || transfer.supplier || transfer.name || "Transfer Service",
+      provider: providerName || transfer.supplier || transfer.name || "Transfer Service",
       pickupLocation: params.pickup,
       dropoffLocation: params.dropoff,
       pickupTime: params.time,
