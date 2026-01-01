@@ -6,6 +6,9 @@ import { Plane, Building2, Car, Compass, Bus, Shield, Package, MapPin, Calendar,
 import { useQuoteWorkspace } from "../QuoteWorkspaceProvider";
 import FlightSearchPanel from "./FlightSearchPanel";
 import HotelSearchPanel from "./HotelSearchPanel";
+import CarSearchPanel from "./CarSearchPanel";
+import ActivitiesSearchPanel from "./ActivitiesSearchPanel";
+import TransfersSearchPanel from "./TransfersSearchPanel";
 import PremiumDatePicker from "@/components/common/PremiumDatePicker";
 import type { ProductType } from "../types/quote-workspace.types";
 
@@ -185,56 +188,6 @@ function GenericSearchPanel({
   );
 }
 
-// Car Rental Search Panel
-function CarSearchPanel() {
-  return (
-    <GenericSearchPanel
-      type="car"
-      label="Car Rentals"
-      icon={Car}
-      gradient="from-cyan-500 to-blue-600"
-      fields={[
-        { key: "pickupLocation", label: "Pickup Location", type: "text", placeholder: "Airport or city" },
-        { key: "pickupDate", label: "Pickup Date", type: "date" },
-        { key: "dropoffDate", label: "Dropoff Date", type: "date", minDateKey: "pickupDate" },
-      ]}
-    />
-  );
-}
-
-// Activities/Tours Search Panel
-function ActivitiesSearchPanel() {
-  return (
-    <GenericSearchPanel
-      type="activity"
-      label="Activities & Tours"
-      icon={Compass}
-      gradient="from-emerald-500 to-teal-600"
-      fields={[
-        { key: "destination", label: "Destination", type: "text", placeholder: "City or attraction" },
-        { key: "date", label: "Activity Date", type: "date" },
-        { key: "participants", label: "Participants", type: "number", placeholder: "Number of people" },
-      ]}
-    />
-  );
-}
-
-// Transfers Search Panel
-function TransfersSearchPanel() {
-  return (
-    <GenericSearchPanel
-      type="transfer"
-      label="Transfers"
-      icon={Bus}
-      gradient="from-amber-500 to-orange-600"
-      fields={[
-        { key: "pickup", label: "Pickup Location", type: "text", placeholder: "Airport or hotel" },
-        { key: "dropoff", label: "Drop-off Location", type: "text", placeholder: "Hotel or address" },
-        { key: "date", label: "Transfer Date", type: "date" },
-      ]}
-    />
-  );
-}
 
 // Insurance Search Panel
 function InsuranceSearchPanel() {
