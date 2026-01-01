@@ -182,7 +182,9 @@ export default function HotelSearchPanel() {
       currency: "USD",
       date: params.checkIn,
       name: hotel.name || "Hotel",
-      location: hotel.location || hotel.address || params.location,
+      location: typeof hotel.location === 'object'
+        ? (hotel.location?.city || hotel.location?.address || params.location)
+        : (hotel.location || hotel.address || params.location),
       checkIn: params.checkIn,
       checkOut: params.checkOut,
       nights,
@@ -473,7 +475,7 @@ function HotelCard({ hotel, nights, onAdd }: { hotel: any; nights: number; onAdd
         <div className="flex-1 min-w-0">
           <h4 className="font-bold text-gray-900 truncate text-sm">{hotel.name}</h4>
           <div className="flex items-center gap-1 mt-0.5">{Array.from({ length: stars }).map((_, i) => <Star key={i} className="w-3 h-3 fill-amber-400 text-amber-400" />)}</div>
-          <p className="text-xs text-gray-500 truncate mt-1">{hotel.location || hotel.address}</p>
+          <p className="text-xs text-gray-500 truncate mt-1">{typeof hotel.location === 'object' ? (hotel.location?.city || hotel.location?.address || '') : (hotel.location || hotel.address || '')}</p>
         </div>
         <div className="flex flex-col items-end justify-between">
           <div className="text-right">
