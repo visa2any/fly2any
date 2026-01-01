@@ -143,19 +143,25 @@ export default function CarSearchPanel() {
   };
 
   const handleAddCar = (car: any) => {
+    // Handle both Amadeus API format and featured cars format
+    const carName = car.vehicle?.description || car.vehicle?.name || car.model || car.name || 'Car Rental';
+    const carPrice = parseFloat(car.price?.total) || car.price?.amount || car.pricePerDay || 0;
+    const carType = car.vehicle?.category || car.type || car.category || 'Standard';
+    const carImage = car.vehicle?.imageURL || car.vehicle?.image || car.photoUrl || car.image;
+
     addItem({
       type: "car",
-      price: parseFloat(car.price?.total) || car.price?.amount || 0,
+      price: carPrice,
       currency: car.price?.currency || "USD",
       date: params.pickupDate,
-      name: `${car.vehicle?.description || car.vehicle?.name || car.name || 'Car Rental'}`,
+      name: carName,
       pickupLocation: params.pickupLocation,
       dropoffLocation: params.sameDropoff ? params.pickupLocation : params.dropoffLocation,
       pickupDate: params.pickupDate,
       dropoffDate: params.dropoffDate,
       days,
-      vehicleType: car.vehicle?.category || car.category || 'Standard',
-      image: car.vehicle?.imageURL || car.vehicle?.image || car.image,
+      vehicleType: carType,
+      image: carImage,
       apiSource: "cars",
       apiOfferId: car.id,
     });
@@ -309,14 +315,14 @@ export default function CarSearchPanel() {
               <motion.div key={car.id || idx} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} whileHover={{ scale: 1.02 }} className="bg-white border-2 border-gray-100 rounded-2xl p-3 hover:border-cyan-200 hover:shadow-lg transition-all group">
                 <div className="flex gap-3">
                   <div className="w-20 h-16 rounded-xl bg-cyan-100 overflow-hidden flex-shrink-0 flex items-center justify-center">
-                    {car.vehicle?.imageURL || car.vehicle?.image || car.image ? <img src={car.vehicle?.imageURL || car.vehicle?.image || car.image} alt={car.vehicle?.description || car.name} className="w-full h-full object-contain" /> : <Car className="w-8 h-8 text-cyan-300" />}
+                    {car.vehicle?.imageURL || car.vehicle?.image || car.photoUrl || car.image ? <img src={car.vehicle?.imageURL || car.vehicle?.image || car.photoUrl || car.image} alt={car.vehicle?.description || car.model || car.name} className="w-full h-full object-contain" /> : <Car className="w-8 h-8 text-cyan-300" />}
                   </div>
                   <div className="flex-1 min-w-0">
-                    <h4 className="font-bold text-gray-900 truncate text-sm">{car.vehicle?.description || car.vehicle?.name || car.name}</h4>
-                    <p className="text-xs text-gray-500">{car.vehicle?.category || car.category}</p>
+                    <h4 className="font-bold text-gray-900 truncate text-sm">{car.vehicle?.description || car.vehicle?.name || car.model || car.name || 'Car Rental'}</h4>
+                    <p className="text-xs text-gray-500">{car.vehicle?.category || car.type || car.category || 'Standard'}</p>
                   </div>
                   <div className="flex flex-col items-end justify-between">
-                    <p className="text-lg font-black text-gray-900">${car.price?.total || car.price?.amount || 0}</p>
+                    <p className="text-lg font-black text-gray-900">${car.price?.total || car.price?.amount || car.pricePerDay || 0}</p>
                     <motion.button whileHover={{ scale: 1.15, rotate: 90 }} whileTap={{ scale: 0.9 }} onClick={() => handleAddCar(car)} className="w-8 h-8 flex items-center justify-center bg-gradient-to-br from-cyan-500 to-blue-600 text-white rounded-full shadow-lg opacity-0 group-hover:opacity-100 transition-opacity">
                       <Plus className="w-4 h-4" />
                     </motion.button>
