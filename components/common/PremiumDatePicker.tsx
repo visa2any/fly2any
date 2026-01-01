@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useRef, useEffect, useMemo } from "react";
+import { createPortal } from "react-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   ChevronLeft,
@@ -63,8 +64,14 @@ export default function PremiumDatePicker({
   const [isHovered, setIsHovered] = useState(false);
   const [direction, setDirection] = useState(0); // -1 for prev, 1 for next
   const [dropdownPos, setDropdownPos] = useState({ top: 0, left: 0, width: 300 });
+  const [mounted, setMounted] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLButtonElement>(null);
+
+  // Portal mount
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   // Calculate dropdown position when opening - always open down
   const openDropdown = () => {
@@ -281,28 +288,29 @@ export default function PremiumDatePicker({
         )}
       </AnimatePresence>
 
-      {/* Calendar Dropdown - Ultra Premium */}
-      <AnimatePresence>
-        {isOpen && (
-          <motion.div
-            initial={{ opacity: 0, y: -10, scale: 0.95 }}
-            animate={{ opacity: 1, y: 0, scale: 1 }}
-            exit={{ opacity: 0, y: -10, scale: 0.95 }}
-            transition={{ type: "spring", ...springConfig }}
-            className="fixed z-[9999] bg-white rounded-2xl border border-gray-200 overflow-hidden"
-            style={{
-              top: dropdownPos.top,
-              left: dropdownPos.left,
-              width: dropdownPos.width,
-              minWidth: 300,
-              boxShadow: `
-                0 4px 6px -1px rgba(0, 0, 0, 0.05),
-                0 10px 15px -3px rgba(0, 0, 0, 0.08),
-                0 20px 25px -5px rgba(0, 0, 0, 0.06),
-                0 0 0 1px rgba(99, 102, 241, 0.1)
-              `,
-            }}
-          >
+      {/* Calendar Dropdown - Portal to body for z-index fix */}
+      {mounted && createPortal(
+        <AnimatePresence>
+          {isOpen && (
+            <motion.div
+              initial={{ opacity: 0, y: -10, scale: 0.95 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              exit={{ opacity: 0, y: -10, scale: 0.95 }}
+              transition={{ type: "spring", ...springConfig }}
+              className="fixed z-[9999] bg-white rounded-2xl border border-gray-200 overflow-hidden"
+              style={{
+                top: dropdownPos.top,
+                left: dropdownPos.left,
+                width: dropdownPos.width,
+                minWidth: 300,
+                boxShadow: `
+                  0 4px 6px -1px rgba(0, 0, 0, 0.05),
+                  0 10px 15px -3px rgba(0, 0, 0, 0.08),
+                  0 20px 25px -5px rgba(0, 0, 0, 0.06),
+                  0 0 0 1px rgba(99, 102, 241, 0.1)
+                `,
+              }}
+            >
             {/* Header with Gradient */}
             <div className="flex items-center justify-between px-4 py-3 bg-gradient-to-r from-gray-50 to-white border-b border-gray-100">
               <motion.button
@@ -441,7 +449,9 @@ export default function PremiumDatePicker({
             </div>
           </motion.div>
         )}
-      </AnimatePresence>
+      </AnimatePresence>,
+      document.body
+      )}
     </div>
   );
 }

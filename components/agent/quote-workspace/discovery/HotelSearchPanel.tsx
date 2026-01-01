@@ -130,8 +130,13 @@ export default function HotelSearchPanel() {
     }
     setSearchResults(true, null);
     try {
+      // API expects location as {lat,lng} object OR {query: "city name"}
+      const locationPayload = selectedDestination?.location
+        ? selectedDestination.location  // {lat, lng} object
+        : { query: params.location };   // wrap string in query object
+
       const body = {
-        location: selectedDestination?.location || params.location,
+        location: locationPayload,
         checkIn: params.checkIn,
         checkOut: params.checkOut,
         guests: {

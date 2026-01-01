@@ -6,6 +6,33 @@ export const dynamic = 'force-dynamic';
 
 const isProductionAPI = process.env.AMADEUS_ENVIRONMENT === 'production';
 
+// City name to IATA airport code mapping for car rentals
+const CITY_TO_AIRPORT: Record<string, string> = {
+  'new york': 'JFK', 'nyc': 'JFK', 'manhattan': 'JFK',
+  'los angeles': 'LAX', 'la': 'LAX',
+  'chicago': 'ORD', 'san francisco': 'SFO', 'sf': 'SFO',
+  'miami': 'MIA', 'orlando': 'MCO', 'las vegas': 'LAS', 'vegas': 'LAS',
+  'seattle': 'SEA', 'boston': 'BOS', 'denver': 'DEN',
+  'atlanta': 'ATL', 'dallas': 'DFW', 'houston': 'IAH',
+  'phoenix': 'PHX', 'san diego': 'SAN', 'tampa': 'TPA',
+  'london': 'LHR', 'paris': 'CDG', 'rome': 'FCO',
+  'madrid': 'MAD', 'barcelona': 'BCN', 'amsterdam': 'AMS',
+  'frankfurt': 'FRA', 'munich': 'MUC', 'zurich': 'ZRH',
+  'dubai': 'DXB', 'tokyo': 'NRT', 'sydney': 'SYD',
+  'rio de janeiro': 'GIG', 'rio': 'GIG', 'sao paulo': 'GRU',
+  'cancun': 'CUN', 'mexico city': 'MEX', 'toronto': 'YYZ',
+};
+
+// Resolve location to IATA code
+function resolveLocationCode(location: string): string {
+  if (!location) return '';
+  // If already looks like an IATA code (3 letters uppercase), return as-is
+  if (/^[A-Z]{3}$/.test(location)) return location;
+  // Try mapping
+  const normalized = location.toLowerCase().trim();
+  return CITY_TO_AIRPORT[normalized] || location.toUpperCase().slice(0, 3);
+}
+
 /**
  * CAR RENTAL MARKUP POLICY
  * Formula: $30 minimum OR 20% of base price, whichever is HIGHER
@@ -58,12 +85,16 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    console.log(`🚗 Car search: ${pickupLocation} | ${pickupDate} to ${dropoffDate} | API: ${isProductionAPI ? 'PRODUCTION' : 'TEST'}`);
+    // Resolve city names to IATA codes
+    const pickupCode = resolveLocationCode(pickupLocation);
+    const dropoffCode = dropoffLocation ? resolveLocationCode(dropoffLocation) : undefined;
+
+    console.log(`🚗 Car search: ${pickupLocation} -> ${pickupCode} | ${pickupDate} to ${dropoffDate} | API: ${isProductionAPI ? 'PRODUCTION' : 'TEST'}`);
 
     // Try Amadeus API first
     const result = await amadeusAPI.searchCarRentals({
-      pickupLocationCode: pickupLocation,
-      dropoffLocationCode: dropoffLocation || undefined,
+      pickupLocationCode: pickupCode,
+      dropoffLocationCode: dropoffCode,
       pickupDate,
       dropoffDate,
       pickupTime: pickupTime || '10:00:00',
