@@ -467,6 +467,140 @@ export default function ItineraryCard({ item, dragListeners, isDragging }: Itine
     );
   }
 
+  // Car-specific card with photo and more info
+  if (item.type === "car") {
+    const c = item as CarItem;
+    return (
+      <motion.div
+        layout
+        className={`group relative bg-white border border-gray-200 rounded-xl shadow-sm hover:shadow-md transition-shadow ${
+          isExpanded ? "ring-2 ring-cyan-400" : ""
+        }`}
+      >
+        {/* Drag Handle */}
+        <div
+          {...dragListeners}
+          className={`absolute left-0 top-0 bottom-0 w-5 flex items-center justify-center transition-opacity cursor-grab active:cursor-grabbing bg-gradient-to-r from-gray-50 to-transparent z-10 ${
+            isDragging ? "opacity-100" : "opacity-0 group-hover:opacity-100"
+          }`}
+        >
+          <GripVertical className="w-3 h-3 text-gray-400" />
+        </div>
+
+        {/* Main Content */}
+        <div className="flex ml-5">
+          {/* Photo Thumbnail */}
+          <div className="w-20 h-20 rounded-l-xl bg-cyan-100 overflow-hidden flex-shrink-0">
+            {c.image ? (
+              <img src={c.image} alt={c.carType} className="w-full h-full object-cover" />
+            ) : (
+              <div className="w-full h-full flex items-center justify-center">
+                <Car className="w-8 h-8 text-cyan-300" />
+              </div>
+            )}
+          </div>
+
+          {/* Info Section */}
+          <div className="flex-1 min-w-0 px-3 py-2">
+            <div className="flex items-start justify-between gap-2">
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center gap-2">
+                  <h4 className="font-bold text-gray-900 text-sm truncate">{c.company}</h4>
+                  <span className="text-[9px] text-cyan-600 bg-cyan-50 px-1.5 py-0.5 rounded font-medium uppercase">{c.carClass}</span>
+                </div>
+                <p className="text-xs text-gray-700 font-medium mt-0.5">{c.carType}</p>
+                <div className="flex items-center gap-2 mt-1 flex-wrap">
+                  <span className="flex items-center gap-0.5 text-[10px] text-gray-500">
+                    <MapPin className="w-3 h-3" />{c.pickupLocation}
+                  </span>
+                  <span className="text-[10px] text-gray-400">→</span>
+                  <span className="flex items-center gap-0.5 text-[10px] text-gray-500">
+                    <MapPin className="w-3 h-3" />{c.dropoffLocation}
+                  </span>
+                  <span className="flex items-center gap-0.5 text-[10px] text-gray-500">
+                    <Clock className="w-3 h-3" />{c.days} day{c.days > 1 ? "s" : ""}
+                  </span>
+                </div>
+              </div>
+              {/* Price */}
+              <div className="flex-shrink-0 text-right">
+                <p className="font-black text-gray-900 text-sm bg-yellow-100 px-2 py-0.5 rounded">{formatPrice(c.price)}</p>
+                <p className="text-[9px] text-gray-400 mt-0.5">{c.date ? format(parseISO(c.date), "MMM d") : ""}</p>
+              </div>
+            </div>
+          </div>
+
+          {/* Actions */}
+          <div className="flex flex-col items-center justify-center px-2 border-l border-gray-100 gap-1">
+            <button onClick={handleExpand} className="p-1 text-gray-400 hover:text-cyan-600 hover:bg-cyan-50 rounded transition-colors">
+              {isExpanded ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
+            </button>
+            <button onClick={() => setShowMenu(!showMenu)} className="p-1 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded transition-colors">
+              <MoreVertical className="w-4 h-4" />
+            </button>
+          </div>
+        </div>
+
+        {/* Expanded Details */}
+        <AnimatePresence>
+          {isExpanded && (
+            <motion.div
+              initial={{ height: 0, opacity: 0 }}
+              animate={{ height: "auto", opacity: 1 }}
+              exit={{ height: 0, opacity: 0 }}
+              transition={{ duration: 0.2 }}
+              className="border-t border-gray-200"
+            >
+              <div className="p-3 bg-gradient-to-br from-cyan-50/50 to-blue-50/50">
+                <div className="grid grid-cols-2 gap-2">
+                  <div className="bg-white rounded-lg p-2 border border-gray-100">
+                    <p className="text-[8px] text-gray-500 uppercase">Pickup</p>
+                    <p className="text-xs font-semibold text-gray-900">{c.pickupLocation}</p>
+                    <p className="text-[9px] text-gray-500">{c.pickupDate ? format(parseISO(c.pickupDate), "MMM d, yyyy") : ""}</p>
+                  </div>
+                  <div className="bg-white rounded-lg p-2 border border-gray-100">
+                    <p className="text-[8px] text-gray-500 uppercase">Dropoff</p>
+                    <p className="text-xs font-semibold text-gray-900">{c.dropoffLocation}</p>
+                    <p className="text-[9px] text-gray-500">{c.dropoffDate ? format(parseISO(c.dropoffDate), "MMM d, yyyy") : ""}</p>
+                  </div>
+                </div>
+                {c.features && c.features.length > 0 && (
+                  <div className="mt-2 flex flex-wrap gap-1">
+                    {c.features.map((feat, i) => (
+                      <span key={i} className="text-[9px] px-1.5 py-0.5 bg-cyan-100 text-cyan-700 rounded-full">{feat}</span>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+
+        {/* Dropdown Menu - Fixed z-index */}
+        <AnimatePresence>
+          {showMenu && (
+            <>
+              <div className="fixed inset-0 z-[100]" onClick={() => setShowMenu(false)} />
+              <motion.div
+                initial={{ opacity: 0, scale: 0.95 }}
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0, scale: 0.95 }}
+                className="absolute right-2 top-12 w-32 bg-white border border-gray-200 rounded-lg shadow-xl z-[101] overflow-hidden"
+              >
+                <button onClick={() => { expandItem(item.id); setShowMenu(false); }} className="w-full flex items-center gap-2 px-2 py-1.5 text-xs text-gray-700 hover:bg-gray-50">
+                  <Edit2 className="w-3 h-3" /> Edit
+                </button>
+                <button onClick={handleDelete} className="w-full flex items-center gap-2 px-2 py-1.5 text-xs text-red-600 hover:bg-red-50">
+                  <Trash2 className="w-3 h-3" /> Remove
+                </button>
+              </motion.div>
+            </>
+          )}
+        </AnimatePresence>
+      </motion.div>
+    );
+  }
+
   // Transfer-specific card with improved layout
   if (item.type === "transfer") {
     const t = item as TransferItem;
