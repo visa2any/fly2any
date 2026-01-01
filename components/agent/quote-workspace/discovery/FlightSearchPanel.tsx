@@ -25,6 +25,7 @@ import {
   TrendingUp,
 } from "lucide-react";
 import AirlineLogo from "@/components/flights/AirlineLogo";
+import { getAirlineData } from "@/lib/flights/airline-data";
 import { useQuoteWorkspace } from "../QuoteWorkspaceProvider";
 import MultiAirportSelector from "@/components/common/MultiAirportSelector";
 import PremiumDatePicker from "@/components/common/PremiumDatePicker";
@@ -174,12 +175,23 @@ export default function FlightSearchPanel() {
     const inSegs = inbound?.segments || [];
     const outStops = outSegs.length > 0 ? outSegs.length - 1 : 0;
 
+    // Get airline info
+    const airlineCode = flight.validatingAirlineCodes?.[0] || outSegs[0]?.carrierCode || flight.airline || "XX";
+    const airlineInfo = getAirlineData(airlineCode);
+
+    // Get fare details from travelerPricings
+    const fareDetails = flight.travelerPricings?.[0]?.fareDetailsBySegment?.[0];
+    const cabin = fareDetails?.cabin || params.cabinClass;
+    const brandedFare = fareDetails?.brandedFare || fareDetails?.brandedFareLabel;
+    const includedBags = fareDetails?.includedCheckedBags;
+
     const flightItem: Omit<FlightItem, "id" | "sortOrder" | "createdAt"> = {
       type: "flight",
       price: Number(flight.price?.total || flight.price?.amount || flight.totalPrice || 0),
       currency: "USD",
       date: params.useMultiDate ? format(params.departureDates[0], "yyyy-MM-dd") : params.departureDate,
-      airline: flight.validatingAirlineCodes?.[0] || outSegs[0]?.carrierCode || flight.airline || "Airline",
+      airline: airlineCode,
+      airlineName: airlineInfo.name || airlineCode,
       flightNumber: outSegs[0]?.number || outSegs[0]?.flightNumber || flight.flightNumber || "",
       origin: outSegs[0]?.departure?.iataCode || params.origin[0],
       originCity: outSegs[0]?.departure?.iataCode || params.origin[0],
@@ -189,13 +201,22 @@ export default function FlightSearchPanel() {
       arrivalTime: outSegs[outSegs.length - 1]?.arrival?.at?.slice(11, 16) || "",
       duration: outbound.duration?.replace("PT", "").toLowerCase() || flight.duration || "",
       stops: outStops,
-      cabinClass: params.cabinClass,
+      cabinClass: cabin?.toLowerCase()?.replace(" ", "_") || params.cabinClass,
       passengers: totalPassengers,
       baggage: flight.baggage,
       apiSource: flight.source || "amadeus",
       apiOfferId: flight.id,
+      // Fare details
+      fareType: brandedFare || (cabin === "ECONOMY" ? "Economy" : cabin),
+      fareBasis: fareDetails?.fareBasis,
+      includedBags: includedBags ? { quantity: includedBags.quantity || 0, weight: includedBags.weight ? `${includedBags.weight}kg` : undefined } : undefined,
+      fareRules: {
+        changeable: !brandedFare?.toLowerCase().includes("basic"),
+        refundable: !brandedFare?.toLowerCase().includes("basic"),
+      },
       // Return flight data
       returnDate: inbound ? params.returnDate : undefined,
+      returnFlightNumber: inSegs[0]?.number || inSegs[0]?.flightNumber || "",
       returnDepartureTime: inSegs[0]?.departure?.at?.slice(11, 16),
       returnArrivalTime: inSegs[inSegs.length - 1]?.arrival?.at?.slice(11, 16),
       returnDuration: inbound?.duration?.replace("PT", "").toLowerCase(),
@@ -904,148 +925,133 @@ export default function FlightSearchPanel() {
 function FlightResultCard({ flight, onAdd, index }: { flight: any; onAdd: () => void; index: number }) {
   // Data extraction
   const price = Number(flight.price?.total || flight.price?.amount || flight.totalPrice || 0);
-  const airline = flight.validatingAirlineCodes?.[0] || flight.airline || flight.carrierCode ||
+  const airlineCode = flight.validatingAirlineCodes?.[0] || flight.airline || flight.carrierCode ||
     flight.segments?.[0]?.carrierCode || flight.itineraries?.[0]?.segments?.[0]?.carrierCode || "XX";
+  const airlineInfo = getAirlineData(airlineCode);
 
-  // Itineraries - outbound and return
+  // Fare info
+  const fareDetails = flight.travelerPricings?.[0]?.fareDetailsBySegment?.[0];
+  const fareType = fareDetails?.brandedFare || fareDetails?.brandedFareLabel || fareDetails?.cabin || "Economy";
+
+  // Itineraries
   const itineraries = flight.itineraries || [];
   const outbound = itineraries[0] || { segments: flight.segments || [], duration: flight.duration || "" };
   const inbound = itineraries[1];
   const isRoundtrip = !!inbound;
 
-  // Helper functions
-  const formatTime = (dateStr: string) => {
-    if (!dateStr) return "--:--";
-    const time = dateStr.includes("T") ? dateStr.slice(11, 16) : dateStr;
-    return time || "--:--";
-  };
-
+  // Helpers
+  const formatTime = (dateStr: string) => dateStr?.includes("T") ? dateStr.slice(11, 16) : dateStr || "--:--";
   const parseDuration = (dur: string) => {
     if (!dur) return "";
-    const match = dur.match(/PT(\d+H)?(\d+M)?/i);
-    if (!match) return dur.toLowerCase().replace("pt", "");
-    const h = match[1]?.replace(/h/i, "h") || "";
-    const m = match[2]?.replace(/m/i, "m") || "";
-    return `${h}${m ? " " + m : ""}`.trim();
+    const m = dur.match(/PT(\d+H)?(\d+M)?/i);
+    return m ? `${m[1]?.replace(/h/i, "h") || ""}${m[2] ? " " + m[2].replace(/m/i, "m") : ""}`.trim() : dur.replace(/pt/i, "");
   };
+  const getStops = (segs: any[]) => segs?.length ? segs.length - 1 : 0;
+  const stopsStyle = (s: number) => s === 0 ? "bg-emerald-100 text-emerald-700" : s === 1 ? "bg-amber-100 text-amber-700" : "bg-red-100 text-red-700";
 
-  const getStops = (segments: any[]) => segments?.length ? segments.length - 1 : 0;
-  const getStopsStyle = (stops: number) =>
-    stops === 0 ? "bg-emerald-100 text-emerald-700" : stops === 1 ? "bg-amber-100 text-amber-700" : "bg-red-100 text-red-700";
-
-  // Outbound data
+  // Flight data
   const outSegs = outbound.segments || [];
   const outDep = outSegs[0]?.departure || {};
   const outArr = outSegs[outSegs.length - 1]?.arrival || {};
-  const outStops = getStops(outSegs);
-  const outDur = parseDuration(outbound.duration);
-  const flightNum = outSegs[0]?.number || outSegs[0]?.flightNumber || flight.flightNumber || "";
-
-  // Inbound data
+  const outNum = outSegs[0]?.number || outSegs[0]?.flightNumber || "";
   const inSegs = inbound?.segments || [];
   const inDep = inSegs[0]?.departure || {};
   const inArr = inSegs[inSegs.length - 1]?.arrival || {};
-  const inStops = getStops(inSegs);
-  const inDur = parseDuration(inbound?.duration || "");
+  const inNum = inSegs[0]?.number || inSegs[0]?.flightNumber || "";
 
   return (
     <motion.div
       initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay: index * 0.03 }}
-      className="group bg-white border border-gray-200 rounded-xl overflow-hidden hover:border-indigo-300 hover:shadow-lg transition-all"
+      className="group bg-white border border-gray-200 rounded-xl overflow-hidden hover:border-indigo-300 hover:shadow-lg transition-all relative"
     >
-      {/* Main Row - Outbound */}
-      <div className="flex items-center gap-2 px-3 py-2">
-        {/* Airline Logo + Info */}
-        <div className="flex items-center gap-2 min-w-[100px]">
-          <AirlineLogo code={airline} size="sm" className="flex-shrink-0" />
-          <div className="min-w-0">
-            <p className="text-xs font-bold text-gray-900 truncate">{airline}</p>
-            {flightNum && <p className="text-[10px] text-gray-500">{flightNum}</p>}
-          </div>
+      {/* Best badge */}
+      {index === 0 && (
+        <div className="absolute top-1.5 right-1.5 z-10">
+          <span className="text-[7px] font-bold text-amber-700 bg-amber-100 px-1.5 py-0.5 rounded-full flex items-center gap-0.5">
+            <Star className="w-2 h-2 fill-amber-500" /> BEST
+          </span>
+        </div>
+      )}
+
+      <div className="flex">
+        {/* Logo - Centered Vertically */}
+        <div className="flex flex-col items-center justify-center px-2 py-2 border-r border-gray-100 min-w-[70px]">
+          <AirlineLogo code={airlineCode} size="sm" className="flex-shrink-0" />
+          <p className="text-[9px] font-bold text-gray-900 mt-1 text-center truncate max-w-[65px]">{airlineInfo.name}</p>
+          <p className="text-[7px] text-indigo-600 font-semibold bg-indigo-50 px-1 rounded mt-0.5">{fareType}</p>
         </div>
 
-        {/* Outbound Flight */}
-        <div className="flex items-center gap-1.5 flex-1 min-w-0">
-          <span className="text-[8px] font-bold text-indigo-600 uppercase w-8">→ OUT</span>
-          <div className="text-center">
-            <p className="text-sm font-bold text-gray-900">{formatTime(outDep.at)}</p>
-            <p className="text-[9px] font-semibold text-gray-600">{outDep.iataCode || "---"}</p>
-          </div>
-          <div className="flex-1 px-1 min-w-[50px]">
-            <div className="relative h-px bg-gradient-to-r from-gray-300 via-indigo-400 to-gray-300">
-              <Plane className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-2.5 h-2.5 text-indigo-500 bg-white rounded-full" />
-            </div>
-            <div className="flex items-center justify-center gap-1 mt-0.5">
-              <span className="text-[8px] text-gray-500">{outDur}</span>
-              <span className={`text-[7px] font-bold px-1 py-0.5 rounded ${getStopsStyle(outStops)}`}>
-                {outStops === 0 ? "Direct" : `${outStops}stop`}
-              </span>
-            </div>
-          </div>
-          <div className="text-center">
-            <p className="text-sm font-bold text-gray-900">{formatTime(outArr.at)}</p>
-            <p className="text-[9px] font-semibold text-gray-600">{outArr.iataCode || "---"}</p>
-          </div>
-        </div>
-
-        {/* Price + Add */}
-        <div className="flex items-center gap-2 ml-auto">
-          <div className="text-right">
-            <p className="text-base font-black text-gray-900 bg-yellow-100 px-1.5 py-0.5 rounded">
-              ${price > 0 ? Math.round(price) : "N/A"}
-            </p>
-            <p className="text-[8px] text-gray-400">/person</p>
-          </div>
-          <motion.button
-            whileHover={{ scale: 1.1, rotate: 90 }}
-            whileTap={{ scale: 0.9 }}
-            onClick={onAdd}
-            className="w-8 h-8 flex items-center justify-center bg-gradient-to-r from-indigo-500 to-purple-600 text-white rounded-lg shadow-md opacity-0 group-hover:opacity-100 transition-opacity"
-          >
-            <Plus className="w-4 h-4" />
-          </motion.button>
-        </div>
-
-        {/* Best badge */}
-        {index === 0 && (
-          <div className="absolute top-1 right-1">
-            <span className="text-[7px] font-bold text-amber-700 bg-amber-100 px-1 py-0.5 rounded-full flex items-center gap-0.5">
-              <Star className="w-2 h-2 fill-amber-500" /> BEST
-            </span>
-          </div>
-        )}
-      </div>
-
-      {/* Return Row - If Roundtrip */}
-      {isRoundtrip && (
-        <div className="flex items-center gap-2 px-3 py-1.5 bg-gray-50 border-t border-gray-100">
-          <div className="min-w-[100px]" /> {/* Spacer for alignment */}
-          <div className="flex items-center gap-1.5 flex-1 min-w-0">
-            <span className="text-[8px] font-bold text-orange-600 uppercase w-8">← RET</span>
+        {/* Flights */}
+        <div className="flex-1 min-w-0">
+          {/* Outbound */}
+          <div className="flex items-center gap-1.5 px-2 py-1.5 border-b border-gray-50">
+            <span className="text-[7px] font-bold text-indigo-600 uppercase w-6">→OUT</span>
+            <span className="text-[8px] text-gray-500 w-10">{airlineCode} {outNum}</span>
             <div className="text-center">
-              <p className="text-sm font-bold text-gray-900">{formatTime(inDep.at)}</p>
-              <p className="text-[9px] font-semibold text-gray-600">{inDep.iataCode || "---"}</p>
+              <p className="text-xs font-bold text-gray-900">{formatTime(outDep.at)}</p>
+              <p className="text-[8px] text-gray-500">{outDep.iataCode}</p>
             </div>
-            <div className="flex-1 px-1 min-w-[50px]">
-              <div className="relative h-px bg-gradient-to-r from-gray-300 via-orange-400 to-gray-300">
-                <Plane className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-2.5 h-2.5 text-orange-500 bg-white rounded-full rotate-180" />
+            <div className="flex-1 px-1">
+              <div className="relative h-px bg-gradient-to-r from-gray-300 via-indigo-400 to-gray-300">
+                <Plane className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-2 h-2 text-indigo-500 bg-white" />
               </div>
-              <div className="flex items-center justify-center gap-1 mt-0.5">
-                <span className="text-[8px] text-gray-500">{inDur}</span>
-                <span className={`text-[7px] font-bold px-1 py-0.5 rounded ${getStopsStyle(inStops)}`}>
-                  {inStops === 0 ? "Direct" : `${inStops}stop`}
+              <div className="flex items-center justify-center gap-0.5 mt-0.5">
+                <span className="text-[7px] text-gray-500">{parseDuration(outbound.duration)}</span>
+                <span className={`text-[6px] font-bold px-1 rounded ${stopsStyle(getStops(outSegs))}`}>
+                  {getStops(outSegs) === 0 ? "Direct" : `${getStops(outSegs)}stop`}
                 </span>
               </div>
             </div>
             <div className="text-center">
-              <p className="text-sm font-bold text-gray-900">{formatTime(inArr.at)}</p>
-              <p className="text-[9px] font-semibold text-gray-600">{inArr.iataCode || "---"}</p>
+              <p className="text-xs font-bold text-gray-900">{formatTime(outArr.at)}</p>
+              <p className="text-[8px] text-gray-500">{outArr.iataCode}</p>
             </div>
           </div>
+
+          {/* Return */}
+          {isRoundtrip && (
+            <div className="flex items-center gap-1.5 px-2 py-1.5 bg-gray-50/50">
+              <span className="text-[7px] font-bold text-orange-600 uppercase w-6">←RET</span>
+              <span className="text-[8px] text-gray-500 w-10">{airlineCode} {inNum}</span>
+              <div className="text-center">
+                <p className="text-xs font-bold text-gray-900">{formatTime(inDep.at)}</p>
+                <p className="text-[8px] text-gray-500">{inDep.iataCode}</p>
+              </div>
+              <div className="flex-1 px-1">
+                <div className="relative h-px bg-gradient-to-r from-gray-300 via-orange-400 to-gray-300">
+                  <Plane className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-2 h-2 text-orange-500 bg-white rotate-180" />
+                </div>
+                <div className="flex items-center justify-center gap-0.5 mt-0.5">
+                  <span className="text-[7px] text-gray-500">{parseDuration(inbound?.duration)}</span>
+                  <span className={`text-[6px] font-bold px-1 rounded ${stopsStyle(getStops(inSegs))}`}>
+                    {getStops(inSegs) === 0 ? "Direct" : `${getStops(inSegs)}stop`}
+                  </span>
+                </div>
+              </div>
+              <div className="text-center">
+                <p className="text-xs font-bold text-gray-900">{formatTime(inArr.at)}</p>
+                <p className="text-[8px] text-gray-500">{inArr.iataCode}</p>
+              </div>
+            </div>
+          )}
         </div>
-      )}
+
+        {/* Price + Add - End */}
+        <div className="flex flex-col items-center justify-center px-2 py-2 border-l border-gray-100 min-w-[70px]">
+          <p className="text-lg font-black text-gray-900 bg-yellow-100 px-1.5 py-0.5 rounded">${Math.round(price)}</p>
+          <p className="text-[8px] text-gray-400">/person</p>
+          <motion.button
+            whileHover={{ scale: 1.1 }}
+            whileTap={{ scale: 0.9 }}
+            onClick={onAdd}
+            className="mt-1 w-7 h-7 flex items-center justify-center bg-gradient-to-r from-indigo-500 to-purple-600 text-white rounded-lg shadow-md opacity-0 group-hover:opacity-100 transition-opacity"
+          >
+            <Plus className="w-4 h-4" />
+          </motion.button>
+        </div>
+      </div>
     </motion.div>
   );
 }

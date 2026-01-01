@@ -19,6 +19,7 @@ export interface QuoteItemBase {
 export interface FlightItem extends QuoteItemBase {
   type: 'flight';
   airline: string;
+  airlineName?: string; // Full name: "Spirit Airlines"
   flightNumber: string;
   origin: string;
   originCity: string;
@@ -33,8 +34,19 @@ export interface FlightItem extends QuoteItemBase {
   baggage?: string;
   apiSource?: 'amadeus' | 'duffel';
   apiOfferId?: string;
+  // Fare details
+  fareType?: string; // "Basic Economy", "Economy", "Main Cabin", etc.
+  fareBasis?: string;
+  includedBags?: { quantity: number; weight?: string };
+  fareRules?: {
+    changeable?: boolean;
+    changeFee?: string;
+    refundable?: boolean;
+    refundFee?: string;
+  };
   // Return flight data (for roundtrip)
   returnDate?: string;
+  returnFlightNumber?: string;
   returnDepartureTime?: string;
   returnArrivalTime?: string;
   returnDuration?: string;

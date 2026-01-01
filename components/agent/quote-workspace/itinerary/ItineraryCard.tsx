@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { format, parseISO } from "date-fns";
-import { Plane, Building2, Car, Compass, Bus, Shield, Package, MoreVertical, Edit2, Copy, Trash2, GripVertical, ChevronDown, ChevronUp } from "lucide-react";
+import { Plane, Building2, Car, Compass, Bus, Shield, Package, MoreVertical, Edit2, Copy, Trash2, GripVertical, ChevronDown, ChevronUp, Briefcase, RefreshCw, XCircle, CheckCircle2, Info, Luggage } from "lucide-react";
 import { useQuoteWorkspace } from "../QuoteWorkspaceProvider";
 import AirlineLogo from "@/components/flights/AirlineLogo";
 import type { QuoteItem, FlightItem, HotelItem, CarItem, ActivityItem, TransferItem, InsuranceItem, CustomItem, ProductType } from "../types/quote-workspace.types";
@@ -110,7 +110,7 @@ export default function ItineraryCard({ item, dragListeners, isDragging }: Itine
     expandItem(isExpanded ? null : item.id);
   };
 
-  // Render flight-specific compact card with return flight
+  // Render flight-specific compact card with return flight - 3-column layout
   if (item.type === "flight") {
     const f = item as FlightItem;
     const isRoundtrip = !!f.returnDepartureTime;
@@ -121,90 +121,197 @@ export default function ItineraryCard({ item, dragListeners, isDragging }: Itine
       <motion.div
         layout
         className={`group relative bg-white border border-gray-200 rounded-xl overflow-hidden shadow-sm hover:shadow-md transition-shadow ${
-          isExpanded ? "ring-2 ring-primary-500" : ""
+          isExpanded ? "ring-2 ring-indigo-400" : ""
         }`}
       >
         {/* Drag Handle */}
         <div
           {...dragListeners}
-          className={`absolute left-0 top-0 bottom-0 w-6 flex items-center justify-center transition-opacity cursor-grab active:cursor-grabbing bg-gradient-to-r from-gray-50 to-transparent ${
+          className={`absolute left-0 top-0 bottom-0 w-5 flex items-center justify-center transition-opacity cursor-grab active:cursor-grabbing bg-gradient-to-r from-gray-50 to-transparent z-10 ${
             isDragging ? "opacity-100" : "opacity-0 group-hover:opacity-100"
           }`}
         >
           <GripVertical className="w-3 h-3 text-gray-400" />
         </div>
 
-        {/* Outbound Row */}
-        <div className="pl-7 pr-3 py-2 flex items-center gap-2">
-          <AirlineLogo code={f.airline} size="sm" className="flex-shrink-0" />
-          <div className="min-w-[60px]">
-            <p className="text-xs font-bold text-gray-900">{f.airline}</p>
-            {f.flightNumber && <p className="text-[9px] text-gray-500">{f.flightNumber}</p>}
+        {/* 3-Column Layout */}
+        <div className="flex">
+          {/* LEFT: Logo + Airline Name + Fare Type */}
+          <div className="flex flex-col items-center justify-center px-2 py-2 border-r border-gray-100 min-w-[72px] ml-5">
+            <AirlineLogo code={f.airline} size="sm" className="flex-shrink-0" />
+            <p className="text-[9px] font-bold text-gray-900 mt-1 text-center truncate max-w-[68px]">
+              {f.airlineName || f.airline}
+            </p>
+            {f.fareType && (
+              <p className="text-[7px] text-indigo-600 font-semibold bg-indigo-50 px-1.5 py-0.5 rounded mt-0.5 truncate max-w-[68px]">
+                {f.fareType}
+              </p>
+            )}
           </div>
-          <div className="flex items-center gap-1 flex-1 min-w-0">
-            <span className="text-[7px] font-bold text-indigo-600 uppercase">→OUT</span>
-            <div className="text-center">
-              <p className="text-xs font-bold text-gray-900">{f.departureTime || "--:--"}</p>
-              <p className="text-[8px] text-gray-500">{f.origin}</p>
-            </div>
-            <div className="flex-1 px-1">
-              <div className="h-px bg-gradient-to-r from-gray-300 via-indigo-400 to-gray-300 relative">
-                <Plane className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-2 h-2 text-indigo-500 bg-white" />
-              </div>
-              <div className="flex items-center justify-center gap-0.5 mt-0.5">
-                <span className="text-[7px] text-gray-500">{f.duration}</span>
-                <span className={`text-[6px] font-bold px-0.5 rounded ${getStopsStyle(f.stops)}`}>
-                  {f.stops === 0 ? "Direct" : `${f.stops}stop`}
-                </span>
-              </div>
-            </div>
-            <div className="text-center">
-              <p className="text-xs font-bold text-gray-900">{f.arrivalTime || "--:--"}</p>
-              <p className="text-[8px] text-gray-500">{f.destination}</p>
-            </div>
-          </div>
-          <div className="text-right ml-auto">
-            <p className="text-sm font-black text-gray-900 bg-yellow-100 px-1 rounded">{formatPrice(f.price)}</p>
-            <p className="text-[8px] text-gray-400">{f.passengers} pax</p>
-          </div>
-          <div className="flex items-center gap-0.5">
-            <button onClick={handleExpand} className="p-1 text-gray-400 hover:text-gray-600 rounded">
-              {isExpanded ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />}
-            </button>
-            <button onClick={() => setShowMenu(!showMenu)} className="p-1 text-gray-400 hover:text-gray-600 rounded">
-              <MoreVertical className="w-3 h-3" />
-            </button>
-          </div>
-        </div>
 
-        {/* Return Row */}
-        {isRoundtrip && (
-          <div className="pl-7 pr-3 py-1.5 bg-gray-50 border-t border-gray-100 flex items-center gap-2">
-            <div className="min-w-[60px]" />
-            <div className="flex items-center gap-1 flex-1 min-w-0" style={{ marginLeft: "28px" }}>
-              <span className="text-[7px] font-bold text-orange-600 uppercase">←RET</span>
-              <div className="text-center">
-                <p className="text-xs font-bold text-gray-900">{f.returnDepartureTime || "--:--"}</p>
-                <p className="text-[8px] text-gray-500">{f.destination}</p>
+          {/* MIDDLE: Flight Rows */}
+          <div className="flex-1 min-w-0">
+            {/* Outbound Row */}
+            <div className="flex items-center gap-1.5 px-2 py-1.5 border-b border-gray-50">
+              <span className="text-[7px] font-bold text-indigo-600 uppercase w-7">→OUT</span>
+              <span className="text-[8px] text-gray-500 w-12 truncate">{f.airline} {f.flightNumber}</span>
+              <div className="text-center min-w-[36px]">
+                <p className="text-xs font-bold text-gray-900">{f.departureTime || "--:--"}</p>
+                <p className="text-[8px] text-gray-500">{f.origin}</p>
               </div>
               <div className="flex-1 px-1">
-                <div className="h-px bg-gradient-to-r from-gray-300 via-orange-400 to-gray-300 relative">
-                  <Plane className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-2 h-2 text-orange-500 bg-white rotate-180" />
+                <div className="relative h-px bg-gradient-to-r from-gray-300 via-indigo-400 to-gray-300">
+                  <Plane className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-2 h-2 text-indigo-500 bg-white" />
                 </div>
                 <div className="flex items-center justify-center gap-0.5 mt-0.5">
-                  <span className="text-[7px] text-gray-500">{f.returnDuration}</span>
-                  <span className={`text-[6px] font-bold px-0.5 rounded ${getStopsStyle(f.returnStops || 0)}`}>
-                    {(f.returnStops || 0) === 0 ? "Direct" : `${f.returnStops}stop`}
+                  <span className="text-[7px] text-gray-500">{f.duration}</span>
+                  <span className={`text-[6px] font-bold px-0.5 rounded ${getStopsStyle(f.stops)}`}>
+                    {f.stops === 0 ? "Direct" : `${f.stops}stop`}
                   </span>
                 </div>
               </div>
-              <div className="text-center">
-                <p className="text-xs font-bold text-gray-900">{f.returnArrivalTime || "--:--"}</p>
-                <p className="text-[8px] text-gray-500">{f.origin}</p>
+              <div className="text-center min-w-[36px]">
+                <p className="text-xs font-bold text-gray-900">{f.arrivalTime || "--:--"}</p>
+                <p className="text-[8px] text-gray-500">{f.destination}</p>
               </div>
             </div>
+
+            {/* Return Row */}
+            {isRoundtrip && (
+              <div className="flex items-center gap-1.5 px-2 py-1.5 bg-gray-50/50">
+                <span className="text-[7px] font-bold text-orange-600 uppercase w-7">←RET</span>
+                <span className="text-[8px] text-gray-500 w-12 truncate">{f.airline} {f.returnFlightNumber}</span>
+                <div className="text-center min-w-[36px]">
+                  <p className="text-xs font-bold text-gray-900">{f.returnDepartureTime || "--:--"}</p>
+                  <p className="text-[8px] text-gray-500">{f.destination}</p>
+                </div>
+                <div className="flex-1 px-1">
+                  <div className="relative h-px bg-gradient-to-r from-gray-300 via-orange-400 to-gray-300">
+                    <Plane className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-2 h-2 text-orange-500 bg-white rotate-180" />
+                  </div>
+                  <div className="flex items-center justify-center gap-0.5 mt-0.5">
+                    <span className="text-[7px] text-gray-500">{f.returnDuration}</span>
+                    <span className={`text-[6px] font-bold px-0.5 rounded ${getStopsStyle(f.returnStops || 0)}`}>
+                      {(f.returnStops || 0) === 0 ? "Direct" : `${f.returnStops}stop`}
+                    </span>
+                  </div>
+                </div>
+                <div className="text-center min-w-[36px]">
+                  <p className="text-xs font-bold text-gray-900">{f.returnArrivalTime || "--:--"}</p>
+                  <p className="text-[8px] text-gray-500">{f.origin}</p>
+                </div>
+              </div>
+            )}
           </div>
-        )}
+
+          {/* RIGHT: Price + Actions */}
+          <div className="flex flex-col items-center justify-center px-2 py-2 border-l border-gray-100 min-w-[80px]">
+            <p className="text-sm font-black text-gray-900 bg-yellow-100 px-1.5 py-0.5 rounded">{formatPrice(f.price)}</p>
+            <p className="text-[8px] text-gray-400 mt-0.5">{f.passengers} pax • {isRoundtrip ? "RT" : "OW"}</p>
+            <div className="flex items-center gap-0.5 mt-1">
+              <button onClick={handleExpand} className="p-1 text-gray-400 hover:text-indigo-600 rounded hover:bg-indigo-50 transition-colors">
+                {isExpanded ? <ChevronUp className="w-3.5 h-3.5" /> : <ChevronDown className="w-3.5 h-3.5" />}
+              </button>
+              <button onClick={() => setShowMenu(!showMenu)} className="p-1 text-gray-400 hover:text-gray-600 rounded hover:bg-gray-100 transition-colors">
+                <MoreVertical className="w-3.5 h-3.5" />
+              </button>
+            </div>
+          </div>
+        </div>
+
+        {/* Expandable Details Section */}
+        <AnimatePresence>
+          {isExpanded && (
+            <motion.div
+              initial={{ height: 0, opacity: 0 }}
+              animate={{ height: "auto", opacity: 1 }}
+              exit={{ height: 0, opacity: 0 }}
+              transition={{ duration: 0.2 }}
+              className="border-t border-gray-200 overflow-hidden"
+            >
+              <div className="p-3 bg-gradient-to-br from-blue-50/50 to-indigo-50/50">
+                <h5 className="text-[10px] font-bold text-gray-700 uppercase tracking-wider mb-2 flex items-center gap-1">
+                  <Info className="w-3 h-3" />
+                  Flight Details
+                </h5>
+
+                <div className="grid grid-cols-3 gap-2">
+                  {/* Fare Type */}
+                  <div className="bg-white rounded-lg p-2 border border-gray-100 shadow-sm">
+                    <p className="text-[8px] text-gray-500 uppercase tracking-wide">Fare Type</p>
+                    <p className="text-xs font-semibold text-gray-900 mt-0.5">{f.fareType || "Standard"}</p>
+                    {f.fareBasis && (
+                      <p className="text-[8px] text-gray-400 mt-0.5">{f.fareBasis}</p>
+                    )}
+                  </div>
+
+                  {/* Cabin Class */}
+                  <div className="bg-white rounded-lg p-2 border border-gray-100 shadow-sm">
+                    <p className="text-[8px] text-gray-500 uppercase tracking-wide">Cabin</p>
+                    <p className="text-xs font-semibold text-gray-900 capitalize mt-0.5">
+                      {f.cabinClass?.replace("_", " ") || "Economy"}
+                    </p>
+                  </div>
+
+                  {/* Baggage */}
+                  <div className="bg-white rounded-lg p-2 border border-gray-100 shadow-sm">
+                    <p className="text-[8px] text-gray-500 uppercase tracking-wide flex items-center gap-0.5">
+                      <Luggage className="w-2.5 h-2.5" /> Baggage
+                    </p>
+                    <p className="text-xs font-semibold text-gray-900 mt-0.5">
+                      {f.includedBags?.quantity ? `${f.includedBags.quantity} bag${f.includedBags.quantity > 1 ? "s" : ""}` : f.baggage || "Check policy"}
+                    </p>
+                    {f.includedBags?.weight && (
+                      <p className="text-[8px] text-gray-400">{f.includedBags.weight}</p>
+                    )}
+                  </div>
+                </div>
+
+                {/* Fare Rules */}
+                {f.fareRules && (
+                  <div className="mt-2 flex items-center gap-3 text-[9px]">
+                    <div className="flex items-center gap-1">
+                      {f.fareRules.changeable ? (
+                        <CheckCircle2 className="w-3 h-3 text-emerald-500" />
+                      ) : (
+                        <XCircle className="w-3 h-3 text-red-400" />
+                      )}
+                      <span className={f.fareRules.changeable ? "text-emerald-700" : "text-red-500"}>
+                        {f.fareRules.changeable ? "Changeable" : "Non-changeable"}
+                      </span>
+                      {f.fareRules.changeFee && (
+                        <span className="text-gray-400">({f.fareRules.changeFee})</span>
+                      )}
+                    </div>
+                    <div className="flex items-center gap-1">
+                      {f.fareRules.refundable ? (
+                        <CheckCircle2 className="w-3 h-3 text-emerald-500" />
+                      ) : (
+                        <XCircle className="w-3 h-3 text-red-400" />
+                      )}
+                      <span className={f.fareRules.refundable ? "text-emerald-700" : "text-red-500"}>
+                        {f.fareRules.refundable ? "Refundable" : "Non-refundable"}
+                      </span>
+                    </div>
+                  </div>
+                )}
+
+                {/* Route Summary */}
+                <div className="mt-2 pt-2 border-t border-gray-200/50 text-[9px] text-gray-500">
+                  <span className="font-medium">{f.originCity || f.origin}</span>
+                  <span className="mx-1">→</span>
+                  <span className="font-medium">{f.destinationCity || f.destination}</span>
+                  {isRoundtrip && (
+                    <>
+                      <span className="mx-1">→</span>
+                      <span className="font-medium">{f.originCity || f.origin}</span>
+                    </>
+                  )}
+                </div>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
 
         {/* Dropdown Menu */}
         <AnimatePresence>
@@ -215,7 +322,7 @@ export default function ItineraryCard({ item, dragListeners, isDragging }: Itine
                 initial={{ opacity: 0, scale: 0.95 }}
                 animate={{ opacity: 1, scale: 1 }}
                 exit={{ opacity: 0, scale: 0.95 }}
-                className="absolute right-2 top-10 w-32 bg-white border border-gray-200 rounded-lg shadow-xl z-20 overflow-hidden"
+                className="absolute right-2 top-12 w-32 bg-white border border-gray-200 rounded-lg shadow-xl z-20 overflow-hidden"
               >
                 <button onClick={() => { expandItem(item.id); setShowMenu(false); }} className="w-full flex items-center gap-2 px-2 py-1.5 text-xs text-gray-700 hover:bg-gray-50">
                   <Edit2 className="w-3 h-3" /> Edit
