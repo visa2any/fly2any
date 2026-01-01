@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { format, parseISO } from "date-fns";
-import { Plane, Building2, Car, Compass, Bus, Shield, Package, MoreVertical, Edit2, Copy, Trash2, GripVertical, ChevronDown, ChevronUp, Briefcase, RefreshCw, XCircle, CheckCircle2, Info, Luggage } from "lucide-react";
+import { Plane, Building2, Car, Compass, Bus, Shield, Package, MoreVertical, Edit2, Copy, Trash2, GripVertical, ChevronDown, ChevronUp, Briefcase, RefreshCw, XCircle, CheckCircle2, Info, Luggage, Star, Clock, Users, MapPin } from "lucide-react";
 import { useQuoteWorkspace } from "../QuoteWorkspaceProvider";
 import AirlineLogo from "@/components/flights/AirlineLogo";
 import type { QuoteItem, FlightItem, HotelItem, CarItem, ActivityItem, TransferItem, InsuranceItem, CustomItem, ProductType } from "../types/quote-workspace.types";
@@ -344,11 +344,229 @@ export default function ItineraryCard({ item, dragListeners, isDragging }: Itine
     );
   }
 
-  // Default card for non-flight items
+  // Activity-specific card with photo and more info
+  if (item.type === "activity") {
+    const a = item as ActivityItem;
+    return (
+      <motion.div
+        layout
+        className={`group relative bg-white border border-gray-200 rounded-xl shadow-sm hover:shadow-md transition-shadow ${
+          isExpanded ? "ring-2 ring-emerald-400" : ""
+        }`}
+      >
+        {/* Drag Handle */}
+        <div
+          {...dragListeners}
+          className={`absolute left-0 top-0 bottom-0 w-5 flex items-center justify-center transition-opacity cursor-grab active:cursor-grabbing bg-gradient-to-r from-gray-50 to-transparent z-10 ${
+            isDragging ? "opacity-100" : "opacity-0 group-hover:opacity-100"
+          }`}
+        >
+          <GripVertical className="w-3 h-3 text-gray-400" />
+        </div>
+
+        {/* Main Content */}
+        <div className="flex ml-5">
+          {/* Photo Thumbnail */}
+          <div className="w-20 h-20 rounded-l-xl bg-emerald-100 overflow-hidden flex-shrink-0">
+            {a.image ? (
+              <img src={a.image} alt={a.name} className="w-full h-full object-cover" />
+            ) : (
+              <div className="w-full h-full flex items-center justify-center">
+                <Compass className="w-8 h-8 text-emerald-300" />
+              </div>
+            )}
+          </div>
+
+          {/* Info Section */}
+          <div className="flex-1 min-w-0 px-3 py-2">
+            <div className="flex items-start justify-between gap-2">
+              <div className="flex-1 min-w-0">
+                <h4 className="font-bold text-gray-900 text-sm truncate">{a.name}</h4>
+                <div className="flex items-center gap-2 mt-0.5 flex-wrap">
+                  <span className="flex items-center gap-0.5 text-[10px] text-gray-500">
+                    <MapPin className="w-3 h-3" />{a.location}
+                  </span>
+                  {a.duration && (
+                    <span className="flex items-center gap-0.5 text-[10px] text-gray-500">
+                      <Clock className="w-3 h-3" />{a.duration}
+                    </span>
+                  )}
+                  <span className="flex items-center gap-0.5 text-[10px] text-gray-500">
+                    <Users className="w-3 h-3" />{a.participants} pax
+                  </span>
+                </div>
+                {a.description && (
+                  <p className="text-[10px] text-gray-400 mt-1 line-clamp-1">{a.description}</p>
+                )}
+              </div>
+              {/* Price */}
+              <div className="flex-shrink-0 text-right">
+                <p className="font-black text-gray-900 text-sm bg-yellow-100 px-2 py-0.5 rounded">{formatPrice(a.price)}</p>
+                <p className="text-[9px] text-gray-400 mt-0.5">{a.date ? format(parseISO(a.date), "MMM d") : ""}</p>
+              </div>
+            </div>
+          </div>
+
+          {/* Actions */}
+          <div className="flex flex-col items-center justify-center px-2 border-l border-gray-100 gap-1">
+            <button onClick={handleExpand} className="p-1 text-gray-400 hover:text-emerald-600 hover:bg-emerald-50 rounded transition-colors">
+              {isExpanded ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
+            </button>
+            <button onClick={() => setShowMenu(!showMenu)} className="p-1 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded transition-colors">
+              <MoreVertical className="w-4 h-4" />
+            </button>
+          </div>
+        </div>
+
+        {/* Expanded Details */}
+        <AnimatePresence>
+          {isExpanded && (
+            <motion.div
+              initial={{ height: 0, opacity: 0 }}
+              animate={{ height: "auto", opacity: 1 }}
+              exit={{ height: 0, opacity: 0 }}
+              transition={{ duration: 0.2 }}
+              className="border-t border-gray-200"
+            >
+              <div className="p-3 bg-gradient-to-br from-emerald-50/50 to-teal-50/50">
+                <p className="text-xs text-gray-600">{a.description || "No description available."}</p>
+                {a.includes && a.includes.length > 0 && (
+                  <div className="mt-2 flex flex-wrap gap-1">
+                    {a.includes.map((inc, i) => (
+                      <span key={i} className="text-[9px] px-1.5 py-0.5 bg-emerald-100 text-emerald-700 rounded-full">{inc}</span>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+
+        {/* Dropdown Menu - Fixed z-index */}
+        <AnimatePresence>
+          {showMenu && (
+            <>
+              <div className="fixed inset-0 z-[100]" onClick={() => setShowMenu(false)} />
+              <motion.div
+                initial={{ opacity: 0, scale: 0.95 }}
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0, scale: 0.95 }}
+                className="absolute right-2 top-12 w-32 bg-white border border-gray-200 rounded-lg shadow-xl z-[101] overflow-hidden"
+              >
+                <button onClick={() => { expandItem(item.id); setShowMenu(false); }} className="w-full flex items-center gap-2 px-2 py-1.5 text-xs text-gray-700 hover:bg-gray-50">
+                  <Edit2 className="w-3 h-3" /> Edit
+                </button>
+                <button onClick={handleDelete} className="w-full flex items-center gap-2 px-2 py-1.5 text-xs text-red-600 hover:bg-red-50">
+                  <Trash2 className="w-3 h-3" /> Remove
+                </button>
+              </motion.div>
+            </>
+          )}
+        </AnimatePresence>
+      </motion.div>
+    );
+  }
+
+  // Transfer-specific card with improved layout
+  if (item.type === "transfer") {
+    const t = item as TransferItem;
+    return (
+      <motion.div
+        layout
+        className={`group relative bg-white border border-gray-200 rounded-xl shadow-sm hover:shadow-md transition-shadow ${
+          isExpanded ? "ring-2 ring-amber-400" : ""
+        }`}
+      >
+        {/* Drag Handle */}
+        <div
+          {...dragListeners}
+          className={`absolute left-0 top-0 bottom-0 w-5 flex items-center justify-center transition-opacity cursor-grab active:cursor-grabbing bg-gradient-to-r from-gray-50 to-transparent z-10 ${
+            isDragging ? "opacity-100" : "opacity-0 group-hover:opacity-100"
+          }`}
+        >
+          <GripVertical className="w-3 h-3 text-gray-400" />
+        </div>
+
+        {/* Main Content */}
+        <div className="flex ml-5">
+          {/* Icon */}
+          <div className="w-16 flex items-center justify-center border-r border-gray-100">
+            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-amber-500 to-orange-600 flex items-center justify-center shadow-sm">
+              <Bus className="w-5 h-5 text-white" />
+            </div>
+          </div>
+
+          {/* Info Section */}
+          <div className="flex-1 min-w-0 px-3 py-2">
+            <div className="flex items-center gap-2">
+              <h4 className="font-bold text-gray-900 text-sm">{t.vehicleType} Transfer</h4>
+              <span className="text-[9px] text-amber-600 bg-amber-50 px-1.5 py-0.5 rounded font-medium">{t.provider}</span>
+            </div>
+            <div className="flex items-center gap-1 mt-1 text-xs text-gray-600">
+              <span className="font-medium">{t.pickupLocation}</span>
+              <span className="text-gray-400">→</span>
+              <span className="font-medium">{t.dropoffLocation}</span>
+            </div>
+            <div className="flex items-center gap-2 mt-1">
+              <span className="text-[10px] text-gray-500 flex items-center gap-0.5">
+                <Clock className="w-3 h-3" />{t.pickupTime}
+              </span>
+              <span className="text-[10px] text-gray-500 flex items-center gap-0.5">
+                <Users className="w-3 h-3" />{t.passengers} pax
+              </span>
+              {t.meetAndGreet && (
+                <span className="text-[9px] text-emerald-600 bg-emerald-50 px-1.5 py-0.5 rounded">Meet & Greet</span>
+              )}
+            </div>
+          </div>
+
+          {/* Price + Actions */}
+          <div className="flex items-center gap-2 px-3 border-l border-gray-100">
+            <div className="text-right">
+              <p className="font-black text-gray-900 text-sm bg-yellow-100 px-2 py-0.5 rounded">{formatPrice(t.price)}</p>
+              <p className="text-[9px] text-gray-400 mt-0.5">{t.date ? format(parseISO(t.date), "MMM d") : ""}</p>
+            </div>
+            <div className="flex flex-col gap-1">
+              <button onClick={handleExpand} className="p-1 text-gray-400 hover:text-amber-600 hover:bg-amber-50 rounded transition-colors">
+                {isExpanded ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
+              </button>
+              <button onClick={() => setShowMenu(!showMenu)} className="p-1 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded transition-colors">
+                <MoreVertical className="w-4 h-4" />
+              </button>
+            </div>
+          </div>
+        </div>
+
+        {/* Dropdown Menu - Fixed z-index */}
+        <AnimatePresence>
+          {showMenu && (
+            <>
+              <div className="fixed inset-0 z-[100]" onClick={() => setShowMenu(false)} />
+              <motion.div
+                initial={{ opacity: 0, scale: 0.95 }}
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0, scale: 0.95 }}
+                className="absolute right-2 top-12 w-32 bg-white border border-gray-200 rounded-lg shadow-xl z-[101] overflow-hidden"
+              >
+                <button onClick={() => { expandItem(item.id); setShowMenu(false); }} className="w-full flex items-center gap-2 px-2 py-1.5 text-xs text-gray-700 hover:bg-gray-50">
+                  <Edit2 className="w-3 h-3" /> Edit
+                </button>
+                <button onClick={handleDelete} className="w-full flex items-center gap-2 px-2 py-1.5 text-xs text-red-600 hover:bg-red-50">
+                  <Trash2 className="w-3 h-3" /> Remove
+                </button>
+              </motion.div>
+            </>
+          )}
+        </AnimatePresence>
+      </motion.div>
+    );
+  }
+
+  // Default card for other items (hotel, car, insurance, custom)
   return (
     <motion.div
       layout
-      className={`group relative bg-white border border-gray-200 rounded-xl overflow-hidden shadow-sm hover:shadow-md transition-shadow ${
+      className={`group relative bg-white border border-gray-200 rounded-xl shadow-sm hover:shadow-md transition-shadow ${
         isExpanded ? "ring-2 ring-primary-500" : ""
       }`}
     >
@@ -386,35 +604,9 @@ export default function ItineraryCard({ item, dragListeners, isDragging }: Itine
             <button onClick={handleExpand} className="p-1 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition-colors">
               {isExpanded ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
             </button>
-            <div className="relative">
-              <button onClick={() => setShowMenu(!showMenu)} className="p-1 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition-colors">
-                <MoreVertical className="w-4 h-4" />
-              </button>
-              <AnimatePresence>
-                {showMenu && (
-                  <>
-                    <div className="fixed inset-0 z-10" onClick={() => setShowMenu(false)} />
-                    <motion.div
-                      initial={{ opacity: 0, scale: 0.95, y: -10 }}
-                      animate={{ opacity: 1, scale: 1, y: 0 }}
-                      exit={{ opacity: 0, scale: 0.95, y: -10 }}
-                      className="absolute right-0 top-full mt-1 w-36 bg-white border border-gray-200 rounded-xl shadow-xl z-20 overflow-hidden"
-                    >
-                      <button onClick={() => { expandItem(item.id); setShowMenu(false); }} className="w-full flex items-center gap-2 px-3 py-2 text-sm text-gray-700 hover:bg-gray-50">
-                        <Edit2 className="w-4 h-4" /> Edit
-                      </button>
-                      <button onClick={() => setShowMenu(false)} className="w-full flex items-center gap-2 px-3 py-2 text-sm text-gray-700 hover:bg-gray-50">
-                        <Copy className="w-4 h-4" /> Duplicate
-                      </button>
-                      <div className="border-t border-gray-100" />
-                      <button onClick={handleDelete} className="w-full flex items-center gap-2 px-3 py-2 text-sm text-red-600 hover:bg-red-50">
-                        <Trash2 className="w-4 h-4" /> Remove
-                      </button>
-                    </motion.div>
-                  </>
-                )}
-              </AnimatePresence>
-            </div>
+            <button onClick={() => setShowMenu(!showMenu)} className="p-1 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition-colors">
+              <MoreVertical className="w-4 h-4" />
+            </button>
           </div>
         </div>
 
@@ -435,6 +627,32 @@ export default function ItineraryCard({ item, dragListeners, isDragging }: Itine
           )}
         </AnimatePresence>
       </div>
+
+      {/* Dropdown Menu - Fixed z-index */}
+      <AnimatePresence>
+        {showMenu && (
+          <>
+            <div className="fixed inset-0 z-[100]" onClick={() => setShowMenu(false)} />
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95, y: -10 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95, y: -10 }}
+              className="absolute right-4 top-12 w-36 bg-white border border-gray-200 rounded-xl shadow-xl z-[101] overflow-hidden"
+            >
+              <button onClick={() => { expandItem(item.id); setShowMenu(false); }} className="w-full flex items-center gap-2 px-3 py-2 text-sm text-gray-700 hover:bg-gray-50">
+                <Edit2 className="w-4 h-4" /> Edit
+              </button>
+              <button onClick={() => setShowMenu(false)} className="w-full flex items-center gap-2 px-3 py-2 text-sm text-gray-700 hover:bg-gray-50">
+                <Copy className="w-4 h-4" /> Duplicate
+              </button>
+              <div className="border-t border-gray-100" />
+              <button onClick={handleDelete} className="w-full flex items-center gap-2 px-3 py-2 text-sm text-red-600 hover:bg-red-50">
+                <Trash2 className="w-4 h-4" /> Remove
+              </button>
+            </motion.div>
+          </>
+        )}
+      </AnimatePresence>
     </motion.div>
   );
 }
