@@ -23,9 +23,10 @@ interface ItineraryCardProps {
   item: QuoteItem;
   dragListeners?: any;
   isDragging?: boolean;
+  viewMode?: "agent" | "client";
 }
 
-export default function ItineraryCard({ item, dragListeners, isDragging }: ItineraryCardProps) {
+export default function ItineraryCard({ item, dragListeners, isDragging, viewMode = "agent" }: ItineraryCardProps) {
   const { state, removeItem, expandItem } = useQuoteWorkspace();
   const [showMenu, setShowMenu] = useState(false);
   const isExpanded = state.ui.expandedItemId === item.id;
@@ -124,15 +125,17 @@ export default function ItineraryCard({ item, dragListeners, isDragging }: Itine
           isExpanded ? "ring-2 ring-indigo-400" : ""
         }`}
       >
-        {/* Drag Handle */}
-        <div
-          {...dragListeners}
-          className={`absolute left-0 top-0 bottom-0 w-5 flex items-center justify-center transition-opacity cursor-grab active:cursor-grabbing bg-gradient-to-r from-gray-50 to-transparent z-10 ${
-            isDragging ? "opacity-100" : "opacity-0 group-hover:opacity-100"
-          }`}
-        >
-          <GripVertical className="w-3 h-3 text-gray-400" />
-        </div>
+        {/* Drag Handle - Agent Only */}
+        {viewMode === "agent" && (
+          <div
+            {...dragListeners}
+            className={`absolute left-0 top-0 bottom-0 w-5 flex items-center justify-center transition-opacity cursor-grab active:cursor-grabbing bg-gradient-to-r from-gray-50 to-transparent z-10 ${
+              isDragging ? "opacity-100" : "opacity-0 group-hover:opacity-100"
+            }`}
+          >
+            <GripVertical className="w-3 h-3 text-gray-400" />
+          </div>
+        )}
 
         {/* 3-Column Layout - Increased readability */}
         <div className="flex">
@@ -212,16 +215,25 @@ export default function ItineraryCard({ item, dragListeners, isDragging }: Itine
 
           {/* RIGHT: Price + Actions */}
           <div className="flex flex-col items-center justify-center px-3 py-3 border-l border-gray-100 min-w-[100px]">
-            <p className="text-base font-black text-gray-900 bg-yellow-100 px-2 py-1 rounded">{formatPrice(f.price)}</p>
-            <p className="text-xs text-gray-400 mt-1">{f.passengers} pax • {isRoundtrip ? "RT" : "OW"}</p>
-            <div className="flex items-center gap-1 mt-1.5">
-              <button onClick={handleExpand} className="p-1.5 text-gray-400 hover:text-indigo-600 rounded hover:bg-indigo-50 transition-colors">
-                {isExpanded ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
-              </button>
-              <button onClick={() => setShowMenu(!showMenu)} className="p-1.5 text-gray-400 hover:text-gray-600 rounded hover:bg-gray-100 transition-colors">
-                <MoreVertical className="w-4 h-4" />
-              </button>
-            </div>
+            {viewMode === "agent" ? (
+              <>
+                <p className="text-base font-black text-gray-900 bg-yellow-100 px-2 py-1 rounded">{formatPrice(f.price)}</p>
+                <p className="text-xs text-gray-400 mt-1">{f.passengers} pax • {isRoundtrip ? "RT" : "OW"}</p>
+                <div className="flex items-center gap-1 mt-1.5">
+                  <button onClick={handleExpand} className="p-1.5 text-gray-400 hover:text-indigo-600 rounded hover:bg-indigo-50 transition-colors">
+                    {isExpanded ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
+                  </button>
+                  <button onClick={() => setShowMenu(!showMenu)} className="p-1.5 text-gray-400 hover:text-gray-600 rounded hover:bg-gray-100 transition-colors">
+                    <MoreVertical className="w-4 h-4" />
+                  </button>
+                </div>
+              </>
+            ) : (
+              <div className="text-center">
+                <p className="text-xs text-gray-600">{f.passengers} passenger{f.passengers > 1 ? "s" : ""}</p>
+                <p className="text-[10px] text-gray-400 mt-0.5">{isRoundtrip ? "Round trip" : "One way"}</p>
+              </div>
+            )}
           </div>
         </div>
 
@@ -354,15 +366,17 @@ export default function ItineraryCard({ item, dragListeners, isDragging }: Itine
           isExpanded ? "ring-2 ring-emerald-400" : ""
         }`}
       >
-        {/* Drag Handle */}
-        <div
-          {...dragListeners}
-          className={`absolute left-0 top-0 bottom-0 w-5 flex items-center justify-center transition-opacity cursor-grab active:cursor-grabbing bg-gradient-to-r from-gray-50 to-transparent z-10 ${
-            isDragging ? "opacity-100" : "opacity-0 group-hover:opacity-100"
-          }`}
-        >
-          <GripVertical className="w-3 h-3 text-gray-400" />
-        </div>
+        {/* Drag Handle - Agent Only */}
+        {viewMode === "agent" && (
+          <div
+            {...dragListeners}
+            className={`absolute left-0 top-0 bottom-0 w-5 flex items-center justify-center transition-opacity cursor-grab active:cursor-grabbing bg-gradient-to-r from-gray-50 to-transparent z-10 ${
+              isDragging ? "opacity-100" : "opacity-0 group-hover:opacity-100"
+            }`}
+          >
+            <GripVertical className="w-3 h-3 text-gray-400" />
+          </div>
+        )}
 
         {/* Main Content */}
         <div className="flex ml-5">
@@ -399,23 +413,27 @@ export default function ItineraryCard({ item, dragListeners, isDragging }: Itine
                   <p className="text-[10px] text-gray-400 mt-1 line-clamp-1">{a.description}</p>
                 )}
               </div>
-              {/* Price */}
-              <div className="flex-shrink-0 text-right">
-                <p className="font-black text-gray-900 text-sm bg-yellow-100 px-2 py-0.5 rounded">{formatPrice(a.price)}</p>
-                <p className="text-[9px] text-gray-400 mt-0.5">{a.date ? format(parseISO(a.date), "MMM d") : ""}</p>
-              </div>
+              {/* Price - Agent Only */}
+              {viewMode === "agent" && (
+                <div className="flex-shrink-0 text-right">
+                  <p className="font-black text-gray-900 text-sm bg-yellow-100 px-2 py-0.5 rounded">{formatPrice(a.price)}</p>
+                  <p className="text-[9px] text-gray-400 mt-0.5">{a.date ? format(parseISO(a.date), "MMM d") : ""}</p>
+                </div>
+              )}
             </div>
           </div>
 
-          {/* Actions */}
-          <div className="flex flex-col items-center justify-center px-2 border-l border-gray-100 gap-1">
-            <button onClick={handleExpand} className="p-1 text-gray-400 hover:text-emerald-600 hover:bg-emerald-50 rounded transition-colors">
-              {isExpanded ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
-            </button>
-            <button onClick={() => setShowMenu(!showMenu)} className="p-1 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded transition-colors">
-              <MoreVertical className="w-4 h-4" />
-            </button>
-          </div>
+          {/* Actions - Agent Only */}
+          {viewMode === "agent" && (
+            <div className="flex flex-col items-center justify-center px-2 border-l border-gray-100 gap-1">
+              <button onClick={handleExpand} className="p-1 text-gray-400 hover:text-emerald-600 hover:bg-emerald-50 rounded transition-colors">
+                {isExpanded ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
+              </button>
+              <button onClick={() => setShowMenu(!showMenu)} className="p-1 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded transition-colors">
+                <MoreVertical className="w-4 h-4" />
+              </button>
+            </div>
+          )}
         </div>
 
         {/* Expanded Details */}
@@ -477,15 +495,17 @@ export default function ItineraryCard({ item, dragListeners, isDragging }: Itine
           isExpanded ? "ring-2 ring-purple-400" : ""
         }`}
       >
-        {/* Drag Handle */}
-        <div
-          {...dragListeners}
-          className={`absolute left-0 top-0 bottom-0 w-5 flex items-center justify-center transition-opacity cursor-grab active:cursor-grabbing bg-gradient-to-r from-gray-50 to-transparent z-10 ${
-            isDragging ? "opacity-100" : "opacity-0 group-hover:opacity-100"
-          }`}
-        >
-          <GripVertical className="w-3 h-3 text-gray-400" />
-        </div>
+        {/* Drag Handle - Agent Only */}
+        {viewMode === "agent" && (
+          <div
+            {...dragListeners}
+            className={`absolute left-0 top-0 bottom-0 w-5 flex items-center justify-center transition-opacity cursor-grab active:cursor-grabbing bg-gradient-to-r from-gray-50 to-transparent z-10 ${
+              isDragging ? "opacity-100" : "opacity-0 group-hover:opacity-100"
+            }`}
+          >
+            <GripVertical className="w-3 h-3 text-gray-400" />
+          </div>
+        )}
 
         {/* Main Content */}
         <div className="flex ml-5">
@@ -532,23 +552,27 @@ export default function ItineraryCard({ item, dragListeners, isDragging }: Itine
                   </span>
                 </div>
               </div>
-              {/* Price */}
-              <div className="flex-shrink-0 text-right">
-                <p className="font-black text-gray-900 text-sm bg-yellow-100 px-2 py-0.5 rounded">{formatPrice(h.price)}</p>
-                <p className="text-[9px] text-gray-400 mt-0.5">{h.checkIn ? format(parseISO(h.checkIn), "MMM d") : ""}</p>
-              </div>
+              {/* Price - Agent Only */}
+              {viewMode === "agent" && (
+                <div className="flex-shrink-0 text-right">
+                  <p className="font-black text-gray-900 text-sm bg-yellow-100 px-2 py-0.5 rounded">{formatPrice(h.price)}</p>
+                  <p className="text-[9px] text-gray-400 mt-0.5">{h.checkIn ? format(parseISO(h.checkIn), "MMM d") : ""}</p>
+                </div>
+              )}
             </div>
           </div>
 
-          {/* Actions */}
-          <div className="flex flex-col items-center justify-center px-2 border-l border-gray-100 gap-1">
-            <button onClick={handleExpand} className="p-1 text-gray-400 hover:text-purple-600 hover:bg-purple-50 rounded transition-colors">
-              {isExpanded ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
-            </button>
-            <button onClick={() => setShowMenu(!showMenu)} className="p-1 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded transition-colors">
-              <MoreVertical className="w-4 h-4" />
-            </button>
-          </div>
+          {/* Actions - Agent Only */}
+          {viewMode === "agent" && (
+            <div className="flex flex-col items-center justify-center px-2 border-l border-gray-100 gap-1">
+              <button onClick={handleExpand} className="p-1 text-gray-400 hover:text-purple-600 hover:bg-purple-50 rounded transition-colors">
+                {isExpanded ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
+              </button>
+              <button onClick={() => setShowMenu(!showMenu)} className="p-1 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded transition-colors">
+                <MoreVertical className="w-4 h-4" />
+              </button>
+            </div>
+          )}
         </div>
 
         {/* Expanded Details */}
@@ -622,15 +646,17 @@ export default function ItineraryCard({ item, dragListeners, isDragging }: Itine
           isExpanded ? "ring-2 ring-cyan-400" : ""
         }`}
       >
-        {/* Drag Handle */}
-        <div
-          {...dragListeners}
-          className={`absolute left-0 top-0 bottom-0 w-5 flex items-center justify-center transition-opacity cursor-grab active:cursor-grabbing bg-gradient-to-r from-gray-50 to-transparent z-10 ${
-            isDragging ? "opacity-100" : "opacity-0 group-hover:opacity-100"
-          }`}
-        >
-          <GripVertical className="w-3 h-3 text-gray-400" />
-        </div>
+        {/* Drag Handle - Agent Only */}
+        {viewMode === "agent" && (
+          <div
+            {...dragListeners}
+            className={`absolute left-0 top-0 bottom-0 w-5 flex items-center justify-center transition-opacity cursor-grab active:cursor-grabbing bg-gradient-to-r from-gray-50 to-transparent z-10 ${
+              isDragging ? "opacity-100" : "opacity-0 group-hover:opacity-100"
+            }`}
+          >
+            <GripVertical className="w-3 h-3 text-gray-400" />
+          </div>
+        )}
 
         {/* Main Content */}
         <div className="flex ml-5">
@@ -667,23 +693,27 @@ export default function ItineraryCard({ item, dragListeners, isDragging }: Itine
                   </span>
                 </div>
               </div>
-              {/* Price */}
-              <div className="flex-shrink-0 text-right">
-                <p className="font-black text-gray-900 text-sm bg-yellow-100 px-2 py-0.5 rounded">{formatPrice(c.price)}</p>
-                <p className="text-[9px] text-gray-400 mt-0.5">{c.date ? format(parseISO(c.date), "MMM d") : ""}</p>
-              </div>
+              {/* Price - Agent Only */}
+              {viewMode === "agent" && (
+                <div className="flex-shrink-0 text-right">
+                  <p className="font-black text-gray-900 text-sm bg-yellow-100 px-2 py-0.5 rounded">{formatPrice(c.price)}</p>
+                  <p className="text-[9px] text-gray-400 mt-0.5">{c.date ? format(parseISO(c.date), "MMM d") : ""}</p>
+                </div>
+              )}
             </div>
           </div>
 
-          {/* Actions */}
-          <div className="flex flex-col items-center justify-center px-2 border-l border-gray-100 gap-1">
-            <button onClick={handleExpand} className="p-1 text-gray-400 hover:text-cyan-600 hover:bg-cyan-50 rounded transition-colors">
-              {isExpanded ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
-            </button>
-            <button onClick={() => setShowMenu(!showMenu)} className="p-1 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded transition-colors">
-              <MoreVertical className="w-4 h-4" />
-            </button>
-          </div>
+          {/* Actions - Agent Only */}
+          {viewMode === "agent" && (
+            <div className="flex flex-col items-center justify-center px-2 border-l border-gray-100 gap-1">
+              <button onClick={handleExpand} className="p-1 text-gray-400 hover:text-cyan-600 hover:bg-cyan-50 rounded transition-colors">
+                {isExpanded ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
+              </button>
+              <button onClick={() => setShowMenu(!showMenu)} className="p-1 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded transition-colors">
+                <MoreVertical className="w-4 h-4" />
+              </button>
+            </div>
+          )}
         </div>
 
         {/* Expanded Details */}
@@ -756,15 +786,17 @@ export default function ItineraryCard({ item, dragListeners, isDragging }: Itine
           isExpanded ? "ring-2 ring-amber-400" : ""
         }`}
       >
-        {/* Drag Handle */}
-        <div
-          {...dragListeners}
-          className={`absolute left-0 top-0 bottom-0 w-5 flex items-center justify-center transition-opacity cursor-grab active:cursor-grabbing bg-gradient-to-r from-gray-50 to-transparent z-10 ${
-            isDragging ? "opacity-100" : "opacity-0 group-hover:opacity-100"
-          }`}
-        >
-          <GripVertical className="w-3 h-3 text-gray-400" />
-        </div>
+        {/* Drag Handle - Agent Only */}
+        {viewMode === "agent" && (
+          <div
+            {...dragListeners}
+            className={`absolute left-0 top-0 bottom-0 w-5 flex items-center justify-center transition-opacity cursor-grab active:cursor-grabbing bg-gradient-to-r from-gray-50 to-transparent z-10 ${
+              isDragging ? "opacity-100" : "opacity-0 group-hover:opacity-100"
+            }`}
+          >
+            <GripVertical className="w-3 h-3 text-gray-400" />
+          </div>
+        )}
 
         {/* Main Content */}
         <div className="flex ml-5">
@@ -799,21 +831,23 @@ export default function ItineraryCard({ item, dragListeners, isDragging }: Itine
             </div>
           </div>
 
-          {/* Price + Actions */}
-          <div className="flex items-center gap-2 px-3 border-l border-gray-100">
-            <div className="text-right">
-              <p className="font-black text-gray-900 text-sm bg-yellow-100 px-2 py-0.5 rounded">{formatPrice(t.price)}</p>
-              <p className="text-[9px] text-gray-400 mt-0.5">{t.date ? format(parseISO(t.date), "MMM d") : ""}</p>
+          {/* Price + Actions - Agent Only */}
+          {viewMode === "agent" && (
+            <div className="flex items-center gap-2 px-3 border-l border-gray-100">
+              <div className="text-right">
+                <p className="font-black text-gray-900 text-sm bg-yellow-100 px-2 py-0.5 rounded">{formatPrice(t.price)}</p>
+                <p className="text-[9px] text-gray-400 mt-0.5">{t.date ? format(parseISO(t.date), "MMM d") : ""}</p>
+              </div>
+              <div className="flex flex-col gap-1">
+                <button onClick={handleExpand} className="p-1 text-gray-400 hover:text-amber-600 hover:bg-amber-50 rounded transition-colors">
+                  {isExpanded ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
+                </button>
+                <button onClick={() => setShowMenu(!showMenu)} className="p-1 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded transition-colors">
+                  <MoreVertical className="w-4 h-4" />
+                </button>
+              </div>
             </div>
-            <div className="flex flex-col gap-1">
-              <button onClick={handleExpand} className="p-1 text-gray-400 hover:text-amber-600 hover:bg-amber-50 rounded transition-colors">
-                {isExpanded ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
-              </button>
-              <button onClick={() => setShowMenu(!showMenu)} className="p-1 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded transition-colors">
-                <MoreVertical className="w-4 h-4" />
-              </button>
-            </div>
-          </div>
+          )}
         </div>
 
         {/* Dropdown Menu - Fixed z-index */}

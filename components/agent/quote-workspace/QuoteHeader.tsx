@@ -1,12 +1,14 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
-import { ArrowLeft, Check, Cloud, Edit2, Loader2, User, X } from "lucide-react";
+import { ArrowLeft, Check, Cloud, Edit2, Eye, Loader2, Settings, User, X } from "lucide-react";
 import { useQuoteWorkspace } from "./QuoteWorkspaceProvider";
+import { useViewMode } from "./itinerary/ViewModeContext";
 import Link from "next/link";
 
 export default function QuoteHeader() {
   const { state, setTripName } = useQuoteWorkspace();
+  const { viewMode, toggleViewMode } = useViewMode();
   const [isEditing, setIsEditing] = useState(false);
   const [editValue, setEditValue] = useState(state.tripName);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -77,6 +79,30 @@ export default function QuoteHeader() {
         ) : (
           <div className="flex items-center gap-1 text-gray-400 text-xs"><User className="w-3.5 h-3.5" /><span>No client</span></div>
         )}
+      </div>
+
+      {/* View Mode Toggle */}
+      <div className="hidden sm:flex items-center">
+        <button
+          onClick={toggleViewMode}
+          className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-medium transition-all ${
+            viewMode === "client"
+              ? "bg-violet-100 text-violet-700 border border-violet-200"
+              : "bg-gray-100 text-gray-600 hover:bg-gray-200 border border-transparent"
+          }`}
+        >
+          {viewMode === "client" ? (
+            <>
+              <Eye className="w-3.5 h-3.5" />
+              <span>Client View</span>
+            </>
+          ) : (
+            <>
+              <Settings className="w-3.5 h-3.5" />
+              <span>Agent View</span>
+            </>
+          )}
+        </button>
       </div>
 
       {/* Right: Save Status */}

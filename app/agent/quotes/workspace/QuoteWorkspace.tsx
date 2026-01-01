@@ -9,6 +9,7 @@ import {
   DiscoveryZone,
   ItineraryZone,
   PricingZone,
+  ViewModeProvider,
 } from "@/components/agent/quote-workspace";
 import ClientSelectModal from "@/components/agent/quote-workspace/overlays/ClientSelectModal";
 import QuotePreviewOverlay from "@/components/agent/quote-workspace/overlays/QuotePreviewOverlay";
@@ -20,16 +21,18 @@ export default function QuoteWorkspace() {
   const quoteId = searchParams.get("id") || undefined;
 
   return (
-    <QuoteWorkspaceProvider initialQuoteId={quoteId}>
-      <QuoteWorkspaceLayout
-        header={<QuoteHeader />}
-        discovery={<DiscoveryZone />}
-        itinerary={<ItineraryZone />}
-        pricing={<PricingZone />}
-        footer={<QuoteFooter />}
-        overlays={<WorkspaceOverlays />}
-      />
-    </QuoteWorkspaceProvider>
+    <ViewModeProvider>
+      <QuoteWorkspaceProvider initialQuoteId={quoteId}>
+        <QuoteWorkspaceLayout
+          header={<QuoteHeader />}
+          discovery={<DiscoveryZone />}
+          itinerary={<ItineraryZone />}
+          pricing={<PricingZone />}
+          footer={<QuoteFooter />}
+          overlays={<WorkspaceOverlays />}
+        />
+      </QuoteWorkspaceProvider>
+    </ViewModeProvider>
   );
 }
 

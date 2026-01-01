@@ -19,6 +19,12 @@ export { default as SortableItineraryCard } from "./itinerary/SortableItineraryC
 export { default as DayMarker } from "./itinerary/DayMarker";
 export { default as EmptyItinerary } from "./itinerary/EmptyItinerary";
 
+// Timeline V2 Components (Apple-Class)
+export { default as TimelineDayAnchor } from "./itinerary/TimelineDayAnchor";
+export { default as TimeOfDaySegment, getTimeSegment } from "./itinerary/TimeOfDaySegment";
+export { default as TimelineExperienceCard } from "./itinerary/TimelineExperienceCard";
+export { ViewModeProvider, useViewMode, ViewModeToggle } from "./itinerary/ViewModeContext";
+
 // Pricing Zone
 export { default as PricingZone } from "./pricing/PricingZone";
 
