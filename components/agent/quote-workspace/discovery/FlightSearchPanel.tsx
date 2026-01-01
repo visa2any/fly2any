@@ -420,12 +420,14 @@ export default function FlightSearchPanel() {
               {/* ROW 1: From + To with One-way toggle */}
               <div className="grid grid-cols-2 gap-2">
                 <div>
-                  <label className="flex items-center gap-1 text-[10px] font-bold text-gray-500 uppercase tracking-wider mb-1">
-                    <div className="w-3.5 h-3.5 rounded bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center">
-                      <Plane className="w-2 h-2 text-white -rotate-45" />
-                    </div>
-                    From
-                  </label>
+                  <div className="flex items-center justify-between mb-1 h-6">
+                    <label className="flex items-center gap-1 text-[10px] font-bold text-gray-500 uppercase tracking-wider">
+                      <div className="w-3.5 h-3.5 rounded bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center">
+                        <Plane className="w-2 h-2 text-white -rotate-45" />
+                      </div>
+                      From
+                    </label>
+                  </div>
                   <MultiAirportSelector
                     placeholder="Origin"
                     value={params.origin}
@@ -434,7 +436,7 @@ export default function FlightSearchPanel() {
                   />
                 </div>
                 <div>
-                  <div className="flex items-center justify-between mb-1">
+                  <div className="flex items-center justify-between mb-1 h-6">
                     <label className="flex items-center gap-1 text-[10px] font-bold text-gray-500 uppercase tracking-wider">
                       <div className="w-3.5 h-3.5 rounded bg-gradient-to-br from-purple-500 to-pink-600 flex items-center justify-center">
                         <Plane className="w-2 h-2 text-white rotate-45" />

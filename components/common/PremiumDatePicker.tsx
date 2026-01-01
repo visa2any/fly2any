@@ -205,8 +205,8 @@ export default function PremiumDatePicker({
         whileHover={{ scale: disabled ? 1 : 1.01 }}
         whileTap={{ scale: disabled ? 1 : 0.99 }}
         className={`
-          w-full flex items-center gap-2.5 px-3 py-2.5
-          bg-white border-2 rounded-xl text-left
+          w-full h-10 flex items-center gap-2 px-2
+          bg-white border-2 rounded-lg text-left
           transition-all duration-200 ease-out
           ${isOpen
             ? "border-indigo-500 ring-4 ring-indigo-100 shadow-lg shadow-indigo-500/10"
@@ -225,7 +225,7 @@ export default function PremiumDatePicker({
           }}
           transition={{ type: "spring", ...springConfig }}
           className={`
-            w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0
+            w-7 h-7 rounded-lg flex items-center justify-center flex-shrink-0
             transition-all duration-200
             ${isOpen
               ? "bg-gradient-to-br from-indigo-500 to-purple-600 text-white shadow-lg shadow-indigo-500/30"
@@ -233,7 +233,7 @@ export default function PremiumDatePicker({
             }
           `}
         >
-          <CalendarIcon className="w-4.5 h-4.5" />
+          <CalendarIcon className="w-3.5 h-3.5" />
         </motion.div>
 
         <div className="flex-1 min-w-0 overflow-hidden">
@@ -244,12 +244,12 @@ export default function PremiumDatePicker({
               transition={{ type: "spring", ...softSpring }}
               className="whitespace-nowrap"
             >
-              <p className="text-sm font-bold text-gray-900 truncate">
-                {format(selectedDate, "EEE, MMM d, yyyy")}
+              <p className="text-xs font-bold text-gray-900 truncate">
+                {format(selectedDate, "EEE, MMM d")}
               </p>
             </motion.div>
           ) : (
-            <p className="text-sm text-gray-400 font-medium truncate">{placeholder}</p>
+            <p className="text-xs text-gray-400 font-medium truncate">{placeholder}</p>
           )}
         </div>
 

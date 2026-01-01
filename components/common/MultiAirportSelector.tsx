@@ -197,9 +197,9 @@ export default function MultiAirportSelector({
         </label>
       )}
 
-      {/* Main Typeable Input - Single Field */}
+      {/* Main Typeable Input - Compact */}
       <div className="relative">
-        <MapPin className={`absolute left-3 top-1/2 -translate-y-1/2 flex-shrink-0 z-10 ${transparent ? 'text-white/60' : 'text-neutral-400'}`} size={16} />
+        <MapPin className={`absolute left-2.5 top-1/2 -translate-y-1/2 flex-shrink-0 z-10 ${transparent ? 'text-white/60' : 'text-neutral-400'}`} size={14} />
         <input
           type="text"
           value={isOpen ? searchQuery : (selectedAirports.length > 0 ? `${selectedAirports[0].code}${selectedAirports.length > 1 ? ` +${selectedAirports.length - 1}` : ''}` : '')}
@@ -207,7 +207,7 @@ export default function MultiAirportSelector({
           onFocus={() => { setIsOpen(true); setSearchQuery(''); setDebouncedQuery(''); }}
           placeholder={placeholder}
           data-testid={testId}
-          className={`w-full h-[52px] py-3 pl-9 pr-8 border-2 rounded-xl text-sm font-semibold transition-all duration-200 focus:outline-none ${
+          className={`w-full h-10 py-2 pl-8 pr-6 border-2 rounded-lg text-xs font-semibold transition-all duration-200 focus:outline-none ${
             transparent
               ? 'bg-black/30 backdrop-blur-sm border-white/20 text-white placeholder:text-white/50 hover:border-white/40 focus:border-white/50'
               : 'bg-white border-neutral-200 text-neutral-800 hover:border-primary-400 focus:border-primary-500'
@@ -215,18 +215,18 @@ export default function MultiAirportSelector({
         />
         {/* Display selected airport info when not searching */}
         {!isOpen && selectedAirports.length > 0 && (
-          <div className={`absolute left-9 top-1/2 -translate-y-1/2 right-8 pointer-events-none flex items-center gap-1.5 ${transparent ? 'text-white' : 'text-neutral-800'}`}>
-            <span className="text-base">{selectedAirports[0].emoji}</span>
-            <span className="text-sm font-semibold truncate">{selectedAirports[0].city}</span>
-            <span className="text-xs text-neutral-500 flex-shrink-0">({selectedAirports[0].code})</span>
+          <div className={`absolute left-8 top-1/2 -translate-y-1/2 right-6 pointer-events-none flex items-center gap-1 ${transparent ? 'text-white' : 'text-neutral-800'}`}>
+            <span className="text-sm">{selectedAirports[0].emoji}</span>
+            <span className="text-xs font-semibold truncate">{selectedAirports[0].city}</span>
+            <span className="text-[10px] text-neutral-500 flex-shrink-0">({selectedAirports[0].code})</span>
             {selectedAirports.length > 1 && (
-              <span className="text-xs font-bold text-primary-600 bg-primary-100 px-1.5 py-0.5 rounded flex-shrink-0">+{selectedAirports.length - 1}</span>
+              <span className="text-[10px] font-bold text-primary-600 bg-primary-100 px-1 py-0.5 rounded flex-shrink-0">+{selectedAirports.length - 1}</span>
             )}
           </div>
         )}
         <ChevronDown
-          className={`absolute right-2 top-1/2 -translate-y-1/2 transition-transform duration-200 flex-shrink-0 pointer-events-none ${isOpen ? 'rotate-180' : ''} ${transparent ? 'text-white/50' : 'text-neutral-400'}`}
-          size={14}
+          className={`absolute right-1.5 top-1/2 -translate-y-1/2 transition-transform duration-200 flex-shrink-0 pointer-events-none ${isOpen ? 'rotate-180' : ''} ${transparent ? 'text-white/50' : 'text-neutral-400'}`}
+          size={12}
         />
       </div>
 

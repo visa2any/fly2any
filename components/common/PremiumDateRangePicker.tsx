@@ -190,26 +190,26 @@ export default function PremiumDateRangePicker({
       <div
         ref={inputRef}
         onClick={() => !disabled && (isOpen ? setIsOpen(false) : openDropdown())}
-        className={`flex items-center gap-1.5 px-2 py-2 bg-white border-2 rounded-xl cursor-pointer transition-all duration-200 ${
+        className={`flex items-center gap-1 h-10 px-1.5 bg-white border-2 rounded-lg cursor-pointer transition-all duration-200 ${
           isOpen ? "border-indigo-500 ring-4 ring-indigo-100 shadow-lg" : "border-gray-200 hover:border-gray-300 hover:shadow-md"
         } ${disabled ? "opacity-50 cursor-not-allowed bg-gray-50" : ""}`}
       >
-        <div className={`flex-1 flex items-center gap-1.5 px-2 py-1.5 rounded-lg transition-all ${isOpen && !selectingEnd ? "bg-indigo-50 ring-2 ring-indigo-200" : ""}`}>
-          <CalendarIcon className={`w-4 h-4 flex-shrink-0 ${startDateParsed ? "text-indigo-600" : "text-gray-400"}`} />
-          <span className={`text-sm font-semibold truncate ${startDateParsed ? "text-gray-900" : "text-gray-400"}`}>
+        <div className={`flex-1 flex items-center gap-1 px-1.5 py-1 rounded transition-all ${isOpen && !selectingEnd ? "bg-indigo-50 ring-1 ring-indigo-200" : ""}`}>
+          <CalendarIcon className={`w-3.5 h-3.5 flex-shrink-0 ${startDateParsed ? "text-indigo-600" : "text-gray-400"}`} />
+          <span className={`text-xs font-semibold truncate ${startDateParsed ? "text-gray-900" : "text-gray-400"}`}>
             {startDateParsed ? format(startDateParsed, "MMM d") : startPlaceholder}
           </span>
         </div>
-        <ArrowRight className="w-4 h-4 text-gray-300 flex-shrink-0" />
-        <div className={`flex-1 flex items-center gap-1.5 px-2 py-1.5 rounded-lg transition-all ${isOpen && selectingEnd ? "bg-purple-50 ring-2 ring-purple-200" : ""}`}>
-          <CalendarIcon className={`w-4 h-4 flex-shrink-0 ${endDateParsed ? "text-purple-600" : "text-gray-400"}`} />
-          <span className={`text-sm font-semibold truncate ${endDateParsed ? "text-gray-900" : "text-gray-400"}`}>
+        <ArrowRight className="w-3.5 h-3.5 text-gray-300 flex-shrink-0" />
+        <div className={`flex-1 flex items-center gap-1 px-1.5 py-1 rounded transition-all ${isOpen && selectingEnd ? "bg-purple-50 ring-1 ring-purple-200" : ""}`}>
+          <CalendarIcon className={`w-3.5 h-3.5 flex-shrink-0 ${endDateParsed ? "text-purple-600" : "text-gray-400"}`} />
+          <span className={`text-xs font-semibold truncate ${endDateParsed ? "text-gray-900" : "text-gray-400"}`}>
             {endDateParsed ? format(endDateParsed, "MMM d") : endPlaceholder}
           </span>
         </div>
         {(startDateParsed || endDateParsed) && !disabled && (
-          <motion.button type="button" onClick={clearDates} whileHover={{ scale: 1.2 }} whileTap={{ scale: 0.9 }} className="w-6 h-6 rounded-full flex items-center justify-center text-gray-400 hover:text-gray-600 hover:bg-gray-100">
-            <X className="w-3.5 h-3.5" />
+          <motion.button type="button" onClick={clearDates} whileHover={{ scale: 1.2 }} whileTap={{ scale: 0.9 }} className="w-5 h-5 rounded-full flex items-center justify-center text-gray-400 hover:text-gray-600 hover:bg-gray-100">
+            <X className="w-3 h-3" />
           </motion.button>
         )}
       </div>
