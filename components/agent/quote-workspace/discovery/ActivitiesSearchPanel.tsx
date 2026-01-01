@@ -148,6 +148,7 @@ export default function ActivitiesSearchPanel() {
   };
 
   const handleAddActivity = (activity: any) => {
+    // ActivityItem type expects: name, location, description, duration, participants, includes, image
     addItem({
       type: "activity",
       price: parseFloat(activity.price?.amount) || 0,
@@ -156,12 +157,11 @@ export default function ActivitiesSearchPanel() {
       name: activity.name || "Activity",
       location: params.destination,
       participants: params.participants,
-      duration: activity.duration || null,
-      description: activity.shortDescription || activity.description || null,
+      duration: activity.duration || "Varies",
+      description: activity.shortDescription || activity.description || "Experience this amazing activity",
       image: activity.pictures?.[0]?.url || null,
-      categories: activity.categories || [],
-      rating: activity.rating || null,
-      apiSource: "amadeus-activities",
+      includes: activity.includes || activity.inclusions || [],
+      apiSource: "viator",
       apiOfferId: activity.id,
     });
   };

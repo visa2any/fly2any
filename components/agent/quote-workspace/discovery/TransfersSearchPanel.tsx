@@ -204,22 +204,20 @@ export default function TransfersSearchPanel() {
   };
 
   const handleAddTransfer = (transfer: any) => {
+    // TransferItem type expects: provider, vehicleType, pickupLocation, dropoffLocation, pickupTime, passengers, meetAndGreet
     addItem({
       type: "transfer",
       price: parseFloat(transfer.price?.amount) || 0,
       currency: transfer.price?.currency || "USD",
       date: params.date,
-      name: transfer.name || "Airport Transfer",
+      provider: transfer.provider || transfer.supplier || transfer.name || "Transfer Service",
       pickupLocation: params.pickup,
       dropoffLocation: params.dropoff,
       pickupTime: params.time,
       passengers: params.passengers,
       vehicleType: transfer.vehicle?.name || transfer.transferType || "Private Transfer",
-      duration: transfer.duration || null,
-      features: transfer.features || [],
-      maxPassengers: transfer.maxPassengers || 4,
-      image: transfer.vehicle?.imageURL || null,
-      apiSource: transfer.source === 'activities' ? "amadeus-activities" : "amadeus-transfers",
+      meetAndGreet: transfer.meetAndGreet ?? false,
+      apiSource: "viator",
       apiOfferId: transfer.offerId || transfer.id,
     });
   };

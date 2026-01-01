@@ -144,23 +144,28 @@ export default function CarSearchPanel() {
 
   const handleAddCar = (car: any) => {
     // Handle both Amadeus API format and featured cars format
-    const carName = car.vehicle?.description || car.vehicle?.name || car.model || car.name || 'Car Rental';
+    // CarItem type expects: company, carType, carClass, features, image
+    const carCompany = car.vehicle?.company || car.company || car.provider || 'Car Rental';
+    const carTypeValue = car.vehicle?.description || car.model || car.name || 'Vehicle';
+    const carClass = car.vehicle?.category || car.type || car.category || 'Standard';
     const carPrice = parseFloat(car.price?.total) || car.price?.amount || car.pricePerDay || 0;
-    const carType = car.vehicle?.category || car.type || car.category || 'Standard';
     const carImage = car.vehicle?.imageURL || car.vehicle?.image || car.photoUrl || car.image;
+    const carFeatures = car.features || car.vehicle?.features || [];
 
     addItem({
       type: "car",
       price: carPrice,
       currency: car.price?.currency || "USD",
       date: params.pickupDate,
-      name: carName,
+      company: carCompany,
+      carType: carTypeValue,
+      carClass: carClass,
       pickupLocation: params.pickupLocation,
       dropoffLocation: params.sameDropoff ? params.pickupLocation : params.dropoffLocation,
       pickupDate: params.pickupDate,
       dropoffDate: params.dropoffDate,
       days,
-      vehicleType: carType,
+      features: carFeatures,
       image: carImage,
       apiSource: "cars",
       apiOfferId: car.id,
