@@ -2,7 +2,7 @@
 
 import { useState, useRef, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Search, Bus, Loader2, Plus, MapPin, AlertCircle, Users, ChevronDown, Minus, X, Plane, Clock, Car, Star } from "lucide-react";
+import { Search, Bus, Loader2, Plus, MapPin, AlertCircle, Users, ChevronDown, ChevronUp, Minus, X, Plane, Clock, Car, Star, Edit3, Calendar, ArrowRight } from "lucide-react";
 import { useQuoteWorkspace } from "../QuoteWorkspaceProvider";
 import PremiumDatePicker from "@/components/common/PremiumDatePicker";
 
@@ -44,9 +44,23 @@ export default function TransfersSearchPanel() {
   const [loadingPickup, setLoadingPickup] = useState(false);
   const [loadingDropoff, setLoadingDropoff] = useState(false);
   const [activeField, setActiveField] = useState<'pickup' | 'dropoff' | null>(null);
+  const [formCollapsed, setFormCollapsed] = useState(false);
 
   const pickupRef = useRef<HTMLDivElement>(null);
   const dropoffRef = useRef<HTMLDivElement>(null);
+
+  // Auto-collapse form when search results arrive
+  useEffect(() => {
+    if (searchResults && searchResults.length > 0 && !searchLoading) {
+      const timer = setTimeout(() => setFormCollapsed(true), 500);
+      return () => clearTimeout(timer);
+    }
+  }, [searchResults, searchLoading]);
+
+  // Expand form when there's an error
+  useEffect(() => {
+    if (error) setFormCollapsed(false);
+  }, [error]);
 
   const minDate = new Date().toISOString().split("T")[0];
 
@@ -235,7 +249,66 @@ export default function TransfersSearchPanel() {
         </div>
       </div>
 
-      <form onSubmit={handleSearch} className="space-y-3">
+      {/* Collapsed Search Summary */}
+      <AnimatePresence mode="wait">
+        {formCollapsed && searchResults && searchResults.length > 0 ? (
+          <motion.div
+            key="collapsed"
+            initial={{ opacity: 0, height: 0 }}
+            animate={{ opacity: 1, height: "auto" }}
+            exit={{ opacity: 0, height: 0 }}
+            className="bg-gradient-to-br from-amber-50 to-orange-50 rounded-xl border border-amber-100 p-3"
+          >
+            <div className="flex items-center justify-between gap-3">
+              <div className="flex items-center gap-2 flex-1 min-w-0">
+                <div className="w-9 h-9 rounded-lg bg-gradient-to-br from-amber-500 to-orange-600 flex items-center justify-center text-white shadow-md">
+                  <Bus className="w-4 h-4" />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <div className="text-sm font-bold text-gray-900 flex items-center gap-1">
+                    <span className="truncate">{params.pickup || "Pickup"}</span>
+                    <ArrowRight className="w-3 h-3 text-gray-400 flex-shrink-0" />
+                    <span className="truncate">{params.dropoff || "Dropoff"}</span>
+                  </div>
+                  <div className="flex items-center gap-2 text-xs text-gray-500">
+                    <span className="flex items-center gap-1"><Calendar className="w-3 h-3" />{params.date}</span>
+                    <span className="flex items-center gap-1"><Clock className="w-3 h-3" />{params.time}</span>
+                    <span className="flex items-center gap-1"><Users className="w-3 h-3" />{params.passengers} pax</span>
+                  </div>
+                </div>
+              </div>
+              <motion.button
+                type="button"
+                onClick={() => setFormCollapsed(false)}
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+                className="flex items-center gap-1.5 px-3 py-1.5 bg-white rounded-lg text-xs font-semibold text-amber-600 border border-amber-200 shadow-sm"
+              >
+                <Edit3 className="w-3 h-3" /> Edit
+              </motion.button>
+            </div>
+            <div className="mt-2 pt-2 border-t border-amber-100 flex items-center justify-between">
+              <span className="text-xs font-bold text-amber-700">{searchResults.length} transfers found</span>
+              <button type="button" onClick={() => setFormCollapsed(false)} className="text-xs text-gray-500 hover:text-amber-600 flex items-center gap-1">
+                <ChevronDown className="w-3 h-3" /> Show form
+              </button>
+            </div>
+          </motion.div>
+        ) : (
+          <motion.div key="expanded" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
+            {/* Collapse button when results exist */}
+            {searchResults && searchResults.length > 0 && (
+              <motion.button
+                type="button"
+                onClick={() => setFormCollapsed(true)}
+                className="w-full flex items-center justify-between px-3 py-2 mb-2 bg-gray-50 rounded-xl text-sm text-gray-600 hover:bg-amber-50 border border-gray-200 hover:border-amber-200 transition-all"
+              >
+                <span className="flex items-center gap-2"><Search className="w-4 h-4" /> Search Form</span>
+                <ChevronUp className="w-4 h-4" />
+              </motion.button>
+            )}
+
+            <form onSubmit={handleSearch} className="space-y-3">
         {/* Pickup Location */}
         <div className="relative" ref={pickupRef}>
           <label className="flex items-center gap-1.5 text-[11px] font-bold text-gray-500 uppercase tracking-wider mb-1.5">
@@ -432,7 +505,10 @@ export default function TransfersSearchPanel() {
             </>
           )}
         </motion.button>
-      </form>
+            </form>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* Results */}
       <AnimatePresence mode="wait">
