@@ -134,16 +134,16 @@ export default function ItineraryCard({ item, dragListeners, isDragging }: Itine
           <GripVertical className="w-3 h-3 text-gray-400" />
         </div>
 
-        {/* 3-Column Layout */}
+        {/* 3-Column Layout - Increased readability */}
         <div className="flex">
           {/* LEFT: Logo + Airline Name + Fare Type */}
-          <div className="flex flex-col items-center justify-center px-2 py-2 border-r border-gray-100 min-w-[72px] ml-5">
-            <AirlineLogo code={f.airline} size="sm" className="flex-shrink-0" />
-            <p className="text-[9px] font-bold text-gray-900 mt-1 text-center truncate max-w-[68px]">
+          <div className="flex flex-col items-center justify-center px-3 py-3 border-r border-gray-100 min-w-[90px] ml-5">
+            <AirlineLogo code={f.airline} size="md" className="flex-shrink-0" />
+            <p className="text-xs font-bold text-gray-900 mt-1.5 text-center truncate max-w-[85px]">
               {f.airlineName || f.airline}
             </p>
             {f.fareType && (
-              <p className="text-[7px] text-indigo-600 font-semibold bg-indigo-50 px-1.5 py-0.5 rounded mt-0.5 truncate max-w-[68px]">
+              <p className="text-[10px] text-indigo-600 font-semibold bg-indigo-50 px-2 py-0.5 rounded mt-1 truncate max-w-[85px]">
                 {f.fareType}
               </p>
             )}
@@ -152,68 +152,68 @@ export default function ItineraryCard({ item, dragListeners, isDragging }: Itine
           {/* MIDDLE: Flight Rows */}
           <div className="flex-1 min-w-0">
             {/* Outbound Row */}
-            <div className="flex items-center gap-1.5 px-2 py-1.5 border-b border-gray-50">
-              <span className="text-[7px] font-bold text-indigo-600 uppercase w-7">→OUT</span>
-              <span className="text-[8px] text-gray-500 w-12 truncate">{f.airline} {f.flightNumber}</span>
-              <div className="text-center min-w-[36px]">
-                <p className="text-xs font-bold text-gray-900">{f.departureTime || "--:--"}</p>
-                <p className="text-[8px] text-gray-500">{f.origin}</p>
+            <div className="flex items-center gap-2 px-3 py-2.5 border-b border-gray-100">
+              <span className="text-[10px] font-bold text-indigo-600 uppercase w-9">→OUT</span>
+              <span className="text-xs text-gray-500 w-16 truncate">{f.airline} {f.flightNumber}</span>
+              <div className="text-center min-w-[48px]">
+                <p className="text-sm font-bold text-gray-900">{f.departureTime || "--:--"}</p>
+                <p className="text-xs text-gray-500">{f.origin}</p>
               </div>
-              <div className="flex-1 px-1">
+              <div className="flex-1 px-2">
                 <div className="relative h-px bg-gradient-to-r from-gray-300 via-indigo-400 to-gray-300">
-                  <Plane className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-2 h-2 text-indigo-500 bg-white" />
+                  <Plane className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-3 h-3 text-indigo-500 bg-white" />
                 </div>
-                <div className="flex items-center justify-center gap-0.5 mt-0.5">
-                  <span className="text-[7px] text-gray-500">{f.duration}</span>
-                  <span className={`text-[6px] font-bold px-0.5 rounded ${getStopsStyle(f.stops)}`}>
-                    {f.stops === 0 ? "Direct" : `${f.stops}stop`}
+                <div className="flex items-center justify-center gap-1 mt-1">
+                  <span className="text-xs text-gray-500">{f.duration}</span>
+                  <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded ${getStopsStyle(f.stops)}`}>
+                    {f.stops === 0 ? "Direct" : `${f.stops} stop`}
                   </span>
                 </div>
               </div>
-              <div className="text-center min-w-[36px]">
-                <p className="text-xs font-bold text-gray-900">{f.arrivalTime || "--:--"}</p>
-                <p className="text-[8px] text-gray-500">{f.destination}</p>
+              <div className="text-center min-w-[48px]">
+                <p className="text-sm font-bold text-gray-900">{f.arrivalTime || "--:--"}</p>
+                <p className="text-xs text-gray-500">{f.destination}</p>
               </div>
             </div>
 
             {/* Return Row */}
             {isRoundtrip && (
-              <div className="flex items-center gap-1.5 px-2 py-1.5 bg-gray-50/50">
-                <span className="text-[7px] font-bold text-orange-600 uppercase w-7">←RET</span>
-                <span className="text-[8px] text-gray-500 w-12 truncate">{f.airline} {f.returnFlightNumber}</span>
-                <div className="text-center min-w-[36px]">
-                  <p className="text-xs font-bold text-gray-900">{f.returnDepartureTime || "--:--"}</p>
-                  <p className="text-[8px] text-gray-500">{f.destination}</p>
+              <div className="flex items-center gap-2 px-3 py-2.5 bg-gray-50/50">
+                <span className="text-[10px] font-bold text-orange-600 uppercase w-9">←RET</span>
+                <span className="text-xs text-gray-500 w-16 truncate">{f.airline} {f.returnFlightNumber}</span>
+                <div className="text-center min-w-[48px]">
+                  <p className="text-sm font-bold text-gray-900">{f.returnDepartureTime || "--:--"}</p>
+                  <p className="text-xs text-gray-500">{f.destination}</p>
                 </div>
-                <div className="flex-1 px-1">
+                <div className="flex-1 px-2">
                   <div className="relative h-px bg-gradient-to-r from-gray-300 via-orange-400 to-gray-300">
-                    <Plane className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-2 h-2 text-orange-500 bg-white rotate-180" />
+                    <Plane className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-3 h-3 text-orange-500 bg-white rotate-180" />
                   </div>
-                  <div className="flex items-center justify-center gap-0.5 mt-0.5">
-                    <span className="text-[7px] text-gray-500">{f.returnDuration}</span>
-                    <span className={`text-[6px] font-bold px-0.5 rounded ${getStopsStyle(f.returnStops || 0)}`}>
-                      {(f.returnStops || 0) === 0 ? "Direct" : `${f.returnStops}stop`}
+                  <div className="flex items-center justify-center gap-1 mt-1">
+                    <span className="text-xs text-gray-500">{f.returnDuration}</span>
+                    <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded ${getStopsStyle(f.returnStops || 0)}`}>
+                      {(f.returnStops || 0) === 0 ? "Direct" : `${f.returnStops} stop`}
                     </span>
                   </div>
                 </div>
-                <div className="text-center min-w-[36px]">
-                  <p className="text-xs font-bold text-gray-900">{f.returnArrivalTime || "--:--"}</p>
-                  <p className="text-[8px] text-gray-500">{f.origin}</p>
+                <div className="text-center min-w-[48px]">
+                  <p className="text-sm font-bold text-gray-900">{f.returnArrivalTime || "--:--"}</p>
+                  <p className="text-xs text-gray-500">{f.origin}</p>
                 </div>
               </div>
             )}
           </div>
 
           {/* RIGHT: Price + Actions */}
-          <div className="flex flex-col items-center justify-center px-2 py-2 border-l border-gray-100 min-w-[80px]">
-            <p className="text-sm font-black text-gray-900 bg-yellow-100 px-1.5 py-0.5 rounded">{formatPrice(f.price)}</p>
-            <p className="text-[8px] text-gray-400 mt-0.5">{f.passengers} pax • {isRoundtrip ? "RT" : "OW"}</p>
-            <div className="flex items-center gap-0.5 mt-1">
-              <button onClick={handleExpand} className="p-1 text-gray-400 hover:text-indigo-600 rounded hover:bg-indigo-50 transition-colors">
-                {isExpanded ? <ChevronUp className="w-3.5 h-3.5" /> : <ChevronDown className="w-3.5 h-3.5" />}
+          <div className="flex flex-col items-center justify-center px-3 py-3 border-l border-gray-100 min-w-[100px]">
+            <p className="text-base font-black text-gray-900 bg-yellow-100 px-2 py-1 rounded">{formatPrice(f.price)}</p>
+            <p className="text-xs text-gray-400 mt-1">{f.passengers} pax • {isRoundtrip ? "RT" : "OW"}</p>
+            <div className="flex items-center gap-1 mt-1.5">
+              <button onClick={handleExpand} className="p-1.5 text-gray-400 hover:text-indigo-600 rounded hover:bg-indigo-50 transition-colors">
+                {isExpanded ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
               </button>
-              <button onClick={() => setShowMenu(!showMenu)} className="p-1 text-gray-400 hover:text-gray-600 rounded hover:bg-gray-100 transition-colors">
-                <MoreVertical className="w-3.5 h-3.5" />
+              <button onClick={() => setShowMenu(!showMenu)} className="p-1.5 text-gray-400 hover:text-gray-600 rounded hover:bg-gray-100 transition-colors">
+                <MoreVertical className="w-4 h-4" />
               </button>
             </div>
           </div>

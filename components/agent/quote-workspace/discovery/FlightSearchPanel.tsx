@@ -968,85 +968,85 @@ function FlightResultCard({ flight, onAdd, index }: { flight: any; onAdd: () => 
     >
       {/* Best badge */}
       {index === 0 && (
-        <div className="absolute top-1.5 right-1.5 z-10">
-          <span className="text-[7px] font-bold text-amber-700 bg-amber-100 px-1.5 py-0.5 rounded-full flex items-center gap-0.5">
-            <Star className="w-2 h-2 fill-amber-500" /> BEST
+        <div className="absolute top-2 right-2 z-10">
+          <span className="text-xs font-bold text-amber-700 bg-amber-100 px-2 py-1 rounded-full flex items-center gap-1">
+            <Star className="w-3 h-3 fill-amber-500" /> BEST
           </span>
         </div>
       )}
 
       <div className="flex">
         {/* Logo - Centered Vertically */}
-        <div className="flex flex-col items-center justify-center px-2 py-2 border-r border-gray-100 min-w-[70px]">
-          <AirlineLogo code={airlineCode} size="sm" className="flex-shrink-0" />
-          <p className="text-[9px] font-bold text-gray-900 mt-1 text-center truncate max-w-[65px]">{airlineInfo.name}</p>
-          <p className="text-[7px] text-indigo-600 font-semibold bg-indigo-50 px-1 rounded mt-0.5">{fareType}</p>
+        <div className="flex flex-col items-center justify-center px-3 py-3 border-r border-gray-100 min-w-[85px]">
+          <AirlineLogo code={airlineCode} size="md" className="flex-shrink-0" />
+          <p className="text-xs font-bold text-gray-900 mt-1.5 text-center truncate max-w-[80px]">{airlineInfo.name}</p>
+          <p className="text-[10px] text-indigo-600 font-semibold bg-indigo-50 px-1.5 py-0.5 rounded mt-1">{fareType}</p>
         </div>
 
         {/* Flights */}
         <div className="flex-1 min-w-0">
           {/* Outbound */}
-          <div className="flex items-center gap-1.5 px-2 py-1.5 border-b border-gray-50">
-            <span className="text-[7px] font-bold text-indigo-600 uppercase w-6">→OUT</span>
-            <span className="text-[8px] text-gray-500 w-10">{airlineCode} {outNum}</span>
-            <div className="text-center">
-              <p className="text-xs font-bold text-gray-900">{formatTime(outDep.at)}</p>
-              <p className="text-[8px] text-gray-500">{outDep.iataCode}</p>
+          <div className="flex items-center gap-2 px-3 py-2.5 border-b border-gray-100">
+            <span className="text-[10px] font-bold text-indigo-600 uppercase w-8">→OUT</span>
+            <span className="text-xs text-gray-500 w-14">{airlineCode} {outNum}</span>
+            <div className="text-center min-w-[44px]">
+              <p className="text-sm font-bold text-gray-900">{formatTime(outDep.at)}</p>
+              <p className="text-xs text-gray-500">{outDep.iataCode}</p>
             </div>
-            <div className="flex-1 px-1">
+            <div className="flex-1 px-2">
               <div className="relative h-px bg-gradient-to-r from-gray-300 via-indigo-400 to-gray-300">
-                <Plane className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-2 h-2 text-indigo-500 bg-white" />
+                <Plane className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-3 h-3 text-indigo-500 bg-white" />
               </div>
-              <div className="flex items-center justify-center gap-0.5 mt-0.5">
-                <span className="text-[7px] text-gray-500">{parseDuration(outbound.duration)}</span>
-                <span className={`text-[6px] font-bold px-1 rounded ${stopsStyle(getStops(outSegs))}`}>
-                  {getStops(outSegs) === 0 ? "Direct" : `${getStops(outSegs)}stop`}
+              <div className="flex items-center justify-center gap-1 mt-1">
+                <span className="text-xs text-gray-500">{parseDuration(outbound.duration)}</span>
+                <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded ${stopsStyle(getStops(outSegs))}`}>
+                  {getStops(outSegs) === 0 ? "Direct" : `${getStops(outSegs)} stop`}
                 </span>
               </div>
             </div>
-            <div className="text-center">
-              <p className="text-xs font-bold text-gray-900">{formatTime(outArr.at)}</p>
-              <p className="text-[8px] text-gray-500">{outArr.iataCode}</p>
+            <div className="text-center min-w-[44px]">
+              <p className="text-sm font-bold text-gray-900">{formatTime(outArr.at)}</p>
+              <p className="text-xs text-gray-500">{outArr.iataCode}</p>
             </div>
           </div>
 
           {/* Return */}
           {isRoundtrip && (
-            <div className="flex items-center gap-1.5 px-2 py-1.5 bg-gray-50/50">
-              <span className="text-[7px] font-bold text-orange-600 uppercase w-6">←RET</span>
-              <span className="text-[8px] text-gray-500 w-10">{airlineCode} {inNum}</span>
-              <div className="text-center">
-                <p className="text-xs font-bold text-gray-900">{formatTime(inDep.at)}</p>
-                <p className="text-[8px] text-gray-500">{inDep.iataCode}</p>
+            <div className="flex items-center gap-2 px-3 py-2.5 bg-gray-50/50">
+              <span className="text-[10px] font-bold text-orange-600 uppercase w-8">←RET</span>
+              <span className="text-xs text-gray-500 w-14">{airlineCode} {inNum}</span>
+              <div className="text-center min-w-[44px]">
+                <p className="text-sm font-bold text-gray-900">{formatTime(inDep.at)}</p>
+                <p className="text-xs text-gray-500">{inDep.iataCode}</p>
               </div>
-              <div className="flex-1 px-1">
+              <div className="flex-1 px-2">
                 <div className="relative h-px bg-gradient-to-r from-gray-300 via-orange-400 to-gray-300">
-                  <Plane className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-2 h-2 text-orange-500 bg-white rotate-180" />
+                  <Plane className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-3 h-3 text-orange-500 bg-white rotate-180" />
                 </div>
-                <div className="flex items-center justify-center gap-0.5 mt-0.5">
-                  <span className="text-[7px] text-gray-500">{parseDuration(inbound?.duration)}</span>
-                  <span className={`text-[6px] font-bold px-1 rounded ${stopsStyle(getStops(inSegs))}`}>
-                    {getStops(inSegs) === 0 ? "Direct" : `${getStops(inSegs)}stop`}
+                <div className="flex items-center justify-center gap-1 mt-1">
+                  <span className="text-xs text-gray-500">{parseDuration(inbound?.duration)}</span>
+                  <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded ${stopsStyle(getStops(inSegs))}`}>
+                    {getStops(inSegs) === 0 ? "Direct" : `${getStops(inSegs)} stop`}
                   </span>
                 </div>
               </div>
-              <div className="text-center">
-                <p className="text-xs font-bold text-gray-900">{formatTime(inArr.at)}</p>
-                <p className="text-[8px] text-gray-500">{inArr.iataCode}</p>
+              <div className="text-center min-w-[44px]">
+                <p className="text-sm font-bold text-gray-900">{formatTime(inArr.at)}</p>
+                <p className="text-xs text-gray-500">{inArr.iataCode}</p>
               </div>
             </div>
           )}
         </div>
 
         {/* Price + Add - End */}
-        <div className="flex flex-col items-center justify-center px-2 py-2 border-l border-gray-100 min-w-[70px]">
-          <p className="text-lg font-black text-gray-900 bg-yellow-100 px-1.5 py-0.5 rounded">${Math.round(price)}</p>
-          <p className="text-[8px] text-gray-400">/person</p>
+        <div className="flex flex-col items-center justify-center px-3 py-3 border-l border-gray-100 min-w-[80px]">
+          <p className="text-xl font-black text-gray-900 bg-yellow-100 px-2 py-1 rounded">${Math.round(price)}</p>
+          <p className="text-xs text-gray-400 mt-0.5">/person</p>
           <motion.button
             whileHover={{ scale: 1.1 }}
             whileTap={{ scale: 0.9 }}
             onClick={onAdd}
-            className="mt-1 w-7 h-7 flex items-center justify-center bg-gradient-to-r from-indigo-500 to-purple-600 text-white rounded-lg shadow-md opacity-0 group-hover:opacity-100 transition-opacity"
+            className="mt-1.5 w-8 h-8 flex items-center justify-center bg-gradient-to-r from-indigo-500 to-purple-600 text-white rounded-lg shadow-md opacity-0 group-hover:opacity-100 transition-opacity"
           >
             <Plus className="w-4 h-4" />
           </motion.button>
