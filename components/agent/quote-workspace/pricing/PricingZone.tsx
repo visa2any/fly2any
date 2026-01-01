@@ -37,11 +37,21 @@ export default function PricingZone() {
         <p className="text-xs text-gray-400">{fmt(pricing.perPerson)}/person</p>
       </div>
 
-      {/* Markup - Tactile */}
+      {/* Markup - Tactile + Manual Input */}
       <div className="bg-white border border-gray-100 rounded-xl p-3">
         <div className="flex items-center justify-between mb-2">
           <span className="text-xs font-medium text-gray-600">Markup</span>
-          <span className="text-sm font-bold text-emerald-600">{pricing.markupPercent}%</span>
+          <div className="flex items-center gap-1">
+            <input
+              type="number"
+              min={0}
+              max={100}
+              value={pricing.markupPercent}
+              onChange={(e) => setMarkup(Math.min(100, Math.max(0, parseInt(e.target.value) || 0)))}
+              className="w-12 px-1.5 py-0.5 text-sm font-bold text-emerald-600 text-right bg-emerald-50 border border-emerald-200 rounded focus:outline-none focus:ring-1 focus:ring-emerald-400"
+            />
+            <span className="text-sm font-bold text-emerald-600">%</span>
+          </div>
         </div>
         <input
           type="range" min={0} max={50} step={1}

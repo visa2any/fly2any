@@ -137,13 +137,13 @@ export default function ItineraryCard({ item, dragListeners, isDragging }: Itine
         {/* 3-Column Layout - Increased readability */}
         <div className="flex">
           {/* LEFT: Logo + Airline Name + Fare Type */}
-          <div className="flex flex-col items-center justify-center px-3 py-3 border-r border-gray-100 min-w-[90px] ml-5">
-            <AirlineLogo code={f.airline} size="md" className="flex-shrink-0" />
-            <p className="text-xs font-bold text-gray-900 mt-1.5 text-center truncate max-w-[85px]">
+          <div className="flex flex-col items-center justify-center px-2 py-2 border-r border-gray-100 min-w-[72px] ml-5">
+            <AirlineLogo code={f.airline} size="sm" className="flex-shrink-0" />
+            <p className="text-[9px] font-bold text-gray-900 mt-1 text-center truncate max-w-[68px]">
               {f.airlineName || f.airline}
             </p>
             {f.fareType && (
-              <p className="text-[10px] text-indigo-600 font-semibold bg-indigo-50 px-2 py-0.5 rounded mt-1 truncate max-w-[85px]">
+              <p className="text-[8px] text-indigo-600 font-medium bg-indigo-50 px-1 py-0.5 rounded mt-0.5 truncate max-w-[68px]">
                 {f.fareType}
               </p>
             )}

@@ -966,21 +966,21 @@ function FlightResultCard({ flight, onAdd, index }: { flight: any; onAdd: () => 
       transition={{ delay: index * 0.03 }}
       className="group bg-white border border-gray-200 rounded-xl overflow-hidden hover:border-indigo-300 hover:shadow-lg transition-all relative"
     >
-      {/* Best badge */}
+      {/* Best badge - compact */}
       {index === 0 && (
-        <div className="absolute top-2 right-2 z-10">
-          <span className="text-xs font-bold text-amber-700 bg-amber-100 px-2 py-1 rounded-full flex items-center gap-1">
-            <Star className="w-3 h-3 fill-amber-500" /> BEST
+        <div className="absolute top-1 left-1 z-10">
+          <span className="text-[8px] font-bold text-amber-700 bg-amber-100 px-1 py-0.5 rounded flex items-center gap-0.5">
+            <Star className="w-2 h-2 fill-amber-500" /> BEST
           </span>
         </div>
       )}
 
       <div className="flex">
         {/* Logo - Centered Vertically */}
-        <div className="flex flex-col items-center justify-center px-3 py-3 border-r border-gray-100 min-w-[85px]">
-          <AirlineLogo code={airlineCode} size="md" className="flex-shrink-0" />
-          <p className="text-xs font-bold text-gray-900 mt-1.5 text-center truncate max-w-[80px]">{airlineInfo.name}</p>
-          <p className="text-[10px] text-indigo-600 font-semibold bg-indigo-50 px-1.5 py-0.5 rounded mt-1">{fareType}</p>
+        <div className="flex flex-col items-center justify-center px-2 py-2 border-r border-gray-100 min-w-[72px]">
+          <AirlineLogo code={airlineCode} size="sm" className="flex-shrink-0" />
+          <p className="text-[9px] font-bold text-gray-900 mt-1 text-center truncate max-w-[68px]">{airlineInfo.name}</p>
+          <p className="text-[8px] text-indigo-600 font-medium bg-indigo-50 px-1 py-0.5 rounded mt-0.5">{fareType}</p>
         </div>
 
         {/* Flights */}
