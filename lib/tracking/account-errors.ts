@@ -17,6 +17,25 @@ export type AccountErrorType =
   | 'API_ERROR'
   | 'NETWORK_ERROR';
 
+export interface SecurityContext {
+  ip?: string;
+  userAgent?: string;
+  browser?: string;
+  os?: string;
+  device?: string;
+  referrer?: string;
+  language?: string;
+  timezone?: string;
+  screenSize?: string;
+  attemptCount?: number;
+  sessionId?: string;
+  geo?: {
+    country?: string;
+    city?: string;
+    region?: string;
+  };
+}
+
 export interface AccountError {
   type: AccountErrorType;
   message: string;
@@ -27,16 +46,55 @@ export interface AccountError {
   timestamp: Date;
   metadata?: Record<string, any>;
   stack?: string;
+  security?: SecurityContext;
 }
+
+// Collect browser/client security context
+function collectSecurityContext(): SecurityContext {
+  if (typeof window === 'undefined') return {};
+
+  const ua = navigator.userAgent;
+  const browserMatch = ua.match(/(Chrome|Firefox|Safari|Edge|Opera)[\/\s](\d+)/i);
+  const osMatch = ua.match(/(Windows|Mac|Linux|Android|iOS)[^\d]*(\d+)?/i);
+
+  return {
+    userAgent: ua,
+    browser: browserMatch ? `${browserMatch[1]} ${browserMatch[2]}` : 'Unknown',
+    os: osMatch ? osMatch[0] : 'Unknown',
+    device: /Mobile|Android|iPhone|iPad/i.test(ua) ? 'Mobile' : 'Desktop',
+    referrer: document.referrer || undefined,
+    language: navigator.language,
+    timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+    screenSize: `${window.screen.width}x${window.screen.height}`,
+    sessionId: sessionStorage.getItem('sessionId') || crypto.randomUUID(),
+  };
+}
+
+// Track failed attempts per email (for rate limiting detection)
+const failedAttempts = new Map<string, number>();
 
 class AccountErrorTracker {
   private errors: AccountError[] = [];
   private readonly MAX_ERRORS = 100;
 
   track(error: Omit<AccountError, 'timestamp'>) {
+    // Auto-collect security context on client
+    const security = collectSecurityContext();
+
+    // Track attempt count for this email
+    if (error.email) {
+      const count = (failedAttempts.get(error.email) || 0) + 1;
+      failedAttempts.set(error.email, count);
+      security.attemptCount = count;
+
+      // Clear after 15 mins
+      setTimeout(() => failedAttempts.delete(error.email!), 15 * 60 * 1000);
+    }
+
     const errorEntry: AccountError = {
       ...error,
       timestamp: new Date(),
+      security: { ...security, ...error.security },
     };
 
     this.errors.push(errorEntry);
