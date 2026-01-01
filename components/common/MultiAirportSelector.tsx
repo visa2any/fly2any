@@ -216,13 +216,13 @@ export default function MultiAirportSelector({
         {/* Display selected airport info when not searching */}
         {!isOpen && selectedAirports.length > 0 && (
           <div className={`absolute inset-0 pl-8 pr-5 pointer-events-none flex items-center ${transparent ? 'text-white' : 'text-neutral-800'}`}>
-            <div className="flex items-center gap-1.5 min-w-0 flex-1">
-              <span className="text-base flex-shrink-0">{selectedAirports[0].emoji}</span>
-              <span className="text-xs font-bold truncate">{selectedAirports[0].city}</span>
-              <span className="text-[10px] font-medium text-neutral-400 flex-shrink-0">{selectedAirports[0].code}</span>
+            <div className="flex items-center gap-1 min-w-0 flex-1">
+              <span className="text-sm flex-shrink-0">{selectedAirports[0].emoji}</span>
+              <span className="text-[11px] font-bold truncate">{selectedAirports[0].city}</span>
+              <span className="text-[9px] font-medium text-neutral-400 flex-shrink-0">{selectedAirports[0].code}</span>
             </div>
             {selectedAirports.length > 1 && (
-              <span className="text-[10px] font-bold text-primary-600 bg-primary-100 px-1.5 py-0.5 rounded-full flex-shrink-0 ml-1">+{selectedAirports.length - 1}</span>
+              <span className="text-[9px] font-bold text-primary-600 bg-primary-100 px-1 py-0.5 rounded-full flex-shrink-0 ml-0.5">+{selectedAirports.length - 1}</span>
             )}
           </div>
         )}

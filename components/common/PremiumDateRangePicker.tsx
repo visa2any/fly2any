@@ -68,6 +68,7 @@ export default function PremiumDateRangePicker({
   const [mounted, setMounted] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLDivElement>(null);
+  const dropdownRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     setMounted(true);
@@ -95,7 +96,11 @@ export default function PremiumDateRangePicker({
 
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
-      if (containerRef.current && !containerRef.current.contains(e.target as Node)) {
+      const target = e.target as Node;
+      // Check both the container (input) and dropdown (portal) refs
+      const isInsideContainer = containerRef.current?.contains(target);
+      const isInsideDropdown = dropdownRef.current?.contains(target);
+      if (!isInsideContainer && !isInsideDropdown) {
         setIsOpen(false);
       }
     };
@@ -218,6 +223,7 @@ export default function PremiumDateRangePicker({
         <AnimatePresence>
           {isOpen && (
             <motion.div
+              ref={dropdownRef}
               initial={{ opacity: 0, y: -10, scale: 0.95 }}
               animate={{ opacity: 1, y: 0, scale: 1 }}
               exit={{ opacity: 0, y: -10, scale: 0.95 }}
