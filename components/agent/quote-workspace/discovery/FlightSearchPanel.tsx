@@ -498,8 +498,8 @@ export default function FlightSearchPanel() {
                       <PremiumDateRangePicker
                         startDate={params.departureDate}
                         endDate={params.returnDate || ""}
-                        onChangeStart={(date) => { setError(null); setParams({ ...params, departureDate: date }); }}
-                        onChangeEnd={(date) => { setError(null); setParams({ ...params, returnDate: date }); }}
+                        onChangeStart={(date) => { setError(null); setParams(prev => ({ ...prev, departureDate: date })); }}
+                        onChangeEnd={(date) => { setError(null); setParams(prev => ({ ...prev, returnDate: date })); }}
                         minDate={getMinDate()}
                         startPlaceholder="Depart"
                         endPlaceholder="Return"
@@ -507,7 +507,7 @@ export default function FlightSearchPanel() {
                     ) : (
                       <PremiumDatePicker
                         value={params.departureDate}
-                        onChange={(date) => { setError(null); setParams({ ...params, departureDate: date }); }}
+                        onChange={(date) => { setError(null); setParams(prev => ({ ...prev, departureDate: date })); }}
                         minDate={getMinDate()}
                         placeholder="Departure date"
                       />
