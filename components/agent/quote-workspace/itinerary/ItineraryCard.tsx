@@ -153,8 +153,11 @@ export default function ItineraryCard({ item, dragListeners, isDragging }: Itine
           <div className="flex-1 min-w-0">
             {/* Outbound Row */}
             <div className="flex items-center gap-2 px-3 py-2.5 border-b border-gray-100">
-              <span className="text-[10px] font-bold text-indigo-600 uppercase w-9">→OUT</span>
-              <span className="text-xs text-gray-500 w-16 truncate">{f.airline} {f.flightNumber}</span>
+              <div className="w-16">
+                <span className="text-[10px] font-bold text-indigo-600 uppercase">→OUT</span>
+                <p className="text-[9px] text-gray-400">{f.date ? format(parseISO(f.date), "MMM d") : ""}</p>
+              </div>
+              <span className="text-xs text-gray-500 w-14 truncate">{f.airline} {f.flightNumber}</span>
               <div className="text-center min-w-[48px]">
                 <p className="text-sm font-bold text-gray-900">{f.departureTime || "--:--"}</p>
                 <p className="text-xs text-gray-500">{f.origin}</p>
@@ -179,8 +182,11 @@ export default function ItineraryCard({ item, dragListeners, isDragging }: Itine
             {/* Return Row */}
             {isRoundtrip && (
               <div className="flex items-center gap-2 px-3 py-2.5 bg-gray-50/50">
-                <span className="text-[10px] font-bold text-orange-600 uppercase w-9">←RET</span>
-                <span className="text-xs text-gray-500 w-16 truncate">{f.airline} {f.returnFlightNumber}</span>
+                <div className="w-16">
+                  <span className="text-[10px] font-bold text-orange-600 uppercase">←RET</span>
+                  <p className="text-[9px] text-gray-400">{f.returnDate ? format(parseISO(f.returnDate), "MMM d") : ""}</p>
+                </div>
+                <span className="text-xs text-gray-500 w-14 truncate">{f.airline} {f.returnFlightNumber}</span>
                 <div className="text-center min-w-[48px]">
                   <p className="text-sm font-bold text-gray-900">{f.returnDepartureTime || "--:--"}</p>
                   <p className="text-xs text-gray-500">{f.destination}</p>

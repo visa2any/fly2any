@@ -66,15 +66,12 @@ export default function PremiumDatePicker({
   const containerRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLButtonElement>(null);
 
-  // Calculate dropdown position when opening
+  // Calculate dropdown position when opening - always open down
   const openDropdown = () => {
     if (inputRef.current) {
       const rect = inputRef.current.getBoundingClientRect();
-      const spaceBelow = window.innerHeight - rect.bottom;
-      const dropdownHeight = 380;
-      // Position below if space, otherwise above
-      const top = spaceBelow > dropdownHeight ? rect.bottom + 8 : rect.top - dropdownHeight - 8;
-      setDropdownPos({ top, left: rect.left, width: Math.max(300, rect.width) });
+      // Always position below the input
+      setDropdownPos({ top: rect.bottom + 8, left: rect.left, width: Math.max(300, rect.width) });
     }
     setIsOpen(true);
   };

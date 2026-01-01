@@ -34,7 +34,7 @@ export default function ClientSelectModal() {
   const fetchClients = async () => {
     setLoading(true);
     try {
-      const res = await fetch("/api/agent/clients");
+      const res = await fetch("/api/agents/clients");
       if (res.ok) {
         const data = await res.json();
         setClients(data.clients || []);
@@ -68,7 +68,7 @@ export default function ClientSelectModal() {
     setQuickCreateLoading(true);
 
     try {
-      const res = await fetch("/api/agent/clients", {
+      const res = await fetch("/api/agents/clients", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(quickCreateData),

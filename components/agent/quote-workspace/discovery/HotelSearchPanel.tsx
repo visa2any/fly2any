@@ -130,17 +130,23 @@ export default function HotelSearchPanel() {
     }
     setSearchResults(true, null);
     try {
-      const query = new URLSearchParams({
-        location: params.location,
+      const body = {
+        location: selectedDestination?.location || params.location,
         checkIn: params.checkIn,
         checkOut: params.checkOut,
-        rooms: params.rooms.toString(),
-        adults: params.adults.toString(),
-        children: params.children.toString(),
+        guests: {
+          adults: params.adults,
+          children: params.children,
+        },
+        rooms: params.rooms,
+      };
+      const res = await fetch('/api/hotels/search', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body),
       });
-      const res = await fetch(`/api/hotels/search?${query}`);
       const data = await res.json();
-      if (!res.ok) throw new Error(data.error || "Search failed");
+      if (!res.ok) throw new Error(data.error || data.hint || "Search failed");
       setSearchResults(false, data.hotels || []);
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : "Search failed");
