@@ -2,7 +2,7 @@
 
 import { useState, useRef, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Search, Building2, Loader2, Plus, Star, MapPin, AlertCircle, Users, ChevronDown, ChevronUp, Minus, X, Plane, Landmark, Edit3, Calendar } from "lucide-react";
+import { Search, Building2, Loader2, Plus, Star, MapPin, AlertCircle, Users, ChevronDown, ChevronUp, Minus, X, Plane, Landmark, Edit3, Calendar, ArrowUpDown, Filter, Check } from "lucide-react";
 import { useQuoteWorkspace } from "../QuoteWorkspaceProvider";
 import PremiumDateRangePicker from "@/components/common/PremiumDateRangePicker";
 import type { HotelItem, HotelSearchParams } from "../types/quote-workspace.types";
@@ -49,6 +49,10 @@ export default function HotelSearchPanel() {
   const [popularDestinations, setPopularDestinations] = useState<LocationSuggestion[]>([]);
   const [loadingSuggestions, setLoadingSuggestions] = useState(false);
   const [formCollapsed, setFormCollapsed] = useState(false);
+  const [sortBy, setSortBy] = useState<'price' | 'rating' | 'name'>('price');
+  const [filterStars, setFilterStars] = useState<number>(0); // 0 = all, 3/4/5 = min stars
+  const [filterRefundable, setFilterRefundable] = useState(false);
+  const [visibleCount, setVisibleCount] = useState(10);
 
   // Auto-collapse form when search results arrive
   useEffect(() => {
@@ -143,6 +147,7 @@ export default function HotelSearchPanel() {
       return;
     }
     setSearchResults(true, null);
+    setVisibleCount(10); // Reset pagination
     try {
       // API expects location with {lat,lng} AND/OR {query: "city name"}
       // Always include query for Amadeus search support
@@ -437,11 +442,60 @@ export default function HotelSearchPanel() {
           </motion.div>
         )}
         {!searchLoading && searchResults && searchResults.length > 0 && (
-          <motion.div key="results" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="space-y-3">
-            <p className="text-sm text-gray-500">{searchResults.length} hotels found</p>
-            {searchResults.slice(0, 10).map((hotel: any, idx: number) => (
-              <HotelCard key={hotel.id || idx} hotel={hotel} nights={nights} onAdd={() => handleAddHotel(hotel)} />
-            ))}
+          <motion.div key="results" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="space-y-2">
+            {/* Sticky Filter Bar */}
+            <div className="sticky top-0 z-10 bg-white/95 backdrop-blur-sm rounded-lg border border-gray-100 p-1.5 space-y-1.5">
+              <div className="flex items-center justify-between gap-2">
+                <span className="text-xs font-bold text-gray-700">{searchResults.length} hotels</span>
+                <div className="flex items-center gap-1">
+                  <span className="text-[9px] text-gray-400 mr-1">Sort:</span>
+                  {(['price', 'rating', 'name'] as const).map(s => (
+                    <button key={s} onClick={() => setSortBy(s)} className={`text-[9px] px-1.5 py-0.5 rounded font-medium transition-all ${sortBy === s ? 'bg-purple-600 text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'}`}>
+                      {s === 'price' ? 'Price' : s === 'rating' ? 'Rating' : 'Name'}
+                    </button>
+                  ))}
+                </div>
+              </div>
+              <div className="flex items-center gap-1 flex-wrap">
+                <Filter className="w-3 h-3 text-gray-400" />
+                {[3, 4, 5].map(s => (
+                  <button key={s} onClick={() => setFilterStars(filterStars === s ? 0 : s)} className={`text-[9px] px-1.5 py-0.5 rounded font-medium flex items-center gap-0.5 transition-all ${filterStars === s ? 'bg-amber-500 text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'}`}>
+                    {s}★+
+                  </button>
+                ))}
+                <button onClick={() => setFilterRefundable(!filterRefundable)} className={`text-[9px] px-1.5 py-0.5 rounded font-medium flex items-center gap-0.5 transition-all ${filterRefundable ? 'bg-green-500 text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'}`}>
+                  {filterRefundable && <Check className="w-2.5 h-2.5" />}Free Cancel
+                </button>
+              </div>
+            </div>
+            {/* Filtered & Sorted Results */}
+            {(() => {
+              const filtered = searchResults
+                .filter((h: any) => filterStars === 0 || (h.rating || h.stars || 4) >= filterStars)
+                .filter((h: any) => !filterRefundable || h.refundable)
+                .sort((a: any, b: any) => {
+                  if (sortBy === 'price') return (a.lowestPrice?.amount || a.lowestPricePerNight || 9999) - (b.lowestPrice?.amount || b.lowestPricePerNight || 9999);
+                  if (sortBy === 'rating') return (b.reviewScore || 0) - (a.reviewScore || 0);
+                  return (a.name || '').localeCompare(b.name || '');
+                });
+              const visible = filtered.slice(0, visibleCount);
+              const remaining = filtered.length - visibleCount;
+              return (
+                <>
+                  <div className="space-y-1.5">
+                    {visible.map((hotel: any, idx: number) => (
+                      <HotelCard key={hotel.id || idx} hotel={hotel} nights={nights} onAdd={() => handleAddHotel(hotel)} />
+                    ))}
+                  </div>
+                  {remaining > 0 && (
+                    <button onClick={() => setVisibleCount(v => v + 10)} className="w-full py-2 text-xs font-semibold text-purple-600 bg-purple-50 hover:bg-purple-100 rounded-lg transition-all">
+                      Load More ({remaining} remaining)
+                    </button>
+                  )}
+                  {filtered.length === 0 && <p className="text-center text-xs text-gray-400 py-4">No hotels match filters</p>}
+                </>
+              );
+            })()}
           </motion.div>
         )}
         {!searchLoading && searchResults && searchResults.length === 0 && (
