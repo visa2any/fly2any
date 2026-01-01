@@ -144,9 +144,10 @@ export default function HotelSearchPanel() {
     }
     setSearchResults(true, null);
     try {
-      // API expects location as {lat,lng} object OR {query: "city name"}
+      // API expects location with {lat,lng} AND/OR {query: "city name"}
+      // Always include query for Amadeus search support
       const locationPayload = selectedDestination?.location
-        ? selectedDestination.location  // {lat, lng} object
+        ? { ...selectedDestination.location, query: params.location }  // {lat, lng, query}
         : { query: params.location };   // wrap string in query object
 
       const body = {
