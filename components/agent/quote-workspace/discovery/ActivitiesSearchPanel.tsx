@@ -36,6 +36,9 @@ export default function ActivitiesSearchPanel() {
   const [popularDestinations, setPopularDestinations] = useState<LocationSuggestion[]>([]);
   const [loadingSuggestions, setLoadingSuggestions] = useState(false);
   const [formCollapsed, setFormCollapsed] = useState(false);
+  const [sortBy, setSortBy] = useState<'price' | 'rating' | 'name'>('rating');
+  const [filterCategory, setFilterCategory] = useState<string>('all');
+  const [visibleCount, setVisibleCount] = useState(10);
 
   const containerRef = useRef<HTMLDivElement>(null);
 
@@ -155,6 +158,8 @@ export default function ActivitiesSearchPanel() {
       if (!res.ok) throw new Error(data.error || data.message || "Search failed");
 
       setSearchResults(false, data.data || []);
+      setVisibleCount(10);
+      setFilterCategory('all');
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : "Search failed");
       setSearchResults(false, null);
@@ -403,69 +408,73 @@ export default function ActivitiesSearchPanel() {
 
       {/* Results */}
       <AnimatePresence mode="wait">
-        {!searchLoading && searchResults && searchResults.length > 0 && (
-          <motion.div
-            key="results"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="space-y-3"
-          >
-            <p className="text-sm text-gray-500">{searchResults.length} activities found</p>
-            {searchResults.slice(0, 10).map((activity: any, idx: number) => (
-              <motion.div
-                key={activity.id || idx}
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                whileHover={{ scale: 1.02 }}
-                className="bg-white border-2 border-gray-100 rounded-2xl p-3 hover:border-emerald-200 hover:shadow-lg transition-all group"
-              >
-                <div className="flex gap-3">
-                  <div className="w-20 h-16 rounded-xl bg-emerald-100 overflow-hidden flex-shrink-0 flex items-center justify-center">
-                    {activity.pictures?.[0]?.url ? (
-                      <img
-                        src={activity.pictures[0].url}
-                        alt={activity.name}
-                        className="w-full h-full object-cover"
-                      />
-                    ) : (
-                      <Compass className="w-8 h-8 text-emerald-300" />
-                    )}
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <h4 className="font-bold text-gray-900 truncate text-sm">{activity.name}</h4>
-                    <div className="flex items-center gap-2 mt-0.5">
-                      {activity.rating && (
-                        <div className="flex items-center gap-0.5">
-                          <Star className="w-3 h-3 text-yellow-500 fill-yellow-500" />
-                          <span className="text-xs text-gray-600">{activity.rating}</span>
-                        </div>
-                      )}
-                      {activity.categories?.[0] && (
-                        <span className="text-xs text-emerald-600 bg-emerald-50 px-1.5 py-0.5 rounded-full">
-                          {activity.categories[0]}
-                        </span>
-                      )}
-                    </div>
-                  </div>
-                  <div className="flex flex-col items-end justify-between">
-                    <p className="text-lg font-black text-gray-900">
-                      ${activity.price?.amount || 0}
-                    </p>
-                    <motion.button
-                      whileHover={{ scale: 1.15, rotate: 90 }}
-                      whileTap={{ scale: 0.9 }}
-                      onClick={() => handleAddActivity(activity)}
-                      className="w-8 h-8 flex items-center justify-center bg-gradient-to-br from-emerald-500 to-teal-600 text-white rounded-full shadow-lg opacity-0 group-hover:opacity-100 transition-opacity"
-                    >
-                      <Plus className="w-4 h-4" />
-                    </motion.button>
+        {!searchLoading && searchResults && searchResults.length > 0 && (() => {
+          const categories = ['all', ...Array.from(new Set(searchResults.map((a: any) => a.categories?.[0]).filter(Boolean)))];
+          const filtered = searchResults.filter((a: any) => filterCategory === 'all' || a.categories?.[0] === filterCategory);
+          const sorted = [...filtered].sort((a: any, b: any) => {
+            if (sortBy === 'price') return (parseFloat(a.price?.amount) || 0) - (parseFloat(b.price?.amount) || 0);
+            if (sortBy === 'rating') return (parseFloat(b.rating) || 0) - (parseFloat(a.rating) || 0);
+            return (a.name || '').localeCompare(b.name || '');
+          });
+          const visible = sorted.slice(0, visibleCount);
+          const hasMore = visibleCount < sorted.length;
+
+          return (
+            <motion.div key="results" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="space-y-3">
+              {/* Sticky Filter Bar */}
+              <div className="sticky top-0 z-10 bg-white/95 backdrop-blur-sm py-2 -mx-4 px-4 border-b border-gray-100">
+                <div className="flex items-center justify-between gap-2 mb-2">
+                  <span className="text-xs font-bold text-gray-500">{filtered.length} results</span>
+                  <div className="flex gap-1">
+                    {(['rating', 'price', 'name'] as const).map((s) => (
+                      <button key={s} onClick={() => setSortBy(s)} className={`px-2 py-1 text-[10px] font-bold rounded-md transition-all ${sortBy === s ? 'bg-emerald-500 text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'}`}>
+                        {s === 'rating' ? 'Top Rated' : s === 'price' ? 'Price' : 'A-Z'}
+                      </button>
+                    ))}
                   </div>
                 </div>
-              </motion.div>
-            ))}
-          </motion.div>
-        )}
+                {categories.length > 2 && (
+                  <div className="flex gap-1 overflow-x-auto pb-1 scrollbar-hide">
+                    {categories.slice(0, 6).map((cat) => (
+                      <button key={cat} onClick={() => { setFilterCategory(cat); setVisibleCount(10); }} className={`px-2 py-1 text-[10px] font-semibold rounded-full whitespace-nowrap transition-all ${filterCategory === cat ? 'bg-emerald-100 text-emerald-700 border border-emerald-300' : 'bg-gray-50 text-gray-500 border border-gray-200 hover:bg-gray-100'}`}>
+                        {cat === 'all' ? 'All' : cat}
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
+
+              {/* Activity Cards */}
+              {visible.map((activity: any, idx: number) => (
+                <motion.div key={activity.id || idx} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} whileHover={{ scale: 1.02 }} className="bg-white border-2 border-gray-100 rounded-2xl p-3 hover:border-emerald-200 hover:shadow-lg transition-all group">
+                  <div className="flex gap-3">
+                    <div className="w-20 h-16 rounded-xl bg-emerald-100 overflow-hidden flex-shrink-0 flex items-center justify-center">
+                      {activity.pictures?.[0]?.url ? <img src={activity.pictures[0].url} alt={activity.name} className="w-full h-full object-cover" /> : <Compass className="w-8 h-8 text-emerald-300" />}
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <h4 className="font-bold text-gray-900 truncate text-sm">{activity.name}</h4>
+                      <div className="flex items-center gap-2 mt-0.5">
+                        {activity.rating && <div className="flex items-center gap-0.5"><Star className="w-3 h-3 text-yellow-500 fill-yellow-500" /><span className="text-xs text-gray-600">{activity.rating}</span></div>}
+                        {activity.categories?.[0] && <span className="text-xs text-emerald-600 bg-emerald-50 px-1.5 py-0.5 rounded-full">{activity.categories[0]}</span>}
+                      </div>
+                    </div>
+                    <div className="flex flex-col items-end justify-between">
+                      <p className="text-lg font-black text-gray-900">${activity.price?.amount || 0}</p>
+                      <motion.button whileHover={{ scale: 1.15, rotate: 90 }} whileTap={{ scale: 0.9 }} onClick={() => handleAddActivity(activity)} className="w-8 h-8 flex items-center justify-center bg-gradient-to-br from-emerald-500 to-teal-600 text-white rounded-full shadow-lg opacity-0 group-hover:opacity-100 transition-opacity"><Plus className="w-4 h-4" /></motion.button>
+                    </div>
+                  </div>
+                </motion.div>
+              ))}
+
+              {/* Load More */}
+              {hasMore && (
+                <motion.button whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }} onClick={() => setVisibleCount((c) => c + 10)} className="w-full py-2.5 bg-gray-50 hover:bg-emerald-50 border border-gray-200 hover:border-emerald-200 rounded-xl text-sm font-semibold text-gray-600 hover:text-emerald-600 transition-all flex items-center justify-center gap-2">
+                  <ChevronDown className="w-4 h-4" /> Load More ({sorted.length - visibleCount} remaining)
+                </motion.button>
+              )}
+            </motion.div>
+          );
+        })()}
       </AnimatePresence>
     </div>
   );

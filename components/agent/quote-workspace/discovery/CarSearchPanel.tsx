@@ -39,6 +39,11 @@ export default function CarSearchPanel() {
   const [activeField, setActiveField] = useState<'pickup' | 'dropoff' | null>(null);
   const [formCollapsed, setFormCollapsed] = useState(false);
 
+  // Filter & pagination state
+  const [sortBy, setSortBy] = useState<'price' | 'size' | 'name'>('price');
+  const [filterCategory, setFilterCategory] = useState<'all' | 'economy' | 'compact' | 'midsize' | 'suv' | 'luxury'>('all');
+  const [visibleCount, setVisibleCount] = useState(10);
+
   // Auto-collapse form when search results arrive
   useEffect(() => {
     if (searchResults && searchResults.length > 0 && !searchLoading) {
@@ -150,6 +155,7 @@ export default function CarSearchPanel() {
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || "Search failed");
       setSearchResults(false, data.data || data.cars || data.results || []);
+      setVisibleCount(10); // Reset pagination on new search
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : "Search failed");
       setSearchResults(false, null);
@@ -384,30 +390,92 @@ export default function CarSearchPanel() {
 
       {/* Results */}
       <AnimatePresence mode="wait">
-        {!searchLoading && searchResults && searchResults.length > 0 && (
-          <motion.div key="results" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="space-y-3">
-            <p className="text-sm text-gray-500">{searchResults.length} cars found</p>
-            {searchResults.slice(0, 10).map((car: any, idx: number) => (
-              <motion.div key={car.id || idx} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} whileHover={{ scale: 1.02 }} className="bg-white border-2 border-gray-100 rounded-2xl p-3 hover:border-cyan-200 hover:shadow-lg transition-all group">
-                <div className="flex gap-3">
-                  <div className="w-20 h-16 rounded-xl bg-cyan-100 overflow-hidden flex-shrink-0 flex items-center justify-center">
-                    {car.vehicle?.imageURL || car.vehicle?.image || car.photoUrl || car.image ? <img src={car.vehicle?.imageURL || car.vehicle?.image || car.photoUrl || car.image} alt={car.vehicle?.description || car.model || car.name} className="w-full h-full object-contain" /> : <Car className="w-8 h-8 text-cyan-300" />}
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <h4 className="font-bold text-gray-900 truncate text-sm">{car.vehicle?.description || car.vehicle?.name || car.model || car.name || 'Car Rental'}</h4>
-                    <p className="text-xs text-gray-500">{car.vehicle?.category || car.type || car.category || 'Standard'}</p>
-                  </div>
-                  <div className="flex flex-col items-end justify-between">
-                    <p className="text-lg font-black text-gray-900">${car.price?.total || car.price?.amount || car.pricePerDay || 0}</p>
-                    <motion.button whileHover={{ scale: 1.15, rotate: 90 }} whileTap={{ scale: 0.9 }} onClick={() => handleAddCar(car)} className="w-8 h-8 flex items-center justify-center bg-gradient-to-br from-cyan-500 to-blue-600 text-white rounded-full shadow-lg opacity-0 group-hover:opacity-100 transition-opacity">
-                      <Plus className="w-4 h-4" />
-                    </motion.button>
+        {!searchLoading && searchResults && searchResults.length > 0 && (() => {
+          // Filter & sort logic
+          const getCarCategory = (car: any) => {
+            const cat = (car.vehicle?.category || car.type || car.category || '').toLowerCase();
+            if (cat.includes('economy') || cat.includes('mini')) return 'economy';
+            if (cat.includes('compact')) return 'compact';
+            if (cat.includes('midsize') || cat.includes('mid-size') || cat.includes('intermediate')) return 'midsize';
+            if (cat.includes('suv') || cat.includes('crossover') || cat.includes('4x4')) return 'suv';
+            if (cat.includes('luxury') || cat.includes('premium') || cat.includes('fullsize')) return 'luxury';
+            return 'compact';
+          };
+          const getCarPrice = (car: any) => parseFloat(car.price?.total) || car.price?.amount || car.pricePerDay || 0;
+          const getCarName = (car: any) => car.vehicle?.description || car.vehicle?.name || car.model || car.name || '';
+          const getCarSize = (car: any) => {
+            const cat = getCarCategory(car);
+            return { economy: 1, compact: 2, midsize: 3, suv: 4, luxury: 5 }[cat] || 2;
+          };
+
+          const filtered = filterCategory === 'all' ? searchResults : searchResults.filter((car: any) => getCarCategory(car) === filterCategory);
+          const sorted = [...filtered].sort((a: any, b: any) => {
+            if (sortBy === 'price') return getCarPrice(a) - getCarPrice(b);
+            if (sortBy === 'size') return getCarSize(a) - getCarSize(b);
+            return getCarName(a).localeCompare(getCarName(b));
+          });
+          const visible = sorted.slice(0, visibleCount);
+          const remaining = sorted.length - visibleCount;
+
+          return (
+            <motion.div key="results" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="space-y-2">
+              {/* Sticky Filter Bar */}
+              <div className="sticky top-0 z-10 bg-white/95 backdrop-blur-sm border border-gray-200 rounded-xl p-2 space-y-2">
+                <div className="flex items-center justify-between">
+                  <span className="text-xs font-bold text-gray-700">{filtered.length} car{filtered.length !== 1 ? 's' : ''}</span>
+                  <div className="flex gap-1">
+                    {(['price', 'size', 'name'] as const).map((s) => (
+                      <button key={s} type="button" onClick={() => setSortBy(s)} className={`px-2 py-1 text-[10px] font-semibold rounded-lg transition-all ${sortBy === s ? 'bg-cyan-500 text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'}`}>
+                        {s.charAt(0).toUpperCase() + s.slice(1)}
+                      </button>
+                    ))}
                   </div>
                 </div>
-              </motion.div>
-            ))}
-          </motion.div>
-        )}
+                <div className="flex gap-1 flex-wrap">
+                  {(['all', 'economy', 'compact', 'midsize', 'suv', 'luxury'] as const).map((f) => (
+                    <button key={f} type="button" onClick={() => { setFilterCategory(f); setVisibleCount(10); }} className={`px-2 py-1 text-[10px] font-semibold rounded-lg transition-all ${filterCategory === f ? 'bg-cyan-100 text-cyan-700 border border-cyan-300' : 'bg-gray-50 text-gray-500 hover:bg-gray-100'}`}>
+                      {f === 'all' ? 'All' : f.charAt(0).toUpperCase() + f.slice(1)}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Car Cards */}
+              {visible.map((car: any, idx: number) => (
+                <motion.div key={car.id || idx} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} whileHover={{ scale: 1.02 }} className="bg-white border-2 border-gray-100 rounded-2xl p-3 hover:border-cyan-200 hover:shadow-lg transition-all group">
+                  <div className="flex gap-3">
+                    <div className="w-20 h-16 rounded-xl bg-cyan-100 overflow-hidden flex-shrink-0 flex items-center justify-center">
+                      {car.vehicle?.imageURL || car.vehicle?.image || car.photoUrl || car.image ? <img src={car.vehicle?.imageURL || car.vehicle?.image || car.photoUrl || car.image} alt={getCarName(car)} className="w-full h-full object-contain" /> : <Car className="w-8 h-8 text-cyan-300" />}
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <h4 className="font-bold text-gray-900 truncate text-sm">{getCarName(car) || 'Car Rental'}</h4>
+                      <p className="text-xs text-gray-500">{car.vehicle?.category || car.type || car.category || 'Standard'}</p>
+                    </div>
+                    <div className="flex flex-col items-end justify-between">
+                      <p className="text-lg font-black text-gray-900">${getCarPrice(car)}</p>
+                      <motion.button whileHover={{ scale: 1.15, rotate: 90 }} whileTap={{ scale: 0.9 }} onClick={() => handleAddCar(car)} className="w-8 h-8 flex items-center justify-center bg-gradient-to-br from-cyan-500 to-blue-600 text-white rounded-full shadow-lg opacity-0 group-hover:opacity-100 transition-opacity">
+                        <Plus className="w-4 h-4" />
+                      </motion.button>
+                    </div>
+                  </div>
+                </motion.div>
+              ))}
+
+              {/* Load More Button */}
+              {remaining > 0 && (
+                <motion.button
+                  type="button"
+                  onClick={() => setVisibleCount((c) => c + 10)}
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.98 }}
+                  className="w-full py-2.5 bg-gray-100 hover:bg-cyan-50 text-gray-700 hover:text-cyan-700 font-semibold text-sm rounded-xl border border-gray-200 hover:border-cyan-200 transition-all"
+                >
+                  Load More ({remaining} remaining)
+                </motion.button>
+              )}
+            </motion.div>
+          );
+        })()}
       </AnimatePresence>
     </div>
   );

@@ -74,6 +74,12 @@ export default function FlightSearchPanel() {
   const [isHovered, setIsHovered] = useState(false);
   const formRef = useRef<HTMLFormElement>(null);
 
+  // Filter & pagination state
+  const [sortBy, setSortBy] = useState<"price" | "duration" | "departure">("price");
+  const [filterStops, setFilterStops] = useState<0 | 1 | 2>(0); // 0=all, 1=nonstop, 2=1stop
+  const [filterAirline, setFilterAirline] = useState<string>("");
+  const [visibleCount, setVisibleCount] = useState(10);
+
   // Auto-collapse form when search results arrive
   useEffect(() => {
     if (searchResults && searchResults.length > 0 && !searchLoading) {
@@ -160,6 +166,10 @@ export default function FlightSearchPanel() {
       }
 
       setSearchResults(false, data.flights || []);
+      setVisibleCount(10); // Reset pagination on new search
+      setFilterStops(0);
+      setFilterAirline("");
+      setSortBy("price");
     } catch (err: any) {
       setError(err.message || "Failed to search flights");
       setSearchResults(false, null);
@@ -272,6 +282,70 @@ export default function FlightSearchPanel() {
         : "Date";
     return { from, to, date };
   }, [params]);
+
+  // Extract unique airlines from results
+  const uniqueAirlines = useMemo(() => {
+    if (!searchResults || searchResults.length === 0) return [];
+    const airlines = new Set<string>();
+    searchResults.forEach((f: any) => {
+      const code = f.validatingAirlineCodes?.[0] || f.airline || f.carrierCode || f.itineraries?.[0]?.segments?.[0]?.carrierCode;
+      if (code) airlines.add(code);
+    });
+    return Array.from(airlines).slice(0, 5);
+  }, [searchResults]);
+
+  // Helper: get stops count from flight
+  const getFlightStops = (flight: any): number => {
+    const segs = flight.itineraries?.[0]?.segments || flight.segments || [];
+    return segs.length > 0 ? segs.length - 1 : 0;
+  };
+
+  // Helper: get duration in minutes
+  const getDurationMinutes = (flight: any): number => {
+    const dur = flight.itineraries?.[0]?.duration || flight.duration || "";
+    const m = dur.match(/PT(\d+)H?(\d+)?M?/i);
+    if (m) return (parseInt(m[1] || "0") * 60) + parseInt(m[2] || "0");
+    return 9999;
+  };
+
+  // Helper: get departure time as minutes from midnight
+  const getDepartureMinutes = (flight: any): number => {
+    const at = flight.itineraries?.[0]?.segments?.[0]?.departure?.at || "";
+    if (at.includes("T")) {
+      const [h, m] = at.slice(11, 16).split(":").map(Number);
+      return h * 60 + m;
+    }
+    return 0;
+  };
+
+  // Filtered & sorted results
+  const filteredResults = useMemo(() => {
+    if (!searchResults || searchResults.length === 0) return [];
+    let results = [...searchResults];
+
+    // Filter by stops
+    if (filterStops === 1) results = results.filter((f) => getFlightStops(f) === 0);
+    else if (filterStops === 2) results = results.filter((f) => getFlightStops(f) === 1);
+
+    // Filter by airline
+    if (filterAirline) {
+      results = results.filter((f) => {
+        const code = f.validatingAirlineCodes?.[0] || f.airline || f.carrierCode || f.itineraries?.[0]?.segments?.[0]?.carrierCode;
+        return code === filterAirline;
+      });
+    }
+
+    // Sort
+    if (sortBy === "price") {
+      results.sort((a, b) => Number(a.price?.total || a.price?.amount || 0) - Number(b.price?.total || b.price?.amount || 0));
+    } else if (sortBy === "duration") {
+      results.sort((a, b) => getDurationMinutes(a) - getDurationMinutes(b));
+    } else if (sortBy === "departure") {
+      results.sort((a, b) => getDepartureMinutes(a) - getDepartureMinutes(b));
+    }
+
+    return results;
+  }, [searchResults, filterStops, filterAirline, sortBy]);
 
   return (
     <div className="p-3 space-y-2.5">
@@ -884,30 +958,116 @@ export default function FlightSearchPanel() {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="space-y-3"
+            className="space-y-2"
           >
             {/* Sticky Filter Bar */}
             <div className="sticky top-0 z-10 bg-white/95 backdrop-blur-sm -mx-1 px-1 py-2 border-b border-gray-100">
               <div className="flex items-center justify-between mb-2">
-                <p className="text-xs font-semibold text-gray-600">{searchResults.length} flights</p>
-                <div className="flex items-center gap-1 text-[10px] text-emerald-600 font-medium">
-                  <TrendingUp className="w-3 h-3" />
-                  Best prices
-                </div>
+                <p className="text-xs font-semibold text-gray-600">
+                  {filteredResults.length} flight{filteredResults.length !== 1 ? "s" : ""}
+                  {filteredResults.length !== searchResults.length && (
+                    <span className="text-gray-400 font-normal"> of {searchResults.length}</span>
+                  )}
+                </p>
+                {(filterStops !== 0 || filterAirline) && (
+                  <button
+                    onClick={() => { setFilterStops(0); setFilterAirline(""); }}
+                    className="text-[10px] text-indigo-600 font-medium hover:underline"
+                  >
+                    Clear filters
+                  </button>
+                )}
               </div>
-              {/* Horizontal scroll pills */}
+              {/* Sort & Filter Pills */}
               <div className="flex gap-1.5 overflow-x-auto scrollbar-hide pb-1 -mx-1 px-1">
-                <button className="flex-shrink-0 px-2 py-1 text-[10px] font-semibold bg-indigo-100 text-indigo-700 rounded-full">Price ↑</button>
-                <button className="flex-shrink-0 px-2 py-1 text-[10px] font-medium bg-gray-100 text-gray-600 rounded-full hover:bg-gray-200">Duration</button>
-                <button className="flex-shrink-0 px-2 py-1 text-[10px] font-medium bg-gray-100 text-gray-600 rounded-full hover:bg-gray-200">Direct only</button>
-                <button className="flex-shrink-0 px-2 py-1 text-[10px] font-medium bg-gray-100 text-gray-600 rounded-full hover:bg-gray-200">Morning</button>
-                <button className="flex-shrink-0 px-2 py-1 text-[10px] font-medium bg-gray-100 text-gray-600 rounded-full hover:bg-gray-200">Afternoon</button>
-                <button className="flex-shrink-0 px-2 py-1 text-[10px] font-medium bg-gray-100 text-gray-600 rounded-full hover:bg-gray-200">Evening</button>
+                {/* Sort Pills */}
+                <button
+                  onClick={() => setSortBy("price")}
+                  className={`flex-shrink-0 px-2 py-1 text-[10px] font-semibold rounded-full transition-colors ${
+                    sortBy === "price" ? "bg-indigo-100 text-indigo-700" : "bg-gray-100 text-gray-600 hover:bg-gray-200"
+                  }`}
+                >
+                  Price {sortBy === "price" && "↑"}
+                </button>
+                <button
+                  onClick={() => setSortBy("duration")}
+                  className={`flex-shrink-0 px-2 py-1 text-[10px] font-semibold rounded-full transition-colors ${
+                    sortBy === "duration" ? "bg-indigo-100 text-indigo-700" : "bg-gray-100 text-gray-600 hover:bg-gray-200"
+                  }`}
+                >
+                  Duration {sortBy === "duration" && "↑"}
+                </button>
+                <button
+                  onClick={() => setSortBy("departure")}
+                  className={`flex-shrink-0 px-2 py-1 text-[10px] font-semibold rounded-full transition-colors ${
+                    sortBy === "departure" ? "bg-indigo-100 text-indigo-700" : "bg-gray-100 text-gray-600 hover:bg-gray-200"
+                  }`}
+                >
+                  Departure {sortBy === "departure" && "↑"}
+                </button>
+                <span className="w-px h-4 bg-gray-200 flex-shrink-0 self-center" />
+                {/* Stop Filters */}
+                <button
+                  onClick={() => setFilterStops(filterStops === 1 ? 0 : 1)}
+                  className={`flex-shrink-0 px-2 py-1 text-[10px] font-semibold rounded-full transition-colors ${
+                    filterStops === 1 ? "bg-emerald-100 text-emerald-700" : "bg-gray-100 text-gray-600 hover:bg-gray-200"
+                  }`}
+                >
+                  Nonstop
+                </button>
+                <button
+                  onClick={() => setFilterStops(filterStops === 2 ? 0 : 2)}
+                  className={`flex-shrink-0 px-2 py-1 text-[10px] font-semibold rounded-full transition-colors ${
+                    filterStops === 2 ? "bg-amber-100 text-amber-700" : "bg-gray-100 text-gray-600 hover:bg-gray-200"
+                  }`}
+                >
+                  1 Stop
+                </button>
+                {/* Airline Filters */}
+                {uniqueAirlines.map((code) => (
+                  <button
+                    key={code}
+                    onClick={() => setFilterAirline(filterAirline === code ? "" : code)}
+                    className={`flex-shrink-0 px-2 py-1 text-[10px] font-semibold rounded-full transition-colors ${
+                      filterAirline === code ? "bg-purple-100 text-purple-700" : "bg-gray-100 text-gray-600 hover:bg-gray-200"
+                    }`}
+                  >
+                    {code}
+                  </button>
+                ))}
               </div>
             </div>
-            {searchResults.slice(0, 10).map((flight: any, idx: number) => (
-              <FlightResultCard key={flight.id || idx} flight={flight} onAdd={() => handleAddFlight(flight)} index={idx} />
-            ))}
+
+            {/* Flight Cards */}
+            {filteredResults.length > 0 ? (
+              <>
+                {filteredResults.slice(0, visibleCount).map((flight: any, idx: number) => (
+                  <FlightResultCard key={flight.id || idx} flight={flight} onAdd={() => handleAddFlight(flight)} index={idx} />
+                ))}
+
+                {/* Load More Button */}
+                {visibleCount < filteredResults.length && (
+                  <motion.button
+                    onClick={() => setVisibleCount((prev) => prev + 10)}
+                    whileHover={{ scale: 1.01 }}
+                    whileTap={{ scale: 0.99 }}
+                    className="w-full py-2.5 bg-gray-50 hover:bg-gray-100 border border-gray-200 rounded-xl text-sm font-semibold text-gray-600 transition-colors"
+                  >
+                    Load More ({filteredResults.length - visibleCount} remaining)
+                  </motion.button>
+                )}
+              </>
+            ) : (
+              <div className="text-center py-8">
+                <p className="text-sm text-gray-500">No flights match your filters</p>
+                <button
+                  onClick={() => { setFilterStops(0); setFilterAirline(""); }}
+                  className="mt-2 text-xs text-indigo-600 font-medium hover:underline"
+                >
+                  Clear all filters
+                </button>
+              </div>
+            )}
           </motion.div>
         )}
 

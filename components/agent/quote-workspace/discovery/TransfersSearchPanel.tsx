@@ -45,6 +45,9 @@ export default function TransfersSearchPanel() {
   const [loadingDropoff, setLoadingDropoff] = useState(false);
   const [activeField, setActiveField] = useState<'pickup' | 'dropoff' | null>(null);
   const [formCollapsed, setFormCollapsed] = useState(false);
+  const [sortBy, setSortBy] = useState<'price' | 'capacity' | 'name'>('price');
+  const [filterType, setFilterType] = useState<'all' | 'private' | 'shared'>('all');
+  const [visibleCount, setVisibleCount] = useState(10);
 
   const pickupRef = useRef<HTMLDivElement>(null);
   const dropoffRef = useRef<HTMLDivElement>(null);
@@ -183,6 +186,7 @@ export default function TransfersSearchPanel() {
     }
 
     setSearchResults(true, null);
+    setVisibleCount(10);
 
     try {
       const query = new URLSearchParams({
@@ -525,8 +529,35 @@ export default function TransfersSearchPanel() {
             exit={{ opacity: 0 }}
             className="space-y-3"
           >
-            <p className="text-sm text-gray-500">{searchResults.length} transfers found</p>
-            {searchResults.slice(0, 10).map((transfer: any, idx: number) => (
+            {/* Sticky Filter Bar */}
+            <div className="sticky top-0 z-10 bg-white/95 backdrop-blur-sm border border-gray-100 rounded-xl p-2 shadow-sm space-y-2">
+              <div className="flex items-center justify-between">
+                <span className="text-xs font-bold text-gray-700">{searchResults.filter((t: any) => filterType === 'all' || (filterType === 'private' ? t.transferType?.toLowerCase().includes('private') : t.transferType?.toLowerCase().includes('shared'))).length} transfers</span>
+                <div className="flex gap-1">
+                  {(['price', 'capacity', 'name'] as const).map((s) => (
+                    <button key={s} onClick={() => setSortBy(s)} className={`px-2 py-1 text-[10px] font-semibold rounded-lg transition-all ${sortBy === s ? 'bg-amber-500 text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'}`}>
+                      {s === 'price' ? 'Price' : s === 'capacity' ? 'Capacity' : 'Name'}
+                    </button>
+                  ))}
+                </div>
+              </div>
+              <div className="flex gap-1">
+                {(['all', 'private', 'shared'] as const).map((f) => (
+                  <button key={f} onClick={() => { setFilterType(f); setVisibleCount(10); }} className={`px-2.5 py-1 text-[10px] font-semibold rounded-lg transition-all ${filterType === f ? 'bg-amber-500 text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'}`}>
+                    {f === 'all' ? 'All' : f === 'private' ? 'Private' : 'Shared'}
+                  </button>
+                ))}
+              </div>
+            </div>
+            {(() => {
+              const filtered = searchResults.filter((t: any) => filterType === 'all' || (filterType === 'private' ? t.transferType?.toLowerCase().includes('private') : t.transferType?.toLowerCase().includes('shared')));
+              const sorted = [...filtered].sort((a: any, b: any) => {
+                if (sortBy === 'price') return (parseFloat(a.price?.amount) || 0) - (parseFloat(b.price?.amount) || 0);
+                if (sortBy === 'capacity') return (b.maxPassengers || 0) - (a.maxPassengers || 0);
+                return (a.name || '').localeCompare(b.name || '');
+              });
+              return sorted.slice(0, visibleCount);
+            })().map((transfer: any, idx: number) => (
               <motion.div
                 key={transfer.id || idx}
                 initial={{ opacity: 0, y: 10 }}
@@ -589,6 +620,20 @@ export default function TransfersSearchPanel() {
                 )}
               </motion.div>
             ))}
+            {/* Load More */}
+            {(() => {
+              const filtered = searchResults.filter((t: any) => filterType === 'all' || (filterType === 'private' ? t.transferType?.toLowerCase().includes('private') : t.transferType?.toLowerCase().includes('shared')));
+              return visibleCount < filtered.length ? (
+                <motion.button
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.98 }}
+                  onClick={() => setVisibleCount((v) => v + 10)}
+                  className="w-full py-2.5 bg-gray-100 hover:bg-amber-50 text-gray-700 hover:text-amber-700 font-semibold text-sm rounded-xl border border-gray-200 hover:border-amber-200 transition-all"
+                >
+                  Load More ({filtered.length - visibleCount} remaining)
+                </motion.button>
+              ) : null;
+            })()}
           </motion.div>
         )}
       </AnimatePresence>
