@@ -199,13 +199,16 @@ export default function MultiAirportSelector({
 
       {/* Main Typeable Input - Compact */}
       <div className="relative">
-        <MapPin className={`absolute left-2.5 top-1/2 -translate-y-1/2 flex-shrink-0 z-10 ${transparent ? 'text-white/60' : 'text-neutral-400'}`} size={14} />
+        {/* Only show MapPin when no airport selected or when searching */}
+        {(isOpen || selectedAirports.length === 0) && (
+          <MapPin className={`absolute left-2.5 top-1/2 -translate-y-1/2 flex-shrink-0 z-10 ${transparent ? 'text-white/60' : 'text-neutral-400'}`} size={14} />
+        )}
         <input
           type="text"
-          value={isOpen ? searchQuery : (selectedAirports.length > 0 ? `${selectedAirports[0].code}${selectedAirports.length > 1 ? ` +${selectedAirports.length - 1}` : ''}` : '')}
+          value={isOpen ? searchQuery : ''}
           onChange={(e) => { handleSearchChange(e.target.value); if (!isOpen) setIsOpen(true); }}
           onFocus={() => { setIsOpen(true); setSearchQuery(''); setDebouncedQuery(''); }}
-          placeholder={placeholder}
+          placeholder={selectedAirports.length > 0 && !isOpen ? '' : placeholder}
           data-testid={testId}
           className={`w-full h-10 py-2 pl-8 pr-6 border-2 rounded-lg text-xs font-semibold transition-all duration-200 focus:outline-none ${
             transparent
@@ -215,8 +218,8 @@ export default function MultiAirportSelector({
         />
         {/* Display selected airport info when not searching */}
         {!isOpen && selectedAirports.length > 0 && (
-          <div className={`absolute inset-0 pl-8 pr-5 pointer-events-none flex items-center ${transparent ? 'text-white' : 'text-neutral-800'}`}>
-            <div className="flex items-center gap-1 min-w-0 flex-1">
+          <div className={`absolute inset-0 pl-2.5 pr-5 pointer-events-none flex items-center ${transparent ? 'text-white' : 'text-neutral-800'}`}>
+            <div className="flex items-center gap-1.5 min-w-0 flex-1">
               <span className="text-sm flex-shrink-0">{selectedAirports[0].emoji}</span>
               <span className="text-[11px] font-bold truncate">{selectedAirports[0].city}</span>
               <span className="text-[9px] font-medium text-neutral-400 flex-shrink-0">{selectedAirports[0].code}</span>
