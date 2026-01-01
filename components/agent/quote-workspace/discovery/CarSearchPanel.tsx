@@ -162,18 +162,18 @@ export default function CarSearchPanel() {
   };
 
   return (
-    <div className="p-4 space-y-4">
+    <div className="p-3 space-y-2.5">
       <div className="flex items-center gap-2">
-        <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-cyan-500 to-blue-600 flex items-center justify-center shadow-lg">
-          <Car className="w-4 h-4 text-white" />
+        <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-cyan-500 to-blue-600 flex items-center justify-center shadow-md">
+          <Car className="w-3.5 h-3.5 text-white" />
         </div>
         <div>
-          <h3 className="text-sm font-bold text-gray-900">Find Car Rentals</h3>
-          <p className="text-[10px] text-gray-400">Search and add to quote</p>
+          <h3 className="text-xs font-bold text-gray-900">Find Car Rentals</h3>
+          <p className="text-[9px] text-gray-400">Search and add to quote</p>
         </div>
       </div>
 
-      <form onSubmit={handleSearch} className="space-y-3">
+      <form onSubmit={handleSearch} className="space-y-2">
         {/* Pickup Location */}
         <div className="relative" ref={pickupRef}>
           <label className="flex items-center gap-1.5 text-[11px] font-bold text-gray-500 uppercase tracking-wider mb-1.5">

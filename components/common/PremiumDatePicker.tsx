@@ -236,22 +236,20 @@ export default function PremiumDatePicker({
           <CalendarIcon className="w-4.5 h-4.5" />
         </motion.div>
 
-        <div className="flex-1 min-w-0">
+        <div className="flex-1 min-w-0 overflow-hidden">
           {selectedDate ? (
             <motion.div
               initial={{ opacity: 0, y: 5 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ type: "spring", ...softSpring }}
+              className="whitespace-nowrap"
             >
-              <p className="text-sm font-bold text-gray-900">
-                {format(selectedDate, "EEE, MMM d")}
-              </p>
-              <p className="text-[10px] text-gray-500 font-medium">
-                {format(selectedDate, "yyyy")}
+              <p className="text-sm font-bold text-gray-900 truncate">
+                {format(selectedDate, "EEE, MMM d, yyyy")}
               </p>
             </motion.div>
           ) : (
-            <p className="text-sm text-gray-400 font-medium">{placeholder}</p>
+            <p className="text-sm text-gray-400 font-medium truncate">{placeholder}</p>
           )}
         </div>
 

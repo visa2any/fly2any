@@ -4,7 +4,7 @@ import { useState, useRef, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Search, Building2, Loader2, Plus, Star, MapPin, AlertCircle, Users, ChevronDown, Minus, X, Plane, Landmark } from "lucide-react";
 import { useQuoteWorkspace } from "../QuoteWorkspaceProvider";
-import PremiumDatePicker from "@/components/common/PremiumDatePicker";
+import PremiumDateRangePicker from "@/components/common/PremiumDateRangePicker";
 import type { HotelItem, HotelSearchParams } from "../types/quote-workspace.types";
 
 interface LocationSuggestion {
@@ -182,18 +182,18 @@ export default function HotelSearchPanel() {
   };
 
   return (
-    <div className="p-4 space-y-4">
+    <div className="p-3 space-y-2.5">
       <div className="flex items-center gap-2">
-        <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-purple-500 to-pink-600 flex items-center justify-center shadow-lg">
-          <Building2 className="w-4 h-4 text-white" />
+        <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-purple-500 to-pink-600 flex items-center justify-center shadow-md">
+          <Building2 className="w-3.5 h-3.5 text-white" />
         </div>
         <div>
-          <h3 className="text-sm font-bold text-gray-900">Find Hotels</h3>
-          <p className="text-[10px] text-gray-400">Search and add to quote</p>
+          <h3 className="text-xs font-bold text-gray-900">Find Hotels</h3>
+          <p className="text-[9px] text-gray-400">Search and add to quote</p>
         </div>
       </div>
 
-      <form onSubmit={handleSearch} className="space-y-3">
+      <form onSubmit={handleSearch} className="space-y-2">
         {/* Destination with API Autocomplete */}
         <div className="relative" ref={suggestRef}>
           <label className="flex items-center gap-1.5 text-[11px] font-bold text-gray-500 uppercase tracking-wider mb-1.5">
@@ -259,21 +259,22 @@ export default function HotelSearchPanel() {
           </AnimatePresence>
         </div>
 
-        {/* Dates */}
-        <div className="grid grid-cols-2 gap-2">
-          <PremiumDatePicker
-            label="Check-in"
-            value={params.checkIn}
-            onChange={(date) => setParams({ ...params, checkIn: date })}
+        {/* Dates - Single Range Picker */}
+        <div>
+          <label className="flex items-center gap-1.5 text-[11px] font-bold text-gray-500 uppercase tracking-wider mb-1.5">
+            <div className="w-4 h-4 rounded bg-gradient-to-br from-purple-500 to-pink-600 flex items-center justify-center">
+              <Building2 className="w-2.5 h-2.5 text-white" />
+            </div>
+            Check-in &amp; Check-out
+          </label>
+          <PremiumDateRangePicker
+            startDate={params.checkIn}
+            endDate={params.checkOut}
+            onChangeStart={(date) => setParams({ ...params, checkIn: date })}
+            onChangeEnd={(date) => setParams({ ...params, checkOut: date })}
             minDate={minDate}
-            placeholder="Check-in"
-          />
-          <PremiumDatePicker
-            label="Check-out"
-            value={params.checkOut}
-            onChange={(date) => setParams({ ...params, checkOut: date })}
-            minDate={params.checkIn || minDate}
-            placeholder="Check-out"
+            startPlaceholder="Check-in"
+            endPlaceholder="Check-out"
           />
         </div>
 

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useRef, useEffect, useMemo, useCallback } from 'react';
+import { useState, useRef, useEffect, useMemo, useCallback, startTransition } from 'react';
 import { X, ChevronDown, MapPin, PlaneTakeoff, PlaneLanding, Check } from 'lucide-react';
 import { AIRPORTS as AIRPORTS_DATA } from '@/lib/data/airports-complete';
 
@@ -78,7 +78,20 @@ export default function MultiAirportSelector({
 }: MultiAirportSelectorProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
+  const [debouncedQuery, setDebouncedQuery] = useState('');
   const dropdownRef = useRef<HTMLDivElement>(null);
+  const debounceRef = useRef<NodeJS.Timeout | null>(null);
+
+  // Debounce search query for better INP
+  const handleSearchChange = useCallback((query: string) => {
+    setSearchQuery(query);
+    if (debounceRef.current) clearTimeout(debounceRef.current);
+    debounceRef.current = setTimeout(() => {
+      startTransition(() => {
+        setDebouncedQuery(query);
+      });
+    }, 150);
+  }, []);
 
   // Get selected airports from codes
   const selectedAirports = value
@@ -86,10 +99,10 @@ export default function MultiAirportSelector({
     .filter((a): a is Airport => a !== undefined);
 
   
-  // Memoized normalized search with Unicode support - includes state search for Brazil
+  // Memoized normalized search with Unicode support - uses debounced query for better INP
   const filteredAirports = useMemo(() => {
-    if (searchQuery.length < 2) return [];
-    const normalizedQuery = normalizeText(searchQuery);
+    if (debouncedQuery.length < 2) return [];
+    const normalizedQuery = normalizeText(debouncedQuery);
     return AIRPORTS.filter(airport => {
       const normalizedCode = normalizeText(airport.code);
       const normalizedName = normalizeText(airport.name);
@@ -103,13 +116,14 @@ export default function MultiAirportSelector({
         normalizedCountry.includes(normalizedQuery) ||
         normalizedState.includes(normalizedQuery)
       );
-    });
-  }, [searchQuery]);
+    }).slice(0, 50); // Limit results for performance
+  }, [debouncedQuery]);
 
   // Handle Done button - closes dropdown
   const handleDone = useCallback(() => {
     setIsOpen(false);
     setSearchQuery('');
+    setDebouncedQuery('');
   }, []);
 
   // Click outside to close
@@ -118,6 +132,7 @@ export default function MultiAirportSelector({
       if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node)) {
         setIsOpen(false);
         setSearchQuery('');
+        setDebouncedQuery('');
       }
     };
     if (isOpen) document.addEventListener('mousedown', handleClickOutside);
@@ -187,9 +202,9 @@ export default function MultiAirportSelector({
         <MapPin className={`absolute left-3 top-1/2 -translate-y-1/2 flex-shrink-0 z-10 ${transparent ? 'text-white/60' : 'text-neutral-400'}`} size={16} />
         <input
           type="text"
-          value={isOpen ? searchQuery : (selectedAirports.length > 0 ? `${selectedAirports[0].emoji} ${selectedAirports[0].city} (${selectedAirports[0].code})${selectedAirports.length > 1 ? ` +${selectedAirports.length - 1}` : ''}` : '')}
-          onChange={(e) => { setSearchQuery(e.target.value); if (!isOpen) setIsOpen(true); }}
-          onFocus={() => { setIsOpen(true); setSearchQuery(''); }}
+          value={isOpen ? searchQuery : (selectedAirports.length > 0 ? `${selectedAirports[0].code}${selectedAirports.length > 1 ? ` +${selectedAirports.length - 1}` : ''}` : '')}
+          onChange={(e) => { handleSearchChange(e.target.value); if (!isOpen) setIsOpen(true); }}
+          onFocus={() => { setIsOpen(true); setSearchQuery(''); setDebouncedQuery(''); }}
           placeholder={placeholder}
           data-testid={testId}
           className={`w-full h-[52px] py-3 pl-9 pr-8 border-2 rounded-xl text-sm font-semibold transition-all duration-200 focus:outline-none ${
@@ -198,6 +213,17 @@ export default function MultiAirportSelector({
               : 'bg-white border-neutral-200 text-neutral-800 hover:border-primary-400 focus:border-primary-500'
           }`}
         />
+        {/* Display selected airport info when not searching */}
+        {!isOpen && selectedAirports.length > 0 && (
+          <div className={`absolute left-9 top-1/2 -translate-y-1/2 right-8 pointer-events-none flex items-center gap-1.5 ${transparent ? 'text-white' : 'text-neutral-800'}`}>
+            <span className="text-base">{selectedAirports[0].emoji}</span>
+            <span className="text-sm font-semibold truncate">{selectedAirports[0].city}</span>
+            <span className="text-xs text-neutral-500 flex-shrink-0">({selectedAirports[0].code})</span>
+            {selectedAirports.length > 1 && (
+              <span className="text-xs font-bold text-primary-600 bg-primary-100 px-1.5 py-0.5 rounded flex-shrink-0">+{selectedAirports.length - 1}</span>
+            )}
+          </div>
+        )}
         <ChevronDown
           className={`absolute right-2 top-1/2 -translate-y-1/2 transition-transform duration-200 flex-shrink-0 pointer-events-none ${isOpen ? 'rotate-180' : ''} ${transparent ? 'text-white/50' : 'text-neutral-400'}`}
           size={14}

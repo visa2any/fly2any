@@ -30,7 +30,7 @@ export default function TransfersSearchPanel() {
     dropoff: "",
     date: "",
     time: "10:00",
-    passengers: 2,
+    passengers: 1,
   });
 
   const [selectedPickup, setSelectedPickup] = useState<TransferLocation | null>(null);

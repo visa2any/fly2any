@@ -25,7 +25,7 @@ const initialState: QuoteWorkspaceState = {
   destination: "",
   startDate: "",
   endDate: "",
-  travelers: { adults: 2, children: 0, infants: 0, total: 2 },
+  travelers: { adults: 1, children: 0, infants: 0, total: 1 },
   items: [],
   pricing: {
     subtotal: 0,

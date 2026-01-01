@@ -2,7 +2,7 @@
 
 import { ReactNode, useState, useCallback, useRef, useEffect } from "react";
 import { GripVertical } from "lucide-react";
-// Framer Motion removed - panel always visible
+import { motion, AnimatePresence } from "framer-motion";
 import { useQuoteWorkspace } from "./QuoteWorkspaceProvider";
 
 interface QuoteWorkspaceLayoutProps {
@@ -27,6 +27,7 @@ export default function QuoteWorkspaceLayout({
 
   // Resize state
   const [isResizing, setIsResizing] = useState(false);
+  const [isHoveringHandle, setIsHoveringHandle] = useState(false);
   const resizeRef = useRef<{ startX: number; startWidth: number }>({ startX: 0, startWidth: panelWidth });
 
   // Handle resize start
@@ -70,40 +71,68 @@ export default function QuoteWorkspaceLayout({
       <main className="flex-1 min-h-0 flex">
         {/* Left: Discovery Panel */}
         <aside className="hidden lg:flex flex-shrink-0 bg-white border-r border-gray-100 z-30">
-          <div className="relative flex" style={{ width: panelWidth }}>
+          <div className="relative flex overflow-hidden" style={{ width: panelWidth }}>
+            {/* Scrollable content - hidden scrollbar */}
             <div
               style={{ width: panelWidth }}
-              className="h-full overflow-y-auto overflow-x-visible scrollbar-thin scrollbar-thumb-gray-200 bg-white"
+              className="h-full overflow-y-auto overflow-x-hidden scrollbar-hide bg-white"
             >
               {discovery}
             </div>
 
-            {/* Resize Handle */}
+            {/* Premium Resize Handle */}
             <div
               onMouseDown={handleResizeStart}
-              className={`absolute right-0 top-0 bottom-0 w-1 cursor-col-resize group z-10 ${
-                isResizing ? "bg-indigo-500" : "hover:bg-indigo-400"
-              } transition-colors`}
+              onMouseEnter={() => setIsHoveringHandle(true)}
+              onMouseLeave={() => !isResizing && setIsHoveringHandle(false)}
+              className="absolute right-0 top-0 bottom-0 w-4 cursor-col-resize z-20 flex items-center justify-center group"
             >
-              <div className={`absolute top-1/2 -translate-y-1/2 -right-3 w-6 h-12 flex items-center justify-center rounded-r-lg opacity-0 group-hover:opacity-100 transition-opacity ${
-                isResizing ? "bg-indigo-500 opacity-100" : "bg-gray-200"
-              }`}>
-                <GripVertical className={`w-3 h-3 ${isResizing ? "text-white" : "text-gray-400"}`} />
-              </div>
+              {/* Visible handle bar */}
+              <motion.div
+                initial={false}
+                animate={{
+                  width: isResizing ? 4 : isHoveringHandle ? 3 : 2,
+                  backgroundColor: isResizing ? '#6366f1' : isHoveringHandle ? '#a5b4fc' : '#e5e7eb',
+                }}
+                transition={{ type: "spring", stiffness: 400, damping: 30 }}
+                className="h-full rounded-full"
+              />
+
+              {/* Grip icon indicator */}
+              <AnimatePresence>
+                {(isHoveringHandle || isResizing) && (
+                  <motion.div
+                    initial={{ opacity: 0, scale: 0.8 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    exit={{ opacity: 0, scale: 0.8 }}
+                    transition={{ type: "spring", stiffness: 400, damping: 25 }}
+                    className={`absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 p-1.5 rounded-lg shadow-lg border ${
+                      isResizing
+                        ? 'bg-indigo-500 border-indigo-400'
+                        : 'bg-white border-gray-200'
+                    }`}
+                  >
+                    <GripVertical
+                      size={14}
+                      className={isResizing ? 'text-white' : 'text-gray-400'}
+                    />
+                  </motion.div>
+                )}
+              </AnimatePresence>
             </div>
           </div>
         </aside>
 
         {/* Center: Itinerary Canvas - Full width, no padding */}
         <section className="flex-1 flex flex-col min-h-0 bg-gradient-to-b from-gray-50/80 to-white">
-          <div className="flex-1 overflow-y-auto px-3 py-2 scrollbar-thin scrollbar-thumb-gray-200">
+          <div className="flex-1 overflow-y-auto px-3 py-2 scrollbar-hide">
             {itinerary}
           </div>
         </section>
 
         {/* Right: Pricing - Full height */}
         <aside className="hidden lg:flex flex-shrink-0 w-64 flex-col bg-white border-l border-gray-100 overflow-hidden">
-          <div className="flex-1 overflow-y-auto scrollbar-thin scrollbar-thumb-gray-200">
+          <div className="flex-1 overflow-y-auto scrollbar-hide">
             {pricing}
           </div>
         </aside>
@@ -116,7 +145,7 @@ export default function QuoteWorkspaceLayout({
 
       {/* Resize overlay to prevent selection during drag */}
       {isResizing && (
-        <div className="fixed inset-0 z-50 cursor-col-resize" />
+        <div className="fixed inset-0 z-50 cursor-col-resize select-none" />
       )}
 
       {overlays}

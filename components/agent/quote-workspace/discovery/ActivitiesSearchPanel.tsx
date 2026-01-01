@@ -25,7 +25,7 @@ export default function ActivitiesSearchPanel() {
   const [params, setParams] = useState({
     destination: "",
     date: "",
-    participants: 2,
+    participants: 1,
     type: "all" as "all" | "tours" | "activities",
   });
 

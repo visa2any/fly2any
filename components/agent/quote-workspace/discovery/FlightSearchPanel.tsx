@@ -29,7 +29,7 @@ import { getAirlineData } from "@/lib/flights/airline-data";
 import { useQuoteWorkspace } from "../QuoteWorkspaceProvider";
 import MultiAirportSelector from "@/components/common/MultiAirportSelector";
 import PremiumDatePicker from "@/components/common/PremiumDatePicker";
-// import PremiumDateRangePicker from "@/components/common/PremiumDateRangePicker";
+import PremiumDateRangePicker from "@/components/common/PremiumDateRangePicker";
 import type { FlightItem, FlightSearchParams } from "../types/quote-workspace.types";
 
 // Cabin class options with premium styling
@@ -274,7 +274,7 @@ export default function FlightSearchPanel() {
   }, [params]);
 
   return (
-    <div className="p-4 space-y-4">
+    <div className="p-3 space-y-2.5">
       {/* Collapsed Search Summary - Ultra Premium */}
       <AnimatePresence mode="wait">
         {formCollapsed && searchResults && searchResults.length > 0 ? (
@@ -416,13 +416,13 @@ export default function FlightSearchPanel() {
             )}
 
             {/* Search Form - Ultra Premium Compact Layout */}
-            <form ref={formRef} onSubmit={handleSearch} className="space-y-3">
+            <form ref={formRef} onSubmit={handleSearch} className="space-y-2">
               {/* ROW 1: From + To with One-way toggle */}
               <div className="grid grid-cols-2 gap-2">
                 <div>
-                  <label className="flex items-center gap-1.5 text-[11px] font-bold text-gray-500 uppercase tracking-wider mb-1.5">
-                    <div className="w-4 h-4 rounded bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center">
-                      <Plane className="w-2.5 h-2.5 text-white -rotate-45" />
+                  <label className="flex items-center gap-1 text-[10px] font-bold text-gray-500 uppercase tracking-wider mb-1">
+                    <div className="w-3.5 h-3.5 rounded bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center">
+                      <Plane className="w-2 h-2 text-white -rotate-45" />
                     </div>
                     From
                   </label>
@@ -434,10 +434,10 @@ export default function FlightSearchPanel() {
                   />
                 </div>
                 <div>
-                  <div className="flex items-center justify-between mb-1.5">
-                    <label className="flex items-center gap-1.5 text-[11px] font-bold text-gray-500 uppercase tracking-wider">
-                      <div className="w-4 h-4 rounded bg-gradient-to-br from-purple-500 to-pink-600 flex items-center justify-center">
-                        <Plane className="w-2.5 h-2.5 text-white rotate-45" />
+                  <div className="flex items-center justify-between mb-1">
+                    <label className="flex items-center gap-1 text-[10px] font-bold text-gray-500 uppercase tracking-wider">
+                      <div className="w-3.5 h-3.5 rounded bg-gradient-to-br from-purple-500 to-pink-600 flex items-center justify-center">
+                        <Plane className="w-2 h-2 text-white rotate-45" />
                       </div>
                       To
                     </label>
@@ -466,10 +466,10 @@ export default function FlightSearchPanel() {
 
               {/* ROW 2: Dates - Range Picker or Multi-Date Mode */}
               <div>
-                <div className="flex items-center justify-between mb-1.5">
-                  <label className="flex items-center gap-1.5 text-[11px] font-bold text-gray-500 uppercase tracking-wider">
-                    <div className="w-4 h-4 rounded bg-gradient-to-br from-amber-500 to-orange-600 flex items-center justify-center">
-                      <Calendar className="w-2.5 h-2.5 text-white" />
+                <div className="flex items-center justify-between mb-1">
+                  <label className="flex items-center gap-1 text-[10px] font-bold text-gray-500 uppercase tracking-wider">
+                    <div className="w-3.5 h-3.5 rounded bg-gradient-to-br from-amber-500 to-orange-600 flex items-center justify-center">
+                      <Calendar className="w-2 h-2 text-white" />
                     </div>
                     Travel Dates
                   </label>
@@ -490,26 +490,25 @@ export default function FlightSearchPanel() {
                 </div>
 
                 {!params.useMultiDate ? (
-                  /* Standard Date Pickers */
-                  <div className="grid grid-cols-2 gap-2">
-                    <PremiumDatePicker
-                      value={params.departureDate}
-                      onChange={(date) => setParams({ ...params, departureDate: date })}
-                      minDate={getMinDate()}
-                      placeholder="Depart"
-                    />
-                    {params.tripType === "roundtrip" && (
-                      <PremiumDatePicker
-                        value={params.returnDate || ""}
-                        onChange={(date) => setParams({ ...params, returnDate: date })}
-                        minDate={params.departureDate || getMinDate()}
-                        placeholder="Return"
+                  /* Standard Date Pickers - Use Range Picker for Roundtrip */
+                  <div>
+                    {params.tripType === "roundtrip" ? (
+                      <PremiumDateRangePicker
+                        startDate={params.departureDate}
+                        endDate={params.returnDate || ""}
+                        onChangeStart={(date) => { setError(null); setParams({ ...params, departureDate: date }); }}
+                        onChangeEnd={(date) => { setError(null); setParams({ ...params, returnDate: date }); }}
+                        minDate={getMinDate()}
+                        startPlaceholder="Depart"
+                        endPlaceholder="Return"
                       />
-                    )}
-                    {params.tripType === "oneway" && (
-                      <div className="flex items-center justify-center text-sm text-gray-400 bg-gray-50 rounded-xl">
-                        One-way
-                      </div>
+                    ) : (
+                      <PremiumDatePicker
+                        value={params.departureDate}
+                        onChange={(date) => { setError(null); setParams({ ...params, departureDate: date }); }}
+                        minDate={getMinDate()}
+                        placeholder="Departure date"
+                      />
                     )}
                   </div>
                 ) : (
@@ -818,7 +817,7 @@ export default function FlightSearchPanel() {
                 />
 
                 {/* Content */}
-                <div className="relative flex items-center justify-center gap-2 py-3.5 font-bold text-white shadow-xl shadow-indigo-500/30">
+                <div className="relative flex items-center justify-center gap-2 py-2.5 font-bold text-white shadow-xl shadow-indigo-500/30">
                   {searchLoading ? (
                     <>
                       <Loader2 className="w-5 h-5 animate-spin" />

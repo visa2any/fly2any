@@ -35,7 +35,7 @@ export default function DiscoveryZone() {
   return (
     <div className="flex flex-col h-full">
       {/* Product Type Tabs - Icon Only with Hover Tooltips */}
-      <div className="flex-shrink-0 px-3 py-3 border-b border-gray-100 bg-gradient-to-b from-white to-gray-50/80">
+      <div className="flex-shrink-0 px-2 py-2 border-b border-gray-100 bg-gradient-to-b from-white to-gray-50/80">
         <div className="flex gap-1.5 justify-center">
           {PRODUCT_TABS.map(({ type, icon: Icon, label, gradient, shadowColor }) => {
             const isActive = activeTab === type;
