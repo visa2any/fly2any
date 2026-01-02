@@ -100,7 +100,7 @@ export default function RecentActivity({ quotes = [], bookings = [] }: RecentAct
                 <Inbox className="w-6 h-6 text-gray-400" />
               </div>
               <p className="text-gray-600 text-sm">No recent activity</p>
-              <Link href="/agent/quotes/create" className="inline-block mt-2 text-sm text-primary-600 hover:underline">
+              <Link href="/agent/quotes/workspace" className="inline-block mt-2 text-sm text-primary-600 hover:underline">
                 Create your first quote →
               </Link>
             </motion.div>

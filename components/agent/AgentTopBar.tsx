@@ -73,7 +73,7 @@ export default function AgentTopBar({ agent, user }: AgentTopBarProps) {
           <div className="flex items-center gap-3">
             {/* Create Quote Button */}
             <Link
-              href="/agent/quotes/create"
+              href="/agent/quotes/workspace"
               className="hidden sm:inline-flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-indigo-600 to-indigo-700 text-white text-sm font-medium rounded-xl hover:from-indigo-700 hover:to-indigo-800 shadow-[0_1px_3px_rgba(0,0,0,0.12),0_1px_2px_rgba(0,0,0,0.08)] transition-all"
             >
               <Plus className="w-4 h-4" />

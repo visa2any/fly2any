@@ -11,7 +11,7 @@ export default function QuickActions() {
     {
       name: 'New Quote',
       description: 'Build a multi-product quote',
-      href: '/agent/quotes/create',
+      href: '/agent/quotes/workspace',
       icon: Plus,
       gradient: 'from-primary-500 to-rose-500',
       shadowColor: 'shadow-primary-500/25',
@@ -27,7 +27,7 @@ export default function QuickActions() {
     {
       name: 'Search Flights',
       description: 'Find best fares',
-      href: '/agent/quotes/create?step=search',
+      href: '/agent/quotes/workspace?step=search',
       icon: Search,
       gradient: 'from-violet-500 to-purple-500',
       shadowColor: 'shadow-violet-500/25',

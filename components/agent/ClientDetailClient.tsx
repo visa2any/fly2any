@@ -414,7 +414,7 @@ export default function ClientDetailClient({ client }: ClientDetailClientProps) 
                     </svg>
                     <p className="text-gray-600 mb-4">No quotes yet for this client</p>
                     <Link
-                      href={`/agent/quotes/create?clientId=${client.id}`}
+                      href={`/agent/quotes/workspace?clientId=${client.id}`}
                       className="inline-block bg-primary-600 text-white px-6 py-2 rounded-lg hover:bg-primary-700"
                     >
                       Create First Quote
