@@ -189,7 +189,7 @@ export function InlineAirportAutocomplete({
             ${disabled
               ? 'bg-gray-50 text-gray-400 cursor-not-allowed border-gray-200'
               : transparent
-                ? 'bg-black/30 backdrop-blur-sm text-white border-white/20 placeholder:text-white/50 hover:border-white/40 focus:border-white/50 focus:ring-2 focus:ring-white/20'
+                ? 'bg-gray-800/80 backdrop-blur-sm text-white border-gray-600/50 placeholder:text-gray-400 hover:bg-gray-700/80 hover:border-gray-500/50 focus:border-gray-400/60 focus:ring-2 focus:ring-gray-400/20 shadow-md'
                 : 'bg-white text-gray-900 border-gray-200 hover:border-gray-300 focus:border-[#0087FF] focus:ring-2 focus:ring-[#0087FF]/20'
             }
             outline-none
