@@ -12,6 +12,7 @@ import TimelineDayAnchor from "./TimelineDayAnchor";
 import FreeTimeBlock, { determineFreeTimeType } from "./FreeTimeBlock";
 import { useViewMode } from "./ViewModeContext";
 import { detectTone, getClosingMessageSeeded, getTimeBasedGreeting, type ToneProfile } from "./ToneSystem";
+import { sortItemsByRole } from "./ItemRoleSystem";
 import type { QuoteItem } from "../types/quote-workspace.types";
 
 // Client Preview Premium Components
@@ -19,11 +20,21 @@ import { DayChapter, TrustLayer, AgentSignature, ProductEnrichment } from "../cl
 
 type DayLabel = "arrival" | "departure" | "free" | "park" | "explore" | "celebration";
 
+/**
+ * Groups items by date and sorts within each day by semantic role:
+ * Transport → Accommodation → Mobility → Experience → Protection → Other
+ * This is visual ordering only - doesn't mutate source data
+ */
 function groupByDate(items: QuoteItem[]): Map<string, QuoteItem[]> {
   const groups = new Map<string, QuoteItem[]>();
-  [...items].sort((a, b) => a.date.localeCompare(b.date) || a.sortOrder - b.sortOrder).forEach((item) => {
+  // Group by date
+  [...items].sort((a, b) => a.date.localeCompare(b.date)).forEach((item) => {
     const key = item.date.split("T")[0];
     groups.set(key, [...(groups.get(key) || []), item]);
+  });
+  // Semantic role sorting within each day (visual only)
+  groups.forEach((dayItems, key) => {
+    groups.set(key, sortItemsByRole(dayItems));
   });
   return groups;
 }

@@ -30,6 +30,33 @@ export const getItemRole = (type: ProductType): ItemRole => {
 };
 
 // ═══════════════════════════════════════════════════════════════════════════════
+// SEMANTIC SORT PRIORITY - Cognitive hierarchy for daily planning
+// Transport → Accommodation → Mobility → Experience → Protection → Other
+// ═══════════════════════════════════════════════════════════════════════════════
+const roleSortPriority: Record<ItemRole, number> = {
+  transport: 1,      // Flights, Transfers first
+  accommodation: 2,  // Hotels - where you stay
+  mobility: 3,       // Cars - how you move
+  experience: 4,     // Tours, Activities
+  protection: 5,     // Insurance
+  other: 6,          // Custom, notes
+};
+
+export const getItemSortPriority = (type: ProductType): number => {
+  const role = getItemRole(type);
+  return roleSortPriority[role];
+};
+
+/** Sort items by semantic role (visual only - doesn't mutate source) */
+export const sortItemsByRole = <T extends { type: ProductType; sortOrder?: number }>(items: T[]): T[] => {
+  return [...items].sort((a, b) => {
+    const priorityDiff = getItemSortPriority(a.type) - getItemSortPriority(b.type);
+    if (priorityDiff !== 0) return priorityDiff;
+    return (a.sortOrder || 0) - (b.sortOrder || 0);
+  });
+};
+
+// ═══════════════════════════════════════════════════════════════════════════════
 // TIME ANCHOR SYSTEM - Temporal context even without exact times
 // ═══════════════════════════════════════════════════════════════════════════════
 export type TimeAnchor = "morning" | "afternoon" | "evening" | "overnight" | "flexible";
