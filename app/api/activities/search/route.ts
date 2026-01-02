@@ -32,7 +32,8 @@ export async function GET(request: NextRequest) {
     // Round coords to 2 decimals for better cache hits
     const roundedLat = Math.round(latitude * 100) / 100;
     const roundedLng = Math.round(longitude * 100) / 100;
-    const cacheKey = generateCacheKey('activities:search:v4', { lat: roundedLat, lng: roundedLng, r: radius, t: type });
+    // v5: Force fresh data after POI filter fix (Jan 2026)
+    const cacheKey = generateCacheKey('activities:search:v5', { lat: roundedLat, lng: roundedLng, r: radius, t: type });
 
     // Check cache first (4 hour TTL) - FAST PATH
     const cached = await getCached<any>(cacheKey);
