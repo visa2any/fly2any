@@ -32,7 +32,7 @@ export async function GET(request: NextRequest) {
     // Round coords to 2 decimals for better cache hits
     const roundedLat = Math.round(latitude * 100) / 100;
     const roundedLng = Math.round(longitude * 100) / 100;
-    const cacheKey = generateCacheKey('activities:search:v3', { lat: roundedLat, lng: roundedLng, r: radius, t: type });
+    const cacheKey = generateCacheKey('activities:search:v4', { lat: roundedLat, lng: roundedLng, r: radius, t: type });
 
     // Check cache first (4 hour TTL) - FAST PATH
     const cached = await getCached<any>(cacheKey);
@@ -71,6 +71,17 @@ export async function GET(request: NextRequest) {
 
     const responseTime = Date.now() - startTime;
 
+    // CRITICAL: Filter out free POIs - only show bookable activities with prices
+    // Amadeus returns both free attractions (churches, parks) and bookable tours
+    // We only want bookable activities with actual prices
+    if (activities.length > 0) {
+      activities = activities.filter((a: any) => {
+        const hasPrice = a.price?.amount && parseFloat(a.price.amount) > 0;
+        return hasPrice;
+      });
+      console.log(`📋 After price filter: ${activities.length} bookable activities`);
+    }
+
     // Filter by type (after we have results)
     // Broadened filter to catch more tour-like activities
     if (activities.length > 0) {
@@ -95,6 +106,14 @@ export async function GET(request: NextRequest) {
         });
       }
     }
+
+    // Sort by: has image first, then by rating
+    activities.sort((a: any, b: any) => {
+      const aHasImage = a.pictures?.length > 0 ? 1 : 0;
+      const bHasImage = b.pictures?.length > 0 ? 1 : 0;
+      if (bHasImage !== aHasImage) return bHasImage - aHasImage;
+      return (parseFloat(b.rating) || 0) - (parseFloat(a.rating) || 0);
+    });
 
     /**
      * Apply markup: $35 minimum OR 35% whichever is higher
