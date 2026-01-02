@@ -2,7 +2,66 @@
 
 export type ProductType = 'flight' | 'hotel' | 'car' | 'activity' | 'transfer' | 'insurance' | 'custom';
 export type QuoteStatus = 'draft' | 'sent' | 'accepted' | 'expired' | 'declined';
-export type Currency = 'USD' | 'EUR' | 'GBP' | 'CAD' | 'AUD';
+// Expanded currency support for global markets
+export type Currency =
+  | 'USD' | 'EUR' | 'GBP' | 'CAD' | 'AUD'  // Tier 1
+  | 'MXN' | 'BRL' | 'ARS' | 'CLP' | 'COP'  // LATAM
+  | 'JPY' | 'CNY' | 'KRW' | 'INR' | 'SGD' | 'HKD' | 'THB' | 'MYR' | 'PHP' | 'IDR' | 'VND'  // Asia
+  | 'AED' | 'SAR' | 'ILS' | 'TRY' | 'ZAR' | 'EGP'  // MENA + Africa
+  | 'CHF' | 'SEK' | 'NOK' | 'DKK' | 'PLN' | 'CZK' | 'HUF' | 'RON'  // Europe
+  | 'NZD' | 'RUB';  // Others
+
+// Currency metadata for formatting
+export const CURRENCY_CONFIG: Record<Currency, { symbol: string; name: string; decimals: number; locale: string }> = {
+  USD: { symbol: '$', name: 'US Dollar', decimals: 2, locale: 'en-US' },
+  EUR: { symbol: '€', name: 'Euro', decimals: 2, locale: 'de-DE' },
+  GBP: { symbol: '£', name: 'British Pound', decimals: 2, locale: 'en-GB' },
+  CAD: { symbol: 'C$', name: 'Canadian Dollar', decimals: 2, locale: 'en-CA' },
+  AUD: { symbol: 'A$', name: 'Australian Dollar', decimals: 2, locale: 'en-AU' },
+  MXN: { symbol: '$', name: 'Mexican Peso', decimals: 2, locale: 'es-MX' },
+  BRL: { symbol: 'R$', name: 'Brazilian Real', decimals: 2, locale: 'pt-BR' },
+  ARS: { symbol: '$', name: 'Argentine Peso', decimals: 2, locale: 'es-AR' },
+  CLP: { symbol: '$', name: 'Chilean Peso', decimals: 0, locale: 'es-CL' },
+  COP: { symbol: '$', name: 'Colombian Peso', decimals: 0, locale: 'es-CO' },
+  JPY: { symbol: '¥', name: 'Japanese Yen', decimals: 0, locale: 'ja-JP' },
+  CNY: { symbol: '¥', name: 'Chinese Yuan', decimals: 2, locale: 'zh-CN' },
+  KRW: { symbol: '₩', name: 'South Korean Won', decimals: 0, locale: 'ko-KR' },
+  INR: { symbol: '₹', name: 'Indian Rupee', decimals: 2, locale: 'en-IN' },
+  SGD: { symbol: 'S$', name: 'Singapore Dollar', decimals: 2, locale: 'en-SG' },
+  HKD: { symbol: 'HK$', name: 'Hong Kong Dollar', decimals: 2, locale: 'zh-HK' },
+  THB: { symbol: '฿', name: 'Thai Baht', decimals: 2, locale: 'th-TH' },
+  MYR: { symbol: 'RM', name: 'Malaysian Ringgit', decimals: 2, locale: 'ms-MY' },
+  PHP: { symbol: '₱', name: 'Philippine Peso', decimals: 2, locale: 'en-PH' },
+  IDR: { symbol: 'Rp', name: 'Indonesian Rupiah', decimals: 0, locale: 'id-ID' },
+  VND: { symbol: '₫', name: 'Vietnamese Dong', decimals: 0, locale: 'vi-VN' },
+  AED: { symbol: 'د.إ', name: 'UAE Dirham', decimals: 2, locale: 'ar-AE' },
+  SAR: { symbol: '﷼', name: 'Saudi Riyal', decimals: 2, locale: 'ar-SA' },
+  ILS: { symbol: '₪', name: 'Israeli Shekel', decimals: 2, locale: 'he-IL' },
+  TRY: { symbol: '₺', name: 'Turkish Lira', decimals: 2, locale: 'tr-TR' },
+  ZAR: { symbol: 'R', name: 'South African Rand', decimals: 2, locale: 'en-ZA' },
+  EGP: { symbol: 'E£', name: 'Egyptian Pound', decimals: 2, locale: 'ar-EG' },
+  CHF: { symbol: 'CHF', name: 'Swiss Franc', decimals: 2, locale: 'de-CH' },
+  SEK: { symbol: 'kr', name: 'Swedish Krona', decimals: 2, locale: 'sv-SE' },
+  NOK: { symbol: 'kr', name: 'Norwegian Krone', decimals: 2, locale: 'nb-NO' },
+  DKK: { symbol: 'kr', name: 'Danish Krone', decimals: 2, locale: 'da-DK' },
+  PLN: { symbol: 'zł', name: 'Polish Zloty', decimals: 2, locale: 'pl-PL' },
+  CZK: { symbol: 'Kč', name: 'Czech Koruna', decimals: 2, locale: 'cs-CZ' },
+  HUF: { symbol: 'Ft', name: 'Hungarian Forint', decimals: 0, locale: 'hu-HU' },
+  RON: { symbol: 'lei', name: 'Romanian Leu', decimals: 2, locale: 'ro-RO' },
+  NZD: { symbol: 'NZ$', name: 'New Zealand Dollar', decimals: 2, locale: 'en-NZ' },
+  RUB: { symbol: '₽', name: 'Russian Ruble', decimals: 2, locale: 'ru-RU' },
+};
+
+// Helper for formatting currency
+export function formatCurrency(amount: number, currency: Currency): string {
+  const config = CURRENCY_CONFIG[currency];
+  return new Intl.NumberFormat(config.locale, {
+    style: 'currency',
+    currency,
+    minimumFractionDigits: config.decimals,
+    maximumFractionDigits: config.decimals,
+  }).format(amount);
+}
 
 // Base product interface
 export interface QuoteItemBase {
