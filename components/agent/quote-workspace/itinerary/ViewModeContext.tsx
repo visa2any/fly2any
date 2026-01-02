@@ -2,7 +2,8 @@
 
 import { createContext, useContext, useState, ReactNode } from "react";
 
-type ViewMode = "agent" | "client";
+// Extended view modes: agent (operational), client (preview), journey (story-driven)
+type ViewMode = "agent" | "client" | "journey";
 
 interface ViewModeContextType {
   viewMode: ViewMode;
@@ -10,6 +11,9 @@ interface ViewModeContextType {
   toggleViewMode: () => void;
   isAgentView: boolean;
   isClientView: boolean;
+  isJourneyView: boolean;
+  // Client/Journey are both "client-facing" modes
+  isClientFacing: boolean;
 }
 
 const ViewModeContext = createContext<ViewModeContextType | undefined>(undefined);
@@ -18,7 +22,10 @@ export function ViewModeProvider({ children }: { children: ReactNode }) {
   const [viewMode, setViewMode] = useState<ViewMode>("agent");
 
   const toggleViewMode = () => {
-    setViewMode((prev) => (prev === "agent" ? "client" : "agent"));
+    // Cycle: agent → client → journey → agent
+    setViewMode((prev) =>
+      prev === "agent" ? "client" : prev === "client" ? "journey" : "agent"
+    );
   };
 
   const value: ViewModeContextType = {
@@ -27,6 +34,8 @@ export function ViewModeProvider({ children }: { children: ReactNode }) {
     toggleViewMode,
     isAgentView: viewMode === "agent",
     isClientView: viewMode === "client",
+    isJourneyView: viewMode === "journey",
+    isClientFacing: viewMode === "client" || viewMode === "journey",
   };
 
   return (
@@ -44,44 +53,61 @@ export function useViewMode() {
   return context;
 }
 
-// View Mode Toggle Component
+// View Mode Toggle Component - 3 modes
 export function ViewModeToggle() {
   const { viewMode, setViewMode } = useViewMode();
 
+  const modes = [
+    { key: "agent", label: "Agent", icon: "⚙️" },
+    { key: "client", label: "Client", icon: "👁️" },
+    { key: "journey", label: "Journey", icon: "✨" },
+  ] as const;
+
   return (
     <div className="inline-flex items-center p-1 rounded-xl bg-gray-100 border border-gray-200">
-      <button
-        onClick={() => setViewMode("agent")}
-        className={`px-4 py-2 text-sm font-medium rounded-lg transition-all ${
-          viewMode === "agent"
-            ? "bg-white text-gray-900 shadow-sm"
-            : "text-gray-500 hover:text-gray-700"
-        }`}
-      >
-        <span className="flex items-center gap-2">
-          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-          </svg>
-          Agent View
-        </span>
-      </button>
-      <button
-        onClick={() => setViewMode("client")}
-        className={`px-4 py-2 text-sm font-medium rounded-lg transition-all ${
-          viewMode === "client"
-            ? "bg-white text-gray-900 shadow-sm"
-            : "text-gray-500 hover:text-gray-700"
-        }`}
-      >
-        <span className="flex items-center gap-2">
-          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-          </svg>
-          Client Preview
-        </span>
-      </button>
+      {modes.map(({ key, label, icon }) => (
+        <button
+          key={key}
+          onClick={() => setViewMode(key)}
+          className={`px-3 py-1.5 text-xs font-medium rounded-lg transition-all ${
+            viewMode === key
+              ? key === "journey"
+                ? "bg-gradient-to-r from-violet-500 to-purple-600 text-white shadow-sm"
+                : "bg-white text-gray-900 shadow-sm"
+              : "text-gray-500 hover:text-gray-700"
+          }`}
+        >
+          <span className="flex items-center gap-1.5">
+            <span>{icon}</span>
+            {label}
+          </span>
+        </button>
+      ))}
+    </div>
+  );
+}
+
+// Compact toggle for tight spaces
+export function ViewModeToggleCompact() {
+  const { viewMode, setViewMode } = useViewMode();
+
+  return (
+    <div className="inline-flex items-center p-0.5 rounded-lg bg-gray-100 text-[10px]">
+      {["agent", "client", "journey"].map((mode) => (
+        <button
+          key={mode}
+          onClick={() => setViewMode(mode as any)}
+          className={`px-2 py-1 rounded-md transition-all capitalize ${
+            viewMode === mode
+              ? mode === "journey"
+                ? "bg-violet-500 text-white"
+                : "bg-white text-gray-900 shadow-sm"
+              : "text-gray-500"
+          }`}
+        >
+          {mode}
+        </button>
+      ))}
     </div>
   );
 }

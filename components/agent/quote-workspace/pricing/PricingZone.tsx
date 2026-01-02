@@ -4,6 +4,8 @@ import { useState } from "react";
 import { TrendingUp, ChevronDown, Users } from "lucide-react";
 import { useQuoteWorkspace, useQuotePricing, useQuoteItems } from "../QuoteWorkspaceProvider";
 import AgentTrustPreview from "../AgentTrustPreview";
+import SmartQuoteAssistant from "../SmartQuoteAssistant";
+import QuoteDifferentiationScore from "../QuoteDifferentiationScore";
 import type { Currency, ProductType } from "../types/quote-workspace.types";
 
 const productLabels: Record<ProductType, string> = {
@@ -118,6 +120,12 @@ export default function PricingZone() {
           <option value="AUD">AUD</option>
         </select>
       </div>
+
+      {/* Smart Quote Assistant - AI suggestions */}
+      <SmartQuoteAssistant />
+
+      {/* Quote Differentiation Score - Agent insights */}
+      <QuoteDifferentiationScore />
 
       {/* Agent Trust Preview - What client sees */}
       <AgentTrustPreview />

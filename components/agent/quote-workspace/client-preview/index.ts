@@ -15,6 +15,7 @@ export { default as ProductEnrichment, EnrichedHeadline, SelectionReason } from 
 // Trust and confidence
 export { default as TrustLayer } from './TrustLayer';
 export { default as AgentSignature } from './AgentSignature';
+export * from './ClientConfidenceLayer';
 
 // US Conversion Psychology components
 export { default as ClientPricingPanel } from './ClientPricingPanel';
