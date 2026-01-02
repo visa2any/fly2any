@@ -7,6 +7,9 @@ import { useQuoteWorkspace, useQuoteItems, useQuotePricing } from "../QuoteWorks
 import type { QuoteItem, ProductType } from "../types/quote-workspace.types";
 import Image from "next/image";
 import { getProductCopy, getDayOneLinerSeeded, detectTone, type ToneProfile } from "../itinerary/ToneSystem";
+import FinalReassurance from "../client-preview/FinalReassurance";
+import ClientPricingPanel from "../client-preview/ClientPricingPanel";
+import { QuoteConfidenceSummary } from "../client-preview/ClientConfidenceLayer";
 
 const productIcons: Record<ProductType, typeof Plane> = {
   flight: Plane,
@@ -307,41 +310,103 @@ export default function QuotePreviewOverlay() {
               </p>
             </motion.div>
 
-            {/* EMOTIONAL CLOSING */}
+            {/* ═══ CONFIDENCE-DRIVEN CHECKOUT ═══ */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+              {/* LEFT: Pricing Panel with Value Framing */}
+              <ClientPricingPanel
+                total={pricing.total}
+                perPerson={pricing.perPerson}
+                travelers={state.travelers?.total || 1}
+                tripDays={tripDuration}
+                currency={pricing.currency}
+                inclusions={[
+                  "All flights and transfers included",
+                  "Accommodation as selected",
+                  "Activities and experiences",
+                  "24/7 travel support",
+                ]}
+              />
+
+              {/* RIGHT: Trust & Reassurance */}
+              <div className="space-y-4">
+                <QuoteConfidenceSummary items={items} agentName={state.client?.name} />
+                <FinalReassurance variant="compact" agentName="Your Travel Expert" />
+              </div>
+            </div>
+
+            {/* WHAT HAPPENS NEXT - Critical for reducing anxiety */}
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
-              className="text-center py-8 mb-8"
+              className="bg-gradient-to-br from-gray-50 to-white rounded-2xl border border-gray-100 p-6 mb-8"
             >
-              <div className="inline-flex items-center gap-2 text-primary-600 mb-4">
-                <Heart className="w-5 h-5" />
+              <h3 className="text-lg font-bold text-gray-900 mb-4 flex items-center gap-2">
+                <Lightbulb className="w-5 h-5 text-amber-500" />
+                What happens after payment?
+              </h3>
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                {[
+                  { step: "1", label: "We confirm availability", icon: "✓" },
+                  { step: "2", label: "You receive confirmation email", icon: "✉️" },
+                  { step: "3", label: "Tickets & vouchers issued", icon: "🎫" },
+                  { step: "4", label: "Your agent remains available", icon: "💬" },
+                ].map((item, i) => (
+                  <motion.div
+                    key={i}
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.1 * i }}
+                    className="text-center p-4 bg-white rounded-xl border border-gray-100 shadow-sm"
+                  >
+                    <div className="text-2xl mb-2">{item.icon}</div>
+                    <p className="text-xs font-medium text-gray-700">{item.label}</p>
+                  </motion.div>
+                ))}
               </div>
-              <h2 className="text-2xl font-bold text-gray-900 mb-3">
-                Travel with confidence.
-              </h2>
-              <p className="text-gray-600 max-w-lg mx-auto">
-                From planning to every experience along the way, your trip was designed with care so you can focus on enjoying each moment — stress-free and fully present.
-              </p>
             </motion.div>
 
-            {/* FINAL CTA */}
+            {/* POLICY TRANSPARENCY */}
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
-              className="bg-gradient-to-r from-primary-600 via-primary-700 to-rose-600 rounded-2xl p-8 text-center text-white"
+              className="bg-blue-50 rounded-xl p-4 mb-8 border border-blue-100"
             >
-              <h3 className="text-xl font-bold mb-2">Ready to make it official?</h3>
-              <p className="text-white/80 mb-6">
-                Want to personalize anything? We're here to make it perfect.
-              </p>
-              <div className="flex items-center justify-center gap-4">
-                <button className="px-8 py-3 bg-white text-primary-700 rounded-xl font-bold hover:bg-gray-100 transition-all shadow-lg">
-                  Review & Confirm Your Trip
-                </button>
-                <button className="px-6 py-3 border-2 border-white/30 text-white rounded-xl font-medium hover:bg-white/10 transition-all">
-                  Request Adjustments
-                </button>
+              <div className="flex items-start gap-3">
+                <Shield className="w-5 h-5 text-blue-600 flex-shrink-0 mt-0.5" />
+                <div>
+                  <p className="text-sm font-semibold text-gray-900">Transparent Policies</p>
+                  <div className="mt-2 space-y-1 text-xs text-gray-600">
+                    {items.slice(0, 3).map((item, i) => (
+                      <p key={i} className="flex items-center gap-2">
+                        <span className="w-1.5 h-1.5 rounded-full bg-blue-400" />
+                        <span className="font-medium capitalize">{item.type}:</span>
+                        <span>{(item as any).refundable ? "Refundable" : "Non-refundable"} • {(item as any).cancellationPolicy || "Standard policy"}</span>
+                      </p>
+                    ))}
+                  </div>
+                </div>
               </div>
+            </motion.div>
+
+            {/* FINAL CTA - Single, Clear Action */}
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="text-center"
+            >
+              <motion.button
+                whileHover={{ scale: 1.02, y: -2 }}
+                whileTap={{ scale: 0.98 }}
+                onClick={() => openSendModal()}
+                className="inline-flex items-center gap-3 px-10 py-4 bg-gradient-to-r from-emerald-500 to-teal-600 text-white rounded-2xl font-bold text-lg shadow-xl shadow-emerald-500/30 hover:shadow-emerald-500/50 transition-all"
+              >
+                <CheckCircle2 className="w-6 h-6" />
+                Confirm & Pay Securely
+              </motion.button>
+              <p className="text-xs text-gray-500 mt-3 flex items-center justify-center gap-2">
+                <Shield className="w-3 h-3" />
+                Secure payment • No hidden fees • 24/7 support
+              </p>
             </motion.div>
           </div>
         </motion.div>
