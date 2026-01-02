@@ -2,8 +2,9 @@
 
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Eye, Send, User, Package, DollarSign, MoreHorizontal, Copy, FileText, Save, Download } from "lucide-react";
+import { Eye, Send, User, Package, DollarSign, MoreHorizontal, Copy, FileText, Save, Download, Shield } from "lucide-react";
 import { useQuoteWorkspace } from "./QuoteWorkspaceProvider";
+import { ctaOptimization } from "./client-preview/USConversionCopy";
 
 export default function QuoteFooter() {
   const { state, openPreview, openClientModal, openSendModal, saveQuote, openTemplatesPanel } = useQuoteWorkspace();
@@ -199,7 +200,7 @@ export default function QuoteFooter() {
           </AnimatePresence>
         </div>
 
-        {/* Send Quote Button */}
+        {/* Send Quote Button - Optimized CTA */}
         <motion.button
           whileHover={{ scale: canSend ? 1.02 : 1 }}
           whileTap={{ scale: canSend ? 0.98 : 1 }}
@@ -212,8 +213,14 @@ export default function QuoteFooter() {
           }`}
         >
           <Send className="w-4 h-4" />
-          <span>Send Quote</span>
+          <span>{ctaOptimization.primary.confirm}</span>
         </motion.button>
+      </div>
+
+      {/* Security Reassurance - Subtle */}
+      <div className="hidden lg:flex items-center justify-center gap-1 text-[10px] text-gray-400 mt-1">
+        <Shield className="w-3 h-3" />
+        <span>{ctaOptimization.support.secureCheckout}</span>
       </div>
     </div>
   );

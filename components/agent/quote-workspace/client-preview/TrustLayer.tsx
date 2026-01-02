@@ -1,22 +1,24 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { Shield, Lock, Clock, HeadphonesIcon, CheckCircle2, Star, Award, Users } from "lucide-react";
+import { Shield, Lock, Clock, HeadphonesIcon, CheckCircle2, Star, Award, Users, Phone, BadgeCheck } from "lucide-react";
 import { trustCopy } from "./EmotionalCopySystem";
+import { usTrustSignals } from "./USConversionCopy";
 
 interface TrustLayerProps {
-  variant?: "full" | "compact";
+  variant?: "full" | "compact" | "us-enhanced";
   showStats?: boolean;
+  showHumanPresence?: boolean;
 }
 
-// Trust statistics (can be made dynamic)
+// Trust statistics with US-optimized copy
 const trustStats = [
-  { icon: Users, value: "50,000+", label: "Happy Travelers" },
-  { icon: Star, value: "4.9", label: "Average Rating" },
-  { icon: Award, value: "15+", label: "Years Experience" },
+  { icon: Users, value: "50,000+", label: "Happy Travelers", subtext: "and counting" },
+  { icon: Star, value: "4.9/5", label: "Customer Rating", subtext: "12,000+ reviews" },
+  { icon: Award, value: "98%", label: "Would Book Again", subtext: "satisfaction rate" },
 ];
 
-export default function TrustLayer({ variant = "full", showStats = true }: TrustLayerProps) {
+export default function TrustLayer({ variant = "full", showStats = true, showHumanPresence = true }: TrustLayerProps) {
   const containerVariants = {
     hidden: { opacity: 0 },
     visible: {
@@ -155,26 +157,45 @@ export default function TrustLayer({ variant = "full", showStats = true }: Trust
         </motion.div>
       </div>
 
-      {/* Bottom trust badges */}
+      {/* Bottom trust badges - US Industry Credentials */}
       <motion.div
         variants={itemVariants}
         className="flex items-center justify-center gap-4 pt-2"
       >
-        <div className="flex items-center gap-1.5 text-gray-400">
-          <Shield className="w-4 h-4" />
-          <span className="text-[10px] font-medium">256-bit SSL</span>
-        </div>
-        <div className="w-px h-4 bg-gray-200" />
-        <div className="flex items-center gap-1.5 text-gray-400">
-          <Lock className="w-4 h-4" />
-          <span className="text-[10px] font-medium">PCI Compliant</span>
-        </div>
-        <div className="w-px h-4 bg-gray-200" />
-        <div className="flex items-center gap-1.5 text-gray-400">
-          <Award className="w-4 h-4" />
-          <span className="text-[10px] font-medium">ASTA Member</span>
-        </div>
+        {usTrustSignals.credentials.map((cred, i) => (
+          <div key={i} className="flex items-center gap-1.5 text-gray-400" title={cred.tooltip}>
+            <BadgeCheck className="w-4 h-4" />
+            <span className="text-[10px] font-medium">{cred.label}</span>
+            {i < usTrustSignals.credentials.length - 1 && <div className="w-px h-4 bg-gray-200 ml-4" />}
+          </div>
+        ))}
       </motion.div>
+
+      {/* Human Presence - Critical for US buyers */}
+      {showHumanPresence && (
+        <motion.div
+          variants={itemVariants}
+          className="mt-4 bg-gradient-to-r from-primary-50 to-violet-50 rounded-xl p-4 border border-primary-100"
+        >
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-full bg-primary-500 flex items-center justify-center">
+              <Phone className="w-5 h-5 text-white" />
+            </div>
+            <div>
+              <h4 className="font-bold text-gray-900 text-sm">{usTrustSignals.humanPresence.headline}</h4>
+              <p className="text-xs text-gray-600">{usTrustSignals.humanPresence.subline}</p>
+            </div>
+          </div>
+          <ul className="mt-3 space-y-1.5">
+            {usTrustSignals.humanPresence.points.map((point, i) => (
+              <li key={i} className="flex items-start gap-1.5 text-xs text-gray-600">
+                <CheckCircle2 className="w-3 h-3 text-primary-500 mt-0.5 flex-shrink-0" />
+                {point}
+              </li>
+            ))}
+          </ul>
+        </motion.div>
+      )}
     </motion.div>
   );
 }
