@@ -265,6 +265,14 @@ export interface QuoteWorkspaceState {
 
   // Client
   client: QuoteClient | null;
+  clientName?: string; // Quick access for personalized greeting
+
+  // Agent (for client preview signature)
+  agentName?: string;
+  agentTitle?: string;
+  agentPhoto?: string;
+  agentEmail?: string;
+  agentPhone?: string;
 
   // UI
   ui: WorkspaceUI;

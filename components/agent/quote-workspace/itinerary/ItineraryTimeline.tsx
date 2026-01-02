@@ -14,6 +14,9 @@ import { useViewMode } from "./ViewModeContext";
 import { detectTone, getClosingMessageSeeded, getTimeBasedGreeting, type ToneProfile } from "./ToneSystem";
 import type { QuoteItem } from "../types/quote-workspace.types";
 
+// Client Preview Premium Components
+import { DayChapter, TrustLayer, AgentSignature, ProductEnrichment } from "../client-preview";
+
 type DayLabel = "arrival" | "departure" | "free" | "park" | "explore" | "celebration";
 
 function groupByDate(items: QuoteItem[]): Map<string, QuoteItem[]> {
@@ -123,6 +126,46 @@ function getDayLocation(items: QuoteItem[]): string | undefined {
   if (activity?.details?.location) return activity.details.location;
 
   return undefined;
+}
+
+// Extract highlights from item for ProductEnrichment
+function getItemHighlights(item: QuoteItem): string[] {
+  const highlights: string[] = [];
+  const details = item.details || {};
+
+  switch (item.type) {
+    case "flight":
+      if (details.stops === 0) highlights.push("Direct flight");
+      if (details.cabinClass) highlights.push(details.cabinClass.replace("_", " "));
+      if (details.includedBags?.quantity) highlights.push(`${details.includedBags.quantity} bag${details.includedBags.quantity > 1 ? "s" : ""} included`);
+      if (details.fareRules?.refundable) highlights.push("Refundable");
+      if (details.fareRules?.changeable) highlights.push("Flexible changes");
+      break;
+    case "hotel":
+      if (details.starRating >= 4) highlights.push(`${details.starRating}-star property`);
+      if (details.boardType) highlights.push(details.boardType);
+      if (details.amenities?.includes("Pool")) highlights.push("Pool");
+      if (details.amenities?.includes("Spa")) highlights.push("Spa");
+      if (details.amenities?.includes("Free WiFi")) highlights.push("Free WiFi");
+      if (details.amenities?.includes("Breakfast")) highlights.push("Breakfast included");
+      break;
+    case "activity":
+      if (details.duration) highlights.push(details.duration);
+      if (details.includes?.length) highlights.push(`${details.includes.length} inclusions`);
+      if (details.rating >= 4.5) highlights.push("Highly rated");
+      break;
+    case "car":
+      if (details.transmission) highlights.push(details.transmission);
+      if (details.features?.includes("GPS")) highlights.push("GPS included");
+      if (details.features?.includes("Insurance")) highlights.push("Insurance included");
+      break;
+    case "transfer":
+      if (details.meetAndGreet) highlights.push("Meet & greet");
+      if (details.vehicleType) highlights.push(details.vehicleType);
+      break;
+  }
+
+  return highlights.slice(0, 5); // Max 5 highlights
 }
 
 export default function ItineraryTimeline() {
@@ -254,8 +297,10 @@ export default function ItineraryTimeline() {
 
       {/* Timeline */}
       <div className="relative">
-        {/* Vertical Timeline Connector */}
-        <div className="absolute left-[23px] top-6 bottom-6 w-0.5 bg-gradient-to-b from-blue-200 via-gray-200 to-orange-200 rounded-full" />
+        {/* Vertical Timeline Connector - Agent View Only */}
+        {viewMode === "agent" && (
+          <div className="absolute left-[23px] top-6 bottom-6 w-0.5 bg-gradient-to-b from-blue-200 via-gray-200 to-orange-200 rounded-full" />
+        )}
 
         <AnimatePresence>
           {dates.map((date, i) => {
@@ -265,6 +310,56 @@ export default function ItineraryTimeline() {
             const isFirst = i === 0;
             const isLast = i === dates.length - 1;
 
+            // Convert dayLabel to DayMood for client view
+            const dayMood = dayLabel === "arrival" ? "arrival"
+              : dayLabel === "departure" ? "departure"
+              : dayLabel === "explore" ? "explore"
+              : dayLabel === "free" ? "free"
+              : "explore";
+
+            // Client View - Premium Day Chapters
+            if (viewMode === "client") {
+              return (
+                <DayChapter
+                  key={date}
+                  dayNumber={i + 1}
+                  totalDays={dates.length}
+                  date={date}
+                  mood={dayMood}
+                  tone={tone}
+                  location={dayLocation}
+                  isFirst={isFirst}
+                  isLast={isLast}
+                >
+                  {dayItems.length === 0 ? (
+                    <FreeTimeBlock
+                      type={determineFreeTimeType(undefined, undefined, false)}
+                      dayNumber={i + 1}
+                      tone={tone}
+                      location={dayLocation}
+                    />
+                  ) : (
+                    dayItems.map((item) => (
+                      <ProductEnrichment
+                        key={item.id}
+                        type={item.type}
+                        tone={tone}
+                        itemId={item.id}
+                        highlights={getItemHighlights(item)}
+                      >
+                        <SortableItineraryCard
+                          item={item}
+                          viewMode={viewMode}
+                          tone={tone}
+                        />
+                      </ProductEnrichment>
+                    ))
+                  )}
+                </DayChapter>
+              );
+            }
+
+            // Agent View - Standard Timeline
             return (
               <motion.div
                 key={date}
@@ -286,7 +381,7 @@ export default function ItineraryTimeline() {
                 />
 
                 {/* Day Items */}
-                <div className={viewMode === "client" ? "mt-3 space-y-3" : "ml-0 sm:ml-16 mt-3 space-y-3"}>
+                <div className="ml-0 sm:ml-16 mt-3 space-y-3">
                   {dayItems.length === 0 ? (
                     /* Leisure Day - No items scheduled */
                     <FreeTimeBlock
@@ -294,7 +389,7 @@ export default function ItineraryTimeline() {
                       dayNumber={i + 1}
                       tone={tone}
                       location={dayLocation}
-                      agentNote={viewMode === "agent" ? "No activities planned" : undefined}
+                      agentNote="No activities planned"
                     />
                   ) : (
                     <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={onDragEnd}>
@@ -334,37 +429,86 @@ export default function ItineraryTimeline() {
         )}
       </div>
 
-      {/* Client View Footer - Closing Message + Price + CTAs */}
+      {/* Client View Footer - Premium Experience */}
       {viewMode === "client" && dates.length > 0 && (
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.3 }}
-          className="mt-8 space-y-4"
+          className="mt-10 space-y-6"
         >
           {/* Closing Message */}
           <div className="text-center">
+            <Sparkles className="w-5 h-5 text-amber-500 mx-auto mb-2" />
             <p className="text-sm text-gray-500 italic">{closingMessage}</p>
           </div>
 
-          {/* Price Summary */}
-          <div className="bg-gradient-to-br from-gray-900 to-gray-800 rounded-2xl p-5 text-center shadow-xl">
-            <p className="text-xs text-gray-400 uppercase tracking-wider mb-1">Your Trip Investment</p>
-            <p className="text-3xl font-black text-white">{formatTotalPrice(totalPrice)}</p>
-            <p className="text-xs text-gray-400 mt-1">All inclusive • No hidden fees</p>
-          </div>
+          {/* Price Summary - Premium Design */}
+          <motion.div
+            initial={{ scale: 0.98, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            transition={{ delay: 0.4, type: "spring" }}
+            className="bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 rounded-2xl p-6 text-center shadow-2xl relative overflow-hidden"
+          >
+            {/* Decorative gradient */}
+            <div className="absolute top-0 right-0 w-40 h-40 bg-gradient-to-br from-primary-500/20 to-transparent rounded-full blur-3xl" />
+            <div className="absolute bottom-0 left-0 w-32 h-32 bg-gradient-to-tr from-emerald-500/20 to-transparent rounded-full blur-3xl" />
+
+            <div className="relative">
+              <p className="text-xs text-gray-400 uppercase tracking-widest mb-2">Your Trip Investment</p>
+              <p className="text-4xl font-black text-white mb-1">{formatTotalPrice(totalPrice)}</p>
+              <p className="text-sm text-gray-300">
+                {state.travelers && state.travelers > 1
+                  ? `${formatTotalPrice(totalPrice / state.travelers)} per person`
+                  : "Complete package"
+                }
+              </p>
+              <div className="flex items-center justify-center gap-3 mt-4 text-xs text-gray-400">
+                <span className="flex items-center gap-1">
+                  <CheckCircle2 className="w-3 h-3 text-emerald-400" />
+                  All inclusive
+                </span>
+                <span className="w-1 h-1 rounded-full bg-gray-600" />
+                <span className="flex items-center gap-1">
+                  <CheckCircle2 className="w-3 h-3 text-emerald-400" />
+                  No hidden fees
+                </span>
+              </div>
+            </div>
+          </motion.div>
 
           {/* CTA Buttons */}
           <div className="flex flex-col sm:flex-row gap-3">
-            <button className="flex-1 flex items-center justify-center gap-2 px-6 py-3.5 bg-gradient-to-r from-emerald-500 to-teal-600 text-white font-bold rounded-xl shadow-lg hover:shadow-xl transition-all hover:scale-[1.02] active:scale-[0.98]">
+            <motion.button
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
+              className="flex-1 flex items-center justify-center gap-2 px-6 py-4 bg-gradient-to-r from-emerald-500 to-teal-600 text-white font-bold rounded-xl shadow-lg hover:shadow-xl transition-shadow"
+            >
               <CheckCircle2 className="w-5 h-5" />
               Approve Quote
-            </button>
-            <button className="flex-1 flex items-center justify-center gap-2 px-6 py-3.5 bg-white text-gray-700 font-semibold rounded-xl border border-gray-200 shadow-sm hover:shadow-md transition-all hover:border-gray-300">
+            </motion.button>
+            <motion.button
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
+              className="flex-1 flex items-center justify-center gap-2 px-6 py-4 bg-white text-gray-700 font-semibold rounded-xl border border-gray-200 shadow-sm hover:shadow-md transition-shadow"
+            >
               <MessageCircle className="w-5 h-5" />
               Ask Questions
-            </button>
+            </motion.button>
           </div>
+
+          {/* Agent Signature */}
+          <AgentSignature
+            agentName={state.agentName || "Your Travel Advisor"}
+            agentTitle={state.agentTitle || "Senior Travel Consultant"}
+            agentPhoto={state.agentPhoto}
+            agentEmail={state.agentEmail}
+            agentPhone={state.agentPhone}
+            tone={tone}
+          />
+
+          {/* Trust Layer */}
+          <TrustLayer showStats={true} />
         </motion.div>
       )}
     </div>
