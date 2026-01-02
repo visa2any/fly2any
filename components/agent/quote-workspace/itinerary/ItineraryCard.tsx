@@ -3,11 +3,12 @@
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { format, parseISO } from "date-fns";
-import { Plane, Building2, Car, Compass, Bus, Shield, Package, MoreVertical, Edit2, Copy, Trash2, GripVertical, ChevronDown, ChevronUp, Briefcase, RefreshCw, XCircle, CheckCircle2, Info, Luggage, Star, Clock, Users, MapPin, Sparkles, Heart } from "lucide-react";
+import { Plane, Building2, Car, Compass, Bus, Shield, Package, MoreVertical, Edit2, Copy, Trash2, GripVertical, ChevronDown, ChevronUp, Briefcase, RefreshCw, XCircle, CheckCircle2, Info, Luggage, Star, Clock, Users, MapPin, Sparkles, Heart, Sun, Sunset, Moon, Coffee } from "lucide-react";
 import { useQuoteWorkspace } from "../QuoteWorkspaceProvider";
 import AirlineLogo from "@/components/flights/AirlineLogo";
 import { getProductCopy, type ToneProfile } from "./ToneSystem";
 import type { QuoteItem, FlightItem, HotelItem, CarItem, ActivityItem, TransferItem, InsuranceItem, CustomItem, ProductType } from "../types/quote-workspace.types";
+import { RoleBadge, TimeAnchorBadge, GlanceInfo, CardRoleHeader } from "./ItemRoleSystem";
 
 // Icon and gradient config
 const productConfig: Record<ProductType, { icon: typeof Plane; gradient: string; bgLight: string }> = {
@@ -142,8 +143,11 @@ export default function ItineraryCard({ item, dragListeners, isDragging, viewMod
 
         {/* 3-Column Layout - Responsive */}
         <div className="flex flex-col sm:flex-row">
-          {/* LEFT: Logo + Airline Name + Fare Type */}
+          {/* LEFT: Role Badge + Logo + Airline Name + Fare Type */}
           <div className="flex flex-row sm:flex-col items-center justify-center px-3 py-2 border-b sm:border-b-0 sm:border-r border-gray-100 min-w-[72px] ml-5 gap-2 sm:gap-0">
+            <div className="hidden sm:flex items-center gap-1 mb-1">
+              <RoleBadge type="flight" />
+            </div>
             <AirlineLogo code={f.airline} size="sm" className="flex-shrink-0" />
             <p className="text-[9px] font-bold text-gray-900 mt-1 text-center truncate max-w-[68px]">
               {f.airlineName || f.airline}
@@ -403,6 +407,10 @@ export default function ItineraryCard({ item, dragListeners, isDragging, viewMod
           <div className="flex-1 min-w-0 px-3 py-2">
             <div className="flex items-start justify-between gap-2">
               <div className="flex-1 min-w-0">
+                <div className="flex items-center gap-1.5 mb-0.5">
+                  <RoleBadge type="activity" />
+                  <TimeAnchorBadge item={item} />
+                </div>
                 <h4 className="font-bold text-gray-900 text-sm truncate">{a.name}</h4>
                 <div className="flex items-center gap-2 mt-0.5 flex-wrap">
                   <span className="flex items-center gap-0.5 text-[10px] text-gray-500">
@@ -539,6 +547,10 @@ export default function ItineraryCard({ item, dragListeners, isDragging, viewMod
           <div className="flex-1 min-w-0 px-3 py-2">
             <div className="flex items-start justify-between gap-2">
               <div className="flex-1 min-w-0">
+                <div className="flex items-center gap-1.5 mb-0.5">
+                  <RoleBadge type="hotel" />
+                  <TimeAnchorBadge item={item} />
+                </div>
                 <div className="flex items-center gap-2">
                   <h4 className="font-bold text-gray-900 text-sm truncate">{h.name}</h4>
                   {h.starRating && (
@@ -697,6 +709,10 @@ export default function ItineraryCard({ item, dragListeners, isDragging, viewMod
           <div className="flex-1 min-w-0 px-3 py-2">
             <div className="flex items-start justify-between gap-2">
               <div className="flex-1 min-w-0">
+                <div className="flex items-center gap-1.5 mb-0.5">
+                  <RoleBadge type="car" />
+                  <TimeAnchorBadge item={item} />
+                </div>
                 <div className="flex items-center gap-2">
                   <h4 className="font-bold text-gray-900 text-sm truncate">{c.company}</h4>
                   <span className="text-[9px] text-cyan-600 bg-cyan-50 px-1.5 py-0.5 rounded font-medium uppercase">{c.carClass}</span>
@@ -838,6 +854,10 @@ export default function ItineraryCard({ item, dragListeners, isDragging, viewMod
 
           {/* Info Section */}
           <div className="flex-1 min-w-0 px-3 py-2">
+            <div className="flex items-center gap-1.5 mb-0.5">
+              <RoleBadge type="transfer" />
+              <TimeAnchorBadge item={item} />
+            </div>
             <div className="flex items-center gap-2">
               <h4 className="font-bold text-gray-900 text-sm">{t.vehicleType} Transfer</h4>
               <span className="text-[9px] text-amber-600 bg-amber-50 px-1.5 py-0.5 rounded font-medium">{t.provider}</span>
