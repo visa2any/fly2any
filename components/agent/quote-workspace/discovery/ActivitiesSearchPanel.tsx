@@ -171,7 +171,7 @@ export default function ActivitiesSearchPanel() {
     addItem({
       type: "activity",
       price: parseFloat(activity.price?.amount) || 0,
-      currency: activity.price?.currencyCode || "USD",
+      currency: "USD", // Force USD
       date: params.date || new Date().toISOString().split("T")[0],
       name: activity.name || "Activity",
       location: params.destination,

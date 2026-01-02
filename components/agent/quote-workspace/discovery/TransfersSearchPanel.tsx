@@ -231,7 +231,7 @@ export default function TransfersSearchPanel() {
     addItem({
       type: "transfer",
       price: parseFloat(transfer.price?.amount) || 0,
-      currency: transfer.price?.currency || "USD",
+      currency: "USD", // Force USD
       date: params.date,
       provider: providerName || transfer.supplier || transfer.name || "Transfer Service",
       pickupLocation: params.pickup,

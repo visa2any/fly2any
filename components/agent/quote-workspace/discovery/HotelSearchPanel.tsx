@@ -200,7 +200,7 @@ export default function HotelSearchPanel() {
     const item: Omit<HotelItem, "id" | "sortOrder" | "createdAt"> = {
       type: "hotel",
       price: totalPrice,
-      currency: hotel.lowestPrice?.currency || "USD",
+      currency: "USD", // Force USD
       date: params.checkIn,
       name: hotel.name || "Hotel",
       location: locationStr,

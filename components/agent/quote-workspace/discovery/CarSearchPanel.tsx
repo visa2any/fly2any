@@ -175,7 +175,7 @@ export default function CarSearchPanel() {
     addItem({
       type: "car",
       price: carPrice,
-      currency: car.price?.currency || "USD",
+      currency: "USD", // Force USD
       date: params.pickupDate,
       company: carCompany,
       carType: carTypeValue,
