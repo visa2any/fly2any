@@ -18,6 +18,9 @@ import type { QuoteItem } from "../types/quote-workspace.types";
 // Client Preview Premium Components
 import { DayChapter, TrustLayer, AgentSignature, ProductEnrichment } from "../client-preview";
 
+// Timeline Hero - Destination background
+import TimelineHero from "../timeline/TimelineHero";
+
 type DayLabel = "arrival" | "departure" | "free" | "park" | "explore" | "celebration";
 
 /**
@@ -237,74 +240,59 @@ export default function ItineraryTimeline() {
   const clientName = state.clientName || "Traveler"; // Use clientName if available
   const closingMessage = getClosingMessageSeeded(tone, tripDuration);
 
+  // Extract destination code from items (first flight destination)
+  const destinationCode = useMemo(() => {
+    const flight = items.find(i => i.type === "flight");
+    if (!flight) return null;
+    const details = flight.details as any;
+    // Try to get destination IATA from flight details
+    const segments = details?.segments || details?.itineraries?.[0]?.segments;
+    if (segments?.length > 0) {
+      const lastSegment = segments[segments.length - 1];
+      return lastSegment?.arrival?.iataCode || lastSegment?.destination?.iataCode;
+    }
+    return details?.destinationCode || null;
+  }, [items]);
+
   return (
     <div className="space-y-4">
-      {/* Trip Header - Apple-Class */}
-      <motion.div
-        initial={{ opacity: 0, y: -10 }}
-        animate={{ opacity: 1, y: 0 }}
-        className="bg-gradient-to-br from-gray-50 to-white rounded-2xl p-5 border border-gray-100 shadow-sm"
-      >
-        {/* Personalized Greeting - Client View Only */}
-        {viewMode === "client" && (
-          <p className="text-center text-sm text-gray-500 mb-2">
-            {greeting}, {clientName}! ✨
-          </p>
-        )}
+      {/* ═══ DESTINATION HERO - Premium Background Experience ═══ */}
+      <TimelineHero
+        tripName={displayTripName || undefined}
+        destination={state.destination}
+        destinationCode={destinationCode}
+        startDate={state.startDate}
+        endDate={state.endDate}
+        travelers={state.travelers?.total || 1}
+      />
 
-        {/* Trip Name */}
-        <div className="text-center mb-4">
-          {displayTripName ? (
-            <h2 className="text-xl font-bold text-gray-900 tracking-tight">
-              {displayTripName}
-            </h2>
-          ) : (
-            <h2 className="text-xl font-medium text-gray-400 italic">
-              Your Travel Itinerary
-            </h2>
-          )}
-        </div>
+      {/* Client View Greeting */}
+      {viewMode === "client" && (
+        <motion.div
+          initial={{ opacity: 0, y: 5 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="text-center py-2"
+        >
+          <p className="text-sm text-gray-500">{greeting}, {clientName}!</p>
+        </motion.div>
+      )}
 
-        {/* Trip Stats */}
-        <div className="flex items-center justify-center gap-6 flex-wrap text-sm">
-          {state.destination && (
-            <div className="flex items-center gap-2 text-gray-600">
-              <div className="w-8 h-8 rounded-xl bg-primary-50 flex items-center justify-center">
-                <Globe className="w-4 h-4 text-primary-600" />
-              </div>
-              <span className="font-medium">{state.destination}</span>
-            </div>
-          )}
-
-          {state.startDate && state.endDate && (
-            <div className="flex items-center gap-2 text-gray-600">
-              <div className="w-8 h-8 rounded-xl bg-blue-50 flex items-center justify-center">
-                <Calendar className="w-4 h-4 text-blue-600" />
-              </div>
-              <span>
-                {format(parseISO(state.startDate), "MMM d")} – {format(parseISO(state.endDate), "MMM d, yyyy")}
-              </span>
-            </div>
-          )}
-
+      {/* Compact Trip Stats Bar - Only in Agent View */}
+      {viewMode !== "client" && (state.travelers?.total > 0 || tripDuration > 0) && (
+        <div className="flex items-center justify-center gap-4 text-xs text-gray-500">
           {tripDuration > 0 && (
-            <div className="flex items-center gap-2 text-gray-600">
-              <span className="text-xs font-semibold px-2 py-1 rounded-lg bg-gray-100">
-                {tripDuration} {tripDuration === 1 ? "Day" : "Days"}
-              </span>
-            </div>
+            <span className="px-2 py-1 bg-gray-100 rounded-lg font-medium">
+              {tripDuration} {tripDuration === 1 ? "Day" : "Days"}
+            </span>
           )}
-
           {state.travelers?.total > 0 && (
-            <div className="flex items-center gap-2 text-gray-600">
-              <div className="w-8 h-8 rounded-xl bg-violet-50 flex items-center justify-center">
-                <Users className="w-4 h-4 text-violet-600" />
-              </div>
+            <div className="flex items-center gap-1.5">
+              <Users className="w-3.5 h-3.5" />
               <span>{state.travelers.total} {state.travelers.total === 1 ? "Traveler" : "Travelers"}</span>
             </div>
           )}
         </div>
-      </motion.div>
+      )}
 
       {/* Timeline */}
       <div className="relative">

@@ -20,3 +20,7 @@ export {
   useVirtualTimeline,
   usePaginatedTimeline,
 } from './useVirtualTimeline';
+
+// Destination Hero
+export { useDestinationHero } from './useDestinationHero';
+export type { DestinationHeroData, DestinationImage } from './useDestinationHero';
