@@ -491,6 +491,63 @@ const DESTINATION_IMAGES: Record<string, DestinationImage[]> = {
   bogota: [
     { url: "https://images.unsplash.com/photo-1536875698888-1b96a3b0e5a4?w=1920&q=80", alt: "Bogota mountains" },
   ],
+  medellin: [
+    { url: "https://images.unsplash.com/photo-1599930113854-d6d7fd521f10?w=1920&q=80", alt: "Medellin valley" },
+  ],
+  cali: [
+    { url: "https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=1920&q=80", alt: "Cali Colombia" },
+  ],
+  // Brazil expanded
+  salvador: [
+    { url: "https://images.unsplash.com/photo-1551887196-72e32bfc7bf3?w=1920&q=80", alt: "Salvador Bahia" },
+  ],
+  fortaleza: [
+    { url: "https://images.unsplash.com/photo-1590523741831-ab7e8b8f9c7f?w=1920&q=80", alt: "Fortaleza beach" },
+  ],
+  recife: [
+    { url: "https://images.unsplash.com/photo-1583417319070-4a69db38a482?w=1920&q=80", alt: "Recife Brazil" },
+  ],
+  brasilia: [
+    { url: "https://images.unsplash.com/photo-1616514969461-3e6a7ad3f533?w=1920&q=80", alt: "Brasilia architecture" },
+  ],
+  florianopolis: [
+    { url: "https://images.unsplash.com/photo-1590523741831-ab7e8b8f9c7f?w=1920&q=80", alt: "Florianopolis" },
+  ],
+  manaus: [
+    { url: "https://images.unsplash.com/photo-1518061296418-eb36a48c4a23?w=1920&q=80", alt: "Amazon Manaus" },
+  ],
+  // Argentina
+  "buenos aires": [
+    { url: "https://images.unsplash.com/photo-1589909202802-8f4aadce1849?w=1920&q=80", alt: "Buenos Aires" },
+  ],
+  mendoza: [
+    { url: "https://images.unsplash.com/photo-1510812431401-41d2bd2722f3?w=1920&q=80", alt: "Mendoza vineyards" },
+  ],
+  bariloche: [
+    { url: "https://images.unsplash.com/photo-1518467166778-b88f373ffec7?w=1920&q=80", alt: "Bariloche Patagonia" },
+  ],
+  // Uruguay, Ecuador, Bolivia, Paraguay, Venezuela
+  montevideo: [
+    { url: "https://images.unsplash.com/photo-1585223735200-65c627fcf19a?w=1920&q=80", alt: "Montevideo" },
+  ],
+  quito: [
+    { url: "https://images.unsplash.com/photo-1536875698888-1b96a3b0e5a4?w=1920&q=80", alt: "Quito Ecuador" },
+  ],
+  guayaquil: [
+    { url: "https://images.unsplash.com/photo-1555041469-a586c61ea9bc?w=1920&q=80", alt: "Guayaquil" },
+  ],
+  galapagos: [
+    { url: "https://images.unsplash.com/photo-1544979590-37e9b47eb705?w=1920&q=80", alt: "Galapagos Islands" },
+  ],
+  "la paz": [
+    { url: "https://images.unsplash.com/photo-1536875698888-1b96a3b0e5a4?w=1920&q=80", alt: "La Paz Bolivia" },
+  ],
+  asuncion: [
+    { url: "https://images.unsplash.com/photo-1555041469-a586c61ea9bc?w=1920&q=80", alt: "Asuncion Paraguay" },
+  ],
+  caracas: [
+    { url: "https://images.unsplash.com/photo-1536875698888-1b96a3b0e5a4?w=1920&q=80", alt: "Caracas Venezuela" },
+  ],
   santiago: [
     { url: "https://images.unsplash.com/photo-1519677100203-a0e668c92439?w=1920&q=80", alt: "Santiago skyline" },
   ],
@@ -529,6 +586,27 @@ const DESTINATION_IMAGES: Record<string, DestinationImage[]> = {
   ],
   havana: [
     { url: "https://images.unsplash.com/photo-1500759285222-a95626b934cb?w=1920&q=80", alt: "Havana Cuba" },
+  ],
+  "san juan": [
+    { url: "https://images.unsplash.com/photo-1579687196544-08ae57ab5a5a?w=1920&q=80", alt: "San Juan Puerto Rico" },
+  ],
+  curacao: [
+    { url: "https://images.unsplash.com/photo-1570012128662-fe4a80588dd3?w=1920&q=80", alt: "Curacao colorful" },
+  ],
+  "st lucia": [
+    { url: "https://images.unsplash.com/photo-1499856871958-5b9627545d1a?w=1920&q=80", alt: "St Lucia Pitons" },
+  ],
+  antigua: [
+    { url: "https://images.unsplash.com/photo-1580060839134-75a5edca2e99?w=1920&q=80", alt: "Antigua beach" },
+  ],
+  trinidad: [
+    { url: "https://images.unsplash.com/photo-1518061296418-eb36a48c4a23?w=1920&q=80", alt: "Trinidad" },
+  ],
+  iguazu: [
+    { url: "https://images.unsplash.com/photo-1540765360370-8c8c7bf1f85b?w=1920&q=80", alt: "Iguazu Falls" },
+  ],
+  varadero: [
+    { url: "https://images.unsplash.com/photo-1580060839134-75a5edca2e99?w=1920&q=80", alt: "Varadero Cuba" },
   ],
   // ═══════════════════════════════════════════════════════════════════════════
   // CANADA
@@ -651,16 +729,32 @@ const IATA_TO_CITY: Record<string, string> = {
   NAN: "fiji", PPT: "tahiti", BOB: "bora bora",
 
   // Latin America & Caribbean
-  CUN: "cancun", MEX: "mexico city", GDL: "mexico city",
-  SJD: "los cabos", PVR: "puerto vallarta",
-  GIG: "rio de janeiro", GRU: "sao paulo", CGH: "sao paulo",
-  EZE: "buenos aires", AEP: "buenos aires",
-  LIM: "lima", CUZ: "cusco", BOG: "bogota", CTG: "cartagena",
-  SCL: "santiago", PTY: "panama", SJO: "costa rica", LIR: "costa rica",
-  HAV: "havana", PUJ: "punta cana", SDQ: "punta cana",
-  NAS: "nassau", MBJ: "jamaica", KIN: "jamaica",
-  AUA: "aruba", CUR: "aruba", SXM: "st maarten",
-  BGI: "barbados", PLS: "turks and caicos", BDA: "bermuda", GCM: "cayman islands",
+  CUN: "cancun", MEX: "mexico city", GDL: "guadalajara", MTY: "monterrey",
+  SJD: "los cabos", PVR: "puerto vallarta", TIJ: "tijuana", MID: "merida",
+  // Brazil (expanded)
+  GIG: "rio de janeiro", SDU: "rio de janeiro", GRU: "sao paulo", CGH: "sao paulo", VCP: "sao paulo",
+  SSA: "salvador", FOR: "fortaleza", REC: "recife", BSB: "brasilia",
+  FLN: "florianopolis", MAO: "manaus", CWB: "curitiba", POA: "porto alegre", BEL: "belem",
+  // Argentina
+  EZE: "buenos aires", AEP: "buenos aires", MDZ: "mendoza", BRC: "bariloche",
+  COR: "cordoba", ROS: "rosario", IGR: "iguazu",
+  // Colombia (expanded)
+  BOG: "bogota", CTG: "cartagena", MDE: "medellin", CLO: "cali", BAQ: "barranquilla", ADZ: "san andres",
+  // Peru, Chile, Ecuador
+  LIM: "lima", CUZ: "cusco", AQP: "arequipa",
+  SCL: "santiago", IPC: "easter island",
+  UIO: "quito", GYE: "guayaquil", GPS: "galapagos",
+  // Bolivia, Paraguay, Uruguay, Venezuela
+  LPB: "la paz", VVI: "santa cruz bolivia",
+  ASU: "asuncion", MVD: "montevideo", PDP: "punta del este",
+  CCS: "caracas", MAR: "margarita island",
+  // Central America & Caribbean
+  PTY: "panama", SJO: "costa rica", LIR: "costa rica", SAL: "san salvador", GUA: "guatemala city", TGU: "tegucigalpa", MGA: "managua", BZE: "belize",
+  HAV: "havana", VRA: "varadero", PUJ: "punta cana", SDQ: "santo domingo", STI: "santiago dr",
+  NAS: "nassau", FPO: "freeport", MBJ: "jamaica", KIN: "jamaica", OCJ: "ocho rios",
+  AUA: "aruba", CUR: "curacao", BON: "bonaire", SXM: "st maarten",
+  BGI: "barbados", POS: "trinidad", UVF: "st lucia", ANU: "antigua", SJU: "san juan", STT: "st thomas", STX: "st croix",
+  PLS: "turks and caicos", BDA: "bermuda", GCM: "cayman islands",
 
   // Canada
   YYZ: "toronto", YVR: "vancouver", YUL: "montreal", YQB: "quebec",
