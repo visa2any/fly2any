@@ -2270,7 +2270,7 @@ export default function EnhancedSearchBar({
                   onClick={() => {
                     setShowHotelSuggestions(true);
                   }}
-                  className={`w-full px-3 py-2.5 rounded-xl cursor-pointer transition-all hover:border-primary-400 hover:shadow-sm active:scale-[0.99] ${
+                  className={`w-full h-[52px] px-3 rounded-xl cursor-pointer flex items-center transition-all hover:border-primary-400 hover:shadow-sm active:scale-[0.99] ${
                     transparent ? 'bg-gray-800/80 backdrop-blur-sm border-gray-600/50 text-white placeholder:text-white/50' : 'bg-white border border-primary-300'
                   }`}
                 >
@@ -2327,7 +2327,7 @@ export default function EnhancedSearchBar({
                     }
                   }}
                   placeholder="City, hotel, or landmark"
-                  className={`w-full px-3 py-2.5 border rounded-xl hover:border-primary-400 transition-all text-[13px] font-medium placeholder:text-neutral-400 ${
+                  className={`w-full h-[52px] px-3 border rounded-xl hover:border-primary-400 transition-all text-[13px] font-medium placeholder:text-neutral-400 ${
                     transparent ? 'bg-gray-800/80 backdrop-blur-sm text-white' : 'bg-white text-neutral-800'
                   } ${
                     errors.hotel ? 'border-error-400' : transparent ? 'border-gray-600/50' : 'border-neutral-200'
@@ -2488,7 +2488,7 @@ export default function EnhancedSearchBar({
               ref={hotelDateRangeRef}
               type="button"
               onClick={() => setShowHotelDateRangePicker(true)}
-              className={`w-full lg:hidden px-3 py-2.5 rounded-xl cursor-pointer transition-all hover:border-primary-400 hover:shadow-sm active:scale-[0.99] ${
+              className={`w-full lg:hidden h-[52px] px-3 rounded-xl cursor-pointer flex items-center transition-all hover:border-primary-400 hover:shadow-sm active:scale-[0.99] ${
                 transparent ? 'bg-gray-800/80 backdrop-blur-sm border-gray-600/50 text-white placeholder:text-white/50' : 'bg-white border border-neutral-200'
               }`}
             >
@@ -2542,7 +2542,7 @@ export default function EnhancedSearchBar({
                 ref={hotelCheckInRef}
                 type="button"
                 onClick={() => setShowHotelDateRangePicker(true)}
-                className={`w-full px-3 py-2.5 rounded-xl cursor-pointer transition-all ${
+                className={`w-full h-[52px] px-3 rounded-xl cursor-pointer flex items-center transition-all ${
                   checkInDate
                     ? 'bg-emerald-50 border border-emerald-300 hover:border-emerald-400 hover:shadow-sm'
                     : transparent
@@ -2582,7 +2582,7 @@ export default function EnhancedSearchBar({
                 ref={hotelCheckOutRef}
                 type="button"
                 onClick={() => setShowHotelDateRangePicker(true)}
-                className={`w-full px-3 py-2.5 rounded-xl cursor-pointer transition-all ${
+                className={`w-full h-[52px] px-3 rounded-xl cursor-pointer flex items-center transition-all ${
                   checkOutDate
                     ? 'bg-orange-50 border border-orange-300 hover:border-orange-400 hover:shadow-sm'
                     : transparent
@@ -2622,7 +2622,7 @@ export default function EnhancedSearchBar({
               <button
                 type="button"
                 onClick={() => setShowPassengerDropdown(!showPassengerDropdown)}
-                className={`w-full px-3 py-2.5 rounded-xl hover:border-primary-400 hover:shadow-sm transition-all text-left active:scale-[0.99] ${
+                className={`w-full h-[52px] px-3 rounded-xl hover:border-primary-400 flex items-center hover:shadow-sm transition-all text-left active:scale-[0.99] ${
                   transparent ? 'bg-gray-800/80 backdrop-blur-sm border-gray-600/50 text-white placeholder:text-white/50' : 'bg-white border border-neutral-200'
                 }`}
               >
@@ -3267,7 +3267,7 @@ export default function EnhancedSearchBar({
               {selectedDestinationDetails && hotelDestination === selectedDestinationDetails.name ? (
                 <div
                   onClick={() => setShowHotelSuggestions(true)}
-                  className={`w-full px-3 py-3.5 rounded-xl cursor-pointer transition-all hover:border-orange-400 hover:shadow-sm active:scale-[0.99] ${
+                  className={`w-full h-[52px] px-3 rounded-xl cursor-pointer flex items-center transition-all hover:border-orange-400 hover:shadow-sm active:scale-[0.99] ${
                     transparent ? 'bg-gray-800/80 backdrop-blur-sm border-gray-600/50 text-white placeholder:text-white/50' : 'bg-white border border-orange-300'
                   }`}
                 >
@@ -3445,7 +3445,7 @@ export default function EnhancedSearchBar({
               {selectedDestinationDetails && hotelDestination === selectedDestinationDetails.name ? (
                 <div
                   onClick={() => setShowHotelSuggestions(true)}
-                  className={`w-full px-3 py-3.5 rounded-xl cursor-pointer transition-all hover:border-purple-400 hover:shadow-sm active:scale-[0.99] ${
+                  className={`w-full h-[52px] px-3 rounded-xl cursor-pointer flex items-center transition-all hover:border-purple-400 hover:shadow-sm active:scale-[0.99] ${
                     transparent ? 'bg-gray-800/80 backdrop-blur-sm border-gray-600/50 text-white placeholder:text-white/50' : 'bg-white border border-purple-300'
                   }`}
                 >
