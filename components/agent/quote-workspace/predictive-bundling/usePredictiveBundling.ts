@@ -155,8 +155,8 @@ function evaluateRules(ctx: TripContext): BundleSuggestion[] {
   const suggestions: BundleSuggestion[] = [];
   const now = Date.now();
 
-  // RULE 1: Flight added, no hotel after 30 seconds
-  if (ctx.hasFlight && !ctx.hasHotel && ctx.secondsSinceLastAdd >= 30) {
+  // RULE 1: Flight added, no hotel - show after 5 seconds (quick but not instant)
+  if (ctx.hasFlight && !ctx.hasHotel && ctx.secondsSinceLastAdd >= 5) {
     suggestions.push({
       id: "missing_hotel",
       type: "missing_hotel",
@@ -194,8 +194,8 @@ function evaluateRules(ctx: TripContext): BundleSuggestion[] {
     });
   }
 
-  // RULE 4: Hotel booked, no activities, 60+ seconds elapsed
-  if (ctx.hasHotel && !ctx.hasActivity && ctx.secondsSinceLastAdd >= 60) {
+  // RULE 4: Hotel booked, no activities, 10+ seconds elapsed
+  if (ctx.hasHotel && !ctx.hasActivity && ctx.secondsSinceLastAdd >= 10) {
     suggestions.push({
       id: "missing_activity",
       type: "missing_activity",
@@ -279,11 +279,11 @@ export function usePredictiveBundling() {
   // Top 2 suggestions only (avoid noise)
   const visibleSuggestions = activeSuggestions.slice(0, 2);
 
-  // Re-evaluate periodically (every 30 seconds) for time-based rules
+  // Re-evaluate periodically (every 5 seconds) for time-based rules
   useEffect(() => {
     evalTimerRef.current = setInterval(() => {
       forceUpdate((n) => n + 1);
-    }, 30000);
+    }, 5000);
 
     return () => {
       if (evalTimerRef.current) clearInterval(evalTimerRef.current);

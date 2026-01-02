@@ -12,6 +12,8 @@ import TransfersSearchPanel from "./TransfersSearchPanel";
 import PremiumDatePicker from "@/components/common/PremiumDatePicker";
 import { QuoteProgressBadge } from "../QuoteProgressBar";
 import { TabResultIndicator, useUnifiedSearchSafe } from "../unified-search";
+import { usePredictiveBundling } from "../predictive-bundling/usePredictiveBundling";
+import { SuggestionsPanel } from "../predictive-bundling/BundleSuggestionCard";
 import type { ProductType } from "../types/quote-workspace.types";
 
 // Map ProductType to SearchScope key
@@ -44,6 +46,15 @@ const PRODUCT_TABS: {
 export default function DiscoveryZone() {
   const { state, setActiveTab } = useQuoteWorkspace();
   const activeTab = state.ui.activeTab;
+
+  // ═══ PREDICTIVE BUNDLING ═══
+  const {
+    suggestions,
+    isEnabled,
+    accept,
+    dismiss,
+    toggle,
+  } = usePredictiveBundling();
 
   return (
     <div className="flex flex-col h-full">
@@ -92,6 +103,19 @@ export default function DiscoveryZone() {
           })}
         </div>
       </div>
+
+      {/* ═══ PREDICTIVE BUNDLING SUGGESTIONS ═══ */}
+      {suggestions.length > 0 && (
+        <div className="flex-shrink-0 px-3 py-2 border-b border-gray-100 bg-gradient-to-b from-amber-50/30 to-white">
+          <SuggestionsPanel
+            suggestions={suggestions}
+            onAccept={accept}
+            onDismiss={dismiss}
+            isEnabled={isEnabled}
+            onToggle={toggle}
+          />
+        </div>
+      )}
 
       {/* Panel Content with Premium Transition */}
       <div className="flex-1 overflow-y-auto scrollbar-thin scrollbar-thumb-gray-200 scrollbar-track-transparent">
