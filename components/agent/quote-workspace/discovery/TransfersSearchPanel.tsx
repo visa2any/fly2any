@@ -52,6 +52,17 @@ export default function TransfersSearchPanel() {
   const pickupRef = useRef<HTMLDivElement>(null);
   const dropoffRef = useRef<HTMLDivElement>(null);
 
+  // ═══ SYNC FROM TRIP CONTEXT ═══
+  useEffect(() => {
+    setParams(prev => ({
+      ...prev,
+      dropoff: state.destination || prev.dropoff,
+      date: state.startDate || prev.date,
+      passengers: state.travelers?.total || prev.passengers,
+    }));
+  }, [state.destination, state.startDate, state.travelers]);
+  // ═══ END SYNC ═══
+
   // Auto-collapse form when search results arrive
   useEffect(() => {
     if (searchResults && searchResults.length > 0 && !searchLoading) {

@@ -31,6 +31,8 @@ import MultiAirportSelector from "@/components/common/MultiAirportSelector";
 import PremiumDatePicker from "@/components/common/PremiumDatePicker";
 import PremiumDateRangePicker from "@/components/common/PremiumDateRangePicker";
 import type { FlightItem, FlightSearchParams } from "../types/quote-workspace.types";
+import useUnifiedSearch from "../hooks/useUnifiedSearch";
+import SearchScopeSelector from "../components/SearchScopeSelector";
 
 // Cabin class options with premium styling
 const CABIN_CLASSES = [
@@ -45,8 +47,19 @@ const springConfig = { stiffness: 400, damping: 30 };
 const softSpring = { stiffness: 200, damping: 25 };
 
 export default function FlightSearchPanel() {
-  const { state, addItem, setSearchResults } = useQuoteWorkspace();
+  const { state, addItem, setSearchResults, setDestination, setDates, setTravelers } = useQuoteWorkspace();
   const { searchLoading, searchResults } = state.ui;
+
+  // ═══ UNIFIED MULTI-SEARCH ═══
+  // Single search → Flights + Hotels + Cars + Activities + Transfers (parallel)
+  const {
+    scope,
+    toggleScope,
+    status: unifiedStatus,
+    resultCounts,
+    executeUnifiedSearch,
+    isSearching: isUnifiedSearching,
+  } = useUnifiedSearch();
 
   // Search form state with all advanced features
   const [params, setParams] = useState<FlightSearchParams>({
@@ -134,6 +147,25 @@ export default function FlightSearchPanel() {
 
     if (!validateForm()) return;
 
+    // ═══ SYNC TRIP CONTEXT ═══
+    // Share flight search params with Hotels/Cars/Activities tabs
+    if (params.destination.length > 0) {
+      setDestination(params.destination[0]); // Primary destination
+    }
+    const departDate = params.useMultiDate ? format(params.departureDates[0], "yyyy-MM-dd") : params.departureDate;
+    if (departDate && params.returnDate) {
+      setDates(departDate, params.returnDate);
+    } else if (departDate) {
+      setDates(departDate, departDate);
+    }
+    setTravelers({
+      adults: params.adults,
+      children: params.children,
+      infants: params.infants,
+      total: params.adults + params.children + params.infants,
+    });
+    // ═══ END SYNC ═══
+
     setSearchResults(true, null);
 
     try {
@@ -170,6 +202,24 @@ export default function FlightSearchPanel() {
       setFilterStops(0);
       setFilterAirline("");
       setSortBy("price");
+
+      // ═══ TRIGGER UNIFIED SEARCH FOR OTHER PRODUCTS ═══
+      // Execute Hotels, Cars, Activities, Transfers searches in parallel
+      const tripContext = {
+        origin: params.origin[0] || "",
+        originCode: params.origin[0] || "",
+        destination: params.destination[0] || "",
+        destinationCode: params.destination[0] || "",
+        startDate: params.useMultiDate ? format(params.departureDates[0], "yyyy-MM-dd") : params.departureDate,
+        endDate: params.returnDate || (params.useMultiDate ? format(params.departureDates[0], "yyyy-MM-dd") : params.departureDate),
+        adults: params.adults,
+        children: params.children,
+        infants: params.infants,
+        cabinClass: params.cabinClass,
+      };
+
+      // Fire unified search (non-blocking) - this searches Hotels/Cars/Activities/Transfers in parallel
+      executeUnifiedSearch(tripContext);
     } catch (err: any) {
       setError(err.message || "Failed to search flights");
       setSearchResults(false, null);
@@ -868,10 +918,19 @@ export default function FlightSearchPanel() {
                 )}
               </AnimatePresence>
 
+              {/* ═══ SEARCH SCOPE SELECTOR ═══ */}
+              {/* "Search includes: [✓ Flights] [✓ Hotels] [✓ Cars] [✓ Activities] [✓ Transfers]" */}
+              <SearchScopeSelector
+                scope={scope}
+                status={unifiedStatus}
+                onToggle={toggleScope}
+                disabled={searchLoading || isUnifiedSearching}
+              />
+
               {/* Search Button - Ultra Premium */}
               <motion.button
                 type="submit"
-                disabled={searchLoading}
+                disabled={searchLoading || isUnifiedSearching}
                 whileHover={{ scale: 1.02, y: -2 }}
                 whileTap={{ scale: 0.98 }}
                 className="relative w-full overflow-hidden rounded-2xl disabled:opacity-50 transition-all group"
@@ -894,15 +953,19 @@ export default function FlightSearchPanel() {
 
                 {/* Content */}
                 <div className="relative flex items-center justify-center gap-2 py-2.5 font-bold text-white shadow-xl shadow-indigo-500/30">
-                  {searchLoading ? (
+                  {searchLoading || isUnifiedSearching ? (
                     <>
                       <Loader2 className="w-5 h-5 animate-spin" />
-                      <span>Searching best deals...</span>
+                      <span>Searching {Object.values(scope).filter(Boolean).length} products...</span>
                     </>
                   ) : (
                     <>
                       <Search className="w-5 h-5" />
-                      <span>Search Flights</span>
+                      <span>
+                        {Object.values(scope).filter(Boolean).length > 1
+                          ? `Search ${Object.values(scope).filter(Boolean).length} Products`
+                          : "Search Flights"}
+                      </span>
                       <motion.div
                         animate={{ x: [0, 4, 0] }}
                         transition={{ duration: 1, repeat: Infinity }}

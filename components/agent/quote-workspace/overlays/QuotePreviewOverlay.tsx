@@ -6,53 +6,7 @@ import { format, parseISO, differenceInDays } from "date-fns";
 import { useQuoteWorkspace, useQuoteItems, useQuotePricing } from "../QuoteWorkspaceProvider";
 import type { QuoteItem, ProductType } from "../types/quote-workspace.types";
 import Image from "next/image";
-
-// Emotional one-liners for days (rotate dynamically)
-const dayOneLiners = [
-  "A smooth start to your adventure.",
-  "A day designed to flow effortlessly.",
-  "Where memories begin.",
-  "Everything is taken care of today.",
-  "Your journey unfolds beautifully.",
-  "Crafted for comfort and discovery.",
-  "A perfect balance of rest and exploration.",
-  "Adventures await around every corner.",
-];
-
-// Product-specific premium copy
-const productCopy: Record<ProductType, { title: string; copy: string; highlights?: string[] }> = {
-  flight: {
-    title: "Your flight to {{destination}}",
-    copy: "Your journey begins with a carefully selected flight, optimized for comfort, timing, and convenience — so you arrive relaxed and ready to enjoy what's ahead.",
-    highlights: ["Smooth departure and arrival", "Comfortable travel duration", "Smart routing and timing"],
-  },
-  hotel: {
-    title: "Where you'll be staying",
-    copy: "This hotel was selected for its comfort, location, and convenience. A welcoming space to rest, recharge, and feel at home after each day of exploration.",
-    highlights: ["Comfortable accommodations", "Strategic location", "Ideal balance between rest and discovery"],
-  },
-  car: {
-    title: "Your transportation",
-    copy: "Your mobility is fully arranged so you can move with ease and confidence. No waiting, no uncertainty — just freedom to enjoy your trip at your own pace.",
-  },
-  activity: {
-    title: "Today's experience",
-    copy: "This experience was chosen to make your day truly special. Enjoy it at the right time, at the right pace — with everything already planned for you.",
-    highlights: ["Must-see", "Flexible timing"],
-  },
-  transfer: {
-    title: "Your transportation",
-    copy: "Your mobility is fully arranged so you can move with ease and confidence. No waiting, no uncertainty — just freedom to enjoy your trip at your own pace.",
-  },
-  insurance: {
-    title: "Travel protection",
-    copy: "Peace of mind for your journey. Comprehensive coverage so you can travel with confidence knowing you're protected.",
-  },
-  custom: {
-    title: "Special addition",
-    copy: "A personalized touch to make your trip even more memorable.",
-  },
-};
+import { getProductCopy, getDayOneLinerSeeded, detectTone, type ToneProfile } from "../itinerary/ToneSystem";
 
 const productIcons: Record<ProductType, typeof Plane> = {
   flight: Plane,
@@ -101,15 +55,30 @@ export default function QuotePreviewOverlay() {
     ? differenceInDays(parseISO(sortedDates[sortedDates.length - 1]), parseISO(sortedDates[0])) + 1
     : 0;
 
-  // Get dynamic one-liner for a day
-  const getDayOneLiner = (dayIndex: number) => dayOneLiners[dayIndex % dayOneLiners.length];
+  // ═══ DETECT TONE FROM TRIP DATA ═══
+  const hasKids = (state.travelers?.children || 0) > 0;
+  const hotelStars = items.find(i => i.type === "hotel" && (i as any).stars)?.["stars" as keyof QuoteItem] as number || 3;
+  const activityNames = items.filter(i => i.type === "activity").map(i => (i as any).name || "");
+  const tripTone: ToneProfile = detectTone({
+    destination: state.destination,
+    travelers: state.travelers?.total || 1,
+    hasKids,
+    hotelStars,
+    activities: activityNames,
+  });
+
+  // Get dynamic one-liner for a day using ToneSystem
+  const getDayOneLiner = (dayIndex: number, isFirst: boolean, isLast: boolean) => {
+    const mood = isFirst ? "arrival" : isLast ? "departure" : "explore";
+    return getDayOneLinerSeeded(tripTone, mood, dayIndex);
+  };
 
   // Get city from items for a specific date
   const getDayCity = (dayItems: QuoteItem[]): string => {
-    const hotel = dayItems.find(i => i.type === "hotel");
-    if (hotel?.details?.location) return hotel.details.location;
-    const flight = dayItems.find(i => i.type === "flight");
-    if (flight?.details?.destination) return flight.details.destination;
+    const hotel = dayItems.find(i => i.type === "hotel") as any;
+    if (hotel?.location) return hotel.location;
+    const flight = dayItems.find(i => i.type === "flight") as any;
+    if (flight?.destinationCity || flight?.destination) return flight.destinationCity || flight.destination;
     return state.destination || "";
   };
 
@@ -231,9 +200,7 @@ export default function QuotePreviewOverlay() {
                             {dayCity && <span className="text-gray-400 font-normal"> · {dayCity}</span>}
                           </h2>
                           <p className="text-sm text-gray-500 mt-1 italic">
-                            {isFirstDay ? "A smooth start to your adventure." :
-                             isLastDay ? "The perfect way to wrap up your journey." :
-                             getDayOneLiner(dayIndex)}
+                            {getDayOneLiner(dayIndex, isFirstDay, isLastDay)}
                           </p>
                         </div>
                         <div className="w-12 h-12 rounded-full bg-gradient-to-br from-primary-500 to-primary-600 flex items-center justify-center text-white font-bold text-lg shadow-lg">
@@ -245,7 +212,7 @@ export default function QuotePreviewOverlay() {
                     {/* Day Items */}
                     <div className="divide-y divide-gray-100">
                       {dayItems.map((item, itemIndex) => (
-                        <ClientPreviewCard key={item.id} item={item} isFirst={itemIndex === 0} />
+                        <ClientPreviewCard key={item.id} item={item} isFirst={itemIndex === 0} tone={tripTone} />
                       ))}
                     </div>
 
@@ -383,14 +350,17 @@ export default function QuotePreviewOverlay() {
   );
 }
 
-// Individual item card with premium copy
-function ClientPreviewCard({ item, isFirst }: { item: QuoteItem; isFirst: boolean }) {
+// Individual item card with dynamic tone-aware copy
+function ClientPreviewCard({ item, isFirst, tone = "family" }: { item: QuoteItem; isFirst: boolean; tone?: ToneProfile }) {
   const Icon = productIcons[item.type];
   const colorClass = productColors[item.type];
-  const copy = productCopy[item.type];
+  // ═══ USE TONESYSTEM FOR DYNAMIC COPY ═══
+  const toneCopy = getProductCopy(tone, item.type);
+  const copy = { copy: toneCopy.description, highlights: toneCopy.highlights };
 
-  // Get image from item details
-  const imageUrl = item.details?.pictures?.[0] || item.details?.image || item.details?.photo;
+  // Get image from item (properties are directly on item, not in item.details)
+  const itemAny = item as any;
+  const imageUrl = itemAny.pictures?.[0] || itemAny.image || itemAny.photo;
 
   return (
     <div className="p-6">
@@ -400,7 +370,7 @@ function ClientPreviewCard({ item, isFirst }: { item: QuoteItem; isFirst: boolea
           <div className="w-20 h-20 rounded-xl overflow-hidden flex-shrink-0 shadow-md">
             <Image
               src={imageUrl}
-              alt={item.details?.name || ""}
+              alt={itemAny.name || ""}
               width={80}
               height={80}
               className="w-full h-full object-cover"
@@ -417,7 +387,7 @@ function ClientPreviewCard({ item, isFirst }: { item: QuoteItem; isFirst: boolea
           <div className="flex items-start justify-between gap-4">
             <div>
               <h4 className="font-bold text-gray-900 flex items-center gap-2">
-                {getProductEmoji(item.type)} {getItemDisplayTitle(item, copy)}
+                {getProductEmoji(item.type)} {getItemDisplayTitle(item, toneCopy)}
               </h4>
               <p className="text-sm text-gray-600 mt-2 leading-relaxed">
                 {copy.copy}
@@ -459,61 +429,81 @@ function getProductEmoji(type: ProductType): string {
   return emojis[type];
 }
 
-function getItemDisplayTitle(item: QuoteItem, copy: { title: string }): string {
+function getItemDisplayTitle(item: QuoteItem, toneCopy: { title: string; subtitle: string }): string {
+  const itemAny = item as any;
   if (item.type === "flight") {
-    const dest = item.details?.destinationCity || item.details?.destination || "your destination";
-    return `Your flight to ${dest}`;
+    const dest = itemAny.destinationCity || itemAny.destination || "your destination";
+    return toneCopy.title.replace("{{destination}}", dest) || `Your flight to ${dest}`;
   }
   if (item.type === "hotel") {
-    return item.details?.name || copy.title;
+    return itemAny.name || toneCopy.title;
   }
   if (item.type === "activity") {
-    return item.details?.name || "Today's experience";
+    return itemAny.name || toneCopy.title;
   }
-  return item.details?.name || copy.title;
+  return itemAny.name || toneCopy.title;
 }
 
 function getItemDetails(item: QuoteItem): React.ReactNode {
+  // Properties are stored directly on item, not in item.details
+  const d = item as any;
+
   switch (item.type) {
     case "flight": {
-      const d = item.details;
-      if (!d) return null;
       return (
-        <div className="flex items-center gap-4">
-          <span>{d.originCity || d.origin} → {d.destinationCity || d.destination}</span>
+        <div className="flex items-center gap-4 flex-wrap">
+          <span className="font-medium">{d.originCity || d.origin} → {d.destinationCity || d.destination}</span>
+          {d.departureTime && <span>• Departs {d.departureTime}</span>}
           {d.duration && <span>• {d.duration}</span>}
-          {d.airline && <span>• {d.airline}</span>}
+          {d.airlineName && <span>• {d.airlineName}</span>}
+          {d.stops !== undefined && <span>• {d.stops === 0 ? 'Nonstop' : `${d.stops} stop${d.stops > 1 ? 's' : ''}`}</span>}
         </div>
       );
     }
     case "hotel": {
-      const d = item.details;
-      if (!d) return null;
       return (
-        <div className="flex items-center gap-4">
-          {d.nights && <span>{d.nights} {d.nights > 1 ? "nights" : "night"}</span>}
+        <div className="flex items-center gap-4 flex-wrap">
+          {d.nights && <span className="font-medium">{d.nights} {d.nights > 1 ? "nights" : "night"}</span>}
           {d.roomType && <span>• {d.roomType}</span>}
-          {d.rating && <span>• ⭐ {d.rating}</span>}
-        </div>
-      );
-    }
-    case "activity": {
-      const d = item.details;
-      if (!d) return null;
-      return (
-        <div className="flex items-center gap-4">
-          {d.duration && <span>{d.duration}</span>}
+          {d.stars && <span>• {"⭐".repeat(Math.min(d.stars, 5))}</span>}
           {d.location && <span>• {d.location}</span>}
         </div>
       );
     }
-    case "car": {
-      const d = item.details;
-      if (!d) return null;
+    case "activity": {
       return (
-        <div className="flex items-center gap-4">
-          {d.name && <span>{d.name}</span>}
+        <div className="flex items-center gap-4 flex-wrap">
+          {d.duration && <span className="font-medium">{d.duration}</span>}
+          {d.location && <span>• {d.location}</span>}
+          {d.participants && <span>• {d.participants} {d.participants > 1 ? 'guests' : 'guest'}</span>}
+        </div>
+      );
+    }
+    case "car": {
+      return (
+        <div className="flex items-center gap-4 flex-wrap">
+          {d.carType && <span className="font-medium">{d.carType}</span>}
+          {d.company && <span>• {d.company}</span>}
           {d.days && <span>• {d.days} {d.days > 1 ? "days" : "day"}</span>}
+          {d.pickupLocation && <span>• Pickup: {d.pickupLocation}</span>}
+        </div>
+      );
+    }
+    case "transfer": {
+      return (
+        <div className="flex items-center gap-4 flex-wrap">
+          {d.vehicleType && <span className="font-medium">{d.vehicleType}</span>}
+          {d.pickupLocation && d.dropoffLocation && <span>• {d.pickupLocation} → {d.dropoffLocation}</span>}
+          {d.pickupTime && <span>• {d.pickupTime}</span>}
+        </div>
+      );
+    }
+    case "insurance": {
+      return (
+        <div className="flex items-center gap-4 flex-wrap">
+          {d.planName && <span className="font-medium">{d.planName}</span>}
+          {d.provider && <span>• {d.provider}</span>}
+          {d.travelers && <span>• {d.travelers} {d.travelers > 1 ? 'travelers' : 'traveler'}</span>}
         </div>
       );
     }

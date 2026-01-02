@@ -44,6 +44,18 @@ export default function CarSearchPanel() {
   const [filterCategory, setFilterCategory] = useState<'all' | 'economy' | 'compact' | 'midsize' | 'suv' | 'luxury'>('all');
   const [visibleCount, setVisibleCount] = useState(10);
 
+  // ═══ SYNC FROM TRIP CONTEXT ═══
+  useEffect(() => {
+    setParams(prev => ({
+      ...prev,
+      pickupLocation: state.destination || prev.pickupLocation,
+      dropoffLocation: prev.sameDropoff ? (state.destination || prev.pickupLocation) : prev.dropoffLocation,
+      pickupDate: state.startDate || prev.pickupDate,
+      dropoffDate: state.endDate || prev.dropoffDate,
+    }));
+  }, [state.destination, state.startDate, state.endDate]);
+  // ═══ END SYNC ═══
+
   // Auto-collapse form when search results arrive
   useEffect(() => {
     if (searchResults && searchResults.length > 0 && !searchLoading) {

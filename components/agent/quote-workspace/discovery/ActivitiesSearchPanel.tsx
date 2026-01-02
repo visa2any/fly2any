@@ -42,6 +42,17 @@ export default function ActivitiesSearchPanel() {
 
   const containerRef = useRef<HTMLDivElement>(null);
 
+  // ═══ SYNC FROM TRIP CONTEXT ═══
+  useEffect(() => {
+    setParams(prev => ({
+      ...prev,
+      destination: state.destination || prev.destination,
+      date: state.startDate || prev.date,
+      participants: state.travelers?.total || prev.participants,
+    }));
+  }, [state.destination, state.startDate, state.travelers]);
+  // ═══ END SYNC ═══
+
   // Auto-collapse form when search results arrive
   useEffect(() => {
     if (searchResults && searchResults.length > 0 && !searchLoading) {

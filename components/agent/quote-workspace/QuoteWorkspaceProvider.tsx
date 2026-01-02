@@ -3,6 +3,7 @@
 import { createContext, useContext, useReducer, useCallback, useEffect, useMemo, ReactNode } from "react";
 import { produce } from "immer";
 import { useDebouncedCallback } from "use-debounce";
+import { UnifiedSearchProvider } from "./unified-search";
 import type {
   QuoteWorkspaceState,
   WorkspaceAction,
@@ -423,7 +424,11 @@ export function QuoteWorkspaceProvider({ children, initialQuoteId }: { children:
     [state, setTripName, setDestination, setDates, setTravelers, addItem, updateItem, removeItem, reorderItems, setMarkup, setCurrency, setClient, setActiveTab, setSearchResults, expandItem, openPreview, closePreview, openClientModal, closeClientModal, openSendModal, closeSendModal, openTemplatesPanel, closeTemplatesPanel, toggleSidebar, setDiscoveryPanelWidth, setSearchFormCollapsed, saveQuote, loadQuote]
   );
 
-  return <QuoteWorkspaceContext.Provider value={contextValue}>{children}</QuoteWorkspaceContext.Provider>;
+  return (
+    <QuoteWorkspaceContext.Provider value={contextValue}>
+      <UnifiedSearchProvider>{children}</UnifiedSearchProvider>
+    </QuoteWorkspaceContext.Provider>
+  );
 }
 
 // Hook to use workspace context

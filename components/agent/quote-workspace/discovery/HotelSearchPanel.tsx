@@ -66,6 +66,21 @@ export default function HotelSearchPanel() {
   useEffect(() => {
     if (error) setFormCollapsed(false);
   }, [error]);
+
+  // ═══ SYNC FROM TRIP CONTEXT ═══
+  // Auto-populate from Flight search when switching tabs
+  useEffect(() => {
+    setParams(prev => ({
+      ...prev,
+      location: state.destination || prev.location,
+      checkIn: state.startDate || prev.checkIn,
+      checkOut: state.endDate || prev.checkOut,
+      adults: state.travelers?.adults ?? prev.adults,
+      children: state.travelers?.children ?? prev.children,
+    }));
+  }, [state.destination, state.startDate, state.endDate, state.travelers]);
+  // ═══ END SYNC ═══
+
   const [selectedDestination, setSelectedDestination] = useState<LocationSuggestion | null>(null);
 
   const suggestRef = useRef<HTMLDivElement>(null);
