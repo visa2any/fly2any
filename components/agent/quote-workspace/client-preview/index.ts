@@ -19,3 +19,6 @@ export { default as AgentSignature } from './AgentSignature';
 // US Conversion Psychology components
 export { default as ClientPricingPanel } from './ClientPricingPanel';
 export { default as FinalReassurance } from './FinalReassurance';
+
+// Client ↔ Agent Co-Creation (Premium Differentiator)
+export * from './co-creation';
