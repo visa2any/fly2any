@@ -11,7 +11,19 @@ import ActivitiesSearchPanel from "./ActivitiesSearchPanel";
 import TransfersSearchPanel from "./TransfersSearchPanel";
 import PremiumDatePicker from "@/components/common/PremiumDatePicker";
 import { QuoteProgressBadge } from "../QuoteProgressBar";
+import { TabResultIndicator, useUnifiedSearchSafe } from "../unified-search";
 import type { ProductType } from "../types/quote-workspace.types";
+
+// Map ProductType to SearchScope key
+const productToScope: Record<ProductType, string> = {
+  flight: "flights",
+  hotel: "hotels",
+  car: "cars",
+  activity: "activities",
+  transfer: "transfers",
+  insurance: "insurance",
+  custom: "custom",
+};
 
 const PRODUCT_TABS: {
   type: ProductType;
@@ -45,6 +57,7 @@ export default function DiscoveryZone() {
         <div className="flex gap-1.5 justify-center">
           {PRODUCT_TABS.map(({ type, icon: Icon, label, gradient, shadowColor }) => {
             const isActive = activeTab === type;
+            const scopeKey = productToScope[type] as any;
             return (
               <div key={type} className="relative group">
                 <motion.button
@@ -64,6 +77,10 @@ export default function DiscoveryZone() {
                     />
                   )}
                   <Icon className="relative w-5 h-5" />
+                  {/* Result indicator from unified search */}
+                  {["flights", "hotels", "cars", "activities", "transfers"].includes(scopeKey) && (
+                    <TabResultIndicator product={scopeKey} />
+                  )}
                 </motion.button>
                 {/* Tooltip */}
                 <div className="absolute left-1/2 -translate-x-1/2 -bottom-8 px-2 py-1 bg-gray-900 text-white text-[10px] font-bold rounded-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all whitespace-nowrap z-50 shadow-lg">
