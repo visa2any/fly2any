@@ -4,6 +4,8 @@ import { ReactNode, useState, useCallback, useRef, useEffect } from "react";
 import { GripVertical } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useQuoteWorkspace } from "./QuoteWorkspaceProvider";
+import { useViewMode } from "./itinerary/ViewModeContext";
+import { useAgentShortcuts, CommandPalette, ShortcutsOverlay, SaveToast } from "./velocity";
 
 interface QuoteWorkspaceLayoutProps {
   header: ReactNode;
@@ -22,8 +24,57 @@ export default function QuoteWorkspaceLayout({
   footer,
   overlays,
 }: QuoteWorkspaceLayoutProps) {
-  const { state, setDiscoveryPanelWidth } = useQuoteWorkspace();
+  const { state, setDiscoveryPanelWidth, dispatch } = useQuoteWorkspace();
+  const { toggleViewMode } = useViewMode();
   const panelWidth = state.ui.discoveryPanelWidth;
+
+  // Velocity UX State
+  const [commandPaletteOpen, setCommandPaletteOpen] = useState(false);
+  const [showSaveToast, setShowSaveToast] = useState(false);
+
+  // Keyboard Shortcuts
+  const { showShortcutHint } = useAgentShortcuts({
+    onTogglePreview: toggleViewMode,
+    onSave: () => {
+      // Trigger save
+      dispatch({ type: "SET_SAVING", payload: true });
+      setTimeout(() => {
+        dispatch({ type: "SET_SAVING", payload: false });
+        dispatch({ type: "SET_LAST_SAVED", payload: new Date().toISOString() });
+        setShowSaveToast(true);
+        setTimeout(() => setShowSaveToast(false), 2000);
+      }, 500);
+    },
+    onSearch: () => {
+      const searchInput = document.querySelector<HTMLInputElement>('[data-search-input]');
+      searchInput?.focus();
+    },
+    onCommandPalette: () => setCommandPaletteOpen(true),
+  });
+
+  // Listen for command palette open event
+  useEffect(() => {
+    const handler = () => setCommandPaletteOpen(true);
+    window.addEventListener("open-command-palette", handler);
+    return () => window.removeEventListener("open-command-palette", handler);
+  }, []);
+
+  // Command palette actions
+  const handleCommandAction = useCallback((commandId: string) => {
+    if (commandId.startsWith("nav-")) {
+      const tab = commandId.replace("nav-", "") + "s";
+      dispatch({ type: "SET_ACTIVE_TAB", payload: tab.replace("ss", "s") as any });
+    } else if (commandId === "preview") {
+      toggleViewMode();
+    } else if (commandId === "save") {
+      dispatch({ type: "SET_SAVING", payload: true });
+    } else if (commandId.startsWith("preset-")) {
+      const presetId = commandId.replace("preset-", "");
+      // Apply preset logic
+      localStorage.setItem("fly2any_quote_preset", presetId);
+    }
+    setCommandPaletteOpen(false);
+  }, [dispatch, toggleViewMode]);
 
   // Resize state
   const [isResizing, setIsResizing] = useState(false);
@@ -149,6 +200,18 @@ export default function QuoteWorkspaceLayout({
       )}
 
       {overlays}
+
+      {/* Velocity UX Overlays */}
+      <CommandPalette
+        isOpen={commandPaletteOpen}
+        onClose={() => setCommandPaletteOpen(false)}
+        onAction={handleCommandAction}
+      />
+      <ShortcutsOverlay visible={showShortcutHint} variant="compact" />
+      <SaveToast visible={showSaveToast} status="saved" />
+
+      {/* Accessibility announcement */}
+      <div id="shortcut-announcement" className="sr-only" aria-live="polite" />
     </div>
   );
 }

@@ -1,9 +1,10 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
-import { ArrowLeft, Check, Cloud, Edit2, Eye, Loader2, Settings, User, X } from "lucide-react";
+import { ArrowLeft, Check, Edit2, Eye, Settings, User, X, Command } from "lucide-react";
 import { useQuoteWorkspace } from "./QuoteWorkspaceProvider";
 import { useViewMode } from "./itinerary/ViewModeContext";
+import { SmartPresets, AutosaveIndicator, formatShortcut } from "./velocity";
 import Link from "next/link";
 
 export default function QuoteHeader() {
@@ -81,8 +82,13 @@ export default function QuoteHeader() {
         )}
       </div>
 
+      {/* Smart Presets - Desktop Only */}
+      <div className="hidden lg:block">
+        <SmartPresets variant="compact" />
+      </div>
+
       {/* View Mode Toggle */}
-      <div className="hidden sm:flex items-center">
+      <div className="hidden sm:flex items-center gap-2">
         <button
           onClick={toggleViewMode}
           className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-medium transition-all ${
@@ -90,6 +96,7 @@ export default function QuoteHeader() {
               ? "bg-violet-100 text-violet-700 border border-violet-200"
               : "bg-gray-100 text-gray-600 hover:bg-gray-200 border border-transparent"
           }`}
+          title={`Toggle Preview (${formatShortcut({ key: "P", ctrl: true })})`}
         >
           {viewMode === "client" ? (
             <>
@@ -103,16 +110,23 @@ export default function QuoteHeader() {
             </>
           )}
         </button>
+
+        {/* Command Palette Trigger */}
+        <button
+          onClick={() => window.dispatchEvent(new CustomEvent("open-command-palette"))}
+          className="p-1.5 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
+          title={`Command Palette (${formatShortcut({ key: "K", ctrl: true, shift: true })})`}
+        >
+          <Command className="w-4 h-4" />
+        </button>
       </div>
 
       {/* Right: Save Status */}
-      <div className="flex items-center gap-1 text-[10px] text-gray-400">
-        {state.ui.isSaving ? (
-          <><Loader2 className="w-3 h-3 animate-spin" /><span>Saving</span></>
-        ) : state.ui.lastSavedAt ? (
-          <><Cloud className="w-3 h-3 text-emerald-500" /><span className="text-emerald-600">Saved</span></>
-        ) : null}
-      </div>
+      <AutosaveIndicator
+        status={state.ui.isSaving ? "saving" : state.ui.lastSavedAt ? "saved" : "idle"}
+        lastSavedAt={state.ui.lastSavedAt}
+        variant="minimal"
+      />
     </div>
   );
 }
