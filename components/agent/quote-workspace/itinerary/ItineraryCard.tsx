@@ -3,9 +3,10 @@
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { format, parseISO } from "date-fns";
-import { Plane, Building2, Car, Compass, Bus, Shield, Package, MoreVertical, Edit2, Copy, Trash2, GripVertical, ChevronDown, ChevronUp, Briefcase, RefreshCw, XCircle, CheckCircle2, Info, Luggage, Star, Clock, Users, MapPin } from "lucide-react";
+import { Plane, Building2, Car, Compass, Bus, Shield, Package, MoreVertical, Edit2, Copy, Trash2, GripVertical, ChevronDown, ChevronUp, Briefcase, RefreshCw, XCircle, CheckCircle2, Info, Luggage, Star, Clock, Users, MapPin, Sparkles, Heart } from "lucide-react";
 import { useQuoteWorkspace } from "../QuoteWorkspaceProvider";
 import AirlineLogo from "@/components/flights/AirlineLogo";
+import { getProductCopy, type ToneProfile } from "./ToneSystem";
 import type { QuoteItem, FlightItem, HotelItem, CarItem, ActivityItem, TransferItem, InsuranceItem, CustomItem, ProductType } from "../types/quote-workspace.types";
 
 // Icon and gradient config
@@ -24,11 +25,13 @@ interface ItineraryCardProps {
   dragListeners?: any;
   isDragging?: boolean;
   viewMode?: "agent" | "client";
+  tone?: ToneProfile;
 }
 
-export default function ItineraryCard({ item, dragListeners, isDragging, viewMode = "agent" }: ItineraryCardProps) {
+export default function ItineraryCard({ item, dragListeners, isDragging, viewMode = "agent", tone = "family" }: ItineraryCardProps) {
   const { state, removeItem, expandItem } = useQuoteWorkspace();
   const [showMenu, setShowMenu] = useState(false);
+  const productCopyData = getProductCopy(tone, item.type);
   const isExpanded = state.ui.expandedItemId === item.id;
 
   const config = productConfig[item.type];
@@ -229,9 +232,14 @@ export default function ItineraryCard({ item, dragListeners, isDragging, viewMod
                 </div>
               </>
             ) : (
-              <div className="text-center">
-                <p className="text-xs text-gray-600">{f.passengers} passenger{f.passengers > 1 ? "s" : ""}</p>
-                <p className="text-[10px] text-gray-400 mt-0.5">{isRoundtrip ? "Round trip" : "One way"}</p>
+              /* Client View - Emotional copy instead of price */
+              <div className="text-center px-2">
+                <div className="flex items-center justify-center gap-1 mb-1">
+                  <Sparkles className="w-3 h-3 text-indigo-400" />
+                  <p className="text-xs font-medium text-gray-700">Included</p>
+                </div>
+                <p className="text-[10px] text-gray-500">{f.passengers} {f.passengers === 1 ? "traveler" : "travelers"}</p>
+                <p className="text-[10px] text-gray-400">{isRoundtrip ? "Round trip" : "One way"}</p>
               </div>
             )}
           </div>
@@ -413,11 +421,18 @@ export default function ItineraryCard({ item, dragListeners, isDragging, viewMod
                   <p className="text-[10px] text-gray-400 mt-1 line-clamp-1">{a.description}</p>
                 )}
               </div>
-              {/* Price - Agent Only */}
-              {viewMode === "agent" && (
+              {/* Price - Agent Only / Client Emotional Copy */}
+              {viewMode === "agent" ? (
                 <div className="flex-shrink-0 text-right">
                   <p className="font-black text-gray-900 text-sm bg-yellow-100 px-2 py-0.5 rounded">{formatPrice(a.price)}</p>
                   <p className="text-[9px] text-gray-400 mt-0.5">{a.date ? format(parseISO(a.date), "MMM d") : ""}</p>
+                </div>
+              ) : (
+                <div className="flex-shrink-0 text-right">
+                  <div className="flex items-center gap-1 text-emerald-600">
+                    <Heart className="w-3 h-3 fill-emerald-500" />
+                    <span className="text-xs font-medium">Included</span>
+                  </div>
                 </div>
               )}
             </div>
@@ -552,11 +567,18 @@ export default function ItineraryCard({ item, dragListeners, isDragging, viewMod
                   </span>
                 </div>
               </div>
-              {/* Price - Agent Only */}
-              {viewMode === "agent" && (
+              {/* Price - Agent Only / Client Emotional Copy */}
+              {viewMode === "agent" ? (
                 <div className="flex-shrink-0 text-right">
                   <p className="font-black text-gray-900 text-sm bg-yellow-100 px-2 py-0.5 rounded">{formatPrice(h.price)}</p>
                   <p className="text-[9px] text-gray-400 mt-0.5">{h.checkIn ? format(parseISO(h.checkIn), "MMM d") : ""}</p>
+                </div>
+              ) : (
+                <div className="flex-shrink-0 text-right">
+                  <div className="flex items-center gap-1 text-purple-600">
+                    <Sparkles className="w-3 h-3" />
+                    <span className="text-xs font-medium">Your Stay</span>
+                  </div>
                 </div>
               )}
             </div>
@@ -575,9 +597,9 @@ export default function ItineraryCard({ item, dragListeners, isDragging, viewMod
           )}
         </div>
 
-        {/* Expanded Details */}
+        {/* Expanded Details - Show for both views */}
         <AnimatePresence>
-          {isExpanded && (
+          {(isExpanded || viewMode === "client") && (
             <motion.div
               initial={{ height: 0, opacity: 0 }}
               animate={{ height: "auto", opacity: 1 }}
@@ -693,11 +715,18 @@ export default function ItineraryCard({ item, dragListeners, isDragging, viewMod
                   </span>
                 </div>
               </div>
-              {/* Price - Agent Only */}
-              {viewMode === "agent" && (
+              {/* Price - Agent Only / Client Emotional Copy */}
+              {viewMode === "agent" ? (
                 <div className="flex-shrink-0 text-right">
                   <p className="font-black text-gray-900 text-sm bg-yellow-100 px-2 py-0.5 rounded">{formatPrice(c.price)}</p>
                   <p className="text-[9px] text-gray-400 mt-0.5">{c.date ? format(parseISO(c.date), "MMM d") : ""}</p>
+                </div>
+              ) : (
+                <div className="flex-shrink-0 text-right">
+                  <div className="flex items-center gap-1 text-cyan-600">
+                    <Car className="w-3 h-3" />
+                    <span className="text-xs font-medium">Your Ride</span>
+                  </div>
                 </div>
               )}
             </div>
@@ -718,7 +747,7 @@ export default function ItineraryCard({ item, dragListeners, isDragging, viewMod
 
         {/* Expanded Details */}
         <AnimatePresence>
-          {isExpanded && (
+          {(isExpanded || viewMode === "client") && (
             <motion.div
               initial={{ height: 0, opacity: 0 }}
               animate={{ height: "auto", opacity: 1 }}
@@ -831,8 +860,8 @@ export default function ItineraryCard({ item, dragListeners, isDragging, viewMod
             </div>
           </div>
 
-          {/* Price + Actions - Agent Only */}
-          {viewMode === "agent" && (
+          {/* Price + Actions - Agent / Client */}
+          {viewMode === "agent" ? (
             <div className="flex items-center gap-2 px-3 border-l border-gray-100">
               <div className="text-right">
                 <p className="font-black text-gray-900 text-sm bg-yellow-100 px-2 py-0.5 rounded">{formatPrice(t.price)}</p>
@@ -845,6 +874,13 @@ export default function ItineraryCard({ item, dragListeners, isDragging, viewMod
                 <button onClick={() => setShowMenu(!showMenu)} className="p-1 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded transition-colors">
                   <MoreVertical className="w-4 h-4" />
                 </button>
+              </div>
+            </div>
+          ) : (
+            <div className="flex items-center px-3 border-l border-gray-100">
+              <div className="flex items-center gap-1 text-amber-600">
+                <Bus className="w-3 h-3" />
+                <span className="text-xs font-medium">Seamless</span>
               </div>
             </div>
           )}

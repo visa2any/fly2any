@@ -10,6 +10,7 @@ import { useQuoteWorkspace, useQuoteItems } from "../QuoteWorkspaceProvider";
 import SortableItineraryCard from "./SortableItineraryCard";
 import TimelineDayAnchor from "./TimelineDayAnchor";
 import { useViewMode } from "./ViewModeContext";
+import { detectTone, type ToneProfile } from "./ToneSystem";
 import type { QuoteItem } from "../types/quote-workspace.types";
 
 type DayLabel = "arrival" | "departure" | "free" | "park" | "explore" | "celebration";
@@ -131,6 +132,24 @@ export default function ItineraryTimeline() {
   const grouped = useMemo(() => groupByDate(items), [items]);
   const dates = useMemo(() => Array.from(grouped.keys()).sort(), [grouped]);
 
+  // Auto-detect tone based on trip characteristics
+  const tone: ToneProfile = useMemo(() => {
+    const hotels = items.filter(i => i.type === "hotel");
+    const activities = items.filter(i => i.type === "activity");
+    const maxStars = hotels.reduce((max, h) => {
+      const stars = (h as any).starRating || 0;
+      return Math.max(max, stars);
+    }, 0);
+
+    return detectTone({
+      destination: state.destination,
+      travelers: state.travelers,
+      hasKids: (state.travelers || 0) >= 4,
+      hotelStars: maxStars,
+      activities: activities.map(a => (a as any).name || ""),
+    });
+  }, [items, state.destination, state.travelers]);
+
   const onDragEnd = (e: DragEndEvent) => {
     if (e.over && e.active.id !== e.over.id) reorderItems(e.active.id as string, e.over.id as string);
   };
@@ -232,10 +251,11 @@ export default function ItineraryTimeline() {
                   isFirst={isFirst}
                   isLast={isLast}
                   itemCount={dayItems.length}
+                  tone={tone}
                 />
 
                 {/* Day Items */}
-                <div className="ml-16 mt-3 space-y-3">
+                <div className={viewMode === "client" ? "mt-3 space-y-3" : "ml-16 mt-3 space-y-3"}>
                   <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={onDragEnd}>
                     <SortableContext items={dayItems.map(x => x.id)} strategy={verticalListSortingStrategy}>
                       {dayItems.map((item) => (
@@ -243,6 +263,7 @@ export default function ItineraryTimeline() {
                           key={item.id}
                           item={item}
                           viewMode={viewMode}
+                          tone={tone}
                         />
                       ))}
                     </SortableContext>

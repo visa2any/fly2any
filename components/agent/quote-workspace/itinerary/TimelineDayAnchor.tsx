@@ -1,8 +1,10 @@
 "use client";
 
-import { format, parseISO, differenceInDays } from "date-fns";
-import { MapPin, Plane, Sun, Moon, Palmtree, PartyPopper, Camera } from "lucide-react";
+import { format, parseISO } from "date-fns";
+import { MapPin, Plane, Sun, Palmtree, PartyPopper, Camera, Sparkles, Heart, Compass } from "lucide-react";
 import { motion } from "framer-motion";
+import { useViewMode } from "./ViewModeContext";
+import { getDayOneLinerSeeded, type ToneProfile, type DayMood } from "./ToneSystem";
 
 interface TimelineDayAnchorProps {
   date: string;
@@ -12,8 +14,20 @@ interface TimelineDayAnchorProps {
   isFirst?: boolean;
   isLast?: boolean;
   itemCount?: number;
+  tone?: ToneProfile;
 }
 
+// Map label to DayMood for tone system
+const labelToMood: Record<string, DayMood> = {
+  arrival: "arrival",
+  departure: "departure",
+  free: "free",
+  park: "explore",
+  explore: "explore",
+  celebration: "celebration",
+};
+
+// Agent view label config (compact, functional)
 const labelConfig = {
   arrival: { text: "Arrival Day", icon: Plane, color: "text-blue-600 bg-blue-50 border-blue-200" },
   departure: { text: "Departure Day", icon: Plane, color: "text-orange-600 bg-orange-50 border-orange-200" },
@@ -21,6 +35,16 @@ const labelConfig = {
   park: { text: "Park Day", icon: Palmtree, color: "text-purple-600 bg-purple-50 border-purple-200" },
   explore: { text: "Explore Day", icon: Camera, color: "text-cyan-600 bg-cyan-50 border-cyan-200" },
   celebration: { text: "Special Day", icon: PartyPopper, color: "text-pink-600 bg-pink-50 border-pink-200" },
+};
+
+// Client view emotional labels (aspirational, elegant)
+const clientLabelConfig = {
+  arrival: { text: "Your Journey Begins", icon: Sparkles, gradient: "from-blue-500 to-indigo-500" },
+  departure: { text: "Farewell for Now", icon: Heart, gradient: "from-orange-500 to-rose-500" },
+  free: { text: "Time to Explore", icon: Compass, gradient: "from-emerald-500 to-teal-500" },
+  park: { text: "Adventure Awaits", icon: Palmtree, gradient: "from-purple-500 to-pink-500" },
+  explore: { text: "Discovery Day", icon: Camera, gradient: "from-cyan-500 to-blue-500" },
+  celebration: { text: "A Special Day", icon: PartyPopper, gradient: "from-pink-500 to-rose-500" },
 };
 
 export default function TimelineDayAnchor({
@@ -31,15 +55,97 @@ export default function TimelineDayAnchor({
   isFirst,
   isLast,
   itemCount = 0,
+  tone = "family",
 }: TimelineDayAnchorProps) {
+  const { viewMode } = useViewMode();
   const parsedDate = parseISO(date);
   const weekday = format(parsedDate, "EEEE");
-  const fullDate = format(parsedDate, "MMMM d, yyyy");
   const shortDate = format(parsedDate, "MMM d");
+  const isClientView = viewMode === "client";
 
+  // Get emotional one-liner for client view
+  const mood: DayMood = label ? labelToMood[label] : isFirst ? "arrival" : isLast ? "departure" : "explore";
+  const oneLiner = getDayOneLinerSeeded(tone, mood, dayNumber);
+
+  // Agent view labels
   const labelInfo = label ? labelConfig[label] : null;
   const LabelIcon = labelInfo?.icon;
 
+  // Client view labels
+  const clientLabel = label ? clientLabelConfig[label] : null;
+  const ClientLabelIcon = clientLabel?.icon;
+
+  // Client View - Elegant, emotional design
+  if (isClientView) {
+    return (
+      <motion.div
+        initial={{ opacity: 0, y: 10 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: dayNumber * 0.08, type: "spring", stiffness: 100 }}
+        className="relative"
+      >
+        {/* Main Day Card */}
+        <div className={`relative rounded-2xl overflow-hidden ${
+          isFirst || isLast
+            ? "bg-gradient-to-br from-gray-50 to-white shadow-md border border-gray-100"
+            : "bg-white/80"
+        }`}>
+          <div className="px-4 py-3">
+            {/* Day Number + Date Row */}
+            <div className="flex items-center gap-3">
+              {/* Day Circle - Premium gradient */}
+              <div className={`relative w-11 h-11 rounded-xl flex items-center justify-center font-bold text-lg shadow-sm ${
+                isFirst
+                  ? "bg-gradient-to-br from-blue-500 to-indigo-600 text-white"
+                  : isLast
+                    ? "bg-gradient-to-br from-orange-500 to-rose-500 text-white"
+                    : "bg-gradient-to-br from-gray-700 to-gray-900 text-white"
+              }`}>
+                {dayNumber}
+                {/* Subtle glow for first/last */}
+                {(isFirst || isLast) && (
+                  <div className={`absolute inset-0 rounded-xl blur-md opacity-30 -z-10 ${
+                    isFirst ? "bg-blue-400" : "bg-orange-400"
+                  }`} />
+                )}
+              </div>
+
+              {/* Date Info */}
+              <div className="flex-1 min-w-0">
+                <div className="flex items-baseline gap-2">
+                  <h3 className="text-base font-bold text-gray-900">{weekday}</h3>
+                  <span className="text-sm text-gray-400">{shortDate}</span>
+                </div>
+
+                {/* Emotional One-liner */}
+                <p className="text-sm text-gray-500 mt-0.5 italic">
+                  {oneLiner}
+                </p>
+              </div>
+
+              {/* Client Label Badge */}
+              {clientLabel && ClientLabelIcon && (
+                <div className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-gradient-to-r ${clientLabel.gradient} text-white text-xs font-medium shadow-sm`}>
+                  <ClientLabelIcon className="w-3.5 h-3.5" />
+                  <span>{clientLabel.text}</span>
+                </div>
+              )}
+            </div>
+
+            {/* Location - subtle, elegant */}
+            {location && (
+              <div className="mt-2 flex items-center gap-1.5 text-sm text-gray-500 pl-14">
+                <MapPin className="w-3.5 h-3.5 text-gray-400" />
+                <span>{location}</span>
+              </div>
+            )}
+          </div>
+        </div>
+      </motion.div>
+    );
+  }
+
+  // Agent View - Compact, functional
   return (
     <motion.div
       initial={{ opacity: 0, x: -20 }}
@@ -53,8 +159,8 @@ export default function TimelineDayAnchor({
           isFirst
             ? "bg-gradient-to-br from-blue-500 to-indigo-600 text-white"
             : isLast
-            ? "bg-gradient-to-br from-orange-500 to-red-600 text-white"
-            : "bg-gradient-to-br from-gray-800 to-gray-900 text-white"
+              ? "bg-gradient-to-br from-orange-500 to-red-600 text-white"
+              : "bg-gradient-to-br from-gray-800 to-gray-900 text-white"
         }`}>
           {dayNumber}
         </div>
