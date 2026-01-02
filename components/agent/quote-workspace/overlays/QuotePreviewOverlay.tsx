@@ -195,12 +195,12 @@ export default function QuotePreviewOverlay() {
                     {tripDuration} {tripDuration === 1 ? "Day" : "Days"}
                   </span>
                 )}
-                {state.travelers && (
+                {state.travelers?.total > 0 && (
                   <div className="flex items-center gap-2 text-gray-600">
                     <div className="w-8 h-8 rounded-full bg-violet-100 flex items-center justify-center">
                       <Users className="w-4 h-4 text-violet-600" />
                     </div>
-                    <span>{state.travelers} {state.travelers === 1 ? "Traveler" : "Travelers"}</span>
+                    <span>{state.travelers.total} {state.travelers.total === 1 ? "Traveler" : "Travelers"}</span>
                   </div>
                 )}
               </div>

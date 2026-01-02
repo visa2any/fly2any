@@ -188,7 +188,7 @@ export default function ItineraryTimeline() {
     return detectTone({
       destination: state.destination,
       travelers: state.travelers,
-      hasKids: (state.travelers || 0) >= 4,
+      hasKids: (state.travelers?.children || 0) > 0 || (state.travelers?.infants || 0) > 0,
       hotelStars: maxStars,
       activities: activities.map(a => (a as any).name || ""),
     });
@@ -284,12 +284,12 @@ export default function ItineraryTimeline() {
             </div>
           )}
 
-          {state.travelers && state.travelers > 0 && (
+          {state.travelers?.total > 0 && (
             <div className="flex items-center gap-2 text-gray-600">
               <div className="w-8 h-8 rounded-xl bg-violet-50 flex items-center justify-center">
                 <Users className="w-4 h-4 text-violet-600" />
               </div>
-              <span>{state.travelers} {state.travelers === 1 ? "Traveler" : "Travelers"}</span>
+              <span>{state.travelers.total} {state.travelers.total === 1 ? "Traveler" : "Travelers"}</span>
             </div>
           )}
         </div>
@@ -458,8 +458,8 @@ export default function ItineraryTimeline() {
               <p className="text-xs text-gray-400 uppercase tracking-widest mb-2">Your Trip Investment</p>
               <p className="text-4xl font-black text-white mb-1">{formatTotalPrice(totalPrice)}</p>
               <p className="text-sm text-gray-300">
-                {state.travelers && state.travelers > 1
-                  ? `${formatTotalPrice(totalPrice / state.travelers)} per person`
+                {state.travelers?.total > 1
+                  ? `${formatTotalPrice(totalPrice / state.travelers.total)} per person`
                   : "Complete package"
                 }
               </p>
