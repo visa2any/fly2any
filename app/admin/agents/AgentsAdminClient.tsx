@@ -8,7 +8,8 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { toast } from 'react-hot-toast';
 import {
   Search, Users, DollarSign, CheckCircle, Clock, XCircle, Building2,
-  Mail, Phone, ChevronRight, TrendingUp, FileText, Plane, Star, Filter
+  Mail, Phone, ChevronRight, TrendingUp, FileText, Plane, Star, Filter,
+  AlertTriangle, X, RefreshCw
 } from 'lucide-react';
 
 interface Agent {
@@ -37,8 +38,19 @@ const statusConfig: Record<string, { bg: string; text: string; icon: any; dot: s
   PENDING: { bg: 'bg-amber-50', text: 'text-amber-700', icon: Clock, dot: 'bg-amber-500' },
   ACTIVE: { bg: 'bg-emerald-50', text: 'text-emerald-700', icon: CheckCircle, dot: 'bg-emerald-500' },
   SUSPENDED: { bg: 'bg-red-50', text: 'text-red-700', icon: XCircle, dot: 'bg-red-500' },
+  REJECTED: { bg: 'bg-red-50', text: 'text-red-700', icon: XCircle, dot: 'bg-red-500' },
   INACTIVE: { bg: 'bg-gray-50', text: 'text-gray-700', icon: XCircle, dot: 'bg-gray-500' },
 };
+
+const REJECTION_REASONS = [
+  'Incomplete application information',
+  'Unable to verify identity documents',
+  'Invalid or expired credentials',
+  'Business information does not meet requirements',
+  'Previous account violations',
+  'Suspected fraudulent application',
+  'Other',
+];
 
 const formatCurrency = (n: number) => new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(n);
 
@@ -47,6 +59,13 @@ export default function AgentsAdminClient({ initialAgents, stats }: Props) {
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState('ALL');
   const [loading, setLoading] = useState<string | null>(null);
+
+  // Rejection modal state
+  const [showRejectModal, setShowRejectModal] = useState(false);
+  const [rejectingAgent, setRejectingAgent] = useState<Agent | null>(null);
+  const [rejectionReason, setRejectionReason] = useState('');
+  const [customReason, setCustomReason] = useState('');
+  const [rejecting, setRejecting] = useState(false);
 
   const filtered = agents.filter(a => {
     if (statusFilter !== 'ALL' && a.status !== statusFilter) return false;
@@ -59,22 +78,43 @@ export default function AgentsAdminClient({ initialAgents, stats }: Props) {
     return true;
   });
 
-  const updateStatus = async (id: string, status: string) => {
+  const updateStatus = async (id: string, status: string, reason?: string) => {
     setLoading(id);
     try {
       const res = await fetch('/api/admin/agents', {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ agentId: id, status }),
+        body: JSON.stringify({ agentId: id, status, rejectionReason: reason }),
       });
       if (!res.ok) throw new Error();
       setAgents(prev => prev.map(a => a.id === id ? { ...a, status } : a));
-      toast.success('Agent status updated');
+      toast.success(status === 'REJECTED' ? 'Agent rejected' : 'Agent status updated');
     } catch {
       toast.error('Failed to update');
     } finally {
       setLoading(null);
     }
+  };
+
+  const openRejectModal = (agent: Agent) => {
+    setRejectingAgent(agent);
+    setRejectionReason('');
+    setCustomReason('');
+    setShowRejectModal(true);
+  };
+
+  const handleReject = async () => {
+    if (!rejectingAgent) return;
+    const reason = rejectionReason === 'Other' ? customReason : rejectionReason;
+    if (!reason) {
+      toast.error('Please select or enter a rejection reason');
+      return;
+    }
+    setRejecting(true);
+    await updateStatus(rejectingAgent.id, 'REJECTED', reason);
+    setRejecting(false);
+    setShowRejectModal(false);
+    setRejectingAgent(null);
   };
 
   const statCards = [
@@ -130,12 +170,12 @@ export default function AgentsAdminClient({ initialAgents, stats }: Props) {
               className="w-full pl-10 pr-4 py-2.5 border border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
             />
           </div>
-          <div className="flex items-center gap-2">
-            {['ALL', 'ACTIVE', 'PENDING', 'SUSPENDED'].map(s => (
+          <div className="flex items-center gap-2 overflow-x-auto pb-1">
+            {['ALL', 'PENDING', 'ACTIVE', 'REJECTED', 'SUSPENDED'].map(s => (
               <button
                 key={s}
                 onClick={() => setStatusFilter(s)}
-                className={`px-4 py-2 rounded-xl text-sm font-medium transition-all ${
+                className={`px-4 py-2 rounded-xl text-sm font-medium transition-all whitespace-nowrap ${
                   statusFilter === s ? 'bg-indigo-600 text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
                 }`}
               >
@@ -212,13 +252,22 @@ export default function AgentsAdminClient({ initialAgents, stats }: Props) {
                       <td className="px-5 py-4">
                         <div className="flex items-center gap-2">
                           {agent.status === 'PENDING' && (
-                            <button
-                              onClick={() => updateStatus(agent.id, 'ACTIVE')}
-                              disabled={loading === agent.id}
-                              className="px-3 py-1.5 bg-emerald-600 text-white text-xs font-medium rounded-lg hover:bg-emerald-700 disabled:opacity-50"
-                            >
-                              Approve
-                            </button>
+                            <>
+                              <button
+                                onClick={() => updateStatus(agent.id, 'ACTIVE')}
+                                disabled={loading === agent.id}
+                                className="px-3 py-1.5 bg-emerald-600 text-white text-xs font-medium rounded-lg hover:bg-emerald-700 disabled:opacity-50"
+                              >
+                                Approve
+                              </button>
+                              <button
+                                onClick={() => openRejectModal(agent)}
+                                disabled={loading === agent.id}
+                                className="px-3 py-1.5 bg-red-600 text-white text-xs font-medium rounded-lg hover:bg-red-700 disabled:opacity-50"
+                              >
+                                Reject
+                              </button>
+                            </>
                           )}
                           {agent.status === 'ACTIVE' && (
                             <button
@@ -227,6 +276,15 @@ export default function AgentsAdminClient({ initialAgents, stats }: Props) {
                               className="px-3 py-1.5 bg-red-600 text-white text-xs font-medium rounded-lg hover:bg-red-700 disabled:opacity-50"
                             >
                               Suspend
+                            </button>
+                          )}
+                          {agent.status === 'SUSPENDED' && (
+                            <button
+                              onClick={() => updateStatus(agent.id, 'ACTIVE')}
+                              disabled={loading === agent.id}
+                              className="px-3 py-1.5 bg-emerald-600 text-white text-xs font-medium rounded-lg hover:bg-emerald-700 disabled:opacity-50"
+                            >
+                              Reactivate
                             </button>
                           )}
                           <Link href={`/admin/agents/${agent.id}`} className="text-indigo-600 hover:text-indigo-700 text-sm font-medium inline-flex items-center gap-1">
@@ -250,6 +308,118 @@ export default function AgentsAdminClient({ initialAgents, stats }: Props) {
           <p className="text-gray-500 mt-1">Try adjusting your filters</p>
         </motion.div>
       )}
+
+      {/* Rejection Modal */}
+      <AnimatePresence>
+        {showRejectModal && rejectingAgent && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4"
+            onClick={() => setShowRejectModal(false)}
+          >
+            <motion.div
+              initial={{ scale: 0.95, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.95, opacity: 0 }}
+              className="bg-white rounded-2xl shadow-2xl max-w-md w-full p-6"
+              onClick={e => e.stopPropagation()}
+            >
+              {/* Modal Header */}
+              <div className="flex items-start justify-between mb-5">
+                <div className="flex items-center gap-3">
+                  <div className="w-12 h-12 bg-red-100 rounded-xl flex items-center justify-center">
+                    <AlertTriangle className="w-6 h-6 text-red-600" />
+                  </div>
+                  <div>
+                    <h3 className="text-lg font-semibold text-gray-900">Reject Application</h3>
+                    <p className="text-sm text-gray-500">{rejectingAgent.businessName || rejectingAgent.user.name}</p>
+                  </div>
+                </div>
+                <button
+                  onClick={() => setShowRejectModal(false)}
+                  className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+                >
+                  <X className="w-5 h-5 text-gray-400" />
+                </button>
+              </div>
+
+              {/* Rejection Reason */}
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Reason for Rejection</label>
+                  <div className="space-y-2">
+                    {REJECTION_REASONS.map(reason => (
+                      <label key={reason} className="flex items-center gap-3 p-3 border rounded-xl cursor-pointer hover:bg-gray-50 transition-colors">
+                        <input
+                          type="radio"
+                          name="rejectionReason"
+                          value={reason}
+                          checked={rejectionReason === reason}
+                          onChange={e => setRejectionReason(e.target.value)}
+                          className="w-4 h-4 text-red-600 border-gray-300 focus:ring-red-500"
+                        />
+                        <span className="text-sm text-gray-700">{reason}</span>
+                      </label>
+                    ))}
+                  </div>
+                </div>
+
+                {rejectionReason === 'Other' && (
+                  <motion.div
+                    initial={{ opacity: 0, height: 0 }}
+                    animate={{ opacity: 1, height: 'auto' }}
+                  >
+                    <label className="block text-sm font-medium text-gray-700 mb-1.5">Custom Reason</label>
+                    <textarea
+                      value={customReason}
+                      onChange={e => setCustomReason(e.target.value)}
+                      placeholder="Please provide a detailed reason..."
+                      rows={3}
+                      className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-red-500 focus:border-transparent resize-none"
+                    />
+                  </motion.div>
+                )}
+
+                <div className="p-4 bg-amber-50 border border-amber-200 rounded-xl">
+                  <p className="text-sm text-amber-800">
+                    <strong>Note:</strong> The agent will receive an email notification with the rejection reason.
+                    They may reapply after addressing the issues.
+                  </p>
+                </div>
+              </div>
+
+              {/* Modal Actions */}
+              <div className="flex items-center justify-end gap-3 mt-6 pt-4 border-t border-gray-100">
+                <button
+                  onClick={() => setShowRejectModal(false)}
+                  className="px-4 py-2.5 text-gray-600 hover:text-gray-900 font-medium"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleReject}
+                  disabled={rejecting || (!rejectionReason || (rejectionReason === 'Other' && !customReason))}
+                  className="flex items-center gap-2 px-5 py-2.5 bg-red-600 text-white font-medium rounded-xl hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  {rejecting ? (
+                    <>
+                      <RefreshCw className="w-4 h-4 animate-spin" />
+                      Rejecting...
+                    </>
+                  ) : (
+                    <>
+                      <XCircle className="w-4 h-4" />
+                      Reject Application
+                    </>
+                  )}
+                </button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }
