@@ -15,12 +15,14 @@ export interface UnifiedSearchState {
   status: Record<SearchProductKey, SearchStatusValue>;
   resultCounts: Record<SearchProductKey, number>;
   hasNewResults: Record<SearchProductKey, boolean>;
+  results: Record<SearchProductKey, any[] | null>;
 }
 
 interface UnifiedSearchContextValue extends UnifiedSearchState {
   setProductStatus: (product: SearchProductKey, status: SearchStatusValue) => void;
-  setProductResults: (product: SearchProductKey, count: number) => void;
+  setProductResults: (product: SearchProductKey, count: number, data?: any[]) => void;
   markResultsSeen: (product: SearchProductKey) => void;
+  getProductResults: (product: SearchProductKey) => any[] | null;
   resetAll: () => void;
 }
 
@@ -46,6 +48,13 @@ const defaultState: UnifiedSearchState = {
     activities: false,
     transfers: false,
   },
+  results: {
+    flights: null,
+    hotels: null,
+    cars: null,
+    activities: null,
+    transfers: null,
+  },
 };
 
 const UnifiedSearchContext = createContext<UnifiedSearchContextValue | null>(null);
@@ -64,14 +73,19 @@ export function UnifiedSearchProvider({ children }: { children: ReactNode }) {
     }));
   }, []);
 
-  const setProductResults = useCallback((product: SearchProductKey, count: number) => {
+  const setProductResults = useCallback((product: SearchProductKey, count: number, data?: any[]) => {
     setState((prev) => ({
       ...prev,
       resultCounts: { ...prev.resultCounts, [product]: count },
       hasNewResults: { ...prev.hasNewResults, [product]: count > 0 },
       status: { ...prev.status, [product]: count > 0 ? "success" : "error" },
+      results: { ...prev.results, [product]: data || null },
     }));
   }, []);
+
+  const getProductResults = useCallback((product: SearchProductKey) => {
+    return state.results[product];
+  }, [state.results]);
 
   const markResultsSeen = useCallback((product: SearchProductKey) => {
     setState((prev) => ({
@@ -91,6 +105,7 @@ export function UnifiedSearchProvider({ children }: { children: ReactNode }) {
         setProductStatus,
         setProductResults,
         markResultsSeen,
+        getProductResults,
         resetAll,
       }}
     >

@@ -161,7 +161,7 @@ export function useUnifiedSearch() {
             setResults(prev => ({ ...prev, hotels: data }));
             setResultCounts(prev => ({ ...prev, hotels: data?.length || 0 }));
             setStatus(prev => ({ ...prev, hotels: "success" }));
-            unifiedContext?.setProductResults("hotels", data?.length || 0);
+            unifiedContext?.setProductResults("hotels", data?.length || 0, data);
           })
           .catch(err => {
             if (err.name !== "AbortError") {
@@ -186,7 +186,7 @@ export function useUnifiedSearch() {
             setResults(prev => ({ ...prev, cars: data }));
             setResultCounts(prev => ({ ...prev, cars: data?.length || 0 }));
             setStatus(prev => ({ ...prev, cars: "success" }));
-            unifiedContext?.setProductResults("cars", data?.length || 0);
+            unifiedContext?.setProductResults("cars", data?.length || 0, data);
           })
           .catch(err => {
             if (err.name !== "AbortError") {
@@ -211,7 +211,7 @@ export function useUnifiedSearch() {
             setResults(prev => ({ ...prev, activities: data }));
             setResultCounts(prev => ({ ...prev, activities: data?.length || 0 }));
             setStatus(prev => ({ ...prev, activities: "success" }));
-            unifiedContext?.setProductResults("activities", data?.length || 0);
+            unifiedContext?.setProductResults("activities", data?.length || 0, data);
           })
           .catch(err => {
             if (err.name !== "AbortError") {
@@ -236,7 +236,7 @@ export function useUnifiedSearch() {
             setResults(prev => ({ ...prev, transfers: data }));
             setResultCounts(prev => ({ ...prev, transfers: data?.length || 0 }));
             setStatus(prev => ({ ...prev, transfers: "success" }));
-            unifiedContext?.setProductResults("transfers", data?.length || 0);
+            unifiedContext?.setProductResults("transfers", data?.length || 0, data);
           })
           .catch(err => {
             if (err.name !== "AbortError") {

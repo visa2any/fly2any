@@ -2,8 +2,9 @@
 
 import { useState, useRef, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Search, Compass, Loader2, Plus, MapPin, AlertCircle, Users, ChevronDown, ChevronUp, Minus, X, Star, Clock, Ticket, Edit3, Calendar } from "lucide-react";
+import { Search, Compass, Loader2, Plus, MapPin, AlertCircle, Users, ChevronDown, ChevronUp, Minus, X, Star, Clock, Ticket, Edit3, Calendar, Sparkles } from "lucide-react";
 import { useQuoteWorkspace } from "../QuoteWorkspaceProvider";
+import { useUnifiedSearchSafe } from "../unified-search";
 import PremiumDatePicker from "@/components/common/PremiumDatePicker";
 
 interface LocationSuggestion {
@@ -19,8 +20,16 @@ interface LocationSuggestion {
 
 export default function ActivitiesSearchPanel() {
   const { state, addItem, setSearchResults } = useQuoteWorkspace();
-  const searchLoading = state.ui.searchLoading;
-  const searchResults = state.ui.searchResults;
+
+  // ═══ UNIFIED SEARCH RESULTS ═══
+  const unifiedContext = useUnifiedSearchSafe();
+  const unifiedActivityResults = unifiedContext?.results?.activities;
+  const unifiedActivityStatus = unifiedContext?.status?.activities;
+  const hasUnifiedResults = unifiedActivityResults && unifiedActivityResults.length > 0;
+
+  // Use unified results if available, otherwise use local search results
+  const searchLoading = state.ui.searchLoading || unifiedActivityStatus === "loading";
+  const searchResults = hasUnifiedResults ? unifiedActivityResults : state.ui.searchResults;
 
   const [params, setParams] = useState({
     destination: "",
@@ -60,6 +69,13 @@ export default function ActivitiesSearchPanel() {
       return () => clearTimeout(timer);
     }
   }, [searchResults, searchLoading]);
+
+  // Mark unified results as seen when this tab is viewed
+  useEffect(() => {
+    if (hasUnifiedResults && unifiedContext?.hasNewResults?.activities) {
+      unifiedContext.markResultsSeen("activities");
+    }
+  }, [hasUnifiedResults, unifiedContext]);
 
   // Expand form when there's an error
   useEffect(() => {
@@ -432,6 +448,17 @@ export default function ActivitiesSearchPanel() {
 
           return (
             <motion.div key="results" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="space-y-3">
+              {/* Unified Search Banner */}
+              {hasUnifiedResults && (
+                <motion.div
+                  initial={{ opacity: 0, y: -5 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  className="flex items-center gap-2 px-3 py-2 bg-gradient-to-r from-emerald-50 to-teal-50 border border-emerald-200 rounded-xl"
+                >
+                  <Sparkles className="w-4 h-4 text-emerald-500" />
+                  <span className="text-xs font-medium text-emerald-700">Pre-loaded from your flight search</span>
+                </motion.div>
+              )}
               {/* Sticky Filter Bar */}
               <div className="sticky top-0 z-10 bg-white/95 backdrop-blur-sm py-2 -mx-4 px-4 border-b border-gray-100">
                 <div className="flex items-center justify-between gap-2 mb-2">

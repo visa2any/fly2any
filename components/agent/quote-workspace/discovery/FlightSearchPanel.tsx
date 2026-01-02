@@ -753,7 +753,7 @@ export default function FlightSearchPanel() {
                           animate={{ opacity: 1, y: 0, scale: 1 }}
                           exit={{ opacity: 0, y: -10, scale: 0.95 }}
                           transition={{ type: "spring", ...springConfig }}
-                          className="absolute z-20 mt-2 left-0 w-64 bg-white border border-gray-200 rounded-2xl shadow-2xl shadow-gray-900/10 p-4 space-y-3"
+                          className="absolute z-50 mt-2 left-0 w-64 bg-white border border-gray-200 rounded-2xl shadow-2xl shadow-gray-900/10 p-4 space-y-3"
                         >
                           <div className="flex items-center gap-2 pb-3 border-b border-gray-100">
                             <Users className="w-5 h-5 text-indigo-600" />
@@ -847,7 +847,7 @@ export default function FlightSearchPanel() {
                           animate={{ opacity: 1, y: 0, scale: 1 }}
                           exit={{ opacity: 0, y: -10, scale: 0.95 }}
                           transition={{ type: "spring", ...springConfig }}
-                          className="absolute z-20 mt-2 left-0 right-0 bg-white border border-gray-200 rounded-xl shadow-2xl shadow-gray-900/10 overflow-hidden"
+                          className="absolute z-50 mt-2 left-0 right-0 bg-white border border-gray-200 rounded-xl shadow-2xl shadow-gray-900/10 overflow-hidden"
                         >
                           {CABIN_CLASSES.map((cabin, idx) => (
                             <motion.button

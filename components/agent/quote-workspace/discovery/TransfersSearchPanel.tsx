@@ -2,8 +2,9 @@
 
 import { useState, useRef, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Search, Bus, Loader2, Plus, MapPin, AlertCircle, Users, ChevronDown, ChevronUp, Minus, X, Plane, Clock, Car, Star, Edit3, Calendar, ArrowRight } from "lucide-react";
+import { Search, Bus, Loader2, Plus, MapPin, AlertCircle, Users, ChevronDown, ChevronUp, Minus, X, Plane, Clock, Car, Star, Edit3, Calendar, ArrowRight, Sparkles } from "lucide-react";
 import { useQuoteWorkspace } from "../QuoteWorkspaceProvider";
+import { useUnifiedSearchSafe } from "../unified-search";
 import PremiumDatePicker from "@/components/common/PremiumDatePicker";
 
 interface TransferLocation {
@@ -22,8 +23,16 @@ interface TransferLocation {
 
 export default function TransfersSearchPanel() {
   const { state, addItem, setSearchResults } = useQuoteWorkspace();
-  const searchLoading = state.ui.searchLoading;
-  const searchResults = state.ui.searchResults;
+
+  // ═══ UNIFIED SEARCH RESULTS ═══
+  const unifiedContext = useUnifiedSearchSafe();
+  const unifiedTransferResults = unifiedContext?.results?.transfers;
+  const unifiedTransferStatus = unifiedContext?.status?.transfers;
+  const hasUnifiedResults = unifiedTransferResults && unifiedTransferResults.length > 0;
+
+  // Use unified results if available, otherwise use local search results
+  const searchLoading = state.ui.searchLoading || unifiedTransferStatus === "loading";
+  const searchResults = hasUnifiedResults ? unifiedTransferResults : state.ui.searchResults;
 
   const [params, setParams] = useState({
     pickup: "",
@@ -70,6 +79,13 @@ export default function TransfersSearchPanel() {
       return () => clearTimeout(timer);
     }
   }, [searchResults, searchLoading]);
+
+  // Mark unified results as seen when this tab is viewed
+  useEffect(() => {
+    if (hasUnifiedResults && unifiedContext?.hasNewResults?.transfers) {
+      unifiedContext.markResultsSeen("transfers");
+    }
+  }, [hasUnifiedResults, unifiedContext]);
 
   // Expand form when there's an error
   useEffect(() => {
@@ -540,6 +556,17 @@ export default function TransfersSearchPanel() {
             exit={{ opacity: 0 }}
             className="space-y-3"
           >
+            {/* Unified Search Banner */}
+            {hasUnifiedResults && (
+              <motion.div
+                initial={{ opacity: 0, y: -5 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="flex items-center gap-2 px-3 py-2 bg-gradient-to-r from-amber-50 to-orange-50 border border-amber-200 rounded-xl"
+              >
+                <Sparkles className="w-4 h-4 text-amber-500" />
+                <span className="text-xs font-medium text-amber-700">Pre-loaded from your flight search</span>
+              </motion.div>
+            )}
             {/* Sticky Filter Bar */}
             <div className="sticky top-0 z-10 bg-white/95 backdrop-blur-sm border border-gray-100 rounded-xl p-2 shadow-sm space-y-2">
               <div className="flex items-center justify-between">

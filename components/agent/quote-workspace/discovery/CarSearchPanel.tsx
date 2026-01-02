@@ -2,8 +2,9 @@
 
 import { useState, useRef, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Search, Car, Loader2, Plus, MapPin, AlertCircle, Users, ChevronDown, ChevronUp, Minus, X, Plane, Clock, Edit3, Calendar } from "lucide-react";
+import { Search, Car, Loader2, Plus, MapPin, AlertCircle, Users, ChevronDown, ChevronUp, Minus, X, Plane, Clock, Edit3, Calendar, Sparkles } from "lucide-react";
 import { useQuoteWorkspace } from "../QuoteWorkspaceProvider";
+import { useUnifiedSearchSafe } from "../unified-search";
 import PremiumDatePicker from "@/components/common/PremiumDatePicker";
 
 interface LocationSuggestion {
@@ -17,8 +18,16 @@ interface LocationSuggestion {
 
 export default function CarSearchPanel() {
   const { state, addItem, setSearchResults } = useQuoteWorkspace();
-  const searchLoading = state.ui.searchLoading;
-  const searchResults = state.ui.searchResults;
+
+  // ═══ UNIFIED SEARCH RESULTS ═══
+  const unifiedContext = useUnifiedSearchSafe();
+  const unifiedCarResults = unifiedContext?.results?.cars;
+  const unifiedCarStatus = unifiedContext?.status?.cars;
+  const hasUnifiedResults = unifiedCarResults && unifiedCarResults.length > 0;
+
+  // Use unified results if available, otherwise use local search results
+  const searchLoading = state.ui.searchLoading || unifiedCarStatus === "loading";
+  const searchResults = hasUnifiedResults ? unifiedCarResults : state.ui.searchResults;
 
   const [params, setParams] = useState({
     pickupLocation: "",
@@ -63,6 +72,13 @@ export default function CarSearchPanel() {
       return () => clearTimeout(timer);
     }
   }, [searchResults, searchLoading]);
+
+  // Mark unified results as seen when this tab is viewed
+  useEffect(() => {
+    if (hasUnifiedResults && unifiedContext?.hasNewResults?.cars) {
+      unifiedContext.markResultsSeen("cars");
+    }
+  }, [hasUnifiedResults, unifiedContext]);
 
   // Expand form when there's an error
   useEffect(() => {
@@ -431,6 +447,17 @@ export default function CarSearchPanel() {
 
           return (
             <motion.div key="results" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="space-y-2">
+              {/* Unified Search Banner */}
+              {hasUnifiedResults && (
+                <motion.div
+                  initial={{ opacity: 0, y: -5 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  className="flex items-center gap-2 px-3 py-2 bg-gradient-to-r from-cyan-50 to-blue-50 border border-cyan-200 rounded-xl"
+                >
+                  <Sparkles className="w-4 h-4 text-cyan-500" />
+                  <span className="text-xs font-medium text-cyan-700">Pre-loaded from your flight search</span>
+                </motion.div>
+              )}
               {/* Sticky Filter Bar */}
               <div className="sticky top-0 z-10 bg-white/95 backdrop-blur-sm border border-gray-200 rounded-xl p-2 space-y-2">
                 <div className="flex items-center justify-between">

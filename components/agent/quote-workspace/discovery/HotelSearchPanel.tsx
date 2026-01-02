@@ -2,8 +2,9 @@
 
 import { useState, useRef, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Search, Building2, Loader2, Plus, Star, MapPin, AlertCircle, Users, ChevronDown, ChevronUp, Minus, X, Plane, Landmark, Edit3, Calendar, ArrowUpDown, Filter, Check } from "lucide-react";
+import { Search, Building2, Loader2, Plus, Star, MapPin, AlertCircle, Users, ChevronDown, ChevronUp, Minus, X, Plane, Landmark, Edit3, Calendar, ArrowUpDown, Filter, Check, Sparkles } from "lucide-react";
 import { useQuoteWorkspace } from "../QuoteWorkspaceProvider";
+import { useUnifiedSearchSafe } from "../unified-search";
 import PremiumDateRangePicker from "@/components/common/PremiumDateRangePicker";
 import type { HotelItem, HotelSearchParams } from "../types/quote-workspace.types";
 
@@ -30,8 +31,17 @@ const getTypeIcon = (type: string) => {
 
 export default function HotelSearchPanel() {
   const { state, addItem, setSearchResults } = useQuoteWorkspace();
-  const searchLoading = state.ui.searchLoading;
-  const searchResults = state.ui.searchResults;
+
+  // ═══ UNIFIED SEARCH RESULTS ═══
+  // Consume pre-fetched results from unified search (when user searched from Flights tab)
+  const unifiedContext = useUnifiedSearchSafe();
+  const unifiedHotelResults = unifiedContext?.results?.hotels;
+  const unifiedHotelStatus = unifiedContext?.status?.hotels;
+  const hasUnifiedResults = unifiedHotelResults && unifiedHotelResults.length > 0;
+
+  // Use unified results if available, otherwise use local search results
+  const searchLoading = state.ui.searchLoading || unifiedHotelStatus === "loading";
+  const searchResults = hasUnifiedResults ? unifiedHotelResults : state.ui.searchResults;
 
   const [params, setParams] = useState<HotelSearchParams>({
     location: state.destination || "",
@@ -54,13 +64,20 @@ export default function HotelSearchPanel() {
   const [filterRefundable, setFilterRefundable] = useState(false);
   const [visibleCount, setVisibleCount] = useState(10);
 
-  // Auto-collapse form when search results arrive
+  // Auto-collapse form when search results arrive (local or unified)
   useEffect(() => {
     if (searchResults && searchResults.length > 0 && !searchLoading) {
       const timer = setTimeout(() => setFormCollapsed(true), 500);
       return () => clearTimeout(timer);
     }
   }, [searchResults, searchLoading]);
+
+  // Mark unified results as seen when this tab is viewed
+  useEffect(() => {
+    if (hasUnifiedResults && unifiedContext?.hasNewResults?.hotels) {
+      unifiedContext.markResultsSeen("hotels");
+    }
+  }, [hasUnifiedResults, unifiedContext]);
 
   // Expand form when there's an error
   useEffect(() => {
@@ -458,6 +475,17 @@ export default function HotelSearchPanel() {
         )}
         {!searchLoading && searchResults && searchResults.length > 0 && (
           <motion.div key="results" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="space-y-2">
+            {/* Unified Search Banner */}
+            {hasUnifiedResults && (
+              <motion.div
+                initial={{ opacity: 0, y: -5 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="flex items-center gap-2 px-3 py-2 bg-gradient-to-r from-purple-50 to-indigo-50 border border-purple-200 rounded-xl"
+              >
+                <Sparkles className="w-4 h-4 text-purple-500" />
+                <span className="text-xs font-medium text-purple-700">Pre-loaded from your flight search</span>
+              </motion.div>
+            )}
             {/* Sticky Filter Bar */}
             <div className="sticky top-0 z-10 bg-white/95 backdrop-blur-sm rounded-lg border border-gray-100 p-1.5 space-y-1.5">
               <div className="flex items-center justify-between gap-2">
