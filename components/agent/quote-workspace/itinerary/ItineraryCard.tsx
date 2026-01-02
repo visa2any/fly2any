@@ -9,6 +9,7 @@ import AirlineLogo from "@/components/flights/AirlineLogo";
 import { getProductCopy, type ToneProfile } from "./ToneSystem";
 import type { QuoteItem, FlightItem, HotelItem, CarItem, ActivityItem, TransferItem, InsuranceItem, CustomItem, ProductType } from "../types/quote-workspace.types";
 import { RoleBadge, TimeAnchorBadge, GlanceInfo, CardRoleHeader } from "./ItemRoleSystem";
+import ItemQualitySignals from "./ItemQualitySignals";
 
 // Icon and gradient config
 const productConfig: Record<ProductType, { icon: typeof Plane; gradient: string; bgLight: string }> = {
@@ -961,6 +962,7 @@ export default function ItineraryCard({ item, dragListeners, isDragging, viewMod
           <div className="flex-1 min-w-0">
             <h4 className="font-semibold text-gray-900 truncate text-sm">{getTitle()}</h4>
             <p className="text-xs text-gray-500 truncate">{getSubtitle()}</p>
+            <ItemQualitySignals item={item} />
           </div>
 
           {/* Price */}

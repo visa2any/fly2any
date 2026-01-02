@@ -10,6 +10,7 @@ import CarSearchPanel from "./CarSearchPanel";
 import ActivitiesSearchPanel from "./ActivitiesSearchPanel";
 import TransfersSearchPanel from "./TransfersSearchPanel";
 import PremiumDatePicker from "@/components/common/PremiumDatePicker";
+import { QuoteProgressBadge } from "../QuoteProgressBar";
 import type { ProductType } from "../types/quote-workspace.types";
 
 const PRODUCT_TABS: {
@@ -34,8 +35,13 @@ export default function DiscoveryZone() {
 
   return (
     <div className="flex flex-col h-full">
-      {/* Product Type Tabs - Icon Only with Hover Tooltips */}
+      {/* Header: Progress Badge + Product Tabs */}
       <div className="flex-shrink-0 px-2 py-2 border-b border-gray-100 bg-gradient-to-b from-white to-gray-50/80">
+        {/* Progress Badge */}
+        <div className="flex justify-center mb-2">
+          <QuoteProgressBadge />
+        </div>
+        {/* Product Type Tabs - Icon Only with Hover Tooltips */}
         <div className="flex gap-1.5 justify-center">
           {PRODUCT_TABS.map(({ type, icon: Icon, label, gradient, shadowColor }) => {
             const isActive = activeTab === type;

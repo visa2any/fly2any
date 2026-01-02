@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { TrendingUp, ChevronDown, Users } from "lucide-react";
 import { useQuoteWorkspace, useQuotePricing, useQuoteItems } from "../QuoteWorkspaceProvider";
+import AgentTrustPreview from "../AgentTrustPreview";
 import type { Currency, ProductType } from "../types/quote-workspace.types";
 
 const productLabels: Record<ProductType, string> = {
@@ -117,6 +118,9 @@ export default function PricingZone() {
           <option value="AUD">AUD</option>
         </select>
       </div>
+
+      {/* Agent Trust Preview - What client sees */}
+      <AgentTrustPreview />
     </div>
   );
 }
