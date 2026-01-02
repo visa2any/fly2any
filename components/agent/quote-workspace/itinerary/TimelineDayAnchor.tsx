@@ -58,9 +58,21 @@ export default function TimelineDayAnchor({
   tone = "family",
 }: TimelineDayAnchorProps) {
   const { viewMode } = useViewMode();
-  const parsedDate = parseISO(date);
-  const weekday = format(parsedDate, "EEEE");
-  const shortDate = format(parsedDate, "MMM d");
+
+  // Safe date parsing with fallback
+  const safeParseDate = (dateStr: string) => {
+    try {
+      const parsed = parseISO(dateStr);
+      if (isNaN(parsed.getTime())) return null;
+      return parsed;
+    } catch {
+      return null;
+    }
+  };
+
+  const parsedDate = safeParseDate(date);
+  const weekday = parsedDate ? format(parsedDate, "EEEE") : "Day";
+  const shortDate = parsedDate ? format(parsedDate, "MMM d") : "";
   const isClientView = viewMode === "client";
 
   // Get emotional one-liner for client view

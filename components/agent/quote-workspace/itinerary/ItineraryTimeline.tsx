@@ -5,12 +5,13 @@ import { format, parseISO, differenceInDays } from "date-fns";
 import { motion, AnimatePresence } from "framer-motion";
 import { DndContext, closestCenter, PointerSensor, useSensor, useSensors, DragEndEvent } from "@dnd-kit/core";
 import { SortableContext, verticalListSortingStrategy } from "@dnd-kit/sortable";
-import { Calendar, Users, Globe } from "lucide-react";
+import { Calendar, Users, Globe, MessageCircle, CheckCircle2, Sparkles } from "lucide-react";
 import { useQuoteWorkspace, useQuoteItems } from "../QuoteWorkspaceProvider";
 import SortableItineraryCard from "./SortableItineraryCard";
 import TimelineDayAnchor from "./TimelineDayAnchor";
+import FreeTimeBlock, { determineFreeTimeType } from "./FreeTimeBlock";
 import { useViewMode } from "./ViewModeContext";
-import { detectTone, type ToneProfile } from "./ToneSystem";
+import { detectTone, getClosingMessageSeeded, getTimeBasedGreeting, type ToneProfile } from "./ToneSystem";
 import type { QuoteItem } from "../types/quote-workspace.types";
 
 type DayLabel = "arrival" | "departure" | "free" | "park" | "explore" | "celebration";
@@ -154,10 +155,33 @@ export default function ItineraryTimeline() {
     if (e.over && e.active.id !== e.over.id) reorderItems(e.active.id as string, e.over.id as string);
   };
 
-  // Calculate trip duration
-  const tripDuration = dates.length > 0
-    ? differenceInDays(parseISO(dates[dates.length - 1]), parseISO(dates[0])) + 1
-    : 0;
+  // Calculate trip duration with safe parsing
+  const safeParseDays = () => {
+    try {
+      if (dates.length === 0) return 0;
+      const start = parseISO(dates[0]);
+      const end = parseISO(dates[dates.length - 1]);
+      if (isNaN(start.getTime()) || isNaN(end.getTime())) return dates.length;
+      return differenceInDays(end, start) + 1;
+    } catch {
+      return dates.length;
+    }
+  };
+  const tripDuration = safeParseDays();
+
+  // Calculate total price for client view
+  const totalPrice = items.reduce((sum, item) => sum + (item.price || 0), 0);
+  const formatTotalPrice = (amount: number) =>
+    new Intl.NumberFormat("en-US", { style: "currency", currency: "USD", minimumFractionDigits: 0 }).format(amount);
+
+  // Auto-generate trip name if empty
+  const displayTripName = state.tripName ||
+    (state.destination ? `Your ${state.destination} ${tone === "family" ? "Family Adventure" : tone === "romantic" ? "Romantic Escape" : tone === "luxury" ? "Luxury Retreat" : tone === "adventure" ? "Adventure" : "Trip"}` : null);
+
+  // Personalized greeting
+  const greeting = getTimeBasedGreeting();
+  const clientName = state.clientName || "Traveler"; // Use clientName if available
+  const closingMessage = getClosingMessageSeeded(tone, tripDuration);
 
   return (
     <div className="space-y-4">
@@ -167,11 +191,18 @@ export default function ItineraryTimeline() {
         animate={{ opacity: 1, y: 0 }}
         className="bg-gradient-to-br from-gray-50 to-white rounded-2xl p-5 border border-gray-100 shadow-sm"
       >
+        {/* Personalized Greeting - Client View Only */}
+        {viewMode === "client" && (
+          <p className="text-center text-sm text-gray-500 mb-2">
+            {greeting}, {clientName}! ✨
+          </p>
+        )}
+
         {/* Trip Name */}
         <div className="text-center mb-4">
-          {state.tripName ? (
+          {displayTripName ? (
             <h2 className="text-xl font-bold text-gray-900 tracking-tight">
-              {state.tripName}
+              {displayTripName}
             </h2>
           ) : (
             <h2 className="text-xl font-medium text-gray-400 italic">
@@ -255,19 +286,30 @@ export default function ItineraryTimeline() {
                 />
 
                 {/* Day Items */}
-                <div className={viewMode === "client" ? "mt-3 space-y-3" : "ml-16 mt-3 space-y-3"}>
-                  <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={onDragEnd}>
-                    <SortableContext items={dayItems.map(x => x.id)} strategy={verticalListSortingStrategy}>
-                      {dayItems.map((item) => (
-                        <SortableItineraryCard
-                          key={item.id}
-                          item={item}
-                          viewMode={viewMode}
-                          tone={tone}
-                        />
-                      ))}
-                    </SortableContext>
-                  </DndContext>
+                <div className={viewMode === "client" ? "mt-3 space-y-3" : "ml-0 sm:ml-16 mt-3 space-y-3"}>
+                  {dayItems.length === 0 ? (
+                    /* Leisure Day - No items scheduled */
+                    <FreeTimeBlock
+                      type={determineFreeTimeType(undefined, undefined, false)}
+                      dayNumber={i + 1}
+                      tone={tone}
+                      location={dayLocation}
+                      agentNote={viewMode === "agent" ? "No activities planned" : undefined}
+                    />
+                  ) : (
+                    <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={onDragEnd}>
+                      <SortableContext items={dayItems.map(x => x.id)} strategy={verticalListSortingStrategy}>
+                        {dayItems.map((item) => (
+                          <SortableItineraryCard
+                            key={item.id}
+                            item={item}
+                            viewMode={viewMode}
+                            tone={tone}
+                          />
+                        ))}
+                      </SortableContext>
+                    </DndContext>
+                  )}
                 </div>
               </motion.div>
             );
@@ -291,6 +333,40 @@ export default function ItineraryTimeline() {
           </motion.div>
         )}
       </div>
+
+      {/* Client View Footer - Closing Message + Price + CTAs */}
+      {viewMode === "client" && dates.length > 0 && (
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.3 }}
+          className="mt-8 space-y-4"
+        >
+          {/* Closing Message */}
+          <div className="text-center">
+            <p className="text-sm text-gray-500 italic">{closingMessage}</p>
+          </div>
+
+          {/* Price Summary */}
+          <div className="bg-gradient-to-br from-gray-900 to-gray-800 rounded-2xl p-5 text-center shadow-xl">
+            <p className="text-xs text-gray-400 uppercase tracking-wider mb-1">Your Trip Investment</p>
+            <p className="text-3xl font-black text-white">{formatTotalPrice(totalPrice)}</p>
+            <p className="text-xs text-gray-400 mt-1">All inclusive • No hidden fees</p>
+          </div>
+
+          {/* CTA Buttons */}
+          <div className="flex flex-col sm:flex-row gap-3">
+            <button className="flex-1 flex items-center justify-center gap-2 px-6 py-3.5 bg-gradient-to-r from-emerald-500 to-teal-600 text-white font-bold rounded-xl shadow-lg hover:shadow-xl transition-all hover:scale-[1.02] active:scale-[0.98]">
+              <CheckCircle2 className="w-5 h-5" />
+              Approve Quote
+            </button>
+            <button className="flex-1 flex items-center justify-center gap-2 px-6 py-3.5 bg-white text-gray-700 font-semibold rounded-xl border border-gray-200 shadow-sm hover:shadow-md transition-all hover:border-gray-300">
+              <MessageCircle className="w-5 h-5" />
+              Ask Questions
+            </button>
+          </div>
+        </motion.div>
+      )}
     </div>
   );
 }

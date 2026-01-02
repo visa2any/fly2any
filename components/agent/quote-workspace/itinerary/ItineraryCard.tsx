@@ -140,10 +140,10 @@ export default function ItineraryCard({ item, dragListeners, isDragging, viewMod
           </div>
         )}
 
-        {/* 3-Column Layout - Increased readability */}
-        <div className="flex">
+        {/* 3-Column Layout - Responsive */}
+        <div className="flex flex-col sm:flex-row">
           {/* LEFT: Logo + Airline Name + Fare Type */}
-          <div className="flex flex-col items-center justify-center px-2 py-2 border-r border-gray-100 min-w-[72px] ml-5">
+          <div className="flex flex-row sm:flex-col items-center justify-center px-3 py-2 border-b sm:border-b-0 sm:border-r border-gray-100 min-w-[72px] ml-5 gap-2 sm:gap-0">
             <AirlineLogo code={f.airline} size="sm" className="flex-shrink-0" />
             <p className="text-[9px] font-bold text-gray-900 mt-1 text-center truncate max-w-[68px]">
               {f.airlineName || f.airline}
@@ -217,7 +217,7 @@ export default function ItineraryCard({ item, dragListeners, isDragging, viewMod
           </div>
 
           {/* RIGHT: Price + Actions */}
-          <div className="flex flex-col items-center justify-center px-3 py-3 border-l border-gray-100 min-w-[100px]">
+          <div className="flex flex-col items-center justify-center px-3 py-3 border-t sm:border-t-0 sm:border-l border-gray-100 min-w-[100px]">
             {viewMode === "agent" ? (
               <>
                 <p className="text-base font-black text-gray-900 bg-yellow-100 px-2 py-1 rounded">{formatPrice(f.price)}</p>
@@ -232,11 +232,11 @@ export default function ItineraryCard({ item, dragListeners, isDragging, viewMod
                 </div>
               </>
             ) : (
-              /* Client View - Emotional copy instead of price */
+              /* Client View - Confirmed status */
               <div className="text-center px-2">
-                <div className="flex items-center justify-center gap-1 mb-1">
-                  <Sparkles className="w-3 h-3 text-indigo-400" />
-                  <p className="text-xs font-medium text-gray-700">Included</p>
+                <div className="flex items-center justify-center gap-1 px-2 py-1 bg-emerald-50 rounded-full border border-emerald-200 mb-1">
+                  <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
+                  <p className="text-xs font-semibold text-emerald-700">Confirmed</p>
                 </div>
                 <p className="text-[10px] text-gray-500">{f.passengers} {f.passengers === 1 ? "traveler" : "travelers"}</p>
                 <p className="text-[10px] text-gray-400">{isRoundtrip ? "Round trip" : "One way"}</p>
@@ -388,13 +388,13 @@ export default function ItineraryCard({ item, dragListeners, isDragging, viewMod
 
         {/* Main Content */}
         <div className="flex ml-5">
-          {/* Photo Thumbnail */}
-          <div className="w-20 h-20 rounded-l-xl bg-emerald-100 overflow-hidden flex-shrink-0">
+          {/* Photo Thumbnail - Larger in client view */}
+          <div className={`${viewMode === "client" ? "w-36 h-28" : "w-20 h-20"} rounded-l-xl bg-emerald-100 overflow-hidden flex-shrink-0`}>
             {a.image ? (
-              <img src={a.image} alt={a.name} className="w-full h-full object-cover" />
+              <img src={a.image} alt={a.name} className="w-full h-full object-cover" loading="lazy" />
             ) : (
-              <div className="w-full h-full flex items-center justify-center">
-                <Compass className="w-8 h-8 text-emerald-300" />
+              <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-emerald-200 to-teal-200">
+                <Compass className={`${viewMode === "client" ? "w-10 h-10" : "w-8 h-8"} text-emerald-400`} />
               </div>
             )}
           </div>
@@ -429,9 +429,9 @@ export default function ItineraryCard({ item, dragListeners, isDragging, viewMod
                 </div>
               ) : (
                 <div className="flex-shrink-0 text-right">
-                  <div className="flex items-center gap-1 text-emerald-600">
-                    <Heart className="w-3 h-3 fill-emerald-500" />
-                    <span className="text-xs font-medium">Included</span>
+                  <div className="flex items-center gap-1 px-2 py-1 bg-emerald-50 rounded-full border border-emerald-200">
+                    <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
+                    <span className="text-xs font-semibold text-emerald-700">Confirmed</span>
                   </div>
                 </div>
               )}
@@ -524,13 +524,13 @@ export default function ItineraryCard({ item, dragListeners, isDragging, viewMod
 
         {/* Main Content */}
         <div className="flex ml-5">
-          {/* Photo Thumbnail */}
-          <div className="w-24 h-20 rounded-l-xl bg-purple-100 overflow-hidden flex-shrink-0">
+          {/* Photo Thumbnail - Larger in client view */}
+          <div className={`${viewMode === "client" ? "w-40 h-32" : "w-24 h-20"} rounded-l-xl bg-purple-100 overflow-hidden flex-shrink-0`}>
             {h.image ? (
-              <img src={h.image} alt={h.name} className="w-full h-full object-cover" />
+              <img src={h.image} alt={h.name} className="w-full h-full object-cover" loading="lazy" />
             ) : (
-              <div className="w-full h-full flex items-center justify-center">
-                <Building2 className="w-8 h-8 text-purple-300" />
+              <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-purple-200 to-pink-200">
+                <Building2 className={`${viewMode === "client" ? "w-12 h-12" : "w-8 h-8"} text-purple-400`} />
               </div>
             )}
           </div>
@@ -575,9 +575,9 @@ export default function ItineraryCard({ item, dragListeners, isDragging, viewMod
                 </div>
               ) : (
                 <div className="flex-shrink-0 text-right">
-                  <div className="flex items-center gap-1 text-purple-600">
-                    <Sparkles className="w-3 h-3" />
-                    <span className="text-xs font-medium">Your Stay</span>
+                  <div className="flex items-center gap-1 px-2 py-1 bg-emerald-50 rounded-full border border-emerald-200">
+                    <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
+                    <span className="text-xs font-semibold text-emerald-700">Confirmed</span>
                   </div>
                 </div>
               )}
@@ -723,9 +723,9 @@ export default function ItineraryCard({ item, dragListeners, isDragging, viewMod
                 </div>
               ) : (
                 <div className="flex-shrink-0 text-right">
-                  <div className="flex items-center gap-1 text-cyan-600">
-                    <Car className="w-3 h-3" />
-                    <span className="text-xs font-medium">Your Ride</span>
+                  <div className="flex items-center gap-1 px-2 py-1 bg-emerald-50 rounded-full border border-emerald-200">
+                    <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
+                    <span className="text-xs font-semibold text-emerald-700">Confirmed</span>
                   </div>
                 </div>
               )}
@@ -878,9 +878,9 @@ export default function ItineraryCard({ item, dragListeners, isDragging, viewMod
             </div>
           ) : (
             <div className="flex items-center px-3 border-l border-gray-100">
-              <div className="flex items-center gap-1 text-amber-600">
-                <Bus className="w-3 h-3" />
-                <span className="text-xs font-medium">Seamless</span>
+              <div className="flex items-center gap-1 px-2 py-1 bg-emerald-50 rounded-full border border-emerald-200">
+                <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
+                <span className="text-xs font-semibold text-emerald-700">Confirmed</span>
               </div>
             </div>
           )}
