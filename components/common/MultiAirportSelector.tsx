@@ -210,10 +210,10 @@ export default function MultiAirportSelector({
           onFocus={() => { setIsOpen(true); setSearchQuery(''); setDebouncedQuery(''); }}
           placeholder={selectedAirports.length > 0 && !isOpen ? '' : placeholder}
           data-testid={testId}
-          className={`w-full h-[52px] py-3.5 pl-10 pr-8 border rounded-xl text-sm font-medium transition-all duration-150 ease-[cubic-bezier(0.2,0.8,0.2,1)] focus:outline-none shadow-sm hover:shadow-md ${
+          className={`w-full h-[52px] py-3.5 pl-10 pr-8 rounded-xl text-sm font-medium transition-all duration-150 ease-[cubic-bezier(0.2,0.8,0.2,1)] focus:outline-none ${
             transparent
-              ? 'bg-black/30 backdrop-blur-sm border-white/30 text-white placeholder:text-white/50 hover:border-white/40 focus:border-white/50'
-              : 'bg-white border-neutral-200 text-neutral-800 hover:border-primary-400 focus:border-primary-500'
+              ? 'bg-gray-800/80 backdrop-blur-sm border border-gray-600/50 text-white placeholder:text-gray-400 hover:bg-gray-700/80 hover:border-gray-500/50 focus:border-gray-400/60 shadow-md'
+              : 'bg-white border border-neutral-200 text-neutral-800 hover:border-primary-400 focus:border-primary-500 shadow-sm hover:shadow-md'
           }`}
         />
         {/* Display selected airport info when not searching */}
