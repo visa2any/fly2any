@@ -6,6 +6,7 @@ import { useQuoteWorkspace, useQuotePricing, useQuoteItems } from "../QuoteWorks
 import AgentTrustPreview from "../AgentTrustPreview";
 import SmartQuoteAssistant from "../SmartQuoteAssistant";
 import QuoteDifferentiationScore from "../QuoteDifferentiationScore";
+import { usePredictiveBundling, SuggestionsPanel } from "../predictive-bundling";
 import type { Currency, ProductType } from "../types/quote-workspace.types";
 
 const productLabels: Record<ProductType, string> = {
@@ -18,6 +19,7 @@ export default function PricingZone() {
   const pricing = useQuotePricing();
   const items = useQuoteItems();
   const [showBreakdown, setShowBreakdown] = useState(false);
+  const bundling = usePredictiveBundling();
 
   const breakdown = items.reduce((acc, item) => {
     acc[item.type] = (acc[item.type] || 0) + item.price;
@@ -120,6 +122,15 @@ export default function PricingZone() {
           <option value="AUD">AUD</option>
         </select>
       </div>
+
+      {/* Predictive Bundling - Smart suggestions */}
+      <SuggestionsPanel
+        suggestions={bundling.suggestions}
+        onAccept={bundling.accept}
+        onDismiss={bundling.dismiss}
+        isEnabled={bundling.isEnabled}
+        onToggle={bundling.toggle}
+      />
 
       {/* Smart Quote Assistant - AI suggestions */}
       <SmartQuoteAssistant />
