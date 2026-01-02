@@ -389,6 +389,7 @@ export default function ItineraryTimeline() {
                   isLast={isLast}
                   itemCount={dayItems.length}
                   tone={tone}
+                  dayItems={dayItems.map(item => ({ type: item.type, details: item.details }))}
                 />
 
                 {/* Day Items */}

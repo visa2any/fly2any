@@ -3,6 +3,9 @@
 import { Plane, Building2, Car, Compass, Bus, Shield, Package, Sun, Sunset, Moon, Coffee, Clock, MapPin, Users } from "lucide-react";
 import type { QuoteItem, FlightItem, HotelItem, CarItem, ActivityItem, TransferItem, InsuranceItem, ProductType } from "../types/quote-workspace.types";
 
+// Re-export ProductType for use in other components
+export type { ProductType };
+
 // ═══════════════════════════════════════════════════════════════════════════════
 // SEMANTIC ITEM ROLE SYSTEM - Cognitive hierarchy for travel agents
 // ═══════════════════════════════════════════════════════════════════════════════
@@ -163,3 +166,100 @@ export const CardRoleHeader = ({ item }: { item: QuoteItem }) => (
     <TimeAnchorBadge item={item} />
   </div>
 );
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// DAY SUBTITLE GENERATOR - Auto-generated inspirational subtitles (max 6 words)
+// Based on item types scheduled for that day
+// ═══════════════════════════════════════════════════════════════════════════════
+type DayContext = {
+  hasFlightArrival: boolean;
+  hasFlightDeparture: boolean;
+  hasHotel: boolean;
+  hasCar: boolean;
+  hasActivity: boolean;
+  hasTransfer: boolean;
+  activityCount: number;
+  isFirstDay: boolean;
+  isLastDay: boolean;
+};
+
+const daySubtitleTemplates: Record<string, string[]> = {
+  // Arrival focused
+  arrival: ["Your adventure begins", "Welcome to your destination", "The journey starts here"],
+  // Departure focused
+  departure: ["Safe travels home", "Until next time", "Farewell day"],
+  // Experience focused (multiple activities)
+  multiExperience: ["Full day of discovery", "Packed with experiences", "Adventure-filled day"],
+  // Single activity
+  singleExperience: ["Cultural experience day", "Time to explore", "Discovery awaits"],
+  // Car rental day
+  carDay: ["Freedom to explore", "Road trip ready", "Open road adventure"],
+  // Hotel + relaxation
+  hotelOnly: ["Rest and recharge", "Leisure day ahead", "Time to unwind"],
+  // Transfer day
+  transferDay: ["Smooth transitions", "Journey continues", "On the move"],
+  // Mixed activities
+  mixed: ["A day of possibilities", "Your journey unfolds", "Adventures await"],
+  // Default
+  default: ["New experiences await", "Another great day", "Making memories"],
+};
+
+export const generateDaySubtitle = (
+  items: { type: ProductType; details?: any }[],
+  isFirstDay = false,
+  isLastDay = false
+): string => {
+  const ctx: DayContext = {
+    hasFlightArrival: items.some(i => i.type === "flight" && !i.details?.isReturn),
+    hasFlightDeparture: items.some(i => i.type === "flight" && i.details?.isReturn),
+    hasHotel: items.some(i => i.type === "hotel"),
+    hasCar: items.some(i => i.type === "car"),
+    hasActivity: items.some(i => i.type === "activity"),
+    hasTransfer: items.some(i => i.type === "transfer"),
+    activityCount: items.filter(i => i.type === "activity").length,
+    isFirstDay,
+    isLastDay,
+  };
+
+  // Priority-based subtitle selection
+  let templates: string[];
+
+  if (ctx.isFirstDay && (ctx.hasFlightArrival || ctx.hasTransfer)) {
+    templates = daySubtitleTemplates.arrival;
+  } else if (ctx.isLastDay && (ctx.hasFlightDeparture || ctx.hasTransfer)) {
+    templates = daySubtitleTemplates.departure;
+  } else if (ctx.activityCount >= 2) {
+    templates = daySubtitleTemplates.multiExperience;
+  } else if (ctx.activityCount === 1) {
+    templates = daySubtitleTemplates.singleExperience;
+  } else if (ctx.hasCar && !ctx.hasActivity) {
+    templates = daySubtitleTemplates.carDay;
+  } else if (ctx.hasHotel && !ctx.hasActivity && !ctx.hasCar) {
+    templates = daySubtitleTemplates.hotelOnly;
+  } else if (ctx.hasTransfer) {
+    templates = daySubtitleTemplates.transferDay;
+  } else if (items.length > 1) {
+    templates = daySubtitleTemplates.mixed;
+  } else {
+    templates = daySubtitleTemplates.default;
+  }
+
+  // Deterministic selection based on day context
+  const seed = items.length + (ctx.isFirstDay ? 10 : 0) + (ctx.isLastDay ? 20 : 0);
+  return templates[seed % templates.length];
+};
+
+/** Get primary city for a day from items */
+export const getDayCity = (items: { type: ProductType; details?: any }[]): string | null => {
+  // Priority: Hotel location > Activity location > Flight destination
+  const hotel = items.find(i => i.type === "hotel");
+  if (hotel?.details?.location) return hotel.details.location;
+
+  const activity = items.find(i => i.type === "activity");
+  if (activity?.details?.location) return activity.details.location;
+
+  const flight = items.find(i => i.type === "flight");
+  if (flight?.details?.destinationCity) return flight.details.destinationCity;
+
+  return null;
+};

@@ -5,6 +5,7 @@ import { MapPin, Plane, Sun, Palmtree, PartyPopper, Camera, Sparkles, Heart, Com
 import { motion } from "framer-motion";
 import { useViewMode } from "./ViewModeContext";
 import { getDayOneLinerSeeded, type ToneProfile, type DayMood } from "./ToneSystem";
+import { generateDaySubtitle, getDayCity, type ProductType } from "./ItemRoleSystem";
 
 interface TimelineDayAnchorProps {
   date: string;
@@ -15,6 +16,8 @@ interface TimelineDayAnchorProps {
   isLast?: boolean;
   itemCount?: number;
   tone?: ToneProfile;
+  /** Items for this day - used to generate semantic subtitle */
+  dayItems?: { type: ProductType; details?: any }[];
 }
 
 // Map label to DayMood for tone system
@@ -56,6 +59,7 @@ export default function TimelineDayAnchor({
   isLast,
   itemCount = 0,
   tone = "family",
+  dayItems = [],
 }: TimelineDayAnchorProps) {
   const { viewMode } = useViewMode();
 
@@ -74,6 +78,14 @@ export default function TimelineDayAnchor({
   const weekday = parsedDate ? format(parsedDate, "EEEE") : "Day";
   const shortDate = parsedDate ? format(parsedDate, "MMM d") : "";
   const isClientView = viewMode === "client";
+
+  // Generate semantic subtitle from day items
+  const semanticSubtitle = dayItems.length > 0
+    ? generateDaySubtitle(dayItems, isFirst, isLast)
+    : null;
+
+  // Get city from items (fallback to location prop)
+  const dayCity = getDayCity(dayItems) || location;
 
   // Get emotional one-liner for client view
   const mood: DayMood = label ? labelToMood[label] : isFirst ? "arrival" : isLast ? "departure" : "explore";
@@ -196,22 +208,33 @@ export default function TimelineDayAnchor({
           <span className="text-sm text-gray-400">{shortDate}</span>
         </div>
 
-        {/* Secondary Line: Location + Label */}
-        <div className="flex items-center gap-3 mt-1 flex-wrap">
-          {location && (
-            <span className="flex items-center gap-1.5 text-sm text-gray-600">
-              <MapPin className="w-3.5 h-3.5 text-gray-400" />
-              {location}
+        {/* Secondary Line: City • Semantic Subtitle */}
+        <div className="flex items-center gap-2 mt-1 flex-wrap">
+          {dayCity && (
+            <span className="flex items-center gap-1 text-sm font-medium text-gray-700">
+              <MapPin className="w-3 h-3 text-gray-400" />
+              {dayCity}
             </span>
           )}
+          {dayCity && semanticSubtitle && (
+            <span className="text-gray-300">•</span>
+          )}
+          {semanticSubtitle && (
+            <span className="text-sm text-gray-500 italic">
+              {semanticSubtitle}
+            </span>
+          )}
+        </div>
 
-          {labelInfo && LabelIcon && (
+        {/* Label Badge (if applicable) */}
+        {labelInfo && LabelIcon && (
+          <div className="mt-1.5">
             <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 text-xs font-semibold rounded-full border ${labelInfo.color}`}>
               <LabelIcon className="w-3.5 h-3.5" />
               {labelInfo.text}
             </span>
-          )}
-        </div>
+          </div>
+        )}
 
         {/* Items count indicator */}
         {itemCount > 0 && (
