@@ -197,11 +197,11 @@ export default function MultiAirportSelector({
         </label>
       )}
 
-      {/* Main Typeable Input - Compact */}
+      {/* Main Typeable Input - Height matches date picker fields (52px) */}
       <div className="relative">
         {/* Only show MapPin when no airport selected or when searching */}
         {(isOpen || selectedAirports.length === 0) && (
-          <MapPin className={`absolute left-2.5 top-1/2 -translate-y-1/2 flex-shrink-0 z-10 ${transparent ? 'text-white/60' : 'text-neutral-400'}`} size={14} />
+          <MapPin className={`absolute left-3 top-1/2 -translate-y-1/2 flex-shrink-0 z-10 ${transparent ? 'text-white/60' : 'text-neutral-400'}`} size={18} />
         )}
         <input
           type="text"
@@ -210,28 +210,28 @@ export default function MultiAirportSelector({
           onFocus={() => { setIsOpen(true); setSearchQuery(''); setDebouncedQuery(''); }}
           placeholder={selectedAirports.length > 0 && !isOpen ? '' : placeholder}
           data-testid={testId}
-          className={`w-full h-10 py-2 pl-8 pr-6 border-2 rounded-lg text-xs font-semibold transition-all duration-200 focus:outline-none ${
+          className={`w-full h-[52px] py-3.5 pl-10 pr-8 border rounded-xl text-sm font-medium transition-all duration-150 ease-[cubic-bezier(0.2,0.8,0.2,1)] focus:outline-none shadow-sm hover:shadow-md ${
             transparent
-              ? 'bg-black/30 backdrop-blur-sm border-white/20 text-white placeholder:text-white/50 hover:border-white/40 focus:border-white/50'
+              ? 'bg-black/30 backdrop-blur-sm border-white/30 text-white placeholder:text-white/50 hover:border-white/40 focus:border-white/50'
               : 'bg-white border-neutral-200 text-neutral-800 hover:border-primary-400 focus:border-primary-500'
           }`}
         />
         {/* Display selected airport info when not searching */}
         {!isOpen && selectedAirports.length > 0 && (
-          <div className={`absolute inset-0 pl-2.5 pr-5 pointer-events-none flex items-center ${transparent ? 'text-white' : 'text-neutral-800'}`}>
-            <div className="flex items-center gap-1.5 min-w-0 flex-1">
-              <span className="text-sm flex-shrink-0">{selectedAirports[0].emoji}</span>
-              <span className="text-[11px] font-bold truncate">{selectedAirports[0].city}</span>
-              <span className="text-[9px] font-medium text-neutral-400 flex-shrink-0">{selectedAirports[0].code}</span>
+          <div className={`absolute inset-0 pl-10 pr-8 pointer-events-none flex items-center ${transparent ? 'text-white' : 'text-neutral-800'}`}>
+            <div className="flex items-center gap-2 min-w-0 flex-1">
+              <span className="text-base flex-shrink-0">{selectedAirports[0].emoji}</span>
+              <span className="text-sm font-medium truncate">{selectedAirports[0].city}</span>
+              <span className="text-xs font-medium text-neutral-400 flex-shrink-0">{selectedAirports[0].code}</span>
             </div>
             {selectedAirports.length > 1 && (
-              <span className="text-[9px] font-bold text-primary-600 bg-primary-100 px-1 py-0.5 rounded-full flex-shrink-0 ml-0.5">+{selectedAirports.length - 1}</span>
+              <span className="text-[10px] font-bold text-primary-600 bg-primary-100 px-1.5 py-0.5 rounded-full flex-shrink-0 ml-1">+{selectedAirports.length - 1}</span>
             )}
           </div>
         )}
         <ChevronDown
-          className={`absolute right-1.5 top-1/2 -translate-y-1/2 transition-transform duration-200 flex-shrink-0 pointer-events-none ${isOpen ? 'rotate-180' : ''} ${transparent ? 'text-white/50' : 'text-neutral-400'}`}
-          size={12}
+          className={`absolute right-3 top-1/2 -translate-y-1/2 transition-transform duration-200 flex-shrink-0 pointer-events-none ${isOpen ? 'rotate-180' : ''} ${transparent ? 'text-white/50' : 'text-neutral-400'}`}
+          size={16}
         />
       </div>
 
