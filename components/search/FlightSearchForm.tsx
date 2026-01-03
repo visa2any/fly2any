@@ -876,7 +876,9 @@ export default function FlightSearchForm({
 
           {/* Passenger Dropdown - Desktop */}
           {isPassengerDropdownOpen && (
-            <div className="absolute z-50 mt-2 bg-white border-2 border-gray-200 rounded-2xl shadow-2xl p-6 w-96">
+            <>
+              <div className="fixed inset-0 z-[9998]" onClick={() => setIsPassengerDropdownOpen(false)} />
+              <div className="absolute z-[9999] mt-2 bg-white border-2 border-gray-200 rounded-2xl shadow-2xl p-6 w-96 right-0">
               {/* Passenger Counts */}
               <div className="space-y-4 mb-6">
                 {/* Adults */}
@@ -948,7 +950,8 @@ export default function FlightSearchForm({
 
               {/* Done Button */}
               <button type="button" onClick={applyPassengerChanges} className="w-full bg-blue-600 text-white py-3 rounded-xl font-semibold hover:bg-blue-700 transition-colors">{t.done}</button>
-            </div>
+              </div>
+            </>
           )}
         </div>
 
