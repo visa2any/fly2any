@@ -21,5 +21,18 @@
       "permanent": true
     }
   ],
-  "crons": []
+  "crons": [
+    {
+      "path": "/api/cron/social-distribute",
+      "schedule": "*/15 * * * *"
+    },
+    {
+      "path": "/api/cron/content-generate",
+      "schedule": "0 */4 * * *"
+    },
+    {
+      "path": "/api/cron/master",
+      "schedule": "0 * * * *"
+    }
+  ]
 }
