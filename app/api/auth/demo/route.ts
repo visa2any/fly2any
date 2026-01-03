@@ -21,6 +21,11 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Server config error" }, { status: 500 });
     }
 
+    const isProd = process.env.NODE_ENV === "production";
+
+    // Auth.js v5 uses "authjs.session-token" as the salt/cookie name
+    const cookieName = isProd ? "__Secure-authjs.session-token" : "authjs.session-token";
+
     // Create demo JWT token (expires in 30 min)
     const now = Math.floor(Date.now() / 1000);
     const token = await encode({
@@ -36,6 +41,7 @@ export async function POST(req: NextRequest) {
         jti: `demo-${Date.now()}`,
       },
       secret,
+      salt: cookieName, // Auth.js v5 requires salt (cookie name)
       maxAge: 30 * 60,
     });
 
@@ -46,10 +52,7 @@ export async function POST(req: NextRequest) {
       expiresIn: "30 minutes",
     });
 
-    const isProd = process.env.NODE_ENV === "production";
-
-    // Auth.js v5 cookie names (changed from next-auth to authjs)
-    // Set both authjs and next-auth cookies for compatibility
+    // Cookie options
     const cookieOptions = {
       httpOnly: true,
       secure: isProd,
@@ -58,17 +61,13 @@ export async function POST(req: NextRequest) {
       maxAge: 30 * 60,
     };
 
-    // Primary: Auth.js v5 cookie names
-    if (isProd) {
-      response.cookies.set("__Secure-authjs.session-token", token, cookieOptions);
-    }
-    response.cookies.set("authjs.session-token", token, cookieOptions);
+    // Set the session cookie
+    response.cookies.set(cookieName, token, cookieOptions);
 
-    // Fallback: Legacy next-auth cookie names (for compatibility)
+    // Also set non-secure version for compatibility
     if (isProd) {
-      response.cookies.set("__Secure-next-auth.session-token", token, cookieOptions);
+      response.cookies.set("authjs.session-token", token, cookieOptions);
     }
-    response.cookies.set("next-auth.session-token", token, cookieOptions);
 
     console.log("[DEMO_AUTH] Session created for demo-agent-001");
     return response;
