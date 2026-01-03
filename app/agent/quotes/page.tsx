@@ -2,6 +2,7 @@ import { auth } from "@/lib/auth";
 import { redirect } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import Link from "next/link";
+import { isDemoSession, DEMO_RECENT_QUOTES } from "@/lib/demo/agent-demo-data";
 
 export const dynamic = "force-dynamic";
 
@@ -17,49 +18,58 @@ export default async function QuotesPage() {
     redirect("/auth/signin");
   }
 
-  const agent = await prisma?.travelAgent.findUnique({
-    where: { userId: session.user.id },
-    select: { id: true },
-  });
+  const isDemo = isDemoSession(session);
+  let quotes: { id: string; title: string; quoteNumber: string | null; status: string; total: number; currency: string; destination: string | null; clientName: string }[];
 
-  if (!agent) {
-    redirect("/agent/register");
-  }
+  if (isDemo) {
+    // Demo mode - use sample data
+    quotes = DEMO_RECENT_QUOTES.map(q => ({
+      id: q.id,
+      title: q.tripName,
+      quoteNumber: `QT-${q.id.toUpperCase()}`,
+      status: q.status,
+      total: q.total,
+      currency: "USD",
+      destination: q.destination,
+      clientName: `${q.client.firstName} ${q.client.lastName}`,
+    }));
+  } else {
+    const agent = await prisma?.travelAgent.findUnique({
+      where: { userId: session.user.id },
+      select: { id: true },
+    });
 
-  // Fetch quotes separately with correct field names
-  const quotesRaw = await prisma?.agentQuote.findMany({
-    where: { agentId: agent.id },
-    select: {
-      id: true,
-      tripName: true,
-      quoteNumber: true,
-      status: true,
-      total: true,
-      currency: true,
-      destination: true,
-      client: {
-        select: {
-          firstName: true,
-          lastName: true,
-        },
+    if (!agent) {
+      redirect("/agent/register");
+    }
+
+    const quotesRaw = await prisma?.agentQuote.findMany({
+      where: { agentId: agent.id },
+      select: {
+        id: true,
+        tripName: true,
+        quoteNumber: true,
+        status: true,
+        total: true,
+        currency: true,
+        destination: true,
+        client: { select: { firstName: true, lastName: true } },
       },
-    },
-    orderBy: { createdAt: "desc" },
-    take: 50,
-  });
+      orderBy: { createdAt: "desc" },
+      take: 50,
+    });
 
-  const quotes = (quotesRaw || []).map((q: any) => ({
-    id: String(q.id || ""),
-    title: q.tripName ? String(q.tripName) : "Untitled Quote",
-    quoteNumber: q.quoteNumber ? String(q.quoteNumber) : null,
-    status: String(q.status || "DRAFT"),
-    total: Number(q.total) || 0,
-    currency: String(q.currency || "USD"),
-    destination: q.destination ? String(q.destination) : null,
-    clientName: q.client
-      ? `${q.client.firstName || ""} ${q.client.lastName || ""}`.trim() || "No Client"
-      : "No Client",
-  }));
+    quotes = (quotesRaw || []).map((q: any) => ({
+      id: String(q.id || ""),
+      title: q.tripName ? String(q.tripName) : "Untitled Quote",
+      quoteNumber: q.quoteNumber ? String(q.quoteNumber) : null,
+      status: String(q.status || "DRAFT"),
+      total: Number(q.total) || 0,
+      currency: String(q.currency || "USD"),
+      destination: q.destination ? String(q.destination) : null,
+      clientName: q.client ? `${q.client.firstName || ""} ${q.client.lastName || ""}`.trim() || "No Client" : "No Client",
+    }));
+  }
 
   const stats = {
     total: quotes.length,

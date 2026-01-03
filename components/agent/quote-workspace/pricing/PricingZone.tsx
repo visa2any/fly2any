@@ -30,16 +30,16 @@ export default function PricingZone() {
 
   return (
     <div className="p-3 space-y-3">
-      {/* Total - Compact */}
-      <div className="bg-gray-900 text-white rounded-xl p-3">
+      {/* Total - Fly2Any Brand */}
+      <div className="bg-gradient-to-br from-primary-600 to-primary-700 text-white rounded-xl p-3 shadow-lg shadow-primary-500/20">
         <div className="flex items-baseline justify-between">
-          <span className="text-[10px] text-gray-400 uppercase tracking-wide">Total</span>
-          <div className="flex items-center gap-1 text-[10px] text-gray-400">
+          <span className="text-[10px] text-primary-200 uppercase tracking-wide">Total</span>
+          <div className="flex items-center gap-1 text-[10px] text-primary-200">
             <Users className="w-3 h-3" />{state.travelers.total}
           </div>
         </div>
         <p className="text-2xl font-bold tracking-tight">{fmt(pricing.total)}</p>
-        <p className="text-xs text-gray-400">{fmt(pricing.perPerson)}/person</p>
+        <p className="text-xs text-primary-200">{fmt(pricing.perPerson)}/person</p>
       </div>
 
       {/* Markup - Tactile + Manual Input */}

@@ -4,6 +4,7 @@ import { auth } from "@/lib/auth";
 import { redirect } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import Link from "next/link";
+import { isDemoSession, DEMO_BOOKINGS } from "@/lib/demo/agent-demo-data";
 
 export const metadata = {
   title: "Bookings - Agent Portal",
@@ -17,93 +18,78 @@ export default async function AgentBookingsPage() {
     redirect("/auth/signin?callbackUrl=/agent/bookings");
   }
 
-  const agent = await prisma?.travelAgent.findUnique({
-    where: { userId: session.user.id },
-    select: {
-      id: true,
-      status: true,
-    },
-  });
+  const isDemo = isDemoSession(session);
+  let bookings: any[];
 
-  if (!agent) {
-    redirect("/agent/register");
-  }
+  if (isDemo) {
+    bookings = DEMO_BOOKINGS.map(b => ({
+      id: b.id,
+      confirmationNumber: b.confirmationNumber,
+      tripName: b.tripName,
+      destination: b.destination,
+      status: b.status,
+      paymentStatus: b.paymentStatus,
+      total: b.total,
+      depositAmount: b.depositAmount,
+      balanceDue: b.balanceDue,
+      currency: "USD",
+      clientName: `${b.client.firstName} ${b.client.lastName}`,
+      clientEmail: null,
+      quoteNumber: null,
+      commissionCount: 1,
+    }));
+  } else {
+    const agent = await prisma?.travelAgent.findUnique({
+      where: { userId: session.user.id },
+      select: { id: true, status: true },
+    });
 
-  // Check agent status
-  if (agent.status !== "ACTIVE") {
-    return (
-      <div className="max-w-4xl mx-auto mt-12">
-        <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-6 text-center">
-          <h2 className="text-xl font-semibold text-yellow-800 mb-2">
-            Account Pending Approval
-          </h2>
-          <p className="text-yellow-700">
-            Your agent account is pending approval. You'll be able to view bookings once your account is activated.
-          </p>
+    if (!agent) {
+      redirect("/agent/register");
+    }
+
+    if (agent.status !== "ACTIVE") {
+      return (
+        <div className="max-w-4xl mx-auto mt-12">
+          <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-6 text-center">
+            <h2 className="text-xl font-semibold text-yellow-800 mb-2">Account Pending Approval</h2>
+            <p className="text-yellow-700">Your agent account is pending approval.</p>
+          </div>
         </div>
-      </div>
-    );
+      );
+    }
+
+    const bookingsRaw = await prisma?.agentBooking.findMany({
+      where: { agentId: agent.id },
+      select: {
+        id: true, confirmationNumber: true, tripName: true, destination: true, status: true,
+        paymentStatus: true, total: true, depositAmount: true, balanceDue: true, currency: true,
+        client: { select: { id: true, firstName: true, lastName: true, email: true } },
+        quote: { select: { id: true, quoteNumber: true } },
+        _count: { select: { commissions: true } },
+      },
+      orderBy: { createdAt: "desc" },
+      take: 50,
+    });
+
+    bookings = (bookingsRaw || []).map((b: any) => ({
+      id: String(b.id || ""),
+      confirmationNumber: b.confirmationNumber ? String(b.confirmationNumber) : null,
+      tripName: b.tripName ? String(b.tripName) : "Untitled Trip",
+      destination: b.destination ? String(b.destination) : null,
+      status: String(b.status || "PENDING"),
+      paymentStatus: String(b.paymentStatus || "PENDING"),
+      total: Number(b.total) || 0,
+      depositAmount: Number(b.depositAmount) || 0,
+      balanceDue: Number(b.balanceDue) || 0,
+      currency: String(b.currency || "USD"),
+      clientName: b.client ? `${b.client.firstName || ""} ${b.client.lastName || ""}`.trim() || "No Client" : "No Client",
+      clientEmail: b.client?.email ? String(b.client.email) : null,
+      quoteNumber: b.quote?.quoteNumber ? String(b.quote.quoteNumber) : null,
+      commissionCount: Number(b._count?.commissions) || 0,
+    }));
   }
 
-  // Fetch bookings with explicit field selection (no DateTime fields)
-  const bookingsRaw = await prisma?.agentBooking.findMany({
-    where: { agentId: agent.id },
-    select: {
-      id: true,
-      confirmationNumber: true,
-      tripName: true,
-      destination: true,
-      status: true,
-      paymentStatus: true,
-      total: true,
-      depositAmount: true,
-      balanceDue: true,
-      currency: true,
-      client: {
-        select: {
-          id: true,
-          firstName: true,
-          lastName: true,
-          email: true,
-        },
-      },
-      quote: {
-        select: {
-          id: true,
-          quoteNumber: true,
-        },
-      },
-      _count: {
-        select: {
-          commissions: true,
-        },
-      },
-    },
-    orderBy: { createdAt: "desc" },
-    take: 50,
-  });
-
-  // Explicit primitive serialization
-  const bookings = (bookingsRaw || []).map((b: any) => ({
-    id: String(b.id || ""),
-    confirmationNumber: b.confirmationNumber ? String(b.confirmationNumber) : null,
-    tripName: b.tripName ? String(b.tripName) : "Untitled Trip",
-    destination: b.destination ? String(b.destination) : null,
-    status: String(b.status || "PENDING"),
-    paymentStatus: String(b.paymentStatus || "PENDING"),
-    total: Number(b.total) || 0,
-    depositAmount: Number(b.depositAmount) || 0,
-    balanceDue: Number(b.balanceDue) || 0,
-    currency: String(b.currency || "USD"),
-    clientName: b.client
-      ? `${b.client.firstName || ""} ${b.client.lastName || ""}`.trim() || "No Client"
-      : "No Client",
-    clientEmail: b.client?.email ? String(b.client.email) : null,
-    quoteNumber: b.quote?.quoteNumber ? String(b.quote.quoteNumber) : null,
-    commissionCount: Number(b._count?.commissions) || 0,
-  }));
-
-  // Calculate stats
   const stats = {
     total: bookings.length,
     confirmed: bookings.filter((b) => b.status === "CONFIRMED").length,

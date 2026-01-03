@@ -143,22 +143,6 @@ function SignInContent() {
             <span>{isGoogleLoading ? 'Connecting...' : 'Continue with Google'}</span>
           </button>
 
-          {/* Agent Demo Button - Only show for agent login */}
-          {isAgentLogin && (
-            <button
-              onClick={handleDemoLogin}
-              disabled={isDemoLoading}
-              className="w-full mt-3 flex items-center justify-center gap-3 px-6 py-3.5 bg-gradient-to-r from-violet-500 to-purple-600 text-white rounded-2xl font-semibold shadow-lg shadow-violet-500/25 hover:shadow-xl hover:shadow-violet-500/30 hover:from-violet-600 hover:to-purple-700 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed active:scale-[0.98] touch-manipulation"
-            >
-              {isDemoLoading ? (
-                <Loader2 className="w-5 h-5 animate-spin" />
-              ) : (
-                <Sparkles className="w-5 h-5" />
-              )}
-              <span>{isDemoLoading ? 'Starting Demo...' : 'Try Agent Demo'}</span>
-            </button>
-          )}
-
           {/* Divider */}
           <div className="relative my-7">
             <div className="absolute inset-0 flex items-center">
@@ -263,6 +247,27 @@ function SignInContent() {
               Create one
             </Link>
           </div>
+
+          {/* Agent Demo Button - Only show for agent login */}
+          {isAgentLogin && (
+            <div className="mt-6 pt-6 border-t border-neutral-100">
+              <p className="text-center text-sm text-neutral-500 mb-3">
+                Want to explore first?
+              </p>
+              <button
+                onClick={handleDemoLogin}
+                disabled={isDemoLoading}
+                className="w-full flex items-center justify-center gap-3 px-6 py-3.5 bg-gradient-to-r from-violet-500 to-purple-600 text-white rounded-2xl font-semibold shadow-lg shadow-violet-500/25 hover:shadow-xl hover:shadow-violet-500/30 hover:from-violet-600 hover:to-purple-700 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed active:scale-[0.98] touch-manipulation"
+              >
+                {isDemoLoading ? (
+                  <Loader2 className="w-5 h-5 animate-spin" />
+                ) : (
+                  <Sparkles className="w-5 h-5" />
+                )}
+                <span>{isDemoLoading ? 'Starting Demo...' : 'Try Agent Demo'}</span>
+              </button>
+            </div>
+          )}
         </div>
 
         {/* Terms & Privacy */}

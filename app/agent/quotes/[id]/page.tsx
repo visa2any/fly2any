@@ -2,6 +2,7 @@ import { auth } from "@/lib/auth";
 import { redirect, notFound } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import QuoteDetailClient from "@/components/agent/QuoteDetailClient";
+import { isDemoSession, getDemoQuoteById } from "@/lib/demo/agent-demo-data";
 
 export const metadata = {
   title: "Quote Details | Agent Portal",
@@ -9,9 +10,7 @@ export const metadata = {
 };
 
 interface Props {
-  params: {
-    id: string;
-  };
+  params: { id: string };
 }
 
 export default async function QuoteDetailPage({ params }: Props) {
@@ -21,34 +20,39 @@ export default async function QuoteDetailPage({ params }: Props) {
     redirect("/auth/signin");
   }
 
-  // Get agent
-  const agent = await prisma!.travelAgent.findUnique({
-    where: { userId: session.user.id },
-  });
+  const isDemo = isDemoSession(session);
+  let quote: any;
 
-  if (!agent) {
-    redirect("/agent/register");
-  }
+  if (isDemo) {
+    const demoQuote = getDemoQuoteById(params.id);
+    quote = {
+      id: demoQuote.id,
+      tripName: demoQuote.tripName,
+      status: demoQuote.status,
+      total: demoQuote.total,
+      currency: demoQuote.currency,
+      destination: demoQuote.destination,
+      notes: demoQuote.notes,
+      client: demoQuote.client,
+      booking: null,
+    };
+  } else {
+    const agent = await prisma!.travelAgent.findUnique({
+      where: { userId: session.user.id },
+    });
 
-  // Layout already shows pending banner for non-active agents
-  // No need to block access - they can view quotes even while pending
+    if (!agent) {
+      redirect("/agent/register");
+    }
 
-  // Get quote with payment link fields
-  const quote = await prisma!.agentQuote.findUnique({
-    where: {
-      id: params.id,
-      agentId: agent.id,
-    },
-    include: {
-      client: true,
-      booking: {
-        select: { id: true, confirmationNumber: true },
-      },
-    },
-  });
+    quote = await prisma!.agentQuote.findUnique({
+      where: { id: params.id, agentId: agent.id },
+      include: { client: true, booking: { select: { id: true, confirmationNumber: true } } },
+    });
 
-  if (!quote) {
-    notFound();
+    if (!quote) {
+      notFound();
+    }
   }
 
   return (

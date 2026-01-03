@@ -2,6 +2,7 @@ import { auth } from "@/lib/auth";
 import { redirect } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import ClientListClient from "@/components/agent/ClientListClient";
+import { isDemoSession, DEMO_CLIENTS } from "@/lib/demo/agent-demo-data";
 
 export const metadata = {
   title: "Client Management | Agent Portal",
@@ -15,69 +16,64 @@ export default async function ClientsPage() {
     redirect("/auth/signin");
   }
 
-  // Get agent with clients - use SELECT to avoid DateTime fields
-  const agent = await prisma?.travelAgent.findUnique({
-    where: { userId: session.user.id },
-    select: {
-      id: true,
-      maxClients: true,
-      clients: {
-        where: {
-          status: { not: "ARCHIVED" },
-        },
-        select: {
-          id: true,
-          firstName: true,
-          lastName: true,
-          email: true,
-          phone: true,
-          segment: true,
-          status: true,
-          _count: {
-            select: {
-              quotes: true,
-              bookings: true,
-            },
+  const isDemo = isDemoSession(session);
+  let serializedClients: any[];
+  let maxClients = 500;
+
+  if (isDemo) {
+    serializedClients = DEMO_CLIENTS.map(c => ({
+      id: c.id,
+      firstName: c.firstName,
+      lastName: c.lastName,
+      email: c.email,
+      phone: c.phone,
+      segment: c.segment,
+      status: c.status,
+      _count: { quotes: c.quotesCount, bookings: c.bookingsCount },
+    }));
+  } else {
+    const agent = await prisma?.travelAgent.findUnique({
+      where: { userId: session.user.id },
+      select: {
+        id: true,
+        maxClients: true,
+        clients: {
+          where: { status: { not: "ARCHIVED" } },
+          select: {
+            id: true, firstName: true, lastName: true, email: true, phone: true, segment: true, status: true,
+            _count: { select: { quotes: true, bookings: true } },
           },
-        },
-        orderBy: {
-          createdAt: "desc",
+          orderBy: { createdAt: "desc" },
         },
       },
-    },
-  });
+    });
 
-  if (!agent) {
-    redirect("/agent/register");
+    if (!agent) {
+      redirect("/agent/register");
+    }
+    maxClients = agent.maxClients || 500;
+
+    serializedClients = (agent.clients || []).map((c: any) => ({
+      id: String(c.id || ""),
+      firstName: c.firstName ? String(c.firstName) : null,
+      lastName: c.lastName ? String(c.lastName) : null,
+      email: c.email ? String(c.email) : null,
+      phone: c.phone ? String(c.phone) : null,
+      segment: String(c.segment || "STANDARD"),
+      status: String(c.status || "ACTIVE"),
+      _count: { quotes: Number(c._count?.quotes) || 0, bookings: Number(c._count?.bookings) || 0 },
+    }));
   }
-
-  // Serialize with explicit primitives
-  const serializedClients = (agent.clients || []).map((c: any) => ({
-    id: String(c.id || ""),
-    firstName: c.firstName ? String(c.firstName) : null,
-    lastName: c.lastName ? String(c.lastName) : null,
-    email: c.email ? String(c.email) : null,
-    phone: c.phone ? String(c.phone) : null,
-    segment: String(c.segment || "STANDARD"),
-    status: String(c.status || "ACTIVE"),
-    _count: {
-      quotes: Number(c._count?.quotes) || 0,
-      bookings: Number(c._count?.bookings) || 0,
-    },
-  }));
 
   const stats = {
     total: serializedClients.length,
     standard: serializedClients.filter((c) => c.segment === "STANDARD").length,
     vip: serializedClients.filter((c) => c.segment === "VIP").length,
-    honeymoon: serializedClients.filter((c) => c.segment === "HONEYMOON").length,
-    family: serializedClients.filter((c) => c.segment === "FAMILY").length,
-    business: serializedClients.filter((c) => c.segment === "BUSINESS").length,
-    corporate: serializedClients.filter((c) => c.segment === "CORPORATE").length,
     luxury: serializedClients.filter((c) => c.segment === "LUXURY").length,
+    business: serializedClients.filter((c) => c.segment === "BUSINESS").length,
     withQuotes: serializedClients.filter((c) => c._count.quotes > 0).length,
     withBookings: serializedClients.filter((c) => c._count.bookings > 0).length,
-    maxClients: Number(agent.maxClients) || 100,
+    maxClients,
   };
 
   return (
@@ -103,7 +99,7 @@ export default async function ClientsPage() {
         <StatCard label="VIP Clients" value={stats.vip} color="purple" icon="⭐" />
         <StatCard label="Active Quotes" value={stats.withQuotes} color="orange" icon="📋" />
         <StatCard label="Booked Trips" value={stats.withBookings} color="green" icon="✈️" />
-        <StatCard label="Business" value={stats.business + stats.corporate} color="teal" icon="💼" />
+        <StatCard label="Business" value={stats.business} color="teal" icon="💼" />
       </div>
 
       <ClientListClient clients={serializedClients} />

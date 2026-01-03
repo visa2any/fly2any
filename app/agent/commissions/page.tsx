@@ -1,9 +1,9 @@
 // app/agent/commissions/page.tsx
-// Agent Commissions Dashboard - Track earnings and commission lifecycle
 import { auth } from "@/lib/auth";
 import { redirect } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import Link from "next/link";
+import { isDemoSession, DEMO_COMMISSIONS } from "@/lib/demo/agent-demo-data";
 
 export const metadata = {
   title: "Commissions - Agent Portal",
@@ -17,72 +17,54 @@ export default async function AgentCommissionsPage() {
     redirect("/auth/signin?callbackUrl=/agent/commissions");
   }
 
-  const agent = await prisma?.travelAgent.findUnique({
-    where: { userId: session.user.id },
-    select: {
-      id: true,
-      status: true,
-    },
-  });
+  const isDemo = isDemoSession(session);
+  let commissions: any[];
 
-  if (!agent) {
-    redirect("/agent/register");
-  }
+  if (isDemo) {
+    commissions = DEMO_COMMISSIONS.map(c => ({
+      id: c.id,
+      status: c.status,
+      agentEarnings: c.agentEarnings,
+      platformFee: c.platformFee,
+      commissionRate: c.commissionRate,
+      bookingTotal: c.bookingTotal,
+      clientName: `${c.client.firstName} ${c.client.lastName}`,
+      tripName: c.tripName,
+    }));
+  } else {
+    const agent = await prisma?.travelAgent.findUnique({
+      where: { userId: session.user.id },
+      select: { id: true, status: true },
+    });
 
-  if (agent.status !== "ACTIVE") {
-    return (
-      <div className="max-w-4xl mx-auto mt-12">
-        <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-6 text-center">
-          <h2 className="text-xl font-semibold text-yellow-800 mb-2">
-            Account Pending Approval
-          </h2>
-          <p className="text-yellow-700">
-            Your agent account is pending approval. Commission tracking will be available once activated.
-          </p>
+    if (!agent) {
+      redirect("/agent/register");
+    }
+
+    if (agent.status !== "ACTIVE") {
+      return (
+        <div className="max-w-4xl mx-auto mt-12">
+          <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-6 text-center">
+            <h2 className="text-xl font-semibold text-yellow-800 mb-2">Account Pending Approval</h2>
+            <p className="text-yellow-700">Commission tracking will be available once activated.</p>
+          </div>
         </div>
-      </div>
-    );
-  }
+      );
+    }
 
-  // Fetch commissions with explicit field selection (no DateTime fields)
-  const commissionsRaw = await prisma?.agentCommission.findMany({
-    where: { agentId: agent.id },
-    select: {
-      id: true,
-      status: true,
-      agentEarnings: true,
-      platformFee: true,
-      commissionRate: true,
-      flightCommission: true,
-      hotelCommission: true,
-      activityCommission: true,
-      transferCommission: true,
-      otherCommission: true,
-      booking: {
-        select: {
-          id: true,
-          confirmationNumber: true,
-          tripName: true,
-          destination: true,
-          total: true,
-          paymentStatus: true,
-          status: true,
-        },
+    const commissionsRaw = await prisma?.agentCommission.findMany({
+      where: { agentId: agent.id },
+      select: {
+        id: true, status: true, agentEarnings: true, platformFee: true, commissionRate: true,
+        flightCommission: true, hotelCommission: true, activityCommission: true, transferCommission: true, otherCommission: true,
+        booking: { select: { id: true, confirmationNumber: true, tripName: true, destination: true, total: true, paymentStatus: true, status: true } },
+        payout: { select: { id: true, payoutNumber: true, status: true } },
       },
-      payout: {
-        select: {
-          id: true,
-          payoutNumber: true,
-          status: true,
-        },
-      },
-    },
-    orderBy: { createdAt: "desc" },
-    take: 100,
-  });
+      orderBy: { createdAt: "desc" },
+      take: 100,
+    });
 
-  // Explicit primitive serialization
-  const commissions = (commissionsRaw || []).map((c: any) => ({
+    commissions = (commissionsRaw || []).map((c: any) => ({
     id: String(c.id || ""),
     status: String(c.status || "PENDING"),
     agentEarnings: Number(c.agentEarnings) || 0,
@@ -101,9 +83,10 @@ export default async function AgentCommissionsPage() {
     paymentStatus: c.booking?.paymentStatus ? String(c.booking.paymentStatus) : null,
     bookingStatus: c.booking?.status ? String(c.booking.status) : null,
     payoutId: c.payout?.id ? String(c.payout.id) : null,
-    payoutNumber: c.payout?.payoutNumber ? String(c.payout.payoutNumber) : null,
-    payoutStatus: c.payout?.status ? String(c.payout.status) : null,
-  }));
+      payoutNumber: c.payout?.payoutNumber ? String(c.payout.payoutNumber) : null,
+      payoutStatus: c.payout?.status ? String(c.payout.status) : null,
+    }));
+  }
 
   // Calculate comprehensive stats
   const stats = {
