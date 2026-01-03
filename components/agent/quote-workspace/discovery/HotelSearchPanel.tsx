@@ -4,7 +4,7 @@ import { useState, useRef, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Search, Building2, Loader2, Plus, Star, MapPin, AlertCircle, Users, ChevronDown, ChevronUp, Minus, X, Plane, Landmark, Edit3, Calendar, ArrowUpDown, Filter, Check, Sparkles } from "lucide-react";
 import { useQuoteWorkspace } from "../QuoteWorkspaceProvider";
-import { useUnifiedSearchSafe } from "../unified-search";
+import { useUnifiedSearchSafe } from "../unified-search/index";
 import PremiumDateRangePicker from "@/components/common/PremiumDateRangePicker";
 import type { HotelItem, HotelSearchParams } from "../types/quote-workspace.types";
 

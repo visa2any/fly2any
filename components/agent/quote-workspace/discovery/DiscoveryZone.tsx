@@ -11,7 +11,7 @@ import ActivitiesSearchPanel from "./ActivitiesSearchPanel";
 import TransfersSearchPanel from "./TransfersSearchPanel";
 import PremiumDatePicker from "@/components/common/PremiumDatePicker";
 import { QuoteProgressBadge } from "../QuoteProgressBar";
-import { TabResultIndicator, useUnifiedSearchSafe } from "../unified-search";
+import { TabResultIndicator, useUnifiedSearchSafe } from "../unified-search/index";
 import { usePredictiveBundling } from "../predictive-bundling/usePredictiveBundling";
 import { SuggestionsPanel } from "../predictive-bundling/BundleSuggestionCard";
 import type { ProductType } from "../types/quote-workspace.types";

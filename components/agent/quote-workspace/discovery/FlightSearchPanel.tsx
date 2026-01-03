@@ -31,7 +31,7 @@ import MultiAirportSelector from "@/components/common/MultiAirportSelector";
 import PremiumDatePicker from "@/components/common/PremiumDatePicker";
 import PremiumDateRangePicker from "@/components/common/PremiumDateRangePicker";
 import type { FlightItem, FlightSearchParams } from "../types/quote-workspace.types";
-import { useUnifiedSearchContext, SearchScopeSelector } from "../unified-search";
+import { useUnifiedSearchContext, SearchScopeSelector } from "../unified-search/index";
 
 // Cabin class options with premium styling
 const CABIN_CLASSES = [
@@ -140,7 +140,7 @@ export default function FlightSearchPanel() {
     return true;
   };
 
-  // Handle search
+  // Handle search - triggers ALL enabled products in parallel
   const handleSearch = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
@@ -148,11 +148,8 @@ export default function FlightSearchPanel() {
     if (!validateForm()) return;
 
     // ═══ SYNC TRIP CONTEXT ═══
-    // Share flight search params with Hotels/Cars/Activities tabs
-    if (params.destination.length > 0) {
-      setDestination(params.destination[0]); // Primary destination
-    }
     const departDate = params.useMultiDate ? format(params.departureDates[0], "yyyy-MM-dd") : params.departureDate;
+    if (params.destination.length > 0) setDestination(params.destination[0]);
     if (departDate && params.returnDate) {
       setDates(departDate, params.returnDate);
     } else if (departDate) {
@@ -164,8 +161,22 @@ export default function FlightSearchPanel() {
       infants: params.infants,
       total: params.adults + params.children + params.infants,
     });
-    // ═══ END SYNC ═══
 
+    // Sync form data to unified context
+    syncFromFlightForm({
+      origin: params.origin[0] || "",
+      originCode: params.origin[0] || "",
+      destination: params.destination[0] || "",
+      destinationCode: params.destination[0] || "",
+      departDate,
+      returnDate: params.returnDate || departDate,
+      adults: params.adults,
+      children: params.children,
+      infants: params.infants,
+      cabinClass: params.cabinClass,
+    });
+
+    // ═══ SEARCH FLIGHTS DIRECTLY (faster response) ═══
     setSearchResults(true, null);
 
     try {
@@ -190,36 +201,22 @@ export default function FlightSearchPanel() {
         queryParams.append("tripDuration", params.tripDuration.toString());
       }
 
+      // ═══ PARALLEL SEARCH: Flights + Other Products ═══
+      // Start unified search for Hotels/Cars/Activities/Transfers NOW (not after flights complete)
+      // Use setTimeout to allow React state to update before search reads the new context
+      setTimeout(() => executeUnifiedSearch(), 0);
+
+      // Flights search
       const res = await fetch(`/api/flights/search?${queryParams}`);
       const data = await res.json();
 
-      if (!res.ok) {
-        throw new Error(data.error || "Search failed");
-      }
+      if (!res.ok) throw new Error(data.error || "Search failed");
 
       setSearchResults(false, data.flights || []);
-      setVisibleCount(10); // Reset pagination on new search
+      setVisibleCount(10);
       setFilterStops(0);
       setFilterAirline("");
       setSortBy("price");
-
-      // ═══ TRIGGER UNIFIED SEARCH FOR OTHER PRODUCTS ═══
-      // Sync form data to shared context, then execute parallel searches
-      syncFromFlightForm({
-        origin: params.origin[0] || "",
-        originCode: params.origin[0] || "",
-        destination: params.destination[0] || "",
-        destinationCode: params.destination[0] || "",
-        departDate: params.useMultiDate ? format(params.departureDates[0], "yyyy-MM-dd") : params.departureDate,
-        returnDate: params.returnDate || (params.useMultiDate ? format(params.departureDates[0], "yyyy-MM-dd") : params.departureDate),
-        adults: params.adults,
-        children: params.children,
-        infants: params.infants,
-        cabinClass: params.cabinClass,
-      });
-
-      // Fire unified search (non-blocking) - searches Hotels/Cars/Activities/Transfers in parallel
-      executeUnifiedSearch();
     } catch (err: any) {
       setError(err.message || "Failed to search flights");
       setSearchResults(false, null);

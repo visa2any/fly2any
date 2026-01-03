@@ -3,7 +3,7 @@
 import { createContext, useContext, useReducer, useCallback, useEffect, useMemo, ReactNode } from "react";
 import { produce } from "immer";
 import { useDebouncedCallback } from "use-debounce";
-import { UnifiedSearchProvider } from "./unified-search";
+import { UnifiedSearchProvider } from "./unified-search/UnifiedSearchProvider";
 import type {
   QuoteWorkspaceState,
   WorkspaceAction,

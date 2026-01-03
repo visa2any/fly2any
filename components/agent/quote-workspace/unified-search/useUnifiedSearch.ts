@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback, useRef, useMemo } from "react";
+import { useState, useCallback, useRef, useMemo, useEffect } from "react";
 import { useQuoteWorkspace } from "../QuoteWorkspaceProvider";
 import type { ProductType } from "../types/quote-workspace.types";
 
@@ -105,6 +105,12 @@ export function useUnifiedSearch() {
   const abortControllers = useRef<Map<string, AbortController>>(new Map());
   const { setActiveTab } = useQuoteWorkspace();
 
+  // Ref to always get latest state in callbacks (avoids stale closure issues)
+  const stateRef = useRef(state);
+  useEffect(() => {
+    stateRef.current = state;
+  }, [state]);
+
   // ═══════════════════════════════════════════════════════════════════════════
   // CONTEXT MANAGEMENT
   // ═══════════════════════════════════════════════════════════════════════════
@@ -173,7 +179,8 @@ export function useUnifiedSearch() {
   // ═══════════════════════════════════════════════════════════════════════════
 
   const executeSearch = useCallback(async () => {
-    const { context, scope } = state;
+    // Use ref to get latest state (avoids stale closure from syncFromFlightForm race)
+    const { context, scope } = stateRef.current;
 
     // Validate minimum context
     if (!context.destination && !context.destinationCode) {
@@ -326,30 +333,29 @@ export function useUnifiedSearch() {
       isSearching: false,
       lastSearchTime: Date.now(),
     }));
-  }, [state.context, state.scope]);
+  }, []); // No dependencies - always reads latest from stateRef
 
   // ═══════════════════════════════════════════════════════════════════════════
   // RETRY SINGLE PRODUCT
   // ═══════════════════════════════════════════════════════════════════════════
 
   const retryProduct = useCallback(async (product: keyof SearchScope) => {
-    setState((prev) => ({
-      ...prev,
-      scope: { ...prev.scope, [product]: true },
-    }));
+    // Save previous scope from ref
+    const prevScope = stateRef.current.scope;
 
-    // Trigger search for just this product
-    const prevScope = state.scope;
+    // Set scope to only this product
     setState((prev) => ({
       ...prev,
       scope: { flights: false, hotels: false, cars: false, activities: false, transfers: false, [product]: true },
     }));
 
+    // Wait for state to update before executing search
+    await new Promise(resolve => setTimeout(resolve, 0));
     await executeSearch();
 
     // Restore previous scope
     setState((prev) => ({ ...prev, scope: prevScope }));
-  }, [state.scope, executeSearch]);
+  }, [executeSearch]);
 
   // ═══════════════════════════════════════════════════════════════════════════
   // NAVIGATION HELPERS

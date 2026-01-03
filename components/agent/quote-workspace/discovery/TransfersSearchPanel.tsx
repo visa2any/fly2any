@@ -4,7 +4,7 @@ import { useState, useRef, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Search, Bus, Loader2, Plus, MapPin, AlertCircle, Users, ChevronDown, ChevronUp, Minus, X, Plane, Clock, Car, Star, Edit3, Calendar, ArrowRight, Sparkles } from "lucide-react";
 import { useQuoteWorkspace } from "../QuoteWorkspaceProvider";
-import { useUnifiedSearchSafe } from "../unified-search";
+import { useUnifiedSearchSafe } from "../unified-search/index";
 import PremiumDatePicker from "@/components/common/PremiumDatePicker";
 
 interface TransferLocation {
