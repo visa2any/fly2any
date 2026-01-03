@@ -26,8 +26,8 @@ export default function TransfersSearchPanel() {
 
   // ═══ UNIFIED SEARCH RESULTS ═══
   const unifiedContext = useUnifiedSearchSafe();
-  const unifiedTransferResults = unifiedContext?.results?.transfers;
-  const unifiedTransferStatus = unifiedContext?.status?.transfers;
+  const unifiedTransferResults = unifiedContext?.products?.transfers?.results;
+  const unifiedTransferStatus = unifiedContext?.products?.transfers?.status;
   const hasUnifiedResults = unifiedTransferResults && unifiedTransferResults.length > 0;
 
   // Use unified results if available, otherwise use local search results

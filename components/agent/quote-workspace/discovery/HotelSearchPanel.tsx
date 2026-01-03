@@ -35,8 +35,8 @@ export default function HotelSearchPanel() {
   // ═══ UNIFIED SEARCH RESULTS ═══
   // Consume pre-fetched results from unified search (when user searched from Flights tab)
   const unifiedContext = useUnifiedSearchSafe();
-  const unifiedHotelResults = unifiedContext?.results?.hotels;
-  const unifiedHotelStatus = unifiedContext?.status?.hotels;
+  const unifiedHotelResults = unifiedContext?.products?.hotels?.results;
+  const unifiedHotelStatus = unifiedContext?.products?.hotels?.status;
   const hasUnifiedResults = unifiedHotelResults && unifiedHotelResults.length > 0;
 
   // Use unified results if available, otherwise use local search results
@@ -72,12 +72,12 @@ export default function HotelSearchPanel() {
     }
   }, [searchResults, searchLoading]);
 
-  // Mark unified results as seen when this tab is viewed
+  // Log when unified results are received
   useEffect(() => {
-    if (hasUnifiedResults && unifiedContext?.hasNewResults?.hotels) {
-      unifiedContext.markResultsSeen("hotels");
+    if (hasUnifiedResults) {
+      console.log("[HotelSearchPanel] Received unified results:", unifiedHotelResults?.length);
     }
-  }, [hasUnifiedResults, unifiedContext]);
+  }, [hasUnifiedResults, unifiedHotelResults]);
 
   // Expand form when there's an error
   useEffect(() => {

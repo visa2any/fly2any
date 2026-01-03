@@ -21,8 +21,8 @@ export default function CarSearchPanel() {
 
   // ═══ UNIFIED SEARCH RESULTS ═══
   const unifiedContext = useUnifiedSearchSafe();
-  const unifiedCarResults = unifiedContext?.results?.cars;
-  const unifiedCarStatus = unifiedContext?.status?.cars;
+  const unifiedCarResults = unifiedContext?.products?.cars?.results;
+  const unifiedCarStatus = unifiedContext?.products?.cars?.status;
   const hasUnifiedResults = unifiedCarResults && unifiedCarResults.length > 0;
 
   // Use unified results if available, otherwise use local search results

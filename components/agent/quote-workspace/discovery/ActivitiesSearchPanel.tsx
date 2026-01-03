@@ -23,8 +23,8 @@ export default function ActivitiesSearchPanel() {
 
   // ═══ UNIFIED SEARCH RESULTS ═══
   const unifiedContext = useUnifiedSearchSafe();
-  const unifiedActivityResults = unifiedContext?.results?.activities;
-  const unifiedActivityStatus = unifiedContext?.status?.activities;
+  const unifiedActivityResults = unifiedContext?.products?.activities?.results;
+  const unifiedActivityStatus = unifiedContext?.products?.activities?.status;
   const hasUnifiedResults = unifiedActivityResults && unifiedActivityResults.length > 0;
 
   // Use unified results if available, otherwise use local search results

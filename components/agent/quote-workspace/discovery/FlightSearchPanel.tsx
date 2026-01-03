@@ -31,8 +31,7 @@ import MultiAirportSelector from "@/components/common/MultiAirportSelector";
 import PremiumDatePicker from "@/components/common/PremiumDatePicker";
 import PremiumDateRangePicker from "@/components/common/PremiumDateRangePicker";
 import type { FlightItem, FlightSearchParams } from "../types/quote-workspace.types";
-import useUnifiedSearch from "../hooks/useUnifiedSearch";
-import SearchScopeSelector from "../components/SearchScopeSelector";
+import { useUnifiedSearchContext, SearchScopeSelector } from "../unified-search";
 
 // Cabin class options with premium styling
 const CABIN_CLASSES = [
@@ -50,16 +49,17 @@ export default function FlightSearchPanel() {
   const { state, addItem, setSearchResults, setDestination, setDates, setTravelers } = useQuoteWorkspace();
   const { searchLoading, searchResults } = state.ui;
 
-  // ═══ UNIFIED MULTI-SEARCH ═══
+  // ═══ UNIFIED MULTI-SEARCH (SHARED CONTEXT) ═══
   // Single search → Flights + Hotels + Cars + Activities + Transfers (parallel)
+  const unifiedSearch = useUnifiedSearchContext();
   const {
     scope,
     toggleScope,
-    status: unifiedStatus,
-    resultCounts,
-    executeUnifiedSearch,
+    products,
     isSearching: isUnifiedSearching,
-  } = useUnifiedSearch();
+    syncFromFlightForm,
+    executeSearch: executeUnifiedSearch,
+  } = unifiedSearch;
 
   // Search form state with all advanced features
   const [params, setParams] = useState<FlightSearchParams>({
@@ -204,22 +204,22 @@ export default function FlightSearchPanel() {
       setSortBy("price");
 
       // ═══ TRIGGER UNIFIED SEARCH FOR OTHER PRODUCTS ═══
-      // Execute Hotels, Cars, Activities, Transfers searches in parallel
-      const tripContext = {
+      // Sync form data to shared context, then execute parallel searches
+      syncFromFlightForm({
         origin: params.origin[0] || "",
         originCode: params.origin[0] || "",
         destination: params.destination[0] || "",
         destinationCode: params.destination[0] || "",
-        startDate: params.useMultiDate ? format(params.departureDates[0], "yyyy-MM-dd") : params.departureDate,
-        endDate: params.returnDate || (params.useMultiDate ? format(params.departureDates[0], "yyyy-MM-dd") : params.departureDate),
+        departDate: params.useMultiDate ? format(params.departureDates[0], "yyyy-MM-dd") : params.departureDate,
+        returnDate: params.returnDate || (params.useMultiDate ? format(params.departureDates[0], "yyyy-MM-dd") : params.departureDate),
         adults: params.adults,
         children: params.children,
         infants: params.infants,
         cabinClass: params.cabinClass,
-      };
+      });
 
-      // Fire unified search (non-blocking) - this searches Hotels/Cars/Activities/Transfers in parallel
-      executeUnifiedSearch(tripContext);
+      // Fire unified search (non-blocking) - searches Hotels/Cars/Activities/Transfers in parallel
+      executeUnifiedSearch();
     } catch (err: any) {
       setError(err.message || "Failed to search flights");
       setSearchResults(false, null);
@@ -920,12 +920,7 @@ export default function FlightSearchPanel() {
 
               {/* ═══ SEARCH SCOPE SELECTOR ═══ */}
               {/* "Search includes: [✓ Flights] [✓ Hotels] [✓ Cars] [✓ Activities] [✓ Transfers]" */}
-              <SearchScopeSelector
-                scope={scope}
-                status={unifiedStatus}
-                onToggle={toggleScope}
-                disabled={searchLoading || isUnifiedSearching}
-              />
+              <SearchScopeSelector variant="compact" />
 
               {/* Search Button - Ultra Premium */}
               <motion.button
