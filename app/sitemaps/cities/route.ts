@@ -59,14 +59,62 @@ export async function GET() {
   </url>`);
   });
 
-  // Hotel city pages
-  [...TOP_US_CITIES, ...TOP_INTERNATIONAL_CITIES].forEach((city) => {
-    const slug = toSlug(city.city);
+  // Hotel city pages - /hotels/in/{city}
+  const hotelCities = ['new-york', 'los-angeles', 'miami', 'las-vegas', 'chicago', 'san-francisco', 'orlando', 'seattle', 'boston', 'denver'];
+  hotelCities.forEach((slug) => {
     urls.push(`  <url>
-    <loc>${SITE_URL}/hotels/${slug}</loc>
+    <loc>${SITE_URL}/hotels/in/${slug}</loc>
+    <lastmod>${today}</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>0.88</priority>
+  </url>`);
+  });
+
+  // Activities city pages - /activities/in/{city}
+  const activityCities = ['new-york', 'los-angeles', 'miami', 'las-vegas', 'chicago', 'san-francisco', 'orlando'];
+  activityCities.forEach((slug) => {
+    urls.push(`  <url>
+    <loc>${SITE_URL}/activities/in/${slug}</loc>
+    <lastmod>${today}</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>0.85</priority>
+  </url>`);
+  });
+
+  // Plan My Trip destination pages
+  const planDestinations = ['italy', 'france', 'spain', 'greece', 'japan', 'mexico', 'hawaii', 'caribbean', 'europe', 'asia'];
+  planDestinations.forEach((dest) => {
+    urls.push(`  <url>
+    <loc>${SITE_URL}/plan-my-trip/to/${dest}</loc>
     <lastmod>${today}</lastmod>
     <changefreq>weekly</changefreq>
-    <priority>0.8</priority>
+    <priority>0.88</priority>
+  </url>`);
+  });
+
+  // Group travel event pages
+  urls.push(`  <url>
+    <loc>${SITE_URL}/group-travel/world-cup-2026</loc>
+    <lastmod>${today}</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>0.92</priority>
+  </url>`);
+
+  // Journey pages
+  urls.push(`  <url>
+    <loc>${SITE_URL}/journeys</loc>
+    <lastmod>${today}</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
+  </url>`);
+
+  const journeyThemes = ['romantic-getaways', 'family-vacations', 'adventure-travel', 'business-trips', 'beach-holidays', 'cultural-exploration', 'celebrations', 'bachelor-bachelorette', 'family-reunion'];
+  journeyThemes.forEach((theme) => {
+    urls.push(`  <url>
+    <loc>${SITE_URL}/journeys/${theme}</loc>
+    <lastmod>${today}</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.85</priority>
   </url>`);
   });
 
