@@ -3,7 +3,7 @@
 import { signIn } from 'next-auth/react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { useState, useEffect, Suspense } from 'react';
-import { Mail, Lock, Plane, Eye, EyeOff, Loader2, AlertTriangle } from 'lucide-react';
+import { Mail, Lock, Plane, Eye, EyeOff, Loader2, AlertTriangle, Sparkles } from 'lucide-react';
 import Link from 'next/link';
 import { useGoogleAuth } from '@/lib/hooks/useGoogleAuth';
 import { accountErrorTracker } from '@/lib/tracking/account-errors';
@@ -33,12 +33,14 @@ function SignInContent() {
   const router = useRouter();
   const callbackUrl = searchParams?.get('callbackUrl') || '/account';
   const urlError = searchParams?.get('error');
+  const isAgentLogin = callbackUrl?.includes('/agent');
 
   // Form state
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [isDemoLoading, setIsDemoLoading] = useState(false);
   const [error, setError] = useState('');
 
   // Handle OAuth errors from URL
@@ -67,6 +69,19 @@ function SignInContent() {
   const handleGoogleSignIn = async () => {
     setError('');
     await signInWithPopup();
+  };
+
+  const handleDemoLogin = async () => {
+    setIsDemoLoading(true);
+    setError('');
+    try {
+      const res = await fetch('/api/auth/demo', { method: 'POST' });
+      if (!res.ok) throw new Error('Failed to start demo');
+      router.push('/agent');
+    } catch (err) {
+      setError('Failed to start demo. Please try again.');
+      setIsDemoLoading(false);
+    }
   };
 
   const handleCredentialsSignIn = async (e: React.FormEvent) => {
@@ -127,6 +142,22 @@ function SignInContent() {
             )}
             <span>{isGoogleLoading ? 'Connecting...' : 'Continue with Google'}</span>
           </button>
+
+          {/* Agent Demo Button - Only show for agent login */}
+          {isAgentLogin && (
+            <button
+              onClick={handleDemoLogin}
+              disabled={isDemoLoading}
+              className="w-full mt-3 flex items-center justify-center gap-3 px-6 py-3.5 bg-gradient-to-r from-violet-500 to-purple-600 text-white rounded-2xl font-semibold shadow-lg shadow-violet-500/25 hover:shadow-xl hover:shadow-violet-500/30 hover:from-violet-600 hover:to-purple-700 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed active:scale-[0.98] touch-manipulation"
+            >
+              {isDemoLoading ? (
+                <Loader2 className="w-5 h-5 animate-spin" />
+              ) : (
+                <Sparkles className="w-5 h-5" />
+              )}
+              <span>{isDemoLoading ? 'Starting Demo...' : 'Try Agent Demo'}</span>
+            </button>
+          )}
 
           {/* Divider */}
           <div className="relative my-7">

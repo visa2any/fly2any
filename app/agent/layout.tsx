@@ -8,6 +8,25 @@ import AgentTopBar from "@/components/agent/AgentTopBar";
 import AdminModeBanner from "@/components/agent/AdminModeBanner";
 import AgentMobileNav from "@/components/agent/AgentMobileNav";
 import AgentContentWrapper from "@/components/agent/AgentContentWrapper";
+import DemoBanner from "@/components/agent/DemoBanner";
+
+// Demo agent data
+const DEMO_AGENT = {
+  id: 'demo-agent-001',
+  tier: 'DEMO',
+  status: 'ACTIVE',
+  businessName: 'Demo Travel Agency',
+  isTestAccount: false,
+  isDemo: true,
+  availableBalance: 2450.00,
+  pendingBalance: 890.00,
+  currentBalance: 3340.00,
+  user: {
+    name: 'Demo Agent',
+    email: 'demo@fly2any.com',
+    image: null,
+  },
+};
 
 export const metadata = {
   title: "Agent Portal - Fly2Any",
@@ -25,69 +44,86 @@ export default async function AgentLayout({
     redirect("/auth/signin?callbackUrl=/agent");
   }
 
-  const agent = await getAgentWithAdminFallback(session.user.id);
+  // Check if demo user
+  const isDemo = session.user.id === 'demo-agent-001' || session.user.email === 'demo@fly2any.com';
 
-  if (!agent) {
-    redirect("/agent/register");
-  }
+  let serializedAgent;
+  let serializedUser;
 
-  // Fetch with select to avoid DateTime fields
-  const fullAgent = await prisma?.travelAgent.findUnique({
-    where: { id: agent.id },
-    select: {
-      id: true,
-      tier: true,
-      status: true,
-      businessName: true,
-      isTestAccount: true,
-      availableBalance: true,
-      pendingBalance: true,
-      currentBalance: true,
-      user: {
-        select: {
-          name: true,
-          email: true,
-          image: true,
+  if (isDemo) {
+    // Use demo data - no DB calls
+    serializedAgent = DEMO_AGENT;
+    serializedUser = {
+      name: 'Demo Agent',
+      email: 'demo@fly2any.com',
+      image: null,
+    };
+  } else {
+    // Normal flow - fetch from DB
+    const agent = await getAgentWithAdminFallback(session.user.id);
+
+    if (!agent) {
+      redirect("/agent/register");
+    }
+
+    const fullAgent = await prisma?.travelAgent.findUnique({
+      where: { id: agent.id },
+      select: {
+        id: true,
+        tier: true,
+        status: true,
+        businessName: true,
+        isTestAccount: true,
+        availableBalance: true,
+        pendingBalance: true,
+        currentBalance: true,
+        user: {
+          select: {
+            name: true,
+            email: true,
+            image: true,
+          },
         },
       },
-    },
-  });
+    });
 
-  if (!fullAgent) {
-    redirect("/agent/register");
+    if (!fullAgent) {
+      redirect("/agent/register");
+    }
+
+    serializedAgent = {
+      id: String(fullAgent.id),
+      tier: String(fullAgent.tier),
+      status: String(fullAgent.status),
+      businessName: fullAgent.businessName ? String(fullAgent.businessName) : null,
+      isTestAccount: Boolean(fullAgent.isTestAccount),
+      isDemo: false,
+      availableBalance: Number(fullAgent.availableBalance) || 0,
+      pendingBalance: Number(fullAgent.pendingBalance) || 0,
+      currentBalance: Number(fullAgent.currentBalance) || 0,
+      user: {
+        name: fullAgent.user?.name ? String(fullAgent.user.name) : null,
+        email: fullAgent.user?.email ? String(fullAgent.user.email) : "",
+        image: fullAgent.user?.image ? String(fullAgent.user.image) : null,
+      },
+    };
+
+    serializedUser = {
+      name: session.user.name ? String(session.user.name) : null,
+      email: session.user.email ? String(session.user.email) : null,
+      image: session.user.image ? String(session.user.image) : null,
+    };
   }
-
-  // Explicit primitive serialization
-  const serializedAgent = {
-    id: String(fullAgent.id),
-    tier: String(fullAgent.tier),
-    status: String(fullAgent.status),
-    businessName: fullAgent.businessName ? String(fullAgent.businessName) : null,
-    isTestAccount: Boolean(fullAgent.isTestAccount),
-    availableBalance: Number(fullAgent.availableBalance) || 0,
-    pendingBalance: Number(fullAgent.pendingBalance) || 0,
-    currentBalance: Number(fullAgent.currentBalance) || 0,
-    user: {
-      name: fullAgent.user?.name ? String(fullAgent.user.name) : null,
-      email: fullAgent.user?.email ? String(fullAgent.user.email) : "",
-      image: fullAgent.user?.image ? String(fullAgent.user.image) : null,
-    },
-  };
-
-  const serializedUser = {
-    name: session.user.name ? String(session.user.name) : null,
-    email: session.user.email ? String(session.user.email) : null,
-    image: session.user.image ? String(session.user.image) : null,
-  };
 
   return (
     <div className="min-h-screen bg-gray-50">
+      {isDemo && <DemoBanner />}
       {serializedAgent.isTestAccount && <AdminModeBanner />}
       <AgentSidebar agent={serializedAgent} />
       <AgentContentWrapper>
         <AgentTopBar agent={serializedAgent} user={serializedUser} />
         <main className="py-4 px-4 sm:px-6 lg:px-8 pb-24 lg:pb-6">
-          {serializedAgent.status === "PENDING" && !serializedAgent.isTestAccount && (
+          {serializedAgent.status === "PENDING" && !serializedAgent.isTestAccount && !isDemo && (
             <div className="mb-4 bg-yellow-50 border border-yellow-200 rounded-lg p-3">
               <p className="text-sm text-yellow-800">Your account is pending approval.</p>
             </div>

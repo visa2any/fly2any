@@ -3,6 +3,7 @@ import { auth } from "@/lib/auth";
 import { redirect } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import Link from "next/link";
+import { DEMO_STATS, DEMO_RECENT_QUOTES } from "@/lib/demo/agent-demo-data";
 
 export const dynamic = "force-dynamic";
 
@@ -18,49 +19,73 @@ export default async function AgentDashboardPage() {
     redirect("/auth/signin?callbackUrl=/agent");
   }
 
-  const agent = await prisma?.travelAgent.findUnique({
-    where: { userId: session.user.id },
-    select: { id: true, tier: true, businessName: true },
-  });
+  // Check if demo mode
+  const isDemo = session.user.id === 'demo-agent-001' || session.user.email === 'demo@fly2any.com';
 
-  if (!agent) {
-    redirect("/agent/register");
+  let agent: { id: string; tier: string; businessName: string | null };
+  let quotesCount: number;
+  let bookingsCount: number;
+  let clientsCount: number;
+  let totalEarnings: number;
+  let recentQuotes: Array<{ id: string; tripName: string; status: string; total: number; destination: string | null }>;
+
+  if (isDemo) {
+    // Use demo data
+    agent = { id: 'demo-agent-001', tier: 'DEMO', businessName: 'Demo Travel Agency' };
+    quotesCount = DEMO_STATS.quotesCount;
+    bookingsCount = DEMO_STATS.bookingsCount;
+    clientsCount = DEMO_STATS.clientsCount;
+    totalEarnings = DEMO_STATS.totalEarnings;
+    recentQuotes = DEMO_RECENT_QUOTES.map(q => ({
+      id: q.id,
+      tripName: q.tripName,
+      status: q.status,
+      total: q.total,
+      destination: q.destination,
+    }));
+  } else {
+    // Normal flow - fetch from DB
+    const dbAgent = await prisma?.travelAgent.findUnique({
+      where: { userId: session.user.id },
+      select: { id: true, tier: true, businessName: true },
+    });
+
+    if (!dbAgent) {
+      redirect("/agent/register");
+    }
+
+    agent = { id: dbAgent.id, tier: dbAgent.tier, businessName: dbAgent.businessName };
+
+    const [qc, bc, cc, cd] = await Promise.all([
+      prisma?.agentQuote.count({ where: { agentId: agent.id } }) || 0,
+      prisma?.agentBooking.count({ where: { agentId: agent.id } }) || 0,
+      prisma?.agentClient.count({ where: { agentId: agent.id, status: { not: "ARCHIVED" } } }) || 0,
+      prisma?.agentCommission.aggregate({
+        where: { agentId: agent.id, status: { not: "CANCELLED" } },
+        _sum: { agentEarnings: true },
+      }),
+    ]);
+
+    quotesCount = qc;
+    bookingsCount = bc;
+    clientsCount = cc;
+    totalEarnings = Number(cd?._sum?.agentEarnings) || 0;
+
+    const recentQuotesRaw = await prisma?.agentQuote.findMany({
+      where: { agentId: agent.id },
+      select: { id: true, tripName: true, status: true, total: true, destination: true },
+      orderBy: { createdAt: "desc" },
+      take: 5,
+    });
+
+    recentQuotes = (recentQuotesRaw || []).map((q: any) => ({
+      id: String(q.id),
+      tripName: String(q.tripName || "Untitled"),
+      status: String(q.status || "DRAFT"),
+      total: Number(q.total) || 0,
+      destination: q.destination ? String(q.destination) : null,
+    }));
   }
-
-  // Fetch stats in parallel
-  const [quotesCount, bookingsCount, clientsCount, commissionsData] = await Promise.all([
-    prisma?.agentQuote.count({ where: { agentId: agent.id } }) || 0,
-    prisma?.agentBooking.count({ where: { agentId: agent.id } }) || 0,
-    prisma?.agentClient.count({ where: { agentId: agent.id, status: { not: "ARCHIVED" } } }) || 0,
-    prisma?.agentCommission.aggregate({
-      where: { agentId: agent.id, status: { not: "CANCELLED" } },
-      _sum: { agentEarnings: true },
-    }),
-  ]);
-
-  const totalEarnings = Number(commissionsData?._sum?.agentEarnings) || 0;
-
-  // Recent quotes
-  const recentQuotesRaw = await prisma?.agentQuote.findMany({
-    where: { agentId: agent.id },
-    select: {
-      id: true,
-      tripName: true,
-      status: true,
-      total: true,
-      destination: true,
-    },
-    orderBy: { createdAt: "desc" },
-    take: 5,
-  });
-
-  const recentQuotes = (recentQuotesRaw || []).map((q: any) => ({
-    id: String(q.id),
-    tripName: String(q.tripName || "Untitled"),
-    status: String(q.status || "DRAFT"),
-    total: Number(q.total) || 0,
-    destination: q.destination ? String(q.destination) : null,
-  }));
 
   const statusColors: Record<string, string> = {
     DRAFT: "bg-gray-100 text-gray-700",
