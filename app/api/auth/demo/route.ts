@@ -1,7 +1,6 @@
 // app/api/auth/demo/route.ts
 // Demo Agent Login - Creates temp session for dashboard preview
 import { NextRequest, NextResponse } from "next/server";
-import { cookies } from "next/headers";
 import { encode } from "next-auth/jwt";
 
 export const dynamic = "force-dynamic";
@@ -47,30 +46,31 @@ export async function POST(req: NextRequest) {
       expiresIn: "30 minutes",
     });
 
-    // Set cookie via response headers (more reliable than cookies())
-    const cookieName = process.env.NODE_ENV === "production"
-      ? "__Secure-next-auth.session-token"
-      : "next-auth.session-token";
+    const isProd = process.env.NODE_ENV === "production";
 
-    response.cookies.set(cookieName, token, {
+    // Auth.js v5 cookie names (changed from next-auth to authjs)
+    // Set both authjs and next-auth cookies for compatibility
+    const cookieOptions = {
       httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
-      sameSite: "lax",
+      secure: isProd,
+      sameSite: "lax" as const,
       path: "/",
       maxAge: 30 * 60,
-    });
+    };
 
-    // Also set without prefix for compatibility
-    if (process.env.NODE_ENV === "production") {
-      response.cookies.set("next-auth.session-token", token, {
-        httpOnly: true,
-        secure: true,
-        sameSite: "lax",
-        path: "/",
-        maxAge: 30 * 60,
-      });
+    // Primary: Auth.js v5 cookie names
+    if (isProd) {
+      response.cookies.set("__Secure-authjs.session-token", token, cookieOptions);
     }
+    response.cookies.set("authjs.session-token", token, cookieOptions);
 
+    // Fallback: Legacy next-auth cookie names (for compatibility)
+    if (isProd) {
+      response.cookies.set("__Secure-next-auth.session-token", token, cookieOptions);
+    }
+    response.cookies.set("next-auth.session-token", token, cookieOptions);
+
+    console.log("[DEMO_AUTH] Session created for demo-agent-001");
     return response;
   } catch (error) {
     console.error("[DEMO_AUTH_ERROR]", error);
