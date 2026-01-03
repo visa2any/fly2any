@@ -162,14 +162,26 @@ export default function FlightSearchPanel() {
       total: params.adults + params.children + params.infants,
     });
 
-    // Sync form data to unified context
-    syncFromFlightForm({
+    // Build search context once - use for both sync and search
+    const searchContext = {
       origin: params.origin[0] || "",
       originCode: params.origin[0] || "",
       destination: params.destination[0] || "",
       destinationCode: params.destination[0] || "",
-      departDate,
-      returnDate: params.returnDate || departDate,
+      startDate: departDate,
+      endDate: params.returnDate || departDate,
+      travelers: { adults: params.adults, children: params.children, infants: params.infants, total: totalPassengers },
+      cabinClass: params.cabinClass,
+    };
+
+    // Sync form data to unified context (for display purposes)
+    syncFromFlightForm({
+      origin: searchContext.origin,
+      originCode: searchContext.originCode,
+      destination: searchContext.destination,
+      destinationCode: searchContext.destinationCode,
+      departDate: searchContext.startDate,
+      returnDate: searchContext.endDate,
       adults: params.adults,
       children: params.children,
       infants: params.infants,
@@ -201,10 +213,9 @@ export default function FlightSearchPanel() {
         queryParams.append("tripDuration", params.tripDuration.toString());
       }
 
-      // ═══ PARALLEL SEARCH: Flights + Other Products ═══
-      // Start unified search for Hotels/Cars/Activities/Transfers NOW (not after flights complete)
-      // Use setTimeout to allow React state to update before search reads the new context
-      setTimeout(() => executeUnifiedSearch(), 0);
+      // ═══ PARALLEL SEARCH: Hotels/Cars/Activities/Transfers ═══
+      // Pass context directly to avoid race condition with state updates
+      executeUnifiedSearch(searchContext);
 
       // Flights search
       const res = await fetch(`/api/flights/search?${queryParams}`);

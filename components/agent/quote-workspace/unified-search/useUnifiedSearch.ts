@@ -178,9 +178,11 @@ export function useUnifiedSearch() {
   // PARALLEL SEARCH EXECUTION
   // ═══════════════════════════════════════════════════════════════════════════
 
-  const executeSearch = useCallback(async () => {
-    // Use ref to get latest state (avoids stale closure from syncFromFlightForm race)
-    const { context, scope } = stateRef.current;
+  const executeSearch = useCallback(async (overrideContext?: Partial<UnifiedSearchState["context"]>) => {
+    // Get current state, with optional context override for sync calls
+    const currentState = stateRef.current;
+    const context = overrideContext ? { ...currentState.context, ...overrideContext } : currentState.context;
+    const scope = currentState.scope;
 
     // Validate minimum context
     if (!context.destination && !context.destinationCode) {
