@@ -135,10 +135,12 @@ export default async function RootLayout({
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
         <link rel="preconnect" href="https://www.googletagmanager.com" />
 
-        {/* DNS Prefetch + Preconnect for critical APIs */}
+        {/* DNS Prefetch + Preconnect for critical APIs & CDNs */}
         <link rel="preconnect" href="https://api.amadeus.com" />
-        <link rel="preconnect" href="https://assets.duffel.com" />
-        <link rel="dns-prefetch" href="https://images.unsplash.com" />
+        <link rel="preconnect" href="https://assets.duffel.com" crossOrigin="anonymous" />
+        <link rel="preconnect" href="https://images.unsplash.com" crossOrigin="anonymous" />
+        <link rel="preconnect" href="https://static.cupid.travel" crossOrigin="anonymous" />
+        <link rel="dns-prefetch" href="https://images.holibob.tech" />
         <link rel="dns-prefetch" href="https://www.google-analytics.com" />
 
         {/* Font preload handled by next/font/google - manual preload removed to prevent 404 */}

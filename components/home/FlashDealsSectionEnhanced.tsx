@@ -197,7 +197,7 @@ export function FlashDealsSectionEnhanced({ lang = 'en' }: FlashDealsSectionEnha
   };
 
   return (
-    <section className="py-2 md:py-6 lg:py-10" style={{ maxWidth: '1600px', margin: '0 auto' }}>
+    <section className="py-2 md:py-6 lg:py-10" style={{ maxWidth: '1600px', margin: '0 auto', minHeight: '340px' }}>
       {/* Section Header - Level-6: Desktop prominent */}
       <div className="flex items-center justify-between mb-3 md:mb-6 px-3 md:px-0">
         <div className="flex items-center gap-2 md:gap-3 min-w-0">

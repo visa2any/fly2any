@@ -18,6 +18,8 @@ export async function GET(request: NextRequest) {
     const longitude = parseFloat(searchParams.get('longitude') || '0');
     const radius = parseInt(searchParams.get('radius') || '20');
     const type = searchParams.get('type') || 'all';
+    const limit = Math.min(parseInt(searchParams.get('limit') || '12'), 50); // Default 12, max 50
+    const offset = parseInt(searchParams.get('offset') || '0');
 
     if (!latitude || !longitude) {
       return NextResponse.json({
@@ -36,10 +38,27 @@ export async function GET(request: NextRequest) {
     const cacheKey = generateCacheKey('activities:search:v5', { lat: roundedLat, lng: roundedLng, r: radius, t: type });
 
     // Check cache first (4 hour TTL) - FAST PATH
-    const cached = await getCached<any>(cacheKey);
+    // Cache stores full enriched results, we paginate from cache
+    const cached = await getCached<any[]>(cacheKey);
     if (cached) {
-      console.log(`⚡ Activities cache HIT for ${roundedLat},${roundedLng}`);
-      return NextResponse.json(cached, {
+      console.log(`⚡ Activities cache HIT for ${roundedLat},${roundedLng} (${cached.length} items)`);
+      const totalCount = cached.length;
+      const paginatedFromCache = cached.slice(offset, offset + limit);
+      return NextResponse.json({
+        success: true,
+        data: paginatedFromCache,
+        meta: {
+          count: paginatedFromCache.length,
+          total: totalCount,
+          limit,
+          offset,
+          hasMore: offset + limit < totalCount,
+          type,
+          location: { latitude, longitude, radius },
+          responseTime: '< 50ms',
+          cached: true
+        }
+      }, {
         headers: { 'X-Cache': 'HIT', 'X-Response-Time': '< 50ms', 'Cache-Control': 'public, max-age=14400' }
       });
     }
@@ -170,24 +189,33 @@ export async function GET(request: NextRequest) {
       };
     });
 
+    // Apply pagination AFTER all filtering/enrichment
+    const totalCount = enrichedActivities.length;
+    const paginatedActivities = enrichedActivities.slice(offset, offset + limit);
+
     const response = {
       success: true,
-      data: enrichedActivities,
+      data: paginatedActivities,
       meta: {
-        count: activities.length,
+        count: paginatedActivities.length,
+        total: totalCount,
+        limit,
+        offset,
+        hasMore: offset + limit < totalCount,
         type,
         location: { latitude, longitude, radius },
         responseTime: `${responseTime}ms`,
-        message: activities.length === 0
+        message: totalCount === 0
           ? (apiError ? 'Activities search temporarily unavailable.' : 'No activities found for this location.')
           : undefined
       }
     };
 
-    // Cache for 4 hours (or 5 min for empty results)
-    const cacheTTL = activities.length > 0 ? 14400 : 300;
-    await setCache(cacheKey, response, cacheTTL);
-    console.log(`✅ Found ${activities.length} ${type} in ${responseTime}ms - cached for ${cacheTTL}s`);
+    // Cache FULL enriched results for 4 hours (or 5 min for empty)
+    // Pagination is applied at response time, not cache time
+    const cacheTTL = enrichedActivities.length > 0 ? 14400 : 300;
+    await setCache(cacheKey, enrichedActivities, cacheTTL);
+    console.log(`✅ Found ${totalCount} ${type} (returning ${paginatedActivities.length}) in ${responseTime}ms - cached for ${cacheTTL}s`);
 
     return NextResponse.json(response, {
       headers: {

@@ -43,10 +43,8 @@ export const authEdgeConfig = {
         return isLoggedIn; // Only authenticated users can access account pages
       }
 
-      if (isAuthPage && isLoggedIn) {
-        return Response.redirect(new URL('/account', nextUrl));
-      }
-
+      // Don't handle auth page redirects here - let middleware handle it
+      // This allows middleware to properly process callbackUrl parameters
       return true;
     },
     async jwt({ token, user }) {

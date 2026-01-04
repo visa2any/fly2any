@@ -30,12 +30,12 @@ type ServiceType = 'flights' | 'hotels' | 'cars' | 'tours' | 'activities' | 'tra
 
 const HERO_PHOTOS: Record<ServiceType, { name: string; image: string }[]> = {
   flights: [
-    { name: 'Airplane Window Clouds', image: 'https://images.unsplash.com/photo-1436491865332-7a61a109cc05?w=1920&q=95' },
-    { name: 'Maldives Paradise', image: 'https://images.unsplash.com/photo-1514282401047-d79a71a590e8?w=1920&q=95' },
-    { name: 'Santorini Greece', image: 'https://images.unsplash.com/photo-1570077188670-e3a8d69ac5ff?w=1920&q=95' },
-    { name: 'Bora Bora Beach', image: 'https://images.unsplash.com/photo-1589197331516-4d84b72ebde3?w=1920&q=95' },
-    { name: 'Dubai Skyline', image: 'https://images.unsplash.com/photo-1512453979798-5ea266f8880c?w=1920&q=95' },
-    { name: 'Northern Lights', image: 'https://images.unsplash.com/photo-1531366936337-7c912a4589a7?w=1920&q=95' },
+    { name: 'Airplane Window Clouds', image: 'https://images.unsplash.com/photo-1436491865332-7a61a109cc05?w=1920&q=75' },
+    { name: 'Maldives Paradise', image: 'https://images.unsplash.com/photo-1514282401047-d79a71a590e8?w=1920&q=75' },
+    { name: 'Santorini Greece', image: 'https://images.unsplash.com/photo-1570077188670-e3a8d69ac5ff?w=1920&q=75' },
+    { name: 'Bora Bora Beach', image: 'https://images.unsplash.com/photo-1589197331516-4d84b72ebde3?w=1920&q=75' },
+    { name: 'Dubai Skyline', image: 'https://images.unsplash.com/photo-1512453979798-5ea266f8880c?w=1920&q=75' },
+    { name: 'Northern Lights', image: 'https://images.unsplash.com/photo-1531366936337-7c912a4589a7?w=1920&q=75' },
   ],
   hotels: [
     { name: 'Luxury Suite', image: 'https://images.unsplash.com/photo-1618773928121-c32242e63f39?w=1920&q=90' },

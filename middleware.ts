@@ -81,8 +81,14 @@ export default authEdge((req) => {
   // Redirect logged-in users away from auth pages
   const isAuthPage = nextUrl.pathname.startsWith('/auth/signin');
   const callbackUrl = nextUrl.searchParams.get('callbackUrl');
-  if (isAuthPage && isLoggedIn && !callbackUrl) {
-    // Only redirect if there's NO callbackUrl - let NextAuth handle callbackUrl redirects
+  
+  if (isAuthPage && isLoggedIn) {
+    if (callbackUrl) {
+      // Honor the callbackUrl even when already logged in
+      // This fixes the agent registration flow for authenticated users
+      return NextResponse.redirect(new URL(callbackUrl, nextUrl.origin));
+    }
+    // Only redirect to /account if there's no callbackUrl
     return NextResponse.redirect(new URL('/account', nextUrl.origin));
   }
 

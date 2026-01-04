@@ -2,7 +2,7 @@
 
 import { useState, useEffect, Suspense } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
-import { Plane, ChevronLeft, ChevronRight, ArrowLeft, Loader2, User, Clock, CheckCircle2, Star, Home, X, Armchair, Info } from 'lucide-react';
+import { Plane, ChevronLeft, ChevronRight, ArrowLeft, Loader2, User, Clock, CheckCircle2, Star, Home, X, Armchair, Info, Shield } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { formatCityCode } from '@/lib/data/airports';
 import { FareSelector } from '@/components/booking/FareSelector';
@@ -1135,62 +1135,82 @@ function BookingPageContent() {
   const totalPrice = farePrice + addOns.reduce((sum, item) => sum + item.amount, 0) + taxesAndFees;
 
   return (
-    <div className="min-h-screen bg-gray-50 pb-16 sm:pb-0">
-      {/* Header - Auto-hides on scroll down (Phase 8 Track 2B.1) */}
+    <div className="min-h-screen bg-gradient-to-b from-layer-0 to-layer-1 pb-16 sm:pb-0">
+      {/* Premium Header - Level 6 Apple Ultra Premium */}
       <div
-        className="bg-white border-b border-gray-200 sticky top-0 z-40 shadow-sm"
+        className="bg-white/95 backdrop-blur-xl border-b border-gray-200/50 sticky top-0 z-40 shadow-level-md"
         style={{
           transform: scrollDirection === 'down' && !isAtTop ? 'translateY(-100%)' : 'translateY(0)',
-          transition: 'transform 300ms cubic-bezier(0.4, 0.0, 0.2, 1)',
+          transition: 'transform 300ms cubic-bezier(0.2, 0.8, 0.2, 1)',
           willChange: 'transform',
         }}
       >
         <div className="max-w-7xl mx-auto px-0 sm:px-4 py-2 sm:py-3">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-1 sm:gap-1.5 md:gap-3 px-2 sm:px-0">
-              {/* Back to Search Results Button */}
+              {/* Premium Back Button */}
               <button
                 onClick={() => router.back()}
-                className="flex items-center gap-1 sm:gap-1.5 px-1.5 sm:px-3 py-1.5 text-sm font-medium text-gray-600 hover:text-primary-600 hover:bg-primary-50 rounded-lg transition-all"
+                className="flex items-center gap-1 sm:gap-1.5 px-1.5 sm:px-3 py-1.5 text-sm font-medium text-gray-600 hover:text-primary-600 hover:bg-primary-50 rounded-lg transition-all duration-fast apple"
                 aria-label="Go back to search results"
               >
                 <ArrowLeft className="w-4 h-4" />
                 <span className="hidden sm:inline">Back to Results</span>
               </button>
               <div className="h-6 w-px bg-gray-200 hidden sm:block" />
-              <Plane className="w-5 h-5 sm:w-6 sm:h-6 text-primary-500" />
-              <h1 className="text-sm sm:text-xl font-bold text-gray-900">Complete Booking</h1>
+              <div className="flex items-center gap-2">
+                <div className="w-8 h-8 sm:w-10 sm:h-10 bg-gradient-to-br from-primary-500 to-primary-600 rounded-full flex items-center justify-center shadow-primary">
+                  <Plane className="w-4 h-4 sm:w-5 sm:h-5 text-white" />
+                </div>
+                <h1 className="text-sm sm:text-xl font-bold text-gray-900 bg-gradient-to-r from-gray-900 to-gray-700 bg-clip-text text-transparent">
+                  Complete Booking
+                </h1>
+              </div>
             </div>
 
-            {/* Progress Steps - Compact on mobile */}
+            {/* Premium Progress Steps */}
             <div className="flex items-center gap-1 sm:gap-2 px-2 sm:px-0">
               {[1, 2, 3].map((step) => (
                 <div key={step} className="flex items-center gap-1 sm:gap-2">
                   <div
                     className={`
-                      w-6 h-6 sm:w-8 sm:h-8 rounded-full flex items-center justify-center text-xs sm:text-sm font-bold transition-all
+                      w-6 h-6 sm:w-8 sm:h-8 rounded-full flex items-center justify-center text-xs sm:text-sm font-bold transition-all duration-fast apple
                       ${currentStep >= step
-                        ? 'bg-primary-500 text-white'
-                        : 'bg-gray-200 text-gray-500'
+                        ? 'bg-gradient-to-br from-primary-500 to-primary-600 text-white shadow-primary'
+                        : 'bg-gray-100 text-gray-400 border border-gray-200'
                       }
                     `}
                   >
                     {step}
                   </div>
-                  {step < 3 && <div className={`w-4 sm:w-12 h-1 ${currentStep > step ? 'bg-primary-500' : 'bg-gray-200'}`} />}
+                  {step < 3 && (
+                    <div className={`
+                      w-4 sm:w-12 h-1 rounded-full transition-all duration-fast apple
+                      ${currentStep > step 
+                        ? 'bg-gradient-to-r from-primary-500 to-primary-600' 
+                        : 'bg-gray-200'
+                      }
+                    `} />
+                  )}
                 </div>
               ))}
             </div>
           </div>
 
-          {/* Step Labels - Hidden on mobile */}
+          {/* Premium Step Labels */}
           <div className="hidden sm:flex justify-between mt-2 text-xs font-medium">
-            <span className={currentStep === 1 ? 'text-primary-600' : 'text-gray-500'}>Customize Flight</span>
-            <span className={currentStep === 2 ? 'text-primary-600' : 'text-gray-500'}>Traveler Details</span>
-            <span className={currentStep === 3 ? 'text-primary-600' : 'text-gray-500'}>Review & Pay</span>
+            <span className={currentStep === 1 ? 'text-primary-600 font-bold' : 'text-gray-500'}>
+              ✈️ Customize Flight
+            </span>
+            <span className={currentStep === 2 ? 'text-primary-600 font-bold' : 'text-gray-500'}>
+              👤 Traveler Details
+            </span>
+            <span className={currentStep === 3 ? 'text-primary-600 font-bold' : 'text-gray-500'}>
+              💳 Review & Pay
+            </span>
           </div>
 
-          {/* Offer Countdown Timer - Shows warning when close to expiration */}
+          {/* Premium Offer Countdown */}
           {flightData?.source === 'Duffel' && (
             <div className="mt-2 px-2 sm:px-0">
               <OfferCountdown
@@ -1208,10 +1228,10 @@ function BookingPageContent() {
         </div>
       </div>
 
-      {/* Main Content */}
+      {/* Main Content - Level 6 Apple Premium Layout */}
       <div className="max-w-7xl mx-auto px-1 sm:px-4 py-2 sm:py-4">
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-1 sm:gap-4">
-          {/* Left Column: Steps */}
+          {/* Left Column: Steps - Premium Card Stack */}
           <div className="lg:col-span-2 space-y-1 sm:space-y-4">
             {/* STEP 1: Customize Flight */}
             {currentStep === 1 && (
@@ -1455,6 +1475,101 @@ function BookingPageContent() {
             {/* STEP 3: Review & Pay */}
             {currentStep === 3 && (
               <div className="animate-fadeIn space-y-4">
+                {/* Guest Checkout Option */}
+                <div className="bg-white border border-gray-200 rounded-lg overflow-hidden">
+                  <div className="bg-gradient-to-r from-primary-500 to-primary-600 px-4 py-3 text-white">
+                    <h3 className="text-base font-bold flex items-center gap-2">
+                      <User className="w-5 h-5" />
+                      Complete Your Booking
+                    </h3>
+                    <p className="text-sm opacity-90 mt-1">
+                      Choose how you'd like to proceed with your booking
+                    </p>
+                  </div>
+                  <div className="p-4">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      {/* Guest Checkout Option */}
+                      <div className="border-2 border-primary-200 rounded-xl p-4 bg-gradient-to-br from-primary-50 to-white hover:border-primary-300 transition-all cursor-pointer">
+                        <div className="flex items-start gap-3">
+                          <div className="w-10 h-10 bg-primary-100 rounded-full flex items-center justify-center text-primary-600">
+                            <User className="w-5 h-5" />
+                          </div>
+                          <div className="flex-1">
+                            <h4 className="font-bold text-gray-900 text-sm">Guest Checkout</h4>
+                            <p className="text-xs text-gray-600 mt-1">
+                              Book without creating an account. You'll receive your booking confirmation via email.
+                            </p>
+                            <div className="mt-3 space-y-2">
+                              <div className="flex items-center gap-2 text-xs text-gray-700">
+                                <Check className="w-3 h-3 text-green-600" />
+                                <span>No password required</span>
+                              </div>
+                              <div className="flex items-center gap-2 text-xs text-gray-700">
+                                <Check className="w-3 h-3 text-green-600" />
+                                <span>Instant booking confirmation</span>
+                              </div>
+                              <div className="flex items-center gap-2 text-xs text-gray-700">
+                                <Check className="w-3 h-3 text-green-600" />
+                                <span>Create account later if needed</span>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                        <div className="mt-4 pt-3 border-t border-primary-100">
+                          <p className="text-xs text-gray-500">
+                            <strong>Note:</strong> You can create an account after booking using the link in your confirmation email.
+                          </p>
+                        </div>
+                      </div>
+
+                      {/* Create Account Option */}
+                      <div className="border-2 border-gray-200 rounded-xl p-4 bg-gradient-to-br from-gray-50 to-white hover:border-gray-300 transition-all cursor-pointer">
+                        <div className="flex items-start gap-3">
+                          <div className="w-10 h-10 bg-gray-100 rounded-full flex items-center justify-center text-gray-600">
+                            <Shield className="w-5 h-5" />
+                          </div>
+                          <div className="flex-1">
+                            <h4 className="font-bold text-gray-900 text-sm">Create Account</h4>
+                            <p className="text-xs text-gray-600 mt-1">
+                              Sign up for free to manage bookings, earn rewards, and get exclusive deals.
+                            </p>
+                            <div className="mt-3 space-y-2">
+                              <div className="flex items-center gap-2 text-xs text-gray-700">
+                                <Check className="w-3 h-3 text-blue-600" />
+                                <span>Manage all bookings in one place</span>
+                              </div>
+                              <div className="flex items-center gap-2 text-xs text-gray-700">
+                                <Check className="w-3 h-3 text-blue-600" />
+                                <span>Earn rewards points on every booking</span>
+                              </div>
+                              <div className="flex items-center gap-2 text-xs text-gray-700">
+                                <Check className="w-3 h-3 text-blue-600" />
+                                <span>Get exclusive member-only deals</span>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                        <div className="mt-4 pt-3 border-t border-gray-100">
+                          <p className="text-xs text-gray-500">
+                            <strong>Benefit:</strong> Members save an average of 15% on future bookings.
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Guest Checkout Notice */}
+                    <div className="mt-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                      <div className="flex items-start gap-2">
+                        <Info className="w-4 h-4 text-blue-600 mt-0.5 flex-shrink-0" />
+                        <p className="text-xs text-blue-800">
+                          <strong>Guest checkout selected:</strong> You'll receive your booking confirmation via email. 
+                          You can create an account anytime using the link in your confirmation email to manage your booking and earn rewards.
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
                 {/* Promo Code Section */}
                 <PromoCodeSection
                   totalPrice={totalPrice}
