@@ -1927,8 +1927,12 @@ export default function EnhancedSearchBar({
 
             {showPassengerDropdown && (
               <div
-                className="absolute top-full mt-2 left-0 bg-white rounded-xl shadow-2xl border border-gray-200 z-50 animate-in fade-in slide-in-from-top-2 duration-200 p-3"
-                style={{ width: '280px' }}
+                className="fixed bg-white rounded-xl shadow-2xl border border-gray-200 z-[9999] animate-in fade-in slide-in-from-top-2 duration-200 p-3"
+                style={{
+                  width: '280px',
+                  top: passengerRef.current ? `${passengerRef.current.getBoundingClientRect().bottom + 8}px` : 'auto',
+                  left: passengerRef.current ? `${passengerRef.current.getBoundingClientRect().left}px` : 'auto'
+                }}
               >
                 {/* Adults */}
                 <div className="flex items-center justify-between mb-3">
