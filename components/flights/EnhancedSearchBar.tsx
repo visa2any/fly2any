@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useRef, useEffect, useTransition } from 'react';
+import { createPortal } from 'react-dom';
 import { Plane, Calendar, Users, ChevronDown, ArrowLeftRight, PlaneTakeoff, PlaneLanding, CalendarDays, CalendarCheck, ArrowRight, Sparkles, Armchair, X, Hotel, Car, Map, MapPin, Building2, Plus, Minus, Activity, Package, Shield, Check, Globe, Navigation, LogIn, LogOut, BedDouble, Moon, User, Baby, Search, Compass, Clock } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { format } from 'date-fns';
@@ -1925,10 +1926,14 @@ export default function EnhancedSearchBar({
               <ChevronDown className={`absolute right-3 top-1/2 -translate-y-1/2 transition-transform duration-200 ${showPassengerDropdown ? 'rotate-180' : ''} ${transparent ? "text-white/50" : "text-neutral-400"}`} size={16} />
             </button>
 
-            {showPassengerDropdown && (
+            {showPassengerDropdown && typeof window !== 'undefined' && createPortal(
               <div
-                className="absolute top-full mt-2 left-0 bg-white rounded-xl shadow-2xl border border-gray-200 z-[9999] animate-in fade-in slide-in-from-top-2 duration-200 p-2.5"
-                style={{ width: '280px' }}
+                className="fixed bg-white rounded-xl shadow-2xl border border-gray-200 z-[99999] animate-in fade-in slide-in-from-top-2 duration-200 p-2.5"
+                style={{
+                  width: '280px',
+                  top: passengerRef.current ? `${passengerRef.current.getBoundingClientRect().bottom + 8}px` : '0px',
+                  left: passengerRef.current ? `${passengerRef.current.getBoundingClientRect().left}px` : '0px',
+                }}
               >
                 {/* Adults */}
                 <div className="flex items-center justify-between mb-2">
@@ -2078,7 +2083,8 @@ export default function EnhancedSearchBar({
                 >
                   {t('done')}
                 </button>
-              </div>
+              </div>,
+              document.body
             )}
           </div>
 
