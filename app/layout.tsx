@@ -143,6 +143,14 @@ export default async function RootLayout({
         <link rel="dns-prefetch" href="https://images.holibob.tech" />
         <link rel="dns-prefetch" href="https://www.google-analytics.com" />
 
+        {/* Preload LCP hero image for faster initial paint */}
+        <link
+          rel="preload"
+          as="image"
+          href="https://images.unsplash.com/photo-1436491865332-7a61a109cc05?w=1280&q=70&auto=format"
+          fetchPriority="high"
+        />
+
         {/* Font preload handled by next/font/google - manual preload removed to prevent 404 */}
         {/* PWA Meta Tags - Enhanced mobile browser chrome integration */}
         <meta name="mobile-web-app-capable" content="yes" />
