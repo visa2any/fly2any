@@ -448,6 +448,7 @@ export default function EnhancedSearchBar({
 
   // Refs
   const passengerRef = useRef<HTMLDivElement>(null);
+  const passengerButtonRef = useRef<HTMLButtonElement>(null);
   const departureDateRef = useRef<HTMLButtonElement>(null);
   const returnDateRef = useRef<HTMLButtonElement>(null);
   const originRef = useRef<HTMLDivElement>(null);
@@ -1910,6 +1911,7 @@ export default function EnhancedSearchBar({
               <span>{labels.travelers}</span>
             </label>
             <button
+              ref={passengerButtonRef}
               type="button"
               onClick={() => {
                 closeAllDropdowns();
@@ -1931,8 +1933,8 @@ export default function EnhancedSearchBar({
                 className="fixed bg-white rounded-xl shadow-2xl border border-gray-200 z-[99999] animate-in fade-in slide-in-from-top-2 duration-200 p-2.5"
                 style={{
                   width: '280px',
-                  top: passengerRef.current ? `${passengerRef.current.getBoundingClientRect().bottom + 8}px` : '0px',
-                  left: passengerRef.current ? `${passengerRef.current.getBoundingClientRect().left}px` : '0px',
+                  top: passengerButtonRef.current ? `${passengerButtonRef.current.getBoundingClientRect().bottom + 8}px` : '0px',
+                  left: passengerButtonRef.current ? `${passengerButtonRef.current.getBoundingClientRect().left}px` : '0px',
                 }}
               >
                 {/* Adults */}
