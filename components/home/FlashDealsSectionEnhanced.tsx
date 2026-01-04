@@ -224,11 +224,18 @@ export function FlashDealsSectionEnhanced({ lang = 'en' }: FlashDealsSectionEnha
       {/* Divider - Compact */}
       <div className="h-px bg-neutral-200/80 mb-3 md:mb-4 mx-4 md:mx-0"></div>
 
-      {/* Loading State */}
+      {/* Loading State - Skeleton cards matching content height to prevent CLS */}
       {loading && (
-        <div className="flex flex-col items-center justify-center py-16">
-          <Loader2 className="w-12 h-12 text-primary-600 animate-spin mb-4" />
-          <p className="text-gray-600 font-semibold">{t.loading}</p>
+        <div className="flex gap-2 md:gap-4 overflow-x-auto pb-4 px-3 md:px-0 scrollbar-hide">
+          {[...Array(6)].map((_, i) => (
+            <div key={i} className="flex-shrink-0 w-[280px] md:w-[320px] bg-white rounded-lg overflow-hidden animate-pulse">
+              <div className="aspect-[16/9] bg-gray-200" />
+              <div className="p-3">
+                <div className="h-4 bg-gray-200 rounded w-3/4 mb-2" />
+                <div className="h-3 bg-gray-200 rounded w-1/2" />
+              </div>
+            </div>
+          ))}
         </div>
       )}
 
