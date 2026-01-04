@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { format } from 'date-fns';
 import { AirportAutocomplete } from './AirportAutocomplete';
@@ -185,6 +185,8 @@ export default function FlightSearchForm({
   const [isLoading, setIsLoading] = useState(false);
   const [errors, setErrors] = useState<Partial<Record<keyof FormData, string>>>({});
   const [isPassengerDropdownOpen, setIsPassengerDropdownOpen] = useState(false);
+  const [dropdownPosition, setDropdownPosition] = useState<{ top: number; right: number } | null>(null);
+  const passengerButtonRef = useRef<HTMLButtonElement>(null);
 
   const [formData, setFormData] = useState<FormData>({
     origin: [],  // Start with empty array
@@ -848,13 +850,19 @@ export default function FlightSearchForm({
             {t.passengers}
           </label>
           <button
+            ref={passengerButtonRef}
             type="button"
             onClick={() => {
-              setIsPassengerDropdownOpen(!isPassengerDropdownOpen);
-              if (!isPassengerDropdownOpen) {
+              if (!isPassengerDropdownOpen && passengerButtonRef.current) {
+                const rect = passengerButtonRef.current.getBoundingClientRect();
+                setDropdownPosition({
+                  top: rect.bottom + 8,
+                  right: window.innerWidth - rect.right,
+                });
                 setTempPassengers(formData.passengers);
                 setTempClass(formData.travelClass);
               }
+              setIsPassengerDropdownOpen(!isPassengerDropdownOpen);
             }}
             className="w-full pl-12 pr-4 py-4 border-2 border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all text-left flex items-center justify-between bg-white hover:border-gray-400"
             aria-label={t.passengers}
@@ -874,11 +882,14 @@ export default function FlightSearchForm({
             </svg>
           </button>
 
-          {/* Passenger Dropdown - Desktop */}
-          {isPassengerDropdownOpen && (
+          {/* Passenger Dropdown - Desktop - Fixed positioning to escape overflow:hidden */}
+          {isPassengerDropdownOpen && dropdownPosition && (
             <>
               <div className="fixed inset-0 z-[9998]" onClick={() => setIsPassengerDropdownOpen(false)} />
-              <div className="absolute z-[9999] mt-2 bg-white border-2 border-gray-200 rounded-2xl shadow-2xl p-6 w-96 right-0">
+              <div
+                className="fixed z-[9999] bg-white border-2 border-gray-200 rounded-2xl shadow-2xl p-6 w-96"
+                style={{ top: dropdownPosition.top, right: dropdownPosition.right }}
+              >
               {/* Passenger Counts */}
               <div className="space-y-4 mb-6">
                 {/* Adults */}
