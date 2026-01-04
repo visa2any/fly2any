@@ -1,0 +1,226 @@
+{
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "Organization",
+      "@id": "https://fly2any.com/#organization",
+      "name": "Fly2Any",
+      "url": "https://fly2any.com",
+      "description": "On-demand private aviation platform offering flexible access to private jets and helicopter flights in the United States.",
+      "sameAs": [
+        "https://www.linkedin.com/company/fly2any",
+        "https://www.yelp.com/biz/fly2any"
+      ],
+      "logo": {
+        "@type": "ImageObject",
+        "url": "https://fly2any.com/logo.png",
+        "width": 600,
+        "height": 60
+      },
+      "contactPoint": {
+        "@type": "ContactPoint",
+        "contactType": "customer service",
+        "telephone": "+1-800-FLY2ANY",
+        "email": "info@fly2any.com",
+        "availableLanguage": ["English"]
+      },
+      "address": {
+        "@type": "PostalAddress",
+        "addressCountry": "US"
+      }
+    },
+    {
+      "@type": "WebSite",
+      "@id": "https://fly2any.com/#website",
+      "url": "https://fly2any.com",
+      "name": "Fly2Any",
+      "description": "On-demand private aviation platform for private jets and helicopter flights",
+      "publisher": {
+        "@id": "https://fly2any.com/#organization"
+      },
+      "potentialAction": {
+        "@type": "SearchAction",
+        "target": {
+          "@type": "EntryPoint",
+          "urlTemplate": "https://fly2any.com/search?q={search_term_string}"
+        },
+        "query-input": "required name=search_term_string"
+      }
+    },
+    {
+      "@type": "Service",
+      "name": "Private Jet Charter",
+      "description": "On-demand private jet charter services across the United States with flexible booking and no long-term commitments.",
+      "provider": {
+        "@type": "Organization",
+        "name": "Fly2Any",
+        "@id": "https://fly2any.com/#organization"
+      },
+      "areaServed": {
+        "@type": "Country",
+        "name": "United States"
+      },
+      "serviceType": "On-demand private jet charter",
+      "audience": {
+        "@type": "Audience",
+        "audienceType": "Business travelers and luxury travelers"
+      },
+      "hasOfferCatalog": {
+        "@type": "OfferCatalog",
+        "name": "Private Jet Services",
+        "itemListElement": [
+          {
+            "@type": "Offer",
+            "itemOffered": {
+              "@type": "Service",
+              "name": "Light Jet Charter",
+              "description": "Short to medium distance private jet travel for small groups"
+            }
+          },
+          {
+            "@type": "Offer",
+            "itemOffered": {
+              "@type": "Service",
+              "name": "Midsize Jet Charter",
+              "description": "Regional private jet travel with enhanced cabin space"
+            }
+          },
+          {
+            "@type": "Offer",
+            "itemOffered": {
+              "@type": "Service",
+              "name": "Large Cabin Jet Charter",
+              "description": "Long-distance private jet travel with full amenities"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "@type": "Service",
+      "name": "Helicopter Flights",
+      "description": "On-demand helicopter services for urban mobility, scenic tours, and destination access without runway infrastructure.",
+      "provider": {
+        "@id": "https://fly2any.com/#organization"
+      },
+      "areaServed": {
+        "@type": "Country",
+        "name": "United States"
+      },
+      "hasOfferCatalog": {
+        "@type": "OfferCatalog",
+        "name": "Helicopter Services",
+        "itemListElement": [
+          {
+            "@type": "Offer",
+            "itemOffered": {
+              "@type": "Service",
+              "name": "Airport Transfers",
+              "description": "Helicopter transfers between airports and city centers"
+            }
+          },
+          {
+            "@type": "Offer",
+            "itemOffered": {
+              "@type": "Service",
+              "name": "Scenic Tours",
+              "description": "Aerial sightseeing tours over landmarks and natural attractions"
+            }
+          },
+          {
+            "@type": "Offer",
+            "itemOffered": {
+              "@type": "Service",
+              "name": "Destination Access",
+              "description": "Helicopter transport to locations without runway infrastructure"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "@type": "FAQPage",
+      "mainEntity": [
+        {
+          "@type": "Question",
+          "name": "How fast can a private flight be booked?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "On-demand private flights can often be arranged within hours, depending on aircraft availability and location. For urgent needs, many providers can arrange flights with just 4-6 hours notice, though advance booking provides more options and potentially better pricing."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "How far in advance should I book a private jet?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "For best aircraft selection and pricing, booking 7-14 days in advance is recommended. However, many providers can arrange flights with just 4-6 hours notice for urgent needs, though last-minute availability may be more limited and pricing potentially higher."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "What's included in private jet charter pricing?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Standard quotes typically include aircraft costs, crew fees, fuel, landing charges, and basic insurance. Optional services like premium catering, specific ground transportation, or special requests involve additional costs that should be clearly disclosed before booking."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "How safe are private jets compared to commercial airlines?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Private jets operated by reputable providers maintain rigorous safety standards including FAA Part 135 certification. While commercial airlines have excellent safety records, properly maintained private aircraft with certified crews provide comparable safety levels for private aviation."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "Can I bring pets on private jets?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Most private jets allow pets, though policies vary by operator. Service animals are always permitted, while pets may require advance notice. Some aircraft have specific requirements or additional cleaning fees for pet travel that should be discussed during booking."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "How does Fly2Any differ from traditional private aviation providers?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Fly2Any operates on a pure on-demand model without long-term commitments, membership requirements, or upfront purchases. The technology platform enables quick digital booking with transparent, all-inclusive pricing and access to various aircraft types through digital matching systems."
+          }
+        }
+      ]
+    },
+    {
+      "@type": "ItemList",
+      "name": "Private Flight Options Comparison",
+      "description": "Comparison of different private aviation service models available to travelers",
+      "itemListElement": [
+        {
+          "@type": "ListItem",
+          "position": 1,
+          "name": "Fly2Any",
+          "description": "On-demand private aviation platform with digital booking, transparent pricing, and no long-term commitments"
+        },
+        {
+          "@type": "ListItem",
+          "position": 2,
+          "name": "Traditional Charter Brokers",
+          "description": "Relationship-based private aviation services with personalized booking through dedicated brokers"
+        },
+        {
+          "@type": "ListItem",
+          "position": 3,
+          "name": "Jet Card Programs",
+          "description": "Prepaid private aviation programs with fixed hourly rates and guaranteed availability"
+        },
+        {
+          "@type": "ListItem",
+          "position": 4,
+          "name": "Fractional Ownership",
+          "description": "Shared aircraft ownership with guaranteed access and management services"
+        }
+      ]
+    }
+  ]
+}
