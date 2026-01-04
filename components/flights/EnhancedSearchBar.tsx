@@ -399,6 +399,10 @@ export default function EnhancedSearchBar({
   const [showTourDatePicker, setShowTourDatePicker] = useState(false);
   const [showActivityDatePicker, setShowActivityDatePicker] = useState(false);
 
+  // Tour and Activity specific date states (separate from hotel dates, empty by default)
+  const [tourDate, setTourDate] = useState('');
+  const [activityDate, setActivityDate] = useState('');
+
   // Transfer location suggestions state
   const [transferSuggestions, setTransferSuggestions] = useState<any[]>([]);
   const [showTransferPickupSuggestions, setShowTransferPickupSuggestions] = useState(false);
@@ -1923,7 +1927,7 @@ export default function EnhancedSearchBar({
 
             {showPassengerDropdown && (
               <div
-                className="absolute top-full mt-2 left-0 bg-white rounded-xl shadow-2xl border border-gray-200 z-dropdown animate-in fade-in slide-in-from-top-2 duration-200 p-3"
+                className="absolute top-full mt-2 left-0 bg-white rounded-xl shadow-2xl border border-gray-200 z-50 animate-in fade-in slide-in-from-top-2 duration-200 p-3"
                 style={{ width: '280px' }}
               >
                 {/* Adults */}
@@ -3355,20 +3359,20 @@ export default function EnhancedSearchBar({
                 type="button"
                 onClick={() => setShowTourDatePicker(true)}
                 className={`w-full px-4 py-4 rounded-lg cursor-pointer transition-all flex items-center gap-3 ${
-                  checkInDate
+                  tourDate
                     ? 'bg-orange-50 border border-orange-300 hover:border-orange-400 hover:shadow-sm'
                     : transparent
                       ? 'bg-gray-800/80 backdrop-blur-sm border-gray-600/50 text-white placeholder:text-white/50 hover:border-orange-500'
                       : 'bg-white border border-gray-300 hover:border-orange-500'
                 }`}
               >
-                <div className={`w-9 h-9 rounded-lg flex items-center justify-center ${checkInDate ? 'bg-orange-500' : 'bg-neutral-100'}`}>
-                  <CalendarDays className={`w-4 h-4 ${checkInDate ? 'text-white' : 'text-neutral-400'}`} />
+                <div className={`w-9 h-9 rounded-lg flex items-center justify-center ${tourDate ? 'bg-orange-500' : 'bg-neutral-100'}`}>
+                  <CalendarDays className={`w-4 h-4 ${tourDate ? 'text-white' : 'text-neutral-400'}`} />
                 </div>
                 <div className="text-left flex-1">
-                  {checkInDate ? (
+                  {tourDate ? (
                     <>
-                      <div className="font-bold text-neutral-800 text-sm">{format(new Date(checkInDate), 'EEE, MMM d, yyyy')}</div>
+                      <div className="font-bold text-neutral-800 text-sm">{format(new Date(tourDate), 'EEE, MMM d, yyyy')}</div>
                       <div className="text-[10px] text-neutral-500">Tour date</div>
                     </>
                   ) : (
@@ -3533,20 +3537,20 @@ export default function EnhancedSearchBar({
                 type="button"
                 onClick={() => setShowActivityDatePicker(true)}
                 className={`w-full px-4 py-4 rounded-lg cursor-pointer transition-all flex items-center gap-3 ${
-                  checkInDate
+                  activityDate
                     ? 'bg-purple-50 border border-purple-300 hover:border-purple-400 hover:shadow-sm'
                     : transparent
                       ? 'bg-gray-800/80 backdrop-blur-sm border-gray-600/50 text-white placeholder:text-white/50 hover:border-purple-500'
                       : 'bg-white border border-gray-300 hover:border-purple-500'
                 }`}
               >
-                <div className={`w-9 h-9 rounded-lg flex items-center justify-center ${checkInDate ? 'bg-purple-500' : 'bg-neutral-100'}`}>
-                  <CalendarDays className={`w-4 h-4 ${checkInDate ? 'text-white' : 'text-neutral-400'}`} />
+                <div className={`w-9 h-9 rounded-lg flex items-center justify-center ${activityDate ? 'bg-purple-500' : 'bg-neutral-100'}`}>
+                  <CalendarDays className={`w-4 h-4 ${activityDate ? 'text-white' : 'text-neutral-400'}`} />
                 </div>
                 <div className="text-left flex-1">
-                  {checkInDate ? (
+                  {activityDate ? (
                     <>
-                      <div className="font-bold text-neutral-800 text-sm">{format(new Date(checkInDate), 'EEE, MMM d, yyyy')}</div>
+                      <div className="font-bold text-neutral-800 text-sm">{format(new Date(activityDate), 'EEE, MMM d, yyyy')}</div>
                       <div className="text-[10px] text-neutral-500">Activity date</div>
                     </>
                   ) : (
@@ -3872,9 +3876,9 @@ export default function EnhancedSearchBar({
         <PremiumDatePicker
           isOpen={showTourDatePicker}
           onClose={() => setShowTourDatePicker(false)}
-          value={checkInDate}
+          value={tourDate}
           onChange={(date) => {
-            setCheckInDate(date);
+            setTourDate(date);
             setShowTourDatePicker(false);
           }}
           type="single"
@@ -3886,9 +3890,9 @@ export default function EnhancedSearchBar({
         <PremiumDatePicker
           isOpen={showActivityDatePicker}
           onClose={() => setShowActivityDatePicker(false)}
-          value={checkInDate}
+          value={activityDate}
           onChange={(date) => {
-            setCheckInDate(date);
+            setActivityDate(date);
             setShowActivityDatePicker(false);
           }}
           type="single"
@@ -4813,7 +4817,7 @@ export default function EnhancedSearchBar({
                   }`}
                 >
                   <CalendarDays size={16} className="text-orange-500 flex-shrink-0" />
-                  <span className="truncate">{checkInDate ? format(new Date(checkInDate), 'MMM d, yyyy') : 'Select date'}</span>
+                  <span className="truncate">{tourDate ? format(new Date(tourDate), 'MMM d, yyyy') : 'Select date'}</span>
                 </button>
               </div>
               {/* Travelers */}
@@ -4959,7 +4963,7 @@ export default function EnhancedSearchBar({
                   }`}
                 >
                   <CalendarDays size={16} className="text-purple-500 flex-shrink-0" />
-                  <span className="truncate">{checkInDate ? format(new Date(checkInDate), 'MMM d, yyyy') : 'Select date'}</span>
+                  <span className="truncate">{activityDate ? format(new Date(activityDate), 'MMM d, yyyy') : 'Select date'}</span>
                 </button>
               </div>
               {/* Travelers */}
