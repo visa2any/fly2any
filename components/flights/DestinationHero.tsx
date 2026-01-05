@@ -151,21 +151,26 @@ function lookupAirportByCode(code: string): Airport | null {
 }
 
 function resolveDestination(airportCode: string): ResolvedDestination {
-  if (!airportCode || airportCode.length < 3 || airportCode.length > 4) {
-    throw new Error(`Invalid airport code format: ${airportCode}`);
+  // Handle comma-separated codes (e.g., "DXB,DWC") → take primary (first) code
+  const primaryCode = airportCode.includes(',')
+    ? airportCode.split(',')[0].trim()
+    : airportCode;
+
+  if (!primaryCode || primaryCode.length < 3 || primaryCode.length > 4) {
+    throw new Error(`Invalid airport code format: ${primaryCode}`);
   }
 
-  const airport = lookupAirportByCode(airportCode);
+  const airport = lookupAirportByCode(primaryCode);
   if (!airport) {
-    throw new Error(`Airport not found in database: ${airportCode}`);
+    throw new Error(`Airport not found in database: ${primaryCode}`);
   }
 
   if (!airport.city || airport.city.trim().length === 0) {
-    throw new Error(`City not found for airport: ${airportCode}`);
+    throw new Error(`City not found for airport: ${primaryCode}`);
   }
 
   if (!airport.country || airport.country.trim().length === 0) {
-    throw new Error(`Country not found for airport: ${airportCode}`);
+    throw new Error(`Country not found for airport: ${primaryCode}`);
   }
 
   return {
