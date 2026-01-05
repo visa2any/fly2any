@@ -1,0 +1,16 @@
+model_list:
+  - model_name: glm-4.7
+    litellm_params:
+      model: zai/glm-4.7
+      api_key: os.environ/ZAI_API_KEY
+      timeout: 60
+      max_retries: 2
+
+litellm_settings:
+  enable_cost_tracking: true
+  log_model_call_details: true
+  debug: false
+
+router:
+  - model_name: default
+    model_list: ["glm-4.7"]

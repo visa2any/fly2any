@@ -21,13 +21,10 @@ import { MultipleFlightCardSkeletons } from '@/components/flights/FlightCardSkel
 import FlightComparisonBar from '@/components/search/FlightComparison';
 import { type FlightForComparison } from '@/lib/types/search';
 import { CollapsibleSearchBar, type SearchSummary } from '@/components/mobile/CollapsibleSearchBar';
-// TEMPORARILY DISABLED: Virtual scrolling needs proper height calibration
-// import { VirtualFlightListOptimized as VirtualFlightList } from '@/components/flights/VirtualFlightListOptimized';
 import ScrollToTop from '@/components/flights/ScrollToTop';
 import { ScrollProgress } from '@/components/flights/ScrollProgress';
 import { MobileFilterSheet } from '@/components/mobile';
 import SaveSearchButton from '@/components/search/SaveSearchButton';
-// import { TestModeBanner } from '@/components/TestModeBanner'; // Removed for production
 import ProgressiveFlightLoading from '@/components/flights/ProgressiveFlightLoading';
 import InlineFlightLoading from '@/components/flights/InlineFlightLoading';
 import { ChevronRight, ChevronLeft, AlertCircle, RefreshCcw, X } from 'lucide-react';
@@ -55,6 +52,10 @@ import { usePullToRefresh, RefreshButton } from '@/lib/hooks/usePullToRefresh';
 import { useTranslations } from 'next-intl';
 import { useLanguage } from '@/lib/i18n/client';
 import { reportClientError, ErrorCategory, ErrorSeverity } from '@/lib/monitoring/global-error-handler';
+// ===========================
+// NEW IMPORT: DestinationHero (Level 6 Ultra-Premium)
+// ===========================
+import { DestinationHero } from '@/components/flights/DestinationHero';
 
 // ===========================
 // TYPE DEFINITIONS
@@ -163,7 +164,7 @@ const applyFilters = (flights: ScoredFlight[], filters: FlightFiltersType): Scor
 
     // 2. ✅ FIXED: Stops filter - Check OUTBOUND flight only (most user-friendly behavior)
     // For round-trips, users typically filter by outbound stops. Return flight is secondary.
-    // Use the separate "From Nonstop" / "To Nonstop" checkboxes for granular control.
+    // Use separate "From Nonstop" / "To Nonstop" checkboxes for granular control.
     if (filters.stops.length > 0) {
       const outboundItinerary = itineraries[0];
       if (outboundItinerary) {
@@ -383,7 +384,7 @@ const applyFilters = (flights: ScoredFlight[], filters: FlightFiltersType): Scor
           return true;
         }
 
-        // Check if any connection in this itinerary matches the quality filter
+        // Check if any connection in this itinerary matches of quality filter
         let hasMatchingConnection = false;
         for (let i = 0; i < segments.length - 1; i++) {
           const arrivalTime = new Date(segments[i].arrival.at).getTime();
@@ -1092,7 +1093,7 @@ function FlightResultsContent() {
   }, [searchParams]);
 
   // Auto-trigger price alert modal when user becomes authenticated
-  // This handles the case where session was loading when user clicked "Track Price"
+  // This handles case where session was loading when user clicked "Track Price"
   useEffect(() => {
     if (sessionStatus === 'authenticated' && session && pendingFlightForAlert && !showAuthModal) {
       console.log('🎯 Session authenticated, auto-opening price alert modal');
@@ -1539,7 +1540,7 @@ function FlightResultsContent() {
   const handleAuthSuccess = () => {
     setShowAuthModal(false);
 
-    // Immediately open price alert modal with the pending flight
+    // Immediately open price alert modal with pending flight
     if (pendingFlightForAlert) {
       setSelectedFlightForAlert(pendingFlightForAlert);
       setShowCreatePriceAlert(true);
@@ -1686,7 +1687,7 @@ function FlightResultsContent() {
           <div className="bg-white/90 backdrop-blur-xl rounded-2xl shadow-2xl border border-gray-200 p-12">
             <div className="w-24 h-24 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-6">
               <svg className="w-12 h-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0118 0z" />
               </svg>
             </div>
             <h2 className="text-3xl font-bold text-gray-900 mb-4">
@@ -1726,6 +1727,21 @@ function FlightResultsContent() {
           infants: searchData.infants,
         }}
         cabinClass={searchData.class}
+        lang={lang}
+      />
+
+      {/* ===========================
+      DESTINATION HERO - Level 6 Ultra-Premium
+      ===========================
+      - Shows real destination image (not generic aviation)
+      - Displays "City, Country" (e.g., "Dubai, United Arab Emirates")
+      - Airport code shown only as secondary metadata
+      - Uses existing airport database (popularAirports)
+      - 30% height reduction for conversion optimization
+      =========================== */}
+      <DestinationHero
+        originCode={searchData.from}
+        destinationCode={searchData.to}
         lang={lang}
       />
 
@@ -1808,7 +1824,7 @@ function FlightResultsContent() {
                   <div className="mb-4 bg-gradient-to-r from-info-50 to-primary-50 border border-info-200 rounded-xl p-6 text-center">
                     <div className="w-16 h-16 bg-info-100 rounded-full flex items-center justify-center mx-auto mb-4">
                       <svg className="w-8 h-8 text-primary-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-14 0 7 7 0 0118 0z" />
                       </svg>
                     </div>
                     <h3 className="text-xl font-bold text-gray-900 mb-2">
@@ -1829,7 +1845,7 @@ function FlightResultsContent() {
                       className="inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-primary-500 to-indigo-600 hover:from-blue-700 hover:to-primary-600 text-white font-semibold rounded-xl transition-all duration-300 transform hover:scale-105 shadow-lg"
                     >
                       <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0118 0z" />
                       </svg>
                       View {allFlightsWithoutNonstopFilter.length} connecting flights
                     </button>
@@ -1954,7 +1970,7 @@ function FlightResultsContent() {
                     ndcOnly: false,
                     showExclusiveFares: false,
                   })}
-                  className="inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-primary-600 to-blue-600 hover:from-primary-700 hover:to-blue-700 text-white font-semibold rounded-xl transition-all duration-300 transform hover:scale-105"
+                  className="inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-primary-600 to-blue-600 hover:from-primary-700 hover:to-blue-700 text-white font-semibold rounded-xl transition-all duration-300 transform hover:scale-105 shadow-lg"
                 >
                   Clear All Filters
                 </button>
@@ -2035,7 +2051,7 @@ function FlightResultsContent() {
                 code: (flight as any).validatingAirlineCodes?.[0] || flight.itineraries[0].segments[0].carrierCode,
               },
               numberOfBookableSeats: (flight as any).numberOfBookableSeats,
-              score: typeof flight.score === 'object' ? (flight.score as any).overall : flight.score,
+              score: typeof flight.score === 'object' ? (flight.score as any)[sortBy] || (flight.score as any).overall : flight.score,
             };
           }).filter((f): f is NonNullable<typeof f> => f !== null) as any}
           onSelect={handleSelectFlight}
@@ -2216,7 +2232,7 @@ export default function FlightResultsPage() {
             <div className="absolute inset-0 border-4 border-primary-600 rounded-full border-t-transparent animate-spin"></div>
             <div className="absolute inset-4 bg-primary-50 rounded-full flex items-center justify-center">
               <svg className="w-10 h-10 text-primary-600 animate-bounce" fill="currentColor" viewBox="0 0 20 20">
-                <path d="M10.894 2.553a1 1 0 00-1.788 0l-7 14a1 1 0 001.169 1.409l5-1.429A1 1 0 009 15.571V11a1 1 0 112 0v4.571a1 1 0 00.725.962l5 1.428a1 1 0 001.17-1.408l-7-14z"/>
+                <path d="M10.894 2.553a1 1 0 00-1.788 0l-7 14a1 1 0 0118 0z"/>
               </svg>
             </div>
           </div>
