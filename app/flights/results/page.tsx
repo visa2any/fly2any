@@ -52,10 +52,6 @@ import { usePullToRefresh, RefreshButton } from '@/lib/hooks/usePullToRefresh';
 import { useTranslations } from 'next-intl';
 import { useLanguage } from '@/lib/i18n/client';
 import { reportClientError, ErrorCategory, ErrorSeverity } from '@/lib/monitoring/global-error-handler';
-// ===========================
-// NEW IMPORT: DestinationHero (Level 6 Ultra-Premium)
-// ===========================
-import { DestinationHero } from '@/components/flights/DestinationHero';
 
 // ===========================
 // TYPE DEFINITIONS
@@ -1727,21 +1723,6 @@ function FlightResultsContent() {
           infants: searchData.infants,
         }}
         cabinClass={searchData.class}
-        lang={lang}
-      />
-
-      {/* ===========================
-      DESTINATION HERO - Level 6 Ultra-Premium
-      ===========================
-      - Shows real destination image (not generic aviation)
-      - Displays "City, Country" (e.g., "Dubai, United Arab Emirates")
-      - Airport code shown only as secondary metadata
-      - Uses existing airport database (popularAirports)
-      - 30% height reduction for conversion optimization
-      =========================== */}
-      <DestinationHero
-        originCode={searchData.from}
-        destinationCode={searchData.to}
         lang={lang}
       />
 
