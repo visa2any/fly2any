@@ -314,50 +314,33 @@ export function DestinationHero({
 
   if (loading) {
     return (
-      <section 
+      <section
         className="relative overflow-hidden w-full"
-        style={{ 
-          height: '45vh',
-          minHeight: '350px',
-          maxHeight: '500px'
+        style={{
+          height: '20vh',
+          minHeight: '150px',
+          maxHeight: '200px'
         }}
       >
         <div className="w-full h-full bg-gradient-to-br from-gray-100 to-gray-200 animate-pulse" />
         <div className="absolute inset-0 flex items-center justify-center">
-          <Loader2 className="w-8 h-8 text-primary-500 animate-spin" />
+          <Loader2 className="w-6 h-6 text-primary-500 animate-spin" />
         </div>
       </section>
     );
   }
 
   if (error) {
-    return (
-      <section 
-        className="relative overflow-hidden w-full"
-        style={{ 
-          height: '45vh',
-          minHeight: '350px',
-          maxHeight: '500px'
-        }}
-      >
-        <div className="w-full h-full bg-gradient-to-br from-red-50 to-red-100 flex items-center justify-center p-8">
-          <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mb-4">
-            <AlertCircle className="w-8 h-8 text-red-500" />
-          </div>
-          <h2 className="text-xl font-bold text-red-900 mb-2">Error</h2>
-          <p className="text-red-700 text-center max-w-md">{error}</p>
-        </div>
-      </section>
-    );
+    return null; // Silent fail - don't block results
   }
 
   return (
-    <section 
+    <section
       className="relative overflow-hidden w-full"
-      style={{ 
-        height: '45vh',
-        minHeight: '350px',
-        maxHeight: '500px'
+      style={{
+        height: '20vh',
+        minHeight: '150px',
+        maxHeight: '200px'
       }}
     >
       {/* Background Image */}
@@ -365,31 +348,31 @@ export function DestinationHero({
         className="absolute inset-0 w-full h-full bg-cover bg-center"
         style={{ backgroundImage: `url(${image?.url || ''})` }}
       />
-      
+
       {/* Gradient Overlay */}
-      <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent" />
-      
+      <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/30 to-transparent" />
+
       {/* Content */}
-      <div className="absolute inset-0 flex items-end p-4 md:p-8">
+      <div className="absolute inset-0 flex items-end p-3 md:p-6">
         <div className="max-w-7xl mx-auto w-full">
-          <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
-            <div className="flex-1">
+          <div className="flex items-center justify-between gap-3">
+            <div className="flex-1 flex items-center gap-3">
               {/* Destination Name */}
-              <h1 className="text-2xl md:text-4xl font-bold text-white mb-2 md:mb-3 drop-shadow-lg">
+              <h1 className="text-lg md:text-2xl font-bold text-white drop-shadow-lg">
                 {resolvedDest?.city}, {resolvedDest?.country}
               </h1>
-              
+
               {/* Airport Code Badge */}
-              <div className="inline-flex items-center gap-2 px-4 py-2 bg-white/20 backdrop-blur-sm rounded-full border border-white/30">
-                <Plane className="w-4 h-4 text-white" />
-                <span className="text-white font-medium text-sm">
+              <div className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-white/20 backdrop-blur-sm rounded-full border border-white/30">
+                <Plane className="w-3.5 h-3.5 text-white" />
+                <span className="text-white font-medium text-xs">
                   {resolvedDest?.airportCode}
                 </span>
               </div>
             </div>
-            
+
             {/* Flag */}
-            <div className="text-4xl md:text-6xl">
+            <div className="text-2xl md:text-4xl">
               {resolvedDest?.flag}
             </div>
           </div>
