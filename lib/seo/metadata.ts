@@ -384,6 +384,30 @@ export function getHowToSchema(howTo: {
   };
 }
 
+// Alias for backward compatibility
+export const getWebSiteSchema = getWebsiteSchema;
+
+// Generic metadata generator
+export function generateMetadata(config: any) {
+  return {
+    title: config.title || 'Fly2Any',
+    description: config.description || 'Premium travel booking platform',
+    ...config
+  };
+}
+
+// World Cup metadata functions (stubs for compatibility)
+export const worldCupMainMetadata = { title: 'World Cup 2026', description: 'FIFA World Cup 2026' };
+export const worldCupPackagesMetadata = { title: 'World Cup Packages', description: 'Travel packages for World Cup 2026' };
+export const worldCupScheduleMetadata = { title: 'World Cup Schedule', description: 'FIFA World Cup 2026 schedule' };
+export const worldCupStadiumMetadata = (slug: string) => ({ title: `${slug} Stadium`, description: 'World Cup stadium' });
+export const worldCupTeamMetadata = (slug: string) => ({ title: `${slug} Team`, description: 'World Cup team' });
+
+export const getWorldCupEventSchema = getEventSchema;
+export const getTravelPackageSchema = getProductSchema;
+export const getStadiumSchema = getLocalBusinessSchema;
+export const getSportsTeamSchema = getOrganizationSchema;
+
 export default {
   getFAQSchema,
   getOrganizationSchema,
@@ -396,5 +420,6 @@ export default {
   getSoftwareApplicationSchema,
   getTravelAgencySchema,
   getProductSchema,
-  getHowToSchema
+  getHowToSchema,
+  generateMetadata
 };
