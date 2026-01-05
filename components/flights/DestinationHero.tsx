@@ -353,26 +353,26 @@ export function DestinationHero({
       <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/30 to-transparent" />
 
       {/* Content */}
-      <div className="absolute inset-0 flex items-end p-3 md:p-6">
+      <div className="absolute inset-0 flex items-end p-3 sm:p-4 md:p-6">
         <div className="max-w-7xl mx-auto w-full">
-          <div className="flex items-center justify-between gap-3">
-            <div className="flex-1 flex items-center gap-3">
+          <div className="flex items-center justify-between gap-2 sm:gap-3">
+            <div className="flex-1 min-w-0">
               {/* Destination Name */}
-              <h1 className="text-lg md:text-2xl font-bold text-white drop-shadow-lg">
+              <h1 className="text-base sm:text-lg md:text-2xl font-bold text-white drop-shadow-lg truncate mb-1.5 sm:mb-0">
                 {resolvedDest?.city}, {resolvedDest?.country}
               </h1>
 
-              {/* Airport Code Badge */}
-              <div className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-white/20 backdrop-blur-sm rounded-full border border-white/30">
-                <Plane className="w-3.5 h-3.5 text-white" />
-                <span className="text-white font-medium text-xs">
+              {/* Airport Code Badge - Below on mobile, inline on desktop */}
+              <div className="inline-flex items-center gap-1.5 px-2.5 py-1 sm:px-3 sm:py-1.5 bg-white/20 backdrop-blur-sm rounded-full border border-white/30">
+                <Plane className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-white" />
+                <span className="text-white font-medium text-[10px] sm:text-xs">
                   {resolvedDest?.airportCode}
                 </span>
               </div>
             </div>
 
             {/* Flag */}
-            <div className="text-2xl md:text-4xl">
+            <div className="text-xl sm:text-2xl md:text-4xl flex-shrink-0">
               {resolvedDest?.flag}
             </div>
           </div>
