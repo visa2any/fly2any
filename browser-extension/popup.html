@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fly2Any</title>
+    <link rel="stylesheet" href="popup.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="container">
+        <header class="header">
+            <div class="logo-container">
+                <img src="icons/icon-48.png" alt="Fly2Any" class="logo">
+                <div class="brand">
+                    <h1>Fly2Any</h1>
+                    <p class="tagline">Search flights. Think globally.</p>
+                </div>
+            </div>
+        </header>
+
+        <main class="main">
+            <form class="search-form">
+                <div class="form-group">
+                    <label for="fromInput">From</label>
+                    <input type="text" id="fromInput" placeholder="City or airport" autocomplete="off">
+                </div>
+                <div class="form-group">
+                    <label for="toInput">To</label>
+                    <input type="text" id="toInput" placeholder="City or airport" autocomplete="off">
+                </div>
+                <div class="form-row">
+                    <div class="form-group half">
+                        <label for="departDate">Departure</label>
+                        <input type="date" id="departDate">
+                    </div>
+                    <div class="form-group half">
+                        <label for="returnDate">Return (optional)</label>
+                        <input type="date" id="returnDate">
+                    </div>
+                </div>
+            </form>
+
+            <div class="actions">
+                <button id="primaryBtn" class="btn-primary">
+                    Search with Fly2Any
+                </button>
+            </div>
+
+            <div class="trust-message" id="trustMessage">
+                Used by travelers worldwide to explore global flight routes.
+            </div>
+        </main>
+
+        <footer class="footer">
+            <p class="footer-text">
+                Fly2Any — US-based travel technology.
+            </p>
+            <div class="footer-links">
+                <a href="https://fly2any.com/about" target="_blank" class="footer-link">About</a>
+                <a href="https://fly2any.com/editorial-policy" target="_blank" class="footer-link">Editorial Policy</a>
+            </div>
+        </footer>
+    </div>
+
+    <script src="popup.js"></script>
+</body>
+</html>
