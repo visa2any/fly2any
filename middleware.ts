@@ -10,11 +10,14 @@
  */
 import { authEdge } from '@/lib/auth-edge';
 import { NextResponse } from 'next/server';
-
-// Supported languages
-const locales = ['en', 'pt', 'es'] as const;
-type Locale = (typeof locales)[number];
-const defaultLocale: Locale = 'en';
+import {
+  SUPPORTED_LOCALES,
+  DEFAULT_LOCALE,
+  getLocaleFromRequest,
+  getLocaleFromPathname,
+  removeLocalePrefix,
+  addLocalePrefix,
+} from '@/lib/seo/hreflang-config';
 
 // Country to currency mapping (100+ countries)
 const COUNTRY_CURRENCY_MAP: Record<string, string> = {
@@ -41,45 +44,141 @@ const COUNTRY_CURRENCY_MAP: Record<string, string> = {
   AU: 'AUD', NZ: 'NZD', FJ: 'FJD', PG: 'PGK',
 };
 
-/**
- * Detect browser language from Accept-Language header
- */
-function detectBrowserLanguage(acceptLanguage: string | null): Locale {
-  if (!acceptLanguage) return defaultLocale;
-  const languages = acceptLanguage
-    .split(',')
-    .map(lang => lang.split(';')[0].trim().split('-')[0].toLowerCase());
-  for (const lang of languages) {
-    if (locales.includes(lang as Locale)) {
-      return lang as Locale;
-    }
-  }
-  return defaultLocale;
-}
-
 export default authEdge((req) => {
   const { nextUrl } = req;
   const isLoggedIn = !!req.auth;
 
+  // ======================
   // CANONICAL DOMAIN REDIRECT: non-www → www (SEO fix)
+  // ======================
   const host = req.headers.get('host') || '';
   if (host === 'fly2any.com') {
     const redirectUrl = new URL(nextUrl.pathname + nextUrl.search, 'https://www.fly2any.com');
     return NextResponse.redirect(redirectUrl, 301);
   }
 
-  // Protected routes
-  const isAccountPage = nextUrl.pathname.startsWith('/account');
+  // ======================
+  // HREFLANG & LOCALE HANDLING
+  // ======================
+  const currentPath = nextUrl.pathname;
+  
+  // Skip locale handling for specific paths
+  const skipLocalePaths = [
+    '/api/',
+    '/_next/',
+    '/favicon.ico',
+    '/robots.txt',
+    '/sitemap.xml',
+    '/sitemaps/',
+    '/manifest.json',
+    '/sw.js',
+    '/workbox-',
+  ];
+  
+  const shouldSkipLocale = skipLocalePaths.some(path => currentPath.startsWith(path));
+  
+  if (!shouldSkipLocale) {
+    // Check if current path already has a locale prefix
+    const currentLocale = getLocaleFromPathname(currentPath);
+    
+    if (!currentLocale) {
+      // No locale prefix - determine appropriate locale and redirect
+      const targetLocale = getLocaleFromRequest(req);
+      const newPath = addLocalePrefix(currentPath, targetLocale.locale);
+      const redirectUrl = new URL(newPath + nextUrl.search, nextUrl.origin);
+      return NextResponse.redirect(redirectUrl, 301);
+    }
+    
+    // Path has locale prefix - validate it's supported
+    const isSupportedLocale = SUPPORTED_LOCALES.some(locale => 
+      locale.pathPrefix === currentLocale.pathPrefix
+    );
+    
+    if (!isSupportedLocale) {
+      // Redirect to default locale if unsupported locale detected
+      const newPath = addLocalePrefix(removeLocalePrefix(currentPath), DEFAULT_LOCALE.locale);
+      const redirectUrl = new URL(newPath + nextUrl.search, nextUrl.origin);
+      return NextResponse.redirect(redirectUrl, 301);
+    }
+  }
+
+  // ======================
+  // CRITICAL SEO FIX: Handle common 404 patterns and redirects
+  // ======================
+  const common404Redirects: Record<string, string> = {
+    // Flight search patterns
+    '/search/flights': '/flights',
+    '/flight/search': '/flights',
+    '/flight/booking': '/flights/booking',
+    '/flight/results': '/flights/results',
+    
+    // Hotel patterns
+    '/search/hotels': '/hotels',
+    '/hotel/search': '/hotels',
+    '/hotel/booking': '/hotels/booking',
+    
+    // Car rental patterns
+    '/search/cars': '/cars',
+    '/car/search': '/cars',
+    '/car/rental': '/cars/rental',
+    
+    // Legacy API routes
+    '/api/v1/flights': '/api/flights/search',
+    '/api/v1/hotels': '/api/hotels/search',
+    '/api/v1/cars': '/api/cars/search',
+    
+    // Old blog paths
+    '/blog/article': '/blog',
+    '/news': '/blog',
+    '/articles': '/blog',
+    
+    // User profile paths
+    '/user/profile': '/account',
+    '/my-profile': '/account',
+    '/profile': '/account',
+  };
+
+  // Remove locale prefix for pattern matching
+  const pathWithoutLocale = removeLocalePrefix(currentPath);
+  
+  for (const [pattern, redirectTo] of Object.entries(common404Redirects)) {
+    if (pathWithoutLocale.startsWith(pattern) || pathWithoutLocale.includes(pattern)) {
+      // Get current locale to preserve it in redirect
+      const currentLocale = getLocaleFromPathname(currentPath) || DEFAULT_LOCALE;
+      const newPath = addLocalePrefix(redirectTo, currentLocale.locale);
+      const redirectUrl = new URL(newPath + nextUrl.search, nextUrl.origin);
+      return NextResponse.redirect(redirectUrl, 301);
+    }
+  }
+
+  // ======================
+  // Handle trailing slash inconsistencies (SEO best practice)
+  // ======================
+  if (pathWithoutLocale !== '/' && pathWithoutLocale.endsWith('/')) {
+    const currentLocale = getLocaleFromPathname(currentPath) || DEFAULT_LOCALE;
+    const newPath = addLocalePrefix(pathWithoutLocale.slice(0, -1), currentLocale.locale);
+    const redirectUrl = new URL(newPath + nextUrl.search, nextUrl.origin);
+    return NextResponse.redirect(redirectUrl, 301);
+  }
+
+  // ======================
+  // Protected routes (account pages)
+  // ======================
+  const isAccountPage = pathWithoutLocale.startsWith('/account');
 
   // Redirect to signin if accessing protected routes while not logged in
   if (isAccountPage && !isLoggedIn) {
-    const signInUrl = new URL('/auth/signin', nextUrl.origin);
-    signInUrl.searchParams.set('callbackUrl', nextUrl.pathname);
+    const currentLocale = getLocaleFromPathname(currentPath) || DEFAULT_LOCALE;
+    const signInPath = addLocalePrefix('/auth/signin', currentLocale.locale);
+    const signInUrl = new URL(signInPath, nextUrl.origin);
+    signInUrl.searchParams.set('callbackUrl', currentPath);
     return NextResponse.redirect(signInUrl);
   }
 
+  // ======================
   // Redirect logged-in users away from auth pages
-  const isAuthPage = nextUrl.pathname.startsWith('/auth/signin');
+  // ======================
+  const isAuthPage = pathWithoutLocale.startsWith('/auth/signin');
   const callbackUrl = nextUrl.searchParams.get('callbackUrl');
   
   if (isAuthPage && isLoggedIn) {
@@ -89,14 +188,20 @@ export default authEdge((req) => {
       return NextResponse.redirect(new URL(callbackUrl, nextUrl.origin));
     }
     // Only redirect to /account if there's no callbackUrl
-    return NextResponse.redirect(new URL('/account', nextUrl.origin));
+    const currentLocale = getLocaleFromPathname(currentPath) || DEFAULT_LOCALE;
+    const accountPath = addLocalePrefix('/account', currentLocale.locale);
+    return NextResponse.redirect(new URL(accountPath, nextUrl.origin));
   }
 
+  // ======================
   // Create response with performance and security headers
+  // ======================
   const response = NextResponse.next();
 
+  // ======================
   // GEO-LOCATION AUTO-DETECTION (Vercel Edge)
-  // @ts-expect-error - geo is available on Vercel Edge runtime
+  // ======================
+  // @ts-ignore - geo is available on Vercel Edge runtime
   const geo = req.geo || {};
   const countryCode = geo.country || 'US';
 
@@ -120,19 +225,20 @@ export default authEdge((req) => {
     secure: process.env.NODE_ENV === 'production',
   });
 
+  // ======================
   // LANGUAGE COOKIE MANAGEMENT
-  const languageCookie = req.cookies.get('fly2any_language');
-  if (!languageCookie) {
-    const browserLang = detectBrowserLanguage(req.headers.get('accept-language'));
-    response.cookies.set('fly2any_language', browserLang, {
-      path: '/',
-      maxAge: 31536000,
-      sameSite: 'lax',
-      secure: process.env.NODE_ENV === 'production',
-    });
-  }
+  // ======================
+  const currentLocale = getLocaleFromPathname(currentPath) || DEFAULT_LOCALE;
+  response.cookies.set('fly2any_language', currentLocale.locale, {
+    path: '/',
+    maxAge: 31536000,
+    sameSite: 'lax',
+    secure: process.env.NODE_ENV === 'production',
+  });
 
-  // Performance headers
+  // ======================
+  // Performance & Security Headers
+  // ======================
   response.headers.set('X-DNS-Prefetch-Control', 'on');
   response.headers.set('X-Content-Type-Options', 'nosniff');
   response.headers.set('X-Frame-Options', 'DENY');

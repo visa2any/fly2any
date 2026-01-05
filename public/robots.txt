@@ -1,0 +1,63 @@
+# Fly2Any Robots.txt
+# Generated: 2025-01-05
+# https://www.fly2any.com
+
+User-agent: *
+Allow: /
+Disallow: /admin/
+Disallow: /api/
+Disallow: /_next/static/
+Allow: /_next/static/chunks/pages/
+Disallow: /*.json$
+Disallow: /*?*sort=
+Disallow: /*?*filter=
+
+# Sitemaps
+Sitemap: https://www.fly2any.com/sitemap-index.xml
+Sitemap: https://www.fly2any.com/sitemaps/deals
+Sitemap: https://www.fly2any.com/sitemaps/flights
+
+# Crawl delay for search engines (if needed)
+Crawl-delay: 1
+
+# Googlebot specific
+User-agent: Googlebot
+Allow: /
+Disallow: /admin/
+Disallow: /api/
+Crawl-delay: 0.5
+
+# Bingbot
+User-agent: Bingbot
+Allow: /
+Disallow: /admin/
+Disallow: /api/
+Crawl-delay: 1
+
+# Yandex
+User-agent: Yandex
+Allow: /
+Disallow: /admin/
+Disallow: /api/
+Crawl-delay: 2
+
+# Common crawlers
+User-agent: AhrefsBot
+Crawl-delay: 10
+Disallow: /
+
+User-agent: SemrushBot
+Crawl-delay: 10
+Disallow: /
+
+User-agent: MJ12bot
+Crawl-delay: 10
+Disallow: /
+
+User-agent: DotBot
+Crawl-delay: 10
+Disallow: /
+
+User-agent: MauiBot
+Crawl-delay: 10
+Disallow: /

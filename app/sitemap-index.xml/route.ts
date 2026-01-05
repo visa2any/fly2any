@@ -24,6 +24,7 @@ export async function GET() {
     { loc: `${SITE_URL}/sitemaps/routes.xml` },
     { loc: `${SITE_URL}/sitemaps/cities.xml` },
     { loc: `${SITE_URL}/sitemaps/destinations.xml` },
+    { loc: `${SITE_URL}/sitemaps/deals.xml` },
     { loc: `${SITE_URL}/sitemaps/blog.xml` },
   ];
 

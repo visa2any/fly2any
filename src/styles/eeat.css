@@ -1,0 +1,105 @@
+/* EEAT Styling - Minimal neutral styles */
+
+.author-bio {
+  margin-top: 2rem;
+  padding-top: 1rem;
+  border-top: 1px solid #e5e7eb;
+}
+
+.author-name {
+  font-size: 1.125rem;
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+  color: #111827;
+}
+
+.author-bio-text {
+  color: #4b5563;
+  line-height: 1.6;
+  margin-bottom: 0.75rem;
+}
+
+.author-links {
+  font-size: 0.875rem;
+}
+
+.author-link {
+  color: #2563eb;
+  text-decoration: none;
+}
+
+.author-link:hover {
+  text-decoration: underline;
+}
+
+.separator {
+  color: #9ca3af;
+  margin: 0 0.25rem;
+}
+
+.trust-block {
+  margin: 1.5rem 0;
+  padding: 1rem;
+  background-color: #f9fafb;
+  border-radius: 0.375rem;
+}
+
+.trust-text {
+  color: #374151;
+  font-style: italic;
+  margin: 0;
+}
+
+.sources-references {
+  margin-top: 1.5rem;
+  padding-top: 1rem;
+  border-top: 1px solid #e5e7eb;
+}
+
+.sources-references h3 {
+  font-size: 1rem;
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+  color: #111827;
+}
+
+.sources-references ul {
+  list-style-type: none;
+  padding-left: 0;
+  margin: 0;
+}
+
+.sources-references li {
+  color: #4b5563;
+  margin-bottom: 0.25rem;
+}
+
+.editorial-policy {
+  max-width: 65ch;
+  margin: 0 auto;
+  padding: 2rem 1rem;
+}
+
+.editorial-policy h1 {
+  font-size: 1.875rem;
+  font-weight: 700;
+  margin-bottom: 1rem;
+  color: #111827;
+}
+
+.editorial-policy p {
+  color: #4b5563;
+  line-height: 1.6;
+  margin-bottom: 1rem;
+}
+
+.editorial-policy ul {
+  color: #4b5563;
+  padding-left: 1.5rem;
+  margin-bottom: 1rem;
+}
+
+.editorial-policy li {
+  margin-bottom: 0.5rem;
+  line-height: 1.5;
+}

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, Suspense } from 'react';
+import { useState, useEffect, Suspense, useCallback } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { useSession } from 'next-auth/react';
 import { toast } from 'react-hot-toast';
@@ -50,8 +50,12 @@ import { analyticsTracker } from '@/lib/ab-testing/analytics-tracker';
 import { useInfiniteScroll } from '@/lib/hooks/useInfiniteScroll';
 import { usePullToRefresh, RefreshButton } from '@/lib/hooks/usePullToRefresh';
 import { useTranslations } from 'next-intl';
+import Head from 'next/head';
 import { useLanguage } from '@/lib/i18n/client';
 import { reportClientError, ErrorCategory, ErrorSeverity } from '@/lib/monitoring/global-error-handler';
+import { Breadcrumbs } from '@/components/seo/Breadcrumbs';
+import { FaqSchema, FAQ_SETS } from '@/components/seo/FaqSchema';
+import { CanonicalTag, DynamicCanonicalTag } from '@/components/seo/CanonicalTag';
 
 // ===========================
 // TYPE DEFINITIONS
@@ -79,6 +83,25 @@ interface ScoredFlight extends FlightOffer {
   priceVsMarket?: number; // Percentage vs market average
   co2Emissions?: number; // CO2 emissions in kg
   averageCO2?: number; // Average CO2 emissions for this route in kg
+  itineraries: any[];
+  price: {
+    total: string | number;
+    base?: string | number;
+    currency: string;
+    fees?: any[];
+    grandTotal?: string | number;
+  };
+  id: string;
+  expires_at?: string;
+  duffelMetadata?: {
+    expires_at?: string;
+  };
+  lastTicketingDateTime?: string;
+  numberOfBookableSeats?: number;
+  validatingAirlineCodes?: string[];
+  dealScore?: number;
+  dealTier?: string;
+  dealLabel?: string;
 }
 
 
@@ -151,7 +174,7 @@ const applyFilters = (flights: ScoredFlight[], filters: FlightFiltersType): Scor
     const itineraries = flight.itineraries || [];
 
     // Collect all airlines from ALL itineraries
-    const airlines = itineraries.flatMap(it => it.segments.map(seg => seg.carrierCode));
+    const airlines = itineraries.flatMap(it => it.segments.map((seg: any) => seg.carrierCode));
 
     // 1. Price filter ✅
     if (price < filters.priceRange[0] || price > filters.priceRange[1]) {
@@ -547,6 +570,10 @@ function FlightResultsContent() {
     class: (searchParams.get('travelClass') || searchParams.get('class') || 'economy') as any,
     useFlexibleDates: searchParams.get('useFlexibleDates') === 'true' || searchParams.get('useMultiDate') === 'true',
   };
+  
+  // For backward compatibility
+  const origin = searchData.from;
+  const destination = searchData.to;
 
   // Extract independent nonstop filters from URL
   const fromNonstopFilter = searchParams.get('fromNonstop') === 'true';
@@ -562,15 +589,15 @@ function FlightResultsContent() {
     ? JSON.parse(additionalFlightsParam)
     : [];
 
-  // DEBUG: Log multi-city URL params
-  if (isMultiCity) {
-    console.log('🔍 Multi-city URL params:', {
-      isMultiCity,
-      additionalFlightsParam,
-      parsedAdditionalFlights: additionalFlights,
-      totalLegs: additionalFlights.length + 1
-    });
-  }
+  // DEBUG: Log multi-city URL params (commented out for production)
+  // if (isMultiCity) {
+  //   console.log('🔍 Multi-city URL params:', {
+  //     isMultiCity,
+  //     additionalFlightsParam,
+  //     parsedAdditionalFlights: additionalFlights,
+  //     totalLegs: additionalFlights.length + 1
+  //   });
+  // }
 
   // Initialize filters with default values (including new advanced filters)
   const [filters, setFilters] = useState<FlightFiltersType>({
@@ -616,15 +643,15 @@ function FlightResultsContent() {
   };
 
   // Combine multi-city leg results into complete journey flights
-  const combineMultiCityLegs = (legResults: ScoredFlight[][]): ScoredFlight[] => {
-    console.log('🔄 combineMultiCityLegs CALLED with legResults:', legResults.length, 'legs');
+  const combineMultiCityLegs = useCallback((legResults: ScoredFlight[][]): ScoredFlight[] => {
+    // console.log('🔄 combineMultiCityLegs CALLED with legResults:', legResults.length, 'legs');
 
     if (legResults.length === 0) {
-      console.log('❌ combineMultiCityLegs: legResults is empty!');
+      // console.log('❌ combineMultiCityLegs: legResults is empty!');
       return [];
     }
 
-    console.log('🔄 Combining multi-city legs:', legResults.map(leg => leg.length), 'flights per leg');
+    // console.log('🔄 Combining multi-city legs:', legResults.map(leg => leg.length), 'flights per leg');
 
     // Check if any leg has no flights
     const emptyLegs = legResults.filter(leg => leg.length === 0);
@@ -639,7 +666,7 @@ function FlightResultsContent() {
     // 4 legs: 4 each = 256 combinations
     // 5 legs: 3 each = 243 combinations
     const flightsPerLeg = Math.max(3, Math.min(10, Math.floor(15 / legResults.length)));
-    console.log(`📊 Taking top ${flightsPerLeg} flights from each of ${legResults.length} legs`);
+    // console.log(`📊 Taking top ${flightsPerLeg} flights from each of ${legResults.length} legs`);
 
     const topFlightsPerLeg = legResults.map(leg => leg.slice(0, flightsPerLeg));
 
@@ -661,7 +688,7 @@ function FlightResultsContent() {
       // Try each flight option for current leg
       const legFlights = topFlightsPerLeg[legIndex];
       if (!legFlights || legFlights.length === 0) {
-        console.error(`❌ Leg ${legIndex} has no flights!`);
+        // console.error(`❌ Leg ${legIndex} has no flights!`);
         return;
       }
 
@@ -671,10 +698,10 @@ function FlightResultsContent() {
     };
 
     // Start generating combinations
-    console.log('🚀 Starting combination generation...');
+    // console.log('🚀 Starting combination generation...');
     generateCombinations([], 0);
 
-    console.log(`✅ Generated ${combinationCount} combinations, created ${combinations.length} valid flight objects`);
+    // console.log(`✅ Generated ${combinationCount} combinations, created ${combinations.length} valid flight objects`);
 
     // Sort by total price and return top 50
     const sortedCombinations = combinations.sort((a, b) => {
@@ -683,9 +710,9 @@ function FlightResultsContent() {
       return priceA - priceB;
     });
 
-    console.log(`✨ Returning top 50 cheapest combinations (total: ${sortedCombinations.length})`);
+    // console.log(`✨ Returning top 50 cheapest combinations (total: ${sortedCombinations.length})`);
     return sortedCombinations.slice(0, 50);
-  };
+  }, []);
 
   // Create a combined flight object from individual leg flights
   const createCombinedFlight = (legFlights: any[]): ScoredFlight | null => {
@@ -863,7 +890,7 @@ function FlightResultsContent() {
             action: 'fetchMultiCityFlights',
             category: ErrorCategory.EXTERNAL_API,
             severity: ErrorSeverity.HIGH,
-            metadata: { errorMessage: error.message }
+            additionalData: { errorMessage: error.message }
           });
           return;
         }
@@ -1067,10 +1094,10 @@ function FlightResultsContent() {
           action: 'fetchFlights',
           category: ErrorCategory.EXTERNAL_API,
           severity: err.message?.includes('BOT_DETECTED') ? ErrorSeverity.LOW : ErrorSeverity.HIGH,
-          metadata: {
-            from: params?.from,
-            to: params?.to,
-            departure: params?.departure,
+          additionalData: {
+            from: searchData.from,
+            to: searchData.to,
+            departure: searchData.departure,
             errorMessage: err.message,
           }
         });
@@ -1383,7 +1410,7 @@ function FlightResultsContent() {
         action: 'navigateToBooking',
         category: ErrorCategory.BOOKING,
         severity: ErrorSeverity.CRITICAL,
-        metadata: { flightId: id, errorMessage: error?.message }
+        additionalData: { flightId: id, errorMessage: error?.message }
       });
     }
   };
@@ -1704,9 +1731,33 @@ function FlightResultsContent() {
     );
   }
 
+  // Generate canonical URL for SEO
+  const generateCanonicalUrl = () => {
+    const baseUrl = 'https://www.fly2any.com/flights/results';
+    const essentialParams = new URLSearchParams();
+    
+    // Essential parameters for canonicalization
+    if (searchData.from) essentialParams.set('from', searchData.from);
+    if (searchData.to) essentialParams.set('to', searchData.to);
+    if (searchData.departure) {
+      // Use only the first date for canonical URL (multi-date searches)
+      const firstDepartureDate = searchData.departure.split(',')[0];
+      essentialParams.set('departure', firstDepartureDate);
+    }
+    if (searchData.return) essentialParams.set('return', searchData.return);
+    
+    const paramsString = essentialParams.toString();
+    return paramsString ? `${baseUrl}?${paramsString}` : baseUrl;
+  };
+
+  const canonicalUrl = generateCanonicalUrl();
+
   // Main results view
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 via-blue-50/30 to-gray-50">
+      <Head>
+        <CanonicalTag url={canonicalUrl} />
+      </Head>
 
       {/* Test Mode Banner - Removed for production */}
       {/* <TestModeBanner /> */}
@@ -1786,14 +1837,27 @@ function FlightResultsContent() {
             </div>
           </aside>
 
-          {/* Main Content - Flight Results (Flexible width) */}
-          <main className="flex-1 min-w-0" role="main" aria-label="Flight search results">
-            {/* Screen reader announcement for current results */}
-            <div role="status" aria-live="polite" aria-atomic="true" className="sr-only">
-              {sortedFlights.length} flights found for {searchData.from} to {searchData.to}
-            </div>
+            {/* Main Content - Flight Results (Flexible width) */}
+            <main className="flex-1 min-w-0" role="main" aria-label="Flight search results">
+                {/* Screen reader announcement for current results */}
+                <div role="status" aria-live="polite" aria-atomic="true" className="sr-only">
+                    {sortedFlights.length} flights found for {searchData.from} to {searchData.to}
+                </div>
 
-            {/* Mobile filter button and SortBar removed - cleaner results display */}
+                {/* Breadcrumb Navigation - SEO & UX */}
+                <div className="mb-4 md:mb-6 px-3 md:px-0">
+                  <Breadcrumbs
+                    items={[
+                      { name: 'Home', url: '/' },
+                      { name: 'Flights', url: '/flights' },
+                      { name: `${getAirportCity(searchData.from)} to ${getAirportCity(searchData.to)}`, url: '#' },
+                    ]}
+                    separator="chevron"
+                    showHome={true}
+                  />
+                </div>
+
+                {/* Mobile filter button and SortBar removed - cleaner results display */}
 
             {/* Limited Nonstop Flights Notice - Shows when nonstop filter returns ZERO results */}
             {(fromNonstopFilter || toNonstopFilter) && sortedFlights.length === 0 && flights.length > 0 && (() => {
@@ -2072,20 +2136,20 @@ function FlightResultsContent() {
         />
       )}
 
-      {/* Post-Search Email Capture Modal - High Intent Lead Capture */}
+              {/* Post-Search Email Capture Modal - High Intent Lead Capture */}
       {sortedFlights.length > 0 && (
         <PostSearchCaptureModal
-          origin={searchData.origin || undefined}
-          destination={searchData.destination || undefined}
+          origin={origin || undefined}
+          destination={destination || undefined}
           departureDate={searchData.departure || undefined}
-          lowestPrice={sortedFlights[0]?.price?.total ? normalizePrice(sortedFlights[0].price) : undefined}
+          lowestPrice={sortedFlights[0]?.price?.total ? normalizePrice(sortedFlights[0].price.total) : undefined}
           currency={sortedFlights[0]?.price?.currency || 'USD'}
           delayMs={12000}
           onEmailSubmit={(email) => {
-            trackConversion('post_search_email_captured', {
+            trackConversion('post_search_email_captured' as any, {
               email,
-              origin: searchData.origin,
-              destination: searchData.destination,
+              origin,
+              destination,
             });
           }}
         />
@@ -2193,6 +2257,15 @@ function FlightResultsContent() {
             console.log('Price alert created:', alert);
             // Optionally refresh price alerts list
           }}
+        />
+      )}
+
+      {/* FAQ Schema for SEO */}
+      {sortedFlights.length > 0 && (
+        <FaqSchema
+          faqItems={FAQ_SETS.FLIGHT_RESULTS}
+          pageUrl={typeof window !== 'undefined' ? window.location.href : undefined}
+          pageTitle={`Flights from ${getAirportCity(searchData.from)} to ${getAirportCity(searchData.to)} | Fly2Any`}
         />
       )}
     </div>

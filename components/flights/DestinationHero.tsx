@@ -1,7 +1,7 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-import { MapPin, Plane, Loader2, AlertCircle } from 'lucide-react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
+import { Plane, Loader2 } from 'lucide-react';
 import { layout } from '@/lib/design-system';
 
 // ===========================
@@ -41,8 +41,9 @@ interface DestinationImage {
 }
 
 // ===========================
-// AIRPORT DATABASE (from EnhancedSearchBar)
+// HELPER FUNCTIONS (outside component for memoization)
 // ===========================
+
 const popularAirports: Airport[] = [
   // United States
   { code: 'JFK', name: 'John F. Kennedy Intl', city: 'New York', country: 'USA', flag: '🇺🇸', emoji: '🗽' },
@@ -196,7 +197,7 @@ const DESTINATION_IMAGES: Record<string, string> = {
 };
 
 // ===========================
-// HELPER FUNCTIONS
+// HELPER FUNCTIONS (outside component for memoization)
 // ===========================
 
 function lookupAirportByCode(code: string): Airport | null {
@@ -251,23 +252,25 @@ async function fetchDestinationImage(city: string, country: string, airportCode:
     };
   }
 
-  // 2. Check cache
-  const cacheKey = generateImageCacheKey(city, country);
-  const cached = localStorage.getItem(cacheKey);
+  // 2. Check cache (only if localStorage is available - client-side only)
+  if (typeof window !== 'undefined') {
+    const cacheKey = generateImageCacheKey(city, country);
+    const cached = localStorage.getItem(cacheKey);
 
-  if (cached) {
-    try {
-      const cachedData = JSON.parse(cached) as { url: string; expiresAt: number };
-      if (Date.now() < cachedData.expiresAt) {
-        return {
-          url: cachedData.url,
-          alt: `${city}, ${country}`,
-          source: 'cache'
-        };
+    if (cached) {
+      try {
+        const cachedData = JSON.parse(cached) as { url: string; expiresAt: number };
+        if (Date.now() < cachedData.expiresAt) {
+          return {
+            url: cachedData.url,
+            alt: `${city}, ${country}`,
+            source: 'cache'
+          };
+        }
+        localStorage.removeItem(cacheKey);
+      } catch {
+        localStorage.removeItem(cacheKey);
       }
-      localStorage.removeItem(cacheKey);
-    } catch {
-      localStorage.removeItem(cacheKey);
     }
   }
 
@@ -293,29 +296,57 @@ export function DestinationHero({
   const [image, setImage] = useState<DestinationImage | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [imageError, setImageError] = useState(false);
+
+  // Memoize the resolved destination to avoid recalculations
+  const memoizedDestination = useMemo(() => {
+    try {
+      return resolveDestination(destinationCode);
+    } catch (err) {
+      return null;
+    }
+  }, [destinationCode]);
+
+  const loadData = useCallback(async () => {
+    try {
+      setLoading(true);
+      setError(null);
+      setImageError(false);
+
+      if (!memoizedDestination) {
+        throw new Error(`Unable to resolve destination for code: ${destinationCode}`);
+      }
+
+      setResolvedDest(memoizedDestination);
+
+      const fetchedImage = await fetchDestinationImage(
+        memoizedDestination.city, 
+        memoizedDestination.country, 
+        memoizedDestination.airportCode
+      );
+      setImage(fetchedImage);
+
+    } catch (err) {
+      console.error('Failed to load destination data:', err);
+      setError(err instanceof Error ? err.message : 'Unknown error occurred');
+    } finally {
+      setLoading(false);
+    }
+  }, [destinationCode, memoizedDestination]);
 
   useEffect(() => {
-    async function loadData() {
-      try {
-        setLoading(true);
-        setError(null);
-
-        const dest = resolveDestination(destinationCode);
-        setResolvedDest(dest);
-
-        const fetchedImage = await fetchDestinationImage(dest.city, dest.country, dest.airportCode);
-        setImage(fetchedImage);
-
-      } catch (err) {
-        console.error('Failed to load destination data:', err);
-        setError(err instanceof Error ? err.message : 'Unknown error occurred');
-      } finally {
-        setLoading(false);
-      }
-    }
-
     loadData();
-  }, [destinationCode, originCode]);
+  }, [loadData]);
+
+  const handleImageError = useCallback(() => {
+    setImageError(true);
+    // Use fallback image
+    setImage({
+      url: 'https://images.unsplash.com/photo-1436491865332-7a61a109cc05?w=1920&q=80',
+      alt: `${resolvedDest?.city || 'Destination'}, ${resolvedDest?.country || 'Travel'}`,
+      source: 'fallback'
+    });
+  }, [resolvedDest]);
 
   if (loading) {
     return (
@@ -326,18 +357,47 @@ export function DestinationHero({
           minHeight: '150px',
           maxHeight: '200px'
         }}
+        role="status"
+        aria-label="Loading destination information"
       >
-        <div className="w-full h-full bg-gradient-to-br from-gray-100 to-gray-200 animate-pulse" />
+        <div className="w-full h-full bg-gradient-to-br from-gray-100 to-gray-200 animate-pulse" aria-hidden="true" />
         <div className="absolute inset-0 flex items-center justify-center">
-          <Loader2 className="w-6 h-6 text-primary-500 animate-spin" />
+          <Loader2 className="w-6 h-6 text-primary-500 animate-spin" aria-hidden="true" />
+          <span className="sr-only">Loading destination information...</span>
         </div>
       </section>
     );
   }
 
-  if (error) {
-    return null; // Silent fail - don't block results
+  if (error || !resolvedDest) {
+    // Return a minimal placeholder instead of null to maintain layout
+    return (
+      <section
+        className="relative overflow-hidden w-full bg-gradient-to-br from-gray-50 to-gray-100"
+        style={{
+          height: '20vh',
+          minHeight: '150px',
+          maxHeight: '200px'
+        }}
+        aria-hidden="true"
+      >
+        <div className="absolute inset-0 flex items-center justify-center p-4">
+          <div className="text-center">
+            <Plane className="w-8 h-8 text-gray-400 mx-auto mb-2" />
+            <p className="text-sm text-gray-500">Destination information unavailable</p>
+          </div>
+        </div>
+      </section>
+    );
   }
+
+  const currentImage = imageError 
+    ? {
+        url: 'https://images.unsplash.com/photo-1436491865332-7a61a109cc05?w=1920&q=80',
+        alt: `${resolvedDest.city}, ${resolvedDest.country}`,
+        source: 'fallback'
+      }
+    : image;
 
   return (
     <section
@@ -347,15 +407,20 @@ export function DestinationHero({
         minHeight: '150px',
         maxHeight: '200px'
       }}
+      role="banner"
+      aria-label={`Destination: ${resolvedDest.city}, ${resolvedDest.country}`}
     >
-      {/* Background Image */}
+      {/* Background Image with error handling */}
       <div
         className="absolute inset-0 w-full h-full bg-cover bg-center"
-        style={{ backgroundImage: `url(${image?.url || ''})` }}
+        style={{ backgroundImage: `url(${currentImage?.url || ''})` }}
+        role="img"
+        aria-label={currentImage?.alt || `Image of ${resolvedDest.city}, ${resolvedDest.country}`}
+        onError={handleImageError}
       />
 
-      {/* Gradient Overlay */}
-      <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/30 to-transparent" />
+      {/* Gradient Overlay for better text readability */}
+      <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/40 to-transparent" aria-hidden="true" />
 
       {/* Content */}
       <div className="absolute inset-0 flex items-end p-3 sm:p-4 md:p-6">
@@ -364,21 +429,34 @@ export function DestinationHero({
             <div className="flex-1 min-w-0">
               {/* Destination Name */}
               <h1 className="text-base sm:text-lg md:text-2xl font-bold text-white drop-shadow-lg truncate mb-1.5 sm:mb-0">
-                {resolvedDest?.city}, {resolvedDest?.country}
+                {resolvedDest.city}, {resolvedDest.country}
               </h1>
 
-              {/* Airport Code Badge - Below on mobile, inline on desktop */}
-              <div className="inline-flex items-center gap-1.5 px-2.5 py-1 sm:px-3 sm:py-1.5 bg-white/20 backdrop-blur-sm rounded-full border border-white/30">
-                <Plane className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-white" />
+              {/* Airport Code Badge */}
+              <div 
+                className="inline-flex items-center gap-1.5 px-2.5 py-1 sm:px-3 sm:py-1.5 bg-white/20 backdrop-blur-sm rounded-full border border-white/30"
+                aria-label={`Airport code: ${resolvedDest.airportCode}`}
+              >
+                <Plane className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-white" aria-hidden="true" />
                 <span className="text-white font-medium text-[10px] sm:text-xs">
-                  {resolvedDest?.airportCode}
+                  {resolvedDest.airportCode}
                 </span>
               </div>
+              
+              {/* Airport Name (hidden on mobile, visible on larger screens) */}
+              <p className="hidden sm:block text-white/80 text-xs mt-1 truncate">
+                {resolvedDest.airportName}
+              </p>
             </div>
 
-            {/* Flag */}
-            <div className="text-xl sm:text-2xl md:text-4xl flex-shrink-0">
-              {resolvedDest?.flag}
+            {/* Flag with accessible label */}
+            <div 
+              className="text-xl sm:text-2xl md:text-4xl flex-shrink-0"
+              role="img"
+              aria-label={`Flag of ${resolvedDest.country}`}
+              title={`Flag of ${resolvedDest.country}`}
+            >
+              {resolvedDest.flag}
             </div>
           </div>
         </div>
