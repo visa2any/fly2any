@@ -141,6 +141,61 @@ const popularAirports: Airport[] = [
 ];
 
 // ===========================
+// CURATED DESTINATION IMAGES (High-Quality, Verified)
+// ===========================
+const DESTINATION_IMAGES: Record<string, string> = {
+  // Middle East
+  'DXB': 'https://images.unsplash.com/photo-1512453979798-5ea266f8880c?w=1920&q=80',
+  'AUH': 'https://images.unsplash.com/photo-1512632578888-169bbbc64f33?w=1920&q=80',
+  'DOH': 'https://images.unsplash.com/photo-1568632234157-ce7aecd03d0d?w=1920&q=80',
+  'CAI': 'https://images.unsplash.com/photo-1572252009286-268acec5ca0a?w=1920&q=80',
+
+  // Europe
+  'LHR': 'https://images.unsplash.com/photo-1513635269975-59663e0ac1ad?w=1920&q=80',
+  'CDG': 'https://images.unsplash.com/photo-1502602898657-3e91760cbb34?w=1920&q=80',
+  'BCN': 'https://images.unsplash.com/photo-1583422409516-2895a77efded?w=1920&q=80',
+  'FCO': 'https://images.unsplash.com/photo-1552832230-c0197dd311b5?w=1920&q=80',
+  'AMS': 'https://images.unsplash.com/photo-1534351590666-13e3e96b5017?w=1920&q=80',
+  'MAD': 'https://images.unsplash.com/photo-1539037116277-4db20889f2d4?w=1920&q=80',
+  'LIS': 'https://images.unsplash.com/photo-1555881400-74d7acaacd8b?w=1920&q=80',
+  'ATH': 'https://images.unsplash.com/photo-1555993539-1732b0258235?w=1920&q=80',
+
+  // USA
+  'JFK': 'https://images.unsplash.com/photo-1496442226666-8d4d0e62e6e9?w=1920&q=80',
+  'LAX': 'https://images.unsplash.com/photo-1580655653885-65763b2597d0?w=1920&q=80',
+  'MIA': 'https://images.unsplash.com/photo-1514214246283-d427a95c5d2f?w=1920&q=80',
+  'SFO': 'https://images.unsplash.com/photo-1501594907352-04cda38ebc29?w=1920&q=80',
+  'ORD': 'https://images.unsplash.com/photo-1494522855154-9297ac14b55f?w=1920&q=80',
+  'ATL': 'https://images.unsplash.com/photo-1565731197624-94e59e4280b0?w=1920&q=80',
+  'HNL': 'https://images.unsplash.com/photo-1542259009477-d625272157b7?w=1920&q=80',
+
+  // Asia
+  'HKG': 'https://images.unsplash.com/photo-1536599018102-9f803c140fc1?w=1920&q=80',
+  'NRT': 'https://images.unsplash.com/photo-1540959733332-eab4deabeeaf?w=1920&q=80',
+  'HND': 'https://images.unsplash.com/photo-1540959733332-eab4deabeeaf?w=1920&q=80',
+  'SIN': 'https://images.unsplash.com/photo-1525625293386-3f8f99389edd?w=1920&q=80',
+  'BKK': 'https://images.unsplash.com/photo-1508009603885-50cf7c579365?w=1920&q=80',
+  'ICN': 'https://images.unsplash.com/photo-1517154421773-0529f29ea451?w=1920&q=80',
+  'DEL': 'https://images.unsplash.com/photo-1587474260584-136574528ed5?w=1920&q=80',
+
+  // Australia
+  'SYD': 'https://images.unsplash.com/photo-1506973035872-a4ec16b8e8d9?w=1920&q=80',
+  'MEL': 'https://images.unsplash.com/photo-1514395462725-fb4566210144?w=1920&q=80',
+
+  // Latin America
+  'MEX': 'https://images.unsplash.com/photo-1518105779142-d975f22f1b0a?w=1920&q=80',
+  'CUN': 'https://images.unsplash.com/photo-1568402102990-bc541580b59f?w=1920&q=80',
+  'GRU': 'https://images.unsplash.com/photo-1483729558449-99ef09a8c325?w=1920&q=80',
+
+  // Canada
+  'YYZ': 'https://images.unsplash.com/photo-1517935706615-2717063c2225?w=1920&q=80',
+  'YVR': 'https://images.unsplash.com/photo-1559511260-66a654ae982a?w=1920&q=80',
+
+  // Caribbean
+  'MLE': 'https://images.unsplash.com/photo-1514282401047-d79a71a590e8?w=1920&q=80',
+};
+
+// ===========================
 // HELPER FUNCTIONS
 // ===========================
 
@@ -186,7 +241,17 @@ function generateImageCacheKey(city: string, country: string): string {
   return `dest-image:${city.toLowerCase()}:${country.toLowerCase()}`;
 }
 
-async function fetchDestinationImage(city: string, country: string): Promise<DestinationImage> {
+async function fetchDestinationImage(city: string, country: string, airportCode: string): Promise<DestinationImage> {
+  // 1. Check curated database first (instant, accurate)
+  if (DESTINATION_IMAGES[airportCode]) {
+    return {
+      url: DESTINATION_IMAGES[airportCode],
+      alt: `${city}, ${country}`,
+      source: 'curated'
+    };
+  }
+
+  // 2. Check cache
   const cacheKey = generateImageCacheKey(city, country);
   const cached = localStorage.getItem(cacheKey);
 
@@ -199,80 +264,20 @@ async function fetchDestinationImage(city: string, country: string): Promise<Des
           alt: `${city}, ${country}`,
           source: 'cache'
         };
-      } else {
-        localStorage.removeItem(cacheKey);
       }
-    } catch (e) {
-      console.warn('Failed to parse cached image data:', e);
+      localStorage.removeItem(cacheKey);
+    } catch {
       localStorage.removeItem(cacheKey);
     }
   }
 
-  console.log(`🔍 Fetching Unsplash image for ${city}, ${country}`);
-  const UNSPLASH_ACCESS_KEY = process.env.NEXT_PUBLIC_UNSPLASH_ACCESS_KEY || 'demo';
-
-  const queries = [
-    `${city}, ${country} skyline`,
-    `${city} travel`,
-    `${country} travel`
-  ];
-
-  try {
-    for (const query of queries) {
-      const response = await fetch(
-        `https://api.unsplash.com/search/photos?query=${encodeURIComponent(query)}&per_page=1&orientation=landscape&content_filter=high&w=1920&h=1080&auto=format`,
-        {
-          method: 'GET',
-          headers: {
-            'Authorization': `Client-ID ${UNSPLASH_ACCESS_KEY}`
-          }
-        }
-      );
-
-      if (response.ok) {
-        const data = await response.json();
-        if (data.results && data.results.length > 0) {
-          const photo = data.results[0];
-          const imageUrl = `${photo.urls.regular}?q=80&auto=format`;
-
-          const cacheData = {
-            url: imageUrl,
-            expiresAt: Date.now() + (7 * 24 * 60 * 60 * 1000)
-          };
-          localStorage.setItem(cacheKey, JSON.stringify(cacheData));
-
-          return {
-            url: imageUrl,
-            alt: `${city}, ${country}`,
-            source: 'unsplash'
-          };
-        }
-      }
-    }
-
-    console.warn(`⚠️ All Unsplash queries failed for ${city}, ${country}, using fallback`);
-    const fallbackImages = [
-      'https://images.unsplash.com/photo-1436491865332-7a61a109cc05?w=1920&q=80&auto=format',
-      'https://images.unsplash.com/photo-1514282401047-d79a71a590e8?w=1920&q=80&auto=format',
-      'https://images.unsplash.com/photo-1570077188670-e3a8d69ac5ff?w=1920&q=80&auto=format',
-      'https://images.unsplash.com/photo-1512453979798-5ea266f8880c?w=1920&q=80&auto=format',
-    ];
-    const fallbackIndex = Math.abs(city.length) % fallbackImages.length;
-
-    return {
-      url: fallbackImages[fallbackIndex],
-      alt: `${city}, ${country}`,
-      source: 'fallback'
-    };
-
-  } catch (error) {
-    console.error(`❌ Unsplash API error for ${city}, ${country}:`, error);
-    return {
-      url: 'https://images.unsplash.com/photo-1436491865332-7a61a109cc05?w=1920&q=80&auto=format',
-      alt: `${city}, ${country}`,
-      source: 'error-fallback'
-    };
-  }
+  // 3. Generic travel fallback
+  const fallback = 'https://images.unsplash.com/photo-1436491865332-7a61a109cc05?w=1920&q=80';
+  return {
+    url: fallback,
+    alt: `${city}, ${country}`,
+    source: 'fallback'
+  };
 }
 
 // ===========================
@@ -298,7 +303,7 @@ export function DestinationHero({
         const dest = resolveDestination(destinationCode);
         setResolvedDest(dest);
 
-        const fetchedImage = await fetchDestinationImage(dest.city, dest.country);
+        const fetchedImage = await fetchDestinationImage(dest.city, dest.country, dest.airportCode);
         setImage(fetchedImage);
 
       } catch (err) {
