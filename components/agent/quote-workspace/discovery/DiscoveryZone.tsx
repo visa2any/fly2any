@@ -58,7 +58,7 @@ export default function DiscoveryZone() {
   return (
     <div className="flex flex-col h-full">
       {/* Header: Product Tabs */}
-      <div className="flex-shrink-0 px-2 py-1.5 border-b border-gray-100 bg-gradient-to-b from-white to-gray-50/80">
+      <div className="flex-shrink-0 px-2 py-1.5 border-b border-gray-100 bg-white">
         {/* Product Type Tabs - Icon Only with Hover Tooltips */}
         <div className="flex gap-1.5 justify-center">
           {PRODUCT_TABS.map(({ type, icon: Icon, label, gradient, shadowColor }) => {
@@ -68,21 +68,15 @@ export default function DiscoveryZone() {
               <div key={type} className="relative group">
                 <motion.button
                   onClick={() => setActiveTab(type)}
-                  whileHover={{ scale: 1.1, y: -2 }}
-                  whileTap={{ scale: 0.95 }}
-                  className={`relative w-10 h-10 rounded-xl flex items-center justify-center transition-all ${
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.98 }}
+                  className={`relative w-10 h-10 rounded-lg flex items-center justify-center transition-all ${
                     isActive
-                      ? `bg-gradient-to-r ${gradient} text-white shadow-lg ${shadowColor}`
-                      : "bg-white text-gray-500 hover:bg-gray-100 border border-gray-200 hover:border-gray-300"
+                      ? `bg-gradient-to-r ${gradient} text-white shadow-md`
+                      : "bg-gray-50 text-gray-500 hover:bg-gray-100 border border-gray-200"
                   }`}
                 >
-                  {isActive && (
-                    <motion.div
-                      layoutId="activeTabGlow"
-                      className={`absolute inset-0 rounded-xl bg-gradient-to-r ${gradient} opacity-40 blur-md`}
-                    />
-                  )}
-                  <Icon className="relative w-5 h-5" />
+                  <Icon className="w-5 h-5" />
                   {/* Result indicator from unified search */}
                   {["flights", "hotels", "cars", "activities", "transfers"].includes(scopeKey) && (
                     <TabResultIndicator product={scopeKey} />
@@ -101,7 +95,7 @@ export default function DiscoveryZone() {
 
       {/* ═══ PREDICTIVE BUNDLING SUGGESTIONS ═══ */}
       {suggestions.length > 0 && (
-        <div className="flex-shrink-0 px-2 py-1.5 border-b border-gray-100 bg-gradient-to-b from-amber-50/30 to-white">
+        <div className="flex-shrink-0 px-2 py-1.5 border-b border-gray-100 bg-amber-50">
           <SuggestionsPanel
             suggestions={suggestions}
             onAccept={accept}

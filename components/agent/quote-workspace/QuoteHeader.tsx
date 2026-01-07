@@ -51,11 +51,11 @@ export default function QuoteHeader() {
   ];
 
   return (
-    <div className="h-14 px-4 flex items-center justify-between gap-4 bg-white border-b border-gray-100">
+    <div className="h-14 px-4 flex items-center justify-between gap-4 bg-white border-b border-gray-200 shadow-sm">
       {/* Left: Back + Title + Status + Product Icons */}
       <div className="flex items-center gap-2">
-        <Link href="/agent/quotes" className="p-1.5 text-gray-400 hover:text-gray-600 rounded-md hover:bg-gray-100">
-          <ArrowLeft className="w-4 h-4" />
+        <Link href="/agent/quotes" className="p-2 text-gray-400 hover:text-gray-700 rounded-lg hover:bg-gray-50 transition-all duration-150">
+          <ArrowLeft className="w-4 h-4 stroke-[1.5]" />
         </Link>
 
         {isEditing ? (
@@ -84,15 +84,15 @@ export default function QuoteHeader() {
         </span>
 
         {/* Toolbar Actions */}
-        <div className="hidden lg:flex items-center gap-0.5 ml-3 pl-3 border-l border-gray-200">
+        <div className="hidden lg:flex items-center gap-1 ml-3 pl-3 border-l border-gray-200">
           {toolbarIcons.map(({ icon: Icon, label, action }, idx) => (
             <button
               key={idx}
               onClick={action}
-              className="p-1.5 rounded-lg text-gray-400 hover:text-gray-600 hover:bg-gray-100 transition-colors"
+              className="p-2 rounded-lg text-gray-400 hover:text-gray-700 hover:bg-gray-50 transition-all duration-150"
               title={label}
             >
-              <Icon className="w-4 h-4" />
+              <Icon className="w-4 h-4 stroke-[1.5]" />
             </button>
           ))}
         </div>
@@ -143,17 +143,17 @@ export default function QuoteHeader() {
         </Link>
 
         {/* Notifications */}
-        <button className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition-colors relative">
-          <Bell className="w-5 h-5" />
-          <span className="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full"></span>
+        <button className="p-2 text-gray-400 hover:text-gray-700 hover:bg-gray-50 rounded-lg transition-all duration-150 relative">
+          <Bell className="w-5 h-5 stroke-[1.5]" />
+          <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-red-500 rounded-full ring-2 ring-white"></span>
         </button>
 
         {/* User Profile */}
-        <div className="flex items-center gap-2 px-2 py-1 hover:bg-gray-100 rounded-lg transition-colors cursor-pointer">
-          <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-indigo-400 to-indigo-600 flex items-center justify-center text-white font-semibold text-sm">
+        <div className="relative z-50 flex items-center gap-2 px-2 py-1.5 hover:bg-gray-50 rounded-lg transition-all duration-150 cursor-pointer">
+          <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-indigo-500 to-indigo-600 flex items-center justify-center text-white font-semibold text-sm shadow-[0_2px_8px_rgba(99,102,241,0.25)]">
             {session?.user?.name?.charAt(0) || session?.user?.email?.charAt(0)?.toUpperCase() || 'A'}
           </div>
-          <ChevronDown className="w-4 h-4 text-gray-400" />
+          <ChevronDown className="w-4 h-4 text-gray-400 stroke-[1.5]" />
         </div>
       </div>
     </div>

@@ -1,42 +1,19 @@
 'use client';
 
 import { NextIntlClientProvider } from 'next-intl';
-import { useLanguage } from './client';
-import { ReactNode, useEffect, useState } from 'react';
+import { ReactNode } from 'react';
 
 /**
- * Client-side i18n provider
- * Wraps components that need translations
+ * Client-side i18n provider - TEMPORARILY FROZEN TO ENGLISH ONLY
+ * TODO: Re-enable dynamic language loading when multilingual support is activated
  */
 export function I18nProvider({ children }: { children: ReactNode }) {
-  const { language } = useLanguage();
-  const [messages, setMessages] = useState<any>(null);
-  const [isLoading, setIsLoading] = useState(true);
-
-  useEffect(() => {
-    async function loadMessages() {
-      try {
-        const msgs = await import(`@/messages/${language}.json`);
-        setMessages(msgs.default);
-      } catch (error) {
-        console.error('Failed to load translations:', error);
-        // Fallback to English
-        const fallback = await import(`@/messages/en.json`);
-        setMessages(fallback.default);
-      } finally {
-        setIsLoading(false);
-      }
-    }
-
-    loadMessages();
-  }, [language]);
-
-  if (isLoading || !messages) {
-    return <>{children}</>;  // Render children without translations during load
-  }
+  // TEMPORARY: Always use English messages
+  // TODO: Re-enable dynamic language loading by using the useLanguage hook and useEffect
+  const messages = require('@/messages/en.json');
 
   return (
-    <NextIntlClientProvider locale={language} messages={messages}>
+    <NextIntlClientProvider locale="en" messages={messages}>
       {children}
     </NextIntlClientProvider>
   );

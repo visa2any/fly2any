@@ -1,74 +1,52 @@
 'use client';
 
 import { useTranslations as useNextIntlTranslations } from 'next-intl';
-import { useState, useEffect } from 'react';
 
 /**
- * Supported locales
+ * Supported locales - TEMPORARILY FROZEN TO ENGLISH ONLY
+ * TODO: Re-enable multilingual support by uncommenting 'pt' and 'es'
  */
-export const locales = ['en', 'pt', 'es'] as const;
+export const locales = ['en'] as const;
 export type Locale = (typeof locales)[number];
 
 /**
- * Default locale
+ * Default locale (English only)
  */
 export const defaultLocale: Locale = 'en';
 
 /**
- * Get current language from cookie (client-side only)
+ * Get current language - ALWAYS RETURNS ENGLISH
+ * TODO: Re-enable cookie-based language detection when multilingual support is activated
  */
 export function getLanguage(): Locale {
-  if (typeof window === 'undefined') return defaultLocale;
-
-  // Check cookie
-  const cookies = document.cookie.split(';');
-  const langCookie = cookies.find(c => c.trim().startsWith('fly2any_language='));
-
-  if (langCookie) {
-    const lang = langCookie.split('=')[1].trim() as Locale;
-    if (locales.includes(lang)) {
-      return lang;
-    }
-  }
-
-  return defaultLocale;
+  // TEMPORARY: Always return English
+  return 'en';
 }
 
 /**
- * Set language and update cookie
+ * Set language - NO-OP (language switching disabled)
+ * TODO: Re-enable language switching when multilingual support is activated
  */
 export function setLanguage(lang: Locale): void {
-  if (typeof window === 'undefined') return;
-
-  // Set cookie (1 year expiry)
-  const maxAge = 60 * 60 * 24 * 365; // 1 year in seconds
-  document.cookie = `fly2any_language=${lang}; path=/; max-age=${maxAge}; SameSite=Lax`;
-
-  // Also update localStorage as fallback
-  localStorage.setItem('fly2any_language', lang);
-
-  // Reload page to apply new language
-  window.location.reload();
+  // TEMPORARY: Language switching is disabled
+  console.warn('Language switching is temporarily disabled. Platform is frozen to English only.');
+  // No-op: Do not set cookie, localStorage, or reload
 }
 
 /**
  * Hook to get and set language
+ * TODO: Re-enable language switching when multilingual support is activated
  */
 export function useLanguage() {
-  const [language, setLanguageState] = useState<Locale>(defaultLocale);
-
-  useEffect(() => {
-    setLanguageState(getLanguage());
-  }, []);
-
-  const changeLanguage = (lang: Locale) => {
-    setLanguage(lang);
-    setLanguageState(lang);
+  // TEMPORARY: Always return English, setLanguage is a no-op
+  const language: Locale = 'en';
+  const setLanguageNoOp = (lang: Locale) => {
+    console.warn('Language switching is temporarily disabled. Platform is frozen to English only.');
   };
 
   return {
     language,
-    setLanguage: changeLanguage,
+    setLanguage: setLanguageNoOp,
   };
 }
 

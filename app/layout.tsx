@@ -93,9 +93,8 @@ export const metadata: Metadata = {
   },
   alternates: {
     canonical: 'https://www.fly2any.com',
-    // Note: hreflang removed - /pt and /es routes don't exist
-    // Language switching is cookie-based, not URL-based
-    // Re-add when locale-prefixed routes are implemented
+    // TODO: Re-enable hreflang when multilingual support is activated
+    // Currently frozen to English-only
   },
 };
 
@@ -123,7 +122,8 @@ export default async function RootLayout({
   ];
 
   // Load messages server-side for SSR/static generation
-  // Default to English for static generation, client will switch based on cookie/preference
+  // TEMPORARY: Always load English messages (platform frozen to English-only)
+  // TODO: Re-enable dynamic locale loading when multilingual support is activated
   const messages = await getMessages({ locale: 'en' });
 
   return (
