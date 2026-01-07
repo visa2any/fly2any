@@ -23,6 +23,7 @@ import {
   Zap,
   Star,
   TrendingUp,
+  Luggage,
 } from "lucide-react";
 import AirlineLogo from "@/components/flights/AirlineLogo";
 import { getAirlineData } from "@/lib/flights/airline-data";
@@ -1146,21 +1147,40 @@ export default function FlightSearchPanel() {
 
 // Flight Result Card - Ultra-Compact with Return Flight Support
 function FlightResultCard({ flight, onAdd, index }: { flight: any; onAdd: () => void; index: number }) {
+  const [isExpanded, setIsExpanded] = useState(false);
+
   // Data extraction
   const price = Number(flight.price?.total || flight.price?.amount || flight.totalPrice || 0);
-  const airlineCode = flight.validatingAirlineCodes?.[0] || flight.airline || flight.carrierCode ||
-    flight.segments?.[0]?.carrierCode || flight.itineraries?.[0]?.segments?.[0]?.carrierCode || "XX";
-  const airlineInfo = getAirlineData(airlineCode);
-
-  // Fare info
-  const fareDetails = flight.travelerPricings?.[0]?.fareDetailsBySegment?.[0];
-  const fareType = fareDetails?.brandedFare || fareDetails?.brandedFareLabel || fareDetails?.cabin || "Economy";
 
   // Itineraries
   const itineraries = flight.itineraries || [];
   const outbound = itineraries[0] || { segments: flight.segments || [], duration: flight.duration || "" };
   const inbound = itineraries[1];
   const isRoundtrip = !!inbound;
+
+  // Flight data
+  const outSegs = outbound.segments || [];
+  const outDep = outSegs[0]?.departure || {};
+  const outArr = outSegs[outSegs.length - 1]?.arrival || {};
+  const outNum = outSegs[0]?.number || outSegs[0]?.flightNumber || "";
+  const outAirlineCode = outSegs[0]?.carrierCode || flight.validatingAirlineCodes?.[0] || "XX";
+  const outAirlineInfo = getAirlineData(outAirlineCode);
+
+  const inSegs = inbound?.segments || [];
+  const inDep = inSegs[0]?.departure || {};
+  const inArr = inSegs[inSegs.length - 1]?.arrival || {};
+  const inNum = inSegs[0]?.number || inSegs[0]?.flightNumber || "";
+  const inAirlineCode = inSegs[0]?.carrierCode || outAirlineCode;
+  const inAirlineInfo = getAirlineData(inAirlineCode);
+
+  // Fare info - REAL API DATA
+  const fareDetails = flight.travelerPricings?.[0]?.fareDetailsBySegment?.[0];
+  const fareType = fareDetails?.brandedFare || fareDetails?.brandedFareLabel || fareDetails?.cabin || "Economy";
+  const cabin = fareDetails?.cabin || "ECONOMY";
+  const fareBasis = fareDetails?.fareBasis;
+  const includedBags = fareDetails?.includedCheckedBags;
+  const isRefundable = !fareType?.toLowerCase().includes("basic");
+  const isChangeable = !fareType?.toLowerCase().includes("basic");
 
   // Helpers
   const formatTime = (dateStr: string) => dateStr?.includes("T") ? dateStr.slice(11, 16) : dateStr || "--:--";
@@ -1171,16 +1191,6 @@ function FlightResultCard({ flight, onAdd, index }: { flight: any; onAdd: () => 
   };
   const getStops = (segs: any[]) => segs?.length ? segs.length - 1 : 0;
   const stopsStyle = (s: number) => s === 0 ? "bg-emerald-100 text-emerald-700" : s === 1 ? "bg-amber-100 text-amber-700" : "bg-red-100 text-red-700";
-
-  // Flight data
-  const outSegs = outbound.segments || [];
-  const outDep = outSegs[0]?.departure || {};
-  const outArr = outSegs[outSegs.length - 1]?.arrival || {};
-  const outNum = outSegs[0]?.number || outSegs[0]?.flightNumber || "";
-  const inSegs = inbound?.segments || [];
-  const inDep = inSegs[0]?.departure || {};
-  const inArr = inSegs[inSegs.length - 1]?.arrival || {};
-  const inNum = inSegs[0]?.number || inSegs[0]?.flightNumber || "";
 
   return (
     <motion.div
@@ -1198,21 +1208,32 @@ function FlightResultCard({ flight, onAdd, index }: { flight: any; onAdd: () => 
         </div>
       )}
 
+      {/* Main Card Content */}
       <div className="flex">
-        {/* Logo - Thin strip on left */}
-        <div className="flex items-center justify-center px-1 border-r border-gray-100 w-[32px] flex-shrink-0">
-          <AirlineLogo code={airlineCode} size="sm" className="flex-shrink-0" />
+        {/* Left: Airline Logo + Name Column */}
+        <div className="flex flex-col items-center justify-center gap-2 px-2 py-2 border-r border-gray-100 w-[72px] flex-shrink-0 bg-gray-50/50">
+          <div className="flex flex-col items-center gap-1">
+            <AirlineLogo code={outAirlineCode} size="sm" className="flex-shrink-0" />
+            <span className="text-[9px] font-semibold text-gray-700 text-center leading-tight">{outAirlineInfo.name}</span>
+          </div>
+          {isRoundtrip && inAirlineCode !== outAirlineCode && (
+            <>
+              <div className="w-full h-px bg-gray-200" />
+              <div className="flex flex-col items-center gap-1">
+                <AirlineLogo code={inAirlineCode} size="sm" className="flex-shrink-0" />
+                <span className="text-[9px] font-semibold text-gray-700 text-center leading-tight">{inAirlineInfo.name}</span>
+              </div>
+            </>
+          )}
         </div>
 
-        {/* Flights */}
+        {/* Middle: Flight Details */}
         <div className="flex-1 min-w-0">
           {/* Outbound */}
           <div className="flex items-center gap-1.5 px-2 py-2 border-b border-gray-100">
-            <div className="flex items-center gap-1.5 flex-shrink-0">
+            <div className="flex items-center gap-1 flex-shrink-0">
               <span className="text-[10px] font-bold text-indigo-600">→</span>
-              <span className="text-[10px] font-semibold text-gray-700">{airlineInfo.name}</span>
-              <span className="text-[9px] text-gray-400/70">{airlineCode}{outNum}</span>
-              <span className="text-[8px] text-indigo-600 bg-indigo-50 px-1 rounded">{fareType}</span>
+              <span className="text-[9px] text-gray-400/70">{outAirlineCode}{outNum}</span>
             </div>
             <div className="text-center flex-shrink-0">
               <p className="text-sm font-bold text-gray-900">{formatTime(outDep.at)}</p>
@@ -1238,9 +1259,9 @@ function FlightResultCard({ flight, onAdd, index }: { flight: any; onAdd: () => 
           {/* Return */}
           {isRoundtrip && (
             <div className="flex items-center gap-1.5 px-2 py-2 bg-gray-50/50">
-              <div className="flex items-center gap-1.5 flex-shrink-0">
+              <div className="flex items-center gap-1 flex-shrink-0">
                 <span className="text-[10px] font-bold text-orange-600">←</span>
-                <span className="text-[9px] text-gray-400/70">{airlineCode}{inNum}</span>
+                <span className="text-[9px] text-gray-400/70">{inAirlineCode}{inNum}</span>
               </div>
               <div className="text-center flex-shrink-0">
                 <p className="text-sm font-bold text-gray-900">{formatTime(inDep.at)}</p>
@@ -1265,7 +1286,7 @@ function FlightResultCard({ flight, onAdd, index }: { flight: any; onAdd: () => 
           )}
         </div>
 
-        {/* Price + Add - End */}
+        {/* Right: Price + Add */}
         <div className="flex flex-col items-center justify-center px-2 py-2 border-l border-gray-100 w-[76px] flex-shrink-0">
           <p className="text-lg font-black text-gray-900 bg-yellow-100 px-2 py-1 rounded">${Math.round(price)}</p>
           <p className="text-xs text-gray-400 mt-0.5">/person</p>
@@ -1279,6 +1300,73 @@ function FlightResultCard({ flight, onAdd, index }: { flight: any; onAdd: () => 
           </motion.button>
         </div>
       </div>
+
+      {/* Sticky Policy Bar - REAL API DATA */}
+      <div className="flex items-center justify-between px-2 py-1.5 bg-gray-50 border-t border-gray-100 text-[10px]">
+        <div className="flex items-center gap-3">
+          <div className={`flex items-center gap-1 ${isRefundable ? "text-emerald-700" : "text-red-700"}`}>
+            {isRefundable ? <Check className="w-3 h-3" /> : <X className="w-3 h-3" />}
+            <span className="font-medium">Refund</span>
+          </div>
+          <div className={`flex items-center gap-1 ${isChangeable ? "text-emerald-700" : "text-red-700"}`}>
+            {isChangeable ? <Check className="w-3 h-3" /> : <X className="w-3 h-3" />}
+            <span className="font-medium">Change</span>
+          </div>
+          {includedBags && (
+            <div className="flex items-center gap-1 text-gray-700">
+              <Luggage className="w-3 h-3" />
+              <span className="font-medium">{includedBags.quantity}×{includedBags.weight || "23"}kg</span>
+            </div>
+          )}
+          <div className="px-1.5 py-0.5 bg-indigo-100 text-indigo-700 rounded font-semibold">
+            {fareType}
+          </div>
+        </div>
+        <button
+          onClick={() => setIsExpanded(!isExpanded)}
+          className="flex items-center gap-1 text-gray-600 hover:text-indigo-600 font-semibold transition-colors"
+        >
+          <span>{isExpanded ? "Less" : "More"}</span>
+          <ChevronDown className={`w-3 h-3 transition-transform ${isExpanded ? "rotate-180" : ""}`} />
+        </button>
+      </div>
+
+      {/* Expandable Details Section */}
+      <AnimatePresence>
+        {isExpanded && (
+          <motion.div
+            initial={{ height: 0, opacity: 0 }}
+            animate={{ height: "auto", opacity: 1 }}
+            exit={{ height: 0, opacity: 0 }}
+            transition={{ type: "spring", stiffness: 300, damping: 30 }}
+            className="overflow-hidden border-t border-gray-100"
+          >
+            <div className="px-3 py-2 bg-white space-y-1.5 text-[10px]">
+              <div className="flex items-center justify-between">
+                <span className="text-gray-500">Cabin Class:</span>
+                <span className="font-semibold text-gray-900">{cabin}</span>
+              </div>
+              {fareBasis && (
+                <div className="flex items-center justify-between">
+                  <span className="text-gray-500">Fare Basis:</span>
+                  <span className="font-mono text-gray-900">{fareBasis}</span>
+                </div>
+              )}
+              <div className="flex items-center justify-between">
+                <span className="text-gray-500">Flight Numbers:</span>
+                <span className="font-semibold text-gray-900">
+                  {outAirlineCode}{outNum}{isRoundtrip ? ` • ${inAirlineCode}${inNum}` : ""}
+                </span>
+              </div>
+              {outAirlineCode !== inAirlineCode && isRoundtrip && (
+                <div className="px-2 py-1 bg-amber-50 text-amber-700 rounded text-[9px] font-medium">
+                  ⚠️ Codeshare: Return operated by {inAirlineInfo.name}
+                </div>
+              )}
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </motion.div>
   );
 }
