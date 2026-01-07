@@ -8,8 +8,6 @@ import { DestinationsSectionEnhanced } from '@/components/home/DestinationsSecti
 import { FlashDealsSectionEnhanced } from '@/components/home/FlashDealsSectionEnhanced';
 import { RecentlyViewedSection } from '@/components/home/RecentlyViewedSection';
 import { MaxWidthContainer } from '@/components/layout/MaxWidthContainer';
-import { CompactTrustBar } from '@/components/conversion/CompactTrustBar';
-import { AirlineLogosMarquee } from '@/components/home/AirlineLogosMarquee';
 import { CreditCard, Plane, Hotel, Car, Shield, HeadphonesIcon, Sparkles, ChevronDown } from 'lucide-react';
 import { useLanguage } from '@/lib/i18n/client';
 import dynamic from 'next/dynamic';
@@ -26,6 +24,8 @@ const ActivitiesSectionEnhanced = dynamic(() => import('@/components/home/Activi
 const TransfersSectionEnhanced = dynamic(() => import('@/components/home/TransfersSectionEnhanced').then(mod => mod.TransfersSectionEnhanced), { ssr: false });
 const ExperiencesSection = dynamic(() => import('@/components/home/ExperiencesSection'), { ssr: false });
 const WorldCupHeroSectionEnhanced = dynamic(() => import('@/components/world-cup/WorldCupHeroSectionEnhanced').then(mod => mod.WorldCupHeroSectionEnhanced), { ssr: false });
+const CompactTrustBar = dynamic(() => import('@/components/conversion/CompactTrustBar'), { ssr: false });
+const AirlineLogosMarquee = dynamic(() => import('@/components/home/AirlineLogosMarquee'), { ssr: false });
 
 type Language = 'en' | 'pt' | 'es';
 
@@ -164,7 +164,6 @@ export default function Home() {
   const { language } = useLanguage();
   const lang = language as Language;
   const t = content[lang];
-  const [heroIndex, setHeroIndex] = useState(0);
   const [activeService, setActiveService] = useState<ServiceType>('flights');
   const [mounted, setMounted] = useState(false);
   const [isFormExpanded, setIsFormExpanded] = useState(false);
@@ -176,35 +175,11 @@ export default function Home() {
     setMounted(true);
   }, []);
 
-  // Rotate hero images every 6 seconds - use ref to prevent reset
-  const intervalRef = useRef<NodeJS.Timeout | null>(null);
-
-  useEffect(() => {
-    // Clear any existing interval
-    if (intervalRef.current) {
-      clearInterval(intervalRef.current);
-    }
-
-    const photoCount = HERO_PHOTOS[activeService].length;
-    if (photoCount <= 1) return;
-
-    intervalRef.current = setInterval(() => {
-      setHeroIndex((prev) => (prev + 1) % photoCount);
-    }, 6000);
-
-    return () => {
-      if (intervalRef.current) {
-        clearInterval(intervalRef.current);
-      }
-    };
-  }, [activeService]);
-
   // Handle service type change from search form - useCallback for stable reference
   const handleServiceChange = useCallback((service: string) => {
     setActiveService((current) => {
       const validService = service as ServiceType;
       if (HERO_PHOTOS[validService] && validService !== current) {
-        setHeroIndex(0); // Only reset when actually changing service
         return validService;
       }
       return current;
@@ -226,12 +201,16 @@ export default function Home() {
       <section className={`relative overflow-hidden -mt-14 sm:-mt-16 lg:-mt-[72px] transition-all duration-500 ease-out ${
         isFormExpanded ? 'min-h-[100svh]' : 'min-h-[320px]'
       } md:min-h-screen`}>
-        {/* Rotating Background Images - CSS transitions for reliability */}
+        {/* Rotating Background Images - CSS animations for better performance */}
         {currentPhotos.map((photo, index) => (
           <div
             key={`hero-${activeService}-${index}`}
-            className="absolute inset-0 transition-opacity duration-[1500ms] ease-in-out"
-            style={{ opacity: index === heroIndex ? 1 : 0 }}
+            className="absolute inset-0"
+            style={{
+              animation: `heroFade${activeService} ${6 * currentPhotos.length}s infinite`,
+              animationDelay: `${index * 6}s`,
+              opacity: 0
+            }}
           >
             <Image
               src={photo.image}
@@ -248,9 +227,19 @@ export default function Home() {
           </div>
         ))}
 
-        {/* Ultra-Premium Gradient Overlays - Cinematic Look */}
-        <div className="absolute inset-0 bg-gradient-to-b from-black/50 via-black/20 to-black/60" />
-        <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent" />
+        {/* CSS Animation Keyframes */}
+        <style jsx>{`
+          @keyframes heroFade${activeService} {
+            0% { opacity: 1; }
+            ${(100 / currentPhotos.length).toFixed(2)}% { opacity: 1; }
+            ${(100 / currentPhotos.length + 0.01).toFixed(2)}% { opacity: 0; }
+            100% { opacity: 0; }
+          }
+        `}</style>
+
+        {/* Enhanced Gradient Overlays - Better contrast for accessibility */}
+            <div className="absolute inset-0 bg-gradient-to-b from-black/95 via-black/85 to-black/95" />
+            <div className="absolute inset-0 bg-gradient-to-t from-black/95 via-transparent to-transparent" />
 
         {/* Content Container - Full height with flex */}
         <div className={`relative z-10 flex flex-col transition-all duration-500 ease-out ${
@@ -268,7 +257,7 @@ export default function Home() {
                 {/* Large Animated Title */}
                 <h1
                   className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-black text-white mb-3"
-                  style={{ textShadow: '0 4px 40px rgba(0,0,0,0.6)' }}
+                  style={{ textShadow: '0 6px 60px rgba(0,0,0,0.9)' }}
                 >
                   {t.sectionTitle}{' '}
                   <motion.span
@@ -287,8 +276,8 @@ export default function Home() {
                 </h1>
 
                 <p
-                  className="text-base md:text-lg lg:text-xl text-white/90 font-medium mb-6"
-                  style={{ textShadow: '0 2px 20px rgba(0,0,0,0.4)' }}
+                  className="text-base md:text-lg lg:text-xl text-white/95 font-bold mb-6"
+                  style={{ textShadow: '0 4px 40px rgba(0,0,0,0.8)' }}
                 >
                   {t.subtitle}
                 </p>
@@ -312,7 +301,7 @@ export default function Home() {
           </div>
 
           {/* Trust Signals - At bottom of hero (hidden when collapsed on mobile) */}
-          <div className={`pb-4 md:pb-6 ${isFormExpanded ? 'mt-auto' : 'mt-4 hidden md:block'} md:mt-auto`}>
+          <div className={`pb-4 md:pb-6 ${isFormExpanded ? 'mt-auto' : 'mt-4 hidden md:block'} md:mt-auto bg-black/70 backdrop-blur-md rounded-t-xl pt-4`}>
             {/* Trust Signals - Visible with Colored Icons */}
             <div className="flex items-center justify-center gap-4 md:gap-8 mb-3">
               {[
@@ -323,7 +312,7 @@ export default function Home() {
               ].map((item, idx) => (
                 <div key={idx} className="flex items-center gap-1.5">
                   <item.icon className={`w-4 h-4 md:w-5 md:h-5 ${item.color}`} strokeWidth={2} />
-                  <span className="text-[10px] md:text-xs font-semibold text-white whitespace-nowrap">
+                  <span className="text-[11px] md:text-xs font-extrabold text-white whitespace-nowrap drop-shadow-lg">
                     {item.text}
                   </span>
                 </div>
@@ -335,7 +324,7 @@ export default function Home() {
               animate={{ y: [0, 6, 0] }}
               transition={{ repeat: Infinity, duration: 1.5 }}
             >
-              <ChevronDown className="w-5 h-5 text-white/60" />
+              <ChevronDown className="w-5 h-5 text-white/80" />
             </motion.div>
           </div>
         </div>
