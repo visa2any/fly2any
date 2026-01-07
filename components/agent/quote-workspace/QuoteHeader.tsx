@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
-import { ArrowLeft, Check, Edit2, Eye, Settings, User, X, Command, Plane, Building2, Car, Compass, Bus, Shield, Package, Link as LinkIcon, Plus, Bell, ChevronDown } from "lucide-react";
+import { ArrowLeft, Check, Edit2, Eye, Settings, User, X, Command, Plus, Bell, ChevronDown, Star, Lock, Share2, Download, HelpCircle, MoreHorizontal, Bookmark } from "lucide-react";
 import { useQuoteWorkspace } from "./QuoteWorkspaceProvider";
 import { useViewMode } from "./itinerary/ViewModeContext";
 import { SmartPresets, AutosaveIndicator, formatShortcut } from "./velocity";
@@ -36,14 +36,14 @@ export default function QuoteHeader() {
     declined: "text-red-600 bg-red-50",
   };
 
-  const productIcons = [
-    { icon: Plane, label: "Flight", active: false },
-    { icon: Building2, label: "Hotel", active: false },
-    { icon: Car, label: "Car", active: false },
-    { icon: LinkIcon, label: "Link", active: false },
-    { icon: Bus, label: "Transfer", active: false },
-    { icon: Shield, label: "Insurance", active: false },
-    { icon: Package, label: "Custom", active: false },
+  const toolbarIcons = [
+    { icon: Star, label: "Favorite", action: () => {} },
+    { icon: Bookmark, label: "Bookmark", action: () => {} },
+    { icon: Lock, label: "Lock", action: () => {} },
+    { icon: Share2, label: "Share", action: () => {} },
+    { icon: Download, label: "Export", action: () => {} },
+    { icon: HelpCircle, label: "Help", action: () => {} },
+    { icon: MoreHorizontal, label: "More", action: () => {} },
   ];
 
   return (
@@ -79,31 +79,37 @@ export default function QuoteHeader() {
           {state.status}
         </span>
 
-        {/* Product Icons */}
-        <div className="hidden xl:flex items-center gap-0.5 ml-2">
-          {productIcons.map(({ icon: Icon, label }, idx) => (
-            <div key={idx} className="p-1.5 rounded-lg hover:bg-gray-100 transition-colors" title={label}>
-              <Icon className="w-4 h-4 text-gray-400" />
-            </div>
+        {/* Toolbar Actions */}
+        <div className="hidden lg:flex items-center gap-0.5 ml-3 pl-3 border-l border-gray-200">
+          {toolbarIcons.map(({ icon: Icon, label, action }, idx) => (
+            <button
+              key={idx}
+              onClick={action}
+              className="p-1.5 rounded-lg text-gray-400 hover:text-gray-600 hover:bg-gray-100 transition-colors"
+              title={label}
+            >
+              <Icon className="w-4 h-4" />
+            </button>
           ))}
         </div>
+      </div>
 
-        {/* Client */}
-        <div className="hidden lg:flex items-center ml-4">
-          {state.client ? (
-            <div className="flex items-center gap-1.5 px-2 py-1 bg-primary-50 rounded-full">
-              <div className="w-5 h-5 rounded-full bg-primary-500 flex items-center justify-center text-white text-[10px] font-bold">
-                {state.client.firstName[0]}{state.client.lastName[0]}
-              </div>
-              <span className="text-xs font-medium text-primary-700">{state.client.firstName}</span>
+      {/* Center: Client */}
+      <div className="hidden md:flex items-center">
+        {state.client ? (
+          <div className="flex items-center gap-1.5 px-2 py-1 bg-primary-50 rounded-full">
+            <div className="w-5 h-5 rounded-full bg-primary-500 flex items-center justify-center text-white text-[10px] font-bold">
+              {state.client.firstName[0]}{state.client.lastName[0]}
             </div>
-          ) : (
-            <div className="flex items-center gap-1 text-gray-400 text-xs"><User className="w-3.5 h-3.5" /><span>No client</span></div>
-          )}</div>
+            <span className="text-xs font-medium text-primary-700">{state.client.firstName}</span>
+          </div>
+        ) : (
+          <div className="flex items-center gap-1 text-gray-400 text-xs"><User className="w-3.5 h-3.5" /><span>No client</span></div>
+        )}
       </div>
 
       {/* Right: Actions + View Toggle + Autosave + Create Quote + Notifications + User */}
-      <div className="flex items-center gap-3">
+      <div className="flex items-center gap-2">
         {/* View Mode Toggle */}
         <button
           onClick={toggleViewMode}
