@@ -112,9 +112,9 @@ export default function QuoteWorkspaceLayout({
   }, [isResizing, setDiscoveryPanelWidth]);
 
   return (
-    <div className="fixed inset-0 top-auto lg:left-16 bg-gray-50/50 flex flex-col overflow-hidden" style={{ height: 'calc(100vh - 60px)', top: '60px' }}>
-      {/* Compact Header */}
-      <header className="flex-shrink-0 z-40 bg-white/95 backdrop-blur-sm border-b border-gray-100">
+    <div className="fixed inset-0 lg:left-16 bg-gray-50/50 flex flex-col overflow-hidden">
+      {/* Full Header */}
+      <header className="flex-shrink-0 z-40">
         {header}
       </header>
 

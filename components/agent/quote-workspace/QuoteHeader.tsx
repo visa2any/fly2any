@@ -45,15 +45,15 @@ export default function QuoteHeader() {
   ];
 
   return (
-    <div className="h-11 px-3 flex items-center justify-between gap-3">
-      {/* Left: Back + Name + Status */}
-      <div className="flex items-center gap-2 min-w-0 flex-1">
-        <Link href="/agent/quotes" className="p-1.5 -ml-1 text-gray-400 hover:text-gray-600 rounded-md hover:bg-gray-100">
+    <div className="h-14 px-4 flex items-center justify-between gap-4 bg-white border-b border-gray-100">
+      {/* Left: Back + Title + Status + Product Icons */}
+      <div className="flex items-center gap-2">
+        <Link href="/agent/quotes" className="p-1.5 text-gray-400 hover:text-gray-600 rounded-md hover:bg-gray-100">
           <ArrowLeft className="w-4 h-4" />
         </Link>
 
         {isEditing ? (
-          <div className="flex items-center gap-1.5 flex-1 min-w-0">
+          <div className="flex items-center gap-1.5">
             <input
               ref={inputRef}
               type="text"
@@ -61,91 +61,67 @@ export default function QuoteHeader() {
               onChange={(e) => setEditValue(e.target.value)}
               onKeyDown={handleKeyDown}
               onBlur={handleSave}
-              className="flex-1 min-w-0 px-2 py-1 text-sm font-semibold border border-primary-400 rounded-md focus:outline-none"
+              className="px-2 py-1 text-sm font-semibold border border-primary-400 rounded-md focus:outline-none w-48"
             />
             <button onClick={handleSave} className="p-1 text-emerald-600 hover:bg-emerald-50 rounded"><Check className="w-4 h-4" /></button>
             <button onClick={() => { setEditValue(state.tripName); setIsEditing(false); }} className="p-1 text-gray-400 hover:bg-gray-100 rounded"><X className="w-4 h-4" /></button>
           </div>
         ) : (
-          <button onClick={() => setIsEditing(true)} className="group flex items-center gap-1.5 min-w-0 hover:bg-gray-50 rounded-md px-1.5 py-0.5">
-            <span className="text-sm font-semibold text-gray-900 truncate">{state.tripName || "Untitled Quote"}</span>
-            <Edit2 className="w-3 h-3 text-gray-400 opacity-0 group-hover:opacity-100 flex-shrink-0" />
+          <button onClick={() => setIsEditing(true)} className="group flex items-center gap-1.5 hover:bg-gray-50 rounded-md px-2 py-1">
+            <span className="text-sm font-semibold text-gray-900">{state.tripName || "Untitled Quote"}</span>
+            <Edit2 className="w-3 h-3 text-gray-400 opacity-0 group-hover:opacity-100" />
           </button>
         )}
 
-        <span className={`px-2 py-0.5 text-[10px] font-semibold rounded-full uppercase tracking-wide ${statusColors[state.status]}`}>
+        <span className={`px-2 py-0.5 text-[10px] font-semibold rounded-full uppercase ${statusColors[state.status]}`}>
           {state.status}
         </span>
 
         {/* Product Icons */}
-        <div className="hidden lg:flex items-center gap-1 ml-2 pl-2 border-l border-gray-200">
+        <div className="hidden xl:flex items-center gap-0.5 ml-2">
           {productIcons.map(({ icon: Icon, label }, idx) => (
-            <div key={idx} className="p-1.5 rounded-lg bg-gray-50 hover:bg-gray-100 transition-colors" title={label}>
+            <div key={idx} className="p-1.5 rounded-lg hover:bg-gray-100 transition-colors" title={label}>
               <Icon className="w-4 h-4 text-gray-400" />
             </div>
           ))}
         </div>
-      </div>
 
-      {/* Center: Client */}
-      <div className="hidden md:flex items-center">
-        {state.client ? (
-          <div className="flex items-center gap-1.5 px-2 py-1 bg-primary-50 rounded-full">
-            <div className="w-5 h-5 rounded-full bg-primary-500 flex items-center justify-center text-white text-[10px] font-bold">
-              {state.client.firstName[0]}{state.client.lastName[0]}
+        {/* Client */}
+        <div className="hidden lg:flex items-center ml-4">
+          {state.client ? (
+            <div className="flex items-center gap-1.5 px-2 py-1 bg-primary-50 rounded-full">
+              <div className="w-5 h-5 rounded-full bg-primary-500 flex items-center justify-center text-white text-[10px] font-bold">
+                {state.client.firstName[0]}{state.client.lastName[0]}
+              </div>
+              <span className="text-xs font-medium text-primary-700">{state.client.firstName}</span>
             </div>
-            <span className="text-xs font-medium text-primary-700">{state.client.firstName}</span>
-          </div>
-        ) : (
-          <div className="flex items-center gap-1 text-gray-400 text-xs"><User className="w-3.5 h-3.5" /><span>No client</span></div>
-        )}
+          ) : (
+            <div className="flex items-center gap-1 text-gray-400 text-xs"><User className="w-3.5 h-3.5" /><span>No client</span></div>
+          )}</div>
       </div>
 
-      {/* Smart Presets - Desktop Only */}
-      <div className="hidden lg:block">
-        <SmartPresets variant="compact" />
-      </div>
-
-      {/* View Mode Toggle */}
-      <div className="hidden sm:flex items-center gap-2">
+      {/* Right: Actions + View Toggle + User */}
+      <div className="flex items-center gap-2">
+        {/* View Mode Toggle */}
         <button
           onClick={toggleViewMode}
-          className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-medium transition-all ${
+          className={`hidden sm:flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-medium transition-all ${
             viewMode === "client"
               ? "bg-violet-100 text-violet-700 border border-violet-200"
               : "bg-gray-100 text-gray-600 hover:bg-gray-200 border border-transparent"
           }`}
           title={`Toggle Preview (${formatShortcut({ key: "P", ctrl: true })})`}
         >
-          {viewMode === "client" ? (
-            <>
-              <Eye className="w-3.5 h-3.5" />
-              <span>Client View</span>
-            </>
-          ) : (
-            <>
-              <Settings className="w-3.5 h-3.5" />
-              <span>Agent View</span>
-            </>
-          )}
+          {viewMode === "client" ? <><Eye className="w-3.5 h-3.5" /><span>Preview</span></> : <><Settings className="w-3.5 h-3.5" /><span>Edit</span></>}
         </button>
 
-        {/* Command Palette Trigger */}
-        <button
-          onClick={() => window.dispatchEvent(new CustomEvent("open-command-palette"))}
-          className="p-1.5 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
-          title={`Command Palette (${formatShortcut({ key: "K", ctrl: true, shift: true })})`}
-        >
-          <Command className="w-4 h-4" />
-        </button>
+        {/* Autosave */}
+        <AutosaveIndicator
+          status={state.ui.isSaving ? "saving" : state.ui.lastSavedAt ? "saved" : "idle"}
+          lastSavedAt={state.ui.lastSavedAt}
+          variant="minimal"
+        />
       </div>
-
-      {/* Right: Save Status */}
-      <AutosaveIndicator
-        status={state.ui.isSaving ? "saving" : state.ui.lastSavedAt ? "saved" : "idle"}
-        lastSavedAt={state.ui.lastSavedAt}
-        variant="minimal"
-      />
     </div>
   );
 }
