@@ -406,7 +406,7 @@ export default function FlightSearchPanel() {
   }, [searchResults, filterStops, filterAirline, sortBy]);
 
   return (
-    <div className="p-3 space-y-2.5">
+    <div className="p-2 space-y-1.5">
       {/* Collapsed Search Summary - Ultra Premium */}
       <AnimatePresence mode="wait">
         {formCollapsed && searchResults && searchResults.length > 0 ? (
@@ -435,7 +435,7 @@ export default function FlightSearchPanel() {
               transition={{ duration: 0.3 }}
             />
 
-            <div className="relative p-4">
+            <div className="relative p-3">
               <div className="flex items-center justify-between gap-3">
                 {/* Route Summary with Premium Animation */}
                 <div className="flex items-center gap-3 flex-1 min-w-0">
@@ -500,7 +500,7 @@ export default function FlightSearchPanel() {
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.1 }}
-                className="mt-3 pt-3 border-t border-indigo-100/50 flex items-center justify-between"
+                className="mt-2 pt-2 border-t border-indigo-100/50 flex items-center justify-between"
               >
                 <div className="flex items-center gap-2">
                   <div className="flex items-center gap-1 px-2 py-1 bg-gradient-to-r from-green-50 to-emerald-50 rounded-full border border-green-200">
@@ -1024,28 +1024,12 @@ export default function FlightSearchPanel() {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="space-y-2"
+            className="space-y-1.5"
           >
             {/* Sticky Filter Bar */}
-            <div className="sticky top-0 z-10 bg-white/95 backdrop-blur-sm -mx-1 px-1 py-2 border-b border-gray-100">
-              <div className="flex items-center justify-between mb-2">
-                <p className="text-xs font-semibold text-gray-600">
-                  {filteredResults.length} flight{filteredResults.length !== 1 ? "s" : ""}
-                  {filteredResults.length !== searchResults.length && (
-                    <span className="text-gray-400 font-normal"> of {searchResults.length}</span>
-                  )}
-                </p>
-                {(filterStops !== 0 || filterAirline) && (
-                  <button
-                    onClick={() => { setFilterStops(0); setFilterAirline(""); }}
-                    className="text-[10px] text-indigo-600 font-medium hover:underline"
-                  >
-                    Clear filters
-                  </button>
-                )}
-              </div>
+            <div className="sticky top-0 z-10 bg-white/95 backdrop-blur-sm -mx-1 px-1 py-1.5 border-b border-gray-100">
               {/* Sort & Filter Pills */}
-              <div className="flex gap-1.5 overflow-x-auto scrollbar-hide pb-1 -mx-1 px-1">
+              <div className="flex gap-1.5 overflow-x-auto scrollbar-hide -mx-1 px-1">
                 {/* Sort Pills */}
                 <button
                   onClick={() => setSortBy("price")}

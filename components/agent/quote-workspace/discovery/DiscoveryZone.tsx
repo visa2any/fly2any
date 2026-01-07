@@ -10,7 +10,6 @@ import CarSearchPanel from "./CarSearchPanel";
 import ActivitiesSearchPanel from "./ActivitiesSearchPanel";
 import TransfersSearchPanel from "./TransfersSearchPanel";
 import PremiumDatePicker from "@/components/common/PremiumDatePicker";
-import { QuoteProgressBadge } from "../QuoteProgressBar";
 import { TabResultIndicator, useUnifiedSearchSafe } from "../unified-search/index";
 import { usePredictiveBundling } from "../predictive-bundling/usePredictiveBundling";
 import { SuggestionsPanel } from "../predictive-bundling/BundleSuggestionCard";
@@ -58,12 +57,8 @@ export default function DiscoveryZone() {
 
   return (
     <div className="flex flex-col h-full">
-      {/* Header: Progress Badge + Product Tabs */}
-      <div className="flex-shrink-0 px-2 py-2 border-b border-gray-100 bg-gradient-to-b from-white to-gray-50/80">
-        {/* Progress Badge */}
-        <div className="flex justify-center mb-2">
-          <QuoteProgressBadge />
-        </div>
+      {/* Header: Product Tabs */}
+      <div className="flex-shrink-0 px-2 py-1.5 border-b border-gray-100 bg-gradient-to-b from-white to-gray-50/80">
         {/* Product Type Tabs - Icon Only with Hover Tooltips */}
         <div className="flex gap-1.5 justify-center">
           {PRODUCT_TABS.map(({ type, icon: Icon, label, gradient, shadowColor }) => {
@@ -106,7 +101,7 @@ export default function DiscoveryZone() {
 
       {/* ═══ PREDICTIVE BUNDLING SUGGESTIONS ═══ */}
       {suggestions.length > 0 && (
-        <div className="flex-shrink-0 px-3 py-2 border-b border-gray-100 bg-gradient-to-b from-amber-50/30 to-white">
+        <div className="flex-shrink-0 px-2 py-1.5 border-b border-gray-100 bg-gradient-to-b from-amber-50/30 to-white">
           <SuggestionsPanel
             suggestions={suggestions}
             onAccept={accept}
