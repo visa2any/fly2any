@@ -236,7 +236,7 @@ export default function FlightSearchPanel() {
   };
 
   // Add flight to quote
-  const handleAddFlight = (flight: any) => {
+  const handleAddFlight = (flight: any, fareIndex: number = 0) => {
     const itineraries = flight.itineraries || [];
     const outbound = itineraries[0] || { segments: flight.segments || [] };
     const inbound = itineraries[1];
@@ -248,15 +248,16 @@ export default function FlightSearchPanel() {
     const airlineCode = flight.validatingAirlineCodes?.[0] || outSegs[0]?.carrierCode || flight.airline || "XX";
     const airlineInfo = getAirlineData(airlineCode);
 
-    // Get fare details from travelerPricings
-    const fareDetails = flight.travelerPricings?.[0]?.fareDetailsBySegment?.[0];
+    // Get fare details from SELECTED travelerPricing
+    const selectedPricing = flight.travelerPricings?.[fareIndex] || flight.travelerPricings?.[0];
+    const fareDetails = selectedPricing?.fareDetailsBySegment?.[0];
     const cabin = fareDetails?.cabin || params.cabinClass;
     const brandedFare = fareDetails?.brandedFare || fareDetails?.brandedFareLabel;
     const includedBags = fareDetails?.includedCheckedBags;
 
     const flightItem: Omit<FlightItem, "id" | "sortOrder" | "createdAt"> = {
       type: "flight",
-      price: Number(flight.price?.total || flight.price?.amount || flight.totalPrice || 0),
+      price: Number(selectedPricing?.price?.total || selectedPricing?.price?.amount || 0),
       currency: "USD",
       date: params.useMultiDate ? format(params.departureDates[0], "yyyy-MM-dd") : params.departureDate,
       airline: airlineCode,
@@ -1093,7 +1094,7 @@ export default function FlightSearchPanel() {
             {filteredResults.length > 0 ? (
               <>
                 {filteredResults.slice(0, visibleCount).map((flight: any, idx: number) => (
-                  <FlightResultCard key={flight.id || idx} flight={flight} onAdd={() => handleAddFlight(flight)} index={idx} />
+                  <FlightResultCard key={flight.id || idx} flight={flight} onAdd={(fareIdx) => handleAddFlight(flight, fareIdx)} index={idx} />
                 ))}
 
                 {/* Load More Button */}
@@ -1146,11 +1147,30 @@ export default function FlightSearchPanel() {
 }
 
 // Flight Result Card - Ultra-Compact with Return Flight Support
-function FlightResultCard({ flight, onAdd, index }: { flight: any; onAdd: () => void; index: number }) {
+function FlightResultCard({ flight, onAdd, index }: { flight: any; onAdd: (fareIdx: number) => void; index: number }) {
   const [isExpanded, setIsExpanded] = useState(false);
+  const [selectedFareIdx, setSelectedFareIdx] = useState(0);
 
-  // Data extraction
-  const price = Number(flight.price?.total || flight.price?.amount || flight.totalPrice || 0);
+  // Extract ALL fare options from travelerPricings
+  const fareOptions = useMemo(() => {
+    return (flight.travelerPricings || []).map((tp: any, idx: number) => {
+      const fd = tp.fareDetailsBySegment?.[0];
+      const fareType = fd?.brandedFare || fd?.brandedFareLabel || fd?.cabin || "Economy";
+      return {
+        id: idx,
+        fareType,
+        price: Number(tp.price?.total || tp.price?.amount || 0),
+        cabin: fd?.cabin || "ECONOMY",
+        bags: fd?.includedCheckedBags,
+        fareBasis: fd?.fareBasis,
+        refundable: !fareType?.toLowerCase().includes("basic"),
+        changeable: !fareType?.toLowerCase().includes("basic"),
+      };
+    });
+  }, [flight.travelerPricings]);
+
+  const selectedFare = fareOptions[selectedFareIdx] || fareOptions[0];
+  const price = selectedFare?.price || 0;
 
   // Itineraries
   const itineraries = flight.itineraries || [];
@@ -1172,15 +1192,6 @@ function FlightResultCard({ flight, onAdd, index }: { flight: any; onAdd: () => 
   const inNum = inSegs[0]?.number || inSegs[0]?.flightNumber || "";
   const inAirlineCode = inSegs[0]?.carrierCode || outAirlineCode;
   const inAirlineInfo = getAirlineData(inAirlineCode);
-
-  // Fare info - REAL API DATA
-  const fareDetails = flight.travelerPricings?.[0]?.fareDetailsBySegment?.[0];
-  const fareType = fareDetails?.brandedFare || fareDetails?.brandedFareLabel || fareDetails?.cabin || "Economy";
-  const cabin = fareDetails?.cabin || "ECONOMY";
-  const fareBasis = fareDetails?.fareBasis;
-  const includedBags = fareDetails?.includedCheckedBags;
-  const isRefundable = !fareType?.toLowerCase().includes("basic");
-  const isChangeable = !fareType?.toLowerCase().includes("basic");
 
   // Helpers
   const formatTime = (dateStr: string) => dateStr?.includes("T") ? dateStr.slice(11, 16) : dateStr || "--:--";
@@ -1293,7 +1304,7 @@ function FlightResultCard({ flight, onAdd, index }: { flight: any; onAdd: () => 
           <motion.button
             whileHover={{ scale: 1.1 }}
             whileTap={{ scale: 0.9 }}
-            onClick={onAdd}
+            onClick={() => onAdd(selectedFareIdx)}
             className="mt-1.5 w-8 h-8 flex items-center justify-center bg-gradient-to-r from-indigo-500 to-purple-600 text-white rounded-lg shadow-md opacity-60 group-hover:opacity-100 transition-opacity"
           >
             <Plus className="w-4 h-4" />
@@ -1304,66 +1315,97 @@ function FlightResultCard({ flight, onAdd, index }: { flight: any; onAdd: () => 
       {/* Sticky Policy Bar - REAL API DATA */}
       <div className="flex items-center justify-between px-2 py-1.5 bg-gray-50 border-t border-gray-100 text-[10px]">
         <div className="flex items-center gap-3">
-          <div className={`flex items-center gap-1 ${isRefundable ? "text-emerald-700" : "text-red-700"}`}>
-            {isRefundable ? <Check className="w-3 h-3" /> : <X className="w-3 h-3" />}
+          <div className={`flex items-center gap-1 ${selectedFare.refundable ? "text-emerald-700" : "text-red-700"}`}>
+            {selectedFare.refundable ? <Check className="w-3 h-3" /> : <X className="w-3 h-3" />}
             <span className="font-medium">Refund</span>
           </div>
-          <div className={`flex items-center gap-1 ${isChangeable ? "text-emerald-700" : "text-red-700"}`}>
-            {isChangeable ? <Check className="w-3 h-3" /> : <X className="w-3 h-3" />}
+          <div className={`flex items-center gap-1 ${selectedFare.changeable ? "text-emerald-700" : "text-red-700"}`}>
+            {selectedFare.changeable ? <Check className="w-3 h-3" /> : <X className="w-3 h-3" />}
             <span className="font-medium">Change</span>
           </div>
-          {includedBags && (
+          {selectedFare.bags && (
             <div className="flex items-center gap-1 text-gray-700">
               <Luggage className="w-3 h-3" />
-              <span className="font-medium">{includedBags.quantity}×{includedBags.weight || "23"}kg</span>
+              <span className="font-medium">{selectedFare.bags.quantity}×{selectedFare.bags.weight || "23"}kg</span>
             </div>
           )}
           <div className="px-1.5 py-0.5 bg-indigo-100 text-indigo-700 rounded font-semibold">
-            {fareType}
+            {selectedFare.fareType}
           </div>
         </div>
-        <button
-          onClick={() => setIsExpanded(!isExpanded)}
-          className="flex items-center gap-1 text-gray-600 hover:text-indigo-600 font-semibold transition-colors"
-        >
-          <span>{isExpanded ? "Less" : "More"}</span>
-          <ChevronDown className={`w-3 h-3 transition-transform ${isExpanded ? "rotate-180" : ""}`} />
-        </button>
+        {fareOptions.length > 1 && (
+          <button
+            onClick={() => setIsExpanded(!isExpanded)}
+            className="flex items-center gap-1 text-gray-600 hover:text-indigo-600 font-semibold transition-colors"
+          >
+            <span>{isExpanded ? "Hide Fares" : `${fareOptions.length} Fares`}</span>
+            <ChevronDown className={`w-3 h-3 transition-transform ${isExpanded ? "rotate-180" : ""}`} />
+          </button>
+        )}
       </div>
 
-      {/* Expandable Details Section */}
+      {/* Expandable Fare Selector - 4 Column Grid */}
       <AnimatePresence>
-        {isExpanded && (
+        {isExpanded && fareOptions.length > 1 && (
           <motion.div
             initial={{ height: 0, opacity: 0 }}
             animate={{ height: "auto", opacity: 1 }}
             exit={{ height: 0, opacity: 0 }}
             transition={{ type: "spring", stiffness: 300, damping: 30 }}
-            className="overflow-hidden border-t border-gray-100"
+            className="overflow-hidden border-t border-gray-100 bg-white"
           >
-            <div className="px-3 py-2 bg-white space-y-1.5 text-[10px]">
-              <div className="flex items-center justify-between">
-                <span className="text-gray-500">Cabin Class:</span>
-                <span className="font-semibold text-gray-900">{cabin}</span>
-              </div>
-              {fareBasis && (
-                <div className="flex items-center justify-between">
-                  <span className="text-gray-500">Fare Basis:</span>
-                  <span className="font-mono text-gray-900">{fareBasis}</span>
-                </div>
-              )}
-              <div className="flex items-center justify-between">
-                <span className="text-gray-500">Flight Numbers:</span>
-                <span className="font-semibold text-gray-900">
-                  {outAirlineCode}{outNum}{isRoundtrip ? ` • ${inAirlineCode}${inNum}` : ""}
-                </span>
-              </div>
-              {outAirlineCode !== inAirlineCode && isRoundtrip && (
+            <div className="grid grid-cols-4 gap-1.5 px-2 py-2">
+              {fareOptions.map((fare) => (
+                <button
+                  key={fare.id}
+                  onClick={() => setSelectedFareIdx(fare.id)}
+                  className={`p-1.5 rounded-lg border text-center transition-all ${
+                    selectedFareIdx === fare.id
+                      ? "border-indigo-500 bg-indigo-50 shadow-sm"
+                      : "border-gray-200 hover:border-gray-300"
+                  }`}
+                >
+                  {/* Radio + Type */}
+                  <div className="flex items-center justify-center gap-1 mb-0.5">
+                    <div className={`w-2.5 h-2.5 rounded-full border-2 flex-shrink-0 ${
+                      selectedFareIdx === fare.id
+                        ? "border-indigo-600 bg-indigo-600"
+                        : "border-gray-300"
+                    }`} />
+                    <span className="text-[10px] font-bold text-gray-900 truncate">
+                      {fare.fareType.split(" ")[0]}
+                    </span>
+                  </div>
+
+                  {/* Price */}
+                  <div className="text-sm font-black text-gray-900 mb-1">
+                    ${Math.round(fare.price)}
+                  </div>
+
+                  {/* Compact Icons: Refund, Change, Bags */}
+                  <div className="flex items-center justify-center gap-1 text-[9px]">
+                    <span className={fare.refundable ? "text-emerald-600" : "text-red-600"}>
+                      {fare.refundable ? "✓" : "✗"}
+                    </span>
+                    <span className={fare.changeable ? "text-emerald-600" : "text-red-600"}>
+                      {fare.changeable ? "✓" : "✗"}
+                    </span>
+                    <span className="text-gray-600">
+                      🧳{fare.bags?.quantity || 0}
+                    </span>
+                  </div>
+                </button>
+              ))}
+            </div>
+
+            {/* Additional Info Row */}
+            {outAirlineCode !== inAirlineCode && isRoundtrip && (
+              <div className="px-2 pb-2">
                 <div className="px-2 py-1 bg-amber-50 text-amber-700 rounded text-[9px] font-medium">
                   ⚠️ Codeshare: Return operated by {inAirlineInfo.name}
                 </div>
-              )}
-            </div>
+              </div>
+            )}
           </motion.div>
         )}
       </AnimatePresence>

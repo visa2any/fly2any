@@ -2,13 +2,9 @@
 
 import Image from 'next/image';
 import { useTranslations } from 'next-intl';
-import { useLanguage } from '@/lib/i18n/client';
-
-type Language = 'en' | 'pt' | 'es';
 
 export default function Home() {
   const t = useTranslations('Home');
-  const { language: lang, setLanguage: setLang } = useLanguage();
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-sky-400 via-blue-500 to-indigo-600 flex items-center justify-center p-4">
@@ -29,25 +25,6 @@ export default function Home() {
             className="w-full h-auto max-w-[125px] md:max-w-[160px] drop-shadow-2xl"
             priority
           />
-        </div>
-
-        {/* Language Switcher - Below logo on mobile, top-right on desktop */}
-        <div className="mb-6 md:mb-0 md:absolute md:top-4 md:right-4 flex gap-2 justify-center">
-          {(['en', 'pt', 'es'] as Language[]).map((language) => (
-            <button
-              key={language}
-              onClick={() => setLang(language)}
-              className={`px-4 py-2.5 md:px-4 md:py-2 rounded-full text-sm md:text-base font-semibold transition-all duration-300 min-h-[44px] min-w-[44px] ${
-                lang === language
-                  ? 'bg-white text-blue-600 shadow-lg'
-                  : 'bg-white/20 text-white hover:bg-white/30'
-              }`}
-              aria-label={`Switch to ${language === 'en' ? 'English' : language === 'pt' ? 'Portuguese' : 'Spanish'}`}
-              aria-current={lang === language ? 'true' : undefined}
-            >
-              {language.toUpperCase()}
-            </button>
-          ))}
         </div>
 
         {/* Main Content */}

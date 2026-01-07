@@ -9,7 +9,7 @@ import { FlashDealsSectionEnhanced } from '@/components/home/FlashDealsSectionEn
 import { RecentlyViewedSection } from '@/components/home/RecentlyViewedSection';
 import { MaxWidthContainer } from '@/components/layout/MaxWidthContainer';
 import { CreditCard, Plane, Hotel, Car, Shield, HeadphonesIcon, Sparkles, ChevronDown } from 'lucide-react';
-import { useLanguage } from '@/lib/i18n/client';
+// import { useLanguage } from '@/lib/i18n/client'; // TODO: Re-enable when multilingual support is activated
 import dynamic from 'next/dynamic';
 
 // Dynamic imports for below-the-fold components and non-critical features
@@ -27,7 +27,7 @@ const WorldCupHeroSectionEnhanced = dynamic(() => import('@/components/world-cup
 const CompactTrustBar = dynamic(() => import('@/components/conversion/CompactTrustBar'), { ssr: false });
 const AirlineLogosMarquee = dynamic(() => import('@/components/home/AirlineLogosMarquee'), { ssr: false });
 
-type Language = 'en' | 'pt' | 'es';
+type Language = 'en';
 
 // Level-6 Ultra-Premium: Tab-Contextual Hero Photos
 type ServiceType = 'flights' | 'hotels' | 'cars' | 'tours' | 'activities' | 'transfers' | 'packages' | 'insurance';
@@ -161,9 +161,9 @@ const faqCategories = {
 };
 
 export default function Home() {
-  const { language } = useLanguage();
-  const lang = language as Language;
-  const t = content[lang];
+  // TEMPORARY: Platform frozen to English-only
+  const lang: Language = 'en';
+  const t = content.en;
   const [activeService, setActiveService] = useState<ServiceType>('flights');
   const [mounted, setMounted] = useState(false);
   const [isFormExpanded, setIsFormExpanded] = useState(false);
@@ -377,10 +377,10 @@ export default function Home() {
 
           <div className="mt-4 md:mt-6 lg:mt-8 mb-4 md:mb-6 lg:mb-8">
             <FAQ
-              title={lang === 'en' ? '❓ Frequently Asked Questions' : lang === 'pt' ? '❓ Perguntas Frequentes' : '❓ Preguntas Frecuentes'}
-              subtitle={lang === 'en' ? 'Everything you need to know about booking with Fly2Any' : lang === 'pt' ? 'Tudo o que você precisa saber sobre reservas' : 'Todo lo que necesitas saber sobre reservas'}
-              categories={faqCategories[lang]}
-              language={lang}
+              title="❓ Frequently Asked Questions"
+              subtitle="Everything you need to know about booking with Fly2Any"
+              categories={faqCategories.en}
+              language="en"
             />
           </div>
         </MaxWidthContainer>
