@@ -1346,20 +1346,18 @@ function FlightResultCard({ flight, onAdd, index }: { flight: any; onAdd: (fareI
             {selectedFare.fareType}
           </div>
         </div>
-        {fareOptions.length > 1 && (
-          <button
-            onClick={() => setIsExpanded(!isExpanded)}
-            className="flex items-center gap-1 text-gray-600 hover:text-indigo-600 font-semibold transition-colors"
-          >
-            <span>{isExpanded ? "Hide Fares" : `${fareOptions.length} Fares`}</span>
-            <ChevronDown className={`w-3 h-3 transition-transform ${isExpanded ? "rotate-180" : ""}`} />
-          </button>
-        )}
+        <button
+          onClick={() => setIsExpanded(!isExpanded)}
+          className="flex items-center gap-1 text-gray-600 hover:text-indigo-600 font-semibold transition-colors"
+        >
+          <span>{isExpanded ? "Less" : fareOptions.length > 1 ? `${fareOptions.length} Fares` : "More"}</span>
+          <ChevronDown className={`w-3 h-3 transition-transform ${isExpanded ? "rotate-180" : ""}`} />
+        </button>
       </div>
 
-      {/* Expandable Fare Selector - 4 Column Grid */}
+      {/* Expandable Details Section */}
       <AnimatePresence>
-        {isExpanded && fareOptions.length > 1 && (
+        {isExpanded && (
           <motion.div
             initial={{ height: 0, opacity: 0 }}
             animate={{ height: "auto", opacity: 1 }}
@@ -1367,58 +1365,77 @@ function FlightResultCard({ flight, onAdd, index }: { flight: any; onAdd: (fareI
             transition={{ type: "spring", stiffness: 300, damping: 30 }}
             className="overflow-hidden border-t border-gray-100 bg-white"
           >
-            <div className="grid grid-cols-4 gap-1.5 px-2 py-2">
-              {fareOptions.map((fare) => (
-                <button
-                  key={fare.id}
-                  onClick={() => setSelectedFareIdx(fare.id)}
-                  className={`p-1.5 rounded-lg border text-center transition-all ${
-                    selectedFareIdx === fare.id
-                      ? "border-indigo-500 bg-indigo-50 shadow-sm"
-                      : "border-gray-200 hover:border-gray-300"
-                  }`}
-                >
-                  {/* Radio + Type */}
-                  <div className="flex items-center justify-center gap-1 mb-0.5">
-                    <div className={`w-2.5 h-2.5 rounded-full border-2 flex-shrink-0 ${
+            {/* Fare Selector Grid - Only if multiple fares */}
+            {fareOptions.length > 1 && (
+              <div className="grid grid-cols-4 gap-1.5 px-2 py-2 border-b border-gray-100">
+                {fareOptions.map((fare) => (
+                  <button
+                    key={fare.id}
+                    onClick={() => setSelectedFareIdx(fare.id)}
+                    className={`p-1.5 rounded-lg border text-center transition-all ${
                       selectedFareIdx === fare.id
-                        ? "border-indigo-600 bg-indigo-600"
-                        : "border-gray-300"
-                    }`} />
-                    <span className="text-[10px] font-bold text-gray-900 truncate">
-                      {fare.fareType.split(" ")[0]}
-                    </span>
-                  </div>
+                        ? "border-indigo-500 bg-indigo-50 shadow-sm"
+                        : "border-gray-200 hover:border-gray-300"
+                    }`}
+                  >
+                    {/* Radio + Type */}
+                    <div className="flex items-center justify-center gap-1 mb-0.5">
+                      <div className={`w-2.5 h-2.5 rounded-full border-2 flex-shrink-0 ${
+                        selectedFareIdx === fare.id
+                          ? "border-indigo-600 bg-indigo-600"
+                          : "border-gray-300"
+                      }`} />
+                      <span className="text-[10px] font-bold text-gray-900 truncate">
+                        {fare.fareType.split(" ")[0]}
+                      </span>
+                    </div>
 
-                  {/* Price */}
-                  <div className="text-sm font-black text-gray-900 mb-1">
-                    ${Math.round(fare.price)}
-                  </div>
+                    {/* Price */}
+                    <div className="text-sm font-black text-gray-900 mb-1">
+                      ${Math.round(fare.price)}
+                    </div>
 
-                  {/* Compact Icons: Refund, Change, Bags */}
-                  <div className="flex items-center justify-center gap-1 text-[9px]">
-                    <span className={fare.refundable ? "text-emerald-600" : "text-red-600"}>
-                      {fare.refundable ? "✓" : "✗"}
-                    </span>
-                    <span className={fare.changeable ? "text-emerald-600" : "text-red-600"}>
-                      {fare.changeable ? "✓" : "✗"}
-                    </span>
-                    <span className="text-gray-600">
-                      🧳{fare.bags?.quantity || 0}
-                    </span>
-                  </div>
-                </button>
-              ))}
-            </div>
-
-            {/* Additional Info Row */}
-            {outAirlineCode !== inAirlineCode && isRoundtrip && (
-              <div className="px-2 pb-2">
-                <div className="px-2 py-1 bg-amber-50 text-amber-700 rounded text-[9px] font-medium">
-                  ⚠️ Codeshare: Return operated by {inAirlineInfo.name}
-                </div>
+                    {/* Compact Icons: Refund, Change, Bags */}
+                    <div className="flex items-center justify-center gap-1 text-[9px]">
+                      <span className={fare.refundable ? "text-emerald-600" : "text-red-600"}>
+                        {fare.refundable ? "✓" : "✗"}
+                      </span>
+                      <span className={fare.changeable ? "text-emerald-600" : "text-red-600"}>
+                        {fare.changeable ? "✓" : "✗"}
+                      </span>
+                      <span className="text-gray-600">
+                        🧳{fare.bags?.quantity || 0}
+                      </span>
+                    </div>
+                  </button>
+                ))}
               </div>
             )}
+
+            {/* Additional Details */}
+            <div className="px-3 py-2 space-y-1.5 text-[10px]">
+              <div className="flex items-center justify-between">
+                <span className="text-gray-500">Cabin Class:</span>
+                <span className="font-semibold text-gray-900">{selectedFare.cabin}</span>
+              </div>
+              {selectedFare.fareBasis && (
+                <div className="flex items-center justify-between">
+                  <span className="text-gray-500">Fare Basis:</span>
+                  <span className="font-mono text-gray-900">{selectedFare.fareBasis}</span>
+                </div>
+              )}
+              <div className="flex items-center justify-between">
+                <span className="text-gray-500">Flight Numbers:</span>
+                <span className="font-semibold text-gray-900">
+                  {outAirlineCode}{outNum}{isRoundtrip ? ` • ${inAirlineCode}${inNum}` : ""}
+                </span>
+              </div>
+              {outAirlineCode !== inAirlineCode && isRoundtrip && (
+                <div className="mt-2 px-2 py-1 bg-amber-50 text-amber-700 rounded text-[9px] font-medium">
+                  ⚠️ Codeshare: Return operated by {inAirlineInfo.name}
+                </div>
+              )}
+            </div>
           </motion.div>
         )}
       </AnimatePresence>
