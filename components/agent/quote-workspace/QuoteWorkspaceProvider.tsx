@@ -53,7 +53,7 @@ const initialState: QuoteWorkspaceState = {
     isSaving: false,
     lastSavedAt: null,
     sidebarExpanded: false,
-    discoveryPanelWidth: 384,
+    discoveryPanelWidth: 420,
     searchFormCollapsed: false,
   },
   historyIndex: 0,
@@ -317,7 +317,7 @@ export function QuoteWorkspaceProvider({ children, initialQuoteId }: { children:
   const openTemplatesPanel = useCallback(() => dispatch({ type: "SET_UI", payload: { templatesPanelOpen: true } }), []);
   const closeTemplatesPanel = useCallback(() => dispatch({ type: "SET_UI", payload: { templatesPanelOpen: false } }), []);
   const toggleSidebar = useCallback(() => dispatch({ type: "SET_UI", payload: { sidebarExpanded: !state.ui.sidebarExpanded } }), [state.ui.sidebarExpanded]);
-  const setDiscoveryPanelWidth = useCallback((width: number) => dispatch({ type: "SET_UI", payload: { discoveryPanelWidth: Math.max(280, Math.min(480, width)) } }), []);
+  const setDiscoveryPanelWidth = useCallback((width: number) => dispatch({ type: "SET_UI", payload: { discoveryPanelWidth: Math.max(320, Math.min(540, width)) } }), []);
   const setSearchFormCollapsed = useCallback((collapsed: boolean) => dispatch({ type: "SET_UI", payload: { searchFormCollapsed: collapsed } }), []);
 
   // Save quote to API

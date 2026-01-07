@@ -1200,65 +1200,65 @@ function FlightResultCard({ flight, onAdd, index }: { flight: any; onAdd: () => 
 
       <div className="flex">
         {/* Logo - Thin strip on left */}
-        <div className="flex items-center justify-center px-1 border-r border-gray-100 w-[28px] flex-shrink-0">
+        <div className="flex items-center justify-center px-1 border-r border-gray-100 w-[32px] flex-shrink-0">
           <AirlineLogo code={airlineCode} size="sm" className="flex-shrink-0" />
         </div>
 
         {/* Flights */}
         <div className="flex-1 min-w-0">
           {/* Outbound */}
-          <div className="flex items-center gap-1 px-2 py-2 border-b border-gray-100">
-            <div className="flex items-center gap-1 flex-shrink-0">
-              <span className="text-[9px] font-bold text-indigo-600">→</span>
-              <span className="text-[9px] font-semibold text-gray-700 truncate max-w-[60px]">{airlineInfo.name}</span>
-              <span className="text-[9px] text-gray-400">{airlineCode}{outNum}</span>
+          <div className="flex items-center gap-1.5 px-2 py-2 border-b border-gray-100">
+            <div className="flex items-center gap-1.5 flex-shrink-0">
+              <span className="text-[10px] font-bold text-indigo-600">→</span>
+              <span className="text-[10px] font-semibold text-gray-700">{airlineInfo.name}</span>
+              <span className="text-[9px] text-gray-400/70">{airlineCode}{outNum}</span>
               <span className="text-[8px] text-indigo-600 bg-indigo-50 px-1 rounded">{fareType}</span>
             </div>
             <div className="text-center flex-shrink-0">
-              <p className="text-xs font-bold text-gray-900">{formatTime(outDep.at)}</p>
+              <p className="text-sm font-bold text-gray-900">{formatTime(outDep.at)}</p>
               <p className="text-[10px] text-gray-500">{outDep.iataCode}</p>
             </div>
             <div className="flex-1 min-w-[40px] px-1">
               <div className="relative h-px bg-gradient-to-r from-gray-300 via-indigo-400 to-gray-300">
                 <Plane className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-2.5 h-2.5 text-indigo-500 bg-white" />
               </div>
-              <div className="flex items-center justify-center gap-0.5 mt-0.5">
-                <span className="text-[10px] text-gray-500">{parseDuration(outbound.duration)}</span>
+              <div className="flex items-center justify-center gap-1 mt-0.5">
+                <span className="text-[11px] font-medium text-gray-600">{parseDuration(outbound.duration)}</span>
                 <span className={`text-[9px] font-bold px-1 py-0.5 rounded ${stopsStyle(getStops(outSegs))}`}>
                   {getStops(outSegs) === 0 ? "Direct" : `${getStops(outSegs)}stop`}
                 </span>
               </div>
             </div>
             <div className="text-center flex-shrink-0">
-              <p className="text-xs font-bold text-gray-900">{formatTime(outArr.at)}</p>
+              <p className="text-sm font-bold text-gray-900">{formatTime(outArr.at)}</p>
               <p className="text-[10px] text-gray-500">{outArr.iataCode}</p>
             </div>
           </div>
 
           {/* Return */}
           {isRoundtrip && (
-            <div className="flex items-center gap-1 px-2 py-2 bg-gray-50/50">
-              <div className="flex items-center gap-1 flex-shrink-0">
-                <span className="text-[9px] font-bold text-orange-600">←</span>
-                <span className="text-[9px] text-gray-400">{airlineCode}{inNum}</span>
+            <div className="flex items-center gap-1.5 px-2 py-2 bg-gray-50/50">
+              <div className="flex items-center gap-1.5 flex-shrink-0">
+                <span className="text-[10px] font-bold text-orange-600">←</span>
+                <span className="text-[9px] text-gray-400/70">{airlineCode}{inNum}</span>
               </div>
               <div className="text-center flex-shrink-0">
-                <p className="text-xs font-bold text-gray-900">{formatTime(inDep.at)}</p>
+                <p className="text-sm font-bold text-gray-900">{formatTime(inDep.at)}</p>
                 <p className="text-[10px] text-gray-500">{inDep.iataCode}</p>
               </div>
               <div className="flex-1 min-w-[40px] px-1">
                 <div className="relative h-px bg-gradient-to-r from-gray-300 via-orange-400 to-gray-300">
                   <Plane className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-2.5 h-2.5 text-orange-500 bg-white rotate-180" />
                 </div>
-                <div className="flex items-center justify-center gap-0.5 mt-0.5">
-                  <span className="text-[10px] text-gray-500">{parseDuration(inbound?.duration)}</span>
+                <div className="flex items-center justify-center gap-1 mt-0.5">
+                  <span className="text-[11px] font-medium text-gray-600">{parseDuration(inbound?.duration)}</span>
                   <span className={`text-[9px] font-bold px-1 py-0.5 rounded ${stopsStyle(getStops(inSegs))}`}>
                     {getStops(inSegs) === 0 ? "Direct" : `${getStops(inSegs)}stop`}
                   </span>
                 </div>
               </div>
               <div className="text-center flex-shrink-0">
-                <p className="text-xs font-bold text-gray-900">{formatTime(inArr.at)}</p>
+                <p className="text-sm font-bold text-gray-900">{formatTime(inArr.at)}</p>
                 <p className="text-[10px] text-gray-500">{inArr.iataCode}</p>
               </div>
             </div>
@@ -1266,14 +1266,14 @@ function FlightResultCard({ flight, onAdd, index }: { flight: any; onAdd: () => 
         </div>
 
         {/* Price + Add - End */}
-        <div className="flex flex-col items-center justify-center px-2 py-2 border-l border-gray-100 w-[70px] flex-shrink-0">
+        <div className="flex flex-col items-center justify-center px-2 py-2 border-l border-gray-100 w-[76px] flex-shrink-0">
           <p className="text-lg font-black text-gray-900 bg-yellow-100 px-2 py-1 rounded">${Math.round(price)}</p>
           <p className="text-xs text-gray-400 mt-0.5">/person</p>
           <motion.button
             whileHover={{ scale: 1.1 }}
             whileTap={{ scale: 0.9 }}
             onClick={onAdd}
-            className="mt-1.5 w-8 h-8 flex items-center justify-center bg-gradient-to-r from-indigo-500 to-purple-600 text-white rounded-lg shadow-md opacity-0 group-hover:opacity-100 transition-opacity"
+            className="mt-1.5 w-8 h-8 flex items-center justify-center bg-gradient-to-r from-indigo-500 to-purple-600 text-white rounded-lg shadow-md opacity-60 group-hover:opacity-100 transition-opacity"
           >
             <Plus className="w-4 h-4" />
           </motion.button>
