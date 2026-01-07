@@ -3,25 +3,29 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import Image from 'next/image';
-import { FAQ } from '@/components/conversion/FAQ';
-import ExitIntentPopup from '@/components/conversion/ExitIntentPopup';
-import MobileScrollCapture from '@/components/conversion/MobileScrollCapture';
 import { MobileHomeSearchWrapper } from '@/components/home/MobileHomeSearchWrapper';
-import { HotelsSectionEnhanced } from '@/components/home/HotelsSectionEnhanced';
-import { CarRentalsSectionEnhanced } from '@/components/home/CarRentalsSectionEnhanced';
-import { ToursSectionEnhanced } from '@/components/home/ToursSectionEnhanced';
-import { ActivitiesSectionEnhanced } from '@/components/home/ActivitiesSectionEnhanced';
-import { TransfersSectionEnhanced } from '@/components/home/TransfersSectionEnhanced';
-import ExperiencesSection from '@/components/home/ExperiencesSection';
 import { DestinationsSectionEnhanced } from '@/components/home/DestinationsSectionEnhanced';
 import { FlashDealsSectionEnhanced } from '@/components/home/FlashDealsSectionEnhanced';
 import { RecentlyViewedSection } from '@/components/home/RecentlyViewedSection';
-import { WorldCupHeroSectionEnhanced } from '@/components/world-cup/WorldCupHeroSectionEnhanced';
 import { MaxWidthContainer } from '@/components/layout/MaxWidthContainer';
 import { CompactTrustBar } from '@/components/conversion/CompactTrustBar';
 import { AirlineLogosMarquee } from '@/components/home/AirlineLogosMarquee';
 import { CreditCard, Plane, Hotel, Car, Shield, HeadphonesIcon, Sparkles, ChevronDown } from 'lucide-react';
 import { useLanguage } from '@/lib/i18n/client';
+import dynamic from 'next/dynamic';
+
+// Dynamic imports for below-the-fold components and non-critical features
+const ExitIntentPopup = dynamic(() => import('@/components/conversion/ExitIntentPopup'), { ssr: false });
+const MobileScrollCapture = dynamic(() => import('@/components/conversion/MobileScrollCapture'), { ssr: false });
+const FAQ = dynamic(() => import('@/components/conversion/FAQ').then(mod => mod.FAQ), { ssr: false });
+
+const HotelsSectionEnhanced = dynamic(() => import('@/components/home/HotelsSectionEnhanced').then(mod => mod.HotelsSectionEnhanced), { ssr: false });
+const CarRentalsSectionEnhanced = dynamic(() => import('@/components/home/CarRentalsSectionEnhanced').then(mod => mod.CarRentalsSectionEnhanced), { ssr: false });
+const ToursSectionEnhanced = dynamic(() => import('@/components/home/ToursSectionEnhanced').then(mod => mod.ToursSectionEnhanced), { ssr: false });
+const ActivitiesSectionEnhanced = dynamic(() => import('@/components/home/ActivitiesSectionEnhanced').then(mod => mod.ActivitiesSectionEnhanced), { ssr: false });
+const TransfersSectionEnhanced = dynamic(() => import('@/components/home/TransfersSectionEnhanced').then(mod => mod.TransfersSectionEnhanced), { ssr: false });
+const ExperiencesSection = dynamic(() => import('@/components/home/ExperiencesSection'), { ssr: false });
+const WorldCupHeroSectionEnhanced = dynamic(() => import('@/components/world-cup/WorldCupHeroSectionEnhanced').then(mod => mod.WorldCupHeroSectionEnhanced), { ssr: false });
 
 type Language = 'en' | 'pt' | 'es';
 
@@ -235,8 +239,11 @@ export default function Home() {
               fill
               className="object-cover scale-105"
               priority={index === 0}
-              quality={95}
+              loading={index === 0 ? "eager" : "lazy"}
+              quality={index === 0 ? 95 : 85}
               sizes="100vw"
+              placeholder="blur"
+              blurDataURL="data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAYEBQYFBAYGBQYHBwYIChAKCgkJChQODwwQFxQYGBcUFhYaHSUfGhsjHBYWICwgIyYnKSopGR8tMC0oMCUoKSj/2wBDAQcHBwoIChMKChMoGhYaKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCj/wAARCAADAAQDASIAAhEBAxEB/8QAFQABAQAAAAAAAAAAAAAAAAAAAAv/xAAUEAEAAAAAAAAAAAAAAAAAAAAA/8QAFQEBAQAAAAAAAAAAAAAAAAAAAAX/xAAUEQEAAAAAAAAAAAAAAAAAAAAA/9oADAMBAAIRAxEAPwCJgDgAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAf/9k="
             />
           </div>
         ))}

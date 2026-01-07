@@ -77,6 +77,9 @@ export function GoogleAnalytics() {
       <Script
         src={`https://www.googletagmanager.com/gtag/js?id=${GA_ID}`}
         strategy="afterInteractive"
+        onLoad={() => {
+          console.log('[GA4] Script loaded successfully');
+        }}
       />
       <Script id="google-analytics" strategy="afterInteractive">
         {`
@@ -88,7 +91,8 @@ export function GoogleAnalytics() {
             page_path: window.location.pathname,
             send_page_view: true,
             cookie_flags: 'SameSite=None;Secure',
-            anonymize_ip: true
+            anonymize_ip: true,
+            transport_type: 'beacon'
           });
 
           // Log GA initialization
