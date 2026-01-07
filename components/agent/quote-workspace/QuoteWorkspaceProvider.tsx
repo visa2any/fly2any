@@ -53,7 +53,7 @@ const initialState: QuoteWorkspaceState = {
     isSaving: false,
     lastSavedAt: null,
     sidebarExpanded: false,
-    discoveryPanelWidth: 420,
+    discoveryPanelWidth: 540,
     searchFormCollapsed: false,
   },
   historyIndex: 0,
