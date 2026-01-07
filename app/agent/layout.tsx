@@ -5,7 +5,6 @@ import { getAgentWithAdminFallback } from "@/lib/auth-helpers";
 import { prisma } from "@/lib/prisma";
 import AgentSidebar from "@/components/agent/AgentSidebar";
 import AgentTopBar from "@/components/agent/AgentTopBar";
-import AdminModeBanner from "@/components/agent/AdminModeBanner";
 import AgentMobileNav from "@/components/agent/AgentMobileNav";
 import AgentContentWrapper from "@/components/agent/AgentContentWrapper";
 import DemoBanner from "@/components/agent/DemoBanner";
@@ -118,7 +117,6 @@ export default async function AgentLayout({
   return (
     <div className="min-h-screen bg-gray-50">
       {isDemo && <DemoBanner />}
-      {serializedAgent.isTestAccount && <AdminModeBanner />}
       <AgentSidebar agent={serializedAgent} />
       <AgentContentWrapper>
         <AgentTopBar agent={serializedAgent} user={serializedUser} />
