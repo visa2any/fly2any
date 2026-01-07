@@ -4,10 +4,11 @@ import { auth } from "@/lib/auth";
 import { getAgentWithAdminFallback } from "@/lib/auth-helpers";
 import { prisma } from "@/lib/prisma";
 import AgentSidebar from "@/components/agent/AgentSidebar";
-import AgentTopBar from "@/components/agent/AgentTopBar";
+import ConditionalTopBar from "@/components/agent/ConditionalTopBar";
 import AgentMobileNav from "@/components/agent/AgentMobileNav";
 import AgentContentWrapper from "@/components/agent/AgentContentWrapper";
 import DemoBanner from "@/components/agent/DemoBanner";
+import ConditionalMain from "@/components/agent/ConditionalMain";
 
 // Demo agent data
 const DEMO_AGENT = {
@@ -114,20 +115,21 @@ export default async function AgentLayout({
     };
   }
 
+  const pendingMessage = serializedAgent.status === "PENDING" && !serializedAgent.isTestAccount && !isDemo ? (
+    <div className="mb-4 bg-yellow-50 border border-yellow-200 rounded-lg p-3">
+      <p className="text-sm text-yellow-800">Your account is pending approval.</p>
+    </div>
+  ) : null;
+
   return (
     <div className="min-h-screen bg-gray-50">
       {isDemo && <DemoBanner />}
       <AgentSidebar agent={serializedAgent} />
       <AgentContentWrapper>
-        <AgentTopBar agent={serializedAgent} user={serializedUser} />
-        <main className="py-4 px-4 sm:px-6 lg:px-8 pb-24 lg:pb-6">
-          {serializedAgent.status === "PENDING" && !serializedAgent.isTestAccount && !isDemo && (
-            <div className="mb-4 bg-yellow-50 border border-yellow-200 rounded-lg p-3">
-              <p className="text-sm text-yellow-800">Your account is pending approval.</p>
-            </div>
-          )}
+        <ConditionalTopBar agent={serializedAgent} user={serializedUser} />
+        <ConditionalMain pendingMessage={pendingMessage}>
           {children}
-        </main>
+        </ConditionalMain>
       </AgentContentWrapper>
       <AgentMobileNav />
     </div>
