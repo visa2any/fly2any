@@ -1,15 +1,17 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
-import { ArrowLeft, Check, Edit2, Eye, Settings, User, X, Command, Plane, Building2, Car, Compass, Bus, Shield, Package, Link as LinkIcon } from "lucide-react";
+import { ArrowLeft, Check, Edit2, Eye, Settings, User, X, Command, Plane, Building2, Car, Compass, Bus, Shield, Package, Link as LinkIcon, Plus, Bell, ChevronDown } from "lucide-react";
 import { useQuoteWorkspace } from "./QuoteWorkspaceProvider";
 import { useViewMode } from "./itinerary/ViewModeContext";
 import { SmartPresets, AutosaveIndicator, formatShortcut } from "./velocity";
 import Link from "next/link";
+import { useSession } from "next-auth/react";
 
 export default function QuoteHeader() {
   const { state, setTripName } = useQuoteWorkspace();
   const { viewMode, toggleViewMode } = useViewMode();
+  const { data: session } = useSession();
   const [isEditing, setIsEditing] = useState(false);
   const [editValue, setEditValue] = useState(state.tripName);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -100,8 +102,8 @@ export default function QuoteHeader() {
           )}</div>
       </div>
 
-      {/* Right: Actions + View Toggle + User */}
-      <div className="flex items-center gap-2">
+      {/* Right: Actions + View Toggle + Autosave + Create Quote + Notifications + User */}
+      <div className="flex items-center gap-3">
         {/* View Mode Toggle */}
         <button
           onClick={toggleViewMode}
@@ -121,6 +123,29 @@ export default function QuoteHeader() {
           lastSavedAt={state.ui.lastSavedAt}
           variant="minimal"
         />
+
+        {/* Create Quote Button */}
+        <Link
+          href="/agent/quotes/workspace"
+          className="hidden sm:inline-flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-indigo-600 to-indigo-700 text-white text-sm font-medium rounded-xl hover:from-indigo-700 hover:to-indigo-800 shadow-sm transition-all"
+        >
+          <Plus className="w-4 h-4" />
+          <span>Create Quote</span>
+        </Link>
+
+        {/* Notifications */}
+        <button className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition-colors relative">
+          <Bell className="w-5 h-5" />
+          <span className="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full"></span>
+        </button>
+
+        {/* User Profile */}
+        <div className="flex items-center gap-2 px-2 py-1 hover:bg-gray-100 rounded-lg transition-colors cursor-pointer">
+          <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-indigo-400 to-indigo-600 flex items-center justify-center text-white font-semibold text-sm">
+            {session?.user?.name?.charAt(0) || session?.user?.email?.charAt(0)?.toUpperCase() || 'A'}
+          </div>
+          <ChevronDown className="w-4 h-4 text-gray-400" />
+        </div>
       </div>
     </div>
   );
