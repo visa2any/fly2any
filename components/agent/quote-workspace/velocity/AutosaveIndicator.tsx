@@ -22,12 +22,15 @@ export default function AutosaveIndicator({ status, lastSavedAt, variant = "mini
   };
 
   const config = {
-    idle: { icon: Cloud, text: "Draft", color: "text-gray-400" },
+    idle: { icon: Cloud, text: "", color: "text-gray-400" },
     saving: { icon: Loader2, text: "Saving...", color: "text-blue-500", animate: true },
     saved: { icon: Check, text: lastSavedAt ? `Saved at ${formatTime(lastSavedAt)}` : "Saved", color: "text-emerald-500" },
     error: { icon: CloudOff, text: "Save failed", color: "text-red-500" },
     offline: { icon: CloudOff, text: "Offline", color: "text-amber-500" },
   };
+
+  // Hide when idle (DRAFT badge already shows status)
+  if (status === "idle" && variant === "minimal") return null;
 
   const { icon: Icon, text, color, animate } = config[status];
 

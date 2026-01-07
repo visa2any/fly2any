@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
-import { ArrowLeft, Check, Edit2, Eye, Settings, User, X, Command, Plus, Bell, ChevronDown, Star, Lock, Share2, Download, HelpCircle, MoreHorizontal, Bookmark } from "lucide-react";
+import { ArrowLeft, Check, Edit2, Eye, Settings, User, X, Command, Plus, Bell, ChevronDown, Share2, Download, HelpCircle, MoreHorizontal } from "lucide-react";
 import { useQuoteWorkspace } from "./QuoteWorkspaceProvider";
 import { useViewMode } from "./itinerary/ViewModeContext";
 import { SmartPresets, AutosaveIndicator, formatShortcut } from "./velocity";
@@ -9,11 +9,12 @@ import Link from "next/link";
 import { useSession } from "next-auth/react";
 
 export default function QuoteHeader() {
-  const { state, setTripName } = useQuoteWorkspace();
+  const { state, setTripName, openSendModal, saveQuote } = useQuoteWorkspace();
   const { viewMode, toggleViewMode } = useViewMode();
   const { data: session } = useSession();
   const [isEditing, setIsEditing] = useState(false);
   const [editValue, setEditValue] = useState(state.tripName);
+  const [showMore, setShowMore] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
@@ -36,14 +37,17 @@ export default function QuoteHeader() {
     declined: "text-red-600 bg-red-50",
   };
 
+  const handleExport = async () => {
+    if (!state.id) await saveQuote?.();
+    const quoteId = state.id;
+    if (quoteId) window.open(`/api/agents/quotes/${quoteId}/pdf`, "_blank");
+  };
+
   const toolbarIcons = [
-    { icon: Star, label: "Favorite", action: () => {} },
-    { icon: Bookmark, label: "Bookmark", action: () => {} },
-    { icon: Lock, label: "Lock", action: () => {} },
-    { icon: Share2, label: "Share", action: () => {} },
-    { icon: Download, label: "Export", action: () => {} },
-    { icon: HelpCircle, label: "Help", action: () => {} },
-    { icon: MoreHorizontal, label: "More", action: () => {} },
+    { icon: Share2, label: "Share quote", action: () => openSendModal?.() },
+    { icon: Download, label: "Export PDF", action: handleExport },
+    { icon: HelpCircle, label: "Keyboard shortcuts", action: () => window.dispatchEvent(new CustomEvent("open-shortcuts")) },
+    { icon: MoreHorizontal, label: "More options", action: () => setShowMore(!showMore) },
   ];
 
   return (
@@ -94,17 +98,15 @@ export default function QuoteHeader() {
         </div>
       </div>
 
-      {/* Center: Client */}
+      {/* Center: Client (if assigned) */}
       <div className="hidden md:flex items-center">
-        {state.client ? (
+        {state.client && (
           <div className="flex items-center gap-1.5 px-2 py-1 bg-primary-50 rounded-full">
             <div className="w-5 h-5 rounded-full bg-primary-500 flex items-center justify-center text-white text-[10px] font-bold">
               {state.client.firstName[0]}{state.client.lastName[0]}
             </div>
             <span className="text-xs font-medium text-primary-700">{state.client.firstName}</span>
           </div>
-        ) : (
-          <div className="flex items-center gap-1 text-gray-400 text-xs"><User className="w-3.5 h-3.5" /><span>No client</span></div>
         )}
       </div>
 
@@ -118,9 +120,9 @@ export default function QuoteHeader() {
               ? "bg-violet-100 text-violet-700 border border-violet-200"
               : "bg-gray-100 text-gray-600 hover:bg-gray-200 border border-transparent"
           }`}
-          title={`Toggle Preview (${formatShortcut({ key: "P", ctrl: true })})`}
+          title={`Toggle View (${formatShortcut({ key: "P", ctrl: true })})`}
         >
-          {viewMode === "client" ? <><Eye className="w-3.5 h-3.5" /><span>Preview</span></> : <><Settings className="w-3.5 h-3.5" /><span>Edit</span></>}
+          {viewMode === "client" ? <><Eye className="w-3.5 h-3.5" /><span>Client View</span></> : <><Settings className="w-3.5 h-3.5" /><span>Agent View</span></>}
         </button>
 
         {/* Autosave */}
@@ -130,13 +132,14 @@ export default function QuoteHeader() {
           variant="minimal"
         />
 
-        {/* Create Quote Button */}
+        {/* New Quote Button */}
         <Link
           href="/agent/quotes/workspace"
-          className="hidden sm:inline-flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-indigo-600 to-indigo-700 text-white text-sm font-medium rounded-xl hover:from-indigo-700 hover:to-indigo-800 shadow-sm transition-all"
+          className="hidden sm:inline-flex items-center gap-1.5 px-3 py-2 bg-gray-100 text-gray-700 text-xs font-medium rounded-lg hover:bg-gray-200 transition-all"
+          title="Create new quote"
         >
           <Plus className="w-4 h-4" />
-          <span>Create Quote</span>
+          <span>New</span>
         </Link>
 
         {/* Notifications */}

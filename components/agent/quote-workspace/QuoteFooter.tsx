@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Eye, Send, User, Package, DollarSign, MoreHorizontal, Copy, FileText, Save, Download, Shield } from "lucide-react";
+import { Send, User, Package, DollarSign, MoreHorizontal, Copy, FileText, Save, Download, Shield } from "lucide-react";
 import { useQuoteWorkspace } from "./QuoteWorkspaceProvider";
 import { ctaOptimization } from "./client-preview/USConversionCopy";
 
@@ -114,22 +114,6 @@ export default function QuoteFooter() {
               <span>Select Client</span>
             </>
           )}
-        </motion.button>
-
-        {/* Preview Button */}
-        <motion.button
-          whileHover={{ scale: canPreview ? 1.02 : 1 }}
-          whileTap={{ scale: canPreview ? 0.98 : 1 }}
-          onClick={openPreview}
-          disabled={!canPreview}
-          className={`flex items-center gap-2 px-4 py-2.5 rounded-xl font-medium transition-all ${
-            canPreview
-              ? "bg-gray-100 text-gray-700 hover:bg-gray-200"
-              : "bg-gray-50 text-gray-300 cursor-not-allowed"
-          }`}
-        >
-          <Eye className="w-4 h-4" />
-          <span className="hidden sm:inline">Preview</span>
         </motion.button>
 
         {/* More Actions Menu */}
