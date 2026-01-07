@@ -1195,6 +1195,15 @@ function FlightResultCard({ flight, onAdd, index }: { flight: any; onAdd: (fareI
 
   // Helpers
   const formatTime = (dateStr: string) => dateStr?.includes("T") ? dateStr.slice(11, 16) : dateStr || "--:--";
+  const formatDate = (dateStr: string) => {
+    if (!dateStr) return "";
+    try {
+      const d = new Date(dateStr);
+      return d.toLocaleDateString("en-US", { month: "short", day: "numeric" });
+    } catch {
+      return "";
+    }
+  };
   const parseDuration = (dur: string) => {
     if (!dur) return "";
     const m = dur.match(/PT(\d+H)?(\d+M)?/i);
@@ -1249,6 +1258,7 @@ function FlightResultCard({ flight, onAdd, index }: { flight: any; onAdd: (fareI
             <div className="text-center flex-shrink-0">
               <p className="text-sm font-bold text-gray-900">{formatTime(outDep.at)}</p>
               <p className="text-[10px] text-gray-500">{outDep.iataCode}</p>
+              <p className="text-[8px] text-gray-400">{formatDate(outDep.at)}</p>
             </div>
             <div className="flex-1 min-w-[40px] px-1">
               <div className="relative h-px bg-gradient-to-r from-gray-300 via-indigo-400 to-gray-300">
@@ -1264,6 +1274,7 @@ function FlightResultCard({ flight, onAdd, index }: { flight: any; onAdd: (fareI
             <div className="text-center flex-shrink-0">
               <p className="text-sm font-bold text-gray-900">{formatTime(outArr.at)}</p>
               <p className="text-[10px] text-gray-500">{outArr.iataCode}</p>
+              <p className="text-[8px] text-gray-400">{formatDate(outArr.at)}</p>
             </div>
           </div>
 
@@ -1277,6 +1288,7 @@ function FlightResultCard({ flight, onAdd, index }: { flight: any; onAdd: (fareI
               <div className="text-center flex-shrink-0">
                 <p className="text-sm font-bold text-gray-900">{formatTime(inDep.at)}</p>
                 <p className="text-[10px] text-gray-500">{inDep.iataCode}</p>
+                <p className="text-[8px] text-gray-400">{formatDate(inDep.at)}</p>
               </div>
               <div className="flex-1 min-w-[40px] px-1">
                 <div className="relative h-px bg-gradient-to-r from-gray-300 via-orange-400 to-gray-300">
@@ -1292,6 +1304,7 @@ function FlightResultCard({ flight, onAdd, index }: { flight: any; onAdd: (fareI
               <div className="text-center flex-shrink-0">
                 <p className="text-sm font-bold text-gray-900">{formatTime(inArr.at)}</p>
                 <p className="text-[10px] text-gray-500">{inArr.iataCode}</p>
+                <p className="text-[8px] text-gray-400">{formatDate(inArr.at)}</p>
               </div>
             </div>
           )}
