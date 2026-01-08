@@ -277,15 +277,17 @@ function formatTelegramErrorAlert(
       return `${displayKey}: ${typeof value === 'object' ? JSON.stringify(value).substring(0, 100) : value}`;
     });
 
+  const hasCustomerInfo = customerName || context.userEmail || context.customerEmail || context.customerPhone;
+
   return `
 ${emoji} <b>CUSTOMER ERROR - ${priority.toUpperCase()}</b>
 
 ❌ <b>Error:</b> ${context.errorMessage}
 ${context.errorCode ? `📋 <b>Code:</b> <code>${context.errorCode}</code>` : ''}
 
-<b>👤 CUSTOMER INFO:</b>
+${hasCustomerInfo ? '<b>👤 CUSTOMER INFO:</b>' : '👤 <b>CUSTOMER INFO:</b>\n• <i>No customer data available yet</i>'}
 ${customerName ? `• <b>Name:</b> ${customerName}` : ''}
-${context.userEmail ? `• <b>Email:</b> ${context.userEmail}` : ''}
+${context.userEmail || context.customerEmail ? `• <b>Email:</b> ${context.userEmail || context.customerEmail}` : ''}
 ${context.customerPhone ? `• <b>Phone:</b> ${context.customerPhone}` : ''}
 
 ${context.flightRoute || context.amount ? '<b>✈️ BOOKING INFO:</b>' : ''}

@@ -403,6 +403,66 @@ export async function safeBookingOperation<T>(
 }
 
 /**
+ * Extract ALL customer context from browser
+ */
+function extractCustomerContext() {
+  const ctx: any = {};
+
+  try {
+    // 1. URL params (bookingId, flightId, etc)
+    const params = new URLSearchParams(window.location.search);
+    const urlData: any = {};
+    params.forEach((v, k) => urlData[k] = v);
+    if (Object.keys(urlData).length) ctx.urlParams = urlData;
+
+    // 2. SessionStorage - Booking/Flight data
+    const bookingKeys = ['flight_', 'flight_search_', 'booking_', 'passenger_'];
+    bookingKeys.forEach(prefix => {
+      Object.keys(sessionStorage).filter(k => k.startsWith(prefix)).forEach(key => {
+        try {
+          const data = JSON.parse(sessionStorage.getItem(key) || '{}');
+          // Extract customer info
+          if (data.contactInfo) ctx.contactInfo = data.contactInfo;
+          if (data.passengers) ctx.passengers = data.passengers.map((p: any) => ({
+            name: `${p.firstName} ${p.lastName}`,
+            email: p.email,
+            phone: p.phone,
+          }));
+          if (data.search) ctx.search = data.search;
+        } catch {}
+      });
+    });
+
+    // 3. LocalStorage - User preferences
+    try {
+      const user = localStorage.getItem('user');
+      if (user) {
+        const userData = JSON.parse(user);
+        ctx.user = { email: userData.email, name: userData.name, id: userData.id };
+      }
+    } catch {}
+
+    // 4. Page context
+    ctx.page = {
+      path: window.location.pathname,
+      title: document.title,
+      referrer: document.referrer,
+    };
+
+    // 5. Screen/Device info
+    ctx.device = {
+      screen: `${window.screen.width}x${window.screen.height}`,
+      viewport: `${window.innerWidth}x${window.innerHeight}`,
+      touch: 'ontouchstart' in window,
+    };
+  } catch (e) {
+    console.warn('Failed to extract customer context:', e);
+  }
+
+  return ctx;
+}
+
+/**
  * Report client-side errors to the backend for logging/monitoring
  * Use this for fetch errors, network errors, etc.
  */
@@ -422,13 +482,16 @@ export async function reportClientError(
     const errorMessage = typeof error === 'string' ? error : error.message;
     const errorStack = typeof error === 'string' ? undefined : error.stack;
 
-    // Determine severity based on error type
+    // Determine severity
     let severity = context.severity || ErrorSeverity.HIGH;
     if (errorMessage.toLowerCase().includes('network') ||
         errorMessage.toLowerCase().includes('fetch') ||
         errorMessage.toLowerCase().includes('timeout')) {
       severity = ErrorSeverity.HIGH;
     }
+
+    // CRITICAL: Extract customer context from browser
+    const customerContext = typeof window !== 'undefined' ? extractCustomerContext() : {};
 
     const payload = {
       message: errorMessage,
@@ -441,6 +504,7 @@ export async function reportClientError(
       userAgent: context.userAgent || (typeof navigator !== 'undefined' ? navigator.userAgent : ''),
       timestamp: new Date().toISOString(),
       additionalData: context.additionalData,
+      customerContext, // NEW: All customer data
     };
 
     // Log to console in development

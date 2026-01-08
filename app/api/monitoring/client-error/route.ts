@@ -38,6 +38,12 @@ export async function POST(request: NextRequest) {
 
     const severityEnum = severityMap[errorData.severity?.toUpperCase()] || ErrorSeverity.HIGH;
 
+    // Extract customer info from context
+    const customer = errorData.customerContext || {};
+    const contact = customer.contactInfo || {};
+    const user = customer.user || {};
+    const passengers = customer.passengers || [];
+
     // Send comprehensive alert via Telegram + Email
     await alertCustomerError({
       errorMessage: errorData.message || 'Unknown client error',
@@ -48,8 +54,15 @@ export async function POST(request: NextRequest) {
       endpoint: errorData.url?.split('?')[0],
       category: errorData.category || ErrorCategory.UNKNOWN,
       severity: severityEnum,
-      // Additional context from error data
+      // CRITICAL: Customer contact details
+      customerEmail: contact.email || user.email || passengers[0]?.email,
+      customerPhone: contact.phone || passengers[0]?.phone,
+      customerName: contact.name || user.name || passengers[0]?.name,
+      // Additional context
       ...(errorData.additionalData && { ...errorData.additionalData }),
+      ...(customer.page && { pageContext: customer.page }),
+      ...(customer.device && { deviceInfo: customer.device }),
+      ...(customer.search && { flightSearch: customer.search }),
     }, {
       priority: severityEnum,
       sendTelegram: true, // Always send Telegram for visibility
@@ -59,6 +72,28 @@ export async function POST(request: NextRequest) {
     }).catch(alertErr => {
       console.error('[CLIENT ERROR] Failed to send alert:', alertErr);
     });
+
+    // Save to database for admin dashboard
+    try {
+      const { getPrismaClient } = await import('@/lib/prisma');
+      const prisma = getPrismaClient();
+
+      await prisma.errorLog.create({
+        data: {
+          message: errorData.message || 'Unknown error',
+          stack: errorData.stack,
+          errorType: errorData.category || 'UNKNOWN',
+          url: errorData.url || 'unknown',
+          userId: customer.user?.id,
+          sessionId: errorData.additionalData?.sessionId || `anon-${Date.now()}`,
+          userAgent: errorData.userAgent?.substring(0, 500),
+          severity: errorData.severity?.toUpperCase() || 'HIGH',
+          fingerprint: `${errorData.category}-${errorData.message?.substring(0, 50)}`.replace(/\s+/g, '-'),
+        },
+      });
+    } catch (dbError: any) {
+      console.error('[CLIENT ERROR] Failed to save to DB:', dbError.message);
+    }
 
     return new NextResponse(null, { status: 204 });
   } catch (error) {

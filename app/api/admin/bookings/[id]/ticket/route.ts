@@ -3,6 +3,7 @@ import { bookingStorage } from '@/lib/bookings/storage';
 import { emailService } from '@/lib/email/service';
 import { auth } from '@/lib/auth';
 import { notifyTicketIssued } from '@/lib/notifications/notification-service';
+import { alertCustomerError } from '@/lib/monitoring/customer-error-alerts';
 import type { BookingNotificationPayload } from '@/lib/notifications/types';
 import { getStripeClient } from '@/lib/payments/stripe-client';
 
@@ -31,8 +32,8 @@ export async function POST(
   request: NextRequest,
   { params }: { params: { id: string } }
 ) {
+  const { id } = params;
   try {
-    const { id } = params;
     const body = await request.json();
 
     console.log(`🎫 Processing ticketing for booking: ${id}`);
@@ -260,6 +261,34 @@ export async function POST(
   } catch (error: any) {
     console.error('❌ Error processing ticketing:', error);
 
+    // Send CRITICAL error alert for ticket issuance failures
+    try {
+      // Extract booking reference if available
+      let bookingReference = 'UNKNOWN';
+      try {
+        const booking = await bookingStorage.findById(id);
+        bookingReference = booking?.bookingReference || 'UNKNOWN';
+      } catch { /* ignore */ }
+
+      await alertCustomerError({
+        errorMessage: `Ticket issuance failed: ${error.message || 'Unknown error'}`,
+        errorCode: 'TICKET_ISSUANCE_FAILED',
+        errorStack: error.stack,
+        bookingReference,
+        endpoint: `/api/admin/bookings/${id}/ticket`,
+        priority: 'critical',
+      }, {
+        priority: 'critical',
+        sendTelegram: true,
+        sendEmail: true,
+        sendSentry: true,
+      }).catch((alertError) => {
+        console.error('⚠️ Failed to send ticket issuance error alert:', alertError);
+      });
+    } catch (alertError) {
+      console.error('⚠️ Error alerting failed:', alertError);
+    }
+
     return NextResponse.json(
       {
         success: false,
@@ -280,8 +309,8 @@ export async function GET(
   request: NextRequest,
   { params }: { params: { id: string } }
 ) {
+  const { id } = params;
   try {
-    const { id } = params;
 
     const booking = await bookingStorage.findById(id);
 

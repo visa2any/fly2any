@@ -69,7 +69,7 @@ export async function POST(request: NextRequest) {
         endpoint: 'CLIENT_ERROR',
       }, {
         priority: severity,
-        sendTelegram: body.severity === 'fatal', // Only send Telegram for fatal errors
+        sendTelegram: body.severity === 'fatal' || body.severity === 'error', // Send Telegram for fatal AND error severities
         sendEmail: true,
         sendSentry: true,
       }).catch(err => {
