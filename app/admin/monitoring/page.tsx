@@ -238,34 +238,27 @@ export default function MonitoringDashboard() {
           </div>
         </div>
 
-        {/* Info Box */}
-        <div className="mt-8 bg-blue-50 border border-blue-200 rounded-lg p-6">
-          <div className="flex items-start">
-            <Activity className="w-6 h-6 text-blue-600 mt-0.5 mr-3 flex-shrink-0" />
-            <div>
-              <h3 className="text-lg font-semibold text-blue-900 mb-2">Monitoring Overview</h3>
-              <p className="text-blue-800 text-sm leading-relaxed">
-                This dashboard provides real-time monitoring of critical system components.
-                All metrics are tracked in Sentry and Vercel Analytics. For detailed error
-                tracking and performance insights, visit your Sentry dashboard.
-              </p>
-              <div className="mt-4 flex gap-4">
-                <a
-                  href="https://sentry.io"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-sm font-medium text-blue-600 hover:text-blue-700"
-                >
-                  Open Sentry →
-                </a>
-                <a
-                  href="https://vercel.com"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-sm font-medium text-blue-600 hover:text-blue-700"
-                >
-                  Open Vercel Analytics →
-                </a>
+        {/* Quick Links */}
+        <div className="mt-8 grid grid-cols-1 md:grid-cols-2 gap-6">
+          <a href="/admin/monitoring/errors" className="bg-red-50 border border-red-200 rounded-lg p-6 hover:bg-red-100 transition-colors">
+            <div className="flex items-center">
+              <AlertTriangle className="w-6 h-6 text-red-600 mr-3" />
+              <div>
+                <h3 className="text-lg font-semibold text-red-900">Error Dashboard</h3>
+                <p className="text-red-700 text-sm mt-1">View all customer-facing errors with full context</p>
+              </div>
+            </div>
+          </a>
+
+          <div className="bg-blue-50 border border-blue-200 rounded-lg p-6">
+            <div className="flex items-center">
+              <Activity className="w-6 h-6 text-blue-600 mr-3" />
+              <div>
+                <h3 className="text-lg font-semibold text-blue-900">External Monitoring</h3>
+                <div className="mt-2 flex gap-3">
+                  <a href="https://sentry.io" target="_blank" rel="noopener noreferrer" className="text-sm font-medium text-blue-600 hover:text-blue-700">Sentry →</a>
+                  <a href="https://vercel.com" target="_blank" rel="noopener noreferrer" className="text-sm font-medium text-blue-600 hover:text-blue-700">Vercel →</a>
+                </div>
               </div>
             </div>
           </div>
