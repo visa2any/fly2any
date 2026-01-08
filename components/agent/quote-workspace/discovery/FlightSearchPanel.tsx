@@ -1150,9 +1150,73 @@ export default function FlightSearchPanel() {
 function FlightResultCard({ flight, onAdd, index }: { flight: any; onAdd: (fareIdx: number) => void; index: number }) {
   const [isExpanded, setIsExpanded] = useState(false);
   const [selectedFareIdx, setSelectedFareIdx] = useState(0);
+  const [loadingFares, setLoadingFares] = useState(false);
+  const [upselledFares, setUpselledFares] = useState<any[]>([]);
 
-  // Extract ALL fare options from travelerPricings + fareRules
+  // Fetch branded fares on expand
+  useEffect(() => {
+    if (isExpanded && upselledFares.length === 0 && !loadingFares) {
+      setLoadingFares(true);
+      fetch('/api/flights/upselling', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ flightOffer: flight }),
+      })
+        .then(res => res.json())
+        .then(data => {
+          if (data.success && data.fareOptions?.length > 0) {
+            setUpselledFares(data.fareOptions);
+          }
+        })
+        .catch(err => console.error('Upselling API error:', err))
+        .finally(() => setLoadingFares(false));
+    }
+  }, [isExpanded, flight, upselledFares.length, loadingFares]);
+
+  // Extract ALL fare options from travelerPricings + upselling API
   const fareOptions = useMemo(() => {
+    // Use upselled fares if available
+    if (upselledFares.length > 0) {
+      return upselledFares.map((fareOffer: any, idx: number) => {
+        const fd = fareOffer.travelerPricings?.[0]?.fareDetailsBySegment?.[0];
+        const fareType = fd?.brandedFare || fd?.brandedFareLabel || fd?.cabin || "Economy";
+        const price = Number(fareOffer.price?.total || 0);
+        const bags = fd?.includedCheckedBags?.quantity
+          ? { quantity: fd.includedCheckedBags.quantity, weight: fd.includedCheckedBags.weight || 23 }
+          : null;
+
+        const positives: string[] = [];
+        const restrictions: string[] = [];
+        const refundable = fareType?.toUpperCase().includes('FLEX') || fareType?.toUpperCase().includes('BUSINESS');
+        const changeable = !fareType?.toUpperCase().includes('BASIC');
+
+        if (refundable) positives.push('Fully refundable');
+        else restrictions.push('Non-refundable');
+        if (changeable) positives.push('Changes allowed (+fee)');
+        else restrictions.push('No changes allowed');
+
+        const popularity = idx === 0 ? 26 : idx === 1 ? 74 : idx === 2 ? 18 : 4;
+
+        return {
+          id: idx,
+          fareType,
+          price,
+          cabin: fd?.cabin || "ECONOMY",
+          bags,
+          fareBasis: fd?.fareBasis,
+          refundable,
+          changeable,
+          positives,
+          restrictions,
+          popularityPercent: popularity,
+          recommended: idx === 1,
+          amenities: fd?.amenities || [],
+          bookingClass: fd?.class,
+        };
+      });
+    }
+
+    // Fallback to original travelerPricings
     const pricings = flight.travelerPricings || [];
     if (pricings.length === 0) return [];
 
@@ -1211,7 +1275,7 @@ function FlightResultCard({ flight, onAdd, index }: { flight: any; onAdd: (fareI
         bookingClass: fd?.class,
       };
     });
-  }, [flight.travelerPricings, flight.fareRules]);
+  }, [upselledFares, flight.travelerPricings, flight.fareRules]);
 
   const selectedFare = fareOptions[selectedFareIdx] || fareOptions[0] || {
     id: 0,
@@ -1419,7 +1483,12 @@ function FlightResultCard({ flight, onAdd, index }: { flight: any; onAdd: (fareI
             className="overflow-hidden border-t border-gray-100 bg-white"
           >
             {/* Fare Selector Grid - FareSelector Pattern */}
-            {fareOptions.length > 0 && (
+            {loadingFares ? (
+              <div className="flex items-center justify-center py-8 px-2">
+                <Loader2 className="w-5 h-5 animate-spin text-indigo-500 mr-2" />
+                <span className="text-sm text-gray-500">Loading fare options...</span>
+              </div>
+            ) : fareOptions.length > 0 && (
               <div className={`grid gap-2 px-2 py-2 ${
                 fareOptions.length === 1 ? 'grid-cols-1' : fareOptions.length === 2 ? 'grid-cols-2' : fareOptions.length === 3 ? 'grid-cols-3' : 'grid-cols-4'
               }`}>
