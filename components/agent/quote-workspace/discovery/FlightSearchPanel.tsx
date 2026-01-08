@@ -1460,34 +1460,34 @@ function FlightResultCard({ flight, onAdd, index }: { flight: any; onAdd: (fareI
       </div>
 
       {/* Sticky Policy Bar - REAL API DATA */}
-      <div className="flex items-center justify-between px-2 py-1.5 bg-gray-50 border-t border-gray-100 text-[10px]">
-        <div className="flex items-center gap-3">
-          <div className={`flex items-center gap-1 ${selectedFare.refundable ? "text-emerald-700" : "text-red-700"}`}>
-            {selectedFare.refundable ? <Check className="w-3 h-3" /> : <X className="w-3 h-3" />}
-            <span className="font-medium">Refund</span>
+      <div className="flex items-center justify-between px-3 py-2 bg-gradient-to-r from-gray-50 to-gray-100 border-t border-gray-200 text-[11px]">
+        <div className="flex items-center gap-4">
+          <div className={`flex items-center gap-1.5 px-2 py-1 rounded-md ${selectedFare.refundable ? "bg-emerald-50 text-emerald-700" : "bg-red-50 text-red-600"}`}>
+            {selectedFare.refundable ? <Check className="w-3.5 h-3.5" /> : <X className="w-3.5 h-3.5" />}
+            <span className="font-bold">Refund</span>
           </div>
-          <div className={`flex items-center gap-1 ${selectedFare.changeable ? "text-emerald-700" : "text-red-700"}`}>
-            {selectedFare.changeable ? <Check className="w-3 h-3" /> : <X className="w-3 h-3" />}
-            <span className="font-medium">Change</span>
+          <div className={`flex items-center gap-1.5 px-2 py-1 rounded-md ${selectedFare.changeable ? "bg-emerald-50 text-emerald-700" : "bg-red-50 text-red-600"}`}>
+            {selectedFare.changeable ? <Check className="w-3.5 h-3.5" /> : <X className="w-3.5 h-3.5" />}
+            <span className="font-bold">Change</span>
           </div>
           {selectedFare.bags && (
-            <div className="flex items-center gap-1 text-gray-700">
-              <Luggage className="w-3 h-3" />
-              <span className="font-medium">{selectedFare.bags.quantity}×{selectedFare.bags.weight || "23"}kg</span>
+            <div className="flex items-center gap-1.5 px-2 py-1 bg-blue-50 text-blue-700 rounded-md">
+              <Luggage className="w-3.5 h-3.5" />
+              <span className="font-bold">{selectedFare.bags.quantity}× {selectedFare.bags.weight || "23"}kg</span>
             </div>
           )}
-          <div className="px-1.5 py-0.5 bg-indigo-100 text-indigo-700 rounded font-semibold">
+          <div className="px-2.5 py-1 bg-indigo-100 text-indigo-700 rounded-md font-extrabold text-[10px]">
             {selectedFare.fareType}
           </div>
         </div>
         <button
           onClick={() => setIsExpanded(!isExpanded)}
-          className="flex items-center gap-1 text-gray-600 hover:text-indigo-600 font-semibold transition-colors"
+          className="flex items-center gap-1.5 px-3 py-1.5 text-gray-700 hover:text-indigo-600 hover:bg-white rounded-lg font-bold transition-all"
         >
           {loadingFares ? (
-            <><Loader2 className="w-3 h-3 animate-spin" /><span>Loading...</span></>
+            <><Loader2 className="w-3.5 h-3.5 animate-spin" /><span>Loading...</span></>
           ) : (
-            <><span>{isExpanded ? "Hide Details" : fareOptions.length > 1 ? `View ${fareOptions.length} Fares` : "View Details"}</span><ChevronDown className={`w-3 h-3 transition-transform ${isExpanded ? "rotate-180" : ""}`} /></>
+            <><span>{isExpanded ? "Hide Details" : fareOptions.length > 1 ? `${fareOptions.length} Fares Available` : "View Details"}</span><ChevronDown className={`w-3.5 h-3.5 transition-transform ${isExpanded ? "rotate-180" : ""}`} /></>
           )}
         </button>
       </div>
@@ -1509,68 +1509,75 @@ function FlightResultCard({ flight, onAdd, index }: { flight: any; onAdd: (fareI
                 <span className="text-sm text-gray-500">Loading fare options...</span>
               </div>
             ) : fareOptions.length > 0 && (
-              <div className={`grid gap-2 px-2 py-2 ${
+              <div className={`grid gap-3 px-3 py-3 ${
                 fareOptions.length === 1 ? 'grid-cols-1' : fareOptions.length === 2 ? 'grid-cols-2' : fareOptions.length === 3 ? 'grid-cols-3' : 'grid-cols-4'
               }`}>
                 {fareOptions.map((fare: any) => {
                   const isSelected = selectedFareIdx === fare.id;
+                  const cabin = fare.cabin?.toUpperCase() || 'ECONOMY';
+                  const isBusiness = cabin.includes('BUSINESS');
+                  const isPremium = cabin.includes('PREMIUM');
                   return (
                     <button
                       key={fare.id}
                       onClick={() => setSelectedFareIdx(fare.id)}
-                      className={`relative p-2 pt-4 rounded-lg text-left transition-all flex flex-col ${
-                        isSelected ? "ring-2 ring-indigo-500 shadow-lg" : "hover:shadow-md border border-gray-200"
+                      className={`relative p-3 pt-5 rounded-xl text-left transition-all flex flex-col min-h-[160px] ${
+                        isSelected ? "ring-2 ring-indigo-500 shadow-xl" : "hover:shadow-lg border-2 border-gray-200 hover:border-indigo-200"
                       }`}
                       style={{
-                        background: isSelected ? 'linear-gradient(180deg, #FFFFFF 0%, #EEF2FF 100%)' : 'linear-gradient(180deg, #FFFFFF 0%, #FAFBFC 100%)',
-                        boxShadow: isSelected ? '0 4px 12px -4px rgba(99,102,241,0.25)' : '0 2px 6px -2px rgba(0,0,0,0.1)',
+                        background: isSelected
+                          ? 'linear-gradient(180deg, #FFFFFF 0%, #EEF2FF 100%)'
+                          : isBusiness
+                          ? 'linear-gradient(180deg, #FEFCE8 0%, #FEF9C3 100%)'
+                          : 'linear-gradient(180deg, #FFFFFF 0%, #F9FAFB 100%)',
+                        boxShadow: isSelected ? '0 8px 16px -4px rgba(99,102,241,0.3)' : '0 2px 8px -2px rgba(0,0,0,0.08)',
                       }}
                     >
                       {fare.recommended && (
-                        <div className="absolute -top-2 left-1/2 -translate-x-1/2 bg-gradient-to-r from-yellow-400 to-yellow-500 text-white text-[9px] font-bold px-2 py-0.5 rounded-full shadow-md whitespace-nowrap">
+                        <div className="absolute -top-2.5 left-1/2 -translate-x-1/2 bg-gradient-to-r from-amber-400 to-yellow-500 text-white text-[10px] font-extrabold px-3 py-1 rounded-full shadow-lg whitespace-nowrap">
                           ⭐ BEST VALUE
                         </div>
                       )}
                       {isSelected && (
-                        <div className="absolute -top-1 -right-1 w-4 h-4 bg-gradient-to-br from-indigo-500 to-indigo-600 rounded-full flex items-center justify-center shadow-md">
-                          <Check className="w-2.5 h-2.5 text-white" />
+                        <div className="absolute -top-2 -right-2 w-6 h-6 bg-gradient-to-br from-indigo-500 to-indigo-600 rounded-full flex items-center justify-center shadow-lg border-2 border-white">
+                          <Check className="w-3.5 h-3.5 text-white" />
                         </div>
                       )}
-                      <div className="mb-2">
-                        <h4 className="text-[10px] font-bold text-gray-900 mb-1 truncate">{fare.fareType}</h4>
-                        <div className="flex items-baseline gap-0.5">
-                          <span className="text-base font-black text-gray-900">${Math.round(fare.price)}</span>
-                          <span className="text-[8px] text-gray-400">total</span>
+                      <div className="mb-3">
+                        <h4 className="text-xs font-extrabold text-gray-900 mb-1.5 leading-tight">{fare.fareType}</h4>
+                        <div className="flex items-baseline gap-1">
+                          <span className="text-xl font-black text-gray-900">${Math.round(fare.price)}</span>
+                          <span className="text-[10px] text-gray-500 font-medium">total</span>
                         </div>
                       </div>
                       {fare.bags && (
-                        <div className="flex items-center gap-1 text-[9px] text-gray-600 mb-2">
-                          <Luggage className="w-3 h-3" />
+                        <div className="flex items-center gap-1.5 px-2 py-1 bg-blue-50 rounded-md text-[10px] text-blue-700 font-semibold mb-2">
+                          <Luggage className="w-3.5 h-3.5" />
                           <span>{fare.bags.quantity}× {fare.bags.weight}kg</span>
                         </div>
                       )}
-                      <div className="space-y-1 pt-2 border-t border-gray-100">
+                      <div className="space-y-1.5 flex-1">
                         {fare.positives?.map((p: string, i: number) => (
-                          <div key={i} className="flex items-center gap-1 text-[9px]">
-                            <div className="w-3 h-3 rounded-full bg-green-50 flex items-center justify-center">
-                              <Check className="w-2 h-2 text-green-500" />
+                          <div key={i} className="flex items-center gap-1.5 text-[10px]">
+                            <div className="w-3.5 h-3.5 rounded-full bg-emerald-100 flex items-center justify-center flex-shrink-0">
+                              <Check className="w-2.5 h-2.5 text-emerald-600" />
                             </div>
-                            <span className="text-green-600 font-medium truncate">{p}</span>
+                            <span className="text-emerald-700 font-semibold leading-tight">{p}</span>
                           </div>
                         ))}
                         {fare.restrictions?.map((r: string, i: number) => (
-                          <div key={i} className="flex items-center gap-1 text-[9px]">
-                            <div className="w-3 h-3 rounded-full bg-red-50 flex items-center justify-center">
-                              <X className="w-2 h-2 text-red-400" />
+                          <div key={i} className="flex items-center gap-1.5 text-[10px]">
+                            <div className="w-3.5 h-3.5 rounded-full bg-red-100 flex items-center justify-center flex-shrink-0">
+                              <X className="w-2.5 h-2.5 text-red-500" />
                             </div>
-                            <span className="text-red-500 font-medium truncate">{r}</span>
+                            <span className="text-red-600 font-semibold leading-tight">{r}</span>
                           </div>
                         ))}
                       </div>
                       {fare.popularityPercent && !fare.recommended && (
-                        <div className="mt-2 pt-1 border-t border-gray-100 flex items-center gap-1 text-[8px] text-gray-400">
-                          <Users className="w-2.5 h-2.5" />
-                          <span>{fare.popularityPercent}%</span>
+                        <div className="mt-2 pt-2 border-t border-gray-200 flex items-center gap-1.5 text-[9px] text-gray-500 font-semibold">
+                          <Users className="w-3 h-3" />
+                          <span>{fare.popularityPercent}% choose this</span>
                         </div>
                       )}
                     </button>
@@ -1580,43 +1587,46 @@ function FlightResultCard({ flight, onAdd, index }: { flight: any; onAdd: (fareI
             )}
 
             {/* Additional Details - Enhanced API Data */}
-            <div className="px-3 py-2 space-y-1.5 text-[10px]">
-              <div className="flex items-center justify-between">
-                <span className="text-gray-500">Cabin Class:</span>
-                <span className="font-semibold text-gray-900">{selectedFare.cabin}</span>
-              </div>
-              {selectedFare.bookingClass && (
-                <div className="flex items-center justify-between">
-                  <span className="text-gray-500">Booking Class:</span>
-                  <span className="font-mono font-bold text-indigo-700">{selectedFare.bookingClass}</span>
+            <div className="px-4 py-3 space-y-2 bg-gray-50/50 border-t border-gray-100">
+              <div className="grid grid-cols-2 gap-2 text-[11px]">
+                <div className="flex flex-col gap-0.5">
+                  <span className="text-gray-500 font-medium">Cabin Class</span>
+                  <span className="font-bold text-gray-900">{selectedFare.cabin}</span>
                 </div>
-              )}
+                {selectedFare.bookingClass && (
+                  <div className="flex flex-col gap-0.5">
+                    <span className="text-gray-500 font-medium">Booking Code</span>
+                    <span className="font-mono font-bold text-indigo-700 text-sm">{selectedFare.bookingClass}</span>
+                  </div>
+                )}
+              </div>
               {selectedFare.fareBasis && (
-                <div className="flex items-center justify-between">
-                  <span className="text-gray-500">Fare Basis:</span>
-                  <span className="font-mono text-gray-900">{selectedFare.fareBasis}</span>
+                <div className="flex items-center justify-between px-2 py-1.5 bg-white rounded-lg text-[11px] border border-gray-200">
+                  <span className="text-gray-600 font-semibold">Fare Basis Code:</span>
+                  <span className="font-mono font-bold text-gray-900">{selectedFare.fareBasis}</span>
                 </div>
               )}
               {selectedFare.bags && (
-                <div className="flex items-center justify-between">
-                  <span className="text-gray-500">Checked Bags:</span>
-                  <span className="font-semibold text-gray-900">
-                    {selectedFare.bags.quantity}× {selectedFare.bags.weight}kg included
+                <div className="flex items-center gap-2 px-2 py-1.5 bg-blue-50 rounded-lg text-[11px] border border-blue-100">
+                  <Luggage className="w-4 h-4 text-blue-600" />
+                  <span className="font-bold text-blue-700">
+                    {selectedFare.bags.quantity}× {selectedFare.bags.weight}kg checked baggage included
                   </span>
                 </div>
               )}
-              <div className="flex items-center justify-between">
-                <span className="text-gray-500">Flight Numbers:</span>
-                <span className="font-semibold text-gray-900">
+              <div className="flex items-center gap-2 px-2 py-1.5 bg-white rounded-lg text-[11px] border border-gray-200">
+                <Plane className="w-4 h-4 text-gray-500" />
+                <span className="text-gray-600 font-semibold">Flight:</span>
+                <span className="font-bold text-gray-900">
                   {outAirlineCode}{outNum}{isRoundtrip ? ` • ${inAirlineCode}${inNum}` : ""}
                 </span>
               </div>
               {selectedFare.amenities && selectedFare.amenities.length > 0 && (
-                <div className="mt-1 pt-1 border-t border-gray-100">
-                  <span className="text-gray-500 block mb-1">Amenities:</span>
-                  <div className="flex flex-wrap gap-1">
+                <div className="pt-2 border-t border-gray-200">
+                  <span className="text-gray-600 font-bold block mb-2 text-[10px] uppercase tracking-wide">Included Amenities</span>
+                  <div className="flex flex-wrap gap-1.5">
                     {selectedFare.amenities.slice(0, 4).map((amenity: any, i: number) => (
-                      <span key={i} className="px-1.5 py-0.5 bg-emerald-50 text-emerald-700 rounded text-[9px] font-medium">
+                      <span key={i} className="px-2 py-1 bg-emerald-50 text-emerald-700 rounded-md text-[10px] font-bold border border-emerald-200">
                         {amenity.description || amenity.code}
                       </span>
                     ))}
@@ -1624,8 +1634,9 @@ function FlightResultCard({ flight, onAdd, index }: { flight: any; onAdd: (fareI
                 </div>
               )}
               {outAirlineCode !== inAirlineCode && isRoundtrip && (
-                <div className="mt-2 px-2 py-1 bg-amber-50 text-amber-700 rounded text-[9px] font-medium">
-                  ⚠️ Codeshare: Return operated by {inAirlineInfo.name}
+                <div className="flex items-center gap-2 px-2 py-1.5 bg-amber-50 text-amber-700 rounded-lg text-[10px] font-bold border border-amber-200">
+                  <span>⚠️</span>
+                  <span>Codeshare: Return operated by {inAirlineInfo.name}</span>
                 </div>
               )}
             </div>
