@@ -84,9 +84,11 @@ export default function FlightSearchPanel() {
   const [error, setError] = useState<string | null>(null);
   const [showPassengerDropdown, setShowPassengerDropdown] = useState(false);
   const [showClassDropdown, setShowClassDropdown] = useState(false);
+  const [showMultiDatePicker, setShowMultiDatePicker] = useState(false);
   const [formCollapsed, setFormCollapsed] = useState(false);
   const [isHovered, setIsHovered] = useState(false);
   const formRef = useRef<HTMLFormElement>(null);
+  const multiDatePickerRef = useRef<HTMLButtonElement>(null);
 
   // Filter & pagination state
   const [sortBy, setSortBy] = useState<"price" | "duration" | "departure">("price");
@@ -106,6 +108,16 @@ export default function FlightSearchPanel() {
   useEffect(() => {
     if (error) setFormCollapsed(false);
   }, [error]);
+
+  // Auto-click multi-date picker when it becomes visible
+  useEffect(() => {
+    if (showMultiDatePicker && multiDatePickerRef.current) {
+      // Wait for render, then click to open calendar
+      setTimeout(() => {
+        multiDatePickerRef.current?.click();
+      }, 100);
+    }
+  }, [showMultiDatePicker]);
 
   // Get minimum date (today)
   const getMinDate = () => new Date().toISOString().split("T")[0];
@@ -678,18 +690,33 @@ export default function FlightSearchPanel() {
                       </motion.div>
                     )}
                     {params.departureDates.length < 7 && (
-                      <motion.div whileHover={{ scale: 1.01 }} className="relative">
-                        <div className="flex items-center gap-2 p-2.5 bg-white border-2 border-dashed border-purple-200 rounded-xl hover:bg-purple-50/50 cursor-pointer text-xs text-purple-600 font-medium transition-all">
-                          <Plus className="w-3.5 h-3.5" />
-                          Add date ({7 - params.departureDates.length} left)
-                        </div>
-                        <input
-                          type="date"
-                          min={getMinDate()}
-                          onChange={(e) => { addMultiDate(e.target.value); e.target.value = ""; }}
-                          className="absolute inset-0 opacity-0 cursor-pointer"
-                        />
-                      </motion.div>
+                      <div className="relative">
+                        {!showMultiDatePicker ? (
+                          <motion.div
+                            whileHover={{ scale: 1.01 }}
+                            onClick={() => setShowMultiDatePicker(true)}
+                          >
+                            <div className="flex items-center gap-2 p-2.5 bg-white border-2 border-dashed border-purple-200 rounded-xl hover:bg-purple-50/50 cursor-pointer text-xs text-purple-600 font-medium transition-all">
+                              <Plus className="w-3.5 h-3.5" />
+                              Add date ({7 - params.departureDates.length} left)
+                            </div>
+                          </motion.div>
+                        ) : (
+                          <div ref={(el) => { if (el) multiDatePickerRef.current = el.querySelector('button'); }}>
+                            <PremiumDatePicker
+                              value=""
+                              onChange={(date) => {
+                                if (date) {
+                                  addMultiDate(date);
+                                }
+                                setShowMultiDatePicker(false);
+                              }}
+                              minDate={getMinDate()}
+                              placeholder="Select date"
+                            />
+                          </div>
+                        )}
+                      </div>
                     )}
                     {/* Trip Duration for multi-date */}
                     {params.tripType === "roundtrip" && (
