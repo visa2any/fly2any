@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { useSession } from 'next-auth/react';
+import { usePathname } from 'next/navigation';
 import { zIndex } from '@/lib/design-system';
 import { MaxWidthContainer } from './MaxWidthContainer';
 import { HamburgerMenu } from '@/components/mobile/HamburgerMenu';
@@ -66,6 +67,7 @@ export function Header({
   children,
 }: HeaderProps) {
   const { data: session } = useSession();
+  const pathname = usePathname();
   const [langDropdownOpen, setLangDropdownOpen] = useState(false);
   const [discoverDropdownOpen, setDiscoverDropdownOpen] = useState(false);
   const [worldCupDropdownOpen, setWorldCupDropdownOpen] = useState(false);
@@ -76,6 +78,9 @@ export function Header({
   // Use next-intl for translations
   const t = useTranslations('Header');
   const { language, setLanguage } = useLanguage();
+
+  // Level-6: Detect homepage for adaptive styling
+  const isHomepage = pathname === '/' || pathname === '/en' || pathname === '/pt' || pathname === '/es';
 
   // Create adapter for UserMenu component
   const userMenuTranslations = {
@@ -239,11 +244,11 @@ export function Header({
             <a
               href="/flights"
               className={`group relative px-2 xl:px-3 py-2 transition-all duration-150 ease-[cubic-bezier(0.2,0.8,0.2,1)] font-semibold text-sm rounded-xl hover:-translate-y-0.5 ${
-                scrolled
-                  ? 'text-neutral-700 hover:text-primary-600 hover:bg-primary-50/60'
-                  : 'text-white hover:text-white/90 hover:bg-white/10'
+                isHomepage && !scrolled
+                  ? 'text-white hover:text-white/90 hover:bg-white/10'
+                  : 'text-neutral-700 hover:text-primary-600 hover:bg-primary-50/60'
               }`}
-              style={{ textShadow: scrolled ? 'none' : '0 1px 3px rgba(0,0,0,0.5)' }}
+              style={{ textShadow: isHomepage && !scrolled ? '0 1px 3px rgba(0,0,0,0.5)' : 'none' }}
             >
               <span className="flex items-center gap-1.5">
                 <span className="text-lg transition-transform duration-150 group-hover:scale-110">
@@ -258,11 +263,11 @@ export function Header({
             <a
               href="/hotels"
               className={`group relative px-2 xl:px-3 py-2 transition-all duration-150 ease-[cubic-bezier(0.2,0.8,0.2,1)] font-semibold text-sm rounded-xl hover:-translate-y-0.5 ${
-                scrolled
-                  ? 'text-neutral-700 hover:text-primary-600 hover:bg-primary-50/60'
-                  : 'text-white hover:text-white/90 hover:bg-white/10'
+                isHomepage && !scrolled
+                  ? 'text-white hover:text-white/90 hover:bg-white/10'
+                  : 'text-neutral-700 hover:text-primary-600 hover:bg-primary-50/60'
               }`}
-              style={{ textShadow: scrolled ? 'none' : '0 1px 3px rgba(0,0,0,0.5)' }}
+              style={{ textShadow: isHomepage && !scrolled ? '0 1px 3px rgba(0,0,0,0.5)' : 'none' }}
             >
               <span className="flex items-center gap-1.5">
                 <span className="text-lg transition-transform duration-150 group-hover:scale-110">
@@ -277,11 +282,11 @@ export function Header({
             <a
               href="/cars"
               className={`group relative px-2 xl:px-3 py-2 transition-all duration-150 ease-[cubic-bezier(0.2,0.8,0.2,1)] font-semibold text-sm rounded-xl hover:-translate-y-0.5 ${
-                scrolled
-                  ? 'text-neutral-700 hover:text-primary-600 hover:bg-primary-50/60'
-                  : 'text-white hover:text-white/90 hover:bg-white/10'
+                isHomepage && !scrolled
+                  ? 'text-white hover:text-white/90 hover:bg-white/10'
+                  : 'text-neutral-700 hover:text-primary-600 hover:bg-primary-50/60'
               }`}
-              style={{ textShadow: scrolled ? 'none' : '0 1px 3px rgba(0,0,0,0.5)' }}
+              style={{ textShadow: isHomepage && !scrolled ? '0 1px 3px rgba(0,0,0,0.5)' : 'none' }}
             >
               <span className="flex items-center gap-1.5">
                 <span className="text-lg transition-transform duration-150 group-hover:scale-110">
@@ -296,11 +301,11 @@ export function Header({
             <a
               href="/tours"
               className={`group relative px-2 xl:px-3 py-2 transition-all duration-150 ease-[cubic-bezier(0.2,0.8,0.2,1)] font-semibold text-sm rounded-xl hover:-translate-y-0.5 ${
-                scrolled
-                  ? 'text-neutral-700 hover:text-primary-600 hover:bg-primary-50/60'
-                  : 'text-white hover:text-white/90 hover:bg-white/10'
+                isHomepage && !scrolled
+                  ? 'text-white hover:text-white/90 hover:bg-white/10'
+                  : 'text-neutral-700 hover:text-primary-600 hover:bg-primary-50/60'
               }`}
-              style={{ textShadow: scrolled ? 'none' : '0 1px 3px rgba(0,0,0,0.5)' }}
+              style={{ textShadow: isHomepage && !scrolled ? '0 1px 3px rgba(0,0,0,0.5)' : 'none' }}
             >
               <span className="flex items-center gap-1.5">
                 <span className="text-lg transition-transform duration-150 group-hover:scale-110">
@@ -315,11 +320,11 @@ export function Header({
             <a
               href="/activities"
               className={`group relative px-2 xl:px-3 py-2 transition-all duration-150 ease-[cubic-bezier(0.2,0.8,0.2,1)] font-semibold text-sm rounded-xl hover:-translate-y-0.5 ${
-                scrolled
-                  ? 'text-neutral-700 hover:text-primary-600 hover:bg-primary-50/60'
-                  : 'text-white hover:text-white/90 hover:bg-white/10'
+                isHomepage && !scrolled
+                  ? 'text-white hover:text-white/90 hover:bg-white/10'
+                  : 'text-neutral-700 hover:text-primary-600 hover:bg-primary-50/60'
               }`}
-              style={{ textShadow: scrolled ? 'none' : '0 1px 3px rgba(0,0,0,0.5)' }}
+              style={{ textShadow: isHomepage && !scrolled ? '0 1px 3px rgba(0,0,0,0.5)' : 'none' }}
             >
               <span className="flex items-center gap-1.5">
                 <span className="text-lg transition-transform duration-150 group-hover:scale-110">
@@ -334,11 +339,11 @@ export function Header({
             <a
               href="/transfers"
               className={`group relative px-2 xl:px-3 py-2 transition-all duration-150 ease-[cubic-bezier(0.2,0.8,0.2,1)] font-semibold text-sm rounded-xl hover:-translate-y-0.5 ${
-                scrolled
-                  ? 'text-neutral-700 hover:text-primary-600 hover:bg-primary-50/60'
-                  : 'text-white hover:text-white/90 hover:bg-white/10'
+                isHomepage && !scrolled
+                  ? 'text-white hover:text-white/90 hover:bg-white/10'
+                  : 'text-neutral-700 hover:text-primary-600 hover:bg-primary-50/60'
               }`}
-              style={{ textShadow: scrolled ? 'none' : '0 1px 3px rgba(0,0,0,0.5)' }}
+              style={{ textShadow: isHomepage && !scrolled ? '0 1px 3px rgba(0,0,0,0.5)' : 'none' }}
             >
               <span className="flex items-center gap-1.5">
                 <span className="text-lg transition-transform duration-150 group-hover:scale-110">
@@ -353,11 +358,11 @@ export function Header({
             <a
               href="/experiences"
               className={`group relative px-2 xl:px-3 py-2 transition-all duration-150 ease-[cubic-bezier(0.2,0.8,0.2,1)] font-semibold text-sm rounded-xl hover:-translate-y-0.5 ${
-                scrolled
-                  ? 'text-neutral-700 hover:text-primary-600 hover:bg-primary-50/60'
-                  : 'text-white hover:text-white/90 hover:bg-white/10'
+                isHomepage && !scrolled
+                  ? 'text-white hover:text-white/90 hover:bg-white/10'
+                  : 'text-neutral-700 hover:text-primary-600 hover:bg-primary-50/60'
               }`}
-              style={{ textShadow: scrolled ? 'none' : '0 1px 3px rgba(0,0,0,0.5)' }}
+              style={{ textShadow: isHomepage && !scrolled ? '0 1px 3px rgba(0,0,0,0.5)' : 'none' }}
             >
               <span className="flex items-center gap-1.5">
                 <span className="text-lg transition-transform duration-150 group-hover:scale-110">
@@ -459,7 +464,7 @@ export function Header({
                     ? 'text-neutral-700 hover:text-primary-600 hover:bg-primary-50/60'
                     : 'text-white hover:text-white/90 hover:bg-white/10'
                 }`}
-                style={{ textShadow: scrolled ? 'none' : '0 1px 3px rgba(0,0,0,0.5)' }}
+                style={{ textShadow: isHomepage && !scrolled ? '0 1px 3px rgba(0,0,0,0.5)' : 'none' }}
               >
                 <span className="flex items-center gap-1.5">
                   <span className="text-lg transition-transform duration-150 group-hover:scale-110">
