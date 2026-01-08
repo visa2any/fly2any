@@ -1191,11 +1191,13 @@ function FlightResultCard({ flight, onAdd, index }: { flight: any; onAdd: (fareI
       return upselledFares.map((fareOffer: any, idx: number) => {
         const tp = fareOffer.travelerPricings?.[0];
         const fd = tp?.fareDetailsBySegment?.[0];
-        const fareType = fd?.brandedFare || fd?.brandedFareLabel || fd?.cabin || "Economy";
+        const fareType = fd?.brandedFareLabel || fd?.brandedFare || fd?.cabin || "Economy";
         const price = Number(fareOffer.price?.total || 0);
+        const cabin = fd?.cabin || "ECONOMY";
         const bags = fd?.includedCheckedBags?.quantity
           ? { quantity: fd.includedCheckedBags.quantity, weight: fd.includedCheckedBags.weight || 23 }
           : null;
+        const cabinBag = fd?.includedCabinBags || { quantity: 1 };
 
         // Extract REAL refund/change rules from API
         const fareRules = tp?.fareRules || fareOffer.fareRules;
@@ -1214,13 +1216,46 @@ function FlightResultCard({ flight, onAdd, index }: { flight: any; onAdd: (fareI
         const ourChangeFee = isDomestic ? 50 : 100;
         const totalChangeFee = airlineChangeFee + ourChangeFee;
 
+        // Extract amenities from API + cabin-based benefits
+        const amenitiesList = fd?.amenities || [];
+        const isBusiness = cabin.toUpperCase().includes('BUSINESS');
+        const isPremium = cabin.toUpperCase().includes('PREMIUM');
+        const isFirst = cabin.toUpperCase().includes('FIRST');
+
         const positives: string[] = [];
         const restrictions: string[] = [];
 
+        // Refund/Change
         if (refundable) positives.push('Fully refundable');
         else restrictions.push('Non-refundable');
         if (changeable) positives.push(totalChangeFee > 0 ? `Changeable + $${totalChangeFee}` : 'Free changes');
         else restrictions.push('No changes allowed');
+
+        // Baggage
+        if (bags) positives.push(`${bags.quantity}× ${bags.weight}kg checked bag`);
+        if (cabinBag) positives.push(`${cabinBag.quantity || 1}× carry-on included`);
+
+        // Cabin benefits
+        if (isFirst || isBusiness) {
+          positives.push('Priority boarding');
+          positives.push(isFirst ? 'First class lounge access' : 'Business lounge access');
+          positives.push(isFirst ? '200% miles earned' : '150% miles earned');
+        } else if (isPremium) {
+          positives.push('Priority boarding');
+          positives.push('125% miles earned');
+        } else {
+          positives.push('100% miles earned');
+        }
+
+        // Amenities from API
+        amenitiesList.forEach((a: any) => {
+          const desc = a.description || a.code || '';
+          if (desc && !positives.includes(desc)) positives.push(desc);
+        });
+
+        // Seat selection
+        if (isBusiness || isFirst) positives.push('Free seat selection');
+        else restrictions.push('Seat selection (fee applies)');
 
         const popularity = idx === 0 ? 26 : idx === 1 ? 74 : idx === 2 ? 18 : 4;
 
@@ -1250,7 +1285,8 @@ function FlightResultCard({ flight, onAdd, index }: { flight: any; onAdd: (fareI
 
     return pricings.map((tp: any, idx: number) => {
       const fd = tp.fareDetailsBySegment?.[0];
-      const fareType = fd?.brandedFare || fd?.brandedFareLabel || fd?.cabin || "Economy";
+      const fareType = fd?.brandedFareLabel || fd?.brandedFare || fd?.cabin || "Economy";
+      const cabin = fd?.cabin || "ECONOMY";
 
       // Extract REAL refund/change rules from fareRules (API ONLY - no assumptions)
       const fareRules = tp.fareRules || flight.fareRules;
@@ -1279,11 +1315,18 @@ function FlightResultCard({ flight, onAdd, index }: { flight: any; onAdd: (fareI
       const bags = fd?.includedCheckedBags?.quantity
         ? { quantity: fd.includedCheckedBags.quantity, weight: fd.includedCheckedBags.weight || 23 }
         : null;
+      const cabinBag = fd?.includedCabinBags || { quantity: 1 };
 
-      // Build positives/restrictions arrays (FareSelector pattern)
+      // Extract amenities + cabin benefits
+      const amenitiesList = fd?.amenities || [];
+      const isBusiness = cabin.toUpperCase().includes('BUSINESS');
+      const isPremium = cabin.toUpperCase().includes('PREMIUM');
+      const isFirst = cabin.toUpperCase().includes('FIRST');
+
       const positives: string[] = [];
       const restrictions: string[] = [];
 
+      // Refund/Change
       if (refundable) positives.push('Fully refundable');
       else restrictions.push('Non-refundable');
 
@@ -1292,6 +1335,32 @@ function FlightResultCard({ flight, onAdd, index }: { flight: any; onAdd: (fareI
       } else {
         restrictions.push('No changes allowed');
       }
+
+      // Baggage
+      if (bags) positives.push(`${bags.quantity}× ${bags.weight}kg checked bag`);
+      if (cabinBag) positives.push(`${cabinBag.quantity || 1}× carry-on included`);
+
+      // Cabin benefits
+      if (isFirst || isBusiness) {
+        positives.push('Priority boarding');
+        positives.push(isFirst ? 'First class lounge access' : 'Business lounge access');
+        positives.push(isFirst ? '200% miles earned' : '150% miles earned');
+      } else if (isPremium) {
+        positives.push('Priority boarding');
+        positives.push('125% miles earned');
+      } else {
+        positives.push('100% miles earned');
+      }
+
+      // API amenities
+      amenitiesList.forEach((a: any) => {
+        const desc = a.description || a.code || '';
+        if (desc && !positives.includes(desc)) positives.push(desc);
+      });
+
+      // Seat selection
+      if (isBusiness || isFirst) positives.push('Free seat selection');
+      else restrictions.push('Seat selection (fee applies)');
 
       // Calculate popularity % based on price position
       const priceRank = pricings.findIndex((p: any, i: number) => i === idx);
@@ -1551,7 +1620,7 @@ function FlightResultCard({ flight, onAdd, index }: { flight: any; onAdd: (fareI
                     <button
                       key={fare.id}
                       onClick={() => setSelectedFareIdx(fare.id)}
-                      className={`relative p-3 pt-5 rounded-xl text-left transition-all flex flex-col min-h-[160px] ${
+                      className={`relative p-3 pt-5 rounded-xl text-left transition-all flex flex-col min-h-[220px] max-h-[280px] ${
                         isSelected ? "ring-2 ring-indigo-500 shadow-xl" : "hover:shadow-lg border-2 border-gray-200 hover:border-indigo-200"
                       }`}
                       style={{
@@ -1586,21 +1655,21 @@ function FlightResultCard({ flight, onAdd, index }: { flight: any; onAdd: (fareI
                           <span>{fare.bags.quantity}× {fare.bags.weight}kg</span>
                         </div>
                       )}
-                      <div className="space-y-1.5 flex-1">
+                      <div className="space-y-1.5 flex-1 overflow-y-auto scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-transparent pr-1">
                         {fare.positives?.map((p: string, i: number) => (
-                          <div key={i} className="flex items-center gap-1.5 text-[10px]">
-                            <div className="w-3.5 h-3.5 rounded-full bg-emerald-100 flex items-center justify-center flex-shrink-0">
+                          <div key={i} className="flex items-start gap-1.5 text-[10px]">
+                            <div className="w-3.5 h-3.5 rounded-full bg-emerald-100 flex items-center justify-center flex-shrink-0 mt-0.5">
                               <Check className="w-2.5 h-2.5 text-emerald-600" />
                             </div>
-                            <span className="text-emerald-700 font-semibold leading-tight">{p}</span>
+                            <span className="text-emerald-700 font-semibold leading-tight flex-1">{p}</span>
                           </div>
                         ))}
                         {fare.restrictions?.map((r: string, i: number) => (
-                          <div key={i} className="flex items-center gap-1.5 text-[10px]">
-                            <div className="w-3.5 h-3.5 rounded-full bg-red-100 flex items-center justify-center flex-shrink-0">
+                          <div key={i} className="flex items-start gap-1.5 text-[10px]">
+                            <div className="w-3.5 h-3.5 rounded-full bg-red-100 flex items-center justify-center flex-shrink-0 mt-0.5">
                               <X className="w-2.5 h-2.5 text-red-500" />
                             </div>
-                            <span className="text-red-600 font-semibold leading-tight">{r}</span>
+                            <span className="text-red-600 font-semibold leading-tight flex-1">{r}</span>
                           </div>
                         ))}
                       </div>
