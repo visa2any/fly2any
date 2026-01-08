@@ -1286,6 +1286,12 @@ function FlightResultCard({ flight, onAdd, index }: { flight: any; onAdd: (fareI
     fareBasis: "",
     refundable: false,
     changeable: false,
+    positives: [],
+    restrictions: [],
+    popularityPercent: 0,
+    recommended: false,
+    amenities: [],
+    bookingClass: "",
   };
   const price = selectedFare?.price || 0;
 
