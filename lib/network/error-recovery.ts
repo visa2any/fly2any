@@ -262,7 +262,7 @@ export async function fetchWithRetry(
       lastError = error as Error;
 
       // Log the error
-      reportClientError(error, {
+      reportClientError(error as Error, {
         component: 'fetchWithRetry',
         action: `attempt_${attempt + 1}`,
         category: ErrorCategory.NETWORK,
@@ -366,25 +366,11 @@ export async function monitoredFetch(
 
 /**
  * Hook for network status monitoring in React components
+ * Note: This is just a type definition. The actual hook is implemented in a separate 'use client' file.
  */
-export function useNetworkStatus() {
-  if (typeof window === 'undefined') {
-    return { isOnline: true };
-  }
-
-  const [isOnline, setIsOnline] = useState(networkStatus.isOnline());
-
-  useEffect(() => {
-    const handleStatusChange = (online: boolean) => {
-      setIsOnline(online);
-    };
-
-    networkStatus.addListener(handleStatusChange);
-    return () => networkStatus.removeListener(handleStatusChange);
-  }, []);
-
-  return { isOnline };
+export function useNetworkStatus(): { isOnline: boolean } {
+  throw new Error('useNetworkStatus must be used in a client component. Use the hook from @/hooks/useNetworkStatus instead.');
 }
 
-// Note: This would need to be in a 'use client' file for React hooks
-// We'll export a separate hook file for React usage
+// Note: The actual React hook is implemented in a separate file with 'use client' directive.
+// We'll export a separate hook file for React usage.
