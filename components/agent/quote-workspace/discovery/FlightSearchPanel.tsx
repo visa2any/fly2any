@@ -1153,10 +1153,14 @@ function FlightResultCard({ flight, onAdd, index }: { flight: any; onAdd: (fareI
   const [loadingFares, setLoadingFares] = useState(false);
   const [upselledFares, setUpselledFares] = useState<any[]>([]);
 
-  // Fetch branded fares on expand
+  // Fetch branded fares immediately on mount (not on expand)
+  // User requirement: "need to be transparent, bringing all info and fares"
   useEffect(() => {
-    if (isExpanded && upselledFares.length === 0 && !loadingFares) {
+    if (upselledFares.length === 0 && !loadingFares) {
       setLoadingFares(true);
+      const flightId = flight.id?.slice(-8) || 'unknown';
+      console.log(`🎫 Fetching fare families for flight ${flightId}...`);
+
       fetch('/api/flights/upselling', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -1164,14 +1168,21 @@ function FlightResultCard({ flight, onAdd, index }: { flight: any; onAdd: (fareI
       })
         .then(res => res.json())
         .then(data => {
+          console.log(`📦 Upselling API response for ${flightId}:`, data);
           if (data.success && data.fareOptions?.length > 0) {
+            console.log(`✅ Loaded ${data.fareOptions.length} fare families for flight ${flightId}`);
             setUpselledFares(data.fareOptions);
+          } else {
+            console.log(`⚠️ No fare families returned from upselling API for flight ${flightId}`);
+            console.log(`   Reason: ${data.meta?.note || data.meta?.reason || 'Unknown'}`);
           }
         })
-        .catch(err => console.error('Upselling API error:', err))
+        .catch(err => {
+          console.error(`❌ Upselling API error for flight ${flightId}:`, err);
+        })
         .finally(() => setLoadingFares(false));
     }
-  }, [isExpanded, flight, upselledFares.length, loadingFares]);
+  }, [flight, upselledFares.length, loadingFares]);
 
   // Extract ALL fare options from travelerPricings + upselling API
   const fareOptions = useMemo(() => {
@@ -1473,8 +1484,11 @@ function FlightResultCard({ flight, onAdd, index }: { flight: any; onAdd: (fareI
           onClick={() => setIsExpanded(!isExpanded)}
           className="flex items-center gap-1 text-gray-600 hover:text-indigo-600 font-semibold transition-colors"
         >
-          <span>{isExpanded ? "Less" : fareOptions.length > 1 ? `${fareOptions.length} Fares` : "More"}</span>
-          <ChevronDown className={`w-3 h-3 transition-transform ${isExpanded ? "rotate-180" : ""}`} />
+          {loadingFares ? (
+            <><Loader2 className="w-3 h-3 animate-spin" /><span>Loading...</span></>
+          ) : (
+            <><span>{isExpanded ? "Hide Details" : fareOptions.length > 1 ? `View ${fareOptions.length} Fares` : "View Details"}</span><ChevronDown className={`w-3 h-3 transition-transform ${isExpanded ? "rotate-180" : ""}`} /></>
+          )}
         </button>
       </div>
 
