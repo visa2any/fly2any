@@ -38,9 +38,16 @@ export default function QuoteHeader() {
   };
 
   const handleExport = async () => {
-    if (!state.id) await saveQuote?.();
-    const quoteId = state.id;
-    if (quoteId) window.open(`/api/agents/quotes/${quoteId}/pdf`, "_blank");
+    let quoteId = state.id;
+    if (!quoteId && saveQuote) {
+      const saved = await saveQuote();
+      quoteId = saved?.id || state.id;
+    }
+    if (quoteId) {
+      window.open(`/api/agents/quotes/${quoteId}/pdf`, "_blank");
+    } else {
+      alert("Please save the quote first before exporting to PDF.");
+    }
   };
 
   const toolbarIcons = [

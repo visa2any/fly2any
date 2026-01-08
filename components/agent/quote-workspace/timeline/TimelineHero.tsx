@@ -242,11 +242,14 @@ export default function TimelineHero({
             transition={{ delay: 0.3 }}
             className="flex items-center gap-4 text-sm text-white/80"
           >
-            {/* Location */}
+            {/* Location - Airport Code + City */}
             {destination && (
               <div className="flex items-center gap-1.5">
                 <MapPin className="w-3.5 h-3.5" />
-                <span className="text-xs md:text-sm">{destinationCode || destination.split(",")[0]}</span>
+                <span className="text-xs md:text-sm font-medium">
+                  {destinationCode && `${destinationCode} - `}
+                  {displayCity}
+                </span>
               </div>
             )}
 
