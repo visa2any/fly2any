@@ -1169,7 +1169,16 @@ function FlightResultCard({ flight, onAdd, index }: { flight: any; onAdd: (fareI
     });
   }, [flight.travelerPricings]);
 
-  const selectedFare = fareOptions[selectedFareIdx] || fareOptions[0];
+  const selectedFare = fareOptions[selectedFareIdx] || fareOptions[0] || {
+    id: 0,
+    fareType: "Economy",
+    price: 0,
+    cabin: "ECONOMY",
+    bags: null,
+    fareBasis: "",
+    refundable: false,
+    changeable: false,
+  };
   const price = selectedFare?.price || 0;
 
   // Itineraries
@@ -1366,10 +1375,11 @@ function FlightResultCard({ flight, onAdd, index }: { flight: any; onAdd: (fareI
             className="overflow-hidden border-t border-gray-100 bg-white"
           >
             {/* Fare Selector Grid - ALWAYS SHOW */}
-            <div className={`grid gap-1.5 px-2 py-2 border-b border-gray-100 ${
-              fareOptions.length === 1 ? 'grid-cols-1' : fareOptions.length === 2 ? 'grid-cols-2' : fareOptions.length === 3 ? 'grid-cols-3' : 'grid-cols-4'
-            }`}>
-              {fareOptions.map((fare) => (
+            {fareOptions.length > 0 && (
+              <div className={`grid gap-1.5 px-2 py-2 border-b border-gray-100 ${
+                fareOptions.length === 1 ? 'grid-cols-1' : fareOptions.length === 2 ? 'grid-cols-2' : fareOptions.length === 3 ? 'grid-cols-3' : 'grid-cols-4'
+              }`}>
+                {fareOptions.map((fare) => (
                 <button
                   key={fare.id}
                   onClick={() => setSelectedFareIdx(fare.id)}
@@ -1410,7 +1420,8 @@ function FlightResultCard({ flight, onAdd, index }: { flight: any; onAdd: (fareI
                   </div>
                 </button>
               ))}
-            </div>
+              </div>
+            )}
 
             {/* Additional Details */}
             <div className="px-3 py-2 space-y-1.5 text-[10px]">
