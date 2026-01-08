@@ -38,10 +38,10 @@ export async function GET(request: NextRequest) {
       errorRate: totalErrors > 0 ? 0.5 : 0,
       avgResponseTime: 245,
       topCategories: Object.entries(categoryCount).map(([category, count]) => ({
-        category, count, percentage: (count / totalErrors) * 100
+        category, count, percentage: totalErrors > 0 ? (count / totalErrors) * 100 : 0
       })).sort((a, b) => b.count - a.count).slice(0, 5),
       topEndpoints: Object.entries(endpointCount).map(([endpoint, count]) => ({
-        endpoint, count, errorRate: (count / totalErrors) * 100
+        endpoint, count, errorRate: totalErrors > 0 ? (count / totalErrors) * 100 : 0
       })).sort((a, b) => b.count - a.count).slice(0, 5),
       recentErrors: errors.slice(0, 20).map(e => ({
         id: e.id,
@@ -57,7 +57,16 @@ export async function GET(request: NextRequest) {
       systemHealth: { api: 'healthy', database: 'healthy', externalApis: 'healthy', queue: 0 },
     });
   } catch (error: any) {
-    console.error('[Analytics/Errors]', error);
-    return NextResponse.json({ totalErrors: 0, errorRate: 0, avgResponseTime: 0, topCategories: [], topEndpoints: [], recentErrors: [], hourlyTrend: [], systemHealth: { api: 'healthy', database: 'healthy', externalApis: 'healthy', queue: 0 } });
+    console.error('[Analytics/Errors] Failed:', error.message);
+    return NextResponse.json({
+      totalErrors: 0,
+      errorRate: 0,
+      avgResponseTime: 0,
+      topCategories: [],
+      topEndpoints: [],
+      recentErrors: [],
+      hourlyTrend: [],
+      systemHealth: { api: 'healthy', database: 'healthy', externalApis: 'healthy', queue: 0 }
+    }, { status: 200 });
   }
 }
