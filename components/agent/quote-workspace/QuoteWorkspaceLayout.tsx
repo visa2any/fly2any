@@ -123,20 +123,20 @@ export default function QuoteWorkspaceLayout({
         {/* Left: Discovery Panel */}
         <aside className="hidden lg:flex flex-shrink-0 bg-white border-r border-gray-100 z-30">
           <div className="relative flex overflow-hidden" style={{ width: panelWidth }}>
-            {/* Scrollable content - hidden scrollbar */}
+            {/* Scrollable content - Premium thin scrollbar */}
             <div
               style={{ width: panelWidth }}
-              className="h-full overflow-y-auto overflow-x-hidden scrollbar-hide bg-white"
+              className="h-full overflow-y-auto overflow-x-hidden bg-white scrollbar-thin scrollbar-thumb-gray-300 hover:scrollbar-thumb-gray-400 scrollbar-track-transparent pr-2"
             >
               {discovery}
             </div>
 
-            {/* Premium Resize Handle */}
+            {/* Premium Resize Handle - Offset left to avoid scrollbar */}
             <div
               onMouseDown={handleResizeStart}
               onMouseEnter={() => setIsHoveringHandle(true)}
               onMouseLeave={() => !isResizing && setIsHoveringHandle(false)}
-              className="absolute right-0 top-0 bottom-0 w-4 cursor-col-resize z-20 flex items-center justify-center group"
+              className="absolute right-3 top-0 bottom-0 w-3 cursor-col-resize z-40 flex items-center justify-center group"
             >
               {/* Visible handle bar */}
               <motion.div
