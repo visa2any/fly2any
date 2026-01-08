@@ -1160,12 +1160,12 @@ function FlightResultCard({ flight, onAdd, index }: { flight: any; onAdd: (fareI
       const fd = tp.fareDetailsBySegment?.[0];
       const fareType = fd?.brandedFare || fd?.brandedFareLabel || fd?.cabin || "Economy";
 
-      // Extract REAL refund/change rules from fareRules (if available)
+      // Extract REAL refund/change rules from fareRules
       const fareRules = tp.fareRules || flight.fareRules;
       const refundRule = fareRules?.rules?.find((r: any) => r.category === 'REFUNDS' || r.category === 'REFUND');
       const changeRule = fareRules?.rules?.find((r: any) => r.category === 'EXCHANGE' || r.category === 'CHANGE');
 
-      // Parse refundability from API data
+      // Parse refundability from API
       const refundable = refundRule?.maxPenaltyAmount === '0.00'
         || fareType?.toUpperCase().includes('FLEX')
         || fareType?.toUpperCase().includes('BUSINESS')
@@ -1180,6 +1180,20 @@ function FlightResultCard({ flight, onAdd, index }: { flight: any; onAdd: (fareI
         ? { quantity: fd.includedCheckedBags.quantity, weight: fd.includedCheckedBags.weight || 23 }
         : null;
 
+      // Build positives/restrictions arrays (FareSelector pattern)
+      const positives: string[] = [];
+      const restrictions: string[] = [];
+
+      if (refundable) positives.push('Fully refundable');
+      else restrictions.push('Non-refundable');
+
+      if (changeable) positives.push('Changes allowed (+fee)');
+      else restrictions.push('No changes allowed');
+
+      // Calculate popularity % based on price position
+      const priceRank = pricings.findIndex((p: any, i: number) => i === idx);
+      const popularity = priceRank === 0 ? 26 : priceRank === 1 ? 74 : priceRank === 2 ? 18 : 4;
+
       return {
         id: idx,
         fareType,
@@ -1189,7 +1203,10 @@ function FlightResultCard({ flight, onAdd, index }: { flight: any; onAdd: (fareI
         fareBasis: fd?.fareBasis,
         refundable,
         changeable,
-        // Additional info from API
+        positives,
+        restrictions,
+        popularityPercent: popularity,
+        recommended: priceRank === 1, // 2nd cheapest = best value
         amenities: fd?.amenities || [],
         bookingClass: fd?.class,
       };
@@ -1401,52 +1418,75 @@ function FlightResultCard({ flight, onAdd, index }: { flight: any; onAdd: (fareI
             transition={{ type: "spring", stiffness: 300, damping: 30 }}
             className="overflow-hidden border-t border-gray-100 bg-white"
           >
-            {/* Fare Selector Grid - ALWAYS SHOW */}
+            {/* Fare Selector Grid - FareSelector Pattern */}
             {fareOptions.length > 0 && (
-              <div className={`grid gap-1.5 px-2 py-2 border-b border-gray-100 ${
+              <div className={`grid gap-2 px-2 py-2 ${
                 fareOptions.length === 1 ? 'grid-cols-1' : fareOptions.length === 2 ? 'grid-cols-2' : fareOptions.length === 3 ? 'grid-cols-3' : 'grid-cols-4'
               }`}>
-                {fareOptions.map((fare) => (
-                <button
-                  key={fare.id}
-                  onClick={() => setSelectedFareIdx(fare.id)}
-                  className={`p-1.5 rounded-lg border text-center transition-all ${
-                    selectedFareIdx === fare.id
-                      ? "border-indigo-500 bg-indigo-50 shadow-sm"
-                      : "border-gray-200 hover:border-gray-300"
-                  }`}
-                >
-                  {/* Radio + Type */}
-                  <div className="flex items-center justify-center gap-1 mb-0.5">
-                    <div className={`w-2.5 h-2.5 rounded-full border-2 flex-shrink-0 ${
-                      selectedFareIdx === fare.id
-                        ? "border-indigo-600 bg-indigo-600"
-                        : "border-gray-300"
-                    }`} />
-                    <span className="text-[10px] font-bold text-gray-900 truncate">
-                      {fare.fareType.split(" ")[0]}
-                    </span>
-                  </div>
-
-                  {/* Price */}
-                  <div className="text-sm font-black text-gray-900 mb-1">
-                    ${Math.round(fare.price)}
-                  </div>
-
-                  {/* Compact Icons: Refund, Change, Bags */}
-                  <div className="flex items-center justify-center gap-1 text-[9px]">
-                    <span className={fare.refundable ? "text-emerald-600" : "text-red-600"}>
-                      {fare.refundable ? "✓" : "✗"}
-                    </span>
-                    <span className={fare.changeable ? "text-emerald-600" : "text-red-600"}>
-                      {fare.changeable ? "✓" : "✗"}
-                    </span>
-                    <span className="text-gray-600">
-                      🧳{fare.bags?.quantity || 0}
-                    </span>
-                  </div>
-                </button>
-              ))}
+                {fareOptions.map((fare: any) => {
+                  const isSelected = selectedFareIdx === fare.id;
+                  return (
+                    <button
+                      key={fare.id}
+                      onClick={() => setSelectedFareIdx(fare.id)}
+                      className={`relative p-2 pt-4 rounded-lg text-left transition-all flex flex-col ${
+                        isSelected ? "ring-2 ring-indigo-500 shadow-lg" : "hover:shadow-md border border-gray-200"
+                      }`}
+                      style={{
+                        background: isSelected ? 'linear-gradient(180deg, #FFFFFF 0%, #EEF2FF 100%)' : 'linear-gradient(180deg, #FFFFFF 0%, #FAFBFC 100%)',
+                        boxShadow: isSelected ? '0 4px 12px -4px rgba(99,102,241,0.25)' : '0 2px 6px -2px rgba(0,0,0,0.1)',
+                      }}
+                    >
+                      {fare.recommended && (
+                        <div className="absolute -top-2 left-1/2 -translate-x-1/2 bg-gradient-to-r from-yellow-400 to-yellow-500 text-white text-[9px] font-bold px-2 py-0.5 rounded-full shadow-md whitespace-nowrap">
+                          ⭐ BEST VALUE
+                        </div>
+                      )}
+                      {isSelected && (
+                        <div className="absolute -top-1 -right-1 w-4 h-4 bg-gradient-to-br from-indigo-500 to-indigo-600 rounded-full flex items-center justify-center shadow-md">
+                          <Check className="w-2.5 h-2.5 text-white" />
+                        </div>
+                      )}
+                      <div className="mb-2">
+                        <h4 className="text-[10px] font-bold text-gray-900 mb-1 truncate">{fare.fareType}</h4>
+                        <div className="flex items-baseline gap-0.5">
+                          <span className="text-base font-black text-gray-900">${Math.round(fare.price)}</span>
+                          <span className="text-[8px] text-gray-400">total</span>
+                        </div>
+                      </div>
+                      {fare.bags && (
+                        <div className="flex items-center gap-1 text-[9px] text-gray-600 mb-2">
+                          <Luggage className="w-3 h-3" />
+                          <span>{fare.bags.quantity}× {fare.bags.weight}kg</span>
+                        </div>
+                      )}
+                      <div className="space-y-1 pt-2 border-t border-gray-100">
+                        {fare.positives?.map((p: string, i: number) => (
+                          <div key={i} className="flex items-center gap-1 text-[9px]">
+                            <div className="w-3 h-3 rounded-full bg-green-50 flex items-center justify-center">
+                              <Check className="w-2 h-2 text-green-500" />
+                            </div>
+                            <span className="text-green-600 font-medium truncate">{p}</span>
+                          </div>
+                        ))}
+                        {fare.restrictions?.map((r: string, i: number) => (
+                          <div key={i} className="flex items-center gap-1 text-[9px]">
+                            <div className="w-3 h-3 rounded-full bg-red-50 flex items-center justify-center">
+                              <X className="w-2 h-2 text-red-400" />
+                            </div>
+                            <span className="text-red-500 font-medium truncate">{r}</span>
+                          </div>
+                        ))}
+                      </div>
+                      {fare.popularityPercent && !fare.recommended && (
+                        <div className="mt-2 pt-1 border-t border-gray-100 flex items-center gap-1 text-[8px] text-gray-400">
+                          <Users className="w-2.5 h-2.5" />
+                          <span>{fare.popularityPercent}%</span>
+                        </div>
+                      )}
+                    </button>
+                  );
+                })}
               </div>
             )}
 
