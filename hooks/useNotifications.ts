@@ -74,14 +74,8 @@ export function useNotifications(
   const isAuthenticated = status === 'authenticated' && !!session?.user?.id;
 
   const playSound = useCallback((): void => {
-    if (!opts.enableSound) return;
-    try {
-      const audio = new Audio('/sounds/notification.mp3');
-      audio.volume = 0.5;
-      audio.play().catch(() => {});
-    } catch {
-      // Ignore sound errors
-    }
+    // Audio notification disabled (file missing)
+    return;
   }, [opts.enableSound]);
 
   const showToast = useCallback((notification: Notification): void => {

@@ -268,8 +268,7 @@ export default function NotificationCenter() {
 
   return (
     <div className="relative" ref={dropdownRef}>
-      {/* Notification Sound */}
-      <audio ref={audioRef} src="/sounds/notification.mp3" preload="auto" />
+      {/* Notification Sound - Removed (file missing) */}
 
       {/* Bell Button */}
       <button

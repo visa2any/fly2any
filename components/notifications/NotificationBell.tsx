@@ -135,17 +135,9 @@ export function NotificationBell({
     };
   }, [isOpen]);
 
-  // Play notification sound
+  // Play notification sound (disabled - file missing)
   const playNotificationSound = () => {
-    try {
-      const audio = new Audio('/sounds/notification.mp3');
-      audio.volume = 0.5;
-      audio.play().catch(() => {
-        // Ignore errors (browser may block autoplay)
-      });
-    } catch (err) {
-      console.error('Error playing notification sound:', err);
-    }
+    // Audio notification disabled
   };
 
   // Mark notification as read
