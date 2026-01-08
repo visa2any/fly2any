@@ -1189,21 +1189,37 @@ function FlightResultCard({ flight, onAdd, index }: { flight: any; onAdd: (fareI
     // Use upselled fares if available
     if (upselledFares.length > 0) {
       return upselledFares.map((fareOffer: any, idx: number) => {
-        const fd = fareOffer.travelerPricings?.[0]?.fareDetailsBySegment?.[0];
+        const tp = fareOffer.travelerPricings?.[0];
+        const fd = tp?.fareDetailsBySegment?.[0];
         const fareType = fd?.brandedFare || fd?.brandedFareLabel || fd?.cabin || "Economy";
         const price = Number(fareOffer.price?.total || 0);
         const bags = fd?.includedCheckedBags?.quantity
           ? { quantity: fd.includedCheckedBags.quantity, weight: fd.includedCheckedBags.weight || 23 }
           : null;
 
+        // Extract REAL refund/change rules from API
+        const fareRules = tp?.fareRules || fareOffer.fareRules;
+        const refundRule = fareRules?.rules?.find((r: any) => r.category === 'REFUNDS' || r.category === 'REFUND');
+        const changeRule = fareRules?.rules?.find((r: any) => r.category === 'EXCHANGE' || r.category === 'CHANGE');
+
+        const refundable = refundRule ? (parseFloat(refundRule.maxPenaltyAmount || '0') === 0) : false;
+        const airlineChangeFee = changeRule ? parseFloat(changeRule.maxPenaltyAmount || '0') : 0;
+        const changeable = !!changeRule;
+
+        // Calculate our markup fee
+        const origin = flight.itineraries?.[0]?.segments?.[0]?.departure?.iataCode;
+        const destination = flight.itineraries?.[0]?.segments?.slice(-1)[0]?.arrival?.iataCode;
+        const usAirports = ['JFK', 'LAX', 'ORD', 'ATL', 'DFW', 'DEN', 'SFO', 'MIA', 'SEA', 'BOS', 'EWR', 'LGA', 'IAH'];
+        const isDomestic = usAirports.includes(origin || '') && usAirports.includes(destination || '');
+        const ourChangeFee = isDomestic ? 50 : 100;
+        const totalChangeFee = airlineChangeFee + ourChangeFee;
+
         const positives: string[] = [];
         const restrictions: string[] = [];
-        const refundable = fareType?.toUpperCase().includes('FLEX') || fareType?.toUpperCase().includes('BUSINESS');
-        const changeable = !fareType?.toUpperCase().includes('BASIC');
 
         if (refundable) positives.push('Fully refundable');
         else restrictions.push('Non-refundable');
-        if (changeable) positives.push('Changes allowed (+fee)');
+        if (changeable) positives.push(totalChangeFee > 0 ? `Changeable + $${totalChangeFee}` : 'Free changes');
         else restrictions.push('No changes allowed');
 
         const popularity = idx === 0 ? 26 : idx === 1 ? 74 : idx === 2 ? 18 : 4;
@@ -1217,6 +1233,7 @@ function FlightResultCard({ flight, onAdd, index }: { flight: any; onAdd: (fareI
           fareBasis: fd?.fareBasis,
           refundable,
           changeable,
+          changeFee: totalChangeFee,
           positives,
           restrictions,
           popularityPercent: popularity,
@@ -1235,20 +1252,28 @@ function FlightResultCard({ flight, onAdd, index }: { flight: any; onAdd: (fareI
       const fd = tp.fareDetailsBySegment?.[0];
       const fareType = fd?.brandedFare || fd?.brandedFareLabel || fd?.cabin || "Economy";
 
-      // Extract REAL refund/change rules from fareRules
+      // Extract REAL refund/change rules from fareRules (API ONLY - no assumptions)
       const fareRules = tp.fareRules || flight.fareRules;
       const refundRule = fareRules?.rules?.find((r: any) => r.category === 'REFUNDS' || r.category === 'REFUND');
       const changeRule = fareRules?.rules?.find((r: any) => r.category === 'EXCHANGE' || r.category === 'CHANGE');
 
-      // Parse refundability from API
-      const refundable = refundRule?.maxPenaltyAmount === '0.00'
-        || fareType?.toUpperCase().includes('FLEX')
-        || fareType?.toUpperCase().includes('BUSINESS')
-        || fareType?.toUpperCase().includes('FIRST');
+      // Parse refundability from API ONLY
+      const refundable = refundRule ? (
+        refundRule.maxPenaltyAmount === '0.00' ||
+        parseFloat(refundRule.maxPenaltyAmount || '0') === 0
+      ) : false; // No rule = assume non-refundable
 
-      const changeable = changeRule?.maxPenaltyAmount === '0.00'
-        || fareType?.toUpperCase().includes('FLEX')
-        || !fareType?.toUpperCase().includes('BASIC');
+      // Parse changeability + fees from API
+      const airlineChangeFee = changeRule ? parseFloat(changeRule.maxPenaltyAmount || '0') : 0;
+      const changeable = !!changeRule; // If rule exists, changes allowed
+
+      // Detect route type for our markup
+      const origin = flight.itineraries?.[0]?.segments?.[0]?.departure?.iataCode;
+      const destination = flight.itineraries?.[0]?.segments?.slice(-1)[0]?.arrival?.iataCode;
+      const usAirports = ['JFK', 'LAX', 'ORD', 'ATL', 'DFW', 'DEN', 'SFO', 'MIA', 'SEA', 'BOS', 'EWR', 'LGA', 'IAH', 'LHR'];
+      const isDomestic = usAirports.includes(origin || '') && usAirports.includes(destination || '');
+      const ourChangeFee = isDomestic ? 50 : 100;
+      const totalChangeFee = airlineChangeFee + ourChangeFee;
 
       // Extract bags from API
       const bags = fd?.includedCheckedBags?.quantity
@@ -1262,8 +1287,11 @@ function FlightResultCard({ flight, onAdd, index }: { flight: any; onAdd: (fareI
       if (refundable) positives.push('Fully refundable');
       else restrictions.push('Non-refundable');
 
-      if (changeable) positives.push('Changes allowed (+fee)');
-      else restrictions.push('No changes allowed');
+      if (changeable) {
+        positives.push(totalChangeFee > 0 ? `Changeable + $${totalChangeFee}` : 'Free changes');
+      } else {
+        restrictions.push('No changes allowed');
+      }
 
       // Calculate popularity % based on price position
       const priceRank = pricings.findIndex((p: any, i: number) => i === idx);
@@ -1278,6 +1306,7 @@ function FlightResultCard({ flight, onAdd, index }: { flight: any; onAdd: (fareI
         fareBasis: fd?.fareBasis,
         refundable,
         changeable,
+        changeFee: totalChangeFee,
         positives,
         restrictions,
         popularityPercent: popularity,
@@ -1297,6 +1326,7 @@ function FlightResultCard({ flight, onAdd, index }: { flight: any; onAdd: (fareI
     fareBasis: "",
     refundable: false,
     changeable: false,
+    changeFee: 0,
     positives: [],
     restrictions: [],
     popularityPercent: 0,
@@ -1468,7 +1498,7 @@ function FlightResultCard({ flight, onAdd, index }: { flight: any; onAdd: (fareI
           </div>
           <div className={`flex items-center gap-1.5 px-2 py-1 rounded-md ${selectedFare.changeable ? "bg-emerald-50 text-emerald-700" : "bg-red-50 text-red-600"}`}>
             {selectedFare.changeable ? <Check className="w-3.5 h-3.5" /> : <X className="w-3.5 h-3.5" />}
-            <span className="font-bold">Change</span>
+            <span className="font-bold">{selectedFare.changeable ? 'Changeable' : 'Not Changeable'}</span>
           </div>
           {selectedFare.bags && (
             <div className="flex items-center gap-1.5 px-2 py-1 bg-blue-50 text-blue-700 rounded-md">
