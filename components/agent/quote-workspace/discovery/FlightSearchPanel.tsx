@@ -1151,23 +1151,50 @@ function FlightResultCard({ flight, onAdd, index }: { flight: any; onAdd: (fareI
   const [isExpanded, setIsExpanded] = useState(false);
   const [selectedFareIdx, setSelectedFareIdx] = useState(0);
 
-  // Extract ALL fare options from travelerPricings
+  // Extract ALL fare options from travelerPricings + fareRules
   const fareOptions = useMemo(() => {
-    return (flight.travelerPricings || []).map((tp: any, idx: number) => {
+    const pricings = flight.travelerPricings || [];
+    if (pricings.length === 0) return [];
+
+    return pricings.map((tp: any, idx: number) => {
       const fd = tp.fareDetailsBySegment?.[0];
       const fareType = fd?.brandedFare || fd?.brandedFareLabel || fd?.cabin || "Economy";
+
+      // Extract REAL refund/change rules from fareRules (if available)
+      const fareRules = tp.fareRules || flight.fareRules;
+      const refundRule = fareRules?.rules?.find((r: any) => r.category === 'REFUNDS' || r.category === 'REFUND');
+      const changeRule = fareRules?.rules?.find((r: any) => r.category === 'EXCHANGE' || r.category === 'CHANGE');
+
+      // Parse refundability from API data
+      const refundable = refundRule?.maxPenaltyAmount === '0.00'
+        || fareType?.toUpperCase().includes('FLEX')
+        || fareType?.toUpperCase().includes('BUSINESS')
+        || fareType?.toUpperCase().includes('FIRST');
+
+      const changeable = changeRule?.maxPenaltyAmount === '0.00'
+        || fareType?.toUpperCase().includes('FLEX')
+        || !fareType?.toUpperCase().includes('BASIC');
+
+      // Extract bags from API
+      const bags = fd?.includedCheckedBags?.quantity
+        ? { quantity: fd.includedCheckedBags.quantity, weight: fd.includedCheckedBags.weight || 23 }
+        : null;
+
       return {
         id: idx,
         fareType,
         price: Number(tp.price?.total || tp.price?.amount || 0),
         cabin: fd?.cabin || "ECONOMY",
-        bags: fd?.includedCheckedBags,
+        bags,
         fareBasis: fd?.fareBasis,
-        refundable: !fareType?.toLowerCase().includes("basic"),
-        changeable: !fareType?.toLowerCase().includes("basic"),
+        refundable,
+        changeable,
+        // Additional info from API
+        amenities: fd?.amenities || [],
+        bookingClass: fd?.class,
       };
     });
-  }, [flight.travelerPricings]);
+  }, [flight.travelerPricings, flight.fareRules]);
 
   const selectedFare = fareOptions[selectedFareIdx] || fareOptions[0] || {
     id: 0,
@@ -1423,16 +1450,30 @@ function FlightResultCard({ flight, onAdd, index }: { flight: any; onAdd: (fareI
               </div>
             )}
 
-            {/* Additional Details */}
+            {/* Additional Details - Enhanced API Data */}
             <div className="px-3 py-2 space-y-1.5 text-[10px]">
               <div className="flex items-center justify-between">
                 <span className="text-gray-500">Cabin Class:</span>
                 <span className="font-semibold text-gray-900">{selectedFare.cabin}</span>
               </div>
+              {selectedFare.bookingClass && (
+                <div className="flex items-center justify-between">
+                  <span className="text-gray-500">Booking Class:</span>
+                  <span className="font-mono font-bold text-indigo-700">{selectedFare.bookingClass}</span>
+                </div>
+              )}
               {selectedFare.fareBasis && (
                 <div className="flex items-center justify-between">
                   <span className="text-gray-500">Fare Basis:</span>
                   <span className="font-mono text-gray-900">{selectedFare.fareBasis}</span>
+                </div>
+              )}
+              {selectedFare.bags && (
+                <div className="flex items-center justify-between">
+                  <span className="text-gray-500">Checked Bags:</span>
+                  <span className="font-semibold text-gray-900">
+                    {selectedFare.bags.quantity}× {selectedFare.bags.weight}kg included
+                  </span>
                 </div>
               )}
               <div className="flex items-center justify-between">
@@ -1441,6 +1482,18 @@ function FlightResultCard({ flight, onAdd, index }: { flight: any; onAdd: (fareI
                   {outAirlineCode}{outNum}{isRoundtrip ? ` • ${inAirlineCode}${inNum}` : ""}
                 </span>
               </div>
+              {selectedFare.amenities && selectedFare.amenities.length > 0 && (
+                <div className="mt-1 pt-1 border-t border-gray-100">
+                  <span className="text-gray-500 block mb-1">Amenities:</span>
+                  <div className="flex flex-wrap gap-1">
+                    {selectedFare.amenities.slice(0, 4).map((amenity: any, i: number) => (
+                      <span key={i} className="px-1.5 py-0.5 bg-emerald-50 text-emerald-700 rounded text-[9px] font-medium">
+                        {amenity.description || amenity.code}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              )}
               {outAirlineCode !== inAirlineCode && isRoundtrip && (
                 <div className="mt-2 px-2 py-1 bg-amber-50 text-amber-700 rounded text-[9px] font-medium">
                   ⚠️ Codeshare: Return operated by {inAirlineInfo.name}
