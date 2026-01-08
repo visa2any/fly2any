@@ -19,11 +19,27 @@ export async function GET(request: NextRequest) {
     };
     const since = ranges[range as keyof typeof ranges] || ranges['24h'];
 
-    const errors = await prisma.errorLog.findMany({
-      where: { timestamp: { gte: since } },
-      orderBy: { timestamp: 'desc' },
-      take: 100,
-    });
+    // Optimized: Select only needed fields + limit
+    const errors = await Promise.race([
+      prisma.errorLog.findMany({
+        where: { timestamp: { gte: since } },
+        select: {
+          id: true,
+          timestamp: true,
+          errorType: true,
+          severity: true,
+          message: true,
+          url: true,
+          userAgent: true,
+          userId: true,
+        },
+        orderBy: { timestamp: 'desc' },
+        take: 100,
+      }),
+      new Promise<never>((_, reject) =>
+        setTimeout(() => reject(new Error('Query timeout')), 5000)
+      ),
+    ]);
 
     const totalErrors = errors.length;
     const categoryCount: Record<string, number> = {};
@@ -58,6 +74,21 @@ export async function GET(request: NextRequest) {
       systemHealth: { api: 'healthy', database: 'healthy', externalApis: 'healthy', queue: 0 },
     });
   } catch (error: any) {
+    // Handle timeout separately to avoid recursive error reporting
+    if (error.message === 'Query timeout') {
+      console.error('[Analytics/Errors] Query timeout after 5s - returning empty result');
+      return NextResponse.json({
+        totalErrors: 0,
+        errorRate: 0,
+        avgResponseTime: 0,
+        topCategories: [],
+        topEndpoints: [],
+        recentErrors: [],
+        hourlyTrend: [],
+        systemHealth: { api: 'degraded', database: 'slow', externalApis: 'healthy', queue: 0 }
+      }, { status: 200 });
+    }
+
     console.error('[Analytics/Errors] Failed:', error.message);
     return NextResponse.json({
       totalErrors: 0,
