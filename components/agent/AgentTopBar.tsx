@@ -27,9 +27,11 @@ interface AgentTopBarProps {
 
 export default function AgentTopBar({ agent, user }: AgentTopBarProps) {
   const [isProfileMenuOpen, setIsProfileMenuOpen] = useState(false);
+  const [mounted, setMounted] = useState(false);
   const profileRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
+    setMounted(true);
     const handleClickOutside = (e: MouseEvent) => {
       if (profileRef.current && !profileRef.current.contains(e.target as Node)) {
         setIsProfileMenuOpen(false);
