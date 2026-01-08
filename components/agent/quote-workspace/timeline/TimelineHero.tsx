@@ -140,13 +140,28 @@ export default function TimelineHero({
   const { heroData, isLoading, hasImages } = useDestinationHero(destination, destinationCode);
   const [imageLoaded, setImageLoaded] = useState(false);
 
+  // Debug: Log what we're receiving
+  useEffect(() => {
+    console.log('[TimelineHero] Destination:', destination, 'Code:', destinationCode);
+    console.log('[TimelineHero] HeroData:', heroData);
+    console.log('[TimelineHero] HasImages:', hasImages);
+  }, [destination, destinationCode, heroData, hasImages]);
+
   // Preload first image
   useEffect(() => {
     if (heroData?.images?.[0]) {
+      console.log('[TimelineHero] Preloading image:', heroData.images[0].url);
       preloadImage(heroData.images[0].url)
-        .then(() => setImageLoaded(true))
-        .catch(() => setImageLoaded(false));
+        .then(() => {
+          console.log('[TimelineHero] Image loaded successfully');
+          setImageLoaded(true);
+        })
+        .catch((err) => {
+          console.error('[TimelineHero] Image load failed:', err);
+          setImageLoaded(false);
+        });
     } else {
+      console.log('[TimelineHero] No images in heroData');
       setImageLoaded(false);
     }
   }, [heroData]);
