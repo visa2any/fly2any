@@ -266,6 +266,25 @@ export default function ItineraryCard({ item, dragListeners, isDragging, viewMod
                   Flight Details
                 </h5>
 
+                {/* Flight Numbers & Route */}
+                <div className="mb-2 p-2 bg-white rounded-lg border border-gray-100">
+                  <p className="text-[8px] text-gray-500 uppercase tracking-wide mb-1">Flight Information</p>
+                  <div className="flex items-center gap-2 text-xs">
+                    <span className="font-bold text-gray-900">{f.airline} {f.flightNumber}</span>
+                    <span className="text-gray-400">•</span>
+                    <span className="font-medium text-gray-700">{f.origin} → {f.destination}</span>
+                    {f.aircraftType && (
+                      <>
+                        <span className="text-gray-400">•</span>
+                        <span className="text-gray-500">{f.aircraftType}</span>
+                      </>
+                    )}
+                  </div>
+                  {f.confirmationNumber && (
+                    <p className="text-[9px] text-gray-500 mt-1">Confirmation: <span className="font-mono font-semibold text-gray-700">{f.confirmationNumber}</span></p>
+                  )}
+                </div>
+
                 <div className="grid grid-cols-3 gap-2">
                   {/* Fare Type */}
                   <div className="bg-white rounded-lg p-2 border border-gray-100 shadow-sm">
