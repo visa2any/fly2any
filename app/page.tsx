@@ -237,9 +237,9 @@ export default function Home() {
           }
         `}</style>
 
-        {/* Enhanced Gradient Overlays - Better contrast for accessibility */}
-            <div className="absolute inset-0 bg-gradient-to-b from-black/95 via-black/85 to-black/95" />
-            <div className="absolute inset-0 bg-gradient-to-t from-black/95 via-transparent to-transparent" />
+        {/* Enhanced Gradient Overlays - Lighter for photo visibility */}
+            <div className="absolute inset-0 bg-gradient-to-b from-black/40 via-black/30 to-black/50" />
+            <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
 
         {/* Content Container - Full height with flex */}
         <div className={`relative z-10 flex flex-col transition-all duration-500 ease-out ${
