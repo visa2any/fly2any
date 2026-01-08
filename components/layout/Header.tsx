@@ -731,7 +731,7 @@ export function Header({
               <HamburgerMenu
                 isOpen={mobileMenuOpen}
                 onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-                scrolled={scrolled}
+                scrolled={!isHomepage || scrolled}
               />
             </div>
 
