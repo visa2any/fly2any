@@ -255,7 +255,7 @@ export default function ItineraryTimeline() {
   }, [items]);
 
   return (
-    <div className="space-y-4">
+    <div className={viewMode === "agent" ? "space-y-2" : "space-y-4"}>
       {/* ═══ DESTINATION HERO - Premium Background Experience ═══ */}
       <TimelineHero
         tripName={displayTripName || undefined}
@@ -277,22 +277,7 @@ export default function ItineraryTimeline() {
         </motion.div>
       )}
 
-      {/* Compact Trip Stats Bar - Only in Agent View */}
-      {viewMode !== "client" && (state.travelers?.total > 0 || tripDuration > 0) && (
-        <div className="flex items-center justify-center gap-4 text-xs text-gray-500">
-          {tripDuration > 0 && (
-            <span className="px-2 py-1 bg-gray-100 rounded-lg font-medium">
-              {tripDuration} {tripDuration === 1 ? "Day" : "Days"}
-            </span>
-          )}
-          {state.travelers?.total > 0 && (
-            <div className="flex items-center gap-1.5">
-              <Users className="w-3.5 h-3.5" />
-              <span>{state.travelers.total} {state.travelers.total === 1 ? "Traveler" : "Travelers"}</span>
-            </div>
-          )}
-        </div>
-      )}
+      {/* Compact Trip Stats Bar - Hide in Agent View (info moved to hero) */}
 
       {/* Timeline */}
       <div className="relative">
@@ -365,7 +350,7 @@ export default function ItineraryTimeline() {
                 initial={{ opacity: 0, x: -20 }}
                 animate={{ opacity: 1, x: 0 }}
                 transition={{ delay: i * 0.05 }}
-                className="relative mb-6 last:mb-0"
+                className={`relative last:mb-0 ${viewMode === "agent" ? "mb-4" : "mb-6"}`}
               >
                 {/* Day Anchor */}
                 <TimelineDayAnchor
@@ -381,7 +366,7 @@ export default function ItineraryTimeline() {
                 />
 
                 {/* Day Items */}
-                <div className="ml-0 sm:ml-16 mt-3 space-y-3">
+                <div className={`ml-0 sm:ml-16 ${viewMode === "agent" ? "mt-2 space-y-2" : "mt-3 space-y-3"}`}>
                   {dayItems.length === 0 ? (
                     /* Leisure Day - No items scheduled */
                     <FreeTimeBlock

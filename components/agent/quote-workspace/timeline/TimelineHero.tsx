@@ -140,6 +140,9 @@ export default function TimelineHero({
   const { heroData, isLoading, hasImages } = useDestinationHero(destination, destinationCode);
   const [imageLoaded, setImageLoaded] = useState(false);
 
+  // Import useViewMode to detect agent vs client view
+  const { viewMode } = require("../itinerary/ViewModeContext").useViewMode();
+
   // Debug: Log what we're receiving
   useEffect(() => {
     console.log('[TimelineHero] Destination:', destination, 'Code:', destinationCode);
@@ -182,12 +185,16 @@ export default function TimelineHero({
   const duration = tripDuration();
   const displayCity = heroData?.city || destination || "Your Destination";
 
+  // Agent view: compact 100px | Client view: full 220px
+  const isAgentView = viewMode === "agent";
+  const heightClass = isAgentView ? "h-[100px]" : "h-[220px] md:h-[260px]";
+
   return (
     <motion.div
       initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.5, ease: "easeOut" }}
-      className={`relative w-full h-[220px] md:h-[260px] rounded-2xl overflow-hidden ${className}`}
+      className={`relative w-full ${heightClass} rounded-2xl overflow-hidden ${className}`}
     >
       {/* Background Layer */}
       <div className="absolute inset-0">
@@ -208,7 +215,7 @@ export default function TimelineHero({
       </div>
 
       {/* Content Layer */}
-      <div className="relative z-10 h-full flex flex-col justify-end p-5 md:p-6">
+      <div className={`relative z-10 h-full flex flex-col justify-end ${isAgentView ? 'p-3' : 'p-5 md:p-6'}`}>
         {/* Loading State */}
         {isLoading && (
           <div className="absolute inset-0 flex items-center justify-center">
@@ -216,25 +223,27 @@ export default function TimelineHero({
           </div>
         )}
 
-        {/* Top Badge */}
-        <div className="absolute top-4 left-4 md:top-5 md:left-5">
-          <div className="flex items-center gap-1.5 px-2.5 py-1 bg-white/10 backdrop-blur-md rounded-full border border-white/20">
-            <Plane className="w-3.5 h-3.5 text-white" />
-            <span className="text-[10px] font-semibold text-white uppercase tracking-wider">
-              Your Trip
-            </span>
+        {/* Top Badge - Hide in compact agent view */}
+        {!isAgentView && (
+          <div className="absolute top-4 left-4 md:top-5 md:left-5">
+            <div className="flex items-center gap-1.5 px-2.5 py-1 bg-white/10 backdrop-blur-md rounded-full border border-white/20">
+              <Plane className="w-3.5 h-3.5 text-white" />
+              <span className="text-[10px] font-semibold text-white uppercase tracking-wider">
+                Your Trip
+              </span>
+            </div>
           </div>
-        </div>
+        )}
 
         {/* Main Content */}
-        <div className="space-y-2">
+        <div className={isAgentView ? "space-y-1" : "space-y-2"}>
           {/* Trip Name */}
           {tripName && (
             <motion.p
               initial={{ opacity: 0, y: 5 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.2 }}
-              className="text-xs md:text-sm font-medium text-white/70"
+              className={isAgentView ? "text-[10px] font-medium text-white/70" : "text-xs md:text-sm font-medium text-white/70"}
             >
               {tripName}
             </motion.p>
@@ -245,7 +254,7 @@ export default function TimelineHero({
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.1 }}
-            className="text-2xl md:text-3xl font-bold text-white tracking-tight"
+            className={isAgentView ? "text-lg font-bold text-white tracking-tight" : "text-2xl md:text-3xl font-bold text-white tracking-tight"}
           >
             {displayCity}
           </motion.h1>
@@ -255,13 +264,13 @@ export default function TimelineHero({
             initial={{ opacity: 0, y: 5 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.3 }}
-            className="flex items-center gap-4 text-sm text-white/80"
+            className={`flex items-center text-white/80 ${isAgentView ? 'gap-2 text-[10px]' : 'gap-4 text-sm'}`}
           >
             {/* Location - Airport Code + City */}
             {destination && (
-              <div className="flex items-center gap-1.5">
-                <MapPin className="w-3.5 h-3.5" />
-                <span className="text-xs md:text-sm font-medium">
+              <div className="flex items-center gap-1">
+                <MapPin className={isAgentView ? "w-3 h-3" : "w-3.5 h-3.5"} />
+                <span className={isAgentView ? "text-[10px] font-medium" : "text-xs md:text-sm font-medium"}>
                   {destinationCode && `${destinationCode} - `}
                   {displayCity}
                 </span>
@@ -270,9 +279,9 @@ export default function TimelineHero({
 
             {/* Dates */}
             {startDate && (
-              <div className="flex items-center gap-1.5">
-                <Calendar className="w-3.5 h-3.5" />
-                <span className="text-xs md:text-sm">
+              <div className="flex items-center gap-1">
+                <Calendar className={isAgentView ? "w-3 h-3" : "w-3.5 h-3.5"} />
+                <span className={isAgentView ? "text-[10px]" : "text-xs md:text-sm"}>
                   {formatDate(startDate)}
                   {endDate && endDate !== startDate && ` — ${formatDate(endDate)}`}
                   {duration && ` (${duration})`}
@@ -282,9 +291,9 @@ export default function TimelineHero({
 
             {/* Travelers */}
             {travelers > 0 && (
-              <div className="flex items-center gap-1.5">
-                <Users className="w-3.5 h-3.5" />
-                <span className="text-xs md:text-sm">{travelers} traveler{travelers > 1 ? "s" : ""}</span>
+              <div className="flex items-center gap-1">
+                <Users className={isAgentView ? "w-3 h-3" : "w-3.5 h-3.5"} />
+                <span className={isAgentView ? "text-[10px]" : "text-xs md:text-sm"}>{travelers} traveler{travelers > 1 ? "s" : ""}</span>
               </div>
             )}
           </motion.div>
