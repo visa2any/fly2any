@@ -73,6 +73,8 @@ export default authEdge((req) => {
     '/manifest.json',
     '/sw.js',
     '/workbox-',
+    '/agent/',      // Agent dashboard routes (no i18n needed)
+    '/admin/',      // Admin panel routes (no i18n needed)
   ];
   
   const shouldSkipLocale = skipLocalePaths.some(path => currentPath.startsWith(path));
@@ -162,12 +164,14 @@ export default authEdge((req) => {
   }
 
   // ======================
-  // Protected routes (account pages)
+  // Protected routes (account pages, agent dashboard, admin panel)
   // ======================
   const isAccountPage = pathWithoutLocale.startsWith('/account');
+  const isAgentPage = currentPath.startsWith('/agent');
+  const isAdminPage = currentPath.startsWith('/admin');
 
   // Redirect to signin if accessing protected routes while not logged in
-  if (isAccountPage && !isLoggedIn) {
+  if ((isAccountPage || isAgentPage || isAdminPage) && !isLoggedIn) {
     const currentLocale = getLocaleFromPathname(currentPath) || DEFAULT_LOCALE;
     const signInPath = addLocalePrefix('/auth/signin', currentLocale.locale);
     const signInUrl = new URL(signInPath, nextUrl.origin);
