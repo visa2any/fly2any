@@ -370,9 +370,12 @@ export function QuoteWorkspaceProvider({ children, initialQuoteId }: { children:
           dispatch({ type: "LOAD_QUOTE", payload: { id: data.quote.id } });
         }
         dispatch({ type: "SET_LAST_SAVED", payload: new Date().toISOString() });
+        return data.quote; // Return saved quote data
       }
+      return null;
     } catch (error) {
       console.error("Save quote error:", error);
+      return null;
     } finally {
       dispatch({ type: "SET_SAVING", payload: false });
     }
