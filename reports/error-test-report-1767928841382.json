@@ -1,0 +1,36 @@
+{
+  "timestamp": "2026-01-09T03:20:41.382Z",
+  "patterns": [
+    "**/*error*.test.*",
+    "**/*Error*.test.*",
+    "**/*chaos*.test.*",
+    "**/*ErrorBoundary*.test.*"
+  ],
+  "results": [
+    {
+      "pattern": "**/*error*.test.*",
+      "success": false,
+      "output": "  Invalid testPattern **/*error*.test.* supplied. Running all tests instead.\n  Invalid testPattern **/*error*.test.* supplied. Running all tests instead.\n"
+    },
+    {
+      "pattern": "**/*Error*.test.*",
+      "success": false,
+      "output": "  Invalid testPattern **/*Error*.test.* supplied. Running all tests instead.\n  Invalid testPattern **/*Error*.test.* supplied. Running all tests instead.\n"
+    },
+    {
+      "pattern": "**/*chaos*.test.*",
+      "success": false,
+      "output": "  Invalid testPattern **/*chaos*.test.* supplied. Running all tests instead.\n  Invalid testPattern **/*chaos*.test.* supplied. Running all tests instead.\n"
+    },
+    {
+      "pattern": "**/*ErrorBoundary*.test.*",
+      "success": false,
+      "output": "  Invalid testPattern **/*ErrorBoundary*.test.* supplied. Running all tests instead.\n  Invalid testPattern **/*ErrorBoundary*.test.* supplied. Running all tests instead.\n"
+    }
+  ],
+  "summary": {
+    "total": 4,
+    "passed": 0,
+    "failed": 4
+  }
+}

@@ -326,29 +326,48 @@ export function QuoteWorkspaceProvider({ children, initialQuoteId }: { children:
 
     dispatch({ type: "SET_SAVING", payload: true });
     try {
+      // Transform items by type
+      const flights = state.items.filter(i => i.type === 'flight').map(i => i.data || {});
+      const hotels = state.items.filter(i => i.type === 'hotel').map(i => i.data || {});
+      const activities = state.items.filter(i => i.type === 'activity').map(i => i.data || {});
+      const transfers = state.items.filter(i => i.type === 'transfer').map(i => i.data || {});
+      const carRentals = state.items.filter(i => i.type === 'car').map(i => i.data || {});
+      const customItems = state.items.filter(i => i.type === 'custom').map(i => i.data || {});
+
       const payload = {
-        id: state.id,
-        tripName: state.tripName,
-        destination: state.destination,
-        startDate: state.startDate,
-        endDate: state.endDate,
-        travelers: state.travelers,
-        items: state.items,
-        pricing: state.pricing,
-        clientId: state.client?.id,
-        status: state.status,
+        clientId: state.client?.id || '',
+        tripName: state.tripName || 'Untitled Trip',
+        destination: state.destination || '',
+        startDate: state.startDate || new Date().toISOString(),
+        endDate: state.endDate || new Date().toISOString(),
+        adults: state.travelers.adults,
+        children: state.travelers.children,
+        infants: state.travelers.infants,
+        flights,
+        hotels,
+        activities,
+        transfers,
+        carRentals,
+        customItems,
+        agentMarkupPercent: state.pricing.markupPercent,
+        discount: state.pricing.discount,
+        taxes: state.pricing.taxes,
+        fees: state.pricing.fees,
       };
 
-      const res = await fetch("/api/agent/quotes", {
-        method: state.id ? "PUT" : "POST",
+      const url = state.id ? `/api/agents/quotes/${state.id}` : "/api/agents/quotes";
+      const method = state.id ? "PATCH" : "POST";
+
+      const res = await fetch(url, {
+        method,
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),
       });
 
       if (res.ok) {
         const data = await res.json();
-        if (!state.id && data.id) {
-          dispatch({ type: "LOAD_QUOTE", payload: { id: data.id } });
+        if (!state.id && data.quote?.id) {
+          dispatch({ type: "LOAD_QUOTE", payload: { id: data.quote.id } });
         }
         dispatch({ type: "SET_LAST_SAVED", payload: new Date().toISOString() });
       }
@@ -362,10 +381,10 @@ export function QuoteWorkspaceProvider({ children, initialQuoteId }: { children:
   // Load quote from API
   const loadQuote = useCallback(async (id: string) => {
     try {
-      const res = await fetch(`/api/agent/quotes/${id}`);
+      const res = await fetch(`/api/agents/quotes/${id}`);
       if (res.ok) {
         const data = await res.json();
-        dispatch({ type: "LOAD_QUOTE", payload: data });
+        dispatch({ type: "LOAD_QUOTE", payload: data.quote });
       }
     } catch (error) {
       console.error("Load quote error:", error);

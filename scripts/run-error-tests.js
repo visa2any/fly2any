@@ -23,7 +23,7 @@ const JEST_CONFIG = path.join(__dirname, '..', 'jest.config.js');
 function runTests(pattern) {
   console.log(`\n🔍 Running tests matching: ${pattern}`);
   try {
-    const command = `npx jest --config=${JEST_CONFIG} --testPathPattern="${pattern}" --passWithNoTests`;
+    const command = `npx jest --config=${JEST_CONFIG} --testPathPatterns="${pattern}" --passWithNoTests`;
     const output = execSync(command, { stdio: 'pipe', encoding: 'utf-8' });
     return { success: true, output };
   } catch (error) {

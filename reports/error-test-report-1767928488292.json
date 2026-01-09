@@ -1,0 +1,36 @@
+{
+  "timestamp": "2026-01-09T03:14:48.292Z",
+  "patterns": [
+    "**/*error*.test.*",
+    "**/*Error*.test.*",
+    "**/*chaos*.test.*",
+    "**/*ErrorBoundary*.test.*"
+  ],
+  "results": [
+    {
+      "pattern": "**/*error*.test.*",
+      "success": false,
+      "output": "Command failed: npx jest --config=c:\\Users\\Power\\fly2any-fresh\\jest.config.js --testPathPattern=\"**/*error*.test.*\" --passWithNoTests\ntestPathPattern:\n\n  Option \"testPathPattern\" was replaced by \"--testPathPatterns\". \"--testPathPatterns\" is only available as a command-line option.\n  \n  Please update your configuration.\n\n  CLI Options Documentation:\n  https://jestjs.io/docs/cli\n\n"
+    },
+    {
+      "pattern": "**/*Error*.test.*",
+      "success": false,
+      "output": "Command failed: npx jest --config=c:\\Users\\Power\\fly2any-fresh\\jest.config.js --testPathPattern=\"**/*Error*.test.*\" --passWithNoTests\ntestPathPattern:\n\n  Option \"testPathPattern\" was replaced by \"--testPathPatterns\". \"--testPathPatterns\" is only available as a command-line option.\n  \n  Please update your configuration.\n\n  CLI Options Documentation:\n  https://jestjs.io/docs/cli\n\n"
+    },
+    {
+      "pattern": "**/*chaos*.test.*",
+      "success": false,
+      "output": "Command failed: npx jest --config=c:\\Users\\Power\\fly2any-fresh\\jest.config.js --testPathPattern=\"**/*chaos*.test.*\" --passWithNoTests\ntestPathPattern:\n\n  Option \"testPathPattern\" was replaced by \"--testPathPatterns\". \"--testPathPatterns\" is only available as a command-line option.\n  \n  Please update your configuration.\n\n  CLI Options Documentation:\n  https://jestjs.io/docs/cli\n\n"
+    },
+    {
+      "pattern": "**/*ErrorBoundary*.test.*",
+      "success": false,
+      "output": "Command failed: npx jest --config=c:\\Users\\Power\\fly2any-fresh\\jest.config.js --testPathPattern=\"**/*ErrorBoundary*.test.*\" --passWithNoTests\ntestPathPattern:\n\n  Option \"testPathPattern\" was replaced by \"--testPathPatterns\". \"--testPathPatterns\" is only available as a command-line option.\n  \n  Please update your configuration.\n\n  CLI Options Documentation:\n  https://jestjs.io/docs/cli\n\n"
+    }
+  ],
+  "summary": {
+    "total": 4,
+    "passed": 0,
+    "failed": 4
+  }
+}
