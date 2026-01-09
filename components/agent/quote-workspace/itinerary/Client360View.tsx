@@ -101,6 +101,22 @@ export default function Client360View() {
     }
   };
 
+  const displayIntelligence = intelligence || {
+    lifetimeValue: 0,
+    conversionRate: 0,
+    avgResponseTime: 0,
+    avgDealSize: 0,
+    lastBookingDate: new Date().toISOString(),
+    outstandingBalance: 0,
+    totalQuotes: 0,
+    acceptedQuotes: 0,
+    preferredClass: 'Not Set',
+    leadTime: 0,
+    riskScore: 0,
+  };
+
+  const isNewClient = !intelligence || intelligence.totalQuotes === 0;
+
   return (
     <div className="h-full overflow-y-auto">
       {/* Intelligence Header */}
@@ -112,14 +128,19 @@ export default function Client360View() {
           <div className="flex-1">
             <div className="flex items-center gap-3 mb-2">
               <h2 className="text-2xl font-bold">{client.firstName} {client.lastName}</h2>
-              {intelligence && intelligence.conversionRate > 0.5 && (
+              {isNewClient ? (
+                <span className="px-3 py-1 bg-blue-400/20 border border-blue-400/30 rounded-full text-xs font-semibold flex items-center gap-1">
+                  <Star className="w-3 h-3" /> New Client
+                </span>
+              ) : displayIntelligence.conversionRate > 0.5 && (
                 <span className="px-3 py-1 bg-yellow-400/20 border border-yellow-400/30 rounded-full text-xs font-semibold flex items-center gap-1">
                   <Award className="w-3 h-3" /> VIP Client
                 </span>
               )}
             </div>
             <div className="flex items-center gap-1 mb-3">
-              {intelligence && getRatingStars(intelligence.conversionRate)}
+              {getRatingStars(displayIntelligence.conversionRate)}
+              {isNewClient && <span className="ml-2 text-xs text-white/70">Building history...</span>}
             </div>
             <div className="grid grid-cols-2 gap-4 text-sm">
               <div className="flex items-center gap-2">
@@ -133,30 +154,30 @@ export default function Client360View() {
                 </div>
               )}
             </div>
-            {intelligence && (
-              <div className="mt-4 grid grid-cols-3 gap-6">
-                <div>
-                  <div className="text-white/70 text-xs mb-1">Lifetime Value</div>
-                  <div className="text-2xl font-bold">${intelligence.lifetimeValue.toLocaleString()}</div>
-                </div>
-                <div>
-                  <div className="text-white/70 text-xs mb-1">Conversion Rate</div>
-                  <div className="text-2xl font-bold">{Math.round(intelligence.conversionRate * 100)}%</div>
-                </div>
-                <div>
-                  <div className="text-white/70 text-xs mb-1">Avg Response</div>
-                  <div className="text-2xl font-bold">{intelligence.avgResponseTime}h</div>
-                </div>
+            <div className="mt-4 grid grid-cols-3 gap-6">
+              <div>
+                <div className="text-white/70 text-xs mb-1">Lifetime Value</div>
+                <div className="text-2xl font-bold">${displayIntelligence.lifetimeValue.toLocaleString()}</div>
+                {isNewClient && <div className="text-xs text-white/60 mt-1">First quote pending</div>}
               </div>
-            )}
+              <div>
+                <div className="text-white/70 text-xs mb-1">Conversion Rate</div>
+                <div className="text-2xl font-bold">{Math.round(displayIntelligence.conversionRate * 100)}%</div>
+                {isNewClient && <div className="text-xs text-white/60 mt-1">Building track record</div>}
+              </div>
+              <div>
+                <div className="text-white/70 text-xs mb-1">Response Time</div>
+                <div className="text-2xl font-bold">{displayIntelligence.avgResponseTime || 0}h</div>
+                {isNewClient && <div className="text-xs text-white/60 mt-1">Will track soon</div>}
+              </div>
+            </div>
           </div>
         </div>
       </div>
 
       <div className="p-6 space-y-6">
-        {/* Intelligence Grid */}
-        {intelligence && (
-          <div className="grid grid-cols-3 gap-4">
+        {/* Intelligence Grid - ALWAYS SHOW */}
+        <div className="grid grid-cols-3 gap-4">
             {/* Financial Intelligence */}
             <div className="bg-white rounded-xl border border-gray-200 p-4">
               <div className="flex items-center gap-2 text-sm font-semibold text-gray-900 mb-4">
@@ -166,22 +187,22 @@ export default function Client360View() {
               <div className="space-y-3 text-sm">
                 <div className="flex justify-between">
                   <span className="text-gray-600">Average Deal:</span>
-                  <span className="font-semibold">${intelligence.avgDealSize.toLocaleString()}</span>
+                  <span className="font-semibold">${displayIntelligence.avgDealSize.toLocaleString()}</span>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-gray-600">Last Booking:</span>
-                  <span className="font-semibold">{new Date(intelligence.lastBookingDate).toLocaleDateString()}</span>
+                  <span className="font-semibold text-gray-500">{isNewClient ? 'No bookings yet' : new Date(displayIntelligence.lastBookingDate).toLocaleDateString()}</span>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-gray-600">Outstanding:</span>
-                  <span className={`font-semibold ${intelligence.outstandingBalance > 0 ? 'text-red-600' : 'text-emerald-600'}`}>
-                    ${intelligence.outstandingBalance.toLocaleString()}
+                  <span className={`font-semibold ${displayIntelligence.outstandingBalance > 0 ? 'text-red-600' : 'text-emerald-600'}`}>
+                    ${displayIntelligence.outstandingBalance.toLocaleString()}
                   </span>
                 </div>
                 <div className="flex justify-between items-center pt-2 border-t border-gray-100">
                   <span className="text-gray-600">Payment:</span>
-                  <span className="flex items-center gap-1 font-semibold">
-                    <CreditCard className="w-3 h-3" /> Amex •••• 1234
+                  <span className="flex items-center gap-1 text-gray-500 text-xs">
+                    <CreditCard className="w-3 h-3" /> {isNewClient ? 'Will be captured' : 'Amex •••• 1234'}
                   </span>
                 </div>
               </div>
@@ -196,19 +217,19 @@ export default function Client360View() {
               <div className="space-y-3 text-sm">
                 <div className="flex justify-between">
                   <span className="text-gray-600">Preferred Class:</span>
-                  <span className="font-semibold">{intelligence.preferredClass}</span>
+                  <span className="font-semibold text-gray-500">{displayIntelligence.preferredClass}</span>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-gray-600">Lead Time:</span>
-                  <span className="font-semibold">{intelligence.leadTime} days</span>
+                  <span className="font-semibold">{displayIntelligence.leadTime > 0 ? `${displayIntelligence.leadTime} days` : 'Learning...'}</span>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-gray-600">Total Quotes:</span>
-                  <span className="font-semibold">{intelligence.totalQuotes}</span>
+                  <span className="font-semibold">{displayIntelligence.totalQuotes}</span>
                 </div>
                 <div className="flex justify-between items-center pt-2 border-t border-gray-100">
                   <span className="text-gray-600">Accepted:</span>
-                  <span className="font-semibold text-emerald-600">{intelligence.acceptedQuotes}/{intelligence.totalQuotes}</span>
+                  <span className="font-semibold text-emerald-600">{displayIntelligence.acceptedQuotes}/{displayIntelligence.totalQuotes}</span>
                 </div>
               </div>
             </div>
@@ -239,21 +260,27 @@ export default function Client360View() {
               </div>
             </div>
           </div>
-        )}
 
-        {/* Risk & Opportunity */}
-        {intelligence && (
-          <div className="grid grid-cols-2 gap-4">
+        {/* Risk & Opportunity - ALWAYS SHOW */}
+        <div className="grid grid-cols-2 gap-4">
             {/* Risk Signals */}
             <div className="bg-white rounded-xl border border-gray-200 p-4">
               <div className="flex items-center gap-2 text-sm font-semibold text-gray-900 mb-3">
-                {intelligence.riskScore === 0 ? (
+                {displayIntelligence.riskScore === 0 ? (
                   <><Award className="w-4 h-4 text-emerald-600" /> RISK SIGNALS</>
                 ) : (
                   <><AlertCircle className="w-4 h-4 text-amber-600" /> RISK SIGNALS</>
                 )}
               </div>
-              {intelligence.riskScore === 0 ? (
+              {isNewClient ? (
+                <div className="flex items-center gap-2 text-sm text-blue-700 bg-blue-50 p-3 rounded-lg">
+                  <Star className="w-5 h-5" />
+                  <div>
+                    <div className="font-semibold">New Client - No History</div>
+                    <div className="text-xs">Risk signals will appear as history builds</div>
+                  </div>
+                </div>
+              ) : displayIntelligence.riskScore === 0 ? (
                 <div className="flex items-center gap-2 text-sm text-emerald-700 bg-emerald-50 p-3 rounded-lg">
                   <Award className="w-5 h-5" />
                   <div>
@@ -276,25 +303,31 @@ export default function Client360View() {
               <div className="flex items-center gap-2 text-sm font-semibold text-gray-900 mb-3">
                 <TrendingUp className="w-4 h-4 text-blue-600" /> UPSELL OPPORTUNITIES
               </div>
-              <div className="space-y-2 text-sm">
-                <div className="flex items-start gap-2 text-blue-700">
-                  <TrendingUp className="w-4 h-4 mt-0.5" />
-                  <div>
-                    <div className="font-medium">Travel Insurance</div>
-                    <div className="text-xs text-gray-600">Never purchased • +$200/trip</div>
+              {isNewClient ? (
+                <div className="text-sm text-gray-600 bg-gray-50 p-3 rounded-lg">
+                  <div className="font-medium mb-1">AI Will Identify Opportunities</div>
+                  <div className="text-xs">Based on booking patterns & preferences</div>
+                </div>
+              ) : (
+                <div className="space-y-2 text-sm">
+                  <div className="flex items-start gap-2 text-blue-700">
+                    <TrendingUp className="w-4 h-4 mt-0.5" />
+                    <div>
+                      <div className="font-medium">Travel Insurance</div>
+                      <div className="text-xs text-gray-600">Never purchased • +$200/trip</div>
+                    </div>
+                  </div>
+                  <div className="flex items-start gap-2 text-blue-700">
+                    <TrendingUp className="w-4 h-4 mt-0.5" />
+                    <div>
+                      <div className="font-medium">Private Transfers</div>
+                      <div className="text-xs text-gray-600">Books standard • +$150/trip</div>
+                    </div>
                   </div>
                 </div>
-                <div className="flex items-start gap-2 text-blue-700">
-                  <TrendingUp className="w-4 h-4 mt-0.5" />
-                  <div>
-                    <div className="font-medium">Private Transfers</div>
-                    <div className="text-xs text-gray-600">Books standard • +$150/trip</div>
-                  </div>
-                </div>
-              </div>
+              )}
             </div>
           </div>
-        )}
 
         {/* Activity Timeline */}
         <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
@@ -305,7 +338,13 @@ export default function Client360View() {
             {loading ? (
               <div className="text-center py-8 text-sm text-gray-500">Loading timeline...</div>
             ) : activities.length === 0 ? (
-              <div className="text-center py-8 text-sm text-gray-500">No activity yet</div>
+              <div className="text-center py-12">
+                <Clock className="w-12 h-12 text-gray-300 mx-auto mb-3" />
+                <div className="text-sm font-medium text-gray-900 mb-2">No Activity Yet</div>
+                <div className="text-xs text-gray-500 max-w-xs mx-auto">
+                  Client activity will appear here as you send quotes, log calls, and track bookings
+                </div>
+              </div>
             ) : (
               activities.map((activity) => (
                 <div key={activity.id} className="flex gap-3">
