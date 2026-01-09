@@ -1067,10 +1067,10 @@ model ErrorLog {
   count       Int       @default(1)
   timestamp   DateTime  @default(now())
 
-  @@index([severity, resolved, timestamp])
+  @@index([timestamp(sort: Desc)])
+  @@index([severity, resolved, timestamp(sort: Desc)])
   @@index([fingerprint, timestamp])
   @@index([userId])
-  @@index([timestamp])
   @@map("error_logs")
 }
 

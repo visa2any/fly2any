@@ -4,8 +4,17 @@ import { getPrismaClient } from '@/lib/prisma';
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
 
+// Simple cache to prevent repeated slow queries
+let cache: { data: any; timestamp: number } | null = null;
+const CACHE_TTL = 30000; // 30s cache
+
 export async function GET(request: NextRequest) {
   try {
+    // Return cache if fresh
+    if (cache && Date.now() - cache.timestamp < CACHE_TTL) {
+      return NextResponse.json(cache.data);
+    }
+
     const { searchParams } = new URL(request.url);
     const range = searchParams.get('range') || '24h';
     const prisma = getPrismaClient();
@@ -19,7 +28,7 @@ export async function GET(request: NextRequest) {
     };
     const since = ranges[range as keyof typeof ranges] || ranges['24h'];
 
-    // Optimized: Select only needed fields + limit
+    // Optimized: Select only needed fields + aggressive timeout
     const errors = await Promise.race([
       prisma.errorLog.findMany({
         where: { timestamp: { gte: since } },
@@ -34,10 +43,10 @@ export async function GET(request: NextRequest) {
           userId: true,
         },
         orderBy: { timestamp: 'desc' },
-        take: 100,
+        take: 50, // Reduced from 100
       }),
       new Promise<never>((_, reject) =>
-        setTimeout(() => reject(new Error('Query timeout')), 5000)
+        setTimeout(() => reject(new Error('Query timeout')), 3000) // Reduced from 5s
       ),
     ]);
 
@@ -50,7 +59,7 @@ export async function GET(request: NextRequest) {
       endpointCount[err.url?.split('?')[0] || 'unknown'] = (endpointCount[err.url?.split('?')[0] || 'unknown'] || 0) + 1;
     });
 
-    return NextResponse.json({
+    const responseData = {
       totalErrors,
       errorRate: totalErrors > 0 ? 0.5 : 0,
       avgResponseTime: 245,
@@ -72,11 +81,22 @@ export async function GET(request: NextRequest) {
       })),
       hourlyTrend: [],
       systemHealth: { api: 'healthy', database: 'healthy', externalApis: 'healthy', queue: 0 },
-    });
+    };
+
+    // Cache successful result
+    cache = { data: responseData, timestamp: Date.now() };
+
+    return NextResponse.json(responseData);
   } catch (error: any) {
     // Handle timeout separately to avoid recursive error reporting
     if (error.message === 'Query timeout') {
-      console.error('[Analytics/Errors] Query timeout after 5s - returning empty result');
+      console.error('[Analytics/Errors] Query timeout after 3s - returning cached/empty result');
+
+      // Return cached data if available, otherwise empty
+      if (cache) {
+        return NextResponse.json({ ...cache.data, systemHealth: { api: 'degraded', database: 'slow', externalApis: 'healthy', queue: 0 } });
+      }
+
       return NextResponse.json({
         totalErrors: 0,
         errorRate: 0,
