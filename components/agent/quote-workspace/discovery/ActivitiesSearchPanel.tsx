@@ -38,7 +38,7 @@ export default function ActivitiesSearchPanel({ isTourMode = false }: { isTourMo
     destination: "",
     date: "",
     participants: 1,
-    type: (isTourMode ? "tours" : "all") as "all" | "tours" | "activities",
+    type: (isTourMode ? "tours" : "activities") as "all" | "tours" | "activities",
   });
 
   const [selectedLocation, setSelectedLocation] = useState<LocationSuggestion | null>(null);
