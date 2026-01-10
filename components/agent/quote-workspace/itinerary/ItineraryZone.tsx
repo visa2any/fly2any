@@ -24,8 +24,8 @@ export default function ItineraryZone() {
 
   return (
     <div className="h-full flex flex-col">
-      {/* Horizontal Tab Bar - ONE ROW - FULL WIDTH */}
-      <div className="flex items-center border-b border-gray-200 bg-white px-4">
+      {/* Horizontal Tab Bar - FULL WIDTH NO PADDING */}
+      <div className="flex items-center border-b border-gray-200 bg-white">
         {tabs.map((tab) => {
           const Icon = tab.icon;
           const isActive = activeTab === tab.id;
@@ -33,7 +33,7 @@ export default function ItineraryZone() {
             <button
               key={tab.id}
               onClick={() => setActiveTab(tab.id)}
-              className={`relative flex items-center gap-2 px-4 py-3 text-sm font-medium transition-all ${
+              className={`relative flex items-center gap-2 px-6 py-3 text-sm font-medium transition-all ${
                 isActive
                   ? 'text-primary-600'
                   : 'text-gray-600 hover:text-gray-900'
@@ -53,7 +53,7 @@ export default function ItineraryZone() {
         })}
       </div>
 
-      {/* Content Area */}
+      {/* Content Area - NO HORIZONTAL PADDING */}
       <div className="flex-1 overflow-y-auto">
         {activeTab === 'quote' && (
           <motion.div
@@ -62,7 +62,7 @@ export default function ItineraryZone() {
             animate={{ opacity: 1, x: 0 }}
             exit={{ opacity: 0, x: 20 }}
             transition={{ duration: 0.2 }}
-            className="h-full py-4"
+            className="h-full"
           >
             {isEmpty ? <EmptyItinerary /> : <ItineraryTimeline />}
           </motion.div>

@@ -294,8 +294,8 @@ export default function ItineraryTimeline() {
   }, [items]);
 
   return (
-    <div className={viewMode === "agent" ? "space-y-2" : "space-y-4"}>
-      {/* ═══ DESTINATION HERO - Premium Background Experience ═══ */}
+    <div className={viewMode === "agent" ? "" : ""}>
+      {/* ═══ DESTINATION HERO - Premium Background Experience - FULL WIDTH ═══ */}
       <TimelineHero
         tripName={displayTripName || undefined}
         destination={state.destination}
@@ -304,6 +304,9 @@ export default function ItineraryTimeline() {
         endDate={state.endDate}
         travelers={state.travelers?.total || 1}
       />
+
+      {/* Timeline Content - WITH PADDING */}
+      <div className={viewMode === "agent" ? "px-6 space-y-2" : "px-6 space-y-4"}>
 
       {/* Client View Greeting */}
       {viewMode === "client" && (
@@ -535,6 +538,7 @@ export default function ItineraryTimeline() {
           <TrustLayer showStats={true} />
         </motion.div>
       )}
+      </div>
     </div>
   );
 }
