@@ -55,6 +55,7 @@ const initialState: QuoteWorkspaceState = {
     sidebarExpanded: false,
     discoveryPanelWidth: 540,
     searchFormCollapsed: false,
+    searchCache: {},
   },
   historyIndex: 0,
 };
@@ -223,6 +224,21 @@ function workspaceReducer(state: QuoteWorkspaceState, action: WorkspaceAction): 
       case "SET_SEARCH_RESULTS":
         draft.ui.searchLoading = action.payload.loading;
         draft.ui.searchResults = action.payload.results;
+        // Cache results for current tab
+        if (!action.payload.loading && action.payload.results && action.payload.tab) {
+          draft.ui.searchCache[action.payload.tab] = {
+            params: action.payload.params || {},
+            results: action.payload.results,
+            timestamp: Date.now(),
+          };
+        }
+        break;
+
+      case "RESTORE_CACHED_SEARCH":
+        const cached = draft.ui.searchCache[action.payload];
+        if (cached && Date.now() - cached.timestamp < 15 * 60 * 1000) { // 15min TTL
+          draft.ui.searchResults = cached.results;
+        }
         break;
 
       case "EXPAND_ITEM":
@@ -264,7 +280,8 @@ interface QuoteWorkspaceContextType {
   setCurrency: (currency: Currency) => void;
   setClient: (client: QuoteClient | null) => void;
   setActiveTab: (tab: ProductType) => void;
-  setSearchResults: (loading: boolean, results: any[] | null) => void;
+  setSearchResults: (loading: boolean, results: any[] | null, tab?: ProductType, params?: any) => void;
+  restoreCachedSearch: (tab: ProductType) => void;
   expandItem: (id: string | null) => void;
   openPreview: () => void;
   closePreview: () => void;
@@ -305,7 +322,9 @@ export function QuoteWorkspaceProvider({ children, initialQuoteId }: { children:
   const setCurrency = useCallback((currency: Currency) => dispatch({ type: "SET_CURRENCY", payload: currency }), []);
   const setClient = useCallback((client: QuoteClient | null) => dispatch({ type: "SET_CLIENT", payload: client }), []);
   const setActiveTab = useCallback((tab: ProductType) => dispatch({ type: "SET_ACTIVE_TAB", payload: tab }), []);
-  const setSearchResults = useCallback((loading: boolean, results: any[] | null) => dispatch({ type: "SET_SEARCH_RESULTS", payload: { loading, results } }), []);
+  const setSearchResults = useCallback((loading: boolean, results: any[] | null, tab?: ProductType, params?: any) =>
+    dispatch({ type: "SET_SEARCH_RESULTS", payload: { loading, results, tab, params } }), []);
+  const restoreCachedSearch = useCallback((tab: ProductType) => dispatch({ type: "RESTORE_CACHED_SEARCH", payload: tab }), []);
   const expandItem = useCallback((id: string | null) => dispatch({ type: "EXPAND_ITEM", payload: id }), []);
 
   const openPreview = useCallback(() => dispatch({ type: "SET_UI", payload: { previewOpen: true } }), []);
@@ -428,6 +447,7 @@ export function QuoteWorkspaceProvider({ children, initialQuoteId }: { children:
       setClient,
       setActiveTab,
       setSearchResults,
+      restoreCachedSearch,
       expandItem,
       openPreview,
       closePreview,
@@ -443,7 +463,7 @@ export function QuoteWorkspaceProvider({ children, initialQuoteId }: { children:
       saveQuote,
       loadQuote,
     }),
-    [state, setTripName, setDestination, setDates, setTravelers, addItem, updateItem, removeItem, reorderItems, setMarkup, setCurrency, setClient, setActiveTab, setSearchResults, expandItem, openPreview, closePreview, openClientModal, closeClientModal, openSendModal, closeSendModal, openTemplatesPanel, closeTemplatesPanel, toggleSidebar, setDiscoveryPanelWidth, setSearchFormCollapsed, saveQuote, loadQuote]
+    [state, setTripName, setDestination, setDates, setTravelers, addItem, updateItem, removeItem, reorderItems, setMarkup, setCurrency, setClient, setActiveTab, setSearchResults, restoreCachedSearch, expandItem, openPreview, closePreview, openClientModal, closeClientModal, openSendModal, closeSendModal, openTemplatesPanel, closeTemplatesPanel, toggleSidebar, setDiscoveryPanelWidth, setSearchFormCollapsed, saveQuote, loadQuote]
   );
 
   return (

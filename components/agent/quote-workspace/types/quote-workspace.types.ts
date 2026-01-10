@@ -226,6 +226,13 @@ export interface QuoteClient {
   phone?: string;
 }
 
+// Search cache entry
+export interface SearchCacheEntry {
+  params: any;
+  results: any[] | null;
+  timestamp: number;
+}
+
 // UI state (non-persisted)
 export interface WorkspaceUI {
   activeTab: ProductType;
@@ -242,6 +249,14 @@ export interface WorkspaceUI {
   sidebarExpanded: boolean;
   discoveryPanelWidth: number;
   searchFormCollapsed: boolean;
+  searchCache: {
+    flight?: SearchCacheEntry;
+    hotel?: SearchCacheEntry;
+    car?: SearchCacheEntry;
+    tour?: SearchCacheEntry;
+    activity?: SearchCacheEntry;
+    transfer?: SearchCacheEntry;
+  };
 }
 
 // Main workspace state
