@@ -174,9 +174,9 @@ export default function QuoteWorkspaceLayout({
           </div>
         </aside>
 
-        {/* Center: Itinerary Canvas - Full width, no padding */}
+        {/* Center: Itinerary Canvas - ZERO PADDING for full-width banner */}
         <section className="flex-1 flex flex-col min-h-0 bg-gradient-to-b from-gray-50/80 to-white">
-          <div className="flex-1 overflow-y-auto px-3 py-2 scrollbar-hide">
+          <div className="flex-1 overflow-y-auto scrollbar-hide">
             {itinerary}
           </div>
         </section>
