@@ -12,13 +12,11 @@ export default function ConditionalMain({ children, pendingMessage }: Conditiona
   const pathname = usePathname();
   const isWorkspace = pathname === "/agent/quotes/workspace";
 
-  if (isWorkspace) {
-    return <>{children}</>;
-  }
-
+  // Always render main wrapper to avoid hydration mismatch
+  // Use CSS to conditionally apply padding
   return (
-    <main className="py-4 px-4 sm:px-6 lg:px-8 pb-24 lg:pb-6">
-      {pendingMessage}
+    <main className={isWorkspace ? "" : "py-4 px-4 sm:px-6 lg:px-8 pb-24 lg:pb-6"} suppressHydrationWarning>
+      {!isWorkspace && pendingMessage}
       {children}
     </main>
   );

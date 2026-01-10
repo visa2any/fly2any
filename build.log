@@ -1,293 +1,55 @@
 
 > fly2any@1.0.0 build
-> next build
+> cross-env NODE_OPTIONS=--max-old-space-size=4096 next build
 
   ▲ Next.js 14.2.32
-  - Environments: .env.local, .env
+  - Environments: .env.production.local, .env.local, .env.production, .env
+  - Experiments (use with caution):
+    · optimizeCss
+    · instrumentationHook
 
    Creating an optimized production build ...
+[@sentry/nextjs] It appears you've configured a `sentry.server.config.ts` file. Please ensure to put this file's content into the `register()` function of a Next.js instrumentation file instead. To ensure correct functionality of the SDK, `Sentry.init` must be called inside of an instrumentation file. Learn more about setting up an instrumentation file in Next.js: https://nextjs.org/docs/app/building-your-application/optimizing/instrumentation. You can safely delete the `sentry.server.config.ts` file afterward.
+[@sentry/nextjs] It appears you've configured a `sentry.edge.config.ts` file. Please ensure to put this file's content into the `register()` function of a Next.js instrumentation file instead. To ensure correct functionality of the SDK, `Sentry.init` must be called inside of an instrumentation file. Learn more about setting up an instrumentation file in Next.js: https://nextjs.org/docs/app/building-your-application/optimizing/instrumentation. You can safely delete the `sentry.edge.config.ts` file afterward.
+[@sentry/nextjs] DEPRECATION WARNING: It is recommended renaming your `sentry.client.config.ts` file, or moving its content to `instrumentation-client.ts`. When using Turbopack `sentry.client.config.ts` will no longer work. Read more about the `instrumentation-client.ts` file: https://nextjs.org/docs/app/api-reference/file-conventions/instrumentation-client
  ⚠ Compiled with warnings
 
-./node_modules/@prisma/instrumentation/node_modules/@opentelemetry/instrumentation/build/esm/platform/node/instrumentation.js
-Critical dependency: the request of a dependency is an expression
+./app/api/agents/clients/[id]/stats/route.ts
+Attempted import error: 'getServerSession' is not exported from 'next-auth' (imported as 'getServerSession').
 
 Import trace for requested module:
-./node_modules/@prisma/instrumentation/node_modules/@opentelemetry/instrumentation/build/esm/platform/node/instrumentation.js
-./node_modules/@prisma/instrumentation/node_modules/@opentelemetry/instrumentation/build/esm/platform/node/index.js
-./node_modules/@prisma/instrumentation/node_modules/@opentelemetry/instrumentation/build/esm/platform/index.js
-./node_modules/@prisma/instrumentation/node_modules/@opentelemetry/instrumentation/build/esm/index.js
-./node_modules/@prisma/instrumentation/dist/index.js
-./node_modules/@sentry/node/build/cjs/integrations/tracing/prisma.js
-./node_modules/@sentry/node/build/cjs/index.js
-./node_modules/@sentry/nextjs/build/cjs/index.server.js
-./lib/errorLogger.ts
-./components/ErrorBoundary.tsx
+./app/api/agents/clients/[id]/stats/route.ts
 
-./node_modules/require-in-the-middle/index.js
-Critical dependency: require function is used in a way in which dependencies cannot be statically extracted
+./app/api/agents/clients/[id]/timeline/route.ts
+Attempted import error: 'getServerSession' is not exported from 'next-auth' (imported as 'getServerSession').
 
 Import trace for requested module:
-./node_modules/require-in-the-middle/index.js
-./node_modules/@opentelemetry/instrumentation/build/esm/platform/node/instrumentation.js
-./node_modules/@opentelemetry/instrumentation/build/esm/platform/node/index.js
-./node_modules/@opentelemetry/instrumentation/build/esm/platform/index.js
-./node_modules/@opentelemetry/instrumentation/build/esm/index.js
-./node_modules/@sentry/node/build/cjs/integrations/tracing/postgresjs.js
-./node_modules/@sentry/node/build/cjs/index.js
-./node_modules/@sentry/nextjs/build/cjs/index.server.js
-./lib/errorLogger.ts
-./components/ErrorBoundary.tsx
+./app/api/agents/clients/[id]/timeline/route.ts
 
- ✓ Compiled successfully
-   Linting and checking validity of types ...
+./app/api/agents/quotes/[id]/bookings/route.ts
+Attempted import error: 'getServerSession' is not exported from 'next-auth' (imported as 'getServerSession').
+
+Import trace for requested module:
+./app/api/agents/quotes/[id]/bookings/route.ts
+
+   Skipping validation of types
+   Skipping linting
    Collecting page data ...
-The `fetchConnectionCache` option is deprecated (now always `true`)
-The `fetchConnectionCache` option is deprecated (now always `true`)
-The `fetchConnectionCache` option is deprecated (now always `true`)
-📊 Registered A/B test: ML-Powered Smart Bundles (smart-bundles-v1)
-📊 Registered A/B test: Real-Time Urgency Signals (urgency-signals-v1)
-📊 Registered A/B test: ML User Segmentation (user-segmentation-v1)
-📊 Registered A/B test: Enhanced Payment Trust Signals (payment-trust-v1)
-✅ A/B Testing Framework initialized with 4 active tests
-⚠️  Redis not configured - caching disabled (set UPSTASH_REDIS_REST_URL and UPSTASH_REDIS_REST_TOKEN)
-⚠️  Amadeus API credentials NOT loaded - will use mock data
-⚠️  Amadeus API credentials NOT loaded - will use mock data
-⚠️  DUFFEL_ACCESS_TOKEN not set - Duffel API will not be available
-⚠️  Amadeus API credentials NOT loaded - will use mock data
-⚠️  DUFFEL_ACCESS_TOKEN not set - Duffel API will not be available
-⚠️  DUFFEL_ACCESS_TOKEN not set - Duffel API will not be available
-⚠️  STRIPE_SECRET_KEY not set - Stripe payments will not be available
-⚠️  DUFFEL_ACCESS_TOKEN not set - Duffel payments will not be available
-⚠️  STRIPE_SECRET_KEY not set - Stripe payments will not be available
-⚠️  DUFFEL_ACCESS_TOKEN not set - Duffel payments will not be available
-⚠️  STRIPE_SECRET_KEY not set - Stripe payments will not be available
-⚠️  DUFFEL_ACCESS_TOKEN not set - Duffel payments will not be available
-⚠️  Redis not configured - caching disabled (set UPSTASH_REDIS_REST_URL and UPSTASH_REDIS_REST_TOKEN)
-⚠️  Redis not configured - caching disabled (set UPSTASH_REDIS_REST_URL and UPSTASH_REDIS_REST_TOKEN)
  ⚠ Using edge runtime on a page currently disables static generation for that page
-⚠️  Redis not configured - caching disabled (set UPSTASH_REDIS_REST_URL and UPSTASH_REDIS_REST_TOKEN)
-⚠️  Amadeus API credentials NOT loaded - will use mock data
-⚠️  Redis not configured - caching disabled (set UPSTASH_REDIS_REST_URL and UPSTASH_REDIS_REST_TOKEN)
-⚠️  Amadeus API credentials NOT loaded - will use mock data
-⚠️  Amadeus API credentials NOT loaded - will use mock data
-⚠️  DUFFEL_ACCESS_TOKEN not set - Duffel Stays API will not be available
-⚠️  DUFFEL_ACCESS_TOKEN not set - Duffel Stays API will not be available
-⚠️  Amadeus API credentials NOT loaded - will use mock data
-⚠️  Redis not configured - caching disabled (set UPSTASH_REDIS_REST_URL and UPSTASH_REDIS_REST_TOKEN)
-⚠️  Redis not configured - caching disabled (set UPSTASH_REDIS_REST_URL and UPSTASH_REDIS_REST_TOKEN)
-   Generating static pages (0/82) ...
-   Generating static pages (20/82) 
-❌ Error fetching credits: NeonDbError: Error connecting to database: TypeError: fetch failed
-    at tE.execute (C:\Users\Power\fly2any-fresh\.next\server\chunks\2237.js:29:3180)
-    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
-    at async d (C:\Users\Power\fly2any-fresh\.next\server\app\api\tripmatch\credits\route.js:1:551)
-    at async C:\Users\Power\fly2any-fresh\node_modules\next\dist\compiled\next-server\app-route.runtime.prod.js:6:38411
-    at async e_.execute (C:\Users\Power\fly2any-fresh\node_modules\next\dist\compiled\next-server\app-route.runtime.prod.js:6:27880)
-    at async e_.handle (C:\Users\Power\fly2any-fresh\node_modules\next\dist\compiled\next-server\app-route.runtime.prod.js:6:39943)
-    at async exportAppRoute (C:\Users\Power\fly2any-fresh\node_modules\next\dist\export\routes\app-route.js:77:26)
-    at async exportPageImpl (C:\Users\Power\fly2any-fresh\node_modules\next\dist\export\worker.js:175:20)
+⚠️  STRIPE_SECRET_KEY not set - Stripe payments will not be available
+⚠️  STRIPE_SECRET_KEY not set - Stripe payments will not be available
+⚠️  STRIPE_SECRET_KEY not set - Stripe payments will not be available
+
+> Build error occurred
+Error: ENOENT: no such file or directory, open 'C:\Users\Power\fly2any-fresh\.next\server\middleware-manifest.json'
+    at async open (node:internal/fs/promises:639:25)
+    at async Object.readFile (node:internal/fs/promises:1243:14)
+    at async readManifest (C:\Users\Power\fly2any-fresh\node_modules\next\dist\build\index.js:165:23)
+    at async C:\Users\Power\fly2any-fresh\node_modules\next\dist\build\index.js:1520:40
     at async Span.traceAsyncFn (C:\Users\Power\fly2any-fresh\node_modules\next\dist\trace\trace.js:154:20)
-    at async Object.exportPage (C:\Users\Power\fly2any-fresh\node_modules\next\dist\export\worker.js:237:20) {
-  severity: undefined,
-  code: undefined,
-  detail: undefined,
-  hint: undefined,
-  position: undefined,
-  internalPosition: undefined,
-  internalQuery: undefined,
-  where: undefined,
-  schema: undefined,
-  table: undefined,
-  column: undefined,
-  dataType: undefined,
-  constraint: undefined,
-  file: undefined,
-  line: undefined,
-  routine: undefined,
-  sourceError: TypeError: fetch failed
-      at node:internal/deps/undici/undici:13510:13
-      at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
-      at async tE.execute (C:\Users\Power\fly2any-fresh\.next\server\chunks\2237.js:29:3091)
-      at async d (C:\Users\Power\fly2any-fresh\.next\server\app\api\tripmatch\credits\route.js:1:551)
-      at async C:\Users\Power\fly2any-fresh\node_modules\next\dist\compiled\next-server\app-route.runtime.prod.js:6:38411
-      at async e_.execute (C:\Users\Power\fly2any-fresh\node_modules\next\dist\compiled\next-server\app-route.runtime.prod.js:6:27880)
-      at async e_.handle (C:\Users\Power\fly2any-fresh\node_modules\next\dist\compiled\next-server\app-route.runtime.prod.js:6:39943)
-      at async exportAppRoute (C:\Users\Power\fly2any-fresh\node_modules\next\dist\export\routes\app-route.js:77:26)
-      at async exportPageImpl (C:\Users\Power\fly2any-fresh\node_modules\next\dist\export\worker.js:175:20)
-      at async Span.traceAsyncFn (C:\Users\Power\fly2any-fresh\node_modules\next\dist\trace\trace.js:154:20) {
-    [cause]: AggregateError [ECONNREFUSED]: 
-        at internalConnectMultiple (node:net:1134:18)
-        at afterConnectMultiple (node:net:1715:7)
-        at TCPConnectWrap.callbackTrampoline (node:internal/async_hooks:130:17) {
-      code: 'ECONNREFUSED',
-      [errors]: [Array]
-    }
-  }
+    at async build (C:\Users\Power\fly2any-fresh\node_modules\next\dist\build\index.js:368:9) {
+  errno: -4058,
+  code: 'ENOENT',
+  syscall: 'open',
+  path: 'C:\\Users\\Power\\fly2any-fresh\\.next\\server\\middleware-manifest.json'
 }
-   Generating static pages (40/82) 
-   Generating static pages (61/82) 
-📊 Registered A/B test: ML-Powered Smart Bundles (smart-bundles-v1)
-📊 Registered A/B test: Real-Time Urgency Signals (urgency-signals-v1)
-📊 Registered A/B test: ML User Segmentation (user-segmentation-v1)
-📊 Registered A/B test: Enhanced Payment Trust Signals (payment-trust-v1)
-✅ A/B Testing Framework initialized with 4 active tests
-🔍 Fetching featured hotels from popular destinations...
-✅ Fetched 0 featured hotels
-⚠️  Duffel Stays API not initialized - skipping
-⚠️  Duffel Stays API not initialized - skipping
-⚠️  Duffel Stays API not initialized - skipping
-⚠️  Duffel Stays API not initialized - skipping
-⚠️  DUFFEL_ACCESS_TOKEN not set - Duffel Stays API will not be available
- ✓ Generating static pages (82/82)
-   Finalizing page optimization ...
-   Collecting build traces ...
-
-Route (app)                                             Size     First Load JS
-┌ ○ /                                                   3.81 kB        96.6 kB
-├ ○ /_not-found                                         880 B          88.4 kB
-├ ƒ /account                                            190 B          96.8 kB
-├ ○ /admin                                              6.53 kB         103 kB
-├ ○ /admin/bookings                                     4.35 kB         101 kB
-├ ƒ /admin/bookings/[id]                                5.24 kB         102 kB
-├ ○ /admin/monitoring                                   3.31 kB        90.8 kB
-├ ○ /admin/performance                                  5.58 kB        93.1 kB
-├ ○ /admin/webhooks                                     5.03 kB         102 kB
-├ ƒ /api/admin/bookings                                 0 B                0 B
-├ ƒ /api/admin/bookings/[id]                            0 B                0 B
-├ ƒ /api/admin/bookings/[id]/confirm                    0 B                0 B
-├ ƒ /api/admin/bookings/[id]/send-email                 0 B                0 B
-├ ƒ /api/admin/init-bookings                            0 B                0 B
-├ ƒ /api/admin/init-db                                  0 B                0 B
-├ ƒ /api/admin/webhooks                                 0 B                0 B
-├ ○ /api/analytics/ab-tests                             0 B                0 B
-├ ○ /api/analytics/cache-report                         0 B                0 B
-├ ƒ /api/analytics/share                                0 B                0 B
-├ ƒ /api/analytics/share-view                           0 B                0 B
-├ ƒ /api/analytics/track                                0 B                0 B
-├ ƒ /api/analytics/vitals                               0 B                0 B
-├ ƒ /api/auth/[...nextauth]                             0 B                0 B
-├ ƒ /api/bookings                                       0 B                0 B
-├ ƒ /api/bookings/[id]                                  0 B                0 B
-├ ƒ /api/branded-fares                                  0 B                0 B
-├ ƒ /api/bundles/generate                               0 B                0 B
-├ ƒ /api/cache/invalidate                               0 B                0 B
-├ ƒ /api/cache/stats                                    0 B                0 B
-├ ƒ /api/cars                                           0 B                0 B
-├ ƒ /api/cars/featured-enhanced                         0 B                0 B
-├ ƒ /api/cart/recover                                   0 B                0 B
-├ ƒ /api/cart/track                                     0 B                0 B
-├ ƒ /api/cheapest-dates                                 0 B                0 B
-├ ƒ /api/co2-emissions                                  0 B                0 B
-├ ƒ /api/currency                                       0 B                0 B
-├ ○ /api/debug-env                                      0 B                0 B
-├ ○ /api/environment                                    0 B                0 B
-├ ƒ /api/fare-rules                                     0 B                0 B
-├ ƒ /api/flight-prediction                              0 B                0 B
-├ ƒ /api/flight-viewers                                 0 B                0 B
-├ ƒ /api/flights/[id]                                   0 B                0 B
-├ ƒ /api/flights/airports                               0 B                0 B
-├ ƒ /api/flights/airports-enhanced                      0 B                0 B
-├ ƒ /api/flights/ancillaries                            0 B                0 B
-├ ƒ /api/flights/ancillaries/baggage                    0 B                0 B
-├ ƒ /api/flights/booking/create                         0 B                0 B
-├ ƒ /api/flights/branded-fares                          0 B                0 B
-├ ƒ /api/flights/calendar-prices                        0 B                0 B
-├ ƒ /api/flights/confirm                                0 B                0 B
-├ ƒ /api/flights/destinations-enhanced                  0 B                0 B
-├ ƒ /api/flights/fare-rules                             0 B                0 B
-├ ƒ /api/flights/flash-deals-enhanced                   0 B                0 B
-├ ƒ /api/flights/search                                 0 B                0 B
-├ ƒ /api/flights/seat-map                               0 B                0 B
-├ ƒ /api/flights/seat-map/duffel                        0 B                0 B
-├ ƒ /api/flights/upselling                              0 B                0 B
-├ ƒ /api/flights/urgency                                0 B                0 B
-├ ƒ /api/hotels                                         0 B                0 B
-├ ƒ /api/hotels/[id]                                    0 B                0 B
-├ ƒ /api/hotels/booking/[id]                            0 B                0 B
-├ ƒ /api/hotels/booking/[id]/cancel                     0 B                0 B
-├ ƒ /api/hotels/booking/create                          0 B                0 B
-├ ƒ /api/hotels/cities                                  0 B                0 B
-├ ƒ /api/hotels/cities-enhanced                         0 B                0 B
-├ ○ /api/hotels/featured                                0 B                0 B
-├ ƒ /api/hotels/featured-enhanced                       0 B                0 B
-├ ƒ /api/hotels/quote                                   0 B                0 B
-├ ƒ /api/hotels/search                                  0 B                0 B
-├ ƒ /api/hotels/suggestions                             0 B                0 B
-├ ƒ /api/inspiration                                    0 B                0 B
-├ ƒ /api/insurance                                      0 B                0 B
-├ ƒ /api/log-error                                      0 B                0 B
-├ ƒ /api/ml/analytics                                   0 B                0 B
-├ ƒ /api/ml/prefetch                                    0 B                0 B
-├ ƒ /api/ml/segment-user                                0 B                0 B
-├ ƒ /api/orders/cancel/confirm                          0 B                0 B
-├ ƒ /api/orders/cancel/quote                            0 B                0 B
-├ ƒ /api/orders/modify/confirm                          0 B                0 B
-├ ƒ /api/orders/modify/offers                           0 B                0 B
-├ ƒ /api/orders/modify/request                          0 B                0 B
-├ ƒ /api/packages                                       0 B                0 B
-├ ƒ /api/payments/confirm                               0 B                0 B
-├ ƒ /api/payments/create-intent                         0 B                0 B
-├ ƒ /api/payments/webhook                               0 B                0 B
-├ ƒ /api/poi                                            0 B                0 B
-├ ƒ /api/popular-routes                                 0 B                0 B
-├ ƒ /api/price-analytics                                0 B                0 B
-├ ƒ /api/seatmaps                                       0 B                0 B
-├ ƒ /api/tours                                          0 B                0 B
-├ ƒ /api/transfers                                      0 B                0 B
-├ ƒ /api/trip-purpose                                   0 B                0 B
-├ ƒ /api/tripmatch/credits                              0 B                0 B
-├ ƒ /api/tripmatch/credits/apply                        0 B                0 B
-├ ƒ /api/tripmatch/credits/history                      0 B                0 B
-├ ƒ /api/tripmatch/seed                                 0 B                0 B
-├ ƒ /api/tripmatch/trips                                0 B                0 B
-├ ƒ /api/tripmatch/trips/[id]                           0 B                0 B
-├ ƒ /api/tripmatch/trips/[id]/components                0 B                0 B
-├ ƒ /api/tripmatch/trips/[id]/components/[componentId]  0 B                0 B
-├ ƒ /api/tripmatch/trips/[id]/join                      0 B                0 B
-├ ƒ /api/tripmatch/trips/[id]/members                   0 B                0 B
-├ ƒ /api/tripmatch/trips/[id]/members/[memberId]        0 B                0 B
-├ ƒ /api/webhooks/duffel                                0 B                0 B
-├ ○ /auth/signin                                        5.59 kB         102 kB
-├ ○ /baggage-fees                                       190 B          96.8 kB
-├ ○ /blog                                               9.56 kB         121 kB
-├ ƒ /blog/[slug]                                        2.72 kB         105 kB
-├ ƒ /blog/category/[category]                           2.66 kB         105 kB
-├ ○ /blog/news                                          2.17 kB         105 kB
-├ ○ /cars/results                                       11.2 kB         136 kB
-├ ○ /demo/alternative-airports                          8.37 kB        95.9 kB
-├ ƒ /flight/[id]                                        190 B          96.8 kB
-├ ○ /flights                                            9.14 kB         111 kB
-├ ○ /flights/booking                                    1.42 kB        88.9 kB
-├ ○ /flights/booking-optimized                          36.3 kB         130 kB
-├ ƒ /flights/booking/confirmation                       15.1 kB         111 kB
-├ ○ /flights/price-calendar-demo                        6.98 kB        94.5 kB
-├ ○ /flights/results                                    137 kB          263 kB
-├ ○ /home-new                                           27 kB           173 kB
-├ ○ /hotels                                             1.59 kB        94.4 kB
-├ ƒ /hotels/[id]                                        4.07 kB        91.6 kB
-├ ○ /hotels/results                                     13.6 kB         101 kB
-├ ○ /insurance/results                                  2.84 kB        90.4 kB
-├ ○ /ml/dashboard                                       4.72 kB        92.2 kB
-├ ƒ /packages/[id]                                      7.71 kB         101 kB
-├ ○ /packages/results                                   2.61 kB        90.1 kB
-├ ƒ /payments/confirm/[paymentId]                       2.97 kB        90.5 kB
-├ ○ /privacy                                            155 B          87.7 kB
-├ ○ /robots.txt                                         0 B                0 B
-├ ○ /sitemap.xml                                        0 B                0 B
-├ ○ /terms                                              155 B          87.7 kB
-├ ○ /tours/results                                      2.7 kB         90.2 kB
-├ ○ /tripmatch/browse                                   4.01 kB         138 kB
-├ ○ /tripmatch/create                                   7 kB            132 kB
-├ ○ /tripmatch/dashboard                                4.07 kB         138 kB
-└ ƒ /tripmatch/trips/[id]                               5.27 kB         130 kB
-+ First Load JS shared by all                           87.5 kB
-  ├ chunks/2117-4df5bf2f142e6ff4.js                     31.8 kB
-  ├ chunks/fd9d1056-5bb65c1c549e0d0b.js                 53.6 kB
-  └ other shared chunks (total)                         2.13 kB
-
-
-ƒ Middleware                                            77.7 kB
-
-○  (Static)   prerendered as static content
-ƒ  (Dynamic)  server-rendered on demand
-

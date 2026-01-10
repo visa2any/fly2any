@@ -12,7 +12,10 @@ export default function ConditionalTopBar({ agent, user }: ConditionalTopBarProp
   const pathname = usePathname();
   const isWorkspace = pathname === "/agent/quotes/workspace";
 
-  if (isWorkspace) return null;
-
-  return <AgentTopBar agent={agent} user={user} />;
+  // Always render to avoid hydration mismatch, hide with CSS
+  return (
+    <div className={isWorkspace ? "hidden" : ""} suppressHydrationWarning>
+      <AgentTopBar agent={agent} user={user} />
+    </div>
+  );
 }
