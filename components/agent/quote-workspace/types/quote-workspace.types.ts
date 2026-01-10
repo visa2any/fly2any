@@ -1,6 +1,6 @@
 // Quote Workspace Types - Level 6 Ultra-Premium Quote Builder
 
-export type ProductType = 'flight' | 'hotel' | 'car' | 'activity' | 'transfer' | 'insurance' | 'custom';
+export type ProductType = 'flight' | 'hotel' | 'car' | 'activity' | 'tour' | 'transfer' | 'insurance' | 'custom';
 export type QuoteStatus = 'draft' | 'sent' | 'accepted' | 'expired' | 'declined';
 // Expanded currency support for global markets
 export type Currency =

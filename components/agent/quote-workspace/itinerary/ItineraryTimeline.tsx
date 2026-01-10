@@ -209,7 +209,14 @@ export default function ItineraryTimeline() {
   }, [items, state.destination, state.travelers]);
 
   const onDragEnd = (e: DragEndEvent) => {
-    if (e.over && e.active.id !== e.over.id) reorderItems(e.active.id as string, e.over.id as string);
+    if (e.over && e.active.id !== e.over.id) {
+      reorderItems(e.active.id as string, e.over.id as string);
+      // Trigger auto-save after reorder
+      setTimeout(() => {
+        const saveBtn = document.querySelector('[data-save-quote]') as HTMLButtonElement;
+        saveBtn?.click();
+      }, 300);
+    }
   };
 
   // Calculate trip duration with safe parsing

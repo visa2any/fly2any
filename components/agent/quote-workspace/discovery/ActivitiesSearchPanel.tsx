@@ -18,7 +18,7 @@ interface LocationSuggestion {
   longitude?: number;
 }
 
-export default function ActivitiesSearchPanel() {
+export default function ActivitiesSearchPanel({ isTourMode = false }: { isTourMode?: boolean }) {
   const { state, addItem, setSearchResults } = useQuoteWorkspace();
 
   // ═══ UNIFIED SEARCH RESULTS ═══
@@ -35,7 +35,7 @@ export default function ActivitiesSearchPanel() {
     destination: "",
     date: "",
     participants: 1,
-    type: "all" as "all" | "tours" | "activities",
+    type: (isTourMode ? "tours" : "all") as "all" | "tours" | "activities",
   });
 
   const [selectedLocation, setSelectedLocation] = useState<LocationSuggestion | null>(null);
@@ -229,7 +229,7 @@ export default function ActivitiesSearchPanel() {
 
     // ActivityItem type expects: name, location, description, duration, participants, includes, image
     addItem({
-      type: "activity",
+      type: isTourMode ? "tour" : "activity",
       price: parseFloat(activity.price?.amount) || 0,
       currency: "USD",
       date: selectedDate,
@@ -255,7 +255,7 @@ export default function ActivitiesSearchPanel() {
           <Compass className="w-4 h-4 text-white" />
         </div>
         <div>
-          <h3 className="text-sm font-bold text-gray-900">Find Activities & Tours</h3>
+          <h3 className="text-sm font-bold text-gray-900">Find {isTourMode ? "Tours" : "Activities"}</h3>
           <p className="text-[10px] text-gray-400">Search and add to quote</p>
         </div>
       </div>

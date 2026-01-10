@@ -16,6 +16,7 @@ const productConfig: Record<ProductType, { icon: typeof Plane; gradient: string;
   flight: { icon: Plane, gradient: "from-blue-500 to-indigo-600", bgLight: "bg-blue-50" },
   hotel: { icon: Building2, gradient: "from-purple-500 to-pink-600", bgLight: "bg-purple-50" },
   car: { icon: Car, gradient: "from-cyan-500 to-blue-600", bgLight: "bg-cyan-50" },
+  tour: { icon: MapPin, gradient: "from-orange-500 to-red-600", bgLight: "bg-orange-50" },
   activity: { icon: Compass, gradient: "from-emerald-500 to-teal-600", bgLight: "bg-emerald-50" },
   transfer: { icon: Bus, gradient: "from-amber-500 to-orange-600", bgLight: "bg-amber-50" },
   insurance: { icon: Shield, gradient: "from-rose-500 to-pink-600", bgLight: "bg-rose-50" },
@@ -388,14 +389,14 @@ export default function ItineraryCard({ item, dragListeners, isDragging, viewMod
     );
   }
 
-  // Activity-specific card with photo and more info
-  if (item.type === "activity") {
+  // Activity/Tour-specific card with photo and more info
+  if (item.type === "activity" || item.type === "tour") {
     const a = item as ActivityItem;
     return (
       <motion.div
         layout
         className={`group relative bg-white border border-gray-200 rounded-xl shadow-sm hover:shadow-md transition-shadow ${
-          isExpanded ? "ring-2 ring-emerald-400" : ""
+          isExpanded ? `ring-2 ${item.type === "tour" ? "ring-orange-400" : "ring-emerald-400"}` : ""
         }`}
       >
         {/* Drag Handle - Agent Only */}
@@ -413,12 +414,15 @@ export default function ItineraryCard({ item, dragListeners, isDragging, viewMod
         {/* Main Content */}
         <div className="flex ml-5">
           {/* Photo Thumbnail - Standardized 128x96 */}
-          <div className="w-32 h-24 rounded-l-xl bg-emerald-100 overflow-hidden flex-shrink-0">
+          <div className={`w-32 h-24 rounded-l-xl overflow-hidden flex-shrink-0 ${item.type === "tour" ? "bg-orange-100" : "bg-emerald-100"}`}>
             {a.image ? (
-              <img src={a.image} alt={a.name} className="w-full h-full object-cover" loading="lazy" />
+              <img src={a.image} alt={a.name} className="w-full h-full object-cover" loading="lazy" onError={(e) => {
+                console.log('Image load error:', a.image);
+                e.currentTarget.style.display = 'none';
+              }} />
             ) : (
-              <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-emerald-200 to-teal-200">
-                <Compass className="w-8 h-8 text-emerald-400" />
+              <div className={`w-full h-full flex items-center justify-center ${item.type === "tour" ? "bg-gradient-to-br from-orange-200 to-red-200" : "bg-gradient-to-br from-emerald-200 to-teal-200"}`}>
+                {item.type === "tour" ? <MapPin className="w-8 h-8 text-orange-400" /> : <Compass className="w-8 h-8 text-emerald-400" />}
               </div>
             )}
           </div>
@@ -428,7 +432,7 @@ export default function ItineraryCard({ item, dragListeners, isDragging, viewMod
             <div className="flex items-start justify-between gap-2">
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-1.5 mb-0.5">
-                  <RoleBadge type="activity" />
+                  <RoleBadge type={item.type} />
                   <TimeAnchorBadge item={item} />
                 </div>
                 <h4 className="font-bold text-gray-900 text-sm truncate">{a.name}</h4>
