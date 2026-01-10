@@ -243,6 +243,14 @@ export default function ActivitiesSearchPanel({ isTourMode = false }: { isTourMo
       console.warn(`⚠️ Multiple activities on ${selectedDate}. Verify timing doesn't overlap.`);
     }
 
+    // Extract image - API returns string OR object with url
+    const extractImage = () => {
+      const pics = activity.pictures || activity.images || [];
+      if (!pics.length) return null;
+      const first = pics[0];
+      return typeof first === 'string' ? first : first?.url || null;
+    };
+
     // ActivityItem type expects: name, location, description, duration, time, participants, includes, image
     addItem({
       type: isTourMode ? "tour" : "activity",
@@ -255,7 +263,7 @@ export default function ActivitiesSearchPanel({ isTourMode = false }: { isTourMo
       duration: activityDuration,
       time: activity.startTime || activity.time || undefined,
       description: activity.shortDescription || activity.description || "Experience this amazing activity",
-      image: activity.pictures?.[0]?.url || activity.images?.[0]?.url || null,
+      image: extractImage(),
       includes: activity.includes || activity.inclusions || [],
       apiSource: "viator",
       apiOfferId: activity.id,
@@ -539,7 +547,12 @@ export default function ActivitiesSearchPanel({ isTourMode = false }: { isTourMo
                 <motion.div key={activity.id || idx} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} whileHover={{ scale: 1.02 }} className="bg-white border-2 border-gray-100 rounded-2xl p-3 hover:border-emerald-200 hover:shadow-lg transition-all group">
                   <div className="flex gap-3">
                     <div className="w-20 h-16 rounded-xl bg-emerald-100 overflow-hidden flex-shrink-0 flex items-center justify-center">
-                      {activity.pictures?.[0]?.url ? <img src={activity.pictures[0].url} alt={activity.name} className="w-full h-full object-cover" /> : <Compass className="w-8 h-8 text-emerald-300" />}
+                      {(() => {
+                        const pics = activity.pictures || activity.images || [];
+                        const img = pics[0];
+                        const url = typeof img === 'string' ? img : img?.url;
+                        return url ? <img src={url} alt={activity.name} className="w-full h-full object-cover" /> : <Compass className="w-8 h-8 text-emerald-300" />;
+                      })()}
                     </div>
                     <div className="flex-1 min-w-0">
                       <h4 className="font-bold text-gray-900 truncate text-sm">{activity.name}</h4>
