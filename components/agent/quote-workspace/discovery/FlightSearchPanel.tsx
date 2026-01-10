@@ -47,8 +47,10 @@ const springConfig = { stiffness: 400, damping: 30 };
 const softSpring = { stiffness: 200, damping: 25 };
 
 export default function FlightSearchPanel() {
-  const { state, addItem, setSearchResults, setDestination, setDates, setTravelers } = useQuoteWorkspace();
-  const { searchLoading, searchResults } = state.ui;
+  const { state, addItem, setSearchResults, restoreCachedSearch, setDestination, setDates, setTravelers } = useQuoteWorkspace();
+  const { searchLoading, searchResults, searchCache } = state.ui;
+  const cachedFlight = searchCache.flight;
+  const cacheAge = cachedFlight ? Math.floor((Date.now() - cachedFlight.timestamp) / 60000) : null;
 
   // ═══ UNIFIED MULTI-SEARCH (SHARED CONTEXT) ═══
   // Single search → Flights + Hotels + Cars + Activities + Transfers (parallel)
@@ -154,6 +156,13 @@ export default function FlightSearchPanel() {
   };
 
   // Handle search - triggers ALL enabled products in parallel
+  // Restore cached results on mount
+  useEffect(() => {
+    if (cachedFlight && !searchResults) {
+      restoreCachedSearch("flight");
+    }
+  }, []);
+
   const handleSearch = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
@@ -236,14 +245,14 @@ export default function FlightSearchPanel() {
 
       if (!res.ok) throw new Error(data.error || "Search failed");
 
-      setSearchResults(false, data.flights || []);
+      setSearchResults(false, data.flights || [], "flight", params);
       setVisibleCount(10);
       setFilterStops(0);
       setFilterAirline("");
       setSortBy("price");
     } catch (err: any) {
       setError(err.message || "Failed to search flights");
-      setSearchResults(false, null);
+      setSearchResults(false, null, "flight");
     }
   };
 
@@ -958,6 +967,14 @@ export default function FlightSearchPanel() {
               {/* ═══ SEARCH SCOPE SELECTOR ═══ */}
               {/* "Search includes: [✓ Flights] [✓ Hotels] [✓ Cars] [✓ Activities] [✓ Transfers]" */}
               <SearchScopeSelector variant="compact" />
+
+              {/* Cache indicator */}
+              {cacheAge !== null && cacheAge < 15 && !searchLoading && (
+                <div className="flex items-center justify-between px-2 py-1 bg-blue-50 border border-blue-200 rounded-lg text-[10px] text-blue-700">
+                  <span>📦 Cached {cacheAge}min ago</span>
+                  <button type="button" onClick={handleSearch} className="text-blue-600 hover:text-blue-800 font-bold">Refresh</button>
+                </div>
+              )}
 
               {/* Search Button - Ultra Premium */}
               <motion.button
