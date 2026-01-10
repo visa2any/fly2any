@@ -4,6 +4,7 @@ import { createContext, useContext, useReducer, useCallback, useEffect, useMemo,
 import { produce } from "immer";
 import { useDebouncedCallback } from "use-debounce";
 import { UnifiedSearchProvider } from "./unified-search/UnifiedSearchProvider";
+import { detectConflicts, type TimeConflict } from "./utils/conflict-detection";
 import type {
   QuoteWorkspaceState,
   WorkspaceAction,
@@ -267,6 +268,7 @@ function workspaceReducer(state: QuoteWorkspaceState, action: WorkspaceAction): 
 interface QuoteWorkspaceContextType {
   state: QuoteWorkspaceState;
   dispatch: React.Dispatch<WorkspaceAction>;
+  conflicts: Map<string, TimeConflict>;
   // Convenience actions
   setTripName: (name: string) => void;
   setDestination: (dest: string) => void;
@@ -430,10 +432,16 @@ export function QuoteWorkspaceProvider({ children, initialQuoteId }: { children:
     }
   }, [initialQuoteId, loadQuote]);
 
+  // Compute conflicts whenever items change
+  const conflicts = useMemo(() => {
+    return detectConflicts(state.items);
+  }, [state.items]);
+
   const contextValue = useMemo(
     () => ({
       state,
       dispatch,
+      conflicts,
       setTripName,
       setDestination,
       setDates,
@@ -463,7 +471,7 @@ export function QuoteWorkspaceProvider({ children, initialQuoteId }: { children:
       saveQuote,
       loadQuote,
     }),
-    [state, setTripName, setDestination, setDates, setTravelers, addItem, updateItem, removeItem, reorderItems, setMarkup, setCurrency, setClient, setActiveTab, setSearchResults, restoreCachedSearch, expandItem, openPreview, closePreview, openClientModal, closeClientModal, openSendModal, closeSendModal, openTemplatesPanel, closeTemplatesPanel, toggleSidebar, setDiscoveryPanelWidth, setSearchFormCollapsed, saveQuote, loadQuote]
+    [state, conflicts, setTripName, setDestination, setDates, setTravelers, addItem, updateItem, removeItem, reorderItems, setMarkup, setCurrency, setClient, setActiveTab, setSearchResults, restoreCachedSearch, expandItem, openPreview, closePreview, openClientModal, closeClientModal, openSendModal, closeSendModal, openTemplatesPanel, closeTemplatesPanel, toggleSidebar, setDiscoveryPanelWidth, setSearchFormCollapsed, saveQuote, loadQuote]
   );
 
   return (
@@ -501,4 +509,9 @@ export function useQuoteUI() {
 export function useQuoteClient() {
   const { state } = useQuoteWorkspace();
   return state.client;
+}
+
+export function useQuoteConflicts() {
+  const { conflicts } = useQuoteWorkspace();
+  return conflicts;
 }

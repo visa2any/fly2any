@@ -3,8 +3,8 @@
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { format, parseISO } from "date-fns";
-import { Plane, Building2, Car, Compass, Bus, Shield, Package, MoreVertical, Edit2, Copy, Trash2, GripVertical, ChevronDown, ChevronUp, Briefcase, RefreshCw, XCircle, CheckCircle2, Info, Luggage, Star, Clock, Users, MapPin, Sparkles, Heart, Sun, Sunset, Moon, Coffee } from "lucide-react";
-import { useQuoteWorkspace } from "../QuoteWorkspaceProvider";
+import { Plane, Building2, Car, Compass, Bus, Shield, Package, MoreVertical, Edit2, Copy, Trash2, GripVertical, ChevronDown, ChevronUp, Briefcase, RefreshCw, XCircle, CheckCircle2, Info, Luggage, Star, Clock, Users, MapPin, Sparkles, Heart, Sun, Sunset, Moon, Coffee, AlertTriangle } from "lucide-react";
+import { useQuoteWorkspace, useQuoteConflicts } from "../QuoteWorkspaceProvider";
 import AirlineLogo from "@/components/flights/AirlineLogo";
 import { getProductCopy, type ToneProfile } from "./ToneSystem";
 import type { QuoteItem, FlightItem, HotelItem, CarItem, ActivityItem, TransferItem, InsuranceItem, CustomItem, ProductType } from "../types/quote-workspace.types";
@@ -33,12 +33,17 @@ interface ItineraryCardProps {
 
 export default function ItineraryCard({ item, dragListeners, isDragging, viewMode = "agent", tone = "family" }: ItineraryCardProps) {
   const { state, removeItem, expandItem } = useQuoteWorkspace();
+  const conflicts = useQuoteConflicts();
   const [showMenu, setShowMenu] = useState(false);
   const productCopyData = getProductCopy(tone, item.type);
   const isExpanded = state.ui.expandedItemId === item.id;
 
   const config = productConfig[item.type];
   const Icon = config.icon;
+
+  // Check if this item has conflicts
+  const itemConflict = conflicts.get(item.id);
+  const hasConflict = !!itemConflict;
 
   // Format price
   const formatPrice = (amount: number) => {
@@ -226,6 +231,16 @@ export default function ItineraryCard({ item, dragListeners, isDragging, viewMod
           <div className="flex flex-col items-center justify-center px-3 py-3 border-t sm:border-t-0 sm:border-l border-gray-100 min-w-[100px]">
             {viewMode === "agent" ? (
               <>
+                {hasConflict && (
+                  <div className={`flex items-center gap-1 px-2 py-0.5 rounded-full mb-1 text-[10px] font-medium ${
+                    itemConflict!.severity === 'critical' ? 'bg-red-100 text-red-700' :
+                    itemConflict!.severity === 'warning' ? 'bg-amber-100 text-amber-700' :
+                    'bg-blue-100 text-blue-700'
+                  }`} title={itemConflict!.message}>
+                    <AlertTriangle className="w-3 h-3" />
+                    <span>Conflict</span>
+                  </div>
+                )}
                 <p className="text-base font-black text-gray-900 bg-yellow-50 border border-yellow-200 px-2 py-1 rounded">{formatPrice(f.price)}</p>
                 <p className="text-xs text-gray-400 mt-1">{f.passengers} pax • {isRoundtrip ? "RT" : "OW"}</p>
                 <div className="flex items-center gap-1 mt-1.5">
@@ -463,6 +478,16 @@ export default function ItineraryCard({ item, dragListeners, isDragging, viewMod
               {/* Price - Standardized alignment */}
               {viewMode === "agent" ? (
                 <div className="flex-shrink-0 text-right">
+                  {hasConflict && (
+                    <div className={`flex items-center gap-1 px-2 py-0.5 rounded-full mb-1 text-[10px] font-medium justify-end ${
+                      itemConflict!.severity === 'critical' ? 'bg-red-100 text-red-700' :
+                      itemConflict!.severity === 'warning' ? 'bg-amber-100 text-amber-700' :
+                      'bg-blue-100 text-blue-700'
+                    }`} title={itemConflict!.message}>
+                      <AlertTriangle className="w-3 h-3" />
+                      <span>Conflict</span>
+                    </div>
+                  )}
                   <p className="font-black text-gray-900 text-sm bg-yellow-50 border border-yellow-200 px-2 py-0.5 rounded">{formatPrice(a.price)}</p>
                   <p className="text-[9px] text-gray-400 mt-0.5">{a.date ? format(parseISO(a.date), "MMM d") : ""}</p>
                 </div>
@@ -613,6 +638,16 @@ export default function ItineraryCard({ item, dragListeners, isDragging, viewMod
               {/* Price - Standardized alignment */}
               {viewMode === "agent" ? (
                 <div className="flex-shrink-0 text-right">
+                  {hasConflict && (
+                    <div className={`flex items-center gap-1 px-2 py-0.5 rounded-full mb-1 text-[10px] font-medium justify-end ${
+                      itemConflict!.severity === 'critical' ? 'bg-red-100 text-red-700' :
+                      itemConflict!.severity === 'warning' ? 'bg-amber-100 text-amber-700' :
+                      'bg-blue-100 text-blue-700'
+                    }`} title={itemConflict!.message}>
+                      <AlertTriangle className="w-3 h-3" />
+                      <span>Conflict</span>
+                    </div>
+                  )}
                   <p className="font-black text-gray-900 text-sm bg-yellow-50 border border-yellow-200 px-2 py-0.5 rounded">{formatPrice(h.price)}</p>
                   <p className="text-[9px] text-gray-400 mt-0.5">{h.checkIn ? format(parseISO(h.checkIn), "MMM d") : ""}</p>
                 </div>
@@ -915,6 +950,16 @@ export default function ItineraryCard({ item, dragListeners, isDragging, viewMod
           {viewMode === "agent" ? (
             <div className="flex items-center gap-2 px-3 border-l border-gray-100">
               <div className="text-right">
+                {hasConflict && (
+                  <div className={`flex items-center gap-1 px-2 py-0.5 rounded-full mb-1 text-[10px] font-medium justify-end ${
+                    itemConflict!.severity === 'critical' ? 'bg-red-100 text-red-700' :
+                    itemConflict!.severity === 'warning' ? 'bg-amber-100 text-amber-700' :
+                    'bg-blue-100 text-blue-700'
+                  }`} title={itemConflict!.message}>
+                    <AlertTriangle className="w-3 h-3" />
+                    <span>Conflict</span>
+                  </div>
+                )}
                 <p className="font-black text-gray-900 text-sm bg-yellow-50 border border-yellow-200 px-2 py-0.5 rounded">{formatPrice(t.price)}</p>
                 <p className="text-[9px] text-gray-400 mt-0.5">{t.date ? format(parseISO(t.date), "MMM d") : ""}</p>
               </div>
@@ -997,6 +1042,16 @@ export default function ItineraryCard({ item, dragListeners, isDragging, viewMod
 
           {/* Price */}
           <div className="text-right flex-shrink-0">
+            {hasConflict && (
+              <div className={`flex items-center gap-1 px-2 py-0.5 rounded-full mb-1 text-[10px] font-medium justify-end ${
+                itemConflict!.severity === 'critical' ? 'bg-red-100 text-red-700' :
+                itemConflict!.severity === 'warning' ? 'bg-amber-100 text-amber-700' :
+                'bg-blue-100 text-blue-700'
+              }`} title={itemConflict!.message}>
+                <AlertTriangle className="w-3 h-3" />
+                <span>Conflict</span>
+              </div>
+            )}
             <p className="font-bold text-gray-900 text-sm">{formatPrice(item.price)}</p>
           </div>
 
