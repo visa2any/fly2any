@@ -2,7 +2,7 @@
 
 import { useState, useEffect, Suspense } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
-import { Plane, ChevronLeft, ChevronRight, ArrowLeft, Loader2, User, Clock, CheckCircle2, Star, Home, X, Armchair, Info, Shield } from 'lucide-react';
+import { Plane, ChevronLeft, ChevronRight, ArrowLeft, Loader2, User, Clock, CheckCircle2, Check, Star, Home, X, Armchair, Info, Shield } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { formatCityCode } from '@/lib/data/airports';
 import { FareSelector } from '@/components/booking/FareSelector';
