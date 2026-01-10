@@ -306,8 +306,7 @@ export default function ItineraryTimeline() {
       />
 
       {/* Timeline Content - PADDED CONTAINER */}
-      <div className="px-6 py-4">
-      <div className={viewMode === "agent" ? "space-y-2" : "space-y-4"}>
+      <div className={`px-6 py-4 ${viewMode === "agent" ? "space-y-2" : "space-y-4"}`}>
 
       {/* Client View Greeting */}
       {viewMode === "client" && (
@@ -539,7 +538,6 @@ export default function ItineraryTimeline() {
           <TrustLayer showStats={true} />
         </motion.div>
       )}
-      </div>
       </div>
     </div>
   );
