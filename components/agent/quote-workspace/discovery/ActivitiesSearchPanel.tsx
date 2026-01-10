@@ -195,14 +195,9 @@ export default function ActivitiesSearchPanel({ isTourMode = false }: { isTourMo
 
       if (!res.ok) throw new Error(data.error || data.message || "Search failed");
 
-      // DEBUG: Log first activity to see API structure
+      // DEBUG: Log FULL first activity to see ALL fields
       if (data.data?.[0]) {
-        console.log('🔍 Sample activity:', {
-          name: data.data[0].name,
-          pictures: data.data[0].pictures,
-          images: data.data[0].images,
-          hasPhoto: !!data.data[0].pictures?.[0]?.url
-        });
+        console.log('🔍 FULL ACTIVITY OBJECT:', JSON.stringify(data.data[0], null, 2));
       }
 
       setSearchResults(false, data.data || [], "activity", params);
