@@ -24,8 +24,8 @@ export default function ItineraryZone() {
 
   return (
     <div className="h-full flex flex-col">
-      {/* Horizontal Tab Bar - ONE ROW */}
-      <div className="flex items-center border-b border-gray-200 bg-white px-6">
+      {/* Horizontal Tab Bar - ONE ROW - FULL WIDTH */}
+      <div className="flex items-center border-b border-gray-200 bg-white px-4">
         {tabs.map((tab) => {
           const Icon = tab.icon;
           const isActive = activeTab === tab.id;
@@ -62,7 +62,7 @@ export default function ItineraryZone() {
             animate={{ opacity: 1, x: 0 }}
             exit={{ opacity: 0, x: 20 }}
             transition={{ duration: 0.2 }}
-            className="h-full px-6 py-4"
+            className="h-full py-4"
           >
             {isEmpty ? <EmptyItinerary /> : <ItineraryTimeline />}
           </motion.div>
@@ -74,7 +74,7 @@ export default function ItineraryZone() {
             animate={{ opacity: 1, x: 0 }}
             exit={{ opacity: 0, x: 20 }}
             transition={{ duration: 0.2 }}
-            className="h-full px-6 py-4"
+            className="h-full py-4 px-6"
           >
             <Client360View />
           </motion.div>
@@ -86,7 +86,7 @@ export default function ItineraryZone() {
             animate={{ opacity: 1, x: 0 }}
             exit={{ opacity: 0, x: 20 }}
             transition={{ duration: 0.2 }}
-            className="h-full px-6 py-4"
+            className="h-full py-4 px-6"
           >
             <ReservationsView />
           </motion.div>

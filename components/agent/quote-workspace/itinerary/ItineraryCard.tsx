@@ -392,6 +392,8 @@ export default function ItineraryCard({ item, dragListeners, isDragging, viewMod
   // Activity/Tour-specific card with photo and more info
   if (item.type === "activity" || item.type === "tour") {
     const a = item as ActivityItem;
+    // DEBUG: Check image field
+    if (!a.image) console.warn(`[${item.type}] No image:`, a.name, 'Image field:', a.image);
     return (
       <motion.div
         layout
@@ -435,22 +437,27 @@ export default function ItineraryCard({ item, dragListeners, isDragging, viewMod
                   <RoleBadge type={item.type} />
                   <TimeAnchorBadge item={item} />
                 </div>
-                <h4 className="font-bold text-gray-900 text-sm truncate">{a.name}</h4>
-                <div className="flex items-center gap-2 mt-0.5 flex-wrap">
+                <h4 className="font-bold text-gray-900 text-sm line-clamp-2">{a.name}</h4>
+                <div className="flex items-center gap-2 mt-1 flex-wrap">
                   <span className="flex items-center gap-0.5 text-[10px] text-gray-500">
                     <MapPin className="w-3 h-3" />{a.location}
                   </span>
                   {a.duration && (
-                    <span className="flex items-center gap-0.5 text-[10px] text-gray-500">
+                    <span className="flex items-center gap-0.5 text-[10px] font-medium text-emerald-600">
                       <Clock className="w-3 h-3" />{a.duration}
                     </span>
                   )}
+                  {a.time && (
+                    <span className="flex items-center gap-0.5 text-[10px] font-medium text-blue-600">
+                      🕐 {a.time}
+                    </span>
+                  )}
                   <span className="flex items-center gap-0.5 text-[10px] text-gray-500">
-                    <Users className="w-3 h-3" />{a.participants} pax
+                    <Users className="w-3 h-3" />{a.participants} {a.participants === 1 ? 'guest' : 'guests'}
                   </span>
                 </div>
                 {a.description && (
-                  <p className="text-[10px] text-gray-400 mt-1 line-clamp-1">{a.description}</p>
+                  <p className="text-[10px] text-gray-500 mt-1 line-clamp-2">{a.description}</p>
                 )}
               </div>
               {/* Price - Standardized alignment */}
