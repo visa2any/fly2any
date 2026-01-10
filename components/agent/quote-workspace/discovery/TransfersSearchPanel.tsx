@@ -22,7 +22,10 @@ interface TransferLocation {
 }
 
 export default function TransfersSearchPanel() {
-  const { state, addItem, setSearchResults } = useQuoteWorkspace();
+  const { state, addItem, setSearchResults, restoreCachedSearch } = useQuoteWorkspace();
+  const { searchCache } = state.ui;
+  const cachedTransfer = searchCache.transfer;
+  const cacheAge = cachedTransfer ? Math.floor((Date.now() - cachedTransfer.timestamp) / 60000) : null;
 
   // ═══ UNIFIED SEARCH RESULTS ═══
   const unifiedContext = useUnifiedSearchSafe();
@@ -198,6 +201,14 @@ export default function TransfersSearchPanel() {
   const displayPickupSuggestions = params.pickup?.trim().length >= 2 ? pickupSuggestions : popularLocations;
   const displayDropoffSuggestions = params.dropoff?.trim().length >= 2 ? dropoffSuggestions : popularLocations;
 
+  // ═══ RESTORE CACHED SEARCH ═══
+  useEffect(() => {
+    if (cachedTransfer && !state.ui.searchResults) {
+      restoreCachedSearch("transfer");
+    }
+  }, []);
+  // ═══ END RESTORE ═══
+
   const handleSearch = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
@@ -241,10 +252,10 @@ export default function TransfersSearchPanel() {
 
       if (!res.ok) throw new Error(data.error || data.message || "Search failed");
 
-      setSearchResults(false, data.data || []);
+      setSearchResults(false, data.data || [], "transfer", params);
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : "Search failed");
-      setSearchResults(false, null);
+      setSearchResults(false, null, "transfer");
     }
   };
 

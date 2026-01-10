@@ -17,7 +17,10 @@ interface LocationSuggestion {
 }
 
 export default function CarSearchPanel() {
-  const { state, addItem, setSearchResults } = useQuoteWorkspace();
+  const { state, addItem, setSearchResults, restoreCachedSearch } = useQuoteWorkspace();
+  const { searchCache } = state.ui;
+  const cachedCar = searchCache.car;
+  const cacheAge = cachedCar ? Math.floor((Date.now() - cachedCar.timestamp) / 60000) : null;
 
   // ═══ UNIFIED SEARCH RESULTS ═══
   const unifiedContext = useUnifiedSearchSafe();
@@ -162,6 +165,13 @@ export default function CarSearchPanel() {
     ? suggestions
     : popularDestinations;
 
+  // Restore cached results on mount
+  useEffect(() => {
+    if (cachedCar && !state.ui.searchResults) {
+      restoreCachedSearch("car");
+    }
+  }, []);
+
   const handleSearch = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
@@ -182,11 +192,11 @@ export default function CarSearchPanel() {
       const res = await fetch(`/api/cars?${query}`);
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || "Search failed");
-      setSearchResults(false, data.data || data.cars || data.results || []);
+      setSearchResults(false, data.data || data.cars || data.results || [], "car", params);
       setVisibleCount(10); // Reset pagination on new search
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : "Search failed");
-      setSearchResults(false, null);
+      setSearchResults(false, null, "car");
     }
   };
 

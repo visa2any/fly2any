@@ -19,7 +19,10 @@ interface LocationSuggestion {
 }
 
 export default function ActivitiesSearchPanel({ isTourMode = false }: { isTourMode?: boolean }) {
-  const { state, addItem, setSearchResults } = useQuoteWorkspace();
+  const { state, addItem, setSearchResults, restoreCachedSearch } = useQuoteWorkspace();
+  const { searchCache } = state.ui;
+  const cachedActivity = searchCache.activity;
+  const cacheAge = cachedActivity ? Math.floor((Date.now() - cachedActivity.timestamp) / 60000) : null;
 
   // ═══ UNIFIED SEARCH RESULTS ═══
   const unifiedContext = useUnifiedSearchSafe();
@@ -145,6 +148,14 @@ export default function ActivitiesSearchPanel({ isTourMode = false }: { isTourMo
 
   const displaySuggestions = params.destination?.trim().length >= 2 ? suggestions : popularDestinations;
 
+  // ═══ RESTORE CACHED SEARCH ═══
+  useEffect(() => {
+    if (cachedActivity && !state.ui.searchResults) {
+      restoreCachedSearch("activity");
+    }
+  }, []);
+  // ═══ END RESTORE ═══
+
   const getTypeIcon = (type: string) => {
     switch (type) {
       case 'airport': return <MapPin className="w-4 h-4 text-blue-500" />;
@@ -184,12 +195,12 @@ export default function ActivitiesSearchPanel({ isTourMode = false }: { isTourMo
 
       if (!res.ok) throw new Error(data.error || data.message || "Search failed");
 
-      setSearchResults(false, data.data || []);
+      setSearchResults(false, data.data || [], "activity", params);
       setVisibleCount(10);
       setFilterCategory('all');
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : "Search failed");
-      setSearchResults(false, null);
+      setSearchResults(false, null, "activity");
     }
   };
 

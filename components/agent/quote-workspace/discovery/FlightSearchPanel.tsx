@@ -278,8 +278,8 @@ export default function FlightSearchPanel() {
 
     const flightItem: Omit<FlightItem, "id" | "sortOrder" | "createdAt"> = {
       type: "flight",
-      price: Number(selectedPricing?.price?.total || selectedPricing?.price?.amount || 0),
-      currency: "USD",
+      price: Number(flight.price?.grandTotal || flight.price?.total || flight.price || 0),
+      currency: flight.price?.currency || "USD",
       date: params.useMultiDate ? format(params.departureDates[0], "yyyy-MM-dd") : params.departureDate,
       airline: airlineCode,
       airlineName: airlineInfo.name || airlineCode,
