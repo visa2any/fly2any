@@ -128,15 +128,49 @@ export async function POST(
           if (n8nResult.success) {
             // n8n processed successfully
             if (n8nResult.pnr) {
+              // DEFENSIVE: Handle missing consolidatorPrice
+              const consolidatorPrice = n8nResult.consolidatorPrice || null;
+              const customerPaid = automationData.pricing.customerPaid;
+              const profit = consolidatorPrice ? customerPaid - consolidatorPrice : null;
+
               await bookingStorage.update(bookingId, {
                 status: 'confirmed',
                 ticketingStatus: 'ticketed',
                 airlineRecordLocator: n8nResult.pnr,
-                consolidatorPrice: n8nResult.consolidatorPrice,
+                consolidatorPrice: consolidatorPrice,
+                customerPrice: customerPaid,
+                markup: profit,
+                netProfit: profit,
                 ticketedAt: new Date().toISOString(),
+                ticketingNotes: consolidatorPrice
+                  ? `Auto-ticketed. Profit: $${profit?.toFixed(2)}`
+                  : `Auto-ticketed. ⚠️ Manual price verification required.`,
               });
+
+              // Warn if price missing
+              if (!consolidatorPrice) {
+                console.warn(`⚠️ Auto-ticket succeeded but consolidatorPrice missing for ${bookingId}`);
+                try {
+                  const { notifyTelegramAdmins } = await import('@/lib/notifications/notification-service');
+                  await notifyTelegramAdmins(`
+⚠️ *PRICE VERIFICATION NEEDED*
+
+📋 *Booking:* \`${automationData.bookingReference}\`
+🎫 *PNR:* \`${n8nResult.pnr}\`
+❌ *Missing consolidator price*
+💵 *Customer Paid:* $${customerPaid}
+
+Please verify actual cost in consolidator portal.
+                  `.trim());
+                } catch {}
+              }
             }
-            return NextResponse.json(n8nResult);
+
+            // Return consolidatorPrice (even if null) for client display
+            return NextResponse.json({
+              ...n8nResult,
+              consolidatorPrice: n8nResult.consolidatorPrice || null,
+            });
           } else {
             // n8n failed - notify and return error
             throw new Error(n8nResult.error || 'n8n automation failed');

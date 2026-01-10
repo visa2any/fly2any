@@ -318,7 +318,13 @@ export default function AdminBookingDetailPage() {
       }
 
       if (data.success) {
-        alert(`✅ Auto-ticketing successful!\n\nPNR: ${data.pnr}\nConsolidator Price: $${data.consolidatorPrice}`);
+        const priceMsg = data.consolidatorPrice
+          ? `Consolidator Price: ${data.consolidatorPrice}`
+          : '⚠️ Price verification needed - check portal';
+        alert(`✅ Auto-ticketing successful!
+
+PNR: ${data.pnr}
+${priceMsg}`);
         fetchBooking();
       } else {
         alert(`❌ Auto-ticketing failed: ${data.error}`);
