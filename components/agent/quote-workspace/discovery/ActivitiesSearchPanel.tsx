@@ -238,7 +238,7 @@ export default function ActivitiesSearchPanel({ isTourMode = false }: { isTourMo
       console.warn(`⚠️ Multiple activities on ${selectedDate}. Verify timing doesn't overlap.`);
     }
 
-    // ActivityItem type expects: name, location, description, duration, participants, includes, image
+    // ActivityItem type expects: name, location, description, duration, time, participants, includes, image
     addItem({
       type: isTourMode ? "tour" : "activity",
       price: parseFloat(activity.price?.amount) || 0,
@@ -248,8 +248,9 @@ export default function ActivitiesSearchPanel({ isTourMode = false }: { isTourMo
       location: params.destination,
       participants: params.participants,
       duration: activityDuration,
+      time: activity.startTime || activity.time || undefined,
       description: activity.shortDescription || activity.description || "Experience this amazing activity",
-      image: activity.pictures?.[0]?.url || null,
+      image: activity.pictures?.[0]?.url || activity.images?.[0]?.url || null,
       includes: activity.includes || activity.inclusions || [],
       apiSource: "viator",
       apiOfferId: activity.id,
