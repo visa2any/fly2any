@@ -30,7 +30,10 @@ const getTypeIcon = (type: string) => {
 };
 
 export default function HotelSearchPanel() {
-  const { state, addItem, setSearchResults } = useQuoteWorkspace();
+  const { state, addItem, setSearchResults, restoreCachedSearch } = useQuoteWorkspace();
+  const { searchCache } = state.ui;
+  const cachedHotel = searchCache.hotel;
+  const cacheAge = cachedHotel ? Math.floor((Date.now() - cachedHotel.timestamp) / 60000) : null;
 
   // ═══ UNIFIED SEARCH RESULTS ═══
   // Consume pre-fetched results from unified search (when user searched from Flights tab)
@@ -171,6 +174,13 @@ export default function HotelSearchPanel() {
 
   const displaySuggestions = params.location.trim().length >= 2 ? suggestions : popularDestinations;
 
+  // Restore cached results on mount
+  useEffect(() => {
+    if (cachedHotel && !state.ui.searchResults) {
+      restoreCachedSearch("hotel");
+    }
+  }, []);
+
   const handleSearch = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
@@ -205,10 +215,10 @@ export default function HotelSearchPanel() {
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || data.hint || "Search failed");
       // API returns { success, data: hotels[], meta } - hotels are in data.data
-      setSearchResults(false, data.data || data.hotels || []);
+      setSearchResults(false, data.data || data.hotels || [], "hotel", params);
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : "Search failed");
-      setSearchResults(false, null);
+      setSearchResults(false, null, "hotel");
     }
   };
 
