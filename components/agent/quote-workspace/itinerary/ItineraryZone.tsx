@@ -56,7 +56,7 @@ export default function ItineraryZone() {
       {/* Content Area - Scrollable with padding for non-quote tabs */}
       <div className="flex-1 overflow-y-auto">
         {activeTab === 'quote' && (
-          <ItineraryTimeline />
+          isEmpty ? <EmptyItinerary /> : <ItineraryTimeline />
         )}
         {activeTab === 'client' && (
           <div className="px-6 py-4">
