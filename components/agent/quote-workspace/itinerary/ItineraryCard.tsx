@@ -225,7 +225,7 @@ export default function ItineraryCard({ item, dragListeners, isDragging, viewMod
           <div className="flex flex-col items-center justify-center px-3 py-3 border-t sm:border-t-0 sm:border-l border-gray-100 min-w-[100px]">
             {viewMode === "agent" ? (
               <>
-                <p className="text-base font-black text-gray-900 bg-yellow-100 px-2 py-1 rounded">{formatPrice(f.price)}</p>
+                <p className="text-base font-black text-gray-900 bg-yellow-50 border border-yellow-200 px-2 py-1 rounded">{formatPrice(f.price)}</p>
                 <p className="text-xs text-gray-400 mt-1">{f.passengers} pax • {isRoundtrip ? "RT" : "OW"}</p>
                 <div className="flex items-center gap-1 mt-1.5">
                   <button onClick={handleExpand} className="p-1.5 text-gray-400 hover:text-indigo-600 rounded hover:bg-indigo-50 transition-colors">
@@ -412,13 +412,13 @@ export default function ItineraryCard({ item, dragListeners, isDragging, viewMod
 
         {/* Main Content */}
         <div className="flex ml-5">
-          {/* Photo Thumbnail - Larger in client view */}
-          <div className={`${viewMode === "client" ? "w-36 h-28" : "w-20 h-20"} rounded-l-xl bg-emerald-100 overflow-hidden flex-shrink-0`}>
+          {/* Photo Thumbnail - Standardized 128x96 */}
+          <div className="w-32 h-24 rounded-l-xl bg-emerald-100 overflow-hidden flex-shrink-0">
             {a.image ? (
               <img src={a.image} alt={a.name} className="w-full h-full object-cover" loading="lazy" />
             ) : (
               <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-emerald-200 to-teal-200">
-                <Compass className={`${viewMode === "client" ? "w-10 h-10" : "w-8 h-8"} text-emerald-400`} />
+                <Compass className="w-8 h-8 text-emerald-400" />
               </div>
             )}
           </div>
@@ -449,10 +449,10 @@ export default function ItineraryCard({ item, dragListeners, isDragging, viewMod
                   <p className="text-[10px] text-gray-400 mt-1 line-clamp-1">{a.description}</p>
                 )}
               </div>
-              {/* Price - Agent Only / Client Emotional Copy */}
+              {/* Price - Standardized alignment */}
               {viewMode === "agent" ? (
                 <div className="flex-shrink-0 text-right">
-                  <p className="font-black text-gray-900 text-sm bg-yellow-100 px-2 py-0.5 rounded">{formatPrice(a.price)}</p>
+                  <p className="font-black text-gray-900 text-sm bg-yellow-50 border border-yellow-200 px-2 py-0.5 rounded">{formatPrice(a.price)}</p>
                   <p className="text-[9px] text-gray-400 mt-0.5">{a.date ? format(parseISO(a.date), "MMM d") : ""}</p>
                 </div>
               ) : (
@@ -552,13 +552,13 @@ export default function ItineraryCard({ item, dragListeners, isDragging, viewMod
 
         {/* Main Content */}
         <div className="flex ml-5">
-          {/* Photo Thumbnail - Larger in client view */}
-          <div className={`${viewMode === "client" ? "w-40 h-32" : "w-24 h-20"} rounded-l-xl bg-purple-100 overflow-hidden flex-shrink-0`}>
+          {/* Photo Thumbnail - Standardized 128x96 */}
+          <div className="w-32 h-24 rounded-l-xl bg-purple-100 overflow-hidden flex-shrink-0">
             {h.image ? (
               <img src={h.image} alt={h.name} className="w-full h-full object-cover" loading="lazy" />
             ) : (
               <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-purple-200 to-pink-200">
-                <Building2 className={`${viewMode === "client" ? "w-12 h-12" : "w-8 h-8"} text-purple-400`} />
+                <Building2 className="w-8 h-8 text-purple-400" />
               </div>
             )}
           </div>
@@ -599,10 +599,10 @@ export default function ItineraryCard({ item, dragListeners, isDragging, viewMod
                   </span>
                 </div>
               </div>
-              {/* Price - Agent Only / Client Emotional Copy */}
+              {/* Price - Standardized alignment */}
               {viewMode === "agent" ? (
                 <div className="flex-shrink-0 text-right">
-                  <p className="font-black text-gray-900 text-sm bg-yellow-100 px-2 py-0.5 rounded">{formatPrice(h.price)}</p>
+                  <p className="font-black text-gray-900 text-sm bg-yellow-50 border border-yellow-200 px-2 py-0.5 rounded">{formatPrice(h.price)}</p>
                   <p className="text-[9px] text-gray-400 mt-0.5">{h.checkIn ? format(parseISO(h.checkIn), "MMM d") : ""}</p>
                 </div>
               ) : (
@@ -715,7 +715,7 @@ export default function ItineraryCard({ item, dragListeners, isDragging, viewMod
         {/* Main Content */}
         <div className="flex ml-5">
           {/* Photo Thumbnail */}
-          <div className="w-20 h-20 rounded-l-xl bg-cyan-100 overflow-hidden flex-shrink-0">
+          <div className="w-32 h-24 rounded-l-xl bg-cyan-100 overflow-hidden flex-shrink-0">
             {c.image ? (
               <img src={c.image} alt={c.carType} className="w-full h-full object-cover" />
             ) : (
@@ -754,7 +754,7 @@ export default function ItineraryCard({ item, dragListeners, isDragging, viewMod
               {/* Price - Agent Only / Client Emotional Copy */}
               {viewMode === "agent" ? (
                 <div className="flex-shrink-0 text-right">
-                  <p className="font-black text-gray-900 text-sm bg-yellow-100 px-2 py-0.5 rounded">{formatPrice(c.price)}</p>
+                  <p className="font-black text-gray-900 text-sm bg-yellow-50 border border-yellow-200 px-2 py-0.5 rounded">{formatPrice(c.price)}</p>
                   <p className="text-[9px] text-gray-400 mt-0.5">{c.date ? format(parseISO(c.date), "MMM d") : ""}</p>
                 </div>
               ) : (
@@ -904,7 +904,7 @@ export default function ItineraryCard({ item, dragListeners, isDragging, viewMod
           {viewMode === "agent" ? (
             <div className="flex items-center gap-2 px-3 border-l border-gray-100">
               <div className="text-right">
-                <p className="font-black text-gray-900 text-sm bg-yellow-100 px-2 py-0.5 rounded">{formatPrice(t.price)}</p>
+                <p className="font-black text-gray-900 text-sm bg-yellow-50 border border-yellow-200 px-2 py-0.5 rounded">{formatPrice(t.price)}</p>
                 <p className="text-[9px] text-gray-400 mt-0.5">{t.date ? format(parseISO(t.date), "MMM d") : ""}</p>
               </div>
               <div className="flex flex-col gap-1">

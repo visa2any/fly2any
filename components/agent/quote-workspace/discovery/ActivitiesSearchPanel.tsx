@@ -194,22 +194,57 @@ export default function ActivitiesSearchPanel() {
   };
 
   const handleAddActivity = (activity: any) => {
+    const selectedDate = params.date || new Date().toISOString().split("T")[0];
+    const activityDuration = activity.duration || "Varies";
+    const isFullDay = activityDuration.toLowerCase().includes("full day") ||
+                      activityDuration.toLowerCase().includes("8 hour") ||
+                      activityDuration.toLowerCase().includes("all day");
+
+    // Check for date conflicts
+    const existingActivities = state.items.filter(
+      item => item.type === "activity" && item.date.split("T")[0] === selectedDate
+    );
+
+    if (existingActivities.length > 0) {
+      const hasFullDay = existingActivities.some(item => {
+        const dur = (item as any).duration || "";
+        return dur.toLowerCase().includes("full day") ||
+               dur.toLowerCase().includes("8 hour") ||
+               dur.toLowerCase().includes("all day");
+      });
+
+      if (hasFullDay) {
+        setError(`❌ Full-day activity already scheduled on ${new Date(selectedDate).toLocaleDateString()}. Choose different date.`);
+        return;
+      }
+
+      if (isFullDay) {
+        setError(`❌ Cannot add full-day activity. ${existingActivities.length} activity already on ${new Date(selectedDate).toLocaleDateString()}.`);
+        return;
+      }
+
+      // Warn but allow
+      console.warn(`⚠️ Multiple activities on ${selectedDate}. Verify timing doesn't overlap.`);
+    }
+
     // ActivityItem type expects: name, location, description, duration, participants, includes, image
     addItem({
       type: "activity",
       price: parseFloat(activity.price?.amount) || 0,
-      currency: "USD", // Force USD
-      date: params.date || new Date().toISOString().split("T")[0],
+      currency: "USD",
+      date: selectedDate,
       name: activity.name || "Activity",
       location: params.destination,
       participants: params.participants,
-      duration: activity.duration || "Varies",
+      duration: activityDuration,
       description: activity.shortDescription || activity.description || "Experience this amazing activity",
       image: activity.pictures?.[0]?.url || null,
       includes: activity.includes || activity.inclusions || [],
       apiSource: "viator",
       apiOfferId: activity.id,
     });
+
+    setError(null);
   };
 
   return (

@@ -36,7 +36,7 @@ const PRODUCT_TABS: {
   { type: "flight", icon: Plane, label: "Flights", gradient: "from-blue-500 to-indigo-600", shadowColor: "shadow-blue-500/30" },
   { type: "hotel", icon: Building2, label: "Hotels", gradient: "from-purple-500 to-pink-600", shadowColor: "shadow-purple-500/30" },
   { type: "car", icon: Car, label: "Cars", gradient: "from-cyan-500 to-blue-600", shadowColor: "shadow-cyan-500/30" },
-  { type: "activity", icon: Compass, label: "Activities", gradient: "from-emerald-500 to-teal-600", shadowColor: "shadow-emerald-500/30" },
+  { type: "activity", icon: Compass, label: "Tours & Activities", gradient: "from-emerald-500 to-teal-600", shadowColor: "shadow-emerald-500/30" },
   { type: "transfer", icon: Bus, label: "Transfers", gradient: "from-amber-500 to-orange-600", shadowColor: "shadow-amber-500/30" },
   { type: "insurance", icon: Shield, label: "Insurance", gradient: "from-rose-500 to-pink-600", shadowColor: "shadow-rose-500/30" },
   { type: "custom", icon: Package, label: "Custom", gradient: "from-gray-600 to-gray-800", shadowColor: "shadow-gray-500/30" },
