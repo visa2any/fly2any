@@ -35,9 +35,19 @@ function groupByDate(items: QuoteItem[]): Map<string, QuoteItem[]> {
     const key = item.date.split("T")[0];
     groups.set(key, [...(groups.get(key) || []), item]);
   });
-  // Semantic role sorting within each day (visual only)
+  // Auto-sort by time within each day
   groups.forEach((dayItems, key) => {
-    groups.set(key, sortItemsByRole(dayItems));
+    const sorted = [...dayItems].sort((a, b) => {
+      const timeA = timeToMinutes(extractTime(a));
+      const timeB = timeToMinutes(extractTime(b));
+      // If same time, use role-based sorting
+      if (timeA === timeB) {
+        const roleOrder = { flight: 1, car: 2, transfer: 3, hotel: 4, tour: 5, activity: 6, insurance: 7, custom: 8 };
+        return (roleOrder[a.type] || 99) - (roleOrder[b.type] || 99);
+      }
+      return timeA - timeB;
+    });
+    groups.set(key, sorted);
   });
   return groups;
 }
@@ -75,8 +85,8 @@ function extractTime(item: QuoteItem): string | undefined {
     return details.checkInTime || "14:00"; // Default to 2 PM check-in
   }
 
-  // Activities: use start time
-  if (item.type === "activity") {
+  // Activities/Tours: use start time
+  if (item.type === "activity" || item.type === "tour") {
     return details.time || details.startTime;
   }
 
@@ -91,6 +101,28 @@ function extractTime(item: QuoteItem): string | undefined {
   }
 
   return undefined;
+}
+
+// Convert time string to comparable number (HH:MM or ISO to minutes)
+function timeToMinutes(timeStr: string | undefined): number {
+  if (!timeStr) return 1440; // End of day for items without time
+
+  try {
+    // Try ISO format (2024-01-01T14:30:00)
+    if (timeStr.includes('T')) {
+      const time = timeStr.split('T')[1].substring(0, 5); // Extract HH:MM
+      const [h, m] = time.split(':').map(Number);
+      return h * 60 + m;
+    }
+    // Try HH:MM format
+    if (timeStr.includes(':')) {
+      const [h, m] = timeStr.split(':').map(Number);
+      return h * 60 + m;
+    }
+  } catch {
+    return 1440;
+  }
+  return 1440;
 }
 
 // Determine day label based on items
