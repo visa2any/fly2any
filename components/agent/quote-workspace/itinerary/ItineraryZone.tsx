@@ -54,7 +54,7 @@ export default function ItineraryZone() {
       </div>
 
       {/* Content Area */}
-      <div className="flex-1 overflow-hidden">
+      <div className="flex-1 overflow-y-auto">
         {activeTab === 'quote' && (
           <motion.div
             key="quote"
@@ -62,7 +62,7 @@ export default function ItineraryZone() {
             animate={{ opacity: 1, x: 0 }}
             exit={{ opacity: 0, x: 20 }}
             transition={{ duration: 0.2 }}
-            className="h-full"
+            className="h-full px-6 py-4"
           >
             {isEmpty ? <EmptyItinerary /> : <ItineraryTimeline />}
           </motion.div>
@@ -74,7 +74,7 @@ export default function ItineraryZone() {
             animate={{ opacity: 1, x: 0 }}
             exit={{ opacity: 0, x: 20 }}
             transition={{ duration: 0.2 }}
-            className="h-full"
+            className="h-full px-6 py-4"
           >
             <Client360View />
           </motion.div>
@@ -86,7 +86,7 @@ export default function ItineraryZone() {
             animate={{ opacity: 1, x: 0 }}
             exit={{ opacity: 0, x: 20 }}
             transition={{ duration: 0.2 }}
-            className="h-full"
+            className="h-full px-6 py-4"
           >
             <ReservationsView />
           </motion.div>
