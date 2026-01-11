@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 import { auth } from "@/lib/auth";
 import { getAgentWithAdminFallback } from "@/lib/auth-helpers";
 import { prisma } from "@/lib/prisma";
+import { safeDbOperation } from "@/lib/monitoring/global-error-handler";
 import AgentSidebar from "@/components/agent/AgentSidebar";
 import ConditionalTopBar from "@/components/agent/ConditionalTopBar";
 import AgentMobileNav from "@/components/agent/AgentMobileNav";
@@ -46,6 +47,13 @@ export default async function AgentLayout({
 
   // Check if demo user
   const isDemo = session.user.id === 'demo-agent-001' || session.user.email === 'demo@fly2any.com';
+  
+  // SECURITY: Block demo account in production
+  const isProduction = process.env.NODE_ENV === 'production' || process.env.VERCEL_ENV === 'production';
+  if (isDemo && isProduction) {
+    console.error('❌ Demo account attempted in production');
+    redirect('/auth/signin?error=demo-not-allowed');
+  }
 
   let serializedAgent;
   let serializedUser;
@@ -59,53 +67,63 @@ export default async function AgentLayout({
       image: null,
     };
   } else {
-    // Normal flow - fetch from DB
-    const agent = await getAgentWithAdminFallback(session.user.id);
+    // Normal flow - fetch from DB with error handling
+    const agent = await safeDbOperation(
+      () => getAgentWithAdminFallback(session.user.id),
+      'Get Agent with Fallback',
+      { userId: session.user.id }
+    );
 
     if (!agent) {
       redirect("/agent/register");
     }
 
-    // Guard against prisma being null/undefined
-    const fullAgent = prisma ? await prisma.travelAgent.findUnique({
-      where: { id: agent.id },
-      select: {
-        id: true,
-        tier: true,
-        status: true,
-        businessName: true,
-        isTestAccount: true,
-        availableBalance: true,
-        pendingBalance: true,
-        currentBalance: true,
-        user: {
+    // Guard against prisma being null/undefined with error handling
+    const fullAgent = await safeDbOperation(
+      async () => {
+        if (!prisma) return null;
+        return prisma.travelAgent.findUnique({
+          where: { id: agent.id },
           select: {
-            name: true,
-            email: true,
-            image: true,
+            id: true,
+            tier: true,
+            status: true,
+            businessName: true,
+            availableBalance: true,
+            pendingBalance: true,
+            currentBalance: true,
+            user: {
+              select: {
+                name: true,
+                email: true,
+                image: true,
+              },
+            },
           },
-        },
+        });
       },
-    }) : null;
+      'Fetch Agent Details',
+      { agentId: agent.id }
+    );
 
     if (!fullAgent) {
       redirect("/agent/register");
     }
 
+    // Safely serialize with null checks
     serializedAgent = {
-      id: String(fullAgent.id),
-      tier: String(fullAgent.tier),
-      status: String(fullAgent.status),
-      businessName: fullAgent.businessName ? String(fullAgent.businessName) : null,
-      isTestAccount: Boolean(fullAgent.isTestAccount),
+      id: String(fullAgent?.id || agent.id),
+      tier: String(fullAgent?.tier || 'STANDARD'),
+      status: String(fullAgent?.status || 'PENDING'),
+      businessName: fullAgent?.businessName ? String(fullAgent.businessName) : null,
       isDemo: false,
-      availableBalance: Number(fullAgent.availableBalance) || 0,
-      pendingBalance: Number(fullAgent.pendingBalance) || 0,
-      currentBalance: Number(fullAgent.currentBalance) || 0,
+      availableBalance: Number(fullAgent?.availableBalance) || 0,
+      pendingBalance: Number(fullAgent?.pendingBalance) || 0,
+      currentBalance: Number(fullAgent?.currentBalance) || 0,
       user: {
-        name: fullAgent.user?.name ? String(fullAgent.user.name) : null,
-        email: fullAgent.user?.email ? String(fullAgent.user.email) : "",
-        image: fullAgent.user?.image ? String(fullAgent.user.image) : null,
+        name: fullAgent?.user?.name ? String(fullAgent.user.name) : null,
+        email: fullAgent?.user?.email ? String(fullAgent.user.email) : "",
+        image: fullAgent?.user?.image ? String(fullAgent.user.image) : null,
       },
     };
 
@@ -116,7 +134,7 @@ export default async function AgentLayout({
     };
   }
 
-  const pendingMessage = serializedAgent.status === "PENDING" && !serializedAgent.isTestAccount && !isDemo ? (
+  const pendingMessage = serializedAgent.status === "PENDING" && !isDemo ? (
     <div className="mb-4 bg-yellow-50 border border-yellow-200 rounded-lg p-3">
       <p className="text-sm text-yellow-800">Your account is pending approval.</p>
     </div>

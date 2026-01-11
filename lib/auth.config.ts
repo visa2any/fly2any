@@ -6,12 +6,23 @@
  * - Uses bcryptjs for password hashing (Node.js only)
  * - ONLY use in Node.js runtime (API routes, server components)
  * - DO NOT import in middleware.ts or edge runtime files
+ * 
+ * SECURITY: Validates environment on import
  */
 import type { NextAuthConfig } from 'next-auth';
 import Google from 'next-auth/providers/google';
 import Credentials from 'next-auth/providers/credentials';
 import { prisma } from './prisma';
 import { validateAdminGoogleAuth, isAdminAuthContext } from './auth-admin';
+
+// CRITICAL: Security validation on module load
+import { validateSecurityEnvironment } from './security/startup-validation';
+validateSecurityEnvironment();
+
+// Security modules
+import { shouldAllowOAuthAutoLink } from './auth/oauth-linking';
+import { isSessionRevoked, areUserSessionsRevoked } from './auth/session';
+import { checkLoginRateLimit, recordFailedLogin, clearLoginAttempts } from './security/rate-limit';
 
 // Lazy import bcryptjs to avoid bundling in edge runtime
 // This is only evaluated when Credentials provider is used
@@ -107,23 +118,17 @@ export const authConfig = {
             );
 
             if (!hasGoogleAccount) {
-              // AUTO-LINK: Link Google account to existing user (FIX for OAuthAccountNotLinked)
-              await prisma!.account.create({
-                data: {
-                  userId: existingUser.id,
-                  type: account.type,
-                  provider: account.provider,
-                  providerAccountId: account.providerAccountId,
-                  access_token: account.access_token,
-                  refresh_token: account.refresh_token,
-                  expires_at: account.expires_at,
-                  token_type: account.token_type,
-                  scope: account.scope,
-                  id_token: account.id_token,
-                },
-              });
-              console.log(`✅ Auto-linked Google account to existing user: ${user.email}`);
+              // SECURITY FIX: DO NOT AUTO-LINK
+              // This prevents account takeover via OAuth
+              // User must explicitly link in settings with password verification
+              console.log(`⚠️  Google account not linked to existing user: ${user.email}`);
+              console.log(`   User must explicitly link via account settings`);
+              
+              // Redirect to error page with OAuthAccountNotLinked
+              // NextAuth will handle this with allowDangerousEmailAccountLinking: false
+              return false;
             }
+            
             // Update user.id to match existing user for proper session
             user.id = existingUser.id;
           } else {
