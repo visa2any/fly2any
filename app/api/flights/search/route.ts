@@ -2021,6 +2021,21 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // 405 - Method Not Allowed (shouldn't happen, but log it)
+    if (statusCode === 405) {
+      console.error('❌ 405 Method Not Allowed - This should not happen!');
+      console.error('Error details:', errorResponse);
+
+      return NextResponse.json(
+        {
+          error: 'Method not allowed',
+          message: 'The search method is not supported. Please try again.',
+          debug: process.env.NODE_ENV === 'development' ? errorResponse : undefined
+        },
+        { status: 405 }
+      );
+    }
+
     // 504 - Timeout
     if (error.message?.includes('timeout') || statusCode === 504) {
       return NextResponse.json(

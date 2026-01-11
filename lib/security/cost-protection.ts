@@ -97,7 +97,11 @@ export async function checkCostGuard(
   }
 
   // Layer 1: Quick bot check (fast path, no Redis)
-  if (isLikelyBot(request)) {
+  // DISABLED for flight search - too many false positives blocking real users
+  // Only enable for sensitive endpoints (bookings, payments)
+  const isSensitiveEndpoint = opts.endpoint?.includes('booking') || opts.endpoint?.includes('payment') || opts.endpoint?.includes('prebook');
+
+  if (isSensitiveEndpoint && isLikelyBot(request)) {
     // Send alert (non-blocking)
     const userAgent = request.headers.get('user-agent') || '';
     alertBotDetected(ip, userAgent, opts.endpoint).catch(() => {});
