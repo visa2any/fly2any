@@ -137,33 +137,32 @@ export async function checkCostGuard(
   }
 
   // Layer 3: Threat score analysis
-  // DISABLED for flight/hotel search - too many false positives
-  // Only enforce on sensitive endpoints (booking/payment/prebook)
-  if (isSensitiveEndpoint) {
-    const threatScore = await calculateThreatScore(request, ip);
+  // DISABLED blocking for flight/hotel search - too many false positives
+  // Only enforce blocking on sensitive endpoints (booking/payment/prebook)
+  const threatScore = await calculateThreatScore(request, ip);
 
-    if (shouldBlockRequest(threatScore, opts.threatThreshold)) {
-      // Log suspicious request
-      await logSuspiciousRequest(ip, opts.endpoint, threatScore.reasons);
+  // Only block on sensitive endpoints (booking/payment)
+  if (isSensitiveEndpoint && shouldBlockRequest(threatScore, opts.threatThreshold)) {
+    // Log suspicious request
+    await logSuspiciousRequest(ip, opts.endpoint, threatScore.reasons);
 
-      // Send alert for high threat score (non-blocking)
-      const userAgent = request.headers.get('user-agent') || '';
-      alertHighThreatScore(ip, threatScore.score, threatScore.reasons, opts.endpoint, userAgent).catch(() => {});
+    // Send alert for high threat score (non-blocking)
+    const userAgent = request.headers.get('user-agent') || '';
+    alertHighThreatScore(ip, threatScore.score, threatScore.reasons, opts.endpoint, userAgent).catch(() => {});
 
-      return {
-        allowed: false,
-        reason: 'threat_score_exceeded',
-        threatScore: threatScore.score,
-        response: NextResponse.json(
-          {
-            error: 'Request blocked',
-            code: 'SECURITY_CHECK_FAILED',
-            message: 'Your request was flagged by our security system. Please try again later.',
-          },
-          { status: 403 }
-        ),
-      };
-    }
+    return {
+      allowed: false,
+      reason: 'threat_score_exceeded',
+      threatScore: threatScore.score,
+      response: NextResponse.json(
+        {
+          error: 'Request blocked',
+          code: 'SECURITY_CHECK_FAILED',
+          message: 'Your request was flagged by our security system. Please try again later.',
+        },
+        { status: 403 }
+      ),
+    };
   }
 
   // Layer 4: Daily budget check (for expensive endpoints)
