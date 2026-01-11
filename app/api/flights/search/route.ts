@@ -1209,14 +1209,29 @@ export async function POST(request: NextRequest) {
         )
       );
 
-      console.log(`⚡ Executing ${searchPromises.length} searches IN PARALLEL...`);
+      console.log(`⚡ Executing ${searchPromises.length} searches in BATCHED PARALLEL...`);
       const startTime = Date.now();
 
-      // Execute all searches in parallel
-      const results = await Promise.all(searchPromises);
+      // Batch searches to avoid rate limits and timeouts
+      // Process in groups of 8 to balance speed vs API rate limits
+      const BATCH_SIZE = 8;
+      const results: any[] = [];
+
+      for (let i = 0; i < searchPromises.length; i += BATCH_SIZE) {
+        const batch = searchPromises.slice(i, i + BATCH_SIZE);
+        console.log(`  Processing batch ${Math.floor(i / BATCH_SIZE) + 1}/${Math.ceil(searchPromises.length / BATCH_SIZE)} (${batch.length} searches)...`);
+
+        const batchResults = await Promise.all(batch);
+        results.push(...batchResults);
+
+        // Small delay between batches to be respectful to APIs
+        if (i + BATCH_SIZE < searchPromises.length) {
+          await new Promise(resolve => setTimeout(resolve, 500));
+        }
+      }
 
       const parallelTime = Date.now() - startTime;
-      console.log(`⚡ Parallel search completed in ${parallelTime}ms (avg ${Math.round(parallelTime / searchPromises.length)}ms per route)`);
+      console.log(`⚡ Batched search completed in ${parallelTime}ms (avg ${Math.round(parallelTime / searchPromises.length)}ms per route)`);
 
       // Aggregate results
       results.forEach(result => {
@@ -1261,14 +1276,27 @@ export async function POST(request: NextRequest) {
         )
       );
 
-      console.log(`⚡ Executing ${searchPromises.length} searches IN PARALLEL...`);
+      console.log(`⚡ Executing ${searchPromises.length} searches in BATCHED PARALLEL (flexible dates)...`);
       const startTime = Date.now();
 
-      // Execute all searches in parallel
-      const results = await Promise.all(searchPromises);
+      // Batch searches to avoid rate limits
+      const BATCH_SIZE = 8;
+      const results: any[] = [];
+
+      for (let i = 0; i < searchPromises.length; i += BATCH_SIZE) {
+        const batch = searchPromises.slice(i, i + BATCH_SIZE);
+        console.log(`  Processing flex batch ${Math.floor(i / BATCH_SIZE) + 1}/${Math.ceil(searchPromises.length / BATCH_SIZE)} (${batch.length} searches)...`);
+
+        const batchResults = await Promise.all(batch);
+        results.push(...batchResults);
+
+        if (i + BATCH_SIZE < searchPromises.length) {
+          await new Promise(resolve => setTimeout(resolve, 500));
+        }
+      }
 
       const parallelTime = Date.now() - startTime;
-      console.log(`⚡ Parallel search completed in ${parallelTime}ms (avg ${Math.round(parallelTime / searchPromises.length)}ms per route)`);
+      console.log(`⚡ Flex search completed in ${parallelTime}ms (avg ${Math.round(parallelTime / searchPromises.length)}ms per route)`);
 
       // Aggregate results
       results.forEach(result => {
@@ -1285,7 +1313,7 @@ export async function POST(request: NextRequest) {
     } else {
       // Standard search with multiple airports (no flexible dates)
 
-      // ⚡ PERFORMANCE: Parallelize all searches using Promise.all
+      // ⚡ PERFORMANCE: Batch parallel searches
       const searchPromises = originCodes.flatMap(originCode =>
         destinationCodes.map(destinationCode => {
           console.log(`  Queuing: ${originCode} → ${destinationCode}`);
@@ -1303,14 +1331,27 @@ export async function POST(request: NextRequest) {
         })
       );
 
-      console.log(`⚡ Executing ${searchPromises.length} searches IN PARALLEL...`);
+      console.log(`⚡ Executing ${searchPromises.length} searches in BATCHED PARALLEL (multi-airport)...`);
       const startTime = Date.now();
 
-      // Execute all searches in parallel
-      const results = await Promise.all(searchPromises);
+      // Batch searches to avoid rate limits (smaller batches for quick search)
+      const BATCH_SIZE = 6;
+      const results: any[] = [];
+
+      for (let i = 0; i < searchPromises.length; i += BATCH_SIZE) {
+        const batch = searchPromises.slice(i, i + BATCH_SIZE);
+        console.log(`  Processing batch ${Math.floor(i / BATCH_SIZE) + 1}/${Math.ceil(searchPromises.length / BATCH_SIZE)} (${batch.length} searches)...`);
+
+        const batchResults = await Promise.all(batch);
+        results.push(...batchResults);
+
+        if (i + BATCH_SIZE < searchPromises.length) {
+          await new Promise(resolve => setTimeout(resolve, 500));
+        }
+      }
 
       const parallelTime = Date.now() - startTime;
-      console.log(`⚡ Parallel search completed in ${parallelTime}ms (avg ${Math.round(parallelTime / searchPromises.length)}ms per route)`);
+      console.log(`⚡ Multi-airport search completed in ${parallelTime}ms (avg ${Math.round(parallelTime / searchPromises.length)}ms per route)`);
 
       // Aggregate results
       results.forEach(result => {
