@@ -66,7 +66,8 @@ export default async function AgentLayout({
       redirect("/agent/register");
     }
 
-    const fullAgent = await prisma?.travelAgent.findUnique({
+    // Guard against prisma being null/undefined
+    const fullAgent = prisma ? await prisma.travelAgent.findUnique({
       where: { id: agent.id },
       select: {
         id: true,
@@ -85,7 +86,7 @@ export default async function AgentLayout({
           },
         },
       },
-    });
+    }) : null;
 
     if (!fullAgent) {
       redirect("/agent/register");
