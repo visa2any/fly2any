@@ -645,69 +645,6 @@ export function Header({
               </div>
             )}
 
-            {/* Language Selector - DISABLED (English Only) */}
-            {/* Kept infrastructure intact but hidden from UI */}
-            <div className="relative language-dropdown hidden">
-              <button
-                onClick={() => setLangDropdownOpen(!langDropdownOpen)}
-                className="group flex items-center gap-1 xl:gap-1.5 px-2 xl:px-3 py-1.5 xl:py-2 text-gray-700 transition-all duration-300 rounded-lg border border-gray-200 hover:border-primary-300 hover:bg-primary-50/30"
-                style={{
-                  minWidth: '58px',
-                }}
-              >
-                <span className="text-sm xl:text-base transition-transform group-hover:scale-110">
-                  {languages[language].flag}
-                </span>
-                <span className="font-semibold text-[10px] xl:text-xs uppercase tracking-wider text-gray-600 group-hover:text-primary-600">
-                  {languages[language].code}
-                </span>
-                <svg
-                  className={`w-2.5 xl:w-3 h-2.5 xl:h-3 text-gray-400 transition-all duration-200 ${langDropdownOpen ? 'rotate-180 text-primary-600' : 'group-hover:text-primary-600'}`}
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                >
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M19 9l-7 7-7-7" />
-                </svg>
-              </button>
-
-              {/* Dropdown Menu - Clean Minimal Design */}
-              {langDropdownOpen && (
-                <div
-                  className="absolute right-0 mt-2 w-44 rounded-xl overflow-hidden z-dropdown animate-slideDown shadow-xl"
-                  style={{
-                    background: 'white',
-                    border: '1px solid rgba(0, 0, 0, 0.08)',
-                  }}
-                >
-                  {(Object.keys(languages) as Language[]).map((languageKey) => (
-                    <button
-                      key={languageKey}
-                      onClick={() => handleLanguageChange(languageKey)}
-                      className={`w-full flex items-center gap-1.5.5 px-4 py-2.5 transition-all duration-150 ${
-                        language === languageKey
-                          ? 'bg-primary-600 text-white'
-                          : 'hover:bg-gray-50 text-gray-700'
-                      }`}
-                    >
-                      <span className="text-lg">{languages[languageKey].flag}</span>
-                      <span className="font-medium text-sm flex-1 text-left">
-                        {languages[languageKey].name}
-                      </span>
-                      {language === languageKey && (
-                        <svg className="w-4 h-4 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
-                          <path
-                            fillRule="evenodd"
-                            d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
-                            clipRule="evenodd"
-                          />
-                        </svg>
-                      )}
-                    </button>
-                  ))}
-                </div>
-              )}
-            </div>
 
             {/* My Account Button - Unified auth entry point, hidden on mobile */}
             {mounted && showAuth && !session?.user && (
