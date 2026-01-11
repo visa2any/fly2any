@@ -72,6 +72,21 @@ export default function HotelDetailPage() {
   const [similarHotels, setSimilarHotels] = useState<any[]>([]);
   const [isFavorited, setIsFavorited] = useState(false);
 
+  // Safe date formatting utility to prevent hydration mismatches
+  const formatDateSafe = (dateStr: string | null, format: 'short' | 'long' = 'short') => {
+    if (!dateStr) return 'Select';
+    try {
+      const [y, m, d] = dateStr.split('-').map(Number);
+      const date = new Date(y, m - 1, d);
+      if (isNaN(date.getTime())) return 'Select';
+      return format === 'short'
+        ? date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
+        : date.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' });
+    } catch {
+      return 'Select';
+    }
+  };
+
   // Room display state - show first 4 rooms, then "Load More"
   const [showAllRooms, setShowAllRooms] = useState(false);
   const INITIAL_ROOMS_TO_SHOW = 4;
@@ -411,9 +426,9 @@ export default function HotelDetailPage() {
             <div className="flex flex-wrap items-center justify-center gap-4 text-sm">
               <div className="flex items-center gap-2">
                 <Calendar className="w-4 h-4 text-white/80" />
-                <span className="font-medium">
+                <span className="font-medium" suppressHydrationWarning>
                   {checkIn && checkOut
-                    ? `${new Date(checkIn).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })} - ${new Date(checkOut).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}`
+                    ? `${formatDateSafe(checkIn, 'short')} - ${formatDateSafe(checkOut, 'short')}`
                     : 'Loading dates...'}
                 </span>
               </div>
@@ -949,8 +964,8 @@ export default function HotelDetailPage() {
                       </div>
                       <div>
                         <p className="text-[10px] text-gray-500 font-medium uppercase tracking-wide">Check-in</p>
-                        <p className="text-sm font-bold text-gray-800">
-                          {checkIn ? new Date(checkIn + 'T00:00:00').toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' }) : 'Select'}
+                        <p className="text-sm font-bold text-gray-800" suppressHydrationWarning>
+                          {formatDateSafe(checkIn, 'long')}
                         </p>
                       </div>
                     </div>
@@ -963,8 +978,8 @@ export default function HotelDetailPage() {
                       </div>
                       <div>
                         <p className="text-[10px] text-gray-500 font-medium uppercase tracking-wide">Check-out</p>
-                        <p className="text-sm font-bold text-gray-800">
-                          {checkOut ? new Date(checkOut + 'T00:00:00').toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' }) : 'Select'}
+                        <p className="text-sm font-bold text-gray-800" suppressHydrationWarning>
+                          {formatDateSafe(checkOut, 'long')}
                         </p>
                       </div>
                     </div>
@@ -996,15 +1011,15 @@ export default function HotelDetailPage() {
                   <div className="flex items-center gap-2">
                     <div className="flex items-center gap-1.5 px-2 py-1 bg-[#E74035]/10 rounded-lg">
                       <LogIn className="w-3.5 h-3.5 text-[#E74035]" />
-                      <span className="text-xs font-bold text-gray-800">
-                        {checkIn ? new Date(checkIn + 'T00:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) : 'Check-in'}
+                      <span className="text-xs font-bold text-gray-800" suppressHydrationWarning>
+                        {checkIn ? formatDateSafe(checkIn, 'short') : 'Check-in'}
                       </span>
                     </div>
                     <ArrowRight className="w-3 h-3 text-gray-300" />
                     <div className="flex items-center gap-1.5 px-2 py-1 bg-gray-100 rounded-lg">
                       <LogOut className="w-3.5 h-3.5 text-gray-500" />
-                      <span className="text-xs font-bold text-gray-800">
-                        {checkOut ? new Date(checkOut + 'T00:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) : 'Check-out'}
+                      <span className="text-xs font-bold text-gray-800" suppressHydrationWarning>
+                        {checkOut ? formatDateSafe(checkOut, 'short') : 'Check-out'}
                       </span>
                     </div>
                   </div>
@@ -1515,8 +1530,8 @@ export default function HotelDetailPage() {
                       </div>
                       <div className="min-w-0">
                         <p className="text-[10px] text-slate-500 leading-tight">Check-in</p>
-                        <p className="text-xs font-semibold text-slate-800 truncate">
-                          {checkIn ? (() => { const [y, m, d] = checkIn.split('-').map(Number); return new Date(y, m - 1, d).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }); })() : 'Select'}
+                        <p className="text-xs font-semibold text-slate-800 truncate" suppressHydrationWarning>
+                          {formatDateSafe(checkIn, 'short')}
                         </p>
                         <p className="text-[9px] text-slate-400">{hotel.checkInTime || '3:00 PM'}</p>
                       </div>
@@ -1529,8 +1544,8 @@ export default function HotelDetailPage() {
                       </div>
                       <div className="min-w-0">
                         <p className="text-[10px] text-slate-500 leading-tight">Check-out</p>
-                        <p className="text-xs font-semibold text-slate-800 truncate">
-                          {checkOut ? (() => { const [y, m, d] = checkOut.split('-').map(Number); return new Date(y, m - 1, d).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }); })() : 'Select'}
+                        <p className="text-xs font-semibold text-slate-800 truncate" suppressHydrationWarning>
+                          {formatDateSafe(checkOut, 'short')}
                         </p>
                         <p className="text-[9px] text-slate-400">{hotel.checkOutTime || '11:00 AM'}</p>
                       </div>
