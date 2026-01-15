@@ -10,6 +10,7 @@ export default function QuoteFooter() {
   const { state, openPreview, openClientModal, openSendModal, saveQuote, openTemplatesPanel } = useQuoteWorkspace();
   const [showMoreMenu, setShowMoreMenu] = useState(false);
   const [duplicating, setDuplicating] = useState(false);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const { items, pricing, client } = state;
 
   const itemCount = items.length;
@@ -40,14 +41,32 @@ export default function QuoteFooter() {
 
   // Export PDF
   const handleExportPdf = async () => {
-    if (!state.id) {
-      await saveQuote?.();
-    }
-    const quoteId = state.id;
-    if (!quoteId) return;
+    setErrorMessage(null);
 
-    window.open(`/api/agents/quotes/${quoteId}/pdf`, "_blank");
-    setShowMoreMenu(false);
+    // Ensure quote is saved first
+    if (!state.id) {
+      const result = await saveQuote?.();
+      if (!result?.success) {
+        setErrorMessage(result?.error || 'Failed to save quote before exporting PDF');
+        setTimeout(() => setErrorMessage(null), 5000);
+        return;
+      }
+    }
+
+    const quoteId = state.id;
+    if (!quoteId) {
+      setErrorMessage('Quote must be saved before exporting PDF');
+      setTimeout(() => setErrorMessage(null), 5000);
+      return;
+    }
+
+    try {
+      window.open(`/api/agents/quotes/${quoteId}/pdf`, "_blank");
+      setShowMoreMenu(false);
+    } catch (error) {
+      setErrorMessage('Failed to open PDF');
+      setTimeout(() => setErrorMessage(null), 5000);
+    }
   };
 
   // Format currency
@@ -61,7 +80,35 @@ export default function QuoteFooter() {
   };
 
   return (
-    <div className="px-4 lg:px-6 py-3 flex items-center justify-between gap-4">
+    <>
+      {/* Error Notification Toast */}
+      <AnimatePresence>
+        {errorMessage && (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: 20 }}
+            className="fixed bottom-20 left-1/2 -translate-x-1/2 z-50 max-w-md w-full mx-4"
+          >
+            <div className="bg-red-50 border border-red-200 rounded-xl px-4 py-3 shadow-lg flex items-start gap-3">
+              <div className="flex-shrink-0 w-5 h-5 rounded-full bg-red-500 flex items-center justify-center mt-0.5">
+                <span className="text-white text-xs font-bold">!</span>
+              </div>
+              <div className="flex-1">
+                <p className="text-sm font-medium text-red-900">{errorMessage}</p>
+              </div>
+              <button
+                onClick={() => setErrorMessage(null)}
+                className="flex-shrink-0 text-red-400 hover:text-red-600 transition-colors"
+              >
+                ×
+              </button>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      <div className="px-4 lg:px-6 py-3 flex items-center justify-between gap-4">
       {/* Left: Quick Stats */}
       <div className="hidden sm:flex items-center gap-4 text-sm">
         <div className="flex items-center gap-2 text-gray-500">
@@ -155,7 +202,16 @@ export default function QuoteFooter() {
                       Templates
                     </button>
                     <button
-                      onClick={() => saveQuote?.()}
+                      onClick={async () => {
+                        setErrorMessage(null);
+                        const result = await saveQuote?.();
+                        if (result?.success) {
+                          setShowMoreMenu(false);
+                        } else {
+                          setErrorMessage(result?.error || 'Failed to save quote');
+                          setTimeout(() => setErrorMessage(null), 5000);
+                        }
+                      }}
                       className="flex items-center gap-3 w-full px-3 py-2.5 text-left text-sm text-gray-700 hover:bg-gray-50 rounded-lg transition-colors"
                     >
                       <Save className="w-4 h-4 text-gray-400" />
@@ -206,6 +262,7 @@ export default function QuoteFooter() {
         <Shield className="w-3 h-3" />
         <span>{ctaOptimization.support.secureCheckout}</span>
       </div>
-    </div>
+      </div>
+    </>
   );
 }

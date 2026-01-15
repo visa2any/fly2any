@@ -21,6 +21,7 @@ export default function SendQuoteModal() {
   const [sending, setSending] = useState(false);
   const [sent, setSent] = useState(false);
   const [shareableLink, setShareableLink] = useState("");
+  const [error, setError] = useState<string | null>(null);
 
   // Format price
   const formatPrice = (amount: number) => {
@@ -37,29 +38,39 @@ export default function SendQuoteModal() {
     if ((channel === "sms" || channel === "whatsapp") && !phoneNumber) return;
 
     setSending(true);
+    setError(null);
 
     try {
       // Save quote first
-      const savedQuote = await saveQuote();
-      const quoteId = state.id || savedQuote?.id;
+      const saveResult = await saveQuote();
+      if (!saveResult?.success) {
+        setError(saveResult?.error || 'Failed to save quote');
+        setSending(false);
+        return;
+      }
+
+      const quoteId = state.id || saveResult?.quote?.id;
+      if (!quoteId) {
+        setError('Quote ID not found after saving');
+        setSending(false);
+        return;
+      }
 
       if (channel === "email") {
-        // Send email
         const res = await fetch(`/api/agents/quotes/${quoteId}/send`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            message,
-            includePdf,
-          }),
+          body: JSON.stringify({ message, includePdf }),
         });
         if (res.ok) {
           const data = await res.json();
           setShareableLink(data.shareableUrl || "");
           setSent(true);
+        } else {
+          const errorData = await res.json().catch(() => ({ error: 'Unknown error' }));
+          setError(errorData.error || 'Failed to send email');
         }
       } else {
-        // Send SMS or WhatsApp
         const res = await fetch(`/api/agents/quotes/${quoteId}/send-sms`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -74,10 +85,14 @@ export default function SendQuoteModal() {
           const data = await res.json();
           setShareableLink(data.shareableLink || "");
           setSent(true);
+        } else {
+          const errorData = await res.json().catch(() => ({ error: 'Unknown error' }));
+          setError(errorData.error || `Failed to send ${channel}`);
         }
       }
     } catch (error) {
       console.error("Failed to send quote:", error);
+      setError(error instanceof Error ? error.message : 'Network error occurred');
     } finally {
       setSending(false);
     }
@@ -85,10 +100,10 @@ export default function SendQuoteModal() {
 
   const handleClose = () => {
     closeSendModal();
-    // Reset state after a delay
     setTimeout(() => {
       setSent(false);
       setMessage("");
+      setError(null);
     }, 300);
   };
 
@@ -349,6 +364,18 @@ export default function SendQuoteModal() {
                         </div>
                       )}
                     </div>
+
+                    {/* Error Message */}
+                    {error && (
+                      <div className="px-5">
+                        <div className="p-3 bg-red-50 border border-red-200 rounded-xl flex items-start gap-2">
+                          <div className="flex-shrink-0 w-5 h-5 rounded-full bg-red-500 flex items-center justify-center mt-0.5">
+                            <span className="text-white text-xs font-bold">!</span>
+                          </div>
+                          <p className="text-sm text-red-900 flex-1">{error}</p>
+                        </div>
+                      </div>
+                    )}
 
                     {/* Footer */}
                     <div className="px-5 py-4 border-t border-gray-200 flex gap-3">

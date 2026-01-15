@@ -343,7 +343,14 @@ export function QuoteWorkspaceProvider({ children, initialQuoteId }: { children:
 
   // Save quote to API
   const saveQuote = useCallback(async () => {
-    if (state.items.length === 0 && !state.tripName) return; // Don't save empty quotes
+    if (state.items.length === 0 && !state.tripName) {
+      return { success: false, error: 'Cannot save empty quote. Add items or trip name first.' };
+    }
+
+    // Validate client is selected
+    if (!state.client?.id) {
+      return { success: false, error: 'Please select a client before saving.' };
+    }
 
     dispatch({ type: "SET_SAVING", payload: true });
     try {
@@ -356,7 +363,7 @@ export function QuoteWorkspaceProvider({ children, initialQuoteId }: { children:
       const customItems = state.items.filter(i => i.type === 'custom').map(i => i.data || {});
 
       const payload = {
-        clientId: state.client?.id || '',
+        clientId: state.client.id,
         tripName: state.tripName || 'Untitled Trip',
         destination: state.destination || '',
         startDate: state.startDate || new Date().toISOString(),
@@ -391,12 +398,15 @@ export function QuoteWorkspaceProvider({ children, initialQuoteId }: { children:
           dispatch({ type: "LOAD_QUOTE", payload: { id: data.quote.id } });
         }
         dispatch({ type: "SET_LAST_SAVED", payload: new Date().toISOString() });
-        return data.quote; // Return saved quote data
+        return { success: true, quote: data.quote };
+      } else {
+        const errorData = await res.json().catch(() => ({ error: 'Unknown error' }));
+        console.error("Save quote failed:", errorData);
+        return { success: false, error: errorData.error || 'Failed to save quote' };
       }
-      return null;
     } catch (error) {
       console.error("Save quote error:", error);
-      return null;
+      return { success: false, error: error instanceof Error ? error.message : 'Network error occurred' };
     } finally {
       dispatch({ type: "SET_SAVING", payload: false });
     }
@@ -418,12 +428,12 @@ export function QuoteWorkspaceProvider({ children, initialQuoteId }: { children:
   // Debounced autosave
   const debouncedSave = useDebouncedCallback(saveQuote, 2000);
 
-  // Autosave on state changes (excluding UI changes)
+  // Autosave on state changes (excluding UI changes) - only if client is selected
   useEffect(() => {
-    if (state.items.length > 0 || state.tripName) {
+    if ((state.items.length > 0 || state.tripName) && state.client?.id) {
       debouncedSave();
     }
-  }, [state.items, state.tripName, state.destination, state.startDate, state.endDate, state.travelers, state.pricing.markupPercent, state.client]);
+  }, [state.items, state.tripName, state.destination, state.startDate, state.endDate, state.travelers, state.pricing.markupPercent, state.client, debouncedSave]);
 
   // Load initial quote if ID provided
   useEffect(() => {
