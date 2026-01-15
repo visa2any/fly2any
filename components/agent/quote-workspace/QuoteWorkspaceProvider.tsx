@@ -354,13 +354,13 @@ export function QuoteWorkspaceProvider({ children, initialQuoteId }: { children:
 
     dispatch({ type: "SET_SAVING", payload: true });
     try {
-      // Transform items by type
-      const flights = state.items.filter(i => i.type === 'flight').map(i => i.data || {});
-      const hotels = state.items.filter(i => i.type === 'hotel').map(i => i.data || {});
-      const activities = state.items.filter(i => i.type === 'activity').map(i => i.data || {});
-      const transfers = state.items.filter(i => i.type === 'transfer').map(i => i.data || {});
-      const carRentals = state.items.filter(i => i.type === 'car').map(i => i.data || {});
-      const customItems = state.items.filter(i => i.type === 'custom').map(i => i.data || {});
+      // Transform items by type - filter out items without valid data
+      const flights = state.items.filter(i => i.type === 'flight' && i.data).map(i => i.data);
+      const hotels = state.items.filter(i => i.type === 'hotel' && i.data).map(i => i.data);
+      const activities = state.items.filter(i => i.type === 'activity' && i.data).map(i => i.data);
+      const transfers = state.items.filter(i => i.type === 'transfer' && i.data).map(i => i.data);
+      const carRentals = state.items.filter(i => i.type === 'car' && i.data).map(i => i.data);
+      const customItems = state.items.filter(i => i.type === 'custom' && i.data).map(i => i.data);
 
       const payload = {
         clientId: state.client.id,
@@ -403,7 +403,14 @@ export function QuoteWorkspaceProvider({ children, initialQuoteId }: { children:
       } else {
         const errorData = await res.json().catch(() => ({ error: 'Unknown error' }));
         console.error("Save quote failed:", errorData);
-        return { success: false, error: errorData.error || 'Failed to save quote' };
+        // Log validation details for debugging
+        if (errorData.details) {
+          console.error("Validation details:", JSON.stringify(errorData.details, null, 2));
+        }
+        const errorMsg = errorData.details
+          ? `Validation error: ${errorData.details[0]?.message || 'Check console for details'}`
+          : errorData.error || 'Failed to save quote';
+        return { success: false, error: errorMsg };
       }
     } catch (error) {
       console.error("Save quote error:", error);
