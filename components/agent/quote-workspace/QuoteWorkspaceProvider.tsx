@@ -436,9 +436,10 @@ export function QuoteWorkspaceProvider({ children, initialQuoteId }: { children:
   // Debounced autosave
   const debouncedSave = useDebouncedCallback(saveQuote, 2000);
 
-  // Autosave on state changes (excluding UI changes) - only if client is selected
+  // Autosave on state changes (excluding UI changes) - only if client is selected and has valid items
   useEffect(() => {
-    if ((state.items.length > 0 || state.tripName) && state.client?.id) {
+    const hasValidItems = state.items.some(i => i.data);
+    if ((hasValidItems || state.tripName) && state.client?.id) {
       debouncedSave();
     }
   }, [state.items, state.tripName, state.destination, state.startDate, state.endDate, state.travelers, state.pricing.markupPercent, state.client, debouncedSave]);
