@@ -362,12 +362,19 @@ export function QuoteWorkspaceProvider({ children, initialQuoteId }: { children:
       const carRentals = state.items.filter(i => i.type === 'car' && i.data).map(i => i.data);
       const customItems = state.items.filter(i => i.type === 'custom' && i.data).map(i => i.data);
 
+      // Ensure dates are in ISO format with timezone
+      const formatDateToISO = (dateStr: string) => {
+        if (!dateStr) return new Date().toISOString();
+        const date = new Date(dateStr);
+        return isNaN(date.getTime()) ? new Date().toISOString() : date.toISOString();
+      };
+
       const payload = {
         clientId: state.client.id,
         tripName: state.tripName || 'Untitled Trip',
         destination: state.destination || '',
-        startDate: state.startDate || new Date().toISOString(),
-        endDate: state.endDate || new Date().toISOString(),
+        startDate: formatDateToISO(state.startDate),
+        endDate: formatDateToISO(state.endDate),
         adults: state.travelers.adults,
         children: state.travelers.children,
         infants: state.travelers.infants,
