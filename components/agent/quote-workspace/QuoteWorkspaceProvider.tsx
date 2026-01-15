@@ -394,11 +394,12 @@ export function QuoteWorkspaceProvider({ children, initialQuoteId }: { children:
 
       if (res.ok) {
         const data = await res.json();
-        if (!state.id && data.quote?.id) {
-          dispatch({ type: "LOAD_QUOTE", payload: { id: data.quote.id } });
+        const savedQuote = data.quote;
+        if (!state.id && savedQuote?.id) {
+          dispatch({ type: "LOAD_QUOTE", payload: { id: savedQuote.id } });
         }
         dispatch({ type: "SET_LAST_SAVED", payload: new Date().toISOString() });
-        return { success: true, quote: data.quote };
+        return { success: true, quote: savedQuote };
       } else {
         const errorData = await res.json().catch(() => ({ error: 'Unknown error' }));
         console.error("Save quote failed:", errorData);
