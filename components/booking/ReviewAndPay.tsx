@@ -495,10 +495,6 @@ export function ReviewAndPay({
     </form>
   );
 }
-          <div className="flex items-center justify-center gap-4 text-xs text-gray-600">
-            <div className="flex items-center gap-1.5">
-              <span className="font-semibold">24/7 Support</span>
-              <a href="mailto:support@fly2any.com" className="text-primary-600 hover:underline font-medium">
                 Contact Us
               </a>
             </div>
