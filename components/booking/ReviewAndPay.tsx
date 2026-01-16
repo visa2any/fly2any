@@ -490,15 +490,6 @@ export function ReviewAndPay({
           <span className="text-xs font-semibold text-gray-600">AMEX</span>
           <span className="text-gray-300">•</span>
           <span className="text-xs font-semibold text-gray-600">DISCOVER</span>
-            <span className="text-gray-400">•</span>
-            <div className="flex items-center gap-1.5">
-              <Shield className="w-4 h-4 text-blue-600" />
-              <span>PCI DSS Compliant</span>
-            </div>
-            <span className="text-gray-400">•</span>
-            <div className="flex items-center gap-1.5">
-              <Check className="w-4 h-4 text-green-600" />
-              <span>3D Secure</span>
             </div>
           </div>
 
