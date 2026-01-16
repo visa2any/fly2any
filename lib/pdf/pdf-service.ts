@@ -35,16 +35,9 @@ export async function generateQuotePDF(options: PDFOptions): Promise<PDFResult> 
   }
 
   // Generate PDF using React PDF renderer
-  const pdfStream = await ReactPDF.renderToStream(
+  const buffer = await ReactPDF.renderToBuffer(
     QuotePDFTemplate({ quote })
   );
-
-  // Convert stream to buffer
-  const chunks: Buffer[] = [];
-  for await (const chunk of pdfStream) {
-    chunks.push(Buffer.from(chunk));
-  }
-  const buffer = Buffer.concat(chunks);
 
   return {
     buffer,
