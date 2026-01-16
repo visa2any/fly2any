@@ -6,12 +6,8 @@ import {
   Text,
   View,
   StyleSheet,
-  Font,
 } from "@react-pdf/renderer";
 import { format } from "date-fns";
-
-// Use system fonts for reliability in serverless environment
-// Font.register removed to prevent external font loading issues
 
 const styles = StyleSheet.create({
   page: {
