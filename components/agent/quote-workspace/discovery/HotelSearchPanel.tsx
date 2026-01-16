@@ -224,9 +224,11 @@ export default function HotelSearchPanel() {
 
   const handleAddHotel = (hotel: any) => {
     // Extract price - API returns lowestPrice: { amount, currency } or lowestPricePerNight as number
-    const totalPrice = hotel.lowestPrice?.amount
+    // Both represent per-night price, so multiply by nights for total
+    const pricePerNight = hotel.lowestPrice?.amount
       ? parseFloat(hotel.lowestPrice.amount)
-      : (hotel.lowestPricePerNight ? hotel.lowestPricePerNight * nights : 0);
+      : (hotel.lowestPricePerNight || 0);
+    const totalPrice = pricePerNight * Math.max(1, nights);
 
     // Extract image URL - API returns images: [{ url, alt }] array
     const imageUrl = hotel.thumbnail
@@ -583,8 +585,9 @@ function GuestRow({ label, sub, value, min, onChange }: { label: string; sub?: s
 }
 
 function HotelCard({ hotel, nights, onAdd }: { hotel: any; nights: number; onAdd: () => void }) {
-  const totalPrice = hotel.lowestPrice?.amount ? parseFloat(hotel.lowestPrice.amount) : (hotel.lowestPricePerNight ? hotel.lowestPricePerNight * nights : 0);
-  const perNight = hotel.lowestPricePerNight || (totalPrice > 0 ? totalPrice / nights : 0);
+  const pricePerNight = hotel.lowestPrice?.amount ? parseFloat(hotel.lowestPrice.amount) : (hotel.lowestPricePerNight || 0);
+  const totalPrice = pricePerNight * Math.max(1, nights);
+  const perNight = pricePerNight;
   const stars = hotel.rating || hotel.stars || 4;
   const score = hotel.reviewScore || 0;
   const img = hotel.thumbnail || hotel.images?.[0]?.url || hotel.image;
