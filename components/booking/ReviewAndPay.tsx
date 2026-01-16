@@ -495,10 +495,6 @@ export function ReviewAndPay({
     </form>
   );
 }
-                Contact Us
-              </a>
-            </div>
-            <span className="text-gray-400">•</span>
             <div className="flex items-center gap-1.5">
               <span className="text-green-600 font-semibold">✓</span>
               <span>500K+ Happy Travelers</span>
