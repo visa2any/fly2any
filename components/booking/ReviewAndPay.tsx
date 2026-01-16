@@ -482,12 +482,14 @@ export function ReviewAndPay({
         </button>
 
         {/* Payment Method Logos - BELOW BUTTON */}
-        <div className="mt-3 flex items-center justify-center gap-2">
-          <div className="flex items-center gap-1 px-2 py-1 bg-white border border-gray-200 rounded text-xs font-semibold text-gray-700">
-            <div className="flex items-center gap-1.5">
-              <Lock className="w-4 h-4 text-green-600" />
-              <span>256-bit SSL</span>
-            </div>
+        <div className="mt-3 flex items-center justify-center gap-2 flex-wrap">
+          <span className="text-xs font-semibold text-gray-600">VISA</span>
+          <span className="text-gray-300">•</span>
+          <span className="text-xs font-semibold text-gray-600">MASTERCARD</span>
+          <span className="text-gray-300">•</span>
+          <span className="text-xs font-semibold text-gray-600">AMEX</span>
+          <span className="text-gray-300">•</span>
+          <span className="text-xs font-semibold text-gray-600">DISCOVER</span>
             <span className="text-gray-400">•</span>
             <div className="flex items-center gap-1.5">
               <Shield className="w-4 h-4 text-blue-600" />
