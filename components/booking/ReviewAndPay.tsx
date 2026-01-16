@@ -434,7 +434,28 @@ export function ReviewAndPay({
         </label>
       </div>
 
-      {/* FINAL SUBMIT BUTTON - AT BOTTOM */}
+      {/* Security Badges - MOVED UP BEFORE BUTTON */}
+      <div className="border border-gray-200 rounded-lg p-3 bg-gradient-to-br from-gray-50 to-white">
+        <div className="flex items-center justify-center gap-4 text-xs text-gray-700 font-semibold mb-2">
+          <div className="flex items-center gap-1.5">
+            <Lock className="w-4 h-4 text-green-600" />
+            <span>256-bit SSL</span>
+          </div>
+          <span className="text-gray-300">•</span>
+          <div className="flex items-center gap-1.5">
+            <Shield className="w-4 h-4 text-blue-600" />
+            <span>PCI Compliant</span>
+          </div>
+          <span className="text-gray-300">•</span>
+          <div className="flex items-center gap-1.5">
+            <Check className="w-4 h-4 text-green-600" />
+            <span>3D Secure</span>
+          </div>
+        </div>
+        <p className="text-center text-xs text-gray-500">Your payment info is encrypted and secure</p>
+      </div>
+
+      {/* FINAL SUBMIT BUTTON */}
       <div className="border-2 border-success-500 rounded-lg p-4 bg-gradient-to-br from-success-50 to-success-100 shadow-lg">
         <button
           type="submit"
@@ -460,30 +481,9 @@ export function ReviewAndPay({
           )}
         </button>
 
-        {/* Enhanced Trust Signals */}
-        <div className="mt-4 space-y-3">
-          {/* Payment Method Logos */}
-          <div className="flex items-center justify-center gap-3">
-            <div className="flex items-center gap-2 px-3 py-1.5 bg-white border border-gray-200 rounded-md">
-              <CreditCard className="w-4 h-4 text-gray-600" />
-              <span className="text-xs font-semibold text-gray-700">VISA</span>
-            </div>
-            <div className="flex items-center gap-2 px-3 py-1.5 bg-white border border-gray-200 rounded-md">
-              <CreditCard className="w-4 h-4 text-gray-600" />
-              <span className="text-xs font-semibold text-gray-700">MASTERCARD</span>
-            </div>
-            <div className="flex items-center gap-2 px-3 py-1.5 bg-white border border-gray-200 rounded-md">
-              <CreditCard className="w-4 h-4 text-gray-600" />
-              <span className="text-xs font-semibold text-gray-700">AMEX</span>
-            </div>
-            <div className="flex items-center gap-2 px-3 py-1.5 bg-white border border-gray-200 rounded-md">
-              <Wallet className="w-4 h-4 text-blue-600" />
-              <span className="text-xs font-semibold text-gray-700">PAYPAL</span>
-            </div>
-          </div>
-
-          {/* Security Badges */}
-          <div className="flex items-center justify-center gap-4 text-xs text-gray-600 font-medium">
+        {/* Payment Method Logos - BELOW BUTTON */}
+        <div className="mt-3 flex items-center justify-center gap-2">
+          <div className="flex items-center gap-1 px-2 py-1 bg-white border border-gray-200 rounded text-xs font-semibold text-gray-700">
             <div className="flex items-center gap-1.5">
               <Lock className="w-4 h-4 text-green-600" />
               <span>256-bit SSL</span>

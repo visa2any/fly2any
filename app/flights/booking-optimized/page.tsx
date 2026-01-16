@@ -1475,110 +1475,26 @@ function BookingPageContent() {
             {/* STEP 3: Review & Pay */}
             {currentStep === 3 && (
               <div className="animate-fadeIn space-y-4">
-                {/* Guest Checkout Option */}
-                <div className="bg-white border border-gray-200 rounded-lg overflow-hidden">
-                  <div className="bg-gradient-to-r from-primary-500 to-primary-600 px-4 py-3 text-white">
-                    <h3 className="text-base font-bold flex items-center gap-2">
-                      <User className="w-5 h-5" />
-                      Complete Your Booking
-                    </h3>
-                    <p className="text-sm opacity-90 mt-1">
-                      Choose how you'd like to proceed with your booking
-                    </p>
-                  </div>
-                  <div className="p-4">
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      {/* Guest Checkout Option */}
-                      <div className="border-2 border-primary-200 rounded-xl p-4 bg-gradient-to-br from-primary-50 to-white hover:border-primary-300 transition-all cursor-pointer">
-                        <div className="flex items-start gap-3">
-                          <div className="w-10 h-10 bg-primary-100 rounded-full flex items-center justify-center text-primary-600">
-                            <User className="w-5 h-5" />
-                          </div>
-                          <div className="flex-1">
-                            <h4 className="font-bold text-gray-900 text-sm">Guest Checkout</h4>
-                            <p className="text-xs text-gray-600 mt-1">
-                              Book without creating an account. You'll receive your booking confirmation via email.
-                            </p>
-                            <div className="mt-3 space-y-2">
-                              <div className="flex items-center gap-2 text-xs text-gray-700">
-                                <Check className="w-3 h-3 text-green-600" />
-                                <span>No password required</span>
-                              </div>
-                              <div className="flex items-center gap-2 text-xs text-gray-700">
-                                <Check className="w-3 h-3 text-green-600" />
-                                <span>Instant booking confirmation</span>
-                              </div>
-                              <div className="flex items-center gap-2 text-xs text-gray-700">
-                                <Check className="w-3 h-3 text-green-600" />
-                                <span>Create account later if needed</span>
-                              </div>
-                            </div>
-                          </div>
-                        </div>
-                        <div className="mt-4 pt-3 border-t border-primary-100">
-                          <p className="text-xs text-gray-500">
-                            <strong>Note:</strong> You can create an account after booking using the link in your confirmation email.
-                          </p>
-                        </div>
-                      </div>
-
-                      {/* Create Account Option */}
-                      <div className="border-2 border-gray-200 rounded-xl p-4 bg-gradient-to-br from-gray-50 to-white hover:border-gray-300 transition-all cursor-pointer">
-                        <div className="flex items-start gap-3">
-                          <div className="w-10 h-10 bg-gray-100 rounded-full flex items-center justify-center text-gray-600">
-                            <Shield className="w-5 h-5" />
-                          </div>
-                          <div className="flex-1">
-                            <h4 className="font-bold text-gray-900 text-sm">Create Account</h4>
-                            <p className="text-xs text-gray-600 mt-1">
-                              Sign up for free to manage bookings, earn rewards, and get exclusive deals.
-                            </p>
-                            <div className="mt-3 space-y-2">
-                              <div className="flex items-center gap-2 text-xs text-gray-700">
-                                <Check className="w-3 h-3 text-blue-600" />
-                                <span>Manage all bookings in one place</span>
-                              </div>
-                              <div className="flex items-center gap-2 text-xs text-gray-700">
-                                <Check className="w-3 h-3 text-blue-600" />
-                                <span>Earn rewards points on every booking</span>
-                              </div>
-                              <div className="flex items-center gap-2 text-xs text-gray-700">
-                                <Check className="w-3 h-3 text-blue-600" />
-                                <span>Get exclusive member-only deals</span>
-                              </div>
-                            </div>
-                          </div>
-                        </div>
-                        <div className="mt-4 pt-3 border-t border-gray-100">
-                          <p className="text-xs text-gray-500">
-                            <strong>Benefit:</strong> Members save an average of 15% on future bookings.
-                          </p>
-                        </div>
-                      </div>
+                {/* Compact Guest Checkout Banner */}
+                <div className="bg-gradient-to-r from-primary-50 via-white to-primary-50 border border-primary-200 rounded-lg px-4 py-3">
+                  <div className="flex items-center gap-3">
+                    <div className="flex-shrink-0 w-10 h-10 bg-primary-100 rounded-full flex items-center justify-center">
+                      <User className="w-5 h-5 text-primary-600" />
                     </div>
-
-                    {/* Guest Checkout Notice */}
-                    <div className="mt-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
-                      <div className="flex items-start gap-2">
-                        <Info className="w-4 h-4 text-blue-600 mt-0.5 flex-shrink-0" />
-                        <p className="text-xs text-blue-800">
-                          <strong>Guest checkout selected:</strong> You'll receive your booking confirmation via email. 
-                          You can create an account anytime using the link in your confirmation email to manage your booking and earn rewards.
-                        </p>
-                      </div>
+                    <div className="flex-1">
+                      <p className="text-sm font-semibold text-gray-900">
+                        Guest Checkout • No account required
+                      </p>
+                      <p className="text-xs text-gray-600 mt-0.5">
+                        You can create an account after booking via your confirmation email
+                      </p>
+                    </div>
+                    <div className="flex-shrink-0 flex items-center gap-1 text-xs font-medium text-green-700 bg-green-100 px-2 py-1 rounded-full">
+                      <Check className="w-3 h-3" />
+                      Fast
                     </div>
                   </div>
                 </div>
-
-                {/* Promo Code Section */}
-                <PromoCodeSection
-                  totalPrice={totalPrice}
-                  currency={userCurrency}
-                  productType="flight"
-                  onApply={handlePromoApply}
-                  onRemove={handlePromoRemove}
-                  appliedDiscount={appliedPromo}
-                />
 
                 <ReviewAndPay
                   flightSummary={{
@@ -1666,10 +1582,11 @@ function BookingPageContent() {
               continueButtonDisabled={currentStep === 2 ? !arePassengersComplete() : currentStep === 3}
               formId={currentStep === 3 ? 'payment-form' : undefined}
               isProcessing={isProcessing}
-              // Promo code - available at all steps
               appliedPromo={appliedPromo}
               onApplyPromo={handlePromoApply}
               onRemovePromo={handlePromoRemove}
+              totalPrice={totalPrice}
+              productType="flight"
             />
           </div>
         </div>
