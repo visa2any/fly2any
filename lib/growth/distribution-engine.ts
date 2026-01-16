@@ -158,6 +158,245 @@ export async function postToTelegram(content: PostContent): Promise<PostResult> 
 }
 
 /**
+ * Post to Instagram (via Graph API)
+ */
+export async function postToInstagram(content: PostContent): Promise<PostResult> {
+  const text = formatForPlatform(content, 'instagram');
+  const accessToken = process.env.INSTAGRAM_ACCESS_TOKEN;
+  const igUserId = process.env.INSTAGRAM_USER_ID;
+
+  try {
+    if (!accessToken || !igUserId) {
+      throw new Error('Instagram credentials not configured');
+    }
+
+    // Create media container
+    const containerRes = await fetch(
+      `https://graph.facebook.com/v18.0/${igUserId}/media`,
+      {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          caption: text,
+          image_url: content.image,
+          access_token: accessToken,
+        }),
+      }
+    );
+
+    if (!containerRes.ok) {
+      throw new Error(`Instagram container error: ${containerRes.status}`);
+    }
+
+    const containerData = await containerRes.json();
+    const creationId = containerData.id;
+
+    // Publish media
+    const publishRes = await fetch(
+      `https://graph.facebook.com/v18.0/${igUserId}/media_publish`,
+      {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          creation_id: creationId,
+          access_token: accessToken,
+        }),
+      }
+    );
+
+    if (!publishRes.ok) {
+      throw new Error(`Instagram publish error: ${publishRes.status}`);
+    }
+
+    const publishData = await publishRes.json();
+    return {
+      platform: 'instagram',
+      success: true,
+      postId: publishData.id,
+      url: `https://www.instagram.com/p/${publishData.id}`,
+    };
+  } catch (error) {
+    return {
+      platform: 'instagram',
+      success: false,
+      error: error instanceof Error ? error.message : 'Unknown error',
+    };
+  }
+}
+
+/**
+ * Post to Facebook Page
+ */
+export async function postToFacebook(content: PostContent): Promise<PostResult> {
+  const text = formatForPlatform(content, 'facebook');
+  const accessToken = process.env.FACEBOOK_PAGE_ACCESS_TOKEN;
+  const pageId = process.env.FACEBOOK_PAGE_ID;
+
+  try {
+    if (!accessToken || !pageId) {
+      throw new Error('Facebook credentials not configured');
+    }
+
+    const response = await fetch(
+      `https://graph.facebook.com/v18.0/${pageId}/feed`,
+      {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          message: text,
+          link: content.link,
+          access_token: accessToken,
+        }),
+      }
+    );
+
+    if (!response.ok) {
+      throw new Error(`Facebook API error: ${response.status}`);
+    }
+
+    const data = await response.json();
+    return {
+      platform: 'facebook',
+      success: true,
+      postId: data.id,
+      url: `https://www.facebook.com/${pageId}/posts/${data.id}`,
+    };
+  } catch (error) {
+    return {
+      platform: 'facebook',
+      success: false,
+      error: error instanceof Error ? error.message : 'Unknown error',
+    };
+  }
+}
+
+/**
+ * Post to LinkedIn
+ */
+export async function postToLinkedIn(content: PostContent): Promise<PostResult> {
+  const text = formatForPlatform(content, 'linkedin');
+  const accessToken = process.env.LINKEDIN_ACCESS_TOKEN;
+  const personId = process.env.LINKEDIN_PERSON_ID; // urn:li:person:xxx
+
+  try {
+    if (!accessToken || !personId) {
+      throw new Error('LinkedIn credentials not configured');
+    }
+
+    const response = await fetch(
+      'https://api.linkedin.com/v2/ugcPosts',
+      {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${accessToken}`,
+          'Content-Type': 'application/json',
+          'X-Restli-Protocol-Version': '2.0.0',
+        },
+        body: JSON.stringify({
+          author: personId,
+          lifecycleState: 'PUBLISHED',
+          specificContent: {
+            'com.linkedin.ugc.ShareContent': {
+              shareCommentary: {
+                text: text,
+              },
+              shareMediaCategory: 'NONE',
+            },
+          },
+          visibility: {
+            'com.linkedin.ugc.MemberNetworkVisibility': 'PUBLIC',
+          },
+        }),
+      }
+    );
+
+    if (!response.ok) {
+      throw new Error(`LinkedIn API error: ${response.status}`);
+    }
+
+    const data = await response.json();
+    return {
+      platform: 'linkedin',
+      success: true,
+      postId: data.id,
+      url: `https://www.linkedin.com/feed/update/${data.id}`,
+    };
+  } catch (error) {
+    return {
+      platform: 'linkedin',
+      success: false,
+      error: error instanceof Error ? error.message : 'Unknown error',
+    };
+  }
+}
+
+/**
+ * Post to Reddit
+ */
+export async function postToReddit(
+  content: PostContent,
+  subreddit: string = 'TravelDeals'
+): Promise<PostResult> {
+  const text = formatForPlatform(content, 'reddit');
+  const clientId = process.env.REDDIT_CLIENT_ID;
+  const clientSecret = process.env.REDDIT_CLIENT_SECRET;
+  const username = process.env.REDDIT_USERNAME;
+  const password = process.env.REDDIT_PASSWORD;
+
+  try {
+    if (!clientId || !clientSecret || !username || !password) {
+      throw new Error('Reddit credentials not configured');
+    }
+
+    // Get access token
+    const auth = Buffer.from(`${clientId}:${clientSecret}`).toString('base64');
+    const tokenRes = await fetch('https://www.reddit.com/api/v1/access_token', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Basic ${auth}`,
+        'Content-Type': 'application/x-www-form-urlencoded',
+      },
+      body: `grant_type=password&username=${username}&password=${password}`,
+    });
+
+    if (!tokenRes.ok) {
+      throw new Error(`Reddit auth error: ${tokenRes.status}`);
+    }
+
+    const { access_token } = await tokenRes.json();
+
+    // Submit post
+    const postRes = await fetch('https://oauth.reddit.com/api/submit', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${access_token}`,
+        'Content-Type': 'application/x-www-form-urlencoded',
+        'User-Agent': 'Fly2Any/1.0',
+      },
+      body: `sr=${subreddit}&kind=self&title=${encodeURIComponent(content.text.slice(0, 300))}&text=${encodeURIComponent(text)}`,
+    });
+
+    if (!postRes.ok) {
+      throw new Error(`Reddit post error: ${postRes.status}`);
+    }
+
+    const data = await postRes.json();
+    return {
+      platform: 'reddit',
+      success: true,
+      postId: data.json?.data?.id,
+      url: data.json?.data?.url,
+    };
+  } catch (error) {
+    return {
+      platform: 'reddit',
+      success: false,
+      error: error instanceof Error ? error.message : 'Unknown error',
+    };
+  }
+}
+
+/**
  * Post to multiple platforms
  */
 export async function postToAll(

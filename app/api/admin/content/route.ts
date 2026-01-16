@@ -1,28 +1,38 @@
 export const dynamic = 'force-dynamic';
 
-import { NextResponse } from 'next/server'
-
-// Content storage (in production, use database)
-const contentStore: any[] = []
+import { NextRequest, NextResponse } from 'next/server';
+import { prisma } from '@/lib/prisma';
 
 export async function GET() {
   try {
-    return NextResponse.json({
-      success: true,
-      content: contentStore.slice(0, 50),
-      stats: {
-        total: contentStore.length,
-        published: contentStore.filter(c => c.status === 'published').length,
-        scheduled: contentStore.filter(c => c.status === 'scheduled').length,
-        drafts: contentStore.filter(c => c.status === 'draft').length,
-        totalViews: contentStore.reduce((sum, c) => sum + (c.views || 0), 0),
-        avgEngagement: contentStore.length > 0
-          ? Math.round(contentStore.reduce((sum, c) => sum + (c.engagement || 0), 0) / contentStore.length)
-          : 0
-      }
-    })
+    const content = await prisma!.contentQueue.findMany({
+      orderBy: [
+        { status: 'asc' },
+        { scheduledAt: 'desc' }
+      ],
+      take: 50
+    });
+
+    return NextResponse.json({ success: true, content });
   } catch (error) {
-    console.error('Content admin error:', error)
-    return NextResponse.json({ success: false, content: [], stats: {} })
+    console.error('Failed to fetch content:', error);
+    return NextResponse.json({ success: false, error: 'Failed to fetch' }, { status: 500 });
+  }
+}
+
+export async function DELETE(request: NextRequest) {
+  try {
+    const { searchParams } = new URL(request.url);
+    const id = searchParams.get('id');
+
+    if (!id) {
+      return NextResponse.json({ success: false, error: 'ID required' }, { status: 400 });
+    }
+
+    await prisma!.contentQueue.delete({ where: { id } });
+    return NextResponse.json({ success: true });
+  } catch (error) {
+    console.error('Failed to delete:', error);
+    return NextResponse.json({ success: false, error: 'Failed to delete' }, { status: 500 });
   }
 }
