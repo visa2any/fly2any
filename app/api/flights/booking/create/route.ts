@@ -1744,6 +1744,71 @@ Requires manual review.
         console.log('✅ Skipping authorization doc - Duffel 3DS provides chargeback protection');
       }
 
+      // STEP 7.5: Create CardAuthorization placeholder for post-payment verification
+      // Applies ONLY to manual ticketing (Amadeus/GDS) for first-time customers
+      if (requiresManualTicketing && !skipAuthorization) {
+        try {
+          const prisma = getPrismaClient();
+
+          // Check if customer already has verified docs from previous booking
+          const existingVerifiedAuth = await prisma.cardAuthorization.findFirst({
+            where: {
+              email: bookingContactInfo.email.toLowerCase(),
+              status: 'VERIFIED',
+              cardFrontImage: { not: null },
+              cardBackImage: { not: null },
+              idDocumentImage: { not: null },
+            },
+          });
+
+          // Only create if first-time customer (no verified docs on file)
+          if (!existingVerifiedAuth) {
+            console.log('📸 Creating post-payment verification record (first-time customer)...');
+
+            await prisma.cardAuthorization.create({
+              data: {
+                bookingReference: savedBooking.bookingReference,
+                cardholderName: payment.cardName || bookingContactInfo.email.split('@')[0],
+                cardLast4: payment.cardNumber?.replace(/\s/g, '').slice(-4) || '****',
+                cardBrand: payment.cardBrand || 'unknown',
+                expiryMonth: parseInt(payment.expiryMonth || '12', 10),
+                expiryYear: parseInt(payment.expiryYear || '25', 10) + (parseInt(payment.expiryYear || '25') < 100 ? 2000 : 0),
+                billingStreet: payment.billingAddress || 'PENDING',
+                billingCity: payment.billingCity || 'PENDING',
+                billingState: payment.billingState || 'PENDING',
+                billingZip: payment.billingZip || 'PENDING',
+                billingCountry: payment.billingCountry || 'US',
+                email: bookingContactInfo.email,
+                phone: bookingContactInfo.phone || 'PENDING',
+                amount: totalAmount,
+                currency: confirmedOffer.price.currency,
+                cardFrontImage: null, // Will be uploaded via post-payment verification
+                cardBackImage: null,  // Will be uploaded via post-payment verification
+                idDocumentImage: null, // Will be uploaded via post-payment verification
+                signatureTyped: payment.signatureName || 'PENDING',
+                ackAuthorize: true,
+                ackCardholder: true,
+                ackNonRefundable: true,
+                ackPassengerInfo: true,
+                ackTerms: true,
+                ipAddress: request.headers.get('x-forwarded-for') || request.headers.get('x-real-ip') || 'unknown',
+                userAgent: request.headers.get('user-agent') || undefined,
+                status: 'NOT_STARTED', // Triggers post-payment verification modal
+                riskScore: 0,
+                riskFactors: ['Pending post-payment verification'],
+              },
+            });
+
+            console.log('✅ Post-payment verification record created - modal will show on confirmation page');
+          } else {
+            console.log('✅ Customer has verified docs on file - skipping verification');
+          }
+        } catch (authError) {
+          console.error('⚠️ Failed to create verification record (non-blocking):', authError);
+          // Don't fail booking if verification record creation fails
+        }
+      }
+
       // STEP 8: Send appropriate email based on booking type
       // - Card payment (not hold) → Card Payment Processing email
       // - Hold booking → Payment Instructions email
