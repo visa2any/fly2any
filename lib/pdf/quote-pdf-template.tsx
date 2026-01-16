@@ -10,20 +10,13 @@ import {
 } from "@react-pdf/renderer";
 import { format } from "date-fns";
 
-// Register fonts if needed (optional - falls back to default sans-serif)
-Font.register({
-  family: "Inter",
-  fonts: [
-    { src: "https://fonts.gstatic.com/s/inter/v12/UcCO3FwrK3iLTeHuS_fvQtMwCp50KnMw2boKoduKmMEVuLyfAZ9hiA.woff2", fontWeight: 400 },
-    { src: "https://fonts.gstatic.com/s/inter/v12/UcCO3FwrK3iLTeHuS_fvQtMwCp50KnMw2boKoduKmMEVuGKYAZ9hiA.woff2", fontWeight: 600 },
-    { src: "https://fonts.gstatic.com/s/inter/v12/UcCO3FwrK3iLTeHuS_fvQtMwCp50KnMw2boKoduKmMEVuFuYAZ9hiA.woff2", fontWeight: 700 },
-  ],
-});
+// Use system fonts for reliability in serverless environment
+// Font.register removed to prevent external font loading issues
 
 const styles = StyleSheet.create({
   page: {
     padding: 48,
-    fontFamily: "Inter",
+    fontFamily: "Helvetica",
     fontSize: 10,
     color: "#1C1C1C",
     backgroundColor: "#FFFFFF",
