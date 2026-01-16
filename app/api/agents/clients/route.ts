@@ -246,14 +246,23 @@ export async function POST(request: NextRequest) {
     console.error("[CLIENT_CREATE_ERROR]", error);
 
     if (error instanceof z.ZodError) {
+      const fieldErrors = error.issues.map(issue => ({
+        field: issue.path.join('.'),
+        message: issue.message
+      }));
+      console.error("[VALIDATION_ERRORS]", fieldErrors);
       return NextResponse.json(
-        { error: "Validation error", details: error.issues },
+        { error: "Validation error", details: fieldErrors },
         { status: 400 }
       );
     }
 
+    if (error instanceof Error) {
+      console.error("[ERROR_MESSAGE]", error.message);
+    }
+
     return NextResponse.json(
-      { error: "Internal server error" },
+      { error: "Internal server error", message: error instanceof Error ? error.message : 'Unknown error' },
       { status: 500 }
     );
   }
