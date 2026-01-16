@@ -4,7 +4,7 @@ export const dynamic = 'force-dynamic';
 // Client Management - List and Create
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
-
+import { handleApiError, ErrorCategory, ErrorSeverity } from '@/lib/monitoring/global-error-handler';
 import prisma from "@/lib/prisma";
 import { z } from "zod";
 
@@ -98,6 +98,94 @@ export async function GET(request: NextRequest) {
 }
 
 // POST /api/agents/clients - Create new client
+export async function POST(request: NextRequest) {
+  return handleApiError(request, async () => {
+    const session = await auth();
+    if (!session?.user?.id) {
+      return NextResponse.json({ error: "Authentication required" }, { status: 401 });
+    }
+
+    const agent = await prisma!.travelAgent.findUnique({
+      where: { userId: session.user.id },
+    });
+
+    if (!agent) {
+      return NextResponse.json({ error: "Agent profile not found" }, { status: 404 });
+    }
+
+    // Check client limit
+    const clientCount = await prisma!.agentClient.count({
+      where: { agentId: agent.id, status: "ACTIVE" },
+    });
+
+    if (clientCount >= agent.maxClients) {
+      return NextResponse.json(
+        { error: `Client limit reached (${agent.maxClients} clients). Upgrade your tier for more clients.` },
+        { status: 403 }
+      );
+    }
+
+    const body = await request.json();
+    const validatedData = CreateClientSchema.parse(body);
+
+    // Check for duplicate email
+    const existingClient = await prisma!.agentClient.findFirst({
+      where: { agentId: agent.id, email: validatedData.email },
+    });
+
+    if (existingClient) {
+      return NextResponse.json(
+        { error: "Client with this email already exists" },
+        { status: 400 }
+      );
+    }
+
+    // Parse dates
+    const data: any = { ...validatedData, agentId: agent.id };
+
+    if (validatedData.dateOfBirth && validatedData.dateOfBirth.trim() !== '') {
+      data.dateOfBirth = new Date(validatedData.dateOfBirth);
+    } else {
+      data.dateOfBirth = undefined;
+    }
+
+    if (validatedData.anniversary && validatedData.anniversary.trim() !== '') {
+      data.anniversary = new Date(validatedData.anniversary);
+    } else {
+      data.anniversary = undefined;
+    }
+
+    if (validatedData.passportExpiry && validatedData.passportExpiry.trim() !== '') {
+      data.passportExpiry = new Date(validatedData.passportExpiry);
+    } else {
+      data.passportExpiry = undefined;
+    }
+
+    // Create client
+    const client = await prisma!.agentClient.create({
+      data,
+      include: {
+        _count: {
+          select: { quotes: true, bookings: true },
+        },
+      },
+    });
+
+    // Log activity
+    await prisma!.agentActivityLog.create({
+      data: {
+        agentId: agent.id,
+        activityType: "client_added",
+        description: `New client added: ${client.firstName} ${client.lastName}`,
+        entityType: "client",
+        entityId: client.id,
+      },
+    });
+
+    return NextResponse.json({ client }, { status: 201 });
+  }, { category: ErrorCategory.DATABASE, severity: ErrorSeverity.HIGH });
+}
+
 const CreateClientSchema = z.object({
   firstName: z.string().min(1),
   lastName: z.string().min(1),
@@ -140,130 +228,3 @@ const CreateClientSchema = z.object({
   tags: z.array(z.string()).optional(),
   notes: z.string().optional(),
 });
-
-export async function POST(request: NextRequest) {
-  try {
-    const session = await auth();
-    if (!session?.user?.id) {
-      return NextResponse.json(
-        { error: "Authentication required" },
-        { status: 401 }
-      );
-    }
-
-    const agent = await prisma!.travelAgent.findUnique({
-      where: { userId: session.user.id },
-    });
-
-    if (!agent) {
-      return NextResponse.json(
-        { error: "Agent profile not found" },
-        { status: 404 }
-      );
-    }
-
-    // Check client limit
-    const clientCount = await prisma!.agentClient.count({
-      where: { agentId: agent.id, status: "ACTIVE" },
-    });
-
-    if (clientCount >= agent.maxClients) {
-      return NextResponse.json(
-        {
-          error: `Client limit reached (${agent.maxClients} clients). Upgrade your tier for more clients.`,
-        },
-        { status: 403 }
-      );
-    }
-
-    const body = await request.json();
-    const validatedData = CreateClientSchema.parse(body);
-
-    // Check for duplicate email
-    const existingClient = await prisma!.agentClient.findFirst({
-      where: {
-        agentId: agent.id,
-        email: validatedData.email,
-      },
-    });
-
-    if (existingClient) {
-      return NextResponse.json(
-        { error: "Client with this email already exists" },
-        { status: 400 }
-      );
-    }
-
-    // Parse dates - convert non-empty strings to Date objects
-    const data: any = { ...validatedData, agentId: agent.id };
-
-    // Convert empty strings to undefined (Prisma doesn't accept empty strings for DateTime fields)
-    if (validatedData.dateOfBirth && validatedData.dateOfBirth.trim() !== '') {
-      data.dateOfBirth = new Date(validatedData.dateOfBirth);
-    } else {
-      data.dateOfBirth = undefined;
-    }
-
-    if (validatedData.anniversary && validatedData.anniversary.trim() !== '') {
-      data.anniversary = new Date(validatedData.anniversary);
-    } else {
-      data.anniversary = undefined;
-    }
-
-    if (validatedData.passportExpiry && validatedData.passportExpiry.trim() !== '') {
-      data.passportExpiry = new Date(validatedData.passportExpiry);
-    } else {
-      data.passportExpiry = undefined;
-    }
-
-    // Create client
-    const client = await prisma!.agentClient.create({
-      data,
-      include: {
-        _count: {
-          select: {
-            quotes: true,
-            bookings: true,
-          },
-        },
-      },
-    });
-
-    // Log activity
-    await prisma!.agentActivityLog.create({
-      data: {
-        agentId: agent.id,
-        activityType: "client_added",
-        description: `New client added: ${client.firstName} ${client.lastName}`,
-        entityType: "client",
-        entityId: client.id,
-      },
-    });
-
-    return NextResponse.json({ client }, { status: 201 });
-
-  } catch (error) {
-    console.error("[CLIENT_CREATE_ERROR]", error);
-
-    if (error instanceof z.ZodError) {
-      const fieldErrors = error.issues.map(issue => ({
-        field: issue.path.join('.'),
-        message: issue.message
-      }));
-      console.error("[VALIDATION_ERRORS]", fieldErrors);
-      return NextResponse.json(
-        { error: "Validation error", details: fieldErrors },
-        { status: 400 }
-      );
-    }
-
-    if (error instanceof Error) {
-      console.error("[ERROR_MESSAGE]", error.message);
-    }
-
-    return NextResponse.json(
-      { error: "Internal server error", message: error instanceof Error ? error.message : 'Unknown error' },
-      { status: 500 }
-    );
-  }
-}
