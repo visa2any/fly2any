@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Send, User, Package, DollarSign, MoreHorizontal, Copy, FileText, Save, Download, Shield } from "lucide-react";
+import { Send, User, Package, DollarSign, MoreHorizontal, Copy, FileText, Save, Download, Shield, Loader2 } from "lucide-react";
 import { useQuoteWorkspace } from "./QuoteWorkspaceProvider";
 import { ctaOptimization } from "./client-preview/USConversionCopy";
 
@@ -42,6 +42,7 @@ export default function QuoteFooter() {
   // Export PDF
   const handleExportPdf = async () => {
     setErrorMessage(null);
+    setShowMoreMenu(false);
 
     // Ensure quote is saved first
     if (!state.id) {
@@ -61,10 +62,26 @@ export default function QuoteFooter() {
     }
 
     try {
-      window.open(`/api/agents/quotes/${quoteId}/pdf`, "_blank");
-      setShowMoreMenu(false);
+      // Fetch PDF with error handling
+      const response = await fetch(`/api/agents/quotes/${quoteId}/pdf`);
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({ error: 'Failed to generate PDF' }));
+        setErrorMessage(errorData.error || 'PDF generation failed. Please try again.');
+        setTimeout(() => setErrorMessage(null), 5000);
+        return;
+      }
+
+      // Open PDF in new tab
+      const blob = await response.blob();
+      const url = URL.createObjectURL(blob);
+      window.open(url, "_blank");
+
+      // Cleanup
+      setTimeout(() => URL.revokeObjectURL(url), 100);
     } catch (error) {
-      setErrorMessage('Failed to open PDF');
+      console.error('PDF export error:', error);
+      setErrorMessage('Failed to export PDF. Check your connection and try again.');
       setTimeout(() => setErrorMessage(null), 5000);
     }
   };
@@ -90,16 +107,16 @@ export default function QuoteFooter() {
             exit={{ opacity: 0, y: 20 }}
             className="fixed bottom-20 left-1/2 -translate-x-1/2 z-50 max-w-md w-full mx-4"
           >
-            <div className="bg-red-50 border border-red-200 rounded-xl px-4 py-3 shadow-lg flex items-start gap-3">
-              <div className="flex-shrink-0 w-5 h-5 rounded-full bg-red-500 flex items-center justify-center mt-0.5">
-                <span className="text-white text-xs font-bold">!</span>
+            <div className={`${errorMessage?.startsWith('✓') ? 'bg-green-50 border-green-200' : 'bg-red-50 border-red-200'} border rounded-xl px-4 py-3 shadow-lg flex items-start gap-3`}>
+              <div className={`flex-shrink-0 w-5 h-5 rounded-full ${errorMessage?.startsWith('✓') ? 'bg-green-500' : 'bg-red-500'} flex items-center justify-center mt-0.5`}>
+                <span className="text-white text-xs font-bold">{errorMessage?.startsWith('✓') ? '✓' : '!'}</span>
               </div>
               <div className="flex-1">
-                <p className="text-sm font-medium text-red-900">{errorMessage}</p>
+                <p className={`text-sm font-medium ${errorMessage?.startsWith('✓') ? 'text-green-900' : 'text-red-900'}`}>{errorMessage?.replace('✓ ', '')}</p>
               </div>
               <button
                 onClick={() => setErrorMessage(null)}
-                className="flex-shrink-0 text-red-400 hover:text-red-600 transition-colors"
+                className={`flex-shrink-0 ${errorMessage?.startsWith('✓') ? 'text-green-400 hover:text-green-600' : 'text-red-400 hover:text-red-600'} transition-colors`}
               >
                 ×
               </button>
@@ -204,18 +221,21 @@ export default function QuoteFooter() {
                     <button
                       onClick={async () => {
                         setErrorMessage(null);
+                        setShowMoreMenu(false);
                         const result = await saveQuote?.();
                         if (result?.success) {
-                          setShowMoreMenu(false);
+                          setErrorMessage('✓ Quote saved successfully');
+                          setTimeout(() => setErrorMessage(null), 3000);
                         } else {
                           setErrorMessage(result?.error || 'Failed to save quote');
                           setTimeout(() => setErrorMessage(null), 5000);
                         }
                       }}
-                      className="flex items-center gap-3 w-full px-3 py-2.5 text-left text-sm text-gray-700 hover:bg-gray-50 rounded-lg transition-colors"
+                      disabled={state.ui.isSaving}
+                      className="flex items-center gap-3 w-full px-3 py-2.5 text-left text-sm text-gray-700 hover:bg-gray-50 rounded-lg transition-colors disabled:opacity-50"
                     >
-                      <Save className="w-4 h-4 text-gray-400" />
-                      Save Quote
+                      {state.ui.isSaving ? <Loader2 className="w-4 h-4 text-gray-400 animate-spin" /> : <Save className="w-4 h-4 text-gray-400" />}
+                      {state.ui.isSaving ? 'Saving...' : 'Save Quote'}
                     </button>
                     <button
                       onClick={handleDuplicate}
