@@ -1,4 +1,5 @@
 // lib/pdf/pdf-service.ts
+import React from "react";
 import { prisma } from "@/lib/prisma";
 import { NextResponse } from "next/server";
 import ReactPDF from "@react-pdf/renderer";
@@ -36,7 +37,7 @@ export async function generateQuotePDF(options: PDFOptions): Promise<PDFResult> 
 
   // Generate PDF using React PDF renderer
   const buffer = await ReactPDF.renderToBuffer(
-    QuotePDFTemplate({ quote })
+    <QuotePDFTemplate quote={quote} />
   );
 
   return {
