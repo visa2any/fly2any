@@ -6,13 +6,14 @@ import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { generateQuotePDF, streamPDF } from "@/lib/pdf/pdf-service";
+import { handleApiError, ErrorCategory, ErrorSeverity } from '@/lib/monitoring/global-error-handler';
 
 // GET /api/agents/quotes/[id]/pdf - Download quote as PDF
 export async function GET(
   request: NextRequest,
   { params }: { params: { id: string } }
 ) {
-  try {
+  return handleApiError(request, async () => {
     const session = await auth();
     if (!session?.user?.id) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
@@ -45,19 +46,5 @@ export async function GET(
 
     // Stream PDF as download
     return streamPDF(pdfResult.buffer, pdfResult.filename);
-  } catch (error: any) {
-    console.error("[QUOTE_PDF_ERROR]", error);
-
-    if (error.message === "Quote not found or access denied") {
-      return NextResponse.json(
-        { error: "Quote not found or access denied" },
-        { status: 404 }
-      );
-    }
-
-    return NextResponse.json(
-      { error: "Failed to generate PDF" },
-      { status: 500 }
-    );
-  }
+  }, { category: ErrorCategory.DATABASE, severity: ErrorSeverity.HIGH });
 }
