@@ -242,7 +242,13 @@ export default function ItineraryCard({ item, dragListeners, isDragging, viewMod
                   </div>
                 )}
                 <p className="text-base font-black text-gray-900 bg-yellow-50 border border-yellow-200 px-2 py-1 rounded">{formatPrice(f.price)}</p>
-                <p className="text-xs text-gray-400 mt-1">{f.passengers} pax • {isRoundtrip ? "RT" : "OW"}</p>
+                <p className="text-[10px] font-semibold text-indigo-600 bg-indigo-50 px-1.5 py-0.5 rounded mt-1">
+                  Total for {f.passengers} pax
+                </p>
+                <p className="text-[9px] text-gray-500 mt-0.5">
+                  {formatPrice(f.price / f.passengers)}/person
+                </p>
+                <p className="text-[9px] text-gray-400 mt-0.5">{isRoundtrip ? "Round trip" : "One way"}</p>
                 <div className="flex items-center gap-1 mt-1.5">
                   <button onClick={handleExpand} className="p-1.5 text-gray-400 hover:text-indigo-600 rounded hover:bg-indigo-50 transition-colors">
                     {isExpanded ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
@@ -253,14 +259,15 @@ export default function ItineraryCard({ item, dragListeners, isDragging, viewMod
                 </div>
               </>
             ) : (
-              /* Client View - Confirmed status */
+              /* Client View - Confirmed status + clear pricing */
               <div className="text-center px-2">
                 <div className="flex items-center justify-center gap-1 px-2 py-1 bg-emerald-50 rounded-full border border-emerald-200 mb-1">
                   <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
                   <p className="text-xs font-semibold text-emerald-700">Confirmed</p>
                 </div>
-                <p className="text-[10px] text-gray-500">{f.passengers} {f.passengers === 1 ? "traveler" : "travelers"}</p>
-                <p className="text-[10px] text-gray-400">{isRoundtrip ? "Round trip" : "One way"}</p>
+                <p className="text-sm font-bold text-gray-900 mt-1">{formatPrice(f.price)}</p>
+                <p className="text-[10px] text-gray-500">for {f.passengers} {f.passengers === 1 ? "traveler" : "travelers"}</p>
+                <p className="text-[9px] text-gray-400">{formatPrice(f.price / f.passengers)} per person</p>
               </div>
             )}
           </div>

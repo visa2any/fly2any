@@ -244,6 +244,8 @@ export default function HotelSearchPanel() {
     const item: Omit<HotelItem, "id" | "sortOrder" | "createdAt"> = {
       type: "hotel",
       price: totalPrice,
+      priceType: 'total', // Hotel price is total for room/all nights
+      priceAppliesTo: totalGuests, // Price covers room for these guests
       currency: "USD", // Force USD
       date: params.checkIn,
       name: hotel.name || "Hotel",

@@ -68,6 +68,8 @@ export interface QuoteItemBase {
   id: string;
   type: ProductType;
   price: number;
+  priceType: 'total' | 'per_person' | 'per_night' | 'per_unit'; // Pricing model
+  priceAppliesTo: number; // How many people/units this price covers
   currency: Currency;
   sortOrder: number;
   date: string; // ISO date for timeline grouping

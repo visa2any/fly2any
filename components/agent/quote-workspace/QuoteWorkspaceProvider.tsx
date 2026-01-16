@@ -61,11 +61,27 @@ const initialState: QuoteWorkspaceState = {
   historyIndex: 0,
 };
 
-// Calculate pricing from items
+// Calculate pricing from items with accurate multi-traveler support
 function calculatePricing(items: QuoteItem[], markupPercent: number, taxes: number, fees: number, discount: number, travelers: number, currency: Currency): QuotePricing {
-  const subtotal = items.reduce((sum, item) => sum + (item.price || 0), 0);
+  // Calculate subtotal based on item price type
+  const subtotal = items.reduce((sum, item) => {
+    const itemPrice = item.price || 0;
+    // Handle different price types
+    if (item.priceType === 'per_person') {
+      // Per-person items: multiply by travelers covered
+      return sum + (itemPrice * (item.priceAppliesTo || travelers));
+    } else if (item.priceType === 'per_night' || item.priceType === 'per_unit') {
+      // Per-night/unit: use price as-is (multiplication handled elsewhere)
+      return sum + itemPrice;
+    }
+    // Default 'total': price already covers all people
+    return sum + itemPrice;
+  }, 0);
+
   const markupAmount = (subtotal * markupPercent) / 100;
   const total = Math.max(0, subtotal + markupAmount + taxes + fees - discount);
+
+  // Calculate accurate per-person based on actual coverage
   const perPerson = travelers > 0 ? total / travelers : total;
 
   return { subtotal, markupPercent, markupAmount, taxes, fees, discount, total, perPerson, currency };
