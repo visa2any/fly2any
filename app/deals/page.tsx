@@ -1,55 +1,63 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import DealCard from '@/components/deals/DealCard';
 import { MaxWidthContainer } from '@/components/layout/MaxWidthContainer';
 import { ResultsPageSchema } from '@/components/seo/GEOEnhancer';
 
-// Mock deals data - In production, this would come from API
-const generateMockDeals = () => {
-  const destinations = [
-    { city: 'Paris', country: 'France', image: 'https://images.unsplash.com/photo-1502602898657-3e91760cbb34' },
-    { city: 'Tokyo', country: 'Japan', image: 'https://images.unsplash.com/photo-1540959733332-eab4deabeeaf' },
-    { city: 'Bali', country: 'Indonesia', image: 'https://images.unsplash.com/photo-1537996194471-e657df975ab4' },
-    { city: 'Dubai', country: 'UAE', image: 'https://images.unsplash.com/photo-1512453979798-5ea266f8880c' },
-    { city: 'New York', country: 'USA', image: 'https://images.unsplash.com/photo-1496442226666-8d4d0e62e6e9' },
-    { city: 'Barcelona', country: 'Spain', image: 'https://images.unsplash.com/photo-1583422409516-2895a77efded' },
-    { city: 'Maldives', country: 'Maldives', image: 'https://images.unsplash.com/photo-1514282401047-d79a71a590e8' },
-    { city: 'London', country: 'UK', image: 'https://images.unsplash.com/photo-1513635269975-59663e0ac1ad' },
-  ];
+// Static destinations - avoid hydration mismatch
+const destinations = [
+  { city: 'Paris', country: 'France', image: 'https://images.unsplash.com/photo-1502602898657-3e91760cbb34' },
+  { city: 'Tokyo', country: 'Japan', image: 'https://images.unsplash.com/photo-1540959733332-eab4deabeeaf' },
+  { city: 'Bali', country: 'Indonesia', image: 'https://images.unsplash.com/photo-1537996194471-e657df975ab4' },
+  { city: 'Dubai', country: 'UAE', image: 'https://images.unsplash.com/photo-1512453979798-5ea266f8880c' },
+  { city: 'New York', country: 'USA', image: 'https://images.unsplash.com/photo-1496442226666-8d4d0e62e6e9' },
+  { city: 'Barcelona', country: 'Spain', image: 'https://images.unsplash.com/photo-1583422409516-2895a77efded' },
+  { city: 'Maldives', country: 'Maldives', image: 'https://images.unsplash.com/photo-1514282401047-d79a71a590e8' },
+  { city: 'London', country: 'UK', image: 'https://images.unsplash.com/photo-1513635269975-59663e0ac1ad' },
+];
 
+// Generate deals with stable seed for SSR/CSR consistency
+const generateMockDeals = (seed = 12345) => {
   const dealTypes: Array<'flash' | 'lastMinute' | 'seasonal' | 'featured'> = ['flash', 'lastMinute', 'seasonal', 'featured'];
+  const baseDate = new Date('2026-02-01').getTime();
 
   return destinations.map((dest, i) => {
-    const originalPrice = 800 + Math.floor(Math.random() * 1200);
-    const savingsPercent = 20 + Math.floor(Math.random() * 50);
+    const originalPrice = 800 + (i * 150);
+    const savingsPercent = 20 + (i * 5);
     const price = Math.floor(originalPrice * (1 - savingsPercent / 100));
-    const dealScore = 65 + Math.floor(Math.random() * 35);
+    const dealScore = 65 + (i * 4);
 
     return {
       id: `deal-${i + 1}`,
       origin: 'LAX',
       destination: dest.city,
-      departureDate: new Date(Date.now() + Math.random() * 60 * 24 * 60 * 60 * 1000).toISOString(),
-      returnDate: new Date(Date.now() + Math.random() * 60 * 24 * 60 * 60 * 1000 + 7 * 24 * 60 * 60 * 1000).toISOString(),
+      departureDate: new Date(baseDate + i * 5 * 24 * 60 * 60 * 1000).toISOString(),
+      returnDate: new Date(baseDate + i * 5 * 24 * 60 * 60 * 1000 + 7 * 24 * 60 * 60 * 1000).toISOString(),
       price,
       originalPrice,
       currency: 'USD',
-      airline: ['Delta', 'United', 'American', 'Emirates', 'British Airways'][Math.floor(Math.random() * 5)],
-      duration: `${8 + Math.floor(Math.random() * 10)}h ${Math.floor(Math.random() * 60)}m`,
-      stops: Math.floor(Math.random() * 3),
+      airline: ['Delta', 'United', 'American', 'Emirates', 'British Airways'][i % 5],
+      duration: `${8 + (i % 10)}h ${(i * 7) % 60}m`,
+      stops: i % 3,
       dealType: dealTypes[i % 4],
-      expiresAt: new Date(Date.now() + (2 + Math.random() * 48) * 60 * 60 * 1000).toISOString(),
+      expiresAt: new Date(baseDate + (2 + i) * 60 * 60 * 1000).toISOString(),
       savingsPercent,
       dealScore,
       imageUrl: dest.image,
-      seatsLeft: Math.random() > 0.5 ? Math.floor(Math.random() * 15) + 1 : undefined,
+      seatsLeft: i % 2 === 0 ? (i % 15) + 1 : undefined,
     };
   });
 };
 
 export default function DealsPage() {
-  const [deals] = useState(generateMockDeals());
+  const [deals, setDeals] = useState(generateMockDeals());
+  const [isClient, setIsClient] = useState(false);
+
+  // Hydration fix: mark client-side
+  useEffect(() => {
+    setIsClient(true);
+  }, []);
   const [filterType, setFilterType] = useState<string>('all');
   const [sortBy, setSortBy] = useState<'savings' | 'price' | 'score'>('score');
   const [priceRange, setPriceRange] = useState<[number, number]>([0, 2000]);
