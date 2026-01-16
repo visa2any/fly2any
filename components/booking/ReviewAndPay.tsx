@@ -490,10 +490,11 @@ export function ReviewAndPay({
           <span className="text-xs font-semibold text-gray-600">AMEX</span>
           <span className="text-gray-300">•</span>
           <span className="text-xs font-semibold text-gray-600">DISCOVER</span>
-            </div>
-          </div>
-
-          {/* Support & Trust Indicators */}
+        </div>
+      </div>
+    </form>
+  );
+}
           <div className="flex items-center justify-center gap-4 text-xs text-gray-600">
             <div className="flex items-center gap-1.5">
               <span className="font-semibold">24/7 Support</span>
