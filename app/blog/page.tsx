@@ -97,7 +97,7 @@ export default function BlogPage() {
                       {deal.dealMetadata?.discount}% OFF
                     </span>
                     {deal.dealMetadata?.validUntil && (
-                      <span className="text-xs text-gray-500">
+                      <span className="text-xs text-gray-500" suppressHydrationWarning>
                         Expires:{' '}
                         {new Date(deal.dealMetadata.validUntil).toLocaleDateString()}
                       </span>
@@ -206,8 +206,8 @@ export default function BlogPage() {
                 </div>
 
                 <div className="flex items-center gap-2 mt-4">
-                  <span className="text-gray-400">👁️ {post.views?.toLocaleString()}</span>
-                  <span className="text-gray-400">❤️ {post.likes?.toLocaleString()}</span>
+                  <span className="text-gray-400" suppressHydrationWarning>👁️ {post.views?.toLocaleString()}</span>
+                  <span className="text-gray-400" suppressHydrationWarning>❤️ {post.likes?.toLocaleString()}</span>
                 </div>
               </div>
             </Link>
