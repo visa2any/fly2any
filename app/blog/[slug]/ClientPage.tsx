@@ -15,6 +15,7 @@ import { CommentSection } from '@/components/blog/article/CommentSection';
 import { AuthorBio } from '@/components/blog/article/AuthorBio';
 import { NewsletterCTA } from '@/components/blog/article/NewsletterCTA';
 import { ScrollToTop } from '@/components/blog/article/ScrollToTop';
+import { Breadcrumbs } from '@/components/blog/article/Breadcrumbs';
 
 /**
  * Individual Blog Post Page
@@ -90,36 +91,59 @@ export default function BlogPostPage() {
   const premiumData = isPremiumArticle ? nycParisArticle : null;
 
   if (isPremiumArticle && premiumData) {
-    const schema = {
-      '@context': 'https://schema.org',
-      '@type': 'Article',
-      headline: premiumData.title,
-      description: premiumData.excerpt,
-      author: {
-        '@type': 'Person',
-        name: premiumData.author.name,
-        jobTitle: premiumData.author.role,
-      },
-      datePublished: premiumData.publishedAt.toISOString(),
-      dateModified: premiumData.publishedAt.toISOString(),
-      publisher: {
-        '@type': 'Organization',
-        name: 'Fly2Any',
-        logo: {
-          '@type': 'ImageObject',
-          url: 'https://www.fly2any.com/logo.png',
+    const schemas = [
+      {
+        '@context': 'https://schema.org',
+        '@type': 'Article',
+        headline: premiumData.title,
+        description: premiumData.excerpt,
+        author: {
+          '@type': 'Person',
+          name: premiumData.author.name,
+          jobTitle: premiumData.author.role,
         },
+        datePublished: premiumData.publishedAt.toISOString(),
+        dateModified: premiumData.publishedAt.toISOString(),
+        publisher: {
+          '@type': 'Organization',
+          name: 'Fly2Any',
+          logo: { '@type': 'ImageObject', url: 'https://www.fly2any.com/logo.png' },
+        },
+        image: premiumData.featuredImage.url,
+        articleSection: premiumData.category,
+        keywords: premiumData.tags.join(', '),
+        mainEntityOfPage: { '@type': 'WebPage', '@id': `https://www.fly2any.com/blog/${slug}` },
       },
-      image: premiumData.featuredImage.url,
-      articleSection: premiumData.category,
-      keywords: premiumData.tags.join(', '),
-    };
+      {
+        '@context': 'https://schema.org',
+        '@type': 'BreadcrumbList',
+        itemListElement: [
+          { '@type': 'ListItem', position: 1, name: 'Home', item: 'https://www.fly2any.com' },
+          { '@type': 'ListItem', position: 2, name: 'Blog', item: 'https://www.fly2any.com/blog' },
+          { '@type': 'ListItem', position: 3, name: premiumData.category, item: `https://www.fly2any.com/blog/category/${premiumData.category}` },
+          { '@type': 'ListItem', position: 4, name: premiumData.title, item: `https://www.fly2any.com/blog/${slug}` },
+        ],
+      },
+      {
+        '@context': 'https://schema.org',
+        '@type': 'FAQPage',
+        mainEntity: [
+          { '@type': 'Question', name: 'How long is the flight from New York to Paris?', acceptedAnswer: { '@type': 'Answer', text: 'Direct flights from JFK or Newark to Paris CDG take approximately 7-8 hours eastbound.' } },
+          { '@type': 'Question', name: 'What is the cheapest month to fly to Paris?', acceptedAnswer: { '@type': 'Answer', text: 'February and September offer the lowest fares, with prices starting from $445 roundtrip.' } },
+        ],
+      },
+    ];
 
     return (
       <>
-        <StructuredData schema={[schema]} />
+        <StructuredData schema={schemas} />
         <ReadingProgress />
         <ScrollToTop />
+        <Breadcrumbs items={[
+          { label: 'Blog', href: '/blog' },
+          { label: premiumData.category, href: `/blog/category/${premiumData.category.toLowerCase()}` },
+          { label: premiumData.title, href: `/blog/${slug}` }
+        ]} />
         <div className="min-h-screen bg-white">
           <ArticleHero
             title={premiumData.title}
@@ -133,7 +157,7 @@ export default function BlogPostPage() {
             featuredImage={premiumData.featuredImage}
           />
 
-          <div className="w-full max-w-[1600px] mx-auto px-6 md:px-12 lg:px-20 xl:px-24 py-8">
+          <div className="w-full max-w-[1600px] mx-auto px-6 md:px-12 lg:px-20 xl:px-24 pt-8 pb-0">
             <div className="flex justify-end">
               <ExtendedShareButtons />
             </div>

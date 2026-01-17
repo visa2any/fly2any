@@ -71,7 +71,7 @@ export function ArticleContent({ content, children }: ArticleContentProps) {
 
       {/* Article Content - FULL PAGE WIDTH */}
       <article className="w-full bg-white">
-        <div className="w-full max-w-[1600px] mx-auto px-6 md:px-12 lg:px-20 xl:px-24 py-16 md:py-20">
+        <div className="w-full max-w-[1600px] mx-auto px-6 md:px-12 lg:px-20 xl:px-24 pt-8 md:pt-12 pb-16 md:pb-20">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
