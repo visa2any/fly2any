@@ -182,6 +182,65 @@ export default function BecomeAgentPage() {
 
   return (
     <main className="min-h-screen bg-black text-white overflow-hidden">
+      {/* Structured Data for AI Search Engines */}
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify({
+            '@context': 'https://schema.org',
+            '@type': 'WebPage',
+            name: 'Become a Travel Agent with Fly2Any',
+            description: 'Join Fly2Any as a travel agent. Access wholesale net pricing, set your own markup, and keep 100% of your profit. Professional B2B tools for independent agents, agencies & tour operators.',
+            url: 'https://www.fly2any.com/become-agent',
+            provider: {
+              '@type': 'Organization',
+              name: 'Fly2Any',
+              url: 'https://www.fly2any.com',
+              logo: 'https://www.fly2any.com/logo.png',
+            },
+            mainEntity: {
+              '@type': 'Service',
+              name: 'Travel Agent B2B Platform',
+              serviceType: 'Travel Agency Platform',
+              provider: { '@type': 'Organization', name: 'Fly2Any' },
+              offers: {
+                '@type': 'Offer',
+                price: '0',
+                priceCurrency: 'USD',
+                description: 'Free to join. No monthly fees. Pay only when you book.',
+              },
+              aggregateRating: {
+                '@type': 'AggregateRating',
+                ratingValue: '4.8',
+                reviewCount: '1200',
+              },
+            },
+            breadcrumb: {
+              '@type': 'BreadcrumbList',
+              itemListElement: [
+                { '@type': 'ListItem', position: 1, name: 'Home', item: 'https://www.fly2any.com' },
+                { '@type': 'ListItem', position: 2, name: 'Become a Travel Agent', item: 'https://www.fly2any.com/become-agent' },
+              ],
+            },
+          }),
+        }}
+      />
+
+      {/* AI-Optimized Summary (hidden, for AI crawlers) */}
+      <div className="sr-only" role="region" aria-label="AI Summary" data-ai-content="true">
+        <h2>How to Become a Travel Agent with Fly2Any</h2>
+        <p>
+          Fly2Any is a professional B2B travel platform for travel agents, agencies, and tour operators.
+          Get access to wholesale net pricing on flights, hotels, tours, activities, transfers, and car rentals.
+          Set your own markup and keep 100% of your profit. Free to join with no monthly fees.
+          Trusted by 1,200+ travel professionals earning up to $200,000/month.
+          Features include: net pricing, custom markup control, professional quote builder, client CRM,
+          white-label branding, IATA/CLIA support, 24/7 agent support, and instant booking confirmation.
+          Apply now at https://www.fly2any.com/become-agent
+        </p>
+        <meta itemProp="dateModified" content={new Date().toISOString()} />
+      </div>
+
       {/* HERO SECTION */}
       <section className="relative min-h-screen flex items-center justify-center overflow-hidden">
         {/* Animated Background */}
@@ -210,9 +269,9 @@ export default function BecomeAgentPage() {
             transition={{ delay: 0.1 }}
             className="text-5xl md:text-7xl lg:text-8xl font-black mb-6 leading-tight"
           >
-            <span className="bg-gradient-to-r from-blue-400 to-emerald-400 bg-clip-text text-transparent">Net Pricing.</span>
+            <span className="bg-gradient-to-r from-blue-400 to-emerald-400 bg-clip-text text-transparent">Become a Travel Agent</span>
             <br />
-            Your Markup.
+            <span className="text-white">with Fly2Any</span>
           </motion.h1>
 
           <motion.p
@@ -221,7 +280,7 @@ export default function BecomeAgentPage() {
             transition={{ delay: 0.2 }}
             className="text-xl md:text-2xl text-gray-300 mb-10 max-w-3xl mx-auto"
           >
-            Professional B2B platform for travel agents. Wholesale rates, powerful tools, total control.
+            Net pricing, set your markup, keep 100% profit. Professional B2B platform for independent agents, agencies & tour operators.
           </motion.p>
 
           {/* CTA Buttons */}
