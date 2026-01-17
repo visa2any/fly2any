@@ -5,19 +5,35 @@ import { generateBreadcrumbSchema } from '@/lib/seo/schema-generators';
 const SITE_URL = process.env.NEXT_PUBLIC_APP_URL || 'https://www.fly2any.com';
 
 export const metadata: Metadata = {
-  title: 'Travel Affiliate Program | Earn Commissions - Fly2Any Partners',
-  description: 'Join the Fly2Any affiliate program and earn competitive commissions on travel bookings. Access marketing tools, real-time tracking, and dedicated partner support.',
-  keywords: 'travel affiliate program, earn travel commissions, flight affiliate, hotel affiliate, travel partner program, travel referral program',
+  title: 'Join Fly2Any Affiliate Program - Earn Up to 35% Commission',
+  description: 'Join Fly2Any travel affiliate program. Earn 15-35% commission on flights, hotels, tours & activities. Free to join, 30-day cookie window, $50 min payout. Top affiliates earn $45K/month. Perfect for travel bloggers & influencers.',
+  keywords: [
+    'travel affiliate program',
+    'best travel affiliate program',
+    'flight affiliate program',
+    'hotel affiliate program',
+    'earn travel commissions',
+    'travel blogger income',
+    'travel influencer program',
+    'affiliate marketing travel',
+    'high paying travel affiliate',
+    'travel referral program',
+    'vacation affiliate program',
+    'tour affiliate program',
+    'travel content monetization',
+    'travel partner program',
+  ],
   openGraph: {
-    title: 'Fly2Any Affiliate Program | Earn Travel Commissions',
-    description: 'Partner with Fly2Any and earn competitive commissions on flight and hotel bookings. Real-time tracking, marketing tools, and dedicated support.',
+    title: 'Join Fly2Any Affiliate Program | Earn Up to 35% Commission',
+    description: 'Earn 15-35% commission on travel bookings. Free to join. 30-day cookie. $50 min payout. Top affiliates earn $45K/month. Perfect for travel creators.',
     type: 'website',
     url: `${SITE_URL}/affiliate`,
+    images: [{ url: '/og/affiliate-program.jpg', width: 1200, height: 630, alt: 'Fly2Any Affiliate Program' }],
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'Fly2Any Affiliate Program',
-    description: 'Earn commissions on travel bookings. Join our partner program today.',
+    title: 'Join Fly2Any Affiliate Program - Earn Up to 35%',
+    description: 'Free to join. Earn 15-35% commission on travel bookings. 30-day cookie window. Top affiliates earn $45K/month.',
   },
   alternates: {
     canonical: `${SITE_URL}/affiliate`,

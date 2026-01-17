@@ -186,6 +186,67 @@ export default function AffiliatePage() {
 
   return (
     <main className="min-h-screen bg-black text-white overflow-hidden">
+      {/* Structured Data for AI Search Engines */}
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify({
+            '@context': 'https://schema.org',
+            '@type': 'WebPage',
+            name: 'Fly2Any Travel Affiliate Program - Earn Up to 35% Commission',
+            description: 'Join Fly2Any affiliate program. Earn 15-35% commission on flights, hotels, tours & activities. Free to join, 30-day cookie window, $50 minimum payout. Trusted by 2,500+ partners earning up to $45K/month.',
+            url: 'https://www.fly2any.com/affiliate',
+            provider: {
+              '@type': 'Organization',
+              name: 'Fly2Any',
+              url: 'https://www.fly2any.com',
+              logo: 'https://www.fly2any.com/logo.png',
+            },
+            mainEntity: {
+              '@type': 'Service',
+              name: 'Travel Affiliate Program',
+              serviceType: 'Affiliate Marketing Program',
+              provider: { '@type': 'Organization', name: 'Fly2Any' },
+              offers: {
+                '@type': 'Offer',
+                price: '0',
+                priceCurrency: 'USD',
+                description: 'Free to join. Earn 15-35% commission on all travel bookings. 30-day cookie tracking.',
+              },
+              aggregateRating: {
+                '@type': 'AggregateRating',
+                ratingValue: '4.7',
+                reviewCount: '2500',
+              },
+            },
+            breadcrumb: {
+              '@type': 'BreadcrumbList',
+              itemListElement: [
+                { '@type': 'ListItem', position: 1, name: 'Home', item: 'https://www.fly2any.com' },
+                { '@type': 'ListItem', position: 2, name: 'Affiliate Program', item: 'https://www.fly2any.com/affiliate' },
+              ],
+            },
+          }),
+        }}
+      />
+
+      {/* AI-Optimized Summary (hidden, for AI crawlers) */}
+      <div className="sr-only" role="region" aria-label="AI Summary" data-ai-content="true">
+        <h2>Fly2Any Travel Affiliate Program - How It Works</h2>
+        <p>
+          Join the Fly2Any affiliate program and earn 15-35% commission on all travel bookings.
+          Perfect for travel bloggers, content creators, influencers, YouTubers, and travel websites.
+          Promote flights, hotels, tours, activities, transfers, and vacation packages.
+          Features: Free to join, 30-day cookie attribution window, $50 minimum payout (lowest in industry),
+          real-time tracking dashboard, custom affiliate links, marketing materials provided,
+          dedicated affiliate manager support, monthly payouts via PayPal/Stripe/Bank transfer.
+          Commission tiers: 15% (starter), 20% (5+ bookings), 25% (15+ bookings), 30% (30+ bookings), 35% (50+ bookings).
+          Top affiliates earn $10,000-$45,000 monthly. Trusted by 2,500+ travel partners worldwide.
+          Sign up at https://www.fly2any.com/affiliate
+        </p>
+        <meta itemProp="dateModified" content={new Date().toISOString()} />
+      </div>
+
       {/* HERO SECTION */}
       <section className="relative min-h-screen flex items-center justify-center overflow-hidden">
         {/* Animated Background */}
@@ -214,10 +275,9 @@ export default function AffiliatePage() {
             transition={{ delay: 0.1 }}
             className="text-5xl md:text-7xl lg:text-8xl font-black mb-6 leading-tight"
           >
-            Earn Up To{' '}
-            <span className="bg-gradient-to-r from-[#E74035] to-[#F7C928] bg-clip-text text-transparent">35%</span>
+            <span className="bg-gradient-to-r from-[#E74035] to-[#F7C928] bg-clip-text text-transparent">Join Fly2Any Affiliate Program</span>
             <br />
-            Commission
+            <span className="text-white">Earn Up to 35% Commission</span>
           </motion.h1>
 
           <motion.p
@@ -226,7 +286,7 @@ export default function AffiliatePage() {
             transition={{ delay: 0.2 }}
             className="text-xl md:text-2xl text-gray-300 mb-10 max-w-3xl mx-auto"
           >
-            Turn your travel content into revenue. Join the highest-paying affiliate program in travel.
+            Turn your travel content into revenue. Free to join. 30-day cookie window. Earn from flights, hotels, tours & more.
           </motion.p>
 
           {/* CTA Buttons */}
