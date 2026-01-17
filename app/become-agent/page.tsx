@@ -555,11 +555,11 @@ export default function BecomeAgentPage() {
                 <div className="bg-white/5 rounded-xl p-4 space-y-2">
                   <div className="flex items-center justify-between text-gray-400">
                     <span>Monthly Revenue</span>
-                    <span>${monthlyRevenue.toLocaleString()}</span>
+                    <span suppressHydrationWarning>${monthlyRevenue.toLocaleString()}</span>
                   </div>
                   <div className="flex items-center justify-between text-gray-400">
                     <span>Your Markup ({calcMargin}%)</span>
-                    <span className="text-emerald-400 font-bold">${monthlyProfit.toLocaleString()}</span>
+                    <span className="text-emerald-400 font-bold" suppressHydrationWarning>${monthlyProfit.toLocaleString()}</span>
                   </div>
                 </div>
               </div>
@@ -567,11 +567,11 @@ export default function BecomeAgentPage() {
               {/* Results */}
               <div className="flex flex-col items-center justify-center bg-gradient-to-br from-blue-500/20 to-emerald-500/20 rounded-2xl p-8">
                 <div className="text-gray-400 mb-2">Your Monthly Profit</div>
-                <div className="text-6xl md:text-7xl font-black bg-gradient-to-r from-blue-400 to-emerald-400 bg-clip-text text-transparent">
+                <div className="text-6xl md:text-7xl font-black bg-gradient-to-r from-blue-400 to-emerald-400 bg-clip-text text-transparent" suppressHydrationWarning>
                   ${monthlyProfit.toLocaleString('en-US', { maximumFractionDigits: 0 })}
                 </div>
                 <div className="text-gray-400 mt-2">100% yours to keep</div>
-                <div className="text-3xl font-bold text-white mt-4">
+                <div className="text-3xl font-bold text-white mt-4" suppressHydrationWarning>
                   ${(monthlyProfit * 12).toLocaleString('en-US', { maximumFractionDigits: 0 })}/year
                 </div>
                 <button
