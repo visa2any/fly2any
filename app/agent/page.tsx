@@ -142,7 +142,7 @@ export default async function AgentDashboardPage() {
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm text-green-100">Earnings</p>
-              <p className="text-3xl font-bold">${totalEarnings.toLocaleString()}</p>
+              <p className="text-3xl font-bold" suppressHydrationWarning>${totalEarnings.toLocaleString()}</p>
             </div>
             <span className="text-3xl">💰</span>
           </div>
@@ -217,7 +217,7 @@ export default async function AgentDashboardPage() {
                   <span className={`px-2 py-1 text-xs rounded-full ${statusColors[quote.status] || "bg-gray-100"}`}>
                     {quote.status}
                   </span>
-                  <span className="font-medium text-gray-900">${quote.total.toLocaleString()}</span>
+                  <span className="font-medium text-gray-900" suppressHydrationWarning>${quote.total.toLocaleString()}</span>
                 </div>
               </Link>
             ))}
