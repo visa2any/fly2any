@@ -47,8 +47,8 @@ export function PriceTable({ title, subtitle, prices, currency = 'USD' }: PriceT
   };
 
   return (
-    <section className="w-full bg-gradient-to-br from-blue-50 via-white to-purple-50 py-20">
-      <div className="w-full px-6 md:px-12 lg:px-16">
+    <section className="relative w-screen left-1/2 right-1/2 -ml-[50vw] -mr-[50vw] bg-gradient-to-br from-blue-50 via-white to-purple-50 py-20 my-16">
+      <div className="w-full px-6 md:px-12 lg:px-16 max-w-[1600px] mx-auto">
         {/* Header */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
