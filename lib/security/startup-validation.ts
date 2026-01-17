@@ -50,7 +50,18 @@ export function validateSecurityEnvironment(): void {
     }
   }
 
-  // 4. Redis validation (required for rate limiting and session revocation)
+  // 4. Google OAuth validation
+  if (!process.env.GOOGLE_CLIENT_ID) {
+    errors.push('GOOGLE_CLIENT_ID is not set');
+  }
+  if (!process.env.GOOGLE_CLIENT_SECRET) {
+    errors.push('GOOGLE_CLIENT_SECRET is not set');
+  }
+  if (isProduction && !process.env.NEXTAUTH_URL) {
+    errors.push('NEXTAUTH_URL is not set in production');
+  }
+
+  // 5. Redis validation (required for rate limiting and session revocation)
   if (!process.env.UPSTASH_REDIS_REST_URL && !process.env.UPSTASH_REDIS_REST_TOKEN && !process.env.REDIS_URL) {
     errors.push('Redis configuration missing. Rate limiting and session revocation will not work.');
   }
