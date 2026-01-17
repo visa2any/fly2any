@@ -84,6 +84,7 @@
     "dotenv": "^17.2.3",
     "focus-trap-react": "^11.0.4",
     "form-data": "^4.0.5",
+    "@giscus/react": "^3.0.0",
     "framer-motion": "^12.23.24",
     "groq-sdk": "^0.37.0",
     "html2canvas": "^1.4.1",
