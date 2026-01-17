@@ -1592,7 +1592,10 @@ function FlightResultCard({ flight, onAdd, index }: { flight: any; onAdd: (fareI
         {/* Right: Price + Add */}
         <div className="flex flex-col items-center justify-center px-2 py-2 border-l border-gray-100 w-[76px] flex-shrink-0">
           <p className="text-lg font-black text-gray-900 bg-yellow-100 px-2 py-1 rounded">${Math.round(price)}</p>
-          <p className="text-xs text-gray-400 mt-0.5">/person</p>
+          <p className="text-[10px] font-semibold text-indigo-600 bg-indigo-50 px-1.5 py-0.5 rounded mt-1">
+            Total • {totalPassengers} pax
+          </p>
+          <p className="text-[9px] text-gray-500 mt-0.5">${Math.round(price / totalPassengers)}/person</p>
           <motion.button
             whileHover={{ scale: 1.1 }}
             whileTap={{ scale: 0.9 }}
