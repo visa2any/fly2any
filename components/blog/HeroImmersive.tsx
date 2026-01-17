@@ -85,7 +85,7 @@ export function HeroImmersive({
     en: {
       headline: 'Your Next Adventure',
       subheadline: 'Starts Here',
-      description: 'Discover unbeatable deals to 1000+ destinations worldwide',
+      description: 'Expert travel guides, insider tips & inspiration for 1000+ destinations',
       exploreDeals: 'Explore Deals',
       topDestinations: 'Top Destinations',
       travelGuides: 'Travel Guides',
@@ -95,7 +95,7 @@ export function HeroImmersive({
     pt: {
       headline: 'Sua Próxima Aventura',
       subheadline: 'Começa Aqui',
-      description: 'Descubra ofertas imbatíveis para mais de 1000 destinos',
+      description: 'Guias especializados, dicas privilegiadas e inspiração para mais de 1000 destinos',
       exploreDeals: 'Explorar Ofertas',
       topDestinations: 'Principais Destinos',
       travelGuides: 'Guias de Viagem',
@@ -105,7 +105,7 @@ export function HeroImmersive({
     es: {
       headline: 'Tu Próxima Aventura',
       subheadline: 'Comienza Aquí',
-      description: 'Descubre ofertas inmejorables a más de 1000 destinos',
+      description: 'Guías expertas, consejos exclusivos e inspiración para más de 1000 destinos',
       exploreDeals: 'Explorar Ofertas',
       topDestinations: 'Destinos Principales',
       travelGuides: 'Guías de Viaje',
