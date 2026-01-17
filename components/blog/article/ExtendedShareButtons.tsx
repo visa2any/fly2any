@@ -52,10 +52,11 @@ export function ExtendedShareButtons() {
     <div className="relative">
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className="flex items-center gap-2 px-4 py-2 bg-gray-100 hover:bg-gray-200 rounded-full transition-all text-sm font-semibold text-gray-700"
+        className="flex items-center gap-2 px-4 sm:px-5 py-2.5 sm:py-2 bg-gray-100 hover:bg-gray-200 active:bg-gray-300 rounded-full transition-all text-sm font-semibold text-gray-700 min-h-[44px] sm:min-h-0"
       >
         <Share2 className="w-4 h-4" />
-        <span>More</span>
+        <span className="hidden sm:inline">More</span>
+        <span className="sm:hidden">Share</span>
       </button>
 
       {isOpen && (
@@ -64,7 +65,7 @@ export function ExtendedShareButtons() {
             className="fixed inset-0 z-40"
             onClick={() => setIsOpen(false)}
           />
-          <div className="absolute top-full mt-2 right-0 bg-white rounded-2xl shadow-2xl border border-gray-200 p-4 z-50 min-w-[280px]">
+          <div className="absolute top-full mt-2 right-0 bg-white rounded-2xl shadow-2xl border border-gray-200 p-3 sm:p-4 z-50 min-w-[280px] max-w-[90vw]">
             <div className="grid grid-cols-2 gap-2">
               {SHARE_BUTTONS.map((button) => (
                 <a
@@ -72,10 +73,10 @@ export function ExtendedShareButtons() {
                   href={button.getUrl(url, title)}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className={`flex items-center gap-3 p-3 rounded-xl transition-all ${button.color} hover:scale-105`}
+                  className={`flex items-center gap-2 sm:gap-3 p-3 sm:p-3.5 rounded-xl transition-all ${button.color} active:scale-95 sm:hover:scale-105 min-h-[48px]`}
                 >
-                  <span className="text-2xl">{button.icon}</span>
-                  <span className="text-sm font-semibold text-gray-700">{button.name}</span>
+                  <span className="text-xl sm:text-2xl">{button.icon}</span>
+                  <span className="text-xs sm:text-sm font-semibold text-gray-700">{button.name}</span>
                 </a>
               ))}
             </div>

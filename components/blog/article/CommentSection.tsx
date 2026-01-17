@@ -6,20 +6,20 @@ import Giscus from '@giscus/react';
 
 export function CommentSection() {
   return (
-    <section className="w-full max-w-[1600px] mx-auto px-6 md:px-12 lg:px-20 xl:px-24 py-16">
+    <section className="w-full max-w-[1600px] mx-auto px-4 sm:px-6 md:px-12 lg:px-20 xl:px-24 py-10 sm:py-12 md:py-16">
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         whileInView={{ opacity: 1, y: 0 }}
         viewport={{ once: true }}
-        className="bg-gradient-to-br from-gray-50 to-blue-50 rounded-3xl p-8 md:p-12 border border-gray-200"
+        className="bg-gradient-to-br from-gray-50 to-blue-50 rounded-2xl sm:rounded-3xl p-6 sm:p-8 md:p-12 border border-gray-200"
       >
-        <div className="flex items-center gap-3 mb-8">
-          <div className="w-12 h-12 bg-gradient-to-br from-blue-600 to-purple-600 rounded-xl flex items-center justify-center shadow-lg">
-            <MessageSquare className="w-6 h-6 text-white" />
+        <div className="flex items-center gap-2.5 sm:gap-3 mb-6 sm:mb-8">
+          <div className="w-10 h-10 sm:w-12 sm:h-12 bg-gradient-to-br from-blue-600 to-purple-600 rounded-lg sm:rounded-xl flex items-center justify-center shadow-lg flex-shrink-0">
+            <MessageSquare className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
           </div>
           <div>
-            <h2 className="text-3xl font-black text-gray-900">Join the Discussion</h2>
-            <p className="text-gray-600">Share your travel tips and experiences</p>
+            <h2 className="text-xl sm:text-2xl md:text-3xl font-black text-gray-900">Join the Discussion</h2>
+            <p className="text-sm sm:text-base text-gray-600">Share your travel tips and experiences</p>
           </div>
         </div>
 
