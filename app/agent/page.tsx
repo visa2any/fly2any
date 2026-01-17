@@ -75,7 +75,7 @@ export default async function AgentDashboardPage() {
       where: { agentId: agent.id },
       select: { id: true, tripName: true, status: true, total: true, destination: true },
       orderBy: { createdAt: "desc" },
-      take: 5,
+      take: 3,
     });
 
     recentQuotes = (recentQuotesRaw || []).map((q: any) => ({
@@ -97,147 +97,151 @@ export default async function AgentDashboardPage() {
   };
 
   return (
-    <div className="space-y-6">
-      {/* Header */}
-      <div>
-        <h1 className="text-3xl font-bold text-gray-900">Dashboard</h1>
-        <p className="text-gray-600 mt-1">
-          Welcome back{agent.businessName ? `, ${agent.businessName}` : ""}
-        </p>
+    <div className="space-y-4">
+      {/* Hero Header with Background */}
+      <div className="relative overflow-hidden rounded-2xl bg-gradient-to-r from-blue-600 via-blue-700 to-indigo-800 p-6 text-white shadow-xl">
+        <div className="absolute inset-0 opacity-20">
+          <div className="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1436491865332-7a61a109cc05?w=1200&q=80')] bg-cover bg-center" />
+        </div>
+        <div className="relative">
+          <h1 className="text-2xl font-bold">Dashboard</h1>
+          <p className="text-blue-100 text-sm mt-1">
+            Welcome back{agent.businessName ? `, ${agent.businessName}` : ""}
+          </p>
+        </div>
       </div>
 
       {/* Stats Grid */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        <Link href="/agent/quotes" className="bg-white p-5 rounded-xl border hover:shadow-md transition-shadow">
-          <div className="flex items-center justify-between">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+        <Link href="/agent/quotes" className="relative overflow-hidden bg-white p-4 rounded-xl border hover:shadow-lg transition-all group">
+          <div className="absolute inset-0 opacity-5 group-hover:opacity-10 transition-opacity">
+            <div className="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1454165804606-c3d57bc86b40?w=400&q=80')] bg-cover bg-center" />
+          </div>
+          <div className="relative flex items-center justify-between">
             <div>
-              <p className="text-sm text-gray-500">Quotes</p>
-              <p className="text-3xl font-bold text-gray-900">{quotesCount}</p>
+              <p className="text-xs text-gray-500 font-medium">Quotes</p>
+              <p className="text-2xl font-bold text-gray-900 mt-1">{quotesCount}</p>
             </div>
-            <span className="text-3xl">📋</span>
+            <span className="text-2xl">📋</span>
           </div>
         </Link>
 
-        <Link href="/agent/bookings" className="bg-white p-5 rounded-xl border hover:shadow-md transition-shadow">
-          <div className="flex items-center justify-between">
+        <Link href="/agent/bookings" className="relative overflow-hidden bg-white p-4 rounded-xl border hover:shadow-lg transition-all group">
+          <div className="absolute inset-0 opacity-5 group-hover:opacity-10 transition-opacity">
+            <div className="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1488085061387-422e29b40080?w=400&q=80')] bg-cover bg-center" />
+          </div>
+          <div className="relative flex items-center justify-between">
             <div>
-              <p className="text-sm text-gray-500">Bookings</p>
-              <p className="text-3xl font-bold text-gray-900">{bookingsCount}</p>
+              <p className="text-xs text-gray-500 font-medium">Bookings</p>
+              <p className="text-2xl font-bold text-gray-900 mt-1">{bookingsCount}</p>
             </div>
-            <span className="text-3xl">✈️</span>
+            <span className="text-2xl">✈️</span>
           </div>
         </Link>
 
-        <Link href="/agent/clients" className="bg-white p-5 rounded-xl border hover:shadow-md transition-shadow">
-          <div className="flex items-center justify-between">
+        <Link href="/agent/clients" className="relative overflow-hidden bg-white p-4 rounded-xl border hover:shadow-lg transition-all group">
+          <div className="absolute inset-0 opacity-5 group-hover:opacity-10 transition-opacity">
+            <div className="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1521737711867-e3b97375f902?w=400&q=80')] bg-cover bg-center" />
+          </div>
+          <div className="relative flex items-center justify-between">
             <div>
-              <p className="text-sm text-gray-500">Clients</p>
-              <p className="text-3xl font-bold text-gray-900">{clientsCount}</p>
+              <p className="text-xs text-gray-500 font-medium">Clients</p>
+              <p className="text-2xl font-bold text-gray-900 mt-1">{clientsCount}</p>
             </div>
-            <span className="text-3xl">👥</span>
+            <span className="text-2xl">👥</span>
           </div>
         </Link>
 
-        <Link href="/agent/commissions" className="bg-gradient-to-r from-green-500 to-emerald-600 p-5 rounded-xl text-white hover:shadow-md transition-shadow">
-          <div className="flex items-center justify-between">
+        <Link href="/agent/commissions" className="relative overflow-hidden bg-gradient-to-br from-emerald-500 to-green-600 p-4 rounded-xl text-white hover:shadow-xl transition-all group">
+          <div className="absolute inset-0 opacity-20 group-hover:opacity-30 transition-opacity">
+            <div className="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1579621970563-ebec7560ff3e?w=400&q=80')] bg-cover bg-center" />
+          </div>
+          <div className="relative flex items-center justify-between">
             <div>
-              <p className="text-sm text-green-100">Earnings</p>
-              <p className="text-3xl font-bold" suppressHydrationWarning>${totalEarnings.toLocaleString()}</p>
+              <p className="text-xs text-emerald-100 font-medium">Earnings</p>
+              <p className="text-2xl font-bold mt-1" suppressHydrationWarning>${totalEarnings.toLocaleString()}</p>
             </div>
-            <span className="text-3xl">💰</span>
+            <span className="text-2xl">💰</span>
           </div>
         </Link>
       </div>
 
-      {/* Quick Actions */}
-      <div className="bg-white rounded-xl border p-6">
-        <h2 className="text-lg font-semibold text-gray-900 mb-4">Quick Actions</h2>
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-          <Link
-            href="/agent/quotes/workspace"
-            className="flex items-center gap-3 p-4 bg-primary-50 rounded-lg hover:bg-primary-100 transition-colors"
-          >
-            <span className="text-2xl">✨</span>
-            <span className="font-medium text-primary-700">New Quote</span>
-          </Link>
-          <Link
-            href="/agent/clients/create"
-            className="flex items-center gap-3 p-4 bg-blue-50 rounded-lg hover:bg-blue-100 transition-colors"
-          >
-            <span className="text-2xl">👤</span>
-            <span className="font-medium text-blue-700">Add Client</span>
-          </Link>
-          <Link
-            href="/agent/products"
-            className="flex items-center gap-3 p-4 bg-purple-50 rounded-lg hover:bg-purple-100 transition-colors"
-          >
-            <span className="text-2xl">🎫</span>
-            <span className="font-medium text-purple-700">Products</span>
-          </Link>
-          <Link
-            href="/agent/payouts"
-            className="flex items-center gap-3 p-4 bg-green-50 rounded-lg hover:bg-green-100 transition-colors"
-          >
-            <span className="text-2xl">💵</span>
-            <span className="font-medium text-green-700">Payouts</span>
-          </Link>
-        </div>
-      </div>
-
-      {/* Recent Quotes */}
-      <div className="bg-white rounded-xl border overflow-hidden">
-        <div className="p-4 border-b flex items-center justify-between">
-          <h2 className="text-lg font-semibold text-gray-900">Recent Quotes</h2>
-          <Link href="/agent/quotes" className="text-sm text-primary-600 hover:underline">
-            View All →
-          </Link>
-        </div>
-        {recentQuotes.length === 0 ? (
-          <div className="p-8 text-center text-gray-500">
-            <p>No quotes yet.</p>
-            <Link href="/agent/quotes/workspace" className="text-primary-600 hover:underline mt-2 inline-block">
-              Create your first quote
+      {/* Quick Actions & Recent Quotes - Side by Side */}
+      <div className="grid lg:grid-cols-2 gap-4">
+        {/* Quick Actions */}
+        <div className="bg-white rounded-xl border p-4">
+          <h2 className="text-base font-semibold text-gray-900 mb-3">Quick Actions</h2>
+          <div className="grid grid-cols-2 gap-2">
+            <Link
+              href="/agent/quotes/workspace"
+              className="flex items-center gap-2 p-3 bg-primary-50 rounded-lg hover:bg-primary-100 transition-colors"
+            >
+              <span className="text-xl">✨</span>
+              <span className="text-sm font-medium text-primary-700">New Quote</span>
+            </Link>
+            <Link
+              href="/agent/clients/create"
+              className="flex items-center gap-2 p-3 bg-blue-50 rounded-lg hover:bg-blue-100 transition-colors"
+            >
+              <span className="text-xl">👤</span>
+              <span className="text-sm font-medium text-blue-700">Add Client</span>
+            </Link>
+            <Link
+              href="/agent/products"
+              className="flex items-center gap-2 p-3 bg-purple-50 rounded-lg hover:bg-purple-100 transition-colors"
+            >
+              <span className="text-xl">🎫</span>
+              <span className="text-sm font-medium text-purple-700">Products</span>
+            </Link>
+            <Link
+              href="/agent/payouts"
+              className="flex items-center gap-2 p-3 bg-green-50 rounded-lg hover:bg-green-100 transition-colors"
+            >
+              <span className="text-xl">💵</span>
+              <span className="text-sm font-medium text-green-700">Payouts</span>
             </Link>
           </div>
-        ) : (
-          <div className="divide-y">
-            {recentQuotes.map((quote) => (
-              <Link
-                key={quote.id}
-                href={`/agent/quotes/${quote.id}`}
-                className="flex items-center justify-between p-4 hover:bg-gray-50 transition-colors"
-              >
-                <div>
-                  <p className="font-medium text-gray-900">{quote.tripName}</p>
-                  {quote.destination && (
-                    <p className="text-sm text-gray-500">{quote.destination}</p>
-                  )}
-                </div>
-                <div className="flex items-center gap-3">
-                  <span className={`px-2 py-1 text-xs rounded-full ${statusColors[quote.status] || "bg-gray-100"}`}>
-                    {quote.status}
-                  </span>
-                  <span className="font-medium text-gray-900" suppressHydrationWarning>${quote.total.toLocaleString()}</span>
-                </div>
-              </Link>
-            ))}
-          </div>
-        )}
-      </div>
+        </div>
 
-      {/* Tier Info */}
-      <div className="bg-gradient-to-r from-gray-800 to-gray-900 rounded-xl p-6 text-white">
-        <div className="flex items-center justify-between">
-          <div>
-            <p className="text-gray-400 text-sm">Current Tier</p>
-            <p className="text-2xl font-bold mt-1">{agent.tier || "STARTER"}</p>
+        {/* Recent Quotes */}
+        <div className="bg-white rounded-xl border overflow-hidden">
+          <div className="px-4 py-3 border-b flex items-center justify-between">
+            <h2 className="text-base font-semibold text-gray-900">Recent Quotes</h2>
+            <Link href="/agent/quotes" className="text-xs text-primary-600 hover:underline font-medium">
+              View All →
+            </Link>
           </div>
-          <Link
-            href="/agent/settings"
-            className="px-4 py-2 bg-white/10 rounded-lg text-sm hover:bg-white/20 transition-colors"
-          >
-            Upgrade →
-          </Link>
+          {recentQuotes.length === 0 ? (
+            <div className="p-6 text-center text-gray-500">
+              <p className="text-sm">No quotes yet.</p>
+              <Link href="/agent/quotes/workspace" className="text-primary-600 hover:underline mt-2 inline-block text-xs">
+                Create your first quote
+              </Link>
+            </div>
+          ) : (
+            <div className="divide-y max-h-[200px] overflow-y-auto">
+              {recentQuotes.slice(0, 3).map((quote) => (
+                <Link
+                  key={quote.id}
+                  href={`/agent/quotes/${quote.id}`}
+                  className="flex items-center justify-between p-3 hover:bg-gray-50 transition-colors"
+                >
+                  <div className="min-w-0 flex-1">
+                    <p className="font-medium text-gray-900 text-sm truncate">{quote.tripName}</p>
+                    {quote.destination && (
+                      <p className="text-xs text-gray-500 truncate">{quote.destination}</p>
+                    )}
+                  </div>
+                  <div className="flex items-center gap-2 ml-2">
+                    <span className={`px-2 py-0.5 text-[10px] rounded-full ${statusColors[quote.status] || "bg-gray-100"} whitespace-nowrap`}>
+                      {quote.status}
+                    </span>
+                    <span className="font-medium text-gray-900 text-sm whitespace-nowrap" suppressHydrationWarning>${quote.total.toLocaleString()}</span>
+                  </div>
+                </Link>
+              ))}
+            </div>
+          )}
         </div>
       </div>
     </div>
