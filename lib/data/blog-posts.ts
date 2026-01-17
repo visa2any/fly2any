@@ -59,6 +59,36 @@ export const authors: Record<string, Author> = {
 
 // Sample blog posts
 export const sampleBlogPosts: BlogPost[] = [
+  // PREMIUM SEO ARTICLE - NYC TO PARIS
+  {
+    id: 'nyc-paris-2026',
+    slug: 'cheap-flights-new-york-paris-2026',
+    title: 'Cheap Flights from New York to Paris: 2026 Price Guide & Best Deals',
+    excerpt: 'Find the best deals on flights from New York to Paris with our comprehensive 2026 price guide. Compare airlines, discover the cheapest months to fly, and save up to 40% on your transatlantic journey.',
+    content: 'Premium article - see dedicated article file',
+    featuredImage: {
+      url: 'https://images.unsplash.com/photo-1502602898657-3e91760cbb34?w=1920&q=90',
+      alt: 'Paris Eiffel Tower at sunset',
+      credit: 'Photo by Anthony Delanoix / Unsplash',
+      width: 1920,
+      height: 1080,
+    },
+    category: 'guide',
+    tags: ['new-york', 'paris', 'cheap-flights', 'flight-deals', 'europe', 'transatlantic'],
+    author: {
+      id: 'michael',
+      name: 'Michael Torres',
+      avatar: '/authors/michael.jpg',
+      bio: 'Michael has been tracking international flight prices for over 8 years and has helped thousands save on transatlantic travel.',
+      role: 'Travel Deals Expert',
+    },
+    publishedAt: new Date('2026-01-17'),
+    readTime: 12,
+    views: 15420,
+    likes: 892,
+    isFeatured: true,
+    isPremium: true,
+  },
   // FEATURED BLOG POST 1
   {
     id: '1',

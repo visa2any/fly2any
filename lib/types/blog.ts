@@ -82,6 +82,7 @@ export interface BlogPost {
   updatedAt?: Date;
   readTime: number; // in minutes
   isFeatured: boolean;
+  isPremium?: boolean; // Premium article with enhanced components
   views?: number;
   likes?: number;
 
