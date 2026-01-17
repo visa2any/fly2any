@@ -92,7 +92,7 @@ export function ArticleHero({
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.4 }}
-              className="text-xl md:text-2xl lg:text-3xl text-white/95 mb-10 max-w-4xl leading-relaxed font-medium"
+              className="text-xl md:text-2xl lg:text-3xl text-white/95 mb-10 max-w-[1600px] leading-relaxed font-medium"
             >
               {excerpt}
             </motion.p>

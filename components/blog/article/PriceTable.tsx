@@ -43,7 +43,7 @@ export function PriceTable({ title, subtitle, prices, currency = 'USD' }: PriceT
       tripType: 'roundtrip',
       adults: '1',
     });
-    return `https://www.fly2any.com/search?${params.toString()}`;
+    return `/?${params.toString()}#search`;
   };
 
   return (
@@ -142,10 +142,12 @@ export function PriceTable({ title, subtitle, prices, currency = 'USD' }: PriceT
                     <td className="px-8 py-6 text-center">
                       <Link
                         href={generateSearchLink(price.origin, price.destination)}
+                        target="_blank"
+                        rel="noopener noreferrer"
                         className="inline-flex items-center gap-2 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white font-bold px-8 py-4 rounded-full transition-all duration-200 hover:scale-105 hover:shadow-2xl shadow-lg"
                       >
-                        Search Now
-                        <ExternalLink className="w-5 h-5" />
+                        <span className="text-white">Search Now</span>
+                        <ExternalLink className="w-5 h-5 text-white" />
                       </Link>
                     </td>
                   </motion.tr>
@@ -213,10 +215,12 @@ export function PriceTable({ title, subtitle, prices, currency = 'USD' }: PriceT
                   </div>
                   <Link
                     href={generateSearchLink(price.origin, price.destination)}
+                    target="_blank"
+                    rel="noopener noreferrer"
                     className="inline-flex items-center gap-2 bg-gradient-to-r from-blue-600 to-blue-700 text-white font-bold px-6 py-3 rounded-full transition-all duration-200 active:scale-95 shadow-lg"
                   >
-                    Search
-                    <ExternalLink className="w-4 h-4" />
+                    <span className="text-white">Search</span>
+                    <ExternalLink className="w-4 h-4 text-white" />
                   </Link>
                 </div>
               </motion.div>

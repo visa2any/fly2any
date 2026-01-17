@@ -9,6 +9,12 @@ import { ArticleHero } from '@/components/blog/article/ArticleHero';
 import { ArticleContent } from '@/components/blog/article/ArticleContent';
 import { StructuredData } from '@/components/seo/StructuredData';
 import { article as nycParisArticle } from '@/lib/data/articles/nyc-paris-flights-2026';
+import { ReadingProgress } from '@/components/blog/article/ReadingProgress';
+import { ExtendedShareButtons } from '@/components/blog/article/ExtendedShareButtons';
+import { CommentSection } from '@/components/blog/article/CommentSection';
+import { AuthorBio } from '@/components/blog/article/AuthorBio';
+import { NewsletterCTA } from '@/components/blog/article/NewsletterCTA';
+import { ScrollToTop } from '@/components/blog/article/ScrollToTop';
 
 /**
  * Individual Blog Post Page
@@ -112,6 +118,8 @@ export default function BlogPostPage() {
     return (
       <>
         <StructuredData schema={[schema]} />
+        <ReadingProgress />
+        <ScrollToTop />
         <div className="min-h-screen bg-white">
           <ArticleHero
             title={premiumData.title}
@@ -124,7 +132,19 @@ export default function BlogPostPage() {
             likes={premiumData.likes}
             featuredImage={premiumData.featuredImage}
           />
+
+          <div className="w-full max-w-[1600px] mx-auto px-6 md:px-12 lg:px-20 xl:px-24 py-8">
+            <div className="flex justify-end">
+              <ExtendedShareButtons />
+            </div>
+          </div>
+
           <ArticleContent content={premiumData.content} />
+
+          <AuthorBio author={premiumData.author} />
+          <NewsletterCTA />
+          <CommentSection />
+
           <section className="bg-gradient-to-r from-gray-900 to-black text-white py-20">
             <div className="max-w-4xl mx-auto px-4 text-center">
               <h2 className="text-3xl md:text-4xl font-bold mb-6">Keep Exploring Travel Guides</h2>
