@@ -69,18 +69,14 @@ export function ArticleContent({ content, children }: ArticleContentProps) {
         </motion.div>
       </div>
 
-      {/* Article Content - FULL WIDTH WITH BREAKOUT SECTIONS */}
+      {/* Article Content - FULL PAGE WIDTH */}
       <article className="w-full bg-white">
-        <div className="w-full">
+        <div className="w-full max-w-[1600px] mx-auto px-6 md:px-12 lg:px-20 xl:px-24 py-16 md:py-20">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.3 }}
-            className="article-content-wrapper"
-            style={{
-              '--content-width': 'min(90vw, 1400px)',
-              '--narrow-width': 'min(85vw, 900px)',
-            } as any}
+            className="article-content-full-width"
           >
             {typeof content === 'string' ? (
               <div dangerouslySetInnerHTML={{ __html: content }} />
@@ -139,25 +135,7 @@ export function ArticleContent({ content, children }: ArticleContentProps) {
       </div>
 
       <style jsx global>{`
-        .article-content-wrapper {
-          width: 100%;
-        }
-
-        .article-content-wrapper > div,
-        .article-content-wrapper h2,
-        .article-content-wrapper h3,
-        .article-content-wrapper p,
-        .article-content-wrapper ul,
-        .article-content-wrapper ol,
-        .article-content-wrapper blockquote {
-          max-width: var(--narrow-width);
-          margin-left: auto;
-          margin-right: auto;
-          padding-left: 2rem;
-          padding-right: 2rem;
-        }
-
-        .article-content-wrapper h2 {
+        .article-content-full-width h2 {
           font-size: clamp(2rem, 5vw, 3.5rem);
           font-weight: 900;
           color: #111827;
@@ -167,8 +145,8 @@ export function ArticleContent({ content, children }: ArticleContentProps) {
           letter-spacing: -0.02em;
         }
 
-        .article-content-wrapper h3 {
-          font-size: clamp(1.5rem, 3.5vw, 2.25rem);
+        .article-content-full-width h3 {
+          font-size: clamp(1.5rem, 3.5vw, 2.5rem);
           font-weight: 800;
           color: #1f2937;
           margin-top: 3rem;
@@ -176,68 +154,50 @@ export function ArticleContent({ content, children }: ArticleContentProps) {
           line-height: 1.3;
         }
 
-        .article-content-wrapper p {
-          font-size: clamp(1.125rem, 2vw, 1.25rem);
+        .article-content-full-width p {
+          font-size: clamp(1.125rem, 2vw, 1.375rem);
           line-height: 1.8;
           color: #374151;
           margin-bottom: 1.5rem;
         }
 
-        .article-content-wrapper ul,
-        .article-content-wrapper ol {
-          font-size: clamp(1.125rem, 2vw, 1.25rem);
+        .article-content-full-width ul,
+        .article-content-full-width ol {
+          font-size: clamp(1.125rem, 2vw, 1.375rem);
           line-height: 1.8;
           color: #374151;
           margin-top: 2rem;
           margin-bottom: 2rem;
-          padding-left: 3rem;
+          padding-left: 2.5rem;
         }
 
-        .article-content-wrapper li {
+        .article-content-full-width li {
           margin-bottom: 1rem;
         }
 
-        .article-content-wrapper strong {
+        .article-content-full-width strong {
           font-weight: 700;
           color: #111827;
         }
 
-        .article-content-wrapper a {
+        .article-content-full-width a {
           color: #2563eb;
           font-weight: 600;
           text-decoration: none;
           transition: all 0.2s;
         }
 
-        .article-content-wrapper a:hover {
+        .article-content-full-width a:hover {
           color: #1d4ed8;
           text-decoration: underline;
         }
 
-        .article-content-wrapper blockquote {
+        .article-content-full-width blockquote {
           border-left: 4px solid #2563eb;
           background: #eff6ff;
           padding: 1.5rem 2rem;
           border-radius: 0 1rem 1rem 0;
-          margin: 2.5rem auto;
-        }
-
-        @media (max-width: 768px) {
-          .article-content-wrapper > div,
-          .article-content-wrapper h2,
-          .article-content-wrapper h3,
-          .article-content-wrapper p,
-          .article-content-wrapper ul,
-          .article-content-wrapper ol,
-          .article-content-wrapper blockquote {
-            padding-left: 1.5rem;
-            padding-right: 1.5rem;
-          }
-
-          .article-content-wrapper ul,
-          .article-content-wrapper ol {
-            padding-left: 3rem;
-          }
+          margin: 2.5rem 0;
         }
       `}</style>
     </>

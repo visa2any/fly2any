@@ -64,7 +64,7 @@ export function ArticleHero({
 
         {/* Content Overlay */}
         <div className="absolute inset-0 flex items-end">
-          <div className="w-full max-w-4xl mx-auto px-4 pb-12 md:pb-16">
+          <div className="w-full max-w-[1600px] mx-auto px-6 md:px-12 lg:px-20 xl:px-24 pb-12 md:pb-16">
             {/* Category Badge */}
             <motion.div
               initial={{ opacity: 0, y: 20 }}
