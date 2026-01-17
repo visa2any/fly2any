@@ -5,7 +5,6 @@ import Image from 'next/image';
 import { ChevronDown, Sparkles, Globe, TrendingUp } from 'lucide-react';
 import { HeroStats } from './HeroStats';
 import { HeroSearchBar } from './HeroSearchBar';
-import { HeroUrgencyBadge } from './HeroUrgencyBadge';
 import { HeroSocialProof } from './HeroSocialProof';
 import type { BlogPost } from '@/lib/types/blog';
 
@@ -183,18 +182,6 @@ export function HeroImmersive({
             <p className="text-xl md:text-2xl lg:text-3xl text-white/90 font-medium max-w-3xl mx-auto">
               {t.description}
             </p>
-          </div>
-
-          {/* Urgency Badges */}
-          <div
-            className={`
-              flex flex-wrap items-center justify-center gap-4 transform transition-all duration-1000 delay-300
-              ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'}
-            `}
-          >
-            <HeroUrgencyBadge type="viewing" count={247} />
-            <HeroUrgencyBadge type="seats" count={3} />
-            <HeroUrgencyBadge type="price_drop" count={50} />
           </div>
 
           {/* Search Bar */}
