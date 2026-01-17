@@ -82,7 +82,7 @@ export function ArticleHero({
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.3 }}
-              className="text-4xl md:text-5xl lg:text-6xl font-extrabold text-white mb-6 leading-tight"
+              className="text-5xl md:text-6xl lg:text-7xl font-black text-white mb-8 leading-tight tracking-tight"
             >
               {title}
             </motion.h1>
@@ -92,7 +92,7 @@ export function ArticleHero({
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.4 }}
-              className="text-lg md:text-xl text-white/90 mb-8 max-w-3xl leading-relaxed"
+              className="text-xl md:text-2xl lg:text-3xl text-white/95 mb-10 max-w-4xl leading-relaxed font-medium"
             >
               {excerpt}
             </motion.p>
