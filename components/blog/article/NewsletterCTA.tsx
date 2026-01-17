@@ -6,16 +6,37 @@ import { Mail, Send, CheckCircle } from 'lucide-react';
 
 export function NewsletterCTA() {
   const [email, setEmail] = useState('');
-  const [subscribed, setSubscribed] = useState(false);
+  const [status, setStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle');
+  const [message, setMessage] = useState('');
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    // TODO: Implement newsletter subscription
-    setSubscribed(true);
-    setTimeout(() => {
-      setEmail('');
-      setSubscribed(false);
-    }, 3000);
+    setStatus('loading');
+
+    try {
+      const res = await fetch('/api/newsletter/subscribe', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, source: 'blog-article' }),
+      });
+
+      const data = await res.json();
+
+      if (data.success) {
+        setStatus('success');
+        setMessage('✅ Check your email to confirm subscription!');
+        setEmail('');
+        setTimeout(() => setStatus('idle'), 5000);
+      } else {
+        setStatus('error');
+        setMessage(data.error || 'Something went wrong. Try again.');
+        setTimeout(() => setStatus('idle'), 4000);
+      }
+    } catch (error) {
+      setStatus('error');
+      setMessage('Network error. Please try again.');
+      setTimeout(() => setStatus('idle'), 4000);
+    }
   };
 
   return (
@@ -44,15 +65,20 @@ export function NewsletterCTA() {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 required
-                disabled={subscribed}
+                disabled={status === 'loading' || status === 'success'}
                 className="flex-1 px-6 py-4 bg-white/20 backdrop-blur-sm border-2 border-white/30 rounded-xl text-white placeholder:text-white/60 focus:ring-4 focus:ring-white/30 focus:border-white transition-all disabled:opacity-50"
               />
               <button
                 type="submit"
-                disabled={subscribed}
-                className="px-8 py-4 bg-white text-blue-600 font-bold rounded-xl hover:bg-blue-50 transition-all hover:scale-105 shadow-xl disabled:opacity-50 flex items-center gap-2"
+                disabled={status === 'loading' || status === 'success'}
+                className="px-8 py-4 bg-white text-blue-600 font-bold rounded-xl hover:bg-blue-50 transition-all hover:scale-105 shadow-xl disabled:opacity-50 flex items-center gap-2 whitespace-nowrap"
               >
-                {subscribed ? (
+                {status === 'loading' ? (
+                  <>
+                    <div className="w-5 h-5 border-2 border-blue-600 border-t-transparent rounded-full animate-spin" />
+                    Sending...
+                  </>
+                ) : status === 'success' ? (
                   <>
                     <CheckCircle className="w-5 h-5" />
                     Done
@@ -65,10 +91,22 @@ export function NewsletterCTA() {
                 )}
               </button>
             </div>
+
+            {message && (
+              <motion.p
+                initial={{ opacity: 0, y: -10 }}
+                animate={{ opacity: 1, y: 0 }}
+                className={`text-center mt-4 font-semibold ${
+                  status === 'error' ? 'text-red-100' : 'text-white'
+                }`}
+              >
+                {message}
+              </motion.p>
+            )}
           </form>
 
           <p className="text-sm text-white/70 mt-4">
-            No spam. Unsubscribe anytime. 🔒
+            No spam. Unsubscribe anytime. GDPR compliant. 🔒
           </p>
         </motion.div>
       </div>
