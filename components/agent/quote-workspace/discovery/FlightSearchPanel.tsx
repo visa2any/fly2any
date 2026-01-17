@@ -1199,6 +1199,9 @@ function FlightResultCard({ flight, onAdd, index }: { flight: any; onAdd: (fareI
   const [loadingFares, setLoadingFares] = useState(false);
   const [upselledFares, setUpselledFares] = useState<any[]>([]);
 
+  // Calculate total passengers from flight data
+  const totalPassengers = flight.travelerPricings?.length || 1;
+
   // Fetch branded fares immediately on mount (not on expand)
   // User requirement: "need to be transparent, bringing all info and fares"
   useEffect(() => {
