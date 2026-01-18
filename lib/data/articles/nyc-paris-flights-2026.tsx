@@ -1,5 +1,8 @@
 import Link from 'next/link';
 import { PriceTable } from '@/components/blog/article/PriceTable';
+import { InlineSearchWidget } from '@/components/blog/article/InlineSearchWidget';
+import { UrgencyBanner } from '@/components/blog/article/UrgencyBanner';
+import { AIAssistantPromo } from '@/components/blog/article/AIAssistantPromo';
 
 export const article = {
   slug: 'cheap-flights-new-york-paris-2026',
@@ -72,6 +75,19 @@ export const article = {
         <strong>Worst months to fly:</strong> June through August see peak summer prices, often exceeding $800 roundtrip. Christmas and New Year's periods also command premium fares.
       </p>
 
+      <InlineSearchWidget
+        origin="NYC"
+        destination="PAR"
+        defaultMonth="February 2026"
+        variant="compact"
+      />
+
+      <UrgencyBanner
+        type="scarcity"
+        seatsLeft={7}
+        message="🔥 February deals are selling fast – only 7 seats left at $445!"
+      />
+
       <h2>Best US Departure Airports for Paris Flights</h2>
       <p>
         While New York offers the most flight options, comparing nearby airports can reveal surprising savings:
@@ -121,6 +137,11 @@ export const article = {
       <p>
         Budget carriers like French Bee and Norse Atlantic offer the lowest base fares but charge extra for baggage and seat selection. Full-service carriers include baggage and better frequent flyer benefits. <Link href="https://www.fly2any.com/search?from=JFK&to=CDG&adults=1&tripType=roundtrip" className="text-blue-600 hover:underline font-semibold">Compare all airlines on Fly2Any</Link> to find the best value for your needs.
       </p>
+
+      <AIAssistantPromo
+        destination="Paris"
+        variant="inline"
+      />
 
       <h2>Common Mistakes US Travelers Make</h2>
       <p>
@@ -219,6 +240,13 @@ export const article = {
         <li>✅ Consider budget carriers for short trips</li>
         <li>✅ Set price alerts for your dates</li>
       </ul>
+
+      <InlineSearchWidget
+        origin="NYC"
+        destination="PAR"
+        defaultMonth="February 2026"
+        variant="full"
+      />
 
       <div className="my-12 p-8 bg-gradient-to-r from-blue-600 to-blue-700 rounded-2xl text-white text-center">
         <h3 className="text-3xl font-bold mb-4">Start Searching Live Prices Now</h3>

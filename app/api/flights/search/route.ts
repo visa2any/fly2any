@@ -1200,884 +1200,881 @@ export async function POST(request: NextRequest) {
           });
         });
       });
-      // 🚀 GLOBAL CITY CODE OPTIMIZATION (Smart Grouping)
-      // Reduce combinatorial explosion by grouping airports into city codes (e.g. JFK, EWR -> NYC)
-      // This reduces API calls significantly (e.g. 9 distinct pairs -> 1 city pair)
-      const searchGroups = new Map<string, {
-        originCity: string,
-        destCity: string,
-        depDate: string,
-        retDate?: string,
-        requestedPairs: { origin: string, dest: string }[]
-      }>();
+    }
 
-      const addToGroup = (origin: string, dest: string, depDate: string, retDate?: string) => {
-        const originCity = getCityCode(origin);
-        const destCity = getCityCode(dest);
-        // Create a unique key for the API call
-        const key = `${originCity}-${destCity}-${depDate}-${retDate || 'one-way'}`;
+    // 🚀 GLOBAL CITY CODE OPTIMIZATION (Smart Grouping)
+    // Reduce combinatorial explosion by grouping airports into city codes (e.g. JFK, EWR -> NYC)
+    // This reduces API calls significantly (e.g. 9 distinct pairs -> 1 city pair)
+    const searchGroups = new Map<string, {
+      originCity: string,
+      destCity: string,
+      depDate: string,
+      retDate?: string,
+      requestedPairs: { origin: string, dest: string }[]
+    }>();
 
-        if (!searchGroups.has(key)) {
-          searchGroups.set(key, {
-            originCity,
-            destCity,
-            depDate,
-            retDate,
-            requestedPairs: []
-          });
-        }
-        // Track the specific airport pair the user actually asked for
-        searchGroups.get(key)!.requestedPairs.push({ origin, dest });
-      };
+    const addToGroup = (origin: string, dest: string, depDate: string, retDate?: string) => {
+      const originCity = getCityCode(origin);
+      const destCity = getCityCode(dest);
+      // Create a unique key for the API call
+      const key = `${originCity}-${destCity}-${depDate}-${retDate || 'one-way'}`;
 
-      // 1. Generate all date combinations (Standard vs Flexible)
-      const dateCombinations: { dep: string, ret?: string }[] = [];
-
-      if (departureFlex > 0) {
-        // Flexible dates
-        const flexDates = generateFlexibleDateRange(departureDate, departureFlex);
-        flexDates.forEach(date => {
-          const retDate = (tripDuration && body.returnDate)
-            ? calculateReturnDate(date, tripDuration)
-            : body.returnDate;
-          dateCombinations.push({ dep: date, ret: retDate });
+      if (!searchGroups.has(key)) {
+        searchGroups.set(key, {
+          originCity,
+          destCity,
+          depDate,
+          retDate,
+          requestedPairs: []
         });
-      } else {
-        // Standard dates
-        dateCombinations.push({ dep: departureDate, ret: body.returnDate });
       }
+      // Track the specific airport pair the user actually asked for
+      searchGroups.get(key)!.requestedPairs.push({ origin, dest });
+    };
 
-      // 2. Populate search groups
-      originCodes.forEach(originCode => {
-        destinationCodes.forEach(destinationCode => {
-          dateCombinations.forEach(dateCombo => {
-            addToGroup(originCode, destinationCode, dateCombo.dep, dateCombo.ret);
-          });
+    // 1. Generate all date combinations (Standard vs Flexible)
+    const dateCombinations: { dep: string, ret?: string }[] = [];
+
+    if (departureFlex > 0) {
+      // Flexible dates
+      const flexDates = generateFlexibleDateRange(departureDate, departureFlex);
+      flexDates.forEach(date => {
+        const retDate = (tripDuration && body.returnDate)
+          ? calculateReturnDate(date, tripDuration)
+          : body.returnDate;
+        dateCombinations.push({ dep: date, ret: retDate });
+      });
+    } else {
+      // Standard dates
+      dateCombinations.push({ dep: departureDate, ret: body.returnDate });
+    }
+
+    // 2. Populate search groups
+    originCodes.forEach(originCode => {
+      destinationCodes.forEach(destinationCode => {
+        dateCombinations.forEach(dateCombo => {
+          addToGroup(originCode, destinationCode, dateCombo.dep, dateCombo.ret);
         });
       });
+    });
 
-      // 3. Create execution tasks from groups
-      searchGroups.forEach((group) => {
-        addTask(() =>
-          searchSingleRoute(group.originCity, group.destCity, group.depDate, group.retDate)
-            .then(apiResponse => {
-              const rawFlights = apiResponse.data || [];
+    // 3. Create execution tasks from groups
+    searchGroups.forEach((group) => {
+      addTask(() =>
+        searchSingleRoute(group.originCity, group.destCity, group.depDate, group.retDate)
+          .then(apiResponse => {
+            const rawFlights = apiResponse.data || [];
 
-              // 🔎 STRICT POST-PROCESS FILTERING
-              // We searched by City Code (e.g. NYC->LON), so we got results for ALL airports (JFK, LGA, LHR, LGW...)
-              // Now we filter to keep ONLY flights matching the specific pairs the user requested (e.g. JFK->LHR)
-              // This ensures the optimization is invisible to the user but saves massive API costs.
-              const filteredFlights = rawFlights.filter(flight => {
-                if (!flight.itineraries || flight.itineraries.length === 0) return false;
+            // 🔎 STRICT POST-PROCESS FILTERING
+            // We searched by City Code (e.g. NYC->LON), so we got results for ALL airports (JFK, LGA, LHR, LGW...)
+            // Now we filter to keep ONLY flights matching the specific pairs the user requested (e.g. JFK->LHR)
+            // This ensures the optimization is invisible to the user but saves massive API costs.
+            const filteredFlights = rawFlights.filter(flight => {
+              if (!flight.itineraries || flight.itineraries.length === 0) return false;
 
-                // Helper to check if a segment match exists in requestedPairs
-                const isValidItinerary = group.requestedPairs.some(pair => {
-                  const outboundSegments = flight.itineraries[0].segments;
-                  if (!outboundSegments || outboundSegments.length === 0) return false;
+              // Helper to check if a segment match exists in requestedPairs
+              const isValidItinerary = group.requestedPairs.some(pair => {
+                const outboundSegments = flight.itineraries[0].segments;
+                if (!outboundSegments || outboundSegments.length === 0) return false;
 
-                  const flightOrigin = outboundSegments[0].departure.iataCode;
-                  const flightDest = outboundSegments[outboundSegments.length - 1].arrival.iataCode;
+                const flightOrigin = outboundSegments[0].departure.iataCode;
+                const flightDest = outboundSegments[outboundSegments.length - 1].arrival.iataCode;
 
-                  // Check outbound match
-                  const outboundMatch = (flightOrigin === pair.origin && flightDest === pair.dest);
-                  if (!outboundMatch) return false;
+                // Check outbound match
+                const outboundMatch = (flightOrigin === pair.origin && flightDest === pair.dest);
+                if (!outboundMatch) return false;
 
-                  // Check inbound match (if round trip)
-                  if (flight.itineraries.length > 1) {
-                    const inboundSegments = flight.itineraries[1].segments;
-                    if (!inboundSegments || inboundSegments.length === 0) return false;
+                // Check inbound match (if round trip)
+                if (flight.itineraries.length > 1) {
+                  const inboundSegments = flight.itineraries[1].segments;
+                  if (!inboundSegments || inboundSegments.length === 0) return false;
 
-                    const returnOrigin = inboundSegments[0].departure.iataCode;
-                    const returnDest = inboundSegments[inboundSegments.length - 1].arrival.iataCode;
+                  const returnOrigin = inboundSegments[0].departure.iataCode;
+                  const returnDest = inboundSegments[inboundSegments.length - 1].arrival.iataCode;
 
-                    // Strict return match: Must return to the requested origin from the requested dest?
-                    // Usually standard round trip implies A->B and B->A. 
-                    // If user asked for JFK->LHR, they expect LHR->JFK return.
-                    // However, multi-city logic might be complex. 
-                    // For standard round-trip, strict inverse is safest default.
-                    // If pair.dest is LHR and pair.origin is JFK, we check departure=LHR, arrival=JFK.
-                    return (returnOrigin === pair.dest && returnDest === pair.origin);
-                  }
+                  // Strict return match: Must return to the requested origin from the requested dest?
+                  // Usually standard round trip implies A->B and B->A. 
+                  // If user asked for JFK->LHR, they expect LHR->JFK return.
+                  // However, multi-city logic might be complex. 
+                  // For standard round-trip, strict inverse is safest default.
+                  // If pair.dest is LHR and pair.origin is JFK, we check departure=LHR, arrival=JFK.
+                  return (returnOrigin === pair.dest && returnDest === pair.origin);
+                }
 
-                  return true;
-                });
-
-                return isValidItinerary;
+                return true;
               });
 
-              return { flights: filteredFlights, dictionaries: apiResponse.dictionaries };
-            })
-            .catch((err) => {
-              console.error(`Error searching city pair ${group.originCity}->${group.destCity}:`, err);
-              return { flights: [], dictionaries: {} };
-            })
-        );
-      });
+              return isValidItinerary;
+            });
 
-      console.log(`⚡ Processing ${itemsToProcess.length} searches with concurrency ${CONCURRENCY_LIMIT}...`);
-      const startTime = Date.now();
+            return { flights: filteredFlights, dictionaries: apiResponse.dictionaries };
+          })
+          .catch((err) => {
+            console.error(`Error searching city pair ${group.originCity}->${group.destCity}:`, err);
+            return { flights: [], dictionaries: {} };
+          })
+      );
+    });
 
-      // Simple concurrency implementation
-      const results: any[] = [];
-      const executing: Promise<void>[] = [];
+    console.log(`⚡ Processing ${itemsToProcess.length} searches with concurrency ${CONCURRENCY_LIMIT}...`);
+    const startTime = Date.now();
 
-      for (const item of itemsToProcess) {
-        const p = Promise.resolve().then(() => item());
-        results.push(p);
+    // Simple concurrency implementation
+    const results: any[] = [];
+    const executing: Promise<void>[] = [];
 
-        if (CONCURRENCY_LIMIT <= itemsToProcess.length) {
-          const e: Promise<void> = p.then(() => {
-            executing.splice(executing.indexOf(e), 1);
-          });
-          executing.push(e);
-          if (executing.length >= CONCURRENCY_LIMIT) {
-            await Promise.race(executing);
-          }
+    for (const item of itemsToProcess) {
+      const p = Promise.resolve().then(() => item());
+      results.push(p);
+
+      if (CONCURRENCY_LIMIT <= itemsToProcess.length) {
+        const e: Promise<void> = p.then(() => {
+          executing.splice(executing.indexOf(e), 1);
+        });
+        executing.push(e);
+        if (executing.length >= CONCURRENCY_LIMIT) {
+          await Promise.race(executing);
         }
       }
+    }
 
-      // Wait for all remaining
-      const allResults = await Promise.all(results);
+    // Wait for all remaining
+    const allResults = await Promise.all(results);
 
-      // Aggregate results
-      allResults.forEach(result => {
-        allFlights.push(...(result.flights || []));
-        if (result.dictionaries && Object.keys(result.dictionaries).length > 0) {
-          dictionaries = { ...dictionaries, ...result.dictionaries };
-        }
-      });
-
-      const parallelTime = Date.now() - startTime;
-      console.log(`⚡ Search completed in ${parallelTime}ms`);
-
-      // ... (Dedup and rest of logic remains similar, handled by keeping existing code flow)
-      // NOTE: Replacing the 'if/else' block for search logic with the above, but need to be careful about matching the specific lines.
-      // Actually, simply replacing the huge block is better.
-
-      // ... (Original logic continues for deduplication and response)
-
-      // Deduplicate results
-      if (allFlights.length > 0) {
-        console.log(`Total flights before dedup: ${allFlights.length}`);
-        allFlights = deduplicateFlights(allFlights);
-        console.log(`Total flights after dedup: ${allFlights.length}`);
+    // Aggregate results
+    allResults.forEach(result => {
+      allFlights.push(...(result.flights || []));
+      if (result.dictionaries && Object.keys(result.dictionaries).length > 0) {
+        dictionaries = { ...dictionaries, ...result.dictionaries };
       }
+    });
+
+    const parallelTime = Date.now() - startTime;
+    console.log(`⚡ Search completed in ${parallelTime}ms`);
+
+    // ... (Dedup and rest of logic remains similar, handled by keeping existing code flow)
+    // NOTE: Replacing the 'if/else' block for search logic with the above, but need to be careful about matching the specific lines.
+    // Actually, simply replacing the huge block is better.
+
+    // ... (Original logic continues for deduplication and response)
+
+    // Deduplicate results
+    if (allFlights.length > 0) {
+      console.log(`Total flights before dedup: ${allFlights.length}`);
+      allFlights = deduplicateFlights(allFlights);
+      console.log(`Total flights after dedup: ${allFlights.length}`);
+    }
 
 
-      let flights = allFlights;
-      const originalFlightCount = allFlights.length; // 🛡️ SAFETY: Track original count
+    let flights = allFlights;
+    const originalFlightCount = allFlights.length; // 🛡️ SAFETY: Track original count
 
-      // 🎫 SMART MIXED-CARRIER "HACKER FARE" SEARCH
-      // Uses zero-cost heuristic to decide when to search for cheaper combinations
-      // Only runs additional API calls when savings are likely
-      // Results are unified and sorted with cheapest first (mixed or traditional)
-      let mixedCarrierFares: MixedCarrierFare[] = [];
-      let smartMixedResult: SmartMixedCarrierResult | null = null;
+    // 🎫 SMART MIXED-CARRIER "HACKER FARE" SEARCH
+    // Uses zero-cost heuristic to decide when to search for cheaper combinations
+    // Only runs additional API calls when savings are likely
+    // Results are unified and sorted with cheapest first (mixed or traditional)
+    let mixedCarrierFares: MixedCarrierFare[] = [];
+    let smartMixedResult: SmartMixedCarrierResult | null = null;
 
-      if (body.returnDate && originCodes.length > 0 && destinationCodes.length > 0) {
-        console.log('\n🎫 Smart Mixed-Carrier Search: Analyzing round-trip data for savings potential...');
-        console.log(`   📊 Input: ${originalFlightCount} round-trip flights from main search`);
+    if (body.returnDate && originCodes.length > 0 && destinationCodes.length > 0) {
+      console.log('\n🎫 Smart Mixed-Carrier Search: Analyzing round-trip data for savings potential...');
+      console.log(`   📊 Input: ${originalFlightCount} round-trip flights from main search`);
 
-        try {
-          const origin = originCodes[0];
-          const destination = destinationCodes[0];
-          const depDate = departureDates[0];
-          const retDate = returnDates[0] || body.returnDate;
+      try {
+        const origin = originCodes[0];
+        const destination = destinationCodes[0];
+        const depDate = departureDates[0];
+        const retDate = returnDates[0] || body.returnDate;
 
-          // Map travel class for Duffel (lowercase format)
-          const mixedDuffelCabinClass = travelClass?.toLowerCase().replace('_', '_') as 'economy' | 'premium_economy' | 'business' | 'first' | undefined;
+        // Map travel class for Duffel (lowercase format)
+        const mixedDuffelCabinClass = travelClass?.toLowerCase().replace('_', '_') as 'economy' | 'premium_economy' | 'business' | 'first' | undefined;
 
-          // Skip Amadeus if in test mode (fake prices)
-          const useAmadeus = amadeusAPI.isProductionMode();
+        // Skip Amadeus if in test mode (fake prices)
+        const useAmadeus = amadeusAPI.isProductionMode();
 
-          // Create one-way search adapter for the smart algorithm
-          const oneWaySearchFunction: OneWaySearchFunction = async (params) => {
-            const searchResults: FlightOffer[] = [];
+        // Create one-way search adapter for the smart algorithm
+        const oneWaySearchFunction: OneWaySearchFunction = async (params) => {
+          const searchResults: FlightOffer[] = [];
 
-            // Run Amadeus + Duffel in parallel for each one-way search
-            const [amadeusResult, duffelResult] = await Promise.allSettled([
-              useAmadeus
-                ? amadeusAPI.searchFlights({
-                  origin: params.origin,
-                  destination: params.destination,
-                  departureDate: params.date,
-                  adults: params.adults || body.adults || 1,
-                  children: params.children || body.children,
-                  infants: params.infants || body.infants,
-                  travelClass: travelClass,
-                  nonStop: params.nonStop || body.nonStop === true ? true : undefined,
-                  currencyCode: body.currencyCode || 'USD',
-                  max: params.maxResults || 30,
-                })
-                : Promise.resolve({ data: [] }),
-              duffelAPI.isAvailable()
-                ? duffelAPI.searchFlights({
-                  origin: params.origin,
-                  destination: params.destination,
-                  departureDate: params.date,
-                  adults: params.adults || body.adults || 1,
-                  children: params.children || body.children,
-                  infants: params.infants || body.infants,
-                  cabinClass: mixedDuffelCabinClass || 'economy',
-                  maxResults: params.maxResults || 30,
-                  nonStop: params.nonStop || body.nonStop === true ? true : undefined,
-                })
-                : Promise.resolve({ data: [], meta: { count: 0 } }),
-            ]);
+          // Run Amadeus + Duffel in parallel for each one-way search
+          const [amadeusResult, duffelResult] = await Promise.allSettled([
+            useAmadeus
+              ? amadeusAPI.searchFlights({
+                origin: params.origin,
+                destination: params.destination,
+                departureDate: params.date,
+                adults: params.adults || body.adults || 1,
+                children: params.children || body.children,
+                infants: params.infants || body.infants,
+                travelClass: travelClass,
+                nonStop: params.nonStop || body.nonStop === true ? true : undefined,
+                currencyCode: body.currencyCode || 'USD',
+                max: params.maxResults || 30,
+              })
+              : Promise.resolve({ data: [] }),
+            duffelAPI.isAvailable()
+              ? duffelAPI.searchFlights({
+                origin: params.origin,
+                destination: params.destination,
+                departureDate: params.date,
+                adults: params.adults || body.adults || 1,
+                children: params.children || body.children,
+                infants: params.infants || body.infants,
+                cabinClass: mixedDuffelCabinClass || 'economy',
+                maxResults: params.maxResults || 30,
+                nonStop: params.nonStop || body.nonStop === true ? true : undefined,
+              })
+              : Promise.resolve({ data: [], meta: { count: 0 } }),
+          ]);
 
-            if (amadeusResult.status === 'fulfilled' && amadeusResult.value.data) {
-              searchResults.push(...amadeusResult.value.data);
-            }
-            if (duffelResult.status === 'fulfilled' && duffelResult.value.data) {
-              searchResults.push(...duffelResult.value.data);
-            }
-
-            return searchResults as TypedFlightOffer[];
-          };
-
-          // Execute smart mixed-carrier search
-          // This analyzes round-trip data FIRST (zero cost) then decides if one-way searches are worth it
-          smartMixedResult = await smartMixedCarrierSearch(
-            flights as TypedFlightOffer[],
-            {
-              origin,
-              destination,
-              departureDate: depDate,
-              returnDate: retDate,
-              adults: body.adults,
-              children: body.children,
-              infants: body.infants,
-              cabinClass: travelClass,
-              nonStop: body.nonStop,
-              includeSeparateTickets,
-            },
-            oneWaySearchFunction,
-            {
-              // Auto-enable for Economy/Premium Economy (price-sensitive travelers)
-              autoEnable: true,
-              autoEnableCabinClasses: ['ECONOMY', 'PREMIUM_ECONOMY'],
-              // Minimum 5% or $20 savings to run extra API calls
-              minEstimatedSavingsPercent: 5,
-              minEstimatedSavingsAmount: 20,
-              // Cache one-way results for 30 minutes
-              oneWayCacheTTL: 1800,
-            }
-          );
-
-          // Log summary
-          console.log(`   📊 Smart Decision: ${smartMixedResult.mixedSearchPerformed ? 'SEARCHED' : 'SKIPPED'}`);
-          console.log(`   📝 Reason: ${smartMixedResult.mixedSearchReason}`);
-          console.log(`   📈 Stats: ${smartMixedResult.stats.totalRoundTrips} round-trips, ${smartMixedResult.stats.totalMixedFares} mixed fares`);
-          console.log(`   📤 Output: ${smartMixedResult.flights.length} total flights in result`);
-
-          if (smartMixedResult.stats.bestSavings) {
-            console.log(`   💰 Best savings: $${smartMixedResult.stats.bestSavings.amount.toFixed(0)} (${smartMixedResult.stats.bestSavings.percentage.toFixed(0)}%)`);
+          if (amadeusResult.status === 'fulfilled' && amadeusResult.value.data) {
+            searchResults.push(...amadeusResult.value.data);
           }
-          if (smartMixedResult.stats.apiCallsSaved > 0) {
-            console.log(`   ⚡ API calls saved: ${smartMixedResult.stats.apiCallsSaved} (from cache)`);
+          if (duffelResult.status === 'fulfilled' && duffelResult.value.data) {
+            searchResults.push(...duffelResult.value.data);
           }
 
-          // 🛡️ CRITICAL SAFETY CHECK: Never return fewer flights than we started with
-          // The smart search should ONLY ADD mixed fares, never remove round-trip flights
-          const smartResultCount = smartMixedResult.flights.length;
-
-          if (smartResultCount >= originalFlightCount) {
-            // Use the smart results - they have at least as many flights
-            mixedCarrierFares = smartMixedResult.mixedFares;
-            flights = smartMixedResult.flights as FlightOffer[];
-            console.log(`   ✅ Using smart results: ${smartResultCount} flights (original: ${originalFlightCount})`);
-          } else {
-            // SAFETY: Smart result has fewer flights - something went wrong!
-            console.error(`   🚨 SAFETY VIOLATION: Smart result has ${smartResultCount} flights, but original had ${originalFlightCount}!`);
-            console.error(`   🚨 Falling back to original flights to prevent data loss`);
-            // Keep flights = allFlights (unchanged from line 965)
-            mixedCarrierFares = []; // Clear any partial mixed fares
-          }
-        } catch (mixedError) {
-          console.error('   ⚠️ Smart mixed-carrier search error (non-fatal):', mixedError);
-          console.error(`   🛡️ FALLBACK: Keeping original ${originalFlightCount} flights`);
-          // Continue with regular results - mixed search failure shouldn't break the main search
-        }
-      }
-
-      if (!flights || flights.length === 0) {
-        const emptyResponse = {
-          flights: [],
-          metadata: {
-            total: 0,
-            searchParams: flightSearchParams,
-            message: 'No flights found for the given criteria',
-            cached: false,
-            cacheKey,
-          }
+          return searchResults as TypedFlightOffer[];
         };
 
-        // Cache empty results too (shorter TTL)
-        await setCache(cacheKey, emptyResponse, 300);
-
-        return NextResponse.json(emptyResponse, {
-          status: 200,
-          headers: {
-            'Cache-Control': 'public, max-age=300',
-            'X-Cache-Status': 'MISS',
-          }
-        });
-      }
-
-      // ============================================================================
-      // 💰 APPLY FLIGHT MARKUP TO ALL PRICES
-      // ============================================================================
-      // Markup Strategy:
-      // - Duffel/Amadeus flights: MAX($22 minimum, 7% of price), capped at $200
-      // - Consolidator flights: No markup (commission-based)
-      //
-      // NOTE: We apply the same markup to both Amadeus and Duffel prices since
-      // both are used for customer display. The routing decision (which channel
-      // to book through) uses NET prices stored internally.
-      // ============================================================================
-      console.log('💰 Applying flight markup to all prices...');
-
-      const markedUpFlights = flights.map((flight: FlightOffer) => {
-        const netPrice = parseFloat(String(flight.price?.total || '0'));
-        const source = flight.source?.toLowerCase() || 'unknown';
-
-        // Skip markup for consolidator flights (they have built-in commission)
-        // Consolidator flights would have source='consolidator' if coming from that channel
-        if (source === 'consolidator') {
-          console.log(`  ✓ ${flight.id}: $${netPrice.toFixed(2)} (Consolidator - no markup)`);
-          return flight;
-        }
-
-        // Apply markup using the flight markup config
-        const markupResult = applyFlightMarkup(netPrice);
-
-        // CRITICAL: Preserve original base price, adjust for markup
-        const originalBase = parseFloat(String(flight.price?.base || '0'));
-        const newBase = originalBase > 0 ? originalBase + markupResult.markupAmount : 0;
-
-        // Update flight price with customer-facing price (including markup)
-        const markedUpFlight = {
-          ...flight,
-          price: {
-            ...flight.price,
-            total: markupResult.customerPrice.toString(),
-            base: newBase > 0 ? newBase.toString() : flight.price?.base, // Preserve or recalculate
-            fees: flight.price?.fees, // Preserve original fees array
-            grandTotal: markupResult.customerPrice.toString(),
-            // Store net price internally for routing/commission calculations
-            _netPrice: netPrice.toString(),
-            _markupAmount: markupResult.markupAmount.toString(),
-            _markupPercentage: markupResult.markupPercentage,
+        // Execute smart mixed-carrier search
+        // This analyzes round-trip data FIRST (zero cost) then decides if one-way searches are worth it
+        smartMixedResult = await smartMixedCarrierSearch(
+          flights as TypedFlightOffer[],
+          {
+            origin,
+            destination,
+            departureDate: depDate,
+            returnDate: retDate,
+            adults: body.adults,
+            children: body.children,
+            infants: body.infants,
+            cabinClass: travelClass,
+            nonStop: body.nonStop,
+            includeSeparateTickets,
           },
-          // CRITICAL FIX #1: Apply markup to fareVariants too!
-          // Each variant needs the same markup applied individually
-          fareVariants: flight.fareVariants?.map((variant: any) => {
-            const variantNetPrice = parseFloat(String(variant.price || '0'));
-            const variantMarkupResult = applyFlightMarkup(variantNetPrice);
-            const variantOriginalBase = parseFloat(String(variant.priceDetails?.base || '0'));
-            const variantNewBase = variantOriginalBase > 0 ? variantOriginalBase + variantMarkupResult.markupAmount : 0;
+          oneWaySearchFunction,
+          {
+            // Auto-enable for Economy/Premium Economy (price-sensitive travelers)
+            autoEnable: true,
+            autoEnableCabinClasses: ['ECONOMY', 'PREMIUM_ECONOMY'],
+            // Minimum 5% or $20 savings to run extra API calls
+            minEstimatedSavingsPercent: 5,
+            minEstimatedSavingsAmount: 20,
+            // Cache one-way results for 30 minutes
+            oneWayCacheTTL: 1800,
+          }
+        );
 
-            return {
-              ...variant,
-              price: variantMarkupResult.customerPrice, // ✓ Mark-up applied to variant price
-              priceDetails: {
-                total: variantMarkupResult.customerPrice.toString(),
-                base: variantNewBase > 0 ? variantNewBase.toString() : variant.priceDetails?.base || '0',
-                fees: variant.priceDetails?.fees, // Keep original fees breakdown
-                grandTotal: variantMarkupResult.customerPrice.toString(),
-                _netPrice: variantNetPrice.toString(),
-                _markupAmount: variantMarkupResult.markupAmount.toString(),
-              },
-            };
-          }),
-          // Update traveler pricing if exists
-          // CRITICAL FIX: Calculate per-person price, not assign total to each traveler
-          travelerPricings: flight.travelerPricings?.map((tp: any) => {
-            const travelerCount = flight.travelerPricings?.length || 1;
-            const perPersonPrice = (markupResult.customerPrice / travelerCount).toFixed(2);
-            return {
-              ...tp,
-              price: {
-                ...tp.price,
-                total: perPersonPrice,
-              },
-            };
-          }),
-        };
+        // Log summary
+        console.log(`   📊 Smart Decision: ${smartMixedResult.mixedSearchPerformed ? 'SEARCHED' : 'SKIPPED'}`);
+        console.log(`   📝 Reason: ${smartMixedResult.mixedSearchReason}`);
+        console.log(`   📈 Stats: ${smartMixedResult.stats.totalRoundTrips} round-trips, ${smartMixedResult.stats.totalMixedFares} mixed fares`);
+        console.log(`   📤 Output: ${smartMixedResult.flights.length} total flights in result`);
 
-        console.log(`  ✓ ${flight.id?.slice(-8)} (${source}): $${netPrice.toFixed(2)} → $${markupResult.customerPrice.toFixed(2)} (+$${markupResult.markupAmount.toFixed(2)} / ${markupResult.markupPercentage}%)`);
-
-        // Debug: Log fare variants markup
-        if (markedUpFlight.fareVariants && markedUpFlight.fareVariants.length > 0) {
-          console.log(`    📊 FareVariants markup applied: ${markedUpFlight.fareVariants.length} variants`);
-          markedUpFlight.fareVariants.forEach((v: any, i: number) => {
-            console.log(`      [${i}] ${v.name}: $${v.price.toFixed(2)} (base: ${v.priceDetails?.base})`);
-          });
+        if (smartMixedResult.stats.bestSavings) {
+          console.log(`   💰 Best savings: $${smartMixedResult.stats.bestSavings.amount.toFixed(0)} (${smartMixedResult.stats.bestSavings.percentage.toFixed(0)}%)`);
+        }
+        if (smartMixedResult.stats.apiCallsSaved > 0) {
+          console.log(`   ⚡ API calls saved: ${smartMixedResult.stats.apiCallsSaved} (from cache)`);
         }
 
-        return markedUpFlight;
-      });
+        // 🛡️ CRITICAL SAFETY CHECK: Never return fewer flights than we started with
+        // The smart search should ONLY ADD mixed fares, never remove round-trip flights
+        const smartResultCount = smartMixedResult.flights.length;
 
-      // Calculate and log total markup applied
-      const totalNetPrice = flights.reduce((sum: number, f: FlightOffer) => sum + parseFloat(String(f.price?.total || '0')), 0);
-      const totalMarkedUpPrice = markedUpFlights.reduce((sum: number, f: FlightOffer) => sum + parseFloat(String(f.price?.total || '0')), 0);
-      const totalMarkup = totalMarkedUpPrice - totalNetPrice;
-
-      console.log(`💰 Markup Summary: ${flights.length} flights | Net: $${totalNetPrice.toFixed(2)} | Marked Up: $${totalMarkedUpPrice.toFixed(2)} | Total Markup: $${totalMarkup.toFixed(2)}`);
-
-      // Apply AI scoring to all flights (using marked-up prices)
-      let scoredFlights: ScoredFlight[] = markedUpFlights.map(flight =>
-        calculateFlightScore(flight, markedUpFlights)
-      );
-
-      // Add persuasion badges
-      scoredFlights = scoredFlights.map(flight => ({
-        ...flight,
-        badges: getFlightBadges(flight, scoredFlights)
-      }));
-
-      // 🎯 Hybrid Routing: Enrich flights with CONSOLIDATOR vs DUFFEL routing decisions
-      // This determines the optimal booking channel for each flight based on commission analysis
-      const searchSessionId = `search_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
-      const routedFlights = await enrichFlightsWithRouting(scoredFlights, searchSessionId);
-      const routingSummary = getRoutingSummary(routedFlights);
-
-      console.log(`  🎯 Routing Summary: ${routingSummary.consolidator} Consolidator, ${routingSummary.duffel} Duffel, $${routingSummary.totalEstimatedProfit} total profit`);
-
-      // Sort flights by requested criteria (default: best)
-      const sortBy = (body.sortBy as 'best' | 'cheapest' | 'fastest' | 'overall') || 'best';
-      const sortedFlights = sortFlights(routedFlights as ScoredFlight[], sortBy);
-
-      // 🧠 ML: Get optimal cache TTL based on route characteristics
-      const cachePrediction = await smartCachePredictor.predictOptimalTTL(
-        originCodes[0], // Use first origin for prediction
-        destinationCodes[0], // Use first destination for prediction
-        travelClass || 'ECONOMY',
-        departureDate
-      );
-
-      console.log(`  ⏱️  Smart Cache: ${cachePrediction.recommendedTTL}min (${(cachePrediction.confidence * 100).toFixed(0)}% confidence) - ${cachePrediction.reason}`);
-
-      // Check if results are limited and add helpful message with detailed diagnostics
-      const daysToDeparture = Math.ceil((new Date(departureDate).getTime() - Date.now()) / (1000 * 60 * 60 * 24));
-
-      // Detect if this is an international route (different country codes in origin/destination)
-      const isInternationalRoute = originCodes[0]?.length === 3 && destinationCodes[0]?.length === 3 &&
-        !['US', 'CA'].every(region => {
-          // Major US/Canada airports - if one is domestic and one is international, it's international
-          const usCanadaAirports = ['JFK', 'LAX', 'ORD', 'ATL', 'DFW', 'DEN', 'SFO', 'MIA', 'SEA', 'BOS', 'EWR', 'IAH', 'MSP', 'DTW', 'PHL', 'LGA', 'FLL', 'SAN', 'TPA', 'PDX', 'YYZ', 'YVR', 'YUL', 'YYC'];
-          return usCanadaAirports.includes(originCodes[0]) && usCanadaAirports.includes(destinationCodes[0]);
-        });
-
-      // Determine API sources used
-      const apiSourcesUsed = {
-        amadeus: amadeusAPI.isProductionMode(),
-        duffel: duffelAPI.isAvailable(),
-        amadeusSkipped: amadeusAPI.isTestMode(),
-      };
-
-      // Build comprehensive limited results info
-      let limitedResultsReason = '';
-      let limitedResultsTip = '';
-
-      if (sortedFlights.length < 10 && sortedFlights.length > 0) {
-        // Determine primary reason for limited results
-        if (daysToDeparture > 330) {
-          limitedResultsReason = `Very limited inventory for dates more than 11 months out (${daysToDeparture} days). Airlines typically release schedules 6-11 months in advance.`;
-          limitedResultsTip = 'Try searching for dates 2-6 months from now for significantly more options.';
-        } else if (daysToDeparture > 180 && isInternationalRoute) {
-          limitedResultsReason = `Limited inventory for far-future international flights (${daysToDeparture} days out). Airlines release international schedules gradually.`;
-          limitedResultsTip = 'International routes typically have more availability 3-6 months before departure.';
-        } else if (daysToDeparture > 180) {
-          limitedResultsReason = `Limited airline inventory for far-future dates (${daysToDeparture} days out). Airlines typically release full schedules 6-9 months in advance.`;
-          limitedResultsTip = 'Try searching for dates closer to departure (2-6 months out) for more options.';
-        } else if (apiSourcesUsed.amadeusSkipped) {
-          limitedResultsReason = 'Search using available airline connections. Some carriers may have additional inventory.';
-          limitedResultsTip = 'Try adjusting your travel dates or check nearby airports for more options.';
+        if (smartResultCount >= originalFlightCount) {
+          // Use the smart results - they have at least as many flights
+          mixedCarrierFares = smartMixedResult.mixedFares;
+          flights = smartMixedResult.flights as FlightOffer[];
+          console.log(`   ✅ Using smart results: ${smartResultCount} flights (original: ${originalFlightCount})`);
         } else {
-          limitedResultsReason = 'Limited flights available for this route/date combination.';
-          limitedResultsTip = 'Try adjusting your travel dates or check nearby airports for more options.';
+          // SAFETY: Smart result has fewer flights - something went wrong!
+          console.error(`   🚨 SAFETY VIOLATION: Smart result has ${smartResultCount} flights, but original had ${originalFlightCount}!`);
+          console.error(`   🚨 Falling back to original flights to prevent data loss`);
+          // Keep flights = allFlights (unchanged from line 965)
+          mixedCarrierFares = []; // Clear any partial mixed fares
         }
+      } catch (mixedError) {
+        console.error('   ⚠️ Smart mixed-carrier search error (non-fatal):', mixedError);
+        console.error(`   🛡️ FALLBACK: Keeping original ${originalFlightCount} flights`);
+        // Continue with regular results - mixed search failure shouldn't break the main search
       }
+    }
 
-      const limitedResultsInfo = sortedFlights.length < 10 && sortedFlights.length > 0 ? {
-        limited: true,
-        count: sortedFlights.length,
-        reason: limitedResultsReason,
-        tip: limitedResultsTip,
-        // Include diagnostic info for debugging (only in response, not displayed to user)
-        _diagnostics: {
-          daysToDeparture,
-          isInternationalRoute,
-          apiSources: apiSourcesUsed,
-          route: `${originCodes[0]} → ${destinationCodes[0]}`,
-        },
-      } : undefined;
-
-      // Log detailed diagnostics for limited results
-      if (limitedResultsInfo) {
-        console.log('\n📊 ========== LIMITED RESULTS DIAGNOSTICS ==========');
-        console.log(`   Route: ${originCodes[0]} → ${destinationCodes[0]}`);
-        console.log(`   Days to departure: ${daysToDeparture}`);
-        console.log(`   International route: ${isInternationalRoute}`);
-        console.log(`   Results found: ${sortedFlights.length}`);
-        console.log(`   API Sources:`);
-        console.log(`     - Amadeus: ${apiSourcesUsed.amadeus ? 'PRODUCTION' : (apiSourcesUsed.amadeusSkipped ? 'TEST MODE (skipped)' : 'unavailable')}`);
-        console.log(`     - Duffel: ${apiSourcesUsed.duffel ? 'LIVE' : 'unavailable'}`);
-        console.log(`   Reason: ${limitedResultsReason}`);
-        console.log('📊 ==================================================\n');
-      }
-
-      // 🔒 INTERNAL: Store routing data separately (NOT sent to customer)
-      // This data is used by booking flow to route to correct channel
-      const internalRoutingData = {
-        sessionId: searchSessionId,
-        summary: routingSummary,
-        // Map of flightId -> routing info for booking flow lookup
-        flightRouting: Object.fromEntries(
-          routedFlights
-            .filter(f => f.routing)
-            .map(f => [f.id, f.routing])
-        ),
-      };
-
-      // Strip internal routing data from flights before sending to customer
-      // Customer sees same prices - they don't need to know which channel we use
-      const customerFlights = sortedFlights.map(flight => {
-        const { routing, ...customerFlight } = flight as ScoredFlightWithRouting;
-        return customerFlight;
-      });
-
-      // Build response with metadata (customer-facing - NO routing data)
-      const response = {
-        flights: customerFlights,
+    if (!flights || flights.length === 0) {
+      const emptyResponse = {
+        flights: [],
         metadata: {
-          total: customerFlights.length,
+          total: 0,
           searchParams: flightSearchParams,
-          sortedBy: sortBy,
-          dictionaries: dictionaries,
-          timestamp: new Date().toISOString(),
+          message: 'No flights found for the given criteria',
           cached: false,
           cacheKey,
-          origins: originCodes,
-          destinations: destinationCodes,
-          limitedResults: limitedResultsInfo,
-          // Smart Mixed-Carrier "Hacker Fare" metadata
-          separateTickets: smartMixedResult ? {
-            enabled: true,
-            searched: smartMixedResult.mixedSearchPerformed,
-            reason: smartMixedResult.mixedSearchReason,
-            count: smartMixedResult.stats.totalMixedFares,
-            bestSavings: smartMixedResult.stats.bestSavings,
-            stats: {
-              roundTrips: smartMixedResult.stats.totalRoundTrips,
-              mixedFares: smartMixedResult.stats.totalMixedFares,
-              cheapestRoundTrip: smartMixedResult.stats.cheapestRoundTrip,
-              cheapestMixed: smartMixedResult.stats.cheapestMixed,
-              apiCallsSaved: smartMixedResult.stats.apiCallsSaved,
-            },
-          } : (body.returnDate ? {
-            enabled: false,
-            reason: 'Smart mixed-carrier not triggered',
-            count: mixedCarrierFares.length,
-          } : undefined),
-          ml: {
-            cacheTTL: cachePrediction.recommendedTTL,
-            cacheConfidence: cachePrediction.confidence,
-            cacheReason: cachePrediction.reason,
-          },
-          // 🔒 Routing info stored internally, NOT exposed to customer
-          _routingSessionId: searchSessionId, // Only session ID for booking lookup
         }
       };
 
-      // 🔒 Cache internal routing data separately for booking flow
-      // When customer clicks "Book", we look up which channel to use
-      const routingCacheKey = `routing:${searchSessionId}`;
-      await setCache(routingCacheKey, internalRoutingData, 3600); // 1 hour TTL
+      // Cache empty results too (shorter TTL)
+      await setCache(cacheKey, emptyResponse, 300);
 
-      // Store in cache with ML-optimized TTL (convert minutes to seconds)
-      const cacheTTLSeconds = cachePrediction.recommendedTTL * 60;
-      await setCache(cacheKey, response, cacheTTLSeconds);
+      return NextResponse.json(emptyResponse, {
+        status: 200,
+        headers: {
+          'Cache-Control': 'public, max-age=300',
+          'X-Cache-Status': 'MISS',
+        }
+      });
+    }
 
-      // 📊 Log search for route profiling
-      const lowestPrice = sortedFlights.length > 0
-        ? parseFloat(String(sortedFlights[0].price?.total || '0'))
-        : 0;
+    // ============================================================================
+    // 💰 APPLY FLIGHT MARKUP TO ALL PRICES
+    // ============================================================================
+    // Markup Strategy:
+    // - Duffel/Amadeus flights: MAX($22 minimum, 7% of price), capped at $200
+    // - Consolidator flights: No markup (commission-based)
+    //
+    // NOTE: We apply the same markup to both Amadeus and Duffel prices since
+    // both are used for customer display. The routing decision (which channel
+    // to book through) uses NET prices stored internally.
+    // ============================================================================
+    console.log('💰 Applying flight markup to all prices...');
 
-      // 📅 Cache price by date for calendar display with seasonal TTL
-      // PERF FIX: Fire-and-forget to not block response (getRouteStatistics was blocking)
-      if (lowestPrice > 0 && departureDate) {
-        const cacheOrigin = originCodes[0];
-        const cacheDest = destinationCodes[0];
-        const cacheReturnDate = body.returnDate;
-        const cacheCurrency = body.currencyCode || 'USD';
+    const markedUpFlights = flights.map((flight: FlightOffer) => {
+      const netPrice = parseFloat(String(flight.price?.total || '0'));
+      const source = flight.source?.toLowerCase() || 'unknown';
 
-        // Non-blocking: Run cache operations in background
-        (async () => {
-          try {
-            const routeKey = `${cacheOrigin}-${cacheDest}`;
-            // Use default TTL (15min) - skip DB query for speed
-            // Route stats are nice-to-have, not critical for caching
-            const departureTTL = calculateOptimalTTL(departureDate, 0);
-
-            const priceData = {
-              price: lowestPrice,
-              currency: cacheCurrency,
-              timestamp: new Date().toISOString(),
-              route: routeKey,
-            };
-
-            const departurePriceCacheKey = generateCacheKey('calendar-price', {
-              origin: cacheOrigin,
-              destination: cacheDest,
-              date: departureDate,
-            });
-            await setCache(departurePriceCacheKey, priceData, departureTTL.ttlSeconds);
-
-            // Track cache coverage (fire-and-forget)
-            updateCacheCoverage(
-              routeKey,
-              departureDate,
-              Math.round(lowestPrice * 100),
-              departureTTL.ttlSeconds,
-              'user-search'
-            ).catch(() => { });
-
-            // Cache return date price if round trip
-            if (cacheReturnDate) {
-              const reverseRouteKey = `${cacheDest}-${cacheOrigin}`;
-              const returnTTL = calculateOptimalTTL(cacheReturnDate, 0);
-
-              const returnPriceData = { ...priceData, route: reverseRouteKey };
-              const returnPriceCacheKey = generateCacheKey('calendar-price', {
-                origin: cacheDest,
-                destination: cacheOrigin,
-                date: cacheReturnDate,
-              });
-              await setCache(returnPriceCacheKey, returnPriceData, returnTTL.ttlSeconds);
-
-              updateCacheCoverage(
-                reverseRouteKey,
-                cacheReturnDate,
-                Math.round(lowestPrice * 100),
-                returnTTL.ttlSeconds,
-                'user-search'
-              ).catch(() => { });
-            }
-          } catch (err) {
-            // Silently fail - caching is non-critical
-            console.error('Calendar cache error:', err);
-          }
-        })();
+      // Skip markup for consolidator flights (they have built-in commission)
+      // Consolidator flights would have source='consolidator' if coming from that channel
+      if (source === 'consolidator') {
+        console.log(`  ✓ ${flight.id}: $${netPrice.toFixed(2)} (Consolidator - no markup)`);
+        return flight;
       }
 
-      const searchLog: RouteSearchLog = {
-        searchId: `search-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
-        route: `${originCodes[0]}-${destinationCodes[0]}`,
-        params: {
-          origin: originCodes[0],
-          destination: destinationCodes[0],
-          departureDate,
-          returnDate: body.returnDate,
-          adults: adults || 1,
-          children: body.children || 0,
-          infants: body.infants || 0,
-          cabinClass: travelClass || 'ECONOMY',
+      // Apply markup using the flight markup config
+      const markupResult = applyFlightMarkup(netPrice);
+
+      // CRITICAL: Preserve original base price, adjust for markup
+      const originalBase = parseFloat(String(flight.price?.base || '0'));
+      const newBase = originalBase > 0 ? originalBase + markupResult.markupAmount : 0;
+
+      // Update flight price with customer-facing price (including markup)
+      const markedUpFlight = {
+        ...flight,
+        price: {
+          ...flight.price,
+          total: markupResult.customerPrice.toString(),
+          base: newBase > 0 ? newBase.toString() : flight.price?.base, // Preserve or recalculate
+          fees: flight.price?.fees, // Preserve original fees array
+          grandTotal: markupResult.customerPrice.toString(),
+          // Store net price internally for routing/commission calculations
+          _netPrice: netPrice.toString(),
+          _markupAmount: markupResult.markupAmount.toString(),
+          _markupPercentage: markupResult.markupPercentage,
         },
-        lowestPrice,
-        currency: body.currencyCode || 'USD',
-        resultCount: sortedFlights.length,
-        cacheHit: false,
-        apiCalls: {
-          amadeus: true, // Will be accurate once we add more tracking
-          duffel: true,
-        },
-        timestamp: new Date(),
-        sessionId: request.headers.get('x-session-id') || undefined,
+        // CRITICAL FIX #1: Apply markup to fareVariants too!
+        // Each variant needs the same markup applied individually
+        fareVariants: flight.fareVariants?.map((variant: any) => {
+          const variantNetPrice = parseFloat(String(variant.price || '0'));
+          const variantMarkupResult = applyFlightMarkup(variantNetPrice);
+          const variantOriginalBase = parseFloat(String(variant.priceDetails?.base || '0'));
+          const variantNewBase = variantOriginalBase > 0 ? variantOriginalBase + variantMarkupResult.markupAmount : 0;
+
+          return {
+            ...variant,
+            price: variantMarkupResult.customerPrice, // ✓ Mark-up applied to variant price
+            priceDetails: {
+              total: variantMarkupResult.customerPrice.toString(),
+              base: variantNewBase > 0 ? variantNewBase.toString() : variant.priceDetails?.base || '0',
+              fees: variant.priceDetails?.fees, // Keep original fees breakdown
+              grandTotal: variantMarkupResult.customerPrice.toString(),
+              _netPrice: variantNetPrice.toString(),
+              _markupAmount: variantMarkupResult.markupAmount.toString(),
+            },
+          };
+        }),
+        // Update traveler pricing if exists
+        // CRITICAL FIX: Calculate per-person price, not assign total to each traveler
+        travelerPricings: flight.travelerPricings?.map((tp: any) => {
+          const travelerCount = flight.travelerPricings?.length || 1;
+          const perPersonPrice = (markupResult.customerPrice / travelerCount).toFixed(2);
+          return {
+            ...tp,
+            price: {
+              ...tp.price,
+              total: perPersonPrice,
+            },
+          };
+        }),
       };
 
-      routeProfiler.logSearch(searchLog).catch(console.error); // Don't block on logging
+      console.log(`  ✓ ${flight.id?.slice(-8)} (${source}): $${netPrice.toFixed(2)} → $${markupResult.customerPrice.toFixed(2)} (+$${markupResult.markupAmount.toFixed(2)} / ${markupResult.markupPercentage}%)`);
 
-      // 📊 Log search to Postgres for zero-cost calendar analytics
-      logFlightSearch({
+      // Debug: Log fare variants markup
+      if (markedUpFlight.fareVariants && markedUpFlight.fareVariants.length > 0) {
+        console.log(`    📊 FareVariants markup applied: ${markedUpFlight.fareVariants.length} variants`);
+        markedUpFlight.fareVariants.forEach((v: any, i: number) => {
+          console.log(`      [${i}] ${v.name}: $${v.price.toFixed(2)} (base: ${v.priceDetails?.base})`);
+        });
+      }
+
+      return markedUpFlight;
+    });
+
+    // Calculate and log total markup applied
+    const totalNetPrice = flights.reduce((sum: number, f: FlightOffer) => sum + parseFloat(String(f.price?.total || '0')), 0);
+    const totalMarkedUpPrice = markedUpFlights.reduce((sum: number, f: FlightOffer) => sum + parseFloat(String(f.price?.total || '0')), 0);
+    const totalMarkup = totalMarkedUpPrice - totalNetPrice;
+
+    console.log(`💰 Markup Summary: ${flights.length} flights | Net: $${totalNetPrice.toFixed(2)} | Marked Up: $${totalMarkedUpPrice.toFixed(2)} | Total Markup: $${totalMarkup.toFixed(2)}`);
+
+    // Apply AI scoring to all flights (using marked-up prices)
+    let scoredFlights: ScoredFlight[] = markedUpFlights.map(flight =>
+      calculateFlightScore(flight, markedUpFlights)
+    );
+
+    // Add persuasion badges
+    scoredFlights = scoredFlights.map(flight => ({
+      ...flight,
+      badges: getFlightBadges(flight, scoredFlights)
+    }));
+
+    // 🎯 Hybrid Routing: Enrich flights with CONSOLIDATOR vs DUFFEL routing decisions
+    // This determines the optimal booking channel for each flight based on commission analysis
+    const searchSessionId = `search_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+    const routedFlights = await enrichFlightsWithRouting(scoredFlights, searchSessionId);
+    const routingSummary = getRoutingSummary(routedFlights);
+
+    console.log(`  🎯 Routing Summary: ${routingSummary.consolidator} Consolidator, ${routingSummary.duffel} Duffel, $${routingSummary.totalEstimatedProfit} total profit`);
+
+    // Sort flights by requested criteria (default: best)
+    const sortBy = (body.sortBy as 'best' | 'cheapest' | 'fastest' | 'overall') || 'best';
+    const sortedFlights = sortFlights(routedFlights as ScoredFlight[], sortBy);
+
+    // 🧠 ML: Get optimal cache TTL based on route characteristics
+    const cachePrediction = await smartCachePredictor.predictOptimalTTL(
+      originCodes[0], // Use first origin for prediction
+      destinationCodes[0], // Use first destination for prediction
+      travelClass || 'ECONOMY',
+      departureDate
+    );
+
+    console.log(`  ⏱️  Smart Cache: ${cachePrediction.recommendedTTL}min (${(cachePrediction.confidence * 100).toFixed(0)}% confidence) - ${cachePrediction.reason}`);
+
+    // Check if results are limited and add helpful message with detailed diagnostics
+    const daysToDeparture = Math.ceil((new Date(departureDate).getTime() - Date.now()) / (1000 * 60 * 60 * 24));
+
+    // Detect if this is an international route (different country codes in origin/destination)
+    const isInternationalRoute = originCodes[0]?.length === 3 && destinationCodes[0]?.length === 3 &&
+      !['US', 'CA'].every(region => {
+        // Major US/Canada airports - if one is domestic and one is international, it's international
+        const usCanadaAirports = ['JFK', 'LAX', 'ORD', 'ATL', 'DFW', 'DEN', 'SFO', 'MIA', 'SEA', 'BOS', 'EWR', 'IAH', 'MSP', 'DTW', 'PHL', 'LGA', 'FLL', 'SAN', 'TPA', 'PDX', 'YYZ', 'YVR', 'YUL', 'YYC'];
+        return usCanadaAirports.includes(originCodes[0]) && usCanadaAirports.includes(destinationCodes[0]);
+      });
+
+    // Determine API sources used
+    const apiSourcesUsed = {
+      amadeus: amadeusAPI.isProductionMode(),
+      duffel: duffelAPI.isAvailable(),
+      amadeusSkipped: amadeusAPI.isTestMode(),
+    };
+
+    // Build comprehensive limited results info
+    let limitedResultsReason = '';
+    let limitedResultsTip = '';
+
+    if (sortedFlights.length < 10 && sortedFlights.length > 0) {
+      // Determine primary reason for limited results
+      if (daysToDeparture > 330) {
+        limitedResultsReason = `Very limited inventory for dates more than 11 months out (${daysToDeparture} days). Airlines typically release schedules 6-11 months in advance.`;
+        limitedResultsTip = 'Try searching for dates 2-6 months from now for significantly more options.';
+      } else if (daysToDeparture > 180 && isInternationalRoute) {
+        limitedResultsReason = `Limited inventory for far-future international flights (${daysToDeparture} days out). Airlines release international schedules gradually.`;
+        limitedResultsTip = 'International routes typically have more availability 3-6 months before departure.';
+      } else if (daysToDeparture > 180) {
+        limitedResultsReason = `Limited airline inventory for far-future dates (${daysToDeparture} days out). Airlines typically release full schedules 6-9 months in advance.`;
+        limitedResultsTip = 'Try searching for dates closer to departure (2-6 months out) for more options.';
+      } else if (apiSourcesUsed.amadeusSkipped) {
+        limitedResultsReason = 'Search using available airline connections. Some carriers may have additional inventory.';
+        limitedResultsTip = 'Try adjusting your travel dates or check nearby airports for more options.';
+      } else {
+        limitedResultsReason = 'Limited flights available for this route/date combination.';
+        limitedResultsTip = 'Try adjusting your travel dates or check nearby airports for more options.';
+      }
+    }
+
+    const limitedResultsInfo = sortedFlights.length < 10 && sortedFlights.length > 0 ? {
+      limited: true,
+      count: sortedFlights.length,
+      reason: limitedResultsReason,
+      tip: limitedResultsTip,
+      // Include diagnostic info for debugging (only in response, not displayed to user)
+      _diagnostics: {
+        daysToDeparture,
+        isInternationalRoute,
+        apiSources: apiSourcesUsed,
+        route: `${originCodes[0]} → ${destinationCodes[0]}`,
+      },
+    } : undefined;
+
+    // Log detailed diagnostics for limited results
+    if (limitedResultsInfo) {
+      console.log('\n📊 ========== LIMITED RESULTS DIAGNOSTICS ==========');
+      console.log(`   Route: ${originCodes[0]} → ${destinationCodes[0]}`);
+      console.log(`   Days to departure: ${daysToDeparture}`);
+      console.log(`   International route: ${isInternationalRoute}`);
+      console.log(`   Results found: ${sortedFlights.length}`);
+      console.log(`   API Sources:`);
+      console.log(`     - Amadeus: ${apiSourcesUsed.amadeus ? 'PRODUCTION' : (apiSourcesUsed.amadeusSkipped ? 'TEST MODE (skipped)' : 'unavailable')}`);
+      console.log(`     - Duffel: ${apiSourcesUsed.duffel ? 'LIVE' : 'unavailable'}`);
+      console.log(`   Reason: ${limitedResultsReason}`);
+      console.log('📊 ==================================================\n');
+    }
+
+    // 🔒 INTERNAL: Store routing data separately (NOT sent to customer)
+    // This data is used by booking flow to route to correct channel
+    const internalRoutingData = {
+      sessionId: searchSessionId,
+      summary: routingSummary,
+      // Map of flightId -> routing info for booking flow lookup
+      flightRouting: Object.fromEntries(
+        routedFlights
+          .filter(f => f.routing)
+          .map(f => [f.id, f.routing])
+      ),
+    };
+
+    // Strip internal routing data from flights before sending to customer
+    // Customer sees same prices - they don't need to know which channel we use
+    const customerFlights = sortedFlights.map(flight => {
+      const { routing, ...customerFlight } = flight as ScoredFlightWithRouting;
+      return customerFlight;
+    });
+
+    // Build response with metadata (customer-facing - NO routing data)
+    const response = {
+      flights: customerFlights,
+      metadata: {
+        total: customerFlights.length,
+        searchParams: flightSearchParams,
+        sortedBy: sortBy,
+        dictionaries: dictionaries,
+        timestamp: new Date().toISOString(),
+        cached: false,
+        cacheKey,
+        origins: originCodes,
+        destinations: destinationCodes,
+        limitedResults: limitedResultsInfo,
+        // Smart Mixed-Carrier "Hacker Fare" metadata
+        separateTickets: smartMixedResult ? {
+          enabled: true,
+          searched: smartMixedResult.mixedSearchPerformed,
+          reason: smartMixedResult.mixedSearchReason,
+          count: smartMixedResult.stats.totalMixedFares,
+          bestSavings: smartMixedResult.stats.bestSavings,
+          stats: {
+            roundTrips: smartMixedResult.stats.totalRoundTrips,
+            mixedFares: smartMixedResult.stats.totalMixedFares,
+            cheapestRoundTrip: smartMixedResult.stats.cheapestRoundTrip,
+            cheapestMixed: smartMixedResult.stats.cheapestMixed,
+            apiCallsSaved: smartMixedResult.stats.apiCallsSaved,
+          },
+        } : (body.returnDate ? {
+          enabled: false,
+          reason: 'Smart mixed-carrier not triggered',
+          count: mixedCarrierFares.length,
+        } : undefined),
+        ml: {
+          cacheTTL: cachePrediction.recommendedTTL,
+          cacheConfidence: cachePrediction.confidence,
+          cacheReason: cachePrediction.reason,
+        },
+        // 🔒 Routing info stored internally, NOT exposed to customer
+        _routingSessionId: searchSessionId, // Only session ID for booking lookup
+      }
+    };
+
+    // 🔒 Cache internal routing data separately for booking flow
+    // When customer clicks "Book", we look up which channel to use
+    const routingCacheKey = `routing:${searchSessionId}`;
+    await setCache(routingCacheKey, internalRoutingData, 3600); // 1 hour TTL
+
+    // Store in cache with ML-optimized TTL (convert minutes to seconds)
+    const cacheTTLSeconds = cachePrediction.recommendedTTL * 60;
+    await setCache(cacheKey, response, cacheTTLSeconds);
+
+    // 📊 Log search for route profiling
+    const lowestPrice = sortedFlights.length > 0
+      ? parseFloat(String(sortedFlights[0].price?.total || '0'))
+      : 0;
+
+    // 📅 Cache price by date for calendar display with seasonal TTL
+    // PERF FIX: Fire-and-forget to not block response (getRouteStatistics was blocking)
+    if (lowestPrice > 0 && departureDate) {
+      const cacheOrigin = originCodes[0];
+      const cacheDest = destinationCodes[0];
+      const cacheReturnDate = body.returnDate;
+      const cacheCurrency = body.currencyCode || 'USD';
+
+      // Non-blocking: Run cache operations in background
+      (async () => {
+        try {
+          const routeKey = `${cacheOrigin}-${cacheDest}`;
+          // Use default TTL (15min) - skip DB query for speed
+          // Route stats are nice-to-have, not critical for caching
+          const departureTTL = calculateOptimalTTL(departureDate, 0);
+
+          const priceData = {
+            price: lowestPrice,
+            currency: cacheCurrency,
+            timestamp: new Date().toISOString(),
+            route: routeKey,
+          };
+
+          const departurePriceCacheKey = generateCacheKey('calendar-price', {
+            origin: cacheOrigin,
+            destination: cacheDest,
+            date: departureDate,
+          });
+          await setCache(departurePriceCacheKey, priceData, departureTTL.ttlSeconds);
+
+          // Track cache coverage (fire-and-forget)
+          updateCacheCoverage(
+            routeKey,
+            departureDate,
+            Math.round(lowestPrice * 100),
+            departureTTL.ttlSeconds,
+            'user-search'
+          ).catch(() => { });
+
+          // Cache return date price if round trip
+          if (cacheReturnDate) {
+            const reverseRouteKey = `${cacheDest}-${cacheOrigin}`;
+            const returnTTL = calculateOptimalTTL(cacheReturnDate, 0);
+
+            const returnPriceData = { ...priceData, route: reverseRouteKey };
+            const returnPriceCacheKey = generateCacheKey('calendar-price', {
+              origin: cacheDest,
+              destination: cacheOrigin,
+              date: cacheReturnDate,
+            });
+            await setCache(returnPriceCacheKey, returnPriceData, returnTTL.ttlSeconds);
+
+            updateCacheCoverage(
+              reverseRouteKey,
+              cacheReturnDate,
+              Math.round(lowestPrice * 100),
+              returnTTL.ttlSeconds,
+              'user-search'
+            ).catch(() => { });
+          }
+        } catch (err) {
+          // Silently fail - caching is non-critical
+          console.error('Calendar cache error:', err);
+        }
+      })();
+    }
+
+    const searchLog: RouteSearchLog = {
+      searchId: `search-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+      route: `${originCodes[0]}-${destinationCodes[0]}`,
+      params: {
         origin: originCodes[0],
         destination: destinationCodes[0],
         departureDate,
         returnDate: body.returnDate,
         adults: adults || 1,
-        children: body.children,
-        infants: body.infants,
-        cabinClass: travelClass,
-        nonStop: body.nonStop,
-        resultsCount: sortedFlights.length,
-        lowestPrice: lowestPrice > 0 ? Math.round(lowestPrice * 100) : undefined, // Convert to cents
-        highestPrice: sortedFlights.length > 0
-          ? Math.round(parseFloat(String(sortedFlights[sortedFlights.length - 1].price?.total || '0')) * 100)
-          : undefined,
-        avgPrice: sortedFlights.length > 0
-          ? Math.round((sortedFlights.reduce((sum, f) => sum + parseFloat(String(f.price?.total || '0')), 0) / sortedFlights.length) * 100)
-          : undefined,
-        currency: body.currencyCode || 'USD',
-        cacheHit: false,
-        sessionId: request.headers.get('x-session-id') || undefined,
-        ipAddress: request.headers.get('x-forwarded-for')?.split(',')[0] || request.headers.get('x-real-ip') || undefined,
-        userAgent: request.headers.get('user-agent') || undefined,
-        referer: request.headers.get('referer') || undefined,
-      }, request).catch(console.error); // Don't block on logging
+        children: body.children || 0,
+        infants: body.infants || 0,
+        cabinClass: travelClass || 'ECONOMY',
+      },
+      lowestPrice,
+      currency: body.currencyCode || 'USD',
+      resultCount: sortedFlights.length,
+      cacheHit: false,
+      apiCalls: {
+        amadeus: true, // Will be accurate once we add more tracking
+        duffel: true,
+      },
+      timestamp: new Date(),
+      sessionId: request.headers.get('x-session-id') || undefined,
+    };
 
-      const successResponse = NextResponse.json(response, {
+    routeProfiler.logSearch(searchLog).catch(console.error); // Don't block on logging
+
+    // 📊 Log search to Postgres for zero-cost calendar analytics
+    logFlightSearch({
+      origin: originCodes[0],
+      destination: destinationCodes[0],
+      departureDate,
+      returnDate: body.returnDate,
+      adults: adults || 1,
+      children: body.children,
+      infants: body.infants,
+      cabinClass: travelClass,
+      nonStop: body.nonStop,
+      resultsCount: sortedFlights.length,
+      lowestPrice: lowestPrice > 0 ? Math.round(lowestPrice * 100) : undefined, // Convert to cents
+      highestPrice: sortedFlights.length > 0
+        ? Math.round(parseFloat(String(sortedFlights[sortedFlights.length - 1].price?.total || '0')) * 100)
+        : undefined,
+      avgPrice: sortedFlights.length > 0
+        ? Math.round((sortedFlights.reduce((sum, f) => sum + parseFloat(String(f.price?.total || '0')), 0) / sortedFlights.length) * 100)
+        : undefined,
+      currency: body.currencyCode || 'USD',
+      cacheHit: false,
+      sessionId: request.headers.get('x-session-id') || undefined,
+      ipAddress: request.headers.get('x-forwarded-for')?.split(',')[0] || request.headers.get('x-real-ip') || undefined,
+      userAgent: request.headers.get('user-agent') || undefined,
+      referer: request.headers.get('referer') || undefined,
+    }, request).catch(console.error); // Don't block on logging
+
+    const successResponse = NextResponse.json(response, {
+      status: 200,
+      headers: {
+        'Cache-Control': `public, max-age=${cacheTTLSeconds}`,
+        'X-Cache-Status': 'MISS',
+        'X-ML-Cache-TTL': `${cachePrediction.recommendedTTL}min`,
+        'X-ML-Confidence': `${(cachePrediction.confidence * 100).toFixed(0)}%`,
+        'Content-Type': 'application/json'
+      }
+    });
+
+    // Add rate limit headers to response
+    if (rateLimitResult) {
+      return addRateLimitHeaders(successResponse, rateLimitResult);
+    }
+    return successResponse;
+
+  } catch (error: any) {
+    console.error('Flight search error:', error);
+
+    // Handle specific error cases based on status code
+    const errorResponse = error.response?.data;
+    const statusCode = error.response?.status;
+
+    // 404 - No flights found (return empty results instead of error)
+    const isNotFound = statusCode === 404 ||
+      errorResponse?.errors?.some((e: any) =>
+        e.code === 1797 ||
+        e.code === 6003 ||
+        e.title === 'NOT FOUND'
+      );
+
+    if (isNotFound) {
+      const emptyResponse = {
+        flights: [],
+        metadata: {
+          total: 0,
+          searchParams: flightSearchParams,
+          message: `No flights found for the given search criteria. Try different dates or routes.`,
+          cached: false,
+          cacheKey,
+        }
+      };
+
+      // Cache empty result briefly (5 minutes)
+      if (cacheKey) {
+        await setCache(cacheKey, emptyResponse, 300);
+      }
+
+      return NextResponse.json(emptyResponse, {
         status: 200,
         headers: {
-          'Cache-Control': `public, max-age=${cacheTTLSeconds}`,
+          'Cache-Control': 'public, max-age=300',
           'X-Cache-Status': 'MISS',
-          'X-ML-Cache-TTL': `${cachePrediction.recommendedTTL}min`,
-          'X-ML-Confidence': `${(cachePrediction.confidence * 100).toFixed(0)}%`,
-          'Content-Type': 'application/json'
         }
       });
+    }
 
-      // Add rate limit headers to response
-      if (rateLimitResult) {
-        return addRateLimitHeaders(successResponse, rateLimitResult);
-      }
-      return successResponse;
+    // 400 - Bad request (validation errors from API)
+    if (statusCode === 400) {
+      return NextResponse.json(
+        {
+          error: 'Invalid search parameters',
+          details: errorResponse?.errors || error.message,
+          searchParams: flightSearchParams
+        },
+        { status: 400 }
+      );
+    }
 
-    } catch (error: any) {
-      console.error('Flight search error:', error);
+    // 401/403 - Authentication/Authorization errors
+    if (statusCode === 401 || statusCode === 403 || error.message?.includes('authenticate')) {
+      return NextResponse.json(
+        { error: 'Authentication failed with flight search provider' },
+        { status: 503 }
+      );
+    }
 
-      // Handle specific error cases based on status code
-      const errorResponse = error.response?.data;
-      const statusCode = error.response?.status;
+    // 429 - Rate limit exceeded
+    if (statusCode === 429) {
+      return NextResponse.json(
+        {
+          error: 'Rate limit exceeded',
+          message: 'Too many requests. Please try again in a few moments.',
+          retryAfter: error.response?.headers?.['retry-after'] || '60'
+        },
+        { status: 429 }
+      );
+    }
 
-      // 404 - No flights found (return empty results instead of error)
-      const isNotFound = statusCode === 404 ||
-        errorResponse?.errors?.some((e: any) =>
-          e.code === 1797 ||
-          e.code === 6003 ||
-          e.title === 'NOT FOUND'
-        );
-
-      if (isNotFound) {
-        const emptyResponse = {
-          flights: [],
-          metadata: {
-            total: 0,
-            searchParams: flightSearchParams,
-            message: `No flights found for the given search criteria. Try different dates or routes.`,
-            cached: false,
-            cacheKey,
-          }
-        };
-
-        // Cache empty result briefly (5 minutes)
-        if (cacheKey) {
-          await setCache(cacheKey, emptyResponse, 300);
-        }
-
-        return NextResponse.json(emptyResponse, {
-          status: 200,
-          headers: {
-            'Cache-Control': 'public, max-age=300',
-            'X-Cache-Status': 'MISS',
-          }
-        });
-      }
-
-      // 400 - Bad request (validation errors from API)
-      if (statusCode === 400) {
-        return NextResponse.json(
-          {
-            error: 'Invalid search parameters',
-            details: errorResponse?.errors || error.message,
-            searchParams: flightSearchParams
-          },
-          { status: 400 }
-        );
-      }
-
-      // 401/403 - Authentication/Authorization errors
-      if (statusCode === 401 || statusCode === 403 || error.message?.includes('authenticate')) {
-        return NextResponse.json(
-          { error: 'Authentication failed with flight search provider' },
-          { status: 503 }
-        );
-      }
-
-      // 429 - Rate limit exceeded
-      if (statusCode === 429) {
-        return NextResponse.json(
-          {
-            error: 'Rate limit exceeded',
-            message: 'Too many requests. Please try again in a few moments.',
-            retryAfter: error.response?.headers?.['retry-after'] || '60'
-          },
-          { status: 429 }
-        );
-      }
-
-      // 405 - Method Not Allowed (shouldn't happen, but log it)
-      if (statusCode === 405) {
-        console.error('❌ 405 Method Not Allowed - This should not happen!');
-        console.error('Error details:', errorResponse);
-
-        return NextResponse.json(
-          {
-            error: 'Method not allowed',
-            message: 'The search method is not supported. Please try again.',
-            debug: process.env.NODE_ENV === 'development' ? errorResponse : undefined
-          },
-          { status: 405 }
-        );
-      }
-
-      // 504 - Timeout
-      if (error.message?.includes('timeout') || statusCode === 504) {
-        return NextResponse.json(
-          { error: 'Flight search request timed out. Please try again.' },
-          { status: 504 }
-        );
-      }
-
-      // 500+ - Server errors - Alert admins
-      if (statusCode >= 500) {
-        await alertApiError(request, error, {
-          errorCode: 'FLIGHT_SEARCH_SERVER_ERROR',
-          endpoint: '/api/flights/search',
-          flightRoute: flightSearchParams ? `${flightSearchParams.origin} → ${flightSearchParams.destination}` : 'unknown',
-          departureDate: flightSearchParams?.departureDate,
-        }, { priority: 'high' }).catch(() => { });
-
-        return NextResponse.json(
-          {
-            error: 'Flight search service temporarily unavailable',
-            message: 'Please try again in a few moments.'
-          },
-          { status: 503 }
-        );
-      }
-
-      // Default error handler - Alert admins for unexpected errors
-      await alertApiError(request, error, {
-        errorCode: 'FLIGHT_SEARCH_UNKNOWN_ERROR',
-        endpoint: '/api/flights/search',
-        flightRoute: flightSearchParams ? `${flightSearchParams.origin} → ${flightSearchParams.destination}` : 'unknown',
-        departureDate: flightSearchParams?.departureDate,
-      }, { priority: 'normal' }).catch(() => { });
+    // 405 - Method Not Allowed (shouldn't happen, but log it)
+    if (statusCode === 405) {
+      console.error('❌ 405 Method Not Allowed - This should not happen!');
+      console.error('Error details:', errorResponse);
 
       return NextResponse.json(
         {
-          error: error.message || 'Failed to search flights',
-          details: process.env.NODE_ENV === 'development' ? error.stack : undefined
+          error: 'Method not allowed',
+          message: 'The search method is not supported. Please try again.',
+          debug: process.env.NODE_ENV === 'development' ? errorResponse : undefined
         },
-        { status: 500 }
+        { status: 405 }
       );
     }
+
+    // 504 - Timeout
+    if (error.message?.includes('timeout') || statusCode === 504) {
+      return NextResponse.json(
+        { error: 'Flight search request timed out. Please try again.' },
+        { status: 504 }
+      );
+    }
+
+    // 500+ - Server errors - Alert admins
+    if (statusCode >= 500) {
+      await alertApiError(request, error, {
+        errorCode: 'FLIGHT_SEARCH_SERVER_ERROR',
+        endpoint: '/api/flights/search',
+        flightRoute: flightSearchParams ? `${flightSearchParams.origin} → ${flightSearchParams.destination}` : 'unknown',
+        departureDate: flightSearchParams?.departureDate,
+      }, { priority: 'high' }).catch(() => { });
+
+      return NextResponse.json(
+        {
+          error: 'Flight search service temporarily unavailable',
+          message: 'Please try again in a few moments.'
+        },
+        { status: 503 }
+      );
+    }
+
+    // Default error handler - Alert admins for unexpected errors
+    await alertApiError(request, error, {
+      errorCode: 'FLIGHT_SEARCH_UNKNOWN_ERROR',
+      endpoint: '/api/flights/search',
+      flightRoute: flightSearchParams ? `${flightSearchParams.origin} → ${flightSearchParams.destination}` : 'unknown',
+      departureDate: flightSearchParams?.departureDate,
+    }, { priority: 'normal' }).catch(() => { });
+
+    return NextResponse.json(
+      {
+        error: error.message || 'Failed to search flights',
+        details: process.env.NODE_ENV === 'development' ? error.stack : undefined
+      },
+      { status: 500 }
+    );
   }
-  } catch (error) {
-  console.error('Unhandled POST error:', error);
-  return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
-}
 }
 
 /**

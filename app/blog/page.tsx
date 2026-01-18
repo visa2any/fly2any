@@ -161,11 +161,10 @@ export default function BlogPage() {
             <button
               key={category.id}
               onClick={() => setSelectedCategory(category.id)}
-              className={`px-6 py-3 rounded-full font-semibold whitespace-nowrap transition-all ${
-                selectedCategory === category.id
+              className={`px-6 py-3 rounded-full font-semibold whitespace-nowrap transition-all ${selectedCategory === category.id
                   ? 'bg-blue-600 text-white shadow-lg'
                   : 'bg-white text-gray-700 hover:bg-gray-100 shadow'
-              }`}
+                }`}
             >
               <span className="mr-2">{category.icon}</span>
               {category.label}
@@ -183,7 +182,20 @@ export default function BlogPage() {
               href={`/blog/${post.slug}`}
               className="bg-white rounded-lg shadow-md hover:shadow-xl transition-all overflow-hidden group"
             >
-              <div className="aspect-video bg-gray-200 relative overflow-hidden">
+              <div className="aspect-video bg-gradient-to-br from-blue-500 to-purple-600 relative overflow-hidden">
+                {post.featuredImage?.url ? (
+                  <Image
+                    src={post.featuredImage.url}
+                    alt={post.featuredImage.alt || post.title}
+                    fill
+                    className="object-cover group-hover:scale-105 transition-transform duration-300"
+                    sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                  />
+                ) : (
+                  <div className="absolute inset-0 flex items-center justify-center">
+                    <span className="text-6xl opacity-30">✈️</span>
+                  </div>
+                )}
                 <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
                 <div className="absolute top-4 left-4">
                   <span className="bg-blue-600 text-white text-xs font-bold px-3 py-1 rounded-full">
