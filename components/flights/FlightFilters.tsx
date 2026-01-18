@@ -339,30 +339,22 @@ export default function FlightFilters({
   const [isMobileOpen, setIsMobileOpen] = useState(false);
   const [localFilters, setLocalFilters] = useState(filters);
 
-  // Lock body scroll when mobile filter sheet is open
+  // Lock body scroll when mobile filter sheet is open (iOS-safe implementation)
   useEffect(() => {
     if (isMobileOpen) {
-      const scrollY = window.scrollY;
+      // Lock scroll without position:fixed (which breaks mobile scroll)
       document.body.style.overflow = 'hidden';
-      document.body.style.position = 'fixed';
-      document.body.style.top = `-${scrollY}px`;
-      document.body.style.width = '100%';
+      document.body.style.touchAction = 'none'; // Prevent iOS bounce
     } else {
-      const scrollY = document.body.style.top;
+      // Restore scroll
       document.body.style.overflow = '';
-      document.body.style.position = '';
-      document.body.style.top = '';
-      document.body.style.width = '';
-      if (scrollY) {
-        window.scrollTo(0, parseInt(scrollY || '0') * -1);
-      }
+      document.body.style.touchAction = '';
     }
 
     return () => {
+      // Ensure cleanup even if component unmounts unexpectedly
       document.body.style.overflow = '';
-      document.body.style.position = '';
-      document.body.style.top = '';
-      document.body.style.width = '';
+      document.body.style.touchAction = '';
     };
   }, [isMobileOpen]);
 
