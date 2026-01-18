@@ -559,7 +559,7 @@ export async function POST(request: NextRequest) {
       console.log('Cache HIT:', cacheKey);
 
       // 💰 Refund cost budget since cache hit doesn't incur API costs
-      refundCostBudget(request, COST_GUARDS.FLIGHT_SEARCH).catch(() => {});
+      refundCostBudget(request, COST_GUARDS.FLIGHT_SEARCH).catch(() => { });
 
       // 📊 Track cache hit for cost savings analytics
       trackCacheHit('flights', 'search', cacheKey).catch(console.error);
@@ -659,56 +659,81 @@ export async function POST(request: NextRequest) {
             max: body.max || 50,
           };
 
-      // Map travel class for Duffel (lowercase format)
-      const duffelCabinClass = travelClass?.toLowerCase().replace('_', '_') as 'economy' | 'premium_economy' | 'business' | 'first' | undefined;
+          // Map travel class for Duffel (lowercase format)
+          const duffelCabinClass = travelClass?.toLowerCase().replace('_', '_') as 'economy' | 'premium_economy' | 'business' | 'first' | undefined;
 
-      // 🧠 ML: Smart API selection
-      let apiSelection = await smartAPISelector.selectAPIs({
-        origin,
-        destination,
-        departureDate: dateToSearch,
-        returnDate: returnDateToSearch,
-        cabinClass: duffelCabinClass || 'economy',
-      });
+          // 🧠 ML: Smart API selection
+          let apiSelection = await smartAPISelector.selectAPIs({
+            origin,
+            destination,
+            departureDate: dateToSearch,
+            returnDate: returnDateToSearch,
+            cabinClass: duffelCabinClass || 'economy',
+          });
 
-      console.log(`  🤖 Smart API Selection: ${apiSelection.strategy} (${(apiSelection.confidence * 100).toFixed(0)}% confidence) - ${apiSelection.reason}`);
+          console.log(`  🤖 Smart API Selection: ${apiSelection.strategy} (${(apiSelection.confidence * 100).toFixed(0)}% confidence) - ${apiSelection.reason}`);
 
-      // 🚫 CRITICAL: Skip Amadeus API when in TEST mode (returns fake/synthetic prices)
-      // Only use real Duffel prices until Amadeus production key is obtained
-      if (amadeusAPI.isTestMode()) {
-        console.log('  ⚠️  AMADEUS TEST MODE DETECTED - Skipping Amadeus (fake prices)');
-        console.log('  ✅ Using Duffel LIVE API only for real market prices');
-        console.log(`  📍 Route: ${origin} → ${destination} | Date: ${dateToSearch} | ${returnDateToSearch ? 'Round-trip' : 'One-way'}`);
-        console.log('  💡 To enable Amadeus: Set AMADEUS_ENVIRONMENT=production in Vercel');
-        apiSelection = { strategy: 'duffel', confidence: 1.0, reason: 'Amadeus in test mode - using Duffel only', estimatedSavings: 0 };
-      } else if (amadeusAPI.isProductionMode()) {
-        console.log('  ✅ AMADEUS PRODUCTION MODE - Both APIs available');
-        console.log(`  📍 Route: ${origin} → ${destination} | Date: ${dateToSearch} | ${returnDateToSearch ? 'Round-trip' : 'One-way'}`);
-      }
+          // 🚫 CRITICAL: Skip Amadeus API when in TEST mode (returns fake/synthetic prices)
+          // Only use real Duffel prices until Amadeus production key is obtained
+          if (amadeusAPI.isTestMode()) {
+            console.log('  ⚠️  AMADEUS TEST MODE DETECTED - Skipping Amadeus (fake prices)');
+            console.log('  ✅ Using Duffel LIVE API only for real market prices');
+            console.log(`  📍 Route: ${origin} → ${destination} | Date: ${dateToSearch} | ${returnDateToSearch ? 'Round-trip' : 'One-way'}`);
+            console.log('  💡 To enable Amadeus: Set AMADEUS_ENVIRONMENT=production in Vercel');
+            apiSelection = { strategy: 'duffel', confidence: 1.0, reason: 'Amadeus in test mode - using Duffel only', estimatedSavings: 0 };
+          } else if (amadeusAPI.isProductionMode()) {
+            console.log('  ✅ AMADEUS PRODUCTION MODE - Both APIs available');
+            console.log(`  📍 Route: ${origin} → ${destination} | Date: ${dateToSearch} | ${returnDateToSearch ? 'Round-trip' : 'One-way'}`);
+          }
 
-      // 🎯 OPTIMIZATION: For far-future dates or important routes, always query both APIs to maximize results
-      // BUT: Only if Amadeus is in production mode (don't use fake test prices!)
-      const daysToDeparture = Math.ceil((new Date(dateToSearch).getTime() - Date.now()) / (1000 * 60 * 60 * 24));
-      const isFarFuture = daysToDeparture > 180; // More than 6 months out
-      const isMajorRoute = ['JFK', 'LAX', 'ORD', 'ATL', 'DFW', 'DEN', 'SFO', 'MIA', 'LHR', 'CDG'].includes(origin) &&
-                          ['JFK', 'LAX', 'ORD', 'ATL', 'DFW', 'DEN', 'SFO', 'MIA', 'LHR', 'CDG'].includes(destination);
+          // 🎯 OPTIMIZATION: For far-future dates or important routes, always query both APIs to maximize results
+          // BUT: Only if Amadeus is in production mode (don't use fake test prices!)
+          const daysToDeparture = Math.ceil((new Date(dateToSearch).getTime() - Date.now()) / (1000 * 60 * 60 * 24));
+          const isFarFuture = daysToDeparture > 180; // More than 6 months out
+          const isMajorRoute = ['JFK', 'LAX', 'ORD', 'ATL', 'DFW', 'DEN', 'SFO', 'MIA', 'LHR', 'CDG'].includes(origin) &&
+            ['JFK', 'LAX', 'ORD', 'ATL', 'DFW', 'DEN', 'SFO', 'MIA', 'LHR', 'CDG'].includes(destination);
 
-      if ((isFarFuture || isMajorRoute) && apiSelection.strategy !== 'both' && amadeusAPI.isProductionMode()) {
-        console.log(`  ✨ Overriding to BOTH APIs: ${isFarFuture ? 'Far-future date' : 'Major route'} - maximizing flight options`);
-        apiSelection = { strategy: 'both', confidence: 0.9, reason: 'Auto-override for maximum results', estimatedSavings: 0 };
-      }
+          if ((isFarFuture || isMajorRoute) && apiSelection.strategy !== 'both' && amadeusAPI.isProductionMode()) {
+            console.log(`  ✨ Overriding to BOTH APIs: ${isFarFuture ? 'Far-future date' : 'Major route'} - maximizing flight options`);
+            apiSelection = { strategy: 'both', confidence: 0.9, reason: 'Auto-override for maximum results', estimatedSavings: 0 };
+          }
 
-      // Query selected API(s) based on ML recommendation
-      let amadeusResponse, duffelResponse;
-      const amadeusStartTime = Date.now();
-      const duffelStartTime = Date.now();
+          // Query selected API(s) based on ML recommendation
+          let amadeusResponse, duffelResponse;
+          const amadeusStartTime = Date.now();
+          const duffelStartTime = Date.now();
 
-      if (apiSelection.strategy === 'both') {
-        // Query both APIs in parallel
-        [amadeusResponse, duffelResponse] = await Promise.allSettled([
-          amadeusAPI.searchFlights(singleRouteParams),
-          duffelAPI.isAvailable()
-            ? duffelAPI.searchFlights({
+          if (apiSelection.strategy === 'both') {
+            // Query both APIs in parallel
+            [amadeusResponse, duffelResponse] = await Promise.allSettled([
+              amadeusAPI.searchFlights(singleRouteParams),
+              duffelAPI.isAvailable()
+                ? duffelAPI.searchFlights({
+                  origin,
+                  destination,
+                  departureDate: dateToSearch,
+                  returnDate: returnDateToSearch,
+                  adults: body.adults || 1,
+                  children: body.children,
+                  infants: body.infants,
+                  cabinClass: duffelCabinClass || 'economy',
+                  maxResults: body.max || 50,
+                  nonStop: body.nonStop === true ? true : undefined,
+                })
+                : Promise.resolve({ data: [], meta: { count: 0 } }),
+            ]);
+          } else if (apiSelection.strategy === 'amadeus') {
+            // Query only Amadeus
+            amadeusResponse = await amadeusAPI.searchFlights(singleRouteParams).then(
+              value => ({ status: 'fulfilled' as const, value }),
+              reason => ({ status: 'rejected' as const, reason })
+            );
+            duffelResponse = { status: 'fulfilled' as const, value: { data: [], meta: { count: 0 } } };
+          } else {
+            // Query only Duffel
+            amadeusResponse = { status: 'fulfilled' as const, value: { data: [], dictionaries: {} } };
+            duffelResponse = duffelAPI.isAvailable()
+              ? await duffelAPI.searchFlights({
                 origin,
                 destination,
                 departureDate: dateToSearch,
@@ -719,433 +744,408 @@ export async function POST(request: NextRequest) {
                 cabinClass: duffelCabinClass || 'economy',
                 maxResults: body.max || 50,
                 nonStop: body.nonStop === true ? true : undefined,
-              })
-            : Promise.resolve({ data: [], meta: { count: 0 } }),
-        ]);
-      } else if (apiSelection.strategy === 'amadeus') {
-        // Query only Amadeus
-        amadeusResponse = await amadeusAPI.searchFlights(singleRouteParams).then(
-          value => ({ status: 'fulfilled' as const, value }),
-          reason => ({ status: 'rejected' as const, reason })
-        );
-        duffelResponse = { status: 'fulfilled' as const, value: { data: [], meta: { count: 0 } } };
-      } else {
-        // Query only Duffel
-        amadeusResponse = { status: 'fulfilled' as const, value: { data: [], dictionaries: {} } };
-        duffelResponse = duffelAPI.isAvailable()
-          ? await duffelAPI.searchFlights({
-              origin,
-              destination,
-              departureDate: dateToSearch,
-              returnDate: returnDateToSearch,
-              adults: body.adults || 1,
-              children: body.children,
-              infants: body.infants,
-              cabinClass: duffelCabinClass || 'economy',
-              maxResults: body.max || 50,
-              nonStop: body.nonStop === true ? true : undefined,
-            }).then(
-              value => ({ status: 'fulfilled' as const, value }),
-              reason => ({ status: 'rejected' as const, reason })
-            )
-          : { status: 'fulfilled' as const, value: { data: [], meta: { count: 0 } } };
-      }
-
-      const amadeusTime = Date.now() - amadeusStartTime;
-      const duffelTime = Date.now() - duffelStartTime;
-
-      // Extract results
-      const amadeusFlights = amadeusResponse.status === 'fulfilled' ? (amadeusResponse.value.data || []) : [];
-      const duffelFlights = duffelResponse.status === 'fulfilled' ? (duffelResponse.value.data || []) : [];
-
-      // Log any errors (but don't fail the entire search)
-      if (amadeusResponse.status === 'rejected') {
-        console.error('  ⚠️  Amadeus API error:', amadeusResponse.reason?.message);
-        console.error('  📝 Full error:', amadeusResponse.reason);
-      }
-      if (duffelResponse.status === 'rejected') {
-        console.error('  ⚠️  Duffel API error:', duffelResponse.reason?.message);
-        console.error('  📝 Full error:', duffelResponse.reason);
-      }
-
-      console.log(`    Amadeus: ${amadeusFlights.length} flights (${amadeusTime}ms), Duffel: ${duffelFlights.length} flights (${duffelTime}ms)`);
-
-      // 🔍 PRICE VALIDATION LOGGING - Debug price issues
-      if (duffelFlights.length > 0) {
-        const firstDuffel = duffelFlights[0] as FlightOffer;
-        console.log('\n💰 ========== PRICE VALIDATION ==========');
-        console.log(`   Route: ${origin} → ${destination}`);
-        console.log(`   First Duffel flight price:`);
-        console.log(`     - price.total: ${firstDuffel.price?.total} (type: ${typeof firstDuffel.price?.total})`);
-        console.log(`     - price.base: ${firstDuffel.price?.base} (type: ${typeof firstDuffel.price?.base})`);
-        console.log(`     - price.currency: ${firstDuffel.price?.currency}`);
-        console.log(`     - price.grandTotal: ${(firstDuffel.price as any)?.grandTotal}`);
-        const parsedTotal = parseFloat(String(firstDuffel.price?.total || '0'));
-        console.log(`     - Parsed as number: ${parsedTotal}`);
-        if (parsedTotal < 500) {
-          console.warn(`   ⚠️  WARNING: Price $${parsedTotal} seems too low for this route!`);
-        }
-        console.log('💰 ==========================================\n');
-      }
-
-      // Enhanced logging for limited results
-      const totalFlights = amadeusFlights.length + duffelFlights.length;
-      if (totalFlights < 10) {
-        console.warn(`  ⚠️  LIMITED RESULTS: Only ${totalFlights} flights found for ${origin}→${destination}`);
-        console.warn(`  📅 Search date: ${dateToSearch} (${Math.ceil((new Date(dateToSearch).getTime() - Date.now()) / (1000 * 60 * 60 * 24))} days from now)`);
-        console.warn(`  💡 Tip: Far-future dates may have limited airline inventory`);
-      }
-
-      // 📊 Log API performance for ML learning
-      if (amadeusFlights.length > 0 || duffelFlights.length > 0) {
-        const amadeusLowestPrice = amadeusFlights.length > 0
-          ? Math.min(...amadeusFlights.map((f: FlightOffer) => parseFloat(String(f.price?.total || '999999'))))
-          : null;
-        const duffelLowestPrice = duffelFlights.length > 0
-          ? Math.min(...duffelFlights.map((f: FlightOffer) => parseFloat(String(f.price?.total || '999999'))))
-          : null;
-
-        routeProfiler.logAPIPerformance(
-          `${origin}-${destination}`,
-          amadeusLowestPrice,
-          duffelLowestPrice,
-          amadeusTime,
-          duffelTime
-        ).catch(console.error); // Don't block on logging
-      }
-
-      // ============================================================================
-      // 🎫 GROUP DUFFEL FARE FAMILIES
-      // ============================================================================
-      // Duffel returns multiple offers for the same physical flight with different
-      // fare classes (e.g., Basic $432, Economy $589). We need to group these as
-      // fare variants of the same flight, not as separate flights.
-      //
-      // Strategy:
-      // 1. Create a flight signature (carrier + flight number + departure time)
-      // 2. Group Duffel offers by this signature
-      // 3. Pick the cheapest as the representative flight
-      // 4. Store all variants in fareVariants array for the booking page
-      // ============================================================================
-
-      const groupDuffelFareVariants = (duffelOffers: FlightOffer[]): FlightOffer[] => {
-        if (duffelOffers.length === 0) return [];
-
-        // Helper: Create unique flight signature
-        const getFlightSignature = (offer: FlightOffer): string => {
-          const segments = offer.itineraries?.flatMap(itin => itin.segments || []) || [];
-          if (segments.length === 0) return offer.id; // Fallback to ID if no segments
-
-          // Build signature from all segments: carrier+flightNum+depTime+arrTime
-          const sigParts = segments.map(seg =>
-            `${seg.carrierCode || 'XX'}${seg.number || '000'}_${seg.departure?.at?.slice(0, 16) || ''}_${seg.arrival?.at?.slice(0, 16) || ''}`
-          );
-          return sigParts.join('|');
-        };
-
-        // Helper: Get cabin class priority (lower = show first)
-        // Proper hierarchy: Economy < Premium Economy < Business < First
-        const getCabinPriority = (cabin: string): number => {
-          switch (cabin) {
-            case 'FIRST': return 4;
-            case 'BUSINESS': return 3;
-            case 'PREMIUM_ECONOMY': return 2;
-            default: return 1; // ECONOMY
+              }).then(
+                value => ({ status: 'fulfilled' as const, value }),
+                reason => ({ status: 'rejected' as const, reason })
+              )
+              : { status: 'fulfilled' as const, value: { data: [], meta: { count: 0 } } };
           }
-        };
 
-        // Helper: Detect fare tier from branded fare name (ACTUAL API DATA)
-        const detectFareTier = (brandedFare: string): 'basic' | 'standard' | 'plus' | 'flex' => {
-          const fare = brandedFare.toUpperCase();
-          // Basic/Light/Saver tiers - most restrictive
-          if (fare.includes('BASIC') || fare.includes('LIGHT') || fare.includes('SAVER') ||
-              fare.includes('ECONOMY LIGHT') || fare.includes('ECONOMY SAVER')) {
-            return 'basic';
+          const amadeusTime = Date.now() - amadeusStartTime;
+          const duffelTime = Date.now() - duffelStartTime;
+
+          // Extract results
+          const amadeusFlights = amadeusResponse.status === 'fulfilled' ? (amadeusResponse.value.data || []) : [];
+          const duffelFlights = duffelResponse.status === 'fulfilled' ? (duffelResponse.value.data || []) : [];
+
+          // Log any errors (but don't fail the entire search)
+          if (amadeusResponse.status === 'rejected') {
+            console.error('  ⚠️  Amadeus API error:', amadeusResponse.reason?.message);
+            console.error('  📝 Full error:', amadeusResponse.reason);
           }
-          // Flex/Full/Max tiers - most flexible
-          if (fare.includes('FLEX') || fare.includes('FLEXI') || fare.includes('FULL') ||
-              fare.includes('MAX') || fare.includes('FREEDOM') || fare.includes('PLUS FLEX')) {
-            return 'flex';
+          if (duffelResponse.status === 'rejected') {
+            console.error('  ⚠️  Duffel API error:', duffelResponse.reason?.message);
+            console.error('  📝 Full error:', duffelResponse.reason);
           }
-          // Plus/Comfort/Classic tiers - mid-tier
-          if (fare.includes('PLUS') || fare.includes('COMFORT') || fare.includes('CLASSIC') ||
-              fare.includes('MAIN') || fare.includes('CHOICE')) {
-            return 'plus';
-          }
-          // Default to standard
-          return 'standard';
-        };
 
-        // Helper: Get fare tier priority for sorting within same cabin (lower = show first)
-        const getFareTierPriority = (tier: 'basic' | 'standard' | 'plus' | 'flex'): number => {
-          switch (tier) {
-            case 'basic': return 1;
-            case 'standard': return 2;
-            case 'plus': return 3;
-            case 'flex': return 4;
-          }
-        };
+          console.log(`    Amadeus: ${amadeusFlights.length} flights (${amadeusTime}ms), Duffel: ${duffelFlights.length} flights (${duffelTime}ms)`);
 
-        // Group offers by signature
-        const fareGroups = new Map<string, FlightOffer[]>();
-
-        for (const offer of duffelOffers) {
-          const sig = getFlightSignature(offer);
-          if (!fareGroups.has(sig)) {
-            fareGroups.set(sig, []);
-          }
-          fareGroups.get(sig)!.push(offer);
-        }
-
-        console.log(`  🎫 Duffel Fare Grouping: ${duffelOffers.length} offers → ${fareGroups.size} unique flights`);
-
-        // For each group, pick cheapest and store variants
-        const groupedFlights: FlightOffer[] = [];
-
-        for (const [signature, variants] of fareGroups.entries()) {
-          // CRITICAL FIX: Sort by CABIN CLASS first, then by FARE TIER, then by PRICE
-          // This ensures proper hierarchy: Economy Basic < Economy Standard < Economy Plus < Economy Flex < Premium Economy < Business < First
-          variants.sort((a, b) => {
-            const fareDetailsA = a.travelerPricings?.[0]?.fareDetailsBySegment?.[0] as any;
-            const fareDetailsB = b.travelerPricings?.[0]?.fareDetailsBySegment?.[0] as any;
-
-            const cabinA = fareDetailsA?.cabin || 'ECONOMY';
-            const cabinB = fareDetailsB?.cabin || 'ECONOMY';
-            const brandedFareA = (fareDetailsA?.brandedFareLabel || fareDetailsA?.brandedFare || '').toUpperCase();
-            const brandedFareB = (fareDetailsB?.brandedFareLabel || fareDetailsB?.brandedFare || '').toUpperCase();
-
-            // 1. Sort by cabin class priority first
-            const cabinPriorityA = getCabinPriority(cabinA);
-            const cabinPriorityB = getCabinPriority(cabinB);
-            if (cabinPriorityA !== cabinPriorityB) {
-              return cabinPriorityA - cabinPriorityB;
+          // 🔍 PRICE VALIDATION LOGGING - Debug price issues
+          if (duffelFlights.length > 0) {
+            const firstDuffel = duffelFlights[0] as FlightOffer;
+            console.log('\n💰 ========== PRICE VALIDATION ==========');
+            console.log(`   Route: ${origin} → ${destination}`);
+            console.log(`   First Duffel flight price:`);
+            console.log(`     - price.total: ${firstDuffel.price?.total} (type: ${typeof firstDuffel.price?.total})`);
+            console.log(`     - price.base: ${firstDuffel.price?.base} (type: ${typeof firstDuffel.price?.base})`);
+            console.log(`     - price.currency: ${firstDuffel.price?.currency}`);
+            console.log(`     - price.grandTotal: ${(firstDuffel.price as any)?.grandTotal}`);
+            const parsedTotal = parseFloat(String(firstDuffel.price?.total || '0'));
+            console.log(`     - Parsed as number: ${parsedTotal}`);
+            if (parsedTotal < 500) {
+              console.warn(`   ⚠️  WARNING: Price $${parsedTotal} seems too low for this route!`);
             }
+            console.log('💰 ==========================================\n');
+          }
 
-            // 2. Within same cabin, sort by fare tier
-            const tierA = detectFareTier(brandedFareA);
-            const tierB = detectFareTier(brandedFareB);
-            const tierPriorityA = getFareTierPriority(tierA);
-            const tierPriorityB = getFareTierPriority(tierB);
-            if (tierPriorityA !== tierPriorityB) {
-              return tierPriorityA - tierPriorityB;
-            }
+          // Enhanced logging for limited results
+          const totalFlights = amadeusFlights.length + duffelFlights.length;
+          if (totalFlights < 10) {
+            console.warn(`  ⚠️  LIMITED RESULTS: Only ${totalFlights} flights found for ${origin}→${destination}`);
+            console.warn(`  📅 Search date: ${dateToSearch} (${Math.ceil((new Date(dateToSearch).getTime() - Date.now()) / (1000 * 60 * 60 * 24))} days from now)`);
+            console.warn(`  💡 Tip: Far-future dates may have limited airline inventory`);
+          }
 
-            // 3. Finally, sort by price within same tier
-            const priceA = parseFloat(String(a.price?.total || '999999'));
-            const priceB = parseFloat(String(b.price?.total || '999999'));
-            return priceA - priceB;
-          });
+          // 📊 Log API performance for ML learning
+          if (amadeusFlights.length > 0 || duffelFlights.length > 0) {
+            const amadeusLowestPrice = amadeusFlights.length > 0
+              ? Math.min(...amadeusFlights.map((f: FlightOffer) => parseFloat(String(f.price?.total || '999999'))))
+              : null;
+            const duffelLowestPrice = duffelFlights.length > 0
+              ? Math.min(...duffelFlights.map((f: FlightOffer) => parseFloat(String(f.price?.total || '999999'))))
+              : null;
 
-          // Pick the cheapest as the representative flight
-          const cheapest = variants[0];
+            routeProfiler.logAPIPerformance(
+              `${origin}-${destination}`,
+              amadeusLowestPrice,
+              duffelLowestPrice,
+              amadeusTime,
+              duffelTime
+            ).catch(console.error); // Don't block on logging
+          }
 
-          // Extract fare names for logging
-          const fareNames = variants.map(v => {
-            const fareDetails = v.travelerPricings?.[0]?.fareDetailsBySegment?.[0] as any;
-            return fareDetails?.brandedFareLabel || fareDetails?.brandedFare || fareDetails?.cabin || 'ECONOMY';
-          });
+          // ============================================================================
+          // 🎫 GROUP DUFFEL FARE FAMILIES
+          // ============================================================================
+          // Duffel returns multiple offers for the same physical flight with different
+          // fare classes (e.g., Basic $432, Economy $589). We need to group these as
+          // fare variants of the same flight, not as separate flights.
+          //
+          // Strategy:
+          // 1. Create a flight signature (carrier + flight number + departure time)
+          // 2. Group Duffel offers by this signature
+          // 3. Pick the cheapest as the representative flight
+          // 4. Store all variants in fareVariants array for the booking page
+          // ============================================================================
 
-          // Group variants by cabin for smart recommendation
-          const economyVariants = variants.filter(v => {
-            const cabin = (v.travelerPricings?.[0]?.fareDetailsBySegment?.[0] as any)?.cabin || 'ECONOMY';
-            return cabin === 'ECONOMY';
-          });
+          const groupDuffelFareVariants = (duffelOffers: FlightOffer[]): FlightOffer[] => {
+            if (duffelOffers.length === 0) return [];
 
-          // Add all variants to the cheapest flight
-          const flightWithVariants = {
-            ...cheapest,
-            // Store ALL fare variants (including the cheapest itself)
-            fareVariants: variants.map((v, idx) => {
-              const price = parseFloat(String(v.price?.total || '0'));
-              const fareDetails = v.travelerPricings?.[0]?.fareDetailsBySegment?.[0] as any;
-              const brandedFare = (fareDetails?.brandedFareLabel || fareDetails?.brandedFare || '').toUpperCase();
-              const cabin = fareDetails?.cabin || 'ECONOMY';
+            // Helper: Create unique flight signature
+            const getFlightSignature = (offer: FlightOffer): string => {
+              const segments = offer.itineraries?.flatMap(itin => itin.segments || []) || [];
+              if (segments.length === 0) return offer.id; // Fallback to ID if no segments
 
-              // Map cabin class to display-friendly name
-              const cabinDisplayName: Record<string, string> = {
-                'ECONOMY': 'Economy',
-                'PREMIUM_ECONOMY': 'Premium Economy',
-                'BUSINESS': 'Business',
-                'FIRST': 'First Class',
-              };
-              const cabinPrefix = cabinDisplayName[cabin] || 'Economy';
-
-              // CRITICAL FIX: Use ACTUAL API fare brand name, not positional fallback
-              // Only use tier detection from ACTUAL branded fare data
-              const detectedTier = detectFareTier(brandedFare);
-
-              // Map tier to display name
-              const tierDisplayNames: Record<string, string> = {
-                'basic': 'Basic',
-                'standard': 'Standard',
-                'plus': 'Plus',
-                'flex': 'Flex',
-              };
-
-              // If we have an actual branded fare name, extract a cleaner display version
-              let fareType = tierDisplayNames[detectedTier];
-
-              // For branded fares with specific names, use them directly
-              if (brandedFare.includes('ECONOMY LIGHT')) fareType = 'Light';
-              if (brandedFare.includes('ECONOMY SAVER')) fareType = 'Saver';
-              if (brandedFare.includes('ECONOMY CLASSIC')) fareType = 'Classic';
-              if (brandedFare.includes('ECONOMY FLEX')) fareType = 'Flex';
-              if (brandedFare.includes('COMFORT')) fareType = 'Comfort';
-              if (brandedFare.includes('MAIN CABIN')) fareType = 'Main';
-              if (brandedFare.includes('MAIN PLUS')) fareType = 'Main Plus';
-
-              // Combine cabin class + fare type for clear display
-              const displayName = cabin === 'FIRST' ? 'First Class' : `${cabinPrefix} ${fareType}`;
-
-              // Extract restrictions for clear policies
-              // IMPORTANT: Duffel partial offers may not include conditions object
-              // When conditions are missing, derive policies from fare brand name
-              const conditions = (v as any).conditions;
-              const restrictions: string[] = [];
-              const positives: string[] = [];
-
-              // Check if we have actual conditions data from API
-              const hasConditionsData = conditions && (
-                typeof conditions.changeable === 'boolean' ||
-                typeof conditions.refundable === 'boolean'
+              // Build signature from all segments: carrier+flightNum+depTime+arrTime
+              const sigParts = segments.map(seg =>
+                `${seg.carrierCode || 'XX'}${seg.number || '000'}_${seg.departure?.at?.slice(0, 16) || ''}_${seg.arrival?.at?.slice(0, 16) || ''}`
               );
+              return sigParts.join('|');
+            };
 
-              if (hasConditionsData) {
-                // Use actual API data
-                if (!conditions.changeable) restrictions.push('No changes allowed');
-                if (!conditions.refundable) restrictions.push('Non-refundable');
-                if (conditions.changeable) {
-                  positives.push(conditions.changePenalty ? `Changes (${conditions.changePenalty} fee)` : 'Free changes');
+            // Helper: Get cabin class priority (lower = show first)
+            // Proper hierarchy: Economy < Premium Economy < Business < First
+            const getCabinPriority = (cabin: string): number => {
+              switch (cabin) {
+                case 'FIRST': return 4;
+                case 'BUSINESS': return 3;
+                case 'PREMIUM_ECONOMY': return 2;
+                default: return 1; // ECONOMY
+              }
+            };
+
+            // Helper: Detect fare tier from branded fare name (ACTUAL API DATA)
+            const detectFareTier = (brandedFare: string): 'basic' | 'standard' | 'plus' | 'flex' => {
+              const fare = brandedFare.toUpperCase();
+              // Basic/Light/Saver tiers - most restrictive
+              if (fare.includes('BASIC') || fare.includes('LIGHT') || fare.includes('SAVER') ||
+                fare.includes('ECONOMY LIGHT') || fare.includes('ECONOMY SAVER')) {
+                return 'basic';
+              }
+              // Flex/Full/Max tiers - most flexible
+              if (fare.includes('FLEX') || fare.includes('FLEXI') || fare.includes('FULL') ||
+                fare.includes('MAX') || fare.includes('FREEDOM') || fare.includes('PLUS FLEX')) {
+                return 'flex';
+              }
+              // Plus/Comfort/Classic tiers - mid-tier
+              if (fare.includes('PLUS') || fare.includes('COMFORT') || fare.includes('CLASSIC') ||
+                fare.includes('MAIN') || fare.includes('CHOICE')) {
+                return 'plus';
+              }
+              // Default to standard
+              return 'standard';
+            };
+
+            // Helper: Get fare tier priority for sorting within same cabin (lower = show first)
+            const getFareTierPriority = (tier: 'basic' | 'standard' | 'plus' | 'flex'): number => {
+              switch (tier) {
+                case 'basic': return 1;
+                case 'standard': return 2;
+                case 'plus': return 3;
+                case 'flex': return 4;
+              }
+            };
+
+            // Group offers by signature
+            const fareGroups = new Map<string, FlightOffer[]>();
+
+            for (const offer of duffelOffers) {
+              const sig = getFlightSignature(offer);
+              if (!fareGroups.has(sig)) {
+                fareGroups.set(sig, []);
+              }
+              fareGroups.get(sig)!.push(offer);
+            }
+
+            console.log(`  🎫 Duffel Fare Grouping: ${duffelOffers.length} offers → ${fareGroups.size} unique flights`);
+
+            // For each group, pick cheapest and store variants
+            const groupedFlights: FlightOffer[] = [];
+
+            for (const [signature, variants] of fareGroups.entries()) {
+              // CRITICAL FIX: Sort by CABIN CLASS first, then by FARE TIER, then by PRICE
+              // This ensures proper hierarchy: Economy Basic < Economy Standard < Economy Plus < Economy Flex < Premium Economy < Business < First
+              variants.sort((a, b) => {
+                const fareDetailsA = a.travelerPricings?.[0]?.fareDetailsBySegment?.[0] as any;
+                const fareDetailsB = b.travelerPricings?.[0]?.fareDetailsBySegment?.[0] as any;
+
+                const cabinA = fareDetailsA?.cabin || 'ECONOMY';
+                const cabinB = fareDetailsB?.cabin || 'ECONOMY';
+                const brandedFareA = (fareDetailsA?.brandedFareLabel || fareDetailsA?.brandedFare || '').toUpperCase();
+                const brandedFareB = (fareDetailsB?.brandedFareLabel || fareDetailsB?.brandedFare || '').toUpperCase();
+
+                // 1. Sort by cabin class priority first
+                const cabinPriorityA = getCabinPriority(cabinA);
+                const cabinPriorityB = getCabinPriority(cabinB);
+                if (cabinPriorityA !== cabinPriorityB) {
+                  return cabinPriorityA - cabinPriorityB;
                 }
-                if (conditions.refundable) {
-                  positives.push(conditions.refundPenalty ? `Refundable (${conditions.refundPenalty} fee)` : 'Fully refundable');
+
+                // 2. Within same cabin, sort by fare tier
+                const tierA = detectFareTier(brandedFareA);
+                const tierB = detectFareTier(brandedFareB);
+                const tierPriorityA = getFareTierPriority(tierA);
+                const tierPriorityB = getFareTierPriority(tierB);
+                if (tierPriorityA !== tierPriorityB) {
+                  return tierPriorityA - tierPriorityB;
                 }
-              } else {
-                // Derive from fare tier - industry standard fare policies
-                if (detectedTier === 'flex') {
-                  // Flex fares typically allow changes and refunds
-                  positives.push('Free changes');
-                  positives.push('Fully refundable');
-                } else if (detectedTier === 'plus') {
-                  // Plus/Comfort fares typically allow changes with fee
-                  positives.push('Changes allowed');
-                  restrictions.push('Non-refundable');
-                } else if (detectedTier === 'basic') {
-                  // Basic fares are most restrictive
-                  restrictions.push('No changes allowed');
-                  restrictions.push('Non-refundable');
-                } else {
-                  // Standard fares - middle ground
-                  positives.push('Changes (fee applies)');
-                  restrictions.push('Non-refundable');
-                }
+
+                // 3. Finally, sort by price within same tier
+                const priceA = parseFloat(String(a.price?.total || '999999'));
+                const priceB = parseFloat(String(b.price?.total || '999999'));
+                return priceA - priceB;
+              });
+
+              // Pick the cheapest as the representative flight
+              const cheapest = variants[0];
+
+              // Extract fare names for logging
+              const fareNames = variants.map(v => {
+                const fareDetails = v.travelerPricings?.[0]?.fareDetailsBySegment?.[0] as any;
+                return fareDetails?.brandedFareLabel || fareDetails?.brandedFare || fareDetails?.cabin || 'ECONOMY';
+              });
+
+              // Group variants by cabin for smart recommendation
+              const economyVariants = variants.filter(v => {
+                const cabin = (v.travelerPricings?.[0]?.fareDetailsBySegment?.[0] as any)?.cabin || 'ECONOMY';
+                return cabin === 'ECONOMY';
+              });
+
+              // Add all variants to the cheapest flight
+              const flightWithVariants = {
+                ...cheapest,
+                // Store ALL fare variants (including the cheapest itself)
+                fareVariants: variants.map((v, idx) => {
+                  const price = parseFloat(String(v.price?.total || '0'));
+                  const fareDetails = v.travelerPricings?.[0]?.fareDetailsBySegment?.[0] as any;
+                  const brandedFare = (fareDetails?.brandedFareLabel || fareDetails?.brandedFare || '').toUpperCase();
+                  const cabin = fareDetails?.cabin || 'ECONOMY';
+
+                  // Map cabin class to display-friendly name
+                  const cabinDisplayName: Record<string, string> = {
+                    'ECONOMY': 'Economy',
+                    'PREMIUM_ECONOMY': 'Premium Economy',
+                    'BUSINESS': 'Business',
+                    'FIRST': 'First Class',
+                  };
+                  const cabinPrefix = cabinDisplayName[cabin] || 'Economy';
+
+                  // CRITICAL FIX: Use ACTUAL API fare brand name, not positional fallback
+                  // Only use tier detection from ACTUAL branded fare data
+                  const detectedTier = detectFareTier(brandedFare);
+
+                  // Map tier to display name
+                  const tierDisplayNames: Record<string, string> = {
+                    'basic': 'Basic',
+                    'standard': 'Standard',
+                    'plus': 'Plus',
+                    'flex': 'Flex',
+                  };
+
+                  // If we have an actual branded fare name, extract a cleaner display version
+                  let fareType = tierDisplayNames[detectedTier];
+
+                  // For branded fares with specific names, use them directly
+                  if (brandedFare.includes('ECONOMY LIGHT')) fareType = 'Light';
+                  if (brandedFare.includes('ECONOMY SAVER')) fareType = 'Saver';
+                  if (brandedFare.includes('ECONOMY CLASSIC')) fareType = 'Classic';
+                  if (brandedFare.includes('ECONOMY FLEX')) fareType = 'Flex';
+                  if (brandedFare.includes('COMFORT')) fareType = 'Comfort';
+                  if (brandedFare.includes('MAIN CABIN')) fareType = 'Main';
+                  if (brandedFare.includes('MAIN PLUS')) fareType = 'Main Plus';
+
+                  // Combine cabin class + fare type for clear display
+                  const displayName = cabin === 'FIRST' ? 'First Class' : `${cabinPrefix} ${fareType}`;
+
+                  // Extract restrictions for clear policies
+                  // IMPORTANT: Duffel partial offers may not include conditions object
+                  // When conditions are missing, derive policies from fare brand name
+                  const conditions = (v as any).conditions;
+                  const restrictions: string[] = [];
+                  const positives: string[] = [];
+
+                  // Check if we have actual conditions data from API
+                  const hasConditionsData = conditions && (
+                    typeof conditions.changeable === 'boolean' ||
+                    typeof conditions.refundable === 'boolean'
+                  );
+
+                  if (hasConditionsData) {
+                    // Use actual API data
+                    if (!conditions.changeable) restrictions.push('No changes allowed');
+                    if (!conditions.refundable) restrictions.push('Non-refundable');
+                    if (conditions.changeable) {
+                      positives.push(conditions.changePenalty ? `Changes (${conditions.changePenalty} fee)` : 'Free changes');
+                    }
+                    if (conditions.refundable) {
+                      positives.push(conditions.refundPenalty ? `Refundable (${conditions.refundPenalty} fee)` : 'Fully refundable');
+                    }
+                  } else {
+                    // Derive from fare tier - industry standard fare policies
+                    if (detectedTier === 'flex') {
+                      // Flex fares typically allow changes and refunds
+                      positives.push('Free changes');
+                      positives.push('Fully refundable');
+                    } else if (detectedTier === 'plus') {
+                      // Plus/Comfort fares typically allow changes with fee
+                      positives.push('Changes allowed');
+                      restrictions.push('Non-refundable');
+                    } else if (detectedTier === 'basic') {
+                      // Basic fares are most restrictive
+                      restrictions.push('No changes allowed');
+                      restrictions.push('Non-refundable');
+                    } else {
+                      // Standard fares - middle ground
+                      positives.push('Changes (fee applies)');
+                      restrictions.push('Non-refundable');
+                    }
+                  }
+
+                  // Determine recommendation: Best value is usually Economy Standard or Plus (not Basic, not Flex)
+                  // Within economy, recommend index 1 (Standard) if it exists
+                  const economyIdx = economyVariants.indexOf(v);
+                  const isRecommended = economyIdx === 1 && economyVariants.length > 1;
+
+                  // Popularity based on POSITION in list to ensure unique values
+                  // This avoids showing same percentage on multiple fares
+                  const totalVariants = economyVariants.length;
+                  const popularityByPosition: Record<number, number> = {
+                    0: totalVariants === 1 ? 74 : 26,  // Cheapest/Basic: 26% (or 74% if only option)
+                    1: 74,  // Standard/Value: 74% (most popular)
+                    2: 42,  // Plus/Upgraded: 42%
+                    3: 18,  // Flex/Premium: 18%
+                  };
+                  const popularity = popularityByPosition[economyIdx] ?? Math.max(5, 50 - (economyIdx * 10));
+
+                  return {
+                    id: v.id,
+                    name: displayName,
+                    price: price, // Total price for display
+                    currency: v.price?.currency || 'USD',
+                    priceDetails: { // CRITICAL: Store complete price breakdown
+                      total: v.price?.total,
+                      base: v.price?.base,
+                      fees: v.price?.fees,
+                      grandTotal: v.price?.grandTotal,
+                    },
+                    originalOffer: v, // Store full offer for booking
+                    // CRITICAL FIX: Explicitly preserve expires_at for offer validity checks
+                    // This ensures the booking API can validate offer freshness
+                    expires_at: v.expires_at || v.lastTicketingDateTime,
+                    lastTicketingDateTime: v.lastTicketingDateTime || v.expires_at,
+                    created_at: v.created_at,
+                    features: extractFareFeatures(v, fareDetails),
+                    restrictions: restrictions.length > 0 ? restrictions : undefined,
+                    positives: positives.length > 0 ? positives : undefined, // Positive policies (changes, refunds)
+                    recommended: isRecommended,
+                    popularityPercent: popularity,
+                    cabinClass: cabin, // Store cabin class for reference
+                    fareTier: detectedTier, // Store detected tier for debugging
+                  };
+                }),
+                fareVariantCount: variants.length,
+              };
+
+              if (variants.length > 1) {
+                const priceRange = `$${parseFloat(String(variants[0].price?.total)).toFixed(0)} - $${parseFloat(String(variants[variants.length - 1].price?.total)).toFixed(0)}`;
+                console.log(`    ✓ ${fareNames.join(' → ')} (${priceRange})`);
               }
 
-              // Determine recommendation: Best value is usually Economy Standard or Plus (not Basic, not Flex)
-              // Within economy, recommend index 1 (Standard) if it exists
-              const economyIdx = economyVariants.indexOf(v);
-              const isRecommended = economyIdx === 1 && economyVariants.length > 1;
+              groupedFlights.push(flightWithVariants);
+            }
 
-              // Popularity based on POSITION in list to ensure unique values
-              // This avoids showing same percentage on multiple fares
-              const totalVariants = economyVariants.length;
-              const popularityByPosition: Record<number, number> = {
-                0: totalVariants === 1 ? 74 : 26,  // Cheapest/Basic: 26% (or 74% if only option)
-                1: 74,  // Standard/Value: 74% (most popular)
-                2: 42,  // Plus/Upgraded: 42%
-                3: 18,  // Flex/Premium: 18%
-              };
-              const popularity = popularityByPosition[economyIdx] ?? Math.max(5, 50 - (economyIdx * 10));
-
-              return {
-                id: v.id,
-                name: displayName,
-                price: price, // Total price for display
-                currency: v.price?.currency || 'USD',
-                priceDetails: { // CRITICAL: Store complete price breakdown
-                  total: v.price?.total,
-                  base: v.price?.base,
-                  fees: v.price?.fees,
-                  grandTotal: v.price?.grandTotal,
-                },
-                originalOffer: v, // Store full offer for booking
-                // CRITICAL FIX: Explicitly preserve expires_at for offer validity checks
-                // This ensures the booking API can validate offer freshness
-                expires_at: v.expires_at || v.lastTicketingDateTime,
-                lastTicketingDateTime: v.lastTicketingDateTime || v.expires_at,
-                created_at: v.created_at,
-                features: extractFareFeatures(v, fareDetails),
-                restrictions: restrictions.length > 0 ? restrictions : undefined,
-                positives: positives.length > 0 ? positives : undefined, // Positive policies (changes, refunds)
-                recommended: isRecommended,
-                popularityPercent: popularity,
-                cabinClass: cabin, // Store cabin class for reference
-                fareTier: detectedTier, // Store detected tier for debugging
-              };
-            }),
-            fareVariantCount: variants.length,
+            return groupedFlights;
           };
 
-          if (variants.length > 1) {
-            const priceRange = `$${parseFloat(String(variants[0].price?.total)).toFixed(0)} - $${parseFloat(String(variants[variants.length - 1].price?.total)).toFixed(0)}`;
-            console.log(`    ✓ ${fareNames.join(' → ')} (${priceRange})`);
+          // Helper: Extract fare features from Duffel offer
+          // NOTE: Refund/change policies are now shown separately in the policies section
+          const extractFareFeatures = (offer: FlightOffer, fareDetails: any): string[] => {
+            const features: string[] = [];
+
+            // Cabin class - most important, show first
+            const cabin = fareDetails?.cabin || 'ECONOMY';
+            if (cabin === 'BUSINESS') {
+              features.push('Business class seat');
+              features.push('Priority boarding');
+              features.push('Lounge access');
+            } else if (cabin === 'FIRST') {
+              features.push('First class suite');
+              features.push('Priority boarding');
+              features.push('Premium lounge');
+            } else if (cabin === 'PREMIUM_ECONOMY') {
+              features.push('Premium economy seat');
+              features.push('Extra legroom');
+            } else {
+              features.push('Economy seat');
+            }
+
+            // Baggage
+            const checkedBags = fareDetails?.includedCheckedBags?.quantity || 0;
+            if (checkedBags === 0) {
+              features.push('Carry-on only');
+            } else if (checkedBags === 1) {
+              features.push('Carry-on + 1 checked bag');
+            } else if (checkedBags >= 2) {
+              features.push(`Carry-on + ${checkedBags} checked bags`);
+            }
+
+            // NOTE: Refund/change info now shown in separate policies section
+            // to avoid duplication with positives/restrictions
+
+            return features.slice(0, 4); // Limit to 4 features (policies shown separately)
+          };
+
+          // Apply fare grouping to Duffel flights
+          const groupedDuffelFlights = groupDuffelFareVariants(duffelFlights);
+
+          // Merge results (Amadeus flights + grouped Duffel flights)
+          let allFlightsFromBothSources = [...amadeusFlights, ...groupedDuffelFlights];
+
+          // 🚫 NO DEMO/FALLBACK FLIGHTS - Only real API results
+          if (allFlightsFromBothSources.length === 0) {
+            console.log(`  ⚠️  No flights found for ${origin} → ${destination} - returning empty results (no demo data)`);
+            // Return empty - user will see "No flights found" message
           }
-
-          groupedFlights.push(flightWithVariants);
-        }
-
-        return groupedFlights;
-      };
-
-      // Helper: Extract fare features from Duffel offer
-      // NOTE: Refund/change policies are now shown separately in the policies section
-      const extractFareFeatures = (offer: FlightOffer, fareDetails: any): string[] => {
-        const features: string[] = [];
-
-        // Cabin class - most important, show first
-        const cabin = fareDetails?.cabin || 'ECONOMY';
-        if (cabin === 'BUSINESS') {
-          features.push('Business class seat');
-          features.push('Priority boarding');
-          features.push('Lounge access');
-        } else if (cabin === 'FIRST') {
-          features.push('First class suite');
-          features.push('Priority boarding');
-          features.push('Premium lounge');
-        } else if (cabin === 'PREMIUM_ECONOMY') {
-          features.push('Premium economy seat');
-          features.push('Extra legroom');
-        } else {
-          features.push('Economy seat');
-        }
-
-        // Baggage
-        const checkedBags = fareDetails?.includedCheckedBags?.quantity || 0;
-        if (checkedBags === 0) {
-          features.push('Carry-on only');
-        } else if (checkedBags === 1) {
-          features.push('Carry-on + 1 checked bag');
-        } else if (checkedBags >= 2) {
-          features.push(`Carry-on + ${checkedBags} checked bags`);
-        }
-
-        // NOTE: Refund/change info now shown in separate policies section
-        // to avoid duplication with positives/restrictions
-
-        return features.slice(0, 4); // Limit to 4 features (policies shown separately)
-      };
-
-      // Apply fare grouping to Duffel flights
-      const groupedDuffelFlights = groupDuffelFareVariants(duffelFlights);
-
-      // Merge results (Amadeus flights + grouped Duffel flights)
-      let allFlightsFromBothSources = [...amadeusFlights, ...groupedDuffelFlights];
-
-      // 🚫 NO DEMO/FALLBACK FLIGHTS - Only real API results
-      if (allFlightsFromBothSources.length === 0) {
-        console.log(`  ⚠️  No flights found for ${origin} → ${destination} - returning empty results (no demo data)`);
-        // Return empty - user will see "No flights found" message
-      }
 
           // Get dictionaries from Amadeus response (for carrier names, etc.)
           const dictionaries = amadeusResponse.status === 'fulfilled' ? amadeusResponse.value.dictionaries : {};
@@ -1165,209 +1165,119 @@ export async function POST(request: NextRequest) {
       return result.data;
     };
 
-    // Multi-airport search: iterate through all origin-destination combinations
-    const totalCombinations = originCodes.length * destinationCodes.length;
-    console.log(`🛫 Searching ${totalCombinations} airport combination(s)...`);
+    // ... (previous code)
+
+    // Multi-airport search optimization
+    // ⚡ PERFORMANCE: Use concurrency limit instead of strict batches to keep the pipe full
+    const CONCURRENCY_LIMIT = 8;
+    const itemsToProcess: (() => Promise<any>)[] = [];
+
+    // Helper to add tasks
+    const addTask = (task: () => Promise<any>) => itemsToProcess.push(task);
 
     if (useMultiDate && departureDates.length > 1) {
       console.log(`🗓️ Multi-date search: ${departureDates.length} departure dates x ${returnDates.length || 1} return dates`);
 
-      // ⚡ PERFORMANCE: Parallelize all searches using Promise.all
-      const searchPromises = originCodes.flatMap(originCode =>
-        destinationCodes.flatMap(destinationCode =>
-          departureDates.flatMap(specificDepartureDate => {
-            // If return dates are specified, iterate through them
+      originCodes.forEach(originCode => {
+        destinationCodes.forEach(destinationCode => {
+          departureDates.forEach(specificDepartureDate => {
             if (returnDates.length > 0) {
-              return returnDates.map(specificReturnDate => {
-                console.log(`  Queuing: ${originCode} → ${destinationCode} on ${specificDepartureDate} returning ${specificReturnDate}`);
-                return searchSingleRoute(originCode, destinationCode, specificDepartureDate, specificReturnDate)
-                  .then(apiResponse => {
-                    const flights: FlightOffer[] = apiResponse.data || [];
-                    console.log(`    ✅ Found: ${flights.length} flights for ${originCode} → ${destinationCode} on ${specificDepartureDate}`);
-                    return { flights, dictionaries: apiResponse.dictionaries };
-                  })
-                  .catch(error => {
-                    console.error(`    ❌ Error searching ${originCode} → ${destinationCode} on ${specificDepartureDate} returning ${specificReturnDate}:`, error?.message);
-                    return { flights: [], dictionaries: {} };
-                  });
+              returnDates.forEach(specificReturnDate => {
+                addTask(() =>
+                  searchSingleRoute(originCode, destinationCode, specificDepartureDate, specificReturnDate)
+                    .then(apiResponse => ({ flights: apiResponse.data || [], dictionaries: apiResponse.dictionaries }))
+                    .catch(() => ({ flights: [], dictionaries: {} }))
+                );
               });
             } else {
-              // One-way flight - no return date
-              console.log(`  Queuing: ${originCode} → ${destinationCode} on ${specificDepartureDate}`);
-              return [searchSingleRoute(originCode, destinationCode, specificDepartureDate, undefined)
-                .then(apiResponse => {
-                  const flights: FlightOffer[] = apiResponse.data || [];
-                  console.log(`    ✅ Found: ${flights.length} flights for ${originCode} → ${destinationCode} on ${specificDepartureDate}`);
-                  return { flights, dictionaries: apiResponse.dictionaries };
-                })
-                .catch(error => {
-                  console.error(`    ❌ Error searching ${originCode} → ${destinationCode} on ${specificDepartureDate}:`, error?.message);
-                  return { flights: [], dictionaries: {} };
-                })];
+              addTask(() =>
+                searchSingleRoute(originCode, destinationCode, specificDepartureDate, undefined)
+                  .then(apiResponse => ({ flights: apiResponse.data || [], dictionaries: apiResponse.dictionaries }))
+                  .catch(() => ({ flights: [], dictionaries: {} }))
+              );
             }
-          })
-        )
-      );
-
-      console.log(`⚡ Executing ${searchPromises.length} searches in BATCHED PARALLEL...`);
-      const startTime = Date.now();
-
-      // Batch searches to avoid rate limits and timeouts
-      // Process in groups of 8 to balance speed vs API rate limits
-      const BATCH_SIZE = 8;
-      const results: any[] = [];
-
-      for (let i = 0; i < searchPromises.length; i += BATCH_SIZE) {
-        const batch = searchPromises.slice(i, i + BATCH_SIZE);
-        console.log(`  Processing batch ${Math.floor(i / BATCH_SIZE) + 1}/${Math.ceil(searchPromises.length / BATCH_SIZE)} (${batch.length} searches)...`);
-
-        const batchResults = await Promise.all(batch);
-        results.push(...batchResults);
-
-        // Small delay between batches to be respectful to APIs
-        if (i + BATCH_SIZE < searchPromises.length) {
-          await new Promise(resolve => setTimeout(resolve, 500));
-        }
-      }
-
-      const parallelTime = Date.now() - startTime;
-      console.log(`⚡ Batched search completed in ${parallelTime}ms (avg ${Math.round(parallelTime / searchPromises.length)}ms per route)`);
-
-      // Aggregate results
-      results.forEach(result => {
-        allFlights.push(...result.flights);
-        if (result.dictionaries && Object.keys(result.dictionaries).length > 0) {
-          dictionaries = result.dictionaries;
-        }
+          });
+        });
       });
-
-      // Deduplicate results
-      console.log(`Total flights before dedup: ${allFlights.length}`);
-      allFlights = deduplicateFlights(allFlights);
-      console.log(`Total flights after dedup: ${allFlights.length}`);
     } else if (departureFlex > 0) {
-      console.log(`🗓️ Flexible dates search: ±${departureFlex} days`);
-
-      // Generate date range
+      // ... Flex date logic
       const flexDates = generateFlexibleDateRange(departureDate, departureFlex);
-
-      // ⚡ PERFORMANCE: Parallelize all searches using Promise.all
-      const searchPromises = originCodes.flatMap(originCode =>
-        destinationCodes.flatMap(destinationCode =>
-          flexDates.map(flexDate => {
-            // Calculate return date if trip duration specified
+      originCodes.forEach(originCode => {
+        destinationCodes.forEach(destinationCode => {
+          flexDates.forEach(flexDate => {
             const flexReturnDate = (tripDuration && body.returnDate)
               ? calculateReturnDate(flexDate, tripDuration)
               : body.returnDate;
+            addTask(() =>
+              searchSingleRoute(originCode, destinationCode, flexDate, flexReturnDate)
+                .then(apiResponse => ({ flights: apiResponse.data || [], dictionaries: apiResponse.dictionaries }))
+                .catch(() => ({ flights: [], dictionaries: {} }))
+            );
+          });
+        });
+      });
+    } else {
+      // Standard multi-airport
+      originCodes.forEach(originCode => {
+        destinationCodes.forEach(destinationCode => {
+          addTask(() =>
+            searchSingleRoute(originCode, destinationCode, departureDate, body.returnDate)
+              .then(apiResponse => ({ flights: apiResponse.data || [], dictionaries: apiResponse.dictionaries }))
+              .catch(() => ({ flights: [], dictionaries: {} }))
+          );
+        });
+      });
+    }
 
-            console.log(`  Queuing: ${originCode} → ${destinationCode} on ${flexDate}${flexReturnDate ? ` returning ${flexReturnDate}` : ''}`);
+    console.log(`⚡ Processing ${itemsToProcess.length} searches with concurrency ${CONCURRENCY_LIMIT}...`);
+    const startTime = Date.now();
 
-            return searchSingleRoute(originCode, destinationCode, flexDate, flexReturnDate)
-              .then(apiResponse => {
-                const flights: FlightOffer[] = apiResponse.data || [];
-                console.log(`    ✅ Found: ${flights.length} flights for ${originCode} → ${destinationCode} on ${flexDate}`);
-                return { flights, dictionaries: apiResponse.dictionaries };
-              })
-              .catch(error => {
-                console.error(`    ❌ Error searching ${originCode} → ${destinationCode} on ${flexDate}:`, error?.message);
-                return { flights: [], dictionaries: {} };
-              });
-          })
-        )
-      );
+    // Simple concurrency implementation
+    const results: any[] = [];
+    const executing: Promise<void>[] = [];
 
-      console.log(`⚡ Executing ${searchPromises.length} searches in BATCHED PARALLEL (flexible dates)...`);
-      const startTime = Date.now();
+    for (const item of itemsToProcess) {
+      const p = Promise.resolve().then(() => item());
+      results.push(p);
 
-      // Batch searches to avoid rate limits
-      const BATCH_SIZE = 8;
-      const results: any[] = [];
-
-      for (let i = 0; i < searchPromises.length; i += BATCH_SIZE) {
-        const batch = searchPromises.slice(i, i + BATCH_SIZE);
-        console.log(`  Processing flex batch ${Math.floor(i / BATCH_SIZE) + 1}/${Math.ceil(searchPromises.length / BATCH_SIZE)} (${batch.length} searches)...`);
-
-        const batchResults = await Promise.all(batch);
-        results.push(...batchResults);
-
-        if (i + BATCH_SIZE < searchPromises.length) {
-          await new Promise(resolve => setTimeout(resolve, 500));
+      if (CONCURRENCY_LIMIT <= itemsToProcess.length) {
+        const e: Promise<void> = p.then(() => {
+          executing.splice(executing.indexOf(e), 1);
+        });
+        executing.push(e);
+        if (executing.length >= CONCURRENCY_LIMIT) {
+          await Promise.race(executing);
         }
       }
+    }
 
-      const parallelTime = Date.now() - startTime;
-      console.log(`⚡ Flex search completed in ${parallelTime}ms (avg ${Math.round(parallelTime / searchPromises.length)}ms per route)`);
+    // Wait for all remaining
+    const allResults = await Promise.all(results);
 
-      // Aggregate results
-      results.forEach(result => {
-        allFlights.push(...result.flights);
-        if (result.dictionaries && Object.keys(result.dictionaries).length > 0) {
-          dictionaries = result.dictionaries;
-        }
-      });
+    // Aggregate results
+    allResults.forEach(result => {
+      allFlights.push(...(result.flights || []));
+      if (result.dictionaries && Object.keys(result.dictionaries).length > 0) {
+        dictionaries = { ...dictionaries, ...result.dictionaries };
+      }
+    });
 
-      // Deduplicate results
+    const parallelTime = Date.now() - startTime;
+    console.log(`⚡ Search completed in ${parallelTime}ms`);
+
+    // ... (Dedup and rest of logic remains similar, handled by keeping existing code flow)
+    // NOTE: Replacing the 'if/else' block for search logic with the above, but need to be careful about matching the specific lines.
+    // Actually, simply replacing the huge block is better.
+
+    // ... (Original logic continues for deduplication and response)
+
+    // Deduplicate results
+    if (allFlights.length > 0) {
       console.log(`Total flights before dedup: ${allFlights.length}`);
       allFlights = deduplicateFlights(allFlights);
       console.log(`Total flights after dedup: ${allFlights.length}`);
-    } else {
-      // Standard search with multiple airports (no flexible dates)
-
-      // ⚡ PERFORMANCE: Batch parallel searches
-      const searchPromises = originCodes.flatMap(originCode =>
-        destinationCodes.map(destinationCode => {
-          console.log(`  Queuing: ${originCode} → ${destinationCode}`);
-
-          return searchSingleRoute(originCode, destinationCode, departureDate, body.returnDate)
-            .then(apiResponse => {
-              const flights: FlightOffer[] = apiResponse.data || [];
-              console.log(`    ✅ Found: ${flights.length} flights for ${originCode} → ${destinationCode}`);
-              return { flights, dictionaries: apiResponse.dictionaries };
-            })
-            .catch(error => {
-              console.error(`    ❌ Error searching ${originCode} → ${destinationCode}:`, error?.message);
-              return { flights: [], dictionaries: {} };
-            });
-        })
-      );
-
-      console.log(`⚡ Executing ${searchPromises.length} searches in BATCHED PARALLEL (multi-airport)...`);
-      const startTime = Date.now();
-
-      // Batch searches to avoid rate limits (smaller batches for quick search)
-      const BATCH_SIZE = 6;
-      const results: any[] = [];
-
-      for (let i = 0; i < searchPromises.length; i += BATCH_SIZE) {
-        const batch = searchPromises.slice(i, i + BATCH_SIZE);
-        console.log(`  Processing batch ${Math.floor(i / BATCH_SIZE) + 1}/${Math.ceil(searchPromises.length / BATCH_SIZE)} (${batch.length} searches)...`);
-
-        const batchResults = await Promise.all(batch);
-        results.push(...batchResults);
-
-        if (i + BATCH_SIZE < searchPromises.length) {
-          await new Promise(resolve => setTimeout(resolve, 500));
-        }
-      }
-
-      const parallelTime = Date.now() - startTime;
-      console.log(`⚡ Multi-airport search completed in ${parallelTime}ms (avg ${Math.round(parallelTime / searchPromises.length)}ms per route)`);
-
-      // Aggregate results
-      results.forEach(result => {
-        allFlights.push(...result.flights);
-        if (result.dictionaries && Object.keys(result.dictionaries).length > 0) {
-          dictionaries = result.dictionaries;
-        }
-      });
-
-      // Deduplicate results
-      if (totalCombinations > 1) {
-        console.log(`Total flights before dedup: ${allFlights.length}`);
-        allFlights = deduplicateFlights(allFlights);
-        console.log(`Total flights after dedup: ${allFlights.length}`);
-      }
     }
+
 
     let flights = allFlights;
     const originalFlightCount = allFlights.length; // 🛡️ SAFETY: Track original count
@@ -1403,30 +1313,30 @@ export async function POST(request: NextRequest) {
           const [amadeusResult, duffelResult] = await Promise.allSettled([
             useAmadeus
               ? amadeusAPI.searchFlights({
-                  origin: params.origin,
-                  destination: params.destination,
-                  departureDate: params.date,
-                  adults: params.adults || body.adults || 1,
-                  children: params.children || body.children,
-                  infants: params.infants || body.infants,
-                  travelClass: travelClass,
-                  nonStop: params.nonStop || body.nonStop === true ? true : undefined,
-                  currencyCode: body.currencyCode || 'USD',
-                  max: params.maxResults || 30,
-                })
+                origin: params.origin,
+                destination: params.destination,
+                departureDate: params.date,
+                adults: params.adults || body.adults || 1,
+                children: params.children || body.children,
+                infants: params.infants || body.infants,
+                travelClass: travelClass,
+                nonStop: params.nonStop || body.nonStop === true ? true : undefined,
+                currencyCode: body.currencyCode || 'USD',
+                max: params.maxResults || 30,
+              })
               : Promise.resolve({ data: [] }),
             duffelAPI.isAvailable()
               ? duffelAPI.searchFlights({
-                  origin: params.origin,
-                  destination: params.destination,
-                  departureDate: params.date,
-                  adults: params.adults || body.adults || 1,
-                  children: params.children || body.children,
-                  infants: params.infants || body.infants,
-                  cabinClass: mixedDuffelCabinClass || 'economy',
-                  maxResults: params.maxResults || 30,
-                  nonStop: params.nonStop || body.nonStop === true ? true : undefined,
-                })
+                origin: params.origin,
+                destination: params.destination,
+                departureDate: params.date,
+                adults: params.adults || body.adults || 1,
+                children: params.children || body.children,
+                infants: params.infants || body.infants,
+                cabinClass: mixedDuffelCabinClass || 'economy',
+                maxResults: params.maxResults || 30,
+                nonStop: params.nonStop || body.nonStop === true ? true : undefined,
+              })
               : Promise.resolve({ data: [], meta: { count: 0 } }),
           ]);
 
@@ -1847,7 +1757,7 @@ export async function POST(request: NextRequest) {
             Math.round(lowestPrice * 100),
             departureTTL.ttlSeconds,
             'user-search'
-          ).catch(() => {});
+          ).catch(() => { });
 
           // Cache return date price if round trip
           if (cacheReturnDate) {
@@ -1868,7 +1778,7 @@ export async function POST(request: NextRequest) {
               Math.round(lowestPrice * 100),
               returnTTL.ttlSeconds,
               'user-search'
-            ).catch(() => {});
+            ).catch(() => { });
           }
         } catch (err) {
           // Silently fail - caching is non-critical
@@ -1957,11 +1867,11 @@ export async function POST(request: NextRequest) {
 
     // 404 - No flights found (return empty results instead of error)
     const isNotFound = statusCode === 404 ||
-                      errorResponse?.errors?.some((e: any) =>
-                        e.code === 1797 ||
-                        e.code === 6003 ||
-                        e.title === 'NOT FOUND'
-                      );
+      errorResponse?.errors?.some((e: any) =>
+        e.code === 1797 ||
+        e.code === 6003 ||
+        e.title === 'NOT FOUND'
+      );
 
     if (isNotFound) {
       const emptyResponse = {
@@ -2051,7 +1961,7 @@ export async function POST(request: NextRequest) {
         endpoint: '/api/flights/search',
         flightRoute: flightSearchParams ? `${flightSearchParams.origin} → ${flightSearchParams.destination}` : 'unknown',
         departureDate: flightSearchParams?.departureDate,
-      }, { priority: 'high' }).catch(() => {});
+      }, { priority: 'high' }).catch(() => { });
 
       return NextResponse.json(
         {
@@ -2068,7 +1978,7 @@ export async function POST(request: NextRequest) {
       endpoint: '/api/flights/search',
       flightRoute: flightSearchParams ? `${flightSearchParams.origin} → ${flightSearchParams.destination}` : 'unknown',
       departureDate: flightSearchParams?.departureDate,
-    }, { priority: 'normal' }).catch(() => {});
+    }, { priority: 'normal' }).catch(() => { });
 
     return NextResponse.json(
       {
@@ -2151,7 +2061,7 @@ export async function GET(request: NextRequest) {
     await alertApiError(request, error, {
       errorCode: 'FLIGHT_SEARCH_GET_ERROR',
       endpoint: '/api/flights/search (GET)',
-    }, { priority: 'normal' }).catch(() => {});
+    }, { priority: 'normal' }).catch(() => { });
 
     return NextResponse.json(
       { error: error.message || 'Failed to search flights' },
@@ -2162,3 +2072,17 @@ export async function GET(request: NextRequest) {
 
 // Use Node.js runtime for Amadeus API (edge runtime has env var restrictions)
 export const runtime = 'nodejs';
+
+/**
+ * Handle OPTIONS requests for CORS preflight
+ */
+export async function OPTIONS(request: NextRequest) {
+  return new NextResponse(null, {
+    status: 200,
+    headers: {
+      'Access-Control-Allow-Origin': '*',
+      'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
+      'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+    },
+  });
+}
