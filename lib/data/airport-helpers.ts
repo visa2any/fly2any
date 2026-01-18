@@ -15,7 +15,7 @@
  * @module airport-helpers
  */
 
-import { AIRPORTS, Airport, Continent } from './airports-all';
+import { AIRPORTS, Airport, Continent } from './airports-complete';
 
 // ============================================================================
 // TYPE DEFINITIONS
@@ -79,9 +79,9 @@ export function calculateDistance(
   const a =
     Math.sin(dLat / 2) * Math.sin(dLat / 2) +
     Math.cos(toRadians(lat1)) *
-      Math.cos(toRadians(lat2)) *
-      Math.sin(dLon / 2) *
-      Math.sin(dLon / 2);
+    Math.cos(toRadians(lat2)) *
+    Math.sin(dLon / 2) *
+    Math.sin(dLon / 2);
 
   const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
   const distanceKm = R * c;
@@ -143,6 +143,15 @@ export function getAirportDistance(code1: string, code2: string): DistanceResult
 export function findAirportByCode(code: string): Airport | undefined {
   const upperCode = code.toUpperCase();
   return AIRPORTS.find((a) => a.code === upperCode);
+}
+
+/**
+ * Get the city/metro code for an airport
+ * Returns the metro code if available, otherwise returns the airport code
+ */
+export function getCityCode(code: string): string {
+  const airport = findAirportByCode(code);
+  return airport?.metro || code.toUpperCase();
 }
 
 /**
