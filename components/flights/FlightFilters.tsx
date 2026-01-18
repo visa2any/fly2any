@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { FlightOffer, normalizePrice } from '@/lib/flights/types';
 import { spacing, typography, colors, dimensions } from '@/lib/design-system';
 import { useCurrency } from '@/lib/context/CurrencyContext';
+import { useScrollLock } from '@/lib/hooks/useScrollLock';
 
 // Filter state interface
 export interface FlightFilters {
@@ -338,37 +339,20 @@ export default function FlightFilters({
   const currencySymbol = getSymbol();
   const [isMobileOpen, setIsMobileOpen] = useState(false);
   const [localFilters, setLocalFilters] = useState(filters);
+  const { lockScroll, unlockScroll } = useScrollLock();
 
-  // Lock body scroll when mobile filter sheet is open (Chrome + iOS safe)
+  // Centralized scroll lock management (prevents conflicts)
   useEffect(() => {
     if (isMobileOpen) {
-      // Chrome requires BOTH html and body to be locked
-      const html = document.documentElement;
-      const body = document.body;
-
-      html.style.overflow = 'hidden';
-      body.style.overflow = 'hidden';
-      body.style.touchAction = 'none'; // Prevent iOS bounce
-      body.style.height = '100%'; // Chrome fix
+      lockScroll();
     } else {
-      // Restore scroll
-      const html = document.documentElement;
-      const body = document.body;
-
-      html.style.overflow = '';
-      body.style.overflow = '';
-      body.style.touchAction = '';
-      body.style.height = '';
+      unlockScroll();
     }
 
     return () => {
-      // Ensure cleanup
-      document.documentElement.style.overflow = '';
-      document.body.style.overflow = '';
-      document.body.style.touchAction = '';
-      document.body.style.height = '';
+      unlockScroll(); // Guaranteed cleanup
     };
-  }, [isMobileOpen]);
+  }, [isMobileOpen, lockScroll, unlockScroll]);
 
   // Local state for price inputs (raw values while typing)
   const [minPriceInput, setMinPriceInput] = useState<string>('');

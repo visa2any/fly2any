@@ -3,6 +3,7 @@
 import React, { useRef, useEffect } from 'react';
 import { Button } from '@/components/ui/Button';
 import type { Trip } from './TripCard';
+import { useScrollLock } from '@/lib/hooks/useScrollLock';
 
 interface TripDetailsModalProps {
   trip: Trip | null;
@@ -18,6 +19,7 @@ export const TripDetailsModal: React.FC<TripDetailsModalProps> = ({
   translations: t,
 }) => {
   const modalRef = useRef<HTMLDivElement>(null);
+  const { lockScroll, unlockScroll } = useScrollLock();
 
   useEffect(() => {
     const handleEscape = (e: KeyboardEvent) => {
@@ -26,14 +28,25 @@ export const TripDetailsModal: React.FC<TripDetailsModalProps> = ({
 
     if (isOpen) {
       document.addEventListener('keydown', handleEscape);
-      document.body.style.overflow = 'hidden';
     }
 
     return () => {
       document.removeEventListener('keydown', handleEscape);
-      document.body.style.overflow = 'unset';
     };
   }, [isOpen, onClose]);
+
+  // Centralized scroll lock management (prevents conflicts)
+  useEffect(() => {
+    if (isOpen) {
+      lockScroll();
+    } else {
+      unlockScroll();
+    }
+
+    return () => {
+      unlockScroll(); // Guaranteed cleanup
+    };
+  }, [isOpen, lockScroll, unlockScroll]);
 
   if (!isOpen || !trip) return null;
 

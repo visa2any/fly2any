@@ -3,6 +3,7 @@
 import { ReactNode, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X } from 'lucide-react';
+import { useScrollLock } from '@/lib/hooks/useScrollLock';
 
 interface MobileFilterSheetProps {
   isOpen: boolean;
@@ -37,36 +38,20 @@ export function MobileFilterSheet({
   activeFilterCount,
   title = 'Filters',
 }: MobileFilterSheetProps) {
-  // Lock body scroll when sheet is open (Chrome + iOS safe)
+  const { lockScroll, unlockScroll } = useScrollLock();
+
+  // Centralized scroll lock management (prevents conflicts)
   useEffect(() => {
     if (isOpen) {
-      // Chrome requires BOTH html and body to be locked
-      const html = document.documentElement;
-      const body = document.body;
-
-      html.style.overflow = 'hidden';
-      body.style.overflow = 'hidden';
-      body.style.touchAction = 'none'; // Prevent iOS bounce
-      body.style.height = '100%'; // Chrome fix
+      lockScroll();
     } else {
-      // Restore scroll
-      const html = document.documentElement;
-      const body = document.body;
-
-      html.style.overflow = '';
-      body.style.overflow = '';
-      body.style.touchAction = '';
-      body.style.height = '';
+      unlockScroll();
     }
 
     return () => {
-      // Ensure cleanup
-      document.documentElement.style.overflow = '';
-      document.body.style.overflow = '';
-      document.body.style.touchAction = '';
-      document.body.style.height = '';
+      unlockScroll(); // Guaranteed cleanup
     };
-  }, [isOpen]);
+  }, [isOpen, lockScroll, unlockScroll]);
 
   const handleApply = () => {
     onApply();

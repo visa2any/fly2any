@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from 'react';
 import FocusTrap from 'focus-trap-react';
 import { X, Hotel, Car, MapPin, Star, Check, Plus } from 'lucide-react';
 import type { ParsedTripBundles, TripBundle } from '@/lib/flights/trip-bundles-parser';
+import { useScrollLock } from '@/lib/hooks/useScrollLock';
 
 interface TripBundlesModalProps {
   isOpen: boolean;
@@ -26,6 +27,7 @@ export default function TripBundlesModal({
   const [selectedTransfer, setSelectedTransfer] = useState(true);
   const [selectedPOI, setSelectedPOI] = useState(false);
   const modalRef = useRef<HTMLDivElement>(null);
+  const { lockScroll, unlockScroll } = useScrollLock();
 
   // Handle Escape key
   useEffect(() => {
@@ -37,14 +39,25 @@ export default function TripBundlesModal({
 
     if (isOpen) {
       document.addEventListener('keydown', handleEscape);
-      document.body.style.overflow = 'hidden';
     }
 
     return () => {
       document.removeEventListener('keydown', handleEscape);
-      document.body.style.overflow = '';
     };
   }, [isOpen, onClose]);
+
+  // Centralized scroll lock management (prevents conflicts)
+  useEffect(() => {
+    if (isOpen) {
+      lockScroll();
+    } else {
+      unlockScroll();
+    }
+
+    return () => {
+      unlockScroll(); // Guaranteed cleanup
+    };
+  }, [isOpen, lockScroll, unlockScroll]);
 
   if (!isOpen || !tripBundles.hasRealData) return null;
 

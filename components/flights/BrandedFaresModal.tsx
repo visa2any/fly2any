@@ -4,6 +4,7 @@ import { useEffect, useRef } from 'react';
 import FocusTrap from 'focus-trap-react';
 import { X, Check, AlertCircle } from 'lucide-react';
 import type { ParsedBrandedFares, BrandedFare } from '@/lib/flights/branded-fares-parser';
+import { useScrollLock } from '@/lib/hooks/useScrollLock';
 
 interface BrandedFaresModalProps {
   isOpen: boolean;
@@ -19,6 +20,7 @@ export default function BrandedFaresModal({
   onSelectFare,
 }: BrandedFaresModalProps) {
   const modalRef = useRef<HTMLDivElement>(null);
+  const { lockScroll, unlockScroll } = useScrollLock();
 
   // Handle Escape key
   useEffect(() => {
@@ -30,14 +32,25 @@ export default function BrandedFaresModal({
 
     if (isOpen) {
       document.addEventListener('keydown', handleEscape);
-      document.body.style.overflow = 'hidden'; // Prevent background scroll
     }
 
     return () => {
       document.removeEventListener('keydown', handleEscape);
-      document.body.style.overflow = ''; // Restore scroll
     };
   }, [isOpen, onClose]);
+
+  // Centralized scroll lock management (prevents conflicts)
+  useEffect(() => {
+    if (isOpen) {
+      lockScroll();
+    } else {
+      unlockScroll();
+    }
+
+    return () => {
+      unlockScroll(); // Guaranteed cleanup
+    };
+  }, [isOpen, lockScroll, unlockScroll]);
 
   if (!isOpen || !brandedFares.hasRealData) return null;
 

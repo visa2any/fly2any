@@ -19,6 +19,7 @@ import {
   ArrowRight,
   Check
 } from 'lucide-react';
+import { useScrollLock } from '@/lib/hooks/useScrollLock';
 
 // ==================== TYPES ====================
 
@@ -317,6 +318,7 @@ function AuthModals() {
   const [showSuccess, setShowSuccess] = useState(false);
   const modalRef = useRef<HTMLDivElement>(null);
   const firstInputRef = useRef<HTMLInputElement>(null);
+  const { lockScroll, unlockScroll } = useScrollLock();
 
   // Reset form when modal changes
   useEffect(() => {
@@ -351,17 +353,17 @@ function AuthModals() {
     return () => document.removeEventListener('keydown', handleEscape);
   }, [currentModal, closeModal]);
 
-  // Prevent body scroll when modal is open
+  // Centralized scroll lock management (prevents conflicts)
   useEffect(() => {
     if (currentModal) {
-      document.body.style.overflow = 'hidden';
+      lockScroll();
     } else {
-      document.body.style.overflow = '';
+      unlockScroll();
     }
     return () => {
-      document.body.style.overflow = '';
+      unlockScroll(); // Guaranteed cleanup
     };
-  }, [currentModal]);
+  }, [currentModal, lockScroll, unlockScroll]);
 
   // Handle backdrop click
   const handleBackdropClick = (e: React.MouseEvent) => {

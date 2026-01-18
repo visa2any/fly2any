@@ -9,6 +9,7 @@ import AirlineLogo from './AirlineLogo';
 import CO2Badge from './CO2Badge';
 import { LoyaltyBadge, calculateLoyaltyMiles, estimateDistance } from './LoyaltyBadge';
 import type { EnhancedFlightCardProps } from './FlightCardEnhanced';
+import { useScrollLock } from '@/lib/hooks/useScrollLock';
 
 interface FlightDetailsSheetProps extends EnhancedFlightCardProps {
   isOpen: boolean;
@@ -39,17 +40,20 @@ export function FlightDetailsSheet(props: FlightDetailsSheetProps) {
     averageCO2,
   } = props;
 
-  // Lock body scroll when sheet is open
+  const { lockScroll, unlockScroll } = useScrollLock();
+
+  // Centralized scroll lock management (prevents conflicts)
   useEffect(() => {
     if (isOpen) {
-      document.body.style.overflow = 'hidden';
+      lockScroll();
     } else {
-      document.body.style.overflow = '';
+      unlockScroll();
     }
+
     return () => {
-      document.body.style.overflow = '';
+      unlockScroll(); // Guaranteed cleanup
     };
-  }, [isOpen]);
+  }, [isOpen, lockScroll, unlockScroll]);
 
   if (!isOpen) return null;
 

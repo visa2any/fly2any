@@ -7,6 +7,7 @@ import { zIndex } from '@/lib/design-system';
 import type { Language, HeaderTranslations } from '@/lib/i18n/types';
 import { languages } from '@/lib/i18n/types';
 import { NotificationBell } from '@/components/notifications/NotificationBell';
+import { useScrollLock } from '@/lib/hooks/useScrollLock';
 
 interface NavigationDrawerProps {
   isOpen: boolean;
@@ -45,18 +46,20 @@ export function NavigationDrawer({
   logoUrl = '/logo.png',
   userId,
 }: NavigationDrawerProps) {
-  // Prevent body scroll when drawer is open
+  const { lockScroll, unlockScroll } = useScrollLock();
+
+  // Centralized scroll lock management (prevents conflicts)
   useEffect(() => {
     if (isOpen) {
-      document.body.style.overflow = 'hidden';
+      lockScroll();
     } else {
-      document.body.style.overflow = 'unset';
+      unlockScroll();
     }
 
     return () => {
-      document.body.style.overflow = 'unset';
+      unlockScroll(); // Guaranteed cleanup
     };
-  }, [isOpen]);
+  }, [isOpen, lockScroll, unlockScroll]);
 
   // Close on escape key
   useEffect(() => {
