@@ -2074,100 +2074,105 @@ export async function POST(request: NextRequest) {
       );
     }
   }
+  } catch (error) {
+  console.error('Unhandled POST error:', error);
+  return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
+}
+}
 
 /**
  * GET /api/flights/search (backward compatibility)
  * Legacy endpoint - redirects to POST
  */
 export async function GET(request: NextRequest) {
-    try {
-      // COST PROTECTION: Block bots and suspicious requests BEFORE expensive API calls
-      const costGuard = await checkCostGuard(request, COST_GUARDS.FLIGHT_SEARCH);
-      if (!costGuard.allowed && costGuard.response) {
-        return costGuard.response;
-      }
+  try {
+    // COST PROTECTION: Block bots and suspicious requests BEFORE expensive API calls
+    const costGuard = await checkCostGuard(request, COST_GUARDS.FLIGHT_SEARCH);
+    if (!costGuard.allowed && costGuard.response) {
+      return costGuard.response;
+    }
 
-      const searchParams = request.nextUrl.searchParams;
+    const searchParams = request.nextUrl.searchParams;
 
-      // Validate required parameters
-      const origin = searchParams.get('origin');
-      const destination = searchParams.get('destination');
-      const departureDate = searchParams.get('departureDate');
-      const adults = searchParams.get('adults');
+    // Validate required parameters
+    const origin = searchParams.get('origin');
+    const destination = searchParams.get('destination');
+    const departureDate = searchParams.get('departureDate');
+    const adults = searchParams.get('adults');
 
-      if (!origin || !destination || !departureDate || !adults) {
-        return NextResponse.json(
-          { error: 'Missing required parameters: origin, destination, departureDate, adults' },
-          { status: 400 }
-        );
-      }
-
-      // Map travelClass to Amadeus API format (uppercase)
-      const travelClassMap: Record<string, 'ECONOMY' | 'PREMIUM_ECONOMY' | 'BUSINESS' | 'FIRST'> = {
-        'economy': 'ECONOMY',
-        'premium': 'PREMIUM_ECONOMY',
-        'premium_economy': 'PREMIUM_ECONOMY',
-        'business': 'BUSINESS',
-        'first': 'FIRST',
-      };
-
-      const travelClassParam = searchParams.get('travelClass');
-      const travelClass = travelClassParam ? travelClassMap[travelClassParam.toLowerCase()] : undefined;
-
-      // Build search parameters
-      const flightSearchParams = {
-        origin,
-        destination,
-        departureDate,
-        returnDate: searchParams.get('returnDate') || undefined,
-        adults: parseInt(adults),
-        children: searchParams.get('children') ? parseInt(searchParams.get('children')!) : undefined,
-        infants: searchParams.get('infants') ? parseInt(searchParams.get('infants')!) : undefined,
-        travelClass: travelClass || undefined,
-        nonStop: searchParams.get('nonStop') === 'true' ? true : undefined,
-        currencyCode: searchParams.get('currency') || 'USD',
-        max: searchParams.get('max') ? parseInt(searchParams.get('max')!) : 50,
-        sortBy: searchParams.get('sortBy') || 'best'
-      };
-
-      // Create a new request object for POST handler
-      const postRequest = new NextRequest(request.url, {
-        method: 'POST',
-        headers: request.headers,
-        body: JSON.stringify(flightSearchParams)
-      });
-
-      // Call POST handler
-      return POST(postRequest);
-    } catch (error: any) {
-      console.error('Flight search error:', error);
-
-      // Alert admins for GET endpoint errors
-      await alertApiError(request, error, {
-        errorCode: 'FLIGHT_SEARCH_GET_ERROR',
-        endpoint: '/api/flights/search (GET)',
-      }, { priority: 'normal' }).catch(() => { });
-
+    if (!origin || !destination || !departureDate || !adults) {
       return NextResponse.json(
-        { error: error.message || 'Failed to search flights' },
-        { status: 500 }
+        { error: 'Missing required parameters: origin, destination, departureDate, adults' },
+        { status: 400 }
       );
     }
-  }
 
-  // Use Node.js runtime for Amadeus API (edge runtime has env var restrictions)
-  export const runtime = 'nodejs';
+    // Map travelClass to Amadeus API format (uppercase)
+    const travelClassMap: Record<string, 'ECONOMY' | 'PREMIUM_ECONOMY' | 'BUSINESS' | 'FIRST'> = {
+      'economy': 'ECONOMY',
+      'premium': 'PREMIUM_ECONOMY',
+      'premium_economy': 'PREMIUM_ECONOMY',
+      'business': 'BUSINESS',
+      'first': 'FIRST',
+    };
 
-  /**
-   * Handle OPTIONS requests for CORS preflight
-   */
-  export async function OPTIONS(request: NextRequest) {
-    return new NextResponse(null, {
-      status: 200,
-      headers: {
-        'Access-Control-Allow-Origin': '*',
-        'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
-        'Access-Control-Allow-Headers': 'Content-Type, Authorization',
-      },
+    const travelClassParam = searchParams.get('travelClass');
+    const travelClass = travelClassParam ? travelClassMap[travelClassParam.toLowerCase()] : undefined;
+
+    // Build search parameters
+    const flightSearchParams = {
+      origin,
+      destination,
+      departureDate,
+      returnDate: searchParams.get('returnDate') || undefined,
+      adults: parseInt(adults),
+      children: searchParams.get('children') ? parseInt(searchParams.get('children')!) : undefined,
+      infants: searchParams.get('infants') ? parseInt(searchParams.get('infants')!) : undefined,
+      travelClass: travelClass || undefined,
+      nonStop: searchParams.get('nonStop') === 'true' ? true : undefined,
+      currencyCode: searchParams.get('currency') || 'USD',
+      max: searchParams.get('max') ? parseInt(searchParams.get('max')!) : 50,
+      sortBy: searchParams.get('sortBy') || 'best'
+    };
+
+    // Create a new request object for POST handler
+    const postRequest = new NextRequest(request.url, {
+      method: 'POST',
+      headers: request.headers,
+      body: JSON.stringify(flightSearchParams)
     });
+
+    // Call POST handler
+    return POST(postRequest);
+  } catch (error: any) {
+    console.error('Flight search error:', error);
+
+    // Alert admins for GET endpoint errors
+    await alertApiError(request, error, {
+      errorCode: 'FLIGHT_SEARCH_GET_ERROR',
+      endpoint: '/api/flights/search (GET)',
+    }, { priority: 'normal' }).catch(() => { });
+
+    return NextResponse.json(
+      { error: error.message || 'Failed to search flights' },
+      { status: 500 }
+    );
   }
+}
+
+// Use Node.js runtime for Amadeus API (edge runtime has env var restrictions)
+export const runtime = 'nodejs';
+
+/**
+ * Handle OPTIONS requests for CORS preflight
+ */
+export async function OPTIONS(request: NextRequest) {
+  return new NextResponse(null, {
+    status: 200,
+    headers: {
+      'Access-Control-Allow-Origin': '*',
+      'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
+      'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+    },
+  });
+}
