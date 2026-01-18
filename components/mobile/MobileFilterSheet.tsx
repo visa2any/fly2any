@@ -37,22 +37,34 @@ export function MobileFilterSheet({
   activeFilterCount,
   title = 'Filters',
 }: MobileFilterSheetProps) {
-  // Lock body scroll when sheet is open (iOS-safe implementation)
+  // Lock body scroll when sheet is open (Chrome + iOS safe)
   useEffect(() => {
     if (isOpen) {
-      // Lock scroll without position:fixed (which breaks mobile scroll)
-      document.body.style.overflow = 'hidden';
-      document.body.style.touchAction = 'none'; // Prevent iOS bounce
+      // Chrome requires BOTH html and body to be locked
+      const html = document.documentElement;
+      const body = document.body;
+
+      html.style.overflow = 'hidden';
+      body.style.overflow = 'hidden';
+      body.style.touchAction = 'none'; // Prevent iOS bounce
+      body.style.height = '100%'; // Chrome fix
     } else {
       // Restore scroll
-      document.body.style.overflow = '';
-      document.body.style.touchAction = '';
+      const html = document.documentElement;
+      const body = document.body;
+
+      html.style.overflow = '';
+      body.style.overflow = '';
+      body.style.touchAction = '';
+      body.style.height = '';
     }
 
     return () => {
-      // Ensure cleanup even if component unmounts unexpectedly
+      // Ensure cleanup
+      document.documentElement.style.overflow = '';
       document.body.style.overflow = '';
       document.body.style.touchAction = '';
+      document.body.style.height = '';
     };
   }, [isOpen]);
 
