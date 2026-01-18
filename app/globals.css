@@ -29,7 +29,7 @@
   }
 
   body {
-    overscroll-behavior: none;
+    /* overscroll-behavior: none; REMOVED to fix mobile scrolling in Chrome */
     -webkit-overflow-scrolling: touch;
     overflow-x: hidden;
     position: relative;

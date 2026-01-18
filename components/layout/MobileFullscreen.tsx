@@ -18,10 +18,13 @@ export function MobileFullscreen() {
 
     // Hide address bar by scrolling
     const hideAddressBar = () => {
-      // Small scroll to trigger minimal-ui
+      // Small scroll to trigger minimal-ui - DISABLED for Chrome scrolling fix
+      // This hack often causes scroll jank or locking on modern mobile browsers
+      /*
       if (window.scrollY === 0) {
         window.scrollTo(0, 1);
       }
+      */
     };
 
     // Initial hide

@@ -23,7 +23,7 @@ const applyScrollLock = (): void => {
   const body = document.body;
   html.style.overflow = 'hidden';
   body.style.overflow = 'hidden';
-  body.style.touchAction = 'none';
+  // body.style.touchAction = 'none'; // REMOVED: Blocks all touch events, breaking scroll after unlock if not careful
   body.style.height = '100%';
 };
 
