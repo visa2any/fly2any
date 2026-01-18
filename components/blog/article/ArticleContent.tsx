@@ -71,7 +71,7 @@ export function ArticleContent({ content, children }: ArticleContentProps) {
 
       {/* Article Content - FULL PAGE WIDTH */}
       <article className="w-full bg-white">
-        <div className="w-full max-w-[1600px] mx-auto px-6 md:px-12 lg:px-20 xl:px-24 pt-8 md:pt-12 pb-16 md:pb-20">
+        <div className="w-full max-w-[1600px] mx-auto px-5 sm:px-6 md:px-12 lg:px-20 xl:px-24 pt-6 sm:pt-8 md:pt-12 pb-12 sm:pb-16 md:pb-20">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
@@ -135,44 +135,45 @@ export function ArticleContent({ content, children }: ArticleContentProps) {
       </div>
 
       <style jsx global>{`
+        /* Mobile-First Typography */
         .article-content-full-width h2 {
-          font-size: clamp(2rem, 5vw, 3.5rem);
+          font-size: 1.75rem;
           font-weight: 900;
           color: #111827;
-          margin-top: 4rem;
-          margin-bottom: 2rem;
-          line-height: 1.2;
+          margin-top: 2.5rem;
+          margin-bottom: 1.25rem;
+          line-height: 1.25;
           letter-spacing: -0.02em;
         }
 
         .article-content-full-width h3 {
-          font-size: clamp(1.5rem, 3.5vw, 2.5rem);
+          font-size: 1.375rem;
           font-weight: 800;
           color: #1f2937;
-          margin-top: 3rem;
-          margin-bottom: 1.5rem;
-          line-height: 1.3;
+          margin-top: 2rem;
+          margin-bottom: 1rem;
+          line-height: 1.35;
         }
 
         .article-content-full-width p {
-          font-size: clamp(1.125rem, 2vw, 1.375rem);
-          line-height: 1.8;
+          font-size: 1rem;
+          line-height: 1.75;
           color: #374151;
-          margin-bottom: 1.5rem;
+          margin-bottom: 1.25rem;
         }
 
         .article-content-full-width ul,
         .article-content-full-width ol {
-          font-size: clamp(1.125rem, 2vw, 1.375rem);
-          line-height: 1.8;
+          font-size: 1rem;
+          line-height: 1.75;
           color: #374151;
-          margin-top: 2rem;
-          margin-bottom: 2rem;
-          padding-left: 2.5rem;
+          margin-top: 1.5rem;
+          margin-bottom: 1.5rem;
+          padding-left: 1.5rem;
         }
 
         .article-content-full-width li {
-          margin-bottom: 1rem;
+          margin-bottom: 0.75rem;
         }
 
         .article-content-full-width strong {
@@ -195,9 +196,118 @@ export function ArticleContent({ content, children }: ArticleContentProps) {
         .article-content-full-width blockquote {
           border-left: 4px solid #2563eb;
           background: #eff6ff;
-          padding: 1.5rem 2rem;
-          border-radius: 0 1rem 1rem 0;
-          margin: 2.5rem 0;
+          padding: 1rem 1.25rem;
+          border-radius: 0 0.75rem 0.75rem 0;
+          margin: 1.5rem 0;
+          font-size: 0.9375rem;
+        }
+
+        /* Tablet (sm: 640px+) */
+        @media (min-width: 640px) {
+          .article-content-full-width h2 {
+            font-size: 2rem;
+            margin-top: 3rem;
+            margin-bottom: 1.5rem;
+          }
+
+          .article-content-full-width h3 {
+            font-size: 1.5rem;
+            margin-top: 2.25rem;
+            margin-bottom: 1.25rem;
+          }
+
+          .article-content-full-width p {
+            font-size: 1.0625rem;
+            line-height: 1.8;
+          }
+
+          .article-content-full-width ul,
+          .article-content-full-width ol {
+            font-size: 1.0625rem;
+            padding-left: 2rem;
+          }
+
+          .article-content-full-width blockquote {
+            padding: 1.25rem 1.5rem;
+            margin: 2rem 0;
+            font-size: 1rem;
+          }
+        }
+
+        /* Desktop (md: 768px+) */
+        @media (min-width: 768px) {
+          .article-content-full-width h2 {
+            font-size: 2.5rem;
+            margin-top: 3.5rem;
+            margin-bottom: 1.75rem;
+          }
+
+          .article-content-full-width h3 {
+            font-size: 1.75rem;
+            margin-top: 2.5rem;
+            margin-bottom: 1.5rem;
+          }
+
+          .article-content-full-width p {
+            font-size: 1.125rem;
+          }
+
+          .article-content-full-width ul,
+          .article-content-full-width ol {
+            font-size: 1.125rem;
+            padding-left: 2.25rem;
+          }
+        }
+
+        /* Large Desktop (lg: 1024px+) */
+        @media (min-width: 1024px) {
+          .article-content-full-width h2 {
+            font-size: 3rem;
+            margin-top: 4rem;
+            margin-bottom: 2rem;
+          }
+
+          .article-content-full-width h3 {
+            font-size: 2rem;
+            margin-top: 3rem;
+            margin-bottom: 1.5rem;
+          }
+
+          .article-content-full-width p {
+            font-size: 1.25rem;
+          }
+
+          .article-content-full-width ul,
+          .article-content-full-width ol {
+            font-size: 1.25rem;
+            padding-left: 2.5rem;
+          }
+
+          .article-content-full-width blockquote {
+            padding: 1.5rem 2rem;
+            margin: 2.5rem 0;
+            font-size: 1.125rem;
+          }
+        }
+
+        /* XL Desktop (xl: 1280px+) */
+        @media (min-width: 1280px) {
+          .article-content-full-width h2 {
+            font-size: 3.5rem;
+          }
+
+          .article-content-full-width h3 {
+            font-size: 2.5rem;
+          }
+
+          .article-content-full-width p {
+            font-size: 1.375rem;
+          }
+
+          .article-content-full-width ul,
+          .article-content-full-width ol {
+            font-size: 1.375rem;
+          }
         }
       `}</style>
     </>

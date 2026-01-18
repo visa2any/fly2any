@@ -47,17 +47,17 @@ export function PriceTable({ title, subtitle, prices, currency = 'USD' }: PriceT
   };
 
   return (
-    <section className="relative w-screen left-1/2 right-1/2 -ml-[50vw] -mr-[50vw] bg-gradient-to-br from-blue-50 via-white to-purple-50 py-20 my-16">
-      <div className="w-full px-6 md:px-12 lg:px-16 max-w-[1600px] mx-auto">
+    <section className="relative w-screen left-1/2 right-1/2 -ml-[50vw] -mr-[50vw] bg-gradient-to-br from-blue-50 via-white to-purple-50 py-12 sm:py-16 md:py-20 my-10 sm:my-12 md:my-16">
+      <div className="w-full px-4 sm:px-6 md:px-12 lg:px-16 max-w-[1600px] mx-auto">
         {/* Header */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
-          className="text-center mb-12 max-w-4xl mx-auto"
+          className="text-center mb-8 sm:mb-10 md:mb-12 max-w-4xl mx-auto"
         >
-          <h2 className="text-4xl md:text-5xl font-extrabold text-gray-900 mb-6 tracking-tight">{title}</h2>
-          {subtitle && <p className="text-xl md:text-2xl text-gray-600 leading-relaxed">{subtitle}</p>}
+          <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-extrabold text-gray-900 mb-4 sm:mb-5 md:mb-6 tracking-tight">{title}</h2>
+          {subtitle && <p className="text-base sm:text-lg md:text-xl lg:text-2xl text-gray-600 leading-relaxed">{subtitle}</p>}
         </motion.div>
 
         {/* Table Container - FULL WIDTH */}
@@ -165,61 +165,59 @@ export function PriceTable({ title, subtitle, prices, currency = 'USD' }: PriceT
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
                 transition={{ delay: index * 0.05 }}
-                className="p-6 hover:bg-blue-50 transition-all duration-200"
+                className="p-5 active:bg-blue-50 transition-all duration-200"
               >
-                <div className="flex items-start justify-between mb-4">
-                  <div className="flex items-center gap-3">
-                    <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl flex items-center justify-center shadow-lg">
-                      <Plane className="w-6 h-6 text-white" />
-                    </div>
-                    <div>
-                      <h3 className="font-bold text-lg text-gray-900">{price.route}</h3>
-                      <p className="text-sm text-gray-600">
-                        {getAirportName(price.origin)} → {getAirportName(price.destination)}
-                      </p>
-                    </div>
+                <div className="flex items-start gap-3 mb-4">
+                  <div className="w-11 h-11 bg-gradient-to-br from-blue-500 to-blue-600 rounded-lg flex items-center justify-center shadow-lg flex-shrink-0">
+                    <Plane className="w-5 h-5 text-white" />
                   </div>
-                  {price.discount && (
-                    <span className="bg-green-100 text-green-700 text-xs font-bold px-3 py-1.5 rounded-full flex items-center gap-1 shadow-sm">
-                      <TrendingDown className="w-3 h-3" />
-                      {price.discount}%
-                    </span>
-                  )}
+                  <div className="flex-1 min-w-0">
+                    <h3 className="font-bold text-base text-gray-900 mb-1">{price.route}</h3>
+                    <p className="text-sm text-gray-600 leading-snug">
+                      {getAirportName(price.origin)} → {getAirportName(price.destination)}
+                    </p>
+                    {price.discount && (
+                      <span className="inline-flex items-center gap-1 bg-green-100 text-green-700 text-xs font-bold px-2.5 py-1 rounded-full mt-2 shadow-sm">
+                        <TrendingDown className="w-3 h-3" />
+                        {price.discount}% OFF
+                      </span>
+                    )}
+                  </div>
                 </div>
 
-                <div className="space-y-3 mb-5">
-                  <div className="flex items-center justify-between text-base">
-                    <span className="text-gray-600 font-medium">Airline:</span>
+                <div className="space-y-2.5 mb-4">
+                  <div className="flex items-center justify-between text-sm">
+                    <span className="text-gray-600">Airline</span>
                     <span className="font-semibold text-gray-900">{price.airline}</span>
                   </div>
                   {price.month && (
-                    <div className="flex items-center justify-between text-base">
-                      <span className="text-gray-600 font-medium">Best Month:</span>
-                      <div className="flex items-center gap-2">
-                        <Calendar className="w-4 h-4 text-blue-600" />
+                    <div className="flex items-center justify-between text-sm">
+                      <span className="text-gray-600">Best Month</span>
+                      <div className="flex items-center gap-1.5">
+                        <Calendar className="w-3.5 h-3.5 text-blue-600" />
                         <span className="font-semibold text-gray-900">{price.month}</span>
                       </div>
                     </div>
                   )}
                 </div>
 
-                <div className="flex items-end justify-between pt-4 border-t border-gray-200">
-                  <div>
-                    <div className="flex items-baseline gap-2">
-                      <span className="text-3xl font-black text-blue-600">${price.price}</span>
+                <div className="flex items-center justify-between pt-4 border-t border-gray-200 gap-3">
+                  <div className="flex-shrink-0">
+                    <div className="flex items-baseline gap-1.5">
+                      <span className="text-2xl font-black text-blue-600">${price.price}</span>
                       {price.originalPrice && (
-                        <span className="text-base text-gray-400 line-through font-medium">${price.originalPrice}</span>
+                        <span className="text-sm text-gray-400 line-through font-medium">${price.originalPrice}</span>
                       )}
                     </div>
-                    <p className="text-sm text-gray-500 mt-1">{currency} Roundtrip</p>
+                    <p className="text-xs text-gray-500 mt-0.5">{currency} Roundtrip</p>
                   </div>
                   <Link
                     href={generateSearchLink(price.origin, price.destination)}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="inline-flex items-center gap-2 bg-gradient-to-r from-blue-600 to-blue-700 text-white font-bold px-6 py-3 rounded-full transition-all duration-200 active:scale-95 shadow-lg"
+                    className="inline-flex items-center gap-2 bg-gradient-to-r from-blue-600 to-blue-700 text-white font-bold px-5 py-3 rounded-full transition-all duration-200 active:scale-95 shadow-lg min-h-[44px] flex-shrink-0"
                   >
-                    <span className="text-white">Search</span>
+                    <span className="text-white text-sm">Search</span>
                     <ExternalLink className="w-4 h-4 text-white" />
                   </Link>
                 </div>
@@ -234,7 +232,7 @@ export function PriceTable({ title, subtitle, prices, currency = 'USD' }: PriceT
           whileInView={{ opacity: 1 }}
           viewport={{ once: true }}
           transition={{ delay: 0.3 }}
-          className="text-center text-base text-gray-600 mt-8 max-w-3xl mx-auto leading-relaxed"
+          className="text-center text-xs sm:text-sm md:text-base text-gray-600 mt-6 sm:mt-7 md:mt-8 max-w-3xl mx-auto leading-relaxed"
         >
           *Prices are based on recent searches and subject to availability. All prices shown are for roundtrip economy fares. Click "Search Now" for live prices and booking options.
         </motion.p>
