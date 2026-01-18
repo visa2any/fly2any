@@ -1,101 +1,107 @@
 /**
- * Centralized Scroll Lock Manager
- * Prevents conflicts when multiple modals/sheets try to lock scroll
+ * Centralized Scroll Lock Manager - BULLETPROOF VERSION
  *
- * CRITICAL: Tracks lock count to ensure scroll only unlocks when ALL locks released
- * FIX: Uses useCallback + useEffect for proper React lifecycle management
+ * Uses data attribute counting instead of JS variable to survive HMR/navigation.
+ * Directly checks DOM state for maximum reliability.
  */
 
-import { useCallback, useEffect, useRef } from 'react';
+import { useCallback, useEffect, useId } from 'react';
 
-// Track active locks globally (but reset on page load)
-let globalLockCount = 0;
+// Utility to get/set lock count from DOM (survives JS reloads)
+const getLockCount = (): number => {
+  if (typeof document === 'undefined') return 0;
+  return parseInt(document.body.dataset.scrollLockCount || '0', 10);
+};
 
-// Reset scroll state on initial page load (fixes stale state from navigation)
-if (typeof window !== 'undefined') {
-  const resetScrollState = () => {
-    globalLockCount = 0;
-    document.documentElement.style.overflow = '';
-    document.body.style.overflow = '';
-    document.body.style.touchAction = '';
-    document.body.style.height = '';
-    delete document.body.dataset.originalOverflow;
-    delete document.documentElement.dataset.originalOverflow;
-  };
+const setLockCount = (count: number): void => {
+  if (typeof document === 'undefined') return;
+  document.body.dataset.scrollLockCount = String(Math.max(0, count));
+};
 
-  // Reset on page load
-  if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', resetScrollState, { once: true });
-  } else {
-    resetScrollState();
-  }
-}
+const applyScrollLock = (): void => {
+  const html = document.documentElement;
+  const body = document.body;
+  html.style.overflow = 'hidden';
+  body.style.overflow = 'hidden';
+  body.style.touchAction = 'none';
+  body.style.height = '100%';
+};
+
+const removeScrollLock = (): void => {
+  const html = document.documentElement;
+  const body = document.body;
+  html.style.overflow = '';
+  body.style.overflow = '';
+  body.style.touchAction = '';
+  body.style.height = '';
+};
 
 export function useScrollLock() {
-  const isLocked = useRef(false);
+  // Unique ID per hook instance to track this component's lock
+  const lockId = useId();
 
   const lockScroll = useCallback(() => {
-    if (isLocked.current) return; // Prevent double-locking from same component
+    if (typeof document === 'undefined') return;
 
-    isLocked.current = true;
-    globalLockCount++;
+    // Check if this component already has a lock
+    const lockedBy = document.body.dataset.scrollLockedBy || '';
+    if (lockedBy.includes(lockId)) return; // Already locked by this component
 
-    // Only apply styles on first lock
-    if (globalLockCount === 1) {
-      const html = document.documentElement;
-      const body = document.body;
+    // Add this component's ID to lock list
+    const newLockedBy = lockedBy ? `${lockedBy},${lockId}` : lockId;
+    document.body.dataset.scrollLockedBy = newLockedBy;
 
-      // Save original overflow
-      body.dataset.originalOverflow = body.style.overflow || '';
-      html.dataset.originalOverflow = html.style.overflow || '';
+    // Increment count and apply lock
+    const count = getLockCount() + 1;
+    setLockCount(count);
 
-      // Lock scroll (Chrome + Firefox + iOS compatible)
-      html.style.overflow = 'hidden';
-      body.style.overflow = 'hidden';
-      body.style.touchAction = 'none';
-      body.style.height = '100%';
+    if (count === 1) {
+      applyScrollLock();
     }
-  }, []);
+  }, [lockId]);
 
   const unlockScroll = useCallback(() => {
-    if (!isLocked.current) return; // Only unlock if this component locked
+    if (typeof document === 'undefined') return;
 
-    isLocked.current = false;
-    globalLockCount = Math.max(0, globalLockCount - 1);
+    // Check if this component has a lock
+    const lockedBy = document.body.dataset.scrollLockedBy || '';
+    if (!lockedBy.includes(lockId)) return; // This component didn't lock
 
-    // Only unlock when ALL locks released
-    if (globalLockCount === 0) {
-      const html = document.documentElement;
-      const body = document.body;
+    // Remove this component's ID from lock list
+    const newLockedBy = lockedBy
+      .split(',')
+      .filter((id) => id !== lockId)
+      .join(',');
+    document.body.dataset.scrollLockedBy = newLockedBy || '';
 
-      // Restore original values
-      html.style.overflow = html.dataset.originalOverflow || '';
-      body.style.overflow = body.dataset.originalOverflow || '';
-      body.style.touchAction = '';
-      body.style.height = '';
+    // Decrement count
+    const count = Math.max(0, getLockCount() - 1);
+    setLockCount(count);
 
-      // Cleanup
-      delete body.dataset.originalOverflow;
-      delete html.dataset.originalOverflow;
+    // Remove lock only when count reaches 0
+    if (count === 0) {
+      removeScrollLock();
     }
-  }, []);
+  }, [lockId]);
 
-  // Cleanup on unmount - ensures no orphan locks
+  // Cleanup on unmount
   useEffect(() => {
     return () => {
-      if (isLocked.current) {
-        isLocked.current = false;
-        globalLockCount = Math.max(0, globalLockCount - 1);
-
-        if (globalLockCount === 0) {
-          document.documentElement.style.overflow = '';
-          document.body.style.overflow = '';
-          document.body.style.touchAction = '';
-          document.body.style.height = '';
-        }
+      // Force cleanup for this component
+      if (typeof document === 'undefined') return;
+      const lockedBy = document.body.dataset.scrollLockedBy || '';
+      if (lockedBy.includes(lockId)) {
+        const newLockedBy = lockedBy
+          .split(',')
+          .filter((id) => id !== lockId)
+          .join(',');
+        document.body.dataset.scrollLockedBy = newLockedBy || '';
+        const count = Math.max(0, getLockCount() - 1);
+        setLockCount(count);
+        if (count === 0) removeScrollLock();
       }
     };
-  }, []);
+  }, [lockId]);
 
   return { lockScroll, unlockScroll };
 }
