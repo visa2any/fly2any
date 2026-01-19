@@ -5,20 +5,8 @@ import Link from 'next/link';
 import {
     Plane, Calendar, Clock, TrendingDown, MapPin, Award,
     Shield, CheckCircle2, ChevronDown, ChevronUp, ArrowRight,
-    Star, Info, Users, Luggage, Utensils, Wifi, Tv
+    Star, Info, Users
 } from 'lucide-react';
-import { Metadata } from 'next';
-
-export const metadata: Metadata = {
-    title: 'Flights from New York to Dubai: Best Prices & Deals 2024',
-    description: 'Find cheap flights from NYC to Dubai. Compare prices from 500+ airlines. Best time to book, cheapest months, airlines, duration & insider tips. Save up to 40% today!',
-    keywords: 'New York to Dubai flights, NYC DXB flights, cheap flights to Dubai, Dubai flight deals, Emirates flights, book NYC to Dubai',
-    openGraph: {
-        title: 'Flights from New York to Dubai: Best Prices & Deals 2024',
-        description: 'Find cheap flights from NYC to Dubai. Compare prices from 500+ airlines. Best time to book, cheapest months, airlines, duration & insider tips.',
-        type: 'website',
-    },
-};
 
 const nycAirports = [
     { code: 'JFK', name: 'John F. Kennedy International', airlines: 45, distance: '15 miles from Manhattan' },
@@ -95,24 +83,24 @@ const bookingTips = [
 
 const faqs = [
     {
-        question: 'How long is the flight from New York to Dubai?',
-        answer: 'Direct flights from New York (JFK) to Dubai (DXB) take approximately 12 hours 30 minutes. One-stop flights typically take 15-20 hours depending on the connection city and layover duration. Emirates operates the most direct flights on this route.'
+        question: 'How long is flight from New York to Dubai?',
+        answer: 'Direct flights from New York (JFK) to Dubai (DXB) take approximately 12 hours 30 minutes. One-stop flights typically take 15-20 hours depending on connection city and layover duration. Emirates operates most direct flights on this route.'
     },
     {
-        question: 'What is the cheapest month to fly from NYC to Dubai?',
+        question: 'What is cheapest month to fly from NYC to Dubai?',
         answer: 'The cheapest months to fly from New York to Dubai are January, February, September, and October. These shoulder season months offer average prices of $680-750, which is 20-28% lower than peak summer and holiday periods. Avoid June-August and December for the best prices.'
     },
     {
         question: 'Which airlines fly direct from New York to Dubai?',
-        answer: 'Emirates is the only airline offering direct flights from New York (JFK) to Dubai (DXB). They operate multiple daily flights on Boeing 777 and Airbus A380 aircraft. The flight time is 12 hours 30 minutes. Most other airlines require one connection through their hubs.'
+        answer: 'Emirates is only airline offering direct flights from New York (JFK) to Dubai (DXB). They operate multiple daily flights on Boeing 777 and Airbus A380 aircraft. The flight time is 12 hours 30 minutes. Most other airlines require one connection through their hubs.'
     },
     {
         question: 'How far in advance should I book NYC to Dubai flights?',
-        answer: 'For the best prices, book NYC to Dubai flights 6-8 weeks before departure. Peak seasons (December, summer holidays) require booking 2-4 months ahead. Last-minute bookings (within 2 weeks) typically cost 15% more. Tuesday-Thursday bookings often show lower prices.'
+        answer: 'For best prices, book NYC to Dubai flights 6-8 weeks before departure. Peak seasons (December, summer holidays) require booking 2-4 months ahead. Last-minute bookings (within 2 weeks) typically cost 15% more. Tuesday-Thursday bookings often show lower prices.'
     },
     {
-        question: 'What is the average flight price from NYC to Dubai?',
-        answer: 'The average economy flight price from New York to Dubai is $950 USD. Prices range from $620-800 in off-peak months to $1,200-1,800 during peak seasons. Premium economy averages $1,800-2,500, while business class ranges from $4,000-8,000 depending on the airline and season.'
+        question: 'What is average flight price from NYC to Dubai?',
+        answer: 'The average economy flight price from New York to Dubai is $950 USD. Prices range from $620-800 in off-peak months to $1,200-1,800 during peak seasons. Premium economy averages $1,800-2,500, while business class ranges from $4,000-8,000 depending on airline and season.'
     },
 ];
 
@@ -174,7 +162,7 @@ export default function NYCToDubaiPage() {
                         </h1>
 
                         <p className="text-sm md:text-base lg:text-lg text-neutral-600 leading-relaxed mb-2 max-w-3xl mx-auto">
-                            Compare prices from 500+ airlines and find the best deals on NYC to Dubai flights.
+                            Compare prices from 500+ airlines and find best deals on NYC to Dubai flights.
                         </p>
 
                         <p className="text-xs md:text-sm text-neutral-500 mb-6 md:mb-8 max-w-2xl mx-auto">
@@ -232,7 +220,7 @@ export default function NYCToDubaiPage() {
                             Best Time to Book Flights from NYC to Dubai
                         </h2>
                         <p className="text-sm md:text-base text-neutral-600 max-w-3xl mx-auto">
-                            Strategic booking can save you hundreds. Here's when to book for the best prices.
+                            Strategic booking can save you hundreds. Here's when to book for best prices.
                         </p>
                     </div>
 
@@ -329,7 +317,7 @@ export default function NYCToDubaiPage() {
                             Cheapest Months to Fly from NYC to Dubai
                         </h2>
                         <p className="text-sm md:text-base text-neutral-600 max-w-3xl mx-auto">
-                            Plan your trip during these months for the best deals on Dubai flights.
+                            Plan your trip during these months for best deals on Dubai flights.
                         </p>
                     </div>
 
@@ -477,7 +465,7 @@ export default function NYCToDubaiPage() {
                             NYC vs Dubai Airports Comparison
                         </h2>
                         <p className="text-sm md:text-base text-neutral-600 max-w-3xl mx-auto">
-                            Know your airport options to find the best deals and convenience.
+                            Know your airport options to find best deals and convenience.
                         </p>
                     </div>
 
@@ -613,7 +601,7 @@ export default function NYCToDubaiPage() {
                         Compare prices from 500+ airlines and find your perfect flight today. Save up to 40% with our smart search.
                     </p>
                     <p className="text-sm md:text-base font-semibold mb-6 md:mb-8">
-                        Compare prices now to find the best deals
+                        Compare prices now to find best deals
                     </p>
                     <Link
                         href="/flights?origin=NYC&destination=DXB"
