@@ -102,14 +102,14 @@ export function CommentSection() {
                 id="comments"
                 repo="visa2any/fly2any"
                 repoId={process.env.NEXT_PUBLIC_GISCUS_REPO_ID || ''}
-                category="Blog Comments"
+                category="Blog"
                 categoryId={process.env.NEXT_PUBLIC_GISCUS_CATEGORY_ID || ''}
                 mapping="pathname"
                 strict="0"
                 reactionsEnabled="1"
-                emitMetadata="0"
-                inputPosition="top"
-                theme="light"
+                emitMetadata="1"
+                inputPosition="bottom"
+                theme="preferred_color_scheme"
                 lang="en"
                 loading="lazy"
               />
