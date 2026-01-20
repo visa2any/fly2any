@@ -9,6 +9,7 @@ import { ArticleHero } from '@/components/blog/article/ArticleHero';
 import { ArticleContent } from '@/components/blog/article/ArticleContent';
 import { StructuredData } from '@/components/seo/StructuredData';
 import { article as nycParisArticle } from '@/lib/data/articles/nyc-paris-flights-2026';
+import { article as airlinePricingArticle } from '@/lib/data/articles/airline-pricing-mechanics-2026';
 import { ReadingProgress } from '@/components/blog/article/ReadingProgress';
 import { ExtendedShareButtons } from '@/components/blog/article/ExtendedShareButtons';
 import { CommentSection } from '@/components/blog/article/CommentSection';
@@ -86,9 +87,10 @@ export default function BlogPostPage() {
     });
   };
 
-  // Check if it's the premium NYC-Paris article
-  const isPremiumArticle = slug === 'cheap-flights-new-york-paris-2026';
-  const premiumData = isPremiumArticle ? nycParisArticle : null;
+  // Check if it's premium articles
+  const isPremiumArticle = slug === 'cheap-flights-new-york-paris-2026' || slug === 'why-flight-prices-change-airline-fares-2026';
+  const premiumData = slug === 'cheap-flights-new-york-paris-2026' ? nycParisArticle : 
+                      slug === 'why-flight-prices-change-airline-fares-2026' ? airlinePricingArticle : null;
 
   if (isPremiumArticle && premiumData) {
     const schemas = [
