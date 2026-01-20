@@ -1,10 +1,63 @@
 'use client';
 
 import { motion } from 'framer-motion';
-import { MessageSquare } from 'lucide-react';
+import { MessageSquare, AlertCircle } from 'lucide-react';
 import Giscus from '@giscus/react';
+import { useState } from 'react';
+import { GlobalErrorBoundary } from '@/components/error/GlobalErrorBoundary';
 
 export function CommentSection() {
+  const [giscusError, setGiscusError] = useState(false);
+
+  // Check if Giscus is properly configured
+  const isConfigured = !!(
+    process.env.NEXT_PUBLIC_GISCUS_REPO_ID &&
+    process.env.NEXT_PUBLIC_GISCUS_CATEGORY_ID
+  );
+
+  // If not configured or error occurred, show fallback message
+  if (!isConfigured || giscusError) {
+    return (
+      <section className="w-full max-w-[1600px] mx-auto px-4 sm:px-6 md:px-12 lg:px-20 xl:px-24 py-10 sm:py-12 md:py-16">
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          className="bg-gradient-to-br from-gray-50 to-blue-50 rounded-2xl sm:rounded-3xl p-6 sm:p-8 md:p-12 border border-gray-200"
+        >
+          <div className="flex items-center gap-2.5 sm:gap-3 mb-6 sm:mb-8">
+            <div className="w-10 h-10 sm:w-12 sm:h-12 bg-gradient-to-br from-blue-600 to-purple-600 rounded-lg sm:rounded-xl flex items-center justify-center shadow-lg flex-shrink-0">
+              <MessageSquare className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
+            </div>
+            <div>
+              <h2 className="text-xl sm:text-2xl md:text-3xl font-black text-gray-900">Join Discussion</h2>
+              <p className="text-sm sm:text-base text-gray-600">Share your travel tips and experiences</p>
+            </div>
+          </div>
+
+          <div className="bg-amber-50 border border-amber-200 rounded-xl p-6">
+            <div className="flex items-start gap-3">
+              <AlertCircle className="w-5 h-5 text-amber-600 flex-shrink-0 mt-0.5" />
+              <div>
+                <h3 className="font-semibold text-amber-900 mb-2">Comments Temporarily Unavailable</h3>
+                <p className="text-sm text-amber-800 mb-3">
+                  We're working on setting up our comment system. In the meantime, we'd love to hear from you directly!
+                </p>
+                <a
+                  href="mailto:support@fly2any.com?subject=Blog Comment: Flight Prices"
+                  className="inline-flex items-center gap-2 px-4 py-2 bg-amber-600 text-white rounded-lg font-medium hover:bg-amber-700 transition-colors text-sm"
+                >
+                  <MessageSquare className="w-4 h-4" />
+                  Email Your Thoughts
+                </a>
+              </div>
+            </div>
+          </div>
+        </motion.div>
+      </section>
+    );
+  }
+
   return (
     <section className="w-full max-w-[1600px] mx-auto px-4 sm:px-6 md:px-12 lg:px-20 xl:px-24 py-10 sm:py-12 md:py-16">
       <motion.div
@@ -24,21 +77,44 @@ export function CommentSection() {
         </div>
 
         <div className="giscus-wrapper">
-          <Giscus
-            id="comments"
-            repo="visa2any/fly2any"
-            repoId={process.env.NEXT_PUBLIC_GISCUS_REPO_ID || ''}
-            category="Blog Comments"
-            categoryId={process.env.NEXT_PUBLIC_GISCUS_CATEGORY_ID || ''}
-            mapping="pathname"
-            strict="0"
-            reactionsEnabled="1"
-            emitMetadata="0"
-            inputPosition="top"
-            theme="light"
-            lang="en"
-            loading="lazy"
-          />
+          {giscusError ? (
+            <div className="bg-amber-50 border border-amber-200 rounded-xl p-6">
+              <div className="flex items-start gap-3">
+                <AlertCircle className="w-5 h-5 text-amber-600 flex-shrink-0 mt-0.5" />
+                <div>
+                  <h3 className="font-semibold text-amber-900 mb-2">Comments Failed to Load</h3>
+                  <p className="text-sm text-amber-800 mb-3">
+                    We encountered an issue loading the comment system. Please try refreshing the page.
+                  </p>
+                  <a
+                    href="mailto:support@fly2any.com?subject=Blog Comment Error"
+                    className="inline-flex items-center gap-2 px-4 py-2 bg-amber-600 text-white rounded-lg font-medium hover:bg-amber-700 transition-colors text-sm"
+                  >
+                    <MessageSquare className="w-4 h-4" />
+                    Email Support
+                  </a>
+                </div>
+              </div>
+            </div>
+          ) : (
+            <GlobalErrorBoundary fallback={null}>
+              <Giscus
+                id="comments"
+                repo="visa2any/fly2any"
+                repoId={process.env.NEXT_PUBLIC_GISCUS_REPO_ID || ''}
+                category="Blog Comments"
+                categoryId={process.env.NEXT_PUBLIC_GISCUS_CATEGORY_ID || ''}
+                mapping="pathname"
+                strict="0"
+                reactionsEnabled="1"
+                emitMetadata="0"
+                inputPosition="top"
+                theme="light"
+                lang="en"
+                loading="lazy"
+              />
+            </GlobalErrorBoundary>
+          )}
         </div>
       </motion.div>
 
