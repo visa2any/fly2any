@@ -21,6 +21,7 @@ interface ErrorFallbackUIProps {
   error: Error | null;
   errorId: string | null;
   isChunkError: boolean;
+  isHydrationError?: boolean;
   onRetry: () => void;
   onReload: () => void;
   onGoHome: () => void;
@@ -72,6 +73,7 @@ export function ErrorFallbackUI({
   error,
   errorId,
   isChunkError,
+  isHydrationError = false,
   onRetry,
   onReload,
   onGoHome,
@@ -79,10 +81,14 @@ export function ErrorFallbackUI({
   // Content based on error type
   const title = isChunkError
     ? 'Update available'
+    : isHydrationError
+    ? 'Loading...'
     : 'Something went wrong';
 
   const description = isChunkError
     ? 'A new version of the app is available. Please refresh to continue.'
+    : isHydrationError
+    ? 'We\'re setting things up. This should only take a moment.'
     : 'We ran into an issue loading this page. This has been reported to our team.';
 
   const primaryAction = isChunkError
@@ -98,11 +104,15 @@ export function ErrorFallbackUI({
           style={{
             background: isChunkError
               ? 'linear-gradient(135deg, #FEF3C7 0%, #FDE68A 100%)'
+              : isHydrationError
+              ? 'linear-gradient(135deg, #DBEAFE 0%, #BFDBFE 100%)'
               : 'linear-gradient(135deg, #FEE2E2 0%, #FECACA 100%)',
           }}
         >
           {isChunkError ? (
             <RefreshIcon className="w-8 h-8 sm:w-10 sm:h-10 text-amber-600" />
+          ) : isHydrationError ? (
+            <div className="w-6 h-6 sm:w-8 sm:h-8 border-3 border-blue-500 border-t-transparent rounded-full animate-spin" />
           ) : (
             <WarningIcon className="w-8 h-8 sm:w-10 sm:h-10 text-red-500" />
           )}

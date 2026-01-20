@@ -10,7 +10,11 @@ import {
   ErrorSeverity,
   isChunkLoadError,
   isNetworkError,
+  isHydrationError,
 } from './errorTypes';
+
+import { handleChunkLoadError as handleChunkErrorWithCache } from './chunkErrorHandler';
+import { handleHydrationError as handleHydrationErrorWithExplanation } from './hydrationErrorHandler';
 
 // ============================================
 // ERROR ID GENERATOR
@@ -46,6 +50,7 @@ export function generateFingerprint(error: Error): string {
 // ============================================
 function detectCategory(error: Error): ErrorCategory {
   if (isChunkLoadError(error)) return ErrorCategory.CHUNK;
+  if (isHydrationError(error)) return ErrorCategory.HYDRATION;
   if (isNetworkError(error)) return ErrorCategory.NETWORK;
   if (error.name === 'ValidationError') return ErrorCategory.VALIDATION;
   if (error.name === 'AuthError' || error.message.includes('unauthorized')) {
@@ -60,6 +65,7 @@ function detectCategory(error: Error): ErrorCategory {
 function detectSeverity(error: Error, category: ErrorCategory): ErrorSeverity {
   if (category === ErrorCategory.AUTH) return ErrorSeverity.HIGH;
   if (category === ErrorCategory.CHUNK) return ErrorSeverity.MEDIUM;
+  if (category === ErrorCategory.HYDRATION) return ErrorSeverity.HIGH;
   if (category === ErrorCategory.NETWORK) return ErrorSeverity.MEDIUM;
   if (error.message.includes('critical') || error.message.includes('fatal')) {
     return ErrorSeverity.CRITICAL;
@@ -123,6 +129,14 @@ export function dispatchError(normalizedError: NormalizedError): void {
 // ============================================
 export function handleError(error: Error, context?: ErrorContext): NormalizedError {
   const normalizedError = normalizeError(error, context);
+  
+  // Handle specific error types with specialized handlers
+  if (isChunkLoadError(error)) {
+    handleChunkErrorWithCache(error);
+  } else if (isHydrationError(error)) {
+    handleHydrationErrorWithExplanation(error);
+  }
+  
   dispatchError(normalizedError);
   return normalizedError;
 }

@@ -22,6 +22,7 @@ export enum ErrorCategory {
   CHUNK = 'chunk',
   VALIDATION = 'validation',
   AUTH = 'auth',
+  HYDRATION = 'hydration',
   UNKNOWN = 'unknown',
 }
 
@@ -88,6 +89,21 @@ export function isChunkLoadError(error: Error): boolean {
     error.message.includes('Loading chunk') ||
     error.message.includes('Failed to fetch dynamically imported module') ||
     error.message.includes('Importing a module script failed')
+  );
+}
+
+export function isHydrationError(error: Error): boolean {
+  const message = error.message.toLowerCase();
+  return (
+    message.includes('hydration') ||
+    message.includes('minified react error #418') ||
+    message.includes('minified react error #422') ||
+    message.includes('minified react error #425') ||
+    message.includes('text content does not match') ||
+    message.includes('server-rendered html') ||
+    message.includes('client-rendered html') ||
+    message.includes('cannot update a component') ||
+    message.includes('cannot perform react state update')
   );
 }
 

@@ -16,9 +16,10 @@ import React, { Component, ReactNode, Suspense, useEffect, useRef, useCallback, 
 import { usePathname } from 'next/navigation';
 import { handleError, normalizeError } from '@/lib/error/errorHandler';
 import { attachErrorListeners } from '@/lib/error/errorListeners';
-import { NormalizedError, isChunkLoadError } from '@/lib/error/errorTypes';
+import { NormalizedError, isChunkLoadError, isHydrationError } from '@/lib/error/errorTypes';
 import { ErrorFallbackUI } from './ErrorFallbackUI';
 import { LoadingSpinner } from './LoadingSpinner';
+import { clearServiceWorkerCache } from '@/lib/error/chunkErrorHandler';
 
 // ============================================
 // PROPS
@@ -39,6 +40,7 @@ interface State {
   errorInfo: React.ErrorInfo | null;
   normalizedError: NormalizedError | null;
   isChunkError: boolean;
+  isHydrationError: boolean;
 }
 
 // ============================================
@@ -81,6 +83,7 @@ class ErrorBoundaryCore extends Component<
       errorInfo: null,
       normalizedError: null,
       isChunkError: false,
+      isHydrationError: false,
     };
   }
 
@@ -89,6 +92,7 @@ class ErrorBoundaryCore extends Component<
       hasError: true,
       error,
       isChunkError: isChunkLoadError(error),
+      isHydrationError: isHydrationError(error),
     };
   }
 
@@ -97,6 +101,11 @@ class ErrorBoundaryCore extends Component<
       componentStack: errorInfo.componentStack || undefined,
       context: 'react-error-boundary',
     });
+
+    // For chunk errors, clear cache immediately
+    if (isChunkLoadError(error)) {
+      clearServiceWorkerCache().catch(console.warn);
+    }
 
     // Dispatch to central handler
     handleError(error, {
@@ -127,6 +136,7 @@ class ErrorBoundaryCore extends Component<
       errorInfo: null,
       normalizedError: null,
       isChunkError: false,
+      isHydrationError: false,
     });
   };
 
@@ -153,13 +163,21 @@ class ErrorBoundaryCore extends Component<
   };
 
   render(): ReactNode {
-    const { hasError, error, normalizedError, isChunkError } = this.state;
+    const { hasError, error, normalizedError, isChunkError, isHydrationError } = this.state;
     const { children, fallback, suspenseFallback } = this.props;
 
     if (hasError) {
       // Custom fallback
       if (fallback) {
         return <>{fallback}</>;
+      }
+
+      // For hydration errors, automatically retry after a short delay
+      // This helps with temporary hydration mismatches
+      if (isHydrationError) {
+        setTimeout(() => {
+          this.handleRetry();
+        }, 100);
       }
 
       // Default fallback UI
