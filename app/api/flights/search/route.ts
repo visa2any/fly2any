@@ -1176,31 +1176,6 @@ export async function POST(request: NextRequest) {
     // Helper to add tasks
     const addTask = (task: () => Promise<any>) => itemsToProcess.push(task);
 
-    if (useMultiDate && departureDates.length > 1) {
-      console.log(`🗓️ Multi-date search: ${departureDates.length} departure dates x ${returnDates.length || 1} return dates`);
-
-      originCodes.forEach(originCode => {
-        destinationCodes.forEach(destinationCode => {
-          departureDates.forEach(specificDepartureDate => {
-            if (returnDates.length > 0) {
-              returnDates.forEach(specificReturnDate => {
-                addTask(() =>
-                  searchSingleRoute(originCode, destinationCode, specificDepartureDate, specificReturnDate)
-                    .then(apiResponse => ({ flights: apiResponse.data || [], dictionaries: apiResponse.dictionaries }))
-                    .catch(() => ({ flights: [], dictionaries: {} }))
-                );
-              });
-            } else {
-              addTask(() =>
-                searchSingleRoute(originCode, destinationCode, specificDepartureDate, undefined)
-                  .then(apiResponse => ({ flights: apiResponse.data || [], dictionaries: apiResponse.dictionaries }))
-                  .catch(() => ({ flights: [], dictionaries: {} }))
-              );
-            }
-          });
-        });
-      });
-    }
 
     // 🚀 GLOBAL CITY CODE OPTIMIZATION (Smart Grouping)
     // Reduce combinatorial explosion by grouping airports into city codes (e.g. JFK, EWR -> NYC)
@@ -1232,10 +1207,19 @@ export async function POST(request: NextRequest) {
       searchGroups.get(key)!.requestedPairs.push({ origin, dest });
     };
 
-    // 1. Generate all date combinations (Standard vs Flexible)
+    // 1. Generate all date combinations (Standard vs Flexible vs Multi-Date)
     const dateCombinations: { dep: string, ret?: string }[] = [];
-
-    if (departureFlex > 0) {
+    
+    if (useMultiDate) {
+      // Multi-date search: Use the parsed dates directly
+      departureDates.forEach((dep, idx) => {
+        // For round-trip, try to match return date by index, or use single return date
+        const ret = returnDates.length > idx ? returnDates[idx] : 
+                   returnDates.length === 1 ? returnDates[0] : 
+                   undefined;
+        dateCombinations.push({ dep, ret });
+      });
+    } else if (departureFlex > 0) {
       // Flexible dates
       const flexDates = generateFlexibleDateRange(departureDate, departureFlex);
       flexDates.forEach(date => {
