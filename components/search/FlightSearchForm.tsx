@@ -602,7 +602,7 @@ export default function FlightSearchForm({
                   </div>
                 )}
                 {/* Add Date Input */}
-                {formData.departureDates.length < 7 && (
+                {formData.departureDates.length < 3 && (
                   <div className="relative">
                     <Calendar className="absolute left-3 md:left-4 top-1/2 -translate-y-1/2 w-4 h-4 md:w-5 md:h-5 text-gray-400 pointer-events-none z-10" />
                     <input
@@ -628,7 +628,7 @@ export default function FlightSearchForm({
                       placeholder="Add departure date"
                     />
                     <span className="absolute right-4 top-1/2 -translate-y-1/2 text-xs text-gray-500">
-                      {formData.departureDates.length}/7 dates
+                      {formData.departureDates.length}/3 dates
                     </span>
                   </div>
                 )}

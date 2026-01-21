@@ -86,11 +86,9 @@ export default function FlightSearchPanel() {
   const [error, setError] = useState<string | null>(null);
   const [showPassengerDropdown, setShowPassengerDropdown] = useState(false);
   const [showClassDropdown, setShowClassDropdown] = useState(false);
-  const [showMultiDatePicker, setShowMultiDatePicker] = useState(false);
   const [formCollapsed, setFormCollapsed] = useState(false);
   const [isHovered, setIsHovered] = useState(false);
   const formRef = useRef<HTMLFormElement>(null);
-  const multiDatePickerRef = useRef<HTMLButtonElement>(null);
 
   // Filter & pagination state
   const [sortBy, setSortBy] = useState<"price" | "duration" | "departure">("price");
@@ -110,16 +108,6 @@ export default function FlightSearchPanel() {
   useEffect(() => {
     if (error) setFormCollapsed(false);
   }, [error]);
-
-  // Auto-click multi-date picker when it becomes visible
-  useEffect(() => {
-    if (showMultiDatePicker && multiDatePickerRef.current) {
-      // Wait for render, then click to open calendar
-      setTimeout(() => {
-        multiDatePickerRef.current?.click();
-      }, 100);
-    }
-  }, [showMultiDatePicker]);
 
   // Get minimum date (today)
   const getMinDate = () => new Date().toISOString().split("T")[0];
@@ -148,7 +136,7 @@ export default function FlightSearchPanel() {
         return false;
       }
     }
-    if (params.tripType === "roundtrip" && !params.returnDate && !params.useMultiDate) {
+    if (params.tripType === "roundtrip" && !params.returnDate) {
       setError("Please select a return date for round trip");
       return false;
     }
@@ -336,7 +324,7 @@ export default function FlightSearchPanel() {
     const exists = params.departureDates.some(
       (d) => format(d, "yyyy-MM-dd") === format(newDate, "yyyy-MM-dd")
     );
-    if (!exists && params.departureDates.length < 7) {
+    if (!exists && params.departureDates.length < 3) {
       setParams({
         ...params,
         departureDates: [...params.departureDates, newDate].sort((a, b) => a.getTime() - b.getTime()),
@@ -673,6 +661,7 @@ export default function FlightSearchPanel() {
                 ) : (
                   /* Multi-Date Mode */
                   <div className="space-y-2">
+                    {/* Selected Departure Dates */}
                     {params.departureDates.length > 0 && (
                       <motion.div
                         initial={{ opacity: 0, height: 0 }}
@@ -700,63 +689,50 @@ export default function FlightSearchPanel() {
                         ))}
                       </motion.div>
                     )}
-                    {params.departureDates.length < 7 && (
+                    
+                    {/* Add Departure Date - Always Visible Input */}
+                    {params.departureDates.length < 3 && (
                       <div className="relative">
-                        {!showMultiDatePicker ? (
-                          <motion.div
-                            whileHover={{ scale: 1.01 }}
-                            onClick={() => setShowMultiDatePicker(true)}
-                          >
-                            <div className="flex items-center gap-2 p-2.5 bg-white border-2 border-dashed border-purple-200 rounded-xl hover:bg-purple-50/50 cursor-pointer text-xs text-purple-600 font-medium transition-all">
-                              <Plus className="w-3.5 h-3.5" />
-                              Add date ({7 - params.departureDates.length} left)
-                            </div>
-                          </motion.div>
-                        ) : (
-                          <div ref={(el) => { if (el) multiDatePickerRef.current = el.querySelector('button'); }}>
-                            <PremiumDatePicker
-                              value=""
-                              onChange={(date) => {
-                                if (date) {
-                                  addMultiDate(date);
-                                }
-                                setShowMultiDatePicker(false);
-                              }}
-                              minDate={getMinDate()}
-                              placeholder="Select date"
-                            />
-                          </div>
-                        )}
+                        <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none z-10" />
+                        <input
+                          type="date"
+                          min={getMinDate()}
+                          onChange={(e) => {
+                            if (e.target.value) {
+                              addMultiDate(e.target.value);
+                              e.target.value = ''; // Clear immediately
+                            }
+                          }}
+                          className="w-full pl-10 pr-16 py-2.5 border-2 border-dashed border-purple-200 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-purple-500 outline-none transition-all text-xs font-semibold bg-white hover:bg-purple-50/30 cursor-pointer"
+                          style={{ colorScheme: 'light' }}
+                          placeholder="Add departure date"
+                        />
+                        <span className="absolute right-3 top-1/2 -translate-y-1/2 text-[10px] text-gray-500 font-medium">
+                          {params.departureDates.length}/3
+                        </span>
                       </div>
                     )}
-                    {/* Trip Duration for multi-date */}
+
+                    {/* Return Date for Roundtrip */}
                     {params.tripType === "roundtrip" && (
-                      <div className="flex items-center justify-between bg-gradient-to-r from-gray-50 to-white rounded-xl px-3 py-2 border border-gray-200">
-                        <div className="flex items-center gap-2">
-                          <Clock className="w-4 h-4 text-gray-400" />
-                          <span className="text-xs font-medium text-gray-600">Duration</span>
-                        </div>
-                        <div className="flex items-center gap-1">
-                          <motion.button
-                            type="button"
-                            onClick={() => setParams({ ...params, tripDuration: Math.max(1, params.tripDuration - 1) })}
-                            whileHover={{ scale: 1.1 }}
-                            whileTap={{ scale: 0.9 }}
-                            className="w-6 h-6 rounded-lg bg-gray-100 hover:bg-gray-200 flex items-center justify-center text-gray-600"
-                          >
-                            <Minus className="w-3 h-3" />
-                          </motion.button>
-                          <span className="w-8 text-center font-bold text-sm text-gray-900">{params.tripDuration}n</span>
-                          <motion.button
-                            type="button"
-                            onClick={() => setParams({ ...params, tripDuration: Math.min(30, params.tripDuration + 1) })}
-                            whileHover={{ scale: 1.1 }}
-                            whileTap={{ scale: 0.9 }}
-                            className="w-6 h-6 rounded-lg bg-gray-100 hover:bg-gray-200 flex items-center justify-center text-gray-600"
-                          >
-                            <Plus className="w-3 h-3" />
-                          </motion.button>
-                        </div>
+                      <div>
+                        <label className="flex items-center gap-1 text-[10px] font-bold text-gray-500 uppercase tracking-wider mb-1">
+                          <div className="w-3.5 h-3.5 rounded bg-gradient-to-br from-green-500 to-emerald-600 flex items-center justify-center">
+                            <Calendar className="w-2 h-2 text-white" />
+                          </div>
+                          Return Date
+                        </label>
+                        <PremiumDatePicker
+                          value={params.returnDate}
+                          onChange={(date) => { 
+                            setError(null); 
+                            setParams(prev => ({ ...prev, returnDate: date })); 
+                          }}
+                          minDate={params.departureDates.length > 0 
+                            ? format(params.departureDates[0], 'yyyy-MM-dd') 
+                            : getMinDate()}
+                          placeholder="Select return date"
+                        />
                       </div>
                     )}
                   </div>
