@@ -1,0 +1,72 @@
+64:            }}></script>
+111:      `}</style>
+116:                    <div className="floating-orb floating-orb-1"></div>
+117:                    <div className="floating-orb floating-orb-2"></div>
+118:                    <div className="floating-orb floating-orb-3"></div>
+119:                </div>
+124:                }}></div>
+132:                                </span>
+133:                            )) : <span style={{ opacity: 0 }}>Cheap Flights from New York to Dubai</span>}
+134:                        </h1>
+137:                        </p>
+140:                        </p>
+141:                    </div>
+142:                </MaxWidthContainer>
+143:            </div>
+164:      `}</style>
+169:            </div>
+181:                            <h2 className="text-sm md:text-[26px] lg:text-[32px] font-bold text-neutral-800 tracking-[0.01em] mb-4 md:mb-6">Best Time to Book Flights from NYC to Dubai</h2>
+185:                                </p>
+187:                                    Tuesday and Wednesday departures generally offer the lowest fares, with mid-week flights averaging 15-20% cheaper than weekend departures. Morning flights (before 10 AM) also tend to be less expensive than afternoon or evening departures. <a href="#" className="cta-link">Compare prices now</a> to find the best options for your travel dates.
+188:                                </p>
+189:                            </div>
+190:                        </section>
+194:                            <h2 className="text-sm md:text-[26px] lg:text-[32px] font-bold text-neutral-800 tracking-[0.01em] mb-4 md:mb-6">Average Flight Prices: NYC to Dubai</h2>
+198:                                        <h3 className="text-sm md:text-base font-bold text-neutral-800 mb-3">Economy Class</h3>
+201:                                                <span>Low Season</span>
+202:                                                <span className="font-bold text-green-600">$650-$800</span>
+203:                                            </li>
+205:                                                <span>Mid Season</span>
+206:                                                <span className="font-bold text-neutral-600">$800-$1,100</span>
+207:                                            </li>
+209:                                                <span>Peak Season</span>
+210:                                                <span className="font-bold text-red-600">$1,100-$1,600</span>
+211:                                            </li>
+212:                                        </ul>
+213:                                    </div>
+215:                                        <h3 className="text-sm md:text-base font-bold text-neutral-800 mb-3">Premium Class Options</h3>
+218:                                                <span>Premium Economy</span>
+219:                                                <span className="font-bold text-neutral-600">$1,200-$1,800</span>
+220:                                            </li>
+222:                                                <span>Business Class</span>
+223:                                                <span className="font-bold text-neutral-600">$3,500-$7,000</span>
+224:                                            </li>
+226:                                                <span>First Class</span>
+227:                                                <span className="font-bold text-neutral-600">$8,000-$15,000</span>
+228:                                            </li>
+229:                                        </ul>
+230:                                    </div>
+231:                                </div>
+232:                            </div>
+233:                        </section>
+237:                            <h2 className="text-sm md:text-[26px] lg:text-[32px] font-bold text-neutral-800 tracking-[0.01em] mb-4 md:mb-6">Cheapest Months to Fly to Dubai</h2>
+241:                                </p>
+243:                                    January and February also offer competitive pricing, averaging $750-$900 for economy tickets. The most expensive months are December and July-September, when fares can exceed $1,500 due to holiday travel and summer vacation demand. <a href="#" className="cta-link">Check prices by month</a> to identify the best deals for your travel window.
+244:                                </p>
+256:                                                <div className="text-[10px] md:text-xs font-bold">{month}</div>
+257:                                            </div>
+260:                                </div>
+261:                            </div>
+262:                        </section>
+266:                            <h2 className="text-sm md:text-[26px] lg:text-[32px] font-bold text-neutral-800 tracking-[0.01em] mb-4 md:mb-6">Airlines Flying NYC to Dubai</h2>
+270:                                </p>
+272:                                    Multiple airlines offer one-stop connections with varying layover durations and prices. Popular connecting hubs include Doha (Qatar Airways), Abu Dhabi (Etihad Airways), Istanbul (Turkish Airlines), and various European cities via Lufthansa, British Airways, and Air France. <a href="#" className="cta-link">Compare airline prices</a> to find the best value for your trip.
+273:                                </p>
+284:                                            <div className="text-sm md:text-base font-bold text-neutral-800 mb-1">{airline.name}</div>
+286:                                                <span>{airline.type}</span>
+287:                                                <span>{airline.duration}</span>
+288:                                            </div>
+289:                                        </div>
+291:                                </div>
+292:                            </div>
+293:                        </section>

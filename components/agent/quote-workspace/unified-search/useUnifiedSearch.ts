@@ -91,7 +91,7 @@ const initialState: UnifiedSearchState = {
 const SEARCH_ENDPOINTS: Record<keyof SearchScope, string> = {
   flights: "/api/flights/search",
   hotels: "/api/hotels/search",
-  cars: "/api/cars/search",
+  cars: "/api/cars",
   activities: "/api/activities/search",
   transfers: "/api/transfers/search",
 };
@@ -217,7 +217,6 @@ export function useUnifiedSearch() {
     // Build search params per product
     const buildParams = (product: keyof SearchScope) => {
       const base = {
-        destination: context.destinationCode || context.destination,
         checkIn: context.startDate,
         checkOut: context.endDate,
         adults: context.travelers.adults,
@@ -229,34 +228,37 @@ export function useUnifiedSearch() {
           return {
             origin: context.originCode || context.origin,
             destination: context.destinationCode || context.destination,
-            departDate: context.startDate,
+            departureDate: context.startDate,
             returnDate: context.endDate,
             adults: context.travelers.adults,
             children: context.travelers.children,
             infants: context.travelers.infants,
-            cabinClass: context.cabinClass,
+            travelClass: context.cabinClass,
           };
         case "hotels":
           return {
             ...base,
+            query: context.destinationCode || context.destination,
             rooms: Math.ceil(context.travelers.total / 2),
             guests: context.travelers.total,
           };
         case "cars":
           return {
             pickupLocation: context.destinationCode || context.destination,
+            dropoffLocation: context.destinationCode || context.destination,
             pickupDate: context.startDate,
             dropoffDate: context.endDate,
           };
         case "activities":
           return {
-            destination: context.destinationCode || context.destination,
+            query: context.destinationCode || context.destination,
             date: context.startDate,
             participants: context.travelers.total,
           };
         case "transfers":
           return {
-            destination: context.destinationCode || context.destination,
+            pickup: context.originCode || context.origin,
+            dropoff: context.destinationCode || context.destination,
             date: context.startDate,
             passengers: context.travelers.total,
           };

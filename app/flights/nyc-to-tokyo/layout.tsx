@@ -1,17 +1,17 @@
 import { Metadata } from 'next';
 
 export const metadata: Metadata = {
-    title: 'NYC to London Flights: Best Deals & Prices 2024',
-    description: 'Find cheap flights from New York to London. Compare 500+ airlines. Best time to book, prices, airlines & insider tips. Save up to 40% today!',
-    keywords: 'New York to London flights, NYC LHR flights, cheap flights to London, London flight deals, British Airways, book NYC to London',
+    title: 'NYC to Tokyo Flights: Compare Prices from $680',
+    description: 'Compare 500+ airlines flying New York to Tokyo. Best prices from $680, cheapest months revealed. Direct flights from 14h 10m. Book smart.',
+    keywords: 'New York to Tokyo flights, NYC NRT flights, cheap flights to Tokyo, Tokyo flight deals, JAL, ANA, book NYC to Tokyo',
     openGraph: {
-        title: 'NYC to London Flights: Best Deals & Prices 2024',
-        description: 'Find cheap flights from New York to London. Compare 500+ airlines. Best time to book, prices, airlines & insider tips.',
+        title: 'NYC to Tokyo Flights: Compare Prices from $680',
+        description: 'Compare 500+ airlines flying New York to Tokyo. Best prices from $680, cheapest months revealed. Direct flights from 14h 10m.',
         type: 'website',
     },
 };
 
-export default function NYCToLondonLayout({
+export default function NYCToTokyoLayout({
     children,
 }: {
     children: React.ReactNode;

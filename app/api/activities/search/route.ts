@@ -2,8 +2,83 @@ import { NextRequest, NextResponse } from 'next/server';
 import { amadeusAPI } from '@/lib/api/amadeus';
 import { getCached, setCache, generateCacheKey } from '@/lib/cache';
 import { handleApiError } from '@/lib/monitoring/global-error-handler';
+import { GLOBAL_CITIES } from '@/lib/data/global-cities-database';
 
 export const dynamic = 'force-dynamic';
+
+// Build a fast lookup map from GLOBAL_CITIES for O(1) access
+const CITY_LOOKUP = new Map<string, { lat: number; lng: number; country: string }>();
+
+// Normalize string for matching (remove accents, lowercase)
+function normalizeForLookup(str: string): string {
+  return str.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').trim();
+}
+
+// Initialize lookup map from global database
+for (const city of GLOBAL_CITIES) {
+  const coords = { lat: city.location.lat, lng: city.location.lng, country: city.countryCode };
+  CITY_LOOKUP.set(normalizeForLookup(city.name), coords);
+  CITY_LOOKUP.set(normalizeForLookup(city.city), coords);
+  CITY_LOOKUP.set(normalizeForLookup(city.id), coords);
+  if (city.aliases) {
+    for (const alias of city.aliases) {
+      CITY_LOOKUP.set(normalizeForLookup(alias), coords);
+    }
+  }
+}
+
+/**
+ * Get coordinates from city query
+ */
+function getCityCoordinates(query: string): { lat: number; lng: number; country: string } | null {
+  const normalized = normalizeForLookup(query);
+  if (CITY_LOOKUP.has(normalized)) return CITY_LOOKUP.get(normalized)!;
+
+  const globalMatch = GLOBAL_CITIES.find(city => {
+    const cityName = normalizeForLookup(city.name);
+    const cityCity = normalizeForLookup(city.city);
+    if (normalized.length >= 4) {
+      if (cityName.includes(normalized) || normalized.includes(cityName) ||
+          cityCity.includes(normalized) || normalized.includes(cityCity)) {
+        return true;
+      }
+    }
+    return false;
+  });
+
+  if (globalMatch) {
+    return {
+      lat: globalMatch.location.lat,
+      lng: globalMatch.location.lng,
+      country: globalMatch.countryCode,
+    };
+  }
+  return null;
+}
+
+/**
+ * Geocode unknown cities using Nominatim
+ */
+async function geocodeCity(query: string): Promise<{ lat: number; lng: number; country: string } | null> {
+  try {
+    const url = `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(query)}&format=json&limit=1&addressdetails=1`;
+    const response = await fetch(url, {
+      headers: { 'User-Agent': 'Fly2Any Travel Platform (contact@fly2any.com)' },
+      signal: AbortSignal.timeout(5000),
+    });
+    if (!response.ok) return null;
+    const data = await response.json();
+    if (!data || data.length === 0) return null;
+    const result = data[0];
+    return {
+      lat: parseFloat(result.lat),
+      lng: parseFloat(result.lon),
+      country: result.address?.country_code?.toUpperCase() || 'XX',
+    };
+  } catch (error) {
+    return null;
+  }
+}
 
 /**
  * Activities Search API - OPTIMIZED with caching
@@ -14,18 +89,34 @@ export const dynamic = 'force-dynamic';
 export async function GET(request: NextRequest) {
   return handleApiError(request, async () => {
     const { searchParams } = new URL(request.url);
-    const latitude = parseFloat(searchParams.get('latitude') || '0');
-    const longitude = parseFloat(searchParams.get('longitude') || '0');
+    const query = searchParams.get('query');
+    let latitude = parseFloat(searchParams.get('latitude') || '0');
+    let longitude = parseFloat(searchParams.get('longitude') || '0');
     const radius = parseInt(searchParams.get('radius') || '20');
     const type = searchParams.get('type') || 'all';
     const limit = Math.min(parseInt(searchParams.get('limit') || '12'), 50); // Default 12, max 50
     const offset = parseInt(searchParams.get('offset') || '0');
 
+    // Resolve query to coordinates if lat/lng missing
+    if ((!latitude || !longitude) && query) {
+      const cityCoords = getCityCoordinates(query);
+      if (cityCoords) {
+        latitude = cityCoords.lat;
+        longitude = cityCoords.lng;
+      } else {
+        const geocoded = await geocodeCity(query);
+        if (geocoded) {
+          latitude = geocoded.lat;
+          longitude = geocoded.lng;
+        }
+      }
+    }
+
     if (!latitude || !longitude) {
       return NextResponse.json({
         success: false,
         error: 'VALIDATION_ERROR',
-        message: 'latitude and longitude required',
+        message: 'latitude and longitude (or a valid city query) required',
         data: [],
         meta: { count: 0 }
       }, { status: 400 });
