@@ -10,6 +10,7 @@ import { ArticleContent } from '@/components/blog/article/ArticleContent';
 import { StructuredData } from '@/components/seo/StructuredData';
 import { article as nycParisArticle } from '@/lib/data/articles/nyc-paris-flights-2026';
 import { article as airlinePricingArticle } from '@/lib/data/articles/airline-pricing-mechanics-2026';
+import { article as nycAirportPricingArticle } from '@/lib/data/articles/nyc-airport-pricing-2026';
 import { ReadingProgress } from '@/components/blog/article/ReadingProgress';
 import { ExtendedShareButtons } from '@/components/blog/article/ExtendedShareButtons';
 import { CommentSection } from '@/components/blog/article/CommentSection';
@@ -31,22 +32,25 @@ import { Breadcrumbs } from '@/components/blog/article/Breadcrumbs';
  */
 export default function BlogPostPage() {
   const params = useParams();
-  const slug = params.slug as string;
+  const slug = params?.slug as string | undefined;
 
   const [post, setPost] = useState<BlogPost | null>(null);
   const [relatedPosts, setRelatedPosts] = useState<BlogPost[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    if (slug) {
-      const foundPost = getPostBySlug(slug);
-      if (foundPost) {
-        setPost(foundPost);
-        const related = getRelatedPosts(foundPost.id, 3);
-        setRelatedPosts(related);
-      }
+    if (!slug) {
       setLoading(false);
+      return;
     }
+    
+    const foundPost = getPostBySlug(slug);
+    if (foundPost) {
+      setPost(foundPost);
+      const related = getRelatedPosts(foundPost.id, 3);
+      setRelatedPosts(related);
+    }
+    setLoading(false);
   }, [slug]);
 
   if (loading) {
@@ -88,9 +92,12 @@ export default function BlogPostPage() {
   };
 
   // Check if it's premium articles
-  const isPremiumArticle = slug === 'cheap-flights-new-york-paris-2026' || slug === 'why-flight-prices-change-airline-fares-2026';
+  const isPremiumArticle = slug === 'cheap-flights-new-york-paris-2026' || 
+                        slug === 'why-flight-prices-change-airline-fares-2026' ||
+                        slug === 'jfk-vs-newark-vs-laguardia-airport-pricing-2026';
   const premiumData = slug === 'cheap-flights-new-york-paris-2026' ? nycParisArticle : 
-                      slug === 'why-flight-prices-change-airline-fares-2026' ? airlinePricingArticle : null;
+                      slug === 'why-flight-prices-change-airline-fares-2026' ? airlinePricingArticle :
+                      slug === 'jfk-vs-newark-vs-laguardia-airport-pricing-2026' ? nycAirportPricingArticle : null;
 
   if (isPremiumArticle && premiumData) {
     const schemas = [

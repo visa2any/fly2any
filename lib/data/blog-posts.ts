@@ -123,6 +123,40 @@ export const sampleBlogPosts: BlogPost[] = [
     metaDescription: 'Learn how airline pricing works, why flight prices fluctuate, and the real factors behind airfare changes from an aviation pricing analyst.',
     keywords: ['flight prices', 'airline pricing', 'airfare changes', 'booking flights', 'airline revenue management'],
   },
+
+  // NYC AIRPORT PRICING GUIDE
+  {
+    id: 'nyc-airport-pricing-2026',
+    slug: 'jfk-vs-newark-vs-laguardia-airport-pricing-2026',
+    title: 'JFK vs Newark vs LaGuardia: Which NYC Airport Really Saves You Money on International Flights?',
+    excerpt: 'Choosing the wrong NYC airport can cost you hundreds. Learn how JFK, Newark, and LaGuardia pricing really works for international flights.',
+    content: 'Premium article - see dedicated article file',
+    featuredImage: {
+      url: 'https://images.unsplash.com/photo-1540962351504-03099e0a754b?w=1920&q=90',
+      alt: 'Aerial view of New York City with multiple airports',
+      credit: 'Photo by Andrew Ruiz / Unsplash',
+      width: 1920,
+      height: 1080,
+    },
+    category: 'guide',
+    tags: ['nyc-airports', 'jfk', 'newark', 'laguardia', 'international-flights', 'flight-pricing', 'travel-tips'],
+    author: {
+      id: 'james',
+      name: 'James Mitchell',
+      avatar: '/authors/james.jpg',
+      bio: 'James Mitchell is an aviation pricing analyst with over 15 years of experience studying airline revenue management and pricing strategies across major international carriers.',
+      role: 'Senior Aviation Analyst',
+    },
+    publishedAt: new Date('2026-01-21'),
+    readTime: 12,
+    views: 0,
+    likes: 0,
+    isFeatured: true,
+    isPremium: false,
+    metaTitle: 'JFK vs Newark vs LaGuardia: NYC Airport Pricing for International Flights 2026',
+    metaDescription: 'Compare JFK, Newark, and LaGuardia international flight prices. Learn which NYC airport saves you the most money on flights to Europe, Asia, and beyond.',
+    keywords: ['NYC airports', 'JFK vs Newark', 'LaGuardia international flights', 'NYC airport pricing', 'international flight deals'],
+  },
   // FEATURED BLOG POST 1
   {
     id: '1',
