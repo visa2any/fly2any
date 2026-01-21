@@ -29,7 +29,7 @@ import AirlineLogo from "@/components/flights/AirlineLogo";
 import { getAirlineData } from "@/lib/flights/airline-data";
 import { useQuoteWorkspace } from "../QuoteWorkspaceProvider";
 import MultiAirportSelector from "@/components/common/MultiAirportSelector";
-import PremiumDatePicker from "@/components/common/PremiumDatePicker";
+import PremiumDatePicker from "@/components/flights/PremiumDatePicker";
 import PremiumDateRangePicker from "@/components/common/PremiumDateRangePicker";
 import type { FlightItem, FlightSearchParams } from "../types/quote-workspace.types";
 import { useUnifiedSearchContext, SearchScopeSelector } from "../unified-search/index";
@@ -89,6 +89,12 @@ export default function FlightSearchPanel() {
   const [formCollapsed, setFormCollapsed] = useState(false);
   const [isHovered, setIsHovered] = useState(false);
   const formRef = useRef<HTMLFormElement>(null);
+  
+  // Calendar control state
+  const [isMultiDatePickerOpen, setIsMultiDatePickerOpen] = useState(false);
+  const [isReturnDatePickerOpen, setIsReturnDatePickerOpen] = useState(false);
+  const multiDateTriggerRef = useRef<HTMLButtonElement>(null);
+  const returnDateTriggerRef = useRef<HTMLButtonElement>(null);
 
   // Filter & pagination state
   const [sortBy, setSortBy] = useState<"price" | "duration" | "departure">("price");
@@ -692,7 +698,7 @@ export default function FlightSearchPanel() {
                     
                     {/* Departure and Return Date Pickers in One Row */}
                     <div className={`grid gap-2 ${params.tripType === "roundtrip" ? "grid-cols-2" : "grid-cols-1"}`}>
-                      {/* Add Departure Date - PremiumDatePicker */}
+                      {/* Add Departure Date - Multi-Date Picker */}
                       {params.departureDates.length < 3 && (
                         <div>
                           <label className="flex items-center gap-1 text-[10px] font-bold text-gray-500 uppercase tracking-wider mb-1">
@@ -701,15 +707,28 @@ export default function FlightSearchPanel() {
                             </div>
                             Departure ({params.departureDates.length}/3)
                           </label>
+                          <button
+                            ref={multiDateTriggerRef}
+                            type="button"
+                            onClick={() => setIsMultiDatePickerOpen(true)}
+                            className="w-full px-3 py-2.5 border-2 border-purple-200 rounded-xl text-xs font-semibold bg-white hover:bg-purple-50/30 cursor-pointer text-left transition-all focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
+                          >
+                            {params.departureDates.length > 0 
+                              ? `${params.departureDates.length} date${params.departureDates.length > 1 ? 's' : ''} selected`
+                              : 'Add departure dates'}
+                          </button>
                           <PremiumDatePicker
-                            value=""
-                            onChange={(date) => {
-                              if (date) {
-                                addMultiDate(date);
-                              }
+                            type="multi"
+                            isOpen={isMultiDatePickerOpen}
+                            onClose={() => setIsMultiDatePickerOpen(false)}
+                            selectedDates={params.departureDates}
+                            onMultiChange={(dates) => {
+                              setParams({ ...params, departureDates: dates });
                             }}
-                            minDate={getMinDate()}
-                            placeholder="Add departure date"
+                            onChange={() => {}}
+                            maxDates={3}
+                            minDate={new Date()}
+                            anchorEl={multiDateTriggerRef.current}
                           />
                         </div>
                       )}
@@ -723,16 +742,29 @@ export default function FlightSearchPanel() {
                             </div>
                             Return Date
                           </label>
+                          <button
+                            ref={returnDateTriggerRef}
+                            type="button"
+                            onClick={() => setIsReturnDatePickerOpen(true)}
+                            className="w-full px-3 py-2.5 border-2 border-green-200 rounded-xl text-xs font-semibold bg-white hover:bg-green-50/30 cursor-pointer text-left transition-all focus:ring-2 focus:ring-green-500 focus:border-green-500"
+                          >
+                            {params.returnDate 
+                              ? format(new Date(params.returnDate + 'T00:00:00'), 'MMM d, yyyy')
+                              : 'Select return date'}
+                          </button>
                           <PremiumDatePicker
+                            type="single"
+                            isOpen={isReturnDatePickerOpen}
+                            onClose={() => setIsReturnDatePickerOpen(false)}
                             value={params.returnDate}
-                            onChange={(date) => { 
-                              setError(null); 
-                              setParams(prev => ({ ...prev, returnDate: date })); 
+                            onChange={(date) => {
+                              setParams(prev => ({ ...prev, returnDate: date }));
+                              setError(null);
                             }}
                             minDate={params.departureDates.length > 0 
-                              ? format(params.departureDates[0], 'yyyy-MM-dd') 
-                              : getMinDate()}
-                            placeholder="Select return date"
+                              ? params.departureDates[0]
+                              : new Date()}
+                            anchorEl={returnDateTriggerRef.current}
                           />
                         </div>
                       )}
