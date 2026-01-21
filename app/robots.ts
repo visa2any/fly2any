@@ -258,6 +258,16 @@ export default function robots(): MetadataRoute.Robots {
           '/deals/',
           '/explore/',
           '/faq/',
+          '/destinations/',
+          '/solo-travel/',
+          '/group-travel/',
+          '/world-cup-2026/',
+          '/journeys/',
+          '/plan-my-trip/',
+          '/multi-city/',
+          '/travel-planning/',
+          '/travel-insurance/',
+          '/baggage-fees/',
         ],
         disallow: [
           '/admin/',
@@ -268,13 +278,8 @@ export default function robots(): MetadataRoute.Robots {
           '/auth/',
           '/dashboard/',
           '/booking/*/confirmation',
-          '/_next/',
+          '_next/',
           '/private/',
-          '/*.json$', // Block JSON files
-          '/*?*sort=', // Block sort parameters
-          '/*?*filter=', // Block filter parameters
-          '/*?*page=', // Block pagination parameters
-          // OLD LOCALE-PREFIXED ROUTES (Removed - now using cookie-based locale)
           '/en/',
           '/es/',
           '/pt/',
