@@ -330,7 +330,7 @@ export async function POST(request: NextRequest) {
       children: Array.isArray(searchParams.guests?.children) ? searchParams.guests.children.length : 0,
       rooms: roomCount,
       currency: searchParams.currency || 'USD',
-      guestNationality: 'US',
+      guestNationality: countryCode || 'US',
       radius: searchParams.radius || 15, // 15km default for accurate city results
       limit: searchParams.limit || 100, // Increased for better coverage
     }).catch(err => {
