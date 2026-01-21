@@ -281,6 +281,13 @@ export async function POST(request: NextRequest) {
     if (location.lat !== undefined && location.lng !== undefined) {
       latitude = location.lat;
       longitude = location.lng;
+      // Try to determine country from query if available, even when coordinates are provided
+      if (location.query) {
+        const cityInfo = getCityCoordinates(location.query);
+        if (cityInfo) {
+          countryCode = cityInfo.country;
+        }
+      }
     } else if (location.query) {
       // 1. Try local database first (fast)
       const cityCoords = getCityCoordinates(location.query);
