@@ -690,51 +690,53 @@ export default function FlightSearchPanel() {
                       </motion.div>
                     )}
                     
-                    {/* Add Departure Date - Always Visible Input */}
-                    {params.departureDates.length < 3 && (
-                      <div className="relative">
-                        <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none z-10" />
-                        <input
-                          type="date"
-                          min={getMinDate()}
-                          onChange={(e) => {
-                            if (e.target.value) {
-                              addMultiDate(e.target.value);
-                              e.target.value = ''; // Clear immediately
-                            }
-                          }}
-                          className="w-full pl-10 pr-16 py-2.5 border-2 border-dashed border-purple-200 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-purple-500 outline-none transition-all text-xs font-semibold bg-white hover:bg-purple-50/30 cursor-pointer"
-                          style={{ colorScheme: 'light' }}
-                          placeholder="Add departure date"
-                        />
-                        <span className="absolute right-3 top-1/2 -translate-y-1/2 text-[10px] text-gray-500 font-medium">
-                          {params.departureDates.length}/3
-                        </span>
-                      </div>
-                    )}
+                    {/* Departure and Return Date Pickers in One Row */}
+                    <div className={`grid gap-2 ${params.tripType === "roundtrip" ? "grid-cols-2" : "grid-cols-1"}`}>
+                      {/* Add Departure Date - PremiumDatePicker */}
+                      {params.departureDates.length < 3 && (
+                        <div>
+                          <label className="flex items-center gap-1 text-[10px] font-bold text-gray-500 uppercase tracking-wider mb-1">
+                            <div className="w-3.5 h-3.5 rounded bg-gradient-to-br from-purple-500 to-pink-600 flex items-center justify-center">
+                              <Calendar className="w-2 h-2 text-white" />
+                            </div>
+                            Departure ({params.departureDates.length}/3)
+                          </label>
+                          <PremiumDatePicker
+                            value=""
+                            onChange={(date) => {
+                              if (date) {
+                                addMultiDate(date);
+                              }
+                            }}
+                            minDate={getMinDate()}
+                            placeholder="Add departure date"
+                          />
+                        </div>
+                      )}
 
-                    {/* Return Date for Roundtrip */}
-                    {params.tripType === "roundtrip" && (
-                      <div>
-                        <label className="flex items-center gap-1 text-[10px] font-bold text-gray-500 uppercase tracking-wider mb-1">
-                          <div className="w-3.5 h-3.5 rounded bg-gradient-to-br from-green-500 to-emerald-600 flex items-center justify-center">
-                            <Calendar className="w-2 h-2 text-white" />
-                          </div>
-                          Return Date
-                        </label>
-                        <PremiumDatePicker
-                          value={params.returnDate}
-                          onChange={(date) => { 
-                            setError(null); 
-                            setParams(prev => ({ ...prev, returnDate: date })); 
-                          }}
-                          minDate={params.departureDates.length > 0 
-                            ? format(params.departureDates[0], 'yyyy-MM-dd') 
-                            : getMinDate()}
-                          placeholder="Select return date"
-                        />
-                      </div>
-                    )}
+                      {/* Return Date for Roundtrip */}
+                      {params.tripType === "roundtrip" && (
+                        <div>
+                          <label className="flex items-center gap-1 text-[10px] font-bold text-gray-500 uppercase tracking-wider mb-1">
+                            <div className="w-3.5 h-3.5 rounded bg-gradient-to-br from-green-500 to-emerald-600 flex items-center justify-center">
+                              <Calendar className="w-2 h-2 text-white" />
+                            </div>
+                            Return Date
+                          </label>
+                          <PremiumDatePicker
+                            value={params.returnDate}
+                            onChange={(date) => { 
+                              setError(null); 
+                              setParams(prev => ({ ...prev, returnDate: date })); 
+                            }}
+                            minDate={params.departureDates.length > 0 
+                              ? format(params.departureDates[0], 'yyyy-MM-dd') 
+                              : getMinDate()}
+                            placeholder="Select return date"
+                          />
+                        </div>
+                      )}
+                    </div>
                   </div>
                 )}
               </div>
