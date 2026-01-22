@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useRef, useCallback } from 'react';
+import { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import Image from 'next/image';
 import { MobileHomeSearchWrapper } from '@/components/home/MobileHomeSearchWrapper';
@@ -169,6 +169,15 @@ export default function Home() {
   const [activeService, setActiveService] = useState<ServiceType>('flights');
   const [mounted, setMounted] = useState(false);
   const [isFormExpanded, setIsFormExpanded] = useState(false);
+
+  // Memoize Canonical Entity Lock Block styles to prevent infinite re-renders
+  const entityLockStyle = useMemo(() => ({
+    position: 'absolute' as const,
+    left: '-9999px' as const,
+    width: '1px' as const,
+    height: '1px' as const,
+    overflow: 'hidden' as const
+  }), []);
 
   // EntityHome Schema for Google Knowledge Graph
   // Uses canonical entity graph with proper @id references
