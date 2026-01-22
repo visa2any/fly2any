@@ -134,6 +134,42 @@ export const sampleBlogPosts: BlogPost[] = [
     keywords: ['flight prices', 'airline pricing', 'airfare changes', 'booking flights', 'airline revenue management'],
   },
 
+  // INTERNATIONAL TRAVEL GUIDE - FIRST-TIME MISTAKES
+  {
+    id: 'mistakes-first-time-international-travelers',
+    slug: '10-mistakes-first-time-international-travelers-make',
+    title: '10 Mistakes First-Time International Travelers Always Make (And How to Avoid Them)',
+    excerpt:
+      'These common mistakes ruin trips, waste money, and cause stress — even before boarding the plane. Learn how to avoid them and travel smarter.',
+    content: `# 10 Mistakes First-Time International Travelers Always Make (And How to Avoid Them)
+
+Your first international trip should be exciting. Instead, for many travelers, it becomes a series of preventable problems.
+
+These mistakes aren't theoretical. They're based on real traveler behavior — smart, capable people who simply didn't know what they didn't know about international travel.
+
+The good news? Every one of these mistakes is avoidable. And avoiding them doesn't just save money and stress. It fundamentally changes how you experience travel.
+
+Here are 10 mistakes first-time international travelers make most often — and exactly how to avoid them.`,
+    featuredImage: {
+      url: 'https://images.unsplash.com/photo-1436491865332-7a61a109cc05?w=1920&q=90',
+      alt: 'Airplane window view above clouds during international flight',
+      credit: 'Photo by Jason Blackeye / Unsplash',
+      width: 1920,
+      height: 1080,
+    },
+    category: 'guide',
+    tags: ['International Travel', 'First-Time Travel', 'Travel Tips', 'Flight Planning', 'Travel Mistakes', 'Travel Planning'],
+    author: authors.james,
+    publishedAt: new Date('2025-01-22'),
+    readTime: 10,
+    views: 0,
+    likes: 0,
+    isFeatured: true,
+    metaTitle: '10 Mistakes First-Time International Travelers Always Make (And How to Avoid Them)',
+    metaDescription: 'These common mistakes ruin trips, waste money, and cause stress — even before boarding the plane. Learn how to avoid them and travel smarter.',
+    keywords: ['international travel mistakes', 'first-time international travel', 'travel tips', 'flight booking mistakes', 'airport tips', 'visa requirements'],
+  },
+
   // NYC AIRPORT PRICING GUIDE
   {
     id: 'nyc-airport-pricing-2026',
@@ -645,42 +681,6 @@ Maximize space by rolling instead of folding...`,
     isFeatured: false,
     views: 5432,
     likes: 378,
-  },
-
-  // INTERNATIONAL TRAVEL GUIDE - FIRST-TIME MISTAKES
-  {
-    id: 'mistakes-first-time-international-travelers',
-    slug: '10-mistakes-first-time-international-travelers-make',
-    title: '10 Mistakes First-Time International Travelers Always Make (And How to Avoid Them)',
-    excerpt:
-      'These common mistakes ruin trips, waste money, and cause stress — even before boarding the plane. Learn how to avoid them and travel smarter.',
-    content: `# 10 Mistakes First-Time International Travelers Always Make (And How to Avoid Them)
-
-Your first international trip should be exciting. Instead, for many travelers, it becomes a series of preventable problems.
-
-These mistakes aren't theoretical. They're based on real traveler behavior — smart, capable people who simply didn't know what they didn't know about international travel.
-
-The good news? Every one of these mistakes is avoidable. And avoiding them doesn't just save money and stress. It fundamentally changes how you experience travel.
-
-Here are 10 mistakes first-time international travelers make most often — and exactly how to avoid them.`,
-    featuredImage: {
-      url: 'https://images.unsplash.com/photo-1436491865332-7a61a109cc05?w=1920&q=90',
-      alt: 'Airplane window view above clouds during international flight',
-      credit: 'Photo by Jason Blackeye / Unsplash',
-      width: 1920,
-      height: 1080,
-    },
-    category: 'guide',
-    tags: ['International Travel', 'First-Time Travel', 'Travel Tips', 'Flight Planning', 'Travel Mistakes', 'Travel Planning'],
-    author: authors.james,
-    publishedAt: new Date('2025-01-22'),
-    readTime: 10,
-    views: 0,
-    likes: 0,
-    isFeatured: true,
-    metaTitle: '10 Mistakes First-Time International Travelers Always Make (And How to Avoid Them)',
-    metaDescription: 'These common mistakes ruin trips, waste money, and cause stress — even before boarding the plane. Learn how to avoid them and travel smarter.',
-    keywords: ['international travel mistakes', 'first-time international travel', 'travel tips', 'flight booking mistakes', 'airport tips', 'visa requirements'],
   },
 ];
 
