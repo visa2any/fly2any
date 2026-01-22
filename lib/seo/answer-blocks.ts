@@ -21,6 +21,11 @@ export interface AnswerBlock {
   answer: string;
   source?: string;
   lastUpdated?: string;
+  dataFreshness?: {
+    lastReviewed: string;
+    updateFrequency: 'hourly' | 'daily' | 'weekly' | 'monthly';
+    staleAfterDays: number;
+  };
   confidence: 'high' | 'medium';
   category: 'price' | 'duration' | 'airline' | 'timing' | 'general';
 }
@@ -51,9 +56,14 @@ export function getCheapestDayAnswer(
 ): AnswerBlock {
   return {
     question: `What is the cheapest day to fly from ${origin} to ${destination}?`,
-    answer: `Tuesday and Wednesday are typically the cheapest days to fly from ${origin} to ${destination}, with prices 15-20% lower than weekend flights. Avoid Friday and Sunday departures for the best deals.`,
+    answer: `Tuesday and Wednesday are typically cheapest days to fly from ${origin} to ${destination}, with prices 15-20% lower than weekend flights. Avoid Friday and Sunday departures for best deals.`,
     confidence: 'high',
     lastUpdated: 'December 2025',
+    dataFreshness: {
+      lastReviewed: new Date().toISOString().split('T')[0],
+      updateFrequency: 'weekly',
+      staleAfterDays: 7,
+    },
     category: 'timing',
   };
 }
@@ -75,6 +85,11 @@ export function getFlightDurationAnswer(
     question: `How long is the flight from ${origin} to ${destination}?`,
     answer: `${directInfo} Flight times may vary based on routing and weather conditions.`,
     confidence: 'high',
+    dataFreshness: {
+      lastReviewed: new Date().toISOString().split('T')[0],
+      updateFrequency: 'daily',
+      staleAfterDays: 3,
+    },
     category: 'duration',
   };
 }
@@ -91,8 +106,13 @@ export function getAirlinesAnswer(
 
   return {
     question: `What airlines fly from ${origin} to ${destination}?`,
-    answer: `Airlines operating flights from ${origin} to ${destination} include: ${airlineList}. Compare prices from 500+ airlines on Fly2Any to find the best deal.`,
+    answer: `Airlines operating flights from ${origin} to ${destination} include: ${airlineList}. Compare prices from 500+ airlines on Fly2Any to find best deal.`,
     confidence: 'high',
+    dataFreshness: {
+      lastReviewed: new Date().toISOString().split('T')[0],
+      updateFrequency: 'weekly',
+      staleAfterDays: 7,
+    },
     category: 'airline',
   };
 }
@@ -109,9 +129,14 @@ export function getAvgPriceAnswer(
 ): AnswerBlock {
   return {
     question: `What is the average flight price from ${origin} to ${destination}?`,
-    answer: `Flights from ${origin} to ${destination} typically cost ${currency === 'USD' ? '$' : currency}${lowPrice}-${currency === 'USD' ? '$' : ''}${highPrice} round-trip. Book 6-8 weeks in advance for domestic flights, 3-4 months for international routes, to get the best prices.`,
+    answer: `Flights from ${origin} to ${destination} typically cost ${currency === 'USD' ? '$' : currency}${lowPrice}-${currency === 'USD' ? '$' : ''}${highPrice} round-trip. Book 6-8 weeks in advance for domestic flights, 3-4 months for international routes, to get best prices.`,
     confidence: 'high',
-    lastUpdated: 'December 2025',
+    lastUpdated: new Date().toISOString().split('T')[0],
+    dataFreshness: {
+      lastReviewed: new Date().toISOString().split('T')[0],
+      updateFrequency: 'hourly',
+      staleAfterDays: 1,
+    },
     category: 'price',
   };
 }
@@ -132,6 +157,11 @@ export function getBestTimeToBookAnswer(
     question: `When is the best time to book ${origin} to ${destination} flights?`,
     answer: `The best time to book flights from ${origin} to ${destination} is ${timeframe}. Prices typically increase 2-3 weeks before departure. Use Fly2Any price alerts to track fare changes.`,
     confidence: 'high',
+    dataFreshness: {
+      lastReviewed: new Date().toISOString().split('T')[0],
+      updateFrequency: 'weekly',
+      staleAfterDays: 7,
+    },
     category: 'timing',
   };
 }

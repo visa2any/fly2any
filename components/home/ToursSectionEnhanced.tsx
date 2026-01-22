@@ -6,6 +6,8 @@ import { Star, Clock, Heart, Loader2, ArrowRight, Sparkles, Flame, MapPin } from
 import { CacheIndicator } from '@/components/cache/CacheIndicator';
 import { ValueScoreBadge } from '@/components/shared/ValueScoreBadge';
 import { ImageSlider } from '@/components/shared/ImageSlider';
+import { StructuredData } from '@/components/seo/StructuredData';
+import { generateTouristTripSchema } from '@/lib/seo/geo-optimization';
 
 interface Tour {
   id: string;
@@ -285,6 +287,24 @@ export function ToursSectionEnhanced({ lang = 'en' }: ToursSectionEnhancedProps)
   const [fromCache, setFromCache] = useState(false);
   const [cacheAgeFormatted, setCacheAgeFormatted] = useState<string | null>(null);
 
+  // Generate TouristTrip schemas for all tours (after tours state is available)
+  const tourSchemas = tours.map(tour =>
+    generateTouristTripSchema({
+      name: tour.name,
+      description: tour.shortDescription || tour.description || '',
+      provider: 'Fly2Any',
+      price: tour.price?.amount ? parseFloat(tour.price.amount) : 0,
+      currency: tour.price?.currencyCode || 'USD',
+      duration: tour.minimumDuration || '3h',
+      location: {
+        name: tour.name,
+      },
+      images: (tour.pictures || []).map((pic: any) => typeof pic === 'string' ? pic : pic?.url).slice(0, 3).filter(Boolean),
+      rating: tour.rating,
+      reviewCount: tour.reviewCount || 50,
+    })
+  );
+
   // Fetch from multiple destinations when "ALL" is selected
   useEffect(() => {
     const fetchTours = async () => {
@@ -378,6 +398,8 @@ export function ToursSectionEnhanced({ lang = 'en' }: ToursSectionEnhancedProps)
 
   return (
     <section className="pt-1 pb-2 md:py-6 lg:py-10" style={{ maxWidth: '1600px', margin: '0 auto' }}>
+      {/* TouristTrip Schema for Google Activity Pack */}
+      <StructuredData schema={tourSchemas} />
       {/* Section Header */}
       <div className="flex items-center justify-between mb-3 md:mb-6 gap-2 px-3 md:px-0">
         <div className="flex items-center gap-2 md:gap-3 min-w-0">

@@ -18,8 +18,8 @@ const STATIC_ASSETS = [
   '/',
   '/offline',
   '/manifest.json',
-  '/icon-192.png',
-  '/icon-512.png',
+  '/icons/icon-192x192.png',
+  '/icons/icon-512x512.png',
 ];
 
 // Install event - cache static assets

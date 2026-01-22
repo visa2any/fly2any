@@ -3,6 +3,7 @@
   "version": "1.0.0",
   "private": true,
   "scripts": {
+    "validate:schemas": "tsx scripts/validate-schemas.ts",
     "dev": "next dev",
     "build": "cross-env NODE_OPTIONS=--max-old-space-size=4096 next build",
     "start": "next start",
@@ -59,6 +60,7 @@
     "@dnd-kit/sortable": "^10.0.0",
     "@dnd-kit/utilities": "^3.2.2",
     "@duffel/api": "^4.20.1",
+    "@giscus/react": "^3.0.0",
     "@headlessui/react": "^2.2.9",
     "@heroicons/react": "^2.2.0",
     "@neondatabase/serverless": "^1.0.2",
@@ -84,7 +86,6 @@
     "dotenv": "^17.2.3",
     "focus-trap-react": "^11.0.4",
     "form-data": "^4.0.5",
-    "@giscus/react": "^3.0.0",
     "framer-motion": "^12.23.24",
     "groq-sdk": "^0.37.0",
     "html2canvas": "^1.4.1",
@@ -142,6 +143,7 @@
     "sharp": "^0.34.5",
     "tailwindcss": "^3.4.17",
     "ts-jest": "^29.4.5",
+    "tsx": "^4.21.0",
     "typescript": "^5",
     "webpack-bundle-analyzer": "^4.10.2"
   }

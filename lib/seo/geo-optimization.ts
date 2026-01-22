@@ -17,6 +17,21 @@ const SITE_URL = process.env.NEXT_PUBLIC_APP_URL || 'https://www.fly2any.com';
 const SITE_NAME = 'Fly2Any';
 
 // ============================================
+// CANONICAL ENTITY IDS (Entity Graph)
+// ============================================
+/**
+ * Canonical @id references for entity graph
+ * These IDs must be consistent across all schemas
+ * Google uses these to understand entity relationships
+ */
+const ENTITY_IDS = {
+  ORGANIZATION: `${SITE_URL}/#organization`,
+  WEBSITE: `${SITE_URL}/#website`,
+  TRAVEL_AGENCY: `${SITE_URL}/#travelagency`,
+  FAQ_PAGE: `${SITE_URL}/faq#faqpage`,
+} as const;
+
+// ============================================
 // AI-OPTIMIZED CONTENT GENERATORS
 // ============================================
 
@@ -88,19 +103,23 @@ export interface TouristTripData {
   rating?: number;
   reviewCount?: number;
   includes?: string[];
+  canonicalUrl?: string; // For entity graph connections
 }
 
 export function generateTouristTripSchema(trip: TouristTripData) {
   return {
     '@context': 'https://schema.org',
     '@type': 'TouristTrip',
+    '@id': trip.canonicalUrl ? `${trip.canonicalUrl}#touristtrip` : undefined,
     name: trip.name,
     description: trip.description,
+    // Reference canonical TravelAgency entity via @id
     provider: {
-      '@type': 'TravelAgency',
-      name: trip.provider || SITE_NAME,
-      url: SITE_URL,
+      '@id': ENTITY_IDS.TRAVEL_AGENCY,
     },
+    mainEntityOfPage: trip.canonicalUrl ? {
+      '@id': trip.canonicalUrl,
+    } : undefined,
     touristType: 'Leisure',
     itinerary: {
       '@type': 'ItemList',
@@ -156,14 +175,27 @@ export interface HotelSchemaData {
   reviewCount?: number;
   checkInTime?: string;
   checkOutTime?: string;
+  canonicalUrl?: string; // For entity graph connections
 }
 
 export function generateHotelSchema(hotel: HotelSchemaData) {
   return {
     '@context': 'https://schema.org',
     '@type': 'LodgingBusiness',
+    '@id': hotel.canonicalUrl ? `${hotel.canonicalUrl}#lodgingbusiness` : undefined,
     name: hotel.name,
     description: hotel.description,
+    // Reference canonical TravelAgency entity via @id
+    provider: {
+      '@id': ENTITY_IDS.TRAVEL_AGENCY,
+    },
+    // Reference canonical website
+    isPartOf: {
+      '@id': ENTITY_IDS.WEBSITE,
+    },
+    mainEntityOfPage: hotel.canonicalUrl ? {
+      '@id': hotel.canonicalUrl,
+    } : undefined,
     address: {
       '@type': 'PostalAddress',
       addressLocality: hotel.address.city,
@@ -251,10 +283,9 @@ export function generateTransferSchema(data: {
     '@type': 'TaxiService',
     name: `${data.pickup} to ${data.dropoff} Transfer`,
     description: `Private ${data.vehicleType} transfer from ${data.pickup} to ${data.dropoff}`,
+    // Reference canonical TravelAgency entity via @id
     provider: {
-      '@type': 'TravelAgency',
-      name: SITE_NAME,
-      url: SITE_URL,
+      '@id': ENTITY_IDS.TRAVEL_AGENCY,
     },
     areaServed: [data.pickup, data.dropoff],
     offers: {
@@ -379,24 +410,183 @@ export function generateAIMetaTags(data: {
 }
 
 // ============================================
-// SPEAKABLE SCHEMA (for voice search)
+// ENTITY GRAPH SCHEMA GENERATORS
 // ============================================
 
 /**
- * Generate Speakable schema for voice assistants
- * Helps with Google Assistant, Alexa, Siri
+ * Organization Schema - Canonical entity for Google Knowledge Graph
+ * Reused across all schemas via @id references
  */
-export function generateSpeakableSchema(data: {
-  url: string;
-  cssSelectors: string[];
+export function generateOrganizationSchema(data?: {
+  sameAs?: string[];
+  socialProfiles?: Record<string, string>;
+}) {
+  return {
+    '@context': 'https://schema.org',
+    '@type': 'Organization',
+    '@id': ENTITY_IDS.ORGANIZATION,
+    name: SITE_NAME,
+    url: SITE_URL,
+    logo: `${SITE_URL}/logo.png`,
+    description: `${SITE_NAME} is a leading online travel platform offering flights, hotels, tours, and transfers worldwide with best price guarantees.`,
+    contactPoint: {
+      '@type': 'ContactPoint',
+      contactType: 'customer service',
+      email: 'support@fly2any.com',
+      availableLanguage: ['English', 'Spanish', 'Portuguese'],
+    },
+    sameAs: data?.sameAs || [],
+    ...data?.socialProfiles,
+  };
+}
+
+/**
+ * WebSite Schema - Canonical website entity
+ */
+export function generateWebSiteSchema() {
+  return {
+    '@context': 'https://schema.org',
+    '@type': 'WebSite',
+    '@id': ENTITY_IDS.WEBSITE,
+    url: SITE_URL,
+    name: SITE_NAME,
+    description: `${SITE_NAME} - Book flights, hotels, tours, and transfers worldwide`,
+    publisher: {
+      '@id': ENTITY_IDS.ORGANIZATION,
+    },
+    potentialAction: {
+      '@type': 'SearchAction',
+      target: {
+        '@type': 'EntryPoint',
+        urlTemplate: `${SITE_URL}/search?q={search_term_string}`,
+      },
+      'query-input': 'required name=search_term_string',
+    },
+  };
+}
+
+/**
+ * TravelAgency Schema - Canonical travel agency entity
+ * Reused by TouristTrip, LodgingBusiness, and other travel services
+ */
+export function generateTravelAgencySchema() {
+  return {
+    '@context': 'https://schema.org',
+    '@type': 'TravelAgency',
+    '@id': ENTITY_IDS.TRAVEL_AGENCY,
+    name: SITE_NAME,
+    url: SITE_URL,
+    logo: `${SITE_URL}/logo.png`,
+    description: `${SITE_NAME} offers comprehensive travel booking services including flights, hotels, tours, and transfers.`,
+    priceRange: '$$-$$$$',
+    isPartOf: {
+      '@id': ENTITY_IDS.WEBSITE,
+    },
+    provider: {
+      '@id': ENTITY_IDS.ORGANIZATION,
+    },
+  };
+}
+
+/**
+ * FAQPage Schema - Canonical FAQ page entity
+ */
+export function generateFAQPageSchema(faqs: Array<{ question: string; answer: string }>) {
+  return {
+    '@context': 'https://schema.org',
+    '@type': 'FAQPage',
+    '@id': ENTITY_IDS.FAQ_PAGE,
+    url: `${SITE_URL}/faq`,
+    mainEntityOfPage: {
+      '@id': `${SITE_URL}/faq`,
+    },
+    isPartOf: {
+      '@id': ENTITY_IDS.WEBSITE,
+    },
+    publisher: {
+      '@id': ENTITY_IDS.ORGANIZATION,
+    },
+    mainEntity: faqs.map(faq => ({
+      '@type': 'Question',
+      name: faq.question,
+      acceptedAnswer: {
+        '@type': 'Answer',
+        text: faq.answer,
+      },
+    })),
+  };
+}
+
+/**
+ * Entity Home Schema - Complete entity graph for homepage
+ * Combines Organization, WebSite, and TravelAgency
+ */
+export function generateEntityHomeSchema(data?: {
+  sameAs?: string[];
+  socialProfiles?: Record<string, string>;
+}) {
+  return {
+    '@context': 'https://schema.org',
+    '@graph': [
+      generateOrganizationSchema(data),
+      generateWebSiteSchema(),
+      generateTravelAgencySchema(),
+    ],
+  };
+}
+
+/**
+ * Speakable Schema for Homepage
+ * Optimizes content for Google Assistant, Alexa, Siri
+ * References CSS selectors pointing to existing text content
+ */
+export function generateSpeakableSchema(options?: {
+  cssSelector?: string[];
+  xpath?: string[];
 }) {
   return {
     '@context': 'https://schema.org',
     '@type': 'WebPage',
-    url: data.url,
     speakable: {
       '@type': 'SpeakableSpecification',
-      cssSelector: data.cssSelectors,
+      cssSelector: options?.cssSelector || [
+        'h1', // Hero headline
+        '.text-white\\/95', // Hero subtitle
+        '.font-extrabold', // Trust bar items
+      ],
+    },
+  };
+}
+
+/**
+ * Speakable Schema for FAQ Page
+ * Optimizes top FAQs for voice search
+ */
+export function generateSpeakableFAQSchema(faqCount: number = 5) {
+  // Generate selectors for top N FAQs
+  const selectors: string[] = [];
+  for (let i = 1; i <= faqCount; i++) {
+    selectors.push(`.faq-item:nth-child(${i}) .question`);
+    selectors.push(`.faq-item:nth-child(${i}) .answer`);
+  }
+  
+  return {
+    '@context': 'https://schema.org',
+    '@type': 'FAQPage',
+    '@id': ENTITY_IDS.FAQ_PAGE,
+    url: `${SITE_URL}/faq`,
+    mainEntityOfPage: {
+      '@id': `${SITE_URL}/faq`,
+    },
+    isPartOf: {
+      '@id': ENTITY_IDS.WEBSITE,
+    },
+    publisher: {
+      '@id': ENTITY_IDS.ORGANIZATION,
+    },
+    speakable: {
+      '@type': 'SpeakableSpecification',
+      cssSelector: selectors,
     },
   };
 }
@@ -417,5 +607,11 @@ export default {
   getFormattedStats,
   generateAIMetaTags,
   generateSpeakableSchema,
+  // Entity graph generators
+  generateOrganizationSchema,
+  generateWebSiteSchema,
+  generateTravelAgencySchema,
+  generateFAQPageSchema,
+  generateEntityHomeSchema,
   TRAVEL_STATISTICS,
 };

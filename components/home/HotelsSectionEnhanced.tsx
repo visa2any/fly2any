@@ -4,7 +4,9 @@ import { useState, useEffect, useCallback, memo } from 'react';
 import { useRouter } from 'next/navigation';
 import { ValueScoreBadge } from '@/components/shared/ValueScoreBadge';
 import { ImageSlider } from '@/components/shared/ImageSlider';
+import { StructuredData } from '@/components/seo/StructuredData';
 import { MapPin, Star, Users, Wifi, Coffee, Dumbbell, UtensilsCrossed, Car, TrendingUp, TrendingDown, Flame, Eye, ShoppingCart, Clock, Zap } from 'lucide-react';
+import { generateHotelSchema } from '@/lib/seo/geo-optimization';
 
 interface HotelEnhanced {
   id: string;
@@ -264,6 +266,24 @@ export function HotelsSectionEnhanced({ lang = 'en' }: HotelsSectionEnhancedProp
   const [hotels, setHotels] = useState<HotelEnhanced[]>([]);
   const [loading, setLoading] = useState(true);
 
+  // Generate LodgingBusiness schemas for all hotels
+  const hotelSchemas = hotels.map(hotel => 
+    generateHotelSchema({
+      name: hotel.name,
+      description: `${hotel.starRating}-star hotel in ${hotel.city}, ${hotel.country}`,
+      address: {
+        city: hotel.city,
+        country: hotel.country,
+      },
+      starRating: hotel.starRating || 3,
+      priceRange: '$$-$$$',
+      amenities: hotel.amenities,
+      images: hotel.mainImage ? [hotel.mainImage] : (hotel.images || []).slice(0, 3).map((img: any) => typeof img === 'string' ? img : img.url),
+      rating: hotel.reviewRating,
+      reviewCount: hotel.reviewCount,
+    })
+  );
+
   // Fetch hotels based on filter
   useEffect(() => {
     const fetchHotels = async () => {
@@ -313,6 +333,8 @@ export function HotelsSectionEnhanced({ lang = 'en' }: HotelsSectionEnhancedProp
 
   return (
     <section className="py-2 md:py-6 lg:py-10" style={{ maxWidth: '1600px', margin: '0 auto' }}>
+      {/* LodgingBusiness Schema for Google Hotel Pack */}
+      <StructuredData schema={hotelSchemas} />
       {/* Section Header - Level-6: Mobile compact, Desktop cinematic */}
       <div className="flex items-center justify-between mb-2 md:mb-4 lg:mb-6 px-3 md:px-0">
         <div>

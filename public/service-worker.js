@@ -21,8 +21,8 @@ const STATIC_ASSETS = [
   '/favicon.ico',
   '/logo.png',
   '/fly2any-logo.svg',
-  '/icon-192.png',
-  '/icon-512.png',
+  '/icons/icon-192x192.png',
+  '/icons/icon-512x512.png',
 ];
 
 // Routes to prefetch based on user behavior
