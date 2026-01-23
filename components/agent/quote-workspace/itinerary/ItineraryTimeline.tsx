@@ -6,7 +6,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { DndContext, closestCenter, PointerSensor, useSensor, useSensors, DragEndEvent } from "@dnd-kit/core";
 import { SortableContext, verticalListSortingStrategy } from "@dnd-kit/sortable";
 import { Calendar, Users, Globe, MessageCircle, CheckCircle2, Sparkles } from "lucide-react";
-import { useQuoteWorkspace, useQuoteItems } from "../QuoteWorkspaceProvider";
+import { useQuoteWorkspace, useQuoteItems, useQuotePricing } from "../QuoteWorkspaceProvider";
 import SortableItineraryCard from "./SortableItineraryCard";
 import TimelineDayAnchor from "./TimelineDayAnchor";
 import FreeTimeBlock, { determineFreeTimeType } from "./FreeTimeBlock";
@@ -265,10 +265,10 @@ export default function ItineraryTimeline() {
   };
   const tripDuration = safeParseDays();
 
-  // Calculate total price for client view
-  const totalPrice = items.reduce((sum, item) => sum + (item.price || 0), 0);
+  // Use pricing from Single Source of Truth (QuotePricingService)
+  const pricing = useQuotePricing();
   const formatTotalPrice = (amount: number) =>
-    new Intl.NumberFormat("en-US", { style: "currency", currency: "USD", minimumFractionDigits: 0 }).format(amount);
+    new Intl.NumberFormat("en-US", { style: "currency", currency: pricing.currency, minimumFractionDigits: 0 }).format(amount);
 
   // Auto-generate trip name if empty
   const displayTripName = state.tripName ||
@@ -483,10 +483,10 @@ export default function ItineraryTimeline() {
 
             <div className="relative">
               <p className="text-xs text-gray-400 uppercase tracking-widest mb-2">Your Trip Investment</p>
-              <p className="text-4xl font-black text-white mb-1">{formatTotalPrice(totalPrice)}</p>
+              <p className="text-4xl font-black text-white mb-1">{formatTotalPrice(pricing.total)}</p>
               <p className="text-sm text-gray-300">
                 {state.travelers?.total > 1
-                  ? `${formatTotalPrice(totalPrice / state.travelers.total)} per person`
+                  ? `${formatTotalPrice(pricing.perPerson)} per person`
                   : "Complete package"
                 }
               </p>

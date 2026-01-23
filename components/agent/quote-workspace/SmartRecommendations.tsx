@@ -6,7 +6,7 @@ import {
   Sparkles, Shield, Car, Utensils, Camera, Luggage, ChevronRight,
   X, Plus, Check, AlertTriangle, TrendingUp, Zap
 } from "lucide-react";
-import { useQuoteWorkspace, useQuoteItems } from "./QuoteWorkspaceProvider";
+import { useQuoteWorkspace, useQuoteItems, useQuotePricing } from "./QuoteWorkspaceProvider";
 
 interface Recommendation {
   id: string;
@@ -24,6 +24,7 @@ interface Recommendation {
 export default function SmartRecommendations() {
   const { state, addItem } = useQuoteWorkspace();
   const items = useQuoteItems();
+  const { subtotal: totalValue } = useQuotePricing();
   const [isExpanded, setIsExpanded] = useState(true);
   const [dismissedIds, setDismissedIds] = useState<Set<string>>(new Set());
 
@@ -35,7 +36,6 @@ export default function SmartRecommendations() {
     const hasInsurance = items.some((i) => i.type === "insurance");
     const hasTransfers = items.some((i) => i.type === "transfer");
     const hasActivities = items.some((i) => i.type === "activity");
-    const totalValue = items.reduce((sum, i) => sum + i.price, 0);
     const travelers = state.travelers.total;
 
     // Travel Insurance - High priority if missing
