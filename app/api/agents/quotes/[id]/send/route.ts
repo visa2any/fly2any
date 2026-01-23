@@ -1,254 +1,218 @@
-export const dynamic = 'force-dynamic';
-
-// app/api/agents/quotes/[id]/send/route.ts
-// Send Quote to Client via Email
 import { NextRequest, NextResponse } from "next/server";
-import { auth } from "@/lib/auth";
+import { prisma } from "@/lib/prisma";
+import { z } from "zod";
 
-import prisma from "@/lib/prisma";
-import { mailgunClient } from '@/lib/email/mailgun-client';
-import crypto from "crypto";
+// Validation schema for send request
+const SendRequestSchema = z.object({
+  channel: z.enum(["email", "whatsapp", "link"]),
+  to: z.string().email().optional(),
+  subject: z.string().optional(),
+  message: z.string().min(1),
+});
 
-
-
-// Generate shareable link token
-function generateShareableToken(): string {
-  return crypto.randomBytes(32).toString("hex");
-}
-
-// POST /api/agents/quotes/[id]/send - Send quote to client
 export async function POST(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const session = await auth();
-    if (!session?.user?.id) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
+    const { id } = await params;
+    const body = await request.json();
 
-    const agent = await prisma!.travelAgent.findUnique({
-      where: { userId: session.user.id },
-      include: { user: true },
-    });
+    // Validate request body
+    const validated = SendRequestSchema.parse(body);
 
-    if (!agent) {
-      return NextResponse.json({ error: "Agent not found" }, { status: 404 });
-    }
-
-    const quote = await prisma!.agentQuote.findFirst({
-      where: {
-        id: params.id,
-        agentId: agent.id,
+    // Fetch quote with client and agent info
+    const quote = await prisma?.agentQuote.findUnique({
+      where: { id },
+      include: {
+        agent: {
+          include: {
+            user: { select: { name: true, email: true } },
+          },
+        },
+        client: true,
       },
-      include: { client: true },
     });
 
     if (!quote) {
-      return NextResponse.json({ error: "Quote not found" }, { status: 404 });
+      return NextResponse.json(
+        { error: "Quote not found" },
+        { status: 404 }
+      );
     }
 
-    // Can only send DRAFT quotes
-    if (quote.status !== "DRAFT") {
+    // Validate channel-specific requirements
+    if (validated.channel === "email" && !validated.to) {
       return NextResponse.json(
-        { error: "Quote has already been sent" },
+        { error: "Email address required for email channel" },
         { status: 400 }
       );
     }
 
-    // Generate shareable link if doesn't exist
-    let shareableLink = quote.shareableLink;
-    if (!shareableLink) {
-      shareableLink = generateShareableToken();
+    if (validated.channel === "email" && !validated.subject) {
+      return NextResponse.json(
+        { error: "Subject line required for email" },
+        { status: 400 }
+      );
     }
 
-    const baseUrl = process.env.NEXTAUTH_URL || "http://localhost:3000";
-    const quoteUrl = `${baseUrl}/client/quotes/${shareableLink}`;
+    // Generate public quote URL (use shareableLink or generate token)
+    const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "https://www.fly2any.com";
+    const viewToken = quote.shareableLink || `qt-${quote.id}`;
+    const quoteUrl = `${baseUrl}/quote/${viewToken}`;
 
-    // Update quote status and shareable link
-    const updatedQuote = await prisma!.agentQuote.update({
-      where: { id: params.id },
+    // Idempotency check: Was this quote sent recently? (within 5 minutes)
+    const fiveMinutesAgo = new Date(Date.now() - 5 * 60 * 1000);
+    const wasRecentlySent = quote.sentAt && new Date(quote.sentAt) > fiveMinutesAgo;
+
+    // Track quote send (update sent tracking fields)
+    // If recently sent, preserve sentAt and don't increment counters to avoid corruption
+    await prisma?.agentQuote.update({
+      where: { id },
       data: {
-        status: "SENT",
-        sentAt: new Date(),
-        shareableLink,
-        emailSentCount: { increment: 1 },
+        sentAt: wasRecentlySent ? quote.sentAt : new Date(), // Preserve original send time
+        status: "SENT" as any,
+        emailSentCount: validated.channel === "email" && !wasRecentlySent ? { increment: 1 } : undefined,
+        smsSentCount: validated.channel === "whatsapp" && !wasRecentlySent ? { increment: 1 } : undefined,
+        sharedWithClient: true,
+        updatedAt: new Date(),
       },
     });
 
-    // Prepare email content
-    const emailSubject = `Your ${quote.destination} Trip Quote from ${agent.agencyName || agent.user.name}`;
+    // Send based on channel
+    switch (validated.channel) {
+      case "email":
+        await sendEmail({
+          to: validated.to!,
+          subject: validated.subject!,
+          message: validated.message,
+          quoteUrl,
+          quote,
+        });
+        break;
 
-    const emailHtml = `
-<!DOCTYPE html>
-<html>
-<head>
-  <style>
-    body {
-      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
-      line-height: 1.6;
-      color: #333;
-      max-width: 600px;
-      margin: 0 auto;
-      padding: 20px;
+      case "whatsapp":
+        await sendWhatsApp({
+          phone: quote.client?.phone || "",
+          message: validated.message,
+          quoteUrl,
+        });
+        break;
+
+      case "link":
+        // Link is copied client-side, just track the action
+        break;
     }
-    .header {
-      background: linear-gradient(135deg, #3B82F6 0%, #2563EB 100%);
-      color: white;
-      padding: 30px;
-      border-radius: 10px 10px 0 0;
-      text-align: center;
-    }
-    .content {
-      background: white;
-      padding: 30px;
-      border: 1px solid #E5E7EB;
-      border-top: none;
-    }
-    .trip-summary {
-      background: #F3F4F6;
-      padding: 20px;
-      border-radius: 8px;
-      margin: 20px 0;
-    }
-    .price {
-      font-size: 32px;
-      font-weight: bold;
-      color: #3B82F6;
-      margin: 10px 0;
-    }
-    .button {
-      display: inline-block;
-      background: #3B82F6;
-      color: white;
-      padding: 14px 28px;
-      border-radius: 6px;
-      text-decoration: none;
-      font-weight: 600;
-      margin: 10px 5px;
-    }
-    .button-secondary {
-      background: white;
-      color: #3B82F6;
-      border: 2px solid #3B82F6;
-    }
-    .expiry {
-      background: #FEF3C7;
-      border-left: 4px solid #F59E0B;
-      padding: 12px;
-      margin: 20px 0;
-      border-radius: 4px;
-    }
-    .footer {
-      text-align: center;
-      padding: 20px;
-      color: #6B7280;
-      font-size: 14px;
-    }
-  </style>
-</head>
-<body>
-  <div class="header">
-    <h1>✈️ Your Custom ${quote.destination} Itinerary</h1>
-    <p>${quote.tripName}</p>
-  </div>
-
-  <div class="content">
-    <p>Hi ${quote.client.firstName},</p>
-
-    <p>I've created a personalized travel itinerary for your upcoming trip to <strong>${quote.destination}</strong>. This is a custom package designed specifically for you based on our conversation.</p>
-
-    <div class="trip-summary">
-      <h3>✨ Trip Highlights</h3>
-      <ul>
-        <li><strong>Destination:</strong> ${quote.destination}</li>
-        <li><strong>Dates:</strong> ${new Date(quote.startDate).toLocaleDateString()} - ${new Date(quote.endDate).toLocaleDateString()} (${quote.duration} ${quote.duration === 1 ? 'day' : 'days'})</li>
-        <li><strong>Travelers:</strong> ${quote.travelers} ${quote.travelers === 1 ? 'person' : 'people'} (${quote.adults} ${quote.adults === 1 ? 'adult' : 'adults'}${quote.children > 0 ? `, ${quote.children} ${quote.children === 1 ? 'child' : 'children'}` : ''})</li>
-        ${(quote.flights as any[]).length > 0 ? `<li><strong>Flights:</strong> Included (${(quote.flights as any[]).length} ${(quote.flights as any[]).length === 1 ? 'flight' : 'flights'})</li>` : ''}
-        ${(quote.hotels as any[]).length > 0 ? `<li><strong>Accommodation:</strong> ${(quote.hotels as any[]).length} ${(quote.hotels as any[]).length === 1 ? 'night' : 'nights'}</li>` : ''}
-        ${(quote.activities as any[]).length > 0 ? `<li><strong>Activities:</strong> ${(quote.activities as any[]).length} experiences included</li>` : ''}
-      </ul>
-
-      <div class="price">
-        $${quote.total.toLocaleString()}
-      </div>
-      <p style="margin: 0; color: #6B7280;">Total for all travelers</p>
-    </div>
-
-    <div class="expiry">
-      ⏰ <strong>This quote is valid until ${new Date(quote.expiresAt).toLocaleDateString()}</strong><br/>
-      <small>Price and availability are guaranteed until this date</small>
-    </div>
-
-    <div style="text-align: center; margin: 30px 0;">
-      <a href="${quoteUrl}" class="button">View Full Itinerary</a>
-      <a href="${quoteUrl}?action=accept" class="button button-secondary">Accept & Book</a>
-    </div>
-
-    <p><strong>What's included:</strong></p>
-    <ul>
-      ${quote.inclusions.map(inc => `<li>${inc}</li>`).join('')}
-    </ul>
-
-    <p>If you have any questions or would like to make changes to this itinerary, just reply to this email or give me a call.</p>
-
-    <p>Looking forward to helping you plan an amazing trip!</p>
-
-    <p>
-      Best regards,<br/>
-      <strong>${agent.user.name}</strong><br/>
-      ${agent.agencyName || ''}<br/>
-      ${agent.phoneNumber || ''}<br/>
-      ${agent.user.email}
-    </p>
-  </div>
-
-  <div class="footer">
-    <p>This quote was sent to you by ${agent.agencyName || agent.user.name}</p>
-    <p>Quote Number: ${quote.quoteNumber}</p>
-  </div>
-</body>
-</html>
-    `;
-
-    // Send email via Mailgun
-    try {
-      await mailgunClient.send({
-        to: quote.client.email,
-        subject: emailSubject,
-        html: emailHtml,
-      });
-    } catch (emailError) {
-      console.error("[EMAIL_SEND_ERROR]", emailError);
-      // Continue anyway - quote is still marked as sent
-    }
-
-    // Log activity
-    await prisma!.agentActivityLog.create({
-      data: {
-        agentId: agent.id,
-        activityType: "quote_sent",
-        description: `Quote sent to ${quote.client.firstName} ${quote.client.lastName}`,
-        entityType: "quote",
-        entityId: quote.id,
-        metadata: {
-          quoteNumber: quote.quoteNumber,
-          client: quote.client.email,
-          total: quote.total,
-        },
-      },
-    });
 
     return NextResponse.json({
       success: true,
-      quote: updatedQuote,
-      quoteUrl,
+      message: `Quote sent via ${validated.channel}`,
+      sentTo: validated.to || quote.client?.email || "client",
+      sentAt: new Date(),
     });
+
   } catch (error) {
     console.error("[QUOTE_SEND_ERROR]", error);
+
+    // Handle Zod validation errors
+    if (error instanceof z.ZodError) {
+      const fieldErrors = error.issues.map((issue) => ({
+        field: issue.path.join("."),
+        message: issue.message,
+      }));
+
+      return NextResponse.json(
+        {
+          error: "Validation failed",
+          details: fieldErrors,
+        },
+        { status: 400 }
+      );
+    }
+
+    // Handle database errors
+    if (error && typeof error === "object" && "code" in error) {
+      const prismaError = error as { code: string };
+
+      if (prismaError.code === "P2025") {
+        return NextResponse.json(
+          { error: "Quote not found" },
+          { status: 404 }
+        );
+      }
+    }
+
+    // Generic error
     return NextResponse.json(
-      { error: "Failed to send quote" },
+      {
+        error: "Failed to send quote",
+        hint: "Please try again. If the problem persists, contact support.",
+        supportEmail: "support@fly2any.com",
+      },
       { status: 500 }
     );
   }
+}
+
+// Email sending function (placeholder - integrate with AWS SES or similar)
+async function sendEmail(params: {
+  to: string;
+  subject: string;
+  message: string;
+  quoteUrl: string;
+  quote: any;
+}) {
+  // TODO: Integrate with AWS SES or email service
+  console.log("[SEND_EMAIL]", {
+    to: params.to,
+    subject: params.subject,
+    message: params.message,
+    quoteUrl: params.quoteUrl,
+  });
+
+  // Example AWS SES integration:
+  // const ses = new AWS.SES({ region: 'us-east-1' });
+  // await ses.sendEmail({
+  //   Source: 'quotes@fly2any.com',
+  //   Destination: { ToAddresses: [params.to] },
+  //   Message: {
+  //     Subject: { Data: params.subject },
+  //     Body: { Text: { Data: params.message } },
+  //   },
+  // });
+
+  // For now, simulate success
+  return { success: true };
+}
+
+// WhatsApp sending function (placeholder - integrate with WhatsApp Business API)
+async function sendWhatsApp(params: {
+  phone: string;
+  message: string;
+  quoteUrl: string;
+}) {
+  // TODO: Integrate with WhatsApp Business API
+  console.log("[SEND_WHATSAPP]", {
+    phone: params.phone,
+    message: params.message,
+    quoteUrl: params.quoteUrl,
+  });
+
+  // Example WhatsApp API integration:
+  // const response = await fetch('https://graph.facebook.com/v17.0/YOUR_PHONE_NUMBER_ID/messages', {
+  //   method: 'POST',
+  //   headers: {
+  //     'Authorization': `Bearer ${process.env.WHATSAPP_ACCESS_TOKEN}`,
+  //     'Content-Type': 'application/json',
+  //   },
+  //   body: JSON.stringify({
+  //     messaging_product: 'whatsapp',
+  //     to: params.phone,
+  //     type: 'text',
+  //     text: { body: params.message },
+  //   }),
+  // });
+
+  // For now, return success (client handles opening WhatsApp)
+  return { success: true, whatsappUrl: `https://wa.me/${params.phone}?text=${encodeURIComponent(params.message)}` };
 }

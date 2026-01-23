@@ -15,7 +15,7 @@ export default function QuoteFooter() {
 
   const itemCount = items.length;
   const canPreview = itemCount > 0;
-  const canSend = itemCount > 0 && client !== null;
+  const canSend = itemCount > 0 && client !== null && state.id !== null;
 
   // Duplicate quote
   const handleDuplicate = async () => {

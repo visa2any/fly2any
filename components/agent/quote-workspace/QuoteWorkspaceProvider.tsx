@@ -288,6 +288,7 @@ interface QuoteWorkspaceContextType {
   state: QuoteWorkspaceState;
   dispatch: React.Dispatch<WorkspaceAction>;
   conflicts: Map<string, TimeConflict>;
+  isSaving: boolean; // Expose saving state for race condition prevention
   // Convenience actions
   setTripName: (name: string) => void;
   setDestination: (dest: string) => void;
@@ -487,6 +488,7 @@ export function QuoteWorkspaceProvider({ children, initialQuoteId }: { children:
       state,
       dispatch,
       conflicts,
+      isSaving: state.ui.isSaving,
       setTripName,
       setDestination,
       setDates,

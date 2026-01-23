@@ -6,6 +6,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { useQuoteWorkspace } from "./QuoteWorkspaceProvider";
 import { useViewMode } from "./itinerary/ViewModeContext";
 import { useAgentShortcuts, CommandPalette, ShortcutsOverlay, SaveToast } from "./velocity";
+import { SendQuoteModal } from "./SendQuoteModal";
 
 interface QuoteWorkspaceLayoutProps {
   header: ReactNode;
@@ -200,6 +201,12 @@ export default function QuoteWorkspaceLayout({
       )}
 
       {overlays}
+
+      {/* Send Quote Modal */}
+      <SendQuoteModal
+        isOpen={state.ui.sendModalOpen}
+        onClose={() => dispatch({ type: "SET_UI", payload: { sendModalOpen: false } })}
+      />
 
       {/* Velocity UX Overlays */}
       <CommandPalette

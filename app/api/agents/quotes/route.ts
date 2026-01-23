@@ -407,15 +407,74 @@ export async function POST(request: NextRequest) {
   } catch (error) {
     console.error("[QUOTE_CREATE_ERROR]", error);
 
+    // Check for specific error types
     if (error instanceof z.ZodError) {
+      const fieldErrors = error.issues.map(issue => ({
+        field: issue.path.join('.'),
+        message: issue.message,
+        code: issue.code,
+      }));
+      
       return NextResponse.json(
-        { error: "Validation error", details: error.issues },
+        { 
+          error: "Validation failed", 
+          details: fieldErrors,
+          hint: "Check that all required fields are present and formatted correctly"
+        },
         { status: 400 }
       );
     }
 
+    // Check for Prisma database errors
+    if (error && typeof error === 'object' && 'code' in error) {
+      const prismaError = error as { code: string; meta?: any };
+      
+      // Unique constraint violations
+      if (prismaError.code === 'P2002') {
+        return NextResponse.json(
+          { 
+            error: "Duplicate record", 
+            details: prismaError.meta?.target,
+            hint: "A quote with this information already exists"
+          },
+          { status: 409 }
+        );
+      }
+      
+      // Foreign key constraint violations
+      if (prismaError.code === 'P2003') {
+        return NextResponse.json(
+          { 
+            error: "Invalid reference", 
+            details: prismaError.meta?.field_name,
+            hint: "Check that client ID is valid"
+          },
+          { status: 400 }
+        );
+      }
+    }
+
+    // Check for known application errors
+    if (error instanceof Error) {
+      // Custom validation errors from QuoteSchemaMapper
+      if (error.message.includes("Cannot save quote")) {
+        return NextResponse.json(
+          { 
+            error: "Quote validation failed", 
+            hint: error.message
+          },
+          { status: 400 }
+        );
+      }
+    }
+
+    // Generic error
     return NextResponse.json(
-      { error: "Internal server error" },
+      { 
+        error: "Unable to save quote", 
+        hint: "Please try again. If the problem persists, contact support.",
+        supportEmail: "support@fly2any.com"
+      },
       { status: 500 }
     );
   }
