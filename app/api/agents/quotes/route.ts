@@ -4,9 +4,9 @@ export const dynamic = 'force-dynamic';
 // Quote Management - List and Create
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
-
 import prisma from "@/lib/prisma";
 import { z } from "zod";
+import { calculateQuotePricing, validatePricing, type PricingContext } from "@/lib/pricing/QuotePricingService";
 
 // Generate quote number
 function generateQuoteNumber(): string {
@@ -88,36 +88,118 @@ export async function GET(request: NextRequest) {
 
 // POST /api/agents/quotes - Create new quote
 const FlightItemSchema = z.object({
-  from: z.string(),
-  to: z.string(),
-  airline: z.string(),
-  flight: z.string(),
-  date: z.string(),
-  time: z.string(),
-  cabinClass: z.string(),
+  type: z.literal('flight'),
   price: z.number(),
-  duration: z.string().optional(),
-  stops: z.number().optional(),
+  priceType: z.enum(['total', 'per_person', 'per_night', 'per_unit']),
+  priceAppliesTo: z.number(),
+  currency: z.string().default('USD'),
+  // Flight-specific fields
+  airline: z.string(),
+  flightNumber: z.string(),
+  origin: z.string(),
+  originCity: z.string(),
+  destination: z.string(),
+  destinationCity: z.string(),
+  departureTime: z.string(),
+  arrivalTime: z.string(),
+  duration: z.string(),
+  stops: z.number(),
+  cabinClass: z.string(),
+  passengers: z.number(),
+  date: z.string(),
+  createdAt: z.string(),
 });
 
 const HotelItemSchema = z.object({
+  type: z.literal('hotel'),
+  price: z.number(),
+  priceType: z.enum(['total', 'per_person', 'per_night', 'per_unit']),
+  priceAppliesTo: z.number(),
+  nights: z.number(),
+  currency: z.string().default('USD'),
+  // Hotel-specific fields
   name: z.string(),
   location: z.string(),
   checkIn: z.string(),
   checkOut: z.string(),
-  nights: z.number(),
   roomType: z.string(),
+  stars: z.number(),
+  amenities: z.array(z.string()),
+  guests: z.number(),
+  image: z.string().optional(),
+  createdAt: z.string(),
+});
+
+const ActivityItemSchema = z.object({
+  type: z.literal('activity'),
   price: z.number(),
-  mealPlan: z.string().optional(),
-  amenities: z.array(z.string()).optional(),
+  priceType: z.enum(['total', 'per_person', 'per_night', 'per_unit']),
+  priceAppliesTo: z.number(),
+  currency: z.string().default('USD'),
+  // Activity-specific fields
+  name: z.string(),
+  location: z.string(),
+  description: z.string(),
+  duration: z.string(),
+  time: z.string().optional(),
+  participants: z.number(),
+  includes: z.array(z.string()),
+  image: z.string().optional(),
+  date: z.string(),
+  createdAt: z.string(),
+});
+
+const TransferItemSchema = z.object({
+  type: z.literal('transfer'),
+  price: z.number(),
+  priceType: z.enum(['total', 'per_person', 'per_night', 'per_unit']),
+  priceAppliesTo: z.number(),
+  currency: z.string().default('USD'),
+  // Transfer-specific fields
+  provider: z.string(),
+  vehicleType: z.string(),
+  pickupLocation: z.string(),
+  dropoffLocation: z.string(),
+  pickupTime: z.string(),
+  passengers: z.number(),
+  meetAndGreet: z.boolean(),
+  date: z.string(),
+  createdAt: z.string(),
+});
+
+const CarItemSchema = z.object({
+  type: z.literal('car'),
+  price: z.number(),
+  priceType: z.enum(['total', 'per_person', 'per_night', 'per_unit']),
+  priceAppliesTo: z.number(),
+  currency: z.string().default('USD'),
+  // Car-specific fields
+  company: z.string(),
+  carType: z.string(),
+  carClass: z.string(),
+  pickupLocation: z.string(),
+  dropoffLocation: z.string(),
+  pickupDate: z.string(),
+  dropoffDate: z.string(),
+  days: z.number(),
+  features: z.array(z.string()),
+  image: z.string().optional(),
+  createdAt: z.string(),
 });
 
 const CustomItemSchema = z.object({
+  type: z.literal('custom'),
+  price: z.number(),
+  priceType: z.enum(['total', 'per_person', 'per_night', 'per_unit']),
+  priceAppliesTo: z.number(),
+  currency: z.string().default('USD'),
+  // Custom-specific fields
   name: z.string(),
   description: z.string().optional(),
   category: z.string(),
-  price: z.number(),
+  quantity: z.number(),
   date: z.string().optional(),
+  createdAt: z.string(),
 });
 
 const CreateQuoteSchema = z.object({
@@ -129,20 +211,14 @@ const CreateQuoteSchema = z.object({
   adults: z.number().min(1),
   children: z.number().default(0),
   infants: z.number().default(0),
-  // Components
+  // Components - using unified item schema
   flights: z.array(FlightItemSchema).default([]),
   hotels: z.array(HotelItemSchema).default([]),
-  activities: z.array(CustomItemSchema).default([]),
-  transfers: z.array(CustomItemSchema).default([]),
-  carRentals: z.array(CustomItemSchema).default([]),
-  insurance: z.object({
-    provider: z.string(),
-    plan: z.string(),
-    coverage: z.string(),
-    price: z.number(),
-  }).optional(),
+  activities: z.array(ActivityItemSchema).default([]),
+  transfers: z.array(TransferItemSchema).default([]),
+  carRentals: z.array(CarItemSchema).default([]),
   customItems: z.array(CustomItemSchema).default([]),
-  // Pricing
+  // Pricing context
   agentMarkupPercent: z.number().min(0).max(100).default(15),
   discount: z.number().default(0),
   taxes: z.number().default(0),
@@ -198,32 +274,43 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Calculate costs
-    const flightsCost = data.flights.reduce((sum, f) => sum + f.price, 0);
-    const hotelsCost = data.hotels.reduce((sum, h) => sum + h.price, 0);
-    const activitiesCost = data.activities.reduce((sum, a) => sum + a.price, 0);
-    const transfersCost = data.transfers.reduce((sum, t) => sum + t.price, 0);
-    const carRentalsCost = data.carRentals.reduce((sum, c) => sum + c.price, 0);
-    const insuranceCost = data.insurance?.price || 0;
-    const customItemsCost = data.customItems.reduce((sum, i) => sum + i.price, 0);
+    // Calculate pricing using unified QuotePricingService
+    const allItems = [...data.flights, ...data.hotels, ...data.activities, ...data.transfers, ...data.carRentals, ...data.customItems];
+    
+    const travelers = data.adults + data.children + data.infants;
+    
+    const pricingContext: PricingContext = {
+      travelers,
+      currency: 'USD',
+      agentMarkupPercent: data.agentMarkupPercent,
+      taxes: data.taxes,
+      fees: data.fees,
+      discount: data.discount,
+    };
 
-    const subtotal = flightsCost + hotelsCost + activitiesCost + transfersCost + carRentalsCost + insuranceCost + customItemsCost;
-    const agentMarkup = subtotal * (data.agentMarkupPercent / 100);
-    const total = subtotal + agentMarkup + data.taxes + data.fees - data.discount;
+    // Calculate pricing with product markups
+    const pricing = calculateQuotePricing(allItems, pricingContext);
+
+    // Validate pricing before saving
+    const validation = validatePricing(pricing, travelers);
+    if (!validation.valid) {
+      console.error("[PRICING_VALIDATION_ERROR]", validation.errors);
+      return NextResponse.json(
+        { error: "Pricing validation failed", details: validation.errors },
+        { status: 400 }
+      );
+    }
 
     // Calculate duration
     const start = new Date(data.startDate);
     const end = new Date(data.endDate);
     const duration = Math.ceil((end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24));
 
-    // Calculate travelers
-    const travelers = data.adults + data.children + data.infants;
-
     // Set expiration date
     const expiresAt = new Date();
     expiresAt.setDate(expiresAt.getDate() + data.expiresInDays);
 
-    // Create quote
+    // Create quote with computed pricing
     const quote = await prisma!.agentQuote.create({
       data: {
         quoteNumber: generateQuoteNumber(),
@@ -244,24 +331,25 @@ export async function POST(request: NextRequest) {
         activities: data.activities as any,
         transfers: data.transfers as any,
         carRentals: data.carRentals as any,
-        insurance: data.insurance as any,
         customItems: data.customItems as any,
-        // Costs
-        flightsCost,
-        hotelsCost,
-        activitiesCost,
-        transfersCost,
-        carRentalsCost,
-        insuranceCost,
-        customItemsCost,
-        subtotal,
-        agentMarkup,
-        agentMarkupPercent: data.agentMarkupPercent,
-        taxes: data.taxes,
-        fees: data.fees,
-        discount: data.discount,
-        total,
-        currency: "USD",
+        // Pricing from unified service
+        basePrice: pricing.basePrice,
+        productMarkup: pricing.productMarkup,
+        flightsCost: data.flights.reduce((sum, f) => sum + f.price, 0),
+        hotelsCost: data.hotels.reduce((sum, h) => sum + h.price, 0),
+        activitiesCost: data.activities.reduce((sum, a) => sum + a.price, 0),
+        transfersCost: data.transfers.reduce((sum, t) => sum + t.price, 0),
+        carRentalsCost: data.carRentals.reduce((sum, c) => sum + c.price, 0),
+        insuranceCost: 0,
+        customItemsCost: data.customItems.reduce((sum, i) => sum + i.price, 0),
+        subtotal: pricing.subtotal,
+        agentMarkup: pricing.agentMarkup,
+        agentMarkupPercent: pricing.agentMarkupPercent,
+        taxes: pricing.taxes,
+        fees: pricing.fees,
+        discount: pricing.discount,
+        total: pricing.total,
+        currency: pricing.currency,
         // Settings
         showCommissionToClient: data.showCommissionToClient,
         commissionLabel: data.commissionLabel,
@@ -307,6 +395,9 @@ export async function POST(request: NextRequest) {
           client: `${client.firstName} ${client.lastName}`,
           destination: quote.destination,
           total: quote.total,
+          basePrice: quote.basePrice,
+          productMarkup: quote.productMarkup,
+          agentMarkup: quote.agentMarkup,
         },
       },
     });

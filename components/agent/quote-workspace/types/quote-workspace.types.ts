@@ -208,14 +208,17 @@ export interface Travelers {
 
 // Pricing state
 export interface QuotePricing {
-  subtotal: number;
-  markupPercent: number;
-  markupAmount: number;
+  basePrice: number;        // Total of all item base prices (before any markup)
+  productMarkup: number;    // Total of all product markups
+  subtotal: number;          // Base + product markup
+  markupPercent: number;     // Agent markup percentage
+  markupAmount: number;      // Legacy: same as agentMarkup (for backward compatibility)
+  agentMarkup: number;       // Agent markup amount (applied to base price only)
   taxes: number;
   fees: number;
   discount: number;
-  total: number;
-  perPerson: number;
+  total: number;            // Final total
+  perPerson: number;         // Total / travelers
   currency: Currency;
 }
 
@@ -258,6 +261,8 @@ export interface WorkspaceUI {
     tour?: SearchCacheEntry;
     activity?: SearchCacheEntry;
     transfer?: SearchCacheEntry;
+    insurance?: SearchCacheEntry;
+    custom?: SearchCacheEntry;
   };
 }
 
@@ -316,7 +321,8 @@ export type WorkspaceAction =
   | { type: 'SET_STATUS'; payload: QuoteStatus }
   | { type: 'SET_UI'; payload: Partial<WorkspaceUI> }
   | { type: 'SET_ACTIVE_TAB'; payload: ProductType }
-  | { type: 'SET_SEARCH_RESULTS'; payload: { loading: boolean; results: any[] | null } }
+  | { type: 'SET_SEARCH_RESULTS'; payload: { loading: boolean; results: any[] | null; tab?: ProductType; params?: any } }
+  | { type: 'RESTORE_CACHED_SEARCH'; payload: ProductType }
   | { type: 'EXPAND_ITEM'; payload: string | null }
   | { type: 'LOAD_QUOTE'; payload: Partial<QuoteWorkspaceState> }
   | { type: 'RESET_WORKSPACE' }
@@ -366,6 +372,7 @@ export const PRODUCT_CONFIG: Record<ProductType, { label: string; gradient: stri
   hotel: { label: 'Hotels', gradient: 'from-purple-500 to-pink-600', icon: 'Building2' },
   car: { label: 'Cars', gradient: 'from-cyan-500 to-blue-600', icon: 'Car' },
   activity: { label: 'Activities', gradient: 'from-emerald-500 to-teal-600', icon: 'Compass' },
+  tour: { label: 'Tours', gradient: 'from-violet-500 to-purple-600', icon: 'Map' },
   transfer: { label: 'Transfers', gradient: 'from-amber-500 to-orange-600', icon: 'Bus' },
   insurance: { label: 'Insurance', gradient: 'from-rose-500 to-pink-600', icon: 'Shield' },
   custom: { label: 'Custom', gradient: 'from-gray-600 to-gray-800', icon: 'Package' },

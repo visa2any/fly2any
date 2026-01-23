@@ -5,6 +5,7 @@ import { produce } from "immer";
 import { useDebouncedCallback } from "use-debounce";
 import { UnifiedSearchProvider } from "./unified-search/UnifiedSearchProvider";
 import { detectConflicts, type TimeConflict } from "./utils/conflict-detection";
+import { calculateQuotePricing, type PriceBreakdown, type PricingContext } from "@/lib/pricing/QuotePricingService";
 import type {
   QuoteWorkspaceState,
   WorkspaceAction,
@@ -30,9 +31,12 @@ const initialState: QuoteWorkspaceState = {
   travelers: { adults: 1, children: 0, infants: 0, total: 1 },
   items: [],
   pricing: {
+    basePrice: 0,
+    productMarkup: 0,
     subtotal: 0,
     markupPercent: 15,
     markupAmount: 0,
+    agentMarkup: 0,
     taxes: 0,
     fees: 0,
     discount: 0,
@@ -61,30 +65,22 @@ const initialState: QuoteWorkspaceState = {
   historyIndex: 0,
 };
 
-// Calculate pricing from items with accurate multi-traveler support
-function calculatePricing(items: QuoteItem[], markupPercent: number, taxes: number, fees: number, discount: number, travelers: number, currency: Currency): QuotePricing {
-  // Calculate subtotal based on item price type
-  const subtotal = items.reduce((sum, item) => {
-    const itemPrice = item.price || 0;
-    // Handle different price types
-    if (item.priceType === 'per_person') {
-      // Per-person items: multiply by travelers covered
-      return sum + (itemPrice * (item.priceAppliesTo || travelers));
-    } else if (item.priceType === 'per_night' || item.priceType === 'per_unit') {
-      // Per-night/unit: use price as-is (multiplication handled elsewhere)
-      return sum + itemPrice;
-    }
-    // Default 'total': price already covers all people
-    return sum + itemPrice;
-  }, 0);
-
-  const markupAmount = (subtotal * markupPercent) / 100;
-  const total = Math.max(0, subtotal + markupAmount + taxes + fees - discount);
-
-  // Calculate accurate per-person based on actual coverage
-  const perPerson = travelers > 0 ? total / travelers : total;
-
-  return { subtotal, markupPercent, markupAmount, taxes, fees, discount, total, perPerson, currency };
+// Helper: Transform QuotePricingService output to state.pricing format
+function toStatePricing(breakdown: PriceBreakdown): QuotePricing {
+  return {
+    basePrice: breakdown.basePrice,
+    productMarkup: breakdown.productMarkup,
+    subtotal: breakdown.subtotal,
+    markupPercent: breakdown.agentMarkupPercent,
+    markupAmount: breakdown.agentMarkup,
+    agentMarkup: breakdown.agentMarkup,
+    taxes: breakdown.taxes,
+    fees: breakdown.fees,
+    discount: breakdown.discount,
+    total: breakdown.total,
+    perPerson: breakdown.perPerson,
+    currency: breakdown.currency,
+  };
 }
 
 // Reducer with Immer for immutable updates
@@ -107,60 +103,64 @@ function workspaceReducer(state: QuoteWorkspaceState, action: WorkspaceAction): 
       case "SET_TRAVELERS":
         Object.assign(draft.travelers, action.payload);
         draft.travelers.total = draft.travelers.adults + draft.travelers.children + draft.travelers.infants;
-        // Recalc pricing
-        draft.pricing = calculatePricing(
-          draft.items,
-          draft.pricing.markupPercent,
-          draft.pricing.taxes,
-          draft.pricing.fees,
-          draft.pricing.discount,
-          draft.travelers.total,
-          draft.pricing.currency
-        );
+        // Recalc pricing using unified service
+        const pricingContext1: PricingContext = {
+          travelers: draft.travelers.total,
+          currency: draft.pricing.currency,
+          agentMarkupPercent: draft.pricing.markupPercent,
+          taxes: draft.pricing.taxes,
+          fees: draft.pricing.fees,
+          discount: draft.pricing.discount,
+        };
+        const breakdown1 = calculateQuotePricing(draft.items, pricingContext1);
+        draft.pricing = toStatePricing(breakdown1);
         break;
 
       case "ADD_ITEM":
         const newItem = { ...action.payload, id: action.payload.id || generateId(), sortOrder: draft.items.length };
         draft.items.push(newItem);
-        // Recalc pricing
-        draft.pricing = calculatePricing(
-          draft.items,
-          draft.pricing.markupPercent,
-          draft.pricing.taxes,
-          draft.pricing.fees,
-          draft.pricing.discount,
-          draft.travelers.total,
-          draft.pricing.currency
-        );
+        // Recalc pricing using unified service
+        const pricingContext2: PricingContext = {
+          travelers: draft.travelers.total,
+          currency: draft.pricing.currency,
+          agentMarkupPercent: draft.pricing.markupPercent,
+          taxes: draft.pricing.taxes,
+          fees: draft.pricing.fees,
+          discount: draft.pricing.discount,
+        };
+        const breakdown2 = calculateQuotePricing(draft.items, pricingContext2);
+        draft.pricing = toStatePricing(breakdown2);
         break;
 
       case "UPDATE_ITEM":
         const updateIdx = draft.items.findIndex((i) => i.id === action.payload.id);
         if (updateIdx !== -1) {
           Object.assign(draft.items[updateIdx], action.payload.updates);
-          draft.pricing = calculatePricing(
-            draft.items,
-            draft.pricing.markupPercent,
-            draft.pricing.taxes,
-            draft.pricing.fees,
-            draft.pricing.discount,
-            draft.travelers.total,
-            draft.pricing.currency
-          );
+          const pricingContext3: PricingContext = {
+            travelers: draft.travelers.total,
+            currency: draft.pricing.currency,
+            agentMarkupPercent: draft.pricing.markupPercent,
+            taxes: draft.pricing.taxes,
+            fees: draft.pricing.fees,
+            discount: draft.pricing.discount,
+          };
+          const breakdown3 = calculateQuotePricing(draft.items, pricingContext3);
+          draft.pricing = toStatePricing(breakdown3);
         }
         break;
 
       case "REMOVE_ITEM":
         draft.items = draft.items.filter((i) => i.id !== action.payload);
-        draft.pricing = calculatePricing(
-          draft.items,
-          draft.pricing.markupPercent,
-          draft.pricing.taxes,
-          draft.pricing.fees,
-          draft.pricing.discount,
-          draft.travelers.total,
-          draft.pricing.currency
-        );
+        const pricingContext4: PricingContext = {
+          travelers: draft.travelers.total,
+          currency: draft.pricing.currency,
+          agentMarkupPercent: draft.pricing.markupPercent,
+          taxes: draft.pricing.taxes,
+          fees: draft.pricing.fees,
+          discount: draft.pricing.discount,
+        };
+        const breakdown4 = calculateQuotePricing(draft.items, pricingContext4);
+        draft.pricing = toStatePricing(breakdown4);
         break;
 
       case "REORDER_ITEMS":
@@ -179,15 +179,16 @@ function workspaceReducer(state: QuoteWorkspaceState, action: WorkspaceAction): 
 
       case "SET_MARKUP":
         draft.pricing.markupPercent = action.payload;
-        draft.pricing = calculatePricing(
-          draft.items,
-          action.payload,
-          draft.pricing.taxes,
-          draft.pricing.fees,
-          draft.pricing.discount,
-          draft.travelers.total,
-          draft.pricing.currency
-        );
+        const pricingContext5: PricingContext = {
+          travelers: draft.travelers.total,
+          currency: draft.pricing.currency,
+          agentMarkupPercent: action.payload,
+          taxes: draft.pricing.taxes,
+          fees: draft.pricing.fees,
+          discount: draft.pricing.discount,
+        };
+        const breakdown5 = calculateQuotePricing(draft.items, pricingContext5);
+        draft.pricing = toStatePricing(breakdown5);
         break;
 
       case "SET_CURRENCY":
@@ -196,28 +197,30 @@ function workspaceReducer(state: QuoteWorkspaceState, action: WorkspaceAction): 
 
       case "SET_TAXES":
         draft.pricing.taxes = action.payload;
-        draft.pricing = calculatePricing(
-          draft.items,
-          draft.pricing.markupPercent,
-          action.payload,
-          draft.pricing.fees,
-          draft.pricing.discount,
-          draft.travelers.total,
-          draft.pricing.currency
-        );
+        const pricingContext6: PricingContext = {
+          travelers: draft.travelers.total,
+          currency: draft.pricing.currency,
+          agentMarkupPercent: draft.pricing.markupPercent,
+          taxes: action.payload,
+          fees: draft.pricing.fees,
+          discount: draft.pricing.discount,
+        };
+        const breakdown6 = calculateQuotePricing(draft.items, pricingContext6);
+        draft.pricing = toStatePricing(breakdown6);
         break;
 
       case "SET_DISCOUNT":
         draft.pricing.discount = action.payload;
-        draft.pricing = calculatePricing(
-          draft.items,
-          draft.pricing.markupPercent,
-          draft.pricing.taxes,
-          draft.pricing.fees,
-          action.payload,
-          draft.travelers.total,
-          draft.pricing.currency
-        );
+        const pricingContext7: PricingContext = {
+          travelers: draft.travelers.total,
+          currency: draft.pricing.currency,
+          agentMarkupPercent: draft.pricing.markupPercent,
+          taxes: draft.pricing.taxes,
+          fees: draft.pricing.fees,
+          discount: action.payload,
+        };
+        const breakdown7 = calculateQuotePricing(draft.items, pricingContext7);
+        draft.pricing = toStatePricing(breakdown7);
         break;
 
       case "SET_CLIENT":
@@ -312,7 +315,7 @@ interface QuoteWorkspaceContextType {
   toggleSidebar: () => void;
   setDiscoveryPanelWidth: (width: number) => void;
   setSearchFormCollapsed: (collapsed: boolean) => void;
-  saveQuote: () => Promise<void>;
+  saveQuote: () => Promise<{ success: boolean; quote?: any; error?: string }>;
   loadQuote: (id: string) => Promise<void>;
 }
 
@@ -370,13 +373,13 @@ export function QuoteWorkspaceProvider({ children, initialQuoteId }: { children:
 
     dispatch({ type: "SET_SAVING", payload: true });
     try {
-      // Transform items by type - filter out items without valid data
-      const flights = state.items.filter(i => i.type === 'flight' && i.data).map(i => i.data);
-      const hotels = state.items.filter(i => i.type === 'hotel' && i.data).map(i => i.data);
-      const activities = state.items.filter(i => i.type === 'activity' && i.data).map(i => i.data);
-      const transfers = state.items.filter(i => i.type === 'transfer' && i.data).map(i => i.data);
-      const carRentals = state.items.filter(i => i.type === 'car' && i.data).map(i => i.data);
-      const customItems = state.items.filter(i => i.type === 'custom' && i.data).map(i => i.data);
+      // Transform items by type - items themselves contain all data
+      const flights = state.items.filter(i => i.type === 'flight');
+      const hotels = state.items.filter(i => i.type === 'hotel');
+      const activities = state.items.filter(i => i.type === 'activity');
+      const transfers = state.items.filter(i => i.type === 'transfer');
+      const carRentals = state.items.filter(i => i.type === 'car');
+      const customItems = state.items.filter(i => i.type === 'custom');
 
       // Ensure dates are in ISO format with timezone
       const formatDateToISO = (dateStr: string) => {
@@ -461,8 +464,8 @@ export function QuoteWorkspaceProvider({ children, initialQuoteId }: { children:
 
   // Autosave on state changes (excluding UI changes) - only if client is selected and has valid items
   useEffect(() => {
-    const hasValidItems = state.items.some(i => i.data);
-    if ((hasValidItems || state.tripName) && state.client?.id) {
+    const hasItems = state.items.length > 0;
+    if ((hasItems || state.tripName) && state.client?.id) {
       debouncedSave();
     }
   }, [state.items, state.tripName, state.destination, state.startDate, state.endDate, state.travelers, state.pricing.markupPercent, state.client, debouncedSave]);
