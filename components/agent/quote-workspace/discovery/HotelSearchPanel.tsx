@@ -244,15 +244,15 @@ export default function HotelSearchPanel() {
     const item: Omit<HotelItem, "id" | "sortOrder" | "createdAt"> = {
       type: "hotel",
       price: totalPrice,
-      priceType: 'total', // Hotel price is total for room/all nights
-      priceAppliesTo: totalGuests, // Price covers room for these guests
-      currency: "USD", // Force USD
+      priceType: 'per_night', // CRITICAL FIX: Hotels are priced per night per room
+      priceAppliesTo: 1, // Price covers 1 room, NOT per person
+      nights,
+      currency: "USD",
       date: params.checkIn,
       name: hotel.name || "Hotel",
       location: locationStr,
       checkIn: params.checkIn,
       checkOut: params.checkOut,
-      nights,
       roomType: hotel.rates?.[0]?.roomType || hotel.roomType || "Standard Room",
       stars: hotel.rating || hotel.stars || 4,
       amenities: hotel.amenities || [],
@@ -595,7 +595,7 @@ function HotelCard({ hotel, nights, onAdd }: { hotel: any; nights: number; onAdd
   const img = hotel.thumbnail || hotel.images?.[0]?.url || hotel.image;
   const loc = typeof hotel.location === 'object' ? (hotel.location?.city || hotel.location?.address || '') : (hotel.location || hotel.address || '');
   const amenities = (hotel.amenities || []).slice(0, 2);
-  const board = hotel.boardType && hotel.boardType !== 'RO' ? ({ BB: 'B&B', HB: 'Half', FB: 'Full', AI: 'All-Inc' }[hotel.boardType] || hotel.boardType) : null;
+  const board = hotel.boardType && hotel.boardType !== 'RO' ? ({ BB: 'B&B', HB: 'Half', FB: 'Full', AI: 'All-Inc' as const }[hotel.boardType as 'BB' | 'HB' | 'FB' | 'AI'] || hotel.boardType) : null;
 
   return (
     <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} whileHover={{ scale: 1.01 }} className="bg-white border border-gray-100 rounded-xl p-2 hover:border-purple-200 hover:shadow-md transition-all group">

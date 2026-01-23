@@ -109,6 +109,8 @@ const FEATURES = [
   { icon: Users, title: 'Client CRM', desc: 'Manage clients & bookings in one place' },
   { icon: Palette, title: 'White Label', desc: 'Your branding, your business' },
   { icon: Shield, title: 'IATA/CLIA Support', desc: 'Works with your credentials' },
+  { icon: Globe, title: 'GDS Connectivity', desc: 'Sabre, Amadeus, Travelport integration' },
+  { icon: Shield, title: 'PCI Level 1 Compliant', desc: '99.9% uptime • 24/7 technical support' },
 ];
 
 // Testimonials
@@ -259,7 +261,10 @@ export default function BecomeAgentPage() {
             className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/10 backdrop-blur-sm border border-white/20 mb-8"
           >
             <BadgeCheck className="w-4 h-4 text-emerald-400" />
-            <span className="text-sm font-medium">Trusted by 1,200+ Travel Professionals</span>
+            <div>
+              <span className="text-sm font-medium">Trusted by 1,200+ Travel Professionals</span>
+              <span className="text-sm text-gray-400 ml-4">95% agent retention rate • 3x higher margins than OTA affiliate programs</span>
+            </div>
           </motion.div>
 
           {/* Main Headline */}
@@ -273,6 +278,15 @@ export default function BecomeAgentPage() {
             <br />
             <span className="text-white">with Fly2Any</span>
           </motion.h1>
+
+          <motion.p
+            initial={{ opacity: 0, y: 30 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.15 }}
+            className="text-lg md:text-xl text-gray-400 mb-8 max-w-2xl mx-auto"
+          >
+            Wholesale travel platform with direct airline contracts and GDS connectivity
+          </motion.p>
 
           <motion.p
             initial={{ opacity: 0, y: 30 }}
@@ -494,6 +508,32 @@ export default function BecomeAgentPage() {
         </div>
       </section>
 
+      {/* COMPETITIVE DIFFERENTIATION */}
+      <motion.div
+        initial={{ opacity: 0, y: 30 }}
+        whileInView={{ opacity: 1, y: 0 }}
+        viewport={{ once: true }}
+        className="max-w-5xl mx-auto my-20"
+      >
+        <div className="bg-gradient-to-r from-emerald-500/10 to-blue-500/10 rounded-3xl p-8 md:p-12 border border-white/10">
+          <h3 className="text-3xl font-bold text-center mb-8">Why Fly2Any vs Traditional Host Agencies</h3>
+          <div className="grid md:grid-cols-3 gap-6">
+            <div className="text-center">
+              <div className="text-5xl font-black text-emerald-400 mb-2">100%</div>
+              <div className="text-gray-400">Keep your commission (vs typical 70–80% splits)</div>
+            </div>
+            <div className="text-center">
+              <div className="text-5xl font-black text-blue-400 mb-2">Zero</div>
+              <div className="text-gray-400">Production quotas or minimums</div>
+            </div>
+            <div className="text-center">
+              <div className="text-5xl font-black text-purple-400 mb-2">Instant</div>
+              <div className="text-gray-400">Net rate access without approval delays</div>
+            </div>
+          </div>
+        </div>
+      </motion.div>
+
       {/* HOW IT WORKS */}
       <section className="py-24 bg-black relative overflow-hidden">
         <div className="absolute inset-0 bg-[url('/patterns/grid.svg')] opacity-5" />
@@ -511,6 +551,9 @@ export default function BecomeAgentPage() {
             <h2 className="text-4xl md:text-5xl font-black mb-4">
               Simple <span className="text-purple-400">Transparent</span> Pricing
             </h2>
+            <p className="text-xl md:text-2xl text-emerald-400 font-bold mb-8">
+              Keep 100% commission — No splits, no quotas, ever
+            </p>
           </motion.div>
 
           <div className="grid md:grid-cols-3 gap-8">
@@ -535,8 +578,32 @@ export default function BecomeAgentPage() {
               </motion.div>
             ))}
           </div>
+
+          <motion.div
+            initial={{ opacity: 0, y: 30 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ delay: 0.5 }}
+            className="mt-12 bg-white/5 backdrop-blur-sm rounded-2xl p-8 border border-white/10"
+          >
+            <p className="text-lg text-gray-300 leading-relaxed text-center">
+              Sign up in 5 minutes. No IATA or CLIA required to start. Get your branded booking portal immediately. Commissions are deposited weekly via ACH or wire transfer. Full training and onboarding are included.
+            </p>
+          </motion.div>
         </div>
       </section>
+
+      {/* BUSINESS MODEL TRANSPARENCY */}
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        whileInView={{ opacity: 1, y: 0 }}
+        viewport={{ once: true }}
+        className="max-w-3xl mx-auto text-center mt-16"
+      >
+        <p className="text-lg text-gray-300 leading-relaxed">
+          Fly2Any provides net pricing through volume-based wholesale agreements directly with airlines and travel providers, not aggregated or marked-up retail rates. Agents always have full visibility into the true wholesale cost.
+        </p>
+      </motion.div>
 
       {/* EARNINGS CALCULATOR */}
       <section id="calculator" className="py-24 bg-gray-900 relative">
@@ -774,6 +841,15 @@ export default function BecomeAgentPage() {
           </motion.div>
         </div>
       </section>
+
+      {/* ENTITY LOCK FOOTER */}
+      <footer className="py-8 bg-black border-t border-white/10">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+          <p className="text-sm text-gray-500 leading-relaxed">
+            Fly2Any is a B2B wholesale travel platform built for independent travel agents and agencies, enabling access to net rates, agent-controlled markups, and professional booking technology.
+          </p>
+        </div>
+      </footer>
     </main>
   );
 }

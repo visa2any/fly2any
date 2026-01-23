@@ -84,6 +84,9 @@ const PARTNER_TYPES = [
       'White-label booking options',
       'Dedicated account manager',
       'Premium commission rates',
+      'First-party tracking with real-time attribution dashboard',
+      'Deep links, widgets, and co-branded landing pages',
+      'Weekly payouts via ACH or international wire transfer',
     ],
     stats: { avgEarning: '$5,200/mo', topEarner: '$45K/mo' },
     image: 'https://images.unsplash.com/photo-1504711434969-e33886168f5c?w=600&q=80',
@@ -100,6 +103,8 @@ const PARTNER_TYPES = [
       'Bulk booking discounts',
       'Client management tools',
       'Priority customer support',
+      'First-party tracking with real-time attribution dashboard',
+      'Weekly payouts via ACH or international wire transfer',
     ],
     stats: { avgEarning: '$8,500/mo', topEarner: '$75K/mo' },
     image: 'https://images.unsplash.com/photo-1521791136064-7986c2920216?w=600&q=80',
@@ -273,7 +278,7 @@ export default function AffiliatePage() {
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.1 }}
-            className="text-5xl md:text-7xl lg:text-8xl font-black mb-6 leading-tight"
+            className="text-5xl md:text-7xl lg:text-8xl font-black mb-4 leading-tight"
           >
             <span className="bg-gradient-to-r from-[#E74035] to-[#F7C928] bg-clip-text text-transparent">Join Fly2Any Affiliate Program</span>
             <br />
@@ -283,10 +288,28 @@ export default function AffiliatePage() {
           <motion.p
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.15 }}
+            className="text-lg md:text-xl text-gray-400 mb-6 max-w-3xl mx-auto"
+          >
+            Performance-based travel affiliate program for creators, publishers, and media partners
+          </motion.p>
+
+          <motion.p
+            initial={{ opacity: 0, y: 30 }}
+            animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.2 }}
-            className="text-xl md:text-2xl text-gray-300 mb-10 max-w-3xl mx-auto"
+            className="text-xl md:text-2xl text-gray-300 mb-6 max-w-3xl mx-auto"
           >
             Turn your travel content into revenue. Free to join. 30-day cookie window. Earn from flights, hotels, tours & more.
+          </motion.p>
+
+          <motion.p
+            initial={{ opacity: 0, y: 30 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.25 }}
+            className="text-base md:text-lg text-gray-400 mb-10 max-w-3xl mx-auto leading-relaxed"
+          >
+            The Fly2Any Affiliate Program allows creators and publishers to earn commission by referring users to book flights, hotels, tours, and travel services directly on Fly2Any. Affiliates earn a percentage of each completed booking tracked through first-party attribution technology.
           </motion.p>
 
           {/* CTA Buttons */}
@@ -332,6 +355,15 @@ export default function AffiliatePage() {
               </div>
             ))}
           </motion.div>
+
+          <motion.p
+            initial={{ opacity: 0, y: 30 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.45 }}
+            className="text-sm text-gray-500 mt-4 max-w-3xl mx-auto"
+          >
+            Earn commissions directly from bookings completed on Fly2Any's travel booking platform — no intermediaries or sub-networks
+          </motion.p>
         </div>
 
         {/* Scroll Indicator */}
@@ -464,6 +496,32 @@ export default function AffiliatePage() {
           </AnimatePresence>
         </div>
       </section>
+
+      {/* AFFILIATE DIFFERENTIATION */}
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        whileInView={{ opacity: 1, y: 0 }}
+        viewport={{ once: true }}
+        className="max-w-4xl mx-auto my-12"
+      >
+        <div className="bg-gradient-to-r from-[#E74035]/10 to-[#F7C928]/10 rounded-3xl p-6 md:p-8 border border-white/10">
+          <h3 className="text-xl font-bold text-center mb-4">Why Fly2Any Affiliate vs Traditional Travel Affiliate Networks</h3>
+          <ul className="space-y-2 text-sm md:text-base text-gray-300">
+            <li className="flex items-start gap-2">
+              <span className="text-[#E74035] mt-1">•</span>
+              <span>Direct platform ownership (not an aggregated OTA feed)</span>
+            </li>
+            <li className="flex items-start gap-2">
+              <span className="text-[#F7C928] mt-1">•</span>
+              <span>Higher commission ceilings with performance-based tiers</span>
+            </li>
+            <li className="flex items-start gap-2">
+              <span className="text-purple-400 mt-1">•</span>
+              <span>First-party tracking instead of third-party cookie networks</span>
+            </li>
+          </ul>
+        </div>
+      </motion.div>
 
       {/* COMMISSION TIERS */}
       <section className="py-24 bg-gray-900 relative overflow-hidden">
@@ -619,6 +677,9 @@ export default function AffiliatePage() {
             <h2 className="text-4xl md:text-5xl font-black mb-4">
               Partners <span className="text-purple-400">Love</span> Us
             </h2>
+            <p className="text-sm text-gray-500 mt-2 max-w-2xl mx-auto">
+              Used by 2,500+ travel creators and publishers across 40+ countries
+            </p>
           </motion.div>
 
           <div className="grid md:grid-cols-3 gap-6">
@@ -732,6 +793,15 @@ export default function AffiliatePage() {
           </motion.div>
         </div>
       </section>
+
+      {/* ENTITY LOCK FOOTER */}
+      <footer className="py-8 bg-black border-t border-white/10">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+          <p className="text-sm text-gray-500 leading-relaxed">
+            Fly2Any Affiliate is a performance-based travel affiliate program operated by Fly2Any, enabling creators and publishers to earn commission from real travel bookings through direct platform tracking.
+          </p>
+        </div>
+      </footer>
     </main>
   );
 }
