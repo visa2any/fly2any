@@ -120,6 +120,30 @@ class ErrorBoundaryCore extends Component<
 
     // Notify parent
     this.props.onError?.(normalizedError);
+
+    // CRITICAL: Escalate QuoteSaveErrors to admins immediately
+    if (error.name === 'QuoteSaveError' || (error as any).severity === 'CRITICAL') {
+      // Import dynamically to avoid circular dependencies
+      import('@/lib/alerting/AdminAlertSystem').then(({ sendCriticalAlert }) => {
+        const metadata = (error as any).metadata || {};
+        sendCriticalAlert({
+          errorName: error.name,
+          summary: (error as any).getSummary?.() || error.message,
+          page: metadata.url || typeof window !== 'undefined' ? window.location.pathname : '/agent/quotes/workspace',
+          agentId: metadata.agentId,
+          quoteId: metadata.quoteId,
+          environment: metadata.environment || 'development',
+          timestamp: metadata.timestamp || Date.now(),
+          metadata: metadata,
+          severity: 'CRITICAL',
+        }).catch((err) => {
+          // Fire-and-forget - never throw
+          console.warn('[GlobalErrorBoundary] Failed to send critical alert:', err);
+        });
+      }).catch((err) => {
+        console.warn('[GlobalErrorBoundary] Failed to load alerting system:', err);
+      });
+    }
   }
 
   componentDidUpdate(prevProps: GlobalErrorBoundaryProps & { resetKey: number }): void {

@@ -98,7 +98,7 @@ export default function QuoteFooter() {
 
   return (
     <>
-      {/* Error Notification Toast */}
+      {/* Error Notification Toast - Enhanced for Quote Save Failures */}
       <AnimatePresence>
         {errorMessage && (
           <motion.div
@@ -107,16 +107,46 @@ export default function QuoteFooter() {
             exit={{ opacity: 0, y: 20 }}
             className="fixed bottom-20 left-1/2 -translate-x-1/2 z-50 max-w-md w-full mx-4"
           >
-            <div className={`${errorMessage?.startsWith('✓') ? 'bg-green-50 border-green-200' : 'bg-red-50 border-red-200'} border rounded-xl px-4 py-3 shadow-lg flex items-start gap-3`}>
-              <div className={`flex-shrink-0 w-5 h-5 rounded-full ${errorMessage?.startsWith('✓') ? 'bg-green-500' : 'bg-red-500'} flex items-center justify-center mt-0.5`}>
-                <span className="text-white text-xs font-bold">{errorMessage?.startsWith('✓') ? '✓' : '!'}</span>
+            <div className={`${
+              errorMessage?.startsWith('✓') 
+                ? 'bg-green-50 border-green-200' 
+                : 'bg-red-50 border-red-200'
+            } border rounded-xl px-4 py-3 shadow-lg flex items-start gap-3`}>
+              <div className={`flex-shrink-0 w-5 h-5 rounded-full ${
+                errorMessage?.startsWith('✓') 
+                  ? 'bg-green-500' 
+                  : 'bg-red-500'
+              } flex items-center justify-center mt-0.5`}>
+                <span className="text-white text-xs font-bold">
+                  {errorMessage?.startsWith('✓') ? '✓' : '⚠️'}
+                </span>
               </div>
               <div className="flex-1">
-                <p className={`text-sm font-medium ${errorMessage?.startsWith('✓') ? 'text-green-900' : 'text-red-900'}`}>{errorMessage?.replace('✓ ', '')}</p>
+                {errorMessage?.includes('NOT saved') ? (
+                  <>
+                    <p className="text-sm font-semibold text-red-900">Quote Save Failed</p>
+                    <p className="text-sm text-red-800 mt-1">
+                      {errorMessage?.replace('⚠️ Quote was NOT saved: ', '')}
+                    </p>
+                    <p className="text-xs text-red-600 mt-2">
+                      Please try again or check your connection. Your data is preserved.
+                    </p>
+                  </>
+                ) : (
+                  <p className={`text-sm font-medium ${
+                    errorMessage?.startsWith('✓') ? 'text-green-900' : 'text-red-900'
+                  }`}>
+                    {errorMessage?.replace('✓ ', '')}
+                  </p>
+                )}
               </div>
               <button
                 onClick={() => setErrorMessage(null)}
-                className={`flex-shrink-0 ${errorMessage?.startsWith('✓') ? 'text-green-400 hover:text-green-600' : 'text-red-400 hover:text-red-600'} transition-colors`}
+                className={`flex-shrink-0 ${
+                  errorMessage?.startsWith('✓') 
+                    ? 'text-green-400 hover:text-green-600' 
+                    : 'text-red-400 hover:text-red-600'
+                } transition-colors`}
               >
                 ×
               </button>
@@ -227,8 +257,10 @@ export default function QuoteFooter() {
                           setErrorMessage('✓ Quote saved successfully');
                           setTimeout(() => setErrorMessage(null), 3000);
                         } else {
-                          setErrorMessage(result?.error || 'Failed to save quote');
-                          setTimeout(() => setErrorMessage(null), 5000);
+                          // Enhanced error message with explicit failure indication
+                          const errorMsg = result?.error || 'Failed to save quote';
+                          setErrorMessage(`⚠️ Quote was NOT saved: ${errorMsg}`);
+                          setTimeout(() => setErrorMessage(null), 8000); // Longer display for errors
                         }
                       }}
                       disabled={state.ui.isSaving}
@@ -237,6 +269,29 @@ export default function QuoteFooter() {
                       {state.ui.isSaving ? <Loader2 className="w-4 h-4 text-gray-400 animate-spin" /> : <Save className="w-4 h-4 text-gray-400" />}
                       {state.ui.isSaving ? 'Saving...' : 'Save Quote'}
                     </button>
+                    {/* Retry button only shows after a failed save attempt */}
+                    {errorMessage?.includes('NOT saved') && (
+                      <button
+                        onClick={async () => {
+                          setErrorMessage(null);
+                          setShowMoreMenu(false);
+                          const result = await saveQuote?.();
+                          if (result?.success) {
+                            setErrorMessage('✓ Quote saved successfully');
+                            setTimeout(() => setErrorMessage(null), 3000);
+                          } else {
+                            const errorMsg = result?.error || 'Failed to save quote';
+                            setErrorMessage(`⚠️ Quote was NOT saved: ${errorMsg}`);
+                            setTimeout(() => setErrorMessage(null), 8000);
+                          }
+                        }}
+                        disabled={state.ui.isSaving}
+                        className="flex items-center gap-3 w-full px-3 py-2.5 text-left text-sm text-primary-700 bg-primary-50 hover:bg-primary-100 rounded-lg transition-colors disabled:opacity-50"
+                      >
+                        {state.ui.isSaving ? <Loader2 className="w-4 h-4 text-primary-400 animate-spin" /> : <Save className="w-4 h-4 text-primary-500" />}
+                        {state.ui.isSaving ? 'Retrying...' : 'Retry Save'}
+                      </button>
+                    )}
                     <button
                       onClick={handleDuplicate}
                       disabled={!state.id || duplicating}

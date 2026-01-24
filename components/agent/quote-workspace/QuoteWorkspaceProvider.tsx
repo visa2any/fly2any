@@ -6,6 +6,9 @@ import { useDebouncedCallback } from "use-debounce";
 import { UnifiedSearchProvider } from "./unified-search/UnifiedSearchProvider";
 import { detectConflicts, type TimeConflict } from "./utils/conflict-detection";
 import { calculateQuotePricing, type PriceBreakdown, type PricingContext } from "@/lib/pricing/QuotePricingService";
+import { QuoteSaveError, createQuoteSaveError } from "@/lib/errors/QuoteSaveError";
+import { sendCriticalAlert } from "@/lib/alerting/AdminAlertSystem";
+import { logQuoteSaveError } from "@/lib/logging/BusinessCriticalLogger";
 import type {
   QuoteWorkspaceState,
   WorkspaceAction,
@@ -192,7 +195,7 @@ function workspaceReducer(state: QuoteWorkspaceState, action: WorkspaceAction): 
         break;
 
       case "SET_CURRENCY":
-        draft.pricing.currency = action.payload;
+        draft.pricing.currency = action.payload as Currency;
         break;
 
       case "SET_TAXES":
@@ -361,18 +364,32 @@ export function QuoteWorkspaceProvider({ children, initialQuoteId }: { children:
   const setDiscoveryPanelWidth = useCallback((width: number) => dispatch({ type: "SET_UI", payload: { discoveryPanelWidth: Math.max(320, Math.min(540, width)) } }), []);
   const setSearchFormCollapsed = useCallback((collapsed: boolean) => dispatch({ type: "SET_UI", payload: { searchFormCollapsed: collapsed } }), []);
 
-  // Save quote to API
+  // Get current environment
+  const getEnvironment = (): 'production' | 'staging' | 'development' => {
+    if (typeof window !== 'undefined') {
+      const hostname = window.location.hostname;
+      if (hostname === 'fly2any.com' || hostname === 'www.fly2any.com') return 'production';
+      if (hostname.includes('staging') || hostname.includes('stage')) return 'staging';
+    }
+    return 'development';
+  };
+
+  // Save quote to API with hardened error handling
   const saveQuote = useCallback(async () => {
+    const environment = getEnvironment();
+
+    // Validation: Check for empty quote
     if (state.items.length === 0 && !state.tripName) {
       return { success: false, error: 'Cannot save empty quote. Add items or trip name first.' };
     }
 
-    // Validate client is selected
+    // Validation: Client must be selected
     if (!state.client?.id) {
       return { success: false, error: 'Please select a client before saving.' };
     }
 
     dispatch({ type: "SET_SAVING", payload: true });
+
     try {
       // Transform items by type - items themselves contain all data
       const flights = state.items.filter(i => i.type === 'flight');
@@ -410,15 +427,83 @@ export function QuoteWorkspaceProvider({ children, initialQuoteId }: { children:
         fees: state.pricing.fees,
       };
 
+      const payloadSize = JSON.stringify(payload).length;
+
       const url = state.id ? `/api/agents/quotes/${state.id}` : "/api/agents/quotes";
       const method = state.id ? "PATCH" : "POST";
 
-      const res = await fetch(url, {
-        method,
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload),
-      });
+      // AbortController for timeout handling
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 30000); // 30 second timeout
 
+      let res: Response;
+      let saveError: QuoteSaveError | null = null;
+
+      try {
+        res = await fetch(url, {
+          method,
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload),
+          signal: controller.signal,
+        });
+        clearTimeout(timeoutId);
+      } catch (fetchError) {
+        clearTimeout(timeoutId);
+        
+        // Detect specific failure modes
+        let failureMode: QuoteSaveError['metadata']['failureMode'] = 'unknown';
+        let errorMessage = 'Network error occurred';
+
+        if (fetchError instanceof Error) {
+          if (fetchError.name === 'AbortError') {
+            failureMode = 'timeout';
+            errorMessage = 'Request timeout - server took too long to respond';
+          } else if (fetchError.message.includes('Failed to fetch') || fetchError.message.includes('Network request failed')) {
+            failureMode = 'network';
+            errorMessage = 'Network connection failed - please check your internet connection';
+          }
+        }
+
+        // Create structured error
+        saveError = createQuoteSaveError(
+          errorMessage,
+          failureMode,
+          {
+            quoteId: state.id || undefined,
+            clientId: state.client.id,
+            payloadSize,
+          },
+          environment
+        );
+
+        // Log to business-critical logger (non-blocking)
+        try {
+          logQuoteSaveError(saveError);
+        } catch (loggingError) {
+          // Never let logging failures break the flow
+          console.warn('[QuoteWorkspace] Failed to log quote save error:', loggingError);
+        }
+
+        // Send admin alert (fire-and-forget)
+        sendCriticalAlert({
+          errorName: saveError.name,
+          summary: saveError.getSummary(),
+          page: '/agent/quotes/workspace',
+          agentId: undefined, // Will be populated from auth context if available
+          quoteId: state.id || undefined,
+          environment,
+          timestamp: Date.now(),
+          metadata: saveError.metadata,
+          severity: 'CRITICAL',
+        }).catch(() => {
+          // Fire-and-forget - never throw
+        });
+
+        // Re-throw to ensure error is not swallowed
+        throw saveError;
+      }
+
+      // Handle HTTP response
       if (res.ok) {
         const data = await res.json();
         const savedQuote = data.quote;
@@ -428,20 +513,108 @@ export function QuoteWorkspaceProvider({ children, initialQuoteId }: { children:
         dispatch({ type: "SET_LAST_SAVED", payload: new Date().toISOString() });
         return { success: true, quote: savedQuote };
       } else {
-        const errorData = await res.json().catch(() => ({ error: 'Unknown error' }));
+        // Non-2xx HTTP response
+        let errorData: any;
+        try {
+          errorData = await res.json();
+        } catch {
+          errorData = { error: 'Unknown error' };
+        }
+
         console.error("Save quote failed:", errorData);
+        
         // Log validation details for debugging
         if (errorData.details) {
           console.error("Validation details:", JSON.stringify(errorData.details, null, 2));
         }
+
+        // Create structured error
         const errorMsg = errorData.details
           ? `Validation error: ${errorData.details[0]?.message || 'Check console for details'}`
           : errorData.error || 'Failed to save quote';
+
+        saveError = createQuoteSaveError(
+          errorMsg,
+          'http',
+          {
+            quoteId: state.id || undefined,
+            clientId: state.client.id,
+            payloadSize,
+            httpStatus: res.status,
+            backendError: errorData.error || errorData.details?.[0]?.message,
+          },
+          environment
+        );
+
+        // Log to business-critical logger (non-blocking)
+        try {
+          logQuoteSaveError(saveError);
+        } catch (loggingError) {
+          // Never let logging failures break the flow
+          console.warn('[QuoteWorkspace] Failed to log quote save error:', loggingError);
+        }
+
+        // Send admin alert (fire-and-forget)
+        sendCriticalAlert({
+          errorName: saveError.name,
+          summary: saveError.getSummary(),
+          page: '/agent/quotes/workspace',
+          agentId: undefined,
+          quoteId: state.id || undefined,
+          environment,
+          timestamp: Date.now(),
+          metadata: saveError.metadata,
+          severity: 'CRITICAL',
+        }).catch(() => {
+          // Fire-and-forget - never throw
+        });
+
         return { success: false, error: errorMsg };
       }
     } catch (error) {
+      // Handle any unexpected exceptions
       console.error("Save quote error:", error);
-      return { success: false, error: error instanceof Error ? error.message : 'Network error occurred' };
+      
+      if (error instanceof QuoteSaveError) {
+        // Already handled above, just return error
+        return { success: false, error: error.message };
+      }
+
+      // Unknown error - still escalate
+      const unknownError = createQuoteSaveError(
+        error instanceof Error ? error.message : 'Unknown error occurred while saving quote',
+        'unknown',
+        {
+          quoteId: state.id || undefined,
+          clientId: state.client.id,
+        },
+        environment
+      );
+
+      // Log to business-critical logger (non-blocking)
+      try {
+        logQuoteSaveError(unknownError);
+      } catch (loggingError) {
+        // Never let logging failures break the flow
+        console.warn('[QuoteWorkspace] Failed to log quote save error:', loggingError);
+      }
+
+      // Send admin alert (fire-and-forget)
+      sendCriticalAlert({
+        errorName: unknownError.name,
+        summary: unknownError.getSummary(),
+        page: '/agent/quotes/workspace',
+        agentId: undefined,
+        quoteId: state.id || undefined,
+        environment,
+        timestamp: Date.now(),
+        metadata: unknownError.metadata,
+        severity: 'CRITICAL',
+      }).catch(() => {
+        // Fire-and-forget - never throw
+      });
+
+      return { success: false, error: unknownError.message };
     } finally {
       dispatch({ type: "SET_SAVING", payload: false });
     }
