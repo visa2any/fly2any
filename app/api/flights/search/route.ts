@@ -1529,10 +1529,10 @@ export async function POST(request: NextRequest) {
 
       // Skip markup for consolidator flights (they have built-in commission)
       // Consolidator flights would have source='consolidator' if coming from that channel
-      if (source === 'consolidator') {
-        console.log(`  ✓ ${flight.id}: $${netPrice.toFixed(2)} (Consolidator - no markup)`);
-        return flight;
-      }
+      // if (source === 'consolidator') {
+      //   console.log(`  ✓ ${flight.id}: $${netPrice.toFixed(2)} (Consolidator - no markup)`);
+      //   return flight;
+      // }
 
       // Apply markup using the flight markup config
       const markupResult = applyFlightMarkup(netPrice);
@@ -1591,13 +1591,13 @@ export async function POST(request: NextRequest) {
         }),
       };
 
-      console.log(`  ✓ ${flight.id?.slice(-8)} (${source}): $${netPrice.toFixed(2)} → $${markupResult.customerPrice.toFixed(2)} (+$${markupResult.markupAmount.toFixed(2)} / ${markupResult.markupPercentage}%)`);
+      console.log(`  ✓ ${flight.id?.slice(-8)} (${source}): $${netPrice.toFixed(2)} → $${markupResult.customerPrice.toFixed(2)} (+$${markupResult.markupAmount.toFixed(2)})`);
 
       // Debug: Log fare variants markup
       if (markedUpFlight.fareVariants && markedUpFlight.fareVariants.length > 0) {
-        console.log(`    📊 FareVariants markup applied: ${markedUpFlight.fareVariants.length} variants`);
+        // console.log(`    📊 FareVariants markup applied: ${markedUpFlight.fareVariants.length} variants`);
         markedUpFlight.fareVariants.forEach((v: any, i: number) => {
-          console.log(`      [${i}] ${v.name}: $${v.price.toFixed(2)} (base: ${v.priceDetails?.base})`);
+          // console.log(`      [${i}] ${v.name}: $${v.price.toFixed(2)}`);
         });
       }
 

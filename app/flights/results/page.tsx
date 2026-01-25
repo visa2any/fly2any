@@ -2144,7 +2144,7 @@ function FlightResultsContent() {
           departureDate={searchData.departure || undefined}
           lowestPrice={sortedFlights[0]?.price?.total ? normalizePrice(sortedFlights[0].price.total) : undefined}
           currency={sortedFlights[0]?.price?.currency || 'USD'}
-          delayMs={12000}
+          delayMs={45000}
           onEmailSubmit={(email) => {
             trackConversion('post_search_email_captured' as any, {
               email,

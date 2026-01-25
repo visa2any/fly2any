@@ -1,22 +1,46 @@
 export const dynamic = 'force-dynamic';
 
 // app/api/agents/quotes/[id]/route.ts
-// Quote Detail, Update, Delete
+// Quote Detail, Update, Delete (HARDENED)
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
-
 import prisma from "@/lib/prisma";
 import { z } from "zod";
+import { 
+  QuoteErrorFactory,
+  createQuoteSuccess,
+  type QuoteSuccessResponse,
+} from "@/lib/errors/QuoteApiErrors";
+import { 
+  validateQuoteData,
+  validateClientOwnership,
+  validatePricingConsistency,
+  validateQuoteItems,
+  calculateQuotePricingSafe,
+} from "@/lib/validation/quote-validator";
+import { 
+  updateQuoteWithOptimisticLock,
+  validateQuoteState,
+  getQuoteVersion,
+} from "@/lib/database/concurrency";
+import { QuoteOperationTracker } from "@/lib/logging/quote-observability";
+import { generateCorrelationId } from "@/lib/errors/QuoteApiErrors";
 
 // GET /api/agents/quotes/[id] - Get quote details
 export async function GET(
   request: NextRequest,
   { params }: { params: { id: string } }
 ) {
+  const correlationId = generateCorrelationId();
+
   try {
     const session = await auth();
     if (!session?.user?.id) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+      const error = QuoteErrorFactory.persistenceFailed(
+        correlationId,
+        { reason: 'Authentication required' }
+      );
+      return NextResponse.json(error, { status: 401 });
     }
 
     const agent = await prisma!.travelAgent.findUnique({
@@ -24,7 +48,8 @@ export async function GET(
     });
 
     if (!agent) {
-      return NextResponse.json({ error: "Agent not found" }, { status: 404 });
+      const error = QuoteErrorFactory.agentNotFound(correlationId);
+      return NextResponse.json(error, { status: 404 });
     }
 
     const quote = await prisma!.agentQuote.findFirst({
@@ -38,21 +63,29 @@ export async function GET(
     });
 
     if (!quote) {
-      return NextResponse.json({ error: "Quote not found" }, { status: 404 });
+      const error = QuoteErrorFactory.persistenceFailed(
+        correlationId,
+        {
+          reason: 'Quote not found',
+          quoteId: params.id,
+        }
+      );
+      return NextResponse.json(error, { status: 404 });
     }
 
     return NextResponse.json({ quote });
   } catch (error) {
-    console.error("[QUOTE_GET_ERROR]", error);
-    return NextResponse.json(
-      { error: "Internal server error" },
-      { status: 500 }
-    );
+    const apiError = QuoteErrorFactory.internalError(correlationId, {
+      error: error instanceof Error ? error.message : 'Unknown error',
+      stack: error instanceof Error ? error.stack : undefined,
+    });
+    return NextResponse.json(apiError, { status: 500 });
   }
 }
 
-// PATCH /api/agents/quotes/[id] - Update quote (only if DRAFT)
+// PATCH /api/agents/quotes/[id] - Update quote (HARDENED)
 const UpdateQuoteSchema = z.object({
+  version: z.number().int().positive(), // REQUIRED for optimistic locking
   tripName: z.string().optional(),
   destination: z.string().optional(),
   startDate: z.string().datetime().optional(),
@@ -84,142 +117,252 @@ export async function PATCH(
   request: NextRequest,
   { params }: { params: { id: string } }
 ) {
+  // Initialize operation tracker for observability
+  let tracker: QuoteOperationTracker | null = null;
+  let correlationId = generateCorrelationId();
+  let agentId: string | null = null;
+  let quoteId = params.id;
+
   try {
+    // Authentication
     const session = await auth();
     if (!session?.user?.id) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+      const error = QuoteErrorFactory.persistenceFailed(
+        correlationId,
+        { reason: 'Authentication required' }
+      );
+      return NextResponse.json(error, { status: 401 });
     }
 
+    // Get agent
     const agent = await prisma!.travelAgent.findUnique({
       where: { userId: session.user.id },
     });
 
     if (!agent) {
-      return NextResponse.json({ error: "Agent not found" }, { status: 404 });
+      const error = QuoteErrorFactory.agentNotFound(correlationId);
+      return NextResponse.json(error, { status: 404 });
     }
 
-    const quote = await prisma!.agentQuote.findFirst({
-      where: {
-        id: params.id,
-        agentId: agent.id,
-      },
-    });
+    agentId = agent.id;
 
-    if (!quote) {
-      return NextResponse.json({ error: "Quote not found" }, { status: 404 });
-    }
+    // Validate quote state for UPDATE operation
+    await validateQuoteState(quoteId, 'UPDATE', agent.id);
 
-    // Only allow editing DRAFT quotes
-    if (quote.status !== "DRAFT") {
-      return NextResponse.json(
-        { error: "Can only edit draft quotes" },
-        { status: 400 }
-      );
-    }
-
+    // Parse and validate request body
     const body = await request.json();
-    const validatedData = UpdateQuoteSchema.parse(body);
+    const data = UpdateQuoteSchema.parse(body);
 
-    // Recalculate costs if components changed
-    let updateData: any = { ...validatedData };
+    // CRITICAL: Version is REQUIRED for optimistic locking
+    const currentVersion = await getQuoteVersion(quoteId);
+    if (!currentVersion) {
+      const error = QuoteErrorFactory.persistenceFailed(
+        correlationId,
+        {
+          reason: 'Quote not found',
+          quoteId,
+        }
+      );
+      return NextResponse.json(error, { status: 404 });
+    }
 
-    if (validatedData.flights || validatedData.hotels || validatedData.activities ||
-        validatedData.transfers || validatedData.carRentals || validatedData.insurance ||
-        validatedData.customItems || validatedData.agentMarkupPercent || validatedData.discount) {
+    const expectedVersion = data.version || currentVersion;
 
-      const flights = validatedData.flights || quote.flights as any[];
-      const hotels = validatedData.hotels || quote.hotels as any[];
-      const activities = validatedData.activities || quote.activities as any[];
-      const transfers = validatedData.transfers || quote.transfers as any[];
-      const carRentals = validatedData.carRentals || quote.carRentals as any[];
-      const insurance = validatedData.insurance || quote.insurance;
-      const customItems = validatedData.customItems || quote.customItems as any[];
+    // Initialize operation tracker
+    tracker = new QuoteOperationTracker(
+      'UPDATE',
+      agent.id,
+      quoteId,
+      {
+        previousVersion: currentVersion,
+        requestedVersion: expectedVersion,
+        updateFields: Object.keys(data).filter(k => k !== 'version'),
+      }
+    );
+    correlationId = tracker.getCorrelationId();
 
-      const flightsCost = flights.reduce((sum: number, f: any) => sum + f.price, 0);
-      const hotelsCost = hotels.reduce((sum: number, h: any) => sum + h.price, 0);
-      const activitiesCost = activities.reduce((sum: number, a: any) => sum + a.price, 0);
-      const transfersCost = transfers.reduce((sum: number, t: any) => sum + t.price, 0);
-      const carRentalsCost = carRentals.reduce((sum: number, c: any) => sum + c.price, 0);
-      const insuranceCost = insurance?.price || 0;
-      const customItemsCost = customItems.reduce((sum: number, i: any) => sum + i.price, 0);
+    // Validate quote data (if provided)
+    if (data.tripName || data.destination || data.startDate || data.endDate ||
+        data.adults !== undefined || data.children !== undefined || data.infants !== undefined) {
+      const quoteData = {
+        tripName: data.tripName,
+        destination: data.destination,
+        startDate: data.startDate,
+        endDate: data.endDate,
+        adults: data.adults,
+        children: data.children,
+        infants: data.infants,
+      };
+      await validateQuoteData(quoteData, 'UPDATE');
+    }
 
-      const subtotal = flightsCost + hotelsCost + activitiesCost + transfersCost + carRentalsCost + insuranceCost + customItemsCost;
-      const markupPercent = validatedData.agentMarkupPercent || quote.agentMarkupPercent || 15;
-      const agentMarkup = subtotal * (markupPercent / 100);
-      const taxes = validatedData.taxes || quote.taxes;
-      const fees = validatedData.fees || quote.fees;
-      const discount = validatedData.discount || quote.discount;
-      const total = subtotal + agentMarkup + taxes + fees - discount;
+    // Validate quote items (if provided)
+    if (data.flights || data.hotels || data.activities ||
+        data.transfers || data.carRentals || data.customItems) {
+      const quoteItems = {
+        flights: data.flights,
+        hotels: data.hotels,
+        activities: data.activities,
+        transfers: data.transfers,
+        carRentals: data.carRentals,
+        customItems: data.customItems,
+      };
+      await validateQuoteItems(quoteItems);
+    }
 
+    // Recalculate pricing if needed
+    let updateData: any = { ...data, version: undefined };
+
+    if (data.flights || data.hotels || data.activities ||
+        data.transfers || data.carRentals || data.insurance ||
+        data.customItems || data.agentMarkupPercent !== undefined ||
+        data.discount !== undefined) {
+      
+      // Get current quote for values not provided
+      const currentQuote = await prisma!.agentQuote.findUnique({
+        where: { id: quoteId },
+      });
+
+      if (!currentQuote) {
+        const error = QuoteErrorFactory.persistenceFailed(
+          correlationId,
+          { reason: 'Quote not found during update', quoteId }
+        );
+        return NextResponse.json(error, { status: 404 });
+      }
+
+      const flights = data.flights || currentQuote.flights as any[];
+      const hotels = data.hotels || currentQuote.hotels as any[];
+      const activities = data.activities || currentQuote.activities as any[];
+      const transfers = data.transfers || currentQuote.transfers as any[];
+      const carRentals = data.carRentals || currentQuote.carRentals as any[];
+      const insurance = data.insurance || currentQuote.insurance;
+      const customItems = data.customItems || currentQuote.customItems as any[];
+
+      const travelers = (data.adults !== undefined ? data.adults : currentQuote.adults) +
+                       (data.children !== undefined ? data.children : currentQuote.children) +
+                       (data.infants !== undefined ? data.infants : currentQuote.infants);
+
+      // Calculate pricing
+      const pricing = calculateQuotePricingSafe(
+        { flights, hotels, activities, transfers, carRentals, customItems, insurance },
+        travelers
+      );
+
+      // Validate pricing consistency
+      await validatePricingConsistency(
+        { flights, hotels, activities, transfers, carRentals, customItems, insurance },
+        pricing,
+        travelers
+      );
+
+      // Add pricing to update data
       updateData = {
         ...updateData,
-        flightsCost,
-        hotelsCost,
-        activitiesCost,
-        transfersCost,
-        carRentalsCost,
-        insuranceCost,
-        customItemsCost,
-        subtotal,
-        agentMarkup,
-        total,
+        flightsCost: flights.reduce((sum: number, f: any) => sum + f.price, 0),
+        hotelsCost: hotels.reduce((sum: number, h: any) => sum + h.price, 0),
+        activitiesCost: activities.reduce((sum: number, a: any) => sum + a.price, 0),
+        transfersCost: transfers.reduce((sum: number, t: any) => sum + t.price, 0),
+        carRentalsCost: carRentals.reduce((sum: number, c: any) => sum + c.price, 0),
+        insuranceCost: insurance?.price || 0,
+        customItemsCost: customItems.reduce((sum: number, i: any) => sum + i.price, 0),
+        subtotal: pricing.subtotal,
+        agentMarkup: pricing.agentMarkup,
+        total: pricing.total,
       };
     }
 
     // Parse dates
-    if (validatedData.startDate) {
-      updateData.startDate = new Date(validatedData.startDate);
+    if (data.startDate) {
+      updateData.startDate = new Date(data.startDate);
     }
-    if (validatedData.endDate) {
-      updateData.endDate = new Date(validatedData.endDate);
+    if (data.endDate) {
+      updateData.endDate = new Date(data.endDate);
     }
 
-    // Recalculate duration and travelers
-    if (validatedData.startDate || validatedData.endDate) {
-      const start = updateData.startDate || quote.startDate;
-      const end = updateData.endDate || quote.endDate;
+    // Recalculate duration
+    if (data.startDate || data.endDate) {
+      const start = updateData.startDate;
+      const end = updateData.endDate;
       updateData.duration = Math.ceil((end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24));
     }
 
-    if (validatedData.adults !== undefined || validatedData.children !== undefined || validatedData.infants !== undefined) {
-      const adults = validatedData.adults || quote.adults;
-      const children = validatedData.children !== undefined ? validatedData.children : quote.children;
-      const infants = validatedData.infants !== undefined ? validatedData.infants : quote.infants;
+    // Recalculate travelers
+    if (data.adults !== undefined || data.children !== undefined || data.infants !== undefined) {
+      const adults = data.adults || 0;
+      const children = data.children !== undefined ? data.children : 0;
+      const infants = data.infants !== undefined ? data.infants : 0;
       updateData.travelers = adults + children + infants;
     }
 
-    const updatedQuote = await prisma!.agentQuote.update({
-      where: { id: params.id },
-      data: updateData,
-      include: { client: true },
-    });
+    // Update with optimistic locking (atomic)
+    const result = await updateQuoteWithOptimisticLock(
+      quoteId,
+      expectedVersion,
+      updateData,
+      session.user.id
+    );
 
-    // Log activity
-    await prisma!.agentActivityLog.create({
-      data: {
-        agentId: agent.id,
-        activityType: "quote_updated",
-        description: `Quote updated: ${updatedQuote.quoteNumber}`,
-        entityType: "quote",
-        entityId: updatedQuote.id,
-      },
-    });
+    // Track success
+    tracker.success(quoteId);
 
-    return NextResponse.json({ quote: updatedQuote });
+    // Return structured success response
+    const response: QuoteSuccessResponse = createQuoteSuccess(
+      result.id,
+      result.version,
+      result.updatedAt || new Date(),
+      { quote: result }
+    );
+    
+    return NextResponse.json(response, { status: 200 });
+
   } catch (error) {
-    console.error("[QUOTE_UPDATE_ERROR]", error);
-
-    if (error instanceof z.ZodError) {
-      return NextResponse.json(
-        { error: "Validation error", details: error.issues },
-        { status: 400 }
-      );
+    // Track failure if tracker exists
+    if (tracker) {
+      if (error instanceof Error && 'code' in error) {
+        tracker.failure({
+          code: (error as any).code,
+          message: error.message,
+          severity: 'HIGH',
+          stack: error.stack,
+        });
+      } else {
+        tracker.failure({
+          code: 'UNKNOWN_ERROR',
+          message: error instanceof Error ? error.message : 'Unknown error',
+          severity: 'CRITICAL',
+          stack: error instanceof Error ? error.stack : undefined,
+        });
+      }
     }
 
-    return NextResponse.json(
-      { error: "Internal server error" },
-      { status: 500 }
-    );
+    // Handle Zod validation errors
+    if (error instanceof z.ZodError) {
+      const apiError = QuoteErrorFactory.validationFailed(
+        'Quote data validation failed',
+        correlationId,
+        {
+          errors: error.issues.map(issue => ({
+            field: issue.path.join('.'),
+            message: issue.message,
+            code: issue.code,
+          }))
+        }
+      );
+      return NextResponse.json(apiError, { status: 400 });
+    }
+
+    // Handle QuoteApiError (already structured)
+    if (error && typeof error === 'object' && 'errorCode' in error) {
+      return NextResponse.json(error, { status: 500 });
+    }
+
+    // Handle unknown errors
+    const apiError = QuoteErrorFactory.internalError(correlationId, {
+      error: error instanceof Error ? error.message : 'Unknown error',
+      stack: error instanceof Error ? error.stack : undefined,
+    });
+    return NextResponse.json(apiError, { status: 500 });
   }
 }
 
@@ -228,10 +371,16 @@ export async function DELETE(
   request: NextRequest,
   { params }: { params: { id: string } }
 ) {
+  const correlationId = generateCorrelationId();
+
   try {
     const session = await auth();
     if (!session?.user?.id) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+      const error = QuoteErrorFactory.persistenceFailed(
+        correlationId,
+        { reason: 'Authentication required' }
+      );
+      return NextResponse.json(error, { status: 401 });
     }
 
     const agent = await prisma!.travelAgent.findUnique({
@@ -239,8 +388,12 @@ export async function DELETE(
     });
 
     if (!agent) {
-      return NextResponse.json({ error: "Agent not found" }, { status: 404 });
+      const error = QuoteErrorFactory.agentNotFound(correlationId);
+      return NextResponse.json(error, { status: 404 });
     }
+
+    // Validate quote state for DELETE operation
+    await validateQuoteState(params.id, 'DELETE', agent.id);
 
     const quote = await prisma!.agentQuote.findFirst({
       where: {
@@ -250,21 +403,21 @@ export async function DELETE(
     });
 
     if (!quote) {
-      return NextResponse.json({ error: "Quote not found" }, { status: 404 });
-    }
-
-    // Can't delete accepted quotes
-    if (quote.status === "ACCEPTED" || quote.status === "CONVERTED") {
-      return NextResponse.json(
-        { error: "Cannot delete accepted or converted quotes" },
-        { status: 400 }
+      const error = QuoteErrorFactory.persistenceFailed(
+        correlationId,
+        {
+          reason: 'Quote not found',
+          quoteId: params.id,
+        }
       );
+      return NextResponse.json(error, { status: 404 });
     }
 
+    // Update as cancelled
     await prisma!.agentQuote.update({
       where: { id: params.id },
       data: {
-        status: "CANCELLED",
+        status: "CANCELLED" as any,
         deletedAt: new Date(),
       },
     });
@@ -277,15 +430,19 @@ export async function DELETE(
         description: `Quote deleted: ${quote.quoteNumber}`,
         entityType: "quote",
         entityId: quote.id,
+        metadata: {
+          correlationId,
+          quoteNumber: quote.quoteNumber,
+        },
       },
     });
 
     return NextResponse.json({ success: true });
   } catch (error) {
-    console.error("[QUOTE_DELETE_ERROR]", error);
-    return NextResponse.json(
-      { error: "Internal server error" },
-      { status: 500 }
-    );
+    const apiError = QuoteErrorFactory.internalError(correlationId, {
+      error: error instanceof Error ? error.message : 'Unknown error',
+      stack: error instanceof Error ? error.stack : undefined,
+    });
+    return NextResponse.json(apiError, { status: 500 });
   }
 }

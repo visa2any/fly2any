@@ -20,41 +20,104 @@ export default function PostSearchCaptureModal({
   lowestPrice,
   currency = 'USD',
   onEmailSubmit,
-  delayMs = 8000, // Show after 8 seconds by default
+  delayMs = 45000, // 45s default delay (passive)
 }: PostSearchCaptureModalProps) {
   const [isVisible, setIsVisible] = useState(false);
   const [email, setEmail] = useState('');
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [hasEngaged, setHasEngaged] = useState(false);
+
+  // Constants
+  const COOLDOWN_DAYS = 7;
+  const STORAGE_KEY = 'postSearchCaptureState';
 
   useEffect(() => {
-    // Check if user has already seen this modal in this session
-    const hasSeenModal = sessionStorage.getItem('postSearchCaptureShown');
-    if (hasSeenModal) return;
+    // 1. Check Frequency Cap (LocalStorage + Timestamp)
+    const storedState = localStorage.getItem(STORAGE_KEY);
+    if (storedState) {
+      const { lastShown, dismissed, submitted } = JSON.parse(storedState);
+      
+      // If submitted, never show again
+      if (submitted) return;
 
-    // Check if user is already logged in (has email in session)
+      // Check cooldown (7 days)
+      const daysSinceShown = (Date.now() - lastShown) / (1000 * 60 * 60 * 24);
+      if (daysSinceShown < COOLDOWN_DAYS) return;
+    }
+
+    // Check if user is already logged in
     const userEmail = sessionStorage.getItem('userEmail');
     if (userEmail) return;
 
-    // Show modal after delay
-    const timer = setTimeout(() => {
-      setIsVisible(true);
-      sessionStorage.setItem('postSearchCaptureShown', 'true');
-      // Track modal shown
-      if (typeof window !== 'undefined' && (window as any).gtag) {
-        (window as any).gtag('event', 'post_search_capture_shown', {
-          event_category: 'lead_capture',
-          origin,
-          destination,
-        });
-      }
-    }, delayMs);
+    let timer: NodeJS.Timeout;
 
-    return () => clearTimeout(timer);
-  }, [delayMs, origin, destination]);
+    // 2. Engagement Listener (Scroll > 300px)
+    const handleScroll = () => {
+      if (window.scrollY > 300) {
+        setHasEngaged(true);
+      }
+    };
+
+    // 3. Exit Intent Listener (Mouse Leave to Top)
+    const handleExitIntent = (e: MouseEvent) => {
+      // Trigger if mouse leaves top of viewport AND hasn't been shown yet
+      if (e.clientY <= 0 && !isVisible && !localStorage.getItem(STORAGE_KEY)) {
+        showModal('exit_intent');
+      }
+    };
+
+    // 4. Passive Timer (Only trigger if engaged)
+    if (hasEngaged) {
+      timer = setTimeout(() => {
+        if (!isVisible) {
+          showModal('passive_timer');
+        }
+      }, delayMs);
+    }
+
+    window.addEventListener('scroll', handleScroll);
+    document.addEventListener('mouseleave', handleExitIntent);
+
+    return () => {
+      window.removeEventListener('scroll', handleScroll);
+      document.removeEventListener('mouseleave', handleExitIntent);
+      clearTimeout(timer);
+    };
+  }, [delayMs, hasEngaged, isVisible]);
+
+  const showModal = (trigger: string) => {
+    setIsVisible(true);
+    
+    // Save state to enforce cooldown
+    localStorage.setItem(STORAGE_KEY, JSON.stringify({
+      lastShown: Date.now(),
+      dismissed: false,
+      submitted: false,
+      trigger
+    }));
+
+    // Track modal shown
+    if (typeof window !== 'undefined' && (window as any).gtag) {
+      (window as any).gtag('event', 'post_search_capture_shown', {
+        event_category: 'lead_capture',
+        trigger_type: trigger,
+        origin,
+        destination,
+      });
+    }
+  };
 
   const handleClose = () => {
     setIsVisible(false);
+    
+    // Update state to dismissed
+    const storedState = localStorage.getItem(STORAGE_KEY);
+    if (storedState) {
+      const state = JSON.parse(storedState);
+      localStorage.setItem(STORAGE_KEY, JSON.stringify({ ...state, dismissed: true }));
+    }
+
     // Track modal dismissed
     if (typeof window !== 'undefined' && (window as any).gtag) {
       (window as any).gtag('event', 'post_search_capture_dismissed', {
@@ -70,7 +133,7 @@ export default function PostSearchCaptureModal({
     setIsLoading(true);
 
     try {
-      // Subscribe to newsletter with source
+      // Subscribe to newsletter
       await fetch('/api/newsletter/subscribe', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -81,7 +144,14 @@ export default function PostSearchCaptureModal({
         }),
       });
 
-      // Create price alert if search context available
+      // Update state to submitted (permanent suppression)
+      localStorage.setItem(STORAGE_KEY, JSON.stringify({
+        lastShown: Date.now(),
+        dismissed: false,
+        submitted: true, // Never show again
+      }));
+
+      // Create price alert if context available
       if (origin && destination) {
         await fetch('/api/price-alerts', {
           method: 'POST',
@@ -93,7 +163,7 @@ export default function PostSearchCaptureModal({
             targetPrice: lowestPrice ? Math.round(lowestPrice * 0.9) : undefined,
             email,
           }),
-        }).catch(() => {}); // Silent fail for price alert
+        }).catch(() => {});
       }
 
       setIsSubmitted(true);
