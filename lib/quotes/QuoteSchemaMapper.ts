@@ -348,8 +348,8 @@ function carToApiFormat(item: QuoteItem): ApiCarItem {
   return {
     type: "car",
     price: item.price,
-    priceType: "per_day", // Car rentals are per day
-    priceAppliesTo: travelers || 1,
+    priceType: "total", // Car rental price is total for entire rental period
+    priceAppliesTo: 1, // Total price applies to the whole rental
     currency: item.currency || "USD",
     // Extract from details
     company: details.company || details.provider || "",
