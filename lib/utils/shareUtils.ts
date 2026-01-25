@@ -86,7 +86,8 @@ export interface ShareData {
 export function generateShareUrl(
   flightId: string,
   platform: SharePlatform,
-  userId?: string
+  userId?: string,
+  shareData?: ShareData // Added optional shareData to include search params
 ): string {
   const baseUrl = typeof window !== 'undefined'
     ? window.location.origin
@@ -100,6 +101,19 @@ export function generateShareUrl(
 
   if (userId) {
     params.append('sharedBy', userId);
+  }
+
+  // Add deep linking parameters if available
+  if (shareData) {
+    params.append('origin', shareData.from);
+    params.append('destination', shareData.to);
+    params.append('date', shareData.departureDate.split('T')[0]); // YYYY-MM-DD
+    if (shareData.returnDate) {
+      params.append('returnDate', shareData.returnDate.split('T')[0]);
+    }
+    params.append('airline', shareData.airline);
+    params.append('price', shareData.price.toString());
+    params.append('currency', shareData.currency);
   }
 
   // Add referral tracking

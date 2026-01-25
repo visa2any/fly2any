@@ -45,7 +45,7 @@ export default function ShareFlightModal({
   if (!isOpen) return null;
 
   const shareData = extractShareData(flight);
-  const shareUrl = generateShareUrl(flight.id, 'copy', userId);
+  const shareUrl = generateShareUrl(flight.id, 'copy', userId, shareData);
 
   const handleShare = async (platform: SharePlatform) => {
     trackShareEvent(platform, flight.id, userId);
@@ -94,50 +94,16 @@ export default function ShareFlightModal({
     setImageResult(null);
 
     try {
-      // SMART DETECTION: Find the full flight card element in the DOM
-      // Look for the flight card that matches this flight's ID
-      let flightCardElement: HTMLElement | null = null;
-
-      // Strategy 1: Try to find by data attribute or ID
-      const allFlightCards = document.querySelectorAll('[data-flight-card]');
-      for (const card of Array.from(allFlightCards)) {
-        if (card instanceof HTMLElement) {
-          // Check if this card matches our flight
-          const cardId = card.getAttribute('data-flight-id');
-          if (cardId === flight.id) {
-            flightCardElement = card;
-            break;
-          }
-        }
-      }
-
-      // Strategy 2: If not found, try to find expanded card
-      if (!flightCardElement) {
-        const expandedCard = document.querySelector('.flight-card-expanded') as HTMLElement;
-        if (expandedCard) {
-          flightCardElement = expandedCard;
-        }
-      }
-
-      // Strategy 3: Fallback to any visible flight card with extended details
-      if (!flightCardElement) {
-        const cardsWithDetails = document.querySelectorAll('.bg-white.rounded-xl.shadow-lg');
-        for (const card of Array.from(cardsWithDetails)) {
-          if (card instanceof HTMLElement && card.offsetHeight > 300) {
-            // Likely an expanded card
-            flightCardElement = card;
-            break;
-          }
-        }
-      }
-
-      // Fallback: use preview if nothing found
-      if (!flightCardElement) {
-        flightCardElement = previewRef.current;
-      }
+      // SMART DETECTION: Capture the Modal's Preview Card
+      // We prioritize the previewRef because it's:
+      // 1. Visible (inside the portal)
+      // 2. Cleanly styled for sharing
+      // 3. Guaranteed to have the right data
+      
+      const flightCardElement = previewRef.current; // Use the internal preview!
 
       if (!flightCardElement) {
-        setImageResult('Could not find flight card. Please try again.');
+        setImageResult('Could not find image preview. Please try again.');
         setSharingImage(false);
         return;
       }
