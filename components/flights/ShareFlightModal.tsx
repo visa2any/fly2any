@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
-import { X, Copy, Check, MessageCircle, Send, Mail, Image as ImageIcon, Download, Instagram, Share2 } from 'lucide-react';
+import { X, Copy, Check, MessageCircle, Send, Mail, Image as ImageIcon, Download, Instagram, Share2, Loader2 } from 'lucide-react';
 import { zIndex } from '@/lib/design-system';
 import type { FlightOffer } from '@/lib/flights/types';
 import {
@@ -255,8 +255,12 @@ export default function ShareFlightModal({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm" onClick={onClose}>
-      <div className="relative bg-white rounded-xl shadow-2xl max-w-md w-full" onClick={(e) => e.stopPropagation()}>
+    <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-black/60 backdrop-blur-md animate-fadeIn" onClick={onClose}>
+      <div 
+        className="relative bg-white rounded-xl shadow-2xl max-w-md w-full animate-scaleUp overflow-hidden border border-white/20" 
+        onClick={(e) => e.stopPropagation()}
+        style={{ animationDuration: '0.3s' }}
+      >
         {/* Compact Header */}
         <div className="flex items-center justify-between px-4 py-2 bg-gradient-to-r from-primary-600 to-secondary-600 text-white rounded-t-xl">
           <div>
@@ -317,14 +321,14 @@ export default function ShareFlightModal({
           >
             {sharingImage ? (
               <>
-                <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                <span>Creating Image...</span>
+                <Loader2 className="w-4 h-4 animate-spin" />
+                <span>Creating Sharable Image...</span>
               </>
             ) : (
               <>
                 <ImageIcon className="w-4 h-4" />
                 <span>Share as Image</span>
-                <span className="text-xs bg-white/20 px-2 py-0.5 rounded-full">Best for Instagram/TikTok</span>
+                <span className="text-[10px] bg-white/20 px-1.5 py-0.5 rounded-full font-medium ml-1">Instagram/TikTok</span>
               </>
             )}
           </button>
@@ -482,10 +486,13 @@ export default function ShareFlightModal({
         </div>
       </div>
 
-      {/* Platform Picker Modal */}
       {showPlatformPicker && (
-        <div className="fixed inset-0 z-modal-backdrop flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm" onClick={closePlatformPicker}>
-          <div className="relative bg-white rounded-xl shadow-2xl max-w-lg w-full" onClick={(e) => e.stopPropagation()}>
+        <div className="fixed inset-0 z-[10000] flex items-center justify-center p-4 bg-black/70 backdrop-blur-md animate-fadeIn" onClick={closePlatformPicker}>
+          <div 
+            className="relative bg-white rounded-xl shadow-2xl max-w-lg w-full animate-scaleUp overflow-hidden border border-white/20" 
+            onClick={(e) => e.stopPropagation()}
+            style={{ animationDuration: '0.3s' }}
+          >
             {/* Header */}
             <div className="flex items-center justify-between px-4 py-3 bg-gradient-to-r from-indigo-600 to-purple-600 text-white rounded-t-xl">
               <div>

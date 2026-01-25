@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect, useCallback, useMemo } from 'react';
+import { createPortal } from 'react-dom';
 import { useRouter } from 'next/navigation';
 import { useSession } from 'next-auth/react';
 import { ChevronDown, ChevronUp, Star, Clock, Users, Plane, Wifi, Coffee, Zap, Heart, Share2, Info, Check, X, Shield, AlertTriangle, Award, Sparkles, Image as ImageIcon, Bell, Loader2 } from 'lucide-react';
@@ -1909,8 +1910,8 @@ export function FlightCardEnhanced({
         </div>
       )}
 
-      {/* Share Modal */}
-      {showShareModal && (
+      {/* Share Modal - Move to Portal to fix z-index issues */}
+      {showShareModal && typeof document !== 'undefined' && createPortal(
         <ShareFlightModal
           flight={{
             id,
@@ -1934,7 +1935,8 @@ export function FlightCardEnhanced({
           }}
           isOpen={showShareModal}
           onClose={() => setShowShareModal(false)}
-        />
+        />,
+        document.body
       )}
 
       {/* Rich Content Modal */}
