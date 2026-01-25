@@ -148,8 +148,6 @@ export default function AIAdminDashboard() {
         </div>
       </div>
 
-// ... (KPICard logic remains same) ...
-
       {/* Tabs */}
       <div className="flex gap-1 bg-gray-100 p-1 rounded-lg w-fit">
         {(['overview', 'conversations', 'agents', 'decisions', 'geospatial'] as const).map((tab) => (
@@ -305,7 +303,9 @@ function GeospatialTab({ liveActivity }: { liveActivity: any[] }) {
           </div>
         </div>
       </div>
-
+    </div>
+  );
+}
 
 // ═══════════════════════════════════════════════════════════════════════════
 // SUB-COMPONENTS
