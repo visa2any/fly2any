@@ -444,6 +444,34 @@ export function useUnifiedSearch() {
 
     // Navigation
     goToProduct,
+    applyIntentDefaults: (text: string) => {
+      // Adaptive Scope Logic: Default to SINGLE MODE unless intent implies MULTI
+      const lower = text.toLowerCase();
+      let newScope = { ...state.scope };
+      let updated = false;
+
+      // 1. Explicit Product Keywords (Single Mode)
+      if (lower.includes('flight') || lower.includes('fly to')) {
+        newScope = { flights: true, hotels: false, cars: false, activities: false, transfers: false };
+        updated = true;
+      } else if (lower.includes('hotel') || lower.includes('stay')) {
+        newScope = { flights: false, hotels: true, cars: false, activities: false, transfers: false };
+        updated = true;
+      } else if (lower.includes('car') || lower.includes('drive')) {
+        newScope = { flights: false, hotels: false, cars: true, activities: false, transfers: false };
+        updated = true;
+      }
+
+      // 2. Package Keywords (Unified Mode)
+      if (lower.includes('vacation') || lower.includes('holiday') || lower.includes('honeymoon') || lower.includes('trip')) {
+        newScope = { flights: true, hotels: true, cars: false, activities: false, transfers: true };
+        updated = true;
+      }
+
+      if (updated) {
+        setScope(newScope);
+      }
+    }
   };
 }
 

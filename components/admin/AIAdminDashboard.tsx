@@ -25,6 +25,7 @@ import {
   Filter,
   ChevronRight,
   Eye,
+} from 'lucide-react';
 import ConversationTranscriptDrawer from './ConversationTranscriptDrawer';
 
 // ═══════════════════════════════════════════════════════════════════════════

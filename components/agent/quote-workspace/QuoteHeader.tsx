@@ -7,6 +7,37 @@ import { useViewMode } from "./itinerary/ViewModeContext";
 import { SmartPresets, AutosaveIndicator, formatShortcut } from "./velocity";
 import Link from "next/link";
 import { useSession } from "next-auth/react";
+import { useQuoteAnalysis } from "./hooks/useQuoteAnalysis";
+import { motion, AnimatePresence } from "framer-motion";
+
+function QuoteStrengthBadge() {
+  const { analysis, isLoading } = useQuoteAnalysis();
+
+  if (!analysis && !isLoading) return null;
+
+  return (
+    <AnimatePresence>
+      {analysis && (
+        <motion.div
+          initial={{ opacity: 0, scale: 0.9 }}
+          animate={{ opacity: 1, scale: 1 }}
+          exit={{ opacity: 0, scale: 0.9 }}
+          className={`flex items-center gap-1.5 px-2.5 py-1 rounded-full border ${
+            analysis.score >= 80 ? "bg-green-50 border-green-200 text-green-700" :
+            analysis.score >= 60 ? "bg-yellow-50 border-yellow-200 text-yellow-700" :
+            "bg-red-50 border-red-200 text-red-700"
+          }`}
+        >
+          <div className={`w-2 h-2 rounded-full ${
+            analysis.score >= 80 ? "bg-green-500" :
+            analysis.score >= 60 ? "bg-yellow-500" : "bg-red-500"
+          }`} />
+          <span className="text-[10px] font-bold">Strength: {analysis.score}%</span>
+        </motion.div>
+      )}
+    </AnimatePresence>
+  );
+}
 
 export default function QuoteHeader() {
   const { state, setTripName, openSendModal, saveQuote } = useQuoteWorkspace();
@@ -89,6 +120,9 @@ export default function QuoteHeader() {
         <span className={`px-2 py-0.5 text-[10px] font-semibold rounded-full uppercase ${statusColors[state.status]}`}>
           {state.status}
         </span>
+
+        {/* AI Quote Strength Badge */}
+        <QuoteStrengthBadge />
 
         {/* Toolbar Actions */}
         <div className="hidden lg:flex items-center gap-1 ml-3 pl-3 border-l border-gray-200">

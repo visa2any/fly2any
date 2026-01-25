@@ -4,7 +4,7 @@ import { useState, useEffect, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { 
   X, Mail, MessageCircle, Copy, CheckCircle2, Loader2, 
-  Plane, ChevronRight, Eye, Send as SendIcon
+  Plane, ChevronRight, Eye, Send as SendIcon, Sparkles
 } from "lucide-react";
 import { useQuoteWorkspace } from "./QuoteWorkspaceProvider";
 import { 
@@ -525,12 +525,46 @@ export function SendQuoteModal({ isOpen, onClose }: SendQuoteModalProps) {
                     Reset to Template
                   </button>
                 </div>
-                <textarea
-                  value={interpolatedMessage}
-                  onChange={(e) => setCustomMessage(e.target.value)}
-                  placeholder="Write your message..."
-                  className="w-full h-64 px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-transparent resize-none"
-                />
+                <div className="relative">
+                  <textarea
+                    value={interpolatedMessage}
+                    onChange={(e) => setCustomMessage(e.target.value)}
+                    placeholder="Write your message..."
+                    className="w-full h-64 px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-transparent resize-none"
+                  />
+                  <div className="absolute bottom-3 right-3">
+                    <button
+                      onClick={async () => {
+                        // Optimistic UI update or loading state could go here
+                        const toastId = "generating-email"; // simplistic handling
+                        try {
+                          const res = await fetch("/api/ai/analyze-quote", {
+                            method: "POST",
+                            headers: { "Content-Type": "application/json" },
+                            body: JSON.stringify({
+                              tripName: state.tripName,
+                              destination: state.destination,
+                              startDate: state.startDate,
+                              endDate: state.endDate,
+                              travelers: state.travelers,
+                              items: state.items
+                            }),
+                          });
+                          const data = await res.json();
+                          if (data.email_draft) {
+                            setCustomMessage(data.email_draft);
+                          }
+                        } catch (e) {
+                          console.error("Failed to generate email", e);
+                        }
+                      }}
+                      className="flex items-center gap-1.5 px-3 py-1.5 bg-gradient-to-r from-violet-600 to-indigo-600 text-white text-xs font-semibold rounded-lg shadow-sm hover:shadow-md transition-all hover:scale-105"
+                    >
+                      <Sparkles className="w-3 h-3" />
+                      AI Rewrite
+                    </button>
+                  </div>
+                </div>
                 <p className="text-xs text-gray-500 mt-2">
                   Variables: {'{{clientName}}'}, {'{{destination}}'}, {'{{total}}'}, {'{{perPerson}}'}, {'{{tripName}}'}
                 </p>
