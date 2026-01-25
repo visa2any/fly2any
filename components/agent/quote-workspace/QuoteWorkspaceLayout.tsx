@@ -202,12 +202,6 @@ export default function QuoteWorkspaceLayout({
 
       {overlays}
 
-      {/* Send Quote Modal */}
-      <SendQuoteModal
-        isOpen={state.ui.sendModalOpen}
-        onClose={() => dispatch({ type: "SET_UI", payload: { sendModalOpen: false } })}
-      />
-
       {/* Velocity UX Overlays */}
       <CommandPalette
         isOpen={commandPaletteOpen}
