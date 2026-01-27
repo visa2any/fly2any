@@ -109,15 +109,15 @@ export function BottomTabBar({ translations, onMoreClick }: BottomTabBarProps) {
       label: translations.hotels || 'Hotels',
       href: '/hotels',
     },
-    {
-      id: 'chat',
-      icon: '💬',
-      iconType: 'emoji',
-      label: 'Chat',
-      onClick: () => {
-        window.dispatchEvent(new CustomEvent('openChatAssistant'));
-      },
-    },
+    // {
+    //   id: 'chat',
+    //   icon: '💬',
+    //   iconType: 'emoji',
+    //   label: 'Chat',
+    //   onClick: () => {
+    //     window.dispatchEvent(new CustomEvent('openChatAssistant'));
+    //   },
+    // },
     {
       id: 'more',
       icon: '☰',

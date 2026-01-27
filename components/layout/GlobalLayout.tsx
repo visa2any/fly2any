@@ -8,7 +8,8 @@ import { Header, type Language } from './Header';
 import { Footer } from './Footer';
 import { BottomTabBar } from '@/components/mobile/BottomTabBar';
 import { NavigationDrawer } from '@/components/mobile/NavigationDrawer';
-import { AITravelAssistant } from '@/components/ai/AITravelAssistant';
+// import { AITravelAssistant } from '@/components/ai/AITravelAssistant';
+import { TawkToChat } from '@/components/support/TawkToChat';
 import { ErrorBoundary } from '@/components/ErrorBoundary';
 import { MobileFullscreen } from '@/components/layout/MobileFullscreen';
 import { useLanguage } from '@/lib/i18n/client';
@@ -183,7 +184,12 @@ function GlobalLayoutInner({ children }: GlobalLayoutProps) {
       />
 
       {/* AI Travel Assistant - Wrapped in ErrorBoundary for crash resilience */}
-      <ErrorBoundary
+      {/* AI Travel Assistant - Hidden per user request */}
+      {/* <ErrorBoundary ... > ... </ErrorBoundary> */}
+
+      {/* Tawk.to Live Chat Support */}
+      <TawkToChat />
+      {/* <ErrorBoundary
         variant="inline"
         context="ai-travel-assistant"
         fallback={
@@ -201,7 +207,7 @@ function GlobalLayoutInner({ children }: GlobalLayoutProps) {
         }
       >
         <AITravelAssistant language={language} />
-      </ErrorBoundary>
+      </ErrorBoundary> */}
     </>
   );
 }
