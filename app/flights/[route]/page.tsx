@@ -194,6 +194,8 @@ async function getRoutePricing(origin: string, destination: string): Promise<Rou
   };
 }
 
+import FlightSearchForm from '@/components/search/FlightSearchForm';
+
 export default async function FlightRoutePage({ params }: { params: RouteParams }) {
   const parsed = parseRouteSlug(params.route);
 
@@ -246,15 +248,18 @@ export default async function FlightRoutePage({ params }: { params: RouteParams 
   // CONDITIONAL: Offer schema only included when hasInventory=true
   const schemas = getRoutePageSchemaGraph(routeData, breadcrumbItems, routeFAQs);
 
-  // NO INVENTORY: Show alternative content (prevents soft 404)
+  // NO INVENTORY: Show alternative content with SEARCH WIDGET (prevents soft 404)
   if (!pricing.hasInventory) {
     return (
       <>
         <StructuredData schema={schemas} />
         <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-indigo-50">
           {/* Hero Section - Simplified */}
-          <section className="bg-gradient-to-r from-blue-600 to-blue-700 text-white py-12">
-            <div className="container mx-auto px-4">
+          <section className="bg-gradient-to-r from-blue-600 to-blue-700 text-white py-12 relative overflow-hidden">
+             {/* Background Pattern */}
+             <div className="absolute inset-0 opacity-10 bg-[radial-gradient(ellipse_at_top_right,_var(--tw-gradient-stops))] from-white via-transparent to-transparent"></div>
+             
+            <div className="container mx-auto px-4 relative z-10">
               <nav className="text-sm mb-6 opacity-90">
                 <a href="/" className="hover:underline">Home</a>
                 {' > '}
@@ -265,21 +270,37 @@ export default async function FlightRoutePage({ params }: { params: RouteParams 
               <h1 className="text-3xl md:text-4xl font-bold mb-4">
                 Flights from {originName} to {destinationName}
               </h1>
+              <p className="text-blue-100 text-lg max-w-2xl">
+                Check live availability and prices for this route.
+              </p>
             </div>
           </section>
 
-          {/* No Flights Available Component */}
-          <section className="container mx-auto px-4 py-8">
-            <NoFlightsAvailable
-              origin={origin}
-              destination={destination}
-              originName={originName}
-              destinationName={destinationName}
-            />
+          {/* CHECK AVAILABILITY WIDGET (Replaces NoInventory error state) */}
+          <section className="container mx-auto px-4 -mt-8 relative z-20">
+             <div className="bg-white rounded-2xl shadow-xl p-4 md:p-6">
+                <FlightSearchForm 
+                  initialOrigin={[origin]} 
+                  initialDestination={[destination]}
+                />
+             </div>
+          </section>
+
+          {/* About This Route (SEO Content) */}
+          <section className="container mx-auto px-4 py-12">
+            <div className="bg-white rounded-xl shadow-lg p-8">
+              <h2 className="text-2xl font-bold text-gray-900 mb-6">
+                 Flight Information: {origin} to {destination}
+              </h2>
+              <p className="text-gray-700 mb-4">
+                 While we don't have cached pricing for this specific moment, multiple airlines likely operate this route. 
+                 Use the search tool above to see real-time schedules and fares from {originName} to {destinationName}.
+              </p>
+            </div>
           </section>
 
           {/* FAQ Section - Still valuable for SEO */}
-          <section className="container mx-auto px-4 py-12">
+          <section className="container mx-auto px-4 py-8">
             <div className="bg-white rounded-xl shadow-lg p-8">
               <h2 className="text-2xl font-bold text-gray-900 mb-6">
                 FAQs - {origin} to {destination} Flights
@@ -347,26 +368,13 @@ export default async function FlightRoutePage({ params }: { params: RouteParams 
 
         {/* Search Widget */}
         <section className="container mx-auto px-4 py-8">
-          <div className="bg-white rounded-2xl shadow-xl p-8 -mt-16 relative z-10">
-            <h2 className="text-2xl font-bold text-gray-900 mb-4">
-              Search Flights from {origin} to {destination}
-            </h2>
-            <p className="text-gray-600 mb-6">
-              Use our search tool below to find and compare the best flight options for your trip.
-            </p>
-            {/* TODO: Integrate actual search widget - preserve existing UI */}
-            <div className="bg-blue-50 border-2 border-blue-200 rounded-lg p-8 text-center">
-              <p className="text-blue-700 font-semibold">🔍 Search Widget Integration Point</p>
-              <p className="text-sm text-blue-600 mt-2">
-                Your existing search bar component will be integrated here
-              </p>
-              <a
-                href={`/flights/results?origin=${origin}&destination=${destination}`}
-                className="inline-block mt-4 bg-blue-600 text-white px-8 py-3 rounded-lg font-semibold hover:bg-blue-700 transition-colors"
-              >
-                Search {origin} to {destination} Flights →
-              </a>
-            </div>
+          <div className="relative z-10 -mt-16">
+             {/* Replaced Placeholder with Real Widget */}
+             <FlightSearchForm 
+                initialOrigin={[origin]} 
+                initialDestination={[destination]}
+                className="shadow-2xl"
+             />
           </div>
         </section>
 

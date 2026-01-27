@@ -223,12 +223,21 @@ export default function HotelSearchPanel() {
   };
 
   const handleAddHotel = (hotel: any) => {
-    // Extract price - API returns lowestPrice: { amount, currency } or lowestPricePerNight as number
-    // Both represent per-night price, so multiply by nights for total
-    const pricePerNight = hotel.lowestPrice?.amount
-      ? parseFloat(hotel.lowestPrice.amount)
-      : (hotel.lowestPricePerNight || 0);
-    const totalPrice = pricePerNight * Math.max(1, nights);
+    // CRITICAL FIX: Align with Main Site Logic (HotelResultsContent)
+    // 1. lowestPricePerNight = Total Nightly Rate (includes all rooms)
+    // 2. lowestPrice.amount = Total Stay Price (includes all rooms, all nights)
+    
+    let basePricePerNight = 0;
+
+    if (hotel.lowestPricePerNight) {
+      // Best case: API gives us the pre-calculated nightly rate (includes room count)
+      basePricePerNight = hotel.lowestPricePerNight;
+    } else if (hotel.lowestPrice?.amount) {
+      // Fallback: Calculate from total amount
+      const totalAmount = parseFloat(hotel.lowestPrice.amount);
+      const stayNights = Math.max(1, nights);
+      basePricePerNight = totalAmount / stayNights;
+    }
 
     // Extract image URL - API returns images: [{ url, alt }] array
     const imageUrl = hotel.thumbnail
@@ -243,9 +252,9 @@ export default function HotelSearchPanel() {
 
     const item: Omit<HotelItem, "id" | "sortOrder" | "createdAt"> = {
       type: "hotel",
-      price: totalPrice,
-      priceType: 'per_night', // CRITICAL FIX: Hotels are priced per night per room
-      priceAppliesTo: 1, // Price covers 1 room, NOT per person
+      price: basePricePerNight, // calculated nightly rate
+      priceType: 'per_night', // Pricing service will multiply by nights
+      priceAppliesTo: totalGuests, // For display/info only, not calculation
       nights,
       currency: "USD",
       date: params.checkIn,

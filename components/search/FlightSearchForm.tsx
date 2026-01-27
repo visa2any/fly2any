@@ -37,6 +37,8 @@ interface FlightSearchFormProps {
   language?: Language;
   onLanguageChange?: (lang: Language) => void;
   className?: string;
+  initialOrigin?: string[];
+  initialDestination?: string[];
 }
 
 // Translations
@@ -108,7 +110,7 @@ const content = {
       adultsDesc: '12+ anos',
       children: 'Crianças',
       childrenDesc: '2-12 anos',
-      infants: 'Bebês',
+      infants: 'Bebés',
       infantsDesc: 'Menos de 2 anos',
     },
     search: 'Buscar Voos',
@@ -153,7 +155,7 @@ const content = {
       children: 'Niños',
       childrenDesc: '2-12 años',
       infants: 'Bebés',
-      infantsDesc: 'Menos de 2 años',
+      infantsDesc: 'Menos de 2 anos',
     },
     search: 'Buscar Vuelos',
     directFlights: 'Solo vuelos directos',
@@ -179,6 +181,8 @@ export default function FlightSearchForm({
   language = 'en',
   onLanguageChange,
   className = '',
+  initialOrigin = [],
+  initialDestination = [],
 }: FlightSearchFormProps) {
   const router = useRouter();
   const [lang, setLang] = useState<Language>(language);
@@ -189,8 +193,8 @@ export default function FlightSearchForm({
   const passengerButtonRef = useRef<HTMLButtonElement>(null);
 
   const [formData, setFormData] = useState<FormData>({
-    origin: [],  // Start with empty array
-    destination: [],  // Start with empty array
+    origin: initialOrigin,  // Initialize with prop
+    destination: initialDestination,  // Initialize with prop
     departureDate: '',
     departureDates: [],    // Array of specific departure dates
     useMultiDate: false,   // Toggle between single-date and multi-date mode
