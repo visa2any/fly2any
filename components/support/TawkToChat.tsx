@@ -64,6 +64,71 @@ export function TawkToChat() {
     return () => clearTimeout(timeout);
   }, [session]);
 
+  // Listen for chat end events and sync to database
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+
+    const setupChatListeners = () => {
+      if (window.Tawk_API) {
+        // Store original callback if it exists
+        const originalOnChatEnded = window.Tawk_API.onChatEnded;
+
+        // Override with our handler
+        window.Tawk_API.onChatEnded = function() {
+          // Call original callback if it existed
+          if (originalOnChatEnded) originalOnChatEnded();
+
+          // Send chat data to our API
+          const chatData = {
+            event: 'chat:end',
+            chatId: `tawk_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+            time: {
+              end: new Date().toISOString(),
+            },
+            visitor: {
+              name: session?.user?.name || 'Anonymous',
+              email: session?.user?.email,
+              userId: session?.user?.id,
+            },
+          };
+
+          // Send to our API endpoint
+          fetch('/api/webhooks/tawk', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(chatData),
+          }).catch((error) => {
+            console.error('Failed to sync chat transcript:', error);
+          });
+
+          console.log('[Tawk.to] Chat ended, syncing to database');
+        };
+      }
+    };
+
+    // Try to setup immediately
+    if (window.Tawk_API) {
+      setupChatListeners();
+    }
+
+    // Also setup on load
+    const originalOnLoad = window.Tawk_API?.onLoad;
+    if (window.Tawk_API) {
+      const prevOnLoad = originalOnLoad;
+      window.Tawk_API.onLoad = function() {
+        if (prevOnLoad) prevOnLoad();
+        setupChatListeners();
+      };
+    }
+
+    // Fallback: try again after delay
+    const timeout = setTimeout(setupChatListeners, 3000);
+
+    return () => clearTimeout(timeout);
+  }, [session]);
+
   if (isExcluded) return null;
 
   return (
