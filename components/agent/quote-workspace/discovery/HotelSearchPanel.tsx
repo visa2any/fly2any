@@ -550,7 +550,7 @@ export default function HotelSearchPanel() {
                 <>
                   <div className="space-y-1.5">
                     {visible.map((hotel: any, idx: number) => (
-                      <HotelCard key={hotel.id || idx} hotel={hotel} nights={nights} onAdd={() => handleAddHotel(hotel)} />
+                      <HotelCard key={hotel.id || idx} hotel={hotel} nights={nights} guests={totalGuests} onAdd={() => handleAddHotel(hotel)} />
                     ))}
                   </div>
                   {remaining > 0 && (
@@ -595,7 +595,7 @@ function GuestRow({ label, sub, value, min, onChange }: { label: string; sub?: s
   );
 }
 
-function HotelCard({ hotel, nights, onAdd }: { hotel: any; nights: number; onAdd: () => void }) {
+function HotelCard({ hotel, nights, guests, onAdd }: { hotel: any; nights: number; guests: number; onAdd: () => void }) {
   const pricePerNight = hotel.lowestPrice?.amount ? parseFloat(hotel.lowestPrice.amount) : (hotel.lowestPricePerNight || 0);
   const totalPrice = pricePerNight * Math.max(1, nights);
   const perNight = pricePerNight;
@@ -623,18 +623,34 @@ function HotelCard({ hotel, nights, onAdd }: { hotel: any; nights: number; onAdd
             <div className="flex items-center gap-0.5 flex-shrink-0">{Array.from({ length: Math.min(stars, 5) }).map((_, i) => <Star key={i} className="w-2.5 h-2.5 fill-amber-400 text-amber-400" />)}</div>
             {score > 0 && <span className="text-[8px] font-bold text-white bg-purple-600 px-1 py-px rounded flex-shrink-0">{score.toFixed(1)}</span>}
           </div>
-          {/* Row 2: Location + Amenities + Board */}
-          <div className="flex items-center gap-1.5 text-[9px] text-gray-500">
-            <span className="flex items-center gap-0.5 truncate max-w-[80px]"><MapPin className="w-2.5 h-2.5" />{loc}</span>
-            {amenities.map((a: string, i: number) => <span key={i} className="bg-gray-100 px-1 py-px rounded truncate max-w-[60px]">{a}</span>)}
+          {/* Row 2: Location + Guests/Nights + Board */}
+          <div className="flex items-center gap-1.5 text-[9px] text-gray-500 flex-wrap">
+             <span className="flex items-center gap-0.5 text-xs font-medium text-gray-700 bg-gray-100 px-1.5 py-0.5 rounded">
+               <Clock className="w-3 h-3 text-purple-500" /> {nights}n
+             </span>
+             <span className="flex items-center gap-0.5 text-xs font-medium text-gray-700 bg-gray-100 px-1.5 py-0.5 rounded">
+                <Users className="w-3 h-3 text-blue-500" /> {guests}
+             </span>
             {board && <span className="bg-blue-100 text-blue-700 px-1 py-px rounded font-medium">{board}</span>}
           </div>
+           {/* Row 3: Location (if space permits) */}
+           <div className="flex items-center gap-1 text-[9px] text-gray-400 truncate">
+              <MapPin className="w-2.5 h-2.5" /> {loc}
+           </div>
         </div>
 
         {/* Price + Add */}
         <div className="flex items-center gap-2 flex-shrink-0">
           <div className="text-right">
-            {totalPrice > 0 ? (<><p className="text-sm font-black text-gray-900">${Math.round(totalPrice)}</p><p className="text-[8px] text-gray-400">${Math.round(perNight)}/n</p></>) : <p className="text-[10px] text-gray-400">On request</p>}
+            {totalPrice > 0 ? (
+              <>
+                 <p className="text-sm font-black text-gray-900">${Math.round(totalPrice)}</p>
+                 <div className="flex flex-col items-end">
+                    <p className="text-[9px] text-gray-500 font-medium">${Math.round(perNight)}/night</p>
+                    <p className="text-[8px] text-gray-400">Total for {nights} nights</p>
+                 </div>
+              </>
+            ) : <p className="text-[10px] text-gray-400">On request</p>}
           </div>
           <motion.button whileHover={{ scale: 1.1, rotate: 90 }} whileTap={{ scale: 0.9 }} onClick={onAdd} className="w-7 h-7 flex items-center justify-center bg-gradient-to-br from-purple-500 to-pink-600 text-white rounded-full shadow opacity-0 group-hover:opacity-100 transition-opacity"><Plus className="w-3.5 h-3.5" /></motion.button>
         </div>

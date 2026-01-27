@@ -655,8 +655,14 @@ export default function ItineraryCard({ item, dragListeners, isDragging, viewMod
                       <span>Conflict</span>
                     </div>
                   )}
-                  <p className="font-black text-gray-900 text-sm bg-yellow-50 border border-yellow-200 px-2 py-0.5 rounded">{formatPrice(h.price)}</p>
-                  <p className="text-[9px] text-gray-400 mt-0.5">{h.checkIn ? format(parseISO(h.checkIn), "MMM d") : ""}</p>
+                  {/* Total Price Calculation: price (per night) * nights */}
+                  <p className="font-black text-gray-900 text-sm bg-yellow-50 border border-yellow-200 px-2 py-0.5 rounded">
+                     {formatPrice(h.price * h.nights)}
+                  </p>
+                  <div className="flex flex-col items-end mt-0.5">
+                     <p className="text-[9px] text-gray-500 font-medium">{formatPrice(h.price)}/night</p>
+                     <p className="text-[8px] text-gray-400">Total for {h.nights} nights</p>
+                  </div>
                 </div>
               ) : (
                 <div className="flex-shrink-0 text-right">
@@ -664,6 +670,8 @@ export default function ItineraryCard({ item, dragListeners, isDragging, viewMod
                     <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
                     <span className="text-xs font-semibold text-emerald-700">Confirmed</span>
                   </div>
+                  <p className="font-bold text-gray-900 text-sm mt-1">{formatPrice(h.price * h.nights)}</p>
+                  <p className="text-[9px] text-gray-500">{formatPrice(h.price)}/night</p>
                 </div>
               )}
             </div>
