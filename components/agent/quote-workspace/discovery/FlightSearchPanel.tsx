@@ -1473,9 +1473,12 @@ function FlightResultCard({ flight, onAdd, index }: { flight: any; onAdd: (fareI
       const priceRank = pricings.findIndex((p: any, i: number) => i === idx);
       const popularity = priceRank === 0 ? 26 : priceRank === 1 ? 74 : priceRank === 2 ? 18 : 4;
 
-      // ALWAYS convert to agent price (using shared helper for consistency)
-      const rawPrice = Number(tp.price?.total || tp.price?.amount || 0);
-      const agentBasePrice = convertToAgentPrice(rawPrice);
+      // AGENT PRICING: Same logic as handleAddFlight for consistency
+      // Public prices include 7% markup → reverse to net → apply 3.5% Fly2Any markup
+      const customerPrice = Number(tp.price?.total || tp.price?.amount || 0);
+      const apiNetPrice = customerPrice / 1.07;
+      const fly2anyMarkup = Math.max(15, apiNetPrice * 0.035);
+      const agentBasePrice = apiNetPrice + fly2anyMarkup;
 
       return {
         id: idx,
