@@ -1241,7 +1241,7 @@ function FlightResultCard({ flight, onAdd, index }: { flight: any; onAdd: (fareI
       fetch('/api/flights/upselling', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ flightOffer: flight }),
+        body: JSON.stringify({ flightOffer: flight, isAgent: true }),
       })
         .then(res => res.json())
         .then(data => {
@@ -1270,12 +1270,9 @@ function FlightResultCard({ flight, onAdd, index }: { flight: any; onAdd: (fareI
         const fd = tp?.fareDetailsBySegment?.[0];
         const fareType = fd?.brandedFareLabel || fd?.brandedFare || fd?.cabin || "Economy";
         
-        // AGENT PRICING: Convert customer price to agent base price
-        // Upselling API returns customer prices with 7% public markup
-        const customerPrice = Number(fareOffer.price?.total || 0);
-        const apiNetPrice = customerPrice / 1.07; // Remove 7% public markup
-        const fly2anyMarkup = Math.max(15, apiNetPrice * 0.035); // Apply 3.5% Fly2Any base (min $15)
-        const price = apiNetPrice + fly2anyMarkup; // Agent base price
+        // API now returns agent-appropriate prices (with isAgent: true)
+        // No client-side conversion needed
+        const price = Number(fareOffer.price?.total || 0);
 
         const cabin = fd?.cabin || "ECONOMY";
         const bags = fd?.includedCheckedBags?.quantity

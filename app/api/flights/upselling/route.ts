@@ -16,7 +16,7 @@ import { applyFlightMarkup } from '@/lib/config/flight-markup';
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const { flightOffer } = body;
+    const { flightOffer, isAgent = false } = body;
 
     if (!flightOffer) {
       return NextResponse.json(
@@ -25,7 +25,8 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    console.log(`🎫 Getting fare families for flight ${flightOffer.id}...`);
+    console.log(`🎫 Getting fare families for flight ${flightOffer.id}... (Agent: ${isAgent})`);
+
 
     // Call Amadeus Upselling API
     const response = await amadeusAPI.getUpsellingFares(flightOffer);
@@ -51,32 +52,47 @@ export async function POST(request: NextRequest) {
         return fare;
       }
 
-      // Apply markup using the same flight markup config
-      const markupResult = applyFlightMarkup(netPrice);
+      let markupAmount: number;
+      let finalPrice: number;
+      let markupPercentage: number;
 
-      // Update fare price with customer-facing price (including markup)
+      if (isAgent) {
+        // AGENT PRICING: 3.5% with $15 minimum
+        markupAmount = Math.max(15, netPrice * 0.035);
+        finalPrice = netPrice + markupAmount;
+        markupPercentage = (markupAmount / netPrice) * 100;
+        console.log(`  ✓ Fare ${fare.id?.slice(-8) || 'unknown'} [AGENT]: $${netPrice.toFixed(2)} → $${finalPrice.toFixed(2)} (+$${markupAmount.toFixed(2)} / ${markupPercentage.toFixed(1)}%)`);
+      } else {
+        // CUSTOMER PRICING: Apply 7% using the flight markup config
+        const markupResult = applyFlightMarkup(netPrice);
+        markupAmount = markupResult.markupAmount;
+        finalPrice = markupResult.customerPrice;
+        markupPercentage = markupResult.markupPercentage;
+        console.log(`  ✓ Fare ${fare.id?.slice(-8) || 'unknown'} [CUSTOMER]: $${netPrice.toFixed(2)} → $${finalPrice.toFixed(2)} (+$${markupAmount.toFixed(2)} / ${markupPercentage}%)`);
+      }
+
+      // Update fare price with the appropriate price
       const markedUpFare = {
         ...fare,
         price: {
           ...fare.price,
-          total: markupResult.customerPrice.toString(),
-          grandTotal: markupResult.customerPrice.toString(),
+          total: finalPrice.toString(),
+          grandTotal: finalPrice.toString(),
           // Store net price internally for debugging
           _netPrice: netPrice.toString(),
-          _markupAmount: markupResult.markupAmount.toString(),
-          _markupPercentage: markupResult.markupPercentage,
+          _markupAmount: markupAmount.toString(),
+          _markupPercentage: markupPercentage,
+          _isAgentPrice: isAgent,
         },
         // Update traveler pricing if exists
         travelerPricings: fare.travelerPricings?.map((tp: any) => ({
           ...tp,
           price: {
             ...tp.price,
-            total: markupResult.customerPrice.toString(),
+            total: finalPrice.toString(),
           },
         })),
       };
-
-      console.log(`  ✓ Fare ${fare.id?.slice(-8) || 'unknown'}: $${netPrice.toFixed(2)} → $${markupResult.customerPrice.toFixed(2)} (+$${markupResult.markupAmount.toFixed(2)} / ${markupResult.markupPercentage}%)`);
 
       return markedUpFare;
     });
