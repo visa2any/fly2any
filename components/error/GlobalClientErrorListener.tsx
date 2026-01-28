@@ -45,7 +45,13 @@ export function GlobalClientErrorListener() {
         return true;
       }
 
-      // 5. Cross-origin script errors
+      // 5. ServiceWorker installation errors (common during updates)
+      if (message.includes('ServiceWorker') || 
+          message.includes('sw.js')) {
+        return true;
+      }
+
+      // 6. Cross-origin script errors
       if (message === 'Script error.' && !filename) {
         return true; // Generic cross-origin error
       }
