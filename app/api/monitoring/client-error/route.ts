@@ -14,6 +14,23 @@ export async function POST(request: NextRequest) {
     const body = await request.text();
     const errorData = JSON.parse(body);
 
+    // FILTER: Ignore browser extension errors (third-party noise)
+    const stack = errorData.stack || '';
+    const filename = errorData.additionalData?.filename || '';
+    
+    if (
+      stack.includes('chrome-extension://') ||
+      stack.includes('moz-extension://') ||
+      stack.includes('safari-extension://') ||
+      filename.includes('chrome-extension://') ||
+      filename.includes('moz-extension://') ||
+      filename.includes('inject_content.js') ||
+      filename.includes('content_script')
+    ) {
+      console.log('[CLIENT ERROR] Ignored browser extension error:', errorData.message);
+      return new NextResponse(null, { status: 204 });
+    }
+
     // Log to console
     console.error('[CLIENT ERROR]', {
       timestamp: errorData.timestamp || new Date().toISOString(),
