@@ -1296,9 +1296,9 @@ function FlightResultCard({ flight, onAdd, index }: { flight: any; onAdd: (fareI
         const fd = tp?.fareDetailsBySegment?.[0];
         const fareType = fd?.brandedFareLabel || fd?.brandedFare || fd?.cabin || "Economy";
         
-        // ALWAYS convert to agent price (foolproof - doesn't rely on API)
-        const rawPrice = Number(fareOffer.price?.total || 0);
-        const price = convertToAgentPrice(rawPrice);
+        // Use agent price directly from upselling API (already has 3.5% Fly2Any markup)
+        // The API receives isAgent: true, so prices are already converted
+        const price = Number(fareOffer.price?.total || 0);
 
         const cabin = fd?.cabin || "ECONOMY";
         const bags = fd?.includedCheckedBags?.quantity
