@@ -35,17 +35,28 @@ function resolveLocationCode(location: string): string {
 
 /**
  * CAR RENTAL MARKUP POLICY
- * Formula: $30 minimum OR 20% of base price, whichever is HIGHER
+ * 
+ * PRICING STRUCTURE:
+ * - Public: 20% (min $30)
+ * - Agent: 10% (min $15)
  */
-function applyCarMarkup(basePrice: number): {
+function applyCarMarkup(basePrice: number, isAgent: boolean = false): {
   customerPrice: number;
   baseAmount: number;
   markup: number;
   markupPercent: number;
   profit: number;
 } {
-  const percentMarkup = basePrice * 0.20;
-  const markup = Math.max(30, percentMarkup);
+  let markup: number;
+  
+  if (isAgent) {
+    // Agent pricing: 10% (min $15)
+    markup = Math.max(15, basePrice * 0.10);
+  } else {
+    // Public pricing: 20% (min $30)
+    markup = Math.max(30, basePrice * 0.20);
+  }
+  
   const customerPrice = basePrice + markup;
   const markupPercent = basePrice > 0 ? (markup / basePrice) * 100 : 0;
 
@@ -77,6 +88,8 @@ export async function GET(request: NextRequest) {
     const dropoffDate = searchParams.get('dropoffDate');
     const pickupTime = searchParams.get('pickupTime');
     const dropoffTime = searchParams.get('dropoffTime');
+    const isAgent = searchParams.get('isAgent') === 'true'; // Agent pricing flag
+
 
     if (!pickupLocation || !pickupDate || !dropoffDate) {
       return NextResponse.json(
@@ -112,9 +125,9 @@ export async function GET(request: NextRequest) {
       // Transform Amadeus response to our format with markup
       const transformedData = {
         data: result.data.map((offer: any, index: number) => {
-          // Apply markup: $30 or 20%, whichever is higher
+          // Apply context-aware markup (agent or public pricing)
           const baseTotal = parseFloat(offer.price?.total || offer.quotation?.totalPrice?.value || '0');
-          const pricing = applyCarMarkup(baseTotal);
+          const pricing = applyCarMarkup(baseTotal, isAgent);
 
           return {
           id: offer.id || `CAR_${pickupLocation}_${index}`,
@@ -287,11 +300,11 @@ export async function GET(request: NextRequest) {
       const fallbackData = await fallbackResponse.json();
 
       if (fallbackData.data?.length > 0) {
-        // Apply markup to fallback data
+        // Apply context-aware markup to fallback data
         const carsWithMarkup = fallbackData.data.map((car: any) => {
           const basePrice = parseFloat(car.pricePerDay || car.price?.perDay || '50');
           const totalDays = rentalDays || 1;
-          const pricing = applyCarMarkup(basePrice * totalDays);
+          const pricing = applyCarMarkup(basePrice * totalDays, isAgent);
 
           return {
             ...car,

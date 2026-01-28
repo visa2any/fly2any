@@ -247,6 +247,9 @@ export default function TransfersSearchPanel() {
         query.append('dropoffCountry', selectedDropoff.countryCode);
       }
 
+      // Add isAgent flag for agent pricing
+      query.append('isAgent', 'true');
+
       const res = await fetch(`/api/transfers/search?${query}`);
       const data = await res.json();
 

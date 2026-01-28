@@ -40,6 +40,37 @@ const VEHICLE_CATEGORY_INFO: Record<string, { name: string; icon: string }> = {
 };
 
 /**
+ * Apply transfer markup based on context
+ * 
+ * PRICING STRUCTURE:
+ * - Public: 35% (min $35)
+ * - Agent: 15% (min $20)
+ */
+function applyTransferMarkup(basePrice: number, isAgent: boolean = false): {
+  basePrice: number;
+  markup: number;
+  finalPrice: number;
+} {
+  let markup: number;
+  
+  if (isAgent) {
+    // Agent pricing: 15% (min $20)
+    markup = Math.max(20, basePrice * 0.15);
+  } else {
+    // Public pricing: 35% (min $35)
+    markup = Math.max(35, basePrice * 0.35);
+  }
+  
+  const finalPrice = basePrice + markup;
+  
+  return {
+    basePrice: Math.round(basePrice * 100) / 100,
+    markup: Math.round(markup * 100) / 100,
+    finalPrice: Math.round(finalPrice * 100) / 100,
+  };
+}
+
+/**
  * Detect transfer type from activity name/description
  */
 function detectTransferType(text: string): string {
@@ -56,15 +87,14 @@ function detectTransferType(text: string): string {
 /**
  * Normalize Activity API result to transfer format (for fallback)
  */
-function normalizeActivityAsTransfer(activity: any): any {
+function normalizeActivityAsTransfer(activity: any, isAgent: boolean = false): any {
   const text = `${activity.name || ''} ${activity.shortDescription || ''}`;
   const transferType = detectTransferType(text);
   const typeInfo = TRANSFER_TYPE_INFO[transferType] || { name: 'Private Transfer', icon: '🚗', category: 'private' };
 
-  // Extract base price and apply markup ($35 or 35% whichever is higher)
+  // Extract base price and apply context-aware markup
   const basePrice = activity.price?.amount ? parseFloat(activity.price.amount) : 50;
-  const markupAmount = Math.max(35, basePrice * 0.35);
-  const finalPrice = basePrice + markupAmount;
+  const pricing = applyTransferMarkup(basePrice, isAgent);
 
   // Extract duration from description if available
   let duration = null;
@@ -104,10 +134,10 @@ function normalizeActivityAsTransfer(activity: any): any {
     end: { dateTime: null, locationCode: null, address: null },
 
     price: {
-      amount: finalPrice.toFixed(2),
+      amount: pricing.finalPrice.toFixed(2),
       currency: activity.price?.currencyCode || 'USD',
-      baseAmount: basePrice.toFixed(2),
-      markup: markupAmount.toFixed(2),
+      baseAmount: pricing.basePrice.toFixed(2),
+      markup: pricing.markup.toFixed(2),
     },
 
     provider: {
@@ -149,7 +179,7 @@ function filterTransferActivities(activities: any[]): any[] {
 /**
  * Normalize Amadeus transfer offer to our frontend format
  */
-function normalizeTransferOffer(offer: any, markup: number) {
+function normalizeTransferOffer(offer: any, isAgent: boolean = false) {
   const transferType = offer.transferType || 'PRIVATE';
   const typeInfo = TRANSFER_TYPE_INFO[transferType] || { name: transferType, icon: '🚗', category: 'private' };
 
@@ -158,11 +188,10 @@ function normalizeTransferOffer(offer: any, markup: number) {
   const vehicleCategory = vehicle.category || 'STANDARD';
   const vehicleInfo = VEHICLE_CATEGORY_INFO[vehicleCategory] || { name: vehicleCategory, icon: '🚗' };
 
-  // Price calculation with markup ($35 or 35% whichever is higher)
+  // Price calculation with context-aware markup
   const quotation = offer.quotation || {};
   const basePrice = parseFloat(quotation.monetaryAmount || '0');
-  const markupAmount = Math.max(35, basePrice * 0.35);
-  const finalPrice = basePrice + markupAmount;
+  const pricing = applyTransferMarkup(basePrice, isAgent);
 
   // Service provider with full details
   const serviceProvider = offer.serviceProvider || {};
@@ -244,10 +273,10 @@ function normalizeTransferOffer(offer: any, markup: number) {
 
     // Pricing
     price: {
-      amount: finalPrice.toFixed(2),
+      amount: pricing.finalPrice.toFixed(2),
       currency: quotation.currencyCode || 'USD',
-      baseAmount: basePrice.toFixed(2),
-      markup: markupAmount.toFixed(2),
+      baseAmount: pricing.basePrice.toFixed(2),
+      markup: pricing.markup.toFixed(2),
     },
 
     // Provider info (contact details admin-only, not exposed to customers)
@@ -355,6 +384,7 @@ export async function GET(request: NextRequest) {
     const time = searchParams.get('time') || '10:00';
     const passengers = parseInt(searchParams.get('passengers') || '2');
     const transferType = searchParams.get('type') as any;
+    const isAgent = searchParams.get('isAgent') === 'true'; // Agent pricing flag
     // GPS coordinates passed from search bar (for hotels/landmarks)
     const pickupLat = searchParams.get('pickupLat');
     const pickupLng = searchParams.get('pickupLng');
@@ -447,8 +477,8 @@ export async function GET(request: NextRequest) {
       ]) as any;
 
       if (amadeusResponse?.data && Array.isArray(amadeusResponse.data)) {
-        // Apply markup ($35 or 35% whichever is higher)
-        transfers = amadeusResponse.data.map((offer: any) => normalizeTransferOffer(offer, 0.35));
+        // Apply context-aware markup (agent or public pricing)
+        transfers = amadeusResponse.data.map((offer: any) => normalizeTransferOffer(offer, isAgent));
         console.log(`✅ Amadeus returned ${transfers.length} transfer offers in ${Date.now() - startTime}ms`);
       }
     } catch (amErr: any) {
@@ -520,8 +550,8 @@ export async function GET(request: NextRequest) {
             console.log(`📦 Found ${transferActivities.length} transfer-type activities out of ${activitiesResult.data.length} total`);
 
             if (transferActivities.length > 0) {
-              // Normalize to transfer format
-              transfers = transferActivities.map(normalizeActivityAsTransfer);
+              // Normalize to transfer format with context-aware pricing
+              transfers = transferActivities.map(activity => normalizeActivityAsTransfer(activity, isAgent));
               console.log(`✅ Converted ${transfers.length} activities to transfers`);
             }
           }

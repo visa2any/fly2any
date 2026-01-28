@@ -188,6 +188,7 @@ export default function CarSearchPanel() {
         dropoffDate: params.dropoffDate,
         pickupTime: params.pickupTime,
         dropoffTime: params.dropoffTime,
+        isAgent: 'true', // Agent pricing flag
       });
       const res = await fetch(`/api/cars?${query}`);
       const data = await res.json();
