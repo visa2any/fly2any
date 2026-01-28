@@ -126,6 +126,7 @@ export default function FlightSearchPanel() {
   const [sortBy, setSortBy] = useState<"price" | "duration" | "departure">("price");
   const [filterStops, setFilterStops] = useState<0 | 1 | 2>(0); // 0=all, 1=nonstop, 2=1stop
   const [filterAirline, setFilterAirline] = useState<string>("");
+  const [filterBags, setFilterBags] = useState<"any" | "1+" | "2+">("any"); // Baggage filter
   const [visibleCount, setVisibleCount] = useState(10);
 
   // Auto-collapse form when search results arrive
@@ -456,6 +457,22 @@ export default function FlightSearchPanel() {
       });
     }
 
+    // Filter by bags
+    if (filterBags !== "any") {
+      results = results.filter((f) => {
+        // Check first traveler's first segment for bag details from travelerPricings
+        // Note: Flight search results might not have detailed bag info until expanded, 
+        // but Amadeus usually returns includedCheckedBags in travelerPricings[0].fareDetailsBySegment[0]
+        const tp = f.travelerPricings?.[0];
+        const fd = tp?.fareDetailsBySegment?.[0];
+        const bags = fd?.includedCheckedBags?.quantity || 0;
+        
+        if (filterBags === "1+") return bags >= 1;
+        if (filterBags === "2+") return bags >= 2;
+        return true;
+      });
+    }
+
     // Sort
     if (sortBy === "price") {
       results.sort((a, b) => Number(a.price?.total || a.price?.amount || 0) - Number(b.price?.total || b.price?.amount || 0));
@@ -466,7 +483,7 @@ export default function FlightSearchPanel() {
     }
 
     return results;
-  }, [searchResults, filterStops, filterAirline, sortBy]);
+  }, [searchResults, filterStops, filterAirline, filterBags, sortBy]);
 
   return (
     <div className="p-2 space-y-1.5">
@@ -1175,6 +1192,26 @@ export default function FlightSearchPanel() {
                 >
                   1 Stop
                 </button>
+                
+                {/* Baggage Filters */}
+                <span className="w-px h-4 bg-gray-200 flex-shrink-0 self-center" />
+                <button
+                  onClick={() => setFilterBags(filterBags === "1+" ? "any" : "1+")}
+                  className={`flex-shrink-0 px-2 py-1 text-[10px] font-semibold rounded-full transition-colors flex items-center gap-0.5 ${
+                    filterBags === "1+" ? "bg-blue-100 text-blue-700" : "bg-gray-100 text-gray-600 hover:bg-gray-200"
+                  }`}
+                >
+                  <Luggage className="w-3 h-3" />1+ Bag
+                </button>
+                <button
+                  onClick={() => setFilterBags(filterBags === "2+" ? "any" : "2+")}
+                  className={`flex-shrink-0 px-2 py-1 text-[10px] font-semibold rounded-full transition-colors flex items-center gap-0.5 ${
+                    filterBags === "2+" ? "bg-blue-100 text-blue-700" : "bg-gray-100 text-gray-600 hover:bg-gray-200"
+                  }`}
+                >
+                  <Luggage className="w-3 h-3" />2+ Bags
+                </button>
+                
                 {/* Airline Filters */}
                 {uniqueAirlines.map((code) => (
                   <button
