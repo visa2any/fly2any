@@ -26,6 +26,7 @@ export interface PricingContext {
   fees: number;
   discount: number;
   productType?: string;
+  isAgent?: boolean; // If true, use agent base markup; if false/undefined, use public markup
 }
 
 export interface PriceBreakdown {
@@ -49,44 +50,49 @@ export interface ValidationResult {
 }
 
 /**
- * Product-specific markup rules
- * - Flights: NO markup (already applied in FlightSearchPanel as 3.5% Fly2Any base)
- * - Transfers/Tours: MAX($35, 35%)
- * - Hotels: No markup (room pricing)
- * - Activities: No markup (per-person pricing)
+ * Get product-specific markup rules based on context
+ * 
+ * PRICING STRUCTURE:
+ * - Flights: NO markup (3.5% Fly2Any base already applied in FlightSearchPanel)
+ * - Hotels: NO markup (commission-based model)
+ * - Transfers/Tours:
+ *   - Public: 35% (min $35)
+ *   - Agent: 15% (min $20)
  */
-const PRODUCT_MARKUP_RULES: Record<string, { minMarkup: number; percent: number; maxMarkup: number; appliesTo: 'net_price' | 'total' | 'higher' }> = {
-  flight: {
-    minMarkup: 0,      // No markup (Fly2Any 3.5% base already applied)
-    percent: 0.0,      // No markup
-    maxMarkup: 0,      // No markup
-    appliesTo: 'total'
-  },
-  transfer: {
-    minMarkup: 35,
-    percent: 0.35,
-    maxMarkup: Infinity, // No cap
-    appliesTo: 'higher'
-  },
-  tour: {
-    minMarkup: 35,
-    percent: 0.35,
-    maxMarkup: Infinity, // No cap
-    appliesTo: 'higher'
-  },
-  activity: {
-    minMarkup: 0,
-    percent: 0.0,
-    maxMarkup: 0,
-    appliesTo: 'total'
-  },
-  hotel: {
-    minMarkup: 0,
-    percent: 0.0,
-    maxMarkup: 0,
-    appliesTo: 'total'
-  },
-};
+function getProductMarkupRules(isAgent: boolean = false): Record<string, { minMarkup: number; percent: number; maxMarkup: number; appliesTo: 'net_price' | 'total' | 'higher' }> {
+  return {
+    flight: {
+      minMarkup: 0,      // No markup (Fly2Any 3.5% base already applied)
+      percent: 0.0,
+      maxMarkup: 0,
+      appliesTo: 'total'
+    },
+    transfer: {
+      minMarkup: isAgent ? 20 : 35,  // Agent: $20 min, Public: $35 min
+      percent: isAgent ? 0.15 : 0.35, // Agent: 15%, Public: 35%
+      maxMarkup: Infinity,
+      appliesTo: 'higher'
+    },
+    tour: {
+      minMarkup: isAgent ? 20 : 35,  // Agent: $20 min, Public: $35 min
+      percent: isAgent ? 0.15 : 0.35, // Agent: 15%, Public: 35%
+      maxMarkup: Infinity,
+      appliesTo: 'higher'
+    },
+    activity: {
+      minMarkup: 0,
+      percent: 0.0,
+      maxMarkup: 0,
+      appliesTo: 'total'
+    },
+    hotel: {
+      minMarkup: 0,
+      percent: 0.0,
+      maxMarkup: 0,
+      appliesTo: 'total'
+    },
+  };
+}
 
 /**
  * Calculate final price for a single item
@@ -106,7 +112,10 @@ export function calculateItemPrice(
   context: PricingContext
 ): PriceBreakdown {
   const productType = context.productType || 'unknown';
-  const markupRule = PRODUCT_MARKUP_RULES[productType];
+  // Default to agent pricing (true) since this service is primarily used in agent workspace
+  const markupRules = getProductMarkupRules(context.isAgent !== false); 
+  const markupRule = markupRules[productType];
+
 
   // Step 1: Calculate base price based on priceType
   let basePrice = input.price;

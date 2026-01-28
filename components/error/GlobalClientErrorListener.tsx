@@ -20,8 +20,12 @@ export function GlobalClientErrorListener() {
       const filename = error.filename || '';
       const message = error.message || '';
 
-      // 1. Tawk.to chat widget errors (socket callbacks)
-      if (filename.includes('tawk.to') || filename.includes('twk-chunk')) {
+      // 1. Tawk.to chat widget errors (socket callbacks, DOM refs)
+      if (filename.includes('tawk.to') || 
+          filename.includes('twk-chunk') ||
+          message.includes('tawk-message') ||
+          message.includes('tawk-') ||
+          (message.includes('$refs') && message.includes('tawk'))) {
         return true; // Ignore all Tawk.to errors
       }
 
@@ -87,6 +91,37 @@ export function GlobalClientErrorListener() {
     const handleUnhandledRejection = (event: PromiseRejectionEvent) => {
       const error = event.reason;
       const errorMessage = error instanceof Error ? error.message : String(error);
+
+      // ═══ THIRD-PARTY REJECTION FILTER ═══
+      // Ignore rejections from third-party scripts
+      const shouldIgnoreRejection = (msg: string): boolean => {
+        // ServiceWorker installation errors
+        if (msg.includes('ServiceWorker') || msg.includes('sw.js')) {
+          return true;
+        }
+        // Tawk.to chat widget errors (socket callbacks, DOM refs)
+        if (msg.includes('tawk') || 
+            msg.includes('setAttributes') || 
+            msg.includes('addEvent') ||
+            msg.includes('tawk-message') ||
+            msg.includes('$refs')) {
+          return true;
+        }
+        // Browser extension errors
+        if (msg.includes('extension') || msg.includes('Illegal invocation')) {
+          return true;
+        }
+        // Analytics/ad errors
+        if (msg.includes('gtag') || msg.includes('fbevents') || msg.includes('adsbygoogle')) {
+          return true;
+        }
+        return false;
+      };
+
+      if (shouldIgnoreRejection(errorMessage)) {
+        console.debug('🔇 Ignored third-party rejection:', errorMessage.substring(0, 100));
+        return; // DO NOT report
+      }
 
       // Determine category based on error type
       let category = ErrorCategory.UNKNOWN;

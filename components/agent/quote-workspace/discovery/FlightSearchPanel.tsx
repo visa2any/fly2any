@@ -46,6 +46,32 @@ const CABIN_CLASSES = [
 const springConfig = { stiffness: 400, damping: 30 };
 const softSpring = { stiffness: 200, damping: 25 };
 
+/**
+ * AGENT PRICING CONVERSION
+ * ALWAYS converts any price to agent base price.
+ * 
+ * Logic:
+ * - Assume incoming price includes 7% public markup
+ * - Remove the 7% markup: price / 1.07
+ * - Add Fly2Any base markup: MAX($15, net × 3.5%)
+ * 
+ * This is applied to ALL prices to ensure consistency.
+ */
+function convertToAgentPrice(customerPrice: number): number {
+  if (!customerPrice || customerPrice <= 0) return 0;
+  
+  // Step 1: Remove 7% public markup to get net price
+  const netPrice = customerPrice / 1.07;
+  
+  // Step 2: Apply Fly2Any base markup (3.5%, min $15)
+  const fly2anyMarkup = Math.max(15, netPrice * 0.035);
+  
+  // Step 3: Agent base price
+  const agentPrice = netPrice + fly2anyMarkup;
+  
+  return Math.round(agentPrice * 100) / 100; // Round to cents
+}
+
 export default function FlightSearchPanel() {
   const { state, addItem, setSearchResults, restoreCachedSearch, setDestination, setDates, setTravelers } = useQuoteWorkspace();
   const { searchLoading, searchResults, searchCache } = state.ui;
@@ -1270,9 +1296,9 @@ function FlightResultCard({ flight, onAdd, index }: { flight: any; onAdd: (fareI
         const fd = tp?.fareDetailsBySegment?.[0];
         const fareType = fd?.brandedFareLabel || fd?.brandedFare || fd?.cabin || "Economy";
         
-        // API now returns agent-appropriate prices (with isAgent: true)
-        // No client-side conversion needed
-        const price = Number(fareOffer.price?.total || 0);
+        // ALWAYS convert to agent price (foolproof - doesn't rely on API)
+        const rawPrice = Number(fareOffer.price?.total || 0);
+        const price = convertToAgentPrice(rawPrice);
 
         const cabin = fd?.cabin || "ECONOMY";
         const bags = fd?.includedCheckedBags?.quantity
@@ -1447,12 +1473,9 @@ function FlightResultCard({ flight, onAdd, index }: { flight: any; onAdd: (fareI
       const priceRank = pricings.findIndex((p: any, i: number) => i === idx);
       const popularity = priceRank === 0 ? 26 : priceRank === 1 ? 74 : priceRank === 2 ? 18 : 4;
 
-      // AGENT PRICING: Convert customer price to agent base price
-      // Customer price from API includes 7% public markup
-      const customerPrice = Number(tp.price?.total || tp.price?.amount || 0);
-      const apiNetPrice = customerPrice / 1.07; // Remove 7% public markup
-      const fly2anyMarkup = Math.max(15, apiNetPrice * 0.035); // Apply 3.5% Fly2Any base (min $15)
-      const agentBasePrice = apiNetPrice + fly2anyMarkup;
+      // ALWAYS convert to agent price (using shared helper for consistency)
+      const rawPrice = Number(tp.price?.total || tp.price?.amount || 0);
+      const agentBasePrice = convertToAgentPrice(rawPrice);
 
       return {
         id: idx,
