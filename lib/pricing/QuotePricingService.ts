@@ -50,17 +50,17 @@ export interface ValidationResult {
 
 /**
  * Product-specific markup rules
- * - Flights: MAX($22, 7%) capped at $200
+ * - Flights: NO markup (already applied in FlightSearchPanel as 3.5% Fly2Any base)
  * - Transfers/Tours: MAX($35, 35%)
  * - Hotels: No markup (room pricing)
  * - Activities: No markup (per-person pricing)
  */
 const PRODUCT_MARKUP_RULES: Record<string, { minMarkup: number; percent: number; maxMarkup: number; appliesTo: 'net_price' | 'total' | 'higher' }> = {
   flight: {
-    minMarkup: 22,
-    percent: 0.07,
-    maxMarkup: 200,
-    appliesTo: 'net_price'
+    minMarkup: 0,      // No markup (Fly2Any 3.5% base already applied)
+    percent: 0.0,      // No markup
+    maxMarkup: 0,      // No markup
+    appliesTo: 'total'
   },
   transfer: {
     minMarkup: 35,

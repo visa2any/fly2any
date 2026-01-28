@@ -40,11 +40,11 @@ export const FLIGHT_MARKUP = {
     // Percentage-based markup
     percentage: 0.07, // 7%
 
-    // Minimum markup (whichever is higher)
-    minimumAmount: 22, // $22 minimum
+    // No minimum markup (was $22)
+    minimumAmount: 0,
 
-    // Maximum markup cap (for very expensive flights)
-    maximumAmount: 200, // $200 cap
+    // No maximum markup cap (was $200)
+    maximumAmount: Infinity,
 
     // Currency
     currency: 'USD',
@@ -110,14 +110,8 @@ export function applyFlightMarkup(netPrice: number): {
 } {
   const config = FLIGHT_MARKUP.duffel;
 
-  // Calculate percentage-based markup
+  // Calculate percentage-based markup (pure 7%, no bounds)
   let markupAmount = netPrice * config.percentage;
-
-  // Apply minimum bound
-  markupAmount = Math.max(markupAmount, config.minimumAmount);
-
-  // Apply maximum cap
-  markupAmount = Math.min(markupAmount, config.maximumAmount);
 
   // Round to 2 decimal places
   markupAmount = Math.round(markupAmount * 100) / 100;

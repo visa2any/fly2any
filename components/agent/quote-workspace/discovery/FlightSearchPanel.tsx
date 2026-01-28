@@ -270,9 +270,23 @@ export default function FlightSearchPanel() {
     const brandedFare = fareDetails?.brandedFare || fareDetails?.brandedFareLabel;
     const includedBags = fareDetails?.includedCheckedBags;
 
+    // AGENT PRICING SYSTEM:
+    // Public prices from API include 7% markup for customers
+    // We need to reverse-calculate the net price and apply Fly2Any's 3.5% base markup
+    const customerPrice = Number(flight.price?.grandTotal || flight.price?.total || flight.price || 0);
+    
+    // Reverse-calculate API net price (remove the 7% public markup)
+    const apiNetPrice = customerPrice / 1.07;
+    
+    // Apply Fly2Any base markup: MAX($15 minimum, 3.5% of net price)
+    const fly2anyMarkup = Math.max(15, apiNetPrice * 0.035);
+    
+    // Agent base price = net + Fly2Any base markup
+    const agentBasePrice = apiNetPrice + fly2anyMarkup;
+
     const flightItem: Omit<FlightItem, "id" | "sortOrder" | "createdAt"> = {
       type: "flight",
-      price: Number(flight.price?.grandTotal || flight.price?.total || flight.price || 0),
+      price: agentBasePrice, // Agent sees this as base price (before their markup)
       priceType: 'total', // Flight API returns total for all passengers
       priceAppliesTo: totalPassengers, // Price covers all passengers
       currency: flight.price?.currency || "USD",
@@ -308,6 +322,10 @@ export default function FlightSearchPanel() {
       returnArrivalTime: inSegs[inSegs.length - 1]?.arrival?.at?.slice(11, 16),
       returnDuration: inbound?.duration?.replace("PT", "").toLowerCase(),
       returnStops: inSegs.length > 0 ? inSegs.length - 1 : undefined,
+      // Internal tracking fields (for transparency/debugging)
+      _apiNetPrice: apiNetPrice,
+      _customerPrice: customerPrice,
+      _fly2anyMarkup: fly2anyMarkup,
     };
 
     addItem(flightItem);

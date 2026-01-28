@@ -55,6 +55,29 @@ export default function ItineraryCard({ item, dragListeners, isDragging, viewMod
     }).format(amount);
   };
 
+  // Get product markup percentage based on type (from QuotePricingService rules)
+  const getProductMarkup = (type: ProductType): { percent: number; amount: number } => {
+    const basePrice = item.price;
+    switch (type) {
+      case "flight":
+        // Flight: MAX($22, 7%), capped at $200
+        const flightMarkup = Math.max(22, basePrice * 0.07);
+        const cappedFlightMarkup = Math.min(flightMarkup, 200);
+        return { percent: 7, amount: cappedFlightMarkup };
+      case "transfer":
+      case "tour":
+        // Transfer/Tour: MAX($35, 35%)
+        const transferMarkup = Math.max(35, basePrice * 0.35);
+        return { percent: 35, amount: transferMarkup };
+      case "hotel":
+      case "activity":
+      default:
+        return { percent: 0, amount: 0 };
+    }
+  };
+
+  const productMarkup = getProductMarkup(item.type);
+
   // Get display title based on type
   const getTitle = () => {
     switch (item.type) {
@@ -659,6 +682,11 @@ export default function ItineraryCard({ item, dragListeners, isDragging, viewMod
                   <p className="font-black text-gray-900 text-sm bg-yellow-50 border border-yellow-200 px-2 py-0.5 rounded">
                      {formatPrice(h.price * h.nights)}
                   </p>
+                  {productMarkup.percent === 0 && (
+                    <p className="text-[8px] text-gray-500 font-semibold mt-0.5">
+                      Markup: {productMarkup.percent}%
+                    </p>
+                  )}
                   <div className="flex flex-col items-end mt-0.5">
                      <p className="text-[9px] text-gray-500 font-medium">{formatPrice(h.price)}/night</p>
                      <p className="text-[8px] text-gray-400">Total for {h.nights} nights</p>
