@@ -57,11 +57,15 @@ export async function POST(request: NextRequest) {
       let markupPercentage: number;
 
       if (isAgent) {
-        // AGENT PRICING: 3.5% with $15 minimum
-        markupAmount = Math.max(15, netPrice * 0.035);
-        finalPrice = netPrice + markupAmount;
-        markupPercentage = (markupAmount / netPrice) * 100;
-        console.log(`  ✓ Fare ${fare.id?.slice(-8) || 'unknown'} [AGENT]: $${netPrice.toFixed(2)} → $${finalPrice.toFixed(2)} (+$${markupAmount.toFixed(2)} / ${markupPercentage.toFixed(1)}%)`);
+        // AGENT PRICING: Reverse public 7% markup, then apply agent 3.5% markup
+        // Input prices from Amadeus already include 7% public markup
+        // We need: (price / 1.07) to get net, then add 3.5% (min $15) agent markup
+        const publicPrice = netPrice; // Actually has 7% markup, misleading variable name
+        const apiNetPrice = publicPrice / 1.07; // Remove public markup to get true net
+        markupAmount = Math.max(15, apiNetPrice * 0.035); // Apply 3.5% agent markup
+        finalPrice = apiNetPrice + markupAmount; // Agent base price
+        markupPercentage = (markupAmount / apiNetPrice) * 100;
+        console.log(`  ✓ Fare ${fare.id?.slice(-8) || 'unknown'} [AGENT]: Public $${publicPrice.toFixed(2)} → Net $${apiNetPrice.toFixed(2)} → Agent $${finalPrice.toFixed(2)} (+$${markupAmount.toFixed(2)} / ${markupPercentage.toFixed(1)}%)`);
       } else {
         // CUSTOMER PRICING: Apply 7% using the flight markup config
         const markupResult = applyFlightMarkup(netPrice);
