@@ -1287,6 +1287,20 @@ function FlightResultCard({ flight, onAdd, index }: { flight: any; onAdd: (fareI
     }
   }, [flight, upselledFares.length, loadingFares]);
 
+  // Smart Default Fare Selection - auto-select best value (recommended) fare
+  useEffect(() => {
+    if (fareOptions.length > 0) {
+      // Find the recommended fare (usually 2nd cheapest with bags)
+      const recommendedIdx = fareOptions.findIndex((f: any) => f.recommended);
+      if (recommendedIdx >= 0) {
+        setSelectedFareIdx(recommendedIdx);
+      } else if (fareOptions.length > 1) {
+        // Fallback: select 2nd fare if no explicit recommendation
+        setSelectedFareIdx(1);
+      }
+    }
+  }, [fareOptions.length]); // Only run when fare count changes
+
   // Extract ALL fare options from travelerPricings + upselling API
   const fareOptions = useMemo(() => {
     // Use upselled fares if available
@@ -1664,6 +1678,39 @@ function FlightResultCard({ flight, onAdd, index }: { flight: any; onAdd: (fareI
             Total • {totalPassengers} pax
           </p>
           <p className="text-[9px] text-gray-500 mt-0.5">${Math.round(price / totalPassengers)}/person</p>
+          
+          {/* Compact Fare Type Badge */}
+          <div className="mt-1 text-[8px] font-bold px-1.5 py-0.5 rounded bg-gray-100 text-gray-700 text-center leading-tight">
+            {selectedFare.fareType || 'Economy'}
+          </div>
+          
+          {/* Compact Icons - Bags & Policies (horizontal) */}
+          <div className="flex items-center justify-center gap-1 mt-1 flex-wrap">
+            {/* Baggage */}
+            {selectedFare.bags && selectedFare.bags.quantity > 0 ? (
+              <span className="text-[8px] bg-blue-50 text-blue-700 px-1 py-0.5 rounded flex items-center gap-0.5" title={`${selectedFare.bags.quantity} checked bag(s)`}>
+                <Luggage className="w-2.5 h-2.5" />{selectedFare.bags.quantity}
+              </span>
+            ) : (
+              <span className="text-[8px] bg-gray-100 text-gray-500 px-1 py-0.5 rounded flex items-center gap-0.5" title="No checked bags">
+                <Luggage className="w-2.5 h-2.5" />0
+              </span>
+            )}
+            
+            {/* Refundable */}
+            {selectedFare.refundable ? (
+              <span className="text-[8px] bg-emerald-50 text-emerald-700 px-1 py-0.5 rounded flex items-center" title="Refundable">
+                <Check className="w-2.5 h-2.5" />
+              </span>
+            ) : null}
+            
+            {/* Changeable */}
+            {selectedFare.changeable && selectedFare.changeFee ? (
+              <span className="text-[8px] bg-amber-50 text-amber-700 px-1 py-0.5 rounded" title={`Changes: $${selectedFare.changeFee}`}>
+                ${selectedFare.changeFee}
+              </span>
+            ) : null}
+          </div>
           <motion.button
             whileHover={{ scale: 1.1 }}
             whileTap={{ scale: 0.9 }}
