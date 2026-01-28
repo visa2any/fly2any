@@ -1443,10 +1443,17 @@ function FlightResultCard({ flight, onAdd, index }: { flight: any; onAdd: (fareI
       const priceRank = pricings.findIndex((p: any, i: number) => i === idx);
       const popularity = priceRank === 0 ? 26 : priceRank === 1 ? 74 : priceRank === 2 ? 18 : 4;
 
+      // AGENT PRICING: Convert customer price to agent base price
+      // Customer price from API includes 7% public markup
+      const customerPrice = Number(tp.price?.total || tp.price?.amount || 0);
+      const apiNetPrice = customerPrice / 1.07; // Remove 7% public markup
+      const fly2anyMarkup = Math.max(15, apiNetPrice * 0.035); // Apply 3.5% Fly2Any base (min $15)
+      const agentBasePrice = apiNetPrice + fly2anyMarkup;
+
       return {
         id: idx,
         fareType,
-        price: Number(tp.price?.total || tp.price?.amount || 0),
+        price: agentBasePrice, // Show agent base price in search results
         cabin: fd?.cabin || "ECONOMY",
         bags,
         fareBasis: fd?.fareBasis,
