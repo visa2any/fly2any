@@ -14,8 +14,56 @@ import { reportClientError, ErrorCategory, ErrorSeverity } from '@/lib/monitorin
  */
 export function GlobalClientErrorListener() {
   useEffect(() => {
+    // ═══ THIRD-PARTY ERROR FILTER ═══
+    // Ignore errors from third-party scripts to reduce noise
+    const shouldIgnoreError = (error: ErrorEvent): boolean => {
+      const filename = error.filename || '';
+      const message = error.message || '';
+
+      // 1. Tawk.to chat widget errors (socket callbacks)
+      if (filename.includes('tawk.to') || filename.includes('twk-chunk')) {
+        return true; // Ignore all Tawk.to errors
+      }
+
+      // 2. Browser extension errors (e.g., Chrome extensions)
+      if (filename.startsWith('chrome-extension://') ||
+          filename.startsWith('moz-extension://') ||
+          filename.startsWith('safari-extension://')) {
+        return true;
+      }
+
+      // 3. Ad blocker / common extension patterns
+      if (message.includes('adsbygoogle') ||
+          message.includes('gtag') ||
+          message.includes('fbevents') ||
+          message.includes('analytics')) {
+        return true;
+      }
+
+      // 4. Illegal invocation errors (usually from extensions)
+      if (message.includes('Illegal invocation')) {
+        return true;
+      }
+
+      // 5. Cross-origin script errors
+      if (message === 'Script error.' && !filename) {
+        return true; // Generic cross-origin error
+      }
+
+      return false;
+    };
+
     // Handle uncaught errors
     const handleError = (event: ErrorEvent) => {
+      // Filter out third-party errors
+      if (shouldIgnoreError(event)) {
+        console.debug('🔇 Ignored third-party error:', {
+          message: event.message,
+          filename: event.filename,
+        });
+        return; // DO NOT report
+      }
+
       reportClientError(event.error || event.message, {
         component: 'GlobalErrorListener',
         action: 'uncaughtError',
