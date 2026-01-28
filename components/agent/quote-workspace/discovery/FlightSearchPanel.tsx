@@ -1269,7 +1269,14 @@ function FlightResultCard({ flight, onAdd, index }: { flight: any; onAdd: (fareI
         const tp = fareOffer.travelerPricings?.[0];
         const fd = tp?.fareDetailsBySegment?.[0];
         const fareType = fd?.brandedFareLabel || fd?.brandedFare || fd?.cabin || "Economy";
-        const price = Number(fareOffer.price?.total || 0);
+        
+        // AGENT PRICING: Convert customer price to agent base price
+        // Upselling API returns customer prices with 7% public markup
+        const customerPrice = Number(fareOffer.price?.total || 0);
+        const apiNetPrice = customerPrice / 1.07; // Remove 7% public markup
+        const fly2anyMarkup = Math.max(15, apiNetPrice * 0.035); // Apply 3.5% Fly2Any base (min $15)
+        const price = apiNetPrice + fly2anyMarkup; // Agent base price
+
         const cabin = fd?.cabin || "ECONOMY";
         const bags = fd?.includedCheckedBags?.quantity
           ? { quantity: fd.includedCheckedBags.quantity, weight: fd.includedCheckedBags.weight || 23 }
@@ -1339,7 +1346,7 @@ function FlightResultCard({ flight, onAdd, index }: { flight: any; onAdd: (fareI
         return {
           id: idx,
           fareType,
-          price,
+          price, // Now uses agent base price
           cabin: fd?.cabin || "ECONOMY",
           bags,
           fareBasis: fd?.fareBasis,
