@@ -129,6 +129,10 @@ export default function FlightSearchPanel() {
   const [filterBags, setFilterBags] = useState<"any" | "1+" | "2+">("any"); // Baggage filter
   const [visibleCount, setVisibleCount] = useState(10);
 
+  // Batch Upselling State
+  const [upsellingLoading, setUpsellingLoading] = useState(false);
+  const [fareFamiliesMap, setFareFamiliesMap] = useState<Record<string, any[]>>({});
+
   // Auto-collapse form when search results arrive
   useEffect(() => {
     if (searchResults && searchResults.length > 0 && !searchLoading) {
@@ -187,6 +191,7 @@ export default function FlightSearchPanel() {
   const handleSearch = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
+    setFareFamiliesMap({}); // Clear previous upselling data
 
     if (!validateForm()) return;
 
@@ -198,12 +203,30 @@ export default function FlightSearchPanel() {
     } else if (departDate) {
       setDates(departDate, departDate);
     }
-    setTravelers({
+
+    // Convert params to search request
+    const searchParams: any = {
+      originLocationCode: params.origin[0],
+      destinationLocationCode: params.destination[0],
+      departureDate: departDate,
       adults: params.adults,
       children: params.children,
       infants: params.infants,
-      total: params.adults + params.children + params.infants,
-    });
+      travelClass: params.cabinClass.toUpperCase(),
+      nonStop: params.directFlights
+    };
+
+    if (params.tripType === "roundtrip") {
+      searchParams.returnDate = params.returnDate;
+    }
+
+    if (params.useMultiDate) {
+      // Logic for multi-date would go here
+      // For now we just use the main date
+    }
+    
+    // Execute unified search
+    executeUnifiedSearch(searchParams);
 
     // Build search context once - use for both sync and search
     const searchContext = {
@@ -1231,7 +1254,13 @@ export default function FlightSearchPanel() {
             {filteredResults.length > 0 ? (
               <>
                 {filteredResults.slice(0, visibleCount).map((flight: any, idx: number) => (
-                  <FlightResultCard key={flight.id || idx} flight={flight} onAdd={(fareIdx) => handleAddFlight(flight, fareIdx)} index={idx} />
+                  <FlightResultCard 
+                    key={flight.id || idx} 
+                    flight={flight} 
+                    onAdd={(fareIdx) => handleAddFlight(flight, fareIdx)} 
+                    index={idx}
+                    upselledFaresProp={fareFamiliesMap[flight.id]} 
+                  />
                 ))}
 
                 {/* Load More Button */}
@@ -1284,19 +1313,26 @@ export default function FlightSearchPanel() {
 }
 
 // Flight Result Card - Ultra-Compact with Return Flight Support
-function FlightResultCard({ flight, onAdd, index }: { flight: any; onAdd: (fareIdx: number) => void; index: number }) {
+function FlightResultCard({ flight, onAdd, index, upselledFaresProp }: { flight: any; onAdd: (fareIdx: number) => void; index: number; upselledFaresProp?: any[] }) {
   const [isExpanded, setIsExpanded] = useState(false);
   const [selectedFareIdx, setSelectedFareIdx] = useState(0);
   const [loadingFares, setLoadingFares] = useState(false);
-  const [upselledFares, setUpselledFares] = useState<any[]>([]);
+  const [upselledFares, setUpselledFares] = useState<any[]>(upselledFaresProp || []);
+
+  // Sync prop to state if it updates later
+  useEffect(() => {
+    if (upselledFaresProp && upselledFaresProp.length > 0) {
+      setUpselledFares(upselledFaresProp);
+    }
+  }, [upselledFaresProp]);
 
   // Calculate total passengers from flight data
   const totalPassengers = flight.travelerPricings?.length || 1;
 
   // Fetch branded fares immediately on mount (not on expand)
-  // User requirement: "need to be transparent, bringing all info and fares"
+  // Only if NOT provided via prop
   useEffect(() => {
-    if (upselledFares.length === 0 && !loadingFares) {
+    if (upselledFares.length === 0 && !loadingFares && !upselledFaresProp) {
       setLoadingFares(true);
       const flightId = flight.id?.slice(-8) || 'unknown';
       console.log(`🎫 Fetching fare families for flight ${flightId}...`);
@@ -1327,16 +1363,27 @@ function FlightResultCard({ flight, onAdd, index }: { flight: any; onAdd: (fareI
   // Smart Default Fare Selection - auto-select best value (recommended) fare
   useEffect(() => {
     if (fareOptions.length > 0) {
-      // Find the recommended fare (usually 2nd cheapest with bags)
+      // 1. Group/Family Logic (3+ pax): Prioritize first fare with bags
+      if (totalPassengers >= 3) {
+        const fareWithBagsIdx = fareOptions.findIndex((f: any) => f.bags && f.bags.quantity > 0);
+        if (fareWithBagsIdx >= 0) {
+          setSelectedFareIdx(fareWithBagsIdx);
+          return;
+        }
+      }
+
+      // 2. Recommended Logic
       const recommendedIdx = fareOptions.findIndex((f: any) => f.recommended);
       if (recommendedIdx >= 0) {
         setSelectedFareIdx(recommendedIdx);
       } else if (fareOptions.length > 1) {
-        // Fallback: select 2nd fare if no explicit recommendation
+        // 3. Fallback: select 2nd fare (usually Standard) if no explicit recommendation
         setSelectedFareIdx(1);
+      } else {
+        setSelectedFareIdx(0);
       }
     }
-  }, [fareOptions.length]); // Only run when fare count changes
+  }, [fareOptions.length, totalPassengers]); // Re-run if fares or pax count changes
 
   // Extract ALL fare options from travelerPricings + upselling API
   const fareOptions = useMemo(() => {
