@@ -31,8 +31,11 @@ import { useQuoteWorkspace } from "../QuoteWorkspaceProvider";
 import MultiAirportSelector from "@/components/common/MultiAirportSelector";
 import PremiumDatePicker from "@/components/flights/PremiumDatePicker";
 import PremiumDateRangePicker from "@/components/common/PremiumDateRangePicker";
+import { getAirlineData as getAirlineDataNew } from "@/lib/data/airlines";
+import { parseDuration } from "@/lib/utils/format";
 import type { FlightItem, FlightSearchParams } from "../types/quote-workspace.types";
 import { useUnifiedSearchContext, SearchScopeSelector } from "../unified-search/index";
+import { FareComparisonModal } from "./FareComparisonModal";
 
 // Cabin class options with premium styling
 const CABIN_CLASSES = [
@@ -132,6 +135,9 @@ export default function FlightSearchPanel() {
   // Batch Upselling State
   const [upsellingLoading, setUpsellingLoading] = useState(false);
   const [fareFamiliesMap, setFareFamiliesMap] = useState<Record<string, any[]>>({});
+  
+  // Flight Comparison State
+  const [comparisonFlight, setComparisonFlight] = useState<any | null>(null);
 
   // Auto-collapse form when search results arrive
   useEffect(() => {
@@ -1308,6 +1314,7 @@ export default function FlightSearchPanel() {
                     index={idx}
                     upselledFaresProp={fareFamiliesMap[flight.id]} 
                     isFocused={focusedFlightIdx === idx}
+                    onCompare={() => setComparisonFlight(flight)}
                   />
                 ))}
 
@@ -1356,12 +1363,27 @@ export default function FlightSearchPanel() {
           </motion.div>
         )}
       </AnimatePresence>
+
+      {/* Comparison Modal */}
+      <FareComparisonModal 
+        isOpen={!!comparisonFlight}
+        onClose={() => setComparisonFlight(null)}
+        fares={comparisonFlight ? fareFamiliesMap[comparisonFlight.id] || [] : []}
+        selectedFareId={0} 
+        onSelect={(id) => { /* Optional */ }}
+        onAdd={(fareIdx) => {
+          if (comparisonFlight) {
+            handleAddFlight(comparisonFlight, fareIdx);
+            setComparisonFlight(null);
+          }
+        }}
+      />
     </div>
   );
 }
 
 // Flight Result Card - Ultra-Compact with Return Flight Support
-function FlightResultCard({ flight, onAdd, index, upselledFaresProp, isFocused }: { flight: any; onAdd: (fareIdx: number) => void; index: number; upselledFaresProp?: any[]; isFocused?: boolean }) {
+function FlightResultCard({ flight, onAdd, index, upselledFaresProp, isFocused, onCompare }: { flight: any; onAdd: (fareIdx: number) => void; index: number; upselledFaresProp?: any[]; isFocused?: boolean; onCompare: () => void }) {
   const [isExpanded, setIsExpanded] = useState(false);
   const [selectedFareIdx, setSelectedFareIdx] = useState(0);
   const [loadingFares, setLoadingFares] = useState(false);
