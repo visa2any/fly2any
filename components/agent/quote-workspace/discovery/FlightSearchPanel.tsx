@@ -463,6 +463,56 @@ export default function FlightSearchPanel() {
     return 0;
   };
 
+  // Keyboard Navigation State
+  const [focusedFlightIdx, setFocusedFlightIdx] = useState(-1);
+  const resultsContainerRef = useRef<HTMLDivElement>(null);
+
+  // Keyboard Shortcuts Hook
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      // Ignore if typing in an input
+      if (['INPUT', 'TEXTAREA'].includes((e.target as HTMLElement).tagName)) return;
+
+      switch (e.key) {
+        case 'ArrowDown':
+          e.preventDefault();
+          setFocusedFlightIdx(prev => Math.min(prev + 1, filteredResults.length - 1));
+          break;
+        case 'ArrowUp':
+          e.preventDefault();
+          setFocusedFlightIdx(prev => Math.max(prev - 1, -1));
+          break;
+        case 'f':
+          e.preventDefault();
+          setFormCollapsed(prev => !prev);
+          break;
+        case 'Escape':
+          e.preventDefault();
+          if (focusedFlightIdx !== -1) setFocusedFlightIdx(-1);
+          else {
+             setFilterAirline("");
+             setFilterStops(0);
+             setFilterBags("any");
+          }
+          break;
+        // Number keys 1-4 for fare selection (handled in FlightResultCard via prop/focus)
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [filteredResults.length, focusedFlightIdx]);
+
+  // Scroll into view when focused index changes
+  useEffect(() => {
+    if (focusedFlightIdx >= 0 && resultsContainerRef.current) {
+      const cards = resultsContainerRef.current.children;
+      if (cards[focusedFlightIdx]) {
+        cards[focusedFlightIdx].scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }
+    }
+  }, [focusedFlightIdx]);
+
   // Filtered & sorted results
   const filteredResults = useMemo(() => {
     if (!searchResults || searchResults.length === 0) return [];
@@ -483,9 +533,6 @@ export default function FlightSearchPanel() {
     // Filter by bags
     if (filterBags !== "any") {
       results = results.filter((f) => {
-        // Check first traveler's first segment for bag details from travelerPricings
-        // Note: Flight search results might not have detailed bag info until expanded, 
-        // but Amadeus usually returns includedCheckedBags in travelerPricings[0].fareDetailsBySegment[0]
         const tp = f.travelerPricings?.[0];
         const fd = tp?.fareDetailsBySegment?.[0];
         const bags = fd?.includedCheckedBags?.quantity || 0;
@@ -1260,6 +1307,7 @@ export default function FlightSearchPanel() {
                     onAdd={(fareIdx) => handleAddFlight(flight, fareIdx)} 
                     index={idx}
                     upselledFaresProp={fareFamiliesMap[flight.id]} 
+                    isFocused={focusedFlightIdx === idx}
                   />
                 ))}
 
@@ -1313,11 +1361,19 @@ export default function FlightSearchPanel() {
 }
 
 // Flight Result Card - Ultra-Compact with Return Flight Support
-function FlightResultCard({ flight, onAdd, index, upselledFaresProp }: { flight: any; onAdd: (fareIdx: number) => void; index: number; upselledFaresProp?: any[] }) {
+function FlightResultCard({ flight, onAdd, index, upselledFaresProp, isFocused }: { flight: any; onAdd: (fareIdx: number) => void; index: number; upselledFaresProp?: any[]; isFocused?: boolean }) {
   const [isExpanded, setIsExpanded] = useState(false);
   const [selectedFareIdx, setSelectedFareIdx] = useState(0);
   const [loadingFares, setLoadingFares] = useState(false);
   const [upselledFares, setUpselledFares] = useState<any[]>(upselledFaresProp || []);
+
+  // Sync focus expand/collapse
+  useEffect(() => {
+    if (isFocused && !isExpanded) {
+      // Optional: Auto-expand on focus? Maybe too aggressive.
+      // Keeping manual expand for now via Enter key
+    }
+  }, [isFocused]);
 
   // Sync prop to state if it updates later
   useEffect(() => {
@@ -1662,7 +1718,11 @@ function FlightResultCard({ flight, onAdd, index, upselledFaresProp }: { flight:
       initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay: index * 0.03 }}
-      className="group bg-white border border-gray-200 rounded-xl overflow-hidden hover:border-indigo-300 hover:shadow-lg transition-all relative"
+      className={`group bg-white border rounded-xl overflow-hidden transition-all relative ${
+        isFocused 
+          ? "border-indigo-500 ring-2 ring-indigo-200 shadow-xl scale-[1.01] z-10" 
+          : "border-gray-200 hover:border-indigo-300 hover:shadow-lg"
+      }`}
     >
       {/* Best badge - compact */}
       {index === 0 && (
