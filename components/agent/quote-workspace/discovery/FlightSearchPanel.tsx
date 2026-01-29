@@ -34,7 +34,8 @@ import PremiumDateRangePicker from "@/components/common/PremiumDateRangePicker";
 import { getAirlineData as getAirlineDataNew } from "@/lib/data/airlines";
 import { parseDuration } from "@/lib/utils/format";
 import type { FlightItem, FlightSearchParams } from "../types/quote-workspace.types";
-import { useUnifiedSearchContext, SearchScopeSelector } from "../unified-search/index";
+import { useUnifiedSearchContext } from "../unified-search/UnifiedSearchProvider";
+import SearchScopeSelector from "../unified-search/SearchScopeSelector";
 import { FareComparisonModal } from "./FareComparisonModal";
 
 // Cabin class options with premium styling
