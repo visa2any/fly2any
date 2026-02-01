@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fly2Any - Memorando de Investimento</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Merriweather:ital,wght@0,300;0,400;0,700;1,400&display=swap');
+
+        :root {
+            --primary: #2563eb;
+            --text-main: #1e293b;
+            --text-muted: #64748b;
+            --border: #e2e8f0;
+            --bg-accent: #f8fafc;
+        }
+
+        body {
+            font-family: 'Merriweather', serif;
+            line-height: 1.6;
+            color: var(--text-main);
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 40px;
+            background-color: #ffffff;
+        }
+
+        h1, h2, h3, h4 {
+            font-family: 'Inter', sans-serif;
+            margin-top: 2em;
+            margin-bottom: 0.5em;
+            color: #0f172a;
+        }
+
+        h1 { font-size: 2.5rem; font-weight: 800; letter-spacing: -0.025em; margin-top: 0; }
+        h2 { font-size: 1.5rem; font-weight: 700; border-bottom: 2px solid var(--border); padding-bottom: 0.5rem; }
+        h3 { font-size: 1.25rem; font-weight: 600; color: var(--primary); }
+        
+        p { margin-bottom: 1.25em; font-size: 1.125rem; }
+        
+        ul { margin-bottom: 1.25em; padding-left: 1.25em; }
+        li { margin-bottom: 0.5em; }
+
+        .header {
+            border-bottom: 1px solid var(--border);
+            padding-bottom: 2rem;
+            margin-bottom: 3rem;
+        }
+
+        .meta-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-family: 'Inter', sans-serif;
+            font-size: 0.9rem;
+            margin-bottom: 2rem;
+            background: var(--bg-accent);
+            border-radius: 8px;
+            overflow: hidden;
+        }
+
+        .meta-table td {
+            padding: 12px 16px;
+            border-bottom: 1px solid #e2e8f0;
+        }
+
+        .meta-table td:first-child {
+            font-weight: 600;
+            color: var(--text-muted);
+            width: 150px;
+        }
+
+        .highlight-box {
+            background-color: #eff6ff;
+            border-left: 4px solid var(--primary);
+            padding: 1.5rem;
+            margin: 2rem 0;
+            font-family: 'Inter', sans-serif;
+            font-size: 1.1rem;
+            color: #1e3a8a;
+        }
+
+        .confidential {
+            text-transform: uppercase;
+            font-size: 0.75rem;
+            letter-spacing: 0.1em;
+            color: #ef4444;
+            font-weight: 700;
+            margin-bottom: 1rem;
+            font-family: 'Inter', sans-serif;
+        }
+
+        @media print {
+            body { padding: 0; max-width: 100%; }
+            .no-print { display: none; }
+            a { text-decoration: none; color: black; }
+        }
+
+        .btn-print {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: black;
+            color: white;
+            padding: 10px 20px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-family: 'Inter', sans-serif;
+            font-weight: 600;
+            border: none;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        }
+        .btn-print:hover { background: #333; }
+    </style>
+</head>
+<body>
+
+    <button class="btn-print no-print" onclick="window.print()">Salvar como PDF</button>
+
+    <div class="header">
+        <div class="confidential">Estritamente Confidencial</div>
+        <h1>Memorando de Investimento: Fly2Any</h1>
+        <p style="font-family: 'Inter', sans-serif; color: var(--text-muted); font-size: 1.25rem;">
+            A primeira TravelTech "AI-Native" com Agentes Autônomos Proativos.
+        </p>
+    </div>
+
+    <table class="meta-table">
+        <tr>
+            <td>Data</td>
+            <td>1 de Fevereiro de 2026</td>
+        </tr>
+        <tr>
+            <td>Setor</td>
+            <td>TravelTech / AI / SaaS</td>
+        </tr>
+        <tr>
+            <td>Estágio</td>
+            <td>Seed / Early Growth</td>
+        </tr>
+    </table>
+
+    <div class="highlight-box">
+        <strong>Tese Central:</strong> A Fly2Any não é apenas uma OTA melhorada; é a infraestrutura da próxima geração de viagens, substituindo a busca estática por agentes autônomos que planejam, reservam e resolvem problemas proativamente.
+    </div>
+
+    <h2>1. Resumo Executivo</h2>
+    <p>O mercado global de viagens online deve atingir US$ 1 trilhão até 2030, mas a experiência do usuário estagnou. A Fly2Any ataca esta lacuna com uma infraestrutura proprietária que reduz o tempo de planejamento de horas para minutos e aumenta a conversão em até 5x a média da indústria através de hiper-personalização.</p>
+
+    <h2>2. O Problema</h2>
+    <ul>
+        <li><strong>Fragmentação Extrema:</strong> O viajante precisa de 15+ abas para alinhar a logística.</li>
+        <li><strong>Falta de Inteligência:</strong> Chatbots atuais não têm autonomia.</li>
+        <li><strong>Baixa Personalização:</strong> OTAs ignoram preferências implícitas.</li>
+        <li><strong>Dependência de Legado:</strong> Duopólio atual inova pouco e cobra 15-25% de comissão.</li>
+    </ul>
+
+    <h2>3. A Solução: Fly2Any</h2>
+    <p>Uma Plataforma de Viagens Assistida por IA que funde a inventividade humana com a eficiência de algoritmos.</p>
+    
+    <h3>Os 3 Pilares:</h3>
+    <ul>
+        <li><strong>Assistente com IQ Emocional:</strong> Detecta frustração e age proativamente.</li>
+        <li><strong>Unificação End-to-End:</strong> Voos, hotéis e experiências em uma transação.</li>
+        <li><strong>Conversational Commerce:</strong> Agente capaz de congelar preços e dividir pagamentos.</li>
+    </ul>
+
+    <h2>4. Tecnologia & Moat</h2>
+    <p>Construímos uma infraestrutura proprietária, segura e escalável.</p>
+    <ul>
+        <li><strong>Arquitetura Híbrida Inteligente:</strong> Next.js 14 + Serverless (Load < 3s).</li>
+        <li><strong>Camadas de IA:</strong> Roteamento de intenção, Raciocínio (Llama 70B) e Compliance.</li>
+        <li><strong>Predição de Preços (Nota 11/10):</strong> Cache inteligente que economiza 90% em API.</li>
+    </ul>
+
+    <h2>5. Modelo de Negócio</h2>
+    <ul>
+        <li><strong>Comissões (Core):</strong> Voos (3-5%), Hotéis (10-15%).</li>
+        <li><strong>Ancillaries (Growth):</strong> Markup em assentos, "Price Freeze" ($5-15 taxa), Garantias.</li>
+        <li><strong>B2B (Scale):</strong> Monetização de tráfego via cartões e API "Copilot".</li>
+    </ul>
+
+    <h2>6. Tração & Validações</h2>
+    <ul>
+        <li><strong>Produto em Produção:</strong> Buscador completo e funcional.</li>
+        <li><strong>Parcerias:</strong> Amadeus, Duffel, Stripe integrados.</li>
+        <li><strong>Engenharia:</strong> 700+ testes E2E, WCAG 2.1 Compliance.</li>
+    </ul>
+
+    <h2>7. Tese de Investimento</h2>
+    <p>A Fly2Any é um ativo estratégico em IA com um dataset proprietário de comportamento de viagem. A combinação de hard tech (cache proprietário) com UX emocional cria uma barreira defensável contra concorrentes genéricos.</p>
+
+</body>
+</html>
