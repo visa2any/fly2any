@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ChevronRight, ChevronLeft, TrendingUp, Shield, Globe, Cpu, Users, Zap, Target, DollarSign } from 'lucide-react';
+import { LogoText } from '@/components/ui/LogoText';
 
 interface SlideProps {
   isActive: boolean;
@@ -20,9 +21,9 @@ const slides = [
         <div className="p-6 bg-blue-600 rounded-full bg-opacity-10 animate-pulse">
           <Globe className="w-24 h-24 text-blue-600" />
         </div>
-        <h1 className="text-6xl font-black tracking-tighter text-slate-900">
-          FLY<span className="text-blue-600">2</span>ANY
-        </h1>
+        <div className="scale-150 transform">
+          <LogoText size="xl" variant="gradient" className="text-6xl" />
+        </div>
         <p className="text-2xl text-slate-600 max-w-2xl">
           Revolutionizing the $1T Travel Market with Proactive Autonomous Agents
         </p>
@@ -249,9 +250,8 @@ export default function PitchDeck() {
           transition={{ duration: 0.5, ease: "easeInOut" }}
           className={`w-full h-full flex flex-col items-center justify-center p-12 md:p-24 ${slides[currentSlide].bg}`}
         >
-          <div className="absolute top-8 left-8 flex items-center gap-2 opacity-50">
-             <div className="w-6 h-6 bg-blue-600 rounded-lg"></div>
-             <span className="font-bold tracking-tight">FLY2ANY</span>
+          <div className="absolute top-8 left-8 flex items-center gap-2 opacity-80">
+             <LogoText size="lg" variant="gradient" />
           </div>
 
           <div className="absolute top-8 right-8 text-sm font-medium opacity-40">
