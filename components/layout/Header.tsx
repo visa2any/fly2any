@@ -486,80 +486,84 @@ export function Header({
               {/* Dropdown Menu */}
               {discoverDropdownOpen && (
                 <div
-                  className="absolute right-0 mt-3 w-56 rounded-2xl overflow-hidden z-dropdown animate-slideDown"
+                  className="absolute right-0 top-full pt-3 w-56 z-dropdown animate-slideDown"
                   onMouseLeave={() => setDiscoverDropdownOpen(false)}
-                  style={{
-                    background: 'rgba(255, 255, 255, 0.95)',
-                    backdropFilter: 'blur(12px) saturate(180%)',
-                    WebkitBackdropFilter: 'blur(12px) saturate(180%)',
-                    boxShadow: '0 8px 32px rgba(0, 0, 0, 0.12), 0 2px 8px rgba(0, 0, 0, 0.08)',
-                    border: '1px solid rgba(0, 0, 0, 0.1)',
-                  }}
                 >
-                  {/* Deals */}
-                  <a
-                    href="/deals"
-                    className="flex items-center gap-3 px-5 py-3.5 hover:bg-primary-50/50 text-gray-700 transition-all duration-200"
+                  <div
+                    className="rounded-2xl overflow-hidden"
+                    style={{
+                      background: 'rgba(255, 255, 255, 0.95)',
+                      backdropFilter: 'blur(12px) saturate(180%)',
+                      WebkitBackdropFilter: 'blur(12px) saturate(180%)',
+                      boxShadow: '0 8px 32px rgba(0, 0, 0, 0.12), 0 2px 8px rgba(0, 0, 0, 0.08)',
+                      border: '1px solid rgba(0, 0, 0, 0.1)',
+                    }}
                   >
-                    <span className="text-xl">🔥</span>
-                    <span className="font-semibold text-sm">{t('deals')}</span>
-                  </a>
-                  {/* Destinations */}
-                  <a
-                    href="/destinations"
-                    className="flex items-center gap-3 px-5 py-3.5 hover:bg-primary-50/50 text-gray-700 transition-all duration-200"
-                  >
-                    <span className="text-xl">🏙️</span>
-                    <span className="font-semibold text-sm">{t('destinations')}</span>
-                  </a>
-                  {/* Airlines */}
-                  <a
-                    href="/airlines"
-                    className="flex items-center gap-3 px-5 py-3.5 hover:bg-primary-50/50 text-gray-700 transition-all duration-200"
-                  >
-                    <span className="text-xl">✈️</span>
-                    <span className="font-semibold text-sm">{t('airlines')}</span>
-                  </a>
-                  {/* Divider */}
-                  <div className="border-t border-gray-200 my-1"></div>
-                  <a
-                    href="/blog"
-                    className="flex items-center gap-3 px-5 py-3.5 hover:bg-primary-50/50 text-gray-700 transition-all duration-200"
-                  >
-                    <span className="text-xl">✍️</span>
-                    <span className="font-semibold text-sm">{t('blog')}</span>
-                  </a>
-                  <a
-                    href="/explore"
-                    className="flex items-center gap-3 px-5 py-3.5 hover:bg-primary-50/50 text-gray-700 transition-all duration-200"
-                  >
-                    <span className="text-xl">🌍</span>
-                    <span className="font-semibold text-sm">{t('explore')}</span>
-                  </a>
-                  <a
-                    href="/travel-guide"
-                    className="flex items-center gap-3 px-5 py-3.5 hover:bg-primary-50/50 text-gray-700 transition-all duration-200"
-                  >
-                    <span className="text-xl">📚</span>
-                    <span className="font-semibold text-sm">{t('travelGuide')}</span>
-                  </a>
-                  <a
-                    href="/faq"
-                    className="flex items-center gap-3 px-5 py-3.5 hover:bg-primary-50/50 text-gray-700 transition-all duration-200"
-                  >
-                    <span className="text-xl">❓</span>
-                    <span className="font-semibold text-sm">{t('faq')}</span>
-                  </a>
-                  {/* Divider */}
-                  <div className="border-t border-gray-200 my-1"></div>
-                  {/* World Cup 2026 */}
-                  <a
-                    href="/world-cup-2026"
-                    className="flex items-center gap-3 px-5 py-3.5 hover:bg-gradient-to-r hover:from-blue-50 hover:to-red-50 text-gray-700 transition-all duration-200"
-                  >
-                    <span className="text-xl">⚽</span>
-                    <span className="font-bold text-sm bg-gradient-to-r from-blue-600 via-red-500 to-yellow-500 bg-clip-text text-transparent">World Cup 2026</span>
-                  </a>
+                    {/* Deals */}
+                    <a
+                      href="/deals"
+                      className="flex items-center gap-3 px-5 py-3.5 hover:bg-primary-50/50 text-gray-700 transition-all duration-200"
+                    >
+                      <span className="text-xl">🔥</span>
+                      <span className="font-semibold text-sm">{t('deals')}</span>
+                    </a>
+                    {/* Destinations */}
+                    <a
+                      href="/destinations"
+                      className="flex items-center gap-3 px-5 py-3.5 hover:bg-primary-50/50 text-gray-700 transition-all duration-200"
+                    >
+                      <span className="text-xl">🏙️</span>
+                      <span className="font-semibold text-sm">{t('destinations')}</span>
+                    </a>
+                    {/* Airlines */}
+                    <a
+                      href="/airlines"
+                      className="flex items-center gap-3 px-5 py-3.5 hover:bg-primary-50/50 text-gray-700 transition-all duration-200"
+                    >
+                      <span className="text-xl">✈️</span>
+                      <span className="font-semibold text-sm">{t('airlines')}</span>
+                    </a>
+                    {/* Divider */}
+                    <div className="border-t border-gray-200 my-1"></div>
+                    <a
+                      href="/blog"
+                      className="flex items-center gap-3 px-5 py-3.5 hover:bg-primary-50/50 text-gray-700 transition-all duration-200"
+                    >
+                      <span className="text-xl">✍️</span>
+                      <span className="font-semibold text-sm">{t('blog')}</span>
+                    </a>
+                    <a
+                      href="/explore"
+                      className="flex items-center gap-3 px-5 py-3.5 hover:bg-primary-50/50 text-gray-700 transition-all duration-200"
+                    >
+                      <span className="text-xl">🌍</span>
+                      <span className="font-semibold text-sm">{t('explore')}</span>
+                    </a>
+                    <a
+                      href="/travel-guide"
+                      className="flex items-center gap-3 px-5 py-3.5 hover:bg-primary-50/50 text-gray-700 transition-all duration-200"
+                    >
+                      <span className="text-xl">📚</span>
+                      <span className="font-semibold text-sm">{t('travelGuide')}</span>
+                    </a>
+                    <a
+                      href="/faq"
+                      className="flex items-center gap-3 px-5 py-3.5 hover:bg-primary-50/50 text-gray-700 transition-all duration-200"
+                    >
+                      <span className="text-xl">❓</span>
+                      <span className="font-semibold text-sm">{t('faq')}</span>
+                    </a>
+                    {/* Divider */}
+                    <div className="border-t border-gray-200 my-1"></div>
+                    {/* World Cup 2026 */}
+                    <a
+                      href="/world-cup-2026"
+                      className="flex items-center gap-3 px-5 py-3.5 hover:bg-gradient-to-r hover:from-blue-50 hover:to-red-50 text-gray-700 transition-all duration-200"
+                    >
+                      <span className="text-xl">⚽</span>
+                      <span className="font-bold text-sm bg-gradient-to-r from-blue-600 via-red-500 to-yellow-500 bg-clip-text text-transparent">World Cup 2026</span>
+                    </a>
+                  </div>
                 </div>
               )}
             </div>
