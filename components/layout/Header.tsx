@@ -460,7 +460,7 @@ export function Header({
                 onClick={() => setDiscoverDropdownOpen(!discoverDropdownOpen)}
                 onMouseEnter={() => setDiscoverDropdownOpen(true)}
                 className={`group relative px-2 xl:px-3 py-2 transition-all duration-150 ease-[cubic-bezier(0.2,0.8,0.2,1)] font-semibold text-sm rounded-xl hover:-translate-y-0.5 flex items-center gap-1.5 ${
-                  scrolled
+                  !isHomepage || scrolled
                     ? 'text-neutral-700 hover:text-primary-600 hover:bg-primary-50/60'
                     : 'text-white hover:text-white/90 hover:bg-white/10'
                 }`}
@@ -622,10 +622,10 @@ export function Header({
             {/* ============ DESKTOP ICONS ============ */}
 
             {/* Locale Switcher - Language & Currency */}
-            <LocaleSwitcher scrolled={scrolled} />
+            <LocaleSwitcher scrolled={!isHomepage || scrolled} />
 
             {/* Cart Icon - Desktop & Mobile */}
-            <CartIcon className="hidden sm:block" scrolled={scrolled} />
+            <CartIcon className="hidden sm:block" scrolled={!isHomepage || scrolled} />
 
             {/* Notification Bell - Desktop only */}
             {mounted && session?.user && (
