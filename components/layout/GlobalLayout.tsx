@@ -11,6 +11,7 @@ import { NavigationDrawer } from '@/components/mobile/NavigationDrawer';
 import { AITravelAssistant } from '@/components/ai/AITravelAssistant';
 import { ErrorBoundary } from '@/components/ErrorBoundary';
 import { MobileFullscreen } from '@/components/layout/MobileFullscreen';
+import { TawkChat } from '@/components/chat/TawkChat';
 import { useLanguage } from '@/lib/i18n/client';
 import { useTranslations } from 'next-intl';
 import { ExperiencesCartProvider } from '@/lib/cart/experiences-cart';
@@ -182,8 +183,8 @@ function GlobalLayoutInner({ children }: GlobalLayoutProps) {
         userId={session?.user?.id}
       />
 
-      {/* AI Travel Assistant - Wrapped in ErrorBoundary for crash resilience */}
-      <ErrorBoundary
+      {/* AI Travel Assistant - Disabled as per user request to restore Twal */}
+      {/* <ErrorBoundary
         variant="inline"
         context="ai-travel-assistant"
         fallback={
@@ -201,7 +202,10 @@ function GlobalLayoutInner({ children }: GlobalLayoutProps) {
         }
       >
         <AITravelAssistant language={language} />
-      </ErrorBoundary>
+      </ErrorBoundary> */}
+      
+      {/* Twal (Tawk.to) Chat System */}
+      <TawkChat />
     </>
   );
 }
