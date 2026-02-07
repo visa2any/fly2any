@@ -1,0 +1,534 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fly2Any - Pitch Deck 2026</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&family=Plus+Jakarta+Sans:wght@200;400;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #4F46E5;
+            --secondary: #7C3AED;
+            --accent: #06B6D4;
+            --bg: #030712;
+            --card-bg: rgba(17, 24, 39, 0.7);
+            --text: #F3F4F6;
+            --text-muted: #9CA3AF;
+            --glass: rgba(255, 255, 255, 0.05);
+            --border: rgba(255, 255, 255, 0.1);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background-color: var(--bg);
+            color: var(--text);
+            overflow: hidden;
+            background: radial-gradient(circle at 0% 0%, #1e1b4b 0%, transparent 50%),
+                        radial-gradient(circle at 100% 100%, #312e81 0%, transparent 50%),
+                        var(--bg);
+            height: 100vh;
+        }
+
+        h1, h2, h3 {
+            font-family: 'Outfit', sans-serif;
+            letter-spacing: -0.02em;
+        }
+
+        .deck-container {
+            width: 100vw;
+            height: 100vh;
+            display: flex;
+            transition: transform 0.8s cubic-bezier(0.85, 0, 0.15, 1);
+        }
+
+        .slide {
+            min-width: 100vw;
+            height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 4rem;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .content {
+            max-width: 1000px;
+            width: 100%;
+            z-index: 2;
+            backdrop-filter: blur(10px);
+            background: var(--card-bg);
+            padding: 3rem;
+            border-radius: 2rem;
+            border: 1px solid var(--border);
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+            animation: fadeIn 1s ease-out;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .slide-title {
+            font-size: 3.5rem;
+            font-weight: 800;
+            margin-bottom: 2rem;
+            background: linear-gradient(135deg, #fff 0%, #94a3b8 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .bullets {
+            list-style: none;
+            font-size: 1.25rem;
+            line-height: 1.6;
+            margin-bottom: 2rem;
+        }
+
+        .bullets li {
+            position: relative;
+            padding-left: 2rem;
+            margin-bottom: 1rem;
+            color: var(--text-muted);
+        }
+
+        .bullets li::before {
+            content: '→';
+            position: absolute;
+            left: 0;
+            color: var(--accent);
+            font-weight: bold;
+        }
+
+        .visual-hint {
+            margin-top: 2rem;
+            padding: 1.5rem;
+            background: var(--glass);
+            border-radius: 1rem;
+            border-left: 4px solid var(--primary);
+            font-style: italic;
+            color: var(--accent);
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        /* Controls */
+        .controls {
+            position: fixed;
+            bottom: 2rem;
+            right: 2rem;
+            display: flex;
+            gap: 1rem;
+            z-index: 100;
+        }
+
+        button {
+            background: var(--glass);
+            border: 1px solid var(--border);
+            color: white;
+            padding: 1rem 1.5rem;
+            border-radius: 0.75rem;
+            cursor: pointer;
+            backdrop-filter: blur(5px);
+            transition: all 0.3s ease;
+            font-weight: 600;
+        }
+
+        button:hover {
+            background: var(--primary);
+            border-color: var(--primary);
+            transform: translateY(-2px);
+        }
+
+        .progress-bar {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            height: 4px;
+            background: var(--primary);
+            transition: width 0.3s ease;
+            z-index: 101;
+        }
+
+        /* Slide Specific Visuals (Pseudo-charts/diagrams) */
+        .chart-placeholder {
+            height: 150px;
+            width: 100%;
+            display: flex;
+            align-items: flex-end;
+            gap: 10px;
+            padding: 10px;
+            background: rgba(0,0,0,0.2);
+            border-radius: 1rem;
+            margin-top: 1rem;
+        }
+
+        .bar {
+            flex: 1;
+            background: linear-gradient(to top, var(--primary), var(--accent));
+            border-radius: 4px 4px 0 0;
+            animation: grow 1.5s ease-out;
+        }
+
+        @keyframes grow {
+            from { height: 0; }
+        }
+
+        .node-network {
+            display: flex;
+            justify-content: space-around;
+            padding: 2rem;
+            position: relative;
+        }
+
+        .node {
+            width: 60px;
+            height: 60px;
+            background: var(--glass);
+            border: 2px solid var(--accent);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.8rem;
+            text-align: center;
+            z-index: 2;
+        }
+
+        .tagline {
+            font-size: 1.5rem;
+            color: var(--accent);
+            margin-bottom: 0.5rem;
+            font-weight: 300;
+            text-transform: uppercase;
+            letter-spacing: 0.2em;
+        }
+
+        .hero-title {
+            font-size: 6rem;
+            font-weight: 900;
+            margin-bottom: 1rem;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .content { padding: 1.5rem; }
+            .slide-title { font-size: 2.5rem; }
+            .hero-title { font-size: 3.5rem; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="progress-bar" id="progress"></div>
+
+    <div class="deck-container" id="container">
+        <!-- SLIDE 1: CAPA -->
+        <section class="slide">
+            <div class="content" style="text-align: center;">
+                <div class="tagline">AI-Powered Global Travel Platform</div>
+                <h1 class="hero-title" style="background: linear-gradient(135deg, #4F46E5 0%, #06B6D4 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">Fly2Any</h1>
+                <p style="font-size: 1.5rem; color: var(--text-muted);">Reinventando a jornada do viajante global com Inteligência Artificial Nativa.</p>
+                <div class="visual-hint">
+                    ✨ Sugestão: Logo central pulsando em glassmorphism com mapa-múndi digital em rede ao fundo.
+                </div>
+            </div>
+        </section>
+
+        <!-- SLIDE 2: O PROBLEMA -->
+        <section class="slide">
+            <div class="content">
+                <h2 class="slide-title">2. O Problema</h2>
+                <ul class="bullets">
+                    <li>Fragmentação Extrema: O usuário navega em 15+ abas para planejar uma viagem.</li>
+                    <li>Experiência Estática: OTAs tradicionais são apenas catálogos frios de inventário.</li>
+                    <li>Baixa Conversão: Paralisia de escolha e falta de confiança no suporte.</li>
+                    <li>Falta de Personalização: Resultados Genéricos que não entendem o contexto do viajante.</li>
+                </ul>
+                <div class="visual-hint">
+                    📉 Sugestão: Gráfico de "Jornada Quebrada" com múltiplos ícones de abas de navegador e sinais de confusão.
+                </div>
+            </div>
+        </section>
+
+        <!-- SLIDE 3: A SOLUÇÃO -->
+        <section class="slide">
+            <div class="content">
+                <h2 class="slide-title">3. A Solução Fly2Any</h2>
+                <ul class="bullets">
+                    <li>Plataforma Unificada: Tudo em um único fluxo conversacional e transacional.</li>
+                    <li>IA como Concierge: Antecipa necessidades, planeja e resolve problemas em tempo real.</li>
+                    <li>Conversão Inteligente: Redução radical do tempo de planejamento (de horas para minutos).</li>
+                    <li>Suporte Proativo: Resolução de conflitos antes mesmo do usuário perceber.</li>
+                </ul>
+                <div class="visual-hint">
+                    🔄 Sugestão: Fluxograma circular simplificado: Usuário → IA Central → Viagem Concluída.
+                </div>
+            </div>
+        </section>
+
+        <!-- SLIDE 4: O PRODUTO -->
+        <section class="slide">
+            <div class="content">
+                <h2 class="slide-title">4. O Produto (Visão Geral)</h2>
+                <ul class="bullets">
+                    <li>Inventário Global: Voos, Hotéis, Carros, Seguros e Experiências.</li>
+                    <li>Hybrid Support: IA de alta performance com escalonamento humano inteligente.</li>
+                    <li>Multi-dispositivo: Experiência contínua entre Web, Mobile e Voz.</li>
+                    <li>Travel Wallet: Gestão centralizada de reservas e documentos.</li>
+                </ul>
+                <div class="visual-hint">
+                    🗺️ Sugestão: Mockup da interface Fly2Any mostrando o chat ao lado dos detalhes da reserva (Clean-tech aesthetic).
+                </div>
+            </div>
+        </section>
+
+        <!-- SLIDE 5: ARQUITETURA -->
+        <section class="slide">
+            <div class="content">
+                <h2 class="slide-title">5. Arquitetura & Tecnologia</h2>
+                <ul class="bullets">
+                    <li>AI-Native Foundation: IA não é um add-on, é o núcleo do sistema.</li>
+                    <li>Reasoning Layer: Agentes especialistas que entendem intenção e contexto.</li>
+                    <li>Global APIs: Integrações diretas com Amadeus, Duffel e LiteAPI.</li>
+                    <li>Escalabilidade: Infraestrutura serverless pronta para milhões de reqs.</li>
+                </ul>
+                <div class="visual-hint">
+                    ⚙️ Sugestão: Diagrama modular mostrando as camadas de APIs, Reasoning Layer e Interface do Usuário.
+                </div>
+            </div>
+        </section>
+
+        <!-- SLIDE 6: IA DIFERENCIADA -->
+        <section class="slide">
+            <div class="content">
+                <h2 class="slide-title">6. IA com Inteligência Real</h2>
+                <ul class="bullets">
+                    <li>Agentes Especialistas: Domínios específicos (Ex: Especialista em Preços, Especialista em Hotéis).</li>
+                    <li>Zero Alucinação: Camadas de governança que validam fatos em tempo real com o GDS.</li>
+                    <li>Safe Learning: Modelos treinados com dados anonimizados e proteção total de PII.</li>
+                    <li>Conversational Commerce: Motor de vendas integrado à conversa, não apenas suporte.</li>
+                </ul>
+                <div class="visual-hint">
+                    🧠 Sugestão: Ícone de cérebro digital central com anéis orbitais representando as especialidades.
+                </div>
+            </div>
+        </section>
+
+        <!-- SLIDE 7: GOVERNANÇA -->
+        <section class="slide">
+            <div class="content">
+                <h2 class="slide-title">7. Governança & Segurança (Moat)</h2>
+                <ul class="bullets">
+                    <li>Isolamento Financeiro: Separação total entre a IA e o processamento de pagamentos.</li>
+                    <li>Consentimento Dinâmico: O usuário aprova cada estágio da transação.</li>
+                    <li>Compliance-First: Padrões globais de segurança e proteção de dados (LGPD/GDPR/PCI).</li>
+                    <li>Transparência Radical: Histórico de decisões da IA auditável pelo usuário.</li>
+                </ul>
+                <div class="visual-hint">
+                    🛡️ Sugestão: Iconografia de escudo com camadas translúcidas (transparency & trust).
+                </div>
+            </div>
+        </section>
+
+        <!-- SLIDE 8: EXPERIÊNCIA UX -->
+        <section class="slide">
+            <div class="content">
+                <h2 class="slide-title">8. Experiência do Usuário</h2>
+                <ul class="bullets">
+                    <li>Human Scalability: Atendimento humano disponível exatamente quando a IA atinge o limite.</li>
+                    <li>Multilíngue Nativo: Comunicação fluida em qualquer idioma sem atrito.</li>
+                    <li>Jornada Contínua: O sistema lembra de você em cada ponto de contato.</li>
+                    <li>Foco em Resolução: Menos conversa, mais ação e reserva concluída.</li>
+                </ul>
+                <div class="visual-hint">
+                    💬 Sugestão: Chat bubble convergindo para um ticket de viagem brilhante.
+                </div>
+            </div>
+        </section>
+
+        <!-- SLIDE 9: MODELO DE NEGÓCIO -->
+        <section class="slide">
+            <div class="content">
+                <h2 class="slide-title">9. Modelo de Negócio</h2>
+                <ul class="bullets">
+                    <li>Comissões: Take rate sobre voos, hotéis e serviços auxiliares.</li>
+                    <li>Ancillaries: Markup inteligente em bagagens, assentos e seguros.</li>
+                    <li>B2B Opportunity: APIs white-label para agências e parceiros corporativos.</li>
+                    <li>Affiliate Network: Canal de distribuição via criadores e parceiros.</li>
+                </ul>
+                <div class="visual-hint">
+                    💰 Sugestão: Gráfico de pizza ou barras mostrando a diversificação das fontes de receita.
+                </div>
+            </div>
+        </section>
+
+        <!-- SLIDE 10: MERCADO -->
+        <section class="slide">
+            <div class="content">
+                <h2 class="slide-title">10. Mercado & Oportunidade</h2>
+                <ul class="bullets">
+                    <li>TAM: US$ 1 Trilhão (Global Online Travel Market 2030).</li>
+                    <li>AI Shift: A transição massiva da busca estática para a assistência autônoma.</li>
+                    <li>Target: Millenials e GenZ que buscam agilidade e personalização.</li>
+                    <li>SOM: Projeção de US$ 3B capturáveis nos primeiros 3-5 anos.</li>
+                </ul>
+                <div class="visual-hint">
+                    📈 Sugestão: Gráfico de crescimento exponencial destacando o vácuo deixado pelas OTAs legadas.
+                </div>
+            </div>
+        </section>
+
+        <!-- SLIDE 11: TRAÇÃO -->
+        <section class="slide">
+            <div class="content">
+                <h2 class="slide-title">11. Tração & Validação</h2>
+                <ul class="bullets">
+                    <li>MVP Live: Plataforma construída e validada tecnicamente.</li>
+                    <li>Key Partnerships: Integrações certificadas com Amadeus e Duffel.</li>
+                    <li>Infrastructure Ready: Escalonamento global testado em produção.</li>
+                    <li>Inbound Interest: Parceiros e afiliados já demonstrando interesse orgânico.</li>
+                </ul>
+                <div class="visual-hint">
+                    ✅ Sugestão: Checklist visual com logos dos parceiros (Amadeus, Duffel, Stripe).
+                </div>
+            </div>
+        </section>
+
+        <!-- SLIDE 12: COMPETITIVO -->
+        <section class="slide">
+            <div class="content">
+                <h2 class="slide-title">12. Diferencial Competitivo</h2>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; margin-top: 1rem;">
+                    <div style="background: rgba(239, 68, 68, 0.1); padding: 1.5rem; border-radius: 1rem;">
+                        <h4 style="color: #ef4444; margin-bottom: 0.5rem;">OTAs Tradicionais</h4>
+                        <ul style="list-style: none; font-size: 0.9rem; color: #9ca3af;">
+                            <li>✖ Busca por abas</li>
+                            <li>✖ Suporte reativo</li>
+                            <li>✖ Sem personalização</li>
+                            <li>✖ Interface poluída</li>
+                        </ul>
+                    </div>
+                    <div style="background: rgba(34, 197, 94, 0.1); padding: 1.5rem; border-radius: 1rem; border: 1px solid #22c55e;">
+                        <h4 style="color: #22c55e; margin-bottom: 0.5rem;">Fly2Any (AI-Native)</h4>
+                        <ul style="list-style: none; font-size: 0.9rem; color: #9ca3af;">
+                            <li>✔ Fluxo único</li>
+                            <li>✔ Concierge proativo</li>
+                            <li>✔ Hiper-personalização</li>
+                            <li>✔ Chat-first UX</li>
+                        </ul>
+                    </div>
+                </div>
+                <div class="visual-hint">
+                    ⚖️ Sugestão: Tabela comparativa "Win-Loss" destacando o valor agregado.
+                </div>
+            </div>
+        </section>
+
+        <!-- SLIDE 13: VISÃO FUTURO -->
+        <section class="slide">
+            <div class="content">
+                <h2 class="slide-title">13. Visão de Futuro</h2>
+                <ul class="bullets">
+                    <li>Travel OS: Ser a camada de inteligência de toda jornada de viagem global.</li>
+                    <li>Automação Total: IA que negocia preços e resolve crises sem intervenção.</li>
+                    <li>IoT Integration: Integração total com aeroportos, hotéis e veículos.</li>
+                    <li>Global-First: Presença dominante em todos os mercados chaves.</li>
+                </ul>
+                <div class="visual-hint">
+                    🚀 Sugestão: Linha do tempo (Roadmap) partindo do MVP até o Travel Operating System.
+                </div>
+            </div>
+        </section>
+
+        <!-- SLIDE 14: TESE INVESTIMENTO -->
+        <section class="slide">
+            <div class="content">
+                <h2 class="slide-title">14. Tese de Investimento</h2>
+                <ul class="bullets">
+                    <li>Timing Perfeito: A convergência de LLMs e a recuperação do setor de viagens.</li>
+                    <li>Moat Tecnológico: Dados proprietários e arquitetura de governança rara.</li>
+                    <li>Escalabilidade Excepcional: Margens altas e custos de IA deflacionários.</li>
+                    <li>Time Visionário: Execução focada na intersecção de AI e Travel Tech.</li>
+                </ul>
+                <div class="visual-hint">
+                    🎯 Sugestão: Ponto de mira (Target) focando nos quatro pilares estratégicos.
+                </div>
+            </div>
+        </section>
+
+        <!-- SLIDE 15: ENCERRAMENTO -->
+        <section class="slide">
+            <div class="content" style="text-align: center;">
+                <h2 class="slide-title">Voe para o Futuro.</h2>
+                <p style="font-size: 1.8rem; margin-bottom: 2rem;">Fly2Any: A próxima geração das viagens globais.</p>
+                <div style="display: flex; justify-content: center; gap: 1rem;">
+                    <button style="font-size: 1.2rem; padding: 1.5rem 2.5rem; background: var(--primary);">Entrar em Contato</button>
+                    <button style="font-size: 1.2rem; padding: 1.5rem 2.5rem;">Saber Mais</button>
+                </div>
+                <div class="visual-hint" style="justify-content: center;">
+                    🌍 Obrigado! Vamos construir o futuro das viagens juntos.
+                </div>
+            </div>
+        </section>
+    </div>
+
+    <div class="controls">
+        <button id="prev">Anterior</button>
+        <button id="next">Próximo</button>
+    </div>
+
+    <script>
+        const container = document.getElementById('container');
+        const progress = document.getElementById('progress');
+        const slides = document.querySelectorAll('.slide');
+        let currentSlide = 0;
+
+        function updateSlide() {
+            container.style.transform = `translateX(-${currentSlide * 100}vw)`;
+            const percent = ((currentSlide + 1) / slides.length) * 100;
+            progress.style.width = `${percent}%`;
+        }
+
+        document.getElementById('next').addEventListener('click', () => {
+            if (currentSlide < slides.length - 1) {
+                currentSlide++;
+                updateSlide();
+            }
+        });
+
+        document.getElementById('prev').addEventListener('click', () => {
+            if (currentSlide > 0) {
+                currentSlide--;
+                updateSlide();
+            }
+        });
+
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'ArrowRight' || e.key === ' ') {
+                if (currentSlide < slides.length - 1) {
+                    currentSlide++;
+                    updateSlide();
+                }
+            } else if (e.key === 'ArrowLeft') {
+                if (currentSlide > 0) {
+                    currentSlide--;
+                    updateSlide();
+                }
+            }
+        });
+
+        updateSlide();
+    </script>
+</body>
+</html>
