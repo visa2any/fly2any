@@ -1,7 +1,6 @@
 'use client';
 
 import { useState, useCallback, useRef, memo, useEffect } from 'react';
-// import Image from 'next/image'; // Removed for standard img tag compatibility
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 
 interface ImageSliderProps {
@@ -40,6 +39,13 @@ export const ImageSlider = memo(({
   children,
   onImageChange,
 }: ImageSliderProps) => {
+  // Normalize images to array of URLs - do this first, before any hooks
+  const imageUrls = (images || []).map(img =>
+    typeof img === 'string' ? img : img?.url
+  ).filter(Boolean) as string[];
+
+  // ALL HOOKS MUST BE CALLED BEFORE ANY CONDITIONAL RETURNS
+  // This is required by React Rules of Hooks
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isTransitioning, setIsTransitioning] = useState(false);
   const [touchStart, setTouchStart] = useState<number | null>(null);
@@ -48,46 +54,6 @@ export const ImageSlider = memo(({
   const [isHovering, setIsHovering] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
   const autoSlideRef = useRef<NodeJS.Timeout | null>(null);
-
-  // Normalize images to array of URLs
-  const imageUrls = images.map(img =>
-    typeof img === 'string' ? img : img.url
-  ).filter(Boolean);
-
-  // No images - show placeholder
-  if (imageUrls.length === 0) {
-    return (
-      <div className={`relative ${height} ${className} overflow-hidden bg-gradient-to-br from-gray-100 to-gray-200`}>
-        <div className="absolute inset-0 flex items-center justify-center">
-          <span className="text-5xl opacity-50">🖼️</span>
-        </div>
-        {children}
-      </div>
-    );
-  }
-
-  // Single image - no slider functionality needed
-  if (imageUrls.length === 1) {
-    return (
-      <div className={`relative ${height} ${className} overflow-hidden`}>
-        <img
-          src={imageUrls[0]}
-          alt={alt}
-          className="w-full h-full object-cover"
-          loading="lazy"
-          onError={(e) => {
-            const target = e.target as HTMLImageElement;
-            target.style.display = 'none';
-            // Show fallback container if image fails
-            if (target.parentElement) {
-              target.parentElement.style.backgroundColor = '#f3f4f6';
-            }
-          }}
-        />
-        {children}
-      </div>
-    );
-  }
 
   // Auto-slide on hover effect
   useEffect(() => {
@@ -159,12 +125,12 @@ export const ImageSlider = memo(({
   }, [changeImage]);
 
   // Touch handlers for swipe
-  const handleTouchStart = (e: React.TouchEvent) => {
+  const handleTouchStart = useCallback((e: React.TouchEvent) => {
     setTouchStart(e.touches[0].clientX);
     setTouchStartY(e.touches[0].clientY);
-  };
+  }, []);
 
-  const handleTouchEnd = (e: React.TouchEvent) => {
+  const handleTouchEnd = useCallback((e: React.TouchEvent) => {
     if (touchStart === null) {
       setTouchStart(null);
       setTouchStartY(null);
@@ -188,8 +154,46 @@ export const ImageSlider = memo(({
 
     setTouchStart(null);
     setTouchStartY(null);
-  };
+  }, [touchStart, touchStartY, changeImage, showHint]);
 
+  // NOW we can have conditional returns AFTER all hooks are defined
+
+  // No images - show placeholder
+  if (imageUrls.length === 0) {
+    return (
+      <div className={`relative ${height} ${className} overflow-hidden bg-gradient-to-br from-gray-100 to-gray-200`}>
+        <div className="absolute inset-0 flex items-center justify-center">
+          <span className="text-5xl opacity-50">🖼️</span>
+        </div>
+        {children}
+      </div>
+    );
+  }
+
+  // Single image - no slider functionality needed
+  if (imageUrls.length === 1) {
+    return (
+      <div className={`relative ${height} ${className} overflow-hidden`}>
+        <img
+          src={imageUrls[0]}
+          alt={alt}
+          className="w-full h-full object-cover"
+          loading="lazy"
+          onError={(e) => {
+            const target = e.target as HTMLImageElement;
+            target.style.display = 'none';
+            // Show fallback container if image fails
+            if (target.parentElement) {
+              target.parentElement.style.backgroundColor = '#f3f4f6';
+            }
+          }}
+        />
+        {children}
+      </div>
+    );
+  }
+
+  // Multiple images - full slider functionality
   return (
     <div
       ref={containerRef}
