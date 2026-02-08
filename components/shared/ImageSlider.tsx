@@ -70,15 +70,19 @@ export const ImageSlider = memo(({
   if (imageUrls.length === 1) {
     return (
       <div className={`relative ${height} ${className} overflow-hidden`}>
-        <Image
+        <img
           src={imageUrls[0]}
           alt={alt}
-          fill
-          className="object-cover"
-          sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 25vw"
-          priority={false}
+          className="w-full h-full object-cover"
           loading="lazy"
-          unoptimized
+          onError={(e) => {
+            const target = e.target as HTMLImageElement;
+            target.style.display = 'none';
+            // Show fallback container if image fails
+            if (target.parentElement) {
+              target.parentElement.style.backgroundColor = '#f3f4f6';
+            }
+          }}
         />
         {children}
       </div>
