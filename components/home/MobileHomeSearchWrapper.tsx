@@ -7,6 +7,7 @@ import { MapPin, Search, ChevronDown, ChevronUp } from 'lucide-react';
 import { format } from 'date-fns';
 import EnhancedSearchBar from '@/components/flights/EnhancedSearchBar';
 import { useHasMounted } from '@/lib/hooks/useHasMounted';
+import ErrorBoundary from '@/components/common/ErrorBoundary';
 
 interface PassengerCounts {
   adults: number;
@@ -593,21 +594,35 @@ export function MobileHomeSearchWrapper({
           >
             {/* Full EnhancedSearchBar */}
             <div ref={searchBarRef}>
-              <EnhancedSearchBar
-                origin={origin}
-                destination={destination}
-                departureDate={departureDate}
-                returnDate={returnDate}
-                passengers={passengers}
-                cabinClass={cabinClass}
-                lang={lang}
-                defaultService={defaultService}
-                onSearchSubmit={handleSearchSubmit}
-                hideTabs={hideTabs}
-                journeyMode={journeyMode}
-                transparent={glassmorphism}
-                onServiceTypeChange={onServiceTypeChange}
-              />
+              <ErrorBoundary
+                fallback={
+                  <div className={`p-6 text-center rounded-xl border ${glassmorphism ? 'bg-black/20 border-white/10 text-white' : 'bg-red-50 border-red-100 text-neutral-800'}`}>
+                    <p className="text-sm font-medium mb-2">Something went wrong loading the search form.</p>
+                    <button 
+                      onClick={() => window.location.reload()} 
+                      className={`text-xs font-bold px-3 py-1.5 rounded-lg ${glassmorphism ? 'bg-white/20 hover:bg-white/30' : 'bg-red-100 text-red-700 hover:bg-red-200'}`}
+                    >
+                      Reload Page
+                    </button>
+                  </div>
+                }
+              >
+                <EnhancedSearchBar
+                  origin={origin}
+                  destination={destination}
+                  departureDate={departureDate}
+                  returnDate={returnDate}
+                  passengers={passengers}
+                  cabinClass={cabinClass}
+                  lang={lang}
+                  defaultService={defaultService}
+                  onSearchSubmit={handleSearchSubmit}
+                  hideTabs={hideTabs}
+                  journeyMode={journeyMode}
+                  transparent={glassmorphism}
+                  onServiceTypeChange={onServiceTypeChange}
+                />
+              </ErrorBoundary>
             </div>
 
             {/* Compact Collapse Handle - Level-6 Style */}
