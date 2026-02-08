@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useCallback, useRef, memo, useEffect } from 'react';
-import Image from 'next/image';
+// import Image from 'next/image'; // Removed for standard img tag compatibility
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 
 interface ImageSliderProps {
@@ -195,26 +195,20 @@ export const ImageSlider = memo(({
       onMouseEnter={handleMouseEnter}
       onMouseLeave={handleMouseLeave}
     >
-      {/* Image with crossfade transition */}
-      <Image
-        src={imageUrls[currentIndex]}
+      {/* Image with crossfade transition - Standard img for max compatibility */}
+      <img
+        src={imageUrls[currentIndex] || ''}
         alt={alt}
-        fill
-        className={`object-cover transition-opacity duration-200 ease-out ${isTransitioning ? 'opacity-70' : 'opacity-100'}`}
-        sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 25vw"
-        priority={currentIndex === 0}
+        className={`w-full h-full object-cover transition-opacity duration-200 ease-out ${isTransitioning ? 'opacity-70' : 'opacity-100'}`}
         loading={currentIndex === 0 ? 'eager' : 'lazy'}
-        unoptimized
-      />
-
-      {/* Touch zones for tap navigation (mobile) */}
-      <div
-        onClick={(e) => { e.stopPropagation(); prevImage(); }}
-        className="absolute left-0 top-0 w-1/4 h-full z-10 md:hidden"
-      />
-      <div
-        onClick={(e) => { e.stopPropagation(); nextImage(); }}
-        className="absolute right-0 top-0 w-1/4 h-full z-10 md:hidden"
+        onError={(e) => {
+          const target = e.target as HTMLImageElement;
+          target.style.display = 'none';
+          // Show fallback container if image fails
+          if (target.parentElement) {
+            target.parentElement.style.backgroundColor = '#f3f4f6'; 
+          }
+        }}
       />
 
       {/* Navigation Arrows (desktop, hidden on mobile) - Apple-Class transparent */}
