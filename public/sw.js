@@ -8,33 +8,49 @@
  * - Push notification handling
  */
 
-const CACHE_NAME = 'fly2any-v2';
-const STATIC_CACHE = 'fly2any-static-v2';
-const API_CACHE = 'fly2any-api-v2';
-const IMAGE_CACHE = 'fly2any-images-v2';
+// Version with timestamp to force updates on new deployments
+const VERSION = 'v3-' + new Date().getTime();
+const STATIC_CACHE = 'fly2any-static-' + VERSION;
+const API_CACHE = 'fly2any-api-' + VERSION;
+const IMAGE_CACHE = 'fly2any-images-' + VERSION;
 
-// Assets to cache immediately on install
+// Assets to cache immediately on install - only existing assets
 const STATIC_ASSETS = [
   '/',
-  '/offline',
   '/manifest.json',
   '/icons/icon-192x192.png',
   '/icons/icon-512x512.png',
 ];
 
-// Install event - cache static assets
+// Install event - cache static assets with individual error handling
 self.addEventListener('install', (event) => {
-  console.log('[SW] Installing service worker...');
+  console.log('[SW] Installing service worker version:', VERSION);
 
   event.waitUntil(
-    caches.open(STATIC_CACHE).then((cache) => {
+    caches.open(STATIC_CACHE).then(async (cache) => {
       console.log('[SW] Caching static assets');
-      return cache.addAll(STATIC_ASSETS).catch((err) => {
-        console.error('[SW] Failed to cache static assets:', err);
+      
+      // Cache assets individually to prevent one failure from blocking installation
+      const cachePromises = STATIC_ASSETS.map(async (url) => {
+        try {
+          const response = await fetch(url);
+          if (response.ok) {
+            await cache.put(url, response);
+            console.log('[SW] Cached:', url);
+          } else {
+            console.warn('[SW] Failed to cache (non-200):', url, response.status);
+          }
+        } catch (err) {
+          console.warn('[SW] Failed to cache:', url, err.message);
+        }
       });
+      
+      await Promise.allSettled(cachePromises);
+      console.log('[SW] Installation complete');
     })
   );
 
+  // Activate immediately
   self.skipWaiting();
 });
 
@@ -67,34 +83,50 @@ self.addEventListener('fetch', (event) => {
   const { request } = event;
   const url = new URL(request.url);
 
+  // Only handle GET requests
   if (request.method !== 'GET') {
     return;
   }
 
+  // Don't cache Next.js chunks - they have deployment-specific URLs
+  // and already use immutable cache headers
+  if (url.pathname.includes('/_next/static/chunks/')) {
+    event.respondWith(fetch(request));
+    return;
+  }
+
+  // API routes - network first with cache fallback
   if (url.pathname.startsWith('/api/')) {
     event.respondWith(networkFirstStrategy(request, API_CACHE));
     return;
   }
 
+  // Images - cache first for performance
   if (request.destination === 'image') {
     event.respondWith(cacheFirstStrategy(request, IMAGE_CACHE));
     return;
   }
 
+  // Scripts, styles, fonts - cache first but NOT Next.js chunks
   if (
     request.destination === 'script' ||
     request.destination === 'style' ||
     request.destination === 'font'
   ) {
-    event.respondWith(cacheFirstStrategy(request, STATIC_CACHE));
-    return;
+    // Double-check not a Next.js chunk
+    if (!url.pathname.includes('/_next/')) {
+      event.respondWith(cacheFirstStrategy(request, STATIC_CACHE));
+      return;
+    }
   }
 
+  // HTML documents - network first
   if (request.destination === 'document') {
     event.respondWith(networkFirstStrategy(request, STATIC_CACHE));
     return;
   }
 
+  // Default - just fetch without caching
   event.respondWith(fetch(request));
 });
 
@@ -109,11 +141,10 @@ async function networkFirstStrategy(request, cacheName) {
   } catch (error) {
     const cachedResponse = await caches.match(request);
     if (cachedResponse) {
+      console.log('[SW] Serving from cache:', request.url);
       return cachedResponse;
     }
-    if (request.destination === 'document') {
-      return caches.match('/offline');
-    }
+    // No offline page fallback - let browser handle offline state
     throw error;
   }
 }

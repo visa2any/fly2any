@@ -65,12 +65,61 @@ export function forceReload(): void {
 }
 
 /**
+ * Extract deployment ID from chunk URL if present
+ */
+export function getDeploymentId(error: Error): string | null {
+  const match = error.message.match(/dpl=([a-zA-Z0-9_]+)/);
+  return match ? match[1] : null;
+}
+
+/**
+ * Check if error is due to deployment mismatch
+ */
+export function isDeploymentMismatch(error: Error): boolean {
+  const deploymentId = getDeploymentId(error);
+  if (!deploymentId) return false;
+  
+  // Check if current page has a different deployment ID
+  if (typeof window !== 'undefined') {
+    const currentScripts = Array.from(document.querySelectorAll('script[src*="dpl="]'));
+    const currentDeploymentIds = currentScripts
+      .map(script => {
+        const match = (script as HTMLScriptElement).src.match(/dpl=([a-zA-Z0-9_]+)/);
+        return match ? match[1] : null;
+      })
+      .filter(Boolean);
+    
+    // If we have deployment IDs and they don't all match, it's a mismatch
+    if (currentDeploymentIds.length > 0 && !currentDeploymentIds.every(id => id === deploymentId)) {
+      return true;
+    }
+  }
+  
+  return false;
+}
+
+/**
  * Reload page with chunk error handling
  */
 export function handleChunkLoadError(error: Error): void {
   console.error('[ChunkErrorHandler] Chunk load error:', error);
 
   const chunkId = getChunkId(error);
+  const deploymentId = getDeploymentId(error);
+  const isMismatch = isDeploymentMismatch(error);
+  
+  // Log details for monitoring
+  console.log('[ChunkErrorHandler] Details:', {
+    chunkId,
+    deploymentId,
+    isMismatch,
+    userAgent: typeof navigator !== 'undefined' ? navigator.userAgent : 'unknown'
+  });
+
+  // Notify user before reload if possible
+  if (typeof window !== 'undefined' && isMismatch) {
+    console.log('[ChunkErrorHandler] Deployment mismatch detected - reloading...');
+  }
 
   // Clear cache and reload
   clearServiceWorkerCache()

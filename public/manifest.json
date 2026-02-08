@@ -95,7 +95,7 @@
   "prefer_related_applications": false,
   "related_applications": [],
   "serviceworker": {
-    "src": "/service-worker.js",
+    "src": "/sw.js",
     "scope": "/"
   },
   "share_target": {

@@ -179,6 +179,17 @@ const nextConfig = {
             key: 'Permissions-Policy',
             value: 'camera=(), microphone=(), geolocation=(self), interest-cohort=()',
           },
+          {
+            key: 'Content-Security-Policy',
+            value: [
+              "default-src 'self'",
+              "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://embed.tawk.to https://*.tawk.to",
+              "connect-src 'self' https://embed.tawk.to https://*.tawk.to wss://*.tawk.to",
+              "frame-src 'self' https://embed.tawk.to https://*.tawk.to",
+              "img-src 'self' data: https:",
+              "style-src 'self' 'unsafe-inline'",
+            ].join('; '),
+          },
         ],
       },
       // ===== STATIC ASSETS - AGGRESSIVE CACHING =====
