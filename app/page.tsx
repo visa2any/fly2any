@@ -13,6 +13,7 @@ import { CreditCard, Plane, Hotel, Car, Shield, HeadphonesIcon, Sparkles, Chevro
 import { generateEntityHomeSchema, generateSpeakableSchema } from '@/lib/seo/geo-optimization';
 // import { useLanguage } from '@/lib/i18n/client'; // TODO: Re-enable when multilingual support is activated
 import dynamic from 'next/dynamic';
+import ErrorBoundary from '@/components/common/ErrorBoundary';
 
 // Dynamic imports for below-the-fold components and non-critical features
 const ExitIntentPopup = dynamic(() => import('@/components/conversion/ExitIntentPopup'), { ssr: false });
@@ -460,15 +461,21 @@ export default function Home() {
       <main>
         <MaxWidthContainer className="px-0 md:px-6" noPadding={true}>
           <div className="mt-4 md:mt-6 lg:mt-8">
-            <RecentlyViewedSection lang={lang} />
+            <ErrorBoundary>
+              <RecentlyViewedSection lang={lang} />
+            </ErrorBoundary>
           </div>
 
           <div className="mt-4 md:mt-6 lg:mt-8">
-            <DestinationsSectionEnhanced lang={lang} />
+            <ErrorBoundary>
+              <DestinationsSectionEnhanced lang={lang} />
+            </ErrorBoundary>
           </div>
 
           <div className="mt-4 md:mt-6 lg:mt-8">
-            <FlashDealsSectionEnhanced lang={lang} />
+            <ErrorBoundary>
+              <FlashDealsSectionEnhanced lang={lang} />
+            </ErrorBoundary>
           </div>
 
           <div className="mt-4 md:mt-6 lg:mt-8">
