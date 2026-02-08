@@ -1,7 +1,6 @@
 'use client';
 
 import { useState, useEffect, useRef, useCallback, useMemo } from 'react';
-import { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import Image from 'next/image';
 import { MobileHomeSearchWrapper } from '@/components/home/MobileHomeSearchWrapper';
 import { DestinationsSectionEnhanced } from '@/components/home/DestinationsSectionEnhanced';
