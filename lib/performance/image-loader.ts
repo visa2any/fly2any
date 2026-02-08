@@ -344,7 +344,15 @@ export function shouldLazyLoad(
   }
 
   const rect = element.getBoundingClientRect();
-  const viewportHeight = window.innerHeight || document.documentElement.clientHeight;
+  // Safe viewport height check
+  let viewportHeight = 800; // default fallback
+  try {
+    if (typeof window !== 'undefined') {
+       viewportHeight = window.innerHeight || (document.documentElement ? document.documentElement.clientHeight : 800);
+    }
+  } catch (e) {
+    // Fallback on any error
+  }
 
   // Load if within 200px of viewport
   return rect.top > viewportHeight + 200;

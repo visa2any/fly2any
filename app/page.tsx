@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useRef, useCallback, useMemo } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import Image from 'next/image';
 import { MobileHomeSearchWrapper } from '@/components/home/MobileHomeSearchWrapper';
 import { DestinationsSectionEnhanced } from '@/components/home/DestinationsSectionEnhanced';
@@ -373,31 +373,22 @@ export default function Home() {
           {/* Title Section - Top */}
           <div className="pt-24 md:pt-28 lg:pt-32 px-2 md:px-6">
             <MaxWidthContainer noPadding>
-              <motion.div
-                initial={{ opacity: 0, y: 30 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.8 }}
-                className="text-center"
-              >
+            <MaxWidthContainer noPadding>
+              <div className="text-center animate-fadeIn">
                 {/* Large Animated Title */}
                 <h1
                   className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-black text-white mb-3"
                   style={{ textShadow: '0 6px 60px rgba(0,0,0,0.9)' }}
                 >
                   {t.sectionTitle}{' '}
-                  <motion.span
-                    className="inline-block"
+                  <span
+                    className="inline-block bg-gradient-to-r from-yellow-300 via-white to-yellow-300 bg-clip-text text-transparent"
                     style={{
-                      background: 'linear-gradient(135deg, #FFD700 0%, #FFF 25%, #FFD700 50%, #FF6B6B 75%, #FFD700 100%)',
                       backgroundSize: '200% 200%',
-                      WebkitBackgroundClip: 'text',
-                      WebkitTextFillColor: 'transparent',
                     }}
-                    animate={{ backgroundPosition: ['0% 0%', '100% 100%', '0% 0%'] }}
-                    transition={{ duration: 10, repeat: Infinity, ease: 'easeInOut' }}
                   >
                     {t.titleHighlight}
-                  </motion.span>
+                  </span>
                 </h1>
 
                 <p
@@ -406,7 +397,8 @@ export default function Home() {
                 >
                   {t.subtitle}
                 </p>
-              </motion.div>
+              </div>
+            </MaxWidthContainer>
             </MaxWidthContainer>
           </div>
 
@@ -444,13 +436,9 @@ export default function Home() {
               ))}
             </div>
             {/* Scroll Indicator */}
-            <motion.div
-              className="flex flex-col items-center"
-              animate={{ y: [0, 6, 0] }}
-              transition={{ repeat: Infinity, duration: 1.5 }}
-            >
+            <div className="flex flex-col items-center animate-bounce">
               <ChevronDown className="w-5 h-5 text-white/80" />
-            </motion.div>
+            </div>
           </div>
         </div>
       </section>
