@@ -2,20 +2,11 @@
 
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { motion, AnimatePresence, useSpring, useTransform } from 'framer-motion';
+
 import { MapPin, Search, ChevronDown, ChevronUp } from 'lucide-react';
 import { format } from 'date-fns';
-import dynamic from 'next/dynamic';
-import { SearchFormSkeleton } from '@/components/skeletons/SearchFormSkeleton';
+import EnhancedSearchBar from '@/components/flights/EnhancedSearchBar';
 import { useHasMounted } from '@/lib/hooks/useHasMounted';
-
-// Lazy-load EnhancedSearchBar for code splitting (~285KB saved from initial bundle)
-const EnhancedSearchBar = dynamic(
-  () => import('@/components/flights/EnhancedSearchBar'),
-  {
-    loading: () => <SearchFormSkeleton />,
-    ssr: false, // Client-only to prevent hydration mismatch
-  }
-);
 
 interface PassengerCounts {
   adults: number;
