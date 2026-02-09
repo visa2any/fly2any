@@ -15,6 +15,8 @@ function ScrollProgress({
 
   useEffect(() => {
     const calculateScrollProgress = () => {
+      // Safety check for document.documentElement
+      if (!document.documentElement) return;
       const windowHeight = window.innerHeight;
       const documentHeight = document.documentElement.scrollHeight;
       const scrollTop = window.pageYOffset || document.documentElement.scrollTop;

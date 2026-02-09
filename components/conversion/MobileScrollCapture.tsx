@@ -51,7 +51,11 @@ export default function MobileScrollCapture({
 
     // Scroll depth check
     const handleScroll = () => {
-      const scrollPercent = (window.scrollY / (document.documentElement.scrollHeight - window.innerHeight)) * 100;
+      // Safety check for document.documentElement
+      if (!document.documentElement) return;
+      const totalHeight = document.documentElement.scrollHeight - window.innerHeight;
+      if (totalHeight <= 0) return; // Prevent division by zero
+      const scrollPercent = (window.scrollY / totalHeight) * 100;
       if (scrollPercent >= scrollThreshold) {
         hasMetScrollRequirement = true;
         if (hasMetTimeRequirement) triggerShow();

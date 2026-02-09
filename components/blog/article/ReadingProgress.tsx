@@ -8,8 +8,11 @@ export function ReadingProgress() {
 
   useEffect(() => {
     const handleScroll = () => {
+      // Safety check for document.documentElement
+      if (!document.documentElement) return;
       const scrollTop = window.scrollY;
       const docHeight = document.documentElement.scrollHeight - window.innerHeight;
+      if (docHeight <= 0) return; // Prevent division by zero
       const scrollPercent = (scrollTop / docHeight) * 100;
       setProgress(Math.min(100, Math.max(0, scrollPercent)));
     };
