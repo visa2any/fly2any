@@ -443,20 +443,15 @@ export function MobileHomeSearchWrapper({
   // Mobile rendering with three states (only after hydration on mobile devices)
   return (
     <div ref={wrapperRef} className={`mobile-search-wrapper md:hidden ${glassmorphism ? 'px-4' : ''}`}>
-      <AnimatePresence mode="wait">
+      <AnimatePresence>
         {/* COLLAPSED STATE - Service-specific Apple-Class compact bar */}
         {viewState === 'collapsed' && (
           <motion.div
             key="collapsed"
-            initial={{ opacity: 0, y: -10, scale: 0.98 }}
-            animate={{ opacity: 1, y: 0, scale: 1 }}
-            exit={{ opacity: 0, y: -10, scale: 0.98 }}
-            transition={{
-              type: 'spring',
-              stiffness: 400,
-              damping: 28,
-              mass: 0.8,
-            }}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.15 }}
             className="w-full px-0 py-1"
           >
             <button
@@ -597,10 +592,10 @@ export function MobileHomeSearchWrapper({
         {viewState === 'expanded' && (
           <motion.div
             key="expanded"
-            initial={{ opacity: 0, y: -20 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -20 }}
-            transition={springConfig}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.2 }}
             className="w-full"
           >
             {/* Full EnhancedSearchBar */}
