@@ -2,12 +2,23 @@
 
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { motion, AnimatePresence, useSpring, useTransform } from 'framer-motion';
+import dynamic from 'next/dynamic';
 
 import { MapPin, Search, ChevronDown, ChevronUp } from 'lucide-react';
 import { format } from 'date-fns';
-import EnhancedSearchBar from '@/components/flights/EnhancedSearchBar';
+import { SearchFormSkeleton } from '@/components/skeletons/SearchFormSkeleton';
 import { useHasMounted } from '@/lib/hooks/useHasMounted';
 import ErrorBoundary from '@/components/common/ErrorBoundary';
+
+// Lazy-load EnhancedSearchBar to reduce initial bundle by ~285KB
+// Shows skeleton immediately, hydrates full component after load
+const EnhancedSearchBar = dynamic(
+  () => import('@/components/flights/EnhancedSearchBar'),
+  {
+    loading: () => <SearchFormSkeleton glassmorphism animate />,
+    ssr: false, // Client-only - prevents hydration mismatch
+  }
+);
 
 interface PassengerCounts {
   adults: number;

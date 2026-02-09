@@ -8,6 +8,20 @@ export function TawkChat() {
   const [scriptLoaded, setScriptLoaded] = useState(false);
 
   useEffect(() => {
+    // Suppress Tawk.to cross-origin script errors from error monitoring
+    // CORS-blocked errors have lineno=0, colno=0 - we can't see/fix them anyway
+    const originalOnError = window.onerror;
+    window.onerror = function(message, source, lineno, colno, error) {
+      // Suppress Tawk.to cross-origin errors (lineno=0, colno=0 = CORS blocked)
+      if (source?.includes('tawk.to') && lineno === 0 && colno === 0) {
+        return true; // Suppress the error - we can't debug CORS-blocked scripts
+      }
+      if (originalOnError) {
+        return originalOnError.call(window, message, source, lineno, colno, error);
+      }
+      return false;
+    };
+
     // Set a timeout to detect if script fails to load
     const timeout = setTimeout(() => {
       if (!scriptLoaded && !scriptError) {
@@ -15,7 +29,10 @@ export function TawkChat() {
       }
     }, 10000); // 10 second timeout
 
-    return () => clearTimeout(timeout);
+    return () => {
+      clearTimeout(timeout);
+      window.onerror = originalOnError; // Restore original handler
+    };
   }, [scriptLoaded, scriptError]);
 
   if (scriptError) {
