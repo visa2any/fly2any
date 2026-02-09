@@ -27,11 +27,11 @@ const SIZE_MAP = {
 };
 
 const FONT_SIZE_MAP = {
-  xs: 'text-[10px]',
-  sm: 'text-sm',      // Increased
-  md: 'text-lg',      // Increased
-  lg: 'text-xl',
-  xl: 'text-2xl',     // New
+  xs: 'text-[8px]',
+  sm: 'text-[10px]',
+  md: 'text-xs',
+  lg: 'text-sm',
+  xl: 'text-base',
 };
 
 export function AirlineLogo({ code, size = 'md', className = '' }: AirlineLogoProps) {
@@ -57,17 +57,18 @@ export function AirlineLogo({ code, size = 'md', className = '' }: AirlineLogoPr
     }
   };
 
-  // If we've exhausted all image sources, use emoji
+  // If we've exhausted all image sources, use styled initials instead of emoji
   if (imageError && currentSource === 'emoji') {
     return (
       <div
-        className={`${SIZE_MAP[size]} flex items-center justify-center rounded ${className}`}
+        className={`${SIZE_MAP[size]} flex items-center justify-center rounded font-bold text-white ${className}`}
         style={{
           background: `linear-gradient(135deg, ${airlineData.primaryColor}, ${airlineData.secondaryColor})`,
         }}
+        title={airlineData.name}
       >
-        <span className={FONT_SIZE_MAP[size]}>
-          {airlineData.logo}
+        <span className={`${FONT_SIZE_MAP[size]} font-bold leading-none`}>
+          {upperCode.slice(0, 2)}
         </span>
       </div>
     );
