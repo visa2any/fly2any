@@ -6,10 +6,15 @@
  * Tries multiple CDN sources for airline logos with graceful fallbacks:
  * 1. Kiwi.com CDN (fast, covers 500+ airlines)
  * 2. AirHex CDN (comprehensive, covers 1000+ airlines)
- * 3. Emoji fallback (always works)
+ * 3. Styled initials fallback (always works)
+ *
+ * CRITICAL: Uses key-based remounting to prevent stale onError events
+ * when switching between CDN sources. Without this, the browser can fire
+ * onError for the previous failed src after React updates the src in-place,
+ * causing the component to skip directly to the initials fallback.
  */
 
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { getAirlineData } from '@/lib/flights/airline-data';
 
 interface AirlineLogoProps {
@@ -20,10 +25,10 @@ interface AirlineLogoProps {
 
 const SIZE_MAP = {
   xs: 'w-3 h-3',
-  sm: 'w-5 h-5',      // Increased: was w-4 h-4
-  md: 'w-7 h-7',      // Increased: was w-6 h-6
-  lg: 'w-10 h-10',    // Increased: was w-8 h-8
-  xl: 'w-12 h-12',    // New: extra large for desktop cards
+  sm: 'w-5 h-5',
+  md: 'w-7 h-7',
+  lg: 'w-10 h-10',
+  xl: 'w-12 h-12',
 };
 
 const FONT_SIZE_MAP = {
@@ -34,31 +39,51 @@ const FONT_SIZE_MAP = {
   xl: 'text-base',
 };
 
+// CDN URL builders
+const getKiwiUrl = (code: string) => `https://images.kiwi.com/airlines/64/${code}.png`;
+const getAirhexUrl = (code: string) => `https://content.airhex.com/content/logos/airlines_${code}_200_200_s.png`;
+
+// Ordered list of image sources to try
+const IMAGE_SOURCES = ['kiwi', 'airhex'] as const;
+type ImageSource = typeof IMAGE_SOURCES[number];
+
+const getImageUrl = (source: ImageSource, code: string): string => {
+  switch (source) {
+    case 'kiwi': return getKiwiUrl(code);
+    case 'airhex': return getAirhexUrl(code);
+  }
+};
+
 export function AirlineLogo({ code, size = 'md', className = '' }: AirlineLogoProps) {
-  const [imageError, setImageError] = useState(false);
-  const [currentSource, setCurrentSource] = useState<'kiwi' | 'airhex' | 'emoji'>('kiwi');
+  const [sourceIndex, setSourceIndex] = useState(0);
+  const [showFallback, setShowFallback] = useState(false);
+  const prevCodeRef = useRef(code);
 
-  const airlineData = getAirlineData(code);
-  const upperCode = code.toUpperCase();
+  const upperCode = code?.toUpperCase() || 'XX';
+  const airlineData = getAirlineData(code || 'XX');
 
-  // CDN URLs
-  const kiwiUrl = `https://images.kiwi.com/airlines/64/${upperCode}.png`;
-  const airhexUrl = `https://content.airhex.com/content/logos/airlines_${upperCode}_200_200_s.png`;
+  // Reset state when the airline code changes (handles list re-ordering)
+  useEffect(() => {
+    if (prevCodeRef.current !== code) {
+      prevCodeRef.current = code;
+      setSourceIndex(0);
+      setShowFallback(false);
+    }
+  }, [code]);
 
   const handleImageError = () => {
-    if (currentSource === 'kiwi') {
-      // Try AirHex as fallback
-      setCurrentSource('airhex');
-      setImageError(false);
-    } else if (currentSource === 'airhex') {
-      // Fall back to emoji
-      setCurrentSource('emoji');
-      setImageError(true);
+    const nextIndex = sourceIndex + 1;
+    if (nextIndex < IMAGE_SOURCES.length) {
+      // Try next CDN source
+      setSourceIndex(nextIndex);
+    } else {
+      // All sources exhausted — show initials
+      setShowFallback(true);
     }
   };
 
-  // If we've exhausted all image sources, use styled initials instead of emoji
-  if (imageError && currentSource === 'emoji') {
+  // Styled initials fallback
+  if (showFallback) {
     return (
       <div
         className={`${SIZE_MAP[size]} flex items-center justify-center rounded font-bold text-white ${className}`}
@@ -74,11 +99,16 @@ export function AirlineLogo({ code, size = 'md', className = '' }: AirlineLogoPr
     );
   }
 
-  // Try image sources
-  const imageUrl = currentSource === 'kiwi' ? kiwiUrl : airhexUrl;
+  const currentSource = IMAGE_SOURCES[sourceIndex];
+  const imageUrl = getImageUrl(currentSource, upperCode);
 
   return (
     <img
+      // KEY: Forces React to unmount/remount the <img> when source changes.
+      // Without this, React updates src in-place, and the browser may fire
+      // onError for the OLD failed src under the NEW source context,
+      // causing the component to skip directly to the initials fallback.
+      key={`${upperCode}-${currentSource}`}
       src={imageUrl}
       alt={`${airlineData.name} logo`}
       className={`${SIZE_MAP[size]} object-contain rounded ${className}`}
