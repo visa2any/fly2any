@@ -971,36 +971,49 @@ export async function POST(request: NextRequest) {
                   };
                   const cabinPrefix = cabinDisplayName[cabin] || 'Economy';
 
-                  // CRITICAL FIX: Use ACTUAL API fare brand name, not positional fallback
-                  // Only use tier detection from ACTUAL branded fare data
+                  // Service fee schedule by cabin class (always applied)
+                  const serviceFeeByClass: Record<string, number> = {
+                    'ECONOMY': 50,
+                    'PREMIUM_ECONOMY': 70,
+                    'BUSINESS': 100,
+                    'FIRST': 200,
+                  };
+                  const serviceFee = serviceFeeByClass[cabin] || 50;
+
+                  // Use ACTUAL API fare brand name for display
                   const detectedTier = detectFareTier(brandedFare);
 
-                  // Map tier to display name
-                  const tierDisplayNames: Record<string, string> = {
-                    'basic': 'Basic',
-                    'standard': 'Standard',
-                    'plus': 'Plus',
-                    'flex': 'Flex',
-                  };
+                  // TRANSPARENCY FIX: Use actual branded fare label when available
+                  // Only fall back to generic tier name when no real name exists
+                  let displayName: string;
+                  const rawBrandedLabel = fareDetails?.brandedFareLabel || fareDetails?.brandedFare || '';
 
-                  // If we have an actual branded fare name, extract a cleaner display version
-                  let fareType = tierDisplayNames[detectedTier];
-
-                  // For branded fares with specific names, use them directly
-                  if (brandedFare.includes('ECONOMY LIGHT')) fareType = 'Light';
-                  if (brandedFare.includes('ECONOMY SAVER')) fareType = 'Saver';
-                  if (brandedFare.includes('ECONOMY CLASSIC')) fareType = 'Classic';
-                  if (brandedFare.includes('ECONOMY FLEX')) fareType = 'Flex';
-                  if (brandedFare.includes('COMFORT')) fareType = 'Comfort';
-                  if (brandedFare.includes('MAIN CABIN')) fareType = 'Main';
-                  if (brandedFare.includes('MAIN PLUS')) fareType = 'Main Plus';
-
-                  // Combine cabin class + fare type for clear display
-                  const displayName = cabin === 'FIRST' ? 'First Class' : `${cabinPrefix} ${fareType}`;
+                  if (rawBrandedLabel && rawBrandedLabel.trim().length > 0) {
+                    // Use the actual airline brand name, title-cased
+                    const titleCased = rawBrandedLabel
+                      .toLowerCase()
+                      .split(/[\s_]+/)
+                      .map((w: string) => w.charAt(0).toUpperCase() + w.slice(1))
+                      .join(' ');
+                    // Prepend cabin prefix if brand name doesn't already include it
+                    const prefixLower = cabinPrefix.toLowerCase();
+                    if (titleCased.toLowerCase().includes(prefixLower) || cabin === 'FIRST') {
+                      displayName = titleCased;
+                    } else {
+                      displayName = `${cabinPrefix} ${titleCased}`;
+                    }
+                  } else {
+                    // Fallback: use tier detection
+                    const tierDisplayNames: Record<string, string> = {
+                      'basic': 'Basic',
+                      'standard': 'Standard',
+                      'plus': 'Plus',
+                      'flex': 'Flex',
+                    };
+                    displayName = cabin === 'FIRST' ? 'First Class' : `${cabinPrefix} ${tierDisplayNames[detectedTier]}`;
+                  }
 
                   // Extract restrictions for clear policies
-                  // IMPORTANT: Duffel partial offers may not include conditions object
-                  // When conditions are missing, derive policies from fare brand name
                   const conditions = (v as any).conditions;
                   const restrictions: string[] = [];
                   const positives: string[] = [];
@@ -1012,51 +1025,54 @@ export async function POST(request: NextRequest) {
                   );
 
                   if (hasConditionsData) {
-                    // Use actual API data
-                    if (!conditions.changeable) restrictions.push('No changes allowed');
-                    if (!conditions.refundable) restrictions.push('Non-refundable');
-                    if (conditions.changeable) {
-                      positives.push(conditions.changePenalty ? `Changes (${conditions.changePenalty} fee)` : 'Free changes');
-                    }
-                    if (conditions.refundable) {
-                      positives.push(conditions.refundPenalty ? `Refundable (${conditions.refundPenalty} fee)` : 'Fully refundable');
-                    }
-                  } else {
-                    // Derive from fare tier - industry standard fare policies
-                    if (detectedTier === 'flex') {
-                      // Flex fares typically allow changes and refunds
-                      positives.push('Free changes');
-                      positives.push('Fully refundable');
-                    } else if (detectedTier === 'plus') {
-                      // Plus/Comfort fares typically allow changes with fee
-                      positives.push('Changes allowed');
-                      restrictions.push('Non-refundable');
-                    } else if (detectedTier === 'basic') {
-                      // Basic fares are most restrictive
+                    // Use actual API data + always add service fee
+                    if (!conditions.changeable) {
                       restrictions.push('No changes allowed');
+                    } else {
+                      // Parse airline penalty if present
+                      const airlineChangeFee = conditions.changePenalty
+                        ? parseFloat(conditions.changePenalty.replace(/[^0-9.]/g, '') || '0')
+                        : 0;
+                      const totalChangeFee = airlineChangeFee + serviceFee;
+                      positives.push(`Changes ($${totalChangeFee} fee)`);
+                    }
+
+                    if (!conditions.refundable) {
                       restrictions.push('Non-refundable');
                     } else {
-                      // Standard fares - middle ground
-                      positives.push('Changes (fee applies)');
-                      restrictions.push('Non-refundable');
+                      // Parse airline penalty if present
+                      const airlineRefundFee = conditions.refundPenalty
+                        ? parseFloat(conditions.refundPenalty.replace(/[^0-9.]/g, '') || '0')
+                        : 0;
+                      const totalRefundFee = airlineRefundFee + serviceFee;
+                      positives.push(`Refundable ($${totalRefundFee} fee)`);
                     }
+                  } else {
+                    // No real policy data — show transparent message
+                    positives.push(`Changes ($${serviceFee} fee)`);
+                    positives.push('Contact us for refund policy');
                   }
 
                   // Determine recommendation: Best value is usually Economy Standard or Plus (not Basic, not Flex)
-                  // Within economy, recommend index 1 (Standard) if it exists
                   const economyIdx = economyVariants.indexOf(v);
                   const isRecommended = economyIdx === 1 && economyVariants.length > 1;
 
-                  // Popularity based on POSITION in list to ensure unique values
-                  // This avoids showing same percentage on multiple fares
-                  const totalVariants = economyVariants.length;
-                  const popularityByPosition: Record<number, number> = {
-                    0: totalVariants === 1 ? 74 : 26,  // Cheapest/Basic: 26% (or 74% if only option)
-                    1: 74,  // Standard/Value: 74% (most popular)
-                    2: 42,  // Plus/Upgraded: 42%
-                    3: 18,  // Flex/Premium: 18%
-                  };
-                  const popularity = popularityByPosition[economyIdx] ?? Math.max(5, 50 - (economyIdx * 10));
+                  // Qualitative popularity labels instead of fake percentages
+                  const totalVariants = variants.length;
+                  let popularityLabel: string | undefined;
+                  if (totalVariants === 1) {
+                    popularityLabel = undefined; // No label for single fare
+                  } else if (isRecommended) {
+                    popularityLabel = 'Best Value';
+                  } else if (detectedTier === 'flex') {
+                    popularityLabel = 'Most Flexible';
+                  } else if (detectedTier === 'basic') {
+                    popularityLabel = 'Lowest Price';
+                  } else if (cabin === 'BUSINESS' || cabin === 'FIRST') {
+                    popularityLabel = 'Premium';
+                  } else if (detectedTier === 'plus') {
+                    popularityLabel = 'Popular Upgrade';
+                  }
 
                   return {
                     id: v.id,
@@ -1071,17 +1087,16 @@ export async function POST(request: NextRequest) {
                     },
                     originalOffer: v, // Store full offer for booking
                     // CRITICAL FIX: Explicitly preserve expires_at for offer validity checks
-                    // This ensures the booking API can validate offer freshness
                     expires_at: v.expires_at || v.lastTicketingDateTime,
                     lastTicketingDateTime: v.lastTicketingDateTime || v.expires_at,
                     created_at: v.created_at,
                     features: extractFareFeatures(v, fareDetails),
                     restrictions: restrictions.length > 0 ? restrictions : undefined,
-                    positives: positives.length > 0 ? positives : undefined, // Positive policies (changes, refunds)
+                    positives: positives.length > 0 ? positives : undefined,
                     recommended: isRecommended,
-                    popularityPercent: popularity,
-                    cabinClass: cabin, // Store cabin class for reference
-                    fareTier: detectedTier, // Store detected tier for debugging
+                    popularityLabel, // Qualitative label instead of fake percentage
+                    cabinClass: cabin,
+                    fareTier: detectedTier,
                   };
                 }),
                 fareVariantCount: variants.length,

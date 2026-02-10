@@ -96,7 +96,8 @@ interface FareOption {
   restrictions?: string[];
   positives?: string[]; // Positive policies like "Free changes", "Fully refundable"
   recommended?: boolean;
-  popularityPercent?: number;
+  popularityLabel?: string; // Qualitative label like "Best Value" or "Most Flexible"
+  popularityPercent?: number; // Deprecated: preserved for backward compatibility
   originalOffer?: any; // For Duffel fare variants - contains the full offer for booking
 }
 
@@ -216,10 +217,10 @@ export function FareSelector({
             <p className="text-xs sm:text-sm font-semibold text-gray-900">
               Recommended: <span className="text-primary-600">{recommendedFare.name}</span>
             </p>
-            {recommendedFare.popularityPercent && (
+            {(recommendedFare.popularityLabel || recommendedFare.popularityPercent) && (
               <p className="text-[10px] sm:text-xs text-gray-600 mt-0.5 flex items-center gap-1">
                 <Users className="w-2.5 h-2.5 sm:w-3 sm:h-3" />
-                {recommendedFare.popularityPercent}% choose {recommendedFare.name}
+                {recommendedFare.popularityLabel || `${recommendedFare.popularityPercent}% choose ${recommendedFare.name}`}
               </p>
             )}
           </div>
@@ -380,11 +381,11 @@ export function FareSelector({
               </div>
 
               {/* Popularity indicator for non-recommended fares */}
-              {fare.popularityPercent && !isRecommended && (
+              {(fare.popularityLabel || (fare.popularityPercent && !isRecommended)) && (
                 <div className="mt-2 pt-2 border-t border-neutral-100">
                   <div className="flex items-center gap-1.5 text-[9px] sm:text-[10px] text-[#86868b]">
                     <Users className="w-3 h-3" />
-                    <span>{fare.popularityPercent}% choose this fare</span>
+                    <span>{fare.popularityLabel || `${fare.popularityPercent}% choose this fare`}</span>
                   </div>
                 </div>
               )}
@@ -399,7 +400,7 @@ export function FareSelector({
           className="text-[11px] sm:text-xs text-[#86868b] text-center font-medium"
           style={{ fontFamily: 'system-ui, -apple-system, sans-serif' }}
         >
-          💡 All fares include 24-hour free cancellation • Prices locked for 10 minutes
+          💡 24-hour free cancellation on select fares • Prices locked for 10 minutes
         </p>
         <p className="text-[10px] sm:text-[11px] text-[#86868b]/70 text-center mt-1">
           Prices shown are total per person including all taxes and fees
