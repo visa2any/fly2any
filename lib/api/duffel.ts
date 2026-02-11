@@ -29,26 +29,27 @@ interface DuffelSearchParams {
 class DuffelAPI {
   private client: Duffel;
   private isInitialized: boolean = false;
-  private static initWarningLogged = false;
 
   constructor() {
     // IMPORTANT: Trim token to remove any newlines/whitespace that break HTTP headers
     const token = process.env.DUFFEL_ACCESS_TOKEN?.trim();
+    const g = globalThis as any;
 
     // Check if token is actually configured (not placeholder)
     this.isInitialized = this.hasValidCredentials(token);
 
     if (!this.isInitialized) {
-      if (process.env.NODE_ENV === 'development' && !DuffelAPI.initWarningLogged) {
+      if (process.env.NODE_ENV === 'development' && !g.__duffelInitWarningLogged) {
         console.warn('⚠️  Duffel API not configured - will use demo data');
         console.warn('   📖 See: SETUP_REAL_APIS.md for setup instructions');
-        DuffelAPI.initWarningLogged = true;
+        g.__duffelInitWarningLogged = true;
       }
       // Create a dummy client to prevent crashes
       this.client = new Duffel({ token: 'dummy' });
     } else {
       this.client = new Duffel({ token: token! });
-      if (process.env.NODE_ENV === 'development') {
+      if (process.env.NODE_ENV === 'development' && !g.__duffelInitLogged) {
+        g.__duffelInitLogged = true;
         console.log('✅ Duffel API configured');
       }
     }
@@ -96,7 +97,7 @@ class DuffelAPI {
 
     try {
       if (process.env.NODE_ENV === 'development') {
-        console.log('🔍 Searching Duffel API:', params);
+        console.log(`🔍 Duffel search: ${params.origin}→${params.destination}, ${params.departureDate}${params.returnDate ? ' RT' : ' OW'}, ${params.adults || 1} pax, ${params.cabinClass || 'economy'}${params.nonStop ? ', nonstop' : ''}`);
       }
 
       // Build passengers array
@@ -181,87 +182,16 @@ class DuffelAPI {
 
       console.log(`📋 Duffel returned ${offers.length} offers`);
 
-      // Debug: Log COMPLETE first offer to analyze tax structure
-      if (offers.length > 0) {
-        const firstOffer = offers[0] as any; // Cast to any for debug logging
-
-        console.log('\n💼 ========== DUFFEL RAW API RESPONSE - DETAILED TAX ANALYSIS ==========');
-        console.log('\n💰 Price Fields:');
-        console.log(`   total_amount: ${firstOffer.total_amount} ${firstOffer.total_currency}`);
-        console.log(`   base_amount: ${firstOffer.base_amount} ${firstOffer.base_currency || firstOffer.total_currency}`);
-        console.log(`   tax_amount: ${firstOffer.tax_amount || 'NOT PROVIDED'} ${firstOffer.tax_currency || firstOffer.total_currency}`);
-
-        console.log('\n📦 Available Services (Baggage/Extras):');
-        if (firstOffer.available_services && firstOffer.available_services.length > 0) {
-          console.log(`   Found ${firstOffer.available_services.length} services`);
-          firstOffer.available_services.forEach((service: any, idx: number) => {
-            console.log(`   Service ${idx + 1}: ${service.type} - ${service.total_amount} ${service.total_currency}`);
-          });
-        } else {
-          console.log('   ⚠️  No available services found');
-        }
-
-        console.log('\n👥 Passengers:');
-        if (firstOffer.passengers && firstOffer.passengers.length > 0) {
-          console.log(`   ${firstOffer.passengers.length} passengers`);
-          firstOffer.passengers.forEach((passenger: any, idx: number) => {
-            console.log(`   Passenger ${idx + 1}: ${passenger.type || 'Unknown type'}`);
-          });
-        } else {
-          console.log('   ⚠️  No passenger data');
-        }
-
-        console.log('\n🛫 Slices & Segments:');
-        if (firstOffer.slices && firstOffer.slices.length > 0) {
-          firstOffer.slices.forEach((slice: any, sliceIdx: number) => {
-            console.log(`   Slice ${sliceIdx + 1}: ${slice.origin.iata_code} → ${slice.destination.iata_code}`);
-            console.log(`     Duration: ${slice.duration}`);
-            console.log(`     Segments: ${slice.segments.length}`);
-
-            if (slice.segments && slice.segments.length > 0) {
-              slice.segments.forEach((segment: any, segIdx: number) => {
-                console.log(`       Segment ${segIdx + 1}: ${segment.origin.iata_code} → ${segment.destination.iata_code}`);
-                console.log(`         Carrier: ${segment.marketing_carrier?.iata_code || 'Unknown'} ${segment.marketing_carrier_flight_number || ''}`);
-
-                // Check if segments have individual pricing
-                if (segment.passengers && segment.passengers.length > 0) {
-                  console.log(`         Passenger cabin data available: ${segment.passengers.length} passengers`);
-                  segment.passengers.forEach((segPassenger: any, pIdx: number) => {
-                    if (segPassenger.fare_basis_code) {
-                      console.log(`           Passenger ${pIdx + 1} fare basis: ${segPassenger.fare_basis_code}`);
-                    }
-                  });
-                }
-              });
-            }
-          });
-        }
-
-        console.log('\n📊 Summary:');
-        const baseAmount = parseFloat(firstOffer.base_amount || '0');
-        const taxAmount = firstOffer.tax_amount ? parseFloat(firstOffer.tax_amount) : 0;
-        const totalAmount = parseFloat(firstOffer.total_amount);
-        const calculatedTax = totalAmount - baseAmount;
-
-        console.log(`   Total: ${totalAmount.toFixed(2)} ${firstOffer.total_currency}`);
-        console.log(`   Base: ${baseAmount.toFixed(2)} ${firstOffer.total_currency}`);
-        console.log(`   Tax (from API): ${taxAmount > 0 ? taxAmount.toFixed(2) : 'NOT PROVIDED'} ${firstOffer.total_currency}`);
-        console.log(`   Tax (calculated): ${calculatedTax.toFixed(2)} ${firstOffer.total_currency}`);
-        console.log(`   Tax Percentage: ${totalAmount > 0 ? ((calculatedTax / totalAmount) * 100).toFixed(1) : 'N/A'}%`);
-
-        // ⚠️ PRICE SANITY CHECK: Flag unusually low international prices
-        const isInternational = firstOffer.slices?.length === 2 ||
-          (firstOffer.slices?.[0]?.origin?.iata_country_code !== firstOffer.slices?.[0]?.destination?.iata_country_code);
-        if (isInternational && totalAmount < 300 && firstOffer.total_currency === 'USD') {
-          console.log('\n⚠️  PRICE WARNING: International roundtrip price seems unusually low!');
-          console.log(`   Expected: $500-2000+ for international roundtrip`);
-          console.log(`   Actual: $${totalAmount.toFixed(2)}`);
-          console.log(`   This may be: Test mode pricing, Basic economy, or Special promotion`);
-          console.log(`   Token type: ${process.env.DUFFEL_ACCESS_TOKEN?.substring(0, 12)}...`);
-        }
-
-        console.log(`\n🔐 Duffel Mode: ${firstOffer.live_mode ? 'LIVE (Real Prices)' : 'TEST (Demo Prices)'}`);
-        console.log('\n💼 ===================================================================\n');
+      // Compact debug log (replaces verbose 80-line tax analysis dump)
+      if (offers.length > 0 && process.env.NODE_ENV === 'development') {
+        const firstOffer = offers[0] as any;
+        const total = parseFloat(firstOffer.total_amount);
+        const base = parseFloat(firstOffer.base_amount || '0');
+        const tax = firstOffer.tax_amount ? parseFloat(firstOffer.tax_amount) : (total - base);
+        const taxPct = total > 0 ? ((tax / total) * 100).toFixed(1) : 'N/A';
+        const mode = firstOffer.live_mode ? 'LIVE' : 'TEST';
+        const route = `${firstOffer.slices?.[0]?.origin?.iata_code || '?'} → ${firstOffer.slices?.[0]?.destination?.iata_code || '?'}`;
+        console.log(`💼 Duffel [${mode}] ${route}: $${total.toFixed(2)} (base: $${base.toFixed(2)}, tax: $${tax.toFixed(2)} = ${taxPct}%)`);
       }
 
       // ⚠️ CRITICAL: Check if Duffel is returning TEST mode data

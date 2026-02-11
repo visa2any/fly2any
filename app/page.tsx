@@ -2,17 +2,19 @@
 
 import { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import Image from 'next/image';
-import { MobileHomeSearchWrapper } from '@/components/home/MobileHomeSearchWrapper';
-import { DestinationsSectionEnhanced } from '@/components/home/DestinationsSectionEnhanced';
-import { FlashDealsSectionEnhanced } from '@/components/home/FlashDealsSectionEnhanced';
-import { RecentlyViewedSection } from '@/components/home/RecentlyViewedSection';
 import { MaxWidthContainer } from '@/components/layout/MaxWidthContainer';
 import { StructuredData } from '@/components/seo/StructuredData';
 import { CreditCard, Plane, Hotel, Car, Shield, HeadphonesIcon, Sparkles, ChevronDown } from 'lucide-react';
 import { generateEntityHomeSchema, generateSpeakableSchema } from '@/lib/seo/geo-optimization';
-// import { useLanguage } from '@/lib/i18n/client'; // TODO: Re-enable when multilingual support is activated
 import dynamic from 'next/dynamic';
 import ErrorBoundary from '@/components/common/ErrorBoundary';
+
+// CRITICAL PERFORMANCE FIX: Dynamic imports for EVERYTHING heavy
+// This splits the 3000+ module bundle into smaller chunks that compile in parallel
+const MobileHomeSearchWrapper = dynamic(() => import('@/components/home/MobileHomeSearchWrapper').then(mod => mod.MobileHomeSearchWrapper), { ssr: false });
+const DestinationsSectionEnhanced = dynamic(() => import('@/components/home/DestinationsSectionEnhanced').then(mod => mod.DestinationsSectionEnhanced), { ssr: false });
+const FlashDealsSectionEnhanced = dynamic(() => import('@/components/home/FlashDealsSectionEnhanced').then(mod => mod.FlashDealsSectionEnhanced), { ssr: false });
+const RecentlyViewedSection = dynamic(() => import('@/components/home/RecentlyViewedSection').then(mod => mod.RecentlyViewedSection), { ssr: false });
 
 // Dynamic imports for below-the-fold components and non-critical features
 const ExitIntentPopup = dynamic(() => import('@/components/conversion/ExitIntentPopup'), { ssr: false });

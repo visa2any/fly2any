@@ -208,7 +208,7 @@ async function fetchRouteDeals(
       return null;
     }
 
-    console.log(`Found flash deal: ${route.from} -> ${route.to} - $${price} (${savingsPercent}% off)`);
+    console.log(`✈️ Deal: ${route.from}→${route.to} $${price} (${savingsPercent}% vs avg $${originalPrice})`);
 
     // Extract carrier from Duffel format
     const carrierCode = cheapestOffer.validatingAirlineCodes?.[0] ||

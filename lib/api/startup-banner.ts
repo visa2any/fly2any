@@ -3,7 +3,8 @@
  * Only shown once when server starts
  */
 
-let bannerShown = false;
+// Use globalThis to persist across Next.js dev mode module re-evaluations
+const g = globalThis as any;
 
 function isAmadeusConfigured(): boolean {
   const apiKey = process.env.AMADEUS_API_KEY || '';
@@ -34,12 +35,12 @@ function isAmadeusConfigured(): boolean {
 }
 
 export function showStartupBanner() {
-  // Only show once per server start
-  if (bannerShown || process.env.NODE_ENV !== 'development') {
+  // Only show once per server start (globalThis persists across module re-imports)
+  if (g.__startupBannerShown || process.env.NODE_ENV !== 'development') {
     return;
   }
 
-  bannerShown = true;
+  g.__startupBannerShown = true;
 
   const amadeusConfigured = isAmadeusConfigured();
 

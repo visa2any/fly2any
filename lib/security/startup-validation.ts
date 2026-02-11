@@ -5,6 +5,9 @@
  * This is intentional - blocking deployment is better than running insecurely
  */
 
+// Use globalThis to persist across Next.js dev mode module re-evaluations
+const g = globalThis as any;
+
 export function validateSecurityEnvironment(): void {
   const errors: string[] = [];
   const isProduction = process.env.NODE_ENV === 'production' || process.env.VERCEL_ENV === 'production';
@@ -81,7 +84,11 @@ export function validateSecurityEnvironment(): void {
     throw new Error('Security validation failed: ' + errors.join('; '));
   }
 
-  console.log('✅ Security environment validation passed');
+  // Only log success once per server start (globalThis persists across Next.js module re-imports)
+  if (!g.__securityValidationLogged) {
+    g.__securityValidationLogged = true;
+    console.log('✅ Security environment validation passed');
+  }
 }
 
 // Auto-validate on module import in production

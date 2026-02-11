@@ -10,6 +10,9 @@ import { Redis } from '@upstash/redis';
 let redis: Redis | null = null;
 let redisEnabled = false;
 
+// Use globalThis to persist log flag across Next.js dev mode module re-evaluations
+const g = globalThis as any;
+
 // Initialize Redis client
 try {
   const url = process.env.UPSTASH_REDIS_REST_URL;
@@ -21,8 +24,12 @@ try {
       token,
     });
     redisEnabled = true;
-    console.log('✅ Redis cache initialized successfully');
-  } else {
+    if (!g.__redisInitLogged) {
+      g.__redisInitLogged = true;
+      console.log('✅ Redis cache initialized successfully');
+    }
+  } else if (!g.__redisWarnLogged) {
+    g.__redisWarnLogged = true;
     console.warn('⚠️  Redis not configured - caching disabled (set UPSTASH_REDIS_REST_URL and UPSTASH_REDIS_REST_TOKEN)');
   }
 } catch (error) {

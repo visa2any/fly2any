@@ -14,6 +14,26 @@ export async function POST(request: NextRequest) {
     const body = await request.text();
     const errorData = JSON.parse(body);
 
+    // Suppress known third-party script errors (not actionable)
+    const IGNORED_PATTERNS = [
+      'tawk.to',     // Tawk.to chat widget internal errors
+      'embed.tawk',  // Tawk.to embed script
+      'twk-chunk',   // Tawk.to chunk loader
+      'gtag',        // Google Analytics
+      'fbq',         // Facebook Pixel
+    ];
+    
+    const errorSource = `${errorData.message || ''} ${errorData.stack || ''}`.toLowerCase();
+    const isThirdParty = IGNORED_PATTERNS.some(pattern => errorSource.includes(pattern));
+    
+    if (isThirdParty) {
+      // Brief log only, no alerts/DB/Sentry
+      if (process.env.NODE_ENV === 'development') {
+        console.log(`[CLIENT] Ignored third-party error: ${errorData.message?.substring(0, 80)}`);
+      }
+      return new NextResponse(null, { status: 204 });
+    }
+
     // Log to console
     console.error('[CLIENT ERROR]', {
       timestamp: errorData.timestamp || new Date().toISOString(),

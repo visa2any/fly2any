@@ -4,7 +4,7 @@ const globalForPrisma = globalThis as unknown as {
   prisma: PrismaClient | undefined;
 };
 
-// Build the correct DATABASE_URL with serverless parameters
+// Build the correct DATABASE_URL with optimized pool parameters
 function buildDatabaseUrl(): string | undefined {
   // Priority: Supabase via Vercel > legacy
   const baseUrl = process.env.SUPABASE_POSTGRES_PRISMA_URL ||
@@ -18,8 +18,14 @@ function buildDatabaseUrl(): string | undefined {
     const url = new URL(baseUrl);
     // Required for serverless + PgBouncer
     url.searchParams.set('pgbouncer', 'true');
-    url.searchParams.set('connection_limit', '1');
-    url.searchParams.set('pool_timeout', '30');
+    // ✅ PERFORMANCE FIX: Increased from 1 to 10 connections
+    // connection_limit=1 caused "Timed out fetching a new connection" errors
+    // when concurrent API responses trigger parallel DB writes (fare classes, airlines)
+    // In dev: 10 connections handles concurrent Duffel/Amadeus response processing
+    // In production (serverless): each function gets its own pool, 10 is still safe
+    const poolSize = process.env.DATABASE_POOL_SIZE || '10';
+    url.searchParams.set('connection_limit', poolSize);
+    url.searchParams.set('pool_timeout', '60');
     return url.toString();
   } catch {
     return baseUrl;

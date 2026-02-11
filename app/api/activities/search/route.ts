@@ -132,7 +132,6 @@ export async function GET(request: NextRequest) {
     // Cache stores full enriched results, we paginate from cache
     const cached = await getCached<any[]>(cacheKey);
     if (cached) {
-      console.log(`⚡ Activities cache HIT for ${roundedLat},${roundedLng} (${cached.length} items)`);
       const totalCount = cached.length;
       const paginatedFromCache = cached.slice(offset, offset + limit);
       return NextResponse.json({
@@ -173,6 +172,11 @@ export async function GET(request: NextRequest) {
         }),
         new Promise((_, reject) => setTimeout(() => reject(new Error('Amadeus timeout')), 20000))
       ]) as any;
+
+      // Check if Amadeus returned an error (graceful degradation in API means we get { data: [], error: '...' })
+      if (result.error) {
+        throw new Error(result.error);
+      }
 
       activities = result.data || [];
     } catch (error: any) {
@@ -302,11 +306,13 @@ export async function GET(request: NextRequest) {
       }
     };
 
-    // Cache FULL enriched results for 4 hours (or 5 min for empty)
+    // Cache FULL enriched results for 4 hours (or 5 min for empty, 30s for error)
     // Pagination is applied at response time, not cache time
-    const cacheTTL = enrichedActivities.length > 0 ? 14400 : 300;
+    // PERFORMANCE FIX: When API error occurs, use very short TTL (30s) to allow quick recovery
+    // Previously cached errors for 300s, blocking Rome activities for 5 minutes
+    const cacheTTL = enrichedActivities.length > 0 ? 14400 : (apiError ? 30 : 300);
     await setCache(cacheKey, enrichedActivities, cacheTTL);
-    console.log(`✅ Found ${totalCount} ${type} (returning ${paginatedActivities.length}) in ${responseTime}ms - cached for ${cacheTTL}s`);
+    console.log(`✅ Found ${totalCount} ${type} (returning ${paginatedActivities.length}) in ${responseTime}ms - cached for ${cacheTTL}s${apiError ? ' ⚠️ API error' : ''}`);
 
     return NextResponse.json(response, {
       headers: {

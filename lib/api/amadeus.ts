@@ -31,6 +31,9 @@ class AmadeusAPI {
   private tokenExpiry: number | null = null;
   private isValidCredentials: boolean = false;
 
+  // Use globalThis flags to persist across Next.js dev mode module re-evaluations
+  // (static class properties reset when module is re-imported)
+
   constructor() {
     this.apiKey = process.env.AMADEUS_API_KEY || '';
     this.apiSecret = process.env.AMADEUS_API_SECRET || '';
@@ -70,23 +73,27 @@ class AmadeusAPI {
     // Show startup banner (only once)
     showStartupBanner();
 
-    // Log API configuration with environment details
-    console.log('\n🔌 ========== AMADEUS API CONFIGURATION ==========');
-    console.log(`   Environment: ${this.environment.toUpperCase()}`);
-    console.log(`   Base URL: ${this.baseUrl}`);
-    console.log(`   Credentials configured: ${this.isValidCredentials ? '✅ YES' : '❌ NO'}`);
-    if (this.isValidCredentials) {
-      console.log(`   API Key: ${this.apiKey.substring(0, 8)}...${this.apiKey.slice(-4)}`);
-    }
-    console.log(`   Detection method: ${detectionMethod}`);
+    // Log API configuration with environment details (only once per server start)
+    const g = globalThis as any;
+    if (!g.__amadeusConfigLogged) {
+      g.__amadeusConfigLogged = true;
+      console.log('\n🔌 ========== AMADEUS API CONFIGURATION ==========');
+      console.log(`   Environment: ${this.environment.toUpperCase()}`);
+      console.log(`   Base URL: ${this.baseUrl}`);
+      console.log(`   Credentials configured: ${this.isValidCredentials ? '✅ YES' : '❌ NO'}`);
+      if (this.isValidCredentials) {
+        console.log(`   API Key: ${this.apiKey.substring(0, 8)}...${this.apiKey.slice(-4)}`);
+      }
+      console.log(`   Detection method: ${detectionMethod}`);
 
-    if (!this.isValidCredentials) {
-      console.warn('   ⚠️  WARNING: Amadeus API not properly configured');
-      console.warn('   📖 See: SETUP_REAL_APIS.md for setup instructions');
-    } else if (this.environment === 'production') {
-      console.log('   ✅ PRODUCTION MODE - Real prices enabled');
+      if (!this.isValidCredentials) {
+        console.warn('   ⚠️  WARNING: Amadeus API not properly configured');
+        console.warn('   📖 See: SETUP_REAL_APIS.md for setup instructions');
+      } else if (this.environment === 'production') {
+        console.log('   ✅ PRODUCTION MODE - Real prices enabled');
+      }
+      console.log('🔌 ================================================\n');
     }
-    console.log('🔌 ================================================\n');
   }
 
   /**
@@ -233,10 +240,11 @@ class AmadeusAPI {
     } catch (error: any) {
       // Only log auth errors ONCE per server restart (not on every API call)
       // Use a static flag to prevent spam
-      if (process.env.NODE_ENV === 'development' && !AmadeusAPI.authErrorLogged) {
+      const g = globalThis as any;
+      if (process.env.NODE_ENV === 'development' && !g.__amadeusAuthErrorLogged) {
         console.error('❌ Amadeus authentication failed:', this.formatError(error));
         console.error('   📖 See: SETUP_REAL_APIS.md for setup instructions');
-        AmadeusAPI.authErrorLogged = true;
+        g.__amadeusAuthErrorLogged = true;
       }
 
       // Provide helpful error messages
@@ -250,8 +258,7 @@ class AmadeusAPI {
     }
   }
 
-  // Static flag to prevent repeated auth error logging
-  private static authErrorLogged = false;
+
 
   /**
    * Search for flight offers
@@ -313,35 +320,17 @@ class AmadeusAPI {
         if (data.data.length > 0) {
           const firstFlight = data.data[0];
 
-          console.log('\n🔍 ========== AMADEUS RAW API RESPONSE - DETAILED TAX ANALYSIS ==========');
-          console.log('\n📋 Main Price Object:');
-          console.log(JSON.stringify(firstFlight.price, null, 2));
-
-          console.log('\n👥 Traveler Pricings (Fee Details):');
-          if (firstFlight.travelerPricings && firstFlight.travelerPricings.length > 0) {
-            firstFlight.travelerPricings.forEach((traveler: any, idx: number) => {
-              console.log(`\n   Traveler ${idx + 1} (${traveler.travelerType}):`);
-              console.log('   Price:', JSON.stringify(traveler.price, null, 2));
-
-              if (traveler.price?.fees && Array.isArray(traveler.price.fees)) {
-                console.log(`   ✅ Found ${traveler.price.fees.length} fees:`);
-                traveler.price.fees.forEach((fee: any, feeIdx: number) => {
-                  console.log(`      Fee ${feeIdx + 1}: ${fee.type || 'UNKNOWN'} = ${fee.amount} ${traveler.price.currency}`);
-                });
-              } else {
-                console.log('   ⚠️  NO fees array found in travelerPricings');
-              }
-            });
-          } else {
-            console.log('   ⚠️  NO travelerPricings found');
+          // Compact debug log (replaces verbose 30-line tax dump)
+          if (process.env.NODE_ENV === 'development') {
+            const total = parseFloat(firstFlight.price?.total || '0');
+            const base = parseFloat(firstFlight.price?.base || '0');
+            const tax = total - base;
+            const taxPct = total > 0 ? ((tax / total) * 100).toFixed(1) : 'N/A';
+            const carrier = firstFlight.validatingAirlineCodes?.[0] || '??';
+            const origin = firstFlight.itineraries?.[0]?.segments?.[0]?.departure?.iataCode || '?';
+            const dest = firstFlight.itineraries?.[0]?.segments?.slice(-1)?.[0]?.arrival?.iataCode || '?';
+            console.log(`🔍 Amadeus ${origin}→${dest} [${carrier}]: $${total.toFixed(2)} (base: $${base.toFixed(2)}, tax: $${tax.toFixed(2)} = ${taxPct}%) | ${data.data.length} offers`);
           }
-
-          console.log('\n📊 Summary:');
-          console.log(`   Total Price: ${firstFlight.price?.total} ${firstFlight.price?.currency}`);
-          console.log(`   Base Price: ${firstFlight.price?.base} ${firstFlight.price?.currency}`);
-          console.log(`   Difference (Taxes+Fees): ${firstFlight.price?.total && firstFlight.price?.base ? (parseFloat(firstFlight.price.total) - parseFloat(firstFlight.price.base)).toFixed(2) : 'N/A'} ${firstFlight.price?.currency}`);
-          console.log(`   Percentage: ${firstFlight.price?.total && firstFlight.price?.base ? (((parseFloat(firstFlight.price.total) - parseFloat(firstFlight.price.base)) / parseFloat(firstFlight.price.total)) * 100).toFixed(1) : 'N/A'}%`);
-          console.log('\n🔍 ===================================================================\n');
         }
 
         data.data = data.data.map((flight: any) => {
@@ -1617,7 +1606,7 @@ class AmadeusAPI {
       // Log error but return empty instead of throwing (graceful degradation)
       const errMsg = error.code === 'ECONNABORTED' ? 'timeout' : (error.response?.data?.errors?.[0]?.detail || error.message);
       console.error(`⚠️ Activities search failed: ${errMsg}`);
-      return { data: [] };
+      return { data: [], error: errMsg };
     }
   }
 

@@ -10,17 +10,42 @@ export function TawkChat() {
   useEffect(() => {
     // Suppress Tawk.to cross-origin script errors from error monitoring
     // CORS-blocked errors have lineno=0, colno=0 - we can't see/fix them anyway
+    // Suppress Tawk.to specific errors
     const originalOnError = window.onerror;
     window.onerror = function(message, source, lineno, colno, error) {
-      // Suppress Tawk.to cross-origin errors (lineno=0, colno=0 = CORS blocked)
+      // 1. Suppress CORS-blocked errors (lineno=0, colno=0) from Tawk.to
       if (source?.includes('tawk.to') && lineno === 0 && colno === 0) {
-        return true; // Suppress the error - we can't debug CORS-blocked scripts
+        return true;
       }
+      
+      // 2. Suppress specific internal Tawk.to runtime errors
+      // "TypeError: t.$_Tawk.i18next is not a function"
+      if (
+        (typeof message === 'string' && message.includes('$_Tawk.i18next')) ||
+        (error && error.message && error.message.includes('$_Tawk.i18next'))
+      ) {
+        console.warn('[TawkChat] Suppressed internal Tawk.to error:', message);
+        return true;
+      }
+
       if (originalOnError) {
         return originalOnError.call(window, message, source, lineno, colno, error);
       }
       return false;
     };
+
+    // 3. Catch Promise rejections (common for async Tawk code)
+    const onUnhandledRejection = (event: PromiseRejectionEvent) => {
+       const reason = event.reason;
+       if (
+        (reason && typeof reason === 'object' && (reason.stack?.includes('tawk.to') || reason.message?.includes('$_Tawk'))) ||
+        (reason && typeof reason === 'string' && (reason.includes('tawk.to') || reason.includes('$_Tawk')))
+       ) {
+         event.preventDefault(); // Prevent runtime error overlay
+         console.warn('[TawkChat] Suppressed unhandled Tawk.to rejection:', reason);
+       }
+    };
+    window.addEventListener('unhandledrejection', onUnhandledRejection);
 
     // Set a timeout to detect if script fails to load
     const timeout = setTimeout(() => {
@@ -32,6 +57,7 @@ export function TawkChat() {
     return () => {
       clearTimeout(timeout);
       window.onerror = originalOnError; // Restore original handler
+      window.removeEventListener('unhandledrejection', onUnhandledRejection);
     };
   }, [scriptLoaded, scriptError]);
 
@@ -56,6 +82,10 @@ export function TawkChat() {
         __html: `
 try {
   var Tawk_API=Tawk_API||{}, Tawk_LoadStart=new Date();
+  // Force minimize on load to prevent blocking UI
+  Tawk_API.onLoad = function(){
+    Tawk_API.minimize();
+  };
   (function(){
     var s1=document.createElement("script"),s0=document.getElementsByTagName("script")[0];
     s1.async=true;

@@ -425,7 +425,7 @@ export function Footer({
             {/* Logo & Copyright */}
             <div className="flex flex-col items-center gap-1.5">
               {showLogo && (
-                <Image src="/logo.png" alt="Fly2Any" width={290} height={100} className="h-5 md:h-7 w-auto" style={{ filter: 'brightness(0) invert(1)' }} loading="eager" />
+                <Image src="/logo-transparent.png" alt="Fly2Any" width={290} height={100} className="h-5 md:h-7 w-auto" style={{ filter: 'brightness(0) invert(1)' }} loading="eager" />
               )}
               <p className="text-[10px] md:text-xs text-gray-500 text-center">{t('copyright')}</p>
             </div>
