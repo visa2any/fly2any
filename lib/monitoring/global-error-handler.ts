@@ -14,7 +14,11 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { alertCustomerError, type CustomerErrorContext } from './customer-error-alerts';
+
+// Server-side only imports
+// import { alertCustomerError, type CustomerErrorContext } from './customer-error-alerts';
+// We must dynamically import this to prevent "fs" module errors in client bundle
+// if this file is imported by client components (even though it shouldn't be)
 
 /**
  * Error severity levels
@@ -204,7 +208,7 @@ function getUserFriendlyMessage(error: any): string {
 export async function handleApiError(
   request: NextRequest,
   handler: () => Promise<NextResponse>,
-  context?: Partial<CustomerErrorContext>
+  context?: Record<string, any> // Relaxed type to avoid import dependence
 ): Promise<NextResponse> {
   try {
     return await handler();
@@ -237,15 +241,17 @@ export async function handleApiError(
       ...context,
     };
 
-    // Send alerts (non-blocking)
-    alertCustomerError(errorContext, {
-      priority: severity,
-      sendTelegram: severity === ErrorSeverity.CRITICAL || severity === ErrorSeverity.HIGH,
-      sendEmail: true,
-      sendSentry: true,
-    }).catch(alertErr => {
-      console.error('Failed to send error alert:', alertErr);
-    });
+    // Send alerts (non-blocking) - DYNAMIC IMPORT to avoid bundling server code in client
+    import('./customer-error-alerts').then(({ alertCustomerError }) => {
+      alertCustomerError(errorContext, {
+        priority: severity,
+        sendTelegram: severity === ErrorSeverity.CRITICAL || severity === ErrorSeverity.HIGH,
+        sendEmail: true,
+        sendSentry: true,
+      }).catch(alertErr => {
+        console.error('Failed to send error alert:', alertErr);
+      });
+    }).catch(err => console.error('Failed to load customer-error-alerts:', err));
 
     // Return user-friendly error response with debug info
     console.error('🔥 FULL ERROR DETAILS:', {
@@ -311,21 +317,24 @@ export async function safeExecute<T>(
       (severity === ErrorSeverity.CRITICAL || severity === ErrorSeverity.HIGH);
 
     if (shouldAlert) {
-      await alertCustomerError({
-        errorMessage: `${options.operationName} failed: ${error.message}`,
-        errorCode: error.code || `${category.toUpperCase()}_ERROR`,
-        errorStack: error.stack,
-        category,
-        severity,
-        ...options.context,
-      }, {
-        priority: severity,
-        sendTelegram: severity === ErrorSeverity.CRITICAL,
-        sendEmail: true,
-        sendSentry: true,
-      }).catch(alertErr => {
-        console.error('Failed to send error alert:', alertErr);
-      });
+      // Dynamic import for server-side alerting
+      import('./customer-error-alerts').then(({ alertCustomerError }) => {
+        alertCustomerError({
+          errorMessage: `${options.operationName} failed: ${error.message}`,
+          errorCode: error.code || `${category.toUpperCase()}_ERROR`,
+          errorStack: error.stack,
+          category,
+          severity,
+          ...options.context,
+        }, {
+          priority: severity,
+          sendTelegram: severity === ErrorSeverity.CRITICAL,
+          sendEmail: true,
+          sendSentry: true,
+        }).catch(alertErr => {
+          console.error('Failed to send error alert:', alertErr);
+        });
+      }).catch(err => console.error('Failed to load alert module:', err));
     }
 
     // Call custom error handler if provided

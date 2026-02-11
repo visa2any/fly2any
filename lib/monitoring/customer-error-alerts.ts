@@ -8,7 +8,7 @@
  * - Sentry (error tracking with context)
  */
 
-import { notifyTelegramAdmins, sendAdminAlert } from '@/lib/notifications/notification-service';
+// Server-side only imports handled dynamically to prevent client bundle pollution
 import * as Sentry from '@sentry/nextjs';
 
 export interface CustomerErrorContext {
@@ -115,6 +115,8 @@ export async function alertCustomerError(
   if (sendTelegram) {
     try {
       const telegramMessage = formatTelegramErrorAlert(context, priority);
+      // Dynamic import to prevent client-side bundling of notification service
+      const { notifyTelegramAdmins } = await import('@/lib/notifications/notification-service');
       const result = await notifyTelegramAdmins(telegramMessage);
       results.telegramSent = result.sent > 0;
 
