@@ -406,66 +406,32 @@ Manage your alerts: ${process.env.NEXT_PUBLIC_APP_URL || 'https://fly2any.com'}/
 }
 
 /**
- * Send price alert email using Mailgun (unified provider)
+ * Send price alert email using unified email client (Resend)
  */
 export async function sendPriceAlertEmail(params: PriceAlertEmailParams): Promise<void> {
   const html = generateEmailHTML(params);
   const text = generateEmailText(params);
 
-  // Use Mailgun (unified email provider for Fly2Any)
-  const MAILGUN_API_KEY = process.env.MAILGUN_API_KEY;
-  const MAILGUN_DOMAIN = process.env.MAILGUN_DOMAIN || 'mail.fly2any.com';
-  const FROM_EMAIL = process.env.EMAIL_FROM || 'Fly2Any <noreply@mail.fly2any.com>';
+  // Use the unified email client (supports dev simulation + production sending)
+  const { mailgunClient } = await import('@/lib/email/mailgun-client');
 
-  if (!MAILGUN_API_KEY) {
-    console.warn('⚠️ MAILGUN_API_KEY not configured. Email not sent.');
+  const result = await mailgunClient.send({
+    to: params.to,
+    subject: `🎯 Price Alert: ${params.alert.origin} → ${params.alert.destination} is now ${params.alert.currency}${params.alert.currentPrice}!`,
+    html,
+    text,
+    tags: ['price-alert'],
+    forceSend: true, // Price alerts should always send
+  });
 
-    // In development, log email content for testing
-    if (process.env.NODE_ENV === 'development') {
-      console.log('\n📧 EMAIL PREVIEW (Dev Mode):');
-      console.log('To:', params.to);
-      console.log('Subject:', `Price Alert: ${params.alert.origin} → ${params.alert.destination}`);
-      console.log('\nPlain Text:');
-      console.log(text);
-      console.log('\n');
-    }
-    return;
+  if (!result.success) {
+    console.error('❌ Price alert email failed:', result.error);
+    throw new Error(`Price alert email failed: ${result.error}`);
   }
 
-  try {
-    const formData = new URLSearchParams();
-    formData.append('from', FROM_EMAIL);
-    formData.append('to', params.to);
-    formData.append('subject', `🎯 Price Alert: ${params.alert.origin} → ${params.alert.destination} is now ${params.alert.currency}${params.alert.currentPrice}!`);
-    formData.append('html', html);
-    formData.append('text', text);
-    formData.append('h:Reply-To', 'support@fly2any.com');
-    formData.append('o:tag', 'price-alert');
-    formData.append('o:tracking', 'yes');
-    formData.append('o:tracking-clicks', 'yes');
-    formData.append('o:tracking-opens', 'yes');
-
-    const response = await fetch(
-      `https://api.mailgun.net/v3/${MAILGUN_DOMAIN}/messages`,
-      {
-        method: 'POST',
-        headers: {
-          'Authorization': `Basic ${Buffer.from(`api:${MAILGUN_API_KEY}`).toString('base64')}`,
-          'Content-Type': 'application/x-www-form-urlencoded',
-        },
-        body: formData.toString(),
-      }
-    );
-
-    if (!response.ok) {
-      const errorText = await response.text();
-      throw new Error(`Mailgun API error: ${response.status} - ${errorText}`);
-    }
-
-    const result = await response.json();
-    console.log(`✅ Price alert email sent via Mailgun to ${params.to}:`, result.id);
-  } catch (error) {
-    console.error('❌ Mailgun price alert email failed:', error);
-    throw error;
+  if (result.simulated) {
+    console.log(`📧 Price alert email simulated (dev) for ${params.to}`);
+  } else {
+    console.log(`✅ Price alert email sent to ${params.to}:`, result.messageId);
   }
 }

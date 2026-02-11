@@ -106,7 +106,7 @@
     "react-leaflet": "^4.2.1",
     "react-window": "^2.2.1",
     "recharts": "^3.4.1",
-    "resend": "^6.6.0",
+    "resend": "^6.9.2",
     "stripe": "^19.3.0",
     "swr": "^2.3.6",
     "tailwind-merge": "^3.3.1",

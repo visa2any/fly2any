@@ -1,21 +1,25 @@
 /**
- * UNIFIED MAILGUN EMAIL CLIENT
+ * UNIFIED RESEND EMAIL CLIENT
  *
- * Single source of truth for all email sending in the application.
+ * Drop-in replacement for Mailgun. Single source of truth for all email sending.
  * Used by EmailService (marketing/transactional) and NotificationService (booking lifecycle).
  *
  * Features:
- * - Mailgun API integration with retry logic
+ * - Resend API integration with retry logic
  * - Supports both production and development modes
  * - Force-send option for testing in development
- * - Tracking enabled (opens, clicks)
  * - Tag support for analytics
  *
- * @version 1.0.0
+ * MIGRATION NOTE: Exports `mailgunClient` and `MAILGUN_CONFIG` for backward
+ * compatibility. All existing imports continue to work unchanged.
+ *
+ * @version 2.0.0 - Migrated from Mailgun to Resend
  */
 
+import { Resend } from 'resend';
+
 // ===================================
-// TYPES
+// TYPES (unchanged interface)
 // ===================================
 
 export interface MailgunEmailOptions {
@@ -41,35 +45,34 @@ export interface MailgunSendResult {
 // ===================================
 
 const CONFIG = {
-  // Trim env vars to remove any trailing newlines/whitespace
-  apiKey: process.env.MAILGUN_API_KEY?.trim(),
-  domain: (process.env.MAILGUN_DOMAIN || 'mail.fly2any.com').trim(),
-  fromEmail: (process.env.EMAIL_FROM || 'Fly2Any <noreply@mail.fly2any.com>').trim(),
-  replyToEmail: (process.env.EMAIL_REPLY_TO || 'support@fly2any.com').trim(),
+  apiKey: process.env.RESEND_API_KEY?.trim(),
+  // Prioritize Resend-specific env var, fallback to generic one
+  fromEmail: (process.env.EMAIL_FROM_RESEND || process.env.EMAIL_FROM || 'Fly2Any <fly2any.travel@gmail.com>').trim(),
+  replyToEmail: (process.env.EMAIL_REPLY_TO || 'fly2any.travel@gmail.com').trim(),
+  domain: (process.env.EMAIL_DOMAIN || 'gmail.com').trim(),
   isProduction: process.env.NODE_ENV === 'production',
-  // Mailgun API endpoint (US region - use api.eu.mailgun.net for EU)
-  get apiUrl() {
-    return `https://api.mailgun.net/v3/${this.domain}/messages`;
-  },
 };
 
+// Initialize Resend client
+const resend = CONFIG.apiKey ? new Resend(CONFIG.apiKey) : null;
+
 // ===================================
-// MAILGUN CLIENT CLASS
+// RESEND CLIENT CLASS
 // ===================================
 
-class MailgunClient {
+class ResendClient {
   private retryAttempts = 3;
   private retryDelay = 1000;
 
   /**
-   * Send an email via Mailgun
+   * Send an email via Resend
    */
   async send(options: MailgunEmailOptions): Promise<MailgunSendResult> {
     const shouldActuallySend = CONFIG.isProduction || options.forceSend;
 
     // Development mode without force: simulate sending
     if (!shouldActuallySend) {
-      console.log('📧 [MAILGUN] Simulated email (dev mode):', {
+      console.log('📧 [RESEND] Simulated email (dev mode):', {
         to: options.to,
         subject: options.subject,
         from: options.from || CONFIG.fromEmail,
@@ -80,9 +83,9 @@ class MailgunClient {
     }
 
     // Check for API key
-    if (!CONFIG.apiKey) {
-      console.error('❌ [MAILGUN] API key not configured');
-      return { success: false, error: 'MAILGUN_API_KEY not configured' };
+    if (!CONFIG.apiKey || !resend) {
+      console.error('❌ [RESEND] API key not configured');
+      return { success: false, error: 'RESEND_API_KEY not configured' };
     }
 
     // Attempt to send with retries
@@ -91,7 +94,7 @@ class MailgunClient {
         const result = await this.sendViaApi(options);
         return result;
       } catch (error: any) {
-        console.warn(`⚠️ [MAILGUN] Attempt ${attempt}/${this.retryAttempts} failed:`, error.message);
+        console.warn(`⚠️ [RESEND] Attempt ${attempt}/${this.retryAttempts} failed:`, error.message);
 
         if (attempt < this.retryAttempts) {
           await this.delay(this.retryDelay * attempt);
@@ -105,61 +108,37 @@ class MailgunClient {
   }
 
   /**
-   * Internal: Send via Mailgun API
-   * Uses application/x-www-form-urlencoded for better HTML content handling
+   * Internal: Send via Resend API
    */
   private async sendViaApi(options: MailgunEmailOptions): Promise<MailgunSendResult> {
-    // Build form data as URLSearchParams for proper encoding
-    const params = new URLSearchParams();
-    params.append('from', options.from || CONFIG.fromEmail);
-    params.append('to', Array.isArray(options.to) ? options.to.join(',') : options.to);
-    params.append('subject', options.subject);
-    params.append('html', options.html);
-
-    if (options.text) {
-      params.append('text', options.text);
+    if (!resend) {
+      throw new Error('Resend client not initialized');
     }
 
-    // Always add Reply-To header (defaults to support email)
-    params.append('h:Reply-To', options.replyTo || CONFIG.replyToEmail);
+    const toAddresses = Array.isArray(options.to) ? options.to : [options.to];
 
-    // Add tags for Mailgun analytics
-    if (options.tags) {
-      options.tags.forEach(tag => params.append('o:tag', tag));
-    }
-
-    // Enable tracking
-    params.append('o:tracking', 'yes');
-    params.append('o:tracking-clicks', 'yes');
-    params.append('o:tracking-opens', 'yes');
-
-    // Anti-spam best practices headers
-    params.append('h:List-Unsubscribe', '<https://www.fly2any.com/unsubscribe>');
-    params.append('h:List-Unsubscribe-Post', 'List-Unsubscribe=One-Click');
-    params.append('h:X-Priority', '3'); // Normal priority (1=high, 3=normal, 5=low)
-    params.append('h:X-Mailer', 'Fly2Any Mailer v3.0');
-    params.append('h:Precedence', 'bulk'); // Indicates marketing/transactional email
-
-    const response = await fetch(CONFIG.apiUrl, {
-      method: 'POST',
+    const { data, error } = await resend.emails.send({
+      from: options.from || CONFIG.fromEmail,
+      to: toAddresses,
+      subject: options.subject,
+      html: options.html,
+      text: options.text,
+      replyTo: options.replyTo || CONFIG.replyToEmail,
+      tags: options.tags?.map(tag => ({ name: 'category', value: tag })),
       headers: {
-        'Authorization': `Basic ${Buffer.from(`api:${CONFIG.apiKey}`).toString('base64')}`,
-        'Content-Type': 'application/x-www-form-urlencoded',
+        'X-Mailer': 'Fly2Any Mailer v3.0',
       },
-      body: params.toString(),
     });
 
-    if (!response.ok) {
-      const errorText = await response.text();
-      throw new Error(`Mailgun API error: ${response.status} - ${errorText}`);
+    if (error) {
+      throw new Error(`Resend API error: ${error.message}`);
     }
 
-    const result = await response.json();
-    console.log('✅ [MAILGUN] Email sent:', result.id);
+    console.log('✅ [RESEND] Email sent:', data?.id);
 
     return {
       success: true,
-      messageId: result.id,
+      messageId: data?.id,
       simulated: false,
     };
   }
@@ -172,7 +151,7 @@ class MailgunClient {
   }
 
   /**
-   * Check if Mailgun is properly configured
+   * Check if Resend is properly configured
    */
   isConfigured(): boolean {
     return !!CONFIG.apiKey;
@@ -191,10 +170,9 @@ class MailgunClient {
   }
 }
 
-// Export singleton instance
-export const mailgunClient = new MailgunClient();
+// Export with SAME NAMES for backward compatibility (zero import changes needed)
+export const mailgunClient = new ResendClient();
 
-// Export config for use by other services
 export const MAILGUN_CONFIG = {
   fromEmail: CONFIG.fromEmail,
   replyToEmail: CONFIG.replyToEmail,
