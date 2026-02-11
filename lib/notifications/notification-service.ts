@@ -19,9 +19,9 @@ import type { BookingNotificationPayload } from './types';
 
 // Configuration
 const FROM_EMAIL = MAILGUN_CONFIG.fromEmail;
-const ADMIN_EMAIL = process.env.ADMIN_EMAIL || 'admin@fly2any.com';
+const ADMIN_EMAIL = process.env.ADMIN_EMAIL || 'fly2any.travel@gmail.com';
 const COMPANY_NAME = 'Fly2Any';
-const SUPPORT_EMAIL = 'support@fly2any.com';
+const SUPPORT_EMAIL = 'fly2any.travel@gmail.com';
 
 // Telegram Configuration (FREE) - Trim to remove any trailing newlines from env vars
 const TELEGRAM_BOT_TOKEN = (process.env.TELEGRAM_BOT_TOKEN || '').trim();

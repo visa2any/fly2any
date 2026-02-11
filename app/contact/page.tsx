@@ -8,7 +8,7 @@ import Link from 'next/link';
 const METHODS = [
   { icon: MessageCircle, title: 'Live Chat', desc: 'Instant support', value: 'Start Chat Now', subtext: 'Avg. response: 30 seconds', color: 'from-emerald-500 to-teal-600', bgLight: 'bg-emerald-50', textColor: 'text-emerald-600', href: '#', online: true },
   { icon: Phone, title: 'Phone', desc: 'Talk to an expert', value: '+1 (332) 220-0838', subtext: 'Mon-Sun, 24/7', color: 'from-blue-500 to-indigo-600', bgLight: 'bg-blue-50', textColor: 'text-blue-600', href: 'tel:+13322200838', online: true },
-  { icon: Mail, title: 'Email', desc: 'Detailed inquiries', value: 'support@fly2any.com', subtext: 'Reply within 2 hours', color: 'from-violet-500 to-purple-600', bgLight: 'bg-violet-50', textColor: 'text-violet-600', href: 'mailto:support@fly2any.com', online: true },
+  { icon: Mail, title: 'Email', desc: 'Detailed inquiries', value: 'Email Support', subtext: 'Reply within 2 hours', color: 'from-violet-500 to-purple-600', bgLight: 'bg-violet-50', textColor: 'text-violet-600', href: 'mailto:fly2any.travel@gmail.com', online: true },
 ];
 
 const QUICK_TOPICS = [

@@ -14,6 +14,7 @@ const ADMIN_WHITELIST = [
   'team@fly2any.com',
   'visa2any@gmail.com',
   'fly2any@gmail.com',
+  'fly2any.travel@gmail.com',
 ]
 
 export default async function AdminLayout({
