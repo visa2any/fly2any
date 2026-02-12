@@ -9,7 +9,7 @@
  */
 
 // Version with timestamp to force updates on new deployments
-const VERSION = 'v3-' + new Date().getTime();
+const VERSION = 'v4-' + new Date().getTime();
 const STATIC_CACHE = 'fly2any-static-' + VERSION;
 const API_CACHE = 'fly2any-api-' + VERSION;
 const IMAGE_CACHE = 'fly2any-images-' + VERSION;
@@ -85,6 +85,12 @@ self.addEventListener('fetch', (event) => {
 
   // Only handle GET requests
   if (request.method !== 'GET') {
+    return;
+  }
+
+  // Ignore cross-origin requests (Google Tag Manager, Unsplash, external APIs)
+  // Let the browser handle these directly to avoid opaque response issues and NetworkErrors
+  if (url.origin !== self.location.origin) {
     return;
   }
 
