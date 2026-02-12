@@ -169,9 +169,10 @@ export default authEdge((req) => {
   const isAccountPage = pathWithoutLocale.startsWith('/account');
   const isAgentPage = currentPath.startsWith('/agent');
   const isAdminPage = currentPath.startsWith('/admin');
+  const isHostPage = pathWithoutLocale.startsWith('/host') || pathWithoutLocale.startsWith('/list-your-property/create');
 
   // Redirect to signin if accessing protected routes while not logged in
-  if ((isAccountPage || isAgentPage || isAdminPage) && !isLoggedIn) {
+  if ((isAccountPage || isAgentPage || isAdminPage || isHostPage) && !isLoggedIn) {
     const currentLocale = getLocaleFromPathname(currentPath) || DEFAULT_LOCALE;
     const signInPath = addLocalePrefix('/auth/signin', currentLocale.locale);
     const signInUrl = new URL(signInPath, nextUrl.origin);

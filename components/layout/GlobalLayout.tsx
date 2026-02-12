@@ -131,14 +131,16 @@ function GlobalLayoutInner({ children }: GlobalLayoutProps) {
   const isAdminRoute = pathname?.startsWith('/admin');
   const isAgentRoute = pathname?.startsWith('/agent');
   const isAccountRoute = pathname?.startsWith('/account');
+  const isHostRoute = pathname?.startsWith('/host');
+  const isWizardRoute = pathname?.startsWith('/list-your-property/create');
 
   // Handle "More" tab click from bottom bar
   const handleMoreClick = () => {
     setMobileDrawerOpen(true);
   };
 
-  // Admin and Agent routes use their own dedicated layouts - bypass global layout
-  if (isAdminRoute || isAgentRoute) {
+  // Admin, Agent, Host, and Wizard routes use their own dedicated layouts - bypass global layout
+  if (isAdminRoute || isAgentRoute || isHostRoute || isWizardRoute) {
     return <>{children}</>;
   }
 
