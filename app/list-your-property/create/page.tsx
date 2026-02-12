@@ -45,13 +45,7 @@ export default function CreatePropertyPage() {
   // State
   const [currentStep, setCurrentStep] = useState<WizardStep>(1);
 
-  if (status === 'loading') {
-    return (
-      <div className="min-h-screen bg-[#0a0a0f] flex items-center justify-center">
-        <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-primary"></div>
-      </div>
-    );
-  }
+
   const [isImporting, setIsImporting] = useState(false);
   const [importUrl, setImportUrl] = useState('');
   const [importError, setImportError] = useState('');
@@ -391,6 +385,12 @@ export default function CreatePropertyPage() {
 
   return (
     <div className="min-h-screen bg-[#0a0a0f] flex flex-col">
+      {status === 'loading' ? (
+         <div className="flex-1 flex items-center justify-center">
+           <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-primary"></div>
+         </div>
+      ) : (
+        <>
       {/* Top Header */}
       <header className="fixed top-0 inset-x-0 h-16 bg-[#0a0a0f]/90 backdrop-blur border-b border-white/10 z-50 flex items-center px-4 md:px-8 justify-between">
         <div className="flex items-center gap-4">
@@ -690,6 +690,8 @@ export default function CreatePropertyPage() {
            </div>
         </div>
       </main>
+        </>
+      )}
     </div>
   );
 }
