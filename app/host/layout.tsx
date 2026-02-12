@@ -1,14 +1,19 @@
-import { Metadata } from 'next';
+import type { Metadata } from 'next';
+import HostSidebar from '@/components/host/HostSidebar';
 
 export const metadata: Metadata = {
   title: 'Host Dashboard | Fly2Any',
-  description: 'Manage your properties, track bookings, and optimize your revenue with the Fly2Any host dashboard.',
+  description: 'Manage your properties, bookings, and availability on Fly2Any.',
 };
 
-export default function HostLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
-  return <>{children}</>;
+export default function HostLayout({ children }: { children: React.ReactNode }) {
+  return (
+    <div className="min-h-screen bg-[#0a0a0f]">
+      <HostSidebar />
+      {/* Main content — offset by sidebar width on desktop */}
+      <div className="md:ml-56 pb-20 md:pb-0">
+        {children}
+      </div>
+    </div>
+  );
 }

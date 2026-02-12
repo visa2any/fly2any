@@ -1,150 +1,150 @@
 'use client';
 
-import { useState } from 'react';
-import Image from 'next/image';
+import { useState, useEffect } from 'react';
+import Link from 'next/link';
 import { MaxWidthContainer } from '@/components/layout/MaxWidthContainer';
 import {
-  Search, Filter, Calendar, Users, CheckCircle2, XCircle, Clock,
-  MoreHorizontal, MessageSquare, ChevronRight, DollarSign
+  Search, Users, CheckCircle2, Clock, XCircle, CalendarDays,
+  Loader2, BookOpen
 } from 'lucide-react';
-import { format } from 'date-fns';
 
-const MOCK_BOOKINGS = [
-  {
-    id: 'bk_1',
-    property: { name: 'Seaside Villa', image: 'https://images.unsplash.com/photo-1613490493576-7fde63acd811?w=200&q=70&auto=format' },
-    guest: { name: 'Alice Johnson', email: 'alice@example.com', avatar: null },
-    dates: { start: new Date(2026, 2, 10), end: new Date(2026, 2, 15) },
-    totalPrice: 2250,
-    status: 'confirmed',
-    guestsCount: 4,
-    bookedAt: new Date(2026, 1, 5),
-  },
-  {
-    id: 'bk_2',
-    property: { name: 'Downtown Loft', image: 'https://images.unsplash.com/photo-1502672260266-1c1ef2d93688?w=200&q=70&auto=format' },
-    guest: { name: 'Bob Smith', email: 'bob@example.com', avatar: null },
-    dates: { start: new Date(2026, 3, 1), end: new Date(2026, 3, 5) },
-    totalPrice: 880,
-    status: 'pending',
-    guestsCount: 2,
-    bookedAt: new Date(2026, 2, 28),
-  },
-];
+interface Booking {
+  id: string;
+  status: string;
+  checkIn: string;
+  checkOut: string;
+  totalPrice: number | null;
+  currency: string;
+  guests: number;
+  property: { id: string; name: string; coverImageUrl: string | null };
+  user: { id: string; name: string | null; email: string | null; image: string | null };
+}
 
-const STATUS_STYLES: Record<string, string> = {
-  confirmed: 'bg-emerald-500/15 text-emerald-400 border-emerald-500/30',
-  pending: 'bg-amber-500/15 text-amber-400 border-amber-500/30',
-  cancelled: 'bg-red-500/15 text-red-400 border-red-500/30',
-  completed: 'bg-blue-500/15 text-blue-400 border-blue-500/30',
+const STATUS_CONFIG: Record<string, { label: string; icon: any; color: string; bg: string }> = {
+  confirmed: { label: 'Confirmed', icon: CheckCircle2, color: 'text-emerald-400', bg: 'bg-emerald-500/15 border-emerald-500/30' },
+  pending: { label: 'Pending', icon: Clock, color: 'text-amber-400', bg: 'bg-amber-500/15 border-amber-500/30' },
+  cancelled: { label: 'Cancelled', icon: XCircle, color: 'text-red-400', bg: 'bg-red-500/15 border-red-500/30' },
+  completed: { label: 'Completed', icon: CheckCircle2, color: 'text-blue-400', bg: 'bg-blue-500/15 border-blue-500/30' },
 };
 
+const TABS = ['all', 'pending', 'confirmed', 'completed', 'cancelled'];
+
 export default function BookingsPage() {
-  const [activeTab, setActiveTab] = useState('upcoming');
+  const [bookings, setBookings] = useState<Booking[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [activeTab, setActiveTab] = useState('all');
   const [searchQuery, setSearchQuery] = useState('');
+
+  useEffect(() => {
+    async function fetchBookings() {
+      try {
+        const res = await fetch('/api/properties/bookings');
+        if (res.ok) {
+          const json = await res.json();
+          setBookings(json.data || []);
+        }
+      } catch (e) { console.error(e); }
+      setLoading(false);
+    }
+    fetchBookings();
+  }, []);
+
+  const filtered = bookings.filter(b => {
+    const matchesTab = activeTab === 'all' || b.status === activeTab;
+    const matchesSearch = !searchQuery ||
+      (b.user?.name || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
+      b.property.name.toLowerCase().includes(searchQuery.toLowerCase());
+    return matchesTab && matchesSearch;
+  });
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-[#0a0a0f] flex items-center justify-center">
+        <Loader2 className="w-8 h-8 text-white/30 animate-spin" />
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-[#0a0a0f] pt-4 pb-20">
       <MaxWidthContainer>
-        <div className="flex items-center justify-between mb-8 mt-4">
-          <div>
-            <h1 className="text-2xl font-black text-white mb-1">Bookings</h1>
-            <p className="text-white/50 text-sm">Manage reservations and guest requests.</p>
-          </div>
+        <div className="mb-8 mt-4">
+          <h1 className="text-2xl md:text-3xl font-black text-white mb-1">Bookings</h1>
+          <p className="text-white/50 text-sm">Manage guest reservations across all your properties.</p>
         </div>
 
         {/* Tabs */}
-        <div className="flex items-center gap-6 border-b border-white/10 mb-6">
-          {['upcoming', 'completed', 'cancelled', 'all'].map((tab) => (
+        <div className="flex items-center gap-2 mb-6 overflow-x-auto hide-scrollbar pb-2">
+          {TABS.map((tab) => (
             <button
               key={tab}
               onClick={() => setActiveTab(tab)}
-              className={`pb-3 text-sm font-bold capitalize transition-colors relative ${
-                activeTab === tab ? 'text-white' : 'text-white/40 hover:text-white/70'
+              className={`px-4 py-2.5 rounded-xl text-xs font-bold capitalize transition-all whitespace-nowrap border ${
+                activeTab === tab
+                  ? 'bg-white text-black border-white'
+                  : 'bg-white/[0.03] text-white/60 border-white/10 hover:bg-white/[0.06]'
               }`}
             >
               {tab}
-              {activeTab === tab && (
-                <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-amber-400 shadow-[0_0_10px_rgba(251,191,36,0.5)]" />
-              )}
             </button>
           ))}
         </div>
 
-        {/* Search & Filter */}
-        <div className="flex gap-4 mb-6">
-          <div className="relative flex-1">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-white/30" />
-            <input
-              type="text"
-              placeholder="Search by guest name or booking ID..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full pl-10 pr-4 py-3 rounded-xl bg-white/[0.03] border border-white/10 text-white placeholder-white/30 focus:outline-none focus:border-white/20"
-            />
+        {/* Search */}
+        <div className="relative mb-6">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-white/30" />
+          <input
+            type="text"
+            placeholder="Search by guest name or property..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="w-full pl-10 pr-4 py-3 rounded-xl bg-white/[0.03] border border-white/10 text-white placeholder-white/30 focus:outline-none focus:border-white/20 transition-all"
+          />
+        </div>
+
+        {/* Bookings List */}
+        {filtered.length === 0 ? (
+          <div className="flex flex-col items-center justify-center py-20 bg-white/[0.02] border border-white/5 rounded-3xl text-center">
+            <BookOpen className="w-12 h-12 text-white/10 mb-4" />
+            <h3 className="text-white font-bold text-lg mb-2">No bookings found</h3>
+            <p className="text-white/40 text-sm max-w-sm">
+              {searchQuery || activeTab !== 'all'
+                ? 'Try adjusting your filters.'
+                : 'Bookings will appear here when guests reserve your properties.'}
+            </p>
           </div>
-          <button className="px-4 py-3 rounded-xl bg-white/[0.03] border border-white/10 text-white/70 hover:text-white flex items-center gap-2 font-bold text-sm">
-            <Filter className="w-4 h-4" /> Filter
-          </button>
-        </div>
-
-        {/* List */}
-        <div className="space-y-4">
-          {MOCK_BOOKINGS.map((booking) => (
-            <div key={booking.id} className="p-4 rounded-2xl bg-white/[0.03] border border-white/10 hover:border-white/20 transition-all flex flex-col md:flex-row gap-4">
-              {/* Property Image & Basic Info */}
-              <div className="flex items-start gap-4 md:w-1/3">
-                <div className="relative w-16 h-16 rounded-lg overflow-hidden flex-shrink-0 bg-white/5">
-                  <Image src={booking.property.image} alt={booking.property.name} fill className="object-cover" />
-                </div>
-                <div>
-                  <h3 className="text-white font-bold text-sm mb-0.5">{booking.property.name}</h3>
-                  <div className="flex items-center gap-2 text-xs text-white/50 mb-1">
-                    <span className="font-mono text-white/30">#{booking.id.toUpperCase()}</span>
-                    <span>•</span>
-                    <span>{format(booking.bookedAt, 'MMM d, yyyy')}</span>
+        ) : (
+          <div className="space-y-3">
+            {filtered.map((booking) => {
+              const statusCfg = STATUS_CONFIG[booking.status] || STATUS_CONFIG.pending;
+              return (
+                <div key={booking.id} className="flex flex-col md:flex-row md:items-center gap-4 p-5 rounded-2xl bg-white/[0.03] border border-white/10 hover:bg-white/[0.06] transition-all">
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2 mb-2">
+                      <h3 className="text-white font-bold truncate">{booking.user?.name || booking.user?.email || 'Guest'}</h3>
+                      <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-md border text-xs font-semibold ${statusCfg.bg} ${statusCfg.color}`}>
+                        <statusCfg.icon className="w-3 h-3" />
+                        {statusCfg.label}
+                      </span>
+                    </div>
+                    <div className="flex items-center gap-4 text-white/40 text-xs">
+                      <span>{booking.property.name}</span>
+                      <span className="flex items-center gap-1"><CalendarDays className="w-3 h-3" />{new Date(booking.checkIn).toLocaleDateString()} - {new Date(booking.checkOut).toLocaleDateString()}</span>
+                      <span className="flex items-center gap-1"><Users className="w-3 h-3" />{booking.guests} guests</span>
+                    </div>
                   </div>
-                  <span className={`inline-flex items-center gap-1 px-1.5 py-0.5 rounded border text-[10px] font-bold uppercase tracking-wider ${STATUS_STYLES[booking.status]}`}>
-                    {booking.status === 'confirmed' && <CheckCircle2 className="w-3 h-3" />}
-                    {booking.status === 'pending' && <Clock className="w-3 h-3" />}
-                    {booking.status}
-                  </span>
-                </div>
-              </div>
-
-              {/* Booking Details */}
-              <div className="flex-1 grid grid-cols-2 md:grid-cols-4 gap-4 items-center">
-                <div>
-                  <div className="text-xs text-white/30 font-bold uppercase mb-1">Dates</div>
-                  <div className="text-white text-sm font-semibold">
-                    {format(booking.dates.start, 'MMM d')} - {format(booking.dates.end, 'MMM d, yyyy')}
+                  <div className="text-right">
+                    {booking.totalPrice != null && (
+                      <div className="text-white font-bold text-lg">
+                        {booking.currency} {booking.totalPrice.toLocaleString()}
+                      </div>
+                    )}
                   </div>
                 </div>
-                <div>
-                  <div className="text-xs text-white/30 font-bold uppercase mb-1">Guests</div>
-                  <div className="text-white text-sm font-semibold flex items-center gap-1.5">
-                    <Users className="w-3.5 h-3.5" />
-                    {booking.guestsCount}
-                  </div>
-                </div>
-                 <div>
-                  <div className="text-xs text-white/30 font-bold uppercase mb-1">Total</div>
-                  <div className="text-white text-sm font-bold text-emerald-400">
-                    ${booking.totalPrice}
-                  </div>
-                </div>
-                <div className="flex items-center justify-end gap-2">
-                   <button className="p-2 rounded-lg hover:bg-white/10 text-white/60 hover:text-white" title="Message Guest">
-                     <MessageSquare className="w-4 h-4" />
-                   </button>
-                   <button className="p-2 rounded-lg hover:bg-white/10 text-white/60 hover:text-white">
-                     <MoreHorizontal className="w-4 h-4" />
-                   </button>
-                </div>
-              </div>
-            </div>
-          ))}
-        </div>
+              );
+            })}
+          </div>
+        )}
       </MaxWidthContainer>
     </div>
   );

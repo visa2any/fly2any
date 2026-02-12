@@ -1,117 +1,184 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { MaxWidthContainer } from '@/components/layout/MaxWidthContainer';
-import { ChevronLeft, ChevronRight, Loader2, DollarSign, X } from 'lucide-react';
-import { format, addMonths, startOfMonth, endOfMonth, eachDayOfInterval, isSameMonth, isSameDay, isToday } from 'date-fns';
+import {
+  ChevronLeft, ChevronRight, Loader2, Calendar as CalendarIcon
+} from 'lucide-react';
+
+interface PropertyOption { id: string; name: string; }
+interface AvailabilityEntry {
+  id: string; startDate: string; endDate: string;
+  available: boolean; customPrice: number | null; notes: string | null;
+}
 
 export default function CalendarPage() {
+  const [properties, setProperties] = useState<PropertyOption[]>([]);
+  const [selectedProperty, setSelectedProperty] = useState<string>('');
+  const [availability, setAvailability] = useState<AvailabilityEntry[]>([]);
+  const [loading, setLoading] = useState(true);
   const [currentDate, setCurrentDate] = useState(new Date());
-  const [selectedDate, setSelectedDate] = useState<Date | null>(null);
-  const [properties] = useState([{ id: '1', name: 'Seaside Villa' }, { id: '2', name: 'Mountain Lodge' }]); // Mock properties selector
-  const [selectedPropertyId, setSelectedPropertyId] = useState(properties[0].id);
 
-  const monthStart = startOfMonth(currentDate);
-  const monthEnd = endOfMonth(currentDate);
-  const days = eachDayOfInterval({ start: monthStart, end: monthEnd });
+  // Fetch properties for selector
+  useEffect(() => {
+    async function loadProperties() {
+      try {
+        const res = await fetch('/api/properties/dashboard');
+        if (res.ok) {
+          const json = await res.json();
+          const props = (json.data?.properties || []).map((p: any) => ({ id: p.id, name: p.name }));
+          setProperties(props);
+          if (props.length > 0) setSelectedProperty(props[0].id);
+        }
+      } catch (e) { console.error(e); }
+      setLoading(false);
+    }
+    loadProperties();
+  }, []);
 
-  const nextMonth = () => setCurrentDate(addMonths(currentDate, 1));
-  const prevMonth = () => setCurrentDate(addMonths(currentDate, -1));
+  // Fetch availability when property changes
+  useEffect(() => {
+    if (!selectedProperty) return;
+    async function loadAvailability() {
+      try {
+        const res = await fetch(`/api/properties/${selectedProperty}/availability`);
+        if (res.ok) {
+          const json = await res.json();
+          setAvailability(json.data || []);
+        }
+      } catch (e) { console.error(e); }
+    }
+    loadAvailability();
+  }, [selectedProperty]);
 
-  // Mock pricing/availability data
-  const getDayData = (date: Date) => {
-    // In production, fetch this from API based on selectedPropertyId + date range
-    const isBooked = isSameDay(date, new Date(2026, 1, 15)); // Example
-    const price = 450; // Base price
-    return { price, isBooked };
+  // Calendar helpers
+  const year = currentDate.getFullYear();
+  const month = currentDate.getMonth();
+  const daysInMonth = new Date(year, month + 1, 0).getDate();
+  const firstDayOfWeek = new Date(year, month, 1).getDay();
+  const monthName = currentDate.toLocaleString('default', { month: 'long', year: 'numeric' });
+
+  const prevMonth = () => setCurrentDate(new Date(year, month - 1, 1));
+  const nextMonth = () => setCurrentDate(new Date(year, month + 1, 1));
+
+  // Check if a day has an availability entry
+  const getDayStatus = (day: number): { available: boolean; price: number | null } | null => {
+    const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+    const date = new Date(dateStr);
+    for (const entry of availability) {
+      const start = new Date(entry.startDate);
+      const end = new Date(entry.endDate);
+      if (date >= start && date <= end) {
+        return { available: entry.available, price: entry.customPrice };
+      }
+    }
+    return null;
   };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-[#0a0a0f] flex items-center justify-center">
+        <Loader2 className="w-8 h-8 text-white/30 animate-spin" />
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-[#0a0a0f] pt-4 pb-20">
       <MaxWidthContainer>
-        <div className="flex items-center justify-between mb-8 mt-4">
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8 mt-4">
           <div>
-            <h1 className="text-2xl font-black text-white mb-1">Calendar & Availability</h1>
-            <p className="text-white/50 text-sm">Manage open dates and pricing.</p>
+            <h1 className="text-2xl md:text-3xl font-black text-white mb-1">Calendar & Availability</h1>
+            <p className="text-white/50 text-sm">Manage your property availability and custom pricing.</p>
           </div>
-          <div className="flex items-center gap-2">
+          {properties.length > 0 && (
             <select
-              value={selectedPropertyId}
-              onChange={(e) => setSelectedPropertyId(e.target.value)}
-              className="px-4 py-2 rounded-xl bg-white/[0.03] border border-white/10 text-white text-sm focus:outline-none focus:border-white/20"
+              value={selectedProperty}
+              onChange={(e) => setSelectedProperty(e.target.value)}
+              className="px-4 py-2.5 rounded-xl bg-white/5 border border-white/10 text-white text-sm font-semibold focus:outline-none focus:border-white/20 appearance-none cursor-pointer"
+              style={{ backgroundImage: 'none' }}
             >
-              {properties.map(p => (
-                <option key={p.id} value={p.id}>{p.name}</option>
+              {properties.map((p) => (
+                <option key={p.id} value={p.id} className="bg-[#1a1a20] text-white">{p.name}</option>
               ))}
             </select>
-          </div>
+          )}
         </div>
 
-        {/* Calendar Grid */}
-        <div className="bg-white/[0.03] border border-white/10 rounded-2xl overflow-hidden">
-          {/* Calendar Header */}
-          <div className="flex items-center justify-between p-4 border-b border-white/10">
-            <h2 className="text-lg font-bold text-white">
-              {format(currentDate, 'MMMM yyyy')}
-            </h2>
-            <div className="flex items-center gap-2">
-              <button onClick={prevMonth} className="p-2 hover:bg-white/5 rounded-lg text-white"><ChevronLeft className="w-5 h-5" /></button>
-              <button onClick={nextMonth} className="p-2 hover:bg-white/5 rounded-lg text-white"><ChevronRight className="w-5 h-5" /></button>
+        {properties.length === 0 ? (
+          <div className="flex flex-col items-center justify-center py-20 bg-white/[0.02] border border-white/5 rounded-3xl text-center">
+            <CalendarIcon className="w-12 h-12 text-white/10 mb-4" />
+            <h3 className="text-white font-bold text-lg mb-2">No properties</h3>
+            <p className="text-white/40 text-sm">Add a property first to manage its calendar.</p>
+          </div>
+        ) : (
+          <>
+            {/* Calendar header */}
+            <div className="flex items-center justify-between mb-6">
+              <button onClick={prevMonth} className="p-2 rounded-lg bg-white/5 border border-white/10 text-white/60 hover:text-white hover:bg-white/10 transition-colors">
+                <ChevronLeft className="w-5 h-5" />
+              </button>
+              <h2 className="text-white font-bold text-lg">{monthName}</h2>
+              <button onClick={nextMonth} className="p-2 rounded-lg bg-white/5 border border-white/10 text-white/60 hover:text-white hover:bg-white/10 transition-colors">
+                <ChevronRight className="w-5 h-5" />
+              </button>
             </div>
-          </div>
 
-          {/* Days Header */}
-          <div className="grid grid-cols-7 border-b border-white/10 bg-white/[0.02]">
-            {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map(day => (
-              <div key={day} className="p-3 text-center text-xs font-bold text-white/40 uppercase tracking-wider">
-                {day}
+            {/* Day headers */}
+            <div className="grid grid-cols-7 gap-1 mb-2">
+              {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map((d) => (
+                <div key={d} className="text-center text-white/30 text-xs font-bold py-2">{d}</div>
+              ))}
+            </div>
+
+            {/* Calendar grid */}
+            <div className="grid grid-cols-7 gap-1">
+              {/* Empty cells for offset */}
+              {Array.from({ length: firstDayOfWeek }).map((_, i) => (
+                <div key={`empty-${i}`} className="aspect-square" />
+              ))}
+              {/* Day cells */}
+              {Array.from({ length: daysInMonth }).map((_, i) => {
+                const day = i + 1;
+                const status = getDayStatus(day);
+                const isToday = new Date().getDate() === day && new Date().getMonth() === month && new Date().getFullYear() === year;
+                return (
+                  <div
+                    key={day}
+                    className={`aspect-square rounded-xl border flex flex-col items-center justify-center transition-all cursor-pointer hover:bg-white/10 ${
+                      status && !status.available
+                        ? 'bg-red-500/10 border-red-500/30 text-red-300'
+                        : status && status.available
+                          ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-300'
+                          : 'bg-white/[0.03] border-white/10 text-white/60'
+                    } ${isToday ? 'ring-2 ring-amber-400/50' : ''}`}
+                  >
+                    <span className="text-sm font-bold">{day}</span>
+                    {status?.price && (
+                      <span className="text-[10px] font-semibold mt-0.5">${status.price}</span>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+
+            {/* Legend */}
+            <div className="flex items-center gap-6 mt-6 text-xs text-white/40">
+              <div className="flex items-center gap-2">
+                <div className="w-3 h-3 rounded bg-emerald-500/30 border border-emerald-500/40" />
+                Available
               </div>
-            ))}
-          </div>
-
-          {/* Days Grid */}
-          <div className="grid grid-cols-7">
-            {days.map((day, dayIdx) => {
-              const { price, isBooked } = getDayData(day);
-              const isSelected = selectedDate && isSameDay(day, selectedDate);
-              
-              return (
-                <div
-                  key={day.toString()}
-                  onClick={() => setSelectedDate(day)}
-                  className={`
-                    relative min-h-[120px] p-2 border-b border-r border-white/5 hover:bg-white/[0.04] transition-colors cursor-pointer group
-                    ${!isSameMonth(day, currentDate) ? 'opacity-30' : ''}
-                    ${isSelected ? 'bg-white/[0.08] ring-1 ring-inset ring-amber-400' : ''}
-                  `}
-                >
-                  <div className="flex items-center justify-between mb-2">
-                    <span className={`
-                      text-sm font-medium w-6 h-6 flex items-center justify-center rounded-full
-                      ${isToday(day) ? 'bg-amber-400 text-black font-bold' : 'text-white/80'}
-                    `}>
-                      {format(day, 'd')}
-                    </span>
-                    {isBooked && (
-                       <span className="w-2 h-2 rounded-full bg-red-400" title="Booked"></span>
-                    )}
-                  </div>
-
-                  <div className="space-y-1">
-                    <div className="text-xs text-white/60 font-medium">
-                      ${price}
-                    </div>
-                    {isBooked && (
-                      <div className="px-1.5 py-0.5 rounded bg-red-500/20 text-red-300 text-[10px] font-bold truncate">
-                        Booked
-                      </div>
-                    )}
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        </div>
+              <div className="flex items-center gap-2">
+                <div className="w-3 h-3 rounded bg-red-500/30 border border-red-500/40" />
+                Blocked
+              </div>
+              <div className="flex items-center gap-2">
+                <div className="w-3 h-3 rounded bg-white/5 border border-white/10" />
+                Default
+              </div>
+            </div>
+          </>
+        )}
       </MaxWidthContainer>
     </div>
   );

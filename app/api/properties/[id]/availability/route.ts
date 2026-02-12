@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { auth } from '@/lib/auth';
 import prisma from '@/lib/prisma';
 
-// GET /api/properties/[id]/availability — Get property availability
+// GET /api/properties/[id]/availability — Get property availability (public)
 export async function GET(
   request: NextRequest,
   { params }: { params: { id: string } }
@@ -25,12 +26,29 @@ export async function GET(
   }
 }
 
-// POST /api/properties/[id]/availability — Set availability for date range
+// POST /api/properties/[id]/availability — Set availability (auth + ownership required)
 export async function POST(
   request: NextRequest,
   { params }: { params: { id: string } }
 ) {
   try {
+    const session = await auth();
+    if (!session?.user?.id) {
+      return NextResponse.json({ success: false, error: 'Authentication required' }, { status: 401 });
+    }
+
+    // Verify ownership
+    const property = await prisma.property.findUnique({
+      where: { id: params.id },
+      include: { owner: { select: { userId: true } } },
+    });
+    if (!property) {
+      return NextResponse.json({ success: false, error: 'Property not found' }, { status: 404 });
+    }
+    if (property.owner.userId !== session.user.id) {
+      return NextResponse.json({ success: false, error: 'Forbidden' }, { status: 403 });
+    }
+
     const body = await request.json();
     const availability = await prisma.propertyAvailability.create({
       data: {

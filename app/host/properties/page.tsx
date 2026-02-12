@@ -7,9 +7,30 @@ import { MaxWidthContainer } from '@/components/layout/MaxWidthContainer';
 import {
   Search, Plus, Filter, MoreHorizontal, MapPin, BedDouble, Users,
   CheckCircle2, AlertCircle, PauseCircle, Clock, FileEdit, Trash2,
-  ExternalLink, ArrowUpDown
+  ExternalLink, ArrowUpDown, Building2, ImageIcon
 } from 'lucide-react';
-import { Property } from '@/lib/properties/types'; // Assuming types exist
+
+// Match the shape returned by /api/properties/dashboard
+interface DashboardProperty {
+  id: string;
+  name: string;
+  slug: string;
+  propertyType: string;
+  city: string | null;
+  country: string | null;
+  status: string;
+  basePricePerNight: number | null;
+  currency: string;
+  viewCount: number;
+  bookingCount: number;
+  avgRating: number;
+  reviewCount: number;
+  coverImageUrl: string | null;
+  roomCount: number;
+  imageCount: number;
+  publishedAt: string | null;
+  updatedAt: string;
+}
 
 // Status configuration map
 const STATUS_CONFIG: Record<string, { label: string; icon: any; color: string; bg: string }> = {
@@ -22,19 +43,18 @@ const STATUS_CONFIG: Record<string, { label: string; icon: any; color: string; b
 };
 
 export default function PropertiesPage() {
-  const [properties, setProperties] = useState<Property[]>([]);
+  const [properties, setProperties] = useState<DashboardProperty[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
 
   useEffect(() => {
-    // Fetch properties from API
     async function fetchProperties() {
       try {
-        const res = await fetch('/api/properties'); // Fetch all properties for current user
+        const res = await fetch('/api/properties/dashboard');
         if (res.ok) {
           const data = await res.json();
-          setProperties(data.properties || []);
+          setProperties(data.data?.properties || []);
         }
       } catch (error) {
         console.error('Failed to fetch properties:', error);
@@ -45,10 +65,10 @@ export default function PropertiesPage() {
     fetchProperties();
   }, []);
 
-  // Filter properties logic
+  // Filter properties logic — uses flat fields matching the API response
   const filteredProperties = properties.filter(property => {
     const matchesSearch = property.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                          property.location?.city?.toLowerCase().includes(searchQuery.toLowerCase());
+                          (property.city || '').toLowerCase().includes(searchQuery.toLowerCase());
     const matchesStatus = statusFilter === 'all' || property.status === statusFilter;
     return matchesSearch && matchesStatus;
   });
@@ -110,21 +130,21 @@ export default function PropertiesPage() {
         ) : filteredProperties.length > 0 ? (
           <div className="space-y-4">
             {filteredProperties.map((property) => {
-              const statusCfg = STATUS_CONFIG[property.status as string] || STATUS_CONFIG.draft;
+              const statusCfg = STATUS_CONFIG[property.status] || STATUS_CONFIG.draft;
               return (
                 <div key={property.id} className="group flex flex-col md:flex-row gap-4 p-4 rounded-2xl bg-white/[0.03] border border-white/10 hover:border-white/20 transition-all">
                   {/* Image */}
                   <div className="relative w-full md:w-48 h-48 md:h-32 rounded-xl overflow-hidden bg-white/5 flex-shrink-0">
-                    {property.images && property.images.length > 0 ? (
+                    {property.coverImageUrl ? (
                        <Image
-                         src={property.images.find(img => img.isPrimary)?.url || property.images[0].url}
+                         src={property.coverImageUrl}
                          alt={property.name}
                          fill
                          className="object-cover group-hover:scale-105 transition-transform duration-500"
                        />
                     ) : (
                       <div className="flex items-center justify-center h-full text-white/20">
-                        <Image className="w-8 h-8" />
+                        <ImageIcon className="w-8 h-8" />
                       </div>
                     )}
                     <div className="absolute top-2 left-2 md:hidden">
@@ -147,16 +167,15 @@ export default function PropertiesPage() {
                           </span>
                         </div>
                         <div className="flex items-center gap-4 text-white/50 text-sm">
-                          <span className="flex items-center gap-1.5"><MapPin className="w-3.5 h-3.5" /> {property.location?.city || 'No location'}, {property.location?.country}</span>
-                          <span className="flex items-center gap-1.5 capitalize"><Building2 className="w-3.5 h-3.5" /> {property.type?.toLowerCase().replace('_', ' ')}</span>
+                          <span className="flex items-center gap-1.5"><MapPin className="w-3.5 h-3.5" /> {property.city || 'No location'}{property.country ? `, ${property.country}` : ''}</span>
+                          <span className="flex items-center gap-1.5 capitalize"><Building2 className="w-3.5 h-3.5" /> {(property.propertyType || 'property').replace('_', ' ')}</span>
                         </div>
                       </div>
                       <div className="text-right">
                         <div className="text-white font-bold text-lg">
-                          {property.currency} {property.pricing?.basePrice}
+                          {property.currency} {property.basePricePerNight ?? '—'}
                           <span className="text-sm text-white/40 font-normal">/night</span>
                         </div>
-                         {/* Optional bookings count or other metric */}
                       </div>
                     </div>
 
@@ -164,21 +183,21 @@ export default function PropertiesPage() {
 
                     <div className="flex items-center justify-between gap-4">
                       <div className="flex items-center gap-4 text-xs font-medium text-white/40">
-                         <span className="flex items-center gap-1.5"><BedDouble className="w-3.5 h-3.5" /> {property.rooms?.length || 0} Rooms</span>
-                         <span className="flex items-center gap-1.5"><Users className="w-3.5 h-3.5" /> Max {property.rooms?.reduce((acc, r) => acc + (r.maxOccupancy || 2), 0) || 0} Guests</span>
+                         <span className="flex items-center gap-1.5"><BedDouble className="w-3.5 h-3.5" /> {property.roomCount} Rooms</span>
+                         <span className="flex items-center gap-1.5"><Users className="w-3.5 h-3.5" /> {property.bookingCount} Bookings</span>
                          <span className="flex items-center gap-1.5"><Clock className="w-3.5 h-3.5" /> Updated {new Date(property.updatedAt).toLocaleDateString()}</span>
                       </div>
 
                       <div className="flex items-center gap-2">
                         <Link
-                          href={`/list-your-property/create?id=${property.id}`} // Edit uses wizard? Or separate edit page?
+                          href={`/list-your-property/create?id=${property.id}`}
                           className="px-4 py-2 rounded-lg bg-white/[0.03] border border-white/10 text-white hover:bg-white/[0.08] text-xs font-bold transition-colors"
                         >
                           Edit
                         </Link>
                          {property.status === 'active' && (
                           <Link
-                            href={`/properties/${property.id}`} // View public page
+                            href={`/properties/${property.slug || property.id}`}
                             target="_blank"
                             className="p-2 rounded-lg bg-white/[0.03] border border-white/10 text-white/60 hover:text-white hover:bg-white/[0.08] transition-colors"
                             title="View Public Listing"

@@ -1,19 +1,37 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { auth } from '@/lib/auth';
 import prisma from '@/lib/prisma';
 
-// GET /api/properties/dashboard — Get host dashboard overview
+// GET /api/properties/dashboard — Get host dashboard overview (auth required)
 export async function GET(request: NextRequest) {
   try {
-    const { searchParams } = new URL(request.url);
-    const ownerId = searchParams.get('ownerId');
+    const session = await auth();
+    if (!session?.user?.id) {
+      return NextResponse.json({ success: false, error: 'Authentication required' }, { status: 401 });
+    }
 
-    if (!ownerId) {
-      return NextResponse.json({ success: false, error: 'ownerId is required' }, { status: 400 });
+    // Find or create PropertyOwner for this user
+    const owner = await prisma.propertyOwner.findUnique({
+      where: { userId: session.user.id },
+    });
+
+    if (!owner) {
+      // No owner profile yet — return empty dashboard
+      return NextResponse.json({
+        success: true,
+        data: {
+          overview: {
+            totalProperties: 0, activeProperties: 0, draftProperties: 0,
+            totalViews: 0, totalBookings: 0, avgRating: 0, estimatedMonthlyRevenue: 0,
+          },
+          properties: [],
+        },
+      });
     }
 
     // Get properties for this owner
     const properties = await prisma.property.findMany({
-      where: { ownerId },
+      where: { ownerId: owner.id },
       include: {
         images: { where: { isPrimary: true }, take: 1 },
         _count: { select: { rooms: true, images: true } },
@@ -24,8 +42,9 @@ export async function GET(request: NextRequest) {
     const activeCount = properties.filter(p => p.status === 'active').length;
     const totalViews = properties.reduce((sum, p) => sum + p.viewCount, 0);
     const totalBookings = properties.reduce((sum, p) => sum + p.bookingCount, 0);
-    const avgRating = properties.length > 0
-      ? properties.reduce((sum, p) => sum + p.avgRating, 0) / properties.filter(p => p.avgRating > 0).length || 0
+    const ratedProperties = properties.filter(p => p.avgRating > 0);
+    const avgRating = ratedProperties.length > 0
+      ? properties.reduce((sum, p) => sum + p.avgRating, 0) / ratedProperties.length
       : 0;
 
     // Estimated monthly revenue (simplified)
@@ -59,7 +78,7 @@ export async function GET(request: NextRequest) {
           bookingCount: p.bookingCount,
           avgRating: p.avgRating,
           reviewCount: p.reviewCount,
-          coverImageUrl: p.coverImageUrl || p.images[0]?.url || null,
+          coverImageUrl: p.coverImageUrl || (p.images[0]?.url ?? null),
           roomCount: p._count.rooms,
           imageCount: p._count.images,
           publishedAt: p.publishedAt,

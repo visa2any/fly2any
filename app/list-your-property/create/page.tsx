@@ -79,6 +79,7 @@ export default function CreatePropertyPage() {
   const [minStay, setMinStay] = useState(1);
   const [instantBooking, setInstantBooking] = useState(true);
 
+
   // ------------------------------------------------------------------
   // HANDLERS
   // ------------------------------------------------------------------
@@ -89,7 +90,9 @@ export default function CreatePropertyPage() {
     setImportError('');
     try {
       const res = await fetch('/api/properties/import', {
-        method: 'POST', body: JSON.stringify({ url: importUrl })
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ url: importUrl }),
       });
       const data = await res.json();
       if (data.success) {
@@ -102,7 +105,7 @@ export default function CreatePropertyPage() {
         if (p.country) setCountry(p.country);
         if (p.basePricePerNight) setBasePricePerNight(p.basePricePerNight);
         if (p.images) {
-            setPhotos(p.images.map((url: string, i: number) => ({ url, caption: '', category: 'general', isPrimary: i === 0 })));
+          setPhotos(p.images.map((url: string, i: number) => ({ url, caption: '', category: 'general', isPrimary: i === 0 })));
         }
         setCurrentStep(2);
       } else {
@@ -124,13 +127,121 @@ export default function CreatePropertyPage() {
     setSelectedAmenities(prev => prev.includes(amenity) ? prev.filter(a => a !== amenity) : [...prev, amenity]);
   };
 
+  const [publishError, setPublishError] = useState('');
+
+  // Build the property payload from current state
+  const buildPropertyPayload = () => ({
+    name: propertyName,
+    propertyType,
+    description,
+    starRating: starRating || null,
+    addressLine1,
+    city,
+    state: state || null,
+    country,
+    postalCode: postalCode || null,
+    amenities: selectedAmenities,
+    checkInTime,
+    checkOutTime,
+    cancellationPolicy,
+    houseRules,
+    basePricePerNight,
+    cleaningFee: cleaningFee || null,
+    minStay,
+    maxGuests,
+    instantBooking,
+    totalRooms: rooms.length,
+    totalBathrooms,
+    totalBedrooms: rooms.length,
+    totalBeds: rooms.reduce((sum, r) => sum + r.bedCount, 0),
+    status: 'draft',
+  });
+
+  // Save rooms to a property
+  const saveRooms = async (propertyId: string) => {
+    for (const room of rooms) {
+      await fetch(`/api/properties/${propertyId}/rooms`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          name: room.name,
+          roomType: room.roomType,
+          bedType: room.bedType,
+          bedCount: room.bedCount,
+          maxOccupancy: room.maxOccupancy,
+          basePricePerNight: room.basePricePerNight,
+          quantity: room.quantity,
+          amenities: room.amenities,
+        }),
+      });
+    }
+  };
+
+  const handleSaveDraft = async () => {
+    setSaving(true);
+    setPublishError('');
+    try {
+      const res = await fetch('/api/properties', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(buildPropertyPayload()),
+      });
+      const data = await res.json();
+      if (!res.ok || !data.success) {
+        setPublishError(data.error || 'Failed to save draft');
+        setSaving(false);
+        return;
+      }
+      // Save rooms
+      await saveRooms(data.data.id);
+      setSaving(false);
+      router.push('/host/dashboard');
+    } catch (err) {
+      setPublishError('Network error. Please try again.');
+      setSaving(false);
+    }
+  };
+
   const handlePublish = async () => {
     setPublishing(true);
-    // Simulate API call
-    setTimeout(() => {
+    setPublishError('');
+    try {
+      // 1. Create property
+      const res = await fetch('/api/properties', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(buildPropertyPayload()),
+      });
+      const data = await res.json();
+      if (!res.ok || !data.success) {
+        setPublishError(data.error || 'Failed to create property');
         setPublishing(false);
-        router.push('/host/dashboard'); // Redirect to dashboard
-    }, 1500);
+        return;
+      }
+      const propertyId = data.data.id;
+
+      // 2. Save rooms
+      await saveRooms(propertyId);
+
+      // 3. Publish (validate & go live)
+      const pubRes = await fetch(`/api/properties/${propertyId}/publish`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+      });
+      const pubData = await pubRes.json();
+      if (!pubRes.ok || !pubData.success) {
+        // Property saved as draft but publish validation failed
+        setPublishError(pubData.validationErrors?.join(', ') || pubData.error || 'Publish validation failed — saved as draft.');
+        setPublishing(false);
+        return;
+      }
+
+      setPublishing(false);
+      router.push('/host/dashboard');
+    } catch (err) {
+      setPublishError('Network error. Please try again.');
+      setPublishing(false);
+    }
   };
 
   // ------------------------------------------------------------------
@@ -139,7 +250,13 @@ export default function CreatePropertyPage() {
   
   // Navigation Buttons
   const NavButtons = () => (
-    <div className="mt-12 flex items-center justify-between border-t border-white/10 pt-6">
+    <div className="mt-12 border-t border-white/10 pt-6">
+      {publishError && (
+        <div className="mb-4 p-3 rounded-xl bg-red-500/15 border border-red-500/30 text-red-300 text-sm">
+          {publishError}
+        </div>
+      )}
+      <div className="flex items-center justify-between">
       {currentStep > 1 && (
         <button onClick={() => setCurrentStep(prev => Math.max(1, prev - 1) as WizardStep)} 
           className="px-6 py-3 rounded-xl text-white/60 hover:text-white hover:bg-white/5 font-bold transition-colors flex items-center gap-2">
@@ -159,6 +276,7 @@ export default function CreatePropertyPage() {
           Publish Listing
         </button>
       )}
+      </div>
     </div>
   );
 
@@ -178,7 +296,8 @@ export default function CreatePropertyPage() {
            </div>
            <span className="text-white/40 text-sm font-medium">Step {currentStep}</span>
         </div>
-        <button className="text-sm font-bold text-white/60 hover:text-white px-4 py-2 hover:bg-white/5 rounded-lg transition-colors">
+        <button onClick={handleSaveDraft} disabled={saving} className="text-sm font-bold text-white/60 hover:text-white px-4 py-2 hover:bg-white/5 rounded-lg transition-colors flex items-center gap-2 disabled:opacity-50">
+          {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
           Save Draft
         </button>
       </header>

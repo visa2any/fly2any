@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { auth } from '@/lib/auth';
 import prisma from '@/lib/prisma';
 
 // GET /api/properties — List properties (optionally filtered by owner, status, etc.)
@@ -49,6 +50,11 @@ export async function GET(request: NextRequest) {
 // POST /api/properties — Create a new property
 export async function POST(request: NextRequest) {
   try {
+    const session = await auth();
+    if (!session?.user?.id) {
+      return NextResponse.json({ success: false, error: 'Authentication required' }, { status: 401 });
+    }
+
     const body = await request.json();
 
     // Generate slug from name
@@ -58,30 +64,16 @@ export async function POST(request: NextRequest) {
       .replace(/^-|-$/g, '')
       + '-' + Date.now().toString(36);
 
-    // Ensure owner exists or create one
-    // In production, this would use session auth to get the userId
-    let ownerId = body.ownerId;
-    if (!ownerId && body.userId) {
-      const owner = await prisma.propertyOwner.upsert({
-        where: { userId: body.userId },
-        update: {},
-        create: { userId: body.userId, businessType: 'individual' },
-      });
-      ownerId = owner.id;
-    }
-
-    // If no auth context, create a temporary owner for demo purposes
-    if (!ownerId) {
-      // In production, return 401. For now, we'll persist as draft
-      return NextResponse.json({
-        success: true,
-        data: { message: 'Property data received. Sign in to save your listing.', draft: body },
-      }, { status: 200 });
-    }
+    // Ensure PropertyOwner exists for this user
+    const owner = await prisma.propertyOwner.upsert({
+      where: { userId: session.user.id },
+      update: {},
+      create: { userId: session.user.id, businessType: 'individual' },
+    });
 
     const property = await prisma.property.create({
       data: {
-        ownerId,
+        ownerId: owner.id,
         name: body.name,
         slug,
         description: body.description || null,

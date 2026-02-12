@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { auth } from '@/lib/auth';
 import prisma from '@/lib/prisma';
 
-// GET /api/properties/[id]/rooms — List rooms for a property
+// GET /api/properties/[id]/rooms — List rooms for a property (public)
 export async function GET(
   request: NextRequest,
   { params }: { params: { id: string } }
@@ -17,12 +18,29 @@ export async function GET(
   }
 }
 
-// POST /api/properties/[id]/rooms — Add a room
+// POST /api/properties/[id]/rooms — Add a room (auth + ownership required)
 export async function POST(
   request: NextRequest,
   { params }: { params: { id: string } }
 ) {
   try {
+    const session = await auth();
+    if (!session?.user?.id) {
+      return NextResponse.json({ success: false, error: 'Authentication required' }, { status: 401 });
+    }
+
+    // Verify ownership
+    const property = await prisma.property.findUnique({
+      where: { id: params.id },
+      include: { owner: { select: { userId: true } } },
+    });
+    if (!property) {
+      return NextResponse.json({ success: false, error: 'Property not found' }, { status: 404 });
+    }
+    if (property.owner.userId !== session.user.id) {
+      return NextResponse.json({ success: false, error: 'Forbidden' }, { status: 403 });
+    }
+
     const body = await request.json();
     const room = await prisma.propertyRoom.create({
       data: {

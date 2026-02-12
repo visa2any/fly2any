@@ -7,49 +7,34 @@ import { MaxWidthContainer } from '@/components/layout/MaxWidthContainer';
 import {
   BarChart3, Building2, Plus, TrendingUp, Eye, Star, Calendar, DollarSign,
   ChevronRight, Sparkles, Bell, Settings, MapPin, ExternalLink, Clock,
-  CheckCircle2, AlertCircle, PauseCircle, FileEdit, MoreHorizontal,
-  Users, ArrowUpRight, ArrowDownRight
+  CheckCircle2, AlertCircle, PauseCircle, FileEdit, Loader2,
+  Users, ArrowUpRight, ImageIcon
 } from 'lucide-react';
 
-// ------------------------------------------------------------------
-// MOCK DATA (replaced by API calls in production)
-// ------------------------------------------------------------------
-const MOCK_OVERVIEW = {
-  totalProperties: 3,
-  activeProperties: 2,
-  draftProperties: 1,
-  totalViews: 12847,
-  totalBookings: 234,
-  avgRating: 4.7,
-  estimatedMonthlyRevenue: 18500,
-};
-
-const MOCK_PROPERTIES = [
-  {
-    id: '1', name: 'Seaside Paradise Villa', propertyType: 'villa', city: 'Miami', country: 'US',
-    status: 'active', basePricePerNight: 450, currency: 'USD', viewCount: 8342, bookingCount: 156,
-    avgRating: 4.8, reviewCount: 89, coverImageUrl: 'https://images.unsplash.com/photo-1613490493576-7fde63acd811?w=400&q=70&auto=format',
-    roomCount: 4, imageCount: 12, publishedAt: '2024-06-15', updatedAt: '2025-02-10',
-  },
-  {
-    id: '2', name: 'Downtown Lux Apartment', propertyType: 'apartment', city: 'New York', country: 'US',
-    status: 'active', basePricePerNight: 220, currency: 'USD', viewCount: 4505, bookingCount: 78,
-    avgRating: 4.6, reviewCount: 45, coverImageUrl: 'https://images.unsplash.com/photo-1502672260266-1c1ef2d93688?w=400&q=70&auto=format',
-    roomCount: 2, imageCount: 8, publishedAt: '2024-09-01', updatedAt: '2025-02-08',
-  },
-  {
-    id: '3', name: 'Mountain Retreat Lodge', propertyType: 'lodge', city: 'Aspen', country: 'US',
-    status: 'draft', basePricePerNight: 380, currency: 'USD', viewCount: 0, bookingCount: 0,
-    avgRating: 0, reviewCount: 0, coverImageUrl: 'https://images.unsplash.com/photo-1520250497591-112f2f40a3f4?w=400&q=70&auto=format',
-    roomCount: 6, imageCount: 3, publishedAt: null, updatedAt: '2025-02-01',
-  },
-];
+interface DashboardOverview {
+  totalProperties: number;
+  activeProperties: number;
+  draftProperties: number;
+  totalViews: number;
+  totalBookings: number;
+  avgRating: number;
+  estimatedMonthlyRevenue: number;
+}
+interface DashboardProperty {
+  id: string; name: string; slug: string; propertyType: string;
+  city: string | null; country: string | null; status: string;
+  basePricePerNight: number | null; currency: string;
+  viewCount: number; bookingCount: number; avgRating: number;
+  reviewCount: number; coverImageUrl: string | null;
+  roomCount: number; imageCount: number;
+  publishedAt: string | null; updatedAt: string;
+}
 
 const QUICK_ACTIONS = [
   { label: 'Add Property', href: '/list-your-property/create', icon: Plus, color: 'from-yellow-400 to-amber-500' },
   { label: 'Calendar', href: '/host/calendar', icon: Calendar, color: 'from-blue-400 to-indigo-500' },
-  { label: 'Analytics', href: '/host/analytics', icon: BarChart3, color: 'from-emerald-400 to-green-500' },
-  { label: 'Settings', href: '/host/settings', icon: Settings, color: 'from-violet-400 to-purple-500' },
+  { label: 'Properties', href: '/host/properties', icon: Building2, color: 'from-emerald-400 to-green-500' },
+  { label: 'Bookings', href: '/host/bookings', icon: Users, color: 'from-violet-400 to-purple-500' },
 ];
 
 const STATUS_CONFIG: Record<string, { label: string; icon: typeof CheckCircle2; color: string; bg: string }> = {
@@ -61,8 +46,42 @@ const STATUS_CONFIG: Record<string, { label: string; icon: typeof CheckCircle2; 
 };
 
 export default function HostDashboard() {
-  const [overview] = useState(MOCK_OVERVIEW);
-  const [properties] = useState(MOCK_PROPERTIES);
+  const [overview, setOverview] = useState<DashboardOverview | null>(null);
+  const [properties, setProperties] = useState<DashboardProperty[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    async function fetchDashboard() {
+      try {
+        const res = await fetch('/api/properties/dashboard');
+        if (res.ok) {
+          const json = await res.json();
+          if (json.success) {
+            setOverview(json.data.overview);
+            setProperties(json.data.properties || []);
+          }
+        }
+      } catch (err) {
+        console.error('Dashboard fetch error:', err);
+      } finally {
+        setLoading(false);
+      }
+    }
+    fetchDashboard();
+  }, []);
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-[#0a0a0f] flex items-center justify-center">
+        <Loader2 className="w-8 h-8 text-white/30 animate-spin" />
+      </div>
+    );
+  }
+
+  const ov = overview || {
+    totalProperties: 0, activeProperties: 0, draftProperties: 0,
+    totalViews: 0, totalBookings: 0, avgRating: 0, estimatedMonthlyRevenue: 0,
+  };
 
   return (
     <div className="min-h-screen bg-[#0a0a0f] pt-4">
@@ -76,7 +95,6 @@ export default function HostDashboard() {
           <div className="flex items-center gap-3">
             <button className="w-10 h-10 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center text-white/50 hover:text-white hover:bg-white/10 transition-colors relative">
               <Bell className="w-5 h-5" />
-              <span className="absolute -top-1 -right-1 w-4 h-4 bg-red-500 rounded-full text-[10px] text-white font-bold flex items-center justify-center">3</span>
             </button>
             <Link
               href="/list-your-property/create"
@@ -91,22 +109,16 @@ export default function HostDashboard() {
         {/* ---------- Overview Cards ---------- */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
           {[
-            { label: 'Active Properties', value: overview.activeProperties, sub: `${overview.totalProperties} total`, icon: Building2, color: 'from-blue-500 to-indigo-500', change: null },
-            { label: 'Monthly Revenue', value: `$${overview.estimatedMonthlyRevenue.toLocaleString()}`, sub: 'estimated', icon: DollarSign, color: 'from-emerald-500 to-green-500', change: '+12%' },
-            { label: 'Total Views', value: overview.totalViews.toLocaleString(), sub: 'all time', icon: Eye, color: 'from-violet-500 to-purple-500', change: '+8%' },
-            { label: 'Avg Rating', value: overview.avgRating.toFixed(1), sub: `${overview.totalBookings} bookings`, icon: Star, color: 'from-amber-500 to-orange-500', change: null },
+            { label: 'Active Properties', value: ov.activeProperties, sub: `${ov.totalProperties} total`, icon: Building2, color: 'from-blue-500 to-indigo-500' },
+            { label: 'Monthly Revenue', value: `$${ov.estimatedMonthlyRevenue.toLocaleString()}`, sub: 'estimated', icon: DollarSign, color: 'from-emerald-500 to-green-500' },
+            { label: 'Total Views', value: ov.totalViews.toLocaleString(), sub: 'all time', icon: Eye, color: 'from-violet-500 to-purple-500' },
+            { label: 'Avg Rating', value: ov.avgRating > 0 ? ov.avgRating.toFixed(1) : '—', sub: `${ov.totalBookings} bookings`, icon: Star, color: 'from-amber-500 to-orange-500' },
           ].map((card, idx) => (
             <div key={idx} className="rounded-2xl bg-white/[0.03] border border-white/10 p-5 hover:bg-white/[0.06] transition-all duration-300">
               <div className="flex items-center justify-between mb-3">
                 <div className={`w-10 h-10 rounded-xl bg-gradient-to-br ${card.color} flex items-center justify-center`}>
                   <card.icon className="w-5 h-5 text-white" />
                 </div>
-                {card.change && (
-                  <span className="flex items-center gap-0.5 text-xs font-bold text-emerald-400">
-                    <ArrowUpRight className="w-3 h-3" />
-                    {card.change}
-                  </span>
-                )}
               </div>
               <div className="text-white font-black text-2xl mb-0.5">{card.value}</div>
               <div className="text-white/40 text-xs font-medium">{card.sub}</div>
@@ -139,98 +151,89 @@ export default function HostDashboard() {
             </Link>
           </div>
 
-          <div className="space-y-3">
-            {properties.map((property) => {
-              const statusCfg = STATUS_CONFIG[property.status] || STATUS_CONFIG.draft;
-              return (
-                <div key={property.id} className="flex items-center gap-4 p-4 rounded-2xl bg-white/[0.03] border border-white/10 hover:bg-white/[0.06] transition-all group">
-                  {/* Image */}
-                  <div className="relative w-20 h-20 md:w-24 md:h-24 rounded-xl overflow-hidden flex-shrink-0">
-                    <Image src={property.coverImageUrl} alt={property.name} fill className="object-cover" sizes="96px" />
-                  </div>
+          {properties.length === 0 ? (
+            <div className="flex flex-col items-center justify-center py-16 bg-white/[0.02] border border-white/5 rounded-2xl text-center">
+              <Building2 className="w-12 h-12 text-white/10 mb-4" />
+              <h3 className="text-white font-bold text-lg mb-2">No properties yet</h3>
+              <p className="text-white/40 text-sm mb-6 max-w-sm">List your first property to start managing it from your dashboard.</p>
+              <Link href="/list-your-property/create" className="px-6 py-3 rounded-xl bg-white text-black font-bold text-sm hover:scale-105 transition-transform">
+                List Your First Property
+              </Link>
+            </div>
+          ) : (
+            <div className="space-y-3">
+              {properties.slice(0, 5).map((property) => {
+                const statusCfg = STATUS_CONFIG[property.status] || STATUS_CONFIG.draft;
+                return (
+                  <div key={property.id} className="flex items-center gap-4 p-4 rounded-2xl bg-white/[0.03] border border-white/10 hover:bg-white/[0.06] transition-all group">
+                    <div className="relative w-20 h-20 md:w-24 md:h-24 rounded-xl overflow-hidden flex-shrink-0 bg-white/5">
+                      {property.coverImageUrl ? (
+                        <Image src={property.coverImageUrl} alt={property.name} fill className="object-cover" sizes="96px" />
+                      ) : (
+                        <div className="flex items-center justify-center h-full"><ImageIcon className="w-6 h-6 text-white/20" /></div>
+                      )}
+                    </div>
 
-                  {/* Info */}
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2 mb-1">
-                      <h3 className="text-white font-bold text-base truncate">{property.name}</h3>
-                      <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-md border text-xs font-semibold ${statusCfg.bg} ${statusCfg.color}`}>
-                        <statusCfg.icon className="w-3 h-3" />
-                        {statusCfg.label}
-                      </span>
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2 mb-1">
+                        <h3 className="text-white font-bold text-base truncate">{property.name}</h3>
+                        <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-md border text-xs font-semibold ${statusCfg.bg} ${statusCfg.color}`}>
+                          <statusCfg.icon className="w-3 h-3" />
+                          {statusCfg.label}
+                        </span>
+                      </div>
+                      <div className="flex items-center gap-3 text-white/40 text-xs mb-1.5">
+                        <span className="flex items-center gap-1"><MapPin className="w-3 h-3" />{property.city || '—'}{property.country ? `, ${property.country}` : ''}</span>
+                        <span className="capitalize">{(property.propertyType || '').replace('_', ' ')}</span>
+                        <span>{property.roomCount} rooms</span>
+                      </div>
+                      <div className="flex items-center gap-4 text-xs">
+                        <span className="text-white/60 font-semibold">${property.basePricePerNight ?? '—'}/night</span>
+                        <span className="flex items-center gap-1 text-white/40"><Eye className="w-3 h-3" />{property.viewCount.toLocaleString()} views</span>
+                        <span className="flex items-center gap-1 text-white/40"><Users className="w-3 h-3" />{property.bookingCount} bookings</span>
+                        {property.avgRating > 0 && (
+                          <span className="flex items-center gap-1 text-amber-400"><Star className="w-3 h-3 fill-amber-400" />{property.avgRating} ({property.reviewCount})</span>
+                        )}
+                      </div>
                     </div>
-                    <div className="flex items-center gap-3 text-white/40 text-xs mb-1.5">
-                      <span className="flex items-center gap-1"><MapPin className="w-3 h-3" />{property.city}, {property.country}</span>
-                      <span className="capitalize">{property.propertyType}</span>
-                      <span>{property.roomCount} rooms</span>
-                    </div>
-                    <div className="flex items-center gap-4 text-xs">
-                      <span className="text-white/60 font-semibold">${property.basePricePerNight}/night</span>
-                      <span className="flex items-center gap-1 text-white/40"><Eye className="w-3 h-3" />{property.viewCount.toLocaleString()} views</span>
-                      <span className="flex items-center gap-1 text-white/40"><Users className="w-3 h-3" />{property.bookingCount} bookings</span>
-                      {property.avgRating > 0 && (
-                        <span className="flex items-center gap-1 text-amber-400"><Star className="w-3 h-3 fill-amber-400" />{property.avgRating} ({property.reviewCount})</span>
+
+                    <div className="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                      <Link href={`/list-your-property/create?id=${property.id}`} className="px-3 py-2 rounded-lg bg-white/5 border border-white/10 text-white/60 hover:text-white text-xs font-semibold flex items-center gap-1">
+                        <FileEdit className="w-3.5 h-3.5" /> Edit
+                      </Link>
+                      {property.status === 'active' && (
+                        <Link href={`/properties/${property.slug || property.id}`} className="px-3 py-2 rounded-lg bg-white/5 border border-white/10 text-white/60 hover:text-white text-xs font-semibold flex items-center gap-1">
+                          <ExternalLink className="w-3.5 h-3.5" /> View
+                        </Link>
                       )}
                     </div>
                   </div>
-
-                  {/* Actions */}
-                  <div className="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                    <Link href={`/host/properties/${property.id}`} className="px-3 py-2 rounded-lg bg-white/5 border border-white/10 text-white/60 hover:text-white text-xs font-semibold flex items-center gap-1">
-                      <FileEdit className="w-3.5 h-3.5" /> Edit
-                    </Link>
-                    {property.status === 'active' && (
-                      <Link href={`/properties/${property.id}`} className="px-3 py-2 rounded-lg bg-white/5 border border-white/10 text-white/60 hover:text-white text-xs font-semibold flex items-center gap-1">
-                        <ExternalLink className="w-3.5 h-3.5" /> View
-                      </Link>
-                    )}
-                  </div>
-                </div>
-              );
-            })}
-          </div>
+                );
+              })}
+            </div>
+          )}
         </div>
 
         {/* ---------- AI Insights Banner ---------- */}
-        <div className="rounded-2xl bg-gradient-to-r from-violet-500/10 to-purple-500/5 border border-violet-500/20 p-6 mb-8">
-          <div className="flex items-start gap-4">
-            <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-violet-500 to-purple-600 flex items-center justify-center flex-shrink-0">
-              <Sparkles className="w-6 h-6 text-white" />
-            </div>
-            <div className="flex-1">
-              <h3 className="text-white font-bold text-lg mb-1">AI Insights</h3>
-              <p className="text-white/50 text-sm mb-3">
-                Your &ldquo;Seaside Paradise Villa&rdquo; could earn 23% more by adjusting pricing for the upcoming spring season.
-                Properties with 10+ photos get 40% more bookings — consider adding more photos to &ldquo;Downtown Lux Apartment&rdquo;.
-              </p>
-              <button className="flex items-center gap-1.5 text-violet-300 hover:text-violet-200 text-sm font-semibold">
-                <Sparkles className="w-4 h-4" />
-                View AI Recommendations
-              </button>
-            </div>
-          </div>
-        </div>
-
-        {/* ---------- Recent Activity (placeholder for future) ---------- */}
-        <div className="rounded-2xl bg-white/[0.03] border border-white/10 p-6 mb-8">
-          <h2 className="text-lg font-bold text-white mb-4">Recent Activity</h2>
-          <div className="space-y-3">
-            {[
-              { text: 'New booking request for Seaside Paradise Villa', time: '2 hours ago', icon: Users, color: 'text-blue-400' },
-              { text: 'Guest left a 5-star review for Downtown Lux Apartment', time: '1 day ago', icon: Star, color: 'text-amber-400' },
-              { text: 'Price alert: competitors in Miami reduced rates by 8%', time: '2 days ago', icon: TrendingUp, color: 'text-emerald-400' },
-            ].map((activity, idx) => (
-              <div key={idx} className="flex items-center gap-3 py-2">
-                <div className={`w-8 h-8 rounded-lg bg-white/5 flex items-center justify-center ${activity.color}`}>
-                  <activity.icon className="w-4 h-4" />
-                </div>
-                <div className="flex-1">
-                  <p className="text-white/70 text-sm">{activity.text}</p>
-                </div>
-                <span className="text-white/30 text-xs">{activity.time}</span>
+        {properties.length > 0 && (
+          <div className="rounded-2xl bg-gradient-to-r from-violet-500/10 to-purple-500/5 border border-violet-500/20 p-6 mb-8">
+            <div className="flex items-start gap-4">
+              <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-violet-500 to-purple-600 flex items-center justify-center flex-shrink-0">
+                <Sparkles className="w-6 h-6 text-white" />
               </div>
-            ))}
+              <div className="flex-1">
+                <h3 className="text-white font-bold text-lg mb-1">AI Insights</h3>
+                <p className="text-white/50 text-sm mb-3">
+                  Properties with 10+ photos get 40% more bookings. Consider adjusting pricing for the upcoming season based on local demand.
+                </p>
+                <button className="flex items-center gap-1.5 text-violet-300 hover:text-violet-200 text-sm font-semibold">
+                  <Sparkles className="w-4 h-4" />
+                  View AI Recommendations
+                </button>
+              </div>
+            </div>
           </div>
-        </div>
+        )}
       </MaxWidthContainer>
     </div>
   );
