@@ -27,7 +27,7 @@ export async function GET(request: NextRequest) {
         property: { select: { id: true, name: true, coverImageUrl: true } },
         user: { select: { id: true, name: true, email: true, image: true } },
       },
-      orderBy: { checkIn: 'desc' },
+      orderBy: { startDate: 'desc' },
     });
 
     return NextResponse.json({ success: true, data: bookings });

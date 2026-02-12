@@ -36,7 +36,9 @@ export default function HostSidebar() {
         {/* Navigation */}
         <nav className="flex-1 px-3 space-y-1">
           {NAV_ITEMS.map((item) => {
-            const isActive = pathname === item.href;
+            // Strip locale prefix (e.g. /pt-BR/host/dashboard → /host/dashboard) for matching
+            const cleanPath = pathname.replace(/^\/[a-z]{2}(-[A-Z]{2})?/, '') || '/';
+            const isActive = cleanPath === item.href || cleanPath.startsWith(item.href + '/');
             return (
               <Link
                 key={item.href}
@@ -65,7 +67,8 @@ export default function HostSidebar() {
       {/* Mobile Bottom Bar */}
       <nav className="md:hidden fixed bottom-0 inset-x-0 bg-[#0a0a0f]/95 backdrop-blur border-t border-white/10 z-50 flex">
         {NAV_ITEMS.map((item) => {
-          const isActive = pathname === item.href;
+          const cleanPath = pathname.replace(/^\/[a-z]{2}(-[A-Z]{2})?/, '') || '/';
+          const isActive = cleanPath === item.href || cleanPath.startsWith(item.href + '/');
           return (
             <Link
               key={item.href}

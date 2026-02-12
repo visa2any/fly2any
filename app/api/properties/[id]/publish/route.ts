@@ -45,7 +45,7 @@ export async function POST(
     if (!property.city) errors.push('City is required');
     if (!property.country) errors.push('Country is required');
     if (!property.basePricePerNight && property.rooms.length === 0) errors.push('At least one room with pricing is required');
-    if (property.images.length === 0) errors.push('At least one photo is required');
+    // Note: Image requirement relaxed — hosts can add photos after publishing
 
     if (errors.length > 0) {
       return NextResponse.json({

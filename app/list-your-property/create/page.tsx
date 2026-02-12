@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Image from 'next/image';
 import { MaxWidthContainer } from '@/components/layout/MaxWidthContainer';
@@ -39,6 +39,8 @@ export default function CreatePropertyPage() {
   const [importError, setImportError] = useState('');
   const [saving, setSaving] = useState(false);
   const [publishing, setPublishing] = useState(false);
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [successMessage, setSuccessMessage] = useState('');
 
   // Property Data
   const [propertyName, setPropertyName] = useState('');
@@ -79,6 +81,66 @@ export default function CreatePropertyPage() {
   const [minStay, setMinStay] = useState(1);
   const [instantBooking, setInstantBooking] = useState(true);
 
+
+  // ------------------------------------------------------------------
+  // URL PARAMS: Pre-select type (?type=) and load existing (?id=)
+  // ------------------------------------------------------------------
+  useEffect(() => {
+    // Pre-select property type from URL
+    const typeParam = searchParams.get('type');
+    if (typeParam) setPropertyType(typeParam as PropertyType);
+
+    // Edit mode: load existing property
+    const idParam = searchParams.get('id');
+    if (idParam) {
+      setEditingId(idParam);
+      setCurrentStep(2); // Skip import step when editing
+      (async () => {
+        try {
+          const res = await fetch(`/api/properties/${idParam}`);
+          const json = await res.json();
+          if (json.success && json.data) {
+            const p = json.data;
+            setPropertyName(p.name || '');
+            setDescription(p.description || '');
+            if (p.propertyType) setPropertyType(p.propertyType as PropertyType);
+            if (p.starRating) setStarRating(p.starRating);
+            setAddressLine1(p.addressLine1 || '');
+            setCity(p.city || '');
+            setState(p.state || '');
+            setCountry(p.country || '');
+            setPostalCode(p.postalCode || '');
+            if (p.amenities) setSelectedAmenities(p.amenities);
+            if (p.checkInTime) setCheckInTime(p.checkInTime);
+            if (p.checkOutTime) setCheckOutTime(p.checkOutTime);
+            if (p.cancellationPolicy) setCancellationPolicy(p.cancellationPolicy as CancellationPolicyType);
+            if (p.houseRules) setHouseRules(p.houseRules);
+            if (p.basePricePerNight) setBasePricePerNight(p.basePricePerNight);
+            if (p.cleaningFee) setCleaningFee(p.cleaningFee);
+            if (p.minStay) setMinStay(p.minStay);
+            if (p.maxGuests) setMaxGuests(p.maxGuests);
+            if (p.totalBathrooms) setTotalBathrooms(p.totalBathrooms);
+            setInstantBooking(p.instantBooking ?? true);
+            // Load rooms
+            if (p.rooms && p.rooms.length > 0) {
+              setRooms(p.rooms.map((r: any) => ({
+                name: r.name, roomType: r.roomType as RoomType, bedType: (r.bedType || 'queen') as BedType,
+                bedCount: r.bedCount || 1, maxOccupancy: r.maxOccupancy || 2,
+                basePricePerNight: r.basePricePerNight || 100, quantity: r.quantity || 1, amenities: r.amenities || [],
+              })));
+            }
+            // Load images
+            if (p.images && p.images.length > 0) {
+              setPhotos(p.images.map((img: any) => ({
+                url: img.url, caption: img.caption || '', category: img.category || 'general', isPrimary: img.isPrimary || false,
+              })));
+            }
+          }
+        } catch (e) { console.error('Failed to load property for editing:', e); }
+      })();
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   // ------------------------------------------------------------------
   // HANDLERS
@@ -177,25 +239,56 @@ export default function CreatePropertyPage() {
     }
   };
 
+  // Save image metadata (URLs that were imported or already hosted)
+  const saveImages = async (propertyId: string) => {
+    const externalPhotos = photos.filter((p) => p.url && !p.url.startsWith('blob:'));
+    if (externalPhotos.length === 0) return;
+    await fetch(`/api/properties/${propertyId}/images`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(
+        externalPhotos.map((p, idx) => ({
+          url: p.url,
+          caption: p.caption,
+          category: p.category,
+          isPrimary: p.isPrimary,
+          sortOrder: idx,
+        }))
+      ),
+    });
+  };
+
+  // Create or update property (returns property ID)
+  const saveProperty = async (): Promise<string | null> => {
+    const payload = buildPropertyPayload();
+    const isEdit = !!editingId;
+    const url = isEdit ? `/api/properties/${editingId}` : '/api/properties';
+    const method = isEdit ? 'PUT' : 'POST';
+
+    const res = await fetch(url, {
+      method,
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+    });
+    const data = await res.json();
+    if (!res.ok || !data.success) {
+      setPublishError(data.error || 'Failed to save property');
+      return null;
+    }
+    return isEdit ? editingId! : data.data.id;
+  };
+
   const handleSaveDraft = async () => {
     setSaving(true);
     setPublishError('');
     try {
-      const res = await fetch('/api/properties', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(buildPropertyPayload()),
-      });
-      const data = await res.json();
-      if (!res.ok || !data.success) {
-        setPublishError(data.error || 'Failed to save draft');
-        setSaving(false);
-        return;
-      }
-      // Save rooms
-      await saveRooms(data.data.id);
+      const propertyId = await saveProperty();
+      if (!propertyId) { setSaving(false); return; }
+      if (!editingId) await saveRooms(propertyId);
+      await saveImages(propertyId);
       setSaving(false);
-      router.push('/host/dashboard');
+      setSuccessMessage('Draft saved successfully!');
+      setTimeout(() => router.push('/host/dashboard'), 1200);
     } catch (err) {
       setPublishError('Network error. Please try again.');
       setSaving(false);
@@ -206,38 +299,31 @@ export default function CreatePropertyPage() {
     setPublishing(true);
     setPublishError('');
     try {
-      // 1. Create property
-      const res = await fetch('/api/properties', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(buildPropertyPayload()),
-      });
-      const data = await res.json();
-      if (!res.ok || !data.success) {
-        setPublishError(data.error || 'Failed to create property');
-        setPublishing(false);
-        return;
-      }
-      const propertyId = data.data.id;
+      // 1. Create or update property
+      const propertyId = await saveProperty();
+      if (!propertyId) { setPublishing(false); return; }
 
-      // 2. Save rooms
-      await saveRooms(propertyId);
+      // 2. Save rooms (only for new properties)
+      if (!editingId) await saveRooms(propertyId);
 
-      // 3. Publish (validate & go live)
+      // 3. Save images
+      await saveImages(propertyId);
+
+      // 4. Publish (validate & go live)
       const pubRes = await fetch(`/api/properties/${propertyId}/publish`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
       });
       const pubData = await pubRes.json();
       if (!pubRes.ok || !pubData.success) {
-        // Property saved as draft but publish validation failed
         setPublishError(pubData.validationErrors?.join(', ') || pubData.error || 'Publish validation failed — saved as draft.');
         setPublishing(false);
         return;
       }
 
       setPublishing(false);
-      router.push('/host/dashboard');
+      setSuccessMessage('Property published successfully!');
+      setTimeout(() => router.push('/host/dashboard'), 1200);
     } catch (err) {
       setPublishError('Network error. Please try again.');
       setPublishing(false);
@@ -251,6 +337,11 @@ export default function CreatePropertyPage() {
   // Navigation Buttons
   const NavButtons = () => (
     <div className="mt-12 border-t border-white/10 pt-6">
+      {successMessage && (
+        <div className="mb-4 p-3 rounded-xl bg-emerald-500/15 border border-emerald-500/30 text-emerald-300 text-sm flex items-center gap-2">
+          <Check className="w-4 h-4" /> {successMessage}
+        </div>
+      )}
       {publishError && (
         <div className="mb-4 p-3 rounded-xl bg-red-500/15 border border-red-500/30 text-red-300 text-sm">
           {publishError}

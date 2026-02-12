@@ -11,11 +11,11 @@ import {
 interface Booking {
   id: string;
   status: string;
-  checkIn: string;
-  checkOut: string;
+  startDate: string;
+  endDate: string;
   totalPrice: number | null;
   currency: string;
-  guests: number;
+  guestCount: number;
   property: { id: string; name: string; coverImageUrl: string | null };
   user: { id: string; name: string | null; email: string | null; image: string | null };
 }
@@ -129,8 +129,8 @@ export default function BookingsPage() {
                     </div>
                     <div className="flex items-center gap-4 text-white/40 text-xs">
                       <span>{booking.property.name}</span>
-                      <span className="flex items-center gap-1"><CalendarDays className="w-3 h-3" />{new Date(booking.checkIn).toLocaleDateString()} - {new Date(booking.checkOut).toLocaleDateString()}</span>
-                      <span className="flex items-center gap-1"><Users className="w-3 h-3" />{booking.guests} guests</span>
+                      <span className="flex items-center gap-1"><CalendarDays className="w-3 h-3" />{new Date(booking.startDate).toLocaleDateString()} - {new Date(booking.endDate).toLocaleDateString()}</span>
+                      <span className="flex items-center gap-1"><Users className="w-3 h-3" />{booking.guestCount} guests</span>
                     </div>
                   </div>
                   <div className="text-right">
