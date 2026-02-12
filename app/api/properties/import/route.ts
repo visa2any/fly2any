@@ -9,11 +9,8 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'URL is required' }, { status: 400 });
     }
 
-    // SIMULATED IMPORT LOGIC
-    // In a real app, this would use a scraping service (e.g. Apify) or specific APIs
-    
-    // Check supported domains
-    const isAirbnb = url.includes('airbnb.com');
+    // Validate supported domains
+    const isAirbnb = url.includes('airbnb');
     const isBooking = url.includes('booking.com');
     const isVrbo = url.includes('vrbo.com');
 
@@ -24,39 +21,88 @@ export async function POST(req: NextRequest) {
       }, { status: 400 });
     }
 
-    // Mock extraction based on URL keywords or random data for demo
-    // We try to extract an ID or slug to make it look "real"
-    const mockData = {
-      name: "Imported Property Title (Simulated)",
-      description: "This is a simulated import description. In production, this would be scraped from the external listing.",
-      propertyType: isAirbnb ? "apartment" : "hotel",
-      addressLine1: "123 Imported St",
-      city: "San Francisco",
-      country: "USA",
-      basePricePerNight: 150,
-      maxGuests: 4,
-      amenities: ["wifi", "kitchen", "air_conditioning"],
-      images: [
-        "https://images.unsplash.com/photo-1502672260266-1c1ef2d93688?w=800&q=80",
-        "https://images.unsplash.com/photo-1613490493576-7fde63acd811?w=800&q=80"
-      ] // Placeholder images
-    };
+    let scrapedData: any = {};
 
-    // Add specific details
-    if (isAirbnb) {
-      mockData.name = "Charming Airbnb Getaway";
-      mockData.description = "Imported from Airbnb. A lovely place to stay.";
-    } else if (isBooking) {
-      mockData.name = "Booking.com Validated Stay";
-      mockData.propertyType = "hotel";
+    try {
+        // Fetch the HTML content
+        const response = await fetch(url, {
+            headers: {
+                // Mimic a real browser to avoid immediate 403s
+                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+                'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8',
+                'Accept-Language': 'en-US,en;q=0.9',
+            },
+            next: { revalidate: 3600 } // Cache results for 1 hour
+        });
+        
+        if (response.ok) {
+            const html = await response.text();
+            
+            // Helper to extract meta content
+            const getMetaContent = (pattern: RegExp) => {
+                const match = html.match(pattern);
+                return match ? match[1] : null; // return captured group
+            };
+
+            // Extract OpenGraph tags
+            // Note: Different sites might use 'property' or 'name' attributes
+            const ogTitle = getMetaContent(/<meta\s+property="og:title"\s+content="([^"]*)"/i) || 
+                            getMetaContent(/<meta\s+name="title"\s+content="([^"]*)"/i);
+            
+            const ogDesc = getMetaContent(/<meta\s+property="og:description"\s+content="([^"]*)"/i) || 
+                           getMetaContent(/<meta\s+name="description"\s+content="([^"]*)"/i);
+                           
+            const ogImage = getMetaContent(/<meta\s+property="og:image"\s+content="([^"]*)"/i);
+
+            // Clean up title (remove site name if present)
+            // e.g. "Beautiful Apt - Apartments for Rent - Airbnb" -> "Beautiful Apt"
+            let cleanName = ogTitle || '';
+            if (cleanName) {
+                cleanName = cleanName.split(' - ')[0]; // Remove suffixes
+                cleanName = cleanName.split(' | ')[0];
+            }
+
+            scrapedData = {
+                name: cleanName || "Imported Property",
+                description: ogDesc || "",
+                image: ogImage || null
+            };
+        } else {
+            console.error('Fetch failed:', response.status);
+        }
+    } catch (e) {
+        console.error('Scraping error:', e);
     }
 
-    // Simulate network delay
-    await new Promise(resolve => setTimeout(resolve, 1500));
+    // Fallback ID extraction
+    let fallbackName = isAirbnb ? "New Airbnb Listing" : "New Property Listing";
+    if (!scrapedData.name) {
+        const airbnbId = url.match(/\/rooms\/(\d+)/)?.[1];
+        if (airbnbId) fallbackName = `Airbnb Listing #${airbnbId}`;
+        
+        const bookingId = url.match(/\/hotel\/[a-z]{2}\/([^.?]+)/)?.[1];
+        if (bookingId) fallbackName = `Booking.com: ${bookingId.replace(/-/g, ' ')}`;
+    }
+
+    // fallback / default values
+    const finalData = {
+      name: scrapedData.name || fallbackName,
+      description: scrapedData.description || "Description not available. Please add details manually.",
+      propertyType: isAirbnb ? "apartment" : "hotel",
+      addressLine1: "",
+      city: "",
+      country: "",
+      basePricePerNight: 0, 
+      maxGuests: 2,
+      amenities: [],
+      images: scrapedData.image ? [scrapedData.image] : [
+        "https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?w=800&q=80" // Generic fallback
+      ]
+    };
 
     return NextResponse.json({
       success: true,
-      data: mockData
+      data: finalData
     });
 
   } catch (error) {
