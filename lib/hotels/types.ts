@@ -170,7 +170,7 @@ export interface Hotel {
   rooms?: any[];
 
   // Metadata
-  source: 'Duffel Stays' | 'Amadeus' | 'LiteAPI' | 'Hotelbeds';
+  source: 'Duffel Stays' | 'Amadeus' | 'LiteAPI' | 'Hotelbeds' | 'Fly2Any';
   lastUpdated?: string;
 }
 

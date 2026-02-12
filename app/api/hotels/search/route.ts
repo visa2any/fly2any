@@ -1,4 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
+import prisma from '@/lib/prisma';
+import { mapPropertyToHotel } from '@/lib/mappers/property-mapper';
 import { liteAPI } from '@/lib/api/liteapi'; // ✅ Updated with amenities support
 import { searchHotels as searchHotelbeds, normalizeHotelbedsHotel } from '@/lib/api/hotelbeds';
 import { amadeus } from '@/lib/api/amadeus'; // ✅ Amadeus fallback
@@ -454,10 +456,54 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    // Combine results from all APIs (LiteAPI + Amadeus + Hotelbeds)
-    const allHotels = [...(liteAPIResults.hotels || []), ...(amadeusResults.hotels || []), ...(hotelbedsResults.hotels || [])];
+    // Native Fly2Any Properties Search
+    let nativeProperties: any[] = [];
+    try {
+      const lat = latitude;
+      const lng = longitude;
+      const radius = searchParams.radius || 15;
+      
+      // Simple bounding box for properties
+      const latDelta = radius / 111;
+      const lngDelta = radius / (111 * Math.cos(lat * (Math.PI / 180)));
 
-    console.log(`✅ Multi-API Results: LiteAPI (${liteAPIResults.hotels?.length || 0}) + Amadeus (${amadeusResults.hotels?.length || 0}) + Hotelbeds (${hotelbedsResults.hotels?.length || 0}) = ${allHotels.length} total`);
+      const nativeResults = await prisma.property.findMany({
+        where: {
+          status: 'active',
+          latitude: { gte: lat - latDelta, lte: lat + latDelta },
+          longitude: { gte: lng - lngDelta, lte: lng + lngDelta },
+          maxGuests: { gte: searchParams.guests?.adults || 1 },
+        },
+        include: {
+          rooms: true,
+          images: { orderBy: { sortOrder: 'asc' } },
+        },
+      });
+
+      const checkInObj = new Date(searchParams.checkIn!);
+      const checkOutObj = new Date(searchParams.checkOut!);
+      const nights = Math.max(1, Math.ceil((checkOutObj.getTime() - checkInObj.getTime()) / (1000 * 60 * 60 * 24)));
+
+      nativeProperties = nativeResults.map(p => 
+        mapPropertyToHotel(p as any, searchParams.checkIn!, searchParams.checkOut!, nights)
+      );
+      
+      if (nativeProperties.length > 0) {
+        console.log(`✅ Included ${nativeProperties.length} native Fly2Any properties`);
+      }
+    } catch (err: any) {
+      console.error('⚠️ Native property search failed:', err.message);
+    }
+
+    // Combine results from all APIs (LiteAPI + Amadeus + Hotelbeds + Fly2Any)
+    const allHotels = [
+      ...(liteAPIResults.hotels || []), 
+      ...(amadeusResults.hotels || []), 
+      ...(hotelbedsResults.hotels || []),
+      ...nativeProperties
+    ];
+
+    console.log(`✅ Multi-API Results: LiteAPI (${liteAPIResults.hotels?.length || 0}) + Amadeus (${amadeusResults.hotels?.length || 0}) + Fly2Any (${nativeProperties.length}) = ${allHotels.length} total`);
 
     // Deduplicate hotels by name + approximate location (within 100m radius)
     const deduplicatedHotels: Hotel[] = [];
@@ -624,11 +670,12 @@ export async function POST(request: NextRequest) {
       data: mappedHotels,
       meta: {
         count: mappedHotels.length,
-        sources: ['LiteAPI', 'Amadeus', 'Hotelbeds'],
+        sources: ['LiteAPI', 'Amadeus', 'Hotelbeds', 'Fly2Any'],
         apiResults: {
           liteAPI: results.meta.liteAPICount,
           amadeus: results.meta.amadeusCount,
           hotelbeds: results.meta.hotelbedsCount,
+          fly2any: nativeProperties.length,
           totalBeforeDedup: results.meta.totalBeforeDedup,
           totalAfterDedup: results.meta.totalAfterDedup,
         },
@@ -660,7 +707,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json(response, {
       headers: {
         'X-Cache-Status': 'MISS',
-        'X-API-Sources': 'LITEAPI,AMADEUS,HOTELBEDS',
+        'X-API-Sources': 'LITEAPI,AMADEUS,HOTELBEDS,FLY2ANY',
         'X-Performance-Mode': 'MULTI-API-AGGREGATION',
         'X-Hotel-Count-LiteAPI': results.meta.liteAPICount.toString(),
         'X-Hotel-Count-Amadeus': results.meta.amadeusCount.toString(),

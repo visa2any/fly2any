@@ -74,7 +74,6 @@ model User {
   wishlistItems            WishlistItem[]
   worldCupBookings         WorldCupBooking[]
   propertyOwner            PropertyOwner?              @relation("UserPropertyOwner")
-  propertyBookings         PropertyBooking[]
 
   @@map("users")
 }
@@ -1647,17 +1646,17 @@ model Commission {
   tripCompletedAt         DateTime?
   status                  String            @default("pending")
   /// *
-  /// * Enhanced Status Flow:
-  /// * - 'pending': Booking created, waiting for trip
-  /// * - 'trip_in_progress': Trip started
-  /// * - 'trip_completed': Trip finished successfully
-  /// * - 'in_hold_period': Waiting for hold period to expire
-  /// * - 'available': Ready for payout
-  /// * - 'payout_requested': Included in payout request
-  /// * - 'payout_approved': Admin approved payout
-  /// * - 'paid': Money sent
-  /// * - 'cancelled': Booking cancelled before trip
-  /// * - 'reversed': Refunded after payout (clawback)
+  ///    * Enhanced Status Flow:
+  ///    * - 'pending': Booking created, waiting for trip
+  ///    * - 'trip_in_progress': Trip started
+  ///    * - 'trip_completed': Trip finished successfully
+  ///    * - 'in_hold_period': Waiting for hold period to expire
+  ///    * - 'available': Ready for payout
+  ///    * - 'payout_requested': Included in payout request
+  ///    * - 'payout_approved': Admin approved payout
+  ///    * - 'paid': Money sent
+  ///    * - 'cancelled': Booking cancelled before trip
+  ///    * - 'reversed': Refunded after payout (clawback)
   statusHistory           Json?
   holdPeriodDays          Int               @default(30)
   holdPeriodEndsAt        DateTime?
@@ -1932,7 +1931,6 @@ model TravelAgent {
   createdAt              DateTime                 @default(now())
   updatedAt              DateTime                 @updatedAt
   lastLoginAt            DateTime?
-  markupRules            AgencyMarkupRule[]       @relation("AgencyMarkupRules")
   activityLogs           AgentActivityLog[]
   bookings               AgentBooking[]
   clients                AgentClient[]
@@ -1944,9 +1942,10 @@ model TravelAgent {
   suppliers              AgentSupplier[]          @relation("AgentSuppliers")
   team                   AgentTeamMember[]        @relation("AgencyTeam")
   memberOf               AgentTeamMember[]        @relation("AgentMemberships")
+  markupRules            AgencyMarkupRule[]       @relation("AgencyMarkupRules")
+  quoteTemplates         QuoteTemplate[]          @relation("AgentQuoteTemplates")
   quoteAnalytics         QuoteAnalytics[]         @relation("AgentQuoteAnalytics")
   quoteComparisons       QuoteComparison[]        @relation("AgentQuoteComparisons")
-  quoteTemplates         QuoteTemplate[]          @relation("AgentQuoteTemplates")
   user                   User                     @relation("UserTravelAgent", fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([tier, status])
@@ -1957,23 +1956,23 @@ model TravelAgent {
 }
 
 model AgencyMarkupRule {
-  id              String      @id @default(cuid())
-  agencyId        String
-  name            String
-  description     String?
-  productType     String?
-  minPrice        Float?
-  maxPrice        Float?
-  minMarkup       Float       @default(5)
-  maxMarkup       Float       @default(50)
-  suggestedMarkup Float       @default(15)
-  appliesToAll    Boolean     @default(true)
-  agentIds        String[]
-  priority        Int         @default(0)
-  active          Boolean     @default(true)
-  createdAt       DateTime    @default(now())
-  updatedAt       DateTime    @updatedAt
-  agency          TravelAgent @relation("AgencyMarkupRules", fields: [agencyId], references: [id], onDelete: Cascade)
+  id                String      @id @default(cuid())
+  agencyId          String
+  name              String
+  description       String?
+  productType       String?     // FLIGHT, HOTEL, ACTIVITY, TRANSFER, ALL
+  minPrice          Float?
+  maxPrice          Float?
+  minMarkup         Float       @default(5)
+  maxMarkup         Float       @default(50)
+  suggestedMarkup   Float       @default(15)
+  appliesToAll      Boolean     @default(true)
+  agentIds          String[]
+  priority          Int         @default(0)
+  active            Boolean     @default(true)
+  createdAt         DateTime    @default(now())
+  updatedAt         DateTime    @updatedAt
+  agency            TravelAgent @relation("AgencyMarkupRules", fields: [agencyId], references: [id], onDelete: Cascade)
 
   @@index([agencyId, active])
   @@map("agency_markup_rules")
@@ -2062,102 +2061,103 @@ model AgentClient {
 }
 
 model AgentQuote {
-  id                      String            @id @default(cuid())
-  quoteNumber             String            @unique
-  agentId                 String
-  clientId                String
-  tripName                String
-  destination             String
-  startDate               DateTime
-  endDate                 DateTime
-  duration                Int
-  travelers               Int
-  adults                  Int               @default(1)
-  children                Int               @default(0)
-  infants                 Int               @default(0)
-  flights                 Json[]
-  hotels                  Json[]
-  activities              Json[]
-  transfers               Json[]
-  carRentals              Json[]
-  insurance               Json?
-  customItems             Json[]
-  flightsCost             Float             @default(0)
-  hotelsCost              Float             @default(0)
-  activitiesCost          Float             @default(0)
-  transfersCost           Float             @default(0)
-  carRentalsCost          Float             @default(0)
-  insuranceCost           Float             @default(0)
-  customItemsCost         Float             @default(0)
-  subtotal                Float
-  agentMarkup             Float
-  agentMarkupPercent      Float?
-  taxes                   Float             @default(0)
-  fees                    Float             @default(0)
-  discount                Float             @default(0)
-  total                   Float
-  currency                String            @default("USD")
-  showCommissionToClient  Boolean           @default(false)
-  commissionLabel         String?
-  hideMarkupBreakdown     Boolean           @default(true)
-  version                 Int               @default(1)
-  versionName             String?
-  parentQuoteId           String?
-  isAlternative           Boolean           @default(false)
-  status                  QuoteStatus       @default(DRAFT)
-  expiresAt               DateTime
-  sentAt                  DateTime?
-  viewedAt                DateTime?
-  viewCount               Int               @default(0)
-  lastViewedAt            DateTime?
-  acceptedAt              DateTime?
-  declinedAt              DateTime?
-  declineReason           String?
-  clientFeedback          String?
-  modificationRequests    String?
-  agentNotes              String?
-  notes                   String?
-  sharedWithClient        Boolean           @default(false)
-  itineraryTemplate       String?
-  itineraryContent        Json?
-  customNotes             String?
-  inclusions              String[]
-  exclusions              String[]
-  importantInfo           String?
-  termsAndConditions      String?
-  pdfUrl                  String?
-  shareableLink           String?           @unique
-  linkPassword            String?
-  linkExpiresAt           DateTime?
-  emailSentCount          Int               @default(0)
-  smsSentCount            Int               @default(0)
-  convertedToBooking      Boolean           @default(false)
-  bookingId               String?           @unique
-  convertedAt             DateTime?
-  sharedWithTeam          Boolean           @default(false)
-  assignedTo              String?
-  depositRequired         Boolean           @default(false)
-  depositAmount           Float?
-  depositDueDate          DateTime?
-  finalPaymentDueDate     DateTime?
-  timeToView              Int?
-  timeToAccept            Int?
-  timeToDecline           Int?
-  createdAt               DateTime          @default(now())
-  updatedAt               DateTime          @updatedAt
-  deletedAt               DateTime?
-  paidAmount              Float?
-  paidAt                  DateTime?
-  paymentLink             String?
-  paymentLinkId           String?           @unique
-  paymentStatus           PaymentLinkStatus @default(UNPAID)
-  stripeCheckoutSessionId String?           @unique
-  stripePaymentIntentId   String?           @unique
-  booking                 AgentBooking?
-  agent                   TravelAgent       @relation(fields: [agentId], references: [id], onDelete: Cascade)
-  client                  AgentClient       @relation(fields: [clientId], references: [id], onDelete: Cascade)
-  messages                QuoteMessage[]
-  views                   QuoteView[]
+  id                     String        @id @default(cuid())
+  quoteNumber            String        @unique
+  agentId                String
+  clientId               String
+  tripName               String
+  destination            String
+  startDate              DateTime
+  endDate                DateTime
+  duration               Int
+  travelers              Int
+  adults                 Int           @default(1)
+  children               Int           @default(0)
+  infants                Int           @default(0)
+  flights                Json[]
+  hotels                 Json[]
+  activities             Json[]
+  transfers              Json[]
+  carRentals             Json[]
+  insurance              Json?
+  customItems            Json[]
+  flightsCost            Float         @default(0)
+  hotelsCost             Float         @default(0)
+  activitiesCost         Float         @default(0)
+  transfersCost          Float         @default(0)
+  carRentalsCost         Float         @default(0)
+  insuranceCost          Float         @default(0)
+  customItemsCost        Float         @default(0)
+  subtotal               Float
+  agentMarkup            Float
+  agentMarkupPercent     Float?
+  taxes                  Float         @default(0)
+  fees                   Float         @default(0)
+  discount               Float         @default(0)
+  total                  Float
+  currency               String        @default("USD")
+  showCommissionToClient Boolean       @default(false)
+  commissionLabel        String?
+  hideMarkupBreakdown    Boolean       @default(true)
+  version                Int           @default(1)
+  versionName            String?
+  parentQuoteId          String?
+  isAlternative          Boolean       @default(false)
+  status                 QuoteStatus   @default(DRAFT)
+  expiresAt              DateTime
+  sentAt                 DateTime?
+  viewedAt               DateTime?
+  viewCount              Int           @default(0)
+  lastViewedAt           DateTime?
+  acceptedAt             DateTime?
+  declinedAt             DateTime?
+  declineReason          String?
+  clientFeedback         String?
+  modificationRequests   String?
+  agentNotes             String?
+  notes                  String?
+  sharedWithClient       Boolean       @default(false)
+  itineraryTemplate      String?
+  itineraryContent       Json?
+  customNotes            String?
+  inclusions             String[]
+  exclusions             String[]
+  importantInfo          String?
+  termsAndConditions     String?
+  pdfUrl                 String?
+  shareableLink          String?       @unique
+  linkPassword           String?
+  linkExpiresAt          DateTime?
+  // Payment Link System
+  paymentLinkId          String?       @unique
+  paymentLink            String?
+  paymentStatus          PaymentLinkStatus @default(UNPAID)
+  paidAt                 DateTime?
+  paidAmount             Float?
+  stripePaymentIntentId  String?       @unique
+  stripeCheckoutSessionId String?      @unique
+  emailSentCount         Int           @default(0)
+  smsSentCount           Int           @default(0)
+  convertedToBooking     Boolean       @default(false)
+  bookingId              String?       @unique
+  convertedAt            DateTime?
+  sharedWithTeam         Boolean       @default(false)
+  assignedTo             String?
+  depositRequired        Boolean       @default(false)
+  depositAmount          Float?
+  depositDueDate         DateTime?
+  finalPaymentDueDate    DateTime?
+  timeToView             Int?
+  timeToAccept           Int?
+  timeToDecline          Int?
+  createdAt              DateTime      @default(now())
+  updatedAt              DateTime      @updatedAt
+  deletedAt              DateTime?
+  booking                AgentBooking?
+  agent                  TravelAgent   @relation(fields: [agentId], references: [id], onDelete: Cascade)
+  client                 AgentClient   @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  views                  QuoteView[]
+  messages               QuoteMessage[]
 
   @@index([agentId, status])
   @@index([clientId, status])
@@ -2552,41 +2552,49 @@ model AgentActivityLog {
   @@map("agent_activity_logs")
 }
 
+// ============================================
+// QUOTE SYSTEM EXTENSIONS
+// ============================================
+
 model QuoteTemplate {
-  id                 String      @id @default(cuid())
-  agentId            String
-  name               String
-  description        String?
-  category           String?
-  isDefault          Boolean     @default(false)
-  isPublic           Boolean     @default(false)
-  usageCount         Int         @default(0)
-  tripName           String?
-  destination        String?
-  duration           Int?
-  travelers          Int?
-  adults             Int?
-  children           Int?
-  infants            Int?
-  flights            Json[]
-  hotels             Json[]
-  activities         Json[]
-  transfers          Json[]
-  carRentals         Json[]
-  insurance          Json?
-  customItems        Json[]
+  id              String      @id @default(cuid())
+  agentId         String
+  name            String
+  description     String?
+  category        String?     // honeymoon, business, family, luxury, budget
+  isDefault       Boolean     @default(false)
+  isPublic        Boolean     @default(false)
+  usageCount      Int         @default(0)
+  // Template Data
+  tripName        String?
+  destination     String?
+  duration        Int?
+  travelers       Int?
+  adults          Int?
+  children        Int?
+  infants         Int?
+  flights         Json[]
+  hotels          Json[]
+  activities      Json[]
+  transfers       Json[]
+  carRentals      Json[]
+  insurance       Json?
+  customItems     Json[]
+  // Pricing defaults
   agentMarkupPercent Float?
-  taxes              Float?
-  fees               Float?
-  inclusions         String[]
-  exclusions         String[]
-  importantInfo      String?
+  taxes           Float?
+  fees            Float?
+  // Content
+  inclusions      String[]
+  exclusions      String[]
+  importantInfo   String?
   termsAndConditions String?
-  customNotes        String?
-  lastUsedAt         DateTime?
-  createdAt          DateTime    @default(now())
-  updatedAt          DateTime    @updatedAt
-  agent              TravelAgent @relation("AgentQuoteTemplates", fields: [agentId], references: [id], onDelete: Cascade)
+  customNotes     String?
+  // Metadata
+  lastUsedAt      DateTime?
+  createdAt       DateTime    @default(now())
+  updatedAt       DateTime    @updatedAt
+  agent           TravelAgent @relation("AgentQuoteTemplates", fields: [agentId], references: [id], onDelete: Cascade)
 
   @@index([agentId])
   @@index([category])
@@ -2595,24 +2603,24 @@ model QuoteTemplate {
 }
 
 model QuoteView {
-  id             String     @id @default(cuid())
-  quoteId        String
-  sessionId      String?
-  ipAddress      String?
-  userAgent      String?
-  device         String?
-  browser        String?
-  os             String?
-  country        String?
-  city           String?
-  referrer       String?
-  duration       Int?
-  scrollDepth    Int?
-  sectionsViewed String[]
-  clickedCTA     Boolean    @default(false)
-  ctaType        String?
-  createdAt      DateTime   @default(now())
-  quote          AgentQuote @relation(fields: [quoteId], references: [id], onDelete: Cascade)
+  id            String    @id @default(cuid())
+  quoteId       String
+  sessionId     String?
+  ipAddress     String?
+  userAgent     String?
+  device        String?   // mobile, tablet, desktop
+  browser       String?
+  os            String?
+  country       String?
+  city          String?
+  referrer      String?
+  duration      Int?      // seconds spent viewing
+  scrollDepth   Int?      // 0-100 percentage
+  sectionsViewed String[] // intro, itinerary, pricing, etc.
+  clickedCTA    Boolean   @default(false)
+  ctaType       String?   // accept, decline, download, share
+  createdAt     DateTime  @default(now())
+  quote         AgentQuote @relation(fields: [quoteId], references: [id], onDelete: Cascade)
 
   @@index([quoteId])
   @@index([createdAt])
@@ -2620,42 +2628,48 @@ model QuoteView {
 }
 
 model QuoteAnalytics {
-  id                 String      @id @default(cuid())
-  agentId            String
-  period             String
-  periodStart        DateTime
-  periodEnd          DateTime
-  totalQuotes        Int         @default(0)
-  draftQuotes        Int         @default(0)
-  sentQuotes         Int         @default(0)
-  viewedQuotes       Int         @default(0)
-  acceptedQuotes     Int         @default(0)
-  declinedQuotes     Int         @default(0)
-  expiredQuotes      Int         @default(0)
-  convertedQuotes    Int         @default(0)
-  totalQuoteValue    Float       @default(0)
-  avgQuoteValue      Float       @default(0)
-  totalAcceptedValue Float       @default(0)
-  totalDeclinedValue Float       @default(0)
-  avgTimeToView      Float?
-  avgTimeToAccept    Float?
-  avgTimeToDecline   Float?
-  conversionRate     Float       @default(0)
-  viewRate           Float       @default(0)
-  totalViews         Int         @default(0)
-  uniqueViews        Int         @default(0)
-  avgViewDuration    Float?
-  avgScrollDepth     Float?
-  mobileViews        Int         @default(0)
-  desktopViews       Int         @default(0)
-  emailsSent         Int         @default(0)
-  smsSent            Int         @default(0)
-  whatsappSent       Int         @default(0)
-  topDestinations    Json?
-  topProducts        Json?
-  createdAt          DateTime    @default(now())
-  updatedAt          DateTime    @updatedAt
-  agent              TravelAgent @relation("AgentQuoteAnalytics", fields: [agentId], references: [id], onDelete: Cascade)
+  id                  String   @id @default(cuid())
+  agentId             String
+  period              String   // daily, weekly, monthly
+  periodStart         DateTime
+  periodEnd           DateTime
+  // Quote Metrics
+  totalQuotes         Int      @default(0)
+  draftQuotes         Int      @default(0)
+  sentQuotes          Int      @default(0)
+  viewedQuotes        Int      @default(0)
+  acceptedQuotes      Int      @default(0)
+  declinedQuotes      Int      @default(0)
+  expiredQuotes       Int      @default(0)
+  convertedQuotes     Int      @default(0)
+  // Financial
+  totalQuoteValue     Float    @default(0)
+  avgQuoteValue       Float    @default(0)
+  totalAcceptedValue  Float    @default(0)
+  totalDeclinedValue  Float    @default(0)
+  // Performance
+  avgTimeToView       Float?   // minutes
+  avgTimeToAccept     Float?   // minutes
+  avgTimeToDecline    Float?   // minutes
+  conversionRate      Float    @default(0)
+  viewRate            Float    @default(0)
+  // Engagement
+  totalViews          Int      @default(0)
+  uniqueViews         Int      @default(0)
+  avgViewDuration     Float?
+  avgScrollDepth      Float?
+  mobileViews         Int      @default(0)
+  desktopViews        Int      @default(0)
+  // Delivery
+  emailsSent          Int      @default(0)
+  smsSent             Int      @default(0)
+  whatsappSent        Int      @default(0)
+  // Top performers
+  topDestinations     Json?
+  topProducts         Json?
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
+  agent               TravelAgent @relation("AgentQuoteAnalytics", fields: [agentId], references: [id], onDelete: Cascade)
 
   @@unique([agentId, period, periodStart])
   @@index([agentId, period])
@@ -2664,21 +2678,21 @@ model QuoteAnalytics {
 }
 
 model QuoteComparison {
-  id            String      @id @default(cuid())
-  agentId       String
-  clientId      String
-  name          String
-  description   String?
-  quoteIds      String[]
-  isActive      Boolean     @default(true)
-  shareableLink String?     @unique
-  viewCount     Int         @default(0)
-  lastViewedAt  DateTime?
-  createdAt     DateTime    @default(now())
-  updatedAt     DateTime    @updatedAt
-  expiresAt     DateTime?
-  agent         TravelAgent @relation("AgentQuoteComparisons", fields: [agentId], references: [id], onDelete: Cascade)
-  client        AgentClient @relation("ClientQuoteComparisons", fields: [clientId], references: [id], onDelete: Cascade)
+  id          String   @id @default(cuid())
+  agentId     String
+  clientId    String
+  name        String
+  description String?
+  quoteIds    String[] // Array of quote IDs to compare
+  isActive    Boolean  @default(true)
+  shareableLink String? @unique
+  viewCount   Int      @default(0)
+  lastViewedAt DateTime?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  expiresAt   DateTime?
+  agent       TravelAgent @relation("AgentQuoteComparisons", fields: [agentId], references: [id], onDelete: Cascade)
+  client      AgentClient @relation("ClientQuoteComparisons", fields: [clientId], references: [id], onDelete: Cascade)
 
   @@index([agentId])
   @@index([clientId])
@@ -2686,20 +2700,20 @@ model QuoteComparison {
 }
 
 model QuoteMessage {
-  id          String     @id @default(cuid())
+  id          String    @id @default(cuid())
   quoteId     String
-  channel     String
+  channel     String    // email, sms, whatsapp
   recipient   String
   subject     String?
   content     String
-  status      String     @default("pending")
+  status      String    @default("pending") // pending, sent, delivered, failed
   sentAt      DateTime?
   deliveredAt DateTime?
   failedAt    DateTime?
   failReason  String?
-  externalId  String?
+  externalId  String?   // Twilio SID, etc.
   metadata    Json?
-  createdAt   DateTime   @default(now())
+  createdAt   DateTime  @default(now())
   quote       AgentQuote @relation(fields: [quoteId], references: [id], onDelete: Cascade)
 
   @@index([quoteId])
@@ -3834,97 +3848,6 @@ model SocialPostLog {
   @@map("social_post_logs")
 }
 
-/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
-/// This model contains an expression index which requires additional setup for migrations. Visit https://pris.ly/d/expression-indexes for more info.
-model bookings {
-  id                         String    @id @db.VarChar(255)
-  user_id                    String?   @db.Uuid
-  booking_type               String?   @default("flight") @db.VarChar(20)
-  booking_reference          String    @unique @db.VarChar(100)
-  status                     String    @db.VarChar(20)
-  contact_info               Json
-  guest_email                String?   @db.VarChar(255)
-  guest_first_name           String?   @db.VarChar(100)
-  guest_last_name            String?   @db.VarChar(100)
-  guest_phone                String?   @db.VarChar(20)
-  booking_details            Json?
-  flight                     Json?
-  passengers                 Json?
-  seats                      Json?
-  total_amount               Decimal?  @db.Decimal(10, 2)
-  currency                   String?   @default("USD") @db.VarChar(3)
-  commission_amount          Decimal?  @db.Decimal(10, 2)
-  payment_status             String?   @default("pending") @db.VarChar(20)
-  payment_method             String?   @db.VarChar(50)
-  payment_intent_id          String?   @db.VarChar(255)
-  payment                    Json?
-  provider                   String?   @db.VarChar(50)
-  provider_booking_id        String?   @db.VarChar(255)
-  provider_confirmation_code String?   @db.VarChar(100)
-  special_requests           Json?
-  notes                      String?
-  cancellation_reason        String?
-  refund_policy              Json?
-  booking_date               DateTime? @default(now()) @db.Timestamp(6)
-  travel_date_from           DateTime? @db.Date
-  travel_date_to             DateTime? @db.Date
-  cancelled_at               DateTime? @db.Timestamp(6)
-  deleted_at                 DateTime? @db.Timestamp(6)
-  created_at                 DateTime? @default(now()) @db.Timestamp(6)
-  updated_at                 DateTime? @default(now()) @db.Timestamp(6)
-  source_api                 String?   @db.VarChar(20)
-  duffel_order_id            String?   @db.VarChar(255)
-  duffel_booking_reference   String?   @db.VarChar(100)
-  amadeus_booking_id         String?   @db.VarChar(255)
-  airline_record_locator     String?   @db.VarChar(100)
-  ticketing_status           String?   @db.VarChar(50)
-  net_price                  Decimal?  @db.Decimal(10, 2)
-  customer_price             Decimal?  @db.Decimal(10, 2)
-  markup_amount              Decimal?  @db.Decimal(10, 2)
-  duffel_cost                Decimal?  @db.Decimal(10, 2)
-  consolidator_cost          Decimal?  @db.Decimal(10, 2)
-  net_profit                 Decimal?  @db.Decimal(10, 2)
-  routing_channel            String?   @db.VarChar(50)
-  routing_reason             String?   @db.VarChar(100)
-  is_hold                    Boolean?  @default(false)
-  hold_expires_at            DateTime? @db.Timestamp(6)
-  fare_upgrade               Json?
-  bundle                     Json?
-  add_ons                    Json?
-  promo_code                 Json?
-  e_tickets                  Json?
-  documents                  Json?
-  last_synced_at             DateTime? @db.Timestamp(6)
-  sync_status                String?   @default("pending") @db.VarChar(20)
-  sync_error                 String?
-  provider_status            String?   @db.VarChar(50)
-  provider_last_update       DateTime? @db.Timestamp(6)
-  is_separate_tickets        Boolean?  @default(false)
-  outbound_provider          String?   @db.VarChar(20)
-  outbound_order_id          String?   @db.VarChar(255)
-  outbound_pnr               String?   @db.VarChar(50)
-  return_provider            String?   @db.VarChar(20)
-  return_order_id            String?   @db.VarChar(255)
-  return_pnr                 String?   @db.VarChar(50)
-  duffel_order_raw           Json?
-  amadeus_order_raw          Json?
-  cancellation_policy        Json?
-  change_policy              Json?
-  services                   Json?
-  available_services         Json?
-  duffel_payment_status      String?   @db.VarChar(30)
-  duffel_balance_due         Decimal?  @db.Decimal(10, 2)
-
-  @@index([created_at(sort: Desc)], map: "idx_bookings_created_at")
-  @@index([duffel_order_id], map: "idx_bookings_duffel_order")
-  @@index([guest_email], map: "idx_bookings_guest_email")
-  @@index([last_synced_at], map: "idx_bookings_last_synced")
-  @@index([booking_reference], map: "idx_bookings_reference")
-  @@index([source_api], map: "idx_bookings_source_api")
-  @@index([status], map: "idx_bookings_status")
-  @@index([sync_status], map: "idx_bookings_sync_status")
-}
-
 enum AgentTier {
   INDEPENDENT
   PROFESSIONAL
@@ -4115,8 +4038,6 @@ enum AircraftCategory {
   FREIGHTER
 }
 
-
-
 enum AirportType {
   LARGE
   MEDIUM
@@ -4127,7 +4048,6 @@ enum AirportType {
 
 // ============================================================================
 // LIST YOUR PROPERTY - Host & Property Owner System
-
 // ============================================================================
 
 model PropertyOwner {
@@ -4176,8 +4096,9 @@ model Property {
   slug                  String                 @unique
   description           String?
   shortDescription      String?
-  propertyType          String                 @default("hotel")
-  starRating            Int?
+  propertyType          String                 @default("hotel") // hotel, apartment, villa, resort, hostel, guesthouse, bed_and_breakfast, lodge, motel, boutique_hotel, vacation_rental
+  starRating            Int?                   // 1-5
+  // Location
   addressLine1          String
   addressLine2          String?
   city                  String
@@ -4188,56 +4109,66 @@ model Property {
   latitude              Float
   longitude             Float
   neighborhood          String?
+  // Contact
   phone                 String?
   email                 String?
   website               String?
-  amenities             String[]
-  highlights            String[]
-  languages             String[]
-  accessibilityFeatures String[]
-  checkInTime           String?
-  checkOutTime          String?
+  // Amenities & Features (stored as JSON arrays for flexibility)
+  amenities             String[]               // wifi, pool, parking, gym, spa, etc.
+  highlights            String[]               // "Ocean view", "Rooftop bar", etc.
+  languages             String[]               // Languages spoken by staff
+  accessibilityFeatures String[]               // wheelchair, elevator, braille, etc.
+  // Policies
+  checkInTime           String?                // "15:00"
+  checkOutTime          String?                // "11:00"
   checkInInstructions   String?
-  cancellationPolicy    String                 @default("flexible")
-  cancellationDetails   Json?
+  cancellationPolicy    String                 @default("flexible") // flexible, moderate, strict, super_strict
+  cancellationDetails   Json?                  // { freeCancelDays, penaltyPercent, ... }
   houseRules            String[]
-  petPolicy             String?
-  smokingPolicy         String?
+  petPolicy             String?                // not_allowed, allowed, allowed_with_fee
+  smokingPolicy         String?                // not_allowed, designated_areas, allowed
   childPolicy           String?
   minAge                Int?
+  // Pricing
   basePricePerNight     Float?
   currency              String                 @default("USD")
   cleaningFee           Float?
   serviceFee            Float?
   securityDeposit       Float?
   taxRate               Float?
-  weeklyDiscount        Float?
-  monthlyDiscount       Float?
+  weeklyDiscount        Float?                 // percentage
+  monthlyDiscount       Float?                 // percentage
   instantBooking        Boolean                @default(true)
-  minStay               Int                    @default(1)
-  maxStay               Int?
+  minStay               Int                    @default(1)  // minimum nights
+  maxStay               Int?                   // maximum nights
+  // Capacity
   maxGuests             Int                    @default(2)
   totalRooms            Int                    @default(1)
   totalBathrooms        Float                  @default(1)
   totalBedrooms         Int                    @default(1)
   totalBeds             Int                    @default(1)
-  sustainabilityScore   Int?
-  ecoFeatures           String[]
+  // Sustainability
+  sustainabilityScore   Int?                   // 0-100
+  ecoFeatures           String[]               // solar_panels, recycling, ev_charging, etc.
   ecoCertifications     String[]
-  status                String                 @default("draft")
+  // Status & Moderation
+  status                String                 @default("draft") // draft, pending_review, active, paused, rejected, archived
   rejectionReason       String?
   publishedAt           DateTime?
   featuredUntil         DateTime?
   verified              Boolean                @default(false)
   verifiedAt            DateTime?
+  // AI-generated content
   aiDescription         String?
-  aiTranslations        Json?
+  aiTranslations        Json?                  // { es: "...", fr: "...", pt: "..." }
   aiSuggestedPrice      Float?
-  aiQualityScore        Int?
+  aiQualityScore        Int?                   // 0-100
+  // Stats
   viewCount             Int                    @default(0)
   bookingCount          Int                    @default(0)
   reviewCount           Int                    @default(0)
   avgRating             Float                  @default(0)
+  // Metadata
   coverImageUrl         String?
   metaTitle             String?
   metaDescription       String?
@@ -4247,7 +4178,6 @@ model Property {
   rooms                 PropertyRoom[]
   images                PropertyImage[]
   availability          PropertyAvailability[]
-  bookings              PropertyBooking[]
 
   @@index([ownerId])
   @@index([status])
@@ -4256,38 +4186,40 @@ model Property {
   @@index([latitude, longitude])
   @@index([basePricePerNight])
   @@index([slug])
+  @@index([status, publishedAt])
+  @@index([verified, status])
   @@map("properties")
 }
 
 model PropertyRoom {
   id              String   @id @default(cuid())
   propertyId      String
-  name            String
+  name            String                        // "Deluxe King Suite"
   description     String?
-  roomType        String   @default("standard")
-  bedType         String?
+  roomType        String   @default("standard") // standard, deluxe, suite, penthouse, studio, dormitory
+  bedType         String?                       // king, queen, double, twin, single, bunk, sofa_bed
   bedCount        Int      @default(1)
   maxOccupancy    Int      @default(2)
   maxAdults       Int      @default(2)
   maxChildren     Int      @default(0)
-  roomSize        Float?
+  roomSize        Float?                        // square meters
   floorLevel      Int?
-  viewType        String?
-  amenities       String[]
-  bathroomType    String?
+  viewType        String?                       // ocean, city, garden, mountain, pool, courtyard
+  amenities       String[]                      // minibar, safe, balcony, jacuzzi, etc.
+  bathroomType    String?                       // private, shared, ensuite
   basePricePerNight Float
   currency        String   @default("USD")
-  quantity        Int      @default(1)
+  quantity        Int      @default(1)          // how many of this room type
   isActive        Boolean  @default(true)
   sortOrder       Int      @default(0)
-  photos          String[]
+  photos          String[]                      // array of image URLs
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
   property        Property @relation(fields: [propertyId], references: [id], onDelete: Cascade)
-  bookings        PropertyBooking[]
 
   @@index([propertyId])
   @@index([propertyId, isActive])
+  @@index([roomType])
   @@map("property_rooms")
 }
 
@@ -4297,9 +4229,9 @@ model PropertyImage {
   url         String
   thumbnailUrl String?
   caption     String?
-  category    String   @default("general")
-  aiTags      String[]
-  aiScore     Int?
+  category    String   @default("general") // exterior, lobby, room, bathroom, amenity, food, pool, view, surrounding
+  aiTags      String[]                     // AI-detected tags: "ocean", "sunset", "modern", etc.
+  aiScore     Int?                         // AI quality score 0-100
   width       Int?
   height      Int?
   sizeBytes   Int?
@@ -4310,6 +4242,7 @@ model PropertyImage {
   property    Property @relation(fields: [propertyId], references: [id], onDelete: Cascade)
 
   @@index([propertyId])
+  @@index([propertyId, category])
   @@index([propertyId, isPrimary])
   @@map("property_images")
 }
@@ -4320,43 +4253,19 @@ model PropertyAvailability {
   startDate       DateTime @db.Date
   endDate         DateTime @db.Date
   available       Boolean  @default(true)
-  customPrice     Float?
+  customPrice     Float?                    // override base price for this period
   currency        String   @default("USD")
-  minStay         Int?
+  minStay         Int?                      // override min stay for this period
   maxStay         Int?
-  notes           String?
-  source          String   @default("manual")
-  externalEventId String?
+  notes           String?                   // "Holiday pricing", "Peak season", etc.
+  source          String   @default("manual") // manual, ical_sync, api_sync
+  externalEventId String?                   // for iCal sync
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
   property        Property @relation(fields: [propertyId], references: [id], onDelete: Cascade)
 
   @@index([propertyId])
   @@index([propertyId, startDate, endDate])
+  @@index([startDate, endDate, available])
   @@map("property_availability")
 }
-
-model PropertyBooking {
-  id            String        @id @default(cuid())
-  propertyId    String
-  roomId        String?
-  userId        String
-  startDate     DateTime
-  endDate       DateTime
-  totalPrice    Float
-  currency      String        @default("USD")
-  status        String        @default("pending") // pending, confirmed, cancelled, completed
-  guestCount    Int           @default(1)
-  specialRequests String?
-  createdAt     DateTime      @default(now())
-  updatedAt     DateTime      @updatedAt
-  property      Property      @relation(fields: [propertyId], references: [id], onDelete: Cascade)
-  room          PropertyRoom? @relation(fields: [roomId], references: [id])
-  user          User          @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  @@index([propertyId])
-  @@index([userId])
-  @@index([startDate, endDate])
-  @@map("property_bookings")
-}
-
