@@ -31,12 +31,8 @@ export default function robots(): MetadataRoute.Robots {
           '/auth/',
           '/dashboard/',
           '/booking/*/confirmation',
-          '/_next/',
           '/private/',
-          // OLD LOCALE-PREFIXED ROUTES (Removed - now using cookie-based locale)
-          '/en/',
-          '/es/',
-          '/pt/',
+          // Allow _next/static for JS/CSS assets - Critical for rendering
         ],
         crawlDelay: 0, // No delay for Google
       },
@@ -278,11 +274,7 @@ export default function robots(): MetadataRoute.Robots {
           '/auth/',
           '/dashboard/',
           '/booking/*/confirmation',
-          '_next/',
           '/private/',
-          '/en/',
-          '/es/',
-          '/pt/',
         ],
         crawlDelay: 2,
       },

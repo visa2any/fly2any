@@ -91,10 +91,9 @@ export const metadata: Metadata = {
   verification: {
     google: process.env.NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION,
   },
+  metadataBase: new URL(process.env.NEXT_PUBLIC_APP_URL || 'https://www.fly2any.com'),
   alternates: {
-    canonical: 'https://www.fly2any.com',
-    // TODO: Re-enable hreflang when multilingual support is activated
-    // Currently frozen to English-only
+    canonical: './',
   },
 };
 

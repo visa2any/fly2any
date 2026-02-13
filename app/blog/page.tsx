@@ -21,6 +21,21 @@ import { HeroImmersive } from '@/components/blog/HeroImmersive';
  * - News ticker for breaking travel updates
  * - Content grid with filtering
  */
+export async function generateMetadata() {
+  return {
+    title: 'Travel Blog & Guides | Fly2Any',
+    description: 'Explore expert travel guides, destination tips, latest airline news, and exclusive flash deals. Plan your next adventure with Fly2Any.',
+    alternates: {
+      canonical: '/blog',
+    },
+    openGraph: {
+      title: 'Travel Blog & Guides | Fly2Any',
+      description: 'Explore expert travel guides, destination tips, latest airline news, and exclusive flash deals. Plan your next adventure with Fly2Any.',
+      url: '/blog',
+    },
+  };
+}
+
 export default function BlogPage() {
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
 

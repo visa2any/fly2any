@@ -18,6 +18,7 @@ import {
   Sparkles, TrendingUp, Clock, DollarSign, AlertCircle, Calendar
 } from 'lucide-react';
 import { useTranslations } from 'next-intl';
+import { getTranslations } from 'next-intl/server';
 import { useLanguage } from '@/lib/i18n/client';
 
 type Language = 'en' | 'pt' | 'es';
@@ -147,6 +148,23 @@ const baseFaqs = [
   { q: 'What if my flight is delayed/cancelled?', a: 'US: Airlines must rebook you free. EU: Compensation €250-600 for delays 3+ hours. Get meal vouchers, hotel if overnight.' },
   { q: 'Are connecting flights risky?', a: 'Leave 60-90 min domestic, 2-3 hours international. Book same ticket for protection. Airlines responsible if connection missed.' },
 ];
+
+export async function generateMetadata() {
+  const t = await getTranslations('FlightsPage');
+  
+  return {
+    title: t('metaTitle') || 'Find Cheap Flights & Airline Tickets | Fly2Any',
+    description: t('metaDescription') || 'Compare flight prices from 500+ airlines. Find the best deals on airline tickets, track price drops, and book your perfect flight with Fly2Any.',
+    alternates: {
+      canonical: '/flights',
+    },
+    openGraph: {
+      title: 'Find Cheap Flights & Airline Tickets | Fly2Any',
+      description: 'Compare flight prices from 500+ airlines. Find the best deals on airline tickets, track price drops, and book your perfect flight with Fly2Any.',
+      url: '/flights',
+    },
+  };
+}
 
 export default function FlightsPage() {
   const t = useTranslations('FlightsPage');
