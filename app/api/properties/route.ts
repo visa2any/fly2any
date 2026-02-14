@@ -115,9 +115,31 @@ export async function POST(request: NextRequest) {
         totalBeds: body.totalBeds || 1,
         ecoFeatures: body.ecoFeatures || [],
         status: body.status || 'draft',
+        rooms: {
+          create: body.rooms?.map((room: any) => ({
+            name: room.name,
+            roomType: room.roomType,
+            bedType: room.bedType,
+            bedCount: room.bedCount,
+            maxOccupancy: room.maxOccupancy,
+            quantity: room.quantity,
+            basePricePerNight: room.basePricePerNight,
+            amenities: room.amenities,
+          })) || [],
+        },
+        images: {
+          create: body.images?.map((img: any) => ({
+            url: img.url,
+            caption: img.caption,
+            category: img.category,
+            isPrimary: img.isPrimary,
+          })) || [],
+        },
       },
       include: {
         owner: { select: { id: true, businessName: true } },
+        rooms: true,
+        images: true,
       },
     });
 

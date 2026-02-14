@@ -1,118 +1,124 @@
-
 import { NextRequest, NextResponse } from 'next/server';
 import { auth } from '@/lib/auth';
+import { callGroq } from '@/lib/ai/groq-client';
+import * as cheerio from 'cheerio';
 
-export async function POST(req: NextRequest) {
+export async function POST(request: NextRequest) {
   try {
     const session = await auth();
-    if (!session?.user?.id) {
-      return NextResponse.json({ success: false, error: 'Authentication required' }, { status: 401 });
+    // Allow unauthenticated for now or strictly enforce? 
+    // Wizard usually requires auth. Let's enforce soft auth or check user session if needed.
+    // For "Try it out" marketing flow, we might want it open, but for "Create", auth is better.
+    // Keeping it protected as it consumes AI tokens.
+    if (!session?.user) {
+         return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const { url } = await req.json();
+    const { url } = await request.json();
 
     if (!url) {
       return NextResponse.json({ error: 'URL is required' }, { status: 400 });
     }
 
-    // Validate supported domains
-    const isAirbnb = url.includes('airbnb');
-    const isBooking = url.includes('booking.com');
-    const isVrbo = url.includes('vrbo.com');
-
-    if (!isAirbnb && !isBooking && !isVrbo) {
-       return NextResponse.json({ 
-        success: false, 
-        message: 'Currently we only support importing from Airbnb, Booking.com, or VRBO.' 
-      }, { status: 400 });
-    }
-
-    let scrapedData: any = {};
-
-    try {
-        // Fetch the HTML content
-        const response = await fetch(url, {
-            headers: {
-                // Mimic a real browser to avoid immediate 403s
-                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
-                'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8',
-                'Accept-Language': 'en-US,en;q=0.9',
-            },
-            next: { revalidate: 3600 } // Cache results for 1 hour
-        });
-        
-        if (response.ok) {
-            const html = await response.text();
-            
-            // Helper to extract meta content
-            const getMetaContent = (pattern: RegExp) => {
-                const match = html.match(pattern);
-                return match ? match[1] : null; // return captured group
-            };
-
-            // Extract OpenGraph tags
-            // Note: Different sites might use 'property' or 'name' attributes
-            const ogTitle = getMetaContent(/<meta\s+property="og:title"\s+content="([^"]*)"/i) || 
-                            getMetaContent(/<meta\s+name="title"\s+content="([^"]*)"/i);
-            
-            const ogDesc = getMetaContent(/<meta\s+property="og:description"\s+content="([^"]*)"/i) || 
-                           getMetaContent(/<meta\s+name="description"\s+content="([^"]*)"/i);
-                           
-            const ogImage = getMetaContent(/<meta\s+property="og:image"\s+content="([^"]*)"/i);
-
-            // Clean up title (remove site name if present)
-            // e.g. "Beautiful Apt - Apartments for Rent - Airbnb" -> "Beautiful Apt"
-            let cleanName = ogTitle || '';
-            if (cleanName) {
-                cleanName = cleanName.split(' - ')[0]; // Remove suffixes
-                cleanName = cleanName.split(' | ')[0];
-            }
-
-            scrapedData = {
-                name: cleanName || "Imported Property",
-                description: ogDesc || "",
-                image: ogImage || null
-            };
-        } else {
-            console.error('Fetch failed:', response.status);
-        }
-    } catch (e) {
-        console.error('Scraping error:', e);
-    }
-
-    // Fallback ID extraction
-    let fallbackName = isAirbnb ? "New Airbnb Listing" : "New Property Listing";
-    if (!scrapedData.name) {
-        const airbnbId = url.match(/\/rooms\/(\d+)/)?.[1];
-        if (airbnbId) fallbackName = `Airbnb Listing #${airbnbId}`;
-        
-        const bookingId = url.match(/\/hotel\/[a-z]{2}\/([^.?]+)/)?.[1];
-        if (bookingId) fallbackName = `Booking.com: ${bookingId.replace(/-/g, ' ')}`;
-    }
-
-    // fallback / default values
-    const finalData = {
-      name: scrapedData.name || fallbackName,
-      description: scrapedData.description || "Description not available. Please add details manually.",
-      propertyType: isAirbnb ? "apartment" : "hotel",
-      addressLine1: "",
-      city: "",
-      country: "",
-      basePricePerNight: 0, 
-      maxGuests: 2,
-      amenities: [],
-      images: scrapedData.image ? [scrapedData.image] : [
-        "https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?w=800&q=80" // Generic fallback
-      ]
-    };
-
-    return NextResponse.json({
-      success: true,
-      data: finalData
+    // 1. Fetch HTML
+    // Fake User-Agent to avoid immediate 403s from some sites, though real scraping usually needs proxies.
+    // For MVP/Demo, simple fetch often works for many sites or generic pages.
+    const res = await fetch(url, {
+      headers: {
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
+      }
     });
 
-  } catch (error) {
-    console.error('Import failed:', error);
-    return NextResponse.json({ error: 'Failed to import property' }, { status: 500 });
+    if (!res.ok) {
+       return NextResponse.json({ error: 'Failed to fetch the URL' }, { status: 400 });
+    }
+
+    const html = await res.text();
+
+    // 2. Clean HTML with Cheerio to reduce token usage
+    const $ = cheerio.load(html);
+    
+    // Remove scripts, styles, svg, and excessively noisy elements
+    $('script').remove();
+    $('style').remove();
+    $('svg').remove();
+    $('iframe').remove();
+    $('noscript').remove();
+    $('.ad').remove();
+    $('[aria-hidden="true"]').remove();
+
+    // Extract mainly the body text and meta tags
+    const metaTags = {
+        title: $('meta[property="og:title"]').attr('content') || $('title').text(),
+        description: $('meta[property="og:description"]').attr('content') || $('meta[name="description"]').attr('content'),
+        image: $('meta[property="og:image"]').attr('content'),
+    };
+
+    // Get a cleaner text dump (first 15k chars should be enough for AI context)
+    let bodyText = $('body').text().replace(/\s+/g, ' ').trim().substring(0, 15000);
+
+    const prompt = `
+    You are an AI Property Extraction Engine. Your job is to extract structured real estate/hospitality data from the provided raw HTML text.
+    
+    Target URL: ${url}
+    
+    DATA TO EXTRACT (Return JSON only):
+    - name: Property Title (string)
+    - description: detailed description (string)
+    - propertyType: "hotel" | "apartment" | "villa" | "resort" | "boutique_hotel" | "bed_and_breakfast" (infer from context)
+    - address: { city, country, full_address } (infer from context)
+    - specs: { 
+        bedrooms: number (default 1), 
+        bathrooms: number (default 1),
+        maxGuests: number (default 2),
+        beds: number (default 1)
+      }
+    - price: { amount: number (per night estimation), currency: string }
+    - amenities: string[] (list of top 10 detected amenities e.g., "Wifi", "Pool", "Kitchen")
+    - images: string[] (find logic for image types if possible, otherwise use the OG image provided below)
+
+    Context - Meta: ${JSON.stringify(metaTags)}
+    Context - PageText: "${bodyText}"
+
+    Output strict valid JSON. No markdown.
+    `;
+
+    // 3. Call AI
+    const aiRes = await callGroq([
+        { role: 'system', content: 'You are a precise data extractor. Output valid JSON only.' },
+        { role: 'user', content: prompt }
+    ], {
+        model: 'llama-3.3-70b-versatile', 
+        temperature: 0.1,
+        maxTokens: 1024
+    });
+
+    if (!aiRes.success || !aiRes.message) {
+        throw new Error("AI Processing Failed");
+    }
+
+    // 4. Parse & Return
+    let jsonData;
+    try {
+        const cleanJson = aiRes.message.replace(/```json/g, '').replace(/```/g, '').trim();
+        jsonData = JSON.parse(cleanJson);
+    } catch (e) {
+        console.error("JSON Parse Error", aiRes.message);
+        return NextResponse.json({ error: 'Failed to parse AI response' }, { status: 500 });
+    }
+
+    // Merge detected OG image if AI didn't find specific ones or to ensure high quality cover
+    if (metaTags.image && (!jsonData.images || jsonData.images.length === 0)) {
+        jsonData.images = [metaTags.image];
+    }
+
+    return NextResponse.json({
+        success: true,
+        data: jsonData
+    });
+
+  } catch (error: any) {
+    console.error('Import Error:', error);
+    return NextResponse.json({ error: error.message || 'Internal Server Error' }, { status: 500 });
   }
 }
