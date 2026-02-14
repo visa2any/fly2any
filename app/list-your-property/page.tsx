@@ -132,13 +132,13 @@ const TESTIMONIALS = [
 ];
 
 export default function ListYourPropertyPage() {
-  const [mounted, setMounted] = useState(false);
+  // const [mounted, setMounted] = useState(false);
   const [selectedCity, setSelectedCity] = useState('New York');
   const [rooms, setRooms] = useState(1);
   const [currentTestimonial, setCurrentTestimonial] = useState(0);
   const earningRef = useRef<HTMLDivElement>(null);
 
-  useEffect(() => { setMounted(true); }, []);
+  // useEffect(() => { setMounted(true); }, []);
 
   // Auto-rotate testimonials
   useEffect(() => {
@@ -494,12 +494,12 @@ export default function ListYourPropertyPage() {
                   </div>
                   <div className="rounded-2xl bg-gradient-to-br from-emerald-500/20 to-green-500/10 border border-emerald-500/30 p-6 text-center">
                     <div className="text-emerald-300 text-sm font-medium mb-1">Monthly Estimate</div>
-                    <div className="text-4xl font-black text-white">${monthlyEstimate.toLocaleString()}</div>
+                    <div className="text-4xl font-black text-white">${monthlyEstimate.toLocaleString('en-US')}</div>
                     <div className="text-emerald-400 text-xs font-semibold mt-1">{cityData.occupancy}% avg occupancy</div>
                   </div>
                   <div className="rounded-2xl bg-white/5 border border-white/10 p-6 text-center">
                     <div className="text-white/50 text-sm font-medium mb-1">Yearly Potential</div>
-                    <div className="text-3xl font-black text-emerald-400">${yearlyEstimate.toLocaleString()}</div>
+                    <div className="text-3xl font-black text-emerald-400">${yearlyEstimate.toLocaleString('en-US')}</div>
                     <div className="text-white/40 text-xs font-semibold mt-1">projected annual</div>
                   </div>
                 </div>

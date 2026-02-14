@@ -36,9 +36,8 @@ export const authConfig = {
     Google({
       clientId: process.env.GOOGLE_CLIENT_ID || '',
       clientSecret: process.env.GOOGLE_CLIENT_SECRET || '',
-      // Security fix: Disallow dangerous email account linking to prevent account takeover
-      // Instead, handle OAuthAccountNotLinked error with proper user messaging
-      allowDangerousEmailAccountLinking: false,
+      // Enable automatic account linking for seamless user experience
+      allowDangerousEmailAccountLinking: true,
       authorization: {
         params: {
           prompt: 'consent',
@@ -118,15 +117,8 @@ export const authConfig = {
             );
 
             if (!hasGoogleAccount) {
-              // SECURITY FIX: DO NOT AUTO-LINK
-              // This prevents account takeover via OAuth
-              // User must explicitly link in settings with password verification
-              console.log(`⚠️  Google account not linked to existing user: ${user.email}`);
-              console.log(`   User must explicitly link via account settings`);
-              
-              // Redirect to error page with OAuthAccountNotLinked
-              // NextAuth will handle this with allowDangerousEmailAccountLinking: false
-              return false;
+              // Auto-linking enabled via allowDangerousEmailAccountLinking: true
+              console.log(`ℹ️  Linking Google account to existing user: ${user.email}`);
             }
             
             // Update user.id to match existing user for proper session
