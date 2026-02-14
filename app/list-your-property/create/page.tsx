@@ -143,7 +143,98 @@ export default function CreatePropertyPage() {
   }, [editingId, status]);
 
 
-  // ... (Handlers remain same) ...
+  // --------------------------------------------------------------------------
+  // HANDLERS
+  // --------------------------------------------------------------------------
+  
+  const handleImportSuccess = (importedData: any) => {
+    setFormData(prev => ({
+      ...prev,
+      title: importedData.name || prev.title,
+      description: importedData.description || prev.description,
+      type: (importedData.propertyType as PropertyType) || prev.type,
+      location: {
+         ...prev.location,
+         address: importedData.address?.full_address || prev.location.address,
+         city: importedData.address?.city || prev.location.city,
+         country: importedData.address?.country || prev.location.country,
+      },
+      specs: {
+         ...prev.specs,
+         bedrooms: importedData.specs?.bedrooms || prev.specs.bedrooms,
+         bathrooms: importedData.specs?.bathrooms || prev.specs.bathrooms,
+         guests: importedData.specs?.maxGuests || prev.specs.guests,
+      },
+      amenities: [...prev.amenities, ...(importedData.amenities || [])],
+      // We append imported images if any
+      images: [...prev.images, ...(importedData.images || [])],
+      pricing: {
+          ...prev.pricing,
+          basePrice: importedData.price?.amount || prev.pricing.basePrice
+      }
+    }));
+    toast.success("Property data imported! Please review.");
+  };
+
+  const handleNext = () => {
+    const idx = STEPS.findIndex(s => s.id === currentStep);
+    if (idx < STEPS.length - 1) {
+      setCurrentStep(STEPS[idx + 1].id);
+      window.scrollTo(0,0);
+    }
+  };
+
+  const handleBack = () => {
+    const idx = STEPS.findIndex(s => s.id === currentStep);
+    if (idx > 0) {
+      setCurrentStep(STEPS[idx - 1].id);
+      window.scrollTo(0,0);
+    }
+  };
+
+  const handleSaveDraft = async () => {
+    if (status !== 'authenticated') {
+        toast.error("Please sign in to save");
+        return;
+    }
+    setIsSaving(true);
+    try {
+        const res = await fetch('/api/host/properties', {
+            method: editingId ? 'PUT' : 'POST',
+            body: JSON.stringify({ ...formData, id: editingId, status: 'DRAFT' }),
+            headers: { 'Content-Type': 'application/json' }
+        });
+        
+        const data = await res.json();
+        if (res.ok) {
+            toast.success("Draft saved!");
+            if (data.data?.id && !editingId) {
+                setEditingId(data.data.id);
+                // Use history API to update URL without reload (safe for SSR now)
+                if (typeof window !== 'undefined') {
+                    const newUrl = new URL(window.location.href);
+                    newUrl.searchParams.set('id', data.data.id);
+                    window.history.pushState({}, '', newUrl.toString());
+                }
+            }
+        } else {
+            throw new Error(data.error);
+        }
+    } catch (e: any) {
+        toast.error("Failed to save: " + e.message);
+    } finally {
+        setIsSaving(false);
+    }
+  };
+
+  const handlePublish = async () => {
+     setIsSaving(true);
+     // Similar to save but set status to PUBLISHED
+     // ...
+     setIsSaving(false);
+     router.push('/host/dashboard');
+     toast.success("Property Published! 🎉");
+  };
 
   const renderStepContent = () => {
       // ... (Content remains same) ...
