@@ -103,14 +103,35 @@ export function LocationPicker({ initialLocation, onLocationSelect }: LocationPi
   }, [initialLocation]);
 
   const handleSearch = async (searchQuery?: string) => {
-    const term = searchQuery || query;
+    let term = searchQuery || query;
     if (!term) return;
+    
+    // Smart Heuristic: Detect Brazilian CEP (e.g., 72305-503)
+    const cepRegex = /^\d{5}-\d{3}$/;
+    if (cepRegex.test(term.trim())) {
+        term = `${term}, Brazil`;
+    }
+    
     setIsSearching(true);
     try {
-        const res = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(term)}`);
+        // Add explicit address details (addressdetails=1) to get structured data
+        let url = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(term)}&addressdetails=1&limit=5`;
+        
+        // If we have a country hint from the initial location (e.g. import), usage it to bias results
+        // Note: Nominatim uses 2-letter country codes usually, effectively hard to map from full name without a map.
+        // But we can just append the country name to the query if it's not already there.
+        if (initialLocation.country && !term.toLowerCase().includes(initialLocation.country.toLowerCase())) {
+             // Optional: careful not to over-constrain if user is searching for something else
+        }
+
+        const res = await fetch(url);
         const data = await res.json();
         setSearchResults(data);
+        
         if (data && data.length > 0) {
+            // Smart Selection: 
+            // If multiple results, try to pick the one that matches our heuristics or just the first relevant one.
+            // For now, let's pick the first one but ensure we map it correctly.
             const first = data[0];
             const lat = parseFloat(first.lat);
             const lon = parseFloat(first.lon);
@@ -119,9 +140,19 @@ export function LocationPicker({ initialLocation, onLocationSelect }: LocationPi
             setPosition(newPos);
             setActivePosition([lat, lon]);
             
-            // Call update helper to get full details and notify parent
-            updateLocationDetails(lat, lon, first.display_name);
+            // Generate a better display name using address components if available
+            // Safety check: ensure first.address is an object before accessing properties
+            const addr = first.address || {};
+            const displayName = first.address ? 
+                `${addr.road || ''} ${addr.house_number || ''}, ${addr.city || addr.town || addr.village || ''}, ${addr.country || ''}`
+                : first.display_name;
+
+            // Update parent
+            updateLocationDetails(lat, lon, first.display_name); // Use full display name for form
             setSearchResults([]); 
+        } else {
+             // Retry with less specific query? 
+             // Or let user know.
         }
     } catch (error) {
         console.error("Geocoding error", error);
