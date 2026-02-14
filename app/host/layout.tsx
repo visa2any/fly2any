@@ -8,7 +8,7 @@ export const metadata: Metadata = {
 
 export default function HostLayout({ children }: { children: React.ReactNode }) {
   return (
-    <div className="min-h-screen bg-[#0a0a0f]">
+    <div className="min-h-screen bg-neutral-50">
       <HostSidebar />
       {/* Main content — offset by sidebar width on desktop */}
       <div className="md:ml-56 pb-20 md:pb-0">
