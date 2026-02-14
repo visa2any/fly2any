@@ -7,7 +7,7 @@ import Image from 'next/image';
 import { MaxWidthContainer } from '@/components/layout/MaxWidthContainer';
 import {
   MapPin, ChevronRight, ChevronLeft, Camera, DollarSign, Save, Eye, Loader2,
-  Check, ArrowRight, Home, Info, Shield, Layers, Calendar
+  Check, ArrowRight, Home, Info, Shield, Layers, Calendar, Sparkles
 } from 'lucide-react';
 import {
   PropertyType, PROPERTY_TYPES_INFO,
