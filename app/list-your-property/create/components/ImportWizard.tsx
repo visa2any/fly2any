@@ -11,6 +11,7 @@ interface ImportWizardProps {
 export function ImportWizard({ onImport }: ImportWizardProps) {
   const [url, setUrl] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [progressMsg, setProgressMsg] = useState("");
   const [error, setError] = useState<string | null>(null);
 
   const handleImport = async () => {
@@ -26,7 +27,16 @@ export function ImportWizard({ onImport }: ImportWizardProps) {
 
     setIsLoading(true);
     setError(null);
-    const toastId = toast.loading("Analyzing property...");
+    setProgressMsg("Connecting to host...");
+    const toastId = toast.loading("Starting import...");
+
+    // Simulate progress updates for better UX during the potential 10s wait
+    const msgs = ["Connecting to host...", "Downloading page...", "Analyzing structure...", "Extracting amenities...", "Finalizing details..."];
+    let msgIdx = 0;
+    const progressInterval = setInterval(() => {
+        msgIdx = (msgIdx + 1) % msgs.length;
+        setProgressMsg(msgs[msgIdx]);
+    }, 2000);
 
     try {
       const res = await fetch('/api/properties/import', {
@@ -48,9 +58,11 @@ export function ImportWizard({ onImport }: ImportWizardProps) {
     } catch (err: any) {
       console.error(err);
       setError(err.message || "Could not extract data. Try filling manually.");
-      toast.error("Import failed", { id: toastId });
+      toast.error("Import failed: " + (err.message || "Unknown error"), { id: toastId });
     } finally {
+      clearInterval(progressInterval);
       setIsLoading(false);
+      setProgressMsg("");
     }
   };
 
@@ -100,7 +112,7 @@ export function ImportWizard({ onImport }: ImportWizardProps) {
             {isLoading ? (
                 <>
                     <Loader2 className="w-4 h-4 animate-spin" />
-                    Analyzing...
+                    {progressMsg || "Analyzing..."}
                 </>
             ) : (
                 <>

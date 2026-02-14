@@ -25,10 +25,11 @@ export async function POST(request: NextRequest) {
     // 1. Fetch HTML with Timeout and Robust Headers
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), 10000); // 10s timeout
-
+    
+    let res: Response;
     try {
         console.log(`📡 Fetching URL: ${url}`);
-        const res = await fetch(url, {
+        res = await fetch(url, {
             signal: controller.signal,
             headers: {
                 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
