@@ -285,7 +285,7 @@ export function PhotoUploader({ images, onChange }: PhotoUploaderProps) {
       )}
 
       {/* Grid */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-3 xl:grid-cols-4 gap-4">
          {localPhotos.map((photo, idx) => (
             <div key={idx} className="bg-white border border-neutral-200 rounded-xl overflow-hidden group hover:shadow-md transition-all">
                <div className="relative aspect-video bg-neutral-100">
