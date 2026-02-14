@@ -55,6 +55,14 @@ export async function POST(request: NextRequest) {
         
         console.log(`✅ Fetch success. Status: ${res.status}`);
 
+    } catch (e: any) {
+        if (e.name === 'AbortError') {
+            return NextResponse.json({ error: 'Request timeout (10s limit)' }, { status: 408 });
+        }
+        console.error('Fetch Error:', e);
+        return NextResponse.json({ error: 'Failed to access URL' }, { status: 400 });
+    }
+
     const html = await res.text();
 
     // 2. Clean HTML and Extract Structured Data
@@ -72,7 +80,7 @@ export async function POST(request: NextRequest) {
             // Sometimes it's an array of graphs
             if (Array.isArray(data)) {
                  data.forEach(item => {
-                    if (item['@type'] && ['Hotel', 'LodgingBusiness', 'VR'].some(t => item['@type'].includes(t))) {
+                    if (item['@type'] && ['Hotel', 'LodgingBusiness', 'VR'].some((t: string) => item['@type'].includes(t))) {
                         jsonLdData = { ...jsonLdData, ...item };
                     }
                  });
@@ -204,11 +212,11 @@ export async function POST(request: NextRequest) {
         return NextResponse.json({ error: 'Failed to parse AI response' }, { status: 500 });
     }
 
+    console.timeEnd('Import Process');
     return NextResponse.json({
         success: true,
         data: jsonData
     });
-    console.timeEnd('Import Process');
 
   } catch (error: any) {
     console.error('Import Error:', error);
@@ -279,11 +287,19 @@ function mapJsonLdToProperty(jsonLd: any, meta: any, images: string[]): any | nu
         beds: Number(jsonLd.numberOfBeds) || 1
     };
 
+    // Geo
+    let location = { latitude: 0, longitude: 0 };
+    if (jsonLd.geo) {
+        location.latitude = Number(jsonLd.geo.latitude) || 0;
+        location.longitude = Number(jsonLd.geo.longitude) || 0;
+    }
+
     return {
         name: name?.trim(),
         description: description?.trim(),
         propertyType: 'hotel', // Default, hard to infer specific mapping without complex logic
         address,
+        location, // Return coordinates
         specs,
         price,
         amenities,

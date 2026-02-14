@@ -185,7 +185,7 @@ const nextConfig = {
               "default-src 'self'",
               "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://embed.tawk.to https://*.tawk.to https://www.googletagmanager.com https://vercel.live blob:",
               "worker-src 'self' blob:",
-              "connect-src 'self' https://embed.tawk.to https://*.tawk.to wss://*.tawk.to https://www.google-analytics.com https://www.googletagmanager.com https://vercel.live",
+              "connect-src 'self' https://embed.tawk.to https://*.tawk.to wss://*.tawk.to https://www.google-analytics.com https://www.googletagmanager.com https://vercel.live https://nominatim.openstreetmap.org",
               "frame-src 'self' https://embed.tawk.to https://*.tawk.to https://vercel.live",
               "img-src 'self' data: https:",
               "style-src 'self' 'unsafe-inline' https://embed.tawk.to https://*.tawk.to",
