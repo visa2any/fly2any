@@ -16,7 +16,15 @@ import {
 
 // Components
 import { ImportWizard } from './components/ImportWizard'; // New
-import { LocationPicker } from './components/LocationPicker';
+// Dynamic import for LocationPicker to avoid Leaflet SSR window error
+import dynamic from 'next/dynamic';
+const LocationPicker = dynamic(
+  () => import('./components/LocationPicker').then((mod) => mod.LocationPicker),
+  { 
+    ssr: false,
+    loading: () => <div className="h-[400px] w-full bg-white/5 rounded-2xl animate-pulse flex items-center justify-center text-white/20">Loading Map...</div>
+  }
+);
 import { RoomBuilder, type RoomData } from './components/RoomBuilder';
 import { AmenitySelector } from './components/AmenitySelector';
 import { PhotoUploader } from './components/PhotoUploader';
@@ -200,9 +208,11 @@ export default function CreatePropertyPage() {
       if (!editingId && propertyId) {
           setEditingId(propertyId);
           // Update URL without refresh
-          const newUrl = new URL(window.location.href);
-          newUrl.searchParams.set('id', propertyId);
-          window.history.pushState({}, '', newUrl.toString());
+          if (typeof window !== 'undefined') {
+             const newUrl = new URL(window.location.href);
+             newUrl.searchParams.set('id', propertyId);
+             window.history.pushState({}, '', newUrl.toString());
+          }
       }
 
       setSuccessMessage(isPublish ? 'Property published!' : 'Draft saved!');

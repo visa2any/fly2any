@@ -31,6 +31,7 @@ const DEAL_ROUTES: Record<string, { origin: string; originName: string; destinat
 };
 
 function getRouteData(slug: string) {
+  if (!slug) return null;
   return DEAL_ROUTES[slug.toLowerCase()] || null;
 }
 

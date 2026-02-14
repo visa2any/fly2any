@@ -58,6 +58,7 @@ const TOP_INTL_DESTINATIONS = [
 
 // Get city data from slug
 function getCityData(slug: string) {
+  if (!slug) return null;
   return US_CITIES_DATA[slug.toLowerCase()] || null;
 }
 
