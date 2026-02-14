@@ -210,7 +210,6 @@ export function PhotoUploader({ photos, onChange }: PhotoUploaderProps) {
                       const pollData = await pollRes.json();
                       if (pollData.photos && pollData.photos.length > 0) {
                           // Filter out photos we already have (by URL)
-                          // Note: In a real app we'd track IDs. Here relying on unique URL per upload
                           const newRemotePhotos = pollData.photos.filter((rp: any) => !photosRef.current.some(p => p.url === rp.url));
                           
                           if (newRemotePhotos.length > 0) {
@@ -219,24 +218,29 @@ export function PhotoUploader({ photos, onChange }: PhotoUploaderProps) {
                                  caption: '',
                                  category: 'general',
                                  isPrimary: photosRef.current.length === 0 && idx === 0,
-                                 tags: mockAIAnalyze(rp.url),
+                                 tags: baseAIAnalyze(rp.url), // Ensure we have a fallback analyzer if model isn't ready
                                  rotation: 0
                              }));
                              
                              onChange([...photosRef.current, ...convertedPhotos]);
+                          }
                       }
                   }
               } catch (e) {
                   console.error("Polling error", e);
               }
-          }
-      }, 3000);
+          }, 3000);
           setPollInterval(interval);
 
       } catch (e) {
           console.error("Failed to start mobile upload", e);
       }
   };
+
+  // Simple heuristic based tagging for mobile uploads if TFJS isn't used there yet
+  // or reuse the main logic if desired. For now keeping it simple to avoid state complexity in poll loop.
+  const baseAIAnalyze = (url: string) => ['Mobile Upload'];
+
   
   // Clean up polling on unmount
   useEffect(() => {

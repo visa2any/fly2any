@@ -2,7 +2,8 @@
 
 import { useState, useEffect } from 'react';
 import { useSearchParams } from 'next/navigation';
-import { Upload, Check, Camera, Image as ImageIcon, Loader2 } from 'lucide-react';
+import { Upload, Check, Camera, Image as ImageIcon, Loader2, Wand2 } from 'lucide-react';
+import { useImageProcessor } from '../create/hooks/useImageProcessor';
 
 export default function MobileUploadPage() {
   const searchParams = useSearchParams();
@@ -22,18 +23,27 @@ export default function MobileUploadPage() {
     );
   }
 
+  const { processImage } = useImageProcessor();
+  const [status, setStatus] = useState(''); // '' | 'optimizing' | 'uploading'
+
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
     if (!files || files.length === 0) return;
 
     setUploading(true);
+    setStatus('optimizing');
     setError('');
     setSuccess(false);
 
     try {
         const promises = Array.from(files).map(async (file) => {
+            // 1. Optimize
+            const processedFile = await processImage(file);
+            
+            // 2. Upload
+            setStatus('uploading');
             const formData = new FormData();
-            formData.append('file', file);
+            formData.append('file', processedFile);
             
             const res = await fetch(`/api/mobile-upload/${sessionId}`, {
                 method: 'POST',
@@ -45,13 +55,15 @@ export default function MobileUploadPage() {
 
         await Promise.all(promises);
         setSuccess(true);
+        setStatus('');
         // Reset success message after 3s so they can add more
         setTimeout(() => setSuccess(false), 3000);
     } catch (err) {
         setError('Failed to upload some photos. Please try again.');
     } finally {
         setUploading(false);
-        // Reset input
+        setStatus('');
+        // Reset input (if ref was used, but simpler here just to clear)
         e.target.value = '';
     }
   };
@@ -69,7 +81,19 @@ export default function MobileUploadPage() {
          <div className="relative">
              <div className="w-32 h-32 rounded-full bg-white/5 border border-white/10 flex items-center justify-center mx-auto mb-6">
                  {uploading ? (
-                     <Loader2 className="w-12 h-12 text-amber-400 animate-spin" />
+                     <div className="flex flex-col items-center gap-2 animate-pulse">
+                        {status === 'optimizing' ? (
+                            <>
+                                <Wand2 className="w-10 h-10 text-violet-400 animate-bounce" />
+                                <span className="text-xs text-violet-300 font-bold uppercase tracking-wider">Optimizing</span>
+                            </>
+                        ) : (
+                            <>
+                                <Loader2 className="w-10 h-10 text-amber-400 animate-spin" />
+                                <span className="text-xs text-amber-300 font-bold uppercase tracking-wider">Uploading</span>
+                            </>
+                        )}
+                     </div>
                  ) : success ? (
                      <Check className="w-12 h-12 text-emerald-400" />
                  ) : (
