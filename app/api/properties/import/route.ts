@@ -20,18 +20,40 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'URL is required' }, { status: 400 });
     }
 
-    // 1. Fetch HTML
-    // Fake User-Agent to avoid immediate 403s from some sites, though real scraping usually needs proxies.
-    // For MVP/Demo, simple fetch often works for many sites or generic pages.
-    const res = await fetch(url, {
-      headers: {
-        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
-      }
-    });
+    console.time('Import Process');
+    
+    // 1. Fetch HTML with Timeout and Robust Headers
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 10000); // 10s timeout
 
-    if (!res.ok) {
-       return NextResponse.json({ error: 'Failed to fetch the URL' }, { status: 400 });
-    }
+    try {
+        console.log(`📡 Fetching URL: ${url}`);
+        const res = await fetch(url, {
+            signal: controller.signal,
+            headers: {
+                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+                'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8',
+                'Accept-Language': 'en-US,en;q=0.9',
+                'Cache-Control': 'no-cache',
+                'Pragma': 'no-cache',
+                'Sec-Ch-Ua': '"Not_A Brand";v="8", "Chromium";v="120", "Google Chrome";v="120"',
+                'Sec-Ch-Ua-Mobile': '?0',
+                'Sec-Ch-Ua-Platform': '"Windows"',
+                'Sec-Fetch-Dest': 'document',
+                'Sec-Fetch-Mode': 'navigate',
+                'Sec-Fetch-Site': 'none',
+                'Sec-Fetch-User': '?1',
+                'Upgrade-Insecure-Requests': '1'
+            }
+        });
+        clearTimeout(timeoutId);
+
+        if (!res.ok) {
+           console.error(`❌ Fetch failed with status: ${res.status}`);
+           return NextResponse.json({ error: `Failed to fetch URL (Status: ${res.status})` }, { status: 400 });
+        }
+        
+        console.log(`✅ Fetch success. Status: ${res.status}`);
 
     const html = await res.text();
 
@@ -113,6 +135,7 @@ export async function POST(request: NextRequest) {
     // If we have at least a Name and Description, return immediately (Fast Path)
     if (fastPathData && fastPathData.name && fastPathData.description && fastPathData.description.length > 10) {
         console.log("🚀 FAST PATH: Successfully mapped JSON-LD data. Bypassing AI.");
+        console.timeEnd('Import Process');
         return NextResponse.json({
             success: true,
             data: fastPathData,
@@ -121,6 +144,7 @@ export async function POST(request: NextRequest) {
     }
 
     console.log("⚠️ FAST PATH FAILED: Insufficient structured data. Falling back to AI...");
+    console.log("🤖 Starting AI Extraction...");
 
     // Get a cleaner text dump (first 10k chars is enough for AI context)
     let bodyText = $('body').text().replace(/\s+/g, ' ').trim().substring(0, 10000);
@@ -184,6 +208,7 @@ export async function POST(request: NextRequest) {
         success: true,
         data: jsonData
     });
+    console.timeEnd('Import Process');
 
   } catch (error: any) {
     console.error('Import Error:', error);
