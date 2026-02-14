@@ -81,12 +81,33 @@ export function LocationPicker({ initialLocation, onLocationSelect }: LocationPi
   
   const [isSearching, setIsSearching] = useState(false);
   const [searchResults, setSearchResults] = useState<any[]>([]);
+  
+  // React to prop changes (e.g. from Import)
+  useEffect(() => {
+      if (initialLocation.address !== query) {
+          setQuery(initialLocation.address || '');
+      }
+      
+      if (initialLocation.latitude && initialLocation.longitude) {
+          const newPos = new L.LatLng(initialLocation.latitude, initialLocation.longitude);
+          setPosition(newPos);
+          setActivePosition([initialLocation.latitude, initialLocation.longitude]);
+      } else if (initialLocation.address && !initialLocation.latitude) {
+          // Address updated but no coords - trigger search automatically
+          // We use a timeout to avoid rapid firing if typing, though this is prop-driven
+          const timer = setTimeout(() => {
+              handleSearch(initialLocation.address);
+          }, 500);
+          return () => clearTimeout(timer);
+      }
+  }, [initialLocation]);
 
-  const handleSearch = async () => {
-    if (!query) return;
+  const handleSearch = async (searchQuery?: string) => {
+    const term = searchQuery || query;
+    if (!term) return;
     setIsSearching(true);
     try {
-        const res = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}`);
+        const res = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(term)}`);
         const data = await res.json();
         setSearchResults(data);
         if (data && data.length > 0) {
@@ -98,11 +119,12 @@ export function LocationPicker({ initialLocation, onLocationSelect }: LocationPi
             setPosition(newPos);
             setActivePosition([lat, lon]);
             
+            // Call update helper to get full details and notify parent
             updateLocationDetails(lat, lon, first.display_name);
-            setSearchResults([]); // Clear results after selection
+            setSearchResults([]); 
         }
-    } catch (e) {
-        console.error("Geocoding error", e);
+    } catch (error) {
+        console.error("Geocoding error", error);
     } finally {
         setIsSearching(false);
     }
