@@ -1,0 +1,104 @@
+'use client';
+
+import { useState } from 'react';
+import { DollarSign, Percent, Info, TrendingUp, Sparkles } from 'lucide-react';
+
+interface PricingEditorProps {
+  data: {
+    basePrice: number;
+    currency: string;
+    cleaningFee: number;
+  };
+  onChange: (updates: any) => void;
+}
+
+export function PricingEditor({ data, onChange }: PricingEditorProps) {
+  // Simple estimation logic
+  const estimatedEarnings = Math.round(data.basePrice * 30 * 0.6); // 60% occupancy
+
+  return (
+    <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
+      
+      {/* Base Price Card */}
+      <div className="bg-white p-6 rounded-2xl border border-neutral-200 shadow-sm relative overflow-hidden">
+         <div className="relative z-10">
+             <div className="flex items-center gap-3 mb-6">
+                 <div className="w-12 h-12 rounded-full bg-green-50 flex items-center justify-center text-green-600">
+                     <DollarSign className="w-6 h-6" />
+                 </div>
+                 <div>
+                     <h3 className="text-lg font-bold text-gray-900">Base Price</h3>
+                     <p className="text-gray-500 text-sm">Your default nightly rate.</p>
+                 </div>
+             </div>
+
+             <div className="flex items-center gap-4">
+                 <div className="relative flex-1">
+                     <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 font-bold">$</span>
+                     <input 
+                        type="number" 
+                        value={data.basePrice}
+                        onChange={(e) => onChange({ basePrice: parseInt(e.target.value) || 0 })}
+                        className="w-full pl-8 pr-4 py-4 text-3xl font-bold text-gray-900 bg-neutral-50 border border-neutral-200 rounded-xl focus:bg-white focus:ring-2 focus:ring-green-500 focus:border-green-500 outline-none transition-all placeholder-gray-300"
+                        placeholder="0"
+                     />
+                 </div>
+                 <select 
+                    value={data.currency}
+                    onChange={(e) => onChange({ currency: e.target.value })}
+                    className="h-[72px] px-6 rounded-xl bg-neutral-50 border border-neutral-200 text-gray-900 font-bold focus:ring-2 focus:ring-green-500 outline-none"
+                 >
+                     <option value="USD">USD</option>
+                     <option value="EUR">EUR</option>
+                     <option value="GBP">GBP</option>
+                 </select>
+             </div>
+         </div>
+      </div>
+
+      {/* Fees & Discounts */}
+      <div className="grid md:grid-cols-2 gap-6">
+          <div className="bg-white p-6 rounded-2xl border border-neutral-200 shadow-sm">
+               <h4 className="font-bold text-gray-900 mb-4 flex items-center gap-2">
+                   <Sparkles className="w-5 h-5 text-amber-500" /> Additional Fees
+               </h4>
+               <div className="space-y-4">
+                   <div>
+                       <label className="block text-sm font-semibold text-gray-700 mb-1">Cleaning Fee</label>
+                       <div className="relative">
+                           <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 font-bold">$</span>
+                           <input 
+                                type="number" 
+                                value={data.cleaningFee}
+                                onChange={(e) => onChange({ cleaningFee: parseInt(e.target.value) || 0 })}
+                                className="w-full pl-8 pr-4 py-3 rounded-xl bg-neutral-50 border border-neutral-200 text-gray-900 focus:ring-2 focus:ring-primary-500 outline-none transition-all"
+                           />
+                       </div>
+                   </div>
+               </div>
+          </div>
+
+          <div className="bg-gradient-to-br from-green-50 to-emerald-50 p-6 rounded-2xl border border-green-100 relative overflow-hidden">
+               <div className="relative z-10">
+                   <h4 className="font-bold text-green-800 mb-2 flex items-center gap-2">
+                       <TrendingUp className="w-5 h-5" /> Potential Earnings
+                   </h4>
+                   <p className="text-green-700/80 text-sm mb-6">Based on similar listings in your area with 60% occupancy.</p>
+                   
+                   <div className="flex items-baseline gap-1">
+                       <span className="text-3xl font-bold text-green-900">${estimatedEarnings.toLocaleString()}</span>
+                       <span className="text-green-700 font-medium">/ month</span>
+                   </div>
+               </div>
+               <DollarSign className="absolute -right-4 -bottom-4 w-32 h-32 text-green-500/10 rotate-12" />
+          </div>
+      </div>
+
+      <div className="flex gap-4 p-4 rounded-xl bg-blue-50 border border-blue-100 text-blue-800 text-sm">
+          <Info className="w-5 h-5 shrink-0" />
+          <p>We recommend starting with a lower price to get your first few bookings and reviews quickly.</p>
+      </div>
+
+    </div>
+  );
+}
