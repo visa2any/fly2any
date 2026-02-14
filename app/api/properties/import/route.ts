@@ -107,8 +107,23 @@ export async function POST(request: NextRequest) {
         description: $('meta[property="og:description"]').attr('content') || $('meta[name="description"]').attr('content'),
     };
 
-    // Get a cleaner text dump (first 15k chars should be enough for AI context)
-    let bodyText = $('body').text().replace(/\s+/g, ' ').trim().substring(0, 15000);
+    // 3. FAST PATH: Attempt to map JSON-LD directly
+    const fastPathData = mapJsonLdToProperty(jsonLdData, metaTags, uniqueImages);
+    
+    // If we have at least a Name and Description, return immediately (Fast Path)
+    if (fastPathData && fastPathData.name && fastPathData.description && fastPathData.description.length > 10) {
+        console.log("🚀 FAST PATH: Successfully mapped JSON-LD data. Bypassing AI.");
+        return NextResponse.json({
+            success: true,
+            data: fastPathData,
+            source: 'fast-path'
+        });
+    }
+
+    console.log("⚠️ FAST PATH FAILED: Insufficient structured data. Falling back to AI...");
+
+    // Get a cleaner text dump (first 10k chars is enough for AI context)
+    let bodyText = $('body').text().replace(/\s+/g, ' ').trim().substring(0, 10000);
 
     const prompt = `
     You are an AI Property Extraction Engine. Your job is to extract structured real estate/hospitality data from the provided raw HTML text and JSON-LD structured data.
@@ -137,7 +152,7 @@ export async function POST(request: NextRequest) {
     Output strict valid JSON. No markdown.
     `;
 
-    // 3. Call AI
+    // 4. Call AI Fallback
     const aiRes = await callGroq([
         { role: 'system', content: 'You are a precise data extractor. Output valid JSON only.' },
         { role: 'user', content: prompt }
@@ -174,4 +189,79 @@ export async function POST(request: NextRequest) {
     console.error('Import Error:', error);
     return NextResponse.json({ error: error.message || 'Internal Server Error' }, { status: 500 });
   }
+}
+
+function mapJsonLdToProperty(jsonLd: any, meta: any, images: string[]): any | null {
+    if (!jsonLd || Object.keys(jsonLd).length === 0) return null;
+
+    // Prioritize specific types
+    // Sometimes JSON-LD is an array or graph, we simplified it to a flat object in the loop above or used `Object.assign`.
+    
+    // Fallback logic for Name/Desc from Meta if JSON-LD is partial
+    const name = jsonLd.name || meta.title;
+    const description = jsonLd.description || meta.description;
+
+    if (!name && !description) return null;
+
+    // Extract Address
+    let address = { city: 'Unknown', country: 'Unknown', full_address: '' };
+    if (jsonLd.address) {
+        if (typeof jsonLd.address === 'string') {
+             address.full_address = jsonLd.address;
+        } else {
+             address.city = jsonLd.address.addressLocality || '';
+             address.country = jsonLd.address.addressCountry || '';
+             // Try to build full string
+             address.full_address = [
+                jsonLd.address.streetAddress, 
+                jsonLd.address.addressLocality, 
+                jsonLd.address.addressRegion, 
+                jsonLd.address.postalCode, 
+                jsonLd.address.addressCountry
+             ].filter(Boolean).join(', ');
+        }
+    }
+
+    // Extract Price
+    let price = { amount: 0, currency: 'USD' };
+    if (jsonLd.priceRange) {
+        // e.g. "$50 - $100" -> take lowest or average? Let's take simplistic approach
+        const match = jsonLd.priceRange.match(/\d+/);
+        if (match) price.amount = parseInt(match[0]);
+    } else if (jsonLd.price) {
+        price.amount = Number(jsonLd.price) || 0;
+        price.currency = jsonLd.priceCurrency || 'USD';
+    } else if (jsonLd.offers) {
+        const offer = Array.isArray(jsonLd.offers) ? jsonLd.offers[0] : jsonLd.offers;
+        if (offer) {
+             price.amount = Number(offer.price) || 0;
+             price.currency = offer.priceCurrency || 'USD';
+        }
+    }
+
+    // Extract Amenities
+    let amenities: string[] = [];
+    if (jsonLd.amenityFeature) {
+        const features = Array.isArray(jsonLd.amenityFeature) ? jsonLd.amenityFeature : [jsonLd.amenityFeature];
+        amenities = features.map((f: any) => typeof f === 'string' ? f : f.name).filter(Boolean).slice(0, 10);
+    }
+
+    // Specs
+    const specs = {
+        bedrooms: Number(jsonLd.numberOfRooms) || Number(jsonLd.numberOfBedrooms) || 1,
+        bathrooms: Number(jsonLd.numberOfBathroomsTotal) || 1,
+        maxGuests: Number(jsonLd.occupancy?.value) || 2,
+        beds: Number(jsonLd.numberOfBeds) || 1
+    };
+
+    return {
+        name: name?.trim(),
+        description: description?.trim(),
+        propertyType: 'hotel', // Default, hard to infer specific mapping without complex logic
+        address,
+        specs,
+        price,
+        amenities,
+        images: images // Use the images we extracted earlier
+    };
 }
