@@ -35,10 +35,64 @@ export async function POST(request: NextRequest) {
 
     const html = await res.text();
 
-    // 2. Clean HTML with Cheerio to reduce token usage
+    // 2. Clean HTML and Extract Structured Data
     const $ = cheerio.load(html);
     
-    // Remove scripts, styles, svg, and excessively noisy elements
+    // Extract JSON-LD (Rich Snippets) - The Gold Mine for Real Estate
+    let jsonLdData: any = {};
+    $('script[type="application/ld+json"]').each((_, el) => {
+        try {
+            const data = JSON.parse($(el).html() || '{}');
+            // Look for relevant schema types
+            if (['Hotel', 'LodgingBusiness', 'Resort', 'BedAndBreakfast', 'VacationRental', 'RealEstateListing', 'Product'].includes(data['@type'])) {
+                jsonLdData = { ...jsonLdData, ...data };
+            }
+            // Sometimes it's an array of graphs
+            if (Array.isArray(data)) {
+                 data.forEach(item => {
+                    if (item['@type'] && ['Hotel', 'LodgingBusiness', 'VR'].some(t => item['@type'].includes(t))) {
+                        jsonLdData = { ...jsonLdData, ...item };
+                    }
+                 });
+            }
+        } catch (e) { /* ignore parse errors */ }
+    });
+
+    // Extract High-Res Images
+    const extractedImages: string[] = [];
+    
+    // 1. Check OG Image
+    const ogImage = $('meta[property="og:image"]').attr('content');
+    if (ogImage) extractedImages.push(ogImage);
+
+    // 2. Check JSON-LD images
+    if (jsonLdData.image) {
+        if (Array.isArray(jsonLdData.image)) {
+            jsonLdData.image.forEach((img: any) => {
+                if (typeof img === 'string') extractedImages.push(img);
+                else if (img.url) extractedImages.push(img.url);
+            });
+        } else if (typeof jsonLdData.image === 'string') {
+            extractedImages.push(jsonLdData.image);
+        } else if (jsonLdData.image.url) {
+            extractedImages.push(jsonLdData.image.url);
+        }
+    }
+
+    // 3. Scrape img tags (filter for size to avoid icons) - simplified approach
+    $('img').each((_, el) => {
+        const src = $(el).attr('src') || $(el).attr('data-src');
+        if (src && src.startsWith('http') && !src.includes('profile') && !src.includes('icon') && !src.includes('logo')) {
+            // Rough heuristic: ignore obvious tiny images if possible, but hard to know dimensions without loading
+            if (!extractedImages.includes(src)) extractedImages.push(src);
+        }
+    });
+
+    // Limit images to top 10 unique
+    const uniqueImages = Array.from(new Set(extractedImages)).slice(0, 10);
+
+
+    // Remove scripts, style, etc for text processing
     $('script').remove();
     $('style').remove();
     $('svg').remove();
@@ -51,14 +105,13 @@ export async function POST(request: NextRequest) {
     const metaTags = {
         title: $('meta[property="og:title"]').attr('content') || $('title').text(),
         description: $('meta[property="og:description"]').attr('content') || $('meta[name="description"]').attr('content'),
-        image: $('meta[property="og:image"]').attr('content'),
     };
 
     // Get a cleaner text dump (first 15k chars should be enough for AI context)
     let bodyText = $('body').text().replace(/\s+/g, ' ').trim().substring(0, 15000);
 
     const prompt = `
-    You are an AI Property Extraction Engine. Your job is to extract structured real estate/hospitality data from the provided raw HTML text.
+    You are an AI Property Extraction Engine. Your job is to extract structured real estate/hospitality data from the provided raw HTML text and JSON-LD structured data.
     
     Target URL: ${url}
     
@@ -72,13 +125,14 @@ export async function POST(request: NextRequest) {
         bathrooms: number (default 1),
         maxGuests: number (default 2),
         beds: number (default 1)
-      }
+    }
     - price: { amount: number (per night estimation), currency: string }
     - amenities: string[] (list of top 10 detected amenities e.g., "Wifi", "Pool", "Kitchen")
-    - images: string[] (find logic for image types if possible, otherwise use the OG image provided below)
-
-    Context - Meta: ${JSON.stringify(metaTags)}
-    Context - PageText: "${bodyText}"
+    
+    CONTEXT:
+    1. JSON-LD Structured Data (HIGH CONFIDENCE): ${JSON.stringify(jsonLdData).substring(0, 5000)}
+    2. Meta Tags: ${JSON.stringify(metaTags)}
+    3. Page Text (Lower Confidence): "${bodyText}"
 
     Output strict valid JSON. No markdown.
     `;
@@ -102,14 +156,13 @@ export async function POST(request: NextRequest) {
     try {
         const cleanJson = aiRes.message.replace(/```json/g, '').replace(/```/g, '').trim();
         jsonData = JSON.parse(cleanJson);
+        
+        // Attach the scraped images to the AI result
+        jsonData.images = uniqueImages;
+
     } catch (e) {
         console.error("JSON Parse Error", aiRes.message);
         return NextResponse.json({ error: 'Failed to parse AI response' }, { status: 500 });
-    }
-
-    // Merge detected OG image if AI didn't find specific ones or to ensure high quality cover
-    if (metaTags.image && (!jsonData.images || jsonData.images.length === 0)) {
-        jsonData.images = [metaTags.image];
     }
 
     return NextResponse.json({
@@ -122,3 +175,4 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: error.message || 'Internal Server Error' }, { status: 500 });
   }
 }
+
