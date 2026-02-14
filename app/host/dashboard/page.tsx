@@ -1,24 +1,50 @@
 import { auth } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
 import { redirect } from 'next/navigation';
+
+import { Suspense } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { MaxWidthContainer } from '@/components/layout/MaxWidthContainer';
-import { Plus, Home, MapPin, Eye, Edit2, Trash2, BarChart3, Settings, LogOut, User as UserIcon, CameraOff } from 'lucide-react';
+import { Plus, Home, MapPin, Eye, Edit2, Trash2, BarChart3, Settings, LogOut, User as UserIcon, CameraOff, Loader2 } from 'lucide-react';
 import { UserMenu } from '@/components/layout/UserMenu';
 
-export default async function HostDashboard() {
+export const dynamic = 'force-dynamic'; // Force dynamic rendering to prevent stale data
+
+export default async function HostDashboardWrapper() {
+    return (
+        <Suspense fallback={<DashboardLoading />}>
+            <HostDashboard />
+        </Suspense>
+    );
+}
+
+function DashboardLoading() {
+    return (
+        <div className="w-full h-screen flex items-center justify-center bg-neutral-50">
+            <Loader2 className="w-8 h-8 text-primary-600 animate-spin" />
+        </div>
+    );
+}
+
+async function HostDashboard() {
   const session = await auth();
   if (!session?.user) redirect('/auth/signin');
 
-  // Fetch properties
-  const properties = await prisma.property.findMany({
-    where: { 
-        // hostId: session.user.id // In real app, filter by host. 
-    },
-    include: { images: true },
-    orderBy: { createdAt: 'desc' }
-  });
+  // Fetch properties safely
+  let properties = [];
+  try {
+      properties = await prisma.property.findMany({
+        where: { 
+            // hostId: session.user.id 
+        },
+        include: { images: true },
+        orderBy: { createdAt: 'desc' }
+      });
+  } catch (e) {
+      console.error("Failed to fetch properties:", e);
+      // Don't crash the whole page, just show empty or partial
+  }
 
   // Mock translations for UserMenu since this is a server component and we want a quick fix
   const userMenuTranslations = {
@@ -51,14 +77,16 @@ export default async function HostDashboard() {
                        </div>
                        <div className="relative">
                             {/* We can use UserMenu here if compatible, or a simple avatar link */}
+                            {/* User Menu / Avatar */}
                             <Link href="/account" className="block relative">
-                                {session.user.image ? (
+                                {session.user.image && session.user.image.startsWith('http') ? (
                                     <Image 
                                         src={session.user.image} 
                                         alt={session.user.name || 'User'} 
                                         width={40} 
                                         height={40} 
                                         className="rounded-full border-2 border-white shadow-sm hover:ring-2 hover:ring-primary-500 transition-all"
+                                        unoptimized={true} // Use unoptimized to prevent server-side image processing crashes for unknown domains
                                     />
                                 ) : (
                                     <div className="w-10 h-10 rounded-full bg-primary-100 flex items-center justify-center text-primary-600 font-bold border-2 border-white shadow-sm">
