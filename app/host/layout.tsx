@@ -11,7 +11,7 @@ export default function HostLayout({ children }: { children: React.ReactNode }) 
     <div className="min-h-screen bg-neutral-50">
       <HostSidebar />
       {/* Main content — offset by sidebar width on desktop */}
-      <div className="md:ml-56 pb-20 md:pb-0">
+      <div className="md:ml-64 pb-20 md:pb-0">
         {children}
       </div>
     </div>
