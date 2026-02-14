@@ -4,7 +4,7 @@ import { redirect } from 'next/navigation';
 import Image from 'next/image';
 import Link from 'next/link';
 import { MaxWidthContainer } from '@/components/layout/MaxWidthContainer';
-import { Plus, Home, MapPin, Eye, Edit2, Trash2, BarChart3, Settings, LogOut, User as UserIcon } from 'lucide-react';
+import { Plus, Home, MapPin, Eye, Edit2, Trash2, BarChart3, Settings, LogOut, User as UserIcon, CameraOff } from 'lucide-react';
 import { UserMenu } from '@/components/layout/UserMenu';
 
 export default async function HostDashboard() {
@@ -131,8 +131,14 @@ export default async function HostDashboard() {
                      <div key={p.id} className="group p-4 rounded-2xl bg-white border border-neutral-200 hover:border-primary-200 hover:shadow-md transition-all flex flex-col md:flex-row gap-6 items-center">
                          {/* Image */}
                          <div className="relative w-full md:w-64 h-48 md:h-40 rounded-xl overflow-hidden shrink-0 bg-neutral-100">
-                             {p.images[0] ? (
-                                 <Image src={p.images[0].url} alt={p.name} fill className="object-cover group-hover:scale-105 transition-transform duration-500" />
+                             {p.images?.[0]?.url && p.images[0].url.startsWith('http') ? (
+                                 <Image 
+                                    src={p.images[0].url} 
+                                    alt={p.name || 'Property Image'} 
+                                    fill 
+                                    className="object-cover group-hover:scale-105 transition-transform duration-500" 
+                                    sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                                 />
                              ) : (
                                  <div className="w-full h-full flex flex-col items-center justify-center text-gray-400 gap-2">
                                      <CameraOff className="w-8 h-8 opacity-50" />
