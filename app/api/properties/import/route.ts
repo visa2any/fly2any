@@ -14,10 +14,26 @@ export async function POST(request: NextRequest) {
          return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const { url } = await request.json();
+    let { url } = await request.json();
 
     if (!url) {
       return NextResponse.json({ error: 'URL is required' }, { status: 400 });
+    }
+
+    // 0. URL Normalization (Fix Host URLs)
+    // Common user mistake: pasting the "Host Editor" link instead of the public "Room" link.
+    // Example: https://www.airbnb.com.br/hosting/listings/editor/1186339775146522108/view-your-space
+    // Target:  https://www.airbnb.com.br/rooms/1186339775146522108
+    if (url.includes('airbnb') && url.includes('/hosting/listings/editor/')) {
+        const match = url.match(/\/editor\/(\d+)/);
+        if (match && match[1]) {
+            const originalUrl = url;
+            url = url.replace(/\/hosting\/listings\/editor\/\d+\/.*$/, `/rooms/${match[1]}`);
+            // If replace fails or is complex, just rebuild
+            const baseUrl = new URL(originalUrl).origin;
+            url = `${baseUrl}/rooms/${match[1]}`;
+            console.log(`🔄 Converted Host URL to Public URL: ${url}`);
+        }
     }
 
     console.time('Import Process');
