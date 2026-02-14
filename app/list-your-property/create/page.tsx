@@ -91,6 +91,7 @@ export default function CreatePropertyPage() {
   
   // Step 5: Photos
   const [photos, setPhotos] = useState<any[]>([]);
+  const [video, setVideo] = useState<any>(null); // New Video State
 
   // Step 6: Policies
   const [checkInTime, setCheckInTime] = useState('15:00');
@@ -175,6 +176,11 @@ export default function CreatePropertyPage() {
              category: p.category, 
              isPrimary: p.isPrimary 
         })),
+        video: video ? {
+            url: video.url,
+            thumbnailUrl: video.thumbnailUrl,
+            duration: video.duration
+        } : null,
       };
 
       // 1. Create/Update Property
@@ -391,7 +397,12 @@ export default function CreatePropertyPage() {
                 <h1 className="text-3xl font-black text-white mb-2">Photos</h1>
                 <p className="text-white/60">Showcase your property. First photo is cover.</p>
              </div>
-             <PhotoUploader photos={photos} onChange={setPhotos} />
+             <PhotoUploader 
+                photos={photos} 
+                onChange={setPhotos} 
+                video={video}
+                onVideoChange={setVideo}
+             />
           </div>
         );
 

@@ -6,6 +6,7 @@ import QRCode from 'qrcode';
 import * as tf from '@tensorflow/tfjs';
 import * as mobilenet from '@tensorflow-models/mobilenet';
 import { useImageProcessor } from '../hooks/useImageProcessor';
+import { VideoUploader } from './VideoUploader';
 
 // AI Tag to Category Mapping
 const TAG_MAP: Record<string, ImageCategory> = {
@@ -37,6 +38,8 @@ interface PhotoData {
 interface PhotoUploaderProps {
   photos: PhotoData[];
   onChange: (photos: PhotoData[]) => void;
+  video: any; // Using any for now to avoid circular dependency hell, ideally import VideoData
+  onVideoChange: (video: any) => void;
 }
 
 const CATEGORIES: { value: ImageCategory; label: string }[] = [
@@ -51,7 +54,7 @@ const CATEGORIES: { value: ImageCategory; label: string }[] = [
   { value: 'view', label: 'View' },
 ];
 
-export function PhotoUploader({ photos, onChange }: PhotoUploaderProps) {
+export function PhotoUploader({ photos, onChange, video, onVideoChange }: PhotoUploaderProps) {
   const [dragOver, setDragOver] = useState(false);
   
   // Mobile Upload State
@@ -356,6 +359,7 @@ export function PhotoUploader({ photos, onChange }: PhotoUploaderProps) {
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
          {photos.map((photo, idx) => (
             <div key={idx} className="bg-white/5 border border-white/10 rounded-xl overflow-hidden group">
+               {/* ... (Existing Photo Card) ... */} 
                <div className="relative aspect-video bg-black/50">
                   <Image 
                       src={photo.url} 
@@ -422,6 +426,14 @@ export function PhotoUploader({ photos, onChange }: PhotoUploaderProps) {
                </div>
             </div>
          ))}
+      </div>
+
+      {/* Video Section Separation */}
+      <div className="border-t border-white/10 pt-8 mt-8">
+          <VideoUploader 
+             video={video} 
+             onChange={onVideoChange} 
+          />
       </div>
     </div>
   );
