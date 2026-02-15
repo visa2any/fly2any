@@ -85,7 +85,7 @@ export function PhotoUploader({ images, onChange }: PhotoUploaderProps) {
 
   useEffect(() => {
       // Convert incoming images (strings or objects) to local state
-      const processed = (images || []).map(img => {
+      const processed = (images || []).filter(Boolean).map(img => {
           if (typeof img === 'string') {
               return { url: img, caption: '', category: 'general', isPrimary: false, tags: [], rotation: 0 };
           }
@@ -106,6 +106,18 @@ export function PhotoUploader({ images, onChange }: PhotoUploaderProps) {
   const [showQR, setShowQR] = useState(false);
   const [qrDataUrl, setQrDataUrl] = useState('');
   const [sessionId, setSessionId] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (showQR && !qrDataUrl) {
+        const sid = Math.random().toString(36).substring(7);
+        setSessionId(sid);
+        // In real app, this URL points to a mobile upload page with sessionId
+        const url = `${window.location.origin}/upload-mobile?session=${sid}`;
+        QRCode.toDataURL(url)
+            .then(setQrDataUrl)
+            .catch(console.error);
+    }
+  }, [showQR, qrDataUrl]);
 
   // Load MobileNet model (Simplified loading)
   const [model, setModel] = useState<mobilenet.MobileNet | null>(null);
@@ -268,8 +280,13 @@ export function PhotoUploader({ images, onChange }: PhotoUploaderProps) {
            ) : (
                <div className="text-center p-4">
                    <div className="bg-white p-2 rounded-xl inline-block shadow-sm mb-2">
-                       {/* Placeholder for QR if lib missing or data empty, using mock image if needed or real QR */}
-                       <div className="w-24 h-24 bg-gray-900 flex items-center justify-center text-white text-xs">QR CODE</div>
+                       {qrDataUrl ? (
+                           <img src={qrDataUrl} alt="Upload QR" className="w-24 h-24" />
+                       ) : (
+                           <div className="w-24 h-24 bg-gray-100 flex items-center justify-center text-gray-400">
+                               <Loader2 className="w-6 h-6 animate-spin" />
+                           </div>
+                       )}
                    </div>
                    <div className="text-gray-900 font-bold text-xs">Scan & Upload</div>
                </div>
@@ -286,7 +303,7 @@ export function PhotoUploader({ images, onChange }: PhotoUploaderProps) {
 
       {/* Grid */}
       <div className="grid grid-cols-1 sm:grid-cols-3 xl:grid-cols-4 gap-4">
-         {localPhotos.map((photo, idx) => (
+         {localPhotos.filter(p => p && p.url).map((photo, idx) => (
             <div key={idx} className="bg-white border border-neutral-200 rounded-xl overflow-hidden group hover:shadow-md transition-all">
                <div className="relative aspect-video bg-neutral-100">
                   <Image 

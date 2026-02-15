@@ -91,7 +91,7 @@ export default function CreatePropertyPage() {
     amenities: [] as string[],
 
     // Photos
-    images: [] as string[],
+    images: [] as any[],
     
     // Policies
     policies: {

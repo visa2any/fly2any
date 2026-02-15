@@ -8,7 +8,9 @@ interface ReviewStepProps {
 }
 
 export function ReviewStep({ data }: ReviewStepProps) {
-  const coverImage = data.images.find((i: any) => i.isPrimary)?.url || data.images[0]?.url;
+  const coverImage = (data.images && data.images.length > 0) 
+      ? (data.images.find((i: any) => i && i.isPrimary)?.url || (data.images[0] && (typeof data.images[0] === 'string' ? data.images[0] : data.images[0].url)))
+      : null;
 
   return (
     <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
