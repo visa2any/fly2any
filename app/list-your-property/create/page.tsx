@@ -444,12 +444,33 @@ export default function CreatePropertyPage() {
   };
 
   const handlePublish = async () => {
-     setIsSaving(true);
-     // Similar to save but set status to PUBLISHED
-     // ...
-     setIsSaving(false);
-     router.push('/host/dashboard');
-     toast.success("Property Published! 🎉");
+    setIsSaving(true);
+    try {
+        const payload = preparePayload(formData);
+        const publishPayload = { ...payload, status: 'active' };
+
+        const url = editingId ? `/api/properties/${editingId}` : '/api/properties';
+        const method = editingId ? 'PUT' : 'POST';
+        
+        const res = await fetch(url, {
+            method,
+            body: JSON.stringify(publishPayload),
+            headers: { 'Content-Type': 'application/json' }
+        });
+
+        if (!res.ok) throw new Error("Failed to publish");
+        
+        // Clear draft
+        if (typeof window !== 'undefined') localStorage.removeItem('fly2any_host_draft');
+
+        toast.success("Property Published! 🎉");
+        router.push('/host/dashboard');
+    } catch (e: any) {
+        console.error(e);
+        toast.error("Failed to publish: " + e.message);
+    } finally {
+        setIsSaving(false);
+    }
   };
 
   const renderStepContent = () => {
