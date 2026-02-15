@@ -33,7 +33,14 @@ export function PricingEditor({ data, onChange }: PricingEditorProps) {
   const monthlyCleaningRevenue = cleaningFee * (nightsBooked / 3); // Approx 6 bookings
   const monthlyGross = monthlyBaseRevenue + monthlyCleaningRevenue;
   const platformFee = Math.round(monthlyGross * 0.03); // 3% host fee
+  const monthlyGross = monthlyBaseRevenue + monthlyCleaningRevenue;
+  const platformFee = Math.round(monthlyGross * 0.03); // 3% host fee
   const estimatedNet = monthlyGross - platformFee;
+
+  const handleUpdate = (updates: any) => {
+    onChange({ ...data, ...updates });
+  };
+
 
   return (
     <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
@@ -58,7 +65,7 @@ export function PricingEditor({ data, onChange }: PricingEditorProps) {
                           {data.smartPricing ? 'Smart Pricing ON' : 'Smart Pricing'}
                       </span>
                       <button 
-                          onClick={() => onChange({ smartPricing: !data.smartPricing })}
+                          onClick={() => handleUpdate({ smartPricing: !data.smartPricing })}
                           className={`w-9 h-5 rounded-full transition-colors relative focus:outline-none focus:ring-2 focus:ring-purple-500/50 ${data.smartPricing ? 'bg-purple-600' : 'bg-gray-300'}`}
                       >
                           <div className={`absolute top-1 left-1 w-3 h-3 bg-white rounded-full transition-transform shadow-sm ${data.smartPricing ? 'translate-x-4' : 'translate-x-0'}`} />
@@ -72,14 +79,14 @@ export function PricingEditor({ data, onChange }: PricingEditorProps) {
                       <input 
                           type="number" 
                           value={data.basePrice || ''}
-                          onChange={(e) => onChange({ basePrice: parseInt(e.target.value) || 0 })}
+                          onChange={(e) => handleUpdate({ basePrice: parseInt(e.target.value) || 0 })}
                           className="w-full pl-6 pr-3 py-2 text-3xl font-bold text-gray-900 bg-neutral-50 border border-neutral-200 rounded-lg focus:bg-white focus:ring-2 focus:ring-green-500 outline-none transition-all placeholder-gray-300"
                           placeholder="0"
                       />
                   </div>
                   <select 
                       value={data.currency}
-                      onChange={(e) => onChange({ currency: e.target.value })}
+                      onChange={(e) => handleUpdate({ currency: e.target.value })}
                       className="h-12 px-3 rounded-lg bg-neutral-50 border border-neutral-200 text-gray-900 font-bold focus:ring-2 focus:ring-green-500 outline-none text-sm cursor-pointer hover:bg-neutral-100 transition-colors"
                   >
                       <option value="USD">USD</option>
@@ -97,7 +104,7 @@ export function PricingEditor({ data, onChange }: PricingEditorProps) {
                       max="1000" 
                       step="5"
                       value={data.basePrice || 0}
-                      onChange={(e) => onChange({ basePrice: parseInt(e.target.value) || 0 })}
+                      onChange={(e) => handleUpdate({ basePrice: parseInt(e.target.value) || 0 })}
                       className="w-full h-2 bg-neutral-200 rounded-lg appearance-none cursor-pointer accent-green-600 hover:accent-green-500 transition-all"
                   />
                   <div className="flex justify-between mt-1 text-[10px] text-gray-400 font-medium px-1">
@@ -127,7 +134,7 @@ export function PricingEditor({ data, onChange }: PricingEditorProps) {
                            <input 
                                type="number" 
                                value={data.weeklyDiscount || 0}
-                               onChange={(e) => onChange({ weeklyDiscount: parseInt(e.target.value) || 0 })}
+                               onChange={(e) => handleUpdate({ weeklyDiscount: parseInt(e.target.value) || 0 })}
                                className="w-14 p-1 text-center bg-white rounded-md border border-blue-200 font-black text-xl text-blue-900 outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all"
                            />
                            <span className="text-blue-900 font-bold text-lg">%</span>
@@ -142,7 +149,7 @@ export function PricingEditor({ data, onChange }: PricingEditorProps) {
                            <input 
                                type="number" 
                                value={data.monthlyDiscount || 0}
-                               onChange={(e) => onChange({ monthlyDiscount: parseInt(e.target.value) || 0 })}
+                               onChange={(e) => handleUpdate({ monthlyDiscount: parseInt(e.target.value) || 0 })}
                                className="w-14 p-1 text-center bg-white rounded-md border border-purple-200 font-black text-xl text-purple-900 outline-none focus:border-purple-500 focus:ring-2 focus:ring-purple-200 transition-all"
                            />
                            <span className="text-purple-900 font-bold text-lg">%</span>
@@ -174,7 +181,7 @@ export function PricingEditor({ data, onChange }: PricingEditorProps) {
                            <input 
                                 type="number" 
                                 value={data.cleaningFee || ''}
-                                onChange={(e) => onChange({ cleaningFee: parseInt(e.target.value) || 0 })}
+                                onChange={(e) => handleUpdate({ cleaningFee: parseInt(e.target.value) || 0 })}
                                 className="w-full pl-6 pr-2 py-2 rounded-lg bg-neutral-50 border border-neutral-200 text-sm font-semibold focus:bg-white focus:border-primary-500 focus:ring-2 focus:ring-primary-100 outline-none transition-all"
                                 placeholder="0"
                            />
@@ -189,7 +196,7 @@ export function PricingEditor({ data, onChange }: PricingEditorProps) {
                            <input 
                                 type="number" 
                                 value={data.weekendPrice || ''}
-                                onChange={(e) => onChange({ weekendPrice: parseInt(e.target.value) || 0 })}
+                                onChange={(e) => handleUpdate({ weekendPrice: parseInt(e.target.value) || 0 })}
                                 className="w-full pl-6 pr-2 py-2 rounded-lg bg-neutral-50 border border-neutral-200 text-sm font-semibold focus:bg-white focus:border-primary-500 focus:ring-2 focus:ring-primary-100 outline-none transition-all"
                                 placeholder="0"
                            />
@@ -204,7 +211,7 @@ export function PricingEditor({ data, onChange }: PricingEditorProps) {
                            <input 
                                 type="number" 
                                 value={data.petFee || ''}
-                                onChange={(e) => onChange({ petFee: parseInt(e.target.value) || 0 })}
+                                onChange={(e) => handleUpdate({ petFee: parseInt(e.target.value) || 0 })}
                                 className="w-full pl-6 pr-2 py-2 rounded-lg bg-neutral-50 border border-neutral-200 text-sm font-semibold focus:bg-white focus:border-primary-500 focus:ring-2 focus:ring-primary-100 outline-none transition-all"
                                 placeholder="0"
                            />
@@ -219,7 +226,7 @@ export function PricingEditor({ data, onChange }: PricingEditorProps) {
                            <input 
                                 type="number" 
                                 value={data.extraGuestFee || ''}
-                                onChange={(e) => onChange({ extraGuestFee: parseInt(e.target.value) || 0 })}
+                                onChange={(e) => handleUpdate({ extraGuestFee: parseInt(e.target.value) || 0 })}
                                 className="w-full pl-6 pr-2 py-2 rounded-lg bg-neutral-50 border border-neutral-200 text-sm font-semibold focus:bg-white focus:border-primary-500 focus:ring-2 focus:ring-primary-100 outline-none transition-all"
                                 placeholder="0"
                            />
@@ -234,7 +241,7 @@ export function PricingEditor({ data, onChange }: PricingEditorProps) {
                            <input 
                                 type="number" 
                                 value={data.securityDeposit || ''}
-                                onChange={(e) => onChange({ securityDeposit: parseInt(e.target.value) || 0 })}
+                                onChange={(e) => handleUpdate({ securityDeposit: parseInt(e.target.value) || 0 })}
                                 className="w-full pl-6 pr-2 py-2 rounded-lg bg-neutral-50 border border-neutral-200 text-sm font-semibold focus:bg-white focus:border-primary-500 focus:ring-2 focus:ring-primary-100 outline-none transition-all"
                                 placeholder="0"
                            />
