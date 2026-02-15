@@ -68,9 +68,9 @@ export function RoomBuilder({ rooms, onChange }: RoomBuilderProps) {
                      </div>
                  </div>
 
-                 <div className="grid grid-cols-12 gap-4 mb-4 items-end">
+                 <div className="grid grid-cols-12 gap-3 mb-4 items-end">
                     {/* Bed Type */}
-                    <div className="col-span-7 sm:col-span-5 space-y-1.5">
+                    <div className="col-span-6 sm:col-span-4 space-y-1.5">
                         <label className="text-[11px] font-bold text-neutral-500 uppercase tracking-wider">Bed Type</label>
                         <select 
                             value={room.bedType}
@@ -83,9 +83,9 @@ export function RoomBuilder({ rooms, onChange }: RoomBuilderProps) {
                         </select>
                     </div>
 
-                    {/* Count */}
-                    <div className="col-span-5 sm:col-span-3 space-y-1.5">
-                        <label className="text-[11px] font-bold text-neutral-500 uppercase tracking-wider">Count</label>
+                    {/* Bed Count */}
+                    <div className="col-span-3 sm:col-span-2 space-y-1.5">
+                        <label className="text-[10px] font-bold text-neutral-500 uppercase tracking-wider">Beds</label>
                         <div className="flex items-center bg-white border border-neutral-200 rounded-xl px-1 py-1 shadow-sm">
                             <button 
                                 onClick={() => updateRoom(room.id, { bedCount: Math.max(0, room.bedCount - 1) })}
@@ -95,6 +95,24 @@ export function RoomBuilder({ rooms, onChange }: RoomBuilderProps) {
                             <span className="flex-1 text-center font-bold text-neutral-700 text-sm">{room.bedCount}</span>
                             <button
                                 onClick={() => updateRoom(room.id, { bedCount: room.bedCount + 1 })}
+                                className="w-8 h-8 rounded-lg hover:bg-neutral-100 flex items-center justify-center text-neutral-500 transition-colors"
+                                type="button"
+                            >+</button>
+                        </div>
+                    </div>
+
+                    {/* Max Occupancy */}
+                    <div className="col-span-3 sm:col-span-2 space-y-1.5">
+                        <label className="text-[10px] font-bold text-neutral-500 uppercase tracking-wider">Guests</label>
+                        <div className="flex items-center bg-white border border-neutral-200 rounded-xl px-1 py-1 shadow-sm">
+                            <button 
+                                onClick={() => updateRoom(room.id, { maxOccupancy: Math.max(1, room.maxOccupancy - 1) })}
+                                className="w-8 h-8 rounded-lg hover:bg-neutral-100 flex items-center justify-center text-neutral-500 transition-colors"
+                                type="button"
+                            >-</button>
+                            <span className="flex-1 text-center font-bold text-neutral-700 text-sm">{room.maxOccupancy}</span>
+                            <button
+                                onClick={() => updateRoom(room.id, { maxOccupancy: room.maxOccupancy + 1 })}
                                 className="w-8 h-8 rounded-lg hover:bg-neutral-100 flex items-center justify-center text-neutral-500 transition-colors"
                                 type="button"
                             >+</button>
