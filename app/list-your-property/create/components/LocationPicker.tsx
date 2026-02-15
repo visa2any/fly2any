@@ -102,60 +102,121 @@ export function LocationPicker({ initialLocation, onLocationSelect }: LocationPi
       }
   }, [initialLocation]);
 
+  // Helper: Fetch info from ViaCEP (Brazil)
+  const fetchViaCep = async (cep: string) => {
+      try {
+          const cleanCep = cep.replace(/\D/g, '');
+          if (cleanCep.length !== 8) return null;
+          
+          const res = await fetch(`https://viacep.com.br/ws/${cleanCep}/json/`);
+          const data = await res.json();
+          if (data.erro) return null;
+          
+          return data; // { logradouro, bairro, localidade, uf, ... }
+      } catch (e) {
+          console.error("ViaCEP error:", e);
+          return null;
+      }
+  };
+
   const handleSearch = async (searchQuery?: string) => {
     // Safety check: ensure we're not receiving an event object or non-string
     let term = (typeof searchQuery === 'string' ? searchQuery : query);
     
     if (!term || typeof term !== 'string') return;
     
-    // Smart Heuristic: Detect Brazilian CEP (e.g., 72305-503)
-    const cepRegex = /^\d{5}-\d{3}$/;
-    if (cepRegex.test(term.trim())) {
-        term = `${term}, Brazil`;
-    }
-    
     setIsSearching(true);
+    setSearchResults([]);
+
     try {
-        // Add explicit address details (addressdetails=1) to get structured data
-        let url = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(term)}&addressdetails=1&limit=5`;
+        let searchResults: any[] = [];
         
-        // If we have a country hint from the initial location (e.g. import), usage it to bias results
-        // Note: Nominatim uses 2-letter country codes usually, effectively hard to map from full name without a map.
-        // But we can just append the country name to the query if it's not already there.
-        if (initialLocation.country && !term.toLowerCase().includes(initialLocation.country.toLowerCase())) {
-             // Optional: careful not to over-constrain if user is searching for something else
+        // Strategy 1: Brazilian CEP Detection (xxxxx-xxx or 8 digits)
+        const cepRegex = /^\d{5}-?\d{3}$/;
+        const isCep = cepRegex.test(term.trim());
+        
+        if (isCep) {
+            const viaCepData = await fetchViaCep(term);
+            if (viaCepData) {
+                // Verified Brazilian Address -> Try multiple levels of precision
+                
+                // Attempt 1: Full Address (Street + Neighborhood + City)
+                let preciseQuery = `${viaCepData.logradouro}, ${viaCepData.bairro}, ${viaCepData.localidade} - ${viaCepData.uf}, Brazil`;
+                let url = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(preciseQuery)}&addressdetails=1&limit=5`;
+                let res = await fetch(url);
+                searchResults = await res.json();
+                
+                // Attempt 2: Neighborhood + City (if Full Address fails)
+                if (searchResults.length === 0 && viaCepData.bairro) {
+                    preciseQuery = `${viaCepData.bairro}, ${viaCepData.localidade} - ${viaCepData.uf}, Brazil`;
+                    url = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(preciseQuery)}&addressdetails=1&limit=5`;
+                    res = await fetch(url);
+                    searchResults = await res.json();
+                }
+
+                // Attempt 3: Street + City (if Neighborhood is missing/wrong in OSM)
+                if (searchResults.length === 0 && viaCepData.logradouro) {
+                    preciseQuery = `${viaCepData.logradouro}, ${viaCepData.localidade} - ${viaCepData.uf}, Brazil`;
+                    url = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(preciseQuery)}&addressdetails=1&limit=5`;
+                    res = await fetch(url);
+                    searchResults = await res.json();
+                }
+
+                // Attempt 4: City Only (Fallback)
+                if (searchResults.length === 0) {
+                     preciseQuery = `${viaCepData.localidade} - ${viaCepData.uf}, Brazil`;
+                     url = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(preciseQuery)}&addressdetails=1&limit=5`;
+                     res = await fetch(url);
+                     searchResults = await res.json();
+                }
+            }
         }
 
-        const res = await fetch(url);
-        const data = await res.json();
-        setSearchResults(data);
+        // Strategy 2: Standard Nominatim Search (Global)
+        if (searchResults.length === 0) {
+            // Priority: Try strict search first
+             let url = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(term)}&addressdetails=1&limit=5`;
+             
+             // Context Awareness: If we have a country context and the term looks simple, maybe bias?
+             // Actually, for "06106 hartford ct", we don't want to bias to Brazil. 
+             // Global search is best left unbiased unless user explicitly selected a country filter (which we don't have here yet).
+             
+             const res = await fetch(url);
+             searchResults = await res.json();
+        }
+
+        // Strategy 3: Fallback - Relaxed Search (if no results)
+        if (searchResults.length === 0) {
+             // Try removing special chars or country codes if likely to interfere?
+             // Or try structured search if it looks like a zip
+             if (/^\d+$/.test(term.trim())) {
+                 // Pure numbers -> try as postalcode
+                 const url = `https://nominatim.openstreetmap.org/search?format=json&postalcode=${encodeURIComponent(term)}&addressdetails=1&limit=5`;
+                 const res = await fetch(url);
+                 searchResults = await res.json();
+             }
+        }
+
+        setSearchResults(searchResults);
         
-        if (data && data.length > 0) {
-            // Smart Selection: 
-            // If multiple results, try to pick the one that matches our heuristics or just the first relevant one.
-            // For now, let's pick the first one but ensure we map it correctly.
-            const first = data[0];
+        if (searchResults && searchResults.length > 0) {
+            // Automatically select first result if it's high confidence? 
+            // For now, let user pick from dropdown to be safe, unless it's a perfect match (like the ViaCEP case).
+            // But to keep UI consistent, show dropdown.
+            
+            // However, if it was a ViaCEP match, it is almost certainly correct.
+            // Let's just show results. User will click.
+            
+            // Auto-center map on first result for better UX
+            const first = searchResults[0];
             const lat = parseFloat(first.lat);
             const lon = parseFloat(first.lon);
-            const newPos = new L.LatLng(lat, lon);
-            
-            setPosition(newPos);
-            setActivePosition([lat, lon]);
-            
-            // Generate a better display name using address components if available
-            // Safety check: ensure first.address is an object before accessing properties
-            const addr = first.address || {};
-            const displayName = first.address ? 
-                `${addr.road || ''} ${addr.house_number || ''}, ${addr.city || addr.town || addr.village || ''}, ${addr.country || ''}`
-                : first.display_name;
-
-            // Update parent
-            updateLocationDetails(lat, lon, first.display_name); // Use full display name for form
-            setSearchResults([]); 
+            setActivePosition([lat, lon]); 
         } else {
-             // Retry with less specific query? 
-             // Or let user know.
+             // No results found
+             // toast.error("Address not found. Try entering city and country.");
         }
+
     } catch (error) {
         console.error("Geocoding error", error);
     } finally {
