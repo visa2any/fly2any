@@ -37,9 +37,9 @@ export function RoomBuilder({ rooms, onChange }: RoomBuilderProps) {
 
   return (
     <div className="space-y-6">
-       <div className="grid grid-cols-1 gap-4">
+       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {rooms.map((room, index) => (
-             <div key={room.id} className="bg-white border border-neutral-200 rounded-xl p-5 shadow-sm hover:shadow-md transition-shadow">
+             <div key={room.id} className="bg-white border border-neutral-200 rounded-xl p-4 shadow-sm hover:shadow-md transition-shadow flex flex-col">
                  <div className="flex justify-between items-start mb-4">
                      <div>
                         <input 

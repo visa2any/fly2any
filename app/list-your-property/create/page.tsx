@@ -240,13 +240,13 @@ export default function CreatePropertyPage() {
     switch (currentStep) {
       case 'basics':
         return (
-          <div className="animate-fadeIn pb-12">
-             <div className="grid grid-cols-1 xl:grid-cols-12 gap-8">
+          <div className="animate-fadeIn h-full flex flex-col">
+             <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 h-full">
                 
                 {/* Left Column: Import and Core Info */}
-                <div className="xl:col-span-5 space-y-8">
-                    {/* Import Hero Section - Prominent */}
-                    <div className="bg-gradient-to-br from-primary-50 to-amber-50 rounded-2xl p-6 border border-primary-100 shadow-sm relative overflow-hidden">
+                <div className="space-y-6">
+                    {/* Import Hero Section - Compact */}
+                    <div className="bg-gradient-to-br from-primary-50 to-amber-50 rounded-2xl p-5 border border-primary-100 shadow-sm relative overflow-hidden">
                         <div className="absolute right-0 top-0 opacity-10 pointer-events-none">
                             <Sparkles className="w-32 h-32 text-primary-500 transform translate-x-10 -translate-y-10" />
                         </div>
@@ -289,7 +289,7 @@ export default function CreatePropertyPage() {
                 </div>
 
                 {/* Right Column: Property Type Grid */}
-                <div className="xl:col-span-7 space-y-6">
+                <div className="space-y-4 flex flex-col">
                     <div>
                         <h2 className="text-xl md:text-2xl font-bold text-gray-900 mb-1">What kind of place will you host?</h2>
                         <p className="text-gray-500 text-sm">Select the most accurate category.</p>
@@ -328,20 +328,20 @@ export default function CreatePropertyPage() {
 
       case 'location':
         return (
-          <div className="space-y-6 animate-fadeIn">
-            <div>
+          <div className="animate-fadeIn flex flex-col h-full">
+            <div className="flex-shrink-0 mb-4">
                  <h2 className="text-xl md:text-2xl font-bold text-gray-900 mb-2">Where is your place located?</h2>
-                 <p className="text-gray-500 mb-6">Your address is only shared with guests after they make a reservation.</p>
+                 <p className="text-gray-500">Your address is only shared with guests after they make a reservation.</p>
             </div>
             
-            <div className="bg-white p-1 rounded-2xl border border-neutral-200 shadow-sm overflow-hidden">
+            <div className="bg-white p-1 rounded-2xl border border-neutral-200 shadow-sm overflow-hidden flex-1 min-h-[300px] relative">
                 <LocationPicker 
                     initialLocation={formData.location}
                     onLocationSelect={(loc) => setFormData(p => ({ ...p, location: loc }))}
                 />
             </div>
 
-            <div className="bg-blue-50 p-4 rounded-xl flex items-start gap-3 text-blue-800 text-sm">
+            <div className="flex-shrink-0 mt-4 bg-blue-50 p-4 rounded-xl flex items-start gap-3 text-blue-800 text-sm">
                 <Info className="w-5 h-5 flex-shrink-0 mt-0.5" />
                 <p>Check the pin on the map carefully. If needed, drag it to the exact entrance location.</p>
             </div>
@@ -461,7 +461,7 @@ export default function CreatePropertyPage() {
   // Actually, I'll just add the Auth effect first, then the Sidebar change.
 
   return (
-    <div className="min-h-screen bg-neutral-50 flex flex-col md:flex-row text-gray-900">
+    <div className="h-screen overflow-hidden bg-neutral-50 flex flex-col md:flex-row text-gray-900">
       
       {/* LEFT SIDEBAR - NAVIGATION */}
       <div className="hidden md:flex flex-col w-80 bg-white border-r border-neutral-200 fixed h-full z-10 shadow-[4px_0_24px_rgba(0,0,0,0.02)]">
@@ -548,18 +548,20 @@ export default function CreatePropertyPage() {
 
 
       {/* MAIN CONTENT AREA */}
-      <div className="flex-1 md:ml-80 pt-20 md:pt-0 pb-24 md:pb-0 flex flex-col min-h-screen">
-          <main className="flex-1 w-full max-w-[1800px] mx-auto p-4 md:p-8 lg:p-12">
+      <div className="flex-1 md:ml-80 h-full flex flex-col relative">
+          
+          {/* Scrollable Content */}
+          <main className="flex-1 w-full max-w-[1800px] mx-auto p-4 md:p-8 lg:p-12 overflow-y-auto custom-scrollbar">
              <div className="mb-8 block md:hidden">
                  <h1 className="text-2xl font-bold text-gray-900">{STEPS.find(s => s.id === currentStep)?.label}</h1>
              </div>
 
-             {/* Dynamic Content */}
+             {/* Dynamic Content - Pass height prop/class if needed? No, flex layout handles it */}
              {renderStepContent()}
           </main>
 
-          {/* BOTTOM BAR (Desktop & Mobile Sticky) */}
-          <div className="sticky bottom-0 bg-white border-t border-neutral-200 p-4 md:px-12 md:py-6 flex items-center justify-between z-40 shadow-[0_-4px_24px_rgba(0,0,0,0.04)]">
+          {/* BOTTOM BAR (Fixed at bottom of flex container) */}
+          <div className="flex-shrink-0 bg-white border-t border-neutral-200 p-4 md:px-12 md:py-6 flex items-center justify-between z-40 shadow-[0_-4px_24px_rgba(0,0,0,0.04)]">
               <button 
                  onClick={handleBack}
                  disabled={currentStep === 'basics'}

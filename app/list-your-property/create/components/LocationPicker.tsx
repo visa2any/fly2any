@@ -202,6 +202,18 @@ export function LocationPicker({ initialLocation, onLocationSelect }: LocationPi
                 let url = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(preciseQuery)}&addressdetails=1&limit=5`;
                 let res = await fetch(url);
                 searchResults = await res.json();
+
+                // Attempt 1.5: Smart Cleaned Address (Remove "Quadra", "Rua", etc. to match OSM)
+                // Fixes issues like "Quadra CSG 3" vs "CSG 3"
+                if (searchResults.length === 0 && viaCepData.logradouro) {
+                     const cleanedLogradouro = viaCepData.logradouro.replace(/^(Quadra|Rua|Avenida|Alameda|Travessa|Praça|Rodovia)\s+/i, '');
+                     if (cleanedLogradouro !== viaCepData.logradouro) {
+                         preciseQuery = `${cleanedLogradouro}, ${viaCepData.bairro}, ${viaCepData.localidade} - ${viaCepData.uf}, Brazil`;
+                         url = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(preciseQuery)}&addressdetails=1&limit=5`;
+                         res = await fetch(url);
+                         searchResults = await res.json();
+                     }
+                }
                 
                 // Attempt 2: Neighborhood + City (if Full Address fails)
                 if (searchResults.length === 0 && viaCepData.bairro) {
@@ -329,9 +341,9 @@ export function LocationPicker({ initialLocation, onLocationSelect }: LocationPi
   };
 
   return (
-    <div className="space-y-4">
+    <div className="flex flex-col h-full gap-4">
       {/* Search Bar */}
-      <div className="relative z-10">
+      <div className="relative z-10 flex-shrink-0">
         <div className="flex gap-2">
             <div className="relative flex-1">
                 <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
@@ -391,12 +403,12 @@ export function LocationPicker({ initialLocation, onLocationSelect }: LocationPi
       </div>
 
       {/* Map */}
-      <div className="h-[400px] rounded-2xl overflow-hidden border border-neutral-200 shadow-inner relative z-0 bg-neutral-100">
+      <div className="flex-1 rounded-2xl overflow-hidden border border-neutral-200 shadow-inner relative z-0 bg-neutral-100 min-h-[300px]">
         {(typeof window !== 'undefined') && (
            <MapContainer
              center={activePosition}
              zoom={13}
-             scrollWheelZoom={false}
+             scrollWheelZoom={true}
              className="w-full h-full"
            >
             <TileLayer
