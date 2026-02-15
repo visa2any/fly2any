@@ -207,6 +207,19 @@ export interface PropertyRoom {
   updatedAt: string;
 }
 
+export interface RoomData {
+  id: string;
+  name: string;
+  roomType: RoomType;
+  bedType: BedType;
+  bedCount: number;
+  maxOccupancy: number;
+  quantity: number;
+  basePricePerNight: number;
+  amenities: string[];
+  enSuite?: boolean; // New Enhancement
+}
+
 // ------------------------------------------------------------------
 // Image types
 // ------------------------------------------------------------------
@@ -447,4 +460,23 @@ export const PROPERTY_TYPES_INFO: Record<PropertyType, { label: string; icon: st
   motel: { label: 'Motel', icon: '🅿️', description: 'Roadside motor lodge' },
   boutique_hotel: { label: 'Boutique Hotel', icon: '✨', description: 'Unique, design-forward hotel' },
   vacation_rental: { label: 'Vacation Rental', icon: '🌴', description: 'Entire home for vacation' },
+};
+
+export const ROOM_TYPES = {
+  standard: 'Standard Room',
+  deluxe: 'Deluxe Room',
+  suite: 'Suite',
+  penthouse: 'Penthouse',
+  studio: 'Studio',
+  dormitory: 'Dormitory Bed'
+};
+
+export const BED_TYPES = {
+  king: 'King Bed',
+  queen: 'Queen Bed',
+  double: 'Double Bed',
+  twin: 'Twin Bed',
+  single: 'Single Bed',
+  bunk: 'Bunk Bed',
+  sofa_bed: 'Sofa Bed'
 };

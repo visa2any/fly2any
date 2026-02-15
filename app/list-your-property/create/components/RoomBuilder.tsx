@@ -53,15 +53,22 @@ export function RoomBuilder({ rooms, onChange }: RoomBuilderProps) {
                              <span>{room.maxOccupancy} Guests</span>
                          </div>
                      </div>
-                     <button 
-                        onClick={() => removeRoom(room.id)}
-                        className="text-gray-400 hover:text-red-500 transition-colors p-2 hover:bg-red-50 rounded-lg"
-                     >
-                        <Trash2 className="w-4 h-4" />
-                     </button>
+                     <div className="flex items-center gap-2">
+                         {room.enSuite && (
+                             <span className="bg-blue-100 text-blue-700 text-[10px] font-bold px-2 py-1 rounded-full uppercase tracking-wider flex items-center gap-1">
+                                 <Bath className="w-3 h-3" /> En-suite
+                             </span>
+                         )}
+                         <button 
+                            onClick={() => removeRoom(room.id)}
+                            className="text-gray-400 hover:text-red-500 transition-colors p-2 hover:bg-red-50 rounded-lg"
+                         >
+                            <Trash2 className="w-4 h-4" />
+                         </button>
+                     </div>
                  </div>
 
-                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                 <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-4">
                     <div className="space-y-1">
                         <label className="text-xs font-semibold text-gray-500 uppercase">Bed Type</label>
                         <select 
@@ -89,7 +96,19 @@ export function RoomBuilder({ rooms, onChange }: RoomBuilderProps) {
                             >+</button>
                         </div>
                     </div>
-                 </div>
+
+                    <div className="space-y-1 col-span-2 lg:col-span-1 flex items-end">
+                        <label className="flex items-center gap-2 cursor-pointer bg-neutral-50 hover:bg-neutral-100 p-2 rounded-lg border border-neutral-200 transition-colors w-full">
+                            <input 
+                                type="checkbox"
+                                checked={room.enSuite || false}
+                                onChange={(e) => updateRoom(room.id, { enSuite: e.target.checked })}
+                                className="w-4 h-4 text-primary-500 rounded focus:ring-primary-500 border-gray-300"
+                            />
+                            <span className="text-sm font-medium text-gray-700 select-none">En-suite Bath</span>
+                        </label>
+                    </div>
+                </div>
              </div>
           ))}
        </div>

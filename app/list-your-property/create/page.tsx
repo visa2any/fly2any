@@ -383,7 +383,25 @@ export default function CreatePropertyPage() {
                 <h3 className="text-lg font-semibold text-gray-900 mb-4">Room-by-room details (Optional)</h3>
                 <RoomBuilder 
                     rooms={formData.rooms}
-                    onChange={(rooms) => setFormData(p => ({ ...p, rooms }))} 
+                    onChange={(rooms) => {
+                        // Smart Sync: Update totals based on detailed room data
+                        const totalBedrooms = rooms.length;
+                        const totalBeds = rooms.reduce((sum, r) => sum + r.bedCount, 0);
+                        // Optional: Estimate bathrooms (1 per en-suite + 1 shared base?) - Let's stick to bedrooms/beds for now as they are direct.
+                        const totalEnSuites = rooms.filter(r => r.enSuite).length;
+                        
+                        setFormData(p => ({ 
+                            ...p, 
+                            rooms,
+                            specs: {
+                                ...p.specs,
+                                bedrooms: totalBedrooms,
+                                beds: totalBeds,
+                                // If they added an en-suite, ensure bathroom count reflects it? 
+                                // Let's simplify: just sync beds/bedrooms to avoid confusion.
+                            }
+                        }));
+                    }} 
                 />
             </div>
           </div>
