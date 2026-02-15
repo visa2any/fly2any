@@ -28,6 +28,7 @@ const LocationPicker = dynamic(
 import { RoomBuilder, type RoomData } from './components/RoomBuilder';
 import { AmenitySelector } from './components/AmenitySelector';
 import { PhotoUploader } from './components/PhotoUploader';
+import { WizardProgressBar } from './components/WizardProgressBar';
 import { PoliciesEditor } from './components/PoliciesEditor';
 import { PricingEditor } from './components/PricingEditor';
 import { ReviewStep } from './components/ReviewStep';
@@ -108,8 +109,6 @@ export default function CreatePropertyPage() {
       cleaningFee: 0,
     },
   });
-
-import { WizardProgressBar } from './components/WizardProgressBar';
 
 // ... existing imports ...
 
