@@ -184,62 +184,56 @@ export function LocationPicker({ initialLocation, onLocationSelect }: LocationPi
         let searchResults: any[] = [];
         let foundSpecificStrategies = false;
 
-        // Strategy 1: Brazilian CEP Detection (xxxxx-xxx or 8 digits)
-        const cepRegex = /^\d{5}-?\d{3}$/;
-        // Strategy 2: US Zip Detection (5 digits)
-        const zipRegex = /^\d{5}$/;
+        // Strategy 1: Brazilian CEP High-Confidence Search
+        // Check if string CONTAINS a CEP (not just equals)
+        const cepMatch = cleanTerm.match(/\b\d{5}-?\d{3}\b/);
+        const extractedCep = cepMatch ? cepMatch[0] : null;
 
-        const cleanTerm = term.trim();
-
-        if (cepRegex.test(cleanTerm)) {
-            const viaCepData = await fetchViaCep(cleanTerm);
-            if (viaCepData) {
+        if (extractedCep) {
+            const viaCepData = await fetchViaCep(extractedCep);
+            if (viaCepData && !viaCepData.erro) {
                 foundSpecificStrategies = true;
-                // Verified Brazilian Address -> Try multiple levels of precision
                 
-                // Attempt 1: Full Address (Street + Neighborhood + City)
-                let preciseQuery = `${viaCepData.logradouro}, ${viaCepData.bairro}, ${viaCepData.localidade} - ${viaCepData.uf}, Brazil`;
-                let url = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(preciseQuery)}&addressdetails=1&limit=5`;
-                let res = await fetch(url);
-                searchResults = await res.json();
-
-                // Attempt 1.5: Smart Cleaned Address (Remove "Quadra", "Rua", etc. to match OSM)
-                // Fixes issues like "Quadra CSG 3" vs "CSG 3"
-                if (searchResults.length === 0 && viaCepData.logradouro) {
-                     const cleanedLogradouro = viaCepData.logradouro.replace(/^(Quadra|Rua|Avenida|Alameda|Travessa|Praça|Rodovia)\s+/i, '');
-                     if (cleanedLogradouro !== viaCepData.logradouro) {
-                         preciseQuery = `${cleanedLogradouro}, ${viaCepData.bairro}, ${viaCepData.localidade} - ${viaCepData.uf}, Brazil`;
-                         url = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(preciseQuery)}&addressdetails=1&limit=5`;
-                         res = await fetch(url);
-                         searchResults = await res.json();
-                     }
-                }
+                // Construct standard address from authoritative data
+                // "Logradouro, Bairro, Localidade - UF"
+                // Nominatim handles "CSG 3" better than "CSG 03" sometimes, but ViaCEP gives the official name.
                 
-                // Attempt 2: Neighborhood + City (if Full Address fails)
-                if (searchResults.length === 0 && viaCepData.bairro) {
-                    preciseQuery = `${viaCepData.bairro}, ${viaCepData.localidade} - ${viaCepData.uf}, Brazil`;
-                    url = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(preciseQuery)}&addressdetails=1&limit=5`;
-                    res = await fetch(url);
-                    searchResults = await res.json();
-                }
+                // Attempt 1: Full Official Address
+                let queries = [
+                    `${viaCepData.logradouro}, ${viaCepData.bairro}, ${viaCepData.localidade} - ${viaCepData.uf}, Brazil`,
+                    `${viaCepData.logradouro}, ${viaCepData.localidade} - ${viaCepData.uf}, Brazil`, // Fallback without neighborhood
+                    `${viaCepData.bairro}, ${viaCepData.localidade} - ${viaCepData.uf}, Brazil`, // Fallback to neighborhood
+                    `${viaCepData.localidade} - ${viaCepData.uf}, Brazil` // Fallback to city
+                ];
+                
+                // Add the user's raw input as a low priority attempt, but maybe cleaned?
+                // Actually, trust ViaCEP first.
 
-                // Attempt 3: Street + City (if Neighborhood is missing/wrong in OSM)
-                if (searchResults.length === 0 && viaCepData.logradouro) {
-                    preciseQuery = `${viaCepData.logradouro}, ${viaCepData.localidade} - ${viaCepData.uf}, Brazil`;
-                    url = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(preciseQuery)}&addressdetails=1&limit=5`;
-                    res = await fetch(url);
-                    searchResults = await res.json();
-                }
-
-                // Attempt 4: City Only (Fallback)
-                if (searchResults.length === 0) {
-                     preciseQuery = `${viaCepData.localidade} - ${viaCepData.uf}, Brazil`;
-                     url = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(preciseQuery)}&addressdetails=1&limit=5`;
-                     res = await fetch(url);
-                     searchResults = await res.json();
+                for (const q of queries) {
+                    if (searchResults.length > 0) break;
+                    const url = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(q)}&addressdetails=1&limit=5`;
+                    try {
+                        const res = await fetch(url);
+                        const json = await res.json();
+                        if (json && json.length > 0) {
+                             // CRITICAL FIX: Override the display name with the OFFICIAL ViaCEP address.
+                             // Nominatim frequently has outdated CEPs/Zips.
+                             // We trust ViaCEP (Correios) for the text, and Nominatim for the coordinates.
+                             const officialAddress = `${viaCepData.logradouro}, ${viaCepData.bairro}, ${viaCepData.localidade} - ${viaCepData.uf}, ${viaCepData.cep}`;
+                             
+                             searchResults = json.map((r: any) => ({
+                                 ...r,
+                                 display_name: officialAddress, // Force the correct text
+                                 original_display_name: r.display_name // Keep backup just in case
+                             }));
+                        }
+                    } catch(e) {}
                 }
             }
         } 
+        
+        // Strategy 2: US Zip Detection (Strict 5 digits) or generic
+        if (searchResults.length === 0 && zipRegex.test(cleanTerm)) { 
         
         else if (zipRegex.test(cleanTerm)) {
              // Try US Zip lookup first
