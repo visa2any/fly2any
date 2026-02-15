@@ -2,7 +2,8 @@
 
 import { useState } from 'react';
 import { RoomData, ROOM_TYPES, BED_TYPES } from '@/lib/properties/types';
-import { Plus, Trash2, Bed, Bath, LayoutGrid, ChevronDown, ChevronUp } from 'lucide-react';
+import { Plus, Trash2, Bed, Bath, LayoutGrid, ChevronDown, ChevronUp, Copy } from 'lucide-react';
+import { HelpTooltip } from '@/components/ui/HelpTooltip';
 
 interface RoomBuilderProps {
   rooms: RoomData[];
@@ -35,6 +36,15 @@ export function RoomBuilder({ rooms, onChange }: RoomBuilderProps) {
 
   const removeRoom = (id: string) => {
     onChange(rooms.filter(r => r.id !== id));
+  };
+
+  const duplicateRoom = (room: RoomData) => {
+    const newRoom = {
+        ...room,
+        id: Math.random().toString(36).substr(2, 9),
+        name: `${room.name} (Copy)`
+    };
+    onChange([...rooms, newRoom]);
   };
 
   return (
@@ -71,6 +81,13 @@ export function RoomBuilder({ rooms, onChange }: RoomBuilderProps) {
                              </span>
                          )}
                          <button 
+                            onClick={() => duplicateRoom(room)}
+                            className="text-gray-400 hover:text-blue-500 transition-colors p-2 hover:bg-blue-50 rounded-lg"
+                            title="Duplicate Room"
+                         >
+                            <Copy className="w-4 h-4" />
+                         </button>
+                         <button 
                             onClick={() => removeRoom(room.id)}
                             className="text-gray-400 hover:text-red-500 transition-colors p-2 hover:bg-red-50 rounded-lg"
                          >
@@ -82,7 +99,10 @@ export function RoomBuilder({ rooms, onChange }: RoomBuilderProps) {
                  <div className="grid grid-cols-12 gap-3 mb-4 items-end">
                     {/* Bed Type */}
                     <div className="col-span-6 sm:col-span-4 space-y-1.5">
-                        <label className="text-[11px] font-bold text-neutral-500 uppercase tracking-wider">Bed Type</label>
+                        <label className="text-[11px] font-bold text-neutral-500 uppercase tracking-wider flex items-center">
+                            Bed Type
+                            <HelpTooltip content="Select the main bed type. If there are multiple, choose the largest one." />
+                        </label>
                         <select 
                             value={room.bedType}
                             onChange={(e) => updateRoom(room.id, { bedType: e.target.value as any })}
@@ -132,7 +152,16 @@ export function RoomBuilder({ rooms, onChange }: RoomBuilderProps) {
 
                     {/* Bathroom Type */}
                     <div className="col-span-12 sm:col-span-4 space-y-1.5">
-                        <label className="text-[10px] font-bold text-neutral-500 uppercase tracking-wider">Bathroom</label>
+                        <label className="text-[10px] font-bold text-neutral-500 uppercase tracking-wider flex items-center">
+                            Bathroom
+                            <HelpTooltip content={
+                                <ul className="list-disc pl-3 space-y-1">
+                                    <li><strong>En-suite:</strong> Attached to the room (private).</li>
+                                    <li><strong>Private:</strong> Separate but exclusive to this room.</li>
+                                    <li><strong>Shared:</strong> Shared with other guests.</li>
+                                </ul>
+                            } />
+                        </label>
                         <select
                             value={room.bathroomType || (room.enSuite ? 'ensuite' : 'none')}
                             onChange={(e) => updateRoom(room.id, { bathroomType: e.target.value as any, enSuite: e.target.value === 'ensuite' })}

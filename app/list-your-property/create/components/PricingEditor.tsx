@@ -1,13 +1,18 @@
 'use client';
 
 import { useState } from 'react';
-import { DollarSign, Percent, Info, TrendingUp, Sparkles } from 'lucide-react';
+import { useState } from 'react';
+import { DollarSign, Percent, Info, TrendingUp, Sparkles, Zap, ArrowRight } from 'lucide-react';
+import { HelpTooltip } from '@/components/ui/HelpTooltip';
 
 interface PricingEditorProps {
   data: {
     basePrice: number;
     currency: string;
     cleaningFee: number;
+    smartPricing?: boolean;
+    weeklyDiscount?: number;
+    monthlyDiscount?: number;
   };
   onChange: (updates: any) => void;
 }
@@ -21,6 +26,18 @@ export function PricingEditor({ data, onChange }: PricingEditorProps) {
       
       {/* Base Price Card */}
       <div className="bg-white p-6 rounded-2xl border border-neutral-200 shadow-sm relative overflow-hidden">
+         {/* Smart Pricing Toggle */}
+         <div className="absolute top-6 right-6 flex items-center gap-2">
+             <span className="text-xs font-bold text-gray-500 uppercase tracking-wider">Smart Pricing</span>
+             <button 
+                onClick={() => onChange({ smartPricing: !data.smartPricing })}
+                className={`w-12 h-6 rounded-full transition-colors relative ${data.smartPricing ? 'bg-primary-500' : 'bg-gray-200'}`}
+             >
+                 <div className={`absolute top-1 left-1 w-4 h-4 bg-white rounded-full transition-transform ${data.smartPricing ? 'translate-x-6' : 'translate-x-0'}`} />
+             </button>
+             <HelpTooltip content="Automatically adjust your nightly rate based on demand, seasonality, and local events to maximize bookings." />
+         </div>
+
          <div className="relative z-10">
              <div className="flex items-center gap-3 mb-6">
                  <div className="w-12 h-12 rounded-full bg-green-50 flex items-center justify-center text-green-600">
@@ -145,16 +162,27 @@ export function PricingEditor({ data, onChange }: PricingEditorProps) {
                </div>
           </div>
 
-          <div className="bg-gradient-to-br from-green-50 to-emerald-50 p-6 rounded-2xl border border-green-100 relative overflow-hidden">
+          <div className="bg-gradient-to-br from-green-50 to-emerald-50 p-6 rounded-2xl border border-green-100 relative overflow-hidden flex flex-col justify-between">
                <div className="relative z-10">
                    <h4 className="font-bold text-green-800 mb-2 flex items-center gap-2">
                        <TrendingUp className="w-5 h-5" /> Potential Earnings
                    </h4>
-                   <p className="text-green-700/80 text-sm mb-6">Based on similar listings in your area with 60% occupancy.</p>
+                   <p className="text-green-700/80 text-sm mb-6">Estimated monthly revenue based on 60% occupancy.</p>
                    
                    <div className="flex items-baseline gap-1">
                        <span className="text-3xl font-bold text-green-900">${estimatedEarnings.toLocaleString()}</span>
                        <span className="text-green-700 font-medium">/ month</span>
+                   </div>
+                   
+                   <div className="mt-4 pt-4 border-t border-green-200/50 space-y-2">
+                       <div className="flex justify-between text-xs text-green-800">
+                           <span>Guest pays</span>
+                           <span className="font-bold">${data.basePrice + (data.cleaningFee || 0)/3 + (data.basePrice * 0.12)} <span className="opacity-60 text-[10px] font-normal">/ night (avg)</span></span>
+                       </div>
+                       <div className="flex justify-between text-xs text-green-800">
+                           <span>You earn</span>
+                           <span className="font-bold">${data.basePrice - (data.basePrice * 0.03)} <span className="opacity-60 text-[10px] font-normal">/ night</span></span>
+                       </div>
                    </div>
                </div>
                <DollarSign className="absolute -right-4 -bottom-4 w-32 h-32 text-green-500/10 rotate-12" />
