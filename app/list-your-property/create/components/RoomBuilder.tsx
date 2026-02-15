@@ -68,13 +68,14 @@ export function RoomBuilder({ rooms, onChange }: RoomBuilderProps) {
                      </div>
                  </div>
 
-                 <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-4">
-                    <div className="space-y-1">
-                        <label className="text-xs font-semibold text-gray-500 uppercase">Bed Type</label>
+                 <div className="grid grid-cols-12 gap-4 mb-4 items-end">
+                    {/* Bed Type */}
+                    <div className="col-span-7 sm:col-span-5 space-y-1.5">
+                        <label className="text-[11px] font-bold text-neutral-500 uppercase tracking-wider">Bed Type</label>
                         <select 
                             value={room.bedType}
                             onChange={(e) => updateRoom(room.id, { bedType: e.target.value as any })}
-                            className="w-full bg-neutral-50 border border-neutral-200 rounded-lg p-2 text-sm text-gray-900 focus:ring-2 focus:ring-primary-500 outline-none"
+                            className="w-full bg-white border border-neutral-200 rounded-xl px-3 py-2.5 text-sm font-medium text-neutral-700 focus:ring-2 focus:ring-primary-100 focus:border-primary-500 outline-none transition-all shadow-sm"
                         >
                             {Object.entries(BED_TYPES).map(([k, l]) => (
                                 <option key={k} value={k}>{l}</option>
@@ -82,30 +83,40 @@ export function RoomBuilder({ rooms, onChange }: RoomBuilderProps) {
                         </select>
                     </div>
 
-                    <div className="space-y-1">
-                        <label className="text-xs font-semibold text-gray-500 uppercase">Count</label>
-                        <div className="flex items-center gap-2">
+                    {/* Count */}
+                    <div className="col-span-5 sm:col-span-3 space-y-1.5">
+                        <label className="text-[11px] font-bold text-neutral-500 uppercase tracking-wider">Count</label>
+                        <div className="flex items-center bg-white border border-neutral-200 rounded-xl px-1 py-1 shadow-sm">
                             <button 
                                 onClick={() => updateRoom(room.id, { bedCount: Math.max(0, room.bedCount - 1) })}
-                                className="w-8 h-8 rounded-lg bg-neutral-100 hover:bg-neutral-200 flex items-center justify-center text-gray-600"
+                                className="w-8 h-8 rounded-lg hover:bg-neutral-100 flex items-center justify-center text-neutral-500 transition-colors"
+                                type="button"
                             >-</button>
-                            <span className="font-bold text-gray-900 w-4 text-center">{room.bedCount}</span>
+                            <span className="flex-1 text-center font-bold text-neutral-700 text-sm">{room.bedCount}</span>
                             <button
                                 onClick={() => updateRoom(room.id, { bedCount: room.bedCount + 1 })}
-                                className="w-8 h-8 rounded-lg bg-neutral-100 hover:bg-neutral-200 flex items-center justify-center text-gray-600"
+                                className="w-8 h-8 rounded-lg hover:bg-neutral-100 flex items-center justify-center text-neutral-500 transition-colors"
+                                type="button"
                             >+</button>
                         </div>
                     </div>
 
-                    <div className="space-y-1 col-span-2 lg:col-span-1 flex items-end">
-                        <label className="flex items-center gap-2 cursor-pointer bg-neutral-50 hover:bg-neutral-100 p-2 rounded-lg border border-neutral-200 transition-colors w-full">
+                    {/* En-suite */}
+                    <div className="col-span-12 sm:col-span-4 space-y-1.5">
+                        <label className="text-[11px] font-bold text-neutral-500 uppercase tracking-wider opacity-0 hidden sm:block">En-suite</label>
+                         <label className={`flex items-center justify-center gap-2.5 cursor-pointer px-3 py-2.5 rounded-xl border transition-all shadow-sm h-[42px] ${
+                             room.enSuite 
+                                ? 'bg-primary-50 border-primary-200 text-primary-700' 
+                                : 'bg-white border-neutral-200 text-neutral-600 hover:border-neutral-300 hover:bg-neutral-50'
+                         }`}>
                             <input 
                                 type="checkbox"
                                 checked={room.enSuite || false}
                                 onChange={(e) => updateRoom(room.id, { enSuite: e.target.checked })}
-                                className="w-4 h-4 text-primary-500 rounded focus:ring-primary-500 border-gray-300"
+                                className="hidden" // Hide default checkbox
                             />
-                            <span className="text-sm font-medium text-gray-700 select-none">En-suite Bath</span>
+                            {room.enSuite ? <Bath className="w-4 h-4 fill-current" /> : <Bath className="w-4 h-4" />}
+                            <span className="text-sm font-semibold select-none">En-suite Bath</span>
                         </label>
                     </div>
                 </div>
