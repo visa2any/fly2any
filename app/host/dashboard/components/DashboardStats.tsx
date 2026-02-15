@@ -4,7 +4,11 @@
   export async function DashboardStats({ userId }: { userId: string }) {
       try {
           const propertiesCount = await prisma.property.count({
-              where: { hostId: userId }
+              where: {
+                  owner: {
+                      userId: userId
+                  }
+              }
           });
           
           // Mock Data for "Smart Host" Features (until enough real data exists)

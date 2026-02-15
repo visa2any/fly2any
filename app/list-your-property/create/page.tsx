@@ -233,6 +233,7 @@ export default function CreatePropertyPage() {
       if (status === 'authenticated' && (formData.title || formData.location?.city)) {
           const timer = setTimeout(async () => {
               setIsAutoSaving(true);
+              try {
                   const method = editingId ? 'PUT' : 'POST';
                   const url = editingId ? `/api/properties/${editingId}` : '/api/properties';
                   

@@ -8,7 +8,9 @@
       try {
           const properties = await prisma.property.findMany({
               where: { 
-                  hostId: userId 
+                  owner: {
+                      userId: userId 
+                  }
               },
               include: { images: true },
               orderBy: { createdAt: 'desc' }
