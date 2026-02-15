@@ -111,6 +111,9 @@ export default function CreatePropertyPage() {
       extraGuestFee: 0,
       weekendPrice: 0,
       securityDeposit: 0,
+      smartPricing: false,
+      weeklyDiscount: 0,
+      monthlyDiscount: 0,
     },
   });
 
