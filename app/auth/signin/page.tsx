@@ -163,6 +163,7 @@ function SignInContent() {
         >
 
           {/* Google Sign In - Premium Dark Button */}
+          {/* Google Sign In - Disabled
           <button
             onClick={handleGoogleSignIn}
             disabled={isGoogleLoading}
@@ -175,8 +176,10 @@ function SignInContent() {
             )}
             <span>{isGoogleLoading ? 'Connecting...' : 'Continue with Google'}</span>
           </button>
+          */}
 
           {/* Divider */}
+          {/* Divider - Disabled
           <div className="relative my-7">
             <div className="absolute inset-0 flex items-center">
               <div className="w-full border-t border-white/10"></div>
@@ -185,6 +188,7 @@ function SignInContent() {
               <span className="px-4 bg-black/50 text-gray-400 font-medium">or sign in with email</span>
             </div>
           </div>
+          */}
 
           {/* Error Message */}
           {error && (

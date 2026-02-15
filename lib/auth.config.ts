@@ -32,14 +32,17 @@ const getBcrypt = async () => {
 };
 
 // DEBUG: Check if env vars are loaded
+/*
 console.log('--- AUTH CONFIG LOADING ---');
 console.log('GOOGLE_CLIENT_ID:', process.env.GOOGLE_CLIENT_ID ? 'Set (Length: ' + process.env.GOOGLE_CLIENT_ID.length + ')' : 'NOT SET');
 console.log('GOOGLE_CLIENT_SECRET:', process.env.GOOGLE_CLIENT_SECRET ? 'Set' : 'NOT SET');
 console.log('NEXTAUTH_URL:', process.env.NEXTAUTH_URL);
 console.log('-------------------------');
+*/
 
 export const authConfig = {
   providers: [
+    /* Google Provider - Disabled temporarily
     Google({
       clientId: process.env.GOOGLE_CLIENT_ID || '',
       clientSecret: process.env.GOOGLE_CLIENT_SECRET || '',
@@ -53,23 +56,7 @@ export const authConfig = {
         },
       },
     }),
-    {
-      id: 'google-debug',
-      name: 'Google Debug',
-      type: 'oauth',
-      clientId: 'debug',
-      clientSecret: 'debug',
-      authorization: { params: { scope: 'openid' } },
-      token: 'https://example.com',
-      userinfo: 'https://example.com',
-      profile(profile) {
-        console.log('--- GOOGLE AUTH DEBUG ---');
-        console.log('GOOGLE_CLIENT_ID exists:', !!process.env.GOOGLE_CLIENT_ID);
-        console.log('GOOGLE_CLIENT_ID length:', process.env.GOOGLE_CLIENT_ID ? process.env.GOOGLE_CLIENT_ID.length : 0);
-        console.log('-------------------------');
-        return { id: 'debug' };
-      }
-    } as any,
+    */
     Credentials({
       name: 'credentials',
       credentials: {

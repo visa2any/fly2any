@@ -53,13 +53,15 @@ export function validateSecurityEnvironment(): void {
     }
   }
 
-  // 4. Google OAuth validation
+  // 4. Google OAuth validation - DISABLED (User request)
+  /*
   if (!process.env.GOOGLE_CLIENT_ID) {
     errors.push('GOOGLE_CLIENT_ID is not set');
   }
   if (!process.env.GOOGLE_CLIENT_SECRET) {
     errors.push('GOOGLE_CLIENT_SECRET is not set');
   }
+  */
   if (isProduction && !process.env.NEXTAUTH_URL) {
     errors.push('NEXTAUTH_URL is not set in production');
   }
