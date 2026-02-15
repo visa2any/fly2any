@@ -280,12 +280,17 @@ export function PricingEditor({ data, onChange }: PricingEditorProps) {
                        </div>
                    </div>
 
-                   {/* Break-even Tip */}
-                   <div className="mt-4 flex gap-2 items-start opacity-0 group-hover:opacity-100 transition-opacity duration-500 delay-100">
+                   {/* Competitor Comparison */}
+                   <div className="mt-4 flex gap-2 items-start opacity-0 group-hover:opacity-100 transition-opacity duration-500 delay-100 bg-white/50 p-2 rounded-lg border border-green-100">
                       <Zap className="w-3 h-3 text-amber-500 mt-0.5 shrink-0" />
-                      <p className="text-[10px] text-green-800 font-medium leading-tight">
-                        To cover a $2,000/mo mortgage, you need ~{Math.ceil(2000 / (basePrice * 0.97))} nights booked at this price.
-                      </p>
+                      <div className="space-y-1">
+                        <p className="text-[10px] text-green-800 font-bold leading-tight uppercase tracking-wider">
+                            Why 12%?
+                        </p>
+                        <p className="text-[10px] text-green-800/80 leading-tight">
+                            Most platforms charge <b>15-20%</b>. By listing here, you save an extra <b>3-8%</b> on every booking compared to competitors.
+                        </p>
+                      </div>
                    </div>
                </div>
                
