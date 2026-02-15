@@ -103,8 +103,10 @@ export function LocationPicker({ initialLocation, onLocationSelect }: LocationPi
   }, [initialLocation]);
 
   const handleSearch = async (searchQuery?: string) => {
-    let term = searchQuery || query;
-    if (!term) return;
+    // Safety check: ensure we're not receiving an event object or non-string
+    let term = (typeof searchQuery === 'string' ? searchQuery : query);
+    
+    if (!term || typeof term !== 'string') return;
     
     // Smart Heuristic: Detect Brazilian CEP (e.g., 72305-503)
     const cepRegex = /^\d{5}-\d{3}$/;
@@ -212,7 +214,7 @@ export function LocationPicker({ initialLocation, onLocationSelect }: LocationPi
                 />
             </div>
             <button 
-                onClick={handleSearch}
+                onClick={() => handleSearch()}
                 disabled={isSearching}
                 className="bg-neutral-900 hover:bg-black text-white px-6 rounded-xl font-bold transition-all disabled:opacity-50"
             >

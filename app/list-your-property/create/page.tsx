@@ -98,7 +98,7 @@ export default function CreatePropertyPage() {
       checkInTime: '15:00',
       checkOutTime: '11:00',
       cancellationPolicy: 'flexible',
-      houseRules: '',
+      houseRules: [],
     },
 
     // Pricing
