@@ -9,7 +9,7 @@ interface AmenitySelectorProps {
   onChange: (amenities: string[]) => void;
 }
 
-export function AmenitySelector({ selectedAmenities, onChange }: AmenitySelectorProps) {
+export function AmenitySelector({ selectedAmenities = [], onChange }: AmenitySelectorProps) {
   const [activeCategory, setActiveCategory] = useState<keyof typeof PROPERTY_AMENITY_CATEGORIES>('essentials');
   const [search, setSearch] = useState('');
 
@@ -66,7 +66,7 @@ export function AmenitySelector({ selectedAmenities, onChange }: AmenitySelector
       <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-3 2xl:grid-cols-4 gap-4">
         {(filteredCategories || [PROPERTY_AMENITY_CATEGORIES[activeCategory]]).map((cat: any) => (
              cat.options.map((amenity: string) => {
-                 const isSelected = selectedAmenities.includes(amenity);
+                 const isSelected = selectedAmenities?.includes(amenity);
                  return (
                     <button
                         key={amenity}

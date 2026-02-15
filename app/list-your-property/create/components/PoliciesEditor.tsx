@@ -41,36 +41,38 @@ export function PoliciesEditor({ data, onChange }: PoliciesEditorProps) {
       checkInTime = '15:00',
       checkOutTime = '11:00',
       cancellationPolicy = 'flexible',
-      houseRules = [],
-      ecoFeatures = [],
       petPolicy = 'not_allowed',
       smokingPolicy = 'not_allowed'
   } = data || {};
+
+  // Safe arrays ensuring they are never null/undefined
+  const safeHouseRules = data?.houseRules || [];
+  const safeEcoFeatures = data?.ecoFeatures || [];
 
   const handleUpdate = (updates: any) => {
       onChange({ ...data, ...updates });
   };
 
   const addRule = () => {
-    if (newRule && !houseRules.includes(newRule)) {
-      handleUpdate({ houseRules: [...houseRules, newRule] });
+    if (newRule && !safeHouseRules.includes(newRule)) {
+      handleUpdate({ houseRules: [...safeHouseRules, newRule] });
       setNewRule('');
     }
   };
 
   const toggleRule = (rule: string) => {
-    if (houseRules.includes(rule)) {
-      handleUpdate({ houseRules: houseRules.filter((r: string) => r !== rule) });
+    if (safeHouseRules.includes(rule)) {
+      handleUpdate({ houseRules: safeHouseRules.filter((r: string) => r !== rule) });
     } else {
-      handleUpdate({ houseRules: [...houseRules, rule] });
+      handleUpdate({ houseRules: [...safeHouseRules, rule] });
     }
   };
 
   const toggleEcoFeature = (feature: string) => {
-    if (ecoFeatures.includes(feature)) {
-      handleUpdate({ ecoFeatures: ecoFeatures.filter((f: string) => f !== feature) });
+    if (safeEcoFeatures.includes(feature)) {
+      handleUpdate({ ecoFeatures: safeEcoFeatures.filter((f: string) => f !== feature) });
     } else {
-      handleUpdate({ ecoFeatures: [...ecoFeatures, feature] });
+      handleUpdate({ ecoFeatures: [...safeEcoFeatures, feature] });
     }
   };
 
@@ -192,7 +194,7 @@ export function PoliciesEditor({ data, onChange }: PoliciesEditorProps) {
               key={rule}
               onClick={() => toggleRule(rule)}
               className={`px-3 py-1.5 rounded-full text-xs font-bold border transition-colors ${
-                houseRules.includes(rule) 
+                safeHouseRules.includes(rule) 
                   ? 'bg-primary-50 border-primary-200 text-primary-700' 
                   : 'bg-white border-neutral-200 text-gray-500 hover:border-neutral-300 hover:bg-neutral-50'
               }`}
@@ -219,12 +221,12 @@ export function PoliciesEditor({ data, onChange }: PoliciesEditorProps) {
           </button>
         </div>
 
-        {houseRules.length > 0 && (
+        {safeHouseRules.length > 0 && (
             <ul className="space-y-2">
-            {houseRules.map((rule: string, idx: number) => (
+            {safeHouseRules.map((rule: string, idx: number) => (
                 <li key={idx} className="flex items-center justify-between p-3 rounded-lg bg-neutral-50 border border-neutral-100">
                     <span className="text-gray-700 text-sm font-medium">• {rule}</span>
-                    <button onClick={() => handleUpdate({ houseRules: houseRules.filter((r: string) => r !== rule) })} className="text-gray-400 hover:text-red-500 transition-colors">
+                    <button onClick={() => handleUpdate({ houseRules: safeHouseRules.filter((r: string) => r !== rule) })} className="text-gray-400 hover:text-red-500 transition-colors">
                     <X className="w-4 h-4" />
                     </button>
                 </li>
