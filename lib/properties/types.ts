@@ -177,7 +177,7 @@ export interface Property {
 // ------------------------------------------------------------------
 
 export type RoomType = 'standard' | 'deluxe' | 'suite' | 'penthouse' | 'studio' | 'dormitory';
-export type BedType = 'king' | 'queen' | 'double' | 'twin' | 'single' | 'bunk' | 'sofa_bed';
+export type BedType = 'king' | 'queen' | 'double' | 'twin' | 'single' | 'bunk' | 'sofa_bed' | 'trundle';
 export type ViewType = 'ocean' | 'city' | 'garden' | 'mountain' | 'pool' | 'courtyard';
 export type BathroomType = 'private' | 'shared' | 'ensuite';
 
@@ -479,5 +479,6 @@ export const BED_TYPES = {
   twin: 'Twin Bed',
   single: 'Single Bed',
   bunk: 'Bunk Bed',
-  sofa_bed: 'Sofa Bed'
+  sofa_bed: 'Sofa Bed',
+  trundle: 'Trundle Bed'
 };
