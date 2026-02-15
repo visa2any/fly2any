@@ -119,6 +119,23 @@ export function LocationPicker({ initialLocation, onLocationSelect }: LocationPi
       }
   };
 
+  // Helper: Fetch info from Zippopotam.us (US Zips)
+  const fetchZippopotamUs = async (zip: string) => {
+      try {
+          // Zippopotam for US is http://api.zippopotam.us/us/{zip}
+          // It requires HTTPS usually, let's try HTTPS.
+          const res = await fetch(`https://api.zippopotam.us/us/${zip}`);
+          if (!res.ok) return null;
+          const data = await res.json();
+          // Validation
+          if (!data.places || data.places.length === 0) return null;
+          return data; // { "post code": "90210", "country": "United States", "places": [...] }
+      } catch (e) {
+          console.error("Zippopotam error:", e);
+          return null;
+      }
+  };
+
   const handleSearch = async (searchQuery?: string) => {
     // Safety check: ensure we're not receiving an event object or non-string
     let term = (typeof searchQuery === 'string' ? searchQuery : query);
@@ -130,14 +147,19 @@ export function LocationPicker({ initialLocation, onLocationSelect }: LocationPi
 
     try {
         let searchResults: any[] = [];
-        
+        let foundSpecificStrategies = false;
+
         // Strategy 1: Brazilian CEP Detection (xxxxx-xxx or 8 digits)
         const cepRegex = /^\d{5}-?\d{3}$/;
-        const isCep = cepRegex.test(term.trim());
-        
-        if (isCep) {
-            const viaCepData = await fetchViaCep(term);
+        // Strategy 2: US Zip Detection (5 digits)
+        const zipRegex = /^\d{5}$/;
+
+        const cleanTerm = term.trim();
+
+        if (cepRegex.test(cleanTerm)) {
+            const viaCepData = await fetchViaCep(cleanTerm);
             if (viaCepData) {
+                foundSpecificStrategies = true;
                 // Verified Brazilian Address -> Try multiple levels of precision
                 
                 // Attempt 1: Full Address (Street + Neighborhood + City)
@@ -170,26 +192,39 @@ export function LocationPicker({ initialLocation, onLocationSelect }: LocationPi
                      searchResults = await res.json();
                 }
             }
+        } 
+        
+        else if (zipRegex.test(cleanTerm)) {
+             // Try US Zip lookup first
+             const zipData = await fetchZippopotamUs(cleanTerm);
+             if (zipData) {
+                 foundSpecificStrategies = true;
+                 const place = zipData.places[0];
+                 const city = place['place name'];
+                 const state = place['state abbreviation'];
+                 const country = zipData.country;
+                 
+                 // Construct high-confidence query: "Hartford, CT, United States"
+                 const preciseQuery = `${city}, ${state}, ${country}`;
+                 const url = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(preciseQuery)}&addressdetails=1&limit=5`;
+                 const res = await fetch(url);
+                 searchResults = await res.json();
+             }
         }
 
-        // Strategy 2: Standard Nominatim Search (Global)
+        // Strategy 3: Standard Nominatim Search (Global) - If no specialized strategy worked OR failed
         if (searchResults.length === 0) {
             // Priority: Try strict search first
              let url = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(term)}&addressdetails=1&limit=5`;
-             
-             // Context Awareness: If we have a country context and the term looks simple, maybe bias?
-             // Actually, for "06106 hartford ct", we don't want to bias to Brazil. 
-             // Global search is best left unbiased unless user explicitly selected a country filter (which we don't have here yet).
-             
              const res = await fetch(url);
              searchResults = await res.json();
         }
 
-        // Strategy 3: Fallback - Relaxed Search (if no results)
+        // Strategy 4: Fallback - Relaxed Search (if no results)
         if (searchResults.length === 0) {
              // Try removing special chars or country codes if likely to interfere?
              // Or try structured search if it looks like a zip
-             if (/^\d+$/.test(term.trim())) {
+             if (/^\d+$/.test(cleanTerm)) {
                  // Pure numbers -> try as postalcode
                  const url = `https://nominatim.openstreetmap.org/search?format=json&postalcode=${encodeURIComponent(term)}&addressdetails=1&limit=5`;
                  const res = await fetch(url);
