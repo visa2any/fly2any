@@ -232,10 +232,9 @@ export function LocationPicker({ initialLocation, onLocationSelect }: LocationPi
             }
         } 
         
-        // Strategy 2: US Zip Detection (Strict 5 digits) or generic
-        if (searchResults.length === 0 && zipRegex.test(cleanTerm)) { 
         
-        else if (zipRegex.test(cleanTerm)) {
+        // Strategy 2: US Zip Detection (Strict 5 digits) or generic
+        if (searchResults.length === 0 && zipRegex.test(cleanTerm)) {
              // Try US Zip lookup first
              const zipData = await fetchZippopotamUs(cleanTerm);
              if (zipData) {
