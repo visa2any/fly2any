@@ -109,13 +109,113 @@ export default function CreatePropertyPage() {
     },
   });
 
-  // Force Auth
+import { WizardProgressBar } from './components/WizardProgressBar';
+
+// ... existing imports ...
+
+// Force Auth
   useEffect(() => {
     if (status === 'unauthenticated') {
       toast.error("Please sign in to list your property");
       router.push('/auth/signin?callbackUrl=/list-your-property/create');
     }
   }, [status, router]);
+
+  // --------------------------------------------------------------------------
+  // AUTO-SAVE & PERSISTENCE
+  // --------------------------------------------------------------------------
+  const [lastSaved, setLastSaved] = useState<Date | null>(null);
+  const [isAutoSaving, setIsAutoSaving] = useState(false);
+
+  // 1. Load from LocalStorage on mount (if no ID)
+  useEffect(() => {
+    if (!editingId && typeof window !== 'undefined') {
+        const saved = localStorage.getItem('fly2any_host_draft');
+        if (saved) {
+            try {
+                const parsed = JSON.parse(saved);
+                // Basic validation/heuristic
+                if (parsed.title || parsed.location?.city) {
+                    toast((t) => (
+                        <div className="flex flex-col gap-2">
+                            <span className="font-semibold">Unfinished listing found</span>
+                            <div className="flex gap-2">
+                                <button 
+                                    onClick={() => {
+                                        setFormData(parsed);
+                                        if (parsed._step) setCurrentStep(parsed._step);
+                                        toast.dismiss(t.id);
+                                    }}
+                                    className="px-3 py-1 bg-primary-600 text-white rounded-md text-sm"
+                                >
+                                    Resume
+                                </button>
+                                <button 
+                                    onClick={() => {
+                                        localStorage.removeItem('fly2any_host_draft');
+                                        toast.dismiss(t.id);
+                                    }}
+                                    className="px-3 py-1 bg-neutral-200 text-gray-800 rounded-md text-sm"
+                                >
+                                    Start New
+                                </button>
+                            </div>
+                        </div>
+                    ), { duration: 8000, icon: '💾' });
+                }
+            } catch (e) {
+                console.error("Failed to parse draft", e);
+            }
+        }
+    }
+  }, [editingId]);
+
+  // 2. Auto-Save Effect (Local + Backend)
+  useEffect(() => {
+      // Local Save (Immediate)
+      if (typeof window !== 'undefined') {
+          localStorage.setItem('fly2any_host_draft', JSON.stringify({ ...formData, _step: currentStep }));
+      }
+
+      // Backend Save (Debounced)
+      if (status === 'authenticated' && (formData.title || formData.location?.city)) {
+          const timer = setTimeout(async () => {
+              setIsAutoSaving(true);
+              try {
+                  const method = editingId ? 'PUT' : 'POST';
+                  // Don't overwrite status if it's already published? For wizard, we assume DRAFT.
+                  const res = await fetch('/api/properties', {
+                      method,
+                      body: JSON.stringify({ 
+                          ...formData, 
+                          id: editingId, 
+                          status: 'DRAFT' 
+                      }),
+                      headers: { 'Content-Type': 'application/json' }
+                  });
+                  
+                  if (res.ok) {
+                      const data = await res.json();
+                      setLastSaved(new Date());
+                      
+                      // If created new, update ID in URL and state
+                      if (data.data?.id && !editingId) {
+                          setEditingId(data.data.id);
+                          const newUrl = new URL(window.location.href);
+                          newUrl.searchParams.set('id', data.data.id);
+                          window.history.replaceState({}, '', newUrl.toString());
+                      }
+                  }
+              } catch (e) {
+                  console.error("Auto-save failed", e);
+              } finally {
+                  setIsAutoSaving(false);
+              }
+          }, 2000); // 2s debounce
+
+          return () => clearTimeout(timer);
+      }
+  }, [formData, currentStep, status, editingId]);
 
   // Load draft if ID present
   useEffect(() => {
@@ -258,7 +358,7 @@ export default function CreatePropertyPage() {
     }
     setIsSaving(true);
     try {
-        const res = await fetch('/api/host/properties', {
+        const res = await fetch('/api/properties', {
             method: editingId ? 'PUT' : 'POST',
             body: JSON.stringify({ ...formData, id: editingId, status: 'DRAFT' }),
             headers: { 'Content-Type': 'application/json' }
@@ -516,7 +616,7 @@ export default function CreatePropertyPage() {
                 <h2 className="text-xl md:text-2xl font-bold text-gray-900 mb-2">What does your place offer?</h2>
                 <p className="text-gray-500 mb-8">Select all amenities available to guests.</p>
                 <AmenitySelector
-                    selected={formData.amenities}
+                    selectedAmenities={formData.amenities}
                     onChange={(list) => setFormData(p => ({ ...p, amenities: list }))}
                 />
             </div>
@@ -582,7 +682,9 @@ export default function CreatePropertyPage() {
   // Actually, I'll just add the Auth effect first, then the Sidebar change.
 
   return (
-    <div className="h-screen overflow-hidden bg-neutral-50 flex flex-col md:flex-row text-gray-900">
+    <div className="h-screen overflow-hidden bg-neutral-50 flex flex-col md:flex-row text-gray-900 relative">
+      <WizardProgressBar currentStep={currentStep} steps={STEPS} />
+
       
       {/* LEFT SIDEBAR - NAVIGATION */}
       <div className="hidden md:flex flex-col w-80 bg-white border-r border-neutral-200 fixed h-full z-10 shadow-[4px_0_24px_rgba(0,0,0,0.02)]">
@@ -646,13 +748,24 @@ export default function CreatePropertyPage() {
             })}
          </div>
 
-         <div className="p-6 border-t border-neutral-100">
+         <div className="p-6 border-t border-neutral-100 flex flex-col gap-3">
+             <div className="h-4 flex items-center justify-center">
+                {isAutoSaving ? (
+                    <span className="text-xs text-primary-600 font-medium flex items-center gap-1 animate-pulse">
+                        <Loader2 className="w-3 h-3 animate-spin" /> Saving...
+                    </span>
+                ) : lastSaved ? (
+                     <span className="text-xs text-gray-400 flex items-center gap-1">
+                        <Check className="w-3 h-3 text-green-500" /> Saved {lastSaved.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}
+                    </span>
+                ) : null}
+             </div>
              <button 
                 onClick={handleSaveDraft}
-                disabled={isSaving}
-                className="w-full flex items-center justify-center gap-2 p-3 rounded-xl border border-neutral-200 hover:bg-neutral-50 text-gray-600 font-semibold transition-all text-sm"
+                disabled={isSaving || isAutoSaving}
+                className="w-full flex items-center justify-center gap-2 p-3 rounded-xl border border-neutral-200 hover:bg-neutral-50 text-gray-600 font-semibold transition-all text-sm group"
              >
-                {isSaving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
+                <Save className="w-4 h-4 group-hover:text-primary-600 transition-colors" />
                 Save Draft
              </button>
          </div>

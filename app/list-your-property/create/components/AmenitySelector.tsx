@@ -14,10 +14,11 @@ export function AmenitySelector({ selectedAmenities = [], onChange }: AmenitySel
   const [search, setSearch] = useState('');
 
   const toggleAmenity = (amenity: string) => {
-    if (selectedAmenities.includes(amenity)) {
-      onChange(selectedAmenities.filter(a => a !== amenity));
+    const current = Array.isArray(selectedAmenities) ? selectedAmenities : [];
+    if (current.includes(amenity)) {
+      onChange(current.filter(a => a !== amenity));
     } else {
-      onChange([...selectedAmenities, amenity]);
+      onChange([...current, amenity]);
     }
   };
 
@@ -66,11 +67,17 @@ export function AmenitySelector({ selectedAmenities = [], onChange }: AmenitySel
       <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-3 2xl:grid-cols-4 gap-4">
         {(filteredCategories || [PROPERTY_AMENITY_CATEGORIES[activeCategory]]).map((cat: any) => (
              cat.options.map((amenity: string) => {
-                 const isSelected = selectedAmenities?.includes(amenity);
+                 const safeSelected = Array.isArray(selectedAmenities) ? selectedAmenities : [];
+                 const isSelected = safeSelected.includes(amenity);
                  return (
                     <button
+                        type="button"
                         key={amenity}
-                        onClick={() => toggleAmenity(amenity)}
+                        onClick={(e) => {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            toggleAmenity(amenity);
+                        }}
                         className={`
                             flex items-center justify-between p-4 rounded-xl border transition-all text-left group
                             ${isSelected 
@@ -79,7 +86,7 @@ export function AmenitySelector({ selectedAmenities = [], onChange }: AmenitySel
                         `}
                     >
                         <span className={`font-medium ${isSelected ? 'text-primary-900' : 'text-gray-700'}`}>
-                            {amenity}
+                            {amenity.replace(/_/g, ' ')}
                         </span>
                         <div className={`
                             w-6 h-6 rounded-full flex items-center justify-center transition-all

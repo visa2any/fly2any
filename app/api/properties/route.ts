@@ -133,6 +133,7 @@ export async function POST(request: NextRequest) {
             caption: img.caption,
             category: img.category,
             isPrimary: img.isPrimary,
+            aiTags: img.tags || [],
           })) || [],
         },
       },

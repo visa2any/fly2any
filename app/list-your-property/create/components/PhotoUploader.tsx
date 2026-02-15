@@ -172,12 +172,11 @@ export function PhotoUploader({ images, onChange }: PhotoUploaderProps) {
     const updatedPhotos = [...localPhotos, ...newPhotosInProgress];
     updateParent(updatedPhotos);
 
-    // Async processing
+    // Async processing for NEW files
     newPhotosInProgress.forEach(async (photoItem) => {
         try {
-            // Optimize
+            // ... existing processing ...
             const processedFile = await processImage(photoItem.file);
-            // Upload
             const remoteUrl = await uploadFile(processedFile);
             
             // AI Classify
@@ -186,13 +185,17 @@ export function PhotoUploader({ images, onChange }: PhotoUploaderProps) {
 
             if (model) {
                 const img = document.createElement('img');
+                img.crossOrigin = 'anonymous';
                 img.src = remoteUrl;
-                await new Promise((resolve) => { img.onload = resolve; });
+                await new Promise((resolve, reject) => { 
+                    img.onload = resolve; 
+                    img.onerror = reject;
+                });
                 tags = await classifyImage(img);
                 detectedCategory = determineCategory(tags);
             }
 
-            // Update State with result
+            // Update State
             updateParent(updatedPhotos.map(p => p.url === photoItem.url ? {
                 ...p,
                 url: remoteUrl,
@@ -207,6 +210,93 @@ export function PhotoUploader({ images, onChange }: PhotoUploaderProps) {
         }
     });
   }, [localPhotos, model, processImage]);
+
+  // --------------------------------------------------------------------------
+  // INNOVATION: Smart Labeling for Imported Photos
+  // --------------------------------------------------------------------------
+  useEffect(() => {
+      if (!model || localPhotos.length === 0) return;
+
+      const unscannedPhotos = localPhotos.filter(p => !p.tags || p.tags.length === 0);
+      if (unscannedPhotos.length === 0) return;
+
+      const scanPhotos = async () => {
+          const updates = [...localPhotos];
+          let hasChanges = false;
+
+          for (let i = 0; i < updates.length; i++) {
+              if ((!updates[i].tags || updates[i].tags!.length === 0) && updates[i].url) {
+                  try {
+                      const img = document.createElement('img');
+                      img.crossOrigin = 'anonymous';
+                      img.src = updates[i].url;
+                      
+                      await new Promise((resolve, reject) => { 
+                          img.onload = resolve; 
+                          img.onerror = () => resolve(null); // Continue even if fail
+                      });
+
+                      const tags = await classifyImage(img);
+                      if (tags.length > 0) {
+                          updates[i].tags = tags;
+                          const cat = determineCategory(tags);
+                          if (cat !== 'general') updates[i].category = cat;
+                          hasChanges = true;
+                      }
+                  } catch (e) {
+                      // seamless fail
+                  }
+              }
+          }
+
+          if (hasChanges) {
+              updateParent(updates);
+              // toast.success("Photos auto-labeled with AI ✨"); // Optional: might be spammy
+          }
+      };
+
+      // Slight delay to allow render
+      const timer = setTimeout(scanPhotos, 1000);
+      return () => clearTimeout(timer);
+  }, [model, localPhotos.length]); // Dep only on length change to avoid loop
+
+  // --------------------------------------------------------------------------
+  // INNOVATION: "Insta-Enhance"
+  // --------------------------------------------------------------------------
+  const [enhancingIdx, setEnhancingIdx] = useState<number | null>(null);
+
+  const handleMagicEnhance = async (index: number) => {
+      const photo = localPhotos[index];
+      if (!photo.url) return;
+      
+      setEnhancingIdx(index);
+      try {
+          // 1. Fetch original as blob
+          const res = await fetch(photo.url);
+          const blob = await res.blob();
+          const file = new File([blob], "image.jpg", { type: blob.type });
+
+          // 2. Run through ImageProcessor (applies filters & compression)
+          const enhancedFile = await processImage(file);
+          
+          // 3. Upload/Preview
+          const startUrl = URL.createObjectURL(enhancedFile);
+          
+          // Update state immediately to show enhancement
+          const newPhotos = [...localPhotos];
+          newPhotos[index] = { ...newPhotos[index], url: startUrl, file: enhancedFile }; // effectively a "new" file
+          updateParent(newPhotos);
+
+          // 4. (Optional) Re-upload to server if needed, handled by save draft logic taking the file?
+          // For now, wizard handles blob URLs until final submit.
+
+      } catch (e) {
+          console.error("Enhance failed", e);
+          // toast.error("Could not enhance this image (CORS restriction)");
+      } finally {
+          setEnhancingIdx(null);
+      }
+  };
 
 
   const rotatePhoto = (index: number) => {
@@ -236,13 +326,13 @@ export function PhotoUploader({ images, onChange }: PhotoUploaderProps) {
 
   return (
     <div className="space-y-6">
-      <div className="flex gap-4">
+      <div className="grid grid-cols-1 xl:grid-cols-3 gap-4">
         {/* Drag Drop Zone */}
         <div 
             onDragOver={(e) => { e.preventDefault(); setDragOver(true); }}
             onDragLeave={() => setDragOver(false)}
             onDrop={(e) => { e.preventDefault(); setDragOver(false); handleFiles(e.dataTransfer.files); }}
-            className={`flex-1 relative p-12 rounded-2xl border-2 border-dashed transition-all text-center group cursor-pointer ${
+            className={`relative p-6 rounded-2xl border-2 border-dashed transition-all text-center group cursor-pointer flex flex-col items-center justify-center min-h-[220px] ${
                 dragOver ? 'border-primary-500 bg-primary-50' : 'border-neutral-300 bg-neutral-50 hover:bg-neutral-100 hover:border-neutral-400'
             }`}
         >
@@ -254,10 +344,10 @@ export function PhotoUploader({ images, onChange }: PhotoUploaderProps) {
                 className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10" 
             />
             <div className="pointer-events-none">
-                <div className={`w-16 h-16 rounded-full bg-white flex items-center justify-center mx-auto mb-4 shadow-sm transition-transform group-hover:scale-110 ${dragOver ? 'text-primary-500' : 'text-gray-400'}`}>
-                   <Upload className="w-8 h-8" />
+                <div className={`w-14 h-14 rounded-full bg-white flex items-center justify-center mx-auto mb-4 shadow-sm transition-transform group-hover:scale-110 ${dragOver ? 'text-primary-500' : 'text-gray-400'}`}>
+                   <Upload className="w-7 h-7" />
                 </div>
-                <h3 className="text-xl font-bold text-gray-900 mb-2">Upload Files</h3>
+                <h3 className="text-lg font-bold text-gray-900 mb-1">Upload Photos</h3>
                 <p className="text-gray-500 text-xs">JPG, PNG, WEBP up to 10MB</p>
             </div>
         </div>
@@ -265,16 +355,16 @@ export function PhotoUploader({ images, onChange }: PhotoUploaderProps) {
         {/* Mobile Connect Button */}
         <div 
              onClick={() => setShowQR(!showQR)}
-             className={`w-1/3 rounded-2xl border-2 flex flex-col items-center justify-center cursor-pointer transition-all ${
+             className={`rounded-2xl border-2 flex flex-col items-center justify-center cursor-pointer transition-all min-h-[220px] ${
                  showQR ? 'border-primary-500 bg-primary-50' : 'border-neutral-200 bg-white hover:bg-neutral-50 hover:border-neutral-300'
              }`}
         >
            {!showQR ? (
                <div className="text-center">
-                   <div className="w-16 h-16 rounded-full bg-neutral-100 flex items-center justify-center mx-auto mb-4 text-gray-500">
-                       <Smartphone className="w-8 h-8" />
+                   <div className="w-14 h-14 rounded-full bg-neutral-100 flex items-center justify-center mx-auto mb-4 text-gray-500">
+                       <Smartphone className="w-7 h-7" />
                    </div>
-                   <h3 className="text-xl font-bold text-gray-900 mb-2">Phone Upload</h3>
+                   <h3 className="text-lg font-bold text-gray-900 mb-1">Phone Upload</h3>
                    <p className="text-gray-400 text-xs">Scan QR to connect</p>
                </div>
            ) : (
@@ -292,17 +382,22 @@ export function PhotoUploader({ images, onChange }: PhotoUploaderProps) {
                </div>
            )}
         </div>
+
+        {/* Video Uploader */}
+        <div className="h-full min-h-[220px]">
+            <VideoUploader />
+        </div>
       </div>
 
       {localPhotos.length === 0 && (
-         <div className="flex items-center gap-3 p-4 rounded-xl bg-blue-50 text-blue-700 border border-blue-100 text-sm">
+         <div className="flex items-center gap-3 p-4 rounded-xl bg-blue-50 text-blue-700 border border-blue-100 text-sm mt-6">
             <AlertCircle className="w-4 h-4 shrink-0" />
             High quality photos increase bookings by 40%. Add at least 5 photos.
          </div>
       )}
 
       {/* Grid */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 xl:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-3 xl:grid-cols-4 gap-4 mt-6">
          {localPhotos.filter(p => p && p.url).map((photo, idx) => (
             <div key={idx} className="bg-white border border-neutral-200 rounded-xl overflow-hidden group hover:shadow-md transition-all">
                <div className="relative aspect-video bg-neutral-100">
@@ -329,8 +424,18 @@ export function PhotoUploader({ images, onChange }: PhotoUploaderProps) {
                   {/* Actions Overlay */}
                   <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2 p-2">
                      <button onClick={() => setPrimary(idx)} className={`px-3 py-1.5 rounded-lg text-xs font-bold flex items-center gap-1 ${photo.isPrimary ? 'bg-amber-400 text-black' : 'bg-white text-gray-900 hover:bg-neutral-100'}`}>
-                        <Star className={`w-3 h-3 ${photo.isPrimary ? 'fill-black' : ''}`} /> {photo.isPrimary ? 'Cover' : 'Set Cover'}
+                        <Star className={`w-3 h-3 ${photo.isPrimary ? 'fill-black' : ''}`} /> {photo.isPrimary ? 'Cover' : 'Cover'}
                      </button>
+                     
+                     <button 
+                        onClick={() => handleMagicEnhance(idx)} 
+                        disabled={enhancingIdx === idx}
+                        className="p-2 rounded-lg bg-white text-indigo-600 hover:bg-indigo-50" 
+                        title="Magic Enhance"
+                     >
+                        {enhancingIdx === idx ? <Loader2 className="w-4 h-4 animate-spin" /> : <Wand2 className="w-4 h-4" />}
+                     </button>
+
                      <button onClick={() => rotatePhoto(idx)} className="p-2 rounded-lg bg-white text-gray-900 hover:bg-neutral-100" title="Rotate">
                         <RotateCcw className="w-4 h-4" />
                      </button>
@@ -371,10 +476,6 @@ export function PhotoUploader({ images, onChange }: PhotoUploaderProps) {
                </div>
             </div>
          ))}
-      </div>
-
-      <div className="border-t border-neutral-200 pt-8 mt-8">
-           <VideoUploader />
       </div>
     </div>
   );

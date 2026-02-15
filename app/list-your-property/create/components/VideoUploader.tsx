@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import { Upload, X, Video, Loader2 } from 'lucide-react';
 
-export function VideoUploader({ video, onChange }: { video?: any, onChange?: (v: any) => void }) {
+export function VideoUploader({ video, onChange, className }: { video?: any, onChange?: (v: any) => void, className?: string }) {
   const [loading, setLoading] = useState(false);
   const [localVideo, setLocalVideo] = useState<string | null>(null);
 
@@ -18,7 +18,7 @@ export function VideoUploader({ video, onChange }: { video?: any, onChange?: (v:
   };
 
   return (
-    <div className="bg-white p-6 rounded-2xl border border-neutral-200 shadow-sm">
+    <div className={`bg-white p-6 rounded-2xl border border-neutral-200 shadow-sm ${className || ''}`}>
         <div className="flex items-center gap-3 mb-4">
             <div className="w-10 h-10 rounded-full bg-purple-50 flex items-center justify-center text-purple-600">
                 <Video className="w-5 h-5" />

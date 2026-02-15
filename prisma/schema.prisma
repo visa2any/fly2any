@@ -76,6 +76,11 @@ model User {
   propertyOwner            PropertyOwner?              @relation("UserPropertyOwner")
   propertyBookings         PropertyBooking[]
 
+  // Relations for Messaging
+  hostConversations    Conversation[] @relation("HostConversations")
+  guestConversations   Conversation[] @relation("GuestConversations")
+  sentMessages         Message[]      @relation("SentMessages")
+
   @@map("users")
 }
 
@@ -4262,6 +4267,7 @@ model Property {
   images                PropertyImage[]
   availability          PropertyAvailability[]
   bookings              PropertyBooking[]
+  conversations         Conversation[]
 
   @@index([ownerId])
   @@index([status])
@@ -4374,3 +4380,45 @@ model PropertyBooking {
   @@map("property_bookings")
 }
 
+
+// ------------------------------------------------------------------
+// Messaging System (User-to-User / Host-to-Guest)
+// ------------------------------------------------------------------
+
+model Conversation {
+  id              String    @id @default(cuid())
+  hostId          String
+  guestId         String
+  propertyId      String?
+  lastMessage     String?
+  lastMessageAt   DateTime  @default(now())
+  unreadCountHost Int       @default(0)
+  unreadCountGuest Int      @default(0)
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  host      User      @relation("HostConversations", fields: [hostId], references: [id], onDelete: Cascade)
+  guest     User      @relation("GuestConversations", fields: [guestId], references: [id], onDelete: Cascade)
+  property  Property? @relation(fields: [propertyId], references: [id])
+  messages  Message[]
+
+  @@unique([hostId, guestId, propertyId])
+  @@index([hostId, lastMessageAt])
+  @@index([guestId, lastMessageAt])
+  @@map("conversations")
+}
+
+model Message {
+  id             String       @id @default(cuid())
+  conversationId String
+  senderId       String
+  content        String
+  read           Boolean      @default(false)
+  createdAt      DateTime     @default(now())
+  
+  conversation   Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  sender         User         @relation("SentMessages", fields: [senderId], references: [id], onDelete: Cascade)
+
+  @@index([conversationId, createdAt])
+  @@map("messages")
+}
