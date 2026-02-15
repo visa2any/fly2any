@@ -15,7 +15,7 @@ export function RoomBuilder({ rooms, onChange }: RoomBuilderProps) {
   const handleAddRoom = () => {
     const newRoom: RoomData = {
         id: Math.random().toString(36).substr(2, 9),
-        name: `Bedroom ${rooms.filter(r => r.name.includes('Bedroom')).length + 1}`,
+        name: `Bedroom ${rooms.filter(r => r.name?.includes('Bedroom')).length + 1}`,
         roomType: 'standard',
         bedType: 'queen',
         bedCount: 1,
@@ -45,7 +45,7 @@ export function RoomBuilder({ rooms, onChange }: RoomBuilderProps) {
                  <div className="flex justify-between items-start mb-4">
                      <div>
                         <input 
-                            value={room.name}
+                            value={room.name || ''}
                             onChange={(e) => updateRoom(room.id, { name: e.target.value })}
                             className="font-bold text-gray-900 bg-transparent border-b border-transparent hover:border-neutral-300 focus:border-primary-500 outline-none transition-colors"
                         />
