@@ -184,6 +184,9 @@ export function LocationPicker({ initialLocation, onLocationSelect }: LocationPi
         let searchResults: any[] = [];
         let foundSpecificStrategies = false;
 
+        const cleanTerm = term.trim();
+        const zipRegex = /^\d{5}$/;
+
         // Strategy 1: Brazilian CEP High-Confidence Search
         // Check if string CONTAINS a CEP (not just equals)
         const cepMatch = cleanTerm.match(/\b\d{5}-?\d{3}\b/);
