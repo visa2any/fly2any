@@ -30,6 +30,21 @@ export function PricingEditor({ data, onChange }: PricingEditorProps) {
                      <h3 className="text-lg font-bold text-gray-900">Base Price</h3>
                      <p className="text-gray-500 text-sm">Your default nightly rate.</p>
                  </div>
+                 <div className="ml-auto">
+                    {data.basePrice < 120 ? (
+                        <span className="bg-green-100 text-green-700 text-xs font-bold px-2 py-1 rounded-full flex items-center gap-1">
+                            <TrendingUp className="w-3 h-3" /> Great Value
+                        </span>
+                    ) : data.basePrice > 250 ? (
+                         <span className="bg-purple-100 text-purple-700 text-xs font-bold px-2 py-1 rounded-full flex items-center gap-1">
+                            <Sparkles className="w-3 h-3" /> Premium
+                        </span>
+                    ) : (
+                        <span className="bg-blue-100 text-blue-700 text-xs font-bold px-2 py-1 rounded-full flex items-center gap-1">
+                            <Info className="w-3 h-3" /> Market Avg
+                        </span>
+                    )}
+                 </div>
              </div>
 
              <div className="flex items-center gap-4">
@@ -54,6 +69,58 @@ export function PricingEditor({ data, onChange }: PricingEditorProps) {
                  </select>
              </div>
          </div>
+         {/* Price Slider */}
+         <div className="px-6 pb-6">
+            <input 
+                type="range" 
+                min="10" 
+                max="1000" 
+                step="5"
+                value={data.basePrice}
+                onChange={(e) => onChange({ basePrice: parseInt(e.target.value) || 0 })}
+                className="w-full h-2 bg-neutral-200 rounded-lg appearance-none cursor-pointer accent-green-600"
+            />
+            <div className="flex justify-between text-xs text-gray-400 mt-2 font-medium">
+                <span>$10</span>
+                <span>$500</span>
+                <span>$1000+</span>
+            </div>
+         </div>
+      </div>
+
+      {/* Length-of-stay discounts */}
+      <div className="bg-white p-6 rounded-2xl border border-neutral-200 shadow-sm">
+           <h4 className="font-bold text-gray-900 mb-4 flex items-center gap-2">
+               <Percent className="w-5 h-5 text-blue-500" /> Discounts
+           </h4>
+           <div className="grid grid-cols-2 gap-4">
+               <div className="p-4 rounded-xl bg-blue-50 border border-blue-100">
+                   <label className="text-sm font-bold text-blue-900 mb-1 block">Weekly</label>
+                   <p className="text-xs text-blue-700 mb-3">7+ nights</p>
+                   <div className="flex items-center gap-2">
+                       <input 
+                           type="number" 
+                           value={data.weeklyDiscount || 0}
+                           onChange={(e) => onChange({ weeklyDiscount: parseInt(e.target.value) || 0 })}
+                           className="w-16 p-2 rounded-lg border border-blue-200 text-center font-bold text-blue-900 focus:ring-2 focus:ring-blue-500 outline-none"
+                       />
+                       <span className="text-blue-900 font-bold">%</span>
+                   </div>
+               </div>
+               <div className="p-4 rounded-xl bg-purple-50 border border-purple-100">
+                   <label className="text-sm font-bold text-purple-900 mb-1 block">Monthly</label>
+                   <p className="text-xs text-purple-700 mb-3">28+ nights</p>
+                   <div className="flex items-center gap-2">
+                       <input 
+                           type="number" 
+                           value={data.monthlyDiscount || 0}
+                           onChange={(e) => onChange({ monthlyDiscount: parseInt(e.target.value) || 0 })}
+                           className="w-16 p-2 rounded-lg border border-purple-200 text-center font-bold text-purple-900 focus:ring-2 focus:ring-purple-500 outline-none"
+                       />
+                       <span className="text-purple-900 font-bold">%</span>
+                   </div>
+               </div>
+           </div>
       </div>
 
       {/* Fees & Discounts */}

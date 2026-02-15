@@ -147,6 +147,39 @@ export default function CreatePropertyPage() {
   // HANDLERS
   // --------------------------------------------------------------------------
   
+  const [isGeneratingDesc, setIsGeneratingDesc] = useState(false);
+
+  const handleGenerateDescription = async () => {
+    if (!formData.location.city) {
+        toast.error("Please set a location first");
+        return;
+    }
+    setIsGeneratingDesc(true);
+    try {
+        const res = await fetch('/api/ai/generate-description', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                type: formData.type,
+                location: formData.location,
+                specs: formData.specs,
+                amenities: formData.amenities
+            })
+        });
+        const data = await res.json();
+        if (data.success) {
+            setFormData(p => ({ ...p, description: data.description }));
+            toast.success("Description generated!");
+        } else {
+            throw new Error(data.error);
+        }
+    } catch (e) {
+        toast.error("Failed to generate description");
+    } finally {
+        setIsGeneratingDesc(false);
+    }
+  };
+
   const handleImportSuccess = (importedData: any) => {
     setFormData(prev => ({
       ...prev,
@@ -171,6 +204,12 @@ export default function CreatePropertyPage() {
       pricing: {
           ...prev.pricing,
           basePrice: importedData.price?.amount || prev.pricing.basePrice
+      },
+      policies: {
+          ...prev.policies,
+          houseRules: [...prev.policies.houseRules, ...(importedData.houseRules || [])],
+          checkInTime: importedData.checkIn || prev.policies.checkInTime,
+          checkOutTime: importedData.checkOut || prev.policies.checkOutTime,
       }
     }));
     toast.success("Property data imported! Please review.");
@@ -276,13 +315,30 @@ export default function CreatePropertyPage() {
                        </div>
 
                        <div className="space-y-2">
-                          <label className="block text-sm font-semibold text-gray-700">Description</label>
+                          <div className="flex items-center justify-between">
+                             <label className="block text-sm font-semibold text-gray-700">Description</label>
+                             <button
+                                onClick={handleGenerateDescription}
+                                disabled={isGeneratingDesc || !formData.location.city}
+                                className="text-xs font-bold text-primary-600 hover:text-primary-700 flex items-center gap-1 bg-primary-50 px-3 py-1.5 rounded-lg border border-primary-200 transition-all hover:shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
+                             >
+                                {isGeneratingDesc ? (
+                                    <>
+                                        <Loader2 className="w-3 h-3 animate-spin" /> Writing...
+                                    </>
+                                ) : (
+                                    <>
+                                        <Sparkles className="w-3 h-3" /> AI Write
+                                    </>
+                                )}
+                             </button>
+                          </div>
                           <textarea 
                              value={formData.description}
                              onChange={(e) => setFormData(p => ({ ...p, description: e.target.value }))}
                              rows={6}
-                             placeholder="Describe your place..."
-                             className="w-full p-4 bg-white border border-neutral-300 rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none transition-all text-gray-900 placeholder-gray-400 resize-none"
+                             placeholder={formData.location.city ? `Describe your place in ${formData.location.city}...` : "Describe your place..."}
+                             className="w-full p-4 bg-white border border-neutral-300 rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none transition-all text-gray-900 placeholder-gray-400 resize-none leading-relaxed"
                           />
                        </div>
                     </div>

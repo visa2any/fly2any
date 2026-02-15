@@ -192,6 +192,10 @@ export async function POST(request: NextRequest) {
     }
     - price: { amount: number (per night estimation), currency: string }
     - amenities: string[] (list of top 10 detected amenities e.g., "Wifi", "Pool", "Kitchen")
+    - host: { name: string (e.g. "Hosted by John"), isSuperhost: boolean }
+    - houseRules: string[] (e.g. "No smoking", "No parties")
+    - checkIn: string (e.g. "15:00")
+    - checkOut: string (e.g. "11:00")
     
     CONTEXT:
     1. JSON-LD Structured Data (HIGH CONFIDENCE): ${JSON.stringify(jsonLdData).substring(0, 5000)}

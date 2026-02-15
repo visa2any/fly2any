@@ -84,21 +84,43 @@ export function PoliciesEditor({ data, onChange }: PoliciesEditorProps) {
         <div className="grid grid-cols-2 gap-4">
           <div>
             <label className="text-xs font-bold text-gray-500 uppercase mb-1 block">Check-in After</label>
-            <input 
-              type="time" 
-              value={checkInTime}
-              onChange={(e) => handleUpdate({ checkInTime: e.target.value })}
-              className="w-full px-4 py-3 rounded-xl bg-white border border-neutral-200 text-gray-900 focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none transition-all shadow-sm"
-            />
+            <div className="relative">
+                <select 
+                  value={checkInTime}
+                  onChange={(e) => handleUpdate({ checkInTime: e.target.value })}
+                  className="w-full px-4 py-3 rounded-xl bg-white border border-neutral-200 text-gray-900 focus:ring-2 focus:ring-primary-500 appearance-none font-medium"
+                >
+                    {Array.from({ length: 24 * 2 }).map((_, i) => {
+                        const h = Math.floor(i / 2);
+                        const m = i % 2 === 0 ? '00' : '30';
+                        const time = `${h.toString().padStart(2, '0')}:${m}`;
+                        return <option key={time} value={time}>{time}</option>;
+                    })}
+                </select>
+                <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-gray-400">
+                    <Clock className="w-4 h-4" />
+                </div>
+            </div>
           </div>
           <div>
             <label className="text-xs font-bold text-gray-500 uppercase mb-1 block">Check-out Before</label>
-            <input 
-              type="time" 
-              value={checkOutTime}
-              onChange={(e) => handleUpdate({ checkOutTime: e.target.value })}
-              className="w-full px-4 py-3 rounded-xl bg-white border border-neutral-200 text-gray-900 focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none transition-all shadow-sm"
-            />
+            <div className="relative">
+                <select 
+                  value={checkOutTime}
+                  onChange={(e) => handleUpdate({ checkOutTime: e.target.value })}
+                  className="w-full px-4 py-3 rounded-xl bg-white border border-neutral-200 text-gray-900 focus:ring-2 focus:ring-primary-500 appearance-none font-medium"
+                >
+                    {Array.from({ length: 24 * 2 }).map((_, i) => {
+                        const h = Math.floor(i / 2);
+                        const m = i % 2 === 0 ? '00' : '30';
+                        const time = `${h.toString().padStart(2, '0')}:${m}`;
+                        return <option key={time} value={time}>{time}</option>;
+                    })}
+                </select>
+                <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-gray-400">
+                    <Clock className="w-4 h-4" />
+                </div>
+            </div>
           </div>
         </div>
       </section>
