@@ -186,12 +186,12 @@ export default function CreatePropertyPage() {
       title: importedData.name || prev.title,
       description: importedData.description || prev.description,
       type: (importedData.propertyType as PropertyType) || prev.type,
-      location: {
-         ...prev.location,
-         address: importedData.address?.full_address || prev.location.address,
-         city: importedData.address?.city || prev.location.city,
-         country: importedData.address?.country || prev.location.country,
-      },
+         location: {
+          ...prev.location,
+          address: importedData.address?.full_address || `${importedData.address?.city || ''}, ${importedData.address?.country || ''}`.replace(/^, /, '').trim() || prev.location.address,
+          city: importedData.address?.city || prev.location.city,
+          country: importedData.address?.country || prev.location.country,
+       },
       specs: {
          ...prev.specs,
          bedrooms: importedData.specs?.bedrooms || prev.specs.bedrooms,

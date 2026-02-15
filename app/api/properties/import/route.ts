@@ -183,7 +183,12 @@ export async function POST(request: NextRequest) {
     - name: Property Title (string)
     - description: detailed description (string)
     - propertyType: "hotel" | "apartment" | "villa" | "resort" | "boutique_hotel" | "bed_and_breakfast" (infer from context)
-    - address: { city, country, full_address } (infer from context)
+    - address: { 
+        city: string, 
+        country: string, 
+        full_address: string, // Try to find street name, neighborhood, or at least "City, Country". Do NOT leave empty.
+        neighborhood: string
+    } (infer from context)
     - specs: { 
         bedrooms: number (default 1), 
         bathrooms: number (default 1),
