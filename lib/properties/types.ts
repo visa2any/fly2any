@@ -142,6 +142,7 @@ export interface Property {
   totalBedrooms: number;
   totalBeds: number;
   // Sustainability
+  smartPricing?: boolean;
   sustainabilityScore?: number;
   ecoFeatures: string[];
   ecoCertifications: string[];

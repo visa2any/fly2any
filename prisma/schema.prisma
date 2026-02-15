@@ -4235,6 +4235,7 @@ model Property {
   taxRate               Float?
   weeklyDiscount        Float?
   monthlyDiscount       Float?
+  smartPricing          Boolean                @default(false)
   instantBooking        Boolean                @default(true)
   minStay               Int                    @default(1)
   maxStay               Int?

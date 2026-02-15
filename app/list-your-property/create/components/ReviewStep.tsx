@@ -218,7 +218,13 @@ export function ReviewStep({ data, onEdit }: ReviewStepProps) {
                    <div className="bg-white rounded-2xl border border-neutral-200 overflow-hidden shadow-lg hover:shadow-xl transition-shadow w-full max-w-sm mx-auto">
                        <div className="relative aspect-[4/3] bg-neutral-200">
                            {coverImage ? (
-                               <Image src={coverImage} alt="Cover" fill className="object-cover" />
+                               <Image 
+                           src={coverImage} 
+                           alt="Cover" 
+                           fill 
+                           className="object-cover" 
+                           unoptimized 
+                       />
                            ) : (
                                <div className="flex items-center justify-center h-full text-gray-400 flex-col gap-2">
                                    <ImageOffIcon className="w-8 h-8 opacity-50" />
