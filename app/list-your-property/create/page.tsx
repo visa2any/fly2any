@@ -116,7 +116,47 @@ export default function CreatePropertyPage() {
 
 // ... existing imports ...
 
-// Force Auth
+  // Helper: Prepare payload for API (Flatten objects)
+  const preparePayload = (data: typeof formData) => {
+      return {
+          ...data,
+          // Location
+          addressLine1: data.location.address,
+          city: data.location.city,
+          country: data.location.country,
+          latitude: data.location.latitude,
+          longitude: data.location.longitude,
+          
+          // Specs
+          maxGuests: data.specs.guests,
+          totalBedrooms: data.specs.bedrooms,
+          totalBeds: data.specs.beds,
+          totalBathrooms: data.specs.bathrooms,
+          
+          // Pricing
+          basePricePerNight: data.pricing.basePrice,
+          currency: data.pricing.currency,
+          cleaningFee: data.pricing.cleaningFee,
+          petFee: data.pricing.petFee,
+          extraGuestFee: data.pricing.extraGuestFee,
+          weekendPrice: data.pricing.weekendPrice,
+          securityDeposit: data.pricing.securityDeposit,
+          weeklyDiscount: data.pricing.weeklyDiscount,
+          monthlyDiscount: data.pricing.monthlyDiscount,
+          smartPricing: data.pricing.smartPricing, // If backend supports it or ignored
+          
+          // Policies
+          checkInTime: data.policies.checkInTime,
+          checkOutTime: data.policies.checkOutTime,
+          cancellationPolicy: data.policies.cancellationPolicy,
+          houseRules: data.policies.houseRules,
+          
+          // Status
+          status: 'DRAFT'
+      };
+  };
+
+  // Force Auth
   useEffect(() => {
     if (status === 'unauthenticated') {
       toast.error("Please sign in to list your property");
@@ -132,7 +172,8 @@ export default function CreatePropertyPage() {
 
   // 1. Load from LocalStorage on mount (if no ID)
   useEffect(() => {
-    if (!editingId && typeof window !== 'undefined') {
+    // If we have an ID, we should probably fetch from API instead of local (omitted for now)
+    if (!editingId) {
         const saved = localStorage.getItem('fly2any_host_draft');
         if (saved) {
             try {
@@ -145,7 +186,15 @@ export default function CreatePropertyPage() {
                             <div className="flex gap-2">
                                 <button 
                                     onClick={() => {
-                                        setFormData(parsed);
+                                        // Merge with defaults to ensure new fields (like petFee) exist
+                                        setFormData(prev => ({ 
+                                            ...prev, 
+                                            ...parsed,
+                                            pricing: { ...prev.pricing, ...parsed.pricing }, // Deep merge pricing
+                                            location: { ...prev.location, ...parsed.location },
+                                            specs: { ...prev.specs, ...parsed.specs },
+                                            policies: { ...prev.policies, ...parsed.policies }
+                                        }));
                                         if (parsed._step) setCurrentStep(parsed._step);
                                         toast.dismiss(t.id);
                                     }}
@@ -173,9 +222,9 @@ export default function CreatePropertyPage() {
     }
   }, [editingId]);
 
-  // 2. Auto-Save Effect (Local + Backend)
+  // 2. Auto-save to LocalStorage AND API
   useEffect(() => {
-      // Local Save (Immediate)
+      // LocalStorage
       if (typeof window !== 'undefined') {
           localStorage.setItem('fly2any_host_draft', JSON.stringify({ ...formData, _step: currentStep }));
       }
