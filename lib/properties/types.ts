@@ -217,7 +217,8 @@ export interface RoomData {
   quantity: number;
   basePricePerNight: number;
   amenities: string[];
-  enSuite?: boolean; // New Enhancement
+  enSuite?: boolean; // Deprecated in favor of bathroomType
+  bathroomType: 'private' | 'ensuite' | 'shared' | 'none';
 }
 
 // ------------------------------------------------------------------

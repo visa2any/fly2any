@@ -21,8 +21,10 @@ export function RoomBuilder({ rooms, onChange }: RoomBuilderProps) {
         bedCount: 1,
         maxOccupancy: 2,
         quantity: 1,
+        quantity: 1,
         basePricePerNight: 0,
-        amenities: []
+        amenities: [],
+        bathroomType: 'ensuite'
     };
     onChange([...rooms, newRoom]);
   };
@@ -119,23 +121,19 @@ export function RoomBuilder({ rooms, onChange }: RoomBuilderProps) {
                         </div>
                     </div>
 
-                    {/* En-suite */}
+                    {/* Bathroom Type */}
                     <div className="col-span-12 sm:col-span-4 space-y-1.5">
-                        <label className="text-[11px] font-bold text-neutral-500 uppercase tracking-wider opacity-0 hidden sm:block">En-suite</label>
-                         <label className={`flex items-center justify-center gap-2.5 cursor-pointer px-3 py-2.5 rounded-xl border transition-all shadow-sm h-[42px] ${
-                             room.enSuite 
-                                ? 'bg-primary-50 border-primary-200 text-primary-700' 
-                                : 'bg-white border-neutral-200 text-neutral-600 hover:border-neutral-300 hover:bg-neutral-50'
-                         }`}>
-                            <input 
-                                type="checkbox"
-                                checked={room.enSuite || false}
-                                onChange={(e) => updateRoom(room.id, { enSuite: e.target.checked })}
-                                className="hidden" // Hide default checkbox
-                            />
-                            {room.enSuite ? <Bath className="w-4 h-4 fill-current" /> : <Bath className="w-4 h-4" />}
-                            <span className="text-sm font-semibold select-none">En-suite Bath</span>
-                        </label>
+                        <label className="text-[10px] font-bold text-neutral-500 uppercase tracking-wider">Bathroom</label>
+                        <select
+                            value={room.bathroomType || (room.enSuite ? 'ensuite' : 'none')}
+                            onChange={(e) => updateRoom(room.id, { bathroomType: e.target.value as any, enSuite: e.target.value === 'ensuite' })}
+                            className="w-full bg-white border border-neutral-200 rounded-xl px-3 py-2.5 text-sm font-medium text-neutral-700 focus:ring-2 focus:ring-primary-100 focus:border-primary-500 outline-none transition-all shadow-sm"
+                        >
+                            <option value="none">No Bathroom</option>
+                            <option value="ensuite">En-suite (Attached)</option>
+                            <option value="private">Private (Separate)</option>
+                            <option value="shared">Shared</option>
+                        </select>
                     </div>
                 </div>
              </div>
