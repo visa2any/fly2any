@@ -47,16 +47,25 @@ export function RoomBuilder({ rooms, onChange }: RoomBuilderProps) {
                         <input 
                             value={room.name || ''}
                             onChange={(e) => updateRoom(room.id, { name: e.target.value })}
-                            className="font-bold text-gray-900 bg-transparent border-b border-transparent hover:border-neutral-300 focus:border-primary-500 outline-none transition-colors"
+                            className="font-bold text-gray-900 bg-transparent border-b border-transparent hover:border-neutral-300 focus:border-primary-500 outline-none transition-colors mb-1"
+                            placeholder="Room Name"
                         />
-                         <div className="flex items-center gap-2 mt-1 text-sm text-gray-500">
-                             <span className="capitalize">{room.roomType.replace('_', ' ')}</span>
+                         <div className="flex items-center gap-2 text-sm text-gray-500">
+                             <select
+                                value={room.roomType}
+                                onChange={(e) => updateRoom(room.id, { roomType: e.target.value as any })}
+                                className="bg-transparent border-none p-0 text-sm font-medium text-gray-500 hover:text-primary-600 focus:ring-0 cursor-pointer capitalize"
+                             >
+                                {Object.entries(ROOM_TYPES).map(([k, l]) => (
+                                    <option key={k} value={k}>{l}</option>
+                                ))}
+                             </select>
                              <span>•</span>
                              <span>{room.maxOccupancy} Guests</span>
                          </div>
                      </div>
                      <div className="flex items-center gap-2">
-                         {room.enSuite && (
+                         {room.bathroomType === 'ensuite' && (
                              <span className="bg-blue-100 text-blue-700 text-[10px] font-bold px-2 py-1 rounded-full uppercase tracking-wider flex items-center gap-1">
                                  <Bath className="w-3 h-3" /> En-suite
                              </span>
