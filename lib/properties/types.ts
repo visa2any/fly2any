@@ -124,6 +124,9 @@ export interface Property {
   basePricePerNight?: number;
   currency: string;
   cleaningFee?: number;
+  petFee?: number;
+  extraGuestFee?: number;
+  weekendPrice?: number;
   serviceFee?: number;
   securityDeposit?: number;
   taxRate?: number;

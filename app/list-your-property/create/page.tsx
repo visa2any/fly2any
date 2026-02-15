@@ -107,6 +107,10 @@ export default function CreatePropertyPage() {
       basePrice: 100,
       currency: 'USD',
       cleaningFee: 0,
+      petFee: 0,
+      extraGuestFee: 0,
+      weekendPrice: 0,
+      securityDeposit: 0,
     },
   });
 
@@ -180,14 +184,15 @@ export default function CreatePropertyPage() {
       if (status === 'authenticated' && (formData.title || formData.location?.city)) {
           const timer = setTimeout(async () => {
               setIsAutoSaving(true);
-              try {
                   const method = editingId ? 'PUT' : 'POST';
+                  const url = editingId ? `/api/properties/${editingId}` : '/api/properties';
+                  
                   // Don't overwrite status if it's already published? For wizard, we assume DRAFT.
-                  const res = await fetch('/api/properties', {
+                  const res = await fetch(url, {
                       method,
                       body: JSON.stringify({ 
                           ...formData, 
-                          id: editingId, 
+                          // id: editingId, // No need to send ID in body if in URL usually, but harmless
                           status: 'DRAFT' 
                       }),
                       headers: { 'Content-Type': 'application/json' }
@@ -357,9 +362,12 @@ export default function CreatePropertyPage() {
     }
     setIsSaving(true);
     try {
-        const res = await fetch('/api/properties', {
-            method: editingId ? 'PUT' : 'POST',
-            body: JSON.stringify({ ...formData, id: editingId, status: 'DRAFT' }),
+        const method = editingId ? 'PUT' : 'POST';
+        const url = editingId ? `/api/properties/${editingId}` : '/api/properties';
+
+        const res = await fetch(url, {
+            method,
+            body: JSON.stringify({ ...formData, status: 'DRAFT' }),
             headers: { 'Content-Type': 'application/json' }
         });
         
@@ -667,7 +675,12 @@ export default function CreatePropertyPage() {
           return (
               <div className="animate-fadeIn">
                  <h2 className="text-xl md:text-2xl font-bold text-gray-900 mb-6">Review your listing</h2>
-                 <ReviewStep data={formData} />
+             {currentStep === 'review' && (
+              <ReviewStep 
+                  data={formData} 
+                  onEdit={(step) => setCurrentStep(step)} 
+              />
+            )}
               </div>
           );
 

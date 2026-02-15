@@ -4227,6 +4227,9 @@ model Property {
   basePricePerNight     Float?
   currency              String                 @default("USD")
   cleaningFee           Float?
+  petFee                Float?
+  extraGuestFee         Float?
+  weekendPrice          Float?
   serviceFee            Float?
   securityDeposit       Float?
   taxRate               Float?
