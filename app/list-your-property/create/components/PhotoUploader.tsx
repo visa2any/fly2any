@@ -212,6 +212,52 @@ export function PhotoUploader({ images, onChange }: PhotoUploaderProps) {
   }, [localPhotos, model, processImage]);
 
   // --------------------------------------------------------------------------
+  // INNOVATION: Smart Cover Photo Selection
+  // --------------------------------------------------------------------------
+  useEffect(() => {
+      // If no photos or already has primary, skip
+      if (localPhotos.length === 0 || localPhotos.some(p => p.isPrimary)) return;
+
+      const selectBestCover = async () => {
+          let bestIdx = 0;
+          let maxScore = 0;
+
+          for (let i = 0; i < localPhotos.length; i++) {
+              if (!localPhotos[i].url) continue;
+              
+              // Load image to check resolution
+              const img = document.createElement('img');
+              img.src = localPhotos[i].url;
+              await new Promise(r => { img.onload = r; img.onerror = r; });
+
+              const width = img.naturalWidth || 0;
+              const height = img.naturalHeight || 0;
+              const resolution = width * height;
+              const isLandscape = width > height * 1.2; // 20% wider than tall
+              
+              // Score: Resolution (0-100) + Landscape Bonus (50)
+              // Cap resolution score at ~4K (8MP)
+              let score = Math.min(resolution / 80000, 100); 
+              if (isLandscape) score += 50;
+
+              if (score > maxScore) {
+                  maxScore = score;
+                  bestIdx = i;
+              }
+          }
+
+          if (localPhotos[bestIdx]) {
+              const newPhotos = localPhotos.map((p, i) => ({ ...p, isPrimary: i === bestIdx }));
+              updateParent(newPhotos);
+          }
+      };
+      
+      // Delay slightly to let initial load settle
+      const timer = setTimeout(selectBestCover, 1500);
+      return () => clearTimeout(timer);
+  }, [localPhotos.length]); // Run when count changes (e.g. bulk upload finished)
+
+  // --------------------------------------------------------------------------
   // INNOVATION: Smart Labeling for Imported Photos
   // --------------------------------------------------------------------------
   useEffect(() => {
