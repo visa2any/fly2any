@@ -248,13 +248,13 @@ export function PoliciesEditor({ data, onChange }: PoliciesEditorProps) {
                key={feature}
                onClick={() => toggleEcoFeature(feature)}
                className={`p-3 rounded-xl border text-left transition-all flex items-center justify-between shadow-sm ${
-                 ecoFeatures.includes(feature)
+                 safeEcoFeatures.includes(feature)
                    ? 'bg-emerald-50 border-emerald-200 text-emerald-800 ring-1 ring-emerald-200'
                    : 'bg-white border-neutral-200 text-gray-500 hover:border-emerald-200 hover:text-emerald-700'
                }`}
              >
                <span className="text-sm font-medium">{feature}</span>
-               {ecoFeatures.includes(feature) && <Leaf className="w-3 h-3 text-emerald-500" />}
+               {safeEcoFeatures.includes(feature) && <Leaf className="w-3 h-3 text-emerald-500" />}
              </button>
           ))}
         </div>

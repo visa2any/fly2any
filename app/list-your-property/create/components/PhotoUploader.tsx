@@ -310,6 +310,7 @@ export function PhotoUploader({ images, onChange }: PhotoUploaderProps) {
                       src={photo.url} 
                       alt="Property" 
                       fill 
+                      unoptimized={true}
                       className="object-cover transition-transform duration-500 ease-in-out" 
                       style={{ transform: `rotate(${photo.rotation || 0}deg)` }}
                   />
