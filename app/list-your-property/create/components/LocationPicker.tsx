@@ -102,6 +102,41 @@ export function LocationPicker({ initialLocation, onLocationSelect }: LocationPi
       }
   }, [initialLocation]);
 
+  // Debounced Auto-Search
+  useEffect(() => {
+      const timer = setTimeout(() => {
+          // Only search if query is long enough and different from internal state to avoid loops
+          // And don't auto-search if it's the initial value just loaded
+          if (query && query.length > 4 && query !== initialLocation.address && !isSearching) {
+              handleSearch(query);
+          }
+      }, 1000);
+      return () => clearTimeout(timer);
+  }, [query]);
+
+  const handleUseCurrentLocation = () => {
+      if (!navigator.geolocation) {
+          alert('Geolocation is not supported by your browser');
+          return;
+      }
+      
+      setIsSearching(true);
+      navigator.geolocation.getCurrentPosition(
+          (position) => {
+              const { latitude, longitude } = position.coords;
+              setPosition(new L.LatLng(latitude, longitude));
+              setActivePosition([latitude, longitude]);
+              updateLocationDetails(latitude, longitude);
+              setIsSearching(false);
+          },
+          (error) => {
+              console.error("Geolocation error:", error);
+              setIsSearching(false);
+              alert('Unable to retrieve your location');
+          }
+      );
+  };
+
   // Helper: Fetch info from ViaCEP (Brazil)
   const fetchViaCep = async (cep: string) => {
       try {
@@ -309,6 +344,18 @@ export function LocationPicker({ initialLocation, onLocationSelect }: LocationPi
                     className="w-full pl-10 pr-4 py-3 bg-neutral-50 border border-neutral-200 rounded-xl focus:bg-white focus:ring-2 focus:ring-primary-100 focus:border-primary-500 outline-none transition-all text-gray-900 placeholder-gray-400 shadow-sm"
                 />
             </div>
+            
+             <button 
+                onClick={handleUseCurrentLocation}
+                disabled={isSearching}
+                type="button"
+                className="bg-neutral-100 hover:bg-neutral-200 text-neutral-700 px-4 rounded-xl font-medium transition-all flex items-center gap-2"
+                title="Use Current Location"
+            >
+                <Navigation className="w-4 h-4" />
+                <span className="hidden sm:inline">Locate Me</span>
+            </button>
+
             <button 
                 onClick={() => handleSearch()}
                 disabled={isSearching}
@@ -353,8 +400,8 @@ export function LocationPicker({ initialLocation, onLocationSelect }: LocationPi
              className="w-full h-full"
            >
             <TileLayer
-                attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-                url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+                attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>'
+                url="https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png"
             />
             <MapUpdater center={activePosition} />
             <LocationMarker 
