@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { LayoutDashboard, Building2, Calendar, ClipboardList, Settings, LogOut, ChevronLeft } from 'lucide-react';
+import { LayoutDashboard, Building2, Calendar, ClipboardList, Settings, LogOut, ChevronLeft, MessageSquare, Shield } from 'lucide-react';
 import { cn } from '@/lib/utils'; // Assuming cn utility exists, or use template literals
 
 const MENU_ITEMS = [
@@ -10,6 +10,8 @@ const MENU_ITEMS = [
   { label: 'Properties', icon: Building2, href: '/host/properties' },
   { label: 'Bookings', icon: ClipboardList, href: '/host/bookings' },
   { label: 'Calendar', icon: Calendar, href: '/host/calendar' },
+  { label: 'Messages', icon: MessageSquare, href: '/host/messages' },
+  { label: 'Trust Center', icon: Shield, href: '/host/verification' },
 ];
 
 export default function HostSidebar() {

@@ -1116,8 +1116,17 @@ model UserCohort {
 }
 
 model AdminUser {
-  id          String   @id @default(cuid())
-  userId      String   @unique
+  id                String    @id @default(cuid())
+  userId            String    @unique
+  status            String    @default("pending") // unverified, verified, suspended
+  verificationStatus String   @default("UNVERIFIED") // UNVERIFIED, PENDING, VERIFIED
+  verificationMethod String?  // GPS, VIDEO, DOCUMENT
+  trustScore        Int       @default(0)
+  identityVerified  Boolean   @default(false)
+  propertyVerified  Boolean   @default(false)
+  verifiedAt        DateTime?
+  documentUrl       String?
+  videoUrl          String?
   role        String
   permissions Json?
   createdAt   DateTime @default(now())
@@ -4143,6 +4152,11 @@ model PropertyOwner {
   identityVerified   Boolean    @default(false)
   emailVerified      Boolean    @default(false)
   phoneVerified      Boolean    @default(false)
+  verificationStatus String     @default("UNVERIFIED") // UNVERIFIED, PENDING, VERIFIED
+  verificationMethod String?    // GPS, VIDEO, DOCUMENT
+  trustScore         Int        @default(0)
+  videoUrl           String?
+  documentUrl        String?
   verificationDocs   Json?      // { idType, idNumber, documentUrls[] }
   payoutMethod       String?    // stripe, paypal, bank_transfer
   payoutDetails      Json?      // encrypted payout info
