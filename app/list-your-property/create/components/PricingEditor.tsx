@@ -32,9 +32,7 @@ export function PricingEditor({ data, onChange }: PricingEditorProps) {
   const monthlyBaseRevenue = basePrice * nightsBooked;
   const monthlyCleaningRevenue = cleaningFee * (nightsBooked / 3); // Approx 6 bookings
   const monthlyGross = monthlyBaseRevenue + monthlyCleaningRevenue;
-  const platformFee = Math.round(monthlyGross * 0.03); // 3% host fee
-  const monthlyGross = monthlyBaseRevenue + monthlyCleaningRevenue;
-  const platformFee = Math.round(monthlyGross * 0.03); // 3% host fee
+  const platformFee = Math.round(monthlyGross * 0.12); // 12% host fee
   const estimatedNet = monthlyGross - platformFee;
 
   const handleUpdate = (updates: any) => {
