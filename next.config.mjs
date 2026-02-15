@@ -183,9 +183,9 @@ const nextConfig = {
             key: 'Content-Security-Policy',
             value: [
               "default-src 'self'",
-              "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://embed.tawk.to https://*.tawk.to https://www.googletagmanager.com https://vercel.live https://accounts.google.com https://*.google.com blob:",
+              "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://embed.tawk.to https://*.tawk.to https://www.googletagmanager.com https://vercel.live https://accounts.google.com https://*.google.com https://cdn.jsdelivr.net https://tfhub.dev blob:",
               "worker-src 'self' blob:",
-              "connect-src 'self' https://embed.tawk.to https://*.tawk.to wss://*.tawk.to https://www.google-analytics.com https://www.googletagmanager.com https://vercel.live https://nominatim.openstreetmap.org https://accounts.google.com https://play.google.com https://*.google.com https://*.googleapis.com https://viacep.com.br https://api.zippopotam.us https://*.cartocdn.com https://*.fastly.net",
+              "connect-src 'self' https://embed.tawk.to https://*.tawk.to wss://*.tawk.to https://www.google-analytics.com https://www.googletagmanager.com https://vercel.live https://nominatim.openstreetmap.org https://accounts.google.com https://play.google.com https://*.google.com https://*.googleapis.com https://viacep.com.br https://api.zippopotam.us https://*.cartocdn.com https://*.fastly.net https://tfhub.dev https://storage.googleapis.com https://cdn.jsdelivr.net",
               "frame-src 'self' https://embed.tawk.to https://*.tawk.to https://vercel.live https://accounts.google.com https://*.google.com",
               "img-src 'self' data: https:",
               "style-src 'self' 'unsafe-inline' https://embed.tawk.to https://*.tawk.to https://accounts.google.com https://*.google.com",
