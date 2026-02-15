@@ -148,13 +148,17 @@ export default function CreatePropertyPage() {
   // --------------------------------------------------------------------------
   
   const [isGeneratingDesc, setIsGeneratingDesc] = useState(false);
+  const [aiTone, setAiTone] = useState('luxury');
 
-  const handleGenerateDescription = async () => {
+  const handleGenerateAI = async (target: 'description' | 'title') => {
     if (!formData.location.city) {
         toast.error("Please set a location first");
         return;
     }
+    
     setIsGeneratingDesc(true);
+    const loadingToast = target === 'title' ? toast.loading("Thinking of catchy titles...") : null;
+
     try {
         const res = await fetch('/api/ai/generate-description', {
             method: 'POST',
@@ -163,22 +167,38 @@ export default function CreatePropertyPage() {
                 type: formData.type,
                 location: formData.location,
                 specs: formData.specs,
-                amenities: formData.amenities
+                amenities: formData.amenities,
+                style: aiTone,
+                target
             })
         });
         const data = await res.json();
+        
+        if (loadingToast) toast.dismiss(loadingToast);
+
         if (data.success) {
-            setFormData(p => ({ ...p, description: data.description }));
-            toast.success("Description generated!");
+            if (target === 'title') {
+                const titles = data.description.split('\n').filter((t: string) => t.length > 5);
+                setFormData(p => ({ ...p, title: titles[0].replace(/^\d+\.\s*/, '').replace(/"/g, '') }));
+                toast.success("Title generated!");
+                console.log("Alternative titles:", titles);
+            } else {
+                setFormData(p => ({ ...p, description: data.description }));
+                toast.success("Description generated!");
+            }
         } else {
             throw new Error(data.error);
         }
-    } catch (e) {
-        toast.error("Failed to generate description");
+    } catch (e: any) {
+        if (loadingToast) toast.dismiss(loadingToast);
+        toast.error(`Failed to generate ${target}`);
     } finally {
         setIsGeneratingDesc(false);
     }
   };
+
+  const handleGenerateTitle = () => handleGenerateAI('title');
+  const handleGenerateDescription = () => handleGenerateAI('description');
 
   const handleImportSuccess = (importedData: any) => {
     setFormData(prev => ({
@@ -302,8 +322,35 @@ export default function CreatePropertyPage() {
                     </div>
 
                     <div className="space-y-4 pt-4 border-t border-neutral-100 xl:border-none xl:pt-0">
+                       
+                       {/* Tone Selector */}
+                       <div className="flex justify-end mb-2">
+                           <div className="flex items-center gap-2 bg-white border border-neutral-200 rounded-lg p-1 pr-3 shadow-sm">
+                               <Sparkles className="w-4 h-4 text-primary-500 ml-2" />
+                               <span className="text-xs font-semibold text-gray-500">AI Tone:</span>
+                               <select 
+                                   className="text-xs font-bold text-gray-800 bg-transparent border-none focus:ring-0 p-0 cursor-pointer"
+                                   value={aiTone}
+                                   onChange={(e) => setAiTone(e.target.value)}
+                               >
+                                   <option value="luxury">Luxury & Premium</option>
+                                   <option value="professional">Professional & Clean</option>
+                                   <option value="cozy">Cozy & Warm</option>
+                                   <option value="fun">Fun & Energetic</option>
+                               </select>
+                           </div>
+                       </div>
+
                        <div className="space-y-2">
-                          <label className="block text-sm font-semibold text-gray-700">Property Title</label>
+                          <div className="flex justify-between items-end">
+                              <label className="block text-sm font-semibold text-gray-700">Property Title</label>
+                              <button
+                                 onClick={handleGenerateTitle}
+                                 className="text-xs font-bold text-primary-600 hover:text-primary-700 flex items-center gap-1 transition-colors"
+                              >
+                                 <Sparkles className="w-3 h-3" /> Magic Title
+                              </button>
+                          </div>
                           <input 
                              type="text" 
                              value={formData.title}
@@ -328,7 +375,7 @@ export default function CreatePropertyPage() {
                                     </>
                                 ) : (
                                     <>
-                                        <Sparkles className="w-3 h-3" /> AI Write
+                                        <Sparkles className="w-3 h-3" /> Auto-Write Description
                                     </>
                                 )}
                              </button>

@@ -10,31 +10,48 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json();
-    const { type, location, specs, amenities, style = 'professional' } = body;
+    const { type, location, specs, amenities, style = 'professional', target = 'description' } = body;
 
     if (!type || !location) {
         return NextResponse.json({ error: 'Missing property details' }, { status: 400 });
     }
 
-    const prompt = `
-    Write a ${style} real estate listing description for a ${type} in ${location.city || 'the city'}.
+    let prompt = '';
     
-    Property Details:
-    - ${specs.bedrooms} bedrooms, ${specs.bathrooms} bathrooms
-    - Max guests: ${specs.guests}
-    - Key Amenities: ${amenities.slice(0, 5).join(', ')}
-    - Address: ${location.address}
+    if (target === 'title') {
+        prompt = `
+        Generate 5 catchy, conversion-optimized titles for a ${style} ${type} in ${location.city || 'the city'}.
+        
+        Details:
+        - ${specs.bedrooms} BR, ${specs.bathrooms} BA
+        - Key Amenities: ${amenities.slice(0, 3).join(', ')}
+        
+        Rules:
+        - Max 50 characters per title.
+        - No quotes.
+        - Just return the titles separated by newlines.
+        `;
+    } else {
+        prompt = `
+        Write a ${style} real estate listing description for a ${type} in ${location.city || 'the city'}.
+        
+        Property Details:
+        - ${specs.bedrooms} bedrooms, ${specs.bathrooms} bathrooms
+        - Max guests: ${specs.guests}
+        - Key Amenities: ${amenities.slice(0, 5).join(', ')}
+        - Address: ${location.address}
 
-    Requirements:
-    - Highlight the key amenities.
-    - Mention local vibe if city is known.
-    - Keep it engaging but accurate.
-    - Max 2 paragraphs.
-    - Do NOT comprise false information.
-    `;
+        Requirements:
+        - Highlight the key amenities.
+        - Mention local vibe if city is known.
+        - Keep it engaging but accurate.
+        - Max 2 paragraphs.
+        - Do NOT comprise false information.
+        `;
+    }
 
     const aiRes = await callGroq([
-        { role: 'system', content: 'You are a professional real estate copywriter. Output only the description text.' },
+        { role: 'system', content: 'You are a professional real estate copywriter. Output only the requested text.' },
         { role: 'user', content: prompt }
     ], {
         model: 'llama-3.3-70b-versatile',

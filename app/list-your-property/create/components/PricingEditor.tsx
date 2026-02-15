@@ -1,7 +1,6 @@
 'use client';
 
 import { useState } from 'react';
-import { useState } from 'react';
 import { DollarSign, Percent, Info, TrendingUp, Sparkles, Zap, ArrowRight } from 'lucide-react';
 import { HelpTooltip } from '@/components/ui/HelpTooltip';
 
