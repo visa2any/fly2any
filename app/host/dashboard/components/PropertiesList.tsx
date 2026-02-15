@@ -8,7 +8,7 @@
       try {
           const properties = await prisma.property.findMany({
               where: { 
-                  // hostId: userId 
+                  hostId: userId 
               },
               include: { images: true },
               orderBy: { createdAt: 'desc' }

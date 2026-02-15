@@ -15,6 +15,11 @@ export const dynamic = 'force-dynamic';
 export default async function HostDashboard() {
   const session = await auth();
   if (!session?.user) redirect('/auth/signin');
+  
+  // Strict check for user ID to prevent Prisma crashes (Error #419)
+  if (!session.user.id) {
+    throw new Error("Invalid session: User ID is missing");
+  }
 
   return (
     <div className="min-h-screen bg-[#FDFDFD] text-gray-900 pb-20">

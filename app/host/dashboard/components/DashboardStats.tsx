@@ -8,7 +8,7 @@
           
           const propertiesCount = await prisma.property.count({
               where: { 
-                  // hostId: userId 
+                  hostId: userId 
               }
           });
           
