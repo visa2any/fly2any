@@ -11,7 +11,7 @@ import { StructuredData } from '@/components/seo/StructuredData';
 import { article as nycParisArticle } from '@/lib/data/articles/nyc-paris-flights-2026';
 import { article as airlinePricingArticle } from '@/lib/data/articles/airline-pricing-mechanics-2026';
 import { article as nycAirportPricingArticle } from '@/lib/data/articles/nyc-airport-pricing-2026';
-import { article as nycAirportPricingArticle } from '@/lib/data/articles/nyc-airport-pricing-2026';
+
 import { article as mistakesArticle } from '@/lib/data/articles/mistakes-first-time-international-travelers';
 import { article as worldCupVisaArticle } from '@/lib/data/articles/usa-world-cup-visa-guide-2026';
 import { ReadingProgress } from '@/components/blog/article/ReadingProgress';
