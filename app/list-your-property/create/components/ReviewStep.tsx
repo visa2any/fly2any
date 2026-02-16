@@ -1,282 +1,463 @@
 'use client';
 
+import { useState } from 'react';
 import Image from 'next/image';
-import { 
-  MapPin, Bed, Users, Bath, Check, Star, Edit2, 
-  Home, Shield, DollarSign, Calendar, List, AlertCircle 
+import {
+  MapPin, Bed, Users, Bath, Check, Star, Edit2,
+  Home, Shield, DollarSign, Calendar, List, AlertCircle,
+  Camera, Sparkles, Eye, Monitor, Heart, ChevronLeft,
+  ChevronRight, Clock, Zap, Percent, Dog, Moon, Receipt
 } from 'lucide-react';
-import { WizardStep } from '../page'; // Might need to export this type from page.tsx or define nearby
+import { WizardStep } from '../page';
 
 interface ReviewStepProps {
   data: any;
   onEdit: (step: WizardStep) => void;
 }
 
-export function ReviewStep({ data, onEdit }: ReviewStepProps) {
-  // Helper to get primary image
-  const coverImage = (data.images && data.images.length > 0) 
-      ? (data.images.find((i: any) => i && i.isPrimary)?.url || (data.images[0]?.url || data.images[0]))
-      : null;
+// ─── Inline Warning Component ───
+function MissingWarning({ message, step, onEdit }: { message: string; step: WizardStep; onEdit: (s: WizardStep) => void }) {
+  return (
+    <div className="flex items-center gap-2 px-3 py-2 bg-amber-50 border border-amber-200 rounded-lg text-xs text-amber-800 font-medium">
+      <AlertCircle className="w-3.5 h-3.5 shrink-0" />
+      <span className="flex-1">{message}</span>
+      <button onClick={() => onEdit(step)} className="px-2 py-0.5 bg-amber-100 hover:bg-amber-200 rounded text-amber-900 font-bold transition-colors">Fix</button>
+    </div>
+  );
+}
 
-  // Calculate Health Score
+// ─── Section Card ───
+function Section({ title, icon: Icon, step, onEdit, children, className = '' }: {
+  title: string; icon: any; step: WizardStep; onEdit: (s: WizardStep) => void; children: React.ReactNode; className?: string;
+}) {
+  return (
+    <section className={`bg-white rounded-2xl border border-neutral-200 p-5 shadow-sm group hover:border-primary-300 transition-colors ${className}`}>
+      <div className="flex justify-between items-center mb-3">
+        <h3 className="text-sm font-bold text-gray-900 flex items-center gap-2">
+          <Icon className="w-4 h-4 text-gray-400" /> {title}
+        </h3>
+        <button onClick={() => onEdit(step)} className="p-1.5 text-gray-400 hover:text-primary-600 hover:bg-primary-50 rounded-lg transition-colors">
+          <Edit2 className="w-3.5 h-3.5" />
+        </button>
+      </div>
+      {children}
+    </section>
+  );
+}
+
+export function ReviewStep({ data, onEdit }: ReviewStepProps) {
+  const [viewMode, setViewMode] = useState<'host' | 'client'>('host');
+  const [clientPhotoIdx, setClientPhotoIdx] = useState(0);
+
+  // Cover image
+  const coverImage = data.images?.length > 0
+    ? (data.images.find((i: any) => i?.isPrimary)?.url || data.images[0]?.url || data.images[0])
+    : null;
+
+  // Health Score (weighted)
   let score = 0;
-  let totalScore = 100;
   if (data.title?.length > 10) score += 10;
   if (data.description?.length > 50) score += 10;
   if (data.images?.length >= 5) score += 20;
+  else if (data.images?.length >= 1) score += 10;
   if (data.amenities?.length >= 5) score += 10;
   if (data.pricing?.basePrice > 0) score += 10;
   if (data.type) score += 10;
   if (data.location?.city) score += 10;
   if (data.policies?.checkInTime) score += 10;
-  if (data.policies?.houseRules?.length > 0) score += 10;
+  if (data.policies?.houseRules?.length > 0) score += 5;
+  if (data.location?.address) score += 5;
 
-  // Formatting currency
   const formatPrice = (price: number) => {
-      if (!price && price !== 0) return '-';
-      return new Intl.NumberFormat('en-US', { style: 'currency', currency: data.pricing.currency }).format(price);
+    if (!price && price !== 0) return '-';
+    return new Intl.NumberFormat('en-US', { style: 'currency', currency: data.pricing?.currency || 'USD' }).format(price);
   };
 
+  const allImages = (data.images || []).map((img: any) => typeof img === 'string' ? img : img?.url).filter(Boolean);
+
+  // ─────────────────────────────────────────────
+  // HOST VIEW
+  // ─────────────────────────────────────────────
+  const renderHostView = () => (
+    <div className="space-y-4">
+      {/* Row 1: Basics + Location | Photos */}
+      <div className="grid md:grid-cols-2 gap-4">
+        {/* Basics + Location combined */}
+        <Section title="Property Basics" icon={Home} step="basics" onEdit={onEdit}>
+          <div className="space-y-2">
+            <p className="text-gray-900 font-semibold">{data.title || 'Untitled'}</p>
+            <p className="text-gray-500 text-xs line-clamp-2">{data.description || 'No description'}</p>
+            <div className="flex flex-wrap gap-2 pt-1">
+              <span className="px-2 py-0.5 bg-neutral-100 rounded-full text-xs font-semibold text-gray-600 capitalize">{data.type}</span>
+              <span className="flex items-center gap-1 text-xs text-gray-500"><Users className="w-3 h-3" /> {data.specs?.guests || 0}</span>
+              <span className="flex items-center gap-1 text-xs text-gray-500"><Bed className="w-3 h-3" /> {data.specs?.bedrooms || 0}</span>
+              <span className="flex items-center gap-1 text-xs text-gray-500"><Bath className="w-3 h-3" /> {data.specs?.bathrooms || 0}</span>
+            </div>
+
+            {/* Location inline */}
+            <div className="pt-2 border-t border-neutral-100 mt-2 flex items-center gap-2 text-xs text-gray-600">
+              <MapPin className="w-3.5 h-3.5 text-gray-400" />
+              <span>{[data.location?.address, data.location?.city, data.location?.country].filter(Boolean).join(', ') || 'No location set'}</span>
+            </div>
+          </div>
+          {!data.location?.city && <MissingWarning message="Add your property location" step="location" onEdit={onEdit} />}
+        </Section>
+
+        {/* Photos */}
+        <Section title={`Photos (${allImages.length})`} icon={Camera} step="photos" onEdit={onEdit}>
+          {allImages.length > 0 ? (
+            <div className="flex gap-2">
+              <div className="relative w-28 h-20 rounded-lg overflow-hidden shrink-0 bg-neutral-200">
+                <img src={allImages[0]} alt="Cover" className="w-full h-full object-cover" />
+                <span className="absolute top-1 left-1 px-1.5 py-0.5 bg-black/60 text-white text-[9px] font-bold rounded">COVER</span>
+              </div>
+              <div className="grid grid-cols-3 gap-1 flex-1">
+                {allImages.slice(1, 7).map((url: string, i: number) => (
+                  <div key={i} className="relative aspect-[4/3] rounded-md overflow-hidden bg-neutral-200">
+                    <img src={url} alt={`Photo ${i + 2}`} className="w-full h-full object-cover" />
+                  </div>
+                ))}
+                {allImages.length > 7 && (
+                  <div className="aspect-[4/3] rounded-md bg-neutral-100 flex items-center justify-center text-xs font-bold text-gray-500">
+                    +{allImages.length - 7}
+                  </div>
+                )}
+              </div>
+            </div>
+          ) : (
+            <MissingWarning message="Upload at least 1 photo (5+ recommended)" step="photos" onEdit={onEdit} />
+          )}
+          {allImages.length > 0 && allImages.length < 5 && (
+            <MissingWarning message={`Only ${allImages.length} photos — add more for better visibility`} step="photos" onEdit={onEdit} />
+          )}
+        </Section>
+      </div>
+
+      {/* Row 2: Amenities | Policies */}
+      <div className="grid md:grid-cols-2 gap-4">
+        <Section title={`Amenities (${data.amenities?.length || 0})`} icon={List} step="amenities" onEdit={onEdit}>
+          {data.amenities?.length > 0 ? (
+            <div className="flex flex-wrap gap-1.5">
+              {data.amenities.slice(0, 10).map((am: string) => (
+                <span key={am} className="px-2 py-0.5 bg-green-50 text-green-700 text-[11px] rounded font-medium border border-green-100">
+                  {am.replace(/_/g, ' ')}
+                </span>
+              ))}
+              {data.amenities.length > 10 && (
+                <span className="px-2 py-0.5 bg-neutral-50 text-neutral-500 text-[11px] rounded font-medium">
+                  +{data.amenities.length - 10} more
+                </span>
+              )}
+            </div>
+          ) : (
+            <MissingWarning message="Select at least 1 amenity" step="amenities" onEdit={onEdit} />
+          )}
+        </Section>
+
+        <Section title="Policies & Rules" icon={Shield} step="policies" onEdit={onEdit}>
+          <div className="flex flex-wrap gap-3 text-xs mb-2">
+            <div className="px-3 py-1.5 bg-neutral-50 rounded-lg">
+              <span className="text-gray-400 font-bold uppercase text-[9px] block">Check-in</span>
+              <span className="font-semibold text-gray-900">{data.policies?.checkInTime || '—'}</span>
+            </div>
+            <div className="px-3 py-1.5 bg-neutral-50 rounded-lg">
+              <span className="text-gray-400 font-bold uppercase text-[9px] block">Check-out</span>
+              <span className="font-semibold text-gray-900">{data.policies?.checkOutTime || '—'}</span>
+            </div>
+            <div className="px-3 py-1.5 bg-neutral-50 rounded-lg">
+              <span className="text-gray-400 font-bold uppercase text-[9px] block">Cancellation</span>
+              <span className="font-semibold text-gray-900 capitalize">{data.policies?.cancellationPolicy?.replace('_', ' ') || '—'}</span>
+            </div>
+            {data.policies?.securityDeposit > 0 && (
+              <div className="px-3 py-1.5 bg-neutral-50 rounded-lg">
+                <span className="text-gray-400 font-bold uppercase text-[9px] block">Deposit</span>
+                <span className="font-semibold text-gray-900">{formatPrice(data.policies.securityDeposit)}</span>
+              </div>
+            )}
+          </div>
+          {data.policies?.houseRules?.length > 0 && (
+            <div className="flex flex-wrap gap-1.5">
+              {data.policies.houseRules.slice(0, 5).map((rule: string, i: number) => (
+                <span key={i} className="px-2 py-0.5 bg-red-50 text-red-700 text-[11px] rounded font-medium border border-red-100">{rule}</span>
+              ))}
+              {data.policies.houseRules.length > 5 && (
+                <span className="text-[11px] text-gray-400">+{data.policies.houseRules.length - 5} more</span>
+              )}
+            </div>
+          )}
+        </Section>
+      </div>
+
+      {/* Row 3: Pricing + Booking Controls */}
+      <div className="grid md:grid-cols-2 gap-4">
+        <Section title="Pricing" icon={DollarSign} step="pricing" onEdit={onEdit}>
+          <div className="flex items-baseline gap-2 mb-3">
+            <span className="text-2xl font-black text-gray-900">{formatPrice(data.pricing?.basePrice)}</span>
+            <span className="text-gray-500 text-xs">/ night</span>
+            {data.pricing?.smartPricing && (
+              <span className="px-2 py-0.5 bg-purple-100 text-purple-700 text-[10px] font-bold rounded-full">⚡ Smart</span>
+            )}
+          </div>
+          <div className="grid grid-cols-3 gap-2 text-xs">
+            {data.pricing?.weekendPrice > 0 && (
+              <div className="flex items-center gap-1 text-gray-600"><Moon className="w-3 h-3 text-gray-400" /> Wknd: {formatPrice(data.pricing.weekendPrice)}</div>
+            )}
+            {data.pricing?.cleaningFee > 0 && (
+              <div className="flex items-center gap-1 text-gray-600"><Sparkles className="w-3 h-3 text-gray-400" /> Clean: {formatPrice(data.pricing.cleaningFee)}</div>
+            )}
+            {data.pricing?.petFee > 0 && (
+              <div className="flex items-center gap-1 text-gray-600"><Dog className="w-3 h-3 text-gray-400" /> Pet: {formatPrice(data.pricing.petFee)}</div>
+            )}
+            {data.pricing?.extraGuestFee > 0 && (
+              <div className="flex items-center gap-1 text-gray-600"><Users className="w-3 h-3 text-gray-400" /> Extra: {formatPrice(data.pricing.extraGuestFee)}</div>
+            )}
+            {data.pricing?.weeklyDiscount > 0 && (
+              <div className="flex items-center gap-1 text-gray-600"><Percent className="w-3 h-3 text-gray-400" /> Week: -{data.pricing.weeklyDiscount}%</div>
+            )}
+            {data.pricing?.monthlyDiscount > 0 && (
+              <div className="flex items-center gap-1 text-gray-600"><Percent className="w-3 h-3 text-gray-400" /> Month: -{data.pricing.monthlyDiscount}%</div>
+            )}
+            {data.pricing?.taxRate > 0 && (
+              <div className="flex items-center gap-1 text-gray-600"><Receipt className="w-3 h-3 text-gray-400" /> Tax: {data.pricing.taxRate}%</div>
+            )}
+          </div>
+        </Section>
+
+        <Section title="Booking Controls" icon={Calendar} step="pricing" onEdit={onEdit}>
+          <div className="flex flex-wrap gap-3">
+            <div className="flex items-center gap-2 px-3 py-2 bg-neutral-50 rounded-lg text-xs">
+              <Clock className="w-3.5 h-3.5 text-gray-400" />
+              <div>
+                <span className="text-gray-400 font-bold uppercase text-[9px] block">Min Stay</span>
+                <span className="font-semibold text-gray-900">{data.pricing?.minStay || 1} night{(data.pricing?.minStay || 1) !== 1 ? 's' : ''}</span>
+              </div>
+            </div>
+            {(data.pricing?.maxStay || 0) > 0 && (
+              <div className="flex items-center gap-2 px-3 py-2 bg-neutral-50 rounded-lg text-xs">
+                <Clock className="w-3.5 h-3.5 text-gray-400" />
+                <div>
+                  <span className="text-gray-400 font-bold uppercase text-[9px] block">Max Stay</span>
+                  <span className="font-semibold text-gray-900">{data.pricing.maxStay} nights</span>
+                </div>
+              </div>
+            )}
+            <div className="flex items-center gap-2 px-3 py-2 bg-neutral-50 rounded-lg text-xs">
+              <Zap className="w-3.5 h-3.5 text-gray-400" />
+              <div>
+                <span className="text-gray-400 font-bold uppercase text-[9px] block">Instant Book</span>
+                <span className={`font-semibold ${data.pricing?.instantBooking !== false ? 'text-green-700' : 'text-gray-500'}`}>
+                  {data.pricing?.instantBooking !== false ? 'On' : 'Off'}
+                </span>
+              </div>
+            </div>
+          </div>
+        </Section>
+      </div>
+    </div>
+  );
+
+  // ─────────────────────────────────────────────
+  // CLIENT VIEW (mini hotel detail page)
+  // ─────────────────────────────────────────────
+  const renderClientView = () => (
+    <div className="max-w-4xl mx-auto bg-white rounded-2xl border border-neutral-200 overflow-hidden shadow-lg">
+      {/* Banner */}
+      <div className="bg-indigo-600 px-4 py-2 text-center text-white text-xs font-bold flex items-center justify-center gap-2">
+        <Eye className="w-3.5 h-3.5" /> This is how guests will see your listing
+      </div>
+
+      {/* Photo Gallery */}
+      <div className="relative">
+        {allImages.length > 0 ? (
+          <div className="relative aspect-[2.5/1] bg-neutral-200 overflow-hidden">
+            <img src={allImages[clientPhotoIdx]} alt="Gallery" className="w-full h-full object-cover" />
+            {allImages.length > 1 && (
+              <>
+                <button
+                  onClick={() => setClientPhotoIdx(p => (p - 1 + allImages.length) % allImages.length)}
+                  className="absolute left-3 top-1/2 -translate-y-1/2 w-8 h-8 bg-white/90 backdrop-blur rounded-full flex items-center justify-center shadow hover:bg-white transition-colors"
+                >
+                  <ChevronLeft className="w-4 h-4" />
+                </button>
+                <button
+                  onClick={() => setClientPhotoIdx(p => (p + 1) % allImages.length)}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 w-8 h-8 bg-white/90 backdrop-blur rounded-full flex items-center justify-center shadow hover:bg-white transition-colors"
+                >
+                  <ChevronRight className="w-4 h-4" />
+                </button>
+                <span className="absolute bottom-3 right-3 px-2 py-1 bg-black/60 text-white text-xs font-bold rounded">
+                  {clientPhotoIdx + 1} / {allImages.length}
+                </span>
+              </>
+            )}
+            <button className="absolute top-3 right-3 p-2 rounded-full bg-white/80 backdrop-blur hover:bg-white text-gray-600 transition-colors">
+              <Heart className="w-4 h-4" />
+            </button>
+          </div>
+        ) : (
+          <div className="aspect-[2.5/1] bg-neutral-100 flex items-center justify-center text-gray-400 flex-col gap-2">
+            <Camera className="w-8 h-8 opacity-50" />
+            <span className="text-xs font-medium">No photos uploaded</span>
+          </div>
+        )}
+      </div>
+
+      {/* Content */}
+      <div className="p-6">
+        <div className="grid md:grid-cols-3 gap-6">
+          {/* Left 2/3 */}
+          <div className="md:col-span-2 space-y-5">
+            {/* Title + Rating */}
+            <div className="flex justify-between items-start">
+              <div>
+                <h2 className="text-xl font-bold text-gray-900">{data.title || 'Your Title Here'}</h2>
+                <p className="text-sm text-gray-500 flex items-center gap-1 mt-1">
+                  <MapPin className="w-3.5 h-3.5" />
+                  {[data.location?.city, data.location?.country].filter(Boolean).join(', ') || 'City, Country'}
+                </p>
+              </div>
+              <div className="flex items-center gap-1 text-sm font-semibold bg-neutral-50 px-2 py-1 rounded-lg">
+                <Star className="w-4 h-4 fill-current text-amber-400" />
+                <span>New</span>
+              </div>
+            </div>
+
+            {/* Specs bar */}
+            <div className="flex items-center gap-4 text-sm text-gray-600 border-y border-neutral-100 py-3">
+              <span className="flex items-center gap-1"><Users className="w-4 h-4 text-gray-400" /> {data.specs?.guests || 0} guests</span>
+              <span className="text-gray-300">·</span>
+              <span className="flex items-center gap-1"><Bed className="w-4 h-4 text-gray-400" /> {data.specs?.bedrooms || 0} bedrooms</span>
+              <span className="text-gray-300">·</span>
+              <span className="flex items-center gap-1"><Bath className="w-4 h-4 text-gray-400" /> {data.specs?.bathrooms || 0} bathrooms</span>
+            </div>
+
+            {/* Description */}
+            <div>
+              <h3 className="font-bold text-gray-900 mb-2 text-sm">About this place</h3>
+              <p className="text-gray-600 text-sm leading-relaxed">{data.description || 'No description provided.'}</p>
+            </div>
+
+            {/* Amenities */}
+            {data.amenities?.length > 0 && (
+              <div>
+                <h3 className="font-bold text-gray-900 mb-2 text-sm">What this place offers</h3>
+                <div className="grid grid-cols-2 gap-2">
+                  {data.amenities.slice(0, 8).map((am: string) => (
+                    <div key={am} className="flex items-center gap-2 text-sm text-gray-700">
+                      <Check className="w-3.5 h-3.5 text-green-500" />
+                      <span className="capitalize">{am.replace(/_/g, ' ')}</span>
+                    </div>
+                  ))}
+                </div>
+                {data.amenities.length > 8 && (
+                  <button className="mt-2 text-sm font-bold text-primary-600 underline underline-offset-2">
+                    Show all {data.amenities.length} amenities
+                  </button>
+                )}
+              </div>
+            )}
+
+            {/* Policies */}
+            <div className="border-t border-neutral-100 pt-4">
+              <h3 className="font-bold text-gray-900 mb-2 text-sm">Things to know</h3>
+              <div className="grid grid-cols-3 gap-4 text-xs text-gray-600">
+                <div>
+                  <span className="font-bold text-gray-900 block mb-1">Check-in</span>
+                  <span>{data.policies?.checkInTime || 'Flexible'}</span>
+                </div>
+                <div>
+                  <span className="font-bold text-gray-900 block mb-1">Check-out</span>
+                  <span>{data.policies?.checkOutTime || 'Flexible'}</span>
+                </div>
+                <div>
+                  <span className="font-bold text-gray-900 block mb-1">Cancellation</span>
+                  <span className="capitalize">{data.policies?.cancellationPolicy?.replace('_', ' ') || 'Flexible'}</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Right 1/3: Booking Card */}
+          <div className="md:col-span-1">
+            <div className="border border-neutral-200 rounded-xl p-5 shadow-md sticky top-4">
+              <div className="flex items-baseline gap-1 mb-4">
+                <span className="text-xl font-bold text-gray-900">{formatPrice(data.pricing?.basePrice)}</span>
+                <span className="text-gray-500 text-sm">night</span>
+              </div>
+
+              {/* Fake booking form */}
+              <div className="border border-neutral-200 rounded-lg overflow-hidden mb-3 text-xs">
+                <div className="grid grid-cols-2 border-b">
+                  <div className="p-2 border-r border-neutral-200">
+                    <span className="font-bold text-gray-900 uppercase text-[9px] block">Check-in</span>
+                    <span className="text-gray-500">Add date</span>
+                  </div>
+                  <div className="p-2">
+                    <span className="font-bold text-gray-900 uppercase text-[9px] block">Check-out</span>
+                    <span className="text-gray-500">Add date</span>
+                  </div>
+                </div>
+                <div className="p-2">
+                  <span className="font-bold text-gray-900 uppercase text-[9px] block">Guests</span>
+                  <span className="text-gray-500">1 guest</span>
+                </div>
+              </div>
+
+              <button className="w-full py-3 bg-gradient-to-r from-primary-500 to-primary-600 text-white font-bold rounded-lg text-sm cursor-default">
+                {data.pricing?.instantBooking !== false ? 'Reserve' : 'Request to Book'}
+              </button>
+
+              {data.pricing?.cleaningFee > 0 && (
+                <div className="mt-3 pt-3 border-t border-neutral-100 space-y-1 text-xs text-gray-600">
+                  <div className="flex justify-between"><span>Cleaning fee</span><span>{formatPrice(data.pricing.cleaningFee)}</span></div>
+                  <div className="flex justify-between"><span>Service fee</span><span>{formatPrice(Math.round(data.pricing.basePrice * 0.12))}</span></div>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+
   return (
-    <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500 pb-20">
-       
-       {/* Top Status Bar: Health Score */}
-       <div className="bg-gradient-to-r from-indigo-500 to-purple-600 rounded-2xl p-6 text-white shadow-lg relative overflow-hidden">
-           <div className="relative z-10 flex items-center justify-between">
-               <div>
-                   <h2 className="text-2xl font-bold mb-1">Almost there!</h2>
-                   <p className="text-indigo-100 text-sm">Your listing is {score}% complete. Ready to publish?</p>
-               </div>
-               <div className="flex items-center gap-4">
-                   <div className="w-16 h-16 rounded-full border-4 border-white/30 flex items-center justify-center text-xl font-bold bg-white/10 backdrop-blur">
-                       {score}%
-                   </div>
-               </div>
-           </div>
-           {/* Decorative circles */}
-           <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full blur-2xl -mr-10 -mt-10" />
-           <div className="absolute bottom-0 left-0 w-24 h-24 bg-white/10 rounded-full blur-2xl -ml-10 -mb-10" />
-       </div>
+    <div className="space-y-5 animate-in fade-in slide-in-from-bottom-4 duration-500 pb-20">
 
-       <div className="grid xl:grid-cols-3 gap-8">
-           
-           {/* Left Column: Comprehensive Review (2/3 width) */}
-           <div className="xl:col-span-2 space-y-6">
-               
-               {/* 1. Basic Info */}
-               <section className="bg-white rounded-2xl border border-neutral-200 p-6 shadow-sm group hover:border-primary-300 transition-colors">
-                   <div className="flex justify-between items-start mb-4">
-                       <h3 className="text-lg font-bold text-gray-900 flex items-center gap-2">
-                           <Home className="w-5 h-5 text-gray-500" /> Property Basics
-                       </h3>
-                       <button onClick={() => onEdit('basics')} className="p-2 text-gray-400 hover:text-primary-600 hover:bg-primary-50 rounded-lg transition-colors">
-                           <Edit2 className="w-4 h-4" />
-                       </button>
-                   </div>
-                   <div className="space-y-3">
-                       <div>
-                           <label className="text-xs font-bold text-gray-500 uppercase tracking-wider">Title</label>
-                           <p className="text-gray-900 font-medium text-lg">{data.title || "Untitled"}</p>
-                       </div>
-                       <div>
-                           <label className="text-xs font-bold text-gray-500 uppercase tracking-wider">Description</label>
-                           <p className="text-gray-600 text-sm line-clamp-3">{data.description || "No description provided."}</p>
-                       </div>
-                       <div className="flex gap-4 pt-2">
-                           <span className="px-3 py-1 bg-neutral-100 rounded-full text-xs font-semibold text-gray-600 uppercase">{data.type}</span>
-                           <span className="flex items-center gap-1 text-sm text-gray-600">
-                               <Users className="w-4 h-4" /> {data.specs.guests} Guests
-                           </span>
-                       </div>
-                   </div>
-               </section>
+      {/* Top Bar: Health Score + View Toggle */}
+      <div className="flex items-center justify-between gap-4 bg-gradient-to-r from-indigo-500 to-purple-600 rounded-2xl p-4 text-white shadow-lg relative overflow-hidden">
+        <div className="relative z-10 flex items-center gap-4 flex-1">
+          <div className="w-12 h-12 rounded-full border-[3px] border-white/30 flex items-center justify-center text-lg font-black bg-white/10 backdrop-blur shrink-0">
+            {score}%
+          </div>
+          <div>
+            <h2 className="text-lg font-bold">Almost there!</h2>
+            <p className="text-indigo-100 text-xs">Your listing is {score}% complete</p>
+          </div>
+        </div>
 
-               {/* 2. Rooms & Amenities */}
-               <section className="bg-white rounded-2xl border border-neutral-200 p-6 shadow-sm group hover:border-primary-300 transition-colors">
-                   <div className="flex justify-between items-start mb-4">
-                       <h3 className="text-lg font-bold text-gray-900 flex items-center gap-2">
-                           <List className="w-5 h-5 text-gray-500" /> Rooms & Amenities
-                       </h3>
-                       <button onClick={() => onEdit('amenities')} className="p-2 text-gray-400 hover:text-primary-600 hover:bg-primary-50 rounded-lg transition-colors">
-                           <Edit2 className="w-4 h-4" />
-                       </button>
-                   </div>
-                   <div className="grid md:grid-cols-2 gap-6">
-                       <div>
-                           <label className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-2 block">Rooms</label>
-                           <ul className="space-y-1 text-sm text-gray-700">
-                               <li className="flex items-center gap-2"><Bed className="w-4 h-4 text-gray-400" /> {data.specs.bedrooms} Bedrooms</li>
-                               <li className="flex items-center gap-2"><Bath className="w-4 h-4 text-gray-400" /> {data.specs.bathrooms} Bathrooms</li>
-                               <li className="flex items-center gap-2"><Bed className="w-4 h-4 text-gray-400" /> {data.specs.beds} Beds</li>
-                           </ul>
-                       </div>
-                       <div>
-                           <label className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-2 block">Amenities ({data.amenities.length})</label>
-                           <div className="flex flex-wrap gap-2">
-                               {data.amenities.slice(0, 6).map((am: string) => (
-                                   <span key={am} className="px-2 py-1 bg-green-50 text-green-700 text-xs rounded-md font-medium border border-green-100">
-                                       {am.replace(/_/g, ' ')}
-                                   </span>
-                               ))}
-                               {data.amenities.length > 6 && (
-                                   <span className="px-2 py-1 bg-neutral-50 text-neutral-500 text-xs rounded-md font-medium">
-                                       +{data.amenities.length - 6} more
-                                   </span>
-                               )}
-                           </div>
-                       </div>
-                   </div>
-               </section>
+        {/* View Mode Toggle */}
+        <div className="relative z-10 flex bg-white/10 backdrop-blur rounded-xl p-1">
+          <button
+            onClick={() => setViewMode('host')}
+            className={`px-3 py-1.5 rounded-lg text-xs font-bold flex items-center gap-1.5 transition-all ${viewMode === 'host' ? 'bg-white text-indigo-700 shadow' : 'text-white/70 hover:text-white'}`}
+          >
+            <Monitor className="w-3.5 h-3.5" /> Host View
+          </button>
+          <button
+            onClick={() => setViewMode('client')}
+            className={`px-3 py-1.5 rounded-lg text-xs font-bold flex items-center gap-1.5 transition-all ${viewMode === 'client' ? 'bg-white text-indigo-700 shadow' : 'text-white/70 hover:text-white'}`}
+          >
+            <Eye className="w-3.5 h-3.5" /> Guest View
+          </button>
+        </div>
 
-               {/* 3. Policies */}
-               <section className="bg-white rounded-2xl border border-neutral-200 p-6 shadow-sm group hover:border-primary-300 transition-colors">
-                   <div className="flex justify-between items-start mb-4">
-                       <h3 className="text-lg font-bold text-gray-900 flex items-center gap-2">
-                           <Shield className="w-5 h-5 text-gray-500" /> Policies & Rules
-                       </h3>
-                       <button onClick={() => onEdit('policies')} className="p-2 text-gray-400 hover:text-primary-600 hover:bg-primary-50 rounded-lg transition-colors">
-                           <Edit2 className="w-4 h-4" />
-                       </button>
-                   </div>
-                   <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4">
-                       <div className="p-3 bg-neutral-50 rounded-xl">
-                           <span className="block text-xs text-gray-500 font-bold uppercase">Check-in</span>
-                           <span className="font-semibold text-gray-900">{data.policies.checkInTime}</span>
-                       </div>
-                       <div className="p-3 bg-neutral-50 rounded-xl">
-                           <span className="block text-xs text-gray-500 font-bold uppercase">Check-out</span>
-                           <span className="font-semibold text-gray-900">{data.policies.checkOutTime}</span>
-                       </div>
-                       <div className="col-span-2 p-3 bg-neutral-50 rounded-xl">
-                           <span className="block text-xs text-gray-500 font-bold uppercase">Cancellation</span>
-                           <span className="font-semibold text-gray-900 capitalize">{data.policies.cancellationPolicy.replace('_', ' ')}</span>
-                       </div>
-                   </div>
-                   {data.policies.houseRules.length > 0 && (
-                       <div>
-                           <label className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-2 block">House Rules</label>
-                           <ul className="list-disc list-inside text-sm text-gray-700 space-y-1">
-                               {data.policies.houseRules.map((rule: string, i: number) => (
-                                   <li key={i}>{rule}</li>
-                               ))}
-                           </ul>
-                       </div>
-                   )}
-               </section>
+        {/* Decorative */}
+        <div className="absolute top-0 right-0 w-28 h-28 bg-white/10 rounded-full blur-2xl -mr-8 -mt-8" />
+      </div>
 
-               {/* 4. Pricing */}
-               <section className="bg-white rounded-2xl border border-neutral-200 p-6 shadow-sm group hover:border-primary-300 transition-colors">
-                   <div className="flex justify-between items-start mb-4">
-                       <h3 className="text-lg font-bold text-gray-900 flex items-center gap-2">
-                           <DollarSign className="w-5 h-5 text-gray-500" /> Pricing
-                       </h3>
-                       <button onClick={() => onEdit('pricing')} className="p-2 text-gray-400 hover:text-primary-600 hover:bg-primary-50 rounded-lg transition-colors">
-                           <Edit2 className="w-4 h-4" />
-                       </button>
-                   </div>
-                   <div className="flex items-center gap-6 mb-6">
-                       <div>
-                           <span className="text-3xl font-bold text-gray-900">{formatPrice(data.pricing.basePrice)}</span>
-                           <span className="text-gray-500 text-sm font-medium"> / night</span>
-                       </div>
-                       {data.pricing.smartPricing && (
-                           <span className="px-3 py-1 bg-purple-100 text-purple-700 text-xs font-bold rounded-full border border-purple-200 flex items-center gap-1">
-                               <SparkleIcon className="w-3 h-3" /> Smart Pricing On
-                           </span>
-                       )}
-                   </div>
-                   
-                   <div className="grid grid-cols-2 gap-y-2 text-sm">
-                       {data.pricing.cleaningFee > 0 && (
-                           <div className="flex justify-between border-b border-neutral-100 pb-2">
-                               <span className="text-gray-600">Cleaning Fee</span>
-                               <span className="font-medium text-gray-900">{formatPrice(data.pricing.cleaningFee)}</span>
-                           </div>
-                       )}
-                       {data.pricing.petFee > 0 && (
-                           <div className="flex justify-between border-b border-neutral-100 pb-2">
-                               <span className="text-gray-600">Pet Fee</span>
-                               <span className="font-medium text-gray-900">{formatPrice(data.pricing.petFee)}</span>
-                           </div>
-                       )}
-                       {/* Add other fees if needed */}
-                       <div className="flex justify-between pt-2">
-                           <span className="text-gray-600">Weekend Price</span>
-                           <span className="font-medium text-gray-900">{data.pricing.weekendPrice ? formatPrice(data.pricing.weekendPrice) : 'Same as base'}</span>
-                       </div>
-                   </div>
-               </section>
+      {/* Render based on mode */}
+      {viewMode === 'host' ? renderHostView() : renderClientView()}
 
-           </div>
-
-           {/* Right Column: Live Preview Card (Sticky) */}
-           <div className="hidden xl:block">
-               <div className="sticky top-24 space-y-6">
-                   <h3 className="font-bold text-gray-900">Live Preview</h3>
-                   
-                   {/* Card */}
-                   <div className="bg-white rounded-2xl border border-neutral-200 overflow-hidden shadow-lg hover:shadow-xl transition-shadow w-full max-w-sm mx-auto">
-                       <div className="relative aspect-[4/3] bg-neutral-200">
-                           {coverImage ? (
-                               <Image 
-                           src={coverImage} 
-                           alt="Cover" 
-                           fill 
-                           className="object-cover" 
-                           unoptimized 
-                       />
-                           ) : (
-                               <div className="flex items-center justify-center h-full text-gray-400 flex-col gap-2">
-                                   <ImageOffIcon className="w-8 h-8 opacity-50" />
-                                   <span className="text-xs font-medium">No Image</span>
-                               </div>
-                           )}
-                           <button className="absolute top-3 right-3 p-2 rounded-full bg-white/10 backdrop-blur-sm hover:bg-white/20 text-white transition-colors">
-                               <HeartIcon className="w-5 h-5" />
-                           </button>
-                           <div className="absolute top-3 left-3 bg-white/90 backdrop-blur px-2 py-1 rounded text-xs font-bold text-gray-900 uppercase tracking-wide">
-                               Host Mode
-                           </div>
-                       </div>
-                       <div className="p-4 space-y-2 bg-white">
-                           <div className="flex justify-between items-start">
-                               <h3 className="font-bold text-gray-900 line-clamp-1 text-lg">{data.title || "Your Title Here"}</h3>
-                               <div className="flex items-center gap-1 text-sm font-semibold">
-                                   <Star className="w-4 h-4 fill-current text-amber-400" />
-                                   <span>New</span>
-                               </div>
-                           </div>
-                           <p className="text-gray-500 text-sm">{data.location.city || "City"}, {data.location.country || "Country"}</p>
-                           <p className="text-gray-500 text-sm">
-                               {data.specs.guests} guests · {data.specs.bedrooms} bedrooms
-                           </p>
-                           <div className="pt-2 flex items-baseline gap-1">
-                               <span className="font-bold text-gray-900 text-lg">{formatPrice(data.pricing.basePrice)}</span>
-                               <span className="text-gray-500 text-sm">night</span>
-                           </div>
-                       </div>
-                   </div>
-
-                   {/* Completion Tips */}
-                   <div className="bg-blue-50 border border-blue-100 rounded-xl p-4">
-                       <h4 className="font-bold text-blue-900 mb-2 flex items-center gap-2">
-                           <AlertCircle className="w-4 h-4" /> Pro Tips
-                       </h4>
-                       <ul className="text-sm text-blue-800 space-y-2 list-disc list-inside">
-                           {score < 100 && <li>Complete all fields to boost visibility.</li>}
-                           <li>Add at least 5 high-res photos.</li>
-                           <li>Write a description over 50 chars.</li>
-                       </ul>
-                   </div>
-               </div>
-           </div>
-
-       </div>
     </div>
   );
 }
-
-// Simple Icon Placeholders to avoid import errors if some lucide icons missing
-function SparkleIcon(props: any) { return <svg {...props} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z"/></svg> }
-function HeartIcon(props: any) { return <svg {...props} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"/></svg> }
-function ImageOffIcon(props: any) { return <svg {...props} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="2" x2="22" y1="2" y2="22"/><path d="M10.41 10.41a2 2 0 1 1-2.83-2.83"/><line x1="13.5" x2="6" y1="13.5" y2="21"/><line x1="18" x2="21" y1="12" y2="15"/><path d="M21 15v-2a2 2 0 0 0-2-2 4 4 0 0 0-4 4v5a2 2 0 0 0 2 2h3a2 2 0 0 0 2-2z"/><path d="M1 5a2 2 0 0 1 2-2h1"/><path d="M21 7v1"/></svg> }
