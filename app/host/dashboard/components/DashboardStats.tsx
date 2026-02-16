@@ -3,25 +3,56 @@
   
   export async function DashboardStats({ userId }: { userId: string }) {
       try {
-          const propertiesCount = await prisma.property.count({
-              where: {
-                  owner: {
-                      userId: userId
-                  }
-              }
+          // Find host profile for this user
+          const hostProfile = await prisma.propertyOwner.findFirst({
+              where: { userId },
+              select: { id: true }
           });
-          
-          // Mock Data for "Smart Host" Features (until enough real data exists)
-          const activeBookings = 0; // Replace with real count
-          const totalRevenue = 0;   // Replace with real sum
-          const views = 1240;       // Mock
-          const occupancyRate = 12; // %
-          const marketAvgOccupancy = 45; // %
+          const ownerId = hostProfile?.id;
+
+          const [propertiesCount, activeBookings, revenueAgg, viewsAgg, avgPriceAgg] = await Promise.all([
+              // Total properties
+              prisma.property.count({
+                  where: { owner: { userId } }
+              }),
+              // Active bookings (confirmed + future)
+              ownerId ? prisma.propertyBooking.count({
+                  where: {
+                      property: { ownerId },
+                      status: { in: ['confirmed', 'pending'] },
+                      endDate: { gte: new Date() }
+                  }
+              }) : Promise.resolve(0),
+              // Total revenue from completed bookings
+              ownerId ? prisma.propertyBooking.aggregate({
+                  where: {
+                      property: { ownerId },
+                      status: { in: ['completed', 'confirmed'] }
+                  },
+                  _sum: { totalPrice: true }
+              }) : Promise.resolve({ _sum: { totalPrice: null } }),
+              // Total views across all properties
+              ownerId ? prisma.property.aggregate({
+                  where: { ownerId },
+                  _sum: { viewCount: true }
+              }) : Promise.resolve({ _sum: { viewCount: null } }),
+              // Average nightly price across host's properties
+              ownerId ? prisma.property.aggregate({
+                  where: { ownerId, basePricePerNight: { not: null } },
+                  _avg: { basePricePerNight: true }
+              }) : Promise.resolve({ _avg: { basePricePerNight: null } }),
+          ]);
+
+          const totalRevenue = revenueAgg._sum.totalPrice || 0;
+          const views = viewsAgg._sum.viewCount || 0;
+          const avgPrice = avgPriceAgg._avg.basePricePerNight || 0;
+          const occupancyRate = propertiesCount > 0 && activeBookings > 0 ? Math.min(Math.round((activeBookings / propertiesCount) * 100), 100) : 0;
+          const marketAvgOccupancy = 45;
           
           const stats = [
               { label: 'Total Listings', value: propertiesCount, icon: Home, color: 'text-blue-600', bg: 'bg-blue-50', gradient: 'from-blue-500 to-blue-600' },
               { label: 'Active Bookings', value: activeBookings, icon: BarChart3, color: 'text-emerald-600', bg: 'bg-emerald-50', gradient: 'from-emerald-500 to-emerald-600' },
-              { label: 'Total Revenue', value: `$${totalRevenue.toFixed(2)}`, icon: DollarSign, color: 'text-amber-600', bg: 'bg-amber-50', gradient: 'from-amber-500 to-amber-600' },
+              { label: 'Total Revenue', value: `$${Number(totalRevenue).toFixed(2)}`, icon: DollarSign, color: 'text-amber-600', bg: 'bg-amber-50', gradient: 'from-amber-500 to-amber-600' },
               { label: 'Views (30d)', value: views.toLocaleString(), icon: Eye, color: 'text-purple-600', bg: 'bg-purple-50', gradient: 'from-purple-500 to-purple-600' },
           ];
 
@@ -110,7 +141,9 @@
                       <div className="bg-white border border-neutral-100 rounded-3xl p-6 shadow-sm flex flex-col">
                           <div className="flex items-center justify-between mb-6">
                               <h3 className="font-bold text-gray-900">Competitor Radar</h3>
-                              <span className="px-2 py-1 bg-green-50 text-green-700 text-xs font-bold rounded-lg">+12% vs Avg</span>
+                              <span className={`px-2 py-1 text-xs font-bold rounded-lg ${avgPrice > 0 ? 'bg-green-50 text-green-700' : 'bg-neutral-50 text-neutral-500'}`}>
+                                {avgPrice > 0 ? `$${Math.round(Number(avgPrice))}/night` : 'No data'}
+                              </span>
                           </div>
                           
                           <div className="flex-1 flex flex-col justify-center gap-6">
@@ -118,10 +151,10 @@
                                 <div>
                                     <div className="flex justify-between text-sm font-medium mb-2">
                                         <span className="text-gray-500">Your Avg. Price</span>
-                                        <span className="text-gray-900 font-bold">$145</span>
+                                        <span className="text-gray-900 font-bold">${avgPrice > 0 ? Math.round(Number(avgPrice)) : '—'}</span>
                                     </div>
                                     <div className="h-2 w-full bg-neutral-100 rounded-full overflow-hidden">
-                                        <div className="h-full bg-primary-600 w-[65%] rounded-full"></div>
+                                        <div className="h-full bg-primary-600 rounded-full transition-all" style={{ width: `${avgPrice > 0 ? Math.min((Number(avgPrice) / 300) * 100, 100) : 0}%` }}></div>
                                     </div>
                                 </div>
                                 <div>
@@ -130,12 +163,16 @@
                                         <span className="text-gray-900 font-bold">$122</span>
                                     </div>
                                     <div className="h-2 w-full bg-neutral-100 rounded-full overflow-hidden">
-                                        <div className="h-full bg-neutral-300 w-[50%] rounded-full"></div>
+                                        <div className="h-full bg-neutral-300 w-[41%] rounded-full"></div>
                                     </div>
                                 </div>
                                 <div className="p-4 bg-neutral-50 rounded-2xl mt-4">
                                     <p className="text-xs text-gray-500 leading-relaxed">
-                                        <span className="font-bold text-gray-900">Insight:</span> You are priced slightly above the market average for this season. Ensure your amenities justify the premium.
+                                        <span className="font-bold text-gray-900">Insight:</span> {avgPrice > 122 
+                                          ? 'You are priced above the market average. Ensure your amenities justify the premium.' 
+                                          : avgPrice > 0 
+                                          ? 'Your pricing is competitive! Consider adding premium amenities to justify a price increase.' 
+                                          : 'Add pricing to your listings to see competitive insights.'}
                                     </p>
                                 </div>
                           </div>

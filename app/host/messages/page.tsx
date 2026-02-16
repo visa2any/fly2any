@@ -1,11 +1,12 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { useSession } from 'next-auth/react';
 import { MaxWidthContainer } from '@/components/layout/MaxWidthContainer';
 import { Loader2, MessageSquare, Search, Send, User } from 'lucide-react';
 import { format } from 'date-fns';
 import Image from 'next/image';
-import { cn } from '@/lib/utils'; // Assuming cn exists
+import { cn } from '@/lib/utils';
 
 interface Conversation {
   id: string;
@@ -24,6 +25,8 @@ interface Message {
 }
 
 export default function MessagesPage() {
+  const { data: session } = useSession();
+  const currentUserId = session?.user?.id || '';
   const [conversations, setConversations] = useState<Conversation[]>([]);
   const [activeConversationId, setActiveConversationId] = useState<string | null>(null);
   const [messages, setMessages] = useState<Message[]>([]);
@@ -74,7 +77,7 @@ export default function MessagesPage() {
             id: 'temp-' + Date.now(),
             content: newMessage,
             createdAt: new Date().toISOString(),
-            sender: { id: 'me', name: 'Me', image: null } 
+            sender: { id: currentUserId || 'me', name: session?.user?.name || 'Me', image: session?.user?.image || null } 
         };
         setMessages(prev => [...prev, optimisticMsg]);
         setNewMessage('');
@@ -158,7 +161,7 @@ export default function MessagesPage() {
                              <div className="flex justify-center p-8"><Loader2 className="animate-spin text-gray-300" /></div>
                          ) : (
                              messages.map(msg => {
-                                 const isMe = msg.sender.id === 'me' || conversations.find(c => c.id === activeConversationId)?.guest.id !== msg.sender.id; // Rough sender check logic
+                                 const isMe = msg.sender.id === currentUserId || msg.sender.id === 'me' || conversations.find(c => c.id === activeConversationId)?.guest.id !== msg.sender.id; // Rough sender check logic
                                  // Ideally we check session.user.id but for quick UI we assume if senderId != guestId its me
                                  return (
                                      <div key={msg.id} className={cn("flex", isMe ? "justify-end" : "justify-start")}>
@@ -175,6 +178,28 @@ export default function MessagesPage() {
                                  );
                              })
                          )}
+                    </div>
+
+                    {/* AI Quick Response Suggestions */}
+                    <div className="px-4 py-2 border-t border-neutral-50 bg-neutral-50/50">
+                      <div className="flex items-center gap-2 overflow-x-auto pb-1 scrollbar-hide">
+                        <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider shrink-0">Quick:</span>
+                        {[
+                          { label: '🔑 Check-in Info', text: 'Hi! Check-in is from 3:00 PM. I\'ll send you the access code the day before your arrival. Let me know if you need anything!' },
+                          { label: '👋 Welcome', text: 'Welcome! I hope you have a wonderful stay. Don\'t hesitate to reach out if you need any recommendations or assistance.' },
+                          { label: '🙏 Thank You', text: 'Thank you for your message! I\'ll get back to you shortly with all the details.' },
+                          { label: '📍 Directions', text: 'The property is easy to find! I\'ll send you detailed directions with landmarks closer to your check-in date.' },
+                        ].map((suggestion) => (
+                          <button
+                            key={suggestion.label}
+                            type="button"
+                            onClick={() => setNewMessage(suggestion.text)}
+                            className="shrink-0 px-3 py-1.5 rounded-lg bg-white border border-neutral-200 text-xs font-medium text-gray-600 hover:bg-primary-50 hover:border-primary-200 hover:text-primary-700 transition-all"
+                          >
+                            {suggestion.label}
+                          </button>
+                        ))}
+                      </div>
                     </div>
 
                     <form onSubmit={handleSendMessage} className="p-4 border-t border-neutral-100 bg-white">

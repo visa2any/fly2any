@@ -34,6 +34,8 @@ import { PricingEditor } from './components/PricingEditor';
 import { ReviewStep } from './components/ReviewStep';
 
 import { toast } from 'react-hot-toast';
+import { validateStep } from './lib/validation';
+import confetti from 'canvas-confetti';
 
 // ----------------------------------------------------------------------------
 // WIZARD STEPS
@@ -57,6 +59,7 @@ export default function CreatePropertyPage() {
   const [currentStep, setCurrentStep] = useState<WizardStep>('basics');
   const [isLoading, setIsLoading] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
+  const [stepErrors, setStepErrors] = useState<string[]>([]);
 
   // Draft ID if editing existing draft
   const [editingId, setEditingId] = useState<string | null>(searchParams.get('id'));
@@ -393,14 +396,47 @@ export default function CreatePropertyPage() {
   };
 
   const handleNext = () => {
+    // Validate current step before advancing
+    const validation = validateStep(currentStep, formData);
+    if (!validation.valid) {
+      setStepErrors(validation.errors);
+      validation.errors.forEach(err => toast.error(err));
+      return;
+    }
+    setStepErrors([]);
     const idx = STEPS.findIndex(s => s.id === currentStep);
     if (idx < STEPS.length - 1) {
-      setCurrentStep(STEPS[idx + 1].id);
+      const nextIdx = idx + 1;
+      setCurrentStep(STEPS[nextIdx].id);
       window.scrollTo(0,0);
+
+      // Animated progress celebrations
+      const celebrations = [
+        '🎯 Basics done! Looking great!',
+        '📍 Location set! Keep going!',
+        '🏠 Rooms configured! Halfway there!',
+        '✨ Amenities selected! Almost there!',
+        '📸 Photos uploaded! You\'re crushing it!',
+        '📋 Policies saved! One more step!',
+        '💰 Pricing set! Time to review!',
+      ];
+      if (celebrations[idx]) {
+        toast.success(celebrations[idx], { duration: 2000 });
+      }
+      // Mini confetti bursts at milestones (halfway + almost done)
+      if (nextIdx === 4 || nextIdx === 7) {
+        confetti({
+          particleCount: nextIdx === 7 ? 60 : 30,
+          spread: 50,
+          origin: { y: 0.7 },
+          colors: ['#6366f1', '#8b5cf6', '#a78bfa'],
+        });
+      }
     }
   };
 
   const handleBack = () => {
+    setStepErrors([]);
     const idx = STEPS.findIndex(s => s.id === currentStep);
     if (idx > 0) {
       setCurrentStep(STEPS[idx - 1].id);
@@ -467,7 +503,12 @@ export default function CreatePropertyPage() {
         if (typeof window !== 'undefined') localStorage.removeItem('fly2any_host_draft');
 
         toast.success("Property Published! 🎉");
-        router.push('/host/dashboard');
+        // 🎊 Celebration confetti!
+        confetti({ particleCount: 150, spread: 80, origin: { y: 0.6 } });
+        setTimeout(() => confetti({ particleCount: 80, spread: 100, origin: { y: 0.5 } }), 300);
+        const responseData = await res.json().catch(() => ({}));
+        const propertyId = responseData?.data?.id || editingId || '';
+        setTimeout(() => router.push(`/host/onboarding?propertyId=${propertyId}`), 1500);
     } catch (e: any) {
         console.error(e);
         toast.error("Failed to publish: " + e.message);
@@ -568,6 +609,15 @@ export default function CreatePropertyPage() {
                              placeholder={formData.location.city ? `Describe your place in ${formData.location.city}...` : "Describe your place..."}
                              className="w-full p-4 bg-white border border-neutral-300 rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none transition-all text-gray-900 placeholder-gray-400 resize-none leading-relaxed"
                           />
+                          <div className="flex items-center justify-between">
+                             <p className="text-xs text-gray-400">Min 20 characters for best results</p>
+                             <span className={`text-xs font-semibold tabular-nums ${
+                               formData.description.length >= 20 ? 'text-emerald-500' : 
+                               formData.description.length > 0 ? 'text-amber-500' : 'text-gray-300'
+                             }`}>
+                               {formData.description.length}/20+
+                             </span>
+                          </div>
                        </div>
                     </div>
                 </div>
@@ -876,7 +926,19 @@ export default function CreatePropertyPage() {
                  <h1 className="text-2xl font-bold text-gray-900">{STEPS.find(s => s.id === currentStep)?.label}</h1>
              </div>
 
-             {/* Dynamic Content - Pass height prop/class if needed? No, flex layout handles it */}
+             {/* Validation Errors Banner */}
+             {stepErrors.length > 0 && (
+               <div className="mb-6 p-4 rounded-xl bg-red-50 border border-red-200 animate-in slide-in-from-top-2 duration-300">
+                 <p className="text-sm font-bold text-red-700 mb-1">Please fix the following:</p>
+                 <ul className="list-disc list-inside space-y-1">
+                   {stepErrors.map((err, i) => (
+                     <li key={i} className="text-sm text-red-600">{err}</li>
+                   ))}
+                 </ul>
+               </div>
+             )}
+
+             {/* Dynamic Content */}
              {renderStepContent()}
           </main>
 

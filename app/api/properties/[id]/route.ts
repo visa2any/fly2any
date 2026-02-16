@@ -93,6 +93,7 @@ export async function PUT(
         ...(body.securityDeposit !== undefined && { securityDeposit: body.securityDeposit }),
         ...(body.weeklyDiscount !== undefined && { weeklyDiscount: body.weeklyDiscount }),
         ...(body.monthlyDiscount !== undefined && { monthlyDiscount: body.monthlyDiscount }),
+        ...(body.smartPricing !== undefined && { smartPricing: body.smartPricing }),
         ...(body.instantBooking !== undefined && { instantBooking: body.instantBooking }),
         ...(body.minStay !== undefined && { minStay: body.minStay }),
         ...(body.maxGuests !== undefined && { maxGuests: body.maxGuests }),

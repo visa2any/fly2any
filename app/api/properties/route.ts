@@ -110,6 +110,7 @@ export async function POST(request: NextRequest) {
         serviceFee: body.serviceFee || null,
         weeklyDiscount: body.weeklyDiscount || null,
         monthlyDiscount: body.monthlyDiscount || null,
+        smartPricing: body.smartPricing ?? false,
         instantBooking: body.instantBooking ?? true,
         minStay: body.minStay || 1,
         maxGuests: body.maxGuests || 2,

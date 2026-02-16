@@ -2,13 +2,15 @@ import { auth } from '@/lib/auth';
 import { redirect } from 'next/navigation';
 import { Suspense } from 'react';
 import Link from 'next/link';
-import Image from 'next/image';
 import { MaxWidthContainer } from '@/components/layout/MaxWidthContainer';
-import { Plus } from 'lucide-react';
+import { Plus, Rocket } from 'lucide-react';
+import { prisma } from '@/lib/prisma';
 
 import { DashboardStats } from './components/DashboardStats';
 import { PropertiesList } from './components/PropertiesList';
 import { StatsSkeleton, ListSkeleton } from './components/DashboardSkeleton';
+import { HostChecklist } from './components/HostChecklist';
+import { ListingHealthScore } from './components/ListingHealthScore';
 
 export const dynamic = 'force-dynamic';
 
@@ -21,53 +23,36 @@ export default async function HostDashboard() {
     throw new Error("Invalid session: User ID is missing");
   }
 
+  // Fetch data for checklist + health score
+  const [propertyCount, hostProfile, propertiesForHealth] = await Promise.all([
+    prisma.property.count({ where: { owner: { userId: session.user.id } } }).catch(() => 0),
+    prisma.propertyOwner.findFirst({ where: { userId: session.user.id }, select: { verificationStatus: true } }).catch(() => null),
+    prisma.property.findMany({
+      where: { owner: { userId: session.user.id } },
+      select: {
+        id: true,
+        name: true,
+        description: true,
+        basePricePerNight: true,
+        status: true,
+        _count: { select: { images: true } },
+      },
+      take: 20,
+    }).catch(() => []),
+  ]);
+
+  const healthProperties = propertiesForHealth.map((p: any) => ({
+    id: p.id,
+    name: p.name,
+    hasPhotos: (p._count?.images || 0) > 0,
+    hasPrice: p.basePricePerNight != null && p.basePricePerNight > 0,
+    hasDescription: !!p.description && p.description.length > 20,
+    isPublished: p.status === 'active',
+    photoCount: p._count?.images || 0,
+  }));
+
   return (
     <div className="min-h-screen bg-[#FDFDFD] text-gray-900 pb-20">
-       
-       {/* Host Header - Premium Light Theme */}
-       <header className="bg-white/80 backdrop-blur-xl border-b border-neutral-200/60 sticky top-0 z-30 supports-[backdrop-filter]:bg-white/60">
-           <MaxWidthContainer>
-               <div className="flex items-center justify-between h-18 py-3">
-                   {/* Logo */}
-                   <Link href="/" className="flex items-center gap-2 group">
-                       <div className="w-9 h-9 bg-gradient-to-br from-primary-600 to-indigo-600 rounded-xl flex items-center justify-center text-white font-bold shadow-lg shadow-primary-500/20 group-hover:scale-105 transition-all duration-300">
-                           F
-                       </div>
-                       <span className="font-bold text-xl tracking-tight text-gray-900">Fly2Any<span className="text-primary-600">Host</span></span>
-                   </Link>
-
-                   {/* User Profile */}
-                   <div className="flex items-center gap-5">
-                       <div className="hidden md:block text-right">
-                           <p className="text-sm font-bold text-gray-900 leading-tight">{session.user.name}</p>
-                           <div className="flex items-center justify-end gap-1">
-                                <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></div>
-                                <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">SUPERHOST</p>
-                           </div>
-                       </div>
-                       <div className="relative group cursor-pointer">
-                            <Link href="/account" className="block relative">
-                                <div className="absolute -inset-0.5 bg-gradient-to-br from-primary-500 to-indigo-600 rounded-full opacity-0 group-hover:opacity-100 transition-opacity blur-sm"></div>
-                                {session.user.image && session.user.image.startsWith('http') ? (
-                                    <Image 
-                                        src={session.user.image} 
-                                        alt={session.user.name || 'User'} 
-                                        width={42} 
-                                        height={42} 
-                                        className="relative rounded-full border-2 border-white shadow-sm"
-                                        unoptimized={true}
-                                    />
-                                ) : (
-                                    <div className="relative w-10.5 h-10.5 rounded-full bg-neutral-100 flex items-center justify-center text-gray-600 font-bold border-2 border-white shadow-sm">
-                                        {session.user.name?.[0] || 'U'}
-                                    </div>
-                                )}
-                            </Link>
-                       </div>
-                   </div>
-               </div>
-           </MaxWidthContainer>
-       </header>
 
        <MaxWidthContainer className="pt-10 md:pt-14 px-4 sm:px-6 lg:px-8">
           
@@ -94,10 +79,46 @@ export default async function HostDashboard() {
              </Link>
           </div>
 
+          {/* Host Setup Checklist */}
+          <HostChecklist 
+            hasProperties={propertyCount > 0}
+            isVerified={hostProfile?.verificationStatus === 'VERIFIED'}
+          />
+
           {/* Stats Grid - Streaming */}
           <Suspense fallback={<StatsSkeleton />}>
               <DashboardStats userId={session.user.id!} />
           </Suspense>
+
+          {/* Health Score + Fast Track Row */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-8">
+            <ListingHealthScore properties={healthProperties} />
+
+            {/* List in 60 Seconds Fast Track */}
+            <Link
+              href="/list-your-property/create?fast=true"
+              className="group relative bg-gradient-to-br from-primary-600 to-primary-700 rounded-3xl p-6 shadow-lg hover:shadow-xl hover:-translate-y-1 transition-all overflow-hidden"
+            >
+              <div className="absolute top-0 right-0 p-24 bg-white/10 blur-3xl rounded-full -mr-12 -mt-12"></div>
+              <div className="relative z-10">
+                <div className="flex items-center gap-3 mb-4">
+                  <div className="p-2.5 bg-white/20 rounded-xl backdrop-blur-sm">
+                    <Rocket className="w-5 h-5 text-white group-hover:animate-bounce" />
+                  </div>
+                  <div>
+                    <h3 className="font-bold text-white text-lg">List in 60 Seconds</h3>
+                    <p className="text-white/60 text-xs">AI-powered fast-track listing</p>
+                  </div>
+                </div>
+                <p className="text-white/80 text-sm leading-relaxed mb-4">
+                  Let AI auto-fill your listing from just a few photos and an address. Our system generates descriptions, pricing suggestions, and amenity detection.
+                </p>
+                <span className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-white/20 text-white text-sm font-bold backdrop-blur-sm group-hover:bg-white/30 transition-colors">
+                  Start Fast Track →
+                </span>
+              </div>
+            </Link>
+          </div>
 
           {/* Listings List - Streaming */}
           <div className="mb-8 mt-16 flex items-center justify-between">
@@ -117,4 +138,3 @@ export default async function HostDashboard() {
     </div>
   );
 }
-

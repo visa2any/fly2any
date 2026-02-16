@@ -26,7 +26,7 @@ export function PricingEditor({ data, onChange }: PricingEditorProps) {
   const cleaningFee = data.cleaningFee || 0;
   
   // PROFIT CALCULATOR LOGIC
-  // Assumptions: Occupancy 60%, Platform Fee 3%, Tax 0% (host handles)
+  // Assumptions: Occupancy 60%, Platform Fee 12%, Tax 0% (host handles)
   const occupancyRate = 0.60;
   const nightsBooked = Math.round(30 * occupancyRate); // 18 nights
   const monthlyBaseRevenue = basePrice * nightsBooked;
@@ -268,7 +268,7 @@ export function PricingEditor({ data, onChange }: PricingEditorProps) {
                            <span className="font-bold">${monthlyGross.toLocaleString()}</span>
                        </div>
                        <div className="flex justify-between text-xs text-green-900/70 font-medium">
-                           <span>Host Service Fee (3%)</span>
+                           <span>Host Service Fee (12%)</span>
                            <span className="font-bold text-red-500">-${platformFee}</span>
                        </div>
                        <div className="h-px bg-green-100 my-1" />

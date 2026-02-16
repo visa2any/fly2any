@@ -13,16 +13,25 @@ export default function TrustCenterPage() {
   const [status, setStatus] = useState<VerificationStatus>('UNVERIFIED');
   const [method, setMethod] = useState<VerificationMethod>(null);
   const [trustScore, setTrustScore] = useState(25); // Start with email/phone score
+  const [isLoading, setIsLoading] = useState(true);
+  const [propertyLocation, setPropertyLocation] = useState({ lat: 0, lng: 0 });
 
-  // Fetch status from API
+  // Fetch status from API & property location for GPS check
   useEffect(() => {
-    fetch('/api/host/verification')
-      .then(res => res.json())
-      .then(data => {
-        if (data.verificationStatus) {
-            setStatus(data.verificationStatus as VerificationStatus);
-            setTrustScore(data.trustScore || 25);
-            setMethod(data.verificationMethod as VerificationMethod);
+    Promise.all([
+      fetch('/api/host/verification').then(res => res.json()),
+      fetch('/api/properties/dashboard').then(res => res.json()).catch(() => ({ data: { properties: [] } })),
+    ])
+      .then(([verificationData, propertiesData]) => {
+        if (verificationData.verificationStatus) {
+            setStatus(verificationData.verificationStatus as VerificationStatus);
+            setTrustScore(verificationData.trustScore || 25);
+            setMethod(verificationData.verificationMethod as VerificationMethod);
+        }
+        // Use the first property's location for GPS verification
+        const props = propertiesData.data?.properties || [];
+        if (props.length > 0 && props[0].latitude && props[0].longitude) {
+          setPropertyLocation({ lat: props[0].latitude, lng: props[0].longitude });
         }
       })
       .catch(console.error)
@@ -195,7 +204,7 @@ export default function TrustCenterPage() {
                         <div className="p-6">
                             <button onClick={() => setMethod(null)} className="text-xs text-gray-500 hover:underline mb-4">&larr; Choose another method</button>
                             <GeolocationVerifier 
-                                propertyLocation={{ lat: 40.7128, lng: -74.0060 }} // Mock: NYC Coords
+                                propertyLocation={propertyLocation}
                                 onVerify={() => {
                                     handleUpdateVerification('VERIFIED', 'GPS', 50);
                                 }} 
