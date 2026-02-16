@@ -75,6 +75,8 @@ export default authEdge((req) => {
     '/workbox-',
     '/agent/',      // Agent dashboard routes (no i18n needed)
     '/admin/',      // Admin panel routes (no i18n needed)
+    '/host/',       // Host panel routes (no i18n needed)
+    '/list-your-property/', // Property wizard (no i18n needed)
   ];
   
   const shouldSkipLocale = skipLocalePaths.some(path => currentPath.startsWith(path));
