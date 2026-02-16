@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import Link from 'next/link';
 import {
   Calendar, Shield, CreditCard, CheckCircle2,
@@ -59,15 +59,19 @@ const CHECKLIST: ChecklistItem[] = [
 interface HostChecklistProps {
   hasProperties: boolean;
   isVerified: boolean;
+  hasCalendarSetup: boolean;
+  hasPayoutMethod: boolean;
 }
 
-export function HostChecklist({ hasProperties, isVerified }: HostChecklistProps) {
+export function HostChecklist({ hasProperties, isVerified, hasCalendarSetup, hasPayoutMethod }: HostChecklistProps) {
   const [isCollapsed, setIsCollapsed] = useState(false);
   
   // Determine completion status
   const completedIds = new Set<string>();
   if (hasProperties) completedIds.add('listing');
   if (isVerified) completedIds.add('verification');
+  if (hasCalendarSetup) completedIds.add('calendar');
+  if (hasPayoutMethod) completedIds.add('payouts');
 
   const completedCount = completedIds.size;
   const totalCount = CHECKLIST.length;
@@ -78,7 +82,7 @@ export function HostChecklist({ hasProperties, isVerified }: HostChecklistProps)
   if (allComplete) return null;
 
   return (
-    <div className="mb-10 rounded-2xl border border-neutral-200 bg-white overflow-hidden shadow-sm">
+    <div className="mb-8 rounded-2xl border border-neutral-200 bg-white overflow-hidden shadow-sm">
       {/* Header */}
       <button
         onClick={() => setIsCollapsed(!isCollapsed)}
@@ -101,6 +105,7 @@ export function HostChecklist({ hasProperties, isVerified }: HostChecklistProps)
               style={{ width: `${progress}%` }}
             />
           </div>
+          <span className="hidden md:inline text-xs font-bold text-primary-600">{Math.round(progress)}%</span>
           {isCollapsed ? <ChevronDown className="w-5 h-5 text-gray-400" /> : <ChevronUp className="w-5 h-5 text-gray-400" />}
         </div>
       </button>

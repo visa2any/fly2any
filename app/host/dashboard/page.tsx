@@ -1,32 +1,44 @@
 import { auth } from '@/lib/auth';
 import { redirect } from 'next/navigation';
 import { Suspense } from 'react';
-import Link from 'next/link';
 import { MaxWidthContainer } from '@/components/layout/MaxWidthContainer';
-import { Plus, Rocket } from 'lucide-react';
 import { prisma } from '@/lib/prisma';
 
 import { DashboardStats } from './components/DashboardStats';
-import { PropertiesList } from './components/PropertiesList';
-import { StatsSkeleton, ListSkeleton } from './components/DashboardSkeleton';
+import { StatsSkeleton } from './components/DashboardSkeleton';
 import { HostChecklist } from './components/HostChecklist';
 import { ListingHealthScore } from './components/ListingHealthScore';
+import { TodayActivity } from './components/TodayActivity';
+import { RecentMessages } from './components/RecentMessages';
+import { QuickActions } from './components/QuickActions';
 
 export const dynamic = 'force-dynamic';
+
+function getGreeting(): string {
+  const hour = new Date().getHours();
+  if (hour < 12) return 'Good morning';
+  if (hour < 18) return 'Good afternoon';
+  return 'Good evening';
+}
 
 export default async function HostDashboard() {
   const session = await auth();
   if (!session?.user) redirect('/auth/signin');
   
-  // Strict check for user ID to prevent Prisma crashes (Error #419)
   if (!session.user.id) {
     throw new Error("Invalid session: User ID is missing");
   }
 
-  // Fetch data for checklist + health score
-  const [propertyCount, hostProfile, propertiesForHealth] = await Promise.all([
+  // Stage 1: Fetch host profile first (needed for dependent queries)
+  const hostProfile = await prisma.propertyOwner.findFirst({
+    where: { userId: session.user.id },
+    select: { verificationStatus: true, id: true },
+  }).catch(() => null);
+
+  // Stage 2: Run remaining queries in parallel
+  const [propertyCount, propertiesForHealth, hasAvailability] = await Promise.all([
     prisma.property.count({ where: { owner: { userId: session.user.id } } }).catch(() => 0),
-    prisma.propertyOwner.findFirst({ where: { userId: session.user.id }, select: { verificationStatus: true } }).catch(() => null),
+
     prisma.property.findMany({
       where: { owner: { userId: session.user.id } },
       select: {
@@ -39,6 +51,14 @@ export default async function HostDashboard() {
       },
       take: 20,
     }).catch(() => []),
+
+    // Check if any availability entries exist (for calendar setup tracking)
+    hostProfile?.id
+      ? prisma.propertyAvailability.findFirst({
+          where: { property: { ownerId: hostProfile.id } },
+          select: { id: true },
+        }).then((r: any) => !!r).catch(() => false)
+      : Promise.resolve(false),
   ]);
 
   const healthProperties = propertiesForHealth.map((p: any) => ({
@@ -51,90 +71,61 @@ export default async function HostDashboard() {
     photoCount: p._count?.images || 0,
   }));
 
+  const firstName = session.user.name?.split(' ')[0] || 'Host';
+
   return (
     <div className="min-h-screen bg-[#FDFDFD] text-gray-900 pb-20">
+      <MaxWidthContainer className="pt-8 md:pt-12 px-4 sm:px-6 lg:px-8">
+        
+        {/* ─── Zone 1: Welcome Header ─── */}
+        <div className="mb-8 animate-fadeIn">
+          <h1 className="text-3xl md:text-4xl font-black text-gray-900 mb-1.5 tracking-tight">
+            {getGreeting()}, {firstName}
+          </h1>
+          <p className="text-base text-gray-400 font-medium">
+            Here&apos;s what&apos;s happening with your properties today.
+          </p>
+        </div>
 
-       <MaxWidthContainer className="pt-10 md:pt-14 px-4 sm:px-6 lg:px-8">
-          
-          {/* Welcome Section */}
-          <div className="flex flex-col md:flex-row items-end md:items-center justify-between gap-6 mb-12 animate-fadeIn">
-             <div>
-                <h1 className="text-4xl md:text-5xl font-black text-gray-900 mb-3 tracking-tight">
-                    Overview
-                </h1>
-                <p className="text-lg text-gray-500 font-medium">
-                    Welcome back, {session.user.name?.split(' ')[0]}. Here's your performance.
-                </p>
-             </div>
-             
-             <Link 
-                href="/list-your-property/create"
-                className="group relative px-6 py-3.5 rounded-2xl bg-neutral-900 overflow-hidden text-white font-bold shadow-xl shadow-neutral-900/20 hover:shadow-2xl hover:shadow-neutral-900/30 transition-all hover:-translate-y-1"
-             >
-                <div className="absolute inset-0 bg-gradient-to-r from-neutral-800 to-black group-hover:from-neutral-700 group-hover:to-neutral-900 transition-all"></div>
-                <div className="relative flex items-center gap-2">
-                    <Plus className="w-5 h-5 group-hover:rotate-90 transition-transform duration-300" /> 
-                    <span>Create New Listing</span>
-                </div>
-             </Link>
-          </div>
+        {/* ─── Zone 2: Quick Actions ─── */}
+        <div className="mb-8">
+          <QuickActions />
+        </div>
 
-          {/* Host Setup Checklist */}
-          <HostChecklist 
-            hasProperties={propertyCount > 0}
-            isVerified={hostProfile?.verificationStatus === 'VERIFIED'}
-          />
+        {/* ─── Zone 3: Host Setup Checklist (only if incomplete) ─── */}
+        <HostChecklist 
+          hasProperties={propertyCount > 0}
+          isVerified={hostProfile?.verificationStatus === 'VERIFIED'}
+          hasCalendarSetup={hasAvailability}
+          hasPayoutMethod={false}
+        />
 
-          {/* Stats Grid - Streaming */}
-          <Suspense fallback={<StatsSkeleton />}>
-              <DashboardStats userId={session.user.id!} />
+        {/* ─── Zone 4: Stats Grid (Streaming) ─── */}
+        <Suspense fallback={<StatsSkeleton />}>
+          <DashboardStats userId={session.user.id!} />
+        </Suspense>
+
+        {/* ─── Zone 5: Today's Activity ─── */}
+        <div className="mt-8">
+          <Suspense fallback={
+            <div className="h-40 bg-neutral-100 rounded-3xl animate-pulse" />
+          }>
+            <TodayActivity userId={session.user.id!} />
           </Suspense>
+        </div>
 
-          {/* Health Score + Fast Track Row */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-8">
-            <ListingHealthScore properties={healthProperties} />
+        {/* ─── Zone 6: Health Score + Recent Messages (Two-column) ─── */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-8">
+          <ListingHealthScore properties={healthProperties} />
 
-            {/* List in 60 Seconds Fast Track */}
-            <Link
-              href="/list-your-property/create?fast=true"
-              className="group relative bg-gradient-to-br from-primary-600 to-primary-700 rounded-3xl p-6 shadow-lg hover:shadow-xl hover:-translate-y-1 transition-all overflow-hidden"
-            >
-              <div className="absolute top-0 right-0 p-24 bg-white/10 blur-3xl rounded-full -mr-12 -mt-12"></div>
-              <div className="relative z-10">
-                <div className="flex items-center gap-3 mb-4">
-                  <div className="p-2.5 bg-white/20 rounded-xl backdrop-blur-sm">
-                    <Rocket className="w-5 h-5 text-white group-hover:animate-bounce" />
-                  </div>
-                  <div>
-                    <h3 className="font-bold text-white text-lg">List in 60 Seconds</h3>
-                    <p className="text-white/60 text-xs">AI-powered fast-track listing</p>
-                  </div>
-                </div>
-                <p className="text-white/80 text-sm leading-relaxed mb-4">
-                  Let AI auto-fill your listing from just a few photos and an address. Our system generates descriptions, pricing suggestions, and amenity detection.
-                </p>
-                <span className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-white/20 text-white text-sm font-bold backdrop-blur-sm group-hover:bg-white/30 transition-colors">
-                  Start Fast Track →
-                </span>
-              </div>
-            </Link>
-          </div>
-
-          {/* Listings List - Streaming */}
-          <div className="mb-8 mt-16 flex items-center justify-between">
-              <h2 className="text-2xl font-bold text-gray-900 flex items-center gap-3">
-                  Your Properties
-                  <span className="px-3 py-1 rounded-full bg-neutral-100 text-neutral-500 text-xs font-bold uppercase tracking-wider">
-                    Managed
-                  </span>
-              </h2>
-          </div>
-
-          <Suspense fallback={<ListSkeleton />}>
-             <PropertiesList userId={session.user.id!} />
+          <Suspense fallback={
+            <div className="h-64 bg-neutral-100 rounded-3xl animate-pulse" />
+          }>
+            <RecentMessages userId={session.user.id!} />
           </Suspense>
+        </div>
 
-       </MaxWidthContainer>
+      </MaxWidthContainer>
     </div>
   );
 }

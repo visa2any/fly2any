@@ -13,7 +13,8 @@
                   }
               },
               include: { images: true },
-              orderBy: { createdAt: 'desc' }
+              orderBy: { createdAt: 'desc' },
+              take: 5,
           });
       
           // Check if properties is undefined or null (shouldn't be with findMany but safe)
@@ -92,13 +93,9 @@
                                       <Edit2 className="w-3.5 h-3.5" /> Edit Listing
                                   </Link>
                                   
-                                  <Link href={`#`} className="px-5 py-2.5 rounded-xl bg-white border border-neutral-200 text-gray-700 font-bold hover:bg-neutral-50 hover:border-neutral-300 transition-all flex items-center gap-2 text-sm">
+                                  <Link href={`/properties/${(p as any).slug || p.id}`} target="_blank" className="px-5 py-2.5 rounded-xl bg-white border border-neutral-200 text-gray-700 font-bold hover:bg-neutral-50 hover:border-neutral-300 transition-all flex items-center gap-2 text-sm">
                                       <ExternalLink className="w-3.5 h-3.5" /> Preview
                                   </Link>
-      
-                                  <button className="px-3 py-2.5 rounded-xl text-red-500 bg-red-50 hover:bg-red-100 transition-colors ml-auto md:ml-0 md:border md:border-transparent md:hover:border-red-200">
-                                      <Trash2 className="w-4 h-4" />
-                                  </button>
                               </div>
                           </div>
                       </div>

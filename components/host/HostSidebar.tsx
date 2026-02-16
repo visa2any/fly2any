@@ -2,8 +2,8 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { LayoutDashboard, Building2, Calendar, ClipboardList, Settings, LogOut, ChevronLeft, MessageSquare, Shield } from 'lucide-react';
-import { cn } from '@/lib/utils'; // Assuming cn utility exists, or use template literals
+import { LayoutDashboard, Building2, Calendar, ClipboardList, Settings, LogOut, ChevronLeft, MessageSquare, Shield, Wallet } from 'lucide-react';
+import { cn } from '@/lib/utils';
 
 const MENU_ITEMS = [
   { label: 'Dashboard', icon: LayoutDashboard, href: '/host/dashboard' },
@@ -11,8 +11,14 @@ const MENU_ITEMS = [
   { label: 'Bookings', icon: ClipboardList, href: '/host/bookings' },
   { label: 'Calendar', icon: Calendar, href: '/host/calendar' },
   { label: 'Messages', icon: MessageSquare, href: '/host/messages' },
+  { label: 'Payouts', icon: Wallet, href: '/host/payouts' },
   { label: 'Trust Center', icon: Shield, href: '/host/verification' },
 ];
+
+// Reduced set for mobile bottom nav — only 5 core items
+const MOBILE_NAV_ITEMS = MENU_ITEMS.filter(item => 
+  ['Dashboard', 'Properties', 'Bookings', 'Calendar', 'Messages'].includes(item.label)
+);
 
 export default function HostSidebar() {
   const pathname = usePathname();
@@ -65,16 +71,16 @@ export default function HostSidebar() {
         </div>
       </aside>
 
-      {/* MOBILE BOTTOM NAV */}
+      {/* MOBILE BOTTOM NAV — 5 core items for better touch targets */}
       <nav className="md:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-neutral-200 z-50 flex justify-around p-2 pb-safe shadow-[0_-4px_20px_rgba(0,0,0,0.05)]">
-        {MENU_ITEMS.map((item) => {
+        {MOBILE_NAV_ITEMS.map((item) => {
            const isActive = pathname === item.href;
            return (
              <Link 
                 key={item.href} 
                 href={item.href}
                 className={cn(
-                  "flex flex-col items-center gap-1 p-2 rounded-lg min-w-[64px]",
+                  "flex flex-col items-center gap-1 p-2 rounded-lg min-w-[56px]",
                   isActive ? "text-primary-600" : "text-gray-400"
                 )}
              >
