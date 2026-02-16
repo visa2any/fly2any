@@ -122,10 +122,13 @@ export default function CreatePropertyPage() {
       petFee: 0,
       extraGuestFee: 0,
       weekendPrice: 0,
-      securityDeposit: 0,
       smartPricing: false,
       weeklyDiscount: 0,
       monthlyDiscount: 0,
+      minStay: 1,
+      maxStay: 0,
+      instantBooking: true,
+      taxRate: 0,
     },
   });
 
@@ -171,10 +174,14 @@ export default function CreatePropertyPage() {
           petFee: data.pricing.petFee ?? null,
           extraGuestFee: data.pricing.extraGuestFee ?? null,
           weekendPrice: data.pricing.weekendPrice ?? null,
-          securityDeposit: data.policies.securityDeposit ?? data.pricing.securityDeposit ?? null,
+          securityDeposit: data.policies.securityDeposit ?? null,
           weeklyDiscount: data.pricing.weeklyDiscount ?? null,
           monthlyDiscount: data.pricing.monthlyDiscount ?? null,
           smartPricing: data.pricing.smartPricing ?? false,
+          minStay: data.pricing.minStay ?? 1,
+          maxStay: data.pricing.maxStay || null,
+          instantBooking: data.pricing.instantBooking ?? true,
+          taxRate: data.pricing.taxRate ?? null,
           
           // Policies
           checkInTime: data.policies.checkInTime || '15:00',

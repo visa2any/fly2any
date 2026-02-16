@@ -44,8 +44,11 @@ export const policiesSchema = z.object({
 
 export const pricingSchema = z.object({
   pricing: z.object({
-    basePrice: z.number().min(1, 'Set a base price greater than $0'),
+    basePrice: z.number().min(1, 'Set a base price greater than $0').max(50000, 'Base price cannot exceed $50,000'),
     currency: z.string().min(1, 'Select a currency'),
+    weeklyDiscount: z.number().min(0).max(80, 'Discount cannot exceed 80%').optional(),
+    monthlyDiscount: z.number().min(0).max(80, 'Discount cannot exceed 80%').optional(),
+    minStay: z.number().min(1, 'Minimum stay must be at least 1 night').max(365).optional(),
   }),
 });
 
