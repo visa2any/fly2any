@@ -658,13 +658,11 @@ export function PhotoUploader({ images, onChange }: PhotoUploaderProps) {
             )}
 
             {/* Image */}
-            <div className={`relative transition-all duration-300 ${zoomed ? 'w-full h-full' : 'max-w-[85vw] max-h-[75vh]'}`}>
-              <Image
+            <div className={`relative transition-all duration-300 flex items-center justify-center ${zoomed ? 'w-full h-full' : 'max-w-[85vw] max-h-[75vh]'}`}>
+              <img
                 src={localPhotos[previewIdx].url}
                 alt={localPhotos[previewIdx].caption || 'Property photo'}
-                fill
-                unoptimized={true}
-                className={`transition-all duration-300 ${zoomed ? 'object-contain cursor-zoom-out' : 'object-contain cursor-zoom-in'}`}
+                className={`transition-all duration-300 ${zoomed ? 'w-full h-full object-contain cursor-zoom-out' : 'max-w-[85vw] max-h-[75vh] object-contain cursor-zoom-in'}`}
                 style={{ transform: `rotate(${localPhotos[previewIdx].rotation || 0}deg)` }}
                 onClick={() => setZoomed(!zoomed)}
               />
