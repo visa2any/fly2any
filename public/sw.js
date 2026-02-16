@@ -94,14 +94,26 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
-  // Don't cache Next.js chunks - they have deployment-specific URLs
-  // and already use immutable cache headers
-  if (url.pathname.includes('/_next/static/chunks/')) {
-    event.respondWith(fetch(request));
+  // ─── CRITICAL: Never intercept Next.js RSC (React Server Component) requests ───
+  // RSC requests use ?_rsc= query params or Rsc/Next-Router headers.
+  // Their request.destination is "" (empty), so they fall through to the default handler.
+  // If the SW fetch fails, the entire page hangs with no error boundary catching it.
+  if (url.searchParams.has('_rsc') || request.headers.get('Rsc') || request.headers.get('Next-Router-State-Tree')) {
     return;
   }
 
-  // API routes - network first with cache fallback
+  // ─── CRITICAL: Never intercept auth routes ───
+  // Caching auth responses corrupts session state and causes NetworkError loops
+  if (url.pathname.startsWith('/api/auth')) {
+    return;
+  }
+
+  // Don't cache Next.js internal routes
+  if (url.pathname.startsWith('/_next/')) {
+    return;
+  }
+
+  // API routes (non-auth) - network first with cache fallback
   if (url.pathname.startsWith('/api/')) {
     event.respondWith(networkFirstStrategy(request, API_CACHE));
     return;
@@ -113,27 +125,15 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
-  // Scripts, styles, fonts - cache first but NOT Next.js chunks
-  if (
-    request.destination === 'script' ||
-    request.destination === 'style' ||
-    request.destination === 'font'
-  ) {
-    // Double-check not a Next.js chunk
-    if (!url.pathname.includes('/_next/')) {
-      event.respondWith(cacheFirstStrategy(request, STATIC_CACHE));
-      return;
-    }
-  }
-
   // HTML documents - network first
   if (request.destination === 'document') {
     event.respondWith(networkFirstStrategy(request, STATIC_CACHE));
     return;
   }
 
-  // Default - just fetch without caching
-  event.respondWith(fetch(request));
+  // Everything else (empty destination, etc.) - let browser handle natively
+  // Do NOT call event.respondWith() — this returns control to the browser
+  return;
 });
 
 async function networkFirstStrategy(request, cacheName) {
