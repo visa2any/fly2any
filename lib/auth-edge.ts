@@ -13,6 +13,7 @@ import Google from 'next-auth/providers/google';
  */
 export const authEdgeConfig = {
   providers: [
+    /* Google Provider - Disabled
     Google({
       clientId: process.env.GOOGLE_CLIENT_ID!,
       clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
@@ -24,6 +25,7 @@ export const authEdgeConfig = {
         },
       },
     }),
+    */
   ],
   pages: {
     signIn: '/auth/signin',
