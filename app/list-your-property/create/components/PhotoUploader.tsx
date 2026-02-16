@@ -5,9 +5,6 @@ import Image from 'next/image';
 import { Upload, X, Star, Smartphone, Tag, AlertCircle, Loader2, RotateCcw, Wand2, GripVertical } from 'lucide-react';
 import { ImageCategory } from '@/lib/properties/types';
 import QRCode from 'qrcode';
-import { DndContext, closestCenter, PointerSensor, useSensor, useSensors, type DragEndEvent } from '@dnd-kit/core';
-import { SortableContext, useSortable, rectSortingStrategy, arrayMove } from '@dnd-kit/sortable';
-import { CSS } from '@dnd-kit/utilities';
 import * as tf from '@tensorflow/tfjs';
 import * as mobilenet from '@tensorflow-models/mobilenet';
 import { useImageProcessor } from '../hooks/useImageProcessor';
@@ -81,113 +78,6 @@ const CATEGORIES: { value: ImageCategory; label: string }[] = [
   { value: 'pool', label: 'Pool' },
   { value: 'view', label: 'View' },
 ];
-
-// --- Sortable Photo Card ---
-interface SortablePhotoCardProps {
-  id: string;
-  photo: PhotoData;
-  idx: number;
-  isPrimary: boolean;
-  enhancingIdx: number | null;
-  onSetPrimary: (idx: number) => void;
-  onEnhance: (idx: number) => void;
-  onRotate: (idx: number) => void;
-  onRemove: (idx: number) => void;
-  onUpdatePhoto: (idx: number, updates: Partial<PhotoData>) => void;
-  categories: { value: ImageCategory; label: string }[];
-}
-
-function SortablePhotoCard({ id, photo, idx, isPrimary, enhancingIdx, onSetPrimary, onEnhance, onRotate, onRemove, onUpdatePhoto, categories }: SortablePhotoCardProps) {
-  const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id });
-  const style = {
-    transform: CSS.Transform.toString(transform),
-    transition,
-    opacity: isDragging ? 0.6 : 1,
-    zIndex: isDragging ? 50 : 'auto' as any,
-  };
-
-  return (
-    <div ref={setNodeRef} style={style} className="bg-white border border-neutral-200 rounded-xl overflow-hidden group hover:shadow-md transition-all relative">
-      {/* Drag Handle */}
-      <button
-        {...attributes}
-        {...listeners}
-        className="absolute top-2 right-2 z-20 p-1.5 rounded-lg bg-white/90 backdrop-blur shadow-sm text-gray-400 hover:text-gray-700 cursor-grab active:cursor-grabbing"
-        title="Drag to reorder"
-      >
-        <GripVertical className="w-4 h-4" />
-      </button>
-
-      <div className="relative aspect-video bg-neutral-100">
-        <Image
-          src={photo.url}
-          alt="Property"
-          fill
-          unoptimized={true}
-          className="object-cover transition-transform duration-500 ease-in-out"
-          style={{ transform: `rotate(${photo.rotation || 0}deg)` }}
-        />
-
-        {/* AI Tags Overlay */}
-        {photo.tags && photo.tags.length > 0 && (
-          <div className="absolute bottom-2 left-2 flex flex-wrap gap-1 max-w-[90%]">
-            {photo.tags.slice(0, 4).map(tag => (
-              <span key={tag} className="px-1.5 py-0.5 rounded bg-white/90 backdrop-blur text-[10px] text-gray-800 font-bold flex items-center gap-1 shadow-sm">
-                <Wand2 className="w-2 h-2 text-primary-500" /> {tag}
-              </span>
-            ))}
-          </div>
-        )}
-
-        {/* Actions Overlay */}
-        <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2 p-2">
-          <button onClick={() => onSetPrimary(idx)} className={`px-3 py-1.5 rounded-lg text-xs font-bold flex items-center gap-1 ${isPrimary ? 'bg-amber-400 text-black' : 'bg-white text-gray-900 hover:bg-neutral-100'}`}>
-            <Star className={`w-3 h-3 ${isPrimary ? 'fill-black' : ''}`} /> Cover
-          </button>
-          <button onClick={() => onEnhance(idx)} disabled={enhancingIdx === idx} className="p-2 rounded-lg bg-white text-indigo-600 hover:bg-indigo-50" title="Magic Enhance">
-            {enhancingIdx === idx ? <Loader2 className="w-4 h-4 animate-spin" /> : <Wand2 className="w-4 h-4" />}
-          </button>
-          <button onClick={() => onRotate(idx)} className="p-2 rounded-lg bg-white text-gray-900 hover:bg-neutral-100" title="Rotate">
-            <RotateCcw className="w-4 h-4" />
-          </button>
-          <button onClick={() => onRemove(idx)} className="p-2 rounded-lg bg-red-500 text-white hover:bg-red-600">
-            <X className="w-4 h-4" />
-          </button>
-        </div>
-
-        {/* @ts-ignore */}
-        {(photo as any).uploading && (
-          <div className="absolute top-2 right-10 p-1.5 rounded-full bg-white shadow-sm">
-            <Loader2 className="w-3 h-3 text-primary-500 animate-spin" />
-          </div>
-        )}
-
-        {isPrimary && (
-          <div className="absolute top-2 left-2 px-2 py-1 rounded bg-amber-400 text-black text-[10px] font-bold uppercase tracking-wider shadow-sm">
-            Cover Photo
-          </div>
-        )}
-      </div>
-
-      <div className="p-3 space-y-2">
-        <select
-          value={photo.category}
-          onChange={(e) => onUpdatePhoto(idx, { category: e.target.value as ImageCategory })}
-          className="w-full bg-neutral-50 border border-neutral-200 rounded-lg px-2 py-1.5 text-xs text-gray-700 outline-none focus:border-primary-500"
-        >
-          {categories.map(c => <option key={c.value} value={c.value}>{c.label}</option>)}
-        </select>
-        <input
-          type="text"
-          value={photo.caption}
-          onChange={(e) => onUpdatePhoto(idx, { caption: e.target.value })}
-          placeholder="Add a caption..."
-          className="w-full bg-transparent border-b border-neutral-100 px-0 py-1 text-sm text-gray-700 focus:border-neutral-300 outline-none placeholder-gray-400"
-        />
-      </div>
-    </div>
-  );
-}
 
 export function PhotoUploader({ images, onChange }: PhotoUploaderProps) {
   // Normalize input to PhotoData[]
@@ -480,21 +370,32 @@ export function PhotoUploader({ images, onChange }: PhotoUploaderProps) {
     updateParent(newPhotos);
   };
 
-  // --- DnD Kit Sensors ---
-  const sensors = useSensors(
-    useSensor(PointerSensor, { activationConstraint: { distance: 8 } })
-  );
+  // --- Native Drag-to-Reorder ---
+  const dragRef = useRef<number | null>(null);
+  const [dragOverIdx, setDragOverIdx] = useState<number | null>(null);
 
-  const photoIds = localPhotos.filter(p => p && p.url).map((p, i) => `photo-${i}-${p.url.slice(-12)}`);
+  const handleReorderDragStart = (idx: number) => {
+    dragRef.current = idx;
+  };
 
-  const handleDragEnd = (event: DragEndEvent) => {
-    const { active, over } = event;
-    if (!over || active.id === over.id) return;
-    const oldIndex = photoIds.indexOf(active.id as string);
-    const newIndex = photoIds.indexOf(over.id as string);
-    if (oldIndex === -1 || newIndex === -1) return;
-    const reordered = arrayMove(localPhotos, oldIndex, newIndex);
+  const handleReorderDragOver = (e: React.DragEvent, idx: number) => {
+    e.preventDefault();
+    setDragOverIdx(idx);
+  };
+
+  const handleReorderDrop = (idx: number) => {
+    const fromIdx = dragRef.current;
+    if (fromIdx === null || fromIdx === idx) {
+      dragRef.current = null;
+      setDragOverIdx(null);
+      return;
+    }
+    const reordered = [...localPhotos];
+    const [moved] = reordered.splice(fromIdx, 1);
+    reordered.splice(idx, 0, moved);
     updateParent(reordered);
+    dragRef.current = null;
+    setDragOverIdx(null);
   };
 
   return (
@@ -570,31 +471,99 @@ export function PhotoUploader({ images, onChange }: PhotoUploaderProps) {
       )}
 
       {/* Grid with Drag-to-Reorder */}
-      <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
-        <SortableContext items={photoIds} strategy={rectSortingStrategy}>
-          <div className="grid grid-cols-1 sm:grid-cols-3 xl:grid-cols-4 gap-4 mt-6">
-             {localPhotos.filter(p => p && p.url).map((photo, idx) => {
-               const sortId = `photo-${idx}-${photo.url.slice(-12)}`;
-               return (
-                 <SortablePhotoCard
-                   key={sortId}
-                   id={sortId}
-                   photo={photo}
-                   idx={idx}
-                   isPrimary={photo.isPrimary}
-                   enhancingIdx={enhancingIdx}
-                   onSetPrimary={setPrimary}
-                   onEnhance={handleMagicEnhance}
-                   onRotate={rotatePhoto}
-                   onRemove={removePhoto}
-                   onUpdatePhoto={updatePhoto}
-                   categories={CATEGORIES}
-                 />
-               );
-             })}
-          </div>
-        </SortableContext>
-      </DndContext>
+      <div className="grid grid-cols-1 sm:grid-cols-3 xl:grid-cols-4 gap-4 mt-6">
+         {localPhotos.filter(p => p && p.url).map((photo, idx) => (
+            <div
+              key={idx}
+              draggable
+              onDragStart={() => handleReorderDragStart(idx)}
+              onDragOver={(e) => handleReorderDragOver(e, idx)}
+              onDrop={() => handleReorderDrop(idx)}
+              onDragEnd={() => setDragOverIdx(null)}
+              className={`bg-white border rounded-xl overflow-hidden group hover:shadow-md transition-all relative ${
+                dragOverIdx === idx ? 'border-primary-500 ring-2 ring-primary-200' : 'border-neutral-200'
+              }`}
+            >
+              {/* Drag Handle */}
+              <div className="absolute top-2 right-2 z-20 p-1 rounded-md bg-white/80 backdrop-blur-sm shadow-sm text-gray-400 cursor-grab active:cursor-grabbing">
+                <GripVertical className="w-4 h-4" />
+              </div>
+               <div className="relative aspect-video bg-neutral-100">
+                  <Image 
+                      src={photo.url} 
+                      alt="Property" 
+                      fill 
+                      unoptimized={true}
+                      className="object-cover transition-transform duration-500 ease-in-out" 
+                      style={{ transform: `rotate(${photo.rotation || 0}deg)` }}
+                  />
+                  
+                  {/* AI Tags Overlay */}
+                  {photo.tags && photo.tags.length > 0 && (
+                      <div className="absolute bottom-2 left-2 flex flex-wrap gap-1 max-w-[90%]">
+                          {photo.tags.slice(0, 4).map(tag => (
+                              <span key={tag} className="px-1.5 py-0.5 rounded bg-white/90 backdrop-blur text-[10px] text-gray-800 font-bold flex items-center gap-1 shadow-sm">
+                                  <Wand2 className="w-2 h-2 text-primary-500" /> {tag}
+                              </span>
+                          ))}
+                      </div>
+                  )}
+
+                  {/* Actions Overlay */}
+                  <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2 p-2">
+                     <button onClick={() => setPrimary(idx)} className={`px-3 py-1.5 rounded-lg text-xs font-bold flex items-center gap-1 ${photo.isPrimary ? 'bg-amber-400 text-black' : 'bg-white text-gray-900 hover:bg-neutral-100'}`}>
+                        <Star className={`w-3 h-3 ${photo.isPrimary ? 'fill-black' : ''}`} /> {photo.isPrimary ? 'Cover' : 'Cover'}
+                     </button>
+                     
+                     <button 
+                        onClick={() => handleMagicEnhance(idx)} 
+                        disabled={enhancingIdx === idx}
+                        className="p-2 rounded-lg bg-white text-indigo-600 hover:bg-indigo-50" 
+                        title="Magic Enhance"
+                     >
+                        {enhancingIdx === idx ? <Loader2 className="w-4 h-4 animate-spin" /> : <Wand2 className="w-4 h-4" />}
+                     </button>
+
+                     <button onClick={() => rotatePhoto(idx)} className="p-2 rounded-lg bg-white text-gray-900 hover:bg-neutral-100" title="Rotate">
+                        <RotateCcw className="w-4 h-4" />
+                     </button>
+                     <button onClick={() => removePhoto(idx)} className="p-2 rounded-lg bg-red-500 text-white hover:bg-red-600">
+                        <X className="w-4 h-4" />
+                     </button>
+                  </div>
+                  
+                  {/* @ts-ignore */}
+                  {photo.uploading && (
+                      <div className="absolute top-2 right-2 p-1.5 rounded-full bg-white shadow-sm">
+                          <Loader2 className="w-3 h-3 text-primary-500 animate-spin" />
+                      </div>
+                  )}
+
+                  {photo.isPrimary && (
+                     <div className="absolute top-2 left-2 px-2 py-1 rounded bg-amber-400 text-black text-[10px] font-bold uppercase tracking-wider shadow-sm">
+                        Cover Photo
+                     </div>
+                  )}
+               </div>
+
+               <div className="p-3 space-y-2">
+                  <select 
+                     value={photo.category}
+                     onChange={(e) => updatePhoto(idx, { category: e.target.value as ImageCategory })}
+                     className="w-full bg-neutral-50 border border-neutral-200 rounded-lg px-2 py-1.5 text-xs text-gray-700 outline-none focus:border-primary-500"
+                  >
+                     {CATEGORIES.map(c => <option key={c.value} value={c.value}>{c.label}</option>)}
+                  </select>
+                  <input 
+                     type="text" 
+                     value={photo.caption}
+                     onChange={(e) => updatePhoto(idx, { caption: e.target.value })}
+                     placeholder="Add a caption..."
+                     className="w-full bg-transparent border-b border-neutral-100 px-0 py-1 text-sm text-gray-700 focus:border-neutral-300 outline-none placeholder-gray-400"
+                  />
+               </div>
+            </div>
+         ))}
       </div>
     </div>
   );
