@@ -435,62 +435,61 @@ export function PoliciesEditor({ data, onChange }: PoliciesEditorProps) {
           )}
         </div>
 
-        {/* Category accordion */}
-        <div className="space-y-2 mb-5">
+        {/* Category tabs — horizontal row */}
+        <div className="flex gap-2 overflow-x-auto pb-1 mb-4 scrollbar-hide">
           {RULE_CATEGORIES.map(cat => {
             const CatIcon = cat.icon;
-            const isExpanded = expandedCategory === cat.id;
+            const isActive = expandedCategory === cat.id;
             const activeCount = cat.rules.filter(r => safeHouseRules.includes(r)).length;
 
             return (
-              <div key={cat.id} className="rounded-xl border border-neutral-100 overflow-hidden">
-                <button
-                  onClick={() => setExpandedCategory(isExpanded ? null : cat.id)}
-                  className="w-full flex items-center justify-between px-4 py-3 hover:bg-neutral-50 transition-colors"
-                >
-                  <div className="flex items-center gap-2.5">
-                    <div className={`w-6 h-6 rounded-md flex items-center justify-center ${cat.bgColor}`}>
-                      <CatIcon className={`w-3.5 h-3.5 ${cat.color}`} />
-                    </div>
-                    <span className="text-sm font-semibold text-gray-800">{cat.label}</span>
-                    {activeCount > 0 && (
-                      <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded-full ${cat.bgColor} ${cat.color}`}>
-                        {activeCount}
-                      </span>
-                    )}
-                  </div>
-                  {isExpanded ? (
-                    <ChevronUp className="w-4 h-4 text-gray-400" />
-                  ) : (
-                    <ChevronDown className="w-4 h-4 text-gray-400" />
-                  )}
-                </button>
-
-                {isExpanded && (
-                  <div className="px-4 pb-3 flex flex-wrap gap-2">
-                    {cat.rules.map(rule => {
-                      const isActive = safeHouseRules.includes(rule);
-                      return (
-                        <button
-                          key={rule}
-                          onClick={() => toggleRule(rule)}
-                          className={`px-3 py-1.5 rounded-full text-xs font-bold border transition-all ${
-                            isActive
-                              ? `${cat.bgColor} border-current ${cat.color}`
-                              : 'bg-neutral-50 border-neutral-200 text-gray-500 hover:border-neutral-300 hover:text-gray-700'
-                          }`}
-                        >
-                          {isActive && <Check className="w-3 h-3 inline mr-1" />}
-                          {rule}
-                        </button>
-                      );
-                    })}
-                  </div>
+              <button
+                key={cat.id}
+                onClick={() => setExpandedCategory(isActive ? null : cat.id)}
+                className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-bold border whitespace-nowrap transition-all shrink-0 ${
+                  isActive
+                    ? `${cat.bgColor} border-current ${cat.color} shadow-sm`
+                    : 'bg-neutral-50 border-neutral-200 text-gray-500 hover:border-neutral-300 hover:text-gray-700'
+                }`}
+              >
+                <CatIcon className={`w-3.5 h-3.5 ${isActive ? cat.color : 'text-gray-400'}`} />
+                {cat.label}
+                {activeCount > 0 && (
+                  <span className={`ml-0.5 text-[10px] font-bold px-1.5 py-0.5 rounded-full ${cat.bgColor} ${cat.color}`}>
+                    {activeCount}
+                  </span>
                 )}
-              </div>
+              </button>
             );
           })}
         </div>
+
+        {/* Selected category rules */}
+        {expandedCategory && (() => {
+          const cat = RULE_CATEGORIES.find(c => c.id === expandedCategory);
+          if (!cat) return null;
+          return (
+            <div className="flex flex-wrap gap-2 mb-5 p-4 rounded-xl bg-neutral-50/50 border border-neutral-100">
+              {cat.rules.map(rule => {
+                const isActive = safeHouseRules.includes(rule);
+                return (
+                  <button
+                    key={rule}
+                    onClick={() => toggleRule(rule)}
+                    className={`px-3 py-1.5 rounded-full text-xs font-bold border transition-all ${
+                      isActive
+                        ? `${cat.bgColor} border-current ${cat.color}`
+                        : 'bg-white border-neutral-200 text-gray-500 hover:border-neutral-300 hover:text-gray-700'
+                    }`}
+                  >
+                    {isActive && <Check className="w-3 h-3 inline mr-1" />}
+                    {rule}
+                  </button>
+                );
+              })}
+            </div>
+          );
+        })()}
 
         {/* Custom rule input */}
         <div className="flex gap-2 mb-4">
