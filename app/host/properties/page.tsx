@@ -46,27 +46,37 @@ const STATUS_CONFIG: Record<string, { label: string; icon: any; color: string; b
 export default function PropertiesPage() {
   const [properties, setProperties] = useState<DashboardProperty[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
   const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
   const [deletingId, setDeletingId] = useState<string | null>(null);
 
-  useEffect(() => {
-    async function fetchProperties() {
-      try {
-        const res = await fetch('/api/properties/dashboard');
-        if (res.ok) {
-          const data = await res.json();
-          setProperties(data.data?.properties || []);
-        }
-      } catch (error) {
-        console.error('Failed to fetch properties:', error);
-      } finally {
-        setLoading(false);
-      }
+  const fetchProperties = async () => {
+    setLoading(true);
+    setError(null);
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 12000);
+    try {
+      const res = await fetch('/api/properties/dashboard', {
+        signal: controller.signal,
+        cache: 'no-store',
+        headers: { 'Cache-Control': 'no-cache' },
+      });
+      clearTimeout(timeout);
+      if (!res.ok) throw new Error(`Server error ${res.status}`);
+      const data = await res.json();
+      setProperties(data.data?.properties || []);
+    } catch (err: any) {
+      console.error('Failed to fetch properties:', err);
+      setError(err.name === 'AbortError' ? 'Request timed out. Please try again.' : (err.message || 'Failed to load properties'));
+    } finally {
+      clearTimeout(timeout);
+      setLoading(false);
     }
-    fetchProperties();
-  }, []);
+  };
+
+  useEffect(() => { fetchProperties(); }, []);
 
   // Filter properties logic — uses flat fields matching the API response
   const filteredProperties = properties.filter(property => {
@@ -144,6 +154,15 @@ export default function PropertiesPage() {
             {[1, 2, 3].map((i) => (
               <div key={i} className="h-40 rounded-2xl bg-neutral-100 animate-pulse" />
             ))}
+          </div>
+        ) : error ? (
+          <div className="flex flex-col items-center justify-center py-20 bg-neutral-50 border border-neutral-200 rounded-3xl text-center">
+            <AlertCircle className="w-12 h-12 text-red-300 mb-4" />
+            <h3 className="text-gray-900 font-bold text-lg mb-2">Failed to load properties</h3>
+            <p className="text-gray-500 text-sm mb-4 max-w-sm">{error}</p>
+            <button onClick={fetchProperties} className="px-6 py-2.5 bg-gray-900 text-white rounded-xl text-sm font-bold hover:bg-gray-800 transition-colors">
+              Try Again
+            </button>
           </div>
         ) : filteredProperties.length > 0 ? (
           <div className="space-y-4">
