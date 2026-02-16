@@ -76,6 +76,40 @@ export const authors: Record<string, Author> = {
 
 // Sample blog posts
 export const sampleBlogPosts: BlogPost[] = [
+  // NEW: USA WORLD CUP VISA GUIDE 2026
+  {
+    id: 'usa-world-cup-visa-guide-2026',
+    slug: 'usa-world-cup-visa-guide-2026',
+    title: 'USA World Cup Visa Guide 2026: Who Needs a Visa, Processing Times & What Fans Must Know',
+    excerpt: 'Planning to attend the FIFA World Cup in the United States? Here’s everything international travelers need to know about visas, ESTA, processing times, and entry requirements.',
+    content: 'Premium article - see dedicated article file',
+    featuredImage: {
+      url: 'https://images.unsplash.com/photo-1522202176988-66273c2fd55f?w=1920&q=90',
+      alt: 'US Passport and travel documents on a map',
+      credit: 'Photo by Unsplash',
+      width: 1920,
+      height: 1080,
+    },
+    category: 'guide',
+    tags: ['World Cup 2026', 'USA Visa', 'ESTA', 'Travel Guide', 'FIFA World Cup', 'Visa Requirements'],
+    author: {
+      id: 'michael',
+      name: 'Michael Torres',
+      avatar: '/authors/michael.jpg',
+      bio: 'Michael has been tracking international flight prices for over 8 years and has helped thousands save on transatlantic travel.',
+      role: 'Senior Travel & Global Mobility Analyst',
+    },
+    publishedAt: new Date('2026-02-16'),
+    readTime: 14,
+    views: 0,
+    likes: 0,
+    isFeatured: true,
+    isPremium: true,
+    metaTitle: 'USA World Cup Visa Guide 2026 | Requirements & Processing Times',
+    metaDescription: 'Essential guide for international fans attending World Cup 2026 in USA. Learn about B1/B2 visas, ESTA requirements, and avoid denial.',
+    keywords: ['World Cup 2026 Visa', 'USA Visa Requirements', 'ESTA World Cup', 'US Visitor Visa', 'World Cup Travel Guide'],
+  },
+
   // PREMIUM SEO ARTICLE - NYC TO PARIS
   {
     id: 'nyc-paris-2026',

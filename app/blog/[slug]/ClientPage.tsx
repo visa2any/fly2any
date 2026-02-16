@@ -11,7 +11,9 @@ import { StructuredData } from '@/components/seo/StructuredData';
 import { article as nycParisArticle } from '@/lib/data/articles/nyc-paris-flights-2026';
 import { article as airlinePricingArticle } from '@/lib/data/articles/airline-pricing-mechanics-2026';
 import { article as nycAirportPricingArticle } from '@/lib/data/articles/nyc-airport-pricing-2026';
+import { article as nycAirportPricingArticle } from '@/lib/data/articles/nyc-airport-pricing-2026';
 import { article as mistakesArticle } from '@/lib/data/articles/mistakes-first-time-international-travelers';
+import { article as worldCupVisaArticle } from '@/lib/data/articles/usa-world-cup-visa-guide-2026';
 import { ReadingProgress } from '@/components/blog/article/ReadingProgress';
 import { ExtendedShareButtons } from '@/components/blog/article/ExtendedShareButtons';
 import { CommentSection } from '@/components/blog/article/CommentSection';
@@ -96,11 +98,13 @@ export default function BlogPostPage() {
   const isPremiumArticle = slug === 'cheap-flights-new-york-paris-2026' || 
                         slug === 'why-flight-prices-change-airline-fares-2026' ||
                         slug === 'jfk-vs-newark-vs-laguardia-airport-pricing-2026' ||
-                        slug === '10-mistakes-first-time-international-travelers-make';
+                        slug === '10-mistakes-first-time-international-travelers-make' ||
+                        slug === 'usa-world-cup-visa-guide-2026';
   const premiumData = slug === 'cheap-flights-new-york-paris-2026' ? nycParisArticle : 
                       slug === 'why-flight-prices-change-airline-fares-2026' ? airlinePricingArticle :
                       slug === 'jfk-vs-newark-vs-laguardia-airport-pricing-2026' ? nycAirportPricingArticle :
-                      slug === '10-mistakes-first-time-international-travelers-make' ? mistakesArticle : null;
+                      slug === '10-mistakes-first-time-international-travelers-make' ? mistakesArticle : 
+                      slug === 'usa-world-cup-visa-guide-2026' ? worldCupVisaArticle : null;
 
   if (isPremiumArticle && premiumData) {
     const schemas = [
