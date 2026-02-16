@@ -30,12 +30,25 @@ export const article = {
       </div>
 
       <p className="lead text-xl text-gray-700 mb-8">
-        Attending the FIFA World Cup is a dream for millions. But for international fans heading to the United States in 2026, the biggest hurdle isn't getting match tickets—it's getting a visa.
+        Attending the <Link href="/world-cup-2026" className="text-blue-600 hover:underline font-semibold">FIFA World Cup 2026</Link> is a dream for millions. But for international fans heading to the United States, the biggest hurdle isn't getting match tickets—it's getting a visa.
       </p>
       
       <p>
-        The 2026 World Cup will be the largest global sporting event in history, with millions of visitors expected. This massive influx will put unprecedented strain on U.S. consulates worldwide.
+        The 2026 World Cup will be the largest global sporting event in history, with millions of visitors expected across 16 host cities. This massive influx will put unprecedented strain on U.S. consulates worldwide.
       </p>
+
+      <div className="my-8 p-6 bg-blue-50 rounded-xl border border-blue-100">
+        <h3 className="text-xl font-bold text-blue-900 mb-3">🏆 Planning Your World Cup Journey?</h3>
+        <p className="mb-4 text-blue-800">
+          Don't just plan for the visa—plan for the matches! Check the official schedule to see where your team might play.
+        </p>
+        <Link 
+          href="/world-cup-2026/schedule"
+          className="inline-block bg-blue-600 text-white font-bold px-6 py-3 rounded-lg hover:bg-blue-700 transition-colors"
+        >
+          View Match Schedule →
+        </Link>
+      </div>
 
       <p>
         We are already seeing significant wait times for visa interviews in key countries. <strong>If you wait until 2026 to apply, you may be too late.</strong>
@@ -142,7 +155,7 @@ export const article = {
       </ul>
 
       <p>
-        Answer questions truthfully and concisely. Officers may ask specifically about your World Cup plans—which matches you are seeing and where.
+        Answer questions truthfully and concisely. Officers may ask specifically about your plans and which <Link href="/world-cup-2026/stadiums" className="text-blue-600 hover:underline">host cities and stadiums</Link> you are visiting.
       </p>
 
       <h2>Planning Flights and Accommodation While Waiting for Visa Approval</h2>
@@ -165,11 +178,13 @@ export const article = {
       <p>
         Similarly, look for hotels with "free cancellation" policies up to 24-48 hours before arrival.
       </p>
-
-      <AIAssistantPromo
-        destination="USA World Cup Travel"
-        variant="inline"
-      />
+      
+      <div className="my-8">
+        <AIAssistantPromo
+          destination="USA World Cup Travel"
+          variant="inline"
+        />
+      </div>
 
       <h2>Frequently Asked Questions</h2>
 
@@ -212,9 +227,18 @@ export const article = {
         Start your visa process today. Verify your passport validity. And when you are ready to book, prioritize flexible travel options to protect your investment.
       </p>
 
-      <p>
-        <strong>Ready to plan your trip?</strong> Use <Link href="https://www.fly2any.com" className="text-blue-600 hover:underline font-semibold">Fly2Any</Link> to find the best flight routes and flexible fares for your World Cup journey.
-      </p>
+      <div className="mt-12 p-8 bg-gradient-to-r from-blue-900 to-indigo-900 rounded-2xl text-center text-white">
+        <h3 className="text-3xl font-black mb-4">Ready for World Cup 2026?</h3>
+        <p className="text-lg text-blue-100 mb-8 max-w-2xl mx-auto">
+          Explore our complete World Cup 2026 hub for match schedules, stadium guides, team analysis, and exclusive travel packages.
+        </p>
+        <Link 
+          href="/world-cup-2026"
+          className="inline-block bg-white text-blue-900 font-bold px-8 py-4 rounded-full hover:bg-amber-400 hover:text-black transition-all duration-300 shadow-xl"
+        >
+          Explore World Cup Hub →
+        </Link>
+      </div>
     </div>
   ),
 };
