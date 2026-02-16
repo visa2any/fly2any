@@ -62,7 +62,7 @@ export default function HostSidebar() {
 
         <div className="p-4 border-t border-neutral-100">
            <Link 
-             href="/account/settings"
+             href="/account/preferences"
              className="flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium text-gray-600 hover:bg-neutral-50 hover:text-gray-900 transition-all"
            >
               <Settings className="w-5 h-5 text-gray-400" />
