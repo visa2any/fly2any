@@ -33,7 +33,7 @@ export async function GET(request: NextRequest) {
     const properties = await prisma.property.findMany({
       where: { ownerId: owner.id },
       include: {
-        images: { where: { isPrimary: true }, take: 1 },
+        images: { orderBy: { sortOrder: 'asc' }, take: 3 },
         _count: { select: { rooms: true, images: true } },
       },
       orderBy: { updatedAt: 'desc' },
@@ -78,7 +78,7 @@ export async function GET(request: NextRequest) {
           bookingCount: p.bookingCount,
           avgRating: p.avgRating,
           reviewCount: p.reviewCount,
-          coverImageUrl: p.coverImageUrl || (p.images[0]?.url ?? null),
+          coverImageUrl: p.coverImageUrl || p.images.find((i: any) => i.isPrimary)?.url || p.images[0]?.url || null,
           roomCount: p._count.rooms,
           imageCount: p._count.images,
           publishedAt: p.publishedAt,

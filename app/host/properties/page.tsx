@@ -154,17 +154,16 @@ export default function PropertiesPage() {
                   {/* Image */}
                   <div className="relative w-full md:w-48 h-48 md:h-32 rounded-xl overflow-hidden bg-neutral-100 flex-shrink-0">
                     {property.coverImageUrl ? (
-                       <Image
+                       <img
                          src={property.coverImageUrl}
                          alt={property.name}
-                         fill
-                         className="object-cover group-hover:scale-105 transition-transform duration-500"
+                         className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                         onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; e.currentTarget.parentElement?.querySelector('.img-fallback')?.classList.remove('hidden'); }}
                        />
-                    ) : (
-                      <div className="flex items-center justify-center h-full text-neutral-300">
-                        <ImageIcon className="w-8 h-8" />
-                      </div>
-                    )}
+                    ) : null}
+                    <div className={`img-fallback flex items-center justify-center h-full text-neutral-300 ${property.coverImageUrl ? 'hidden' : ''}`}>
+                      <ImageIcon className="w-8 h-8" />
+                    </div>
                     <div className="absolute top-2 left-2 md:hidden">
                        <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg border text-xs font-bold backdrop-blur-md ${statusCfg.bg} ${statusCfg.color}`}>
                         <statusCfg.icon className="w-3.5 h-3.5" />
