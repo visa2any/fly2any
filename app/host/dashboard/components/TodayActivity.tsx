@@ -1,8 +1,9 @@
-import { prisma } from '@/lib/prisma';
+import { getPrismaClient } from '@/lib/prisma';
 import { LogIn, LogOut, Home, CalendarDays } from 'lucide-react';
 
 export async function TodayActivity({ userId }: { userId: string }) {
   try {
+    const prisma = getPrismaClient();
     const hostProfile = await prisma.propertyOwner.findFirst({
       where: { userId },
       select: { id: true },

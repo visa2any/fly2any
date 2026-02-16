@@ -1,9 +1,10 @@
-import { prisma } from '@/lib/prisma';
+import { getPrismaClient } from '@/lib/prisma';
 import { Home, BarChart3, Eye, DollarSign, TrendingUp, Sparkles } from 'lucide-react';
 import Link from 'next/link';
 
 export async function DashboardStats({ userId }: { userId: string }) {
   try {
+    const prisma = getPrismaClient();
     const hostProfile = await prisma.propertyOwner.findFirst({
       where: { userId },
       select: { id: true },

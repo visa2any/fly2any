@@ -1,9 +1,10 @@
-import { prisma } from '@/lib/prisma';
+import { getPrismaClient } from '@/lib/prisma';
 import Link from 'next/link';
 import { MessageSquare, ArrowRight, User } from 'lucide-react';
 
 export async function RecentMessages({ userId }: { userId: string }) {
   try {
+    const prisma = getPrismaClient();
     // Conversation.hostId maps to User.id, not PropertyOwner.id
     const conversations = await prisma.conversation.findMany({
       where: {

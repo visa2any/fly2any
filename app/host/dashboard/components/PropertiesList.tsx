@@ -1,11 +1,12 @@
 
-  import { prisma } from '@/lib/prisma';
+  import { getPrismaClient } from '@/lib/prisma';
   import Image from 'next/image';
   import Link from 'next/link';
   import { MapPin, Edit2, Trash2, CameraOff, Home, ExternalLink } from 'lucide-react';
   
   export async function PropertiesList({ userId }: { userId: string }) {
       try {
+          const prisma = getPrismaClient();
           const properties = await prisma.property.findMany({
               where: { 
                   owner: {
