@@ -944,9 +944,42 @@ export async function GET(request: NextRequest) {
       }
     }
 
-    // 3. Combine and deduplicate results
-    const allHotels = [...(liteAPIResults.hotels || []), ...amadeusHotels];
-    console.log(`✅ Multi-API GET Results: LiteAPI (${liteAPIResults.hotels?.length || 0}) + Amadeus (${amadeusHotels.length}) = ${allHotels.length} total`);
+    // 3. Native Fly2Any Properties Search
+    let nativeProperties: any[] = [];
+    try {
+      const radius = 15;
+      const latDelta = radius / 111;
+      const lngDelta = radius / (111 * Math.cos(latitude! * (Math.PI / 180)));
+
+      const nativeResults = await prisma!.property.findMany({
+        where: {
+          status: 'active',
+          latitude: { gte: latitude! - latDelta, lte: latitude! + latDelta },
+          longitude: { gte: longitude! - lngDelta, lte: longitude! + lngDelta },
+          maxGuests: { gte: parseInt(adults) },
+        },
+        include: {
+          rooms: true,
+          images: { orderBy: { sortOrder: 'asc' } },
+        },
+      });
+
+      const nights = Math.max(1, Math.ceil((new Date(checkOut!).getTime() - new Date(checkIn!).getTime()) / (1000 * 60 * 60 * 24)));
+
+      nativeProperties = nativeResults.map(p =>
+        mapPropertyToHotel(p as any, checkIn!, checkOut!, nights)
+      );
+
+      if (nativeProperties.length > 0) {
+        console.log(`✅ Included ${nativeProperties.length} native Fly2Any properties (GET)`);
+      }
+    } catch (err: any) {
+      console.error('⚠️ Native property search failed (GET):', err.message);
+    }
+
+    // 4. Combine and deduplicate results
+    const allHotels = [...(liteAPIResults.hotels || []), ...amadeusHotels, ...nativeProperties];
+    console.log(`✅ Multi-API GET Results: LiteAPI (${liteAPIResults.hotels?.length || 0}) + Amadeus (${amadeusHotels.length}) + Fly2Any (${nativeProperties.length}) = ${allHotels.length} total`);
 
     // Deduplicate hotels by name + approximate location
     const deduplicatedHotels: any[] = [];
@@ -1060,36 +1093,39 @@ export async function GET(request: NextRequest) {
 
     const liteAPICount = liteAPIResults.hotels?.length || 0;
     const amadeusCount = amadeusHotels.length;
+    const fly2anyCount = nativeProperties.length;
 
     const response = {
       success: true,
       data: mappedHotels,
       meta: {
         count: mappedHotels.length,
-        sources: ['LiteAPI', 'Amadeus'],
+        sources: ['LiteAPI', 'Amadeus', 'Fly2Any'],
         apiResults: {
           liteAPI: liteAPICount,
           amadeus: amadeusCount,
+          fly2any: fly2anyCount,
           totalBeforeDedup: allHotels.length,
           totalAfterDedup: sortedHotels.length,
         },
         usedMinRates: liteAPIResults.meta?.usedMinRates,
-        performance: 'Multi-API aggregation (LiteAPI + Amadeus)',
+        performance: 'Multi-API aggregation (LiteAPI + Amadeus + Fly2Any)',
       },
     };
 
     // Cache for 15 minutes
     await setCache(cacheKey, response, 900);
 
-    console.log(`✅ Multi-API GET: ${mappedHotels.length} hotels (LiteAPI: ${liteAPICount}, Amadeus: ${amadeusCount})`);
+    console.log(`✅ Multi-API GET: ${mappedHotels.length} hotels (LiteAPI: ${liteAPICount}, Amadeus: ${amadeusCount}, Fly2Any: ${fly2anyCount})`);
 
     return NextResponse.json(response, {
       headers: {
         'X-Cache-Status': 'MISS',
-        'X-API-Sources': 'LITEAPI,AMADEUS',
+        'X-API-Sources': 'LITEAPI,AMADEUS,FLY2ANY',
         'X-Performance-Mode': 'MULTI-API',
         'X-Hotel-Count-LiteAPI': liteAPICount.toString(),
         'X-Hotel-Count-Amadeus': amadeusCount.toString(),
+        'X-Hotel-Count-Fly2Any': fly2anyCount.toString(),
         'Cache-Control': 'public, max-age=900',
       }
     });

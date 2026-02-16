@@ -73,6 +73,7 @@ export type CancellationPolicyType =
 
 export type PetPolicy = 'not_allowed' | 'allowed' | 'allowed_with_fee';
 export type SmokingPolicy = 'not_allowed' | 'designated_areas' | 'allowed';
+export type ChildPolicy = 'all_ages' | 'children_5_plus' | 'children_12_plus' | 'adults_only';
 
 export interface CancellationDetails {
   freeCancelDays: number;
@@ -323,11 +324,17 @@ export interface ListingWizardState {
     highlights: string[];
     checkInTime?: string;
     checkOutTime?: string;
+    checkInInstructions?: string;
     cancellationPolicy: CancellationPolicyType;
+    cancellationDetails?: CancellationDetails;
     houseRules: string[];
     petPolicy?: PetPolicy;
     smokingPolicy?: SmokingPolicy;
+    childPolicy?: ChildPolicy;
+    minAge?: number;
+    securityDeposit?: number;
     ecoFeatures: string[];
+    ecoCertifications: string[];
   };
   // Step 5: Pricing
   pricing?: {

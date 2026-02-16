@@ -101,8 +101,17 @@ export default function CreatePropertyPage() {
     policies: {
       checkInTime: '15:00',
       checkOutTime: '11:00',
+      checkInInstructions: '',
       cancellationPolicy: 'flexible',
-      houseRules: [],
+      cancellationDetails: undefined as any,
+      petPolicy: 'not_allowed',
+      smokingPolicy: 'not_allowed',
+      childPolicy: 'all_ages',
+      minAge: undefined as number | undefined,
+      securityDeposit: undefined as number | undefined,
+      houseRules: [] as string[],
+      ecoFeatures: [] as string[],
+      ecoCertifications: [] as string[],
     },
 
     // Pricing
@@ -122,40 +131,64 @@ export default function CreatePropertyPage() {
 
 // ... existing imports ...
 
-  // Helper: Prepare payload for API (Flatten objects)
+  // Helper: Prepare payload for API (Flatten objects → flat schema fields only)
   const preparePayload = (data: typeof formData) => {
       return {
-          ...data,
-          // Location
-          addressLine1: data.location.address,
-          city: data.location.city,
-          country: data.location.country,
-          latitude: data.location.latitude,
-          longitude: data.location.longitude,
+          // Core
+          name: data.title || 'Untitled Property',
+          propertyType: data.type || 'hotel',
+          description: data.description || '',
+
+          // Location (required String fields must not be undefined)
+          addressLine1: data.location.address || '',
+          city: data.location.city || '',
+          country: data.location.country || '',
+          latitude: data.location.latitude || 0,
+          longitude: data.location.longitude || 0,
           
           // Specs
-          maxGuests: data.specs.guests,
-          totalBedrooms: data.specs.bedrooms,
-          totalBeds: data.specs.beds,
-          totalBathrooms: data.specs.bathrooms,
+          maxGuests: data.specs.guests || 2,
+          totalBedrooms: data.specs.bedrooms || 1,
+          totalBeds: data.specs.beds || 1,
+          totalBathrooms: data.specs.bathrooms || 1,
           
-          // Pricing
-          basePricePerNight: data.pricing.basePrice,
-          currency: data.pricing.currency,
-          cleaningFee: data.pricing.cleaningFee,
-          petFee: data.pricing.petFee,
-          extraGuestFee: data.pricing.extraGuestFee,
-          weekendPrice: data.pricing.weekendPrice,
-          securityDeposit: data.pricing.securityDeposit,
-          weeklyDiscount: data.pricing.weeklyDiscount,
-          monthlyDiscount: data.pricing.monthlyDiscount,
-          smartPricing: data.pricing.smartPricing, // If backend supports it or ignored
+          // Amenities
+          amenities: data.amenities || [],
+          highlights: [] as string[],
+          languages: [] as string[],
+          accessibilityFeatures: [] as string[],
+
+          // Photos
+          images: data.images || [],
+
+          // Rooms
+          rooms: data.rooms || [],
+          
+          // Pricing (use nullish coalescing to preserve 0 values)
+          basePricePerNight: data.pricing.basePrice ?? null,
+          currency: data.pricing.currency || 'USD',
+          cleaningFee: data.pricing.cleaningFee ?? null,
+          petFee: data.pricing.petFee ?? null,
+          extraGuestFee: data.pricing.extraGuestFee ?? null,
+          weekendPrice: data.pricing.weekendPrice ?? null,
+          securityDeposit: data.policies.securityDeposit ?? data.pricing.securityDeposit ?? null,
+          weeklyDiscount: data.pricing.weeklyDiscount ?? null,
+          monthlyDiscount: data.pricing.monthlyDiscount ?? null,
+          smartPricing: data.pricing.smartPricing ?? false,
           
           // Policies
-          checkInTime: data.policies.checkInTime,
-          checkOutTime: data.policies.checkOutTime,
-          cancellationPolicy: data.policies.cancellationPolicy,
-          houseRules: data.policies.houseRules,
+          checkInTime: data.policies.checkInTime || '15:00',
+          checkOutTime: data.policies.checkOutTime || '11:00',
+          checkInInstructions: data.policies.checkInInstructions || null,
+          cancellationPolicy: data.policies.cancellationPolicy || 'flexible',
+          cancellationDetails: data.policies.cancellationDetails || null,
+          houseRules: data.policies.houseRules || [],
+          petPolicy: data.policies.petPolicy || null,
+          smokingPolicy: data.policies.smokingPolicy || null,
+          childPolicy: data.policies.childPolicy || null,
+          minAge: data.policies.minAge ?? null,
+          ecoFeatures: data.policies.ecoFeatures || [],
+          ecoCertifications: data.policies.ecoCertifications || [],
           
           // Status
           status: 'DRAFT'
@@ -246,11 +279,7 @@ export default function CreatePropertyPage() {
                   // Don't overwrite status if it's already published? For wizard, we assume DRAFT.
                   const res = await fetch(url, {
                       method,
-                      body: JSON.stringify({ 
-                          ...formData, 
-                          // id: editingId, // No need to send ID in body if in URL usually, but harmless
-                          status: 'DRAFT' 
-                      }),
+                      body: JSON.stringify(preparePayload(formData)),
                       headers: { 'Content-Type': 'application/json' }
                   });
                   
@@ -456,7 +485,7 @@ export default function CreatePropertyPage() {
 
         const res = await fetch(url, {
             method,
-            body: JSON.stringify({ ...formData, status: 'DRAFT' }),
+            body: JSON.stringify(preparePayload(formData)),
             headers: { 'Content-Type': 'application/json' }
         });
         

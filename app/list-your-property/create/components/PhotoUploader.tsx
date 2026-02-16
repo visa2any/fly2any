@@ -2,7 +2,7 @@
 
 import { useState, useCallback, useEffect, useRef } from 'react';
 import Image from 'next/image';
-import { Upload, X, Star, Smartphone, Tag, AlertCircle, Loader2, RotateCcw, Wand2, GripVertical } from 'lucide-react';
+import { Upload, X, Star, Smartphone, Tag, AlertCircle, Loader2, RotateCcw, Wand2, GripVertical, ZoomIn, ZoomOut, ChevronLeft, ChevronRight, Maximize2 } from 'lucide-react';
 import { ImageCategory } from '@/lib/properties/types';
 import QRCode from 'qrcode';
 import * as tf from '@tensorflow/tfjs';
@@ -311,6 +311,43 @@ export function PhotoUploader({ images, onChange }: PhotoUploaderProps) {
   // --------------------------------------------------------------------------
   const [enhancingIdx, setEnhancingIdx] = useState<number | null>(null);
 
+  // --------------------------------------------------------------------------
+  // Lightbox Preview
+  // --------------------------------------------------------------------------
+  const [previewIdx, setPreviewIdx] = useState<number | null>(null);
+  const [zoomed, setZoomed] = useState(false);
+
+  const openPreview = (idx: number) => {
+    setPreviewIdx(idx);
+    setZoomed(false);
+  };
+
+  const closePreview = () => {
+    setPreviewIdx(null);
+    setZoomed(false);
+  };
+
+  const goPreview = (dir: 1 | -1) => {
+    if (previewIdx === null) return;
+    const next = previewIdx + dir;
+    if (next >= 0 && next < localPhotos.length) {
+      setPreviewIdx(next);
+      setZoomed(false);
+    }
+  };
+
+  // Keyboard navigation for lightbox
+  useEffect(() => {
+    if (previewIdx === null) return;
+    const handler = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') closePreview();
+      if (e.key === 'ArrowRight') goPreview(1);
+      if (e.key === 'ArrowLeft') goPreview(-1);
+    };
+    window.addEventListener('keydown', handler);
+    return () => window.removeEventListener('keydown', handler);
+  }, [previewIdx, localPhotos.length]);
+
   const handleMagicEnhance = async (index: number) => {
       const photo = localPhotos[index];
       if (!photo.url) return;
@@ -488,7 +525,7 @@ export function PhotoUploader({ images, onChange }: PhotoUploaderProps) {
               <div className="absolute top-2 right-2 z-20 p-1 rounded-md bg-white/80 backdrop-blur-sm shadow-sm text-gray-400 cursor-grab active:cursor-grabbing">
                 <GripVertical className="w-4 h-4" />
               </div>
-               <div className="relative aspect-video bg-neutral-100">
+               <div className="relative aspect-video bg-neutral-100 cursor-pointer" onClick={() => openPreview(idx)}>
                   <Image 
                       src={photo.url} 
                       alt="Property" 
@@ -497,6 +534,12 @@ export function PhotoUploader({ images, onChange }: PhotoUploaderProps) {
                       className="object-cover transition-transform duration-500 ease-in-out" 
                       style={{ transform: `rotate(${photo.rotation || 0}deg)` }}
                   />
+                  {/* Preview hint */}
+                  <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-[5]">
+                    <div className="p-2 rounded-full bg-white/90 shadow-md">
+                      <Maximize2 className="w-4 h-4 text-gray-700" />
+                    </div>
+                  </div>
                   
                   {/* AI Tags Overlay */}
                   {photo.tags && photo.tags.length > 0 && (
@@ -565,6 +608,107 @@ export function PhotoUploader({ images, onChange }: PhotoUploaderProps) {
             </div>
          ))}
       </div>
+
+      {/* ────────── Lightbox Preview Modal ────────── */}
+      {previewIdx !== null && localPhotos[previewIdx] && (
+        <div
+          className="fixed inset-0 z-[9999] bg-black/95 flex flex-col"
+          onClick={closePreview}
+        >
+          {/* Top bar */}
+          <div className="flex items-center justify-between px-5 py-3 text-white" onClick={(e) => e.stopPropagation()}>
+            <div className="flex items-center gap-3">
+              <span className="text-sm font-bold">{previewIdx + 1} / {localPhotos.length}</span>
+              {localPhotos[previewIdx].isPrimary && (
+                <span className="px-2 py-0.5 rounded bg-amber-400 text-black text-[10px] font-bold uppercase">Cover</span>
+              )}
+              {localPhotos[previewIdx].category !== 'general' && (
+                <span className="px-2 py-0.5 rounded bg-white/20 text-white/80 text-[10px] font-bold uppercase">
+                  {CATEGORIES.find(c => c.value === localPhotos[previewIdx].category)?.label}
+                </span>
+              )}
+            </div>
+            <div className="flex items-center gap-2">
+              <button
+                onClick={() => setZoomed(!zoomed)}
+                className="p-2 rounded-lg hover:bg-white/10 transition-colors text-white/70 hover:text-white"
+                title={zoomed ? 'Zoom out' : 'Zoom in'}
+              >
+                {zoomed ? <ZoomOut className="w-5 h-5" /> : <ZoomIn className="w-5 h-5" />}
+              </button>
+              <button
+                onClick={closePreview}
+                className="p-2 rounded-lg hover:bg-white/10 transition-colors text-white/70 hover:text-white"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+          </div>
+
+          {/* Main image area */}
+          <div className="flex-1 relative flex items-center justify-center overflow-hidden" onClick={(e) => e.stopPropagation()}>
+            {/* Prev button */}
+            {previewIdx > 0 && (
+              <button
+                onClick={() => goPreview(-1)}
+                className="absolute left-4 z-10 p-3 rounded-full bg-white/10 hover:bg-white/20 text-white transition-colors backdrop-blur-sm"
+              >
+                <ChevronLeft className="w-6 h-6" />
+              </button>
+            )}
+
+            {/* Image */}
+            <div className={`relative transition-all duration-300 ${zoomed ? 'w-full h-full' : 'max-w-[85vw] max-h-[75vh]'}`}>
+              <Image
+                src={localPhotos[previewIdx].url}
+                alt={localPhotos[previewIdx].caption || 'Property photo'}
+                fill
+                unoptimized={true}
+                className={`transition-all duration-300 ${zoomed ? 'object-contain cursor-zoom-out' : 'object-contain cursor-zoom-in'}`}
+                style={{ transform: `rotate(${localPhotos[previewIdx].rotation || 0}deg)` }}
+                onClick={() => setZoomed(!zoomed)}
+              />
+            </div>
+
+            {/* Next button */}
+            {previewIdx < localPhotos.length - 1 && (
+              <button
+                onClick={() => goPreview(1)}
+                className="absolute right-4 z-10 p-3 rounded-full bg-white/10 hover:bg-white/20 text-white transition-colors backdrop-blur-sm"
+              >
+                <ChevronRight className="w-6 h-6" />
+              </button>
+            )}
+          </div>
+
+          {/* Caption */}
+          {localPhotos[previewIdx].caption && (
+            <div className="text-center py-2 text-white/60 text-sm">{localPhotos[previewIdx].caption}</div>
+          )}
+
+          {/* Filmstrip thumbnails */}
+          <div className="px-4 py-3 flex items-center justify-center gap-2 overflow-x-auto" onClick={(e) => e.stopPropagation()}>
+            {localPhotos.filter(p => p && p.url).map((photo, idx) => (
+              <button
+                key={idx}
+                onClick={() => { setPreviewIdx(idx); setZoomed(false); }}
+                className={`relative w-14 h-10 rounded-lg overflow-hidden flex-shrink-0 border-2 transition-all ${
+                  idx === previewIdx ? 'border-white scale-110' : 'border-transparent opacity-50 hover:opacity-80'
+                }`}
+              >
+                <Image
+                  src={photo.url}
+                  alt=""
+                  fill
+                  unoptimized={true}
+                  className="object-cover"
+                  style={{ transform: `rotate(${photo.rotation || 0}deg)` }}
+                />
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
     </div>
   );
 }
