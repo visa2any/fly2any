@@ -37,44 +37,64 @@ export const article = {
         The 2026 World Cup will be the largest global sporting event in history, with millions of visitors expected across 16 host cities. This massive influx will put unprecedented strain on U.S. consulates worldwide.
       </p>
 
-      {/* World Cup Vibe CTA Box - ULTRA READABLE & FUN */}
-      <div className="my-10 relative overflow-hidden rounded-3xl shadow-2xl group transform hover:-translate-y-1 transition-all duration-300 border-4 border-white ring-4 ring-blue-100">
-        {/* Deep, Solid Background for Contrast */}
-        <div className="absolute inset-0 bg-[#0f172a]"></div>
+      {/* NEW PREMIUM WORLD CUP CTA - SECTION 1 */}
+      <div className="not-prose my-16 group relative">
+        {/* Animated Outer Glow */}
+        <div className="absolute -inset-1 bg-gradient-to-r from-[#E61D25] via-[#FFD700] to-[#4040FF] rounded-[2.5rem] blur opacity-25 group-hover:opacity-50 transition duration-1000 group-hover:duration-200"></div>
         
-        {/* Subtle Gradient Accent Overlay (Low Opacity) */}
-        <div className="absolute inset-0 bg-gradient-to-br from-blue-900/50 via-indigo-900/50 to-slate-900/50"></div>
-        
-        {/* Pattern Overlay */}
-        <div className="absolute inset-0 opacity-10" style={{ 
-          backgroundImage: 'radial-gradient(circle at 2px 2px, rgba(255,255,255,0.3) 1px, transparent 0)',
-          backgroundSize: '24px 24px' 
-        }}></div>
-        
-        <div className="relative z-10 p-8 sm:p-10 text-center sm:text-left">
-          <div className="flex flex-col sm:flex-row items-center justify-between gap-8">
-            <div className="space-y-6 max-w-2xl">
-               <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white text-blue-900 text-sm font-black uppercase tracking-wider shadow-lg transform -rotate-1">
-                <span>📅</span> Official Match Schedule
+        <div className="relative overflow-hidden rounded-[2.5rem] bg-white border border-gray-100 shadow-2xl">
+          {/* Background Elements */}
+          <div className="absolute inset-0 bg-gradient-to-br from-[#f8fafc] to-[#f1f5f9]"></div>
+          <div className="absolute top-0 right-0 w-1/2 h-full bg-gradient-to-l from-blue-600/10 to-transparent"></div>
+          
+          {/* Decorative Soccer Pitch Lines (Subtle) */}
+          <div className="absolute inset-0 opacity-[0.03]" style={{ 
+            backgroundImage: `radial-gradient(circle at center, #000 1px, transparent 1px), linear-gradient(to right, #000 1px, transparent 1px), linear-gradient(to bottom, #000 1px, transparent 1px)`,
+            backgroundSize: '100px 100px, 50px 50px, 50px 50px'
+          }}></div>
+
+          <div className="relative z-10 p-8 sm:p-12">
+            <div className="flex flex-col lg:flex-row items-center gap-10">
+              {/* Text Side */}
+              <div className="flex-1 text-center lg:text-left space-y-6">
+                <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-blue-50 border border-blue-100 text-blue-700 text-xs font-black uppercase tracking-[0.2em]">
+                  <span className="animate-pulse">⚽</span> Match Schedule 2026
+                </div>
+                
+                <h3 className="text-4xl sm:text-5xl font-black text-slate-900 leading-[1.1] tracking-tight">
+                  Be There for the <br />
+                  <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#E61D25] to-[#4040FF]">Kickoff of a Lifetime!</span>
+                </h3>
+                
+                <p className="text-lg text-slate-600 font-medium leading-relaxed max-w-xl">
+                  16 Cities, 3 Countries, 1 Global Celebration. Don't let your visa be the only thing standing between you and the stadium.
+                </p>
+                
+                <div className="flex flex-wrap justify-center lg:justify-start gap-4 pt-2">
+                  <Link 
+                    href="/world-cup-2026/schedule"
+                    className="px-8 py-4 bg-slate-900 text-white font-black rounded-2xl hover:bg-blue-600 transition-all duration-300 shadow-xl hover:scale-105"
+                  >
+                    View Official Schedule
+                  </Link>
+                </div>
               </div>
-              
-              <h3 className="text-3xl sm:text-4xl font-black !text-white drop-shadow-lg tracking-tight">
-                Don't Miss the Action! <span className="inline-block animate-bounce" role="img" aria-label="soccer ball">⚽</span>
-              </h3>
-              
-              <p className="text-xl !text-white font-medium leading-relaxed drop-shadow-md">
-                Matches will be held across <span className="text-[#FFD700] font-bold border-b-2 border-[#FFD700]">16 cities</span> in the USA, Canada, and Mexico. Check the schedule to see where your team plays!
-              </p>
-            </div>
-            
-            <div className="flex-shrink-0">
-              <Link 
-                href="/world-cup-2026/schedule"
-                className="group relative inline-flex items-center justify-center gap-3 px-8 py-5 bg-[#FFD700] text-blue-900 font-black text-xl rounded-2xl hover:bg-white hover:scale-105 transition-all duration-300 shadow-xl"
-              >
-                <span>View Schedule</span>
-                <span className="text-2xl group-hover:translate-x-1 transition-transform">→</span>
-              </Link>
+
+              {/* Visual Side / Dynamic Card */}
+              <div className="flex-shrink-0 w-full lg:w-72">
+                <div className="relative group/card bg-gradient-to-br from-[#E61D25] to-[#FF6B35] p-6 rounded-3xl shadow-2xl transform lg:rotate-3 group-hover:rotate-0 transition-transform duration-500">
+                  <div className="absolute top-4 right-4 text-4xl opacity-20">📅</div>
+                  <div className="space-y-4">
+                    <div className="text-white/80 text-xs font-bold uppercase">Tournament Dates</div>
+                    <div className="text-white text-2xl font-black">June 11 – July 19, 2026</div>
+                    <div className="h-px bg-white/20 w-full"></div>
+                    <div className="flex items-center gap-3 text-white">
+                      <div className="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center font-bold">16</div>
+                      <div className="text-sm font-bold">Host Cities <br/>Across North America</div>
+                    </div>
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
         </div>
@@ -259,34 +279,48 @@ export const article = {
         Start your visa process today. Verify your passport validity. And when you are ready to book, prioritize flexible travel options to protect your investment.
       </p>
 
-      {/* FINAL CTA - HIGH IMPACT & READABILITY */}
-      <div className="mt-16 relative rounded-[2rem] shadow-2xl overflow-hidden group">
-        {/* Vibrant Gradient Border Effect */}
-        <div className="absolute inset-0 bg-gradient-to-r from-[#E61D25] via-[#4040FF] to-[#20FF20]"></div>
-        
-        {/* Dark Inner Content Container (Inset 4px) */}
-        <div className="absolute inset-1 bg-slate-900 rounded-[1.8rem]"></div>
-        
-        {/* Confetti Background */}
-        <div className="absolute inset-1 rounded-[1.8rem] overflow-hidden opacity-20">
-            <div className="absolute top-0 left-0 w-full h-full" style={{ backgroundImage: 'url("data:image/svg+xml,%3Csvg width=\'60\' height=\'60\' viewBox=\'0 0 60 60\' xmlns=\'http://www.w3.org/2000/svg\'%3E%3Cg fill=\'none\' fill-rule=\'evenodd\'%3E%3Cg fill=\'%23ffffff\' fill-opacity=\'1\'%3E%3Cpath d=\'M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z\'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")' }}></div>
+      {/* NEW PREMIUM WORLD CUP CTA - FINAL SECTION */}
+      <div className="not-prose mt-24 relative isolate">
+        <div className="absolute inset-0 -z-10 bg-slate-900 rounded-[3rem] overflow-hidden">
+          {/* Vibrant Gradient Blobs */}
+          <div className="absolute top-0 -left-20 w-80 h-80 bg-[#E61D25] rounded-full blur-[120px] opacity-30 animate-pulse"></div>
+          <div className="absolute bottom-0 -right-20 w-80 h-80 bg-[#4040FF] rounded-full blur-[120px] opacity-30"></div>
+          
+          {/* Confetti / Particle Effect */}
+          <div className="absolute inset-0 opacity-[0.15]" style={{ backgroundImage: 'url("data:image/svg+xml,%3Csvg width=\'60\' height=\'60\' viewBox=\'0 0 60 60\' xmlns=\'http://www.w3.org/2000/svg\'%3E%3Cg fill=\'none\' fill-rule=\'evenodd\'%3E%3Cg fill=\'%23ffffff\' fill-opacity=\'1\'%3E%3Cpath d=\'M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z\'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")' }}></div>
         </div>
 
-        <div className="relative z-10 p-10 sm:p-14 text-center">
-            <h3 className="text-4xl sm:text-6xl font-black mb-8 !text-white tracking-tight drop-shadow-xl">
-              Ready for the <span className="!text-[#FFD700]">Greatest Show?</span> <span role="img" aria-label="world">🌎</span>
+        <div className="relative z-10 p-10 sm:p-20 text-center">
+          <div className="max-w-4xl mx-auto space-y-10">
+            <div className="inline-flex items-center gap-3 px-6 py-2 rounded-full bg-white/10 backdrop-blur-md border border-white/20 text-white text-sm font-black uppercase tracking-[0.3em] shadow-2xl">
+              <span>🏆</span> The Greatest Show on Earth
+            </div>
+
+            <h3 className="text-5xl sm:text-7xl font-black text-white leading-tight tracking-tighter drop-shadow-2xl">
+              Ready to Witness <br/>
+              <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#FFD700] via-white to-[#FFD700]">History in the Making?</span>
             </h3>
-            
-            <p className="text-2xl !text-blue-50 mb-10 max-w-3xl mx-auto font-medium leading-relaxed">
-              Join millions of fans. Explore our complete guide to match schedules, stadium secrets, and exclusive travel deals.
+
+            <p className="text-xl sm:text-2xl text-blue-100/80 font-medium leading-relaxed">
+              From stadium secrets to exclusive travel hacks—your journey to the 2026 World Cup starts right here.
             </p>
-            
-            <Link 
-              href="/world-cup-2026"
-              className="inline-flex items-center gap-4 bg-[#E61D25] !text-white font-black text-xl sm:text-2xl px-12 py-6 rounded-full hover:bg-[#FFD700] hover:text-[#E61D25] hover:scale-105 transition-all duration-300 shadow-[0_10px_30px_rgba(230,29,37,0.4)]"
-            >
-              <span>🚀 Explore World Cup Hub</span>
-            </Link>
+
+            <div className="pt-6">
+              <Link 
+                href="/world-cup-2026"
+                className="inline-flex items-center gap-6 bg-white text-slate-900 font-black text-2xl px-12 py-6 rounded-full hover:bg-[#FFD700] hover:scale-110 transition-all duration-500 shadow-[0_20px_50px_rgba(255,255,255,0.2)]"
+              >
+                <span>Explore World Cup Hub</span>
+                <span className="bg-slate-900 text-white w-10 h-10 rounded-full flex items-center justify-center text-sm group-hover:translate-x-2 transition-transform">→</span>
+              </Link>
+            </div>
+
+            <div className="flex justify-center gap-8 opacity-40 grayscale hover:grayscale-0 transition-all duration-500">
+              <span className="text-white text-lg font-black tracking-widest">USA</span>
+              <span className="text-white text-lg font-black tracking-widest">MEXICO</span>
+              <span className="text-white text-lg font-black tracking-widest">CANADA</span>
+            </div>
+          </div>
         </div>
       </div>
     </div>
