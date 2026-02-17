@@ -76,6 +76,54 @@ export const authors: Record<string, Author> = {
 
 // Sample blog posts
 export const sampleBlogPosts: BlogPost[] = [
+  // NEW: BEST AIRLINES 2025
+  {
+    id: 'best-airlines-in-the-world-2025',
+    slug: 'best-airlines-in-the-world-2025',
+    title: 'Top 5 Best Airlines in the World in 2025 (Ranked by Service, Comfort, Innovation & Reliability)',
+    excerpt: 'The definitive ranking of the world\'s best airlines for 2025. We analyze service, comfort, innovation, and reliability to help you fly smarter.',
+    content: 'Premium article - see dedicated article file',
+    featuredImage: {
+      url: 'https://images.unsplash.com/photo-1540339832862-46d5a9d1d604?w=1920&q=90',
+      alt: 'First Class cabin interior of a top-rated airline',
+      credit: 'Photo by Unsplash',
+      width: 1920,
+      height: 1080,
+    },
+    category: 'guide',
+    tags: ['Best Airlines 2025', 'Airline Rankings', 'Business Class', 'Luxury Travel', 'Aviation News', 'Travel Guide'],
+    author: {
+      id: 'sarah',
+      name: 'Sarah Jenkins',
+      avatar: '/authors/sarah.jpg',
+      bio: 'Sarah has logged over 2 million miles across 80 countries, analyzing airline performance and cabin innovation for over a decade.',
+      role: 'Senior Aviation Analyst & Global Travel Strategist',
+    },
+    publishedAt: new Date('2025-12-10'),
+    readTime: 14,
+    views: 0,
+    likes: 0,
+    isFeatured: true,
+    isPremium: true,
+    metaTitle: 'Best Airlines in the World 2025 | Top 5 Ranked',
+    metaDescription: 'Discover the Top 5 Best Airlines of 2025. Comprehensive ranking based on service, business class, reliability, and innovation. See who took #1.',
+    keywords: ['best airlines 2025', 'top airlines 2025', 'airline rankings', 'best business class', 'safest airlines'],
+    faq: [
+      {
+        question: 'What is the #1 best airline in 2025?',
+        answer: 'Singapore Airlines takes the top spot for its unmatched service consistency and new First Class suites.',
+      },
+      {
+        question: 'Which airline has the best economy class?',
+        answer: 'Japan Airlines (JAL) leads with the widest seat pitch (34 inches) and superior catering.',
+      },
+      {
+        question: 'Which airline is the most reliable?',
+        answer: 'ANA (All Nippon Airways) consistently ranks highest for on-time performance and lowest cancellation rates globally.',
+      },
+    ],
+  },
+
   // NEW: USA WORLD CUP VISA GUIDE 2026
   {
     id: 'usa-world-cup-visa-guide-2026',

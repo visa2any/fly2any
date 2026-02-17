@@ -11,6 +11,7 @@ interface ArticleHeroProps {
   author: {
     name: string;
     role: string;
+    avatar?: string;
   };
   publishedAt: Date;
   readTime: number;
@@ -41,19 +42,19 @@ export function ArticleHero({
       className="relative w-full"
     >
       {/* Full-Width Hero Image */}
-      <div className="relative w-full h-[50vh] sm:h-[60vh] min-h-[400px] sm:min-h-[500px] max-h-[700px]">
+      <div className="relative w-full h-[60vh] sm:h-[75vh] min-h-[500px] sm:min-h-[600px] max-h-[900px]">
         <Image
           src={featuredImage.url}
           alt={featuredImage.alt}
           fill
           className="object-cover"
           priority
-          quality={90}
+          quality={95}
         />
 
         {/* Gradient Overlays */}
-        <div className="absolute inset-0 bg-gradient-to-t from-black via-black/60 to-transparent" />
-        <div className="absolute inset-0 bg-gradient-to-r from-black/40 via-transparent to-black/40" />
+        <div className="absolute inset-0 bg-gradient-to-t from-black via-black/30 to-transparent" />
+        <div className="absolute inset-0 bg-gradient-to-r from-black/20 via-transparent to-black/20" />
 
         {/* Image Credit */}
         {featuredImage.credit && (
@@ -105,10 +106,20 @@ export function ArticleHero({
               className="flex flex-wrap items-center gap-3 sm:gap-4 md:gap-6 text-white/80 text-xs sm:text-sm"
             >
               <div className="flex items-center gap-2 sm:gap-3">
-                <div className="w-8 h-8 sm:w-10 sm:h-10 bg-gradient-to-br from-blue-500 to-blue-700 rounded-full flex items-center justify-center text-white font-bold shadow-lg">
-                  {author.name.charAt(0)}
-                </div>
-                <div>
+                {author.avatar ? (
+                   <div className="w-10 h-10 sm:w-12 sm:h-12 relative rounded-full overflow-hidden border-2 border-white shadow-lg">
+                      <Image 
+                        src={author.avatar} 
+                        alt={author.name} 
+                        fill 
+                        className="object-cover" 
+                      />
+                   </div>
+                ) : (
+                  <div className="w-8 h-8 sm:w-10 sm:h-10 bg-gradient-to-br from-blue-500 to-blue-700 rounded-full flex items-center justify-center text-white font-bold shadow-lg">
+                    {author.name.charAt(0)}
+                  </div>
+                )}                <div>
                   <p className="font-semibold text-white text-sm sm:text-base">{author.name}</p>
                   <p className="text-xs text-white/70">{author.role}</p>
                 </div>

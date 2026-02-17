@@ -14,6 +14,7 @@ import { article as nycAirportPricingArticle } from '@/lib/data/articles/nyc-air
 
 import { article as mistakesArticle } from '@/lib/data/articles/mistakes-first-time-international-travelers';
 import { article as worldCupVisaArticle } from '@/lib/data/articles/usa-world-cup-visa-guide-2026';
+import { article as bestAirlinesArticle } from '@/lib/data/articles/best-airlines-2025';
 import { ReadingProgress } from '@/components/blog/article/ReadingProgress';
 import { ExtendedShareButtons } from '@/components/blog/article/ExtendedShareButtons';
 import { CommentSection } from '@/components/blog/article/CommentSection';
@@ -99,12 +100,14 @@ export default function BlogPostPage() {
                         slug === 'why-flight-prices-change-airline-fares-2026' ||
                         slug === 'jfk-vs-newark-vs-laguardia-airport-pricing-2026' ||
                         slug === '10-mistakes-first-time-international-travelers-make' ||
-                        slug === 'usa-world-cup-visa-guide-2026';
+                        slug === 'usa-world-cup-visa-guide-2026' ||
+                        slug === 'best-airlines-in-the-world-2025';
   const premiumData = slug === 'cheap-flights-new-york-paris-2026' ? nycParisArticle : 
                       slug === 'why-flight-prices-change-airline-fares-2026' ? airlinePricingArticle :
                       slug === 'jfk-vs-newark-vs-laguardia-airport-pricing-2026' ? nycAirportPricingArticle :
                       slug === '10-mistakes-first-time-international-travelers-make' ? mistakesArticle : 
-                      slug === 'usa-world-cup-visa-guide-2026' ? worldCupVisaArticle : null;
+                      slug === 'usa-world-cup-visa-guide-2026' ? worldCupVisaArticle :
+                      slug === 'best-airlines-in-the-world-2025' ? bestAirlinesArticle : null;
 
   if (isPremiumArticle && premiumData) {
     const schemas = [
@@ -158,9 +161,9 @@ export default function BlogPostPage() {
         <Breadcrumbs items={[
           { label: 'Blog', href: '/blog' },
           { label: premiumData.category, href: `/blog/category/${premiumData.category.toLowerCase()}` },
-          { label: premiumData.title, href: `/blog/${slug}` }
+          { label: slug === 'best-airlines-in-the-world-2025' ? 'Top 5 Best Airlines 2025' : premiumData.title, href: `/blog/${slug}` }
         ]} />
-        <div className="min-h-screen bg-white">
+        <div className="min-h-screen bg-white mt-8">
           <ArticleHero
             title={premiumData.title}
             excerpt={premiumData.excerpt}
