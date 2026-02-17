@@ -30,24 +30,42 @@ export const article = {
       </div>
 
       <p className="lead text-xl text-gray-700 mb-8">
-        Attending the <Link href="/world-cup-2026" className="text-blue-600 hover:underline font-semibold">FIFA World Cup 2026</Link> is a dream for millions. But for international fans heading to the United States, the biggest hurdle isn't getting match tickets—it's getting a visa.
+        Attending the <Link href="/world-cup-2026" className="font-black bg-gradient-to-r from-purple-600 via-blue-600 to-teal-500 bg-clip-text text-transparent hover:opacity-80 transition-opacity">FIFA World Cup 2026</Link> is a dream for millions. But for international fans heading to the United States, the biggest hurdle isn't getting match tickets—it's getting a visa.
       </p>
       
       <p>
         The 2026 World Cup will be the largest global sporting event in history, with millions of visitors expected across 16 host cities. This massive influx will put unprecedented strain on U.S. consulates worldwide.
       </p>
 
-      <div className="my-8 p-6 bg-blue-50 rounded-xl border border-blue-100">
-        <h3 className="text-xl font-bold text-blue-900 mb-3">🏆 Planning Your World Cup Journey?</h3>
-        <p className="mb-4 text-blue-800">
-          Don't just plan for the visa—plan for the matches! Check the official schedule to see where your team might play.
-        </p>
-        <Link 
-          href="/world-cup-2026/schedule"
-          className="inline-block bg-blue-600 text-white font-bold px-6 py-3 rounded-lg hover:bg-blue-700 transition-colors"
-        >
-          View Match Schedule →
-        </Link>
+      {/* World Cup Vibe CTA Box */}
+      <div className="my-10 relative overflow-hidden rounded-2xl shadow-xl group">
+        <div className="absolute inset-0 bg-gradient-to-br from-slate-900 via-blue-900 to-slate-900"></div>
+        
+        {/* Decorative Grid */}
+        <div className="absolute inset-0 opacity-10" style={{ backgroundImage: 'radial-gradient(#ffffff 1px, transparent 1px)', backgroundSize: '20px 20px' }}></div>
+        
+        <div className="relative z-10 p-8 text-center sm:text-left sm:flex sm:items-center sm:justify-between gap-6">
+          <div className="space-y-3">
+             <div className="inline-block px-3 py-1 rounded-full bg-gradient-to-r from-amber-400 to-orange-500 text-xs font-black text-white uppercase tracking-wider mb-1">
+              Official Schedule
+            </div>
+            <h3 className="text-2xl font-black text-white">
+              Planning Your World Cup Journey?
+            </h3>
+            <p className="text-blue-100 max-w-xl">
+              Don't just plan for the visa—plan for the matches! Check the official schedule to see where your team might play.
+            </p>
+          </div>
+          
+          <div className="mt-6 sm:mt-0 flex-shrink-0">
+            <Link 
+              href="/world-cup-2026/schedule"
+              className="inline-block px-6 py-3 bg-white text-blue-900 font-black rounded-xl hover:scale-105 transition-transform duration-300 shadow-lg border-2 border-transparent hover:border-amber-400"
+            >
+              View Match Schedule 📅
+            </Link>
+          </div>
+        </div>
       </div>
 
       <p>
@@ -227,17 +245,26 @@ export const article = {
         Start your visa process today. Verify your passport validity. And when you are ready to book, prioritize flexible travel options to protect your investment.
       </p>
 
-      <div className="mt-12 p-8 bg-gradient-to-r from-blue-900 to-indigo-900 rounded-2xl text-center text-white">
-        <h3 className="text-3xl font-black mb-4">Ready for World Cup 2026?</h3>
-        <p className="text-lg text-blue-100 mb-8 max-w-2xl mx-auto">
-          Explore our complete World Cup 2026 hub for match schedules, stadium guides, team analysis, and exclusive travel packages.
-        </p>
-        <Link 
-          href="/world-cup-2026"
-          className="inline-block bg-white text-blue-900 font-bold px-8 py-4 rounded-full hover:bg-amber-400 hover:text-black transition-all duration-300 shadow-xl"
-        >
-          Explore World Cup Hub →
-        </Link>
+      {/* Final Vibrant CTA */}
+      <div className="mt-12 p-8 rounded-2xl text-center relative overflow-hidden group">
+        {/* Dynamic World Cup Gradient Background */}
+        <div className="absolute inset-0 bg-gradient-to-r from-red-600 via-blue-700 to-green-600 opacity-90"></div>
+        <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] opacity-20"></div>
+        
+        <div className="relative z-10">
+          <h3 className="text-3xl sm:text-4xl font-black mb-4 text-white drop-shadow-md">
+            Ready for World Cup 2026? 🏆
+          </h3>
+          <p className="text-lg text-white/90 mb-8 max-w-2xl mx-auto font-medium">
+            Explore our complete World Cup 2026 hub for match schedules, stadium guides, team analysis, and exclusive travel packages.
+          </p>
+          <Link 
+            href="/world-cup-2026"
+            className="inline-block bg-white text-blue-900 font-black px-10 py-5 rounded-full hover:scale-105 transition-all duration-300 shadow-2xl border-4 border-amber-400/50 hover:border-amber-400"
+          >
+            Explore World Cup Hub ⚽
+          </Link>
+        </div>
       </div>
     </div>
   ),
