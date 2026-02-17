@@ -108,6 +108,32 @@ export const sampleBlogPosts: BlogPost[] = [
     metaTitle: 'USA World Cup Visa Guide 2026 | Requirements & Processing Times',
     metaDescription: 'Essential guide for international fans attending World Cup 2026 in USA. Learn about B1/B2 visas, ESTA requirements, and avoid denial.',
     keywords: ['World Cup 2026 Visa', 'USA Visa Requirements', 'ESTA World Cup', 'US Visitor Visa', 'World Cup Travel Guide'],
+    faq: [
+      {
+        question: 'Do I need a visa to attend the 2026 World Cup in the USA?',
+        answer: 'Unless you are a U.S. citizen or Green Card holder, yes. You will need either an ESTA (if from a Visa Waiver country) or a B1/B2 Visitor Visa.',
+      },
+      {
+        question: 'Can I travel with just a match ticket?',
+        answer: 'No. A match ticket grants entry to the stadium, not the country. Immigration officials will not let you enter without a valid visa or ESTA, regardless of your tickets.',
+      },
+      {
+        question: 'How early should I apply for a U.S. visa for the World Cup?',
+        answer: 'Immediately. If you need a B1/B2 visa, apply 12–18 months in advance if possible due to backlog risks. If eligible for ESTA, apply at least 1 month in advance.',
+      },
+      {
+        question: 'What happens if my visa is denied?',
+        answer: 'You generally cannot appeal a denial immediately. You would need to reapply with new evidence, which takes time and money. This is why applying early is critical.',
+      },
+      {
+        question: 'Can I extend my stay during the tournament?',
+        answer: 'B1/B2 visas typically allow stays up to 6 months, determined at entry. ESTA allows up to 90 days. Extensions for ESTA are generally not possible. Extensions for B1/B2 are difficult and take months to process.',
+      },
+      {
+        question: 'Is ESTA enough to attend the World Cup?',
+        answer: 'Yes, provided you are a citizen of a qualifying country, have a valid e-passport, and haven\'t violated previous immigration rules or visited restricted countries.',
+      },
+    ],
   },
 
   // PREMIUM SEO ARTICLE - NYC TO PARIS

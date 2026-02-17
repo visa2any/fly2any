@@ -94,6 +94,12 @@ export interface BlogPost {
   metaTitle?: string;
   metaDescription?: string;
   keywords?: string[];
+  
+  // Structured Data
+  faq?: {
+    question: string;
+    answer: string;
+  }[];
 }
 
 // Blog post preview (for lists and grids)
