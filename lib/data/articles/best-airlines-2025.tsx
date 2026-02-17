@@ -19,11 +19,9 @@ export const article = {
   likes: 0,
   tags: ['Best Airlines 2025', 'Airline Rankings', 'Business Class', 'Luxury Travel', 'Aviation News', 'Travel Guide'],
   featuredImage: {
-    url: 'https://images.unsplash.com/photo-1540339832862-46d5a9d1d604?w=1920&q=90', // Reverting to original placeholder if it works, or using a new one if 404. 
-    // Safe generic image: Airplane view at sunset/sunrise
-    url: 'https://images.unsplash.com/photo-1436491865332-7a61a109cc05?w=1920&q=90',
-    alt: 'Luxury travel experience with airline wing view at sunset',
-    credit: 'Photo by Unsplash',
+    url: '/images/blog/singapore-airlines-2025.png',
+    alt: 'Luxury travel experience with Singapore Airlines First Class Suite',
+    credit: 'Fly2Any',
   },
   content: (
     <div>
