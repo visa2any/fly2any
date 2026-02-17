@@ -58,11 +58,11 @@ export const article = {
                 <span>📅</span> Official Match Schedule
               </div>
               
-              <h3 className="text-3xl sm:text-4xl font-black text-white drop-shadow-lg tracking-tight">
+              <h3 className="text-3xl sm:text-4xl font-black !text-white drop-shadow-lg tracking-tight">
                 Don't Miss the Action! <span className="inline-block animate-bounce" role="img" aria-label="soccer ball">⚽</span>
               </h3>
               
-              <p className="text-xl text-white font-medium leading-relaxed drop-shadow-md">
+              <p className="text-xl !text-white font-medium leading-relaxed drop-shadow-md">
                 Matches will be held across <span className="text-[#FFD700] font-bold border-b-2 border-[#FFD700]">16 cities</span> in the USA, Canada, and Mexico. Check the schedule to see where your team plays!
               </p>
             </div>
@@ -109,17 +109,17 @@ export const article = {
         </div>
 
         <div className="relative z-10 p-10 sm:p-14 text-center">
-            <h3 className="text-4xl sm:text-6xl font-black mb-8 text-white tracking-tight drop-shadow-xl">
-              Ready for the <span className="text-[#FFD700]">Greatest Show?</span> <span role="img" aria-label="world">🌎</span>
+            <h3 className="text-4xl sm:text-6xl font-black mb-8 !text-white tracking-tight drop-shadow-xl">
+              Ready for the <span className="!text-[#FFD700]">Greatest Show?</span> <span role="img" aria-label="world">🌎</span>
             </h3>
             
-            <p className="text-2xl text-blue-50 mb-10 max-w-3xl mx-auto font-medium leading-relaxed">
+            <p className="text-2xl !text-blue-50 mb-10 max-w-3xl mx-auto font-medium leading-relaxed">
               Join millions of fans. Explore our complete guide to match schedules, stadium secrets, and exclusive travel deals.
             </p>
             
             <Link 
               href="/world-cup-2026"
-              className="inline-flex items-center gap-4 bg-[#E61D25] text-white font-black text-xl sm:text-2xl px-12 py-6 rounded-full hover:bg-[#FFD700] hover:text-[#E61D25] hover:scale-105 transition-all duration-300 shadow-[0_10px_30px_rgba(230,29,37,0.4)]"
+              className="inline-flex items-center gap-4 bg-[#E61D25] !text-white font-black text-xl sm:text-2xl px-12 py-6 rounded-full hover:bg-[#FFD700] hover:text-[#E61D25] hover:scale-105 transition-all duration-300 shadow-[0_10px_30px_rgba(230,29,37,0.4)]"
             >
               <span>🚀 Explore World Cup Hub</span>
             </Link>
