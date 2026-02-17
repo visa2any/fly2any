@@ -128,7 +128,7 @@ export const article = {
               <h3 className="text-4xl font-black text-white drop-shadow-lg" style={{ color: '#ffffff', textShadow: '0 2px 4px rgba(0,0,0,0.8)' }}>01. Singapore Airlines</h3>
            </div>
            {/* Watermark */}
-           <div className="absolute bottom-6 right-6 w-32 z-20 opacity-80 drop-shadow-lg brightness-0 invert">
+           <div className="absolute top-6 right-6 w-32 z-20 opacity-80 drop-shadow-lg brightness-0 invert">
              <Image 
                src="/logo-transparent.png" 
                alt="Fly2Any" 
@@ -177,7 +177,7 @@ export const article = {
               <h3 className="text-4xl font-black text-white drop-shadow-lg" style={{ color: '#ffffff', textShadow: '0 2px 4px rgba(0,0,0,0.8)' }}>02. Qatar Airways</h3>
            </div>
             {/* Watermark */}
-           <div className="absolute bottom-6 right-6 w-32 z-20 opacity-80 drop-shadow-lg brightness-0 invert">
+           <div className="absolute top-6 right-6 w-32 z-20 opacity-80 drop-shadow-lg brightness-0 invert">
              <Image 
                src="/logo-transparent.png" 
                alt="Fly2Any" 
@@ -226,7 +226,7 @@ export const article = {
               <h3 className="text-4xl font-black text-white drop-shadow-lg" style={{ color: '#ffffff', textShadow: '0 2px 4px rgba(0,0,0,0.8)' }}>03. ANA (All Nippon Airways)</h3>
            </div>
             {/* Watermark */}
-           <div className="absolute bottom-6 right-6 w-32 z-20 opacity-80 drop-shadow-lg brightness-0 invert">
+           <div className="absolute top-6 right-6 w-32 z-20 opacity-80 drop-shadow-lg brightness-0 invert">
              <Image 
                src="/logo-transparent.png" 
                alt="Fly2Any" 
@@ -275,7 +275,7 @@ export const article = {
               <h3 className="text-4xl font-black text-white drop-shadow-lg" style={{ color: '#ffffff', textShadow: '0 2px 4px rgba(0,0,0,0.8)' }}>04. Emirates</h3>
            </div>
             {/* Watermark */}
-           <div className="absolute bottom-6 right-6 w-32 z-20 opacity-80 drop-shadow-lg brightness-0 invert">
+           <div className="absolute top-6 right-6 w-32 z-20 opacity-80 drop-shadow-lg brightness-0 invert">
              <Image 
                src="/logo-transparent.png" 
                alt="Fly2Any" 
@@ -324,7 +324,7 @@ export const article = {
               <h3 className="text-4xl font-black text-white drop-shadow-lg" style={{ color: '#ffffff', textShadow: '0 2px 4px rgba(0,0,0,0.8)' }}>05. Delta Air Lines</h3>
            </div>
             {/* Watermark */}
-           <div className="absolute bottom-6 right-6 w-32 z-20 opacity-80 drop-shadow-lg brightness-0 invert">
+           <div className="absolute top-6 right-6 w-32 z-20 opacity-80 drop-shadow-lg brightness-0 invert">
              <Image 
                src="/logo-transparent.png" 
                alt="Fly2Any" 
@@ -456,13 +456,13 @@ export const article = {
             </li>
              <li>
                 <span className="mr-2">📉</span>
-                <Link href="/blog/pricing-strategies" className="text-blue-600 font-bold hover:underline">
+                <Link href="/blog/nyc-paris-flights-2026" className="text-blue-600 font-bold hover:underline">
                     Read our guide on Flight Pricing Strategies to book at the right time
                 </Link>
             </li>
              <li>
                 <span className="mr-2">🌍</span>
-                <Link href="/world-cup-2026" className="text-blue-600 font-bold hover:underline">
+                <Link href="/blog/usa-world-cup-visa-guide-2026" className="text-blue-600 font-bold hover:underline">
                     Planning for 2026? Explore our comprehensive World Cup Travel Hub
                 </Link>
             </li>
