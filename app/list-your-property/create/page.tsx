@@ -10,7 +10,7 @@ import {
   Check, ArrowRight, Home, Info, Shield, Layers, Calendar, Sparkles
 } from 'lucide-react';
 import {
-  PropertyType, PROPERTY_TYPES_INFO,
+  PropertyType, PROPERTY_TYPES_INFO, BUILDING_TYPES,
   type WizardStep
 } from '@/lib/properties/types';
 
@@ -80,6 +80,14 @@ export default function CreatePropertyPage() {
       country: '',
       latitude: 0,
       longitude: 0,
+    },
+
+    // Building & Access
+    building: {
+      buildingType: '' as string,
+      totalFloors: undefined as number | undefined,
+      propertyFloor: undefined as number | undefined,
+      hasElevator: false,
     },
 
     // Spaces/Rooms
@@ -159,7 +167,15 @@ export default function CreatePropertyPage() {
           amenities: data.amenities || [],
           highlights: [] as string[],
           languages: [] as string[],
-          accessibilityFeatures: [] as string[],
+          accessibilityFeatures: (data.amenities || []).filter(a => 
+            PROPERTY_AMENITY_CATEGORIES.accessibility.options.includes(a as any)
+          ),
+
+          // Building & Access
+          buildingType: data.building.buildingType || null,
+          totalFloors: data.building.totalFloors ?? null,
+          propertyFloor: data.building.propertyFloor ?? null,
+          hasElevator: data.building.hasElevator ?? false,
 
           // Photos
           images: data.images || [],
@@ -804,6 +820,72 @@ export default function CreatePropertyPage() {
                     initialLocation={formData.location}
                     onLocationSelect={(loc) => setFormData(p => ({ ...p, location: loc }))}
                 />
+            </div>
+
+            {/* Building & Access Section */}
+            <div className="flex-shrink-0 mt-6 space-y-4">
+                <h3 className="text-lg font-bold text-gray-900">Building & Access Details</h3>
+                <p className="text-sm text-gray-500">Help guests understand the physical setup — especially important for accessibility.</p>
+                
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                    {/* Building Type */}
+                    <div className="space-y-1">
+                        <label className="block text-sm font-semibold text-gray-700">Building Type</label>
+                        <select
+                            value={formData.building.buildingType}
+                            onChange={(e) => setFormData(p => ({ ...p, building: { ...p.building, buildingType: e.target.value } }))}
+                            className="w-full p-3 bg-white border border-neutral-300 rounded-xl focus:ring-2 focus:ring-primary-500 outline-none text-gray-900"
+                        >
+                            <option value="">Select...</option>
+                            {Object.entries(BUILDING_TYPES).map(([key, label]) => (
+                                <option key={key} value={key}>{label}</option>
+                            ))}
+                        </select>
+                    </div>
+
+                    {/* Property Floor */}
+                    <div className="space-y-1">
+                        <label className="block text-sm font-semibold text-gray-700">Which Floor?</label>
+                        <input
+                            type="number"
+                            min={0}
+                            value={formData.building.propertyFloor ?? ''}
+                            onChange={(e) => setFormData(p => ({ ...p, building: { ...p.building, propertyFloor: e.target.value ? parseInt(e.target.value) : undefined } }))}
+                            placeholder="e.g. 3"
+                            className="w-full p-3 bg-white border border-neutral-300 rounded-xl focus:ring-2 focus:ring-primary-500 outline-none text-gray-900"
+                        />
+                        <p className="text-[11px] text-gray-400">0 = Ground floor</p>
+                    </div>
+
+                    {/* Total Floors */}
+                    <div className="space-y-1">
+                        <label className="block text-sm font-semibold text-gray-700">Total Floors</label>
+                        <input
+                            type="number"
+                            min={1}
+                            value={formData.building.totalFloors ?? ''}
+                            onChange={(e) => setFormData(p => ({ ...p, building: { ...p.building, totalFloors: e.target.value ? parseInt(e.target.value) : undefined } }))}
+                            placeholder="e.g. 5"
+                            className="w-full p-3 bg-white border border-neutral-300 rounded-xl focus:ring-2 focus:ring-primary-500 outline-none text-gray-900"
+                        />
+                    </div>
+
+                    {/* Elevator */}
+                    <div className="space-y-1">
+                        <label className="block text-sm font-semibold text-gray-700">Elevator</label>
+                        <button
+                            type="button"
+                            onClick={() => setFormData(p => ({ ...p, building: { ...p.building, hasElevator: !p.building.hasElevator } }))}
+                            className={`w-full p-3 rounded-xl border-2 font-semibold transition-all ${
+                                formData.building.hasElevator
+                                    ? 'border-emerald-500 bg-emerald-50 text-emerald-700'
+                                    : 'border-neutral-300 bg-white text-gray-500 hover:border-neutral-400'
+                            }`}
+                        >
+                            {formData.building.hasElevator ? '✅ Yes' : '❌ No'}
+                        </button>
+                    </div>
+                </div>
             </div>
 
             <div className="flex-shrink-0 mt-4 bg-blue-50 p-4 rounded-xl flex items-start gap-3 text-blue-800 text-sm">

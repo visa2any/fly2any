@@ -136,6 +136,10 @@ export async function POST(request: NextRequest) {
         ecoFeatures: body.ecoFeatures || [],
         ecoCertifications: body.ecoCertifications || [],
         status: body.status || 'draft',
+        buildingType: body.buildingType || null,
+        totalFloors: body.totalFloors ?? null,
+        propertyFloor: body.propertyFloor ?? null,
+        hasElevator: body.hasElevator ?? false,
         rooms: {
           create: body.rooms?.map((room: any) => ({
             name: room.name,

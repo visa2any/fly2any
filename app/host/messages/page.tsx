@@ -1,8 +1,7 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { useSession } from 'next-auth/react';
-import { MaxWidthContainer } from '@/components/layout/MaxWidthContainer';
 import { Loader2, MessageSquare, Search, Send, User } from 'lucide-react';
 import { format } from 'date-fns';
 import Image from 'next/image';
@@ -14,6 +13,7 @@ interface Conversation {
   lastMessageAt: string;
   unreadCountHost: number;
   guest: { id: string; name: string; image: string | null };
+  host: { id: string; name: string; image: string | null };
   property: { id: string; name: string; coverImageUrl: string | null };
 }
 
@@ -24,6 +24,8 @@ interface Message {
   sender: { id: string; name: string; image: string | null };
 }
 
+const POLL_INTERVAL = 15000; // 15 seconds
+
 export default function MessagesPage() {
   const { data: session } = useSession();
   const currentUserId = session?.user?.id || '';
@@ -33,89 +35,137 @@ export default function MessagesPage() {
   const [newMessage, setNewMessage] = useState('');
   const [loading, setLoading] = useState(true);
   const [loadingMessages, setLoadingMessages] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
+  const messagesEndRef = useRef<HTMLDivElement>(null);
+  const [showSidebar, setShowSidebar] = useState(true);
+
+  // Scroll to bottom when messages change
+  useEffect(() => {
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  }, [messages]);
 
   // Fetch conversations
-  useEffect(() => {
-    async function fetchConvos() {
-      try {
-        const res = await fetch('/api/host/messages');
-        if (res.ok) {
-            const data = await res.json();
-            setConversations(data.data || []);
-            if (data.data?.length > 0) setActiveConversationId(data.data[0].id);
+  const fetchConversations = useCallback(async () => {
+    try {
+      const res = await fetch('/api/host/messages');
+      if (res.ok) {
+        const data = await res.json();
+        setConversations(data.data || []);
+        if (!activeConversationId && data.data?.length > 0) {
+          setActiveConversationId(data.data[0].id);
         }
-      } catch (e) { console.error(e); }
-      setLoading(false);
-    }
-    fetchConvos();
-  }, []);
+      }
+    } catch (e) { console.error(e); }
+  }, [activeConversationId]);
+
+  useEffect(() => {
+    fetchConversations().then(() => setLoading(false));
+  }, [fetchConversations]);
 
   // Fetch messages when active conversation changes
+  const fetchMessages = useCallback(async () => {
+    if (!activeConversationId) return;
+    try {
+      const res = await fetch(`/api/host/messages/${activeConversationId}`);
+      if (res.ok) {
+        const data = await res.json();
+        setMessages(data.data || []);
+      }
+    } catch (e) { console.error(e); }
+  }, [activeConversationId]);
+
   useEffect(() => {
     if (!activeConversationId) return;
-    async function fetchMessages() {
-      setLoadingMessages(true);
-      try {
-        const res = await fetch(`/api/host/messages/${activeConversationId}`);
-        if (res.ok) {
-            const data = await res.json();
-            setMessages(data.data || []);
-        }
-      } catch (e) { console.error(e); }
-      setLoadingMessages(false);
-    }
-    fetchMessages();
-  }, [activeConversationId]);
+    setLoadingMessages(true);
+    fetchMessages().then(() => setLoadingMessages(false));
+  }, [activeConversationId, fetchMessages]);
+
+  // Poll for new messages and conversation updates
+  useEffect(() => {
+    const interval = setInterval(() => {
+      fetchConversations();
+      if (activeConversationId) fetchMessages();
+    }, POLL_INTERVAL);
+    return () => clearInterval(interval);
+  }, [fetchConversations, fetchMessages, activeConversationId]);
 
   const handleSendMessage = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!newMessage.trim() || !activeConversationId) return;
 
+    const content = newMessage.trim();
+    // Optimistic update
+    const optimisticMsg: Message = {
+      id: 'temp-' + Date.now(),
+      content,
+      createdAt: new Date().toISOString(),
+      sender: { id: currentUserId || 'me', name: session?.user?.name || 'Me', image: session?.user?.image || null } 
+    };
+    setMessages(prev => [...prev, optimisticMsg]);
+    setNewMessage('');
+
     try {
-        // Optimistic update
-        const optimisticMsg: Message = {
-            id: 'temp-' + Date.now(),
-            content: newMessage,
-            createdAt: new Date().toISOString(),
-            sender: { id: currentUserId || 'me', name: session?.user?.name || 'Me', image: session?.user?.image || null } 
-        };
-        setMessages(prev => [...prev, optimisticMsg]);
-        setNewMessage('');
+      const res = await fetch(`/api/host/messages/${activeConversationId}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ content })
+      });
 
-        const res = await fetch(`/api/host/messages/${activeConversationId}`, {
-            method: 'POST',
-            body: JSON.stringify({ content: optimisticMsg.content })
-        });
-
-        if (!res.ok) throw new Error("Failed");
-        
-        // Refresh to get real ID and server state if needed, or just let it be
-    } catch (e) {
-        alert("Failed to send message");
+      if (!res.ok) throw new Error('Failed');
+      
+      // Refresh to get real message and updated conversation
+      fetchMessages();
+      fetchConversations();
+    } catch {
+      alert('Failed to send message');
+      setMessages(prev => prev.filter(m => m.id !== optimisticMsg.id));
+      setNewMessage(content);
     }
   };
 
+  // Filter conversations by search
+  const filteredConversations = searchQuery
+    ? conversations.filter(c =>
+        c.guest.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        c.property?.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        c.lastMessage?.toLowerCase().includes(searchQuery.toLowerCase())
+      )
+    : conversations;
+
   if (loading) return <div className="h-screen flex items-center justify-center"><Loader2 className="animate-spin" /></div>;
+
+  const activeConversation = conversations.find(c => c.id === activeConversationId);
 
   return (
     <div className="h-[calc(100vh-64px)] bg-white flex flex-col md:flex-row overflow-hidden">
         {/* Sidebar List */}
-        <div className="w-full md:w-80 lg:w-96 border-r border-neutral-200 flex flex-col h-full bg-neutral-50">
+        <div className={cn(
+          "w-full md:w-80 lg:w-96 border-r border-neutral-200 flex flex-col h-full bg-neutral-50",
+          !showSidebar && "hidden md:flex"
+        )}>
             <div className="p-4 border-b border-neutral-200 bg-white">
                 <h2 className="text-xl font-bold mb-4">Messages</h2>
                 <div className="relative">
                     <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
-                    <input type="text" placeholder="Search guests..." className="w-full pl-9 pr-4 py-2 rounded-lg bg-neutral-100 border-none focus:ring-2 focus:ring-primary-500 text-sm" />
+                    <input
+                      type="text"
+                      value={searchQuery}
+                      onChange={(e) => setSearchQuery(e.target.value)}
+                      placeholder="Search guests or properties..."
+                      className="w-full pl-9 pr-4 py-2 rounded-lg bg-neutral-100 border-none focus:ring-2 focus:ring-primary-500 text-sm"
+                    />
                 </div>
             </div>
             <div className="flex-1 overflow-y-auto">
-                {conversations.length === 0 ? (
-                    <div className="p-8 text-center text-gray-500 text-sm">No messages yet.</div>
+                {filteredConversations.length === 0 ? (
+                    <div className="p-8 text-center text-gray-500 text-sm">
+                      {searchQuery ? `No results for "${searchQuery}"` : 'No messages yet.'}
+                    </div>
                 ) : (
-                    conversations.map(conv => (
+                    filteredConversations.map(conv => (
                         <button 
                             key={conv.id}
-                            onClick={() => setActiveConversationId(conv.id)}
+                            onClick={() => { setActiveConversationId(conv.id); setShowSidebar(false); }}
                             className={cn(
                                 "w-full p-4 flex gap-3 hover:bg-white transition-colors border-b border-neutral-100 text-left",
                                 activeConversationId === conv.id ? "bg-white border-l-4 border-l-primary-600 shadow-sm" : "border-l-4 border-l-transparent"
@@ -131,11 +181,11 @@ export default function MessagesPage() {
                             </div>
                             <div className="flex-1 min-w-0">
                                 <div className="flex justify-between items-center mb-1">
-                                    <span className="font-bold text-sm text-gray-900 truncate">{conv.guest.name}</span>
+                                    <span className={cn("font-bold text-sm truncate", conv.unreadCountHost > 0 ? "text-gray-900" : "text-gray-700")}>{conv.guest.name}</span>
                                     <span className="text-[10px] text-gray-400 whitespace-nowrap">{format(new Date(conv.lastMessageAt), 'MMM d')}</span>
                                 </div>
                                 <p className="text-xs text-gray-500 truncate font-medium">{conv.property?.name}</p>
-                                <p className="text-sm text-gray-600 truncate mt-1">{conv.lastMessage}</p>
+                                <p className={cn("text-sm truncate mt-1", conv.unreadCountHost > 0 ? "text-gray-900 font-semibold" : "text-gray-600")}>{conv.lastMessage}</p>
                             </div>
                         </button>
                     ))
@@ -144,25 +194,33 @@ export default function MessagesPage() {
         </div>
 
         {/* Chat Window */}
-        <div className="flex-1 flex flex-col h-full bg-white">
-            {activeConversationId ? (
+        <div className={cn("flex-1 flex flex-col h-full bg-white", showSidebar && "hidden md:flex")}>
+            {activeConversationId && activeConversation ? (
                 <>
                     <div className="p-4 border-b border-neutral-100 flex items-center justify-between">
                          <div className="flex items-center gap-3">
-                             {/* Guest Info Header */}
+                             {/* Mobile back button */}
+                             <button onClick={() => setShowSidebar(true)} className="md:hidden p-1 -ml-1 text-gray-500 hover:text-gray-900">
+                               ←
+                             </button>
                              <h3 className="font-bold text-gray-900">
-                                 {conversations.find(c => c.id === activeConversationId)?.guest.name}
+                                 {activeConversation.guest.name}
                              </h3>
+                             <span className="text-xs text-gray-400">• {activeConversation.property?.name}</span>
                          </div>
                     </div>
 
                     <div className="flex-1 overflow-y-auto p-4 space-y-4 bg-white">
                          {loadingMessages ? (
                              <div className="flex justify-center p-8"><Loader2 className="animate-spin text-gray-300" /></div>
+                         ) : messages.length === 0 ? (
+                             <div className="flex flex-col items-center justify-center h-full text-gray-400">
+                                <MessageSquare className="w-12 h-12 mb-2 opacity-20" />
+                                <p className="text-sm">No messages in this conversation yet.</p>
+                             </div>
                          ) : (
                              messages.map(msg => {
-                                 const isMe = msg.sender.id === currentUserId || msg.sender.id === 'me' || conversations.find(c => c.id === activeConversationId)?.guest.id !== msg.sender.id; // Rough sender check logic
-                                 // Ideally we check session.user.id but for quick UI we assume if senderId != guestId its me
+                                 const isMe = msg.sender.id === currentUserId || msg.sender.id === 'me';
                                  return (
                                      <div key={msg.id} className={cn("flex", isMe ? "justify-end" : "justify-start")}>
                                          <div className={cn(
@@ -178,6 +236,7 @@ export default function MessagesPage() {
                                  );
                              })
                          )}
+                         <div ref={messagesEndRef} />
                     </div>
 
                     {/* AI Quick Response Suggestions */}

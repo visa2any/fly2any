@@ -4210,6 +4210,10 @@ model Property {
   phone                 String?
   email                 String?
   website               String?
+  buildingType          String?                // house, apartment_building, condo, townhouse, high_rise
+  totalFloors           Int?                   // Total floors in the building
+  propertyFloor         Int?                   // Which floor the unit is on
+  hasElevator           Boolean                @default(false)
   amenities             String[]
   highlights            String[]
   languages             String[]

@@ -121,6 +121,10 @@ export async function PUT(
         ...(body.ecoFeatures !== undefined && { ecoFeatures: body.ecoFeatures }),
         ...(body.ecoCertifications !== undefined && { ecoCertifications: body.ecoCertifications }),
         ...(body.status !== undefined && { status: body.status }),
+        ...(body.buildingType !== undefined && { buildingType: body.buildingType }),
+        ...(body.totalFloors !== undefined && { totalFloors: body.totalFloors }),
+        ...(body.propertyFloor !== undefined && { propertyFloor: body.propertyFloor }),
+        ...(body.hasElevator !== undefined && { hasElevator: body.hasElevator }),
       },
     });
 

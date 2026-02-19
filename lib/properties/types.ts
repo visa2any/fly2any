@@ -458,6 +458,25 @@ export const PROPERTY_AMENITY_CATEGORIES = {
     label: 'Eco & Sustainability',
     options: ['solar_panels', 'recycling', 'composting', 'organic_products', 'rainwater_harvesting', 'energy_efficient'],
   },
+  accessibility: {
+    label: 'Accessibility',
+    options: [
+      'wheelchair_accessible', 'step_free_access', 'wide_doorways', 'accessible_bathroom',
+      'grab_bars', 'roll_in_shower', 'accessible_parking', 'elevator_access',
+      'ground_floor_access', 'hearing_accessible', 'visual_aids', 'service_animals_welcome',
+    ],
+  },
+} as const;
+
+export const BUILDING_TYPES = {
+  house: 'Standalone House',
+  apartment_building: 'Apartment Building',
+  condo: 'Condominium',
+  townhouse: 'Townhouse',
+  high_rise: 'High Rise',
+  low_rise: 'Low Rise',
+  duplex: 'Duplex',
+  loft: 'Loft',
 } as const;
 
 export const PROPERTY_TYPES_INFO: Record<PropertyType, { label: string; icon: string; description: string }> = {
