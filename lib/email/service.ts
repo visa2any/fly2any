@@ -3,13 +3,13 @@
  * Handles all transactional emails for the booking system
  */
 
-import { mailgunClient, MAILGUN_CONFIG } from '@/lib/email/mailgun-client';
+import { resendClient, RESEND_CONFIG } from '@/lib/email/resend-client';
 import type { Booking } from '@/lib/bookings/types';
 
 // Configuration
-const FROM_EMAIL = MAILGUN_CONFIG.fromEmail;
+const FROM_EMAIL = RESEND_CONFIG.fromEmail;
 const COMPANY_NAME = 'Fly2Any';
-const SUPPORT_EMAIL = 'support@fly2any.com';
+const SUPPORT_EMAIL = 'fly2any.travel@gmail.com';
 const ADMIN_EMAIL = process.env.ADMIN_EMAIL || 'admin@fly2any.com';
 
 // Email failure tracking (for retry logic)
@@ -57,13 +57,13 @@ async function notifyAdminOfEmailFailure(
   console.error('🚨 ==========================================');
 
   // Try to notify admin via Mailgun
-  if (!mailgunClient.isConfigured()) {
+  if (!resendClient.isConfigured()) {
     console.error('⚠️  Cannot send admin notification - MAILGUN_API_KEY not configured');
     return;
   }
 
   try {
-    await mailgunClient.send({
+    await resendClient.send({
       from: FROM_EMAIL,
       to: ADMIN_EMAIL,
       subject: `🚨 Email Delivery Failed - ${emailType}`,
@@ -955,7 +955,7 @@ export async function sendPaymentInstructionsEmail(booking: Booking): Promise<bo
     console.log(`   To: ${booking.contactInfo.email}`);
     console.log(`   Subject: ${subject}`);
 
-    const result = await mailgunClient.send({
+    const result = await resendClient.send({
       from: FROM_EMAIL,
       to: booking.contactInfo.email,
       subject,
@@ -999,7 +999,7 @@ export async function sendCardPaymentProcessingEmail(booking: Booking): Promise<
     console.log(`   To: ${booking.contactInfo.email}`);
     console.log(`   Subject: ${subject}`);
 
-    const result = await mailgunClient.send({
+    const result = await resendClient.send({
       from: FROM_EMAIL,
       to: booking.contactInfo.email,
       subject,
@@ -1038,7 +1038,7 @@ export async function sendBookingConfirmationEmail(booking: Booking): Promise<bo
     console.log(`   To: ${booking.contactInfo.email}`);
     console.log(`   Subject: ${subject}`);
 
-    const result = await mailgunClient.send({
+    const result = await resendClient.send({
       from: FROM_EMAIL,
       to: booking.contactInfo.email,
       subject,
@@ -1214,7 +1214,7 @@ export async function sendPriceAlertEmail(
     console.log(`   To: ${email}`);
     console.log(`   Subject: ${subject}`);
 
-    const result = await mailgunClient.send({
+    const result = await resendClient.send({
       from: FROM_EMAIL,
       to: email,
       subject,
@@ -1567,7 +1567,7 @@ export async function sendTicketedConfirmationEmail(booking: Booking): Promise<b
     console.log(`   Subject: ${subject}`);
     console.log(`   PNR: ${booking.airlineRecordLocator}`);
 
-    const result = await mailgunClient.send({
+    const result = await resendClient.send({
       from: FROM_EMAIL,
       to: booking.contactInfo.email,
       subject,
@@ -1740,7 +1740,7 @@ export async function sendEmailVerificationEmail(
     console.log('📧 Sending email verification email via Mailgun...');
     console.log(`   To: ${email}`);
 
-    const result = await mailgunClient.send({
+    const result = await resendClient.send({
       from: FROM_EMAIL,
       to: email,
       subject,
@@ -1958,7 +1958,7 @@ export async function sendAbandonedBookingEmail(
     console.log(`   To: ${email}`);
     console.log(`   Route: ${data.origin} → ${data.destination}`);
 
-    const result = await mailgunClient.send({
+    const result = await resendClient.send({
       from: FROM_EMAIL,
       to: email,
       subject,
@@ -2171,7 +2171,7 @@ export async function sendAbandonedSearchEmail(
     console.log(`   To: ${email}`);
     console.log(`   Route: ${data.origin} → ${data.destination}`);
 
-    const result = await mailgunClient.send({
+    const result = await resendClient.send({
       from: FROM_EMAIL,
       to: email,
       subject,
@@ -2207,3 +2207,4 @@ export const emailService = {
   getEmailFailures,
   clearEmailFailures,
 };
+

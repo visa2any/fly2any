@@ -9,7 +9,7 @@
 
 import { aiEmailEngine, UserContext, EmailIntent, AIDecisionResult } from './ai-decision-engine';
 import { emailService } from './service';
-import { mailgunClient } from './mailgun-client';
+import { resendClient } from './resend-client';
 import prisma from '@/lib/prisma';
 
 // ===================================
@@ -488,3 +488,4 @@ export const triggerBookingConfirmed = (email: string, data: any, userId?: strin
 
 export const triggerUserSignup = (email: string, data: any, userId?: string) =>
   triggerEmailEvent('user_signup', email, data, userId);
+

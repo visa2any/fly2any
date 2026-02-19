@@ -31,9 +31,20 @@ const ToastContext = createContext<ToastContextValue | undefined>(undefined);
 
 export function useToast() {
   const context = useContext(ToastContext);
+  
+  // Return a safe fallback if context is missing (SSR or misconfiguration)
   if (!context) {
-    throw new Error('useToast must be used within ToastProvider');
+    return {
+      toasts: [],
+      addToast: () => '',
+      removeToast: () => {},
+      success: () => '',
+      error: () => '',
+      warning: () => '',
+      info: () => '',
+    };
   }
+  
   return context;
 }
 

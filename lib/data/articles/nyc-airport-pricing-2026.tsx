@@ -5,7 +5,7 @@ export const article = {
   slug: 'jfk-vs-newark-vs-laguardia-airport-pricing-2026',
   title: 'JFK vs Newark vs LaGuardia: Which NYC Airport Really Saves You Money on International Flights?',
   excerpt: 'Choosing the wrong NYC airport can cost you hundreds. Learn how JFK, Newark, and LaGuardia pricing really works for international flights.',
-  category: 'guide',
+  category: 'analysis',
   author: {
     name: 'James Mitchell',
     role: 'Senior Aviation Analyst',

@@ -4,7 +4,7 @@
  * Uses Mailgun for email delivery
  */
 
-import { mailgunClient } from '@/lib/email/mailgun-client'
+import { resendClient } from '@/lib/email/resend-client'
 
 
 // Configuration
@@ -34,7 +34,7 @@ interface AffiliateApprovalData {
  * Send welcome email to new affiliate applicant
  */
 export async function sendAffiliateWelcomeEmail(data: AffiliateRegistrationData) {
-  if (!mailgunClient.isConfigured()) {
+  if (!resendClient.isConfigured()) {
     console.warn('⚠️  Email service not configured (RESEND_API_KEY missing)')
     return { success: false, message: 'Email service not configured' }
   }
@@ -179,7 +179,7 @@ export async function sendAffiliateWelcomeEmail(data: AffiliateRegistrationData)
 </html>
     `
 
-    const result = await mailgunClient.send({
+    const result = await resendClient.send({
       from: FROM_EMAIL,
       to: data.email,
       subject,
@@ -198,7 +198,7 @@ export async function sendAffiliateWelcomeEmail(data: AffiliateRegistrationData)
  * Send approval email to affiliate
  */
 export async function sendAffiliateApprovalEmail(data: AffiliateApprovalData) {
-  if (!mailgunClient.isConfigured()) {
+  if (!resendClient.isConfigured()) {
     console.warn('⚠️  Email service not configured (RESEND_API_KEY missing)')
     return { success: false, message: 'Email service not configured' }
   }
@@ -306,7 +306,7 @@ export async function sendAffiliateApprovalEmail(data: AffiliateApprovalData) {
 </html>
     `
 
-    const result = await mailgunClient.send({
+    const result = await resendClient.send({
       from: FROM_EMAIL,
       to: data.email,
       subject,
@@ -325,7 +325,7 @@ export async function sendAffiliateApprovalEmail(data: AffiliateApprovalData) {
  * Send notification to admin about new affiliate application
  */
 export async function sendAdminAffiliateNotification(data: AffiliateRegistrationData) {
-  if (!mailgunClient.isConfigured()) {
+  if (!resendClient.isConfigured()) {
     console.warn('⚠️  Email service not configured (RESEND_API_KEY missing)')
     return { success: false, message: 'Email service not configured' }
   }
@@ -385,7 +385,7 @@ export async function sendAdminAffiliateNotification(data: AffiliateRegistration
 </html>
     `
 
-    const result = await mailgunClient.send({
+    const result = await resendClient.send({
       from: FROM_EMAIL,
       to: ADMIN_EMAIL,
       subject,
@@ -399,3 +399,4 @@ export async function sendAdminAffiliateNotification(data: AffiliateRegistration
     return { success: false, error }
   }
 }
+

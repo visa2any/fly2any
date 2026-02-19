@@ -5,7 +5,7 @@ export const article = {
   slug: 'why-flight-prices-change-airline-fares-2026',
   title: 'Why Flight Prices Change So Much — And How Airlines Really Set Fares in 2026',
   excerpt: 'Understanding airline pricing mechanics can help you make smarter travel decisions. Learn how airlines set fares, why prices fluctuate, and the real factors behind airfare changes.',
-  category: 'guide',
+  category: 'analysis',
   author: {
     name: 'James Mitchell',
     role: 'Senior Aviation Analyst',

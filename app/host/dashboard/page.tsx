@@ -47,7 +47,7 @@ export default async function HostDashboard() {
       // Stage 1: Fetch host profile first (needed for dependent queries)
       hostProfile = await prisma.propertyOwner.findFirst({
         where: { userId: session.user.id },
-        select: { verificationStatus: true, id: true },
+        select: { verificationStatus: true, id: true, payoutMethod: true },
       }).catch(() => null);
 
       // Stage 2: Run remaining queries in parallel
@@ -118,7 +118,7 @@ export default async function HostDashboard() {
           hasProperties={propertyCount > 0}
           isVerified={hostProfile?.verificationStatus === 'VERIFIED'}
           hasCalendarSetup={hasAvailability}
-          hasPayoutMethod={false}
+          hasPayoutMethod={!!hostProfile?.payoutMethod}
         />
 
         {/* ─── Zone 4: Stats Grid (Streaming) ─── */}

@@ -21,6 +21,15 @@
     --bottom-nav-height: 56px;
     --safe-area-bottom: env(safe-area-inset-bottom, 0px);
     --bottom-nav-total: calc(var(--bottom-nav-height) + var(--safe-area-bottom));
+    
+    /* Premium Brand Palette */
+    --midnight-navy: #0B1221;
+    --champagne-gold: #C6A86B;
+    --ivory: #FDFCF0;
+  }
+
+  .font-playfair {
+    font-family: var(--font-playfair), serif;
   }
 
   /* PWA Safe Area: Prevent browser chrome overlap */

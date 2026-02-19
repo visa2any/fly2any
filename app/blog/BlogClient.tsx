@@ -11,6 +11,10 @@ import {
 } from '@/lib/data/blog-posts';
 import type { BlogPost } from '@/lib/types/blog';
 import { HeroImmersive } from '@/components/blog/HeroImmersive';
+import { motion } from 'framer-motion';
+import { Clock, User, Calendar, TrendingUp, Sparkles } from 'lucide-react';
+import { BlogCardStats } from '@/components/blog/BlogCardStats';
+import { BlogBookmarkButton } from '@/components/blog/BlogBookmarkButton';
 
 /**
  * Blog Homepage Component
@@ -23,22 +27,29 @@ import { HeroImmersive } from '@/components/blog/HeroImmersive';
  */
 export default function BlogClient() {
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
+  const [searchQuery, setSearchQuery] = useState('');
 
   // Get data for different sections
   const featuredPosts = useMemo(() => getFeaturedPosts(), []);
   const activeDeals = useMemo(() => getActiveDeals(), []);
   const latestNews = useMemo(() => getLatestNews(3), []);
 
-  // Filter posts based on selected category
+  // Filter posts based on selected category AND search query
   const filteredPosts = useMemo(() => {
-    if (selectedCategory === 'all') {
-      return sampleBlogPosts;
-    }
-    return sampleBlogPosts.filter((post) => post.category === selectedCategory);
-  }, [selectedCategory]);
+    return sampleBlogPosts.filter((post) => {
+      const matchesCategory = selectedCategory === 'all' || post.category === selectedCategory;
+      const matchesSearch = !searchQuery || 
+        post.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        post.excerpt.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        post.tags.some(tag => tag.toLowerCase().includes(searchQuery.toLowerCase()));
+      
+      return matchesCategory && matchesSearch;
+    });
+  }, [selectedCategory, searchQuery]);
 
   const categories = [
     { id: 'all', label: 'All Posts', icon: '📚' },
+    { id: 'analysis', label: 'Intelligence', icon: '📊' },
     { id: 'blog', label: 'Travel Blog', icon: '✈️' },
     { id: 'deal', label: 'Deals', icon: '💰' },
     { id: 'guide', label: 'Guides', icon: '🗺️' },
@@ -50,13 +61,14 @@ export default function BlogClient() {
     <div className="min-h-screen bg-gray-50">
       {/* NEW: Stunning Immersive Hero Section */}
       <HeroImmersive
+        compact={!!searchQuery}
         language="en"
         flashDeals={activeDeals.map(deal => ({
           destination: deal.title.split(':')[0] || deal.title,
           price: deal.dealMetadata?.discountedPrice || 299,
           originalPrice: deal.dealMetadata?.originalPrice || 999,
           discount: deal.dealMetadata?.discount || 70,
-          image: '/patterns/hero-travel.jpg',
+          image: 'https://images.unsplash.com/photo-1436491865332-7a61a109cc05?w=1200&q=80',
         }))}
         stats={{
           travelers: 50000,
@@ -64,8 +76,7 @@ export default function BlogClient() {
           avgSavings: 65,
         }}
         onSearchSubmit={(query) => {
-          console.log('Search:', query);
-          // You can add search logic here later
+          setSearchQuery(query);
         }}
       />
 
@@ -175,60 +186,147 @@ export default function BlogClient() {
 
       {/* Content Grid */}
       <section className="container mx-auto px-4 pb-16">
+        {searchQuery && (
+          <div className="mb-8 flex items-center justify-between bg-blue-50 border border-blue-100 p-4 rounded-2xl">
+            <p className="text-blue-900 font-medium">
+              Showing results for: <span className="font-bold">"{searchQuery}"</span>
+              <span className="ml-2 text-blue-600 text-sm">({filteredPosts.length} matches found)</span>
+            </p>
+            <button 
+              onClick={() => setSearchQuery('')}
+              className="text-sm font-bold text-blue-600 hover:text-blue-800 transition-colors"
+            >
+              Clear Search
+            </button>
+          </div>
+        )}
+
         <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
           {filteredPosts.map((post) => (
             <Link
               key={post.id}
               href={`/blog/${post.slug}`}
-              className="bg-white rounded-lg shadow-md hover:shadow-xl transition-all overflow-hidden group"
+              className="bg-white rounded-3xl shadow-xl hover:shadow-2xl transition-all duration-500 overflow-hidden group border border-gray-100 flex flex-col h-full"
             >
-              <div className="aspect-video bg-gradient-to-br from-blue-500 to-purple-600 relative overflow-hidden">
+              <div className="relative aspect-[3/4] sm:aspect-[4/5] overflow-hidden">
                 {post.featuredImage?.url ? (
                   <Image
                     src={post.featuredImage.url}
                     alt={post.featuredImage.alt || post.title}
                     fill
-                    className="object-cover group-hover:scale-105 transition-transform duration-300"
+                    className="object-cover transition-transform duration-700 group-hover:scale-110"
                     sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
                   />
                 ) : (
-                  <div className="absolute inset-0 flex items-center justify-center">
+                  <div className="absolute inset-0 bg-blue-600 flex items-center justify-center">
                     <span className="text-6xl opacity-30">✈️</span>
                   </div>
                 )}
-                <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
-                <div className="absolute top-4 left-4">
-                  <span className="bg-blue-600 text-white text-xs font-bold px-3 py-1 rounded-full">
-                    {post.category.toUpperCase()}
-                  </span>
+                
+                {/* Advanced Gradient Overlay */}
+                <div className="absolute inset-0 bg-gradient-to-t from-black/95 via-black/40 to-transparent opacity-80 group-hover:opacity-100 transition-opacity duration-500" />
+                
+                {/* Dynamic Badges Container */}
+                <div className="absolute top-5 left-5 right-5 flex justify-between items-start z-10">
+                  <div className="flex flex-col gap-2 items-start">
+                    {/* Primary Category Badge */}
+                    <span className="bg-white/10 backdrop-blur-md border border-white/20 text-white text-[10px] font-black px-3 py-1.5 rounded-full uppercase tracking-widest shadow-lg flex items-center gap-1.5">
+                      {post.category === 'analysis' && <TrendingUp className="w-3 h-3 text-blue-400" />}
+                      {post.category === 'deal' && <Sparkles className="w-3 h-3 text-yellow-400" />}
+                      {post.category === 'analysis' ? 'Intelligence' : post.category}
+                    </span>
+
+                    {/* Secondary "NEW" Badge (if published within 48h) */}
+                    {(new Date().getTime() - new Date(post.publishedAt).getTime()) < (48 * 60 * 60 * 1000) && (
+                      <span className="bg-green-500 text-white text-[9px] font-bold px-2 py-1 rounded-sm uppercase tracking-tighter shadow-xl animate-pulse">
+                        New Article
+                      </span>
+                    )}
+
+                    {/* "LIVE" Pulse for Deals */}
+                    {post.category === 'deal' && (
+                      <div className="flex items-center gap-1.5 bg-black/40 backdrop-blur-sm px-2 py-1 rounded-full border border-red-500/30">
+                        <span className="relative flex h-1.5 w-1.5">
+                          <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
+                          <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-red-500"></span>
+                        </span>
+                        <span className="text-[8px] font-black text-red-400 uppercase tracking-widest">Live Deal</span>
+                      </div>
+                    )}
+                  </div>
+
+                  <BlogBookmarkButton postId={post.id} />
+                </div>
+
+                {/* Content Overlay - Permanently Visible */}
+                <div className="absolute inset-0 p-8 flex flex-col justify-end">
+                  <div className="transform transition-all duration-500">
+                    <h3 className="font-extrabold text-2xl sm:text-3xl text-white mb-4 leading-tight drop-shadow-2xl transition-colors">
+                      {post.title}
+                    </h3>
+                    
+                    <div className="transition-all duration-700 ease-in-out">
+                      <p className="text-white/90 text-sm mb-6 line-clamp-3 font-medium border-l-2 border-blue-500 pl-4 py-1">
+                        {post.excerpt}
+                      </p>
+                    </div>
+
+                    <div className="flex items-center gap-4 text-white/70 text-[10px] font-bold uppercase tracking-widest">
+                       <span className="flex items-center gap-1.5">
+                         <User className="w-3 h-3 text-blue-400" />
+                         {post.author.name}
+                       </span>
+                       <span className="flex items-center gap-1.5">
+                         <Clock className="w-3 h-3 text-blue-400" />
+                         {post.readTime}m read
+                       </span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Read Progress Visualizer */}
+                <div className="absolute bottom-0 left-0 right-0 h-1 bg-white/10 overflow-hidden">
+                  <motion.div 
+                    initial={{ width: 0 }}
+                    whileInView={{ width: '100%' }}
+                    transition={{ duration: 1.5, ease: "easeOut" }}
+                    className="h-full bg-blue-500/60 shadow-[0_0_10px_rgba(59,130,246,0.5)]"
+                  />
                 </div>
               </div>
 
-              <div className="p-6">
-                <h3 className="font-bold text-xl mb-2 line-clamp-2 group-hover:text-blue-600 transition-colors">
-                  {post.title}
-                </h3>
-                <p className="text-gray-600 text-sm mb-4 line-clamp-3">{post.excerpt}</p>
-
-                <div className="flex items-center justify-between text-sm text-gray-500">
-                  <div className="flex items-center gap-2">
-                    <span>{post.author.name}</span>
-                  </div>
-                  <span>{post.readTime} min read</span>
-                </div>
-
-                <div className="flex items-center gap-2 mt-4">
-                  <span className="text-gray-400" suppressHydrationWarning>👁️ {post.views?.toLocaleString()}</span>
-                  <span className="text-gray-400" suppressHydrationWarning>❤️ {post.likes?.toLocaleString()}</span>
-                </div>
+              {/* Minimal Card Footer for Stats */}
+              <div className="px-8 py-4 bg-gray-50/50 border-t border-gray-100 flex items-center justify-between mt-auto">
+                <BlogCardStats 
+                  postId={post.id} 
+                  initialViews={post.views || 0} 
+                  initialLikes={post.likes || 0} 
+                />
+                
+                <span className="text-blue-600 text-xs font-bold flex items-center gap-1 group-hover:translate-x-1 transition-transform">
+                  Explore <span className="text-[10px]">→</span>
+                </span>
               </div>
             </Link>
           ))}
         </div>
 
         {filteredPosts.length === 0 && (
-          <div className="text-center py-16">
-            <p className="text-gray-500 text-lg">No posts found in this category.</p>
+          <div className="text-center py-20 bg-white rounded-3xl border-2 border-dashed border-gray-200">
+            <div className="text-6xl mb-6">🔍</div>
+            <h3 className="text-2xl font-bold text-gray-900 mb-2">No articles found</h3>
+            <p className="text-gray-500 max-w-md mx-auto">
+              We couldn't find any articles matching "{searchQuery}". Try a different keyword or check another category.
+            </p>
+            <button 
+              onClick={() => {
+                setSearchQuery('');
+                setSelectedCategory('all');
+              }}
+              className="mt-8 px-8 py-3 bg-blue-600 text-white font-bold rounded-xl hover:bg-blue-700 transition-all active:scale-95"
+            >
+              Reset All Filters
+            </button>
           </div>
         )}
       </section>

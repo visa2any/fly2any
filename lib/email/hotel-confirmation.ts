@@ -5,11 +5,11 @@
  * @version 2.0.0 - Migrated from Resend to Mailgun for unified email infrastructure
  */
 
-import { mailgunClient, MAILGUN_CONFIG } from '@/lib/email/mailgun-client';
+import { resendClient, RESEND_CONFIG } from '@/lib/email/resend-client';
 import { format } from 'date-fns'
 
-const FROM_EMAIL = MAILGUN_CONFIG.fromEmail
-const REPLY_TO_EMAIL = MAILGUN_CONFIG.replyToEmail
+const FROM_EMAIL = RESEND_CONFIG.fromEmail
+const REPLY_TO_EMAIL = RESEND_CONFIG.replyToEmail
 const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL || 'https://fly2any.com'
 
 export interface HotelBookingEmailData {
@@ -264,7 +264,7 @@ Need help? Contact support: ${BASE_URL}/help/contact
 © ${new Date().getFullYear()} Fly2Any. All rights reserved.
     `
 
-    const result = await mailgunClient.send({
+    const result = await resendClient.send({
       from: FROM_EMAIL,
       to: data.guestEmail,
       replyTo: REPLY_TO_EMAIL,
@@ -294,7 +294,7 @@ export async function sendPreArrivalReminder(data: HotelBookingEmailData): Promi
   try {
     const checkIn = format(data.checkInDate, 'EEEE, MMMM d, yyyy')
 
-    const result = await mailgunClient.send({
+    const result = await resendClient.send({
       from: FROM_EMAIL,
       to: data.guestEmail,
       replyTo: REPLY_TO_EMAIL,
@@ -335,7 +335,7 @@ export async function sendCancellationEmail(
       ? new Intl.NumberFormat('en-US', { style: 'currency', currency: data.currency }).format(data.refundAmount)
       : 'No refund (non-refundable booking)'
 
-    const result = await mailgunClient.send({
+    const result = await resendClient.send({
       from: FROM_EMAIL,
       to: data.guestEmail,
       replyTo: REPLY_TO_EMAIL,
@@ -364,3 +364,4 @@ export async function sendCancellationEmail(
     return false
   }
 }
+

@@ -141,7 +141,7 @@ async function sendAgentStatusEmail(
   status: string,
   rejectionReason?: string
 ) {
-  const { mailgunClient, MAILGUN_CONFIG } = await import('@/lib/email/mailgun-client');
+  const { resendClient, RESEND_CONFIG } = await import('@/lib/email/resend-client');
 
   const agentName = agent.user.name || 'Travel Agent';
   const businessName = agent.agencyName || agentName;
@@ -262,14 +262,15 @@ async function sendAgentStatusEmail(
     return;
   }
 
-  await mailgunClient.send({
+  await resendClient.send({
     to: agent.user.email,
     subject,
     html,
-    from: MAILGUN_CONFIG.fromEmail,
+    from: RESEND_CONFIG.fromEmail,
     tags: ['agent-status', status.toLowerCase()],
     forceSend: true,
   });
 
   console.log(`[AGENT_EMAIL] Sent ${status} notification to ${agent.user.email}`);
 }
+

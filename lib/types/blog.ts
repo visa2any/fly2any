@@ -11,11 +11,12 @@ export enum ContentType {
   DEAL = 'deal',
   GUIDE = 'guide',
   TIP = 'tip',
-  STORY = 'story'
+  STORY = 'story',
+  ANALYSIS = 'analysis'
 }
 
 // Category type (union of string literals)
-export type CategoryType = 'blog' | 'news' | 'deal' | 'guide' | 'tip' | 'story';
+export type CategoryType = 'blog' | 'news' | 'deal' | 'guide' | 'tip' | 'story' | 'analysis';
 
 // Urgency levels for news and deals
 export enum UrgencyLevel {

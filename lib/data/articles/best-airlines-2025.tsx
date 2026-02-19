@@ -6,7 +6,7 @@ export const article = {
   slug: 'best-airlines-in-the-world-2025',
   title: 'Top 5 Best Airlines in the World in 2025 (Ranked by Service, Comfort, Innovation & Reliability)',
   excerpt: 'The definitive ranking of the world\'s best airlines for 2025. We analyze service, comfort, innovation, and reliability to help you fly smarter.',
-  category: 'guide',
+  category: 'analysis',
   author: {
     name: 'Sarah Jenkins',
     role: 'Senior Aviation Analyst & Global Travel Strategist',

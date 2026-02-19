@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Inter } from 'next/font/google';
+import { Inter, Playfair_Display } from 'next/font/google';
 import "./globals.css";
 import { GlobalLayout } from "@/components/layout/GlobalLayout";
 import { GlobalErrorBoundary } from "@/components/error/GlobalErrorBoundary";
@@ -31,6 +31,13 @@ const inter = Inter({
   preload: true,
   variable: '--font-inter',
   adjustFontFallback: true,
+});
+
+const playfair = Playfair_Display({
+  subsets: ['latin'],
+  display: 'swap',
+  preload: true,
+  variable: '--font-playfair',
 });
 
 export const metadata: Metadata = {
@@ -167,7 +174,7 @@ export default async function RootLayout({
         {/* Global Structured Data for SEO */}
         <StructuredData schema={globalSchemas} />
       </head>
-      <body className={inter.className} suppressHydrationWarning>
+      <body className={`${inter.variable} ${playfair.variable} ${inter.className} font-sans`} suppressHydrationWarning>
         {/* Skip to main content link for accessibility */}
         <a href="#main-content" className="skip-link">
           Skip to main content

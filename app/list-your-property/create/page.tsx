@@ -316,16 +316,88 @@ export default function CreatePropertyPage() {
   // Load draft if ID present
   useEffect(() => {
     if (editingId && status === 'authenticated') {
-    // ... existing load logic ...
        const fetchDraft = async () => {
          setIsLoading(true);
          try {
-            const res = await fetch(`/api/host/properties/${editingId}`);
+            const res = await fetch(`/api/properties/${editingId}`);
             if (res.ok) {
-                const data = await res.json();
-                // Merge data (mapper logic needed here to match generic state)
-                // For MVP, we assume backend returns matching shape or we map it
-                // setFormData(data); 
+                const json = await res.json();
+                const p = json.data;
+                if (p) {
+                  setFormData(prev => ({
+                    ...prev,
+                    title: p.name || '',
+                    description: p.description || '',
+                    type: (p.propertyType || 'apartment') as PropertyType,
+                    location: {
+                      address: p.addressLine1 || '',
+                      city: p.city || '',
+                      country: p.country || '',
+                      latitude: p.latitude || 0,
+                      longitude: p.longitude || 0,
+                    },
+                    specs: {
+                      guests: p.maxGuests || 2,
+                      bedrooms: p.totalBedrooms || 1,
+                      beds: p.totalBeds || 1,
+                      bathrooms: p.totalBathrooms || 1,
+                    },
+                    rooms: (p.rooms || []).map((r: any) => ({
+                      id: r.id,
+                      name: r.name || 'Room',
+                      roomType: r.roomType || 'standard',
+                      bedType: r.bedType || 'queen',
+                      bedCount: r.bedCount || 1,
+                      maxOccupancy: r.maxOccupancy || 2,
+                      quantity: r.quantity || 1,
+                      basePricePerNight: r.basePricePerNight || 0,
+                      amenities: r.amenities || [],
+                      bathroomType: r.bathroomType || 'private',
+                    })),
+                    amenities: p.amenities || [],
+                    images: (p.images || []).map((img: any) => ({
+                      id: img.id,
+                      url: img.url,
+                      caption: img.caption || '',
+                      category: img.category || 'general',
+                      isPrimary: img.isPrimary || false,
+                      tags: img.aiTags || [],
+                    })),
+                    policies: {
+                      checkInTime: p.checkInTime || '15:00',
+                      checkOutTime: p.checkOutTime || '11:00',
+                      checkInInstructions: p.checkInInstructions || '',
+                      cancellationPolicy: p.cancellationPolicy || 'flexible',
+                      cancellationDetails: p.cancellationDetails || undefined,
+                      petPolicy: p.petPolicy || 'not_allowed',
+                      smokingPolicy: p.smokingPolicy || 'not_allowed',
+                      childPolicy: p.childPolicy || 'all_ages',
+                      minAge: p.minAge ?? undefined,
+                      securityDeposit: p.securityDeposit ?? undefined,
+                      houseRules: p.houseRules || [],
+                      ecoFeatures: p.ecoFeatures || [],
+                      ecoCertifications: p.ecoCertifications || [],
+                    },
+                    pricing: {
+                      basePrice: p.basePricePerNight ?? 100,
+                      currency: p.currency || 'USD',
+                      cleaningFee: p.cleaningFee ?? 0,
+                      petFee: p.petFee ?? 0,
+                      extraGuestFee: p.extraGuestFee ?? 0,
+                      weekendPrice: p.weekendPrice ?? 0,
+                      smartPricing: p.smartPricing ?? false,
+                      weeklyDiscount: p.weeklyDiscount ?? 0,
+                      monthlyDiscount: p.monthlyDiscount ?? 0,
+                      minStay: p.minStay ?? 1,
+                      maxStay: p.maxStay ?? 0,
+                      instantBooking: p.instantBooking ?? true,
+                      taxRate: p.taxRate ?? 0,
+                    },
+                  }));
+                  toast.success('Draft loaded successfully');
+                }
+            } else {
+              toast.error("Could not find this property");
             }
          } catch (e) {
             console.error(e);
@@ -519,6 +591,29 @@ export default function CreatePropertyPage() {
   };
 
   const handlePublish = async () => {
+    // Validate ALL steps before publishing
+    const stepsToValidate: WizardStep[] = ['basics', 'location', 'spaces', 'amenities', 'photos', 'policies', 'pricing'];
+    const allErrors: string[] = [];
+    let firstFailingStep: WizardStep | null = null;
+
+    for (const step of stepsToValidate) {
+      const result = validateStep(step, formData);
+      if (!result.valid) {
+        allErrors.push(...result.errors);
+        if (!firstFailingStep) firstFailingStep = step;
+      }
+    }
+
+    if (allErrors.length > 0) {
+      // Show first 3 errors
+      allErrors.slice(0, 3).forEach(err => toast.error(err));
+      if (allErrors.length > 3) {
+        toast.error(`...and ${allErrors.length - 3} more issues to fix`);
+      }
+      if (firstFailingStep) setCurrentStep(firstFailingStep);
+      return;
+    }
+
     setIsSaving(true);
     try {
         const payload = preparePayload(formData);

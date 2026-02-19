@@ -6,6 +6,11 @@ import { useParams } from 'next/navigation';
 import Link from 'next/link';
 import { getPostsByCategory } from '@/lib/data/blog-posts';
 import type { BlogPost, CategoryType } from '@/lib/types/blog';
+import { Clock, User, Calendar, TrendingUp, Sparkles } from 'lucide-react';
+import { BlogCardStats } from '@/components/blog/BlogCardStats';
+import { BlogBookmarkButton } from '@/components/blog/BlogBookmarkButton';
+import { motion } from 'framer-motion';
+import Image from 'next/image';
 
 /**
  * Category Page Component
@@ -184,86 +189,113 @@ export default function CategoryPage() {
               <Link
                 key={post.id}
                 href={`/blog/${post.slug}`}
-                className="bg-white rounded-lg shadow-md hover:shadow-xl transition-all overflow-hidden group flex flex-col"
+                className="bg-white rounded-3xl shadow-xl hover:shadow-2xl transition-all duration-500 overflow-hidden group border border-gray-100 flex flex-col h-full"
               >
-                {/* Featured Image Placeholder */}
-                <div className="aspect-video bg-gray-200 relative overflow-hidden">
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
+                <div className="relative aspect-[3/4] sm:aspect-[4/5] overflow-hidden">
+                  {post.featuredImage?.url ? (
+                    <Image
+                      src={post.featuredImage.url}
+                      alt={post.featuredImage.alt || post.title}
+                      fill
+                      className="object-cover transition-transform duration-700 group-hover:scale-110"
+                      sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                    />
+                  ) : (
+                    <div className="absolute inset-0 bg-blue-600 flex items-center justify-center">
+                      <span className="text-6xl opacity-30">✈️</span>
+                    </div>
+                  )}
+                  
+                  {/* Advanced Gradient Overlay */}
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/95 via-black/40 to-transparent opacity-80 group-hover:opacity-100 transition-opacity duration-500" />
+                  
+                  {/* Dynamic Badges Container */}
+                  <div className="absolute top-5 left-5 right-5 flex justify-between items-start z-10">
+                    <div className="flex flex-col gap-2 items-start">
+                      {/* Primary Category & Featured Badge */}
+                      <div className="flex gap-2">
+                        {post.isFeatured && (
+                          <span className="bg-yellow-500/20 backdrop-blur-md border border-yellow-500/50 text-yellow-200 text-[10px] font-black px-3 py-1.5 rounded-full uppercase tracking-widest shadow-lg">
+                            ⭐ Featured
+                          </span>
+                        )}
+                        <span className="bg-white/10 backdrop-blur-md border border-white/20 text-white text-[10px] font-black px-3 py-1.5 rounded-full uppercase tracking-widest shadow-lg flex items-center gap-1.5">
+                          {post.category === 'analysis' && <TrendingUp className="w-3 h-3 text-blue-400" />}
+                          {post.category === 'deal' && <Sparkles className="w-3 h-3 text-yellow-400" />}
+                          {post.category === 'analysis' ? 'Intelligence' : post.category}
+                        </span>
+                      </div>
 
-                  {/* Badge */}
-                  <div className="absolute top-4 left-4">
-                    {post.isFeatured && (
-                      <span className="bg-yellow-500 text-white text-xs font-bold px-3 py-1 rounded-full">
-                        ⭐ Featured
-                      </span>
-                    )}
-                    {post.dealMetadata && (
-                      <span className="bg-red-600 text-white text-xs font-bold px-3 py-1 rounded-full ml-2">
-                        {post.dealMetadata.discount}% OFF
-                      </span>
-                    )}
+                      {/* Secondary "NEW" Badge (if published within 48h) */}
+                      {(new Date().getTime() - new Date(post.publishedAt).getTime()) < (48 * 60 * 60 * 1000) && (
+                        <span className="bg-green-500 text-white text-[9px] font-bold px-2 py-1 rounded-sm uppercase tracking-tighter shadow-xl animate-pulse">
+                          New Article
+                        </span>
+                      )}
+
+                      {/* "LIVE" Pulse for Deals */}
+                      {post.category === 'deal' && (
+                        <div className="flex items-center gap-1.5 bg-black/40 backdrop-blur-sm px-2 py-1 rounded-full border border-red-500/30">
+                          <span className="relative flex h-1.5 w-1.5">
+                            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
+                            <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-red-500"></span>
+                          </span>
+                          <span className="text-[8px] font-black text-red-400 uppercase tracking-widest">Live Deal</span>
+                        </div>
+                      )}
+                    </div>
+
+                    <BlogBookmarkButton postId={post.id} />
                   </div>
 
-                  {/* Title Overlay */}
-                  <div className="absolute bottom-4 left-4 right-4">
-                    <h3 className="text-white font-bold text-lg line-clamp-2 group-hover:text-blue-300 transition-colors">
-                      {post.title}
-                    </h3>
+                  {/* Content Overlay - Permanently Visible */}
+                  <div className="absolute inset-0 p-8 flex flex-col justify-end">
+                    <div className="transform transition-all duration-500">
+                      <h3 className="font-extrabold text-2xl sm:text-3xl text-white mb-4 leading-tight drop-shadow-2xl transition-colors">
+                        {post.title}
+                      </h3>
+                      
+                      <div className="transition-all duration-700 ease-in-out">
+                        <p className="text-white/90 text-sm mb-6 line-clamp-3 font-medium border-l-2 border-blue-500 pl-4 py-1">
+                          {post.excerpt}
+                        </p>
+                      </div>
+
+                      <div className="flex items-center gap-4 text-white/70 text-[10px] font-bold uppercase tracking-widest">
+                         <span className="flex items-center gap-1.5">
+                           <User className="w-3 h-3 text-blue-400" />
+                           {post.author.name}
+                         </span>
+                         <span className="flex items-center gap-1.5">
+                           <Clock className="w-3 h-3 text-blue-400" />
+                           {post.readTime}m read
+                         </span>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Read Progress Visualizer */}
+                  <div className="absolute bottom-0 left-0 right-0 h-1 bg-white/10 overflow-hidden">
+                    <motion.div 
+                      initial={{ width: 0 }}
+                      whileInView={{ width: '100%' }}
+                      transition={{ duration: 1.5, ease: "easeOut" }}
+                      className="h-full bg-blue-500/60 shadow-[0_0_10px_rgba(59,130,246,0.5)]"
+                    />
                   </div>
                 </div>
 
-                {/* Content */}
-                <div className="p-6 flex-1 flex flex-col">
-                  <p className="text-gray-600 text-sm mb-4 line-clamp-3 flex-1">
-                    {post.excerpt}
-                  </p>
-
-                  {/* Deal Info */}
-                  {post.dealMetadata && (
-                    <div className="mb-4 p-3 bg-amber-50 rounded-lg border border-amber-200">
-                      <div className="flex items-center justify-between">
-                        <div>
-                          <span className="text-2xl font-bold text-blue-600">
-                            ${post.dealMetadata.discountedPrice}
-                          </span>
-                          <span className="text-sm text-gray-400 line-through ml-2">
-                            ${post.dealMetadata.originalPrice}
-                          </span>
-                        </div>
-                        <span className="text-xs text-red-600 font-semibold">
-                          Expires:{' '}
-                          {Math.ceil(
-                            (new Date(post.dealMetadata.validUntil).getTime() -
-                              Date.now()) /
-                              (1000 * 60 * 60 * 24)
-                          )}
-                          d
-                        </span>
-                      </div>
-                    </div>
-                  )}
-
-                  {/* Meta */}
-                  <div className="flex items-center justify-between text-sm text-gray-500 pt-4 border-t border-gray-100">
-                    <div className="flex items-center gap-2">
-                      <div className="w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center text-white text-xs font-bold">
-                        {post.author.name.charAt(0)}
-                      </div>
-                      <span className="font-medium">{post.author.name}</span>
-                    </div>
-                    <span>{post.readTime} min</span>
-                  </div>
-
-                  {/* Stats */}
-                  <div className="flex items-center gap-4 mt-3 text-sm text-gray-400">
-                    <span className="flex items-center gap-1">
-                      <span>👁️</span> {post.views?.toLocaleString()}
-                    </span>
-                    <span className="flex items-center gap-1">
-                      <span>❤️</span> {post.likes?.toLocaleString()}
-                    </span>
-                    <span className="text-xs">{formatDate(post.publishedAt)}</span>
-                  </div>
+                {/* Minimal Card Footer for Stats */}
+                <div className="px-8 py-4 bg-gray-50/50 border-t border-gray-100 flex items-center justify-between mt-auto">
+                  <BlogCardStats 
+                    postId={post.id} 
+                    initialViews={post.views || 0} 
+                    initialLikes={post.likes || 0} 
+                  />
+                  
+                  <span className="text-blue-600 text-xs font-bold flex items-center gap-1 group-hover:translate-x-1 transition-transform">
+                    Explore <span className="text-[10px]">→</span>
+                  </span>
                 </div>
               </Link>
             ))}

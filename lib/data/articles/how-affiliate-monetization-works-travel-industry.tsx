@@ -1,7 +1,7 @@
 export const article = {
   slug: 'how-affiliate-monetization-works-travel-industry',
   title: 'How Affiliate Monetization Really Works in the Travel Industry',
-  category: 'Travel Industry Analysis',
+  category: 'analysis',
   author: 'Travel Industry Analyst',
   date: '2024-01-15',
   readTime: '4 min',

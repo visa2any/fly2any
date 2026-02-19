@@ -101,7 +101,7 @@ export default function NewsletterConfirmedPage() {
         <p className={`text-center text-sm text-gray-500 mt-6 transition-all duration-500 delay-1000 ${
           mounted ? 'opacity-100' : 'opacity-0'
         }`}>
-          Questions? <a href="mailto:support@fly2any.com" className="text-primary-600 hover:underline">support@fly2any.com</a>
+          Questions? <a href="mailto:fly2any.travel@gmail.com" className="text-primary-600 hover:underline">fly2any.travel@gmail.com</a>
         </p>
       </div>
     </main>

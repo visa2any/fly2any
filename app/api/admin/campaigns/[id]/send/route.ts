@@ -13,7 +13,7 @@ export const dynamic = 'force-dynamic';
 import { NextRequest, NextResponse } from 'next/server';
 import { auth } from '@/lib/auth';
 import { getPrismaClient } from '@/lib/prisma';
-import { mailgunClient } from '@/lib/email/mailgun-client';
+import { resendClient } from '@/lib/email/resend-client';
 
 export const runtime = 'nodejs';
 export const maxDuration = 300; // 5 minutes max for bulk sending
@@ -98,7 +98,7 @@ export async function POST(
         unsubscribeUrl: `https://www.fly2any.com/unsubscribe?email=${encodeURIComponent(testEmail)}`,
       });
 
-      const result = await mailgunClient.send({
+      const result = await resendClient.send({
         to: testEmail,
         subject: `[TEST] ${campaign.subject}`,
         html,
@@ -178,7 +178,7 @@ export async function POST(
               unsubscribeUrl: `https://www.fly2any.com/unsubscribe?email=${encodeURIComponent(subscriber.email)}`,
             });
 
-            const result = await mailgunClient.send({
+            const result = await resendClient.send({
               to: subscriber.email,
               subject: campaign.subject,
               html,

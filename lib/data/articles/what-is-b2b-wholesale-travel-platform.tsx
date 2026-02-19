@@ -6,7 +6,7 @@ const article = {
   slug: "what-is-b2b-wholesale-travel-platform",
   publishedDate: "2025-01-23",
   readTime: "9 min read",
-  category: "Travel Industry Analysis",
+  category: 'analysis',
   author: {
     name: "Travel Industry Analyst",
     role: "B2B Travel Technology Specialist"

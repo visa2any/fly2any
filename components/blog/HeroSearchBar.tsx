@@ -54,8 +54,22 @@ export function HeroSearchBar({ onSearch, size = 'lg', showTrending = false }: H
       </div>
       {showTrending && (
         <div className="mt-4 text-white/80 text-sm text-center">
-          <span className="mr-2">Trending:</span>
-          <span className="text-blue-300">Paris, Tokyo, Bali, Rome, Dubai</span>
+          <span className="mr-2 opacity-70">Trending:</span>
+          <div className="inline-flex flex-wrap justify-center gap-x-3 gap-y-1">
+            {['Paris', 'Tokyo', 'Bali', 'Rome', 'Dubai'].map((city) => (
+              <button
+                key={city}
+                type="button"
+                onClick={() => {
+                  setQuery(city);
+                  onSearch(city);
+                }}
+                className="text-blue-300 hover:text-white transition-colors duration-200"
+              >
+                {city}
+              </button>
+            ))}
+          </div>
         </div>
       )}
     </form>

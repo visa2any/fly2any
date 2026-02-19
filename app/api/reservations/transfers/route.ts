@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getSql } from '@/lib/db/connection';
-import { mailgunClient } from '@/lib/email/mailgun-client';
+import { resendClient } from '@/lib/email/resend-client';
 import { notifyTelegramAdmins, broadcastSSE } from '@/lib/notifications/notification-service';
 import { getPrismaClient } from '@/lib/prisma';
 import { auth } from '@/lib/auth';
@@ -229,7 +229,7 @@ export async function POST(request: NextRequest) {
         </html>
       `;
 
-      await mailgunClient.send({
+      await resendClient.send({
         to: email,
         subject: `🚗 Transfer Confirmed - ${bookingReference}`,
         html: emailHtml,
@@ -326,3 +326,4 @@ export async function POST(request: NextRequest) {
 
   }, { category: ErrorCategory.BOOKING, severity: ErrorSeverity.CRITICAL });
 }
+

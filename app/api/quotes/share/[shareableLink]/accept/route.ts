@@ -2,7 +2,7 @@
 // Client Accepts Quote - Public Endpoint
 import { NextRequest, NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
-import { mailgunClient } from '@/lib/email/mailgun-client';
+import { resendClient } from '@/lib/email/resend-client';
 
 
 
@@ -103,7 +103,7 @@ export async function POST(
 
     // Send notification email to agent
     try {
-      await mailgunClient.send({
+      await resendClient.send({
         to: quote.agent.user.email,
         subject: `🎉 Quote Accepted: ${quote.quoteNumber}`,
         html: `

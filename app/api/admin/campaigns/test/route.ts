@@ -1,7 +1,7 @@
 export const dynamic = 'force-dynamic';
 
 import { NextRequest, NextResponse } from 'next/server';
-import { mailgunClient } from '@/lib/email/mailgun-client';
+import { resendClient } from '@/lib/email/resend-client';
 import fs from 'fs';
 import path from 'path';
 
@@ -28,7 +28,7 @@ export async function POST(request: NextRequest) {
       .replace(/\{\{unsubscribe_url\}\}/g, `https://www.fly2any.com/unsubscribe?email=${encodeURIComponent(testEmail)}`);
 
     // Send test email via Mailgun
-    const result = await mailgunClient.send({
+    const result = await resendClient.send({
       to: testEmail,
       subject: `✈️ ${firstName}, your next adventure awaits + $20 OFF inside`,
       html: htmlContent,
@@ -78,3 +78,4 @@ export async function GET(request: NextRequest) {
     headers: { 'Content-Type': 'text/html' }
   });
 }
+

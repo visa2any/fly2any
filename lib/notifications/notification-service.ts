@@ -3,7 +3,7 @@
  * Handles all customer and admin notifications for booking events
  *
  * UNIFIED EMAIL ARCHITECTURE:
- * - Uses Mailgun via unified mailgunClient (single provider)
+ * - Uses Mailgun via unified resendClient (single provider)
  * - Telegram Bot notifications (FREE) for admin alerts
  * - SSE (Server-Sent Events) for real-time updates (FREE)
  * - In-app notifications stored in database
@@ -11,14 +11,14 @@
  * @version 2.0.0 - Migrated from Resend to Mailgun
  */
 
-import { mailgunClient, MAILGUN_CONFIG } from '@/lib/email/mailgun-client';
+import { resendClient, RESEND_CONFIG } from '@/lib/email/resend-client';
 import type { Booking } from '@/lib/bookings/types';
 import type { DuffelOrder } from '@/lib/webhooks/event-handlers';
 import { getPrismaClient } from '@/lib/prisma';
 import type { BookingNotificationPayload } from './types';
 
 // Configuration
-const FROM_EMAIL = MAILGUN_CONFIG.fromEmail;
+const FROM_EMAIL = RESEND_CONFIG.fromEmail;
 const ADMIN_EMAIL = process.env.ADMIN_EMAIL || 'fly2any.travel@gmail.com';
 const COMPANY_NAME = 'Fly2Any';
 const SUPPORT_EMAIL = 'fly2any.travel@gmail.com';
@@ -355,6 +355,7 @@ export async function notifyNewBooking(payload: BookingNotificationPayload): Pro
     currency: payload.currency,
     timestamp: new Date().toISOString(),
     priority: 'high',
+    sendTelegram: false, // Already sent specialized alert above
   });
 
   console.log(`✅ All new booking notifications sent: ${payload.bookingReference}`);
@@ -544,7 +545,7 @@ Best regards,
 ${COMPANY_NAME} Team
     `;
 
-    const result = await mailgunClient.send({
+    const result = await resendClient.send({
       to: booking.contactInfo.email,
       subject,
       html,
@@ -618,7 +619,7 @@ Best regards,
 ${COMPANY_NAME} Team
     `;
 
-    const result = await mailgunClient.send({
+    const result = await resendClient.send({
       to: booking.contactInfo.email,
       subject,
       html,
@@ -723,7 +724,7 @@ Have a great flight!
 ${COMPANY_NAME} Team
     `;
 
-    const result = await mailgunClient.send({
+    const result = await resendClient.send({
       to: booking.contactInfo.email,
       subject,
       html,
@@ -791,7 +792,7 @@ Best regards,
 ${COMPANY_NAME} Team
     `;
 
-    const result = await mailgunClient.send({
+    const result = await resendClient.send({
       to: booking.contactInfo.email,
       subject,
       html,
@@ -882,7 +883,7 @@ Best regards,
 ${COMPANY_NAME} Team
     `;
 
-    const result = await mailgunClient.send({
+    const result = await resendClient.send({
       to: booking.contactInfo.email,
       subject,
       html,
@@ -984,7 +985,7 @@ Best regards,
 ${COMPANY_NAME} Team
     `;
 
-    const result = await mailgunClient.send({
+    const result = await resendClient.send({
       to: booking.contactInfo.email,
       subject,
       html,
@@ -1013,9 +1014,37 @@ export async function sendAdminAlert(alert: {
   currency?: string;
   timestamp: string;
   priority?: 'low' | 'normal' | 'high';
+  sendEmail?: boolean;
+  sendTelegram?: boolean;
   [key: string]: any;
 }): Promise<boolean> {
   try {
+    // Default to sending Telegram for all alerts, but Email only if explicitly requested or NOT an error
+    const shouldSendEmail = alert.sendEmail ?? (alert.error ? false : true);
+    const shouldSendTelegram = alert.sendTelegram ?? true;
+
+    const priorityEmojis = { low: '🔵', normal: '🟡', high: '🔴' };
+    const emoji = priorityEmojis[alert.priority || 'normal'];
+
+    // 1. SEND TELEGRAM (if enabled)
+    if (shouldSendTelegram) {
+      const telegramMsg = `
+${emoji} <b>ADMIN ALERT: ${alert.type.replace(/_/g, ' ').toUpperCase()}</b>
+
+${Object.entries(alert)
+  .filter(([k]) => !['sendEmail', 'sendTelegram', 'type', 'priority'].includes(k))
+  .map(([k, v]) => `• <b>${k.replace(/_/g, ' ')}:</b> ${typeof v === 'object' ? JSON.stringify(v) : v}`)
+  .join('\n')}
+
+⏰ ${new Date(alert.timestamp).toLocaleString()}
+      `.trim();
+      
+      await notifyTelegramAdmins(telegramMsg);
+    }
+
+    // 2. SEND EMAIL (if enabled)
+    if (!shouldSendEmail) return true;
+
     const priorityColors = {
       low: '#3b82f6',
       normal: '#f59e0b',
@@ -1057,7 +1086,7 @@ This alert requires immediate attention.
 ${COMPANY_NAME} Admin System
     `;
 
-    const result = await mailgunClient.send({
+    const result = await resendClient.send({
       to: ADMIN_EMAIL,
       subject,
       html,
@@ -1356,7 +1385,7 @@ async function sendMilestoneEmail(
 
     const html = getBaseEmailTemplate(subject, content, color);
 
-    const result = await mailgunClient.send({
+    const result = await resendClient.send({
       to: email,
       subject,
       html,
@@ -1453,3 +1482,4 @@ export const notificationService = {
   notifyPointsEarned,
   notifyLeaderboardChange,
 };
+

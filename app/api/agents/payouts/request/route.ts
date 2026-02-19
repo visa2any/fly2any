@@ -7,7 +7,7 @@ import { auth } from "@/lib/auth";
 
 import prisma from "@/lib/prisma";
 import { z } from "zod";
-import { mailgunClient } from '@/lib/email/mailgun-client';
+import { resendClient } from '@/lib/email/resend-client';
 
 
 
@@ -174,7 +174,7 @@ export async function POST(request: NextRequest) {
 
     // Send confirmation email to agent
     try {
-      await mailgunClient.send({
+      await resendClient.send({
         to: agent.user.email,
         subject: `Payout Request Received: ${payout.payoutNumber}`,
         html: `
@@ -231,3 +231,4 @@ export async function POST(request: NextRequest) {
     );
   }
 }
+

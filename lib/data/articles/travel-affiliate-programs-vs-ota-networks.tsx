@@ -1,7 +1,7 @@
 export const article = {
   slug: 'travel-affiliate-programs-vs-ota-networks',
   title: 'Travel Affiliate Programs vs OTA Affiliate Networks: What Creators and Publishers Should Know',
-  category: 'Travel Industry Analysis',
+  category: 'analysis',
   author: 'Travel Industry Analyst',
   date: '2024-01-15',
   readTime: '5 min',

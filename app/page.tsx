@@ -30,6 +30,7 @@ const ExperiencesSection = dynamic(() => import('@/components/home/ExperiencesSe
 const WorldCupHeroSectionEnhanced = dynamic(() => import('@/components/world-cup/WorldCupHeroSectionEnhanced').then(mod => mod.WorldCupHeroSectionEnhanced), { ssr: false });
 const CompactTrustBar = dynamic(() => import('@/components/conversion/CompactTrustBar'), { ssr: false });
 const AirlineLogosMarquee = dynamic(() => import('@/components/home/AirlineLogosMarquee'), { ssr: false });
+const HeroEmailCapture = dynamic(() => import('@/components/home/HeroEmailCapture').then(mod => mod.HeroEmailCapture), { ssr: false });
 
 type Language = 'en';
 
@@ -393,11 +394,14 @@ export default function Home() {
                 </h1>
 
                 <p
-                  className="text-base md:text-lg lg:text-xl text-white/95 font-bold mb-6"
+                  className="text-base md:text-lg lg:text-xl text-white/95 font-bold mb-4"
                   style={{ textShadow: '0 4px 40px rgba(0,0,0,0.8)' }}
                 >
                   {t.subtitle}
                 </p>
+
+                {/* Homepage Email Capture */}
+                <HeroEmailCapture className="mb-4" />
               </div>
             </MaxWidthContainer>
             </MaxWidthContainer>

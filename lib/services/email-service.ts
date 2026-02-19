@@ -12,7 +12,7 @@
  * @author Fly2Any Engineering
  */
 
-import { mailgunClient, MAILGUN_CONFIG } from '@/lib/email/mailgun-client';
+import { resendClient, RESEND_CONFIG } from '@/lib/email/resend-client';
 
 // ===================================
 // TYPES & INTERFACES
@@ -152,12 +152,12 @@ export class EmailService {
    * Send email via unified Mailgun client
    */
   private static async sendEmail(options: EmailOptions & { forceSend?: boolean }): Promise<boolean> {
-    const result = await mailgunClient.send({
+    const result = await resendClient.send({
       to: options.to,
       subject: options.subject,
       html: options.html,
       text: options.text,
-      from: options.from || MAILGUN_CONFIG.fromEmail,
+      from: options.from || RESEND_CONFIG.fromEmail,
       replyTo: options.replyTo,
       tags: options.tags,
       forceSend: options.forceSend ?? true,
@@ -198,6 +198,18 @@ export class EmailService {
     </xml>
   </noscript>
   <![endif]-->
+  <style>
+    @media only screen and (max-width: 480px) {
+      .email-container { width: 100% !important; }
+      .email-padding { padding: 24px 16px !important; }
+      .email-header-padding { padding: 24px 16px !important; }
+      .email-title { font-size: 22px !important; }
+      .email-subtitle { font-size: 14px !important; }
+      .email-cta { padding: 14px 28px !important; font-size: 15px !important; }
+      .feature-icon { width: 32px !important; font-size: 20px !important; }
+      .footer-links a { display: block !important; margin: 6px 0 !important; }
+    }
+  </style>
 </head>
 <body style="margin:0;padding:0;word-spacing:normal;background-color:#f3f4f6;font-family:Arial,Helvetica,sans-serif;">
   <div role="article" aria-roledescription="email" lang="en" style="text-size-adjust:100%;-webkit-text-size-adjust:100%;-ms-text-size-adjust:100%;background-color:#f3f4f6;">
@@ -206,7 +218,7 @@ export class EmailService {
       <tr>
         <td align="center" style="padding:40px 20px;">
           <!-- CONTAINER -->
-          <table role="presentation" style="width:100%;max-width:600px;border:none;border-spacing:0;background-color:#ffffff;border-radius:16px;overflow:hidden;box-shadow:0 25px 50px -12px rgba(0,0,0,0.25);">
+          <table role="presentation" class="email-container" style="width:100%;max-width:600px;border:none;border-spacing:0;background-color:#ffffff;border-radius:16px;overflow:hidden;box-shadow:0 25px 50px -12px rgba(0,0,0,0.25);">
             ${content}
           </table>
         </td>
@@ -225,7 +237,7 @@ export class EmailService {
         <table role="presentation" style="width:100%;border:none;border-spacing:0;">
           <tr>
             <td align="center" style="padding-bottom:16px;">
-              <img src="${this.baseUrl}/fly2any-logo-white.png" alt="Fly2Any" width="140" style="display:block;border:0;height:auto;max-width:140px;">
+              <img src="${this.baseUrl}/logo-transparent.png" alt="Fly2Any" width="140" style="display:block;border:0;height:auto;max-width:140px;">
             </td>
           </tr>
           <tr>
@@ -258,12 +270,12 @@ export class EmailService {
         <table role="presentation" style="width:100%;border:none;border-spacing:0;">
           <tr>
             <td align="center" style="padding-bottom:16px;">
-              <img src="${this.baseUrl}/fly2any-logo-white.png" alt="Fly2Any" width="100" style="display:block;border:0;height:auto;max-width:100px;opacity:0.8;">
+              <img src="${this.baseUrl}/logo-transparent.png" alt="Fly2Any" width="100" style="display:block;border:0;height:auto;max-width:100px;opacity:0.8;">
             </td>
           </tr>
           <!-- LINKS -->
           <tr>
-            <td align="center" style="padding:16px 0;">
+            <td align="center" class="footer-links" style="padding:16px 0;">
               <a href="${this.baseUrl}/help" style="color:#94a3b8;text-decoration:none;font-size:13px;margin:0 12px;font-family:Arial,Helvetica,sans-serif;">Help Center</a>
               <a href="${this.baseUrl}/my-trips" style="color:#94a3b8;text-decoration:none;font-size:13px;margin:0 12px;font-family:Arial,Helvetica,sans-serif;">My Trips</a>
               <a href="${this.baseUrl}/deals" style="color:#94a3b8;text-decoration:none;font-size:13px;margin:0 12px;font-family:Arial,Helvetica,sans-serif;">Deals</a>
@@ -273,7 +285,11 @@ export class EmailService {
           <tr>
             <td align="center" style="padding:16px 0;border-top:1px solid rgba(255,255,255,0.1);">
               <p style="margin:0 0 4px 0;font-size:14px;color:#ffffff;font-weight:600;font-family:Arial,Helvetica,sans-serif;">24/7 Customer Support</p>
-              <p style="margin:0;font-size:14px;color:#94a3b8;font-family:Arial,Helvetica,sans-serif;">1-332-220-0838 | support@fly2any.com</p>
+              <p style="margin:0;font-size:14px;font-family:Arial,Helvetica,sans-serif;">
+                <a href="tel:+13322200838" style="color:#94a3b8;text-decoration:none;">1-332-220-0838</a>
+                &nbsp;|&nbsp;
+                <a href="mailto:fly2any.travel@gmail.com" style="color:#94a3b8;text-decoration:none;">Contact Support</a>
+              </p>
             </td>
           </tr>
           <!-- COPYRIGHT -->
@@ -1160,68 +1176,91 @@ export class EmailService {
   }
 
   /**
-   * Send newsletter subscription confirmation
+   * Send newsletter subscription confirmation - PREMIUM WELCOME
    */
   static async sendNewsletterConfirmation(
     email: string,
     data: NewsletterSignupData
   ): Promise<boolean> {
     const content = `
-    ${this.getHeader("You're Subscribed! ✉️", 'Welcome to the Fly2Any family', undefined, '#2563eb')}
+    ${this.getHeader("You're In! ✉️", 'Welcome to the Fly2Any family', undefined, '#2563eb')}
 
     <tr>
-      <td style="padding:32px 24px;">
+      <td class="email-padding" style="padding:32px 24px;">
         <p style="margin:0 0 8px 0;font-size:18px;color:#374151;font-family:Arial,Helvetica,sans-serif;">Hi${data.firstName ? ` ${data.firstName}` : ''},</p>
         <p style="margin:0 0 24px 0;font-size:16px;color:#6b7280;line-height:1.7;font-family:Arial,Helvetica,sans-serif;">
-          Thanks for subscribing! You're now part of an exclusive group that gets first access to the best travel deals on the planet.
+          You're officially part of the Fly2Any family! Get ready for first access to the best travel deals on the planet.
         </p>
 
-        <!-- WHAT TO EXPECT -->
+        <!-- WELCOME CARD -->
         <table role="presentation" style="width:100%;border:none;border-spacing:0;">
           <tr>
+            <td style="background:linear-gradient(135deg,#eff6ff 0%,#dbeafe 100%);border:1px solid #bfdbfe;border-radius:12px;padding:24px;text-align:center;">
+              <p style="margin:0;font-size:36px;">🎉</p>
+              <p style="margin:8px 0 0 0;font-size:20px;font-weight:700;color:#1e40af;font-family:Arial,Helvetica,sans-serif;">Subscription Confirmed</p>
+              <p style="margin:4px 0 0 0;font-size:14px;color:#3b82f6;font-family:Arial,Helvetica,sans-serif;">You'll receive the best deals directly in your inbox</p>
+            </td>
+          </tr>
+        </table>
+
+        <!-- WHAT TO EXPECT -->
+        <table role="presentation" style="width:100%;border:none;border-spacing:0;margin-top:24px;">
+          <tr>
             <td>
-              <h3 style="margin:0 0 16px 0;font-size:18px;color:#1e40af;font-family:Arial,Helvetica,sans-serif;">What to expect:</h3>
+              <h3 style="margin:0 0 16px 0;font-size:18px;font-weight:700;color:#1e293b;font-family:Arial,Helvetica,sans-serif;">What you'll receive:</h3>
             </td>
           </tr>
           <tr>
-            <td style="background:#f9fafb;padding:12px;border-radius:8px;margin-bottom:8px;">
+            <td style="background:#f9fafb;padding:14px 16px;border-radius:10px;border-left:4px solid #ef4444;">
               <table role="presentation" style="width:100%;border:none;border-spacing:0;">
                 <tr>
-                  <td width="40" style="font-size:24px;">🔥</td>
-                  <td style="font-weight:600;color:#111827;font-family:Arial,Helvetica,sans-serif;">Exclusive flash deals and error fares</td>
+                  <td class="feature-icon" width="40" style="font-size:24px;vertical-align:top;padding-top:2px;">🔥</td>
+                  <td style="font-family:Arial,Helvetica,sans-serif;">
+                    <p style="margin:0;font-weight:700;color:#111827;font-size:15px;">Flash Deals & Error Fares</p>
+                    <p style="margin:2px 0 0 0;font-size:13px;color:#6b7280;line-height:1.4;">Up to 80% off — only available for hours</p>
+                  </td>
                 </tr>
               </table>
             </td>
           </tr>
           <tr><td style="height:8px;"></td></tr>
           <tr>
-            <td style="background:#f9fafb;padding:12px;border-radius:8px;">
+            <td style="background:#f9fafb;padding:14px 16px;border-radius:10px;border-left:4px solid #3b82f6;">
               <table role="presentation" style="width:100%;border:none;border-spacing:0;">
                 <tr>
-                  <td width="40" style="font-size:24px;">✈️</td>
-                  <td style="font-weight:600;color:#111827;font-family:Arial,Helvetica,sans-serif;">New route announcements</td>
+                  <td class="feature-icon" width="40" style="font-size:24px;vertical-align:top;padding-top:2px;">✈️</td>
+                  <td style="font-family:Arial,Helvetica,sans-serif;">
+                    <p style="margin:0;font-weight:700;color:#111827;font-size:15px;">New Route Announcements</p>
+                    <p style="margin:2px 0 0 0;font-size:13px;color:#6b7280;line-height:1.4;">Be the first to know when airlines launch new routes</p>
+                  </td>
                 </tr>
               </table>
             </td>
           </tr>
           <tr><td style="height:8px;"></td></tr>
           <tr>
-            <td style="background:#f9fafb;padding:12px;border-radius:8px;">
+            <td style="background:#f9fafb;padding:14px 16px;border-radius:10px;border-left:4px solid #10b981;">
               <table role="presentation" style="width:100%;border:none;border-spacing:0;">
                 <tr>
-                  <td width="40" style="font-size:24px;">💡</td>
-                  <td style="font-weight:600;color:#111827;font-family:Arial,Helvetica,sans-serif;">Travel tips and destination guides</td>
+                  <td class="feature-icon" width="40" style="font-size:24px;vertical-align:top;padding-top:2px;">💡</td>
+                  <td style="font-family:Arial,Helvetica,sans-serif;">
+                    <p style="margin:0;font-weight:700;color:#111827;font-size:15px;">Travel Tips & Guides</p>
+                    <p style="margin:2px 0 0 0;font-size:13px;color:#6b7280;line-height:1.4;">Expert advice to save money and travel smarter</p>
+                  </td>
                 </tr>
               </table>
             </td>
           </tr>
           <tr><td style="height:8px;"></td></tr>
           <tr>
-            <td style="background:#f9fafb;padding:12px;border-radius:8px;">
+            <td style="background:#f9fafb;padding:14px 16px;border-radius:10px;border-left:4px solid #f59e0b;">
               <table role="presentation" style="width:100%;border:none;border-spacing:0;">
                 <tr>
-                  <td width="40" style="font-size:24px;">🎁</td>
-                  <td style="font-weight:600;color:#111827;font-family:Arial,Helvetica,sans-serif;">Subscriber-only promotions</td>
+                  <td class="feature-icon" width="40" style="font-size:24px;vertical-align:top;padding-top:2px;">🎁</td>
+                  <td style="font-family:Arial,Helvetica,sans-serif;">
+                    <p style="margin:0;font-weight:700;color:#111827;font-size:15px;">Subscriber-Only Promotions</p>
+                    <p style="margin:2px 0 0 0;font-size:13px;color:#6b7280;line-height:1.4;">Exclusive discounts not available anywhere else</p>
+                  </td>
                 </tr>
               </table>
             </td>
@@ -1230,11 +1269,29 @@ export class EmailService {
 
         ${this.getButton("Browse Today's Deals", `${this.baseUrl}/deals`, '#2563eb')}
 
-        <!-- SOCIAL PROOF -->
-        <table role="presentation" style="width:100%;border:none;border-spacing:0;margin-top:16px;">
+        <!-- EXPLORE GRID -->
+        <table role="presentation" style="width:100%;border:none;border-spacing:0;margin-top:8px;">
           <tr>
-            <td style="background:#fef3c7;padding:12px;border-radius:8px;text-align:center;">
-              <p style="margin:0;font-size:13px;color:#92400e;font-family:Arial,Helvetica,sans-serif;">🌟 Join 250,000+ subscribers getting the best deals</p>
+            <td width="50%" style="padding:4px;">
+              <a href="${this.baseUrl}/flights" style="display:block;background:#f0f9ff;padding:16px;border-radius:10px;text-decoration:none;text-align:center;border:1px solid #bae6fd;">
+                <span style="font-size:24px;display:block;margin-bottom:6px;">✈️</span>
+                <span style="font-size:13px;font-weight:600;color:#0369a1;font-family:Arial,Helvetica,sans-serif;">Search Flights</span>
+              </a>
+            </td>
+            <td width="50%" style="padding:4px;">
+              <a href="${this.baseUrl}/hotels" style="display:block;background:#fdf4ff;padding:16px;border-radius:10px;text-decoration:none;text-align:center;border:1px solid #e9d5ff;">
+                <span style="font-size:24px;display:block;margin-bottom:6px;">🏨</span>
+                <span style="font-size:13px;font-weight:600;color:#7e22ce;font-family:Arial,Helvetica,sans-serif;">Find Hotels</span>
+              </a>
+            </td>
+          </tr>
+        </table>
+
+        <!-- SOCIAL PROOF -->
+        <table role="presentation" style="width:100%;border:none;border-spacing:0;margin-top:20px;">
+          <tr>
+            <td style="background:linear-gradient(135deg,#fef3c7 0%,#fde68a 100%);padding:14px;border-radius:10px;text-align:center;">
+              <p style="margin:0;font-size:13px;font-weight:600;color:#92400e;font-family:Arial,Helvetica,sans-serif;">🌟 Join 250,000+ subscribers getting the best deals</p>
             </td>
           </tr>
         </table>
@@ -1247,7 +1304,7 @@ export class EmailService {
 
     return this.sendEmail({
       to: email,
-      subject: `You're subscribed to Fly2Any deals & updates ✉️`,
+      subject: `Welcome to Fly2Any — You're subscribed! ✉️`,
       html,
       tags: ['newsletter', 'subscription'],
     });
@@ -1261,39 +1318,126 @@ export class EmailService {
   }
 
   /**
-   * Send email verification for double opt-in
+   * Send email verification for double opt-in - PREMIUM TEMPLATE
    */
   static async sendVerificationEmail(
     email: string,
     data: { email: string; firstName?: string; verifyUrl: string }
   ): Promise<boolean> {
     const content = `
-    ${this.getHeader("Confirm Your Subscription", 'One click to unlock exclusive deals', undefined, '#2563eb')}
+    ${this.getHeader("Almost There! 🎉", 'Confirm your email to unlock exclusive deals', undefined, '#2563eb')}
 
     <tr>
-      <td style="padding:32px 24px;text-align:center;">
-        <p style="margin:0 0 8px 0;font-size:18px;color:#374151;font-family:Arial,Helvetica,sans-serif;">Hi${data.firstName ? ` ${data.firstName}` : ''},</p>
+      <td class="email-padding" style="padding:32px 24px;">
+        <p style="margin:0 0 8px 0;font-size:18px;color:#374151;font-family:Arial,Helvetica,sans-serif;">Hi${data.firstName ? ` ${data.firstName}` : ' there'},</p>
         <p style="margin:0 0 24px 0;font-size:16px;color:#6b7280;line-height:1.7;font-family:Arial,Helvetica,sans-serif;">
-          Thanks for signing up! Please confirm your email to start receiving exclusive travel deals.
+          Thanks for signing up for Fly2Any! You're one click away from getting access to exclusive flight deals, error fares, and travel tips delivered to your inbox.
         </p>
 
-        <a href="${data.verifyUrl}" style="display:inline-block;background:#E74035;color:#ffffff;font-weight:bold;padding:16px 32px;border-radius:8px;text-decoration:none;font-size:16px;font-family:Arial,Helvetica,sans-serif;">
-          ✓ Confirm My Subscription
-        </a>
+        <!-- CTA BUTTON -->
+        <table role="presentation" style="width:100%;border:none;border-spacing:0;">
+          <tr>
+            <td align="center" style="padding:8px 0 24px 0;">
+              <!--[if mso]>
+              <v:roundrect xmlns:v="urn:schemas-microsoft-com:vml" xmlns:w="urn:schemas-microsoft-com:office:word" href="${data.verifyUrl}" style="height:56px;v-text-anchor:middle;width:280px;" arcsize="25%" stroke="f" fillcolor="#E74035">
+                <w:anchorlock/>
+                <center style="color:#ffffff;font-family:Arial,Helvetica,sans-serif;font-size:17px;font-weight:bold;">✓ Confirm My Subscription</center>
+              </v:roundrect>
+              <![endif]-->
+              <!--[if !mso]><!-->
+              <a href="${data.verifyUrl}" class="email-cta" style="display:inline-block;background:linear-gradient(135deg,#E74035 0%,#dc2626 100%);color:#ffffff;font-weight:bold;padding:18px 40px;border-radius:12px;text-decoration:none;font-size:17px;font-family:Arial,Helvetica,sans-serif;box-shadow:0 4px 14px 0 rgba(231,64,53,0.4);">
+                ✓ Confirm My Subscription
+              </a>
+              <!--<![endif]-->
+            </td>
+          </tr>
+        </table>
 
-        <p style="margin:24px 0 0 0;font-size:13px;color:#9ca3af;font-family:Arial,Helvetica,sans-serif;">
-          This link expires in 24 hours. If you didn't sign up, you can safely ignore this email.
+        <!-- TRUST BADGES -->
+        <table role="presentation" style="width:100%;border:none;border-spacing:0;margin-top:8px;">
+          <tr>
+            <td style="background:#f0fdf4;border:1px solid #bbf7d0;border-radius:10px;padding:16px;">
+              <table role="presentation" style="width:100%;border:none;border-spacing:0;">
+                <tr>
+                  <td width="33%" style="text-align:center;padding:4px;">
+                    <p style="margin:0;font-size:20px;">🔒</p>
+                    <p style="margin:4px 0 0 0;font-size:11px;color:#166534;font-weight:600;font-family:Arial,Helvetica,sans-serif;">No Spam</p>
+                  </td>
+                  <td width="33%" style="text-align:center;padding:4px;border-left:1px solid #bbf7d0;border-right:1px solid #bbf7d0;">
+                    <p style="margin:0;font-size:20px;">📧</p>
+                    <p style="margin:4px 0 0 0;font-size:11px;color:#166534;font-weight:600;font-family:Arial,Helvetica,sans-serif;">Weekly Deals</p>
+                  </td>
+                  <td width="33%" style="text-align:center;padding:4px;">
+                    <p style="margin:0;font-size:20px;">🚪</p>
+                    <p style="margin:4px 0 0 0;font-size:11px;color:#166534;font-weight:600;font-family:Arial,Helvetica,sans-serif;">Easy Unsubscribe</p>
+                  </td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+        </table>
+
+        <!-- WHAT YOU'LL GET -->
+        <table role="presentation" style="width:100%;border:none;border-spacing:0;margin-top:24px;">
+          <tr>
+            <td>
+              <h3 style="margin:0 0 12px 0;font-size:16px;font-weight:700;color:#1e293b;font-family:Arial,Helvetica,sans-serif;">After confirming, you'll get:</h3>
+            </td>
+          </tr>
+          <tr>
+            <td style="padding:8px 0;">
+              <table role="presentation" style="width:100%;border:none;border-spacing:0;">
+                <tr>
+                  <td width="28" style="font-size:16px;color:#10b981;vertical-align:top;padding-top:2px;">✓</td>
+                  <td style="font-size:14px;color:#4b5563;line-height:1.5;font-family:Arial,Helvetica,sans-serif;">Exclusive flash deals and error fares (up to 80% off)</td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+          <tr>
+            <td style="padding:8px 0;">
+              <table role="presentation" style="width:100%;border:none;border-spacing:0;">
+                <tr>
+                  <td width="28" style="font-size:16px;color:#10b981;vertical-align:top;padding-top:2px;">✓</td>
+                  <td style="font-size:14px;color:#4b5563;line-height:1.5;font-family:Arial,Helvetica,sans-serif;">New route announcements before anyone else</td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+          <tr>
+            <td style="padding:8px 0;">
+              <table role="presentation" style="width:100%;border:none;border-spacing:0;">
+                <tr>
+                  <td width="28" style="font-size:16px;color:#10b981;vertical-align:top;padding-top:2px;">✓</td>
+                  <td style="font-size:14px;color:#4b5563;line-height:1.5;font-family:Arial,Helvetica,sans-serif;">Travel tips, destination guides, and insider secrets</td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+        </table>
+
+        <!-- EXPIRY NOTICE -->
+        <table role="presentation" style="width:100%;border:none;border-spacing:0;margin-top:24px;">
+          <tr>
+            <td style="background:#fffbeb;border:1px solid #fde68a;padding:12px 16px;border-radius:8px;text-align:center;">
+              <p style="margin:0;font-size:13px;color:#92400e;font-family:Arial,Helvetica,sans-serif;">⏰ This confirmation link expires in <strong>24 hours</strong></p>
+            </td>
+          </tr>
+        </table>
+
+        <p style="margin:20px 0 0 0;font-size:12px;color:#9ca3af;text-align:center;font-family:Arial,Helvetica,sans-serif;">
+          If you didn't sign up for Fly2Any, you can safely ignore this email.
         </p>
       </td>
     </tr>
 
-    ${this.getFooter(email)}
+    ${this.getFooter()}
     `;
 
     const options = {
       to: email,
       subject: '✓ Confirm your Fly2Any subscription',
-      html: this.wrapContent(content),
+      html: this.getEmailWrapper(content),
     };
 
     return this.sendEmail(options);
@@ -1719,3 +1863,4 @@ export class EmailService {
     });
   }
 }
+

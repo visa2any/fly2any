@@ -1,7 +1,7 @@
 export const article = {
   slug: 'what-is-performance-based-travel-affiliate-program',
   title: 'What Is a Performance-Based Travel Affiliate Program?',
-  category: 'Travel Industry Analysis',
+  category: 'analysis',
   author: 'Travel Industry Analyst',
   date: '2024-01-15',
   readTime: '5 min',

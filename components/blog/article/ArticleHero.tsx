@@ -1,10 +1,16 @@
 'use client';
 
+import { useState, useEffect } from 'react';
 import Image from 'next/image';
 import { Clock, Eye, Heart, Calendar, User } from 'lucide-react';
 import { motion } from 'framer-motion';
 
+import { BlogStats } from '@/lib/services/blog-stats';
+import { useSession } from 'next-auth/react';
+import { useToast } from '@/components/common/Toast';
+
 interface ArticleHeroProps {
+  id: string; // Added ID for tracking
   title: string;
   excerpt: string;
   category: string;
@@ -25,16 +31,45 @@ interface ArticleHeroProps {
 }
 
 export function ArticleHero({
+  id,
   title,
   excerpt,
   category,
   author,
   publishedAt,
   readTime,
-  views,
-  likes,
+  views: initialViews = 0,
+  likes: initialLikes = 0,
   featuredImage,
 }: ArticleHeroProps) {
+  const [likes, setLikes] = useState(initialLikes);
+  const [isLiked, setIsLiked] = useState(false);
+  const [activeViews, setActiveViews] = useState(initialViews);
+  const { data: session } = useSession();
+  const { info } = useToast();
+
+  // Initialize stats on mount
+  useEffect(() => {
+    const stats = BlogStats.getStats(id, initialViews, initialLikes);
+    setLikes(stats.likes);
+    setIsLiked(stats.isLiked);
+    
+    // Increment view
+    const updatedViews = BlogStats.incrementView(id, stats.views);
+    setActiveViews(updatedViews || stats.views);
+  }, [id, initialViews, initialLikes]);
+
+  const handleLike = () => {
+    if (!session) {
+      info('Please sign in to like this article', 'Action Required');
+      return;
+    }
+
+    const result = BlogStats.toggleLike(id, likes);
+    setLikes(result.likes);
+    setIsLiked(result.isLiked);
+  };
+
   return (
     <motion.div
       initial={{ opacity: 0 }}
@@ -52,9 +87,9 @@ export function ArticleHero({
           quality={95}
         />
 
-        {/* Gradient Overlays */}
-        <div className="absolute inset-0 bg-gradient-to-t from-black via-black/30 to-transparent" />
-        <div className="absolute inset-0 bg-gradient-to-r from-black/20 via-transparent to-black/20" />
+        {/* Gradient Overlays - Softened for better image visibility */}
+        <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/10 to-transparent" />
+        <div className="absolute inset-0 bg-gradient-to-r from-black/10 via-transparent to-black/10" />
 
         {/* Image Credit */}
         {featuredImage.credit && (
@@ -73,8 +108,8 @@ export function ArticleHero({
               transition={{ delay: 0.2 }}
               className="mb-6"
             >
-              <span className="inline-flex items-center gap-2 bg-blue-600 text-white text-xs font-bold px-4 py-2 rounded-full shadow-xl">
-                {category.toUpperCase()}
+              <span className="inline-flex items-center gap-2 bg-blue-600 text-white text-xs font-bold px-4 py-2 rounded-full shadow-xl uppercase">
+                {category === 'analysis' ? 'Intelligence' : category}
               </span>
             </motion.div>
 
@@ -138,21 +173,21 @@ export function ArticleHero({
                 <span>{readTime} min</span>
               </div>
 
-              {views && (
-                <div className="flex items-center gap-1.5 sm:gap-2" suppressHydrationWarning>
-                  <Eye className="w-3.5 h-3.5 sm:w-4 sm:h-4 flex-shrink-0" />
-                  <span className="hidden sm:inline">{views.toLocaleString()} views</span>
-                  <span className="sm:hidden">{(views / 1000).toFixed(1)}k</span>
-                </div>
-              )}
+              <div className="flex items-center gap-1.5 sm:gap-2" suppressHydrationWarning>
+                <Eye className="w-3.5 h-3.5 sm:w-4 sm:h-4 flex-shrink-0 text-blue-400" />
+                <span className="hidden sm:inline">{activeViews.toLocaleString()} views</span>
+                <span className="sm:hidden">{(activeViews / 1000).toFixed(1)}k</span>
+              </div>
 
-              {likes && (
-                <div className="flex items-center gap-1.5 sm:gap-2" suppressHydrationWarning>
-                  <Heart className="w-3.5 h-3.5 sm:w-4 sm:h-4 flex-shrink-0" />
-                  <span className="hidden sm:inline">{likes.toLocaleString()} likes</span>
-                  <span className="sm:hidden">{(likes / 1000).toFixed(1)}k</span>
-                </div>
-              )}
+              <button 
+                onClick={handleLike}
+                className={`flex items-center gap-1.5 sm:gap-2 transition-all duration-300 hover:scale-110 ${isLiked ? 'text-red-500' : 'text-white/80 hover:text-red-400'}`}
+                suppressHydrationWarning
+              >
+                <Heart className={`w-3.5 h-3.5 sm:w-4 sm:h-4 flex-shrink-0 ${isLiked ? 'fill-current' : ''}`} />
+                <span className="hidden sm:inline">{likes.toLocaleString()} likes</span>
+                <span className="sm:hidden">{(likes / 1000).toFixed(1)}k</span>
+              </button>
             </motion.div>
           </div>
         </div>

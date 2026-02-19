@@ -9,6 +9,7 @@ const categoryTitles: Record<string, string> = {
   tips: 'Travel Tips',
   news: 'Travel News',
   blog: 'Travel Blog',
+  analysis: 'Travel Intelligence',
 };
 
 export async function generateStaticParams() {

@@ -12,7 +12,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createHmac, timingSafeEqual } from 'crypto';
 import { prisma } from '@/lib/prisma';
-import { mailgunClient, MAILGUN_CONFIG } from '@/lib/email/mailgun-client';
+import { resendClient, RESEND_CONFIG } from '@/lib/email/resend-client';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -209,9 +209,9 @@ async function handleBookingConfirmed(data: LiteAPIWebhookPayload['data']) {
 
   // Send confirmation email
   const guestEmail = data.guest?.email || booking?.user?.email || booking?.guestEmail;
-  if (guestEmail && mailgunClient.isConfigured()) {
-    await mailgunClient.send({
-      from: MAILGUN_CONFIG.fromEmail,
+  if (guestEmail && resendClient.isConfigured()) {
+    await resendClient.send({
+      from: RESEND_CONFIG.fromEmail,
       to: guestEmail,
       subject: `✅ Hotel Booking Confirmed - ${data.hotelName || 'Your Stay'}`,
       html: `
@@ -278,9 +278,9 @@ async function handleBookingCancelled(data: LiteAPIWebhookPayload['data']) {
 
   // Send cancellation email
   const guestEmail = data.guest?.email || booking?.user?.email || booking?.guestEmail;
-  if (guestEmail && mailgunClient.isConfigured()) {
-    await mailgunClient.send({
-      from: MAILGUN_CONFIG.fromEmail,
+  if (guestEmail && resendClient.isConfigured()) {
+    await resendClient.send({
+      from: RESEND_CONFIG.fromEmail,
       to: guestEmail,
       subject: `Booking Cancelled - ${data.bookingId}`,
       html: `
@@ -354,9 +354,9 @@ async function handleBookingFailed(data: LiteAPIWebhookPayload['data']) {
 
   // Alert admin
   const adminEmail = process.env.ADMIN_EMAIL;
-  if (adminEmail && mailgunClient.isConfigured()) {
-    await mailgunClient.send({
-      from: MAILGUN_CONFIG.fromEmail,
+  if (adminEmail && resendClient.isConfigured()) {
+    await resendClient.send({
+      from: RESEND_CONFIG.fromEmail,
       to: adminEmail,
       subject: `🚨 Hotel Booking Failed - ${data.bookingId}`,
       html: `<p>Booking ${data.bookingId} failed with status: ${data.status}</p>`,
@@ -418,3 +418,4 @@ export async function GET() {
     timestamp: new Date().toISOString(),
   });
 }
+

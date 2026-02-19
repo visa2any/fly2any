@@ -51,8 +51,8 @@ export class EmailMarketingService {
     const emailTemplate = this.getTemplate(template, data)
 
     try {
-      const { mailgunClient } = await import('@/lib/email/mailgun-client')
-      const result = await mailgunClient.send({
+      const { resendClient } = await import('@/lib/email/resend-client')
+      const result = await resendClient.send({
         to: to.email,
         subject: emailTemplate.subject,
         html: emailTemplate.html,
@@ -330,3 +330,4 @@ export class EmailMarketingService {
 }
 
 export const emailService = new EmailMarketingService()
+

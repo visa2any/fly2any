@@ -104,7 +104,7 @@ export default function NewsletterErrorPage() {
               )}
 
               <Link
-                href="mailto:support@fly2any.com"
+                href="mailto:fly2any.travel@gmail.com"
                 className="inline-flex items-center justify-center gap-2 w-full bg-gray-100 text-gray-700 font-medium py-3 px-6 rounded-xl hover:bg-gray-200 transition-colors"
               >
                 <Mail className="w-5 h-5" />
@@ -118,7 +118,7 @@ export default function NewsletterErrorPage() {
         <p className={`text-center text-sm text-gray-500 mt-6 transition-all duration-500 delay-1000 ${
           mounted ? 'opacity-100' : 'opacity-0'
         }`}>
-          Need help? We're here 24/7 at <a href="mailto:support@fly2any.com" className="text-primary-600 hover:underline">support@fly2any.com</a>
+          Need help? We're here 24/7 at <a href="mailto:fly2any.travel@gmail.com" className="text-primary-600 hover:underline">fly2any.travel@gmail.com</a>
         </p>
       </div>
     </main>

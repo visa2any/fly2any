@@ -6,7 +6,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { sendQuotePDFEmail } from "@/lib/pdf/pdf-service";
-import { mailgunClient } from "@/lib/email/mailgun-client";
+import { resendClient } from "@/lib/email/resend-client";
 
 // POST /api/agents/quotes/[id]/email-pdf - Email PDF to client
 export async function POST(
@@ -38,7 +38,7 @@ export async function POST(
 
     const emailService = {
       send: async (emailData: any) => {
-        const result = await mailgunClient.send({
+        const result = await resendClient.send({
           to: emailData.to,
           subject: emailData.subject,
           html: emailData.html,

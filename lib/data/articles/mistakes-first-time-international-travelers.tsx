@@ -5,7 +5,7 @@ export const article = {
   slug: '10-mistakes-first-time-international-travelers-make',
   title: '10 Mistakes First-Time International Travelers Always Make (And How to Avoid Them)',
   excerpt: 'These common mistakes ruin trips, waste money, and cause stress — even before boarding the plane. Learn how to avoid them and travel smarter.',
-  category: 'guide',
+  category: 'tip',
   author: {
     name: 'James Mitchell',
     role: 'Senior Aviation Analyst',

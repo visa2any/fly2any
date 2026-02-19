@@ -17,6 +17,7 @@ import { useTranslations } from 'next-intl';
 import { ExperiencesCartProvider } from '@/lib/cart/experiences-cart';
 import MiniCart from '@/components/cart/MiniCart';
 import { CurrencyProvider } from '@/lib/context/CurrencyContext';
+import { ToastProvider } from '@/components/common/Toast';
 
 interface GlobalLayoutProps {
   children: React.ReactNode;
@@ -234,8 +235,10 @@ export function GlobalLayout({ children }: GlobalLayoutProps) {
     <SessionProvider>
       <CurrencyProvider>
         <ExperiencesCartProvider>
-          <GlobalLayoutInner>{children}</GlobalLayoutInner>
-          <MiniCart />
+          <ToastProvider>
+            <GlobalLayoutInner>{children}</GlobalLayoutInner>
+            <MiniCart />
+          </ToastProvider>
         </ExperiencesCartProvider>
       </CurrencyProvider>
     </SessionProvider>

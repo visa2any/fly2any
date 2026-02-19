@@ -11,6 +11,7 @@ import { StructuredData } from '@/components/seo/StructuredData';
 import { article as nycParisArticle } from '@/lib/data/articles/nyc-paris-flights-2026';
 import { article as airlinePricingArticle } from '@/lib/data/articles/airline-pricing-mechanics-2026';
 import { article as nycAirportPricingArticle } from '@/lib/data/articles/nyc-airport-pricing-2026';
+import { article as topCitiesArticle } from '@/lib/data/articles/top-5-visited-cities-2025';
 
 import { article as mistakesArticle } from '@/lib/data/articles/mistakes-first-time-international-travelers';
 import { article as worldCupVisaArticle } from '@/lib/data/articles/usa-world-cup-visa-guide-2026';
@@ -38,17 +39,20 @@ export default function BlogPostPage() {
   const params = useParams();
   const slug = params?.slug as string | undefined;
 
+  const normalizedSlug = Array.isArray(slug) ? slug[0] : slug;
+  
   const [post, setPost] = useState<BlogPost | null>(null);
   const [relatedPosts, setRelatedPosts] = useState<BlogPost[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    if (!slug) {
+    if (!normalizedSlug) {
       setLoading(false);
       return;
     }
     
-    const foundPost = getPostBySlug(slug);
+    const foundPost = getPostBySlug(normalizedSlug);
+    
     if (foundPost) {
       setPost(foundPost);
       const related = getRelatedPosts(foundPost.id, 3);
@@ -96,18 +100,20 @@ export default function BlogPostPage() {
   };
 
   // Check if it's premium articles
-  const isPremiumArticle = slug === 'cheap-flights-new-york-paris-2026' || 
-                        slug === 'why-flight-prices-change-airline-fares-2026' ||
-                        slug === 'jfk-vs-newark-vs-laguardia-airport-pricing-2026' ||
-                        slug === '10-mistakes-first-time-international-travelers-make' ||
-                        slug === 'usa-world-cup-visa-guide-2026' ||
-                        slug === 'best-airlines-in-the-world-2025';
-  const premiumData = slug === 'cheap-flights-new-york-paris-2026' ? nycParisArticle : 
-                      slug === 'why-flight-prices-change-airline-fares-2026' ? airlinePricingArticle :
-                      slug === 'jfk-vs-newark-vs-laguardia-airport-pricing-2026' ? nycAirportPricingArticle :
-                      slug === '10-mistakes-first-time-international-travelers-make' ? mistakesArticle : 
-                      slug === 'usa-world-cup-visa-guide-2026' ? worldCupVisaArticle :
-                      slug === 'best-airlines-in-the-world-2025' ? bestAirlinesArticle : null;
+  const isPremiumArticle = normalizedSlug === 'cheap-flights-new-york-paris-2026' || 
+                        normalizedSlug === 'why-flight-prices-change-airline-fares-2026' ||
+                        normalizedSlug === 'jfk-vs-newark-vs-laguardia-airport-pricing-2026' ||
+                        normalizedSlug === '10-mistakes-first-time-international-travelers-make' ||
+                        normalizedSlug === 'usa-world-cup-visa-guide-2026' ||
+                        normalizedSlug === 'best-airlines-in-the-world-2025' ||
+                        normalizedSlug === 'top-5-most-visited-cities-2025';
+  const premiumData = normalizedSlug === 'cheap-flights-new-york-paris-2026' ? nycParisArticle : 
+                      normalizedSlug === 'why-flight-prices-change-airline-fares-2026' ? airlinePricingArticle :
+                      normalizedSlug === 'jfk-vs-newark-vs-laguardia-airport-pricing-2026' ? nycAirportPricingArticle :
+                      normalizedSlug === '10-mistakes-first-time-international-travelers-make' ? mistakesArticle : 
+                      normalizedSlug === 'usa-world-cup-visa-guide-2026' ? worldCupVisaArticle :
+                      normalizedSlug === 'best-airlines-in-the-world-2025' ? bestAirlinesArticle :
+                      normalizedSlug === 'top-5-most-visited-cities-2025' ? topCitiesArticle : null;
 
   if (isPremiumArticle && premiumData) {
     const schemas = [
@@ -129,9 +135,8 @@ export default function BlogPostPage() {
           logo: { '@type': 'ImageObject', url: 'https://www.fly2any.com/logo.png' },
         },
         image: premiumData.featuredImage.url,
-        articleSection: premiumData.category,
         keywords: premiumData.tags.join(', '),
-        mainEntityOfPage: { '@type': 'WebPage', '@id': `https://www.fly2any.com/blog/${slug}` },
+        mainEntityOfPage: { '@type': 'WebPage', '@id': `https://www.fly2any.com/blog/${normalizedSlug}` },
       },
       {
         '@context': 'https://schema.org',
@@ -140,7 +145,7 @@ export default function BlogPostPage() {
           { '@type': 'ListItem', position: 1, name: 'Home', item: 'https://www.fly2any.com' },
           { '@type': 'ListItem', position: 2, name: 'Blog', item: 'https://www.fly2any.com/blog' },
           { '@type': 'ListItem', position: 3, name: premiumData.category, item: `https://www.fly2any.com/blog/category/${premiumData.category}` },
-          { '@type': 'ListItem', position: 4, name: premiumData.title, item: `https://www.fly2any.com/blog/${slug}` },
+          { '@type': 'ListItem', position: 4, name: premiumData.title, item: `https://www.fly2any.com/blog/${normalizedSlug}` },
         ],
       },
       {
@@ -160,11 +165,16 @@ export default function BlogPostPage() {
         <ScrollToTop />
         <Breadcrumbs items={[
           { label: 'Blog', href: '/blog' },
-          { label: premiumData.category, href: `/blog/category/${premiumData.category.toLowerCase()}` },
-          { label: slug === 'best-airlines-in-the-world-2025' ? 'Top 5 Best Airlines 2025' : premiumData.title, href: `/blog/${slug}` }
+          { 
+            label: premiumData.category === 'analysis' ? 'Intelligence' : 
+                   premiumData.category.charAt(0).toUpperCase() + premiumData.category.slice(1), 
+            href: `/blog/category/${premiumData.category.toLowerCase()}` 
+          },
+          { label: normalizedSlug === 'best-airlines-in-the-world-2025' ? 'Top 5 Best Airlines 2025' : premiumData.title, href: `/blog/${normalizedSlug}` }
         ]} />
         <div className="min-h-screen bg-white mt-8">
           <ArticleHero
+            id={premiumData.id}
             title={premiumData.title}
             excerpt={premiumData.excerpt}
             category={premiumData.category}

@@ -91,7 +91,7 @@ export async function alertCustomerError(
   const {
     priority = 'high',
     sendTelegram = true,
-    sendEmail = true,
+    sendEmail = false,
     sendSentry = true,
     includeStackTrace = false,
   } = options;
@@ -133,8 +133,8 @@ export async function alertCustomerError(
   // 2. EMAIL NOTIFICATION (Detailed report to admin inbox) - FORCE SEND FOR CRITICAL ERRORS
   if (sendEmail) {
     try {
-      // Import mailgun-client directly for force sending critical errors
-      const { mailgunClient } = await import('@/lib/email/mailgun-client');
+      // Import resend-client directly for force sending critical errors
+      const { resendClient } = await import('@/lib/email/resend-client');
 
       const alertData = {
         type: 'customer_error',
@@ -167,7 +167,7 @@ export async function alertCustomerError(
         Object.entries(alertData).map(([k,v]) => `<tr><td style="padding: 5px;"><b>${k}:</b></td><td style="padding: 5px;">${typeof v === 'object' ? JSON.stringify(v) : v}</td></tr>`).join('')
       }</table></body></html>`;
 
-      const result = await mailgunClient.send({
+      const result = await resendClient.send({
         to: process.env.ADMIN_EMAIL || 'admin@fly2any.com',
         subject: `[${priority.toUpperCase()}] Customer Error - ${context.errorCode || 'UNKNOWN'}`,
         html,
@@ -398,3 +398,4 @@ export const customerErrorAlerts = {
   alertBookingError,
   alertPaymentError,
 };
+

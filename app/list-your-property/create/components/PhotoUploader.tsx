@@ -143,13 +143,19 @@ export function PhotoUploader({ images, onChange }: PhotoUploaderProps) {
   };
 
   const uploadFile = async (file: File): Promise<string> => {
-      const formData = new FormData();
-      formData.append('file', file);
-      // Mock upload for now if API missing, or use real endpoint
-      // const res = await fetch('/api/upload', { method: 'POST', body: formData });
-      // const data = await res.json();
-      // return data.url;
-      return URL.createObjectURL(file); // Return local blob for demo
+      try {
+        const fd = new FormData();
+        fd.append('file', file);
+        const res = await fetch('/api/upload', { method: 'POST', body: fd });
+        if (res.ok) {
+          const data = await res.json();
+          if (data.url) return data.url;
+        }
+      } catch (e) {
+        console.warn('Upload API unavailable, using local preview', e);
+      }
+      // Fallback to blob URL for preview (images will be ephemeral in this case)
+      return URL.createObjectURL(file);
   };
 
   const { processImage } = useImageProcessor();

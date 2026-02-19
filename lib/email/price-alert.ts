@@ -413,9 +413,9 @@ export async function sendPriceAlertEmail(params: PriceAlertEmailParams): Promis
   const text = generateEmailText(params);
 
   // Use the unified email client (supports dev simulation + production sending)
-  const { mailgunClient } = await import('@/lib/email/mailgun-client');
+  const { resendClient } = await import('@/lib/email/resend-client');
 
-  const result = await mailgunClient.send({
+  const result = await resendClient.send({
     to: params.to,
     subject: `🎯 Price Alert: ${params.alert.origin} → ${params.alert.destination} is now ${params.alert.currency}${params.alert.currentPrice}!`,
     html,
@@ -435,3 +435,4 @@ export async function sendPriceAlertEmail(params: PriceAlertEmailParams): Promis
     console.log(`✅ Price alert email sent to ${params.to}:`, result.messageId);
   }
 }
+

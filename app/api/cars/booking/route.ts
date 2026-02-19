@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getSql } from '@/lib/db/connection';
-import { mailgunClient, MAILGUN_CONFIG } from '@/lib/email/mailgun-client';
+import { resendClient, RESEND_CONFIG } from '@/lib/email/resend-client';
 import { notifyTelegramAdmins, broadcastSSE } from '@/lib/notifications/notification-service';
 import { getPrismaClient } from '@/lib/prisma';
 import { auth } from '@/lib/auth';
@@ -419,7 +419,7 @@ export async function POST(request: NextRequest) {
         </html>
       `;
 
-      const result = await mailgunClient.send({
+      const result = await resendClient.send({
         to: contactInfo.email,
         subject: `🚗 Car Rental Booking Received - ${bookingReference}`,
         html: emailHtml,
@@ -546,3 +546,4 @@ export async function POST(request: NextRequest) {
 
   }, { category: ErrorCategory.BOOKING, severity: ErrorSeverity.CRITICAL });
 }
+

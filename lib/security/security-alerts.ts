@@ -12,7 +12,7 @@
  * - Honeypot triggered
  */
 
-import { mailgunClient } from '@/lib/email/mailgun-client';
+import { resendClient } from '@/lib/email/resend-client';
 import { getRedisClient, isRedisEnabled } from '@/lib/cache/redis';
 
 
@@ -261,7 +261,7 @@ export async function sendSecurityAlert(data: SecurityAlertData): Promise<boolea
   }
 
   // Check if Mailgun is configured
-  if (!mailgunClient.isConfigured()) {
+  if (!resendClient.isConfigured()) {
     console.warn('[SecurityAlerts] Mailgun not configured - cannot send alert');
     return false;
   }
@@ -274,7 +274,7 @@ export async function sendSecurityAlert(data: SecurityAlertData): Promise<boolea
   }
 
   try {
-    const result = await mailgunClient.send({
+    const result = await resendClient.send({
       from: CONFIG.fromEmail,
       to: CONFIG.alertEmail,
       subject: `[SECURITY] ${data.type.replace('_', ' ').toUpperCase()} - ${data.ip}`,
@@ -446,3 +446,4 @@ export default {
   alertDailyBudgetExceeded,
   getAlertStats,
 };
+
