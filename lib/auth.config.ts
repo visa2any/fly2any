@@ -72,11 +72,29 @@ export const authConfig = {
           throw new Error('Database not configured');
         }
 
+        const email = (credentials.email as string).toLowerCase();
+
+        // Rate limit check (keyed by email to prevent brute-force per account)
+        try {
+          const rateCheck = await checkLoginRateLimit(email);
+          if (!rateCheck.allowed) {
+            throw new Error(`Too many login attempts. Try again in ${Math.ceil((rateCheck.retryAfter || 900) / 60)} minutes`);
+          }
+        } catch (e: any) {
+          // If Redis is down, allow login but log warning
+          if (!e.message?.includes('Too many')) {
+            console.warn('Rate limit check failed (Redis may be down):', e.message);
+          } else {
+            throw e;
+          }
+        }
+
         const user = await prisma!.user.findUnique({
-          where: { email: credentials.email as string },
+          where: { email },
         });
 
         if (!user || !user.password) {
+          await recordFailedLogin(email).catch(() => {});
           throw new Error('Invalid credentials');
         }
 
@@ -88,8 +106,12 @@ export const authConfig = {
         );
 
         if (!isPasswordValid) {
+          await recordFailedLogin(email).catch(() => {});
           throw new Error('Invalid credentials');
         }
+
+        // Clear rate limit on successful login
+        await clearLoginAttempts(email).catch(() => {});
 
         return {
           id: user.id,
@@ -154,6 +176,19 @@ export const authConfig = {
           return false;
         }
       }
+
+      // Track last login (once per sign-in, not every session check)
+      if (prisma && user?.id) {
+        try {
+          await prisma.user.updateMany({
+            where: { id: user.id as string },
+            data: { lastLoginAt: new Date() },
+          });
+        } catch (e) {
+          console.error('Error updating lastLoginAt:', e);
+        }
+      }
+
       return true;
     },
     async jwt({ token, user, account, profile, isNewUser, trigger }) {
@@ -188,19 +223,7 @@ export const authConfig = {
     async session({ session, token }) {
       if (token && session.user) {
         session.user.id = token.sub!;
-
-        // Update last login
-        if (prisma) {
-          try {
-            // Use updateMany to avoid throwing errors if user doesn't exist
-            await prisma!.user.updateMany({
-              where: { id: token.sub! },
-              data: { lastLoginAt: new Date() },
-            });
-          } catch (error) {
-            console.error('Error updating last login:', error);
-          }
-        }
+        // lastLoginAt is now updated in signIn callback (not here)
       }
       return session;
     },

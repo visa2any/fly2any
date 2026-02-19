@@ -2,21 +2,32 @@ import { NextRequest, NextResponse } from 'next/server';
 import { auth } from '@/lib/auth';
 import prisma from '@/lib/prisma';
 
-// GET /api/properties — List properties (optionally filtered by owner, status, etc.)
+// GET /api/properties — List properties (public sees active only, owners see their own)
 export async function GET(request: NextRequest) {
   try {
+    const session = await auth();
     const { searchParams } = new URL(request.url);
     const ownerId = searchParams.get('ownerId');
     const status = searchParams.get('status');
     const propertyType = searchParams.get('propertyType');
     const city = searchParams.get('city');
     const country = searchParams.get('country');
+    const mine = searchParams.get('mine') === 'true';
     const page = parseInt(searchParams.get('page') || '1');
     const limit = parseInt(searchParams.get('limit') || '20');
 
     const where: any = {};
-    if (ownerId) where.ownerId = ownerId;
-    if (status) where.status = status;
+
+    if (mine && session?.user?.id) {
+      // Owner viewing their own properties — allow any status
+      where.owner = { userId: session.user.id };
+      if (status) where.status = status;
+    } else {
+      // Public access — only show active properties
+      where.status = 'active';
+      if (ownerId) where.ownerId = ownerId;
+    }
+
     if (propertyType) where.propertyType = propertyType;
     if (city) where.city = { contains: city, mode: 'insensitive' };
     if (country) where.country = { contains: country, mode: 'insensitive' };

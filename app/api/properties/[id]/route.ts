@@ -13,18 +13,20 @@ async function verifyOwnership(propertyId: string, userId: string) {
   return { property };
 }
 
-// GET /api/properties/[id] — Get single property with full details (public)
+// GET /api/properties/[id] — Get single property with full details
 export async function GET(
   request: NextRequest,
   { params }: { params: { id: string } }
 ) {
   try {
+    const session = await auth();
+
     const property = await prisma.property.findUnique({
       where: { id: params.id },
       include: {
         owner: {
           select: {
-            id: true, businessName: true, bio: true, profileImageUrl: true,
+            id: true, userId: true, businessName: true, bio: true, profileImageUrl: true,
             rating: true, reviewCount: true, superHost: true, responseRate: true,
             avgResponseTime: true, totalProperties: true,
           },
@@ -39,13 +41,24 @@ export async function GET(
       return NextResponse.json({ success: false, error: 'Property not found' }, { status: 404 });
     }
 
-    // Increment view count
-    await prisma.property.update({
-      where: { id: params.id },
-      data: { viewCount: { increment: 1 } },
-    });
+    // Non-active properties are only visible to their owner
+    const isOwner = session?.user?.id && property.owner.userId === session.user.id;
+    if (property.status !== 'active' && !isOwner) {
+      return NextResponse.json({ success: false, error: 'Property not found' }, { status: 404 });
+    }
 
-    return NextResponse.json({ success: true, data: property });
+    // Strip owner.userId from public response
+    const { userId: _ownerUserId, ...safeOwner } = property.owner;
+
+    // Increment view count (only for non-owner views)
+    if (!isOwner) {
+      await prisma.property.update({
+        where: { id: params.id },
+        data: { viewCount: { increment: 1 } },
+      }).catch(() => {});
+    }
+
+    return NextResponse.json({ success: true, data: { ...property, owner: safeOwner } });
   } catch (error: any) {
     console.error('Error fetching property:', error);
     return NextResponse.json({ success: false, error: error.message }, { status: 500 });

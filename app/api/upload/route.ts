@@ -52,7 +52,12 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const fileExt = file.name.split('.').pop() || 'jpg';
+    // Derive extension from MIME type (don't trust filename)
+    const mimeToExt: Record<string, string> = {
+      'image/jpeg': 'jpg', 'image/png': 'png',
+      'image/webp': 'webp', 'image/gif': 'gif',
+    };
+    const fileExt = mimeToExt[file.type] || 'jpg';
     const fileName = `${randomUUID()}.${fileExt}`;
 
     // Strategy 1: Try Supabase cloud storage  
