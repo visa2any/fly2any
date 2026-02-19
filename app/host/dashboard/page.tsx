@@ -43,51 +43,62 @@ export default async function HostDashboard() {
 
   if (isPrismaAvailable()) {
     const prisma = getPrismaClient();
+    // Timeout wrapper — if DB queries take >8s, render with defaults
+    const timeout = (ms: number) => new Promise((_, reject) => setTimeout(() => reject(new Error('DB_TIMEOUT')), ms));
     try {
-      // Stage 1: Fetch host profile first (needed for dependent queries)
-      hostProfile = await prisma.propertyOwner.findFirst({
-        where: { userId: session.user.id },
-        select: { verificationStatus: true, id: true, payoutMethod: true },
-      }).catch(() => null);
+      await Promise.race([
+        (async () => {
+          // Stage 1: Fetch host profile first (needed for dependent queries)
+          hostProfile = await prisma.propertyOwner.findFirst({
+            where: { userId: session.user.id },
+            select: { verificationStatus: true, id: true, payoutMethod: true },
+          }).catch(() => null);
 
-      // Stage 2: Run remaining queries in parallel
-      const [count, propertiesForHealth, availability] = await Promise.all([
-        prisma.property.count({ where: { owner: { userId: session.user.id } } }).catch(() => 0),
+          // Stage 2: Run remaining queries in parallel
+          const [count, propertiesForHealth, availability] = await Promise.all([
+            prisma.property.count({ where: { owner: { userId: session.user.id } } }).catch(() => 0),
 
-        prisma.property.findMany({
-          where: { owner: { userId: session.user.id } },
-          select: {
-            id: true,
-            name: true,
-            description: true,
-            basePricePerNight: true,
-            status: true,
-            _count: { select: { images: true } },
-          },
-          take: 20,
-        }).catch(() => []),
+            prisma.property.findMany({
+              where: { owner: { userId: session.user.id } },
+              select: {
+                id: true,
+                name: true,
+                description: true,
+                basePricePerNight: true,
+                status: true,
+                _count: { select: { images: true } },
+              },
+              take: 20,
+            }).catch(() => []),
 
-        hostProfile?.id
-          ? prisma.propertyAvailability.findFirst({
-              where: { property: { ownerId: hostProfile.id } },
-              select: { id: true },
-            }).then((r: any) => !!r).catch(() => false)
-          : Promise.resolve(false),
+            hostProfile?.id
+              ? prisma.propertyAvailability.findFirst({
+                  where: { property: { ownerId: hostProfile.id } },
+                  select: { id: true },
+                }).then((r: any) => !!r).catch(() => false)
+              : Promise.resolve(false),
+          ]);
+
+          propertyCount = count;
+          hasAvailability = availability;
+          healthProperties = propertiesForHealth.map((p: any) => ({
+            id: p.id,
+            name: p.name,
+            hasPhotos: (p._count?.images || 0) > 0,
+            hasPrice: p.basePricePerNight != null && p.basePricePerNight > 0,
+            hasDescription: !!p.description && p.description.length > 20,
+            isPublished: p.status === 'active',
+            photoCount: p._count?.images || 0,
+          }));
+        })(),
+        timeout(8000),
       ]);
-
-      propertyCount = count;
-      hasAvailability = availability;
-      healthProperties = propertiesForHealth.map((p: any) => ({
-        id: p.id,
-        name: p.name,
-        hasPhotos: (p._count?.images || 0) > 0,
-        hasPrice: p.basePricePerNight != null && p.basePricePerNight > 0,
-        hasDescription: !!p.description && p.description.length > 20,
-        isPublished: p.status === 'active',
-        photoCount: p._count?.images || 0,
-      }));
-    } catch (error) {
-      console.error('Dashboard data fetch error:', error);
+    } catch (error: any) {
+      if (error?.message === 'DB_TIMEOUT') {
+        console.warn('Dashboard DB queries timed out after 8s, rendering with defaults');
+      } else {
+        console.error('Dashboard data fetch error:', error);
+      }
       // Continue with defaults — page renders with empty/zero data
     }
   }

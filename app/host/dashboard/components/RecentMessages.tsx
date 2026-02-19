@@ -5,22 +5,28 @@ import { MessageSquare, ArrowRight, User } from 'lucide-react';
 export async function RecentMessages({ userId }: { userId: string }) {
   try {
     const prisma = getPrismaClient();
-    // Conversation.hostId maps to User.id, not PropertyOwner.id
-    const conversations = await prisma.conversation.findMany({
-      where: {
-        hostId: userId,
-      },
-      orderBy: { lastMessageAt: 'desc' },
-      take: 4,
-      select: {
-        id: true,
-        lastMessage: true,
-        lastMessageAt: true,
-        unreadCountHost: true,
-        guest: { select: { name: true, image: true } },
-        property: { select: { name: true } },
-      },
-    });
+    const timeout = (ms: number) => new Promise((_, reject) => setTimeout(() => reject(new Error('DB_TIMEOUT')), ms));
+
+    let conversations: any[] = [];
+
+    await Promise.race([
+      (async () => {
+        conversations = await prisma.conversation.findMany({
+          where: { hostId: userId },
+          orderBy: { lastMessageAt: 'desc' },
+          take: 4,
+          select: {
+            id: true,
+            lastMessage: true,
+            lastMessageAt: true,
+            unreadCountHost: true,
+            guest: { select: { name: true, image: true } },
+            property: { select: { name: true } },
+          },
+        });
+      })(),
+      timeout(8000),
+    ]);
 
     const unreadTotal = conversations.reduce((sum, c) => sum + (c.unreadCountHost || 0), 0);
 

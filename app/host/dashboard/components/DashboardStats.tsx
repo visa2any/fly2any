@@ -5,64 +5,71 @@ import Link from 'next/link';
 export async function DashboardStats({ userId }: { userId: string }) {
   try {
     const prisma = getPrismaClient();
-    const hostProfile = await prisma.propertyOwner.findFirst({
-      where: { userId },
-      select: { id: true },
-    });
-    const ownerId = hostProfile?.id;
+    const timeout = (ms: number) => new Promise((_, reject) => setTimeout(() => reject(new Error('DB_TIMEOUT')), ms));
 
-    // Calculate 30-day window
-    const thirtyDaysAgo = new Date();
-    thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+    let propertiesCount = 0, activeBookings = 0, totalRevenue = 0, monthRevenue = 0, views = 0;
 
-    const [propertiesCount, activeBookings, revenueAll, revenue30d, viewsAgg] = await Promise.all([
-      prisma.property.count({ where: { owner: { userId } } }),
+    await Promise.race([
+      (async () => {
+        const hostProfile = await prisma.propertyOwner.findFirst({
+          where: { userId },
+          select: { id: true },
+        });
+        const ownerId = hostProfile?.id;
 
-      ownerId
-        ? prisma.propertyBooking.count({
-            where: {
-              property: { ownerId },
-              status: { in: ['confirmed', 'pending'] },
-              endDate: { gte: new Date() },
-            },
-          })
-        : Promise.resolve(0),
+        const thirtyDaysAgo = new Date();
+        thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
 
-      // All-time revenue
-      ownerId
-        ? prisma.propertyBooking.aggregate({
-            where: {
-              property: { ownerId },
-              status: { in: ['completed', 'confirmed'] },
-            },
-            _sum: { totalPrice: true },
-          })
-        : Promise.resolve({ _sum: { totalPrice: null } }),
+        const [count, bookings, revenueAll, revenue30d, viewsAgg] = await Promise.all([
+          prisma.property.count({ where: { owner: { userId } } }),
 
-      // Last 30 days revenue
-      ownerId
-        ? prisma.propertyBooking.aggregate({
-            where: {
-              property: { ownerId },
-              status: { in: ['completed', 'confirmed'] },
-              createdAt: { gte: thirtyDaysAgo },
-            },
-            _sum: { totalPrice: true },
-          })
-        : Promise.resolve({ _sum: { totalPrice: null } }),
+          ownerId
+            ? prisma.propertyBooking.count({
+                where: {
+                  property: { ownerId },
+                  status: { in: ['confirmed', 'pending'] },
+                  endDate: { gte: new Date() },
+                },
+              })
+            : Promise.resolve(0),
 
-      // Total views
-      ownerId
-        ? prisma.property.aggregate({
-            where: { ownerId },
-            _sum: { viewCount: true },
-          })
-        : Promise.resolve({ _sum: { viewCount: null } }),
+          ownerId
+            ? prisma.propertyBooking.aggregate({
+                where: {
+                  property: { ownerId },
+                  status: { in: ['completed', 'confirmed'] },
+                },
+                _sum: { totalPrice: true },
+              })
+            : Promise.resolve({ _sum: { totalPrice: null } }),
+
+          ownerId
+            ? prisma.propertyBooking.aggregate({
+                where: {
+                  property: { ownerId },
+                  status: { in: ['completed', 'confirmed'] },
+                  createdAt: { gte: thirtyDaysAgo },
+                },
+                _sum: { totalPrice: true },
+              })
+            : Promise.resolve({ _sum: { totalPrice: null } }),
+
+          ownerId
+            ? prisma.property.aggregate({
+                where: { ownerId },
+                _sum: { viewCount: true },
+              })
+            : Promise.resolve({ _sum: { viewCount: null } }),
+        ]);
+
+        propertiesCount = count;
+        activeBookings = bookings;
+        totalRevenue = Number(revenueAll._sum.totalPrice || 0);
+        monthRevenue = Number(revenue30d._sum.totalPrice || 0);
+        views = viewsAgg._sum.viewCount || 0;
+      })(),
+      timeout(8000),
     ]);
-
-    const totalRevenue = Number(revenueAll._sum.totalPrice || 0);
-    const monthRevenue = Number(revenue30d._sum.totalPrice || 0);
-    const views = viewsAgg._sum.viewCount || 0;
 
     const stats = [
       {

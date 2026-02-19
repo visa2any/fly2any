@@ -4,56 +4,65 @@ import { LogIn, LogOut, Home, CalendarDays } from 'lucide-react';
 export async function TodayActivity({ userId }: { userId: string }) {
   try {
     const prisma = getPrismaClient();
-    const hostProfile = await prisma.propertyOwner.findFirst({
-      where: { userId },
-      select: { id: true },
-    });
-    const ownerId = hostProfile?.id;
-    if (!ownerId) return null;
+    const timeout = (ms: number) => new Promise((_, reject) => setTimeout(() => reject(new Error('DB_TIMEOUT')), ms));
 
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-    const tomorrow = new Date(today);
-    tomorrow.setDate(tomorrow.getDate() + 1);
+    let checkIns: any[] = [], checkOuts: any[] = [], currentlyHosting = 0;
 
-    const [checkIns, checkOuts, currentlyHosting] = await Promise.all([
-      // Bookings starting today
-      prisma.propertyBooking.findMany({
-        where: {
-          property: { ownerId },
-          status: { in: ['confirmed'] },
-          startDate: { gte: today, lt: tomorrow },
-        },
-        select: {
-          id: true,
-          user: { select: { name: true } },
-          property: { select: { name: true } },
-        },
-        take: 5,
-      }),
-      // Bookings ending today
-      prisma.propertyBooking.findMany({
-        where: {
-          property: { ownerId },
-          status: { in: ['confirmed', 'completed'] },
-          endDate: { gte: today, lt: tomorrow },
-        },
-        select: {
-          id: true,
-          user: { select: { name: true } },
-          property: { select: { name: true } },
-        },
-        take: 5,
-      }),
-      // Currently hosting (started before today, ends after today)
-      prisma.propertyBooking.count({
-        where: {
-          property: { ownerId },
-          status: 'confirmed',
-          startDate: { lte: today },
-          endDate: { gte: today },
-        },
-      }),
+    await Promise.race([
+      (async () => {
+        const hostProfile = await prisma.propertyOwner.findFirst({
+          where: { userId },
+          select: { id: true },
+        });
+        const ownerId = hostProfile?.id;
+        if (!ownerId) return;
+
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        const tomorrow = new Date(today);
+        tomorrow.setDate(tomorrow.getDate() + 1);
+
+        const [ci, co, hosting] = await Promise.all([
+          prisma.propertyBooking.findMany({
+            where: {
+              property: { ownerId },
+              status: { in: ['confirmed'] },
+              startDate: { gte: today, lt: tomorrow },
+            },
+            select: {
+              id: true,
+              user: { select: { name: true } },
+              property: { select: { name: true } },
+            },
+            take: 5,
+          }),
+          prisma.propertyBooking.findMany({
+            where: {
+              property: { ownerId },
+              status: { in: ['confirmed', 'completed'] },
+              endDate: { gte: today, lt: tomorrow },
+            },
+            select: {
+              id: true,
+              user: { select: { name: true } },
+              property: { select: { name: true } },
+            },
+            take: 5,
+          }),
+          prisma.propertyBooking.count({
+            where: {
+              property: { ownerId },
+              status: 'confirmed',
+              startDate: { lte: today },
+              endDate: { gte: today },
+            },
+          }),
+        ]);
+        checkIns = ci;
+        checkOuts = co;
+        currentlyHosting = hosting;
+      })(),
+      timeout(8000),
     ]);
 
     const hasActivity = checkIns.length > 0 || checkOuts.length > 0 || currentlyHosting > 0;
