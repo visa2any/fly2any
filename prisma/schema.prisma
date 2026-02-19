@@ -52,13 +52,18 @@ model User {
   agentClient              AgentClient?                @relation("UserAgentClient")
   aiConversations          AIConversation[]
   aiSessions               AISession[]                 @relation("AISessionUser")
+  guestConversations       Conversation[]              @relation("GuestConversations")
+  hostConversations        Conversation[]              @relation("HostConversations")
   frequentTravelers        FrequentTraveler[]
   groupMemberships         GroupMember[]               @relation("GroupMemberships")
   loginHistory             LoginHistory[]
+  sentMessages             Message[]                   @relation("SentMessages")
   notifications            Notification[]
   paymentMethods           PaymentMethod[]
   priceAlerts              PriceAlert[]
   promoCodeUsages          PromoCodeUsage[]
+  propertyBookings         PropertyBooking[]
+  propertyOwner            PropertyOwner?              @relation("UserPropertyOwner")
   pushSubscriptions        PushSubscription[]
   recentSearches           RecentSearch[]
   pointsFromBookings       ReferralPointsTransaction[] @relation("PointsCustomer")
@@ -73,13 +78,6 @@ model User {
   userSessions             UserSession[]
   wishlistItems            WishlistItem[]
   worldCupBookings         WorldCupBooking[]
-  propertyOwner            PropertyOwner?              @relation("UserPropertyOwner")
-  propertyBookings         PropertyBooking[]
-
-  // Relations for Messaging
-  hostConversations    Conversation[] @relation("HostConversations")
-  guestConversations   Conversation[] @relation("GuestConversations")
-  sentMessages         Message[]      @relation("SentMessages")
 
   @@map("users")
 }
@@ -1121,22 +1119,22 @@ model UserCohort {
 }
 
 model AdminUser {
-  id                String    @id @default(cuid())
-  userId            String    @unique
-  status            String    @default("pending") // unverified, verified, suspended
-  verificationStatus String   @default("UNVERIFIED") // UNVERIFIED, PENDING, VERIFIED
-  verificationMethod String?  // GPS, VIDEO, DOCUMENT
-  trustScore        Int       @default(0)
-  identityVerified  Boolean   @default(false)
-  propertyVerified  Boolean   @default(false)
-  verifiedAt        DateTime?
-  documentUrl       String?
-  videoUrl          String?
-  role        String
-  permissions Json?
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  id                 String    @id @default(cuid())
+  userId             String    @unique
+  role               String
+  permissions        Json?
+  createdAt          DateTime  @default(now())
+  updatedAt          DateTime  @updatedAt
+  documentUrl        String?
+  identityVerified   Boolean   @default(false)
+  propertyVerified   Boolean   @default(false)
+  status             String    @default("pending")
+  trustScore         Int       @default(0)
+  verificationMethod String?
+  verificationStatus String    @default("UNVERIFIED")
+  verifiedAt         DateTime?
+  videoUrl           String?
+  user               User      @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([role])
   @@map("admin_users")
@@ -3939,6 +3937,289 @@ model bookings {
   @@index([sync_status], map: "idx_bookings_sync_status")
 }
 
+model PropertyOwner {
+  id                 String     @id @default(cuid())
+  userId             String     @unique
+  businessName       String?
+  businessType       String     @default("individual")
+  bio                String?
+  phone              String?
+  whatsapp           String?
+  website            String?
+  profileImageUrl    String?
+  identityVerified   Boolean    @default(false)
+  emailVerified      Boolean    @default(false)
+  phoneVerified      Boolean    @default(false)
+  verificationDocs   Json?
+  payoutMethod       String?
+  payoutDetails      Json?
+  currency           String     @default("USD")
+  commissionRate     Float      @default(15.0)
+  responseRate       Float      @default(0)
+  avgResponseTime    Int        @default(0)
+  totalProperties    Int        @default(0)
+  totalBookings      Int        @default(0)
+  totalRevenue       Float      @default(0)
+  rating             Float      @default(0)
+  reviewCount        Int        @default(0)
+  superHost          Boolean    @default(false)
+  status             String     @default("active")
+  acceptedTermsAt    DateTime?
+  createdAt          DateTime   @default(now())
+  updatedAt          DateTime   @updatedAt
+  documentUrl        String?
+  trustScore         Int        @default(0)
+  verificationMethod String?
+  verificationStatus String     @default("UNVERIFIED")
+  videoUrl           String?
+  properties         Property[]
+  user               User       @relation("UserPropertyOwner", fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([status])
+  @@index([superHost])
+  @@map("property_owners")
+}
+
+model Property {
+  id                    String                 @id @default(cuid())
+  ownerId               String
+  name                  String
+  slug                  String                 @unique
+  description           String?
+  shortDescription      String?
+  propertyType          String                 @default("hotel")
+  starRating            Int?
+  addressLine1          String
+  addressLine2          String?
+  city                  String
+  state                 String?
+  country               String
+  countryCode           String?
+  postalCode            String?
+  latitude              Float
+  longitude             Float
+  neighborhood          String?
+  phone                 String?
+  email                 String?
+  website               String?
+  amenities             String[]
+  highlights            String[]
+  languages             String[]
+  accessibilityFeatures String[]
+  checkInTime           String?
+  checkOutTime          String?
+  checkInInstructions   String?
+  cancellationPolicy    String                 @default("flexible")
+  cancellationDetails   Json?
+  houseRules            String[]
+  petPolicy             String?
+  smokingPolicy         String?
+  childPolicy           String?
+  minAge                Int?
+  basePricePerNight     Float?
+  currency              String                 @default("USD")
+  cleaningFee           Float?
+  serviceFee            Float?
+  securityDeposit       Float?
+  taxRate               Float?
+  weeklyDiscount        Float?
+  monthlyDiscount       Float?
+  instantBooking        Boolean                @default(true)
+  minStay               Int                    @default(1)
+  maxStay               Int?
+  maxGuests             Int                    @default(2)
+  totalRooms            Int                    @default(1)
+  totalBathrooms        Float                  @default(1)
+  totalBedrooms         Int                    @default(1)
+  totalBeds             Int                    @default(1)
+  sustainabilityScore   Int?
+  ecoFeatures           String[]
+  ecoCertifications     String[]
+  status                String                 @default("draft")
+  rejectionReason       String?
+  publishedAt           DateTime?
+  featuredUntil         DateTime?
+  verified              Boolean                @default(false)
+  verifiedAt            DateTime?
+  aiDescription         String?
+  aiTranslations        Json?
+  aiSuggestedPrice      Float?
+  aiQualityScore        Int?
+  viewCount             Int                    @default(0)
+  bookingCount          Int                    @default(0)
+
+  // Building & Physical Access
+  buildingType          String?                // house, apartment_building, condo, townhouse, high_rise
+  totalFloors           Int?                   // Total floors in the building
+  propertyFloor         Int?                   // Which floor the unit is on
+  hasElevator           Boolean                @default(false)
+
+  reviewCount           Int                    @default(0)
+  avgRating             Float                  @default(0)
+  coverImageUrl         String?
+  metaTitle             String?
+  metaDescription       String?
+  createdAt             DateTime               @default(now())
+  updatedAt             DateTime               @updatedAt
+  extraGuestFee         Float?
+  petFee                Float?
+  smartPricing          Boolean                @default(false)
+  weekendPrice          Float?
+  conversations         Conversation[]
+  owner                 PropertyOwner          @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+  availability          PropertyAvailability[]
+  bookings              PropertyBooking[]
+  images                PropertyImage[]
+  rooms                 PropertyRoom[]
+
+  @@index([ownerId])
+  @@index([status])
+  @@index([city, country])
+  @@index([propertyType])
+  @@index([latitude, longitude])
+  @@index([basePricePerNight])
+  @@index([slug])
+  @@map("properties")
+}
+
+model PropertyRoom {
+  id                String            @id @default(cuid())
+  propertyId        String
+  name              String
+  description       String?
+  roomType          String            @default("standard")
+  bedType           String?
+  bedCount          Int               @default(1)
+  maxOccupancy      Int               @default(2)
+  maxAdults         Int               @default(2)
+  maxChildren       Int               @default(0)
+  roomSize          Float?
+  floorLevel        Int?
+  viewType          String?
+  amenities         String[]
+  bathroomType      String?
+  basePricePerNight Float
+  currency          String            @default("USD")
+  quantity          Int               @default(1)
+  isActive          Boolean           @default(true)
+  sortOrder         Int               @default(0)
+  photos            String[]
+  createdAt         DateTime          @default(now())
+  updatedAt         DateTime          @updatedAt
+  bookings          PropertyBooking[]
+  property          Property          @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+
+  @@index([propertyId])
+  @@index([propertyId, isActive])
+  @@map("property_rooms")
+}
+
+model PropertyImage {
+  id           String   @id @default(cuid())
+  propertyId   String
+  url          String
+  thumbnailUrl String?
+  caption      String?
+  category     String   @default("general")
+  aiTags       String[]
+  aiScore      Int?
+  width        Int?
+  height       Int?
+  sizeBytes    Int?
+  mimeType     String?
+  isPrimary    Boolean  @default(false)
+  sortOrder    Int      @default(0)
+  uploadedAt   DateTime @default(now())
+  property     Property @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+
+  @@index([propertyId])
+  @@index([propertyId, isPrimary])
+  @@map("property_images")
+}
+
+model PropertyAvailability {
+  id              String   @id @default(cuid())
+  propertyId      String
+  startDate       DateTime @db.Date
+  endDate         DateTime @db.Date
+  available       Boolean  @default(true)
+  customPrice     Float?
+  currency        String   @default("USD")
+  minStay         Int?
+  maxStay         Int?
+  notes           String?
+  source          String   @default("manual")
+  externalEventId String?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  property        Property @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+
+  @@index([propertyId])
+  @@index([propertyId, startDate, endDate])
+  @@map("property_availability")
+}
+
+model PropertyBooking {
+  id              String        @id @default(cuid())
+  propertyId      String
+  roomId          String?
+  userId          String
+  startDate       DateTime
+  endDate         DateTime
+  totalPrice      Float
+  currency        String        @default("USD")
+  status          String        @default("pending")
+  guestCount      Int           @default(1)
+  specialRequests String?
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+  property        Property      @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+  room            PropertyRoom? @relation(fields: [roomId], references: [id])
+  user            User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([propertyId])
+  @@index([userId])
+  @@index([startDate, endDate])
+  @@map("property_bookings")
+}
+
+model Conversation {
+  id               String    @id @default(cuid())
+  hostId           String
+  guestId          String
+  propertyId       String?
+  lastMessage      String?
+  lastMessageAt    DateTime  @default(now())
+  unreadCountHost  Int       @default(0)
+  unreadCountGuest Int       @default(0)
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
+  guest            User      @relation("GuestConversations", fields: [guestId], references: [id], onDelete: Cascade)
+  host             User      @relation("HostConversations", fields: [hostId], references: [id], onDelete: Cascade)
+  property         Property? @relation(fields: [propertyId], references: [id])
+  messages         Message[]
+
+  @@unique([hostId, guestId, propertyId])
+  @@index([hostId, lastMessageAt])
+  @@index([guestId, lastMessageAt])
+  @@map("conversations")
+}
+
+model Message {
+  id             String       @id @default(cuid())
+  conversationId String
+  senderId       String
+  content        String
+  read           Boolean      @default(false)
+  createdAt      DateTime     @default(now())
+  conversation   Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  sender         User         @relation("SentMessages", fields: [senderId], references: [id], onDelete: Cascade)
+
+  @@index([conversationId, createdAt])
+  @@map("messages")
+}
+
 enum AgentTier {
   INDEPENDENT
   PROFESSIONAL
@@ -4129,304 +4410,10 @@ enum AircraftCategory {
   FREIGHTER
 }
 
-
-
 enum AirportType {
   LARGE
   MEDIUM
   SMALL
   CARGO
   MILITARY
-}
-
-// ============================================================================
-// LIST YOUR PROPERTY - Host & Property Owner System
-
-// ============================================================================
-
-model PropertyOwner {
-  id                 String     @id @default(cuid())
-  userId             String     @unique
-  businessName       String?
-  businessType       String     @default("individual") // individual, company, property_manager
-  bio                String?
-  phone              String?
-  whatsapp           String?
-  website            String?
-  profileImageUrl    String?
-  identityVerified   Boolean    @default(false)
-  emailVerified      Boolean    @default(false)
-  phoneVerified      Boolean    @default(false)
-  verificationStatus String     @default("UNVERIFIED") // UNVERIFIED, PENDING, VERIFIED
-  verificationMethod String?    // GPS, VIDEO, DOCUMENT
-  trustScore         Int        @default(0)
-  videoUrl           String?
-  documentUrl        String?
-  verificationDocs   Json?      // { idType, idNumber, documentUrls[] }
-  payoutMethod       String?    // stripe, paypal, bank_transfer
-  payoutDetails      Json?      // encrypted payout info
-  currency           String     @default("USD")
-  commissionRate     Float      @default(15.0) // platform commission %
-  responseRate       Float      @default(0)    // 0-100%
-  avgResponseTime    Int        @default(0)    // minutes
-  totalProperties    Int        @default(0)
-  totalBookings      Int        @default(0)
-  totalRevenue       Float      @default(0)
-  rating             Float      @default(0)    // host rating
-  reviewCount        Int        @default(0)
-  superHost          Boolean    @default(false)
-  status             String     @default("active") // active, suspended, pending_review
-  acceptedTermsAt    DateTime?
-  createdAt          DateTime   @default(now())
-  updatedAt          DateTime   @updatedAt
-  user               User       @relation("UserPropertyOwner", fields: [userId], references: [id], onDelete: Cascade)
-  properties         Property[]
-
-  @@index([userId])
-  @@index([status])
-  @@index([superHost])
-  @@map("property_owners")
-}
-
-model Property {
-  id                    String                 @id @default(cuid())
-  ownerId               String
-  name                  String
-  slug                  String                 @unique
-  description           String?
-  shortDescription      String?
-  propertyType          String                 @default("hotel")
-  starRating            Int?
-  addressLine1          String
-  addressLine2          String?
-  city                  String
-  state                 String?
-  country               String
-  countryCode           String?
-  postalCode            String?
-  latitude              Float
-  longitude             Float
-  neighborhood          String?
-  phone                 String?
-  email                 String?
-  website               String?
-  buildingType          String?                // house, apartment_building, condo, townhouse, high_rise
-  totalFloors           Int?                   // Total floors in the building
-  propertyFloor         Int?                   // Which floor the unit is on
-  hasElevator           Boolean                @default(false)
-  amenities             String[]
-  highlights            String[]
-  languages             String[]
-  accessibilityFeatures String[]
-  checkInTime           String?
-  checkOutTime          String?
-  checkInInstructions   String?
-  cancellationPolicy    String                 @default("flexible")
-  cancellationDetails   Json?
-  houseRules            String[]
-  petPolicy             String?
-  smokingPolicy         String?
-  childPolicy           String?
-  minAge                Int?
-  basePricePerNight     Float?
-  currency              String                 @default("USD")
-  cleaningFee           Float?
-  petFee                Float?
-  extraGuestFee         Float?
-  weekendPrice          Float?
-  serviceFee            Float?
-  securityDeposit       Float?
-  taxRate               Float?
-  weeklyDiscount        Float?
-  monthlyDiscount       Float?
-  smartPricing          Boolean                @default(false)
-  instantBooking        Boolean                @default(true)
-  minStay               Int                    @default(1)
-  maxStay               Int?
-  maxGuests             Int                    @default(2)
-  totalRooms            Int                    @default(1)
-  totalBathrooms        Float                  @default(1)
-  totalBedrooms         Int                    @default(1)
-  totalBeds             Int                    @default(1)
-  sustainabilityScore   Int?
-  ecoFeatures           String[]
-  ecoCertifications     String[]
-  status                String                 @default("draft")
-  rejectionReason       String?
-  publishedAt           DateTime?
-  featuredUntil         DateTime?
-  verified              Boolean                @default(false)
-  verifiedAt            DateTime?
-  aiDescription         String?
-  aiTranslations        Json?
-  aiSuggestedPrice      Float?
-  aiQualityScore        Int?
-  viewCount             Int                    @default(0)
-  bookingCount          Int                    @default(0)
-  reviewCount           Int                    @default(0)
-  avgRating             Float                  @default(0)
-  coverImageUrl         String?
-  metaTitle             String?
-  metaDescription       String?
-  createdAt             DateTime               @default(now())
-  updatedAt             DateTime               @updatedAt
-  owner                 PropertyOwner          @relation(fields: [ownerId], references: [id], onDelete: Cascade)
-  rooms                 PropertyRoom[]
-  images                PropertyImage[]
-  availability          PropertyAvailability[]
-  bookings              PropertyBooking[]
-  conversations         Conversation[]
-
-  @@index([ownerId])
-  @@index([status])
-  @@index([city, country])
-  @@index([propertyType])
-  @@index([latitude, longitude])
-  @@index([basePricePerNight])
-  @@index([slug])
-  @@map("properties")
-}
-
-model PropertyRoom {
-  id              String   @id @default(cuid())
-  propertyId      String
-  name            String
-  description     String?
-  roomType        String   @default("standard")
-  bedType         String?
-  bedCount        Int      @default(1)
-  maxOccupancy    Int      @default(2)
-  maxAdults       Int      @default(2)
-  maxChildren     Int      @default(0)
-  roomSize        Float?
-  floorLevel      Int?
-  viewType        String?
-  amenities       String[]
-  bathroomType    String?
-  basePricePerNight Float
-  currency        String   @default("USD")
-  quantity        Int      @default(1)
-  isActive        Boolean  @default(true)
-  sortOrder       Int      @default(0)
-  photos          String[]
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
-  property        Property @relation(fields: [propertyId], references: [id], onDelete: Cascade)
-  bookings        PropertyBooking[]
-
-  @@index([propertyId])
-  @@index([propertyId, isActive])
-  @@map("property_rooms")
-}
-
-model PropertyImage {
-  id          String   @id @default(cuid())
-  propertyId  String
-  url         String
-  thumbnailUrl String?
-  caption     String?
-  category    String   @default("general")
-  aiTags      String[]
-  aiScore     Int?
-  width       Int?
-  height      Int?
-  sizeBytes   Int?
-  mimeType    String?
-  isPrimary   Boolean  @default(false)
-  sortOrder   Int      @default(0)
-  uploadedAt  DateTime @default(now())
-  property    Property @relation(fields: [propertyId], references: [id], onDelete: Cascade)
-
-  @@index([propertyId])
-  @@index([propertyId, isPrimary])
-  @@map("property_images")
-}
-
-model PropertyAvailability {
-  id              String   @id @default(cuid())
-  propertyId      String
-  startDate       DateTime @db.Date
-  endDate         DateTime @db.Date
-  available       Boolean  @default(true)
-  customPrice     Float?
-  currency        String   @default("USD")
-  minStay         Int?
-  maxStay         Int?
-  notes           String?
-  source          String   @default("manual")
-  externalEventId String?
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
-  property        Property @relation(fields: [propertyId], references: [id], onDelete: Cascade)
-
-  @@index([propertyId])
-  @@index([propertyId, startDate, endDate])
-  @@map("property_availability")
-}
-
-model PropertyBooking {
-  id            String        @id @default(cuid())
-  propertyId    String
-  roomId        String?
-  userId        String
-  startDate     DateTime
-  endDate       DateTime
-  totalPrice    Float
-  currency      String        @default("USD")
-  status        String        @default("pending") // pending, confirmed, cancelled, completed
-  guestCount    Int           @default(1)
-  specialRequests String?
-  createdAt     DateTime      @default(now())
-  updatedAt     DateTime      @updatedAt
-  property      Property      @relation(fields: [propertyId], references: [id], onDelete: Cascade)
-  room          PropertyRoom? @relation(fields: [roomId], references: [id])
-  user          User          @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  @@index([propertyId])
-  @@index([userId])
-  @@index([startDate, endDate])
-  @@map("property_bookings")
-}
-
-
-// ------------------------------------------------------------------
-// Messaging System (User-to-User / Host-to-Guest)
-// ------------------------------------------------------------------
-
-model Conversation {
-  id              String    @id @default(cuid())
-  hostId          String
-  guestId         String
-  propertyId      String?
-  lastMessage     String?
-  lastMessageAt   DateTime  @default(now())
-  unreadCountHost Int       @default(0)
-  unreadCountGuest Int      @default(0)
-  createdAt       DateTime  @default(now())
-  updatedAt       DateTime  @updatedAt
-
-  host      User      @relation("HostConversations", fields: [hostId], references: [id], onDelete: Cascade)
-  guest     User      @relation("GuestConversations", fields: [guestId], references: [id], onDelete: Cascade)
-  property  Property? @relation(fields: [propertyId], references: [id])
-  messages  Message[]
-
-  @@unique([hostId, guestId, propertyId])
-  @@index([hostId, lastMessageAt])
-  @@index([guestId, lastMessageAt])
-  @@map("conversations")
-}
-
-model Message {
-  id             String       @id @default(cuid())
-  conversationId String
-  senderId       String
-  content        String
-  read           Boolean      @default(false)
-  createdAt      DateTime     @default(now())
-  
-  conversation   Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
-  sender         User         @relation("SentMessages", fields: [senderId], references: [id], onDelete: Cascade)
-
-  @@index([conversationId, createdAt])
-  @@map("messages")
 }

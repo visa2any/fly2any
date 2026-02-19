@@ -1,6 +1,6 @@
-import { NextRequest, NextResponse } from 'next/server';
-import { auth } from '@/lib/auth';
 import prisma from '@/lib/prisma';
+
+export const dynamic = 'force-dynamic';
 
 // GET /api/properties/dashboard — Get host dashboard overview (auth required)
 export async function GET(request: NextRequest) {
@@ -88,6 +88,10 @@ export async function GET(request: NextRequest) {
     });
   } catch (error: any) {
     console.error('Dashboard error:', error);
-    return NextResponse.json({ success: false, error: error.message }, { status: 500 });
+    return NextResponse.json({ 
+      success: false, 
+      error: error.message || 'An unexpected error occurred on the dashboard',
+      details: process.env.NODE_ENV === 'development' ? error.stack : undefined
+    }, { status: 500 });
   }
 }

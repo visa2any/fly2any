@@ -64,12 +64,15 @@ export default function PropertiesPage() {
         headers: { 'Cache-Control': 'no-cache' },
       });
       clearTimeout(timeout);
-      if (!res.ok) throw new Error(`Server error ${res.status}`);
+      if (!res.ok) {
+        const errorData = await res.json().catch(() => ({}));
+        throw new Error(errorData.error || `Server error ${res.status}`);
+      }
       const data = await res.json();
       setProperties(data.data?.properties || []);
     } catch (err: any) {
       console.error('Failed to fetch properties:', err);
-      setError(err.name === 'AbortError' ? 'Request timed out. Please try again.' : (err.message || 'Failed to load properties'));
+      setError(err.message || 'Failed to load properties');
     } finally {
       clearTimeout(timeout);
       setLoading(false);
