@@ -5,7 +5,20 @@ export const dynamic = 'force-dynamic';
 // GET /api/properties — List properties (public sees active only, owners see their own)
 export async function GET(request: NextRequest) {
   try {
-    const session = await auth();
+    // 1. Critical DB check
+    if (!prisma) {
+      console.error('CRITICAL: Prisma client is NULL in /api/properties');
+      return NextResponse.json({ success: false, error: 'Database configuration missing' }, { status: 503 });
+    }
+
+    let session;
+    try {
+      session = await auth();
+    } catch (e: any) {
+      console.error('Auth check failed in /api/properties:', e);
+      // Don't fail immediately, public access might be allowed
+    }
+
     const { searchParams } = new URL(request.url);
     const ownerId = searchParams.get('ownerId');
     const status = searchParams.get('status');

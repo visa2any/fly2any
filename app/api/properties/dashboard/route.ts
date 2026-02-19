@@ -5,15 +5,36 @@ export const dynamic = 'force-dynamic';
 // GET /api/properties/dashboard — Get host dashboard overview (auth required)
 export async function GET(request: NextRequest) {
   try {
-    const session = await auth();
+    // 1. Debug DB connection
+    if (!prisma) {
+      console.error('CRITICAL: Prisma client is NULL. Database configuration missing.');
+      return NextResponse.json({ success: false, error: 'Database configuration missing' }, { status: 503 });
+    }
+
+    // 2. Auth check
+    let session;
+    try {
+      session = await auth();
+    } catch (e: any) {
+      console.error('Auth check failed:', e);
+      return NextResponse.json({ success: false, error: 'Authentication service failed: ' + e.message }, { status: 500 });
+    }
+
     if (!session?.user?.id) {
       return NextResponse.json({ success: false, error: 'Authentication required' }, { status: 401 });
     }
 
+    // 3. DB Query
     // Find or create PropertyOwner for this user
-    const owner = await prisma.propertyOwner.findUnique({
-      where: { userId: session.user.id },
-    });
+    let owner;
+    try {
+      owner = await prisma.propertyOwner.findUnique({
+        where: { userId: session.user.id },
+      });
+    } catch (e: any) {
+      console.error('Prisma propertyOwner.findUnique failed:', e);
+      return NextResponse.json({ success: false, error: 'Database error (Owner): ' + e.message }, { status: 500 });
+    }
 
     if (!owner) {
       // No owner profile yet — return empty dashboard
@@ -30,14 +51,20 @@ export async function GET(request: NextRequest) {
     }
 
     // Get properties for this owner
-    const properties = await prisma.property.findMany({
-      where: { ownerId: owner.id },
-      include: {
-        images: { orderBy: { sortOrder: 'asc' }, take: 3 },
-        _count: { select: { rooms: true, images: true } },
-      },
-      orderBy: { updatedAt: 'desc' },
-    });
+    let properties;
+    try {
+      properties = await prisma.property.findMany({
+        where: { ownerId: owner.id },
+        include: {
+          images: { orderBy: { sortOrder: 'asc' }, take: 3 },
+          _count: { select: { rooms: true, images: true } },
+        },
+        orderBy: { updatedAt: 'desc' },
+      });
+    } catch (e: any) {
+       console.error('Prisma property.findMany failed:', e);
+       return NextResponse.json({ success: false, error: 'Database error (Properties): ' + e.message }, { status: 500 });
+    }
 
     const activeCount = properties.filter(p => p.status === 'active').length;
     const totalViews = properties.reduce((sum, p) => sum + p.viewCount, 0);
@@ -87,7 +114,7 @@ export async function GET(request: NextRequest) {
       },
     });
   } catch (error: any) {
-    console.error('Dashboard error:', error);
+    console.error('Dashboard fatal error:', error);
     return NextResponse.json({ 
       success: false, 
       error: error.message || 'An unexpected error occurred on the dashboard',

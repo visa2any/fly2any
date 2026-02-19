@@ -14,7 +14,7 @@
 import NextAuth from 'next-auth';
 import { PrismaAdapter } from '@auth/prisma-adapter';
 import { prisma, isPrismaAvailable } from './db/prisma';
-import { authConfig } from './auth.config';
+import { authConfig } from '@/lib/auth.config';
 
 // Only use PrismaAdapter if DATABASE_URL is configured
 const authOptions = isPrismaAvailable() && prisma
