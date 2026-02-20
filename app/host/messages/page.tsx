@@ -2,8 +2,9 @@
 
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { useSession } from 'next-auth/react';
-import { Loader2, MessageSquare, Search, Send, User } from 'lucide-react';
+import { Loader2, MessageSquare, Search, Send, User, Sparkles, Info, X } from 'lucide-react';
 import { format } from 'date-fns';
+import { AnimatePresence, motion } from 'framer-motion';
 import Image from 'next/image';
 import { cn } from '@/lib/utils';
 
@@ -38,6 +39,7 @@ export default function MessagesPage() {
   const [searchQuery, setSearchQuery] = useState('');
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const [showSidebar, setShowSidebar] = useState(true);
+  const [showContextDrawer, setShowContextDrawer] = useState(false);
 
   // Scroll to bottom when messages change
   useEffect(() => {
@@ -80,6 +82,8 @@ export default function MessagesPage() {
     fetchMessages().then(() => setLoadingMessages(false));
   }, [activeConversationId, fetchMessages]);
 
+  const [isGeneratingAI, setIsGeneratingAI] = useState(false);
+
   // Poll for new messages and conversation updates
   useEffect(() => {
     const interval = setInterval(() => {
@@ -88,6 +92,39 @@ export default function MessagesPage() {
     }, POLL_INTERVAL);
     return () => clearInterval(interval);
   }, [fetchConversations, fetchMessages, activeConversationId]);
+
+  const handleGenerateAIReply = async () => {
+      if (!activeConversationId || messages.length === 0) return;
+      setIsGeneratingAI(true);
+      
+      try {
+          // Send the last few messages for context
+          const contextMessages = messages.slice(-5).map(m => ({
+              role: m.sender.id === currentUserId || m.sender.id === 'me' ? 'assistant' : 'user',
+              content: m.content
+          }));
+
+          const res = await fetch('/api/ai/co-host-reply', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                  conversationId: activeConversationId,
+                  messages: contextMessages
+              })
+          });
+
+          const data = await res.json();
+          if (data.success) {
+              setNewMessage(data.reply);
+          } else {
+              throw new Error(data.error);
+          }
+      } catch (e: any) {
+          alert("Failed to generate AI reply: " + e.message);
+      } finally {
+          setIsGeneratingAI(false);
+      }
+  }
 
   const handleSendMessage = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -197,7 +234,7 @@ export default function MessagesPage() {
         <div className={cn("flex-1 flex flex-col h-full bg-white", showSidebar && "hidden md:flex")}>
             {activeConversationId && activeConversation ? (
                 <>
-                    <div className="p-4 border-b border-neutral-100 flex items-center justify-between">
+                    <div className="p-4 border-b border-neutral-100 flex items-center justify-between bg-white z-10 relative shadow-sm">
                          <div className="flex items-center gap-3">
                              {/* Mobile back button */}
                              <button onClick={() => setShowSidebar(true)} className="md:hidden p-1 -ml-1 text-gray-500 hover:text-gray-900">
@@ -206,8 +243,16 @@ export default function MessagesPage() {
                              <h3 className="font-bold text-gray-900">
                                  {activeConversation.guest.name}
                              </h3>
-                             <span className="text-xs text-gray-400">• {activeConversation.property?.name}</span>
+                             <span className="text-xs text-gray-400 hidden sm:inline">• {activeConversation.property?.name}</span>
                          </div>
+                         <button 
+                             onClick={() => setShowContextDrawer(!showContextDrawer)}
+                             className={cn("p-2 transition-colors rounded-xl flex items-center gap-2", showContextDrawer ? "bg-indigo-50 text-indigo-600" : "text-gray-400 hover:bg-neutral-100 hover:text-gray-900")}
+                             title="Guest Context"
+                         >
+                             <span className="text-xs font-bold hidden xl:inline">Guest Details</span>
+                             <Info className="w-5 h-5" />
+                         </button>
                     </div>
 
                     <div className="flex-1 overflow-y-auto p-4 space-y-4 bg-white">
@@ -240,20 +285,31 @@ export default function MessagesPage() {
                     </div>
 
                     {/* AI Quick Response Suggestions */}
-                    <div className="px-4 py-2 border-t border-neutral-50 bg-neutral-50/50">
+                    <div className="px-4 py-3 border-t border-neutral-100 bg-indigo-50/50 flex flex-col gap-2">
+                      <div className="flex items-center justify-between">
+                         <div className="flex items-center gap-1.5 text-indigo-700">
+                             <Sparkles className="w-4 h-4" />
+                             <span className="text-xs font-bold uppercase tracking-wider">AI Co-Host</span>
+                         </div>
+                         <button
+                            onClick={handleGenerateAIReply}
+                            disabled={isGeneratingAI || messages.length === 0}
+                            className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold transition-colors shadow-sm disabled:opacity-50"
+                         >
+                            {isGeneratingAI ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : 'Generate Context-Aware Draft'}
+                         </button>
+                      </div>
                       <div className="flex items-center gap-2 overflow-x-auto pb-1 scrollbar-hide">
-                        <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider shrink-0">Quick:</span>
                         {[
                           { label: '🔑 Check-in Info', text: 'Hi! Check-in is from 3:00 PM. I\'ll send you the access code the day before your arrival. Let me know if you need anything!' },
                           { label: '👋 Welcome', text: 'Welcome! I hope you have a wonderful stay. Don\'t hesitate to reach out if you need any recommendations or assistance.' },
                           { label: '🙏 Thank You', text: 'Thank you for your message! I\'ll get back to you shortly with all the details.' },
-                          { label: '📍 Directions', text: 'The property is easy to find! I\'ll send you detailed directions with landmarks closer to your check-in date.' },
                         ].map((suggestion) => (
                           <button
                             key={suggestion.label}
                             type="button"
                             onClick={() => setNewMessage(suggestion.text)}
-                            className="shrink-0 px-3 py-1.5 rounded-lg bg-white border border-neutral-200 text-xs font-medium text-gray-600 hover:bg-primary-50 hover:border-primary-200 hover:text-primary-700 transition-all"
+                            className="shrink-0 px-3 py-1.5 rounded-lg bg-white border border-indigo-100 text-xs font-medium text-indigo-700 hover:bg-indigo-50 transition-all"
                           >
                             {suggestion.label}
                           </button>
@@ -280,13 +336,66 @@ export default function MessagesPage() {
                         </div>
                     </form>
                 </>
-            ) : (
-                <div className="flex-1 flex flex-col items-center justify-center text-gray-400">
-                    <MessageSquare className="w-16 h-16 mb-4 opacity-20" />
-                    <p>Select a conversation to start messaging</p>
-                </div>
             )}
         </div>
+
+        {/* Slide-out Context Drawer */}
+        <AnimatePresence>
+            {showContextDrawer && activeConversation && (
+                <motion.div 
+                    initial={{ width: 0, opacity: 0 }}
+                    animate={{ width: 340, opacity: 1 }}
+                    exit={{ width: 0, opacity: 0 }}
+                    transition={{ type: "spring", stiffness: 300, damping: 30 }}
+                    className="h-full border-l border-neutral-200 bg-neutral-50 flex flex-col overflow-hidden hidden lg:flex shrink-0 z-20"
+                >
+                    <div className="p-6 overflow-y-auto w-[340px]">
+                        <div className="flex items-center justify-between mb-8">
+                            <h3 className="text-lg font-black text-gray-900 tracking-tight">Context</h3>
+                            <button onClick={() => setShowContextDrawer(false)} className="p-1.5 text-gray-400 hover:bg-neutral-200 rounded-lg">
+                                <X className="w-5 h-5" />
+                            </button>
+                        </div>
+                        
+                        <div className="flex flex-col items-center mb-8 text-center">
+                            {activeConversation.guest.image ? (
+                                <Image src={activeConversation.guest.image} alt="" width={80} height={80} className="rounded-full shadow-md border-4 border-white mb-3 object-cover" />
+                            ) : (
+                                <div className="w-20 h-20 rounded-full bg-indigo-100 flex items-center justify-center mb-3 shadow-inner border-4 border-white">
+                                    <User className="w-10 h-10 text-indigo-400" />
+                                </div>
+                            )}
+                            <h4 className="font-bold text-gray-900 text-xl tracking-tight leading-tight">{activeConversation.guest.name}</h4>
+                            <p className="text-sm font-medium text-gray-500">Verified Guest</p>
+                        </div>
+                        
+                        <div className="space-y-4">
+                            <div className="bg-white p-5 rounded-3xl border border-neutral-200 shadow-sm relative overflow-hidden group">
+                                <div className="absolute top-0 right-0 p-12 bg-primary-500/5 rounded-full blur-xl -mr-6 -mt-6 group-hover:bg-primary-500/10 transition-colors" />
+                                <h5 className="text-[10px] font-black text-neutral-400 uppercase tracking-widest mb-3">Trip Info</h5>
+                                <p className="text-base font-bold text-gray-900 mb-2 leading-tight">{activeConversation.property?.name}</p>
+                                <div className="space-y-2 mt-4 pt-4 border-t border-neutral-100">
+                                   <p className="text-xs font-semibold text-gray-500 flex justify-between"><span>Status:</span> <span className="text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-md">Upcoming</span></p>
+                                   <p className="text-xs font-semibold text-gray-500 flex justify-between"><span>Guests:</span> <span className="text-gray-900">2 Adults, 1 Pet</span></p>
+                                </div>
+                            </div>
+                            
+                            <div className="bg-gradient-to-br from-indigo-50 to-violet-50 p-5 rounded-3xl border border-indigo-100 relative overflow-hidden group">
+                                <div className="absolute -bottom-4 -right-4 text-indigo-500/10 group-hover:scale-110 transition-transform">
+                                   <Sparkles className="w-24 h-24" />
+                                </div>
+                                <h5 className="text-[10px] font-black text-indigo-600 flex items-center gap-1.5 uppercase tracking-widest mb-3 relative z-10">
+                                  <Sparkles className="w-3.5 h-3.5" /> AI Insight
+                                </h5>
+                                <p className="text-sm text-indigo-900 leading-relaxed font-semibold relative z-10">
+                                  This guest travels with a pet. Offering a preemptive link to local dog parks or your pet rules can secure a 5-star review!
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </motion.div>
+            )}
+        </AnimatePresence>
     </div>
   );
 }

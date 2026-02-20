@@ -11,6 +11,7 @@ import { ListingHealthScore } from './components/ListingHealthScore';
 import { TodayActivity } from './components/TodayActivity';
 import { RecentMessages } from './components/RecentMessages';
 import { QuickActions } from './components/QuickActions';
+import { CompetitorBenchmark } from './components/CompetitorBenchmark';
 
 export const dynamic = 'force-dynamic';
 
@@ -155,6 +156,11 @@ export default async function HostDashboard() {
           }>
             <RecentMessages userId={session.user.id!} />
           </Suspense>
+        </div>
+
+        {/* ─── Zone 7: AI Market Insights (Competitor Benchmarking) ─── */}
+        <div className="mt-8 mb-8">
+            <CompetitorBenchmark />
         </div>
 
       </MaxWidthContainer>

@@ -1,6 +1,7 @@
 'use client';
 
 import { Activity, CheckCircle2, AlertTriangle, Camera, DollarSign, FileText, Star } from 'lucide-react';
+import { AnimatedFadeIn } from '@/components/ui/AnimatedFadeIn';
 
 interface PropertyHealth {
   id: string;
@@ -47,53 +48,59 @@ export function ListingHealthScore({ properties }: { properties: PropertyHealth[
   const offset = circumference - (avgScore / 100) * circumference;
 
   return (
-    <div className="bg-white border border-neutral-100 rounded-3xl p-6 shadow-sm">
-      <div className="flex items-center gap-3 mb-6">
-        <div className={`p-2.5 rounded-xl ${scoreBg}`}>
-          <Activity className={`w-5 h-5 ${scoreColor}`} />
-        </div>
-        <div>
-          <h3 className="font-bold text-gray-900">Listing Health</h3>
-          <p className="text-xs text-gray-400">Optimize your listings for more bookings</p>
-        </div>
-      </div>
-
-      <div className="flex items-center gap-6">
-        {/* Circular Score */}
-        <div className="relative w-24 h-24 shrink-0">
-          <svg className="w-24 h-24 -rotate-90" viewBox="0 0 100 100">
-            <circle cx="50" cy="50" r="40" fill="none" strokeWidth="8" className="stroke-neutral-100" />
-            <circle
-              cx="50" cy="50" r="40" fill="none" strokeWidth="8"
-              className={scoreRing}
-              strokeLinecap="round"
-              strokeDasharray={circumference}
-              strokeDashoffset={offset}
-              style={{ transition: 'stroke-dashoffset 1s ease-in-out' }}
-            />
-          </svg>
-          <div className="absolute inset-0 flex items-center justify-center">
-            <span className={`text-2xl font-black ${scoreColor}`}>{avgScore}</span>
+    <AnimatedFadeIn delay={0.2}>
+      <div className="bg-white border border-neutral-100 rounded-3xl p-6 shadow-sm">
+        <div className="flex items-center gap-3 mb-6">
+          <div className={`p-2.5 rounded-xl ${scoreBg}`}>
+            <Activity className={`w-5 h-5 ${scoreColor}`} />
+          </div>
+          <div>
+            <h3 className="font-bold text-gray-900">Listing Health</h3>
+            <p className="text-xs text-gray-400">Optimize your listings for more bookings</p>
           </div>
         </div>
 
-        {/* Tips */}
-        <div className="flex-1 space-y-2">
-          {tips.length === 0 ? (
-            <div className="flex items-center gap-2 text-emerald-600">
-              <CheckCircle2 className="w-4 h-4" />
-              <span className="text-sm font-medium">All listings are well optimized!</span>
+        <div className="flex items-center gap-6">
+          {/* Circular Score */}
+          <div className="relative w-24 h-24 shrink-0">
+            <svg className="w-24 h-24 -rotate-90" viewBox="0 0 100 100">
+              <circle cx="50" cy="50" r="40" fill="none" strokeWidth="8" className="stroke-neutral-100" />
+              <circle
+                cx="50" cy="50" r="40" fill="none" strokeWidth="8"
+                className={scoreRing}
+                strokeLinecap="round"
+                strokeDasharray={circumference}
+                strokeDashoffset={offset}
+                style={{ transition: 'stroke-dashoffset 1.5s cubic-bezier(0.16, 1, 0.3, 1) 0.5s' }}
+              />
+            </svg>
+            <div className="absolute inset-0 flex items-center justify-center">
+              <span className={`text-2xl font-black ${scoreColor}`}>{avgScore}</span>
             </div>
-          ) : (
-            tips.slice(0, 3).map((tip, i) => (
-              <div key={i} className="flex items-center gap-2 text-gray-500">
-                <AlertTriangle className="w-3.5 h-3.5 text-amber-400 shrink-0" />
-                <span className="text-xs">{tip.text}</span>
-              </div>
-            ))
-          )}
+          </div>
+
+          {/* Tips */}
+          <div className="flex-1 space-y-3">
+            {tips.length === 0 ? (
+              <AnimatedFadeIn delay={0.6}>
+                <div className="flex items-center gap-2 text-emerald-600">
+                  <CheckCircle2 className="w-4 h-4" />
+                  <span className="text-sm font-medium">All listings are well optimized!</span>
+                </div>
+              </AnimatedFadeIn>
+            ) : (
+              tips.slice(0, 3).map((tip, i) => (
+                <AnimatedFadeIn key={i} delay={0.5 + i * 0.15}>
+                  <div className="flex items-center gap-2 text-gray-600 bg-neutral-50 px-3 py-2 rounded-xl">
+                    <AlertTriangle className="w-4 h-4 text-amber-500 shrink-0" />
+                    <span className="text-xs font-semibold">{tip.text}</span>
+                  </div>
+                </AnimatedFadeIn>
+              ))
+            )}
+          </div>
         </div>
       </div>
-    </div>
+    </AnimatedFadeIn>
   );
 }

@@ -1,18 +1,28 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { MaxWidthContainer } from '@/components/layout/MaxWidthContainer';
 import {
-  ChevronLeft, ChevronRight, Loader2, Calendar as CalendarIcon, X, Check, DollarSign, Ban
+  ChevronLeft, ChevronRight, Loader2, Calendar as CalendarIcon, X, Check, DollarSign, Flame, CalendarDays
 } from 'lucide-react';
-import { format, startOfMonth, endOfMonth, eachDayOfInterval, isSameDay, addMonths, subMonths } from 'date-fns';
+import { format, subMonths, addMonths, eachDayOfInterval, isWithinInterval, isSameDay } from 'date-fns';
 import { toast } from 'react-hot-toast';
+import { ICalSyncModal } from './components/ICalSyncModal';
 
 interface PropertyOption { id: string; name: string; currency: string; }
 interface AvailabilityEntry {
   id: string; startDate: string; endDate: string;
   available: boolean; customPrice: number | null; notes: string | null;
 }
+
+// Mock demand generator for heatmap
+const getDemandScore = (day: number) => {
+    // Generate some stable but pseudo-random demand per day
+    const val = (day * 13) % 100;
+    if (val > 80) return 'peak';
+    if (val > 50) return 'high';
+    return 'normal';
+};
 
 export default function CalendarPage() {
   const [properties, setProperties] = useState<PropertyOption[]>([]);
@@ -21,13 +31,18 @@ export default function CalendarPage() {
   const [loading, setLoading] = useState(true);
   const [currentDate, setCurrentDate] = useState(new Date());
   
-  // Modal State
-  const [selectedDate, setSelectedDate] = useState<Date | null>(null);
+  // Drag Selection State
+  const [isDragging, setIsDragging] = useState(false);
+  const [dragStart, setDragStart] = useState<Date | null>(null);
+  const [dragEnd, setDragEnd] = useState<Date | null>(null);
+  const [selectedDates, setSelectedDates] = useState<Date[]>([]);
+
+  // Slide-over Modal State
   const [editPrice, setEditPrice] = useState<string>('');
   const [editAvailable, setEditAvailable] = useState<boolean>(true);
   const [isSaving, setIsSaving] = useState(false);
+  const [isSyncModalOpen, setIsSyncModalOpen] = useState(false);
 
-  // Fetch properties
   useEffect(() => {
     async function loadProperties() {
       try {
@@ -35,9 +50,7 @@ export default function CalendarPage() {
         if (res.ok) {
           const json = await res.json();
           const props = (json.data?.properties || []).map((p: any) => ({ 
-              id: p.id, 
-              name: p.name,
-              currency: p.currency || 'USD'
+              id: p.id, name: p.name, currency: p.currency || 'USD'
           }));
           setProperties(props);
           if (props.length > 0) setSelectedProperty(props[0].id);
@@ -48,7 +61,6 @@ export default function CalendarPage() {
     loadProperties();
   }, []);
 
-  // Fetch availability
   useEffect(() => {
     if (!selectedProperty) return;
     async function loadAvailability() {
@@ -73,11 +85,12 @@ export default function CalendarPage() {
   const prevMonth = () => setCurrentDate(subMonths(currentDate, 1));
   const nextMonth = () => setCurrentDate(addMonths(currentDate, 1));
 
-  const getDayStatus = (day: number): { available: boolean; price: number | null } | null => {
-    const date = new Date(year, month, day);
+  const getDayStatus = (date: Date): { available: boolean; price: number | null } | null => {
     for (const entry of availability) {
       const start = new Date(entry.startDate);
       const end = new Date(entry.endDate);
+      start.setHours(0,0,0,0);
+      end.setHours(23,59,59,999);
       if (date >= start && date <= end) {
         return { available: entry.available, price: entry.customPrice };
       }
@@ -87,23 +100,52 @@ export default function CalendarPage() {
 
   const currentProperty = properties.find(p => p.id === selectedProperty);
 
-  const handleDayClick = (day: number) => {
+  // Mouse Handlers for Drag Selection
+  const handleMouseDown = (day: number) => {
     const date = new Date(year, month, day);
-    const status = getDayStatus(day);
-    
-    setSelectedDate(date);
-    setEditAvailable(status ? status.available : true);
-    setEditPrice(status?.price ? String(status.price) : '');
+    setIsDragging(true);
+    setDragStart(date);
+    setDragEnd(date);
+    setSelectedDates([]); // clear previous
   };
 
+  const handleMouseEnter = (day: number) => {
+    if (isDragging) {
+      setDragEnd(new Date(year, month, day));
+    }
+  };
+
+  const handleMouseUp = useCallback(() => {
+    if (isDragging && dragStart && dragEnd) {
+      setIsDragging(false);
+      const start = dragStart < dragEnd ? dragStart : dragEnd;
+      const end = dragStart > dragEnd ? dragStart : dragEnd;
+      const dates = eachDayOfInterval({ start, end });
+      setSelectedDates(dates);
+      
+      const status = getDayStatus(start);
+      setEditAvailable(status ? status.available : true);
+      setEditPrice(status?.price ? String(status.price) : '');
+    }
+  }, [isDragging, dragStart, dragEnd]);
+
+  useEffect(() => {
+    window.addEventListener('mouseup', handleMouseUp);
+    return () => window.removeEventListener('mouseup', handleMouseUp);
+  }, [handleMouseUp]);
+
   const handleSave = async () => {
-    if (!selectedDate || !selectedProperty) return;
+    if (selectedDates.length === 0 || !selectedProperty) return;
     setIsSaving(true);
     
+    // Convert to contiguous regions or push individually. For simplicity, we just push the contiguous block.
+    const start = selectedDates[0];
+    const end = selectedDates[selectedDates.length - 1];
+
     try {
         const payload = {
-            startDate: selectedDate.toISOString(),
-            endDate: selectedDate.toISOString(),
+            startDate: start.toISOString(),
+            endDate: end.toISOString(),
             available: editAvailable,
             price: editPrice ? parseFloat(editPrice) : null
         };
@@ -125,15 +167,17 @@ export default function CalendarPage() {
             notes: null
         };
         const filtered = availability.filter(a => {
-            const date = new Date(payload.startDate);
-            const start = new Date(a.startDate);
-            const end = new Date(a.endDate);
-            return !(date >= start && date <= end);
+            const rangeStart = new Date(payload.startDate);
+            const rangeEnd = new Date(payload.endDate);
+            const aStart = new Date(a.startDate);
+            const aEnd = new Date(a.endDate);
+            // Rough overlap check to remove old overridden dates
+            return !(rangeEnd >= aStart && rangeStart <= aEnd);
         });
         setAvailability([...filtered, newEntry]);
         
-        toast.success("Availability updated!");
-        setSelectedDate(null);
+        toast.success(`Updated ${selectedDates.length} days`);
+        setSelectedDates([]);
 
     } catch (e) {
         toast.error("Failed to update availability");
@@ -151,24 +195,34 @@ export default function CalendarPage() {
   }
 
   return (
-    <div className="min-h-screen bg-[#FDFDFD] pt-4 pb-20 relative">
+    <div className="min-h-screen bg-[#FDFDFD] pt-4 pb-20 relative overflow-hidden">
       <MaxWidthContainer>
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8 mt-4">
           <div>
-            <h1 className="text-2xl md:text-3xl font-black text-gray-900 mb-1">Calendar & Availability</h1>
-            <p className="text-gray-500 text-sm">Manage your property availability and custom pricing.</p>
+            <h1 className="text-2xl md:text-3xl font-black text-gray-900 mb-1 flex items-center gap-2">
+                Calendar <span className="bg-primary-100 text-primary-700 text-xs px-2 py-1 rounded-full uppercase tracking-wider font-bold">Smart UX</span>
+            </h1>
+            <p className="text-gray-500 text-sm">Drag to select multiple days. Adjust pricing with demand insights.</p>
           </div>
-          {properties.length > 0 && (
-            <select
-              value={selectedProperty}
-              onChange={(e) => setSelectedProperty(e.target.value)}
-              className="px-4 py-2.5 rounded-xl bg-white border border-neutral-200 text-gray-900 text-sm font-semibold focus:outline-none focus:border-primary-300 focus:ring-2 focus:ring-primary-100 appearance-none cursor-pointer"
-            >
-              {properties.map((p) => (
-                <option key={p.id} value={p.id}>{p.name}</option>
-              ))}
-            </select>
-          )}
+          <div className="flex items-center gap-3">
+              <button 
+                  onClick={() => setIsSyncModalOpen(true)}
+                  className="px-4 py-2.5 rounded-xl bg-neutral-100 hover:bg-neutral-200 text-gray-700 font-bold text-sm transition-colors border border-neutral-200"
+              >
+                  Sync iCal
+              </button>
+              {properties.length > 0 && (
+                <select
+                  value={selectedProperty}
+                  onChange={(e) => setSelectedProperty(e.target.value)}
+                  className="px-4 py-2.5 rounded-xl bg-white border border-neutral-200 text-gray-900 text-sm font-bold focus:outline-none focus:border-primary-300 focus:ring-2 focus:ring-primary-100 appearance-none cursor-pointer"
+                >
+                  {properties.map((p) => (
+                    <option key={p.id} value={p.id}>{p.name}</option>
+                  ))}
+                </select>
+              )}
+          </div>
         </div>
 
         {properties.length === 0 ? (
@@ -178,135 +232,209 @@ export default function CalendarPage() {
             <p className="text-gray-500 text-sm">Add a property first to manage its calendar.</p>
           </div>
         ) : (
-          <>
-            <div className="flex items-center justify-between mb-6">
-              <button onClick={prevMonth} className="p-2 rounded-lg bg-white border border-neutral-200 text-gray-500 hover:text-gray-900 hover:bg-neutral-50 transition-colors">
-                <ChevronLeft className="w-5 h-5" />
-              </button>
-              <h2 className="text-gray-900 font-bold text-lg">{monthName}</h2>
-              <button onClick={nextMonth} className="p-2 rounded-lg bg-white border border-neutral-200 text-gray-500 hover:text-gray-900 hover:bg-neutral-50 transition-colors">
-                <ChevronRight className="w-5 h-5" />
-              </button>
+          <div className="flex gap-8">
+            <div className={`flex-1 transition-all duration-300 ${selectedDates.length > 0 ? 'pr-[340px]' : ''}`}>
+                <div className="flex flex-col md:flex-row md:items-center justify-between mb-6 gap-4">
+                  <div className="flex items-center gap-4 bg-white p-1 rounded-xl border border-neutral-200 shadow-sm w-max">
+                    <button onClick={prevMonth} className="p-2 rounded-lg text-gray-500 hover:text-gray-900 hover:bg-neutral-50 transition-colors">
+                      <ChevronLeft className="w-5 h-5" />
+                    </button>
+                    <h2 className="text-gray-900 font-black text-lg min-w-[140px] text-center">{monthName}</h2>
+                    <button onClick={nextMonth} className="p-2 rounded-lg text-gray-500 hover:text-gray-900 hover:bg-neutral-50 transition-colors">
+                      <ChevronRight className="w-5 h-5" />
+                    </button>
+                  </div>
+
+                  {/* AI Smart Yield Toggle */}
+                  <div className="flex items-center gap-3 bg-gradient-to-r from-purple-50 to-indigo-50 border border-purple-100 px-4 py-2.5 rounded-xl shadow-sm">
+                     <div className="flex items-center gap-2">
+                         <span className="bg-purple-600 text-white p-1 rounded-md">
+                            <Flame className="w-3.5 h-3.5" />
+                         </span>
+                         <div>
+                             <p className="text-sm font-bold text-purple-900 leading-none">Smart Yield Active</p>
+                             <p className="text-[10px] text-purple-700 mt-1 font-medium">Demand Heatmap enabled</p>
+                         </div>
+                     </div>
+                     <div className="w-10 h-6 bg-purple-600 rounded-full ml-4 relative cursor-pointer shadow-inner">
+                         <div className="absolute right-1 top-1 w-4 h-4 bg-white rounded-full shadow-sm" />
+                     </div>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-7 gap-2 mb-2">
+                  {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map((d) => (
+                    <div key={d} className="text-center text-gray-400 text-xs font-bold py-2">{d}</div>
+                  ))}
+                </div>
+
+                <div className="grid grid-cols-7 gap-2 select-none">
+                  {Array.from({ length: firstDayOfWeek }).map((_, i) => (
+                    <div key={`empty-${i}`} className="aspect-square" />
+                  ))}
+                  {Array.from({ length: daysInMonth }).map((_, i) => {
+                    const day = i + 1;
+                    const date = new Date(year, month, day);
+                    const status = getDayStatus(date);
+                    const isToday = isSameDay(date, new Date());
+                    const demand = getDemandScore(day);
+                    
+                    let isInDrag = false;
+                    if (isDragging && dragStart && dragEnd) {
+                        const start = dragStart < dragEnd ? dragStart : dragEnd;
+                        const end = dragStart > dragEnd ? dragStart : dragEnd;
+                        isInDrag = isWithinInterval(date, { start, end });
+                    }
+                    const isSelected = selectedDates.some(d => isSameDay(d, date)) || isInDrag;
+                    
+                    // Heatmap coloring
+                    let bgClass = 'bg-white';
+                    let textClass = 'text-gray-600';
+                    let borderClass = 'border-neutral-200';
+                    
+                    if (status && !status.available) {
+                         bgClass = 'bg-neutral-100/80';
+                         textClass = 'text-neutral-400 line-through';
+                         borderClass = 'border-neutral-200';
+                    } else if (status?.available !== false) {
+                         if (demand === 'peak') { bgClass = 'bg-rose-50/60'; borderClass='border-rose-100'; textClass='text-rose-900'; }
+                         else if (demand === 'high') { bgClass = 'bg-orange-50/60'; borderClass='border-orange-100'; textClass='text-orange-900'; }
+                    }
+
+                    if (isSelected) {
+                        bgClass = 'bg-primary-50';
+                        borderClass = 'border-primary-500 ring-2 ring-primary-500 z-10';
+                        textClass = 'text-primary-700';
+                    }
+
+                    return (
+                      <div
+                        key={day}
+                        onMouseDown={() => handleMouseDown(day)}
+                        onMouseEnter={() => handleMouseEnter(day)}
+                        className={`aspect-square rounded-2xl border flex flex-col items-center justify-center transition-all cursor-pointer hover:shadow-md relative group ${bgClass} ${borderClass} ${textClass} ${isToday ? 'ring-2 ring-offset-2 ring-emerald-400' : ''}`}
+                      >
+                        <span className={`text-sm ${isSelected ? 'font-black' : 'font-bold'}`}>{day}</span>
+                        {status?.price && status.available && (
+                          <span className={`text-[10px] font-bold mt-1 ${isSelected ? 'text-primary-600' : 'text-gray-500'}`}>${status.price}</span>
+                        )}
+                        {!status?.price && status?.available !== false && demand === 'peak' && (
+                           <Flame className="w-3 h-3 text-rose-400 absolute top-2 right-2 opacity-50" />
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+
+                {/* Legend */}
+                <div className="flex items-center gap-6 mt-8 justify-center bg-white border border-neutral-200 rounded-full py-2 px-6 w-max mx-auto shadow-sm">
+                  <div className="flex items-center gap-2 text-xs font-medium text-gray-500">
+                    <div className="w-3 h-3 rounded-full bg-rose-100 border border-rose-200" /> Peak Demand
+                  </div>
+                  <div className="flex items-center gap-2 text-xs font-medium text-gray-500">
+                    <div className="w-3 h-3 rounded-full bg-orange-100 border border-orange-200" /> High Demand
+                  </div>
+                  <div className="flex items-center gap-2 text-xs font-medium text-gray-500">
+                    <div className="w-3 h-3 rounded-full bg-neutral-100 border border-neutral-200" /> Blocked
+                  </div>
+                </div>
             </div>
 
-            <div className="grid grid-cols-7 gap-1 mb-2">
-              {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map((d) => (
-                <div key={d} className="text-center text-gray-400 text-xs font-bold py-2">{d}</div>
-              ))}
-            </div>
+            {/* Slide-over Menu for Editing */}
+            {selectedDates.length > 0 && (
+                <div className="fixed top-[73px] right-0 bottom-0 w-[340px] bg-white border-l border-neutral-200 shadow-[-10px_0_30px_rgba(0,0,0,0.03)] z-40 p-6 overflow-y-auto animate-in slide-in-from-right duration-300 ease-out flex flex-col">
+                    <div className="flex items-center justify-between mb-6 pb-4 border-b border-neutral-100">
+                        <div className="flex flex-col">
+                            <h3 className="text-xl font-black text-gray-900">Bulk Edit</h3>
+                            <p className="text-sm font-medium text-primary-600 flex items-center gap-1">
+                                <CalendarDays className="w-4 h-4" /> {selectedDates.length} Days Selected
+                            </p>
+                        </div>
+                        <button onClick={() => setSelectedDates([])} className="p-2 bg-neutral-100 rounded-full text-gray-400 hover:text-gray-900 transition-colors">
+                            <X className="w-4 h-4" />
+                        </button>
+                    </div>
 
-            <div className="grid grid-cols-7 gap-1">
-              {Array.from({ length: firstDayOfWeek }).map((_, i) => (
-                <div key={`empty-${i}`} className="aspect-square" />
-              ))}
-              {Array.from({ length: daysInMonth }).map((_, i) => {
-                const day = i + 1;
-                const status = getDayStatus(day);
-                const isToday = new Date().getDate() === day && new Date().getMonth() === month && new Date().getFullYear() === year;
-                return (
-                  <button
-                    key={day}
-                    onClick={() => handleDayClick(day)}
-                    className={`aspect-square rounded-xl border flex flex-col items-center justify-center transition-all cursor-pointer hover:shadow-md relative outline-none focus:ring-2 focus:ring-primary-500 ${
-                      status && !status.available
-                        ? 'bg-red-50 border-red-200 text-red-600'
-                        : status && status.available
-                          ? 'bg-emerald-50 border-emerald-200 text-emerald-700'
-                          : 'bg-white border-neutral-200 text-gray-600 hover:bg-neutral-50'
-                    } ${isToday ? 'ring-2 ring-primary-400' : ''}`}
-                  >
-                    <span className="text-sm font-bold">{day}</span>
-                    {status?.price && (
-                      <span className="text-[10px] font-semibold mt-0.5">${status.price}</span>
-                    )}
-                  </button>
-                );
-              })}
-            </div>
+                    <div className="space-y-8 flex-1">
+                        {/* Selected Date Range Preview */}
+                        <div className="bg-neutral-50 rounded-xl p-4 border border-neutral-100">
+                            <p className="text-xs text-gray-400 font-bold uppercase tracking-wider mb-1">Date Range</p>
+                            <p className="text-sm text-gray-900 font-medium">
+                                {format(selectedDates[0], 'MMM d, yyyy')} - {format(selectedDates[selectedDates.length - 1], 'MMM d, yyyy')}
+                            </p>
+                        </div>
 
-            {/* Legend */}
-            <div className="flex items-center gap-6 mt-4 justify-center">
-              <div className="flex items-center gap-2 text-xs text-gray-500">
-                <div className="w-3 h-3 rounded bg-emerald-50 border border-emerald-200" />
-                Available
-              </div>
-              <div className="flex items-center gap-2 text-xs text-gray-500">
-                <div className="w-3 h-3 rounded bg-red-50 border border-red-200" />
-                Blocked
-              </div>
-              <div className="flex items-center gap-2 text-xs text-gray-500">
-                <div className="w-3 h-3 rounded bg-white border border-neutral-200" />
-                Default
-              </div>
-            </div>
-          </>
+                        {/* Availability Toggle */}
+                        <div className="space-y-3">
+                            <span className="text-sm font-bold text-gray-900">Status</span>
+                            <div className="grid grid-cols-2 gap-2 bg-neutral-100 p-1 rounded-xl">
+                                <button 
+                                  onClick={() => setEditAvailable(true)}
+                                  className={`px-4 py-2.5 rounded-lg text-sm font-bold transition-all flex items-center justify-center gap-2 ${editAvailable ? 'bg-white text-emerald-600 shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}
+                                >
+                                    {editAvailable && <Check className="w-4 h-4" />} Open
+                                </button>
+                                <button 
+                                  onClick={() => setEditAvailable(false)}
+                                  className={`px-4 py-2.5 rounded-lg text-sm font-bold transition-all flex items-center justify-center gap-2 ${!editAvailable ? 'bg-white text-red-600 shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}
+                                >
+                                    {!editAvailable && <Check className="w-4 h-4" />} Blocked
+                                </button>
+                            </div>
+                        </div>
+
+                        {/* Price Input */}
+                        {editAvailable && (
+                            <div className="space-y-3">
+                                <label className="text-sm font-bold text-gray-900 flex items-center justify-between">
+                                    Nightly Price
+                                    <span className="text-xs text-primary-600 bg-primary-50 px-2 py-0.5 rounded font-medium">Smart Demand: High</span>
+                                </label>
+                                <div className="relative group">
+                                    <DollarSign className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400 group-focus-within:text-primary-500 transition-colors" />
+                                    <input 
+                                      type="number" 
+                                      value={editPrice}
+                                      onChange={(e) => setEditPrice(e.target.value)}
+                                      placeholder="Leave blank for base price"
+                                      className="w-full bg-white border border-neutral-200 rounded-xl py-3 pl-12 pr-12 text-gray-900 font-bold text-lg focus:ring-4 focus:ring-primary-100 focus:border-primary-500 outline-none transition-all shadow-sm"
+                                    />
+                                    <span className="absolute right-4 top-1/2 -translate-y-1/2 text-sm text-gray-400 font-bold">
+                                        {currentProperty?.currency}
+                                    </span>
+                                </div>
+                            </div>
+                        )}
+                    </div>
+
+                    <div className="pt-6 border-t border-neutral-100 mt-auto">
+                        <button 
+                          onClick={handleSave}
+                          disabled={isSaving}
+                          className="w-full py-4 rounded-xl bg-gray-900 text-white font-bold hover:bg-black transition-all flex items-center justify-center gap-2 hover:shadow-lg hover:-translate-y-0.5 disabled:opacity-50 disabled:hover:translate-y-0"
+                        >
+                            {isSaving ? <Loader2 className="w-5 h-5 animate-spin" /> : <Check className="w-5 h-5" />}
+                            Apply to {selectedDates.length} Days
+                        </button>
+                        <button onClick={() => setSelectedDates([])} className="w-full py-3 mt-2 text-sm font-bold text-gray-500 hover:text-gray-900 transition-colors">
+                            Cancel
+                        </button>
+                    </div>
+                </div>
+            )}
+          </div>
         )}
       </MaxWidthContainer>
 
-      {/* Edit Modal */}
-      {selectedDate && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm animate-in fade-in">
-              <div className="bg-white border border-neutral-200 rounded-2xl w-full max-w-sm p-6 shadow-2xl scale-100 animate-in zoom-in-95">
-                  <div className="flex items-center justify-between mb-6">
-                      <h3 className="text-xl font-bold text-gray-900">
-                          Edit {format(selectedDate, 'MMM d, yyyy')}
-                      </h3>
-                      <button onClick={() => setSelectedDate(null)} className="p-1 rounded-full hover:bg-neutral-100 text-gray-400 hover:text-gray-900">
-                          <X className="w-5 h-5" />
-                      </button>
-                  </div>
-
-                  <div className="space-y-6">
-                      {/* Availability Toggle */}
-                      <div className="flex items-center justify-between">
-                          <span className="text-sm font-medium text-gray-600">Availability</span>
-                          <div className="flex bg-neutral-100 rounded-lg p-1">
-                              <button 
-                                onClick={() => setEditAvailable(true)}
-                                className={`px-4 py-1.5 rounded-md text-sm font-bold transition-all ${editAvailable ? 'bg-emerald-500 text-white shadow-sm' : 'text-gray-400 hover:text-gray-700'}`}
-                              >
-                                  Open
-                              </button>
-                              <button 
-                                onClick={() => setEditAvailable(false)}
-                                className={`px-4 py-1.5 rounded-md text-sm font-bold transition-all ${!editAvailable ? 'bg-red-500 text-white shadow-sm' : 'text-gray-400 hover:text-gray-700'}`}
-                              >
-                                  Blocked
-                              </button>
-                          </div>
-                      </div>
-
-                      {/* Price Input */}
-                      {editAvailable && (
-                          <div className="space-y-2">
-                              <label className="text-sm font-medium text-gray-600">Nightly Price</label>
-                              <div className="relative">
-                                  <DollarSign className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
-                                  <input 
-                                    type="number" 
-                                    value={editPrice}
-                                    onChange={(e) => setEditPrice(e.target.value)}
-                                    placeholder="Default"
-                                    className="w-full bg-neutral-50 border border-neutral-200 rounded-xl py-3 pl-10 pr-4 text-gray-900 focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none"
-                                  />
-                                  <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-gray-400">
-                                      {currentProperty?.currency}
-                                  </span>
-                              </div>
-                          </div>
-                      )}
-
-                      <button 
-                        onClick={handleSave}
-                        disabled={isSaving}
-                        className="w-full py-3 rounded-xl bg-gray-900 text-white font-bold hover:bg-black transition-colors flex items-center justify-center gap-2 disabled:opacity-50"
-                      >
-                          {isSaving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Check className="w-4 h-4" />}
-                          Save Changes
-                      </button>
-                  </div>
-              </div>
-          </div>
+      {isSyncModalOpen && selectedProperty && currentProperty && (
+        <ICalSyncModal 
+          propertyId={currentProperty.id}
+          propertyName={currentProperty.name}
+          onClose={() => setIsSyncModalOpen(false)}
+          onSyncComplete={() => {
+             setIsSyncModalOpen(false);
+          }}
+        />
       )}
     </div>
   );

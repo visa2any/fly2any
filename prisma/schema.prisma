@@ -3982,13 +3982,13 @@ model PropertyOwner {
 }
 
 model Property {
-  id                    String                 @id @default(cuid())
+  id                    String    @id @default(cuid())
   ownerId               String
   name                  String
-  slug                  String                 @unique
+  slug                  String    @unique
   description           String?
   shortDescription      String?
-  propertyType          String                 @default("hotel")
+  propertyType          String    @default("hotel")
   starRating            Int?
   addressLine1          String
   addressLine2          String?
@@ -4010,7 +4010,7 @@ model Property {
   checkInTime           String?
   checkOutTime          String?
   checkInInstructions   String?
-  cancellationPolicy    String                 @default("flexible")
+  cancellationPolicy    String    @default("flexible")
   cancellationDetails   Json?
   houseRules            String[]
   petPolicy             String?
@@ -4018,60 +4018,72 @@ model Property {
   childPolicy           String?
   minAge                Int?
   basePricePerNight     Float?
-  currency              String                 @default("USD")
+  currency              String    @default("USD")
   cleaningFee           Float?
   serviceFee            Float?
   securityDeposit       Float?
   taxRate               Float?
   weeklyDiscount        Float?
   monthlyDiscount       Float?
-  instantBooking        Boolean                @default(true)
-  minStay               Int                    @default(1)
+  instantBooking        Boolean   @default(true)
+  minStay               Int       @default(1)
   maxStay               Int?
-  maxGuests             Int                    @default(2)
-  totalRooms            Int                    @default(1)
-  totalBathrooms        Float                  @default(1)
-  totalBedrooms         Int                    @default(1)
-  totalBeds             Int                    @default(1)
+  maxGuests             Int       @default(2)
+  totalRooms            Int       @default(1)
+  totalBathrooms        Float     @default(1)
+  totalBedrooms         Int       @default(1)
+  totalBeds             Int       @default(1)
   sustainabilityScore   Int?
   ecoFeatures           String[]
   ecoCertifications     String[]
-  status                String                 @default("draft")
+  status                String    @default("draft")
   rejectionReason       String?
   publishedAt           DateTime?
   featuredUntil         DateTime?
-  verified              Boolean                @default(false)
+  verified              Boolean   @default(false)
   verifiedAt            DateTime?
   aiDescription         String?
   aiTranslations        Json?
   aiSuggestedPrice      Float?
   aiQualityScore        Int?
-  viewCount             Int                    @default(0)
-  bookingCount          Int                    @default(0)
+  viewCount             Int       @default(0)
+  bookingCount          Int       @default(0)
 
   // Building & Physical Access
-  buildingType          String?                // house, apartment_building, condo, townhouse, high_rise
-  totalFloors           Int?                   // Total floors in the building
-  propertyFloor         Int?                   // Which floor the unit is on
-  hasElevator           Boolean                @default(false)
+  buildingType  String? // house, apartment_building, condo, townhouse, high_rise
+  totalFloors   Int? // Total floors in the building
+  propertyFloor Int? // Which floor the unit is on
+  hasElevator   Boolean @default(false)
 
-  reviewCount           Int                    @default(0)
-  avgRating             Float                  @default(0)
-  coverImageUrl         String?
-  metaTitle             String?
-  metaDescription       String?
-  createdAt             DateTime               @default(now())
-  updatedAt             DateTime               @updatedAt
-  extraGuestFee         Float?
-  petFee                Float?
-  smartPricing          Boolean                @default(false)
-  weekendPrice          Float?
-  conversations         Conversation[]
-  owner                 PropertyOwner          @relation(fields: [ownerId], references: [id], onDelete: Cascade)
-  availability          PropertyAvailability[]
-  bookings              PropertyBooking[]
-  images                PropertyImage[]
-  rooms                 PropertyRoom[]
+  reviewCount     Int      @default(0)
+  avgRating       Float    @default(0)
+  coverImageUrl   String?
+  metaTitle       String?
+  metaDescription String?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  extraGuestFee   Float?
+  petFee          Float?
+  smartPricing    Boolean  @default(false)
+  weekendPrice    Float?
+
+  // AI Feature Toggles & Preferences
+  aiCoHostEnabled       Boolean @default(false)
+  aiCoHostRules         String?
+  aiSmartPricingEnabled Boolean @default(false)
+  aiPricingMin          Float?
+  aiPricingMax          Float?
+
+  // Multi-Platform iCal Integration
+  icalExportUrl  String?  @unique
+  icalImportUrls String[] // Array of external calendar URLs (Airbnb, VRBO)
+
+  conversations Conversation[]
+  owner         PropertyOwner          @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+  availability  PropertyAvailability[]
+  bookings      PropertyBooking[]
+  images        PropertyImage[]
+  rooms         PropertyRoom[]
 
   @@index([ownerId])
   @@index([status])
@@ -4161,39 +4173,39 @@ model PropertyAvailability {
 }
 
 model PropertyBooking {
-  id                 String        @id @default(cuid())
-  propertyId         String
-  roomId             String?
-  userId             String?
-  startDate          DateTime
-  endDate            DateTime
-  totalPrice         Float
-  currency           String        @default("USD")
-  status             String        @default("pending")
-  guestCount         Int           @default(1)
-  specialRequests    String?
-  
+  id              String   @id @default(cuid())
+  propertyId      String
+  roomId          String?
+  userId          String?
+  startDate       DateTime
+  endDate         DateTime
+  totalPrice      Float
+  currency        String   @default("USD")
+  status          String   @default("pending")
+  guestCount      Int      @default(1)
+  specialRequests String?
+
   // Guest details
-  guestFirstName     String?
-  guestLastName      String?
-  guestEmail         String?
-  guestPhone         String?
-  
+  guestFirstName String?
+  guestLastName  String?
+  guestEmail     String?
+  guestPhone     String?
+
   // Payment Info
-  paymentIntentId    String?       @unique
-  paymentStatus      String        @default("pending")
-  paymentMethod      String?       @default("stripe")
-  paidAt             DateTime?
+  paymentIntentId String?   @unique
+  paymentStatus   String    @default("pending")
+  paymentMethod   String?   @default("stripe")
+  paidAt          DateTime?
 
   // System Tracking
-  confirmationNumber String?       @unique
-  source             String?       @default("web")
+  confirmationNumber String? @unique
+  source             String? @default("web")
 
-  createdAt          DateTime      @default(now())
-  updatedAt          DateTime      @updatedAt
-  property           Property      @relation(fields: [propertyId], references: [id], onDelete: Cascade)
-  room               PropertyRoom? @relation(fields: [roomId], references: [id])
-  user               User?         @relation(fields: [userId], references: [id], onDelete: SetNull)
+  createdAt DateTime      @default(now())
+  updatedAt DateTime      @updatedAt
+  property  Property      @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+  room      PropertyRoom? @relation(fields: [roomId], references: [id])
+  user      User?         @relation(fields: [userId], references: [id], onDelete: SetNull)
 
   @@index([propertyId])
   @@index([userId])

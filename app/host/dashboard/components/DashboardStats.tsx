@@ -1,6 +1,7 @@
 import { getPrismaClient } from '@/lib/prisma';
 import { Home, BarChart3, Eye, DollarSign, TrendingUp, Sparkles } from 'lucide-react';
 import Link from 'next/link';
+import { AnimatedFadeIn } from '@/components/ui/AnimatedFadeIn';
 
 export async function DashboardStats({ userId }: { userId: string }) {
   try {
@@ -174,77 +175,81 @@ export async function DashboardStats({ userId }: { userId: string }) {
         {/* Main Stats Grid */}
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
           {stats.map((stat, i) => (
-            <div
-              key={i}
-              className="relative overflow-hidden p-5 md:p-6 rounded-3xl bg-white border border-neutral-100 shadow-sm hover:shadow-lg hover:-translate-y-1 transition-all duration-300 group"
-            >
+            <AnimatedFadeIn key={i} delay={i * 0.1}>
               <div
-                className={`absolute top-0 right-0 p-20 bg-gradient-to-br ${stat.gradient} opacity-[0.03] group-hover:opacity-10 transition-opacity rounded-full -mr-10 -mt-10 blur-2xl`}
-              />
-              <div className="flex items-center justify-between mb-3 relative z-10">
+                className="relative overflow-hidden p-5 md:p-6 rounded-3xl bg-white border border-neutral-100 shadow-sm hover:shadow-lg hover:-translate-y-1 transition-all duration-300 group h-full"
+              >
                 <div
-                  className={`p-2.5 rounded-2xl ${stat.bg} ${stat.color} group-hover:scale-110 transition-transform`}
-                >
-                  <stat.icon className="w-5 h-5" />
+                  className={`absolute top-0 right-0 p-20 bg-gradient-to-br ${stat.gradient} opacity-[0.03] group-hover:opacity-10 transition-opacity rounded-full -mr-10 -mt-10 blur-2xl`}
+                />
+                <div className="flex items-center justify-between mb-3 relative z-10">
+                  <div
+                    className={`p-2.5 rounded-2xl ${stat.bg} ${stat.color} group-hover:scale-110 transition-transform`}
+                  >
+                    <stat.icon className="w-5 h-5" />
+                  </div>
+                  <span className="text-[10px] font-black text-neutral-400 uppercase tracking-widest">
+                    {stat.period}
+                  </span>
                 </div>
-                <span className="text-[10px] font-black text-neutral-400 uppercase tracking-widest">
-                  {stat.period}
-                </span>
-              </div>
-              <div className="relative z-10">
-                <div className="text-2xl md:text-3xl font-black text-gray-900 mb-0.5 tracking-tight">
-                  {stat.value}
+                <div className="relative z-10">
+                  <div className="text-2xl md:text-3xl font-black text-gray-900 mb-0.5 tracking-tight">
+                    {stat.value}
+                  </div>
+                  <div className="text-sm text-gray-500 font-medium">{stat.label}</div>
+                  {stat.subtext && (
+                    <div className="text-[10px] text-gray-400 mt-1 font-medium">{stat.subtext}</div>
+                  )}
                 </div>
-                <div className="text-sm text-gray-500 font-medium">{stat.label}</div>
-                {stat.subtext && (
-                  <div className="text-[10px] text-gray-400 mt-1 font-medium">{stat.subtext}</div>
-                )}
               </div>
-            </div>
+            </AnimatedFadeIn>
           ))}
         </div>
 
         {/* Smart Opportunities — only if some exist */}
         {opportunities.length > 0 && (
-          <div className="bg-gradient-to-br from-neutral-900 to-neutral-800 rounded-3xl p-6 text-white shadow-xl relative overflow-hidden">
-            <div className="absolute top-0 right-0 p-32 bg-primary-500/20 blur-3xl rounded-full -mr-16 -mt-16" />
-            <div className="relative z-10">
-              <div className="flex items-center gap-3 mb-5">
-                <div className="p-2 bg-white/10 rounded-lg backdrop-blur-md">
-                  <Sparkles className="w-5 h-5 text-yellow-400" />
+          <AnimatedFadeIn delay={0.4}>
+            <div className="bg-gradient-to-br from-neutral-900 to-neutral-800 rounded-3xl p-6 text-white shadow-xl relative overflow-hidden">
+              <div className="absolute top-0 right-0 p-32 bg-primary-500/20 blur-3xl rounded-full -mr-16 -mt-16" />
+              <div className="relative z-10">
+                <div className="flex items-center gap-3 mb-5">
+                  <div className="p-2 bg-white/10 rounded-lg backdrop-blur-md">
+                    <Sparkles className="w-5 h-5 text-yellow-400" />
+                  </div>
+                  <div>
+                    <h3 className="font-bold text-lg">Smart Insights</h3>
+                    <p className="text-white/50 text-sm">Data-driven tips to grow</p>
+                  </div>
                 </div>
-                <div>
-                  <h3 className="font-bold text-lg">Smart Insights</h3>
-                  <p className="text-white/50 text-sm">Data-driven tips to grow</p>
-                </div>
-              </div>
 
-              <div className="space-y-3">
-                {opportunities.map((opp) => (
-                  <Link
-                    key={opp.id}
-                    href={opp.href}
-                    className="bg-white/5 border border-white/10 rounded-2xl p-4 flex gap-4 hover:bg-white/10 transition-colors cursor-pointer group/item block"
-                  >
-                    <div className={`p-3 rounded-xl ${opp.bg} ${opp.color} h-fit`}>
-                      <opp.icon className="w-5 h-5" />
-                    </div>
-                    <div className="flex-1">
-                      <div className="flex justify-between items-start mb-1">
-                        <h4 className="font-bold text-white group-hover/item:text-primary-400 transition-colors">
-                          {opp.title}
-                        </h4>
-                        <span className="text-xs font-bold bg-white/10 px-2 py-1 rounded-lg text-white/80">
-                          {opp.action}
-                        </span>
-                      </div>
-                      <p className="text-sm text-white/60 leading-relaxed">{opp.description}</p>
-                    </div>
-                  </Link>
-                ))}
+                <div className="space-y-3">
+                  {opportunities.map((opp, i) => (
+                    <AnimatedFadeIn key={opp.id} delay={0.5 + i * 0.1}>
+                      <Link
+                        href={opp.href}
+                        className="bg-white/5 border border-white/10 rounded-2xl p-4 flex gap-4 hover:bg-white/10 transition-colors cursor-pointer group/item block"
+                      >
+                        <div className={`p-3 rounded-xl ${opp.bg} ${opp.color} h-fit`}>
+                          <opp.icon className="w-5 h-5" />
+                        </div>
+                        <div className="flex-1">
+                          <div className="flex justify-between items-start mb-1">
+                            <h4 className="font-bold text-white group-hover/item:text-primary-400 transition-colors">
+                              {opp.title}
+                            </h4>
+                            <span className="text-xs font-bold bg-white/10 px-2 py-1 rounded-lg text-white/80">
+                              {opp.action}
+                            </span>
+                          </div>
+                          <p className="text-sm text-white/60 leading-relaxed">{opp.description}</p>
+                        </div>
+                      </Link>
+                    </AnimatedFadeIn>
+                  ))}
+                </div>
               </div>
             </div>
-          </div>
+          </AnimatedFadeIn>
         )}
       </div>
     );

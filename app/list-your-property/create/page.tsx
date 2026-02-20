@@ -1131,29 +1131,99 @@ export default function CreatePropertyPage() {
 
 
       {/* MAIN CONTENT AREA */}
-      <div className="flex-1 md:ml-80 h-full flex flex-col relative">
+      <div className="flex-1 md:ml-80 h-full flex flex-col relative bg-neutral-50/50">
           
-          {/* Scrollable Content */}
-          <main className="flex-1 w-full max-w-[1800px] mx-auto p-4 md:p-8 lg:p-12 overflow-y-auto custom-scrollbar">
-             <div className="mb-8 block md:hidden">
-                 <h1 className="text-2xl font-bold text-gray-900">{STEPS.find(s => s.id === currentStep)?.label}</h1>
-             </div>
+          <div className="flex-1 overflow-hidden flex flex-col lg:flex-row">
+              {/* Left Column: Form */}
+              <div className="flex-1 h-full overflow-y-auto custom-scrollbar relative">
+                 <main className="w-full max-w-3xl mx-auto p-4 md:p-8 lg:p-12 pb-32">
+                     <div className="mb-8 block lg:hidden">
+                         <h1 className="text-2xl font-bold text-gray-900">{STEPS.find(s => s.id === currentStep)?.label}</h1>
+                     </div>
 
-             {/* Validation Errors Banner */}
-             {stepErrors.length > 0 && (
-               <div className="mb-6 p-4 rounded-xl bg-red-50 border border-red-200 animate-in slide-in-from-top-2 duration-300">
-                 <p className="text-sm font-bold text-red-700 mb-1">Please fix the following:</p>
-                 <ul className="list-disc list-inside space-y-1">
-                   {stepErrors.map((err, i) => (
-                     <li key={i} className="text-sm text-red-600">{err}</li>
-                   ))}
-                 </ul>
-               </div>
-             )}
+                     {/* Validation Errors Banner */}
+                     {stepErrors.length > 0 && (
+                       <div className="mb-6 p-4 rounded-xl bg-red-50 border border-red-200 animate-in slide-in-from-top-2 duration-300">
+                         <p className="text-sm font-bold text-red-700 mb-1">Please fix the following:</p>
+                         <ul className="list-disc list-inside space-y-1">
+                           {stepErrors.map((err, i) => (
+                             <li key={i} className="text-sm text-red-600">{err}</li>
+                           ))}
+                         </ul>
+                       </div>
+                     )}
 
-             {/* Dynamic Content */}
-             {renderStepContent()}
-          </main>
+                     {/* Dynamic Content */}
+                     {renderStepContent()}
+                 </main>
+              </div>
+
+              {/* Right Column: Live Guest Preview */}
+              <div className="hidden lg:flex w-[400px] xl:w-[480px] bg-neutral-100/50 border-l border-neutral-200 h-full overflow-y-auto flex-col items-center justify-start p-8 relative">
+                 <div className="sticky top-0 w-full mb-8 flex items-center justify-between pb-4 border-b border-neutral-200/60 z-10 backdrop-blur-md bg-neutral-100/30">
+                     <h2 className="text-sm font-bold text-gray-400 uppercase tracking-widest flex items-center gap-2">
+                        <Eye className="w-4 h-4" /> Live Guest Preview
+                     </h2>
+                 </div>
+                 
+                 {/* Mock Mobile Device / Post Card */}
+                 <div className="w-full max-w-[380px] bg-white rounded-[2rem] border border-neutral-200 shadow-2xl overflow-hidden transition-all duration-300 hover:shadow-3xl hover:-translate-y-1 flex flex-col">
+                    {/* Fake Header / Cover Photo */}
+                    <div className="relative aspect-[4/3] bg-neutral-100 w-full overflow-hidden">
+                        {formData.images.length > 0 && formData.images[0]?.url ? (
+                            <Image src={formData.images[0].url} alt="Cover" fill className="object-cover transition-transform duration-700 hover:scale-105" />
+                        ) : (
+                            <div className="absolute inset-0 flex flex-col items-center justify-center text-neutral-400 gap-2">
+                                <Camera className="w-8 h-8 opacity-30" />
+                                <span className="text-xs font-medium opacity-50">Upload photos to see preview</span>
+                            </div>
+                        )}
+                        <div className="absolute top-4 right-4 bg-white/95 backdrop-blur-sm px-3 py-1.5 rounded-full text-xs font-bold text-gray-900 flex items-center gap-1 shadow-sm">
+                            ⭐ New
+                        </div>
+                    </div>
+                    {/* Card Content */}
+                    <div className="p-6 space-y-4">
+                        <div>
+                            <div className="flex justify-between items-start gap-2 mb-1.5">
+                                <h3 className="font-bold text-gray-900 text-xl leading-tight line-clamp-2">
+                                    {formData.title || "Your amazing space"}
+                                </h3>
+                            </div>
+                            <p className="text-sm text-gray-500 font-medium flex items-center gap-1">
+                                <MapPin className="w-3.5 h-3.5 text-gray-400" />
+                                {formData.location.city ? `${formData.location.city}, ${formData.location.country}` : "Location not set"}
+                            </p>
+                        </div>
+                        <div className="flex flex-wrap gap-2 text-sm text-gray-600 font-medium py-1">
+                            <span>{formData.specs.guests} guests</span>•
+                            <span>{formData.specs.bedrooms} bedrooms</span>•
+                            <span>{formData.specs.beds} beds</span>•
+                            <span>{formData.specs.bathrooms} baths</span>
+                        </div>
+                        {formData.description && (
+                            <p className="text-sm text-gray-600 line-clamp-2 leading-relaxed bg-neutral-50 px-3 py-2 rounded-lg border border-neutral-100">
+                                "{formData.description}"
+                            </p>
+                        )}
+                        <div className="pt-3 border-t border-neutral-100 flex items-end justify-between">
+                            <div className="flex flex-col">
+                                <span className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-0.5">Price</span>
+                                <div className="flex items-baseline gap-1 font-black text-gray-900">
+                                    <span className="text-2xl">${formData.pricing.basePrice}</span>
+                                    <span className="text-sm font-medium text-gray-500">night</span>
+                                </div>
+                            </div>
+                            {formData.pricing.smartPricing && (
+                                <div className="flex items-center gap-1 text-[10px] font-bold text-purple-700 bg-purple-50 px-2 py-1 rounded-md border border-purple-100">
+                                    <Sparkles className="w-3 h-3" /> Smart Pricing On
+                                </div>
+                            )}
+                        </div>
+                    </div>
+                 </div>
+              </div>
+          </div>
 
           {/* BOTTOM BAR (Fixed at bottom of flex container) */}
           <div className="flex-shrink-0 bg-white border-t border-neutral-200 p-4 md:px-12 md:py-6 flex items-center justify-between z-40 shadow-[0_-4px_24px_rgba(0,0,0,0.04)]">

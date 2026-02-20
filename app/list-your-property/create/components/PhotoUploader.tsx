@@ -2,6 +2,7 @@
 
 import { useState, useCallback, useEffect, useRef } from 'react';
 import Image from 'next/image';
+import { toast } from 'react-hot-toast';
 import { Upload, X, Star, Smartphone, Tag, AlertCircle, Loader2, RotateCcw, Wand2, GripVertical, ZoomIn, ZoomOut, ChevronLeft, ChevronRight, Maximize2 } from 'lucide-react';
 import { ImageCategory } from '@/lib/properties/types';
 import QRCode from 'qrcode';
@@ -9,6 +10,24 @@ import * as tf from '@tensorflow/tfjs';
 import * as mobilenet from '@tensorflow-models/mobilenet';
 import { useImageProcessor } from '../hooks/useImageProcessor';
 import { VideoUploader } from './VideoUploader';
+
+import {
+  DndContext,
+  closestCenter,
+  KeyboardSensor,
+  PointerSensor,
+  useSensor,
+  useSensors,
+  DragEndEvent
+} from '@dnd-kit/core';
+import {
+  arrayMove,
+  SortableContext,
+  sortableKeyboardCoordinates,
+  useSortable,
+  rectSortingStrategy
+} from '@dnd-kit/sortable';
+import { CSS } from '@dnd-kit/utilities';
 
 // AI Tag to Category Mapping (Simplified)
 const TAG_MAP: Record<string, ImageCategory> = {
@@ -28,6 +47,7 @@ const determineCategory = (tags: string[]): ImageCategory => {
 };
 
 interface PhotoData {
+  id: string;
   file?: File;
   url: string;
   caption: string;
@@ -87,9 +107,10 @@ export function PhotoUploader({ images, onChange }: PhotoUploaderProps) {
       // Convert incoming images (strings or objects) to local state
       const processed = (images || []).filter(Boolean).map(img => {
           if (typeof img === 'string') {
-              return { url: img, caption: '', category: 'general', isPrimary: false, tags: [], rotation: 0 };
+              return { id: img, url: img, caption: '', category: 'general', isPrimary: false, tags: [], rotation: 0 };
           }
-          return img as PhotoData;
+          const p = img as PhotoData;
+          return { ...p, id: p.id || p.url } as PhotoData;
       });
       // prevent loop if deep equal? simpler: just set if length differs or first item differs
       setLocalPhotos(processed as PhotoData[]);
@@ -165,6 +186,7 @@ export function PhotoUploader({ images, onChange }: PhotoUploaderProps) {
     const newFiles = Array.from(files);
 
     const newPhotosInProgress = newFiles.map((file, idx) => ({
+      id: 'upload-' + Date.now() + '-' + idx,
       file,
       url: URL.createObjectURL(file), // Immediate preview
       caption: '',
@@ -413,32 +435,20 @@ export function PhotoUploader({ images, onChange }: PhotoUploaderProps) {
     updateParent(newPhotos);
   };
 
-  // --- Native Drag-to-Reorder ---
-  const dragRef = useRef<number | null>(null);
-  const [dragOverIdx, setDragOverIdx] = useState<number | null>(null);
+  // --- dnd-kit Drag-to-Reorder ---
+  const sensors = useSensors(
+    useSensor(PointerSensor, { activationConstraint: { distance: 5 } }),
+    useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates })
+  );
 
-  const handleReorderDragStart = (idx: number) => {
-    dragRef.current = idx;
-  };
-
-  const handleReorderDragOver = (e: React.DragEvent, idx: number) => {
-    e.preventDefault();
-    setDragOverIdx(idx);
-  };
-
-  const handleReorderDrop = (idx: number) => {
-    const fromIdx = dragRef.current;
-    if (fromIdx === null || fromIdx === idx) {
-      dragRef.current = null;
-      setDragOverIdx(null);
-      return;
+  const handleDragEnd = (event: DragEndEvent) => {
+    const { active, over } = event;
+    if (over && active.id !== over.id) {
+      const oldIndex = localPhotos.findIndex((p) => p.id === active.id);
+      const newIndex = localPhotos.findIndex((p) => p.id === over.id);
+      const reordered = arrayMove(localPhotos, oldIndex, newIndex);
+      updateParent(reordered);
     }
-    const reordered = [...localPhotos];
-    const [moved] = reordered.splice(fromIdx, 1);
-    reordered.splice(idx, 0, moved);
-    updateParent(reordered);
-    dragRef.current = null;
-    setDragOverIdx(null);
   };
 
   return (
@@ -513,107 +523,28 @@ export function PhotoUploader({ images, onChange }: PhotoUploaderProps) {
          </div>
       )}
 
-      {/* Grid with Drag-to-Reorder */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 xl:grid-cols-4 gap-4 mt-6">
-         {localPhotos.filter(p => p && p.url).map((photo, idx) => (
-            <div
-              key={idx}
-              draggable
-              onDragStart={() => handleReorderDragStart(idx)}
-              onDragOver={(e) => handleReorderDragOver(e, idx)}
-              onDrop={() => handleReorderDrop(idx)}
-              onDragEnd={() => setDragOverIdx(null)}
-              className={`bg-white border rounded-xl overflow-hidden group hover:shadow-md transition-all relative ${
-                dragOverIdx === idx ? 'border-primary-500 ring-2 ring-primary-200' : 'border-neutral-200'
-              }`}
-            >
-              {/* Drag Handle */}
-              <div className="absolute top-2 right-2 z-20 p-1 rounded-md bg-white/80 backdrop-blur-sm shadow-sm text-gray-400 cursor-grab active:cursor-grabbing">
-                <GripVertical className="w-4 h-4" />
-              </div>
-               <div className="relative aspect-video bg-neutral-100 cursor-pointer" onClick={() => openPreview(idx)}>
-                  <Image 
-                      src={photo.url} 
-                      alt="Property" 
-                      fill 
-                      unoptimized={true}
-                      className="object-cover transition-transform duration-500 ease-in-out" 
-                      style={{ transform: `rotate(${photo.rotation || 0}deg)` }}
-                  />
-                  {/* Preview hint */}
-                  <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-[5]">
-                    <div className="p-2 rounded-full bg-white/90 shadow-md">
-                      <Maximize2 className="w-4 h-4 text-gray-700" />
-                    </div>
-                  </div>
-                  
-                  {/* AI Tags Overlay */}
-                  {photo.tags && photo.tags.length > 0 && (
-                      <div className="absolute bottom-2 left-2 flex flex-wrap gap-1 max-w-[90%]">
-                          {photo.tags.slice(0, 4).map(tag => (
-                              <span key={tag} className="px-1.5 py-0.5 rounded bg-white/90 backdrop-blur text-[10px] text-gray-800 font-bold flex items-center gap-1 shadow-sm">
-                                  <Wand2 className="w-2 h-2 text-primary-500" /> {tag}
-                              </span>
-                          ))}
-                      </div>
-                  )}
-
-                  {/* Actions Overlay */}
-                  <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2 p-2">
-                     <button onClick={() => setPrimary(idx)} className={`px-3 py-1.5 rounded-lg text-xs font-bold flex items-center gap-1 ${photo.isPrimary ? 'bg-amber-400 text-black' : 'bg-white text-gray-900 hover:bg-neutral-100'}`}>
-                        <Star className={`w-3 h-3 ${photo.isPrimary ? 'fill-black' : ''}`} /> {photo.isPrimary ? 'Cover' : 'Cover'}
-                     </button>
-                     
-                     <button 
-                        onClick={() => handleMagicEnhance(idx)} 
-                        disabled={enhancingIdx === idx}
-                        className="p-2 rounded-lg bg-white text-indigo-600 hover:bg-indigo-50" 
-                        title="Magic Enhance"
-                     >
-                        {enhancingIdx === idx ? <Loader2 className="w-4 h-4 animate-spin" /> : <Wand2 className="w-4 h-4" />}
-                     </button>
-
-                     <button onClick={() => rotatePhoto(idx)} className="p-2 rounded-lg bg-white text-gray-900 hover:bg-neutral-100" title="Rotate">
-                        <RotateCcw className="w-4 h-4" />
-                     </button>
-                     <button onClick={() => removePhoto(idx)} className="p-2 rounded-lg bg-red-500 text-white hover:bg-red-600">
-                        <X className="w-4 h-4" />
-                     </button>
-                  </div>
-                  
-                  {/* @ts-ignore */}
-                  {photo.uploading && (
-                      <div className="absolute top-2 right-2 p-1.5 rounded-full bg-white shadow-sm">
-                          <Loader2 className="w-3 h-3 text-primary-500 animate-spin" />
-                      </div>
-                  )}
-
-                  {photo.isPrimary && (
-                     <div className="absolute top-2 left-2 px-2 py-1 rounded bg-amber-400 text-black text-[10px] font-bold uppercase tracking-wider shadow-sm">
-                        Cover Photo
-                     </div>
-                  )}
-               </div>
-
-               <div className="p-3 space-y-2">
-                  <select 
-                     value={photo.category}
-                     onChange={(e) => updatePhoto(idx, { category: e.target.value as ImageCategory })}
-                     className="w-full bg-neutral-50 border border-neutral-200 rounded-lg px-2 py-1.5 text-xs text-gray-700 outline-none focus:border-primary-500"
-                  >
-                     {CATEGORIES.map(c => <option key={c.value} value={c.value}>{c.label}</option>)}
-                  </select>
-                  <input 
-                     type="text" 
-                     value={photo.caption}
-                     onChange={(e) => updatePhoto(idx, { caption: e.target.value })}
-                     placeholder="Add a caption..."
-                     className="w-full bg-transparent border-b border-neutral-100 px-0 py-1 text-sm text-gray-700 focus:border-neutral-300 outline-none placeholder-gray-400"
-                  />
-               </div>
-            </div>
-         ))}
-      </div>
+      {/* Grid with `@dnd-kit` Drag-to-Reorder */}
+      <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
+        <SortableContext items={localPhotos.filter(p => p && p.url).map(p => p.id)} strategy={rectSortingStrategy}>
+          <div className="grid grid-cols-1 sm:grid-cols-3 xl:grid-cols-4 gap-4 mt-6">
+            {localPhotos.filter(p => p && p.url).map((photo, idx) => (
+              <SortablePhotoItem
+                key={photo.id}
+                photo={photo}
+                idx={idx}
+                setPrimary={setPrimary}
+                handleMagicEnhance={handleMagicEnhance}
+                enhancingIdx={enhancingIdx}
+                rotatePhoto={rotatePhoto}
+                removePhoto={removePhoto}
+                openPreview={openPreview}
+                updatePhoto={updatePhoto}
+                CATEGORIES={CATEGORIES}
+              />
+            ))}
+          </div>
+        </SortableContext>
+      </DndContext>
 
       {/* ────────── Lightbox Preview Modal ────────── */}
       {previewIdx !== null && localPhotos[previewIdx] && (
@@ -713,6 +644,124 @@ export function PhotoUploader({ images, onChange }: PhotoUploaderProps) {
           </div>
         </div>
       )}
+    </div>
+  );
+}
+
+function SortablePhotoItem({ photo, idx, setPrimary, handleMagicEnhance, enhancingIdx, rotatePhoto, removePhoto, openPreview, updatePhoto, CATEGORIES }: any) {
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
+    transition,
+    isDragging
+  } = useSortable({ id: photo.id });
+
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+    zIndex: isDragging ? 50 : 'auto',
+    opacity: isDragging ? 0.8 : 1,
+  };
+
+  return (
+    <div
+      ref={setNodeRef}
+      style={style}
+      className={`bg-white border rounded-xl overflow-hidden group hover:shadow-md transition-all relative ${
+        isDragging ? 'border-primary-500 ring-2 ring-primary-200 scale-105 shadow-xl' : 'border-neutral-200'
+      }`}
+    >
+      {/* Drag Handle */}
+      <div 
+        {...attributes} 
+        {...listeners} 
+        className="absolute top-2 right-2 z-20 p-2 rounded-md bg-white/80 backdrop-blur-sm shadow-sm text-gray-700 cursor-grab active:cursor-grabbing hover:bg-white"
+        title="Drag to reorder"
+      >
+        <GripVertical className="w-4 h-4" />
+      </div>
+
+       <div className="relative aspect-video bg-neutral-100 cursor-pointer" onClick={() => openPreview(idx)}>
+          <Image 
+              src={photo.url} 
+              alt="Property" 
+              fill 
+              unoptimized={true}
+              className="object-cover transition-transform duration-500 ease-in-out" 
+              style={{ transform: `rotate(${photo.rotation || 0}deg)` }}
+          />
+          {/* Preview hint */}
+          <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-[5]">
+             <div className="p-2 rounded-full bg-white/90 shadow-md">
+                 <Maximize2 className="w-4 h-4 text-gray-700" />
+             </div>
+          </div>
+          
+          {/* AI Tags Overlay */}
+          {photo.tags && photo.tags.length > 0 && (
+              <div className="absolute bottom-2 left-2 flex flex-wrap gap-1 max-w-[90%] pointer-events-none">
+                  {photo.tags.slice(0, 4).map((tag: string) => (
+                      <span key={tag} className="px-1.5 py-0.5 rounded bg-white/90 backdrop-blur text-[10px] text-gray-800 font-bold flex items-center gap-1 shadow-sm">
+                          <Wand2 className="w-2 h-2 text-primary-500" /> {tag}
+                      </span>
+                  ))}
+              </div>
+          )}
+
+          {/* Actions Overlay */}
+          <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2 p-2">
+             <button onClick={(e) => { e.stopPropagation(); setPrimary(idx); }} className={`px-3 py-1.5 rounded-lg text-xs font-bold flex items-center gap-1 ${photo.isPrimary ? 'bg-amber-400 text-black' : 'bg-white text-gray-900 hover:bg-neutral-100'}`}>
+                <Star className={`w-3 h-3 ${photo.isPrimary ? 'fill-black' : ''}`} /> {photo.isPrimary ? 'Cover' : 'Cover'}
+             </button>
+             
+             <button 
+                onClick={(e) => { e.stopPropagation(); handleMagicEnhance(idx); }} 
+                disabled={enhancingIdx === idx}
+                className="p-2 rounded-lg bg-white text-indigo-600 hover:bg-indigo-50" 
+                title="Magic Enhance"
+             >
+                {enhancingIdx === idx ? <Loader2 className="w-4 h-4 animate-spin" /> : <Wand2 className="w-4 h-4" />}
+             </button>
+
+             <button onClick={(e) => { e.stopPropagation(); rotatePhoto(idx); }} className="p-2 rounded-lg bg-white text-gray-900 hover:bg-neutral-100" title="Rotate">
+                <RotateCcw className="w-4 h-4" />
+             </button>
+             <button onClick={(e) => { e.stopPropagation(); removePhoto(idx); }} className="p-2 rounded-lg bg-red-500 text-white hover:bg-red-600">
+                <X className="w-4 h-4" />
+             </button>
+          </div>
+          
+          {photo.uploading && (
+              <div className="absolute top-2 right-10 p-1.5 rounded-full bg-white shadow-sm z-20">
+                  <Loader2 className="w-3 h-3 text-primary-500 animate-spin" />
+              </div>
+          )}
+
+          {photo.isPrimary && (
+             <div className="absolute top-2 left-2 px-2 py-1 rounded bg-amber-400 text-black text-[10px] font-bold uppercase tracking-wider shadow-sm z-20">
+                Cover Photo
+             </div>
+          )}
+       </div>
+
+       <div className="p-3 space-y-2">
+          <select 
+             value={photo.category}
+             onChange={(e) => updatePhoto(idx, { category: e.target.value })}
+             className="w-full bg-neutral-50 border border-neutral-200 rounded-lg px-2 py-1.5 text-xs text-gray-700 outline-none focus:border-primary-500"
+          >
+             {CATEGORIES.map((c: any) => <option key={c.value} value={c.value}>{c.label}</option>)}
+          </select>
+          <input 
+             type="text" 
+             value={photo.caption}
+             onChange={(e) => updatePhoto(idx, { caption: e.target.value })}
+             placeholder="Add a caption..."
+             className="w-full bg-transparent border-b border-neutral-100 px-0 py-1 text-sm text-gray-700 focus:border-neutral-300 outline-none placeholder-gray-400"
+          />
+       </div>
     </div>
   );
 }

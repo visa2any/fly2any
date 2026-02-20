@@ -433,24 +433,51 @@ export function PricingEditor({ data, onChange }: PricingEditorProps) {
           />
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-          <ToggleSwitch
-            enabled={data.smartPricing ?? false}
-            onChange={(v) => handleUpdate({ smartPricing: v })}
-            label="Smart Pricing"
-            description="Auto-adjust prices based on local demand"
-            icon={Sparkles}
-            color="purple"
-          />
-          <ToggleSwitch
-            enabled={data.instantBooking ?? true}
-            onChange={(v) => handleUpdate({ instantBooking: v })}
-            label="Instant Booking"
-            description="Guests can book without host approval"
-            icon={Zap}
-            color="green"
-          />
-        </div>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="bg-purple-50 p-4 rounded-2xl border border-purple-200 relative overflow-hidden group hover:shadow-md transition-all">
+             <div className="flex items-start justify-between z-10 relative">
+                 <div>
+                     <h4 className="font-bold text-purple-900 mb-1 flex items-center gap-1.5">
+                         <Sparkles className="w-4 h-4" /> AI Smart Yield
+                     </h4>
+                     <p className="text-[11px] text-purple-800/80 mb-3 pr-8 leading-tight">
+                         Enable algorithmic pricing. We analyze local demand, competitor saturation, and seasonality to automatically adjust your nightly rate and maximize total revenue.
+                     </p>
+                     
+                     <div className="flex items-center gap-2 mb-4">
+                         <span className="bg-white/60 text-purple-700 text-[10px] font-bold px-2 py-0.5 rounded-full border border-purple-100">
+                             Est. +18% Yield
+                         </span>
+                         <span className="bg-white/60 text-purple-700 text-[10px] font-bold px-2 py-0.5 rounded-full border border-purple-100">
+                             Set & Forget
+                         </span>
+                     </div>
+                 </div>
+                 
+                 {/* Custom Toggle */}
+                 <button
+                    type="button"
+                    onClick={() => handleUpdate({ smartPricing: !data.smartPricing })}
+                    className={`shrink-0 w-12 h-6 rounded-full transition-colors relative focus:outline-none focus:ring-2 focus:ring-purple-500/50 shadow-inner ${data.smartPricing ? 'bg-purple-600' : 'bg-purple-300'}`}
+                 >
+                    <div className={`absolute top-1 left-1 w-4 h-4 bg-white rounded-full transition-transform shadow-sm ${data.smartPricing ? 'translate-x-6' : 'translate-x-0'}`} />
+                 </button>
+             </div>
+             
+             {/* Decorative */}
+             <Sparkles className="absolute -bottom-4 -right-4 w-24 h-24 text-purple-500/10 rotate-12 pointer-events-none" />
+          </div>
+
+          <div className="flex flex-col justify-center gap-3">
+            <ToggleSwitch
+                enabled={data.instantBooking ?? true}
+                onChange={(v) => handleUpdate({ instantBooking: v })}
+                label="Instant Booking"
+                description="Guests can book without host approval"
+                icon={Zap}
+                color="green"
+            />
+          </div>
       </div>
 
       {/* ━━━━━ Pro Tip ━━━━━ */}
@@ -461,6 +488,7 @@ export function PricingEditor({ data, onChange }: PricingEditorProps) {
         </p>
       </div>
 
+    </div>
     </div>
   );
 }

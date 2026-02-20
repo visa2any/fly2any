@@ -538,7 +538,42 @@ export function PoliciesEditor({ data, onChange }: PoliciesEditorProps) {
         )}
       </div>
 
-      {/* ━━━━━━━━━━ SECTION 4: ECO & SUSTAINABILITY ━━━━━━━━━━ */}
+      {/* ━━━━━━━━━━ SECTION 4: AI CO-HOST SETTINGS ━━━━━━━━━━ */}
+      <div className="bg-gradient-to-br from-indigo-50/80 to-blue-50/80 rounded-2xl border border-indigo-100 shadow-sm p-5 relative overflow-hidden group">
+        <div className="relative z-10">
+            <div className="flex items-center justify-between mb-2">
+                <h3 className="text-sm font-bold text-indigo-900 flex items-center gap-2 uppercase tracking-wider">
+                  <div className="w-7 h-7 rounded-lg bg-indigo-100 flex items-center justify-center">
+                    <Sparkles className="w-4 h-4 text-indigo-600" />
+                  </div>
+                  AI Co-Host Assistant
+                </h3>
+                <span className="bg-indigo-600 text-white text-[10px] font-bold px-2 py-0.5 rounded-full shadow-sm">
+                    Beta
+                </span>
+            </div>
+            
+            <p className="text-xs text-indigo-800/80 mb-4 max-w-xl pr-8">
+                Your AI Co-Host automatically answers guest messages 24/7 based on your House Rules. Add custom instructions below to teach your AI exactly how to handle specific scenarios.
+            </p>
+
+            <div className="bg-white/80 backdrop-blur-sm p-4 rounded-xl border border-indigo-100 shadow-sm">
+                <label className="text-xs font-bold text-indigo-700 uppercase tracking-wider mb-2 block">
+                    Custom AI Directives (Optional)
+                </label>
+                <textarea
+                  placeholder="e.g. 'If guests ask about parking, tell them street parking is free but watch out for street cleaning on Tuesdays. Always be enthusiastic and use emojis!'"
+                  rows={3}
+                  className="w-full px-3 py-2.5 rounded-xl bg-white/50 border border-indigo-200 text-sm text-gray-900 outline-none focus:ring-2 focus:ring-indigo-500 transition-all hover:border-indigo-300 resize-none placeholder-indigo-300/70"
+                />
+            </div>
+        </div>
+        
+        {/* Decorative */}
+        <Sparkles className="absolute -bottom-6 -right-6 w-32 h-32 text-indigo-500/10 rotate-12 pointer-events-none transition-transform group-hover:scale-110 duration-700" />
+      </div>
+
+      {/* ━━━━━━━━━━ SECTION 5: ECO & SUSTAINABILITY ━━━━━━━━━━ */}
       <div className="bg-gradient-to-br from-emerald-50/80 to-teal-50/80 rounded-2xl border border-emerald-100 shadow-sm p-5">
         <h3 className="text-sm font-bold text-emerald-900 flex items-center gap-2 mb-5 uppercase tracking-wider">
           <div className="w-7 h-7 rounded-lg bg-emerald-100 flex items-center justify-center">

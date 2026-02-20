@@ -6,13 +6,18 @@ import { Search, MapPin, Loader2, Navigation } from 'lucide-react';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 
-// Fix Leaflet icons
-const icon = L.icon({
-  iconUrl: 'https://unpkg.com/leaflet@1.7.1/dist/images/marker-icon.png',
-  iconRetinaUrl: 'https://unpkg.com/leaflet@1.7.1/dist/images/marker-icon-2x.png',
-  shadowUrl: 'https://unpkg.com/leaflet@1.7.1/dist/images/marker-shadow.png',
-  iconSize: [25, 41],
-  iconAnchor: [12, 41],
+// Premium Custom Map Pin
+const customIcon = L.divIcon({
+  className: 'custom-pin-wrapper',
+  html: `<div class="relative flex flex-col items-center justify-center w-12 h-16 group -mt-4">
+           <div class="w-10 h-10 bg-gradient-to-br from-primary-500 to-primary-600 rounded-full flex items-center justify-center shadow-xl border-[3px] border-white transition-transform transform group-hover:scale-110 group-active:scale-95 z-10 cursor-grab active:cursor-grabbing">
+               <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="white" class="w-5 h-5"><path fill-rule="evenodd" d="M11.54 22.351l.07.04.028.016a.76.76 0 00.723 0l.028-.015.071-.041a16.975 16.975 0 001.144-.742 19.58 19.58 0 002.683-2.282c1.944-1.99 3.963-4.98 3.963-8.827a8.25 8.25 0 00-16.5 0c0 3.846 2.02 6.837 3.963 8.827a19.58 19.58 0 002.682 2.282 16.975 16.975 0 001.145.742zM12 13.5a3 3 0 100-6 3 3 0 000 6z" clip-rule="evenodd" /></svg>
+           </div>
+           <div class="w-1.5 h-3 bg-primary-600 -mt-1 z-0 rounded-b-sm shadow-md"></div>
+           <div class="absolute bottom-1 w-6 h-1.5 bg-black/25 rounded-[100%] blur-[2px] transition-all group-hover:scale-75 group-active:scale-125"></div>
+         </div>`,
+  iconSize: [48, 64],
+  iconAnchor: [24, 60],
 });
 
 interface LocationPickerProps {
@@ -60,7 +65,7 @@ function LocationMarker({ position, setPosition, onDragEnd }: any) {
     return position === null ? null : (
         <Marker 
             position={position} 
-            icon={icon} 
+            icon={customIcon} 
             draggable={true}
             eventHandlers={eventHandlers}
             ref={markerRef}
