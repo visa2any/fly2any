@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { auth } from '@/lib/auth';
 import { getPrismaClient, isPrismaAvailable } from '@/lib/prisma';
-import { callGroq } from '@/lib/groq';
+import { callGroq } from '@/lib/ai/groq-client';
 
 export async function POST(request: NextRequest) {
   try {

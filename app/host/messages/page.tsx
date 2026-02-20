@@ -336,6 +336,11 @@ export default function MessagesPage() {
                         </div>
                     </form>
                 </>
+            ) : (
+                <div className="flex-1 flex flex-col items-center justify-center text-gray-400">
+                    <MessageSquare className="w-16 h-16 mb-4 opacity-20" />
+                    <p>Select a conversation to start messaging</p>
+                </div>
             )}
         </div>
 
