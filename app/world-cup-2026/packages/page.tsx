@@ -130,10 +130,18 @@ export default function PackagesPage() {
     getTravelPackageSchema({
       name: `FIFA World Cup 2026 ${pkg.name}`,
       description: `All-inclusive World Cup 2026 travel package including ${pkg.features.join(', ')}`,
-      price: parseInt(pkg.price.replace(/[^0-9]/g, '')),
-      currency: 'USD',
-      packageType: pkg.id,
-    })
+      image: 'https://www.fly2any.com/stadiums/metlife.jpg',
+      sku: `WC26-PKG-${pkg.id.toUpperCase()}`,
+      brand: {
+        name: 'Fly2Any',
+      },
+      offers: {
+        price: parseInt(pkg.price.replace(/[^0-9]/g, '')),
+        priceCurrency: 'USD',
+        availability: 'https://schema.org/InStock',
+        url: `https://www.fly2any.com/world-cup-2026/packages#${pkg.id}`,
+      }
+    } as any)
   );
 
   const breadcrumbSchema = getBreadcrumbSchema([
