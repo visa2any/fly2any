@@ -3,7 +3,8 @@
 import { useRouter } from 'next/navigation';
 import { useSession } from 'next-auth/react';
 import Image from 'next/image';
-import { ChevronLeft } from 'lucide-react';
+import { ChevronLeft, Award } from 'lucide-react';
+import { useEffect, useState } from 'react';
 
 interface HostHeaderProps {
   exitHref?: string;
@@ -13,6 +14,18 @@ interface HostHeaderProps {
 export function HostHeader({ exitHref = '/', exitLabel = 'Back to Fly2Any' }: HostHeaderProps) {
   const router = useRouter();
   const { data: session } = useSession();
+  const [isSuperhost, setIsSuperhost] = useState(false);
+
+  useEffect(() => {
+    if (session?.user) {
+      fetch('/api/host/profile')
+        .then(res => res.json())
+        .then(data => {
+          if (data?.superHost) setIsSuperhost(true);
+        })
+        .catch(console.error);
+    }
+  }, [session?.user]);
 
   return (
     <header className="h-[60px] bg-white border-b border-neutral-200 flex items-center justify-between px-6 shrink-0 z-50 relative shadow-[0_4px_24px_rgba(0,0,0,0.02)]">
@@ -48,9 +61,15 @@ export function HostHeader({ exitHref = '/', exitLabel = 'Back to Fly2Any' }: Ho
             <p className="text-sm font-bold text-gray-900 leading-tight truncate max-w-[150px]">
               {session.user.name || 'User'}
             </p>
-            <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest truncate">
-              Host Account
-            </p>
+            {isSuperhost ? (
+              <p className="text-[10px] font-bold text-yellow-500 flex items-center justify-end gap-1 uppercase tracking-widest truncate mt-0.5">
+                <Award className="w-3 h-3 fill-yellow-500 text-yellow-500" /> Superhost
+              </p>
+            ) : (
+              <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest truncate">
+                Host Account
+              </p>
+            )}
           </div>
           {session.user.image ? (
             <Image 

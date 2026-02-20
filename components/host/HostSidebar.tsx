@@ -54,13 +54,13 @@ export default function HostSidebar() {
 
         <div className="p-4 border-t border-neutral-100 flex flex-col gap-3 shrink-0">
           <Link 
-            href="/account/preferences"
+            href="/host/profile"
             className="w-full flex items-center gap-3 p-3 rounded-xl border border-neutral-100 hover:border-neutral-200 hover:bg-neutral-50 text-gray-600 font-bold transition-all text-sm group/btn overflow-hidden whitespace-nowrap mx-auto group-hover:mx-0 justify-center group-hover:justify-start"
           >
             <div className="p-0.5 shrink-0 rounded-lg mx-auto group-hover:mx-0">
               <Settings className="w-[18px] h-[18px] group-hover/btn:text-primary-600 transition-colors" />
             </div>
-            <span className="opacity-0 group-hover:opacity-100 transition-opacity duration-300">Settings</span>
+            <span className="opacity-0 group-hover:opacity-100 transition-opacity duration-300">Host Profile</span>
           </Link>
         </div>
       </div>
