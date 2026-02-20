@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { getServerSession } from 'next-auth';
+import { getServerSession } from 'next-auth/next';
 import { authOptions } from '@/lib/auth'; // Adjust path if needed, usually in app/api/auth/[...nextauth]/route.ts or lib/auth
 import { prisma } from '@/lib/prisma'; // Adjust if needed
 

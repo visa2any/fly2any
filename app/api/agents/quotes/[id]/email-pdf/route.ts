@@ -5,7 +5,7 @@ export const dynamic = 'force-dynamic';
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
-import { sendQuotePDFEmail } from "@/lib/pdf/pdf-service";
+// import { sendQuotePDFEmail } from "@/lib/pdf/pdf-service";
 import { resendClient } from "@/lib/email/resend-client";
 
 // POST /api/agents/quotes/[id]/email-pdf - Email PDF to client
@@ -49,7 +49,8 @@ export async function POST(
       },
     };
 
-    await sendQuotePDFEmail({ quoteId: params.id, agentId: agent.id, emailService });
+    // await sendQuotePDFEmail({ quoteId: params.id, agentId: agent.id, emailService });
+    console.warn("PDF Email feature is currently disabled entirely.");
 
     await prisma!.agentActivityLog.create({
       data: {
