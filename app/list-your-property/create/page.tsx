@@ -15,6 +15,7 @@ import {
 } from '@/lib/properties/types';
 
 // Components
+import { HostHeader } from '@/components/host/HostHeader';
 import { ImportWizard } from './components/ImportWizard';
 // Dynamic import for LocationPicker to avoid Leaflet SSR window error
 import dynamic from 'next/dynamic';
@@ -669,7 +670,7 @@ export default function CreatePropertyPage() {
       case 'basics':
         return (
           <div className="animate-fadeIn h-full flex flex-col">
-             <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 h-full">
+             <div className="grid grid-cols-1 xl:grid-cols-[1.2fr_1fr] gap-6 h-full">
                 
                 {/* Left Column: Import and Core Info */}
                 <div className="space-y-6">
@@ -692,33 +693,31 @@ export default function CreatePropertyPage() {
 
                     <div className="space-y-4 pt-4 border-t border-neutral-100 xl:border-none xl:pt-0">
                        
-                       {/* Tone Selector */}
-                       <div className="flex justify-end mb-2">
-                           <div className="flex items-center gap-2 bg-white border border-neutral-200 rounded-lg p-1 pr-3 shadow-sm">
-                               <Sparkles className="w-4 h-4 text-primary-500 ml-2" />
-                               <span className="text-xs font-semibold text-gray-500">AI Tone:</span>
-                               <select 
-                                   className="text-xs font-bold text-gray-800 bg-transparent border-none focus:ring-0 p-0 cursor-pointer"
-                                   value={aiTone}
-                                   onChange={(e) => setAiTone(e.target.value)}
-                               >
-                                   <option value="luxury">Luxury & Premium</option>
-                                   <option value="professional">Professional & Clean</option>
-                                   <option value="cozy">Cozy & Warm</option>
-                                   <option value="fun">Fun & Energetic</option>
-                               </select>
-                           </div>
-                       </div>
-
                        <div className="space-y-2">
-                          <div className="flex justify-between items-end">
+                          <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-2">
                               <label className="block text-sm font-semibold text-gray-700">Property Title</label>
-                              <button
-                                 onClick={handleGenerateTitle}
-                                 className="text-xs font-bold text-primary-600 hover:text-primary-700 flex items-center gap-1 transition-colors"
-                              >
-                                 <Sparkles className="w-3 h-3" /> Magic Title
-                              </button>
+                              <div className="flex items-center gap-2 self-start sm:self-auto">
+                                  {/* Tone Selector moved here */}
+                                  <div className="flex items-center gap-1 bg-white border border-neutral-200 rounded-lg px-2 py-1 shadow-sm">
+                                      <span className="text-[10px] font-semibold text-gray-400">Tone:</span>
+                                      <select 
+                                          className="text-[11px] font-bold text-gray-800 bg-transparent border-none focus:ring-0 p-0 cursor-pointer"
+                                          value={aiTone}
+                                          onChange={(e) => setAiTone(e.target.value)}
+                                      >
+                                          <option value="luxury">Luxury</option>
+                                          <option value="professional">Pro</option>
+                                          <option value="cozy">Cozy</option>
+                                          <option value="fun">Fun</option>
+                                      </select>
+                                  </div>
+                                  <button
+                                     onClick={handleGenerateTitle}
+                                     className="text-[11px] font-bold text-primary-600 hover:text-primary-700 flex items-center gap-1 transition-colors bg-primary-50 px-2 py-1 rounded-lg border border-primary-100"
+                                  >
+                                     <Sparkles className="w-3 h-3" /> Magic Title
+                                  </button>
+                              </div>
                           </div>
                           <input 
                              type="text" 
@@ -744,7 +743,7 @@ export default function CreatePropertyPage() {
                                     </>
                                 ) : (
                                     <>
-                                        <Sparkles className="w-3 h-3" /> Auto-Write Description
+                                        <Sparkles className="w-3 h-3" /> Auto-Write
                                     </>
                                 )}
                              </button>
@@ -1034,41 +1033,12 @@ export default function CreatePropertyPage() {
     <div className="h-screen overflow-hidden bg-neutral-50 flex flex-col text-gray-900 relative">
       <WizardProgressBar currentStep={currentStep} steps={STEPS} />
 
-      {/* COMPACT TOP HEADER */}
-      <header className="h-[60px] bg-white border-b border-neutral-200 flex items-center justify-between px-6 shrink-0 z-20 relative shadow-[0_4px_24px_rgba(0,0,0,0.02)]">
-        <div className="flex items-center gap-6">
-             <div className="flex items-center gap-2 cursor-pointer transition-opacity hover:opacity-80" onClick={() => router.push('/')} role="button">
-                <div className="w-8 h-8 bg-gradient-to-br from-primary-500 to-primary-600 rounded-lg flex items-center justify-center text-white font-bold shadow-sm">F</div>
-                <span className="font-bold text-xl tracking-tight hidden sm:block">Fly2Any<span className="text-primary-600">Host</span></span>
-             </div>
-             <div className="h-5 w-px bg-neutral-200 hidden sm:block" />
-             <button onClick={() => router.push('/host/dashboard')} className="flex items-center gap-1.5 text-sm font-semibold text-gray-500 hover:text-gray-900 transition-colors">
-                <ChevronLeft className="w-4 h-4" /> <span className="hidden sm:block">Exit to Dashboard</span>
-             </button>
-        </div>
-        
-        {/* User Info - Compact */}
-        {session?.user && (
-             <div className="flex items-center gap-3">
-                <div className="hidden sm:block text-right">
-                    <p className="text-sm font-bold text-gray-900 leading-tight truncate max-w-[150px]">{session.user.name}</p>
-                    <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest truncate">Host Account</p>
-                </div>
-                {session.user.image ? (
-                    <Image src={session.user.image} alt="User" width={34} height={34} className="rounded-full shadow-sm border border-neutral-200" />
-                ) : (
-                    <div className="w-9 h-9 rounded-full bg-primary-100 flex items-center justify-center text-primary-600 font-bold text-sm shadow-sm border border-primary-200">
-                        {session.user.name?.[0] || 'U'}
-                    </div>
-                )}
-             </div>
-        )}
-      </header>
+      <HostHeader exitHref="/host/dashboard" exitLabel="Exit to Dashboard" />
 
       <div className="flex-1 overflow-hidden flex flex-col md:flex-row relative">
       
       {/* LEFT SIDEBAR - COLLAPSIBLE NAVIGATION */}
-      <div className="hidden md:flex flex-col bg-white border-r border-neutral-200 h-full z-10 shadow-[4px_0_24px_rgba(0,0,0,0.02)] transition-all duration-300 w-[72px] hover:w-56 group absolute left-0 top-0 bottom-0">
+      <div className="hidden md:flex flex-col bg-white border-r border-neutral-200 h-full z-50 shadow-[4px_0_24px_rgba(0,0,0,0.02)] transition-all duration-300 w-[72px] hover:w-56 group absolute left-0 top-0 bottom-0 overflow-x-hidden">
          <div className="flex-1 overflow-y-auto px-3 space-y-1.5 py-4 mt-2">
             {STEPS.map((step, idx) => {
                 const isActive = step.id === currentStep;
@@ -1135,7 +1105,7 @@ export default function CreatePropertyPage() {
           
           <div className="flex-1 overflow-hidden flex flex-col lg:flex-row w-full max-w-[1920px] mx-auto">
               {/* Left Column: Form */}
-              <div className="flex-1 h-full overflow-y-auto custom-scrollbar relative px-4 md:px-6 lg:px-8">
+              <div className="flex-1 h-full overflow-y-auto scrollbar-thin scrollbar-thumb-neutral-200 scrollbar-track-transparent relative px-2 md:px-4 lg:px-6">
                  <main className="w-full mx-auto py-6 pb-24">
                      <div className="mb-6 block lg:hidden">
                          <h1 className="text-2xl font-bold text-gray-900">{STEPS.find(s => s.id === currentStep)?.label}</h1>
@@ -1159,7 +1129,7 @@ export default function CreatePropertyPage() {
               </div>
 
               {/* Right Column: Live Guest Preview */}
-              <div className="hidden lg:flex w-[380px] xl:w-[440px] border-l border-neutral-200/60 h-full overflow-y-auto flex-col items-center justify-start px-6 xl:px-8 py-6 relative bg-transparent">
+              <div className="hidden lg:flex w-[320px] xl:w-[380px] border-l border-neutral-200/60 h-full overflow-y-auto scrollbar-thin scrollbar-thumb-neutral-200 scrollbar-track-transparent flex-col items-center justify-start px-4 xl:px-6 py-6 relative bg-transparent">
                  <div className="sticky top-0 w-full mb-6 flex items-center justify-between pb-3 border-b border-neutral-200/60 z-10 backdrop-blur-md bg-transparent">
                      <h2 className="text-sm font-bold text-gray-400 uppercase tracking-widest flex items-center gap-2">
                         <Eye className="w-4 h-4" /> Live Guest Preview

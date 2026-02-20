@@ -1,5 +1,6 @@
 import type { Metadata } from 'next';
 import HostSidebar from '@/components/host/HostSidebar';
+import { HostHeader } from '@/components/host/HostHeader';
 
 export const metadata: Metadata = {
   title: 'Host Dashboard | Fly2Any',
@@ -8,11 +9,13 @@ export const metadata: Metadata = {
 
 export default function HostLayout({ children }: { children: React.ReactNode }) {
   return (
-    <div className="min-h-screen bg-neutral-50">
-      <HostSidebar />
-      {/* Main content — offset by sidebar width on desktop */}
-      <div className="md:ml-64 pb-20 md:pb-0">
-        {children}
+    <div className="h-screen overflow-hidden bg-neutral-50 flex flex-col text-gray-900 relative">
+      <HostHeader exitHref="/" exitLabel="Back to Fly2Any" />
+      <div className="flex-1 overflow-hidden flex flex-col md:flex-row relative">
+        <HostSidebar />
+        <main className="flex-1 md:ml-[72px] h-full overflow-y-auto custom-scrollbar relative bg-neutral-50/50 transition-all duration-300">
+          {children}
+        </main>
       </div>
     </div>
   );
