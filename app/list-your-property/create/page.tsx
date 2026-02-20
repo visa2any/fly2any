@@ -1031,41 +1031,45 @@ export default function CreatePropertyPage() {
   // Actually, I'll just add the Auth effect first, then the Sidebar change.
 
   return (
-    <div className="h-screen overflow-hidden bg-neutral-50 flex flex-col md:flex-row text-gray-900 relative">
+    <div className="h-screen overflow-hidden bg-neutral-50 flex flex-col text-gray-900 relative">
       <WizardProgressBar currentStep={currentStep} steps={STEPS} />
 
-      
-      {/* LEFT SIDEBAR - NAVIGATION */}
-      <div className="hidden md:flex flex-col w-80 bg-white border-r border-neutral-200 fixed h-full z-10 shadow-[4px_0_24px_rgba(0,0,0,0.02)]">
-         <div className="p-8 pb-4">
-             <div className="flex items-center gap-2 mb-8" onClick={() => router.push('/')} role="button">
-                {/* Brand Logo Placeholder */}
+      {/* COMPACT TOP HEADER */}
+      <header className="h-[60px] bg-white border-b border-neutral-200 flex items-center justify-between px-6 shrink-0 z-20 relative shadow-[0_4px_24px_rgba(0,0,0,0.02)]">
+        <div className="flex items-center gap-6">
+             <div className="flex items-center gap-2 cursor-pointer transition-opacity hover:opacity-80" onClick={() => router.push('/')} role="button">
                 <div className="w-8 h-8 bg-gradient-to-br from-primary-500 to-primary-600 rounded-lg flex items-center justify-center text-white font-bold shadow-sm">F</div>
-                <span className="font-bold text-xl tracking-tight">Fly2Any<span className="text-primary-600">Host</span></span>
+                <span className="font-bold text-xl tracking-tight hidden sm:block">Fly2Any<span className="text-primary-600">Host</span></span>
              </div>
-             <button onClick={() => router.push('/host/dashboard')} className="flex items-center gap-2 text-sm text-gray-500 hover:text-gray-900 transition-colors mb-6">
-                <ChevronLeft className="w-4 h-4" /> Exit
+             <div className="h-5 w-px bg-neutral-200 hidden sm:block" />
+             <button onClick={() => router.push('/host/dashboard')} className="flex items-center gap-1.5 text-sm font-semibold text-gray-500 hover:text-gray-900 transition-colors">
+                <ChevronLeft className="w-4 h-4" /> <span className="hidden sm:block">Exit to Dashboard</span>
              </button>
-             
-             {/* User Info - Compact */}
-             {session?.user && (
-                 <div className="flex items-center gap-3 p-3 rounded-xl bg-neutral-50 border border-neutral-100 mb-6">
-                    {session.user.image ? (
-                        <Image src={session.user.image} alt="User" width={32} height={32} className="rounded-full" />
-                    ) : (
-                        <div className="w-8 h-8 rounded-full bg-primary-100 flex items-center justify-center text-primary-600 font-bold text-xs">
-                            {session.user.name?.[0] || 'U'}
-                        </div>
-                    )}
-                    <div className="overflow-hidden">
-                        <p className="text-sm font-bold text-gray-900 truncate">{session.user.name}</p>
-                        <p className="text-xs text-gray-500 truncate">Host Account</p>
+        </div>
+        
+        {/* User Info - Compact */}
+        {session?.user && (
+             <div className="flex items-center gap-3">
+                <div className="hidden sm:block text-right">
+                    <p className="text-sm font-bold text-gray-900 leading-tight truncate max-w-[150px]">{session.user.name}</p>
+                    <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest truncate">Host Account</p>
+                </div>
+                {session.user.image ? (
+                    <Image src={session.user.image} alt="User" width={34} height={34} className="rounded-full shadow-sm border border-neutral-200" />
+                ) : (
+                    <div className="w-9 h-9 rounded-full bg-primary-100 flex items-center justify-center text-primary-600 font-bold text-sm shadow-sm border border-primary-200">
+                        {session.user.name?.[0] || 'U'}
                     </div>
-                 </div>
-             )}
-         </div>
+                )}
+             </div>
+        )}
+      </header>
 
-         <div className="flex-1 overflow-y-auto px-6 space-y-1 py-2">
+      <div className="flex-1 overflow-hidden flex flex-col md:flex-row relative">
+      
+      {/* LEFT SIDEBAR - COLLAPSIBLE NAVIGATION */}
+      <div className="hidden md:flex flex-col bg-white border-r border-neutral-200 h-full z-10 shadow-[4px_0_24px_rgba(0,0,0,0.02)] transition-all duration-300 w-[72px] hover:w-56 group absolute left-0 top-0 bottom-0">
+         <div className="flex-1 overflow-y-auto px-3 space-y-1.5 py-4 mt-2">
             {STEPS.map((step, idx) => {
                 const isActive = step.id === currentStep;
                 const isCompleted = STEPS.findIndex(s => s.id === currentStep) > idx; 
@@ -1078,44 +1082,40 @@ export default function CreatePropertyPage() {
                         }}
                         disabled={!isCompleted && !editingId && !isActive}
                         className={`
-                            w-full flex items-center gap-4 p-4 rounded-xl text-left transition-all relative
+                            w-full flex items-center gap-3 p-3 rounded-xl text-left transition-all relative overflow-hidden whitespace-nowrap
                             ${isActive 
                                 ? 'bg-primary-50 text-primary-700 font-semibold shadow-sm ring-1 ring-primary-100' 
                                 : isCompleted 
                                     ? 'text-gray-700 hover:bg-neutral-50' 
-                                    : 'text-gray-400 opacity-60 cursor-not-allowed'}
+                                    : 'text-gray-400 opacity-50 cursor-not-allowed'}
                         `}
                     >
-                        {isActive && <div className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-8 bg-primary-500 rounded-r-full" />}
-                        <div className={`p-2 rounded-lg ${isActive ? 'bg-primary-100 text-primary-600' : 'bg-transparent'}`}>
-                             <step.icon className="w-5 h-5" />
+                        {isActive && <div className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-6 bg-primary-500 rounded-r-full" />}
+                        <div className={`p-1.5 shrink-0 rounded-lg mx-auto group-hover:mx-0 ${isActive ? 'bg-primary-100 text-primary-600' : 'bg-transparent'}`}>
+                             <step.icon className="w-[18px] h-[18px]" />
                         </div>
-                        <span className="flex-1">{step.label}</span>
-                        {isCompleted && <Check className="w-4 h-4 text-green-500" />}
+                        <span className="flex-1 text-sm font-bold opacity-0 group-hover:opacity-100 transition-opacity duration-300 overflow-hidden">{step.label}</span>
+                        {isCompleted && <Check className="w-4 h-4 text-green-500 shrink-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />}
                     </button>
                 );
             })}
          </div>
 
-         <div className="p-6 border-t border-neutral-100 flex flex-col gap-3">
-             <div className="h-4 flex items-center justify-center">
+         <div className="p-4 border-t border-neutral-100 flex flex-col gap-3 shrink-0">
+             <div className="h-4 flex items-center justify-center overflow-hidden">
                 {isAutoSaving ? (
-                    <span className="text-xs text-primary-600 font-medium flex items-center gap-1 animate-pulse">
-                        <Loader2 className="w-3 h-3 animate-spin" /> Saving...
-                    </span>
+                    <Loader2 className="w-4 h-4 text-primary-600 animate-spin shrink-0" />
                 ) : lastSaved ? (
-                     <span className="text-xs text-gray-400 flex items-center gap-1">
-                        <Check className="w-3 h-3 text-green-500" /> Saved {lastSaved.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}
-                    </span>
+                     <Check className="w-4 h-4 text-green-500 shrink-0" title={`Saved ${lastSaved.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}`} />
                 ) : null}
              </div>
              <button 
                 onClick={handleSaveDraft}
                 disabled={isSaving || isAutoSaving}
-                className="w-full flex items-center justify-center gap-2 p-3 rounded-xl border border-neutral-200 hover:bg-neutral-50 text-gray-600 font-semibold transition-all text-sm group"
+                className="w-full flex items-center justify-center gap-2 p-2.5 rounded-xl border border-neutral-200 hover:bg-neutral-50 text-gray-600 font-bold transition-all text-sm group/btn overflow-hidden whitespace-nowrap"
              >
-                <Save className="w-4 h-4 group-hover:text-primary-600 transition-colors" />
-                Save Draft
+                <Save className="w-4 h-4 shrink-0 group-hover/btn:text-primary-600 transition-colors" />
+                <span className="opacity-0 group-hover:opacity-100 transition-opacity duration-300">Save Draft</span>
              </button>
          </div>
       </div>
@@ -1131,13 +1131,13 @@ export default function CreatePropertyPage() {
 
 
       {/* MAIN CONTENT AREA */}
-      <div className="flex-1 md:ml-80 h-full flex flex-col relative bg-neutral-50/50">
+      <div className="flex-1 md:ml-[72px] h-full flex flex-col relative bg-neutral-50/50 transition-all duration-300">
           
-          <div className="flex-1 overflow-hidden flex flex-col lg:flex-row">
+          <div className="flex-1 overflow-hidden flex flex-col lg:flex-row w-full max-w-[1920px] mx-auto">
               {/* Left Column: Form */}
-              <div className="flex-1 h-full overflow-y-auto custom-scrollbar relative">
-                 <main className="w-full max-w-3xl mx-auto p-4 md:p-8 lg:p-12 pb-32">
-                     <div className="mb-8 block lg:hidden">
+              <div className="flex-1 h-full overflow-y-auto custom-scrollbar relative px-4 md:px-6 lg:px-8">
+                 <main className="w-full mx-auto py-6 pb-24">
+                     <div className="mb-6 block lg:hidden">
                          <h1 className="text-2xl font-bold text-gray-900">{STEPS.find(s => s.id === currentStep)?.label}</h1>
                      </div>
 
@@ -1159,8 +1159,8 @@ export default function CreatePropertyPage() {
               </div>
 
               {/* Right Column: Live Guest Preview */}
-              <div className="hidden lg:flex w-[400px] xl:w-[480px] bg-neutral-100/50 border-l border-neutral-200 h-full overflow-y-auto flex-col items-center justify-start p-8 relative">
-                 <div className="sticky top-0 w-full mb-8 flex items-center justify-between pb-4 border-b border-neutral-200/60 z-10 backdrop-blur-md bg-neutral-100/30">
+              <div className="hidden lg:flex w-[380px] xl:w-[440px] border-l border-neutral-200/60 h-full overflow-y-auto flex-col items-center justify-start px-6 xl:px-8 py-6 relative bg-transparent">
+                 <div className="sticky top-0 w-full mb-6 flex items-center justify-between pb-3 border-b border-neutral-200/60 z-10 backdrop-blur-md bg-transparent">
                      <h2 className="text-sm font-bold text-gray-400 uppercase tracking-widest flex items-center gap-2">
                         <Eye className="w-4 h-4" /> Live Guest Preview
                      </h2>
@@ -1226,13 +1226,13 @@ export default function CreatePropertyPage() {
           </div>
 
           {/* BOTTOM BAR (Fixed at bottom of flex container) */}
-          <div className="flex-shrink-0 bg-white border-t border-neutral-200 p-4 md:px-12 md:py-6 flex items-center justify-between z-40 shadow-[0_-4px_24px_rgba(0,0,0,0.04)]">
+          <div className="flex-shrink-0 bg-white border-t border-neutral-200 py-3 px-4 md:px-8 flex items-center justify-between z-40 shadow-[0_-2px_10px_rgba(0,0,0,0.02)]">
               <button 
                  onClick={handleBack}
                  disabled={currentStep === 'basics'}
-                 className="hidden md:block text-gray-600 font-semibold hover:underline disabled:opacity-30 disabled:hover:no-underline"
+                 className="hidden md:flex text-gray-600 font-bold hover:text-gray-900 transition-colors disabled:opacity-30 disabled:hover:text-gray-600 text-sm items-center gap-1"
               >
-                  Back
+                  <ChevronLeft className="w-4 h-4" /> Back
               </button>
 
               <div className="flex items-center gap-4 w-full md:w-auto">
@@ -1247,23 +1247,24 @@ export default function CreatePropertyPage() {
                      <button
                         onClick={handlePublish}
                         disabled={isSaving}
-                        className="flex-1 md:flex-none bg-gradient-to-r from-primary-500 to-primary-600 hover:from-primary-600 hover:to-primary-700 text-white px-8 py-3.5 rounded-xl font-bold shadow-lg shadow-primary-500/25 flex items-center justify-center gap-2 transition-all transform hover:scale-[1.02]"
+                        className="flex-1 md:flex-none bg-gradient-to-r from-primary-500 to-primary-600 hover:from-primary-600 hover:to-primary-700 text-white px-6 py-2.5 text-sm rounded-xl font-bold shadow-md shadow-primary-500/25 flex items-center justify-center gap-2 transition-all transform hover:scale-[1.02]"
                      >
-                        {isSaving ? <Loader2 className="w-5 h-5 animate-spin" /> : <Sparkles className="w-5 h-5" />}
+                        {isSaving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Sparkles className="w-4 h-4" />}
                         Publish Listing
                      </button>
                  ) : (
                      <button
                         onClick={handleNext}
-                        className="flex-1 md:flex-none bg-neutral-900 hover:bg-black text-white px-8 py-3.5 rounded-xl font-bold flex items-center justify-center gap-2 transition-all"
+                        className="flex-1 md:flex-none bg-neutral-900 hover:bg-black text-white px-8 py-2.5 text-sm rounded-xl font-bold flex items-center justify-center gap-2 transition-all"
                      >
-                        Continue <ArrowRight className="w-5 h-5" />
+                        Continue <ArrowRight className="w-4 h-4" />
                      </button>
                  )}
               </div>
           </div>
       </div>
 
+    </div>
     </div>
   );
 }
