@@ -47,6 +47,15 @@ export async function GET(request: NextRequest) {
     await EmailService.sendNewsletterConfirmation(subscriber.email, {
       email: subscriber.email,
       firstName: subscriber.firstName || undefined,
+      forceSend: true,
+    });
+
+    // Send admin notification
+    await EmailService.sendAdminNewSubscriberNotification({
+      email: subscriber.email,
+      firstName: subscriber.firstName || undefined,
+      source: subscriber.source || undefined,
+      forceSend: true,
     });
 
     console.log(`✅ [NEWSLETTER] Verified: ${subscriber.email}`);

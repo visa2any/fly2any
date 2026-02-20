@@ -60,6 +60,7 @@ export async function POST(request: NextRequest) {
             email: normalizedEmail,
             firstName: firstName || existing.firstName || undefined,
             verifyUrl,
+            forceSend: true,
           });
 
           console.log(`📧 [NEWSLETTER] Re-subscribe verification sent: ${normalizedEmail} | Source: ${source}`);
@@ -91,6 +92,7 @@ export async function POST(request: NextRequest) {
             email: normalizedEmail,
             firstName: firstName || existing.firstName || undefined,
             verifyUrl,
+            forceSend: true,
           });
 
           console.log(`📧 [NEWSLETTER] Resent verification: ${normalizedEmail} | Source: ${source}`);
@@ -126,6 +128,7 @@ export async function POST(request: NextRequest) {
         email: normalizedEmail,
         firstName: firstName || undefined,
         verifyUrl,
+        forceSend: true,
       });
 
       console.log(`📧 [NEWSLETTER] New signup, verification sent: ${normalizedEmail} | Source: ${source}`);

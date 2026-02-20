@@ -1180,7 +1180,7 @@ export class EmailService {
    */
   static async sendNewsletterConfirmation(
     email: string,
-    data: NewsletterSignupData
+    data: NewsletterSignupData & { forceSend?: boolean }
   ): Promise<boolean> {
     const content = `
     ${this.getHeader("You're In! ✉️", 'Welcome to the Fly2Any family', undefined, '#2563eb')}
@@ -1307,6 +1307,46 @@ export class EmailService {
       subject: `Welcome to Fly2Any — You're subscribed! ✉️`,
       html,
       tags: ['newsletter', 'subscription'],
+      forceSend: data.forceSend,
+    });
+  }
+
+  /**
+   * Send admin notification for new subscribers
+   */
+  static async sendAdminNewSubscriberNotification(
+    data: NewsletterSignupData & { source?: string; forceSend?: boolean }
+  ): Promise<boolean> {
+    const adminEmail = 'fly2any.travel@gmail.com';
+    const content = `
+    ${this.getHeader('New Subscriber 🚀', 'Someone just joined the newsletter', undefined, '#10b981')}
+
+    <tr>
+      <td style="padding:32px 24px;">
+        <p style="margin:0 0 16px 0;font-size:16px;color:#374151;font-family:Arial,Helvetica,sans-serif;">
+          A new user has confirmed their newsletter subscription!
+        </p>
+        
+        <table role="presentation" style="width:100%;border:none;border-spacing:0;background:#f8fafc;border-radius:12px;border:1px solid #e2e8f0;">
+          <tr>
+            <td style="padding:16px;">
+              <p style="margin:0 0 8px 0;font-size:14px;color:#6b7280;font-family:Arial,Helvetica,sans-serif;"><strong>Email:</strong> ${data.email}</p>
+              ${data.firstName ? `<p style="margin:0 0 8px 0;font-size:14px;color:#6b7280;font-family:Arial,Helvetica,sans-serif;"><strong>Name:</strong> ${data.firstName}</p>` : ''}
+              ${data.source ? `<p style="margin:0;font-size:14px;color:#6b7280;font-family:Arial,Helvetica,sans-serif;"><strong>Source:</strong> ${data.source}</p>` : ''}
+            </td>
+          </tr>
+        </table>
+      </td>
+    </tr>
+
+    ${this.getFooter()}`;
+
+    return this.sendEmail({
+      to: adminEmail,
+      subject: `🚀 New Subscriber: ${data.email}`,
+      html: this.getEmailWrapper(content, '#059669'),
+      tags: ['admin', 'notification', 'newsletter'],
+      forceSend: data.forceSend,
     });
   }
 
@@ -1322,7 +1362,7 @@ export class EmailService {
    */
   static async sendVerificationEmail(
     email: string,
-    data: { email: string; firstName?: string; verifyUrl: string }
+    data: { email: string; firstName?: string; verifyUrl: string; forceSend?: boolean }
   ): Promise<boolean> {
     const content = `
     ${this.getHeader("Almost There! 🎉", 'Confirm your email to unlock exclusive deals', undefined, '#2563eb')}
@@ -1438,6 +1478,7 @@ export class EmailService {
       to: email,
       subject: '✓ Confirm your Fly2Any subscription',
       html: this.getEmailWrapper(content),
+      forceSend: data.forceSend,
     };
 
     return this.sendEmail(options);

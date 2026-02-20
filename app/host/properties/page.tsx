@@ -55,15 +55,11 @@ export default function PropertiesPage() {
   const fetchProperties = async () => {
     setLoading(true);
     setError(null);
-    const controller = new AbortController();
-    const timeout = setTimeout(() => controller.abort(), 12000);
     try {
       const res = await fetch('/api/properties/dashboard', {
-        signal: controller.signal,
         cache: 'no-store',
         headers: { 'Cache-Control': 'no-cache' },
       });
-      clearTimeout(timeout);
       if (!res.ok) {
         const errorData = await res.json().catch(() => ({}));
         throw new Error(errorData.error || `Server error ${res.status}`);
@@ -74,7 +70,6 @@ export default function PropertiesPage() {
       console.error('Failed to fetch properties:', err);
       setError(err.message || 'Failed to load properties');
     } finally {
-      clearTimeout(timeout);
       setLoading(false);
     }
   };
