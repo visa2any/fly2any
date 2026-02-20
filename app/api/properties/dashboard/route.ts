@@ -26,13 +26,25 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ success: false, error: 'Authentication required' }, { status: 401 });
     }
 
+    // Helper to wrap Prisma calls in a strict timeout to prevent Vercel pool hangups
+    const withTimeout = <T>(promise: Promise<T>, ms: number = 8000): Promise<T> => {
+        let timeoutHandle: NodeJS.Timeout;
+        const timeoutPromise = new Promise<T>((_, reject) => {
+            timeoutHandle = setTimeout(() => reject(new Error('Database query timed out')), ms);
+        });
+        return Promise.race([
+            promise.finally(() => clearTimeout(timeoutHandle)),
+            timeoutPromise
+        ]);
+    };
+
     // 3. DB Query
     // Find or create PropertyOwner for this user
     let owner;
     try {
-      owner = await prisma.propertyOwner.findUnique({
+      owner = await withTimeout(prisma.propertyOwner.findUnique({
         where: { userId: session.user.id },
-      });
+      }));
     } catch (e: any) {
       console.error('Prisma propertyOwner.findUnique failed:', e);
       return NextResponse.json({ success: false, error: 'Database error (Owner): ' + e.message }, { status: 500 });
@@ -55,14 +67,14 @@ export async function GET(request: NextRequest) {
     // Get properties for this owner
     let properties;
     try {
-      properties = await prisma.property.findMany({
+      properties = await withTimeout(prisma.property.findMany({
         where: { ownerId: owner.id },
         include: {
           images: { orderBy: { sortOrder: 'asc' }, take: 3 },
           _count: { select: { rooms: true, images: true } },
         },
         orderBy: { updatedAt: 'desc' },
-      });
+      }));
     } catch (e: any) {
        console.error('Prisma property.findMany failed:', e);
        return NextResponse.json({ success: false, error: 'Database error (Properties): ' + e.message }, { status: 500 });

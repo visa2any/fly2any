@@ -47,8 +47,19 @@ export async function GET(request: NextRequest) {
     if (city) where.city = { contains: city, mode: 'insensitive' };
     if (country) where.country = { contains: country, mode: 'insensitive' };
 
+    const withTimeout = <T>(promise: Promise<T>, ms: number = 8000): Promise<T> => {
+        let timeoutHandle: NodeJS.Timeout;
+        const timeoutPromise = new Promise<T>((_, reject) => {
+            timeoutHandle = setTimeout(() => reject(new Error('Database query timed out')), ms);
+        });
+        return Promise.race([
+            promise.finally(() => clearTimeout(timeoutHandle)),
+            timeoutPromise
+        ]);
+    };
+
     const [properties, total] = await Promise.all([
-      prisma.property.findMany({
+      withTimeout(prisma.property.findMany({
         where,
         include: {
           images: { where: { isPrimary: true }, take: 1 },
@@ -58,8 +69,8 @@ export async function GET(request: NextRequest) {
         orderBy: { createdAt: 'desc' },
         skip: (page - 1) * limit,
         take: limit,
-      }),
-      prisma.property.count({ where }),
+      })),
+      withTimeout(prisma.property.count({ where })),
     ]);
 
     return NextResponse.json({
