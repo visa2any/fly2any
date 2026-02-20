@@ -15,19 +15,13 @@ interface AvailabilityEntry {
   available: boolean; customPrice: number | null; notes: string | null;
 }
 
-// Mock demand generator for heatmap
-const getDemandScore = (day: number) => {
-    // Generate some stable but pseudo-random demand per day
-    const val = (day * 13) % 100;
-    if (val > 80) return 'peak';
-    if (val > 50) return 'high';
-    return 'normal';
-};
+// Removed global getDemandScore to instead use component state
 
 export default function CalendarPage() {
   const [properties, setProperties] = useState<PropertyOption[]>([]);
   const [selectedProperty, setSelectedProperty] = useState<string>('');
   const [availability, setAvailability] = useState<AvailabilityEntry[]>([]);
+  const [demandMap, setDemandMap] = useState<Record<string, string>>({});
   const [loading, setLoading] = useState(true);
   const [currentDate, setCurrentDate] = useState(new Date());
   
@@ -63,16 +57,27 @@ export default function CalendarPage() {
 
   useEffect(() => {
     if (!selectedProperty) return;
-    async function loadAvailability() {
+    async function loadData() {
       try {
-        const res = await fetch(`/api/properties/${selectedProperty}/availability`);
-        if (res.ok) {
-          const json = await res.json();
+        const [availRes, demandRes] = await Promise.all([
+            fetch(`/api/properties/${selectedProperty}/availability`),
+            fetch(`/api/properties/${selectedProperty}/demand`)
+        ]);
+
+        if (availRes.ok) {
+          const json = await availRes.json();
           setAvailability(json.data || []);
         }
-      } catch (e) { console.error(e); }
+
+        if (demandRes.ok) {
+            const json = await demandRes.json();
+            setDemandMap(json.data || {});
+        }
+      } catch (e) { 
+          console.error('Failed to load calendar data', e); 
+      }
     }
-    loadAvailability();
+    loadData();
   }, [selectedProperty, currentDate]);
 
   // Calendar Helpers
@@ -96,6 +101,11 @@ export default function CalendarPage() {
       }
     }
     return null;
+  };
+
+  const getDemandScore = (date: Date) => {
+      const ds = demandMap[format(date, 'yyyy-MM-dd')];
+      return ds || 'normal';
   };
 
   const currentProperty = properties.find(p => p.id === selectedProperty);

@@ -1,38 +1,42 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { MaxWidthContainer } from '@/components/layout/MaxWidthContainer';
-import { DollarSign, Download, TrendingUp, Calendar, AlertCircle } from 'lucide-react';
+import { DollarSign, Download, TrendingUp, Calendar, AlertCircle, Loader2 } from 'lucide-react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, LineChart, Line, Legend } from 'recharts';
-
-const mockMonthlyData = [
-  { name: 'Jan', gross: 4000, net: 2400 },
-  { name: 'Feb', gross: 3000, net: 1398 },
-  { name: 'Mar', gross: 2000, net: 9800 },
-  { name: 'Apr', gross: 2780, net: 3908 },
-  { name: 'May', gross: 1890, net: 4800 },
-  { name: 'Jun', gross: 2390, net: 3800 },
-  { name: 'Jul', gross: 3490, net: 4300 },
-  { name: 'Aug', gross: 8490, net: 6300 },
-  { name: 'Sep', gross: 5490, net: 3300 },
-  { name: 'Oct', gross: 4490, net: 2300 },
-  { name: 'Nov', gross: 3490, net: 1300 },
-  { name: 'Dec', gross: 6490, net: 4300 },
-];
-
-const mockPacingData = [
-  { name: 'Week 1', '2025': 400, '2026': 600 },
-  { name: 'Week 2', '2025': 300, '2026': 750 },
-  { name: 'Week 3', '2025': 550, '2026': 620 },
-  { name: 'Week 4', '2025': 700, '2026': 890 },
-];
 
 export default function FinancesPage() {
   const [timeframe, setTimeframe] = useState<'ytd' | 'all'>('ytd');
+  const [loading, setLoading] = useState(true);
+  const [data, setData] = useState<any>(null);
+
+  useEffect(() => {
+    async function loadFinances() {
+      try {
+        const res = await fetch('/api/host/finances');
+        if (res.ok) {
+          const json = await res.json();
+          setData(json.data);
+        }
+      } catch (err) {
+        console.error('Failed to load finances:', err);
+      } finally {
+        setLoading(false);
+      }
+    }
+    loadFinances();
+  }, []);
 
   const handleExport = () => {
     alert("Downloading CSV report for tax filing...");
   };
+
+  if (loading) {
+    return <div className="min-h-screen bg-[#FDFDFD] pt-4 pb-20 flex items-center justify-center"><Loader2 className="w-8 h-8 animate-spin text-gray-400" /></div>;
+  }
+
+  const currentYear = new Date().getFullYear().toString();
+  const lastYear = (new Date().getFullYear() - 1).toString();
 
   return (
     <div className="min-h-screen bg-[#FDFDFD] pt-4 pb-20">
@@ -66,13 +70,10 @@ export default function FinancesPage() {
                         <div className="w-10 h-10 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center">
                             <DollarSign className="w-5 h-5" />
                         </div>
-                        <span className="flex items-center gap-1 text-emerald-600 text-xs font-bold bg-emerald-50 px-2 py-1 rounded-md">
-                            <TrendingUp className="w-3 h-3" /> +14.5%
-                        </span>
                     </div>
                     <div>
                         <p className="text-sm text-gray-500 font-medium mb-1">Net Earnings (YTD)</p>
-                        <h2 className="text-3xl font-black text-gray-900">$42,390</h2>
+                        <h2 className="text-3xl font-black text-gray-900">${data?.netYTD?.toLocaleString() || '0'}</h2>
                     </div>
                 </div>
 
@@ -84,8 +85,8 @@ export default function FinancesPage() {
                     </div>
                     <div>
                         <p className="text-sm text-gray-500 font-medium mb-1">Upcoming Payouts</p>
-                        <h2 className="text-3xl font-black text-gray-900">$3,450</h2>
-                        <p className="text-xs text-gray-400 mt-2">Next payout in 3 days</p>
+                        <h2 className="text-3xl font-black text-gray-900">${data?.upcomingPayouts?.toLocaleString() || '0'}</h2>
+                        <p className="text-xs text-gray-400 mt-2">Booked & Confirmed</p>
                     </div>
                 </div>
 
@@ -97,8 +98,7 @@ export default function FinancesPage() {
                     </div>
                     <div>
                         <p className="text-sm text-gray-500 font-medium mb-1">Platform Fees & Taxes</p>
-                        <h2 className="text-3xl font-black text-gray-900">$5,120</h2>
-                        <p className="text-xs text-gray-400 mt-2 hover:text-primary-600 cursor-pointer transition-colors">View breakdown →</p>
+                        <h2 className="text-3xl font-black text-gray-900">${data?.platformFees?.toLocaleString() || '0'}</h2>
                     </div>
                 </div>
             </div>
@@ -114,7 +114,7 @@ export default function FinancesPage() {
                     </div>
                     <div className="h-[300px] w-full">
                         <ResponsiveContainer width="100%" height="100%">
-                            <BarChart data={mockMonthlyData} margin={{ top: 5, right: 0, left: -20, bottom: 0 }}>
+                            <BarChart data={data?.monthlyData || []} margin={{ top: 5, right: 0, left: -20, bottom: 0 }}>
                                 <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f0f0f0" />
                                 <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fontSize: 12, fill: '#888' }} dy={10} />
                                 <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 12, fill: '#888' }} tickFormatter={(val) => `$${val/1000}k`} />
@@ -138,7 +138,7 @@ export default function FinancesPage() {
                     </div>
                     <div className="flex-1 min-h-[250px] w-full">
                         <ResponsiveContainer width="100%" height="100%">
-                            <LineChart data={mockPacingData} margin={{ top: 5, right: 0, left: -25, bottom: 0 }}>
+                            <LineChart data={data?.pacingData || []} margin={{ top: 5, right: 0, left: -25, bottom: 0 }}>
                                 <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f0f0f0" />
                                 <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fontSize: 11, fill: '#888' }} dy={10} />
                                 <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 11, fill: '#888' }} tickFormatter={(val) => `$${val}`} />
@@ -146,15 +146,17 @@ export default function FinancesPage() {
                                     contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }}
                                 />
                                 <Legend wrapperStyle={{ paddingTop: '20px', fontSize: '12px' }} />
-                                <Line type="monotone" dataKey="2025" stroke="#94a3b8" strokeWidth={2} dot={{ r: 4 }} activeDot={{ r: 6 }} />
-                                <Line type="monotone" dataKey="2026" stroke="#10b981" strokeWidth={3} dot={{ r: 4 }} activeDot={{ r: 6 }} />
+                                <Line type="monotone" dataKey={lastYear} stroke="#94a3b8" strokeWidth={2} dot={{ r: 4 }} activeDot={{ r: 6 }} />
+                                <Line type="monotone" dataKey={currentYear} stroke="#10b981" strokeWidth={3} dot={{ r: 4 }} activeDot={{ r: 6 }} />
                             </LineChart>
                         </ResponsiveContainer>
                     </div>
                     <div className="mt-6 pt-6 border-t border-neutral-100">
                         <div className="flex items-center justify-between">
                             <span className="text-sm font-medium text-gray-600">Pacing Status</span>
-                            <span className="text-sm font-bold text-emerald-600 bg-emerald-50 px-3 py-1 rounded-full">Ahead by 24%</span>
+                            <span className={data?.pacingStatus === 'Ahead' ? "text-sm font-bold text-emerald-600 bg-emerald-50 px-3 py-1 rounded-full" : "text-sm font-bold text-amber-600 bg-amber-50 px-3 py-1 rounded-full"}>
+                                {data?.pacingStatus === 'Ahead' ? 'Ahead of Last Year' : 'Behind Last Year'}
+                            </span>
                         </div>
                     </div>
                 </div>

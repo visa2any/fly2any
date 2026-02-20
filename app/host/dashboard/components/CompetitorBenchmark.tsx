@@ -1,21 +1,37 @@
 'use client';
 
-import { TrendingUp, TrendingDown, Activity, Sparkles, MapPin, Settings2 } from 'lucide-react';
-import { useState } from 'react';
+import { TrendingUp, TrendingDown, Activity, Sparkles, MapPin, Settings2, Loader2 } from 'lucide-react';
+import { useState, useEffect } from 'react';
 import { AnimatedFadeIn } from '@/components/ui/AnimatedFadeIn';
-
-// Mock data for the MVP AI Insight engine
-const MOCK_INSIGHTS = {
-  marketOccupancy: 68,
-  userOccupancy: 62,
-  avgNightlyRate: 145,
-  userNightlyRate: 160,
-  conversionRate: 2.1,
-  marketConversion: 3.4,
-};
 
 export function CompetitorBenchmark() {
   const [activeTab, setActiveTab] = useState<'occupancy' | 'pricing' | 'conversion'>('occupancy');
+  const [loading, setLoading] = useState(true);
+  const [insights, setInsights] = useState({
+    marketOccupancy: 0,
+    userOccupancy: 0,
+    avgNightlyRate: 0,
+    userNightlyRate: 0,
+    conversionRate: 0,
+    marketConversion: 0,
+  });
+
+  useEffect(() => {
+    async function fetchInsights() {
+      try {
+        const res = await fetch('/api/host/insights');
+        if (res.ok) {
+          const json = await res.json();
+          setInsights(json.data);
+        }
+      } catch (err) {
+        console.error('Failed to fetch insights', err);
+      } finally {
+        setLoading(false);
+      }
+    }
+    fetchInsights();
+  }, []);
 
   return (
     <AnimatedFadeIn delay={0.4} className="h-full">
@@ -57,29 +73,36 @@ export function CompetitorBenchmark() {
       </div>
 
       {/* Content Area */}
-      <div className="flex-1 relative z-10 flex flex-col justify-center">
-        {activeTab === 'occupancy' && (
+      <div className="flex-1 relative z-10 flex flex-col justify-center min-h-[160px]">
+        {loading ? (
+           <div className="flex items-center justify-center h-full">
+               <Loader2 className="w-8 h-8 animate-spin text-indigo-300" />
+           </div>
+        ) : (
+           <>
+              {activeTab === 'occupancy' && (
           <div className="space-y-4 animate-fadeIn">
             <div className="flex items-end justify-between">
               <div>
                 <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1">Your Occupancy</p>
                 <div className="flex items-baseline gap-2">
-                  <span className="text-3xl font-black text-gray-900">{MOCK_INSIGHTS.userOccupancy}%</span>
-                  <span className="text-xs font-bold text-red-500 flex items-center">
-                    <TrendingDown className="w-3 h-3 mr-0.5" /> 6% vs Market
+                  <span className="text-3xl font-black text-gray-900">{insights.userOccupancy}%</span>
+                  <span className={`text-xs font-bold flex items-center ${insights.userOccupancy >= insights.marketOccupancy ? 'text-emerald-500' : 'text-red-500'}`}>
+                    {insights.userOccupancy >= insights.marketOccupancy ? <TrendingUp className="w-3 h-3 mr-0.5" /> : <TrendingDown className="w-3 h-3 mr-0.5" />} 
+                    {Math.abs(insights.userOccupancy - insights.marketOccupancy)}% vs Market
                   </span>
                 </div>
               </div>
               <div className="text-right">
                 <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1">Market Avg</p>
-                <span className="text-xl font-bold text-gray-400">{MOCK_INSIGHTS.marketOccupancy}%</span>
+                <span className="text-xl font-bold text-gray-400">{insights.marketOccupancy}%</span>
               </div>
             </div>
             
             {/* Visual Bar */}
             <div className="relative h-2 bg-neutral-100 rounded-full overflow-hidden">
-                <div className="absolute top-0 left-0 h-full bg-indigo-200 rounded-full" style={{ width: `${MOCK_INSIGHTS.marketOccupancy}%` }} />
-                <div className="absolute top-0 left-0 h-full bg-indigo-600 rounded-full shadow-[0_0_10px_rgba(79,70,229,0.5)]" style={{ width: `${MOCK_INSIGHTS.userOccupancy}%` }} />
+                <div className="absolute top-0 left-0 h-full bg-indigo-200 rounded-full" style={{ width: `${insights.marketOccupancy}%` }} />
+                <div className="absolute top-0 left-0 h-full bg-indigo-600 rounded-full shadow-[0_0_10px_rgba(79,70,229,0.5)]" style={{ width: `${insights.userOccupancy}%` }} />
             </div>
 
             {/* AI Recommendation */}
@@ -99,15 +122,16 @@ export function CompetitorBenchmark() {
               <div>
                 <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1">Your Avg Rate</p>
                 <div className="flex items-baseline gap-2">
-                  <span className="text-3xl font-black text-gray-900">${MOCK_INSIGHTS.userNightlyRate}</span>
-                  <span className="text-xs font-bold text-emerald-500 flex items-center">
-                    <TrendingUp className="w-3 h-3 mr-0.5" /> +$15 vs Market
+                  <span className="text-3xl font-black text-gray-900">${insights.userNightlyRate}</span>
+                  <span className={`text-xs font-bold flex items-center ${insights.userNightlyRate >= insights.avgNightlyRate ? 'text-emerald-500' : 'text-red-500'}`}>
+                    {insights.userNightlyRate >= insights.avgNightlyRate ? <TrendingUp className="w-3 h-3 mr-0.5" /> : <TrendingDown className="w-3 h-3 mr-0.5" />} 
+                    ${Math.abs(insights.userNightlyRate - insights.avgNightlyRate)} vs Market
                   </span>
                 </div>
               </div>
               <div className="text-right">
                 <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1">Market Avg</p>
-                <span className="text-xl font-bold text-gray-400">${MOCK_INSIGHTS.avgNightlyRate}</span>
+                <span className="text-xl font-bold text-gray-400">${insights.avgNightlyRate}</span>
               </div>
             </div>
 
@@ -128,15 +152,16 @@ export function CompetitorBenchmark() {
               <div>
                 <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1">View-to-Book</p>
                 <div className="flex items-baseline gap-2">
-                  <span className="text-3xl font-black text-gray-900">{MOCK_INSIGHTS.conversionRate}%</span>
-                  <span className="text-xs font-bold text-red-500 flex items-center">
-                    <TrendingDown className="w-3 h-3 mr-0.5" /> -1.3% Gap
+                  <span className="text-3xl font-black text-gray-900">{insights.conversionRate}%</span>
+                  <span className={`text-xs font-bold flex items-center ${insights.conversionRate >= insights.marketConversion ? 'text-emerald-500' : 'text-red-500'}`}>
+                    {insights.conversionRate >= insights.marketConversion ? <TrendingUp className="w-3 h-3 mr-0.5" /> : <TrendingDown className="w-3 h-3 mr-0.5" />} 
+                    {Math.abs(Number((insights.conversionRate - insights.marketConversion).toFixed(1)))}% Gap
                   </span>
                 </div>
               </div>
               <div className="text-right">
                 <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1">Top 10% Local</p>
-                <span className="text-xl font-bold text-gray-400">{MOCK_INSIGHTS.marketConversion}%</span>
+                <span className="text-xl font-bold text-gray-400">{insights.marketConversion}%</span>
               </div>
             </div>
 
@@ -149,6 +174,8 @@ export function CompetitorBenchmark() {
               </p>
             </div>
           </div>
+        )}
+        </>
         )}
       </div>
 

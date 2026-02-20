@@ -1,20 +1,35 @@
 'use client';
 
-import { useState } from 'react';
-import { Upload, X, Video, Loader2 } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { Youtube, X, Video, Link2, CheckCircle2 } from 'lucide-react';
 
 export function VideoUploader({ video, onChange, className }: { video?: any, onChange?: (v: any) => void, className?: string }) {
-  const [loading, setLoading] = useState(false);
-  const [localVideo, setLocalVideo] = useState<string | null>(null);
+  const [url, setUrl] = useState(video?.url || '');
+  const [isValid, setIsValid] = useState(false);
 
-  const handleUpload = async (file: File) => {
-      setLoading(true);
-      // Mock upload
-      setTimeout(() => {
-          setLocalVideo(URL.createObjectURL(file));
-          setLoading(false);
-          if (onChange) onChange({ url: URL.createObjectURL(file) });
-      }, 1500);
+  // Basic validation for video URLs
+  useEffect(() => {
+      if (!url) {
+          setIsValid(false);
+          return;
+      }
+      const isYoutube = url.includes('youtube.com') || url.includes('youtu.be');
+      const isVimeo = url.includes('vimeo.com');
+      
+      const valid = isYoutube || isVimeo;
+      setIsValid(valid);
+
+      if (valid && onChange) {
+          onChange({ url });
+      } else if (!valid && onChange && video?.url) {
+          onChange(null); // Clear if user typed an invalid string over a valid one
+      }
+  }, [url]);
+
+  const handleClear = () => {
+      setUrl('');
+      setIsValid(false);
+      if (onChange) onChange(null);
   };
 
   return (
@@ -25,40 +40,52 @@ export function VideoUploader({ video, onChange, className }: { video?: any, onC
             </div>
             <div>
                 <h3 className="font-bold text-gray-900">Property Video Tour</h3>
-                <p className="text-gray-500 text-xs">Add a video walkthrough (max 60s)</p>
+                <p className="text-gray-500 text-xs">Link a YouTube or Vimeo walkthrough</p>
             </div>
         </div>
 
-        {localVideo ? (
-            <div className="relative rounded-xl overflow-hidden bg-black aspect-video group">
-                <video src={localVideo} controls className="w-full h-full object-cover" />
-                <button 
-                    onClick={() => { setLocalVideo(null); if(onChange) onChange(null); }}
-                    className="absolute top-2 right-2 p-2 bg-white/90 rounded-full text-red-500 hover:bg-white shadow-sm opacity-0 group-hover:opacity-100 transition-opacity"
-                >
-                    <X className="w-4 h-4" />
-                </button>
+        <div className="relative">
+            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                <Link2 className="h-5 w-5 text-gray-400" />
             </div>
-        ) : (
-            <div className="border-2 border-dashed border-neutral-300 rounded-xl p-8 hover:bg-neutral-50 transition-colors text-center cursor-pointer relative">
-                <input 
-                    type="file" 
-                    accept="video/*" 
-                    className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
-                    onChange={(e) => e.target.files?.[0] && handleUpload(e.target.files[0])}
-                />
-                
-                {loading ? (
-                    <div className="flex flex-col items-center">
-                        <Loader2 className="w-8 h-8 text-primary-500 animate-spin mb-2" />
-                         <span className="text-sm text-gray-500">Processing video...</span>
-                    </div>
-                ) : (
-                    <>
-                        <Upload className="w-8 h-8 text-gray-400 mx-auto mb-2" />
-                        <span className="text-sm font-semibold text-gray-700">Upload Video</span>
-                    </>
-                )}
+            <input
+                type="url"
+                value={url}
+                onChange={(e) => setUrl(e.target.value)}
+                placeholder="https://www.youtube.com/watch?v=..."
+                className={`block w-full pl-10 pr-10 py-3 sm:text-sm rounded-xl focus:outline-none focus:ring-2 focus:ring-primary-500 transition-shadow ${
+                    url && !isValid ? 'border-red-300 text-red-900 placeholder-red-300 focus:border-red-500 focus:ring-red-500' : 'border-neutral-200 focus:border-primary-500'
+                } border`}
+            />
+            
+            {url && isValid && (
+                <div className="absolute inset-y-0 right-10 pr-3 flex items-center bg-transparent pointer-events-none">
+                     <CheckCircle2 className="h-5 w-5 text-emerald-500" />
+                </div>
+            )}
+
+            {url && (
+                <button
+                    onClick={handleClear}
+                    className="absolute inset-y-0 right-0 pr-3 flex items-center bg-transparent text-gray-400 hover:text-gray-600 outline-none"
+                    type="button"
+                >
+                    <X className="h-5 w-5" />
+                </button>
+            )}
+        </div>
+        
+        {url && !isValid && (
+            <p className="mt-2 text-xs text-red-600 flex items-center py-1">
+                Please enter a valid YouTube or Vimeo URL.
+            </p>
+        )}
+
+        {/* Minimal Preview Indicator */}
+        {isValid && (
+            <div className="mt-4 p-3 rounded-xl bg-neutral-50 flex items-center gap-3 border border-neutral-100">
+                <Youtube className="w-5 h-5 text-red-600" />
+                <span className="text-sm font-semibold text-gray-700 truncate">{url}</span>
             </div>
         )}
     </div>

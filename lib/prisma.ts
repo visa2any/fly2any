@@ -1,57 +1,53 @@
 import { PrismaClient } from '@prisma/client';
 
-const globalForPrisma = globalThis as unknown as {
-  prisma: PrismaClient | undefined;
-};
+// Prevent multiple database connections in development
+const globalForPrisma = globalThis as unknown as { prisma: PrismaClient };
 
 // Build the correct DATABASE_URL with optimized pool parameters
-function buildDatabaseUrl(): string | undefined {
+function getDatabaseUrl(): string {
   // Priority: Supabase via Vercel > legacy
   const baseUrl = process.env.SUPABASE_POSTGRES_PRISMA_URL ||
                   process.env.SUPABASE_POSTGRES_URL ||
                   process.env.POSTGRES_URL ||
                   process.env.DATABASE_URL;
 
-  if (!baseUrl) return undefined;
+  if (!baseUrl) return '';
 
   try {
     const url = new URL(baseUrl);
-    // Required for serverless + PgBouncer
+    
+    // Serverless critical: Use PgBouncer
     url.searchParams.set('pgbouncer', 'true');
-    // ✅ PERFORMANCE FIX: Increased from 1 to 10 connections
-    // connection_limit=1 caused "Timed out fetching a new connection" errors
-    // when concurrent API responses trigger parallel DB writes (fare classes, airlines)
-    // In dev: 10 connections handles concurrent Duffel/Amadeus response processing
-    // In production (serverless): each function gets its own pool, 10 is still safe
-    const poolSize = process.env.DATABASE_POOL_SIZE || '10';
-    url.searchParams.set('connection_limit', poolSize);
-    url.searchParams.set('pool_timeout', '60');
+    
+    // Vercel Serverless best practice: Low connection limits per function instance
+    // since instances auto-scale. High limits per instance = pool exhaustion.
+    url.searchParams.set('connection_limit', '3');
+    
+    // Aggressive timeout: Pool hanging should fail fast rather than locking up
+    url.searchParams.set('pool_timeout', '10');
+    
     return url.toString();
   } catch {
     return baseUrl;
   }
 }
 
-const databaseUrl = buildDatabaseUrl();
-const isDatabaseConfigured = !!databaseUrl;
+const databaseUrl = getDatabaseUrl();
 
-// Create Prisma client with runtime URL
-// Note: PrismaClient uses lazy connections internally - it doesn't actually
-// connect to the database until a query is made
-export const prisma = isDatabaseConfigured
-  ? (globalForPrisma.prisma ??
-    new PrismaClient({
-      log: process.env.NODE_ENV === 'development' ? ['error', 'warn'] : ['error'],
-      datasourceUrl: databaseUrl,
-    }))
-  : null;
+// Singleton Prisma Client
+export const prisma =
+  globalForPrisma.prisma ||
+  (databaseUrl ? new PrismaClient({
+    datasourceUrl: databaseUrl,
+    log: ['error', 'warn'], // Remove aggressive logging in dev that slows connections
+  }) : null);
 
-if (isDatabaseConfigured && process.env.NODE_ENV !== 'production') {
-  globalForPrisma.prisma = prisma as PrismaClient;
+if (process.env.NODE_ENV !== 'production' && prisma) {
+  globalForPrisma.prisma = prisma;
 }
 
 export function isPrismaAvailable(): boolean {
-  return isDatabaseConfigured && prisma !== null;
+  return prisma !== null;
 }
 
 export function getPrismaClient(): PrismaClient {
