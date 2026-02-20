@@ -188,7 +188,7 @@ export async function POST(request: NextRequest) {
     let liteApiBookingId: string | null = null;
     let liteApiReference: string | null = null;
 
-    if (body.prebookId) {
+    if (body.prebookId && body.source !== 'Fly2Any') {
       console.log('🔗 Completing LiteAPI booking...');
       try {
         const bookingPayload: {
@@ -251,80 +251,134 @@ export async function POST(request: NextRequest) {
       if (!prisma) {
         throw new Error('Database not available');
       }
-      dbBooking = await prisma.hotelBooking.create({
-        data: {
-          confirmationNumber,
-          userId,
+      if (body.source === 'Fly2Any') {
+        dbBooking = await prisma.propertyBooking.create({
+          data: {
+            propertyId: body.hotelId,
+            roomId: body.roomId !== 'standard' ? body.roomId : null,
+            userId,
+            startDate: checkIn,
+            endDate: checkOut,
+            totalPrice: parseFloat(body.totalPrice),
+            currency: body.currency.toUpperCase(),
+            status: paymentVerified ? 'confirmed' : 'pending',
+            guestCount: (body.adults || 2) + (body.children || 0),
+            specialRequests: body.specialRequests || null,
+            
+            // New guest details
+            guestFirstName: body.guestFirstName,
+            guestLastName: body.guestLastName,
+            guestEmail: body.guestEmail,
+            guestPhone: body.guestPhone,
+            
+            // Payment Info
+            paymentIntentId: body.paymentIntentId || null,
+            paymentStatus: paymentVerified ? 'completed' : 'pending',
+            paymentMethod: paymentMethod,
+            paidAt: paymentVerified ? new Date() : null,
+            
+            // System Tracking
+            confirmationNumber,
+            source: 'Fly2Any',
+          }
+        });
 
-          // Hotel details
-          hotelId: body.hotelId,
-          hotelName: body.hotelName,
-          hotelCity: body.hotelCity || null,
-          hotelCountry: body.hotelCountry || null,
-          hotelAddress: body.hotelAddress || null,
-          hotelPhone: body.hotelPhone || null,
-          hotelEmail: body.hotelEmail || null,
+        // Notify host in real-time
+        try {
+          const property = await prisma.property.findUnique({
+            where: { id: body.hotelId },
+            select: { ownerId: true, name: true }
+          });
+          
+          if (property?.ownerId) {
+            broadcastSSE(property.ownerId, {
+              type: 'NEW_BOOKING',
+              title: 'New Booking Request',
+              message: `You have a new booking for ${property.name} from ${body.guestFirstName} ${body.guestLastName}.`,
+              propertyId: body.hotelId,
+            });
+            console.log(`📡 Broadcasted new booking SSE to Host ${property.ownerId}`);
+          }
+        } catch (sseErr) {
+          console.warn('⚠️ Failed to broadcast to host via SSE', sseErr);
+        }
 
-          // Room details
-          roomId: body.roomId || 'standard',
-          roomName: body.roomName,
-          roomDescription: body.roomDescription || null,
-          maxGuests: body.adults || 2,
+      } else {
+        dbBooking = await prisma.hotelBooking.create({
+          data: {
+            confirmationNumber,
+            userId,
 
-          // Booking dates
-          checkInDate: checkIn,
-          checkOutDate: checkOut,
-          nights,
+            // Hotel details
+            hotelId: body.hotelId,
+            hotelName: body.hotelName,
+            hotelCity: body.hotelCity || null,
+            hotelCountry: body.hotelCountry || null,
+            hotelAddress: body.hotelAddress || null,
+            hotelPhone: body.hotelPhone || null,
+            hotelEmail: body.hotelEmail || null,
 
-          // Pricing
-          pricePerNight: parseFloat(body.pricePerNight || body.totalPrice) / nights,
-          subtotal: parseFloat(body.subtotal || body.totalPrice),
-          taxesAndFees: parseFloat(body.taxesAndFees || '0'),
-          totalPrice: parseFloat(body.totalPrice),
-          currency: body.currency.toUpperCase(),
+            // Room details
+            roomId: body.roomId || 'standard',
+            roomName: body.roomName,
+            roomDescription: body.roomDescription || null,
+            maxGuests: body.adults || 2,
 
-          // Guest information
-          guestTitle: body.guestTitle || 'Mr',
-          guestFirstName: body.guestFirstName,
-          guestLastName: body.guestLastName,
-          guestEmail: body.guestEmail,
-          guestPhone: body.guestPhone,
+            // Booking dates
+            checkInDate: checkIn,
+            checkOutDate: checkOut,
+            nights,
 
-          // Special requests
-          specialRequests: body.specialRequests || null,
+            // Pricing
+            pricePerNight: parseFloat(body.pricePerNight || body.totalPrice) / nights,
+            subtotal: parseFloat(body.subtotal || body.totalPrice),
+            taxesAndFees: parseFloat(body.taxesAndFees || '0'),
+            totalPrice: parseFloat(body.totalPrice),
+            currency: body.currency.toUpperCase(),
 
-          // Payment
-          paymentStatus: paymentVerified ? 'completed' : 'pending',
-          paymentIntentId: body.paymentIntentId || null,
-          paymentProvider: paymentMethod,
-          paidAt: paymentVerified ? new Date() : null,
+            // Guest information
+            guestTitle: body.guestTitle || 'Mr',
+            guestFirstName: body.guestFirstName,
+            guestLastName: body.guestLastName,
+            guestEmail: body.guestEmail,
+            guestPhone: body.guestPhone,
 
-          // Booking status
-          status: 'confirmed',
-          cancellable: body.cancellable ?? true,
-          cancellationPolicy: body.cancellable ? 'free' : 'non_refundable',
+            // Special requests
+            specialRequests: body.specialRequests || null,
 
-          // Meal plan
-          mealPlanIncluded: body.breakfastIncluded || false,
+            // Payment
+            paymentStatus: paymentVerified ? 'completed' : 'pending',
+            paymentIntentId: body.paymentIntentId || null,
+            paymentProvider: paymentMethod,
+            paidAt: paymentVerified ? new Date() : null,
 
-          // Provider data
-          provider: body.prebookId ? 'liteapi' : 'direct',
-          providerBookingId: liteApiBookingId || body.prebookId || null,
-          providerData: JSON.stringify({
-            prebookId: body.prebookId,
-            liteApiBookingId,
-            liteApiReference,
-            transactionId: liteApiTransactionId,
-            paymentMethod: liteApiTransactionId ? 'USER_PAYMENT_SDK' : 'ACCOUNT',
-          }),
+            // Booking status
+            status: 'confirmed',
+            cancellable: body.cancellable ?? true,
+            cancellationPolicy: body.cancellable ? 'free' : 'non_refundable',
 
-          // Metadata
-          source: 'web',
-          deviceType: request.headers.get('user-agent')?.includes('Mobile') ? 'mobile' : 'desktop',
-          userAgent: request.headers.get('user-agent'),
-          ipAddress: request.headers.get('x-forwarded-for') || request.headers.get('x-real-ip'),
-        },
-      });
+            // Meal plan
+            mealPlanIncluded: body.breakfastIncluded || false,
+
+            // Provider data
+            provider: body.prebookId ? 'liteapi' : 'direct',
+            providerBookingId: liteApiBookingId || body.prebookId || null,
+            providerData: JSON.stringify({
+              prebookId: body.prebookId,
+              liteApiBookingId,
+              liteApiReference,
+              transactionId: liteApiTransactionId,
+              paymentMethod: liteApiTransactionId ? 'USER_PAYMENT_SDK' : 'ACCOUNT',
+            }),
+
+            // Metadata
+            source: 'web',
+            deviceType: request.headers.get('user-agent')?.includes('Mobile') ? 'mobile' : 'desktop',
+            userAgent: request.headers.get('user-agent'),
+            ipAddress: request.headers.get('x-forwarded-for') || request.headers.get('x-real-ip'),
+          },
+        });
+      }
 
       console.log('✅ Booking stored in database');
       console.log(`   DB ID: ${dbBooking.id}`);
@@ -339,32 +393,37 @@ export async function POST(request: NextRequest) {
       console.log('📧 Sending confirmation email...');
       try {
         const emailSent = await sendHotelConfirmationEmail({
-          confirmationNumber: dbBooking.confirmationNumber,
+          confirmationNumber, // Use generated confirmation
           bookingId: dbBooking.id,
-          hotelName: dbBooking.hotelName,
-          hotelAddress: dbBooking.hotelAddress || undefined,
-          hotelCity: dbBooking.hotelCity || undefined,
-          hotelCountry: dbBooking.hotelCountry || undefined,
-          roomName: dbBooking.roomName,
-          checkInDate: dbBooking.checkInDate,
-          checkOutDate: dbBooking.checkOutDate,
-          nights: dbBooking.nights,
-          guestName: `${dbBooking.guestFirstName} ${dbBooking.guestLastName}`,
-          guestEmail: dbBooking.guestEmail,
-          totalPrice: parseFloat(dbBooking.totalPrice.toString()),
-          currency: dbBooking.currency,
-          specialRequests: dbBooking.specialRequests || undefined,
+          hotelName: body.hotelName,
+          hotelAddress: body.hotelAddress || undefined,
+          hotelCity: body.hotelCity || undefined,
+          hotelCountry: body.hotelCountry || undefined,
+          roomName: body.roomName,
+          checkInDate: checkIn,
+          checkOutDate: checkOut,
+          nights: nights,
+          guestName: `${body.guestFirstName} ${body.guestLastName}`,
+          guestEmail: body.guestEmail,
+          totalPrice: parseFloat(body.totalPrice),
+          currency: body.currency,
+          specialRequests: body.specialRequests || undefined,
         });
 
         if (emailSent && prisma) {
-          await prisma.hotelBooking.update({
-            where: { id: dbBooking.id },
-            data: {
-              confirmationEmailSent: true,
-              confirmationSentAt: new Date(),
-            },
-          });
-          console.log('✅ Confirmation email sent');
+          if (body.source === 'Fly2Any') {
+            // No email tracking flags required for PropertyBooking currently
+            console.log('✅ Property Booking Confirmation email sent');
+          } else {
+            await prisma.hotelBooking.update({
+              where: { id: dbBooking.id },
+              data: {
+                confirmationEmailSent: true,
+                confirmationSentAt: new Date(),
+              },
+            });
+            console.log('✅ Hotel Booking Confirmation email sent');
+          }
         }
       } catch (emailError) {
         console.warn('⚠️ Email failed:', emailError);

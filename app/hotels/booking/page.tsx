@@ -65,6 +65,7 @@ interface HotelBookingData {
   starRating?: number;
   refundable: boolean;
   breakfastIncluded: boolean;
+  source?: string;
 }
 
 // ===========================
@@ -185,6 +186,7 @@ function HotelCheckoutContent() {
           starRating: parseInt(searchParams.get('stars') || '0', 10) || undefined,
           refundable: searchParams.get('refundable') === 'true',
           breakfastIncluded: searchParams.get('breakfastIncluded') === 'true',
+          source: searchParams.get('source') || 'LiteAPI',
         };
 
         setHotelData(bookingData);
@@ -306,6 +308,7 @@ function HotelCheckoutContent() {
         prebookId: prebookData?.prebookId,
         breakfastIncluded: hotelData.breakfastIncluded,
         cancellable: hotelData.refundable,
+        source: hotelData.source,
       };
 
       try {
@@ -493,6 +496,7 @@ function HotelCheckoutContent() {
           prebookId: prebookData?.prebookId,
           breakfastIncluded: hotelData.breakfastIncluded,
           cancellable: hotelData.refundable,
+          source: hotelData.source,
         }),
       });
 

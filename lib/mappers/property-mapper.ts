@@ -18,11 +18,28 @@ export function mapPropertyToHotel(
   checkOut: string,
   nights: number
 ): any {
-  // Calculate lowest price
+  // Calculate lowest price per night
   const lowestPricePerNight = property.basePricePerNight ||
     (property.rooms.length > 0 ? Math.min(...property.rooms.map(r => r.basePricePerNight)) : 0);
 
-  const totalPrice = lowestPricePerNight * nights;
+  let totalPrice = lowestPricePerNight * nights;
+
+  // Add Host-defined Extra Fees
+  if (property.cleaningFee) totalPrice += property.cleaningFee;
+  if (property.serviceFee) totalPrice += property.serviceFee;
+  if (property.securityDeposit) totalPrice += property.securityDeposit;
+
+  // Apply Length-of-Stay Discounts (before taxes)
+  if (nights >= 30 && property.monthlyDiscount) {
+    totalPrice -= totalPrice * (property.monthlyDiscount / 100);
+  } else if (nights >= 7 && property.weeklyDiscount) {
+    totalPrice -= totalPrice * (property.weeklyDiscount / 100);
+  }
+
+  // Apply Host-defined Tax Rate (if applicable, else defaults to our 12% elsewhere)
+  if (property.taxRate) {
+    totalPrice += totalPrice * (property.taxRate / 100);
+  }
 
   // Map rooms to the flat rate format the GET mapper expects:
   //   hotel.rooms?.map(room => ({ rateId, name, price, currency, refundable, boardName, maxOccupancy }))

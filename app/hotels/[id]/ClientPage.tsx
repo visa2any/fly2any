@@ -1607,9 +1607,10 @@ export default function HotelDetailPage() {
                       breakfastIncluded: activeRoom?.breakfastIncluded || false,
                       boardType: activeRoom?.boardType || 'RO',
                       nights: nights,
+                      source: hotel.source || 'LiteAPI',
                     };
                     sessionStorage.setItem(`hotel_booking_${hotelId}`, JSON.stringify(bookingData));
-                    router.push(`/hotels/booking?hotelId=${hotelId}&offerId=${encodeURIComponent(roomOfferId)}&name=${encodeURIComponent(hotel.name)}&location=${encodeURIComponent(bookingData.location)}&checkIn=${bookingData.checkIn}&checkOut=${bookingData.checkOut}&nights=${nights}&adults=${adultsNum}&children=${childrenNum}&rooms=${roomsNum}&roomId=${encodeURIComponent(bookingData.roomId)}&roomName=${encodeURIComponent(activeRoomName)}&price=${activeRoomPrice}&perNight=${activeRoomPerNight}&currency=${roomCurrency}&image=${encodeURIComponent(mainImage || '')}&stars=${hotel.starRating || 0}&refundable=${bookingData.refundable}&breakfastIncluded=${bookingData.breakfastIncluded}`);
+                    router.push(`/hotels/booking?hotelId=${hotelId}&offerId=${encodeURIComponent(roomOfferId)}&name=${encodeURIComponent(hotel.name)}&location=${encodeURIComponent(bookingData.location)}&checkIn=${bookingData.checkIn}&checkOut=${bookingData.checkOut}&nights=${nights}&adults=${adultsNum}&children=${childrenNum}&rooms=${roomsNum}&roomId=${encodeURIComponent(bookingData.roomId)}&roomName=${encodeURIComponent(activeRoomName)}&price=${activeRoomPrice}&perNight=${activeRoomPerNight}&currency=${roomCurrency}&image=${encodeURIComponent(mainImage || '')}&stars=${hotel.starRating || 0}&refundable=${bookingData.refundable}&breakfastIncluded=${bookingData.breakfastIncluded}&source=${encodeURIComponent(hotel.source || 'LiteAPI')}`);
                   }}
                   className="w-full py-4 bg-gradient-to-r from-primary-500 to-primary-600 hover:from-orange-600 hover:to-amber-600 text-white font-bold text-lg rounded-xl shadow-lg hover:shadow-xl transform hover:scale-[1.02] transition-all mb-4 flex items-center justify-center gap-2"
                 >
@@ -1815,9 +1816,10 @@ export default function HotelDetailPage() {
                       refundable: activeRoom?.refundable || false,
                       breakfastIncluded: activeRoom?.breakfastIncluded || false,
                       nights: nights,
+                      source: hotel.source || 'LiteAPI',
                     };
                     sessionStorage.setItem(`hotel_booking_${hotelId}`, JSON.stringify(bookingData));
-                    router.push(`/hotels/booking?hotelId=${hotelId}&offerId=${encodeURIComponent(roomOfferId)}&name=${encodeURIComponent(hotel.name)}&location=${encodeURIComponent(bookingData.location)}&checkIn=${bookingData.checkIn}&checkOut=${bookingData.checkOut}&nights=${nights}&adults=${adultsNum}&children=${childrenNum}&rooms=${roomsNum}&roomId=${encodeURIComponent(bookingData.roomId)}&roomName=${encodeURIComponent(activeRoomName)}&price=${activeRoomPrice}&perNight=${activeRoomPerNight}&currency=${roomCurrency}&image=${encodeURIComponent(mainImage || '')}&stars=${hotel.starRating || 0}&refundable=${bookingData.refundable}&breakfastIncluded=${bookingData.breakfastIncluded}`);
+                    router.push(`/hotels/booking?hotelId=${hotelId}&offerId=${encodeURIComponent(roomOfferId)}&name=${encodeURIComponent(hotel.name)}&location=${encodeURIComponent(bookingData.location)}&checkIn=${bookingData.checkIn}&checkOut=${bookingData.checkOut}&nights=${nights}&adults=${adultsNum}&children=${childrenNum}&rooms=${roomsNum}&roomId=${encodeURIComponent(bookingData.roomId)}&roomName=${encodeURIComponent(activeRoomName)}&price=${activeRoomPrice}&perNight=${activeRoomPerNight}&currency=${roomCurrency}&image=${encodeURIComponent(mainImage || '')}&stars=${hotel.starRating || 0}&refundable=${bookingData.refundable}&breakfastIncluded=${bookingData.breakfastIncluded}&source=${encodeURIComponent(hotel.source || 'LiteAPI')}`);
                   }}
                   className="relative px-6 py-3 bg-gradient-to-r from-[#E74035] to-[#D63930] text-white font-bold text-base rounded-xl shadow-lg shadow-[#E74035]/25 active:scale-[0.97] active:shadow-md transition-all duration-150 touch-manipulation"
                   style={{ WebkitTapHighlightColor: 'transparent' }}

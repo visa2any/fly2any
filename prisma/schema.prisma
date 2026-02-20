@@ -4161,26 +4161,45 @@ model PropertyAvailability {
 }
 
 model PropertyBooking {
-  id              String        @id @default(cuid())
-  propertyId      String
-  roomId          String?
-  userId          String
-  startDate       DateTime
-  endDate         DateTime
-  totalPrice      Float
-  currency        String        @default("USD")
-  status          String        @default("pending")
-  guestCount      Int           @default(1)
-  specialRequests String?
-  createdAt       DateTime      @default(now())
-  updatedAt       DateTime      @updatedAt
-  property        Property      @relation(fields: [propertyId], references: [id], onDelete: Cascade)
-  room            PropertyRoom? @relation(fields: [roomId], references: [id])
-  user            User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  id                 String        @id @default(cuid())
+  propertyId         String
+  roomId             String?
+  userId             String?
+  startDate          DateTime
+  endDate            DateTime
+  totalPrice         Float
+  currency           String        @default("USD")
+  status             String        @default("pending")
+  guestCount         Int           @default(1)
+  specialRequests    String?
+  
+  // Guest details
+  guestFirstName     String?
+  guestLastName      String?
+  guestEmail         String?
+  guestPhone         String?
+  
+  // Payment Info
+  paymentIntentId    String?       @unique
+  paymentStatus      String        @default("pending")
+  paymentMethod      String?       @default("stripe")
+  paidAt             DateTime?
+
+  // System Tracking
+  confirmationNumber String?       @unique
+  source             String?       @default("web")
+
+  createdAt          DateTime      @default(now())
+  updatedAt          DateTime      @updatedAt
+  property           Property      @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+  room               PropertyRoom? @relation(fields: [roomId], references: [id])
+  user               User?         @relation(fields: [userId], references: [id], onDelete: SetNull)
 
   @@index([propertyId])
   @@index([userId])
   @@index([startDate, endDate])
+  @@index([confirmationNumber])
+  @@index([paymentIntentId])
   @@map("property_bookings")
 }
 
