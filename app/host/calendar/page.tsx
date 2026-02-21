@@ -55,6 +55,13 @@ export default function CalendarPage() {
     loadProperties();
   }, []);
 
+  const getDemandScore = (day: number) => {
+    // Mock demand logic - in production this would come from an API or state
+    if ([5, 12, 18, 25, 26, 27].includes(day)) return 'peak';
+    if ([4, 11, 19, 20].includes(day)) return 'high';
+    return 'normal';
+  };
+
   useEffect(() => {
     if (!selectedProperty) return;
     async function loadData() {
@@ -278,7 +285,7 @@ export default function CalendarPage() {
                   ))}
                 </div>
 
-                <div className="grid grid-cols-7 grid-auto-rows-fr gap-1 flex-1 min-h-0 select-none overflow-hidden">
+                <div className="grid grid-cols-7 auto-rows-fr gap-1 flex-1 min-h-0 select-none overflow-hidden">
                   {Array.from({ length: firstDayOfWeek }).map((_, i) => (
                     <div key={`empty-${i}`} className="h-full" />
                   ))}

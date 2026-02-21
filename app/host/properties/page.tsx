@@ -8,7 +8,8 @@ import { toast } from 'react-hot-toast';
 import {
   Search, Plus, Filter, MoreHorizontal, MapPin, BedDouble, Users,
   CheckCircle2, AlertCircle, PauseCircle, Clock, FileEdit, Trash2,
-  ExternalLink, ArrowUpDown, Building2, ImageIcon
+  ExternalLink, ArrowUpDown, Building2, ImageIcon, Eye, Star, TrendingUp,
+  CalendarCheck2, ChevronRight
 } from 'lucide-react';
 
 // Match the shape returned by /api/properties/dashboard
@@ -163,90 +164,125 @@ export default function PropertiesPage() {
             </button>
           </div>
         ) : filteredProperties.length > 0 ? (
-          <div className="space-y-4">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 lg:gap-8">
             {filteredProperties.map((property) => {
               const statusCfg = STATUS_CONFIG[property.status] || STATUS_CONFIG.draft;
               return (
-                <div key={property.id} className="group flex flex-col md:flex-row gap-4 p-4 rounded-2xl bg-white border border-neutral-200 hover:border-neutral-300 hover:shadow-md transition-all">
-                  {/* Image */}
-                  <div className="relative w-full md:w-48 h-48 md:h-32 rounded-xl overflow-hidden bg-neutral-100 flex-shrink-0">
+                <div key={property.id} className="group relative bg-white border border-neutral-200 rounded-[2.5rem] overflow-hidden hover:border-primary-100 hover:shadow-[0_20px_50px_rgba(0,0,0,0.04)] transition-all duration-500 flex flex-col">
+                  {/* Top: Image & Status */}
+                  <div className="relative h-64 w-full overflow-hidden bg-neutral-100">
                     {property.coverImageUrl ? (
                        <img
                          src={property.coverImageUrl}
                          alt={property.name}
-                         className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                         onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; e.currentTarget.parentElement?.querySelector('.img-fallback')?.classList.remove('hidden'); }}
+                         className="w-full h-full object-cover transform group-hover:scale-110 transition-transform duration-700"
                        />
-                    ) : null}
-                    <div className={`img-fallback flex items-center justify-center h-full text-neutral-300 ${property.coverImageUrl ? 'hidden' : ''}`}>
-                      <ImageIcon className="w-8 h-8" />
-                    </div>
-                    <div className="absolute top-2 left-2 md:hidden">
-                       <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg border text-xs font-bold backdrop-blur-md ${statusCfg.bg} ${statusCfg.color}`}>
-                        <statusCfg.icon className="w-3.5 h-3.5" />
+                    ) : (
+                      <div className="flex items-center justify-center h-full text-neutral-300">
+                        <ImageIcon className="w-12 h-12" />
+                      </div>
+                    )}
+                    
+                    {/* Glassmorphism Status Badge */}
+                    <div className="absolute top-5 left-5">
+                       <span className={`inline-flex items-center gap-2 px-4 py-2 rounded-2xl border text-sm font-black backdrop-blur-xl bg-white/80 shadow-sm ${statusCfg.color} ${statusCfg.bg.replace('bg-', 'border-')}`}>
+                        <statusCfg.icon className="w-4 h-4" />
                         {statusCfg.label}
                       </span>
                     </div>
+
+                    {/* Price Overlay */}
+                    <div className="absolute bottom-5 left-5 right-5 flex items-end justify-between">
+                       <div className="bg-gray-900/90 backdrop-blur-md text-white px-5 py-2.5 rounded-2xl shadow-xl">
+                          <span className="text-xl font-black">{property.currency} {property.basePricePerNight ?? '—'}</span>
+                          <span className="text-xs font-bold text-gray-400 ml-1">/night</span>
+                       </div>
+                    </div>
                   </div>
 
-                  {/* Content */}
-                  <div className="flex-1 min-w-0 py-1">
-                    <div className="flex items-start justify-between gap-4 mb-2">
-                      <div>
-                        <div className="flex items-center gap-3 mb-1">
-                          <h3 className="text-gray-900 font-bold text-lg truncate">{property.name}</h3>
-                          <span className={`hidden md:inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-lg border text-xs font-bold ${statusCfg.bg} ${statusCfg.color}`}>
-                            <statusCfg.icon className="w-3.5 h-3.5" />
-                            {statusCfg.label}
-                          </span>
-                        </div>
-                        <div className="flex items-center gap-4 text-gray-500 text-sm">
-                          <span className="flex items-center gap-1.5"><MapPin className="w-3.5 h-3.5" /> {property.city || 'No location'}{property.country ? `, ${property.country}` : ''}</span>
-                          <span className="flex items-center gap-1.5 capitalize"><Building2 className="w-3.5 h-3.5" /> {(property.propertyType || 'property').replace('_', ' ')}</span>
-                        </div>
-                      </div>
-                      <div className="text-right">
-                        <div className="text-gray-900 font-bold text-lg">
-                          {property.currency} {property.basePricePerNight ?? '—'}
-                          <span className="text-sm text-gray-400 font-normal">/night</span>
+                  {/* Bottom: Info & X-Ray Analytics */}
+                  <div className="p-8 flex-1 flex flex-col">
+                    <div className="flex justify-between items-start mb-4">
+                      <div className="flex-1">
+                        <h3 className="text-2xl font-black text-gray-900 leading-tight mb-2 group-hover:text-primary-600 transition-colors">{property.name}</h3>
+                        <div className="flex items-center gap-2 text-gray-500 font-bold text-sm">
+                          <MapPin className="w-4 h-4 text-primary-500" />
+                          {property.city || 'No location'}{property.country ? `, ${property.country}` : ''}
                         </div>
                       </div>
                     </div>
 
-                    <div className="h-px w-full bg-neutral-100 my-3" />
+                    {/* Property Quick Stats */}
+                    <div className="flex items-center gap-4 mb-8">
+                       <div className="flex items-center gap-2 px-3 py-1.5 bg-neutral-50 rounded-xl text-gray-600 text-xs font-bold border border-neutral-100 italic">
+                          <Building2 className="w-3.5 h-3.5" />
+                          {(property.propertyType || 'property').replace('_', ' ')}
+                       </div>
+                       <div className="flex items-center gap-2 px-3 py-1.5 bg-neutral-50 rounded-xl text-gray-600 text-xs font-bold border border-neutral-100">
+                          <BedDouble className="w-3.5 h-3.5" />
+                          {property.roomCount} Rooms
+                       </div>
+                    </div>
 
-                    <div className="flex items-center justify-between gap-4">
-                      <div className="flex items-center gap-4 text-xs font-medium text-gray-400">
-                         <span className="flex items-center gap-1.5"><BedDouble className="w-3.5 h-3.5" /> {property.roomCount} Rooms</span>
-                         <span className="flex items-center gap-1.5"><Users className="w-3.5 h-3.5" /> {property.bookingCount} Bookings</span>
-                         <span className="flex items-center gap-1.5"><Clock className="w-3.5 h-3.5" /> Updated {new Date(property.updatedAt).toLocaleDateString()}</span>
-                      </div>
+                    {/* X-RAY SECTION: Analytics & Performance */}
+                    <div className="bg-neutral-50/50 border border-neutral-100 rounded-3xl p-6 mb-8 mt-auto">
+                       <p className="text-[10px] font-black uppercase tracking-widest text-gray-400 mb-4 flex items-center gap-2">
+                          <TrendingUp className="w-3 h-3" /> Property Insights X-Ray
+                       </p>
+                       <div className="grid grid-cols-3 gap-4">
+                          <div className="flex flex-col">
+                             <span className="text-xs font-bold text-gray-500 flex items-center gap-1 mb-1">
+                                <Eye className="w-3 h-3" /> Views
+                             </span>
+                             <span className="text-lg font-black text-gray-900">{property.viewCount.toLocaleString()}</span>
+                          </div>
+                          <div className="flex flex-col">
+                             <span className="text-xs font-bold text-gray-500 flex items-center gap-1 mb-1">
+                                <CalendarCheck2 className="w-3 h-3" /> Bookings
+                             </span>
+                             <span className="text-lg font-black text-gray-900">{property.bookingCount}</span>
+                          </div>
+                          <div className="flex flex-col">
+                             <span className="text-xs font-bold text-gray-500 flex items-center gap-1 mb-1">
+                                <Star className="w-3 h-3 text-amber-500" /> Rating
+                             </span>
+                             <span className="text-lg font-black text-gray-900">{property.avgRating || '—'}</span>
+                          </div>
+                       </div>
+                    </div>
 
-                      <div className="flex items-center gap-2">
-                        <Link
-                          href={`/list-your-property/create?id=${property.id}`}
-                          className="px-4 py-2 rounded-lg bg-neutral-50 border border-neutral-200 text-gray-700 hover:bg-neutral-100 text-xs font-bold transition-colors"
-                        >
-                          Edit
-                        </Link>
-                         {property.status === 'active' && (
+                    {/* Metadata & Actions */}
+                    <div className="flex items-center justify-between pt-6 border-t border-neutral-100">
+                       <div className="space-y-1">
+                          <p className="text-[10px] font-bold text-gray-400">Added: {property.publishedAt ? new Date(property.publishedAt).toLocaleDateString() : 'Draft Mode'}</p>
+                          <p className="text-[10px] font-bold text-gray-400 flex items-center gap-1">
+                            <Clock className="w-2.5 h-2.5" /> Updated: {new Date(property.updatedAt).toLocaleDateString()}
+                          </p>
+                       </div>
+                       <div className="flex items-center gap-2">
+                          {property.status === 'active' && (
+                            <Link
+                              href={`/properties/${property.slug || property.id}`}
+                              target="_blank"
+                              className="w-10 h-10 flex items-center justify-center rounded-2xl bg-white border border-neutral-200 text-gray-500 hover:text-primary-600 hover:border-primary-200 transition-all shadow-sm"
+                            >
+                              <ExternalLink className="w-4 h-4" />
+                            </Link>
+                          )}
                           <Link
-                            href={`/properties/${property.slug || property.id}`}
-                            target="_blank"
-                            className="p-2 rounded-lg bg-neutral-50 border border-neutral-200 text-gray-500 hover:text-gray-900 hover:bg-neutral-100 transition-colors"
-                            title="View Public Listing"
+                            href={`/list-your-property/create?id=${property.id}`}
+                            className="flex items-center gap-2 px-5 py-2.5 rounded-2xl bg-gray-900 text-white font-black text-sm hover:bg-black transition-all hover:shadow-lg active:scale-95"
                           >
-                            <ExternalLink className="w-4 h-4" />
+                            Edit
+                            <ChevronRight className="w-4 h-4" />
                           </Link>
-                        )}
-                        <button 
-                          onClick={() => setConfirmDeleteId(property.id)} 
-                          className="p-2 rounded-lg bg-neutral-50 border border-neutral-200 text-gray-500 hover:text-red-500 hover:bg-red-50 hover:border-red-200 transition-colors" 
-                          title="Delete Property"
-                        >
-                          <Trash2 className="w-4 h-4" />
-                        </button>
-                      </div>
+                          <button 
+                            onClick={() => setConfirmDeleteId(property.id)} 
+                            className="w-10 h-10 flex items-center justify-center rounded-2xl bg-rose-50 border border-rose-100 text-rose-500 hover:bg-rose-500 hover:text-white transition-all group" 
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </button>
+                       </div>
                     </div>
                   </div>
                 </div>
