@@ -33,26 +33,26 @@ export async function RecentMessages({ userId }: { userId: string }) {
 
     return (
       <AnimatedFadeIn delay={0.3}>
-        <div className="bg-white border border-neutral-100 rounded-3xl p-6 shadow-sm flex flex-col h-full">
-          <div className="flex items-center justify-between mb-5">
-          <div className="flex items-center gap-3">
-            <div className="p-2.5 rounded-xl bg-violet-50">
-              <MessageSquare className="w-5 h-5 text-violet-600" />
+        <div className="bg-white border border-neutral-100 rounded-[2rem] p-8 shadow-soft hover:shadow-soft-lg hover:-translate-y-1 transition-all duration-300 flex flex-col h-full">
+          <div className="flex items-center gap-4 mb-8 border-b border-neutral-100 pb-5 justify-between">
+            <div className="flex items-center gap-4">
+              <div className="p-3 rounded-2xl bg-primary-50">
+                <MessageSquare className="w-6 h-6 text-primary-500" />
+              </div>
+              <div>
+                <h3 className="font-extrabold text-xl tracking-tight text-midnight-navy mb-0.5">Recent Messages</h3>
+                <p className="text-sm font-medium text-neutral-400">
+                  {unreadTotal > 0 ? `${unreadTotal} unread messages` : 'Inbox zero — nice!'}
+                </p>
+              </div>
             </div>
-            <div>
-              <h3 className="font-bold text-gray-900">Recent Messages</h3>
-              <p className="text-xs text-gray-400">
-                {unreadTotal > 0 ? `${unreadTotal} unread` : 'All caught up'}
-              </p>
-            </div>
+            <Link
+              href="/host/messages"
+              className="text-sm font-bold text-primary-500 hover:text-primary-600 flex items-center gap-1.5 transition-colors bg-primary-50 hover:bg-primary-100 px-3 py-1.5 rounded-xl"
+            >
+              Inbox <ArrowRight className="w-4 h-4" />
+            </Link>
           </div>
-          <Link
-            href="/host/messages"
-            className="text-xs font-bold text-primary-600 hover:text-primary-700 flex items-center gap-1 transition-colors"
-          >
-            View All <ArrowRight className="w-3.5 h-3.5" />
-          </Link>
-        </div>
 
         {conversations.length === 0 ? (
           <div className="flex-1 flex items-center justify-center py-6">
@@ -79,19 +79,21 @@ export async function RecentMessages({ userId }: { userId: string }) {
                         )}
                       </div>
                       {(conv.unreadCountHost || 0) > 0 && (
-                        <div className="absolute -top-0.5 -right-0.5 w-3 h-3 rounded-full bg-red-500 ring-2 ring-white" />
+                        <div className="absolute -top-1 -right-1 w-3.5 h-3.5 rounded-full bg-primary-500 ring-4 ring-white" />
                       )}
                     </div>
 
                     {/* Content */}
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center justify-between mb-0.5">
-                        <span className={`text-sm font-semibold truncate ${(conv.unreadCountHost || 0) > 0 ? 'text-gray-900' : 'text-gray-600'}`}>
+                        <span className={`text-sm font-bold truncate ${(conv.unreadCountHost || 0) > 0 ? 'text-midnight-navy' : 'text-neutral-600'}`}>
                           {conv.guest?.name || 'Guest'}
                         </span>
-                        <span className="text-[10px] text-gray-400 whitespace-nowrap ml-2">{timeAgo}</span>
+                        <span className="text-[10px] uppercase tracking-wider font-bold text-neutral-400 ml-2">{timeAgo}</span>
                       </div>
-                      <p className="text-xs text-gray-400 truncate">{conv.lastMessage || 'No messages'}</p>
+                      <p className={`text-sm truncate ${(conv.unreadCountHost || 0) > 0 ? 'text-midnight-navy font-semibold' : 'text-neutral-500 font-medium'}`}>
+                        {conv.lastMessage || 'No messages'}
+                      </p>
                     </div>
                   </Link>
                 </AnimatedFadeIn>

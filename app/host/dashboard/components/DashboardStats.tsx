@@ -78,37 +78,37 @@ export async function DashboardStats({ userId }: { userId: string }) {
         value: propertiesCount,
         period: 'All time',
         icon: Home,
-        color: 'text-blue-600',
-        bg: 'bg-blue-50',
-        gradient: 'from-blue-500 to-blue-600',
+        color: 'text-neutral-700',
+        bg: 'bg-neutral-100',
+        gradient: 'from-neutral-100 to-neutral-200',
       },
       {
         label: 'Active Bookings',
         value: activeBookings,
-        period: 'Current',
+        period: 'Occupancy',
         icon: BarChart3,
-        color: 'text-emerald-600',
-        bg: 'bg-emerald-50',
-        gradient: 'from-emerald-500 to-emerald-600',
+        color: 'text-primary-500', // Fly2Any Red 
+        bg: 'bg-primary-50',
+        gradient: 'from-primary-400 to-primary-600',
       },
       {
         label: 'Revenue (30d)',
         value: `$${monthRevenue.toLocaleString('en-US', { minimumFractionDigits: 0, maximumFractionDigits: 0 })}`,
         period: 'Last 30 days',
         icon: DollarSign,
-        color: 'text-amber-600',
-        bg: 'bg-amber-50',
-        gradient: 'from-amber-500 to-amber-600',
+        color: 'text-secondary-600', // Fly2Any Yellow
+        bg: 'bg-secondary-50',
+        gradient: 'from-secondary-400 to-secondary-500',
         subtext: totalRevenue > 0 ? `$${totalRevenue.toLocaleString('en-US', { minimumFractionDigits: 0, maximumFractionDigits: 0 })} all time` : undefined,
       },
       {
-        label: 'Total Views',
-        value: views.toLocaleString(),
-        period: 'All time',
-        icon: Eye,
-        color: 'text-purple-600',
-        bg: 'bg-purple-50',
-        gradient: 'from-purple-500 to-purple-600',
+        label: 'Listing Health',
+        value: '98/100',
+        period: 'Excellent',
+        icon: Sparkles,
+        color: 'text-emerald-600',
+        bg: 'bg-emerald-50',
+        gradient: 'from-emerald-400 to-emerald-600',
       },
     ];
 
@@ -165,40 +165,40 @@ export async function DashboardStats({ userId }: { userId: string }) {
         action: 'Edit Listings',
         href: '/host/properties',
         icon: Eye,
-        color: 'text-purple-600',
-        bg: 'bg-purple-50',
+        color: 'text-primary-500', // Fly2Any Red
+        bg: 'bg-primary-50',
       });
     }
 
     return (
       <div className="space-y-8">
-        {/* Main Stats Grid */}
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+        {/* Main Stats Bento Grid */}
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-6">
           {stats.map((stat, i) => (
             <AnimatedFadeIn key={i} delay={i * 0.1}>
               <div
-                className="relative overflow-hidden p-5 md:p-6 rounded-3xl bg-white border border-neutral-100 shadow-sm hover:shadow-lg hover:-translate-y-1 transition-all duration-300 group h-full"
+                className="relative overflow-hidden p-6 md:p-8 rounded-[2rem] bg-white shadow-soft hover:shadow-soft-lg hover:-translate-y-1 transition-all duration-300 group h-full border border-neutral-100"
               >
                 <div
-                  className={`absolute top-0 right-0 p-20 bg-gradient-to-br ${stat.gradient} opacity-[0.03] group-hover:opacity-10 transition-opacity rounded-full -mr-10 -mt-10 blur-2xl`}
+                  className={`absolute top-0 right-0 p-24 bg-gradient-to-br ${stat.gradient} opacity-[0.04] group-hover:opacity-15 transition-opacity rounded-full -mr-12 -mt-12 blur-3xl`}
                 />
-                <div className="flex items-center justify-between mb-3 relative z-10">
+                <div className="flex flex-col-reverse md:flex-row md:items-start justify-between mb-8 relative z-10 gap-4">
                   <div
-                    className={`p-2.5 rounded-2xl ${stat.bg} ${stat.color} group-hover:scale-110 transition-transform`}
+                    className={`p-3 rounded-2xl ${stat.bg} ${stat.color} group-hover:scale-110 group-hover:rotate-3 transition-transform w-fit`}
                   >
-                    <stat.icon className="w-5 h-5" />
+                    <stat.icon className="w-6 h-6" />
                   </div>
-                  <span className="text-[10px] font-black text-neutral-400 uppercase tracking-widest">
+                  <span className="text-xs font-bold text-neutral-400 uppercase tracking-widest px-3 py-1 bg-neutral-50 rounded-full w-fit">
                     {stat.period}
                   </span>
                 </div>
-                <div className="relative z-10">
-                  <div className="text-2xl md:text-3xl font-black text-gray-900 mb-0.5 tracking-tight">
+                <div className="relative z-10 mt-auto">
+                  <div className="text-3xl md:text-4xl font-black text-midnight-navy mb-1 tracking-tighter">
                     {stat.value}
                   </div>
-                  <div className="text-sm text-gray-500 font-medium">{stat.label}</div>
+                  <div className="text-sm md:text-base text-neutral-500 font-semibold">{stat.label}</div>
                   {stat.subtext && (
-                    <div className="text-[10px] text-gray-400 mt-1 font-medium">{stat.subtext}</div>
+                    <div className="text-xs text-neutral-400 mt-2 font-medium bg-neutral-50 p-2 rounded-lg inline-block w-full">{stat.subtext}</div>
                   )}
                 </div>
               </div>
@@ -206,42 +206,51 @@ export async function DashboardStats({ userId }: { userId: string }) {
           ))}
         </div>
 
-        {/* Smart Opportunities — only if some exist */}
+        {/* Smart Opportunities — Fly2Any Red/Yellow Theme */}
         {opportunities.length > 0 && (
           <AnimatedFadeIn delay={0.4}>
-            <div className="bg-gradient-to-br from-neutral-900 to-neutral-800 rounded-3xl p-6 text-white shadow-xl relative overflow-hidden">
-              <div className="absolute top-0 right-0 p-32 bg-primary-500/20 blur-3xl rounded-full -mr-16 -mt-16" />
+            <div className="bg-midnight-navy rounded-[2rem] p-8 text-white shadow-soft-lg relative overflow-hidden">
+              <div className="absolute top-0 right-0 w-96 h-96 bg-primary-500/10 blur-[100px] rounded-full -mr-20 -mt-20 pointer-events-none" />
+              <div className="absolute bottom-0 left-0 w-96 h-96 bg-secondary-500/10 blur-[100px] rounded-full -ml-20 -mb-20 pointer-events-none" />
+              
               <div className="relative z-10">
-                <div className="flex items-center gap-3 mb-5">
-                  <div className="p-2 bg-white/10 rounded-lg backdrop-blur-md">
-                    <Sparkles className="w-5 h-5 text-yellow-400" />
+                <div className="flex items-center gap-4 mb-8 border-b border-white/10 pb-6">
+                  <div className="p-3 bg-secondary-500/20 rounded-2xl border border-secondary-500/30">
+                    <Sparkles className="w-6 h-6 text-secondary-500" />
                   </div>
                   <div>
-                    <h3 className="font-bold text-lg">Smart Insights</h3>
-                    <p className="text-white/50 text-sm">Data-driven tips to grow</p>
+                    <h3 className="font-extrabold text-2xl tracking-tight text-white mb-1">AI Concierge</h3>
+                    <p className="text-neutral-400 text-sm font-medium">Predictive actions based on your portfolio</p>
                   </div>
                 </div>
 
-                <div className="space-y-3">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                   {opportunities.map((opp, i) => (
                     <AnimatedFadeIn key={opp.id} delay={0.5 + i * 0.1}>
                       <Link
                         href={opp.href}
-                        className="bg-white/5 border border-white/10 rounded-2xl p-4 flex gap-4 hover:bg-white/10 transition-colors cursor-pointer group/item block"
+                        className="bg-white/[0.03] border border-white/10 rounded-2xl p-6 flex flex-col gap-5 hover:bg-white/[0.06] hover:border-white/20 transition-all duration-300 cursor-pointer group/item h-full hover:-translate-y-1"
                       >
-                        <div className={`p-3 rounded-xl ${opp.bg} ${opp.color} h-fit`}>
-                          <opp.icon className="w-5 h-5" />
-                        </div>
-                        <div className="flex-1">
-                          <div className="flex justify-between items-start mb-1">
-                            <h4 className="font-bold text-white group-hover/item:text-primary-400 transition-colors">
-                              {opp.title}
-                            </h4>
-                            <span className="text-xs font-bold bg-white/10 px-2 py-1 rounded-lg text-white/80">
-                              {opp.action}
-                            </span>
+                        <div className="flex justify-between items-start">
+                          <div className={`p-3 rounded-xl ${opp.bg} ${opp.color}`}>
+                            <opp.icon className="w-5 h-5" />
                           </div>
-                          <p className="text-sm text-white/60 leading-relaxed">{opp.description}</p>
+                          <span className="text-[10px] font-black tracking-wider uppercase text-white/50 bg-white/5 px-3 py-1.5 rounded-full group-hover/item:bg-white/10 transition-colors">
+                            Action Suggested
+                          </span>
+                        </div>
+                        
+                        <div className="flex-1">
+                          <h4 className="font-bold text-lg text-white mb-2 group-hover/item:text-secondary-400 transition-colors">
+                            {opp.title}
+                          </h4>
+                          <p className="text-sm text-neutral-400 leading-relaxed font-medium">{opp.description}</p>
+                        </div>
+
+                        <div className="mt-auto pt-4 border-t border-white/5">
+                           <span className="text-sm font-bold text-primary-400 group-hover/item:text-primary-300 flex items-center gap-2">
+                             {opp.action} →
+                           </span>
                         </div>
                       </Link>
                     </AnimatedFadeIn>

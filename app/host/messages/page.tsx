@@ -177,25 +177,25 @@ export default function MessagesPage() {
     <div className="h-[calc(100vh-64px)] bg-white flex flex-col md:flex-row overflow-hidden">
         {/* Sidebar List */}
         <div className={cn(
-          "w-full md:w-80 lg:w-96 border-r border-neutral-200 flex flex-col h-full bg-neutral-50",
+          "w-full md:w-80 lg:w-96 border-r border-neutral-100 flex flex-col h-full bg-[#FDFDFD]",
           !showSidebar && "hidden md:flex"
         )}>
-            <div className="p-4 border-b border-neutral-200 bg-white">
-                <h2 className="text-xl font-bold mb-4">Messages</h2>
-                <div className="relative">
-                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+            <div className="p-6 border-b border-neutral-100 bg-white">
+                <h2 className="text-2xl font-extrabold text-midnight-navy tracking-tight mb-5">Messages</h2>
+                <div className="relative group">
+                    <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-neutral-400 group-focus-within:text-primary-500 transition-colors" />
                     <input
                       type="text"
                       value={searchQuery}
                       onChange={(e) => setSearchQuery(e.target.value)}
                       placeholder="Search guests or properties..."
-                      className="w-full pl-9 pr-4 py-2 rounded-lg bg-neutral-100 border-none focus:ring-2 focus:ring-primary-500 text-sm"
+                      className="w-full pl-11 pr-4 py-3 rounded-2xl bg-white border border-neutral-100 placeholder-neutral-400 focus:outline-none focus:border-primary-300 shadow-sm focus:shadow-soft transition-all text-sm font-medium text-midnight-navy"
                     />
                 </div>
             </div>
-            <div className="flex-1 overflow-y-auto">
+            <div className="flex-1 overflow-y-auto px-2 py-3 space-y-1">
                 {filteredConversations.length === 0 ? (
-                    <div className="p-8 text-center text-gray-500 text-sm">
+                    <div className="p-8 text-center text-gray-500 text-sm font-medium">
                       {searchQuery ? `No results for "${searchQuery}"` : 'No messages yet.'}
                     </div>
                 ) : (
@@ -204,8 +204,10 @@ export default function MessagesPage() {
                             key={conv.id}
                             onClick={() => { setActiveConversationId(conv.id); setShowSidebar(false); }}
                             className={cn(
-                                "w-full p-4 flex gap-3 hover:bg-white transition-colors border-b border-neutral-100 text-left",
-                                activeConversationId === conv.id ? "bg-white border-l-4 border-l-primary-600 shadow-sm" : "border-l-4 border-l-transparent"
+                                "w-full p-4 flex gap-4 transition-all text-left rounded-2xl group border border-transparent",
+                                activeConversationId === conv.id 
+                                    ? "bg-white shadow-soft border-neutral-100" 
+                                    : "hover:bg-neutral-50/80"
                             )}
                         >
                             <div className="relative">
@@ -231,31 +233,33 @@ export default function MessagesPage() {
         </div>
 
         {/* Chat Window */}
-        <div className={cn("flex-1 flex flex-col h-full bg-white", showSidebar && "hidden md:flex")}>
+        <div className={cn("flex-1 flex flex-col h-full bg-[#FDFDFD]", showSidebar && "hidden md:flex")}>
             {activeConversationId && activeConversation ? (
                 <>
-                    <div className="p-4 border-b border-neutral-100 flex items-center justify-between bg-white z-10 relative shadow-sm">
-                         <div className="flex items-center gap-3">
+                    <div className="p-6 border-b border-neutral-100 flex items-center justify-between bg-white/80 backdrop-blur-xl z-10 relative">
+                         <div className="flex items-center gap-4">
                              {/* Mobile back button */}
-                             <button onClick={() => setShowSidebar(true)} className="md:hidden p-1 -ml-1 text-gray-500 hover:text-gray-900">
-                               ←
+                             <button onClick={() => setShowSidebar(true)} className="md:hidden p-2 -ml-2 text-neutral-400 hover:text-midnight-navy bg-neutral-50 rounded-xl">
+                               <X className="w-5 h-5" />
                              </button>
-                             <h3 className="font-bold text-gray-900">
-                                 {activeConversation.guest.name}
-                             </h3>
-                             <span className="text-xs text-gray-400 hidden sm:inline">• {activeConversation.property?.name}</span>
+                             <div>
+                               <h3 className="font-extrabold text-midnight-navy text-lg tracking-tight">
+                                   {activeConversation.guest.name}
+                               </h3>
+                               <p className="text-xs font-bold text-neutral-400 mt-0.5 tracking-wide">{activeConversation.property?.name}</p>
+                             </div>
                          </div>
                          <button 
                              onClick={() => setShowContextDrawer(!showContextDrawer)}
-                             className={cn("p-2 transition-colors rounded-xl flex items-center gap-2", showContextDrawer ? "bg-indigo-50 text-indigo-600" : "text-gray-400 hover:bg-neutral-100 hover:text-gray-900")}
+                             className={cn("px-4 py-2.5 transition-all rounded-xl flex items-center gap-2 font-bold text-sm shadow-sm", showContextDrawer ? "bg-secondary-50 text-secondary-800 border border-secondary-200" : "bg-white border border-neutral-200 text-neutral-600 hover:bg-neutral-50 hover:text-midnight-navy hover:shadow-soft")}
                              title="Guest Context"
                          >
-                             <span className="text-xs font-bold hidden xl:inline">Guest Details</span>
-                             <Info className="w-5 h-5" />
+                             <span className="hidden xl:inline">Guest Details</span>
+                             <Info className="w-4 h-4" />
                          </button>
                     </div>
 
-                    <div className="flex-1 overflow-y-auto p-4 space-y-4 bg-white">
+                    <div className="flex-1 overflow-y-auto p-6 space-y-6 bg-[#FDFDFD]">
                          {loadingMessages ? (
                              <div className="flex justify-center p-8"><Loader2 className="animate-spin text-gray-300" /></div>
                          ) : messages.length === 0 ? (
@@ -269,11 +273,11 @@ export default function MessagesPage() {
                                  return (
                                      <div key={msg.id} className={cn("flex", isMe ? "justify-end" : "justify-start")}>
                                          <div className={cn(
-                                             "max-w-[70%] rounded-2xl px-4 py-2.5 text-sm",
-                                             isMe ? "bg-primary-600 text-white rounded-br-none" : "bg-neutral-100 text-gray-800 rounded-bl-none"
+                                             "max-w-[75%] rounded-[1.5rem] px-5 py-3 text-sm shadow-sm",
+                                             isMe ? "bg-primary-500 text-white rounded-br-sm shadow-[0_4px_12px_rgba(231,64,53,0.15)]" : "bg-white border border-neutral-100 text-midnight-navy rounded-bl-sm font-medium"
                                          )}>
                                              {msg.content}
-                                             <div className={cn("text-[10px] mt-1 opacity-70", isMe ? "text-right" : "text-left")}>
+                                             <div className={cn("text-[10px] mt-1.5 opacity-60 font-bold tracking-wider", isMe ? "text-white" : "text-neutral-500")}>
                                                 {format(new Date(msg.createdAt), 'h:mm a')}
                                              </div>
                                          </div>
@@ -285,21 +289,23 @@ export default function MessagesPage() {
                     </div>
 
                     {/* AI Quick Response Suggestions */}
-                    <div className="px-4 py-3 border-t border-neutral-100 bg-indigo-50/50 flex flex-col gap-2">
+                    <div className="px-6 py-4 border-t border-neutral-100 bg-secondary-50/40 flex flex-col gap-3">
                       <div className="flex items-center justify-between">
-                         <div className="flex items-center gap-1.5 text-indigo-700">
-                             <Sparkles className="w-4 h-4" />
-                             <span className="text-xs font-bold uppercase tracking-wider">AI Co-Host</span>
+                         <div className="flex items-center gap-2 text-secondary-800">
+                             <div className="p-1.5 rounded-lg bg-secondary-100">
+                               <Sparkles className="w-4 h-4 text-secondary-600" />
+                             </div>
+                             <span className="text-xs font-black uppercase tracking-widest">AI Co-Host</span>
                          </div>
                          <button
                             onClick={handleGenerateAIReply}
                             disabled={isGeneratingAI || messages.length === 0}
-                            className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold transition-colors shadow-sm disabled:opacity-50"
+                            className="flex items-center gap-2 px-4 py-2 rounded-xl bg-secondary-500 hover:bg-secondary-600 text-white text-xs font-bold transition-colors shadow-sm disabled:opacity-50"
                          >
-                            {isGeneratingAI ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : 'Generate Context-Aware Draft'}
+                            {isGeneratingAI ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Generate Context-Aware Draft'}
                          </button>
                       </div>
-                      <div className="flex items-center gap-2 overflow-x-auto pb-1 scrollbar-hide">
+                      <div className="flex items-center gap-3 overflow-x-auto pb-1 scrollbar-hide">
                         {[
                           { label: '🔑 Check-in Info', text: 'Hi! Check-in is from 3:00 PM. I\'ll send you the access code the day before your arrival. Let me know if you need anything!' },
                           { label: '👋 Welcome', text: 'Welcome! I hope you have a wonderful stay. Don\'t hesitate to reach out if you need any recommendations or assistance.' },
@@ -309,7 +315,7 @@ export default function MessagesPage() {
                             key={suggestion.label}
                             type="button"
                             onClick={() => setNewMessage(suggestion.text)}
-                            className="shrink-0 px-3 py-1.5 rounded-lg bg-white border border-indigo-100 text-xs font-medium text-indigo-700 hover:bg-indigo-50 transition-all"
+                            className="shrink-0 px-4 py-2 rounded-xl bg-white border border-secondary-200 text-xs font-bold text-secondary-900 hover:bg-secondary-50 transition-all hover:shadow-sm"
                           >
                             {suggestion.label}
                           </button>
@@ -317,19 +323,19 @@ export default function MessagesPage() {
                       </div>
                     </div>
 
-                    <form onSubmit={handleSendMessage} className="p-4 border-t border-neutral-100 bg-white">
-                        <div className="relative flex items-center gap-2">
+                    <form onSubmit={handleSendMessage} className="p-6 border-t border-neutral-100 bg-white">
+                        <div className="relative flex items-center gap-3">
                             <input 
                                 value={newMessage}
                                 onChange={e => setNewMessage(e.target.value)}
                                 type="text" 
                                 placeholder="Type a message..." 
-                                className="flex-1 bg-neutral-100 border-none rounded-xl px-4 py-3 focus:ring-2 focus:ring-primary-500" 
+                                className="flex-1 bg-white border border-neutral-200 shadow-sm hover:shadow-soft rounded-2xl px-5 py-4 focus:ring-2 focus:ring-primary-500 focus:outline-none transition-all text-midnight-navy font-medium placeholder-neutral-400" 
                             />
                             <button 
                                 type="submit"
                                 disabled={!newMessage.trim()}
-                                className="p-3 bg-primary-600 text-white rounded-xl hover:bg-primary-700 disabled:opacity-50 transition-colors"
+                                className="p-4 bg-primary-500 text-white rounded-2xl hover:bg-primary-600 disabled:opacity-50 transition-all shadow-md active:scale-95 hover:shadow-[0_8px_16px_rgba(231,64,53,0.25)]"
                             >
                                 <Send className="w-5 h-5" />
                             </button>
@@ -385,14 +391,14 @@ export default function MessagesPage() {
                                 </div>
                             </div>
                             
-                            <div className="bg-gradient-to-br from-indigo-50 to-violet-50 p-5 rounded-3xl border border-indigo-100 relative overflow-hidden group">
-                                <div className="absolute -bottom-4 -right-4 text-indigo-500/10 group-hover:scale-110 transition-transform">
+                            <div className="bg-gradient-to-br from-secondary-50 to-amber-50 p-6 rounded-3xl border border-secondary-200 relative overflow-hidden group shadow-soft">
+                                <div className="absolute -bottom-4 -right-4 text-secondary-500/20 group-hover:scale-110 transition-transform">
                                    <Sparkles className="w-24 h-24" />
                                 </div>
-                                <h5 className="text-[10px] font-black text-indigo-600 flex items-center gap-1.5 uppercase tracking-widest mb-3 relative z-10">
-                                  <Sparkles className="w-3.5 h-3.5" /> AI Insight
+                                <h5 className="text-[10px] font-black text-secondary-600 flex items-center gap-1.5 uppercase tracking-widest mb-3 relative z-10">
+                                  <Sparkles className="w-4 h-4" /> AI Insight
                                 </h5>
-                                <p className="text-sm text-indigo-900 leading-relaxed font-semibold relative z-10">
+                                <p className="text-sm text-secondary-900 leading-relaxed font-bold relative z-10">
                                   This guest travels with a pet. Offering a preemptive link to local dog parks or your pet rules can secure a 5-star review!
                                 </p>
                             </div>

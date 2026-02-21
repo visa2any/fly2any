@@ -9,11 +9,11 @@ export const metadata: Metadata = {
 
 export default function HostLayout({ children }: { children: React.ReactNode }) {
   return (
-    <div className="h-screen overflow-hidden bg-neutral-50 flex flex-col text-gray-900 relative">
+    <div className="h-screen overflow-hidden bg-white flex flex-col text-midnight-navy relative">
       <HostHeader exitHref="/" exitLabel="Back to Fly2Any" />
       <div className="flex-1 overflow-hidden flex flex-col md:flex-row relative">
         <HostSidebar />
-        <main className="flex-1 md:ml-[72px] h-full overflow-y-auto custom-scrollbar relative bg-neutral-50/50 transition-all duration-300">
+        <main className="flex-1 md:ml-[72px] h-full overflow-y-auto custom-scrollbar relative bg-[#FDFDFD] transition-all duration-300">
           {children}
         </main>
       </div>

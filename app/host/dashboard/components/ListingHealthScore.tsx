@@ -30,9 +30,9 @@ export function ListingHealthScore({ properties }: { properties: PropertyHealth[
     properties.reduce((sum, p) => sum + calculateScore(p), 0) / properties.length
   );
 
-  const scoreColor = avgScore >= 80 ? 'text-emerald-500' : avgScore >= 50 ? 'text-amber-500' : 'text-red-500';
-  const scoreBg = avgScore >= 80 ? 'bg-emerald-50' : avgScore >= 50 ? 'bg-amber-50' : 'bg-red-50';
-  const scoreRing = avgScore >= 80 ? 'stroke-emerald-500' : avgScore >= 50 ? 'stroke-amber-500' : 'stroke-red-500';
+  const scoreColor = avgScore >= 80 ? 'text-success-500' : avgScore >= 50 ? 'text-warning-500' : 'text-primary-500';
+  const scoreBg = avgScore >= 80 ? 'bg-success-50' : avgScore >= 50 ? 'bg-warning-50' : 'bg-primary-50';
+  const scoreRing = avgScore >= 80 ? 'stroke-success-500' : avgScore >= 50 ? 'stroke-warning-500' : 'stroke-primary-500';
 
   const tips: { icon: any; text: string }[] = [];
   properties.forEach(p => {
@@ -49,14 +49,14 @@ export function ListingHealthScore({ properties }: { properties: PropertyHealth[
 
   return (
     <AnimatedFadeIn delay={0.2}>
-      <div className="bg-white border border-neutral-100 rounded-3xl p-6 shadow-sm">
-        <div className="flex items-center gap-3 mb-6">
-          <div className={`p-2.5 rounded-xl ${scoreBg}`}>
-            <Activity className={`w-5 h-5 ${scoreColor}`} />
+      <div className="bg-white border border-neutral-100 rounded-[2rem] p-8 shadow-soft hover:shadow-soft-lg hover:-translate-y-1 transition-all duration-300 h-full">
+        <div className="flex items-center gap-4 mb-8 border-b border-neutral-100 pb-5">
+          <div className={`p-3 rounded-2xl ${scoreBg}`}>
+            <Activity className={`w-6 h-6 ${scoreColor}`} />
           </div>
           <div>
-            <h3 className="font-bold text-gray-900">Listing Health</h3>
-            <p className="text-xs text-gray-400">Optimize your listings for more bookings</p>
+            <h3 className="font-extrabold text-xl tracking-tight text-midnight-navy mb-0.5">Listing Health</h3>
+            <p className="text-sm text-neutral-400 font-medium">Optimize your listings for more bookings</p>
           </div>
         </div>
 
