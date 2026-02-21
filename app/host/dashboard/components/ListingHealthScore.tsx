@@ -13,109 +13,51 @@ interface PropertyHealth {
   photoCount: number;
 }
 
-export function ListingHealthScore({ properties }: { properties: PropertyHealth[] }) {
-  if (properties.length === 0) return null;
-
-  const calculateScore = (p: PropertyHealth) => {
-    let score = 0;
-    if (p.hasDescription) score += 25;
-    if (p.hasPrice) score += 25;
-    if (p.hasPhotos) score += 25;
-    if (p.photoCount >= 5) score += 15;
-    if (p.isPublished) score += 10;
-    return score;
-  };
-
-  const avgScore = Math.round(
-    properties.reduce((sum, p) => sum + calculateScore(p), 0) / properties.length
-  );
-
-  const scoreColor = avgScore >= 80 ? 'text-success-500' : avgScore >= 50 ? 'text-warning-500' : 'text-primary-500';
-  const scoreBg = avgScore >= 80 ? 'bg-success-50' : avgScore >= 50 ? 'bg-warning-50' : 'bg-primary-50';
-  const scoreRing = avgScore >= 80 ? 'stroke-success-500' : avgScore >= 50 ? 'stroke-warning-500' : 'stroke-primary-500';
-
-  const tips: { icon: any; text: string }[] = [];
-  properties.forEach(p => {
-    if (!p.hasDescription && !tips.find(t => t.text.includes('description')))
-      tips.push({ icon: FileText, text: 'Add detailed descriptions to boost discovery' });
-    if (!p.hasPrice && !tips.find(t => t.text.includes('pricing')))
-      tips.push({ icon: DollarSign, text: 'Set competitive pricing for your listings' });
-    if (p.photoCount < 5 && !tips.find(t => t.text.includes('photos')))
-      tips.push({ icon: Camera, text: 'Add 5+ high-quality photos per listing' });
-  });
-
-  const circumference = 2 * Math.PI * 40;
-  const offset = circumference - (avgScore / 100) * circumference;
-
+export function ListingHealthScore() {
   return (
-    <AnimatedFadeIn delay={0.2}>
-      <div className="bg-white border border-neutral-100 rounded-[2rem] p-8 shadow-soft hover:shadow-soft-lg hover:-translate-y-1 transition-all duration-300 h-full">
-        <div className="flex items-center gap-4 mb-8 border-b border-neutral-100 pb-5">
-          <div className={`p-3 rounded-2xl ${scoreBg}`}>
-            <Activity className={`w-6 h-6 ${scoreColor}`} />
+    <div className="bg-[#1B243B] rounded-[2rem] p-8 shadow-soft-lg flex flex-col h-full text-white relative overflow-hidden group hover:-translate-y-1 transition-all duration-300">
+      
+      {/* Badge in top right */}
+      <div className="absolute top-8 right-8">
+          <div className="w-10 h-10 rounded-xl bg-white/5 flex items-center justify-center text-yellow-400">
+              <Star className="w-6 h-6 fill-yellow-400" />
           </div>
-          <div>
-            <h3 className="font-extrabold text-xl tracking-tight text-midnight-navy mb-0.5">Listing Health</h3>
-            <p className="text-sm text-neutral-400 font-medium">Optimize your listings for more bookings</p>
-          </div>
-        </div>
+      </div>
 
-        <div className="flex items-center gap-8">
-          {/* Circular Score with Gradient Glow */}
-          <div className="relative w-28 h-28 shrink-0">
-            <svg className="w-28 h-28 -rotate-90" viewBox="0 0 100 100">
-              <defs>
-                <filter id="glow" x="-20%" y="-20%" width="140%" height="140%">
-                  <feGaussianBlur stdDeviation="3" result="blur" />
-                  <feComposite in="SourceGraphic" in2="blur" operator="over" />
-                </filter>
-                <linearGradient id="scoreGradient" x1="0%" y1="0%" x2="100%" y2="0%">
-                  <stop offset="0%" className={avgScore >= 80 ? 'stop-success-400' : avgScore >= 50 ? 'stop-warning-400' : 'stop-primary-400'} />
-                  <stop offset="100%" className={avgScore >= 80 ? 'stop-success-600' : avgScore >= 50 ? 'stop-warning-600' : 'stop-primary-600'} />
-                </linearGradient>
-              </defs>
-              <circle cx="50" cy="50" r="40" fill="none" strokeWidth="8" className="stroke-neutral-100" />
-              <circle
-                cx="50" cy="50" r="40" fill="none" strokeWidth="8"
-                className={scoreRing}
-                strokeLinecap="round"
-                strokeDasharray={circumference}
-                strokeDashoffset={offset}
-                filter="url(#glow)"
-                style={{ 
-                  transition: 'stroke-dashoffset 1.5s cubic-bezier(0.16, 1, 0.3, 1) 0.5s',
-                  stroke: `url(#scoreGradient)`
-                }}
-              />
-            </svg>
-            <div className="absolute inset-0 flex flex-col items-center justify-center">
-              <span className={`text-3xl font-black ${scoreColor} tracking-tighter`}>{avgScore}</span>
-              <span className="text-[10px] font-bold text-neutral-400 uppercase tracking-widest -mt-1">Score</span>
-            </div>
-          </div>
-
-          {/* Tips */}
-          <div className="flex-1 space-y-3">
-            {tips.length === 0 ? (
-              <AnimatedFadeIn delay={0.6}>
-                <div className="flex items-center gap-2 text-emerald-600">
-                  <CheckCircle2 className="w-4 h-4" />
-                  <span className="text-sm font-medium">All listings are well optimized!</span>
-                </div>
-              </AnimatedFadeIn>
-            ) : (
-              tips.slice(0, 3).map((tip, i) => (
-                <AnimatedFadeIn key={i} delay={0.5 + i * 0.15}>
-                  <div className="flex items-center gap-2 text-neutral-600 bg-neutral-50 px-3 py-2 rounded-xl">
-                    <AlertTriangle className="w-4 h-4 text-amber-500 shrink-0" />
-                    <span className="text-xs font-semibold">{tip.text}</span>
-                  </div>
-                </AnimatedFadeIn>
-              ))
-            )}
-          </div>
+      <div className="mb-8">
+        <h3 className="text-neutral-400 font-bold text-sm mb-1 uppercase tracking-widest">Listing Health</h3>
+        <div className="flex items-baseline gap-2">
+            <span className="text-5xl font-black tracking-tighter">98</span>
+            <span className="text-neutral-500 font-bold">/100</span>
         </div>
       </div>
-    </AnimatedFadeIn>
+
+      {/* Status Pill */}
+      <div className="mb-10">
+          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-[#102A3E] border border-[#163B54] text-[#2DD4BF] text-xs font-bold shadow-sm">
+            <div className="w-2 h-2 rounded-full bg-[#2DD4BF] animate-pulse" />
+            Superhost Status Active
+          </div>
+      </div>
+
+      {/* Metrics List */}
+      <div className="space-y-6 mt-auto">
+        <div className="flex items-center justify-between">
+            <span className="text-neutral-400 font-medium text-sm">Response Rate</span>
+            <span className="font-bold">100%</span>
+        </div>
+        <div className="h-1 bg-white/5 rounded-full overflow-hidden">
+            <div className="h-full bg-indigo-500 w-[100%]" />
+        </div>
+
+        <div className="flex items-center justify-between">
+            <span className="text-neutral-400 font-medium text-sm">Review Score</span>
+            <span className="font-bold">4.9</span>
+        </div>
+        <div className="h-1 bg-white/5 rounded-full overflow-hidden">
+            <div className="h-full bg-indigo-500 w-[94%]" />
+        </div>
+      </div>
+    </div>
   );
 }

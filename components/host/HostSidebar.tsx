@@ -6,29 +6,30 @@ import { LayoutDashboard, Building2, Calendar, ClipboardList, Settings, LogOut, 
 import { cn } from '@/lib/utils';
 
 const MENU_ITEMS = [
-  { label: 'Dashboard', icon: LayoutDashboard, href: '/host/dashboard' },
-  { label: 'Properties', icon: Building2, href: '/host/properties' },
-  { label: 'Bookings', icon: ClipboardList, href: '/host/bookings' },
+  { label: 'Home', icon: LayoutDashboard, href: '/host/dashboard' },
   { label: 'Calendar', icon: Calendar, href: '/host/calendar' },
-  { label: 'Messages', icon: MessageSquare, href: '/host/messages' },
-  { label: 'Payouts', icon: Wallet, href: '/host/payouts' },
-  { label: 'Finances', icon: TrendingUp, href: '/host/finances' },
-  { label: 'Trust Center', icon: Shield, href: '/host/verification' },
+  { label: 'Inbox', icon: MessageSquare, href: '/host/messages' },
+  { label: 'Listings', icon: Building2, href: '/host/properties' },
+  { label: 'Insights', icon: TrendingUp, href: '/host/finances' },
 ];
-
-// Reduced set for mobile bottom nav — only 5 core items
-const MOBILE_NAV_ITEMS = MENU_ITEMS.filter(item => 
-  ['Dashboard', 'Properties', 'Bookings', 'Calendar', 'Messages'].includes(item.label)
-);
 
 export default function HostSidebar() {
   const pathname = usePathname();
 
   return (
     <>
-      {/* DESKTOP SIDEBAR */}
-      <div className="hidden md:flex flex-col bg-midnight-navy border-r border-midnight-navy h-full z-40 shadow-[4px_0_24px_rgba(0,0,0,0.2)] transition-all duration-300 w-[72px] hover:w-56 group absolute left-0 top-0 bottom-0 overflow-x-hidden">
-        <nav className="flex-1 overflow-y-auto px-3 space-y-2 py-4 mt-2 scrollbar-thin scrollbar-thumb-white/10 scrollbar-track-transparent">
+      {/* DESKTOP SIDEBAR - Fixed Slim Standard (Stitch) */}
+      <div className="hidden md:flex flex-col bg-[#0B1221] w-[80px] h-full z-50 fixed left-0 top-0 bottom-0 border-r border-white/5 items-center py-6">
+        
+        {/* LOGO AREA (Top Icon) */}
+        <div className="mb-12">
+            <div className="w-12 h-12 rounded-2xl bg-white/5 flex items-center justify-center text-white/40">
+                <Building2 className="w-6 h-6" />
+            </div>
+        </div>
+
+        {/* NAVIGATION */}
+        <nav className="flex-1 flex flex-col gap-6">
           {MENU_ITEMS.map((item) => {
             const isActive = pathname === item.href;
             return (
@@ -36,50 +37,56 @@ export default function HostSidebar() {
                 key={item.href}
                 href={item.href}
                 className={cn(
-                  "w-full flex items-center gap-3 p-3 rounded-xl text-left transition-all relative overflow-hidden whitespace-nowrap group/navitem",
+                  "p-3 rounded-2xl transition-all relative group",
                   isActive 
-                    ? "bg-white/10 text-white font-bold shadow-sm" 
-                    : "text-neutral-400 hover:bg-white/5 hover:text-white font-semibold"
+                    ? "bg-[#3B82F6] text-white shadow-[0_0_20px_rgba(59,130,246,0.3)]" 
+                    : "text-white/40 hover:text-white hover:bg-white/5"
                 )}
               >
-                {isActive && <div className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-6 bg-primary-500 rounded-r-full shadow-[0_0_8px_rgba(231,64,53,0.6)]" />}
-                <div className={cn("p-1.5 shrink-0 rounded-lg mx-auto group-hover:mx-0 transition-colors", isActive ? "bg-primary-500/20 text-primary-400" : "bg-transparent text-neutral-400 group-hover/navitem:text-white")}>
-                  <item.icon className="w-[18px] h-[18px]" />
+                <item.icon className="w-6 h-6" />
+                
+                {/* Tooltip on hover */}
+                <div className="absolute left-full ml-4 px-3 py-1.5 bg-[#1B243B] text-white text-[10px] font-bold rounded-lg opacity-0 group-hover:opacity-100 pointer-events-none transition-all translate-x-1 group-hover:translate-x-0 whitespace-nowrap shadow-xl border border-white/5 uppercase tracking-widest z-maximum">
+                    {item.label}
                 </div>
-                <span className="flex-1 text-sm opacity-0 group-hover:opacity-100 transition-opacity duration-300 overflow-hidden">{item.label}</span>
               </Link>
             );
           })}
         </nav>
 
-        <div className="p-4 border-t border-white/5 flex flex-col gap-3 shrink-0">
-          <Link 
-            href="/host/profile"
-            className="w-full flex items-center gap-3 p-3 rounded-xl border border-white/10 hover:border-white/20 hover:bg-white/5 text-neutral-400 font-semibold hover:text-white transition-all text-sm group/btn overflow-hidden whitespace-nowrap mx-auto group-hover:mx-0 justify-center group-hover:justify-start"
-          >
-            <div className="p-0.5 shrink-0 rounded-lg mx-auto group-hover:mx-0">
-              <Settings className="w-[18px] h-[18px] group-hover/btn:text-white transition-colors" />
+        {/* BOTTOM ACTIONS */}
+        <div className="mt-auto flex flex-col gap-6 pb-2">
+            <Link 
+                href="/host/profile"
+                className="p-3 rounded-2xl text-white/40 hover:text-white hover:bg-white/5 transition-all"
+            >
+                <Settings className="w-6 h-6" />
+            </Link>
+            
+            <div className="w-10 h-10 rounded-2xl overflow-hidden border-2 border-white/10 p-0.5">
+                <img 
+                    src="https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=100&h=100&fit=crop" 
+                    alt="User" 
+                    className="w-full h-full object-cover rounded-xl shadow-inner"
+                />
             </div>
-            <span className="opacity-0 group-hover:opacity-100 transition-opacity duration-300">Host Profile</span>
-          </Link>
         </div>
       </div>
 
-      {/* MOBILE BOTTOM NAV — 5 core items for better touch targets */}
-      <nav className="md:hidden fixed bottom-0 left-0 right-0 bg-midnight-navy border-t border-white/10 z-50 flex justify-around p-2 pb-safe shadow-[0_-4px_24px_rgba(0,0,0,0.3)]">
-        {MOBILE_NAV_ITEMS.map((item) => {
+      {/* MOBILE BOTTOM NAV */}
+      <nav className="md:hidden fixed bottom-0 left-0 right-0 bg-[#0B1221] border-t border-white/5 z-50 flex justify-around p-3 pb-safe shadow-[0_-4px_24px_rgba(0,0,0,0.5)]">
+        {MENU_ITEMS.map((item) => {
            const isActive = pathname === item.href;
            return (
              <Link 
                 key={item.href} 
                 href={item.href}
                 className={cn(
-                  "flex flex-col items-center gap-1 p-2 rounded-lg min-w-[56px] transition-colors",
-                  isActive ? "text-primary-400" : "text-neutral-500 hover:text-neutral-300"
+                  "flex flex-col items-center gap-1 p-2 rounded-xl transition-colors",
+                  isActive ? "text-[#3B82F6]" : "text-white/30"
                 )}
              >
-                <item.icon className={cn("w-6 h-6", isActive && "fill-primary-500/20 drop-shadow-[0_0_8px_rgba(231,64,53,0.4)]")} />
-                <span className="text-[10px] font-bold">{item.label}</span>
+                <item.icon className={cn("w-6 h-6", isActive && "drop-shadow-[0_0_8px_rgba(59,130,246,0.4)]")} />
              </Link>
            );
         })}
