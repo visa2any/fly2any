@@ -205,9 +205,9 @@ export default function CalendarPage() {
   }
 
   return (
-    <div className="min-h-screen bg-[#FDFDFD] pt-4 pb-20 relative overflow-hidden">
-      <MaxWidthContainer>
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8 mt-4">
+    <div className="h-[calc(100vh-73px)] bg-[#FDFDFD] px-4 py-2 relative overflow-hidden flex flex-col">
+      <MaxWidthContainer className="flex-1 flex flex-col min-h-0 h-full">
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-3 mt-1 shrink-0">
           <div>
             <h1 className="text-2xl md:text-3xl font-black text-gray-900 mb-1 flex items-center gap-2">
                 Calendar <span className="bg-primary-100 text-primary-700 text-xs px-2 py-1 rounded-full uppercase tracking-wider font-bold">Smart UX</span>
@@ -242,9 +242,9 @@ export default function CalendarPage() {
             <p className="text-gray-500 text-sm">Add a property first to manage its calendar.</p>
           </div>
         ) : (
-          <div className="flex gap-8">
-            <div className={`flex-1 transition-all duration-300 ${selectedDates.length > 0 ? 'pr-[340px]' : ''}`}>
-                <div className="flex flex-col md:flex-row md:items-center justify-between mb-6 gap-4">
+          <div className="flex gap-8 flex-1 min-h-0 h-full pb-4">
+            <div className={`flex-1 flex flex-col min-h-0 h-full transition-all duration-300 ${selectedDates.length > 0 ? 'pr-[340px]' : ''}`}>
+                <div className="flex flex-col md:flex-row md:items-center justify-between mb-4 gap-4 shrink-0">
                   <div className="flex items-center gap-4 bg-white p-1 rounded-xl border border-neutral-200 shadow-sm w-max">
                     <button onClick={prevMonth} className="p-2 rounded-lg text-gray-500 hover:text-gray-900 hover:bg-neutral-50 transition-colors">
                       <ChevronLeft className="w-5 h-5" />
@@ -272,15 +272,15 @@ export default function CalendarPage() {
                   </div>
                 </div>
 
-                <div className="grid grid-cols-7 gap-2 mb-2">
+                <div className="grid grid-cols-7 gap-1 mb-1 shrink-0">
                   {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map((d) => (
-                    <div key={d} className="text-center text-gray-400 text-xs font-bold py-2">{d}</div>
+                    <div key={d} className="text-center text-gray-400 text-[10px] font-bold py-1 uppercase tracking-tighter">{d}</div>
                   ))}
                 </div>
 
-                <div className="grid grid-cols-7 gap-2 select-none">
+                <div className="grid grid-cols-7 grid-auto-rows-fr gap-1 flex-1 min-h-0 select-none overflow-hidden">
                   {Array.from({ length: firstDayOfWeek }).map((_, i) => (
-                    <div key={`empty-${i}`} className="aspect-square" />
+                    <div key={`empty-${i}`} className="h-full" />
                   ))}
                   {Array.from({ length: daysInMonth }).map((_, i) => {
                     const day = i + 1;
@@ -322,11 +322,11 @@ export default function CalendarPage() {
                         key={day}
                         onMouseDown={() => handleMouseDown(day)}
                         onMouseEnter={() => handleMouseEnter(day)}
-                        className={`aspect-square rounded-2xl border flex flex-col items-center justify-center transition-all cursor-pointer hover:shadow-md relative group ${bgClass} ${borderClass} ${textClass} ${isToday ? 'ring-2 ring-offset-2 ring-emerald-400' : ''}`}
+                        className={`rounded-xl border flex flex-col items-center justify-center transition-all cursor-pointer hover:shadow-md relative group h-full ${bgClass} ${borderClass} ${textClass} ${isToday ? 'ring-2 ring-offset-1 ring-emerald-400' : ''}`}
                       >
                         <span className={`text-sm ${isSelected ? 'font-black' : 'font-bold'}`}>{day}</span>
                         {status?.price && status.available && (
-                          <span className={`text-[10px] font-bold mt-1 ${isSelected ? 'text-primary-600' : 'text-gray-500'}`}>${status.price}</span>
+                          <span className={`text-xs font-black mt-1 ${isSelected ? 'text-primary-800' : 'text-gray-900'}`}>${status.price}</span>
                         )}
                         {!status?.price && status?.available !== false && demand === 'peak' && (
                            <Flame className="w-3 h-3 text-rose-400 absolute top-2 right-2 opacity-50" />
@@ -337,7 +337,7 @@ export default function CalendarPage() {
                 </div>
 
                 {/* Legend */}
-                <div className="flex items-center gap-6 mt-8 justify-center bg-white border border-neutral-200 rounded-full py-2 px-6 w-max mx-auto shadow-sm">
+                <div className="flex items-center gap-6 mt-4 justify-center bg-white border border-neutral-100 rounded-full py-1.5 px-6 w-max mx-auto shadow-sm shrink-0">
                   <div className="flex items-center gap-2 text-xs font-medium text-gray-500">
                     <div className="w-3 h-3 rounded-full bg-rose-100 border border-rose-200" /> Peak Demand
                   </div>
