@@ -65,13 +65,13 @@ export function ICalSyncModal({ propertyId, propertyName, onClose, onSyncComplet
         {/* Header */}
         <div className="px-6 py-5 border-b border-neutral-100 flex items-center justify-between sticky top-0 bg-white/90 backdrop-blur-md z-10">
           <div>
-            <h2 className="text-xl font-black text-gray-900 flex items-center gap-2">
+            <h2 className="text-xl font-black text-midnight-navy flex items-center gap-2">
               <RefreshCw className="w-5 h-5 text-indigo-600" />
               Calendar Sync
             </h2>
-            <p className="text-sm font-medium text-gray-500 mt-1">Cross-platform integration for {propertyName}</p>
+            <p className="text-sm font-medium text-neutral-500 mt-1">Cross-platform integration for {propertyName}</p>
           </div>
-          <button onClick={onClose} className="p-2 rounded-full hover:bg-neutral-100 text-gray-400 hover:text-gray-900 transition-colors">
+          <button onClick={onClose} className="p-2 rounded-full hover:bg-neutral-100 text-neutral-400 hover:text-midnight-navy transition-colors">
             <X className="w-5 h-5" />
           </button>
         </div>
@@ -89,24 +89,24 @@ export function ICalSyncModal({ propertyId, propertyName, onClose, onSyncComplet
 
           {/* Export Section */}
           <div>
-            <h3 className="text-sm font-bold text-gray-900 uppercase tracking-wider mb-4 flex items-center gap-2">
+            <h3 className="text-sm font-bold text-midnight-navy uppercase tracking-wider mb-4 flex items-center gap-2">
               <Download className="w-4 h-4 text-emerald-500" /> Export from Fly2Any
             </h3>
             
             <div className="bg-neutral-50 rounded-2xl p-5 border border-neutral-200">
-               <p className="text-sm font-medium text-gray-600 mb-3 block">
+               <p className="text-sm font-medium text-neutral-600 mb-3 block">
                  Paste this link into Airbnb, VRBO, or Booking.com to export your Fly2Any reservations.
                </p>
                <div className="flex items-center gap-2">
                  <div className="flex-1 bg-white border border-neutral-200 rounded-xl px-4 py-3 flex items-center gap-3">
-                   <LinkIcon className="w-4 h-4 text-gray-400 shrink-0" />
-                   <code className="text-sm text-gray-800 font-mono flex-1 truncate select-all">
+                   <LinkIcon className="w-4 h-4 text-neutral-400 shrink-0" />
+                   <code className="text-sm text-neutral-800 font-mono flex-1 truncate select-all">
                      {exportUrl}
                    </code>
                  </div>
                  <button 
                   onClick={handleCopyExport}
-                  className="px-5 py-3 rounded-xl bg-gray-900 hover:bg-black text-white text-sm font-bold shadow-sm transition-all whitespace-nowrap"
+                  className="px-5 py-3 rounded-xl bg-midnight-navy hover:bg-black text-white text-sm font-bold shadow-sm transition-all whitespace-nowrap"
                  >
                    Copy Link
                  </button>
@@ -116,7 +116,7 @@ export function ICalSyncModal({ propertyId, propertyName, onClose, onSyncComplet
 
           {/* Import Section */}
           <div>
-             <h3 className="text-sm font-bold text-gray-900 uppercase tracking-wider mb-4 flex items-center gap-2">
+             <h3 className="text-sm font-bold text-midnight-navy uppercase tracking-wider mb-4 flex items-center gap-2">
               <Upload className="w-4 h-4 text-amber-500" /> Import External Calendars
             </h3>
             
@@ -125,21 +125,21 @@ export function ICalSyncModal({ propertyId, propertyName, onClose, onSyncComplet
               {/* Active Feeds List */}
               {importedFeeds.length > 0 && (
                 <div className="space-y-3">
-                  <p className="text-xs font-bold text-gray-400 uppercase tracking-wider">Active Feeds</p>
+                  <p className="text-xs font-bold text-neutral-400 uppercase tracking-wider">Active Feeds</p>
                   {importedFeeds.map(feed => (
                     <div key={feed.id} className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-4 rounded-xl bg-neutral-50 border border-neutral-200">
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-2 mb-1">
                           <Check className="w-4 h-4 text-emerald-500" />
-                          <h4 className="text-sm font-bold text-gray-900">{feed.name}</h4>
+                          <h4 className="text-sm font-bold text-midnight-navy">{feed.name}</h4>
                         </div>
-                        <p className="text-xs text-gray-500 truncate mb-1">{feed.url}</p>
-                        <p className="text-[10px] font-medium text-gray-400">Last synced: {feed.lastSync}</p>
+                        <p className="text-xs text-neutral-500 truncate mb-1">{feed.url}</p>
+                        <p className="text-[10px] font-medium text-neutral-400">Last synced: {feed.lastSync}</p>
                       </div>
                       
                       <button 
                         onClick={() => forceSync(feed.id)}
-                        className="px-3 py-1.5 rounded-lg border border-neutral-200 hover:bg-white text-xs font-bold text-gray-600 transition-colors w-max"
+                        className="px-3 py-1.5 rounded-lg border border-neutral-200 hover:bg-white text-xs font-bold text-neutral-600 transition-colors w-max"
                       >
                         Force Sync
                       </button>
@@ -150,16 +150,16 @@ export function ICalSyncModal({ propertyId, propertyName, onClose, onSyncComplet
 
               {/* Add New Feed Input */}
               <div className="pt-2 border-t border-neutral-100">
-                <p className="text-xs font-bold text-gray-600 mb-2">Link another calendar</p>
+                <p className="text-xs font-bold text-neutral-600 mb-2">Link another calendar</p>
                 <div className="flex items-center gap-2">
                   <div className="flex-1 relative">
-                    <LinkIcon className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                    <LinkIcon className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-neutral-400" />
                     <input 
                       type="url"
                       value={importUrl}
                       onChange={(e) => setImportUrl(e.target.value)}
                       placeholder="https://www.airbnb.com/calendar/ical/..."
-                      className="w-full bg-neutral-50 border border-neutral-200 rounded-xl py-3 pl-10 pr-4 text-sm text-gray-900 focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none transition-all placeholder:text-gray-400"
+                      className="w-full bg-neutral-50 border border-neutral-200 rounded-xl py-3 pl-10 pr-4 text-sm text-midnight-navy focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none transition-all placeholder:text-neutral-400"
                     />
                   </div>
                   <button 

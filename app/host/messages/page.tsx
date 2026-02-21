@@ -189,13 +189,13 @@ export default function MessagesPage() {
                       value={searchQuery}
                       onChange={(e) => setSearchQuery(e.target.value)}
                       placeholder="Search guests or properties..."
-                      className="w-full pl-11 pr-4 py-3 rounded-2xl bg-white border border-neutral-100 placeholder-neutral-400 focus:outline-none focus:border-primary-300 shadow-sm focus:shadow-soft transition-all text-sm font-medium text-midnight-navy"
+                      className="w-full pl-11 pr-4 py-3.5 rounded-2xl bg-white border border-neutral-100 placeholder-neutral-400 focus:outline-none focus:border-primary-400 shadow-sm focus:shadow-soft-lg transition-all text-sm font-semibold text-midnight-navy"
                     />
                 </div>
             </div>
             <div className="flex-1 overflow-y-auto px-2 py-3 space-y-1">
                 {filteredConversations.length === 0 ? (
-                    <div className="p-8 text-center text-gray-500 text-sm font-medium">
+                    <div className="p-8 text-center text-neutral-500 text-sm font-medium">
                       {searchQuery ? `No results for "${searchQuery}"` : 'No messages yet.'}
                     </div>
                 ) : (
@@ -206,7 +206,7 @@ export default function MessagesPage() {
                             className={cn(
                                 "w-full p-4 flex gap-4 transition-all text-left rounded-2xl group border border-transparent",
                                 activeConversationId === conv.id 
-                                    ? "bg-white shadow-soft border-neutral-100" 
+                                    ? "bg-white shadow-soft-lg border-neutral-100 scale-[1.01]" 
                                     : "hover:bg-neutral-50/80"
                             )}
                         >
@@ -214,17 +214,17 @@ export default function MessagesPage() {
                                 {conv.guest.image ? (
                                     <Image src={conv.guest.image} alt={conv.guest.name} width={40} height={40} className="rounded-full object-cover" />
                                 ) : (
-                                    <div className="w-10 h-10 rounded-full bg-neutral-200 flex items-center justify-center"><User className="w-5 h-5 text-gray-400" /></div>
+                                    <div className="w-10 h-10 rounded-full bg-neutral-200 flex items-center justify-center"><User className="w-5 h-5 text-neutral-400" /></div>
                                 )}
                                 {conv.unreadCountHost > 0 && <div className="absolute -top-1 -right-1 w-3 h-3 bg-red-500 rounded-full ring-2 ring-white"></div>}
                             </div>
                             <div className="flex-1 min-w-0">
                                 <div className="flex justify-between items-center mb-1">
-                                    <span className={cn("font-bold text-sm truncate", conv.unreadCountHost > 0 ? "text-gray-900" : "text-gray-700")}>{conv.guest.name}</span>
-                                    <span className="text-[10px] text-gray-400 whitespace-nowrap">{format(new Date(conv.lastMessageAt), 'MMM d')}</span>
+                                    <span className={cn("font-bold text-sm truncate", conv.unreadCountHost > 0 ? "text-midnight-navy" : "text-neutral-700")}>{conv.guest.name}</span>
+                                    <span className="text-[10px] text-neutral-400 whitespace-nowrap">{format(new Date(conv.lastMessageAt), 'MMM d')}</span>
                                 </div>
-                                <p className="text-xs text-gray-500 truncate font-medium">{conv.property?.name}</p>
-                                <p className={cn("text-sm truncate mt-1", conv.unreadCountHost > 0 ? "text-gray-900 font-semibold" : "text-gray-600")}>{conv.lastMessage}</p>
+                                <p className="text-xs text-neutral-500 truncate font-medium">{conv.property?.name}</p>
+                                <p className={cn("text-sm truncate mt-1", conv.unreadCountHost > 0 ? "text-midnight-navy font-semibold" : "text-neutral-600")}>{conv.lastMessage}</p>
                             </div>
                         </button>
                     ))
@@ -261,9 +261,9 @@ export default function MessagesPage() {
 
                     <div className="flex-1 overflow-y-auto p-6 space-y-6 bg-[#FDFDFD]">
                          {loadingMessages ? (
-                             <div className="flex justify-center p-8"><Loader2 className="animate-spin text-gray-300" /></div>
+                             <div className="flex justify-center p-8"><Loader2 className="animate-spin text-neutral-300" /></div>
                          ) : messages.length === 0 ? (
-                             <div className="flex flex-col items-center justify-center h-full text-gray-400">
+                             <div className="flex flex-col items-center justify-center h-full text-neutral-400">
                                 <MessageSquare className="w-12 h-12 mb-2 opacity-20" />
                                 <p className="text-sm">No messages in this conversation yet.</p>
                              </div>
@@ -343,7 +343,7 @@ export default function MessagesPage() {
                     </form>
                 </>
             ) : (
-                <div className="flex-1 flex flex-col items-center justify-center text-gray-400">
+                <div className="flex-1 flex flex-col items-center justify-center text-neutral-400">
                     <MessageSquare className="w-16 h-16 mb-4 opacity-20" />
                     <p>Select a conversation to start messaging</p>
                 </div>
@@ -362,8 +362,8 @@ export default function MessagesPage() {
                 >
                     <div className="p-6 overflow-y-auto w-[340px]">
                         <div className="flex items-center justify-between mb-8">
-                            <h3 className="text-lg font-black text-gray-900 tracking-tight">Context</h3>
-                            <button onClick={() => setShowContextDrawer(false)} className="p-1.5 text-gray-400 hover:bg-neutral-200 rounded-lg">
+                            <h3 className="text-lg font-black text-midnight-navy tracking-tight">Context</h3>
+                            <button onClick={() => setShowContextDrawer(false)} className="p-1.5 text-neutral-400 hover:bg-neutral-200 rounded-lg">
                                 <X className="w-5 h-5" />
                             </button>
                         </div>
@@ -376,18 +376,18 @@ export default function MessagesPage() {
                                     <User className="w-10 h-10 text-indigo-400" />
                                 </div>
                             )}
-                            <h4 className="font-bold text-gray-900 text-xl tracking-tight leading-tight">{activeConversation.guest.name}</h4>
-                            <p className="text-sm font-medium text-gray-500">Verified Guest</p>
+                            <h4 className="font-bold text-midnight-navy text-xl tracking-tight leading-tight">{activeConversation.guest.name}</h4>
+                            <p className="text-sm font-medium text-neutral-500">Verified Guest</p>
                         </div>
                         
                         <div className="space-y-4">
                             <div className="bg-white p-5 rounded-3xl border border-neutral-200 shadow-sm relative overflow-hidden group">
                                 <div className="absolute top-0 right-0 p-12 bg-primary-500/5 rounded-full blur-xl -mr-6 -mt-6 group-hover:bg-primary-500/10 transition-colors" />
                                 <h5 className="text-[10px] font-black text-neutral-400 uppercase tracking-widest mb-3">Trip Info</h5>
-                                <p className="text-base font-bold text-gray-900 mb-2 leading-tight">{activeConversation.property?.name}</p>
+                                <p className="text-base font-bold text-midnight-navy mb-2 leading-tight">{activeConversation.property?.name}</p>
                                 <div className="space-y-2 mt-4 pt-4 border-t border-neutral-100">
-                                   <p className="text-xs font-semibold text-gray-500 flex justify-between"><span>Status:</span> <span className="text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-md">Upcoming</span></p>
-                                   <p className="text-xs font-semibold text-gray-500 flex justify-between"><span>Guests:</span> <span className="text-gray-900">2 Adults, 1 Pet</span></p>
+                                   <p className="text-xs font-semibold text-neutral-500 flex justify-between"><span>Status:</span> <span className="text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-md">Upcoming</span></p>
+                                   <p className="text-xs font-semibold text-neutral-500 flex justify-between"><span>Guests:</span> <span className="text-midnight-navy">2 Adults, 1 Pet</span></p>
                                 </div>
                             </div>
                             

@@ -85,7 +85,7 @@ export async function TodayActivity({ userId }: { userId: string }) {
 
           {!hasActivity ? (
           <div className="text-center py-6">
-            <p className="text-sm text-gray-400 font-medium">No activity today — enjoy your day! ☀️</p>
+            <p className="text-sm text-neutral-400 font-medium">No activity today — enjoy your day! ☀️</p>
           </div>
         ) : (
           <div className="grid grid-cols-3 gap-6">

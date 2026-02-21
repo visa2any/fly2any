@@ -28,9 +28,9 @@ const ONBOARDING_STEPS: OnboardingStep[] = [
     icon: Calendar,
     href: '/host/calendar',
     cta: 'Open Calendar',
-    color: 'text-blue-600',
-    bgColor: 'bg-blue-50',
-    borderColor: 'border-blue-200',
+    color: 'text-primary-600',
+    bgColor: 'bg-primary-50',
+    borderColor: 'border-primary-100',
   },
   {
     id: 'verification',
@@ -39,9 +39,9 @@ const ONBOARDING_STEPS: OnboardingStep[] = [
     icon: Shield,
     href: '/host/verification',
     cta: 'Start Verification',
-    color: 'text-emerald-600',
-    bgColor: 'bg-emerald-50',
-    borderColor: 'border-emerald-200',
+    color: 'text-secondary-600',
+    bgColor: 'bg-secondary-50',
+    borderColor: 'border-secondary-100',
   },
   {
     id: 'payouts',
@@ -50,16 +50,16 @@ const ONBOARDING_STEPS: OnboardingStep[] = [
     icon: CreditCard,
     href: '/host/payouts',
     cta: 'Add Payout Method',
-    color: 'text-violet-600',
-    bgColor: 'bg-violet-50',
-    borderColor: 'border-violet-200',
+    color: 'text-indigo-600',
+    bgColor: 'bg-indigo-50',
+    borderColor: 'border-indigo-100',
   },
 ];
 
 export default function PostPublishOnboarding() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const propertyId = searchParams.get('propertyId');
+  const propertyId = searchParams?.get('propertyId');
   const [completedSteps, setCompletedSteps] = useState<Set<string>>(new Set());
   const [showConfetti, setShowConfetti] = useState(true);
 
@@ -89,24 +89,24 @@ export default function PostPublishOnboarding() {
         {/* Celebration Header */}
         <div className="text-center mb-12">
           <div className="relative inline-flex items-center justify-center mb-6">
-            <div className="w-20 h-20 rounded-3xl bg-gradient-to-br from-emerald-400 to-emerald-600 flex items-center justify-center shadow-lg shadow-emerald-500/30">
+            <div className="w-20 h-20 rounded-[2rem] bg-gradient-to-br from-secondary-400 to-secondary-600 flex items-center justify-center shadow-lg shadow-secondary-500/30">
               {showConfetti ? (
-                <PartyPopper className="w-10 h-10 text-white animate-bounce" />
+                <PartyPopper className="w-10 h-10 text-midnight-navy animate-bounce" />
               ) : (
-                <CheckCircle2 className="w-10 h-10 text-white" />
+                <CheckCircle2 className="w-10 h-10 text-midnight-navy" />
               )}
             </div>
             {showConfetti && (
               <div className="absolute inset-0 animate-ping opacity-20">
-                <div className="w-20 h-20 rounded-3xl bg-emerald-400" />
+                <div className="w-20 h-20 rounded-[2rem] bg-secondary-400" />
               </div>
             )}
           </div>
 
-          <h1 className="text-3xl md:text-4xl font-black text-gray-900 mb-3 tracking-tight">
+          <h1 className="text-3xl md:text-4xl font-black text-midnight-navy mb-3 tracking-tight">
             Your Listing is Live! 🎉
           </h1>
-          <p className="text-lg text-gray-500 max-w-md mx-auto">
+          <p className="text-lg text-neutral-500 max-w-md mx-auto">
             Amazing! Complete these steps to start receiving bookings and maximize your earnings.
           </p>
         </div>
@@ -114,12 +114,12 @@ export default function PostPublishOnboarding() {
         {/* Progress Bar */}
         <div className="mb-10">
           <div className="flex items-center justify-between text-sm mb-2">
-            <span className="font-bold text-gray-900">Setup Progress</span>
-            <span className="text-gray-500 font-medium">{completedSteps.size}/{ONBOARDING_STEPS.length} completed</span>
+            <span className="font-bold text-midnight-navy">Setup Progress</span>
+            <span className="text-neutral-500 font-medium">{completedSteps.size}/{ONBOARDING_STEPS.length} completed</span>
           </div>
-          <div className="h-2.5 bg-neutral-100 rounded-full overflow-hidden">
+          <div className="h-3 bg-neutral-100 rounded-full overflow-hidden shadow-inner">
             <div 
-              className="h-full bg-gradient-to-r from-emerald-400 to-emerald-600 rounded-full transition-all duration-700 ease-out"
+              className="h-full bg-gradient-to-r from-primary-500 to-secondary-500 rounded-full transition-all duration-700 ease-out"
               style={{ width: `${progress}%` }}
             />
           </div>
@@ -156,7 +156,7 @@ export default function PostPublishOnboarding() {
                   {/* Content */}
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2 mb-1">
-                      <h3 className={`font-bold text-lg ${isCompleted ? 'text-gray-400 line-through' : 'text-gray-900'}`}>
+                      <h3 className={`font-bold text-lg ${isCompleted ? 'text-neutral-400 line-through' : 'text-midnight-navy'}`}>
                         {step.title}
                       </h3>
                       {idx === 0 && !isCompleted && (
@@ -165,7 +165,7 @@ export default function PostPublishOnboarding() {
                         </span>
                       )}
                     </div>
-                    <p className={`text-sm mb-3 ${isCompleted ? 'text-gray-400' : 'text-gray-500'}`}>
+                    <p className={`text-sm mb-3 ${isCompleted ? 'text-neutral-400' : 'text-neutral-500'}`}>
                       {step.description}
                     </p>
 
@@ -180,7 +180,7 @@ export default function PostPublishOnboarding() {
                         </Link>
                         <button
                           onClick={() => handleStepComplete(step.id)}
-                          className="text-xs text-gray-400 hover:text-gray-600 font-medium transition-colors"
+                          className="text-xs text-neutral-400 hover:text-neutral-600 font-medium transition-colors"
                         >
                           Skip for now
                         </button>
@@ -190,7 +190,7 @@ export default function PostPublishOnboarding() {
 
                   {/* Step Number */}
                   <div className={`flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold ${
-                    isCompleted ? 'bg-emerald-100 text-emerald-600' : 'bg-neutral-100 text-gray-400'
+                    isCompleted ? 'bg-emerald-100 text-emerald-600' : 'bg-neutral-100 text-neutral-400'
                   }`}>
                     {isCompleted ? '✓' : idx + 1}
                   </div>
@@ -207,7 +207,7 @@ export default function PostPublishOnboarding() {
             className={`w-full py-4 rounded-2xl font-bold text-center transition-all flex items-center justify-center gap-2 ${
               allComplete
                 ? 'bg-gradient-to-r from-primary-500 to-primary-600 text-white shadow-lg shadow-primary-500/25 hover:shadow-xl hover:-translate-y-0.5'
-                : 'bg-gray-900 text-white hover:bg-black'
+                : 'bg-midnight-navy text-white hover:bg-black'
             }`}
           >
             {allComplete ? (
@@ -226,7 +226,7 @@ export default function PostPublishOnboarding() {
           {!allComplete && (
             <button
               onClick={() => router.push('/host/dashboard')}
-              className="text-sm text-gray-400 hover:text-gray-600 font-medium transition-colors flex items-center gap-1"
+              className="text-sm text-neutral-400 hover:text-neutral-600 font-medium transition-colors flex items-center gap-1"
             >
               <SkipForward className="w-3.5 h-3.5" />
               I'll set these up later

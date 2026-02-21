@@ -25,6 +25,11 @@ export async function POST(request: NextRequest) {
   try {
     const body: ErrorLogRequest = await request.json();
 
+    // Suppress Next.js internal redirect signals (not actual errors)
+    if (body.message?.includes('NEXT_REDIRECT') || body.errorId === 'NEXT_REDIRECT') {
+      return new NextResponse(null, { status: 204 });
+    }
+
     // Validate required fields
     if (!body.errorId || !body.message || !body.severity) {
       return NextResponse.json(

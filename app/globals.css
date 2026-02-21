@@ -1003,10 +1003,24 @@
     }
   }
 
-  /* Legacy alias */
-  .mobile-card-shadow {
-    box-shadow: 0 2px 8px rgba(27, 28, 32, 0.06);
+  /* Next-Gen Soft-UI Shadows */
+  .shadow-soft {
+    box-shadow: 0 4px 24px -1px rgba(0, 0, 0, 0.04), 0 2px 8px -1px rgba(0, 0, 0, 0.02);
   }
+
+  .shadow-soft-lg {
+    box-shadow: 0 12px 48px -4px rgba(0, 0, 0, 0.08), 0 4px 12px -2px rgba(0, 0, 0, 0.03);
+  }
+
+  /* SVG Gradient Stops for Next-Gen UI */
+  .stop-primary-400 { stop-color: #EF4444; }
+  .stop-primary-600 { stop-color: #B91C1C; }
+  .stop-secondary-400 { stop-color: #FBBF24; }
+  .stop-secondary-600 { stop-color: #D97706; }
+  .stop-success-400 { stop-color: #34D399; }
+  .stop-success-600 { stop-color: #059669; }
+  .stop-warning-400 { stop-color: #FB923C; }
+  .stop-warning-600 { stop-color: #EA580C; }
 
   @media (min-width: 768px) {
     .mobile-card-shadow {

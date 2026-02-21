@@ -21,21 +21,21 @@ export default function HostError({
         <div className="w-16 h-16 mx-auto mb-6 rounded-2xl bg-red-50 flex items-center justify-center">
           <AlertCircle className="w-8 h-8 text-red-400" />
         </div>
-        <h2 className="text-2xl font-bold text-gray-900 mb-2">Something went wrong</h2>
-        <p className="text-gray-500 mb-6 text-sm">
+        <h2 className="text-2xl font-bold text-midnight-navy mb-2">Something went wrong</h2>
+        <p className="text-neutral-500 mb-6 text-sm">
           We encountered an error loading this page. This is usually temporary — please try again.
         </p>
         <div className="flex items-center justify-center gap-3">
           <button
             onClick={reset}
-            className="inline-flex items-center gap-2 px-6 py-3 bg-gray-900 text-white rounded-xl text-sm font-bold hover:bg-gray-800 transition-colors"
+            className="inline-flex items-center gap-2 px-6 py-3 bg-midnight-navy text-white rounded-xl text-sm font-bold hover:bg-neutral-800 transition-colors"
           >
             <RefreshCw className="w-4 h-4" />
             Try Again
           </button>
           <Link
             href="/"
-            className="inline-flex items-center gap-2 px-6 py-3 bg-white border border-neutral-200 text-gray-700 rounded-xl text-sm font-bold hover:bg-neutral-50 transition-colors"
+            className="inline-flex items-center gap-2 px-6 py-3 bg-white border border-neutral-200 text-neutral-700 rounded-xl text-sm font-bold hover:bg-neutral-50 transition-colors"
           >
             <Home className="w-4 h-4" />
             Go Home

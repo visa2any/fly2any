@@ -60,10 +60,20 @@ export function ListingHealthScore({ properties }: { properties: PropertyHealth[
           </div>
         </div>
 
-        <div className="flex items-center gap-6">
-          {/* Circular Score */}
-          <div className="relative w-24 h-24 shrink-0">
-            <svg className="w-24 h-24 -rotate-90" viewBox="0 0 100 100">
+        <div className="flex items-center gap-8">
+          {/* Circular Score with Gradient Glow */}
+          <div className="relative w-28 h-28 shrink-0">
+            <svg className="w-28 h-28 -rotate-90" viewBox="0 0 100 100">
+              <defs>
+                <filter id="glow" x="-20%" y="-20%" width="140%" height="140%">
+                  <feGaussianBlur stdDeviation="3" result="blur" />
+                  <feComposite in="SourceGraphic" in2="blur" operator="over" />
+                </filter>
+                <linearGradient id="scoreGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+                  <stop offset="0%" className={avgScore >= 80 ? 'stop-success-400' : avgScore >= 50 ? 'stop-warning-400' : 'stop-primary-400'} />
+                  <stop offset="100%" className={avgScore >= 80 ? 'stop-success-600' : avgScore >= 50 ? 'stop-warning-600' : 'stop-primary-600'} />
+                </linearGradient>
+              </defs>
               <circle cx="50" cy="50" r="40" fill="none" strokeWidth="8" className="stroke-neutral-100" />
               <circle
                 cx="50" cy="50" r="40" fill="none" strokeWidth="8"
@@ -71,11 +81,16 @@ export function ListingHealthScore({ properties }: { properties: PropertyHealth[
                 strokeLinecap="round"
                 strokeDasharray={circumference}
                 strokeDashoffset={offset}
-                style={{ transition: 'stroke-dashoffset 1.5s cubic-bezier(0.16, 1, 0.3, 1) 0.5s' }}
+                filter="url(#glow)"
+                style={{ 
+                  transition: 'stroke-dashoffset 1.5s cubic-bezier(0.16, 1, 0.3, 1) 0.5s',
+                  stroke: `url(#scoreGradient)`
+                }}
               />
             </svg>
-            <div className="absolute inset-0 flex items-center justify-center">
-              <span className={`text-2xl font-black ${scoreColor}`}>{avgScore}</span>
+            <div className="absolute inset-0 flex flex-col items-center justify-center">
+              <span className={`text-3xl font-black ${scoreColor} tracking-tighter`}>{avgScore}</span>
+              <span className="text-[10px] font-bold text-neutral-400 uppercase tracking-widest -mt-1">Score</span>
             </div>
           </div>
 
@@ -91,7 +106,7 @@ export function ListingHealthScore({ properties }: { properties: PropertyHealth[
             ) : (
               tips.slice(0, 3).map((tip, i) => (
                 <AnimatedFadeIn key={i} delay={0.5 + i * 0.15}>
-                  <div className="flex items-center gap-2 text-gray-600 bg-neutral-50 px-3 py-2 rounded-xl">
+                  <div className="flex items-center gap-2 text-neutral-600 bg-neutral-50 px-3 py-2 rounded-xl">
                     <AlertTriangle className="w-4 h-4 text-amber-500 shrink-0" />
                     <span className="text-xs font-semibold">{tip.text}</span>
                   </div>

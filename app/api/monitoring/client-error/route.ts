@@ -21,6 +21,7 @@ export async function POST(request: NextRequest) {
       'twk-chunk',   // Tawk.to chunk loader
       'gtag',        // Google Analytics
       'fbq',         // Facebook Pixel
+      'NEXT_REDIRECT', // Next.js internal redirect signal (not actually an error)
     ];
     
     const errorSource = `${errorData.message || ''} ${errorData.stack || ''}`.toLowerCase();

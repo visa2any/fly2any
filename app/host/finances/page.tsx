@@ -32,7 +32,7 @@ export default function FinancesPage() {
   };
 
   if (loading) {
-    return <div className="min-h-screen bg-[#FDFDFD] pt-4 pb-20 flex items-center justify-center"><Loader2 className="w-8 h-8 animate-spin text-gray-400" /></div>;
+    return <div className="min-h-screen bg-[#FDFDFD] pt-4 pb-20 flex items-center justify-center"><Loader2 className="w-8 h-8 animate-spin text-neutral-400" /></div>;
   }
 
   const currentYear = new Date().getFullYear().toString();
@@ -44,19 +44,19 @@ export default function FinancesPage() {
             {/* Header */}
             <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 mb-8">
                 <div>
-                     <h1 className="text-3xl font-black text-gray-900 mb-2">Financials & Taxes</h1>
-                     <p className="text-gray-500 text-sm">Track your earnings, pacing, and export reports for tax season.</p>
+                     <h1 className="text-3xl font-black text-midnight-navy mb-2">Financials & Taxes</h1>
+                     <p className="text-neutral-500 text-sm">Track your earnings, pacing, and export reports for tax season.</p>
                 </div>
                 <div className="flex items-center gap-3">
                     <select
                         value={timeframe}
                         onChange={(e) => setTimeframe(e.target.value as any)}
-                        className="px-4 py-2.5 rounded-xl bg-white border border-neutral-200 text-gray-700 text-sm font-bold focus:ring-2 focus:ring-primary-500 outline-none"
+                        className="px-4 py-2.5 rounded-xl bg-white border border-neutral-100 text-neutral-700 text-xs font-black shadow-sm focus:ring-2 focus:ring-primary-500 outline-none appearance-none cursor-pointer"
                     >
                         <option value="ytd">Year to Date (2026)</option>
                         <option value="all">All Time</option>
                     </select>
-                    <button onClick={handleExport} className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-gray-900 hover:bg-black text-white text-sm font-bold transition-colors">
+                    <button onClick={handleExport} className="flex items-center gap-2 px-6 py-3 rounded-xl bg-midnight-navy hover:scale-105 active:scale-95 text-white text-xs font-black shadow-soft transition-all">
                         <Download className="w-4 h-4" />
                         Export CSV
                     </button>
@@ -65,40 +65,42 @@ export default function FinancesPage() {
 
             {/* Top Stats */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-                <div className="bg-white rounded-2xl p-6 border border-neutral-200 shadow-sm flex flex-col justify-between">
-                    <div className="flex items-start justify-between mb-4">
-                        <div className="w-10 h-10 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center">
-                            <DollarSign className="w-5 h-5" />
+                <div className="bg-white rounded-3xl p-8 border border-neutral-100 shadow-soft flex flex-col justify-between hover:shadow-soft-lg transition-all">
+                    <div className="flex items-start justify-between mb-6">
+                        <div className="w-12 h-12 rounded-2xl bg-emerald-50 text-emerald-600 flex items-center justify-center border border-emerald-100">
+                            <DollarSign className="w-6 h-6" />
                         </div>
                     </div>
                     <div>
-                        <p className="text-sm text-gray-500 font-medium mb-1">Net Earnings (YTD)</p>
-                        <h2 className="text-3xl font-black text-gray-900">${data?.netYTD?.toLocaleString() || '0'}</h2>
+                        <p className="text-[10px] font-black uppercase tracking-widest text-neutral-400 mb-1">Net Earnings (YTD)</p>
+                        <h2 className="text-4xl font-black text-midnight-navy tracking-tight">${data?.netYTD?.toLocaleString() || '0'}</h2>
                     </div>
                 </div>
 
-                <div className="bg-white rounded-2xl p-6 border border-neutral-200 shadow-sm flex flex-col justify-between">
-                    <div className="flex items-start justify-between mb-4">
-                        <div className="w-10 h-10 rounded-xl bg-indigo-50 text-indigo-600 flex items-center justify-center">
-                            <Calendar className="w-5 h-5" />
+                <div className="bg-white rounded-3xl p-8 border border-neutral-100 shadow-soft flex flex-col justify-between hover:shadow-soft-lg transition-all">
+                    <div className="flex items-start justify-between mb-6">
+                        <div className="w-12 h-12 rounded-2xl bg-secondary-50 text-secondary-600 flex items-center justify-center border border-secondary-100">
+                            <Calendar className="w-6 h-6" />
                         </div>
                     </div>
                     <div>
-                        <p className="text-sm text-gray-500 font-medium mb-1">Upcoming Payouts</p>
-                        <h2 className="text-3xl font-black text-gray-900">${data?.upcomingPayouts?.toLocaleString() || '0'}</h2>
-                        <p className="text-xs text-gray-400 mt-2">Booked & Confirmed</p>
+                        <p className="text-[10px] font-black uppercase tracking-widest text-neutral-400 mb-1">Upcoming Payouts</p>
+                        <h2 className="text-4xl font-black text-midnight-navy tracking-tight">${data?.upcomingPayouts?.toLocaleString() || '0'}</h2>
+                        <div className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-secondary-50 text-secondary-700 rounded-lg text-[10px] font-black uppercase tracking-wide mt-3">
+                           Booked & Confirmed
+                        </div>
                     </div>
                 </div>
 
-                <div className="bg-white rounded-2xl p-6 border border-neutral-200 shadow-sm flex flex-col justify-between">
-                    <div className="flex items-start mb-4">
-                        <div className="w-10 h-10 rounded-xl bg-orange-50 text-orange-600 flex items-center justify-center">
-                            <AlertCircle className="w-5 h-5" />
+                <div className="bg-white rounded-3xl p-8 border border-neutral-100 shadow-soft flex flex-col justify-between hover:shadow-soft-lg transition-all">
+                    <div className="flex items-start mb-6">
+                        <div className="w-12 h-12 rounded-2xl bg-primary-50 text-primary-600 flex items-center justify-center border border-primary-100">
+                            <AlertCircle className="w-6 h-6" />
                         </div>
                     </div>
                     <div>
-                        <p className="text-sm text-gray-500 font-medium mb-1">Platform Fees & Taxes</p>
-                        <h2 className="text-3xl font-black text-gray-900">${data?.platformFees?.toLocaleString() || '0'}</h2>
+                        <p className="text-[10px] font-black uppercase tracking-widest text-neutral-400 mb-1">Platform Fees & Taxes</p>
+                        <h2 className="text-4xl font-black text-midnight-navy tracking-tight">${data?.platformFees?.toLocaleString() || '0'}</h2>
                     </div>
                 </div>
             </div>
@@ -109,22 +111,22 @@ export default function FinancesPage() {
                 {/* Main Revenue Chart */}
                 <div className="lg:col-span-2 bg-white rounded-3xl border border-neutral-200 p-6 lg:p-8 shadow-sm">
                     <div className="mb-6">
-                        <h3 className="text-lg font-bold text-gray-900">Revenue Analysis</h3>
-                        <p className="text-sm text-gray-500">Gross vs Net earnings per month</p>
+                        <h3 className="text-lg font-bold text-midnight-navy">Revenue Analysis</h3>
+                        <p className="text-sm text-neutral-500">Gross vs Net earnings per month</p>
                     </div>
                     <div className="h-[300px] w-full">
                         <ResponsiveContainer width="100%" height="100%">
                             <BarChart data={data?.monthlyData || []} margin={{ top: 5, right: 0, left: -20, bottom: 0 }}>
                                 <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f0f0f0" />
-                                <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fontSize: 12, fill: '#888' }} dy={10} />
-                                <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 12, fill: '#888' }} tickFormatter={(val) => `$${val/1000}k`} />
+                                <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fontSize: 10, fontWeight: 900, fill: '#94a3b8' }} dy={10} />
+                                <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 10, fontWeight: 900, fill: '#94a3b8' }} tickFormatter={(val) => `$${val/1000}k`} />
                                 <Tooltip 
-                                    cursor={{ fill: '#f9fafb' }}
-                                    contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }}
+                                    cursor={{ fill: '#f8fafc' }}
+                                    contentStyle={{ borderRadius: '16px', border: '1px solid #f1f5f9', boxShadow: '0 10px 15px -3px rgb(0 0 0 / 0.05)', padding: '12px' }}
                                 />
-                                <Legend wrapperStyle={{ paddingTop: '20px', fontSize: '12px' }} />
-                                <Bar dataKey="gross" name="Gross Revenue" fill="#e2e8f0" radius={[4, 4, 0, 0]} />
-                                <Bar dataKey="net" name="Net Earnings" fill="#4f46e5" radius={[4, 4, 0, 0]} />
+                                <Legend wrapperStyle={{ paddingTop: '30px', fontSize: '10px', fontWeight: 900, textTransform: 'uppercase', letterSpacing: '0.05em' }} />
+                                <Bar dataKey="gross" name="Gross Revenue" fill="#CBD5E1" radius={[8, 8, 0, 0]} />
+                                <Bar dataKey="net" name="Net Earnings" fill="#E74035" radius={[8, 8, 0, 0]} />
                             </BarChart>
                         </ResponsiveContainer>
                     </div>
@@ -133,8 +135,8 @@ export default function FinancesPage() {
                 {/* YoY Pacing */}
                 <div className="bg-white rounded-3xl border border-neutral-200 p-6 lg:p-8 shadow-sm flex flex-col">
                     <div className="mb-6">
-                        <h3 className="text-lg font-bold text-gray-900">YoY Pacing</h3>
-                        <p className="text-sm text-gray-500">Current month vs last year</p>
+                        <h3 className="text-lg font-bold text-midnight-navy">YoY Pacing</h3>
+                        <p className="text-sm text-neutral-500">Current month vs last year</p>
                     </div>
                     <div className="flex-1 min-h-[250px] w-full">
                         <ResponsiveContainer width="100%" height="100%">
@@ -153,9 +155,9 @@ export default function FinancesPage() {
                     </div>
                     <div className="mt-6 pt-6 border-t border-neutral-100">
                         <div className="flex items-center justify-between">
-                            <span className="text-sm font-medium text-gray-600">Pacing Status</span>
-                            <span className={data?.pacingStatus === 'Ahead' ? "text-sm font-bold text-emerald-600 bg-emerald-50 px-3 py-1 rounded-full" : "text-sm font-bold text-amber-600 bg-amber-50 px-3 py-1 rounded-full"}>
-                                {data?.pacingStatus === 'Ahead' ? 'Ahead of Last Year' : 'Behind Last Year'}
+                            <span className="text-[10px] font-black uppercase tracking-widest text-neutral-400">Pacing Status</span>
+                            <span className={data?.pacingStatus === 'Ahead' ? "text-[10px] font-black uppercase tracking-widest text-emerald-600 bg-emerald-50 border border-emerald-100 px-3 py-1.5 rounded-xl" : "text-[10px] font-black uppercase tracking-widest text-amber-600 bg-amber-50 border border-amber-100 px-3 py-1.5 rounded-xl"}>
+                                {data?.pacingStatus === 'Ahead' ? 'Ahead' : 'Adjust Needed'}
                             </span>
                         </div>
                     </div>

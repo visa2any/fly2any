@@ -201,7 +201,7 @@ export default function CalendarPage() {
   if (loading) {
     return (
       <div className="min-h-screen bg-[#FDFDFD] flex items-center justify-center">
-        <Loader2 className="w-8 h-8 text-gray-300 animate-spin" />
+        <Loader2 className="w-8 h-8 text-neutral-300 animate-spin" />
       </div>
     );
   }
@@ -211,15 +211,15 @@ export default function CalendarPage() {
       <MaxWidthContainer className="flex-1 flex flex-col min-h-0 h-full">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-3 mt-1 shrink-0">
           <div>
-            <h1 className="text-2xl md:text-3xl font-black text-gray-900 mb-1 flex items-center gap-2">
+            <h1 className="text-2xl md:text-3xl font-black text-midnight-navy mb-1 flex items-center gap-2">
                 Calendar <span className="bg-primary-100 text-primary-700 text-xs px-2 py-1 rounded-full uppercase tracking-wider font-bold">Smart UX</span>
             </h1>
-            <p className="text-gray-500 text-sm">Drag to select multiple days. Adjust pricing with demand insights.</p>
+            <p className="text-neutral-500 text-sm">Drag to select multiple days. Adjust pricing with demand insights.</p>
           </div>
           <div className="flex items-center gap-3">
               <button 
                   onClick={() => setIsSyncModalOpen(true)}
-                  className="px-4 py-2.5 rounded-xl bg-neutral-100 hover:bg-neutral-200 text-gray-700 font-bold text-sm transition-colors border border-neutral-200"
+                  className="px-4 py-2.5 rounded-xl bg-neutral-100 hover:bg-neutral-200 text-neutral-700 font-bold text-sm transition-colors border border-neutral-200"
               >
                   Sync iCal
               </button>
@@ -227,7 +227,7 @@ export default function CalendarPage() {
                 <select
                   value={selectedProperty}
                   onChange={(e) => setSelectedProperty(e.target.value)}
-                  className="px-4 py-2.5 rounded-xl bg-white border border-neutral-200 text-gray-900 text-sm font-bold focus:outline-none focus:border-primary-300 focus:ring-2 focus:ring-primary-100 appearance-none cursor-pointer"
+                  className="px-4 py-2.5 rounded-xl bg-white border border-neutral-200 text-midnight-navy text-sm font-bold focus:outline-none focus:border-primary-300 focus:ring-2 focus:ring-primary-100 appearance-none cursor-pointer"
                 >
                   {properties.map((p) => (
                     <option key={p.id} value={p.id}>{p.name}</option>
@@ -240,19 +240,19 @@ export default function CalendarPage() {
         {properties.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-20 bg-neutral-50 border border-neutral-200 rounded-3xl text-center">
             <CalendarIcon className="w-12 h-12 text-neutral-300 mb-4" />
-            <h3 className="text-gray-900 font-bold text-lg mb-2">No properties</h3>
-            <p className="text-gray-500 text-sm">Add a property first to manage its calendar.</p>
+            <h3 className="text-midnight-navy font-bold text-lg mb-2">No properties</h3>
+            <p className="text-neutral-500 text-sm">Add a property first to manage its calendar.</p>
           </div>
         ) : (
           <div className="flex gap-8 flex-1 min-h-0 h-full pb-4">
             <div className={`flex-1 flex flex-col min-h-0 h-full transition-all duration-300 ${selectedDates.length > 0 ? 'pr-[340px]' : ''}`}>
                 <div className="flex flex-col md:flex-row md:items-center justify-between mb-4 gap-4 shrink-0">
                   <div className="flex items-center gap-4 bg-white p-1 rounded-xl border border-neutral-200 shadow-sm w-max">
-                    <button onClick={prevMonth} className="p-2 rounded-lg text-gray-500 hover:text-gray-900 hover:bg-neutral-50 transition-colors">
+                    <button onClick={prevMonth} className="p-2 rounded-lg text-neutral-500 hover:text-midnight-navy hover:bg-neutral-50 transition-colors">
                       <ChevronLeft className="w-5 h-5" />
                     </button>
-                    <h2 className="text-gray-900 font-black text-lg min-w-[140px] text-center">{monthName}</h2>
-                    <button onClick={nextMonth} className="p-2 rounded-lg text-gray-500 hover:text-gray-900 hover:bg-neutral-50 transition-colors">
+                    <h2 className="text-midnight-navy font-black text-lg min-w-[140px] text-center">{monthName}</h2>
+                    <button onClick={nextMonth} className="p-2 rounded-lg text-neutral-500 hover:text-midnight-navy hover:bg-neutral-50 transition-colors">
                       <ChevronRight className="w-5 h-5" />
                     </button>
                   </div>
@@ -264,8 +264,8 @@ export default function CalendarPage() {
                              <Flame className="w-4 h-4" />
                           </span>
                           <div>
-                              <p className="text-sm font-black text-gray-900 leading-none">Smart Yield</p>
-                              <p className="text-[10px] text-gray-500 mt-1 font-bold uppercase tracking-wider">Market Demand Active</p>
+                              <p className="text-sm font-black text-midnight-navy leading-none">Smart Yield</p>
+                              <p className="text-[10px] text-neutral-500 mt-1 font-bold uppercase tracking-wider">Market Demand Active</p>
                           </div>
                       </div>
                       <div className="w-10 h-5 bg-emerald-500 rounded-full ml-4 relative cursor-pointer shadow-inner">
@@ -276,7 +276,7 @@ export default function CalendarPage() {
 
                 <div className="grid grid-cols-7 gap-1 mb-1 shrink-0">
                   {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map((d) => (
-                    <div key={d} className="text-center text-gray-400 text-[10px] font-bold py-1 uppercase tracking-tighter">{d}</div>
+                    <div key={d} className="text-center text-neutral-400 text-[10px] font-bold py-1 uppercase tracking-tighter">{d}</div>
                   ))}
                 </div>
 
@@ -301,9 +301,9 @@ export default function CalendarPage() {
                     
                     // Heatmap coloring
                     let bgClass = 'bg-white';
-                    let textClass = 'text-gray-900';
+                    let textClass = 'text-midnight-navy';
                     let borderClass = 'border-neutral-200';
-                    let labelClass = 'text-gray-500';
+                    let labelClass = 'text-neutral-500';
                     
                     if (status && !status.available) {
                          bgClass = 'bg-neutral-50/50';
@@ -353,16 +353,16 @@ export default function CalendarPage() {
 
                 {/* Legend */}
                 <div className="flex items-center gap-8 mt-4 justify-center bg-white border border-neutral-100 rounded-full py-2 px-8 w-max mx-auto shadow-sm shrink-0">
-                  <div className="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-gray-400">
+                  <div className="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-neutral-400">
                     <div className="w-2 h-2 rounded-full bg-rose-400" /> Peak
                   </div>
-                  <div className="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-gray-400">
+                  <div className="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-neutral-400">
                     <div className="w-2 h-2 rounded-full bg-amber-400" /> High 
                   </div>
-                  <div className="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-gray-400">
+                  <div className="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-neutral-400">
                     <div className="w-2 h-2 rounded-full bg-neutral-200" /> Unavailable
                   </div>
-                  <div className="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-gray-400">
+                  <div className="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-neutral-400">
                     <div className="w-2 h-2 rounded-full bg-primary-500" /> Selected
                   </div>
                 </div>
@@ -373,12 +373,12 @@ export default function CalendarPage() {
                 <div className="fixed top-[73px] right-0 bottom-0 w-[340px] bg-white border-l border-neutral-200 shadow-[-10px_0_30px_rgba(0,0,0,0.03)] z-40 p-6 overflow-y-auto animate-in slide-in-from-right duration-300 ease-out flex flex-col">
                     <div className="flex items-center justify-between mb-6 pb-4 border-b border-neutral-100">
                         <div className="flex flex-col">
-                            <h3 className="text-xl font-black text-gray-900">Bulk Edit</h3>
+                            <h3 className="text-xl font-black text-midnight-navy">Bulk Edit</h3>
                             <p className="text-sm font-medium text-primary-600 flex items-center gap-1">
                                 <CalendarDays className="w-4 h-4" /> {selectedDates.length} Days Selected
                             </p>
                         </div>
-                        <button onClick={() => setSelectedDates([])} className="p-2 bg-neutral-100 rounded-full text-gray-400 hover:text-gray-900 transition-colors">
+                        <button onClick={() => setSelectedDates([])} className="p-2 bg-neutral-100 rounded-full text-neutral-400 hover:text-midnight-navy transition-colors">
                             <X className="w-4 h-4" />
                         </button>
                     </div>
@@ -386,25 +386,25 @@ export default function CalendarPage() {
                     <div className="space-y-8 flex-1">
                         {/* Selected Date Range Preview */}
                         <div className="bg-neutral-50 rounded-xl p-4 border border-neutral-100">
-                            <p className="text-xs text-gray-400 font-bold uppercase tracking-wider mb-1">Date Range</p>
-                            <p className="text-sm text-gray-900 font-medium">
+                            <p className="text-xs text-neutral-400 font-bold uppercase tracking-wider mb-1">Date Range</p>
+                            <p className="text-sm text-midnight-navy font-medium">
                                 {format(selectedDates[0], 'MMM d, yyyy')} - {format(selectedDates[selectedDates.length - 1], 'MMM d, yyyy')}
                             </p>
                         </div>
 
                         {/* Availability Toggle */}
                         <div className="space-y-3">
-                            <span className="text-sm font-bold text-gray-900">Status</span>
+                            <span className="text-sm font-bold text-midnight-navy">Status</span>
                             <div className="grid grid-cols-2 gap-2 bg-neutral-100 p-1 rounded-xl">
                                 <button 
                                   onClick={() => setEditAvailable(true)}
-                                  className={`px-4 py-2.5 rounded-lg text-sm font-bold transition-all flex items-center justify-center gap-2 ${editAvailable ? 'bg-white text-emerald-600 shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}
+                                  className={`px-4 py-2.5 rounded-lg text-sm font-bold transition-all flex items-center justify-center gap-2 ${editAvailable ? 'bg-white text-emerald-600 shadow-sm' : 'text-neutral-500 hover:text-neutral-700'}`}
                                 >
                                     {editAvailable && <Check className="w-4 h-4" />} Open
                                 </button>
                                 <button 
                                   onClick={() => setEditAvailable(false)}
-                                  className={`px-4 py-2.5 rounded-lg text-sm font-bold transition-all flex items-center justify-center gap-2 ${!editAvailable ? 'bg-white text-red-600 shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}
+                                  className={`px-4 py-2.5 rounded-lg text-sm font-bold transition-all flex items-center justify-center gap-2 ${!editAvailable ? 'bg-white text-red-600 shadow-sm' : 'text-neutral-500 hover:text-neutral-700'}`}
                                 >
                                     {!editAvailable && <Check className="w-4 h-4" />} Blocked
                                 </button>
@@ -414,20 +414,20 @@ export default function CalendarPage() {
                         {/* Price Input */}
                         {editAvailable && (
                             <div className="space-y-3">
-                                <label className="text-sm font-bold text-gray-900 flex items-center justify-between">
+                                <label className="text-sm font-bold text-midnight-navy flex items-center justify-between">
                                     Nightly Price
                                     <span className="text-xs text-primary-600 bg-primary-50 px-2 py-0.5 rounded font-medium">Smart Demand: High</span>
                                 </label>
                                 <div className="relative group">
-                                    <DollarSign className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400 group-focus-within:text-primary-500 transition-colors" />
+                                    <DollarSign className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-neutral-400 group-focus-within:text-primary-500 transition-colors" />
                                     <input 
                                       type="number" 
                                       value={editPrice}
                                       onChange={(e) => setEditPrice(e.target.value)}
                                       placeholder="Leave blank for base price"
-                                      className="w-full bg-white border border-neutral-200 rounded-xl py-3 pl-12 pr-12 text-gray-900 font-bold text-lg focus:ring-4 focus:ring-primary-100 focus:border-primary-500 outline-none transition-all shadow-sm"
+                                      className="w-full bg-white border border-neutral-200 rounded-xl py-3 pl-12 pr-12 text-midnight-navy font-bold text-lg focus:ring-4 focus:ring-primary-100 focus:border-primary-500 outline-none transition-all shadow-sm"
                                     />
-                                    <span className="absolute right-4 top-1/2 -translate-y-1/2 text-sm text-gray-400 font-bold">
+                                    <span className="absolute right-4 top-1/2 -translate-y-1/2 text-sm text-neutral-400 font-bold">
                                         {currentProperty?.currency}
                                     </span>
                                 </div>
@@ -439,12 +439,12 @@ export default function CalendarPage() {
                         <button 
                           onClick={handleSave}
                           disabled={isSaving}
-                          className="w-full py-4 rounded-xl bg-gray-900 text-white font-bold hover:bg-black transition-all flex items-center justify-center gap-2 hover:shadow-lg hover:-translate-y-0.5 disabled:opacity-50 disabled:hover:translate-y-0"
+                          className="w-full py-4 rounded-xl bg-midnight-navy text-white font-bold hover:bg-black transition-all flex items-center justify-center gap-2 hover:shadow-lg hover:-translate-y-0.5 disabled:opacity-50 disabled:hover:translate-y-0"
                         >
                             {isSaving ? <Loader2 className="w-5 h-5 animate-spin" /> : <Check className="w-5 h-5" />}
                             Apply to {selectedDates.length} Days
                         </button>
-                        <button onClick={() => setSelectedDates([])} className="w-full py-3 mt-2 text-sm font-bold text-gray-500 hover:text-gray-900 transition-colors">
+                        <button onClick={() => setSelectedDates([])} className="w-full py-3 mt-2 text-sm font-bold text-neutral-500 hover:text-midnight-navy transition-colors">
                             Cancel
                         </button>
                     </div>

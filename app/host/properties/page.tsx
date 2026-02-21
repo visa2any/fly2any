@@ -39,7 +39,7 @@ const STATUS_CONFIG: Record<string, { label: string; icon: any; color: string; b
   active: { label: 'Active', icon: CheckCircle2, color: 'text-emerald-600', bg: 'bg-emerald-50 border-emerald-200' },
   draft: { label: 'Draft', icon: FileEdit, color: 'text-amber-600', bg: 'bg-amber-50 border-amber-200' },
   paused: { label: 'Paused', icon: PauseCircle, color: 'text-blue-600', bg: 'bg-blue-50 border-blue-200' },
-  archived: { label: 'Archived', icon: Trash2, color: 'text-gray-500', bg: 'bg-gray-50 border-gray-200' },
+  archived: { label: 'Archived', icon: Trash2, color: 'text-neutral-500', bg: 'bg-neutral-50 border-neutral-200' },
   pending_review: { label: 'Pending', icon: Clock, color: 'text-orange-600', bg: 'bg-orange-50 border-orange-200' },
   rejected: { label: 'Rejected', icon: AlertCircle, color: 'text-red-600', bg: 'bg-red-50 border-red-200' },
 };
@@ -157,9 +157,9 @@ export default function PropertiesPage() {
         ) : error ? (
           <div className="flex flex-col items-center justify-center py-20 bg-neutral-50 border border-neutral-200 rounded-3xl text-center">
             <AlertCircle className="w-12 h-12 text-red-300 mb-4" />
-            <h3 className="text-gray-900 font-bold text-lg mb-2">Failed to load properties</h3>
-            <p className="text-gray-500 text-sm mb-4 max-w-sm">{error}</p>
-            <button onClick={fetchProperties} className="px-6 py-2.5 bg-gray-900 text-white rounded-xl text-sm font-bold hover:bg-gray-800 transition-colors">
+            <h3 className="text-midnight-navy font-bold text-lg mb-2">Failed to load properties</h3>
+            <p className="text-neutral-500 text-sm mb-4 max-w-sm">{error}</p>
+            <button onClick={fetchProperties} className="px-6 py-2.5 bg-midnight-navy text-white rounded-xl text-sm font-bold hover:bg-neutral-800 transition-colors">
               Try Again
             </button>
           </div>
@@ -291,8 +291,8 @@ export default function PropertiesPage() {
             <div className="w-16 h-16 rounded-2xl bg-neutral-100 flex items-center justify-center mb-4">
               <Building2 className="w-8 h-8 text-neutral-300" />
             </div>
-            <h3 className="text-gray-900 font-bold text-lg mb-2">No properties found</h3>
-            <p className="text-gray-500 text-sm max-w-sm mb-6">
+            <h3 className="text-midnight-navy font-bold text-lg mb-2">No properties found</h3>
+            <p className="text-neutral-500 text-sm max-w-sm mb-6">
               {searchQuery || statusFilter !== 'all'
                 ? "Try adjusting your filters or search query."
                 : "It looks like you haven't listed any properties yet. Get started now!"}
@@ -323,12 +323,12 @@ export default function PropertiesPage() {
             <div className="w-14 h-14 rounded-2xl bg-red-50 flex items-center justify-center mx-auto mb-5">
               <Trash2 className="w-7 h-7 text-red-500" />
             </div>
-            <h3 className="text-xl font-bold text-gray-900 text-center mb-2">Delete Property?</h3>
-            <p className="text-gray-500 text-sm text-center mb-8">This action cannot be undone. All associated data including images, rooms, availability, and bookings will be permanently removed.</p>
+            <h3 className="text-xl font-bold text-midnight-navy text-center mb-2">Delete Property?</h3>
+            <p className="text-neutral-500 text-sm text-center mb-8">This action cannot be undone. All associated data including images, rooms, availability, and bookings will be permanently removed.</p>
             <div className="flex gap-3">
               <button
                 onClick={() => setConfirmDeleteId(null)}
-                className="flex-1 px-5 py-3 rounded-xl bg-neutral-100 text-gray-700 font-bold text-sm hover:bg-neutral-200 transition-colors"
+                className="flex-1 px-5 py-3 rounded-xl bg-neutral-100 text-neutral-700 font-bold text-sm hover:bg-neutral-200 transition-colors"
               >
                 Cancel
               </button>

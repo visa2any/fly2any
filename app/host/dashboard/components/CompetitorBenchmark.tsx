@@ -50,7 +50,7 @@ export function CompetitorBenchmark() {
           </p>
         </div>
         <button className="w-10 h-10 rounded-xl bg-neutral-50 hover:bg-neutral-100 flex items-center justify-center transition-colors border border-transparent hover:border-neutral-200">
-          <Settings2 className="w-5 h-5 text-gray-500" />
+          <Settings2 className="w-5 h-5 text-neutral-500" />
         </button>
       </div>
 
@@ -64,9 +64,9 @@ export function CompetitorBenchmark() {
           <button
             key={tab.id}
             onClick={() => setActiveTab(tab.id as any)}
-            className={`flex-1 text-xs font-bold py-2 rounded-xl transition-all ${
+            className={`flex-1 text-xs font-bold py-2.5 rounded-xl transition-all duration-300 ${
               activeTab === tab.id
-                ? 'bg-white text-midnight-navy shadow-sm'
+                ? 'bg-white text-midnight-navy shadow-soft-lg scale-[1.02]'
                 : 'text-neutral-500 hover:text-midnight-navy hover:bg-white/50'
             }`}
           >
@@ -87,9 +87,9 @@ export function CompetitorBenchmark() {
           <div className="space-y-4 animate-fadeIn">
             <div className="flex items-end justify-between">
               <div>
-                <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1">Your Occupancy</p>
+                <p className="text-[10px] font-bold text-neutral-400 uppercase tracking-wider mb-1">Your Occupancy</p>
                 <div className="flex items-baseline gap-2">
-                  <span className="text-3xl font-black text-gray-900">{insights.userOccupancy}%</span>
+                  <span className="text-3xl font-black text-midnight-navy">{insights.userOccupancy}%</span>
                   <span className={`text-xs font-bold flex items-center ${insights.userOccupancy >= insights.marketOccupancy ? 'text-emerald-500' : 'text-red-500'}`}>
                     {insights.userOccupancy >= insights.marketOccupancy ? <TrendingUp className="w-3 h-3 mr-0.5" /> : <TrendingDown className="w-3 h-3 mr-0.5" />} 
                     {Math.abs(insights.userOccupancy - insights.marketOccupancy)}% vs Market
@@ -97,8 +97,8 @@ export function CompetitorBenchmark() {
                 </div>
               </div>
               <div className="text-right">
-                <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1">Market Avg</p>
-                <span className="text-xl font-bold text-gray-400">{insights.marketOccupancy}%</span>
+                <p className="text-[10px] font-bold text-neutral-400 uppercase tracking-wider mb-1">Market Avg</p>
+                <span className="text-xl font-bold text-neutral-400">{insights.marketOccupancy}%</span>
               </div>
             </div>
             
@@ -109,12 +109,12 @@ export function CompetitorBenchmark() {
             </div>
 
             {/* AI Recommendation */}
-            <div className="mt-5 p-4 rounded-2xl bg-secondary-50 border border-secondary-100 flex gap-4 items-start">
-              <div className="bg-secondary-100 p-2 rounded-xl shrink-0 mt-0.5">
+            <div className="mt-5 p-5 rounded-[1.5rem] bg-secondary-50 border border-secondary-100/50 flex gap-4 items-start shadow-soft">
+              <div className="bg-secondary-100 p-2.5 rounded-xl shrink-0 mt-0.5 shadow-inner">
                 <Sparkles className="w-4 h-4 text-secondary-600" />
               </div>
               <p className="text-sm text-secondary-900 font-medium leading-relaxed">
-                <strong className="block mb-0.5 font-bold text-secondary-800">AI Suggestion:</strong>
+                <strong className="block mb-1 font-extrabold text-secondary-800 uppercase text-[10px] tracking-widest">AI Suggestion</strong>
                 Your 3-night minimum stay is blocking weekend trippers. Lowering it to 2 nights on Thursdays could boost occupancy by ~8%.
               </p>
             </div>
@@ -125,9 +125,9 @@ export function CompetitorBenchmark() {
           <div className="space-y-4 animate-fadeIn">
             <div className="flex items-end justify-between">
               <div>
-                <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1">Your Avg Rate</p>
+                <p className="text-[10px] font-bold text-neutral-400 uppercase tracking-wider mb-1">Your Avg Rate</p>
                 <div className="flex items-baseline gap-2">
-                  <span className="text-3xl font-black text-gray-900">${insights.userNightlyRate}</span>
+                  <span className="text-3xl font-black text-midnight-navy">${insights.userNightlyRate}</span>
                   <span className={`text-xs font-bold flex items-center ${insights.userNightlyRate >= insights.avgNightlyRate ? 'text-emerald-500' : 'text-red-500'}`}>
                     {insights.userNightlyRate >= insights.avgNightlyRate ? <TrendingUp className="w-3 h-3 mr-0.5" /> : <TrendingDown className="w-3 h-3 mr-0.5" />} 
                     ${Math.abs(insights.userNightlyRate - insights.avgNightlyRate)} vs Market
@@ -135,8 +135,8 @@ export function CompetitorBenchmark() {
                 </div>
               </div>
               <div className="text-right">
-                <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1">Market Avg</p>
-                <span className="text-xl font-bold text-gray-400">${insights.avgNightlyRate}</span>
+                <p className="text-[10px] font-bold text-neutral-400 uppercase tracking-wider mb-1">Market Avg</p>
+                <span className="text-xl font-bold text-neutral-400">${insights.avgNightlyRate}</span>
               </div>
             </div>
 
@@ -157,9 +157,9 @@ export function CompetitorBenchmark() {
           <div className="space-y-4 animate-fadeIn">
             <div className="flex items-end justify-between">
               <div>
-                <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1">View-to-Book</p>
+                <p className="text-[10px] font-bold text-neutral-400 uppercase tracking-wider mb-1">View-to-Book</p>
                 <div className="flex items-baseline gap-2">
-                  <span className="text-3xl font-black text-gray-900">{insights.conversionRate}%</span>
+                  <span className="text-3xl font-black text-midnight-navy">{insights.conversionRate}%</span>
                   <span className={`text-xs font-bold flex items-center ${insights.conversionRate >= insights.marketConversion ? 'text-emerald-500' : 'text-red-500'}`}>
                     {insights.conversionRate >= insights.marketConversion ? <TrendingUp className="w-3 h-3 mr-0.5" /> : <TrendingDown className="w-3 h-3 mr-0.5" />} 
                     {Math.abs(Number((insights.conversionRate - insights.marketConversion).toFixed(1)))}% Gap
@@ -167,8 +167,8 @@ export function CompetitorBenchmark() {
                 </div>
               </div>
               <div className="text-right">
-                <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1">Top 10% Local</p>
-                <span className="text-xl font-bold text-gray-400">{insights.marketConversion}%</span>
+                <p className="text-[10px] font-bold text-neutral-400 uppercase tracking-wider mb-1">Top 10% Local</p>
+                <span className="text-xl font-bold text-neutral-400">{insights.marketConversion}%</span>
               </div>
             </div>
 

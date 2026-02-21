@@ -1,0 +1,25 @@
+﻿0828a439 - style: final premium full-overlay redesign for property cards and e2e polish
+18aef890 - feat: enhance host dashboard E2E experience with profile summary, logout, and settings access
+23a26a7c - style: redesign property grid for 3-column overlay layout
+2525a72f - perf: resolve database timeout by increasing pool limits and consolidating dashboard queries
+795a602d - style: optimize onboarding layout for single viewport and full width
+23f22009 - fix: property persistence, live preview photo logic, and onboarding layout
+32a9054c - fix(host): resolve property wizard overflow, missing imports, and CSP violations for AI features
+0740eecf - fix: resolve duplicate getDemandScore definition in host calendar
+f4845b11 - fix: restore Google auth, fix calendar crash, and push properties redesign
+4d98d9c7 - style: premium calendar color palette and UX refinements
+ee0861b0 - style: optimize calendar viewport and enhance price visibility
+cf08b111 - fix: migrate Sentry to instrumentation hooks and finalize NextAuth session fixes
+39501c99 - fix: final NextAuth imports for Agents API and TypeError in world-cup packages
+28627326 - fix(build): correct getServerSession next-auth imports and disable missing pdf route
+aea15923 - feat(host): implement E2E Host Profile Hub and dynamic Superhost badges
+d1f88c1b - feat(host): unify E2E UI layout and add PropertyOwner profile schema
+ab929596 - feat(ui): redesign property creation wizard layout
+a648d9a5 - fix(prisma): stop connection pool exhaustion and deploy Phase 10 live Dashboard data
+11834dc5 - fix: add Promise.race timeouts to Prisma property queries to prevent Vercel 504 pool timeouts
+495407d9 - fix: resolve @/lib/groq import and syntax error in MessagesPage
+dd9e0466 - feat: complete Phase 9 host dashboard gamification and contextual inbox drawer
+f872390b - fix: integrate native property bookings into checkout flow
+82aee87f - fix(properties): remove fetch abort controller from dashboard properties page
+6c31594b - fix(api): Resolve 500 errors by adding missing NextRequest and auth imports
+e3ca637e - fix: robust error handling and debug logging for properties API

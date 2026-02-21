@@ -73,33 +73,34 @@ export default function TrustCenterPage() {
       {/* Header */}
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         <div>
-            <h1 className="text-3xl font-bold text-gray-900 flex items-center gap-3">
+            <h1 className="text-3xl font-bold text-midnight-navy flex items-center gap-3">
                 <Shield className="w-8 h-8 text-primary-600" />
                 Trust & Verification Center
             </h1>
-            <p className="text-gray-500 mt-2">
+            <p className="text-neutral-500 mt-2">
                 Verify your identity to unlock instant payouts and the "Trusted Host" badge.
             </p>
         </div>
         
         {/* Trust Score Card */}
-        <div className="bg-white p-4 rounded-2xl shadow-sm border border-neutral-200 flex items-center gap-4">
+        <div className="bg-white p-5 rounded-3xl shadow-soft border border-neutral-100 flex items-center gap-5 hover:shadow-soft-lg transition-all">
             <div className="relative w-16 h-16 flex items-center justify-center">
                 <svg className="w-full h-full transform -rotate-90">
-                    <circle cx="32" cy="32" r="28" stroke="#E5E7EB" strokeWidth="4" fill="transparent" />
-                    <circle cx="32" cy="32" r="28" stroke={trustScore > 80 ? "#10B981" : "#3B82F6"} strokeWidth="4" 
+                    <circle cx="32" cy="32" r="28" stroke="#F1F5F9" strokeWidth="5" fill="transparent" />
+                    <circle cx="32" cy="32" r="28" stroke={trustScore > 80 ? "#10B981" : "#E74035"} strokeWidth="5" 
                             fill="transparent" 
                             strokeDasharray={175.9} 
                             strokeDashoffset={175.9 - (175.9 * trustScore) / 100} 
+                            strokeLinecap="round"
                             className="transition-all duration-1000 ease-out"
                     />
                 </svg>
-                <span className="absolute text-xl font-bold text-gray-900">{trustScore}</span>
+                <span className="absolute text-xl font-black text-midnight-navy leading-none">{trustScore}</span>
             </div>
             <div>
-                <div className="text-xs font-bold text-gray-500 uppercase">Trust Score</div>
-                <div className="text-sm font-medium text-gray-900">
-                    {trustScore < 50 ? 'Basic Level' : trustScore < 80 ? 'Verified Host' : 'Super Trusted'}
+                <div className="text-[10px] font-black text-neutral-400 uppercase tracking-widest mb-1">Current Trust Level</div>
+                <div className="text-sm font-black text-midnight-navy">
+                    {trustScore < 50 ? 'Standard Host' : trustScore < 80 ? 'Verified Partner' : 'Elite Trusted Host'}
                 </div>
             </div>
         </div>
@@ -120,18 +121,18 @@ export default function TrustCenterPage() {
               <div className="lg:col-span-2 space-y-6">
                 
                 {/* Step 1: Identity (Base) */}
-                <div className="bg-white rounded-2xl border border-neutral-200 overflow-hidden">
-                    <div className="p-6 border-b border-neutral-100 flex justify-between items-center">
-                        <div className="flex items-center gap-3">
-                            <div className="w-10 h-10 rounded-full bg-blue-50 flex items-center justify-center text-blue-600">
-                                <Smartphone className="w-5 h-5" />
+                <div className="bg-white rounded-[2rem] border border-neutral-100 shadow-soft overflow-hidden">
+                    <div className="p-8 border-b border-neutral-50 flex justify-between items-center bg-gradient-to-r from-white to-neutral-50/30">
+                        <div className="flex items-center gap-4">
+                            <div className="w-12 h-12 rounded-2xl bg-primary-50 flex items-center justify-center text-primary-600 border border-primary-100">
+                                <Smartphone className="w-6 h-6" />
                             </div>
                             <div>
-                                <h3 className="font-bold text-gray-900">Step 1: Digital Identity</h3>
-                                <p className="text-sm text-gray-500">Government ID + Selfie Check</p>
+                                <h3 className="font-black text-midnight-navy text-lg">Digital Identity</h3>
+                                <p className="text-sm text-neutral-500 font-medium">Government ID + Secure Selfie Check</p>
                             </div>
                         </div>
-                        {trustScore >= 50 ? <Check className="text-green-500 w-6 h-6" /> : <div className="text-xs font-bold bg-blue-100 text-blue-700 px-2 py-1 rounded">REQUIRED</div>}
+                        {trustScore >= 50 ? <Check className="text-green-500 w-8 h-8 drop-shadow-sm" /> : <div className="text-[10px] font-black bg-primary-100 text-primary-700 px-3 py-1.5 rounded-xl uppercase tracking-wider">Required</div>}
                     </div>
                     
                     {trustScore < 50 && (
@@ -149,16 +150,16 @@ export default function TrustCenterPage() {
                                 <Lock className="w-5 h-5" />
                             </div>
                             <div>
-                                <h3 className="font-bold text-gray-900">Step 2: Authenticate Property</h3>
-                                <p className="text-sm text-gray-500">Verify you have access to the listing</p>
+                                <h3 className="font-bold text-midnight-navy">Step 2: Authenticate Property</h3>
+                                <p className="text-sm text-neutral-500">Verify you have access to the listing</p>
                             </div>
                         </div>
-                        {trustScore < 50 && <Lock className="text-gray-400 w-5 h-5" />}
+                        {trustScore < 50 && <Lock className="text-neutral-400 w-5 h-5" />}
                     </div>
 
                     {trustScore >= 50 && !method && (
                         <div className="p-8">
-                            <h4 className="text-lg font-bold text-gray-900 mb-6 text-center">Choose your verification path</h4>
+                            <h4 className="text-lg font-bold text-midnight-navy mb-6 text-center">Choose your verification path</h4>
                             
                             <div className="grid md:grid-cols-2 gap-4">
                                 {/* Path A: Instant GPS */}
@@ -173,8 +174,8 @@ export default function TrustCenterPage() {
                                         <MapPin className="w-6 h-6" />
                                     </div>
                                     <div>
-                                        <h5 className="font-bold text-gray-900">I am at the property</h5>
-                                        <p className="text-xs text-gray-500 mt-1">
+                                        <h5 className="font-bold text-midnight-navy">I am at the property</h5>
+                                        <p className="text-xs text-neutral-500 mt-1">
                                             Instant verification using your device's secure GPS location.
                                         </p>
                                     </div>
@@ -189,8 +190,8 @@ export default function TrustCenterPage() {
                                         <Video className="w-6 h-6" />
                                     </div>
                                     <div>
-                                        <h5 className="font-bold text-gray-900">I am remote</h5>
-                                        <p className="text-xs text-gray-500 mt-1">
+                                        <h5 className="font-bold text-midnight-navy">I am remote</h5>
+                                        <p className="text-xs text-neutral-500 mt-1">
                                             Upload a 30s video walkthrough showing you unlocking the door.
                                         </p>
                                     </div>
@@ -202,7 +203,7 @@ export default function TrustCenterPage() {
                     {/* Active Verification Interfaces */}
                     {trustScore >= 50 && method === 'GPS' && (
                         <div className="p-6">
-                            <button onClick={() => setMethod(null)} className="text-xs text-gray-500 hover:underline mb-4">&larr; Choose another method</button>
+                            <button onClick={() => setMethod(null)} className="text-xs text-neutral-500 hover:underline mb-4">&larr; Choose another method</button>
                             <GeolocationVerifier 
                                 propertyLocation={propertyLocation}
                                 onVerify={() => {
@@ -214,7 +215,7 @@ export default function TrustCenterPage() {
 
                     {trustScore >= 50 && method === 'VIDEO' && (
                         <div className="p-6">
-                            <button onClick={() => setMethod(null)} className="text-xs text-gray-500 hover:underline mb-4">&larr; Choose another method</button>
+                            <button onClick={() => setMethod(null)} className="text-xs text-neutral-500 hover:underline mb-4">&larr; Choose another method</button>
                             <VideoVerifier 
                                 onVerify={() => {
                                     handleUpdateVerification('PENDING', 'VIDEO', 40);

@@ -166,8 +166,8 @@ export default function HostProfilePage() {
                  )}
               </div>
               <div className="flex-1">
-                 <h1 className="text-3xl font-bold text-gray-900 tracking-tight">{session?.user?.name || 'Host Profile'}</h1>
-                 <p className="text-gray-500 font-medium flex items-center gap-2 mt-1">
+                 <h1 className="text-3xl font-bold text-midnight-navy tracking-tight">{session?.user?.name || 'Host Profile'}</h1>
+                 <p className="text-neutral-500 font-medium flex items-center gap-2 mt-1">
                     Joined {profile?.hostSince ? format(new Date(profile.hostSince), 'MMMM yyyy') : 'Recently'}
                  </p>
               </div>
@@ -190,17 +190,17 @@ export default function HostProfilePage() {
             <section className="bg-white rounded-2xl border border-neutral-200 p-6 md:p-8 shadow-sm space-y-6">
                <div className="flex items-center gap-3 border-b border-neutral-100 pb-4">
                   <div className="p-2 bg-indigo-50 text-indigo-600 rounded-lg"><User className="w-5 h-5" /></div>
-                  <h2 className="text-lg font-bold text-gray-900">Public Profile</h2>
+                  <h2 className="text-lg font-bold text-midnight-navy">Public Profile</h2>
                </div>
                
                <div className="space-y-4">
                   <div className="space-y-2">
-                     <label className="text-sm font-semibold text-gray-700 block">About Me (Bio)</label>
+                     <label className="text-sm font-semibold text-neutral-700 block">About Me (Bio)</label>
                      <textarea 
                         value={bio}
                         onChange={e => setBio(e.target.value)}
                         placeholder="Tell guests a little about yourself, your hosting style, or why you love your city..."
-                        className="w-full h-32 p-4 border border-neutral-300 rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-primary-500 text-gray-900 text-sm outline-none resize-none transition-all"
+                        className="w-full h-32 p-4 border border-neutral-300 rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-primary-500 text-midnight-navy text-sm outline-none resize-none transition-all"
                      />
                   </div>
                   
@@ -215,7 +215,7 @@ export default function HostProfilePage() {
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                      <Input 
                         label="Public Website"
-                        icon={<Globe className="w-4 h-4 text-gray-400" />}
+                        icon={<Globe className="w-4 h-4 text-neutral-400" />}
                         placeholder="https://"
                         value={website}
                         onChange={e => setWebsite(e.target.value)}
@@ -235,7 +235,7 @@ export default function HostProfilePage() {
             <section className="bg-white rounded-2xl border border-neutral-200 p-6 md:p-8 shadow-sm space-y-6">
                <div className="flex items-center gap-3 border-b border-neutral-100 pb-4">
                   <div className="p-2 bg-emerald-50 text-emerald-600 rounded-lg"><Building2 className="w-5 h-5" /></div>
-                  <h2 className="text-lg font-bold text-gray-900">Business & Tax Details</h2>
+                  <h2 className="text-lg font-bold text-midnight-navy">Business & Tax Details</h2>
                </div>
                
                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -263,7 +263,7 @@ export default function HostProfilePage() {
                   />
                   <Input 
                      label="Private Phone (Billing)"
-                     icon={<Phone className="w-4 h-4 text-gray-400" />}
+                     icon={<Phone className="w-4 h-4 text-neutral-400" />}
                      placeholder="+1 (555) 000-0000"
                      value={phone}
                      onChange={e => setPhone(e.target.value)}
@@ -275,7 +275,7 @@ export default function HostProfilePage() {
             <section className="bg-white rounded-2xl border border-neutral-200 p-6 md:p-8 shadow-sm space-y-6">
                <div className="flex items-center gap-3 border-b border-neutral-100 pb-4">
                   <div className="p-2 bg-blue-50 text-blue-600 rounded-lg"><CreditCard className="w-5 h-5" /></div>
-                  <h2 className="text-lg font-bold text-gray-900">Payout Configuration</h2>
+                  <h2 className="text-lg font-bold text-midnight-navy">Payout Configuration</h2>
                </div>
                
                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -302,8 +302,8 @@ export default function HostProfilePage() {
                      ]}
                   />
                </div>
-               <div className="p-4 bg-neutral-50 border border-neutral-100 rounded-xl text-sm font-medium text-gray-500 flex gap-3">
-                  <Globe className="w-5 h-5 shrink-0 text-gray-400" />
+               <div className="p-4 bg-neutral-50 border border-neutral-100 rounded-xl text-sm font-medium text-neutral-500 flex gap-3">
+                  <Globe className="w-5 h-5 shrink-0 text-neutral-400" />
                   <p>Depending on your region, payouts take 2-5 business days to process after your guest checks in. Additional banking details are managed securely via our financial provider.</p>
                </div>
             </section>
@@ -313,43 +313,43 @@ export default function HostProfilePage() {
          {/* RIGHT COLUMN: REPUTATION & VERIFICATION (READ ONLY) */}
          <div className="space-y-6">
             <div className="bg-white rounded-2xl border border-neutral-200 shadow-sm p-6 space-y-6">
-               <h3 className="text-sm font-bold text-gray-400 uppercase tracking-widest">Host Reputation</h3>
+               <h3 className="text-sm font-bold text-neutral-400 uppercase tracking-widest">Host Reputation</h3>
                
                <div className="grid grid-cols-2 gap-4">
                   <div className="p-4 bg-neutral-50 rounded-xl border border-neutral-100 text-center">
-                     <p className="text-2xl font-black text-gray-900 flex items-center justify-center gap-1">
+                     <p className="text-2xl font-black text-midnight-navy flex items-center justify-center gap-1">
                         {profile?.rating?.toFixed(1) || '0.0'} <Star className="w-4 h-4 text-yellow-500 fill-yellow-500" />
                      </p>
-                     <p className="text-[10px] font-bold text-gray-500 uppercase mt-1">Global Rating</p>
+                     <p className="text-[10px] font-bold text-neutral-500 uppercase mt-1">Global Rating</p>
                   </div>
                   <div className="p-4 bg-neutral-50 rounded-xl border border-neutral-100 text-center">
-                     <p className="text-2xl font-black text-gray-900">{profile?.reviewCount || 0}</p>
-                     <p className="text-[10px] font-bold text-gray-500 uppercase mt-1">Total Reviews</p>
+                     <p className="text-2xl font-black text-midnight-navy">{profile?.reviewCount || 0}</p>
+                     <p className="text-[10px] font-bold text-neutral-500 uppercase mt-1">Total Reviews</p>
                   </div>
                   <div className="p-4 bg-neutral-50 rounded-xl border border-neutral-100 text-center">
-                     <p className="text-2xl font-black text-gray-900">{profile?.responseRate || 100}%</p>
-                     <p className="text-[10px] font-bold text-gray-500 uppercase mt-1">Response Rate</p>
+                     <p className="text-2xl font-black text-midnight-navy">{profile?.responseRate || 100}%</p>
+                     <p className="text-[10px] font-bold text-neutral-500 uppercase mt-1">Response Rate</p>
                   </div>
                   <div className="p-4 bg-neutral-50 rounded-xl border border-neutral-100 text-center">
-                     <p className="text-2xl font-black text-gray-900">{profile?.avgResponseTime || '< 1'}h</p>
-                     <p className="text-[10px] font-bold text-gray-500 uppercase mt-1">Response Time</p>
+                     <p className="text-2xl font-black text-midnight-navy">{profile?.avgResponseTime || '< 1'}h</p>
+                     <p className="text-[10px] font-bold text-neutral-500 uppercase mt-1">Response Time</p>
                   </div>
                </div>
             </div>
 
             <div className="bg-white rounded-2xl border border-neutral-200 shadow-sm p-6 space-y-4">
-               <h3 className="text-sm font-bold text-gray-400 uppercase tracking-widest">Trust & Identity</h3>
+               <h3 className="text-sm font-bold text-neutral-400 uppercase tracking-widest">Trust & Identity</h3>
                <div className="space-y-3">
-                  <div className="flex items-center gap-3 text-sm font-semibold text-gray-700">
-                     {profile?.emailVerified ? <CheckCircle2 className="w-5 h-5 text-green-500" /> : <div className="w-5 h-5 rounded-full border-2 border-dashed border-gray-300" />}
+                  <div className="flex items-center gap-3 text-sm font-semibold text-neutral-700">
+                     {profile?.emailVerified ? <CheckCircle2 className="w-5 h-5 text-green-500" /> : <div className="w-5 h-5 rounded-full border-2 border-dashed border-neutral-300" />}
                      Email Address
                   </div>
-                  <div className="flex items-center gap-3 text-sm font-semibold text-gray-700">
-                     {profile?.phoneVerified ? <CheckCircle2 className="w-5 h-5 text-green-500" /> : <div className="w-5 h-5 rounded-full border-2 border-dashed border-gray-300" />}
+                  <div className="flex items-center gap-3 text-sm font-semibold text-neutral-700">
+                     {profile?.phoneVerified ? <CheckCircle2 className="w-5 h-5 text-green-500" /> : <div className="w-5 h-5 rounded-full border-2 border-dashed border-neutral-300" />}
                      Phone Number
                   </div>
-                  <div className="flex items-center gap-3 text-sm font-semibold text-gray-700">
-                     {profile?.identityVerified ? <CheckCircle2 className="w-5 h-5 text-green-500" /> : <div className="w-5 h-5 rounded-full border-2 border-dashed border-gray-300" />}
+                  <div className="flex items-center gap-3 text-sm font-semibold text-neutral-700">
+                     {profile?.identityVerified ? <CheckCircle2 className="w-5 h-5 text-green-500" /> : <div className="w-5 h-5 rounded-full border-2 border-dashed border-neutral-300" />}
                      Government ID
                   </div>
                </div>

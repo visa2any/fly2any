@@ -88,6 +88,11 @@ export async function alertCustomerError(
   emailSent: boolean;
   sentrySent: boolean;
 }> {
+  // Global safeguard: Silently ignore Next.js internal redirect signals
+  if (context.errorMessage?.includes('NEXT_REDIRECT') || context.errorCode === 'NEXT_REDIRECT') {
+    return { telegramSent: false, emailSent: false, sentrySent: false };
+  }
+
   const {
     priority = 'high',
     sendTelegram = true,

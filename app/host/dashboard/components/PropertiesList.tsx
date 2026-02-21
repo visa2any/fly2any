@@ -27,8 +27,8 @@
                      <div className="w-20 h-20 rounded-full bg-gradient-to-br from-primary-50 to-primary-100 flex items-center justify-center mx-auto mb-6 group-hover:scale-110 transition-transform">
                         <Home className="w-10 h-10 text-primary-500" />
                      </div>
-                     <h3 className="text-2xl font-bold text-gray-900 mb-2">No properties yet</h3>
-                     <p className="text-gray-500 mb-8 max-w-md mx-auto">Start earning by listing your first property today. It only takes a few minutes to get started.</p>
+                     <h3 className="text-2xl font-bold text-midnight-navy mb-2">No properties yet</h3>
+                     <p className="text-neutral-500 mb-8 max-w-md mx-auto">Start earning by listing your first property today. It only takes a few minutes to get started.</p>
                      <Link href="/list-your-property/create" className="inline-flex px-8 py-3 rounded-xl bg-primary-600 text-white font-bold hover:bg-primary-700 hover:shadow-lg hover:shadow-primary-600/20 transition-all">
                         List your property
                      </Link>
@@ -52,12 +52,12 @@
                                      unoptimized={true}
                                   />
                               ) : (
-                                  <div className="w-full h-full flex flex-col items-center justify-center text-gray-400 gap-2">
+                                  <div className="w-full h-full flex flex-col items-center justify-center text-neutral-400 gap-2">
                                       <CameraOff className="w-8 h-8 opacity-50" />
                                       <span className="text-xs font-bold uppercase">No Image</span>
                                   </div>
                               )}
-                              <div className="absolute top-3 left-3 px-3 py-1.5 rounded-lg bg-white/90 backdrop-blur-md text-xs font-black uppercase text-gray-900 shadow-sm">
+                              <div className="absolute top-3 left-3 px-3 py-1.5 rounded-lg bg-white/90 backdrop-blur-md text-xs font-black uppercase text-midnight-navy shadow-sm">
                                  {p.status || 'Draft'}
                               </div>
                               
@@ -70,10 +70,10 @@
                           {/* Details */}
                           <div className="flex-1 text-center md:text-left w-full space-y-4">
                               <div>
-                                  <h3 className="text-2xl font-bold text-gray-900 mb-2 group-hover:text-primary-600 transition-colors leading-tight">
+                                  <h3 className="text-2xl font-bold text-midnight-navy mb-2 group-hover:text-primary-600 transition-colors leading-tight">
                                       {p.name || 'Untitled Property'}
                                   </h3>
-                                  <div className="flex items-center justify-center md:justify-start gap-4 text-sm text-gray-500 font-medium">
+                                  <div className="flex items-center justify-center md:justify-start gap-4 text-sm text-neutral-500 font-medium">
                                      <span className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-neutral-50 border border-neutral-100">
                                         <MapPin className="w-3.5 h-3.5" /> {p.city || 'No Location'}, {p.country}
                                      </span>
@@ -82,7 +82,7 @@
                                   </div>
                               </div>
                               
-                              <p className="text-gray-500 text-sm line-clamp-2 max-w-xl mx-auto md:mx-0">
+                              <p className="text-neutral-500 text-sm line-clamp-2 max-w-xl mx-auto md:mx-0">
                                   {p.description || "No description provided."}
                               </p>
                               
@@ -94,7 +94,7 @@
                                       <Edit2 className="w-3.5 h-3.5" /> Edit Listing
                                   </Link>
                                   
-                                  <Link href={`/properties/${(p as any).slug || p.id}`} target="_blank" className="px-5 py-2.5 rounded-xl bg-white border border-neutral-200 text-gray-700 font-bold hover:bg-neutral-50 hover:border-neutral-300 transition-all flex items-center gap-2 text-sm">
+                                  <Link href={`/properties/${(p as any).slug || p.id}`} target="_blank" className="px-5 py-2.5 rounded-xl bg-white border border-neutral-200 text-neutral-700 font-bold hover:bg-neutral-50 hover:border-neutral-300 transition-all flex items-center gap-2 text-sm">
                                       <ExternalLink className="w-3.5 h-3.5" /> Preview
                                   </Link>
                               </div>

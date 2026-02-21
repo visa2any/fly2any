@@ -23,14 +23,11 @@ function getGreeting(): string {
 }
 
 export default async function HostDashboard() {
-  // Auth check with error handling
-  let session;
-  try {
-    session = await auth();
-  } catch (error) {
-    console.error('Auth error in host dashboard:', error);
-    redirect('/auth/signin?callbackUrl=/host/dashboard');
-  }
+  // Auth check - handled first to avoid catching the subsequent redirect error
+  const session = await auth().catch(error => {
+    console.error('Auth check failed:', error);
+    return null;
+  });
 
   if (!session?.user?.id) {
     redirect('/auth/signin?callbackUrl=/host/dashboard');
@@ -107,15 +104,15 @@ export default async function HostDashboard() {
   const firstName = session.user.name?.split(' ')[0] || 'Host';
 
   return (
-    <div className="min-h-screen bg-[#FDFDFD] text-gray-900 pb-20">
+    <div className="min-h-screen bg-[#FDFDFD] text-midnight-navy pb-20">
       <MaxWidthContainer className="pt-8 md:pt-12 px-4 sm:px-6 lg:px-8">
         
         {/* ─── Zone 1: Welcome Header ─── */}
         <div className="mb-8 animate-fadeIn">
-          <h1 className="text-3xl md:text-4xl font-black text-gray-900 mb-1.5 tracking-tight">
+          <h1 className="text-3xl md:text-4xl font-black text-midnight-navy mb-1.5 tracking-tight">
             {getGreeting()}, {firstName}
           </h1>
-          <p className="text-base text-gray-400 font-medium">
+          <p className="text-base text-neutral-400 font-medium">
             Here&apos;s what&apos;s happening with your properties today.
           </p>
         </div>

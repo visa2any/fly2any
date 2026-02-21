@@ -89,7 +89,7 @@ export default function PayoutsPage() {
   if (isLoading) {
     return (
       <div className="min-h-screen bg-[#FDFDFD] flex items-center justify-center">
-        <Loader2 className="w-8 h-8 text-gray-300 animate-spin" />
+        <Loader2 className="w-8 h-8 text-neutral-300 animate-spin" />
       </div>
     );
   }
@@ -98,8 +98,8 @@ export default function PayoutsPage() {
     <div className="min-h-screen bg-[#FDFDFD] pt-4 pb-20">
       <MaxWidthContainer>
         <div className="mb-8 mt-4">
-          <h1 className="text-2xl md:text-3xl font-black text-gray-900 mb-1">Payouts</h1>
-          <p className="text-gray-500 text-sm">Manage how you receive your earnings from bookings.</p>
+          <h1 className="text-2xl md:text-3xl font-black text-midnight-navy mb-1">Payouts</h1>
+          <p className="text-neutral-500 text-sm">Manage how you receive your earnings from bookings.</p>
         </div>
 
         {/* Status Card */}
@@ -142,8 +142,8 @@ export default function PayoutsPage() {
         {/* Payout Methods */}
         <div className="bg-white border border-neutral-200 rounded-2xl overflow-hidden mb-8">
           <div className="p-6 border-b border-neutral-100">
-            <h2 className="font-bold text-gray-900 text-lg">Payout Methods</h2>
-            <p className="text-sm text-gray-500 mt-1">Add your preferred payment method to receive earnings.</p>
+            <h2 className="font-bold text-midnight-navy text-lg">Payout Methods</h2>
+            <p className="text-sm text-neutral-500 mt-1">Add your preferred payment method to receive earnings.</p>
           </div>
 
           {!payoutData && !showBankForm && (
@@ -151,8 +151,8 @@ export default function PayoutsPage() {
               <div className="w-16 h-16 rounded-2xl bg-neutral-100 flex items-center justify-center mx-auto mb-4">
                 <CreditCard className="w-8 h-8 text-neutral-300" />
               </div>
-              <h3 className="font-bold text-gray-900 mb-2">No payout methods added</h3>
-              <p className="text-gray-500 text-sm max-w-sm mx-auto mb-6">
+              <h3 className="font-bold text-midnight-navy mb-2">No payout methods added</h3>
+              <p className="text-neutral-500 text-sm max-w-sm mx-auto mb-6">
                 We support bank transfers. Add your banking details to start receiving payments.
               </p>
               <button
@@ -170,7 +170,7 @@ export default function PayoutsPage() {
             <div className="border-t border-neutral-100 p-6">
               <div className="max-w-md mx-auto space-y-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Bank Name *</label>
+                  <label className="block text-sm font-medium text-neutral-700 mb-1">Bank Name *</label>
                   <input
                     type="text"
                     placeholder="Enter your bank name"
@@ -180,7 +180,7 @@ export default function PayoutsPage() {
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Account Holder Name *</label>
+                  <label className="block text-sm font-medium text-neutral-700 mb-1">Account Holder Name *</label>
                   <input
                     type="text"
                     placeholder="Full name on account"
@@ -190,7 +190,7 @@ export default function PayoutsPage() {
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Account Number / IBAN *</label>
+                  <label className="block text-sm font-medium text-neutral-700 mb-1">Account Number / IBAN *</label>
                   <input
                     type="text"
                     placeholder="Account number or IBAN"
@@ -200,7 +200,7 @@ export default function PayoutsPage() {
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Routing / SWIFT Code</label>
+                  <label className="block text-sm font-medium text-neutral-700 mb-1">Routing / SWIFT Code</label>
                   <input
                     type="text"
                     placeholder="Routing or SWIFT/BIC code"
@@ -213,7 +213,7 @@ export default function PayoutsPage() {
                   <button
                     onClick={handleSave}
                     disabled={isSaving}
-                    className="flex-1 py-3 rounded-xl bg-gray-900 text-white font-bold hover:bg-black transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                    className="flex-1 py-3 rounded-xl bg-midnight-navy text-white font-bold hover:bg-black transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
                   >
                     {isSaving ? (
                       <>
@@ -226,12 +226,12 @@ export default function PayoutsPage() {
                   </button>
                   <button
                     onClick={() => setShowBankForm(false)}
-                    className="px-6 py-3 rounded-xl border border-neutral-200 text-gray-600 font-bold hover:bg-neutral-50 transition-colors"
+                    className="px-6 py-3 rounded-xl border border-neutral-200 text-neutral-600 font-bold hover:bg-neutral-50 transition-colors"
                   >
                     Cancel
                   </button>
                 </div>
-                <p className="text-xs text-gray-400 text-center mt-3">
+                <p className="text-xs text-neutral-400 text-center mt-3">
                   Your banking details are encrypted and stored securely.
                 </p>
               </div>
@@ -246,8 +246,8 @@ export default function PayoutsPage() {
                   <CreditCard className="w-6 h-6 text-emerald-600" />
                 </div>
                 <div className="flex-1">
-                  <p className="font-bold text-gray-900">{payoutData.bankName}</p>
-                  <p className="text-sm text-gray-500">{payoutData.accountHolder} — ****{payoutData.accountNumberLast4}</p>
+                  <p className="font-bold text-midnight-navy">{payoutData.bankName}</p>
+                  <p className="text-sm text-neutral-500">{payoutData.accountHolder} — ****{payoutData.accountNumberLast4}</p>
                 </div>
                 <span className="text-xs font-bold text-emerald-600 bg-emerald-50 px-2 py-1 rounded-lg">Active</span>
               </div>
@@ -258,14 +258,14 @@ export default function PayoutsPage() {
         {/* Payout History */}
         <div className="bg-white border border-neutral-200 rounded-2xl overflow-hidden">
           <div className="p-6 border-b border-neutral-100">
-            <h2 className="font-bold text-gray-900 text-lg">Payout History</h2>
+            <h2 className="font-bold text-midnight-navy text-lg">Payout History</h2>
           </div>
           <div className="p-8 text-center">
             <div className="w-16 h-16 rounded-2xl bg-neutral-100 flex items-center justify-center mx-auto mb-4">
               <Clock className="w-8 h-8 text-neutral-300" />
             </div>
-            <h3 className="font-bold text-gray-900 mb-2">No payouts yet</h3>
-            <p className="text-gray-500 text-sm max-w-sm mx-auto">
+            <h3 className="font-bold text-midnight-navy mb-2">No payouts yet</h3>
+            <p className="text-neutral-500 text-sm max-w-sm mx-auto">
               Payouts will appear here once you receive bookings and have a payout method configured.
             </p>
           </div>

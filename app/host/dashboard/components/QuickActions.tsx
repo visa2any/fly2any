@@ -11,35 +11,35 @@ const ACTIONS = [
     description: 'Add a new property to your portfolio',
     href: '/list-your-property/create',
     icon: Plus,
-    gradient: 'from-neutral-700 to-neutral-900', // Deep neutral
+    gradient: 'from-neutral-800 to-midnight-navy',
   },
   {
-    title: 'Fast Track AI',
+    title: 'AI Fast Track',
     description: 'Auto-generate listing with AI',
     href: '/list-your-property/create?fast=true',
     icon: Rocket,
-    gradient: 'from-primary-400 to-primary-600', // Fly2Any Red
+    gradient: 'from-primary-500 to-primary-700', // Fly2Any Red
   },
   {
     title: 'Smart Pricing',
     description: 'Optimize yields automatically',
     href: '/host/properties',
     icon: Sparkles,
-    gradient: 'from-secondary-400 to-secondary-500', // Fly2Any Yellow
+    gradient: 'from-secondary-400 to-secondary-600', // Fly2Any Yellow
   },
   {
     title: 'AI Co-Host',
     description: 'Set up inbox automation rules',
     href: '/host/properties',
     icon: Shield,
-    gradient: 'from-neutral-500 to-neutral-700', // Light Neutral
+    gradient: 'from-sky-500 to-indigo-600',
   },
   {
-    title: 'Revenue',
+    title: 'Revenue Control',
     description: 'View earnings and payouts',
     href: '/host/properties',
     icon: DollarSign,
-    gradient: 'from-success-400 to-success-600', // Success green
+    gradient: 'from-emerald-500 to-teal-700',
   },
 ];
 
