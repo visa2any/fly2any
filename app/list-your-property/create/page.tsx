@@ -11,6 +11,7 @@ import {
 } from 'lucide-react';
 import {
   PropertyType, PROPERTY_TYPES_INFO, BUILDING_TYPES,
+  PROPERTY_AMENITY_CATEGORIES,
   type WizardStep
 } from '@/lib/properties/types';
 
@@ -1101,11 +1102,11 @@ export default function CreatePropertyPage() {
 
 
       {/* MAIN CONTENT AREA */}
-      <div className="flex-1 md:ml-[72px] h-full flex flex-col relative bg-neutral-50/50 transition-all duration-300">
+      <div className="flex-1 md:ml-[72px] h-full flex flex-col relative bg-neutral-50/50 transition-all duration-300 min-w-0 overflow-hidden">
           
-          <div className="flex-1 overflow-hidden flex flex-col lg:flex-row w-full max-w-[1920px] mx-auto">
+          <div className="flex-1 overflow-hidden flex flex-col lg:flex-row w-full max-w-[1920px] mx-auto min-w-0">
               {/* Left Column: Form */}
-              <div className="flex-1 h-full overflow-y-auto scrollbar-thin scrollbar-thumb-neutral-200 scrollbar-track-transparent relative px-2 md:px-4 lg:px-6">
+              <div className="flex-1 h-full overflow-y-auto overflow-x-hidden scrollbar-thin scrollbar-thumb-neutral-200 scrollbar-track-transparent relative px-2 md:px-4 lg:px-6 min-w-0">
                  <main className="w-full mx-auto py-6 pb-24">
                      <div className="mb-6 block lg:hidden">
                          <h1 className="text-2xl font-bold text-gray-900">{STEPS.find(s => s.id === currentStep)?.label}</h1>

@@ -4,7 +4,7 @@ import { useState } from 'react';
 import {
   Clock, Shield, Plus, X, Cigarette, Dog, Music, Users, Leaf, Check,
   Baby, AlertTriangle, KeyRound, DollarSign, BadgeCheck, Volume2,
-  Home, Flame, ChevronDown, ChevronUp, Award
+  Home, Flame, ChevronDown, ChevronUp, Award, Sparkles
 } from 'lucide-react';
 import { CancellationPolicyType, PetPolicy, SmokingPolicy, ChildPolicy, CancellationDetails } from '@/lib/properties/types';
 
