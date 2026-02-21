@@ -55,12 +55,7 @@ export default function CalendarPage() {
     loadProperties();
   }, []);
 
-  const getDemandScore = (day: number) => {
-    // Mock demand logic - in production this would come from an API or state
-    if ([5, 12, 18, 25, 26, 27].includes(day)) return 'peak';
-    if ([4, 11, 19, 20].includes(day)) return 'high';
-    return 'normal';
-  };
+
 
   useEffect(() => {
     if (!selectedProperty) return;
@@ -294,7 +289,7 @@ export default function CalendarPage() {
                     const date = new Date(year, month, day);
                     const status = getDayStatus(date);
                     const isToday = isSameDay(date, new Date());
-                    const demand = getDemandScore(day);
+                    const demand = getDemandScore(date);
                     
                     let isInDrag = false;
                     if (isDragging && dragStart && dragEnd) {
