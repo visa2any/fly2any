@@ -255,21 +255,21 @@ export default function CalendarPage() {
                     </button>
                   </div>
 
-                  {/* AI Smart Yield Toggle */}
-                  <div className="flex items-center gap-3 bg-gradient-to-r from-purple-50 to-indigo-50 border border-purple-100 px-4 py-2.5 rounded-xl shadow-sm">
-                     <div className="flex items-center gap-2">
-                         <span className="bg-purple-600 text-white p-1 rounded-md">
-                            <Flame className="w-3.5 h-3.5" />
-                         </span>
-                         <div>
-                             <p className="text-sm font-bold text-purple-900 leading-none">Smart Yield Active</p>
-                             <p className="text-[10px] text-purple-700 mt-1 font-medium">Demand Heatmap enabled</p>
-                         </div>
-                     </div>
-                     <div className="w-10 h-6 bg-purple-600 rounded-full ml-4 relative cursor-pointer shadow-inner">
-                         <div className="absolute right-1 top-1 w-4 h-4 bg-white rounded-full shadow-sm" />
-                     </div>
-                  </div>
+                   {/* AI Smart Yield Toggle */}
+                   <div className="flex items-center gap-3 bg-white border border-neutral-200 px-4 py-2 rounded-xl shadow-sm group hover:border-purple-200 transition-all">
+                      <div className="flex items-center gap-2">
+                          <span className="bg-purple-600 text-white p-1 rounded-lg shadow-sm">
+                             <Flame className="w-4 h-4" />
+                          </span>
+                          <div>
+                              <p className="text-sm font-black text-gray-900 leading-none">Smart Yield</p>
+                              <p className="text-[10px] text-gray-500 mt-1 font-bold uppercase tracking-wider">Market Demand Active</p>
+                          </div>
+                      </div>
+                      <div className="w-10 h-5 bg-emerald-500 rounded-full ml-4 relative cursor-pointer shadow-inner">
+                          <div className="absolute right-0.5 top-0.5 w-4 h-4 bg-white rounded-full shadow-md" />
+                      </div>
+                   </div>
                 </div>
 
                 <div className="grid grid-cols-7 gap-1 mb-1 shrink-0">
@@ -299,22 +299,35 @@ export default function CalendarPage() {
                     
                     // Heatmap coloring
                     let bgClass = 'bg-white';
-                    let textClass = 'text-gray-600';
+                    let textClass = 'text-gray-900';
                     let borderClass = 'border-neutral-200';
+                    let labelClass = 'text-gray-500';
                     
                     if (status && !status.available) {
-                         bgClass = 'bg-neutral-100/80';
-                         textClass = 'text-neutral-400 line-through';
-                         borderClass = 'border-neutral-200';
+                         bgClass = 'bg-neutral-50/50';
+                         textClass = 'text-neutral-300 line-through';
+                         borderClass = 'border-neutral-100';
+                         labelClass = 'text-neutral-200';
                     } else if (status?.available !== false) {
-                         if (demand === 'peak') { bgClass = 'bg-rose-50/60'; borderClass='border-rose-100'; textClass='text-rose-900'; }
-                         else if (demand === 'high') { bgClass = 'bg-orange-50/60'; borderClass='border-orange-100'; textClass='text-orange-900'; }
+                         if (demand === 'peak') { 
+                            bgClass = 'bg-rose-50'; 
+                            borderClass='border-rose-100'; 
+                            textClass='text-rose-700';
+                            labelClass='text-rose-500';
+                         }
+                         else if (demand === 'high') { 
+                            bgClass = 'bg-amber-50'; 
+                            borderClass='border-amber-100'; 
+                            textClass='text-amber-700';
+                            labelClass='text-amber-500';
+                         }
                     }
 
                     if (isSelected) {
-                        bgClass = 'bg-primary-50';
-                        borderClass = 'border-primary-500 ring-2 ring-primary-500 z-10';
-                        textClass = 'text-primary-700';
+                        bgClass = 'bg-primary-600';
+                        borderClass = 'border-primary-600 shadow-lg z-20 scale-[1.02]';
+                        textClass = 'text-white';
+                        labelClass = 'text-primary-100';
                     }
 
                     return (
@@ -322,11 +335,11 @@ export default function CalendarPage() {
                         key={day}
                         onMouseDown={() => handleMouseDown(day)}
                         onMouseEnter={() => handleMouseEnter(day)}
-                        className={`rounded-xl border flex flex-col items-center justify-center transition-all cursor-pointer hover:shadow-md relative group h-full ${bgClass} ${borderClass} ${textClass} ${isToday ? 'ring-2 ring-offset-1 ring-emerald-400' : ''}`}
+                        className={`rounded-xl border flex flex-col items-center justify-center transition-all cursor-pointer hover:shadow-xl hover:scale-[1.03] hover:z-30 relative group h-full ${bgClass} ${borderClass} ${textClass} ${isToday && !isSelected ? 'ring-2 ring-primary-500 ring-offset-1' : ''}`}
                       >
                         <span className={`text-sm ${isSelected ? 'font-black' : 'font-bold'}`}>{day}</span>
                         {status?.price && status.available && (
-                          <span className={`text-xs font-black mt-1 ${isSelected ? 'text-primary-800' : 'text-gray-900'}`}>${status.price}</span>
+                          <span className={`text-xs font-black mt-1 ${labelClass}`}>${status.price}</span>
                         )}
                         {!status?.price && status?.available !== false && demand === 'peak' && (
                            <Flame className="w-3 h-3 text-rose-400 absolute top-2 right-2 opacity-50" />
@@ -337,15 +350,18 @@ export default function CalendarPage() {
                 </div>
 
                 {/* Legend */}
-                <div className="flex items-center gap-6 mt-4 justify-center bg-white border border-neutral-100 rounded-full py-1.5 px-6 w-max mx-auto shadow-sm shrink-0">
-                  <div className="flex items-center gap-2 text-xs font-medium text-gray-500">
-                    <div className="w-3 h-3 rounded-full bg-rose-100 border border-rose-200" /> Peak Demand
+                <div className="flex items-center gap-8 mt-4 justify-center bg-white border border-neutral-100 rounded-full py-2 px-8 w-max mx-auto shadow-sm shrink-0">
+                  <div className="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-gray-400">
+                    <div className="w-2 h-2 rounded-full bg-rose-400" /> Peak
                   </div>
-                  <div className="flex items-center gap-2 text-xs font-medium text-gray-500">
-                    <div className="w-3 h-3 rounded-full bg-orange-100 border border-orange-200" /> High Demand
+                  <div className="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-gray-400">
+                    <div className="w-2 h-2 rounded-full bg-amber-400" /> High 
                   </div>
-                  <div className="flex items-center gap-2 text-xs font-medium text-gray-500">
-                    <div className="w-3 h-3 rounded-full bg-neutral-100 border border-neutral-200" /> Blocked
+                  <div className="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-gray-400">
+                    <div className="w-2 h-2 rounded-full bg-neutral-200" /> Unavailable
+                  </div>
+                  <div className="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-gray-400">
+                    <div className="w-2 h-2 rounded-full bg-primary-500" /> Selected
                   </div>
                 </div>
             </div>
