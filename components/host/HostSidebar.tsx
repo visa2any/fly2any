@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { LayoutDashboard, Building2, Calendar, ClipboardList, Settings, LogOut, ChevronLeft, MessageSquare, Shield, Wallet, TrendingUp } from 'lucide-react';
+import { LayoutDashboard, Building2, Calendar, ClipboardList, Settings, LogOut, ChevronLeft, MessageSquare, ShieldCheck, Wallet, TrendingUp } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 const MENU_ITEMS = [
@@ -10,6 +10,7 @@ const MENU_ITEMS = [
   { label: 'Calendar', icon: Calendar, href: '/host/calendar' },
   { label: 'Inbox', icon: MessageSquare, href: '/host/messages' },
   { label: 'Listings', icon: Building2, href: '/host/properties' },
+  { label: 'Trust', icon: ShieldCheck, href: '/host/trust' },
   { label: 'Insights', icon: TrendingUp, href: '/host/finances' },
 ];
 

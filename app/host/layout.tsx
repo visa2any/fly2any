@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import HostSidebar from '@/components/host/HostSidebar';
 import { HostHeader } from '@/components/host/HostHeader';
+import { AIAssistantPill } from './dashboard/components/AIAssistantPill';
 
 export const metadata: Metadata = {
   title: 'Host Dashboard | Fly2Any',
@@ -17,6 +18,7 @@ export default function HostLayout({ children }: { children: React.ReactNode }) 
           {children}
         </main>
       </div>
+      <AIAssistantPill />
     </div>
   );
 }

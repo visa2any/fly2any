@@ -17,6 +17,14 @@ const ADMIN_WHITELIST = [
   'fly2any.travel@gmail.com',
 ]
 
+// Timeout helper for SSR to prevent Vercel 504s during cold boots
+const withTimeout = <T,>(promise: Promise<T>, ms: number, errorMsg: string): Promise<T> => {
+  return Promise.race([
+    promise,
+    new Promise<T>((_, reject) => setTimeout(() => reject(new Error(errorMsg)), ms))
+  ]);
+};
+
 export default async function AdminLayout({
   children,
 }: {
@@ -30,12 +38,12 @@ export default async function AdminLayout({
 
   const prisma = getPrismaClient();
 
-  // Check authentication
+  // Check authentication with 5 second timeout
   let session;
   try {
-    session = await auth()
+    session = await withTimeout(auth(), 5000, 'Auth request timed out');
   } catch (error) {
-    console.error('Auth error in admin layout:', error)
+    console.error('Auth error or timeout in admin layout:', error)
     redirect('/auth/admin-signin?callbackUrl=/admin')
   }
 
@@ -52,16 +60,20 @@ export default async function AdminLayout({
     }
   }
 
-  // Check if user is admin
+  // Check if user is admin with 5 second timeout
   let adminUser = null
   try {
-    adminUser = await prisma.adminUser.findUnique({
-      where: { userId: session.user.id },
-      include: { user: true }
-    })
+    adminUser = await withTimeout(
+      prisma.adminUser.findUnique({
+        where: { userId: session.user.id },
+        include: { user: true }
+      }),
+      5000,
+      'Database query timed out'
+    );
   } catch (error) {
-    console.error('Error checking admin status:', error)
-    // Database error - redirect with error
+    console.error('Error or timeout checking admin status:', error)
+    // Database error - redirect with error instead of hanging
     redirect('/?error=database_error')
   }
 

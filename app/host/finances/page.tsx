@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { MaxWidthContainer } from '@/components/layout/MaxWidthContainer';
-import { DollarSign, Download, TrendingUp, Calendar, AlertCircle, Loader2 } from 'lucide-react';
+import { DollarSign, Download, TrendingUp, Calendar, AlertCircle, Loader2, Sparkles, ArrowRight } from 'lucide-react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, LineChart, Line, Legend } from 'recharts';
 
 export default function FinancesPage() {
@@ -42,11 +42,18 @@ export default function FinancesPage() {
     <div className="min-h-screen bg-[#FDFDFD] pt-4 pb-20">
         <MaxWidthContainer>
             {/* Header */}
-            <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 mb-8">
-                <div>
-                     <h1 className="text-3xl font-black text-midnight-navy mb-2">Financials & Taxes</h1>
-                     <p className="text-neutral-500 text-sm">Track your earnings, pacing, and export reports for tax season.</p>
+            <header className="mb-12 mt-4">
+                <div className="flex items-center gap-3 mb-4">
+                    <div className="bg-emerald-50 p-2 rounded-xl border border-emerald-100">
+                       <TrendingUp className="w-6 h-6 text-emerald-600" />
+                    </div>
+                    <span className="text-[10px] font-black uppercase tracking-[0.2em] text-emerald-600">Wealth Portfolio</span>
                 </div>
+                <h1 className="text-4xl font-black text-midnight-navy mb-3 tracking-tighter">Wealth Management</h1>
+                <p className="text-neutral-500 max-w-2xl font-medium leading-relaxed">
+                    Ultra-premium property management analytics. Gain deep insights into your portfolio's financial health and optimize for maximum yield.
+                </p>
+            </header>
                 <div className="flex items-center gap-3">
                     <select
                         value={timeframe}
@@ -61,46 +68,46 @@ export default function FinancesPage() {
                         Export CSV
                     </button>
                 </div>
-            </div>
 
             {/* Top Stats */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-                <div className="bg-white rounded-3xl p-8 border border-neutral-100 shadow-soft flex flex-col justify-between hover:shadow-soft-lg transition-all">
-                    <div className="flex items-start justify-between mb-6">
-                        <div className="w-12 h-12 rounded-2xl bg-emerald-50 text-emerald-600 flex items-center justify-center border border-emerald-100">
-                            <DollarSign className="w-6 h-6" />
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-12">
+                <div className="bg-white rounded-[2.5rem] p-10 border border-neutral-100 shadow-soft flex flex-col justify-between hover:shadow-soft-lg transition-all group">
+                    <div className="flex items-start justify-between mb-8">
+                        <div className="w-14 h-14 rounded-2xl bg-emerald-50 text-emerald-600 flex items-center justify-center border border-emerald-100 group-hover:scale-110 transition-transform">
+                            <DollarSign className="w-7 h-7" />
                         </div>
                     </div>
                     <div>
-                        <p className="text-[10px] font-black uppercase tracking-widest text-neutral-400 mb-1">Net Earnings (YTD)</p>
-                        <h2 className="text-4xl font-black text-midnight-navy tracking-tight">${data?.netYTD?.toLocaleString() || '0'}</h2>
+                        <p className="text-[10px] font-black uppercase tracking-widest text-neutral-400 mb-2">Net Earnings (YTD)</p>
+                        <h2 className="text-5xl font-black text-midnight-navy tracking-tighter">${data?.netYTD?.toLocaleString() || '0'}</h2>
                     </div>
                 </div>
 
-                <div className="bg-white rounded-3xl p-8 border border-neutral-100 shadow-soft flex flex-col justify-between hover:shadow-soft-lg transition-all">
-                    <div className="flex items-start justify-between mb-6">
-                        <div className="w-12 h-12 rounded-2xl bg-secondary-50 text-secondary-600 flex items-center justify-center border border-secondary-100">
-                            <Calendar className="w-6 h-6" />
+                <div className="bg-[#1B243B] rounded-[2.5rem] p-10 shadow-soft-lg flex flex-col justify-between hover:-translate-y-1 transition-all group text-white">
+                    <div className="flex items-start justify-between mb-8">
+                        <div className="w-14 h-14 rounded-2xl bg-white/5 text-secondary-400 flex items-center justify-center border border-white/10 group-hover:scale-110 transition-transform">
+                            <Calendar className="w-7 h-7" />
                         </div>
                     </div>
                     <div>
-                        <p className="text-[10px] font-black uppercase tracking-widest text-neutral-400 mb-1">Upcoming Payouts</p>
-                        <h2 className="text-4xl font-black text-midnight-navy tracking-tight">${data?.upcomingPayouts?.toLocaleString() || '0'}</h2>
-                        <div className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-secondary-50 text-secondary-700 rounded-lg text-[10px] font-black uppercase tracking-wide mt-3">
+                        <p className="text-[10px] font-black uppercase tracking-widest text-neutral-500 mb-2">Upcoming Payouts</p>
+                        <h2 className="text-5xl font-black text-white tracking-tighter">${data?.upcomingPayouts?.toLocaleString() || '0'}</h2>
+                        <div className="inline-flex items-center gap-2 px-3 py-1.5 bg-[#102A3E] border border-[#163B54] text-[#2DD4BF] text-[10px] font-black uppercase tracking-widest mt-6 rounded-full">
+                           <div className="w-1.5 h-1.5 rounded-full bg-[#2DD4BF] animate-pulse" />
                            Booked & Confirmed
                         </div>
                     </div>
                 </div>
 
-                <div className="bg-white rounded-3xl p-8 border border-neutral-100 shadow-soft flex flex-col justify-between hover:shadow-soft-lg transition-all">
-                    <div className="flex items-start mb-6">
-                        <div className="w-12 h-12 rounded-2xl bg-primary-50 text-primary-600 flex items-center justify-center border border-primary-100">
-                            <AlertCircle className="w-6 h-6" />
+                <div className="bg-white rounded-[2.5rem] p-10 border border-neutral-100 shadow-soft flex flex-col justify-between hover:shadow-soft-lg transition-all group">
+                    <div className="flex items-start mb-8">
+                        <div className="w-14 h-14 rounded-2xl bg-primary-50 text-primary-600 flex items-center justify-center border border-primary-100 group-hover:scale-110 transition-transform">
+                            <AlertCircle className="w-7 h-7" />
                         </div>
                     </div>
                     <div>
-                        <p className="text-[10px] font-black uppercase tracking-widest text-neutral-400 mb-1">Platform Fees & Taxes</p>
-                        <h2 className="text-4xl font-black text-midnight-navy tracking-tight">${data?.platformFees?.toLocaleString() || '0'}</h2>
+                        <p className="text-[10px] font-black uppercase tracking-widest text-neutral-400 mb-2">Platform Fees & Taxes</p>
+                        <h2 className="text-5xl font-black text-midnight-navy tracking-tighter">${data?.platformFees?.toLocaleString() || '0'}</h2>
                     </div>
                 </div>
             </div>
@@ -164,7 +171,53 @@ export default function FinancesPage() {
                 </div>
 
             </div>
+            {/* Revenue Projection & Portfolio Mix */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-12">
+                <div className="bg-white rounded-[2.5rem] p-10 border border-neutral-100 shadow-soft">
+                    <div className="flex items-center justify-between mb-8">
+                        <div>
+                           <p className="text-[10px] font-black uppercase tracking-widest text-neutral-400 mb-1">Revenue Projection</p>
+                           <h3 className="text-2xl font-black text-midnight-navy">12-Month Predictive</h3>
+                        </div>
+                        <div className="text-right">
+                           <p className="text-2xl font-black text-emerald-600 uppercase tracking-tighter font-mono">$124,500</p>
+                           <p className="text-[10px] font-black text-emerald-500 uppercase tracking-widest">+18% YOY</p>
+                        </div>
+                    </div>
+                    <div className="h-48 flex items-end gap-2 px-2">
+                        {[40, 65, 45, 90, 75, 55, 80, 70, 95, 85, 60, 75].map((h, i) => (
+                           <div key={i} className="flex-1 bg-neutral-50 rounded-t-lg relative group transition-all hover:bg-neutral-100">
+                              <div 
+                                style={{ height: `${h}%` }} 
+                                className="absolute bottom-0 left-0 right-0 bg-primary-500/10 group-hover:bg-primary-500/30 rounded-t-lg transition-all"
+                              />
+                           </div>
+                        ))}
+                    </div>
+                </div>
 
+                <div className="bg-[#F8FAFC] rounded-[2.5rem] p-10 border border-neutral-100 relative overflow-hidden group">
+                    <div className="absolute top-0 right-0 p-12 text-primary-500/10 group-hover:scale-110 transition-transform">
+                        <Sparkles className="w-32 h-32" />
+                    </div>
+                    <div className="relative z-10">
+                        <div className="inline-flex items-center gap-2 px-4 py-2 bg-white border border-neutral-200 rounded-full text-[10px] font-black uppercase tracking-widest mb-6 shadow-sm">
+                           <Sparkles className="w-3.5 h-3.5 text-secondary-500" />
+                           AI Concierge Insights
+                        </div>
+                        <h4 className="text-2xl font-black text-midnight-navy mb-4 tracking-tight">Tax Optimization Strategy</h4>
+                        <p className="text-sm text-neutral-500 font-medium mb-8 leading-relaxed max-w-sm">
+                           You haven't logged any maintenance expenses for the Knightsbridge property this quarter.
+                           <br /><br />
+                           <span className="text-midnight-navy font-bold">Pro Tip:</span> Expense your recent HVAC repair as a capital improvement to lower your 2026 liability.
+                        </p>
+                        <button className="text-[10px] font-black text-primary-600 uppercase tracking-[0.2em] flex items-center gap-2 group/btn">
+                           Explore Tax Center 
+                           <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+                        </button>
+                    </div>
+                </div>
+            </div>
         </MaxWidthContainer>
     </div>
   );

@@ -20,7 +20,7 @@ export function GlobalClientErrorListener() {
         component: 'GlobalErrorListener',
         action: 'uncaughtError',
         category: ErrorCategory.UNKNOWN,
-        severity: ErrorSeverity.HIGH,
+        severity: ErrorSeverity.NORMAL,
         additionalData: {
           filename: event.filename,
           lineno: event.lineno,
@@ -42,10 +42,11 @@ export function GlobalClientErrorListener() {
           errorMessage.toLowerCase().includes('fetch') ||
           errorMessage.toLowerCase().includes('failed to fetch')) {
         category = ErrorCategory.NETWORK;
-        severity = ErrorSeverity.HIGH;
+        severity = ErrorSeverity.LOW; // Downgraded to prevent paging admins for common client connectivity issues
       } else if (errorMessage.toLowerCase().includes('api') ||
                  errorMessage.toLowerCase().includes('external')) {
         category = ErrorCategory.EXTERNAL_API;
+        severity = ErrorSeverity.LOW; // Same for external APIs
       }
 
       reportClientError(error instanceof Error ? error : errorMessage, {

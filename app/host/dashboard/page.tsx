@@ -91,8 +91,7 @@ export default async function HostDashboard() {
             </div>
         </div>
 
-        {/* Floating AI Pill */}
-        <AIAssistantPill />
+        {/* Floating AI Pill moved to Layout */}
 
       </MaxWidthContainer>
     </div>

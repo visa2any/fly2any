@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { useSession } from 'next-auth/react';
-import { Loader2, MessageSquare, Search, Send, User, Sparkles, Info, X } from 'lucide-react';
+import { Loader2, MessageSquare, Search, Send, User, Sparkles, Info, X, Clock } from 'lucide-react';
 import { format } from 'date-fns';
 import { AnimatePresence, motion } from 'framer-motion';
 import Image from 'next/image';
@@ -181,22 +181,42 @@ export default function MessagesPage() {
           !showSidebar && "hidden md:flex"
         )}>
             <div className="p-6 border-b border-neutral-100 bg-white">
-                <h2 className="text-2xl font-extrabold text-midnight-navy tracking-tight mb-5">Messages</h2>
+                <div className="flex items-center gap-2 mb-1">
+                   <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                   <span className="text-[10px] font-black uppercase tracking-widest text-emerald-600">Active Node</span>
+                </div>
+                <h2 className="text-2xl font-black text-midnight-navy tracking-tighter mb-5">Command Center</h2>
+                
+                {/* Smart Timeline (High Fidelity) */}
+                <div className="mb-6 p-4 bg-[#F8FAFC] rounded-2xl border border-neutral-100 divide-y divide-neutral-100">
+                    <div className="pb-3 flex items-center justify-between">
+                       <span className="text-[10px] font-black text-neutral-400 uppercase tracking-widest">Smart Timeline</span>
+                       <Clock className="w-3.5 h-3.5 text-neutral-300" />
+                    </div>
+                    <div className="py-3">
+                       <p className="text-[10px] font-black text-indigo-600 uppercase tracking-widest mb-1.5">Today, Oct 24</p>
+                       <div className="flex items-center justify-between text-xs font-bold text-midnight-navy">
+                          <span>Penthouse Suite</span>
+                          <span className="text-neutral-400">3:00 PM</span>
+                       </div>
+                    </div>
+                </div>
+
                 <div className="relative group">
                     <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-neutral-400 group-focus-within:text-primary-500 transition-colors" />
                     <input
                       type="text"
                       value={searchQuery}
                       onChange={(e) => setSearchQuery(e.target.value)}
-                      placeholder="Search guests or properties..."
+                      placeholder="Search command center..."
                       className="w-full pl-11 pr-4 py-3.5 rounded-2xl bg-white border border-neutral-100 placeholder-neutral-400 focus:outline-none focus:border-primary-400 shadow-sm focus:shadow-soft-lg transition-all text-sm font-semibold text-midnight-navy"
                     />
                 </div>
             </div>
-            <div className="flex-1 overflow-y-auto px-2 py-3 space-y-1">
+            <div className="flex-1 overflow-y-auto px-4 py-4 space-y-2">
                 {filteredConversations.length === 0 ? (
-                    <div className="p-8 text-center text-neutral-500 text-sm font-medium">
-                      {searchQuery ? `No results for "${searchQuery}"` : 'No messages yet.'}
+                    <div className="p-8 text-center text-neutral-400 text-xs font-black uppercase tracking-widest">
+                      {searchQuery ? `No results for "${searchQuery}"` : 'Inbox Empty'}
                     </div>
                 ) : (
                     filteredConversations.map(conv => (
@@ -204,27 +224,27 @@ export default function MessagesPage() {
                             key={conv.id}
                             onClick={() => { setActiveConversationId(conv.id); setShowSidebar(false); }}
                             className={cn(
-                                "w-full p-4 flex gap-4 transition-all text-left rounded-2xl group border border-transparent",
+                                "w-full p-5 flex gap-5 transition-all text-left rounded-[1.5rem] group border border-transparent mb-1",
                                 activeConversationId === conv.id 
-                                    ? "bg-white shadow-soft-lg border-neutral-100 scale-[1.01]" 
-                                    : "hover:bg-neutral-50/80"
+                                    ? "bg-white shadow-soft-lg border-neutral-100 scale-[1.02] z-10 relative" 
+                                    : "hover:bg-neutral-100/50"
                             )}
                         >
-                            <div className="relative">
+                            <div className="relative shrink-0">
                                 {conv.guest.image ? (
-                                    <Image src={conv.guest.image} alt={conv.guest.name} width={40} height={40} className="rounded-full object-cover" />
+                                    <Image src={conv.guest.image} alt={conv.guest.name} width={48} height={48} className="rounded-full object-cover shadow-sm border border-white" />
                                 ) : (
-                                    <div className="w-10 h-10 rounded-full bg-neutral-200 flex items-center justify-center"><User className="w-5 h-5 text-neutral-400" /></div>
+                                    <div className="w-12 h-12 rounded-full bg-indigo-50 flex items-center justify-center border border-indigo-100"><User className="w-6 h-6 text-indigo-400" /></div>
                                 )}
-                                {conv.unreadCountHost > 0 && <div className="absolute -top-1 -right-1 w-3 h-3 bg-red-500 rounded-full ring-2 ring-white"></div>}
+                                {conv.unreadCountHost > 0 && <div className="absolute top-0 right-0 w-3.5 h-3.5 bg-red-500 rounded-full ring-4 ring-white shadow-sm border border-white"></div>}
                             </div>
                             <div className="flex-1 min-w-0">
                                 <div className="flex justify-between items-center mb-1">
-                                    <span className={cn("font-bold text-sm truncate", conv.unreadCountHost > 0 ? "text-midnight-navy" : "text-neutral-700")}>{conv.guest.name}</span>
-                                    <span className="text-[10px] text-neutral-400 whitespace-nowrap">{format(new Date(conv.lastMessageAt), 'MMM d')}</span>
+                                    <span className={cn("font-black text-sm truncate tracking-tight", conv.unreadCountHost > 0 ? "text-midnight-navy" : "text-neutral-500")}>{conv.guest.name}</span>
+                                    <span className="text-[10px] font-black text-neutral-300 whitespace-nowrap uppercase tracking-widest">{format(new Date(conv.lastMessageAt), 'MMM d')}</span>
                                 </div>
-                                <p className="text-xs text-neutral-500 truncate font-medium">{conv.property?.name}</p>
-                                <p className={cn("text-sm truncate mt-1", conv.unreadCountHost > 0 ? "text-midnight-navy font-semibold" : "text-neutral-600")}>{conv.lastMessage}</p>
+                                <p className="text-[10px] font-black text-[#4F46E5] uppercase tracking-widest truncate mb-1.5">{conv.property?.name}</p>
+                                <p className={cn("text-xs truncate", conv.unreadCountHost > 0 ? "text-midnight-navy font-bold" : "text-neutral-400 font-medium")}>{conv.lastMessage}</p>
                             </div>
                         </button>
                     ))

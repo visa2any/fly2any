@@ -97,41 +97,41 @@ export default function PayoutsPage() {
   return (
     <div className="min-h-screen bg-[#FDFDFD] pt-4 pb-20">
       <MaxWidthContainer>
-        <div className="mb-8 mt-4">
-          <h1 className="text-2xl md:text-3xl font-black text-midnight-navy mb-1">Payouts</h1>
-          <p className="text-neutral-500 text-sm">Manage how you receive your earnings from bookings.</p>
+        <div className="mb-10 mt-2">
+          <h1 className="text-3xl font-black text-midnight-navy mb-1 tracking-tight">Payout Management</h1>
+          <p className="text-neutral-400 font-bold text-[10px] uppercase tracking-widest">Manage how you receive your earnings from bookings.</p>
         </div>
 
         {/* Status Card */}
         {!payoutData ? (
-          <div className="bg-amber-50 border border-amber-200 rounded-2xl p-6 mb-8">
-            <div className="flex items-start gap-4">
-              <div className="w-10 h-10 rounded-xl bg-amber-100 flex items-center justify-center flex-shrink-0">
-                <AlertCircle className="w-5 h-5 text-amber-600" />
+          <div className="bg-amber-50 border border-amber-100 rounded-[2rem] p-8 mb-10 shadow-soft">
+            <div className="flex items-start gap-6">
+              <div className="w-12 h-12 rounded-2xl bg-amber-100 flex items-center justify-center flex-shrink-0 border border-amber-200">
+                <AlertCircle className="w-6 h-6 text-amber-600" />
               </div>
               <div>
-                <h3 className="font-bold text-amber-900 mb-1">No payout method configured</h3>
-                <p className="text-sm text-amber-700">
+                <h3 className="font-black text-amber-900 mb-1 text-lg">Payout Required</h3>
+                <p className="text-sm text-amber-700/80 font-medium leading-relaxed">
                   Add a payout method to start receiving earnings from your bookings. You won&apos;t receive any payments until this is set up.
                 </p>
               </div>
             </div>
           </div>
         ) : (
-          <div className="bg-emerald-50 border border-emerald-200 rounded-2xl p-6 mb-8">
-            <div className="flex items-start gap-4">
-              <div className="w-10 h-10 rounded-xl bg-emerald-100 flex items-center justify-center flex-shrink-0">
-                <CheckCircle2 className="w-5 h-5 text-emerald-600" />
+          <div className="bg-emerald-50 border border-emerald-100 rounded-[2rem] p-8 mb-10 shadow-soft">
+            <div className="flex items-start gap-6">
+              <div className="w-12 h-12 rounded-2xl bg-emerald-100 flex items-center justify-center flex-shrink-0 border border-emerald-200">
+                <CheckCircle2 className="w-6 h-6 text-emerald-600" />
               </div>
               <div className="flex-1">
-                <h3 className="font-bold text-emerald-900 mb-1">Payout method configured</h3>
-                <p className="text-sm text-emerald-700">
-                  <span className="font-semibold">{payoutData.bankName}</span> — {payoutData.accountHolder} (****{payoutData.accountNumberLast4})
+                <h3 className="font-black text-emerald-900 mb-1 text-lg">Payments Active</h3>
+                <p className="text-sm text-emerald-700/80 font-medium">
+                  <span className="font-black text-emerald-900">{payoutData.bankName}</span> • {payoutData.accountHolder} (****{payoutData.accountNumberLast4})
                 </p>
               </div>
               <button
                 onClick={() => setShowBankForm(!showBankForm)}
-                className="text-sm font-bold text-emerald-700 hover:text-emerald-900 transition-colors"
+                className="px-5 py-2.5 rounded-xl bg-white text-[10px] font-black uppercase tracking-widest text-emerald-700 hover:text-emerald-900 transition-all border border-emerald-200 shadow-sm"
               >
                 Update
               </button>

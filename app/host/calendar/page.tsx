@@ -209,30 +209,35 @@ export default function CalendarPage() {
   return (
     <div className="h-[calc(100vh-73px)] bg-[#FDFDFD] px-4 py-2 relative overflow-hidden flex flex-col">
       <MaxWidthContainer className="flex-1 flex flex-col min-h-0 h-full">
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-3 mt-1 shrink-0">
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6 mt-2 shrink-0">
           <div>
-            <h1 className="text-2xl md:text-3xl font-black text-midnight-navy mb-1 flex items-center gap-2">
-                Calendar <span className="bg-primary-100 text-primary-700 text-xs px-2 py-1 rounded-full uppercase tracking-wider font-bold">Smart UX</span>
+            <h1 className="text-3xl font-black text-midnight-navy mb-1 tracking-tight">
+                Availability Calendar
             </h1>
-            <p className="text-neutral-500 text-sm">Drag to select multiple days. Adjust pricing with demand insights.</p>
+            <p className="text-neutral-400 font-bold text-[10px] uppercase tracking-widest">Select dates to adjust pricing or block availability.</p>
           </div>
           <div className="flex items-center gap-3">
               <button 
                   onClick={() => setIsSyncModalOpen(true)}
-                  className="px-4 py-2.5 rounded-xl bg-neutral-100 hover:bg-neutral-200 text-neutral-700 font-bold text-sm transition-colors border border-neutral-200"
+                  className="px-5 py-3 rounded-2xl bg-white hover:bg-neutral-50 text-midnight-navy font-black text-[10px] uppercase tracking-widest transition-all border border-neutral-100 shadow-sm"
               >
                   Sync iCal
               </button>
               {properties.length > 0 && (
-                <select
-                  value={selectedProperty}
-                  onChange={(e) => setSelectedProperty(e.target.value)}
-                  className="px-4 py-2.5 rounded-xl bg-white border border-neutral-200 text-midnight-navy text-sm font-bold focus:outline-none focus:border-primary-300 focus:ring-2 focus:ring-primary-100 appearance-none cursor-pointer"
-                >
-                  {properties.map((p) => (
-                    <option key={p.id} value={p.id}>{p.name}</option>
-                  ))}
-                </select>
+                <div className="relative">
+                  <select
+                    value={selectedProperty}
+                    onChange={(e) => setSelectedProperty(e.target.value)}
+                    className="px-5 py-3 pr-10 rounded-2xl bg-[#0B1221] text-white text-[10px] font-black uppercase tracking-widest focus:outline-none focus:ring-4 focus:ring-indigo-500/10 appearance-none cursor-pointer shadow-lg border border-white/10"
+                  >
+                    {properties.map((p) => (
+                      <option key={p.id} value={p.id}>{p.name}</option>
+                    ))}
+                  </select>
+                  <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-white/50">
+                      <ChevronRight className="w-3 h-3 rotate-90" />
+                  </div>
+                </div>
               )}
           </div>
         </div>
@@ -258,17 +263,17 @@ export default function CalendarPage() {
                   </div>
 
                    {/* AI Smart Yield Toggle */}
-                   <div className="flex items-center gap-3 bg-white border border-neutral-200 px-4 py-2 rounded-xl shadow-sm group hover:border-purple-200 transition-all">
-                      <div className="flex items-center gap-2">
-                          <span className="bg-purple-600 text-white p-1 rounded-lg shadow-sm">
+                   <div className="flex items-center gap-4 bg-white border border-neutral-100 px-5 py-3 rounded-2xl shadow-soft group hover:border-[#4F46E5]/20 transition-all cursor-pointer">
+                      <div className="flex items-center gap-3">
+                          <div className="bg-[#4F46E5] text-white p-2 rounded-xl shadow-lg shadow-indigo-500/20">
                              <Flame className="w-4 h-4" />
-                          </span>
+                          </div>
                           <div>
-                              <p className="text-sm font-black text-midnight-navy leading-none">Smart Yield</p>
-                              <p className="text-[10px] text-neutral-500 mt-1 font-bold uppercase tracking-wider">Market Demand Active</p>
+                              <p className="text-[10px] font-black text-midnight-navy uppercase tracking-widest leading-none">Smart Yield</p>
+                              <p className="text-[10px] text-neutral-400 mt-1 font-bold uppercase tracking-widest">Market Demand Active</p>
                           </div>
                       </div>
-                      <div className="w-10 h-5 bg-emerald-500 rounded-full ml-4 relative cursor-pointer shadow-inner">
+                      <div className="w-10 h-5 bg-emerald-500 rounded-full ml-4 relative shadow-inner">
                           <div className="absolute right-0.5 top-0.5 w-4 h-4 bg-white rounded-full shadow-md" />
                       </div>
                    </div>
