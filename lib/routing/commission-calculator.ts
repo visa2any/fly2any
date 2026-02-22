@@ -24,6 +24,21 @@ const LCC_AIRLINES = new Set([
 ]);
 
 // ============================================================
+// PERFORMANCE CACHES (In-memory, short TTL)
+// ============================================================
+
+// Cache for LCC status (airlineCode -> { isLCC: boolean, timestamp: number })
+const lccAirlineCache = new Map<string, { isLCC: boolean, timestamp: number }>();
+
+// Cache for exclusion checks (hash(params) -> { result: string | null, timestamp: number })
+const exclusionResultCache = new Map<string, { result: string | null, timestamp: number }>();
+
+// Coalescing map for concurrent lookups (airlineCode -> Promise)
+const pendingCommissionLookups = new Map<string, Promise<CommissionLookupResult | null>>();
+
+const CACHE_TTL = 30000; // 30 seconds
+
+// ============================================================
 // ROUTING THRESHOLDS & COST CONFIGURATION
 // ============================================================
 
@@ -225,18 +240,35 @@ export async function calculateCommission(input: CommissionInput): Promise<Commi
  * Check if airline is LCC (Duffel-only)
  */
 async function isLCCAirline(airlineCode: string): Promise<boolean> {
-  // First check in-memory set for common LCCs
+  // 1. First check in-memory set for common LCCs
   if (LCC_AIRLINES.has(airlineCode)) {
     return true;
   }
 
-  // Then check database for additional LCCs
-  const prisma = getPrismaClient();
-  const lcc = await prisma.lCCAirline.findUnique({
-    where: { airlineCode },
-  });
+  // 2. Check local in-memory cache
+  const now = Date.now();
+  const cached = lccAirlineCache.get(airlineCode);
+  if (cached && (now - cached.timestamp < CACHE_TTL)) {
+    return cached.isLCC;
+  }
 
-  return lcc?.isActive ?? false;
+  // 3. Fallback to database
+  try {
+    const prisma = getPrismaClient();
+    const lcc = await prisma.lCCAirline.findUnique({
+      where: { airlineCode },
+    });
+
+    const isLCC = lcc?.isActive ?? false;
+
+    // Store in cache
+    lccAirlineCache.set(airlineCode, { isLCC, timestamp: now });
+
+    return isLCC;
+  } catch (err) {
+    console.error(`[Routing] Failed to check LCC status for ${airlineCode}:`, err);
+    return false; // Default to non-LCC on error to allow consolidator attempt
+  }
 }
 
 /**
@@ -248,69 +280,87 @@ async function checkExclusions(
   fareClass?: string,
   input?: CommissionInput
 ): Promise<string | null> {
-  // Check Basic Economy (7th character = B)
+  // Construct a cache key based on params that affect exclusions
+  const cacheKey = `${airlineCode}:${fareBasisCode || ''}:${fareClass || ''}:${input?.isGroupBooking}:${input?.passengerCount}:${input?.passengerType}`;
+
+  const now = Date.now();
+  const cached = exclusionResultCache.get(cacheKey);
+  if (cached && (now - cached.timestamp < CACHE_TTL)) {
+    return cached.result;
+  }
+
+  // Helper to store and return result
+  const setAndReturn = (result: string | null) => {
+    exclusionResultCache.set(cacheKey, { result, timestamp: now });
+    return result;
+  };
+
+  // 1. Check Basic Economy (7th character = B)
   if (fareBasisCode && fareBasisCode.length >= 7 && fareBasisCode[6] === 'B') {
-    return 'Basic Economy fare (7th char B)';
+    return setAndReturn('Basic Economy fare (7th char B)');
   }
 
-  // Check group booking
+  // 2. Check group booking
   if (input?.isGroupBooking || (input?.passengerCount && input.passengerCount >= 10)) {
-    return 'Group booking (10+ passengers)';
+    return setAndReturn('Group booking (10+ passengers)');
   }
 
-  // Check infant fare
+  // 3. Check infant fare
   if (input?.passengerType === 'INF') {
-    // Some airlines allow infant commission, need to check contract
-    // For now, default to excluded
-    return 'Infant fare';
+    return setAndReturn('Infant fare');
   }
 
-  // Check database exclusions
-  const prisma = getPrismaClient();
-  const exclusions = await prisma.airlineCommissionExclusion.findMany({
-    where: {
-      isActive: true,
-      OR: [
-        { airlineCode: null }, // Universal exclusions
-        { airlineCode }, // Airline-specific exclusions
-      ],
-    },
-  });
+  // 4. Check database exclusions
+  try {
+    const prisma = getPrismaClient();
+    const exclusions = await prisma.airlineCommissionExclusion.findMany({
+      where: {
+        isActive: true,
+        OR: [
+          { airlineCode: null }, // Universal exclusions
+          { airlineCode }, // Airline-specific exclusions
+        ],
+      },
+    });
 
-  for (const exclusion of exclusions) {
-    // Check fare basis pattern
-    if (exclusion.fareBasisPattern && fareBasisCode) {
-      const regex = new RegExp(exclusion.fareBasisPattern);
-      if (regex.test(fareBasisCode)) {
-        return exclusion.description;
+    for (const exclusion of exclusions) {
+      // Check fare basis pattern
+      if (exclusion.fareBasisPattern && fareBasisCode) {
+        const regex = new RegExp(exclusion.fareBasisPattern);
+        if (regex.test(fareBasisCode)) {
+          return setAndReturn(exclusion.description);
+        }
       }
-    }
 
-    // Check fare basis rule (e.g., "7th_char_B")
-    if (exclusion.fareBasisRule && fareBasisCode) {
-      if (exclusion.fareBasisRule === '7th_char_B' && fareBasisCode.length >= 7 && fareBasisCode[6] === 'B') {
-        return exclusion.description;
+      // Check fare basis rule (e.g., "7th_char_B")
+      if (exclusion.fareBasisRule && fareBasisCode) {
+        if (exclusion.fareBasisRule === '7th_char_B' && fareBasisCode.length >= 7 && fareBasisCode[6] === 'B') {
+          return setAndReturn(exclusion.description);
+        }
       }
-    }
 
-    // Check excluded booking codes
-    if (exclusion.excludedBookingCodes.length > 0 && fareClass) {
-      if (exclusion.excludedBookingCodes.includes(fareClass)) {
-        return exclusion.description;
+      // Check excluded booking codes
+      if (exclusion.excludedBookingCodes.length > 0 && fareClass) {
+        if (exclusion.excludedBookingCodes.includes(fareClass)) {
+          return setAndReturn(exclusion.description);
+        }
       }
-    }
 
-    // Check excluded fare families
-    if (exclusion.excludedFareFamilies.length > 0 && fareBasisCode) {
-      for (const family of exclusion.excludedFareFamilies) {
-        if (fareBasisCode.toUpperCase().includes(family.toUpperCase())) {
-          return exclusion.description;
+      // Check excluded fare families
+      if (exclusion.excludedFareFamilies.length > 0 && fareBasisCode) {
+        for (const family of exclusion.excludedFareFamilies) {
+          if (fareBasisCode.toUpperCase().includes(family.toUpperCase())) {
+            return setAndReturn(exclusion.description);
+          }
         }
       }
     }
+  } catch (err) {
+    console.error(`[Routing] Failed to check database exclusions for ${airlineCode}:`, err);
+    // On error, we continue without database exclusions to avoid blocking search
   }
 
-  return null;
+  return setAndReturn(null);
 }
 
 interface CommissionLookupResult {
@@ -338,93 +388,91 @@ async function lookupCommission(
   cabinClass?: CabinClass,
   bookingChannel?: 'GDS' | 'NDC' | 'NDC_DIRECT'
 ): Promise<CommissionLookupResult | null> {
-  const now = new Date();
-  const prisma = getPrismaClient();
-
-  // 1. Check Cache
-  const cached = contractCache.get(airlineCode);
-  if (cached && (now.getTime() - cached.timestamp < CONTRACT_CACHE_TTL)) {
-    // We cache the full contract with its routes and fare classes
-    const contract = cached.data;
-    if (!contract) return null;
-
-    // Validate channel restrictions from cached contract
-    if (bookingChannel === 'GDS' && !contract.gdsAllowed) return null;
-    if (bookingChannel === 'NDC' && !contract.ndcAllowed) return null;
-    if (bookingChannel === 'NDC_DIRECT' && !contract.ndcDirectAllowed) return null;
-
-    // Find matching route from cached data
-    const matchingRoute = findMatchingRoute(contract.routes, origin, destination, travelDate);
-
-    if (!matchingRoute) {
-      return {
-        commissionPct: 5.0,
-        tourCode: contract.tourCode || undefined,
-        ticketDesignator: contract.ticketDesignator || undefined,
-      };
-    }
-
-    const matchingFareClass = findMatchingFareClass(
-      matchingRoute.fareClasses,
-      fareClass,
-      cabinClass,
-      travelDate
-    );
-
-    if (!matchingFareClass) {
-      return {
-        commissionPct: 5.0,
-        tourCode: matchingRoute.tourCodeOverride || contract.tourCode || undefined,
-        ticketDesignator: contract.ticketDesignator || undefined,
-      };
-    }
-
-    const commissionPct = getSeasonalRate(matchingFareClass, travelDate);
-    return {
-      commissionPct,
-      tourCode: matchingRoute.tourCodeOverride || contract.tourCode || undefined,
-      ticketDesignator: contract.ticketDesignator || undefined,
-    };
+  // 1. Check if there's already a pending lookup for this airline to coalesce requests
+  const pending = pendingCommissionLookups.get(airlineCode);
+  if (pending) {
+    return pending.then(contract => {
+      if (!contract) return null;
+      return processContract(contract, airlineCode, origin, destination, fareClass, cabinClass, travelDate, bookingChannel);
+    });
   }
 
-  // 2. Cache Miss - Find active contract for this airline
-  const contract = await prisma.airlineContract.findFirst({
-    where: {
-      airlineCode,
-      isActive: true,
-      validFrom: { lte: now },
-      validTo: { gte: now },
-      // Check channel restrictions
-      ...(bookingChannel === 'GDS' && { gdsAllowed: true }),
-      ...(bookingChannel === 'NDC' && { ndcAllowed: true }),
-      ...(bookingChannel === 'NDC_DIRECT' && { ndcDirectAllowed: true }),
-    },
-    include: {
-      routes: {
+  // 2. Perform or wait for the lookup
+  const lookupPromise = (async () => {
+    try {
+      const now = new Date();
+      const prisma = getPrismaClient();
+
+      // Check Cache
+      const cached = contractCache.get(airlineCode);
+      if (cached && (now.getTime() - cached.timestamp < CONTRACT_CACHE_TTL)) {
+        return cached.data;
+      }
+
+      // Database lookup
+      const contract = await prisma.airlineContract.findFirst({
+        where: {
+          airlineCode,
+          isActive: true,
+          validFrom: { lte: now },
+          validTo: { gte: now },
+          // Note: channel restrictions are handled in processContract
+        },
         include: {
-          fareClasses: true,
+          routes: {
+            include: {
+              fareClasses: true,
+            },
+            orderBy: {
+              priority: 'desc',
+            },
+          },
         },
-        orderBy: {
-          priority: 'desc', // Higher priority routes first
-        },
-      },
-    },
-  });
+      });
 
-  // Populate cache even if null (to avoid repeated empty lookups)
-  contractCache.set(airlineCode, { data: contract, timestamp: now.getTime() });
+      // Update cache
+      contractCache.set(airlineCode, { data: contract, timestamp: now.getTime() });
+      return contract;
+    } finally {
+      // Remove from pending map once complete
+      pendingCommissionLookups.delete(airlineCode);
+    }
+  })();
 
-  if (!contract) {
-    return null;
-  }
+  // Store in pending map
+  pendingCommissionLookups.set(airlineCode, lookupPromise);
+
+  const contract = await lookupPromise;
+  if (!contract) return null;
+
+  return processContract(contract, airlineCode, origin, destination, fareClass, cabinClass, travelDate, bookingChannel);
+}
+
+/**
+ * Helper to process a contract and find matching commission
+ * Extracted from lookupCommission to support coalescing
+ */
+function processContract(
+  contract: any,
+  airlineCode: string,
+  origin: string,
+  destination: string,
+  fareClass?: string,
+  cabinClass?: CabinClass,
+  travelDate?: Date,
+  bookingChannel?: 'GDS' | 'NDC' | 'NDC_DIRECT'
+): CommissionLookupResult | null {
+  // Validate channel restrictions
+  if (bookingChannel === 'GDS' && !contract.gdsAllowed) return null;
+  if (bookingChannel === 'NDC' && !contract.ndcAllowed) return null;
+  if (bookingChannel === 'NDC_DIRECT' && !contract.ndcDirectAllowed) return null;
 
   // Find matching route
   const matchingRoute = findMatchingRoute(contract.routes, origin, destination, travelDate);
 
   if (!matchingRoute) {
-    // No specific route, use default 5% or return null
     return {
-      commissionPct: 5.0, // Default consolidator rate
+      commissionPct: 5.0,
       tourCode: contract.tourCode || undefined,
       ticketDesignator: contract.ticketDesignator || undefined,
     };
@@ -440,7 +488,7 @@ async function lookupCommission(
 
   if (!matchingFareClass) {
     return {
-      commissionPct: 5.0, // Default
+      commissionPct: 5.0,
       tourCode: matchingRoute.tourCodeOverride || contract.tourCode || undefined,
       ticketDesignator: contract.ticketDesignator || undefined,
     };
