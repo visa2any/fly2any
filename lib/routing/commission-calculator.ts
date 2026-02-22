@@ -320,7 +320,13 @@ interface CommissionLookupResult {
 }
 
 /**
- * Look up commission rate from database
+ * In-memory cache for airline contracts to avoid redundant DB hits during a single search
+ */
+const contractCache = new Map<string, { data: any; timestamp: number }>();
+const CONTRACT_CACHE_TTL = 30000; // 30 seconds (short enough for search consistency)
+
+/**
+ * Look up commission rate from database with caching
  */
 async function lookupCommission(
   airlineCode: string,
@@ -335,7 +341,53 @@ async function lookupCommission(
   const now = new Date();
   const prisma = getPrismaClient();
 
-  // Find active contract for this airline
+  // 1. Check Cache
+  const cached = contractCache.get(airlineCode);
+  if (cached && (now.getTime() - cached.timestamp < CONTRACT_CACHE_TTL)) {
+    // We cache the full contract with its routes and fare classes
+    const contract = cached.data;
+    if (!contract) return null;
+
+    // Validate channel restrictions from cached contract
+    if (bookingChannel === 'GDS' && !contract.gdsAllowed) return null;
+    if (bookingChannel === 'NDC' && !contract.ndcAllowed) return null;
+    if (bookingChannel === 'NDC_DIRECT' && !contract.ndcDirectAllowed) return null;
+
+    // Find matching route from cached data
+    const matchingRoute = findMatchingRoute(contract.routes, origin, destination, travelDate);
+
+    if (!matchingRoute) {
+      return {
+        commissionPct: 5.0,
+        tourCode: contract.tourCode || undefined,
+        ticketDesignator: contract.ticketDesignator || undefined,
+      };
+    }
+
+    const matchingFareClass = findMatchingFareClass(
+      matchingRoute.fareClasses,
+      fareClass,
+      cabinClass,
+      travelDate
+    );
+
+    if (!matchingFareClass) {
+      return {
+        commissionPct: 5.0,
+        tourCode: matchingRoute.tourCodeOverride || contract.tourCode || undefined,
+        ticketDesignator: contract.ticketDesignator || undefined,
+      };
+    }
+
+    const commissionPct = getSeasonalRate(matchingFareClass, travelDate);
+    return {
+      commissionPct,
+      tourCode: matchingRoute.tourCodeOverride || contract.tourCode || undefined,
+      ticketDesignator: contract.ticketDesignator || undefined,
+    };
+  }
+
+  // 2. Cache Miss - Find active contract for this airline
   const contract = await prisma.airlineContract.findFirst({
     where: {
       airlineCode,
@@ -358,6 +410,9 @@ async function lookupCommission(
       },
     },
   });
+
+  // Populate cache even if null (to avoid repeated empty lookups)
+  contractCache.set(airlineCode, { data: contract, timestamp: now.getTime() });
 
   if (!contract) {
     return null;

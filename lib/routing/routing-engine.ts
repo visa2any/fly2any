@@ -109,9 +109,9 @@ export class RoutingEngine {
 
     const result = await calculateCommission(input);
 
-    // Log decision if enabled
+    // Log decision if enabled - FIRE AND FORGET (don't block search)
     if (this.config.logDecisions) {
-      await logRoutingDecision(input, result, this.config.searchId, offerId).catch(err => {
+      logRoutingDecision(input, result, this.config.searchId, offerId).catch(err => {
         console.error('[RoutingEngine] Failed to log decision:', err);
       });
     }
