@@ -371,15 +371,15 @@ export function Footer({
           </div>
 
           {/* Level-6: Popular Routes - Hidden on mobile for space */}
-          <div className="hidden md:block col-span-2 md:col-span-3 lg:col-span-5 mt-4 pt-4 border-t border-gray-700/50">
-            <h4 className="font-semibold text-xs md:text-sm mb-2 text-gray-300">Popular Routes</h4>
-            <div className="grid grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-2">
-              <a href="/flights/new-york-to-los-angeles" className="text-[10px] md:text-xs text-gray-500 hover:text-white transition-colors">NYC → LAX</a>
-              <a href="/flights/new-york-to-miami" className="text-[10px] md:text-xs text-gray-500 hover:text-white transition-colors">NYC → MIA</a>
-              <a href="/flights/los-angeles-to-new-york" className="text-[10px] md:text-xs text-gray-500 hover:text-white transition-colors">LAX → NYC</a>
-              <a href="/flights/chicago-to-new-york" className="text-[10px] md:text-xs text-gray-500 hover:text-white transition-colors">ORD → NYC</a>
-              <a href="/flights/new-york-to-london" className="text-[10px] md:text-xs text-gray-500 hover:text-white transition-colors">NYC → LHR</a>
-              <a href="/flights/miami-to-cancun" className="text-[10px] md:text-xs text-gray-500 hover:text-white transition-colors">MIA → CUN</a>
+          <div className="hidden md:block col-span-2 md:col-span-3 lg:col-span-5 mt-6 pt-6 border-t border-gray-700/50">
+            <h4 className="font-semibold text-sm md:text-base mb-3 text-gray-300">Popular Routes</h4>
+            <div className="grid grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
+              <a href="/flights/new-york-to-los-angeles" className="text-xs md:text-sm text-gray-400 hover:text-white transition-colors">NYC → LAX</a>
+              <a href="/flights/new-york-to-miami" className="text-xs md:text-sm text-gray-400 hover:text-white transition-colors">NYC → MIA</a>
+              <a href="/flights/los-angeles-to-new-york" className="text-xs md:text-sm text-gray-400 hover:text-white transition-colors">LAX → NYC</a>
+              <a href="/flights/chicago-to-new-york" className="text-xs md:text-sm text-gray-400 hover:text-white transition-colors">ORD → NYC</a>
+              <a href="/flights/new-york-to-london" className="text-xs md:text-sm text-gray-400 hover:text-white transition-colors">NYC → LHR</a>
+              <a href="/flights/miami-to-cancun" className="text-xs md:text-sm text-gray-400 hover:text-white transition-colors">MIA → CUN</a>
             </div>
           </div>
 
@@ -420,14 +420,14 @@ export function Footer({
             </div>
           </div>
 
-          {/* Level-6: Main Footer Bar - pb-20 for mobile bottom nav clearance */}
-          <div className="flex flex-col items-center gap-3 md:gap-4 pb-20 md:pb-4">
+          {/* Level-6: Main Footer Bar - pb-24 for mobile bottom nav and widget clearance */}
+          <div className="flex flex-col items-center gap-4 md:gap-5 pb-24 md:pb-16 pt-4">
             {/* Logo & Copyright */}
-            <div className="flex flex-col items-center gap-1.5">
+            <div className="flex flex-col items-center gap-2">
               {showLogo && (
-                <Image src="/logo-transparent.png" alt="Fly2Any" width={290} height={100} className="h-5 md:h-7 w-auto" style={{ filter: 'brightness(0) invert(1)' }} loading="eager" />
+                <Image src="/logo-transparent.png" alt="Fly2Any" width={290} height={100} className="h-6 md:h-8 w-auto" style={{ filter: 'brightness(0) invert(1)' }} loading="eager" />
               )}
-              <p className="text-[10px] md:text-xs text-gray-500 text-center">{t('copyright')}</p>
+              <p className="text-xs md:text-sm text-gray-500 text-center">{t('copyright')}</p>
             </div>
 
             {/* Payment Methods - Inline pills */}

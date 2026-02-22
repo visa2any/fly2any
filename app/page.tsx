@@ -11,10 +11,10 @@ import ErrorBoundary from '@/components/common/ErrorBoundary';
 
 // CRITICAL PERFORMANCE FIX: Dynamic imports for EVERYTHING heavy
 // This splits the 3000+ module bundle into smaller chunks that compile in parallel
-const MobileHomeSearchWrapper = dynamic(() => import('@/components/home/MobileHomeSearchWrapper').then(mod => mod.MobileHomeSearchWrapper), { ssr: false });
-const DestinationsSectionEnhanced = dynamic(() => import('@/components/home/DestinationsSectionEnhanced').then(mod => mod.DestinationsSectionEnhanced), { ssr: false });
-const FlashDealsSectionEnhanced = dynamic(() => import('@/components/home/FlashDealsSectionEnhanced').then(mod => mod.FlashDealsSectionEnhanced), { ssr: false });
-const RecentlyViewedSection = dynamic(() => import('@/components/home/RecentlyViewedSection').then(mod => mod.RecentlyViewedSection), { ssr: false });
+const MobileHomeSearchWrapper = dynamic(() => import('@/components/home/MobileHomeSearchWrapper').then(mod => mod.MobileHomeSearchWrapper));
+const DestinationsSectionEnhanced = dynamic(() => import('@/components/home/DestinationsSectionEnhanced').then(mod => mod.DestinationsSectionEnhanced));
+const FlashDealsSectionEnhanced = dynamic(() => import('@/components/home/FlashDealsSectionEnhanced').then(mod => mod.FlashDealsSectionEnhanced));
+const RecentlyViewedSection = dynamic(() => import('@/components/home/RecentlyViewedSection').then(mod => mod.RecentlyViewedSection));
 
 // Dynamic imports for below-the-fold components and non-critical features
 const ExitIntentPopup = dynamic(() => import('@/components/conversion/ExitIntentPopup'), { ssr: false });
