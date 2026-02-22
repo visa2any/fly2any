@@ -1,15 +1,14 @@
 /**
  * Affiliate Email Notification Service
  * Handles all email notifications for the affiliate program
- * Uses Mailgun for email delivery
+ * Uses Resend for email delivery
  */
 
-import { resendClient } from '@/lib/email/resend-client'
-
+import { unifiedClient as resendClient } from '@/lib/email/unified-client'
 
 // Configuration
 const FROM_EMAIL = process.env.EMAIL_FROM || 'affiliates@fly2any.com'
-const ADMIN_EMAIL = process.env.ADMIN_EMAIL || 'admin@fly2any.com'
+const ADMIN_EMAIL = process.env.ADMIN_EMAIL || 'fly2any.travel@gmail.com'
 const COMPANY_NAME = 'Fly2Any'
 const APP_URL = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'
 
@@ -187,7 +186,7 @@ export async function sendAffiliateWelcomeEmail(data: AffiliateRegistrationData)
     })
 
     console.log(`✅ Welcome email sent to affiliate: ${data.email}`)
-    return { success: true, messageId: result.data?.id }
+    return { success: true, messageId: result.messageId }
   } catch (error) {
     console.error('❌ Failed to send affiliate welcome email:', error)
     return { success: false, error }
@@ -314,7 +313,7 @@ export async function sendAffiliateApprovalEmail(data: AffiliateApprovalData) {
     })
 
     console.log(`✅ Approval email sent to affiliate: ${data.email}`)
-    return { success: true, messageId: result.data?.id }
+    return { success: true, messageId: result.messageId }
   } catch (error) {
     console.error('❌ Failed to send affiliate approval email:', error)
     return { success: false, error }
@@ -393,7 +392,7 @@ export async function sendAdminAffiliateNotification(data: AffiliateRegistration
     })
 
     console.log(`✅ Admin notification sent for affiliate: ${data.email}`)
-    return { success: true, messageId: result.data?.id }
+    return { success: true, messageId: result.messageId }
   } catch (error) {
     console.error('❌ Failed to send admin notification:', error)
     return { success: false, error }

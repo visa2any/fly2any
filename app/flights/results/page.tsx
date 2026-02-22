@@ -53,6 +53,7 @@ import { useTranslations } from 'next-intl';
 import Head from 'next/head';
 import { useLanguage } from '@/lib/i18n/client';
 import { reportClientError, ErrorCategory, ErrorSeverity } from '@/lib/monitoring/global-error-handler';
+import { handleError } from '@/lib/error/errorHandler';
 import { Breadcrumbs } from '@/components/seo/Breadcrumbs';
 import { FaqSchema, FAQ_SETS } from '@/components/seo/FaqSchema';
 import { CanonicalTag, DynamicCanonicalTag } from '@/components/seo/CanonicalTag';
@@ -892,6 +893,12 @@ function FlightResultsContent() {
             severity: ErrorSeverity.HIGH,
             additionalData: { errorMessage: error.message }
           });
+
+          // Handle error for UI fingerprinting
+          handleError(error, {
+            context: 'flight-search-multicity-fetch',
+            metadata: { additionalFlights }
+          });
           return;
         }
       }
@@ -1100,6 +1107,12 @@ function FlightResultsContent() {
             departure: searchData.departure,
             errorMessage: err.message,
           }
+        });
+
+        // Handle error for UI fingerprinting
+        handleError(err, {
+          context: 'flight-search-fetch',
+          metadata: { searchData }
         });
       } finally {
         setLoading(false);

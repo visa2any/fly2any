@@ -2,7 +2,7 @@
  * Security Alert System
  *
  * Sends email notifications when suspicious activity is detected.
- * Uses Mailgun for reliable email delivery.
+ * Uses Unified Email Infrastructure (Resend).
  *
  * Alert Types:
  * - Bot detection
@@ -12,13 +12,13 @@
  * - Honeypot triggered
  */
 
-import { resendClient } from '@/lib/email/resend-client';
+import { unifiedClient as resendClient } from '@/lib/email/unified-client';
 import { getRedisClient, isRedisEnabled } from '@/lib/cache/redis';
 
 
 // Configuration
 const CONFIG = {
-  alertEmail: process.env.SECURITY_ALERT_EMAIL || process.env.ADMIN_EMAIL || 'support@fly2any.com',
+  alertEmail: process.env.SECURITY_ALERT_EMAIL || process.env.ADMIN_EMAIL || 'fly2any.travel@gmail.com',
   fromEmail: 'security@fly2any.com',
   // Throttle alerts to prevent spam (max 1 email per type per 5 minutes)
   throttleWindowMs: 5 * 60 * 1000,
@@ -260,9 +260,9 @@ export async function sendSecurityAlert(data: SecurityAlertData): Promise<boolea
     return false;
   }
 
-  // Check if Mailgun is configured
-  if (!resendClient.isConfigured()) {
-    console.warn('[SecurityAlerts] Mailgun not configured - cannot send alert');
+  // Check if UnifiedClient is configured
+  if (!resendClient) {
+    console.warn('[SecurityAlerts] Email client not initialized - cannot send alert');
     return false;
   }
 

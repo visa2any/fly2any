@@ -10,6 +10,7 @@
 
 import { getSql } from '@/lib/db/connection';
 import { createHash } from 'crypto';
+import { getCached, setCache } from '@/lib/cache/helpers';
 
 export interface FlightSearchLog {
   // Search parameters
@@ -79,7 +80,7 @@ function generateFingerprint(userAgent?: string, accept?: string): string {
 
 /**
  * Resolve IP address to geolocation data
- * Uses ipapi.co free tier (no API key required, 1000 requests/day)
+ * Uses ipapi.co free tier with caching
  */
 async function resolveGeolocation(ipAddress: string): Promise<{
   country_code: string | null;
@@ -89,42 +90,33 @@ async function resolveGeolocation(ipAddress: string): Promise<{
   try {
     // Skip private/local IPs
     if (ipAddress === '127.0.0.1' || ipAddress === 'localhost' || ipAddress.startsWith('192.168.') || ipAddress.startsWith('10.')) {
-      console.log('🌍 Skipping geolocation for private IP');
       return null;
     }
 
-    // Call ipapi.co (free, no auth required)
-    // PERF: Reduced timeout to 1s - geolocation is nice-to-have, not critical
+    // Try cache
+    const cacheKey = `geo:${ipAddress}`;
+    const cached = await getCached<any>(cacheKey);
+    if (cached) return cached;
+
     const response = await fetch(`https://ipapi.co/${ipAddress}/json/`, {
-      signal: AbortSignal.timeout(1000), // 1 second timeout
-      headers: {
-        'User-Agent': 'Fly2Any-Analytics/1.0'
-      }
+      signal: AbortSignal.timeout(1000), 
+      headers: { 'User-Agent': 'Fly2Any-Analytics/1.0' }
     });
 
-    if (!response.ok) {
-      console.warn(`Geolocation API returned ${response.status}`);
-      return null;
-    }
-
+    if (!response.ok) return null;
     const data = await response.json();
+    if (data.error) return null;
 
-    // Check for rate limit
-    if (data.error) {
-      console.warn('Geolocation API error:', data.reason || data.error);
-      return null;
-    }
-
-    console.log(`🌍 Resolved geolocation: ${ipAddress} → ${data.country_code} (${data.region}, ${data.timezone})`);
-
-    return {
+    const geoData = {
       country_code: data.country_code || data.country || null,
       region: data.region || data.region_code || null,
       timezone: data.timezone || null
     };
+
+    // Cache for 24 hours
+    await setCache(cacheKey, geoData, 86400);
+    return geoData;
   } catch (error) {
-    // Fail silently - geolocation is nice-to-have, not critical
-    console.warn('Geolocation failed:', error instanceof Error ? error.message : 'Unknown error');
     return null;
   }
 }

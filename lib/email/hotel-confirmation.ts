@@ -5,11 +5,9 @@
  * @version 2.0.0 - Migrated from Resend to Mailgun for unified email infrastructure
  */
 
-import { resendClient, RESEND_CONFIG } from '@/lib/email/resend-client';
+import { unifiedClient as resendClient } from '@/lib/email/unified-client';
 import { format } from 'date-fns'
 
-const FROM_EMAIL = RESEND_CONFIG.fromEmail
-const REPLY_TO_EMAIL = RESEND_CONFIG.replyToEmail
 const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL || 'https://fly2any.com'
 
 export interface HotelBookingEmailData {
@@ -265,9 +263,7 @@ Need help? Contact support: ${BASE_URL}/help/contact
     `
 
     const result = await resendClient.send({
-      from: FROM_EMAIL,
       to: data.guestEmail,
-      replyTo: REPLY_TO_EMAIL,
       subject: `Booking Confirmed - ${data.hotelName} (${data.confirmationNumber})`,
       html: emailHtml,
       text: plainText,
@@ -295,9 +291,7 @@ export async function sendPreArrivalReminder(data: HotelBookingEmailData): Promi
     const checkIn = format(data.checkInDate, 'EEEE, MMMM d, yyyy')
 
     const result = await resendClient.send({
-      from: FROM_EMAIL,
       to: data.guestEmail,
-      replyTo: REPLY_TO_EMAIL,
       subject: `Reminder: Check-in Tomorrow at ${data.hotelName}`,
       html: `
         <h1>Your check-in is tomorrow!</h1>
@@ -336,9 +330,7 @@ export async function sendCancellationEmail(
       : 'No refund (non-refundable booking)'
 
     const result = await resendClient.send({
-      from: FROM_EMAIL,
       to: data.guestEmail,
-      replyTo: REPLY_TO_EMAIL,
       subject: `Booking Cancelled - ${data.hotelName} (${data.confirmationNumber})`,
       html: `
         <h1>Booking Cancelled</h1>

@@ -413,7 +413,7 @@ export async function sendPriceAlertEmail(params: PriceAlertEmailParams): Promis
   const text = generateEmailText(params);
 
   // Use the unified email client (supports dev simulation + production sending)
-  const { resendClient } = await import('@/lib/email/resend-client');
+  const { unifiedClient: resendClient } = await import('@/lib/email/unified-client');
 
   const result = await resendClient.send({
     to: params.to,

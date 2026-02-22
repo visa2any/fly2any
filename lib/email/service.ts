@@ -1,16 +1,10 @@
-/**
- * Email Service using Mailgun
- * Handles all transactional emails for the booking system
- */
-
-import { resendClient, RESEND_CONFIG } from '@/lib/email/resend-client';
+import { unifiedClient as resendClient } from '@/lib/email/unified-client';
 import type { Booking } from '@/lib/bookings/types';
 
 // Configuration
-const FROM_EMAIL = RESEND_CONFIG.fromEmail;
 const COMPANY_NAME = 'Fly2Any';
 const SUPPORT_EMAIL = 'fly2any.travel@gmail.com';
-const ADMIN_EMAIL = process.env.ADMIN_EMAIL || 'admin@fly2any.com';
+const ADMIN_EMAIL = process.env.ADMIN_EMAIL || 'fly2any.travel@gmail.com';
 
 // Email failure tracking (for retry logic)
 interface EmailFailure {
@@ -56,15 +50,14 @@ async function notifyAdminOfEmailFailure(
   console.error(`   Time: ${failure.timestamp.toISOString()}`);
   console.error('🚨 ==========================================');
 
-  // Try to notify admin via Mailgun
-  if (!resendClient.isConfigured()) {
-    console.error('⚠️  Cannot send admin notification - MAILGUN_API_KEY not configured');
+  // Try to notify admin
+  if (!resendClient) {
+    console.error('⚠️  Cannot send admin notification - UnifiedClient not initialized');
     return;
   }
 
   try {
     await resendClient.send({
-      from: FROM_EMAIL,
       to: ADMIN_EMAIL,
       subject: `🚨 Email Delivery Failed - ${emailType}`,
       html: `

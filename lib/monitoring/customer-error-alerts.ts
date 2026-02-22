@@ -4,7 +4,7 @@
  * Automatically sends admin alerts for ANY error that customers encounter
  * Integrates with:
  * - Telegram (instant mobile notifications)
- * - Email (Mailgun)
+ * - Email (Unified Email Infrastructure)
  * - Sentry (error tracking with context)
  */
 
@@ -138,8 +138,8 @@ export async function alertCustomerError(
   // 2. EMAIL NOTIFICATION (Detailed report to admin inbox) - FORCE SEND FOR CRITICAL ERRORS
   if (sendEmail) {
     try {
-      // Import resend-client directly for force sending critical errors
-      const { resendClient } = await import('@/lib/email/resend-client');
+      // Use the unified email client
+      const { unifiedClient: resendClient } = await import('@/lib/email/unified-client');
 
       const alertData = {
         type: 'customer_error',
@@ -173,7 +173,7 @@ export async function alertCustomerError(
       }</table></body></html>`;
 
       const result = await resendClient.send({
-        to: process.env.ADMIN_EMAIL || 'admin@fly2any.com',
+        to: process.env.ADMIN_EMAIL || 'fly2any.travel@gmail.com',
         subject: `[${priority.toUpperCase()}] Customer Error - ${context.errorCode || 'UNKNOWN'}`,
         html,
         text: Object.entries(alertData).map(([k,v]) => `${k}: ${v}`).join('\n'),

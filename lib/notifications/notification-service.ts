@@ -3,22 +3,21 @@
  * Handles all customer and admin notifications for booking events
  *
  * UNIFIED EMAIL ARCHITECTURE:
- * - Uses Mailgun via unified resendClient (single provider)
+ * - Uses Resend for all transactional and administrative emails
  * - Telegram Bot notifications (FREE) for admin alerts
  * - SSE (Server-Sent Events) for real-time updates (FREE)
  * - In-app notifications stored in database
  *
- * @version 2.0.0 - Migrated from Resend to Mailgun
+ * @version 3.0.0 - Migrated to Strict Resend Implementation
  */
 
-import { resendClient, RESEND_CONFIG } from '@/lib/email/resend-client';
+import { unifiedClient as resendClient } from '@/lib/email/unified-client';
 import type { Booking } from '@/lib/bookings/types';
 import type { DuffelOrder } from '@/lib/webhooks/event-handlers';
 import { getPrismaClient } from '@/lib/prisma';
 import type { BookingNotificationPayload } from './types';
 
 // Configuration
-const FROM_EMAIL = RESEND_CONFIG.fromEmail;
 const ADMIN_EMAIL = process.env.ADMIN_EMAIL || 'fly2any.travel@gmail.com';
 const COMPANY_NAME = 'Fly2Any';
 const SUPPORT_EMAIL = 'fly2any.travel@gmail.com';

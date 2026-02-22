@@ -11,6 +11,8 @@ import { ScrollProgress } from '@/components/flights/ScrollProgress';
 // import { TestModeBanner } from '@/components/TestModeBanner'; // Removed for production
 import { ChevronRight, AlertCircle, RefreshCcw, Sparkles } from 'lucide-react';
 import { normalizePrice } from '@/lib/flights/types';
+import { handleError } from '@/lib/error/errorHandler';
+import { reportClientError, ErrorCategory, ErrorSeverity } from '@/lib/monitoring/global-error-handler';
 
 // ===========================
 // TYPE DEFINITIONS
@@ -281,6 +283,24 @@ function FlightResultsContent() {
       } catch (err: any) {
         console.error('Error fetching flights:', err);
         setError(err.message || 'Failed to fetch flights');
+        
+        // Report error to centralized monitoring
+        reportClientError(err, {
+          component: 'FlightResultsContent',
+          action: 'fetchFlights',
+          category: ErrorCategory.EXTERNAL_API,
+          severity: ErrorSeverity.HIGH,
+          additionalData: {
+            searchData,
+            url: window.location.href
+          }
+        });
+
+        // Handle error for UI fingerprinting
+        handleError(err, {
+          context: 'flight-search-fetch',
+          metadata: { searchData }
+        });
       } finally {
         setLoading(false);
       }
