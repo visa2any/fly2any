@@ -81,21 +81,42 @@ function AdminSignInContent() {
     setIsLoading(true);
     setError('');
 
+    // Timeout duration in milliseconds
+    const SIGN_IN_TIMEOUT = 15000;
+
     try {
-      const result = await signIn('credentials', {
-        email,
-        password,
-        redirect: false,
-      });
+      // Create a promise that rejects after a timeout
+      const timeoutPromise = new Promise((_, reject) =>
+        setTimeout(() => reject(new Error('TIMEOUT')), SIGN_IN_TIMEOUT)
+      );
+
+      // Race the signIn promise against the timeout
+      const result = await Promise.race([
+        signIn('credentials', {
+          email,
+          password,
+          redirect: false,
+        }),
+        timeoutPromise
+      ]) as any;
 
       if (result?.error) {
-        setError('Invalid email or password');
+        if (result.error === 'CredentialsSignin') {
+          setError('Invalid email or password');
+        } else {
+          setError(result.error || 'Authentication failed');
+        }
         setIsLoading(false);
       } else {
         router.push(callbackUrl);
       }
-    } catch {
-      setError('An error occurred. Please try again.');
+    } catch (err: any) {
+      console.error('Sign-in error:', err);
+      if (err.message === 'TIMEOUT') {
+        setError('Connection timed out. The database might be waking up or responding slowly. Please try again in a moment.');
+      } else {
+        setError('An unexpected error occurred. Please check your connection and try again.');
+      }
       setIsLoading(false);
     }
   };

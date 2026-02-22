@@ -97,16 +97,20 @@ export const authConfig = {
         }
 
         if (!user.password) {
+          console.log(`[Auth] User has no password (Google sign-in expected): ${email}`);
           await recordFailedLogin(email).catch(() => {});
           throw new Error('Please sign in with Google');
         }
 
         // Dynamically import bcryptjs (Node.js only)
         const bcrypt = await getBcrypt();
+        console.log(`[Auth] User found, comparing password for ${email}...`);
         const isPasswordValid = await bcrypt.compare(
           credentials.password as string,
           user.password
         );
+
+        console.log(`[Auth] Password valid: ${isPasswordValid} (took ${Date.now() - startTime}ms)`);
 
         if (!isPasswordValid) {
           await recordFailedLogin(email).catch(() => {});
@@ -115,6 +119,7 @@ export const authConfig = {
 
         // Clear rate limit on successful login
         await clearLoginAttempts(email).catch(() => {});
+        console.log(`[Auth] Login successful for ${email}.`);
 
         return {
           id: user.id,
