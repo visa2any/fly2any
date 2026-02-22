@@ -91,9 +91,14 @@ export const authConfig = {
           where: { email },
         });
 
-        if (!user || !user.password) {
+        if (!user) {
           await recordFailedLogin(email).catch(() => {});
-          throw new Error('Invalid credentials');
+          throw new Error('User not found');
+        }
+
+        if (!user.password) {
+          await recordFailedLogin(email).catch(() => {});
+          throw new Error('Please sign in with Google');
         }
 
         // Dynamically import bcryptjs (Node.js only)

@@ -98,15 +98,17 @@ function SignInContent() {
       });
 
       if (result?.error) {
-        setError('Invalid email or password');
-        accountErrorTracker.trackAuthError('AUTH_SIGNIN_FAILED', 'Invalid credentials', { email });
+        // Map common errors to user-friendly messages
+        const errorMsg = result.error === 'CredentialsSignin' ? 'Invalid email or password' : result.error;
+        setError(errorMsg);
+        accountErrorTracker.trackAuthError('AUTH_SIGNIN_FAILED', result.error, { email }, email);
         setIsLoading(false);
       } else {
         router.push(callbackUrl);
       }
     } catch (err) {
       setError('An error occurred. Please try again.');
-      accountErrorTracker.trackAuthError('AUTH_SIGNIN_FAILED', 'Unexpected error', { email, error: String(err) });
+      accountErrorTracker.trackAuthError('AUTH_SIGNIN_FAILED', 'Unexpected error', { email, error: String(err) }, email);
       setIsLoading(false);
     }
   };

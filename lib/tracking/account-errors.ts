@@ -128,10 +128,11 @@ class AccountErrorTracker {
   }
 
   // Helper methods for common errors
-  trackAuthError(type: AccountErrorType, message: string, metadata?: Record<string, any>) {
+  trackAuthError(type: AccountErrorType, message: string, metadata?: Record<string, any>, email?: string) {
     return this.track({
       type,
       message,
+      email,
       page: typeof window !== 'undefined' ? window.location.pathname : 'server',
       metadata,
     });
@@ -169,8 +170,8 @@ export const accountErrorTracker = new AccountErrorTracker();
 // React hook for easy usage
 export function useAccountErrorTracking() {
   return {
-    trackError: (type: AccountErrorType, message: string, metadata?: Record<string, any>) =>
-      accountErrorTracker.trackAuthError(type, message, metadata),
+    trackError: (type: AccountErrorType, message: string, metadata?: Record<string, any>, email?: string) =>
+      accountErrorTracker.trackAuthError(type, message, metadata, email),
     trackOAuth: (provider: string, error: string, email?: string) =>
       accountErrorTracker.trackOAuthError(provider, error, email),
     trackAPI: (endpoint: string, status: number, message: string) =>

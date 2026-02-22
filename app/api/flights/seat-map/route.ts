@@ -65,12 +65,6 @@ export async function POST(request: NextRequest) {
   } catch (error: any) {
     console.error('❌ Error fetching seat map:', error.message || error);
 
-    // Alert admins for seat map errors (low priority since it's non-blocking)
-    await alertApiError(request, error, {
-      errorCode: 'SEAT_MAP_FETCH_FAILED',
-      endpoint: '/api/flights/seat-map',
-    }, { priority: 'low' }).catch(() => {});
-
     // Provide user-friendly error messages based on the issue
     let userMessage = 'Unable to load seat map. You can still proceed with booking.';
     let showPreferences = true; // Allow preference-based selection as fallback
@@ -78,13 +72,23 @@ export async function POST(request: NextRequest) {
     // Check for specific error patterns
     const errorMsg = error.message?.toLowerCase() || '';
 
+    const isExpectedError = errorMsg.includes('not available') || errorMsg.includes('not supported') || errorMsg.includes('no seatmap');
+
+    // Only alert admins for unexpected technical failures, not missing seat maps
+    if (!isExpectedError && !errorMsg.includes('not configured')) {
+      await alertApiError(request, error, {
+        errorCode: 'SEAT_MAP_FETCH_FAILED',
+        endpoint: '/api/flights/seat-map',
+      }, { priority: 'low' }).catch(() => {});
+    }
+
     if (errorMsg.includes('not available') || errorMsg.includes('not supported')) {
       userMessage = 'Seat selection will be assigned at check-in for this flight.';
       showPreferences = true; // Still allow preferences
     } else if (errorMsg.includes('not configured')) {
       userMessage = 'Seat map service is temporarily unavailable.';
       showPreferences = true;
-    } else if (errorMsg.includes('timeout') || errorMsg.includes('ETIMEDOUT')) {
+    } else if (errorMsg.includes('timeout') || errorMsg.includes('etimedout')) {
       userMessage = 'Seat map is taking too long to load. You can skip or try again.';
       showPreferences = true;
     }
