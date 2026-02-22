@@ -38,13 +38,14 @@ export default async function AdminLayout({
 
   const prisma = getPrismaClient();
 
-  // Check authentication with 10 second timeout (increased for cold-boot stability)
+  // Check authentication with 7 second timeout (SAFE for Vercel Hobby 10s limit)
   let session;
   try {
-    session = await withTimeout(auth(), 10000, 'Admin Auth request timed out');
+    session = await withTimeout(auth(), 7000, 'Admin Auth request timed out');
   } catch (error) {
     console.error('❌ Admin Auth error or timeout:', error)
-    redirect('/auth/admin-signin?callbackUrl=/admin')
+    // Avoid double-throwing for Next.js redirects if it happens internally
+    return redirect('/auth/admin-signin?callbackUrl=/admin')
   }
 
   if (!session?.user?.id) {
@@ -60,7 +61,7 @@ export default async function AdminLayout({
     }
   }
 
-  // Check if user is admin with 10 second timeout
+  // Check if user is admin with 7 second timeout
   let adminUser = null
   try {
     adminUser = await withTimeout(
@@ -68,13 +69,13 @@ export default async function AdminLayout({
         where: { userId: session.user.id },
         include: { user: true }
       }),
-      10000,
+      7000,
       'Admin Database query timed out'
     );
   } catch (error) {
     console.error('❌ Admin status check error or timeout:', error)
-    // Database error - redirect with error instead of hanging
-    redirect('/?error=database_error')
+    // Database error - redirect to a safe error page
+    return redirect('/?error=database_error')
   }
 
   // If not admin, check if user is in whitelist or can be made admin

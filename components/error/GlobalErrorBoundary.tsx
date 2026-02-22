@@ -217,12 +217,7 @@ class ErrorBoundaryCore extends Component<
       );
     }
 
-    // Wrap children with Suspense for lazy/chunk support
-    return (
-      <Suspense fallback={suspenseFallback || <LoadingSpinner />}>
-        {children}
-      </Suspense>
-    );
+    return <>{children}</>;
   }
 }
 
