@@ -119,8 +119,16 @@ export interface FlightPrice {
     amount: string | number;
     type: string;
   }>;
+  /** Taxes breakdown (optional) */
+  taxes?: string | number;
   /** Grand total (same as total, for compatibility) */
   grandTotal?: string | number;
+  /** Internal: Net price for routing/commission calculations */
+  _netPrice?: string;
+  /** Internal: Markup amount applied */
+  _markupAmount?: string;
+  /** Internal: Markup percentage applied */
+  _markupPercentage?: number;
   /** Indicates if additional baggage is included */
   additionalServices?: Array<{
     amount: string;
@@ -178,6 +186,18 @@ export interface FlightOffer {
     fastest: number;
     overall: number;
   };
+  /** Duffel-specific: Multiple fare options for same flight */
+  fareVariants?: any[];
+  /** Mixed-carrier specific: Indicates if this is a hacker fare */
+  isSeparateTickets?: boolean;
+  /** Mixed-carrier specific: Details of the separate tickets */
+  separateTicketDetails?: any;
+  /** Internal: Net price for routing/commission calculations */
+  _netPrice?: string;
+  /** Internal: Markup amount applied */
+  _markupAmount?: string;
+  /** Internal: Markup percentage applied */
+  _markupPercentage?: number;
 }
 
 /**

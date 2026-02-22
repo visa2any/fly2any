@@ -33,6 +33,12 @@ const lccAirlineCache = new Map<string, { isLCC: boolean, timestamp: number }>()
 // Cache for exclusion checks (hash(params) -> { result: string | null, timestamp: number })
 const exclusionResultCache = new Map<string, { result: string | null, timestamp: number }>();
 
+// Cache for raw DB exclusions (airlineCode -> { exclusions: any[], timestamp: number })
+const exclusionDbCache = new Map<string, { exclusions: any[], timestamp: number }>();
+
+// Coalescing map for concurrent exclusion DB lookups (airlineCode -> Promise)
+const pendingExclusionLookups = new Map<string, Promise<any[]>>();
+
 // Coalescing map for concurrent lookups (airlineCode -> Promise)
 const pendingCommissionLookups = new Map<string, Promise<CommissionLookupResult | null>>();
 
@@ -312,16 +318,36 @@ async function checkExclusions(
 
   // 4. Check database exclusions
   try {
-    const prisma = getPrismaClient();
-    const exclusions = await prisma.airlineCommissionExclusion.findMany({
-      where: {
-        isActive: true,
-        OR: [
-          { airlineCode: null }, // Universal exclusions
-          { airlineCode }, // Airline-specific exclusions
-        ],
-      },
-    });
+    let exclusions: any[] = [];
+    const pendingDb = pendingExclusionLookups.get(airlineCode);
+
+    if (pendingDb) {
+      exclusions = await pendingDb;
+    } else {
+      const dbCached = exclusionDbCache.get(airlineCode);
+      if (dbCached && (now - dbCached.timestamp < CACHE_TTL)) {
+        exclusions = dbCached.exclusions;
+      } else {
+        const lookupPromise = (async () => {
+          const prisma = getPrismaClient();
+          const dbExclusions = await prisma.airlineCommissionExclusion.findMany({
+            where: {
+              isActive: true,
+              OR: [
+                { airlineCode: null }, // Universal exclusions
+                { airlineCode }, // Airline-specific exclusions
+              ],
+            },
+          });
+          exclusionDbCache.set(airlineCode, { exclusions: dbExclusions, timestamp: Date.now() });
+          return dbExclusions;
+        })();
+        
+        pendingExclusionLookups.set(airlineCode, lookupPromise);
+        exclusions = await lookupPromise;
+        pendingExclusionLookups.delete(airlineCode);
+      }
+    }
 
     for (const exclusion of exclusions) {
       // Check fare basis pattern
