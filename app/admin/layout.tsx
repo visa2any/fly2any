@@ -38,12 +38,12 @@ export default async function AdminLayout({
 
   const prisma = getPrismaClient();
 
-  // Check authentication with 5 second timeout
+  // Check authentication with 10 second timeout (increased for cold-boot stability)
   let session;
   try {
-    session = await withTimeout(auth(), 5000, 'Auth request timed out');
+    session = await withTimeout(auth(), 10000, 'Admin Auth request timed out');
   } catch (error) {
-    console.error('Auth error or timeout in admin layout:', error)
+    console.error('❌ Admin Auth error or timeout:', error)
     redirect('/auth/admin-signin?callbackUrl=/admin')
   }
 
@@ -60,7 +60,7 @@ export default async function AdminLayout({
     }
   }
 
-  // Check if user is admin with 5 second timeout
+  // Check if user is admin with 10 second timeout
   let adminUser = null
   try {
     adminUser = await withTimeout(
@@ -68,11 +68,11 @@ export default async function AdminLayout({
         where: { userId: session.user.id },
         include: { user: true }
       }),
-      5000,
-      'Database query timed out'
+      10000,
+      'Admin Database query timed out'
     );
   } catch (error) {
-    console.error('Error or timeout checking admin status:', error)
+    console.error('❌ Admin status check error or timeout:', error)
     // Database error - redirect with error instead of hanging
     redirect('/?error=database_error')
   }
