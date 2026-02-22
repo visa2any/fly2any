@@ -18,6 +18,7 @@ import { ExperiencesCartProvider } from '@/lib/cart/experiences-cart';
 import MiniCart from '@/components/cart/MiniCart';
 import { CurrencyProvider } from '@/lib/context/CurrencyContext';
 import { ToastProvider } from '@/components/common/Toast';
+import { ErrorToastListener } from '@/components/error/ErrorToastListener';
 
 interface GlobalLayoutProps {
   children: React.ReactNode;
@@ -150,6 +151,9 @@ function GlobalLayoutInner({ children }: GlobalLayoutProps) {
     <>
       {/* Mobile Fullscreen Handler */}
       <MobileFullscreen />
+
+      {/* URL Error Toast Listener */}
+      <ErrorToastListener />
 
       {/* Global Header - now manages language internally */}
       <Header showAuth={true} />
