@@ -8,9 +8,9 @@ import {
   Coffee, Shield, Loader2, Wifi, Waves, Dumbbell, Car, ChevronRight as ArrowRight,
   Sparkles, UtensilsCrossed, Wind, PawPrint, BarChart2, Users, Receipt, ChevronUp
 } from 'lucide-react';
-import { useHotelCompare } from '@/contexts/HotelCompareContext';
 import { getBlurDataURL } from '@/lib/utils/image-optimization';
 import type { LiteAPIHotel } from '@/lib/hotels/types';
+import { HotelUrgencySignals } from './HotelUrgencySignals';
 
 export interface HotelCardProps {
   hotel: LiteAPIHotel;
@@ -727,6 +727,11 @@ export function HotelCard({
             <>
               {/* Price section */}
               <div>
+                <HotelUrgencySignals 
+                  hotelId={hotel.id} 
+                  variant="card"
+                  availableRoomTypes={hotel.rooms?.length}
+                />
                 <div className="flex items-baseline gap-1">
                   <span className="text-2xl lg:text-[28px] font-bold text-[#1d1d1f]">{currencySymbol}{Math.round(perNightPrice)}</span>
                   <span className="text-[11px] text-[#86868b]">{t.perNight}</span>

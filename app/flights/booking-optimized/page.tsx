@@ -110,6 +110,8 @@ function BookingPageContent() {
   const [currentStep, setCurrentStep] = useState<BookingStep>(1);
   const [loading, setLoading] = useState(true);
   const [isProcessing, setIsProcessing] = useState(false);
+  const [processingStep, setProcessingStep] = useState(0);
+  const [processingMessage, setProcessingMessage] = useState('Securing your seats...');
 
   // Flight data
   const [flightData, setFlightData] = useState<any>(null);
@@ -917,6 +919,23 @@ function BookingPageContent() {
 
   const handlePaymentSubmit = async (paymentData: any) => {
     setIsProcessing(true);
+    setProcessingStep(0);
+    setProcessingMessage('Verifying payment details...');
+
+    // Progress message cycle
+    const messages = [
+      'Verifying payment details...',
+      'Securing your flight with the airline...',
+      'Finalizing your booking details...',
+      'Almost there! Preparing your confirmation...',
+    ];
+
+    let messageIdx = 0;
+    const messageInterval = setInterval(() => {
+      messageIdx = (messageIdx + 1) % messages.length;
+      setProcessingMessage(messages[messageIdx]);
+      setProcessingStep(prev => Math.min(prev + 20, 90));
+    }, 2500);
 
     try {
       if (!flightData) {
@@ -1040,10 +1059,16 @@ function BookingPageContent() {
       }
 
       const result = await response.json();
+      setProcessingStep(100);
+      setProcessingMessage('Booking confirmed!');
+      clearInterval(messageInterval);
 
-      // Redirect to confirmation with booking ID
-      router.push(`/flights/booking/confirmation?bookingId=${result.booking.id}&ref=${result.booking.bookingReference}`);
+      // Brief delay to show 100% completion before redirect
+      setTimeout(() => {
+        router.push(`/flights/booking/confirmation?bookingId=${result.booking.id}&ref=${result.booking.bookingReference}`);
+      }, 800);
     } catch (error: any) {
+      clearInterval(messageInterval);
       console.error('Booking error:', error);
       toast.error(error.message || 'There was an error processing your booking. Please try again.', {
         duration: 8000,
@@ -1762,6 +1787,41 @@ function BookingPageContent() {
         }}
       />
 
+      {/* Processing Overlay */}
+      {isProcessing && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
+          <div className="absolute inset-0 bg-black/60 backdrop-blur-sm transition-all duration-300" />
+          <div className="relative bg-white rounded-3xl p-8 max-w-sm w-full shadow-2xl scale-100 animate-in fade-in zoom-in duration-300">
+            <div className="flex flex-col items-center text-center">
+              <div className="relative w-24 h-24 mb-6">
+                <div className="absolute inset-0 rounded-full border-4 border-gray-100" />
+                <div
+                  className="absolute inset-0 rounded-full border-4 border-indigo-600 border-t-transparent animate-spin"
+                  style={{ animationDuration: '1.5s' }}
+                />
+                <div className="absolute inset-0 flex items-center justify-center">
+                  <span className="text-xl font-bold text-gray-900">{processingStep}%</span>
+                </div>
+              </div>
+
+              <h3 className="text-2xl font-bold text-gray-900 mb-2">Processing Booking</h3>
+              <p className="text-gray-500 mb-8">{processingMessage}</p>
+
+              <div className="w-full h-2 bg-gray-100 rounded-full overflow-hidden">
+                <div
+                  className="h-full bg-indigo-600 transition-all duration-500 ease-out"
+                  style={{ width: `${processingStep}%` }}
+                />
+              </div>
+
+              <div className="mt-8 flex items-center gap-2 text-indigo-600 text-sm font-medium">
+                <div className="w-2 h-2 rounded-full bg-indigo-600 animate-pulse" />
+                Please do not refresh the page
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

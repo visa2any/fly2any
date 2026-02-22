@@ -16,9 +16,10 @@ import { usePullToRefresh } from '@/lib/hooks/usePullToRefresh';
 import { useScrollMinimize } from '@/lib/hooks/useScrollDirection';
 import EnhancedSearchBar from '@/components/flights/EnhancedSearchBar';
 import { CollapsibleSearchBar } from '@/components/mobile/CollapsibleSearchBar';
-import { HotelCompareProvider } from '@/contexts/HotelCompareContext';
 import CompareBar from '@/components/hotels/CompareBar';
 import CompareModal from '@/components/hotels/CompareModal';
+import { PriceAlertButton } from '@/components/hotels/PriceAlertButton';
+import { HotelUrgencySignals } from '@/components/hotels/HotelUrgencySignals';
 
 // ===========================
 // TYPE DEFINITIONS

@@ -109,10 +109,14 @@ function getCityCoordinates(query: string): { lat: number; lng: number; country:
 async function geocodeCity(query: string): Promise<{ lat: number; lng: number; country: string } | null> {
   try {
     const url = `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(query)}&format=json&limit=1&addressdetails=1`;
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 8000); // 8 second timeout for geocoding
+
     const response = await fetch(url, {
       headers: { 'User-Agent': 'Fly2Any Travel Platform (contact@fly2any.com)' },
-      signal: AbortSignal.timeout(5000), // 5 second timeout
+      signal: controller.signal,
     });
+    clearTimeout(timeoutId);
 
     if (!response.ok) return null;
 
@@ -133,6 +137,139 @@ async function geocodeCity(query: string): Promise<{ lat: number; lng: number; c
     console.warn(`⚠️ Nominatim geocoding failed for "${query}":`, error.message);
     return null;
   }
+}
+
+// Refactored Amadeus search into a separate function
+async function performAmadeusSearch(locationQuery: string, searchParams: HotelSearchParams, roomCount: number) {
+  let amadeusResults = { hotels: [] as any[] };
+  if (locationQuery) {
+    try {
+      const cityCode = extractCityCode(locationQuery);
+      // Skip Amadeus if no valid city code (prevents wrong city hotels)
+      if (!cityCode) {
+        console.log(`⚠️ Amadeus search skipped: no city code for "${locationQuery}"`);
+      } else {
+        console.log(`🔍 Amadeus search: "${locationQuery}" → city code: ${cityCode}`);
+
+        const amadeusData = await amadeus.searchHotels({
+          cityCode,
+          checkInDate: searchParams.checkIn!,
+          checkOutDate: searchParams.checkOut!,
+          adults: searchParams.guests?.adults || 2,
+          roomQuantity: roomCount,
+        });
+
+        if (amadeusData?.data?.length > 0) {
+          amadeusResults.hotels = amadeusData.data.map((offer: any) => {
+            const mapped = mapAmadeusHotelToHotel(offer);
+            // Convert to normalized format matching other sources
+            return {
+              id: `amadeus_${mapped.id}`,
+              name: mapped.name,
+              description: mapped.description || '',
+              latitude: mapped.location?.lat || 0, // Fallback to 0 if not available
+              longitude: mapped.location?.lng || 0, // Fallback to 0 if not available
+              address: mapped.address?.street || '',
+              city: mapped.address?.city || '',
+              country: mapped.address?.country || '',
+              stars: mapped.starRating || 4,
+              rating: mapped.starRating || 4,
+              reviewCount: 0,
+              images: mapped.images?.map(img => ({ url: img.url, alt: mapped.name })) || [],
+              image: mapped.images?.[0]?.url || null,
+              thumbnail: mapped.images?.[0]?.url || null,
+              amenities: mapped.amenities || [],
+              lowestPrice: mapped.rates?.[0] ? parseFloat(mapped.rates[0].totalPrice.amount) : 0,
+              lowestPricePerNight: mapped.rates?.[0] ? parseFloat(mapped.rates[0].totalPrice.amount) / Math.max(1, Math.ceil((new Date(searchParams.checkOut!).getTime() - new Date(searchParams.checkIn!).getTime()) / (1000 * 60 * 60 * 24))) : 0,
+              currency: mapped.rates?.[0]?.totalPrice.currency || 'USD',
+              rooms: mapped.rates?.map(rate => ({
+                rateId: rate.id,
+                name: rate.roomType,
+                price: parseFloat(rate.totalPrice.amount),
+                currency: rate.totalPrice.currency,
+                refundable: rate.refundable,
+                boardName: rate.mealsIncluded || 'Room Only',
+              })) || [],
+              source: 'Amadeus',
+              refundable: mapped.rates?.some(r => r.refundable) || false,
+            };
+          });
+          console.log(`✅ Amadeus returned ${amadeusResults.hotels.length} additional hotels`);
+        }
+      } // end else (valid cityCode)
+    } catch (amErr: any) {
+      console.log(`⚠️ Amadeus hotel search failed: ${amErr.message}`);
+      // Log detailed error for debugging
+      if (amErr.response?.data?.errors) {
+        console.log(`   Amadeus API errors:`, JSON.stringify(amErr.response.data.errors, null, 2));
+      }
+    }
+  } else {
+    console.log(`⚠️ Amadeus search skipped - no location query provided`);
+  }
+  return amadeusResults;
+}
+
+// Refactored Hotelbeds search into a separate function
+async function performHotelBedsSearch(locationQuery: string, searchParams: HotelSearchParams, radius: number) {
+  let hotelbedsResults = { hotels: [] as any[], processTime: 0 };
+  const isProduction = process.env.NODE_ENV === 'production' || process.env.VERCEL_ENV === 'production';
+
+  if (!isProduction && process.env.HOTELBEDS_API_KEY && process.env.HOTELBEDS_SECRET) {
+    try {
+      const paxes = [];
+      const adults = searchParams.guests?.adults || 2;
+      for (let i = 0; i < adults; i++) {
+        paxes.push({ type: 'AD' as const, age: 30 });
+      }
+      const childrenCount = Array.isArray(searchParams.guests?.children) ? searchParams.guests.children.length : 0;
+      for (let i = 0; i < childrenCount; i++) {
+        paxes.push({ type: 'CH' as const, age: 10 });
+      }
+
+      const hotelbedsData = await searchHotelbeds({
+        stay: { checkIn: searchParams.checkIn!, checkOut: searchParams.checkOut! },
+        occupancies: [{ rooms: 1, adults, children: childrenCount, paxes }],
+        geolocation: { latitude: searchParams.location.lat!, longitude: searchParams.location.lng!, radius: Number(radius), unit: 'km' },
+        language: 'ENG',
+      });
+
+      hotelbedsResults = {
+        hotels: (hotelbedsData.hotels?.hotels || []).map(hotel =>
+          normalizeHotelbedsHotel(hotel, searchParams.checkIn!, searchParams.checkOut!)
+        ),
+        processTime: hotelbedsData.auditData?.processTime || 0,
+      };
+    } catch (err: any) {
+      console.error('⚠️ Hotelbeds search failed:', err.message);
+    }
+  }
+  return hotelbedsResults;
+}
+
+// Refactored LiteAPI search into a separate function
+async function performLiteAPISearch(searchParams: HotelSearchParams) {
+  const roomCount = 1; // Assuming 1 room for simplicity, adjust if needed
+  const adults = searchParams.guests?.adults || 2;
+  const childrenCount = Array.isArray(searchParams.guests?.children) ? searchParams.guests.children.length : 0;
+
+  const liteAPIResults = await liteAPI.searchHotelsWithMinRates({
+    latitude: searchParams.location.lat!,
+    longitude: searchParams.location.lng!,
+    checkinDate: searchParams.checkIn!,
+    checkoutDate: searchParams.checkOut!,
+    adults: adults,
+    children: childrenCount,
+    rooms: roomCount,
+    currency: searchParams.currency || 'USD',
+    guestNationality: searchParams.location.country || 'US',
+    radius: searchParams.radius || 15, // 15km default for accurate city results
+    limit: searchParams.limit || 100, // Increased for better coverage
+  }).catch(err => {
+    console.error('⚠️ LiteAPI search failed:', err.message);
+    return { hotels: [], meta: { usedMinRates: true, error: err.message } };
+  });
+  return liteAPIResults;
 }
 
 /**
@@ -321,6 +458,11 @@ export async function POST(request: NextRequest) {
       }, { status: 400 });
     }
 
+    // Update searchParams with resolved coordinates and countryCode
+    searchParams.location.lat = latitude;
+    searchParams.location.lng = longitude;
+    searchParams.location.country = countryCode;
+
     console.log('🔍 Searching hotels (FAST mode)...', { latitude, longitude, countryCode });
 
     // PERFORMANCE OPTIMIZED: Single API search in production
@@ -329,26 +471,6 @@ export async function POST(request: NextRequest) {
 
     console.log(`🏨 [SEARCH] ${searchParams.guests?.adults || 2} adults, ${Array.isArray(searchParams.guests?.children) ? searchParams.guests.children.length : 0} children, ${roomCount} rooms`);
 
-    // LiteAPI Search (Primary - FAST with parallel batching)
-    const liteAPIResults = await liteAPI.searchHotelsWithMinRates({
-      latitude,
-      longitude,
-      checkinDate: searchParams.checkIn!,
-      checkoutDate: searchParams.checkOut!,
-      adults: searchParams.guests?.adults || 2,
-      children: Array.isArray(searchParams.guests?.children) ? searchParams.guests.children.length : 0,
-      rooms: roomCount,
-      currency: searchParams.currency || 'USD',
-      guestNationality: countryCode || 'US',
-      radius: searchParams.radius || 15, // 15km default for accurate city results
-      limit: searchParams.limit || 100, // Increased for better coverage
-    }).catch(err => {
-      console.error('⚠️ LiteAPI search failed:', err.message);
-      return { hotels: [], meta: { usedMinRates: true, error: err.message } };
-    });
-
-    // Amadeus - ALWAYS search to provide more hotel options (not just fallback)
-    let amadeusResults = { hotels: [] as any[] };
     // Try multiple location fields: query, name, city
     const locationQuery = (searchParams.location as any)?.query
       || (searchParams.location as any)?.name
@@ -357,115 +479,24 @@ export async function POST(request: NextRequest) {
 
     console.log(`🔍 Location data for Amadeus:`, { locationQuery, location: searchParams.location });
 
-    if (locationQuery) {
-      try {
-        const cityCode = extractCityCode(locationQuery);
-        // Skip Amadeus if no valid city code (prevents wrong city hotels)
-        if (!cityCode) {
-          console.log(`⚠️ Amadeus search skipped: no city code for "${locationQuery}"`);
-        } else {
-          console.log(`🔍 Amadeus search: "${locationQuery}" → city code: ${cityCode}`);
+    const radius = searchParams.radius ? Number(searchParams.radius) : 50;
 
-          const amadeusData = await amadeus.searchHotels({
-            cityCode,
-            checkInDate: searchParams.checkIn!,
-            checkOutDate: searchParams.checkOut!,
-            adults: searchParams.guests?.adults || 2,
-            roomQuantity: roomCount,
-          });
-
-          if (amadeusData?.data?.length > 0) {
-          amadeusResults.hotels = amadeusData.data.map((offer: any) => {
-            const mapped = mapAmadeusHotelToHotel(offer);
-            // Convert to normalized format matching other sources
-            return {
-              id: `amadeus_${mapped.id}`,
-              name: mapped.name,
-              description: mapped.description || '',
-              latitude: mapped.location?.lat || latitude,
-              longitude: mapped.location?.lng || longitude,
-              address: mapped.address?.street || '',
-              city: mapped.address?.city || '',
-              country: mapped.address?.country || '',
-              stars: mapped.starRating || 4,
-              rating: mapped.starRating || 4,
-              reviewCount: 0,
-              images: mapped.images?.map(img => ({ url: img.url, alt: mapped.name })) || [],
-              image: mapped.images?.[0]?.url || null,
-              thumbnail: mapped.images?.[0]?.url || null,
-              amenities: mapped.amenities || [],
-              lowestPrice: mapped.rates?.[0] ? parseFloat(mapped.rates[0].totalPrice.amount) : 0,
-              lowestPricePerNight: mapped.rates?.[0] ? parseFloat(mapped.rates[0].totalPrice.amount) / Math.max(1, Math.ceil((new Date(searchParams.checkOut!).getTime() - new Date(searchParams.checkIn!).getTime()) / (1000*60*60*24))) : 0,
-              currency: mapped.rates?.[0]?.totalPrice.currency || 'USD',
-              rooms: mapped.rates?.map(rate => ({
-                rateId: rate.id,
-                name: rate.roomType,
-                price: parseFloat(rate.totalPrice.amount),
-                currency: rate.totalPrice.currency,
-                refundable: rate.refundable,
-                boardName: rate.mealsIncluded || 'Room Only',
-              })) || [],
-              source: 'Amadeus',
-              refundable: mapped.rates?.some(r => r.refundable) || false,
-            };
-          });
-          console.log(`✅ Amadeus returned ${amadeusResults.hotels.length} additional hotels`);
-          }
-        } // end else (valid cityCode)
-      } catch (amErr: any) {
-        console.log(`⚠️ Amadeus hotel search failed: ${amErr.message}`);
-        // Log detailed error for debugging
-        if (amErr.response?.data?.errors) {
-          console.log(`   Amadeus API errors:`, JSON.stringify(amErr.response.data.errors, null, 2));
-        }
-      }
-    } else {
-      console.log(`⚠️ Amadeus search skipped - no location query provided`);
-    }
-
-    // Hotelbeds only in development (skip entirely in production for speed)
-    let hotelbedsResults = { hotels: [] as any[], processTime: 0 };
-
-    if (!isProduction && process.env.HOTELBEDS_API_KEY && process.env.HOTELBEDS_SECRET) {
-      try {
-        const paxes = [];
-        const adults = searchParams.guests?.adults || 2;
-        for (let i = 0; i < adults; i++) {
-          paxes.push({ type: 'AD' as const, age: 30 });
-        }
-        const childrenCount = Array.isArray(searchParams.guests?.children) ? searchParams.guests.children.length : 0;
-        for (let i = 0; i < childrenCount; i++) {
-          paxes.push({ type: 'CH' as const, age: 10 });
-        }
-
-        const hotelbedsData = await searchHotelbeds({
-          stay: { checkIn: searchParams.checkIn!, checkOut: searchParams.checkOut! },
-          occupancies: [{ rooms: 1, adults, children: childrenCount, paxes }],
-          geolocation: { latitude, longitude, radius: searchParams.radius || 20, unit: 'km' },
-          language: 'ENG',
-        });
-
-        hotelbedsResults = {
-          hotels: (hotelbedsData.hotels?.hotels || []).map(hotel =>
-            normalizeHotelbedsHotel(hotel, searchParams.checkIn!, searchParams.checkOut!)
-          ),
-          processTime: hotelbedsData.auditData?.processTime || 0,
-        };
-      } catch (err: any) {
-        console.error('⚠️ Hotelbeds search failed:', err.message);
-      }
-    }
+    const [liteAPIResults, amadeusResults, hotelbedsResults] = await Promise.all([
+      performLiteAPISearch(searchParams),
+      performAmadeusSearch(locationQuery, searchParams, roomCount),
+      performHotelBedsSearch(locationQuery, searchParams, radius),
+    ]);
 
     // Native Fly2Any Properties Search
     let nativeProperties: any[] = [];
     try {
       const lat = latitude;
       const lng = longitude;
-      const radius = searchParams.radius || 15;
+      const nativeRadius = searchParams.radius || 15;
       
       // Simple bounding box for properties
-      const latDelta = radius / 111;
-      const lngDelta = radius / (111 * Math.cos(lat * (Math.PI / 180)));
+      const latDelta = nativeRadius / 111;
+      const lngDelta = nativeRadius / (111 * Math.cos(lat * (Math.PI / 180)));
 
       const nativeResults = await prisma.property.findMany({
         where: {
@@ -564,12 +595,21 @@ export async function POST(request: NextRequest) {
       }).catch(console.error);
     }
 
-    // Sort by best price
+    // Sort by best price and rating balance
     const results = {
       hotels: deduplicatedHotels.sort((a, b) => {
         const priceA = a.lowestPricePerNight || a.lowestPrice || Infinity;
         const priceB = b.lowestPricePerNight || b.lowestPrice || Infinity;
-        return priceA - priceB;
+        
+        // Primary sort: price
+        if (Math.abs(priceA - priceB) > 5) {
+          return priceA - priceB;
+        }
+        
+        // Secondary sort: rating
+        const ratingA = a.rating || 0;
+        const ratingB = b.rating || 0;
+        return ratingB - ratingA;
       }),
       meta: {
         usedMinRates: 'meta' in liteAPIResults ? liteAPIResults.meta?.usedMinRates : undefined,
@@ -1064,7 +1104,7 @@ export async function GET(request: NextRequest) {
       images: hotel.images || (hotel.image ? [{ url: hotel.image, alt: hotel.name }] : []),
       thumbnail: hotel.thumbnail,
       amenities: hotel.amenities || [],
-      rates: hotel.rooms?.map(room => ({
+      rates: (hotel.rooms as any[])?.map((room: any) => ({
         id: room.rateId,
         roomType: room.name,
         boardType: room.boardName,
