@@ -214,7 +214,7 @@ export default function SeatMapModal({
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm"
+            className="fixed inset-0 z-[200] bg-black/60 backdrop-blur-sm"
             onClick={onClose}
           />
 
@@ -225,7 +225,7 @@ export default function SeatMapModal({
             animate={{ y: 0 }}
             exit={{ y: '100%' }}
             transition={{ type: 'spring', damping: 30, stiffness: 400 }}
-            className="fixed inset-x-0 bottom-16 z-50 bg-white rounded-t-3xl flex flex-col shadow-[0_-8px_30px_rgba(0,0,0,0.12)]"
+            className="fixed inset-x-0 bottom-16 z-[200] bg-white rounded-t-3xl flex flex-col shadow-[0_-8px_30px_rgba(0,0,0,0.12)]"
             style={{ maxHeight: 'calc(93vh - 64px)', minHeight: '55vh' }}
             data-testid="seat-map-modal"
           >

@@ -34,6 +34,7 @@ export function OfferCountdown({
   const [remainingMs, setRemainingMs] = useState(VALIDITY_MS);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [dismissed, setDismissed] = useState(false);
+  const [hasTriggeredExpired, setHasTriggeredExpired] = useState(false);
 
   // Calculate remaining time
   useEffect(() => {
@@ -43,7 +44,8 @@ export function OfferCountdown({
       setRemainingMs(remaining);
 
       // Trigger callbacks
-      if (remaining <= 0 && onExpired) {
+      if (remaining <= 0 && onExpired && !hasTriggeredExpired) {
+        setHasTriggeredExpired(true);
         onExpired();
       } else if (remaining <= CRITICAL_MS && remaining > 0 && onRefreshNeeded) {
         onRefreshNeeded();
@@ -54,7 +56,7 @@ export function OfferCountdown({
     const interval = setInterval(updateRemaining, 1000);
 
     return () => clearInterval(interval);
-  }, [createdAt, onExpired, onRefreshNeeded]);
+  }, [createdAt, onExpired, onRefreshNeeded, hasTriggeredExpired]);
 
   // Handle refresh
   const handleRefresh = useCallback(async () => {

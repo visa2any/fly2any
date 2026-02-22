@@ -25,11 +25,16 @@ const withTimeout = <T,>(promise: Promise<T>, ms: number, errorMsg: string): Pro
   ]);
 };
 
+// Global timeout budget for the entire layout processing (SAFE for Vercel Hobby 10s limit)
+const SSR_TOTAL_BUDGET = 9000;
+
 export default async function AdminLayout({
   children,
 }: {
   children: React.ReactNode
 }) {
+  const START_TIME = Date.now();
+  const getRemainingBudget = () => Math.max(1000, SSR_TOTAL_BUDGET - (Date.now() - START_TIME));
   // Check if database is available
   if (!isPrismaAvailable()) {
     console.error('Database not configured for admin panel')
@@ -38,10 +43,14 @@ export default async function AdminLayout({
 
   const prisma = getPrismaClient();
 
-  // Check authentication with 7 second timeout (SAFE for Vercel Hobby 10s limit)
+  // Check authentication with remaining budget
   let session;
   try {
-    session = await withTimeout(auth(), 7000, 'Admin Auth request timed out');
+    session = await withTimeout(
+      auth(), 
+      getRemainingBudget(), 
+      'Admin Auth request timed out'
+    );
   } catch (error) {
     console.error('❌ Admin Auth error or timeout:', error)
     // Avoid double-throwing for Next.js redirects if it happens internally
@@ -61,7 +70,7 @@ export default async function AdminLayout({
     }
   }
 
-  // Check if user is admin with 7 second timeout
+  // Check if user is admin with remaining budget
   let adminUser = null
   try {
     adminUser = await withTimeout(
@@ -69,7 +78,7 @@ export default async function AdminLayout({
         where: { userId: session.user.id },
         include: { user: true }
       }),
-      7000,
+      getRemainingBudget(),
       'Admin Database query timed out'
     );
   } catch (error) {
