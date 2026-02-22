@@ -1,8 +1,8 @@
 'use client';
 
-import { signIn } from 'next-auth/react';
+import { signIn, useSession } from 'next-auth/react';
 import { useSearchParams, useRouter } from 'next/navigation';
-import { useState, Suspense } from 'react';
+import { useState, Suspense, useEffect } from 'react';
 import { Mail, Lock, Plane, Eye, EyeOff, Loader2 } from 'lucide-react';
 import Link from 'next/link';
 import { useGoogleAuth } from '@/lib/hooks/useGoogleAuth';
@@ -28,6 +28,14 @@ function AdminSignInContent() {
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
+  const { data: session, status } = useSession();
+
+  // Redirect if already authenticated
+  useEffect(() => {
+    if (status === 'authenticated') {
+      router.replace(callbackUrl);
+    }
+  }, [status, router, callbackUrl]);
 
   // Google Auth hook - admin context prevents auto-signup
   const {
@@ -91,6 +99,21 @@ function AdminSignInContent() {
       setIsLoading(false);
     }
   };
+
+  if (status === 'loading' || status === 'authenticated') {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-primary-50 via-white to-secondary-50 flex items-center justify-center p-4">
+        <div className="text-center">
+          <div className="inline-flex items-center justify-center w-20 h-20 bg-gradient-to-br from-primary-500 to-primary-600 rounded-[22px] shadow-xl mb-5 animate-pulse">
+            <Plane className="w-10 h-10 text-white" />
+          </div>
+          <p className="text-neutral-500 font-medium">
+            {status === 'authenticated' ? 'Redirecting to Dashboard...' : 'Checking Session...'}
+          </p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-primary-50 via-white to-secondary-50 flex items-center justify-center p-4">
