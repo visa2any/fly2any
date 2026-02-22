@@ -233,20 +233,35 @@ class BookingStorage {
       return null;
     }
 
-    try {
-      const result = includeDeleted
-        ? await sql`SELECT * FROM bookings WHERE id = ${id}`
-        : await sql`SELECT * FROM bookings WHERE id = ${id} AND deleted_at IS NULL`;
+    let lastError: any = null;
+    const maxRetries = 3;
 
-      if (result.length === 0) {
-        return null;
+    for (let attempt = 1; attempt <= maxRetries; attempt++) {
+      try {
+        const result = includeDeleted
+          ? await sql`SELECT * FROM bookings WHERE id = ${id}`
+          : await sql`SELECT * FROM bookings WHERE id = ${id} AND deleted_at IS NULL`;
+
+        if (result.length === 0) {
+          return null;
+        }
+
+        return this.deserializeBooking(result[0]);
+      } catch (error: any) {
+        lastError = error;
+        const isRetryable = this.isRetryableError(error);
+
+        if (isRetryable && attempt < maxRetries) {
+          const delay = Math.min(100 * Math.pow(2, attempt - 1), 1000);
+          console.warn(`⚠️ Booking findById attempt ${attempt} failed, retrying in ${delay}ms:`, error.message);
+          await this.sleep(delay);
+        } else {
+          console.error('Error finding booking by ID:', error);
+          throw new Error(`Failed to find booking: ${error?.message || 'Unknown database error'}`);
+        }
       }
-
-      return this.deserializeBooking(result[0]);
-    } catch (error: any) {
-      console.error('Error finding booking by ID:', error);
-      throw new Error(`Failed to find booking: ${error?.message || 'Unknown database error'}`);
     }
+    return null; // Should not reach here due to throw in last attempt
   }
 
   /**
@@ -270,25 +285,41 @@ class BookingStorage {
       return null;
     }
 
-    try {
-      const result = includeDeleted
-        ? await sql`SELECT * FROM bookings WHERE booking_reference = ${reference}`
-        : await sql`SELECT * FROM bookings WHERE booking_reference = ${reference} AND deleted_at IS NULL`;
+    let lastError: any = null;
+    const maxRetries = 3;
 
-      if (result.length === 0) {
-        return null;
-      }
+    for (let attempt = 1; attempt <= maxRetries; attempt++) {
+      try {
+        const result = includeDeleted
+          ? await sql`SELECT * FROM bookings WHERE booking_reference = ${reference}`
+          : await sql`SELECT * FROM bookings WHERE booking_reference = ${reference} AND deleted_at IS NULL`;
 
-      return this.deserializeBooking(result[0]);
-    } catch (error: any) {
-      // Handle missing table gracefully - return null so booking can proceed
-      if (error?.message?.includes('does not exist') || error?.message?.includes('relation')) {
-        console.warn('⚠️ Bookings table does not exist - returning null. Please run /api/admin/init-bookings to create the table.');
-        return null;
+        if (result.length === 0) {
+          return null;
+        }
+
+        return this.deserializeBooking(result[0]);
+      } catch (error: any) {
+        lastError = error;
+
+        // Handle missing table gracefully - return null so booking can proceed
+        if (error?.message?.includes('does not exist') || error?.message?.includes('relation')) {
+          console.warn('⚠️ Bookings table does not exist - returning null. Please run /api/admin/init-bookings to create the table.');
+          return null;
+        }
+
+        const isRetryable = this.isRetryableError(error);
+        if (isRetryable && attempt < maxRetries) {
+          const delay = Math.min(100 * Math.pow(2, attempt - 1), 1000);
+          console.warn(`⚠️ Booking findByRef attempt ${attempt} failed, retrying in ${delay}ms:`, error.message);
+          await this.sleep(delay);
+        } else {
+          console.error('Error finding booking by reference:', error);
+          throw new Error(`Failed to find booking by ref: ${error?.message || 'Unknown database error'}`);
+        }
       }
-      console.error('Error finding booking by reference:', error);
-      throw new Error(`Failed to find booking by ref: ${error?.message || 'Unknown database error'}`);
     }
+    return null; // Should not reach here due to throw in last attempt
   }
 
   /**

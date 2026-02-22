@@ -45,7 +45,7 @@ export function getSql(): Sql | null {
 
   _sql = postgres(dbUrl, {
     ssl: 'require',
-    max: 1,
+    max: 5,        // Increased from 1 to 5 to prevent connection pool timeouts
     idle_timeout: 20,
     connect_timeout: 30,
     prepare: false,  // Required for PgBouncer
