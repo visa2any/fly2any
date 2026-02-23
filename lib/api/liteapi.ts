@@ -496,7 +496,7 @@ class LiteAPI {
 
       const response = await axios.post(`${this.baseUrl}/hotels/rates`, requestBody, {
         headers: this.getHeaders(),
-        timeout: 3000, // 3s - must complete fast for Vercel limits
+        timeout: 5000, // 5s per call
       });
 
       const data = response.data.data || [];
@@ -531,10 +531,9 @@ class LiteAPI {
     guestNationality?: string;
   }): Promise<Array<{ hotelId: string; minimumRate: { amount: number; currency: string }; available: boolean }>> {
     try {
-      // PERFORMANCE: In production use 1 wave, in dev allow more
-      const isProduction = process.env.NODE_ENV === 'production' || process.env.VERCEL_ENV === 'production';
-      const BATCH_SIZE = isProduction ? 20 : 25; // Single batch in production
-      const MAX_CONCURRENT = isProduction ? 1 : 2; // Single wave in production
+      // PERFORMANCE: Dynamic batch sizing
+      const BATCH_SIZE = 40;
+      const MAX_CONCURRENT = 3;
 
       console.log(`⚡ LiteAPI: Getting rates for ${params.hotelIds.length} hotels (PARALLEL batches of ${BATCH_SIZE})`);
 
@@ -601,7 +600,7 @@ class LiteAPI {
 
               const response = await axios.post(`${this.baseUrl}/hotels/rates`, requestBody, {
                 headers: this.getHeaders(),
-                timeout: 3000, // 3s - must complete fast for Vercel limits
+                timeout: 5000, // 5s per call
               });
 
               if (response.data.error) {
@@ -922,16 +921,16 @@ class LiteAPI {
       console.log(`📅 LiteAPI: Calculated ${nights} nights (${checkIn} to ${checkOut})`);
 
       // Step 1: Get hotel static data
-      // PERFORMANCE: Limit hotel count for fast responses within Vercel 10s limit
+      // PERFORMANCE: Request enough hotels for good coverage
       const locationParams: Parameters<typeof this.getHotelsByLocation>[0] = {
-        limit: Math.min(params.limit || 50, 50), // Cap at 50 for speed
+        limit: Math.min(params.limit || 100, 200), // Cap at 200
       };
 
       if (params.latitude !== undefined && params.longitude !== undefined) {
         locationParams.latitude = params.latitude;
         locationParams.longitude = params.longitude;
         // HotelSearchParams.radius is in km, LiteAPI expects meters - convert!
-        locationParams.radius = params.radius ? params.radius * 1000 : 20000; // 20km default for speed
+        locationParams.radius = params.radius ? params.radius * 1000 : 50000; // 50km default for city coverage
       } else if (params.countryCode) {
         locationParams.countryCode = params.countryCode;
         if (params.cityName) {
@@ -948,11 +947,10 @@ class LiteAPI {
         };
       }
 
-      // Filter out deleted hotels and cap to 50 for speed
+      // Filter out deleted hotels
       const activeHotelIds = hotels
         .filter(h => !h.deletedAt)
-        .map(h => h.id)
-        .slice(0, 50); // Hard cap for Vercel 10s limit
+        .map(h => h.id);
 
       if (activeHotelIds.length === 0) {
         return {
@@ -1025,25 +1023,24 @@ class LiteAPI {
         guestNationality: params.guestNationality || 'US',
       });
 
-      // Step 3: Load facilities for amenity mapping (using static cache)
+      // Step 3: Load facilities for amenity mapping (NON-BLOCKING)
+      // Use cache if available, otherwise start loading in background for next search
       let facilitiesMap = new Map<number, string>();
-      try {
-        if (LiteAPI.facilitiesMapCache) {
-          facilitiesMap = LiteAPI.facilitiesMapCache;
-        } else {
-          // If already loading, wait for it
-          if (!LiteAPI.facilitiesLoadingPromise) {
-            LiteAPI.facilitiesLoadingPromise = this.getFacilities().then(data => {
-              const map = new Map(data.data.map(f => [f.facility_id, f.facility]));
-              LiteAPI.facilitiesMapCache = map;
-              return map;
-            });
-          }
-          facilitiesMap = await LiteAPI.facilitiesLoadingPromise;
-        }
+      if (LiteAPI.facilitiesMapCache) {
+        facilitiesMap = LiteAPI.facilitiesMapCache;
         console.log(`✅ Using ${facilitiesMap.size} cached facilities for amenity mapping`);
-      } catch (error) {
-        console.warn('⚠️ Could not load facilities, hotels will have no amenities');
+      } else {
+        // Fire-and-forget: start loading facilities for future searches
+        // DO NOT await - this would add 2-3s to the hot path
+        if (!LiteAPI.facilitiesLoadingPromise) {
+          LiteAPI.facilitiesLoadingPromise = this.getFacilities().then(data => {
+            const map = new Map(data.data.map(f => [f.facility_id, f.facility]));
+            LiteAPI.facilitiesMapCache = map;
+            console.log(`✅ Facilities cached in background (${map.size} entries)`);
+            return map;
+          }).catch(() => new Map<number, string>());
+        }
+        console.log('⚡ Skipping facilities load on hot path (will be cached for next search)');
       }
 
       // Step 4: Merge hotel data with minimum rates
@@ -2286,7 +2283,6 @@ class LiteAPI {
 
       const facilities = response.data.data || [];
       console.log(`✅ LiteAPI: Got ${facilities.length} facilities`);
-      console.log('🔍 DEBUG: First 3 facilities:', JSON.stringify(facilities.slice(0, 3), null, 2));
 
       return { data: facilities };
     } catch (error) {

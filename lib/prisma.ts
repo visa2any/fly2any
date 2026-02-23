@@ -19,11 +19,11 @@ function getDatabaseUrl(): string {
     // Serverless critical: Use PgBouncer
     url.searchParams.set('pgbouncer', 'true');
     
-    // Vercel Serverless best practice: Low connection limits per function instance
-    // since instances auto-scale. Increased to 10 for administrative stability.
-    url.searchParams.set('connection_limit', '10');
+    // Vercel Serverless: Higher pool limit for concurrent operations
+    // (auth, hotel search, flight enrichment, image fetch all share this pool)
+    url.searchParams.set('connection_limit', '20');
     
-    // Aggressive timeout: Moved to 20s to allow for cold starts while still failing-fast enough
+    // Pool timeout: 20s to allow for cold starts while still failing-fast
     url.searchParams.set('pool_timeout', '20');
     
     return url.toString();

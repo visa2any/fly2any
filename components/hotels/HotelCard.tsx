@@ -174,8 +174,9 @@ export function HotelCard({
   }, [images.length]);
 
   // Auto-fetch images for hotels that have no photos from initial search
+  // SKIP for Amadeus hotels (amadeus_*) — LiteAPI can't resolve their IDs
   useEffect(() => {
-    if (initialImages.length === 0 && !hasLoadedImages && !isLoadingImages) {
+    if (initialImages.length === 0 && !hasLoadedImages && !isLoadingImages && !hotel.id.startsWith('amadeus_')) {
       // Stagger fetches to avoid overwhelming the API: use hotel ID hash for delay
       const staggerMs = (hotel.id.charCodeAt(hotel.id.length - 1) % 10) * 200;
       const timer = setTimeout(() => {

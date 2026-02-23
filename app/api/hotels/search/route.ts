@@ -525,9 +525,42 @@ export async function POST(request: NextRequest) {
       ? rawChildren.map((c: any) => typeof c === 'number' ? c : (c.age || 8))
       : (typeof rawChildren === 'number' ? Array(rawChildren).fill(8) : []);
 
-    const PROVIDER_TIMEOUT = 4000; // 4s per provider — 3 run in parallel so total = 4s max
+    const PROVIDER_TIMEOUT = 8000; // 8s per provider — all run in parallel = 8s total max
 
-    const [liteAPIResults, amadeusResults, hotelbedsResults] = await Promise.all([
+    // Helper: wrapped native property search with timeout
+    async function performNativePropertySearchPOST(): Promise<any[]> {
+      const nativeRadius = searchParams.radius || 20;
+      const latDelta = nativeRadius / 111;
+      const lngDelta = nativeRadius / (111 * Math.cos(latitude * (Math.PI / 180)));
+
+      const nativeResults = await prisma.property.findMany({
+        where: {
+          status: 'active',
+          latitude: { gte: latitude - latDelta, lte: latitude + latDelta },
+          longitude: { gte: longitude - lngDelta, lte: longitude + lngDelta },
+          maxGuests: { gte: searchParams.guests?.adults || 1 },
+        },
+        include: {
+          rooms: true,
+          images: { orderBy: { sortOrder: 'asc' } },
+        },
+      });
+
+      const checkInObj = new Date(searchParams.checkIn!);
+      const checkOutObj = new Date(searchParams.checkOut!);
+      const nights = Math.max(1, Math.ceil((checkOutObj.getTime() - checkInObj.getTime()) / (1000 * 60 * 60 * 24)));
+
+      const mapped = nativeResults.map(p =>
+        mapPropertyToHotel(p as any, searchParams.checkIn!, searchParams.checkOut!, nights)
+      );
+      if (mapped.length > 0) {
+        console.log(`✅ Included ${mapped.length} native Fly2Any properties`);
+      }
+      return mapped;
+    }
+
+    // All 4 sources run in PARALLEL with strict timeouts
+    const [liteAPIResults, amadeusResults, hotelbedsResults, nativeProperties] = await Promise.all([
       withTimeout(
         performLiteAPISearch(searchParams, roomCount, childAges),
         PROVIDER_TIMEOUT,
@@ -546,46 +579,13 @@ export async function POST(request: NextRequest) {
         { hotels: [], processTime: 0 },
         'Hotelbeds'
       ),
+      withTimeout(
+        performNativePropertySearchPOST(),
+        2000, // 2s for DB query
+        [] as any[],
+        'NativeDB'
+      ),
     ]);
-
-    // Native Fly2Any Properties Search
-    let nativeProperties: any[] = [];
-    try {
-      const lat = latitude;
-      const lng = longitude;
-      const nativeRadius = searchParams.radius || 50; // Increased from 15km to 50km to match external APIs
-      
-      // Simple bounding box for properties
-      const latDelta = nativeRadius / 111;
-      const lngDelta = nativeRadius / (111 * Math.cos(lat * (Math.PI / 180)));
-
-      const nativeResults = await prisma.property.findMany({
-        where: {
-          status: 'active',
-          latitude: { gte: lat - latDelta, lte: lat + latDelta },
-          longitude: { gte: lng - lngDelta, lte: lng + lngDelta },
-          maxGuests: { gte: searchParams.guests?.adults || 1 },
-        },
-        include: {
-          rooms: true,
-          images: { orderBy: { sortOrder: 'asc' } },
-        },
-      });
-
-      const checkInObj = new Date(searchParams.checkIn!);
-      const checkOutObj = new Date(searchParams.checkOut!);
-      const nights = Math.max(1, Math.ceil((checkOutObj.getTime() - checkInObj.getTime()) / (1000 * 60 * 60 * 24)));
-
-      nativeProperties = nativeResults.map(p => 
-        mapPropertyToHotel(p as any, searchParams.checkIn!, searchParams.checkOut!, nights)
-      );
-      
-      if (nativeProperties.length > 0) {
-        console.log(`✅ Included ${nativeProperties.length} native Fly2Any properties`);
-      }
-    } catch (err: any) {
-      console.error('⚠️ Native property search failed:', err.message);
-    }
 
     // Combine results from all APIs (LiteAPI + Amadeus + Hotelbeds + Fly2Any)
     const allHotels = [
@@ -971,12 +971,40 @@ export async function GET(request: NextRequest) {
       guests: { adults: parseInt(adults), children: childAges },
       currency: searchParams.get('currency') || 'USD',
       radius: searchParams.get('radius') ? parseInt(searchParams.get('radius')!) : 20,
-      limit: 20, // Hard cap for speed within Vercel 10s limit
+      limit: 100, // 100 hotels for good coverage (maxDuration=60 gives us headroom)
     };
 
-    const PROVIDER_TIMEOUT = 4000; // 4s per provider — 3 providers in parallel = 4s total (not 12s!)
+    const PROVIDER_TIMEOUT = 8000; // 8s per provider — all run in parallel = 8s total max
 
-    const [liteAPIResults, amadeusResults, hotelbedsResults] = await Promise.all([
+    // Helper: wrapped native property search with timeout
+    async function performNativePropertySearch(): Promise<any[]> {
+      const radiusKm = searchParamsObj.radius || 20;
+      const latDelta = radiusKm / 111;
+      const lngDelta = radiusKm / (111 * Math.cos(latitude! * (Math.PI / 180)));
+
+      const nativeResults = await prisma!.property.findMany({
+        where: {
+          status: 'active',
+          latitude: { gte: latitude! - latDelta, lte: latitude! + latDelta },
+          longitude: { gte: longitude! - lngDelta, lte: longitude! + lngDelta },
+          maxGuests: { gte: parseInt(adults) },
+        },
+        include: {
+          rooms: true,
+          images: { orderBy: { sortOrder: 'asc' } },
+        },
+      });
+
+      const nightsCalc = Math.max(1, Math.ceil((new Date(checkOut!).getTime() - new Date(checkIn!).getTime()) / (1000 * 60 * 60 * 24)));
+      const mapped = nativeResults.map(p => mapPropertyToHotel(p as any, checkIn!, checkOut!, nightsCalc));
+      if (mapped.length > 0) {
+        console.log(`✅ Included ${mapped.length} native Fly2Any properties (GET)`);
+      }
+      return mapped;
+    }
+
+    // All 4 sources run in PARALLEL with strict timeouts
+    const [liteAPIResults, amadeusResults, hotelbedsResults, nativeProperties] = await Promise.all([
       withTimeout(
         performLiteAPISearch(searchParamsObj, rooms, childAges),
         PROVIDER_TIMEOUT,
@@ -995,40 +1023,13 @@ export async function GET(request: NextRequest) {
         { hotels: [], processTime: 0 },
         'Hotelbeds'
       ),
+      withTimeout(
+        performNativePropertySearch(),
+        2000, // 2s for DB query
+        [] as any[],
+        'NativeDB'
+      ),
     ]);
-
-    // 2. Native Fly2Any Properties Search
-    let nativeProperties: any[] = [];
-    try {
-      const radiusKm = searchParamsObj.radius || 50;
-      const latDelta = radiusKm / 111;
-      const lngDelta = radiusKm / (111 * Math.cos(latitude! * (Math.PI / 180)));
-
-      const nativeResults = await prisma!.property.findMany({
-        where: {
-          status: 'active',
-          latitude: { gte: latitude! - latDelta, lte: latitude! + latDelta },
-          longitude: { gte: longitude! - lngDelta, lte: longitude! + lngDelta },
-          maxGuests: { gte: parseInt(adults) },
-        },
-        include: {
-          rooms: true,
-          images: { orderBy: { sortOrder: 'asc' } },
-        },
-      });
-
-      const nights = Math.max(1, Math.ceil((new Date(checkOut!).getTime() - new Date(checkIn!).getTime()) / (1000 * 60 * 60 * 24)));
-
-      nativeProperties = nativeResults.map(p =>
-        mapPropertyToHotel(p as any, checkIn!, checkOut!, nights)
-      );
-
-      if (nativeProperties.length > 0) {
-        console.log(`✅ Included ${nativeProperties.length} native Fly2Any properties (GET)`);
-      }
-    } catch (err: any) {
-      console.error('⚠️ Native property search failed (GET):', err.message);
-    }
 
     // 3. Combine and deduplicate results
     const allHotels = [

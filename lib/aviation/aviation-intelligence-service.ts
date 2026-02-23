@@ -128,9 +128,13 @@ export interface ExtractionResult {
 // Main Extraction Function
 // ==========================================
 
+// Global lock: only one extraction runs at a time to prevent DB pool exhaustion
+let _extractionInProgress = false;
+
 /**
  * Extract ALL aviation data from Duffel offers
- * This is the master function that captures everything
+ * NON-BLOCKING: Uses a global lock to prevent concurrent extractions.
+ * Only one extraction runs at a time. If pool is already under pressure, skip.
  */
 export async function extractAllAviationData(offers: DuffelOffer[]): Promise<ExtractionResult> {
   const startTime = Date.now();
@@ -151,102 +155,102 @@ export async function extractAllAviationData(offers: DuffelOffer[]): Promise<Ext
     return result;
   }
 
-  // Deduplicate data to extract
-  const airlines = new Map<string, DuffelAirline>();
-  const aircraft = new Map<string, DuffelAircraft>();
-  const airports = new Map<string, DuffelAirport>();
-  const routes = new Map<string, { origin: string; destination: string; airlines: Set<string>; durations: number[] }>();
-  const fareClasses = new Map<string, { code: string; name: string; cabin: string; airline: string }>();
+  // CRITICAL: Only one extraction at a time to prevent DB pool exhaustion
+  if (_extractionInProgress) {
+    console.log('⏭️ Aviation extraction skipped — another extraction is already running');
+    result.duration = Date.now() - startTime;
+    return result;
+  }
 
-  // Process all offers
-  for (const offer of offers) {
-    // Extract owner airline
-    if (offer.owner?.iata_code) {
-      airlines.set(offer.owner.iata_code, offer.owner);
-    }
+  _extractionInProgress = true;
 
-    // Process slices
-    for (const slice of offer.slices || []) {
-      // Extract airports
-      if (slice.origin?.iata_code) airports.set(slice.origin.iata_code, slice.origin);
-      if (slice.destination?.iata_code) airports.set(slice.destination.iata_code, slice.destination);
+  try {
+    // Deduplicate data to extract
+    const airlines = new Map<string, DuffelAirline>();
+    const aircraft = new Map<string, DuffelAircraft>();
+    const airports = new Map<string, DuffelAirport>();
+    const routes = new Map<string, { origin: string; destination: string; airlines: Set<string>; durations: number[] }>();
+    const fareClasses = new Map<string, { code: string; name: string; cabin: string; airline: string }>();
 
-      // Extract route
-      const routeKey = `${slice.origin?.iata_code}-${slice.destination?.iata_code}`;
-      const durationMinutes = parseDuration(slice.duration);
-      if (routeKey && slice.origin?.iata_code && slice.destination?.iata_code) {
-        const existing = routes.get(routeKey) || {
-          origin: slice.origin.iata_code,
-          destination: slice.destination.iata_code,
-          airlines: new Set<string>(),
-          durations: [],
-        };
-        if (offer.owner?.iata_code) existing.airlines.add(offer.owner.iata_code);
-        if (durationMinutes) existing.durations.push(durationMinutes);
-        routes.set(routeKey, existing);
+    // Process all offers (CPU-only, no DB calls)
+    for (const offer of offers) {
+      if (offer.owner?.iata_code) {
+        airlines.set(offer.owner.iata_code, offer.owner);
       }
 
-      // Process segments
-      for (const segment of slice.segments || []) {
-        // Airlines
-        if (segment.marketing_carrier?.iata_code) {
-          airlines.set(segment.marketing_carrier.iata_code, segment.marketing_carrier);
-        }
-        if (segment.operating_carrier?.iata_code) {
-          airlines.set(segment.operating_carrier.iata_code, segment.operating_carrier);
+      for (const slice of offer.slices || []) {
+        if (slice.origin?.iata_code) airports.set(slice.origin.iata_code, slice.origin);
+        if (slice.destination?.iata_code) airports.set(slice.destination.iata_code, slice.destination);
+
+        const routeKey = `${slice.origin?.iata_code}-${slice.destination?.iata_code}`;
+        const durationMinutes = parseDuration(slice.duration);
+        if (routeKey && slice.origin?.iata_code && slice.destination?.iata_code) {
+          const existing = routes.get(routeKey) || {
+            origin: slice.origin.iata_code,
+            destination: slice.destination.iata_code,
+            airlines: new Set<string>(),
+            durations: [],
+          };
+          if (offer.owner?.iata_code) existing.airlines.add(offer.owner.iata_code);
+          if (durationMinutes) existing.durations.push(durationMinutes);
+          routes.set(routeKey, existing);
         }
 
-        // Aircraft
-        if (segment.aircraft?.iata_code) {
-          aircraft.set(segment.aircraft.iata_code, segment.aircraft);
-        }
+        for (const segment of slice.segments || []) {
+          if (segment.marketing_carrier?.iata_code) {
+            airlines.set(segment.marketing_carrier.iata_code, segment.marketing_carrier);
+          }
+          if (segment.operating_carrier?.iata_code) {
+            airlines.set(segment.operating_carrier.iata_code, segment.operating_carrier);
+          }
+          if (segment.aircraft?.iata_code) {
+            aircraft.set(segment.aircraft.iata_code, segment.aircraft);
+          }
+          if (segment.origin?.iata_code) airports.set(segment.origin.iata_code, segment.origin);
+          if (segment.destination?.iata_code) airports.set(segment.destination.iata_code, segment.destination);
 
-        // Segment airports
-        if (segment.origin?.iata_code) airports.set(segment.origin.iata_code, segment.origin);
-        if (segment.destination?.iata_code) airports.set(segment.destination.iata_code, segment.destination);
-
-        // Fare classes from passengers
-        for (const pax of segment.passengers || []) {
-          if (pax.fare_basis_code && pax.cabin_class) {
-            const fcKey = `${pax.fare_basis_code}-${segment.marketing_carrier?.iata_code || 'XX'}`;
-            fareClasses.set(fcKey, {
-              code: pax.fare_basis_code,
-              name: pax.cabin_class_marketing_name || pax.cabin_class,
-              cabin: pax.cabin_class,
-              airline: segment.marketing_carrier?.iata_code || '',
-            });
+          for (const pax of segment.passengers || []) {
+            if (pax.fare_basis_code && pax.cabin_class) {
+              const fcKey = `${pax.fare_basis_code}-${segment.marketing_carrier?.iata_code || 'XX'}`;
+              fareClasses.set(fcKey, {
+                code: pax.fare_basis_code,
+                name: pax.cabin_class_marketing_name || pax.cabin_class,
+                cabin: pax.cabin_class,
+                airline: segment.marketing_carrier?.iata_code || '',
+              });
+            }
           }
         }
       }
     }
+
+    // SEQUENTIAL extraction (NOT parallel!) to avoid saturating the connection pool
+    // Each function does its own loop of DB calls, so running them sequentially
+    // limits the max concurrent DB connections to ~1-2 instead of 5+
+    const airlineResult = await extractAirlines(Array.from(airlines.values()));
+    const aircraftResult = await extractAircraft(Array.from(aircraft.values()));
+    const airportResult = await extractAirports(Array.from(airports.values()));
+    const routeResult = await extractRoutes(routes);
+    const fareResult = await extractFareClasses(Array.from(fareClasses.values()));
+
+    // Flight records and price trends (smaller, less DB impact)
+    const flightResult = await extractFlightRecords(offers);
+    const priceResult = await extractPriceTrends(offers);
+
+    result.airlines = airlineResult;
+    result.aircraft = aircraftResult;
+    result.airports = airportResult;
+    result.routes = routeResult;
+    result.fareClasses = fareResult;
+    result.flights = flightResult;
+    result.priceTrends = priceResult;
+    result.duration = Date.now() - startTime;
+
+    // Log sync (non-critical)
+    try { await logSync(result); } catch { /* ignore */ }
+  } finally {
+    _extractionInProgress = false;
   }
-
-  // Execute all extractions in parallel
-  const [airlineResult, aircraftResult, airportResult, routeResult, fareResult] = await Promise.all([
-    extractAirlines(Array.from(airlines.values())),
-    extractAircraft(Array.from(aircraft.values())),
-    extractAirports(Array.from(airports.values())),
-    extractRoutes(routes),
-    extractFareClasses(Array.from(fareClasses.values())),
-  ]);
-
-  // Extract flight records and price trends
-  const [flightResult, priceResult] = await Promise.all([
-    extractFlightRecords(offers),
-    extractPriceTrends(offers),
-  ]);
-
-  result.airlines = airlineResult;
-  result.aircraft = aircraftResult;
-  result.airports = airportResult;
-  result.routes = routeResult;
-  result.fareClasses = fareResult;
-  result.flights = flightResult;
-  result.priceTrends = priceResult;
-  result.duration = Date.now() - startTime;
-
-  // Log sync
-  await logSync(result);
 
   return result;
 }
