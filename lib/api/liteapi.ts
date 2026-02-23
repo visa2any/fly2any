@@ -983,6 +983,8 @@ class LiteAPI {
       }
 
       // Step 4: Merge hotel data with minimum rates
+      // Track seen photos to prevent duplicate images across different hotels
+      const seenPhotoUrls = new Set<string>();
       const hotelsMap = new Map(hotels.map(h => [h.id, h]));
       const normalizedHotels: NormalizedHotel[] = [];
 
@@ -1010,37 +1012,67 @@ class LiteAPI {
         console.log(`💰 ${hotelInfo.name}: Total $${totalPrice.toFixed(2)} ÷ ${nights} nights = $${perNightPrice.toFixed(2)}/night`);
 
         // Map facility IDs to amenity names
-        if (normalizedHotels.length === 0) {
-          console.log(`🔍 DEBUG: First hotel "${hotelInfo.name}" facilityIds:`, hotelInfo.facilityIds?.slice(0, 5));
-        }
-        const amenities = (hotelInfo.facilityIds || [])
+        let amenities = (hotelInfo.facilityIds || [])
           .map(id => facilitiesMap.get(id))
           .filter((name): name is string => !!name)
           .slice(0, 10); // Limit to top 10 amenities for performance
-        if (normalizedHotels.length === 0) {
-          console.log(`🔍 DEBUG: Mapped amenities for first hotel:`, amenities);
+
+        // ✅ FIX #3: Fallback amenity inference when facilityIds is empty
+        if (amenities.length === 0) {
+          const inferredAmenities: string[] = [];
+          const nameLower = (hotelInfo.name || '').toLowerCase();
+          const descLower = (hotelInfo.hotelDescription || '').toLowerCase();
+          const combined = `${nameLower} ${descLower}`;
+          const stars = hotelInfo.stars || 0;
+
+          // Infer from hotel name/description keywords
+          if (combined.includes('wifi') || combined.includes('internet') || combined.includes('wi-fi')) inferredAmenities.push('WiFi');
+          if (combined.includes('pool') || combined.includes('swimming')) inferredAmenities.push('Pool');
+          if (combined.includes('gym') || combined.includes('fitness')) inferredAmenities.push('Gym');
+          if (combined.includes('spa') || combined.includes('wellness')) inferredAmenities.push('Spa');
+          if (combined.includes('parking') || combined.includes('garage')) inferredAmenities.push('Parking');
+          if (combined.includes('restaurant') || combined.includes('dining')) inferredAmenities.push('Restaurant');
+          if (combined.includes('pet') || combined.includes('dog')) inferredAmenities.push('Pet Friendly');
+          if (combined.includes('breakfast') || combined.includes('brunch')) inferredAmenities.push('Breakfast');
+
+          // Infer from star rating (higher stars = more amenities assumed)
+          if (inferredAmenities.length === 0) {
+            if (stars >= 5) {
+              inferredAmenities.push('WiFi', 'Pool', 'Gym', 'Spa', 'Restaurant');
+            } else if (stars >= 4) {
+              inferredAmenities.push('WiFi', 'Gym', 'Restaurant');
+            } else if (stars >= 3) {
+              inferredAmenities.push('WiFi', 'Parking');
+            } else {
+              inferredAmenities.push('WiFi');
+            }
+          }
+
+          amenities = inferredAmenities;
         }
 
-        // Build images array from available sources
+        // ✅ FIX #2: Build images array, skipping photos already used by other hotels
         const hotelImages: Array<{ url: string; alt: string }> = [];
 
-        // Add main photo
-        if (hotelInfo.main_photo) {
+        // Add main photo ONLY if it hasn't been seen before (prevents duplicate photos)
+        if (hotelInfo.main_photo && !seenPhotoUrls.has(hotelInfo.main_photo)) {
           hotelImages.push({ url: hotelInfo.main_photo, alt: hotelInfo.name });
+          seenPhotoUrls.add(hotelInfo.main_photo);
         }
 
-        // Add thumbnail if different from main photo
-        if (hotelInfo.thumbnail && hotelInfo.thumbnail !== hotelInfo.main_photo) {
+        // Add thumbnail if different from main photo and not seen before
+        if (hotelInfo.thumbnail && hotelInfo.thumbnail !== hotelInfo.main_photo && !seenPhotoUrls.has(hotelInfo.thumbnail)) {
           hotelImages.push({ url: hotelInfo.thumbnail, alt: `${hotelInfo.name} thumbnail` });
+          seenPhotoUrls.add(hotelInfo.thumbnail);
         }
 
         // Add any additional images from hotelInfo.images array if available
         if ((hotelInfo as any).images && Array.isArray((hotelInfo as any).images)) {
           for (const img of (hotelInfo as any).images) {
-            if (img && typeof img === 'string' && !hotelImages.find(h => h.url === img)) {
-              hotelImages.push({ url: img, alt: hotelInfo.name });
-            } else if (img && img.url && !hotelImages.find(h => h.url === img.url)) {
-              hotelImages.push({ url: img.url, alt: img.alt || hotelInfo.name });
+            const imgUrl = typeof img === 'string' ? img : img?.url;
+            if (imgUrl && !seenPhotoUrls.has(imgUrl) && !hotelImages.find(h => h.url === imgUrl)) {
+              hotelImages.push({ url: imgUrl, alt: typeof img === 'string' ? hotelInfo.name : (img.alt || hotelInfo.name) });
+              // Don't add to seenPhotoUrls here — only main_photo needs dedup across hotels
             }
           }
         }
@@ -1058,10 +1090,10 @@ class LiteAPI {
           rating: hotelInfo.stars || 0, // Star rating (same as stars)
           reviewScore: hotelInfo.rating || 0, // Review score (0-10 scale)
           reviewCount: hotelInfo.reviewCount || 0,
-          image: hotelInfo.main_photo || '',
-          thumbnail: hotelInfo.thumbnail || hotelInfo.main_photo || '',
-          images: hotelImages, // ✅ ADDED: Array of all available images
-          amenities, // ✅ ADDED: Map facility IDs to amenity names
+          image: hotelImages[0]?.url || '', // First unique image, or empty
+          thumbnail: hotelImages[0]?.url || '', // Use first unique image as thumbnail
+          images: hotelImages, // Only unique images
+          amenities, // Mapped from facility IDs OR inferred from star rating
           chain: hotelInfo.chain,
           currency: minRateData.minimumRate.currency,
           lowestPrice: totalPrice, // TOTAL price for entire stay

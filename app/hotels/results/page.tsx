@@ -386,7 +386,7 @@ function HotelResultsContent() {
   const [hotels, setHotels] = useState<LiteAPIHotel[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [sortBy, setSortBy] = useState<SortOption>('best');
+  const [sortBy, setSortBy] = useState<SortOption>('cheapest');
   const [displayCount, setDisplayCount] = useState(50);
   const [selectedHotelId, setSelectedHotelId] = useState<string | null>(null);
   const [isNavigating, setIsNavigating] = useState(false);

@@ -145,8 +145,17 @@ export function HotelCard({
   if (!hotel?.id) return null;
 
   const rawImages = hotel.images?.filter((img) => img?.url) || [];
-  const initialImages = rawImages.length > 0 ? rawImages : hotel.thumbnail ? [{ url: hotel.thumbnail, alt: hotel.name || 'Hotel' }] : [{ url: '/images/hotel-placeholder.jpg', alt: 'Hotel placeholder' }];
+  // Don't use a static placeholder image — it causes all hotels without photos to look the same
+  // Instead, let the rendering code handle empty images with a styled gradient placeholder
+  const initialImages = rawImages.length > 0 ? rawImages : hotel.thumbnail ? [{ url: hotel.thumbnail, alt: hotel.name || 'Hotel' }] : [];
   const images = loadedImages.length > 0 ? loadedImages : initialImages;
+
+  // Generate a unique gradient color based on hotel name for visual distinction
+  const nameHash = (hotel.name || '').split('').reduce((acc, char) => acc + char.charCodeAt(0), 0);
+  const hue1 = nameHash % 360;
+  const hue2 = (hue1 + 40) % 360;
+  const placeholderGradient = `linear-gradient(135deg, hsl(${hue1}, 45%, 55%), hsl(${hue2}, 50%, 40%))`;
+  const hotelInitial = (hotel.name || 'H').charAt(0).toUpperCase();
 
   // Show swipe hint for first-time users
   useEffect(() => {
@@ -312,24 +321,37 @@ export function HotelCard({
         onTouchEnd={handleTouchEnd}
       >
         {/* Image with crossfade transition + Premium quality filters */}
-        <Image
-          src={images[currentImageIndex]?.url || '/images/hotel-placeholder.jpg'}
-          alt={images[currentImageIndex]?.alt || hotel.name}
-          fill
-          className={`object-cover transition-opacity duration-200 ease-out ${isTransitioning ? 'opacity-70' : 'opacity-100'}`}
-          style={{
-            filter: 'contrast(1.05) saturate(1.12) brightness(1.02)',
-            imageRendering: 'crisp-edges',
-            WebkitBackfaceVisibility: 'hidden',
-            backfaceVisibility: 'hidden',
-          }}
-          sizes="100vw"
-          priority={currentImageIndex === 0}
-          placeholder="blur"
-          blurDataURL={getBlurDataURL(images[currentImageIndex]?.url || '', 400, 300)}
-          quality={90}
-          onError={(e) => { (e.target as HTMLImageElement).src = '/images/hotel-placeholder.jpg'; }}
-        />
+        {images.length > 0 ? (
+          <Image
+            src={images[currentImageIndex]?.url || images[0]?.url}
+            alt={images[currentImageIndex]?.alt || hotel.name}
+            fill
+            className={`object-cover transition-opacity duration-200 ease-out ${isTransitioning ? 'opacity-70' : 'opacity-100'}`}
+            style={{
+              filter: 'contrast(1.05) saturate(1.12) brightness(1.02)',
+              imageRendering: 'crisp-edges',
+              WebkitBackfaceVisibility: 'hidden',
+              backfaceVisibility: 'hidden',
+            }}
+            sizes="100vw"
+            priority={currentImageIndex === 0}
+            placeholder="blur"
+            blurDataURL={getBlurDataURL(images[currentImageIndex]?.url || '', 400, 300)}
+            quality={90}
+            onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
+          />
+        ) : (
+          <div className="w-full h-full flex items-center justify-center" style={{ background: placeholderGradient }}>
+            <div className="text-center">
+              <div className="text-5xl font-bold text-white/80 mb-1">{hotelInitial}</div>
+              <div className="flex items-center justify-center gap-0.5">
+                {Array.from({ length: Math.min(hotel.rating || 3, 5) }).map((_, i) => (
+                  <Star key={i} className="w-3.5 h-3.5 text-white/60 fill-white/60" />
+                ))}
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* Top row: Rating (left) + Actions (right) - very top */}
         <div className="absolute top-2 left-2 right-2 flex items-center justify-between z-10">
@@ -581,24 +603,37 @@ export function HotelCard({
       <div className="hidden sm:flex flex-row" onClick={() => onViewDetails(hotel.id)}>
         {/* Column 1: Image with Premium quality filters */}
         <div className="relative w-[200px] min-w-[200px] lg:w-[280px] lg:min-w-[280px] h-[180px] lg:h-[200px] flex-shrink-0 overflow-hidden bg-slate-100" onMouseEnter={fetchImages}>
-          <Image
-            src={images[currentImageIndex]?.url || '/images/hotel-placeholder.jpg'}
-            alt={images[currentImageIndex]?.alt || hotel.name}
-            fill
-            className="object-cover transition-transform duration-500 group-hover:scale-105"
-            style={{
-              filter: 'contrast(1.05) saturate(1.12) brightness(1.02)',
-              imageRendering: 'crisp-edges',
-              WebkitBackfaceVisibility: 'hidden',
-              backfaceVisibility: 'hidden',
-            }}
-            sizes="(max-width: 1024px) 200px, 280px"
-            priority={currentImageIndex === 0}
-            placeholder="blur"
-            blurDataURL={getBlurDataURL(images[currentImageIndex]?.url || '', 280, 200)}
-            quality={90}
-            onError={(e) => { (e.target as HTMLImageElement).src = '/images/hotel-placeholder.jpg'; }}
-          />
+          {images.length > 0 ? (
+            <Image
+              src={images[currentImageIndex]?.url || images[0]?.url}
+              alt={images[currentImageIndex]?.alt || hotel.name}
+              fill
+              className="object-cover transition-transform duration-500 group-hover:scale-105"
+              style={{
+                filter: 'contrast(1.05) saturate(1.12) brightness(1.02)',
+                imageRendering: 'crisp-edges',
+                WebkitBackfaceVisibility: 'hidden',
+                backfaceVisibility: 'hidden',
+              }}
+              sizes="(max-width: 1024px) 200px, 280px"
+              priority={currentImageIndex === 0}
+              placeholder="blur"
+              blurDataURL={getBlurDataURL(images[currentImageIndex]?.url || '', 280, 200)}
+              quality={90}
+              onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
+            />
+          ) : (
+            <div className="w-full h-full flex items-center justify-center" style={{ background: placeholderGradient }}>
+              <div className="text-center">
+                <div className="text-4xl font-bold text-white/80 mb-1">{hotelInitial}</div>
+                <div className="flex items-center justify-center gap-0.5">
+                  {Array.from({ length: Math.min(hotel.rating || 3, 5) }).map((_, i) => (
+                    <Star key={i} className="w-3 h-3 text-white/60 fill-white/60" />
+                  ))}
+                </div>
+              </div>
+            </div>
+          )}
           <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent" />
 
           {/* Action icons - Clean with drop shadow */}
