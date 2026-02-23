@@ -11,6 +11,7 @@ import {
 import { getBlurDataURL } from '@/lib/utils/image-optimization';
 import type { LiteAPIHotel } from '@/lib/hotels/types';
 import { HotelUrgencySignals } from './HotelUrgencySignals';
+import { useHotelCompare } from '@/contexts/HotelCompareContext';
 
 export interface HotelCardProps {
   hotel: LiteAPIHotel;
