@@ -255,6 +255,26 @@ async function performHotelBedsSearch(locationQuery: string, searchParams: Hotel
   return hotelbedsResults;
 }
 
+/**
+ * Helper to race a promise against a timeout
+ */
+async function withTimeout<T>(promise: Promise<T>, timeoutMs: number, defaultValue: T, providerName: string): Promise<T> {
+  let timeoutId: NodeJS.Timeout;
+  const timeoutPromise = new Promise<T>((resolve) => {
+    timeoutId = setTimeout(() => {
+      console.warn(`🕒 [TIMEOUT] ${providerName} took longer than ${timeoutMs}ms, using fallback results.`);
+      resolve(defaultValue);
+    }, timeoutMs);
+  });
+
+  try {
+    const result = await Promise.race([promise, timeoutPromise]);
+    return result;
+  } finally {
+    if (timeoutId!) clearTimeout(timeoutId!);
+  }
+}
+
 // Refactored LiteAPI search into a separate function
 async function performLiteAPISearch(searchParams: HotelSearchParams, rooms: number = 1, childAges: number[] = []) {
   const adults = searchParams.guests?.adults || 2;
@@ -498,10 +518,27 @@ export async function POST(request: NextRequest) {
       ? rawChildren.map((c: any) => typeof c === 'number' ? c : (c.age || 8))
       : (typeof rawChildren === 'number' ? Array(rawChildren).fill(8) : []);
 
+    const PROVIDER_TIMEOUT = 25000; // 25 seconds per provider
+
     const [liteAPIResults, amadeusResults, hotelbedsResults] = await Promise.all([
-      performLiteAPISearch(searchParams, roomCount, childAges),
-      performAmadeusSearch(locationQuery, searchParams, roomCount),
-      performHotelBedsSearch(locationQuery, searchParams, radius),
+      withTimeout(
+        performLiteAPISearch(searchParams, roomCount, childAges),
+        PROVIDER_TIMEOUT,
+        { hotels: [], meta: { usedMinRates: true, error: 'TIMEOUT' } },
+        'LiteAPI'
+      ),
+      withTimeout(
+        performAmadeusSearch(locationQuery, searchParams, roomCount),
+        PROVIDER_TIMEOUT,
+        { hotels: [] },
+        'Amadeus'
+      ),
+      withTimeout(
+        performHotelBedsSearch(locationQuery, searchParams, radius),
+        PROVIDER_TIMEOUT,
+        { hotels: [], processTime: 0 },
+        'Hotelbeds'
+      ),
     ]);
 
     // Native Fly2Any Properties Search
@@ -930,10 +967,27 @@ export async function GET(request: NextRequest) {
       limit: searchParams.get('limit') ? parseInt(searchParams.get('limit')!) : 200,
     };
 
+    const PROVIDER_TIMEOUT = 25000; // 25 seconds per provider
+
     const [liteAPIResults, amadeusResults, hotelbedsResults] = await Promise.all([
-      performLiteAPISearch(searchParamsObj, rooms, childAges),
-      performAmadeusSearch(query || '', searchParamsObj, rooms),
-      performHotelBedsSearch(query || '', searchParamsObj, searchParamsObj.radius || 50),
+      withTimeout(
+        performLiteAPISearch(searchParamsObj, rooms, childAges),
+        PROVIDER_TIMEOUT,
+        { hotels: [], meta: { usedMinRates: true, error: 'TIMEOUT' } },
+        'LiteAPI'
+      ),
+      withTimeout(
+        performAmadeusSearch(query || '', searchParamsObj, rooms),
+        PROVIDER_TIMEOUT,
+        { hotels: [] },
+        'Amadeus'
+      ),
+      withTimeout(
+        performHotelBedsSearch(query || '', searchParamsObj, searchParamsObj.radius || 50),
+        PROVIDER_TIMEOUT,
+        { hotels: [], processTime: 0 },
+        'Hotelbeds'
+      ),
     ]);
 
     // 2. Native Fly2Any Properties Search
