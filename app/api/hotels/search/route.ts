@@ -996,35 +996,6 @@ export async function GET(request: NextRequest) {
         }
       }
     }
-    console.log(`✅ Multi-API GET Results: LiteAPI (${liteAPIResults.hotels?.length || 0}) + Amadeus (${amadeusHotels.length}) + Fly2Any (${nativeProperties.length}) = ${allHotels.length} total`);
-
-    // Deduplicate hotels by name + approximate location
-    const deduplicatedHotels: any[] = [];
-    const seenHotels = new Map<string, any>();
-
-    for (const hotel of allHotels) {
-      const key = `${hotel.name.toLowerCase().trim()}:${Math.floor(hotel.latitude * 1000)}:${Math.floor(hotel.longitude * 1000)}`;
-
-      if (!seenHotels.has(key)) {
-        seenHotels.set(key, hotel);
-        deduplicatedHotels.push(hotel);
-      } else {
-        // If duplicate, keep the one with better price
-        const existing = seenHotels.get(key);
-        if (existing) {
-          const existingPrice = existing.lowestPricePerNight || existing.lowestPrice || Infinity;
-          const newPrice = hotel.lowestPricePerNight || hotel.lowestPrice || Infinity;
-
-          if (newPrice < existingPrice) {
-            const index = deduplicatedHotels.indexOf(existing);
-            if (index > -1) {
-              deduplicatedHotels[index] = hotel;
-              seenHotels.set(key, hotel);
-            }
-          }
-        }
-      }
-    }
 
     // Sort by best price
     const sortedHotels = deduplicatedHotels.sort((a, b) => {
