@@ -831,24 +831,34 @@ export async function GET(request: NextRequest) {
     // Determine coordinates
     let latitude: number | undefined;
     let longitude: number | undefined;
+    let countryCode: string | undefined;
 
     if (lat && lng) {
       latitude = parseFloat(lat);
       longitude = parseFloat(lng);
+      // Try to determine country from query if available
+      if (query) {
+        const cityInfo = getCityCoordinates(query);
+        if (cityInfo) {
+          countryCode = cityInfo.country;
+        }
+      }
     } else if (query) {
       // 1. Try local database first (fast)
       const cityCoords = getCityCoordinates(query);
       if (cityCoords) {
         latitude = cityCoords.lat;
         longitude = cityCoords.lng;
-        console.log(`✅ Resolved "${query}" to coordinates:`, { latitude, longitude });
+        countryCode = cityCoords.country;
+        console.log(`✅ Resolved "${query}" to coordinates:`, { latitude, longitude, countryCode });
       } else {
         // 2. Fallback to Nominatim geocoding for unknown cities (worldwide coverage)
         const geocoded = await geocodeCity(query);
         if (geocoded) {
           latitude = geocoded.lat;
           longitude = geocoded.lng;
-          console.log(`🌍 Geocoded "${query}" via Nominatim:`, { latitude, longitude });
+          countryCode = geocoded.country;
+          console.log(`🌍 Geocoded "${query}" via Nominatim:`, { latitude, longitude, countryCode });
         }
       }
     }
