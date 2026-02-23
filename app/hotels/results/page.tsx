@@ -18,6 +18,7 @@ import EnhancedSearchBar from '@/components/flights/EnhancedSearchBar';
 import { CollapsibleSearchBar } from '@/components/mobile/CollapsibleSearchBar';
 import CompareBar from '@/components/hotels/CompareBar';
 import CompareModal from '@/components/hotels/CompareModal';
+import { HotelCompareProvider } from '@/contexts/HotelCompareContext';
 import { PriceAlertButton } from '@/components/hotels/PriceAlertButton';
 import { HotelUrgencySignals } from '@/components/hotels/HotelUrgencySignals';
 
