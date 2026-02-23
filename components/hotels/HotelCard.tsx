@@ -173,6 +173,20 @@ export function HotelCard({
     }
   }, [images.length]);
 
+  // Auto-fetch images for hotels that have no photos from initial search
+  useEffect(() => {
+    if (initialImages.length === 0 && !hasLoadedImages && !isLoadingImages) {
+      // Stagger fetches to avoid overwhelming the API: use hotel ID hash for delay
+      const staggerMs = (hotel.id.charCodeAt(hotel.id.length - 1) % 10) * 200;
+      const timer = setTimeout(() => {
+        fetchImages();
+      }, staggerMs);
+      return () => clearTimeout(timer);
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+
   // Image navigation with crossfade transition
   const changeImage = useCallback((direction: 'next' | 'prev') => {
     if (isTransitioning) return;

@@ -399,6 +399,59 @@ class LiteAPI {
   }
 
   /**
+   * Get all images for a specific hotel using the /data/hotel endpoint.
+   * This is automatically called for hotels missing a main_photo from search results.
+   */
+  async getHotelImages(hotelId: string): Promise<Array<{ url: string; alt: string }>> {
+    try {
+      const response = await axios.get(`${this.baseUrl}/data/hotel`, {
+        params: { hotelId },
+        headers: this.getHeaders(),
+        timeout: 5000,
+      });
+
+      const hotelData = response.data?.data;
+      if (!hotelData) return [];
+
+      const images: Array<{ url: string; alt: string }> = [];
+      const hotelName = hotelData.name || 'Hotel';
+
+      // Try main_photo first
+      if (hotelData.main_photo) {
+        images.push({ url: hotelData.main_photo, alt: hotelName });
+      }
+      // Then thumbnail
+      if (hotelData.thumbnail && hotelData.thumbnail !== hotelData.main_photo) {
+        images.push({ url: hotelData.thumbnail, alt: `${hotelName} thumbnail` });
+      }
+      // Then the full hotelPhotos gallery
+      if (Array.isArray(hotelData.hotelPhotos)) {
+        for (const photo of hotelData.hotelPhotos) {
+          const url = photo?.url || photo;
+          if (url && typeof url === 'string' && !images.find(img => img.url === url)) {
+            images.push({ url, alt: photo?.caption || hotelName });
+          }
+        }
+      }
+      // Fallback: photos array
+      if (images.length === 0 && Array.isArray(hotelData.photos)) {
+        for (const photo of hotelData.photos) {
+          const url = photo?.url || photo;
+          if (url && typeof url === 'string') {
+            images.push({ url, alt: hotelName });
+          }
+        }
+      }
+
+      console.log(`📸 getHotelImages: Found ${images.length} images for hotel ${hotelId}`);
+      return images;
+    } catch (error) {
+      console.warn(`⚠️ getHotelImages: Failed for hotel ${hotelId}:`, (error as Error).message);
+      return [];
+    }
+  }
+
+  /**
    * Step 2: Get rates for specific hotel IDs
    */
   async getHotelRates(params: {
