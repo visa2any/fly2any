@@ -1001,10 +1001,13 @@ function FlightResultsContent() {
                 .then(predictionData => {
                   if (predictionData.data && Array.isArray(predictionData.data)) {
                     // Map ML scores to flights
-                    return predictionData.data.map((predictedFlight: any, index: number) => ({
-                      ...processedFlights[index],
-                      mlScore: predictedFlight.choiceProbability || undefined,
-                    }));
+                    return predictionData.data.map((predictedFlight: any, index: number) => {
+                      if (!processedFlights[index]) return null;
+                      return {
+                        ...processedFlights[index],
+                        mlScore: predictedFlight.choiceProbability || undefined,
+                      };
+                    }).filter(Boolean);
                   }
                   return processedFlights;
                 })
@@ -1049,7 +1052,7 @@ function FlightResultsContent() {
           // ✅ FIXED: Add price vs market comparison (removed fake CO2 multipliers)
           // CO2 emissions should ONLY come from real Amadeus CO2 Emissions API
           // Never show fake/estimated CO2 data to maintain user trust
-          if (avgMarketPrice && avgMarketPrice > 0) {
+          if (avgMarketPrice && avgMarketPrice > 0 && Array.isArray(rankedFlights)) {
             processedFlights = rankedFlights.map((flight: ScoredFlight) => {
               return {
                 ...flight,
@@ -1058,7 +1061,7 @@ function FlightResultsContent() {
               };
             });
           } else {
-            processedFlights = rankedFlights;
+            processedFlights = Array.isArray(rankedFlights) ? rankedFlights : [];
           }
         }
 

@@ -173,17 +173,17 @@ export function mixedFareToFlightOffer(mixedFare: MixedCarrierFare): FlightOffer
   const outbound = mixedFare.outboundFlight;
   const returnFlight = mixedFare.returnFlight;
 
-  // Combine itineraries
+  // Combine itineraries (🛡️ Guard against null itineraries)
   const combinedItineraries: FlightItinerary[] = [
-    ...outbound.itineraries,
-    ...returnFlight.itineraries,
+    ...(Array.isArray(outbound.itineraries) ? outbound.itineraries : []),
+    ...(Array.isArray(returnFlight.itineraries) ? returnFlight.itineraries : []),
   ];
 
   // Combine validating airlines
   const validatingAirlines = [
     ...new Set([
-      ...(outbound.validatingAirlineCodes || []),
-      ...(returnFlight.validatingAirlineCodes || []),
+      ...(Array.isArray(outbound.validatingAirlineCodes) ? outbound.validatingAirlineCodes : []),
+      ...(Array.isArray(returnFlight.validatingAirlineCodes) ? returnFlight.validatingAirlineCodes : []),
     ])
   ];
 
@@ -239,10 +239,13 @@ export function combineMixedCarrierFares(
   const combinations: MixedCarrierFare[] = [];
 
   // Sort flights by price for optimization
-  const sortedOutbound = [...outboundFlights].sort(
+  const safeOutbound = Array.isArray(outboundFlights) ? outboundFlights : [];
+  const safeReturn = Array.isArray(returnFlights) ? returnFlights : [];
+
+  const sortedOutbound = [...safeOutbound].sort(
     (a, b) => normalizePrice(a.price.total) - normalizePrice(b.price.total)
   );
-  const sortedReturn = [...returnFlights].sort(
+  const sortedReturn = [...safeReturn].sort(
     (a, b) => normalizePrice(a.price.total) - normalizePrice(b.price.total)
   );
 

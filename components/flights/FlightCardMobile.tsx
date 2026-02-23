@@ -80,12 +80,12 @@ export function FlightCardMobile(props: EnhancedFlightCardProps) {
   const displaySymbol = currencyInfo?.symbol || '$';
 
   // Parse flight data
-  const outboundItinerary = itineraries[0];
-  const returnItinerary = itineraries[1]; // null for one-way flights
-  const isRoundTrip = itineraries.length > 1;
+  const outboundItinerary = itineraries?.[0] || { segments: [] };
+  const returnItinerary = itineraries?.[1]; // null for one-way flights
+  const isRoundTrip = itineraries && itineraries.length > 1;
 
-  const outboundFirstSegment = outboundItinerary.segments[0];
-  const outboundLastSegment = outboundItinerary.segments[outboundItinerary.segments.length - 1];
+  const outboundFirstSegment = outboundItinerary.segments?.[0] || { carrierCode: 'XX', number: '0000', departure: { at: new Date().toISOString() }, arrival: { iataCode: 'XXX' } };
+  const outboundLastSegment = outboundItinerary.segments?.[outboundItinerary.segments.length - 1] || outboundFirstSegment;
   const primaryAirline = validatingAirlineCodes?.[0] || outboundFirstSegment.carrierCode;
   const airlineData = getAirlineData(primaryAirline);
 
@@ -111,8 +111,8 @@ export function FlightCardMobile(props: EnhancedFlightCardProps) {
   };
 
   // Calculate stops for outbound
-  const outboundStops = outboundItinerary.segments.length - 1;
-  const outboundStopsText = outboundStops === 0 ? 'Direct' : outboundStops === 1 ? '1 stop' : `${outboundStops} stops`;
+  const outboundStops = (outboundItinerary.segments || []).length - 1;
+  const outboundStopsText = outboundStops <= 0 ? 'Direct' : outboundStops === 1 ? '1 stop' : `${outboundStops} stops`;
 
   // Format price - uses converted currency
   const formatPrice = () => {

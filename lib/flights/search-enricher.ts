@@ -23,14 +23,16 @@ export class SearchEnricher {
     const markedUpFlights = applyMarkupToFlights(flights, applyFlightMarkup);
 
     // 2. Score flights
-    let scoredFlights: ScoredFlight[] = markedUpFlights.map(flight =>
-      calculateFlightScore(flight, markedUpFlights)
+    const flightsToScore = Array.isArray(markedUpFlights) ? markedUpFlights : [];
+    let scoredFlights: ScoredFlight[] = flightsToScore.map(flight =>
+      calculateFlightScore(flight, flightsToScore)
     );
 
     // 3. Add badges
-    scoredFlights = scoredFlights.map(flight => ({
+    const flightsForBadges = Array.isArray(scoredFlights) ? scoredFlights : [];
+    scoredFlights = flightsForBadges.map(flight => ({
       ...flight,
-      badges: getFlightBadges(flight, scoredFlights)
+      badges: getFlightBadges(flight, flightsForBadges)
     }));
 
     // 4. Hybrid Routing Enrichment
@@ -54,7 +56,8 @@ export class SearchEnricher {
     const sortedFlights = sortFlights(routedFlights as ScoredFlight[], sortBy || 'best');
 
     // 7. Strip internal routing for response
-    const customerFlights = sortedFlights.map(flight => {
+    const flightsToStrip = Array.isArray(sortedFlights) ? sortedFlights : [];
+    const customerFlights = flightsToStrip.map(flight => {
       const { routing, ...customerFlight } = flight as ScoredFlightWithRouting;
       return customerFlight;
     });

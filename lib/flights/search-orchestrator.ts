@@ -59,7 +59,9 @@ export class SearchOrchestrator {
 
     results.forEach(result => {
       if (result) {
-        allFlights.push(...(result.flights || []));
+        if (result.flights && Array.isArray(result.flights)) {
+          allFlights.push(...result.flights);
+        }
         if (result.dictionaries && Object.keys(result.dictionaries).length > 0) {
           dictionaries = { ...dictionaries, ...result.dictionaries };
         }
@@ -108,16 +110,20 @@ export class SearchOrchestrator {
 
         // Logic for mixed carrier "Separate Tickets" search
         if (includeSeparateTickets && oneWaySearchFunction) {
-           const mixedResults = await smartMixedCarrierSearch({
-             origin: originCity,
-             destination: destCity,
-             departureDate: depDate,
-             returnDate: retDate,
-             adults: body.adults,
-             travelClass: travelClass
-           }, oneWaySearchFunction);
+           const mixedResults = await smartMixedCarrierSearch(
+             [], // roundTripFlights (standalone search)
+             {
+               origin: originCity,
+               destination: destCity,
+               departureDate: depDate,
+               returnDate: retDate,
+               adults: body.adults,
+               cabinClass: travelClass
+             }, 
+             oneWaySearchFunction
+           );
            
-           if (mixedResults.flights.length > 0) {
+           if (mixedResults.flights && mixedResults.flights.length > 0) {
              return { data: mixedResults.flights, dictionaries: mixedResults.dictionaries || {} };
            }
         }
@@ -140,7 +146,9 @@ export class SearchOrchestrator {
         const duffelFlights = duffelResult.status === 'fulfilled' ? (duffelResult.value.data || []) : [];
 
         const groupedDuffel = groupDuffelFareVariants(duffelFlights);
-        const merged = [...amadeusFlights, ...groupedDuffel];
+        const safeAmadeus = Array.isArray(amadeusFlights) ? amadeusFlights : [];
+        const safeDuffel = Array.isArray(groupedDuffel) ? groupedDuffel : [];
+        const merged = [...safeAmadeus, ...safeDuffel];
 
         // Filter by requested pairs
         const filtered = merged.filter(flight => {
@@ -149,10 +157,10 @@ export class SearchOrchestrator {
             if (!outbound || outbound.length === 0) return false;
             
             const match = outbound[0].departure.iataCode === pair.origin && outbound[outbound.length - 1].arrival.iataCode === pair.dest;
-            if (match && flight.itineraries.length > 1) {
-              const inbound = flight.itineraries[1].segments;
-              if (!inbound || inbound.length === 0) return false;
-              return inbound[0].departure.iataCode === pair.dest && inbound[inbound.length - 1].arrival.iataCode === pair.origin;
+            if (match && flight.itineraries && flight.itineraries.length > 1) {
+              const inbound = flight.itineraries[1]?.segments;
+              if (!inbound || !Array.isArray(inbound) || inbound.length === 0) return false;
+              return inbound[0].departure?.iataCode === pair.dest && inbound[inbound.length - 1].arrival?.iataCode === pair.origin;
             }
             return match;
           });
@@ -162,7 +170,7 @@ export class SearchOrchestrator {
       }
     );
 
-    return { flights: result.data, dictionaries: result.dictionaries };
+    return { flights: result.data || [], dictionaries: (result as any).dictionaries || {} };
   }
 }
 

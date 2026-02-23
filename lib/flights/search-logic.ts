@@ -36,9 +36,10 @@ export function deduplicateFlights(flights: FlightOffer[]): FlightOffer[] {
   const DUFFEL_PRIORITY_THRESHOLD = 500;
 
   for (const flight of flights) {
-    const key = flight.itineraries.flatMap(itin =>
-      itin.segments.map(seg =>
-        `${seg.carrierCode}${seg.number}-${seg.departure.at}`
+    const itineraries = flight.itineraries || [];
+    const key = itineraries.flatMap(itin =>
+      (itin.segments || []).map(seg =>
+        `${seg.carrierCode}${seg.number}-${seg.departure?.at || ''}`
       )
     ).join('|');
 
@@ -80,36 +81,36 @@ export function flightOfferToRoutingSegments(flight: FlightOffer | ScoredFlight)
   const segments: RoutingFlightSegment[] = [];
 
   for (const itinerary of flight.itineraries || []) {
-    for (const seg of itinerary.segments || []) {
-      let cabinClass: CabinClass = 'ECONOMY';
-      let fareClass: string | undefined;
-      let fareBasisCode: string | undefined;
+      (itinerary.segments || []).forEach(seg => {
+        let cabinClass: CabinClass = 'ECONOMY';
+        let fareClass: string | undefined;
+        let fareBasisCode: string | undefined;
 
-      const travelerPricing = flight.travelerPricings?.[0];
-      if (travelerPricing?.fareDetailsBySegment) {
-        const fareDetails = travelerPricing.fareDetailsBySegment.find(
-          (fd: any) => fd.segmentId === seg.number || fd.segmentId === `${seg.carrierCode}${seg.number}`
-        ) || travelerPricing.fareDetailsBySegment[0];
+        const travelerPricing = flight.travelerPricings?.[0];
+        if (travelerPricing?.fareDetailsBySegment) {
+          const fareDetails = travelerPricing.fareDetailsBySegment.find(
+            (fd: any) => fd.segmentId === seg.number || fd.segmentId === `${seg.carrierCode}${seg.number}`
+          ) || travelerPricing.fareDetailsBySegment[0];
 
-        if (fareDetails) {
-          cabinClass = (fareDetails.cabin as CabinClass) || 'ECONOMY';
-          fareClass = fareDetails.class;
-          fareBasisCode = fareDetails.fareBasis;
+          if (fareDetails) {
+            cabinClass = (fareDetails.cabin as CabinClass) || 'ECONOMY';
+            fareClass = fareDetails.class;
+            fareBasisCode = fareDetails.fareBasis;
+          }
         }
-      }
 
-      segments.push({
-        airlineCode: seg.carrierCode,
-        origin: seg.departure.iataCode,
-        destination: seg.arrival.iataCode,
-        departureDate: new Date(seg.departure.at),
-        cabinClass,
-        fareClass,
-        fareBasisCode,
-        operatingCarrier: seg.operating?.carrierCode,
-        marketingCarrier: seg.carrierCode,
+        segments.push({
+          airlineCode: seg.carrierCode,
+          origin: seg.departure?.iataCode || '',
+          destination: seg.arrival?.iataCode || '',
+          departureDate: seg.departure?.at ? new Date(seg.departure.at) : new Date(),
+          cabinClass,
+          fareClass,
+          fareBasisCode,
+          operatingCarrier: seg.operating?.carrierCode,
+          marketingCarrier: seg.carrierCode,
+        });
       });
-    }
   }
 
   return segments;
@@ -313,8 +314,9 @@ export function getRoutingSummary(flights: ScoredFlightWithRouting[]): {
  * Create unique flight signature
  */
 export function getFlightSignature(offer: FlightOffer): string {
-  const segments = offer.itineraries?.flatMap(itin => itin.segments || []) || [];
-  if (segments.length === 0) return offer.id;
+  const itineraries = offer.itineraries || [];
+  const segments = itineraries.flatMap(itin => itin.segments || []);
+  if (segments.length === 0) return offer.id || Math.random().toString(36).substr(2, 9);
 
   const sigParts = segments.map(seg =>
     `${seg.carrierCode || 'XX'}${seg.number || '000'}_${seg.departure?.at?.slice(0, 16) || ''}_${seg.arrival?.at?.slice(0, 16) || ''}`

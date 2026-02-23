@@ -119,10 +119,11 @@ export function analyzeRoundTripPricing(
     };
   }
 
-  // Get cheapest round-trip price
-  const cheapestRoundTrip = Math.min(
-    ...roundTripFlights.map(f => normalizePrice(f.price.total))
-  );
+  // Get cheapest round-trip price (🛡️ Guard against empty/null)
+  const roundTripPrices = Array.isArray(roundTripFlights) 
+    ? roundTripFlights.map(f => normalizePrice(f.price.total))
+    : [];
+  const cheapestRoundTrip = roundTripPrices.length > 0 ? Math.min(...roundTripPrices) : 0;
 
   // Group by airline and analyze per-leg pricing
   const airlinePricing: Map<string, {
@@ -131,40 +132,42 @@ export function analyzeRoundTripPricing(
     totalPrices: number[];
   }> = new Map();
 
-  for (const flight of roundTripFlights) {
-    const airline = flight.validatingAirlineCodes?.[0] ||
-                    flight.itineraries[0]?.segments[0]?.carrierCode ||
-                    'XX';
+  if (Array.isArray(roundTripFlights)) {
+    for (const flight of roundTripFlights) {
+      const airline = flight.validatingAirlineCodes?.[0] ||
+                      flight.itineraries?.[0]?.segments?.[0]?.carrierCode ||
+                      'XX';
 
-    const totalPrice = normalizePrice(flight.price.total);
+      const totalPrice = normalizePrice(flight.price.total);
 
-    if (!airlinePricing.has(airline)) {
-      airlinePricing.set(airline, {
-        outboundPrices: [],
-        returnPrices: [],
-        totalPrices: [],
-      });
-    }
+      if (!airlinePricing.has(airline)) {
+        airlinePricing.set(airline, {
+          outboundPrices: [],
+          returnPrices: [],
+          totalPrices: [],
+        });
+      }
 
-    const data = airlinePricing.get(airline)!;
-    data.totalPrices.push(totalPrice);
+      const data = airlinePricing.get(airline)!;
+      data.totalPrices.push(totalPrice);
 
-    // Estimate per-leg price (simplified: assume symmetric for round-trip)
-    // Real one-way prices may vary, but this gives us a heuristic
-    if (flight.itineraries.length >= 2) {
-      // For round-trips, we can estimate outbound/return split
-      // Heuristic: Each leg is roughly 45-55% of total based on route characteristics
-      const outboundDuration = parseDurationSafe(flight.itineraries[0]?.duration);
-      const returnDuration = parseDurationSafe(flight.itineraries[1]?.duration);
-      const totalDuration = outboundDuration + returnDuration;
+      // Estimate per-leg price (simplified: assume symmetric for round-trip)
+      // Real one-way prices may vary, but this gives us a heuristic
+      if (Array.isArray(flight.itineraries) && flight.itineraries.length >= 2) {
+        // For round-trips, we can estimate outbound/return split
+        // Heuristic: Each leg is roughly 45-55% of total based on route characteristics
+        const outboundDuration = parseDurationSafe(flight.itineraries[0]?.duration);
+        const returnDuration = parseDurationSafe(flight.itineraries[1]?.duration);
+        const totalDuration = outboundDuration + returnDuration;
 
-      // Weight by duration (longer leg usually costs more)
-      const outboundRatio = totalDuration > 0
-        ? (outboundDuration / totalDuration) * 0.9 + 0.05 // Normalize to 0.45-0.55 range
-        : 0.5;
+        // Weight by duration (longer leg usually costs more)
+        const outboundRatio = totalDuration > 0
+          ? (outboundDuration / totalDuration) * 0.9 + 0.05 // Normalize to 0.45-0.55 range
+          : 0.5;
 
-      data.outboundPrices.push(totalPrice * outboundRatio);
-      data.returnPrices.push(totalPrice * (1 - outboundRatio));
+        data.outboundPrices.push(totalPrice * outboundRatio);
+        data.returnPrices.push(totalPrice * (1 - outboundRatio));
+      }
     }
   }
 
@@ -192,9 +195,9 @@ export function analyzeRoundTripPricing(
   const combinedEstimate = cheapestOutboundEstimate + cheapestReturnEstimate;
 
   // Calculate price spread (indicator of market diversity)
-  const allPrices = roundTripFlights.map(f => normalizePrice(f.price.total));
-  const priceSpread = Math.max(...allPrices) - Math.min(...allPrices);
-  const priceSpreadPercent = (priceSpread / cheapestRoundTrip) * 100;
+  const allPrices = Array.isArray(roundTripFlights) ? roundTripFlights.map(f => normalizePrice(f.price.total)) : [];
+  const priceSpread = allPrices.length > 0 ? (Math.max(...allPrices) - Math.min(...allPrices)) : 0;
+  const priceSpreadPercent = cheapestRoundTrip > 0 ? (priceSpread / cheapestRoundTrip) * 100 : 0;
 
   // Calculate estimated savings
   const estimatedSavingsAmount = cheapestRoundTrip - combinedEstimate;
@@ -412,7 +415,7 @@ export interface OneWaySearchFunction {
     cabinClass?: string;
     nonStop?: boolean;
     maxResults?: number;
-  }): Promise<FlightOffer[]>;
+  }): Promise<{ flights: FlightOffer[]; dictionaries?: any }>;
 }
 
 /**
@@ -464,8 +467,12 @@ export async function executeSmartOneWaySearches(
         cabinClass: searchParams.cabinClass,
         nonStop: searchParams.nonStop,
         maxResults: 30,
-      }).then(async (flights) => {
+      }).then(async (result) => {
+        const flights = result.flights || [];
         outboundFlights = flights;
+        // Merge dictionaries if provided (can be added to a shared object if needed, 
+        // but typically dictionaries are aggregated at a higher level)
+        
         // Cache for future use
         const cacheKey = generateCacheKey('one-way-flights', {
           origin: searchParams.origin,
@@ -489,7 +496,8 @@ export async function executeSmartOneWaySearches(
         cabinClass: searchParams.cabinClass,
         nonStop: searchParams.nonStop,
         maxResults: 30,
-      }).then(async (flights) => {
+      }).then(async (result) => {
+        const flights = result.flights || [];
         returnFlights = flights;
         // Cache for future use
         const cacheKey = generateCacheKey('one-way-flights', {
@@ -527,7 +535,7 @@ export function mergeAndSortByPrice(
   mixedCarrierFares: MixedCarrierFare[]
 ): FlightOffer[] {
   // Convert mixed fares to FlightOffer format
-  const mixedFlightOffers = mixedCarrierFares.map(mixedFare => {
+  const mixedFlightOffers = (Array.isArray(mixedCarrierFares) ? mixedCarrierFares : []).map(mixedFare => {
     const offer = mixedFareToFlightOffer(mixedFare);
     // Add sorting hint
     (offer as any)._mixedCarrierSortPriority = mixedFare.savings?.percentage || 0;
@@ -535,7 +543,7 @@ export function mergeAndSortByPrice(
   });
 
   // Combine all flights
-  const allFlights = [...roundTripFlights, ...mixedFlightOffers];
+  const allFlights = [...(Array.isArray(roundTripFlights) ? roundTripFlights : []), ...mixedFlightOffers];
 
   // Sort by price (cheapest first)
   allFlights.sort((a, b) => {
@@ -565,9 +573,10 @@ export function mergeAndSortByPrice(
  * Add "Absolute Cheapest" badge to the cheapest flight(s)
  */
 export function addCheapestBadges(flights: FlightOffer[]): FlightOffer[] {
-  if (flights.length === 0) return flights;
+  if (!Array.isArray(flights) || flights.length === 0) return Array.isArray(flights) ? flights : [];
 
-  const cheapestPrice = Math.min(...flights.map(f => normalizePrice(f.price.total)));
+  const prices = flights.map(f => normalizePrice(f.price.total));
+  const cheapestPrice = prices.length > 0 ? Math.min(...prices) : 0;
 
   return flights.map((flight, index) => {
     const price = normalizePrice(flight.price.total);
@@ -624,6 +633,9 @@ export interface SmartMixedCarrierResult {
   /** Analysis results */
   analysis?: MixedCarrierAnalysis;
 
+  /** Combined dictionaries from all sources */
+  dictionaries?: any;
+
   /** Statistics */
   stats: {
     totalRoundTrips: number;
@@ -663,13 +675,14 @@ export async function smartMixedCarrierSearch(
   config: Partial<SmartMixedCarrierConfig> = {}
 ): Promise<SmartMixedCarrierResult> {
   const cfg = { ...DEFAULT_CONFIG, ...config };
-  const inputFlightCount = roundTripFlights.length; // 🛡️ Track input count
+  const inputFlightCount = Array.isArray(roundTripFlights) ? roundTripFlights.length : 0; // 🛡️ Track input count
+  const safeRoundTripFlights = Array.isArray(roundTripFlights) ? roundTripFlights : [];
 
   console.log(`   🔬 smartMixedCarrierSearch: Received ${inputFlightCount} round-trip flights`);
 
   // Step 1: Determine if we should search
   const decision = await shouldSearchMixedCarriers(
-    roundTripFlights,
+    safeRoundTripFlights,
     searchParams,
     cfg
   );
@@ -681,15 +694,15 @@ export async function smartMixedCarrierSearch(
   }
 
   // Calculate cheapest round-trip
-  const cheapestRoundTrip = roundTripFlights.length > 0
-    ? Math.min(...roundTripFlights.map(f => normalizePrice(f.price.total)))
+  const cheapestRoundTrip = safeRoundTripFlights.length > 0
+    ? Math.min(...safeRoundTripFlights.map(f => normalizePrice(f.price.total)))
     : null;
 
   // If no search needed, return round-trips only
   if (!decision.should) {
     console.log(`   🔬 SKIP path: Returning original ${inputFlightCount} round-trip flights unchanged`);
     return {
-      flights: roundTripFlights,
+      flights: safeRoundTripFlights,
       mixedFares: [],
       mixedSearchPerformed: false,
       mixedSearchReason: decision.reason,
@@ -708,9 +721,20 @@ export async function smartMixedCarrierSearch(
   // Step 2: Execute one-way searches
   console.log(`🎫 Executing smart one-way searches...`);
 
+  // Aggregate dictionaries
+  let combinedDictionaries = {};
+
+  const searchFunctionWithDict = async (params: any) => {
+    const result = await searchFunction(params);
+    if (result.dictionaries) {
+      combinedDictionaries = { ...combinedDictionaries, ...result.dictionaries };
+    }
+    return result.flights;
+  };
+
   const { outboundFlights, returnFlights, fromCache } = await executeSmartOneWaySearches(
     searchParams,
-    searchFunction,
+    searchFunctionWithDict as any, // Temporary cast as we're wrapping it
     decision.cachedOneWayData,
     cfg
   );
@@ -721,7 +745,7 @@ export async function smartMixedCarrierSearch(
   // Log source breakdown for debugging
   const countBySource = (flights: FlightOffer[]) => {
     const duffel = flights.filter(f => (f as any).source === 'Duffel' || f.id?.startsWith('off_')).length;
-    const amadeus = flights.length - duffel;
+    const amadeus = (Array.isArray(flights) ? flights.length : 0) - duffel;
     return { duffel, amadeus };
   };
   const outSrc = countBySource(outboundFlights);
@@ -744,8 +768,8 @@ export async function smartMixedCarrierSearch(
     );
 
     // Rank mixed fares vs traditional
-    if (roundTripFlights.length > 0) {
-      mixedFares = rankMixedFares(mixedFares, roundTripFlights);
+    if (safeRoundTripFlights.length > 0) {
+      mixedFares = rankMixedFares(mixedFares, safeRoundTripFlights);
     }
   }
 
@@ -753,7 +777,7 @@ export async function smartMixedCarrierSearch(
 
   // Step 4: Merge and sort
   console.log(`   🔬 MERGE: ${inputFlightCount} round-trips + ${mixedFares.length} mixed fares`);
-  const mergedFlights = mergeAndSortByPrice(roundTripFlights, mixedFares);
+  const mergedFlights = mergeAndSortByPrice(safeRoundTripFlights, mixedFares);
   console.log(`   🔬 After merge: ${mergedFlights.length} total flights`);
 
   const badgedFlights = addCheapestBadges(mergedFlights);
@@ -766,8 +790,9 @@ export async function smartMixedCarrierSearch(
     // Return original flights + any valid mixed fares to prevent data loss
     console.log(`   🛡️ RECOVERY: Returning original ${inputFlightCount} round-trips`);
     return {
-      flights: roundTripFlights,
+      flights: safeRoundTripFlights,
       mixedFares: [],
+      dictionaries: combinedDictionaries,
       mixedSearchPerformed: true,
       mixedSearchReason: `${decision.reason} (RECOVERY: merge error)`,
       analysis: decision.analysis,
@@ -782,9 +807,10 @@ export async function smartMixedCarrierSearch(
     };
   }
 
-  // Calculate stats
-  const cheapestMixed = mixedFares.length > 0
-    ? Math.min(...mixedFares.map(f => f.combinedPrice.total))
+  // Calculate stats (🛡️ Guard for spread)
+  const safeMixedFaresForStats = Array.isArray(mixedFares) ? mixedFares : [];
+  const cheapestMixed = safeMixedFaresForStats.length > 0
+    ? Math.min(...safeMixedFaresForStats.map(f => f.combinedPrice?.total ? normalizePrice(f.combinedPrice.total) : 999999))
     : null;
 
   const bestSavings = mixedFares.length > 0 && mixedFares[0].savings
@@ -802,6 +828,7 @@ export async function smartMixedCarrierSearch(
   return {
     flights: badgedFlights,
     mixedFares,
+    dictionaries: combinedDictionaries,
     mixedSearchPerformed: true,
     mixedSearchReason: decision.reason,
     analysis: decision.analysis,

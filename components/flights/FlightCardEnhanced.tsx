@@ -275,8 +275,8 @@ export function FlightCardEnhanced({
   // For multi-city, collect all unique airlines
   const allAirlines = isMultiCity
     ? Array.from(new Set(
-        itineraries.flatMap(itinerary =>
-          itinerary.segments.map(seg => seg.carrierCode)
+        (itineraries || []).flatMap(itinerary =>
+          (itinerary.segments || []).map(seg => seg.carrierCode)
         )
       ))
     : [primaryAirline];
@@ -375,7 +375,7 @@ export function FlightCardEnhanced({
   };
 
   // Calculate stops for each leg
-  const legsStopsInfo = itineraries.map(itinerary => getStopsInfo(itinerary.segments));
+  const legsStopsInfo = (itineraries || []).map(itinerary => getStopsInfo(itinerary.segments || []));
   const onTimeBadge = getOnTimePerformanceBadge(airlineData.onTimePerformance);
 
   // Get the best fare family name from fareVariants (from API) or derive it
@@ -654,7 +654,7 @@ export function FlightCardEnhanced({
   };
 
   // Get baggage info for ALL legs (multi-city support)
-  const legsBaggage = itineraries.map((_, index) => getBaggageByItinerary(index));
+  const legsBaggage = (itineraries || []).map((_, index) => getBaggageByItinerary(index));
 
   // Check if ANY legs differ in baggage
   const baggageDiffers = legsBaggage.length > 1 && legsBaggage.some((baggage, index) => {

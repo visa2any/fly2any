@@ -315,7 +315,8 @@ export function parseSeatMap(
 function calculateLayout(rows: SeatRow[]): string {
   if (rows.length === 0) return '3-3';
 
-  const maxSeats = Math.max(...rows.map(r => r.seats.length));
+  const seatCounts = Array.isArray(rows) ? rows.map(r => Array.isArray(r.seats) ? r.seats.length : 0) : [];
+  const maxSeats = seatCounts.length > 0 ? Math.max(...seatCounts) : 0;
 
   if (maxSeats <= 4) return '2-2';
   if (maxSeats === 6) return '3-3';

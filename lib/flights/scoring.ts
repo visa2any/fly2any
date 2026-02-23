@@ -108,32 +108,38 @@ export function calculateFlightScore(
   const departureTime = flight.itineraries[0].segments[0].departure.at;
   const departureTimeScore = calculateDepartureTimeScore(departureTime);
 
-  // Get min/max values for normalization
-  const prices = allFlights.map(f => normalizePrice(f.price.total));
-  const durations = allFlights.map(f =>
-    f.itineraries.reduce((sum, it) => sum + parseDuration(it.duration), 0)
+  // Get min/max values for normalization (🛡️ Guard against empty or null arrays)
+  const safeAllFlights = Array.isArray(allFlights) ? allFlights : [];
+  
+  const prices = safeAllFlights.map(f => normalizePrice(f.price.total));
+  const durations = safeAllFlights.map(f =>
+    Array.isArray(f.itineraries) 
+      ? f.itineraries.reduce((sum, it) => sum + parseDuration(it.duration), 0)
+      : 0
   );
-  const stops = allFlights.map(f =>
-    f.itineraries.reduce((sum, it) => sum + (it.segments.length - 1), 0)
+  const stops = safeAllFlights.map(f =>
+    Array.isArray(f.itineraries)
+      ? f.itineraries.reduce((sum, it) => sum + (Array.isArray(it.segments) ? it.segments.length - 1 : 0), 0)
+      : 0
   );
 
-  const minPrice = Math.min(...prices);
-  const maxPrice = Math.max(...prices);
-  const minDuration = Math.min(...durations);
-  const maxDuration = Math.max(...durations);
-  const minStops = Math.min(...stops);
-  const maxStops = Math.max(...stops);
+  const minPrice = prices.length > 0 ? Math.min(...prices) : 0;
+  const maxPrice = prices.length > 0 ? Math.max(...prices) : 0;
+  const minDuration = durations.length > 0 ? Math.min(...durations) : 0;
+  const maxDuration = durations.length > 0 ? Math.max(...durations) : 0;
+  const minStops = stops.length > 0 ? Math.min(...stops) : 0;
+  const maxStops = stops.length > 0 ? Math.max(...stops) : 0;
 
   // Calculate normalized scores (0-100)
-  const priceScore = maxPrice === minPrice
+  const priceScore = maxPrice === minPrice || prices.length === 0
     ? 100
     : ((maxPrice - normalizePrice(flight.price.total)) / (maxPrice - minPrice)) * 100;
 
-  const durationScore = maxDuration === minDuration
+  const durationScore = maxDuration === minDuration || durations.length === 0
     ? 100
     : ((maxDuration - totalDuration) / (maxDuration - minDuration)) * 100;
 
-  const stopsScore = maxStops === minStops
+  const stopsScore = maxStops === minStops || stops.length === 0
     ? 100
     : ((maxStops - stopCount) / (maxStops - minStops)) * 100;
 
@@ -272,7 +278,8 @@ export function sortFlights(
   flights: ScoredFlight[],
   sortBy: 'best' | 'cheapest' | 'fastest' | 'overall' = 'best'
 ): ScoredFlight[] {
-  return [...flights].sort((a, b) => {
+  const safeFlights = Array.isArray(flights) ? flights : [];
+  return [...safeFlights].sort((a, b) => {
     switch (sortBy) {
       case 'best':
         return b.score.best - a.score.best;

@@ -466,7 +466,7 @@ export function calculateMarketAverage(prices: number[]): number {
  * @returns Shortest duration
  */
 export function findShortestDuration(durations: number[]): number {
-  if (durations.length === 0) return 0;
+  if (!Array.isArray(durations) || durations.length === 0) return 0;
   return Math.min(...durations);
 }
 
