@@ -1314,35 +1314,60 @@ class AmadeusAPI {
         return { data: [] };
       }
 
-      // Extract hotel IDs (limit to first 50 for performance)
+      // Extract hotel IDs (limit to first 150 for performance, Amadeus API limits apply)
       const hotelIds = hotelListResponse.data
-        .slice(0, 50)
+        .slice(0, 150)
         .map((hotel: any) => hotel.hotelId);
 
       console.log(`✅ Found ${hotelIds.length} hotels, searching availability...`);
 
-      // Step 2: Get hotel offers with availability and pricing
-      const offersParams: any = {
-        hotelIds: hotelIds.join(','),
-        checkInDate: params.checkInDate,
-        checkOutDate: params.checkOutDate,
-        adults: params.adults,
-      };
+      // Step 2: Get hotel offers with availability and pricing (batched by 50, PARALLEL)
+      const BATCH_SIZE = 50;
+      let allOffers: any[] = [];
+      
+      console.log(`📦 Amadeus: Processing ${hotelIds.length} hotels in batches of ${BATCH_SIZE} PARALLEL`);
+      
+      const batches: string[][] = [];
+      for (let i = 0; i < hotelIds.length; i += BATCH_SIZE) {
+        batches.push(hotelIds.slice(i, i + BATCH_SIZE));
+      }
 
-      if (params.roomQuantity) offersParams.roomQuantity = params.roomQuantity;
+      const batchPromises = batches.map(async (batchIds) => {
+        const offersParams: any = {
+          hotelIds: batchIds.join(','),
+          checkInDate: params.checkInDate,
+          checkOutDate: params.checkOutDate,
+          adults: params.adults,
+        };
 
-      const offersResponse = await axios.get(
-        `${this.baseUrl}/v3/shopping/hotel-offers`,
-        {
-          params: offersParams,
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
+        if (params.roomQuantity) offersParams.roomQuantity = params.roomQuantity;
+
+        try {
+          const offersResponse = await axios.get(
+            `${this.baseUrl}/v3/shopping/hotel-offers`,
+            {
+              params: offersParams,
+              headers: {
+                Authorization: `Bearer ${token}`,
+              },
+              timeout: 15000,
+            }
+          );
+          
+          return offersResponse.data?.data || [];
+        } catch (batchError: any) {
+           console.warn(`⚠️ Amadeus batch error: ${batchError.message}`);
+           return [];
         }
-      );
+      });
 
-      console.log(`✅ Found ${offersResponse.data.data?.length || 0} available hotels with pricing`);
-      return offersResponse.data;
+      const batchResults = await Promise.all(batchPromises);
+      for (const result of batchResults) {
+        allOffers = [...allOffers, ...result];
+      }
+
+      console.log(`✅ Found ${allOffers.length} available hotels with pricing`);
+      return { data: allOffers };
     } catch (error: any) {
       console.error('Error searching hotels:', error.response?.data || error);
       throw new Error('Failed to search hotels');

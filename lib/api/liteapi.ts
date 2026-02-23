@@ -477,8 +477,8 @@ class LiteAPI {
   }): Promise<Array<{ hotelId: string; minimumRate: { amount: number; currency: string }; available: boolean }>> {
     try {
       // PERFORMANCE OPTIMIZED: Increased batch size, parallel execution
-      const BATCH_SIZE = 25; // Increased from 20 for fewer API calls
-      const MAX_CONCURRENT = 3; // Process 3 batches in parallel
+      const BATCH_SIZE = 40; // Maximize batch size for fewer API calls
+      const MAX_CONCURRENT = 5; // Process 5 batches in parallel to handle 200 hotels per wave
 
       console.log(`⚡ LiteAPI: Getting rates for ${params.hotelIds.length} hotels (PARALLEL batches of ${BATCH_SIZE})`);
 
@@ -866,9 +866,9 @@ class LiteAPI {
       console.log(`📅 LiteAPI: Calculated ${nights} nights (${checkIn} to ${checkOut})`);
 
       // Step 1: Get hotel static data
-      // PERFORMANCE OPTIMIZED: Request 100+ hotels for better selection
+      // INCREASED VOLUME: Request up to 400 hotels to ensure plenty of final available choices
       const locationParams: Parameters<typeof this.getHotelsByLocation>[0] = {
-        limit: Math.min(params.limit || 100, 150), // Cap at 150 for good coverage
+        limit: Math.min(params.limit || 300, 400), 
       };
 
       if (params.latitude !== undefined && params.longitude !== undefined) {

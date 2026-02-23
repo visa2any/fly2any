@@ -264,7 +264,7 @@ async function performLiteAPISearch(searchParams: HotelSearchParams) {
     currency: searchParams.currency || 'USD',
     guestNationality: searchParams.location.country || 'US',
     radius: searchParams.radius || 15, // 15km default for accurate city results
-    limit: searchParams.limit || 100, // Increased for better coverage
+    limit: searchParams.limit || 300, // Increased for better volume, the API will cap handle up to 400
   }).catch(err => {
     console.error('⚠️ LiteAPI search failed:', err.message);
     return { hotels: [], meta: { usedMinRates: true, error: err.message } };
@@ -385,7 +385,7 @@ export async function POST(request: NextRequest) {
         children: body.guests.children || [],
       },
       radius: body.radius || 15, // 15km default - smaller radius for accurate city results
-      limit: body.limit || 100, // 100 hotels for more options
+      limit: body.limit || 300, // 300 hotels requested from the providers
       currency: body.currency || 'USD',
     };
 
@@ -912,7 +912,7 @@ export async function GET(request: NextRequest) {
       currency: searchParams.get('currency') || 'USD',
       guestNationality: 'US',
       radius: searchParams.get('radius') ? parseInt(searchParams.get('radius')!) : 15, // 15km default for accurate city results
-      limit: searchParams.get('limit') ? parseInt(searchParams.get('limit')!) : 100,
+      limit: searchParams.get('limit') ? parseInt(searchParams.get('limit')!) : 300,
     }).catch(err => {
       console.error('⚠️ LiteAPI search failed:', err.message);
       return { hotels: [], meta: { usedMinRates: true, error: err.message } };
