@@ -149,12 +149,16 @@ export async function POST(request: NextRequest) {
     // Define one-way search function for mixed-carrier searches
     const oneWaySearchFunction: OneWaySearchFunction = async (params) => {
       const result = await amadeusAPI.searchFlights({
-        ...params,
+        origin: params.origin,
+        destination: params.destination,
+        departureDate: params.date, // Map 'date' from OneWaySearchFunction to 'departureDate' for Amadeus
         adults: flightSearchParams.adults,
         children: flightSearchParams.children,
         infants: flightSearchParams.infants,
         currencyCode: flightSearchParams.currencyCode,
         travelClass: flightSearchParams.travelClass,
+        nonStop: params.nonStop,
+        max: params.maxResults,
       });
       return { flights: result.data || [], dictionaries: result.dictionaries || {} };
     };
@@ -192,6 +196,16 @@ export async function POST(request: NextRequest) {
     );
 
     if (!rawFlights || rawFlights.length === 0) {
+      // 🚨 Alert when search returns zero results so we can monitor and debug
+      console.warn(`⚠️ Zero flights found for ${originCodes.join(',')} → ${destinationCodes.join(',')} on ${departureDate}`);
+      
+      alertApiError(request, new Error(`Zero flights found for search: ${originCodes.join(',')} → ${destinationCodes.join(',')}`), {
+        errorCode: 'FLIGHT_SEARCH_NO_RESULTS',
+        endpoint: '/api/flights/search',
+        flightRoute: `${flightSearchParams.origin} → ${flightSearchParams.destination}`,
+        departureDate: flightSearchParams?.departureDate,
+      }, { priority: 'normal' }).catch(() => { });
+
       const emptyResponse = {
         flights: [],
         metadata: {
