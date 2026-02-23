@@ -2446,21 +2446,7 @@ export function AITravelAssistant({ language = 'en' }: Props) {
   };
 
   if (!isOpen) {
-    return (
-      <ErrorBoundary variant="inline" context="ai-chat-fab">
-        <button
-          onClick={() => setIsOpen(true)}
-          className="hidden md:flex fixed bottom-6 right-6 z-[1500] w-16 h-16 bg-gradient-to-br from-fly2any-red to-[#C93028] hover:from-[#D63930] hover:to-[#B82820] text-white rounded-2xl shadow-[0_8px_32px_rgba(231,64,53,0.35),0_4px_12px_rgba(231,64,53,0.25)] items-center justify-center transition-all duration-300 ease-[cubic-bezier(0.2,0.8,0.2,1)] hover:scale-105 hover:shadow-[0_12px_40px_rgba(231,64,53,0.4),0_6px_16px_rgba(231,64,53,0.3)] active:scale-95 group"
-          aria-label="Open AI Travel Assistant"
-        >
-          <Bot className="w-7 h-7 group-hover:scale-110 transition-transform duration-200 drop-shadow-sm" />
-          <div className="absolute -top-1 -right-1 w-4 h-4 bg-emerald-400 border-2 border-white rounded-full animate-pulse shadow-[0_2px_8px_rgba(52,211,153,0.5)]" />
-          <div className="absolute -top-2 -left-2 w-6 h-6 bg-fly2any-yellow/90 rounded-lg flex items-center justify-center shadow-[0_2px_8px_rgba(247,201,40,0.4)] animate-bounce">
-            <Sparkles className="w-3.5 h-3.5 text-neutral-900" />
-          </div>
-        </button>
-      </ErrorBoundary>
-    );
+    return null;
   }
 
   return (
