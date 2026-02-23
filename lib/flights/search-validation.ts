@@ -93,17 +93,22 @@ export function validateSearchParams(body: any) {
     };
   }
 
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
+  const now = new Date();
+  const todayStr = now.toISOString().split('T')[0];
   const firstDepartureDate = departureDate.split(',')[0].trim();
-  const depDate = new Date(firstDepartureDate);
-  depDate.setHours(0, 0, 0, 0);
 
-  if (depDate < today) {
+  if (firstDepartureDate < todayStr) {
     return {
       isValid: false,
       response: NextResponse.json(
-        { error: 'Departure date cannot be in the past' },
+        { 
+          error: 'Departure date cannot be in the past',
+          details: {
+            departureDate: firstDepartureDate,
+            today: todayStr,
+            message: 'Search dates must be today or in the future'
+          }
+        },
         { status: 400 }
       )
     };
@@ -113,6 +118,9 @@ export function validateSearchParams(body: any) {
     const firstReturnDate = body.returnDate.split(',')[0].trim();
     const retDate = new Date(firstReturnDate);
     retDate.setHours(0, 0, 0, 0);
+
+    const depDate = new Date(firstDepartureDate);
+    depDate.setHours(0, 0, 0, 0);
 
     if (retDate <= depDate) {
       return {
@@ -142,6 +150,6 @@ export function validateSearchParams(body: any) {
     children: Number(body.children || 0),
     infants: Number(body.infants || 0),
     travelClass: body.travelClass || 'ECONOMY',
-    depDate
+    depDate: new Date(firstDepartureDate)
   };
 }

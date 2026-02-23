@@ -163,7 +163,9 @@ export function FlashDealsSectionEnhanced({ lang = 'en' }: FlashDealsSectionEnha
   // Update local state when cache data changes
   useEffect(() => {
     if (dealsData?.data) {
-      setDeals(dealsData.data);
+      const todayStr = new Date().toISOString().split('T')[0];
+      const validDeals = dealsData.data.filter(deal => deal.departureDate >= todayStr);
+      setDeals(validDeals);
     }
   }, [dealsData]);
 

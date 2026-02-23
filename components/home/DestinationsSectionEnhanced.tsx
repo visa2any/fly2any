@@ -335,7 +335,8 @@ export function DestinationsSectionEnhanced({ lang = 'en' }: DestinationsSection
     }
   );
 
-  const destinations = destinationsData?.data || [];
+  const todayStr = new Date().toISOString().split('T')[0];
+  const destinations = (destinationsData?.data || []).filter(dest => dest.departureDate >= todayStr);
   const error = !!fetchError;
 
   // Memoize helper functions to prevent recreating on every render

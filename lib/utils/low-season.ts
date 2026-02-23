@@ -87,7 +87,7 @@ function getLowSeasonPeriods(destinationCode: string): LowSeasonPeriod[] {
  */
 export function getNextLowSeasonDate(
   destinationCode: string,
-  minDaysFromNow: number = 7,
+  minDaysFromNow: number = 14, // Increased from 7 to ensure deals are always for future dates
   preferredPeriodIndex: number = 0
 ): Date {
   const now = new Date();

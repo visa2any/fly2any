@@ -231,9 +231,17 @@ export function RecentlyViewedSection({ lang = 'en' }: RecentlyViewedSectionProp
       if (stored) {
         try {
           const parsed = JSON.parse(stored);
+          const now = new Date();
+          const todayStr = now.toISOString().split('T')[0];
+
+          // Filter out items with past departure dates
+          const validItems = parsed.filter((item: ViewedDestination) => {
+            if (!item.departureDate) return true; // Keep items without dates for safety
+            return item.departureDate >= todayStr;
+          });
 
           // Deduplicate by destination, keep most recent
-          const unique = parsed.reduce((acc: ViewedDestination[], curr: ViewedDestination) => {
+          const unique = validItems.reduce((acc: ViewedDestination[], curr: ViewedDestination) => {
             const existing = acc.find(item => item.to === curr.to && item.from === curr.from);
             if (!existing || curr.viewedAt > existing.viewedAt) {
               return [...acc.filter(item => !(item.to === curr.to && item.from === curr.from)), curr];
