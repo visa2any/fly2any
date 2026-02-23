@@ -142,12 +142,10 @@ export function mapAmadeusHotelToHotel(amadeusOffer: AmadeusHotelOffer): Hotel {
     type: media.category?.toLowerCase() as any,
   }));
 
-  // Add placeholder image if no images available
+  // No images available - Let UI handle placeholders
   if (images.length === 0) {
-    images.push({
-      url: `https://images.unsplash.com/photo-1566073771259-6a8506099945?w=800&auto=format&fit=crop`,
-      type: 'exterior',
-    });
+    // We return an empty array to avoid misleading users with duplicate "pool/patio" photos
+    // for different hotels in the same city.
   }
 
   // Map amenities

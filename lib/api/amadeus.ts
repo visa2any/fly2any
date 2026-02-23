@@ -1304,7 +1304,7 @@ class AmadeusAPI {
       console.log(`🏨 Step 1: Getting hotels in city ${params.cityCode}...`);
       const hotelListResponse = await this.getHotelsByCity({
         cityCode: params.cityCode,
-        radius: params.radius || 5, // Default 5 KM radius
+        radius: params.radius || 20, // Increased to 20 KM to catch cheaper outskirts/boroughs (was 5)
         radiusUnit: params.radiusUnit || 'KM',
         ratings: params.ratings,
       });
