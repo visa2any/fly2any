@@ -35,36 +35,51 @@ export class SearchEnricher {
       badges: getFlightBadges(flight, flightsForBadges)
     }));
 
-    // 4. Hybrid Routing Enrichment
-    const routedFlights = await enrichFlightsWithRouting(scoredFlights, searchSessionId);
-    const routingSummary = getRoutingSummary(routedFlights);
-
-    // 5. Store routing data
-    const internalRoutingData = {
-      sessionId: searchSessionId,
-      summary: routingSummary,
-      flightRouting: Object.fromEntries(
-        routedFlights
-          .filter(f => f.routing)
-          .map(f => [f.id, f.routing])
-      ),
-    };
+    // 4. Start Hybrid Routing Enrichment in the background (NON-BLOCKING)
     const routingCacheKey = `routing:${searchSessionId}`;
-    await setCache(routingCacheKey, internalRoutingData, 3600);
+    Promise.resolve().then(async () => {
+      try {
+        const routedFlights = await enrichFlightsWithRouting(scoredFlights, searchSessionId);
+        const routingSummary = getRoutingSummary(routedFlights);
+        
+        const internalRoutingData = {
+          sessionId: searchSessionId,
+          summary: routingSummary,
+          flightRouting: Object.fromEntries(
+            routedFlights
+              .filter(f => f.routing)
+              .map(f => [f.id, f.routing])
+          ),
+        };
+        await setCache(routingCacheKey, internalRoutingData, 3600);
+      } catch (err) {
+        console.error('Background routing enrichment failed:', err);
+      }
+    });
 
-    // 6. Sort
-    const sortedFlights = sortFlights(routedFlights as ScoredFlight[], sortBy || 'best');
+    // 5. Store initial empty routing data so it doesn't 404 if requested immediately
+    const initialRoutingSummary = { total: scoredFlights.length, consolidator: 0, duffel: 0, totalEstimatedProfit: 0, avgProfit: 0 };
+    await setCache(routingCacheKey, {
+      sessionId: searchSessionId,
+      summary: initialRoutingSummary,
+      flightRouting: {}
+    }, 3600);
 
-    // 7. Strip internal routing for response
+    // 6. Sort flights directly (basic sorting like price/duration doesn't need routing info)
+    const sortedFlights = sortFlights(scoredFlights, sortBy || 'best');
+
+    // 7. Strip internal routing for response (it's already stripped since we didn't add it to sortedFlights yet)
+    // We just typecast here for consistency with the rest of the app's expectations
     const flightsToStrip = Array.isArray(sortedFlights) ? sortedFlights : [];
     const customerFlights = flightsToStrip.map(flight => {
-      const { routing, ...customerFlight } = flight as ScoredFlightWithRouting;
-      return customerFlight;
+      // In case any lingering routing data exists, though there shouldn't be
+      const { routing, ...customerFlight } = flight as any;
+      return customerFlight as FlightOffer;
     });
 
     return { 
       flights: customerFlights, 
-      routingSummary,
+      routingSummary: initialRoutingSummary,
       searchSessionId
     };
   }

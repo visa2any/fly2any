@@ -168,16 +168,18 @@ class DuffelAPI {
       let offers = (offerRequest.data as any).offers || [];
       let attempts = 0;
       const maxAttempts = 5;
+      let delayMs = 200; // Start with 200ms
 
       while (offers.length === 0 && attempts < maxAttempts) {
-        console.log(`⏳ Waiting for Duffel offers... (attempt ${attempts + 1}/${maxAttempts})`);
-        await new Promise((resolve) => setTimeout(resolve, 500));
+        console.log(`⏳ Waiting for Duffel offers... (attempt ${attempts + 1}/${maxAttempts}, delay: ${delayMs}ms)`);
+        await new Promise((resolve) => setTimeout(resolve, delayMs));
 
         // Fetch the offer request again
         const updated = await this.client.offerRequests.get(offerRequest.data.id);
 
         offers = (updated.data as any).offers || [];
         attempts++;
+        delayMs = Math.min(delayMs * 1.5, 800); // Exponential backoff max 800ms
       }
 
       console.log(`📋 Duffel returned ${offers.length} offers`);

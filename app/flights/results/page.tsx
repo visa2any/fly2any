@@ -985,14 +985,16 @@ function FlightResultsContent() {
           }
         }
 
-        // Parallel API calls for ML prediction and price analytics
-        if (processedFlights.length > 0) {
-          const promises = [];
+        // IMMEDIATELY render results to unblock UI!
+        setFlights(processedFlights);
 
-          // 1. ML Flight Ranking Prediction
-          if (mlPredictionEnabled) {
-            promises.push(
-              fetch('/api/flight-prediction', {
+        // Announce initial results to screen readers
+        announceResults(processedFlights.length);
+
+        // Background API calls for ML prediction and price analytics (Non-blocking)
+        if (processedFlights.length > 0) {
+          const mlPromise = mlPredictionEnabled 
+            ? fetch('/api/flight-prediction', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ flightOffers: processedFlights }),
@@ -1000,14 +1002,10 @@ function FlightResultsContent() {
                 .then(res => res.json())
                 .then(predictionData => {
                   if (predictionData.data && Array.isArray(predictionData.data)) {
-                    // Map ML scores to flights
-                    return predictionData.data.map((predictedFlight: any, index: number) => {
-                      if (!processedFlights[index]) return null;
-                      return {
-                        ...processedFlights[index],
-                        mlScore: predictedFlight.choiceProbability || undefined,
-                      };
-                    }).filter(Boolean);
+                    return predictionData.data.map((predictedFlight: any, index: number) => ({
+                      ...processedFlights[index],
+                      mlScore: predictedFlight.choiceProbability || undefined,
+                    })).filter(Boolean);
                   }
                   return processedFlights;
                 })
@@ -1016,68 +1014,40 @@ function FlightResultsContent() {
                   setMlPredictionEnabled(false);
                   return processedFlights;
                 })
-            );
-          } else {
-            promises.push(Promise.resolve(processedFlights));
-          }
+            : Promise.resolve(processedFlights);
 
-          // 2. Price Analytics for market comparison
-          // Handle comma-separated multi-dates - use first date for analytics
           const firstDepartureDate = searchData.departure.split(',')[0];
-          promises.push(
-            fetch(
-              `/api/price-analytics?originIataCode=${searchData.from}&destinationIataCode=${searchData.to}&departureDate=${firstDepartureDate}&currencyCode=USD`
-            )
-              .then(res => res.json())
-              .then(analyticsData => {
-                if (analyticsData.data && analyticsData.data.length > 0) {
-                  const priceMetrics = analyticsData.data[0].priceMetrics?.[0];
-                  if (priceMetrics) {
-                    const avgPrice = parseFloat(priceMetrics.mean || '0');
-                    setMarketAverage(avgPrice);
-                    return avgPrice;
-                  }
+          const analyticsPromise = fetch(`/api/price-analytics?originIataCode=${searchData.from}&destinationIataCode=${searchData.to}&departureDate=${firstDepartureDate}&currencyCode=USD`)
+            .then(res => res.json())
+            .then(analyticsData => {
+              if (analyticsData.data && analyticsData.data.length > 0) {
+                const priceMetrics = analyticsData.data[0].priceMetrics?.[0];
+                if (priceMetrics) {
+                  const avgPrice = parseFloat(priceMetrics.mean || '0');
+                  setMarketAverage(avgPrice);
+                  return avgPrice;
                 }
-                return null;
-              })
-              .catch(err => {
-                console.warn('Price analytics failed:', err);
-                return null;
-              })
-          );
+              }
+              return null;
+            })
+            .catch(err => {
+              console.warn('Price analytics failed:', err);
+              return null;
+            });
 
-          // Wait for both to complete
-          const [rankedFlights, avgMarketPrice] = await Promise.all(promises);
-
-          // ✅ FIXED: Add price vs market comparison (removed fake CO2 multipliers)
-          // CO2 emissions should ONLY come from real Amadeus CO2 Emissions API
-          // Never show fake/estimated CO2 data to maintain user trust
-          if (avgMarketPrice && avgMarketPrice > 0 && Array.isArray(rankedFlights)) {
-            processedFlights = rankedFlights.map((flight: ScoredFlight) => {
-              return {
+          // Fire and forget background enhancements
+          Promise.all([mlPromise, analyticsPromise]).then(([rankedFlights, avgMarketPrice]) => {
+            if (avgMarketPrice && avgMarketPrice > 0 && Array.isArray(rankedFlights)) {
+              const enhancedFlights = rankedFlights.map((flight: ScoredFlight) => ({
                 ...flight,
                 priceVsMarket: ((normalizePrice(flight.price.total) - avgMarketPrice) / avgMarketPrice) * 100,
-                // CO2 data removed - only show when real API data available
-              };
-            });
-          } else {
-            processedFlights = Array.isArray(rankedFlights) ? rankedFlights : [];
-          }
+              }));
+              setFlights(enhancedFlights);
+            } else if (Array.isArray(rankedFlights)) {
+              setFlights(rankedFlights);
+            }
+          }).catch(console.error);
         }
-
-        setFlights(processedFlights);
-
-        // DEBUG: Log what went into state
-        console.log('✈️ setFlights() called with flights:', processedFlights.slice(0, 3).map((f: any) => ({
-          id: f.id,
-          hasFareVariants: !!f.fareVariants,
-          fareVariantCount: f.fareVariants?.length || 0,
-          fareVariantNames: f.fareVariants?.map((v: any) => v.name) || [],
-          dealScore: f.dealScore
-        })));
-
-        // Announce results to screen readers
-        announceResults(processedFlights.length);
 
         // Update filter ranges based on results
         if (processedFlights && processedFlights.length > 0) {

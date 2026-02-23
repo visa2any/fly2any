@@ -228,13 +228,9 @@ export async function POST(request: NextRequest) {
       searchSessionId
     );
 
-    // 5. ML & Analytics
-    const cachePrediction = await smartCachePredictor.predictOptimalTTL(
-      originCodes[0],
-      destinationCodes[0],
-      travelClass || 'ECONOMY',
-      departureDate
-    );
+    // 5. Outline Response with Fallback Cache (Non-Blocking)
+    const defaultTTLMinutes = 30; // 30m default while ML calculates
+    const defaultTTLSeconds = defaultTTLMinutes * 60;
 
     const response = {
       flights: customerFlights,
@@ -246,21 +242,41 @@ export async function POST(request: NextRequest) {
         cached: false,
         cacheKey,
         ml: {
-          cacheTTL: cachePrediction.recommendedTTL,
-          cacheConfidence: cachePrediction.confidence,
-          cacheReason: cachePrediction.reason,
+          cacheTTL: defaultTTLMinutes,
+          cacheConfidence: 0.5,
+          cacheReason: 'Default TTL (ML calculation deferred)',
         },
         _routingSessionId: searchSessionId,
       }
     };
 
-    // Cache results
-    const cacheTTLSeconds = cachePrediction.recommendedTTL * 60;
-    await setCache(cacheKey, response, cacheTTLSeconds);
-
-    // 📊 Background Logging (Non-blocking)
+    // 6. 📊 Background Processing (Non-blocking ML Prediction & Logging)
     (async () => {
       try {
+        // Calculate optimal cache TTL via ML predictor
+        const cachePrediction = await smartCachePredictor.predictOptimalTTL(
+          originCodes[0],
+          destinationCodes[0],
+          travelClass || 'ECONOMY',
+          departureDate
+        );
+
+        // Update cache with ML-optimal TTL
+        const cacheTTLSeconds = cachePrediction.recommendedTTL * 60;
+        const cachedResponse = {
+          ...response,
+          metadata: {
+            ...response.metadata,
+            ml: {
+              cacheTTL: cachePrediction.recommendedTTL,
+              cacheConfidence: cachePrediction.confidence,
+              cacheReason: cachePrediction.reason,
+            }
+          }
+        };
+        await setCache(cacheKey, cachedResponse, cacheTTLSeconds);
+
+        // Analytics Logging
         const lowestPrice = customerFlights.length > 0 ? parseFloat(String(customerFlights[0].price?.total || '0')) : 0;
         logFlightSearch({
           origin: originCodes[0],
@@ -273,15 +289,17 @@ export async function POST(request: NextRequest) {
           currency: body.currencyCode || 'USD',
           cacheHit: false,
         }, request).catch(() => {});
-      } catch (e) {}
+      } catch (e) {
+        console.error('Background processing failed:', e);
+      }
     })();
 
     const successResponse = NextResponse.json(response, {
       status: 200,
       headers: {
-        'Cache-Control': `public, max-age=${cacheTTLSeconds}`,
+        'Cache-Control': `public, max-age=${defaultTTLSeconds}`,
         'X-Cache-Status': 'MISS',
-        'X-ML-Cache-TTL': `${cachePrediction.recommendedTTL}min`,
+        'X-ML-Cache-TTL': `${defaultTTLMinutes}min (deferred)`,
       }
     });
 
