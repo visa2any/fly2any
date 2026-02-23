@@ -509,7 +509,7 @@ export async function POST(request: NextRequest) {
 
     console.log(`🔍 Location data for Amadeus:`, { locationQuery, location: searchParams.location });
 
-    const radius = searchParams.radius ? Number(searchParams.radius) : 50;
+    const radius = searchParams.radius ? Number(searchParams.radius) : 20;
 
     // Extract child ages from body if present (POST body usually has guests.children as count OR array of ages)
     // We normalize it to an array of ages
@@ -518,7 +518,7 @@ export async function POST(request: NextRequest) {
       ? rawChildren.map((c: any) => typeof c === 'number' ? c : (c.age || 8))
       : (typeof rawChildren === 'number' ? Array(rawChildren).fill(8) : []);
 
-    const PROVIDER_TIMEOUT = 25000; // 25 seconds per provider
+    const PROVIDER_TIMEOUT = 8000; // 8 seconds per provider (Safety for Vercel Hobby 10s limit)
 
     const [liteAPIResults, amadeusResults, hotelbedsResults] = await Promise.all([
       withTimeout(
@@ -958,16 +958,16 @@ export async function GET(request: NextRequest) {
 
     // 1. Multi-API Search (Parallel)
     const searchParamsObj: HotelSearchParams = {
-      location: { lat: latitude!, lng: longitude!, country: countryCode },
+      location: { lat: latitude!, lng: longitude!, country: countryCode } as any,
       checkIn: checkIn!,
       checkOut: checkOut!,
       guests: { adults: parseInt(adults), children: childAges },
       currency: searchParams.get('currency') || 'USD',
-      radius: searchParams.get('radius') ? parseInt(searchParams.get('radius')!) : 50,
-      limit: searchParams.get('limit') ? parseInt(searchParams.get('limit')!) : 200,
+      radius: searchParams.get('radius') ? parseInt(searchParams.get('radius')!) : 20,
+      limit: searchParams.get('limit') ? parseInt(searchParams.get('limit')!) : 100,
     };
 
-    const PROVIDER_TIMEOUT = 25000; // 25 seconds per provider
+    const PROVIDER_TIMEOUT = 8000; // 8 seconds per provider
 
     const [liteAPIResults, amadeusResults, hotelbedsResults] = await Promise.all([
       withTimeout(

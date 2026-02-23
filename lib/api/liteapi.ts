@@ -306,6 +306,8 @@ class LiteAPI {
   private apiKey: string;
   private baseUrl: string;
   private isSandbox: boolean;
+  private static facilitiesMapCache: Map<number, string> | null = null;
+  private static facilitiesLoadingPromise: Promise<Map<number, string>> | null = null;
 
   constructor() {
     this.isSandbox = process.env.LITEAPI_ENVIRONMENT !== 'production';
@@ -970,14 +972,23 @@ class LiteAPI {
         guestNationality: params.guestNationality || 'US',
       });
 
-      // Step 3: Load facilities for amenity mapping (cached)
+      // Step 3: Load facilities for amenity mapping (using static cache)
       let facilitiesMap = new Map<number, string>();
       try {
-        const facilitiesData = await this.getFacilities();
-        console.log('🔍 DEBUG: First facility:', facilitiesData.data[0]);
-        facilitiesMap = new Map(facilitiesData.data.map(f => [f.facility_id, f.facility]));
-        console.log(`✅ Loaded ${facilitiesMap.size} facilities for amenity mapping`);
-        console.log('🔍 DEBUG: First 3 from map:', Array.from(facilitiesMap.entries()).slice(0, 3));
+        if (LiteAPI.facilitiesMapCache) {
+          facilitiesMap = LiteAPI.facilitiesMapCache;
+        } else {
+          // If already loading, wait for it
+          if (!LiteAPI.facilitiesLoadingPromise) {
+            LiteAPI.facilitiesLoadingPromise = this.getFacilities().then(data => {
+              const map = new Map(data.data.map(f => [f.facility_id, f.facility]));
+              LiteAPI.facilitiesMapCache = map;
+              return map;
+            });
+          }
+          facilitiesMap = await LiteAPI.facilitiesLoadingPromise;
+        }
+        console.log(`✅ Using ${facilitiesMap.size} cached facilities for amenity mapping`);
       } catch (error) {
         console.warn('⚠️ Could not load facilities, hotels will have no amenities');
       }
