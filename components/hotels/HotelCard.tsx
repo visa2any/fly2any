@@ -149,6 +149,7 @@ export function HotelCard({
   // Instead, let the rendering code handle empty images with a styled gradient placeholder
   const initialImages = rawImages.length > 0 ? rawImages : hotel.thumbnail ? [{ url: hotel.thumbnail, alt: hotel.name || 'Hotel' }] : [];
   const images = loadedImages.length > 0 ? loadedImages : initialImages;
+  const [imgError, setImgError] = useState(false);
 
   // Generate a unique gradient color based on hotel name for visual distinction
   const nameHash = (hotel.name || '').split('').reduce((acc, char) => acc + char.charCodeAt(0), 0);
@@ -321,7 +322,7 @@ export function HotelCard({
         onTouchEnd={handleTouchEnd}
       >
         {/* Image with crossfade transition + Premium quality filters */}
-        {images.length > 0 ? (
+        {images.length > 0 && !imgError ? (
           <Image
             src={images[currentImageIndex]?.url || images[0]?.url}
             alt={images[currentImageIndex]?.alt || hotel.name}
@@ -338,7 +339,7 @@ export function HotelCard({
             placeholder="blur"
             blurDataURL={getBlurDataURL(images[currentImageIndex]?.url || '', 400, 300)}
             quality={90}
-            onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
+            onError={() => setImgError(true)}
           />
         ) : (
           <div className="w-full h-full flex items-center justify-center" style={{ background: placeholderGradient }}>
@@ -603,7 +604,7 @@ export function HotelCard({
       <div className="hidden sm:flex flex-row" onClick={() => onViewDetails(hotel.id)}>
         {/* Column 1: Image with Premium quality filters */}
         <div className="relative w-[200px] min-w-[200px] lg:w-[280px] lg:min-w-[280px] h-[180px] lg:h-[200px] flex-shrink-0 overflow-hidden bg-slate-100" onMouseEnter={fetchImages}>
-          {images.length > 0 ? (
+          {images.length > 0 && !imgError ? (
             <Image
               src={images[currentImageIndex]?.url || images[0]?.url}
               alt={images[currentImageIndex]?.alt || hotel.name}
@@ -620,7 +621,7 @@ export function HotelCard({
               placeholder="blur"
               blurDataURL={getBlurDataURL(images[currentImageIndex]?.url || '', 280, 200)}
               quality={90}
-              onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
+              onError={() => setImgError(true)}
             />
           ) : (
             <div className="w-full h-full flex items-center justify-center" style={{ background: placeholderGradient }}>
@@ -691,53 +692,80 @@ export function HotelCard({
                   <span className="text-[10px] text-[#86868b]">{hotel.rating}-star</span>
                 </div>
               )}
-              {hotel.location?.city && (
+              {(hotel.location?.city || hotel.location?.address) && (
                 <span className="text-[#86868b] text-xs flex items-center gap-1">
-                  <MapPin className="w-3.5 h-3.5" />{hotel.location.city}
+                  <MapPin className="w-3.5 h-3.5" />
+                  {hotel.location.city}
+                  {hotel.location.address && hotel.location.city && ' · '}
+                  {hotel.location.address && <span className="text-[10px] truncate max-w-[120px]">{hotel.location.address}</span>}
                 </span>
               )}
             </div>
           </div>
 
-          {/* Review score with text */}
+          {/* Review score with text + count */}
           {hotel.reviewScore > 0 && (
             <div className="flex items-center gap-2 mb-2">
               <span className={`${reviewCategory.bg} text-white px-1.5 py-0.5 rounded text-xs font-bold`}>{hotel.reviewScore.toFixed(1)}</span>
               <span className="text-xs font-medium text-[#1d1d1f]">{reviewCategory.text}</span>
-              {hotel.reviewCount && <span className="text-[10px] text-[#86868b]">({hotel.reviewCount.toLocaleString()} reviews)</span>}
+              {hotel.reviewCount > 0 && <span className="text-[10px] text-[#86868b]">({hotel.reviewCount.toLocaleString()} reviews)</span>}
+            </div>
+          )}
+
+          {/* Description snippet */}
+          {hotel.description && (
+            <p className="text-[11px] text-[#555] line-clamp-2 mb-2 leading-relaxed">{hotel.description}</p>
+          )}
+
+          {/* Room type badge */}
+          {bestRate?.roomType && (
+            <div className="mb-2">
+              <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-blue-50 border border-blue-100 rounded text-[11px] text-blue-700 font-medium">
+                🛏 {bestRate.roomType}
+              </span>
             </div>
           )}
 
           {/* Amenities with labels */}
-          <div className="flex items-center gap-3 flex-wrap mb-2">
+          <div className="flex items-center gap-2 flex-wrap mb-2">
             {amenities.wifi && (
-              <span className="flex items-center gap-1 text-[11px] text-[#555]">
-                <Wifi className="w-3.5 h-3.5 text-[#86868b]" />WiFi
+              <span className="flex items-center gap-1 text-[11px] text-[#555] px-1.5 py-0.5 bg-gray-50 rounded-md border border-gray-100">
+                <Wifi className="w-3 h-3 text-[#86868b]" />WiFi
               </span>
             )}
             {amenities.pool && (
-              <span className="flex items-center gap-1 text-[11px] text-[#555]">
-                <Waves className="w-3.5 h-3.5 text-[#86868b]" />Pool
+              <span className="flex items-center gap-1 text-[11px] text-[#555] px-1.5 py-0.5 bg-gray-50 rounded-md border border-gray-100">
+                <Waves className="w-3 h-3 text-[#86868b]" />Pool
               </span>
             )}
             {amenities.gym && (
-              <span className="flex items-center gap-1 text-[11px] text-[#555]">
-                <Dumbbell className="w-3.5 h-3.5 text-[#86868b]" />Gym
+              <span className="flex items-center gap-1 text-[11px] text-[#555] px-1.5 py-0.5 bg-gray-50 rounded-md border border-gray-100">
+                <Dumbbell className="w-3 h-3 text-[#86868b]" />Gym
               </span>
             )}
             {amenities.parking && (
-              <span className="flex items-center gap-1 text-[11px] text-[#555]">
-                <Car className="w-3.5 h-3.5 text-[#86868b]" />Parking
+              <span className="flex items-center gap-1 text-[11px] text-[#555] px-1.5 py-0.5 bg-gray-50 rounded-md border border-gray-100">
+                <Car className="w-3 h-3 text-[#86868b]" />Parking
               </span>
             )}
             {amenities.restaurant && (
-              <span className="flex items-center gap-1 text-[11px] text-[#555]">
-                <UtensilsCrossed className="w-3.5 h-3.5 text-[#86868b]" />Restaurant
+              <span className="flex items-center gap-1 text-[11px] text-[#555] px-1.5 py-0.5 bg-gray-50 rounded-md border border-gray-100">
+                <UtensilsCrossed className="w-3 h-3 text-[#86868b]" />Restaurant
               </span>
             )}
             {amenities.spa && (
-              <span className="flex items-center gap-1 text-[11px] text-[#555]">
-                <Sparkles className="w-3.5 h-3.5 text-[#86868b]" />Spa
+              <span className="flex items-center gap-1 text-[11px] text-[#555] px-1.5 py-0.5 bg-gray-50 rounded-md border border-gray-100">
+                <Sparkles className="w-3 h-3 text-[#86868b]" />Spa
+              </span>
+            )}
+            {amenities.ac && (
+              <span className="flex items-center gap-1 text-[11px] text-[#555] px-1.5 py-0.5 bg-gray-50 rounded-md border border-gray-100">
+                <Wind className="w-3 h-3 text-[#86868b]" />A/C
+              </span>
+            )}
+            {amenities.pet && (
+              <span className="flex items-center gap-1 text-[11px] text-[#555] px-1.5 py-0.5 bg-gray-50 rounded-md border border-gray-100">
+                <PawPrint className="w-3 h-3 text-[#86868b]" />Pets OK
               </span>
             )}
           </div>
@@ -752,6 +780,11 @@ export function HotelCard({
             {hasBreakfast && (
               <span className="inline-flex items-center gap-1 px-2 py-1 bg-amber-50 border border-amber-200 rounded-lg text-[11px] font-semibold text-amber-700">
                 <Coffee className="w-3.5 h-3.5" />Breakfast Included
+              </span>
+            )}
+            {!hasFreeCancellation && (
+              <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-gray-50 border border-gray-200 rounded-lg text-[10px] text-gray-500">
+                Non-refundable
               </span>
             )}
           </div>
