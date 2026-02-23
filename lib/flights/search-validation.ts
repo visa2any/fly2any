@@ -93,11 +93,15 @@ export function validateSearchParams(body: any) {
     };
   }
 
-  const now = new Date();
-  const todayStr = now.toISOString().split('T')[0];
+  // 🛡️ Timezone-aware date validation:
+  // We use a 24-hour buffer to account for global timezones.
+  // If a server is in UTC and it's already "tomorrow", a user in New York
+  // might still be on "today". We allow searches for dates that are >= (now - 24h).
+  const bufferTime = new Date(Date.now() - 24 * 60 * 60 * 1000);
+  const bufferDateStr = bufferTime.toISOString().split('T')[0];
   const firstDepartureDate = departureDate.split(',')[0].trim();
 
-  if (firstDepartureDate < todayStr) {
+  if (firstDepartureDate < bufferDateStr) {
     return {
       isValid: false,
       response: NextResponse.json(
@@ -105,8 +109,8 @@ export function validateSearchParams(body: any) {
           error: 'Departure date cannot be in the past',
           details: {
             departureDate: firstDepartureDate,
-            today: todayStr,
-            message: 'Search dates must be today or in the future'
+            allowedSince: bufferDateStr,
+            message: 'Search dates must be today or in the future (allowing for global timezones)'
           }
         },
         { status: 400 }
