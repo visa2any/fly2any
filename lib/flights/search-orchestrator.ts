@@ -108,26 +108,7 @@ export class SearchOrchestrator {
           apiSelection = { strategy: 'duffel', confidence: 1.0, reason: 'Amadeus in test mode', estimatedSavings: 0 };
         }
 
-        // Logic for mixed carrier "Separate Tickets" search
-        if (includeSeparateTickets && oneWaySearchFunction) {
-           const mixedResults = await smartMixedCarrierSearch(
-             [], // roundTripFlights (standalone search)
-             {
-               origin: originCity,
-               destination: destCity,
-               departureDate: depDate,
-               returnDate: retDate,
-               adults: body.adults,
-               cabinClass: travelClass
-             }, 
-             oneWaySearchFunction
-           );
-           
-           if (mixedResults.flights && mixedResults.flights.length > 0) {
-             return { data: mixedResults.flights, dictionaries: mixedResults.dictionaries || {} };
-           }
-        }
-
+        // 1. ALWAYS run the normal round-trip search first
         let amadeusResult, duffelResult;
         if (apiSelection.strategy === 'both') {
           [amadeusResult, duffelResult] = await Promise.allSettled([
@@ -148,10 +129,10 @@ export class SearchOrchestrator {
         const groupedDuffel = groupDuffelFareVariants(duffelFlights);
         const safeAmadeus = Array.isArray(amadeusFlights) ? amadeusFlights : [];
         const safeDuffel = Array.isArray(groupedDuffel) ? groupedDuffel : [];
-        const merged = [...safeAmadeus, ...safeDuffel];
+        let merged = [...safeAmadeus, ...safeDuffel];
 
         // Filter by requested pairs
-        const filtered = merged.filter(flight => {
+        let filtered = merged.filter(flight => {
           return requestedPairs.some((pair: any) => {
             const outbound = flight.itineraries?.[0]?.segments;
             if (!outbound || outbound.length === 0) return false;
@@ -165,6 +146,32 @@ export class SearchOrchestrator {
             return match;
           });
         });
+
+        // 2. OPTIONALLY merge mixed-carrier results on top of regular results
+        if (includeSeparateTickets && oneWaySearchFunction && retDate) {
+          try {
+            const mixedResults = await smartMixedCarrierSearch(
+              filtered, // Pass round-trip flights for comparison
+              {
+                origin: originCity,
+                destination: destCity,
+                departureDate: depDate,
+                returnDate: retDate,
+                adults: body.adults,
+                cabinClass: travelClass
+              }, 
+              oneWaySearchFunction
+            );
+             
+            if (mixedResults.flights && Array.isArray(mixedResults.flights) && mixedResults.flights.length > 0) {
+              console.log(`🎫 Mixed-carrier: ${mixedResults.flights.length} total (mixed + round-trip merged)`);
+              filtered = mixedResults.flights;
+            }
+          } catch (mixedError: any) {
+            console.warn('⚠️ Mixed-carrier search failed, using regular results:', mixedError.message);
+            // Continue with regular results - don't fail the entire search
+          }
+        }
 
         return { data: filtered, dictionaries: amadeusResult.status === 'fulfilled' ? amadeusResult.value.dictionaries : {} };
       }
