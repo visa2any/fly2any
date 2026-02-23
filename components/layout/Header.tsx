@@ -79,8 +79,8 @@ export function Header({
   const t = useTranslations('Header');
   const { language, setLanguage } = useLanguage();
 
-  // Level-6: Detect homepage for adaptive styling
-  const isHomepage = pathname === '/' || pathname === '/en' || pathname === '/pt' || pathname === '/es';
+  // Level-6: Homepage now uses a light gradient banner (like /flights), so we disable the dark-hero white-text styling.
+  const isHomepage = false;
 
   // Create adapter for UserMenu component
   const userMenuTranslations = {
@@ -228,9 +228,6 @@ export function Header({
                 height={304}
                 priority
                 className="h-[43px] sm:h-10 lg:h-12 w-auto object-contain transition-all duration-200"
-                style={{
-                  filter: scrolled ? 'none' : 'brightness(1.15) drop-shadow(0 2px 6px rgba(0,0,0,0.5))',
-                }}
               />
             </a>
 

@@ -56,10 +56,9 @@ export function AirlineLogosMarquee() {
               src={getLogoUrl(airline.code)}
               alt={airline.name}
               title={airline.name}
-              className="h-5 md:h-6 w-auto object-contain opacity-60 hover:opacity-90 transition-opacity"
+              className="h-5 md:h-[22px] w-auto object-contain transition-all duration-300 grayscale opacity-60 hover:grayscale-0 hover:opacity-100 mix-blend-multiply"
               style={{
                 maxWidth: '80px',
-                filter: 'brightness(0) invert(1) drop-shadow(0 1px 2px rgba(0,0,0,0.3))'
               }}
               loading="lazy"
             />
@@ -76,10 +75,9 @@ export function AirlineLogosMarquee() {
               key={`b-${i}`}
               src={getLogoUrl(airline.code)}
               alt=""
-              className="h-5 md:h-6 w-auto object-contain opacity-60 hover:opacity-90 transition-opacity"
+              className="h-5 md:h-[22px] w-auto object-contain transition-all duration-300 grayscale opacity-60 hover:grayscale-0 hover:opacity-100 mix-blend-multiply"
               style={{
                 maxWidth: '80px',
-                filter: 'brightness(0) invert(1) drop-shadow(0 1px 2px rgba(0,0,0,0.3))'
               }}
               loading="lazy"
             />

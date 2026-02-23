@@ -1,26 +1,23 @@
 'use client';
 
-import { useState, useEffect, useRef, useCallback, useMemo } from 'react';
-import Image from 'next/image';
+import { useState, useEffect, useCallback } from 'react';
 import { MaxWidthContainer } from '@/components/layout/MaxWidthContainer';
 import { StructuredData } from '@/components/seo/StructuredData';
-import { CreditCard, Plane, Hotel, Car, Shield, HeadphonesIcon, Sparkles, ChevronDown } from 'lucide-react';
+import { CreditCard, Plane, Hotel, Car, Shield, HeadphonesIcon } from 'lucide-react';
 import { generateEntityHomeSchema, generateSpeakableSchema } from '@/lib/seo/geo-optimization';
 import dynamic from 'next/dynamic';
 import ErrorBoundary from '@/components/common/ErrorBoundary';
 
-// CRITICAL PERFORMANCE FIX: Dynamic imports for EVERYTHING heavy
-// This splits the 3000+ module bundle into smaller chunks that compile in parallel
+// Critical path: search form loads immediately (no ssr:false)
 const MobileHomeSearchWrapper = dynamic(() => import('@/components/home/MobileHomeSearchWrapper').then(mod => mod.MobileHomeSearchWrapper));
 const DestinationsSectionEnhanced = dynamic(() => import('@/components/home/DestinationsSectionEnhanced').then(mod => mod.DestinationsSectionEnhanced));
 const FlashDealsSectionEnhanced = dynamic(() => import('@/components/home/FlashDealsSectionEnhanced').then(mod => mod.FlashDealsSectionEnhanced));
 const RecentlyViewedSection = dynamic(() => import('@/components/home/RecentlyViewedSection').then(mod => mod.RecentlyViewedSection));
 
-// Dynamic imports for below-the-fold components and non-critical features
+// All below-the-fold and non-critical: lazy + no SSR
 const ExitIntentPopup = dynamic(() => import('@/components/conversion/ExitIntentPopup'), { ssr: false });
 const MobileScrollCapture = dynamic(() => import('@/components/conversion/MobileScrollCapture'), { ssr: false });
 const FAQ = dynamic(() => import('@/components/conversion/FAQ').then(mod => mod.FAQ), { ssr: false });
-
 const HotelsSectionEnhanced = dynamic(() => import('@/components/home/HotelsSectionEnhanced').then(mod => mod.HotelsSectionEnhanced), { ssr: false });
 const CarRentalsSectionEnhanced = dynamic(() => import('@/components/home/CarRentalsSectionEnhanced').then(mod => mod.CarRentalsSectionEnhanced), { ssr: false });
 const ToursSectionEnhanced = dynamic(() => import('@/components/home/ToursSectionEnhanced').then(mod => mod.ToursSectionEnhanced), { ssr: false });
@@ -28,67 +25,11 @@ const ActivitiesSectionEnhanced = dynamic(() => import('@/components/home/Activi
 const TransfersSectionEnhanced = dynamic(() => import('@/components/home/TransfersSectionEnhanced').then(mod => mod.TransfersSectionEnhanced), { ssr: false });
 const ExperiencesSection = dynamic(() => import('@/components/home/ExperiencesSection'), { ssr: false });
 const WorldCupHeroSectionEnhanced = dynamic(() => import('@/components/world-cup/WorldCupHeroSectionEnhanced').then(mod => mod.WorldCupHeroSectionEnhanced), { ssr: false });
-const CompactTrustBar = dynamic(() => import('@/components/conversion/CompactTrustBar'), { ssr: false });
+// Lazy-loaded, non-blocking — safe for performance
+const CompactTrustBar = dynamic(() => import('@/components/conversion/CompactTrustBar').then(mod => mod.CompactTrustBar), { ssr: false });
 const AirlineLogosMarquee = dynamic(() => import('@/components/home/AirlineLogosMarquee'), { ssr: false });
-const HeroEmailCapture = dynamic(() => import('@/components/home/HeroEmailCapture').then(mod => mod.HeroEmailCapture), { ssr: false });
 
 type Language = 'en';
-
-// Level-6 Ultra-Premium: Tab-Contextual Hero Photos
-type ServiceType = 'flights' | 'hotels' | 'cars' | 'tours' | 'activities' | 'transfers' | 'packages' | 'insurance';
-
-const HERO_PHOTOS: Record<ServiceType, { name: string; image: string }[]> = {
-  flights: [
-    { name: 'Airplane Window Clouds', image: 'https://images.unsplash.com/photo-1436491865332-7a61a109cc05?w=1280&q=70&auto=format' },
-    { name: 'Maldives Paradise', image: 'https://images.unsplash.com/photo-1514282401047-d79a71a590e8?w=1280&q=70&auto=format' },
-    { name: 'Santorini Greece', image: 'https://images.unsplash.com/photo-1570077188670-e3a8d69ac5ff?w=1280&q=70&auto=format' },
-    { name: 'Bora Bora Beach', image: 'https://images.unsplash.com/photo-1589197331516-4d84b72ebde3?w=1280&q=70&auto=format' },
-    { name: 'Dubai Skyline', image: 'https://images.unsplash.com/photo-1512453979798-5ea266f8880c?w=1280&q=70&auto=format' },
-    { name: 'Northern Lights', image: 'https://images.unsplash.com/photo-1531366936337-7c912a4589a7?w=1280&q=70&auto=format' },
-  ],
-  hotels: [
-    { name: 'Luxury Suite', image: 'https://images.unsplash.com/photo-1618773928121-c32242e63f39?w=1280&q=70&auto=format' },
-    { name: 'Resort Pool', image: 'https://images.unsplash.com/photo-1571896349842-33c89424de2d?w=1280&q=70&auto=format' },
-    { name: 'Hotel Lobby', image: 'https://images.unsplash.com/photo-1566073771259-6a8506099945?w=1280&q=70&auto=format' },
-    { name: 'Ocean View Room', image: 'https://images.unsplash.com/photo-1582719508461-905c673771fd?w=1280&q=70&auto=format' },
-  ],
-  cars: [
-    { name: 'Scenic Drive', image: 'https://images.unsplash.com/photo-1449965408869-eaa3f722e40d?w=1280&q=70&auto=format' },
-    { name: 'Convertible Coast', image: 'https://images.unsplash.com/photo-1503376780353-7e6692767b70?w=1280&q=70&auto=format' },
-    { name: 'Mountain Road', image: 'https://images.unsplash.com/photo-1469285994282-454c4c3e3eff?w=1280&q=70&auto=format' },
-    { name: 'City Driving', image: 'https://images.unsplash.com/photo-1494976388531-d1058494cdd8?w=1280&q=70&auto=format' },
-  ],
-  tours: [
-    { name: 'Eiffel Tower', image: 'https://images.unsplash.com/photo-1502602898657-3e91760cbb34?w=1280&q=70&auto=format' },
-    { name: 'Machu Picchu', image: 'https://images.unsplash.com/photo-1587595431973-160d0d94add1?w=1280&q=70&auto=format' },
-    { name: 'Colosseum Rome', image: 'https://images.unsplash.com/photo-1552832230-c0197dd311b5?w=1280&q=70&auto=format' },
-    { name: 'Great Wall', image: 'https://images.unsplash.com/photo-1508804185872-d7badad00f7d?w=1280&q=70&auto=format' },
-  ],
-  activities: [
-    { name: 'Snorkeling', image: 'https://images.unsplash.com/photo-1544551763-46a013bb70d5?w=1280&q=70&auto=format' },
-    { name: 'Hot Air Balloon', image: 'https://images.unsplash.com/photo-1507608616759-54f48f0af0ee?w=1280&q=70&auto=format' },
-    { name: 'Safari Adventure', image: 'https://images.unsplash.com/photo-1516426122078-c23e76319801?w=1280&q=70&auto=format' },
-    { name: 'Hiking Trail', image: 'https://images.unsplash.com/photo-1551632811-561732d1e306?w=1280&q=70&auto=format' },
-  ],
-  transfers: [
-    { name: 'Airport Pickup', image: 'https://images.unsplash.com/photo-1449965408869-eaa3f722e40d?w=1280&q=70&auto=format' },
-    { name: 'Luxury Transfer', image: 'https://images.unsplash.com/photo-1549317661-bd32c8ce0db2?w=1280&q=70&auto=format' },
-    { name: 'Private Driver', image: 'https://images.unsplash.com/photo-1619767886558-efdc259cde1a?w=1280&q=70&auto=format' },
-    { name: 'City Transfer', image: 'https://images.unsplash.com/photo-1494976388531-d1058494cdd8?w=1280&q=70&auto=format' },
-  ],
-  packages: [
-    { name: 'Dubai Package', image: 'https://images.unsplash.com/photo-1512453979798-5ea266f8880c?w=1280&q=70&auto=format' },
-    { name: 'Maldives Package', image: 'https://images.unsplash.com/photo-1514282401047-d79a71a590e8?w=1280&q=70&auto=format' },
-    { name: 'Paris Getaway', image: 'https://images.unsplash.com/photo-1502602898657-3e91760cbb34?w=1280&q=70&auto=format' },
-    { name: 'Tokyo Experience', image: 'https://images.unsplash.com/photo-1540959733332-eab4deabeeaf?w=1280&q=70&auto=format' },
-  ],
-  insurance: [
-    { name: 'Travel Protection', image: 'https://images.unsplash.com/photo-1488646953014-85cb44e25828?w=1280&q=70&auto=format' },
-    { name: 'Family Travel', image: 'https://images.unsplash.com/photo-1476514525535-07fb3b4ae5f1?w=1280&q=70&auto=format' },
-    { name: 'Adventure Coverage', image: 'https://images.unsplash.com/photo-1530789253388-582c481c54b0?w=1280&q=70&auto=format' },
-    { name: 'Peace of Mind', image: 'https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=1280&q=70&auto=format' },
-  ],
-};
 
 const content = {
   en: {
@@ -169,18 +110,8 @@ export default function Home() {
   // TEMPORARY: Platform frozen to English-only
   const lang: Language = 'en';
   const t = content.en;
-  const [activeService, setActiveService] = useState<ServiceType>('flights');
   const [mounted, setMounted] = useState(false);
-  const [isFormExpanded, setIsFormExpanded] = useState(false);
-
-  // Memoize Canonical Entity Lock Block styles to prevent infinite re-renders
-  const entityLockStyle = useMemo(() => ({
-    position: 'absolute' as const,
-    left: '-9999px' as const,
-    width: '1px' as const,
-    height: '1px' as const,
-    overflow: 'hidden' as const
-  }), []);
+  const [animationKey, setAnimationKey] = useState(0);
 
   // EntityHome Schema for Google Knowledge Graph
   // Uses canonical entity graph with proper @id references
@@ -209,31 +140,16 @@ export default function Home() {
     ],
   });
 
-  // Get current photos based on active service tab
-  const currentPhotos = HERO_PHOTOS[activeService];
-
   useEffect(() => {
     setMounted(true);
+    const interval = setInterval(() => {
+      setAnimationKey(prev => prev + 1);
+    }, 12000);
+    return () => clearInterval(interval);
   }, []);
-
-  // Handle service type change from search form - useCallback for stable reference
-  const handleServiceChange = useCallback((service: string) => {
-    setActiveService((current) => {
-      const validService = service as ServiceType;
-      if (HERO_PHOTOS[validService] && validService !== current) {
-        return validService;
-      }
-      return current;
-    });
-  }, []);
-
-  // Handle form expand/collapse state change (mobile only)
-  const handleExpandStateChange = (expanded: boolean) => {
-    setIsFormExpanded(expanded);
-  };
 
   return (
-    <div className="min-h-screen bg-white">
+    <div className="min-h-screen bg-neutral-50">
       {/* EntityHome Schema for Google Knowledge Graph */}
       <StructuredData schema={entityHomeSchema} />
       {/* Speakable Schema for Voice Search Optimization */}
@@ -321,132 +237,83 @@ export default function Home() {
         aria-hidden="true"
       />
       {/* ============================================
-          LEVEL-6 ULTRA-PREMIUM HERO - 100vh Immersive Full Screen
-          Negative margin pulls hero BEHIND sticky header for transparency
-          Mobile: Collapses when search form is collapsed, expands with form
+          COMPACT HERO - Matches /flights page style
+          Light gradient banner + search form + airline logos + trust bar
           ============================================ */}
-      <section className={`relative overflow-hidden -mt-14 sm:-mt-16 lg:-mt-[72px] transition-all duration-500 ease-out ${
-        isFormExpanded ? 'min-h-[100svh]' : 'min-h-[320px]'
-      } md:min-h-screen`}>
-        {/* Rotating Background Images - CSS animations for better performance */}
-        {currentPhotos.map((photo, index) => (
-          <div
-            key={`hero-${activeService}-${index}`}
-            className="absolute inset-0"
-            style={{
-              animation: `heroFade${activeService} ${6 * currentPhotos.length}s infinite`,
-              animationDelay: `${index * 6}s`,
-              opacity: 0
-            }}
-          >
-            <Image
-              src={photo.image}
-              alt={photo.name}
-              fill
-              className="object-cover scale-105"
-              priority={index === 0}
-              loading={index === 0 ? "eager" : "lazy"}
-              quality={index === 0 ? 95 : 85}
-              sizes="100vw"
-              placeholder="blur"
-              blurDataURL="data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAYEBQYFBAYGBQYHBwYIChAKCgkJChQODwwQFxQYGBcUFhYaHSUfGhsjHBYWICwgIyYnKSopGR8tMC0oMCUoKSj/2wBDAQcHBwoIChMKChMoGhYaKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCj/wAARCAADAAQDASIAAhEBAxEB/8QAFQABAQAAAAAAAAAAAAAAAAAAAAv/xAAUEAEAAAAAAAAAAAAAAAAAAAAA/8QAFQEBAQAAAAAAAAAAAAAAAAAAAAX/xAAUEQEAAAAAAAAAAAAAAAAAAAAA/9oADAMBAAIRAxEAPwCJgDgAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAf/9k="
-            />
-          </div>
-        ))}
 
-        {/* CSS Animation Keyframes */}
-        <style jsx>{`
-          @keyframes heroFade${activeService} {
-            0% { opacity: 1; }
-            ${(100 / currentPhotos.length).toFixed(2)}% { opacity: 1; }
-            ${(100 / currentPhotos.length + 0.01).toFixed(2)}% { opacity: 0; }
-            100% { opacity: 0; }
-          }
-        `}</style>
-
-        {/* Enhanced Gradient Overlays - Lighter for photo visibility */}
-            <div className="absolute inset-0 bg-gradient-to-b from-black/40 via-black/30 to-black/50" />
-            <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
-
-        {/* Content Container - Full height with flex */}
-        <div className={`relative z-10 flex flex-col transition-all duration-500 ease-out ${
-          isFormExpanded ? 'min-h-[100svh]' : 'min-h-[320px] pb-4'
-        } md:min-h-screen md:pb-0`}>
-          {/* Title Section - Top */}
-          <div className="pt-24 md:pt-28 lg:pt-32 px-2 md:px-6">
-            <MaxWidthContainer noPadding>
-            <MaxWidthContainer noPadding>
-              <div className="text-center animate-fadeIn">
-                {/* Large Animated Title */}
-                <h1
-                  className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-black text-white mb-3"
-                  style={{ textShadow: '0 6px 60px rgba(0,0,0,0.9)' }}
-                >
-                  {t.sectionTitle}{' '}
-                  <span
-                    className="inline-block bg-gradient-to-r from-yellow-300 via-white to-yellow-300 bg-clip-text text-transparent"
-                    style={{
-                      backgroundSize: '200% 200%',
-                    }}
-                  >
-                    {t.titleHighlight}
-                  </span>
-                </h1>
-
-                <p
-                  className="text-base md:text-lg lg:text-xl text-white/95 font-bold mb-4"
-                  style={{ textShadow: '0 4px 40px rgba(0,0,0,0.8)' }}
-                >
-                  {t.subtitle}
-                </p>
-
-                {/* Homepage Email Capture */}
-                <HeroEmailCapture className="mb-4" />
-              </div>
-            </MaxWidthContainer>
-            </MaxWidthContainer>
-          </div>
-
-          {/* Search Form Section */}
-          <div className="flex-1 pt-2 md:pt-4">
-            <MobileHomeSearchWrapper
-              lang={lang}
-              glassmorphism
-              onServiceTypeChange={handleServiceChange}
-              onExpandStateChange={handleExpandStateChange}
-            />
-          </div>
-
-          {/* Airlines Logo Marquee (hidden when collapsed on mobile) */}
-          <div className={`${isFormExpanded ? 'block' : 'hidden md:block'}`}>
-            <AirlineLogosMarquee />
-          </div>
-
-          {/* Trust Signals - At bottom of hero (hidden when collapsed on mobile) */}
-          <div className={`pb-4 md:pb-6 ${isFormExpanded ? 'mt-auto' : 'mt-4 hidden md:block'} md:mt-auto bg-black/70 backdrop-blur-md rounded-t-xl pt-4`}>
-            {/* Trust Signals - Visible with Colored Icons */}
-            <div className="flex items-center justify-center gap-4 md:gap-8 mb-3">
-              {[
-                { icon: Shield, text: 'Best Price', color: 'text-emerald-400' },
-                { icon: HeadphonesIcon, text: '24/7 Support', color: 'text-sky-400' },
-                { icon: CreditCard, text: 'Secure', color: 'text-blue-400' },
-                { icon: Sparkles, text: 'Free Cancel 24h', color: 'text-amber-400' },
-              ].map((item, idx) => (
-                <div key={idx} className="flex items-center gap-1.5">
-                  <item.icon className={`w-4 h-4 md:w-5 md:h-5 ${item.color}`} strokeWidth={2} />
-                  <span className="text-[11px] md:text-xs font-extrabold text-white whitespace-nowrap drop-shadow-lg">
-                    {item.text}
-                  </span>
-                </div>
-              ))}
-            </div>
-            {/* Scroll Indicator */}
-            <div className="flex flex-col items-center animate-bounce">
-              <ChevronDown className="w-5 h-5 text-white/80" />
-            </div>
-          </div>
+      {/* Compact Title Banner — same as /flights */}
+      <div className="relative bg-gradient-to-br from-neutral-50 via-primary-50/20 to-neutral-50 border-b border-neutral-200/60 overflow-hidden">
+        {/* Floating orbs */}
+        <div className="absolute inset-0 overflow-hidden pointer-events-none">
+          <div className="floating-orb floating-orb-1"></div>
+          <div className="floating-orb floating-orb-2"></div>
+          <div className="floating-orb floating-orb-3"></div>
         </div>
-      </section>
+        {/* Dot grid */}
+        <div className="absolute inset-0 opacity-[0.02]" style={{
+          backgroundImage: 'radial-gradient(circle at 1px 1px, #E74035 1px, transparent 0)',
+          backgroundSize: '40px 40px'
+        }}></div>
+        <MaxWidthContainer className="relative" noPadding={true}>
+          <div className="px-3 sm:px-4 md:px-6 lg:px-8 py-4 md:py-6 lg:py-8">
+            <div className="flex flex-col md:flex-row md:items-center gap-1 md:gap-3 animate-fadeIn">
+              <h1 key={`title-${animationKey}`} className="hero-title text-base sm:text-[22px] md:text-4xl lg:text-[44px] font-extrabold tracking-[0.05em] md:tracking-[0.08em] leading-tight whitespace-nowrap">
+                {mounted ? t.sectionTitle.split('').map((char, index) => (
+                  <span key={index} className="letter-elastic" style={{ animationDelay: `${index * 0.038}s`, display: 'inline-block', minWidth: char === ' ' ? '0.3em' : 'auto' }}>
+                    {char === ' ' ? '\u00A0' : char}
+                  </span>
+                )) : <span>{t.sectionTitle}</span>}
+              </h1>
+              <span className="hidden md:inline-block text-primary-400 text-2xl lg:text-3xl font-bold mx-2 md:mx-4">•</span>
+              <p key={`subtitle-${animationKey}`} className="hero-subtitle text-neutral-600 mb-0 font-medium text-[13px] sm:text-[17px] md:text-[20px] lg:text-[24px] tracking-[0.04em] md:tracking-[0.06em] leading-tight whitespace-nowrap">
+                {mounted ? t.subtitle.split('').map((char, index) => (
+                  <span key={index} className="letter-elastic" style={{ animationDelay: `${2.0 + (index * 0.028)}s`, display: 'inline-block', minWidth: char === ' ' ? '0.4em' : 'auto' }}>
+                    {char === ' ' ? '\u00A0' : char}
+                  </span>
+                )) : <span>{t.subtitle}</span>}
+              </p>
+            </div>
+          </div>
+        </MaxWidthContainer>
+      </div>
+
+      <style jsx>{`
+        .floating-orb { position: absolute; border-radius: 50%; filter: blur(60px); opacity: 0.12; animation: float 20s ease-in-out infinite; z-index: 0; }
+        .floating-orb-1 { width: 200px; height: 200px; background: linear-gradient(135deg, #E74035, #F7C928); top: -80px; left: 5%; animation-delay: 0s; animation-duration: 25s; }
+        .floating-orb-2 { width: 180px; height: 180px; background: linear-gradient(135deg, #D63B34, #E74035); top: -60px; right: 10%; animation-delay: 5s; animation-duration: 30s; }
+        .floating-orb-3 { width: 150px; height: 150px; background: linear-gradient(135deg, #F7C928, #E74035); bottom: -50px; left: 50%; animation-delay: 10s; animation-duration: 28s; }
+        @media (min-width: 768px) {
+          .floating-orb-1 { width: 300px; height: 300px; top: -150px; left: 10%; }
+          .floating-orb-2 { width: 250px; height: 250px; top: -100px; right: 15%; }
+          .floating-orb-3 { width: 200px; height: 200px; bottom: -100px; }
+        }
+        @keyframes float {
+          0%, 100% { transform: translate(0, 0) scale(1); }
+          25% { transform: translate(10px, -8px) scale(1.02); }
+          50% { transform: translate(-8px, 5px) scale(0.98); }
+          75% { transform: translate(6px, -6px) scale(1.01); }
+        }
+        .hero-title { color: #E74035; text-shadow: 0 1px 2px rgba(0,0,0,0.06), 0 2px 8px rgba(231,64,53,0.12); position: relative; z-index: 10; transform: translateZ(0); backface-visibility: hidden; isolation: isolate; font-weight: 800; }
+        .letter-elastic { opacity: 0; animation: elasticLetterEntrance 0.5s cubic-bezier(0.2,0.8,0.2,1) forwards; transform-origin: center center; position: relative; z-index: 1; backface-visibility: hidden; }
+        @keyframes elasticLetterEntrance { 0% { opacity: 0; transform: translateY(-5px) scale(0.9) translateZ(0); } 100% { opacity: 1; transform: translateY(0) scale(1) translateZ(0); } }
+        .hero-subtitle { position: relative; z-index: 10; transform: translateZ(0); backface-visibility: hidden; isolation: isolate; color: #525252; font-weight: 500; }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        .animate-fadeIn { animation: fadeIn 0.6s cubic-bezier(0.2,0.8,0.2,1); }
+        @media (prefers-reduced-motion: reduce) { .hero-title, .letter-elastic, .floating-orb { animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; } }
+      `}</style>
+
+      {/* Search Form */}
+      <div className="border-b border-neutral-100">
+        <MobileHomeSearchWrapper lang={lang} />
+      </div>
+
+      {/* Compact Trust Bar — sticky, same as /flights */}
+      <CompactTrustBar sticky />
+
+      {/* Airline Logos Marquee — lazy loaded, non-blocking */}
+      <div className="bg-neutral-50">
+        <AirlineLogosMarquee />
+      </div>
 
       {/* ============================================
           MAIN CONTENT SECTIONS
