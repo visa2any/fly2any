@@ -147,10 +147,8 @@ async function geocodeCity(query: string): Promise<{ lat: number; lng: number; c
 async function performAmadeusSearch(locationQuery: string, searchParams: HotelSearchParams, roomCount: number) {
   let amadeusResults = { hotels: [] as any[] };
 
-  // PRODUCTION: Amadeus disabled to prevent 504 timeouts (Vercel Hobby 10s limit)
-  const isProduction = process.env.NODE_ENV === 'production' || process.env.VERCEL_ENV === 'production';
-  if (isProduction) {
-    console.log('⚡ Amadeus skipped in production (LiteAPI-only mode for speed)');
+  if (!locationQuery) {
+    console.log(`⚠️ Amadeus search skipped - no location query provided`);
     return amadeusResults;
   }
 
@@ -227,7 +225,8 @@ async function performHotelBedsSearch(locationQuery: string, searchParams: Hotel
   let hotelbedsResults = { hotels: [] as any[], processTime: 0 };
   const isProduction = process.env.NODE_ENV === 'production' || process.env.VERCEL_ENV === 'production';
 
-  if (!isProduction && process.env.HOTELBEDS_API_KEY && process.env.HOTELBEDS_SECRET) {
+  // Also re-enabled in production (runs in parallel with LiteAPI, 4s timeout cap)
+  if (process.env.HOTELBEDS_API_KEY && process.env.HOTELBEDS_SECRET) {
     try {
       const paxes = [];
       const adults = searchParams.guests?.adults || 2;
@@ -526,7 +525,7 @@ export async function POST(request: NextRequest) {
       ? rawChildren.map((c: any) => typeof c === 'number' ? c : (c.age || 8))
       : (typeof rawChildren === 'number' ? Array(rawChildren).fill(8) : []);
 
-    const PROVIDER_TIMEOUT = 8000; // 8 seconds per provider (Safety for Vercel Hobby 10s limit)
+    const PROVIDER_TIMEOUT = 4000; // 4s per provider — 3 run in parallel so total = 4s max
 
     const [liteAPIResults, amadeusResults, hotelbedsResults] = await Promise.all([
       withTimeout(
@@ -975,7 +974,7 @@ export async function GET(request: NextRequest) {
       limit: 20, // Hard cap for speed within Vercel 10s limit
     };
 
-    const PROVIDER_TIMEOUT = 8000; // 8 seconds per provider
+    const PROVIDER_TIMEOUT = 4000; // 4s per provider — 3 providers in parallel = 4s total (not 12s!)
 
     const [liteAPIResults, amadeusResults, hotelbedsResults] = await Promise.all([
       withTimeout(

@@ -496,7 +496,7 @@ class LiteAPI {
 
       const response = await axios.post(`${this.baseUrl}/hotels/rates`, requestBody, {
         headers: this.getHeaders(),
-        timeout: 5000, // 5s - must complete fast for Vercel limits
+        timeout: 3000, // 3s - must complete fast for Vercel limits
       });
 
       const data = response.data.data || [];
@@ -601,7 +601,7 @@ class LiteAPI {
 
               const response = await axios.post(`${this.baseUrl}/hotels/rates`, requestBody, {
                 headers: this.getHeaders(),
-                timeout: 5000, // 5s - must complete fast for Vercel limits
+                timeout: 3000, // 3s - must complete fast for Vercel limits
               });
 
               if (response.data.error) {
