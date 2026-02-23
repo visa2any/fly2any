@@ -371,7 +371,7 @@ class LiteAPI {
       const response = await axios.get(`${this.baseUrl}/data/hotels`, {
         params: queryParams,
         headers: this.getHeaders(),
-        timeout: 30000,
+        timeout: 5000, // 5s - must complete fast for Vercel limits
       });
 
       const hotels = response.data.data || [];
@@ -443,7 +443,7 @@ class LiteAPI {
 
       const response = await axios.post(`${this.baseUrl}/hotels/rates`, requestBody, {
         headers: this.getHeaders(),
-        timeout: 60000, // Rates endpoint can be slow
+        timeout: 5000, // 5s - must complete fast for Vercel limits
       });
 
       const data = response.data.data || [];
@@ -478,9 +478,9 @@ class LiteAPI {
     guestNationality?: string;
   }): Promise<Array<{ hotelId: string; minimumRate: { amount: number; currency: string }; available: boolean }>> {
     try {
-      // PERFORMANCE OPTIMIZED: Increased batch size, parallel execution
-      const BATCH_SIZE = 40; // Maximize batch size for fewer API calls
-      const MAX_CONCURRENT = 5; // Process 5 batches in parallel to handle 200 hotels per wave
+      // PERFORMANCE OPTIMIZED: Small batches, limited concurrency for Vercel 10s limit
+      const BATCH_SIZE = 25; // Smaller batches for faster responses
+      const MAX_CONCURRENT = 2; // Limited concurrency to avoid overwhelming LiteAPI
 
       console.log(`⚡ LiteAPI: Getting rates for ${params.hotelIds.length} hotels (PARALLEL batches of ${BATCH_SIZE})`);
 
@@ -547,7 +547,7 @@ class LiteAPI {
 
               const response = await axios.post(`${this.baseUrl}/hotels/rates`, requestBody, {
                 headers: this.getHeaders(),
-                timeout: 12000, // Reduced from 15s to 12s for faster failure
+                timeout: 5000, // 5s - must complete fast for Vercel limits
               });
 
               if (response.data.error) {
@@ -868,17 +868,16 @@ class LiteAPI {
       console.log(`📅 LiteAPI: Calculated ${nights} nights (${checkIn} to ${checkOut})`);
 
       // Step 1: Get hotel static data
-      // INCREASED VOLUME: Request up to 400 hotels to ensure plenty of final available choices
+      // PERFORMANCE: Limit hotel count for fast responses within Vercel 10s limit
       const locationParams: Parameters<typeof this.getHotelsByLocation>[0] = {
-        limit: Math.min(params.limit || 300, 400), 
+        limit: Math.min(params.limit || 50, 50), // Cap at 50 for speed
       };
 
       if (params.latitude !== undefined && params.longitude !== undefined) {
         locationParams.latitude = params.latitude;
         locationParams.longitude = params.longitude;
-        // CRITICAL: Pass radius for proper city coverage (default 50km for major cities)
         // HotelSearchParams.radius is in km, LiteAPI expects meters - convert!
-        locationParams.radius = params.radius ? params.radius * 1000 : 50000; // 50km default for better coverage
+        locationParams.radius = params.radius ? params.radius * 1000 : 20000; // 20km default for speed
       } else if (params.countryCode) {
         locationParams.countryCode = params.countryCode;
         if (params.cityName) {
@@ -895,11 +894,11 @@ class LiteAPI {
         };
       }
 
-      // Filter out deleted hotels
-      // REMOVED .slice(0, 100) limit - batching handles all hotels efficiently
+      // Filter out deleted hotels and cap to 50 for speed
       const activeHotelIds = hotels
         .filter(h => !h.deletedAt)
-        .map(h => h.id);
+        .map(h => h.id)
+        .slice(0, 50); // Hard cap for Vercel 10s limit
 
       if (activeHotelIds.length === 0) {
         return {
