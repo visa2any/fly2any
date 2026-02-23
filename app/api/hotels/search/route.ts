@@ -1,4 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
+
+// Allow this route to run for up to 60 seconds (Vercel Hobby limit)
+export const maxDuration = 60;
+
 import prisma from '@/lib/prisma';
 import { mapPropertyToHotel } from '@/lib/mappers/property-mapper';
 import { liteAPI } from '@/lib/api/liteapi'; // ✅ Updated with amenities support
@@ -264,7 +268,7 @@ async function performLiteAPISearch(searchParams: HotelSearchParams) {
     currency: searchParams.currency || 'USD',
     guestNationality: searchParams.location.country || 'US',
     radius: searchParams.radius || 15, // 15km default for accurate city results
-    limit: searchParams.limit || 300, // Increased for better volume, the API will cap handle up to 400
+    limit: searchParams.limit || 200, // Balanced for speed and volume (max 60s execution limit)
   }).catch(err => {
     console.error('⚠️ LiteAPI search failed:', err.message);
     return { hotels: [], meta: { usedMinRates: true, error: err.message } };
@@ -385,7 +389,7 @@ export async function POST(request: NextRequest) {
         children: body.guests.children || [],
       },
       radius: body.radius || 15, // 15km default - smaller radius for accurate city results
-      limit: body.limit || 300, // 300 hotels requested from the providers
+      limit: body.limit || 200, // 200 hotels requested from the providers
       currency: body.currency || 'USD',
     };
 
@@ -912,7 +916,7 @@ export async function GET(request: NextRequest) {
       currency: searchParams.get('currency') || 'USD',
       guestNationality: 'US',
       radius: searchParams.get('radius') ? parseInt(searchParams.get('radius')!) : 15, // 15km default for accurate city results
-      limit: searchParams.get('limit') ? parseInt(searchParams.get('limit')!) : 300,
+      limit: searchParams.get('limit') ? parseInt(searchParams.get('limit')!) : 200,
     }).catch(err => {
       console.error('⚠️ LiteAPI search failed:', err.message);
       return { hotels: [], meta: { usedMinRates: true, error: err.message } };
