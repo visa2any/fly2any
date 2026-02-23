@@ -531,9 +531,10 @@ class LiteAPI {
     guestNationality?: string;
   }): Promise<Array<{ hotelId: string; minimumRate: { amount: number; currency: string }; available: boolean }>> {
     try {
-      // PERFORMANCE OPTIMIZED: Small batches, limited concurrency for Vercel 10s limit
-      const BATCH_SIZE = 25; // Smaller batches for faster responses
-      const MAX_CONCURRENT = 2; // Limited concurrency to avoid overwhelming LiteAPI
+      // PERFORMANCE: In production use 1 wave, in dev allow more
+      const isProduction = process.env.NODE_ENV === 'production' || process.env.VERCEL_ENV === 'production';
+      const BATCH_SIZE = isProduction ? 20 : 25; // Single batch in production
+      const MAX_CONCURRENT = isProduction ? 1 : 2; // Single wave in production
 
       console.log(`⚡ LiteAPI: Getting rates for ${params.hotelIds.length} hotels (PARALLEL batches of ${BATCH_SIZE})`);
 

@@ -114,7 +114,7 @@ async function geocodeCity(query: string): Promise<{ lat: number; lng: number; c
   try {
     const url = `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(query)}&format=json&limit=1&addressdetails=1`;
     const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 8000); // 8 second timeout for geocoding
+    const timeoutId = setTimeout(() => controller.abort(), 2000); // 2s max for geocoding
 
     const response = await fetch(url, {
       headers: { 'User-Agent': 'Fly2Any Travel Platform (contact@fly2any.com)' },
@@ -146,6 +146,14 @@ async function geocodeCity(query: string): Promise<{ lat: number; lng: number; c
 // Refactored Amadeus search into a separate function
 async function performAmadeusSearch(locationQuery: string, searchParams: HotelSearchParams, roomCount: number) {
   let amadeusResults = { hotels: [] as any[] };
+
+  // PRODUCTION: Amadeus disabled to prevent 504 timeouts (Vercel Hobby 10s limit)
+  const isProduction = process.env.NODE_ENV === 'production' || process.env.VERCEL_ENV === 'production';
+  if (isProduction) {
+    console.log('⚡ Amadeus skipped in production (LiteAPI-only mode for speed)');
+    return amadeusResults;
+  }
+
   if (locationQuery) {
     try {
       const cityCode = extractCityCode(locationQuery);
@@ -956,7 +964,7 @@ export async function GET(request: NextRequest) {
     // CRITICAL: Pass rooms param AND childAges for accurate multi-room pricing
     console.log(`🏨 [SEARCH] Searching with: ${adults} adults, ${children} children (ages: ${childAges.length > 0 ? childAges.join(',') : 'default'}), ${rooms} rooms`);
 
-    // 1. Multi-API Search (Parallel)
+    // 1. Multi-API Search (Parallel) - Production: LiteAPI only for speed
     const searchParamsObj: HotelSearchParams = {
       location: { lat: latitude!, lng: longitude!, country: countryCode } as any,
       checkIn: checkIn!,
@@ -964,7 +972,7 @@ export async function GET(request: NextRequest) {
       guests: { adults: parseInt(adults), children: childAges },
       currency: searchParams.get('currency') || 'USD',
       radius: searchParams.get('radius') ? parseInt(searchParams.get('radius')!) : 20,
-      limit: searchParams.get('limit') ? parseInt(searchParams.get('limit')!) : 100,
+      limit: 20, // Hard cap for speed within Vercel 10s limit
     };
 
     const PROVIDER_TIMEOUT = 8000; // 8 seconds per provider
