@@ -525,7 +525,7 @@ export async function POST(request: NextRequest) {
       ? rawChildren.map((c: any) => typeof c === 'number' ? c : (c.age || 8))
       : (typeof rawChildren === 'number' ? Array(rawChildren).fill(8) : []);
 
-    const PROVIDER_TIMEOUT = 8000; // 8s per provider — all run in parallel = 8s total max
+    const PROVIDER_TIMEOUT = 20000; // 20s per provider — Amadeus needs 12-15s for 150 hotels in 3 batches
 
     // Helper: wrapped native property search with timeout
     async function performNativePropertySearchPOST(): Promise<any[]> {
@@ -978,7 +978,7 @@ export async function GET(request: NextRequest) {
       limit: 100, // 100 hotels for good coverage (maxDuration=60 gives us headroom)
     };
 
-    const PROVIDER_TIMEOUT = 8000; // 8s per provider — all run in parallel = 8s total max
+    const PROVIDER_TIMEOUT = 20000; // 20s per provider — Amadeus needs 12-15s for 150 hotels in 3 batches
 
     // Helper: wrapped native property search with timeout
     async function performNativePropertySearch(): Promise<any[]> {
