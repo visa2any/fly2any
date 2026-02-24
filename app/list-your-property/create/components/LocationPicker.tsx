@@ -404,13 +404,14 @@ export function LocationPicker({ initialLocation, onLocationSelect }: LocationPi
       </div>
 
       {/* Map */}
-      <div className="flex-1 rounded-2xl overflow-hidden border border-neutral-200 shadow-inner relative z-0 bg-neutral-100 min-h-[300px]">
+      <div className="rounded-2xl overflow-hidden border border-neutral-200 shadow-inner relative z-0 bg-neutral-100" style={{ height: '400px' }}>
         {(typeof window !== 'undefined') && (
            <MapContainer
              center={activePosition}
              zoom={13}
              scrollWheelZoom={true}
              className="w-full h-full"
+             style={{ height: '100%', width: '100%' }}
            >
             <TileLayer
                 attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>'

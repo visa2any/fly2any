@@ -360,6 +360,12 @@ export default function CreatePropertyPage() {
                       beds: p.totalBeds || 1,
                       bathrooms: p.totalBathrooms || 1,
                     },
+                    building: {
+                      buildingType: p.buildingType || '',
+                      totalFloors: p.totalFloors ?? undefined,
+                      propertyFloor: p.propertyFloor ?? undefined,
+                      hasElevator: p.hasElevator ?? false,
+                    },
                     rooms: (p.rooms || []).map((r: any) => ({
                       id: r.id,
                       name: r.name || 'Room',

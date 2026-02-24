@@ -126,17 +126,48 @@ export async function POST(request: NextRequest) {
         }
     }
 
-    // 3. Scrape img tags (filter for size to avoid icons) - simplified approach
+    // 3. Scrape img tags including data-src, srcset, and data-original
     $('img').each((_, el) => {
-        const src = $(el).attr('src') || $(el).attr('data-src');
-        if (src && src.startsWith('http') && !src.includes('profile') && !src.includes('icon') && !src.includes('logo')) {
-            // Rough heuristic: ignore obvious tiny images if possible, but hard to know dimensions without loading
+        const src = $(el).attr('src') || $(el).attr('data-src') || $(el).attr('data-original') || $(el).attr('data-original-uri');
+        if (src && src.startsWith('http') && !src.includes('profile') && !src.includes('icon') && !src.includes('logo') && !src.includes('avatar') && !src.includes('sprite')) {
             if (!extractedImages.includes(src)) extractedImages.push(src);
+        }
+        // Also check srcset for high-res versions
+        const srcset = $(el).attr('srcset');
+        if (srcset) {
+            const urls = srcset.split(',').map(s => s.trim().split(/\s+/)[0]).filter(u => u.startsWith('http'));
+            // Pick the last (highest res) srcset entry
+            if (urls.length > 0) {
+                const highRes = urls[urls.length - 1];
+                if (!extractedImages.includes(highRes)) extractedImages.push(highRes);
+            }
         }
     });
 
-    // Limit images to top 10 unique
-    const uniqueImages = Array.from(new Set(extractedImages)).slice(0, 10);
+    // 4. Check picture > source elements (common in modern sites)
+    $('picture source').each((_, el) => {
+        const srcset = $(el).attr('srcset');
+        if (srcset) {
+            const urls = srcset.split(',').map(s => s.trim().split(/\s+/)[0]).filter(u => u.startsWith('http'));
+            urls.forEach(u => { if (!extractedImages.includes(u)) extractedImages.push(u); });
+        }
+    });
+
+    // 5. Deep scan: Find image URLs in inline JSON/scripts (Airbnb, Booking.com embed photos in JS data)
+    const rawHtml = html.substring(0, 200000); // Scan first 200KB
+    const imgUrlRegex = /https?:\/\/[^\s"'<>]+\.(?:jpg|jpeg|png|webp)(?:\?[^\s"'<>]*)?/gi;
+    const scriptMatches = rawHtml.match(imgUrlRegex) || [];
+    scriptMatches.forEach(url => {
+        // Filter out tiny thumbnails, tracking pixels, etc.
+        if (url.includes('icon') || url.includes('logo') || url.includes('avatar') || url.includes('sprite') || url.includes('1x1') || url.includes('pixel')) return;
+        // Prefer larger images (heuristic: URL often contains size hints)
+        if (!extractedImages.includes(url)) extractedImages.push(url);
+    });
+
+    console.log(`📸 Extracted ${extractedImages.length} raw image URLs`);
+
+    // Limit images to top 30 unique
+    const uniqueImages = Array.from(new Set(extractedImages)).slice(0, 30);
 
 
     // Remove scripts, style, etc for text processing
