@@ -104,6 +104,7 @@ export const authConfig = {
 
         // Dynamically import bcryptjs (Node.js only)
         const bcrypt = await getBcrypt();
+        const startTime = Date.now();
         console.log(`[Auth] User found, comparing password for ${email}...`);
         const isPasswordValid = await bcrypt.compare(
           credentials.password as string,

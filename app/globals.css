@@ -2,6 +2,13 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Leaflet Map - Ensure the map container fills its parent */
+.leaflet-container {
+  height: 100% !important;
+  width: 100% !important;
+  z-index: 1;
+}
+
 /* Global keyframes - outside @layer for universal access */
 /* Uses !important to override prefers-reduced-motion for subtle decorative animations */
 @keyframes airline-scroll {
