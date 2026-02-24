@@ -971,8 +971,8 @@ export async function GET(request: NextRequest) {
       checkOut: checkOut!,
       guests: { adults: parseInt(adults), children: childAges },
       currency: searchParams.get('currency') || 'USD',
-      radius: searchParams.get('radius') ? parseInt(searchParams.get('radius')!) : 20,
-      limit: 100, // 100 hotels for good coverage (maxDuration=60 gives us headroom)
+      radius: searchParams.get('radius') ? parseInt(searchParams.get('radius')!) : 50,
+      limit: 200, // Max coverage since LiteAPI is now primary source (Amadeus disabled)
     };
 
     const PROVIDER_TIMEOUT = 20000; // 20s per provider — Amadeus needs 12-15s for 150 hotels in 3 batches
