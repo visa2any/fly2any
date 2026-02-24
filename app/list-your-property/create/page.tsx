@@ -487,39 +487,58 @@ export default function CreatePropertyPage() {
   const handleGenerateDescription = () => handleGenerateAI('description');
 
   const handleImportSuccess = (importedData: any) => {
+    console.log('📦 Import data received:', JSON.stringify(importedData, null, 2));
+
+    // Convert raw image URL strings to photo objects the form expects
+    const importedImages = (importedData.images || [])
+      .filter((img: any) => typeof img === 'string' ? img.startsWith('http') : img?.url)
+      .map((img: any, idx: number) => ({
+        id: `imported-${Date.now()}-${idx}`,
+        url: typeof img === 'string' ? img : img.url,
+        caption: '',
+        category: 'general' as const,
+        isPrimary: idx === 0,
+        tags: [],
+      }));
+
     setFormData(prev => ({
       ...prev,
       title: importedData.name || prev.title,
       description: importedData.description || prev.description,
       type: (importedData.propertyType as PropertyType) || prev.type,
-         location: {
-          ...prev.location,
-          address: importedData.address?.full_address || `${importedData.address?.city || ''}, ${importedData.address?.country || ''}`.replace(/^, /, '').trim() || prev.location.address,
-          city: importedData.address?.city || prev.location.city,
-          country: importedData.address?.country || prev.location.country,
-       },
+      location: {
+        ...prev.location,
+        address: importedData.address?.full_address || `${importedData.address?.city || ''}, ${importedData.address?.country || ''}`.replace(/^, /, '').trim() || prev.location.address,
+        city: importedData.address?.city || prev.location.city,
+        country: importedData.address?.country || prev.location.country,
+        latitude: importedData.location?.latitude || prev.location.latitude,
+        longitude: importedData.location?.longitude || prev.location.longitude,
+      },
       specs: {
          ...prev.specs,
          bedrooms: importedData.specs?.bedrooms || prev.specs.bedrooms,
          bathrooms: importedData.specs?.bathrooms || prev.specs.bathrooms,
          guests: importedData.specs?.maxGuests || prev.specs.guests,
+         beds: importedData.specs?.beds || prev.specs.beds,
       },
-      amenities: [...prev.amenities, ...(importedData.amenities || [])],
-      // We append imported images if any
-      images: [...prev.images, ...(importedData.images || [])],
+      amenities: [...new Set([...prev.amenities, ...(importedData.amenities || [])])],
+      // Use properly converted image objects
+      images: [...prev.images, ...importedImages],
       pricing: {
           ...prev.pricing,
-          basePrice: importedData.price?.amount || prev.pricing.basePrice
+          basePrice: importedData.price?.amount || prev.pricing.basePrice,
+          currency: importedData.price?.currency || prev.pricing.currency,
       },
       policies: {
           ...prev.policies,
-          houseRules: [...prev.policies.houseRules, ...(importedData.houseRules || [])],
+          houseRules: [...new Set([...prev.policies.houseRules, ...(importedData.houseRules || [])])],
           checkInTime: importedData.checkIn || prev.policies.checkInTime,
           checkOutTime: importedData.checkOut || prev.policies.checkOutTime,
       }
     }));
     toast.success("Property data imported! Please review.");
   };
+
 
   const handleNext = () => {
     // Validate current step before advancing
@@ -1142,7 +1161,7 @@ export default function CreatePropertyPage() {
                     {/* Fake Header / Cover Photo */}
                     <div className="relative aspect-[4/3] bg-neutral-100 w-full overflow-hidden">
                         {formData.images.length > 0 && formData.images[0]?.url ? (
-                            <Image src={formData.images[0].url} alt="Cover" fill className="object-cover transition-transform duration-700 hover:scale-105" />
+                            <Image src={formData.images[0].url} alt="Cover" fill unoptimized className="object-cover transition-transform duration-700 hover:scale-105" />
                         ) : (
                             <div className="absolute inset-0 flex flex-col items-center justify-center text-neutral-400 gap-2">
                                 <Camera className="w-8 h-8 opacity-30" />

@@ -103,24 +103,30 @@ export default function PropertiesPage() {
   return (
     <div className="min-h-screen bg-[#FDFDFD] pt-4 pb-20">
       <MaxWidthContainer>
-        <header className="mb-12 mt-4">
-          <div className="flex items-center gap-3 mb-4">
-            <div className="bg-primary-50 p-2 rounded-xl border border-primary-100">
-               <Building2 className="w-6 h-6 text-primary-600" />
+        <header className="mb-6 mt-4">
+          <div className="flex items-center justify-between mb-2">
+            <div className="flex items-center gap-3">
+              <div className="bg-primary-50 p-2 rounded-xl border border-primary-100">
+                 <Building2 className="w-6 h-6 text-primary-600" />
+              </div>
+              <span className="text-[10px] font-black uppercase tracking-[0.2em] text-primary-600">Portfolio Manager</span>
             </div>
-            <span className="text-[10px] font-black uppercase tracking-[0.2em] text-primary-600">Portfolio Manager</span>
+            <Link
+              href="/list-your-property/create"
+              className="flex items-center justify-center gap-2 px-5 py-2.5 rounded-2xl bg-primary-500 text-white font-bold text-sm hover:bg-primary-600 transition-colors shadow-[0_8px_16px_rgba(231,64,53,0.25)] hover:shadow-[0_12px_24px_rgba(231,64,53,0.35)] hover:-translate-y-0.5"
+            >
+              <Plus className="w-4 h-4" />
+              <span className="hidden sm:inline">Add Property</span>
+            </Link>
           </div>
-          <h1 className="text-4xl font-black text-midnight-navy mb-3 tracking-tighter">Property Matrix</h1>
-          <p className="text-neutral-500 max-w-2xl font-medium leading-relaxed">
-            Manage your ultra-premium portfolio performance. Real-time monitoring of occupancy, yield, and guest sentiment.
-          </p>
+          <div className="flex flex-col md:flex-row md:items-baseline gap-1 md:gap-4">
+            <h1 className="text-3xl font-black text-midnight-navy tracking-tighter whitespace-nowrap">Property Matrix</h1>
+            <p className="text-neutral-400 font-medium text-sm leading-tight truncate">
+              Manage your ultra-premium portfolio performance. Real-time monitoring of occupancy, yield, and guest sentiment.
+            </p>
+          </div>
         </header>
-          <Link
-            href="/list-your-property/create"
-            className="flex items-center justify-center gap-2 px-6 py-3.5 rounded-2xl bg-primary-500 text-white font-bold text-sm hover:bg-primary-600 transition-colors shadow-[0_8px_16px_rgba(231,64,53,0.25)] hover:shadow-[0_12px_24px_rgba(231,64,53,0.35)] hover:-translate-y-0.5"
-          >
-            <Plus className="w-4 h-4" />
-          </Link>
+
 
         {/* Filters & Search */}
         <div className="flex flex-col md:flex-row gap-4 mb-10">

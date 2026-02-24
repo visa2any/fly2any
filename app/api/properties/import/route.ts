@@ -253,24 +253,42 @@ export async function POST(request: NextRequest) {
 function mapJsonLdToProperty(jsonLd: any, meta: any, images: string[]): any | null {
     if (!jsonLd || Object.keys(jsonLd).length === 0) return null;
 
-    // Prioritize specific types
-    // Sometimes JSON-LD is an array or graph, we simplified it to a flat object in the loop above or used `Object.assign`.
-    
     // Fallback logic for Name/Desc from Meta if JSON-LD is partial
     const name = jsonLd.name || meta.title;
     const description = jsonLd.description || meta.description;
 
     if (!name && !description) return null;
 
+    // Infer property type from JSON-LD @type and name
+    const inferPropertyType = (): string => {
+        const schemaType = (jsonLd['@type'] || '').toLowerCase();
+        const nameLC = (name || '').toLowerCase();
+        const descLC = (description || '').toLowerCase();
+        const combined = `${schemaType} ${nameLC} ${descLC}`;
+        
+        if (combined.includes('villa')) return 'villa';
+        if (combined.includes('resort')) return 'resort';
+        if (combined.includes('hostel')) return 'hostel';
+        if (combined.includes('guesthouse') || combined.includes('guest house')) return 'guesthouse';
+        if (combined.includes('bed and breakfast') || combined.includes('b&b') || schemaType.includes('bedandbreakfast')) return 'bed_and_breakfast';
+        if (combined.includes('lodge')) return 'lodge';
+        if (combined.includes('motel')) return 'motel';
+        if (combined.includes('boutique hotel')) return 'boutique_hotel';
+        if (combined.includes('apartment') || combined.includes('flat') || combined.includes('condo') || combined.includes('cobertura') || combined.includes('apartamento')) return 'apartment';
+        if (combined.includes('vacation rental') || combined.includes('casa') || combined.includes('house') || combined.includes('home')) return 'vacation_rental';
+        if (schemaType.includes('hotel') || combined.includes('hotel')) return 'hotel';
+        return 'apartment'; // More common default than 'hotel' for listing imports
+    };
+
     // Extract Address
-    let address = { city: 'Unknown', country: 'Unknown', full_address: '' };
+    let address = { city: '', country: '', full_address: '', neighborhood: '' };
     if (jsonLd.address) {
         if (typeof jsonLd.address === 'string') {
              address.full_address = jsonLd.address;
         } else {
              address.city = jsonLd.address.addressLocality || '';
              address.country = jsonLd.address.addressCountry || '';
-             // Try to build full string
+             address.neighborhood = jsonLd.address.addressRegion || '';
              address.full_address = [
                 jsonLd.address.streetAddress, 
                 jsonLd.address.addressLocality, 
@@ -284,9 +302,14 @@ function mapJsonLdToProperty(jsonLd: any, meta: any, images: string[]): any | nu
     // Extract Price
     let price = { amount: 0, currency: 'USD' };
     if (jsonLd.priceRange) {
-        // e.g. "$50 - $100" -> take lowest or average? Let's take simplistic approach
-        const match = jsonLd.priceRange.match(/\d+/);
-        if (match) price.amount = parseInt(match[0]);
+        const match = jsonLd.priceRange.match(/[\d,.]+/);
+        if (match) price.amount = parseInt(match[0].replace(/[,.]/g, ''));
+        // Try to detect currency
+        const currMatch = jsonLd.priceRange.match(/([A-Z]{3}|[$€£¥R\$])/);
+        if (currMatch) {
+            const sym: Record<string, string> = { '$': 'USD', '€': 'EUR', '£': 'GBP', '¥': 'JPY', 'R$': 'BRL' };
+            price.currency = sym[currMatch[1]] || currMatch[1] || 'USD';
+        }
     } else if (jsonLd.price) {
         price.amount = Number(jsonLd.price) || 0;
         price.currency = jsonLd.priceCurrency || 'USD';
@@ -302,14 +325,14 @@ function mapJsonLdToProperty(jsonLd: any, meta: any, images: string[]): any | nu
     let amenities: string[] = [];
     if (jsonLd.amenityFeature) {
         const features = Array.isArray(jsonLd.amenityFeature) ? jsonLd.amenityFeature : [jsonLd.amenityFeature];
-        amenities = features.map((f: any) => typeof f === 'string' ? f : f.name).filter(Boolean).slice(0, 10);
+        amenities = features.map((f: any) => typeof f === 'string' ? f : f.name).filter(Boolean).slice(0, 15);
     }
 
     // Specs
     const specs = {
         bedrooms: Number(jsonLd.numberOfRooms) || Number(jsonLd.numberOfBedrooms) || 1,
         bathrooms: Number(jsonLd.numberOfBathroomsTotal) || 1,
-        maxGuests: Number(jsonLd.occupancy?.value) || 2,
+        maxGuests: Number(jsonLd.occupancy?.value) || Number(jsonLd.occupancy?.maxValue) || 2,
         beds: Number(jsonLd.numberOfBeds) || 1
     };
 
@@ -320,15 +343,38 @@ function mapJsonLdToProperty(jsonLd: any, meta: any, images: string[]): any | nu
         location.longitude = Number(jsonLd.geo.longitude) || 0;
     }
 
+    // Host info
+    const host = jsonLd.author || jsonLd.provider || {};
+
+    // House rules
+    const houseRules: string[] = [];
+    if (jsonLd.checkinTime || jsonLd.checkoutTime) {
+        // No specific rules from JSON-LD usually, but checkIn/checkOut are extracted
+    }
+
+    console.log('🗺️ Fast-path extracted:', { 
+        name, propertyType: inferPropertyType(), address, specs, price, 
+        amenitiesCount: amenities.length, imagesCount: images.length,
+        hasGeo: location.latitude !== 0 
+    });
+
     return {
         name: name?.trim(),
         description: description?.trim(),
-        propertyType: 'hotel', // Default, hard to infer specific mapping without complex logic
+        propertyType: inferPropertyType(),
         address,
-        location, // Return coordinates
+        location,
         specs,
         price,
         amenities,
-        images: images // Use the images we extracted earlier
+        images,
+        houseRules,
+        checkIn: jsonLd.checkinTime || '',
+        checkOut: jsonLd.checkoutTime || '',
+        host: {
+            name: typeof host === 'string' ? host : host.name || '',
+            isSuperhost: false
+        }
     };
 }
+

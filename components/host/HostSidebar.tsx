@@ -3,7 +3,8 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { signOut } from 'next-auth/react';
-import { LayoutDashboard, Building2, Calendar, ClipboardList, Settings, LogOut, ChevronLeft, MessageSquare, Shield, Wallet, TrendingUp } from 'lucide-react';
+import { useState } from 'react';
+import { LayoutDashboard, Building2, Calendar, ClipboardList, Settings, LogOut, MessageSquare, Shield, Wallet, TrendingUp } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 const MENU_ITEMS = [
@@ -24,11 +25,19 @@ const MOBILE_NAV_ITEMS = MENU_ITEMS.filter(item =>
 
 export default function HostSidebar() {
   const pathname = usePathname();
+  const [expanded, setExpanded] = useState(false);
 
   return (
     <>
-      {/* DESKTOP SIDEBAR */}
-      <div className="hidden md:flex flex-col bg-white border-r border-neutral-200 h-full z-40 shadow-[4px_0_24px_rgba(0,0,0,0.02)] transition-all duration-300 w-[72px] hover:w-56 group absolute left-0 top-0 bottom-0 overflow-x-hidden">
+      {/* DESKTOP SIDEBAR — pushes content instead of overlapping */}
+      <div
+        onMouseEnter={() => setExpanded(true)}
+        onMouseLeave={() => setExpanded(false)}
+        className={cn(
+          "hidden md:flex flex-col bg-white border-r border-neutral-200 h-full z-40 shadow-[4px_0_24px_rgba(0,0,0,0.02)] transition-all duration-300 overflow-x-hidden shrink-0",
+          expanded ? "w-56" : "w-[72px]"
+        )}
+      >
         <nav className="flex-1 overflow-y-auto px-3 space-y-1.5 py-4 mt-2 scrollbar-thin scrollbar-thumb-neutral-200 scrollbar-track-transparent">
           {MENU_ITEMS.map((item) => {
             const isActive = pathname === item.href;
@@ -44,10 +53,10 @@ export default function HostSidebar() {
                 )}
               >
                 {isActive && <div className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-6 bg-primary-500 rounded-r-full" />}
-                <div className={cn("p-1.5 shrink-0 rounded-lg mx-auto group-hover:mx-0", isActive ? "bg-primary-100 text-primary-600" : "bg-transparent")}>
+                <div className={cn("p-1.5 shrink-0 rounded-lg", expanded ? "" : "mx-auto", isActive ? "bg-primary-100 text-primary-600" : "bg-transparent")}>
                   <item.icon className="w-[18px] h-[18px]" />
                 </div>
-                <span className="flex-1 text-sm font-bold opacity-0 group-hover:opacity-100 transition-opacity duration-300 overflow-hidden">{item.label}</span>
+                <span className={cn("flex-1 text-sm font-bold transition-opacity duration-300 overflow-hidden", expanded ? "opacity-100" : "opacity-0 w-0")}>{item.label}</span>
               </Link>
             );
           })}
@@ -56,22 +65,28 @@ export default function HostSidebar() {
         <div className="p-4 border-t border-neutral-100 flex flex-col gap-3 shrink-0">
           <Link 
             href="/host/profile"
-            className="w-full flex items-center gap-3 p-3 rounded-xl border border-neutral-100 hover:border-neutral-200 hover:bg-neutral-50 text-gray-600 font-bold transition-all text-sm group/btn overflow-hidden whitespace-nowrap mx-auto group-hover:mx-0 justify-center group-hover:justify-start"
+            className={cn(
+              "w-full flex items-center gap-3 p-3 rounded-xl border border-neutral-100 hover:border-neutral-200 hover:bg-neutral-50 text-gray-600 font-bold transition-all text-sm overflow-hidden whitespace-nowrap",
+              expanded ? "justify-start" : "justify-center"
+            )}
           >
-            <div className="p-0.5 shrink-0 rounded-lg mx-auto group-hover:mx-0">
-              <Settings className="w-[18px] h-[18px] group-hover/btn:text-primary-600 transition-colors" />
+            <div className={cn("p-0.5 shrink-0 rounded-lg", expanded ? "" : "mx-auto")}>
+              <Settings className="w-[18px] h-[18px]" />
             </div>
-            <span className="opacity-0 group-hover:opacity-100 transition-opacity duration-300">Host Profile</span>
+            <span className={cn("transition-opacity duration-300", expanded ? "opacity-100" : "opacity-0 w-0")}>Host Profile</span>
           </Link>
 
           <button 
             onClick={() => signOut({ callbackUrl: '/' })}
-            className="w-full flex items-center gap-3 p-3 rounded-xl border border-rose-50 hover:border-rose-100 hover:bg-rose-50 text-rose-600 font-bold transition-all text-sm group/logout overflow-hidden whitespace-nowrap mx-auto group-hover:mx-0 justify-center group-hover:justify-start"
+            className={cn(
+              "w-full flex items-center gap-3 p-3 rounded-xl border border-rose-50 hover:border-rose-100 hover:bg-rose-50 text-rose-600 font-bold transition-all text-sm overflow-hidden whitespace-nowrap",
+              expanded ? "justify-start" : "justify-center"
+            )}
           >
-            <div className="p-0.5 shrink-0 rounded-lg mx-auto group-hover:mx-0">
+            <div className={cn("p-0.5 shrink-0 rounded-lg", expanded ? "" : "mx-auto")}>
               <LogOut className="w-[18px] h-[18px] text-rose-500" />
             </div>
-            <span className="opacity-0 group-hover:opacity-100 transition-opacity duration-300">Sign Out</span>
+            <span className={cn("transition-opacity duration-300", expanded ? "opacity-100" : "opacity-0 w-0")}>Sign Out</span>
           </button>
         </div>
       </div>

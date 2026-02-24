@@ -13,7 +13,7 @@ export default function HostLayout({ children }: { children: React.ReactNode }) 
       <HostHeader exitHref="/" exitLabel="Back to Fly2Any" />
       <div className="flex-1 overflow-hidden flex flex-col md:flex-row relative">
         <HostSidebar />
-        <main className="flex-1 md:ml-[72px] h-full overflow-y-auto custom-scrollbar relative bg-neutral-50/50 transition-all duration-300">
+        <main className="flex-1 h-full overflow-y-auto custom-scrollbar relative bg-neutral-50/50 transition-all duration-300">
           {children}
         </main>
       </div>
