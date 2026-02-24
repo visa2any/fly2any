@@ -659,10 +659,13 @@ export async function POST(request: NextRequest) {
     // Sort by best price and rating balance
     const results = {
       hotels: deduplicatedHotels.sort((a, b) => {
+        // Data-richness priority: hotels with images/descriptions appear first
+        const richA = (a.images?.length > 0 || a.image || a.thumbnail) ? 1 : 0;
+        const richB = (b.images?.length > 0 || b.image || b.thumbnail) ? 1 : 0;
+        if (richA !== richB) return richB - richA; // Rich hotels first
+        
         const priceA = a.lowestPricePerNight || a.lowestPrice || Infinity;
         const priceB = b.lowestPricePerNight || b.lowestPrice || Infinity;
-        
-        // STRICT: Price (Lowest to Highest)
         return priceA - priceB;
       }),
       meta: {
@@ -752,6 +755,7 @@ export async function POST(request: NextRequest) {
         cancellationDeadline: (hotel as any).cancellationDeadline || null,
         boardType: (hotel as any).boardType || 'RO',
         source,
+        dataRichness: (hotel.images?.length > 0 || hotel.thumbnail) && hotel.description ? 'full' : 'basic',
       };
     });
 
@@ -1069,8 +1073,12 @@ export async function GET(request: NextRequest) {
       }
     }
 
-    // Sort by best price
+    // Sort: data-rich hotels first (with images/descriptions), then by price
     const sortedHotels = deduplicatedHotels.sort((a, b) => {
+      const richA = (a.images?.length > 0 || a.image || a.thumbnail) ? 1 : 0;
+      const richB = (b.images?.length > 0 || b.image || b.thumbnail) ? 1 : 0;
+      if (richA !== richB) return richB - richA;
+      
       const priceA = a.lowestPricePerNight || a.lowestPrice || Infinity;
       const priceB = b.lowestPricePerNight || b.lowestPrice || Infinity;
       return priceA - priceB;
@@ -1149,7 +1157,8 @@ export async function GET(request: NextRequest) {
       refundableCancellationDeadline: (hotel as any).refundableCancellationDeadline || null,
       cancellationDeadline: (hotel as any).cancellationDeadline || null,
       boardType: (hotel as any).boardType || 'RO',
-      source: hotel.source || 'LiteAPI', // Preserve source from original hotel
+      source: hotel.source || 'LiteAPI',
+      dataRichness: (hotel.images?.length > 0 || hotel.thumbnail) && hotel.description ? 'full' : 'basic',
     }));
 
     const liteAPICount = liteAPIResults.hotels?.length || 0;

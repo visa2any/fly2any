@@ -365,6 +365,7 @@ export function HotelCard({
                   <Star key={i} className="w-3.5 h-3.5 text-white/60 fill-white/60" />
                 ))}
               </div>
+              <div className="text-[9px] text-white/50 mt-1.5 tracking-wide uppercase">Prices Only</div>
             </div>
           </div>
         )}
@@ -647,6 +648,7 @@ export function HotelCard({
                     <Star key={i} className="w-3 h-3 text-white/60 fill-white/60" />
                   ))}
                 </div>
+                <div className="text-[9px] text-white/50 mt-1.5 tracking-wide uppercase">Prices Only</div>
               </div>
             </div>
           )}
@@ -728,8 +730,10 @@ export function HotelCard({
           )}
 
           {/* Description snippet */}
-          {hotel.description && (
+          {hotel.description ? (
             <p className="text-[11px] text-[#555] line-clamp-2 mb-2 leading-relaxed">{hotel.description}</p>
+          ) : (
+            <p className="text-[11px] text-[#aaa] italic mb-2">No description available — view details for more info</p>
           )}
 
           {/* Room type badge */}
