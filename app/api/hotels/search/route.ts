@@ -567,12 +567,9 @@ export async function POST(request: NextRequest) {
         { hotels: [], meta: { usedMinRates: true, error: 'TIMEOUT' } },
         'LiteAPI'
       ),
-      withTimeout(
-        performAmadeusSearch(locationQuery, searchParams, roomCount),
-        PROVIDER_TIMEOUT,
-        { hotels: [] },
-        'Amadeus'
-      ),
+      // Amadeus hotel search DISABLED — API v3 doesn't provide images/descriptions/amenities
+      // Showing pricing-only cards is a poor UX. Re-enable when content enrichment is available.
+      Promise.resolve({ hotels: [] }),
       withTimeout(
         performHotelBedsSearch(locationQuery, searchParams, radius),
         PROVIDER_TIMEOUT,
@@ -1015,12 +1012,9 @@ export async function GET(request: NextRequest) {
         { hotels: [], meta: { usedMinRates: true, error: 'TIMEOUT' } },
         'LiteAPI'
       ),
-      withTimeout(
-        performAmadeusSearch(query || '', searchParamsObj, rooms),
-        PROVIDER_TIMEOUT,
-        { hotels: [] },
-        'Amadeus'
-      ),
+      // Amadeus hotel search DISABLED — API v3 doesn't provide images/descriptions/amenities
+      // Showing pricing-only cards is a poor UX. Re-enable when content enrichment is available.
+      Promise.resolve({ hotels: [] }),
       withTimeout(
         performHotelBedsSearch(query || '', searchParamsObj, searchParamsObj.radius || 50),
         PROVIDER_TIMEOUT,
