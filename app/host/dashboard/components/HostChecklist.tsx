@@ -78,43 +78,42 @@ export function HostChecklist({ hasProperties, isVerified, hasCalendarSetup, has
   const progress = (completedCount / totalCount) * 100;
   const allComplete = completedCount === totalCount;
 
+  // Don't show if all complete
   if (allComplete) return null;
 
   return (
-    <div className="mb-8 rounded-[2rem] border border-neutral-100 bg-white shadow-soft transition-all duration-300 group hover:shadow-soft-lg">
+    <div className="mb-8 rounded-2xl border border-neutral-200 bg-white overflow-hidden shadow-sm">
       {/* Header */}
       <button
         onClick={() => setIsCollapsed(!isCollapsed)}
-        className="w-full flex items-center justify-between p-6 sm:p-8 hover:bg-neutral-50/50 transition-colors rounded-[2rem]"
+        className="w-full flex items-center justify-between p-5 hover:bg-neutral-50 transition-colors"
       >
-        <div className="flex items-center gap-4">
-          <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-primary-500 to-primary-600 flex items-center justify-center shadow-inner">
-            <Rocket className="w-6 h-6 text-white" />
+        <div className="flex items-center gap-3">
+          <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-primary-500 to-primary-600 flex items-center justify-center">
+            <Rocket className="w-5 h-5 text-white" />
           </div>
           <div className="text-left">
-            <h3 className="font-extrabold text-midnight-navy text-lg sm:text-xl tracking-tight">Complete Your Host Setup</h3>
-            <p className="text-sm text-neutral-400 font-medium mt-0.5">{completedCount} of {totalCount} steps completed</p>
+            <h3 className="font-bold text-gray-900">Complete Your Host Setup</h3>
+            <p className="text-xs text-gray-500">{completedCount} of {totalCount} steps completed</p>
           </div>
         </div>
-        <div className="flex items-center gap-4">
+        <div className="flex items-center gap-3">
           {/* Mini progress */}
-          <div className="hidden md:flex w-32 h-2.5 bg-neutral-100 rounded-full overflow-hidden">
+          <div className="hidden md:flex w-32 h-2 bg-neutral-100 rounded-full overflow-hidden">
             <div
-              className="h-full bg-primary-500 rounded-full transition-all duration-500 shadow-[0_0_8px_rgba(231,64,53,0.4)]"
+              className="h-full bg-primary-500 rounded-full transition-all duration-500"
               style={{ width: `${progress}%` }}
             />
           </div>
-          <span className="hidden md:inline font-black text-primary-500">{Math.round(progress)}%</span>
-          <div className="w-8 h-8 rounded-full bg-neutral-50 flex items-center justify-center border border-neutral-100 ml-2 group-hover:border-neutral-200 transition-colors">
-            {isCollapsed ? <ChevronDown className="w-4 h-4 text-neutral-500" /> : <ChevronUp className="w-4 h-4 text-neutral-500" />}
-          </div>
+          <span className="hidden md:inline text-xs font-bold text-primary-600">{Math.round(progress)}%</span>
+          {isCollapsed ? <ChevronDown className="w-5 h-5 text-gray-400" /> : <ChevronUp className="w-5 h-5 text-gray-400" />}
         </div>
       </button>
 
       {/* Items — horizontal single row */}
       {!isCollapsed && (
-        <div className="border-t border-neutral-100 p-6 sm:p-8 bg-neutral-50/30 rounded-b-[2rem]">
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+        <div className="border-t border-neutral-100 p-4">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
             {CHECKLIST.map((item) => {
               const isComplete = completedIds.has(item.id);
               const ItemIcon = item.icon;
@@ -122,23 +121,23 @@ export function HostChecklist({ hasProperties, isVerified, hasCalendarSetup, has
               return isComplete ? (
                 <div
                   key={item.id}
-                  className="flex flex-col items-center justify-center text-center p-4 rounded-3xl bg-success-50/50 border border-success-100 opacity-70"
+                  className="flex flex-col items-center text-center p-3 rounded-xl bg-emerald-50/50 border border-emerald-100 opacity-60"
                 >
-                  <CheckCircle2 className="w-6 h-6 text-success-500 mb-2" />
-                  <p className="text-sm font-bold text-neutral-400 line-through decoration-neutral-300">{item.title}</p>
+                  <CheckCircle2 className="w-5 h-5 text-emerald-500 mb-1.5" />
+                  <p className="text-xs font-semibold text-gray-400 line-through">{item.title}</p>
                 </div>
               ) : (
                 <Link
                   key={item.id}
                   href={item.href}
-                  className={`flex flex-col items-center text-center p-4 rounded-3xl border border-neutral-200 bg-white hover:border-neutral-300 shadow-sm hover:shadow-md hover:-translate-y-1 transition-all duration-300 group`}
+                  className={`flex flex-col items-center text-center p-3 rounded-xl border border-neutral-100 hover:border-neutral-200 hover:shadow-sm hover:-translate-y-0.5 transition-all group`}
                 >
-                  <div className={`w-12 h-12 rounded-2xl flex items-center justify-center mb-3 ${item.bgColor} border border-transparent group-hover:scale-110 transition-transform`}>
-                    <ItemIcon className={`w-6 h-6 ${item.color}`} />
+                  <div className={`w-8 h-8 rounded-lg flex items-center justify-center mb-1.5 ${item.bgColor}`}>
+                    <ItemIcon className={`w-4 h-4 ${item.color}`} />
                   </div>
-                  <p className="text-sm font-bold text-midnight-navy mb-1 leading-tight">{item.title}</p>
-                  <span className={`text-xs font-black ${item.color} flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity mt-auto`}>
-                    Setup <ArrowRight className="w-3 h-3" />
+                  <p className="text-xs font-semibold text-gray-900 mb-0.5 leading-tight">{item.title}</p>
+                  <span className={`text-[10px] font-bold ${item.color} flex items-center gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity`}>
+                    Setup <ArrowRight className="w-2.5 h-2.5" />
                   </span>
                 </Link>
               );

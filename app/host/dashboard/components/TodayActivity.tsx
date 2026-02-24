@@ -9,11 +9,6 @@ export async function TodayActivity({ userId }: { userId: string }) {
 
     let checkIns: any[] = [], checkOuts: any[] = [], currentlyHosting = 0;
 
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-    const tomorrow = new Date(today);
-    tomorrow.setDate(tomorrow.getDate() + 1);
-
     await Promise.race([
       (async () => {
         const hostProfile = await prisma.propertyOwner.findFirst({
@@ -22,6 +17,11 @@ export async function TodayActivity({ userId }: { userId: string }) {
         });
         const ownerId = hostProfile?.id;
         if (!ownerId) return;
+
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        const tomorrow = new Date(today);
+        tomorrow.setDate(tomorrow.getDate() + 1);
 
         const [ci, co, hosting] = await Promise.all([
           prisma.propertyBooking.findMany({
@@ -70,14 +70,14 @@ export async function TodayActivity({ userId }: { userId: string }) {
 
     return (
       <AnimatedFadeIn delay={0.1}>
-        <div className="bg-white border border-neutral-100 rounded-[2rem] p-8 shadow-soft hover:shadow-soft-lg hover:-translate-y-1 transition-all duration-300 h-full">
-          <div className="flex items-center gap-4 mb-8 border-b border-neutral-100 pb-5">
-            <div className="p-3 rounded-2xl bg-info-50">
-              <CalendarDays className="w-6 h-6 text-info-500" />
+        <div className="bg-white border border-neutral-100 rounded-3xl p-6 shadow-sm">
+          <div className="flex items-center gap-3 mb-5">
+            <div className="p-2.5 rounded-xl bg-indigo-50">
+              <CalendarDays className="w-5 h-5 text-indigo-600" />
             </div>
             <div>
-              <h3 className="font-extrabold text-xl tracking-tight text-midnight-navy mb-0.5">Today&apos;s Activity</h3>
-              <p className="text-sm font-medium text-neutral-400">
+              <h3 className="font-bold text-gray-900">Today&apos;s Activity</h3>
+              <p className="text-xs text-gray-400">
                 {today.toLocaleDateString('en-US', { weekday: 'long', month: 'short', day: 'numeric' })}
               </p>
             </div>
@@ -85,40 +85,40 @@ export async function TodayActivity({ userId }: { userId: string }) {
 
           {!hasActivity ? (
           <div className="text-center py-6">
-            <p className="text-sm text-neutral-400 font-medium">No activity today — enjoy your day! ☀️</p>
+            <p className="text-sm text-gray-400 font-medium">No activity today — enjoy your day! ☀️</p>
           </div>
         ) : (
-          <div className="grid grid-cols-3 gap-6">
+          <div className="grid grid-cols-3 gap-4">
             {/* Check-ins */}
             <AnimatedFadeIn delay={0.3}>
-              <div className="text-center p-6 rounded-[1.5rem] bg-success-50/60 border border-success-100 h-full flex flex-col items-center justify-center hover:bg-success-50 transition-colors">
-                <div className="w-12 h-12 rounded-2xl bg-success-100 flex items-center justify-center mx-auto mb-3">
-                  <LogIn className="w-6 h-6 text-success-600" />
+              <div className="text-center p-4 rounded-2xl bg-emerald-50/60 border border-emerald-100 h-full flex flex-col items-center justify-center">
+                <div className="w-10 h-10 rounded-xl bg-emerald-100 flex items-center justify-center mx-auto mb-2">
+                  <LogIn className="w-5 h-5 text-emerald-600" />
                 </div>
-                <div className="text-3xl font-black text-success-700 tracking-tight">{checkIns.length}</div>
-                <div className="text-sm font-bold text-success-600 mt-1">Check-ins</div>
+                <div className="text-2xl font-black text-emerald-700">{checkIns.length}</div>
+                <div className="text-xs font-medium text-emerald-600 mt-0.5">Check-ins</div>
               </div>
             </AnimatedFadeIn>
 
             {/* Check-outs */}
             <AnimatedFadeIn delay={0.4}>
-              <div className="text-center p-6 rounded-[1.5rem] bg-warning-50/60 border border-warning-100 h-full flex flex-col items-center justify-center hover:bg-warning-50 transition-colors">
-                <div className="w-12 h-12 rounded-2xl bg-warning-100 flex items-center justify-center mx-auto mb-3">
-                  <LogOut className="w-6 h-6 text-warning-600" />
+              <div className="text-center p-4 rounded-2xl bg-amber-50/60 border border-amber-100 h-full flex flex-col items-center justify-center">
+                <div className="w-10 h-10 rounded-xl bg-amber-100 flex items-center justify-center mx-auto mb-2">
+                  <LogOut className="w-5 h-5 text-amber-600" />
                 </div>
-                <div className="text-3xl font-black text-warning-700 tracking-tight">{checkOuts.length}</div>
-                <div className="text-sm font-bold text-warning-600 mt-1">Check-outs</div>
+                <div className="text-2xl font-black text-amber-700">{checkOuts.length}</div>
+                <div className="text-xs font-medium text-amber-600 mt-0.5">Check-outs</div>
               </div>
             </AnimatedFadeIn>
 
             {/* Currently hosting */}
             <AnimatedFadeIn delay={0.5}>
-              <div className="text-center p-6 rounded-[1.5rem] bg-info-50/60 border border-info-100 h-full flex flex-col items-center justify-center hover:bg-info-50 transition-colors">
-                <div className="w-12 h-12 rounded-2xl bg-info-100 flex items-center justify-center mx-auto mb-3">
-                  <Home className="w-6 h-6 text-info-600" />
+              <div className="text-center p-4 rounded-2xl bg-blue-50/60 border border-blue-100 h-full flex flex-col items-center justify-center">
+                <div className="w-10 h-10 rounded-xl bg-blue-100 flex items-center justify-center mx-auto mb-2">
+                  <Home className="w-5 h-5 text-blue-600" />
                 </div>
-                <div className="text-3xl font-black text-info-700 tracking-tight">{currentlyHosting}</div>
-                <div className="text-sm font-bold text-info-600 mt-1">Hosting Now</div>
+                <div className="text-2xl font-black text-blue-700">{currentlyHosting}</div>
+                <div className="text-xs font-medium text-blue-600 mt-0.5">Hosting Now</div>
               </div>
             </AnimatedFadeIn>
           </div>
@@ -126,14 +126,14 @@ export async function TodayActivity({ userId }: { userId: string }) {
 
         {/* Guest details for check-ins */}
         {checkIns.length > 0 && (
-          <div className="mt-8 pt-6 border-t border-neutral-100">
-            <p className="text-[10px] font-black text-neutral-400 uppercase tracking-widest mb-4">Arriving today</p>
-            <div className="space-y-2">
+          <div className="mt-4 pt-4 border-t border-neutral-100">
+            <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-2">Arriving today</p>
+            <div className="space-y-1.5">
               {checkIns.map((b, i) => (
                 <AnimatedFadeIn key={b.id} delay={0.6 + i * 0.1}>
-                  <div className="flex items-center justify-between text-base py-1">
-                    <span className="font-bold text-midnight-navy">{b.user?.name || 'Guest'}</span>
-                    <span className="text-sm font-medium text-neutral-500 bg-neutral-50 px-3 py-1 rounded-full">{b.property?.name}</span>
+                  <div className="flex items-center justify-between text-sm py-1">
+                    <span className="font-medium text-gray-700">{b.user?.name || 'Guest'}</span>
+                    <span className="text-xs text-gray-400">{b.property?.name}</span>
                   </div>
                 </AnimatedFadeIn>
               ))}

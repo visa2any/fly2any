@@ -11,35 +11,35 @@ const ACTIONS = [
     description: 'Add a new property to your portfolio',
     href: '/list-your-property/create',
     icon: Plus,
-    gradient: 'from-neutral-800 to-midnight-navy',
+    gradient: 'from-blue-500 to-blue-600',
   },
   {
-    title: 'AI Fast Track',
+    title: 'Fast Track AI',
     description: 'Auto-generate listing with AI',
     href: '/list-your-property/create?fast=true',
     icon: Rocket,
-    gradient: 'from-primary-500 to-primary-700', // Fly2Any Red
+    gradient: 'from-violet-500 to-fuchsia-600',
   },
   {
     title: 'Smart Pricing',
     description: 'Optimize yields automatically',
     href: '/host/properties',
     icon: Sparkles,
-    gradient: 'from-secondary-400 to-secondary-600', // Fly2Any Yellow
+    gradient: 'from-amber-500 to-orange-500',
   },
   {
     title: 'AI Co-Host',
     description: 'Set up inbox automation rules',
     href: '/host/properties',
     icon: Shield,
-    gradient: 'from-sky-500 to-indigo-600',
+    gradient: 'from-emerald-500 to-teal-600',
   },
   {
-    title: 'Revenue Control',
+    title: 'Revenue',
     description: 'View earnings and payouts',
     href: '/host/properties',
     icon: DollarSign,
-    gradient: 'from-emerald-500 to-teal-700',
+    gradient: 'from-primary-500 to-primary-600',
   },
 ];
 
@@ -63,8 +63,8 @@ export function QuickActions() {
 
   return (
     <div className="w-full relative mt-4">
-       <div className="flex items-center justify-between mb-6 px-1 border-b border-neutral-100 pb-4">
-          <h3 className="text-xl font-extrabold text-midnight-navy tracking-tight">Recommended Actions</h3>
+       <div className="flex items-center justify-between mb-4 px-1">
+          <h3 className="text-xl font-bold text-gray-900 tracking-tight">Recommended Actions</h3>
        </div>
        
        <motion.div 
@@ -76,20 +76,20 @@ export function QuickActions() {
        >
           {ACTIONS.map((action) => (
              <motion.div key={action.title} variants={item} className="snap-start shrink-0">
-                 <Link 
+                <Link 
                    href={action.href}
-                   className="block w-72 p-8 rounded-[2rem] bg-white border border-neutral-100 shadow-soft hover:shadow-soft-lg hover:-translate-y-1 transition-all duration-300 group relative overflow-hidden h-full"
+                   className="block w-64 p-6 rounded-3xl bg-white border border-neutral-200 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300 group relative overflow-hidden h-full"
                 >
                    {/* Background Gradient Blob */}
                    <div className={`absolute -right-8 -top-8 w-32 h-32 rounded-full bg-gradient-to-br ${action.gradient} opacity-[0.08] blur-2xl group-hover:scale-150 transition-transform duration-700`} />
                    
-                   <div className={`w-14 h-14 rounded-2xl bg-gradient-to-br ${action.gradient} flex items-center justify-center mb-6 shadow-inner text-white group-hover:scale-110 group-hover:rotate-3 transition-transform duration-300`}>
-                      <action.icon className="w-7 h-7" />
+                   <div className={`w-12 h-12 rounded-2xl bg-gradient-to-br ${action.gradient} flex items-center justify-center mb-5 shadow-inner text-white group-hover:scale-110 transition-transform duration-300`}>
+                      <action.icon className="w-6 h-6" />
                    </div>
-                   <h4 className="font-extrabold text-midnight-navy mb-2 text-xl tracking-tight transition-colors">
+                   <h4 className="font-bold text-gray-900 mb-1.5 text-lg leading-tight transition-colors">
                       {action.title}
                    </h4>
-                   <p className="text-sm text-neutral-400 font-medium leading-relaxed">
+                   <p className="text-sm text-gray-500 font-medium leading-snug">
                       {action.description}
                    </p>
                 </Link>
