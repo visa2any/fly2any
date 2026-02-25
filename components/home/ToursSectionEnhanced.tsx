@@ -2,7 +2,7 @@
 
 import { useState, useCallback, useMemo, memo, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { Star, Clock, Heart, Loader2, ArrowRight, Sparkles, Flame, MapPin } from 'lucide-react';
+import { Star, Clock, Heart, Loader2, ArrowRight, Sparkles, Flame, MapPin, ChevronRight } from 'lucide-react';
 import { CacheIndicator } from '@/components/cache/CacheIndicator';
 import { ValueScoreBadge } from '@/components/shared/ValueScoreBadge';
 import { ImageSlider } from '@/components/shared/ImageSlider';
@@ -433,7 +433,8 @@ export function ToursSectionEnhanced({ lang = 'en' }: ToursSectionEnhancedProps)
           className="text-sm font-semibold text-orange-500 hover:text-orange-600 transition-colors duration-150 min-h-[44px] px-3 flex items-center flex-shrink-0"
           onClick={() => router.push('/tours')}
         >
-          {t.viewAll} →
+          {t.viewAll}
+          <ChevronRight className="w-4 h-4 ml-1" />
         </button>
       </div>
 

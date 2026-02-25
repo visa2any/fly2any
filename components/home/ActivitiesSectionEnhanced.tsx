@@ -2,7 +2,7 @@
 
 import { useState, useCallback, useMemo, memo, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { Star, Clock, Heart, Loader2, ArrowRight, Sparkles, Flame, Activity } from 'lucide-react';
+import { Star, Clock, Heart, Loader2, ArrowRight, Sparkles, Flame, Activity, ChevronRight } from 'lucide-react';
 import { CacheIndicator } from '@/components/cache/CacheIndicator';
 import { ValueScoreBadge } from '@/components/shared/ValueScoreBadge';
 import { ImageSlider } from '@/components/shared/ImageSlider';
@@ -411,7 +411,8 @@ export function ActivitiesSectionEnhanced({ lang = 'en' }: ActivitiesSectionEnha
           className="text-sm font-semibold text-purple-500 hover:text-purple-600 transition-colors duration-150 min-h-[44px] px-3 flex items-center flex-shrink-0"
           onClick={() => router.push('/activities')}
         >
-          {t.viewAll} →
+          {t.viewAll}
+          <ChevronRight className="w-4 h-4 ml-1" />
         </button>
       </div>
 

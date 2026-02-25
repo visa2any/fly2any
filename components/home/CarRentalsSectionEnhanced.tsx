@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { ValueScoreBadge, calculateValueScore } from '@/components/shared/ValueScoreBadge';
-import { Car, Users, Briefcase, Zap, Fuel, Settings, MapPin, Shield, TrendingUp, TrendingDown, Loader2, Eye, ShoppingCart } from 'lucide-react';
+import { Car, Users, Briefcase, Zap, Fuel, Settings, MapPin, Shield, TrendingUp, TrendingDown, Loader2, Eye, ShoppingCart, ChevronRight } from 'lucide-react';
 
 interface CarRental {
   id: string;
@@ -463,9 +463,10 @@ export function CarRentalsSectionEnhanced({ lang = 'en' }: CarRentalsSectionEnha
         <div className="text-center mt-6">
           <Link
             href="/cars"
-            className="inline-block px-6 py-3 bg-white border-2 border-primary-600 text-primary-600 hover:bg-primary-50 font-bold rounded-lg transition-colors"
+            className="inline-flex items-center px-6 py-3 bg-white border-2 border-primary-600 text-primary-600 hover:bg-primary-50 font-bold rounded-lg transition-colors"
           >
-            {t.viewAll} →
+            {t.viewAll}
+            <ChevronRight className="w-4 h-4 ml-1" />
           </Link>
         </div>
       )}

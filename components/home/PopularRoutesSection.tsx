@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { TrendingUp, MapPin, Users, Loader2, Plane } from 'lucide-react';
+import { TrendingUp, MapPin, Users, Loader2, Plane, ChevronRight } from 'lucide-react';
 
 interface PopularRoute {
   route: string;
@@ -184,7 +184,9 @@ export default function PopularRoutesSection() {
                     <span className="text-xs font-medium text-gray-500">{route.destination}</span>
                   </div>
                   <h3 className="text-base font-bold text-gray-900 group-hover:text-primary-600 transition-colors">
-                    {getCityName(route.origin)} → {getCityName(route.destination)}
+                    {getCityName(route.origin)}
+                    <ChevronRight className="w-4 h-4 mx-1 text-gray-400" />
+                    {getCityName(route.destination)}
                   </h3>
                 </div>
 
@@ -236,7 +238,9 @@ export default function PopularRoutesSection() {
                       <span className="text-xs font-medium text-gray-500">{route.destination}</span>
                     </div>
                     <h3 className="text-base font-bold text-gray-900 group-hover:text-primary-600 transition-colors">
-                      {getCityName(route.origin)} → {getCityName(route.destination)}
+                      {getCityName(route.origin)}
+                    <ChevronRight className="w-4 h-4 mx-1 text-gray-400" />
+                    {getCityName(route.destination)}
                     </h3>
                   </div>
 

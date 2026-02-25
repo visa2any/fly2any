@@ -1,8 +1,8 @@
 'use client';
 
-import { useState, useCallback, memo } from 'react';
+import { useState, useCallback, memo, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { Star, Clock, Users, Shield, ArrowRight, Loader2, Car, Navigation, Check, Flame } from 'lucide-react';
+import { Star, Clock, Users, Shield, ArrowRight, Loader2, Car, Navigation, Check, Flame, ChevronRight } from 'lucide-react';
 import { ValueScoreBadge } from '@/components/shared/ValueScoreBadge';
 
 interface TransferRoute {
@@ -286,7 +286,8 @@ export function TransfersSectionEnhanced({ lang = 'en' }: TransfersSectionEnhanc
           className="text-sm font-semibold text-teal-500 hover:text-teal-600 transition-colors duration-150 min-h-[44px] px-3 flex items-center flex-shrink-0"
           onClick={() => router.push('/transfers')}
         >
-          {t.viewAll} →
+          {t.viewAll}
+          <ChevronRight className="w-4 h-4 ml-1" />
         </button>
       </div>
 

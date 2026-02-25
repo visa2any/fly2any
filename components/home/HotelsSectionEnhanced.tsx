@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import { ValueScoreBadge } from '@/components/shared/ValueScoreBadge';
 import { ImageSlider } from '@/components/shared/ImageSlider';
 import { StructuredData } from '@/components/seo/StructuredData';
-import { MapPin, Star, Users, Wifi, Coffee, Dumbbell, UtensilsCrossed, Car, TrendingUp, TrendingDown, Flame, Eye, ShoppingCart, Clock, Zap } from 'lucide-react';
+import { MapPin, Star, Users, Wifi, Coffee, Dumbbell, UtensilsCrossed, Car, TrendingUp, TrendingDown, Flame, Eye, ShoppingCart, Clock, Zap, ChevronRight } from 'lucide-react';
 import { generateHotelSchema } from '@/lib/seo/geo-optimization';
 
 interface HotelEnhanced {
@@ -210,11 +210,11 @@ const HotelCard = memo(({
 
 
       {/* Real Data Only - Review Score & Count from API */}
-      {hotel.reviewCount > 0 && hotel.reviewRating > 0 && (
+      {hotel.reviewCount > 0 && hotel.reviewRating !== undefined && hotel.reviewRating > 0 && (
         <div className="flex items-center gap-2 mb-2">
           <div className="flex items-center gap-1 bg-primary-600 text-white px-2 py-0.5 rounded font-bold text-xs">
             <Star className="w-3 h-3 fill-current" />
-            {(hotel.reviewRating / 2).toFixed(1)}
+            {((hotel.reviewRating || 0) / 2).toFixed(1)}
           </div>
           <span className="text-xs text-gray-600">
             ({hotel.reviewCount.toLocaleString()} {t.reviews})
@@ -357,9 +357,10 @@ export function HotelsSectionEnhanced({ lang = 'en' }: HotelsSectionEnhancedProp
         </div>
         <button
           onClick={() => window.open('/hotels', '_blank')}
-          className="text-xs md:text-sm lg:text-base font-semibold text-primary-600 hover:text-primary-700 transition-all duration-150 ease-[cubic-bezier(0.2,0.8,0.2,1)] whitespace-nowrap hover:-translate-y-0.5"
+          className="text-xs md:text-sm lg:text-base font-semibold text-primary-600 hover:text-primary-700 transition-all duration-150 ease-[cubic-bezier(0.2,0.8,0.2,1)] whitespace-nowrap hover:-translate-y-0.5 flex items-center"
         >
-          {t.viewAll} →
+          {t.viewAll}
+          <ChevronRight className="w-4 h-4 ml-1" />
         </button>
       </div>
 

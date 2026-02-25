@@ -510,7 +510,7 @@ export function DestinationsSectionEnhanced({ lang = 'en' }: DestinationsSection
           onClick={() => window.open('/flights/results', '_blank')}
         >
           {t.viewAll}
-          <ChevronRight className="w-3.5 h-3.5 md:w-4 md:h-4 group-hover:translate-x-0.5 transition-transform" />
+          <ChevronRight className="w-4 h-4 ml-1" />
         </button>
       </div>
 
