@@ -404,7 +404,7 @@ export function ToursSectionEnhanced({ lang = 'en' }: ToursSectionEnhancedProps)
 
   if (!mounted) {
     return (
-      <section className="py-2 md:py-10 min-h-fit" style={{ maxWidth: '1600px', margin: '0 auto' }}>
+      <section className="py-2 md:py-10 min-h-0 md:min-h-fit" style={{ maxWidth: '1600px', margin: '0 auto' }}>
         <div className="h-48 animate-pulse bg-gray-50 rounded-xl mx-4 md:mx-0" />
       </section>
     );
