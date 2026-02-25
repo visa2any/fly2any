@@ -205,14 +205,14 @@ export function FlashDealsSectionEnhanced({ lang = 'en' }: FlashDealsSectionEnha
 
   if (!mounted) {
     return (
-      <section className="py-1 md:py-6 lg:py-10 min-h-fit md:min-h-[400px] lg:min-h-[340px]" style={{ maxWidth: '1600px', margin: '0 auto' }}>
+      <section className="py-1 md:py-6 lg:py-10 min-h-0 md:min-h-[400px] lg:min-h-[340px]" style={{ maxWidth: '1600px', margin: '0 auto' }}>
         <div className="h-48 animate-pulse bg-gray-50 rounded-xl mx-4 md:mx-0" />
       </section>
     );
   }
 
   return (
-    <section className="py-1 md:py-6 lg:py-10 min-h-fit md:min-h-[400px] lg:min-h-[340px]" style={{ maxWidth: '1600px', margin: '0 auto' }}>
+    <section className="py-1 md:py-6 lg:py-10 min-h-0 md:min-h-[400px] lg:min-h-[340px]" style={{ maxWidth: '1600px', margin: '0 auto' }}>
       {/* Section Header - Level-6: Desktop prominent */}
       <div className="flex items-center justify-between mb-3 md:mb-6 px-3 md:px-0">
         <div className="flex items-center gap-2 md:gap-3 min-w-0">

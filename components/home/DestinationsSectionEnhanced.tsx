@@ -481,14 +481,14 @@ export function DestinationsSectionEnhanced({ lang = 'en' }: DestinationsSection
 
   if (!mounted) {
     return (
-      <section className="pt-1 pb-1 md:py-6 lg:py-10 min-h-fit md:min-h-[500px] lg:min-h-[420px]" style={{ maxWidth: '1600px', margin: '0 auto' }}>
+      <section className="pt-1 pb-1 md:py-6 lg:py-10 min-h-0 md:min-h-[500px] lg:min-h-[420px]" style={{ maxWidth: '1600px', margin: '0 auto' }}>
         <div className="h-48 animate-pulse bg-gray-50 rounded-xl mx-4 md:mx-0" />
       </section>
     );
   }
 
   return (
-    <section className="pt-1 pb-1 md:py-6 lg:py-10 min-h-fit md:min-h-[500px] lg:min-h-[420px]" style={{ maxWidth: '1600px', margin: '0 auto' }}>
+    <section className="pt-1 pb-1 md:py-6 lg:py-10 min-h-0 md:min-h-[500px] lg:min-h-[420px]" style={{ maxWidth: '1600px', margin: '0 auto' }}>
       {/* Section Header - Level-6: Desktop prominent */}
       <div className="flex items-center justify-between mb-3 md:mb-6 gap-2 px-3 md:px-0 lg:px-0">
         <div className="flex items-center gap-2 md:gap-3 min-w-0">
@@ -584,7 +584,7 @@ export function DestinationsSectionEnhanced({ lang = 'en' }: DestinationsSection
       {/* Destinations Grid - Edge-to-edge, no gap on mobile */}
       {!loading && !error && destinations.length > 0 && (
         <>
-          <div className="flex overflow-x-auto overscroll-x-contain pb-4 md:grid md:grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4 mb-3 md:mb-4 px-3 md:px-0 scrollbar-hide snap-x snap-mandatory">
+          <div className="flex overflow-x-auto overscroll-x-contain pb-2 md:grid md:grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4 mb-1 md:mb-4 px-3 md:px-0 scrollbar-hide snap-x snap-mandatory">
             {destinations.map((destination) => (
               <DestinationCard
                 key={destination.id}
@@ -604,7 +604,7 @@ export function DestinationsSectionEnhanced({ lang = 'en' }: DestinationsSection
           </div>
 
           {/* Click Hint - Text padding */}
-          <div className="text-center text-sm text-gray-600 mt-4 px-4 md:px-0">
+          <div className="text-center text-sm text-gray-600 mt-2 px-4 md:px-0">
             {t.clickHint}
           </div>
         </>

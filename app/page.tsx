@@ -320,49 +320,49 @@ export default function Home() {
           ============================================ */}
       <main>
         <MaxWidthContainer className="px-0 md:px-6" noPadding={true}>
-          <div className="mt-4 md:mt-6 lg:mt-8">
+          <div className="mt-1 md:mt-6 lg:mt-8">
             <ErrorBoundary>
               <RecentlyViewedSection lang={lang} />
             </ErrorBoundary>
           </div>
 
-          <div className="mt-4 md:mt-6 lg:mt-8">
+          <div className="mt-1 md:mt-6 lg:mt-8">
             <ErrorBoundary>
               <DestinationsSectionEnhanced lang={lang} />
             </ErrorBoundary>
           </div>
 
-          <div className="mt-4 md:mt-6 lg:mt-8">
+          <div className="mt-1 md:mt-6 lg:mt-8">
             <ErrorBoundary>
               <FlashDealsSectionEnhanced lang={lang} />
             </ErrorBoundary>
           </div>
 
-          <div className="mt-4 md:mt-6 lg:mt-8">
+          <div className="mt-1 md:mt-6 lg:mt-8">
             <HotelsSectionEnhanced lang={lang} />
           </div>
 
-          <div className="mt-4 md:mt-6 lg:mt-8">
+          <div className="mt-1 md:mt-6 lg:mt-8">
             <ToursSectionEnhanced lang={lang} />
           </div>
 
-          <div className="mt-4 md:mt-6 lg:mt-8">
+          <div className="mt-1 md:mt-6 lg:mt-8">
             <ActivitiesSectionEnhanced lang={lang} />
           </div>
 
-          <div className="mt-4 md:mt-6 lg:mt-8">
+          <div className="mt-1 md:mt-6 lg:mt-8">
             <TransfersSectionEnhanced lang={lang} />
           </div>
 
-          <div className="mt-4 md:mt-6 lg:mt-8">
+          <div className="mt-1 md:mt-6 lg:mt-8">
             <ExperiencesSection />
           </div>
 
-          <div className="mt-4 md:mt-6 lg:mt-8">
+          <div className="mt-1 md:mt-6 lg:mt-8">
             <WorldCupHeroSectionEnhanced lang={lang} />
           </div>
 
-          <div className="mt-4 md:mt-6 lg:mt-8">
+          <div className="mt-1 md:mt-6 lg:mt-8">
             <CarRentalsSectionEnhanced lang={lang} />
           </div>
 

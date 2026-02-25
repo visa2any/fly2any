@@ -147,7 +147,7 @@ export default function ExperiencesSection({
 
   if (!mounted) {
     return (
-      <section className="py-2 md:py-10 min-h-fit bg-neutral-50 overflow-hidden">
+      <section className="py-2 md:py-10 min-h-0 md:min-h-fit bg-neutral-50 overflow-hidden">
         <div className="h-48 animate-pulse bg-gray-100 rounded-xl mx-4 md:mx-0" />
       </section>
     );
