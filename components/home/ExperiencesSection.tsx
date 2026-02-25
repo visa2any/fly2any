@@ -141,49 +141,40 @@ export default function ExperiencesSection({
   }
 
   return (
-    <section className="py-16 lg:py-20 bg-gradient-to-b from-gray-50 to-white overflow-hidden">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <section className="py-2 md:py-6 lg:py-10 bg-neutral-50 overflow-hidden">
+      <div className="mx-auto">
         {/* Header */}
         <motion.div
-          initial={{ opacity: 0, y: 20 }}
+          initial={{ opacity: 0, y: 10 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
-          transition={{ duration: 0.5 }}
-          className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4 mb-10"
+          className="flex items-center justify-between mb-3 md:mb-6 px-3 md:px-0"
         >
-          <div>
-            <div className="flex items-center gap-2 text-[#E74035] mb-2">
-              <Compass className="w-5 h-5" />
-              <span className="text-sm font-semibold uppercase tracking-wider">
-                Experiences
-              </span>
-            </div>
-            <h2 className="text-3xl lg:text-4xl font-bold text-gray-900">
+          <div className="flex items-center gap-2 md:gap-3 min-w-0">
+            <h2 className="text-sm md:text-[26px] lg:text-[32px] font-semibold text-neutral-800 tracking-[0.01em]">
               Unforgettable Experiences
             </h2>
-            <p className="mt-2 text-gray-600 text-lg">
-              Curated activities from 45+ trusted providers worldwide
-            </p>
           </div>
 
           <Link
             href="/experiences"
-            className="inline-flex items-center gap-1.5 text-[#E74035] font-semibold hover:gap-2.5 transition-all group"
+            className="text-xs md:text-sm font-semibold text-[#E74035] hover:text-[#D63B34] transition-all duration-150 flex items-center gap-1 group active:scale-[0.97]"
           >
-            View all experiences
-            <ChevronRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
+            All Experiences
+            <ChevronRight className="w-3.5 h-3.5 md:w-4 md:h-4 group-hover:translate-x-0.5 transition-transform" />
           </Link>
         </motion.div>
 
-        {/* Category Grid */}
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 lg:gap-6">
+        {/* Category Carousel - Edge-to-edge on mobile */}
+        <div className="flex overflow-x-auto overscroll-x-contain pb-4 md:grid md:grid-cols-3 lg:grid-cols-4 gap-4 lg:gap-6 px-3 md:px-0 scrollbar-hide snap-x snap-mandatory">
           {cards.map((card, index) => (
             <motion.div
               key={card.id}
-              initial={{ opacity: 0, y: 30 }}
+              initial={{ opacity: 0, y: 20 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ duration: 0.4, delay: index * 0.05 }}
+              className="flex-shrink-0 w-[85vw] sm:w-[320px] md:w-auto snap-start"
             >
               <CategoryCard
                 id={card.id}

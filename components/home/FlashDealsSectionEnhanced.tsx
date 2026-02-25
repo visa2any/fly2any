@@ -199,7 +199,7 @@ export function FlashDealsSectionEnhanced({ lang = 'en' }: FlashDealsSectionEnha
   };
 
   return (
-    <section className="py-2 md:py-6 lg:py-10 min-h-[480px] md:min-h-[400px] lg:min-h-[340px]" style={{ maxWidth: '1600px', margin: '0 auto' }}>
+    <section className="py-1 md:py-6 lg:py-10 min-h-fit md:min-h-[400px] lg:min-h-[340px]" style={{ maxWidth: '1600px', margin: '0 auto' }}>
       {/* Section Header - Level-6: Desktop prominent */}
       <div className="flex items-center justify-between mb-3 md:mb-6 px-3 md:px-0">
         <div className="flex items-center gap-2 md:gap-3 min-w-0">
@@ -216,10 +216,11 @@ export function FlashDealsSectionEnhanced({ lang = 'en' }: FlashDealsSectionEnha
           )}
         </div>
         <button
-          className="text-sm font-semibold text-primary-500 hover:text-primary-600 transition-colors duration-150 ease-apple min-h-[44px] px-3 flex items-center active:scale-[0.97]"
+          className="text-xs md:text-sm font-semibold text-primary-500 hover:text-primary-600 transition-all duration-150 flex items-center gap-1 group active:scale-[0.97]"
           onClick={() => window.open('/flights/results', '_blank')}
         >
-          {t.viewAll} →
+          {t.viewAll}
+          <ChevronRight className="w-3.5 h-3.5 md:w-4 md:h-4 group-hover:translate-x-0.5 transition-transform" />
         </button>
       </div>
 
