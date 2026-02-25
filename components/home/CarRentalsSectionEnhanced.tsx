@@ -236,7 +236,7 @@ export function CarRentalsSectionEnhanced({ lang = 'en' }: CarRentalsSectionEnha
 
       {/* Cars Grid */}
       {!loading && cars.length > 0 && (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+        <div className="flex overflow-x-auto overscroll-x-contain pb-4 md:grid md:grid-cols-2 lg:grid-cols-4 gap-4 px-3 md:px-0 scrollbar-hide snap-x snap-mandatory">
           {cars.map((car) => (
             <div
               key={car.id}
@@ -245,6 +245,7 @@ export function CarRentalsSectionEnhanced({ lang = 'en' }: CarRentalsSectionEnha
                 bg-white rounded-xl border-2 border-gray-200
                 hover:border-primary-400 hover:shadow-2xl
                 transition-all duration-300 ease-out overflow-hidden
+                flex-shrink-0 w-[85vw] sm:w-[320px] md:w-auto snap-start
                 ${hoveredId === car.id ? 'scale-[1.03] shadow-2xl -translate-y-1' : ''}
               `}
               onMouseEnter={() => setHoveredId(car.id)}

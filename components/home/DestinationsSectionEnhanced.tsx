@@ -180,6 +180,7 @@ const DestinationCard = memo(({
       shadow-level-md hover:shadow-level-xl hover:border-primary-400
       transition-all duration-150 ease-apple overflow-hidden cursor-pointer
       active:scale-[0.97]
+      flex-shrink-0 w-[85vw] sm:w-[320px] md:w-auto snap-start
       ${isHovered ? 'scale-[1.02] shadow-level-xl -translate-y-1' : ''}
     `}
     onMouseEnter={onMouseEnter}
@@ -537,9 +538,9 @@ export function DestinationsSectionEnhanced({ lang = 'en' }: DestinationsSection
 
       {/* Loading State - Skeleton cards matching content height to prevent CLS */}
       {loading && (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-1 md:gap-4 mb-3 md:mb-4 px-0">
+        <div className="flex overflow-x-auto overscroll-x-contain pb-4 md:grid md:grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4 mb-3 md:mb-4 px-3 md:px-0 scrollbar-hide snap-x snap-mandatory">
           {[...Array(8)].map((_, i) => (
-            <div key={i} className="bg-white rounded-lg overflow-hidden animate-pulse">
+            <div key={i} className="bg-white rounded-lg overflow-hidden animate-pulse flex-shrink-0 w-[85vw] sm:w-[320px] md:w-auto snap-start">
               <div className="aspect-[4/3] bg-gray-200" />
               <div className="p-3">
                 <div className="h-4 bg-gray-200 rounded w-3/4 mb-2" />
@@ -569,7 +570,7 @@ export function DestinationsSectionEnhanced({ lang = 'en' }: DestinationsSection
       {/* Destinations Grid - Edge-to-edge, no gap on mobile */}
       {!loading && !error && destinations.length > 0 && (
         <>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-1 md:gap-4 mb-3 md:mb-4 px-0">
+          <div className="flex overflow-x-auto overscroll-x-contain pb-4 md:grid md:grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4 mb-3 md:mb-4 px-3 md:px-0 scrollbar-hide snap-x snap-mandatory">
             {destinations.map((destination) => (
               <DestinationCard
                 key={destination.id}

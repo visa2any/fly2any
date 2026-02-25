@@ -463,7 +463,7 @@ export function RecentlyViewedSection({ lang = 'en' }: RecentlyViewedSectionProp
       </div>
 
       {/* Responsive Grid Layout - Edge-to-edge, no gap on mobile */}
-      <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-0.5 md:gap-3 px-0">
+      <div className="flex overflow-x-auto overscroll-x-contain pb-4 md:grid md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3 md:gap-3 px-3 md:px-0 scrollbar-hide snap-x snap-mandatory">
         {filteredItems.map((item, index) => {
           const hasPriceDrop = isPriceDrop(item);
           const priceDropPercent = getPriceDropPercentage(item);
@@ -476,9 +476,10 @@ export function RecentlyViewedSection({ lang = 'en' }: RecentlyViewedSectionProp
               key={item.id}
               onClick={() => handleDestinationClick(item)}
               className={`
-                relative w-full rounded-xl overflow-hidden cursor-pointer group
+                relative rounded-xl overflow-hidden cursor-pointer group
                 transform transition-all duration-300
                 hover:scale-105 hover:shadow-2xl hover:z-10
+                flex-shrink-0 w-[70vw] sm:w-[280px] md:w-auto snap-start
                 ${hotDeal ? 'ring-1 sm:ring-2 ring-orange-400 shadow-md shadow-orange-100' : hasPriceDrop ? 'ring-1 sm:ring-2 ring-green-400 shadow-md shadow-green-100' : 'border border-gray-200 hover:border-blue-400'}
               `}
               style={{
@@ -622,32 +623,17 @@ export function RecentlyViewedSection({ lang = 'en' }: RecentlyViewedSectionProp
         })}
       </div>
 
-      {/* Load More Button - Mobile only, compact Level-6 */}
-      {recentlyViewed.length > 6 && (
-        <div className="md:hidden flex justify-center mt-2 px-3">
+      {/* Load More Button - Desktop only or hidden if scrolling is preferred */}
+      <div className="hidden md:flex justify-center mt-6">
+        {recentlyViewed.length > (activeFilter === 'all' ? 12 : 60) && !isExpanded && (
           <button
-            onClick={() => setIsExpanded(!isExpanded)}
-            className="flex items-center gap-1.5 px-4 py-2 bg-neutral-100 hover:bg-neutral-200 text-neutral-700 text-xs font-medium rounded-lg transition-all duration-150 ease-[cubic-bezier(0.2,0.8,0.2,1)] active:scale-95 border border-neutral-200"
+            onClick={() => setIsExpanded(true)}
+            className="flex items-center gap-2 px-6 py-2.5 bg-neutral-100 hover:bg-neutral-200 text-neutral-800 font-bold rounded-xl transition-all"
           >
-            {isExpanded ? (
-              <>
-                <span>{t.showLess}</span>
-                <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 15l7-7 7 7" />
-                </svg>
-              </>
-            ) : (
-              <>
-                <span>{t.loadMore}</span>
-                <span className="text-neutral-500">({recentlyViewed.length - 6})</span>
-                <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                </svg>
-              </>
-            )}
+            {t.loadMore} ({recentlyViewed.length - (activeFilter === 'all' ? 12 : 60)})
           </button>
-        </div>
-      )}
+        )}
+      </div>
 
       {/* COMPACT SEARCH INFO BAR - Desktop only */}
       <div className="hidden md:block sticky bottom-0 left-0 right-0 mt-3 bg-gradient-to-r from-info-50/95 via-indigo-50/95 to-purple-50/95 backdrop-blur-sm border border-gray-200 rounded-lg shadow-md overflow-hidden">

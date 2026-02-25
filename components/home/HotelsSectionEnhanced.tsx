@@ -154,6 +154,7 @@ const HotelCard = memo(({
       hover:border-primary-400
       transition-all duration-200 ease-[cubic-bezier(0.2,0.8,0.2,1)] overflow-hidden cursor-pointer
       shadow-sm hover:shadow-xl
+      flex-shrink-0 w-[85vw] sm:w-[320px] md:w-auto snap-start
       ${isHovered ? 'scale-[1.02] lg:scale-[1.03] shadow-xl lg:shadow-2xl -translate-y-1 lg:-translate-y-2' : ''}
     `}
     onMouseEnter={onMouseEnter}
@@ -389,7 +390,7 @@ export function HotelsSectionEnhanced({ lang = 'en' }: HotelsSectionEnhancedProp
       {/* Hotels Grid - Level-6: Premium card grid with proper spacing */}
       {!loading && hotels.length > 0 && (
         <>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4 lg:gap-6 mb-4 lg:mb-6 px-3 md:px-0">
+          <div className="flex overflow-x-auto overscroll-x-contain pb-4 md:grid md:grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-6 mb-4 lg:mb-6 px-3 md:px-0 scrollbar-hide snap-x snap-mandatory">
             {hotels.map((hotel) => (
               <HotelCard
                 key={hotel.id}

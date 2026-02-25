@@ -161,7 +161,7 @@ const TourCard = memo(({ tour, onClick, t, index }: { tour: Tour; onClick: () =>
   return (
     <div
       onClick={onClick}
-      className="group bg-white rounded-2xl border border-neutral-200 shadow-level-md hover:shadow-level-xl hover:border-orange-400 transition-all duration-150 ease-apple overflow-hidden cursor-pointer active:scale-[0.97]"
+      className="group bg-white rounded-2xl border border-neutral-200 shadow-level-md hover:shadow-level-xl hover:border-orange-400 transition-all duration-150 ease-apple overflow-hidden cursor-pointer active:scale-[0.97] flex-shrink-0 w-[85vw] sm:w-[320px] md:w-auto snap-start"
     >
       {/* Image Slider with real photos from API */}
       <ImageSlider
@@ -480,7 +480,7 @@ export function ToursSectionEnhanced({ lang = 'en' }: ToursSectionEnhancedProps)
 
       {/* Tours Grid */}
       {!loading && !fetchError && tours.length > 0 && (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-1 md:gap-4 px-0">
+        <div className="flex overflow-x-auto overscroll-x-contain pb-4 md:grid md:grid-cols-2 lg:grid-cols-4 gap-4 px-3 md:px-0 scrollbar-hide snap-x snap-mandatory">
           {tours.map((tour, index) => (
             <TourCard
               key={tour.id}
