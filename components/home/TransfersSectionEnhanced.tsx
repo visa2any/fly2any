@@ -235,6 +235,12 @@ export function TransfersSectionEnhanced({ lang = 'en' }: TransfersSectionEnhanc
   const t = translations[lang];
   const router = useRouter();
   const [activeFilter, setActiveFilter] = useState<FilterType>('all');
+  const [hoveredId, setHoveredId] = useState<string | null>(null);
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   // Filter routes by region
   const filteredRoutes = activeFilter === 'all'
@@ -260,6 +266,14 @@ export function TransfersSectionEnhanced({ lang = 'en' }: TransfersSectionEnhanc
     });
     router.push(`/transfers/results?${params.toString()}`);
   }, [router]);
+
+  if (!mounted) {
+    return (
+      <section className="py-2 md:py-10 min-h-fit" style={{ maxWidth: '1600px', margin: '0 auto' }}>
+        <div className="h-48 animate-pulse bg-gray-50 rounded-xl mx-4 md:mx-0" />
+      </section>
+    );
+  }
 
   return (
     <section className="pt-1 pb-2 md:py-6 lg:py-10" style={{ maxWidth: '1600px', margin: '0 auto' }}>

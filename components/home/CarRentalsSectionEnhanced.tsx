@@ -121,6 +121,11 @@ export function CarRentalsSectionEnhanced({ lang = 'en' }: CarRentalsSectionEnha
   const t = translations[lang];
   const router = useRouter();
   const [hoveredId, setHoveredId] = useState<string | null>(null);
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
   const [cars, setCars] = useState<CarRental[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedLocation, setSelectedLocation] = useState('all');
@@ -184,6 +189,14 @@ export function CarRentalsSectionEnhanced({ lang = 'en' }: CarRentalsSectionEnha
       setLoading(false);
     }
   };
+
+  if (!mounted) {
+    return (
+      <section className="py-2 md:py-10 min-h-fit" style={{ maxWidth: '1600px', margin: '0 auto' }}>
+        <div className="h-48 animate-pulse bg-gray-50 rounded-xl mx-4 md:mx-0" />
+      </section>
+    );
+  }
 
   return (
     <section className="py-4" style={{ maxWidth: '1600px', margin: '0 auto', padding: '16px 24px' }}>

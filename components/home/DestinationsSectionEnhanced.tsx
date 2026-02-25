@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback, useMemo, memo } from 'react';
 import { useRouter } from 'next/navigation';
 import { ValueScoreBadge } from '@/components/shared/ValueScoreBadge';
-import { TrendingUp, TrendingDown, Users, Flame, Sparkles, Eye, ShoppingCart, AlertCircle, Loader2, ArrowRight, Plane, Heart, MapPin, Calendar } from 'lucide-react';
+import { TrendingUp, TrendingDown, Users, Flame, Sparkles, Eye, ShoppingCart, AlertCircle, Loader2, ArrowRight, Plane, Heart, MapPin, Calendar, ChevronRight } from 'lucide-react';
 import { AIRLINE_DATABASE } from '@/lib/flights/airline-data';
 import { useFavorites, saveToRecentlyViewed } from '@/lib/hooks/useFavorites';
 import { useClientCache } from '@/lib/hooks/useClientCache';
@@ -308,6 +308,11 @@ export function DestinationsSectionEnhanced({ lang = 'en' }: DestinationsSection
   const router = useRouter();
   const [activeFilter, setActiveFilter] = useState<FilterType>('all');
   const [hoveredId, setHoveredId] = useState<string | null>(null);
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
   const { isFavorite, toggleFavorite } = useFavorites();
 
   // ✅ NEW: Dynamic URL based on continent filter
@@ -473,6 +478,14 @@ export function DestinationsSectionEnhanced({ lang = 'en' }: DestinationsSection
     // Navigate in new tab
     window.open(`/flights/results?${params.toString()}`, '_blank');
   }, [getDestinationImage]);
+
+  if (!mounted) {
+    return (
+      <section className="pt-1 pb-1 md:py-6 lg:py-10 min-h-fit md:min-h-[500px] lg:min-h-[420px]" style={{ maxWidth: '1600px', margin: '0 auto' }}>
+        <div className="h-48 animate-pulse bg-gray-50 rounded-xl mx-4 md:mx-0" />
+      </section>
+    );
+  }
 
   return (
     <section className="pt-1 pb-1 md:py-6 lg:py-10 min-h-fit md:min-h-[500px] lg:min-h-[420px]" style={{ maxWidth: '1600px', margin: '0 auto' }}>

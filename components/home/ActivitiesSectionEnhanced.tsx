@@ -281,12 +281,18 @@ export function ActivitiesSectionEnhanced({ lang = 'en' }: ActivitiesSectionEnha
 
   const [activities, setActivities] = useState<ActivityItem[]>([]);
   const [loading, setLoading] = useState(true);
-  const [fetchError, setFetchError] = useState<string | null>(null);
+  const [hoveredId, setHoveredId] = useState<string | null>(null);
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
   const [fromCache, setFromCache] = useState(false);
   const [cacheAgeFormatted, setCacheAgeFormatted] = useState<string | null>(null);
 
   // Fetch from multiple destinations when "ALL" is selected
   useEffect(() => {
+    if (!mounted) return; // Hydration safety
     const fetchActivities = async () => {
       setLoading(true);
       setFetchError(null);
@@ -375,6 +381,14 @@ export function ActivitiesSectionEnhanced({ lang = 'en' }: ActivitiesSectionEnha
 
     router.push(`/activities/${activity.id}?id=${activity.id}&name=${encodeURIComponent(activity.name)}&price=${price}&imgs=${encodeURIComponent(img)}&duration=${activity.minimumDuration || '2h'}&rating=${activity.rating || 4.7}&desc=${encodeURIComponent((activity.shortDescription || activity.description || '').slice(0, 300))}&link=${encodeURIComponent(activity.bookingLink || '')}`);
   }, [router]);
+
+  if (!mounted) {
+    return (
+      <section className="py-2 md:py-10 min-h-fit" style={{ maxWidth: '1600px', margin: '0 auto' }}>
+        <div className="h-48 animate-pulse bg-gray-50 rounded-xl mx-4 md:mx-0" />
+      </section>
+    );
+  }
 
   return (
     <section className="pt-1 pb-2 md:py-6 lg:py-10" style={{ maxWidth: '1600px', margin: '0 auto' }}>

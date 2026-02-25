@@ -283,6 +283,12 @@ export function ToursSectionEnhanced({ lang = 'en' }: ToursSectionEnhancedProps)
 
   const [tours, setTours] = useState<Tour[]>([]);
   const [loading, setLoading] = useState(true);
+  const [hoveredId, setHoveredId] = useState<string | null>(null);
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
   const [fetchError, setFetchError] = useState<string | null>(null);
   const [fromCache, setFromCache] = useState(false);
   const [cacheAgeFormatted, setCacheAgeFormatted] = useState<string | null>(null);
@@ -395,6 +401,14 @@ export function ToursSectionEnhanced({ lang = 'en' }: ToursSectionEnhancedProps)
 
     router.push(`/tours/${tour.id}?id=${tour.id}&name=${encodeURIComponent(tour.name)}&price=${price}&imgs=${encodeURIComponent(img)}&duration=${tour.minimumDuration || '3h'}&rating=${tour.rating || 4.8}&desc=${encodeURIComponent((tour.shortDescription || tour.description || '').slice(0, 300))}&link=${encodeURIComponent(tour.bookingLink || '')}`);
   }, [router]);
+
+  if (!mounted) {
+    return (
+      <section className="py-2 md:py-10 min-h-fit" style={{ maxWidth: '1600px', margin: '0 auto' }}>
+        <div className="h-48 animate-pulse bg-gray-50 rounded-xl mx-4 md:mx-0" />
+      </section>
+    );
+  }
 
   return (
     <section className="pt-1 pb-2 md:py-6 lg:py-10" style={{ maxWidth: '1600px', margin: '0 auto' }}>

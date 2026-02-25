@@ -121,6 +121,14 @@ export default function PopularRoutesSection() {
     return null;
   }
 
+  if (!mounted) {
+    return (
+      <section className="py-4" style={{ maxWidth: '1600px', margin: '0 auto', padding: '16px 24px' }}>
+        <div className="h-48 animate-pulse bg-gray-50 rounded-xl" />
+      </section>
+    );
+  }
+
   return (
     <section className="py-4" style={{ maxWidth: '1600px', margin: '0 auto', padding: '16px 24px' }}>
       {/* Section Header - Matching existing sections */}

@@ -59,6 +59,11 @@ export default function ExperiencesSection({
   const [data, setData] = useState<ApiResponse | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   useEffect(() => {
     async function fetchExperiences() {
@@ -138,6 +143,14 @@ export default function ExperiencesSection({
 
   if (error || cards.length === 0) {
     return null; // Hide section if no data
+  }
+
+  if (!mounted) {
+    return (
+      <section className="py-2 md:py-10 min-h-fit bg-neutral-50 overflow-hidden">
+        <div className="h-48 animate-pulse bg-gray-100 rounded-xl mx-4 md:mx-0" />
+      </section>
+    );
   }
 
   return (

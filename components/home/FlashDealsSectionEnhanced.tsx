@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { ValueScoreBadge } from '@/components/shared/ValueScoreBadge';
 import { CountdownTimer } from '@/components/shared/CountdownTimer';
-import { Clock, TrendingUp, Users, Flame, Eye, ShoppingCart, Loader2, AlertCircle, Sparkles, Calendar } from 'lucide-react';
+import { Clock, TrendingUp, Users, Flame, Eye, ShoppingCart, Loader2, AlertCircle, Sparkles, Calendar, ChevronRight } from 'lucide-react';
 import { getAirportCity } from '@/lib/data/airports';
 import { getAirlineData } from '@/lib/flights/airline-data';
 import { saveToRecentlyViewed } from '@/lib/hooks/useFavorites';
@@ -132,6 +132,11 @@ export function FlashDealsSectionEnhanced({ lang = 'en' }: FlashDealsSectionEnha
   const router = useRouter();
   const [hoveredId, setHoveredId] = useState<string | null>(null);
   const [deals, setDeals] = useState<FlashDealData[]>([]);
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   // ✅ NEW: Client-side cache for instant loads (30min TTL for time-sensitive deals)
   interface FlashDealsResponse {
@@ -197,6 +202,14 @@ export function FlashDealsSectionEnhanced({ lang = 'en' }: FlashDealsSectionEnha
     // Navigate to flight results (open in new tab)
     window.open(`/flights/results?${params.toString()}`, '_blank');
   };
+
+  if (!mounted) {
+    return (
+      <section className="py-1 md:py-6 lg:py-10 min-h-fit md:min-h-[400px] lg:min-h-[340px]" style={{ maxWidth: '1600px', margin: '0 auto' }}>
+        <div className="h-48 animate-pulse bg-gray-50 rounded-xl mx-4 md:mx-0" />
+      </section>
+    );
+  }
 
   return (
     <section className="py-1 md:py-6 lg:py-10 min-h-fit md:min-h-[400px] lg:min-h-[340px]" style={{ maxWidth: '1600px', margin: '0 auto' }}>
