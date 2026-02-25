@@ -123,6 +123,9 @@ export default function MobileScrollCapture({
     }
   };
 
+  // Temporarily hidden per user request
+  return null;
+
   if (!isVisible || !isMobile) return null;
 
   const config = variant === 'price_alert'
@@ -130,33 +133,38 @@ export default function MobileScrollCapture({
     : { icon: Gift, title: 'Get $5 Credit', desc: 'Join for exclusive deals', btn: 'Claim Now', color: 'green' };
 
   return (
-    <div className="fixed bottom-0 left-0 right-0 z-50 animate-slideUp">
-      <div className={`mx-2 mb-2 rounded-2xl shadow-2xl overflow-hidden bg-white border border-gray-100`}>
+    <div 
+      className="fixed left-0 right-0 z-[1300] animate-slideUp"
+      style={{ bottom: 'calc(52px + env(safe-area-inset-bottom, 0px) + 8px)' }}
+    >
+      <div className="mx-3 rounded-2xl shadow-2xl overflow-hidden bg-white border border-gray-100 ring-1 ring-black/5">
         {isSubmitted ? (
-          <div className="p-4 text-center bg-green-50">
-            <p className="text-green-700 font-medium">You're all set!</p>
+          <div className="p-3 text-center bg-green-50">
+            <p className="text-green-700 text-sm font-semibold">✨ Successfully joined!</p>
           </div>
         ) : (
-          <div className="p-4">
+          <div className="p-3 relative">
             <button
               onClick={handleClose}
-              className="absolute top-3 right-3 text-gray-400 hover:text-gray-600"
+              className="absolute top-2 right-2 p-1 text-gray-400 hover:text-gray-600 transition-colors z-30"
               aria-label="Close"
             >
-              <X className="w-5 h-5" />
+              <X className="w-4 h-4" />
             </button>
 
-            <div className="flex items-center gap-3 mb-3">
-              <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${
-                config.color === 'primary' ? 'bg-primary-100' : 'bg-green-100'
+            <div className="flex items-center gap-3 mb-2.5">
+              <div className={`w-9 h-9 flex-shrink-0 rounded-xl flex items-center justify-center ${
+                config.color === 'primary' ? 'bg-primary-50' : 'bg-green-50'
               }`}>
                 <config.icon className={`w-5 h-5 ${
                   config.color === 'primary' ? 'text-primary-600' : 'text-green-600'
                 }`} />
               </div>
-              <div>
-                <h4 className="font-bold text-gray-900">{config.title}</h4>
-                <p className="text-sm text-gray-500">{config.desc}</p>
+              <div className="flex-1 min-w-0 pr-6">
+                <h4 className="font-bold text-gray-900 text-[14px] leading-tight flex items-center gap-1.5">
+                  {config.title}
+                </h4>
+                <p className="text-[12px] text-gray-500 font-medium truncate">{config.desc}</p>
               </div>
             </div>
 
@@ -165,16 +173,16 @@ export default function MobileScrollCapture({
                 type="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                placeholder="your@email.com"
+                placeholder="Enter email..."
                 required
-                className="flex-1 px-3 py-2.5 text-sm bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                className="flex-1 h-10 px-3 text-[14px] bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500 outline-none transition-all"
               />
               <button
                 type="submit"
-                className={`px-4 py-2.5 text-sm font-semibold text-white rounded-xl whitespace-nowrap ${
+                className={`px-4 h-10 text-[14px] font-bold text-white rounded-xl whitespace-nowrap transition-all active:scale-95 ${
                   config.color === 'primary'
-                    ? 'bg-primary-500 hover:bg-primary-600'
-                    : 'bg-green-500 hover:bg-green-600'
+                    ? 'bg-primary-500 hover:bg-primary-600 shadow-sm shadow-primary-200'
+                    : 'bg-green-600 hover:bg-green-700 shadow-sm shadow-green-200'
                 }`}
               >
                 {config.btn}
@@ -186,11 +194,11 @@ export default function MobileScrollCapture({
 
       <style jsx>{`
         @keyframes slideUp {
-          from { transform: translateY(100%); opacity: 0; }
+          from { transform: translateY(20px); opacity: 0; }
           to { transform: translateY(0); opacity: 1; }
         }
         .animate-slideUp {
-          animation: slideUp 0.3s ease-out;
+          animation: slideUp 0.4s cubic-bezier(0.2, 0.8, 0.2, 1);
         }
       `}</style>
     </div>

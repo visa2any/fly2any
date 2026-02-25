@@ -367,8 +367,8 @@ export function HotelsSectionEnhanced({ lang = 'en' }: HotelsSectionEnhancedProp
       {/* Divider - Level-6: Clean separator */}
       <div className="h-px bg-neutral-200 mb-2 md:mb-4 lg:mb-6 mx-3 md:mx-0"></div>
 
-      {/* Filter Buttons - Edge-to-edge scroll on mobile, centered on desktop */}
-      <div className="flex gap-1.5 md:gap-2 lg:gap-3 mb-3 md:mb-6 lg:mb-8 overflow-x-auto scrollbar-hide pb-1 px-3 md:px-0">
+      {/* Filter Buttons - Standardized Pattern */}
+      <div className="flex gap-2 mb-4 md:mb-6 overflow-x-auto scrollbar-hide pb-1 -mx-3 px-3 md:mx-0 md:px-0 scroll-smooth overscroll-x-contain">
         {[
           { key: 'all' as FilterType, label: t.all },
           { key: 'americas' as FilterType, label: t.americas },
@@ -380,9 +380,9 @@ export function HotelsSectionEnhanced({ lang = 'en' }: HotelsSectionEnhancedProp
           <button
             key={filter.key}
             onClick={() => setActiveFilter(filter.key)}
-            className={`px-2.5 md:px-4 py-1 md:py-2 rounded-full font-bold text-[10px] md:text-sm transition-all border-2 flex-shrink-0 whitespace-nowrap ${
+            className={`flex-shrink-0 whitespace-nowrap px-3 md:px-4 py-1.5 md:py-2 rounded-lg font-bold text-[11px] md:text-sm transition-all duration-200 border active:scale-95 min-h-[32px] md:min-h-[40px] ${
               activeFilter === filter.key
-                ? 'bg-primary-600 text-white border-primary-600'
+                ? 'bg-primary-600 text-white border-primary-600 shadow-sm'
                 : 'bg-white text-gray-700 border-gray-200 hover:border-primary-400 hover:bg-primary-50'
             }`}
           >

@@ -517,9 +517,9 @@ export function DestinationsSectionEnhanced({ lang = 'en' }: DestinationsSection
       {/* Divider - Compact */}
       <div className="h-px bg-neutral-200/80 mb-3 md:mb-4 mx-4 md:mx-0"></div>
 
-      {/* Filter Pills - Compact padding */}
+      {/* Filter Pills - Standardized Pattern */}
       <div
-        className="flex gap-2 mb-3 md:mb-4 overflow-x-auto scrollbar-hide pb-1 px-4 md:px-0"
+        className="flex gap-2 mb-4 md:mb-6 overflow-x-auto scrollbar-hide pb-1 -mx-4 px-4 md:mx-0 md:px-0 scroll-smooth overscroll-x-contain"
         style={{
           WebkitOverflowScrolling: 'touch',
           scrollbarWidth: 'none',
@@ -539,10 +539,10 @@ export function DestinationsSectionEnhanced({ lang = 'en' }: DestinationsSection
             key={filter.key}
             onClick={() => setActiveFilter(filter.key)}
             disabled={loading}
-            className={`min-h-[36px] px-3 md:px-4 py-1.5 rounded-lg font-semibold text-sm transition-all duration-150 ease-apple border flex-shrink-0 whitespace-nowrap ${
+            className={`flex-shrink-0 whitespace-nowrap px-3 md:px-4 py-1.5 md:py-2 rounded-lg font-bold text-[11px] md:text-sm transition-all duration-200 border active:scale-95 min-h-[32px] md:min-h-[40px] ${
               activeFilter === filter.key
-                ? 'bg-primary-500 text-white border-primary-500 shadow-primary'
-                : 'bg-white text-neutral-700 border-neutral-200 hover:border-primary-400 hover:bg-primary-50 active:scale-[0.97]'
+                ? 'bg-primary-500 text-white border-primary-500 shadow-sm'
+                : 'bg-white text-neutral-700 border-neutral-200 hover:border-primary-400 hover:bg-primary-50'
             } disabled:opacity-50 disabled:cursor-not-allowed`}
           >
             {filter.label}

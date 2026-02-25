@@ -294,9 +294,9 @@ export function TransfersSectionEnhanced({ lang = 'en' }: TransfersSectionEnhanc
       {/* Divider */}
       <div className="h-px bg-neutral-200/80 mb-3 md:mb-4 mx-4 md:mx-0" />
 
-      {/* Filter Pills */}
+      {/* Filter Pills - Standardized Pattern */}
       <div
-        className="flex gap-2 mb-3 md:mb-4 overflow-x-auto scrollbar-hide pb-1 px-4 md:px-0"
+        className="flex gap-2 mb-4 md:mb-6 overflow-x-auto scrollbar-hide pb-1 -mx-4 px-4 md:mx-0 md:px-0 scroll-smooth overscroll-x-contain"
         style={{ WebkitOverflowScrolling: 'touch', scrollbarWidth: 'none' }}
       >
         {[
@@ -309,9 +309,9 @@ export function TransfersSectionEnhanced({ lang = 'en' }: TransfersSectionEnhanc
           <button
             key={filter.key}
             onClick={() => setActiveFilter(filter.key)}
-            className={`min-h-[36px] px-3 md:px-4 py-1.5 rounded-lg font-semibold text-sm transition-all duration-150 border flex-shrink-0 whitespace-nowrap ${
+            className={`flex-shrink-0 whitespace-nowrap px-3 md:px-4 py-1.5 md:py-2 rounded-lg font-bold text-[11px] md:text-sm transition-all duration-200 border active:scale-95 min-h-[32px] md:min-h-[40px] ${
               activeFilter === filter.key
-                ? 'bg-teal-500 text-white border-teal-500 shadow-md'
+                ? 'bg-teal-500 text-white border-teal-500 shadow-sm'
                 : 'bg-white text-neutral-700 border-neutral-200 hover:border-teal-400 hover:bg-teal-50'
             }`}
           >
@@ -343,7 +343,7 @@ export function TransfersSectionEnhanced({ lang = 'en' }: TransfersSectionEnhanc
       )}
 
       {/* View All CTA */}
-      <div className="text-center mt-6 px-4 md:px-0">
+      <div className="hidden md:block text-center mt-6 px-4 md:px-0">
         <button
           onClick={() => router.push('/transfers')}
           className="inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-teal-500 to-cyan-600 text-white hover:from-teal-600 hover:to-cyan-700 font-bold rounded-xl transition-all shadow-lg hover:shadow-xl"

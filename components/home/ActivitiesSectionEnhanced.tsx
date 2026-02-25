@@ -289,6 +289,7 @@ export function ActivitiesSectionEnhanced({ lang = 'en' }: ActivitiesSectionEnha
   }, []);
   const [fromCache, setFromCache] = useState(false);
   const [cacheAgeFormatted, setCacheAgeFormatted] = useState<string | null>(null);
+  const [fetchError, setFetchError] = useState<string | null>(null);
 
   // Fetch from multiple destinations when "ALL" is selected
   useEffect(() => {
@@ -419,9 +420,9 @@ export function ActivitiesSectionEnhanced({ lang = 'en' }: ActivitiesSectionEnha
       {/* Divider */}
       <div className="h-px bg-neutral-200/80 mb-3 md:mb-4 mx-4 md:mx-0" />
 
-      {/* Filter Pills */}
+      {/* Filter Pills - Standardized Pattern */}
       <div
-        className="flex gap-2 mb-3 md:mb-4 overflow-x-auto scrollbar-hide pb-1 px-4 md:px-0"
+        className="flex gap-2 mb-4 md:mb-6 overflow-x-auto scrollbar-hide pb-1 -mx-4 px-4 md:mx-0 md:px-0 scroll-smooth overscroll-x-contain"
         style={{ WebkitOverflowScrolling: 'touch', scrollbarWidth: 'none' }}
       >
         {[
@@ -436,9 +437,9 @@ export function ActivitiesSectionEnhanced({ lang = 'en' }: ActivitiesSectionEnha
             key={filter.key}
             onClick={() => setActiveFilter(filter.key)}
             disabled={loading}
-            className={`min-h-[36px] px-3 md:px-4 py-1.5 rounded-lg font-semibold text-sm transition-all duration-150 border flex-shrink-0 whitespace-nowrap ${
+            className={`flex-shrink-0 whitespace-nowrap px-3 md:px-4 py-1.5 md:py-2 rounded-lg font-bold text-[11px] md:text-sm transition-all duration-200 border active:scale-95 min-h-[32px] md:min-h-[40px] ${
               activeFilter === filter.key
-                ? 'bg-purple-500 text-white border-purple-500 shadow-md'
+                ? 'bg-purple-500 text-white border-purple-500 shadow-sm'
                 : 'bg-white text-neutral-700 border-neutral-200 hover:border-purple-400 hover:bg-purple-50'
             } disabled:opacity-50`}
           >
@@ -487,7 +488,7 @@ export function ActivitiesSectionEnhanced({ lang = 'en' }: ActivitiesSectionEnha
       )}
 
       {/* View All CTA */}
-      <div className="text-center mt-6 px-4 md:px-0">
+      <div className="hidden md:block text-center mt-6 px-4 md:px-0">
         <button
           onClick={() => router.push('/activities')}
           className="inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-purple-500 to-violet-600 text-white hover:from-purple-600 hover:to-violet-700 font-bold rounded-xl transition-all shadow-lg hover:shadow-xl"

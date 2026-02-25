@@ -211,16 +211,16 @@ export function CarRentalsSectionEnhanced({ lang = 'en' }: CarRentalsSectionEnha
         <p className="text-sm text-gray-600">{t.subtitle}</p>
       </div>
 
-      {/* Location Filter Buttons */}
-      <div className="flex flex-wrap gap-2 mb-6">
+      {/* Location Filter Buttons - Standardized Pattern */}
+      <div className="flex gap-2 mb-4 md:mb-6 overflow-x-auto scrollbar-hide pb-1 -mx-4 px-4 md:mx-0 md:px-0 scroll-smooth overscroll-x-contain">
         {locationFilters.map((filter) => (
           <button
             key={filter.code}
             onClick={() => setSelectedLocation(filter.code)}
             className={`
-              px-4 py-2 rounded-lg font-semibold text-sm transition-all duration-200 border
+              flex-shrink-0 whitespace-nowrap px-3 md:px-4 py-1.5 md:py-2 rounded-lg font-bold text-[11px] md:text-sm transition-all duration-200 border active:scale-95 min-h-[32px] md:min-h-[40px]
               ${selectedLocation === filter.code
-                ? 'bg-primary-600 text-white border-primary-600'
+                ? 'bg-primary-600 text-white border-primary-600 shadow-sm'
                 : 'bg-white text-gray-700 border-gray-200 hover:border-primary-400 hover:bg-primary-50'
               }
             `}
@@ -460,7 +460,7 @@ export function CarRentalsSectionEnhanced({ lang = 'en' }: CarRentalsSectionEnha
 
       {/* View All Button */}
       {!loading && cars.length > 0 && (
-        <div className="text-center mt-6">
+        <div className="hidden md:block text-center mt-6">
           <Link
             href="/cars"
             className="inline-flex items-center px-6 py-3 bg-white border-2 border-primary-600 text-primary-600 hover:bg-primary-50 font-bold rounded-lg transition-colors"
