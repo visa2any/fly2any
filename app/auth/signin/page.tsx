@@ -2,8 +2,8 @@
 
 import { signIn } from 'next-auth/react';
 import { useSearchParams, useRouter } from 'next/navigation';
-import { useState, useEffect, Suspense } from 'react';
-import { Mail, Lock, Plane, Eye, EyeOff, Loader2, AlertTriangle, Sparkles } from 'lucide-react';
+import { useState, useEffect, useMemo, Suspense } from 'react';
+import { Mail, Lock, Plane, Eye, EyeOff, Loader2, AlertTriangle, Sparkles, Globe, Shield, Star, Home, Users, TrendingUp, BarChart3 } from 'lucide-react';
 import Link from 'next/link';
 import { motion } from 'framer-motion';
 import { useGoogleAuth } from '@/lib/hooks/useGoogleAuth';
@@ -29,12 +29,67 @@ const OAUTH_ERROR_MESSAGES: Record<string, string> = {
   Default: 'An error occurred during sign-in. Please try again.',
 };
 
+// ──────────────────────────────────────────────
+// Context-aware content: Host vs Traveler
+// ──────────────────────────────────────────────
+const HOST_PATHS = ['/host', '/list-your-property'];
+
+const contextContent = {
+  host: {
+    heading: (
+      <>
+        Manage your
+        <br />
+        properties
+        <br />
+        <span className="text-secondary-300">like a pro.</span>
+      </>
+    ),
+    subtitle: 'Sign in to manage listings, track bookings, view analytics, and connect with guests.',
+    formTitle: 'Host sign-in',
+    formSubtitle: 'Access your host dashboard & property listings',
+    stats: [
+      { value: '10K+', label: 'Active Hosts', icon: Users },
+      { value: '98%', label: 'Occupancy', icon: TrendingUp },
+      { value: '24/7', label: 'Support', icon: Shield },
+      { value: 'Real-time', label: 'Analytics', icon: BarChart3 },
+    ],
+  },
+  traveler: {
+    heading: (
+      <>
+        Your next
+        <br />
+        adventure
+        <br />
+        <span className="text-secondary-300">starts here.</span>
+      </>
+    ),
+    subtitle: 'Sign in to access your bookings, saved searches, price alerts, and personalized travel deals.',
+    formTitle: 'Welcome back',
+    formSubtitle: 'Sign in to access your bookings & saved searches',
+    stats: [
+      { value: '900+', label: 'Airlines', icon: Plane },
+      { value: '500K+', label: 'Travelers', icon: Globe },
+      { value: '4.8/5', label: 'Rating', icon: Star },
+      { value: '256-bit', label: 'Encryption', icon: Shield },
+    ],
+  },
+};
+
 function SignInContent() {
   const searchParams = useSearchParams();
   const router = useRouter();
   const callbackUrl = searchParams?.get('callbackUrl') || '/account';
   const urlError = searchParams?.get('error');
   const isAgentLogin = callbackUrl?.includes('/agent');
+
+  // Detect context from callbackUrl
+  const context = useMemo(() => {
+    return HOST_PATHS.some(p => callbackUrl?.includes(p)) ? 'host' : 'traveler';
+  }, [callbackUrl]);
+
+  const content = contextContent[context];
 
   // Form state
   const [email, setEmail] = useState('');
@@ -43,14 +98,29 @@ function SignInContent() {
   const [isLoading, setIsLoading] = useState(false);
   const [isDemoLoading, setIsDemoLoading] = useState(false);
   const [error, setError] = useState('');
+  const [honeypot, setHoneypot] = useState('');
+  const [lockoutSeconds, setLockoutSeconds] = useState(0);
+
+  // Lockout countdown timer
+  useEffect(() => {
+    if (lockoutSeconds <= 0) return;
+    const timer = setInterval(() => {
+      setLockoutSeconds(prev => {
+        if (prev <= 1) {
+          setError('');
+          return 0;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+    return () => clearInterval(timer);
+  }, [lockoutSeconds]);
 
   // Handle OAuth errors from URL
   useEffect(() => {
     if (urlError) {
       const errorMessage = OAUTH_ERROR_MESSAGES[urlError] || OAUTH_ERROR_MESSAGES.Default;
       setError(errorMessage);
-
-      // Track the error
       accountErrorTracker.trackOAuthError('google', urlError);
     }
   }, [urlError]);
@@ -87,6 +157,17 @@ function SignInContent() {
 
   const handleCredentialsSignIn = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    // Honeypot check — silently block bots
+    if (honeypot) {
+      setIsLoading(true);
+      setTimeout(() => { setIsLoading(false); setError('Invalid email or password'); }, 1500);
+      return;
+    }
+
+    // Block if locked out
+    if (lockoutSeconds > 0) return;
+
     setIsLoading(true);
     setError('');
 
@@ -98,8 +179,15 @@ function SignInContent() {
       });
 
       if (result?.error) {
-        // Map common errors to user-friendly messages
-        const errorMsg = result.error === 'CredentialsSignin' ? 'Invalid email or password' : result.error;
+        let errorMsg = result.error === 'CredentialsSignin' ? 'Invalid email or password' : result.error;
+
+        // Detect lockout from rate limiter
+        const lockoutMatch = errorMsg.match(/Try again in (\d+) minutes?/);
+        if (lockoutMatch) {
+          setLockoutSeconds(parseInt(lockoutMatch[1]) * 60);
+          errorMsg = `Account temporarily locked. Too many failed attempts.`;
+        }
+
         setError(errorMsg);
         accountErrorTracker.trackAuthError('AUTH_SIGNIN_FAILED', result.error, { email }, email);
         setIsLoading(false);
@@ -114,217 +202,296 @@ function SignInContent() {
   };
 
   return (
-    <div className="relative min-h-screen bg-black text-white flex items-center justify-center p-4 overflow-hidden">
-      {/* Animated Background */}
-      <div className="absolute inset-0">
-        <div className="absolute inset-0 bg-gradient-to-br from-black via-gray-900 to-black" />
-        <div className="absolute top-1/4 right-1/4 w-[500px] h-[500px] bg-blue-500/20 rounded-full blur-[120px] animate-pulse" />
-        <div className="absolute bottom-1/4 left-1/4 w-[400px] h-[400px] bg-emerald-500/20 rounded-full blur-[100px] animate-pulse" style={{ animationDelay: '1s' }} />
-        <div className="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1436491865332-7a61a109cc05?w=1920&q=80')] bg-cover bg-center opacity-5" />
+    <div className="h-[100dvh] flex overflow-hidden">
+      {/* ═══════════════════════════════════════════════
+          LEFT PANEL — Brand Visual (Desktop only)
+          ═══════════════════════════════════════════════ */}
+      <div className="hidden lg:flex lg:w-[45%] xl:w-[50%] relative overflow-hidden">
+        {/* Background gradient */}
+        <div className="absolute inset-0 bg-gradient-to-br from-primary-600 via-primary-500 to-secondary-500" />
+
+        {/* Decorative pattern overlay */}
+        <div className="absolute inset-0 opacity-[0.06]" style={{
+          backgroundImage: 'radial-gradient(circle at 1px 1px, white 1px, transparent 0)',
+          backgroundSize: '32px 32px'
+        }} />
+
+        {/* Floating decorative orbs */}
+        <div className="absolute top-[15%] right-[10%] w-[300px] h-[300px] bg-secondary-400/30 rounded-full blur-[100px] animate-pulse" />
+        <div className="absolute bottom-[20%] left-[5%] w-[250px] h-[250px] bg-white/10 rounded-full blur-[80px] animate-pulse" style={{ animationDelay: '2s' }} />
+        <div className="absolute top-[60%] right-[30%] w-[180px] h-[180px] bg-primary-300/20 rounded-full blur-[60px] animate-pulse" style={{ animationDelay: '4s' }} />
+
+        {/* Content */}
+        <div className="relative z-10 flex flex-col justify-between p-10 xl:p-14 w-full">
+          {/* Logo + Brand */}
+          <motion.div
+            initial={{ opacity: 0, y: -20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.1 }}
+          >
+            <Link href="/" className="inline-flex items-center gap-3 group">
+              <div className="w-12 h-12 bg-white/15 backdrop-blur-xl rounded-2xl flex items-center justify-center border border-white/20 group-hover:bg-white/25 transition-all shadow-lg">
+                {context === 'host' ? (
+                  <Home className="w-6 h-6 text-white" />
+                ) : (
+                  <Plane className="w-6 h-6 text-white" />
+                )}
+              </div>
+              <span className="text-2xl font-black text-white tracking-tight">FLY2ANY</span>
+            </Link>
+          </motion.div>
+
+          {/* Hero Text — Context-aware */}
+          <motion.div
+            initial={{ opacity: 0, y: 30 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.3, duration: 0.6 }}
+            className="space-y-6"
+          >
+            <h2 className="text-4xl xl:text-5xl font-black text-white leading-[1.1] tracking-tight">
+              {content.heading}
+            </h2>
+            <p className="text-white/70 text-lg max-w-sm leading-relaxed font-medium">
+              {content.subtitle}
+            </p>
+          </motion.div>
+
+          {/* Trust Stats — Context-aware */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.5 }}
+          >
+            <div className="grid grid-cols-2 gap-3">
+              {content.stats.map((stat, i) => (
+                <motion.div
+                  key={stat.label}
+                  initial={{ opacity: 0, y: 15 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.6 + i * 0.1 }}
+                  className="bg-white/10 backdrop-blur-md rounded-2xl p-4 border border-white/10 hover:bg-white/15 transition-all duration-200"
+                >
+                  <div className="flex items-center gap-3">
+                    <div className="w-9 h-9 bg-white/15 rounded-xl flex items-center justify-center">
+                      <stat.icon className="w-4 h-4 text-white/90" />
+                    </div>
+                    <div>
+                      <div className="text-lg font-bold text-white">{stat.value}</div>
+                      <div className="text-xs text-white/60 font-medium">{stat.label}</div>
+                    </div>
+                  </div>
+                </motion.div>
+              ))}
+            </div>
+          </motion.div>
+        </div>
       </div>
 
-      <div className="relative w-full max-w-md z-10">
-        {/* Logo & Header */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="text-center mb-8"
-        >
-          <motion.div
-            initial={{ scale: 0.5, opacity: 0 }}
-            animate={{ scale: 1, opacity: 1 }}
-            transition={{ delay: 0.1, type: "spring", stiffness: 200 }}
-            className="inline-flex items-center justify-center w-20 h-20 bg-gradient-to-br from-blue-500 to-emerald-500 rounded-[22px] shadow-2xl shadow-blue-500/30 mb-5 hover:scale-105 transition-transform"
-          >
-            <Plane className="w-10 h-10 text-white" />
-          </motion.div>
-          <motion.h1
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.2 }}
-            className="text-4xl font-black text-white mb-2 tracking-tight"
-          >
-            Welcome Back
-          </motion.h1>
-          <motion.p
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.3 }}
-            className="text-gray-400 text-base"
-          >
-            Sign in to access your bookings & saved searches
-          </motion.p>
-        </motion.div>
-
-        {/* Sign In Card - Ultra-Premium Glass Morphism */}
-        <motion.div
-          initial={{ opacity: 0, y: 30 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.4 }}
-          className="bg-white/5 backdrop-blur-2xl rounded-3xl shadow-2xl border border-white/10 p-8"
-        >
-
-          {/* Google Sign In - Premium Dark Button */}
-          {/* Google Sign In - Disabled
-          <button
-            onClick={handleGoogleSignIn}
-            disabled={isGoogleLoading}
-            className="w-full flex items-center justify-center gap-3 px-6 py-4 bg-white/10 backdrop-blur-sm border border-white/20 rounded-2xl text-white font-semibold hover:bg-white/20 hover:border-white/30 hover:shadow-xl transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed active:scale-[0.98]"
-          >
-            {isGoogleLoading ? (
-              <Loader2 className="w-5 h-5 animate-spin" />
-            ) : (
-              <GoogleLogo />
-            )}
-            <span>{isGoogleLoading ? 'Connecting...' : 'Continue with Google'}</span>
-          </button>
-          */}
-
-          {/* Divider */}
-          {/* Divider - Disabled
-          <div className="relative my-7">
-            <div className="absolute inset-0 flex items-center">
-              <div className="w-full border-t border-white/10"></div>
+      {/* ═══════════════════════════════════════════════
+          RIGHT PANEL — Auth Form (viewport-locked, no scroll)
+          ═══════════════════════════════════════════════ */}
+      <div className="flex-1 flex flex-col h-[100dvh] bg-neutral-50 overflow-hidden">
+        {/* Mobile-only top bar with brand */}
+        <div className="lg:hidden bg-gradient-to-r from-primary-500 to-primary-600 px-5 pt-[max(env(safe-area-inset-top),12px)] pb-4 flex-shrink-0">
+          <Link href="/" className="inline-flex items-center gap-2.5">
+            <div className="w-9 h-9 bg-white/15 backdrop-blur-xl rounded-xl flex items-center justify-center border border-white/20">
+              {context === 'host' ? (
+                <Home className="w-4.5 h-4.5 text-white" />
+              ) : (
+                <Plane className="w-4.5 h-4.5 text-white" />
+              )}
             </div>
-            <div className="relative flex justify-center text-sm">
-              <span className="px-4 bg-black/50 text-gray-400 font-medium">or sign in with email</span>
-            </div>
-          </div>
-          */}
+            <span className="text-lg font-black text-white tracking-tight">FLY2ANY</span>
+          </Link>
+        </div>
 
-          {/* Error Message */}
-          {error && (
-            <div className="mb-5 p-4 bg-red-500/10 border border-red-500/30 rounded-2xl text-red-300 text-sm backdrop-blur-sm">
-              <div className="flex items-start gap-3">
-                <AlertTriangle className="w-5 h-5 text-red-400 flex-shrink-0 mt-0.5" />
-                <div>
-                  <p className="font-semibold mb-1 text-red-200">Sign-in Error</p>
-                  <p className="text-red-300">{error}</p>
-                  {urlError === 'OAuthAccountNotLinked' && (
-                    <p className="mt-2 text-xs text-red-400">
-                      Try signing in with email/password or contact support if you need help.
-                    </p>
-                  )}
+        {/* Auth form — centered vertically, no scroll */}
+        <div className="flex-1 flex items-center justify-center px-5 sm:px-8 overflow-hidden">
+          <div className="w-full max-w-[400px]">
+            {/* Header — Context-aware */}
+            <motion.div
+              initial={{ opacity: 0, y: 15 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="mb-6"
+            >
+              <h1 className="text-2xl sm:text-3xl font-black text-neutral-800 mb-1.5 tracking-tight">
+                {content.formTitle}
+              </h1>
+              <p className="text-neutral-500 text-sm">
+                {content.formSubtitle}
+              </p>
+            </motion.div>
+
+            {/* Auth Card */}
+            <motion.div
+              initial={{ opacity: 0, y: 15 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.1 }}
+            >
+              {/* Google Sign In — Disabled until OAuth is configured */}
+
+              {/* Error / Lockout Message */}
+              {error && (
+                <motion.div
+                  initial={{ opacity: 0, y: -8 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  className={`mb-4 p-3 border-2 rounded-xl text-sm ${
+                    lockoutSeconds > 0
+                      ? 'bg-warning-50 border-warning-200'
+                      : 'bg-error-50 border-error-200'
+                  }`}
+                >
+                  <div className="flex items-start gap-2.5">
+                    {lockoutSeconds > 0 ? (
+                      <Shield className="w-4 h-4 text-warning-500 flex-shrink-0 mt-0.5" />
+                    ) : (
+                      <AlertTriangle className="w-4 h-4 text-error-500 flex-shrink-0 mt-0.5" />
+                    )}
+                    <div>
+                      <p className={`font-semibold text-xs ${lockoutSeconds > 0 ? 'text-warning-700' : 'text-error-700'}`}>
+                        {error}
+                      </p>
+                      {lockoutSeconds > 0 && (
+                        <p className="mt-1 text-xs text-warning-600 font-mono">
+                          Try again in {Math.floor(lockoutSeconds / 60)}:{String(lockoutSeconds % 60).padStart(2, '0')}
+                        </p>
+                      )}
+                      {urlError === 'OAuthAccountNotLinked' && (
+                        <p className="mt-1 text-xs text-error-500">
+                          Try signing in with email/password or contact support.
+                        </p>
+                      )}
+                    </div>
+                  </div>
+                </motion.div>
+              )}
+
+              {/* Email/Password Form */}
+              <form onSubmit={handleCredentialsSignIn} className="space-y-3.5">
+                {/* Honeypot — hidden from humans, bots auto-fill */}
+                <div className="absolute" style={{ left: '-9999px', top: '-9999px' }} aria-hidden="true">
+                  <label htmlFor="website">Website</label>
+                  <input
+                    id="website"
+                    name="website"
+                    type="text"
+                    value={honeypot}
+                    onChange={(e) => setHoneypot(e.target.value)}
+                    tabIndex={-1}
+                    autoComplete="off"
+                  />
                 </div>
-              </div>
-            </div>
-          )}
+                {/* Email */}
+                <div>
+                  <label htmlFor="email" className="block text-xs font-semibold text-neutral-600 mb-1.5">
+                    Email Address
+                  </label>
+                  <div className="relative">
+                    <Mail className="absolute left-3.5 top-1/2 transform -translate-y-1/2 w-[16px] h-[16px] text-neutral-400" />
+                    <input
+                      id="email"
+                      type="email"
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
+                      required
+                      autoComplete="email"
+                      className="w-full pl-10 pr-4 py-2.5 bg-white border-2 border-neutral-200 rounded-xl focus:ring-2 focus:ring-primary-100 focus:border-primary-500 transition-all text-neutral-800 font-medium placeholder:text-neutral-400 outline-none text-sm"
+                      placeholder="you@example.com"
+                    />
+                  </div>
+                </div>
 
-          {/* Email/Password Form */}
-          <form onSubmit={handleCredentialsSignIn} className="space-y-5">
-            {/* Email Field */}
-            <div>
-              <label htmlFor="email" className="block text-sm font-semibold text-gray-300 mb-2">
-                Email Address
-              </label>
-              <div className="relative">
-                <Mail className="absolute left-4 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
-                <input
-                  id="email"
-                  type="email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  required
-                  className="w-full pl-12 pr-4 py-3.5 bg-white/10 border border-white/20 rounded-xl focus:ring-4 focus:ring-blue-500/20 focus:border-blue-500/50 transition-all text-white font-medium placeholder:text-gray-500 backdrop-blur-sm"
-                  placeholder="you@example.com"
-                />
-              </div>
-            </div>
+                {/* Password */}
+                <div>
+                  <div className="flex items-center justify-between mb-1.5">
+                    <label htmlFor="password" className="block text-xs font-semibold text-neutral-600">
+                      Password
+                    </label>
+                    <Link href="/auth/forgot-password" className="text-xs text-primary-500 hover:text-primary-600 font-semibold transition-colors">
+                      Forgot?
+                    </Link>
+                  </div>
+                  <div className="relative">
+                    <Lock className="absolute left-3.5 top-1/2 transform -translate-y-1/2 w-[16px] h-[16px] text-neutral-400" />
+                    <input
+                      id="password"
+                      type={showPassword ? 'text' : 'password'}
+                      value={password}
+                      onChange={(e) => setPassword(e.target.value)}
+                      required
+                      autoComplete="current-password"
+                      className="w-full pl-10 pr-11 py-2.5 bg-white border-2 border-neutral-200 rounded-xl focus:ring-2 focus:ring-primary-100 focus:border-primary-500 transition-all text-neutral-800 font-medium placeholder:text-neutral-400 outline-none text-sm"
+                      placeholder="Enter your password"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowPassword(!showPassword)}
+                      className="absolute right-3 top-1/2 transform -translate-y-1/2 text-neutral-400 hover:text-neutral-600 transition-colors p-0.5"
+                      aria-label={showPassword ? 'Hide password' : 'Show password'}
+                    >
+                      {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                    </button>
+                  </div>
+                </div>
 
-            {/* Password Field */}
-            <div>
-              <div className="flex items-center justify-between mb-2">
-                <label htmlFor="password" className="block text-sm font-semibold text-gray-300">
-                  Password
-                </label>
-                <Link href="/auth/forgot-password" className="text-xs text-blue-400 hover:text-blue-300 font-medium transition-colors">
-                  Forgot password?
+                {/* Submit */}
+                <button
+                  type="submit"
+                  disabled={isLoading}
+                  className="w-full py-3 bg-gradient-to-r from-primary-500 to-primary-600 text-white font-bold rounded-xl shadow-lg shadow-primary-500/20 hover:shadow-xl hover:shadow-primary-500/30 hover:from-primary-600 hover:to-primary-700 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed active:scale-[0.98] text-sm"
+                >
+                  {isLoading ? (
+                    <span className="flex items-center justify-center gap-2">
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                      Signing in...
+                    </span>
+                  ) : (
+                    'Sign In'
+                  )}
+                </button>
+              </form>
+
+              {/* Sign Up Link */}
+              <div className="mt-5 text-center text-sm text-neutral-500">
+                Don&apos;t have an account?{' '}
+                <Link href={`/auth/signup?callbackUrl=${encodeURIComponent(callbackUrl)}`} className="text-primary-500 hover:text-primary-600 font-semibold transition-colors">
+                  Create one
                 </Link>
               </div>
-              <div className="relative">
-                <Lock className="absolute left-4 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
-                <input
-                  id="password"
-                  type={showPassword ? 'text' : 'password'}
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  required
-                  className="w-full pl-12 pr-12 py-3.5 bg-white/10 border border-white/20 rounded-xl focus:ring-4 focus:ring-blue-500/20 focus:border-blue-500/50 transition-all text-white font-medium placeholder:text-gray-500 backdrop-blur-sm"
-                  placeholder="Enter your password"
-                />
-                <button
-                  type="button"
-                  onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-4 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-200 transition-colors"
-                >
-                  {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
-                </button>
-              </div>
-            </div>
 
-            {/* Submit Button - Ultra-Premium Gradient */}
-            <button
-              type="submit"
-              disabled={isLoading}
-              className="w-full py-4 bg-gradient-to-r from-blue-500 to-emerald-500 text-white font-bold rounded-xl shadow-2xl shadow-blue-500/30 hover:shadow-blue-500/50 hover:from-blue-600 hover:to-emerald-600 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed active:scale-[0.98] text-base"
-            >
-              {isLoading ? (
-                <span className="flex items-center justify-center gap-2">
-                  <Loader2 className="w-5 h-5 animate-spin" />
-                  Signing in...
-                </span>
-              ) : (
-                'Sign In'
+              {/* Agent Demo Button */}
+              {isAgentLogin && (
+                <div className="mt-4 pt-4 border-t border-neutral-200">
+                  <button
+                    onClick={handleDemoLogin}
+                    disabled={isDemoLoading}
+                    className="w-full flex items-center justify-center gap-2 px-5 py-2.5 bg-gradient-to-r from-violet-500 to-purple-600 text-white rounded-xl font-semibold shadow-lg shadow-violet-500/20 hover:shadow-xl hover:from-violet-600 hover:to-purple-700 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed active:scale-[0.98] text-sm"
+                  >
+                    {isDemoLoading ? (
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                    ) : (
+                      <Sparkles className="w-4 h-4" />
+                    )}
+                    <span>{isDemoLoading ? 'Starting Demo...' : 'Try Agent Demo'}</span>
+                  </button>
+                </div>
               )}
-            </button>
-          </form>
+            </motion.div>
 
-          {/* Sign Up Link */}
-          <div className="mt-7 text-center text-sm text-gray-400">
-            Don&apos;t have an account?{' '}
-            <Link href="/auth/signup" className="text-blue-400 hover:text-blue-300 font-semibold transition-colors">
-              Create one
-            </Link>
+            {/* Terms */}
+            <motion.p
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 0.3 }}
+              className="mt-5 text-center text-[11px] text-neutral-400 leading-relaxed"
+            >
+              By continuing, you agree to our{' '}
+              <Link href="/terms" className="text-primary-500 hover:underline">Terms</Link>
+              {' '}and{' '}
+              <Link href="/privacy" className="text-primary-500 hover:underline">Privacy Policy</Link>
+            </motion.p>
           </div>
-
-          {/* Agent Demo Button - Only show for agent login */}
-          {isAgentLogin && (
-            <div className="mt-6 pt-6 border-t border-white/10">
-              <p className="text-center text-sm text-gray-400 mb-3">
-                Want to explore first?
-              </p>
-              <button
-                onClick={handleDemoLogin}
-                disabled={isDemoLoading}
-                className="w-full flex items-center justify-center gap-3 px-6 py-3.5 bg-gradient-to-r from-violet-500 to-purple-600 text-white rounded-2xl font-semibold shadow-xl shadow-violet-500/30 hover:shadow-2xl hover:shadow-violet-500/40 hover:from-violet-600 hover:to-purple-700 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed active:scale-[0.98]"
-              >
-                {isDemoLoading ? (
-                  <Loader2 className="w-5 h-5 animate-spin" />
-                ) : (
-                  <Sparkles className="w-5 h-5" />
-                )}
-                <span>{isDemoLoading ? 'Starting Demo...' : 'Try Agent Demo'}</span>
-              </button>
-            </div>
-          )}
-        </motion.div>
-
-        {/* Terms & Privacy */}
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 0.6 }}
-          className="mt-6 text-center text-xs text-gray-500"
-        >
-          By continuing, you agree to our{' '}
-          <Link href="/terms" className="text-blue-400 hover:text-blue-300 hover:underline transition-colors">
-            Terms of Service
-          </Link>{' '}
-          and{' '}
-          <Link href="/privacy" className="text-blue-400 hover:text-blue-300 hover:underline transition-colors">
-            Privacy Policy
-          </Link>
-        </motion.div>
+        </div>
       </div>
     </div>
   );
@@ -334,18 +501,12 @@ export default function SignInPage() {
   return (
     <Suspense
       fallback={
-        <div className="relative min-h-screen bg-black flex items-center justify-center overflow-hidden">
-          {/* Animated Background */}
-          <div className="absolute inset-0">
-            <div className="absolute inset-0 bg-gradient-to-br from-black via-gray-900 to-black" />
-            <div className="absolute top-1/4 right-1/4 w-[500px] h-[500px] bg-blue-500/20 rounded-full blur-[120px] animate-pulse" />
-            <div className="absolute bottom-1/4 left-1/4 w-[400px] h-[400px] bg-emerald-500/20 rounded-full blur-[100px] animate-pulse" style={{ animationDelay: '1s' }} />
-          </div>
-          <div className="relative text-center z-10">
-            <div className="inline-flex items-center justify-center w-20 h-20 bg-gradient-to-br from-blue-500 to-emerald-500 rounded-[22px] shadow-2xl shadow-blue-500/30 mb-5 animate-pulse">
-              <Plane className="w-10 h-10 text-white" />
+        <div className="h-[100dvh] flex items-center justify-center bg-neutral-50 overflow-hidden">
+          <div className="text-center">
+            <div className="inline-flex items-center justify-center w-14 h-14 bg-gradient-to-br from-primary-500 to-primary-600 rounded-2xl shadow-xl shadow-primary-500/20 mb-4 animate-pulse">
+              <Plane className="w-7 h-7 text-white" />
             </div>
-            <p className="text-gray-400 font-medium">Loading...</p>
+            <p className="text-neutral-400 font-medium text-sm">Loading...</p>
           </div>
         </div>
       }

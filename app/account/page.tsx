@@ -1,5 +1,4 @@
 import { auth } from '@/lib/auth';
-import { redirect } from 'next/navigation';
 import { prisma } from '@/lib/prisma';
 import { bookingStorage } from '@/lib/bookings/storage';
 import {
@@ -32,7 +31,7 @@ export default async function AccountPage() {
   // Check if database is configured (Supabase, Neon, or legacy Vercel Postgres)
   const isDatabaseConfigured = !!(process.env.SUPABASE_POSTGRES_URL || process.env.POSTGRES_URL || process.env.DATABASE_URL);
 
-  let session = null;
+  let session: any = null;
   let savedSearches: any[] = [];
   let priceAlerts: any[] = [];
   let preferences = null;
@@ -40,21 +39,52 @@ export default async function AccountPage() {
   let wishlistCount = 0;
   let bookingsCount = 0;
 
+  // Try to authenticate
   try {
     if (isDatabaseConfigured && prisma) {
       session = await auth();
+    }
+  } catch (error) {
+    console.error('Auth error on account page:', error);
+  }
 
-      if (!session || !session.user) {
-        redirect('/auth/signin');
-      }
+  const isAuthenticated = !!session?.user?.id;
 
-      // Ensure session.user has required properties
-      if (!session.user.id) {
-        console.error('Session user missing ID:', session.user);
-        redirect('/auth/signin');
-      }
+  // Show sign-in prompt for unauthenticated users
+  if (!isAuthenticated) {
+    return (
+      <div className="w-full min-h-[60vh] flex items-center justify-center px-4">
+        <div className="text-center max-w-md">
+          <div className="w-20 h-20 mx-auto mb-6 bg-gradient-to-br from-primary-500 to-primary-600 rounded-[22px] flex items-center justify-center shadow-xl shadow-primary-500/20">
+            <User className="w-10 h-10 text-white" />
+          </div>
+          <h1 className="text-2xl md:text-3xl font-bold text-neutral-800 mb-3">
+            Sign in to your account
+          </h1>
+          <p className="text-neutral-500 mb-8 text-sm md:text-base leading-relaxed">
+            Access your saved searches, price alerts, bookings, and preferences.
+          </p>
+          <Link
+            href="/auth/signin?callbackUrl=/account"
+            className="inline-flex items-center gap-2 px-8 py-3.5 bg-gradient-to-r from-primary-500 to-primary-600 text-white font-bold rounded-xl shadow-lg shadow-primary-500/25 hover:shadow-xl hover:from-primary-600 hover:to-primary-700 transition-all duration-200 active:scale-[0.98] text-base"
+          >
+            <Sparkles className="w-5 h-5" />
+            Sign In
+          </Link>
+          <p className="mt-4 text-xs text-neutral-400">
+            Don&apos;t have an account?{' '}
+            <Link href="/auth/signup" className="text-primary-500 hover:text-primary-600 font-semibold transition-colors">
+              Create one
+            </Link>
+          </p>
+        </div>
+      </div>
+    );
+  }
 
-      // Fetch user data - all at once for performance
+  // Fetch user data for authenticated users
+  try {
+    if (isDatabaseConfigured && prisma && session?.user?.id) {
       const [
         savedSearchesResult,
         priceAlertsResult,
@@ -79,11 +109,9 @@ export default async function AccountPage() {
         (prisma as any).aIConversation?.count({
           where: { userId: session.user.id },
         }).catch(() => 0) ?? Promise.resolve(0),
-        // Fetch wishlist count from Prisma
         prisma.wishlistItem.count({
           where: { userId: session.user.id },
         }).catch(() => 0),
-        // Fetch bookings count from SQL storage (not Prisma)
         bookingStorage.count({ userId: session.user.id }).catch(() => 0),
       ]);
 
@@ -95,7 +123,7 @@ export default async function AccountPage() {
       bookingsCount = bookingsResult || 0;
     }
   } catch (error) {
-    console.error('Account page error:', error);
+    console.error('Account page data fetch error:', error);
     // Continue with empty data
   }
 

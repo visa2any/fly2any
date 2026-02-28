@@ -2,9 +2,10 @@
 
 import { signIn } from 'next-auth/react';
 import { useSearchParams, useRouter } from 'next/navigation';
-import { useState, Suspense } from 'react';
-import { Mail, Lock, User, Plane, Eye, EyeOff, CheckCircle2, Loader2 } from 'lucide-react';
+import { useState, useMemo, Suspense } from 'react';
+import { Mail, Lock, User, Plane, Eye, EyeOff, CheckCircle2, Loader2, AlertTriangle, Globe, Shield, Star, Home, Users, TrendingUp, BarChart3 } from 'lucide-react';
 import Link from 'next/link';
+import { motion } from 'framer-motion';
 import { useGoogleAuth } from '@/lib/hooks/useGoogleAuth';
 
 // Google Logo SVG Component
@@ -17,10 +18,63 @@ const GoogleLogo = () => (
   </svg>
 );
 
+// Context-aware content
+const HOST_PATHS = ['/host', '/list-your-property'];
+
+const contextContent = {
+  host: {
+    heading: (
+      <>
+        Start earning
+        <br />
+        with your
+        <br />
+        <span className="text-secondary-300">property.</span>
+      </>
+    ),
+    subtitle: 'Create an account to list your property, manage bookings, and maximize your revenue.',
+    formTitle: 'Create host account',
+    formSubtitle: 'List your property and start earning',
+    stats: [
+      { value: '10K+', label: 'Active Hosts', icon: Users },
+      { value: '98%', label: 'Occupancy', icon: TrendingUp },
+      { value: '24/7', label: 'Support', icon: Shield },
+      { value: 'Real-time', label: 'Analytics', icon: BarChart3 },
+    ],
+  },
+  traveler: {
+    heading: (
+      <>
+        Join the
+        <br />
+        travel
+        <br />
+        <span className="text-secondary-300">community.</span>
+      </>
+    ),
+    subtitle: 'Create an account to save searches, set price alerts, and get exclusive deals.',
+    formTitle: 'Create your account',
+    formSubtitle: 'Join Fly2Any for exclusive deals & easy bookings',
+    stats: [
+      { value: '900+', label: 'Airlines', icon: Plane },
+      { value: '500K+', label: 'Travelers', icon: Globe },
+      { value: '4.8/5', label: 'Rating', icon: Star },
+      { value: '256-bit', label: 'Encryption', icon: Shield },
+    ],
+  },
+};
+
 function SignUpContent() {
   const searchParams = useSearchParams();
   const router = useRouter();
   const callbackUrl = searchParams?.get('callbackUrl') || '/account';
+
+  // Detect context from callbackUrl
+  const context = useMemo(() => {
+    return HOST_PATHS.some(p => callbackUrl?.includes(p)) ? 'host' : 'traveler';
+  }, [callbackUrl]);
+
+  const content = contextContent[context];
 
   // Form state
   const [name, setName] = useState('');
@@ -32,12 +86,12 @@ function SignUpContent() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState(false);
+  const [honeypot, setHoneypot] = useState('');
 
-  // Google Auth hook with One Tap + Popup
+  // Google Auth
   const {
     isLoading: isGoogleLoading,
     signInWithPopup,
-    isConfigured: isGoogleConfigured
   } = useGoogleAuth({
     callbackUrl,
     context: 'signup',
@@ -52,10 +106,17 @@ function SignUpContent() {
 
   const handleCredentialsSignUp = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    // Honeypot check — silently block bots
+    if (honeypot) {
+      setIsLoading(true);
+      setTimeout(() => { setIsLoading(false); setSuccess(true); }, 1500);
+      return;
+    }
+
     setIsLoading(true);
     setError('');
 
-    // Validation
     if (password !== confirmPassword) {
       setError('Passwords do not match');
       setIsLoading(false);
@@ -69,11 +130,10 @@ function SignUpContent() {
     }
 
     try {
-      // Create account
       const response = await fetch('/api/auth/signup', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name, email, password }),
+        body: JSON.stringify({ name, email, password, website: honeypot }),
       });
 
       const data = await response.json();
@@ -86,7 +146,6 @@ function SignUpContent() {
 
       setSuccess(true);
 
-      // Auto sign in after successful registration
       const result = await signIn('credentials', {
         email,
         password,
@@ -105,7 +164,7 @@ function SignUpContent() {
     }
   };
 
-  // Password strength indicator
+  // Password strength
   const getPasswordStrength = () => {
     if (!password) return { strength: 0, label: '', color: '' };
     let strength = 0;
@@ -115,236 +174,345 @@ function SignUpContent() {
     if (/[^A-Za-z0-9]/.test(password)) strength++;
 
     const labels = ['Weak', 'Fair', 'Good', 'Strong'];
-    const colors = ['bg-red-500', 'bg-orange-500', 'bg-yellow-500', 'bg-green-500'];
+    const colors = ['bg-error-500', 'bg-warning-500', 'bg-secondary-500', 'bg-success-500'];
     return { strength, label: labels[strength - 1] || '', color: colors[strength - 1] || '' };
   };
 
   const passwordStrength = getPasswordStrength();
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-primary-50 via-white to-secondary-50 flex items-center justify-center p-4">
-      <div className="w-full max-w-md">
-        {/* Logo & Header - Apple-Class */}
-        <div className="text-center mb-8">
-          <div className="inline-flex items-center justify-center w-20 h-20 bg-gradient-to-br from-primary-500 to-primary-600 rounded-[22px] shadow-xl shadow-primary-500/30 mb-5 transform hover:scale-105 transition-transform">
-            <Plane className="w-10 h-10 text-white" />
-          </div>
-          <h1 className="text-3xl font-bold text-neutral-900 mb-2 tracking-tight">
-            Create Your Account
-          </h1>
-          <p className="text-neutral-500 text-[15px]">
-            Join Fly2Any for exclusive deals & easy bookings
-          </p>
+    <div className="h-[100dvh] flex overflow-hidden">
+      {/* ═══════════════════════════════════════════════
+          LEFT PANEL — Brand Visual (Desktop only)
+          ═══════════════════════════════════════════════ */}
+      <div className="hidden lg:flex lg:w-[45%] xl:w-[50%] relative overflow-hidden">
+        {/* Background gradient */}
+        <div className="absolute inset-0 bg-gradient-to-br from-primary-600 via-primary-500 to-secondary-500" />
+
+        {/* Decorative pattern overlay */}
+        <div className="absolute inset-0 opacity-[0.06]" style={{
+          backgroundImage: 'radial-gradient(circle at 1px 1px, white 1px, transparent 0)',
+          backgroundSize: '32px 32px'
+        }} />
+
+        {/* Floating decorative orbs */}
+        <div className="absolute top-[15%] right-[10%] w-[300px] h-[300px] bg-secondary-400/30 rounded-full blur-[100px] animate-pulse" />
+        <div className="absolute bottom-[20%] left-[5%] w-[250px] h-[250px] bg-white/10 rounded-full blur-[80px] animate-pulse" style={{ animationDelay: '2s' }} />
+        <div className="absolute top-[60%] right-[30%] w-[180px] h-[180px] bg-primary-300/20 rounded-full blur-[60px] animate-pulse" style={{ animationDelay: '4s' }} />
+
+        {/* Content */}
+        <div className="relative z-10 flex flex-col justify-between p-10 xl:p-14 w-full">
+          {/* Logo */}
+          <motion.div
+            initial={{ opacity: 0, y: -20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.1 }}
+          >
+            <Link href="/" className="inline-flex items-center gap-3 group">
+              <div className="w-12 h-12 bg-white/15 backdrop-blur-xl rounded-2xl flex items-center justify-center border border-white/20 group-hover:bg-white/25 transition-all shadow-lg">
+                {context === 'host' ? (
+                  <Home className="w-6 h-6 text-white" />
+                ) : (
+                  <Plane className="w-6 h-6 text-white" />
+                )}
+              </div>
+              <span className="text-2xl font-black text-white tracking-tight">FLY2ANY</span>
+            </Link>
+          </motion.div>
+
+          {/* Hero Text */}
+          <motion.div
+            initial={{ opacity: 0, y: 30 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.3, duration: 0.6 }}
+            className="space-y-6"
+          >
+            <h2 className="text-4xl xl:text-5xl font-black text-white leading-[1.1] tracking-tight">
+              {content.heading}
+            </h2>
+            <p className="text-white/70 text-lg max-w-sm leading-relaxed font-medium">
+              {content.subtitle}
+            </p>
+          </motion.div>
+
+          {/* Trust Stats */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.5 }}
+          >
+            <div className="grid grid-cols-2 gap-3">
+              {content.stats.map((stat, i) => (
+                <motion.div
+                  key={stat.label}
+                  initial={{ opacity: 0, y: 15 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.6 + i * 0.1 }}
+                  className="bg-white/10 backdrop-blur-md rounded-2xl p-4 border border-white/10 hover:bg-white/15 transition-all duration-200"
+                >
+                  <div className="flex items-center gap-3">
+                    <div className="w-9 h-9 bg-white/15 rounded-xl flex items-center justify-center">
+                      <stat.icon className="w-4 h-4 text-white/90" />
+                    </div>
+                    <div>
+                      <div className="text-lg font-bold text-white">{stat.value}</div>
+                      <div className="text-xs text-white/60 font-medium">{stat.label}</div>
+                    </div>
+                  </div>
+                </motion.div>
+              ))}
+            </div>
+          </motion.div>
+        </div>
+      </div>
+
+      {/* ═══════════════════════════════════════════════
+          RIGHT PANEL — Signup Form (viewport-locked)
+          ═══════════════════════════════════════════════ */}
+      <div className="flex-1 flex flex-col h-[100dvh] bg-neutral-50 overflow-hidden">
+        {/* Mobile-only top bar */}
+        <div className="lg:hidden bg-gradient-to-r from-primary-500 to-primary-600 px-5 pt-[max(env(safe-area-inset-top),12px)] pb-4 flex-shrink-0">
+          <Link href="/" className="inline-flex items-center gap-2.5">
+            <div className="w-9 h-9 bg-white/15 backdrop-blur-xl rounded-xl flex items-center justify-center border border-white/20">
+              {context === 'host' ? (
+                <Home className="w-4.5 h-4.5 text-white" />
+              ) : (
+                <Plane className="w-4.5 h-4.5 text-white" />
+              )}
+            </div>
+            <span className="text-lg font-black text-white tracking-tight">FLY2ANY</span>
+          </Link>
         </div>
 
-        {/* Sign Up Card - Apple-Class Glass Morphism */}
-        <div className="bg-white/80 backdrop-blur-xl rounded-3xl shadow-2xl shadow-neutral-200/50 p-8 border border-white/50">
+        {/* Form — centered, no scroll */}
+        <div className="flex-1 flex items-center justify-center px-5 sm:px-8 overflow-hidden">
+          <div className="w-full max-w-[400px]">
+            {/* Header */}
+            <motion.div
+              initial={{ opacity: 0, y: 15 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="mb-5"
+            >
+              <h1 className="text-2xl sm:text-3xl font-black text-neutral-800 mb-1.5 tracking-tight">
+                {content.formTitle}
+              </h1>
+              <p className="text-neutral-500 text-sm">
+                {content.formSubtitle}
+              </p>
+            </motion.div>
 
-          {/* Success Message */}
-          {success && (
-            <div className="mb-6 p-4 bg-green-50 border border-green-200 rounded-2xl flex items-center gap-3">
-              <CheckCircle2 className="w-5 h-5 text-green-600 flex-shrink-0" />
-              <span className="text-green-700 text-sm font-medium">Account created! Signing you in...</span>
-            </div>
-          )}
-
-          {/* Google Sign Up - Apple-Class Button */}
-          {/* Google Sign Up - Disabled
-          <button
-            onClick={handleGoogleSignUp}
-            disabled={isGoogleLoading}
-            className="w-full flex items-center justify-center gap-3 px-6 py-3.5 bg-white border-2 border-neutral-200 rounded-2xl text-neutral-700 font-semibold hover:bg-neutral-50 hover:border-neutral-300 hover:shadow-lg transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed active:scale-[0.98] touch-manipulation"
-          >
-            {isGoogleLoading ? (
-              <Loader2 className="w-5 h-5 animate-spin text-neutral-500" />
-            ) : (
-              <GoogleLogo />
-            )}
-            <span>{isGoogleLoading ? 'Connecting...' : 'Continue with Google'}</span>
-          </button>
-           */}
-
-          {/* Divider */}
-          {/* Divider - Disabled
-          <div className="relative my-7">
-            <div className="absolute inset-0 flex items-center">
-              <div className="w-full border-t border-neutral-200"></div>
-            </div>
-            <div className="relative flex justify-center text-sm">
-              <span className="px-4 bg-white text-neutral-400 font-medium">or sign up with email</span>
-            </div>
-          </div>
-          */}
-
-          {/* Error Message */}
-          {error && (
-            <div className="mb-5 p-4 bg-red-50 border border-red-200 rounded-2xl text-red-600 text-sm font-medium">
-              {error}
-            </div>
-          )}
-
-          {/* Email/Password Form */}
-          <form onSubmit={handleCredentialsSignUp} className="space-y-5">
-            {/* Name Field */}
-            <div>
-              <label htmlFor="name" className="block text-sm font-semibold text-neutral-700 mb-2">
-                Full Name
-              </label>
-              <div className="relative">
-                <User className="absolute left-4 top-1/2 transform -translate-y-1/2 w-5 h-5 text-neutral-400" />
-                <input
-                  id="name"
-                  type="text"
-                  value={name}
-                  onChange={(e) => setName(e.target.value)}
-                  required
-                  className="w-full pl-12 pr-4 py-3.5 bg-neutral-50 border-2 border-neutral-200 rounded-xl focus:ring-4 focus:ring-primary-100 focus:border-primary-500 transition-all text-neutral-900 font-medium placeholder:text-neutral-400"
-                  placeholder="John Doe"
-                />
-              </div>
-            </div>
-
-            {/* Email Field */}
-            <div>
-              <label htmlFor="email" className="block text-sm font-semibold text-neutral-700 mb-2">
-                Email Address
-              </label>
-              <div className="relative">
-                <Mail className="absolute left-4 top-1/2 transform -translate-y-1/2 w-5 h-5 text-neutral-400" />
-                <input
-                  id="email"
-                  type="email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  required
-                  className="w-full pl-12 pr-4 py-3.5 bg-neutral-50 border-2 border-neutral-200 rounded-xl focus:ring-4 focus:ring-primary-100 focus:border-primary-500 transition-all text-neutral-900 font-medium placeholder:text-neutral-400"
-                  placeholder="you@example.com"
-                />
-              </div>
-            </div>
-
-            {/* Password Field */}
-            <div>
-              <label htmlFor="password" className="block text-sm font-semibold text-neutral-700 mb-2">
-                Password
-              </label>
-              <div className="relative">
-                <Lock className="absolute left-4 top-1/2 transform -translate-y-1/2 w-5 h-5 text-neutral-400" />
-                <input
-                  id="password"
-                  type={showPassword ? 'text' : 'password'}
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  required
-                  minLength={8}
-                  className="w-full pl-12 pr-12 py-3.5 bg-neutral-50 border-2 border-neutral-200 rounded-xl focus:ring-4 focus:ring-primary-100 focus:border-primary-500 transition-all text-neutral-900 font-medium placeholder:text-neutral-400"
-                  placeholder="At least 8 characters"
-                />
-                <button
-                  type="button"
-                  onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-4 top-1/2 transform -translate-y-1/2 text-neutral-400 hover:text-neutral-600 transition-colors"
-                >
-                  {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
-                </button>
-              </div>
-              {/* Password Strength Indicator */}
-              {password && (
-                <div className="mt-2 flex items-center gap-2">
-                  <div className="flex-1 h-1.5 bg-neutral-200 rounded-full overflow-hidden">
-                    <div
-                      className={`h-full ${passwordStrength.color} transition-all duration-300`}
-                      style={{ width: `${(passwordStrength.strength / 4) * 100}%` }}
-                    />
-                  </div>
-                  <span className={`text-xs font-medium ${
-                    passwordStrength.strength <= 1 ? 'text-red-500' :
-                    passwordStrength.strength === 2 ? 'text-orange-500' :
-                    passwordStrength.strength === 3 ? 'text-yellow-600' : 'text-green-600'
-                  }`}>
-                    {passwordStrength.label}
-                  </span>
+            <motion.div
+              initial={{ opacity: 0, y: 15 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.1 }}
+            >
+              {/* Success */}
+              {success && (
+                <div className="mb-3 p-3 bg-success-50 border-2 border-success-200 rounded-xl flex items-center gap-2.5">
+                  <CheckCircle2 className="w-4 h-4 text-success-600 flex-shrink-0" />
+                  <span className="text-success-700 text-xs font-semibold">Account created! Signing you in...</span>
                 </div>
               )}
-            </div>
 
-            {/* Confirm Password Field */}
-            <div>
-              <label htmlFor="confirmPassword" className="block text-sm font-semibold text-neutral-700 mb-2">
-                Confirm Password
-              </label>
-              <div className="relative">
-                <Lock className="absolute left-4 top-1/2 transform -translate-y-1/2 w-5 h-5 text-neutral-400" />
-                <input
-                  id="confirmPassword"
-                  type={showConfirmPassword ? 'text' : 'password'}
-                  value={confirmPassword}
-                  onChange={(e) => setConfirmPassword(e.target.value)}
-                  required
-                  minLength={8}
-                  className={`w-full pl-12 pr-12 py-3.5 bg-neutral-50 border-2 rounded-xl focus:ring-4 focus:ring-primary-100 transition-all text-neutral-900 font-medium placeholder:text-neutral-400 ${
-                    confirmPassword && confirmPassword !== password
-                      ? 'border-red-300 focus:border-red-500'
-                      : confirmPassword && confirmPassword === password
-                      ? 'border-green-300 focus:border-green-500'
-                      : 'border-neutral-200 focus:border-primary-500'
-                  }`}
-                  placeholder="Confirm your password"
-                />
-                <button
-                  type="button"
-                  onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                  className="absolute right-4 top-1/2 transform -translate-y-1/2 text-neutral-400 hover:text-neutral-600 transition-colors"
+              {/* Google Sign Up — Disabled until OAuth is configured */}
+
+              {/* Error */}
+              {error && (
+                <motion.div
+                  initial={{ opacity: 0, y: -8 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  className="mb-3 p-3 bg-error-50 border-2 border-error-200 rounded-xl"
                 >
-                  {showConfirmPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                  <div className="flex items-start gap-2">
+                    <AlertTriangle className="w-4 h-4 text-error-500 flex-shrink-0 mt-0.5" />
+                    <p className="text-error-700 text-xs font-semibold">{error}</p>
+                  </div>
+                </motion.div>
+              )}
+
+              {/* Form */}
+              <form onSubmit={handleCredentialsSignUp} className="space-y-3">
+                {/* Honeypot — hidden from humans, bots auto-fill */}
+                <div className="absolute" style={{ left: '-9999px', top: '-9999px' }} aria-hidden="true">
+                  <label htmlFor="signup-website">Website</label>
+                  <input
+                    id="signup-website"
+                    name="website"
+                    type="text"
+                    value={honeypot}
+                    onChange={(e) => setHoneypot(e.target.value)}
+                    tabIndex={-1}
+                    autoComplete="off"
+                  />
+                </div>
+                {/* Name */}
+                <div>
+                  <label htmlFor="name" className="block text-xs font-semibold text-neutral-600 mb-1">
+                    Full Name
+                  </label>
+                  <div className="relative">
+                    <User className="absolute left-3.5 top-1/2 transform -translate-y-1/2 w-4 h-4 text-neutral-400" />
+                    <input
+                      id="name"
+                      type="text"
+                      value={name}
+                      onChange={(e) => setName(e.target.value)}
+                      required
+                      autoComplete="name"
+                      className="w-full pl-10 pr-4 py-2.5 bg-white border-2 border-neutral-200 rounded-xl focus:ring-2 focus:ring-primary-100 focus:border-primary-500 transition-all text-neutral-800 font-medium placeholder:text-neutral-400 outline-none text-sm"
+                      placeholder="John Doe"
+                    />
+                  </div>
+                </div>
+
+                {/* Email */}
+                <div>
+                  <label htmlFor="email" className="block text-xs font-semibold text-neutral-600 mb-1">
+                    Email Address
+                  </label>
+                  <div className="relative">
+                    <Mail className="absolute left-3.5 top-1/2 transform -translate-y-1/2 w-4 h-4 text-neutral-400" />
+                    <input
+                      id="email"
+                      type="email"
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
+                      required
+                      autoComplete="email"
+                      className="w-full pl-10 pr-4 py-2.5 bg-white border-2 border-neutral-200 rounded-xl focus:ring-2 focus:ring-primary-100 focus:border-primary-500 transition-all text-neutral-800 font-medium placeholder:text-neutral-400 outline-none text-sm"
+                      placeholder="you@example.com"
+                    />
+                  </div>
+                </div>
+
+                {/* Password */}
+                <div>
+                  <label htmlFor="password" className="block text-xs font-semibold text-neutral-600 mb-1">
+                    Password
+                  </label>
+                  <div className="relative">
+                    <Lock className="absolute left-3.5 top-1/2 transform -translate-y-1/2 w-4 h-4 text-neutral-400" />
+                    <input
+                      id="password"
+                      type={showPassword ? 'text' : 'password'}
+                      value={password}
+                      onChange={(e) => setPassword(e.target.value)}
+                      required
+                      minLength={8}
+                      autoComplete="new-password"
+                      className="w-full pl-10 pr-11 py-2.5 bg-white border-2 border-neutral-200 rounded-xl focus:ring-2 focus:ring-primary-100 focus:border-primary-500 transition-all text-neutral-800 font-medium placeholder:text-neutral-400 outline-none text-sm"
+                      placeholder="At least 8 characters"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowPassword(!showPassword)}
+                      className="absolute right-3 top-1/2 transform -translate-y-1/2 text-neutral-400 hover:text-neutral-600 transition-colors p-0.5"
+                      aria-label={showPassword ? 'Hide password' : 'Show password'}
+                    >
+                      {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                    </button>
+                  </div>
+                  {/* Password strength */}
+                  {password && (
+                    <div className="mt-1.5 flex items-center gap-2">
+                      <div className="flex-1 h-1 bg-neutral-200 rounded-full overflow-hidden">
+                        <div
+                          className={`h-full ${passwordStrength.color} transition-all duration-300`}
+                          style={{ width: `${(passwordStrength.strength / 4) * 100}%` }}
+                        />
+                      </div>
+                      <span className={`text-[10px] font-semibold ${
+                        passwordStrength.strength <= 1 ? 'text-error-500' :
+                        passwordStrength.strength === 2 ? 'text-warning-500' :
+                        passwordStrength.strength === 3 ? 'text-secondary-600' : 'text-success-600'
+                      }`}>
+                        {passwordStrength.label}
+                      </span>
+                    </div>
+                  )}
+                </div>
+
+                {/* Confirm Password */}
+                <div>
+                  <label htmlFor="confirmPassword" className="block text-xs font-semibold text-neutral-600 mb-1">
+                    Confirm Password
+                  </label>
+                  <div className="relative">
+                    <Lock className="absolute left-3.5 top-1/2 transform -translate-y-1/2 w-4 h-4 text-neutral-400" />
+                    <input
+                      id="confirmPassword"
+                      type={showConfirmPassword ? 'text' : 'password'}
+                      value={confirmPassword}
+                      onChange={(e) => setConfirmPassword(e.target.value)}
+                      required
+                      minLength={8}
+                      autoComplete="new-password"
+                      className={`w-full pl-10 pr-11 py-2.5 bg-white border-2 rounded-xl focus:ring-2 focus:ring-primary-100 transition-all text-neutral-800 font-medium placeholder:text-neutral-400 outline-none text-sm ${
+                        confirmPassword && confirmPassword !== password
+                          ? 'border-error-300 focus:border-error-500'
+                          : confirmPassword && confirmPassword === password
+                          ? 'border-success-300 focus:border-success-500'
+                          : 'border-neutral-200 focus:border-primary-500'
+                      }`}
+                      placeholder="Confirm your password"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                      className="absolute right-3 top-1/2 transform -translate-y-1/2 text-neutral-400 hover:text-neutral-600 transition-colors p-0.5"
+                      aria-label={showConfirmPassword ? 'Hide password' : 'Show password'}
+                    >
+                      {showConfirmPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                    </button>
+                  </div>
+                  {confirmPassword && (
+                    <p className={`mt-1 text-[10px] font-semibold ${
+                      confirmPassword === password ? 'text-success-600' : 'text-error-500'
+                    }`}>
+                      {confirmPassword === password ? '✓ Passwords match' : '✗ Passwords do not match'}
+                    </p>
+                  )}
+                </div>
+
+                {/* Submit */}
+                <button
+                  type="submit"
+                  disabled={isLoading || success}
+                  className="w-full py-3 bg-gradient-to-r from-primary-500 to-primary-600 text-white font-bold rounded-xl shadow-lg shadow-primary-500/20 hover:shadow-xl hover:shadow-primary-500/30 hover:from-primary-600 hover:to-primary-700 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed active:scale-[0.98] text-sm"
+                >
+                  {isLoading ? (
+                    <span className="flex items-center justify-center gap-2">
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                      Creating Account...
+                    </span>
+                  ) : (
+                    'Create Account'
+                  )}
                 </button>
+              </form>
+
+              {/* Sign In Link */}
+              <div className="mt-4 text-center text-sm text-neutral-500">
+                Already have an account?{' '}
+                <Link href={`/auth/signin?callbackUrl=${encodeURIComponent(callbackUrl)}`} className="text-primary-500 hover:text-primary-600 font-semibold transition-colors">
+                  Sign in
+                </Link>
               </div>
-              {/* Match indicator */}
-              {confirmPassword && (
-                <p className={`mt-1.5 text-xs font-medium ${
-                  confirmPassword === password ? 'text-green-600' : 'text-red-500'
-                }`}>
-                  {confirmPassword === password ? '✓ Passwords match' : '✗ Passwords do not match'}
-                </p>
-              )}
-            </div>
+            </motion.div>
 
-            {/* Submit Button - Apple-Class Primary */}
-            <button
-              type="submit"
-              disabled={isLoading || success}
-              className="w-full py-4 bg-gradient-to-r from-primary-500 to-primary-600 text-white font-bold rounded-xl shadow-lg shadow-primary-500/30 hover:shadow-xl hover:shadow-primary-500/40 hover:from-primary-600 hover:to-primary-700 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:shadow-lg active:scale-[0.98] text-[15px]"
+            {/* Terms */}
+            <motion.p
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 0.3 }}
+              className="mt-4 text-center text-[11px] text-neutral-400 leading-relaxed"
             >
-              {isLoading ? (
-                <span className="flex items-center justify-center gap-2">
-                  <Loader2 className="w-5 h-5 animate-spin" />
-                  Creating Account...
-                </span>
-              ) : (
-                'Create Account'
-              )}
-            </button>
-          </form>
-
-          {/* Sign In Link */}
-          <div className="mt-7 text-center text-sm text-neutral-500">
-            Already have an account?{' '}
-            <Link href="/auth/signin" className="text-primary-600 hover:text-primary-700 font-semibold transition-colors">
-              Sign in
-            </Link>
+              By creating an account, you agree to our{' '}
+              <Link href="/terms" className="text-primary-500 hover:underline">Terms</Link>
+              {' '}and{' '}
+              <Link href="/privacy" className="text-primary-500 hover:underline">Privacy Policy</Link>
+            </motion.p>
           </div>
-        </div>
-
-        {/* Terms & Privacy */}
-        <div className="mt-6 text-center text-xs text-neutral-400">
-          By creating an account, you agree to our{' '}
-          <Link href="/terms" className="text-primary-500 hover:underline">
-            Terms of Service
-          </Link>{' '}
-          and{' '}
-          <Link href="/privacy" className="text-primary-500 hover:underline">
-            Privacy Policy
-          </Link>
         </div>
       </div>
     </div>
@@ -355,12 +523,12 @@ export default function SignUpPage() {
   return (
     <Suspense
       fallback={
-        <div className="min-h-screen bg-gradient-to-br from-primary-50 via-white to-secondary-50 flex items-center justify-center">
+        <div className="h-[100dvh] flex items-center justify-center bg-neutral-50 overflow-hidden">
           <div className="text-center">
-            <div className="inline-flex items-center justify-center w-20 h-20 bg-gradient-to-br from-primary-500 to-primary-600 rounded-[22px] shadow-xl mb-5 animate-pulse">
-              <Plane className="w-10 h-10 text-white" />
+            <div className="inline-flex items-center justify-center w-14 h-14 bg-gradient-to-br from-primary-500 to-primary-600 rounded-2xl shadow-xl shadow-primary-500/20 mb-4 animate-pulse">
+              <Plane className="w-7 h-7 text-white" />
             </div>
-            <p className="text-neutral-500 font-medium">Loading...</p>
+            <p className="text-neutral-400 font-medium text-sm">Loading...</p>
           </div>
         </div>
       }

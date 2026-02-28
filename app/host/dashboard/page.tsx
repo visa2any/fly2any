@@ -24,33 +24,33 @@ function getGreeting(): string {
 }
 
 export default async function HostDashboard() {
-  // Auth check with error handling
-  let session;
+  // Try to get session but don't require it
+  let session: any = null;
   try {
     session = await auth();
   } catch (error) {
     console.error('Auth error in host dashboard:', error);
+  }
+
+  const isAuthenticated = !!session?.user?.id;
+
+  // Redirect unauthenticated users to the redesigned sign-in page
+  if (!isAuthenticated) {
     redirect('/auth/signin?callbackUrl=/host/dashboard');
   }
 
-  if (!session?.user?.id) {
-    redirect('/auth/signin?callbackUrl=/host/dashboard');
-  }
-
-  // Data fetching with full error safety
+  // Data fetching with full error safety — only query when authenticated
   let hostProfile: any = null;
   let propertyCount = 0;
   let healthProperties: any[] = [];
   let hasAvailability = false;
 
-  if (isPrismaAvailable()) {
+  if (isAuthenticated && isPrismaAvailable()) {
     const prisma = getPrismaClient();
-    // Timeout wrapper — if DB queries take >8s, render with defaults
     const timeout = (ms: number) => new Promise((_, reject) => setTimeout(() => reject(new Error('DB_TIMEOUT')), ms));
     try {
       await Promise.race([
         (async () => {
-          // Stage 1: Fetch host profile first (needed for dependent queries)
           hostProfile = await prisma.propertyOwner.findFirst({
             where: { userId: session.user.id },
             select: { 
@@ -71,10 +71,8 @@ export default async function HostDashboard() {
             },
           }).catch(() => null);
 
-          // Stage 2: Run remaining queries in parallel
           const [count, propertiesForHealth, availability] = await Promise.all([
             prisma.property.count({ where: { owner: { userId: session.user.id } } }).catch(() => 0),
-
             prisma.property.findMany({
               where: { owner: { userId: session.user.id } },
               select: {
@@ -87,7 +85,6 @@ export default async function HostDashboard() {
               },
               take: 20,
             }).catch(() => []),
-
             hostProfile?.id
               ? prisma.propertyAvailability.findFirst({
                   where: { property: { ownerId: hostProfile.id } },
@@ -116,11 +113,10 @@ export default async function HostDashboard() {
       } else {
         console.error('Dashboard data fetch error:', error);
       }
-      // Continue with defaults — page renders with empty/zero data
     }
   }
 
-  const firstName = session.user.name?.split(' ')[0] || 'Host';
+  const firstName = session?.user?.name?.split(' ')[0] || 'Host';
 
   return (
     <div className="min-h-screen bg-[#FDFDFD] text-gray-900 pb-20">
@@ -151,7 +147,7 @@ export default async function HostDashboard() {
 
         {/* ─── Zone 4: Stats Grid (Streaming) ─── */}
         <Suspense fallback={<StatsSkeleton />}>
-          <DashboardStats userId={session.user.id!} />
+          <DashboardStats userId={session?.user?.id || ''} />
         </Suspense>
 
         {/* ─── Zone 5: Today's Activity ─── */}
@@ -159,7 +155,7 @@ export default async function HostDashboard() {
           <Suspense fallback={
             <div className="h-40 bg-neutral-100 rounded-3xl animate-pulse" />
           }>
-            <TodayActivity userId={session.user.id!} />
+            <TodayActivity userId={session?.user?.id || ''} />
           </Suspense>
         </div>
 
@@ -170,7 +166,7 @@ export default async function HostDashboard() {
           <Suspense fallback={
             <div className="h-64 bg-neutral-100 rounded-3xl animate-pulse" />
           }>
-            <RecentMessages userId={session.user.id!} />
+            <RecentMessages userId={session?.user?.id || ''} />
           </Suspense>
 
           <HostProfileSummary profile={hostProfile} />

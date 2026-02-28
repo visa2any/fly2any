@@ -135,6 +135,7 @@ function GlobalLayoutInner({ children }: GlobalLayoutProps) {
   const isAccountRoute = pathname?.startsWith('/account');
   const isHostRoute = pathname?.startsWith('/host');
   const isAuthAdminRoute = pathname?.startsWith('/auth/admin-signin');
+  const isAuthRoute = pathname?.startsWith('/auth/signin') || pathname?.startsWith('/auth/signup');
   const isWizardRoute = pathname?.startsWith('/list-your-property/create');
 
   // Handle "More" tab click from bottom bar
@@ -142,8 +143,8 @@ function GlobalLayoutInner({ children }: GlobalLayoutProps) {
     setMobileDrawerOpen(true);
   };
 
-  // Admin, Agent, Host, and Wizard routes use their own dedicated layouts - bypass global layout
-  if (isAdminRoute || isAgentRoute || isHostRoute || isWizardRoute || isAuthAdminRoute) {
+  // Admin, Agent, Host, Auth, and Wizard routes use their own dedicated layouts - bypass global layout
+  if (isAdminRoute || isAgentRoute || isHostRoute || isWizardRoute || isAuthAdminRoute || isAuthRoute) {
     return <>{children}</>;
   }
 

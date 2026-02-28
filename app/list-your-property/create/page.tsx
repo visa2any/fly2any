@@ -220,10 +220,9 @@ export default function CreatePropertyPage() {
       };
   };
 
-  // Force Auth
+  // Redirect unauthenticated users to the host-themed sign-in page
   useEffect(() => {
     if (status === 'unauthenticated') {
-      toast.error("Please sign in to list your property");
       router.push('/auth/signin?callbackUrl=/list-your-property/create');
     }
   }, [status, router]);
