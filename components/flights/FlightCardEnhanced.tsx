@@ -248,21 +248,7 @@ export function FlightCardEnhanced({
   const displayPrice = convertedPrice ?? (typeof price.total === 'number' ? price.total : parseFloat(price.total));
   const displayCurrency = currencyInfo?.symbol || '$';
 
-  // DEBUG: Log component render and conversion feature props
-  useEffect(() => {
-    console.log('🔍 FlightCardEnhanced DEBUG:', {
-      id,
-      itinerariesCount: itineraries?.length || 0,
-      co2Emissions,
-      averageCO2,
-      viewingCount,
-      bookingsToday,
-      mlScore,
-      priceVsMarket,
-      numberOfBookableSeats,
-      conversionFeaturesPresent: !!(co2Emissions || viewingCount || bookingsToday),
-    });
-  }, [id, co2Emissions, averageCO2, viewingCount, bookingsToday, mlScore, priceVsMarket, numberOfBookableSeats]);
+
 
   // Determine journey type FIRST (needed for other calculations)
   const isMultiCity = itineraries.length > 2;
@@ -571,8 +557,7 @@ export function FlightCardEnhanced({
         brandedNameLower.includes('comfort+') ||
         brandedNameLower.includes('delta one');
 
-      // DEBUG: Log fare detection
-      console.log(`🎫 Fare Detection: ${fareOption} | ${brandedLabel} | isBasic=${isBasicEconomy} | isPremium=${isPremium}`);
+
 
       // Checked baggage from API - TRANSPARENT: Show EXACTLY what API says
       let checkedBags = fareDetails.includedCheckedBags?.quantity;
@@ -584,7 +569,7 @@ export function FlightCardEnhanced({
       }
 
       // Log what customer will see
-      console.log(`✓ "${brandedLabel || fareOption}": Displaying ${checkedBags} checked bag(s) | isBasic=${isBasicEconomy} | isPremium=${isPremium}`);
+
 
       const checkedWeight = fareDetails.includedCheckedBags?.weight
         ? `${fareDetails.includedCheckedBags.weight}${fareDetails.includedCheckedBags.weightUnit || 'kg'}`

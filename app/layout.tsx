@@ -9,6 +9,13 @@ import { PWAProvider } from "@/components/pwa/PWAProvider";
 import InstallPrompt from "@/components/pwa/InstallPrompt";
 import OfflineIndicator from "@/components/pwa/OfflineIndicator";
 import { PWASplashScreen } from "@/components/pwa/PWASplashScreen";
+import dynamic from 'next/dynamic';
+
+// Mobile native app wrapper — only loads when running inside Capacitor
+const MobileLoader = dynamic(
+  () => import('@/components/mobile/MobileLoader').then(m => m.MobileLoader),
+  { ssr: false, loading: () => null }
+);
 import { StructuredData } from "@/components/seo/StructuredData";
 import { GlobalClientErrorListener } from "@/components/error/GlobalClientErrorListener";
 import {
@@ -85,7 +92,7 @@ export const metadata: Metadata = {
     ],
     shortcut: '/icons/icon-32x32.png',
     apple: [
-      { url: '/icons/icon-180.png', sizes: '180x180', type: 'image/png' },
+      { url: '/icons/icon-180x180.png', sizes: '180x180', type: 'image/png' },
     ],
   },
   manifest: "/manifest.json",
@@ -93,7 +100,7 @@ export const metadata: Metadata = {
     capable: true,
     statusBarStyle: "default",
     title: "Fly2Any",
-    startupImage: "/icon-512.png",
+    startupImage: "/icons/icon-512x512.png",
   },
   verification: {
     google: process.env.NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION,
@@ -222,6 +229,8 @@ export default async function RootLayout({
         <PWASplashScreen />
         <InstallPrompt />
         <OfflineIndicator />
+        {/* Mobile Native App Features (Capacitor) */}
+        <MobileLoader />
         {/* Google Analytics 4 */}
         <Suspense fallback={null}>
           <GoogleAnalytics />

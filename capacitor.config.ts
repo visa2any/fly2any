@@ -1,52 +1,49 @@
 import type { CapacitorConfig } from '@capacitor/cli';
 
+const isProduction = process.env.NODE_ENV === 'production';
+
 const config: CapacitorConfig = {
   appId: 'com.fly2any.app',
   appName: 'Fly2Any',
   webDir: 'out',
 
-  // Server configuration
+  // Server configuration — Remote mode (loads from Vercel production)
+  // This is the recommended approach for a Next.js SSR app
   server: {
-    // Production API URL - Mobile apps will call this
     url: 'https://fly2any-fresh.vercel.app',
-    // Use HTTPS scheme for security
     androidScheme: 'https',
     iosScheme: 'https',
     hostname: 'fly2any-fresh.vercel.app',
-    // Enable cleartext only for development
     cleartext: false,
   },
 
   // iOS-specific configuration
   ios: {
     contentInset: 'automatic',
-    // Use WKWebView with modern features
     scrollEnabled: true,
     scheme: 'Fly2Any',
-    // Prefer native navigation
     preferredContentMode: 'mobile',
   },
 
   // Android-specific configuration
   android: {
-    // Allow mixed content for API calls
-    allowMixedContent: true,
-    // Capture back button
+    // SECURITY: No mixed content in production
+    allowMixedContent: false,
     captureInput: true,
-    // Enable web debugging in debug builds
-    webContentsDebuggingEnabled: true,
-    // Background color while app loads
-    backgroundColor: '#ffffff',
+    // SECURITY: Only enable WebView debugging in development
+    webContentsDebuggingEnabled: !isProduction,
+    // Brand color while app loads
+    backgroundColor: '#E74035',
   },
 
   // Plugin configurations
   plugins: {
-    // Splash Screen
+    // Splash Screen — Brand identity
     SplashScreen: {
       launchShowDuration: 2000,
       launchAutoHide: true,
       launchFadeOutDuration: 500,
-      backgroundColor: '#0066cc',
+      backgroundColor: '#E74035', // Brand red
       androidSplashResourceName: 'splash',
       androidScaleType: 'CENTER_CROP',
       showSpinner: true,
@@ -57,10 +54,10 @@ const config: CapacitorConfig = {
       splashImmersive: true,
     },
 
-    // Status Bar
+    // Status Bar — Brand aligned
     StatusBar: {
-      style: 'dark',
-      backgroundColor: '#ffffff',
+      style: 'light', // Light text on dark/brand background
+      backgroundColor: '#E74035', // Brand red
     },
 
     // Keyboard
@@ -78,12 +75,9 @@ const config: CapacitorConfig = {
     // Local Notifications
     LocalNotifications: {
       smallIcon: 'ic_stat_icon_config_sample',
-      iconColor: '#0066cc',
+      iconColor: '#E74035', // Brand red
       sound: 'beep.wav',
     },
-
-    // App - Deep linking is handled via server.url configuration above
-    // No additional App plugin configuration needed
   },
 };
 

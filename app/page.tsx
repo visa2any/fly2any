@@ -21,7 +21,7 @@ const FAQ = dynamic(() => import('@/components/conversion/FAQ').then(mod => mod.
 const HotelsSectionEnhanced = dynamic(() => import('@/components/home/HotelsSectionEnhanced').then(mod => mod.HotelsSectionEnhanced), { ssr: false });
 const CarRentalsSectionEnhanced = dynamic(() => import('@/components/home/CarRentalsSectionEnhanced').then(mod => mod.CarRentalsSectionEnhanced), { ssr: false });
 const ToursSectionEnhanced = dynamic(() => import('@/components/home/ToursSectionEnhanced').then(mod => mod.ToursSectionEnhanced), { ssr: false });
-const ActivitiesSectionEnhanced = dynamic(() => import('@/components/home/ActivitiesSectionEnhanced').then(mod => mod.ActivitiesSectionEnhanced), { ssr: false });
+// ActivitiesSectionEnhanced removed
 const TransfersSectionEnhanced = dynamic(() => import('@/components/home/TransfersSectionEnhanced').then(mod => mod.TransfersSectionEnhanced), { ssr: false });
 const ExperiencesSection = dynamic(() => import('@/components/home/ExperiencesSection'), { ssr: false });
 const WorldCupHeroSectionEnhanced = dynamic(() => import('@/components/world-cup/WorldCupHeroSectionEnhanced').then(mod => mod.WorldCupHeroSectionEnhanced), { ssr: false });
@@ -347,7 +347,7 @@ export default function Home() {
           </div>
 
           <div className="mt-1 md:mt-6 lg:mt-8">
-            <ActivitiesSectionEnhanced lang={lang} />
+
           </div>
 
           <div className="mt-1 md:mt-6 lg:mt-8">
@@ -359,11 +359,11 @@ export default function Home() {
           </div>
 
           <div className="mt-1 md:mt-6 lg:mt-8">
-            <WorldCupHeroSectionEnhanced lang={lang} />
+            <CarRentalsSectionEnhanced lang={lang} />
           </div>
 
           <div className="mt-1 md:mt-6 lg:mt-8">
-            <CarRentalsSectionEnhanced lang={lang} />
+            <WorldCupHeroSectionEnhanced lang={lang} />
           </div>
 
           <div className="mt-4 md:mt-6 lg:mt-8 mb-4 md:mb-6 lg:mb-8">

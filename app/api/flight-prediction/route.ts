@@ -107,13 +107,12 @@ export async function POST(request: NextRequest) {
       });
     }
 
-    console.log(`🤖 Calling Amadeus ML prediction for ${cleanedOffers.length} flight offers...`);
-
-    // Call Amadeus ML prediction with cleaned data
-    const result = await amadeusAPI.predictFlightChoice(cleanedOffers);
-
-    console.log('✅ ML prediction successful');
-    return NextResponse.json(result);
+    // NOTE: Amadeus Flight Choice Prediction API was decommissioned (410 GONE)
+    // Return original data without ML scores as graceful fallback
+    return NextResponse.json({
+      data: cleanedOffers,
+      warning: 'ML prediction unavailable (API decommissioned), showing flights without AI ranking'
+    });
   } catch (error: any) {
     console.error('❌ ML prediction failed:', error.response?.data || error.message);
 

@@ -749,14 +749,7 @@ function FlightResultsContent() {
       return sum + amount;
     }, 0);
 
-    // Debug: Log price breakdown
-    console.log('💰 Multi-city price breakdown:', {
-      totalPrice: totalPrice.toFixed(2),
-      totalBase: totalBase.toFixed(2),
-      totalFees: totalFees.toFixed(2),
-      feesCount: allFees.length,
-      percentage: ((totalFees / totalPrice) * 100).toFixed(1) + '%'
-    });
+
 
     // Use first flight as base and merge data
     const baseFlight = legFlights[0];
@@ -800,7 +793,6 @@ function FlightResultsContent() {
     announceResults(0); // Will be updated when results load
 
       // Handle multi-city separately
-      console.log('🔍 BEFORE CONDITION CHECK:', { isMultiCity, additionalFlightsLength: additionalFlights.length, willEnterMultiCity: isMultiCity && additionalFlights.length > 0 });
 
       if (isMultiCity && additionalFlights.length > 0) {
         console.log('🛫 Multi-city search detected, fetching', additionalFlights.length + 1, 'legs');
@@ -1129,7 +1121,7 @@ function FlightResultsContent() {
       analyticsTracker.trackView('user-segmentation-v1', segmentVariant, sessionId, {
         segment: userSegment || 'unknown',
       });
-      console.log(`📊 A/B Test Variants: Urgency=${urgencyVariant}, Segmentation=${segmentVariant}`);
+
     }
   }, [flights]);
 
@@ -1197,7 +1189,7 @@ function FlightResultsContent() {
           recommendations: result.recommendations,
         }));
 
-        console.log('✅ User segmented:', result.segment, `(${Math.round(result.confidence * 100)}% confidence)`);
+
       }
     } catch (error) {
       console.error('❌ User segmentation failed:', error);

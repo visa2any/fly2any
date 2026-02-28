@@ -1,0 +1,59 @@
+{
+  "applinks": {
+    "apps": [],
+    "details": [
+      {
+        "appIDs": [
+          "PLACEHOLDER_TEAM_ID.com.fly2any.app"
+        ],
+        "components": [
+          {
+            "/": "/flights/*",
+            "comment": "Flight search and results"
+          },
+          {
+            "/": "/hotels/*",
+            "comment": "Hotel search and results"
+          },
+          {
+            "/": "/cars/*",
+            "comment": "Car rental search"
+          },
+          {
+            "/": "/tours/*",
+            "comment": "Tours and activities"
+          },
+          {
+            "/": "/booking/*",
+            "comment": "Booking confirmations"
+          },
+          {
+            "/": "/deals/*",
+            "comment": "Flash deals and promotions"
+          },
+          {
+            "/": "/destinations/*",
+            "comment": "Destination pages"
+          },
+          {
+            "/": "/tripmatch/*",
+            "comment": "TripMatch AI planner"
+          },
+          {
+            "/": "/world-cup-2026/*",
+            "comment": "World Cup 2026 packages"
+          },
+          {
+            "/": "/refer/*",
+            "comment": "Referral links"
+          }
+        ]
+      }
+    ]
+  },
+  "webcredentials": {
+    "apps": [
+      "PLACEHOLDER_TEAM_ID.com.fly2any.app"
+    ]
+  }
+}

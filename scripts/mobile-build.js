@@ -66,17 +66,43 @@ try {
     console.log('   ✓ Account pages excluded\n');
   }
 
-  // Step 2: Build for mobile using environment variable
-  console.log('   [4/5] Building Next.js app with static export...');
-  execSync('cross-env MOBILE_BUILD=true next build', {
-    stdio: 'inherit',
-    cwd: projectRoot,
-    env: {
-      ...process.env,
-      MOBILE_BUILD: 'true',
-    },
-  });
-  console.log('   ✓ Build complete\n');
+  // Step 2: Swap next.config to mobile version for static export
+  const mainConfig = path.join(projectRoot, 'next.config.mjs');
+  const mobileConfig = path.join(projectRoot, 'next.config.mobile.mjs');
+  const backupConfig = path.join(projectRoot, 'next.config.mjs.mobile-backup');
+
+  let configSwapped = false;
+
+  if (fs.existsSync(mobileConfig)) {
+    console.log('   [4/6] Swapping to mobile config (static export)...');
+    fs.renameSync(mainConfig, backupConfig);
+    fs.copyFileSync(mobileConfig, mainConfig);
+    configSwapped = true;
+    console.log('   ✓ Mobile config activated\n');
+  } else {
+    console.error('   ❌ next.config.mobile.mjs not found! Build will fail.');
+    throw new Error('Missing next.config.mobile.mjs');
+  }
+
+  // Step 3: Build for mobile using the mobile config (static export)
+  console.log('   [5/6] Building Next.js app with static export...');
+  try {
+    execSync('cross-env MOBILE_BUILD=true next build', {
+      stdio: 'inherit',
+      cwd: projectRoot,
+      env: {
+        ...process.env,
+        MOBILE_BUILD: 'true',
+      },
+    });
+    console.log('   ✓ Build complete\n');
+  } finally {
+    // Always restore original config, even if build fails
+    if (configSwapped && fs.existsSync(backupConfig)) {
+      fs.renameSync(backupConfig, mainConfig);
+      console.log('   ✓ Original next.config.mjs restored');
+    }
+  }
 
   // Step 3: Restore API and Admin directories
   if (apiDirRenamed) {

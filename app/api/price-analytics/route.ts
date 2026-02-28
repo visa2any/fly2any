@@ -38,18 +38,17 @@ export async function GET(request: NextRequest) {
       return NextResponse.json(cached);
     }
 
-    // Call Amadeus API
-    const result = await amadeusAPI.getPriceAnalytics({
-      originIataCode: origin,
-      destinationIataCode: destination,
-      departureDate,
-      currencyCode,
-    });
+    // NOTE: Amadeus Price Analytics API was decommissioned (410 GONE)
+    // Return empty analytics as graceful fallback
+    const emptyResult = {
+      data: [],
+      warning: 'Price analytics unavailable (API decommissioned)',
+    };
 
-    // Cache for 6 hours (analytics data is relatively static)
-    await setCache(cacheKey, result, 21600);
+    // Cache the empty result to avoid repeated lookups
+    await setCache(cacheKey, emptyResult, 86400); // 24h cache
 
-    return NextResponse.json(result);
+    return NextResponse.json(emptyResult);
   } catch (error: any) {
     console.error('Error in price-analytics API:', error);
     return NextResponse.json(

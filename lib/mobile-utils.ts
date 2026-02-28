@@ -62,8 +62,8 @@ async function initializeStatusBar() {
   }
 
   try {
-    await StatusBar.setStyle({ style: Style.Light });
-    await StatusBar.setBackgroundColor({ color: '#3B82F6' }); // Blue-600
+    await StatusBar.setStyle({ style: Style.Dark }); // Light text on brand bg
+    await StatusBar.setBackgroundColor({ color: '#E74035' }); // Brand red
     console.log('[Mobile] Status bar configured');
   } catch (error) {
     console.error('[Mobile] Status bar configuration failed:', error);

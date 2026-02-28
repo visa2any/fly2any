@@ -1,8 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { auth } from '@/lib/auth';
 import { getPrismaClient } from '@/lib/db/prisma';
+import { sendPushToToken } from '@/lib/push-notifications';
 
-// Note: For production use, install web-push: npm install web-push
+// Note: For web push in production, install web-push: npm install web-push
 // import webpush from 'web-push';
 
 // Configure VAPID keys (generate with: npx web-push generate-vapid-keys)
@@ -35,7 +36,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Get user's subscriptions
+    // Get user's subscriptions (both web and mobile)
     const targetUserId = userId || session.user.id;
     const subscriptions = await prisma.pushSubscription.findMany({
       where: {
@@ -61,38 +62,47 @@ export async function POST(request: NextRequest) {
         timestamp: Date.now(),
       },
       actions: [
-        {
-          action: 'view',
-          title: 'View',
-        },
-        {
-          action: 'dismiss',
-          title: 'Dismiss',
-        },
+        { action: 'view', title: 'View' },
+        { action: 'dismiss', title: 'Dismiss' },
       ],
     };
 
     const results = [];
 
-    // Send notification to all user's subscriptions
     for (const subscription of subscriptions) {
       try {
-        // This is a placeholder - in production, use web-push library
-        // await webpush.sendNotification(
-        //   {
-        //     endpoint: subscription.endpoint,
-        //     keys: {
-        //       p256dh: subscription.p256dh,
-        //       auth: subscription.auth,
-        //     },
-        //   },
-        //   JSON.stringify(notificationPayload)
-        // );
+        const isMobileToken = subscription.p256dh === 'ios' || subscription.p256dh === 'android';
 
-        results.push({
-          subscriptionId: subscription.id,
-          success: true,
-        });
+        if (isMobileToken) {
+          // ===== NATIVE MOBILE (FCM/APNs) =====
+          const success = await sendPushToToken(subscription.endpoint, {
+            title,
+            body: message,
+            data: { url: url || '/', type: tag || 'general' },
+          });
+
+          results.push({
+            subscriptionId: subscription.id,
+            platform: subscription.p256dh,
+            success,
+          });
+        } else {
+          // ===== WEB PUSH (VAPID) =====
+          // Placeholder - in production, use web-push library:
+          // await webpush.sendNotification(
+          //   {
+          //     endpoint: subscription.endpoint,
+          //     keys: { p256dh: subscription.p256dh, auth: subscription.auth },
+          //   },
+          //   JSON.stringify(notificationPayload)
+          // );
+
+          results.push({
+            subscriptionId: subscription.id,
+            platform: 'web',
+            success: true,
+          });
+        }
       } catch (error) {
         console.error('Failed to send notification:', error);
         results.push({
@@ -140,11 +150,9 @@ export async function GET(request: NextRequest) {
 
     const prisma = getPrismaClient();
 
-    // Get user's subscriptions
     const subscriptions = await prisma.pushSubscription.findMany({
-      where: {
-        userId: session.user.id,
-      },
+      where: { userId: session.user.id },
+      select: { id: true, endpoint: true, p256dh: true, userAgent: true, createdAt: true },
     });
 
     if (subscriptions.length === 0) {
@@ -154,30 +162,24 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    const testPayload = {
-      title: 'Fly2Any Test Notification',
-      body: 'Your push notifications are working perfectly!',
-      icon: '/logo.png',
-      badge: '/logo.png',
-      tag: 'test-notification',
-      data: {
-        url: '/',
-        timestamp: Date.now(),
-      },
-    };
+    const webCount = subscriptions.filter(s => s.p256dh !== 'ios' && s.p256dh !== 'android').length;
+    const mobileCount = subscriptions.length - webCount;
 
     return NextResponse.json({
       success: true,
-      message: 'Test notification would be sent (web-push not configured)',
-      subscriptions: subscriptions.length,
-      payload: testPayload,
-      note: 'To enable real push notifications, configure web-push library with VAPID keys',
+      subscriptions: {
+        total: subscriptions.length,
+        web: webCount,
+        mobile: mobileCount,
+      },
+      note: 'Use POST to send actual notifications',
     });
   } catch (error) {
-    console.error('Failed to send test notification:', error);
+    console.error('Failed to get notification status:', error);
     return NextResponse.json(
-      { error: 'Failed to send test notification' },
+      { error: 'Failed to get notification status' },
       { status: 500 }
     );
   }
 }
+

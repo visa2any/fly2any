@@ -28,7 +28,7 @@
 	<string>Main</string>
 	<key>UIRequiredDeviceCapabilities</key>
 	<array>
-		<string>armv7</string>
+		<string>arm64</string>
 	</array>
 	<key>UISupportedInterfaceOrientations</key>
 	<array>
@@ -45,5 +45,27 @@
 	</array>
 	<key>UIViewControllerBasedStatusBarAppearance</key>
 	<true/>
+
+	<!-- Privacy Usage Descriptions (Required for App Store) -->
+	<key>NSCameraUsageDescription</key>
+	<string>Fly2Any uses the camera to scan travel documents and boarding passes</string>
+	<key>NSLocationWhenInUseUsageDescription</key>
+	<string>Fly2Any uses your location to find nearby airports and personalize travel deals</string>
+	<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
+	<string>Fly2Any uses your location to send price drop alerts for nearby departure airports</string>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>Fly2Any accesses your photos to update your profile picture and share travel memories</string>
+	<key>NSPhotoLibraryAddUsageDescription</key>
+	<string>Fly2Any saves booking confirmations and itineraries to your photo library</string>
+
+	<!-- App Transport Security -->
+	<key>NSAppTransportSecurity</key>
+	<dict>
+		<key>NSAllowsArbitraryLoads</key>
+		<false/>
+		<key>NSAllowsArbitraryLoadsInWebContent</key>
+		<true/>
+	</dict>
 </dict>
 </plist>
+

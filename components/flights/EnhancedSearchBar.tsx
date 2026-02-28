@@ -5,7 +5,7 @@ import { createPortal } from 'react-dom';
 import { Plane, Calendar, Users, ChevronDown, ArrowLeftRight, PlaneTakeoff, PlaneLanding, CalendarDays, CalendarCheck, ArrowRight, Sparkles, Armchair, X, Hotel, Car, Map, MapPin, Building2, Plus, Minus, Activity, Package, Shield, Check, Globe, Navigation, LogIn, LogOut, BedDouble, Moon, User, Baby, Search, Compass, Clock } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { format } from 'date-fns';
-import { useTranslations } from 'next-intl';
+
 import { typography, spacing, colors, dimensions, layout, borderRadius, zIndex } from '@/lib/design-system';
 import PremiumDatePicker from './PremiumDatePicker';
 import { InlineAirportAutocomplete } from './InlineAirportAutocomplete';
@@ -277,7 +277,24 @@ export default function EnhancedSearchBar({
   } as const;
 
   const labels = searchLabels[lang] || searchLabels.en;
-  const t = useTranslations('FlightSearch');
+  // Local translation helper — replaces useTranslations('FlightSearch') to avoid
+  // webpack originalFactory error from next-intl module resolution in this component
+  const flightSearchMessages: Record<string, string> = {
+    flights: 'Flights', hotels: 'Hotels', cars: 'Car Rentals', tours: 'Tours',
+    activities: 'Activities', packages: 'Packages', insurance: 'Insurance',
+    from: 'From', to: 'To', search: 'Search Flights', searchCars: 'Search Cars',
+    searchPackages: 'Search Packages', searchInsurance: 'Get Quote',
+    searching: 'Searching...', oneWay: 'One-way', adults: 'Adults',
+    children: 'Children', infants: 'Infants', age18: '18+ years',
+    age2to17: '2-17 years', ageUnder2: 'Under 2 years', done: 'Done',
+    economy: 'Economy', premium: 'Premium Economy', business: 'Business',
+    first: 'First Class',
+    'errors.originRequired': 'Please select origin',
+    'errors.destinationRequired': 'Please select destination',
+    'errors.departureDateRequired': 'Please select departure date',
+    'errors.sameAirports': 'Origin and destination must be different',
+  };
+  const t = (key: string) => flightSearchMessages[key] || key;
   const router = useRouter();
 
   // Parse comma-separated airport codes into arrays
@@ -360,14 +377,12 @@ export default function EnhancedSearchBar({
   // Multi-select districts state - parse from comma-separated string if provided
   // Using explicit arrow function lazy initializer for reliable prop access
   const [selectedDistricts, setSelectedDistricts] = useState<Array<{ id: string; name: string; location: { lat: number; lng: number } }>>(() => {
-    console.log('🔥 Initializing selectedDistricts from prop:', initialHotelDistricts);
     if (!initialHotelDistricts) return [];
     const parsed = initialHotelDistricts.split(',').map(name => name.trim()).filter(name => name).map(name => ({
       id: name.toLowerCase().replace(/\s+/g, '-'),
       name,
       location: initialHotelLat && initialHotelLng ? { lat: initialHotelLat, lng: initialHotelLng } : { lat: 0, lng: 0 }
     }));
-    console.log('🔥 Parsed districts:', parsed);
     return parsed;
   });
 
@@ -491,24 +506,6 @@ export default function EnhancedSearchBar({
     }
   }, [initialHotelCheckIn, initialHotelCheckOut]);
 
-  // Debug: Log state preservation from props
-  useEffect(() => {
-    console.log('🏨 EnhancedSearchBar mounted with props:', {
-      destination: initialHotelDestination,
-      districts: initialHotelDistricts,
-      lat: initialHotelLat,
-      lng: initialHotelLng,
-      checkIn: initialHotelCheckIn,
-      checkOut: initialHotelCheckOut,
-    });
-    console.log('🏨 Initial state values:', {
-      hotelDestination,
-      selectedDistricts,
-      hotelLocation,
-      checkInDate,
-      checkOutDate,
-    });
-  }, []); // Empty deps - only run on mount
 
   // Fetch popular districts when a hotel destination is selected
   useEffect(() => {

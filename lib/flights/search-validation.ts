@@ -153,7 +153,17 @@ export function validateSearchParams(body: any) {
     adults: Number(adults),
     children: Number(body.children || 0),
     infants: Number(body.infants || 0),
-    travelClass: body.travelClass || 'ECONOMY',
+    travelClass: (() => {
+      const cls = (body.travelClass || 'ECONOMY').toUpperCase();
+      const classMap: Record<string, string> = {
+        'ECONOMY': 'ECONOMY',
+        'PREMIUM': 'PREMIUM_ECONOMY',
+        'PREMIUM_ECONOMY': 'PREMIUM_ECONOMY',
+        'BUSINESS': 'BUSINESS',
+        'FIRST': 'FIRST',
+      };
+      return classMap[cls] || 'ECONOMY';
+    })(),
     depDate: new Date(firstDepartureDate)
   };
 }
