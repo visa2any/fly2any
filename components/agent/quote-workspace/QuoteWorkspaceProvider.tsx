@@ -24,8 +24,8 @@ import type {
 // Generate unique ID
 const generateId = () => `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
 
-// Static FX rates relative to USD (updated periodically, good enough for agent quoting)
-const FX_RATES: Record<string, number> = {
+// FX rates relative to USD — seeded with recent static values, refreshed live on mount
+let FX_RATES: Record<string, number> = {
   USD: 1, EUR: 0.92, GBP: 0.79, CAD: 1.36, AUD: 1.53, MXN: 17.15, BRL: 4.97,
   JPY: 149.5, CHF: 0.88, INR: 83.1, NZD: 1.63, SGD: 1.34, HKD: 7.82, AED: 3.67,
   THB: 35.1, ILS: 3.71, COP: 3900, CLP: 870, ARS: 350, DKK: 6.88, NOK: 10.55,
@@ -379,6 +379,14 @@ const QuoteWorkspaceContext = createContext<QuoteWorkspaceContextType | null>(nu
 export function QuoteWorkspaceProvider({ children, initialQuoteId }: { children: ReactNode; initialQuoteId?: string }) {
   const [state, dispatch] = useReducer(workspaceReducer, initialState);
   const lastDeletedItemRef = useRef<QuoteItem | null>(null);
+
+  // Refresh FX rates from live API on mount (fire-and-forget, fallback to static)
+  useEffect(() => {
+    fetch("/api/fx/rates")
+      .then(r => r.ok ? r.json() : null)
+      .then(d => { if (d?.rates && typeof d.rates === "object") Object.assign(FX_RATES, d.rates); })
+      .catch(() => {});
+  }, []);
 
   // Convenience action creators
   const setTripName = useCallback((name: string) => dispatch({ type: "SET_TRIP_NAME", payload: name }), []);

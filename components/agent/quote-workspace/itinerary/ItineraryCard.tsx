@@ -31,6 +31,43 @@ interface ItineraryCardProps {
   tone?: ToneProfile;
 }
 
+// Inline price editor — click to edit, Enter/blur to save (agent view only)
+function InlinePrice({
+  value, itemId, currency, viewMode: vm, formatFn,
+}: { value: number; itemId: string; currency: string; viewMode: "agent" | "client"; formatFn: (n: number) => string }) {
+  const { updateItem } = useQuoteWorkspace();
+  const [editing, setEditing] = useState(false);
+  const [draft, setDraft] = useState(String(value));
+  if (vm !== "agent") return <span className="font-black text-gray-900 text-sm">{formatFn(value)}</span>;
+  if (editing) {
+    return (
+      <input
+        autoFocus
+        type="number"
+        value={draft}
+        onChange={e => setDraft(e.target.value)}
+        onBlur={() => {
+          const n = parseFloat(draft);
+          if (!isNaN(n) && n >= 0) updateItem(itemId, { price: n } as any);
+          setEditing(false);
+        }}
+        onKeyDown={e => { if (e.key === "Enter") (e.target as HTMLInputElement).blur(); if (e.key === "Escape") { setDraft(String(value)); setEditing(false); } }}
+        className="w-24 text-sm font-black text-center border-2 border-indigo-400 rounded px-1 py-0.5 outline-none bg-white"
+      />
+    );
+  }
+  return (
+    <button
+      onClick={() => { setDraft(String(value)); setEditing(true); }}
+      title="Click to edit price"
+      className="font-black text-gray-900 text-sm bg-yellow-50 border border-yellow-200 px-2 py-0.5 rounded hover:border-indigo-400 hover:bg-indigo-50 transition-colors group/price"
+    >
+      {formatFn(value)}
+      <span className="ml-1 text-[8px] text-gray-400 opacity-0 group-hover/price:opacity-100">✎</span>
+    </button>
+  );
+}
+
 export default function ItineraryCard({ item, dragListeners, isDragging, viewMode = "agent", tone = "family" }: ItineraryCardProps) {
   const { state, removeItem, expandItem } = useQuoteWorkspace();
   const conflicts = useQuoteConflicts();
@@ -241,7 +278,7 @@ export default function ItineraryCard({ item, dragListeners, isDragging, viewMod
                     <span>Conflict</span>
                   </div>
                 )}
-                <p className="text-base font-black text-gray-900 bg-yellow-50 border border-yellow-200 px-2 py-1 rounded">{formatPrice(f.price)}</p>
+                <InlinePrice value={f.price} itemId={item.id} currency={item.currency} viewMode={viewMode} formatFn={formatPrice} />
                 <p className="text-[10px] font-semibold text-indigo-600 bg-indigo-50 px-1.5 py-0.5 rounded mt-1">
                   Total for {f.passengers} pax
                 </p>
@@ -496,7 +533,7 @@ export default function ItineraryCard({ item, dragListeners, isDragging, viewMod
                       <span>Conflict</span>
                     </div>
                   )}
-                  <p className="font-black text-gray-900 text-sm bg-yellow-50 border border-yellow-200 px-2 py-0.5 rounded">{formatPrice(a.price)}</p>
+                  <InlinePrice value={a.price} itemId={item.id} currency={item.currency} viewMode={viewMode} formatFn={formatPrice} />
                   <p className="text-[9px] text-gray-400 mt-0.5">{a.date ? format(parseISO(a.date), "MMM d") : ""}</p>
                 </div>
               ) : (
@@ -656,7 +693,7 @@ export default function ItineraryCard({ item, dragListeners, isDragging, viewMod
                       <span>Conflict</span>
                     </div>
                   )}
-                  <p className="font-black text-gray-900 text-sm bg-yellow-50 border border-yellow-200 px-2 py-0.5 rounded">{formatPrice(h.price)}</p>
+                  <InlinePrice value={h.price} itemId={item.id} currency={item.currency} viewMode={viewMode} formatFn={formatPrice} />
                   <p className="text-[9px] text-gray-400 mt-0.5">{h.checkIn ? format(parseISO(h.checkIn), "MMM d") : ""}</p>
                 </div>
               ) : (
@@ -808,7 +845,7 @@ export default function ItineraryCard({ item, dragListeners, isDragging, viewMod
               {/* Price - Agent Only / Client Emotional Copy */}
               {viewMode === "agent" ? (
                 <div className="flex-shrink-0 text-right">
-                  <p className="font-black text-gray-900 text-sm bg-yellow-50 border border-yellow-200 px-2 py-0.5 rounded">{formatPrice(c.price)}</p>
+                  <InlinePrice value={c.price} itemId={item.id} currency={item.currency} viewMode={viewMode} formatFn={formatPrice} />
                   <p className="text-[9px] text-gray-400 mt-0.5">{c.date ? format(parseISO(c.date), "MMM d") : ""}</p>
                 </div>
               ) : (
@@ -968,7 +1005,7 @@ export default function ItineraryCard({ item, dragListeners, isDragging, viewMod
                     <span>Conflict</span>
                   </div>
                 )}
-                <p className="font-black text-gray-900 text-sm bg-yellow-50 border border-yellow-200 px-2 py-0.5 rounded">{formatPrice(t.price)}</p>
+                <InlinePrice value={t.price} itemId={item.id} currency={item.currency} viewMode={viewMode} formatFn={formatPrice} />
                 <p className="text-[9px] text-gray-400 mt-0.5">{t.date ? format(parseISO(t.date), "MMM d") : ""}</p>
               </div>
               <div className="flex flex-col gap-1">
