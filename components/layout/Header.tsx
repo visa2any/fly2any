@@ -552,6 +552,30 @@ export function Header({
                     </a>
                     {/* Divider */}
                     <div className="border-t border-gray-200 my-1"></div>
+                    {/* Agent Portal */}
+                    <a
+                      href="/agent/register"
+                      className="flex items-center gap-3 px-5 py-3.5 hover:bg-blue-50 text-gray-700 transition-all duration-200"
+                    >
+                      <span className="text-xl">💼</span>
+                      <div>
+                        <span className="font-semibold text-sm block">Travel Agents</span>
+                        <span className="text-[11px] text-gray-400">Earn commissions & build quotes</span>
+                      </div>
+                    </a>
+                    {/* Host Portal */}
+                    <a
+                      href="/list-your-property"
+                      className="flex items-center gap-3 px-5 py-3.5 hover:bg-emerald-50 text-gray-700 transition-all duration-200"
+                    >
+                      <span className="text-xl">🏠</span>
+                      <div>
+                        <span className="font-semibold text-sm block">Property Hosts</span>
+                        <span className="text-[11px] text-gray-400">List & manage your property</span>
+                      </div>
+                    </a>
+                    {/* Divider */}
+                    <div className="border-t border-gray-200 my-1"></div>
                     {/* World Cup 2026 */}
                     <a
                       href="/world-cup-2026"

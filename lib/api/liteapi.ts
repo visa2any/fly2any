@@ -371,7 +371,7 @@ class LiteAPI {
       const response = await axios.get(`${this.baseUrl}/data/hotels`, {
         params: queryParams,
         headers: this.getHeaders(),
-        timeout: 5000, // 5s - must complete fast for Vercel limits
+        timeout: 15000, // 15s - hotel list lookup (can be slow for large cities)
       });
 
       const hotels = response.data.data || [];
@@ -496,7 +496,7 @@ class LiteAPI {
 
       const response = await axios.post(`${this.baseUrl}/hotels/rates`, requestBody, {
         headers: this.getHeaders(),
-        timeout: 5000, // 5s per call
+        timeout: 25000, // 25s per call
       });
 
       const data = response.data.data || [];
@@ -532,8 +532,8 @@ class LiteAPI {
   }): Promise<Array<{ hotelId: string; minimumRate: { amount: number; currency: string }; available: boolean }>> {
     try {
       // PERFORMANCE: Dynamic batch sizing
-      const BATCH_SIZE = 40;
-      const MAX_CONCURRENT = 3;
+      const BATCH_SIZE = 20;   // smaller = faster per-batch LiteAPI response
+      const MAX_CONCURRENT = 5; // more parallelism to compensate
 
       console.log(`⚡ LiteAPI: Getting rates for ${params.hotelIds.length} hotels (PARALLEL batches of ${BATCH_SIZE})`);
 
@@ -594,13 +594,13 @@ class LiteAPI {
                 occupancies: params.occupancies,
                 currency: params.currency || 'USD',
                 guestNationality: params.guestNationality || 'US',
-                timeout: 5,
+                timeout: 20, // LiteAPI server-side timeout (seconds)
                 roomMapping: true,
               };
 
               const response = await axios.post(`${this.baseUrl}/hotels/rates`, requestBody, {
                 headers: this.getHeaders(),
-                timeout: 5000, // 5s per call
+                timeout: 25000, // 25s per batch (LiteAPI can be slow for availability)
               });
 
               if (response.data.error) {

@@ -9,14 +9,21 @@ export default function AgentError({
   error: Error & { digest?: string };
   reset: () => void;
 }) {
+  // CRITICAL: Re-throw Next.js internal signals so the framework handles them
+  // redirect() and notFound() throw these — they must NOT be caught by error boundaries
+  if (
+    error.message === "NEXT_REDIRECT" ||
+    error.message === "NEXT_NOT_FOUND" ||
+    error.digest?.startsWith("NEXT_REDIRECT") ||
+    error.digest?.startsWith("NEXT_NOT_FOUND")
+  ) {
+    throw error;
+  }
+
   useEffect(() => {
-    // Log detailed error for debugging
     console.error("[Agent Portal Error]", {
       message: error.message,
-      stack: error.stack,
       digest: error.digest,
-      name: error.name,
-      cause: error.cause,
     });
   }, [error]);
 

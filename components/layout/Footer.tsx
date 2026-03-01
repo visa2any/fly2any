@@ -329,7 +329,8 @@ export function Footer({
               <li><a href="/press" className="text-xs md:text-sm text-gray-400 hover:text-white transition-colors">{t('press')}</a></li>
               <li><a href="/blog" className="text-xs md:text-sm text-gray-400 hover:text-white transition-colors">{t('blog')}</a></li>
               <li><a href="/affiliate" className="text-xs md:text-sm text-gray-400 hover:text-white transition-colors flex items-center gap-1"><span className="text-yellow-400 text-[10px]">⭐</span>{t('affiliateProgram')}</a></li>
-              <li><a href="/become-agent" className="text-xs md:text-sm text-gray-400 hover:text-white transition-colors flex items-center gap-1"><span className="text-blue-400 text-[10px]">💼</span>Become Agent</a></li>
+              <li><a href="/agent/register" className="text-xs md:text-sm text-gray-400 hover:text-white transition-colors flex items-center gap-1"><span className="text-blue-400 text-[10px]">💼</span>Become an Agent</a></li>
+              <li><a href="/list-your-property" className="text-xs md:text-sm text-gray-400 hover:text-white transition-colors flex items-center gap-1"><span className="text-emerald-400 text-[10px]">🏠</span>List Your Property</a></li>
               <li><a href="/refer" className="text-xs md:text-sm text-gray-400 hover:text-white transition-colors flex items-center gap-1"><span className="text-green-400 text-[10px]">🎁</span>{t('referEarn')}</a></li>
             </ul>
           </div>

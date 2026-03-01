@@ -18,6 +18,8 @@ const MobileLoader = dynamic(
 );
 import { StructuredData } from "@/components/seo/StructuredData";
 import { GlobalClientErrorListener } from "@/components/error/GlobalClientErrorListener";
+import { AgentPromoTab } from "@/components/layout/AgentPromoTab";
+import { HostPromoTab } from "@/components/layout/HostPromoTab";
 import {
   getOrganizationSchema,
   getWebSiteSchema,
@@ -185,6 +187,8 @@ export default async function RootLayout({
             <GlobalLayout>
               {children}
             </GlobalLayout>
+            <AgentPromoTab />
+            <HostPromoTab />
             <Toaster
               position="top-center"
               reverseOrder={false}

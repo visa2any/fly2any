@@ -286,6 +286,25 @@ export function NavigationDrawer({
                 <span className="text-xl">⚽</span>
                 <span className="text-sm">World Cup 2026 🏆</span>
               </a>
+
+              {/* Agent + Host CTAs */}
+              <div className="mx-0 border-t border-gray-100 my-2" />
+              <div className="flex flex-col gap-2">
+                <a href="/agent/register" onClick={onClose} className="flex items-center gap-3 px-3 py-3 bg-gradient-to-r from-primary-50 to-blue-50 border border-primary-100 hover:border-primary-200 rounded-xl transition-all duration-200 active:scale-[0.98] touch-manipulation">
+                  <span className="text-xl">💼</span>
+                  <div>
+                    <span className="text-sm font-bold text-primary-700 block">Travel Agents</span>
+                    <span className="text-xs text-gray-500">Earn commissions · Build quotes</span>
+                  </div>
+                </a>
+                <a href="/list-your-property" onClick={onClose} className="flex items-center gap-3 px-3 py-3 bg-gradient-to-r from-emerald-50 to-teal-50 border border-emerald-100 hover:border-emerald-200 rounded-xl transition-all duration-200 active:scale-[0.98] touch-manipulation">
+                  <span className="text-xl">🏠</span>
+                  <div>
+                    <span className="text-sm font-bold text-emerald-700 block">Property Hosts</span>
+                    <span className="text-xs text-gray-500">List your property · Earn income</span>
+                  </div>
+                </a>
+              </div>
             </nav>
 
             {/* ============================================

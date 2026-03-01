@@ -77,8 +77,7 @@ export async function updateQuoteWithOptimisticLock(
       data: {
         ...updateData,
         version: { increment: 1 }, // ATOMIC INCREMENT
-        lastModifiedBy: userId,
-        lastModifiedAt: new Date(),
+        // lastModifiedBy/At not in schema — use agentNotes or updatedAt (auto) instead
       }
     });
 

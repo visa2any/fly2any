@@ -4,7 +4,7 @@ import { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { signOut } from 'next-auth/react';
 import Image from 'next/image';
-import { User, Heart, Bell, Settings, LogOut, ChevronDown } from 'lucide-react';
+import { User, Heart, Bell, Settings, LogOut, ChevronDown, Briefcase, Home } from 'lucide-react';
 
 interface UserMenuProps {
   user: {
@@ -170,6 +170,21 @@ export function UserMenu({ user, translations }: UserMenuProps) {
               <span className="font-medium">Settings</span>
             </button>
           </div>
+
+            <button
+              onClick={() => handleNavigation('/agent')}
+              className="w-full flex items-center gap-3 px-4 py-2.5 text-primary-700 hover:bg-primary-50 transition-colors duration-150 text-sm"
+            >
+              <Briefcase className="w-4 h-4" />
+              <span className="font-medium">Agent Dashboard</span>
+            </button>
+            <button
+              onClick={() => handleNavigation('/host')}
+              className="w-full flex items-center gap-3 px-4 py-2.5 text-emerald-700 hover:bg-emerald-50 transition-colors duration-150 text-sm"
+            >
+              <Home className="w-4 h-4" />
+              <span className="font-medium">Host Dashboard</span>
+            </button>
 
           {/* Sign Out */}
           <div className="border-t border-gray-200 py-2">

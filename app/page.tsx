@@ -366,6 +366,63 @@ export default function Home() {
             <WorldCupHeroSectionEnhanced lang={lang} />
           </div>
 
+          {/* ═══ AGENT RECRUITMENT BANNER ═══ */}
+          <div className="mt-6 mb-4 mx-1">
+            <a
+              href="/agent/register"
+              className="group relative flex flex-col sm:flex-row items-center gap-4 sm:gap-6 px-6 sm:px-8 py-5 sm:py-6 rounded-2xl overflow-hidden transition-all duration-200 hover:scale-[1.01] hover:shadow-xl"
+              style={{ background: 'linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%)' }}
+            >
+              {/* Background shimmer */}
+              <div className="absolute inset-0 bg-gradient-to-r from-primary-600/20 via-transparent to-blue-600/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+
+              {/* Icon */}
+              <div className="relative flex-shrink-0 w-14 h-14 rounded-2xl bg-white/10 flex items-center justify-center text-3xl">
+                💼
+              </div>
+
+              {/* Text */}
+              <div className="relative flex-1 text-center sm:text-left">
+                <div className="flex items-center gap-2 justify-center sm:justify-start mb-1">
+                  <span className="px-2 py-0.5 bg-primary-500 text-white text-[10px] font-bold rounded-full uppercase tracking-wider">New</span>
+                  <p className="text-white font-bold text-base sm:text-lg">Are you a Travel Agent?</p>
+                </div>
+                <p className="text-white/60 text-sm">Build custom quotes · Earn commissions · Manage clients — all in one place.</p>
+              </div>
+
+              {/* CTA */}
+              <div className="relative flex-shrink-0">
+                <span className="inline-flex items-center gap-2 px-5 py-2.5 bg-primary-500 hover:bg-primary-600 text-white font-semibold rounded-xl text-sm transition-colors shadow-lg shadow-primary-500/30 whitespace-nowrap">
+                  Join as Agent →
+                </span>
+              </div>
+            </a>
+          </div>
+
+          {/* ═══ HOST RECRUITMENT BANNER ═══ */}
+          <div className="mt-3 mb-4 mx-1">
+            <a
+              href="/list-your-property"
+              className="group relative flex flex-col sm:flex-row items-center gap-4 sm:gap-6 px-6 sm:px-8 py-5 sm:py-6 rounded-2xl overflow-hidden transition-all duration-200 hover:scale-[1.01] hover:shadow-xl"
+              style={{ background: 'linear-gradient(135deg, #064e3b 0%, #065f46 50%, #047857 100%)' }}
+            >
+              <div className="absolute inset-0 bg-gradient-to-r from-emerald-400/20 via-transparent to-teal-400/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+              <div className="relative flex-shrink-0 w-14 h-14 rounded-2xl bg-white/10 flex items-center justify-center text-3xl">🏠</div>
+              <div className="relative flex-1 text-center sm:text-left">
+                <div className="flex items-center gap-2 justify-center sm:justify-start mb-1">
+                  <span className="px-2 py-0.5 bg-emerald-400 text-white text-[10px] font-bold rounded-full uppercase tracking-wider">Earn</span>
+                  <p className="text-white font-bold text-base sm:text-lg">Own a property? Start earning.</p>
+                </div>
+                <p className="text-white/60 text-sm">List your home, villa or apartment · Set your own rates · Manage bookings easily.</p>
+              </div>
+              <div className="relative flex-shrink-0">
+                <span className="inline-flex items-center gap-2 px-5 py-2.5 bg-emerald-400 hover:bg-emerald-300 text-white font-semibold rounded-xl text-sm transition-colors shadow-lg shadow-emerald-500/30 whitespace-nowrap">
+                  List Your Property →
+                </span>
+              </div>
+            </a>
+          </div>
+
           <div className="mt-4 md:mt-6 lg:mt-8 mb-4 md:mb-6 lg:mb-8">
             <FAQ
               title="❓ Frequently Asked Questions"

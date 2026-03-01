@@ -4,8 +4,9 @@ import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Dialog, Transition } from "@headlessui/react";
 import { Fragment } from "react";
-import { X, Search, User, UserPlus, Zap, Loader2, Mail, Phone, Check } from "lucide-react";
+import { X, Search, User, UserPlus, Zap, Loader2, Mail, Phone, Check, AlertCircle } from "lucide-react";
 import { useQuoteWorkspace } from "../QuoteWorkspaceProvider";
+import { toast } from "react-hot-toast";
 import type { QuoteClient } from "../types/quote-workspace.types";
 
 export default function ClientSelectModal() {
@@ -14,6 +15,7 @@ export default function ClientSelectModal() {
 
   const [clients, setClients] = useState<QuoteClient[]>([]);
   const [loading, setLoading] = useState(true);
+  const [fetchError, setFetchError] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [showQuickCreate, setShowQuickCreate] = useState(false);
   const [quickCreateLoading, setQuickCreateLoading] = useState(false);
@@ -33,14 +35,18 @@ export default function ClientSelectModal() {
 
   const fetchClients = async () => {
     setLoading(true);
+    setFetchError(false);
     try {
       const res = await fetch("/api/agents/clients");
       if (res.ok) {
         const data = await res.json();
         setClients(data.clients || []);
+      } else {
+        setFetchError(true);
       }
     } catch (error) {
       console.error("Failed to fetch clients:", error);
+      setFetchError(true);
     } finally {
       setLoading(false);
     }
@@ -74,17 +80,28 @@ export default function ClientSelectModal() {
         body: JSON.stringify(quickCreateData),
       });
 
-      if (res.ok) {
-        const data = await res.json();
-        const newClient: QuoteClient = {
-          id: data.id,
-          ...quickCreateData,
-        };
-        setClient(newClient);
-        closeClientModal();
+      const data = await res.json();
+
+      if (!res.ok) {
+        toast.error(data.error || "Failed to create client");
+        return;
       }
+
+      // API returns { client: {...} } — use server response, not local form data
+      const created = data.client;
+      const newClient: QuoteClient = {
+        id: created.id,
+        firstName: created.firstName,
+        lastName: created.lastName,
+        email: created.email,
+        phone: created.phone || undefined,
+      };
+      setClient(newClient);
+      toast.success(`${created.firstName} ${created.lastName} added`);
+      closeClientModal();
     } catch (error) {
       console.error("Failed to create client:", error);
+      toast.error("Network error — please try again");
     } finally {
       setQuickCreateLoading(false);
     }
@@ -183,6 +200,14 @@ export default function ClientSelectModal() {
                           {loading ? (
                             <div className="flex items-center justify-center py-8">
                               <Loader2 className="w-6 h-6 animate-spin text-gray-400" />
+                            </div>
+                          ) : fetchError ? (
+                            <div className="text-center py-8">
+                              <AlertCircle className="w-10 h-10 text-red-400 mx-auto mb-2" />
+                              <p className="text-gray-500 text-sm mb-3">Could not load clients</p>
+                              <button onClick={fetchClients} className="text-sm text-primary-600 hover:text-primary-700 font-medium">
+                                Try again
+                              </button>
                             </div>
                           ) : filteredClients.length === 0 ? (
                             <div className="text-center py-8">

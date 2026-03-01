@@ -34,30 +34,47 @@ export default async function QuotesPage() {
       clientName: `${q.client.firstName} ${q.client.lastName}`,
     }));
   } else {
-    const agent = await prisma?.travelAgent.findUnique({
-      where: { userId: session.user.id },
-      select: { id: true },
-    });
+    let agent;
+    try {
+      agent = await prisma?.travelAgent.findUnique({
+        where: { userId: session.user.id },
+        select: { id: true },
+      });
+    } catch {
+      return (
+        <div className="max-w-4xl mx-auto mt-12">
+          <div className="bg-red-50 border border-red-200 rounded-lg p-6 text-center">
+            <h2 className="text-xl font-semibold text-red-800 mb-2">Service Unavailable</h2>
+            <p className="text-red-700">Unable to load quotes. Please try again shortly.</p>
+          </div>
+        </div>
+      );
+    }
 
     if (!agent) {
       redirect("/agent/register");
     }
 
-    const quotesRaw = await prisma?.agentQuote.findMany({
-      where: { agentId: agent.id },
-      select: {
-        id: true,
-        tripName: true,
-        quoteNumber: true,
-        status: true,
-        total: true,
-        currency: true,
-        destination: true,
-        client: { select: { firstName: true, lastName: true } },
-      },
-      orderBy: { createdAt: "desc" },
-      take: 50,
-    });
+    let quotesRaw;
+    try {
+      quotesRaw = await prisma?.agentQuote.findMany({
+        where: { agentId: agent.id },
+        select: {
+          id: true,
+          tripName: true,
+          quoteNumber: true,
+          status: true,
+          total: true,
+          currency: true,
+          destination: true,
+          client: { select: { firstName: true, lastName: true } },
+        },
+        orderBy: { createdAt: "desc" },
+        take: 50,
+      });
+    } catch {
+      quotesRaw = [];
+    }
 
     quotes = (quotesRaw || []).map((q: any) => ({
       id: String(q.id || ""),

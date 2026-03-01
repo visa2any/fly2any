@@ -242,6 +242,12 @@ export async function alertCustomerError(
  * Format error for Telegram notification
  * ENHANCED: Now includes customer name, phone prominently for admin follow-up
  */
+/** Escape HTML entities so Telegram's HTML parse_mode doesn't choke on error text */
+function escHtml(s: string | undefined | null): string {
+  if (!s) return '';
+  return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+}
+
 function formatTelegramErrorAlert(
   context: CustomerErrorContext,
   priority: string
@@ -289,25 +295,25 @@ function formatTelegramErrorAlert(
   return `
 ${emoji} <b>CUSTOMER ERROR - ${priority.toUpperCase()}</b>
 
-❌ <b>Error:</b> ${context.errorMessage}
-${context.errorCode ? `📋 <b>Code:</b> <code>${context.errorCode}</code>` : ''}
+❌ <b>Error:</b> ${escHtml(context.errorMessage)}
+${context.errorCode ? `📋 <b>Code:</b> <code>${escHtml(context.errorCode)}</code>` : ''}
 
 ${hasCustomerInfo ? '<b>👤 CUSTOMER INFO:</b>' : '👤 <b>CUSTOMER INFO:</b>\n• <i>No customer data available yet</i>'}
-${customerName ? `• <b>Name:</b> ${customerName}` : ''}
-${context.userEmail || context.customerEmail ? `• <b>Email:</b> ${context.userEmail || context.customerEmail}` : ''}
-${context.customerPhone ? `• <b>Phone:</b> ${context.customerPhone}` : ''}
+${customerName ? `• <b>Name:</b> ${escHtml(customerName)}` : ''}
+${context.userEmail || context.customerEmail ? `• <b>Email:</b> ${escHtml(context.userEmail || context.customerEmail)}` : ''}
+${context.customerPhone ? `• <b>Phone:</b> ${escHtml(context.customerPhone)}` : ''}
 
 ${context.flightRoute || context.amount ? '<b>✈️ BOOKING INFO:</b>' : ''}
-${context.flightRoute ? `• <b>Route:</b> ${context.flightRoute}` : ''}
-${context.departureDate ? `• <b>Date:</b> ${context.departureDate}` : ''}
+${context.flightRoute ? `• <b>Route:</b> ${escHtml(context.flightRoute)}` : ''}
+${context.departureDate ? `• <b>Date:</b> ${escHtml(String(context.departureDate))}` : ''}
 ${context.passengerCount ? `• <b>Passengers:</b> ${context.passengerCount}` : ''}
 ${context.amount ? `• <b>Amount:</b> ${context.currency || 'USD'} ${typeof context.amount === 'number' ? context.amount.toLocaleString() : context.amount}` : ''}
-${context.bookingReference ? `• <b>Ref:</b> <code>${context.bookingReference}</code>` : ''}
-${context.sourceApi ? `• <b>Source:</b> ${context.sourceApi}` : ''}
+${context.bookingReference ? `• <b>Ref:</b> <code>${escHtml(context.bookingReference)}</code>` : ''}
+${context.sourceApi ? `• <b>Source:</b> ${escHtml(context.sourceApi)}` : ''}
 
-${context.endpoint ? `🔗 <b>Endpoint:</b> <code>${context.endpoint}</code>` : ''}
+${context.endpoint ? `🔗 <b>Endpoint:</b> <code>${escHtml(context.endpoint)}</code>` : ''}
 
-${customFields.length > 0 ? `📊 <b>Extra Details:</b>\n${customFields.map(f => `  • ${f}`).join('\n')}` : ''}
+${customFields.length > 0 ? `📊 <b>Extra Details:</b>\n${customFields.map(f => `  • ${escHtml(f)}`).join('\n')}` : ''}
 
 ${context.bookingReference ? `🔗 <a href="${baseUrl}/admin/bookings?search=${context.bookingReference}">View in Admin</a>` : ''}
 

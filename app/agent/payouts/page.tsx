@@ -18,19 +18,31 @@ export default async function AgentPayoutsPage() {
     redirect("/auth/signin?callbackUrl=/agent/payouts");
   }
 
-  const agent = await prisma?.travelAgent.findUnique({
-    where: { userId: session.user.id },
-    select: {
-      id: true,
-      status: true,
-      payoutMethod: true,
-      payoutEmail: true,
-      availableBalance: true,
-      pendingBalance: true,
-      currentBalance: true,
-      minPayoutThreshold: true,
-    },
-  });
+  let agent;
+  try {
+    agent = await prisma?.travelAgent.findUnique({
+      where: { userId: session.user.id },
+      select: {
+        id: true,
+        status: true,
+        payoutMethod: true,
+        payoutEmail: true,
+        availableBalance: true,
+        pendingBalance: true,
+        currentBalance: true,
+        minPayoutThreshold: true,
+      },
+    });
+  } catch {
+    return (
+      <div className="max-w-4xl mx-auto mt-12">
+        <div className="bg-red-50 border border-red-200 rounded-lg p-6 text-center">
+          <h2 className="text-xl font-semibold text-red-800 mb-2">Service Unavailable</h2>
+          <p className="text-red-700">Unable to load payout data. Please try again shortly.</p>
+        </div>
+      </div>
+    );
+  }
 
   if (!agent) {
     redirect("/agent/register");
@@ -52,25 +64,28 @@ export default async function AgentPayoutsPage() {
   const hasPayoutMethod = Boolean(agent.payoutEmail);
 
   // Fetch payouts
-  const payoutsRaw = await prisma?.agentPayout.findMany({
-    where: { agentId: agent.id },
-    select: {
-      id: true,
-      payoutNumber: true,
-      amount: true,
-      status: true,
-      payoutMethod: true,
-    },
-    orderBy: { requestedAt: "desc" },
-    take: 20,
-  });
+  let payoutsRaw;
+  try {
+    payoutsRaw = await prisma?.agentPayout.findMany({
+      where: { agentId: agent.id },
+      select: {
+        id: true,
+        payoutNumber: true,
+        amount: true,
+        status: true,
+      },
+      orderBy: { requestedAt: "desc" },
+      take: 20,
+    });
+  } catch {
+    payoutsRaw = [];
+  }
 
   const payouts = (payoutsRaw || []).map((p: any) => ({
     id: String(p.id),
     payoutNumber: p.payoutNumber ? String(p.payoutNumber) : null,
     amount: Number(p.amount) || 0,
     status: String(p.status || "PENDING"),
-    payoutMethod: p.payoutMethod ? String(p.payoutMethod) : "stripe",
   }));
 
   const totalPaid = payouts.filter((p) => p.status === "COMPLETED").reduce((s, p) => s + p.amount, 0);

@@ -68,46 +68,60 @@ export default async function AgentLayout({
     };
   } else {
     // Normal flow - fetch from DB with error handling
-    const agent = await safeDbOperation(
-      () => getAgentWithAdminFallback(session.user.id),
-      'Get Agent with Fallback',
-      { userId: session.user.id }
-    );
+    let agent = null;
+    try {
+      agent = await safeDbOperation(
+        () => getAgentWithAdminFallback(session.user.id),
+        'Get Agent with Fallback',
+        { userId: session.user.id }
+      );
+    } catch {
+      // DB unavailable — render children so the page handles its own error state
+      return <>{children}</>;
+    }
 
+    // No agent profile: render children only — page will redirect to /agent/register
     if (!agent) {
-      redirect("/agent/register");
+      return <>{children}</>;
     }
 
     // Guard against prisma being null/undefined with error handling
-    const fullAgent = await safeDbOperation(
-      async () => {
-        if (!prisma) return null;
-        return prisma.travelAgent.findUnique({
-          where: { id: agent.id },
-          select: {
-            id: true,
-            tier: true,
-            status: true,
-            businessName: true,
-            availableBalance: true,
-            pendingBalance: true,
-            currentBalance: true,
-            user: {
-              select: {
-                name: true,
-                email: true,
-                image: true,
+    let fullAgent = null;
+    try {
+      fullAgent = await safeDbOperation(
+        async () => {
+          if (!prisma) return null;
+          return prisma.travelAgent.findUnique({
+            where: { id: agent!.id },
+            select: {
+              id: true,
+              tier: true,
+              status: true,
+              businessName: true,
+              availableBalance: true,
+              pendingBalance: true,
+              currentBalance: true,
+              user: {
+                select: {
+                  name: true,
+                  email: true,
+                  image: true,
+                },
               },
             },
-          },
-        });
-      },
-      'Fetch Agent Details',
-      { agentId: agent.id }
-    );
+          });
+        },
+        'Fetch Agent Details',
+        { agentId: agent.id }
+      );
+    } catch {
+      // DB unavailable — render children
+      return <>{children}</>;
+    }
 
-    if (!fullAgent) {
-      redirect("/agent/register");
+    // No full agent or non-active status: render children only — page handles redirect
+    if (!fullAgent || fullAgent.status === 'SUSPENDED' || fullAgent.status === 'BANNED' || fullAgent.status === 'INACTIVE') {
+      return <>{children}</>;
     }
 
     // Safely serialize with null checks
@@ -116,7 +130,6 @@ export default async function AgentLayout({
       tier: String(fullAgent?.tier || 'STANDARD'),
       status: String(fullAgent?.status || 'PENDING'),
       businessName: fullAgent?.businessName ? String(fullAgent.businessName) : null,
-      isDemo: false,
       availableBalance: Number(fullAgent?.availableBalance) || 0,
       pendingBalance: Number(fullAgent?.pendingBalance) || 0,
       currentBalance: Number(fullAgent?.currentBalance) || 0,
@@ -135,15 +148,23 @@ export default async function AgentLayout({
   }
 
   const pendingMessage = serializedAgent.status === "PENDING" && !isDemo ? (
-    <div className="mb-4 bg-yellow-50 border border-yellow-200 rounded-lg p-3">
-      <p className="text-sm text-yellow-800">Your account is pending approval.</p>
+    <div className="mb-4 bg-amber-50 border border-amber-200 rounded-xl p-4 flex items-start gap-3">
+      <div className="w-8 h-8 rounded-full bg-amber-100 flex items-center justify-center flex-shrink-0 mt-0.5">
+        <span className="text-amber-600 text-sm font-bold">!</span>
+      </div>
+      <div>
+        <p className="text-sm font-semibold text-amber-800">Account Pending Approval</p>
+        <p className="text-xs text-amber-700 mt-0.5">
+          Your agent profile is under review. You can explore the workspace, but booking and quoting features will be unlocked once approved (typically within 24–48 hours).
+        </p>
+      </div>
     </div>
   ) : null;
 
   return (
     <div className="min-h-screen bg-gray-50">
       {isDemo && <DemoBanner />}
-      <AgentSidebar agent={serializedAgent} />
+      <AgentSidebar agent={serializedAgent as any} />
       <AgentContentWrapper>
         <ConditionalTopBar agent={serializedAgent} user={serializedUser} />
         <ConditionalMain pendingMessage={pendingMessage}>

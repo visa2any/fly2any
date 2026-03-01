@@ -299,7 +299,7 @@ async function performLiteAPISearch(searchParams: HotelSearchParams, rooms: numb
     currency: searchParams.currency || 'USD',
     guestNationality: (searchParams.location as any).country || 'US',
     radius: searchParams.radius || 50, // 50km default for massive global city coverage
-    limit: searchParams.limit || 200, // Balanced for speed and volume (max 60s execution limit)
+    limit: searchParams.limit || 100, // 100 = 5 batches x 20 hotels = 1 parallel wave (~25s max)
   }).catch(err => {
     console.error('⚠️ LiteAPI search failed:', err.message);
     return { hotels: [], meta: { usedMinRates: true, error: err.message } };
@@ -420,7 +420,7 @@ export async function POST(request: NextRequest) {
         children: body.guests.children || [],
       },
       radius: body.radius || 50, // 50km default - massive radius to catch cheaper outskirts
-      limit: body.limit || 200, // 200 hotels requested from the providers
+      limit: body.limit || 100, // 100 = 5 batches x 20 hotels = 1 parallel wave
       currency: body.currency || 'USD',
     };
 
@@ -525,7 +525,7 @@ export async function POST(request: NextRequest) {
       ? rawChildren.map((c: any) => typeof c === 'number' ? c : (c.age || 8))
       : (typeof rawChildren === 'number' ? Array(rawChildren).fill(8) : []);
 
-    const PROVIDER_TIMEOUT = 20000; // 20s per provider — Amadeus needs 12-15s for 150 hotels in 3 batches
+    const PROVIDER_TIMEOUT = 45000; // 45s — LiteAPI needs ~25s for 5 parallel batches of 20 hotels
 
     // Helper: wrapped native property search with timeout
     async function performNativePropertySearchPOST(): Promise<any[]> {
@@ -570,12 +570,8 @@ export async function POST(request: NextRequest) {
       // Amadeus hotel search DISABLED — API v3 doesn't provide images/descriptions/amenities
       // Showing pricing-only cards is a poor UX. Re-enable when content enrichment is available.
       Promise.resolve({ hotels: [] }),
-      withTimeout(
-        performHotelBedsSearch(locationQuery, searchParams, radius),
-        PROVIDER_TIMEOUT,
-        { hotels: [], processTime: 0 },
-        'Hotelbeds'
-      ),
+      // Hotelbeds DISABLED — "Access to this API has been disallowed" (credentials blocked)
+      Promise.resolve({ hotels: [], processTime: 0 }),
       withTimeout(
         performNativePropertySearchPOST(),
         2000, // 2s for DB query
@@ -972,10 +968,10 @@ export async function GET(request: NextRequest) {
       guests: { adults: parseInt(adults), children: childAges },
       currency: searchParams.get('currency') || 'USD',
       radius: searchParams.get('radius') ? parseInt(searchParams.get('radius')!) : 50,
-      limit: 200, // Max coverage since LiteAPI is now primary source (Amadeus disabled)
+      limit: 100, // 100 = 5 batches x 20 hotels = 1 parallel wave
     };
 
-    const PROVIDER_TIMEOUT = 20000; // 20s per provider — Amadeus needs 12-15s for 150 hotels in 3 batches
+    const PROVIDER_TIMEOUT = 45000; // 45s — LiteAPI needs ~25s for 5 parallel batches of 20 hotels
 
     // Helper: wrapped native property search with timeout
     async function performNativePropertySearch(): Promise<any[]> {
@@ -1015,12 +1011,8 @@ export async function GET(request: NextRequest) {
       // Amadeus hotel search DISABLED — API v3 doesn't provide images/descriptions/amenities
       // Showing pricing-only cards is a poor UX. Re-enable when content enrichment is available.
       Promise.resolve({ hotels: [] }),
-      withTimeout(
-        performHotelBedsSearch(query || '', searchParamsObj, searchParamsObj.radius || 50),
-        PROVIDER_TIMEOUT,
-        { hotels: [], processTime: 0 },
-        'Hotelbeds'
-      ),
+      // Hotelbeds DISABLED — "Access to this API has been disallowed" (credentials blocked)
+      Promise.resolve({ hotels: [], processTime: 0 }),
       withTimeout(
         performNativePropertySearch(),
         2000, // 2s for DB query

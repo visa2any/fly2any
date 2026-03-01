@@ -45,6 +45,43 @@ const pendingCommissionLookups = new Map<string, Promise<CommissionLookupResult 
 const CACHE_TTL = 30000; // 30 seconds
 
 // ============================================================
+// DB CIRCUIT BREAKER — prevents log spam when DB is unreachable
+// ============================================================
+let _dbState: 'CLOSED' | 'OPEN' | 'HALF_OPEN' = 'CLOSED';
+let _dbOpenedAt = 0;
+let _dbFailures = 0;
+let _lastDbLog = 0;
+const _DB_FAILURE_THRESHOLD = 3;
+const _DB_COOLDOWN = 5 * 60 * 1000; // 5 min
+const _DB_LOG_INTERVAL = 30 * 1000;  // log at most once per 30s
+
+// Concurrency limiter — max concurrent routing log writes to protect connection pool
+let _activeLogWrites = 0;
+const _MAX_CONCURRENT_LOG_WRITES = 3;
+// Sampling — only log 1 in 10 routing decisions (analytics, not critical path)
+const _LOG_SAMPLE_RATE = 10;
+let _logCounter = 0;
+
+function _dbAvailable(): boolean {
+  if (_dbState === 'CLOSED') return true;
+  if (_dbState === 'OPEN') {
+    if (Date.now() - _dbOpenedAt > _DB_COOLDOWN) { _dbState = 'HALF_OPEN'; return true; }
+    return false;
+  }
+  return true;
+}
+function _dbOk()  { _dbState = 'CLOSED'; _dbFailures = 0; }
+function _dbFail(err: any, ctx: string) {
+  _dbFailures++;
+  if (_dbFailures >= _DB_FAILURE_THRESHOLD) { _dbState = 'OPEN'; _dbOpenedAt = Date.now(); }
+  const now = Date.now();
+  if (now - _lastDbLog > _DB_LOG_INTERVAL) {
+    _lastDbLog = now;
+    console.warn(`[Routing] DB unavailable (${ctx}): ${err?.code ?? err?.message ?? 'unknown'}. Circuit ${_dbState}. Retrying in ${_DB_COOLDOWN / 60000}min.`);
+  }
+}
+
+// ============================================================
 // ROUTING THRESHOLDS & COST CONFIGURATION
 // ============================================================
 
@@ -259,21 +296,21 @@ async function isLCCAirline(airlineCode: string): Promise<boolean> {
   }
 
   // 3. Fallback to database
+  if (!_dbAvailable()) {
+    lccAirlineCache.set(airlineCode, { isLCC: false, timestamp: now });
+    return false;
+  }
   try {
     const prisma = getPrismaClient();
-    const lcc = await prisma.lCCAirline.findUnique({
-      where: { airlineCode },
-    });
-
+    const lcc = await prisma.lCCAirline.findUnique({ where: { airlineCode } });
     const isLCC = lcc?.isActive ?? false;
-
-    // Store in cache
     lccAirlineCache.set(airlineCode, { isLCC, timestamp: now });
-
+    _dbOk();
     return isLCC;
   } catch (err) {
-    console.error(`[Routing] Failed to check LCC status for ${airlineCode}:`, err);
-    return false; // Default to non-LCC on error to allow consolidator attempt
+    _dbFail(err, `isLCCAirline(${airlineCode})`);
+    lccAirlineCache.set(airlineCode, { isLCC: false, timestamp: now });
+    return false;
   }
 }
 
@@ -317,6 +354,7 @@ async function checkExclusions(
   }
 
   // 4. Check database exclusions
+  if (!_dbAvailable()) return setAndReturn(null);
   try {
     let exclusions: any[] = [];
     const pendingDb = pendingExclusionLookups.get(airlineCode);
@@ -331,18 +369,13 @@ async function checkExclusions(
         const lookupPromise = (async () => {
           const prisma = getPrismaClient();
           const dbExclusions = await prisma.airlineCommissionExclusion.findMany({
-            where: {
-              isActive: true,
-              OR: [
-                { airlineCode: null }, // Universal exclusions
-                { airlineCode }, // Airline-specific exclusions
-              ],
-            },
+            where: { isActive: true, OR: [{ airlineCode: null }, { airlineCode }] },
           });
           exclusionDbCache.set(airlineCode, { exclusions: dbExclusions, timestamp: Date.now() });
+          _dbOk();
           return dbExclusions;
         })();
-        
+
         pendingExclusionLookups.set(airlineCode, lookupPromise);
         exclusions = await lookupPromise;
         pendingExclusionLookups.delete(airlineCode);
@@ -382,8 +415,7 @@ async function checkExclusions(
       }
     }
   } catch (err) {
-    console.error(`[Routing] Failed to check database exclusions for ${airlineCode}:`, err);
-    // On error, we continue without database exclusions to avoid blocking search
+    _dbFail(err, `checkExclusions(${airlineCode})`);
   }
 
   return setAndReturn(null);
@@ -817,7 +849,9 @@ export async function calculateCommissionBatch(
 }
 
 /**
- * Log routing decision for analytics
+ * Log routing decision for analytics (sampled + concurrency-limited)
+ * Only logs 1 in LOG_SAMPLE_RATE decisions to avoid connection pool exhaustion
+ * when hundreds of flight offers are processed simultaneously.
  */
 export async function logRoutingDecision(
   input: CommissionInput,
@@ -825,32 +859,47 @@ export async function logRoutingDecision(
   searchId?: string,
   offerId?: string
 ): Promise<void> {
-  const segment = input.segments[0];
-  const prisma = getPrismaClient();
+  // Sampling: skip most logs to prevent pool exhaustion (still useful for analytics)
+  _logCounter++;
+  if (_logCounter % _LOG_SAMPLE_RATE !== 0) return;
 
-  await prisma.routingDecision.create({
-    data: {
-      searchId,
-      offerId: offerId || 'unknown',
-      airlineCode: segment?.airlineCode || 'XX',
-      origin: segment?.origin || '',
-      destination: input.segments[input.segments.length - 1]?.destination || '',
-      departureDate: segment?.departureDate || new Date(),
-      cabinClass: segment?.cabinClass || 'ECONOMY',
-      fareClass: segment?.fareClass,
-      fareBasisCode: segment?.fareBasisCode,
-      baseFare: input.baseFare,
-      totalFare: input.totalFare,
-      currency: input.currency || 'USD',
-      commissionPct: result.commissionPct,
-      commissionAmount: result.commissionAmount,
-      isExcluded: result.isExcluded,
-      exclusionReason: result.exclusionReason,
-      routingChannel: result.routingChannel,
-      estimatedProfit: result.estimatedProfit,
-      decisionReason: result.decisionReason,
-      duffelProfit: result.duffelProfit,
-      consolidatorProfit: result.consolidatorProfit,
-    },
-  });
+  // Concurrency gate: drop if too many writes in flight
+  if (_activeLogWrites >= _MAX_CONCURRENT_LOG_WRITES) return;
+
+  if (!_dbAvailable()) return;
+  const segment = input.segments[0];
+  _activeLogWrites++;
+  try {
+    const prisma = getPrismaClient();
+    await prisma.routingDecision.create({
+      data: {
+        searchId,
+        offerId: offerId || 'unknown',
+        airlineCode: segment?.airlineCode || 'XX',
+        origin: segment?.origin || '',
+        destination: input.segments[input.segments.length - 1]?.destination || '',
+        departureDate: segment?.departureDate || new Date(),
+        cabinClass: segment?.cabinClass || 'ECONOMY',
+        fareClass: segment?.fareClass,
+        fareBasisCode: segment?.fareBasisCode,
+        baseFare: input.baseFare,
+        totalFare: input.totalFare,
+        currency: input.currency || 'USD',
+        commissionPct: result.commissionPct,
+        commissionAmount: result.commissionAmount,
+        isExcluded: result.isExcluded,
+        exclusionReason: result.exclusionReason,
+        routingChannel: result.routingChannel,
+        estimatedProfit: result.estimatedProfit,
+        decisionReason: result.decisionReason,
+        duffelProfit: result.duffelProfit,
+        consolidatorProfit: result.consolidatorProfit,
+      },
+    });
+    _dbOk();
+  } catch (err) {
+    _dbFail(err, 'logRoutingDecision');
+  } finally {
+    _activeLogWrites--;
+  }
 }
