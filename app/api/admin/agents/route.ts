@@ -11,12 +11,12 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const user = await prisma!.user.findUnique({
-      where: { id: session.user.id },
+    const adminUser = await prisma!.adminUser.findUnique({
+      where: { userId: session.user.id },
       select: { role: true },
     });
 
-    if (!user || !['ADMIN', 'SUPER_ADMIN'].includes(user.role)) {
+    if (!adminUser || !['admin', 'super_admin', 'ADMIN', 'SUPER_ADMIN'].includes(adminUser.role)) {
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
     }
 
@@ -85,12 +85,12 @@ export async function PATCH(req: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const user = await prisma!.user.findUnique({
-      where: { id: session.user.id },
-      select: { role: true, name: true },
+    const adminUser = await prisma!.adminUser.findUnique({
+      where: { userId: session.user.id },
+      select: { role: true },
     });
 
-    if (!user || !['ADMIN', 'SUPER_ADMIN'].includes(user.role)) {
+    if (!adminUser || !['admin', 'super_admin', 'ADMIN', 'SUPER_ADMIN'].includes(adminUser.role)) {
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
     }
 
@@ -118,7 +118,7 @@ export async function PATCH(req: NextRequest) {
         metadata: {
           status,
           rejectionReason: rejectionReason || null,
-          changedBy: user.name || session.user.id,
+          changedBy: session.user.name || session.user.id,
         },
       },
     });

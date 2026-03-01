@@ -21,12 +21,12 @@ export default async function AdminAgentDetailPage({ params }: Props) {
   const session = await auth();
   if (!session?.user?.id) redirect('/auth/signin');
 
-  const user = await prisma!.user.findUnique({
-    where: { id: session.user.id },
+  const adminUser = await prisma!.adminUser.findUnique({
+    where: { userId: session.user.id },
     select: { role: true },
   });
 
-  if (!user || !['ADMIN', 'SUPER_ADMIN'].includes(user.role)) redirect('/');
+  if (!adminUser || !['admin', 'super_admin', 'ADMIN', 'SUPER_ADMIN'].includes(adminUser.role)) redirect('/');
 
   const agent = await prisma!.travelAgent.findUnique({
     where: { id: params.id },
